@@ -65,7 +65,8 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     std::function<DungeonCanvasViewer*()> get_compare_viewer,
     std::function<const std::deque<int>&()> get_recent_rooms,
     std::function<void(int)> forget_recent_room,
-    std::function<void(const std::string&)> show_panel, Rom* rom)
+    std::function<void(const std::string&)> show_panel,
+    std::function<void(bool)> set_workflow_mode, Rom* rom)
     : room_selector_(room_selector),
       current_room_id_(current_room_id),
       previous_room_id_(previous_room_id),
@@ -81,6 +82,7 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
       get_recent_rooms_(std::move(get_recent_rooms)),
       forget_recent_room_(std::move(forget_recent_room)),
       show_panel_(std::move(show_panel)),
+      set_workflow_mode_(std::move(set_workflow_mode)),
       rom_(rom) {}
 
 std::string DungeonWorkbenchPanel::GetId() const { return "dungeon.workbench"; }
@@ -109,6 +111,22 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   DungeonCanvasViewer* primary_viewer = get_viewer_ ? get_viewer_() : nullptr;
   DungeonCanvasViewer* compare_viewer =
       get_compare_viewer_ ? get_compare_viewer_() : nullptr;
+
+  // Clarify workflow intent: this panel is the integrated workbench mode.
+  ImGui::TextDisabled(ICON_MD_WORKSPACES " Workbench Mode");
+  ImGui::SameLine();
+  ImGui::TextDisabled("Integrated room browser + inspector");
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_VIEW_QUILT " Switch To Panel Mode") &&
+      set_workflow_mode_) {
+    set_workflow_mode_(false);
+    return;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Switch to standalone room panels with separate Room List + Room Matrix windows.");
+  }
+  ImGui::Spacing();
 
   if (layout_state_ && current_room_id_) {
     DungeonWorkbenchToolbarParams params;

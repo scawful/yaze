@@ -310,15 +310,11 @@ void DungeonEditorV2::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to view the dungeon map"});
 
-  // Show default panels on startup
-  if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
-    panel_manager->ShowPanel("dungeon.workbench");
-    panel_manager->ShowPanel(kRoomSelectorId);
-    panel_manager->ShowPanel(kRoomMatrixId);
-  } else {
-    panel_manager->ShowPanel(kRoomSelectorId);
-    panel_manager->ShowPanel(kRoomMatrixId);
-  }
+  // Show default panels on startup.
+  // Workbench mode intentionally suppresses parallel standalone defaults to
+  // avoid two competing workflows being open at once.
+  SetWorkbenchWorkflowMode(core::FeatureFlags::get().dungeon.kUseWorkbench,
+                           /*show_toast=*/false);
 
   // Wire intent-aware callback for double-click / context menu
   room_selector_.SetRoomSelectedWithIntentCallback(
@@ -395,7 +391,8 @@ void DungeonEditorV2::Initialize() {
             std::remove(recent_rooms_.begin(), recent_rooms_.end(), room_id),
             recent_rooms_.end());
       },
-      [this](const std::string& id) { ShowPanel(id); }, rom_));
+      [this](const std::string& id) { ShowPanel(id); },
+      [this](bool enabled) { SetWorkbenchWorkflowMode(enabled); }, rom_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
       &entrances_, &current_entrance_id_,
@@ -720,8 +717,7 @@ absl::Status DungeonEditorV2::Update() {
     return absl::OkStatus();
   }
 
-  if (!core::FeatureFlags::get().dungeon.kUseWorkbench ||
-      active_rooms_.Size > 0) {
+  if (!IsWorkbenchWorkflowEnabled() || active_rooms_.Size > 0) {
     DrawRoomPanels();
   }
 
@@ -736,7 +732,7 @@ absl::Status DungeonEditorV2::Update() {
   if (!ImGui::GetIO().WantTextInput) {
     // Room Cycling (Ctrl+Tab)
     if (ImGui::IsKeyPressed(ImGuiKey_Tab) && ImGui::GetIO().KeyCtrl) {
-      if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
+      if (IsWorkbenchWorkflowEnabled()) {
         if (recent_rooms_.size() > 1) {
           int current_idx = -1;
           for (int i = 0; i < static_cast<int>(recent_rooms_.size()); ++i) {
@@ -801,7 +797,7 @@ absl::Status DungeonEditorV2::Update() {
       }
 
       if (next_room != -1) {
-        if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
+        if (IsWorkbenchWorkflowEnabled()) {
           OnRoomSelected(next_room, /*request_focus=*/false);
         } else {
           SwapRoomInPanel(current_room_id_, next_room);
@@ -1241,6 +1237,61 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
   return absl::OkStatus();
 }
 
+bool DungeonEditorV2::IsWorkbenchWorkflowEnabled() const {
+  if (!core::FeatureFlags::get().dungeon.kUseWorkbench) {
+    return false;
+  }
+  if (!dependencies_.panel_manager) {
+    return true;
+  }
+  return dependencies_.panel_manager->IsPanelVisible("dungeon.workbench");
+}
+
+void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
+  auto* panel_manager = dependencies_.panel_manager;
+  if (!panel_manager) {
+    return;
+  }
+
+  const size_t session_id = panel_manager->GetActiveSessionId();
+  const bool was_enabled = IsWorkbenchWorkflowEnabled();
+
+  if (enabled) {
+    panel_manager->ShowPanel(session_id, "dungeon.workbench");
+
+    // Hide standalone workflow windows unless explicitly pinned.
+    for (const auto& descriptor :
+         panel_manager->GetPanelsInCategory(session_id, "Dungeon")) {
+      const std::string& card_id = descriptor.card_id;
+      if (card_id == "dungeon.workbench") {
+        continue;
+      }
+      if (panel_manager->IsPanelPinned(session_id, card_id)) {
+        continue;
+      }
+      const bool is_room_window = card_id.rfind("dungeon.room_", 0) == 0;
+      if (card_id == kRoomSelectorId || card_id == kRoomMatrixId ||
+          is_room_window) {
+        panel_manager->HidePanel(session_id, card_id);
+      }
+    }
+  } else {
+    panel_manager->HidePanel(session_id, "dungeon.workbench");
+    panel_manager->ShowPanel(session_id, kRoomSelectorId);
+    panel_manager->ShowPanel(session_id, kRoomMatrixId);
+    if (current_room_id_ >= 0) {
+      ShowRoomPanel(current_room_id_);
+    }
+  }
+
+  if (show_toast && dependencies_.toast_manager && was_enabled != enabled) {
+    dependencies_.toast_manager->Show(
+        enabled ? "Dungeon workflow: Workbench"
+                : "Dungeon workflow: Standalone Panels",
+        ToastType::kInfo);
+  }
+}
+
 void DungeonEditorV2::DrawRoomPanels() {
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
@@ -1446,11 +1497,12 @@ void DungeonEditorV2::OnRoomSelected(int room_id, RoomSelectionIntent intent) {
       OnRoomSelected(room_id, /*request_focus=*/true);
       break;
     case RoomSelectionIntent::kOpenStandalone: {
-      // Force standalone panel even in workbench mode:
-      // Run the common state update, then skip the workbench early-return
-      // by going directly to the per-room panel path.
+      // Explicitly pivot to panel workflow when user asks for standalone room.
       if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
         return;
+      }
+      if (IsWorkbenchWorkflowEnabled()) {
+        SetWorkbenchWorkflowMode(false);
       }
       // Update shared state (same as OnRoomSelected with request_focus=true)
       OnRoomSelected(room_id, /*request_focus=*/false);
@@ -1536,7 +1588,7 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
 
   // Workbench mode uses a single stable window and does not spawn per-room
   // panels. Keep selection + panels in sync and return.
-  if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
+  if (IsWorkbenchWorkflowEnabled()) {
     if (dependencies_.panel_manager && request_focus) {
       // Only force-show if it's already visible or if it's the first initialization
       // This avoids obtrusive behavior when the user explicitly closed it.
@@ -1823,7 +1875,7 @@ void DungeonEditorV2::ProcessPendingSwap() {
 }
 
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
-  if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
+  if (IsWorkbenchWorkflowEnabled()) {
     (void)room_id;
     return GetWorkbenchViewer();
   }
