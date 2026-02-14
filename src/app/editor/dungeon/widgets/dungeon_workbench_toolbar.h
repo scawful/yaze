@@ -24,6 +24,7 @@ struct DungeonWorkbenchToolbarParams {
 
   std::function<void(int)> on_room_selected;
   std::function<const std::deque<int>&()> get_recent_rooms;
+  std::function<void(bool)> set_workflow_mode;
 
   char* compare_search_buf = nullptr;
   size_t compare_search_buf_size = 0;
@@ -33,7 +34,9 @@ struct DungeonWorkbenchToolbarParams {
 // toggles). Intended to replace per-canvas header chrome in Workbench mode.
 class DungeonWorkbenchToolbar {
  public:
-  static void Draw(const DungeonWorkbenchToolbarParams& params);
+  // Returns true when the user requested switching out of Workbench mode.
+  // Caller should apply that mode change after finishing current ImGui scopes.
+  static bool Draw(const DungeonWorkbenchToolbarParams& params);
 };
 
 }  // namespace yaze::editor

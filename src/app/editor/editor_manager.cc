@@ -40,6 +40,7 @@
 
 // Project headers
 #include "app/application.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
@@ -680,7 +681,25 @@ void EditorManager::InitializeSubsystems() {
   editor_activator_.Initialize(activator_deps);
 
   // STEP 4.7: Initialize ActivityBar
-  activity_bar_ = std::make_unique<ActivityBar>(panel_manager_);
+  activity_bar_ = std::make_unique<ActivityBar>(
+      panel_manager_,
+      [this]() -> bool {
+        if (auto* editor_set = GetCurrentEditorSet()) {
+          if (auto* dungeon_editor = editor_set->GetEditorAs<DungeonEditorV2>(
+                  EditorType::kDungeon)) {
+            return dungeon_editor->IsWorkbenchWorkflowEnabled();
+          }
+        }
+        return false;
+      },
+      [this](bool enabled) {
+        if (auto* editor_set = GetCurrentEditorSet()) {
+          if (auto* dungeon_editor = editor_set->GetEditorAs<DungeonEditorV2>(
+                  EditorType::kDungeon)) {
+            dungeon_editor->SetWorkbenchWorkflowMode(enabled);
+          }
+        }
+      });
 
   // PanelHost is the declarative panel registration surface used by
   // editor/runtime systems.

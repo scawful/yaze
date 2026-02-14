@@ -204,20 +204,26 @@ void DrawComparePicker(int current_room_id, int* compare_room_id,
 
 }  // namespace
 
-void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
+bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   if (!p.layout || !p.current_room_id || !p.split_view_enabled ||
       !p.compare_room_id) {
     ImGui::TextDisabled("Workbench toolbar not wired");
-    return;
+    return false;
   }
 
   // Use a themed, compact toolbar container.
   gui::LayoutHelpers::BeginToolbar("##DungeonWorkbenchToolbar");
+  bool request_panel_mode = false;
 
-  const float desired_btn = gui::LayoutHelpers::GetStandardWidgetHeight();
   const float btn =
-      std::min(desired_btn, std::max(18.0f, ImGui::GetContentRegionAvail().y));
+      std::max(gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 2.0f,
+               gui::LayoutHelpers::GetStandardWidgetHeight() + 6.0f);
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+  const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
+  gui::StyleVarGuard frame_pad_guard(
+      ImGuiStyleVar_FramePadding,
+      ImVec2(frame_pad.x, std::max(frame_pad.y, 4.0f)));
 
   constexpr ImGuiTableFlags kFlags =
       ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadInnerX |
@@ -247,6 +253,13 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
                            &p.layout->show_right_inspector, btn,
                            "Hide inspector",
                            "Show inspector");
+    if (p.set_workflow_mode) {
+      ImGui::SameLine();
+      if (SquareIconButton("##PanelMode", ICON_MD_VIEW_QUILT, btn,
+                           "Switch to standalone panel workflow")) {
+        request_panel_mode = true;
+      }
+    }
     ImGui::SameLine();
 
     const int rid = *p.current_room_id;
@@ -380,6 +393,7 @@ void DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   }
 
   gui::LayoutHelpers::EndToolbar();
+  return request_panel_mode;
 }
 
 }  // namespace yaze::editor
