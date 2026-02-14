@@ -1,8 +1,8 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_WATER_FILL_PANEL_H
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_WATER_FILL_PANEL_H
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <exception>
 #include <fstream>
@@ -24,7 +24,8 @@ namespace yaze::editor {
 
 class WaterFillPanel : public EditorPanel {
  public:
-  WaterFillPanel(DungeonCanvasViewer* viewer, DungeonObjectInteraction* interaction)
+  WaterFillPanel(DungeonCanvasViewer* viewer,
+                 DungeonObjectInteraction* interaction)
       : viewer_(viewer), interaction_(interaction) {}
 
   std::string GetId() const override { return "dungeon.water_fill"; }
@@ -56,12 +57,12 @@ class WaterFillPanel : public EditorPanel {
     const bool reserved_region_present =
         zelda3::HasWaterFillReservedRegion(rom_size);
     if (!reserved_region_present) {
-      ImGui::TextColored(
-          theme.status_error,
-          ICON_MD_ERROR
-          " WaterFill reserved region missing (use an expanded-collision Oracle ROM)");
+      ImGui::TextColored(theme.status_error, ICON_MD_ERROR
+                         " WaterFill reserved region missing (use an "
+                         "expanded-collision Oracle ROM)");
       ImGui::TextDisabled(
-          "Expected ROM >= 0x%X bytes (WaterFill end). Current ROM is %zu bytes.",
+          "Expected ROM >= 0x%X bytes (WaterFill end). Current ROM is %zu "
+          "bytes.",
           zelda3::kWaterFillTableEnd, rom_size);
       ImGui::Separator();
     }
@@ -87,12 +88,13 @@ class WaterFillPanel : public EditorPanel {
           std::string contents = util::LoadFile(path);
           auto zones_or = zelda3::LoadWaterFillZonesFromJsonString(contents);
           if (!zones_or.ok()) {
-            last_io_error_ = zones_or.status().message();
+            last_io_error_ = std::string(zones_or.status().message());
             last_io_status_.clear();
           } else {
             auto zones = std::move(zones_or.value());
             for (const auto& z : zones) {
-              if (z.room_id < 0 || z.room_id >= static_cast<int>(rooms->size())) {
+              if (z.room_id < 0 ||
+                  z.room_id >= static_cast<int>(rooms->size())) {
                 continue;
               }
               ApplyZoneToRoom(z, &(*rooms)[z.room_id]);
@@ -113,7 +115,7 @@ class WaterFillPanel : public EditorPanel {
       auto zones = CollectZones(*rooms);
       auto st = zelda3::NormalizeWaterFillZoneMasks(&zones);
       if (!st.ok()) {
-        last_io_error_ = st.message();
+        last_io_error_ = std::string(st.message());
         last_io_status_.clear();
       } else {
         int changed = 0;
@@ -139,7 +141,7 @@ class WaterFillPanel : public EditorPanel {
       auto zones = CollectZones(*rooms);
       auto json_or = zelda3::DumpWaterFillZonesToJsonString(zones);
       if (!json_or.ok()) {
-        last_io_error_ = json_or.status().message();
+        last_io_error_ = std::string(json_or.status().message());
         last_io_status_.clear();
       } else {
         std::string path = util::FileDialogWrapper::ShowSaveFileDialog(
@@ -204,7 +206,8 @@ class WaterFillPanel : public EditorPanel {
         ImGui::BeginDisabled(!can_paint);
         if (ImGui::Checkbox("Paint Mode", &is_painting)) {
           if (is_painting) {
-            interaction_->mode_manager().SetMode(InteractionMode::PaintWaterFill);
+            interaction_->mode_manager().SetMode(
+                InteractionMode::PaintWaterFill);
             viewer_->set_show_water_fill_overlay(true);
           } else {
             interaction_->mode_manager().SetMode(InteractionMode::Select);
@@ -236,8 +239,7 @@ class WaterFillPanel : public EditorPanel {
         }
         if (!has_switch_sprite) {
           ImGui::TextColored(
-              theme.text_warning_yellow,
-              ICON_MD_WARNING
+              theme.text_warning_yellow, ICON_MD_WARNING
               " No PullSwitch (0x04) / PushSwitch (0x21) sprite found");
         }
       } else {
@@ -303,7 +305,8 @@ class WaterFillPanel : public EditorPanel {
       for (int rid = 0; rid < static_cast<int>(rooms->size()); ++rid) {
         auto& r = (*rooms)[rid];
         const int tiles = r.WaterFillTileCount();
-        if (tiles <= 0) continue;
+        if (tiles <= 0)
+          continue;
         rows.push_back(ZoneRow{rid, tiles, r.water_fill_sram_bit_mask(),
                                r.water_fill_dirty()});
         if (tiles > 255) {
@@ -335,8 +338,7 @@ class WaterFillPanel : public EditorPanel {
       }
       if (rooms_over_tile_limit > 0) {
         ImGui::TextColored(theme.status_error,
-                           ICON_MD_ERROR
-                           " %d room(s) exceed 255 tiles",
+                           ICON_MD_ERROR " %d room(s) exceed 255 tiles",
                            rooms_over_tile_limit);
       }
       if (duplicate_masks > 0) {
@@ -353,8 +355,7 @@ class WaterFillPanel : public EditorPanel {
       }
 
       if (ImGui::BeginTable("##WaterFillZoneOverview", 6,
-                            ImGuiTableFlags_Borders |
-                                ImGuiTableFlags_RowBg |
+                            ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                                 ImGuiTableFlags_SizingFixedFit)) {
         ImGui::TableSetupColumn("Room");
         ImGui::TableSetupColumn("Tiles");
@@ -444,7 +445,7 @@ class WaterFillPanel : public EditorPanel {
   }
 
   static void ApplyZoneToRoom(const zelda3::WaterFillZoneEntry& z,
-                             zelda3::Room* room) {
+                              zelda3::Room* room) {
     if (room == nullptr) {
       return;
     }
