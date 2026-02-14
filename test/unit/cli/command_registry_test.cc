@@ -43,7 +43,8 @@ TEST(CommandRegistryTest, DungeonSetCollisionTileHelpIncludesTilesSyntax) {
   auto& registry = CommandRegistry::Instance();
   const std::string help = registry.GenerateHelp("dungeon-set-collision-tile");
 
-  EXPECT_THAT(help, ::testing::HasSubstr("Set one or more custom collision tiles"));
+  EXPECT_THAT(help,
+              ::testing::HasSubstr("Set one or more custom collision tiles"));
   EXPECT_THAT(help, ::testing::HasSubstr("10,5,0xB7;50,45,0xBA"));
 }
 

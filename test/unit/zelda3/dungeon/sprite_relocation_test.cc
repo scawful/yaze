@@ -50,11 +50,13 @@ class SpriteRelocationTest : public ::testing::Test {
     EXPECT_GE(room_id, 0);
     EXPECT_LT(room_id, kNumberOfRooms);
     const int ptr_off = sprite_table_pc_ + room_id * 2;
-    const uint16_t low16 = (rom_->data()[ptr_off + 1] << 8) | rom_->data()[ptr_off];
+    const uint16_t low16 =
+        (rom_->data()[ptr_off + 1] << 8) | rom_->data()[ptr_off];
     return SnesToPc(0x090000 | low16);
   }
 
-  std::vector<uint8_t> EncodeSpritePayload(int count, uint8_t id_base = 0x10) const {
+  std::vector<uint8_t> EncodeSpritePayload(int count,
+                                           uint8_t id_base = 0x10) const {
     std::vector<uint8_t> payload;
     payload.reserve(count * 3 + 1);
     for (int i = 0; i < count; ++i) {

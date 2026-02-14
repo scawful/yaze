@@ -55,9 +55,9 @@ absl::StatusOr<int> GetOptionalInt(const resources::ArgumentParser& parser,
 
 absl::Status ValidateRoomId(int room_id) {
   if (room_id < 0 || room_id >= zelda3::NumberOfRooms) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Room ID out of range: 0x%X (expected 0x00-0x%02X)", room_id,
-        zelda3::NumberOfRooms - 1));
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Room ID out of range: 0x%X (expected 0x00-0x%02X)",
+                        room_id, zelda3::NumberOfRooms - 1));
   }
   return absl::OkStatus();
 }
@@ -159,11 +159,10 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
   int count_before = static_cast<int>(room.GetSprites().size());
 
   // Add the new sprite
-  room.GetSprites().emplace_back(static_cast<uint8_t>(sprite_id),
-                                 static_cast<uint8_t>(x),
-                                 static_cast<uint8_t>(y),
-                                 static_cast<uint8_t>(subtype),
-                                 static_cast<uint8_t>(layer));
+  room.GetSprites().emplace_back(
+      static_cast<uint8_t>(sprite_id), static_cast<uint8_t>(x),
+      static_cast<uint8_t>(y), static_cast<uint8_t>(subtype),
+      static_cast<uint8_t>(layer));
 
   formatter.BeginObject("Place Sprite");
   formatter.AddHexField("room_id", room_id, 2);
@@ -174,7 +173,8 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
   formatter.AddField("subtype", subtype);
   formatter.AddField("layer", layer);
   formatter.AddField("sprites_before", count_before);
-  formatter.AddField("sprites_after", static_cast<int>(room.GetSprites().size()));
+  formatter.AddField("sprites_after",
+                     static_cast<int>(room.GetSprites().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
   if (do_write) {
@@ -274,9 +274,8 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
       }
     }
     if (remove_index < 0) {
-      return absl::NotFoundError(
-          absl::StrFormat("No sprite at (%d, %d) in room 0x%02X", x, y,
-                          room_id));
+      return absl::NotFoundError(absl::StrFormat(
+          "No sprite at (%d, %d) in room 0x%02X", x, y, room_id));
     }
   }
 
@@ -399,14 +398,13 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
 
   // Create the new object
   zelda3::RoomObject obj(static_cast<int16_t>(object_id),
-                         static_cast<uint8_t>(x),
-                         static_cast<uint8_t>(y),
+                         static_cast<uint8_t>(x), static_cast<uint8_t>(y),
                          static_cast<uint8_t>(size),
                          static_cast<uint8_t>(layer));
 
   // Determine type for reporting
-  int type =
-      zelda3::RoomObject::DetermineObjectType((object_id & 0xFF), (object_id >> 8));
+  int type = zelda3::RoomObject::DetermineObjectType((object_id & 0xFF),
+                                                     (object_id >> 8));
 
   formatter.BeginObject("Place Object");
   formatter.AddHexField("room_id", room_id, 2);
@@ -427,7 +425,8 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
     return add_status;
   }
 
-  formatter.AddField("objects_after", static_cast<int>(room.GetTileObjects().size()));
+  formatter.AddField("objects_after",
+                     static_cast<int>(room.GetTileObjects().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
   if (do_write) {
@@ -485,8 +484,10 @@ absl::Status DungeonSetCollisionTileCommandHandler::Execute(
   };
   std::vector<TileSpec> specs;
 
-  for (absl::string_view entry : absl::StrSplit(tiles_str, ';', absl::SkipEmpty())) {
-    std::vector<std::string> parts = absl::StrSplit(entry, ',', absl::SkipEmpty());
+  for (absl::string_view entry :
+       absl::StrSplit(tiles_str, ';', absl::SkipEmpty())) {
+    std::vector<std::string> parts =
+        absl::StrSplit(entry, ',', absl::SkipEmpty());
     if (parts.size() != 3) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Invalid tile spec '%s'. Expected x,y,tile (e.g. 10,5,0xB7)", entry));
