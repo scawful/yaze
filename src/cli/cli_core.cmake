@@ -62,9 +62,6 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/tools/test_cli_commands.cc
   cli/handlers/tools/test_helpers_commands.cc
 
-  # Message data utilities (needed by message_commands.cc, message_doctor)
-  app/editor/message/message_data.cc
-
   cli/service/gui/canvas_automation_client.cc
   cli/service/gui/gui_automation_client.cc
   cli/service/net/z3ed_network_client.cc
@@ -74,6 +71,14 @@ set(YAZE_CLI_CORE_SOURCES
   cli/service/testing/test_suite_writer.cc
   cli/service/testing/test_workflow_generator.cc
 )
+
+# iOS force-loads the bundled static archive; message_data.cc is already
+# compiled into yaze_editor, so including it here causes duplicate symbols.
+if(NOT YAZE_PLATFORM_IOS)
+  list(APPEND YAZE_CLI_CORE_SOURCES
+    app/editor/message/message_data.cc
+  )
+endif()
 
 if(YAZE_ENABLE_GRPC)
   list(APPEND YAZE_CLI_CORE_SOURCES
