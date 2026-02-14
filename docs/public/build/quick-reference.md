@@ -4,6 +4,32 @@ This document is the single source of truth for configuring, building, and testi
 
 ---
 
+## 0. Standard Local Workflow
+
+For day-to-day local development on a configured machine, use the unified workflow script:
+
+```bash
+scripts/dev/local-workflow.sh all
+```
+
+Useful subcommands:
+
+```bash
+scripts/dev/local-workflow.sh build
+scripts/dev/local-workflow.sh test
+scripts/dev/local-workflow.sh sync
+scripts/dev/local-workflow.sh status
+scripts/dev/local-workflow.sh hooks
+scripts/dev/local-workflow.sh release-check
+```
+
+What `sync` does on macOS:
+- Updates `/Applications/yaze.app` from the selected build output.
+- Refreshes PATH link for `z3ed` (default: `/usr/local/bin/z3ed`).
+- Verifies runtime binary hashes after copy/link.
+
+---
+
 ## 1. Environment Setup
 
 ### Clone the Repository

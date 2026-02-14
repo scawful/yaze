@@ -1,189 +1,166 @@
 #!/usr/bin/env bash
-# Git hooks installer for yaze
-# Installs pre-push hook to run validation before pushing
+# Git hooks installer for yaze.
+# Installs both pre-commit and pre-push hooks by default.
 #
 # Usage:
-#   scripts/install-git-hooks.sh [install|uninstall|status]
-#
-# Commands:
-#   install    - Install pre-push hook (default)
-#   uninstall  - Remove pre-push hook
-#   status     - Show hook installation status
+#   scripts/install-git-hooks.sh [install|uninstall|status|install-pre-commit|install-pre-push|uninstall-pre-commit|uninstall-pre-push]
 
 set -euo pipefail
 
-# Colors
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 HOOK_DIR="$REPO_ROOT/.git/hooks"
-HOOK_FILE="$HOOK_DIR/pre-push"
-HOOK_SCRIPT="$REPO_ROOT/scripts/pre-push.sh"
 
-print_success() {
-  echo -e "${GREEN}✅ $1${NC}"
-}
+PRECOMMIT_HOOK_FILE="$HOOK_DIR/pre-commit"
+PREPUSH_HOOK_FILE="$HOOK_DIR/pre-push"
+PRECOMMIT_SCRIPT="$REPO_ROOT/scripts/pre-commit.sh"
+PREPUSH_SCRIPT="$REPO_ROOT/scripts/pre-push.sh"
 
-print_error() {
-  echo -e "${RED}❌ $1${NC}"
-}
+print_success() { echo -e "${GREEN}[ok] $1${NC}"; }
+print_error() { echo -e "${RED}[err] $1${NC}"; }
+print_warning() { echo -e "${YELLOW}[warn] $1${NC}"; }
+print_info() { echo -e "${BLUE}[info] $1${NC}"; }
 
-print_warning() {
-  echo -e "${YELLOW}⚠️  $1${NC}"
-}
-
-print_info() {
-  echo -e "${BLUE}ℹ️  $1${NC}"
-}
-
-# Check if we're in a git repository
 check_git_repo() {
-  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+  if ! git rev-parse --git-dir >/dev/null 2>&1; then
     print_error "Not in a git repository"
     exit 1
   fi
 }
 
-# Check if hook directory exists
 check_hook_dir() {
-  if [ ! -d "$HOOK_DIR" ]; then
+  if [[ ! -d "$HOOK_DIR" ]]; then
     print_error "Git hooks directory not found: $HOOK_DIR"
     exit 1
   fi
 }
 
-# Check if pre-push script exists
-check_prepush_script() {
-  if [ ! -f "$HOOK_SCRIPT" ]; then
-    print_error "Pre-push script not found: $HOOK_SCRIPT"
-    print_info "Make sure you're running this from the repository root"
-    exit 1
+backup_hook_if_needed() {
+  local hook_file="$1"
+  local marker="$2"
+
+  if [[ -f "$hook_file" ]] && ! grep -q "$marker" "$hook_file" 2>/dev/null; then
+    local backup="${hook_file}.backup.$(date +%Y%m%d_%H%M%S)"
+    cp "$hook_file" "$backup"
+    print_info "Backed up existing hook to $backup"
   fi
 }
 
-# Show hook status
-show_status() {
-  echo -e "${BLUE}=== Git Hook Status ===${NC}\n"
-
-  if [ -f "$HOOK_FILE" ]; then
-    print_success "Pre-push hook is installed"
-    echo ""
-    echo "Hook location: $HOOK_FILE"
-    echo ""
-
-    # Check if it's our hook
-    if grep -q "scripts/pre-push.sh" "$HOOK_FILE" 2>/dev/null; then
-      print_info "Hook type: yaze validation hook"
+install_precommit_hook() {
+  if [[ ! -x "$PRECOMMIT_SCRIPT" ]]; then
+    if [[ -f "$PRECOMMIT_SCRIPT" ]]; then
+      chmod +x "$PRECOMMIT_SCRIPT"
     else
-      print_warning "Hook type: Custom/unknown (not yaze default)"
-      print_info "To reinstall yaze hook, run: scripts/install-git-hooks.sh install"
-    fi
-  else
-    print_warning "Pre-push hook is NOT installed"
-    echo ""
-    print_info "To install, run: scripts/install-git-hooks.sh install"
-  fi
-
-  echo ""
-  echo "Pre-push script: $HOOK_SCRIPT"
-  if [ -x "$HOOK_SCRIPT" ]; then
-    print_success "Script is executable"
-  else
-    print_warning "Script is not executable"
-    print_info "Run: chmod +x $HOOK_SCRIPT"
-  fi
-}
-
-# Install hook
-install_hook() {
-  echo -e "${BLUE}=== Installing Pre-Push Hook ===${NC}\n"
-
-  # Backup existing hook if present
-  if [ -f "$HOOK_FILE" ]; then
-    print_warning "Existing hook found"
-
-    # Check if it's our hook
-    if grep -q "scripts/pre-push.sh" "$HOOK_FILE" 2>/dev/null; then
-      print_info "Existing hook is already yaze validation hook"
-      print_info "Updating hook..."
-    else
-      local backup="$HOOK_FILE.backup.$(date +%Y%m%d_%H%M%S)"
-      print_info "Backing up to: $backup"
-      cp "$HOOK_FILE" "$backup"
+      print_error "Missing script: $PRECOMMIT_SCRIPT"
+      exit 1
     fi
   fi
 
-  # Create hook
-  cat > "$HOOK_FILE" << 'EOF'
+  backup_hook_if_needed "$PRECOMMIT_HOOK_FILE" "scripts/pre-commit.sh"
+
+  cat > "$PRECOMMIT_HOOK_FILE" <<'EOF'
 #!/usr/bin/env bash
-# Pre-push hook for yaze
-# Automatically installed by scripts/install-git-hooks.sh
-#
-# To bypass this hook, use: git push --no-verify
+# Auto-installed by scripts/install-git-hooks.sh
+# To bypass: git commit --no-verify
 
-# Get repository root
 REPO_ROOT=$(git rev-parse --show-toplevel)
 
-# Colors
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m'
-
-echo -e "${BLUE}Running pre-push validation...${NC}\n"
-
-# Run validation script
-if ! "$REPO_ROOT/scripts/pre-push.sh"; then
+if ! "$REPO_ROOT/scripts/pre-commit.sh"; then
   echo ""
-  echo -e "${RED}Pre-push validation failed!${NC}"
-  echo ""
-  echo "Fix the issues above and try again."
-  echo "To bypass this check (not recommended), use: git push --no-verify"
+  echo "pre-commit checks failed"
+  echo "Fix issues and re-commit, or bypass once with: git commit --no-verify"
   exit 1
 fi
 
-echo ""
-echo -e "${GREEN}Pre-push validation passed!${NC}"
 exit 0
 EOF
 
-  # Make hook executable
-  chmod +x "$HOOK_FILE"
-
-  print_success "Pre-push hook installed successfully"
-  echo ""
-  print_info "Hook location: $HOOK_FILE"
-  print_info "The hook will run automatically before each push"
-  print_info "To bypass: git push --no-verify (use sparingly)"
-  echo ""
-  print_info "Test the hook with: scripts/pre-push.sh"
+  chmod +x "$PRECOMMIT_HOOK_FILE"
+  print_success "Installed pre-commit hook"
 }
 
-# Uninstall hook
-uninstall_hook() {
-  echo -e "${BLUE}=== Uninstalling Pre-Push Hook ===${NC}\n"
-
-  if [ ! -f "$HOOK_FILE" ]; then
-    print_warning "No hook to uninstall"
-    exit 0
+install_prepush_hook() {
+  if [[ ! -x "$PREPUSH_SCRIPT" ]]; then
+    if [[ -f "$PREPUSH_SCRIPT" ]]; then
+      chmod +x "$PREPUSH_SCRIPT"
+    else
+      print_error "Missing script: $PREPUSH_SCRIPT"
+      exit 1
+    fi
   fi
 
-  # Check if it's our hook before removing
-  if grep -q "scripts/pre-push.sh" "$HOOK_FILE" 2>/dev/null; then
-    rm "$HOOK_FILE"
-    print_success "Pre-push hook uninstalled"
+  backup_hook_if_needed "$PREPUSH_HOOK_FILE" "scripts/pre-push.sh"
+
+  cat > "$PREPUSH_HOOK_FILE" <<'EOF'
+#!/usr/bin/env bash
+# Auto-installed by scripts/install-git-hooks.sh
+# To bypass: git push --no-verify
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+
+if ! "$REPO_ROOT/scripts/pre-push.sh"; then
+  echo ""
+  echo "pre-push checks failed"
+  echo "Fix issues and push again, or bypass once with: git push --no-verify"
+  exit 1
+fi
+
+exit 0
+EOF
+
+  chmod +x "$PREPUSH_HOOK_FILE"
+  print_success "Installed pre-push hook"
+}
+
+uninstall_hook_if_managed() {
+  local hook_file="$1"
+  local marker="$2"
+  local name="$3"
+
+  if [[ ! -f "$hook_file" ]]; then
+    print_warning "$name hook not installed"
+    return
+  fi
+
+  if grep -q "$marker" "$hook_file" 2>/dev/null; then
+    rm -f "$hook_file"
+    print_success "Uninstalled $name hook"
   else
-    print_warning "Hook exists but doesn't appear to be yaze validation hook"
-    print_info "Manual removal required: rm $HOOK_FILE"
-    exit 1
+    print_warning "$name hook exists but is not managed by yaze installer"
+    print_info "Leaving it untouched: $hook_file"
   fi
 }
 
-# Main
+status_hook() {
+  local hook_file="$1"
+  local marker="$2"
+  local name="$3"
+
+  if [[ -f "$hook_file" ]]; then
+    if grep -q "$marker" "$hook_file" 2>/dev/null; then
+      print_success "$name: installed (yaze-managed)"
+    else
+      print_warning "$name: installed (custom)"
+    fi
+  else
+    print_warning "$name: not installed"
+  fi
+}
+
+show_status() {
+  echo -e "${BLUE}=== Git Hook Status ===${NC}"
+  status_hook "$PRECOMMIT_HOOK_FILE" "scripts/pre-commit.sh" "pre-commit"
+  status_hook "$PREPUSH_HOOK_FILE" "scripts/pre-push.sh" "pre-push"
+  echo ""
+  print_info "scripts/pre-commit.sh: $PRECOMMIT_SCRIPT"
+  print_info "scripts/pre-push.sh:   $PREPUSH_SCRIPT"
+}
+
 main() {
   local command="${1:-install}"
 
@@ -192,22 +169,33 @@ main() {
 
   case "$command" in
     install)
-      check_prepush_script
-      install_hook
+      install_precommit_hook
+      install_prepush_hook
       ;;
     uninstall)
-      uninstall_hook
+      uninstall_hook_if_managed "$PRECOMMIT_HOOK_FILE" "scripts/pre-commit.sh" "pre-commit"
+      uninstall_hook_if_managed "$PREPUSH_HOOK_FILE" "scripts/pre-push.sh" "pre-push"
       ;;
     status)
       show_status
       ;;
+    install-pre-commit)
+      install_precommit_hook
+      ;;
+    install-pre-push)
+      install_prepush_hook
+      ;;
+    uninstall-pre-commit)
+      uninstall_hook_if_managed "$PRECOMMIT_HOOK_FILE" "scripts/pre-commit.sh" "pre-commit"
+      ;;
+    uninstall-pre-push)
+      uninstall_hook_if_managed "$PREPUSH_HOOK_FILE" "scripts/pre-push.sh" "pre-push"
+      ;;
     --help|-h|help)
-      grep '^#' "$0" | sed 's/^# \?//'
-      exit 0
+      sed -n '1,12p' "$0" | sed 's/^# \{0,1\}//'
       ;;
     *)
       print_error "Unknown command: $command"
-      echo "Use: install, uninstall, status, or --help"
       exit 1
       ;;
   esac
