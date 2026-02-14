@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-14 imgui-frontend-engineer – Dungeon Workflow UX + Sidebar Tightening
+- COMPLETE 2026-02-14 (imgui-frontend-engineer): disambiguated dungeon workflows by adding explicit Workbench/Panel mode control in both `DungeonWorkbenchPanel` and `ActivityBar` Dungeon sidebar (`Workflow` section).
+- Workbench mode now suppresses overlapping standalone room windows; panel mode restores `room_selector` + `room_matrix` and room panel focus paths (runtime mode checks replace static flag-only behavior).
+- Sidebar UX tightened: reduced side-panel padding/collapse button size, removed Agent Builder quick action, and switched pin controls to compact icon toggles for denser panel lists.
+- Validation: `cmake --build --preset dev --target yaze --parallel 8`; `ctest --preset mac-ai-quick-editor --output-on-failure` (101/101 pass).
+
 ### 2026-02-14 imgui-frontend-engineer – Motion Profile + Reduced Motion
 - COMPLETE 2026-02-14 (imgui-frontend-engineer): added user-setting-backed reduced-motion + switch motion profiles (`Snappy`/`Standard`/`Relaxed`) in `UserSettings`, `SettingsPanel`, and `EditorManager` startup wiring.
 - Refactor: `Animator` now has shared motion policy (`MotionProfile`, profile-aware easing/speed, reduced-motion override), consumed by `PanelManager` editor-category fades and `RightPanelManager` slide transitions.

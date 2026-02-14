@@ -36,6 +36,7 @@ class DungeonWorkbenchPanel : public EditorPanel {
                         std::function<const std::deque<int>&()> get_recent_rooms,
                         std::function<void(int)> forget_recent_room,
                         std::function<void(const std::string&)> show_panel,
+                        std::function<void(bool)> set_workflow_mode,
                         Rom* rom = nullptr);
 
   std::string GetId() const override;
@@ -72,6 +73,7 @@ class DungeonWorkbenchPanel : public EditorPanel {
   std::function<const std::deque<int>&()> get_recent_rooms_;
   std::function<void(int)> forget_recent_room_;
   std::function<void(const std::string&)> show_panel_;
+  std::function<void(bool)> set_workflow_mode_;
   Rom* rom_ = nullptr;
 
   char compare_search_buf_[64] = {};
