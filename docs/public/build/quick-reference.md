@@ -110,6 +110,17 @@ scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"
 `xcrun devicectl`. Device selection order is `DEVICE` arg,
 `$YAZE_IOS_DEVICE`, then `"Baby Pad"`.
 
+For multi-iPad deploy loops (build once + install to many devices):
+
+```bash
+scripts/dev/ios-ipad-workflow.sh instant --all
+scripts/dev/ios-ipad-workflow.sh instant --devices "Baby Pad,iPadothée Chalamet" --no-launch
+scripts/dev/ios-ipad-workflow.sh redeploy --all --no-launch
+```
+
+`instant` caches an iOS source fingerprint and skips rebuilds when inputs
+haven't changed, making repeated installs much faster.
+
 ---
 
 ## 3. Build Directory Policy
