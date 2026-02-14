@@ -167,6 +167,20 @@ TEST_F(SpriteRelocationTest, RelocateSpriteData_ZeroFillsOldSlot) {
   }
 }
 
+TEST_F(SpriteRelocationTest, RelocateSpriteData_PreservesSharedOldSlot) {
+  SetAllRoomPointers(kSpritesData);
+  SetRoomPointer(1, kSpritesData + 0x20);
+  WriteSpriteStream(kSpritesData, 0x00, EncodeSpritePayload(0));
+  WriteSpriteStream(kSpritesData + 0x20, 0x00, EncodeSpritePayload(0));
+
+  auto status = RelocateSpriteData(rom_.get(), 0, EncodeSpritePayload(1));
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  // Shared stream must remain valid for other rooms still pointing at it.
+  EXPECT_EQ(rom_->data()[kSpritesData], 0x00);
+  EXPECT_EQ(rom_->data()[kSpritesData + 1], 0xFF);
+}
+
 TEST_F(SpriteRelocationTest, SaveSprites_FallsBackToRelocation) {
   SetAllRoomPointers(kSpritesData + 0x04);
   SetRoomPointer(0, kSpritesData);
