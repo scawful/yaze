@@ -1,14 +1,14 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <cstdio>
-#include <cstdlib>
+#include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <vector>
-
-#include <unistd.h>
 
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -33,13 +33,25 @@ struct TempFile {
   std::string path;
 
   TempFile() {
-    char tmpl[] = "/tmp/yaze_water_fill_zone_test_XXXXXX";
-    const int fd = mkstemp(tmpl);
-    EXPECT_GE(fd, 0);
-    if (fd >= 0) {
-      close(fd);
-      path = tmpl;
+    const auto temp_dir = std::filesystem::temp_directory_path();
+    const auto seed =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    for (int attempt = 0; attempt < 16; ++attempt) {
+      const auto candidate =
+          temp_dir / ("yaze_water_fill_zone_test_" +
+                      std::to_string(seed + attempt) + ".tmp");
+      if (std::filesystem::exists(candidate)) {
+        continue;
+      }
+      std::ofstream touch(candidate);
+      if (!touch.good()) {
+        continue;
+      }
+      touch.close();
+      path = candidate.string();
+      break;
     }
+    EXPECT_FALSE(path.empty());
   }
 
   ~TempFile() {
@@ -80,13 +92,11 @@ TEST(WaterFillZoneTest, WriteThenLoadRoundTrip) {
   // Writer normalizes by room_id and de-dups/sorts offsets.
   EXPECT_EQ(loaded[0].room_id, 0x25);
   EXPECT_EQ(loaded[0].sram_bit_mask, 0x02);
-  EXPECT_EQ(loaded[0].fill_offsets,
-            (std::vector<uint16_t>{2, 3, 1234}));
+  EXPECT_EQ(loaded[0].fill_offsets, (std::vector<uint16_t>{2, 3, 1234}));
 
   EXPECT_EQ(loaded[1].room_id, 0x27);
   EXPECT_EQ(loaded[1].sram_bit_mask, 0x01);
-  EXPECT_EQ(loaded[1].fill_offsets,
-            (std::vector<uint16_t>{0, 10, 4095}));
+  EXPECT_EQ(loaded[1].fill_offsets, (std::vector<uint16_t>{0, 10, 4095}));
 }
 
 TEST(WaterFillZoneTest, WriteRejectsInvalidMask) {

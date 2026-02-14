@@ -13,6 +13,12 @@ ai_candidates=(
   "${ROOT}/build_ai/bin/Release/z3ed"
   "${ROOT}/build_ai/bin/z3ed"
 )
+test_candidates=(
+  "${ROOT}/build_test/bin/Debug/z3ed"
+  "${ROOT}/build_test/bin/RelWithDebInfo/z3ed"
+  "${ROOT}/build_test/bin/Release/z3ed"
+  "${ROOT}/build_test/bin/z3ed"
+)
 agent_candidates=(
   "${ROOT}/build_agent/bin/Debug/z3ed"
   "${ROOT}/build_agent/bin/RelWithDebInfo/z3ed"
@@ -56,6 +62,9 @@ pick_newest() {
 
 # Prefer build_ai whenever it exists, even if build_agent/ or build/ is newer.
 bin="$(pick_newest "${ai_candidates[@]}")"
+if [[ -z "${bin}" ]]; then
+  bin="$(pick_newest "${test_candidates[@]}")"
+fi
 if [[ -z "${bin}" ]]; then
   bin="$(pick_newest "${agent_candidates[@]}")"
 fi
