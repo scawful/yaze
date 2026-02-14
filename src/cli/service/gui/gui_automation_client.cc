@@ -259,7 +259,7 @@ absl::StatusOr<StopRecordingResult> GuiAutomationClient::StopRecording(
 }
 
 absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
-    const std::string& target, ClickType type) {
+    const std::string& target, ClickType type, const std::string& widget_key) {
 #ifdef YAZE_WITH_GRPC
   if (!stub_) {
     return absl::FailedPreconditionError(
@@ -268,6 +268,9 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
 
   yaze::test::ClickRequest request;
   request.set_target(target);
+  if (!widget_key.empty()) {
+    request.set_widget_key(widget_key);
+  }
 
   switch (type) {
     case ClickType::kLeft:
@@ -300,6 +303,8 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
   result.execution_time =
       std::chrono::milliseconds(response.execution_time_ms());
   result.test_id = response.test_id();
+  result.resolved_widget_key = response.resolved_widget_key();
+  result.resolved_path = response.resolved_path();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -307,7 +312,8 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Click(
 }
 
 absl::StatusOr<AutomationResult> GuiAutomationClient::Type(
-    const std::string& target, const std::string& text, bool clear_first) {
+    const std::string& target, const std::string& text, bool clear_first,
+    const std::string& widget_key) {
 #ifdef YAZE_WITH_GRPC
   if (!stub_) {
     return absl::FailedPreconditionError(
@@ -316,6 +322,9 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Type(
 
   yaze::test::TypeRequest request;
   request.set_target(target);
+  if (!widget_key.empty()) {
+    request.set_widget_key(widget_key);
+  }
   request.set_text(text);
   request.set_clear_first(clear_first);
 
@@ -335,6 +344,8 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Type(
   result.execution_time =
       std::chrono::milliseconds(response.execution_time_ms());
   result.test_id = response.test_id();
+  result.resolved_widget_key = response.resolved_widget_key();
+  result.resolved_path = response.resolved_path();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -342,7 +353,8 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Type(
 }
 
 absl::StatusOr<AutomationResult> GuiAutomationClient::Wait(
-    const std::string& condition, int timeout_ms, int poll_interval_ms) {
+    const std::string& condition, int timeout_ms, int poll_interval_ms,
+    const std::string& widget_key) {
 #ifdef YAZE_WITH_GRPC
   if (!stub_) {
     return absl::FailedPreconditionError(
@@ -351,6 +363,9 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Wait(
 
   yaze::test::WaitRequest request;
   request.set_condition(condition);
+  if (!widget_key.empty()) {
+    request.set_widget_key(widget_key);
+  }
   request.set_timeout_ms(timeout_ms);
   request.set_poll_interval_ms(poll_interval_ms);
 
@@ -369,6 +384,8 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Wait(
   result.message = response.message();
   result.execution_time = std::chrono::milliseconds(response.elapsed_ms());
   result.test_id = response.test_id();
+  result.resolved_widget_key = response.resolved_widget_key();
+  result.resolved_path = response.resolved_path();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -376,7 +393,7 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Wait(
 }
 
 absl::StatusOr<AutomationResult> GuiAutomationClient::Assert(
-    const std::string& condition) {
+    const std::string& condition, const std::string& widget_key) {
 #ifdef YAZE_WITH_GRPC
   if (!stub_) {
     return absl::FailedPreconditionError(
@@ -385,6 +402,9 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Assert(
 
   yaze::test::AssertRequest request;
   request.set_condition(condition);
+  if (!widget_key.empty()) {
+    request.set_widget_key(widget_key);
+  }
 
   yaze::test::AssertResponse response;
   grpc::ClientContext context;
@@ -403,6 +423,8 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Assert(
   result.expected_value = response.expected_value();
   result.execution_time = std::chrono::milliseconds(0);
   result.test_id = response.test_id();
+  result.resolved_widget_key = response.resolved_widget_key();
+  result.resolved_path = response.resolved_path();
   return result;
 #else
   return absl::UnimplementedError("gRPC not available");
@@ -640,6 +662,9 @@ absl::StatusOr<DiscoverWidgetsResult> GuiAutomationClient::DiscoverWidgets(
     for (const auto& widget_proto : window_proto.widgets()) {
       WidgetDescriptor widget;
       widget.path = widget_proto.path();
+      widget.widget_key = widget_proto.widget_key();
+      widget.legacy_path = widget_proto.legacy_path();
+      widget.alias_of = widget_proto.alias_of();
       widget.label = widget_proto.label();
       widget.type = widget_proto.type();
       widget.description = widget_proto.description();

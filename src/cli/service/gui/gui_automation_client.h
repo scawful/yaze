@@ -42,6 +42,8 @@ struct AutomationResult {
   std::string actual_value;    // For assertions
   std::string expected_value;  // For assertions
   std::string test_id;         // Test execution identifier (for introspection)
+  std::string resolved_widget_key;  // Selector-v2: resolved widget key
+  std::string resolved_path;        // Selector-v2: resolved legacy path
 };
 
 /**
@@ -170,6 +172,9 @@ struct WidgetBoundingBox {
 
 struct WidgetDescriptor {
   std::string path;
+  std::string widget_key;
+  std::string legacy_path;
+  std::string alias_of;
   std::string label;
   std::string type;
   std::string description;
@@ -248,40 +253,48 @@ class GuiAutomationClient {
   /**
    * @brief Click a GUI element
    * @param target Target element (format: "button:Label" or "window:Name")
+   * @param widget_key Stable selector-v2 key (optional, preferred)
    * @param type Type of click (left, right, middle, double)
    * @return Result indicating success/failure and execution time
    */
   absl::StatusOr<AutomationResult> Click(const std::string& target,
-                                         ClickType type = ClickType::kLeft);
+                                         ClickType type = ClickType::kLeft,
+                                         const std::string& widget_key = "");
 
   /**
    * @brief Type text into an input field
    * @param target Target input field (format: "input:Label")
    * @param text Text to type
    * @param clear_first Whether to clear existing text before typing
+   * @param widget_key Stable selector-v2 key (optional, preferred)
    * @return Result indicating success/failure and execution time
    */
   absl::StatusOr<AutomationResult> Type(const std::string& target,
                                         const std::string& text,
-                                        bool clear_first = false);
+                                        bool clear_first = false,
+                                        const std::string& widget_key = "");
 
   /**
    * @brief Wait for a condition to be met
    * @param condition Condition to wait for (e.g., "window_visible:Editor")
+   * @param widget_key Stable selector-v2 key (optional)
    * @param timeout_ms Maximum time to wait in milliseconds
    * @param poll_interval_ms How often to check the condition
    * @return Result indicating whether condition was met
    */
   absl::StatusOr<AutomationResult> Wait(const std::string& condition,
                                         int timeout_ms = 5000,
-                                        int poll_interval_ms = 100);
+                                        int poll_interval_ms = 100,
+                                        const std::string& widget_key = "");
 
   /**
    * @brief Assert a GUI state condition
    * @param condition Condition to assert (e.g., "visible:Window Name")
+   * @param widget_key Stable selector-v2 key (optional)
    * @return Result with actual vs expected values
    */
-  absl::StatusOr<AutomationResult> Assert(const std::string& condition);
+  absl::StatusOr<AutomationResult> Assert(const std::string& condition,
+                                          const std::string& widget_key = "");
 
   /**
    * @brief Capture a screenshot

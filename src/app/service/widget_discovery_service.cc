@@ -113,6 +113,8 @@ void WidgetDiscoveryService::CollectWidgets(
 
     auto* widget_proto = window_proto->add_widgets();
     widget_proto->set_path(path);
+    widget_proto->set_widget_key(path);
+    widget_proto->set_legacy_path(path);
     widget_proto->set_label(label);
     widget_proto->set_type(info.type);
     widget_proto->set_suggested_action(SuggestedAction(info.type, label));

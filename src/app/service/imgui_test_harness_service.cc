@@ -11,6 +11,7 @@
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <optional>
 #include <thread>
 
 #include "absl/base/thread_annotations.h"
@@ -23,6 +24,7 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
 #include "app/test/test_manager.h"
 #include "app/test/test_script_parser.h"
@@ -266,6 +268,167 @@ absl::Status WaitForHarnessTestCompletion(TestManager* manager,
       "Harness test %s did not reach a terminal state", test_id));
 }
 
+struct ParsedTarget {
+  std::string type;
+  std::string label;
+};
+
+struct ResolvedWidgetSelector {
+  ParsedTarget target;
+  std::string resolved_widget_key;
+  std::string resolved_path;
+};
+
+struct ParsedCondition {
+  std::string type;
+  std::string target;
+};
+
+std::string ExtractLabelFromPath(absl::string_view path) {
+  size_t colon = path.rfind(':');
+  if (colon != absl::string_view::npos && colon + 1 < path.size()) {
+    return std::string(path.substr(colon + 1));
+  }
+  size_t slash = path.rfind('/');
+  if (slash != absl::string_view::npos && slash + 1 < path.size()) {
+    return std::string(path.substr(slash + 1));
+  }
+  return std::string(path);
+}
+
+std::string ExtractTypeFromPath(absl::string_view path) {
+  size_t slash = path.rfind('/');
+  absl::string_view segment =
+      slash == absl::string_view::npos ? path : path.substr(slash + 1);
+  size_t colon = segment.find(':');
+  if (colon == absl::string_view::npos || colon == 0) {
+    return "widget";
+  }
+  return std::string(segment.substr(0, colon));
+}
+
+absl::StatusOr<ParsedTarget> ParseTargetString(absl::string_view target) {
+  if (target.empty()) {
+    return absl::InvalidArgumentError(
+        "Missing target. Provide 'type:label' or widget_key.");
+  }
+  size_t colon_pos = target.find(':');
+  if (colon_pos == absl::string_view::npos || colon_pos == 0 ||
+      colon_pos + 1 >= target.size()) {
+    return absl::InvalidArgumentError(
+        "Invalid target format. Use 'type:label' (e.g. 'button:Open ROM').");
+  }
+
+  ParsedTarget parsed;
+  parsed.type = std::string(target.substr(0, colon_pos));
+  parsed.label = std::string(target.substr(colon_pos + 1));
+  return parsed;
+}
+
+absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
+    absl::string_view target, absl::string_view widget_key) {
+  ResolvedWidgetSelector resolved;
+  if (!widget_key.empty()) {
+    const std::string key(widget_key);
+    const gui::WidgetIdRegistry::WidgetInfo* info =
+        gui::WidgetIdRegistry::Instance().GetWidgetInfo(key);
+    if (!info) {
+      return absl::NotFoundError(absl::StrFormat(
+          "widget_key '%s' was not found in WidgetIdRegistry", key));
+    }
+
+    resolved.resolved_widget_key = key;
+    resolved.resolved_path =
+        info->full_path.empty() ? key : std::string(info->full_path);
+    resolved.target.type = info->type.empty()
+                               ? ExtractTypeFromPath(resolved.resolved_path)
+                               : std::string(info->type);
+    resolved.target.label = info->label.empty()
+                                ? ExtractLabelFromPath(resolved.resolved_path)
+                                : std::string(info->label);
+    if (resolved.target.label.empty()) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "widget_key '%s' resolved without a usable label", key));
+    }
+    if (resolved.target.type.empty()) {
+      resolved.target.type = "widget";
+    }
+    return resolved;
+  }
+
+  absl::StatusOr<ParsedTarget> parsed = ParseTargetString(target);
+  if (!parsed.ok()) {
+    return parsed.status();
+  }
+  resolved.target = *parsed;
+  return resolved;
+}
+
+absl::StatusOr<ParsedCondition> ParseConditionString(absl::string_view value) {
+  if (value.empty()) {
+    return absl::InvalidArgumentError(
+        "Missing condition. Provide 'type:target' or widget_key.");
+  }
+
+  size_t colon_pos = value.find(':');
+  if (colon_pos == absl::string_view::npos || colon_pos == 0) {
+    return absl::InvalidArgumentError(
+        "Invalid condition format. Use 'type:target'.");
+  }
+
+  ParsedCondition parsed;
+  parsed.type = std::string(value.substr(0, colon_pos));
+  parsed.target = std::string(value.substr(colon_pos + 1));
+  return parsed;
+}
+
+absl::StatusOr<ParsedCondition> ResolveCondition(
+    absl::string_view condition, absl::string_view widget_key,
+    absl::string_view default_type_for_widget,
+    ResolvedWidgetSelector* resolved_selector) {
+  std::optional<ResolvedWidgetSelector> widget_selector;
+  if (!widget_key.empty()) {
+    absl::StatusOr<ResolvedWidgetSelector> resolved =
+        ResolveWidgetSelector("", widget_key);
+    if (!resolved.ok()) {
+      return resolved.status();
+    }
+    widget_selector = *resolved;
+    if (resolved_selector) {
+      *resolved_selector = *resolved;
+    }
+  } else if (resolved_selector) {
+    *resolved_selector = ResolvedWidgetSelector{};
+  }
+
+  if (condition.empty()) {
+    if (!widget_selector.has_value()) {
+      return absl::InvalidArgumentError(
+          "Missing condition. Provide 'type:target' or widget_key.");
+    }
+    ParsedCondition parsed;
+    parsed.type = std::string(default_type_for_widget);
+    parsed.target = widget_selector->target.label;
+    return parsed;
+  }
+
+  absl::StatusOr<ParsedCondition> parsed = ParseConditionString(condition);
+  if (!parsed.ok()) {
+    return parsed.status();
+  }
+
+  if (widget_selector.has_value() && parsed->target.empty()) {
+    parsed->target = widget_selector->target.label;
+  }
+
+  if (parsed->target.empty()) {
+    return absl::InvalidArgumentError(
+        "Condition target is empty. Provide 'type:target'.");
+  }
+
+  return parsed;
+}
+
 }  // namespace
 
 // gRPC service wrapper that forwards to our implementation
@@ -453,7 +616,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   TestRecorder::RecordedStep recorded_step;
   recorded_step.type = TestRecorder::ActionType::kClick;
   if (request) {
-    recorded_step.target = request->target();
+    recorded_step.widget_key = request->widget_key();
+    if (!request->widget_key().empty()) {
+      recorded_step.target = absl::StrCat("widget_key:", request->widget_key());
+    } else {
+      recorded_step.target = request->target();
+    }
     recorded_step.click_type = ClickTypeToString(request->type());
   }
 
@@ -473,12 +641,44 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     return finalize(absl::FailedPreconditionError("TestManager not available"));
   }
 
+  const std::string requested_target = request ? request->target() : "";
+  const std::string requested_widget_key = request ? request->widget_key() : "";
+  const std::string request_summary =
+      !requested_widget_key.empty()
+          ? absl::StrFormat("widget_key:%s", requested_widget_key)
+          : requested_target;
+
   const std::string test_id = test_manager_->RegisterHarnessTest(
-      absl::StrFormat("Click: %s", request->target()), "grpc");
+      absl::StrFormat("Click: %s", request_summary), "grpc");
   response->set_test_id(test_id);
   recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
-      test_id, absl::StrCat("Queued click request: ", request->target()));
+      test_id, absl::StrCat("Queued click request: ", request_summary));
+
+  absl::StatusOr<ResolvedWidgetSelector> resolved_selector =
+      ResolveWidgetSelector(requested_target, requested_widget_key);
+  if (!resolved_selector.ok()) {
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start);
+    std::string message = std::string(resolved_selector.status().message());
+    response->set_success(false);
+    response->set_message(message);
+    response->set_execution_time_ms(elapsed.count());
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            message);
+    test_manager_->AppendHarnessTestLog(test_id, message);
+    return finalize(absl::OkStatus());
+  }
+
+  if (!resolved_selector->resolved_widget_key.empty()) {
+    response->set_resolved_widget_key(resolved_selector->resolved_widget_key);
+  }
+  if (!resolved_selector->resolved_path.empty()) {
+    response->set_resolved_path(resolved_selector->resolved_path);
+  }
+
+  const std::string widget_type = resolved_selector->target.type;
+  const std::string widget_label = resolved_selector->target.label;
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
@@ -494,27 +694,11 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
     return finalize(absl::OkStatus());
   }
 
-  std::string target = request->target();
-  size_t colon_pos = target.find(':');
-  if (colon_pos == std::string::npos) {
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - start);
-    std::string message =
-        "Invalid target format. Use 'type:label' (e.g. 'button:Open ROM')";
-    response->set_success(false);
-    response->set_message(message);
-    response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
-                                            message);
-    test_manager_->AppendHarnessTestLog(test_id, message);
-    return finalize(absl::OkStatus());
-  }
-
-  std::string widget_type = target.substr(0, colon_pos);
-  std::string widget_label = target.substr(colon_pos + 1);
+  const ClickRequest::ClickType click_type =
+      request ? request->type() : ClickRequest::CLICK_TYPE_LEFT;
 
   ImGuiMouseButton mouse_button = ImGuiMouseButton_Left;
-  switch (request->type()) {
+  switch (click_type) {
     case ClickRequest::CLICK_TYPE_UNSPECIFIED:
     case ClickRequest::CLICK_TYPE_LEFT:
       mouse_button = ImGuiMouseButton_Left;
@@ -533,7 +717,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   auto test_data = std::make_shared<DynamicTestData>();
   TestManager* manager = test_manager_;
   test_data->test_func = [manager, captured_id = test_id, widget_type,
-                          widget_label, click_type = request->type(),
+                          widget_label, click_type,
                           mouse_button](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     try {
@@ -579,23 +763,6 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   test_manager_->AppendHarnessTestLog(test_id, message);
 
 #else
-  std::string target = request->target();
-  size_t colon_pos = target.find(':');
-  if (colon_pos == std::string::npos) {
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - start);
-    std::string message = "Invalid target format. Use 'type:label'";
-    response->set_success(false);
-    response->set_message(message);
-    response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
-                                            message);
-    test_manager_->AppendHarnessTestLog(test_id, message);
-    return finalize(absl::OkStatus());
-  }
-
-  std::string widget_type = target.substr(0, colon_pos);
-  std::string widget_label = target.substr(colon_pos + 1);
   std::string message =
       absl::StrFormat("[STUB] Clicked %s '%s' (ImGuiTestEngine not available)",
                       widget_type, widget_label);
@@ -622,7 +789,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   TestRecorder::RecordedStep recorded_step;
   recorded_step.type = TestRecorder::ActionType::kType;
   if (request) {
-    recorded_step.target = request->target();
+    recorded_step.widget_key = request->widget_key();
+    if (!request->widget_key().empty()) {
+      recorded_step.target = absl::StrCat("widget_key:", request->widget_key());
+    } else {
+      recorded_step.target = request->target();
+    }
     recorded_step.text = request->text();
     recorded_step.clear_first = request->clear_first();
   }
@@ -643,12 +815,44 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
     return finalize(absl::FailedPreconditionError("TestManager not available"));
   }
 
+  const std::string requested_target = request ? request->target() : "";
+  const std::string requested_widget_key = request ? request->widget_key() : "";
+  const std::string request_summary =
+      !requested_widget_key.empty()
+          ? absl::StrFormat("widget_key:%s", requested_widget_key)
+          : requested_target;
+
   const std::string test_id = test_manager_->RegisterHarnessTest(
-      absl::StrFormat("Type: %s", request->target()), "grpc");
+      absl::StrFormat("Type: %s", request_summary), "grpc");
   response->set_test_id(test_id);
   recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
-      test_id, absl::StrFormat("Queued type request: %s", request->target()));
+      test_id, absl::StrFormat("Queued type request: %s", request_summary));
+
+  absl::StatusOr<ResolvedWidgetSelector> resolved_selector =
+      ResolveWidgetSelector(requested_target, requested_widget_key);
+  if (!resolved_selector.ok()) {
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start);
+    std::string message = std::string(resolved_selector.status().message());
+    response->set_success(false);
+    response->set_message(message);
+    response->set_execution_time_ms(elapsed.count());
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            message);
+    test_manager_->AppendHarnessTestLog(test_id, message);
+    return finalize(absl::OkStatus());
+  }
+
+  if (!resolved_selector->resolved_widget_key.empty()) {
+    response->set_resolved_widget_key(resolved_selector->resolved_widget_key);
+  }
+  if (!resolved_selector->resolved_path.empty()) {
+    response->set_resolved_path(resolved_selector->resolved_path);
+  }
+
+  const std::string widget_type = resolved_selector->target.type;
+  const std::string widget_label = resolved_selector->target.label;
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
@@ -663,25 +867,6 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
                                             message);
     return finalize(absl::OkStatus());
   }
-
-  std::string target = request->target();
-  size_t colon_pos = target.find(':');
-  if (colon_pos == std::string::npos) {
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - start);
-    std::string message =
-        "Invalid target format. Use 'type:label' (e.g. 'input:Filename')";
-    response->set_success(false);
-    response->set_message(message);
-    response->set_execution_time_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
-                                            message);
-    test_manager_->AppendHarnessTestLog(test_id, message);
-    return finalize(absl::OkStatus());
-  }
-
-  std::string widget_type = target.substr(0, colon_pos);
-  std::string widget_label = target.substr(colon_pos + 1);
   std::string text = request->text();
   bool clear_first = request->clear_first();
 
@@ -771,8 +956,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
 #else
   test_manager_->MarkHarnessTestRunning(test_id);
   std::string message = absl::StrFormat(
-      "[STUB] Typed '%s' into %s (ImGuiTestEngine not available)",
-      request->text(), request->target());
+      "[STUB] Typed '%s' into %s '%s' (ImGuiTestEngine not available)",
+      request->text(), widget_type, widget_label);
   test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kPassed,
                                           message);
   test_manager_->AppendHarnessTestLog(test_id, message);
@@ -794,7 +979,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   TestRecorder::RecordedStep recorded_step;
   recorded_step.type = TestRecorder::ActionType::kWait;
   if (request) {
-    recorded_step.condition = request->condition();
+    recorded_step.widget_key = request->widget_key();
+    if (!request->widget_key().empty() && request->condition().empty()) {
+      recorded_step.condition =
+          absl::StrCat("widget_key:", request->widget_key());
+    } else {
+      recorded_step.condition = request->condition();
+    }
     recorded_step.timeout_ms = request->timeout_ms();
   }
 
@@ -814,13 +1005,52 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
     return finalize(absl::FailedPreconditionError("TestManager not available"));
   }
 
+  const std::string requested_condition = request ? request->condition() : "";
+  const std::string requested_widget_key = request ? request->widget_key() : "";
+  const std::string request_summary =
+      !requested_widget_key.empty()
+          ? absl::StrFormat("%s [widget_key:%s]",
+                            requested_condition.empty()
+                                ? "element_visible:<auto>"
+                                : requested_condition,
+                            requested_widget_key)
+          : requested_condition;
+
   const std::string test_id = test_manager_->RegisterHarnessTest(
-      absl::StrFormat("Wait: %s", request->condition()), "grpc");
+      absl::StrFormat("Wait: %s", request_summary), "grpc");
   response->set_test_id(test_id);
   recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
-      test_id,
-      absl::StrFormat("Queued wait condition: %s", request->condition()));
+      test_id, absl::StrFormat("Queued wait condition: %s", request_summary));
+
+  ResolvedWidgetSelector resolved_selector;
+  absl::StatusOr<ParsedCondition> parsed_condition = ResolveCondition(
+      requested_condition, requested_widget_key,
+      /*default_type_for_widget=*/"element_visible", &resolved_selector);
+  if (!parsed_condition.ok()) {
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now() - start);
+    std::string message = std::string(parsed_condition.status().message());
+    response->set_success(false);
+    response->set_message(message);
+    response->set_elapsed_ms(elapsed.count());
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            message);
+    test_manager_->AppendHarnessTestLog(test_id, message);
+    return finalize(absl::OkStatus());
+  }
+
+  if (!resolved_selector.resolved_widget_key.empty()) {
+    response->set_resolved_widget_key(resolved_selector.resolved_widget_key);
+  }
+  if (!resolved_selector.resolved_path.empty()) {
+    response->set_resolved_path(resolved_selector.resolved_path);
+  }
+
+  const std::string condition_type = parsed_condition->type;
+  const std::string condition_target = parsed_condition->target;
+  const std::string resolved_condition =
+      absl::StrFormat("%s:%s", condition_type, condition_target);
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
@@ -835,26 +1065,6 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
                                             message);
     return finalize(absl::OkStatus());
   }
-
-  std::string condition = request->condition();
-  size_t colon_pos = condition.find(':');
-  if (colon_pos == std::string::npos) {
-    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now() - start);
-    std::string message =
-        "Invalid condition format. Use 'type:target' (e.g. "
-        "'window_visible:Overworld Editor')";
-    response->set_success(false);
-    response->set_message(message);
-    response->set_elapsed_ms(elapsed.count());
-    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
-                                            message);
-    test_manager_->AppendHarnessTestLog(test_id, message);
-    return finalize(absl::OkStatus());
-  }
-
-  std::string condition_type = condition.substr(0, colon_pos);
-  std::string condition_target = condition.substr(colon_pos + 1);
   int timeout_ms = request->timeout_ms() > 0 ? request->timeout_ms() : 5000;
   int poll_interval_ms =
       request->poll_interval_ms() > 0 ? request->poll_interval_ms() : 100;
@@ -944,8 +1154,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
-  std::string message = absl::StrFormat("Queued wait for '%s:%s'",
-                                        condition_type, condition_target);
+  std::string message =
+      absl::StrFormat("Queued wait for '%s'", resolved_condition);
   response->set_success(true);
   response->set_message(message);
   response->set_elapsed_ms(elapsed.count());
@@ -955,7 +1165,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   test_manager_->MarkHarnessTestRunning(test_id);
   std::string message = absl::StrFormat(
       "[STUB] Condition '%s' met (ImGuiTestEngine not available)",
-      request->condition());
+      resolved_condition);
   test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kPassed,
                                           message);
   test_manager_->AppendHarnessTestLog(test_id, message);
@@ -975,7 +1185,13 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   TestRecorder::RecordedStep recorded_step;
   recorded_step.type = TestRecorder::ActionType::kAssert;
   if (request) {
-    recorded_step.condition = request->condition();
+    recorded_step.widget_key = request->widget_key();
+    if (!request->widget_key().empty() && request->condition().empty()) {
+      recorded_step.condition =
+          absl::StrCat("widget_key:", request->widget_key());
+    } else {
+      recorded_step.condition = request->condition();
+    }
   }
 
   auto finalize = [&](const absl::Status& status) {
@@ -996,12 +1212,48 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
     return finalize(absl::FailedPreconditionError("TestManager not available"));
   }
 
+  const std::string requested_condition = request ? request->condition() : "";
+  const std::string requested_widget_key = request ? request->widget_key() : "";
+  const std::string request_summary =
+      !requested_widget_key.empty()
+          ? absl::StrFormat("%s [widget_key:%s]",
+                            requested_condition.empty() ? "exists:<auto>"
+                                                        : requested_condition,
+                            requested_widget_key)
+          : requested_condition;
+
   const std::string test_id = test_manager_->RegisterHarnessTest(
-      absl::StrFormat("Assert: %s", request->condition()), "grpc");
+      absl::StrFormat("Assert: %s", request_summary), "grpc");
   response->set_test_id(test_id);
   recorded_step.test_id = test_id;
   test_manager_->AppendHarnessTestLog(
-      test_id, absl::StrFormat("Queued assertion: %s", request->condition()));
+      test_id, absl::StrFormat("Queued assertion: %s", request_summary));
+
+  ResolvedWidgetSelector resolved_selector;
+  absl::StatusOr<ParsedCondition> parsed_condition = ResolveCondition(
+      requested_condition, requested_widget_key,
+      /*default_type_for_widget=*/"exists", &resolved_selector);
+  if (!parsed_condition.ok()) {
+    std::string message = std::string(parsed_condition.status().message());
+    response->set_success(false);
+    response->set_message(message);
+    response->set_actual_value("N/A");
+    response->set_expected_value("N/A");
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            message);
+    test_manager_->AppendHarnessTestLog(test_id, message);
+    return finalize(absl::OkStatus());
+  }
+
+  if (!resolved_selector.resolved_widget_key.empty()) {
+    response->set_resolved_widget_key(resolved_selector.resolved_widget_key);
+  }
+  if (!resolved_selector.resolved_path.empty()) {
+    response->set_resolved_path(resolved_selector.resolved_path);
+  }
+
+  const std::string assertion_type = parsed_condition->type;
+  const std::string assertion_target = parsed_condition->target;
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
@@ -1015,25 +1267,6 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
                                             message);
     return finalize(absl::OkStatus());
   }
-
-  std::string condition = request->condition();
-  size_t colon_pos = condition.find(':');
-  if (colon_pos == std::string::npos) {
-    std::string message =
-        "Invalid condition format. Use 'type:target' (e.g. 'visible:Main "
-        "Window')";
-    response->set_success(false);
-    response->set_message(message);
-    response->set_actual_value("N/A");
-    response->set_expected_value("N/A");
-    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
-                                            message);
-    test_manager_->AppendHarnessTestLog(test_id, message);
-    return finalize(absl::OkStatus());
-  }
-
-  std::string assertion_type = condition.substr(0, colon_pos);
-  std::string assertion_target = condition.substr(colon_pos + 1);
 
   auto test_data = std::make_shared<DynamicTestData>();
   TestManager* manager = test_manager_;
@@ -1165,8 +1398,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
 #else
   test_manager_->MarkHarnessTestRunning(test_id);
   std::string message = absl::StrFormat(
-      "[STUB] Assertion '%s' passed (ImGuiTestEngine not available)",
-      request->condition());
+      "[STUB] Assertion '%s:%s' passed (ImGuiTestEngine not available)",
+      assertion_type, assertion_target);
   test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kPassed,
                                           message);
   test_manager_->AppendHarnessTestLog(test_id, message);
@@ -1563,6 +1796,7 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
     if (step.action == "click") {
       ClickRequest sub_request;
       sub_request.set_target(ApplyOverrides(step.target, overrides));
+      sub_request.set_widget_key(ApplyOverrides(step.widget_key, overrides));
       sub_request.set_type(ClickTypeFromString(step.click_type));
       ClickResponse sub_response;
       status = Click(&sub_request, &sub_response);
@@ -1585,6 +1819,7 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
     } else if (step.action == "type") {
       TypeRequest sub_request;
       sub_request.set_target(ApplyOverrides(step.target, overrides));
+      sub_request.set_widget_key(ApplyOverrides(step.widget_key, overrides));
       sub_request.set_text(ApplyOverrides(step.text, overrides));
       sub_request.set_clear_first(step.clear_first);
       TypeResponse sub_response;
@@ -1608,6 +1843,7 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
     } else if (step.action == "wait") {
       WaitRequest sub_request;
       sub_request.set_condition(ApplyOverrides(step.condition, overrides));
+      sub_request.set_widget_key(ApplyOverrides(step.widget_key, overrides));
       if (step.timeout_ms > 0) {
         sub_request.set_timeout_ms(step.timeout_ms);
       }
@@ -1632,6 +1868,7 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
     } else if (step.action == "assert") {
       AssertRequest sub_request;
       sub_request.set_condition(ApplyOverrides(step.condition, overrides));
+      sub_request.set_widget_key(ApplyOverrides(step.widget_key, overrides));
       AssertResponse sub_response;
       status = Assert(&sub_request, &sub_response);
       step_success = sub_response.success();

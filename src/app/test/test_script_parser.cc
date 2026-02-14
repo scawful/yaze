@@ -68,6 +68,9 @@ void PopulateStepNode(const TestScriptStep& step, nlohmann::json* node) {
   if (!step.target.empty()) {
     (*node)["target"] = step.target;
   }
+  if (!step.widget_key.empty()) {
+    (*node)["widget_key"] = step.widget_key;
+  }
   if (!step.click_type.empty()) {
     (*node)["click_type"] = step.click_type;
   }
@@ -102,6 +105,9 @@ absl::StatusOr<TestScriptStep> ParseStep(const nlohmann::json& node) {
   step.action = absl::AsciiStrToLower(node.at("action").get<std::string>());
   if (node.contains("target")) {
     step.target = node.at("target").get<std::string>();
+  }
+  if (node.contains("widget_key")) {
+    step.widget_key = node.at("widget_key").get<std::string>();
   }
   if (node.contains("click_type")) {
     step.click_type =

@@ -15,6 +15,7 @@ namespace test {
 struct TestScriptStep {
   std::string action;
   std::string target;
+  std::string widget_key;
   std::string click_type;
   std::string text;
   bool clear_first = false;
