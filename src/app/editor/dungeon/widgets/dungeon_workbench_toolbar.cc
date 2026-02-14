@@ -108,9 +108,10 @@ bool SquareIconButton(const char* id, const char* icon, float btn_size,
   return pressed;
 }
 
-void DrawComparePicker(int current_room_id, int* compare_room_id,
-                       const std::function<const std::deque<int>&()>& get_recent_rooms,
-                       char* search_buf, size_t search_buf_size) {
+void DrawComparePicker(
+    int current_room_id, int* compare_room_id,
+    const std::function<const std::deque<int>&()>& get_recent_rooms,
+    char* search_buf, size_t search_buf_size) {
   if (!compare_room_id || *compare_room_id < 0) {
     return;
   }
@@ -123,7 +124,8 @@ void DrawComparePicker(int current_room_id, int* compare_room_id,
   auto to_lower = [](unsigned char c) {
     return static_cast<char>(std::tolower(c));
   };
-  auto icontains = [&](const std::string& haystack, const char* needle) -> bool {
+  auto icontains = [&](const std::string& haystack,
+                       const char* needle) -> bool {
     if (!needle || *needle == '\0') {
       return true;
     }
@@ -137,14 +139,15 @@ void DrawComparePicker(int current_room_id, int* compare_room_id,
           break;
         }
       }
-      if (match) return true;
+      if (match)
+        return true;
     }
     return false;
   };
 
   // Picker: MRU + searchable full list.
-  ImGui::SetNextItemWidth(std::clamp(ImGui::GetContentRegionAvail().x, 180.0f,
-                                     420.0f));
+  ImGui::SetNextItemWidth(
+      std::clamp(ImGui::GetContentRegionAvail().x, 180.0f, 420.0f));
   if (ImGui::BeginCombo("##CompareRoomPicker", preview,
                         ImGuiComboFlags_HeightLarge)) {
     ImGui::TextDisabled(ICON_MD_HISTORY " Recent");
@@ -182,7 +185,8 @@ void DrawComparePicker(int current_room_id, int* compare_room_id,
         const auto rid_label = zelda3::GetRoomLabel(rid);
         char hex_buf[8];
         snprintf(hex_buf, sizeof(hex_buf), "%03X", rid);
-        if (!icontains(rid_label, search_buf) && !icontains(hex_buf, search_buf)) {
+        if (!icontains(rid_label, search_buf) &&
+            !icontains(hex_buf, search_buf)) {
           continue;
         }
         char item[128];
@@ -225,12 +229,12 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGuiStyleVar_FramePadding,
       ImVec2(frame_pad.x, std::max(frame_pad.y, 4.0f)));
 
-  constexpr ImGuiTableFlags kFlags =
-      ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadInnerX |
-      ImGuiTableFlags_NoPadOuterX;
+  constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_NoBordersInBody |
+                                     ImGuiTableFlags_NoPadInnerX |
+                                     ImGuiTableFlags_NoPadOuterX;
   if (ImGui::BeginTable("##DungeonWorkbenchToolbarTable", 3, kFlags)) {
-    const float w_grid = CalcIconToggleButtonWidth(ICON_MD_GRID_ON,
-                                                   ICON_MD_GRID_OFF, btn);
+    const float w_grid =
+        CalcIconToggleButtonWidth(ICON_MD_GRID_ON, ICON_MD_GRID_OFF, btn);
     const float w_bounds = CalcIconButtonWidth(ICON_MD_CROP_SQUARE, btn);
     const float w_coords = CalcIconButtonWidth(ICON_MD_MY_LOCATION, btn);
     const float w_camera = CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
@@ -244,15 +248,13 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
 
     // Left cluster: sidebar toggles, nav, room label.
     ImGui::TableNextColumn();
-    (void)IconToggleButton(
-        "RoomsToggle", ICON_MD_LIST, ICON_MD_LIST, &p.layout->show_left_sidebar,
-        btn,
-        "Hide room browser", "Show room browser");
+    (void)IconToggleButton("RoomsToggle", ICON_MD_LIST, ICON_MD_LIST,
+                           &p.layout->show_left_sidebar, btn,
+                           "Hide room browser", "Show room browser");
     ImGui::SameLine();
     (void)IconToggleButton("InspectorToggle", ICON_MD_TUNE, ICON_MD_TUNE,
                            &p.layout->show_right_inspector, btn,
-                           "Hide inspector",
-                           "Show inspector");
+                           "Hide inspector", "Show inspector");
     if (p.set_workflow_mode) {
       ImGui::SameLine();
       if (SquareIconButton("##PanelMode", ICON_MD_VIEW_QUILT, btn,
@@ -281,10 +283,9 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     if (!*p.split_view_enabled) {
       if (SquareIconButton("##EnableSplit", ICON_MD_COMPARE_ARROWS, btn,
                            "Enable split view (compare)")) {
-        const CompareDefaultResult def =
-            PickDefaultCompareRoom(*p.current_room_id,
-                                   p.previous_room_id ? *p.previous_room_id : -1,
-                                   p.get_recent_rooms);
+        const CompareDefaultResult def = PickDefaultCompareRoom(
+            *p.current_room_id, p.previous_room_id ? *p.previous_room_id : -1,
+            p.get_recent_rooms);
         if (def.found) {
           *p.split_view_enabled = true;
           *p.compare_room_id = def.room_id;
@@ -302,8 +303,9 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
         ImGui::NewLine();
       }
 
-      DrawComparePicker(*p.current_room_id, p.compare_room_id, p.get_recent_rooms,
-                        p.compare_search_buf, p.compare_search_buf_size);
+      DrawComparePicker(*p.current_room_id, p.compare_room_id,
+                        p.get_recent_rooms, p.compare_search_buf,
+                        p.compare_search_buf_size);
 
       ImGui::SameLine();
       uint16_t cmp =
@@ -330,10 +332,10 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       }
 
       ImGui::SameLine();
-      if (IconToggleButton(
-              "##SyncView", ICON_MD_LINK, ICON_MD_LINK_OFF,
-              &p.layout->sync_split_view, btn, "Unsync compare view",
-              "Sync compare view to active")) {
+      if (IconToggleButton("##SyncView", ICON_MD_LINK, ICON_MD_LINK_OFF,
+                           &p.layout->sync_split_view, btn,
+                           "Unsync compare view",
+                           "Sync compare view to active")) {
         // toggle handled inside IconToggleButton
       }
 
@@ -357,8 +359,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
 
       bool v = p.primary_viewer->show_grid();
       if (SquareIconButton("##GridToggle",
-                           v ? ICON_MD_GRID_ON : ICON_MD_GRID_OFF,
-                           btn,
+                           v ? ICON_MD_GRID_ON : ICON_MD_GRID_OFF, btn,
                            v ? "Hide grid" : "Show grid")) {
         p.primary_viewer->set_show_grid(!v);
       }
@@ -372,19 +373,17 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGui::SameLine();
 
       v = p.primary_viewer->show_coordinate_overlay();
-      if (SquareIconButton("##CoordsToggle", ICON_MD_MY_LOCATION,
-                           btn,
-                           v ? "Hide hover coordinates"
-                             : "Show hover coordinates")) {
+      if (SquareIconButton(
+              "##CoordsToggle", ICON_MD_MY_LOCATION, btn,
+              v ? "Hide hover coordinates" : "Show hover coordinates")) {
         p.primary_viewer->set_show_coordinate_overlay(!v);
       }
       ImGui::SameLine();
 
       v = p.primary_viewer->show_camera_quadrant_overlay();
-      if (SquareIconButton("##CameraToggle", ICON_MD_GRID_VIEW,
-                           btn,
-                           v ? "Hide camera quadrants"
-                             : "Show camera quadrants")) {
+      if (SquareIconButton(
+              "##CameraToggle", ICON_MD_GRID_VIEW, btn,
+              v ? "Hide camera quadrants" : "Show camera quadrants")) {
         p.primary_viewer->set_show_camera_quadrant_overlay(!v);
       }
     }

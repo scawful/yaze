@@ -54,9 +54,7 @@
 #include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/project_management_panel.h"
-#include "rom/rom_diff.h"
 #include "app/editor/ui/toast_manager.h"
-#include "util/rom_hash.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
@@ -66,12 +64,12 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/platform/timing.h"
 #include "app/platform/ios/ios_platform_state.h"
+#include "app/platform/timing.h"
 #include "app/test/test_manager.h"
 #include "core/features.h"
-#include "core/rom_settings.h"
 #include "core/project.h"
+#include "core/rom_settings.h"
 #include "editor/core/content_registry.h"
 #include "editor/core/editor_context.h"
 #include "editor/events/core_events.h"
@@ -81,15 +79,17 @@
 #include "editor/system/shortcut_manager.h"
 #include "editor/ui/rom_load_options_dialog.h"
 #include "rom/rom.h"
-#include "zelda3/dungeon/dungeon_rom_addresses.h"
-#include "zelda3/dungeon/oracle_rom_safety_preflight.h"
-#include "zelda3/dungeon/water_fill_zone.h"
+#include "rom/rom_diff.h"
 #include "startup_flags.h"
 #include "util/file_util.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "util/rom_hash.h"
 #include "yaze_config.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/oracle_rom_safety_preflight.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_entrance.h"
@@ -162,10 +162,11 @@ std::vector<std::string> ValidateRomAddressOverrides(
   }
 
   const auto rom_size = rom.size();
-  auto warn = [&](const std::string& message) { warnings.push_back(message); };
+  auto warn = [&](const std::string& message) {
+    warnings.push_back(message);
+  };
 
-  auto check_range = [&](const std::string& label, uint32_t addr,
-                         size_t span) {
+  auto check_range = [&](const std::string& label, uint32_t addr, size_t span) {
     const size_t addr_size = static_cast<size_t>(addr);
     if (addr_size >= rom_size || addr_size + span > rom_size) {
       warn(absl::StrFormat("ROM override '%s' out of range: 0x%X (size 0x%X)",
@@ -190,11 +191,11 @@ std::vector<std::string> ValidateRomAddressOverrides(
         overrides.GetAddress(core::RomAddressKey::kExpandedMessageEnd)
             .value_or(kExpandedMessageEndDefault);
     if (start >= rom_size || end >= rom_size) {
-      warn(absl::StrFormat("Expanded message range out of ROM bounds: 0x%X-0x%X",
-                           start, end));
+      warn(absl::StrFormat(
+          "Expanded message range out of ROM bounds: 0x%X-0x%X", start, end));
     } else if (end < start) {
-      warn(absl::StrFormat("Expanded message range invalid: 0x%X-0x%X",
-                           start, end));
+      warn(absl::StrFormat("Expanded message range invalid: 0x%X-0x%X", start,
+                           end));
     }
   }
 
@@ -205,8 +206,8 @@ std::vector<std::string> ValidateRomAddressOverrides(
       auto opcode = rom.ReadByte(*hook);
       if (opcode.ok() && opcode.value() != 0x22) {
         warn(absl::StrFormat(
-            "Expanded music hook at 0x%X is not a JSL opcode (0x%02X)",
-            *hook, opcode.value()));
+            "Expanded music hook at 0x%X is not a JSL opcode (0x%02X)", *hook,
+            opcode.value()));
       }
     }
   }
@@ -216,15 +217,15 @@ std::vector<std::string> ValidateRomAddressOverrides(
     check_range(core::RomAddressKey::kExpandedMusicMain, *main, 4);
   }
 
-  if (auto aux =
-          overrides.GetAddress(core::RomAddressKey::kExpandedMusicAux)) {
+  if (auto aux = overrides.GetAddress(core::RomAddressKey::kExpandedMusicAux)) {
     check_range(core::RomAddressKey::kExpandedMusicAux, *aux, 4);
   }
 
-  if (HasAnyOverride(overrides, {core::RomAddressKey::kOverworldExpandedPtrMarker,
-                                 core::RomAddressKey::kOverworldExpandedPtrMagic,
-                                 core::RomAddressKey::kOverworldExpandedPtrHigh,
-                                 core::RomAddressKey::kOverworldExpandedPtrLow})) {
+  if (HasAnyOverride(overrides,
+                     {core::RomAddressKey::kOverworldExpandedPtrMarker,
+                      core::RomAddressKey::kOverworldExpandedPtrMagic,
+                      core::RomAddressKey::kOverworldExpandedPtrHigh,
+                      core::RomAddressKey::kOverworldExpandedPtrLow})) {
     const uint32_t marker =
         overrides.GetAddress(core::RomAddressKey::kOverworldExpandedPtrMarker)
             .value_or(zelda3::kExpandedPtrTableMarker);
@@ -235,24 +236,28 @@ std::vector<std::string> ValidateRomAddressOverrides(
     if (marker < rom_size) {
       if (rom.data()[marker] != static_cast<uint8_t>(magic)) {
         warn(absl::StrFormat(
-            "Overworld expanded pointer marker mismatch at 0x%X: expected 0x%02X, found 0x%02X",
+            "Overworld expanded pointer marker mismatch at 0x%X: expected "
+            "0x%02X, found 0x%02X",
             marker, static_cast<uint8_t>(magic), rom.data()[marker]));
       }
     }
   }
 
-  if (HasAnyOverride(overrides, {core::RomAddressKey::kOverworldEntranceMapExpanded,
-                                 core::RomAddressKey::kOverworldEntrancePosExpanded,
-                                 core::RomAddressKey::kOverworldEntranceIdExpanded,
-                                 core::RomAddressKey::kOverworldEntranceFlagExpanded})) {
+  if (HasAnyOverride(overrides,
+                     {core::RomAddressKey::kOverworldEntranceMapExpanded,
+                      core::RomAddressKey::kOverworldEntrancePosExpanded,
+                      core::RomAddressKey::kOverworldEntranceIdExpanded,
+                      core::RomAddressKey::kOverworldEntranceFlagExpanded})) {
     const uint32_t flag_addr =
-        overrides.GetAddress(core::RomAddressKey::kOverworldEntranceFlagExpanded)
+        overrides
+            .GetAddress(core::RomAddressKey::kOverworldEntranceFlagExpanded)
             .value_or(zelda3::kOverworldEntranceExpandedFlagPos);
     check_range("overworld_entrance_flag_expanded", flag_addr, 1);
     if (flag_addr < rom_size && rom.data()[flag_addr] == 0xB8) {
-      warn(absl::StrFormat(
-          "Overworld entrance flag at 0x%X is still 0xB8 (vanilla); expanded entrance tables may be ignored",
-          flag_addr));
+      warn(
+          absl::StrFormat("Overworld entrance flag at 0x%X is still 0xB8 "
+                          "(vanilla); expanded entrance tables may be ignored",
+                          flag_addr));
     }
   }
 
@@ -286,8 +291,8 @@ void SeedOracleProjectInRecents() {
   namespace fs = std::filesystem;
 
   std::vector<fs::path> roots;
-  if (const char* home = std::getenv("HOME"); home != nullptr &&
-                                             std::strlen(home) > 0) {
+  if (const char* home = std::getenv("HOME");
+      home != nullptr && std::strlen(home) > 0) {
     roots.push_back(fs::path(home) / "src" / "hobby" / "oracle-of-secrets");
   }
 
@@ -367,7 +372,6 @@ bool EditorManager::IsPanelBasedEditor(EditorType type) {
   return EditorRegistry::IsPanelBasedEditor(type);
 }
 
-
 void EditorManager::ResetWorkspaceLayout() {
   layout_coordinator_.ResetWorkspaceLayout();
 }
@@ -400,9 +404,9 @@ bool EditorManager::ApplyLayoutProfile(const std::string& profile_id) {
         std::max(default_width, 480.0f));
   }
 
-  toast_manager_.Show(absl::StrFormat("Layout Profile: %s",
-                                      applied_profile.label),
-                      ToastType::kSuccess);
+  toast_manager_.Show(
+      absl::StrFormat("Layout Profile: %s", applied_profile.label),
+      ToastType::kSuccess);
   return true;
 }
 
@@ -2005,8 +2009,7 @@ void EditorManager::UpdateEditorState() {
     agent_ui_.SetRomContext(current_rom);
     agent_ui_.SetProjectContext(&current_project_);
     if (auto* editor_set = GetCurrentEditorSet()) {
-      agent_ui_.SetAsarWrapperContext(
-          editor_set->GetAsarWrapper());
+      agent_ui_.SetAsarWrapperContext(editor_set->GetAsarWrapper());
     }
   }
 
@@ -2349,7 +2352,8 @@ absl::Status EditorManager::LoadRom() {
     }
 
     // Check if this is a project file - route to project loading
-    if (absl::EndsWith(file_name, ".yaze") || absl::EndsWith(file_name, ".zsproj") ||
+    if (absl::EndsWith(file_name, ".yaze") ||
+        absl::EndsWith(file_name, ".zsproj") ||
         absl::EndsWith(file_name, ".yazeproj")) {
       return OpenRomOrProject(file_name);
     }
@@ -2702,9 +2706,8 @@ absl::Status EditorManager::CheckRomWritePolicy() {
     if (popup_manager_) {
       popup_manager_->Show(PopupID::kRomWriteConfirm);
     }
-    toast_manager_.Show(
-        "ROM hash mismatch: confirmation required to save",
-        ToastType::kWarning);
+    toast_manager_.Show("ROM hash mismatch: confirmation required to save",
+                        ToastType::kWarning);
     return absl::CancelledError("ROM write confirmation required");
   }
 
@@ -2738,10 +2741,9 @@ absl::Status EditorManager::CheckOracleRomSafetyPreSave(Rom* rom) {
   }
 
   const auto& first = preflight.errors.front();
-  toast_manager_.Show(
-      absl::StrFormat("Oracle ROM safety [%s]: %s", first.code,
-                      first.message.c_str()),
-      ToastType::kError);
+  toast_manager_.Show(absl::StrFormat("Oracle ROM safety [%s]: %s", first.code,
+                                      first.message.c_str()),
+                      ToastType::kError);
   return preflight.ToStatus();
 }
 
@@ -2776,8 +2778,9 @@ absl::Status EditorManager::SaveRom() {
         popup_manager_->Show(PopupID::kDungeonPotItemSaveConfirm);
       }
       toast_manager_.Show(
-          absl::StrFormat("Save paused: pot items enabled with %d unloaded rooms",
-                          pending_pot_item_unloaded_rooms_),
+          absl::StrFormat(
+              "Save paused: pot items enabled with %d unloaded rooms",
+              pending_pot_item_unloaded_rooms_),
           ToastType::kWarning);
       return absl::CancelledError("Pot item save confirmation required");
     }
@@ -2904,8 +2907,9 @@ absl::Status EditorManager::SaveRom() {
             popup_manager_->Show(PopupID::kWriteConflictWarning);
           }
           toast_manager_.Show(
-              absl::StrFormat("Save paused: %zu write conflict(s) with ASM hooks",
-                              pending_write_conflicts_.size()),
+              absl::StrFormat(
+                  "Save paused: %zu write conflict(s) with ASM hooks",
+                  pending_write_conflicts_.size()),
               ToastType::kWarning);
           return absl::CancelledError("Write conflict confirmation required");
         }
@@ -2980,7 +2984,8 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
   } loading_guard{loading_handle};
 #endif
 
-  if (absl::EndsWith(filename, ".yaze") || absl::EndsWith(filename, ".zsproj") ||
+  if (absl::EndsWith(filename, ".yaze") ||
+      absl::EndsWith(filename, ".zsproj") ||
       absl::EndsWith(filename, ".yazeproj")) {
     // Open the project file
     RETURN_IF_ERROR(current_project_.Open(filename));
@@ -3044,7 +3049,8 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
       editor_set->OpenAssemblyFolder(current_project_.code_folder);
 #endif
       // Also set the sidebar file browser path (refresh happens during UI draw).
-      panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
+      panel_manager_.SetFileBrowserPath("Assembly",
+                                        current_project_.code_folder);
     }
 
 #ifdef __EMSCRIPTEN__
@@ -3270,17 +3276,15 @@ absl::Status EditorManager::LoadProjectWithRom() {
           "Project ROM hash mismatch detected. Check ROM Identity settings.",
           ToastType::kWarning);
     }
-    auto warnings =
-        ValidateRomAddressOverrides(current_project_.rom_address_overrides,
-                                    *rom);
+    auto warnings = ValidateRomAddressOverrides(
+        current_project_.rom_address_overrides, *rom);
     if (!warnings.empty()) {
       for (const auto& warning : warnings) {
         LOG_WARN("EditorManager", "%s", warning.c_str());
       }
-      toast_manager_.Show(
-          absl::StrFormat("ROM override warnings: %d (see log)",
-                          warnings.size()),
-          ToastType::kWarning);
+      toast_manager_.Show(absl::StrFormat("ROM override warnings: %d (see log)",
+                                          warnings.size()),
+                          ToastType::kWarning);
     }
   }
 
@@ -3523,7 +3527,8 @@ bool EditorManager::IsRomHashMismatch() const {
   if (!current_project_.project_opened()) {
     return false;
   }
-  const auto expected = NormalizeHash(current_project_.rom_metadata.expected_hash);
+  const auto expected =
+      NormalizeHash(current_project_.rom_metadata.expected_hash);
   const auto actual = NormalizeHash(current_rom_hash_);
   if (expected.empty() || actual.empty()) {
     return false;
@@ -3627,7 +3632,6 @@ std::string EditorManager::GenerateUniqueEditorTitle(
                                     base_name, session_index)
                               : std::string(base_name);
 }
-
 
 void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
                                    bool from_dialog) {

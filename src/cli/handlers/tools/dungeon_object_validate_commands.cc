@@ -16,8 +16,8 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
-#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -43,7 +43,8 @@ struct TraceBounds {
   int height = 0;
 };
 
-TraceBounds ComputeBounds(const std::vector<zelda3::ObjectDrawer::TileTrace>& trace) {
+TraceBounds ComputeBounds(
+    const std::vector<zelda3::ObjectDrawer::TileTrace>& trace) {
   TraceBounds bounds;
   if (trace.empty()) {
     return bounds;
@@ -92,8 +93,10 @@ std::pair<int, int> ChooseOriginForExpectedBounds(
   auto choose_axis = [](int low, int high, int room_max) -> int {
     if (low <= high) {
       // Prefer origin at 0 when it fits; otherwise pick the nearest in-range.
-      if (0 < low) return low;
-      if (0 > high) return high;
+      if (0 < low)
+        return low;
+      if (0 > high)
+        return high;
       return 0;
     }
     // No feasible origin; clamp as a best-effort so we still produce output.
@@ -123,8 +126,7 @@ zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
   int max_y = min_y + bounds.height - 1;
 
   if (size > 0) {
-    const auto [base_w, base_h] =
-        dimension_table.GetBaseDimensions(object_id);
+    const auto [base_w, base_h] = dimension_table.GetBaseDimensions(object_id);
     const int sel_w = bounds.width;
     const int sel_h = bounds.height;
 
@@ -137,8 +139,7 @@ zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
         const int spacing = delta / size;
         if (spacing > base_w) {
           // Keep only fully visible repeated segments; drop partial tail repeats.
-          const int extra_room_tiles =
-              room_max_x - (min_x + (base_w - 1));
+          const int extra_room_tiles = room_max_x - (min_x + (base_w - 1));
           const int max_repeat =
               std::clamp(std::min(size, extra_room_tiles / spacing), 0, size);
           const int last_start = min_x + (max_repeat * spacing);
@@ -154,8 +155,7 @@ zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
         const int spacing = delta / size;
         if (spacing > base_h) {
           // Keep only fully visible repeated segments; drop partial tail repeats.
-          const int extra_room_tiles =
-              room_max_y - (min_y + (base_h - 1));
+          const int extra_room_tiles = room_max_y - (min_y + (base_h - 1));
           const int max_repeat =
               std::clamp(std::min(size, extra_room_tiles / spacing), 0, size);
           const int last_start = min_y + (max_repeat * spacing);
@@ -243,8 +243,7 @@ struct ValidationResult {
       return absl::StrFormat("obj 0x%03X size %d: no tiles drawn", object_id,
                              size);
     }
-    std::string status =
-        (size_mismatch || offset_mismatch) ? "MISMATCH" : "OK";
+    std::string status = (size_mismatch || offset_mismatch) ? "MISMATCH" : "OK";
     if (include_room_fields && has_room_context) {
       return absl::StrFormat(
           "room 0x%02X obj#%d (0x%03X size %d @%d,%d L%d): %s trace=%dx%d "
@@ -272,10 +271,10 @@ struct ValidationResult {
           R"("room_id":%d,"object_index":%d,"object_x":%d,"object_y":%d,"object_layer":%d,)"
           R"("size_mismatch":%s,"offset_mismatch":%s})",
           object_id, size, has_tiles ? "true" : "false", trace_width,
-          trace_height, trace_min_x, trace_min_y, trace_offset_x, trace_offset_y,
-          expected_width, expected_height, expected_offset_x, expected_offset_y,
-          room_id, object_index, object_x, object_y, object_layer,
-          size_mismatch ? "true" : "false",
+          trace_height, trace_min_x, trace_min_y, trace_offset_x,
+          trace_offset_y, expected_width, expected_height, expected_offset_x,
+          expected_offset_y, room_id, object_index, object_x, object_y,
+          object_layer, size_mismatch ? "true" : "false",
           offset_mismatch ? "true" : "false");
     }
     return absl::StrFormat(
@@ -287,8 +286,7 @@ struct ValidationResult {
         object_id, size, has_tiles ? "true" : "false", trace_width,
         trace_height, trace_min_x, trace_min_y, trace_offset_x, trace_offset_y,
         expected_width, expected_height, expected_offset_x, expected_offset_y,
-        size_mismatch ? "true" : "false",
-        offset_mismatch ? "true" : "false");
+        size_mismatch ? "true" : "false", offset_mismatch ? "true" : "false");
   }
 };
 
@@ -313,12 +311,13 @@ bool EndsWith(const std::string& value, const std::string& suffix) {
   if (value.size() < suffix.size()) {
     return false;
   }
-  return value.compare(value.size() - suffix.size(), suffix.size(), suffix) == 0;
+  return value.compare(value.size() - suffix.size(), suffix.size(), suffix) ==
+         0;
 }
 
 ReportPaths ResolveReportPaths(const std::string& report_base) {
-  std::string base = report_base.empty() ? "dungeon_object_validation_report"
-                                         : report_base;
+  std::string base =
+      report_base.empty() ? "dungeon_object_validation_report" : report_base;
   ReportPaths paths{};
   if (EndsWith(base, ".json")) {
     paths.json_path = base;
@@ -333,15 +332,10 @@ ReportPaths ResolveReportPaths(const std::string& report_base) {
   return paths;
 }
 
-absl::Status WriteJsonReport(const ReportPaths& paths,
-                             bool include_room_fields,
-                             int object_count,
-                             int size_cases,
-                             int test_cases,
-                             int mismatch_count,
-                             int empty_traces,
-                             int negative_offsets,
-                             int skipped_nothing,
+absl::Status WriteJsonReport(const ReportPaths& paths, bool include_room_fields,
+                             int object_count, int size_cases, int test_cases,
+                             int mismatch_count, int empty_traces,
+                             int negative_offsets, int skipped_nothing,
                              const std::vector<ValidationResult>& mismatches) {
   std::ofstream out(paths.json_path);
   if (!out.is_open()) {
@@ -381,35 +375,28 @@ absl::Status WriteCsvReport(const ReportPaths& paths, bool include_room_fields,
         absl::StrFormat("Failed to open report file: %s", paths.csv_path));
   }
 
-  out << "category,object_id,size,has_tiles,trace_width,trace_height,trace_min_x,trace_min_y,";
+  out << "category,object_id,size,has_tiles,trace_width,trace_height,trace_min_"
+         "x,trace_min_y,";
   if (include_room_fields) {
-    out << "trace_offset_x,trace_offset_y,room_id,object_index,object_x,object_y,object_layer,";
+    out << "trace_offset_x,trace_offset_y,room_id,object_index,object_x,object_"
+           "y,object_layer,";
   }
-  out << "expected_width,expected_height,expected_offset_x,expected_offset_y,size_mismatch,offset_mismatch\n";
+  out << "expected_width,expected_height,expected_offset_x,expected_offset_y,"
+         "size_mismatch,offset_mismatch\n";
   auto write_row = [&](const ValidationResult& result) {
     const std::string category = result.has_tiles ? "mismatch" : "empty";
-    out << category << ","
-        << absl::StrFormat("0x%03X", result.object_id) << ","
-        << result.size << ","
-        << (result.has_tiles ? "true" : "false") << ","
-        << result.trace_width << ","
-        << result.trace_height << ","
-        << result.trace_min_x << ","
-        << result.trace_min_y << ",";
+    out << category << "," << absl::StrFormat("0x%03X", result.object_id) << ","
+        << result.size << "," << (result.has_tiles ? "true" : "false") << ","
+        << result.trace_width << "," << result.trace_height << ","
+        << result.trace_min_x << "," << result.trace_min_y << ",";
     if (include_room_fields) {
-      out << result.trace_offset_x << ","
-          << result.trace_offset_y << ","
-          << result.room_id << ","
-          << result.object_index << ","
-          << result.object_x << ","
-          << result.object_y << ","
+      out << result.trace_offset_x << "," << result.trace_offset_y << ","
+          << result.room_id << "," << result.object_index << ","
+          << result.object_x << "," << result.object_y << ","
           << result.object_layer << ",";
     }
-    out << ""
-        << result.expected_width << ","
-        << result.expected_height << ","
-        << result.expected_offset_x << ","
-        << result.expected_offset_y << ","
+    out << "" << result.expected_width << "," << result.expected_height << ","
+        << result.expected_offset_x << "," << result.expected_offset_y << ","
         << (result.size_mismatch ? "true" : "false") << ","
         << (result.offset_mismatch ? "true" : "false") << "\n";
   };
@@ -464,15 +451,16 @@ absl::Status WriteTraceDump(const std::string& path, bool include_room_fields,
     out << "    {\n";
     out << absl::StrFormat("      \"object_id\": \"0x%03X\",\n",
                            entry.object_id);
-    out << absl::StrFormat("      \"object_id_dec\": %d,\n",
-                           entry.object_id);
+    out << absl::StrFormat("      \"object_id_dec\": %d,\n", entry.object_id);
     out << absl::StrFormat("      \"size\": %d,\n", entry.size);
     if (include_room_fields && entry.has_room_context) {
       out << absl::StrFormat("      \"room_id\": %d,\n", entry.room_id);
-      out << absl::StrFormat("      \"object_index\": %d,\n", entry.object_index);
+      out << absl::StrFormat("      \"object_index\": %d,\n",
+                             entry.object_index);
       out << absl::StrFormat("      \"object_x\": %d,\n", entry.object_x);
       out << absl::StrFormat("      \"object_y\": %d,\n", entry.object_y);
-      out << absl::StrFormat("      \"object_layer\": %d,\n", entry.object_layer);
+      out << absl::StrFormat("      \"object_layer\": %d,\n",
+                             entry.object_layer);
     }
     out << "      \"tiles\": [\n";
 
@@ -645,9 +633,8 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
       result.trace_min_y = bounds.min_y;
       result.trace_offset_x = bounds.min_x - obj.x_;
       result.trace_offset_y = bounds.min_y - obj.y_;
-      result.size_mismatch =
-          (bounds.width != expected_bounds.width ||
-           bounds.height != expected_bounds.height);
+      result.size_mismatch = (bounds.width != expected_bounds.width ||
+                              bounds.height != expected_bounds.height);
       result.offset_mismatch =
           (result.trace_offset_x != expected_bounds.offset_x ||
            result.trace_offset_y != expected_bounds.offset_y);
@@ -741,9 +728,8 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         result.expected_height = expected_bounds.height;
         result.expected_offset_x = expected_bounds.offset_x;
         result.expected_offset_y = expected_bounds.offset_y;
-        result.size_mismatch =
-            (bounds.width != expected_bounds.width ||
-             bounds.height != expected_bounds.height);
+        result.size_mismatch = (bounds.width != expected_bounds.width ||
+                                bounds.height != expected_bounds.height);
         result.offset_mismatch =
             (result.trace_offset_x != expected_bounds.offset_x ||
              result.trace_offset_y != expected_bounds.offset_y);
@@ -799,18 +785,16 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
 
   formatter.BeginArray("mismatches");
   for (const auto& result : mismatches) {
-    formatter.AddArrayItem(formatter.IsJson()
-                               ? result.FormatJson(room_mode)
-                               : result.FormatText(room_mode));
+    formatter.AddArrayItem(formatter.IsJson() ? result.FormatJson(room_mode)
+                                              : result.FormatText(room_mode));
   }
   formatter.EndArray();
 
   if (verbose) {
     formatter.BeginArray("empty_trace_objects");
     for (const auto& result : empty_traces) {
-      formatter.AddArrayItem(formatter.IsJson()
-                                 ? result.FormatJson(room_mode)
-                                 : result.FormatText(room_mode));
+      formatter.AddArrayItem(formatter.IsJson() ? result.FormatJson(room_mode)
+                                                : result.FormatText(room_mode));
     }
     formatter.EndArray();
   }

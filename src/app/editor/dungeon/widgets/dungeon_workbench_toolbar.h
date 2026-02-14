@@ -42,4 +42,3 @@ class DungeonWorkbenchToolbar {
 }  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_DUNGEON_WIDGETS_DUNGEON_WORKBENCH_TOOLBAR_H
-

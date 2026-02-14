@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cctype>
 #include <cmath>
-#include <cstdio>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 #include <utility>
 #include <vector>
@@ -31,22 +31,25 @@ namespace {
 
 // Object type category names based on ID range
 const char* GetObjectCategory(int object_id) {
-  if (object_id < 0x100) return "Standard";
-  if (object_id < 0x200) return "Extended";
-  if (object_id >= 0xF80) return "Special";
+  if (object_id < 0x100)
+    return "Standard";
+  if (object_id < 0x200)
+    return "Extended";
+  if (object_id >= 0xF80)
+    return "Special";
   return "Unknown";
 }
 
 // Pot item names for the inspector
 const char* GetPotItemName(uint8_t item) {
   static const char* kNames[] = {
-      "Nothing",       "Green Rupee",  "Rock",          "Bee",
-      "Heart (4)",     "Bomb (4)",     "Heart",         "Blue Rupee",
-      "Key",           "Arrow (5)",    "Bomb (1)",      "Heart",
-      "Magic (Small)", "Full Magic",   "Cucco",         "Green Soldier",
-      "Bush Stal",     "Blue Soldier", "Landmine",      "Heart",
-      "Fairy",         "Heart",        "Nothing (22)",  "Hole",
-      "Warp",          "Staircase",    "Bombable",      "Switch",
+      "Nothing",       "Green Rupee",  "Rock",         "Bee",
+      "Heart (4)",     "Bomb (4)",     "Heart",        "Blue Rupee",
+      "Key",           "Arrow (5)",    "Bomb (1)",     "Heart",
+      "Magic (Small)", "Full Magic",   "Cucco",        "Green Soldier",
+      "Bush Stal",     "Blue Soldier", "Landmine",     "Heart",
+      "Fairy",         "Heart",        "Nothing (22)", "Hole",
+      "Warp",          "Staircase",    "Bombable",     "Switch",
   };
   constexpr size_t kCount = sizeof(kNames) / sizeof(kNames[0]);
   return item < kCount ? kNames[item] : "Unknown";
@@ -74,8 +77,7 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
       compare_room_id_(compare_room_id),
       layout_state_(layout_state),
       on_room_selected_(std::move(on_room_selected)),
-      on_room_selected_with_intent_(
-          std::move(on_room_selected_with_intent)),
+      on_room_selected_with_intent_(std::move(on_room_selected_with_intent)),
       on_save_room_(std::move(on_save_room)),
       get_viewer_(std::move(get_viewer)),
       get_compare_viewer_(std::move(get_compare_viewer)),
@@ -85,15 +87,25 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
       set_workflow_mode_(std::move(set_workflow_mode)),
       rom_(rom) {}
 
-std::string DungeonWorkbenchPanel::GetId() const { return "dungeon.workbench"; }
+std::string DungeonWorkbenchPanel::GetId() const {
+  return "dungeon.workbench";
+}
 std::string DungeonWorkbenchPanel::GetDisplayName() const {
   return "Dungeon Workbench";
 }
-std::string DungeonWorkbenchPanel::GetIcon() const { return ICON_MD_WORKSPACES; }
-std::string DungeonWorkbenchPanel::GetEditorCategory() const { return "Dungeon"; }
-int DungeonWorkbenchPanel::GetPriority() const { return 10; }
+std::string DungeonWorkbenchPanel::GetIcon() const {
+  return ICON_MD_WORKSPACES;
+}
+std::string DungeonWorkbenchPanel::GetEditorCategory() const {
+  return "Dungeon";
+}
+int DungeonWorkbenchPanel::GetPriority() const {
+  return 10;
+}
 
-void DungeonWorkbenchPanel::SetRom(Rom* rom) { rom_ = rom; }
+void DungeonWorkbenchPanel::SetRom(Rom* rom) {
+  rom_ = rom;
+}
 
 void DungeonWorkbenchPanel::Draw(bool* p_open) {
   (void)p_open;
@@ -144,8 +156,8 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   }
 
   const float btn = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
-  const float rail_w = std::max({32.0f, btn + 8.0f,
-                                 gui::LayoutHelpers::GetMinTouchTarget()});
+  const float rail_w =
+      std::max({32.0f, btn + 8.0f, gui::LayoutHelpers::GetMinTouchTarget()});
 
   const bool show_left =
       layout_state_ ? layout_state_->show_left_sidebar : true;
@@ -153,9 +165,13 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       layout_state_ ? layout_state_->show_right_inspector : true;
 
   const float left_w =
-      show_left ? (layout_state_ ? layout_state_->left_width : gui::UIConfig::kPanelWidthProperties) : rail_w;
+      show_left ? (layout_state_ ? layout_state_->left_width
+                                 : gui::UIConfig::kPanelWidthProperties)
+                : rail_w;
   const float right_w =
-      show_right ? (layout_state_ ? layout_state_->right_width : gui::UIConfig::kPanelWidthProperties) : rail_w;
+      show_right ? (layout_state_ ? layout_state_->right_width
+                                  : gui::UIConfig::kPanelWidthProperties)
+                 : rail_w;
 
   ImGuiTableColumnFlags left_flags = ImGuiTableColumnFlags_WidthFixed;
   if (!show_left) {
@@ -179,14 +195,16 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   if (show_left) {
     measured_left_w = ImGui::GetContentRegionAvail().x;
     ImGui::BeginChild("##DungeonWorkbenchSidebar", ImVec2(0, 0), true);
-    
+
     // Header with collapse button
     ImGui::TextDisabled(ICON_MD_LIST " Rooms");
     ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
-    if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms", ImVec2(btn, btn))) {
-        if (layout_state_) layout_state_->show_left_sidebar = false;
+    if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms",
+                      ImVec2(btn, btn))) {
+      if (layout_state_)
+        layout_state_->show_left_sidebar = false;
     }
-    
+
     ImGui::Separator();
     ImGui::PushID("RoomSelectorEmbedded");
     room_selector_->DrawRoomSelector();
@@ -197,7 +215,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::BeginChild("##DungeonWorkbenchSidebarCollapsed", ImVec2(0, 0), true);
     const float avail = ImGui::GetContentRegionAvail().x;
     const float expand_btn_w = btn;
-    
+
     ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(8.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##ExpandRooms",
@@ -209,9 +227,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Show room browser");
     }
-    
+
     // Add a vertical label if there's enough height (TBD)
-    
+
     ImGui::EndChild();
   }
 
@@ -235,14 +253,16 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   if (show_right) {
     measured_right_w = ImGui::GetContentRegionAvail().x;
     ImGui::BeginChild("##DungeonWorkbenchInspector", ImVec2(0, 0), true);
-    
+
     // Header with collapse button
     ImGui::TextDisabled(ICON_MD_TUNE " Inspector");
     ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
-    if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##CollapseInspector", ImVec2(btn, btn))) {
-        if (layout_state_) layout_state_->show_right_inspector = false;
+    if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##CollapseInspector",
+                      ImVec2(btn, btn))) {
+      if (layout_state_)
+        layout_state_->show_right_inspector = false;
     }
-    
+
     ImGui::Separator();
     if (primary_viewer) {
       DrawInspector(*primary_viewer);
@@ -256,7 +276,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
                       true);
     const float avail = ImGui::GetContentRegionAvail().x;
     const float expand_btn_w = btn;
-    
+
     ImGui::SetCursorPosX(std::max(0.0f, (avail - expand_btn_w) * 0.5f));
     ImGui::SetCursorPosY(8.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##ExpandInspector",
@@ -299,10 +319,9 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
   std::vector<int> recent_ids(recent.begin(), recent.end());
   std::vector<int> to_forget;
 
-  constexpr ImGuiTabBarFlags kFlags =
-      ImGuiTabBarFlags_AutoSelectNewTabs |
-      ImGuiTabBarFlags_FittingPolicyScroll |
-      ImGuiTabBarFlags_TabListPopupButton;
+  constexpr ImGuiTabBarFlags kFlags = ImGuiTabBarFlags_AutoSelectNewTabs |
+                                      ImGuiTabBarFlags_FittingPolicyScroll |
+                                      ImGuiTabBarFlags_TabListPopupButton;
 
   // Some Material icon glyphs can get clipped at small tab heights; slightly
   // increasing Y padding here keeps the trailing toggle readable without
@@ -416,9 +435,11 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   // Compare pane
   ImGui::TableNextColumn();
   ImGui::BeginChild("##SplitCompare", ImVec2(0, 0), false);
-  if (auto* compare_viewer = get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
+  if (auto* compare_viewer =
+          get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
     if (layout_state_ && layout_state_->sync_split_view) {
-      compare_viewer->canvas().ApplyScaleSnapshot(primary_viewer.canvas().GetConfig());
+      compare_viewer->canvas().ApplyScaleSnapshot(
+          primary_viewer.canvas().GetConfig());
     }
     compare_viewer->DrawDungeonCanvas(*compare_room_id_);
   } else {
@@ -460,7 +481,8 @@ void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
   ImGui::EndTabBar();
 }
 
-void DungeonWorkbenchPanel::DrawInspectorShelfRoom(DungeonCanvasViewer& viewer) {
+void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
+    DungeonCanvasViewer& viewer) {
   const auto& theme = AgentUI::GetTheme();
 
   int room_id = viewer.current_room_id();
@@ -505,69 +527,69 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(DungeonCanvasViewer& viewer) 
 
     constexpr float kHexW = 92.0f;
 
-    constexpr ImGuiTableFlags kPropsFlags =
-        ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg |
-        ImGuiTableFlags_NoPadOuterX;
+    constexpr ImGuiTableFlags kPropsFlags = ImGuiTableFlags_BordersInnerV |
+                                            ImGuiTableFlags_RowBg |
+                                            ImGuiTableFlags_NoPadOuterX;
     if (ImGui::BeginTable("##WorkbenchRoomProps", 2, kPropsFlags)) {
       ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed, 90.0f);
       ImGui::TableSetupColumn("Val", ImGuiTableColumnFlags_WidthStretch);
 
       gui::LayoutHelpers::PropertyRow("Blockset", [&]() {
-      if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val, 81, kHexW,
-                                         true);
-          res.ShouldApply()) {
-        room.SetBlockset(blockset_val);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
+        if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val, 81,
+                                           kHexW, true);
+            res.ShouldApply()) {
+          room.SetBlockset(blockset_val);
+          if (room.rom() && room.rom()->is_loaded()) {
+            room.RenderRoomGraphics();
+          }
         }
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Blockset (0-51)");
-      }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Blockset (0-51)");
+        }
       });
       gui::LayoutHelpers::PropertyRow("Palette", [&]() {
-      if (auto res = gui::InputHexByteEx("##Palette", &palette_val, 71, kHexW,
-                                         true);
-          res.ShouldApply()) {
-        room.SetPalette(palette_val);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
+        if (auto res =
+                gui::InputHexByteEx("##Palette", &palette_val, 71, kHexW, true);
+            res.ShouldApply()) {
+          room.SetPalette(palette_val);
+          if (room.rom() && room.rom()->is_loaded()) {
+            room.RenderRoomGraphics();
+          }
+          // Re-run editor sync so palette group + dependent panels update.
+          if (on_room_selected_) {
+            on_room_selected_(room_id);
+          }
         }
-        // Re-run editor sync so palette group + dependent panels update.
-        if (on_room_selected_) {
-          on_room_selected_(room_id);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Palette (0-47)");
         }
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Palette (0-47)");
-      }
       });
       gui::LayoutHelpers::PropertyRow("Layout", [&]() {
-      if (auto res =
-              gui::InputHexByteEx("##Layout", &layout_val, 7, kHexW, true);
-          res.ShouldApply()) {
-        room.layout = layout_val;
-        room.MarkLayoutDirty();
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
+        if (auto res =
+                gui::InputHexByteEx("##Layout", &layout_val, 7, kHexW, true);
+            res.ShouldApply()) {
+          room.layout = layout_val;
+          room.MarkLayoutDirty();
+          if (room.rom() && room.rom()->is_loaded()) {
+            room.RenderRoomGraphics();
+          }
         }
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Layout (0-7)");
-      }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Layout (0-7)");
+        }
       });
       gui::LayoutHelpers::PropertyRow("Spriteset", [&]() {
-      if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val, 143,
-                                         kHexW, true);
-          res.ShouldApply()) {
-        room.SetSpriteset(spriteset_val);
-        if (room.rom() && room.rom()->is_loaded()) {
-          room.RenderRoomGraphics();
+        if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val, 143,
+                                           kHexW, true);
+            res.ShouldApply()) {
+          room.SetSpriteset(spriteset_val);
+          if (room.rom() && room.rom()->is_loaded()) {
+            room.RenderRoomGraphics();
+          }
         }
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Spriteset (0-8F)");
-      }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Spriteset (0-8F)");
+        }
       });
 
       ImGui::EndTable();
@@ -649,9 +671,9 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
         ImGui::Spacing();
 
         // Property table
-        constexpr ImGuiTableFlags kPropsFlags =
-            ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg |
-            ImGuiTableFlags_NoPadOuterX;
+        constexpr ImGuiTableFlags kPropsFlags = ImGuiTableFlags_BordersInnerV |
+                                                ImGuiTableFlags_RowBg |
+                                                ImGuiTableFlags_NoPadOuterX;
         if (ImGui::BeginTable("##SelObjProps", 2, kPropsFlags)) {
           ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed,
                                   56.0f);
@@ -735,15 +757,15 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
           std::string type_name(zelda3::GetDoorTypeName(door.type));
           std::string dir_name(zelda3::GetDoorDirectionName(door.direction));
 
-          ImGui::TextColored(theme.text_primary,
-                             ICON_MD_DOOR_FRONT " %s", type_name.c_str());
+          ImGui::TextColored(theme.text_primary, ICON_MD_DOOR_FRONT " %s",
+                             type_name.c_str());
           ImGui::TextDisabled("Direction: %s  Position: 0x%02X",
                               dir_name.c_str(), door.position);
 
           auto [tile_x, tile_y] = door.GetTileCoords();
           auto [pixel_x, pixel_y] = door.GetPixelCoords();
-          ImGui::TextDisabled("Tile: (%d, %d)  Pixel: (%d, %d)",
-                              tile_x, tile_y, pixel_x, pixel_y);
+          ImGui::TextDisabled("Tile: (%d, %d)  Pixel: (%d, %d)", tile_x, tile_y,
+                              pixel_x, pixel_y);
         }
         break;
       }
@@ -753,19 +775,17 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
           const auto& sprite = sprites[sel.index];
           std::string sprite_name = zelda3::GetSpriteLabel(sprite.id());
 
-          ImGui::TextColored(theme.text_primary,
-                             ICON_MD_PERSON " %s", sprite_name.c_str());
-          ImGui::TextDisabled("ID: 0x%02X  Subtype: %d  Layer: %d",
-                              sprite.id(), sprite.subtype(), sprite.layer());
-          ImGui::TextDisabled("Pos: (%d, %d)  Pixel: (%d, %d)",
-                              sprite.x(), sprite.y(),
-                              sprite.x() * 16, sprite.y() * 16);
+          ImGui::TextColored(theme.text_primary, ICON_MD_PERSON " %s",
+                             sprite_name.c_str());
+          ImGui::TextDisabled("ID: 0x%02X  Subtype: %d  Layer: %d", sprite.id(),
+                              sprite.subtype(), sprite.layer());
+          ImGui::TextDisabled("Pos: (%d, %d)  Pixel: (%d, %d)", sprite.x(),
+                              sprite.y(), sprite.x() * 16, sprite.y() * 16);
 
           // Overlord check
           if (sprite.subtype() == 0x07 && sprite.id() >= 0x01 &&
               sprite.id() <= 0x1A) {
-            std::string overlord_name =
-                zelda3::GetOverlordLabel(sprite.id());
+            std::string overlord_name = zelda3::GetOverlordLabel(sprite.id());
             ImGui::TextColored(theme.text_warning_yellow,
                                ICON_MD_STAR " Overlord: %s",
                                overlord_name.c_str());
@@ -779,10 +799,10 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
           const auto& pot_item = items[sel.index];
           const char* item_name = GetPotItemName(pot_item.item);
 
-          ImGui::TextColored(theme.text_primary,
-                             ICON_MD_INVENTORY_2 " %s", item_name);
-          ImGui::TextDisabled("Item ID: 0x%02X  Raw Pos: 0x%04X",
-                              pot_item.item, pot_item.position);
+          ImGui::TextColored(theme.text_primary, ICON_MD_INVENTORY_2 " %s",
+                             item_name);
+          ImGui::TextDisabled("Item ID: 0x%02X  Raw Pos: 0x%04X", pot_item.item,
+                              pot_item.position);
           ImGui::TextDisabled("Pixel: (%d, %d)  Tile: (%d, %d)",
                               pot_item.GetPixelX(), pot_item.GetPixelY(),
                               pot_item.GetTileX(), pot_item.GetTileY());
@@ -801,9 +821,11 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspectorShelfView(DungeonCanvasViewer& viewer) {
+void DungeonWorkbenchPanel::DrawInspectorShelfView(
+    DungeonCanvasViewer& viewer) {
   bool val = viewer.show_grid();
-  if (ImGui::Checkbox("Grid (8x8)", &val)) viewer.set_show_grid(val);
+  if (ImGui::Checkbox("Grid (8x8)", &val))
+    viewer.set_show_grid(val);
 
   val = viewer.show_object_bounds();
   if (ImGui::Checkbox("Object Bounds", &val)) {

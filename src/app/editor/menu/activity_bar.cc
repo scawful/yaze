@@ -24,10 +24,9 @@
 namespace yaze {
 namespace editor {
 
-ActivityBar::ActivityBar(
-    PanelManager& panel_manager,
-    std::function<bool()> is_dungeon_workbench_mode,
-    std::function<void(bool)> set_dungeon_workflow_mode)
+ActivityBar::ActivityBar(PanelManager& panel_manager,
+                         std::function<bool()> is_dungeon_workbench_mode,
+                         std::function<void(bool)> set_dungeon_workflow_mode)
     : panel_manager_(panel_manager),
       is_dungeon_workbench_mode_(std::move(is_dungeon_workbench_mode)),
       set_dungeon_workflow_mode_(std::move(set_dungeon_workflow_mode)) {}
@@ -88,8 +87,7 @@ void ActivityBar::DrawActivityBarStrip(
   if (bar) {
 
     // Global Search / Command Palette at top
-    if (gui::TransparentIconButton(ICON_MD_SEARCH,
-                                   gui::IconSize::ActivityBar(),
+    if (gui::TransparentIconButton(ICON_MD_SEARCH, gui::IconSize::ActivityBar(),
                                    "Global Search (Ctrl+Shift+F)", false,
                                    ImVec4(0, 0, 0, 0), "activity_bar",
                                    "search")) {
@@ -99,8 +97,8 @@ void ActivityBar::DrawActivityBarStrip(
     // Separator
     ImGui::Spacing();
     ImVec2 sep_p1 = ImGui::GetCursorScreenPos();
-    ImVec2 sep_p2 = ImVec2(sep_p1.x + gui::UIConfig::kActivityBarWidth,
-                           sep_p1.y);
+    ImVec2 sep_p2 =
+        ImVec2(sep_p1.x + gui::UIConfig::kActivityBarWidth, sep_p1.y);
     ImGui::GetWindowDrawList()->AddLine(
         sep_p1, sep_p2,
         ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(theme.border)),
@@ -204,8 +202,7 @@ void ActivityBar::DrawActivityBarStrip(
           gui::ColoredText("Editor open",
                            gui::ConvertColorToImVec4(theme.success));
         } else {
-          gui::ColoredText("Click to view panels",
-                           gui::GetTextSecondaryVec4());
+          gui::ColoredText("Click to view panels", gui::GetTextSecondaryVec4());
         }
         ImGui::EndTooltip();
       }
@@ -215,9 +212,9 @@ void ActivityBar::DrawActivityBarStrip(
   // Draw "More Actions" button at the bottom
   ImGui::SetCursorPosY(viewport_height - 48.0f);
 
-  if (gui::TransparentIconButton(
-          ICON_MD_MORE_HORIZ, gui::IconSize::Large(), nullptr, false,
-          ImVec4(0, 0, 0, 0), "activity_bar", "more_actions")) {
+  if (gui::TransparentIconButton(ICON_MD_MORE_HORIZ, gui::IconSize::Large(),
+                                 nullptr, false, ImVec4(0, 0, 0, 0),
+                                 "activity_bar", "more_actions")) {
     ImGui::OpenPopup("ActivityBarMoreMenu");
   }
 
@@ -260,8 +257,7 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
 
   gui::FixedPanel panel(
       "##SidePanel",
-      ImVec2(viewport->WorkPos.x + bar_width,
-             viewport->WorkPos.y + top_inset),
+      ImVec2(viewport->WorkPos.x + bar_width, viewport->WorkPos.y + top_inset),
       ImVec2(panel_width, panel_height),
       {.bg = gui::ConvertColorToImVec4(theme.surface),
        .padding = {10.0f, 10.0f},
@@ -585,22 +581,23 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     if (handle_hovered || handle_active) {
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
     }
-    if (handle_hovered &&
-        ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    if (handle_hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       panel_manager_.ResetSidePanelWidth();
     }
     if (handle_active) {
       const float new_width = panel_width + ImGui::GetIO().MouseDelta.x;
       panel_manager_.SetActiveSidePanelWidth(new_width, viewport->WorkSize.x);
-      ImGui::SetTooltip("Width: %.0f px", panel_manager_.GetActiveSidePanelWidth(
-                                           viewport->WorkSize.x));
+      ImGui::SetTooltip(
+          "Width: %.0f px",
+          panel_manager_.GetActiveSidePanelWidth(viewport->WorkSize.x));
     }
 
     ImVec4 handle_color = gui::GetOutlineVec4();
     handle_color.w = handle_active ? 0.95f : (handle_hovered ? 0.72f : 0.35f);
     ImGui::GetWindowDrawList()->AddLine(
         ImVec2(panel_pos.x + panel_width - 1.0f, panel_pos.y),
-        ImVec2(panel_pos.x + panel_width - 1.0f, panel_pos.y + panel_draw_height),
+        ImVec2(panel_pos.x + panel_width - 1.0f,
+               panel_pos.y + panel_draw_height),
         ImGui::GetColorU32(handle_color), handle_active ? 2.0f : 1.0f);
   }
   // FixedPanel destructor handles End() + PopStyleVar/PopStyleColor
@@ -611,14 +608,11 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
   ImVec2 max_window_size(1600.0f, 1000.0f);
   ImVec2 default_window_size(1080.0f, 700.0f);
   if (viewport) {
-    max_window_size =
-        ImVec2(std::max(760.0f, viewport->WorkSize.x * 0.95f),
-               std::max(520.0f, viewport->WorkSize.y * 0.95f));
-    default_window_size =
-        ImVec2(std::clamp(viewport->WorkSize.x * 0.72f, 880.0f,
-                          max_window_size.x),
-               std::clamp(viewport->WorkSize.y * 0.76f, 600.0f,
-                          max_window_size.y));
+    max_window_size = ImVec2(std::max(760.0f, viewport->WorkSize.x * 0.95f),
+                             std::max(520.0f, viewport->WorkSize.y * 0.95f));
+    default_window_size = ImVec2(
+        std::clamp(viewport->WorkSize.x * 0.72f, 880.0f, max_window_size.x),
+        std::clamp(viewport->WorkSize.y * 0.76f, 600.0f, max_window_size.y));
     const ImVec2 center(viewport->WorkPos.x + viewport->WorkSize.x * 0.5f,
                         viewport->WorkPos.y + viewport->WorkSize.y * 0.5f);
     ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
@@ -697,9 +691,9 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
     const float content_height = ImGui::GetContentRegionAvail().y;
     const float max_sidebar_width =
         std::max(220.0f, ImGui::GetContentRegionAvail().x * 0.50f);
-    float category_sidebar_width = std::clamp(
-        panel_manager_.GetPanelBrowserCategoryWidth(), 220.0f,
-        max_sidebar_width);
+    float category_sidebar_width =
+        std::clamp(panel_manager_.GetPanelBrowserCategoryWidth(), 220.0f,
+                   max_sidebar_width);
 
     if (ImGui::BeginChild("##PanelBrowserCategories",
                           ImVec2(category_sidebar_width, content_height),
@@ -720,9 +714,9 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
         }
         const int visible_in_category = count_cards(cat, true);
         const std::string icon = PanelManager::GetCategoryIcon(cat);
-        std::string label = absl::StrFormat("%s %s (%d/%d)", icon.c_str(),
-                                            cat.c_str(), visible_in_category,
-                                            category_total);
+        std::string label =
+            absl::StrFormat("%s %s (%d/%d)", icon.c_str(), cat.c_str(),
+                            visible_in_category, category_total);
         if (ImGui::Selectable(label.c_str(), category_filter == cat)) {
           category_filter = cat;
         }
@@ -745,9 +739,9 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
         ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       panel_manager_.SetPanelBrowserCategoryWidth(
           PanelManager::GetDefaultPanelBrowserCategoryWidth());
-      category_sidebar_width = std::clamp(
-          panel_manager_.GetPanelBrowserCategoryWidth(), 220.0f,
-          max_sidebar_width);
+      category_sidebar_width =
+          std::clamp(panel_manager_.GetPanelBrowserCategoryWidth(), 220.0f,
+                     max_sidebar_width);
     }
     if (splitter_active) {
       category_sidebar_width =
@@ -784,9 +778,8 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
                                 110);
         ImGui::TableHeadersRow();
 
-        auto cards = (category_filter == "All")
-                         ? all_cards
-                         : std::vector<std::string>{};
+        auto cards =
+            (category_filter == "All") ? all_cards : std::vector<std::string>{};
         if (category_filter != "All") {
           auto category_cards =
               panel_manager_.GetPanelsInCategory(session_id, category_filter);
@@ -837,10 +830,10 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
               is_pinned ? gui::GetPrimaryVec4() : gui::GetTextDisabledVec4();
           {
             gui::StyleColorGuard pin_text(ImGuiCol_Text, pin_color);
-            if (ImGui::SmallButton(
-                    absl::StrFormat("%s##pin_%s", ICON_MD_PUSH_PIN,
-                                    card->card_id.c_str())
-                        .c_str())) {
+            if (ImGui::SmallButton(absl::StrFormat("%s##pin_%s",
+                                                   ICON_MD_PUSH_PIN,
+                                                   card->card_id.c_str())
+                                       .c_str())) {
               panel_manager_.SetPanelPinned(card->card_id, !is_pinned);
             }
           }

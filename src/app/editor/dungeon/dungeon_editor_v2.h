@@ -23,6 +23,7 @@
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
+#include "dungeon_undo_actions.h"
 #include "dungeon_workbench_state.h"
 #include "imgui/imgui.h"
 #include "panels/dungeon_room_graphics_panel.h"
@@ -33,7 +34,6 @@
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
-#include "dungeon_undo_actions.h"
 
 namespace yaze {
 namespace editor {
