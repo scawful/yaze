@@ -136,8 +136,11 @@ zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
       if (delta > 0 && (delta % size) == 0) {
         const int spacing = delta / size;
         if (spacing > base_w) {
+          // Keep only fully visible repeated segments; drop partial tail repeats.
+          const int extra_room_tiles =
+              room_max_x - (min_x + (base_w - 1));
           const int max_repeat =
-              std::min(size, (room_max_x - min_x) / spacing);
+              std::clamp(std::min(size, extra_room_tiles / spacing), 0, size);
           const int last_start = min_x + (max_repeat * spacing);
           const int last_end = last_start + base_w - 1;
           max_x = std::min(max_x, last_end);
@@ -150,8 +153,11 @@ zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
       if (delta > 0 && (delta % size) == 0) {
         const int spacing = delta / size;
         if (spacing > base_h) {
+          // Keep only fully visible repeated segments; drop partial tail repeats.
+          const int extra_room_tiles =
+              room_max_y - (min_y + (base_h - 1));
           const int max_repeat =
-              std::min(size, (room_max_y - min_y) / spacing);
+              std::clamp(std::min(size, extra_room_tiles / spacing), 0, size);
           const int last_start = min_y + (max_repeat * spacing);
           const int last_end = last_start + base_h - 1;
           max_y = std::min(max_y, last_end);

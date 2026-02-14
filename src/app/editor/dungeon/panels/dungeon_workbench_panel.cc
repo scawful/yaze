@@ -112,22 +112,6 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   DungeonCanvasViewer* compare_viewer =
       get_compare_viewer_ ? get_compare_viewer_() : nullptr;
 
-  // Clarify workflow intent: this panel is the integrated workbench mode.
-  ImGui::TextDisabled(ICON_MD_WORKSPACES " Workbench Mode");
-  ImGui::SameLine();
-  ImGui::TextDisabled("Integrated room browser + inspector");
-  ImGui::SameLine();
-  if (ImGui::SmallButton(ICON_MD_VIEW_QUILT " Switch To Panel Mode") &&
-      set_workflow_mode_) {
-    set_workflow_mode_(false);
-    return;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "Switch to standalone room panels with separate Room List + Room Matrix windows.");
-  }
-  ImGui::Spacing();
-
   if (layout_state_ && current_room_id_) {
     DungeonWorkbenchToolbarParams params;
     params.layout = layout_state_;
@@ -139,9 +123,15 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     params.compare_viewer = compare_viewer;
     params.on_room_selected = on_room_selected_;
     params.get_recent_rooms = get_recent_rooms_;
+    params.set_workflow_mode = set_workflow_mode_;
     params.compare_search_buf = compare_search_buf_;
     params.compare_search_buf_size = sizeof(compare_search_buf_);
-    DungeonWorkbenchToolbar::Draw(params);
+    const bool request_panel_workflow = DungeonWorkbenchToolbar::Draw(params);
+    if (request_panel_workflow && set_workflow_mode_) {
+      // Defer panel visibility mutation until toolbar child/table scopes closed.
+      set_workflow_mode_(false);
+      return;
+    }
     ImGui::Spacing();
   }
 

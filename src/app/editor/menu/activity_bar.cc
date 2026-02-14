@@ -6,6 +6,7 @@
 #include <functional>
 #include <string>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "absl/strings/str_format.h"
@@ -23,8 +24,13 @@
 namespace yaze {
 namespace editor {
 
-ActivityBar::ActivityBar(PanelManager& panel_manager)
-    : panel_manager_(panel_manager) {}
+ActivityBar::ActivityBar(
+    PanelManager& panel_manager,
+    std::function<bool()> is_dungeon_workbench_mode,
+    std::function<void(bool)> set_dungeon_workflow_mode)
+    : panel_manager_(panel_manager),
+      is_dungeon_workbench_mode_(std::move(is_dungeon_workbench_mode)),
+      set_dungeon_workflow_mode_(std::move(set_dungeon_workflow_mode)) {}
 
 void ActivityBar::Render(
     size_t session_id, const std::string& active_category,
@@ -291,81 +297,101 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     ImGui::InputTextWithHint("##SidebarSearch", ICON_MD_SEARCH " Filter...",
                              sidebar_search, sizeof(sidebar_search));
 
+    const auto is_dungeon_panel_mode_card =
+        [](const std::string& panel_id) -> bool {
+      const bool is_room_window = panel_id.rfind("dungeon.room_", 0) == 0;
+      return panel_id == "dungeon.room_selector" ||
+             panel_id == "dungeon.room_matrix" || is_room_window;
+    };
+    auto read_dungeon_workbench_mode = [&]() -> bool {
+      if (category != "Dungeon") {
+        return false;
+      }
+      if (is_dungeon_workbench_mode_) {
+        return is_dungeon_workbench_mode_();
+      }
+      return panel_manager_.IsPanelVisible(session_id, "dungeon.workbench");
+    };
+    bool dungeon_workbench_mode = read_dungeon_workbench_mode();
+
+    auto switch_to_dungeon_workbench_mode = [&]() {
+      if (category != "Dungeon") {
+        return;
+      }
+      if (set_dungeon_workflow_mode_) {
+        set_dungeon_workflow_mode_(true);
+        dungeon_workbench_mode = read_dungeon_workbench_mode();
+        return;
+      }
+      panel_manager_.ShowPanel(session_id, "dungeon.workbench");
+      for (const auto& descriptor :
+           panel_manager_.GetPanelsInCategory(session_id, "Dungeon")) {
+        const std::string& panel_id = descriptor.card_id;
+        if (panel_id == "dungeon.workbench") {
+          continue;
+        }
+        if (panel_manager_.IsPanelPinned(session_id, panel_id)) {
+          continue;
+        }
+        if (is_dungeon_panel_mode_card(panel_id)) {
+          panel_manager_.HidePanel(session_id, panel_id);
+        }
+      }
+      dungeon_workbench_mode = read_dungeon_workbench_mode();
+    };
+
+    auto switch_to_dungeon_panel_mode = [&]() {
+      if (category != "Dungeon") {
+        return;
+      }
+      if (set_dungeon_workflow_mode_) {
+        set_dungeon_workflow_mode_(false);
+        dungeon_workbench_mode = read_dungeon_workbench_mode();
+        return;
+      }
+      panel_manager_.HidePanel(session_id, "dungeon.workbench");
+      panel_manager_.ShowPanel(session_id, "dungeon.room_selector");
+      panel_manager_.ShowPanel(session_id, "dungeon.room_matrix");
+      dungeon_workbench_mode = read_dungeon_workbench_mode();
+    };
+
+    auto ensure_dungeon_panel_mode_for_card =
+        [&](const std::string& panel_id) -> bool {
+      if (category != "Dungeon" || !dungeon_workbench_mode ||
+          !is_dungeon_panel_mode_card(panel_id)) {
+        return false;
+      }
+      switch_to_dungeon_panel_mode();
+      return true;
+    };
+
     if (category == "Dungeon") {
-      const bool workbench_visible =
-          panel_manager_.IsPanelVisible(session_id, "dungeon.workbench");
       ImGui::Spacing();
-      if (ImGui::CollapsingHeader(ICON_MD_WORKSPACES " Workflow",
-                                  ImGuiTreeNodeFlags_DefaultOpen)) {
-        if (ImGui::SmallButton(ICON_MD_WORKSPACES " Workbench")) {
-          panel_manager_.ShowPanel(session_id, "dungeon.workbench");
-          for (const auto& descriptor :
-               panel_manager_.GetPanelsInCategory(session_id, "Dungeon")) {
-            const std::string& panel_id = descriptor.card_id;
-            if (panel_id == "dungeon.workbench") {
-              continue;
-            }
-            if (panel_manager_.IsPanelPinned(session_id, panel_id)) {
-              continue;
-            }
-            const bool is_room_window = panel_id.rfind("dungeon.room_", 0) == 0;
-            if (panel_id == "dungeon.room_selector" ||
-                panel_id == "dungeon.room_matrix" || is_room_window) {
-              panel_manager_.HidePanel(session_id, panel_id);
-            }
-          }
-        }
-        ImGui::SameLine();
-        if (ImGui::SmallButton(ICON_MD_VIEW_QUILT " Panels")) {
-          panel_manager_.HidePanel(session_id, "dungeon.workbench");
-          panel_manager_.ShowPanel(session_id, "dungeon.room_selector");
-          panel_manager_.ShowPanel(session_id, "dungeon.room_matrix");
-        }
-        ImGui::TextDisabled(workbench_visible ? "Mode: Workbench"
-                                              : "Mode: Standalone Panels");
+      ImGui::TextDisabled(ICON_MD_WORKSPACES " Workflow");
+      ImGui::SameLine();
+      if (gui::TransparentIconButton(
+              ICON_MD_WORKSPACES, gui::IconSize::Toolbar(),
+              "Workbench mode: integrated room browser + inspector",
+              dungeon_workbench_mode, gui::GetPrimaryVec4(), "activity_bar",
+              "dungeon_workflow_workbench")) {
+        switch_to_dungeon_workbench_mode();
       }
-    }
-
-    ImGui::Spacing();
-
-    const auto* agent_chat =
-        panel_manager_.GetPanelDescriptor(session_id, "agent.chat");
-    const auto* agent_config =
-        panel_manager_.GetPanelDescriptor(session_id, "agent.configuration");
-    if (agent_chat || agent_config) {
-      if (ImGui::CollapsingHeader(ICON_MD_SMART_TOY " Agent",
-                                  ImGuiTreeNodeFlags_DefaultOpen)) {
-        if (agent_chat) {
-          if (ImGui::SmallButton(ICON_MD_CHAT " Chat")) {
-            panel_manager_.ShowPanel(session_id, agent_chat->card_id);
-          }
-          ImGui::SameLine();
-        }
-        if (agent_config) {
-          if (ImGui::SmallButton(ICON_MD_SETTINGS " Config")) {
-            panel_manager_.ShowPanel(session_id, agent_config->card_id);
-          }
-        }
-        ImGui::Spacing();
-        if (ImGui::SmallButton(ICON_MD_SMART_TOY " Agent Chat Sidebar")) {
-          panel_manager_.TriggerShowAgentChatSidebar();
-        }
-        ImGui::SameLine();
-        if (ImGui::SmallButton(ICON_MD_DESCRIPTION " Proposals Sidebar")) {
-          panel_manager_.TriggerShowAgentProposalsSidebar();
-        }
-        if (category != "Agent") {
-          ImGui::Spacing();
-          if (ImGui::SmallButton(ICON_MD_CHEVRON_RIGHT " Open Agent Sidebar")) {
-            panel_manager_.SetActiveCategory("Agent");
-            panel_manager_.SetPanelExpanded(true);
-          }
-        }
+      ImGui::SameLine();
+      if (gui::TransparentIconButton(
+              ICON_MD_VIEW_QUILT, gui::IconSize::Toolbar(),
+              "Panel mode: standalone Room List + Room Matrix + room windows",
+              !dungeon_workbench_mode, gui::GetPrimaryVec4(), "activity_bar",
+              "dungeon_workflow_panels")) {
+        switch_to_dungeon_panel_mode();
       }
+      ImGui::SameLine(0.0f, 6.0f);
+      ImGui::TextDisabled(dungeon_workbench_mode ? "Workbench" : "Panels");
       ImGui::Spacing();
       ImGui::Separator();
       ImGui::Spacing();
     }
+
+    ImGui::Spacing();
 
     // Disable non-emulator categories when no ROM is loaded
     const bool rom_loaded = has_rom ? has_rom() : true;
@@ -447,6 +473,7 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
               ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
               if (ImGui::Selectable(label.c_str(), visible,
                                     ImGuiSelectableFlags_None, item_size)) {
+                ensure_dungeon_panel_mode_for_card(card->card_id);
                 panel_manager_.TogglePanel(session_id, card->card_id);
 
                 bool new_visible =
@@ -514,8 +541,9 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
         gui::StyleColorGuard text_color(ImGuiCol_Text,
                                         panel_text_color(visible));
         ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
-        if (ImGui::Selectable(label.c_str(), visible,
-                              ImGuiSelectableFlags_None, item_size)) {
+        if (ImGui::Selectable(label.c_str(), visible, ImGuiSelectableFlags_None,
+                              item_size)) {
+          ensure_dungeon_panel_mode_for_card(card.card_id);
           panel_manager_.TogglePanel(session_id, card.card_id);
 
           bool new_visible =

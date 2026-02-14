@@ -195,6 +195,7 @@ class DungeonEditorV2 : public Editor {
 
   // Explicit workflow toggle between integrated Workbench and standalone panels.
   void SetWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
+  bool IsWorkbenchWorkflowEnabled() const;
 
   // Panel card IDs for programmatic access
   static constexpr const char* kRoomSelectorId = "dungeon.room_selector";
@@ -243,7 +244,6 @@ class DungeonEditorV2 : public Editor {
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);
-  bool IsWorkbenchWorkflowEnabled() const;
 
   // Convenience action for Settings panel.
   void SaveAllRooms();
