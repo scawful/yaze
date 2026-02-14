@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <unordered_set>
 #include <vector>
 
 #include "absl/strings/str_cat.h"
@@ -101,6 +102,81 @@ const std::string RoomTag[65] = {"Nothing",
                                  "Clear Room for Triforce Door",
                                  "Light Torches for Chest",
                                  "Kill Boss Again"};
+
+namespace {
+
+absl::Status GetSpritePointerTablePc(const std::vector<uint8_t>& rom_data,
+                                     int* table_pc) {
+  if (table_pc == nullptr) {
+    return absl::InvalidArgumentError("table_pc pointer is null");
+  }
+  if (kRoomsSpritePointer + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Sprite pointer table address is out of range");
+  }
+
+  int table_snes = (0x09 << 16) | (rom_data[kRoomsSpritePointer + 1] << 8) |
+                   rom_data[kRoomsSpritePointer];
+  int pc = SnesToPc(table_snes);
+  if (pc < 0 || pc + (kNumberOfRooms * 2) > static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Sprite pointer table is out of range");
+  }
+
+  *table_pc = pc;
+  return absl::OkStatus();
+}
+
+int ReadRoomSpriteAddressPc(const std::vector<uint8_t>& rom_data, int table_pc,
+                            int room_id) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return -1;
+  }
+  const int ptr_off = table_pc + (room_id * 2);
+  if (ptr_off < 0 || ptr_off + 1 >= static_cast<int>(rom_data.size())) {
+    return -1;
+  }
+
+  int sprite_address_snes = (0x09 << 16) | (rom_data[ptr_off + 1] << 8) |
+                            rom_data[ptr_off];
+  return SnesToPc(sprite_address_snes);
+}
+
+int MeasureSpriteStreamSize(const std::vector<uint8_t>& rom_data,
+                            int sprite_address, int hard_end) {
+  if (sprite_address < 0 || sprite_address >= hard_end ||
+      sprite_address >= static_cast<int>(rom_data.size())) {
+    return 0;
+  }
+
+  int cursor = sprite_address + 1;  // Skip SortSprites mode byte.
+  while (cursor < hard_end) {
+    if (rom_data[cursor] == 0xFF) {
+      ++cursor;  // Include terminator.
+      break;
+    }
+    if (cursor + 2 >= hard_end) {
+      cursor = hard_end;
+      break;
+    }
+    cursor += 3;
+  }
+
+  return std::max(0, cursor - sprite_address);
+}
+
+bool IsSpritePointerShared(const std::vector<uint8_t>& rom_data, int table_pc,
+                           int room_id, int sprite_address) {
+  for (int r = 0; r < kNumberOfRooms; ++r) {
+    if (r == room_id) {
+      continue;
+    }
+    if (ReadRoomSpriteAddressPc(rom_data, table_pc, r) == sprite_address) {
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace
 
 RoomSize CalculateRoomSize(Rom* rom, int room_id) {
   // Calculate the size of the room based on how many objects are used per room
@@ -1496,6 +1572,108 @@ std::vector<uint8_t> Room::EncodeSprites() const {
   return bytes;
 }
 
+int FindMaxUsedSpriteAddress(Rom* rom) {
+  if (!rom || !rom->is_loaded()) {
+    return kSpritesEndData;
+  }
+
+  const auto& rom_data = rom->vector();
+  int sprite_pointer = 0;
+  if (!GetSpritePointerTablePc(rom_data, &sprite_pointer).ok()) {
+    return kSpritesEndData;
+  }
+
+  const int hard_end = std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+  if (hard_end <= 0) {
+    return kSpritesEndData;
+  }
+
+  int max_used = std::min(hard_end, kSpritesData);
+  std::unordered_set<int> visited_addresses;
+  for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
+    int sprite_address = ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id);
+    if (sprite_address < kSpritesData || sprite_address >= hard_end) {
+      continue;
+    }
+    if (!visited_addresses.insert(sprite_address).second) {
+      continue;
+    }
+
+    int stream_size = MeasureSpriteStreamSize(rom_data, sprite_address, hard_end);
+    int stream_end = sprite_address + stream_size;
+    if (stream_end > max_used) {
+      max_used = stream_end;
+    }
+  }
+
+  return max_used;
+}
+
+absl::Status RelocateSpriteData(Rom* rom, int room_id,
+                                const std::vector<uint8_t>& encoded_bytes) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return absl::OutOfRangeError("Room ID out of range");
+  }
+
+  const auto& rom_data = rom->vector();
+  int sprite_pointer = 0;
+  RETURN_IF_ERROR(GetSpritePointerTablePc(rom_data, &sprite_pointer));
+
+  int old_sprite_address =
+      ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id);
+  if (old_sprite_address < 0 ||
+      old_sprite_address >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Sprite address out of range");
+  }
+
+  const int hard_end = std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+  const int old_stream_size =
+      MeasureSpriteStreamSize(rom_data, old_sprite_address, hard_end);
+  const uint8_t sort_mode = rom_data[old_sprite_address];
+  const bool old_pointer_shared =
+      IsSpritePointerShared(rom_data, sprite_pointer, room_id, old_sprite_address);
+
+  const int write_pos = FindMaxUsedSpriteAddress(rom);
+  const size_t required_size = 1u + encoded_bytes.size();
+  if (write_pos < kSpritesData ||
+      static_cast<size_t>(write_pos) + required_size >
+          static_cast<size_t>(kSpritesEndData)) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Not enough sprite data space. Need %d bytes at 0x%06X, "
+        "region ends at 0x%06X",
+        static_cast<int>(required_size), write_pos, kSpritesEndData));
+  }
+  if (static_cast<size_t>(write_pos) + required_size > rom_data.size()) {
+    const int required_end = write_pos + static_cast<int>(required_size);
+    return absl::OutOfRangeError(absl::StrFormat(
+        "ROM too small for sprite relocation write (need end=0x%06X, size=0x%06X)",
+        required_end, static_cast<int>(rom_data.size())));
+  }
+
+  std::vector<uint8_t> relocated;
+  relocated.reserve(required_size);
+  relocated.push_back(sort_mode);
+  relocated.insert(relocated.end(), encoded_bytes.begin(), encoded_bytes.end());
+  RETURN_IF_ERROR(rom->WriteVector(write_pos, std::move(relocated)));
+
+  const uint32_t snes_addr = PcToSnes(write_pos);
+  const int ptr_off = sprite_pointer + (room_id * 2);
+  RETURN_IF_ERROR(rom->WriteByte(ptr_off, snes_addr & 0xFF));
+  RETURN_IF_ERROR(rom->WriteByte(ptr_off + 1, (snes_addr >> 8) & 0xFF));
+
+  if (!old_pointer_shared && old_stream_size > 0 &&
+      old_sprite_address + old_stream_size <= static_cast<int>(rom_data.size())) {
+    RETURN_IF_ERROR(
+        rom->WriteVector(old_sprite_address,
+                         std::vector<uint8_t>(old_stream_size, 0x00)));
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status Room::SaveObjects() {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
@@ -1565,77 +1743,51 @@ absl::Status Room::SaveSprites() {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
 
-  auto rom_data = rom()->vector();
-
-  // Calculate sprite pointer table location
-  // Bank 09 + rooms_sprite_pointer (was incorrectly 0x04)
-  int sprite_pointer = (0x09 << 16) +
-                       (rom_data[rooms_sprite_pointer + 1] << 8) +
-                       (rom_data[rooms_sprite_pointer]);
-  sprite_pointer = SnesToPc(sprite_pointer);
-
-  if (sprite_pointer < 0 ||
-      sprite_pointer + (room_id_ * 2) + 1 >= (int)rom_->size()) {
-    return absl::OutOfRangeError("Sprite table pointer out of range");
+  const auto& rom_data = rom()->vector();
+  if (room_id_ < 0 || room_id_ >= kNumberOfRooms) {
+    return absl::OutOfRangeError("Room ID out of range");
   }
 
-  // Read room sprite address from table
-  int sprite_address_snes =
-      (0x09 << 16) + (rom_data[sprite_pointer + (room_id_ * 2) + 1] << 8) +
-      rom_data[sprite_pointer + (room_id_ * 2)];
-
-  int sprite_address = SnesToPc(sprite_address_snes);
-
-  if (sprite_address < 0 || sprite_address >= (int)rom_->size()) {
+  int sprite_pointer = 0;
+  RETURN_IF_ERROR(GetSpritePointerTablePc(rom_data, &sprite_pointer));
+  int sprite_address =
+      ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id_);
+  if (sprite_address < 0 || sprite_address >= static_cast<int>(rom_->size())) {
     return absl::OutOfRangeError("Sprite address out of range");
   }
 
-  // Calculate available space for sprites
-  // Check next room's sprite pointer
-  int next_sprite_address_snes =
-      (0x09 << 16) +
-      (rom_data[sprite_pointer + ((room_id_ + 1) * 2) + 1] << 8) +
-      rom_data[sprite_pointer + ((room_id_ + 1) * 2)];
-
-  int next_sprite_address = SnesToPc(next_sprite_address_snes);
-
-  // Handle wrap-around or end of bank if needed, but usually sequential
-  int available_size = next_sprite_address - sprite_address;
-
-  // If calculation seems wrong (negative or too large), fallback to a safe limit or error
-  if (available_size <= 0 || available_size > 0x1000) {
-    // Fallback: Assume standard max or just warn.
-    // For now, let's be strict but allow a reasonable max if calculation fails (e.g. last room)
-    if (room_id_ == NumberOfRooms - 1) {
-      available_size = 0x100;  // Arbitrary safe limit for last room
-    } else {
-      // If negative, it means pointers are not sequential.
-      // This happens in some ROMs. We can't easily validate size then without a free space map.
-      // We'll log a warning and proceed with caution? No, prompt says "Free space validation".
-      // Let's error out if we can't determine size.
-      return absl::InternalError(absl::StrFormat(
-          "Cannot determine available sprite space for room %d", room_id_));
+  int available_payload_size = 0;
+  if (room_id_ + 1 < kNumberOfRooms) {
+    int next_sprite_address =
+        ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id_ + 1);
+    if (next_sprite_address >= 0) {
+      int available_size = next_sprite_address - sprite_address;
+      if (available_size > 0 && available_size <= 0x1000) {
+        available_payload_size = std::max(0, available_size - 1);
+      }
     }
   }
 
-  // Handle sortsprites byte (skip if present)
-  bool has_sort_sprite = false;
-  if (rom_data[sprite_address] == 1) {
-    has_sort_sprite = true;
-    sprite_address += 1;
-    available_size -= 1;
+  if (available_payload_size == 0) {
+    const int hard_end =
+        std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+    const int current_stream_size =
+        MeasureSpriteStreamSize(rom_data, sprite_address, hard_end);
+    available_payload_size = std::max(0, current_stream_size - 1);
+  }
+
+  const int payload_address = sprite_address + 1;
+  if (payload_address < 0 || payload_address >= static_cast<int>(rom_->size())) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Room %d has invalid sprite payload address", room_id_));
   }
 
   auto encoded_bytes = EncodeSprites();
-
-  // VALIDATION
-  if (encoded_bytes.size() > available_size) {
-    return absl::OutOfRangeError(absl::StrFormat(
-        "Room %d sprite data too large! Size: %d, Available: %d", room_id_,
-        encoded_bytes.size(), available_size));
+  if (static_cast<int>(encoded_bytes.size()) > available_payload_size) {
+    return RelocateSpriteData(rom_, room_id_, encoded_bytes);
   }
 
-  return rom_->WriteVector(sprite_address, encoded_bytes);
+  return rom_->WriteVector(payload_address, encoded_bytes);
 }
 
 absl::Status Room::SaveRoomHeader() {
@@ -1822,21 +1974,28 @@ void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
 }
 
 void Room::LoadSprites() {
-  auto rom_data = rom()->vector();
-  int sprite_pointer = (0x04 << 16) +
-                       (rom_data[rooms_sprite_pointer + 1] << 8) +
-                       (rom_data[rooms_sprite_pointer]);
-  int sprite_address_snes =
-      (0x09 << 16) + (rom_data[sprite_pointer + (room_id_ * 2) + 1] << 8) +
-      rom_data[sprite_pointer + (room_id_ * 2)];
-
-  int sprite_address = SnesToPc(sprite_address_snes);
-  if (rom_data[sprite_address] == 1) {
-    // sortsprites is unused
+  const auto& rom_data = rom()->vector();
+  // Avoid duplicate entries if callers reload sprite data on the same room.
+  sprites_.clear();
+  if (room_id_ < 0 || room_id_ >= kNumberOfRooms) {
+    return;
   }
+
+  int sprite_pointer = 0;
+  if (!GetSpritePointerTablePc(rom_data, &sprite_pointer).ok()) {
+    return;
+  }
+
+  int sprite_address =
+      ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id_);
+  if (sprite_address < 0 || sprite_address + 1 >= static_cast<int>(rom_data.size())) {
+    return;
+  }
+
+  // First byte is the SortSprites mode (0 or 1), not sprite data.
   sprite_address += 1;
 
-  while (true) {
+  while (sprite_address + 2 < static_cast<int>(rom_data.size())) {
     uint8_t b1 = rom_data[sprite_address];
     uint8_t b2 = rom_data[sprite_address + 1];
     uint8_t b3 = rom_data[sprite_address + 2];

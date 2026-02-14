@@ -30,6 +30,7 @@
 
 // Project headers
 #include "app/editor/core/undo_manager.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/overworld/debug_window_card.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/entity.h"
@@ -301,7 +302,8 @@ absl::Status OverworldEditor::Update() {
   // Entity insertion error popup
   if (ImGui::BeginPopupModal("Entity Insert Error", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+    const auto& theme = AgentUI::GetTheme();
+    ImGui::TextColored(theme.status_error,
                        ICON_MD_ERROR " Entity Insertion Failed");
     ImGui::Separator();
     ImGui::TextWrapped("%s", entity_insert_error_message_.c_str());
@@ -407,6 +409,9 @@ void OverworldEditor::HandleKeyboardShortcuts() {
     }
     if (ImGui::IsKeyPressed(ImGuiKey_F, false)) {
       ActivateFillTool();
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey_I, false)) {
+      (void)PickTile16FromHoveredCanvas();
     }
   }
 
@@ -657,11 +662,12 @@ void OverworldEditor::DrawOverworldMaps() {
       ImVec2 placeholder_size = ImVec2(scaled_size, scaled_size);
 
       // Modern loading indicator with theme colors
+      const auto& theme = AgentUI::GetTheme();
       draw_list->AddRectFilled(
           placeholder_pos,
           ImVec2(placeholder_pos.x + placeholder_size.x,
                  placeholder_pos.y + placeholder_size.y),
-          IM_COL32(32, 32, 32, 128));  // Dark gray with transparency
+          ImGui::GetColorU32(theme.editor_background));  // Theme-aware background
 
       // Animated loading spinner - scale spinner radius with zoom
       ImVec2 spinner_pos = ImVec2(placeholder_pos.x + placeholder_size.x / 2,
@@ -674,7 +680,7 @@ void OverworldEditor::DrawOverworldMaps() {
 
       draw_list->PathArcTo(spinner_pos, spinner_radius, start_angle, end_angle,
                            12);
-      draw_list->PathStroke(IM_COL32(100, 180, 100, 255), 0, 2.5f * scale);
+      draw_list->PathStroke(ImGui::GetColorU32(theme.status_active), 0, 2.5f * scale);
     }
 
     xx++;
@@ -1202,6 +1208,7 @@ absl::Status OverworldEditor::Paste() {
     return absl::InternalError("Clipboard dimensions mismatch");
   }
 
+  bool any_changed = false;
   for (int dy = 0; dy < height; ++dy) {
     for (int dx = 0; dx < width; ++dx) {
       const int id = ids[dy * width + dx];
@@ -1212,13 +1219,22 @@ absl::Status OverworldEditor::Paste() {
       const int global_y = superY * 32 + gy;
       if (global_x < 0 || global_x >= 256 || global_y < 0 || global_y >= 256)
         continue;
-      // TODO: Track undo points for paste operations (treated as a batch).
+      const int old_tile_id = selected_world[global_x][global_y];
+      if (old_tile_id == id) {
+        continue;
+      }
+      CreateUndoPoint(current_map_, current_world_, global_x, global_y,
+                      old_tile_id);
       selected_world[global_x][global_y] = id;
+      any_changed = true;
     }
   }
 
-  rom_->set_dirty(true);
-  RefreshOverworldMap();
+  if (any_changed) {
+    FinalizePaintOperation();
+    rom_->set_dirty(true);
+    RefreshOverworldMap();
+  }
   return absl::OkStatus();
 }
 
@@ -1428,12 +1444,14 @@ absl::Status OverworldEditor::CheckForCurrentMap() {
     maps_bmp_[current_map_].set_modified(false);
   }
 
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+  if (current_mode == EditingMode::MOUSE &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
     RETURN_IF_ERROR(RefreshTile16Blockset());
   }
 
   // If double clicked, toggle the current map
-  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Right)) {
+  if (current_mode == EditingMode::MOUSE &&
+      ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Right)) {
     current_map_lock_ = !current_map_lock_;
   }
 
@@ -1647,12 +1665,13 @@ absl::Status OverworldEditor::DrawTile16Selector() {
 
   if (!blockset_selector_) {
     gui::TileSelectorWidget::Config selector_config;
+    const auto& theme = AgentUI::GetTheme();
     selector_config.tile_size = 16;
     selector_config.display_scale = 2.0f;
     selector_config.tiles_per_row = 8;
     selector_config.total_tiles = zelda3::kNumTile16Individual;
     selector_config.draw_offset = ImVec2(2.0f, 0.0f);
-    selector_config.highlight_color = ImVec4(0.95f, 0.75f, 0.3f, 1.0f);
+    selector_config.highlight_color = theme.selection_primary;
 
     selector_config.enable_drag = true;
 
@@ -2965,6 +2984,15 @@ void OverworldEditor::UpdateBlocksetWithPendingTileChanges() {
 }
 
 void OverworldEditor::HandleMapInteraction() {
+  // Paint-mode eyedropper: right-click samples tile16 under cursor.
+  if ((current_mode == EditingMode::DRAW_TILE ||
+       current_mode == EditingMode::FILL_TILE) &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
+      ImGui::IsItemHovered()) {
+    (void)PickTile16FromHoveredCanvas();
+    return;
+  }
+
   // Handle middle-click for map interaction instead of right-click
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) &&
       ImGui::IsItemHovered()) {
@@ -3341,6 +3369,73 @@ void OverworldEditor::ActivateFillTool() {
 
   // Fill tool is still a tile painting interaction.
   ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
+}
+
+bool OverworldEditor::PickTile16FromHoveredCanvas() {
+  if (!ow_map_canvas_.IsMouseHovering()) {
+    return false;
+  }
+
+  const bool allow_special_tail =
+      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
+
+  const ImVec2 scaled_position = ow_map_canvas_.hover_mouse_pos();
+  float scale = ow_map_canvas_.global_scale();
+  if (scale <= 0.0f) {
+    scale = 1.0f;
+  }
+
+  const int map_x =
+      static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
+  const int map_y =
+      static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
+  if (map_x < 0 || map_x >= 8 || map_y < 0 || map_y >= 8) {
+    return false;
+  }
+  if (!allow_special_tail && current_world_ == 2 && map_y >= 4) {
+    return false;
+  }
+
+  const int local_tile_x =
+      (static_cast<int>(scaled_position.x / scale) % kOverworldMapSize) /
+      kTile16Size;
+  const int local_tile_y =
+      (static_cast<int>(scaled_position.y / scale) % kOverworldMapSize) /
+      kTile16Size;
+  if (local_tile_x < 0 || local_tile_x >= 32 || local_tile_y < 0 ||
+      local_tile_y >= 32) {
+    return false;
+  }
+
+  const int world_tile_x = map_x * 32 + local_tile_x;
+  const int world_tile_y = map_y * 32 + local_tile_y;
+  if (world_tile_x < 0 || world_tile_x >= 256 || world_tile_y < 0 ||
+      world_tile_y >= 256) {
+    return false;
+  }
+
+  const auto* map_tiles = overworld_.mutable_map_tiles();
+  if (!map_tiles) {
+    return false;
+  }
+  const auto& world_tiles =
+      (current_world_ == 0)   ? map_tiles->light_world
+      : (current_world_ == 1) ? map_tiles->dark_world
+                              : map_tiles->special_world;
+  const int tile_id = world_tiles[world_tile_x][world_tile_y];
+  if (tile_id < 0) {
+    return false;
+  }
+
+  current_tile16_ = tile_id;
+  auto set_tile_status = tile16_editor_.SetCurrentTile(current_tile16_);
+  if (!set_tile_status.ok()) {
+    util::logf("Failed to sync Tile16 editor after eyedropper: %s",
+               set_tile_status.message().data());
+  }
+
+  ScrollBlocksetCanvasToCurrentTile();
+  return true;
 }
 
 void OverworldEditor::CycleTileSelection(int delta) {

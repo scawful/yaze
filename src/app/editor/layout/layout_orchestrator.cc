@@ -42,12 +42,14 @@ void LayoutOrchestrator::ApplyNamedPreset(const std::string& preset_name,
   PanelLayoutPreset preset;
   if (preset_name == "Minimal") {
     preset = LayoutPresets::GetMinimalPreset();
-  } else if (preset_name == "Developer") {
-    preset = LayoutPresets::GetDeveloperPreset();
-  } else if (preset_name == "Designer") {
-    preset = LayoutPresets::GetDesignerPreset();
-  } else if (preset_name == "Modder") {
-    preset = LayoutPresets::GetModderPreset();
+  } else if (preset_name == "Logic Debugger") {
+    preset = LayoutPresets::GetLogicDebuggerPreset();
+  } else if (preset_name == "Overworld Artist") {
+    preset = LayoutPresets::GetOverworldArtistPreset();
+  } else if (preset_name == "Dungeon Master") {
+    preset = LayoutPresets::GetDungeonMasterPreset();
+  } else if (preset_name == "Audio Engineer") {
+    preset = LayoutPresets::GetAudioEngineerPreset();
   } else {
     // Unknown preset, use minimal
     preset = LayoutPresets::GetMinimalPreset();
@@ -67,13 +69,7 @@ std::string LayoutOrchestrator::GetWindowTitle(const std::string& card_id,
   if (!panel_manager_) {
     return "";
   }
-
-  auto* info = panel_manager_->GetPanelDescriptor(session_id, card_id);
-  if (info) {
-    return info->GetWindowTitle();
-  }
-
-  return "";
+  return panel_manager_->GetPanelWindowName(session_id, card_id);
 }
 
 std::vector<std::string> LayoutOrchestrator::GetVisiblePanels(

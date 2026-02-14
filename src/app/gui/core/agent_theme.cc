@@ -56,6 +56,30 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   t.gradient_top = gui::ConvertColorToImVec4(theme.agent.gradient_top);
   t.gradient_bottom = gui::ConvertColorToImVec4(theme.agent.gradient_bottom);
 
+  // Unified editor colors
+  t.editor_background = gui::ConvertColorToImVec4(theme.editor_background);
+  t.editor_grid = gui::ConvertColorToImVec4(theme.editor_grid);
+  t.editor_cursor = gui::ConvertColorToImVec4(theme.editor_cursor);
+  t.editor_selection = gui::ConvertColorToImVec4(theme.editor_selection);
+
+  // Interaction colors
+  t.selection_primary = gui::ConvertColorToImVec4(theme.selection_primary);
+  t.selection_secondary = gui::ConvertColorToImVec4(theme.selection_secondary);
+  t.selection_hover = gui::ConvertColorToImVec4(theme.selection_hover);
+  t.selection_pulsing = gui::ConvertColorToImVec4(theme.selection_pulsing);
+  t.selection_handle = gui::ConvertColorToImVec4(theme.selection_handle);
+  t.drag_preview = gui::ConvertColorToImVec4(theme.drag_preview);
+  t.drag_preview_outline = gui::ConvertColorToImVec4(theme.drag_preview_outline);
+
+  // Entity colors
+  t.entrance_color = gui::ConvertColorToImVec4(theme.entrance_color);
+  t.hole_color = gui::ConvertColorToImVec4(theme.hole_color);
+  t.exit_color = gui::ConvertColorToImVec4(theme.exit_color);
+  t.item_color = gui::ConvertColorToImVec4(theme.item_color);
+  t.sprite_color = gui::ConvertColorToImVec4(theme.sprite_color);
+  t.transport_color = gui::ConvertColorToImVec4(theme.transport_color);
+  t.music_zone_color = gui::ConvertColorToImVec4(theme.music_zone_color);
+
   // Dungeon editor colors - derived from theme.dungeon
   t.dungeon_selection_primary = gui::ConvertColorToImVec4(theme.dungeon.selection_primary);
   t.dungeon_selection_secondary = gui::ConvertColorToImVec4(theme.dungeon.selection_secondary);

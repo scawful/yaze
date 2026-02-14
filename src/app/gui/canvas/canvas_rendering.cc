@@ -4,22 +4,35 @@
 #include <cmath>
 
 #include "app/gui/canvas/canvas_utils.h"
+#include "app/gui/core/theme_manager.h"
 
 namespace yaze {
 namespace gui {
 
-namespace {
-// Constants extracted from canvas.cc
-constexpr uint32_t kRectangleColor = IM_COL32(32, 32, 32, 255);
-constexpr uint32_t kWhiteColor = IM_COL32(255, 255, 255, 255);
-}  // namespace
-
 void RenderCanvasBackground(ImDrawList* draw_list,
                             const CanvasGeometry& geometry) {
-  // Draw border and background color (extracted from Canvas::DrawBackground)
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+
+  // Draw primary background color from theme
   draw_list->AddRectFilled(geometry.canvas_p0, geometry.canvas_p1,
-                           kRectangleColor);
-  draw_list->AddRect(geometry.canvas_p0, geometry.canvas_p1, kWhiteColor);
+                           ImGui::GetColorU32(ConvertColorToImVec4(theme.editor_background)));
+
+  // Add a subtle pattern to the background (e.g., very faint dots)
+  if (theme.enable_glow_effects) {
+    const float dot_spacing = 32.0f;
+    const uint32_t dot_color = ImGui::GetColorU32(ConvertColorToImVec4(theme.editor_grid));
+
+    for (float x = geometry.canvas_p0.x + fmodf(geometry.scrolling.x, dot_spacing); x < geometry.canvas_p1.x; x += dot_spacing) {
+      for (float y = geometry.canvas_p0.y + fmodf(geometry.scrolling.y, dot_spacing); y < geometry.canvas_p1.y; y += dot_spacing) {
+        draw_list->AddCircleFilled(ImVec2(x, y), 1.0f, dot_color);
+      }
+    }
+  }
+
+  // Draw theme-aware border
+  draw_list->AddRect(geometry.canvas_p0, geometry.canvas_p1,
+                     ImGui::GetColorU32(ConvertColorToImVec4(theme.border)),
+                     0.0f, 0, theme.window_border_size > 0 ? theme.window_border_size : 1.0f);
 }
 
 void RenderCanvasGrid(ImDrawList* draw_list, const CanvasGeometry& geometry,

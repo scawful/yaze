@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "imgui/imgui.h"
 
@@ -19,6 +20,13 @@ enum class TransitionType {
   kSlideDown,  // Slide in from top
   kScale,      // Scale from center
   kExpand      // Expand from point
+};
+
+// Shared editor/workspace motion profile.
+enum class MotionProfile {
+  kSnappy = 0,
+  kStandard = 1,
+  kRelaxed = 2,
 };
 
 class Animator {
@@ -61,8 +69,15 @@ class Animator {
   void ApplyPanelTransitionPost(const std::string& panel_id);
 
   void ClearAnimationsForPanel(const std::string& panel_id);
+  void ClearAllAnimations();
 
   bool IsEnabled() const;
+
+  void SetMotionPreferences(bool reduced_motion, MotionProfile profile);
+  bool reduced_motion() const { return reduced_motion_; }
+  MotionProfile motion_profile() const { return motion_profile_; }
+
+  static MotionProfile ClampMotionProfile(int raw_profile);
 
  private:
   struct AnimationState {
@@ -85,9 +100,15 @@ class Animator {
   AnimationState& GetState(const std::string& panel_id,
                            const std::string& anim_id);
   float ComputeStep(float speed) const;
+  float GetProfileSpeedMultiplier() const;
+  float ApplyTransitionEasing(float t) const;
 
   std::unordered_map<std::string, AnimationMap> panels_;
   std::unordered_map<std::string, PanelTransitionState> panel_transitions_;
+  std::unordered_set<std::string> pushed_transition_alpha_;
+
+  bool reduced_motion_ = false;
+  MotionProfile motion_profile_ = MotionProfile::kStandard;
 };
 
 Animator& GetAnimator();

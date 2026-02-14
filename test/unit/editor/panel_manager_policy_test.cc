@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <unordered_map>
 
 namespace yaze::editor {
 namespace {
@@ -53,6 +54,29 @@ TEST(PanelManagerPolicyTest, ShowHideCallsOnOpenOnCloseForEditorPanelInstances) 
   EXPECT_TRUE(pm.HidePanel(0, "test.hooks"));
   EXPECT_EQ(panel->open_count, 1);
   EXPECT_EQ(panel->close_count, 1);
+}
+
+TEST(PanelManagerPolicyTest, AliasResolutionSupportsLegacyPanelIds) {
+  PanelManager pm;
+  pm.RegisterSession(0);
+  pm.SetActiveSession(0);
+
+  pm.RegisterPanelAlias("legacy.panel", "modern.panel");
+  pm.RegisterPanel({.card_id = "modern.panel",
+                    .display_name = "Modern",
+                    .icon = "ICON_MOCK",
+                    .category = "Test"});
+
+  EXPECT_TRUE(pm.ShowPanel(0, "legacy.panel"));
+  EXPECT_TRUE(pm.IsPanelVisible(0, "modern.panel"));
+  EXPECT_TRUE(pm.IsPanelVisible(0, "legacy.panel"));
+
+  std::unordered_map<std::string, bool> restored{{"legacy.panel", false}};
+  pm.RestoreVisibilityState(0, restored);
+  EXPECT_FALSE(pm.IsPanelVisible(0, "modern.panel"));
+
+  pm.RestorePinnedState({{"legacy.panel", true}});
+  EXPECT_TRUE(pm.IsPanelPinned(0, "modern.panel"));
 }
 
 TEST(PanelManagerPolicyTest, OnEditorSwitchDoesNotMutateVisibilityFlags) {

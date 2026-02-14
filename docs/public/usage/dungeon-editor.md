@@ -56,6 +56,7 @@ Changes to tiles, palettes, or objects invalidate only the affected room's cache
 |-------|---------|
 | **Room Graphics** | Main canvas with BG toggles and grid options |
 | **Object Editor** | Edit objects by type, layer, and coordinates |
+| **Object Tile Editor** | Visual 8x8 tile composition editor for objects |
 | **Palette Editor** | Adjust room palettes with live preview |
 | **Entrances List** | Navigate between overworld entrances and rooms |
 | **Room Matrix** | Visual dungeon room grid for quick navigation |

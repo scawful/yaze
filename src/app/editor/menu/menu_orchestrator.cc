@@ -226,6 +226,39 @@ void MenuOrchestrator::AddLayoutMenuItems() {
 
   menu_builder_.BeginSubMenu("Layout", ICON_MD_VIEW_QUILT)
       .Item(
+          "Profile: Code", ICON_MD_CODE,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("code");
+            }
+          },
+          nullptr, layout_enabled)
+      .Item(
+          "Profile: Debug", ICON_MD_BUG_REPORT,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("debug");
+            }
+          },
+          nullptr, layout_enabled)
+      .Item(
+          "Profile: Mapping", ICON_MD_MAP,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("mapping");
+            }
+          },
+          nullptr, layout_enabled)
+      .Item(
+          "Profile: Chat + Agent", ICON_MD_SMART_TOY,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("chat");
+            }
+          },
+          nullptr, layout_enabled)
+      .Separator()
+      .Item(
           "Developer", ICON_MD_DEVELOPER_MODE,
           [this]() { OnLoadDeveloperLayout(); }, nullptr, layout_enabled)
       .Item(
@@ -504,6 +537,64 @@ void MenuOrchestrator::AddWindowMenuItems() {
           [this]() {
             if (editor_manager_) {
               editor_manager_->ResetCurrentEditorLayout();
+            }
+          },
+          nullptr, layout_actions_enabled)
+      .Separator()
+      .Item(
+          "Profile: Code", ICON_MD_CODE,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("code");
+            }
+          },
+          nullptr, layout_actions_enabled)
+      .Item(
+          "Profile: Debug", ICON_MD_BUG_REPORT,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("debug");
+            }
+          },
+          nullptr, layout_actions_enabled)
+      .Item(
+          "Profile: Mapping", ICON_MD_MAP,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("mapping");
+            }
+          },
+          nullptr, layout_actions_enabled)
+      .Item(
+          "Profile: Chat + Agent", ICON_MD_SMART_TOY,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ApplyLayoutProfile("chat");
+            }
+          },
+          nullptr, layout_actions_enabled)
+      .Separator()
+      .Item(
+          "Capture Session Snapshot", ICON_MD_BOOKMARK_ADD,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->CaptureTemporaryLayoutSnapshot();
+            }
+          },
+          nullptr, layout_actions_enabled)
+      .Item(
+          "Restore Session Snapshot", ICON_MD_RESTORE,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->RestoreTemporaryLayoutSnapshot();
+            }
+          },
+          nullptr, layout_actions_enabled)
+      .Item(
+          "Clear Session Snapshot", ICON_MD_BOOKMARK_REMOVE,
+          [this]() {
+            if (editor_manager_) {
+              editor_manager_->ClearTemporaryLayoutSnapshot();
             }
           },
           nullptr, layout_actions_enabled)

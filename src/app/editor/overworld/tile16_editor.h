@@ -7,6 +7,7 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -45,6 +46,18 @@ constexpr int kNumScratchSlots = 4;                // 4 scratch space slots
 constexpr int kNumPalettes = 8;                    // 8 palette buttons (0-7)
 constexpr int kTile8PixelCount = 64;               // 8x8 = 64 pixels
 constexpr int kTile16PixelCount = 256;             // 16x16 = 256 pixels
+
+struct Tile16ClipboardData {
+  gfx::Tile16 tile_data;
+  gfx::Bitmap bitmap;
+  bool has_data = false;
+};
+
+struct Tile16ScratchData {
+  gfx::Tile16 tile_data;
+  gfx::Bitmap bitmap;
+  bool has_data = false;
+};
 
 // ============================================================================
 // Tile16 Editor
@@ -404,13 +417,11 @@ class Tile16Editor : public gfx::GfxContext {
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
 
-  // Clipboard for Tile16 graphics
-  gfx::Bitmap clipboard_tile16_;
-  bool clipboard_has_data_ = false;
+  // Clipboard for Tile16 graphics and metadata
+  Tile16ClipboardData clipboard_tile16_;
 
-  // Scratch space for Tile16 graphics (4 slots)
-  std::array<gfx::Bitmap, 4> scratch_space_;
-  std::array<bool, 4> scratch_space_used_ = {false, false, false, false};
+  // Scratch space for Tile16 graphics and metadata (4 slots)
+  std::array<Tile16ScratchData, 4> scratch_space_;
 
   // Layout scratch space for tile16 arrangements (4 slots of 8x8 grids)
   struct LayoutScratch {
@@ -521,6 +532,13 @@ class Tile16Editor : public gfx::GfxContext {
   // Apply the active palette (overworld area if available) to the current
   // tile16 bitmap using sheet-aware offsets.
   void ApplyPaletteToCurrentTile16Bitmap();
+
+  // Handle keyboard shortcuts (shared between Update and UpdateAsPanel)
+  void HandleKeyboardShortcuts();
+
+  // Copy current tile16 bitmap pixels into the blockset atlas at the given
+  // tile position. Consolidates the repeated 16x16 copy loops.
+  void CopyTile16ToAtlas(int tile_id);
 };
 
 }  // namespace editor

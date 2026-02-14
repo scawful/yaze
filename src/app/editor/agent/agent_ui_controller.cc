@@ -25,6 +25,7 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
                                    UserSettings* user_settings) {
   toast_manager_ = toast_manager;
   right_panel_manager_ = right_panel_manager;
+  panel_manager_ = panel_manager;
   user_settings_ = user_settings;
 
   // Create initial agent session
@@ -201,8 +202,22 @@ void AgentUiController::ShowAgent() {
 }
 
 void AgentUiController::ShowChatHistory() {
-  // Focus the chat panel
-  // TODO: Implement focus logic via PanelManager if needed
+  agent_editor_.set_active(true);
+
+  if (panel_manager_) {
+    const size_t session_id = panel_manager_->GetActiveSessionId();
+    panel_manager_->ShowPanel(session_id, "agent.chat");
+    panel_manager_->MarkPanelRecentlyUsed("agent.chat");
+  }
+
+  if (right_panel_manager_) {
+    right_panel_manager_->OpenPanel(RightPanelManager::PanelType::kAgentChat);
+  }
+
+  if (auto* chat = agent_editor_.GetAgentChat()) {
+    chat->set_active(true);
+    chat->ScrollToBottom();
+  }
 }
 
 bool AgentUiController::IsAvailable() const {

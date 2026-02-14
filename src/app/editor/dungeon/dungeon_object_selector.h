@@ -9,6 +9,7 @@
 #include <string>
 #include "app/editor/editor.h"
 #include "app/gfx/types/snes_palette.h"
+#include "core/project.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
@@ -20,9 +21,12 @@
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
+#include "zelda3/dungeon/object_tile_editor.h"
 
 namespace yaze {
 namespace editor {
+
+class ObjectTileEditorPanel;
 
 /**
  * @brief Handles object selection, preview, and editing UI
@@ -100,6 +104,15 @@ class DungeonObjectSelector {
   // Programmatic selection
   void SelectObject(int obj_id, int subtype = -1);
 
+  // Tile editor panel and project references for custom object creation
+  void SetTileEditorPanel(ObjectTileEditorPanel* panel) {
+    tile_editor_panel_ = panel;
+  }
+  void SetProject(project::YazeProject* project) { project_ = project; }
+
+  // Invalidate preview and layout caches (e.g., after new custom object added)
+  void InvalidatePreviewCache();
+
   // Static editor indicator (highlights which object is being viewed in detail)
   void SetStaticEditorObjectId(int obj_id) {
     static_editor_object_id_ = obj_id;
@@ -129,6 +142,18 @@ class DungeonObjectSelector {
   std::string GetObjectTypeSymbol(int object_id);
   void RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y);
   void EnsureCustomObjectsInitialized();
+  void DrawNewCustomObjectDialog();
+
+  // Custom object creation dialog state
+  bool show_create_dialog_ = false;
+  int create_width_ = 4;
+  int create_height_ = 4;
+  int create_object_id_ = 0x31;
+  char create_filename_[128] = {0};
+
+  // References for custom object creation
+  ObjectTileEditorPanel* tile_editor_panel_ = nullptr;
+  project::YazeProject* project_ = nullptr;
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
@@ -223,12 +248,13 @@ class DungeonObjectSelector {
   // Preview cache for object selector grid
   // Key: object_id (or object_id+subtype for custom objects)
   // Value: BackgroundBuffer with rendered preview
-  std::map<int, std::unique_ptr<gfx::BackgroundBuffer>> preview_cache_;
+  std::map<uint64_t, std::unique_ptr<gfx::BackgroundBuffer>> preview_cache_;
   uint8_t cached_preview_blockset_ = 0xFF;
   uint8_t cached_preview_palette_ = 0xFF;
   int cached_preview_room_id_ = -1;
 
-  void InvalidatePreviewCache();
+  std::map<uint32_t, zelda3::ObjectTileLayout> layout_cache_;
+
   bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
                           gfx::BackgroundBuffer** out);
 

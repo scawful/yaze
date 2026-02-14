@@ -138,6 +138,12 @@ class ObjectEditorPanel : public EditorPanel {
   bool IsStaticEditorOpen() const { return static_editor_open_; }
   int GetStaticEditorObjectId() const { return static_editor_object_id_; }
 
+  // Tile editor callback: invoked when user clicks "Edit Tiles"
+  using TileEditorCallback = std::function<void(int16_t object_id)>;
+  void set_tile_editor_callback(TileEditorCallback callback) {
+    tile_editor_callback_ = std::move(callback);
+  }
+
  private:
   // Selection change handler
   void OnSelectionChanged();
@@ -205,6 +211,9 @@ class ObjectEditorPanel : public EditorPanel {
   // Door placement state
   zelda3::DoorType selected_door_type_ = zelda3::DoorType::NormalDoor;
   bool door_placement_mode_ = false;
+
+  // Tile editor callback
+  TileEditorCallback tile_editor_callback_;
 };
 
 }  // namespace editor

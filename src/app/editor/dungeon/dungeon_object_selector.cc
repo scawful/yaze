@@ -4,6 +4,7 @@
 
 // C system headers
 #include <cstring>
+#include <filesystem>
 
 // C++ standard library headers
 #include <algorithm>
@@ -14,7 +15,9 @@
 #include "imgui/imgui.h"
 
 // Project headers
-#include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/agent_theme.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/widgets/asset_browser.h"
@@ -29,7 +32,9 @@
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/object_tile_editor.h"
 #include "zelda3/dungeon/room_object.h"  // For GetObjectName()
+#include "app/editor/dungeon/panels/object_tile_editor_panel.h"
 
 namespace yaze::editor {
 
@@ -107,15 +112,14 @@ void DungeonObjectSelector::DrawObjectRenderer() {
     frame_opts.render_popups = true;
     gui::CanvasFrame frame(object_canvas_, frame_opts);
 
-    // Render selected object preview with primitive fallback
+    // Render selected object preview with graphical rendering
     if (object_loaded_ && preview_object_.id_ >= 0) {
-      int preview_x = 128 - 16;  // Center horizontally
-      int preview_y = 128 - 16;  // Center vertically
+      int preview_x = 128 - 24;  // Center horizontally
+      int preview_y = 128 - 24;  // Center vertically
 
-      // TODO: Implement preview using ObjectDrawer + small BackgroundBuffer
-      // For now, use primitive shape rendering (shows object ID and rough
-      // dimensions)
-      RenderObjectPrimitive(preview_object_, preview_x, preview_y);
+      if (!DrawObjectPreview(preview_object_, ImVec2(preview_x, preview_y), 48.0f)) {
+        RenderObjectPrimitive(preview_object_, preview_x, preview_y);
+      }
     }
 
     ImGui::EndChild();
@@ -354,11 +358,11 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   // Type 3 objects (0xF80-0xFFF) - Special room features
   if (object_id >= 0xF80) {
     if (object_id >= 0xF80 && object_id <= 0xF8F) {
-      return IM_COL32(100, 200, 255, 255);  // Light blue for layer indicators
+      return ImGui::ColorConvertFloat4ToU32(theme.selection_secondary);  // Light blue for layer indicators
     } else if (object_id >= 0xF90 && object_id <= 0xF9F) {
-      return IM_COL32(255, 200, 100, 255);  // Orange for door indicators
+      return ImGui::ColorConvertFloat4ToU32(theme.transport_color);  // Orange/Purple for door indicators
     } else {
-      return IM_COL32(200, 150, 255, 255);  // Purple for misc Type 3
+      return ImGui::ColorConvertFloat4ToU32(theme.music_zone_color);  // Purple for misc Type 3
     }
   }
 
@@ -369,10 +373,9 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     } else if (object_id >= 0x110 && object_id <= 0x11F) {
       return IM_COL32(150, 150, 200, 255);  // Blue-gray for blocks
     } else if (object_id >= 0x120 && object_id <= 0x12F) {
-      return IM_COL32(100, 200, 100, 255);  // Green for switches
+      return ImGui::ColorConvertFloat4ToU32(theme.status_success);  // Green for switches
     } else if (object_id >= 0x130 && object_id <= 0x13F) {
-      return ImGui::GetColorU32(
-          theme.dungeon_selection_primary);  // Yellow for stairs
+      return ImGui::GetColorU32(theme.selection_primary);  // Yellow for stairs
     } else {
       return IM_COL32(180, 180, 180, 255);  // Gray for other Type 2
     }
@@ -384,15 +387,13 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   } else if (object_id >= 0x20 && object_id <= 0x2F) {
     return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for floors
   } else if (object_id == 0xF9 || object_id == 0xFA) {
-    return ImGui::GetColorU32(theme.dungeon_object_chest);  // Gold for chests
+    return ImGui::GetColorU32(theme.item_color);  // Gold for chests
   } else if (object_id >= 0x17 && object_id <= 0x1E) {
     return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for doors
   } else if (object_id == 0x2F || object_id == 0x2B) {
-    return ImGui::GetColorU32(
-        theme.dungeon_object_pot);  // Saddle brown for pots
+    return ImGui::GetColorU32(theme.dungeon_object_pot);  // Saddle brown for pots
   } else if (object_id >= 0x30 && object_id <= 0x3F) {
-    return ImGui::GetColorU32(
-        theme.dungeon_object_decoration);  // Dim gray for decorations
+    return ImGui::GetColorU32(theme.dungeon_object_decoration);  // Dim gray for decorations
   } else if (object_id >= 0x00 && object_id <= 0x0F) {
     return IM_COL32(120, 120, 180, 255);  // Blue-gray for corners
   } else {
@@ -533,12 +534,12 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                IM_ARRAYSIZE(kFilterLabels));
   ImGui::SameLine();
-  if (ImGui::SmallButton(ICON_MD_CLEAR " Clear")) {
+  if (gui::ThemedButton(ICON_MD_CLEAR " Clear")) {
     object_search_buffer_[0] = '\0';
     object_type_filter_ = 0;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Clear search and category filter");
+    gui::ThemedTooltip("Clear search and category filter");
   }
 
   // Create asset browser-style grid
@@ -713,19 +714,66 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
         // Enhanced tooltip
         if (ImGui::IsItemHovered()) {
-          ImGui::BeginTooltip();
-          ImGui::TextColored(ImVec4(1.0f, 0.9f, 0.4f, 1.0f), "Object 0x%03X",
-                             obj_id);
-          ImGui::Text("%s", full_name.c_str());
-          int subtype = zelda3::GetObjectSubtype(obj_id);
-          ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Subtype %d",
-                             subtype);
-          ImGui::Separator();
-          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
-                             "Click to select for placement");
-          ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
-                             "Double-click to view details");
-          ImGui::EndTooltip();
+          gui::StyleColorGuard tooltip_guard({
+              {ImGuiCol_PopupBg, theme.panel_bg_color},
+              {ImGuiCol_Border, theme.panel_border_color}});
+
+          if (ImGui::BeginTooltip()) {
+            ImGui::TextColored(theme.selection_primary, "Object 0x%03X", obj_id);
+            ImGui::Text("%s", full_name.c_str());
+            int subtype = zelda3::GetObjectSubtype(obj_id);
+            ImGui::TextColored(theme.text_secondary_gray, "Subtype %d", subtype);
+            ImGui::Separator();
+
+            uint32_t layout_key =
+                (static_cast<uint32_t>(obj_id) << 16) | static_cast<uint32_t>(subtype);
+            const bool can_capture_layout =
+                rom_ && rooms_ && current_room_id_ >= 0 && current_room_id_ < 296;
+            if (can_capture_layout && layout_cache_.find(layout_key) == layout_cache_.end()) {
+              zelda3::ObjectTileEditor editor(rom_);
+              auto& room_ref = (*rooms_)[current_room_id_];
+              auto layout_or =
+                  editor.CaptureObjectLayout(obj_id, room_ref, current_palette_group_);
+              if (layout_or.ok()) {
+                layout_cache_[layout_key] = layout_or.value();
+              }
+            }
+
+            if (layout_cache_.count(layout_key)) {
+              const auto& layout = layout_cache_[layout_key];
+              ImGui::TextColored(theme.status_success, "Tiles: %zu", layout.cells.size());
+
+              if (can_capture_layout) {
+                auto& room_ref = (*rooms_)[current_room_id_];
+                zelda3::ObjectDrawer drawer(rom_, current_room_id_,
+                                            room_ref.get_gfx_buffer().data());
+                int rid = drawer.GetDrawRoutineId(obj_id);
+                ImGui::TextColored(theme.status_active, "Draw Routine: %d", rid);
+              }
+
+              ImGui::Text("Layout:");
+              ImDrawList* tooltip_draw_list = ImGui::GetWindowDrawList();
+              ImVec2 grid_start = ImGui::GetCursorScreenPos();
+              float cell_size = 4.0f;
+              for (const auto& cell : layout.cells) {
+                ImVec2 p1(grid_start.x + cell.rel_x * cell_size,
+                          grid_start.y + cell.rel_y * cell_size);
+                ImVec2 p2(p1.x + cell_size, p1.y + cell_size);
+                tooltip_draw_list->AddRectFilled(p1, p2,
+                                                 IM_COL32(200, 200, 200, 255));
+                tooltip_draw_list->AddRect(p1, p2, IM_COL32(50, 50, 50, 255));
+              }
+              ImGui::Dummy(ImVec2(layout.bounds_width * cell_size,
+                                  layout.bounds_height * cell_size));
+            }
+
+            ImGui::Separator();
+            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+                               "Click to select for placement");
+            ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
+                               "Double-click to view details");
+            ImGui::EndTooltip();
+          }
         }
 
         ImGui::PopID();
@@ -746,6 +794,23 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                                                ImGuiTreeNodeFlags_DefaultOpen);
 
     if (custom_open) {
+      // "+ New Custom Object" button
+      if (tile_editor_panel_) {
+        if (ImGui::SmallButton(ICON_MD_ADD " New Custom Object")) {
+          show_create_dialog_ = true;
+          // Auto-generate a default filename
+          snprintf(create_filename_, sizeof(create_filename_),
+                   "custom_%02x_%02d.bin", create_object_id_,
+                   zelda3::CustomObjectManager::Get().GetSubtypeCount(
+                       create_object_id_));
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Create a new custom object from scratch");
+        }
+      }
+
+      DrawNewCustomObjectDialog();
+
       int custom_col = 0;
       auto& obj_manager = zelda3::CustomObjectManager::Get();
 
@@ -1194,6 +1259,7 @@ zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
 
 void DungeonObjectSelector::InvalidatePreviewCache() {
   preview_cache_.clear();
+  layout_cache_.clear();
 }
 
 bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
@@ -1225,11 +1291,12 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   }
 
   // Check if already in cache
-  int cache_key = object.id_;
-  if (object.id_ == 0x31 || object.id_ == 0x32 ||
-      (object.id_ >= 0x100 && object.id_ <= 0x103)) {
-    cache_key = (object.id_ << 8) | (object.size_ & 0x1F);
-  }
+  // Key: (object_id << 32) | (subtype << 16) | (blockset << 8) | palette
+  int subtype = object.size_ & 0x1F;
+  uint64_t cache_key = (static_cast<uint64_t>(object.id_) << 32) |
+                       (static_cast<uint64_t>(subtype) << 16) |
+                       (static_cast<uint64_t>(cached_preview_blockset_) << 8) |
+                       static_cast<uint64_t>(cached_preview_palette_);
 
   auto it = preview_cache_.find(cache_key);
   if (it != preview_cache_.end()) {
@@ -1237,89 +1304,41 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
     return (*out)->bitmap().texture() != nullptr;
   }
 
-  // Create new preview buffer
+  // Create new preview using ObjectTileEditor
   auto& room = (*rooms_)[current_room_id_];
   const uint8_t* gfx_data = room.get_gfx_buffer().data();
 
-  // Create preview buffer large enough for object
-  // Use a reasonable size based on object dimensions (minimum 64x64)
-  int buffer_size = std::max(static_cast<int>(size), 128);
-  auto preview =
-      std::make_unique<gfx::BackgroundBuffer>(buffer_size, buffer_size);
+  zelda3::ObjectTileEditor editor(rom_);
+  auto layout_or = editor.CaptureObjectLayout(object.id_, room, current_palette_group_);
+  if (!layout_or.ok()) {
+    return false;
+  }
+  const auto& layout = layout_or.value();
 
-  // CRITICAL: Initialize bitmap before drawing
+  // Create preview buffer large enough for object
+  int bmp_w = std::max(8, layout.bounds_width * 8);
+  int bmp_h = std::max(8, layout.bounds_height * 8);
+  auto preview = std::make_unique<gfx::BackgroundBuffer>(bmp_w, bmp_h);
   preview->EnsureBitmapInitialized();
 
-  // Create object and render it at (1,1) for preview with small margin
-  // This places the object at pixel (8,8) giving some padding from edges
-  zelda3::RoomObject obj = object;
-  obj.x_ = 1;
-  obj.y_ = 1;
-  obj.SetRom(rom_);
-  obj.EnsureTilesLoaded();
-
-  if (obj.tiles().empty()) {
-    // Try to render even without tiles (some objects may still work)
-    // Fall through to drawer which has fallback handling
+  // Render layout to bitmap
+  auto render_status = editor.RenderLayoutToBitmap(layout, preview->bitmap(), gfx_data, current_palette_group_);
+  if (!render_status.ok()) {
+    return false;
   }
 
-  // Apply palette to bitmap surface (match Room::RenderRoomGraphics approach)
   auto& bitmap = preview->bitmap();
-  {
-    std::vector<SDL_Color> colors(256);
-    // Flatten palette group into SDL colors
-    // Dungeon palettes have 6 sub-palettes of 15 colors each = 90 colors
-    size_t color_index = 0;
-    for (size_t pal_idx = 0;
-         pal_idx < current_palette_group_.size() && color_index < 256;
-         ++pal_idx) {
-      const auto& pal = current_palette_group_[pal_idx];
-      for (size_t i = 0; i < pal.size() && color_index < 256; ++i) {
-        ImVec4 rgb = pal[i].rgb();
-        colors[color_index++] = {static_cast<Uint8>(rgb.x),
-                                 static_cast<Uint8>(rgb.y),
-                                 static_cast<Uint8>(rgb.z), 255};
-      }
-    }
-    // Transparent color key at index 255
-    colors[255] = {0, 0, 0, 0};
-    bitmap.SetPalette(colors);
-    if (bitmap.surface()) {
-      SDL_SetColorKey(bitmap.surface(), SDL_TRUE, 255);
-      SDL_SetSurfaceBlendMode(bitmap.surface(), SDL_BLENDMODE_BLEND);
-    }
-  }
-
-  zelda3::ObjectDrawer drawer(rom_, current_room_id_, gfx_data);
-  drawer.InitializeDrawRoutines();
-
-  auto status =
-      drawer.DrawObject(obj, *preview, *preview, current_palette_group_);
-  if (!status.ok()) {
-    return false;
-  }
-
-  // Sync bitmap data to SDL surface after drawing
-  if (bitmap.modified() && bitmap.surface() &&
-      bitmap.mutable_data().size() > 0) {
+  // Texture creation and SDL sync
+  if (bitmap.surface()) {
+    // Sync to surface
     SDL_LockSurface(bitmap.surface());
-    size_t surface_size = bitmap.surface()->h * bitmap.surface()->pitch;
-    size_t data_size = bitmap.mutable_data().size();
-    if (surface_size >= data_size) {
-      memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(), data_size);
-    }
+    memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(), bitmap.mutable_data().size());
     SDL_UnlockSurface(bitmap.surface());
-  }
 
-  // Check if bitmap has content
-  if (bitmap.size() == 0) {
-    return false;
+    // Create texture
+    gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE, &bitmap);
+    gfx::Arena::Get().ProcessTextureQueue(nullptr);
   }
-
-  // Create texture
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
-                                        &bitmap);
-  gfx::Arena::Get().ProcessTextureQueue(nullptr);
 
   if (!bitmap.texture()) {
     return false;
@@ -1349,6 +1368,88 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
   draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), top_left,
                       bottom_right);
   return true;
+}
+
+void DungeonObjectSelector::DrawNewCustomObjectDialog() {
+  if (show_create_dialog_) {
+    ImGui::OpenPopup("New Custom Object");
+    show_create_dialog_ = false;
+  }
+
+  if (ImGui::BeginPopupModal("New Custom Object", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Create a new custom dungeon object");
+    ImGui::Separator();
+
+    // Dimensions
+    ImGui::SliderInt("Width (tiles)", &create_width_, 1, 32);
+    ImGui::SliderInt("Height (tiles)", &create_height_, 1, 32);
+
+    // Object group
+    const char* group_labels[] = {"0x31 - Track/Custom", "0x32 - Misc"};
+    int group_index = (create_object_id_ == 0x32) ? 1 : 0;
+    if (ImGui::Combo("Object Group", &group_index, group_labels,
+                     IM_ARRAYSIZE(group_labels))) {
+      create_object_id_ = (group_index == 1) ? 0x32 : 0x31;
+      // Regenerate filename when group changes
+      snprintf(create_filename_, sizeof(create_filename_),
+               "custom_%02x_%02d.bin", create_object_id_,
+               zelda3::CustomObjectManager::Get().GetSubtypeCount(
+                   create_object_id_));
+    }
+
+    // Filename
+    ImGui::InputText("Filename", create_filename_, sizeof(create_filename_));
+
+    // Validation
+    bool valid = true;
+    std::string error_msg;
+
+    if (create_filename_[0] == '\0') {
+      valid = false;
+      error_msg = "Filename cannot be empty";
+    } else if (!rooms_ || current_room_id_ < 0) {
+      valid = false;
+      error_msg = "Load a room first (needed for tile graphics)";
+    } else {
+      auto& mgr = zelda3::CustomObjectManager::Get();
+      if (mgr.GetBasePath().empty()) {
+        valid = false;
+        error_msg = "Custom objects folder not configured in project";
+      } else {
+        // Check if file already exists
+        auto path = std::filesystem::path(mgr.GetBasePath()) /
+                    create_filename_;
+        if (std::filesystem::exists(path)) {
+          valid = false;
+          error_msg = "File already exists: " + std::string(create_filename_);
+        }
+      }
+    }
+
+    if (!error_msg.empty()) {
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s",
+                         error_msg.c_str());
+    }
+
+    ImGui::Separator();
+
+    if (!valid) ImGui::BeginDisabled();
+    if (ImGui::Button("Create", ImVec2(120, 0))) {
+      tile_editor_panel_->OpenForNewObject(
+          create_width_, create_height_, create_filename_,
+          static_cast<int16_t>(create_object_id_), current_room_id_, rooms_);
+      ImGui::CloseCurrentPopup();
+    }
+    if (!valid) ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
 }
 
 }  // namespace yaze::editor

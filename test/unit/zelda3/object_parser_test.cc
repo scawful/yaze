@@ -132,6 +132,21 @@ TEST_F(ObjectParserTest, ParseObjectRoutine) {
   EXPECT_TRUE(routine_info.is_orientation_dependent);
 }
 
+TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
+  auto info_subtype1 = parser_->GetObjectDrawInfo(0x33);
+  EXPECT_EQ(info_subtype1.tile_count, 16);
+
+  auto info_subtype2 = parser_->GetObjectDrawInfo(0x122);
+  EXPECT_EQ(info_subtype2.tile_count, 20);
+
+  auto info_subtype3 = parser_->GetObjectDrawInfo(0xFB1);
+  EXPECT_EQ(info_subtype3.tile_count, 12);
+
+  // kSubtype1TileLengths has a 0 entry for 0x47; parser defaults that to 8.
+  auto info_subtype1_default = parser_->GetObjectDrawInfo(0x47);
+  EXPECT_EQ(info_subtype1_default.tile_count, 8);
+}
+
 TEST_F(ObjectParserTest, InvalidObjectId) {
   auto result = parser_->ParseObject(-1);
   EXPECT_FALSE(result.ok());

@@ -1,5 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import UIKit
+import Combine
 
 private enum OverlayCommand: String {
   case showMenu = "show_menu"
@@ -13,16 +15,27 @@ private enum OverlayCommand: String {
   case showCommandPalette = "show_command_palette"
   case showProjectManager = "show_project_manager"
   case showProjectFile = "show_project_file"
+  case showProjectBrowser = "show_project_browser"
+  case showOracleTools = "show_oracle_tools"
   case hideOverlay = "hide_overlay"
   case showOverlay = "show_overlay"
 }
 
 private extension Notification.Name {
   static let yazeOverlayCommand = Notification.Name("yaze.overlay.command")
+  static let yazeEditorState = Notification.Name("yaze.state.editor")
 }
 
 private enum OverlayCommandPayload {
   static let key = "command"
+}
+
+private struct OverlayDungeonRoom: Identifiable, Equatable {
+  let roomID: Int
+  let name: String
+  let isCurrent: Bool
+
+  var id: Int { roomID }
 }
 
 @objc(YazeOverlayHostingController)
@@ -46,9 +59,23 @@ final class YazeOverlayHostingController: UIHostingController<YazeOverlayView> {
 }
 
 struct YazeOverlayView: View {
+  private enum OverlaySheetTarget {
+    case settings
+    case aiPanel
+    case buildPanel
+    case filesystemPanel
+    case romPicker
+    case projectPicker
+    case exportPicker
+    case mainMenu
+    case projectBrowser
+    case oracleTools
+  }
+
   @ObservedObject var settingsStore: YazeSettingsStore
   @ObservedObject var buildStore: RemoteBuildStore
 
+  @StateObject private var documentManager = YazeDocumentManager()
   @State private var showSettings = false
   @State private var showAiPanel = false
   @State private var showBuildPanel = false
@@ -56,54 +83,89 @@ struct YazeOverlayView: View {
   @State private var showRomPicker = false
   @State private var showProjectPicker = false
   @State private var showExportPicker = false
+  @State private var showProjectBrowser = false
+  @State private var showOracleTools = false
   @State private var exportURL: URL?
   @State private var showMainMenu = false
-  @State private var overlayCollapsed = false
   @State private var overlayHeight: CGFloat = 0
+  @State private var lastPublishedOverlayInset: CGFloat = -1
+  @State private var showDungeonSidebar = false
+  @State private var dungeonRoomFilter = ""
+  @State private var dungeonRooms: [OverlayDungeonRoom] = []
+  @State private var selectedDungeonRoomID: Int?
+
+  // Reactive editor state from C++ via NSNotification
+  @State private var canUndo = false
+  @State private var canRedo = false
+  @State private var canSave = false
+  @State private var isDirty = false
+  @State private var currentEditorType: String = ""
+  @State private var romTitle: String = ""
+  private let roomRefreshTicker = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
 
   var body: some View {
     GeometryReader { proxy in
-      ZStack(alignment: .top) {
+      let topPadding = max(14, proxy.safeAreaInsets.top + 10)
+      let bottomPadding = max(8, proxy.safeAreaInsets.bottom + 4)
+
+      ZStack(alignment: .topLeading) {
         Color.clear.allowsHitTesting(false)
-        let expandedTopPadding = max(8, proxy.safeAreaInsets.top + 6)
-        let collapsedTopPadding = max(18, proxy.safeAreaInsets.top + 12)
-        if overlayCollapsed {
-          collapsedHandle
-            .padding(.top, collapsedTopPadding)
-            .padding(.horizontal, 16)
-        } else {
-          VStack(spacing: 12) {
-            topBar()
-              .background(
-                GeometryReader { barProxy in
-                  Color.clear.preference(
-                    key: OverlayTopInsetKey.self,
-                    value: barProxy.frame(in: .global).maxY
-                  )
-                }
-              )
+        VStack(spacing: 12) {
+          topBar()
+            .background(
+              GeometryReader { barProxy in
+                Color.clear.preference(
+                  key: OverlayTopInsetKey.self,
+                  value: barProxy.frame(in: .global).maxY
+                )
+              }
+            )
+          Spacer()
+        }
+        .padding(.top, topPadding)
+        .padding(.horizontal, 16)
+
+        if isDungeonEditor && showDungeonSidebar {
+          dungeonRoomSidebar(topPadding: topPadding)
+            .transition(.move(edge: .leading).combined(with: .opacity))
+        }
+
+        if shouldShowSyncStatusStrip {
+          VStack {
             Spacer()
+            syncStatusStrip()
+              .padding(.horizontal, 16)
+              .padding(.bottom, bottomPadding)
           }
-          .padding(.top, expandedTopPadding)
-          .padding(.horizontal, 16)
         }
       }
       .ignoresSafeArea(edges: .top)
     }
     .onPreferenceChange(OverlayTopInsetKey.self) { value in
-      overlayHeight = value
-      let inset = overlayCollapsed ? 0 : value
-      YazeIOSBridge.setOverlayTopInset(Double(inset))
+      overlayHeight = max(0, value.rounded())
+      publishOverlayTopInsetIfNeeded()
     }
     .onAppear {
       YazeIOSBridge.setTouchScale(settingsStore.settings.mobile.touchScale)
-    }
-    .onChange(of: overlayCollapsed) { _, collapsed in
-      let inset = collapsed ? 0 : overlayHeight
-      YazeIOSBridge.setOverlayTopInset(Double(inset))
+      documentManager.startMonitoring()
+      refreshDungeonRoomsIfNeeded(force: true)
+      publishOverlayTopInsetIfNeeded(force: true)
     }
     .onChange(of: settingsStore.settings.mobile.touchScale) { _, scale in
       YazeIOSBridge.setTouchScale(scale)
+    }
+    .onReceive(NotificationCenter.default.publisher(for: .yazeEditorState)) { notification in
+      guard let info = notification.userInfo else { return }
+      canUndo = (info["canUndo"] as? Bool) ?? false
+      canRedo = (info["canRedo"] as? Bool) ?? false
+      canSave = (info["canSave"] as? Bool) ?? false
+      isDirty = (info["isDirty"] as? Bool) ?? false
+      currentEditorType = (info["editorType"] as? String) ?? ""
+      romTitle = (info["romTitle"] as? String) ?? ""
+      refreshDungeonRoomsIfNeeded()
+    }
+    .onReceive(roomRefreshTicker) { _ in
+      refreshDungeonRoomsIfNeeded()
     }
     .onReceive(NotificationCenter.default.publisher(for: .yazeOverlayCommand)) { notification in
       guard let payload = notification.userInfo?[OverlayCommandPayload.key] as? String,
@@ -123,16 +185,20 @@ struct YazeOverlayView: View {
     }
     .sheet(isPresented: $showFilesystemPanel) {
       FilesystemSettingsView(settingsStore: settingsStore,
-                             showRomPicker: $showRomPicker,
-                             showProjectPicker: $showProjectPicker,
-                             exportURL: $exportURL,
-                             showExportPicker: $showExportPicker)
+                             openRomPicker: { presentSheet(.romPicker) },
+                             openProjectPicker: { presentSheet(.projectPicker) },
+                             presentExportPicker: { url in
+                               exportURL = url
+                               presentSheet(.exportPicker)
+                             })
     }
     .sheet(isPresented: $showMainMenu) {
       OverlayMainMenuView(settingsStore: settingsStore,
                           buildStore: buildStore,
                           openRomPicker: openRomPicker,
                           openProjectPicker: openProjectPicker,
+                          openProjectBrowser: openProjectBrowser,
+                          openOracleTools: openOracleTools,
                           openAiPanel: openAiPanel,
                           openBuildPanel: openBuildPanel,
                           openFilesPanel: openFilesPanel,
@@ -140,8 +206,7 @@ struct YazeOverlayView: View {
                           openPanelBrowser: { YazeIOSBridge.showPanelBrowser() },
                           openCommandPalette: { YazeIOSBridge.showCommandPalette() },
                           openProjectManager: { YazeIOSBridge.showProjectManagement() },
-                          openProjectFile: { YazeIOSBridge.showProjectFileEditor() },
-                          hideOverlay: { overlayCollapsed = true })
+                          openProjectFile: { YazeIOSBridge.showProjectFileEditor() })
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
@@ -178,124 +243,566 @@ struct YazeOverlayView: View {
           .padding()
       }
     }
-  }
-
-  private func topBar() -> some View {
-    // Apple HIG: 44pt minimum touch target
-    let controlSize: CGFloat = max(44, settingsStore.settings.mobile.largeTouchTargets ? 48 : 44)
-    let iconSize: CGFloat = 22
-
-    return HStack {
-      Spacer()
-      HStack(spacing: 10) {
-        OverlayGlyphButton(systemImage: "line.3.horizontal",
-                           iconSize: iconSize,
-                           controlSize: controlSize) {
-          showMainMenu = true
-        }
-        OverlayGlyphButton(systemImage: "folder",
-                           iconSize: iconSize,
-                           controlSize: controlSize) {
-          showRomPicker = true
-        }
-        OverlayGlyphButton(systemImage: "rectangle.stack",
-                           iconSize: iconSize,
-                           controlSize: controlSize) {
-          YazeIOSBridge.showPanelBrowser()
-        }
+    .sheet(isPresented: $showProjectBrowser) {
+      NavigationStack {
+        ProjectBrowserView(documentManager: documentManager, settingsStore: settingsStore)
       }
-      .padding(.vertical, 6)
-      .padding(.horizontal, 10)
-      .background(.ultraThinMaterial)
-      .clipShape(Capsule())
-      .overlay(Capsule().stroke(Color.white.opacity(0.2)))
-      Spacer()
+      .presentationDetents([.medium, .large])
+      .presentationDragIndicator(.visible)
+    }
+    .sheet(isPresented: $showOracleTools) {
+      OracleToolsTab(settingsStore: settingsStore)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
   }
 
-  private var collapsedHandle: some View {
-    let romTitle = YazeIOSBridge.currentRomTitle()
-    let displayLabel = romTitle.isEmpty ? "Yaze" : romTitle
+  private func topBar() -> some View {
+    let controlSize: CGFloat = settingsStore.settings.mobile.largeTouchTargets ? 46 : 40
 
-    return HStack {
-      Spacer()
-      Button {
-        overlayCollapsed = false
-      } label: {
-        HStack(spacing: 6) {
-          Image(systemName: "line.3.horizontal")
-            .font(.system(size: 14, weight: .semibold))
-          Text(displayLabel)
-            .font(.caption2)
-            .lineLimit(1)
+    return HStack(spacing: 8) {
+      mainMenuButton(controlSize: controlSize)
+
+      OverlayGlyphButton(systemImage: "sidebar.left", iconSize: 18, controlSize: controlSize) {
+        triggerSelectionHaptic()
+        withAnimation(.easeInOut(duration: 0.2)) {
+          showDungeonSidebar.toggle()
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 14)
       }
-      .buttonStyle(.borderedProminent)
-      .shadow(radius: 6)
+      .opacity(isDungeonEditor ? 1.0 : 0.35)
+      .disabled(!isDungeonEditor)
+      .accessibilityLabel(showDungeonSidebar ? "Hide dungeon room sidebar" :
+                          "Show dungeon room sidebar")
+
+      // Center: Editor picker
+      editorPicker(controlSize: controlSize)
+
       Spacer()
+
+      OverlayGlyphButton(systemImage: "rectangle.stack", iconSize: 16, controlSize: controlSize) {
+        triggerSelectionHaptic()
+        YazeIOSBridge.showPanelBrowser()
+      }
+      .accessibilityLabel("Open panel browser")
+
+      OverlayGlyphButton(systemImage: "command", iconSize: 16, controlSize: controlSize) {
+        triggerSelectionHaptic()
+        YazeIOSBridge.showCommandPalette()
+      }
+      .accessibilityLabel("Open command palette")
+
+      // Trailing: Undo / Redo / Save
+      OverlayGlyphButton(systemImage: "arrow.uturn.backward",
+                         iconSize: 18, controlSize: controlSize) {
+        triggerSelectionHaptic()
+        YazeIOSBridge.undo()
+      }
+      .opacity(canUndo ? 1.0 : 0.35)
+      .disabled(!canUndo)
+      .accessibilityLabel("Undo")
+
+      OverlayGlyphButton(systemImage: "arrow.uturn.forward",
+                         iconSize: 18, controlSize: controlSize) {
+        triggerSelectionHaptic()
+        YazeIOSBridge.redo()
+      }
+      .opacity(canRedo ? 1.0 : 0.35)
+      .disabled(!canRedo)
+      .accessibilityLabel("Redo")
+
+      OverlayGlyphButton(
+        systemImage: isDirty ? "square.and.arrow.down.fill" : "square.and.arrow.down",
+        iconSize: 18, controlSize: controlSize
+      ) {
+        triggerSelectionHaptic()
+        YazeIOSBridge.saveRom()
+      }
+      .opacity(canSave ? 1.0 : 0.35)
+      .disabled(!canSave)
+      .accessibilityLabel("Save ROM")
+    }
+    .padding(.vertical, 2)
+    .padding(.horizontal, 8)
+    .background(.thinMaterial)
+    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 12, style: .continuous)
+        .stroke(Color.white.opacity(0.15))
+    )
+  }
+
+  private var isDungeonEditor: Bool {
+    currentEditorType == "Dungeon"
+  }
+
+  private var shouldShowSyncStatusStrip: Bool {
+    settingsStore.settings.mobile.showStatusPills
+  }
+
+  private var filteredDungeonRooms: [OverlayDungeonRoom] {
+    let query = dungeonRoomFilter.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !query.isEmpty else { return dungeonRooms }
+
+    let loweredQuery = query.lowercased()
+    return dungeonRooms.filter { room in
+      if room.name.lowercased().contains(loweredQuery) {
+        return true
+      }
+      let hexID = String(format: "%03X", room.roomID).lowercased()
+      return hexID.contains(loweredQuery)
+    }
+  }
+
+  private func mainMenuButton(controlSize: CGFloat) -> some View {
+    Menu {
+      Section("Open") {
+        Button {
+          openRomPicker()
+        } label: {
+          Label("Open ROM…", systemImage: "folder")
+        }
+        Button {
+          openProjectPicker()
+        } label: {
+          Label("Open Project…", systemImage: "folder.badge.person.crop")
+        }
+        Button {
+          openProjectBrowser()
+        } label: {
+          Label("Projects", systemImage: "folder.badge.gearshape")
+        }
+      }
+
+      Section("Workspace") {
+        if isDungeonEditor {
+          Button(showDungeonSidebar ? "Hide Room Sidebar" : "Show Room Sidebar") {
+            triggerSelectionHaptic()
+            withAnimation(.easeInOut(duration: 0.2)) {
+              showDungeonSidebar.toggle()
+            }
+          }
+        }
+        Button {
+          triggerSelectionHaptic()
+          YazeIOSBridge.showPanelBrowser()
+        } label: {
+          Label("Panel Browser", systemImage: "rectangle.stack")
+        }
+        Button {
+          triggerSelectionHaptic()
+          YazeIOSBridge.showCommandPalette()
+        } label: {
+          Label("Command Palette", systemImage: "command")
+        }
+      }
+
+      Section("Tools") {
+        Button {
+          openOracleTools()
+        } label: {
+          Label("Oracle Tools", systemImage: "wand.and.stars")
+        }
+        Button {
+          openAiPanel()
+        } label: {
+          Label("AI Hosts", systemImage: "sparkles")
+        }
+        Button {
+          openBuildPanel()
+        } label: {
+          Label("Remote Build", systemImage: "hammer")
+        }
+        Button {
+          openFilesPanel()
+        } label: {
+          Label("Files", systemImage: "doc.on.doc")
+        }
+      }
+
+      Section("Project") {
+        Button {
+          triggerSelectionHaptic()
+          YazeIOSBridge.showProjectManagement()
+        } label: {
+          Label("Project Manager", systemImage: "slider.horizontal.3")
+        }
+        Button {
+          triggerSelectionHaptic()
+          YazeIOSBridge.showProjectFileEditor()
+        } label: {
+          Label("Project File", systemImage: "doc.text")
+        }
+      }
+
+      Section {
+        Button {
+          openSettings()
+        } label: {
+          Label("Settings", systemImage: "gearshape")
+        }
+      }
+    } label: {
+      Image(systemName: "line.3.horizontal")
+        .font(.system(size: 20, weight: .semibold))
+        .frame(width: controlSize, height: controlSize)
+    }
+    .menuOrder(.fixed)
+    .accessibilityLabel("Open main menu")
+  }
+
+  private func dungeonRoomSidebar(topPadding: CGFloat) -> some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack {
+        Label("Dungeon Rooms", systemImage: "building.columns")
+          .font(.subheadline.weight(.semibold))
+        Spacer()
+        Text("\(filteredDungeonRooms.count)")
+          .font(.caption.monospacedDigit())
+          .foregroundStyle(.secondary)
+      }
+
+      TextField("Filter rooms (ID or name)", text: $dungeonRoomFilter)
+        .textFieldStyle(.roundedBorder)
+
+      ScrollView {
+        LazyVStack(spacing: 6) {
+          ForEach(filteredDungeonRooms) { room in
+            let isSelected = room.roomID == selectedDungeonRoomID || room.isCurrent
+            Button {
+              focusDungeonRoom(room.roomID)
+            } label: {
+              HStack(spacing: 8) {
+                Text(String(format: "%03X", room.roomID))
+                  .font(.caption.monospacedDigit())
+                  .foregroundStyle(.secondary)
+                Text(room.name)
+                  .font(.subheadline)
+                  .lineLimit(1)
+                Spacer()
+                if isSelected {
+                  Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                }
+              }
+              .padding(.vertical, 6)
+              .padding(.horizontal, 8)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .background(
+                RoundedRectangle(cornerRadius: 8)
+                  .fill(isSelected ? Color.accentColor.opacity(0.18) : Color.clear)
+              )
+            }
+            .buttonStyle(.plain)
+          }
+        }
+        .frame(maxWidth: .infinity)
+      }
+      .frame(maxHeight: 260)
+
+      HStack(spacing: 8) {
+        Button {
+          triggerSelectionHaptic()
+          YazeIOSBridge.showPanelBrowser()
+        } label: {
+          Label("Panels", systemImage: "rectangle.grid.2x2")
+        }
+        .buttonStyle(.bordered)
+
+        Button {
+          openOracleTools()
+        } label: {
+          Label("Oracle", systemImage: "wand.and.stars")
+        }
+        .buttonStyle(.bordered)
+      }
+    }
+    .padding(12)
+    .frame(width: 280)
+    .background(.ultraThinMaterial)
+    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 14, style: .continuous)
+        .stroke(Color.white.opacity(0.18))
+    )
+    .padding(.top, topPadding + 52)
+    .padding(.leading, 16)
+  }
+
+  private func syncStatusStrip() -> some View {
+    let projectPath = settingsStore.settings.general.lastProjectPath
+    let projectLabel = projectPath.isEmpty ? "No project" :
+      URL(fileURLWithPath: projectPath).lastPathComponent
+    let syncEnabled = settingsStore.settings.filesystem.useIcloudSync
+    let cloudLabel: String = {
+      if !syncEnabled { return "Sync Off" }
+      return documentManager.isICloudAvailable ? "iCloud Sync" : "iCloud Unavailable"
+    }()
+    let statusValue = settingsStore.statusMessage.isEmpty ? "Ready" : settingsStore.statusMessage
+    let roomLabel = YazeIOSBridge.currentRoomStatus() ?? "No room"
+
+    return HStack(spacing: 10) {
+      Label(cloudLabel, systemImage: syncEnabled ? "icloud" : "icloud.slash")
+        .font(.caption)
+      Divider()
+      Label(projectLabel, systemImage: "folder")
+        .font(.caption)
+      Divider()
+      Label(roomLabel, systemImage: "square.grid.3x3")
+        .font(.caption)
+      Divider()
+      Text(statusValue)
+        .font(.caption)
+        .lineLimit(1)
+      Spacer(minLength: 0)
+      if isDirty {
+        Label("Unsaved", systemImage: "circle.fill")
+          .font(.caption.weight(.semibold))
+          .foregroundStyle(.orange)
+      }
+    }
+    .padding(.vertical, 4)
+    .padding(.horizontal, 8)
+    .background(.thinMaterial)
+    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    .overlay(
+      RoundedRectangle(cornerRadius: 10, style: .continuous)
+        .stroke(Color.white.opacity(0.15))
+    )
+  }
+
+  private func editorPicker(controlSize: CGFloat) -> some View {
+    let editors = YazeIOSBridge.availableEditorTypes()
+    let label = currentEditorType.isEmpty
+      ? (romTitle.isEmpty ? "Yaze" : romTitle)
+      : currentEditorType
+
+    return Menu {
+      ForEach(editors, id: \.self) { editor in
+        Button {
+          triggerSelectionHaptic()
+          YazeIOSBridge.switchToEditor(editor)
+        } label: {
+          Label(editor, systemImage: editorIcon(for: editor))
+        }
+        .disabled(editor == currentEditorType)
+      }
+      Divider()
+      Button {
+        triggerSelectionHaptic()
+        presentSheet(.romPicker)
+      } label: {
+        Label("Open ROM...", systemImage: "folder")
+      }
+    } label: {
+      HStack(spacing: 4) {
+        Text(label)
+          .font(.subheadline.weight(.semibold))
+          .lineLimit(1)
+        Image(systemName: "chevron.up.chevron.down")
+          .font(.system(size: 10, weight: .bold))
+      }
+      .frame(height: controlSize)
+      .padding(.horizontal, 8)
+    }
+  }
+
+  private func editorIcon(for name: String) -> String {
+    switch name {
+    case "Overworld": return "map"
+    case "Dungeon": return "building.columns"
+    case "Graphics": return "paintbrush"
+    case "Palette": return "paintpalette"
+    case "Music": return "music.note"
+    case "Sprite": return "figure.walk"
+    case "Screen": return "display"
+    case "Message": return "text.bubble"
+    case "Assembly": return "chevron.left.forwardslash.chevron.right"
+    case "Emulator": return "gamecontroller"
+    default: return "questionmark"
     }
   }
 
   private func openSettings() {
-    showMainMenu = false
-    showSettings = true
+    triggerSelectionHaptic()
+    presentSheet(.settings)
   }
 
   private func openAiPanel() {
-    showMainMenu = false
-    showAiPanel = true
+    triggerSelectionHaptic()
+    presentSheet(.aiPanel)
   }
 
   private func openBuildPanel() {
-    showMainMenu = false
-    showBuildPanel = true
+    triggerSelectionHaptic()
+    presentSheet(.buildPanel)
   }
 
   private func openFilesPanel() {
-    showMainMenu = false
-    showFilesystemPanel = true
+    triggerSelectionHaptic()
+    presentSheet(.filesystemPanel)
   }
 
   private func openRomPicker() {
-    showMainMenu = false
-    showRomPicker = true
+    triggerSelectionHaptic()
+    presentSheet(.romPicker)
   }
 
   private func openProjectPicker() {
+    triggerSelectionHaptic()
+    presentSheet(.projectPicker)
+  }
+
+  private func openProjectBrowser() {
+    triggerSelectionHaptic()
+    presentSheet(.projectBrowser)
+  }
+
+  private func openOracleTools() {
+    triggerSelectionHaptic()
+    presentSheet(.oracleTools)
+  }
+
+  private func focusDungeonRoom(_ roomID: Int) {
+    guard roomID >= 0 else { return }
+    triggerSelectionHaptic()
+    selectedDungeonRoomID = roomID
+    YazeIOSBridge.focusDungeonRoom(roomID)
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+      refreshDungeonRoomsIfNeeded(force: true)
+    }
+  }
+
+  private func refreshDungeonRoomsIfNeeded(force: Bool = false) {
+    guard isDungeonEditor else {
+      if force || !dungeonRooms.isEmpty {
+        dungeonRooms = []
+        selectedDungeonRoomID = nil
+      }
+      return
+    }
+
+    let rawRooms = YazeIOSBridge.getActiveDungeonRooms()
+    var parsedRooms: [OverlayDungeonRoom] = []
+    parsedRooms.reserveCapacity(rawRooms.count)
+
+    var currentRoomID: Int?
+
+    for dict in rawRooms {
+      let numericID = (dict["room_id"] as? NSNumber)?.intValue ?? (dict["room_id"] as? Int)
+      guard let roomID = numericID else { continue }
+      let name = (dict["name"] as? String) ?? String(format: "Room 0x%03X", roomID)
+      let isCurrent = (dict["is_current"] as? Bool) ??
+        ((dict["is_current"] as? NSNumber)?.boolValue ?? false)
+      if isCurrent {
+        currentRoomID = roomID
+      }
+      parsedRooms.append(
+        OverlayDungeonRoom(roomID: roomID, name: name, isCurrent: isCurrent)
+      )
+    }
+
+    parsedRooms.sort { lhs, rhs in
+      lhs.roomID < rhs.roomID
+    }
+    dungeonRooms = parsedRooms
+
+    if let currentRoomID {
+      selectedDungeonRoomID = currentRoomID
+    } else if let selected = selectedDungeonRoomID,
+              !parsedRooms.contains(where: { $0.roomID == selected }) {
+      selectedDungeonRoomID = parsedRooms.first?.roomID
+    }
+  }
+
+  private func triggerSelectionHaptic() {
+    UISelectionFeedbackGenerator().selectionChanged()
+  }
+
+  private func dismissAllSheets() {
+    showSettings = false
+    showAiPanel = false
+    showBuildPanel = false
+    showFilesystemPanel = false
+    showRomPicker = false
+    showProjectPicker = false
+    showExportPicker = false
     showMainMenu = false
-    showProjectPicker = true
+    showProjectBrowser = false
+    showOracleTools = false
+  }
+
+  private func presentSheet(_ target: OverlaySheetTarget) {
+    dismissAllSheets()
+    DispatchQueue.main.async {
+      switch target {
+      case .settings:
+        showSettings = true
+      case .aiPanel:
+        showAiPanel = true
+      case .buildPanel:
+        showBuildPanel = true
+      case .filesystemPanel:
+        showFilesystemPanel = true
+      case .romPicker:
+        showRomPicker = true
+      case .projectPicker:
+        showProjectPicker = true
+      case .exportPicker:
+        showExportPicker = true
+      case .mainMenu:
+        showMainMenu = true
+      case .projectBrowser:
+        showProjectBrowser = true
+      case .oracleTools:
+        showOracleTools = true
+      }
+    }
+  }
+
+  private func publishOverlayTopInsetIfNeeded(force: Bool = false) {
+    let inset = overlayHeight
+    if force || abs(inset - lastPublishedOverlayInset) >= 0.5 {
+      lastPublishedOverlayInset = inset
+      YazeIOSBridge.setOverlayTopInset(Double(inset))
+    }
   }
 
   private func handleOverlayCommand(_ command: OverlayCommand) {
     switch command {
     case .showMenu:
-      showMainMenu = true
+      presentSheet(.mainMenu)
     case .openRom:
-      openRomPicker()
+      presentSheet(.romPicker)
     case .openProject:
-      openProjectPicker()
+      presentSheet(.projectPicker)
     case .openAi:
-      openAiPanel()
+      presentSheet(.aiPanel)
     case .openBuild:
-      openBuildPanel()
+      presentSheet(.buildPanel)
     case .openFiles:
-      openFilesPanel()
+      presentSheet(.filesystemPanel)
     case .openSettings:
-      openSettings()
+      presentSheet(.settings)
     case .showPanelBrowser:
+      triggerSelectionHaptic()
       YazeIOSBridge.showPanelBrowser()
     case .showCommandPalette:
+      triggerSelectionHaptic()
       YazeIOSBridge.showCommandPalette()
     case .showProjectManager:
+      triggerSelectionHaptic()
       YazeIOSBridge.showProjectManagement()
     case .showProjectFile:
+      triggerSelectionHaptic()
       YazeIOSBridge.showProjectFileEditor()
+    case .showProjectBrowser:
+      presentSheet(.projectBrowser)
+    case .showOracleTools:
+      presentSheet(.oracleTools)
     case .hideOverlay:
-      overlayCollapsed = true
+      break  // Toolbar is always visible now
     case .showOverlay:
-      overlayCollapsed = false
+      break  // Toolbar is always visible now
     }
   }
 }
@@ -330,6 +837,8 @@ private struct OverlayMainMenuView: View {
 
   let openRomPicker: () -> Void
   let openProjectPicker: () -> Void
+  let openProjectBrowser: () -> Void
+  let openOracleTools: () -> Void
   let openAiPanel: () -> Void
   let openBuildPanel: () -> Void
   let openFilesPanel: () -> Void
@@ -338,7 +847,6 @@ private struct OverlayMainMenuView: View {
   let openCommandPalette: () -> Void
   let openProjectManager: () -> Void
   let openProjectFile: () -> Void
-  let hideOverlay: () -> Void
 
   var body: some View {
     let romLabel = settingsStore.settings.general.lastRomPath.isEmpty
@@ -353,71 +861,74 @@ private struct OverlayMainMenuView: View {
     let hasProject = !settingsStore.settings.general.lastProjectPath.isEmpty
 
     NavigationStack {
-      GeometryReader { proxy in
-        let columns = proxy.size.width > 700
-          ? [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())]
-          : [GridItem(.flexible()), GridItem(.flexible())]
-        ScrollView {
-          VStack(alignment: .leading, spacing: 18) {
-            LazyVGrid(columns: columns, spacing: 12) {
-              OverlayMenuTile(title: "Open ROM", systemImage: "folder") {
-                openRomPicker(); dismiss()
-              }
-              OverlayMenuTile(title: "Open Project", systemImage: "folder.badge.person.crop") {
-                openProjectPicker(); dismiss()
-              }
-              OverlayMenuTile(title: "Panel Browser", systemImage: "rectangle.stack") {
-                openPanelBrowser(); dismiss()
-              }
-              OverlayMenuTile(title: "Command Palette", systemImage: "command") {
-                openCommandPalette(); dismiss()
-              }
-              OverlayMenuTile(title: "AI Hosts", systemImage: "sparkles") {
-                openAiPanel(); dismiss()
-              }
-              OverlayMenuTile(title: "Remote Build", systemImage: "hammer") {
-                openBuildPanel(); dismiss()
-              }
-              OverlayMenuTile(title: "Files", systemImage: "doc.on.doc") {
-                openFilesPanel(); dismiss()
-              }
-              OverlayMenuTile(title: "Settings", systemImage: "gearshape") {
-                openSettings(); dismiss()
-              }
-            }
-
-            VStack(alignment: .leading, spacing: 10) {
-              Text("Project")
-                .font(.headline)
-              HStack(spacing: 12) {
-                OverlayMenuTile(title: "Project Manager", systemImage: "tray.full",
-                                isEnabled: hasProject) {
-                  openProjectManager(); dismiss()
-                }
-                OverlayMenuTile(title: "Project File", systemImage: "doc.text",
-                                isEnabled: hasProject) {
-                  openProjectFile(); dismiss()
-                }
-              }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-              Text("Status")
-                .font(.headline)
-              OverlayStatusRow(label: "ROM", value: romLabel)
-              OverlayStatusRow(label: "Project", value: projectLabel)
-              OverlayStatusRow(label: "State", value: statusValue)
-            }
-
-            OverlayMenuTile(title: "Hide Top Bar", systemImage: "chevron.up") {
-              hideOverlay(); dismiss()
-            }
+      List {
+        Section {
+          VStack(alignment: .leading, spacing: 4) {
+            Text("Yaze")
+              .font(.headline)
+            Text("Quick access to project, tools, and settings")
+              .font(.caption)
+              .foregroundStyle(.secondary)
           }
-          .padding(.horizontal, 18)
-          .padding(.vertical, 16)
+          .padding(.vertical, 2)
+        }
+
+        Section("Quick Actions") {
+          OverlayMenuRow(title: "Open ROM", systemImage: "folder") {
+            runAndDismiss(openRomPicker)
+          }
+          OverlayMenuRow(title: "Open Project", systemImage: "folder.badge.person.crop") {
+            runAndDismiss(openProjectPicker)
+          }
+          OverlayMenuRow(title: "Projects", systemImage: "folder.badge.gearshape") {
+            runAndDismiss(openProjectBrowser)
+          }
+          OverlayMenuRow(title: "Oracle Tools", systemImage: "wand.and.stars") {
+            runAndDismiss(openOracleTools)
+          }
+        }
+
+        Section("Tools") {
+          OverlayMenuRow(title: "Panel Browser", systemImage: "rectangle.stack") {
+            runAndDismiss(openPanelBrowser)
+          }
+          OverlayMenuRow(title: "Command Palette", systemImage: "command") {
+            runAndDismiss(openCommandPalette)
+          }
+          OverlayMenuRow(title: "AI Hosts", systemImage: "sparkles") {
+            runAndDismiss(openAiPanel)
+          }
+          OverlayMenuRow(title: "Remote Build", systemImage: "hammer") {
+            runAndDismiss(openBuildPanel)
+          }
+          OverlayMenuRow(title: "Files", systemImage: "doc.on.doc") {
+            runAndDismiss(openFilesPanel)
+          }
+          OverlayMenuRow(title: "Settings", systemImage: "gearshape") {
+            runAndDismiss(openSettings)
+          }
+        }
+
+        Section("Project") {
+          OverlayMenuRow(title: "Project Manager", systemImage: "tray.full",
+                         isEnabled: hasProject) {
+            runAndDismiss(openProjectManager)
+          }
+          OverlayMenuRow(title: "Project File", systemImage: "doc.text",
+                         isEnabled: hasProject) {
+            runAndDismiss(openProjectFile)
+          }
+        }
+
+        Section("Status") {
+          LabeledContent("ROM", value: romLabel)
+          LabeledContent("Project", value: projectLabel)
+          LabeledContent("State", value: statusValue)
+            .foregroundStyle(statusValue == "Ready" ? .secondary : .primary)
         }
       }
-      .navigationTitle("Yaze Menu")
+      .listStyle(.insetGrouped)
+      .navigationTitle("Menu")
       .toolbar {
         ToolbarItem(placement: .confirmationAction) {
           Button("Done") { dismiss() }
@@ -425,9 +936,14 @@ private struct OverlayMainMenuView: View {
       }
     }
   }
+
+  private func runAndDismiss(_ action: () -> Void) {
+    action()
+    dismiss()
+  }
 }
 
-private struct OverlayMenuTile: View {
+private struct OverlayMenuRow: View {
   let title: String
   let systemImage: String
   var isEnabled: Bool = true
@@ -437,43 +953,25 @@ private struct OverlayMenuTile: View {
     Button(action: action) {
       HStack(spacing: 12) {
         Image(systemName: systemImage)
-          .font(.system(size: 20, weight: .semibold))
-          .frame(width: 32, height: 32)
+          .font(.system(size: 17, weight: .semibold))
+          .frame(width: 28, height: 28)
+          .foregroundColor(isEnabled ? .accentColor : .secondary)
+
         Text(title)
-          .font(.body.weight(.semibold))
+          .font(.body.weight(.medium))
+
         Spacer()
+
+        Image(systemName: "chevron.right")
+          .font(.caption2.weight(.semibold))
+          .foregroundStyle(.tertiary)
       }
-      .padding(.vertical, 12)
-      .padding(.horizontal, 12)
-      .frame(maxWidth: .infinity)
-      .background(.ultraThinMaterial)
-      .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-      .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.white.opacity(0.18)))
+      .contentShape(Rectangle())
+      .padding(.vertical, 4)
     }
     .buttonStyle(.plain)
     .disabled(!isEnabled)
-    .opacity(isEnabled ? 1.0 : 0.4)
-  }
-}
-
-private struct OverlayStatusRow: View {
-  let label: String
-  let value: String
-
-  var body: some View {
-    HStack {
-      Text(label)
-        .font(.caption)
-        .foregroundStyle(.secondary)
-      Spacer()
-      Text(value)
-        .font(.caption)
-        .lineLimit(1)
-    }
-    .padding(.vertical, 6)
-    .padding(.horizontal, 10)
-    .background(Color.black.opacity(0.15))
-    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+    .opacity(isEnabled ? 1.0 : 0.45)
   }
 }
 
@@ -742,10 +1240,9 @@ struct BuildQueueView: View {
 
 struct FilesystemSettingsView: View {
   @ObservedObject var settingsStore: YazeSettingsStore
-  @Binding var showRomPicker: Bool
-  @Binding var showProjectPicker: Bool
-  @Binding var exportURL: URL?
-  @Binding var showExportPicker: Bool
+  let openRomPicker: () -> Void
+  let openProjectPicker: () -> Void
+  let presentExportPicker: (URL) -> Void
   @State private var showBundleImporter = false
   @State private var showFolderImporter = false
 
@@ -773,8 +1270,8 @@ struct FilesystemSettingsView: View {
         }
 
         Section("Quick Actions") {
-          Button("Open ROM") { showRomPicker = true }
-          Button("Open Project") { showProjectPicker = true }
+          Button("Open ROM") { openRomPicker() }
+          Button("Open Project") { openProjectPicker() }
           Button("Export Project Bundle") { exportBundle() }
           Button("Open Project Bundle (Files/iCloud)") { showBundleImporter = true }
         }
@@ -816,8 +1313,7 @@ struct FilesystemSettingsView: View {
 
   private func exportBundle() {
     if let bundleURL = YazeProjectBundleService.exportBundle(settingsStore: settingsStore) {
-      exportURL = bundleURL
-      showExportPicker = true
+      presentExportPicker(bundleURL)
     } else {
       settingsStore.statusMessage = "Export failed"
     }

@@ -5,6 +5,7 @@
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/dungeon_edit_commands.h"
 #include "cli/handlers/game/dungeon_graph_commands.h"
 #include "cli/handlers/game/dungeon_group_commands.h"
 #include "cli/handlers/game/dungeon_map_commands.h"
@@ -122,6 +123,12 @@ CreateCliCommandHandlers() {
       std::make_unique<DungeonGenerateTrackCollisionCommandHandler>());
   handlers.push_back(std::make_unique<EntranceInfoCommandHandler>());
   handlers.push_back(std::make_unique<DungeonDiscoverCommandHandler>());
+
+  // Dungeon editing (write commands)
+  handlers.push_back(std::make_unique<DungeonPlaceSpriteCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonRemoveSpriteCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonPlaceObjectCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonSetCollisionTileCommandHandler>());
 
   // Overworld inspection
   handlers.push_back(std::make_unique<OverworldFindTileCommandHandler>());

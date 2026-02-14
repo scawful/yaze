@@ -51,23 +51,53 @@ struct TestResult: Identifiable, Codable {
 /// All mutations return immediately from the local cache.
 /// A future `AnnotationSyncEngine` pushes changes to CloudKit.
 final class AnnotationStore: ObservableObject {
+  enum SyncUpsertResult {
+    case inserted
+    case updated
+    case unchanged
+  }
+
   @Published var annotations: [Annotation] = []
   @Published var testResults: [TestResult] = []
 
   private var database: OpaquePointer?
   private let databaseURL: URL
+  private var desktopAnnotationsURL: URL?
+  private var externalSyncTimer: Timer?
+  private var lastSeenDesktopFileStamp: String?
 
-  init(directory: URL? = nil) {
+  init(directory: URL? = nil, projectPath: String? = nil) {
     let dir = directory ?? AnnotationStore.defaultDirectory()
     try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
     databaseURL = dir.appendingPathComponent("annotations.sqlite")
     openDatabase()
     createTables()
     loadAll()
+    configureProjectPath(projectPath)
+    refreshExternalSync()
   }
 
   deinit {
+    externalSyncTimer?.invalidate()
     sqlite3_close(database)
+  }
+
+  func configureProjectPath(_ projectPath: String?) {
+    desktopAnnotationsURL = AnnotationStore.resolveDesktopAnnotationsURL(
+      projectPath: projectPath
+    )
+    lastSeenDesktopFileStamp = nil
+
+    if desktopAnnotationsURL == nil {
+      externalSyncTimer?.invalidate()
+      externalSyncTimer = nil
+      return
+    }
+    startExternalSyncLoop()
+  }
+
+  func refreshExternalSync() {
+    importDesktopJSONIfAvailable()
   }
 
   // MARK: - CRUD
@@ -77,6 +107,7 @@ final class AnnotationStore: ObservableObject {
     ann.modifiedAt = Date()
     insertAnnotation(ann)
     annotations.append(ann)
+    syncDesktopJSON()
   }
 
   func updateAnnotation(_ annotation: Annotation) {
@@ -86,11 +117,35 @@ final class AnnotationStore: ObservableObject {
     if let index = annotations.firstIndex(where: { $0.id == ann.id }) {
       annotations[index] = ann
     }
+    syncDesktopJSON()
   }
 
   func deleteAnnotation(id: String) {
     deleteAnnotationFromDB(id: id)
     annotations.removeAll { $0.id == id }
+    syncDesktopJSON()
+  }
+
+  /// Upsert annotation from external sync source (CloudKit/Desktop) while
+  /// preserving source timestamps.
+  @discardableResult
+  func upsertSyncedAnnotation(_ annotation: Annotation) -> SyncUpsertResult {
+    if let index = annotations.firstIndex(where: { $0.id == annotation.id }) {
+      let local = annotations[index]
+      if annotation.modifiedAt <= local.modifiedAt {
+        return .unchanged
+      }
+
+      annotations[index] = annotation
+      updateAnnotationInDB(annotation)
+      syncDesktopJSON()
+      return .updated
+    }
+
+    annotations.append(annotation)
+    insertAnnotation(annotation)
+    syncDesktopJSON()
+    return .inserted
   }
 
   func annotationsForRoom(_ roomID: Int) -> [Annotation] {
@@ -129,11 +184,213 @@ final class AnnotationStore: ObservableObject {
     }
   }
 
+  private func syncDesktopJSON() {
+    guard let url = desktopAnnotationsURL else { return }
+
+    let payload = DesktopAnnotationPayload(
+      annotations: annotations.map {
+        DesktopAnnotationRecord(
+          id: $0.id,
+          roomID: $0.roomID,
+          text: $0.text,
+          priority: $0.priority.rawValue,
+          category: $0.category,
+          createdAt: AnnotationStore.iso8601Formatter.string(from: $0.createdAt),
+          modifiedAt: AnnotationStore.iso8601Formatter.string(from: $0.modifiedAt),
+          createdBy: $0.createdBy
+        )
+      }
+    )
+
+    do {
+      try FileManager.default.createDirectory(
+        at: url.deletingLastPathComponent(),
+        withIntermediateDirectories: true
+      )
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+      let data = try encoder.encode(payload)
+      try data.write(to: url, options: [.atomic])
+      lastSeenDesktopFileStamp = AnnotationStore.fileStamp(for: url)
+    } catch {
+      // Keep local sqlite source-of-truth even if desktop mirror write fails.
+    }
+  }
+
+  private func importDesktopJSONIfAvailable() {
+    guard let url = desktopAnnotationsURL else { return }
+    let currentStamp = AnnotationStore.fileStamp(for: url)
+    if let currentStamp, currentStamp == lastSeenDesktopFileStamp {
+      return
+    }
+
+    guard let data = try? Data(contentsOf: url) else { return }
+    guard let payload = try? JSONDecoder().decode(DesktopAnnotationPayload.self, from: data) else {
+      return
+    }
+
+    var changed = false
+    for record in payload.annotations {
+      var annotation = Annotation(
+        roomID: record.roomID,
+        text: record.text,
+        priority: AnnotationPriority(rawValue: record.priority) ?? .note,
+        category: record.category,
+        createdBy: record.createdBy ?? UIDevice.current.name
+      )
+      annotation.id = AnnotationStore.stableRecordID(for: record)
+      if let createdAt = AnnotationStore.parseDate(record.createdAt) {
+        annotation.createdAt = createdAt
+      }
+      if let modifiedAt = AnnotationStore.parseDate(record.modifiedAt) {
+        annotation.modifiedAt = modifiedAt
+      } else {
+        annotation.modifiedAt = annotation.createdAt
+      }
+
+      if let idx = annotations.firstIndex(where: { $0.id == annotation.id }) {
+        let local = annotations[idx]
+        if local.modifiedAt < annotation.modifiedAt {
+          annotations[idx] = annotation
+          updateAnnotationInDB(annotation)
+          changed = true
+        }
+      } else {
+        annotations.append(annotation)
+        insertAnnotation(annotation)
+        changed = true
+      }
+    }
+
+    if changed {
+      syncDesktopJSON()
+    } else {
+      lastSeenDesktopFileStamp = currentStamp
+    }
+  }
+
+  private func startExternalSyncLoop() {
+    if externalSyncTimer != nil {
+      return
+    }
+
+    let timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) {
+      [weak self] _ in
+      self?.refreshExternalSync()
+    }
+    RunLoop.main.add(timer, forMode: .common)
+    externalSyncTimer = timer
+  }
+
   // MARK: - SQLite internals
 
   private static func defaultDirectory() -> URL {
     FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
       .appendingPathComponent("Yaze/Annotations")
+  }
+
+  private static func resolveDesktopAnnotationsURL(projectPath: String?) -> URL? {
+    guard let projectPath, !projectPath.isEmpty else { return nil }
+
+    let projectURL = URL(fileURLWithPath: projectPath)
+    let root: URL
+    switch projectURL.pathExtension.lowercased() {
+    case "yazeproj":
+      root = projectURL
+    case "yaze":
+      root = projectURL.deletingLastPathComponent()
+    default:
+      if projectURL.lastPathComponent.lowercased() == "project.yaze" {
+        root = projectURL.deletingLastPathComponent()
+      } else {
+        root = projectURL
+      }
+    }
+
+    var candidates: [URL] = [
+      root.appendingPathComponent("Docs/Dev/Planning/annotations.json"),
+      root.appendingPathComponent("code/Docs/Dev/Planning/annotations.json"),
+    ]
+
+    let projectFile = root.appendingPathComponent("project.yaze")
+    if let codeFolder = readCodeFolder(fromProjectFileAt: projectFile),
+       !codeFolder.isEmpty {
+      if codeFolder.hasPrefix("/") {
+        let absolute = URL(fileURLWithPath: codeFolder, isDirectory: true)
+        candidates.insert(
+          absolute.appendingPathComponent("Docs/Dev/Planning/annotations.json"),
+          at: 0
+        )
+      } else {
+        candidates.insert(
+          root.appendingPathComponent(codeFolder)
+            .appendingPathComponent("Docs/Dev/Planning/annotations.json"),
+          at: 0
+        )
+      }
+    }
+
+    for candidate in candidates {
+      if FileManager.default.fileExists(atPath: candidate.path) {
+        return candidate
+      }
+    }
+    return candidates.first
+  }
+
+  private static func readCodeFolder(fromProjectFileAt projectFileURL: URL) -> String? {
+    guard let text = try? String(contentsOf: projectFileURL, encoding: .utf8) else {
+      return nil
+    }
+    for rawLine in text.split(whereSeparator: \.isNewline) {
+      let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+      guard line.hasPrefix("code_folder=") else { continue }
+      let value = line.replacingOccurrences(of: "code_folder=", with: "")
+      return value.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+    return nil
+  }
+
+  private static func parseDate(_ value: String?) -> Date? {
+    guard let value, !value.isEmpty else { return nil }
+    if let date = iso8601Formatter.date(from: value) {
+      return date
+    }
+    return legacyDateFormatter.date(from: value)
+  }
+
+  private static func stableRecordID(for record: DesktopAnnotationRecord) -> String {
+    if let id = record.id, !id.isEmpty {
+      return id
+    }
+    let seed = "\(record.roomID)|\(record.priority)|\(record.category)|\(record.text)|\(record.createdAt ?? "")"
+    let encoded = Data(seed.utf8).base64EncodedString()
+      .replacingOccurrences(of: "/", with: "_")
+      .replacingOccurrences(of: "+", with: "-")
+      .replacingOccurrences(of: "=", with: "")
+    return "desktop-\(encoded)"
+  }
+
+  private static let iso8601Formatter: ISO8601DateFormatter = {
+    let formatter = ISO8601DateFormatter()
+    formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+    return formatter
+  }()
+
+  private static let legacyDateFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "en_US_POSIX")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+    return formatter
+  }()
+
+  private static func fileStamp(for url: URL) -> String? {
+    let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
+    guard let attrs else { return nil }
+    let modified = attrs[.modificationDate] as? Date
+    let size = attrs[.size] as? NSNumber
+    return "\(modified?.timeIntervalSince1970 ?? 0)-\(size?.int64Value ?? -1)"
   }
 
   private func openDatabase() {
@@ -263,4 +520,30 @@ final class AnnotationStore: ObservableObject {
 private struct ExportPayload: Codable {
   var annotations: [Annotation]
   var testResults: [TestResult]
+}
+
+private struct DesktopAnnotationPayload: Codable {
+  var annotations: [DesktopAnnotationRecord]
+}
+
+private struct DesktopAnnotationRecord: Codable {
+  var id: String?
+  var roomID: Int
+  var text: String
+  var priority: Int
+  var category: String
+  var createdAt: String?
+  var modifiedAt: String?
+  var createdBy: String?
+
+  enum CodingKeys: String, CodingKey {
+    case id
+    case roomID = "room_id"
+    case text
+    case priority
+    case category
+    case createdAt = "created_at"
+    case modifiedAt = "modified_at"
+    case createdBy = "created_by"
+  }
 }

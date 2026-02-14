@@ -32,9 +32,19 @@ typedef struct {
 + (void)showPanelBrowser NS_SWIFT_NAME(showPanelBrowser());
 + (void)showCommandPalette NS_SWIFT_NAME(showCommandPalette());
 
+// ─── Editor Actions ─────────────────────────────
++ (void)saveRom NS_SWIFT_NAME(saveRom());
++ (void)undo NS_SWIFT_NAME(undo());
++ (void)redo NS_SWIFT_NAME(redo());
++ (void)switchToEditor:(NSString *)editorName NS_SWIFT_NAME(switchToEditor(_:));
++ (NSArray<NSString *> *)availableEditorTypes NS_SWIFT_NAME(availableEditorTypes());
+
 // ─── Editor Status ──────────────────────────────
 + (nullable NSString *)currentEditorType NS_SWIFT_NAME(currentEditorType());
 + (nullable NSString *)currentRoomStatus NS_SWIFT_NAME(currentRoomStatus());
++ (NSArray<NSDictionary *> *)getActiveDungeonRooms
+    NS_SWIFT_NAME(getActiveDungeonRooms());
++ (void)focusDungeonRoom:(NSInteger)roomID NS_SWIFT_NAME(focusDungeonRoom(_:));
 
 // ─── Oracle Integration ──────────────────────────
 /// Returns the current Oracle progression state, or zeros if unavailable.

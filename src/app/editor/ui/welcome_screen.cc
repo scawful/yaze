@@ -13,6 +13,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "app/platform/timing.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
@@ -183,6 +184,51 @@ GridLayout ComputeGridLayout(float avail_width, float min_width,
   }
 
   return layout;
+}
+
+void DrawThemeQuickSwitcher(const char* popup_id, const ImVec2& button_size) {
+  auto& theme_mgr = gui::ThemeManager::Get();
+  const std::string button_label = absl::StrFormat(
+      "%s Theme: %s", ICON_MD_PALETTE, theme_mgr.GetCurrentThemeName());
+
+  if (gui::ThemedButton(button_label.c_str(), button_size, "welcome_screen",
+                        "theme_quick_switch")) {
+    ImGui::OpenPopup(popup_id);
+  }
+
+  if (ImGui::BeginPopup(popup_id)) {
+    auto themes = theme_mgr.GetAvailableThemes();
+    std::sort(themes.begin(), themes.end());
+
+    const bool classic_selected =
+        theme_mgr.GetCurrentThemeName() == "Classic YAZE";
+    if (ImGui::Selectable("Classic YAZE", classic_selected)) {
+      if (theme_mgr.IsPreviewActive()) {
+        theme_mgr.EndPreview();
+      }
+      theme_mgr.ApplyClassicYazeTheme();
+    }
+    ImGui::Separator();
+
+    for (const auto& name : themes) {
+      if (ImGui::Selectable(name.c_str(),
+                            theme_mgr.GetCurrentThemeName() == name)) {
+        if (theme_mgr.IsPreviewActive()) {
+          theme_mgr.EndPreview();
+        }
+        theme_mgr.ApplyTheme(name);
+      }
+      if (ImGui::IsItemHovered() &&
+          (!theme_mgr.IsPreviewActive() ||
+           theme_mgr.GetCurrentThemeName() != name)) {
+        theme_mgr.StartPreview(name);
+      }
+    }
+
+    ImGui::EndPopup();
+  } else if (theme_mgr.IsPreviewActive()) {
+    theme_mgr.EndPreview();
+  }
 }
 
 }  // namespace
@@ -439,15 +485,15 @@ bool WelcomeScreen::Show(bool* p_open) {
     ImVec2 separator_end(separator_start.x + ImGui::GetContentRegionAvail().x,
                          separator_start.y + 1);
     ImVec4 gold_faded = kTriforceGold;
-    gold_faded.w = 0.3f;
+    gold_faded.w = 0.18f;
     ImVec4 blue_faded = kMasterSwordBlue;
-    blue_faded.w = 0.3f;
+    blue_faded.w = 0.18f;
     draw_list->AddRectFilledMultiColor(
         separator_start, separator_end, ImGui::GetColorU32(gold_faded),
         ImGui::GetColorU32(blue_faded), ImGui::GetColorU32(blue_faded),
         ImGui::GetColorU32(gold_faded));
 
-    ImGui::Dummy(ImVec2(0, 10));
+    ImGui::Dummy(ImVec2(0, 14));
 
     ImGui::BeginChild("WelcomeContent", ImVec2(0, -60), false);
     const float content_width = ImGui::GetContentRegionAvail().x;
@@ -661,9 +707,9 @@ void WelcomeScreen::DrawHeader() {
 
   // Simple centered title
   const char* title = ICON_MD_CASTLE " yaze";
-  auto windowWidth = ImGui::GetWindowSize().x;
-  auto textWidth = ImGui::CalcTextSize(title).x;
-  float xPos = (windowWidth - textWidth) * 0.5f;
+  const float window_width = ImGui::GetWindowSize().x;
+  const float title_width = ImGui::CalcTextSize(title).x;
+  const float xPos = (window_width - title_width) * 0.5f;
 
   // Apply entry offset
   ImVec2 cursor_pos = ImGui::GetCursorPos();
@@ -675,7 +721,7 @@ void WelcomeScreen::DrawHeader() {
   ImU32 glow_color = ImGui::GetColorU32(ImVec4(
       kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f * header_alpha));
   draw_list->AddCircleFilled(
-      ImVec2(text_pos.x + textWidth / 2, text_pos.y + 15), glow_size,
+      ImVec2(text_pos.x + title_width / 2, text_pos.y + 15), glow_size,
       glow_color, 32);
 
   // Simple gold color for title with entry alpha
@@ -690,25 +736,31 @@ void WelcomeScreen::DrawHeader() {
   float subtitle_progress = GetStaggeredEntryProgress(
       entry_time_, 1, kEntryAnimDuration, kEntryStaggerDelay);
   float subtitle_alpha = subtitle_progress;
+  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+  const ImVec4 text_disabled = gui::GetTextDisabledVec4();
 
   const char* subtitle = "Yet Another Zelda3 Editor";
-  textWidth = ImGui::CalcTextSize(subtitle).x;
-  ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+  const float subtitle_width = ImGui::CalcTextSize(subtitle).x;
+  ImGui::SetCursorPosX((window_width - subtitle_width) * 0.5f);
 
-  ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, subtitle_alpha), "%s", subtitle);
+  ImGui::TextColored(
+      ImVec4(text_secondary.x, text_secondary.y, text_secondary.z,
+             text_secondary.w * subtitle_alpha),
+      "%s", subtitle);
 
-  const std::string version_line = absl::StrFormat(
-      "v%s - projects, templates, and editor workflows", YAZE_VERSION_STRING);
-  textWidth = ImGui::CalcTextSize(version_line.c_str()).x;
-  ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
-  ImGui::TextColored(ImVec4(0.55f, 0.55f, 0.55f, subtitle_alpha), "%s",
-                     version_line.c_str());
+  const std::string version_line =
+      absl::StrFormat("Version %s", YAZE_VERSION_STRING);
+  const float version_width = ImGui::CalcTextSize(version_line.c_str()).x;
+  ImGui::SetCursorPosX((window_width - version_width) * 0.5f);
+  ImGui::TextColored(ImVec4(text_disabled.x, text_disabled.y, text_disabled.z,
+                            text_disabled.w * subtitle_alpha),
+                     "%s", version_line.c_str());
 
   // Small decorative triforces flanking the title (static, transparent)
   // Positioned well away from text to avoid crowding
   float tri_alpha = 0.12f * header_alpha;
   ImVec2 left_tri_pos(xPos - 80, text_pos.y + 20);
-  ImVec2 right_tri_pos(xPos + textWidth + 50, text_pos.y + 20);
+  ImVec2 right_tri_pos(xPos + title_width + 50, text_pos.y + 20);
   DrawTriforceBackground(draw_list, left_tri_pos, 20, tri_alpha, 0.0f);
   DrawTriforceBackground(draw_list, right_tri_pos, 20, tri_alpha, 0.0f);
 
@@ -1478,6 +1530,8 @@ void WelcomeScreen::DrawWhatsNew() {
   ImGui::TextColored(kMasterSwordBlue, ICON_MD_VERIFIED " Current: v%s",
                      YAZE_VERSION_STRING);
   ImGui::Spacing();
+  DrawThemeQuickSwitcher("WelcomeThemeQuickSwitch", ImVec2(-1, 0));
+  ImGui::Spacing();
 
   struct ReleaseHighlight {
     const char* icon;
@@ -1494,6 +1548,22 @@ void WelcomeScreen::DrawWhatsNew() {
     int highlight_count;
   };
 
+  const ReleaseHighlight highlights_060[] = {
+      {ICON_MD_PALETTE, "GUI modernization with unified themed widgets"},
+      {ICON_MD_COLOR_LENS, "Semantic theming and smooth editor transitions"},
+      {ICON_MD_GRID_VIEW, "Visual Object Tile Editor for dungeon rooms"},
+      {ICON_MD_UNDO, "Unified cross-editor Undo/Redo system"},
+  };
+  const ReleaseHighlight highlights_056[] = {
+      {ICON_MD_TRAM, "Minecart overlays and collision tile validation"},
+      {ICON_MD_RULE, "Track audit tooling with filler/missing-start checks"},
+      {ICON_MD_TUNE, "Object preview stability and layer-aware hover"},
+  };
+  const ReleaseHighlight highlights_055[] = {
+      {ICON_MD_ACCOUNT_TREE, "EditorManager architecture refactor"},
+      {ICON_MD_FACT_CHECK, "Expanded tests for editor and ASAR workflows"},
+      {ICON_MD_BUILD, "Build cleanup with shared yaze_core_lib target"},
+  };
   const ReleaseHighlight highlights_054[] = {
       {ICON_MD_BUG_REPORT, "Mesen2 debug panel + socket controls"},
       {ICON_MD_SYNC, "Model registry + API refresh stability"},
@@ -1520,6 +1590,15 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   const ReleaseEntry releases[] = {
+      {ICON_MD_AUTO_AWESOME, "0.6.0", "GUI Modernization + Tile Editor",
+       "Feb 13, 2026", kTriforceGold, highlights_060,
+       static_cast<int>(sizeof(highlights_060) / sizeof(highlights_060[0]))},
+      {ICON_MD_TRAM, "0.5.6", "Minecart workflow + editor stability",
+       "Feb 5, 2026", kSpiritOrange, highlights_056,
+       static_cast<int>(sizeof(highlights_056) / sizeof(highlights_056[0]))},
+      {ICON_MD_ACCOUNT_TREE, "0.5.5", "Editor architecture + testability",
+       "Jan 28, 2026", kShadowPurple, highlights_055,
+       static_cast<int>(sizeof(highlights_055) / sizeof(highlights_055[0]))},
       {ICON_MD_BUG_REPORT, "0.5.4", "Stability + Mesen2 debugging",
        "Jan 25, 2026", kMasterSwordBlue, highlights_054,
        static_cast<int>(sizeof(highlights_054) / sizeof(highlights_054[0]))},

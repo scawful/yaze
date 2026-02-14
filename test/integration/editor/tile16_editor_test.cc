@@ -11,6 +11,7 @@
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/types/snes_tile.h"
 #include "app/platform/window.h"
 #include "rom/rom.h"
 #include "test_utils.h"
@@ -19,6 +20,17 @@
 namespace yaze {
 namespace editor {
 namespace test {
+
+namespace {
+
+void ExpectTile16Equals(const gfx::Tile16& lhs, const gfx::Tile16& rhs) {
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile0_), gfx::TileInfoToWord(rhs.tile0_));
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile1_), gfx::TileInfoToWord(rhs.tile1_));
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile2_), gfx::TileInfoToWord(rhs.tile2_));
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile3_), gfx::TileInfoToWord(rhs.tile3_));
+}
+
+}  // namespace
 
 class Tile16EditorIntegrationTest : public ::testing::Test {
  protected:
@@ -140,6 +152,7 @@ TEST_F(Tile16EditorIntegrationTest, BasicValidation) {
   // Test with invalid tile ID
   EXPECT_FALSE(editor_->IsTile16Valid(-1));
   EXPECT_FALSE(editor_->IsTile16Valid(9999));
+  EXPECT_FALSE(editor_->IsTile16Valid(zelda3::kNumTile16Individual));
 
   // Test scratch space operations with invalid slots
   auto save_invalid = editor_->SaveTile16ToScratchSpace(-1);
@@ -287,17 +300,22 @@ TEST_F(Tile16EditorIntegrationTest, CopyPasteOperationsWithROM) {
     GTEST_SKIP() << "ROM not loaded, skipping integration test";
   }
 
-  // Set a tile first
-  auto set_result = editor_->SetCurrentTile(10);
-  ASSERT_TRUE(set_result.ok());
+  constexpr int kSourceTile = 10;
+  constexpr int kTargetTile = 11;
 
-  // Test copy operation
-  auto copy_result = editor_->CopyTile16ToClipboard(10);
-  EXPECT_TRUE(copy_result.ok()) << "Copy failed: " << copy_result.message();
+  ASSERT_TRUE(editor_->SetCurrentTile(kSourceTile).ok());
+  ASSERT_TRUE(editor_->CopyTile16ToClipboard(kSourceTile).ok());
 
-  // Test paste operation
+  ASSERT_TRUE(editor_->SetCurrentTile(kTargetTile).ok());
   auto paste_result = editor_->PasteTile16FromClipboard();
-  EXPECT_TRUE(paste_result.ok()) << "Paste failed: " << paste_result.message();
+  ASSERT_TRUE(paste_result.ok()) << "Paste failed: " << paste_result.message();
+  ASSERT_TRUE(editor_->CommitChangesToOverworld().ok());
+
+  auto source_tile = rom_->ReadTile16(kSourceTile, zelda3::kTile16Ptr);
+  auto target_tile = rom_->ReadTile16(kTargetTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(source_tile.ok());
+  ASSERT_TRUE(target_tile.ok());
+  ExpectTile16Equals(*target_tile, *source_tile);
 #else
   GTEST_SKIP() << "ROM tests disabled";
 #endif
@@ -309,24 +327,94 @@ TEST_F(Tile16EditorIntegrationTest, ScratchSpaceWithROM) {
     GTEST_SKIP() << "ROM not loaded, skipping integration test";
   }
 
-  // Set a tile first
-  auto set_result = editor_->SetCurrentTile(15);
-  ASSERT_TRUE(set_result.ok());
+  constexpr int kSourceTile = 15;
+  constexpr int kTargetTile = 16;
+  constexpr int kSlot = 0;
 
-  // Test scratch space save
-  auto save_result = editor_->SaveTile16ToScratchSpace(0);
-  EXPECT_TRUE(save_result.ok())
-      << "Scratch save failed: " << save_result.message();
+  ASSERT_TRUE(editor_->SetCurrentTile(kSourceTile).ok());
+  ASSERT_TRUE(editor_->SaveTile16ToScratchSpace(kSlot).ok());
 
-  // Test scratch space load
-  auto load_result = editor_->LoadTile16FromScratchSpace(0);
-  EXPECT_TRUE(load_result.ok())
-      << "Scratch load failed: " << load_result.message();
+  ASSERT_TRUE(editor_->SetCurrentTile(kTargetTile).ok());
+  ASSERT_TRUE(editor_->LoadTile16FromScratchSpace(kSlot).ok());
+  ASSERT_TRUE(editor_->CommitChangesToOverworld().ok());
 
-  // Test scratch space clear
-  auto clear_result = editor_->ClearScratchSpace(0);
-  EXPECT_TRUE(clear_result.ok())
-      << "Scratch clear failed: " << clear_result.message();
+  auto source_tile = rom_->ReadTile16(kSourceTile, zelda3::kTile16Ptr);
+  auto target_tile = rom_->ReadTile16(kTargetTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(source_tile.ok());
+  ASSERT_TRUE(target_tile.ok());
+  ExpectTile16Equals(*target_tile, *source_tile);
+
+  auto clear_result = editor_->ClearScratchSpace(kSlot);
+  EXPECT_TRUE(clear_result.ok()) << "Scratch clear failed: " << clear_result.message();
+#else
+  GTEST_SKIP() << "ROM tests disabled";
+#endif
+}
+
+TEST_F(Tile16EditorIntegrationTest, FillAndClearPersistTile16Words) {
+#ifdef YAZE_ENABLE_ROM_TESTS
+  if (!rom_loaded_) {
+    GTEST_SKIP() << "ROM not loaded, skipping integration test";
+  }
+
+  constexpr int kTile = 20;
+  constexpr int kTile8Id = 0x34;
+  constexpr int kPalette = 5;
+
+  ASSERT_TRUE(editor_->SetCurrentTile(kTile).ok());
+  editor_->set_current_palette(kPalette);
+  ASSERT_TRUE(editor_->FillTile16WithTile8(kTile8Id).ok());
+  ASSERT_TRUE(editor_->CommitChangesToOverworld().ok());
+
+  auto filled = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(filled.ok());
+  EXPECT_EQ(filled->tile0_.id_, kTile8Id);
+  EXPECT_EQ(filled->tile1_.id_, kTile8Id);
+  EXPECT_EQ(filled->tile2_.id_, kTile8Id);
+  EXPECT_EQ(filled->tile3_.id_, kTile8Id);
+  EXPECT_EQ(filled->tile0_.palette_, kPalette);
+  EXPECT_EQ(filled->tile1_.palette_, kPalette);
+  EXPECT_EQ(filled->tile2_.palette_, kPalette);
+  EXPECT_EQ(filled->tile3_.palette_, kPalette);
+
+  ASSERT_TRUE(editor_->ClearTile16().ok());
+  ASSERT_TRUE(editor_->CommitChangesToOverworld().ok());
+  auto cleared = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(cleared.ok());
+  EXPECT_EQ(cleared->tile0_.id_, 0);
+  EXPECT_EQ(cleared->tile1_.id_, 0);
+  EXPECT_EQ(cleared->tile2_.id_, 0);
+  EXPECT_EQ(cleared->tile3_.id_, 0);
+#else
+  GTEST_SKIP() << "ROM tests disabled";
+#endif
+}
+
+TEST_F(Tile16EditorIntegrationTest, FlipHorizontalPersistsQuadrantMapping) {
+#ifdef YAZE_ENABLE_ROM_TESTS
+  if (!rom_loaded_) {
+    GTEST_SKIP() << "ROM not loaded, skipping integration test";
+  }
+
+  constexpr int kTile = 22;
+  ASSERT_TRUE(editor_->SetCurrentTile(kTile).ok());
+  auto before = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(before.ok());
+
+  ASSERT_TRUE(editor_->FlipTile16Horizontal().ok());
+  ASSERT_TRUE(editor_->CommitChangesToOverworld().ok());
+
+  auto after = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(after.ok());
+
+  EXPECT_EQ(after->tile0_.id_, before->tile1_.id_);
+  EXPECT_EQ(after->tile1_.id_, before->tile0_.id_);
+  EXPECT_EQ(after->tile2_.id_, before->tile3_.id_);
+  EXPECT_EQ(after->tile3_.id_, before->tile2_.id_);
+  EXPECT_EQ(after->tile0_.horizontal_mirror_, !before->tile1_.horizontal_mirror_);
+  EXPECT_EQ(after->tile1_.horizontal_mirror_, !before->tile0_.horizontal_mirror_);
+  EXPECT_EQ(after->tile2_.horizontal_mirror_, !before->tile3_.horizontal_mirror_);
+  EXPECT_EQ(after->tile3_.horizontal_mirror_, !before->tile2_.horizontal_mirror_);
 #else
   GTEST_SKIP() << "ROM tests disabled";
 #endif
@@ -434,6 +522,10 @@ TEST_F(Tile16EditorIntegrationTest, NavigationBoundsCheck_ValidRange) {
   status = editor_->SetCurrentTile(100);
   EXPECT_TRUE(status.ok()) << status.message();
   EXPECT_EQ(editor_->current_tile16(), 100);
+
+  status = editor_->SetCurrentTile(zelda3::kNumTile16Individual - 1);
+  EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(editor_->current_tile16(), zelda3::kNumTile16Individual - 1);
 #else
   GTEST_SKIP() << "ROM tests disabled";
 #endif

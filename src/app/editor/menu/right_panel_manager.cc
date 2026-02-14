@@ -13,6 +13,7 @@
 #include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/settings_panel.h"
 #include "app/editor/ui/toast_manager.h"
+#include "app/gui/animation/animator.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -113,6 +114,28 @@ const char* GetPanelTypeIcon(RightPanelManager::PanelType type) {
   }
 }
 
+std::string RightPanelManager::PanelTypeKey(PanelType type) {
+  switch (type) {
+    case PanelType::kAgentChat:
+      return "agent_chat";
+    case PanelType::kProposals:
+      return "proposals";
+    case PanelType::kSettings:
+      return "settings";
+    case PanelType::kHelp:
+      return "help";
+    case PanelType::kNotifications:
+      return "notifications";
+    case PanelType::kProperties:
+      return "properties";
+    case PanelType::kProject:
+      return "project";
+    case PanelType::kNone:
+    default:
+      return "none";
+  }
+}
+
 void RightPanelManager::TogglePanel(PanelType type) {
   if (active_panel_ == type) {
     ClosePanel();
@@ -136,8 +159,7 @@ void RightPanelManager::OpenPanel(PanelType type) {
   animation_target_ = 1.0f;
 
   // Check if animations are enabled
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  if (!theme.enable_animations) {
+  if (!gui::GetAnimator().IsEnabled()) {
     panel_animation_ = 1.0f;
     animating_ = false;
   }
@@ -145,8 +167,7 @@ void RightPanelManager::OpenPanel(PanelType type) {
 }
 
 void RightPanelManager::ClosePanel() {
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  if (!theme.enable_animations) {
+  if (!gui::GetAnimator().IsEnabled()) {
     // Instant close
     active_panel_ = PanelType::kNone;
     closing_ = false;
@@ -164,6 +185,18 @@ void RightPanelManager::ClosePanel() {
   animation_target_ = 0.0f;
 }
 
+void RightPanelManager::OnHostVisibilityChanged(bool visible) {
+  // Snap transition state to a stable endpoint. This avoids stale intermediate
+  // frames being composited when the OS moves the app across spaces.
+  (void)visible;
+  closing_ = false;
+  closing_panel_ = PanelType::kNone;
+  animating_ = false;
+
+  panel_animation_ = (active_panel_ == PanelType::kNone) ? 0.0f : 1.0f;
+  animation_target_ = panel_animation_;
+}
+
 float RightPanelManager::GetPanelWidth() const {
   // Determine which panel to measure: active panel, or the one being closed
   PanelType effective_panel = active_panel_;
@@ -174,114 +207,250 @@ float RightPanelManager::GetPanelWidth() const {
     return 0.0f;
   }
 
-  float width = 0.0f;
-  switch (effective_panel) {
-    case PanelType::kAgentChat:
-      width = agent_chat_width_;
-      break;
-    case PanelType::kProposals:
-      width = proposals_width_;
-      break;
-    case PanelType::kSettings:
-      width = settings_width_;
-      break;
-    case PanelType::kHelp:
-      width = help_width_;
-      break;
-    case PanelType::kNotifications:
-      width = notifications_width_;
-      break;
-    case PanelType::kProperties:
-      width = properties_width_;
-      break;
-    case PanelType::kProject:
-      width = project_width_;
-      break;
-    default:
-      width = 0.0f;
-      break;
-  }
-
   ImGuiContext* context = ImGui::GetCurrentContext();
   if (!context) {
-    return width * panel_animation_;
+    return GetConfiguredPanelWidth(effective_panel) * panel_animation_;
   }
 
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   if (!viewport) {
-    return width * panel_animation_;
+    return GetConfiguredPanelWidth(effective_panel) * panel_animation_;
   }
 
-  const float max_width = viewport->WorkSize.x * gui::UIConfig::kMaxPanelWidthRatio;
-  if (max_width > 0.0f && width > max_width) {
-    width = max_width;
-  }
+  const float vp_width = viewport->WorkSize.x;
+  const float width = GetClampedPanelWidth(effective_panel, vp_width);
 
   // Scale by animation progress for smooth docking space adjustment
   return width * panel_animation_;
 }
 
 void RightPanelManager::SetPanelWidth(PanelType type, float width) {
+  if (type == PanelType::kNone) {
+    return;
+  }
+  float viewport_width = 0.0f;
+  if (const ImGuiViewport* viewport = ImGui::GetMainViewport()) {
+    viewport_width = viewport->WorkSize.x;
+  }
+  if (viewport_width <= 0.0f && ImGui::GetCurrentContext()) {
+    viewport_width = ImGui::GetIO().DisplaySize.x;
+  }
+  const auto limits = GetPanelSizeLimits(type);
+  float clamped = std::max(limits.min_width, width);
+  if (viewport_width > 0.0f) {
+    const float ratio = viewport_width < 768.0f
+                            ? std::max(0.88f, limits.max_width_ratio)
+                            : limits.max_width_ratio;
+    const float max_width = std::max(limits.min_width, viewport_width * ratio);
+    clamped = std::clamp(clamped, limits.min_width, max_width);
+  }
+
+  float* target = nullptr;
   switch (type) {
     case PanelType::kAgentChat:
-      agent_chat_width_ = width;
+      target = &agent_chat_width_;
       break;
     case PanelType::kProposals:
-      proposals_width_ = width;
+      target = &proposals_width_;
       break;
     case PanelType::kSettings:
-      settings_width_ = width;
+      target = &settings_width_;
       break;
     case PanelType::kHelp:
-      help_width_ = width;
+      target = &help_width_;
       break;
     case PanelType::kNotifications:
-      notifications_width_ = width;
+      target = &notifications_width_;
       break;
     case PanelType::kProperties:
-      properties_width_ = width;
+      target = &properties_width_;
       break;
     case PanelType::kProject:
-      project_width_ = width;
+      target = &project_width_;
       break;
     default:
       break;
   }
+  if (!target) {
+    return;
+  }
+  if (std::abs(*target - clamped) < 0.5f) {
+    return;
+  }
+  *target = clamped;
+  NotifyPanelWidthChanged(type, *target);
 }
 
 void RightPanelManager::ResetPanelWidths() {
-  agent_chat_width_ = GetDefaultPanelWidth(PanelType::kAgentChat, active_editor_type_);
-  proposals_width_ = GetDefaultPanelWidth(PanelType::kProposals, active_editor_type_);
-  settings_width_ = GetDefaultPanelWidth(PanelType::kSettings, active_editor_type_);
-  help_width_ = GetDefaultPanelWidth(PanelType::kHelp, active_editor_type_);
-  notifications_width_ = GetDefaultPanelWidth(PanelType::kNotifications, active_editor_type_);
-  properties_width_ = GetDefaultPanelWidth(PanelType::kProperties, active_editor_type_);
-  project_width_ = GetDefaultPanelWidth(PanelType::kProject, active_editor_type_);
+  SetPanelWidth(PanelType::kAgentChat,
+                GetDefaultPanelWidth(PanelType::kAgentChat, active_editor_type_));
+  SetPanelWidth(PanelType::kProposals,
+                GetDefaultPanelWidth(PanelType::kProposals, active_editor_type_));
+  SetPanelWidth(PanelType::kSettings,
+                GetDefaultPanelWidth(PanelType::kSettings, active_editor_type_));
+  SetPanelWidth(PanelType::kHelp,
+                GetDefaultPanelWidth(PanelType::kHelp, active_editor_type_));
+  SetPanelWidth(PanelType::kNotifications,
+                GetDefaultPanelWidth(PanelType::kNotifications,
+                                     active_editor_type_));
+  SetPanelWidth(PanelType::kProperties,
+                GetDefaultPanelWidth(PanelType::kProperties,
+                                     active_editor_type_));
+  SetPanelWidth(PanelType::kProject,
+                GetDefaultPanelWidth(PanelType::kProject, active_editor_type_));
 }
 
 float RightPanelManager::GetDefaultPanelWidth(PanelType type, EditorType editor) {
   switch (type) {
     case PanelType::kAgentChat:
-      return gui::UIConfig::kPanelWidthAgentChat;
+      return std::max(gui::UIConfig::kPanelWidthAgentChat, 480.0f);
     case PanelType::kProposals:
-      return gui::UIConfig::kPanelWidthProposals;
+      return std::max(gui::UIConfig::kPanelWidthProposals, 440.0f);
     case PanelType::kSettings:
-      return gui::UIConfig::kPanelWidthSettings;
+      return std::max(gui::UIConfig::kPanelWidthSettings, 380.0f);
     case PanelType::kHelp:
-      return gui::UIConfig::kPanelWidthHelp;
+      return std::max(gui::UIConfig::kPanelWidthHelp, 380.0f);
     case PanelType::kNotifications:
-      return gui::UIConfig::kPanelWidthNotifications;
+      return std::max(gui::UIConfig::kPanelWidthNotifications, 380.0f);
     case PanelType::kProperties:
-      // Property panel can be wider in certain editors
+      // Property panel can be wider in certain editors.
       if (editor == EditorType::kDungeon) {
-        return 380.0f; // More space for complex object properties
+        return 440.0f;
       }
-      return gui::UIConfig::kPanelWidthProperties;
+      return std::max(gui::UIConfig::kPanelWidthProperties, 400.0f);
     case PanelType::kProject:
-      return gui::UIConfig::kPanelWidthProject;
+      return std::max(gui::UIConfig::kPanelWidthProject, 420.0f);
     default:
-      return gui::UIConfig::kPanelWidthMedium;
+      return std::max(gui::UIConfig::kPanelWidthMedium, 380.0f);
   }
+}
+
+void RightPanelManager::SetPanelSizeLimits(PanelType type,
+                                           const PanelSizeLimits& limits) {
+  if (type == PanelType::kNone) {
+    return;
+  }
+  PanelSizeLimits normalized = limits;
+  normalized.min_width = std::max(180.0f, normalized.min_width);
+  normalized.max_width_ratio =
+      std::clamp(normalized.max_width_ratio, 0.25f, 0.95f);
+  panel_size_limits_[PanelTypeKey(type)] = normalized;
+}
+
+RightPanelManager::PanelSizeLimits RightPanelManager::GetPanelSizeLimits(
+    PanelType type) const {
+  auto it = panel_size_limits_.find(PanelTypeKey(type));
+  if (it != panel_size_limits_.end()) {
+    return it->second;
+  }
+
+  PanelSizeLimits defaults;
+  switch (type) {
+    case PanelType::kAgentChat:
+      defaults.min_width = 360.0f;
+      defaults.max_width_ratio = 0.90f;
+      break;
+    case PanelType::kProposals:
+      defaults.min_width = 340.0f;
+      defaults.max_width_ratio = 0.86f;
+      break;
+    case PanelType::kSettings:
+      defaults.min_width = 300.0f;
+      defaults.max_width_ratio = 0.80f;
+      break;
+    case PanelType::kHelp:
+      defaults.min_width = 300.0f;
+      defaults.max_width_ratio = 0.80f;
+      break;
+    case PanelType::kNotifications:
+      defaults.min_width = 320.0f;
+      defaults.max_width_ratio = 0.82f;
+      break;
+    case PanelType::kProperties:
+      defaults.min_width = 340.0f;
+      defaults.max_width_ratio = 0.90f;
+      break;
+    case PanelType::kProject:
+      defaults.min_width = 340.0f;
+      defaults.max_width_ratio = 0.86f;
+      break;
+    case PanelType::kNone:
+    default:
+      break;
+  }
+  return defaults;
+}
+
+float RightPanelManager::GetConfiguredPanelWidth(PanelType type) const {
+  switch (type) {
+    case PanelType::kAgentChat:
+      return agent_chat_width_;
+    case PanelType::kProposals:
+      return proposals_width_;
+    case PanelType::kSettings:
+      return settings_width_;
+    case PanelType::kHelp:
+      return help_width_;
+    case PanelType::kNotifications:
+      return notifications_width_;
+    case PanelType::kProperties:
+      return properties_width_;
+    case PanelType::kProject:
+      return project_width_;
+    case PanelType::kNone:
+    default:
+      return 0.0f;
+  }
+}
+
+float RightPanelManager::GetClampedPanelWidth(PanelType type,
+                                              float viewport_width) const {
+  float width = GetConfiguredPanelWidth(type);
+  if (width <= 0.0f) {
+    return width;
+  }
+  const auto limits = GetPanelSizeLimits(type);
+  const float ratio = viewport_width < 768.0f
+                          ? std::max(0.88f, limits.max_width_ratio)
+                          : limits.max_width_ratio;
+  const float max_width = std::max(limits.min_width, viewport_width * ratio);
+  return std::clamp(width, limits.min_width, max_width);
+}
+
+void RightPanelManager::NotifyPanelWidthChanged(PanelType type, float width) {
+  if (on_panel_width_changed_) {
+    on_panel_width_changed_(type, width);
+  }
+}
+
+std::unordered_map<std::string, float> RightPanelManager::SerializePanelWidths()
+    const {
+  return {
+      {PanelTypeKey(PanelType::kAgentChat), agent_chat_width_},
+      {PanelTypeKey(PanelType::kProposals), proposals_width_},
+      {PanelTypeKey(PanelType::kSettings), settings_width_},
+      {PanelTypeKey(PanelType::kHelp), help_width_},
+      {PanelTypeKey(PanelType::kNotifications), notifications_width_},
+      {PanelTypeKey(PanelType::kProperties), properties_width_},
+      {PanelTypeKey(PanelType::kProject), project_width_},
+  };
+}
+
+void RightPanelManager::RestorePanelWidths(
+    const std::unordered_map<std::string, float>& widths) {
+  auto apply = [&](PanelType type) {
+    auto it = widths.find(PanelTypeKey(type));
+    if (it != widths.end()) {
+      SetPanelWidth(type, it->second);
+    }
+  };
+  apply(PanelType::kAgentChat);
+  apply(PanelType::kProposals);
+  apply(PanelType::kSettings);
+  apply(PanelType::kHelp);
+  apply(PanelType::kNotifications);
+  apply(PanelType::kProperties);
+  apply(PanelType::kProject);
 }
 
 void RightPanelManager::Draw() {
@@ -298,10 +467,33 @@ void RightPanelManager::Draw() {
     if (!closing_) return;
   }
 
+  const bool animations_enabled = gui::GetAnimator().IsEnabled();
+  if (!animations_enabled && animating_) {
+    panel_animation_ = animation_target_;
+    animating_ = false;
+    if (closing_ && animation_target_ == 0.0f) {
+      closing_ = false;
+      closing_panel_ = PanelType::kNone;
+      return;
+    }
+  }
+
   // Advance animation
-  if (animating_) {
-    float delta_time = ImGui::GetIO().DeltaTime;
+  if (animating_ && animations_enabled) {
+    // Clamp dt to avoid giant interpolation jumps after focus/space changes.
+    float delta_time = std::clamp(ImGui::GetIO().DeltaTime, 0.0f, 1.0f / 20.0f);
     float speed = gui::UIConfig::kAnimationSpeed;
+    switch (gui::GetAnimator().motion_profile()) {
+      case gui::MotionProfile::kSnappy:
+        speed *= 1.20f;
+        break;
+      case gui::MotionProfile::kRelaxed:
+        speed *= 0.75f;
+        break;
+      case gui::MotionProfile::kStandard:
+      default:
+        break;
+    }
     float diff = animation_target_ - panel_animation_;
     panel_animation_ += diff * std::min(1.0f, delta_time * speed);
 
@@ -333,12 +525,12 @@ void RightPanelManager::Draw() {
   const float viewport_height =
       std::max(0.0f, viewport->WorkSize.y - top_inset - bottom_safe);
 
-  // GetPanelWidth() already factors in panel_animation_ for docking space.
-  // For the window itself, use the full (unanimated) width and slide position.
-  const float animated_width = GetPanelWidth();
-  // Avoid division by zero
+  // Keep full-width state explicit so drag-resize and animation remain stable.
   const float full_width =
-      (panel_animation_ > 0.001f) ? animated_width / panel_animation_ : 0.0f;
+      (draw_panel == PanelType::kNone)
+          ? 0.0f
+          : GetClampedPanelWidth(draw_panel, viewport_width);
+  const float animated_width = full_width * panel_animation_;
 
   // Use SurfaceContainer for slightly elevated panel background
   ImVec4 panel_bg = gui::GetSurfaceContainerVec4();
@@ -402,11 +594,44 @@ void RightPanelManager::Draw() {
     }
 
     ImGui::EndChild();
+
+    // VSCode-style splitter: drag from the left edge to resize.
+    if (!closing_ && active_panel_ != PanelType::kNone) {
+      const float handle_width = 6.0f;
+      const ImVec2 win_pos = ImGui::GetWindowPos();
+      const float win_height = ImGui::GetWindowHeight();
+      ImGui::SetCursorScreenPos(
+          ImVec2(win_pos.x - handle_width * 0.5f, win_pos.y));
+      ImGui::InvisibleButton("##RightPanelResizeHandle",
+                             ImVec2(handle_width, win_height));
+      const bool handle_hovered = ImGui::IsItemHovered();
+      const bool handle_active = ImGui::IsItemActive();
+      if (handle_hovered || handle_active) {
+        ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+      }
+      if (handle_hovered &&
+          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        SetPanelWidth(active_panel_,
+                      GetDefaultPanelWidth(active_panel_, active_editor_type_));
+      }
+      if (handle_active) {
+        const float new_width =
+            GetConfiguredPanelWidth(active_panel_) - ImGui::GetIO().MouseDelta.x;
+        SetPanelWidth(active_panel_, new_width);
+        ImGui::SetTooltip("Width: %.0f px", GetConfiguredPanelWidth(active_panel_));
+      }
+
+      ImVec4 handle_color = gui::GetOutlineVec4();
+      handle_color.w = handle_active ? 0.95f : (handle_hovered ? 0.72f : 0.35f);
+      ImGui::GetWindowDrawList()->AddLine(
+          ImVec2(win_pos.x, win_pos.y),
+          ImVec2(win_pos.x, win_pos.y + win_height),
+          ImGui::GetColorU32(handle_color), handle_active ? 2.0f : 1.0f);
+    }
   }
 }
 
 void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const float header_height = gui::UIConfig::kPanelHeaderHeight;
   const float padding = 12.0f;
 
@@ -446,21 +671,9 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   ImGui::SameLine(current_x);
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);  // Center vertically
 
-  gui::StyleColorGuard button_colors({
-      {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
-      {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
-      {ImGuiCol_ButtonActive,
-       ImVec4(gui::GetPrimaryVec4().x * 0.3f, gui::GetPrimaryVec4().y * 0.3f,
-              gui::GetPrimaryVec4().z * 0.3f, 0.4f)},
-      {ImGuiCol_Text, gui::GetTextSecondaryVec4()},
-  });
-  gui::StyleVarGuard button_rounding(ImGuiStyleVar_FrameRounding, 4.0f);
-
-  if (ImGui::Button(ICON_MD_CLOSE, ImVec2(button_size, button_size))) {
+  if (gui::TransparentIconButton(ICON_MD_CLOSE, ImVec2(button_size, button_size),
+                                 "Close Panel (Esc)")) {
     ClosePanel();
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Close Panel (Esc)");
   }
 
   // Lock Toggle (Only for Properties Panel)
@@ -468,19 +681,11 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
     current_x -= (button_size + 4.0f);
     ImGui::SameLine(current_x);
 
-    ImVec4 lock_color = properties_locked_ ? gui::GetPrimaryVec4()
-                                           : gui::GetTextSecondaryVec4();
-    gui::StyleColorGuard lock_text(ImGuiCol_Text, lock_color);
-
-    if (ImGui::Button(
-            properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
-            ImVec2(button_size, button_size))) {
+    if (gui::TransparentIconButton(properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
+                                   ImVec2(button_size, button_size),
+                                   properties_locked_ ? "Unlock Selection" : "Lock Selection",
+                                   properties_locked_)) {
       properties_locked_ = !properties_locked_;
-    }
-
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(properties_locked_ ? "Unlock Selection"
-                                           : "Lock Selection");
     }
   }
 
@@ -692,6 +897,19 @@ void RightPanelManager::DrawAgentChatPanel() {
                       ImVec2(-1, 0))) {
       agent_chat_->set_active(true);
       agent_chat_->ScrollToBottom();
+    }
+  }
+
+  if (proposal_drawer_) {
+    {
+      gui::StyleColorGuard secondary_btn_colors({
+          {ImGuiCol_Button, gui::GetSurfaceContainerVec4()},
+          {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+          {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+      });
+      if (ImGui::Button(ICON_MD_DESCRIPTION " Open Proposals", ImVec2(-1, 0))) {
+        OpenPanel(PanelType::kProposals);
+      }
     }
   }
 

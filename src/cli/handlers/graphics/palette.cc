@@ -3,9 +3,6 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/scad_format.h"
 #include "cli/cli.h"
-#if !defined(__EMSCRIPTEN__) && !defined(YAZE_IOS)
-#include "cli/tui/palette_editor.h"
-#endif
 #include "zelda3/game_data.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
@@ -38,14 +35,6 @@ absl::Status HandlePaletteLegacy(const std::vector<std::string>& arg_vec) {
 
   return absl::InvalidArgumentError("Invalid action for palette command.");
 }
-
-#if !defined(__EMSCRIPTEN__) && !defined(YAZE_IOS)
-// Legacy Palette TUI removed - using new CommandHandler system
-void HandlePaletteTUI(ftxui::ScreenInteractive& screen) {
-  // TODO: Implement palette editor TUI
-  (void)screen;  // Suppress unused parameter warning
-}
-#endif
 
 // Legacy PaletteExport class removed - using new CommandHandler system
 absl::Status HandlePaletteExportLegacy(

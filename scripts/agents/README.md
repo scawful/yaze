@@ -5,6 +5,7 @@
 | `run-gh-workflow.sh` | Wrapper for `gh workflow run`, prints the run URL for easy tracking. |
 | `get-gh-workflow-status.sh` | Checks the status of a GitHub Actions workflow run using `gh run view`. |
 | `smoke-build.sh` | Runs `cmake --preset` configure/build in place and reports timing. |
+| `ninja-heal.sh` | Repairs corrupted Ninja metadata (`.ninja_deps`/`.ninja_log`) and verifies incremental build stability. |
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Smoke-checks HTTP API endpoints (health/models/symbols + core POSTs) via curl; defaults to localhost:8080. |
 | `test-grpc-api.sh` | Smoke-checks gRPC automation API via grpcurl; defaults to localhost:50052 and the ImGui test harness Ping. |
@@ -12,6 +13,8 @@
 | `ralph-loop-report.sh` | Builds a Markdown report from Ralph loop logs for structured review. |
 | `ralph-loop-lock.sh` | Acquire/release simple lock files to prevent multi-agent overlap. |
 | `ralph-loop-status.sh` | Print key fields from the Ralph loop state file (delegates to the OOS helper). |
+| `gemini-yolo-loop.sh` | Generic Gemini non-interactive loop runner with YOLO mode + completion marker checks. |
+| `gemini-oracle-workstream.sh` | Runs the Oracle scratchpad Gemini tasks (dialogue/dimensions/wrap/annotation) via YOLO loops. |
 | `windows-smoke-build.ps1` | PowerShell variant of the smoke build helper for Visual Studio/Ninja presets on Windows. |
 
 Usage examples:
@@ -25,6 +28,9 @@ scripts/agents/get-gh-workflow-status.sh 19529930066
 
 # Smoke build mac-ai preset
 scripts/agents/smoke-build.sh mac-ai
+
+# Heal Ninja metadata corruption and verify incremental stability
+scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 8
 
 # Build & run tests for mac-dbg preset with verbose ctest output
 scripts/agents/run-tests.sh mac-dbg --output-on-failure
@@ -56,8 +62,38 @@ scripts/agents/ralph-loop-lock.sh acquire --area ai-integration --owner codex
 scripts/agents/ralph-loop-lock.sh status
 scripts/agents/ralph-loop-lock.sh release --area ai-integration
 
+# Run one Gemini task section in YOLO mode (with retry loop + marker + per-iteration timeout)
+scripts/agents/gemini-yolo-loop.sh \
+  --prompt-doc ~/.context/projects/oracle-of-secrets/scratchpad/gemini_prompts_2026-02-12.md \
+  --section "Task 2: Object Dimension Validation" \
+  --task-name dimensions --max-iterations 2 --timeout-seconds 120 --model gemini-2.5-pro \
+  -- --extensions code-review --allowed-mcp-server-names nanobanana
+
+# Run the full Oracle Gemini workstream (all 4 tasks)
+scripts/agents/gemini-oracle-workstream.sh \
+  --model gemini-2.5-pro --max-iterations 2 --timeout-seconds 120 \
+  -- --extensions code-review --allowed-mcp-server-names nanobanana
+
 # Windows smoke build using PowerShell
 pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
+```
+
+z3ed dungeon edit quick reference (dry-run by default; add `--write` to persist):
+```bash
+# Place/remove dungeon sprites
+z3ed dungeon-place-sprite --room 0x77 --id 0xA3 --x 16 --y 21 --subtype 4 --rom /tmp/oos-work.sfc --format json
+z3ed dungeon-remove-sprite --room 0x77 --x 16 --y 21 --rom /tmp/oos-work.sfc --format json
+
+# Place room objects (rails/tracks/etc.)
+z3ed dungeon-place-object --room 0x98 --id 0x0031 --x 61 --y 61 --size 4 --layer 0 --rom /tmp/oos-work.sfc --format json
+
+# Edit custom collision tiles
+z3ed dungeon-set-collision-tile --room 0xB8 --tiles "10,5,0xB7;50,45,0xBA" --rom /tmp/oos-work.sfc --format json
+
+# Readback validation companions
+z3ed dungeon-list-sprites --room 0x77 --rom /tmp/oos-work.sfc --format json
+z3ed dungeon-list-objects --room 0x98 --rom /tmp/oos-work.sfc --format json
+z3ed dungeon-list-custom-collision --room 0xB8 --all --rom /tmp/oos-work.sfc --format json
 ```
 
 When invoking these scripts, log the results on the coordination board so other agents know which
@@ -78,6 +114,12 @@ Ralph loop state:
   `last_outcome_status`, `watchdog_triggered`, and resolved Mesen2 socket fields (`mesen_socket_resolved`,
   `mesen_socket_source`, `mesen_socket_resolved_at`).
 - `RALPH_OOS_ROOT` overrides the Oracle-of-Secrets root used for default sanity/preflight/registry scripts.
+
+Gemini loop logs:
+- Default root: `.claude/gemini-loop/` (override with `--output-root`)
+- Per run: `<task>-<timestamp>/base.prompt.md`, `iteration-*.prompt.md`, `iteration-*.log`, `run-summary.md`
+- Oracle wrapper default root: `~/.context/projects/oracle-of-secrets/scratchpad/gemini-yolo-runs/`
+- `run-summary.md` now records `TimeoutSeconds` and the last exit status so stalled runs are easy to triage.
 
 Note: AFS CLI writes to `~/.context/projects/yaze` are blocked by the sandbox. Use repo `.context` paths for scratchpad updates.
 

@@ -311,6 +311,14 @@ yaze::ios::IOSHost g_ios_host;
   [self postOverlayCommand:@"open_project"];
 }
 
+- (void)handleShowProjectBrowserCommand:(id)sender {
+  [self postOverlayCommand:@"show_project_browser"];
+}
+
+- (void)handleShowOracleToolsCommand:(id)sender {
+  [self postOverlayCommand:@"show_oracle_tools"];
+}
+
 - (void)handleShowPanelBrowserCommand:(id)sender {
   [self postOverlayCommand:@"show_panel_browser"];
 }
@@ -383,6 +391,18 @@ yaze::ios::IOSHost g_ios_host;
                                 input:@"O"
                         modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
                                action:@selector(handleOpenProjectCommand:)];
+    UIKeyCommand *projectBrowser =
+        [self yazeKeyCommandWithTitle:@"Projects"
+                            imageName:@"folder.badge.gearshape"
+                                input:@"J"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowProjectBrowserCommand:)];
+    UIKeyCommand *oracleTools =
+        [self yazeKeyCommandWithTitle:@"Oracle Tools"
+                            imageName:@"wand.and.stars"
+                                input:@"T"
+                        modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
+                               action:@selector(handleShowOracleToolsCommand:)];
     UIKeyCommand *panelBrowser =
         [self yazeKeyCommandWithTitle:@"Panel Browser"
                             imageName:@"rectangle.stack"
@@ -401,7 +421,10 @@ yaze::ios::IOSHost g_ios_host;
                                 input:@","
                         modifierFlags:UIKeyModifierCommand
                                action:@selector(handleOpenSettingsCommand:)];
-    return @[menu, openRom, openProject, panelBrowser, commandPalette, settings];
+    return @[
+      menu, openRom, openProject, projectBrowser, oracleTools, panelBrowser,
+      commandPalette, settings
+    ];
   }
   return @[];
 }
@@ -427,6 +450,16 @@ yaze::ios::IOSHost g_ios_host;
                                 input:@"O"
                         modifierFlags:UIKeyModifierCommand | UIKeyModifierShift
                                action:@selector(handleOpenProjectCommand:)];
+    UICommand *projectBrowser =
+        [UICommand commandWithTitle:@"Projects"
+                              image:[UIImage systemImageNamed:@"folder.badge.gearshape"]
+                             action:@selector(handleShowProjectBrowserCommand:)
+                       propertyList:nil];
+    UICommand *oracleTools =
+        [UICommand commandWithTitle:@"Oracle Tools"
+                              image:[UIImage systemImageNamed:@"wand.and.stars"]
+                             action:@selector(handleShowOracleToolsCommand:)
+                       propertyList:nil];
     UIKeyCommand *panelBrowser =
         [self yazeKeyCommandWithTitle:@"Panel Browser"
                             imageName:@"rectangle.stack"
@@ -473,6 +506,8 @@ yaze::ios::IOSHost g_ios_host;
                                       menu,
                                       openRom,
                                       openProject,
+                                      projectBrowser,
+                                      oracleTools,
                                       panelBrowser,
                                       commandPalette,
                                       settings,

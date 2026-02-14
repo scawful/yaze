@@ -9,7 +9,9 @@
 // C++ standard library headers
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <exception>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <initializer_list>
@@ -59,6 +61,7 @@
 #include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/animation/animator.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -278,6 +281,81 @@ std::string StripSessionPrefix(absl::string_view panel_id) {
   return std::string(panel_id);
 }
 
+void SeedOracleProjectInRecents() {
+  namespace fs = std::filesystem;
+
+  std::vector<fs::path> roots;
+  if (const char* home = std::getenv("HOME"); home != nullptr &&
+                                             std::strlen(home) > 0) {
+    roots.push_back(fs::path(home) / "src" / "hobby" / "oracle-of-secrets");
+  }
+
+  std::vector<fs::path> candidates;
+  std::unordered_set<std::string> seen;
+  auto add_candidate = [&](const fs::path& path) {
+    std::error_code ec;
+    if (!fs::exists(path, ec) || ec) {
+      return;
+    }
+    std::string ext = path.extension().string();
+    absl::AsciiStrToLower(&ext);
+    if (ext != ".yaze" && ext != ".yazeproj") {
+      return;
+    }
+    const std::string normalized = fs::weakly_canonical(path, ec).string();
+    const std::string key = normalized.empty() ? path.string() : normalized;
+    if (key.empty() || seen.count(key) > 0) {
+      return;
+    }
+    seen.insert(key);
+    candidates.push_back(path);
+  };
+
+  for (const auto& root : roots) {
+    std::error_code ec;
+    if (!fs::exists(root, ec) || ec) {
+      continue;
+    }
+
+    // Priority candidates first.
+    add_candidate(root / "Oracle-of-Secrets.yaze");
+    add_candidate(root / "Oracle of Secrets.yaze");
+    add_candidate(root / "Oracle-of-Secrets.yazeproj");
+    add_candidate(root / "Oracle of Secrets.yazeproj");
+    add_candidate(root / "Roms" / "Oracle of Secrets.yaze");
+
+    // Also detect additional local project files nearby.
+    fs::recursive_directory_iterator it(
+        root, fs::directory_options::skip_permission_denied, ec);
+    fs::recursive_directory_iterator end;
+    if (ec) {
+      continue;
+    }
+    for (; it != end; it.increment(ec)) {
+      if (ec) {
+        ec.clear();
+        continue;
+      }
+      if (it.depth() > 2) {
+        it.disable_recursion_pending();
+        continue;
+      }
+      add_candidate(it->path());
+    }
+  }
+
+  if (candidates.empty()) {
+    return;
+  }
+
+  auto& manager = project::RecentFilesManager::GetInstance();
+  // Add in reverse so the first candidate remains most recent.
+  for (auto it = candidates.rbegin(); it != candidates.rend(); ++it) {
+    manager.AddFile(it->string());
+  }
+  manager.Save();
+}
+
 }  // namespace
 
 // Static registry of editors that use the card-based layout system
@@ -295,6 +373,80 @@ void EditorManager::ResetWorkspaceLayout() {
 
 void EditorManager::ApplyLayoutPreset(const std::string& preset_name) {
   layout_coordinator_.ApplyLayoutPreset(preset_name, GetCurrentSessionId());
+}
+
+bool EditorManager::ApplyLayoutProfile(const std::string& profile_id) {
+  if (!layout_manager_) {
+    return false;
+  }
+
+  const size_t session_id = GetCurrentSessionId();
+  const EditorType current_type =
+      current_editor_ ? current_editor_->type() : EditorType::kUnknown;
+
+  LayoutProfile applied_profile;
+  if (!layout_manager_->ApplyBuiltInProfile(profile_id, session_id,
+                                            current_type, &applied_profile)) {
+    return false;
+  }
+
+  if (applied_profile.open_agent_chat && right_panel_manager_) {
+    right_panel_manager_->OpenPanel(RightPanelManager::PanelType::kAgentChat);
+    const float default_width = RightPanelManager::GetDefaultPanelWidth(
+        RightPanelManager::PanelType::kAgentChat, current_type);
+    right_panel_manager_->SetPanelWidth(
+        RightPanelManager::PanelType::kAgentChat,
+        std::max(default_width, 480.0f));
+  }
+
+  toast_manager_.Show(absl::StrFormat("Layout Profile: %s",
+                                      applied_profile.label),
+                      ToastType::kSuccess);
+  return true;
+}
+
+void EditorManager::CaptureTemporaryLayoutSnapshot() {
+  if (!layout_manager_) {
+    return;
+  }
+  layout_manager_->CaptureTemporarySessionLayout(GetCurrentSessionId());
+  toast_manager_.Show("Captured temporary layout snapshot", ToastType::kInfo);
+}
+
+void EditorManager::RestoreTemporaryLayoutSnapshot(bool clear_after_restore) {
+  if (!layout_manager_) {
+    return;
+  }
+
+  if (layout_manager_->RestoreTemporarySessionLayout(GetCurrentSessionId(),
+                                                     clear_after_restore)) {
+    toast_manager_.Show("Restored temporary layout snapshot",
+                        ToastType::kSuccess);
+  } else {
+    toast_manager_.Show("No temporary layout snapshot available",
+                        ToastType::kWarning);
+  }
+}
+
+void EditorManager::ClearTemporaryLayoutSnapshot() {
+  if (!layout_manager_) {
+    return;
+  }
+  layout_manager_->ClearTemporarySessionLayout();
+  toast_manager_.Show("Cleared temporary layout snapshot", ToastType::kInfo);
+}
+
+void EditorManager::SyncLayoutScopeFromCurrentProject() {
+  if (!layout_manager_) {
+    return;
+  }
+
+  if (current_project_.project_opened()) {
+    layout_manager_->SetProjectLayoutKey(
+        current_project_.MakeStorageKey("layouts"));
+  } else {
+    layout_manager_->UseGlobalLayouts();
+  }
 }
 
 void EditorManager::ResetCurrentEditorLayout() {
@@ -530,6 +682,9 @@ void EditorManager::InitializeSubsystems() {
   // STEP 4.7: Initialize ActivityBar
   activity_bar_ = std::make_unique<ActivityBar>(panel_manager_);
 
+  // PanelHost is the declarative panel registration surface used by
+  // editor/runtime systems.
+  panel_host_ = std::make_unique<PanelHost>(&panel_manager_);
 
   // Wire up EventBus to PanelManager for action event publishing
   panel_manager_.SetEventBus(&event_bus_);
@@ -544,15 +699,29 @@ void EditorManager::RegisterEditors() {
 
   // STEP 4.8: Initialize DashboardPanel
   dashboard_panel_ = std::make_unique<DashboardPanel>(this);
-  panel_manager_.RegisterPanel(
-      {.card_id = "dashboard.main",
-       .display_name = "Dashboard",
-       .window_title = " Dashboard",
-       .icon = ICON_MD_DASHBOARD,
-       .category = "Dashboard",
-       .shortcut_hint = "F1",
-       .visibility_flag = dashboard_panel_->visibility_flag(),
-       .priority = 0});
+
+  if (panel_host_) {
+    PanelDefinition dashboard_definition;
+    dashboard_definition.id = "dashboard.main";
+    dashboard_definition.display_name = "Dashboard";
+    dashboard_definition.icon = ICON_MD_DASHBOARD;
+    dashboard_definition.category = "Dashboard";
+    dashboard_definition.window_title = " Dashboard";
+    dashboard_definition.shortcut_hint = "F1";
+    dashboard_definition.priority = 0;
+    dashboard_definition.visibility_flag = dashboard_panel_->visibility_flag();
+    panel_host_->RegisterPanel(dashboard_definition);
+  } else {
+    panel_manager_.RegisterPanel(
+        {.card_id = "dashboard.main",
+         .display_name = "Dashboard",
+         .window_title = " Dashboard",
+         .icon = ICON_MD_DASHBOARD,
+         .category = "Dashboard",
+         .shortcut_hint = "F1",
+         .visibility_flag = dashboard_panel_->visibility_flag(),
+         .priority = 0});
+  }
 }
 
 void EditorManager::SubscribeToEvents() {
@@ -750,6 +919,22 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       }
       break;
 
+    case Action::kShowAgentChatSidebar:
+      if (right_panel_manager_) {
+        right_panel_manager_->OpenPanel(
+            RightPanelManager::PanelType::kAgentChat);
+      } else {
+        SwitchToEditor(EditorType::kAgent);
+      }
+      break;
+
+    case Action::kShowAgentProposalsSidebar:
+      if (right_panel_manager_) {
+        right_panel_manager_->OpenPanel(
+            RightPanelManager::PanelType::kProposals);
+      }
+      break;
+
     case Action::kOpenRom:
       // Open ROM dialog - handled elsewhere, but included for completeness
       break;
@@ -833,6 +1018,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
                                const std::string& filename) {
   renderer_ = renderer;
   RegisterDefaultEditorFactories(&editor_registry_);
+  SeedOracleProjectInRecents();
 
   // Inject card_registry into emulator and workspace_manager
   emulator_.set_panel_manager(&panel_manager_);
@@ -859,6 +1045,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
                                    /*notify=*/false);
   panel_manager_.SetPanelExpanded(user_settings_.prefs().sidebar_panel_expanded,
                                   /*notify=*/false);
+  panel_manager_.SetStoredSidePanelWidth(
+      user_settings_.prefs().sidebar_panel_width, /*notify=*/false);
+  panel_manager_.SetPanelBrowserCategoryWidth(
+      user_settings_.prefs().panel_browser_category_width,
+      /*notify=*/false);
   if (!user_settings_.prefs().sidebar_active_category.empty()) {
     const std::string& category =
         user_settings_.prefs().sidebar_active_category;
@@ -869,6 +1060,11 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
                                             it->second);
     }
+  }
+
+  if (pending_layout_defaults_reset_) {
+    ResetWorkspaceLayout();
+    pending_layout_defaults_reset_ = false;
   }
 
   // Initialize testing system only when tests are enabled
@@ -882,71 +1078,102 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 }
 
 void EditorManager::RegisterEmulatorPanels() {
-  // Register emulator cards early (emulator Initialize might not be called)
-  // Using PanelManager directly
-  panel_manager_.RegisterPanel({.card_id = "emulator.cpu_debugger",
-                                .display_name = "CPU Debugger",
-                                .icon = ICON_MD_BUG_REPORT,
-                                .category = "Emulator",
-                                .priority = 10});
-  panel_manager_.RegisterPanel({.card_id = "emulator.ppu_viewer",
-                                .display_name = "PPU Viewer",
-                                .icon = ICON_MD_VIDEOGAME_ASSET,
-                                .category = "Emulator",
-                                .priority = 20});
-  panel_manager_.RegisterPanel({.card_id = "emulator.memory_viewer",
-                                .display_name = "Memory Viewer",
-                                .icon = ICON_MD_MEMORY,
-                                .category = "Emulator",
-                                .priority = 30});
-  panel_manager_.RegisterPanel({.card_id = "emulator.breakpoints",
-                                .display_name = "Breakpoints",
-                                .icon = ICON_MD_STOP,
-                                .category = "Emulator",
-                                .priority = 40});
-  panel_manager_.RegisterPanel({.card_id = "emulator.performance",
-                                .display_name = "Performance",
-                                .icon = ICON_MD_SPEED,
-                                .category = "Emulator",
-                                .priority = 50});
-  panel_manager_.RegisterPanel({.card_id = "emulator.ai_agent",
-                                .display_name = "AI Agent",
-                                .icon = ICON_MD_SMART_TOY,
-                                .category = "Emulator",
-                                .priority = 60});
-  panel_manager_.RegisterPanel({.card_id = "emulator.save_states",
-                                .display_name = "Save States",
-                                .icon = ICON_MD_SAVE,
-                                .category = "Emulator",
-                                .priority = 70});
-  panel_manager_.RegisterPanel({.card_id = "emulator.keyboard_config",
-                                .display_name = "Keyboard Config",
-                                .icon = ICON_MD_KEYBOARD,
-                                .category = "Emulator",
-                                .priority = 80});
-  panel_manager_.RegisterPanel({.card_id = "emulator.virtual_controller",
-                                .display_name = "Virtual Controller",
-                                .icon = ICON_MD_SPORTS_ESPORTS,
-                                .category = "Emulator",
-                                .priority = 85});
-  panel_manager_.RegisterPanel({.card_id = "emulator.apu_debugger",
-                                .display_name = "APU Debugger",
-                                .icon = ICON_MD_AUDIOTRACK,
-                                .category = "Emulator",
-                                .priority = 90});
-  panel_manager_.RegisterPanel({.card_id = "emulator.audio_mixer",
-                                .display_name = "Audio Mixer",
-                                .icon = ICON_MD_AUDIO_FILE,
-                                .category = "Emulator",
-                                .priority = 100});
+  // Register emulator panels early (emulator Initialize might not be called).
+  const std::vector<PanelDefinition> panel_definitions = {
+      {.id = "emulator.cpu_debugger",
+       .display_name = "CPU Debugger",
+       .icon = ICON_MD_BUG_REPORT,
+       .category = "Emulator",
+       .priority = 10},
+      {.id = "emulator.ppu_viewer",
+       .display_name = "PPU Viewer",
+       .icon = ICON_MD_VIDEOGAME_ASSET,
+       .category = "Emulator",
+       .priority = 20},
+      {.id = "emulator.memory_viewer",
+       .display_name = "Memory Viewer",
+       .icon = ICON_MD_MEMORY,
+       .category = "Emulator",
+       .priority = 30},
+      {.id = "emulator.breakpoints",
+       .display_name = "Breakpoints",
+       .icon = ICON_MD_STOP,
+       .category = "Emulator",
+       .priority = 40},
+      {.id = "emulator.performance",
+       .display_name = "Performance",
+       .icon = ICON_MD_SPEED,
+       .category = "Emulator",
+       .priority = 50},
+      {.id = "emulator.ai_agent",
+       .display_name = "AI Agent",
+       .icon = ICON_MD_SMART_TOY,
+       .category = "Emulator",
+       .priority = 60},
+      {.id = "emulator.save_states",
+       .display_name = "Save States",
+       .icon = ICON_MD_SAVE,
+       .category = "Emulator",
+       .priority = 70},
+      {.id = "emulator.keyboard_config",
+       .display_name = "Keyboard Config",
+       .icon = ICON_MD_KEYBOARD,
+       .category = "Emulator",
+       .priority = 80},
+      {.id = "emulator.virtual_controller",
+       .display_name = "Virtual Controller",
+       .icon = ICON_MD_SPORTS_ESPORTS,
+       .category = "Emulator",
+       .priority = 85},
+      {.id = "emulator.apu_debugger",
+       .display_name = "APU Debugger",
+       .icon = ICON_MD_AUDIOTRACK,
+       .category = "Emulator",
+       .priority = 90},
+      {.id = "emulator.audio_mixer",
+       .display_name = "Audio Mixer",
+       .icon = ICON_MD_AUDIO_FILE,
+       .category = "Emulator",
+       .priority = 100},
+      {.id = "memory.hex_editor",
+       .display_name = "Hex Editor",
+       .icon = ICON_MD_MEMORY,
+       .category = "Memory",
+       .window_title = ICON_MD_MEMORY " Hex Editor",
+       .priority = 10,
+       .legacy_ids = {"Memory Editor"}},
+  };
 
-  // Register memory/hex editor card
-  panel_manager_.RegisterPanel({.card_id = "memory.hex_editor",
-                                .display_name = "Hex Editor",
-                                .window_title = ICON_MD_MEMORY " Hex Editor",
-                                .icon = ICON_MD_MEMORY,
-                                .category = "Memory",
-                                .priority = 10});
+  if (panel_host_) {
+    panel_host_->RegisterPanels(panel_definitions);
+    return;
+  }
+
+  for (const auto& definition : panel_definitions) {
+    PanelDescriptor descriptor;
+    descriptor.card_id = definition.id;
+    descriptor.display_name = definition.display_name;
+    descriptor.window_title = definition.window_title;
+    descriptor.icon = definition.icon;
+    descriptor.category = definition.category;
+    descriptor.shortcut_hint = definition.shortcut_hint;
+    descriptor.priority = definition.priority;
+    descriptor.scope = definition.scope;
+    descriptor.panel_category = definition.panel_category;
+    descriptor.context_scope = definition.context_scope;
+    descriptor.visibility_flag = definition.visibility_flag;
+    descriptor.on_show = definition.on_show;
+    descriptor.on_hide = definition.on_hide;
+
+    for (const auto& legacy_id : definition.legacy_ids) {
+      panel_manager_.RegisterPanelAlias(legacy_id, definition.id);
+    }
+
+    panel_manager_.RegisterPanel(descriptor);
+    if (definition.visible_by_default) {
+      panel_manager_.ShowPanel(definition.id);
+    }
+  }
 }
 
 void EditorManager::InitializeServices() {
@@ -966,6 +1193,35 @@ void EditorManager::InitializeServices() {
   if (!status_.ok()) {
     LOG_WARN("EditorManager", "Failed to load user settings: %s",
              status_.ToString().c_str());
+  }
+
+  auto& prefs = user_settings_.prefs();
+  prefs.switch_motion_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
+  gui::GetAnimator().SetMotionPreferences(
+      prefs.reduced_motion,
+      gui::Animator::ClampMotionProfile(prefs.switch_motion_profile));
+
+  ApplyLayoutDefaultsMigrationIfNeeded();
+
+  if (right_panel_manager_) {
+    if (pending_layout_defaults_reset_) {
+      right_panel_manager_->ResetPanelWidths();
+      user_settings_.prefs().right_panel_widths =
+          right_panel_manager_->SerializePanelWidths();
+    } else {
+      right_panel_manager_->RestorePanelWidths(
+          user_settings_.prefs().right_panel_widths);
+    }
+    right_panel_manager_->SetPanelWidthChangedCallback(
+        [this](RightPanelManager::PanelType, float) {
+          if (!right_panel_manager_) {
+            return;
+          }
+          user_settings_.prefs().right_panel_widths =
+              right_panel_manager_->SerializePanelWidths();
+          settings_dirty_ = true;
+          settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+        });
   }
   agent_ui_.ApplyUserSettingsDefaults();
   // Apply sprite naming preference globally.
@@ -1108,6 +1364,17 @@ void EditorManager::SetupSidebarCallbacks() {
       [this](bool visible, bool expanded) {
         user_settings_.prefs().sidebar_visible = visible;
         user_settings_.prefs().sidebar_panel_expanded = expanded;
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      });
+  panel_manager_.SetSidePanelWidthChangedCallback([this](float width) {
+    user_settings_.prefs().sidebar_panel_width = width;
+    settings_dirty_ = true;
+    settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+  });
+  panel_manager_.SetPanelBrowserCategoryWidthChangedCallback(
+      [this](float width) {
+        user_settings_.prefs().panel_browser_category_width = width;
         settings_dirty_ = true;
         settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
       });
@@ -1343,6 +1610,22 @@ void EditorManager::ApplyStartupVisibility(const AppConfig& config) {
   dashboard_mode_override_ = config.dashboard_mode;
   sidebar_mode_override_ = config.sidebar_mode;
   ApplyStartupVisibilityOverrides();
+}
+
+void EditorManager::ApplyLayoutDefaultsMigrationIfNeeded() {
+  constexpr int kTargetRevision =
+      UserSettings::kLatestPanelLayoutDefaultsRevision;
+  if (!user_settings_.ApplyPanelLayoutDefaultsRevision(kTargetRevision)) {
+    return;
+  }
+
+  pending_layout_defaults_reset_ = true;
+  settings_dirty_ = true;
+  settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+
+  LOG_INFO("EditorManager",
+           "Applied panel layout defaults migration revision %d",
+           kTargetRevision);
 }
 
 void EditorManager::SetAssetLoadMode(AssetLoadMode mode) {
@@ -1623,6 +1906,15 @@ absl::Status EditorManager::Update() {
   return status_;
 }
 
+void EditorManager::HandleHostVisibilityChanged(bool visible) {
+  // Space/focus transitions can leave mid-animation surfaces ghosted.
+  // Reset transient animation state to a stable endpoint.
+  gui::GetAnimator().ClearAllAnimations();
+  if (right_panel_manager_) {
+    right_panel_manager_->OnHostVisibilityChanged(visible);
+  }
+}
+
 void EditorManager::ProcessInput() {
   // Update timing manager for accurate delta time across the application
   TimingManager::Get().Update();
@@ -1869,18 +2161,15 @@ void EditorManager::DrawMainMenuBar() {
   if (ImGui::BeginMenuBar()) {
     // Consistent button styling for sidebar toggle
     {
+      const bool sidebar_visible = panel_manager_.IsSidebarVisible();
       gui::StyleColorGuard sidebar_btn_guard(
           {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
            {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
            {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-           {ImGuiCol_Text, panel_manager_.IsSidebarVisible()
-                               ? gui::GetPrimaryVec4()
-                               : gui::GetTextSecondaryVec4()}});
+           {ImGuiCol_Text, sidebar_visible ? gui::GetPrimaryVec4()
+                                           : gui::GetTextSecondaryVec4()}});
 
-      const char* icon =
-          (ui_coordinator_ && ui_coordinator_->IsPanelSidebarVisible())
-              ? ICON_MD_MENU_OPEN
-              : ICON_MD_MENU;
+      const char* icon = sidebar_visible ? ICON_MD_MENU_OPEN : ICON_MD_MENU;
       if (ImGui::SmallButton(icon)) {
         panel_manager_.ToggleSidebarVisibility();
       }
@@ -2676,6 +2965,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
       absl::EndsWith(filename, ".yazeproj")) {
     // Open the project file
     RETURN_IF_ERROR(current_project_.Open(filename));
+    SyncLayoutScopeFromCurrentProject();
 
     // Initialize VersionManager for the project
     version_manager_ =
@@ -2767,10 +3057,7 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
   auto status = project_manager_.CreateNewProject(template_name);
   if (status.ok()) {
     current_project_ = project_manager_.GetCurrentProject();
-    if (layout_manager_) {
-      layout_manager_->SetProjectLayoutKey(
-          current_project_.MakeStorageKey("layouts"));
-    }
+    SyncLayoutScopeFromCurrentProject();
 
     // Trigger ROM selection dialog - projects need a ROM to be useful
     // LoadRom() opens file dialog and shows ROM load options when ROM is loaded
@@ -2807,11 +3094,7 @@ absl::Status EditorManager::OpenProject() {
     }
 
     current_project_ = std::move(new_project);
-
-    if (layout_manager_) {
-      layout_manager_->SetProjectLayoutKey(
-          current_project_.MakeStorageKey("layouts"));
-    }
+    SyncLayoutScopeFromCurrentProject();
 
     // Initialize VersionManager for the project
     version_manager_ =
@@ -3135,6 +3418,8 @@ absl::Status EditorManager::SaveProjectAs() {
 
   auto save_status = current_project_.Save();
   if (save_status.ok()) {
+    SyncLayoutScopeFromCurrentProject();
+
     // Add to recent files
     auto& manager = project::RecentFilesManager::GetInstance();
     manager.AddFile(file_path);
@@ -3158,6 +3443,7 @@ absl::Status EditorManager::ImportProject(const std::string& project_path) {
   RETURN_IF_ERROR(project_manager_.ImportProject(project_path));
   // Sync local project reference
   current_project_ = project_manager_.GetCurrentProject();
+  SyncLayoutScopeFromCurrentProject();
   return absl::OkStatus();
 }
 

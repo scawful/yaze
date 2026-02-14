@@ -28,6 +28,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/dialogue_commands.cc
   cli/handlers/game/dungeon_collision_commands.cc
   cli/handlers/game/dungeon_commands.cc
+  cli/handlers/game/dungeon_edit_commands.cc
   cli/handlers/game/dungeon_graph_commands.cc
   cli/handlers/game/dungeon_group_commands.cc
   cli/handlers/game/dungeon_map_commands.cc
@@ -60,6 +61,9 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/tools/sprite_doctor_commands.cc
   cli/handlers/tools/test_cli_commands.cc
   cli/handlers/tools/test_helpers_commands.cc
+
+  # Message data utilities (needed by message_commands.cc, message_doctor)
+  app/editor/message/message_data.cc
 
   cli/service/gui/canvas_automation_client.cc
   cli/service/gui/gui_automation_client.cc

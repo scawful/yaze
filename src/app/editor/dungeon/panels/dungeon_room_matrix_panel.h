@@ -3,8 +3,10 @@
 
 #include <array>
 #include <cctype>
+#include <cstdint>
 #include <cmath>
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
 
@@ -14,6 +16,7 @@
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
@@ -236,12 +239,16 @@ class DungeonRoomMatrixPanel : public EditorPanel {
                                   (*rooms_)[room_id].blockset);
               
               // Show thumbnail preview of the room
-              auto& bg1_bitmap = (*rooms_)[room_id].bg1_buffer().bitmap();
-              if (bg1_bitmap.is_active() && bg1_bitmap.texture() != 0) {
+              auto& room = (*rooms_)[room_id];
+              zelda3::RoomLayerManager layer_mgr;
+              layer_mgr.ApplyLayerMerging(room.layer_merging());
+              layer_mgr.ApplyRoomEffect(room.effect());
+              auto& preview_bitmap = room.GetCompositeBitmap(layer_mgr);
+              if (preview_bitmap.is_active() && preview_bitmap.texture() != 0) {
                 ImGui::Separator();
                 // Render at thumbnail size (80x80 from 512x512)
                 constexpr float kThumbnailSize = 80.0f;
-                ImGui::Image((ImTextureID)(intptr_t)bg1_bitmap.texture(),
+                ImGui::Image((ImTextureID)(intptr_t)preview_bitmap.texture(),
                              ImVec2(kThumbnailSize, kThumbnailSize));
               }
             }
@@ -251,7 +258,9 @@ class DungeonRoomMatrixPanel : public EditorPanel {
           }
         } else {
           // Empty cell
-          draw_list->AddRectFilled(cell_min, cell_max, IM_COL32(40, 40, 40, 255));
+          draw_list->AddRectFilled(
+              cell_min, cell_max,
+              ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker));
         }
 
         room_index++;
@@ -267,43 +276,67 @@ class DungeonRoomMatrixPanel : public EditorPanel {
 
  private:
   /**
-   * @brief Get color for a room based on palette or algorithmic fallback
-   *
-   * If room data is available and loaded, generates a color based on the
-   * room's palette ID for semantic grouping. Otherwise falls back to
-   * algorithmic coloring.
+   * @brief Get color for a room from dominant preview color, with fallback.
    */
   ImU32 GetRoomColor(int room_id, const AgentUITheme& theme) {
-    // If rooms data is available and this room is loaded, use palette-based color
-    if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-      int palette = (*rooms_)[room_id].palette;
-      // Map palette to distinct hues (there are ~24 dungeon palettes)
-      // Group similar palettes together for visual coherence
-      float hue = (palette * 15.0f);  // Spread across 360 degrees
-      float saturation = 0.4f + (palette % 3) * 0.1f;  // 40-60%
-      float value = 0.5f + (palette % 5) * 0.08f;       // 50-82%
-
-      // HSV to RGB conversion
-      float h = fmodf(hue, 360.0f) / 60.0f;
-      int i = static_cast<int>(h);
-      float f = h - i;
-      float p = value * (1 - saturation);
-      float q = value * (1 - saturation * f);
-      float t = value * (1 - saturation * (1 - f));
-
-      float r, g, b;
-      switch (i % 6) {
-        case 0: r = value; g = t; b = p; break;
-        case 1: r = q; g = value; b = p; break;
-        case 2: r = p; g = value; b = t; break;
-        case 3: r = p; g = q; b = value; break;
-        case 4: r = t; g = p; b = value; break;
-        case 5: r = value; g = p; b = q; break;
-        default: r = g = b = 0.3f; break;
+    auto sample_dominant_color = [](gfx::Bitmap& bitmap) -> std::optional<ImU32> {
+      if (!bitmap.is_active() || bitmap.width() <= 0 || bitmap.height() <= 0 ||
+          bitmap.data() == nullptr || bitmap.surface() == nullptr ||
+          bitmap.surface()->format == nullptr ||
+          bitmap.surface()->format->palette == nullptr) {
+        return std::nullopt;
       }
-      return IM_COL32(static_cast<int>(r * 255),
-                      static_cast<int>(g * 255),
-                      static_cast<int>(b * 255), 255);
+
+      constexpr int kSampleStep = 16;
+      std::array<uint32_t, 256> histogram{};
+      SDL_Palette* palette = bitmap.surface()->format->palette;
+      const uint8_t* pixels = bitmap.data();
+      const int width = bitmap.width();
+      const int height = bitmap.height();
+
+      for (int y = 0; y < height; y += kSampleStep) {
+        for (int x = 0; x < width; x += kSampleStep) {
+          const uint8_t idx = pixels[(y * width) + x];
+          if (idx == 255) {
+            continue;
+          }
+          histogram[idx]++;
+        }
+      }
+
+      uint32_t best_count = 0;
+      uint8_t best_index = 0;
+      for (int i = 0; i < palette->ncolors && i < 256; ++i) {
+        if (histogram[static_cast<size_t>(i)] > best_count) {
+          best_count = histogram[static_cast<size_t>(i)];
+          best_index = static_cast<uint8_t>(i);
+        }
+      }
+
+      if (best_count == 0) {
+        return std::nullopt;
+      }
+      const SDL_Color& c = palette->colors[best_index];
+      return IM_COL32(c.r, c.g, c.b, 255);
+    };
+
+    // If room data is available and loaded, sample the actual room bitmap and
+    // choose its most frequent indexed color.
+    if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
+      auto& room = (*rooms_)[room_id];
+      zelda3::RoomLayerManager layer_mgr;
+      layer_mgr.ApplyLayerMerging(room.layer_merging());
+      layer_mgr.ApplyRoomEffect(room.effect());
+      auto& composite = room.GetCompositeBitmap(layer_mgr);
+      if (auto composite_color = sample_dominant_color(composite);
+          composite_color.has_value()) {
+        return composite_color.value();
+      }
+
+      if (auto bg1_color = sample_dominant_color(room.bg1_buffer().bitmap());
+          bg1_color.has_value()) {
+        return bg1_color.value();
+      }
     }
 
     // Fallback: Algorithmic coloring based on room ID

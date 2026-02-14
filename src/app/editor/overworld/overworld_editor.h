@@ -252,10 +252,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void ToggleBrushTool();
   void ActivateFillTool();
   void CycleTileSelection(int delta);
+  bool PickTile16FromHoveredCanvas();
 
   /// @brief Handle keyboard shortcuts for the Overworld Editor
   /// Shortcuts: 1-2 (modes), 3-8 (entities), F11 (fullscreen),
-  /// Ctrl+L (map lock), Ctrl+T (Tile16 editor), Ctrl+Z/Y (undo/redo)
+  /// I/Right-click (eyedropper in paint modes), Ctrl+L (map lock),
+  /// Ctrl+T (Tile16 editor), Ctrl+Z/Y (undo/redo)
   void HandleKeyboardShortcuts();
 
   // ===========================================================================

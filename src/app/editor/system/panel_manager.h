@@ -87,6 +87,21 @@ struct PanelDescriptor {
     // Generate from icon + display_name if window_title not explicitly set
     return icon + " " + display_name;
   }
+
+  /**
+   * @brief Build the exact ImGui window name used by PanelWindow::Begin
+   *
+   * Uses the display label plus a stable ID suffix to keep DockBuilder and
+   * runtime window identity aligned.
+   */
+  std::string GetImGuiWindowName() const {
+    const std::string label =
+        icon.empty() ? display_name : (icon + " " + display_name);
+    if (!card_id.empty()) {
+      return label + "##" + card_id;
+    }
+    return label;
+  }
 };
 
 /**
@@ -135,6 +150,21 @@ class PanelManager {
   // ============================================================================
 
   void RegisterPanel(size_t session_id, const PanelDescriptor& base_info);
+
+  /**
+   * @brief Register a legacy panel ID alias that resolves to a canonical ID.
+   *
+   * Use this when a panel has been renamed but persisted layout/user settings
+   * may still reference the old ID.
+   */
+  void RegisterPanelAlias(const std::string& legacy_base_id,
+                          const std::string& canonical_base_id);
+
+  /**
+   * @brief Resolve a panel ID through the alias table.
+   * @return Canonical panel ID if alias exists, otherwise input ID.
+   */
+  std::string ResolvePanelAlias(const std::string& panel_id) const;
 
   void RegisterPanel(size_t session_id, const std::string& card_id,
                     const std::string& display_name, const std::string& icon,
@@ -307,36 +337,87 @@ class PanelManager {
    */
   void RestorePinnedState(const std::unordered_map<std::string, bool>& state);
 
+  /**
+   * @brief Resolve the exact ImGui window name for a panel by base ID
+   * @return Label + stable ID (e.g., "📋 Properties##dungeon.properties")
+   */
+  std::string GetPanelWindowName(size_t session_id,
+                                 const std::string& base_card_id) const;
+
+  /**
+   * @brief Resolve the exact ImGui window name for a descriptor
+   */
+  std::string GetPanelWindowName(const PanelDescriptor& descriptor) const;
+
   static constexpr float GetSidebarWidth() { return 48.0f; }
-  static constexpr float GetSidePanelWidth() { return 250.0f; }
+  static constexpr float GetSidePanelWidth() { return 300.0f; }
+  struct SidePanelWidthBounds {
+    float min_width;
+    float max_width;
+  };
+  static SidePanelWidthBounds GetSidePanelWidthBounds(float viewport_width);
   static float GetSidePanelWidthForViewport(float viewport_width) {
     if (viewport_width <= 0.0f) {
       return GetSidePanelWidth();
     }
 
     // Keep side panel useful on compact/touch widths while preserving
-    // desktop density on large displays.
+    // desktop defaults on large displays.
     if (viewport_width < 900.0f) {
-      const float preferred = viewport_width * 0.58f;
-      const float min_width = std::max(200.0f, viewport_width * 0.46f);
-      const float max_width = std::max(min_width, viewport_width * 0.72f);
+      const float preferred = viewport_width * 0.50f;
+      const float min_width = std::max(220.0f, viewport_width * 0.40f);
+      const float max_width =
+          std::max(min_width, std::min(380.0f, viewport_width * 0.58f));
       return std::clamp(preferred, min_width, max_width);
     }
 
     if (viewport_width < 1200.0f) {
-      const float preferred = viewport_width * 0.32f;
-      const float min_width = 280.0f;
-      const float max_width = viewport_width * 0.40f;
+      const float preferred = viewport_width * 0.34f;
+      const float min_width = 300.0f;
+      const float max_width = std::min(420.0f, viewport_width * 0.42f);
+      return std::clamp(preferred, min_width, max_width);
+    }
+
+    // iPad Pro landscape sits in this range; avoid falling back to a narrow
+    // desktop sidebar width that feels cramped for touch navigation.
+    if (viewport_width < 1400.0f) {
+      const float preferred = viewport_width * 0.25f;
+      const float min_width = 300.0f;
+      const float max_width = 380.0f;
       return std::clamp(preferred, min_width, max_width);
     }
 
     float width = GetSidePanelWidth();
-    const float max_width = viewport_width * 0.28f;
+    const float max_width = viewport_width * 0.30f;
     if (max_width > 0.0f && width > max_width) {
       width = max_width;
     }
     return width;
   }
+  float GetActiveSidePanelWidth(float viewport_width) const;
+  void SetActiveSidePanelWidth(float width, float viewport_width = 0.0f,
+                               bool notify = true);
+  void ResetSidePanelWidth(bool notify = true);
+  float GetStoredSidePanelWidth() const { return side_panel_width_; }
+  void SetStoredSidePanelWidth(float width, bool notify = false) {
+    SetActiveSidePanelWidth(width, 0.0f, notify);
+  }
+  void SetSidePanelWidthChangedCallback(std::function<void(float)> cb) {
+    on_side_panel_width_changed_ = std::move(cb);
+  }
+
+  float GetPanelBrowserCategoryWidth() const {
+    return panel_browser_category_width_;
+  }
+  void SetPanelBrowserCategoryWidth(float width, bool notify = true);
+  void SetPanelBrowserCategoryWidthChangedCallback(
+      std::function<void(float)> cb) {
+    on_panel_browser_category_width_changed_ = std::move(cb);
+  }
+  static constexpr float GetDefaultPanelBrowserCategoryWidth() {
+    return 260.0f;
+  }
+
   static constexpr float GetCollapsedSidebarWidth() { return 16.0f; }
 
   static std::string GetCategoryIcon(const std::string& category);
@@ -461,6 +542,16 @@ class PanelManager {
           UIActionRequestEvent::Action::kShowHelp));
     }
   }
+  void TriggerShowAgentChatSidebar() {
+    if (event_bus_) {
+      event_bus_->Publish(UIActionRequestEvent::ShowAgentChatSidebar());
+    }
+  }
+  void TriggerShowAgentProposalsSidebar() {
+    if (event_bus_) {
+      event_bus_->Publish(UIActionRequestEvent::ShowAgentProposalsSidebar());
+    }
+  }
   void TriggerResetLayout() {
     if (event_bus_) {
       event_bus_->Publish(UIActionRequestEvent::Create(
@@ -525,12 +616,12 @@ class PanelManager {
   std::vector<WorkspacePreset> GetPresets() const;
 
   // ============================================================================
-  // Panel Validation (for catching window title mismatches)
+  // Panel Validation (for catching ImGui window-name mismatches)
   // ============================================================================
 
   struct PanelValidationResult {
     std::string card_id;
-    std::string expected_title;  // From PanelDescriptor::GetWindowTitle()
+    std::string expected_title;  // Exact ImGui window name for docking/focus
     bool found_in_imgui;         // Whether ImGui found a window with this title
     std::string message;         // Human-readable status
   };
@@ -687,6 +778,11 @@ class PanelManager {
    */
   void MarkPanelUsed(const std::string& panel_id);
 
+  EditorPanel* FindPanelInstance(const std::string& prefixed_panel_id,
+                                 const std::string& base_panel_id);
+  const EditorPanel* FindPanelInstance(const std::string& prefixed_panel_id,
+                                       const std::string& base_panel_id) const;
+
  private:
   struct PanelContextScopeHash {
     size_t operator()(PanelContextScope scope) const noexcept {
@@ -697,6 +793,7 @@ class PanelManager {
   void ApplyContextPolicy(size_t session_id, PanelContextScope scope,
                           const std::string& old_key,
                           const std::string& new_key);
+  std::string ResolveBasePanelId(const std::string& panel_id) const;
   std::string GetBaseIdForPrefixedId(size_t session_id,
                                     const std::string& prefixed_id) const;
 
@@ -742,6 +839,10 @@ class PanelManager {
   std::unordered_map<size_t, std::unordered_map<std::string, std::string>>
       session_reverse_card_mapping_;
 
+  // Backward compatibility aliases for renamed panel IDs.
+  // Maps legacy base_id -> canonical base_id.
+  std::unordered_map<std::string, std::string> panel_id_aliases_;
+
   // Context keys per session (used by SetContextKey/GetContextKey).
   std::unordered_map<size_t,
                      std::unordered_map<PanelContextScope, std::string,
@@ -759,6 +860,9 @@ class PanelManager {
   // Sidebar state
   bool sidebar_visible_ = false;    // Controls Activity Bar visibility (0px vs 48px)
   bool panel_expanded_ = false;     // Controls Side Panel visibility (0px vs 250px) - starts collapsed
+  float side_panel_width_ = 0.0f;   // 0 = use responsive default
+  float panel_browser_category_width_ =
+      GetDefaultPanelBrowserCategoryWidth();
 
   // Keyboard navigation state (click-to-focus modal)
   int focused_card_index_ = -1;    // Currently focused card index (-1 = none)
@@ -772,6 +876,8 @@ class PanelManager {
 
   // State change callbacks
   std::function<void(bool visible, bool expanded)> on_sidebar_state_changed_;
+  std::function<void(float width)> on_side_panel_width_changed_;
+  std::function<void(float width)> on_panel_browser_category_width_changed_;
   std::function<void(const std::string&)> on_category_changed_;
   std::function<void(const std::string&)> on_card_clicked_;
   std::function<void(const std::string&)> on_category_selected_;  // Activity Bar icon clicked

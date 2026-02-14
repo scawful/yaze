@@ -14,6 +14,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/shortcut_manager.h"
+#include "app/gui/animation/animator.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
@@ -963,6 +964,39 @@ void SettingsPanel::DrawAppearanceSettings() {
       theme.ApplyDensityPreset(new_preset);
       theme_manager.ApplyTheme(theme);
     }
+  }
+
+  ImGui::Spacing();
+  ImGui::SeparatorText("Editor/Workspace Motion");
+
+  auto& prefs = user_settings_->prefs();
+  bool reduced_motion = prefs.reduced_motion;
+  if (ImGui::Checkbox("Reduced Motion", &reduced_motion)) {
+    prefs.reduced_motion = reduced_motion;
+    gui::GetAnimator().SetMotionPreferences(
+        prefs.reduced_motion,
+        gui::Animator::ClampMotionProfile(prefs.switch_motion_profile));
+    user_settings_->Save();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Disable panel/editor transition animations for a calmer editing experience.");
+  }
+
+  int switch_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
+  const char* switch_profile_labels[] = {"Snappy", "Standard", "Relaxed"};
+  if (ImGui::Combo("Switch Motion Profile", &switch_profile,
+                   switch_profile_labels,
+                   IM_ARRAYSIZE(switch_profile_labels))) {
+    prefs.switch_motion_profile = switch_profile;
+    gui::GetAnimator().SetMotionPreferences(
+        prefs.reduced_motion,
+        gui::Animator::ClampMotionProfile(prefs.switch_motion_profile));
+    user_settings_->Save();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Controls editor/workspace switch timing and easing for panel fades and sidebar slides.");
   }
 
   ImGui::Spacing();

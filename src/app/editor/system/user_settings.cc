@@ -78,6 +78,10 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->restore_last_session = (val == "1");
     } else if (key == "prefer_hmagic_sprite_names") {
       prefs->prefer_hmagic_sprite_names = (val == "1");
+    } else if (key == "reduced_motion") {
+      prefs->reduced_motion = (val == "1");
+    } else if (key == "switch_motion_profile") {
+      prefs->switch_motion_profile = std::stoi(val);
     }
     // Editor Behavior
     else if (key == "backup_before_save") {
@@ -150,6 +154,12 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->sidebar_visible = (val == "1");
     } else if (key == "sidebar_panel_expanded") {
       prefs->sidebar_panel_expanded = (val == "1");
+    } else if (key == "sidebar_panel_width") {
+      prefs->sidebar_panel_width = std::stof(val);
+    } else if (key == "panel_browser_category_width") {
+      prefs->panel_browser_category_width = std::stof(val);
+    } else if (key == "panel_layout_defaults_revision") {
+      prefs->panel_layout_defaults_revision = std::stoi(val);
     } else if (key == "sidebar_active_category") {
       prefs->sidebar_active_category = val;
     }
@@ -171,6 +181,11 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     else if (key.substr(0, 13) == "pinned_panel.") {
       std::string panel_id = key.substr(13);
       prefs->pinned_panels[panel_id] = (val == "1");
+    }
+    // Right panel widths (format: right_panel_width.panel_key=420.0)
+    else if (key.substr(0, 18) == "right_panel_width.") {
+      std::string panel_key = key.substr(18);
+      prefs->right_panel_widths[panel_key] = std::stof(val);
     }
     // Saved Layouts (format: saved_layout.LayoutName.panel_id=1)
     else if (key.substr(0, 13) == "saved_layout.") {
@@ -209,6 +224,8 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0) << "\n";
   ss << "prefer_hmagic_sprite_names="
      << (prefs.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
+  ss << "reduced_motion=" << (prefs.reduced_motion ? 1 : 0) << "\n";
+  ss << "switch_motion_profile=" << prefs.switch_motion_profile << "\n";
 
   // Editor Behavior
   ss << "backup_before_save=" << (prefs.backup_before_save ? 1 : 0) << "\n";
@@ -251,6 +268,11 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "sidebar_visible=" << (prefs.sidebar_visible ? 1 : 0) << "\n";
   ss << "sidebar_panel_expanded=" << (prefs.sidebar_panel_expanded ? 1 : 0)
      << "\n";
+  ss << "sidebar_panel_width=" << prefs.sidebar_panel_width << "\n";
+  ss << "panel_browser_category_width="
+     << prefs.panel_browser_category_width << "\n";
+  ss << "panel_layout_defaults_revision="
+     << prefs.panel_layout_defaults_revision << "\n";
   ss << "sidebar_active_category=" << prefs.sidebar_active_category << "\n";
 
   // Status Bar
@@ -267,6 +289,10 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   // Pinned Panels
   for (const auto& [panel_id, pinned] : prefs.pinned_panels) {
     ss << "pinned_panel." << panel_id << "=" << (pinned ? 1 : 0) << "\n";
+  }
+
+  for (const auto& [panel_key, width] : prefs.right_panel_widths) {
+    ss << "right_panel_width." << panel_key << "=" << width << "\n";
   }
 
   // Saved Layouts
@@ -441,6 +467,19 @@ void LoadBoolMap(const json& src,
   }
 }
 
+void LoadFloatMap(const json& src,
+                  std::unordered_map<std::string, float>* target) {
+  if (!target || !src.is_object()) {
+    return;
+  }
+  target->clear();
+  for (const auto& [key, value] : src.items()) {
+    if (value.is_number()) {
+      (*target)[key] = value.get<float>();
+    }
+  }
+}
+
 void LoadNestedBoolMap(
     const json& src,
     std::unordered_map<std::string, std::unordered_map<std::string, bool>>*
@@ -472,6 +511,14 @@ json ToStringMap(const std::unordered_map<std::string, std::string>& map) {
 }
 
 json ToBoolMap(const std::unordered_map<std::string, bool>& map) {
+  json obj = json::object();
+  for (const auto& [key, value] : map) {
+    obj[key] = value;
+  }
+  return obj;
+}
+
+json ToFloatMap(const std::unordered_map<std::string, float>& map) {
   json obj = json::object();
   for (const auto& [key, value] : map) {
     obj[key] = value;
@@ -529,6 +576,14 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         g.value("restore_last_session", prefs->restore_last_session);
     prefs->prefer_hmagic_sprite_names = g.value(
         "prefer_hmagic_sprite_names", prefs->prefer_hmagic_sprite_names);
+  }
+
+  if (root.contains("appearance")) {
+    const auto& appearance = root["appearance"];
+    prefs->reduced_motion =
+        appearance.value("reduced_motion", prefs->reduced_motion);
+    prefs->switch_motion_profile = appearance.value(
+        "switch_motion_profile", prefs->switch_motion_profile);
   }
 
   if (root.contains("editor")) {
@@ -658,6 +713,10 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     prefs->sidebar_visible = sidebar.value("visible", prefs->sidebar_visible);
     prefs->sidebar_panel_expanded =
         sidebar.value("panel_expanded", prefs->sidebar_panel_expanded);
+    prefs->sidebar_panel_width =
+        sidebar.value("panel_width", prefs->sidebar_panel_width);
+    prefs->panel_browser_category_width = sidebar.value(
+        "panel_browser_category_width", prefs->panel_browser_category_width);
     prefs->sidebar_active_category =
         sidebar.value("active_category", prefs->sidebar_active_category);
   }
@@ -670,12 +729,17 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
 
   if (root.contains("layouts")) {
     const auto& layouts = root["layouts"];
+    prefs->panel_layout_defaults_revision =
+        layouts.value("defaults_revision", prefs->panel_layout_defaults_revision);
     if (layouts.contains("panel_visibility")) {
       LoadNestedBoolMap(layouts["panel_visibility"],
                         &prefs->panel_visibility_state);
     }
     if (layouts.contains("pinned_panels")) {
       LoadBoolMap(layouts["pinned_panels"], &prefs->pinned_panels);
+    }
+    if (layouts.contains("right_panel_widths")) {
+      LoadFloatMap(layouts["right_panel_widths"], &prefs->right_panel_widths);
     }
     if (layouts.contains("saved_layouts")) {
       LoadNestedBoolMap(layouts["saved_layouts"], &prefs->saved_layouts);
@@ -728,6 +792,11 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"show_welcome_on_startup", prefs.show_welcome_on_startup},
       {"restore_last_session", prefs.restore_last_session},
       {"prefer_hmagic_sprite_names", prefs.prefer_hmagic_sprite_names},
+  };
+
+  root["appearance"] = {
+      {"reduced_motion", prefs.reduced_motion},
+      {"switch_motion_profile", prefs.switch_motion_profile},
   };
 
   root["editor"] = {
@@ -811,6 +880,8 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
   root["sidebar"] = {
       {"visible", prefs.sidebar_visible},
       {"panel_expanded", prefs.sidebar_panel_expanded},
+      {"panel_width", prefs.sidebar_panel_width},
+      {"panel_browser_category_width", prefs.panel_browser_category_width},
       {"active_category", prefs.sidebar_active_category},
   };
 
@@ -819,8 +890,10 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
   };
 
   root["layouts"] = {
+      {"defaults_revision", prefs.panel_layout_defaults_revision},
       {"panel_visibility", ToNestedBoolMap(prefs.panel_visibility_state)},
       {"pinned_panels", ToBoolMap(prefs.pinned_panels)},
+      {"right_panel_widths", ToFloatMap(prefs.right_panel_widths)},
       {"saved_layouts", ToNestedBoolMap(prefs.saved_layouts)},
   };
 
@@ -913,6 +986,9 @@ absl::Status UserSettings::Load() {
     EnsureDefaultModelPaths(&prefs_);
 #endif
 
+    prefs_.switch_motion_profile =
+        std::clamp(prefs_.switch_motion_profile, 0, 2);
+
     if (ImGui::GetCurrentContext() != nullptr) {
       ImGui::GetIO().FontGlobalScale = prefs_.font_global_scale;
     } else {
@@ -924,6 +1000,27 @@ absl::Status UserSettings::Load() {
         absl::StrFormat("Failed to load user settings: %s", e.what()));
   }
   return absl::OkStatus();
+}
+
+bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
+  if (target_revision <= 0 ||
+      prefs_.panel_layout_defaults_revision >= target_revision) {
+    return false;
+  }
+
+  prefs_.sidebar_visible = true;
+  prefs_.sidebar_panel_expanded = true;
+  prefs_.sidebar_panel_width = 0.0f;
+  prefs_.panel_browser_category_width = 260.0f;
+  prefs_.sidebar_active_category.clear();
+
+  prefs_.panel_visibility_state.clear();
+  prefs_.pinned_panels.clear();
+  prefs_.right_panel_widths.clear();
+  prefs_.saved_layouts.clear();
+
+  prefs_.panel_layout_defaults_revision = target_revision;
+  return true;
 }
 
 absl::Status UserSettings::Save() {

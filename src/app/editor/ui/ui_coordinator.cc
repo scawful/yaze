@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 
 #ifdef __EMSCRIPTEN__
@@ -263,7 +264,6 @@ void UICoordinator::DrawAllUI() {
   // Draw popups and toasts
   DrawAllPopups();
   toast_manager_.Draw();
-  DrawMobileNavigation();
 }
 
 bool UICoordinator::IsCompactLayout() const {
@@ -273,153 +273,17 @@ bool UICoordinator::IsCompactLayout() const {
   }
   const float width = viewport->WorkSize.x;
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
-  return true;
+  // Use hysteresis to avoid layout thrash while iPad windows are being
+  // interactively resized around the compact breakpoint.
+  static bool compact_mode = false;
+  constexpr float kEnterCompactWidth = 900.0f;
+  constexpr float kExitCompactWidth = 940.0f;
+  compact_mode =
+      compact_mode ? (width < kExitCompactWidth) : (width < kEnterCompactWidth);
+  return compact_mode;
 #else
   return width < 900.0f;
 #endif
-}
-
-void UICoordinator::DrawMobileNavigation() {
-  if (!IsCompactLayout()) {
-    return;
-  }
-
-  const ImGuiViewport* viewport = ImGui::GetMainViewport();
-  if (!viewport) {
-    return;
-  }
-
-  const ImGuiStyle& style = ImGui::GetStyle();
-  ImVec2 safe = style.DisplaySafeAreaPadding;
-  const auto safe_area = gui::LayoutHelpers::GetSafeAreaInsets();
-  if (safe_area.left != 0.0f || safe_area.right != 0.0f ||
-      safe_area.top != 0.0f || safe_area.bottom != 0.0f) {
-    safe = ImVec2(safe_area.right, safe_area.bottom);
-  }
-  const float button_size = std::max(44.0f, ImGui::GetFontSize() * 2.1f);
-  const float edge_padding = std::max(10.0f, style.WindowPadding.x);
-  const float container_size = button_size + 8.0f;
-  const ImVec2 pos(viewport->WorkPos.x + viewport->WorkSize.x - safe.x -
-                       edge_padding - container_size,
-                   viewport->WorkPos.y + viewport->WorkSize.y - safe.y -
-                       edge_padding - container_size);
-
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  const ImVec4 button_color = gui::ConvertColorToImVec4(theme.button);
-  const ImVec4 button_hovered = gui::ConvertColorToImVec4(theme.button_hovered);
-  const ImVec4 button_active = gui::ConvertColorToImVec4(theme.button_active);
-  const ImVec4 button_text = gui::ConvertColorToImVec4(theme.accent);
-
-  ImGui::SetNextWindowPos(pos, ImGuiCond_Always);
-  ImGui::SetNextWindowSize(ImVec2(container_size, container_size),
-                           ImGuiCond_Always);
-
-  ImGuiWindowFlags flags =
-      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
-      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
-      ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoFocusOnAppearing |
-      ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoSavedSettings;
-
-  bool open_mobile_nav_popup = false;
-  {
-    gui::StyledWindow nav_win(
-        "##MobileNavButton",
-        {.bg = gui::GetSurfaceContainerHighVec4(),
-         .border = gui::GetSurfaceContainerHighestVec4(),
-         .padding = {0.0f, 0.0f},
-         .border_size = 1.0f,
-         .rounding = container_size * 0.25f},
-        nullptr, flags);
-    if (nav_win) {
-      ImGui::SetCursorPos(ImVec2((container_size - button_size) * 0.5f,
-                                 (container_size - button_size) * 0.5f));
-      gui::StyleColorGuard btn_guard(
-          {{ImGuiCol_Button, button_color},
-           {ImGuiCol_ButtonHovered, button_hovered},
-           {ImGuiCol_ButtonActive, button_active},
-           {ImGuiCol_Text, button_text}});
-
-      if (ImGui::Button(ICON_MD_APPS, ImVec2(button_size, button_size))) {
-        open_mobile_nav_popup = true;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Navigation");
-      }
-    }
-  }
-  if (open_mobile_nav_popup) {
-    // Open the popup from the outer ID scope so BeginPopup resolves correctly.
-    ImGui::OpenPopup("MobileNavPopup");
-  }
-
-  gui::StyleColorGuard popup_color(ImGuiCol_PopupBg,
-                                   gui::ConvertColorToImVec4(theme.surface));
-  gui::StyleVarGuard popup_vars(
-      {{ImGuiStyleVar_WindowPadding, ImVec2(12.0f, 10.0f)},
-       {ImGuiStyleVar_ItemSpacing, ImVec2(8.0f, 6.0f)}});
-
-  if (ImGui::BeginPopup("MobileNavPopup")) {
-    bool has_rom = false;
-    if (editor_manager_) {
-      auto* current_rom = editor_manager_->GetCurrentRom();
-      has_rom = current_rom && current_rom->is_loaded();
-    }
-
-    if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM")) {
-      if (editor_manager_) {
-        auto status = editor_manager_->LoadRom();
-        if (!status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Failed to load ROM: %s", status.message()),
-              ToastType::kError);
-        }
-#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
-        else {
-          SetStartupSurface(StartupSurface::kDashboard);
-        }
-#endif
-      }
-    }
-
-    if (has_rom) {
-      if (ImGui::MenuItem(
-              ICON_MD_DASHBOARD " Dashboard", nullptr,
-              current_startup_surface_ == StartupSurface::kDashboard)) {
-        SetStartupSurface(StartupSurface::kDashboard);
-      }
-      if (ImGui::MenuItem(
-              ICON_MD_EDIT " Editor", nullptr,
-              current_startup_surface_ == StartupSurface::kEditor)) {
-        SetStartupSurface(StartupSurface::kEditor);
-      }
-    }
-
-    if (ImGui::MenuItem(ICON_MD_SEARCH " Find Panel...")) {
-      show_panel_finder_ = true;
-      memset(panel_finder_query_, 0, sizeof(panel_finder_query_));
-      panel_finder_selected_idx_ = 0;
-    }
-
-    const bool sidebar_visible = panel_manager_.IsSidebarVisible();
-    if (ImGui::MenuItem(ICON_MD_VIEW_SIDEBAR " Toggle Sidebar", nullptr,
-                        sidebar_visible)) {
-      TogglePanelSidebar();
-    }
-
-    if (editor_manager_) {
-      auto* right_panel = editor_manager_->right_panel_manager();
-      if (right_panel) {
-        const bool settings_active =
-            right_panel->IsPanelActive(RightPanelManager::PanelType::kSettings);
-        if (ImGui::MenuItem(ICON_MD_SETTINGS " Settings", nullptr,
-                            settings_active)) {
-          right_panel->TogglePanel(RightPanelManager::PanelType::kSettings);
-        }
-      }
-    }
-
-    ImGui::EndPopup();
-  }
 }
 
 // =============================================================================
@@ -1518,14 +1382,51 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
     }
   });
 
-  // Register layout preset commands
-  command_palette_.RegisterLayoutCommands([this](const std::string& preset) {
-    if (editor_manager_) {
-      editor_manager_->ApplyLayoutPreset(preset);
-      toast_manager_.Show(absl::StrFormat("Applied layout: %s", preset),
-                          ToastType::kSuccess);
-    }
-  });
+  // Register layout/profile commands
+  command_palette_.AddCommand(
+      "Apply: Minimal Layout", CommandCategory::kLayout,
+      "Switch to essential cards only", "",
+      [this]() {
+        if (editor_manager_) {
+          editor_manager_->ApplyLayoutPreset("Minimal");
+        }
+      });
+
+  command_palette_.AddCommand(
+      "Apply: Logic Debugger Layout", CommandCategory::kLayout,
+      "Switch to debug and development focused layout", "",
+      [this]() {
+        if (editor_manager_) {
+          editor_manager_->ApplyLayoutPreset("Logic Debugger");
+        }
+      });
+
+  command_palette_.AddCommand(
+      "Apply: Overworld Artist Layout", CommandCategory::kLayout,
+      "Switch to visual and overworld focused layout", "",
+      [this]() {
+        if (editor_manager_) {
+          editor_manager_->ApplyLayoutPreset("Overworld Artist");
+        }
+      });
+
+  command_palette_.AddCommand(
+      "Apply: Dungeon Master Layout", CommandCategory::kLayout,
+      "Switch to comprehensive dungeon editing layout", "",
+      [this]() {
+        if (editor_manager_) {
+          editor_manager_->ApplyLayoutPreset("Dungeon Master");
+        }
+      });
+
+  command_palette_.AddCommand(
+      "Apply: Audio Engineer Layout", CommandCategory::kLayout,
+      "Switch to music and sound editing layout", "",
+      [this]() {
+        if (editor_manager_) {
+          editor_manager_->ApplyLayoutPreset("Audio Engineer");
+        }
+      });
 
   // Register recent files commands
   command_palette_.RegisterRecentFilesCommands(
@@ -1808,6 +1709,11 @@ bool UICoordinator::ShouldShowDashboard() const {
 }
 
 bool UICoordinator::ShouldShowActivityBar() const {
+  // Sidebar would consume the entire screen on compact (iPhone portrait)
+  if (IsCompactLayout()) {
+    return false;
+  }
+
   // Activity Bar hidden on cold start (welcome screen)
   // Only show after ROM is loaded
   if (current_startup_surface_ == StartupSurface::kWelcome) {

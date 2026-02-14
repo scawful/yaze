@@ -8,6 +8,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "app/gui/plots/implot_support.h"
 #include "util/log.h"
 
@@ -127,7 +128,7 @@ void PaletteEditorWidget::DrawColorPicker() {
               static_cast<int>(editing_color_.z * 255));
   ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
 
-  if (ImGui::Button("Reset to Original")) {
+  if (gui::ThemedButton("Reset to Original")) {
     editing_color_ =
         ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
                original_color.rgb().z / 255.0f, 1.0f);
@@ -159,7 +160,7 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
     if (ImGui::CollapsingHeader("ROM Palette Manager") && rom_) {
       DrawROMPaletteSelector();
 
-      if (ImGui::Button("Apply ROM Palette") && !rom_palette_groups_.empty()) {
+      if (gui::PrimaryButton("Apply ROM Palette") && !rom_palette_groups_.empty()) {
         if (current_group_index_ <
             static_cast<int>(rom_palette_groups_.size())) {
           palette = rom_palette_groups_[current_group_index_];
@@ -169,15 +170,15 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
 
     ImGui::Separator();
 
-    if (ImGui::Button("Save Backup")) {
+    if (gui::ThemedButton("Save Backup")) {
       SavePaletteBackup(palette);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Restore Backup")) {
+    if (gui::ThemedButton("Restore Backup")) {
       RestorePaletteBackup(palette);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Close")) {
+    if (gui::ThemedButton("Close")) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -376,12 +377,12 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
         auto new_snes_color = gfx::SnesColor(temp_color_);
         palette[editing_color_index_] = new_snes_color;
       }
-      if (ImGui::Button("Apply")) {
+      if (gui::PrimaryButton("Apply")) {
         editing_color_index_ = -1;
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
-      if (ImGui::Button("Cancel")) {
+      if (gui::ThemedButton("Cancel")) {
         editing_color_index_ = -1;
         ImGui::CloseCurrentPopup();
       }

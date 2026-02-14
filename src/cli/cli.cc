@@ -8,10 +8,6 @@
 #include "absl/strings/match.h"
 #include "cli/handlers/command_handlers.h"
 #include "cli/service/command_registry.h"
-#ifndef __EMSCRIPTEN__
-#include "ftxui/dom/elements.hpp"
-#include "ftxui/dom/table.hpp"
-#endif
 #include "cli/z3ed_ascii_logo.h"
 
 namespace yaze {
@@ -39,10 +35,39 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
     args.push_back(argv[i]);
   }
 
+  auto& registry = CommandRegistry::Instance();
+
+  auto show_rom_subcommand_help = [&]() {
+    std::cout << "\n\033[1;36mROM subcommands:\033[0m\n";
+    std::cout << "  z3ed rom info --rom=<path>\n";
+    std::cout << "  z3ed rom validate --rom=<path>\n";
+    std::cout << "  z3ed rom read --address=0x1000 --length=16 --rom=<path>\n";
+    std::cout << "  z3ed rom write --address=0x1000 --value=0xFF --rom=<path>\n";
+    std::cout << "  z3ed rom diff --rom_a=<a> --rom_b=<b>\n";
+    std::cout << "  z3ed rom compare --rom=<path> --baseline=<path>\n";
+    std::cout << "  z3ed rom doctor --rom=<path>\n\n";
+    std::cout << "Equivalent direct commands are available as `rom-*` entries:\n";
+    std::cout << registry.GenerateCategoryHelp("rom") << "\n";
+  };
+
+  auto show_debug_subcommand_help = []() {
+    std::cout << "\n\033[1;36mDebug subcommands:\033[0m\n";
+    std::cout << "  z3ed debug state [--backend=mesen|grpc]\n";
+    std::cout << "  z3ed debug sprites [--backend=mesen]\n";
+    std::cout << "  z3ed debug cpu [--backend=mesen]\n";
+    std::cout << "  z3ed debug mem read --address=<addr> [--length=<n>]\n";
+    std::cout << "  z3ed debug mem write --address=<addr> --value=<hex>\n";
+    std::cout << "  z3ed debug disasm --address=<addr> [--count=<n>]\n";
+    std::cout << "  z3ed debug trace --address=<addr> [--count=<n>]\n";
+    std::cout << "  z3ed debug breakpoint --address=<addr>\n";
+    std::cout << "  z3ed debug control --action=<pause|resume|step|reset>\n";
+    std::cout << "  z3ed debug reset [--backend=mesen|grpc]\n\n";
+    std::cout << "Tip: use `z3ed <debug-command> --help` for command-specific flags.\n";
+  };
+
   if (args[0] == "help") {
     if (args.size() > 1) {
       const std::string& target = args[1];
-      auto& registry = CommandRegistry::Instance();
       if (target == "all") {
         std::cout << registry.GenerateCompleteHelp() << "\n";
       } else if (registry.HasCommand(target)) {
@@ -58,6 +83,19 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
 
   // Special case: "agent" command routes to HandleAgentCommand
   if (args[0] == "agent") {
+    if (args.size() < 2 || args[1] == "--help" || args[1] == "-h") {
+#ifdef YAZE_ENABLE_AGENT_CLI
+      std::cout << "\n\033[1;36mAgent command:\033[0m\n";
+      std::cout << "  z3ed agent <subcommand> [flags]\n";
+      std::cout << "  z3ed agent --help\n";
+      std::cout << "\nUse `z3ed agent <subcommand> --help` for scoped details.\n";
+#else
+      std::cout << "\n\033[1;36mAgent command:\033[0m\n";
+      std::cout << "  This build was compiled without agent CLI support.\n";
+      std::cout << "  Rebuild with `YAZE_ENABLE_AGENT_CLI` to enable `z3ed agent`.\n";
+#endif
+      return absl::OkStatus();
+    }
 #ifdef YAZE_ENABLE_AGENT_CLI
     std::vector<std::string> agent_args(args.begin() + 1, args.end());
     return handlers::HandleAgentCommand(agent_args);
@@ -69,10 +107,11 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
 
   // Special case: "rom" subcommands (rom read/write/info/validate/etc.)
   if (args[0] == "rom") {
-    if (args.size() < 2) {
-      return absl::InvalidArgumentError(
-          "Missing rom subcommand (expected read/write/info/validate/...)");
+    if (args.size() < 2 || args[1] == "--help" || args[1] == "-h") {
+      show_rom_subcommand_help();
+      return absl::OkStatus();
     }
+
     const std::string& sub = args[1];
     std::string mapped;
     if (sub == "read") {
@@ -90,11 +129,13 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
     } else if (sub == "doctor") {
       mapped = "rom-doctor";
     } else {
+      std::cerr << "\n\033[1;31mError:\033[0m Unknown rom subcommand: " << sub
+                << "\n";
+      show_rom_subcommand_help();
       return absl::InvalidArgumentError(
           absl::StrCat("Unknown rom subcommand: ", sub));
     }
 
-    auto& registry = CommandRegistry::Instance();
     std::vector<std::string> command_args(args.begin() + 2, args.end());
     if (registry.HasCommand(mapped)) {
       return registry.Execute(mapped, command_args, nullptr);
@@ -105,9 +146,9 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
 
   // Special case: "debug" subcommands (Mesen2 primary, gRPC optional)
   if (args[0] == "debug") {
-    if (args.size() < 2) {
-      return absl::InvalidArgumentError(
-          "Missing debug subcommand (state/sprites/cpu/mem/trace/disasm/...)");
+    if (args.size() < 2 || args[1] == "--help" || args[1] == "-h") {
+      show_debug_subcommand_help();
+      return absl::OkStatus();
     }
 
     std::string backend = "mesen";
@@ -149,6 +190,7 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
       mapped = "mesen-cpu";
     } else if (topic == "mem" || topic == "memory") {
       if (filtered_args.size() < 3) {
+        show_debug_subcommand_help();
         return absl::InvalidArgumentError(
             "debug mem requires read/write subcommand");
       }
@@ -162,6 +204,7 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
             (backend == "grpc") ? "emulator-write-memory" : "mesen-memory-write";
         filtered_args.erase(filtered_args.begin() + 2);
       } else {
+        show_debug_subcommand_help();
         return absl::InvalidArgumentError(
             "debug mem subcommand must be read or write");
       }
@@ -183,11 +226,11 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
         filtered_args.push_back("--action=reset");
       }
     } else {
+      show_debug_subcommand_help();
       return absl::InvalidArgumentError(
           absl::StrCat("Unknown debug subcommand: ", topic));
     }
 
-    auto& registry = CommandRegistry::Instance();
     std::vector<std::string> command_args(filtered_args.begin() + 2,
                                           filtered_args.end());
     if (registry.HasCommand(mapped)) {
@@ -197,14 +240,16 @@ absl::Status ModernCLI::Run(int argc, char* argv[]) {
         absl::StrCat("Command not found for debug subcommand: ", mapped));
   }
 
-  // Use CommandRegistry for unified command execution
-  auto& registry = CommandRegistry::Instance();
-
   std::string command_name = args[0];
   std::vector<std::string> command_args(args.begin() + 1, args.end());
 
   if (registry.HasCommand(command_name)) {
     return registry.Execute(command_name, command_args, nullptr);
+  }
+
+  if (!registry.GetCommandsInCategory(command_name).empty()) {
+    ShowCategoryHelp(command_name);
+    return absl::OkStatus();
   }
 
   return absl::NotFoundError(absl::StrCat("Unknown command: ", command_name));
@@ -214,80 +259,6 @@ void ModernCLI::ShowHelp() {
   auto& registry = CommandRegistry::Instance();
   auto categories = registry.GetCategories();
 
-#ifndef __EMSCRIPTEN__
-  using namespace ftxui;
-
-  auto banner = text("🎮 Z3ED - AI-Powered ROM Editor CLI") | bold | center;
-
-  std::vector<std::vector<std::string>> rows;
-  rows.push_back({"Category", "Commands", "Description"});
-
-#ifdef YAZE_ENABLE_AGENT_CLI
-  // Add special "agent" category first
-  rows.push_back({"agent", "simple-chat, plan, run, todo, test",
-                  "AI agent workflows + tool routing"});
-#endif
-
-  // Add registry categories
-  for (const auto& category : categories) {
-    auto commands = registry.GetCommandsInCategory(category);
-    std::string cmd_list = commands.size() > 3
-                               ? absl::StrCat(commands.size(), " commands")
-                               : absl::StrJoin(commands, ", ");
-
-    std::string desc;
-    if (category == "resource")
-      desc = "ROM resource inspection";
-    else if (category == "dungeon")
-      desc = "Dungeon editing";
-    else if (category == "overworld")
-      desc = "Overworld editing";
-    else if (category == "emulator")
-      desc = "Emulator debugging";
-    else if (category == "graphics")
-      desc = "Graphics/palette/sprites";
-    else if (category == "gui")
-      desc = "GUI automation";
-    else if (category == "game")
-      desc = "Messages/dialogue/music";
-    else if (category == "rom")
-      desc = "ROM inspection/validation";
-    else if (category == "test")
-      desc = "Test discovery/execution";
-    else if (category == "tools")
-      desc = "Utilities and doctor tools";
-    else
-      desc = category + " commands";
-
-    rows.push_back({category, cmd_list, desc});
-  }
-
-  size_t category_count = categories.size();
-#ifdef YAZE_ENABLE_AGENT_CLI
-  category_count += 1;
-#endif
-
-  Table summary(rows);
-  summary.SelectAll().Border(LIGHT);
-  summary.SelectRow(0).Decorate(bold);
-
-  auto layout = vbox(
-      {text(yaze::cli::GetColoredLogo()), banner, separator(), summary.Render(),
-       separator(),
-       text(absl::StrFormat("Total: %zu commands across %zu categories",
-                            registry.Count(), category_count)) |
-           center | dim,
-#ifdef YAZE_ENABLE_AGENT_CLI
-       text("Try `z3ed agent simple-chat` for AI-powered ROM inspection") |
-           center,
-#endif
-       text("Use `z3ed --list-commands` for complete list") | dim | center});
-
-  auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
-  Render(screen, layout);
-  screen.Print();
-#else
-  // Simple text output for WASM builds
   std::cout << yaze::cli::GetColoredLogo() << "\n";
   std::cout << "Z3ED - AI-Powered ROM Editor CLI\n\n";
   std::cout << "Categories:\n";
@@ -299,123 +270,62 @@ void ModernCLI::ShowHelp() {
     std::cout << "  " << category << " - " << commands.size() << " commands\n";
   }
   std::cout << "\nTotal: " << registry.Count() << " commands\n";
-  std::cout << "Use 'help <category>' for more details.\n";
-#endif
+  std::cout << "Use `z3ed help <command|category>` for scoped help.\n";
+  std::cout << "Use `z3ed --list-commands` for the full command list.\n";
 }
 
 void ModernCLI::ShowCategoryHelp(const std::string& category) const {
   auto& registry = CommandRegistry::Instance();
   auto commands = registry.GetCommandsInCategory(category);
 
-#ifndef __EMSCRIPTEN__
-  using namespace ftxui;
-
-  std::vector<std::vector<std::string>> rows;
-  rows.push_back({"Command", "Description", "Requirements"});
-
-  for (const auto& cmd_name : commands) {
-    auto* metadata = registry.GetMetadata(cmd_name);
-    if (metadata) {
-      std::string requirements;
-      if (metadata->requires_rom)
-        requirements += "ROM ";
-      if (metadata->requires_grpc)
-        requirements += "gRPC ";
-      if (requirements.empty())
-        requirements = "—";
-
-      rows.push_back({cmd_name, metadata->description, requirements});
-    }
-  }
-
-  if (rows.size() == 1) {
-    rows.push_back({"—", "No commands in this category", "—"});
-  }
-
-  Table detail(rows);
-  detail.SelectAll().Border(LIGHT);
-  detail.SelectRow(0).Decorate(bold);
-
-  auto layout =
-      vbox({text(absl::StrCat("Category: ", category)) | bold | center,
-            separator(), detail.Render(), separator(),
-            text("Commands are auto-registered from CommandRegistry") | dim |
-                center});
-
-  auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
-  Render(screen, layout);
-  screen.Print();
-#else
-  // Simple text output for WASM builds
   std::cout << "Category: " << category << "\n\n";
-  for (const auto& cmd_name : commands) {
-    auto* metadata = registry.GetMetadata(cmd_name);
-    if (metadata) {
-      std::cout << "  " << cmd_name << " - " << metadata->description << "\n";
-    }
-  }
   if (commands.empty()) {
     std::cout << "  No commands in this category.\n";
+    return;
   }
-#endif
+
+  for (const auto& cmd_name : commands) {
+    auto* metadata = registry.GetMetadata(cmd_name);
+    if (!metadata) {
+      continue;
+    }
+
+    std::cout << "  " << cmd_name << " - " << metadata->description << "\n";
+    if (!metadata->usage.empty()) {
+      std::cout << "    Usage: " << metadata->usage << "\n";
+    }
+
+    std::string requirements;
+    if (metadata->requires_rom) {
+      requirements += "ROM ";
+    }
+    if (metadata->requires_grpc) {
+      requirements += "gRPC ";
+    }
+    if (!requirements.empty()) {
+      std::cout << "    Requires: " << requirements << "\n";
+    }
+    std::cout << "\n";
+  }
 }
 
 void ModernCLI::ShowCommandSummary() const {
   auto& registry = CommandRegistry::Instance();
   auto categories = registry.GetCategories();
 
-#ifndef __EMSCRIPTEN__
-  using namespace ftxui;
-
-  std::vector<std::vector<std::string>> rows;
-  rows.push_back({"Command", "Category", "Description"});
-
-  for (const auto& category : categories) {
-    auto commands = registry.GetCommandsInCategory(category);
-    for (const auto& cmd_name : commands) {
-      auto* metadata = registry.GetMetadata(cmd_name);
-      if (metadata) {
-        rows.push_back({cmd_name, metadata->category, metadata->description});
-      }
-    }
-  }
-
-  if (rows.size() == 1) {
-    rows.push_back({"—", "—", "No commands registered"});
-  }
-
-  Table command_table(rows);
-  command_table.SelectAll().Border(LIGHT);
-  command_table.SelectRow(0).Decorate(bold);
-
-  auto layout =
-      vbox({text("Z3ED Command Summary") | bold | center, separator(),
-            command_table.Render(), separator(),
-            text(absl::StrFormat("Total: %zu commands across %zu categories",
-                                 registry.Count(), categories.size())) |
-                center | dim,
-            text("Use `z3ed --tui` for interactive command palette.") | center |
-                dim});
-
-  auto screen = Screen::Create(Dimension::Full(), Dimension::Fit(layout));
-  Render(screen, layout);
-  screen.Print();
-#else
-  // Simple text output for WASM builds
   std::cout << "Z3ED Command Summary\n\n";
   for (const auto& category : categories) {
     auto commands = registry.GetCommandsInCategory(category);
     for (const auto& cmd_name : commands) {
       auto* metadata = registry.GetMetadata(cmd_name);
       if (metadata) {
-        std::cout << "  " << cmd_name << " [" << metadata->category << "] - "
-                  << metadata->description << "\n";
+        std::cout << "  " << cmd_name << " [" << metadata->category
+                  << "] - " << metadata->description << "\n";
       }
     }
   }
   std::cout << "\nTotal: " << registry.Count() << " commands across "
             << categories.size() << " categories\n";
-#endif
 }
 
 void ModernCLI::PrintTopLevelHelp() const {

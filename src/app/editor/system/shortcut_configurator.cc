@@ -544,8 +544,51 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
 #endif
 
   // ============================================================================
-  // Layout Presets (command palette only - no keyboard shortcuts)
+  // Layout Presets and Profiles (command palette only - no keyboard shortcuts)
   // ============================================================================
+  shortcut_manager->RegisterCommand(
+      "Layout Profile: Code", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->ApplyLayoutProfile("code");
+        }
+      });
+  shortcut_manager->RegisterCommand(
+      "Layout Profile: Debug", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->ApplyLayoutProfile("debug");
+        }
+      });
+  shortcut_manager->RegisterCommand(
+      "Layout Profile: Mapping", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->ApplyLayoutProfile("mapping");
+        }
+      });
+  shortcut_manager->RegisterCommand(
+      "Layout Profile: Chat", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->ApplyLayoutProfile("chat");
+        }
+      });
+  shortcut_manager->RegisterCommand(
+      "Layout Snapshot: Capture", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->CaptureTemporaryLayoutSnapshot();
+        }
+      });
+  shortcut_manager->RegisterCommand(
+      "Layout Snapshot: Restore", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->RestoreTemporaryLayoutSnapshot();
+        }
+      });
+  shortcut_manager->RegisterCommand(
+      "Layout Snapshot: Clear", [editor_manager]() {
+        if (editor_manager) {
+          editor_manager->ClearTemporaryLayoutSnapshot();
+        }
+      });
+
   shortcut_manager->RegisterCommand(
       "Layout: Apply Minimal Preset", [editor_manager]() {
         if (editor_manager) {

@@ -60,7 +60,7 @@ class DungeonRoomSelectorPanel : public EditorPanel {
     if (!selector_) return;
 
     // Draw just the room selector (no tabs)
-    selector_->DrawRoomSelector();
+    selector_->DrawRoomSelector(RoomSelectionIntent::kOpenStandalone);
   }
 
   // ==========================================================================

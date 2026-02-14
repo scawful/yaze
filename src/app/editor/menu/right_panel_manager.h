@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include <unordered_map>
 
 #include "app/editor/editor.h"
 #include "app/gui/core/ui_config.h"
@@ -120,6 +121,14 @@ class RightPanelManager {
   void ClosePanel();
 
   /**
+   * @brief Snap transient animations when host visibility changes.
+   *
+   * This is used for OS space switches / focus loss so partially animated
+   * panel bitmaps do not linger when returning to the app.
+   */
+  void OnHostVisibilityChanged(bool visible);
+
+  /**
    * @brief Check if any panel is currently expanded (or animating closed)
    */
   bool IsPanelExpanded() const;
@@ -165,6 +174,29 @@ class RightPanelManager {
    * @return Default width in logical pixels
    */
   static float GetDefaultPanelWidth(PanelType type, EditorType editor = EditorType::kUnknown);
+
+  struct PanelSizeLimits {
+    float min_width = 280.0f;
+    float max_width_ratio = gui::UIConfig::kMaxPanelWidthRatio;
+  };
+
+  /**
+   * @brief Set sizing constraints for an individual right panel.
+   */
+  void SetPanelSizeLimits(PanelType type, const PanelSizeLimits& limits);
+  PanelSizeLimits GetPanelSizeLimits(PanelType type) const;
+
+  /**
+   * @brief Persist/restore per-panel widths for user settings.
+   */
+  std::unordered_map<std::string, float> SerializePanelWidths() const;
+  void RestorePanelWidths(
+      const std::unordered_map<std::string, float>& widths);
+
+  void SetPanelWidthChangedCallback(
+      std::function<void(PanelType, float)> callback) {
+    on_panel_width_changed_ = std::move(callback);
+  }
 
 
   // ============================================================================
@@ -227,6 +259,10 @@ class RightPanelManager {
                                const std::string& fallback) const;
   void DrawShortcutRow(const std::string& action, const char* description,
                        const std::string& fallback);
+  float GetConfiguredPanelWidth(PanelType type) const;
+  float GetClampedPanelWidth(PanelType type, float viewport_width) const;
+  void NotifyPanelWidthChanged(PanelType type, float width);
+  static std::string PanelTypeKey(PanelType type);
 
   // Active panel
   PanelType active_panel_ = PanelType::kNone;
@@ -262,6 +298,8 @@ class RightPanelManager {
   bool animating_ = false;
   bool closing_ = false;           // True during close animation
   PanelType closing_panel_ = PanelType::kNone;  // Panel being animated closed
+  std::unordered_map<std::string, PanelSizeLimits> panel_size_limits_;
+  std::function<void(PanelType, float)> on_panel_width_changed_;
 };
 
 /**

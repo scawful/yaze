@@ -32,7 +32,9 @@ class DungeonRoomSelector {
   explicit DungeonRoomSelector(Rom* rom = nullptr) : rom_(rom) {}
 
   void Draw();
-  void DrawRoomSelector();
+  void DrawRoomSelector(
+      RoomSelectionIntent single_click_intent =
+          RoomSelectionIntent::kFocusInWorkbench);
   void DrawEntranceSelector();
 
   // Unified context setter (preferred)

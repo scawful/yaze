@@ -22,6 +22,7 @@
 #include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
+#include "app/editor/system/panel_host.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/editor_activator.h"
 #include "app/editor/system/editor_registry.h"
@@ -111,6 +112,9 @@ class EditorManager {
   absl::Status Update();
   void DrawMainMenuBar();
 
+  // Host visibility/focus lifecycle hook (e.g., OS space switching).
+  void HandleHostVisibilityChanged(bool visible);
+
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() const { return quit_; }
   auto version() const { return version_; }
@@ -124,6 +128,8 @@ class EditorManager {
   PanelManager* GetPanelManager() { return &panel_manager_; }
   PanelManager& panel_manager() { return panel_manager_; }
   const PanelManager& panel_manager() const { return panel_manager_; }
+  PanelHost* panel_host() { return panel_host_.get(); }
+  const PanelHost* panel_host() const { return panel_host_.get(); }
   
   // Deprecated compatibility wrappers
   PanelManager& card_registry() { return panel_manager_; }
@@ -279,6 +285,10 @@ class EditorManager {
 
   // Panel layout presets (command palette accessible)
   void ApplyLayoutPreset(const std::string& preset_name);
+  bool ApplyLayoutProfile(const std::string& profile_id);
+  void CaptureTemporaryLayoutSnapshot();
+  void RestoreTemporaryLayoutSnapshot(bool clear_after_restore = false);
+  void ClearTemporaryLayoutSnapshot();
   void ResetCurrentEditorLayout();
 
   // Helper methods
@@ -390,6 +400,7 @@ class EditorManager {
   // Testing system
   void InitializeTestSuites();
   void ApplyStartupVisibilityOverrides();
+  void ApplyLayoutDefaultsMigrationIfNeeded();
 
   // Session event handlers (EventBus subscribers)
   void HandleSessionSwitched(size_t new_index, RomSession* session);
@@ -481,6 +492,7 @@ class EditorManager {
 
   // New delegated components (dependency injection architecture)
   PanelManager panel_manager_;  // Panel management with session awareness
+  std::unique_ptr<PanelHost> panel_host_;
   EditorRegistry editor_registry_;
   std::unique_ptr<MenuOrchestrator> menu_orchestrator_;
   ProjectManager project_manager_;
@@ -507,6 +519,7 @@ class EditorManager {
   float autosave_timer_ = 0.0f;
   bool settings_dirty_ = false;
   float settings_dirty_timestamp_ = 0.0f;
+  bool pending_layout_defaults_reset_ = false;
 
   // Save safety prompt state
   bool pending_pot_item_save_confirm_ = false;
@@ -548,6 +561,7 @@ class EditorManager {
 
   void ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
                                    size_t session_id);
+  void SyncLayoutScopeFromCurrentProject();
 };
 
 }  // namespace editor

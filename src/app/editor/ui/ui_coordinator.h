@@ -296,7 +296,6 @@ class UICoordinator {
 
   // Mobile helpers
   bool IsCompactLayout() const;
-  void DrawMobileNavigation();
 
   // Layout and positioning helpers
   void CenterWindow(const std::string& window_name);

@@ -302,7 +302,13 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
   int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
   int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  if (ctx.tiles.size() < 8) return;
+  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.size() < 8) {
+    // Some hacks provide abbreviated tile payloads for these objects.
+    // Fall back to a visible fill instead of silently skipping draw.
+    Draw4x4BlocksIn4x4SuperSquare(ctx);
+    return;
+  }
 
   for (int sy = 0; sy < size_y; ++sy) {
     for (int sx = 0; sx < size_x; ++sx) {
@@ -537,10 +543,28 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
   int size_x = ((ctx.object.size_ >> 2) & 0x03);
   int size_y = (ctx.object.size_ & 0x03);
 
-  if (ctx.tiles.size() < 8) return;
-
   int count_x = size_x + 2;
   int count_y = size_y + 2;
+
+  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.size() < 8) {
+    // Fallback for abbreviated tile payloads: still stamp a visible overlay.
+    for (int yy = 0; yy < count_y; ++yy) {
+      for (int xx = 0; xx < count_x; ++xx) {
+        int base_x = ctx.object.x_ + (xx * 4);
+        int base_y = ctx.object.y_ + (yy * 4);
+        const auto& tile =
+            ctx.tiles[static_cast<size_t>((xx + yy) % ctx.tiles.size())];
+        for (int y = 0; y < 4; ++y) {
+          for (int x = 0; x < 4; ++x) {
+            DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
+                                         tile);
+          }
+        }
+      }
+    }
+    return;
+  }
 
   for (int yy = 0; yy < count_y; ++yy) {
     for (int xx = 0; xx < count_x; ++xx) {

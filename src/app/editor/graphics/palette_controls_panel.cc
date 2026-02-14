@@ -8,6 +8,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -193,7 +194,7 @@ void PaletteControlsPanel::DrawPaletteGroupSelector() {
   gui::TextWithSeparators("Palette Selection");
 
   // Palette group combo
-  ImGui::SetNextItemWidth(160);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
   if (ImGui::Combo("Group",
                    reinterpret_cast<int*>(&state_->palette_group_index),
                    kPaletteGroupAddressesKeys,
@@ -202,7 +203,8 @@ void PaletteControlsPanel::DrawPaletteGroupSelector() {
   }
 
   // Palette index within group
-  ImGui::SetNextItemWidth(100);
+  ImGui::SetNextItemWidth(
+      gui::LayoutHelpers::GetStandardInputWidth() * 0.75f);
   int palette_idx = static_cast<int>(state_->palette_index);
   if (ImGui::InputInt("Palette", &palette_idx)) {
     state_->palette_index = static_cast<uint64_t>(std::max(0, palette_idx));
@@ -211,7 +213,8 @@ void PaletteControlsPanel::DrawPaletteGroupSelector() {
   HOVER_HINT("Palette index within the group");
 
   // Sub-palette index (for multi-row palettes)
-  ImGui::SetNextItemWidth(100);
+  ImGui::SetNextItemWidth(
+      gui::LayoutHelpers::GetStandardInputWidth() * 0.75f);
   int sub_idx = static_cast<int>(state_->sub_palette_index);
   if (ImGui::InputInt("Sub-Palette", &sub_idx)) {
     state_->sub_palette_index = static_cast<uint64_t>(std::max(0, sub_idx));

@@ -263,8 +263,10 @@ absl::Status ObjectDrawer::DrawObject(
   bool is_pit_or_mask =
       (object.id_ == 0xA4) ||                         // Pit
       (object.id_ >= 0xA5 && object.id_ <= 0xAC) ||   // Diagonal layer 2 masks
+      (object.id_ == 0xC0) ||                         // Large ceiling overlay
       (object.id_ == 0xC2) ||                         // Layer 2 pit mask (large)
       (object.id_ == 0xC3) ||                         // Layer 2 pit mask (medium)
+      (object.id_ == 0xC8) ||                         // Water floor overlay
       (object.id_ == 0xC6) ||                         // Layer 2 mask (large)
       (object.id_ == 0xD7) ||                         // Layer 2 mask (medium)
       (object.id_ == 0xD9) ||                         // Layer 2 swim mask
@@ -2770,7 +2772,8 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
     std::span<const gfx::TileInfo> tiles,
     [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
-  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 6-tile Y spacing
+  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 6-tile Y
+  // spacing.
   int size = obj.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -2778,22 +2781,18 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
 
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
-      // Draw 4x2 pattern in COLUMN-MAJOR order
-      // Column 0 (tiles 0-1)
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 6), tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_, obj.y_ + (s * 6) + 1, tiles[1]);  // col 0, row 1
-      // Column 1 (tiles 2-3)
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6), tiles[2]);  // col 1, row 0
-      WriteTile8(bg, obj.x_ + 1, obj.y_ + (s * 6) + 1,
-                 tiles[3]);  // col 1, row 1
-      // Column 2 (tiles 4-5)
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6), tiles[4]);  // col 2, row 0
-      WriteTile8(bg, obj.x_ + 2, obj.y_ + (s * 6) + 1,
-                 tiles[5]);  // col 2, row 1
-      // Column 3 (tiles 6-7)
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6), tiles[6]);  // col 3, row 0
-      WriteTile8(bg, obj.x_ + 3, obj.y_ + (s * 6) + 1,
-                 tiles[7]);  // col 3, row 1
+      // Draw 4x2 pattern in COLUMN-MAJOR order:
+      // Col 0: tiles[0], tiles[1]
+      // Col 1: tiles[2], tiles[3]
+      // Col 2: tiles[4], tiles[5]
+      // Col 3: tiles[6], tiles[7]
+      const int base_y = obj.y_ + (s * 6);
+      for (int x = 0; x < 4; ++x) {
+        for (int y = 0; y < 2; ++y) {
+          const size_t tile_idx = static_cast<size_t>((x * 2) + y);
+          WriteTile8(bg, obj.x_ + x, base_y + y, tiles[tile_idx]);
+        }
+      }
     }
   }
 }

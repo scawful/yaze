@@ -4,6 +4,8 @@
 #include "app/editor/system/panel_manager.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/core/agent_theme.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::editor {
@@ -89,45 +91,38 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     }
 
     TableNextColumn();
-    if (ImGui::Button(current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
-                      ImVec2(40, 0))) {
+    if (gui::ToolbarIconButton(current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
+                               current_map_lock ? "Unlock Map" : "Lock Map")) {
       current_map_lock = !current_map_lock;
     }
-    HOVER_HINT(current_map_lock ? "Unlock Map" : "Lock Map");
 
     TableNextColumn();
     // Mode Controls
     {
-      gui::StyleVarGuard spacing_guard(ImGuiStyleVar_ItemSpacing,
-                                       ImVec2(2, 0));
-      if (gui::ToggleButton(ICON_MD_MOUSE, current_mode == EditingMode::MOUSE,
-                            ImVec2(kIconButtonWidth, 0))) {
+      if (gui::ToolbarIconButton(ICON_MD_MOUSE,
+                                 "Mouse Mode (1)\nNavigate, pan, and manage entities",
+                                 current_mode == EditingMode::MOUSE)) {
         current_mode = EditingMode::MOUSE;
       }
-      HOVER_HINT("Mouse Mode (1)\nNavigate, pan, and manage entities");
 
-      ImGui::SameLine();
-      if (gui::ToggleButton(ICON_MD_DRAW,
-                            current_mode == EditingMode::DRAW_TILE,
-                            ImVec2(kIconButtonWidth, 0))) {
+      ImGui::SameLine(0, 2);
+      if (gui::ToolbarIconButton(ICON_MD_DRAW,
+                                 "Brush Mode (2/B)\nDraw tiles on the map\nRight-click or I to sample tile16 under cursor",
+                                 current_mode == EditingMode::DRAW_TILE)) {
         current_mode = EditingMode::DRAW_TILE;
       }
-      HOVER_HINT("Brush Mode (2/B)\nDraw tiles on the map");
 
-      ImGui::SameLine();
-      if (gui::ToggleButton(ICON_MD_FORMAT_COLOR_FILL,
-                            current_mode == EditingMode::FILL_TILE,
-                            ImVec2(kIconButtonWidth, 0))) {
+      ImGui::SameLine(0, 2);
+      if (gui::ToolbarIconButton(ICON_MD_FORMAT_COLOR_FILL,
+                                 "Fill Screen Mode (F)\nFill the 32x32 screen under the cursor with the selected tile\nRight-click or I to sample tile16 under cursor",
+                                 current_mode == EditingMode::FILL_TILE)) {
         current_mode = EditingMode::FILL_TILE;
       }
-      HOVER_HINT(
-          "Fill Screen Mode (F)\n"
-          "Fill the 32x32 screen under the cursor with the selected tile\n"
-          "or a repeating selection pattern");
     }
 
     TableNextColumn();
     // Entity Status or Version Badge
+    const auto& theme = AgentUI::GetTheme();
     if (entity_edit_mode != EntityEditMode::NONE) {
       const char* entity_icon = "";
       const char* entity_label = "";
@@ -159,33 +154,33 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         default:
           break;
       }
-      ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s %s", entity_icon,
+      ImGui::TextColored(theme.selection_secondary, "%s %s", entity_icon,
                          entity_label);
     } else {
       // Show ROM version badge when no entity mode is active
       const char* version_label = "Vanilla";
-      ImVec4 version_color = ImVec4(0.6f, 0.6f, 0.6f, 1.0f);  // Gray for vanilla
+      ImVec4 version_color = theme.status_inactive;
       bool show_upgrade = false;
 
       switch (rom_version) {
         case zelda3::OverworldVersion::kVanilla:
           version_label = "Vanilla";
-          version_color = ImVec4(0.7f, 0.7f, 0.5f, 1.0f);  // Muted yellow
+          version_color = theme.text_warning_yellow;
           show_upgrade = true;
           break;
         case zelda3::OverworldVersion::kZSCustomV1:
-          version_label = "ZSCustom v1";
-          version_color = ImVec4(0.5f, 0.7f, 0.9f, 1.0f);  // Light blue
-          show_upgrade = true;
+          version_label = "ZSC v1";
+          version_color = theme.status_active;
           break;
         case zelda3::OverworldVersion::kZSCustomV2:
-          version_label = "ZSCustom v2";
-          version_color = ImVec4(0.5f, 0.9f, 0.7f, 1.0f);  // Light green
-          show_upgrade = true;
+          version_label = "ZSC v2";
+          version_color = theme.status_active;
           break;
         case zelda3::OverworldVersion::kZSCustomV3:
-          version_label = "ZSCustom v3";
-          version_color = ImVec4(0.3f, 1.0f, 0.5f, 1.0f);  // Bright green
+          version_label = "ZSC v3";
+          version_color = theme.status_success;
+          break;
+        default:
           break;
       }
 
@@ -196,12 +191,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
       if (show_upgrade && on_upgrade_rom_version) {
         ImGui::SameLine();
-        {
-          gui::StyleColorGuard upgrade_guard(ImGuiCol_Button,
-                                             ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
-          if (ImGui::SmallButton(ICON_MD_UPGRADE " Upgrade")) {
-            on_upgrade_rom_version(3);  // Upgrade to v3
-          }
+        if (gui::PrimaryButton(ICON_MD_UPGRADE " Upgrade")) {
+          on_upgrade_rom_version(3);  // Upgrade to v3
         }
         HOVER_HINT("Upgrade ROM to ZSCustomOverworld v3\n"
                    "Enables all advanced features");
@@ -210,93 +201,65 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     TableNextColumn();
     // Panel Toggle Controls - using PanelManager for visibility
-    gui::StyleVarGuard panel_spacing_guard(ImGuiStyleVar_ItemSpacing,
-                                           ImVec2(4, 0));
+    {
+      gui::StyleVarGuard panel_spacing_guard(ImGuiStyleVar_ItemSpacing,
+                                             ImVec2(4, 0));
 
-    // Tile16 Editor toggle (Ctrl+T)
-    bool tile16_editor_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kTile16Editor);
-    if (gui::ToggleButton(ICON_MD_EDIT, tile16_editor_visible,
-                          ImVec2(kPanelToggleButtonWidth, 0))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kTile16Editor);
+      // Tile16 Editor toggle (Ctrl+T)
+      if (gui::ToolbarIconButton(ICON_MD_EDIT, "Tile16 Editor (Ctrl+T)",
+                                 panel_manager->IsPanelVisible(OverworldPanelIds::kTile16Editor))) {
+        panel_manager->TogglePanel(0, OverworldPanelIds::kTile16Editor);
+      }
+
+      ImGui::SameLine();
+      // Tile16 Selector toggle
+      if (gui::ToolbarIconButton(ICON_MD_GRID_ON, "Tile16 Selector",
+                                 panel_manager->IsPanelVisible(OverworldPanelIds::kTile16Selector))) {
+        panel_manager->TogglePanel(0, OverworldPanelIds::kTile16Selector);
+      }
+
+      ImGui::SameLine();
+      // Tile8 Selector toggle
+      if (gui::ToolbarIconButton(ICON_MD_GRID_VIEW, "Tile8 Selector",
+                                 panel_manager->IsPanelVisible(OverworldPanelIds::kTile8Selector))) {
+        panel_manager->TogglePanel(0, OverworldPanelIds::kTile8Selector);
+      }
+
+      ImGui::SameLine();
+      // Area Graphics toggle
+      if (gui::ToolbarIconButton(ICON_MD_IMAGE, "Area Graphics",
+                                 panel_manager->IsPanelVisible(OverworldPanelIds::kAreaGraphics))) {
+        panel_manager->TogglePanel(0, OverworldPanelIds::kAreaGraphics);
+      }
+
+      ImGui::SameLine();
+      // GFX Groups toggle
+      if (gui::ToolbarIconButton(ICON_MD_LAYERS, "GFX Groups",
+                                 panel_manager->IsPanelVisible(OverworldPanelIds::kGfxGroups))) {
+        panel_manager->TogglePanel(0, OverworldPanelIds::kGfxGroups);
+      }
+
+      ImGui::SameLine();
+      // Usage Stats toggle
+      if (gui::ToolbarIconButton(ICON_MD_ANALYTICS, "Usage Statistics",
+                                 panel_manager->IsPanelVisible(OverworldPanelIds::kUsageStats))) {
+        panel_manager->TogglePanel(0, OverworldPanelIds::kUsageStats);
+      }
+
+      ImGui::SameLine();
+      // Scratch Space toggle
+      if (gui::ToolbarIconButton(ICON_MD_AUTO_FIX_HIGH, "Scratch Workspace",
+                                 panel_manager->IsPanelVisible(OverworldPanelIds::kScratchSpace))) {
+        panel_manager->TogglePanel(0, OverworldPanelIds::kScratchSpace);
+      }
     }
-    HOVER_HINT("Tile16 Editor (Ctrl+T)");
-
-    ImGui::SameLine();
-
-    // Tile16 Selector toggle
-    bool tile16_selector_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kTile16Selector);
-    if (gui::ToggleButton(ICON_MD_GRID_ON, tile16_selector_visible,
-                          ImVec2(kPanelToggleButtonWidth, 0))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kTile16Selector);
-    }
-    HOVER_HINT("Tile16 Selector");
-
-    ImGui::SameLine();
-
-    // Tile8 Selector toggle
-    bool tile8_selector_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kTile8Selector);
-    if (gui::ToggleButton(ICON_MD_GRID_VIEW, tile8_selector_visible,
-                          ImVec2(kPanelToggleButtonWidth, 0))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kTile8Selector);
-    }
-    HOVER_HINT("Tile8 Selector");
-
-    ImGui::SameLine();
-
-    // Area Graphics toggle
-    bool area_gfx_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kAreaGraphics);
-    if (gui::ToggleButton(ICON_MD_IMAGE, area_gfx_visible,
-                          ImVec2(kPanelToggleButtonWidth, 0))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kAreaGraphics);
-    }
-    HOVER_HINT("Area Graphics");
-
-    ImGui::SameLine();
-
-    // GFX Groups toggle
-    bool gfx_groups_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kGfxGroups);
-    if (gui::ToggleButton(ICON_MD_LAYERS, gfx_groups_visible,
-                          ImVec2(kPanelToggleButtonWidth, 0))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kGfxGroups);
-    }
-    HOVER_HINT("GFX Groups");
-
-    ImGui::SameLine();
-
-    // Usage Stats toggle
-    bool usage_stats_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kUsageStats);
-    if (gui::ToggleButton(ICON_MD_ANALYTICS, usage_stats_visible,
-                          ImVec2(kPanelToggleButtonWidth, 0))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kUsageStats);
-    }
-    HOVER_HINT("Usage Statistics");
-
-    ImGui::SameLine();
-
-    // Scratch Space toggle
-    bool scratch_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kScratchSpace);
-    if (gui::ToggleButton(ICON_MD_BRUSH, scratch_visible,
-                          ImVec2(kPanelToggleButtonWidth, 0))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kScratchSpace);
-    }
-    HOVER_HINT("Scratch Workspace");
 
     TableNextColumn();
     // Sidebar Toggle (Map Properties)
-    bool properties_visible =
-        panel_manager->IsPanelVisible(OverworldPanelIds::kMapProperties);
-    if (gui::ToggleButton(ICON_MD_TUNE, properties_visible,
-                          ImVec2(kIconButtonWidth, 0))) {
+    if (gui::ToolbarIconButton(ICON_MD_TUNE, "Toggle Map Properties Sidebar",
+                               panel_manager->IsPanelVisible(OverworldPanelIds::kMapProperties))) {
       panel_manager->TogglePanel(0, OverworldPanelIds::kMapProperties);
     }
-    HOVER_HINT("Toggle Map Properties Sidebar");
 
     ImGui::EndTable();
   }

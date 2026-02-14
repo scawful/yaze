@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gfx/types/snes_tile.h"
 
 namespace yaze {
 namespace editor {
@@ -25,6 +26,7 @@ struct Tile16Snapshot {
   int tile_id = 0;
   std::vector<uint8_t> bitmap_data;
   gfx::SnesPalette bitmap_palette;
+  gfx::Tile16 tile_data;
   uint8_t palette = 0;
   bool x_flip = false;
   bool y_flip = false;

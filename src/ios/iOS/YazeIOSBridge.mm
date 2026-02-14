@@ -7,6 +7,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "core/hack_manifest.h"
 #include "core/oracle_progression.h"
@@ -88,6 +89,84 @@
   controller->editor_manager()->panel_manager().TriggerShowCommandPalette();
 }
 
+// ─── Editor Actions ─────────────────────────────
+
++ (void)saveRom {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  auto status = controller->editor_manager()->SaveRom();
+  if (!status.ok()) {
+    auto *toast = controller->editor_manager()->toast_manager();
+    if (toast) {
+      toast->Show(std::string(status.message()),
+                  yaze::editor::ToastType::kError);
+    }
+  }
+}
+
++ (void)undo {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  auto *editor = controller->editor_manager()->GetCurrentEditor();
+  if (editor) {
+    (void)editor->Undo();
+  }
+}
+
++ (void)redo {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  auto *editor = controller->editor_manager()->GetCurrentEditor();
+  if (editor) {
+    (void)editor->Redo();
+  }
+}
+
++ (void)switchToEditor:(NSString *)editorName {
+  if (!editorName || editorName.length == 0) {
+    return;
+  }
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+  std::string name([editorName UTF8String]);
+  for (size_t i = 0; i < yaze::editor::kEditorNames.size(); ++i) {
+    if (name == yaze::editor::kEditorNames[i]) {
+      controller->editor_manager()->SwitchToEditor(
+          static_cast<yaze::editor::EditorType>(i), /*force_visible=*/true);
+      return;
+    }
+  }
+}
+
++ (NSArray<NSString *> *)availableEditorTypes {
+  // Return user-facing editor types (skip Unknown, Hex, Agent, Settings).
+  NSMutableArray<NSString *> *result = [NSMutableArray array];
+  for (size_t i = 0; i < yaze::editor::kEditorNames.size(); ++i) {
+    auto type = static_cast<yaze::editor::EditorType>(i);
+    switch (type) {
+      case yaze::editor::EditorType::kUnknown:
+      case yaze::editor::EditorType::kHex:
+      case yaze::editor::EditorType::kAgent:
+      case yaze::editor::EditorType::kSettings:
+        continue;
+      default:
+        [result
+            addObject:[NSString
+                          stringWithUTF8String:yaze::editor::kEditorNames[i]]];
+        break;
+    }
+  }
+  return result;
+}
+
 // ─── Editor Status ──────────────────────────────
 
 + (nullable NSString *)currentEditorType {
@@ -119,6 +198,72 @@
       static_cast<yaze::editor::DungeonEditorV2 *>(editor);
   int room_id = dungeon_editor->current_room_id();
   return [NSString stringWithFormat:@"Room 0x%03X", room_id];
+}
+
++ (NSArray<NSDictionary *> *)getActiveDungeonRooms {
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return @[];
+  }
+  auto *editor = controller->editor_manager()->GetCurrentEditor();
+  if (!editor || editor->type() != yaze::editor::EditorType::kDungeon) {
+    return @[];
+  }
+
+  auto *dungeon_editor = static_cast<yaze::editor::DungeonEditorV2 *>(editor);
+  const int current_room = dungeon_editor->current_room_id();
+  NSMutableArray<NSDictionary *> *rooms = [NSMutableArray array];
+
+  const auto &active_rooms = dungeon_editor->active_rooms();
+  if (active_rooms.Size > 0) {
+    for (int i = 0; i < active_rooms.Size; ++i) {
+      const int room_id = active_rooms[i];
+      if (room_id < 0 || room_id >= yaze::zelda3::kNumberOfRooms) {
+        continue;
+      }
+      const std::string label = yaze::zelda3::GetRoomLabel(room_id);
+      [rooms addObject:@{
+        @"room_id" : @(room_id),
+        @"name" : [NSString stringWithUTF8String:label.c_str()],
+        @"is_current" : @(room_id == current_room),
+      }];
+    }
+    return rooms;
+  }
+
+  for (int room_id = 0; room_id < yaze::zelda3::kNumberOfRooms; ++room_id) {
+    const std::string label = yaze::zelda3::GetRoomLabel(room_id);
+    [rooms addObject:@{
+      @"room_id" : @(room_id),
+      @"name" : [NSString stringWithUTF8String:label.c_str()],
+      @"is_current" : @(room_id == current_room),
+    }];
+  }
+  return rooms;
+}
+
++ (void)focusDungeonRoom:(NSInteger)roomID {
+  if (roomID < 0 || roomID >= yaze::zelda3::kNumberOfRooms) {
+    return;
+  }
+
+  auto *controller = yaze::Application::Instance().GetController();
+  if (!controller || !controller->editor_manager()) {
+    return;
+  }
+
+  auto *editor = controller->editor_manager()->GetCurrentEditor();
+  if (!editor || editor->type() != yaze::editor::EditorType::kDungeon) {
+    controller->editor_manager()->SwitchToEditor(yaze::editor::EditorType::kDungeon,
+                                                  /*force_visible=*/true);
+    editor = controller->editor_manager()->GetCurrentEditor();
+  }
+  if (!editor || editor->type() != yaze::editor::EditorType::kDungeon) {
+    return;
+  }
+
+  auto *dungeon_editor = static_cast<yaze::editor::DungeonEditorV2 *>(editor);
+  dungeon_editor->add_room(static_cast<int>(roomID));
 }
 
 // ─── Oracle Integration ──────────────────────────

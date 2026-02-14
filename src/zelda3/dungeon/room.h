@@ -725,8 +725,8 @@ class Room {
   bool layout_dirty_ = true;
   bool textures_dirty_ = true;
 
-  int room_id_;
-  int animated_frame_;
+  int room_id_ = 0;
+  int animated_frame_ = 0;
 
   uint8_t staircase_plane_[4];
   uint8_t staircase_rooms_[4];
@@ -801,6 +801,13 @@ absl::Status SaveAllBlocks(Rom* rom);
 // This writes into the ZScream expanded collision region and updates the room
 // pointer table. Rooms not loaded (or not dirty) are preserved.
 absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms);
+
+// Scan all room sprite pointers and return the highest used PC address end.
+int FindMaxUsedSpriteAddress(Rom* rom);
+
+// Relocate a room's sprite payload into free tail space and update its pointer.
+absl::Status RelocateSpriteData(Rom* rom, int room_id,
+                                const std::vector<uint8_t>& encoded_bytes);
 
 // Aggregate chests from all rooms and write to ROM. Preserves ROM data for rooms not loaded.
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms);

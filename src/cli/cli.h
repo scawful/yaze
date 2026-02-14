@@ -13,16 +13,8 @@
 #include "rom/snes.h"
 #include "util/macro.h"
 
-// Forward declarations
-namespace ftxui {
-class ScreenInteractive;
-}
-
 namespace yaze {
 namespace cli {
-
-// Forward declaration
-class TuiComponent;
 
 class ModernCLI {
  public:

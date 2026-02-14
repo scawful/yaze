@@ -3,6 +3,116 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-14 imgui-frontend-engineer – Motion Profile + Reduced Motion
+- COMPLETE 2026-02-14 (imgui-frontend-engineer): added user-setting-backed reduced-motion + switch motion profiles (`Snappy`/`Standard`/`Relaxed`) in `UserSettings`, `SettingsPanel`, and `EditorManager` startup wiring.
+- Refactor: `Animator` now has shared motion policy (`MotionProfile`, profile-aware easing/speed, reduced-motion override), consumed by `PanelManager` editor-category fades and `RightPanelManager` slide transitions.
+- Validation: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8`; `./build/bin/Debug/yaze_test_unit --gtest_filter="AnimatorTest.*:UserSettingsLayoutDefaultsTest.*:PanelManagerPolicyTest.*"` (10/10 pass).
+- Deploy: synced `build/bin/Debug/yaze.app` to `/Applications/yaze.app` via `rsync -a --delete`; verified app binary hash parity.
+
+### 2026-02-14 imgui-frontend-engineer – Space-Switch Animation + Panel Host Cleanup
+- COMPLETE 2026-02-14 (imgui-frontend-engineer): fixed transition lifecycle safety in `Animator` (`ApplyPanelTransitionPre/Post` now balanced; added `ClearAllAnimations`) to prevent stale style/alpha state.
+- Added host-visibility hooks (`Controller` -> `EditorManager` -> `RightPanelManager`) to snap transient animations on focus/minimize/space-switch events and avoid ghosted panel frames.
+- UX polish: double-click reset + width tooltip for left sidebar, panel-browser splitter, and right sidebar splitter (VSCode-style resizing ergonomics).
+- Refactor: `PanelHost::RegisterPanels(...)` batch API and declarative `RegisterEmulatorPanels()` path; validation: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8` and `yaze_test_unit --gtest_filter="AnimatorTest.*:PanelManagerPolicyTest.*"` (5/5 pass).
+
+### 2026-02-14 imgui-frontend-engineer – Welcome Screen + Sidebar State Polish
+- COMPLETE 2026-02-14 (imgui-frontend-engineer): restored Welcome release history entries for `0.5.6` and `0.5.5`, and moved theme quick-switch out of the top-right header into the Release History section.
+- Header cleanup: shortened the version line, switched subtitle/version text to semantic theme colors, softened the separator line, and fixed decorative triforce positioning to use title width.
+- Sidebar polish: menu-bar sidebar toggle icon now reads `PanelManager::IsSidebarVisible()` directly to prevent stale closed-icon display.
+- Validation: `cmake --build --preset dev --target yaze --parallel 8`.
+
+### 2026-02-14 backend-infra-engineer – 0.6.0 UI + z3ed TUI Removal
+- COMPLETE 2026-02-14 (backend-infra-engineer): removed z3ed `--tui` runtime path and FTXUI wiring (`cli_main`, `cli.h`, `z3ed.cmake`, `agent.cmake`, `palette.cc`), and updated logo/help/docs text to CLI-first guidance.
+- UI polish: dashboard-active flow now suppresses/collapses left side panel (`activity_bar.cc`), and stale hardcoded automation panel version now uses `YAZE_VERSION_STRING` (`agent_automation_panel.cc`).
+- Validation: `cmake --build --preset dev --target z3ed yaze --parallel 8`; runtime probes (`z3ed --help`, `z3ed rom`, `z3ed debug`, `z3ed dungeon`, `z3ed dungeon-place-sprite`, `z3ed --tui` deprecation path) + `yaze_test_unit --gtest_filter="DungeonEditCommandsTest.*"` (7/7 pass).
+- Deploy: replaced `/Applications/yaze.app` with Debug app bundle (`CFBundleShortVersionString=0.6.0`), refreshed `/usr/local/bin/z3ed`, and verified app/CLI binary hash parity.
+
+### 2026-02-14 imgui-frontend-engineer – 0.6.0 GUI Claim Verification
+- COMPLETE 2026-02-14 (imgui-frontend-engineer): verified Gemini 0.6.0 UI/theming claims against source (`VERSION`, `CHANGELOG.md`, `welcome_screen`, `assets/themes/*`) and rebuilt full preset successfully.
+- Validation: `cmake --build --preset dev --parallel 8` completed all 991 targets (including `yaze.app`, `z3ed`, `yaze_test_unit`, and integration/gui test binaries).
+- Fixed remaining compile blockers from partial GUI refactors in dungeon/overworld/popup/welcome paths and confirmed clean compile through `welcome_screen.cc` and panel system objects.
+- Corrected plan-status drift in `docs/internal/plans/gui-modernization-2026.md` (Phase 2/3 set to in-progress to match unchecked tasks).
+
+### 2026-02-14 backend-infra-engineer – z3ed Help UX + Ninja Stability
+- COMPLETE 2026-02-14 (backend-infra-engineer): routed `z3ed <command> --help` / `-h` via command-scoped help and added missing-subcommand help for `rom`/`debug` plus category shortcut routing (e.g., `z3ed dungeon`).
+- Added `scripts/agents/ninja-heal.sh` and documented it in `scripts/agents/README.md` + `docs/internal/agents/automation-workflows.md`.
+- Deployed latest binaries: `/Applications/yaze.app` from `build/bin/Debug/yaze.app`; updated PATH-visible `z3ed` (`build/bin/z3ed` + `/usr/local/bin/z3ed` symlink) to current Debug build.
+- Validation: `cmake --build --preset dev --target z3ed --parallel 8`; runtime probes for `z3ed rom`, `z3ed debug`, `z3ed dungeon`, `z3ed rom-info --help`, and command missing-arg help (`z3ed message-read`).
+
+### 2026-02-13 zelda3-hacking-expert – z3ed Dungeon Edit Command Validation
+- COMPLETE 2026-02-13 (zelda3-hacking-expert): fixed sprite-write corruption root cause in `Room::SaveSprites` (sort-byte preservation for both `0x00` and `0x01`) and hardened `Room::LoadSprites` reload behavior (clears existing vector before decode).
+- Added regression coverage in `test/unit/zelda3/dungeon/dungeon_save_test.cc` (`SaveSprites_PreservesSortspriteHeaderByte`, `LoadSprites_DoesNotDuplicateOnReload`).
+- Validated all four commands against ROM copies (`dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`, `dungeon-set-collision-tile`) with dry-run/write/readback assertions; result: `SPRITE_OK before=10 after_place=11 after_remove=10`, `OBJECT_OK before=86 after=87`, `COLLISION_OK (10,5)=0xB7 (50,45)=0xBA`.
+- Added agent usage docs: `scripts/agents/README.md` quick reference and new local skills `~/.codex/skills/z3ed-dungeon-edit-commands/` + `~/.codex/skills/z3ed-dungeon-edit-audit/`.
+- Follow-up 2026-02-13: fixed `dungeon_edit_commands` argument-parse crash path (`BadStatusOrAccess` on invalid ints) by replacing unsafe `StatusOr::value()` usage with checked parsing and explicit errors; verified all invalid-int cases now fail cleanly with exit code `1`.
+- Added regression suite `test/unit/cli/dungeon_edit_commands_test.cc` (invalid-int + room-range + malformed tiles) and wired it into `test/CMakeLists.txt` stable/quick unit lists; translation unit compiles via `compile_commands`, full test target remains blocked by unrelated panel/layout compile failures.
+
+### 2026-02-13 imgui-frontend-engineer – Dungeon Editor + iOS/macOS Sync Hardening
+- IN_PROGRESS 2026-02-13 (imgui-frontend-engineer): auditing startup recents/project bootstrap, room-label synchronization, RoomList/workbench behavior, docking defaults, and object draw regressions (`0xC0`, `0x65`, `0x66`) in Dungeon Editor.
+- Scope includes room matrix dominant-color previews, red ceiling palette correction, and iOS<->desktop synchronization flow updates (CloudKit + desktop handoff).
+- Validation target: focused unit tests + smoke build with result summary posted here.
+- Update 2026-02-13 (imgui-frontend-engineer): extending scope to review recent Overworld Tile16/editor changes for ZScream/HMagic parity and to rework Overworld default docking/panel sizing for practical editing workflows.
+- Update 2026-02-13 (imgui-frontend-engineer): fixed Overworld paint-mode eyedropper to sample world tile data without mutating active-map state and set a practical default width for `overworld.properties`; validated via targeted `ninja` compile of edited Overworld panel/editor objects.
+- Update 2026-02-14 (imgui-frontend-engineer): fixed dungeon viewer room bound/palette lookup parity, standalone RoomList/workbench panel spawning (`ShowRoomPanel` + workbench render path), matrix dominant-color sampling from composite bitmap, layout defaults revision bump (`kLatestPanelLayoutDefaultsRevision=4`), and added BG2 transparency propagation for problematic `0xC0`/`0xC8` overlays.
+- Update 2026-02-14 (imgui-frontend-engineer): implemented iOS desktop-direct annotation polling sync + CloudKit auto pull/push wiring in `OracleToolsTab`; C++ validation passed (`cmake --build build --config Debug -j8`, 14 targeted unit tests pass), iOS scheme build reached compile then failed at known simulator link/arch mismatch (`arm64` static libs vs `x86_64` destination).
+- Update 2026-02-14 (imgui-frontend-engineer): applied room-effect-aware matrix previews (`ApplyRoomEffect` in `DungeonRoomMatrixPanel`) and CloudKit delta merge hardening (`createdAt`/`modifiedAt` record fields + synced upsert for existing annotations) in `AnnotationStore`/`AnnotationSyncEngine`; validation: `cmake --build build --config Debug -j8 --target yaze_test_unit`, `yaze_test_unit --gtest_filter='ObjectDrawerRegistryReplayTest.*:ObjectDrawerMaskPropagationTest.*:RoomLayerManagerTest.*:LayoutPresetsTest.*:UserSettingsLayoutDefaultsTest.*'`, `yaze_test_unit --gtest_filter='*Tile16*:*Overworld*'`, and `yaze_test_integration --gtest_filter='*Tile16*:*DungeonEditor*'` (passes with ROM-disabled Tile16 integration skips).
+- Update 2026-02-14 (imgui-frontend-engineer): reworked iOS shell to SwiftUI-first overlay (`YazeOverlayView`) with native high-level menu, persistent dungeon room sidebar bound to C++ via new bridge APIs (`getActiveDungeonRooms` / `focusDungeonRoom`), and bottom sync/status strip; validated with `xcodebuild -project src/ios/yaze_ios.xcodeproj -scheme yaze_ios -configuration Debug -destination 'id=00008130-0004284E3453803A'` (success), installed on `Baby Pad` + `iPadothée Chalamet` (launch requires unlocked device).
+- Update 2026-02-14 (imgui-frontend-engineer): removed legacy iOS compact-mode ImGui nav FAB path (`UICoordinator::DrawMobileNavigation` iOS early-return), continuing cleanup pass plus commit review/splitting across mixed-agent workspace changes.
+
+### 2026-02-13 zelda3-hacking-expert – Shrine Data Alignment + Gemini Loop Guardrail
+- COMPLETE 2026-02-13 (zelda3-hacking-expert): aligned Oracle shrine data/docs to "S2 Shrine of Power has no boss" and split S3 SOC rooms (`0x33/0x43/0x53/0x63`) out of SOP in `oracle-of-secrets/Docs/Dev/Planning/dungeons.json`.
+- Updated Oracle planning/docs for current truth (`Dungeons.md`, `ShrineofPower.md`, `ShrineofCourage.md`, `pendant_fix_task.md`, `rc_content_checklist.md`, `oracle_room_labels.json`) to remove stale S2 boss-assignment assumptions.
+- Hardened Gemini automation in yaze: added `--timeout-seconds` to `scripts/agents/gemini-yolo-loop.sh` and `scripts/agents/gemini-oracle-workstream.sh` to fail fast on hung iterations; aligned `scripts/agents/README.md` and `docs/internal/agents/automation-workflows.md` with timeout + MCP flag examples.
+- Validation: `bash -n` on both scripts; dry-run + real timeout run for `dimensions` task; run summaries under `~/.context/projects/oracle-of-secrets/scratchpad/gemini-yolo-runs/dimensions/`. Follow-up (2026-02-13): `dimensions` completed once with marker on `gemini-2.5-flash`, but strict local-prompt run (`dimensions-local`) timed out and did not persist CSV outputs.
+- Recovery run (2026-02-13): narrowed prompt (`gemini_dimensions_local_prompt_v2.md`) completed and produced focused artifacts (`object_dimension_validation_focus.csv`, `object_dimension_validation_focus_summary.md`); applied follow-up table fixes from those checks (`object_dimensions.cc`: chest bounds `0xF9-0xFD` -> 4x4; repeat step `0x123`/`0x13D` and subtype-3 table-rock IDs `0xF94/0xFF9/0xFCE/0xFE7/0xFE8` 8->6) and added `Subtype3RepeatersSelectionBoundsMatchObjectGeometry` coverage; validated via `ObjectDimensionTableTest.*` + `*DimensionCrossValidation*`.
+
+### 2026-02-13 zelda3-hacking-expert – Message Apply + Dimension Parity Sweep
+- COMPLETE 2026-02-13 (zelda3-hacking-expert): fixed `message-import-bundle --apply` ROM resolution/save path (`src/cli/handlers/game/message_commands.cc`) so global `--rom` works reliably.
+- Verified Gemini bundle apply flow on ROM copies (33 messages across 7 bundles, 0 parse/apply errors) and revalidated single-bundle apply via `z3ed --rom ... message-import-bundle --apply --strict`.
+- Corrected stale object dimension formulas for repeat/chest-platform objects in `src/zelda3/dungeon/object_dimensions.cc`; added robust broad parity sweep guardrails in `test/unit/zelda3/dungeon/object_dimensions_test.cc`.
+- Validation: `build/bin/Debug/yaze_test_unit --gtest_filter="ObjectDimensionTableTest.*"` (10/10 pass) and `ObjectDimensionTableTest.BroadSelectionBoundsParitySweepAgainstObjectGeometry` (pass).
+
+### 2026-02-13 imgui-frontend-engineer – Layout Defaults Override + Panel Sizing Refresh
+- COMPLETE 2026-02-13 (imgui-frontend-engineer): added revisioned panel-layout defaults migration (`UserSettings::ApplyPanelLayoutDefaultsRevision`) that force-overrides legacy persisted panel/layout state and triggers `ResetWorkspaceLayout` once.
+- Increased default panel ergonomics: wider left side panel, wider panel-browser category column/window defaults, relaxed right-panel min/max sizing, and updated DockBuilder split ratios for editor layouts.
+- Validation: `cmake --build --preset dev --parallel 8` + `./build/bin/Debug/yaze_test_unit --gtest_filter="UserSettingsLayoutDefaultsTest.*:PanelWindowTest.*:PanelManagerPolicyTest.*:EditorManagerTest.*:EditorManagerRomWritePolicyTest.*:EditorManagerOracleRomSafetyTest.*"`.
+- Deploy: replaced `/Applications/yaze.app` with `build/bin/Debug/yaze.app` and verified `shasum` parity.
+
+### 2026-02-13 imgui-frontend-engineer – Panel Browser Persistence + Agent Chat Focus
+- COMPLETE 2026-02-13 (imgui-frontend-engineer): persisted panel-browser category splitter width via `PanelManager` + `UserSettings`, and wired `ShowChatHistory()` to open/focus Agent Chat sidebar + mark panel MRU.
+- Scope: `activity_bar`, `panel_manager`, `editor_manager`, `agent_ui_controller`, and architecture docs.
+- Validation: `cmake --build --preset dev --parallel 8` and `./build/bin/Debug/yaze_test_unit --gtest_filter="PanelWindowTest.*:PanelManagerPolicyTest.*:EditorManagerTest.*:EditorManagerRomWritePolicyTest.*:EditorManagerOracleRomSafetyTest.*"` (11/11 pass).
+- Deploy: replaced `/Applications/yaze.app` with `build/bin/Debug/yaze.app` (old bundle moved to `/Applications/yaze.app.predeploy-20260213-121444`), verified `shasum` parity.
+
+### 2026-02-13 imgui-frontend-engineer – Panel Identity + Resizable Sidebars
+- COMPLETE 2026-02-13 (imgui-frontend-engineer): unified panel identity around `PanelDescriptor::GetImGuiWindowName()` and routed docking/focus lookups through `PanelManager::GetPanelWindowName(...)` in layout and sidebar flows.
+- Added persisted, configurable widths for both sidebars (left activity side panel + right panel types), including drag splitters and settings serialization (`sidebar.panel_width`, `layouts.right_panel_widths`).
+- Reworked panel browser to VSCode-style split navigation with draggable category splitter and category-scoped show/hide controls; added agent quick actions to open chat/proposals right sidebars.
+- Validation: `cmake --build --preset dev --parallel 4`, `cmake --preset mac-test`, `cmake --build --preset mac-test --target yaze_test_unit --parallel 4`, and `ctest --preset fast -R 'PanelManagerPolicyTest|ObjectTileEditorTest' --output-on-failure` (5/5 pass).
+- Deploy: copied `build/bin/RelWithDebInfo/yaze.app` to `/Applications/yaze.app` and verified binary hash match (`shasum` parity).
+
+### 2026-02-13 imgui-frontend-engineer – Object/Message Editor Follow-up
+- COMPLETE 2026-02-13 (imgui-frontend-engineer): wired object tile-count resolution through subtype lookup (`ObjectParser::ResolveTileCountForObject`) and ensured draw info uses lookup-derived counts.
+- Replaced object tile editor atlas hardcoded values with shared constants consumed by `ObjectTileEditorPanel`.
+- Hardened message bundle flows: export now always emits canonical `text`; import now detects duplicate `bank:id`, reports parse/id errors with categorized counters, and refreshes currently open message after apply.
+- Validation: `cmake --build build --target yaze_test_unit -j8` + `./build/bin/Debug/yaze_test_unit --gtest_filter="MessageBundleTest.*:ObjectParserTest.DrawInfoUsesSubtypeTileCountLookup:ObjectTileEditorTest.*"` (9/9 pass); deployed fresh `build/bin/Debug/yaze.app` to `/Applications/yaze.app`.
+
+### 2026-02-13 ai-infra-architect – Gemini YOLO Loop Automation
+- COMPLETE 2026-02-13 (ai-infra-architect): added `scripts/agents/gemini-yolo-loop.sh` (generic section/file loop runner with `--approval-mode yolo` + `--yolo`, completion marker checks, retry loops, per-iteration prompt/log capture) and `scripts/agents/gemini-oracle-workstream.sh` (dialogue/dimensions/wrap/annotation fanout wrapper).
+- Docs updated: `scripts/agents/README.md` and `docs/internal/agents/automation-workflows.md` with Oracle scratchpad usage examples.
+- Validation: `bash -n scripts/agents/gemini-yolo-loop.sh scripts/agents/gemini-oracle-workstream.sh`; dry-runs: `scripts/agents/gemini-oracle-workstream.sh --tasks dimensions --dry-run --max-iterations 1 --model gemini-2.5-pro` and `scripts/agents/gemini-oracle-workstream.sh --tasks all --dry-run --max-iterations 1 --model gemini-2.5-pro`.
+- Live run 2026-02-13: `dialogue`, `wrap`, and `annotation` completed and wrote Oracle artifacts (7 dialogue bundles + wrap report + annotation UX/schema/data-model docs); `dimensions` repeatedly stalled under model-capacity retry/hang paths and remains pending.
+
+### 2026-02-11 CODEX – iOS UX Stabilization (Baby Pad)
+- COMPLETE 2026-02-11 (CODEX): fixed compact iOS nav popup action in `ui_coordinator` (popup scope), removed double-applied safe-area offsets in `controller` + activity/right panels, widened compact/tablet sidebar heuristics, and increased touch status bar height/padding.
+- Added iOS flicker mitigation by throttling overlay inset publication in `YazeOverlayView`; follow-up pass in `ios_window_backend.mm` now clamps floating windows with per-edge safe insets + overlay-top only on top edge (no symmetric Y clamp oscillation).
+- Added SwiftUI integration pass in `YazeOverlayView`: native Project Browser + Oracle Tools sheets, routed modal presentation helper (`presentSheet`) to prevent sheet collisions, and touch accessibility/haptic polish for top controls.
+- Validation: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` built, signed, installed, and launched `org.halext.yaze-ios` successfully at 2026-02-11 07:43 local.
+- Validation update: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` succeeded again at 2026-02-11 07:58 local after SwiftUI integration changes.
+- Validation update: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` succeeded again at 2026-02-11 08:05 local after compact iOS nav-FAB stabilization (`ui_coordinator.cc`: fixed-size touch target + anchored popup placement above button).
+- Validation update: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` succeeded again at 2026-02-11 08:19 local after Claude-pass reconciliation: iOS editor-state bridge now uses owned `std::string` snapshot values (no dangling `c_str()`), and compact-mode iOS layout switched to hysteresis-based thresholds in both `ui_coordinator` and `layout_manager` to reduce resize flicker/thrash.
+- Note: concurrent agent edits touched `controller.cc`, `activity_bar.cc`, and `right_panel_manager.cc` immediately after deploy; this pass includes merge-safe notes in AFS scratchpad.
+
 ### 2026-02-11 CODEX – iOS Deploy Guardrail Fixes
 - COMPLETE 2026-02-11 (CODEX): fixed iOS follow-up regressions after `2aa18f22` by importing UIKit feedback symbols in `ios_platform_state.mm` and updating ImGui field rename in `ios_window_backend.mm` (`TabCloseButtonMinWidthUnselected`).
 - Hardened `scripts/xcodebuild-ios.sh deploy` to resolve the produced `.app` bundle dynamically instead of assuming `${scheme}.app`.

@@ -10,6 +10,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 
@@ -147,7 +148,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
       TableNextColumn();
       BeginGroup();
       for (int idx = 0; idx < 8; idx++) {
-        SetNextItemWidth(100.f);
+        SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
         gui::InputHexByte(
             ("Slot " + std::to_string(idx)).c_str(),
             &game_data()->main_blockset_ids[selected_blockset_][idx]);
@@ -218,7 +219,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     BeginGroup();
     Text("Sheet IDs (overwrites slots 4-7):");
     for (int idx = 0; idx < 4; idx++) {
-      SetNextItemWidth(100.f);
+      SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
       gui::InputHexByte(
           ("Slot " + std::to_string(idx + 4)).c_str(),
           &game_data()->room_blockset_ids[selected_roomset_][idx]);
@@ -275,7 +276,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
       BeginGroup();
       Text("Sprite sheet IDs (base 115+):");
       for (int idx = 0; idx < 4; idx++) {
-        SetNextItemWidth(100.f);
+        SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
         gui::InputHexByte(
             ("Slot " + std::to_string(idx)).c_str(),
             &game_data()->spriteset_ids[selected_spriteset_][idx]);
@@ -338,14 +339,14 @@ void GfxGroupEditor::DrawPaletteControls() {
   // View scale control
   Text(ICON_MD_ZOOM_IN " View");
   SameLine();
-  SetNextItemWidth(100.f);
+  SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
   SliderFloat("##ViewScale", &view_scale_, 1.0f, 4.0f, "%.1fx");
   SameLine();
 
   // Palette category selector
   Text(ICON_MD_PALETTE " Palette");
   SameLine();
-  SetNextItemWidth(150.f);
+  SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
 
   // Use the category names array for display
   static constexpr int kNumPaletteCategories = 14;
@@ -369,7 +370,7 @@ void GfxGroupEditor::DrawPaletteControls() {
   }
 
   SameLine();
-  SetNextItemWidth(80.f);
+  SetNextItemWidth(gui::LayoutHelpers::GetHexInputWidth());
   if (gui::InputHexByte("##PaletteIndex", &selected_palette_index_)) {
     UpdateCurrentPalette();
   }

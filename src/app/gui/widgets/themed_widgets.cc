@@ -520,5 +520,24 @@ void PanelHeader(const char* title, const char* icon, bool* p_open,
   ImGui::SetCursorPosY(header_height + 8.0f);
 }
 
+void ThemedTooltip(const char* text) {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+
+  ImGui::PushStyleColor(ImGuiCol_PopupBg, ConvertColorToImVec4(theme.popup_bg));
+  ImGui::PushStyleColor(ImGuiCol_Border, ConvertColorToImVec4(theme.border));
+  ImGui::PushStyleColor(ImGuiCol_Text, ConvertColorToImVec4(theme.text_primary));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
+  ImGui::PushStyleVar(ImGuiStyleVar_PopupRounding, 4.0f);
+  ImGui::PushStyleVar(ImGuiStyleVar_PopupBorderSize, 1.0f);
+
+  if (ImGui::BeginTooltip()) {
+    ImGui::Text("%s", text);
+    ImGui::EndTooltip();
+  }
+
+  ImGui::PopStyleVar(3);
+  ImGui::PopStyleColor(3);
+}
+
 }  // namespace gui
 }  // namespace yaze

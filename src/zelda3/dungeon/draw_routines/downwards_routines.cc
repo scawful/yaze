@@ -87,7 +87,7 @@ void DrawDownwards4x2_1to16_BothBG(const DrawContext& ctx) {
 void DrawDownwardsDecor4x2spaced4_1to16(const DrawContext& ctx) {
   // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
   // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 6-tile Y
-  // spacing
+  // spacing.
   int size = ctx.object.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -95,35 +95,19 @@ void DrawDownwardsDecor4x2spaced4_1to16(const DrawContext& ctx) {
 
   for (int s = 0; s < count; s++) {
     if (ctx.tiles.size() >= 8) {
-      // Draw 4x2 pattern in COLUMN-MAJOR order
-      // Column 0 (tiles 0-1)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 6),
-                                    ctx.tiles[0]);  // col 0, row 0
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 6) + 1,
-                                    ctx.tiles[1]);  // col 0, row 1
-      // Column 1 (tiles 2-3)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 6),
-                                    ctx.tiles[2]);  // col 1, row 0
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 6) + 1,
-                                    ctx.tiles[3]);  // col 1, row 1
-      // Column 2 (tiles 4-5)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2,
-                                    ctx.object.y_ + (s * 6),
-                                    ctx.tiles[4]);  // col 2, row 0
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2,
-                                    ctx.object.y_ + (s * 6) + 1,
-                                    ctx.tiles[5]);  // col 2, row 1
-      // Column 3 (tiles 6-7)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
-                                    ctx.object.y_ + (s * 6),
-                                    ctx.tiles[6]);  // col 3, row 0
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
-                                    ctx.object.y_ + (s * 6) + 1,
-                                    ctx.tiles[7]);  // col 3, row 1
+      // Draw 4x2 pattern in COLUMN-MAJOR order:
+      // Col 0: tiles[0], tiles[1]
+      // Col 1: tiles[2], tiles[3]
+      // Col 2: tiles[4], tiles[5]
+      // Col 3: tiles[6], tiles[7]
+      const int base_y = ctx.object.y_ + (s * 6);
+      for (int x = 0; x < 4; ++x) {
+        for (int y = 0; y < 2; ++y) {
+          const size_t tile_idx = static_cast<size_t>((x * 2) + y);
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                       base_y + y, ctx.tiles[tile_idx]);
+        }
+      }
     }
   }
 }

@@ -200,8 +200,44 @@ int CustomObjectManager::GetSubtypeCount(int object_id) const {
   return 0;
 }
 
+void CustomObjectManager::AddObjectFile(int object_id,
+                                        const std::string& filename) {
+  // If no custom_file_map_ entry exists, seed from static defaults
+  if (custom_file_map_.find(object_id) == custom_file_map_.end()) {
+    const auto* defaults = (object_id == 0x31) ? &kSubtype1Filenames
+                           : (object_id == 0x32) ? &kSubtype2Filenames
+                                                 : nullptr;
+    if (defaults) {
+      custom_file_map_[object_id] = *defaults;
+    }
+  }
+  custom_file_map_[object_id].push_back(filename);
+
+  // Clear cache for the new file so it loads fresh
+  cache_.erase(filename);
+}
+
+std::vector<std::string> CustomObjectManager::GetEffectiveFileList(
+    int object_id) const {
+  const auto* list = ResolveFileList(object_id);
+  if (list) return *list;
+  return {};
+}
+
 void CustomObjectManager::ReloadAll() {
   cache_.clear();
+}
+
+std::string CustomObjectManager::ResolveFilename(int object_id,
+                                                  int subtype) const {
+  const auto* list = ResolveFileList(object_id);
+  if (!list && object_id >= 0x100 && object_id <= 0x103) {
+    list = ResolveFileList(0x31);
+  }
+  if (list && subtype >= 0 && subtype < static_cast<int>(list->size())) {
+    return (*list)[subtype];
+  }
+  return "";
 }
 
 } // namespace zelda3

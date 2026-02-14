@@ -176,6 +176,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_edit_commands_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
     unit/rom/write_fence_test.cc
@@ -194,6 +195,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
     unit/gui/panel_window_test.cc
+    unit/gui/animator_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/message/message_expanded_write_test.cc
@@ -208,6 +210,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
+    unit/editor/layout_presets_test.cc
+    unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -227,6 +231,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/custom_object_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
+    unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
     unit/zelda3/dungeon/dimension_cross_validation_test.cc
     unit/zelda3/dungeon/dimension_service_test.cc
@@ -244,6 +249,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/draw_routine_mapping_test.cc
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
     unit/zelda3/dungeon/object_drawing_comprehensive_test.cc
+    unit/zelda3/dungeon/object_tile_editor_test.cc
     unit/zelda3/dungeon/room_graphics_palette_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
     unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
@@ -343,6 +349,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/paint_util_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_edit_commands_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
     unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
     unit/zelda3/dungeon/custom_collision_json_test.cc

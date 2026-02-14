@@ -2,12 +2,14 @@
 
 #include <cstdio>
 
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -138,21 +140,15 @@ void SelectionPropertiesPanel::DrawNoSelection() {
 
 void SelectionPropertiesPanel::DrawPropertyHeader(const char* icon,
                                                    const char* title) {
-  gui::ColoredText(icon, gui::GetPrimaryVec4());
-  ImGui::SameLine();
-  ImGui::Text("%s", title);
-
+  std::string full_title = absl::StrFormat("%s %s", icon, title);
   if (!selection_.display_name.empty()) {
-    ImGui::SameLine();
-    ImGui::TextDisabled("- %s", selection_.display_name.c_str());
+    absl::StrAppend(&full_title, " - ", selection_.display_name);
   }
-
   if (selection_.read_only) {
-    ImGui::SameLine();
-    ImGui::TextDisabled("(Read Only)");
+    absl::StrAppend(&full_title, " (Read Only)");
   }
 
-  ImGui::Separator();
+  gui::SectionHeader(full_title.c_str());
   ImGui::Spacing();
 }
 
@@ -178,7 +174,7 @@ void SelectionPropertiesPanel::DrawSelectionSummary() {
   ImGui::Spacing();
   bool wrote_action = false;
   if (selection_.id >= 0) {
-    if (ImGui::SmallButton("Copy ID")) {
+    if (gui::ThemedButton("Copy ID")) {
       char buffer[32];
       std::snprintf(buffer, sizeof(buffer), "%d", selection_.id);
       ImGui::SetClipboardText(buffer);
@@ -187,7 +183,7 @@ void SelectionPropertiesPanel::DrawSelectionSummary() {
   }
   if (selection_.id >= 0) {
     if (wrote_action) ImGui::SameLine();
-    if (ImGui::SmallButton("Copy Hex")) {
+    if (gui::ThemedButton("Copy Hex")) {
       char buffer[32];
       std::snprintf(buffer, sizeof(buffer), "0x%X", selection_.id);
       ImGui::SetClipboardText(buffer);
@@ -196,7 +192,7 @@ void SelectionPropertiesPanel::DrawSelectionSummary() {
   }
   if (!selection_.display_name.empty()) {
     if (wrote_action) ImGui::SameLine();
-    if (ImGui::SmallButton("Copy Name")) {
+    if (gui::ThemedButton("Copy Name")) {
       ImGui::SetClipboardText(selection_.display_name.c_str());
     }
     wrote_action = true;
@@ -222,15 +218,15 @@ void SelectionPropertiesPanel::DrawAgentActions() {
   ImGui::TextDisabled("%s Agent Actions", ICON_MD_SMART_TOY);
   bool no_selection = (selection_.type == SelectionType::kNone);
   ImGui::BeginDisabled(no_selection);
-  if (ImGui::SmallButton("Explain")) {
+  if (gui::ThemedButton("Explain")) {
     SendAgentPrompt("Explain this selection and how to edit it safely.");
   }
   ImGui::SameLine();
-  if (ImGui::SmallButton("Suggest Fixes")) {
+  if (gui::ThemedButton("Suggest Fixes")) {
     SendAgentPrompt("Suggest improvements or checks for this selection.");
   }
   ImGui::SameLine();
-  if (ImGui::SmallButton("Audit")) {
+  if (gui::ThemedButton("Audit")) {
     SendAgentPrompt("Audit this selection for possible issues or conflicts.");
   }
   ImGui::EndDisabled();

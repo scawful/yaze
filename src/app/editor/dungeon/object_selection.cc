@@ -3,7 +3,8 @@
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/agent_theme.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
@@ -259,90 +260,54 @@ void ObjectSelection::DrawSelectionHighlights(
     obj_end.x += margin;
     obj_end.y += margin;
 
-    // Get color based on object layer and type
-    ImVec4 base_color = GetLayerTypeColor(object);
-    
+    // Get color based on theme
+    const auto& theme = AgentUI::GetTheme();
+
     // Draw pulsing animated border
     float pulse =
-        0.7f + 0.3f * std::sin(static_cast<float>(ImGui::GetTime()) * 4.0f);
-    ImVec4 pulsing_color = ImVec4(
-        base_color.x * pulse, base_color.y * pulse, base_color.z * pulse,
-        0.85f  // High-contrast at 0.85f alpha
-    );
-    ImU32 border_color = ImGui::GetColorU32(pulsing_color);
-    draw_list->AddRect(obj_start, obj_end, border_color, 0.0f, 0, 2.5f);
+        0.6f + 0.4f * std::sin(static_cast<float>(ImGui::GetTime()) * 6.0f);
+    ImVec4 pulsing_color = theme.selection_primary;
+    pulsing_color.w = 0.4f + 0.4f * pulse;
 
-    // Draw corner handles with matching color
-    constexpr float handle_size = 6.0f;
-    ImVec4 handle_col = ImVec4(base_color.x, base_color.y, base_color.z, 0.95f);
-    ImU32 handle_color = ImGui::GetColorU32(handle_col);
+    ImU32 border_color = ImGui::GetColorU32(theme.selection_primary);
+    ImU32 pulse_color_u32 = ImGui::GetColorU32(pulsing_color);
 
-    // Top-left handle
-    draw_list->AddRectFilled(
-        ImVec2(obj_start.x - handle_size / 2, obj_start.y - handle_size / 2),
-        ImVec2(obj_start.x + handle_size / 2, obj_start.y + handle_size / 2),
-        handle_color);
+    draw_list->AddRect(obj_start, obj_end, border_color, 0.0f, 0, 2.0f);
+    draw_list->AddRect(obj_start, obj_end, pulse_color_u32, 0.0f, 0, 4.0f);
 
-    // Top-right handle
-    draw_list->AddRectFilled(
-        ImVec2(obj_end.x - handle_size / 2, obj_start.y - handle_size / 2),
-        ImVec2(obj_end.x + handle_size / 2, obj_start.y + handle_size / 2),
-        handle_color);
+    // Draw corner handles with theme handle color
+    float handle_size = 6.0f * std::max(1.0f, scale * 0.5f);
+    ImU32 handle_color = ImGui::GetColorU32(theme.selection_handle);
+    ImU32 handle_outline = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.8f));
 
-    // Bottom-left handle
-    draw_list->AddRectFilled(
-        ImVec2(obj_start.x - handle_size / 2, obj_end.y - handle_size / 2),
-        ImVec2(obj_start.x + handle_size / 2, obj_end.y + handle_size / 2),
-        handle_color);
+    auto draw_handle = [&](ImVec2 pos) {
+      draw_list->AddRectFilled(
+          ImVec2(pos.x - handle_size / 2, pos.y - handle_size / 2),
+          ImVec2(pos.x + handle_size / 2, pos.y + handle_size / 2),
+          handle_color, 2.0f);
+      draw_list->AddRect(
+          ImVec2(pos.x - handle_size / 2, pos.y - handle_size / 2),
+          ImVec2(pos.x + handle_size / 2, pos.y + handle_size / 2),
+          handle_outline, 2.0f, 0, 1.0f);
+    };
 
-    // Bottom-right handle
-    draw_list->AddRectFilled(
-        ImVec2(obj_end.x - handle_size / 2, obj_end.y - handle_size / 2),
-        ImVec2(obj_end.x + handle_size / 2, obj_end.y + handle_size / 2),
-        handle_color);
+    draw_handle(obj_start);
+    draw_handle(ImVec2(obj_end.x, obj_start.y));
+    draw_handle(ImVec2(obj_start.x, obj_end.y));
+    draw_handle(obj_end);
   }
 }
 
 ImVec4 ObjectSelection::GetLayerTypeColor(const zelda3::RoomObject& object) const {
-  // Layer-based primary hue with type-based saturation variation
+  const auto& theme = AgentUI::GetTheme();
   int layer = object.GetLayerValue();
-  int object_type = zelda3::GetObjectSubtype(object.id_);
-  
-  // Layer colors (distinct hues for each layer)
-  // Layer 0 (BG1): Cyan/Teal
-  // Layer 1 (BG2): Orange/Amber  
-  // Layer 2 (BG3): Magenta/Pink
-  ImVec4 base;
+
   switch (layer) {
-    case 0:  // BG1 - Cyan
-      base = ImVec4(0.0f, 0.9f, 1.0f, 1.0f);
-      break;
-    case 1:  // BG2 - Orange
-      base = ImVec4(1.0f, 0.6f, 0.0f, 1.0f);
-      break;
-    case 2:  // BG3 - Magenta
-      base = ImVec4(1.0f, 0.3f, 0.8f, 1.0f);
-      break;
-    default:
-      base = ImVec4(0.8f, 0.8f, 0.8f, 1.0f);  // Gray for unknown
-      break;
+    case 0: return theme.dungeon_outline_layer0;
+    case 1: return theme.dungeon_outline_layer1;
+    case 2: return theme.dungeon_outline_layer2;
+    default: return theme.status_inactive;
   }
-  
-  // Slightly shift color based on object type for additional differentiation
-  switch (object_type) {
-    case 1:  // Type 1 (0x00-0xFF) - walls, floors - base color
-      break;
-    case 2:  // Type 2 (0x100-0x1FF) - doors, interactive - slightly brighter
-      base.x = std::min(1.0f, base.x * 1.1f);
-      base.y = std::min(1.0f, base.y * 1.1f);
-      base.z = std::min(1.0f, base.z * 1.1f);
-      break;
-    case 3:  // Type 3 (0xF00+) - special objects - slightly shifted
-      base.x = std::min(1.0f, base.x + 0.1f);
-      break;
-  }
-  
-  return base;
 }
 
 void ObjectSelection::DrawRectangleSelectionBox(gui::Canvas* canvas) {
@@ -362,14 +327,14 @@ void ObjectSelection::DrawRectangleSelectionBox(gui::Canvas* canvas) {
   ImVec2 box_start(canvas_pos.x + min_x * scale, canvas_pos.y + min_y * scale);
   ImVec2 box_end(canvas_pos.x + max_x * scale, canvas_pos.y + max_y * scale);
 
-  // Draw selection box with theme accent color
+  // Draw selection box with theme selection color
   // Border: High-contrast at 0.85f alpha
   ImU32 border_color = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z,
+      ImVec4(theme.selection_secondary.x, theme.selection_secondary.y, theme.selection_secondary.z,
              0.85f));
   // Fill: Subtle at 0.15f alpha
   ImU32 fill_color = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(theme.accent_color.x, theme.accent_color.y, theme.accent_color.z,
+      ImVec4(theme.selection_secondary.x, theme.selection_secondary.y, theme.selection_secondary.z,
              0.15f));
 
   draw_list->AddRectFilled(box_start, box_end, fill_color);

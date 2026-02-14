@@ -27,6 +27,7 @@ set(
   app/editor/dungeon/panels/dungeon_room_graphics_panel.cc
   app/editor/dungeon/panels/dungeon_workbench_panel.cc
   app/editor/dungeon/panels/object_editor_panel.cc
+  app/editor/dungeon/panels/object_tile_editor_panel.cc
   app/editor/dungeon/panels/minecart_track_editor_panel.cc
   app/editor/dungeon/panels/room_tag_editor_panel.cc
   app/editor/editor_manager.cc
@@ -112,6 +113,7 @@ set(
   app/editor/layout/window_delegate.cc
   app/editor/system/editor_activator.cc
   app/editor/system/editor_registry.cc
+  app/editor/system/panel_host.cc
   app/editor/system/panel_manager.cc
   app/editor/system/file_browser.cc
   app/editor/system/proposal_drawer.cc

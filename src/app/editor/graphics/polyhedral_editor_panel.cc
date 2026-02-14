@@ -9,6 +9,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/plots/implot_support.h"
 #include "imgui/imgui.h"
 #include "implot.h"
@@ -192,7 +193,7 @@ void PolyhedralEditorPanel::Draw(bool* p_open) {
 
   // Shape selector
   if (!shapes_.empty()) {
-    ImGui::SetNextItemWidth(180);
+    ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth());
     if (ImGui::BeginCombo("Shape", shapes_[selected_shape_].name.c_str())) {
       for (size_t i = 0; i < shapes_.size(); ++i) {
         bool selected = static_cast<int>(i) == selected_shape_;
@@ -252,7 +253,7 @@ absl::Status PolyhedralEditorPanel::Update() {
 
   // Shape selector
   if (!shapes_.empty()) {
-    ImGui::SetNextItemWidth(180);
+    ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth());
     if (ImGui::BeginCombo("Shape", shapes_[selected_shape_].name.c_str())) {
       for (size_t i = 0; i < shapes_.size(); ++i) {
         bool selected = static_cast<int>(i) == selected_shape_;
@@ -329,7 +330,8 @@ void PolyhedralEditorPanel::DrawVertexList(PolyShape& shape) {
     }
 
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(210);
+    ImGui::SetNextItemWidth(
+        gui::LayoutHelpers::GetStandardInputWidth() * 1.2f);
     int coords[3] = {shape.vertices[i].x, shape.vertices[i].y,
                      shape.vertices[i].z};
     if (ImGui::InputInt3("##coords", coords)) {
@@ -354,7 +356,7 @@ void PolyhedralEditorPanel::DrawFaceList(PolyShape& shape) {
     ImGui::Text("Face %zu", i);
     ImGui::SameLine();
     int shade = shape.faces[i].shade;
-    ImGui::SetNextItemWidth(70);
+    ImGui::SetNextItemWidth(gui::LayoutHelpers::GetCompactInputWidth());
     if (ImGui::InputInt("Shade##face", &shade, 0, 0)) {
       shape.faces[i].shade = static_cast<uint8_t>(Clamp(shade, 0, 0xFF));
       dirty_ = true;
@@ -368,7 +370,8 @@ void PolyhedralEditorPanel::DrawFaceList(PolyShape& shape) {
     for (size_t v = 0; v < shape.faces[i].vertex_indices.size(); ++v) {
       ImGui::SameLine();
       int idx = shape.faces[i].vertex_indices[v];
-      ImGui::SetNextItemWidth(40);
+      ImGui::SetNextItemWidth(
+          gui::LayoutHelpers::GetCompactInputWidth() * 0.75f);
       if (ImGui::InputInt(absl::StrFormat("##v%zu", v).c_str(), &idx, 0, 0)) {
         idx = Clamp(idx, 0, max_idx);
         shape.faces[i].vertex_indices[v] = static_cast<uint8_t>(idx);
@@ -456,16 +459,16 @@ void PolyhedralEditorPanel::DrawPreview(PolyShape& shape) {
   static float zoom = 1.0f;
 
   ImGui::TextUnformatted("Preview (orthographic)");
-  ImGui::SetNextItemWidth(120);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
   ImGui::SliderFloat("Rot X", &rot_x, -3.14f, 3.14f, "%.2f");
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(120);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
   ImGui::SliderFloat("Rot Y", &rot_y, -3.14f, 3.14f, "%.2f");
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(120);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
   ImGui::SliderFloat("Rot Z", &rot_z, -3.14f, 3.14f, "%.2f");
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(100);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
   ImGui::SliderFloat("Zoom", &zoom, 0.5f, 3.0f, "%.2f");
 
   // Precompute rotated vertices

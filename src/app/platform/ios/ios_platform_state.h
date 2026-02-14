@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace yaze {
 namespace platform {
 namespace ios {
@@ -10,6 +12,20 @@ struct SafeAreaInsets {
   float top = 0.0f;
   float bottom = 0.0f;
 };
+
+// Snapshot of current editor state, pushed to SwiftUI overlay each frame.
+struct EditorStateSnapshot {
+  bool can_undo = false;
+  bool can_redo = false;
+  bool can_save = false;
+  bool is_dirty = false;
+  std::string editor_type;
+  std::string rom_title;
+};
+
+// Post editor state to the SwiftUI overlay via NSNotification.
+// Only posts when the state has actually changed (diffed internally).
+void PostEditorStateUpdate(const EditorStateSnapshot& state);
 
 void SetMetalView(void* view);
 void* GetMetalView();

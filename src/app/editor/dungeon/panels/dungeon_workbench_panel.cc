@@ -59,6 +59,7 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     int* previous_room_id, bool* split_view_enabled, int* compare_room_id,
     DungeonWorkbenchLayoutState* layout_state,
     std::function<void(int)> on_room_selected,
+    std::function<void(int, RoomSelectionIntent)> on_room_selected_with_intent,
     std::function<void(int)> on_save_room,
     std::function<DungeonCanvasViewer*()> get_viewer,
     std::function<DungeonCanvasViewer*()> get_compare_viewer,
@@ -72,6 +73,8 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
       compare_room_id_(compare_room_id),
       layout_state_(layout_state),
       on_room_selected_(std::move(on_room_selected)),
+      on_room_selected_with_intent_(
+          std::move(on_room_selected_with_intent)),
       on_save_room_(std::move(on_save_room)),
       get_viewer_(std::move(get_viewer)),
       get_compare_viewer_(std::move(get_compare_viewer)),
@@ -329,6 +332,11 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
           if (compare_room_id_) {
             *compare_room_id_ = room_id;
           }
+        }
+        if (on_room_selected_with_intent_ &&
+            ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open as Panel")) {
+          on_room_selected_with_intent_(room_id,
+                                        RoomSelectionIntent::kOpenStandalone);
         }
         if (forget_recent_room_ && ImGui::MenuItem(ICON_MD_CLOSE " Close")) {
           to_forget.push_back(room_id);
@@ -851,7 +859,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfTools(
   ImGui::TableNextRow();
   ImGui::TableNextColumn();
   if (ImGui::Button(ICON_MD_WIDGETS " Objects", ImVec2(-1, 0))) {
-    show_panel_("dungeon.object_tools");
+    show_panel_("dungeon.object_editor");
   }
   ImGui::TableNextColumn();
   if (ImGui::Button(ICON_MD_PERSON " Sprites", ImVec2(-1, 0))) {

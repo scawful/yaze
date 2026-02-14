@@ -243,6 +243,59 @@ TEST(MessageBundleTest, ParseLegacyArrayBundle) {
   EXPECT_EQ(entries[0].bank, MessageBank::kVanilla);
 }
 
+TEST(MessageBundleTest, SerializeBundleIncludesCanonicalTextField) {
+  std::vector<MessageData> vanilla;
+  std::vector<MessageData> expanded;
+  vanilla.push_back(MessageData(0, 0x100, "Raw [K]", {}, "Parsed", {}));
+  expanded.push_back(MessageData(1, 0x200, "", {}, "ExpandedParsed", {}));
+
+  nlohmann::json bundle = SerializeMessageBundle(vanilla, expanded);
+  ASSERT_EQ(bundle["messages"].size(), 2);
+  EXPECT_EQ(bundle["messages"][0]["text"], "Raw [K]");
+  EXPECT_EQ(bundle["messages"][1]["text"], "ExpandedParsed");
+}
+
+TEST(MessageBundleTest, ParseStructuredBundleRespectsBankAndText) {
+  nlohmann::json bundle;
+  bundle["format"] = "yaze-message-bundle";
+  bundle["version"] = kMessageBundleVersion;
+  bundle["messages"] = nlohmann::json::array();
+  bundle["messages"].push_back(
+      {{"id", 7}, {"bank", "expanded"}, {"text", "Hi"}});
+
+  auto entries_or = ParseMessageBundleJson(bundle);
+  ASSERT_TRUE(entries_or.ok());
+  auto entries = entries_or.value();
+  ASSERT_EQ(entries.size(), 1);
+  EXPECT_EQ(entries[0].id, 7);
+  EXPECT_EQ(entries[0].bank, MessageBank::kExpanded);
+  EXPECT_EQ(entries[0].text, "Hi");
+}
+
+TEST(MessageBundleTest, ParseStructuredBundleRejectsUnsupportedVersion) {
+  nlohmann::json bundle;
+  bundle["format"] = "yaze-message-bundle";
+  bundle["version"] = kMessageBundleVersion + 1;
+  bundle["messages"] = nlohmann::json::array();
+  bundle["messages"].push_back({{"id", 0}, {"text", "Hello"}});
+
+  auto entries_or = ParseMessageBundleJson(bundle);
+  EXPECT_FALSE(entries_or.ok());
+  EXPECT_EQ(entries_or.status().code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(MessageBundleTest, ParseStructuredBundleRequiresTextContent) {
+  nlohmann::json bundle;
+  bundle["format"] = "yaze-message-bundle";
+  bundle["version"] = kMessageBundleVersion;
+  bundle["messages"] = nlohmann::json::array();
+  bundle["messages"].push_back({{"id", 0}});
+
+  auto entries_or = ParseMessageBundleJson(bundle);
+  EXPECT_FALSE(entries_or.ok());
+  EXPECT_EQ(entries_or.status().code(), absl::StatusCode::kInvalidArgument);
+}
+
 // ===========================================================================
 // FindDictionaryEntry Tests
 // ===========================================================================

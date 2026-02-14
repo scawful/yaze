@@ -3,6 +3,7 @@
 #include "app/editor/system/panel_manager.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <fstream>
 
@@ -146,6 +147,77 @@ PanelManager::CategoryTheme PanelManager::GetCategoryTheme(
   return {0.50f, 0.60f, 0.80f, 1.0f, 0.50f, 0.60f, 0.80f};
 }
 
+PanelManager::SidePanelWidthBounds PanelManager::GetSidePanelWidthBounds(
+    float viewport_width) {
+  const float fallback = GetSidePanelWidthForViewport(viewport_width);
+  if (viewport_width <= 0.0f) {
+    SidePanelWidthBounds bounds{};
+    bounds.min_width = 220.0f;
+    bounds.max_width = std::max(520.0f, fallback);
+    return bounds;
+  }
+
+  const float min_width = std::max(220.0f, viewport_width * 0.18f);
+  const float max_width = std::max(min_width + 20.0f, viewport_width * 0.62f);
+  SidePanelWidthBounds bounds{};
+  bounds.min_width = min_width;
+  bounds.max_width = max_width;
+  return bounds;
+}
+
+float PanelManager::GetActiveSidePanelWidth(float viewport_width) const {
+  const float default_width = GetSidePanelWidthForViewport(viewport_width);
+  if (side_panel_width_ <= 0.0f) {
+    return default_width;
+  }
+  const auto bounds = GetSidePanelWidthBounds(viewport_width);
+  return std::clamp(side_panel_width_, bounds.min_width, bounds.max_width);
+}
+
+void PanelManager::SetActiveSidePanelWidth(float width, float viewport_width,
+                                           bool notify) {
+  if (width <= 0.0f) {
+    side_panel_width_ = 0.0f;
+    if (notify && on_side_panel_width_changed_) {
+      on_side_panel_width_changed_(0.0f);
+    }
+    return;
+  }
+
+  const auto bounds = GetSidePanelWidthBounds(viewport_width);
+  const float clamped = std::clamp(width, bounds.min_width, bounds.max_width);
+  if (std::abs(side_panel_width_ - clamped) < 0.5f) {
+    return;
+  }
+  side_panel_width_ = clamped;
+  if (notify && on_side_panel_width_changed_) {
+    on_side_panel_width_changed_(side_panel_width_);
+  }
+}
+
+void PanelManager::ResetSidePanelWidth(bool notify) {
+  if (side_panel_width_ <= 0.0f) {
+    return;
+  }
+  side_panel_width_ = 0.0f;
+  if (notify && on_side_panel_width_changed_) {
+    on_side_panel_width_changed_(side_panel_width_);
+  }
+}
+
+void PanelManager::SetPanelBrowserCategoryWidth(float width, bool notify) {
+  const float fallback = GetDefaultPanelBrowserCategoryWidth();
+  const float clamped =
+      std::max(180.0f, width > 0.0f ? width : fallback);
+  if (std::abs(panel_browser_category_width_ - clamped) < 0.5f) {
+    return;
+  }
+  panel_browser_category_width_ = clamped;
+  if (notify && on_panel_browser_category_width_changed_) {
+    on_panel_browser_category_width_changed_(panel_browser_category_width_);
+  }
+}
+
 // ============================================================================
 // Session Lifecycle Management
 // ============================================================================
@@ -221,6 +293,46 @@ std::string PanelManager::GetContextKey(size_t session_id,
   return it->second;
 }
 
+void PanelManager::RegisterPanelAlias(const std::string& legacy_base_id,
+                                      const std::string& canonical_base_id) {
+  if (legacy_base_id.empty() || canonical_base_id.empty() ||
+      legacy_base_id == canonical_base_id) {
+    return;
+  }
+  panel_id_aliases_[legacy_base_id] = canonical_base_id;
+}
+
+std::string PanelManager::ResolvePanelAlias(const std::string& panel_id) const {
+  return ResolveBasePanelId(panel_id);
+}
+
+std::string PanelManager::ResolveBasePanelId(const std::string& panel_id) const {
+  if (panel_id.empty()) {
+    return "";
+  }
+
+  std::string resolved = panel_id;
+  std::unordered_set<std::string> visited;
+  visited.insert(resolved);
+
+  for (int depth = 0; depth < 16; ++depth) {
+    auto alias_it = panel_id_aliases_.find(resolved);
+    if (alias_it == panel_id_aliases_.end() || alias_it->second.empty()) {
+      return resolved;
+    }
+
+    const std::string& next = alias_it->second;
+    if (next == resolved || visited.count(next) > 0) {
+      return resolved;
+    }
+
+    resolved = next;
+    visited.insert(resolved);
+  }
+
+  return resolved;
+}
+
 void PanelManager::ApplyContextPolicy(size_t session_id, PanelContextScope scope,
                                       const std::string& old_key,
                                       const std::string& new_key) {
@@ -282,11 +394,14 @@ void PanelManager::RegisterPanel(size_t session_id,
                                  const PanelDescriptor& base_info) {
   RegisterSession(session_id);  // Ensure session exists
 
+  PanelDescriptor canonical_info = base_info;
+  canonical_info.card_id = ResolveBasePanelId(base_info.card_id);
+
   std::string panel_id =
-      MakePanelId(session_id, base_info.card_id, base_info.scope);
+      MakePanelId(session_id, canonical_info.card_id, canonical_info.scope);
 
   bool already_registered = (cards_.find(panel_id) != cards_.end());
-  if (already_registered && base_info.scope != PanelScope::kGlobal) {
+  if (already_registered && canonical_info.scope != PanelScope::kGlobal) {
     LOG_WARN("PanelManager",
              "Panel '%s' already registered, skipping duplicate",
              panel_id.c_str());
@@ -294,7 +409,7 @@ void PanelManager::RegisterPanel(size_t session_id,
 
   if (!already_registered) {
     // Create new PanelDescriptor with final ID
-    PanelDescriptor panel_info = base_info;
+    PanelDescriptor panel_info = canonical_info;
     panel_info.card_id = panel_id;
 
     // If no visibility_flag provided, create centralized one
@@ -307,14 +422,14 @@ void PanelManager::RegisterPanel(size_t session_id,
     cards_[panel_id] = panel_info;
 
     LOG_INFO("PanelManager", "Registered card %s -> %s for session %zu",
-             base_info.card_id.c_str(), panel_id.c_str(), session_id);
+             canonical_info.card_id.c_str(), panel_id.c_str(), session_id);
   }
 
-  if (base_info.scope == PanelScope::kGlobal) {
+  if (canonical_info.scope == PanelScope::kGlobal) {
     global_panel_ids_.insert(panel_id);
   }
 
-  TrackPanelForSession(session_id, base_info.card_id, panel_id);
+  TrackPanelForSession(session_id, canonical_info.card_id, panel_id);
 }
 
 void PanelManager::RegisterPanel(size_t session_id, const std::string& card_id,
@@ -326,7 +441,7 @@ void PanelManager::RegisterPanel(size_t session_id, const std::string& card_id,
                                  std::function<void()> on_hide,
                                  bool visible_by_default) {
   PanelDescriptor info;
-  info.card_id = card_id;
+  info.card_id = ResolveBasePanelId(card_id);
   info.display_name = display_name;
   info.icon = icon;
   info.category = category;
@@ -340,13 +455,14 @@ void PanelManager::RegisterPanel(size_t session_id, const std::string& card_id,
 
   // Set initial visibility if requested
   if (visible_by_default) {
-    ShowPanel(session_id, card_id);
+    ShowPanel(session_id, info.card_id);
   }
 }
 
 void PanelManager::UnregisterPanel(size_t session_id,
                                    const std::string& base_card_id) {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
     return;
   }
@@ -365,7 +481,7 @@ void PanelManager::UnregisterPanel(size_t session_id,
                         card_list.end());
       }
       for (auto& [mapped_session, mapping] : session_card_mapping_) {
-        mapping.erase(base_card_id);
+        mapping.erase(canonical_base_id);
       }
       return;
     }
@@ -376,7 +492,7 @@ void PanelManager::UnregisterPanel(size_t session_id,
                                         session_card_list.end(), prefixed_id),
                             session_card_list.end());
 
-    session_card_mapping_[session_id].erase(base_card_id);
+    session_card_mapping_[session_id].erase(canonical_base_id);
   }
 }
 
@@ -620,6 +736,33 @@ EditorPanel* PanelManager::GetEditorPanel(const std::string& panel_id) {
   return nullptr;
 }
 
+EditorPanel* PanelManager::FindPanelInstance(
+    const std::string& prefixed_panel_id, const std::string& base_panel_id) {
+  auto prefixed_it = panel_instances_.find(prefixed_panel_id);
+  if (prefixed_it != panel_instances_.end()) {
+    return prefixed_it->second.get();
+  }
+  auto base_it = panel_instances_.find(base_panel_id);
+  if (base_it != panel_instances_.end()) {
+    return base_it->second.get();
+  }
+  return nullptr;
+}
+
+const EditorPanel* PanelManager::FindPanelInstance(
+    const std::string& prefixed_panel_id,
+    const std::string& base_panel_id) const {
+  auto prefixed_it = panel_instances_.find(prefixed_panel_id);
+  if (prefixed_it != panel_instances_.end()) {
+    return prefixed_it->second.get();
+  }
+  auto base_it = panel_instances_.find(base_panel_id);
+  if (base_it != panel_instances_.end()) {
+    return base_it->second.get();
+  }
+  return nullptr;
+}
+
 void PanelManager::DrawAllVisiblePanels() {
   // Suppress panel drawing when dashboard is active (no editor selected yet)
   // This ensures panels don't appear until user selects an editor
@@ -627,22 +770,68 @@ void PanelManager::DrawAllVisiblePanels() {
     return;
   }
 
+  auto session_it = session_cards_.find(active_session_);
+  if (session_it == session_cards_.end()) {
+    return;
+  }
+
   auto& animator = gui::GetAnimator();
   bool animations_enabled = animator.IsEnabled();
   const bool touch_device = gui::LayoutHelpers::IsTouchDevice();
 
-  for (auto& [panel_id, panel] : panel_instances_) {
-    // Check visibility via PanelDescriptor
-    bool is_visible = IsPanelVisible(panel_id);
+  const auto resolve_switch_speed = [&](float snappy, float standard,
+                                        float relaxed) {
+    switch (animator.motion_profile()) {
+      case gui::MotionProfile::kSnappy:
+        return snappy;
+      case gui::MotionProfile::kRelaxed:
+        return relaxed;
+      case gui::MotionProfile::kStandard:
+      default:
+        return standard;
+    }
+  };
+  const float category_transition_speed =
+      resolve_switch_speed(8.5f, 6.0f, 4.5f);
+  const float panel_fade_speed = resolve_switch_speed(11.0f, 8.0f, 6.0f);
+
+  // Animate global category transition alpha
+  float global_alpha = 1.0f;
+  if (animations_enabled) {
+    global_alpha = animator.Animate("global", "category_transition", 1.0f,
+                                    category_transition_speed);
+  }
+
+  for (const auto& prefixed_panel_id : session_it->second) {
+    auto descriptor_it = cards_.find(prefixed_panel_id);
+    if (descriptor_it == cards_.end()) {
+      continue;
+    }
+    PanelDescriptor& descriptor = descriptor_it->second;
+
+    std::string base_panel_id =
+        GetBaseIdForPrefixedId(active_session_, prefixed_panel_id);
+    if (base_panel_id.empty()) {
+      base_panel_id = prefixed_panel_id;
+    }
+
+    EditorPanel* panel = FindPanelInstance(prefixed_panel_id, base_panel_id);
+    if (!panel) {
+      continue;
+    }
+
+    bool is_visible = descriptor.visibility_flag && *descriptor.visibility_flag;
 
     // Category filtering: only draw if matches active category, pinned, or persistent
     bool should_draw = false;
     if (is_visible) {
-      if (panel->GetEditorCategory() == active_category_) {
+      if (panel->GetEditorCategory() == active_category_ ||
+          descriptor.category == active_category_) {
         should_draw = true;
-      } else if (IsPanelPinned(panel_id)) {
+      } else if (IsPanelPinned(active_session_, base_panel_id)) {
         should_draw = true;
-      } else if (panel->GetPanelCategory() == PanelCategory::Persistent) {
+      } else if (panel->GetPanelCategory() == PanelCategory::Persistent ||
+                 descriptor.panel_category == PanelCategory::Persistent) {
         should_draw = true;
       }
     }
@@ -653,7 +842,9 @@ void PanelManager::DrawAllVisiblePanels() {
     // Animate alpha towards target (or snap if animations disabled)
     float current_alpha = 1.0f;
     if (animations_enabled) {
-      current_alpha = animator.Animate(panel_id, "panel_alpha", target_alpha, 8.0f);
+      current_alpha = animator.Animate(prefixed_panel_id, "panel_alpha",
+                                       target_alpha, panel_fade_speed);
+      current_alpha *= global_alpha;  // Apply global category fade
     } else {
       current_alpha = target_alpha;
     }
@@ -664,11 +855,15 @@ void PanelManager::DrawAllVisiblePanels() {
     }
 
     // Get visibility flag for the panel window
-    bool* visibility_flag = GetVisibilityFlag(panel_id);
+    bool* visibility_flag = descriptor.visibility_flag;
 
     // Get display name without icon - PanelWindow will add the icon
     // This fixes the double-icon issue where both descriptor and PanelWindow added icons
-    std::string display_name = panel->GetDisplayName();
+    std::string display_name = descriptor.display_name.empty()
+                                   ? panel->GetDisplayName()
+                                   : descriptor.display_name;
+    std::string icon = descriptor.icon.empty() ? panel->GetIcon()
+                                               : descriptor.icon;
 
     if (editor_resolver_) {
       if (Editor* editor = editor_resolver_(panel->GetEditorCategory())) {
@@ -677,9 +872,8 @@ void PanelManager::DrawAllVisiblePanels() {
     }
 
     // Create PanelWindow and draw content
-    gui::PanelWindow window(display_name.c_str(), panel->GetIcon().c_str(),
-                            visibility_flag);
-    window.SetStableId(panel_id);
+    gui::PanelWindow window(display_name.c_str(), icon.c_str(), visibility_flag);
+    window.SetStableId(prefixed_panel_id);
     if (touch_device) {
       window.SetPosition(gui::PanelWindow::Position::Center);
     }
@@ -692,11 +886,12 @@ void PanelManager::DrawAllVisiblePanels() {
 
     // Enable pin functionality for cross-editor persistence
     window.SetPinnable(true);
-    window.SetPinned(IsPanelPinned(panel_id));
+    window.SetPinned(IsPanelPinned(active_session_, base_panel_id));
 
     // Wire up pin state change callback to persist to PanelManager
-    window.SetPinChangedCallback(
-        [this, panel_id](bool pinned) { SetPanelPinned(panel_id, pinned); });
+    window.SetPinChangedCallback([this, base_panel_id](bool pinned) {
+      SetPanelPinned(base_panel_id, pinned);
+    });
 
     // Apply fade alpha for smooth transitions
     std::optional<gui::StyleVarGuard> alpha_guard;
@@ -735,9 +930,11 @@ void PanelManager::OnEditorSwitch(const std::string& from_category,
   // prefs. Worse, dynamic "resource windows" (rooms/songs) interpret
   // IsPanelVisible()==false as "user closed", unregistering themselves.
   //
-  // Visibility persistence is handled by EditorManager's category-changed
-  // callback (RestoreVisibilityState / default policy). Drawing is filtered by
-  // active category + pinned/persistent state in DrawAllVisiblePanels().
+  // Reset global category transition to trigger fade-in
+  if (gui::GetAnimator().IsEnabled()) {
+    gui::GetAnimator().BeginPanelTransition("global", gui::TransitionType::kFade);
+  }
+
   SetActiveCategory(to_category);
 }
 
@@ -747,7 +944,8 @@ void PanelManager::OnEditorSwitch(const std::string& from_category,
 
 bool PanelManager::ShowPanel(size_t session_id,
                              const std::string& base_card_id) {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
     return false;
   }
@@ -763,16 +961,18 @@ bool PanelManager::ShowPanel(size_t session_id,
       it->second.on_show();
     }
     if (!was_visible) {
-      auto pit = panel_instances_.find(prefixed_id);
-      if (pit != panel_instances_.end() && pit->second) {
-        pit->second->OnOpen();
+      if (EditorPanel* panel =
+              FindPanelInstance(prefixed_id, canonical_base_id)) {
+        panel->OnOpen();
       }
     }
 
     // Publish visibility changed event
     if (auto* bus = ContentRegistry::Context::event_bus()) {
-      bus->Publish(PanelVisibilityChangedEvent::Create(
-          prefixed_id, base_card_id, it->second.category, true, session_id));
+      bus->Publish(PanelVisibilityChangedEvent::Create(prefixed_id,
+                                                       canonical_base_id,
+                                                       it->second.category,
+                                                       true, session_id));
     }
     return true;
   }
@@ -781,7 +981,8 @@ bool PanelManager::ShowPanel(size_t session_id,
 
 bool PanelManager::HidePanel(size_t session_id,
                              const std::string& base_card_id) {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
     return false;
   }
@@ -797,16 +998,18 @@ bool PanelManager::HidePanel(size_t session_id,
       it->second.on_hide();
     }
     if (was_visible) {
-      auto pit = panel_instances_.find(prefixed_id);
-      if (pit != panel_instances_.end() && pit->second) {
-        pit->second->OnClose();
+      if (EditorPanel* panel =
+              FindPanelInstance(prefixed_id, canonical_base_id)) {
+        panel->OnClose();
       }
     }
 
     // Publish visibility changed event
     if (auto* bus = ContentRegistry::Context::event_bus()) {
-      bus->Publish(PanelVisibilityChangedEvent::Create(
-          prefixed_id, base_card_id, it->second.category, false, session_id));
+      bus->Publish(PanelVisibilityChangedEvent::Create(prefixed_id,
+                                                       canonical_base_id,
+                                                       it->second.category,
+                                                       false, session_id));
     }
     return true;
   }
@@ -815,7 +1018,8 @@ bool PanelManager::HidePanel(size_t session_id,
 
 bool PanelManager::TogglePanel(size_t session_id,
                                const std::string& base_card_id) {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
     return false;
   }
@@ -830,20 +1034,20 @@ bool PanelManager::TogglePanel(size_t session_id,
     } else if (!new_state && it->second.on_hide) {
       it->second.on_hide();
     }
-    auto pit = panel_instances_.find(prefixed_id);
-    if (pit != panel_instances_.end() && pit->second) {
+    if (EditorPanel* panel = FindPanelInstance(prefixed_id, canonical_base_id)) {
       if (new_state) {
-        pit->second->OnOpen();
+        panel->OnOpen();
       } else {
-        pit->second->OnClose();
+        panel->OnClose();
       }
     }
 
     // Publish visibility changed event
     if (auto* bus = ContentRegistry::Context::event_bus()) {
-      bus->Publish(PanelVisibilityChangedEvent::Create(
-          prefixed_id, base_card_id, it->second.category, new_state,
-          session_id));
+      bus->Publish(PanelVisibilityChangedEvent::Create(prefixed_id,
+                                                       canonical_base_id,
+                                                       it->second.category,
+                                                       new_state, session_id));
     }
     return true;
   }
@@ -852,7 +1056,8 @@ bool PanelManager::TogglePanel(size_t session_id,
 
 bool PanelManager::IsPanelVisible(size_t session_id,
                                   const std::string& base_card_id) const {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
     return false;
   }
@@ -866,7 +1071,8 @@ bool PanelManager::IsPanelVisible(size_t session_id,
 
 bool* PanelManager::GetVisibilityFlag(size_t session_id,
                                       const std::string& base_card_id) {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
     return nullptr;
   }
@@ -1027,7 +1233,8 @@ std::vector<std::string> PanelManager::GetAllCategories(
 
 const PanelDescriptor* PanelManager::GetPanelDescriptor(
     size_t session_id, const std::string& base_card_id) const {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
     return nullptr;
   }
@@ -1081,9 +1288,12 @@ void PanelManager::SetVisiblePanels(
     return;
   }
 
-  // Convert panel_ids to a set for O(1) lookup
-  std::unordered_set<std::string> visible_set(panel_ids.begin(),
-                                               panel_ids.end());
+  // Convert panel_ids to canonical IDs for O(1) lookup
+  std::unordered_set<std::string> visible_set;
+  visible_set.reserve(panel_ids.size());
+  for (const auto& panel_id : panel_ids) {
+    visible_set.insert(ResolveBasePanelId(panel_id));
+  }
 
   // Update visibility for all panels in this session
   for (const auto& [base_id, prefixed_id] : session_it->second) {
@@ -1129,7 +1339,8 @@ void PanelManager::RestoreVisibilityState(
 
   size_t restored = 0;
   for (const auto& [base_id, visible] : state) {
-    auto mapping_it = session_it->second.find(base_id);
+    const std::string canonical_base_id = ResolveBasePanelId(base_id);
+    auto mapping_it = session_it->second.find(canonical_base_id);
     if (mapping_it != session_it->second.end()) {
       auto card_it = cards_.find(mapping_it->second);
       if (card_it != cards_.end() && card_it->second.visibility_flag) {
@@ -1137,8 +1348,8 @@ void PanelManager::RestoreVisibilityState(
         if (publish_events) {
           if (auto* bus = ContentRegistry::Context::event_bus()) {
             bus->Publish(PanelVisibilityChangedEvent::Create(
-                mapping_it->second, base_id, card_it->second.category, visible,
-                session_id));
+                mapping_it->second, canonical_base_id, card_it->second.category,
+                visible, session_id));
           }
         }
         restored++;
@@ -1156,12 +1367,15 @@ std::unordered_map<std::string, bool> PanelManager::SerializePinnedState()
   std::unordered_map<std::string, bool> state;
 
   for (const auto& [prefixed_id, pinned] : pinned_panels_) {
-    // Extract base ID by removing session prefix (format: "s{n}_{base_id}")
-    size_t underscore_pos = prefixed_id.find('_');
-    if (underscore_pos != std::string::npos) {
-      std::string base_id = prefixed_id.substr(underscore_pos + 1);
-      state[base_id] = pinned;
+    std::string base_id = prefixed_id;
+    // Session-prefixed IDs use format: "s{session}.{base_id}"
+    if (prefixed_id.size() > 2 && prefixed_id[0] == 's') {
+      size_t dot_pos = prefixed_id.find('.');
+      if (dot_pos != std::string::npos && dot_pos + 1 < prefixed_id.size()) {
+        base_id = prefixed_id.substr(dot_pos + 1);
+      }
     }
+    state[base_id] = pinned;
   }
 
   return state;
@@ -1169,18 +1383,38 @@ std::unordered_map<std::string, bool> PanelManager::SerializePinnedState()
 
 void PanelManager::RestorePinnedState(
     const std::unordered_map<std::string, bool>& state) {
+  std::unordered_map<std::string, bool> canonical_state;
+  canonical_state.reserve(state.size());
+  for (const auto& [base_id, pinned] : state) {
+    canonical_state[ResolveBasePanelId(base_id)] = pinned;
+  }
+
   // Apply pinned state to all sessions
   for (const auto& [session_id, card_mapping] : session_card_mapping_) {
     for (const auto& [base_id, prefixed_id] : card_mapping) {
-      auto state_it = state.find(base_id);
-      if (state_it != state.end()) {
+      auto state_it = canonical_state.find(base_id);
+      if (state_it != canonical_state.end()) {
         pinned_panels_[prefixed_id] = state_it->second;
       }
     }
   }
 
   LOG_INFO("PanelManager", "Restored pinned state for %zu panels",
-           state.size());
+           canonical_state.size());
+}
+
+std::string PanelManager::GetPanelWindowName(
+    size_t session_id, const std::string& base_card_id) const {
+  const PanelDescriptor* descriptor = GetPanelDescriptor(session_id, base_card_id);
+  if (!descriptor) {
+    return "";
+  }
+  return GetPanelWindowName(*descriptor);
+}
+
+std::string PanelManager::GetPanelWindowName(
+    const PanelDescriptor& descriptor) const {
+  return descriptor.GetImGuiWindowName();
 }
 
 // ============================================================================
@@ -1414,13 +1648,14 @@ std::string PanelManager::MakePanelId(size_t session_id,
 std::string PanelManager::MakePanelId(size_t session_id,
                                       const std::string& base_id,
                                       PanelScope scope) const {
+  const std::string canonical_base_id = ResolveBasePanelId(base_id);
   if (scope == PanelScope::kGlobal) {
-    return base_id;
+    return canonical_base_id;
   }
   if (ShouldPrefixPanels()) {
-    return absl::StrFormat("s%zu.%s", session_id, base_id);
+    return absl::StrFormat("s%zu.%s", session_id, canonical_base_id);
   }
-  return base_id;
+  return canonical_base_id;
 }
 
 // ============================================================================
@@ -1433,17 +1668,19 @@ void PanelManager::UpdateSessionCount() {
 
 std::string PanelManager::GetPrefixedPanelId(size_t session_id,
                                              const std::string& base_id) const {
+  const std::string resolved_base_id = ResolveBasePanelId(base_id);
+
   auto session_it = session_card_mapping_.find(session_id);
   if (session_it != session_card_mapping_.end()) {
-    auto card_it = session_it->second.find(base_id);
+    auto card_it = session_it->second.find(resolved_base_id);
     if (card_it != session_it->second.end()) {
       return card_it->second;
     }
   }
 
   // Fallback: try unprefixed ID (for single session or direct access)
-  if (cards_.find(base_id) != cards_.end()) {
-    return base_id;
+  if (cards_.find(resolved_base_id) != cards_.end()) {
+    return resolved_base_id;
   }
 
   return "";  // Panel not found
@@ -1465,13 +1702,15 @@ void PanelManager::RegisterPanelDescriptorForSession(
 void PanelManager::TrackPanelForSession(size_t session_id,
                                         const std::string& base_id,
                                         const std::string& panel_id) {
+  const std::string canonical_base_id = ResolveBasePanelId(base_id);
+
   auto& card_list = session_cards_[session_id];
   if (std::find(card_list.begin(), card_list.end(), panel_id) ==
       card_list.end()) {
     card_list.push_back(panel_id);
   }
-  session_card_mapping_[session_id][base_id] = panel_id;
-  session_reverse_card_mapping_[session_id][panel_id] = base_id;
+  session_card_mapping_[session_id][canonical_base_id] = panel_id;
+  session_reverse_card_mapping_[session_id][panel_id] = canonical_base_id;
 }
 
 void PanelManager::UnregisterSessionPanels(size_t session_id) {
@@ -1664,18 +1903,20 @@ void PanelManager::SetFileBrowserPath(const std::string& category,
 void PanelManager::SetPanelPinned(size_t session_id,
                                   const std::string& base_card_id,
                                   bool pinned) {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
-    prefixed_id = MakePanelId(session_id, base_card_id);
+    prefixed_id = MakePanelId(session_id, canonical_base_id);
   }
   pinned_panels_[prefixed_id] = pinned;
 }
 
 bool PanelManager::IsPanelPinned(size_t session_id,
                                  const std::string& base_card_id) const {
-  std::string prefixed_id = GetPrefixedPanelId(session_id, base_card_id);
+  const std::string canonical_base_id = ResolveBasePanelId(base_card_id);
+  std::string prefixed_id = GetPrefixedPanelId(session_id, canonical_base_id);
   if (prefixed_id.empty()) {
-    prefixed_id = MakePanelId(session_id, base_card_id);
+    prefixed_id = MakePanelId(session_id, canonical_base_id);
   }
   auto it = pinned_panels_.find(prefixed_id);
   return it != pinned_panels_.end() && it->second;
@@ -1732,11 +1973,11 @@ PanelManager::PanelValidationResult PanelManager::ValidatePanel(
   }
 
   const PanelDescriptor& info = it->second;
-  result.expected_title = info.GetWindowTitle();
+  result.expected_title = GetPanelWindowName(info);
 
   if (result.expected_title.empty()) {
     result.found_in_imgui = false;
-    result.message = "FAIL - Missing window title";
+    result.message = "FAIL - Missing window name";
     return result;
   }
 
@@ -1747,7 +1988,7 @@ PanelManager::PanelValidationResult PanelManager::ValidatePanel(
   if (result.found_in_imgui) {
     result.message = "OK - Window found";
   } else {
-    result.message = "FAIL - No window with title: " + result.expected_title;
+    result.message = "FAIL - No window with name: " + result.expected_title;
   }
 
   return result;

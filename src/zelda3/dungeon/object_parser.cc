@@ -108,8 +108,6 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       int index = object_id & 0xFF;
       info.subtype_ptr = kRoomObjectSubtype1 + (index * 2);
       info.routine_ptr = kRoomObjectSubtype1 + 0x200 + (index * 2);
-      info.max_tile_count =
-          GetSubtype1TileCount(object_id);  // Use lookup table
       break;
     }
     case 2: {
@@ -119,7 +117,6 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       info.subtype_ptr = kRoomObjectSubtype2 + (index * 2);
       // Routine table starts 128 bytes (64 entries * 2 bytes) after data table
       info.routine_ptr = kRoomObjectSubtype2 + 0x80 + (index * 2);
-      info.max_tile_count = GetSubtype2TileCount(object_id);
       break;
     }
     case 3: {
@@ -128,13 +125,14 @@ absl::StatusOr<ObjectSubtypeInfo> ObjectParser::GetObjectSubtype(
       int index = (object_id - 0xF80) & 0x7F;
       info.subtype_ptr = kRoomObjectSubtype3 + (index * 2);
       info.routine_ptr = kRoomObjectSubtype3 + 0x100 + (index * 2);
-      info.max_tile_count = GetSubtype3TileCount(object_id);
       break;
     }
     default:
       return absl::InvalidArgumentError(
           absl::StrFormat("Invalid object subtype for ID: %#04x", object_id));
   }
+
+  info.max_tile_count = ResolveTileCountForObject(object_id);
 
   return info;
 }
@@ -458,6 +456,23 @@ int ObjectParser::DetermineSubtype(int16_t object_id) const {
   }
 }
 
+int ObjectParser::ResolveTileCountForObject(int16_t object_id) const {
+  if (object_id < 0) {
+    return 1;
+  }
+
+  switch (DetermineSubtype(object_id)) {
+    case 1:
+      return GetSubtype1TileCount(object_id);
+    case 2:
+      return GetSubtype2TileCount(object_id);
+    case 3:
+      return GetSubtype3TileCount(object_id);
+    default:
+      return 1;
+  }
+}
+
 ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
   ObjectDrawInfo info;
 
@@ -739,6 +754,10 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.tile_count = 1;
     info.is_horizontal = true;
   }
+
+  // Tile count should always come from subtype lookup tables to avoid stale
+  // hardcoded counts in the draw-routine mapping above.
+  info.tile_count = std::max(1, ResolveTileCountForObject(object_id));
 
   return info;
 }
