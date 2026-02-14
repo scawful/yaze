@@ -52,6 +52,24 @@ float LayoutHelpers::GetStandardInputWidth() {
          theme.compact_factor;
 }
 
+float LayoutHelpers::GetHexInputWidth() {
+  return GetBaseFontSize() * 4.0f * GetTheme().compact_factor;
+}
+
+float LayoutHelpers::GetComboWidth() {
+  return GetBaseFontSize() * 6.0f * GetTheme().input_width_multiplier *
+         GetTheme().compact_factor;
+}
+
+float LayoutHelpers::GetSliderWidth() {
+  return GetBaseFontSize() * 5.0f * GetTheme().input_width_multiplier *
+         GetTheme().compact_factor;
+}
+
+float LayoutHelpers::GetCompactInputWidth() {
+  return GetBaseFontSize() * 3.0f * GetTheme().compact_factor;
+}
+
 float LayoutHelpers::GetButtonPadding() {
   const auto& theme = GetTheme();
   return GetBaseFontSize() * 0.3f * theme.button_padding_multiplier *
@@ -240,8 +258,7 @@ bool LayoutHelpers::AutoSizedInputFloat(const char* label, float* v, float step,
 
 // Input preset functions for common patterns
 bool LayoutHelpers::InputHexRow(const char* label, uint8_t* data) {
-  const auto& theme = GetTheme();
-  float input_width = GetStandardInputWidth() * 0.5f;  // Hex inputs are smaller
+  float input_width = GetHexInputWidth();
 
   ImGui::AlignTextToFramePadding();
   ImGui::Text("%s", label);
@@ -268,9 +285,7 @@ bool LayoutHelpers::InputHexRow(const char* label, uint8_t* data) {
 }
 
 bool LayoutHelpers::InputHexRow(const char* label, uint16_t* data) {
-  const auto& theme = GetTheme();
-  float input_width =
-      GetStandardInputWidth() * 0.6f;  // Hex word slightly wider
+  float input_width = GetHexInputWidth() * 1.2f;  // Hex word slightly wider
 
   ImGui::AlignTextToFramePadding();
   ImGui::Text("%s", label);

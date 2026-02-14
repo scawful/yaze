@@ -36,6 +36,10 @@ class LayoutHelpers {
   static float GetToolbarHeight();
   static float GetPanelPadding();
   static float GetStandardInputWidth();
+  static float GetHexInputWidth();
+  static float GetComboWidth();
+  static float GetSliderWidth();
+  static float GetCompactInputWidth();
   static float GetButtonPadding();
   static float GetTableRowHeight();
   static float GetCanvasToolbarHeight();

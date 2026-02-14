@@ -1,5 +1,12 @@
+#include <algorithm>
+#include <array>
+#include <sstream>
+#include <string>
+#include <vector>
+
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
@@ -136,12 +143,227 @@ TEST_F(ObjectDimensionTableTest, ChestObjectsHaveFixedSize) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());
 
-  // Chests (0xF9, 0xFB) should be 2x2 tiles regardless of size
+  // Chests (0xF9, 0xFB) should be 4x4 tiles regardless of size
   auto [w1, h1] = table.GetDimensions(0xF9, 0);
   auto [w2, h2] = table.GetDimensions(0xF9, 5);
 
-  EXPECT_EQ(w1, w2);
-  EXPECT_EQ(h1, h2);
+  EXPECT_EQ(w1, 4);
+  EXPECT_EQ(h1, 4);
+  EXPECT_EQ(w2, 4);
+  EXPECT_EQ(h2, 4);
+}
+
+TEST_F(ObjectDimensionTableTest,
+       FocusedScopeSelectionBoundsMatchObjectGeometry) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  struct ObjectCase {
+    int16_t object_id;
+    uint8_t size;
+    const char* label;
+  };
+
+  // Focused validation scope from Oracle workflow:
+  // - SuperSquare family (0xC0-0xEF)
+  // - Chest family (0xF9-0xFD)
+  // - Subtype 2 stairs/furniture representatives
+  const ObjectCase cases[] = {
+      {0xC0, 0x00, "SuperSquare_4x4_size0"},
+      {0xC3, 0x09, "SuperSquare_3x3_size0x09"},
+      {0xDE, 0x00, "SuperSquare_spike2x2_size0"},
+      {0xF9, 0x00, "Chest_small_size0"},
+      {0xFD, 0x0F, "Chest_big_size0x0F"},
+      {0x122, 0x00, "Subtype2_bed_size0"},
+      {0x123, 0x03, "Subtype2_table_size3"},
+      {0x12D, 0x00, "Subtype2_interroom_stairs_size0"},
+      {0x137, 0x02, "Subtype2_waterhop_stairs_size2"},
+      {0x138, 0x00, "Subtype2_spiral_stairs_size0"},
+      {0x13D, 0x04, "Subtype2_table_4x3_size4"},
+  };
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.label);
+    RoomObject obj(test_case.object_id, 0, 0, test_case.size, 0);
+
+    auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
+    auto selection = table.GetSelectionBounds(test_case.object_id, test_case.size);
+
+    if (!geo_result.ok()) {
+      // Some subtype-2 furniture objects are not yet replay-backed by ObjectGeometry.
+      // In those cases, keep fallback semantics sane and non-zero.
+      EXPECT_GE(selection.width, 1);
+      EXPECT_GE(selection.height, 1);
+      continue;
+    }
+
+    EXPECT_EQ(selection.offset_x, geo_result->min_x_tiles);
+    EXPECT_EQ(selection.offset_y, geo_result->min_y_tiles);
+    EXPECT_EQ(selection.width, geo_result->width_tiles);
+    EXPECT_EQ(selection.height, geo_result->height_tiles);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest,
+       Subtype3RepeatersSelectionBoundsMatchObjectGeometry) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  struct ObjectCase {
+    int16_t object_id;
+    uint8_t size;
+    const char* label;
+  };
+
+  // Subtype-3 repeater sweep (table-rock and related patterned objects).
+  const ObjectCase cases[] = {
+      {0xF94, 0x03, "Subtype3_table_4x3_size3"},
+      {0xFF9, 0x03, "Subtype3_table_rock_4x3_size3"},
+      {0xFCE, 0x02, "Subtype3_table_variant_size2"},
+      {0xFE7, 0x02, "Subtype3_table_variant_fe7_size2"},
+      {0xFE8, 0x02, "Subtype3_table_variant_fe8_size2"},
+      {0xFEC, 0x02, "Subtype3_table_variant_fec_size2"},
+      {0xFED, 0x02, "Subtype3_table_variant_fed_size2"},
+      {0xFB4, 0x04, "Subtype3_pattern_fb4_size4"},
+      {0xFC8, 0x04, "Subtype3_pattern_fc8_size4"},
+      {0xFD4, 0x04, "Subtype3_pattern_fd4_size4"},
+  };
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.label);
+    RoomObject obj(test_case.object_id, 0, 0, test_case.size, 0);
+
+    auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
+    auto selection = table.GetSelectionBounds(test_case.object_id, test_case.size);
+
+    if (!geo_result.ok()) {
+      EXPECT_GE(selection.width, 1);
+      EXPECT_GE(selection.height, 1);
+      continue;
+    }
+
+    EXPECT_EQ(selection.offset_x, geo_result->min_x_tiles);
+    EXPECT_EQ(selection.offset_y, geo_result->min_y_tiles);
+    EXPECT_EQ(selection.width, geo_result->width_tiles);
+    EXPECT_EQ(selection.height, geo_result->height_tiles);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest,
+       BroadSelectionBoundsParitySweepAgainstObjectGeometry) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+  auto& registry = DrawRoutineRegistry::Get();
+
+  const std::array<uint8_t, 6> sizes = {0x00, 0x01, 0x02, 0x03, 0x07, 0x0F};
+  std::vector<std::string> mismatches;
+  int compared_cases = 0;
+  int geometry_skips = 0;
+  int deterministic_skips = 0;
+  int clipped_skips = 0;
+
+  auto sweep_object = [&](int object_id) {
+    const int routine =
+        registry.GetRoutineIdForObject(static_cast<int16_t>(object_id));
+    if (routine < 0 || routine == DrawRoutineIds::kNothing) {
+      return;
+    }
+
+    // These routines are currently not deterministic under ObjectGeometry replay:
+    // - chest bounds depend on tile payload size (dummy payload forces 4x4 path)
+    // - moving wall routines are still placeholder no-op in replay
+    // - weird corner variants branch on tile payload shape
+    if (routine == DrawRoutineIds::kChest ||
+        routine == DrawRoutineIds::kMovingWallWest ||
+        routine == DrawRoutineIds::kMovingWallEast ||
+        routine == DrawRoutineIds::kWeirdCornerBottom_BothBG ||
+        routine == DrawRoutineIds::kWeirdCornerTop_BothBG) {
+      deterministic_skips += static_cast<int>(sizes.size());
+      return;
+    }
+
+    for (uint8_t size : sizes) {
+      RoomObject obj(static_cast<int16_t>(object_id), 0, 0, size, 0);
+      auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
+      if (!geo_result.ok()) {
+        geometry_skips++;
+        continue;
+      }
+
+      // Somaria down-left lines extend into negative X; current replay anchor
+      // clips that leftward extent, so parity here is not meaningful yet.
+      if (object_id == 0xF86) {
+        clipped_skips++;
+        continue;
+      }
+
+      // Replay uses a fixed 64x64 draw canvas; skip cases clipped at right/bottom
+      // edges so we compare only un-clipped geometry against table formulas.
+      const bool hits_right_edge =
+          (geo_result->min_x_tiles + geo_result->width_tiles) >=
+          DrawContext::kMaxTilesX;
+      const bool hits_bottom_edge =
+          (geo_result->min_y_tiles + geo_result->height_tiles) >=
+          DrawContext::kMaxTilesY;
+      if (hits_right_edge || hits_bottom_edge) {
+        clipped_skips++;
+        continue;
+      }
+
+      auto selection = table.GetSelectionBounds(object_id, size);
+      if (selection.width > DrawContext::kMaxTilesX ||
+          selection.height > DrawContext::kMaxTilesY) {
+        clipped_skips++;
+        continue;
+      }
+
+      compared_cases++;
+
+      if (selection.offset_x != geo_result->min_x_tiles ||
+          selection.offset_y != geo_result->min_y_tiles ||
+          selection.width != geo_result->width_tiles ||
+          selection.height != geo_result->height_tiles) {
+        std::ostringstream oss;
+        oss << "0x" << std::hex << object_id << " size 0x"
+            << static_cast<int>(size) << std::dec << " sel=("
+            << selection.offset_x << "," << selection.offset_y << ","
+            << selection.width << "x" << selection.height << ") geo=("
+            << geo_result->min_x_tiles << "," << geo_result->min_y_tiles
+            << "," << geo_result->width_tiles << "x"
+            << geo_result->height_tiles << ")";
+        mismatches.push_back(oss.str());
+      }
+    }
+  };
+
+  for (int object_id = 0x000; object_id <= 0x13F; ++object_id) {
+    sweep_object(object_id);
+  }
+  for (int object_id = 0xF80; object_id <= 0xFFF; ++object_id) {
+    sweep_object(object_id);
+  }
+
+  EXPECT_GT(compared_cases, 300)
+      << "Parity sweep should compare a broad object/sample space";
+
+  if (!mismatches.empty()) {
+    std::ostringstream summary;
+    summary << "Found " << mismatches.size()
+            << " selection-bound mismatches.";
+    const size_t limit = std::min<size_t>(25, mismatches.size());
+    for (size_t i = 0; i < limit; ++i) {
+      summary << "\n  - " << mismatches[i];
+    }
+    if (mismatches.size() > limit) {
+      summary << "\n  ... (" << (mismatches.size() - limit)
+              << " more mismatches omitted)";
+    }
+    summary << "\nCompared cases: " << compared_cases
+            << ", geometry skips: " << geometry_skips
+            << ", deterministic skips: " << deterministic_skips
+            << ", clipped skips: " << clipped_skips;
+    FAIL() << summary.str();
+  }
 }
 
 // =============================================================================

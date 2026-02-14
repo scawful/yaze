@@ -1,6 +1,7 @@
 #include "cli/service/command_registry.h"
 
 #include <algorithm>
+#include <iostream>
 #include <sstream>
 
 #include "absl/strings/str_cat.h"
@@ -415,7 +416,37 @@ absl::Status CommandRegistry::Execute(const std::string& name,
     return absl::NotFoundError(absl::StrFormat("Command '%s' not found", name));
   }
 
-  return handler->Run(args, rom_context, captured_output);
+  const bool command_help_requested =
+      std::find(args.begin(), args.end(), "--help") != args.end() ||
+      std::find(args.begin(), args.end(), "-h") != args.end();
+  if (command_help_requested) {
+    const std::string help = GenerateHelp(name);
+    if (captured_output != nullptr) {
+      *captured_output = help;
+    } else {
+      std::cout << help << "\n";
+    }
+    return absl::OkStatus();
+  }
+
+  absl::Status status = handler->Run(args, rom_context, captured_output);
+
+  // If a command was invoked without its required arguments, surface full
+  // command help in addition to the normal parser error/usage line.
+  if (!status.ok() && status.code() == absl::StatusCode::kInvalidArgument &&
+      args.empty()) {
+    const std::string help = GenerateHelp(name);
+    if (captured_output != nullptr) {
+      if (!captured_output->empty()) {
+        captured_output->append("\n\n");
+      }
+      captured_output->append(help);
+    } else {
+      std::cout << help << "\n";
+    }
+  }
+
+  return status;
 }
 
 bool CommandRegistry::HasCommand(const std::string& name) const {

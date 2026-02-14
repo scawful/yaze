@@ -228,6 +228,8 @@ class Editor {
     return undo_manager_.GetRedoDescription();
   }
 
+  const UndoManager& undo_manager() const { return undo_manager_; }
+
   virtual absl::Status Find() = 0;
 
   virtual absl::Status Clear() { return absl::OkStatus(); }

@@ -146,11 +146,23 @@ struct Theme {
   Color editor_cursor;      // Cursor/selection in editors
   Color editor_selection;   // Selected area in editors
 
+  // Unified selection and interaction colors (replacing hardcoded values)
+  Color selection_primary;      // Primary selection (typically gold/yellow)
+  Color selection_secondary;    // Secondary selection (typically cyan/blue)
+  Color selection_hover;        // Hover highlight color
+  Color selection_pulsing;      // Pulsing animation color
+  Color selection_handle;       // Corner handles for resizing/moving
+  Color drag_preview;           // Ghost preview when dragging
+  Color drag_preview_outline;   // Outline for drag preview
+
+  // Common entity colors
   Color entrance_color;
   Color hole_color;
   Color exit_color;
   Color item_color;
   Color sprite_color;
+  Color transport_color;
+  Color music_zone_color;
 
   // Nested struct for dungeon editor colors
   struct DungeonColors {

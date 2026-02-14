@@ -186,16 +186,6 @@ set(_yaze_agent_link_targets
   ${ABSL_TARGETS}
 )
 
-# Only include ftxui targets if CLI is being built
-# ftxui is not available in WASM/Emscripten builds
-if(YAZE_BUILD_CLI AND NOT EMSCRIPTEN)
-  list(APPEND _yaze_agent_link_targets
-    ftxui::screen
-    ftxui::dom
-    ftxui::component
-  )
-endif()
-
 if(YAZE_ENABLE_AI_RUNTIME)
   # Prefer the consolidated yaml target so include paths propagate consistently
   if(DEFINED YAZE_YAML_TARGETS AND NOT "${YAZE_YAML_TARGETS}" STREQUAL "")

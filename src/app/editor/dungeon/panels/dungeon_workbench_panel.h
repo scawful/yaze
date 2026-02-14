@@ -16,6 +16,7 @@ namespace yaze::editor {
 
 class DungeonCanvasViewer;
 class DungeonRoomSelector;
+enum class RoomSelectionIntent;
 
 // Single stable window for dungeon editing. This is step 2 in the Workbench plan.
 class DungeonWorkbenchPanel : public EditorPanel {
@@ -27,6 +28,8 @@ class DungeonWorkbenchPanel : public EditorPanel {
                         int* compare_room_id,
                         DungeonWorkbenchLayoutState* layout_state,
                         std::function<void(int)> on_room_selected,
+                        std::function<void(int, RoomSelectionIntent)>
+                            on_room_selected_with_intent,
                         std::function<void(int)> on_save_room,
                         std::function<DungeonCanvasViewer*()> get_viewer,
                         std::function<DungeonCanvasViewer*()> get_compare_viewer,
@@ -62,6 +65,7 @@ class DungeonWorkbenchPanel : public EditorPanel {
   int* compare_room_id_ = nullptr;
   DungeonWorkbenchLayoutState* layout_state_ = nullptr;
   std::function<void(int)> on_room_selected_;
+  std::function<void(int, RoomSelectionIntent)> on_room_selected_with_intent_;
   std::function<void(int)> on_save_room_;
   std::function<DungeonCanvasViewer*()> get_viewer_;
   std::function<DungeonCanvasViewer*()> get_compare_viewer_;

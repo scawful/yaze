@@ -891,7 +891,7 @@ void PopupManager::DrawCLIUsagePopup() {
   BulletText("z3ed agent plan --rom=zelda3.sfc");
   BulletText("z3ed test-list --format json");
   BulletText("z3ed patch apply-asar patch.asm --rom=zelda3.sfc");
-  BulletText("z3ed --tui");
+  BulletText("z3ed help dungeon-place-sprite");
   Spacing();
   TextWrapped("Storage:");
   BulletText("Agent plans/proposals live under ~/.yaze (see docs for details)");
@@ -1095,20 +1095,20 @@ void PopupManager::DrawLayoutPresetsPopup() {
       {"Overworld Expert", ICON_MD_MAP,
        "Complete overworld editing toolkit with all map tools",
        []() {
-         return LayoutPresets::GetOverworldExpertPreset();
+         return LayoutPresets::GetOverworldArtistPreset();
        }},
       {"Dungeon Expert", ICON_MD_DOOR_SLIDING,
        "Complete dungeon editing toolkit with room tools",
        []() {
-         return LayoutPresets::GetDungeonExpertPreset();
+         return LayoutPresets::GetDungeonMasterPreset();
        }},
       {"Testing", ICON_MD_SCIENCE, "Quality assurance and ROM testing layout",
        []() {
-         return LayoutPresets::GetTestingPreset();
+         return LayoutPresets::GetLogicDebuggerPreset();
        }},
       {"Audio", ICON_MD_MUSIC_NOTE, "Music and sound editing layout",
        []() {
-         return LayoutPresets::GetAudioPreset();
+         return LayoutPresets::GetAudioEngineerPreset();
        }},
   };
 

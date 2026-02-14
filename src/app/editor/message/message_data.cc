@@ -673,8 +673,12 @@ nlohmann::json SerializeMessageBundle(const std::vector<MessageData>& vanilla,
       entry["address"] = msg.Address;
       entry["raw"] = msg.RawString;
       entry["parsed"] = msg.ContentsParsed;
+      entry["text"] =
+          !msg.RawString.empty() ? msg.RawString : msg.ContentsParsed;
       entry["length"] = msg.Data.size();
-      auto warnings = ValidateMessageLineWidths(msg.RawString);
+      const std::string validation_text =
+          !msg.RawString.empty() ? msg.RawString : msg.ContentsParsed;
+      auto warnings = ValidateMessageLineWidths(validation_text);
       if (!warnings.empty()) {
         entry["line_width_warnings"] = warnings;
       }

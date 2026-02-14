@@ -221,6 +221,29 @@ class RoomLayerManager {
     }
   }
 
+  // Apply room effect-specific visual hints on top of merge settings.
+  // This keeps the editor preview closer to in-game behavior for effect-driven
+  // rooms (e.g. Moving Water) without changing layer visibility policy.
+  void ApplyRoomEffect(EffectKey effect) {
+    switch (effect) {
+      case EffectKey::Moving_Water:
+        // Promote BG2 to translucent when no stronger blend is already set.
+        if (GetLayerBlendMode(LayerType::BG2_Layout) ==
+            LayerBlendMode::Normal) {
+          SetLayerBlendMode(LayerType::BG2_Layout,
+                            LayerBlendMode::Translucent);
+        }
+        if (GetLayerBlendMode(LayerType::BG2_Objects) ==
+            LayerBlendMode::Normal) {
+          SetLayerBlendMode(LayerType::BG2_Objects,
+                            LayerBlendMode::Translucent);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
   /**
    * @brief Apply layer merge settings without changing visibility
    * 

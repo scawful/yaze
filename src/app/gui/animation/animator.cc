@@ -83,6 +83,29 @@ ImVec4 Animator::AnimateColor(const std::string& panel_id,
 void Animator::ClearAnimationsForPanel(const std::string& panel_id) {
   panels_.erase(panel_id);
   panel_transitions_.erase(panel_id);
+  pushed_transition_alpha_.erase(panel_id);
+}
+
+void Animator::ClearAllAnimations() {
+  panels_.clear();
+  panel_transitions_.clear();
+  pushed_transition_alpha_.clear();
+}
+
+MotionProfile Animator::ClampMotionProfile(int raw_profile) {
+  if (raw_profile <= static_cast<int>(MotionProfile::kSnappy)) {
+    return MotionProfile::kSnappy;
+  }
+  if (raw_profile >= static_cast<int>(MotionProfile::kRelaxed)) {
+    return MotionProfile::kRelaxed;
+  }
+  return MotionProfile::kStandard;
+}
+
+void Animator::SetMotionPreferences(bool reduced_motion,
+                                    MotionProfile profile) {
+  reduced_motion_ = reduced_motion;
+  motion_profile_ = profile;
 }
 
 void Animator::BeginPanelTransition(const std::string& panel_id,
@@ -140,8 +163,8 @@ Animator::PanelTransition Animator::UpdatePanelTransition(
   float step = ComputeStep(speed);
   state.progress = std::min(state.progress + step, 1.0f);
 
-  // Apply easing
-  float eased = EaseOutCubic(state.progress);
+  // Apply profile-specific easing for editor/workspace transitions.
+  float eased = ApplyTransitionEasing(state.progress);
 
   // Calculate current values based on transition type
   switch (state.type) {
@@ -190,8 +213,12 @@ bool Animator::IsPanelTransitioning(const std::string& panel_id) const {
 }
 
 void Animator::ApplyPanelTransitionPre(const std::string& panel_id) {
-  auto transition = UpdatePanelTransition(panel_id);
+  auto iter = panel_transitions_.find(panel_id);
+  if (iter == panel_transitions_.end() || !iter->second.active) {
+    return;
+  }
 
+  auto transition = UpdatePanelTransition(panel_id);
   if (transition.is_complete) {
     return;
   }
@@ -205,22 +232,23 @@ void Animator::ApplyPanelTransitionPre(const std::string& panel_id) {
         ImGuiCond_Always);
   }
 
-  // Apply alpha
+  // Apply alpha and record stack push so post-pass can pop safely.
   ImGui::PushStyleVar(ImGuiStyleVar_Alpha, transition.alpha);
+  pushed_transition_alpha_.insert(panel_id);
 }
 
 void Animator::ApplyPanelTransitionPost(const std::string& panel_id) {
-  auto iter = panel_transitions_.find(panel_id);
-  if (iter == panel_transitions_.end() || !iter->second.active) {
-    return;
+  // Pop only when pre-pass pushed this frame.
+  if (pushed_transition_alpha_.erase(panel_id) > 0) {
+    ImGui::PopStyleVar();
   }
-
-  // Pop the alpha style var pushed in ApplyPanelTransitionPre
-  ImGui::PopStyleVar();
 }
 
 bool Animator::IsEnabled() const {
   if (ImGui::GetCurrentContext() == nullptr) {
+    return false;
+  }
+  if (reduced_motion_) {
     return false;
   }
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
@@ -238,10 +266,36 @@ float Animator::ComputeStep(float speed) const {
   }
 
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
-  const float scaled_speed = speed * theme.animation_speed;
+  const float scaled_speed =
+      speed * theme.animation_speed * GetProfileSpeedMultiplier();
   const float delta = ImGui::GetIO().DeltaTime;
   const float t = 1.0f - std::exp(-scaled_speed * delta);
   return std::clamp(t, 0.0f, 1.0f);
+}
+
+float Animator::GetProfileSpeedMultiplier() const {
+  switch (motion_profile_) {
+    case MotionProfile::kSnappy:
+      return 1.35f;
+    case MotionProfile::kRelaxed:
+      return 0.72f;
+    case MotionProfile::kStandard:
+    default:
+      return 1.0f;
+  }
+}
+
+float Animator::ApplyTransitionEasing(float t) const {
+  t = std::clamp(t, 0.0f, 1.0f);
+  switch (motion_profile_) {
+    case MotionProfile::kSnappy:
+      return EaseOutCubic(t);
+    case MotionProfile::kRelaxed:
+      return t * t * (3.0f - 2.0f * t);  // Smoothstep
+    case MotionProfile::kStandard:
+    default:
+      return EaseInOutCubic(t);
+  }
 }
 
 Animator& GetAnimator() {

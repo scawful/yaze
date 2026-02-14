@@ -1,10 +1,14 @@
 # Editor Panel (Card) and Layout System Architecture
 
-> Migration note: Phase 2 renames Card → Panel (`PanelWindow`, `PanelManager`,
-> `PanelDescriptor`). The concepts below still use legacy Card naming; apply the
-> new Panel terms when implementing changes.
+> Legacy note: this document still includes historical "Card" terminology.
+> Current production code uses **Panel** naming (`PanelDescriptor`,
+> `PanelManager`, `PanelWindow`) and stable ImGui window IDs.
+>
+> 2026-02 update: DockBuilder/focus/window validation must use
+> `PanelManager::GetPanelWindowName(...)` (label + `##stable_id`) instead of
+> raw display titles.
 
-This document describes the yaze editor's card-based UI system, layout management, and how they integrate with the agent system.
+This document describes the yaze editor's panel-based UI system, layout management, and how they integrate with the agent system.
 
 ## Overview
 
@@ -13,6 +17,47 @@ The yaze editor uses a modular card-based architecture inspired by VSCode's work
 - **Categories** = Logical groupings (Dungeon, Overworld, Graphics, etc.)
 - **Layouts** = DockBuilder configurations defining window arrangements
 - **Presets** = Named visibility configurations for quick switching
+
+## Canonical Runtime Contract (2026-02)
+
+1. **Window identity is descriptor-driven:** each panel resolves to a stable ImGui
+   window name via `PanelDescriptor::GetImGuiWindowName()` and
+   `PanelManager::GetPanelWindowName(...)`.
+2. **Layout builder must dock by window name, not label:**
+   `LayoutManager`/`LayoutOrchestrator` consume `GetPanelWindowName(...)` for
+   docking, focus, and validation.
+3. **Visibility stays centralized:** `PanelManager` remains the source of truth
+   for show/hide/toggle state and session-prefixed panel IDs.
+4. **Sidebar width ownership is explicit:**
+   - Left activity side panel width is owned by `PanelManager` and persisted as
+     `sidebar.panel_width` / `sidebar_panel_width`.
+   - Panel Browser category splitter width is owned by `PanelManager` and
+     persisted as `sidebar.panel_browser_category_width` /
+     `panel_browser_category_width`.
+   - Right contextual sidebar widths are owned by `RightPanelManager` per panel
+     type with min/max ratio limits, persisted under `layouts.right_panel_widths`.
+5. **Agent sidebar integration uses UI actions:** `kShowAgentChatSidebar` and
+   `kShowAgentProposalsSidebar` route sidebar triggers through `EditorManager`
+   into `RightPanelManager`. `ShowChatHistory()` now opens/focuses the Agent
+   Chat right panel and marks `agent.chat` as recently used for panel MRU flows.
+6. **Panel registration is declarative:** `EditorManager` owns `PanelHost`,
+   and editors register `PanelDefinition` metadata (id, title, category,
+   visibility flag, callbacks) instead of scattered ad-hoc panel hooks.
+7. **Legacy panel IDs are migrated centrally:** `PanelManager` resolves
+   aliases (`legacy -> canonical`) before visibility/pinning restore so saved
+   layouts survive refactors.
+8. **Layout switching supports profiles + snapshots:** `LayoutManager` can
+   apply built-in profiles (`code`, `debug`, `mapping`, `chat`) and
+   capture/restore temporary session snapshots without mutating persisted
+   presets.
+9. **Chat profile expands right-side UX by default:** applying the `chat`
+   profile opens the agent chat sidebar and enforces a practical minimum width
+   (currently `max(default, 480px)`) so chat tooling is usable immediately.
+10. **Panel layout defaults are revisioned:** `UserSettings` now tracks
+   `layouts.defaults_revision` / `panel_layout_defaults_revision` and can
+   apply one-time resets that override persisted sidebar widths, panel browser
+   splitter width, panel visibility/pinning, right panel widths, and stale
+   docking positions (`ResetWorkspaceLayout`) when layout baselines change.
 
 ## System Components
 
@@ -508,20 +553,19 @@ EditorManager::SwitchToEditor(EditorType type)
 
 ## File Locations
 
-| Component            | Header                                           | Implementation                                    |
-|----------------------|--------------------------------------------------|--------------------------------------------------|
-| EditorCardRegistry   | `src/app/editor/system/editor_card_registry.h`   | `src/app/editor/system/editor_card_registry.cc`  |
-| LayoutManager        | `src/app/editor/ui/layout_manager.h`             | `src/app/editor/ui/layout_manager.cc`            |
-| LayoutPresets        | `src/app/editor/ui/layout_presets.h`             | `src/app/editor/ui/layout_presets.cc`            |
-| UICoordinator        | `src/app/editor/ui/ui_coordinator.h`             | `src/app/editor/ui/ui_coordinator.cc`            |
-| EditorManager        | `src/app/editor/editor_manager.h`                | `src/app/editor/editor_manager.cc`               |
-| AgentUiController    | `src/app/editor/agent/agent_ui_controller.h`     | `src/app/editor/agent/agent_ui_controller.cc`    |
-| AgentSessionManager  | `src/app/editor/agent/agent_session.h`           | `src/app/editor/agent/agent_session.cc`          |
-| AgentSidebar         | `src/app/editor/agent/agent_sidebar.h`           | `src/app/editor/agent/agent_sidebar.cc`          |
-| AgentChatCard        | `src/app/editor/agent/agent_chat_card.h`         | `src/app/editor/agent/agent_chat_card.cc`        |
-| AgentChatView        | `src/app/editor/agent/agent_chat_view.h`         | `src/app/editor/agent/agent_chat_view.cc`        |
-| AgentProposalsPanel  | `src/app/editor/agent/agent_proposals_panel.h`   | `src/app/editor/agent/agent_proposals_panel.cc`  |
-| AgentState           | `src/app/editor/agent/agent_state.h`             | (header-only)                                    |
+| Component             | Header                                      | Implementation                                 |
+|-----------------------|---------------------------------------------|-----------------------------------------------|
+| PanelManager          | `src/app/editor/system/panel_manager.h`     | `src/app/editor/system/panel_manager.cc`      |
+| LayoutManager         | `src/app/editor/layout/layout_manager.h`     | `src/app/editor/layout/layout_manager.cc`      |
+| LayoutOrchestrator    | `src/app/editor/layout/layout_orchestrator.h`| `src/app/editor/layout/layout_orchestrator.cc` |
+| LayoutCoordinator     | `src/app/editor/layout/layout_coordinator.h` | `src/app/editor/layout/layout_coordinator.cc`  |
+| LayoutPresets         | `src/app/editor/layout/layout_presets.h`     | `src/app/editor/layout/layout_presets.cc`      |
+| ActivityBar           | `src/app/editor/menu/activity_bar.h`         | `src/app/editor/menu/activity_bar.cc`          |
+| RightPanelManager     | `src/app/editor/menu/right_panel_manager.h`  | `src/app/editor/menu/right_panel_manager.cc`   |
+| UICoordinator         | `src/app/editor/ui/ui_coordinator.h`         | `src/app/editor/ui/ui_coordinator.cc`          |
+| EditorManager         | `src/app/editor/editor_manager.h`            | `src/app/editor/editor_manager.cc`             |
+| UserSettings          | `src/app/editor/system/user_settings.h`      | `src/app/editor/system/user_settings.cc`       |
+| Core UI Actions       | `src/app/editor/events/core_events.h`        | (header-only events)                           |
 
 ---
 

@@ -1,117 +1,117 @@
 # Sunset Theme
-# Warm orange and purple sunset theme
+# Warm orange and purple theme
 name=Sunset
-description=Warm orange and purple sunset theme with cozy vibes
+description=Warm evening theme with oranges, purples and deep reds
 author=YAZE Team
-version=2.0
+version=1.0
 
 [colors]
-# Primary colors (sunset)
-primary=255,140,60,255           # Warm orange
-secondary=200,100,150,255        # Dusty rose
-accent=255,180,100,255           # Golden orange
-background=30,20,35,255          # Dark purple
-surface=40,30,45,255
+# Primary colors
+primary=255,140,0,255            # Dark orange
+secondary=138,43,226,255         # Blue violet
+accent=255,69,0,255               # Orange red
+background=30,10,20,255          # Deep wine
+surface=45,20,35,255
 
 # Status colors
-error=255,100,120,255
-warning=255,200,100,255
-success=150,255,150,255
-info=150,200,255,255
+error=255,0,0,255
+warning=255,215,0,255
+success=50,205,50,255
+info=0,191,255,255
 
 # Text colors
-text_primary=255,245,235,255     # Warm white
-text_secondary=220,200,180,255   # Warm gray
-text_disabled=150,130,120,255
+text_primary=255,245,230,255     # Warm white
+text_secondary=200,160,180,255   # Dusty rose
+text_disabled=100,80,90,255      # Muted plum
 
 # Window colors
-window_bg=35,25,40,240
-child_bg=30,20,35,200
-popup_bg=40,30,45,250
+window_bg=25,10,20,245
+child_bg=20,5,15,200
+popup_bg=40,15,30,250
 
 # Interactive elements
-button=60,40,70,255
-button_hovered=120,80,100,255
-button_active=150,100,120,255
-frame_bg=45,35,50,255
-frame_bg_hovered=55,45,60,255
-frame_bg_active=80,60,90,255
+button=100,40,70,255
+button_hovered=150,60,100,255
+button_active=200,80,130,255
+frame_bg=60,30,45,200
+frame_bg_hovered=80,45,60,220
+frame_bg_active=100,60,80,240
 
 # Navigation
-header=50,35,60,255
-header_hovered=100,70,90,255
-header_active=130,90,110,255
-tab=40,30,50,255
-tab_hovered=70,50,70,255
-tab_active=100,70,90,255
-menu_bar_bg=35,25,45,255
-title_bg=40,30,50,255
-title_bg_active=50,35,60,255
-title_bg_collapsed=40,30,50,255
+header=85,45,75,255
+header_hovered=120,70,100,255
+header_active=160,90,130,255
+tab=70,35,60,255
+tab_hovered=100,55,85,255
+tab_active=135,75,115,255
+menu_bar_bg=45,20,35,255
+title_bg=55,25,45,255
+title_bg_active=75,35,65,255
+title_bg_collapsed=55,25,45,255
 
 # Borders and separators
-border=255,140,60,255            # Warm orange border
+border=255,140,0,255             # Orange border
 border_shadow=0,0,0,0
-separator=150,120,130,153
-separator_hovered=200,150,160,200
-separator_active=255,180,100,255
+separator=120,60,80,180
+separator_hovered=160,90,110,220
+separator_active=200,120,140,255
 
 # Scrollbars
-scrollbar_bg=40,30,45,153
-scrollbar_grab=100,70,90,180
-scrollbar_grab_hovered=130,90,110,200
-scrollbar_grab_active=160,110,130,230
+scrollbar_bg=60,30,45,180
+scrollbar_grab=90,60,80,200
+scrollbar_grab_hovered=120,80,100,230
+scrollbar_grab_active=150,100,125,255
 
 # Resize grips
 resize_grip=255,255,255,26
-resize_grip_hovered=255,180,100,153
-resize_grip_active=255,180,100,230
+resize_grip_hovered=255,69,0,153
+resize_grip_active=255,69,0,230
 
 # Controls
-check_mark=255,200,120,255       # Golden checkmark
-slider_grab=255,140,60,255
-slider_grab_active=255,180,100,255
+check_mark=255,215,0,255         # Gold checkmark
+slider_grab=255,140,0,255
+slider_grab_active=255,69,0,255
 
 # Tables
-table_header_bg=50,35,60,255
-table_border_strong=100,70,90,255
-table_border_light=60,50,65,255
+table_header_bg=85,45,75,255
+table_border_strong=100,50,80,255
+table_border_light=70,35,55,255
 table_row_bg=0,0,0,0
-table_row_bg_alt=255,255,255,18
+table_row_bg_alt=255,255,255,10
 
 # Links
-text_link=255,180,100,255        # Golden links
+text_link=255,160,122,255        # Light salmon
 
 # Navigation and special elements
-input_text_cursor=255,245,235,255
-nav_cursor=255,180,100,255
-nav_windowing_highlight=255,140,60,200
+input_text_cursor=255,245,230,255
+nav_cursor=255,69,0,255
+nav_windowing_highlight=255,69,0,200
 nav_windowing_dim_bg=0,0,0,128
 modal_window_dim_bg=0,0,0,100
-text_selected_bg=255,140,60,100
-drag_drop_target=255,180,100,200
+text_selected_bg=255,140,0,100
+drag_drop_target=255,69,0,200
 
 # Docking
-docking_preview=255,140,60,180
-docking_empty_bg=35,25,45,255
+docking_preview=255,140,0,180
+docking_empty_bg=45,20,35,255
 
 # Tree lines
-tree_lines=150,120,130,153
+tree_lines=120,60,80,153
 
 # Tab variations
-tab_dimmed=30,22,38,255
-tab_dimmed_selected=60,45,70,255
-tab_dimmed_selected_overline=255,180,100,255
-tab_selected_overline=255,180,100,255
+tab_dimmed=45,20,35,255
+tab_dimmed_selected=85,40,65,255
+tab_dimmed_selected_overline=255,69,0,255
+tab_selected_overline=255,69,0,255
 
 [style]
 window_rounding=12.0
 frame_rounding=8.0
 scrollbar_rounding=12.0
 grab_rounding=6.0
-tab_rounding=8.0
-window_border_size=0.0
+tab_rounding=6.0
+window_border_size=1.0
 frame_border_size=0.0
 enable_animations=true
-enable_glow_effects=false
-animation_speed=1.0
+enable_glow_effects=true
+animation_speed=0.8

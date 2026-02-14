@@ -111,6 +111,20 @@ void Controller::OnInput() {
       case platform::WindowEventType::Close:
         active_ = false;
         break;
+
+      case platform::WindowEventType::Minimized:
+      case platform::WindowEventType::Hidden:
+      case platform::WindowEventType::FocusLost:
+        editor_manager_.HandleHostVisibilityChanged(false);
+        break;
+
+      case platform::WindowEventType::Restored:
+      case platform::WindowEventType::Shown:
+      case platform::WindowEventType::Exposed:
+      case platform::WindowEventType::FocusGained:
+        editor_manager_.HandleHostVisibilityChanged(true);
+        break;
+
       default:
         // Other events are handled by ImGui via ProcessNativeEvent
         // which is called inside PollEvent
@@ -224,6 +238,27 @@ absl::Status Controller::OnLoad() {
   absl::Status update_status = editor_manager_.Update();
   gui::WidgetIdRegistry::Instance().EndFrame();
   RETURN_IF_ERROR(update_status);
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  {
+    platform::ios::EditorStateSnapshot snap;
+    auto* editor = editor_manager_.GetCurrentEditor();
+    auto* rom = editor_manager_.GetCurrentRom();
+    if (editor) {
+      snap.can_undo = editor->undo_manager().CanUndo();
+      snap.can_redo = editor->undo_manager().CanRedo();
+      snap.editor_type =
+          editor::kEditorNames[editor::EditorTypeIndex(editor->type())];
+    }
+    if (rom && rom->is_loaded()) {
+      snap.can_save = true;
+      snap.is_dirty = rom->dirty();
+      snap.rom_title = rom->title();
+    }
+    platform::ios::PostEditorStateUpdate(snap);
+  }
+#endif
+
   return absl::OkStatus();
 }
 

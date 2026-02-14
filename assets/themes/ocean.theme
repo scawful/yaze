@@ -1,0 +1,117 @@
+# Ocean Theme
+# Deep blue theme with nautical accents
+name=Ocean
+description=Deep blue maritime theme with nautical accents and high visibility
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=30,144,255,255           # Dodger blue
+secondary=70,130,180,255          # Steel blue
+accent=0,191,255,255             # Deep sky blue
+background=10,20,30,255          # Deep sea navy
+surface=20,30,45,255
+
+# Status colors
+error=255,69,0,255               # Red-orange
+warning=255,215,0,255            # Gold
+success=50,205,50,255            # Lime green
+info=0,255,255,255               # Aqua
+
+# Text colors
+text_primary=240,248,255,255     # Alice blue
+text_secondary=176,196,222,255   # Light steel blue
+text_disabled=112,128,144,255    # Slate gray
+
+# Window colors
+window_bg=15,25,40,245
+child_bg=10,20,35,200
+popup_bg=25,35,55,250
+
+# Interactive elements
+button=40,70,100,255
+button_hovered=60,100,150,255
+button_active=80,130,200,255
+frame_bg=30,50,80,200
+frame_bg_hovered=45,70,110,220
+frame_bg_active=60,90,140,240
+
+# Navigation
+header=45,75,115,255
+header_hovered=70,110,160,255
+header_active=90,140,210,255
+tab=35,60,90,255
+tab_hovered=55,90,135,255
+tab_active=75,120,180,255
+menu_bar_bg=25,45,75,255
+title_bg=30,55,85,255
+title_bg_active=40,70,110,255
+title_bg_collapsed=30,55,85,255
+
+# Borders and separators
+border=30,144,255,255            # Primary blue
+border_shadow=0,0,0,0
+separator=60,100,140,180
+separator_hovered=90,140,190,220
+separator_active=120,180,240,255
+
+# Scrollbars
+scrollbar_bg=30,50,80,180
+scrollbar_grab=60,90,130,200
+scrollbar_grab_hovered=80,120,170,230
+scrollbar_grab_active=100,150,220,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=0,191,255,153
+resize_grip_active=0,191,255,230
+
+# Controls
+check_mark=0,255,255,255         # Cyan checkmark
+slider_grab=30,144,255,255
+slider_grab_active=0,191,255,255
+
+# Tables
+table_header_bg=45,75,115,255
+table_border_strong=70,130,180,255
+table_border_light=50,80,120,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,15
+
+# Links
+text_link=0,191,255,255          # Accent blue
+
+# Navigation and special elements
+input_text_cursor=240,248,255,255
+nav_cursor=0,191,255,255
+nav_windowing_highlight=0,191,255,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=30,144,255,100
+drag_drop_target=0,191,255,200
+
+# Docking
+docking_preview=30,144,255,180
+docking_empty_bg=25,45,75,255
+
+# Tree lines
+tree_lines=60,100,140,153
+
+# Tab variations
+tab_dimmed=25,40,65,255
+tab_dimmed_selected=45,70,105,255
+tab_dimmed_selected_overline=0,191,255,255
+tab_selected_overline=0,191,255,255
+
+[style]
+window_rounding=8.0
+frame_rounding=6.0
+scrollbar_rounding=8.0
+grab_rounding=4.0
+tab_rounding=4.0
+window_border_size=1.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.2

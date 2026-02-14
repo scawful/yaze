@@ -12,6 +12,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
+#include "yaze_config.h"
 
 namespace yaze {
 namespace editor {
@@ -49,7 +50,7 @@ void AgentAutomationPanel::Draw(AgentUIContext* context,
     }
 
     ImGui::SameLine();
-    ImGui::TextDisabled("[v0.5.x]");
+    ImGui::TextDisabled("[v%s]", YAZE_VERSION_STRING);
 
     // === CONNECTION STATUS WITH VISUAL EFFECTS ===
     bool connected = state.harness_connected;

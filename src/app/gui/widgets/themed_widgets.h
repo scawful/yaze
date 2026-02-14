@@ -180,6 +180,11 @@ bool PaletteColorButton(const char* id, const struct SnesColor& color,
 void PanelHeader(const char* title, const char* icon = nullptr,
                  bool* p_open = nullptr, const char* panel_id = nullptr);
 
+/**
+ * @brief Draw a tooltip with theme-aware background and borders.
+ */
+void ThemedTooltip(const char* text);
+
 }  // namespace gui
 }  // namespace yaze
 

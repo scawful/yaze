@@ -147,13 +147,15 @@ std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id,
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
-    int width = ((size & 0x0F) + 4) * 2;
-    int height = (((size >> 4) & 0x0F) + 1) * 3;
+    // Closed chest platform: width=(low nibble)+4, height=(high nibble)+3.
+    int width = (size & 0x0F) + 4;
+    int height = ((size >> 4) & 0x0F) + 3;
     return {width, height};
   }
   if (object_id == 0xDC) {
-    int width = (size & 0x0F) + 1;
-    int height = (((size >> 4) & 0x0F) * 2) + 7;
+    // Open chest platform helper routine caps both axes to an 8x8 draw window.
+    int width = std::min((size & 0x0F) + 1, 8);
+    int height = std::min((((size >> 4) & 0x0F) * 2) + 5, 8);
     return {width, height};
   }
   if (object_id == 0xD8 || object_id == 0xDA) {
@@ -229,13 +231,13 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
-    int width = ((size & 0x0F) + 4) * 2;
-    int height = (((size >> 4) & 0x0F) + 1) * 3;
+    int width = (size & 0x0F) + 4;
+    int height = ((size >> 4) & 0x0F) + 3;
     return {width, height};
   }
   if (object_id == 0xDC) {
-    int width = (size & 0x0F) + 1;
-    int height = (((size >> 4) & 0x0F) * 2) + 7;
+    int width = std::min((size & 0x0F) + 1, 8);
+    int height = std::min((((size >> 4) & 0x0F) * 2) + 5, 8);
     return {width, height};
   }
   if (object_id == 0xD8 || object_id == 0xDA) {
@@ -426,9 +428,9 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {2, 4, Dir::Horizontal, 2, false};
   }
 
-  // 0x05-0x06: Wall 2x4 spaced 4 BothBG - GetSize_1to16
+  // 0x05-0x06: Wall 2x4 spaced 4 BothBG - step is 6 tiles between starts
   for (int id = 0x05; id <= 0x06; id++) {
-    dimensions_[id] = {2, 4, Dir::Horizontal, 2, false};
+    dimensions_[id] = {2, 4, Dir::Horizontal, 6, false};
   }
 
   // 0x07-0x08: Floor 2x2 - GetSize_1to16
@@ -488,19 +490,19 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x38: Statue 2x3 spaced 2 - spacing 4 tiles
   dimensions_[0x38] = {2, 3, Dir::Horizontal, 4, false};
 
-  // 0x39: Pillar 2x4 spaced 4 - spacing 4 tiles between starts
-  dimensions_[0x39] = {2, 4, Dir::Horizontal, 4, false};
+  // 0x39: Pillar 2x4 spaced 4 - step is 6 tiles between starts
+  dimensions_[0x39] = {2, 4, Dir::Horizontal, 6, false};
 
-  // 0x3A-0x3B: Decor 4x3 spaced 4 - spacing 8 tiles between starts
+  // 0x3A-0x3B: Decor 4x3 spaced 4 - step is 6 tiles between starts
   for (int id = 0x3A; id <= 0x3B; id++) {
-    dimensions_[id] = {4, 3, Dir::Horizontal, 8, false};
+    dimensions_[id] = {4, 3, Dir::Horizontal, 6, false};
   }
 
-  // 0x3C: Doubled 2x2 vertical pair with 2-tile horizontal spacing
-  dimensions_[0x3C] = {2, 8, Dir::Horizontal, 4, false};
+  // 0x3C: Doubled 2x2 (rendered as 4x2) with 6-tile horizontal step
+  dimensions_[0x3C] = {4, 2, Dir::Horizontal, 6, false};
 
-  // 0x3D: Pillar 2x4 spaced 4 - spacing 4 tiles between starts
-  dimensions_[0x3D] = {2, 4, Dir::Horizontal, 4, false};
+  // 0x3D: Pillar 2x4 spaced 4 - step is 6 tiles between starts
+  dimensions_[0x3D] = {2, 4, Dir::Horizontal, 6, false};
 
   // 0x3E: Decor 2x2 spaced 12 - spacing 14 tiles
   dimensions_[0x3E] = {2, 2, Dir::Horizontal, 14, false};
@@ -832,10 +834,10 @@ void ObjectDimensionTable::InitializeDefaults() {
   }
 
   // ============================================================================
-  // Chests - fixed 2x2
+  // Chests - fixed 4x4 (matches DrawChest bounding size)
   // ============================================================================
   for (int id : {0xF9, 0xFA, 0xFB, 0xFC, 0xFD}) {
-    dimensions_[id] = {2, 2, Dir::None, 0, false};
+    dimensions_[id] = {4, 4, Dir::None, 0, false};
   }
 
   // ============================================================================
@@ -876,8 +878,8 @@ void ObjectDimensionTable::InitializeDefaults() {
 
   // Tables, beds, etc
   dimensions_[0x122] = {4, 5, Dir::None, 0, false};  // Bed
-  dimensions_[0x123] = {4, 3, Dir::Horizontal, 8,
-                        false};  // Table (8-tile spacing)
+  dimensions_[0x123] = {4, 3, Dir::Horizontal, 6,
+                        false};  // Table (6-tile spacing)
   // 0x124-0x125: 4x4
   dimensions_[0x124] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0x125] = {4, 4, Dir::Horizontal, 4, false};
@@ -908,8 +910,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   }
   // 0x13C: Sanctuary wall (repeatable 4x4)
   dimensions_[0x13C] = {4, 4, Dir::Horizontal, 4, false};
-  // 0x13D: Table 4x3 (repeatable with 8-tile spacing)
-  dimensions_[0x13D] = {4, 3, Dir::Horizontal, 8, false};
+  // 0x13D: Table 4x3 (repeatable with 6-tile spacing)
+  dimensions_[0x13D] = {4, 3, Dir::Horizontal, 6, false};
   dimensions_[0x13E] = {6, 3, Dir::None, 0, false};  // Utility 6x3
   // 0x13F: Magic Bat Altar (repeatable 4x4)
   dimensions_[0x13F] = {4, 4, Dir::Horizontal, 4, false};
@@ -928,8 +930,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF97] = {10, 4, Dir::None, 0, false};
   // Rupee floor pattern
   dimensions_[0xF92] = {6, 8, Dir::None, 0, false};
-  // Table/rock 4x3 repeated with 8-tile spacing
-  dimensions_[0xF94] = {4, 3, Dir::Horizontal, 8, false};
+  // Table/rock 4x3 repeated with 6-tile spacing
+  dimensions_[0xF94] = {4, 3, Dir::Horizontal, 6, false};
   // Single hammer peg (1x1 +3)
   dimensions_[0xF96] = {4, 1, Dir::Horizontal, 1, false};
   // Boss shells (repeatable 4x4)
@@ -974,16 +976,16 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFF0] = {4, 4, Dir::None, 0, false};
   dimensions_[0xFF1] = {6, 6, Dir::None, 0, false};
   dimensions_[0xFF8] = {8, 8, Dir::None, 0, false};
-  // Table rock 4x3 (repeatable with 8-tile spacing)
-  dimensions_[0xFF9] = {4, 3, Dir::Horizontal, 8, false};
+  // Table rock 4x3 (repeatable with 6-tile spacing)
+  dimensions_[0xFF9] = {4, 3, Dir::Horizontal, 6, false};
   // Rightwards 4x4 repeated
   dimensions_[0xFC8] = {4, 4, Dir::Horizontal, 4, false};
-  // Table/rock 4x3 repeated with 8-tile spacing
-  dimensions_[0xFCE] = {4, 3, Dir::Horizontal, 8, false};
+  // Table/rock 4x3 repeated with 6-tile spacing
+  dimensions_[0xFCE] = {4, 3, Dir::Horizontal, 6, false};
   // Actual 4x4 (no repetition)
   dimensions_[0xFE6] = {4, 4, Dir::None, 0, false};
-  dimensions_[0xFE7] = {4, 3, Dir::Horizontal, 8, false};
-  dimensions_[0xFE8] = {4, 3, Dir::Horizontal, 8, false};
+  dimensions_[0xFE7] = {4, 3, Dir::Horizontal, 6, false};
+  dimensions_[0xFE8] = {4, 3, Dir::Horizontal, 6, false};
   // Single 4x4 tile8 (large decor)
   dimensions_[0xFEB] = {4, 4, Dir::None, 0, false};
   // Single 4x3

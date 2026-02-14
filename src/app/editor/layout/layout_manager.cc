@@ -76,6 +76,68 @@ std::filesystem::path GetLayoutsFilePath(LayoutScope scope,
   return *layouts_dir / "layouts.json";
 }
 
+bool TryGetNamedPreset(const std::string& preset_name,
+                       PanelLayoutPreset* preset_out) {
+  if (!preset_out) {
+    return false;
+  }
+
+  if (preset_name == "Minimal") {
+    *preset_out = LayoutPresets::GetMinimalPreset();
+    return true;
+  }
+  if (preset_name == "Developer") {
+    *preset_out = LayoutPresets::GetDeveloperPreset();
+    return true;
+  }
+  if (preset_name == "Designer") {
+    *preset_out = LayoutPresets::GetDesignerPreset();
+    return true;
+  }
+  if (preset_name == "Modder") {
+    *preset_out = LayoutPresets::GetModderPreset();
+    return true;
+  }
+  if (preset_name == "Overworld Expert") {
+    *preset_out = LayoutPresets::GetOverworldArtistPreset();
+    return true;
+  }
+  if (preset_name == "Dungeon Expert") {
+    *preset_out = LayoutPresets::GetDungeonMasterPreset();
+    return true;
+  }
+  if (preset_name == "Testing") {
+    *preset_out = LayoutPresets::GetLogicDebuggerPreset();
+    return true;
+  }
+  if (preset_name == "Audio") {
+    *preset_out = LayoutPresets::GetAudioEngineerPreset();
+    return true;
+  }
+
+  return false;
+}
+
+std::string ResolveProfilePresetName(const std::string& profile_id,
+                                     EditorType editor_type) {
+  if (profile_id == "mapping") {
+    if (editor_type == EditorType::kDungeon) {
+      return "Dungeon Expert";
+    }
+    return "Overworld Expert";
+  }
+  if (profile_id == "code") {
+    return "Minimal";
+  }
+  if (profile_id == "debug") {
+    return "Developer";
+  }
+  if (profile_id == "chat") {
+    return "Modder";
+  }
+  return "";
+}
+
 }  // namespace
 
 void LayoutManager::InitializeEditorLayout(EditorType type,
@@ -171,45 +233,68 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
 namespace {
 
 struct DockSplitConfig {
-  float left = 0.16f;
-  float right = 0.20f;
-  float bottom = 0.20f;
+  float left = 0.17f;
+  float right = 0.24f;
+  float bottom = 0.22f;
   float top = 0.12f;
-  float vertical_split = 0.50f;
+  float vertical_split = 0.52f;
 
   // Per-editor type configuration
   static DockSplitConfig ForEditor(EditorType type) {
     DockSplitConfig cfg;
     switch (type) {
       case EditorType::kDungeon:
-        // Dungeon: narrower left panel for room list, right for object editor
-        cfg.left = 0.12f;        // Room selector panel (narrower)
-        cfg.right = 0.18f;       // Object editor panel
-        cfg.bottom = 0.16f;      // Palette editor (shorter)
-        cfg.vertical_split = 0.45f;  // Room matrix / Entrances split
+        // Dungeon: reserve more right-side space for object/property workflows.
+        cfg.left = 0.16f;
+        cfg.right = 0.26f;
+        cfg.bottom = 0.20f;
+        cfg.vertical_split = 0.50f;
         break;
       case EditorType::kOverworld:
-        cfg.left = 0.15f;
-        cfg.right = 0.18f;
-        cfg.bottom = 0.20f;
+        cfg.left = 0.22f;
+        cfg.right = 0.26f;
+        cfg.bottom = 0.23f;
+        cfg.vertical_split = 0.42f;
         break;
       case EditorType::kGraphics:
-        cfg.left = 0.14f;
-        cfg.right = 0.18f;
-        cfg.bottom = 0.18f;
+        cfg.left = 0.16f;
+        cfg.right = 0.24f;
+        cfg.bottom = 0.20f;
         break;
       case EditorType::kPalette:
-        cfg.left = 0.12f;
-        cfg.right = 0.16f;
+        cfg.left = 0.16f;
+        cfg.right = 0.22f;
+        cfg.bottom = 0.20f;
         break;
       case EditorType::kSprite:
-        cfg.left = 0.14f;
-        cfg.right = 0.18f;
-        cfg.bottom = 0.18f;
+        cfg.left = 0.18f;
+        cfg.right = 0.24f;
+        cfg.bottom = 0.20f;
         break;
       case EditorType::kScreen:
-        cfg.left = 0.12f;
+        cfg.left = 0.16f;
+        cfg.right = 0.22f;
+        cfg.bottom = 0.20f;
+        break;
+      case EditorType::kMessage:
+        cfg.left = 0.20f;
+        cfg.right = 0.26f;
+        cfg.bottom = 0.18f;
+        break;
+      case EditorType::kAssembly:
+        cfg.left = 0.24f;
         cfg.right = 0.16f;
+        cfg.bottom = 0.20f;
+        break;
+      case EditorType::kEmulator:
+        cfg.left = 0.14f;
+        cfg.right = 0.28f;
+        cfg.bottom = 0.22f;
+        break;
+      case EditorType::kAgent:
+        cfg.left = 0.16f;
+        cfg.right = 0.30f;
+        cfg.bottom = 0.24f;
         break;
       default:
         // Use defaults
@@ -339,15 +424,26 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
   const size_t session_id =
       panel_manager_ ? panel_manager_->GetActiveSessionId() : 0;
 
-  // On compact/touch layouts (iOS), collapse all panels into center tabs
-  // instead of splitting into left/right/bottom regions. This gives each
-  // panel full screen width and makes tab-switching more natural on touch.
+  // On compact/touch layouts, collapse all panels into center tabs instead of
+  // splitting into left/right/bottom regions. This gives each panel full
+  // screen width and makes tab-switching more natural on touch.
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const float viewport_width = viewport ? viewport->WorkSize.x : 0.0f;
   const bool is_compact =
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
-      true;
+      [&]() {
+        static bool compact_mode = true;
+        constexpr float kEnterCompactWidth = 900.0f;
+        constexpr float kExitCompactWidth = 940.0f;
+        if (viewport_width <= 0.0f) {
+          return compact_mode;
+        }
+        compact_mode = compact_mode ? (viewport_width < kExitCompactWidth)
+                                    : (viewport_width < kEnterCompactWidth);
+        return compact_mode;
+      }();
 #else
-      (ImGui::GetMainViewport() &&
-       ImGui::GetMainViewport()->WorkSize.x < 900.0f);
+      (viewport_width > 0.0f && viewport_width < 900.0f);
 #endif
 
   DockSplitNeeds needs{};
@@ -408,10 +504,10 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
       continue;
     }
 
-    std::string window_title = desc->GetWindowTitle();
+    std::string window_title = panel_manager_->GetPanelWindowName(*desc);
     if (window_title.empty()) {
       LOG_WARN("LayoutManager",
-               "Cannot dock panel '%s': missing window title (session %zu)",
+               "Cannot dock panel '%s': missing window name (session %zu)",
                panel_id.c_str(), session_id);
       continue;
     }
@@ -433,7 +529,7 @@ void LayoutManager::BuildAssemblyLayout(ImGuiID dockspace_id) { BuildLayoutFromP
 void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kSettings, dockspace_id); }
 void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kEmulator, dockspace_id); }
 
-void LayoutManager::SaveCurrentLayout(const std::string& name) {
+void LayoutManager::SaveCurrentLayout(const std::string& name, bool persist) {
   if (!panel_manager_) {
     LOG_WARN("LayoutManager",
              "Cannot save layout '%s': PanelManager not available",
@@ -459,10 +555,13 @@ void LayoutManager::SaveCurrentLayout(const std::string& name) {
     saved_imgui_layouts_[name] = std::string(ini_data, ini_size);
   }
 
-  SaveLayoutsToDisk(scope);
+  if (persist) {
+    SaveLayoutsToDisk(scope);
+  }
 
-  LOG_INFO("LayoutManager", "Saved layout '%s' with %zu panel states",
-           name.c_str(), visibility_state.size());
+  LOG_INFO("LayoutManager", "Saved layout '%s' with %zu panel states%s",
+           name.c_str(), visibility_state.size(),
+           persist ? "" : " (session-only)");
 }
 
 void LayoutManager::LoadLayout(const std::string& name) {
@@ -500,6 +599,68 @@ void LayoutManager::LoadLayout(const std::string& name) {
   LOG_INFO("LayoutManager", "Loaded layout '%s'", name.c_str());
 }
 
+void LayoutManager::CaptureTemporarySessionLayout(size_t session_id) {
+  if (!panel_manager_) {
+    return;
+  }
+
+  temp_session_id_ = session_id;
+  temp_session_visibility_ = panel_manager_->SerializeVisibilityState(session_id);
+  temp_session_pinned_ = panel_manager_->SerializePinnedState();
+
+  size_t ini_size = 0;
+  const char* ini_data = ImGui::SaveIniSettingsToMemory(&ini_size);
+  if (ini_data && ini_size > 0) {
+    temp_session_imgui_layout_ = std::string(ini_data, ini_size);
+  } else {
+    temp_session_imgui_layout_.clear();
+  }
+
+  has_temp_session_layout_ = true;
+  LOG_INFO("LayoutManager",
+           "Captured temporary session layout for session %zu (%zu panel states)",
+           session_id, temp_session_visibility_.size());
+}
+
+bool LayoutManager::RestoreTemporarySessionLayout(size_t session_id,
+                                                  bool clear_after_restore) {
+  if (!panel_manager_ || !has_temp_session_layout_) {
+    return false;
+  }
+
+  if (session_id != temp_session_id_) {
+    LOG_WARN("LayoutManager",
+             "Session layout snapshot belongs to session %zu, requested %zu",
+             temp_session_id_, session_id);
+    return false;
+  }
+
+  panel_manager_->RestoreVisibilityState(session_id, temp_session_visibility_,
+                                         /*publish_events=*/true);
+  panel_manager_->RestorePinnedState(temp_session_pinned_);
+
+  if (!temp_session_imgui_layout_.empty()) {
+    ImGui::LoadIniSettingsFromMemory(temp_session_imgui_layout_.c_str(),
+                                     temp_session_imgui_layout_.size());
+  }
+
+  if (clear_after_restore) {
+    ClearTemporarySessionLayout();
+  }
+
+  LOG_INFO("LayoutManager", "Restored temporary session layout for session %zu",
+           session_id);
+  return true;
+}
+
+void LayoutManager::ClearTemporarySessionLayout() {
+  has_temp_session_layout_ = false;
+  temp_session_id_ = 0;
+  temp_session_visibility_.clear();
+  temp_session_pinned_.clear();
+  temp_session_imgui_layout_.clear();
+}
+
 bool LayoutManager::DeleteLayout(const std::string& name) {
   auto layout_it = saved_layouts_.find(name);
   if (layout_it == saved_layouts_.end()) {
@@ -522,6 +683,87 @@ bool LayoutManager::DeleteLayout(const std::string& name) {
   SaveLayoutsToDisk(scope);
 
   LOG_INFO("LayoutManager", "Deleted layout '%s'", name.c_str());
+  return true;
+}
+
+std::vector<LayoutProfile> LayoutManager::GetBuiltInProfiles() {
+  return {
+      {.id = "code",
+       .label = "Code",
+       .description = "Focused editing workspace with minimal panel noise",
+       .preset_name = "Minimal",
+       .open_agent_chat = false},
+      {.id = "debug",
+       .label = "Debug",
+       .description = "Debugger-first workspace for tracing and memory tools",
+       .preset_name = "Developer",
+       .open_agent_chat = false},
+      {.id = "mapping",
+       .label = "Mapping",
+       .description = "Map-centric layout for overworld or dungeon workflows",
+       .preset_name = "Overworld Expert",
+       .open_agent_chat = false},
+      {.id = "chat",
+       .label = "Chat",
+       .description = "Collaboration-heavy layout with agent-centric tooling",
+       .preset_name = "Modder",
+       .open_agent_chat = true},
+  };
+}
+
+bool LayoutManager::ApplyBuiltInProfile(const std::string& profile_id,
+                                        size_t session_id,
+                                        EditorType editor_type,
+                                        LayoutProfile* out_profile) {
+  if (!panel_manager_) {
+    LOG_WARN("LayoutManager",
+             "Cannot apply profile '%s': PanelManager not available",
+             profile_id.c_str());
+    return false;
+  }
+
+  LayoutProfile matched_profile;
+  bool found = false;
+  for (const auto& profile : GetBuiltInProfiles()) {
+    if (profile.id == profile_id) {
+      matched_profile = profile;
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    LOG_WARN("LayoutManager", "Unknown layout profile id: %s",
+             profile_id.c_str());
+    return false;
+  }
+
+  const std::string resolved_preset =
+      ResolveProfilePresetName(profile_id, editor_type);
+  if (!resolved_preset.empty()) {
+    matched_profile.preset_name = resolved_preset;
+  }
+
+  PanelLayoutPreset preset;
+  if (!TryGetNamedPreset(matched_profile.preset_name, &preset)) {
+    LOG_WARN("LayoutManager", "Unable to resolve preset '%s' for profile '%s'",
+             matched_profile.preset_name.c_str(), profile_id.c_str());
+    return false;
+  }
+
+  panel_manager_->HideAllPanelsInSession(session_id);
+  for (const auto& panel_id : preset.default_visible_panels) {
+    panel_manager_->ShowPanel(session_id, panel_id);
+  }
+
+  RequestRebuild();
+
+  if (out_profile) {
+    *out_profile = matched_profile;
+  }
+
+  LOG_INFO("LayoutManager", "Applied profile '%s' via preset '%s'",
+           profile_id.c_str(), matched_profile.preset_name.c_str());
   return true;
 }
 
@@ -718,12 +960,7 @@ std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
   }
 
   const size_t session_id = panel_manager_->GetActiveSessionId();
-  // Look up the panel descriptor in the manager (session 0 by default)
-  auto* info = panel_manager_->GetPanelDescriptor(session_id, card_id);
-  if (info) {
-    return info->GetWindowTitle();
-  }
-  return "";
+  return panel_manager_->GetPanelWindowName(session_id, card_id);
 }
 
 }  // namespace editor

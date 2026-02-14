@@ -64,6 +64,30 @@ struct AgentUITheme {
   ImVec4 gradient_top;
   ImVec4 gradient_bottom;
 
+  // Unified editor colors
+  ImVec4 editor_background;
+  ImVec4 editor_grid;
+  ImVec4 editor_cursor;
+  ImVec4 editor_selection;
+
+  // Interaction colors
+  ImVec4 selection_primary;
+  ImVec4 selection_secondary;
+  ImVec4 selection_hover;
+  ImVec4 selection_pulsing;
+  ImVec4 selection_handle;
+  ImVec4 drag_preview;
+  ImVec4 drag_preview_outline;
+
+  // Entity colors
+  ImVec4 entrance_color;
+  ImVec4 hole_color;
+  ImVec4 exit_color;
+  ImVec4 item_color;
+  ImVec4 sprite_color;
+  ImVec4 transport_color;
+  ImVec4 music_zone_color;
+
   // Dungeon editor colors
   ImVec4 dungeon_selection_primary;        // Primary selection (yellow)
   ImVec4 dungeon_selection_secondary;      // Secondary selection (cyan)

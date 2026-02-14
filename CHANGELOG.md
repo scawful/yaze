@@ -3,12 +3,21 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.6.0 (February 10, 2026)
+## 0.6.0 (February 2026)
+- **GUI & Theming Modernization**:
+  - Unified themed widget system (`ThemedButton`, `ThemedIconButton`, `SectionHeader`).
+  - Standardized semantic color system for all editors (Dungeon, Overworld, Sprite, Graphics).
+  - Smooth cross-category editor transitions with global fade effects.
+  - Enhanced selection feedback with pulsing borders and animated corner handles.
+  - Interactive hover previews in object and sprite selectors.
+  - Theme-aware canvas background patterns and adaptive grid rendering.
+  - Named workspace presets: Dungeon Master, Overworld Artist, Logic Debugger, Audio Engineer.
 - Unified UndoManager with per-editor undo/redo (overworld, dungeon, graphics, music, message).
 - SNES priority compositing in dungeon renderer with coverage masks.
 - Custom collision editor with JSON import/export.
 - Water fill zone authoring with brush support.
 - Entity drag-drop and selection inspector in dungeon editor.
+- Object Tile Editor: visual 8x8 tile composition editor for dungeon objects with trace-based capture, source sheet atlas, per-tile property editing, and write-back to ROM and custom `.bin` files.
 - Semantic color system replacing hardcoded ImGui style pushes.
 - EventBus migration replacing legacy callback navigation patterns.
 - ROM write fences and backup safety infrastructure.

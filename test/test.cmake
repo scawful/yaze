@@ -100,6 +100,7 @@ source_group("Tests\\Unit" FILES
   unit/zelda3/dungeon/room_object_encoding_test.cc
   unit/zelda3/dungeon/room_manipulation_test.cc
   unit/zelda3/dungeon/dungeon_save_test.cc
+  unit/zelda3/dungeon/sprite_relocation_test.cc
   unit/zelda3/dungeon/object_geometry_test.cc
   unit/zelda3/dungeon/bpp_conversion_test.cc
   unit/zelda3/test_dungeon_objects.h

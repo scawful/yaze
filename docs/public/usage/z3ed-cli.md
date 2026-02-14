@@ -11,8 +11,8 @@ The `z3ed` command-line tool provides scriptable ROM editing, AI-assisted workfl
 cmake --preset mac-ai
 cmake --build --preset mac-ai --target z3ed
 
-# Run the text UI (wrapper auto-selects a suitable z3ed binary)
-./scripts/z3ed --tui
+# Check CLI help (wrapper auto-selects a suitable z3ed binary)
+./scripts/z3ed --help
 ```
 
 > **Binary path note**: On macOS/Windows multi-config builds, use

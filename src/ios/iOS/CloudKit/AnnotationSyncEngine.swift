@@ -15,6 +15,8 @@ final class AnnotationSyncEngine: ObservableObject {
   private var changeToken: CKServerChangeToken?
   private var subscription: CKDatabaseSubscription?
   private var cancellables = Set<AnyCancellable>()
+  private var autoSyncEnabled = false
+  private var isApplyingRemoteChanges = false
 
   init(store: AnnotationStore, containerID: String? = nil) {
     self.store = store
@@ -23,12 +25,35 @@ final class AnnotationSyncEngine: ObservableObject {
       ?? "iCloud.org.halext.yaze"
     let container = CKContainer(identifier: resolvedContainerID)
     self.database = container.privateCloudDatabase
+
+    store.$annotations
+      .dropFirst()
+      .debounce(for: .seconds(1.2), scheduler: DispatchQueue.main)
+      .sink { [weak self] _ in
+        guard let self else { return }
+        guard self.autoSyncEnabled && !self.isApplyingRemoteChanges else { return }
+        self.pushAnnotations()
+      }
+      .store(in: &cancellables)
+  }
+
+  func startAutomaticSync() {
+    guard !autoSyncEnabled else { return }
+    autoSyncEnabled = true
+    setupSubscription()
+    pullAnnotations()
+  }
+
+  func stopAutomaticSync() {
+    autoSyncEnabled = false
+    syncStatus = "iCloud sync paused"
   }
 
   // MARK: - Push
 
   /// Push local annotations to CloudKit.
   func pushAnnotations() {
+    guard autoSyncEnabled else { return }
     syncStatus = "Pushing..."
 
     let records = store.annotations.map { ann -> CKRecord in
@@ -39,6 +64,8 @@ final class AnnotationSyncEngine: ObservableObject {
       record["priority"] = ann.priority.rawValue as CKRecordValue
       record["category"] = ann.category as CKRecordValue
       record["createdBy"] = ann.createdBy as CKRecordValue
+      record["createdAt"] = ann.createdAt as CKRecordValue
+      record["modifiedAt"] = ann.modifiedAt as CKRecordValue
       return record
     }
 
@@ -63,6 +90,7 @@ final class AnnotationSyncEngine: ObservableObject {
 
   /// Pull remote annotations from CloudKit.
   func pullAnnotations() {
+    guard autoSyncEnabled else { return }
     syncStatus = "Pulling..."
 
     let query = CKQuery(recordType: "OracleAnnotation",
@@ -82,7 +110,9 @@ final class AnnotationSyncEngine: ObservableObject {
           return
         }
 
+        self.isApplyingRemoteChanges = true
         var imported = 0
+        var updated = 0
         for record in records {
           var ann = Annotation(
             roomID: (record["roomID"] as? Int) ?? 0,
@@ -94,15 +124,25 @@ final class AnnotationSyncEngine: ObservableObject {
 
           // Preserve CloudKit record identity to avoid duplicates on repeated pulls.
           ann.id = record.recordID.recordName
+          ann.createdAt = (record["createdAt"] as? Date)
+            ?? record.creationDate
+            ?? ann.createdAt
+          ann.modifiedAt = (record["modifiedAt"] as? Date)
+            ?? record.modificationDate
+            ?? ann.createdAt
 
-          // Only import if we don't already have this annotation.
-          if !self.store.annotations.contains(where: { $0.id == ann.id }) {
-            self.store.addAnnotation(ann)
+          switch self.store.upsertSyncedAnnotation(ann) {
+          case .inserted:
             imported += 1
+          case .updated:
+            updated += 1
+          case .unchanged:
+            break
           }
         }
+        self.isApplyingRemoteChanges = false
 
-        self.syncStatus = "Pulled \(imported) new annotations"
+        self.syncStatus = "Pulled \(imported) new, \(updated) updated"
         self.lastSyncDate = Date()
       }
     }
@@ -131,6 +171,8 @@ final class AnnotationSyncEngine: ObservableObject {
 
   /// Handle a remote notification (call from AppDelegate).
   func handleNotification() {
-    pullAnnotations()
+    if autoSyncEnabled {
+      pullAnnotations()
+    }
   }
 }

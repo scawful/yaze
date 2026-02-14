@@ -139,7 +139,7 @@ TEST_F(DungeonSaveTest, SaveSprites_FitsInSpace) {
   EXPECT_TRUE(status.ok()) << status.message();
 }
 
-TEST_F(DungeonSaveTest, SaveSprites_TooLarge) {
+TEST_F(DungeonSaveTest, SaveSprites_TooLargeFallsBackToRelocation) {
   // Add MANY sprites to exceed 0x50 (80) bytes
   // Each sprite is 3 bytes.
   // We need > 26 sprites.
@@ -149,8 +149,44 @@ TEST_F(DungeonSaveTest, SaveSprites_TooLarge) {
   }
 
   auto status = room_->SaveSprites();
-  EXPECT_FALSE(status.ok());
-  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_NE((rom_->data()[0x48001] << 8) | rom_->data()[0x48000], 0x9000);
+}
+
+TEST_F(DungeonSaveTest, SaveSprites_PreservesSortspriteHeaderByte) {
+  // Seed the room with a known sort-byte value (0x00) followed by terminator.
+  rom_->mutable_data()[0x49000] = 0x00;
+  rom_->mutable_data()[0x49001] = 0xFF;
+
+  zelda3::Sprite spr(0x10, 10, 10, 0, 0);
+  room_->GetSprites().push_back(spr);
+
+  auto status = room_->SaveSprites();
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  // SaveSprites must preserve the first byte (SortSprites mode) and write
+  // encoded payload after it.
+  EXPECT_EQ(rom_->data()[0x49000], 0x00);
+  EXPECT_EQ(rom_->data()[0x49001], 0x0A);  // b1 (Y)
+  EXPECT_EQ(rom_->data()[0x49002], 0x0A);  // b2 (X)
+  EXPECT_EQ(rom_->data()[0x49003], 0x10);  // b3 (sprite id)
+  EXPECT_EQ(rom_->data()[0x49004], 0xFF);  // terminator
+}
+
+TEST_F(DungeonSaveTest, LoadSprites_DoesNotDuplicateOnReload) {
+  // sort byte + one sprite + terminator
+  rom_->mutable_data()[0x49000] = 0x00;
+  rom_->mutable_data()[0x49001] = 0x0A;  // b1 (Y)
+  rom_->mutable_data()[0x49002] = 0x0A;  // b2 (X)
+  rom_->mutable_data()[0x49003] = 0x10;  // b3 (id)
+  rom_->mutable_data()[0x49004] = 0xFF;
+
+  room_->LoadSprites();
+  ASSERT_EQ(room_->GetSprites().size(), 1u);
+
+  // Reloading the same room should refresh, not append duplicate entries.
+  room_->LoadSprites();
+  EXPECT_EQ(room_->GetSprites().size(), 1u);
 }
 
 TEST_F(DungeonSaveTest, EncodeObjects_SkipsTorchesAndBlocks) {
@@ -232,7 +268,7 @@ TEST_F(DungeonSaveTest, SaveObjects_RoundTripsDoorsInLayer2Stream) {
 }
 
 TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
-  std::array<Room, kNumberOfRooms> rooms;
+  std::vector<Room> rooms(kNumberOfRooms);
 
   RoomObject torch(0x150, 10, 20, 0, 1);
   torch.set_options(ObjectOption::Torch);
@@ -273,7 +309,7 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
   rom_->ClearDirty();
 
-  std::array<Room, kNumberOfRooms> rooms;
+  std::vector<Room> rooms(kNumberOfRooms);
   RoomObject torch(0x150, 10, 20, 0, 1);
   torch.set_options(ObjectOption::Torch);
   torch.lit_ = true;

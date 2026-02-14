@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -876,10 +877,39 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
   int applied = 0;
   int errors = 0;
   int warnings = 0;
+  int duplicate_errors = 0;
+  int parse_error_entries = 0;
+  int vanilla_updated = 0;
+  int expanded_updated = 0;
+  int expanded_created = 0;
   bool expanded_modified = false;
+  std::vector<std::string> issue_samples;
+
+  auto add_issue_sample = [&issue_samples](const std::string& issue) {
+    constexpr size_t kMaxIssueSamples = 4;
+    if (issue_samples.size() < kMaxIssueSamples) {
+      issue_samples.push_back(issue);
+    }
+  };
+
+  auto make_entry_key = [](const MessageBundleEntry& entry) {
+    return absl::StrFormat("%s:%d", MessageBankToString(entry.bank), entry.id);
+  };
+
+  std::unordered_map<std::string, int> seen_entries;
 
   auto entries = entries_or.value();
   for (const auto& entry : entries) {
+    const std::string entry_key = make_entry_key(entry);
+    if (seen_entries.find(entry_key) != seen_entries.end()) {
+      errors++;
+      duplicate_errors++;
+      add_issue_sample(
+          absl::StrFormat("Duplicate entry for %s", entry_key));
+      continue;
+    }
+    seen_entries.emplace(entry_key, 1);
+
     auto parse_result = ParseMessageToDataWithDiagnostics(entry.text);
     auto line_warnings = ValidateMessageLineWidths(entry.text);
     warnings += static_cast<int>(parse_result.warnings.size());
@@ -887,13 +917,23 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
 
     if (!parse_result.ok()) {
       errors++;
+      parse_error_entries++;
+      if (!parse_result.errors.empty()) {
+        add_issue_sample(absl::StrFormat(
+            "Parse error for %s: %s", entry_key,
+            parse_result.errors.front()));
+      } else {
+        add_issue_sample(
+            absl::StrFormat("Parse error for %s", entry_key));
+      }
       continue;
     }
 
     if (entry.bank == MessageBank::kVanilla) {
-      if (entry.id < 0 ||
-          entry.id >= static_cast<int>(list_of_texts_.size())) {
+      if (entry.id < 0 || entry.id >= static_cast<int>(list_of_texts_.size())) {
         errors++;
+        add_issue_sample(absl::StrFormat(
+            "Vanilla ID out of range: %d", entry.id));
         continue;
       }
       auto& message = list_of_texts_[entry.id];
@@ -901,22 +941,26 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
       message.ContentsParsed = entry.text;
       message.Data = parse_result.bytes;
       message.DataParsed = parse_result.bytes;
-      if (entry.id >= 0 &&
-          entry.id < static_cast<int>(parsed_messages_.size())) {
+      if (entry.id >= 0 && entry.id < static_cast<int>(parsed_messages_.size())) {
         parsed_messages_[entry.id] = entry.text;
       }
+      vanilla_updated++;
       applied++;
     } else {
       if (entry.id < 0) {
         errors++;
+        add_issue_sample(
+            absl::StrFormat("Expanded ID out of range: %d", entry.id));
         continue;
       }
       if (entry.id >= static_cast<int>(expanded_messages_.size())) {
+        const int old_size = static_cast<int>(expanded_messages_.size());
         const int target_size = entry.id + 1;
         expanded_messages_.resize(target_size);
-        for (int i = 0; i < target_size; ++i) {
+        for (int i = old_size; i < target_size; ++i) {
           expanded_messages_[i].ID = i;
         }
+        expanded_created += target_size - old_size;
       }
       auto& message = expanded_messages_[entry.id];
       message.RawString = entry.text;
@@ -931,6 +975,7 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
         parsed_messages_[parsed_index] = entry.text;
       }
       expanded_modified = true;
+      expanded_updated++;
       applied++;
     }
   }
@@ -943,14 +988,31 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
     }
   }
 
+  int current_display_id = current_message_index_;
+  if (current_message_is_expanded_) {
+    current_display_id = expanded_message_base_id_ + current_message_index_;
+  }
+  if (current_display_id >= 0) {
+    OpenMessageById(current_display_id);
+  }
+
   if (errors > 0) {
     message_bundle_status_ = absl::StrFormat(
-        "Import finished with %d errors (%d applied, %d warnings).", errors,
-        applied, warnings);
+        "Import finished with %d errors (%d applied: vanilla %d updated, "
+        "expanded %d updated/%d created; %d warnings, %d duplicates, %d "
+        "parse failures).",
+        errors, applied, vanilla_updated, expanded_updated, expanded_created,
+        warnings, duplicate_errors, parse_error_entries);
+    if (!issue_samples.empty()) {
+      message_bundle_status_ = absl::StrFormat(
+          "%s Example: %s", message_bundle_status_, issue_samples.front());
+    }
     message_bundle_status_error_ = true;
   } else {
     message_bundle_status_ = absl::StrFormat(
-        "Imported %d messages (%d warnings).", applied, warnings);
+        "Imported %d messages (vanilla %d updated, expanded %d updated/%d "
+        "created, %d warnings).",
+        applied, vanilla_updated, expanded_updated, expanded_created, warnings);
   }
 }
 

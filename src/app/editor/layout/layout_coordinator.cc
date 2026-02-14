@@ -55,7 +55,7 @@ float LayoutCoordinator::GetLeftLayoutOffset() const {
       const ImGuiViewport* viewport = ImGui::GetMainViewport();
       viewport_width = viewport ? viewport->WorkSize.x : 0.0f;
     }
-    width += PanelManager::GetSidePanelWidthForViewport(viewport_width);
+    width += panel_manager_->GetActiveSidePanelWidth(viewport_width);
   }
 
   return width;
@@ -130,13 +130,13 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
   } else if (preset_name == "Modder") {
     preset = LayoutPresets::GetModderPreset();
   } else if (preset_name == "Overworld Expert") {
-    preset = LayoutPresets::GetOverworldExpertPreset();
+    preset = LayoutPresets::GetOverworldArtistPreset();
   } else if (preset_name == "Dungeon Expert") {
-    preset = LayoutPresets::GetDungeonExpertPreset();
+    preset = LayoutPresets::GetDungeonMasterPreset();
   } else if (preset_name == "Testing") {
-    preset = LayoutPresets::GetTestingPreset();
+    preset = LayoutPresets::GetLogicDebuggerPreset();
   } else if (preset_name == "Audio") {
-    preset = LayoutPresets::GetAudioPreset();
+    preset = LayoutPresets::GetAudioEngineerPreset();
   } else {
     LOG_WARN("LayoutCoordinator", "Unknown layout preset: %s",
              preset_name.c_str());

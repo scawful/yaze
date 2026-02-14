@@ -7,16 +7,8 @@ set(Z3ED_BASE_SOURCES
   cli/util/autocomplete.cc
 )
 
-# Add TUI sources for non-Emscripten builds
-if(NOT EMSCRIPTEN)
-  list(APPEND Z3ED_BASE_SOURCES
-    cli/tui/tui.cc
-    cli/tui/unified_layout.cc
-    cli/tui/chat_tui.cc
-    cli/tui/autocomplete_ui.cc
-  )
-else()
-  # Add WASM terminal bridge for Emscripten builds
+# Add WASM terminal bridge for Emscripten builds
+if(EMSCRIPTEN)
   list(APPEND Z3ED_BASE_SOURCES
     cli/wasm_terminal_bridge.cc
     cli/wasm_z3ed_stub.cc
@@ -38,22 +30,15 @@ endif()
 
 target_include_directories(z3ed PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/tui"
 )
 
 target_link_libraries(z3ed PRIVATE
-    yaze_core
     yaze_cli_core
 )
 
 if(YAZE_ENABLE_AGENT_CLI)
   target_link_libraries(z3ed PRIVATE yaze_cli_agent)
   target_compile_definitions(z3ed PRIVATE YAZE_ENABLE_AGENT_CLI)
-endif()
-
-# Only link ftxui for non-Emscripten builds
-if(NOT EMSCRIPTEN)
-  target_link_libraries(z3ed PRIVATE ftxui::component)
 endif()
 
 if(Z3ED_AI)
@@ -66,10 +51,9 @@ if(YAZE_WITH_GRPC)
   target_link_libraries(z3ed PRIVATE yaze_grpc_support)
 endif()
 
-# Ensure FileDialogWrapper symbols resolve after GUI/core libs in static links.
-if(NOT EMSCRIPTEN)
-  target_link_libraries(z3ed PRIVATE yaze_app_core_lib)
-endif()
+# Note: yaze_app_core_lib was previously linked here for FileDialogWrapper
+# symbols, but z3ed CLI does not use file dialogs. Removed to avoid pulling
+# in the entire editor GUI dependency graph.
 
 # Add Emscripten-specific flags for WASM builds
 if(EMSCRIPTEN)

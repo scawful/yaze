@@ -71,6 +71,16 @@ class CustomObjectManager {
   // Reload all cached objects (useful for editor)
   void ReloadAll();
 
+  // Register a new custom object file for an object_id at runtime
+  void AddObjectFile(int object_id, const std::string& filename);
+
+  // Get the resolved file list for an object_id (empty if none)
+  std::vector<std::string> GetEffectiveFileList(int object_id) const;
+
+  // Accessors for tile editor write-back
+  const std::string& GetBasePath() const { return base_path_; }
+  std::string ResolveFilename(int object_id, int subtype) const;
+
  private:
   CustomObjectManager() = default;
 

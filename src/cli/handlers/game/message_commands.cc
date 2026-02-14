@@ -3,10 +3,14 @@
 #include <fstream>
 #include <sstream>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 
 #include "app/editor/message/message_data.h"
+
+ABSL_DECLARE_FLAG(std::string, rom);
 
 namespace yaze {
 namespace cli {
@@ -517,15 +521,39 @@ absl::Status MessageImportBundleCommandHandler::Execute(
   }
   formatter.EndArray();
 
+  Rom owned_rom;
+  Rom* active_rom = rom;
+
   if (apply) {
-    if (rom == nullptr || !rom->is_loaded()) {
-      error_count++;
-      formatter.AddField("status", "error");
-      formatter.AddField("error", "ROM not loaded; cannot apply changes");
-      formatter.AddField("parse_error_count", parse_error_count);
-      formatter.AddField("error_count", error_count);
-      formatter.EndObject();
-      return absl::OkStatus();
+    if (active_rom == nullptr || !active_rom->is_loaded()) {
+      auto rom_path = parser.GetString("rom");
+      if (!rom_path.has_value() || rom_path->empty()) {
+        std::string global_rom_path = absl::GetFlag(FLAGS_rom);
+        if (!global_rom_path.empty()) {
+          rom_path = global_rom_path;
+        }
+      }
+      if (!rom_path.has_value() || rom_path->empty()) {
+        error_count++;
+        formatter.AddField("status", "error");
+        formatter.AddField("error",
+                           "ROM not loaded; provide --rom when using --apply");
+        formatter.AddField("parse_error_count", parse_error_count);
+        formatter.AddField("error_count", error_count);
+        formatter.EndObject();
+        return absl::OkStatus();
+      }
+      auto load_status = owned_rom.LoadFromFile(*rom_path);
+      if (!load_status.ok()) {
+        error_count++;
+        formatter.AddField("status", "error");
+        formatter.AddField("error", std::string(load_status.message()));
+        formatter.AddField("parse_error_count", parse_error_count);
+        formatter.AddField("error_count", error_count);
+        formatter.EndObject();
+        return absl::OkStatus();
+      }
+      active_rom = &owned_rom;
     }
 
     if (has_errors) {
@@ -546,7 +574,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
 
     if (IncludeVanilla(range) && has_vanilla_entries) {
       auto vanilla_messages = editor::ReadAllTextData(
-          const_cast<uint8_t*>(rom->data()), editor::kTextData);
+          const_cast<uint8_t*>(active_rom->data()), editor::kTextData);
       for (const auto& parsed : parsed_entries) {
         if (parsed.entry.bank != editor::MessageBank::kVanilla) {
           continue;
@@ -566,7 +594,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
       }
 
       if (!has_errors) {
-        auto status = editor::WriteAllTextData(rom, vanilla_messages);
+        auto status = editor::WriteAllTextData(active_rom, vanilla_messages);
         if (!status.ok()) {
           formatter.AddField("status", "error");
           formatter.AddField("error", std::string(status.message()));
@@ -578,7 +606,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
 
     if (IncludeExpanded(range) && has_expanded_entries) {
       auto expanded_messages = editor::ReadExpandedTextData(
-          const_cast<uint8_t*>(rom->data()),
+          const_cast<uint8_t*>(active_rom->data()),
           editor::GetExpandedTextDataStart());
       std::vector<std::string> expanded_texts;
       expanded_texts.reserve(expanded_messages.size());
@@ -604,7 +632,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
 
       if (!has_errors) {
         auto status = editor::WriteExpandedTextData(
-            rom, editor::GetExpandedTextDataStart(),
+            active_rom, editor::GetExpandedTextDataStart(),
             editor::GetExpandedTextDataEnd(), expanded_texts);
         if (!status.ok()) {
           formatter.AddField("status", "error");
@@ -620,6 +648,15 @@ absl::Status MessageImportBundleCommandHandler::Execute(
       formatter.AddField("error",
                           "Invalid message IDs; no changes applied");
     } else {
+      if (active_rom->dirty()) {
+        auto save_status = active_rom->SaveToFile({.save_new = false});
+        if (!save_status.ok()) {
+          formatter.AddField("status", "error");
+          formatter.AddField("error", std::string(save_status.message()));
+          formatter.EndObject();
+          return absl::OkStatus();
+        }
+      }
       formatter.AddField("status", "success");
       formatter.AddField("applied_messages", applied_updates);
     }

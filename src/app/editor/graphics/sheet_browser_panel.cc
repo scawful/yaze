@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -41,7 +42,7 @@ absl::Status SheetBrowserPanel::Update() {
 void SheetBrowserPanel::DrawSearchBar() {
   ImGui::Text("Search:");
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(80);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetHexInputWidth());
   if (ImGui::InputText("##SheetSearch", search_buffer_, sizeof(search_buffer_),
                        ImGuiInputTextFlags_CharsHexadecimal)) {
     // Parse hex input for sheet number
@@ -55,12 +56,12 @@ void SheetBrowserPanel::DrawSearchBar() {
   HOVER_HINT("Enter hex sheet number (00-DE)");
 
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(60);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetCompactInputWidth());
   ImGui::DragInt("##FilterMin", &filter_min_, 1.0f, 0, 222, "%02X");
   ImGui::SameLine();
   ImGui::Text("-");
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(60);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetCompactInputWidth());
   ImGui::DragInt("##FilterMax", &filter_max_, 1.0f, 0, 222, "%02X");
 
   ImGui::SameLine();
@@ -86,7 +87,7 @@ void SheetBrowserPanel::DrawBatchOperations() {
 
   // Thumbnail size slider
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(100);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
   ImGui::SliderFloat("##Scale", &thumbnail_scale_, 1.0f, 4.0f, "%.1fx");
 }
 

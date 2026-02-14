@@ -88,6 +88,8 @@ void EditorActivator::SwitchToEditor(EditorType editor_type, bool force_visible,
 
       if (EditorRegistry::IsPanelBasedEditor(editor_type)) {
         if (*editor->active()) {
+          // Smooth transition: fade out old, then fade in new
+          // Panel refresh handled by OnEditorSwitch below
           ActivatePanelBasedEditor(editor_type, editor);
         } else {
           DeactivatePanelBasedEditor(editor_type, editor, editor_set);

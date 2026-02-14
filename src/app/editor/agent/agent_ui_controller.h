@@ -99,6 +99,7 @@ class AgentUiController {
   AgentConfigState last_synced_config_;
   std::unique_ptr<AsmFollowService> asm_follow_service_;
   RightPanelManager* right_panel_manager_ = nullptr;
+  PanelManager* panel_manager_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   UserSettings* user_settings_ = nullptr;
 

@@ -52,6 +52,10 @@ class UserSettings {
     bool restore_last_session = true;
     bool prefer_hmagic_sprite_names = true;
 
+    // Accessibility / interaction
+    bool reduced_motion = false;
+    int switch_motion_profile = 1;  // 0=Snappy, 1=Standard, 2=Relaxed
+
     // Editor Behavior
     bool backup_before_save = true;
     int default_editor = 0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics
@@ -107,6 +111,9 @@ class UserSettings {
     // Sidebar State
     bool sidebar_visible = true;         // Controls Activity Bar visibility
     bool sidebar_panel_expanded = true;  // Controls Side Panel visibility
+    float sidebar_panel_width = 0.0f;    // 0 = responsive default
+    float panel_browser_category_width = 260.0f;
+    int panel_layout_defaults_revision = 0;
     std::string sidebar_active_category; // Last active category
 
     // Status Bar
@@ -121,6 +128,7 @@ class UserSettings {
     // Pinned panels (persists across sessions)
     // Maps panel_id -> pinned
     std::unordered_map<std::string, bool> pinned_panels;
+    std::unordered_map<std::string, float> right_panel_widths;
 
     // Named layouts (user-saved workspace configurations)
     // Maps layout_name -> (panel_id -> visible)
@@ -132,6 +140,12 @@ class UserSettings {
 
   absl::Status Load();
   absl::Status Save();
+
+  // Applies a one-time layout defaults migration when target_revision is newer
+  // than persisted settings. Returns true when defaults were reset.
+  bool ApplyPanelLayoutDefaultsRevision(int target_revision);
+
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 4;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }

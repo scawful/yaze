@@ -9,7 +9,8 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/agent_theme.h"
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -17,6 +18,7 @@
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_coordinates.h"
 #include "editor/dungeon/object_selection.h"
@@ -1306,9 +1308,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
             continue;
           }
 
-          ImVec4 marker_color = theme.dungeon_selection_primary;
+          ImVec4 marker_color = theme.selection_primary;
           if (track.id == active_track) {
-            marker_color = theme.text_warning_yellow;
+            marker_color = theme.status_warning;
           }
 
           const float px = static_cast<float>(local.local_pixel_x) * scale;
@@ -1514,11 +1516,14 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
     if (canvas_x >= -16 && canvas_y >= -16 && canvas_x < 512 + 16 &&
         canvas_y < 512 + 16) {
       // Draw colored square
+      const auto& theme = AgentUI::GetTheme();
       ImVec4 pot_item_color;
       if (pot_item.item == 0) {
-        pot_item_color = ImVec4(0.5f, 0.5f, 0.5f, 0.5f);  // Gray for Nothing
+        pot_item_color = theme.status_inactive;  // Muted color for Nothing
+        pot_item_color.w = 0.4f;
       } else {
-        pot_item_color = ImVec4(1.0f, 0.85f, 0.2f, 0.75f);  // Yellow for items
+        pot_item_color = theme.item_color;  // Gold/Yellow for items
+        pot_item_color.w = 0.75f;
       }
 
       gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, pot_item_color);
@@ -1686,7 +1691,7 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
 absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   LOG_DEBUG("[LoadAndRender]", "START room_id=%d", room_id);
 
-  if (room_id < 0 || room_id >= 128) {
+  if (room_id < 0 || room_id >= zelda3::NumberOfRooms) {
     LOG_DEBUG("[LoadAndRender]", "ERROR: Invalid room ID");
     return absl::InvalidArgumentError("Invalid room ID");
   }
@@ -1717,12 +1722,22 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   }
   const auto& dungeon_main = game_data_->palette_groups.dungeon_main;
   if (!dungeon_main.empty()) {
-    int palette_id = room.palette;
-    if (room.palette < game_data_->paletteset_ids.size()) {
-      palette_id = game_data_->paletteset_ids[room.palette][0];
+    // Match Room::RenderRoomGraphics palette resolution:
+    // paletteset_ids[palette][0] is an offset into the pointer table, and the
+    // pointed word divided by 180 yields the actual dungeon palette index.
+    int palette_id = static_cast<int>(room.palette);
+    if (room.palette < game_data_->paletteset_ids.size() &&
+        !game_data_->paletteset_ids[room.palette].empty()) {
+      const auto dungeon_palette_ptr = game_data_->paletteset_ids[room.palette][0];
+      auto palette_word =
+          rom_->ReadWord(zelda3::kDungeonPalettePointerTable + dungeon_palette_ptr);
+      if (palette_word.ok()) {
+        palette_id = palette_word.value() / 180;
+      }
     }
-    current_palette_group_id_ = std::min<uint64_t>(
-        std::max(0, palette_id), static_cast<int>(dungeon_main.size() - 1));
+    current_palette_group_id_ =
+        std::min<uint64_t>(std::max(0, palette_id),
+                           static_cast<int>(dungeon_main.size() - 1));
 
     auto full_palette = dungeon_main[current_palette_group_id_];
     ASSIGN_OR_RETURN(current_palette_group_,
@@ -1750,6 +1765,7 @@ void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
 
   // Apply room's layer merging settings to the manager
   layer_mgr.ApplyLayerMerging(room.layer_merging());
+  layer_mgr.ApplyRoomEffect(room.effect());
 
   float scale = canvas_.global_scale();
 
@@ -1867,25 +1883,25 @@ void DungeonCanvasViewer::DrawRoomNavigation(int room_id) {
     return absl::StrFormat("%s: [%03X] %s", direction, *target, zelda3::GetRoomLabel(*target));
   };
 
-  auto nav_button = [&](const char* id, ImGuiDir dir, const std::optional<int>& target, const std::string& tooltip) {
+  auto nav_button = [&](const char* icon, const std::optional<int>& target, const std::string& tooltip) {
     const bool enabled = target.has_value();
-    if (!enabled) ImGui::BeginDisabled();
-    if (ImGui::ArrowButton(id, dir) && enabled) {
-      if (room_swap_callback_) room_swap_callback_(room_id, *target);
-      else if (room_navigation_callback_) room_navigation_callback_(*target);
+    if (gui::ThemedIconButton(icon, tooltip.empty() ? nullptr : tooltip.c_str(),
+                              ImVec2(0, 0), false, !enabled)) {
+      if (enabled) {
+        if (room_swap_callback_) room_swap_callback_(room_id, *target);
+        else if (room_navigation_callback_) room_navigation_callback_(*target);
+      }
     }
-    if (!enabled) ImGui::EndDisabled();
-    if (enabled && ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tooltip.c_str());
   };
 
   ImGui::BeginGroup();
-  nav_button("RoomNavWest", ImGuiDir_Left, west, make_tooltip(west, "West"));
+  nav_button(ICON_MD_ARROW_BACK, west, make_tooltip(west, "West"));
   ImGui::SameLine();
-  nav_button("RoomNavNorth", ImGuiDir_Up, north, make_tooltip(north, "North"));
+  nav_button(ICON_MD_ARROW_UPWARD, north, make_tooltip(north, "North"));
   ImGui::SameLine();
-  nav_button("RoomNavSouth", ImGuiDir_Down, south, make_tooltip(south, "South"));
+  nav_button(ICON_MD_ARROW_DOWNWARD, south, make_tooltip(south, "South"));
   ImGui::SameLine();
-  nav_button("RoomNavEast", ImGuiDir_Right, east, make_tooltip(east, "East"));
+  nav_button(ICON_MD_ARROW_FORWARD, east, make_tooltip(east, "East"));
   ImGui::EndGroup();
 }
 
@@ -1895,14 +1911,16 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room, int room_id)
   ImGui::SameLine();
 
   if (pin_callback_) {
-    if (ImGui::SmallButton(is_pinned_ ? ICON_MD_PUSH_PIN "##RoomPin" : ICON_MD_PIN "##RoomPin")) {
+    if (gui::ThemedIconButton(is_pinned_ ? ICON_MD_PUSH_PIN : ICON_MD_PIN,
+                              is_pinned_ ? "Unpin Room" : "Pin Room",
+                              ImVec2(0, 0), is_pinned_)) {
       pin_callback_(!is_pinned_);
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip(is_pinned_ ? "Unpin Room" : "Pin Room");
     ImGui::SameLine();
   }
 
-  if (ImGui::SmallButton(show_room_details_ ? ICON_MD_EXPAND_LESS : ICON_MD_EXPAND_MORE)) {
+  if (gui::ThemedIconButton(show_room_details_ ? ICON_MD_EXPAND_LESS : ICON_MD_EXPAND_MORE,
+                            show_room_details_ ? "Hide Details" : "Show Details")) {
     show_room_details_ = !show_room_details_;
   }
   ImGui::SameLine();
@@ -1924,7 +1942,7 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room, int room_id)
     if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
   }
   ImGui::SameLine();
-  
+
   uint8_t pal = room.palette;
   if (hex_input("##Pal", ICON_MD_PALETTE, &pal, 71, "Palette")) {
     room.SetPalette(pal);
@@ -1957,10 +1975,10 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room, int room_id)
 void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& room, int room_id) {
   const auto& theme = AgentUI::GetTheme();
   auto& interaction = object_interaction_;
-  
+
   interaction.SetLayersMerged(GetRoomLayerManager(room_id).AreLayersMerged());
   int current_filter = interaction.GetLayerFilter();
-  
+
   auto radio = [&](const char* label, int filter) {
     if (ImGui::RadioButton(label, current_filter == filter)) {
       interaction.SetLayerFilter(filter);

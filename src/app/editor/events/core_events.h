@@ -352,6 +352,8 @@ struct UIActionRequestEvent : public Event {
     kShowShortcuts,
     kShowCommandPalette,
     kShowHelp,
+    kShowAgentChatSidebar,
+    kShowAgentProposalsSidebar,
     kOpenRom,
     kSaveRom,
     kUndo,
@@ -379,6 +381,12 @@ struct UIActionRequestEvent : public Event {
   }
   static UIActionRequestEvent ShowCommandPalette(size_t session = 0) {
     return Create(Action::kShowCommandPalette, session);
+  }
+  static UIActionRequestEvent ShowAgentChatSidebar(size_t session = 0) {
+    return Create(Action::kShowAgentChatSidebar, session);
+  }
+  static UIActionRequestEvent ShowAgentProposalsSidebar(size_t session = 0) {
+    return Create(Action::kShowAgentProposalsSidebar, session);
   }
   static UIActionRequestEvent OpenRom(size_t session = 0) {
     return Create(Action::kOpenRom, session);

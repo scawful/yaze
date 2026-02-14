@@ -10,7 +10,8 @@
 #include "imgui/imgui.h"
 
 // Project headers
-#include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/agent_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/interaction/paint_util.h"
 #include "app/gfx/resource/arena.h"
@@ -109,7 +110,7 @@ void DungeonObjectInteraction::UpdateCollisionPainting(const ImVec2& canvas_mous
   if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
     auto& room = (*rooms_)[current_room_id_];
     auto& state = mode_manager_.GetModeState();
-    
+
     // Only set for valid interior tiles (0-63)
     if (room_x >= 0 && room_x < 64 && room_y >= 0 && room_y < 64) {
       // Start a paint stroke (single undo snapshot per stroke).
@@ -391,13 +392,13 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   if (!hovered_index.has_value() || *hovered_index >= objects.size()) {
     return;
   }
+  const auto& object = objects[*hovered_index];
 
   // Don't draw hover highlight if object is already selected
   if (selection_.IsObjectSelected(*hovered_index)) {
     return;
   }
 
-  const auto& object = objects[*hovered_index];
   const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   // canvas_pos already defined above for entity check
@@ -420,17 +421,11 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   obj_end.x += margin;
   obj_end.y += margin;
 
-  // Get layer-based color for consistent highlighting
-  ImVec4 layer_color = selection_.GetLayerTypeColor(object);
+  // Draw subtle hover highlight with unified theme color
+  ImVec4 hover_fill = theme.selection_hover;
+  hover_fill.w *= 0.5f; // Make it more subtle for hover fill
 
-  // Draw subtle hover highlight with layer-based color
-  ImVec4 hover_fill = ImVec4(layer_color.x, layer_color.y, layer_color.z,
-                             0.15f  // Very subtle fill
-  );
-  ImVec4 hover_border =
-      ImVec4(layer_color.x, layer_color.y, layer_color.z,
-             0.6f  // Visible but not as prominent as selection
-      );
+  ImVec4 hover_border = theme.selection_hover;
 
   // Draw filled background for better visibility
   draw_list->AddRectFilled(obj_start, obj_end, ImGui::GetColorU32(hover_fill));
@@ -529,7 +524,7 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
     entity_coordinator_.tile_handler().DeleteObjects(current_room_id_, indices);
     selection_.ClearSelection();
   }
-  
+
   if (entity_coordinator_.HasEntitySelection()) {
     entity_coordinator_.DeleteSelectedEntity();
   }
@@ -550,13 +545,13 @@ void DungeonObjectInteraction::HandlePasteObjects() {
   if (!handler.HasClipboardData()) return;
 
   const ImGuiIO& io = ImGui::GetIO();
-  ImVec2 canvas_mouse_pos = ImVec2(io.MousePos.x - canvas_->zero_point().x, 
+  ImVec2 canvas_mouse_pos = ImVec2(io.MousePos.x - canvas_->zero_point().x,
                                    io.MousePos.y - canvas_->zero_point().y);
   auto [paste_x, paste_y] = CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
                                                     static_cast<int>(canvas_mouse_pos.y));
 
   auto new_indices = handler.PasteFromClipboardAt(current_room_id_, paste_x, paste_y);
-  
+
   // Select the newly pasted objects
   if (!new_indices.empty()) {
     selection_.ClearSelection();

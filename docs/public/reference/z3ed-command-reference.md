@@ -217,13 +217,14 @@ Check test execution status.
 - `dialogue-list`, `dialogue-read`, `dialogue-search --query <text>`
 - `hex-search --pattern <hex>`
 
-## Interactive TUI
+## CLI Discovery Flow
 
-Use the built-in TUI:
+Use scoped help directly from the CLI:
 ```bash
-z3ed --tui
+z3ed --help
+z3ed dungeon
+z3ed dungeon-place-sprite --help
 ```
-The TUI includes a command palette and live status panels for ROM work.
 
 ## Agent CLI
 
@@ -375,7 +376,7 @@ These options work with all commands:
 - `--sandbox` - Run ROM commands against a sandbox copy
 - `--format <json|text>` - Output format
 - `--data-format <hex|ascii|both>` - Byte view for read commands
-- `--tui` - Launch the interactive TUI
+- `--tui` / `--interactive` - Removed (use `z3ed help` and command-scoped `--help`)
 - `--list-commands` - List all available commands
 - `--export-schemas` - Export command schemas as JSON
 - `--version` - Show version information

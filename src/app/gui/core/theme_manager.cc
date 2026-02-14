@@ -116,12 +116,17 @@ void Theme::ApplyToImGui() const {
 
   // Apply style parameters
   style->WindowRounding = window_rounding;
+  style->ChildRounding = window_rounding * 0.5f;  // Consistent with window rounding
   style->FrameRounding = frame_rounding;
+  style->PopupRounding = frame_rounding;
   style->ScrollbarRounding = scrollbar_rounding;
   style->GrabRounding = grab_rounding;
   style->TabRounding = tab_rounding;
   style->WindowBorderSize = window_border_size;
+  style->ChildBorderSize = frame_border_size;
+  style->PopupBorderSize = window_border_size;
   style->FrameBorderSize = frame_border_size;
+  style->TabBorderSize = frame_border_size;
 
   // Apply density-based sizing
   float base_spacing = 8.0f * compact_factor;
@@ -315,6 +320,31 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.docking_preview =
       RGBA(92, 115, 92, 180);  // Light green with transparency
   theme.docking_empty_bg = RGBA(46, 66, 46, 255);  // Dark green
+
+  // Editor-specific colors
+  theme.editor_background = RGBA(30, 45, 30);  // Dark green background
+  theme.editor_grid = RGBA(80, 100, 80, 100);  // Subtle grid lines
+  theme.editor_cursor = RGBA(255, 255, 255);   // White cursor
+  theme.editor_selection =
+      RGBA(110, 145, 110, 100);  // Semi-transparent selection
+
+  // Unified selection and interaction colors
+  theme.selection_primary = RGBA(255, 230, 51, 204);    // Yellow
+  theme.selection_secondary = RGBA(51, 230, 255, 204);  // Cyan
+  theme.selection_hover = RGBA(255, 255, 255, 100);     // Semi-transparent white
+  theme.selection_pulsing = RGBA(255, 255, 255, 204);   // White pulse
+  theme.selection_handle = RGBA(255, 255, 255, 255);    // White handle
+  theme.drag_preview = RGBA(128, 128, 255, 102);        // Blueish
+  theme.drag_preview_outline = RGBA(153, 153, 255, 204);
+
+  // Common entity colors
+  theme.entrance_color = RGBA(51, 255, 51, 200);    // Green
+  theme.hole_color = RGBA(255, 51, 255, 200);        // Magenta
+  theme.exit_color = RGBA(255, 51, 51, 200);        // Red
+  theme.item_color = RGBA(255, 214, 0, 200);        // Gold
+  theme.sprite_color = RGBA(51, 153, 255, 200);     // Blue
+  theme.transport_color = RGBA(153, 102, 255, 200); // Purple
+  theme.music_zone_color = RGBA(255, 153, 51, 200); // Orange
 
   // Dungeon editor colors
   theme.dungeon.selection_primary = RGBA(255, 230, 51, 153);    // Yellow
@@ -1151,6 +1181,66 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
   }
   if (is_unset(theme.modal_bg)) {
     theme.modal_bg = theme.popup_bg;
+  }
+
+  // Editor-specific defaults
+  if (is_unset(theme.editor_background)) {
+    theme.editor_background = theme.background;
+  }
+  if (is_unset(theme.editor_grid)) {
+    theme.editor_grid = with_alpha(theme.text_secondary, 0.2f);
+  }
+  if (is_unset(theme.editor_cursor)) {
+    theme.editor_cursor = theme.text_primary;
+  }
+  if (is_unset(theme.editor_selection)) {
+    theme.editor_selection = with_alpha(theme.primary, 0.3f);
+  }
+
+  // Interaction defaults
+  if (is_unset(theme.selection_primary)) {
+    theme.selection_primary = theme.warning;
+  }
+  if (is_unset(theme.selection_secondary)) {
+    theme.selection_secondary = theme.info;
+  }
+  if (is_unset(theme.selection_hover)) {
+    theme.selection_hover = with_alpha(theme.text_primary, 0.2f);
+  }
+  if (is_unset(theme.selection_pulsing)) {
+    theme.selection_pulsing = with_alpha(theme.text_primary, 0.8f);
+  }
+  if (is_unset(theme.selection_handle)) {
+    theme.selection_handle = theme.text_primary;
+  }
+  if (is_unset(theme.drag_preview)) {
+    theme.drag_preview = with_alpha(theme.secondary, 0.4f);
+  }
+  if (is_unset(theme.drag_preview_outline)) {
+    theme.drag_preview_outline = with_alpha(theme.secondary, 0.8f);
+  }
+
+  // Entity defaults
+  if (is_unset(theme.entrance_color)) {
+    theme.entrance_color = theme.success;
+  }
+  if (is_unset(theme.hole_color)) {
+    theme.hole_color = theme.secondary;
+  }
+  if (is_unset(theme.exit_color)) {
+    theme.exit_color = theme.error;
+  }
+  if (is_unset(theme.item_color)) {
+    theme.item_color = theme.warning;
+  }
+  if (is_unset(theme.sprite_color)) {
+    theme.sprite_color = theme.info;
+  }
+  if (is_unset(theme.transport_color)) {
+    theme.transport_color = lighten(theme.secondary, 0.2f);
+  }
+  if (is_unset(theme.music_zone_color)) {
+    theme.music_zone_color = darken(theme.warning, 0.1f);
   }
 }
 

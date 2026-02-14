@@ -19,6 +19,9 @@ void* g_metal_view = nullptr;
 SafeAreaInsets g_safe_area_insets = {};
 float g_overlay_top_inset = 0.0f;
 float g_touch_scale = 1.0f;
+
+// Last-pushed state for diffing (avoids redundant notifications).
+EditorStateSnapshot g_last_editor_state = {};
 }  // namespace
 
 void SetMetalView(void* view) {
@@ -156,6 +159,57 @@ void PostToggleSidebar() {
         postNotificationName:@"yaze.input.toggle_sidebar"
                       object:nil];
   });
+#endif
+}
+
+void PostEditorStateUpdate(const EditorStateSnapshot& state) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  // Diff against last-pushed state to avoid redundant notifications.
+  if (state.can_undo == g_last_editor_state.can_undo &&
+      state.can_redo == g_last_editor_state.can_redo &&
+      state.can_save == g_last_editor_state.can_save &&
+      state.is_dirty == g_last_editor_state.is_dirty &&
+      state.editor_type == g_last_editor_state.editor_type &&
+      state.rom_title == g_last_editor_state.rom_title) {
+    return;
+  }
+  g_last_editor_state = state;
+
+  // Capture values for the block (C strings must be copied to NSString now).
+  NSNumber* canUndo = @(state.can_undo);
+  NSNumber* canRedo = @(state.can_redo);
+  NSNumber* canSave = @(state.can_save);
+  NSNumber* isDirty = @(state.is_dirty);
+  NSString* editorType = [NSString stringWithUTF8String:state.editor_type.c_str()];
+  NSString* romTitle = [NSString stringWithUTF8String:state.rom_title.c_str()];
+  if (!editorType) {
+    editorType = @"";
+  }
+  if (!romTitle) {
+    romTitle = @"";
+  }
+
+  auto post = ^{
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:@"yaze.state.editor"
+                      object:nil
+                    userInfo:@{
+                      @"canUndo" : canUndo,
+                      @"canRedo" : canRedo,
+                      @"canSave" : canSave,
+                      @"isDirty" : isDirty,
+                      @"editorType" : editorType,
+                      @"romTitle" : romTitle,
+                    }];
+  };
+
+  if ([NSThread isMainThread]) {
+    post();
+  } else {
+    dispatch_async(dispatch_get_main_queue(), post);
+  }
+#else
+  (void)state;
 #endif
 }
 

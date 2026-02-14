@@ -148,6 +148,30 @@ TEST_F(RoomLayerManagerTest, ApplyLayerMergingOff) {
   EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects), LayerBlendMode::Normal);
 }
 
+TEST_F(RoomLayerManagerTest, ApplyRoomEffectMovingWaterPromotesBG2Translucency) {
+  manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
+  manager_.SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Normal);
+
+  manager_.ApplyRoomEffect(EffectKey::Moving_Water);
+
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Translucent);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects),
+            LayerBlendMode::Translucent);
+}
+
+TEST_F(RoomLayerManagerTest, ApplyRoomEffectPreservesExplicitBlendModes) {
+  manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Addition);
+  manager_.SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Off);
+
+  manager_.ApplyRoomEffect(EffectKey::Moving_Water);
+
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Addition);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects),
+            LayerBlendMode::Off);
+}
+
 // =============================================================================
 // Static Helper Tests
 // =============================================================================

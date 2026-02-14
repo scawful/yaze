@@ -3,8 +3,23 @@ import Foundation
 
 /// Container organizing Oracle-specific tool views with sidebar navigation.
 struct OracleToolsTab: View {
-  @StateObject private var annotationStore = AnnotationStore()
+  @ObservedObject var settingsStore: YazeSettingsStore
+  @StateObject private var annotationStore: AnnotationStore
+  @StateObject private var annotationSyncEngine: AnnotationSyncEngine
   @State private var storyEvents: [StoryEventInfo] = []
+
+  init(settingsStore: YazeSettingsStore) {
+    self.settingsStore = settingsStore
+    let store = AnnotationStore(
+      projectPath: settingsStore.settings.general.lastProjectPath
+    )
+    _annotationStore = StateObject(
+      wrappedValue: store
+    )
+    _annotationSyncEngine = StateObject(
+      wrappedValue: AnnotationSyncEngine(store: store)
+    )
+  }
 
   var body: some View {
     NavigationSplitView {
@@ -28,13 +43,47 @@ struct OracleToolsTab: View {
         }
       }
       .navigationTitle("Oracle Tools")
+      .safeAreaInset(edge: .bottom) {
+        if settingsStore.settings.filesystem.useIcloudSync {
+          HStack(spacing: 8) {
+            Image(systemName: "icloud")
+              .foregroundStyle(.secondary)
+            Text(annotationSyncEngine.syncStatus)
+              .font(.footnote)
+              .foregroundStyle(.secondary)
+          }
+          .padding(.horizontal, 10)
+          .padding(.vertical, 6)
+        }
+      }
     } detail: {
       ContentUnavailableView("Select a Tool",
                              systemImage: "wrench.and.screwdriver",
                              description: Text("Choose an Oracle tool from the sidebar"))
     }
     .onAppear {
+      annotationStore.configureProjectPath(
+        settingsStore.settings.general.lastProjectPath
+      )
+      annotationStore.refreshExternalSync()
+      if settingsStore.settings.filesystem.useIcloudSync {
+        annotationSyncEngine.startAutomaticSync()
+      } else {
+        annotationSyncEngine.stopAutomaticSync()
+      }
       loadStoryEvents()
+    }
+    .onChange(of: settingsStore.settings.general.lastProjectPath) { _, newPath in
+      annotationStore.configureProjectPath(newPath)
+      annotationStore.refreshExternalSync()
+    }
+    .onChange(of: settingsStore.settings.filesystem.useIcloudSync) {
+      _, useIcloudSync in
+      if useIcloudSync {
+        annotationSyncEngine.startAutomaticSync()
+      } else {
+        annotationSyncEngine.stopAutomaticSync()
+      }
     }
   }
 

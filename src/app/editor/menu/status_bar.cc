@@ -10,6 +10,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
 
@@ -163,9 +164,9 @@ void StatusBar::Draw() {
   const float bar_y =
       viewport->WorkPos.y + viewport->WorkSize.y - bar_height - bottom_safe;
   const bool touch_mode = gui::LayoutHelpers::IsTouchDevice();
-  const ImVec2 panel_padding = touch_mode ? ImVec2(12.0f, 6.0f)
+  const ImVec2 panel_padding = touch_mode ? ImVec2(14.0f, 7.0f)
                                           : ImVec2(8.0f, 4.0f);
-  const ImVec2 panel_spacing = touch_mode ? ImVec2(10.0f, 0.0f)
+  const ImVec2 panel_spacing = touch_mode ? ImVec2(12.0f, 0.0f)
                                           : ImVec2(8.0f, 0.0f);
 
   // Status bar background - slightly elevated surface
@@ -280,7 +281,7 @@ void StatusBar::DrawAgentSegment() {
       {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
       {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
   });
-  if (ImGui::SmallButton(button_label.c_str())) {
+  if (gui::ThemedButton(button_label.c_str())) {
     if (agent_toggle_callback_) {
       agent_toggle_callback_();
     }

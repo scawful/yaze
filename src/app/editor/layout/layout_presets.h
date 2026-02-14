@@ -114,22 +114,42 @@ class LayoutPresets {
   static PanelLayoutPreset GetModderPreset();
 
   /**
-   * @brief Get the "overworld expert" workspace preset
+   * @brief Get the "overworld artist" workspace preset
+   */
+  static PanelLayoutPreset GetOverworldArtistPreset();
+
+  /**
+   * @brief Legacy alias for GetOverworldArtistPreset()
    */
   static PanelLayoutPreset GetOverworldExpertPreset();
 
   /**
-   * @brief Get the "dungeon expert" workspace preset
+   * @brief Get the "dungeon master" workspace preset
+   */
+  static PanelLayoutPreset GetDungeonMasterPreset();
+
+  /**
+   * @brief Legacy alias for GetDungeonMasterPreset()
    */
   static PanelLayoutPreset GetDungeonExpertPreset();
 
   /**
-   * @brief Get the "testing" workspace preset (QA focused)
+   * @brief Get the "logic debugger" workspace preset (QA and debug focused)
+   */
+  static PanelLayoutPreset GetLogicDebuggerPreset();
+
+  /**
+   * @brief Legacy alias for GetLogicDebuggerPreset()
    */
   static PanelLayoutPreset GetTestingPreset();
 
   /**
-   * @brief Get the "audio" workspace preset (music focused)
+   * @brief Get the "audio engineer" workspace preset (music focused)
+   */
+  static PanelLayoutPreset GetAudioEngineerPreset();
+
+  /**
+   * @brief Legacy alias for GetAudioEngineerPreset()
    */
   static PanelLayoutPreset GetAudioPreset();
 
@@ -146,13 +166,16 @@ class LayoutPresets {
     static constexpr const char* kOverworldScratch = "overworld.scratch";
     static constexpr const char* kOverworldGfxGroups = "overworld.gfx_groups";
     static constexpr const char* kOverworldUsageStats = "overworld.usage_stats";
+    static constexpr const char* kOverworldMapProperties = "overworld.properties";
     static constexpr const char* kOverworldV3Settings = "overworld.v3_settings";
 
     // Dungeon cards (dungeon_editor_v2.cc)
     static constexpr const char* kDungeonWorkbench = "dungeon.workbench";
     static constexpr const char* kDungeonRoomSelector = "dungeon.room_selector";
     static constexpr const char* kDungeonRoomMatrix = "dungeon.room_matrix";
-    static constexpr const char* kDungeonEntrances = "dungeon.entrances";
+    static constexpr const char* kDungeonEntranceList = "dungeon.entrance_list";
+    static constexpr const char* kDungeonEntrances =
+        "dungeon.entrance_properties";
     static constexpr const char* kDungeonRoomGraphics = "dungeon.room_graphics";
     static constexpr const char* kDungeonObjectEditor = "dungeon.object_editor";
     static constexpr const char* kDungeonPaletteEditor = "dungeon.palette_editor";

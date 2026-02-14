@@ -3,6 +3,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/overworld/entity.h"
 #include "app/gui/canvas/canvas.h"
 #include "core/features.h"
@@ -16,23 +17,24 @@ namespace editor {
 
 using namespace ImGui;
 
-// Entity colors - solid with good visibility
+// Entity colors - using unified theme colors
 namespace {
 ImVec4 GetEntranceColor() {
-  return ImVec4{1.0f, 1.0f, 0.0f, 1.0f};
-}  // Solid yellow (#FFFF00FF, fully opaque)
+  return AgentUI::GetTheme().entrance_color;
+}
 ImVec4 GetExitColor() {
-  return ImVec4{1.0f, 1.0f, 1.0f, 1.0f};
-}  // Solid white (#FFFFFFFF, fully opaque)
+  return AgentUI::GetTheme().exit_color;
+}
 ImVec4 GetItemColor() {
-  return ImVec4{1.0f, 0.0f, 0.0f, 1.0f};
-}  // Solid red (#FF0000FF, fully opaque)
+  return AgentUI::GetTheme().item_color;
+}
 ImVec4 GetSpriteColor() {
-  return ImVec4{1.0f, 0.0f, 1.0f, 1.0f};
-}  // Solid magenta (#FF00FFFF, fully opaque)
+  return AgentUI::GetTheme().sprite_color;
+}
 ImVec4 GetDiggableTileColor() {
-  return ImVec4{0.6f, 0.4f, 0.2f, 0.5f};
-}  // Semi-transparent brown for diggable ground
+  const auto& theme = AgentUI::GetTheme();
+  return ImVec4{theme.status_active.x, theme.status_active.y, theme.status_active.z, 0.5f};
+}
 }  // namespace
 
 // =============================================================================

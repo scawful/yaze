@@ -5,7 +5,8 @@
 #include <array>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/agent_theme.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/custom_collision.h"
@@ -266,9 +267,9 @@ void DungeonRenderingHelpers::DrawCustomCollisionOverlay(
 
       ImVec4 fill = apply_alpha(theme.panel_border_color, 0.25f);
       switch (tile) {
-        case 0x08: fill = apply_alpha(theme.text_info, 0.35f); break;
-        case 0x09: fill = apply_alpha(theme.text_info, 0.25f); break;
-        case 0x1B: fill = apply_alpha(theme.box_bg_dark, 0.50f); break;
+        case 0x08: fill = apply_alpha(theme.status_active, 0.35f); break;
+        case 0x09: fill = apply_alpha(theme.status_active, 0.25f); break;
+        case 0x1B: fill = apply_alpha(theme.editor_background, 0.50f); break;
         case 0x0E:
         case 0x3C: fill = apply_alpha(theme.status_error, 0.30f); break;
         case 0x1C: fill = apply_alpha(theme.status_warning, 0.30f); break;
@@ -278,7 +279,7 @@ void DungeonRenderingHelpers::DrawCustomCollisionOverlay(
       }
 
       draw_list->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(fill));
-      draw_list->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.text_primary, 0.10f)));
+      draw_list->AddRect(min, max, ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.editor_grid, 0.50f)));
       
       if (scale >= 4.0f) {
         std::string buf = absl::StrFormat("%02X", tile);
@@ -301,8 +302,8 @@ void DungeonRenderingHelpers::DrawWaterFillOverlay(
 
   const float tile_size = 8.0f * scale;
   auto apply_alpha = [](ImVec4 c, float a) { c.w = a; return c; };
-  const ImU32 fill_u32 = ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.text_info, 0.30f));
-  const ImU32 border_u32 = ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.text_primary, 0.08f));
+  const ImU32 fill_u32 = ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.status_active, 0.30f));
+  const ImU32 border_u32 = ImGui::ColorConvertFloat4ToU32(apply_alpha(theme.editor_grid, 0.40f));
 
   for (int y = 0; y < 64; ++y) {
     for (int x = 0; x < 64; ++x) {
@@ -320,29 +321,30 @@ void DungeonRenderingHelpers::DrawWaterFillOverlay(
 void DungeonRenderingHelpers::DrawCameraQuadrantOverlay(
     ImDrawList* draw_list, const ImVec2& canvas_pos, float scale,
     const zelda3::Room& room) {
+  const auto& theme = AgentUI::GetTheme();
   const float room_size_px = 512.0f * scale;
   const float mid_px = 256.0f * scale;
   const float thickness = std::max(1.0f, 1.0f * scale);
-  const ImU32 line_color = ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.35f));
+  const ImU32 line_color = ImGui::GetColorU32(theme.editor_grid);
 
   draw_list->AddLine(ImVec2(canvas_pos.x + mid_px, canvas_pos.y), ImVec2(canvas_pos.x + mid_px, canvas_pos.y + room_size_px), line_color, thickness);
   draw_list->AddLine(ImVec2(canvas_pos.x, canvas_pos.y + mid_px), ImVec2(canvas_pos.x + room_size_px, canvas_pos.y + mid_px), line_color, thickness);
 
   std::string label = absl::StrFormat("Layout %d", room.layout);
-  draw_list->AddText(ImVec2(canvas_pos.x + 6.0f, canvas_pos.y + 6.0f), ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 0.6f)), label.c_str());
+  draw_list->AddText(ImVec2(canvas_pos.x + 6.0f, canvas_pos.y + 6.0f), ImGui::GetColorU32(theme.text_secondary_color), label.c_str());
 }
 
 void DungeonRenderingHelpers::DrawMinecartSpriteOverlay(
     ImDrawList* draw_list, const ImVec2& canvas_pos, float scale,
     const zelda3::Room& room, const std::bitset<256>& minecart_sprite_ids,
     const TrackCollisionConfig& config) {
-  
+  const auto& theme = AgentUI::GetTheme();
   auto map_or = zelda3::LoadCustomCollisionMap(room.rom(), room.id());
   const bool has_collision = map_or.ok() && map_or.value().has_data;
 
-  const ImU32 ok_color = ImGui::GetColorU32(ImVec4(0.2f, 0.9f, 0.4f, 0.9f));
-  const ImU32 warn_color = ImGui::GetColorU32(ImVec4(0.95f, 0.5f, 0.2f, 0.95f));
-  const ImU32 unknown_color = ImGui::GetColorU32(ImVec4(0.7f, 0.7f, 0.7f, 0.8f));
+  const ImU32 ok_color = ImGui::GetColorU32(theme.status_success);
+  const ImU32 warn_color = ImGui::GetColorU32(theme.status_warning);
+  const ImU32 unknown_color = ImGui::GetColorU32(theme.status_inactive);
 
   for (const auto& sprite : room.GetSprites()) {
     if (sprite.id() >= 256 || !minecart_sprite_ids[sprite.id()]) continue;
@@ -390,8 +392,9 @@ void DungeonRenderingHelpers::DrawTrackGapOverlay(
     collision_grid[static_cast<size_t>(entry.y * 64 + entry.x)] = true;
   }
 
-  const ImU32 gap_color = ImGui::GetColorU32(ImVec4(1.0f, 0.6f, 0.0f, 0.30f));
-  const ImU32 orphan_color = ImGui::GetColorU32(ImVec4(0.5f, 0.5f, 0.5f, 0.25f));
+  const auto& theme = AgentUI::GetTheme();
+  const ImU32 gap_color = ImGui::ColorConvertFloat4ToU32(theme.status_warning);
+  const ImU32 orphan_color = ImGui::ColorConvertFloat4ToU32(theme.status_inactive);
   const float tile_size = 8.0f * scale;
 
   for (int y = 0; y < 64; ++y) {
@@ -411,7 +414,7 @@ void DungeonRenderingHelpers::DrawTrackGapOverlay(
 void DungeonRenderingHelpers::DrawTrackRouteOverlay(
     ImDrawList* draw_list, const ImVec2& canvas_pos, float scale,
     const CollisionOverlayCache& cache) {
-  
+  const auto& theme = AgentUI::GetTheme();
   std::array<bool, 64 * 64> occupied{};
   for (const auto& entry : cache.entries) {
     occupied[static_cast<size_t>(entry.y * 64 + entry.x)] = true;
@@ -419,7 +422,7 @@ void DungeonRenderingHelpers::DrawTrackRouteOverlay(
 
   const float tile_size = 8.0f * scale;
   const float half_tile = tile_size * 0.5f;
-  const ImU32 route_color = ImGui::GetColorU32(ImVec4(0.0f, 0.9f, 1.0f, 0.30f));
+  const ImU32 route_color = ImGui::ColorConvertFloat4ToU32(theme.status_active);
   const float thickness = std::max(1.0f, 1.5f * scale);
 
   for (const auto& entry : cache.entries) {

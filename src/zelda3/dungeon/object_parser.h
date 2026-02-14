@@ -190,6 +190,9 @@ class ObjectParser {
    */
   int GetSubtype3TileCount(int16_t object_id) const;
 
+  // Resolve tile count for any object ID using subtype-specific tables.
+  int ResolveTileCountForObject(int16_t object_id) const;
+
   Rom* rom_;
 };
 

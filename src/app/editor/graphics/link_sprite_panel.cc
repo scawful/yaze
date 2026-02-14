@@ -3,6 +3,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -251,7 +252,7 @@ void LinkSpritePanel::DrawPreviewCanvas() {
 
   // Zoom slider
   ImGui::SameLine();
-  ImGui::SetNextItemWidth(100);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
   ImGui::SliderFloat("Zoom", &preview_zoom_, 1.0f, 8.0f, "%.1fx");
 }
 
@@ -263,7 +264,7 @@ void LinkSpritePanel::DrawPaletteSelector() {
                                  "Bunny"};
   int current = static_cast<int>(selected_palette_);
 
-  ImGui::SetNextItemWidth(120);
+  ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
   if (ImGui::Combo("##PaletteSelect", &current, palette_names, 4)) {
     selected_palette_ = static_cast<PaletteType>(current);
     ApplySelectedPalette();

@@ -1,16 +1,18 @@
 # G5 - GUI Consistency and Panel-Based Architecture Guide
 
-> Note: The project is migrating from **Card** terminology to **Panel**
-> (`PanelWindow`, `PanelManager`, `PanelDescriptor`). This guide still shows
-> legacy names; mentally substitute Panel for Card while Phase 2 lands.
+> Legacy note: this guide still includes historical **Card** examples.
+> Current implementation standards use **Panel** terminology
+> (`PanelDescriptor`, `PanelManager`, `PanelWindow`) and stable ImGui window
+> names (`label##panel_id`) for docking/focus.
 
 This guide establishes standards for GUI consistency across all yaze editors, focusing on the modern card-based architecture, theming system, and layout patterns.
 
 ## Table of Contents
 
 1. [Introduction](#1-introduction)
-2. [Card-Based Architecture](#2-card-based-architecture)
-3. [VSCode-Style Sidebar System](#3-vscode-style-sidebar-system)
+2. [Current Conventions (2026-02)](#current-conventions-2026-02)
+3. [Card-Based Architecture](#2-card-based-architecture)
+4. [VSCode-Style Sidebar System](#3-vscode-style-sidebar-system)
 4. [Toolset System](#4-toolset-system)
 5. [GUI Library Architecture](#5-gui-library-architecture)
 6. [Themed Widget System](#6-themed-widget-system)
@@ -45,6 +47,36 @@ Contributors working on:
 - Refactoring existing editors
 - Adding new UI features to editors
 - Improving user experience consistency
+
+## Current Conventions (2026-02)
+
+These conventions override older `EditorCardManager`-centric examples when they disagree.
+
+1. **Panel window identity is stable and explicit**
+   - Register/resolve windows through `PanelDescriptor::GetImGuiWindowName()` and
+     `PanelManager::GetPanelWindowName(...)`.
+   - Docking and focus logic (`LayoutManager`, `LayoutOrchestrator`, activity bar,
+     panel browser) must use this resolved name, not raw display labels.
+2. **Sidebar sizing is user-owned and persisted**
+   - Left activity side panel is resizable with a drag handle and persisted as
+     `sidebar.panel_width` / `sidebar_panel_width`.
+   - Right sidebar is resizable per panel type with panel-specific min/max limits;
+     widths persist in `layouts.right_panel_widths`.
+3. **Panel browser UX should mirror IDE behavior**
+   - Use a category navigation pane plus panel table/content area.
+   - Keep the category pane width draggable (splitter + `ResizeEW` cursor) and
+     expose batch visibility actions (show/hide current scope).
+4. **Agent integrations should route through UI actions**
+   - Use `UIActionRequestEvent` actions (`kShowAgentChatSidebar`,
+     `kShowAgentProposalsSidebar`) to open contextual sidebars from activity bar
+     controls and agent quick actions.
+5. **Prefer declarative panel metadata over ad-hoc registration**
+   - Register panels through `PanelHost` + `PanelDefinition` so visibility,
+     labels, aliases, and callbacks stay centralized.
+6. **Use layout profiles for intent-driven workspace switches**
+   - Prefer built-in profiles (`code`, `debug`, `mapping`, `chat`) and temporary
+     snapshot capture/restore for workflow pivots instead of custom one-off
+     panel toggling sequences.
 
 ## 2. Card-Based Architecture
 

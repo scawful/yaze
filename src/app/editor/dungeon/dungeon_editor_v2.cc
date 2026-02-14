@@ -35,6 +35,7 @@
 #include "app/editor/dungeon/panels/item_editor_panel.h"
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/panels/object_editor_panel.h"
+#include "app/editor/dungeon/panels/object_tile_editor_panel.h"
 #include "app/editor/dungeon/panels/room_tag_editor_panel.h"
 #include "app/editor/dungeon/panels/sprite_editor_panel.h"
 #include "app/editor/editor_manager.h"
@@ -192,6 +193,12 @@ void DungeonEditorV2::Initialize() {
     return;
   auto* panel_manager = dependencies_.panel_manager;
 
+  // Legacy panel IDs persisted in older layouts/settings.
+  panel_manager->RegisterPanelAlias("dungeon.object_tools",
+                                    "dungeon.object_editor");
+  panel_manager->RegisterPanelAlias("dungeon.entrances",
+                                    "dungeon.entrance_properties");
+
   // Register panels with PanelManager (no boolean flags - visibility is
   // managed entirely by PanelManager::ShowPanel/HidePanel/IsPanelVisible)
   panel_manager->RegisterPanel(
@@ -306,6 +313,8 @@ void DungeonEditorV2::Initialize() {
   // Show default panels on startup
   if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
     panel_manager->ShowPanel("dungeon.workbench");
+    panel_manager->ShowPanel(kRoomSelectorId);
+    panel_manager->ShowPanel(kRoomMatrixId);
   } else {
     panel_manager->ShowPanel(kRoomSelectorId);
     panel_manager->ShowPanel(kRoomMatrixId);
@@ -359,6 +368,9 @@ void DungeonEditorV2::Initialize() {
       &workbench_split_view_enabled_, &workbench_compare_room_id_,
       &workbench_layout_state_,
       [this](int room_id) { OnRoomSelected(room_id); },
+      [this](int room_id, RoomSelectionIntent intent) {
+        OnRoomSelected(room_id, intent);
+      },
       [this](int room_id) {
         auto status = SaveRoom(room_id);
         if (!status.ok()) {
@@ -488,6 +500,16 @@ absl::Status DungeonEditorV2::Load() {
             dependencies_.project->custom_objects_folder));
   }
 
+  // Wire tile editor callback before transferring ownership
+  object_editor->set_tile_editor_callback(
+      [this](int16_t object_id) {
+        if (object_tile_editor_panel_) {
+          object_tile_editor_panel_->OpenForObject(
+              object_id, current_room_id_, &rooms_);
+          ShowPanel("dungeon.object_tile_editor");
+        }
+      });
+
   // Register the ObjectEditorPanel directly (it inherits from EditorPanel)
   // Panel manager takes ownership
   if (dependencies_.panel_manager) {
@@ -513,6 +535,43 @@ absl::Status DungeonEditorV2::Load() {
         std::make_unique<WaterFillPanel>(nullptr, nullptr);  // Placeholder
     water_fill_panel_ = water_fill_panel.get();
     dependencies_.panel_manager->RegisterEditorPanel(std::move(water_fill_panel));
+
+    // Object Tile Editor Panel
+    {
+      auto tile_editor_panel =
+          std::make_unique<ObjectTileEditorPanel>(renderer_, rom_);
+      tile_editor_panel->SetCurrentPaletteGroup(current_palette_group_);
+
+      // Wire creation callback: when a new custom object is saved,
+      // register it with the manager, persist to project, and refresh UI.
+      tile_editor_panel->SetObjectCreatedCallback(
+          [this](int object_id, const std::string& filename) {
+            zelda3::CustomObjectManager::Get().AddObjectFile(object_id,
+                                                             filename);
+            if (dependencies_.project) {
+              dependencies_.project->custom_object_files[object_id].push_back(
+                  filename);
+              (void)dependencies_.project->Save();
+            }
+            if (object_editor_panel_) {
+              object_editor_panel_->object_selector().InvalidatePreviewCache();
+            }
+          });
+
+      object_tile_editor_panel_ = tile_editor_panel.get();
+      dependencies_.panel_manager->RegisterEditorPanel(
+          std::move(tile_editor_panel));
+    }
+
+    // Wire tile editor panel and project references to the object selector
+    if (object_editor_panel_) {
+      object_editor_panel_->object_selector().SetTileEditorPanel(
+          object_tile_editor_panel_);
+      if (dependencies_.project) {
+        object_editor_panel_->object_selector().SetProject(
+            dependencies_.project);
+      }
+    }
 
     auto settings_panel = std::make_unique<DungeonSettingsPanel>(nullptr);
     settings_panel->SetSaveRoomCallback([this](int id) { SaveRoom(id); });
@@ -661,7 +720,8 @@ absl::Status DungeonEditorV2::Update() {
     return absl::OkStatus();
   }
 
-  if (!core::FeatureFlags::get().dungeon.kUseWorkbench) {
+  if (!core::FeatureFlags::get().dungeon.kUseWorkbench ||
+      active_rooms_.Size > 0) {
     DrawRoomPanels();
   }
 
@@ -1396,7 +1456,6 @@ void DungeonEditorV2::OnRoomSelected(int room_id, RoomSelectionIntent intent) {
       OnRoomSelected(room_id, /*request_focus=*/false);
       // Now force-open a standalone panel for this room
       ShowRoomPanel(room_id);
-      break;
       break;
     }
     case RoomSelectionIntent::kPreview:
@@ -2193,6 +2252,10 @@ void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
     dungeon_settings_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
 
+  if (object_tile_editor_panel_) {
+    object_tile_editor_panel_->SetCurrentPaletteGroup(current_palette_group_);
+  }
+
   if (room_tag_editor_panel_) {
     room_tag_editor_panel_->SetCurrentRoomId(room_id);
   }
@@ -2201,6 +2264,18 @@ void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
 void DungeonEditorV2::ShowRoomPanel(int room_id) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
     return;
+  }
+
+  bool already_active = false;
+  for (int i = 0; i < active_rooms_.Size; ++i) {
+    if (active_rooms_[i] == room_id) {
+      already_active = true;
+      break;
+    }
+  }
+  if (!already_active) {
+    active_rooms_.push_back(room_id);
+    room_selector_.set_active_rooms(active_rooms_);
   }
 
   std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);

@@ -19,9 +19,6 @@
 #endif
 #include "cli/service/command_registry.h"
 #include "rom/rom.h"
-#ifndef __EMSCRIPTEN__
-#include "cli/tui/tui.h"
-#endif
 #include "cli/z3ed_ascii_logo.h"
 #include "yaze_config.h"
 
@@ -31,7 +28,6 @@
 #endif
 
 // Define all CLI flags
-ABSL_FLAG(bool, tui, false, "Launch interactive Text User Interface");
 ABSL_DECLARE_FLAG(bool, quiet);
 ABSL_DECLARE_FLAG(bool, sandbox);
 ABSL_FLAG(bool, version, false, "Show version information");
@@ -148,7 +144,6 @@ void PrintCompactHelp() {
 
   std::cout << "\033[1;36mUSAGE:\033[0m\n";
   std::cout << "  z3ed [command] [flags]\n";
-  std::cout << "  z3ed --tui                    # Interactive TUI mode\n";
   std::cout << "  z3ed help <command|category>  # Scoped help\n";
   std::cout << "  z3ed --export-schemas         # JSON schemas for agents\n";
   std::cout << "  z3ed --version                # Show version\n\n";
@@ -164,7 +159,6 @@ void PrintCompactHelp() {
   std::cout << "\033[1;36mCOMMON FLAGS:\033[0m\n";
   std::cout << "  --rom=<path>           Path to ROM file\n";
   std::cout << "  --sandbox              Run ROM commands in a sandbox copy\n";
-  std::cout << "  --tui                  Launch interactive TUI\n";
   std::cout << "  --quiet, -q            Suppress output\n";
   std::cout << "  --ai_provider=<name>   AI provider (auto, ollama, gemini, "
                "openai,\n";
@@ -290,10 +284,10 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
         continue;
       }
 
-      // TUI mode
       if (token == "--tui" || token == "--interactive") {
-        absl::SetFlag(&FLAGS_tui, true);
-        continue;
+        result.error =
+            "--tui/--interactive was removed; use `z3ed help` for CLI workflows";
+        return result;
       }
 
       // Quiet mode
@@ -595,31 +589,18 @@ int main(int argc, char* argv[]) {
   }
 #endif
 
-  // Handle TUI mode
-#ifndef __EMSCRIPTEN__
-  if (absl::GetFlag(FLAGS_tui)) {
-    // Load ROM if specified before launching TUI
-    std::string rom_path = absl::GetFlag(FLAGS_rom);
-    if (!rom_path.empty()) {
-      auto status = yaze::cli::app_context.rom.LoadFromFile(rom_path);
-      if (!status.ok()) {
-        std::cerr << "\n\033[1;31mError:\033[0m Failed to load ROM: "
-                  << status.message() << "\n";
-        // Continue to TUI anyway, user can load ROM from there
-      }
-    }
-    yaze::cli::ShowMain();
-    return EXIT_SUCCESS;
-  }
-#else
-  if (absl::GetFlag(FLAGS_tui)) {
-    std::cerr << "TUI mode is not available in WASM builds.\n";
-    return EXIT_FAILURE;
-  }
-#endif
-
   // Create CLI instance
   yaze::cli::ModernCLI cli;
+
+  // Route `z3ed <command> --help` to command/category scoped help.
+  if (globals.show_help && !globals.help_target.has_value() &&
+      globals.positional.size() > 1) {
+    std::string inferred_target(globals.positional[1]);
+    if (inferred_target != "help") {
+      globals.help_target = inferred_target;
+      globals.show_help = false;
+    }
+  }
 
   // Handle targeted help (command or category)
   if (globals.help_target.has_value()) {

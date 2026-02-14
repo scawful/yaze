@@ -635,6 +635,15 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
           ImGui::SetTooltip("Export object draw routine as ASM (Phase 5)");
         }
 
+        if (ImGui::Button(ICON_MD_GRID_ON " Edit Tiles", ImVec2(-1, 0))) {
+          if (tile_editor_callback_) {
+            tile_editor_callback_(static_cast<int16_t>(static_editor_object_id_));
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Open tile editor to rearrange 8x8 tiles");
+        }
+
         ImGui::Spacing();
 
         // Close button at bottom

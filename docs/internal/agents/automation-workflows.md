@@ -76,3 +76,40 @@ In headless/server mode, the application loop is optimized:
 | `--asset_mode` | Asset loading: `auto`, `full`, or `lazy` (auto → lazy for headless/server). | - |
 | `--export_symbols` | One-shot export of symbol table to file. | - |
 | `--symbol_format` | Format for export (`mesen`, `asar`, `wla`, `bsnes`). | - |
+
+## 7. Ninja Build Metadata Recovery
+
+If incremental builds start printing `ninja: warning: premature end of file; recovering`, use the helper below to rotate Ninja state files and re-stabilize the build graph:
+
+```bash
+scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 8
+```
+
+Behavior:
+- Backs up `build/.ninja_deps` and `build/.ninja_log` with timestamps.
+- Runs a recovery build and an optional verification build.
+- Fails with a non-zero exit code if the warning still appears during verification.
+
+## 8. Gemini YOLO Loops (Oracle Workstream)
+
+For Gemini-driven prompt automation (non-interactive with auto-approval), use the agent scripts:
+
+```bash
+# Single task section from prompt markdown
+scripts/agents/gemini-yolo-loop.sh \
+  --prompt-doc ~/.context/projects/oracle-of-secrets/scratchpad/gemini_prompts_2026-02-12.md \
+  --section "Task 2: Object Dimension Validation" \
+  --task-name dimensions --max-iterations 2 --timeout-seconds 120 --model gemini-2.5-pro \
+  -- --extensions code-review --allowed-mcp-server-names nanobanana
+
+# Full 4-task Oracle fanout (dialogue + dimensions + wrap + annotation)
+scripts/agents/gemini-oracle-workstream.sh \
+  --model gemini-2.5-pro --max-iterations 2 --timeout-seconds 120 \
+  -- --extensions code-review --allowed-mcp-server-names nanobanana
+```
+
+Behavior:
+- Runs `gemini` with `--approval-mode yolo` and `--yolo` by default.
+- Retries up to `--max-iterations` until the configured completion marker appears.
+- Applies per-iteration timeout via `--timeout-seconds` so stuck generations fail fast (exit 124).
+- Writes per-iteration prompts/logs and a run summary for auditability.

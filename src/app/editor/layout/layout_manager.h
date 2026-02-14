@@ -43,6 +43,17 @@ enum class LayoutScope {
 };
 
 /**
+ * @brief Built-in workflow-oriented layout profiles.
+ */
+struct LayoutProfile {
+  std::string id;          // Stable id (e.g. "code", "debug")
+  std::string label;       // UI-facing label
+  std::string description; // Short profile summary
+  std::string preset_name; // Backing LayoutPresets name
+  bool open_agent_chat = false;
+};
+
+/**
  * @class LayoutManager
  * @brief Manages ImGui DockBuilder layouts for each editor type
  *
@@ -96,8 +107,9 @@ class LayoutManager {
   /**
    * @brief Save the current layout with a custom name
    * @param name The name to save the layout under
+   * @param persist Whether to write the layout to disk
    */
-  void SaveCurrentLayout(const std::string& name);
+  void SaveCurrentLayout(const std::string& name, bool persist = true);
 
   /**
    * @brief Load a saved layout by name
@@ -106,11 +118,52 @@ class LayoutManager {
   void LoadLayout(const std::string& name);
 
   /**
+   * @brief Capture the current workspace as a temporary session layout.
+   *
+   * Temporary layouts are held in memory only and are never persisted to disk.
+   */
+  void CaptureTemporarySessionLayout(size_t session_id);
+
+  /**
+   * @brief Restore the temporary session layout if one has been captured.
+   * @return true when a captured layout was restored
+   */
+  bool RestoreTemporarySessionLayout(size_t session_id,
+                                     bool clear_after_restore = false);
+
+  /**
+   * @brief Whether a temporary session layout is available.
+   */
+  bool HasTemporarySessionLayout() const { return has_temp_session_layout_; }
+
+  /**
+   * @brief Clear temporary session layout snapshot state.
+   */
+  void ClearTemporarySessionLayout();
+
+  /**
    * @brief Delete a saved layout by name
    * @param name The name of the layout to delete
    * @return true if layout was deleted, false if not found
    */
   bool DeleteLayout(const std::string& name);
+
+  /**
+   * @brief Get built-in layout profiles.
+   */
+  static std::vector<LayoutProfile> GetBuiltInProfiles();
+
+  /**
+   * @brief Apply a built-in layout profile by profile ID.
+   * @param profile_id Stable profile id from GetBuiltInProfiles()
+   * @param session_id Active session id
+   * @param editor_type Current editor type (for context-sensitive profiles)
+   * @param out_profile Optional resolved profile metadata
+   * @return true when a matching profile was applied
+   */
+  bool ApplyBuiltInProfile(const std::string& profile_id, size_t session_id,
+                           EditorType editor_type,
+                           LayoutProfile* out_profile = nullptr);
 
   /**
    * @brief Get list of all saved layout names
@@ -244,6 +297,13 @@ class LayoutManager {
   // Saved layouts (panel visibility state)
   std::unordered_map<std::string, std::unordered_map<std::string, bool>>
       saved_layouts_;
+
+  // In-memory temporary session snapshot (never persisted).
+  bool has_temp_session_layout_ = false;
+  size_t temp_session_id_ = 0;
+  std::unordered_map<std::string, bool> temp_session_visibility_;
+  std::unordered_map<std::string, bool> temp_session_pinned_;
+  std::string temp_session_imgui_layout_;
 
   // Saved ImGui docking layouts (INI data)
   std::unordered_map<std::string, std::string> saved_imgui_layouts_;

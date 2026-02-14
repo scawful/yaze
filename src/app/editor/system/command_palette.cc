@@ -306,7 +306,42 @@ void CommandPalette::RegisterEditorCommands(
 
 void CommandPalette::RegisterLayoutCommands(
     std::function<void(const std::string&)> apply_callback) {
-  // Named workspace presets
+  struct ProfileInfo {
+    const char* id;
+    const char* name;
+    const char* description;
+  };
+
+  static const ProfileInfo profiles[] = {
+      {"code", "Code",
+       "Focused editing workspace with minimal panel noise"},
+      {"debug", "Debug",
+       "Debugger-first workspace for tracing and memory tools"},
+      {"mapping", "Mapping",
+       "Map-centric workspace for overworld/dungeon flows"},
+      {"chat", "Chat + Agent",
+       "Agent collaboration workspace with chat-centric layout"},
+  };
+
+  for (const auto& profile : profiles) {
+    std::string name = absl::StrFormat("Apply Profile: %s", profile.name);
+    AddCommand(name, CommandCategory::kLayout, profile.description, "",
+               [apply_callback, profile_id = std::string(profile.id)]() {
+                 apply_callback("profile:" + profile_id);
+               });
+  }
+
+  AddCommand("Capture Layout Snapshot", CommandCategory::kLayout,
+             "Capture current layout as temporary session snapshot", "",
+             [apply_callback]() { apply_callback("session:capture"); });
+  AddCommand("Restore Layout Snapshot", CommandCategory::kLayout,
+             "Restore temporary session snapshot", "",
+             [apply_callback]() { apply_callback("session:restore"); });
+  AddCommand("Clear Layout Snapshot", CommandCategory::kLayout,
+             "Clear temporary session snapshot", "",
+             [apply_callback]() { apply_callback("session:clear"); });
+
+  // Legacy named workspace presets
   struct PresetInfo {
     const char* name;
     const char* description;

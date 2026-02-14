@@ -12,6 +12,7 @@
 #endif
 
 #include <algorithm>
+#include <cmath>
 #include <string>
 
 #include "app/gfx/backend/metal_renderer.h"
@@ -117,12 +118,10 @@ void ApplyTouchStyle(MTKView* view) {
   const UIEdgeInsets insets = GetSafeAreaInsets(view);
   const float safe_x = std::max((float)insets.left, (float)insets.right);
   const float safe_y = std::max((float)insets.top, (float)insets.bottom);
-  const float overlay_top = ios::GetOverlayTopInset();
-  const float padded_top = std::max(safe_y, overlay_top);
 
   // Truncate to integer pixels to avoid sub-pixel oscillation.
   const float stable_x = std::floor(safe_x);
-  const float stable_y = std::floor(padded_top);
+  const float stable_y = std::floor(safe_y);
 
   if (stable_x != state.last_safe_x || stable_y != state.last_safe_y) {
     state.last_safe_x = stable_x;
@@ -412,11 +411,19 @@ void IOSWindowBackend::RenderImGui(gfx::IRenderer* renderer) {
     ImGuiContext* ctx = ImGui::GetCurrentContext();
     const ImGuiViewport* vp = ImGui::GetMainViewport();
     if (ctx && vp) {
-      const ImGuiStyle& style = ImGui::GetStyle();
-      const ImVec2 safe = style.DisplaySafeAreaPadding;
-      const ImVec2 rect_pos(vp->WorkPos.x + safe.x, vp->WorkPos.y + safe.y);
-      const ImVec2 rect_size(std::max(1.0f, vp->WorkSize.x - safe.x * 2.0f),
-                             std::max(1.0f, vp->WorkSize.y - safe.y * 2.0f));
+      const auto insets = ios::GetSafeAreaInsets();
+      const float safe_left = std::max(0.0f, insets.left);
+      const float safe_right = std::max(0.0f, insets.right);
+      const float safe_bottom = std::max(0.0f, insets.bottom);
+      // Use overlay inset only for the top edge; bottom stays tied to home
+      // indicator safe area to avoid oscillating clamp bounds.
+      const float safe_top =
+          std::max(std::max(0.0f, insets.top), ios::GetOverlayTopInset());
+
+      const ImVec2 rect_pos(vp->WorkPos.x + safe_left, vp->WorkPos.y + safe_top);
+      const ImVec2 rect_size(
+          std::max(1.0f, vp->WorkSize.x - safe_left - safe_right),
+          std::max(1.0f, vp->WorkSize.y - safe_top - safe_bottom));
 
       for (ImGuiWindow* win : ctx->Windows) {
         if (!win || win->Hidden || win->IsFallbackWindow) continue;

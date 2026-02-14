@@ -39,6 +39,7 @@ namespace yaze {
 namespace editor {
 
 class MinecartTrackEditorPanel;
+class ObjectTileEditorPanel;
 class RoomTagEditorPanel;
 
 /**
@@ -197,7 +198,7 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kEntranceListId = "dungeon.entrance_list";
   static constexpr const char* kRoomMatrixId = "dungeon.room_matrix";
   static constexpr const char* kRoomGraphicsId = "dungeon.room_graphics";
-  static constexpr const char* kObjectToolsId = "dungeon.object_tools";
+  static constexpr const char* kObjectToolsId = "dungeon.object_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
 
   // Public accessors for WASM API and automation
@@ -304,6 +305,7 @@ class DungeonEditorV2 : public Editor {
   class RoomTagEditorPanel* room_tag_editor_panel_ = nullptr;
   class CustomCollisionPanel* custom_collision_panel_ = nullptr;
   class WaterFillPanel* water_fill_panel_ = nullptr;
+  ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
   class DungeonSettingsPanel* dungeon_settings_panel_ = nullptr;
 
   // Fallback ownership for tests when PanelManager is not available.

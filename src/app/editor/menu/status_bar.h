@@ -164,7 +164,7 @@ class StatusBar {
   float GetHeight() const;
 
   static constexpr float kStatusBarHeight = 24.0f;
-  static constexpr float kStatusBarTouchHeight = 34.0f;
+  static constexpr float kStatusBarTouchHeight = 44.0f;
 
  private:
   void HandleStatusUpdate(const StatusUpdateEvent& event);

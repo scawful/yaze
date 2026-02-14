@@ -39,7 +39,8 @@ void DungeonRoomSelector::RebuildRoomFilterCache() {
   }
 }
 
-void DungeonRoomSelector::DrawRoomSelector() {
+void DungeonRoomSelector::DrawRoomSelector(
+    RoomSelectionIntent single_click_intent) {
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::Text("ROM not loaded");
     return;
@@ -65,12 +66,13 @@ void DungeonRoomSelector::DrawRoomSelector() {
 
   room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
-  // Rebuild cache if filter changed
+  // Rebuild every frame so renamed room labels appear immediately.
+  // Room count is small (296), so this remains cheap.
   std::string current_filter(room_filter_.InputBuf);
-  if (current_filter != last_room_filter_ || filtered_room_indices_.empty()) {
+  if (current_filter != last_room_filter_) {
     last_room_filter_ = current_filter;
-    RebuildRoomFilterCache();
   }
+  RebuildRoomFilterCache();
 
   // Increase row height on touch devices for easier tapping
   const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
@@ -124,10 +126,10 @@ void DungeonRoomSelector::DrawRoomSelector() {
               room_selected_callback_(room_id);
             }
           } else {
-            // Single-click: focus in workbench (default)
+            // Single-click intent is caller-controlled:
+            // dedicated Room List opens standalone, workbench focuses.
             if (room_intent_callback_) {
-              room_intent_callback_(room_id,
-                                    RoomSelectionIntent::kFocusInWorkbench);
+              room_intent_callback_(room_id, single_click_intent);
             } else if (room_selected_callback_) {
               room_selected_callback_(room_id);
             }
