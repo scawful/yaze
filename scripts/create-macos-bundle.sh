@@ -111,6 +111,20 @@ cat > "$APP_BUNDLE_NAME/Contents/Info.plist" <<EOF
 </plist>
 EOF
 
+if command -v codesign >/dev/null 2>&1; then
+    echo "Signing app bundle..."
+    if [ -n "${CODESIGN_IDENTITY:-}" ]; then
+        echo "Using CODESIGN_IDENTITY"
+        codesign --force --deep --options runtime --sign "${CODESIGN_IDENTITY}" "$APP_BUNDLE_NAME"
+    else
+        echo "No CODESIGN_IDENTITY provided, applying ad-hoc signature"
+        codesign --force --deep --sign - "$APP_BUNDLE_NAME"
+    fi
+    codesign --verify --deep --strict "$APP_BUNDLE_NAME"
+else
+    echo "WARNING: codesign not available; app bundle signature not validated"
+fi
+
 # Create DMG staging area with FLAT structure
 echo "Creating DMG staging area..."
 mkdir -p dmg_staging

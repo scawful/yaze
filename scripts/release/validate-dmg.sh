@@ -68,6 +68,15 @@ if [[ ${#missing_items[@]} -gt 0 ]]; then
   exit 1
 fi
 
+if command -v codesign >/dev/null 2>&1; then
+  echo "Validating yaze.app code signature..."
+  if ! codesign --verify --deep --strict "$mount_dir/yaze.app"; then
+    echo "Invalid code signature for yaze.app"
+    codesign -dv --verbose=2 "$mount_dir/yaze.app" 2>&1 || true
+    exit 1
+  fi
+fi
+
 if [[ -d "$mount_dir/bin" ]]; then
   echo "Unexpected bin/ directory in DMG"
   exit 1

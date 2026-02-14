@@ -25,31 +25,28 @@ runs:
       if: inputs.test-type == 'stable' || inputs.test-type == 'all'
       shell: bash
       run: |
-        cd build
         ctest --preset stable${CTEST_SUFFIX} \
           --output-on-failure \
           --timeout 300 \
-          --output-junit stable_test_results.xml || true
+          --output-junit build/stable_test_results.xml
 
     - name: Run unit tests
       if: inputs.test-type == 'unit' || inputs.test-type == 'all'
       shell: bash
       run: |
-        cd build
         ctest --preset unit${CTEST_SUFFIX} \
           --output-on-failure \
           --timeout 300 \
-          --output-junit unit_test_results.xml || true
+          --output-junit build/unit_test_results.xml
 
     - name: Run integration tests
       if: inputs.test-type == 'integration' || inputs.test-type == 'all'
       shell: bash
       run: |
-        cd build
         ctest --preset integration${CTEST_SUFFIX} \
           --output-on-failure \
           --timeout 300 \
-          --output-junit integration_test_results.xml || true
+          --output-junit build/integration_test_results.xml
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -58,4 +55,3 @@ runs:
         path: build/*test_results.xml
         if-no-files-found: ignore
         retention-days: 7
-
