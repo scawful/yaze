@@ -103,10 +103,9 @@ void WriteSpriteStream(Rom* rom, int pc_addr, uint8_t sort_mode,
 TEST(DungeonEditCommandsTest, PlaceSpriteRejectsInvalidX) {
   handlers::DungeonPlaceSpriteCommandHandler handler;
   std::string output;
-  const auto status = handler.Run(
-      {"--mock-rom", "--room=0x77", "--id=0xA3", "--x=nope", "--y=21",
-       "--format=json"},
-      nullptr, &output);
+  const auto status = handler.Run({"--mock-rom", "--room=0x77", "--id=0xA3",
+                                   "--x=nope", "--y=21", "--format=json"},
+                                  nullptr, &output);
 
   ExpectInvalidArgument(status, "Invalid integer for '--x'");
 }
@@ -114,10 +113,10 @@ TEST(DungeonEditCommandsTest, PlaceSpriteRejectsInvalidX) {
 TEST(DungeonEditCommandsTest, PlaceSpriteRejectsInvalidSubtype) {
   handlers::DungeonPlaceSpriteCommandHandler handler;
   std::string output;
-  const auto status = handler.Run(
-      {"--mock-rom", "--room=0x77", "--id=0xA3", "--x=16", "--y=21",
-       "--subtype=nope", "--format=json"},
-      nullptr, &output);
+  const auto status =
+      handler.Run({"--mock-rom", "--room=0x77", "--id=0xA3", "--x=16", "--y=21",
+                   "--subtype=nope", "--format=json"},
+                  nullptr, &output);
 
   ExpectInvalidArgument(status, "Invalid integer for '--subtype'");
 }
@@ -125,9 +124,9 @@ TEST(DungeonEditCommandsTest, PlaceSpriteRejectsInvalidSubtype) {
 TEST(DungeonEditCommandsTest, RemoveSpriteRejectsInvalidIndex) {
   handlers::DungeonRemoveSpriteCommandHandler handler;
   std::string output;
-  const auto status =
-      handler.Run({"--mock-rom", "--room=0x77", "--index=nope", "--format=json"},
-                  nullptr, &output);
+  const auto status = handler.Run(
+      {"--mock-rom", "--room=0x77", "--index=nope", "--format=json"}, nullptr,
+      &output);
 
   ExpectInvalidArgument(status, "Invalid integer for '--index'");
 }
@@ -165,10 +164,10 @@ TEST(DungeonEditCommandsTest, RemoveSpriteRejectsOutOfRangeCoordinates) {
 TEST(DungeonEditCommandsTest, PlaceObjectRejectsInvalidSize) {
   handlers::DungeonPlaceObjectCommandHandler handler;
   std::string output;
-  const auto status = handler.Run(
-      {"--mock-rom", "--room=0x98", "--id=0x0031", "--x=1", "--y=2",
-       "--size=nope", "--format=json"},
-      nullptr, &output);
+  const auto status =
+      handler.Run({"--mock-rom", "--room=0x98", "--id=0x0031", "--x=1", "--y=2",
+                   "--size=nope", "--format=json"},
+                  nullptr, &output);
 
   ExpectInvalidArgument(status, "Invalid integer for '--size'");
 }
@@ -176,10 +175,9 @@ TEST(DungeonEditCommandsTest, PlaceObjectRejectsInvalidSize) {
 TEST(DungeonEditCommandsTest, PlaceObjectRejectsRoomIdOutOfRange) {
   handlers::DungeonPlaceObjectCommandHandler handler;
   std::string output;
-  const auto status = handler.Run(
-      {"--mock-rom", "--room=0x200", "--id=0x0031", "--x=1", "--y=2",
-       "--format=json"},
-      nullptr, &output);
+  const auto status = handler.Run({"--mock-rom", "--room=0x200", "--id=0x0031",
+                                   "--x=1", "--y=2", "--format=json"},
+                                  nullptr, &output);
 
   ExpectInvalidArgument(status, "Room ID out of range");
 }
@@ -198,8 +196,8 @@ TEST(DungeonEditCommandsTest, SetCollisionTileRejectsMalformedTileTuple) {
   handlers::DungeonSetCollisionTileCommandHandler handler;
   std::string output;
   const auto status = handler.Run(
-      {"--mock-rom", "--room=0xB8", "--tiles=10,5", "--format=json"},
-      nullptr, &output);
+      {"--mock-rom", "--room=0xB8", "--tiles=10,5", "--format=json"}, nullptr,
+      &output);
 
   ExpectInvalidArgument(status, "Invalid tile spec");
 }
@@ -239,9 +237,10 @@ TEST(DungeonEditCommandsTest, PlaceSpriteWriteRelocatesAndRoundTrips) {
   handlers::DungeonPlaceSpriteCommandHandler place_handler;
 
   std::string dry_output;
-  auto dry_status = place_handler.Run({"--room=0x00", "--id=0xA3", "--x=16",
-                                       "--y=21", "--subtype=4", "--format=json"},
-                                      &rom, &dry_output);
+  auto dry_status =
+      place_handler.Run({"--room=0x00", "--id=0xA3", "--x=16", "--y=21",
+                         "--subtype=4", "--format=json"},
+                        &rom, &dry_output);
   ASSERT_TRUE(dry_status.ok()) << dry_status.message();
   EXPECT_EQ(rom.vector(), before);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
