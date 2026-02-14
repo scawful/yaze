@@ -269,7 +269,7 @@ std::string MessageBankToString(MessageBank bank) {
 }
 
 absl::StatusOr<MessageBank> MessageBankFromString(std::string_view value) {
-  const std::string lowered = absl::AsciiStrToLower(value);
+  const std::string lowered = absl::AsciiStrToLower(std::string(value));
   if (lowered == "vanilla") {
     return MessageBank::kVanilla;
   }
