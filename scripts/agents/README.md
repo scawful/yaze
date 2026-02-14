@@ -16,6 +16,8 @@
 | `gemini-yolo-loop.sh` | Generic Gemini non-interactive loop runner with YOLO mode + completion marker checks. |
 | `gemini-oracle-workstream.sh` | Runs the Oracle scratchpad Gemini tasks (dialogue/dimensions/wrap/annotation) via YOLO loops. |
 | `windows-smoke-build.ps1` | PowerShell variant of the smoke build helper for Visual Studio/Ninja presets on Windows. |
+| `../dev/local-workflow.sh` | Standard local development loop (build/test/sync/status/hooks/release-check). |
+| `../install-git-hooks.sh` | Installs both pre-commit and pre-push hooks for local guardrails. |
 
 Usage examples:
 ```bash
@@ -76,6 +78,13 @@ scripts/agents/gemini-oracle-workstream.sh \
 
 # Windows smoke build using PowerShell
 pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
+
+# Standard local workflow (build + test + sync + status)
+scripts/dev/local-workflow.sh all
+
+# Install hooks and check release/version hygiene
+scripts/install-git-hooks.sh install
+scripts/dev/release-version-check.sh --staged
 ```
 
 z3ed dungeon edit quick reference (dry-run by default; add `--write` to persist):

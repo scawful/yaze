@@ -53,9 +53,19 @@ Located in `scripts/agents/`:
 *   `smoke-build.sh`: Fast verification build.
 *   `test-http-api.sh`: Validate the agent API.
 
+Project workflow helpers:
+*   `scripts/dev/local-workflow.sh`: Standard local build/test/sync/deploy/status workflow.
+*   `scripts/install-git-hooks.sh`: Installs both `pre-commit` and `pre-push` hooks.
+*   `scripts/dev/release-version-check.sh`: Enforces VERSION/changelog protocol.
+
 **Log results:** When running these scripts for significant validation, paste the run ID or result summary to the Board.
 
-## 5. Documentation Hygiene
+## 5. Release + Version Protocol
+*   Follow `docs/internal/agents/dev-release-workflow.md` for local-dev loop, runtime syncing, versioning, and multi-agent release responsibilities.
+*   If `VERSION` changes, include a matching `CHANGELOG.md` section in the same change.
+*   For release-facing changes, assign explicit owner roles on the coordination board before marking `COMPLETE`.
+
+## 6. Documentation Hygiene
 - Follow [docs/internal/agents/doc-hygiene.md](docs/internal/agents/doc-hygiene.md) to avoid doc sprawl.
 - Keep specs short, template-driven, and linked to the coordination board; prefer edits over new files.
 - Archive completed/idle docs (>=14 days) under `docs/internal/agents/archive/` with dates to keep the root clean.

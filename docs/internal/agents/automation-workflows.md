@@ -113,3 +113,22 @@ Behavior:
 - Retries up to `--max-iterations` until the configured completion marker appears.
 - Applies per-iteration timeout via `--timeout-seconds` so stuck generations fail fast (exit 124).
 - Writes per-iteration prompts/logs and a run summary for auditability.
+
+## 9. Local Dev + Release Automation Protocol
+
+Use the standardized local workflow script for daily development and runtime syncing:
+
+```bash
+scripts/dev/local-workflow.sh all
+```
+
+Key operational commands:
+
+```bash
+scripts/dev/local-workflow.sh hooks         # install pre-commit + pre-push
+scripts/dev/local-workflow.sh release-check # VERSION/changelog guardrail
+scripts/dev/local-workflow.sh status        # verify selected binaries + sync status
+```
+
+Release/versioning and multi-agent ownership protocol:
+- `docs/internal/agents/dev-release-workflow.md`

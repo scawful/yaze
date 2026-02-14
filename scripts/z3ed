@@ -4,6 +4,16 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if [[ -n "${Z3ED_BIN:-}" ]]; then
+  if [[ "${1:-}" == "--which" ]]; then
+    echo "${Z3ED_BIN}"
+    exit 0
+  fi
+  if [[ "${1:-}" == "--doctor" ]]; then
+    echo "z3ed doctor"
+    echo "  source: Z3ED_BIN"
+    echo "  selected: ${Z3ED_BIN}"
+    exit 0
+  fi
   exec "${Z3ED_BIN}" "$@"
 fi
 
@@ -32,12 +42,31 @@ other_candidates=(
   "${ROOT}/build/bin/z3ed"
 )
 
+all_candidates=(
+  "${ai_candidates[@]}"
+  "${test_candidates[@]}"
+  "${agent_candidates[@]}"
+  "${other_candidates[@]}"
+)
+
 _mtime() {
-  # macOS: stat -f %m, Linux: stat -c %Y
   if stat -f %m "$1" >/dev/null 2>&1; then
     stat -f %m "$1"
   else
     stat -c %Y "$1"
+  fi
+}
+
+_fmt_time() {
+  local epoch="$1"
+  if [[ "$epoch" -le 0 ]]; then
+    echo "-"
+    return
+  fi
+  if date -r "$epoch" "+%Y-%m-%d %H:%M:%S" >/dev/null 2>&1; then
+    date -r "$epoch" "+%Y-%m-%d %H:%M:%S"
+  else
+    date -d "@$epoch" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "$epoch"
   fi
 }
 
@@ -60,16 +89,59 @@ pick_newest() {
   echo "${best}"
 }
 
-# Prefer build_ai whenever it exists, even if build_agent/ or build/ is newer.
-bin="$(pick_newest "${ai_candidates[@]}")"
-if [[ -z "${bin}" ]]; then
-  bin="$(pick_newest "${test_candidates[@]}")"
+resolve_bin() {
+  local bin
+
+  # Prefer build_ai when available.
+  bin="$(pick_newest "${ai_candidates[@]}")"
+  if [[ -z "${bin}" ]]; then
+    bin="$(pick_newest "${test_candidates[@]}")"
+  fi
+  if [[ -z "${bin}" ]]; then
+    bin="$(pick_newest "${agent_candidates[@]}")"
+  fi
+  if [[ -z "${bin}" ]]; then
+    bin="$(pick_newest "${other_candidates[@]}")"
+  fi
+
+  echo "${bin}"
+}
+
+doctor() {
+  local selected="$1"
+  local c m
+
+  echo "z3ed doctor"
+  echo "  selected: ${selected:-<none>}"
+  echo ""
+  printf "%-2s %-5s %-19s %s\n" "" "state" "mtime" "path"
+  for c in "${all_candidates[@]}"; do
+    if [[ -x "$c" ]]; then
+      m="$(_mtime "$c" || echo 0)"
+      if [[ "$c" == "$selected" ]]; then
+        printf "%-2s %-5s %-19s %s\n" "*" "exec" "$(_fmt_time "$m")" "$c"
+      else
+        printf "%-2s %-5s %-19s %s\n" "" "exec" "$(_fmt_time "$m")" "$c"
+      fi
+    else
+      printf "%-2s %-5s %-19s %s\n" "" "miss" "-" "$c"
+    fi
+  done
+}
+
+bin="$(resolve_bin)"
+
+if [[ "${1:-}" == "--which" ]]; then
+  if [[ -n "$bin" ]]; then
+    echo "$bin"
+    exit 0
+  fi
+  exit 1
 fi
-if [[ -z "${bin}" ]]; then
-  bin="$(pick_newest "${agent_candidates[@]}")"
-fi
-if [[ -z "${bin}" ]]; then
-  bin="$(pick_newest "${other_candidates[@]}")"
+
+if [[ "${1:-}" == "--doctor" ]]; then
+  doctor "$bin"
+  exit 0
 fi
 
 if [[ -z "${bin}" ]]; then

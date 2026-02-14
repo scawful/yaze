@@ -3,6 +3,11 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-14 backend-infra-engineer – Local Dev/Sync/Release Workflow Hardening
+- COMPLETE 2026-02-14 (backend-infra-engineer): standardized local workflow for build/test/sync deployment (`/Applications/yaze.app`, PATH `z3ed`) plus release/version and multi-agent protocols.
+- Scope: add workflow scripts, pre-commit hook checks, wrapper UX improvements (`--which`/`--doctor`), and docs updates for agent usage.
+- Validation: shell syntax checks + release checks pass; `local-workflow status/sync` verified (`/Applications/yaze.app` version `0.6.0`, `/usr/local/bin/z3ed` linked to latest build); hook installer status confirmed pre-commit + pre-push installed.
+
 ### 2026-02-14 ai-infra-architect – z3ed Dungeon Edit Command Hardening
 - COMPLETE 2026-02-14 (ai-infra-architect): hardened dungeon edit commands by enforcing selector exclusivity (`dungeon-remove-sprite`), sprite-coordinate bounds on remove-by-position, and richer object reporting (`object_name` via lookup table).
 - Help UX upgrade: command registry metadata now includes focused descriptions + examples for all four dungeon edit commands; no-arg command invocations now show actionable command help.
