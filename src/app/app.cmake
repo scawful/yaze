@@ -227,6 +227,11 @@ endif()
 # ==============================================================================
 if(YAZE_BUILD_TESTS)
   add_executable(yaze_test app/test/main_test.cc)
+  if(UNIX AND NOT APPLE)
+    # Keep transitive shared libs (notably gRPC) when static test-support
+    # dependencies pull additional symbols later in the link line.
+    target_link_options(yaze_test PRIVATE -Wl,--no-as-needed)
+  endif()
   target_link_libraries(yaze_test PRIVATE
     yaze_test_support
     yaze_editor
