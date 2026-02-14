@@ -1617,6 +1617,11 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   if (room_id < 0 || room_id >= kNumberOfRooms) {
     return absl::OutOfRangeError("Room ID out of range");
   }
+  if (encoded_bytes.empty() || encoded_bytes.back() != 0xFF ||
+      (encoded_bytes.size() % 3) != 1) {
+    return absl::InvalidArgumentError(
+        "Encoded sprite payload must be N*3 bytes plus 0xFF terminator");
+  }
 
   const auto& rom_data = rom->vector();
   int sprite_pointer = 0;
