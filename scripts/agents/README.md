@@ -80,9 +80,18 @@ pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
 
 z3ed dungeon edit quick reference (dry-run by default; add `--write` to persist):
 ```bash
+# Help-first (shows examples/syntax)
+z3ed dungeon-place-sprite --help
+z3ed dungeon-remove-sprite --help
+z3ed dungeon-place-object --help
+z3ed dungeon-set-collision-tile --help
+
 # Place/remove dungeon sprites
 z3ed dungeon-place-sprite --room 0x77 --id 0xA3 --x 16 --y 21 --subtype 4 --rom /tmp/oos-work.sfc --format json
 z3ed dungeon-remove-sprite --room 0x77 --x 16 --y 21 --rom /tmp/oos-work.sfc --format json
+
+# Selector guardrail: remove-sprite accepts either --index OR --x/--y (not both)
+z3ed dungeon-remove-sprite --room 0x77 --index 2 --rom /tmp/oos-work.sfc --format json
 
 # Place room objects (rails/tracks/etc.)
 z3ed dungeon-place-object --room 0x98 --id 0x0031 --x 61 --y 61 --size 4 --layer 0 --rom /tmp/oos-work.sfc --format json

@@ -3,6 +3,12 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-14 ai-infra-architect – z3ed Dungeon Edit Command Hardening
+- COMPLETE 2026-02-14 (ai-infra-architect): hardened dungeon edit commands by enforcing selector exclusivity (`dungeon-remove-sprite`), sprite-coordinate bounds on remove-by-position, and richer object reporting (`object_name` via lookup table).
+- Help UX upgrade: command registry metadata now includes focused descriptions + examples for all four dungeon edit commands; no-arg command invocations now show actionable command help.
+- Tests: expanded `DungeonEditCommandsTest` and `CommandRegistryTest` coverage for selector errors, bounds validation, help examples, dry-run immutability, and write+backup behavior.
+- Validation: `cmake --build --preset dev --target yaze_test_unit z3ed --parallel 8`; `./build/bin/Debug/yaze_test_unit --gtest_filter='DungeonEditCommandsTest.*:CommandRegistryTest.*'` (15/15 pass) + runtime CLI probes on `oos168` temp copies.
+
 ### 2026-02-14 backend-infra-engineer – 0.6.0 CI Stabilization (Linux/Windows/Quality)
 - IN_PROGRESS 2026-02-14 (backend-infra-engineer): triaging post-release CI failures from runs `22009740796` and `22009744893` (format check + Linux/Windows build/test + z3ed agent jobs).
 - Scope: identify failing targets/log signatures, apply minimal cross-platform fixes, and re-run fast validation locally before re-triggering CI.

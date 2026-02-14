@@ -6,6 +6,7 @@
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -57,6 +58,14 @@ absl::Status ValidateRoomId(int room_id) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Room ID out of range: 0x%X (expected 0x00-0x%02X)", room_id,
         zelda3::NumberOfRooms - 1));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateSpriteCoord(int value, char axis) {
+  if (value < 0 || value > 31) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%c must be 0-31 (5-bit tile coord)", axis));
   }
   return absl::OkStatus();
 }
@@ -131,12 +140,8 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
   bool do_write = parser.HasFlag("write");
 
   // Validate ranges
-  if (x < 0 || x > 31) {
-    return absl::InvalidArgumentError("X must be 0-31 (5-bit tile coord)");
-  }
-  if (y < 0 || y > 31) {
-    return absl::InvalidArgumentError("Y must be 0-31 (5-bit tile coord)");
-  }
+  RETURN_IF_ERROR(ValidateSpriteCoord(x, 'X'));
+  RETURN_IF_ERROR(ValidateSpriteCoord(y, 'Y'));
   if (sprite_id < 0 || sprite_id > 0xFF) {
     return absl::InvalidArgumentError("Sprite ID must be 0x00-0xFF");
   }
@@ -223,22 +228,31 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
   auto& sprites = room.GetSprites();
   int count_before = static_cast<int>(sprites.size());
 
-  // Find sprite to remove: by --index or by --x/--y position
+  // Find sprite to remove: by --index or by --x/--y position.
+  const bool has_index = parser.GetString("index").has_value();
+  const bool has_x = parser.GetString("x").has_value();
+  const bool has_y = parser.GetString("y").has_value();
+  if (has_index && (has_x || has_y)) {
+    return absl::InvalidArgumentError(
+        "Use either --index or --x/--y, not both");
+  }
+  if (!has_index && has_x != has_y) {
+    return absl::InvalidArgumentError(
+        "Both --x and --y are required when removing by position");
+  }
+  if (!has_index && !has_x) {
+    return absl::InvalidArgumentError(
+        "Either --index or both --x and --y are required");
+  }
+
   int remove_index = -1;
-  if (parser.GetString("index").has_value()) {
+  if (has_index) {
     auto index_or = GetRequiredInt(parser, "index");
     if (!index_or.ok()) {
       return index_or.status();
     }
     remove_index = index_or.value();
   } else {
-    auto has_x = parser.GetString("x").has_value();
-    auto has_y = parser.GetString("y").has_value();
-    if (!has_x || !has_y) {
-      return absl::InvalidArgumentError(
-          "Either --index or both --x and --y are required");
-    }
-
     auto x_or = GetRequiredInt(parser, "x");
     if (!x_or.ok()) {
       return x_or.status();
@@ -248,8 +262,11 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
       return y_or.status();
     }
 
-    int x = x_or.value();
-    int y = y_or.value();
+    const int x = x_or.value();
+    const int y = y_or.value();
+    RETURN_IF_ERROR(ValidateSpriteCoord(x, 'X'));
+    RETURN_IF_ERROR(ValidateSpriteCoord(y, 'Y'));
+
     for (int i = 0; i < static_cast<int>(sprites.size()); ++i) {
       if (sprites[i].x() == x && sprites[i].y() == y) {
         remove_index = i;
@@ -394,7 +411,7 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
   formatter.BeginObject("Place Object");
   formatter.AddHexField("room_id", room_id, 2);
   formatter.AddHexField("object_id", object_id, 4);
-  formatter.AddField("object_name", obj.name_);
+  formatter.AddField("object_name", zelda3::GetObjectName(object_id));
   formatter.AddField("object_type", type);
   formatter.AddField("x", x);
   formatter.AddField("y", y);
