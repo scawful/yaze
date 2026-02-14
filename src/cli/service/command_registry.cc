@@ -111,6 +111,40 @@ void CommandRegistry::RegisterHandlers(
       if (name == "dungeon-describe-room") {
         metadata.examples = {
             "z3ed dungeon-describe-room --room=5 --format=json"};
+      } else if (name == "dungeon-place-sprite") {
+        metadata.description =
+            "Place a dungeon sprite (dry-run by default, --write to apply)";
+        metadata.examples = {
+            "z3ed dungeon-place-sprite --room=0x77 --id=0xA3 --x=16 --y=21 "
+            "--subtype=4 --rom=Roms/oos168.sfc --format=json",
+            "z3ed dungeon-place-sprite --room=0x77 --id=0xA3 --x=16 --y=21 "
+            "--subtype=4 --write --rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-remove-sprite") {
+        metadata.description =
+            "Remove a dungeon sprite by index or exact coordinates";
+        metadata.examples = {
+            "z3ed dungeon-remove-sprite --room=0x77 --index=2 "
+            "--rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-remove-sprite --room=0x77 --x=16 --y=21 --write "
+            "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-place-object") {
+        metadata.description =
+            "Place a dungeon object (tracks, rails, doors, etc.)";
+        metadata.examples = {
+            "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
+            "--size=4 --rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
+            "--size=4 --write --rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-set-collision-tile") {
+        metadata.description =
+            "Set one or more custom collision tiles in a dungeon room";
+        metadata.examples = {
+            "z3ed dungeon-set-collision-tile --room=0xB8 "
+            "--tiles=\"10,5,0xB7;50,45,0xBA\" --rom=/tmp/oos-work.sfc "
+            "--format=json",
+            "z3ed dungeon-set-collision-tile --room=0xB8 "
+            "--tiles=\"10,5,0xB7;50,45,0xBA\" --write "
+            "--rom=/tmp/oos-work.sfc --format=json"};
       }
     } else if (name.find("overworld-") == 0) {
       metadata.category = "overworld";

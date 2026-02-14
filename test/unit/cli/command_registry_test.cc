@@ -29,5 +29,23 @@ TEST(CommandRegistryTest, TestCategoryIncludesCliCommands) {
   EXPECT_THAT(commands, ::testing::Contains("test-status"));
 }
 
+TEST(CommandRegistryTest, DungeonPlaceSpriteHelpIncludesExamples) {
+  auto& registry = CommandRegistry::Instance();
+  const std::string help = registry.GenerateHelp("dungeon-place-sprite");
+
+  EXPECT_THAT(help, ::testing::HasSubstr("Place a dungeon sprite"));
+  EXPECT_THAT(help, ::testing::HasSubstr("Examples:"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--subtype=4"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--write"));
+}
+
+TEST(CommandRegistryTest, DungeonSetCollisionTileHelpIncludesTilesSyntax) {
+  auto& registry = CommandRegistry::Instance();
+  const std::string help = registry.GenerateHelp("dungeon-set-collision-tile");
+
+  EXPECT_THAT(help, ::testing::HasSubstr("Set one or more custom collision tiles"));
+  EXPECT_THAT(help, ::testing::HasSubstr("10,5,0xB7;50,45,0xBA"));
+}
+
 }  // namespace
 }  // namespace yaze::cli
