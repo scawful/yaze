@@ -122,6 +122,30 @@ Deploy notes:
 - Device resolution order: `DEVICE` arg -> `$YAZE_IOS_DEVICE` -> `"Baby Pad"`.
 - Set `YAZE_IOS_LAUNCH_AFTER_DEPLOY=0` to skip automatic app launch.
 
+## dev/ios-ipad-workflow.sh
+
+Fast iPad deployment workflow: build once, then install to one or many paired iPads.
+
+```bash
+# List paired+available iPads
+scripts/dev/ios-ipad-workflow.sh list
+
+# Build once and deploy to all available iPads
+scripts/dev/ios-ipad-workflow.sh deploy --all
+
+# Fast redeploy last built app to specific devices (skip build)
+scripts/dev/ios-ipad-workflow.sh redeploy --devices "Baby Pad,iPadothée Chalamet"
+```
+
+Useful flags:
+
+- `--preset ios-debug|ios-release` (default: `ios-debug`)
+- `--all` or `--devices "<name1,name2>"`
+- `--skip-build` (or `redeploy` command)
+- `--retries <n>` to auto-retry transient install failures
+- `--no-launch` to install without launching
+- `--bundle-id <id>` to override launch bundle ID
+
 ## build_cleaner.py
 
 Automates CMake source list maintenance and header include management with IWYU-style analysis.
