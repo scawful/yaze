@@ -9,18 +9,18 @@
 #include "cli/handlers/game/dungeon_graph_commands.h"
 #include "cli/handlers/game/dungeon_group_commands.h"
 #include "cli/handlers/game/dungeon_map_commands.h"
-#include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/message_commands.h"
+#include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
+#include "cli/handlers/mesen_handlers.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/dungeon_doctor_commands.h"
 #include "cli/handlers/tools/dungeon_object_validate_commands.h"
-#include "cli/handlers/mesen_handlers.h"
 #ifdef YAZE_WITH_GRPC
 #include "cli/handlers/tools/emulator_commands.h"
 #endif
@@ -105,13 +105,16 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGetEntranceCommandHandler>());
   handlers.push_back(std::make_unique<DungeonExportRoomCommandHandler>());
   handlers.push_back(std::make_unique<DungeonListObjectsCommandHandler>());
-  handlers.push_back(std::make_unique<DungeonListCustomCollisionCommandHandler>());
+  handlers.push_back(
+      std::make_unique<DungeonListCustomCollisionCommandHandler>());
   handlers.push_back(
       std::make_unique<DungeonExportCustomCollisionJsonCommandHandler>());
   handlers.push_back(
       std::make_unique<DungeonImportCustomCollisionJsonCommandHandler>());
-  handlers.push_back(std::make_unique<DungeonExportWaterFillJsonCommandHandler>());
-  handlers.push_back(std::make_unique<DungeonImportWaterFillJsonCommandHandler>());
+  handlers.push_back(
+      std::make_unique<DungeonExportWaterFillJsonCommandHandler>());
+  handlers.push_back(
+      std::make_unique<DungeonImportWaterFillJsonCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
   handlers.push_back(std::make_unique<DungeonRoomHeaderCommandHandler>());
@@ -143,6 +146,9 @@ CreateCliCommandHandlers() {
   // GUI automation tools
   handlers.push_back(std::make_unique<GuiPlaceTileCommandHandler>());
   handlers.push_back(std::make_unique<GuiClickCommandHandler>());
+  handlers.push_back(std::make_unique<GuiTypeCommandHandler>());
+  handlers.push_back(std::make_unique<GuiWaitCommandHandler>());
+  handlers.push_back(std::make_unique<GuiAssertCommandHandler>());
   handlers.push_back(std::make_unique<GuiDiscoverToolCommandHandler>());
   handlers.push_back(std::make_unique<GuiScreenshotCommandHandler>());
 
@@ -154,8 +160,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<EmulatorResetCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorGetStateCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorSetBreakpointCommandHandler>());
-  handlers.push_back(
-      std::make_unique<EmulatorClearBreakpointCommandHandler>());
+  handlers.push_back(std::make_unique<EmulatorClearBreakpointCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorListBreakpointsCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorReadMemoryCommandHandler>());
   handlers.push_back(std::make_unique<EmulatorWriteMemoryCommandHandler>());

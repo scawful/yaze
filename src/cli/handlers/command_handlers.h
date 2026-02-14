@@ -68,6 +68,9 @@ class OverworldTileStatsCommandHandler;
 
 class GuiPlaceTileCommandHandler;
 class GuiClickCommandHandler;
+class GuiTypeCommandHandler;
+class GuiWaitCommandHandler;
+class GuiAssertCommandHandler;
 class GuiDiscoverToolCommandHandler;
 class GuiScreenshotCommandHandler;
 

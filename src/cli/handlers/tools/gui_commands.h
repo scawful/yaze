@@ -50,6 +50,67 @@ class GuiClickCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Command handler for typing into GUI inputs
+ */
+class GuiTypeCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "gui-type"; }
+  std::string GetDescription() const {
+    return "Type text into a GUI input using automation";
+  }
+  std::string GetUsage() const {
+    return "gui-type (--target <target> | --widget-key <key>) --text <text> "
+           "[--clear-first] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Command handler for waiting on GUI conditions
+ */
+class GuiWaitCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "gui-wait"; }
+  std::string GetDescription() const {
+    return "Wait for a GUI condition or widget selector";
+  }
+  std::string GetUsage() const {
+    return "gui-wait [--condition <condition>] [--widget-key <key>] "
+           "[--timeout-ms <ms>] [--poll-interval-ms <ms>] [--format "
+           "<json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Command handler for GUI assertions
+ */
+class GuiAssertCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "gui-assert"; }
+  std::string GetDescription() const {
+    return "Assert a GUI condition or widget selector";
+  }
+  std::string GetUsage() const {
+    return "gui-assert [--condition <condition>] [--widget-key <key>] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Command handler for discovering GUI tools
  */
 class GuiDiscoverToolCommandHandler : public resources::CommandHandler {

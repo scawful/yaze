@@ -18,6 +18,7 @@
 - IN_PROGRESS 2026-02-14 (backend-infra-engineer): triaging post-release CI failures from runs `22009740796` and `22009744893` (format check + Linux/Windows build/test + z3ed agent jobs).
 - Scope: identify failing targets/log signatures, apply minimal cross-platform fixes, and re-run fast validation locally before re-triggering CI.
 - Validation plan: targeted build/tests for failing components plus `format-check`; post run IDs and outcome summary here.
+- Update 2026-02-14 (backend-infra-engineer): selector-v2 CLI slice landed for automation ergonomics (`gui-type`/`gui-wait`/`gui-assert`, replay `--set key=value` + `--ci`); compile validation passed for touched CLI objects (`gui_commands`, `command_handlers`, `tool_registration`), while full `z3ed` remains blocked in this branch by pre-existing `src/core/asar_wrapper.cc` (`include_paths` undeclared).
 
 ### 2026-02-14 imgui-frontend-engineer – Dungeon Workflow UX + Sidebar Tightening
 - COMPLETE 2026-02-14 (imgui-frontend-engineer): disambiguated dungeon workflows by adding explicit Workbench/Panel mode control in both `DungeonWorkbenchPanel` and `ActivityBar` Dungeon sidebar (`Workflow` section).
