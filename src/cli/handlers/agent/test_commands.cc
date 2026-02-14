@@ -1,6 +1,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -225,25 +226,60 @@ absl::Status HandleTestReplayCommand(const std::vector<std::string>& args) {
   if (args.empty()) {
     return absl::InvalidArgumentError(
         "Usage: agent test replay <script.json> [--host <host>] [--port "
-        "<port>]\n"
-        "Example: agent test replay tests/overworld_load.json");
+        "<port>] [--ci] [--set key=value ...]\n"
+        "Example: agent test replay tests/overworld_load.json --set "
+        "target_room=0x12");
   }
 
   std::string script_path = args[0];
   std::string host = "localhost";
   int port = 50052;
+  bool ci_mode = false;
+  std::map<std::string, std::string> parameter_overrides;
 
   for (size_t i = 1; i < args.size(); ++i) {
-    if (args[i] == "--host" && i + 1 < args.size()) {
+    const std::string& token = args[i];
+    if (token == "--host" && i + 1 < args.size()) {
       host = args[++i];
-    } else if (args[i] == "--port" && i + 1 < args.size()) {
-      port = std::stoi(args[++i]);
+    } else if (token == "--port" && i + 1 < args.size()) {
+      const std::string& port_value = args[++i];
+      int parsed_port = 0;
+      if (!absl::SimpleAtoi(port_value, &parsed_port)) {
+        return absl::InvalidArgumentError(
+            absl::StrCat("Invalid --port value: ", port_value));
+      }
+      port = parsed_port;
+    } else if (token == "--set" && i + 1 < args.size()) {
+      const std::string& assignment = args[++i];
+      size_t separator = assignment.find('=');
+      if (separator == std::string::npos || separator == 0 ||
+          separator == assignment.size() - 1) {
+        return absl::InvalidArgumentError(absl::StrCat(
+            "Invalid --set value (expected key=value): ", assignment));
+      }
+      parameter_overrides[assignment.substr(0, separator)] =
+          assignment.substr(separator + 1);
+    } else if (token == "--ci") {
+      ci_mode = true;
+    } else {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Unknown replay option: ", token));
     }
   }
 
   std::cout << "\n=== Replay Test ===\n";
   std::cout << "Script: " << script_path << "\n";
   std::cout << "Server: " << host << ":" << port << "\n\n";
+  if (ci_mode) {
+    std::cout << "CI mode: enabled\n";
+  }
+  if (!parameter_overrides.empty()) {
+    std::cout << "Overrides:\n";
+    for (const auto& [key, value] : parameter_overrides) {
+      std::cout << "  - " << key << "=" << value << "\n";
+    }
+    std::cout << "\n";
+  }
 
   GuiAutomationClient client(absl::StrCat(host, ":", port));
   auto status = client.Connect();
@@ -252,7 +288,7 @@ absl::Status HandleTestReplayCommand(const std::vector<std::string>& args) {
     return status;
   }
 
-  auto result = client.ReplayTest(script_path, false, {});
+  auto result = client.ReplayTest(script_path, ci_mode, parameter_overrides);
   if (!result.ok()) {
     std::cerr << "Replay failed: " << result.status().message() << std::endl;
     return result.status();
@@ -602,7 +638,7 @@ absl::Status HandleTestCommand(const std::vector<std::string>& args) {
         "Usage: agent test <subcommand>\n"
         "Subcommands:\n"
         "  run --prompt <text>  - Generate and run a GUI automation test\n"
-        "  replay <script>      - Replay a recorded test script\n"
+        "  replay <script>      - Replay a script [--set key=value] [--ci]\n"
         "  status --test-id <id> - Query test execution status\n"
         "  list                 - List available tests\n"
         "  results --test-id <id> - Get detailed test results\n"

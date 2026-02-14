@@ -181,7 +181,10 @@ z3ed overworld-describe-map --map=0x40 --rom=zelda3.sfc
 
 ### GUI Automation (requires GUI gRPC server)
 - `gui-place-tile --tile <hex> --x <x> --y <y>`
-- `gui-click --target <path> [--click-type <left|right|double>]`
+- `gui-click (--target <path> | --widget-key <key>) [--click-type <left|right|middle|double>]`
+- `gui-type (--target <path> | --widget-key <key>) --text <text> [--clear-first]`
+- `gui-wait [--condition <condition>] [--widget-key <key>] [--timeout-ms <ms>] [--poll-interval-ms <ms>]`
+- `gui-assert [--condition <condition>] [--widget-key <key>]`
 - `gui-discover-tool [--window <name>] [--type <type>]`
 - `gui-summarize-widgets`
 - `gui-screenshot [--region <region>]`
@@ -234,6 +237,7 @@ z3ed agent simple-chat --rom=zelda3.sfc
 z3ed agent plan --rom=zelda3.sfc
 z3ed agent run --rom=zelda3.sfc
 z3ed agent diff --rom=zelda3.sfc
+z3ed agent test replay tests/gui/recording.json --set room_id=0x12 --set input_text=hello
 ```
 
 Use `z3ed agent` with no args for a full list of agent subcommands.
