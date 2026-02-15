@@ -68,5 +68,41 @@ TEST_F(DungeonWorkbenchToolbarTest,
   EXPECT_EQ(context->ColorStack.Size, color_before);
 }
 
+TEST_F(DungeonWorkbenchToolbarTest,
+       DrawSplitViewWithNullSearchBufferKeepsImGuiStacksBalanced) {
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  ASSERT_NE(context, nullptr);
+
+  const int style_before = context->StyleVarStack.Size;
+  const int color_before = context->ColorStack.Size;
+  const int window_stack_before = context->CurrentWindowStack.Size;
+
+  DungeonWorkbenchLayoutState layout;
+  int current_room_id = 0x020;
+  int previous_room_id = 0x01F;
+  bool split_view_enabled = true;
+  int compare_room_id = 0x021;
+
+  std::deque<int> mru_rooms = {0x021, 0x01F, 0x010};
+
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &current_room_id;
+  params.previous_room_id = &previous_room_id;
+  params.split_view_enabled = &split_view_enabled;
+  params.compare_room_id = &compare_room_id;
+  params.get_recent_rooms = [&]() -> const std::deque<int>& {
+    return mru_rooms;
+  };
+  params.compare_search_buf = nullptr;
+  params.compare_search_buf_size = 0;
+
+  EXPECT_FALSE(DungeonWorkbenchToolbar::Draw(params));
+
+  EXPECT_EQ(context->StyleVarStack.Size, style_before);
+  EXPECT_EQ(context->ColorStack.Size, color_before);
+  EXPECT_EQ(context->CurrentWindowStack.Size, window_stack_before);
+}
+
 }  // namespace
 }  // namespace yaze::editor

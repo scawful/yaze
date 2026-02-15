@@ -9,6 +9,7 @@
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/widgets/dungeon_room_nav_widget.h"
+#include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -21,6 +22,34 @@ namespace yaze::editor {
 namespace {
 
 constexpr float kTightCompareStackThreshold = 520.0f;
+
+class ScopedWorkbenchToolbar {
+ public:
+  explicit ScopedWorkbenchToolbar(const char* label) {
+    const auto& theme = gui::LayoutHelpers::GetTheme();
+    ImGui::PushStyleColor(ImGuiCol_ChildBg,
+                          gui::ConvertColorToImVec4(theme.menu_bar_bg));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,
+                        ImVec2(gui::LayoutHelpers::GetButtonPadding(),
+                               gui::LayoutHelpers::GetButtonPadding()));
+
+    // Keep toolbar controls unclipped at higher DPI and on touch displays.
+    const float min_height =
+        (gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 6.0f) +
+        (gui::LayoutHelpers::GetButtonPadding() * 2.0f) + 2.0f;
+    const float height =
+        std::max(gui::LayoutHelpers::GetToolbarHeight(), min_height);
+    ImGui::BeginChild(
+        label, ImVec2(0, height), true,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  }
+
+  ~ScopedWorkbenchToolbar() {
+    ImGui::EndChild();
+    ImGui::PopStyleVar(1);
+    ImGui::PopStyleColor(1);
+  }
+};
 
 float CalcIconButtonWidth(const char* icon, float btn_height) {
   if (!icon || !*icon) {
@@ -115,6 +144,8 @@ void DrawComparePicker(
   if (!compare_room_id || *compare_room_id < 0) {
     return;
   }
+  const bool can_search = search_buf != nullptr && search_buf_size > 1;
+  const char* filter = can_search ? search_buf : "";
 
   char preview[128];
   const auto label = zelda3::GetRoomLabel(*compare_room_id);
@@ -170,8 +201,12 @@ void DrawComparePicker(
     ImGui::Separator();
     ImGui::TextDisabled(ICON_MD_SEARCH " Search");
     ImGui::SetNextItemWidth(-1.0f);
-    ImGui::InputTextWithHint("##CompareSearch", "Type to filter rooms...",
-                             search_buf, search_buf_size);
+    if (can_search) {
+      ImGui::InputTextWithHint("##CompareSearch", "Type to filter rooms...",
+                               search_buf, search_buf_size);
+    } else {
+      ImGui::TextDisabled("Search unavailable");
+    }
 
     ImGui::Spacing();
     ImGui::BeginChild("##CompareSearchList", ImVec2(0, 220), true);
@@ -185,8 +220,7 @@ void DrawComparePicker(
         const auto rid_label = zelda3::GetRoomLabel(rid);
         char hex_buf[8];
         snprintf(hex_buf, sizeof(hex_buf), "%03X", rid);
-        if (!icontains(rid_label, search_buf) &&
-            !icontains(hex_buf, search_buf)) {
+        if (!icontains(rid_label, filter) && !icontains(hex_buf, filter)) {
           continue;
         }
         char item[128];
@@ -215,8 +249,9 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     return false;
   }
 
-  // Use a themed, compact toolbar container.
-  gui::LayoutHelpers::BeginToolbar("##DungeonWorkbenchToolbar");
+  // Keep this scope self-contained so toolbar teardown cannot pop unrelated
+  // ImGui stack entries if upstream layout state changes mid-frame.
+  ScopedWorkbenchToolbar toolbar_scope("##DungeonWorkbenchToolbar");
   bool request_panel_mode = false;
 
   const float btn =
@@ -397,7 +432,6 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     }
   }
 
-  gui::LayoutHelpers::EndToolbar();
   return request_panel_mode;
 }
 

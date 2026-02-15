@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <limits>
+#include <vector>
 
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
@@ -22,6 +24,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/file_util.h"
+#include "util/rom_hash.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -175,9 +178,29 @@ std::string DecodeSnesRegion(uint8_t code) {
   }
 }
 
+std::string DecodeSnesMapMode(uint8_t code) {
+  switch (code & 0x3F) {
+    case 0x20:
+      return "LoROM";
+    case 0x21:
+      return "HiROM";
+    case 0x22:
+      return "ExLoROM";
+    case 0x25:
+      return "ExHiROM";
+    case 0x30:
+      return "Fast LoROM";
+    case 0x31:
+      return "Fast HiROM";
+    default:
+      return absl::StrFormat("Mode %02X", code);
+  }
+}
+
 struct SnesHeaderMetadata {
   std::string title;
   std::string region;
+  std::string map_mode;
   bool valid = false;
 };
 
@@ -248,12 +271,38 @@ SnesHeaderMetadata ReadSnesHeaderMetadata(const std::filesystem::path& path) {
         continue;
       }
 
+      const uint8_t map_mode_code = static_cast<uint8_t>(header[0x15]);
       const uint8_t region_code = static_cast<uint8_t>(header[0x19]);
-      return {title, DecodeSnesRegion(region_code), true};
+      return {title, DecodeSnesRegion(region_code),
+              DecodeSnesMapMode(map_mode_code), true};
     }
   }
 
   return {};
+}
+
+std::string ReadFileCrc32(const std::filesystem::path& path) {
+  std::error_code size_ec;
+  const uintmax_t file_size = std::filesystem::file_size(path, size_ec);
+  if (size_ec || file_size == 0 ||
+      file_size > static_cast<uintmax_t>(std::numeric_limits<size_t>::max())) {
+    return "";
+  }
+
+  std::ifstream input(path, std::ios::binary);
+  if (!input.is_open()) {
+    return "";
+  }
+
+  std::vector<uint8_t> data(static_cast<size_t>(file_size));
+  input.read(reinterpret_cast<char*>(data.data()),
+             static_cast<std::streamsize>(data.size()));
+  if (input.gcount() != static_cast<std::streamsize>(data.size())) {
+    return "";
+  }
+
+  return absl::StrFormat("%08X",
+                         util::CalculateCrc32(data.data(), data.size()));
 }
 
 std::string ParseConfigValue(const std::string& line) {
@@ -743,7 +792,7 @@ bool WelcomeScreen::Show(bool* p_open) {
                         ImGuiWindowFlags_NoScrollbar);
       const float left_height = ImGui::GetContentRegionAvail().y;
       const float quick_actions_h = std::clamp(
-          left_height * 0.34f, 165.0f * layout_scale, 280.0f * layout_scale);
+          left_height * 0.27f, 150.0f * layout_scale, 220.0f * layout_scale);
 
       ImGui::BeginChild("QuickActionsWide", ImVec2(0, quick_actions_h), false,
                         ImGuiWindowFlags_NoScrollbar);
@@ -880,15 +929,20 @@ void WelcomeScreen::RefreshRecentProjects() {
       project.item_icon = ICON_MD_MEMORY;
 
       const SnesHeaderMetadata metadata = ReadSnesHeaderMetadata(path);
+      const std::string crc32 = ReadFileCrc32(path);
+      const std::string crc32_summary =
+          crc32.empty() ? "CRC unknown"
+                        : absl::StrFormat("CRC %s", crc32.c_str());
       if (metadata.valid && !metadata.title.empty()) {
         project.rom_title = metadata.title;
         project.metadata_summary =
-            absl::StrFormat("%s • %s • %s", metadata.region.c_str(),
-                            size_text.c_str(), project.last_modified.c_str());
+            absl::StrFormat("%s • %s • %s • %s", metadata.region.c_str(),
+                            metadata.map_mode.c_str(), size_text.c_str(),
+                            crc32_summary.c_str());
       } else {
         project.rom_title = "SNES ROM";
-        project.metadata_summary = absl::StrFormat(
-            "%s • %s", size_text.c_str(), project.last_modified.c_str());
+        project.metadata_summary = absl::StrFormat("%s • %s", size_text.c_str(),
+                                                   crc32_summary.c_str());
       }
     } else if (IsProjectPath(path)) {
       project.item_type = "Project";
@@ -1038,6 +1092,27 @@ void WelcomeScreen::DrawQuickActions() {
     ImGui::TextWrapped(
         "Open a ROM or project, then create a project when you need metadata.");
   }
+  size_t rom_count = 0;
+  size_t project_count = 0;
+  size_t unavailable_count = 0;
+  for (const auto& recent : recent_projects_) {
+    if (recent.unavailable) {
+      ++unavailable_count;
+      continue;
+    }
+    if (recent.item_type == "ROM") {
+      ++rom_count;
+    } else if (recent.item_type == "Project") {
+      ++project_count;
+    }
+  }
+  {
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+    ImGui::TextWrapped(
+        "%zu recent entries • %zu ROMs • %zu projects%s",
+        recent_projects_.size(), rom_count, project_count,
+        unavailable_count > 0 ? " • some entries need re-open permission" : "");
+  }
   ImGui::Spacing();
 
   const float scale = ImGui::GetFontSize() / 16.0f;
@@ -1084,6 +1159,34 @@ void WelcomeScreen::DrawQuickActions() {
   }
 
   ImGui::Spacing();
+
+  const RecentProject* last_recent = nullptr;
+  for (const auto& recent : recent_projects_) {
+    if (!recent.unavailable) {
+      last_recent = &recent;
+      break;
+    }
+  }
+  if (last_recent && open_project_callback_) {
+    const std::string resume_label = absl::StrFormat(
+        "Resume Last (%s)", last_recent->item_type.empty()
+                                ? "File"
+                                : last_recent->item_type.c_str());
+    const std::string resume_path = last_recent->filepath;
+    if (draw_action_button(ICON_MD_PLAY_ARROW, resume_label.c_str(),
+                           kMasterSwordBlue, true, [this, resume_path]() {
+                             if (open_project_callback_) {
+                               open_project_callback_(resume_path);
+                             }
+                           })) {
+      // Handled by callback
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s\n%s", last_recent->name.c_str(),
+                        last_recent->filepath.c_str());
+    }
+    ImGui::Spacing();
+  }
 
   // New Project button - Gold like getting a treasure
   if (draw_action_button(ICON_MD_ADD_CIRCLE, "New Project", kTriforceGold, true,
