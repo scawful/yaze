@@ -224,171 +224,177 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
                gui::LayoutHelpers::GetStandardWidgetHeight() + 6.0f);
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
 
-  const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
-  gui::StyleVarGuard frame_pad_guard(
-      ImGuiStyleVar_FramePadding,
-      ImVec2(frame_pad.x, std::max(frame_pad.y, 4.0f)));
+  {
+    // Scope style-var overrides so they are unwound before EndToolbar() closes
+    // the child window. ImGui asserts if a child ends with leaked style vars.
+    const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
+    gui::StyleVarGuard frame_pad_guard(
+        ImGuiStyleVar_FramePadding,
+        ImVec2(frame_pad.x, std::max(frame_pad.y, 4.0f)));
 
-  constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_NoBordersInBody |
-                                     ImGuiTableFlags_NoPadInnerX |
-                                     ImGuiTableFlags_NoPadOuterX;
-  if (ImGui::BeginTable("##DungeonWorkbenchToolbarTable", 3, kFlags)) {
-    const float w_grid =
-        CalcIconToggleButtonWidth(ICON_MD_GRID_ON, ICON_MD_GRID_OFF, btn);
-    const float w_bounds = CalcIconButtonWidth(ICON_MD_CROP_SQUARE, btn);
-    const float w_coords = CalcIconButtonWidth(ICON_MD_MY_LOCATION, btn);
-    const float w_camera = CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
-    const float right_cluster_w =
-        w_grid + w_bounds + w_coords + w_camera + (spacing * 3.0f);
-    const float right_w = right_cluster_w + 6.0f;  // Avoid edge clipping.
-    ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableSetupColumn("Middle", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed, right_w);
-    ImGui::TableNextRow();
+    constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_NoBordersInBody |
+                                       ImGuiTableFlags_NoPadInnerX |
+                                       ImGuiTableFlags_NoPadOuterX;
+    if (ImGui::BeginTable("##DungeonWorkbenchToolbarTable", 3, kFlags)) {
+      const float w_grid =
+          CalcIconToggleButtonWidth(ICON_MD_GRID_ON, ICON_MD_GRID_OFF, btn);
+      const float w_bounds = CalcIconButtonWidth(ICON_MD_CROP_SQUARE, btn);
+      const float w_coords = CalcIconButtonWidth(ICON_MD_MY_LOCATION, btn);
+      const float w_camera = CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
+      const float right_cluster_w =
+          w_grid + w_bounds + w_coords + w_camera + (spacing * 3.0f);
+      const float right_w = right_cluster_w + 6.0f;  // Avoid edge clipping.
+      ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Middle", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed,
+                              right_w);
+      ImGui::TableNextRow();
 
-    // Left cluster: sidebar toggles, nav, room label.
-    ImGui::TableNextColumn();
-    (void)IconToggleButton("RoomsToggle", ICON_MD_LIST, ICON_MD_LIST,
-                           &p.layout->show_left_sidebar, btn,
-                           "Hide room browser", "Show room browser");
-    ImGui::SameLine();
-    (void)IconToggleButton("InspectorToggle", ICON_MD_TUNE, ICON_MD_TUNE,
-                           &p.layout->show_right_inspector, btn,
-                           "Hide inspector", "Show inspector");
-    if (p.set_workflow_mode) {
+      // Left cluster: sidebar toggles, nav, room label.
+      ImGui::TableNextColumn();
+      (void)IconToggleButton("RoomsToggle", ICON_MD_LIST, ICON_MD_LIST,
+                             &p.layout->show_left_sidebar, btn,
+                             "Hide room browser", "Show room browser");
       ImGui::SameLine();
-      if (SquareIconButton("##PanelMode", ICON_MD_VIEW_QUILT, btn,
-                           "Switch to standalone panel workflow")) {
-        request_panel_mode = true;
-      }
-    }
-    ImGui::SameLine();
-
-    const int rid = *p.current_room_id;
-    DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
-    ImGui::SameLine();
-
-    const auto room_label = zelda3::GetRoomLabel(rid);
-    char title[192];
-    snprintf(title, sizeof(title), "[%03X] %s", rid, room_label.c_str());
-    ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(title);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", title);
-    }
-
-    // Middle cluster: compare controls.
-    ImGui::TableNextColumn();
-    ImGui::BeginGroup();
-    if (!*p.split_view_enabled) {
-      if (SquareIconButton("##EnableSplit", ICON_MD_COMPARE_ARROWS, btn,
-                           "Enable split view (compare)")) {
-        const CompareDefaultResult def = PickDefaultCompareRoom(
-            *p.current_room_id, p.previous_room_id ? *p.previous_room_id : -1,
-            p.get_recent_rooms);
-        if (def.found) {
-          *p.split_view_enabled = true;
-          *p.compare_room_id = def.room_id;
+      (void)IconToggleButton("InspectorToggle", ICON_MD_TUNE, ICON_MD_TUNE,
+                             &p.layout->show_right_inspector, btn,
+                             "Hide inspector", "Show inspector");
+      if (p.set_workflow_mode) {
+        ImGui::SameLine();
+        if (SquareIconButton("##PanelMode", ICON_MD_VIEW_QUILT, btn,
+                             "Switch to standalone panel workflow")) {
+          request_panel_mode = true;
         }
       }
-    } else {
-      // Compare icon label.
+      ImGui::SameLine();
+
+      const int rid = *p.current_room_id;
+      DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
+      ImGui::SameLine();
+
+      const auto room_label = zelda3::GetRoomLabel(rid);
+      char title[192];
+      snprintf(title, sizeof(title), "[%03X] %s", rid, room_label.c_str());
       ImGui::AlignTextToFramePadding();
-      ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS);
-      ImGui::SameLine();
-
-      const float avail = ImGui::GetContentRegionAvail().x;
-      const bool stacked = avail < kTightCompareStackThreshold;
-      if (stacked) {
-        ImGui::NewLine();
-      }
-
-      DrawComparePicker(*p.current_room_id, p.compare_room_id,
-                        p.get_recent_rooms, p.compare_search_buf,
-                        p.compare_search_buf_size);
-
-      ImGui::SameLine();
-      uint16_t cmp =
-          static_cast<uint16_t>(std::clamp(*p.compare_room_id, 0, 0x127));
-      if (auto res = gui::InputHexWordEx("##CompareRoomId", &cmp, 70.0f, true);
-          res.ShouldApply()) {
-        *p.compare_room_id = std::clamp<int>(cmp, 0, 0x127);
-      }
+      ImGui::TextUnformatted(title);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Compare room ID");
+        ImGui::SetTooltip("%s", title);
       }
 
-      ImGui::SameLine();
-      if (SquareIconButton("##SwapRooms", ICON_MD_SWAP_HORIZ, btn,
-                           "Swap active and compare rooms")) {
-        const int old_current = *p.current_room_id;
-        const int old_compare = *p.compare_room_id;
-        *p.compare_room_id = old_current;
-        if (p.on_room_selected) {
-          p.on_room_selected(old_compare);
-        } else {
-          *p.current_room_id = old_compare;
+      // Middle cluster: compare controls.
+      ImGui::TableNextColumn();
+      ImGui::BeginGroup();
+      if (!*p.split_view_enabled) {
+        if (SquareIconButton("##EnableSplit", ICON_MD_COMPARE_ARROWS, btn,
+                             "Enable split view (compare)")) {
+          const CompareDefaultResult def = PickDefaultCompareRoom(
+              *p.current_room_id, p.previous_room_id ? *p.previous_room_id : -1,
+              p.get_recent_rooms);
+          if (def.found) {
+            *p.split_view_enabled = true;
+            *p.compare_room_id = def.room_id;
+          }
+        }
+      } else {
+        // Compare icon label.
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS);
+        ImGui::SameLine();
+
+        const float avail = ImGui::GetContentRegionAvail().x;
+        const bool stacked = avail < kTightCompareStackThreshold;
+        if (stacked) {
+          ImGui::NewLine();
+        }
+
+        DrawComparePicker(*p.current_room_id, p.compare_room_id,
+                          p.get_recent_rooms, p.compare_search_buf,
+                          p.compare_search_buf_size);
+
+        ImGui::SameLine();
+        uint16_t cmp =
+            static_cast<uint16_t>(std::clamp(*p.compare_room_id, 0, 0x127));
+        if (auto res =
+                gui::InputHexWordEx("##CompareRoomId", &cmp, 70.0f, true);
+            res.ShouldApply()) {
+          *p.compare_room_id = std::clamp<int>(cmp, 0, 0x127);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Compare room ID");
+        }
+
+        ImGui::SameLine();
+        if (SquareIconButton("##SwapRooms", ICON_MD_SWAP_HORIZ, btn,
+                             "Swap active and compare rooms")) {
+          const int old_current = *p.current_room_id;
+          const int old_compare = *p.compare_room_id;
+          *p.compare_room_id = old_current;
+          if (p.on_room_selected) {
+            p.on_room_selected(old_compare);
+          } else {
+            *p.current_room_id = old_compare;
+          }
+        }
+
+        ImGui::SameLine();
+        if (IconToggleButton("##SyncView", ICON_MD_LINK, ICON_MD_LINK_OFF,
+                             &p.layout->sync_split_view, btn,
+                             "Unsync compare view",
+                             "Sync compare view to active")) {
+          // toggle handled inside IconToggleButton
+        }
+
+        ImGui::SameLine();
+        if (SquareIconButton("##CloseSplit", ICON_MD_CLOSE, btn,
+                             "Disable split view")) {
+          *p.split_view_enabled = false;
+        }
+      }
+      ImGui::EndGroup();
+
+      // Right cluster: view toggles (grid/bounds/coords/camera).
+      ImGui::TableNextColumn();
+      if (p.primary_viewer) {
+        // Right-align by manually moving cursor to the end of the cell.
+        const float total_w = right_cluster_w;
+        const float start_x =
+            ImGui::GetCursorPosX() +
+            std::max(0.0f, ImGui::GetContentRegionAvail().x - total_w);
+        ImGui::SetCursorPosX(start_x);
+
+        bool v = p.primary_viewer->show_grid();
+        if (SquareIconButton("##GridToggle",
+                             v ? ICON_MD_GRID_ON : ICON_MD_GRID_OFF, btn,
+                             v ? "Hide grid" : "Show grid")) {
+          p.primary_viewer->set_show_grid(!v);
+        }
+        ImGui::SameLine();
+
+        v = p.primary_viewer->show_object_bounds();
+        if (SquareIconButton("##BoundsToggle", ICON_MD_CROP_SQUARE, btn,
+                             v ? "Hide object bounds" : "Show object bounds")) {
+          p.primary_viewer->set_show_object_bounds(!v);
+        }
+        ImGui::SameLine();
+
+        v = p.primary_viewer->show_coordinate_overlay();
+        if (SquareIconButton(
+                "##CoordsToggle", ICON_MD_MY_LOCATION, btn,
+                v ? "Hide hover coordinates" : "Show hover coordinates")) {
+          p.primary_viewer->set_show_coordinate_overlay(!v);
+        }
+        ImGui::SameLine();
+
+        v = p.primary_viewer->show_camera_quadrant_overlay();
+        if (SquareIconButton(
+                "##CameraToggle", ICON_MD_GRID_VIEW, btn,
+                v ? "Hide camera quadrants" : "Show camera quadrants")) {
+          p.primary_viewer->set_show_camera_quadrant_overlay(!v);
         }
       }
 
-      ImGui::SameLine();
-      if (IconToggleButton("##SyncView", ICON_MD_LINK, ICON_MD_LINK_OFF,
-                           &p.layout->sync_split_view, btn,
-                           "Unsync compare view",
-                           "Sync compare view to active")) {
-        // toggle handled inside IconToggleButton
-      }
-
-      ImGui::SameLine();
-      if (SquareIconButton("##CloseSplit", ICON_MD_CLOSE, btn,
-                           "Disable split view")) {
-        *p.split_view_enabled = false;
-      }
+      ImGui::EndTable();
     }
-    ImGui::EndGroup();
-
-    // Right cluster: view toggles (grid/bounds/coords/camera).
-    ImGui::TableNextColumn();
-    if (p.primary_viewer) {
-      // Right-align by manually moving cursor to the end of the cell.
-      const float total_w = right_cluster_w;
-      const float start_x =
-          ImGui::GetCursorPosX() +
-          std::max(0.0f, ImGui::GetContentRegionAvail().x - total_w);
-      ImGui::SetCursorPosX(start_x);
-
-      bool v = p.primary_viewer->show_grid();
-      if (SquareIconButton("##GridToggle",
-                           v ? ICON_MD_GRID_ON : ICON_MD_GRID_OFF, btn,
-                           v ? "Hide grid" : "Show grid")) {
-        p.primary_viewer->set_show_grid(!v);
-      }
-      ImGui::SameLine();
-
-      v = p.primary_viewer->show_object_bounds();
-      if (SquareIconButton("##BoundsToggle", ICON_MD_CROP_SQUARE, btn,
-                           v ? "Hide object bounds" : "Show object bounds")) {
-        p.primary_viewer->set_show_object_bounds(!v);
-      }
-      ImGui::SameLine();
-
-      v = p.primary_viewer->show_coordinate_overlay();
-      if (SquareIconButton(
-              "##CoordsToggle", ICON_MD_MY_LOCATION, btn,
-              v ? "Hide hover coordinates" : "Show hover coordinates")) {
-        p.primary_viewer->set_show_coordinate_overlay(!v);
-      }
-      ImGui::SameLine();
-
-      v = p.primary_viewer->show_camera_quadrant_overlay();
-      if (SquareIconButton(
-              "##CameraToggle", ICON_MD_GRID_VIEW, btn,
-              v ? "Hide camera quadrants" : "Show camera quadrants")) {
-        p.primary_viewer->set_show_camera_quadrant_overlay(!v);
-      }
-    }
-
-    ImGui::EndTable();
   }
 
   gui::LayoutHelpers::EndToolbar();

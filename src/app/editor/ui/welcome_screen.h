@@ -18,8 +18,12 @@ struct RecentProject {
   std::string name;
   std::string filepath;
   std::string rom_title;
+  std::string metadata_summary;
   std::string last_modified;
+  std::string item_type;
+  std::string item_icon;
   std::string thumbnail_path;  // Optional screenshot
+  bool unavailable = false;
   int days_ago = 0;
 };
 
@@ -175,7 +179,7 @@ class WelcomeScreen {
   // Staggered entry animations
   bool entry_animations_started_ = false;
   float entry_time_ = 0.0f;  // Time since welcome screen opened
-  static constexpr float kEntryAnimDuration = 0.4f;  // Duration per section
+  static constexpr float kEntryAnimDuration = 0.4f;   // Duration per section
   static constexpr float kEntryStaggerDelay = 0.08f;  // Delay between sections
 
   // Interactive triforce positions (smooth interpolation)

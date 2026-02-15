@@ -1,8 +1,11 @@
 #include "app/editor/ui/welcome_screen.h"
 
 #include <algorithm>
+#include <array>
+#include <cctype>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 
@@ -39,7 +42,7 @@ const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 const ImVec4 kShadowPurpleFallback = ImVec4(0.416f, 0.353f, 0.804f, 1.0f);
 
 constexpr float kRecentCardBaseWidth = 220.0f;
-constexpr float kRecentCardBaseHeight = 95.0f;
+constexpr float kRecentCardBaseHeight = 112.0f;
 constexpr float kRecentCardWidthMaxFactor = 1.25f;
 constexpr float kRecentCardHeightMaxFactor = 1.25f;
 
@@ -97,6 +100,216 @@ std::string GetRelativeTimeString(
     int months = hours / 720;
     return absl::StrFormat("%d month%s ago", months, months > 1 ? "s" : "");
   }
+}
+
+std::string ToLowerAscii(std::string value) {
+  std::transform(
+      value.begin(), value.end(), value.begin(),
+      [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  return value;
+}
+
+std::string TrimAscii(const std::string& value) {
+  const auto not_space = [](unsigned char c) {
+    return !std::isspace(c);
+  };
+  auto begin = std::find_if(value.begin(), value.end(), not_space);
+  if (begin == value.end()) {
+    return "";
+  }
+  auto end = std::find_if(value.rbegin(), value.rend(), not_space).base();
+  return std::string(begin, end);
+}
+
+std::string FormatFileSize(uintmax_t bytes) {
+  static constexpr std::array<const char*, 4> kUnits = {"B", "KB", "MB", "GB"};
+  double value = static_cast<double>(bytes);
+  size_t unit = 0;
+  while (value >= 1024.0 && unit + 1 < kUnits.size()) {
+    value /= 1024.0;
+    ++unit;
+  }
+  if (unit == 0) {
+    return absl::StrFormat("%llu %s", static_cast<unsigned long long>(bytes),
+                           kUnits[unit]);
+  }
+  return absl::StrFormat("%.1f %s", value, kUnits[unit]);
+}
+
+bool IsRomPath(const std::filesystem::path& path) {
+  const std::string ext = ToLowerAscii(path.extension().string());
+  return ext == ".sfc" || ext == ".smc";
+}
+
+bool IsProjectPath(const std::filesystem::path& path) {
+  const std::string ext = ToLowerAscii(path.extension().string());
+  return ext == ".yaze" || ext == ".yazeproj" || ext == ".zsproj";
+}
+
+std::string DecodeSnesRegion(uint8_t code) {
+  switch (code) {
+    case 0x00:
+      return "Japan";
+    case 0x01:
+      return "USA";
+    case 0x02:
+      return "Europe";
+    case 0x03:
+      return "Sweden";
+    case 0x06:
+      return "France";
+    case 0x07:
+      return "Netherlands";
+    case 0x08:
+      return "Spain";
+    case 0x09:
+      return "Germany";
+    case 0x0A:
+      return "Italy";
+    case 0x0B:
+      return "China";
+    case 0x0D:
+      return "Korea";
+    default:
+      return "Unknown region";
+  }
+}
+
+struct SnesHeaderMetadata {
+  std::string title;
+  std::string region;
+  bool valid = false;
+};
+
+bool ReadFileBlock(std::ifstream* file, std::streamoff offset, char* out,
+                   size_t size) {
+  if (!file) {
+    return false;
+  }
+  file->clear();
+  file->seekg(offset, std::ios::beg);
+  if (!file->good()) {
+    return false;
+  }
+  file->read(out, static_cast<std::streamsize>(size));
+  return file->good() && file->gcount() == static_cast<std::streamsize>(size);
+}
+
+bool LooksLikeSnesTitle(const std::string& title) {
+  if (title.empty()) {
+    return false;
+  }
+  int printable = 0;
+  for (unsigned char c : title) {
+    if (c >= 32 && c <= 126) {
+      ++printable;
+    }
+  }
+  return printable >= std::max(6, static_cast<int>(title.size()) / 2);
+}
+
+SnesHeaderMetadata ReadSnesHeaderMetadata(const std::filesystem::path& path) {
+  std::error_code size_ec;
+  const uintmax_t file_size = std::filesystem::file_size(path, size_ec);
+  if (size_ec || file_size < 0x8020) {
+    return {};
+  }
+
+  std::ifstream input(path, std::ios::binary);
+  if (!input.is_open()) {
+    return {};
+  }
+
+  static constexpr std::array<std::streamoff, 2> kHeaderBases = {0x7FC0,
+                                                                 0xFFC0};
+  static constexpr std::array<std::streamoff, 2> kHeaderBiases = {0, 512};
+
+  for (std::streamoff bias : kHeaderBiases) {
+    for (std::streamoff base : kHeaderBases) {
+      const std::streamoff offset = base + bias;
+      if (static_cast<uintmax_t>(offset + 0x20) > file_size) {
+        continue;
+      }
+
+      char header[0x20] = {};
+      if (!ReadFileBlock(&input, offset, header, sizeof(header))) {
+        continue;
+      }
+
+      std::string raw_title(header, header + 21);
+      for (char& c : raw_title) {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (uc < 32 || uc > 126) {
+          c = ' ';
+        }
+      }
+      const std::string title = TrimAscii(raw_title);
+      if (!LooksLikeSnesTitle(title)) {
+        continue;
+      }
+
+      const uint8_t region_code = static_cast<uint8_t>(header[0x19]);
+      return {title, DecodeSnesRegion(region_code), true};
+    }
+  }
+
+  return {};
+}
+
+std::string ParseConfigValue(const std::string& line) {
+  if (line.empty()) {
+    return "";
+  }
+  size_t sep = line.find('=');
+  if (sep == std::string::npos) {
+    sep = line.find(':');
+  }
+  if (sep == std::string::npos || sep + 1 >= line.size()) {
+    return "";
+  }
+  std::string value = line.substr(sep + 1);
+  const size_t comment_pos = value.find('#');
+  if (comment_pos != std::string::npos) {
+    value = value.substr(0, comment_pos);
+  }
+  value = TrimAscii(value);
+  if (value.empty()) {
+    return "";
+  }
+  if (!value.empty() && value.back() == ',') {
+    value.pop_back();
+  }
+  value = TrimAscii(value);
+  if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') ||
+                            (value.front() == '\'' && value.back() == '\''))) {
+    value = value.substr(1, value.size() - 2);
+  }
+  return TrimAscii(value);
+}
+
+std::string ExtractLinkedProjectRomName(const std::filesystem::path& path) {
+  std::ifstream input(path);
+  if (!input.is_open()) {
+    return "";
+  }
+
+  static constexpr std::array<const char*, 3> kKeys = {"rom_filename",
+                                                       "rom_file", "rom_path"};
+  std::string line;
+  while (std::getline(input, line)) {
+    const std::string lowered = ToLowerAscii(line);
+    for (const char* key : kKeys) {
+      const size_t key_pos = lowered.find(key);
+      if (key_pos == std::string::npos) {
+        continue;
+      }
+      const std::string value = ParseConfigValue(line);
+      if (!value.empty()) {
+        return std::filesystem::path(value).filename().string();
+      }
+    }
+  }
+  return "";
 }
 
 // Draw a pixelated triforce in the background (ALTTP style)
@@ -218,9 +431,8 @@ void DrawThemeQuickSwitcher(const char* popup_id, const ImVec2& button_size) {
         }
         theme_mgr.ApplyTheme(name);
       }
-      if (ImGui::IsItemHovered() &&
-          (!theme_mgr.IsPreviewActive() ||
-           theme_mgr.GetCurrentThemeName() != name)) {
+      if (ImGui::IsItemHovered() && (!theme_mgr.IsPreviewActive() ||
+                                     theme_mgr.GetCurrentThemeName() != name)) {
         theme_mgr.StartPreview(name);
       }
     }
@@ -502,42 +714,26 @@ bool WelcomeScreen::Show(bool* p_open) {
     const float layout_scale = ImGui::GetFontSize() / 16.0f;
 
     if (narrow_layout) {
-      float min_left_height = 240.0f * layout_scale;
-      float left_height =
-          std::clamp(content_height * 0.55f, min_left_height, content_height);
-      ImGui::BeginChild("LeftPanel", ImVec2(0, left_height), true,
+      const float quick_actions_h = std::clamp(
+          content_height * 0.28f, 150.0f * layout_scale, 240.0f * layout_scale);
+      const float release_h = std::clamp(
+          content_height * 0.32f, 160.0f * layout_scale, 320.0f * layout_scale);
+
+      ImGui::BeginChild("QuickActionsNarrow", ImVec2(0, quick_actions_h), true,
                         ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
-      ImGui::Spacing();
-
-      ImVec2 sep_start = ImGui::GetCursorScreenPos();
-      draw_list->AddLine(
-          sep_start,
-          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-          ImGui::GetColorU32(
-              ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.2f)),
-          1.0f);
-
-      ImGui::Dummy(ImVec2(0, 5));
-      DrawTemplatesSection();
       ImGui::EndChild();
 
       ImGui::Spacing();
 
-      ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
-      DrawRecentProjects();
+      ImGui::BeginChild("ReleaseHistoryNarrow", ImVec2(0, release_h), true);
+      DrawWhatsNew();
+      ImGui::EndChild();
+
       ImGui::Spacing();
 
-      sep_start = ImGui::GetCursorScreenPos();
-      draw_list->AddLine(
-          sep_start,
-          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-          ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y,
-                                    kMasterSwordBlue.z, 0.2f)),
-          1.0f);
-
-      ImGui::Dummy(ImVec2(0, 5));
-      DrawWhatsNew();
+      ImGui::BeginChild("RecentPanelNarrow", ImVec2(0, 0), true);
+      DrawRecentProjects();
       ImGui::EndChild();
     } else {
       float left_width =
@@ -545,37 +741,34 @@ bool WelcomeScreen::Show(bool* p_open) {
                      320.0f * layout_scale, 520.0f * layout_scale);
       ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
                         ImGuiWindowFlags_NoScrollbar);
+      const float left_height = ImGui::GetContentRegionAvail().y;
+      const float quick_actions_h = std::clamp(
+          left_height * 0.34f, 165.0f * layout_scale, 280.0f * layout_scale);
+
+      ImGui::BeginChild("QuickActionsWide", ImVec2(0, quick_actions_h), false,
+                        ImGuiWindowFlags_NoScrollbar);
       DrawQuickActions();
-      ImGui::Spacing();
-
-      ImVec2 sep_start = ImGui::GetCursorScreenPos();
-      draw_list->AddLine(
-          sep_start,
-          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-          ImGui::GetColorU32(
-              ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.2f)),
-          1.0f);
-
-      ImGui::Dummy(ImVec2(0, 5));
-      DrawTemplatesSection();
       ImGui::EndChild();
 
-      ImGui::SameLine();
-
-      ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
-      DrawRecentProjects();
       ImGui::Spacing();
-
-      sep_start = ImGui::GetCursorScreenPos();
+      ImVec2 sep_start = ImGui::GetCursorScreenPos();
       draw_list->AddLine(
           sep_start,
           ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
           ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y,
                                     kMasterSwordBlue.z, 0.2f)),
           1.0f);
-
       ImGui::Dummy(ImVec2(0, 5));
+
+      ImGui::BeginChild("ReleaseHistoryWide", ImVec2(0, 0), true);
       DrawWhatsNew();
+      ImGui::EndChild();
+      ImGui::EndChild();
+
+      ImGui::SameLine();
+
+      ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
+      DrawRecentProjects();
       ImGui::EndChild();
     }
 
@@ -626,14 +819,22 @@ void WelcomeScreen::RefreshRecentProjects() {
   std::vector<std::string> files_to_remove;
 
   for (const auto& filepath : recent_files) {
-    if (recent_projects_.size() >= kMaxRecentProjects)
+    if (recent_projects_.size() >= kMaxRecentProjects) {
       break;
+    }
 
     std::filesystem::path path(filepath);
 
     RecentProject project;
     project.filepath = filepath;
     project.name = path.filename().string();
+    if (project.name.empty()) {
+      project.name = filepath;
+    }
+    project.item_type = "File";
+    project.item_icon = ICON_MD_INSERT_DRIVE_FILE;
+    project.rom_title = "Local file";
+    project.metadata_summary = "";
 
     // Skip and mark for removal if file doesn't exist.
     //
@@ -646,8 +847,12 @@ void WelcomeScreen::RefreshRecentProjects() {
     if (exists_ec) {
       // Keep the entry but mark it as unavailable; the user can re-open via the
       // iOS document picker to re-grant access.
+      project.unavailable = true;
       project.last_modified = "Unavailable";
-      project.rom_title = "Tap to re-open";
+      project.item_type = "Unavailable";
+      project.item_icon = ICON_MD_WARNING;
+      project.rom_title = "Re-open required";
+      project.metadata_summary = "Permission expired for this location";
       recent_projects_.push_back(project);
       continue;
     }
@@ -664,7 +869,46 @@ void WelcomeScreen::RefreshRecentProjects() {
     } else {
       project.last_modified = "Unknown";
     }
-    project.rom_title = "ALTTP ROM";
+
+    std::error_code size_ec;
+    const uintmax_t size_bytes = std::filesystem::file_size(path, size_ec);
+    const std::string size_text =
+        size_ec ? "Unknown size" : FormatFileSize(size_bytes);
+
+    if (IsRomPath(path)) {
+      project.item_type = "ROM";
+      project.item_icon = ICON_MD_MEMORY;
+
+      const SnesHeaderMetadata metadata = ReadSnesHeaderMetadata(path);
+      if (metadata.valid && !metadata.title.empty()) {
+        project.rom_title = metadata.title;
+        project.metadata_summary =
+            absl::StrFormat("%s • %s • %s", metadata.region.c_str(),
+                            size_text.c_str(), project.last_modified.c_str());
+      } else {
+        project.rom_title = "SNES ROM";
+        project.metadata_summary = absl::StrFormat(
+            "%s • %s", size_text.c_str(), project.last_modified.c_str());
+      }
+    } else if (IsProjectPath(path)) {
+      project.item_type = "Project";
+      project.item_icon = ICON_MD_FOLDER_SPECIAL;
+
+      const std::string linked_rom = ExtractLinkedProjectRomName(path);
+      if (!linked_rom.empty()) {
+        project.rom_title = absl::StrFormat("ROM: %s", linked_rom.c_str());
+      } else {
+        project.rom_title = "Project metadata + settings";
+      }
+      project.metadata_summary = absl::StrFormat("%s • %s", size_text.c_str(),
+                                                 project.last_modified.c_str());
+    } else {
+      project.item_type = "File";
+      project.item_icon = ICON_MD_INSERT_DRIVE_FILE;
+      project.rom_title = "Imported file";
+      project.metadata_summary = absl::StrFormat("%s • %s", size_text.c_str(),
+                                                 project.last_modified.c_str());
+    }
 
     recent_projects_.push_back(project);
   }
@@ -792,17 +1036,14 @@ void WelcomeScreen::DrawQuickActions() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        "Open a ROM or project, or start a new project from a template.");
+        "Open a ROM or project, then create a project when you need metadata.");
   }
   ImGui::Spacing();
 
   const float scale = ImGui::GetFontSize() / 16.0f;
   const float button_height = std::max(38.0f, 40.0f * scale);
   const float action_width = ImGui::GetContentRegionAvail().x;
-  const float action_spacing = ImGui::GetStyle().ItemSpacing.x;
-  const bool wide_actions = action_width > 360.0f;
   float button_width = action_width;
-  const bool has_project = has_project_;
 
   // Animated button colors (compact height)
   auto draw_action_button = [&](const char* icon, const char* text,
@@ -811,8 +1052,7 @@ void WelcomeScreen::DrawQuickActions() {
     gui::StyleColorGuard button_colors({
         {ImGuiCol_Button,
          ImVec4(color.x * 0.6f, color.y * 0.6f, color.z * 0.6f, 0.8f)},
-        {ImGuiCol_ButtonHovered,
-         ImVec4(color.x, color.y, color.z, 1.0f)},
+        {ImGuiCol_ButtonHovered, ImVec4(color.x, color.y, color.z, 1.0f)},
         {ImGuiCol_ButtonActive,
          ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f)},
     });
@@ -833,56 +1073,17 @@ void WelcomeScreen::DrawQuickActions() {
     return clicked;
   };
 
-  if (wide_actions) {
-    const float half_width = (action_width - action_spacing) * 0.5f;
-    button_width = half_width;
-    if (draw_action_button(ICON_MD_FOLDER_OPEN, "Open ROM", kHyruleGreen, true,
-                           open_rom_callback_)) {
-      // Handled by callback
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_INFO
-                        " Open a clean, legally obtained ALttP (USA) ROM file");
-    }
-    ImGui::SameLine(0.0f, action_spacing);
-    if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Open Project",
-                           kMasterSwordBlue,
-                           open_project_dialog_callback_ != nullptr,
-                           open_project_dialog_callback_)) {
-      // Handled by callback
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_INFO
-                        " Open an existing .yazeproj bundle or .yaze project file");
-    }
-    ImGui::Spacing();
-  } else {
-    // Open ROM button - Green like finding an item
-    if (draw_action_button(ICON_MD_FOLDER_OPEN, "Open ROM", kHyruleGreen, true,
-                           open_rom_callback_)) {
-      // Handled by callback
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_INFO
-                        " Open a clean, legally obtained ALttP (USA) ROM file");
-    }
-
-    ImGui::Spacing();
-
-    // Open Project button - Blue for project workflows
-    if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Open Project",
-                           kMasterSwordBlue,
-                           open_project_dialog_callback_ != nullptr,
-                           open_project_dialog_callback_)) {
-      // Handled by callback
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(ICON_MD_INFO
-                        " Open an existing .yazeproj bundle or .yaze project file");
-    }
-
-    ImGui::Spacing();
+  // Unified startup open path.
+  if (draw_action_button(ICON_MD_FOLDER_OPEN, "Open ROM / Project",
+                         kHyruleGreen, true, open_rom_callback_)) {
+    // Handled by callback
   }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(ICON_MD_INFO
+                      " Open .sfc/.smc ROMs and .yaze/.yazeproj project files");
+  }
+
+  ImGui::Spacing();
 
   // New Project button - Gold like getting a treasure
   if (draw_action_button(ICON_MD_ADD_CIRCLE, "New Project", kTriforceGold, true,
@@ -890,52 +1091,16 @@ void WelcomeScreen::DrawQuickActions() {
     // Handled by callback
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO
-                      " Create a new project from a ROM and template");
+    ImGui::SetTooltip(
+        ICON_MD_INFO
+        " Create a new project for metadata, labels, and workflow settings");
   }
 
-  ImGui::Spacing();
-
-  // Project tools row
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_TUNE " Project Tools");
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-    ImGui::TextWrapped("Manage snapshots and metadata for the active project.");
-  }
-  ImGui::Spacing();
-
-  float tool_spacing = ImGui::GetStyle().ItemSpacing.x;
-  float tool_width = (ImGui::GetContentRegionAvail().x - tool_spacing) * 0.5f;
-
-  const bool can_manage_project =
-      has_project && open_project_management_callback_ != nullptr;
-  const bool can_edit_project_file =
-      has_project && open_project_file_editor_callback_ != nullptr;
-
-  if (!has_project) {
-    ImGui::BeginDisabled();
-  }
-  button_width = tool_width;
-  if (draw_action_button(ICON_MD_FOLDER_SPECIAL, "Project Manager",
-                         kMasterSwordBlue, can_manage_project,
-                         open_project_management_callback_)) {
-    // Handled by callback
-  }
-  if (!has_project && ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Load or create a project to use Project Manager");
-  }
-  ImGui::SameLine(0.0f, tool_spacing);
-  button_width = tool_width;
-  if (draw_action_button(ICON_MD_DESCRIPTION, "Project File", kShadowPurple,
-                         can_edit_project_file,
-                         open_project_file_editor_callback_)) {
-    // Handled by callback
-  }
-  if (!has_project && ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Load a project to edit its .yaze file");
-  }
-  if (!has_project) {
-    ImGui::EndDisabled();
+    ImGui::Spacing();
+    ImGui::TextWrapped(
+        "Release highlights and migration notes are now in the panel below.");
   }
 
   // Clean up entry animation styles
@@ -955,7 +1120,18 @@ void WelcomeScreen::DrawRecentProjects() {
 
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, recent_progress);
 
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_HISTORY " Recent Projects");
+  int rom_count = 0;
+  int project_count = 0;
+  for (const auto& item : recent_projects_) {
+    if (item.item_type == "ROM") {
+      ++rom_count;
+    } else if (item.item_type == "Project") {
+      ++project_count;
+    }
+  }
+
+  ImGui::TextColored(kMasterSwordBlue,
+                     ICON_MD_HISTORY " Recent ROMs & Projects");
 
   const float header_spacing = ImGui::GetStyle().ItemSpacing.x;
   const float manage_width = ImGui::CalcTextSize(" Manage").x +
@@ -967,9 +1143,9 @@ void WelcomeScreen::DrawRecentProjects() {
   const float total_width = manage_width + clear_width + header_spacing;
 
   ImGui::SameLine();
-  float start_x = ImGui::GetCursorPosX();
-  float right_edge = start_x + ImGui::GetContentRegionAvail().x;
-  float button_start = std::max(start_x, right_edge - total_width);
+  const float start_x = ImGui::GetCursorPosX();
+  const float right_edge = start_x + ImGui::GetContentRegionAvail().x;
+  const float button_start = std::max(start_x, right_edge - total_width);
   ImGui::SetCursorPosX(button_start);
 
   bool can_manage = open_project_management_callback_ != nullptr;
@@ -994,6 +1170,12 @@ void WelcomeScreen::DrawRecentProjects() {
     RefreshRecentProjects();
   }
 
+  {
+    const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+    ImGui::Text("%d ROMs • %d projects", rom_count, project_count);
+  }
+
   ImGui::Spacing();
 
   if (recent_projects_.empty()) {
@@ -1008,9 +1190,7 @@ void WelcomeScreen::DrawRecentProjects() {
         ICON_MD_EXPLORE);
     ImGui::SetCursorPosX(cursor.x);
 
-    ImGui::TextWrapped(
-        "No recent projects yet.\nOpen a ROM or start a new project to begin "
-        "your adventure!");
+    ImGui::TextWrapped("No recent files yet.\nOpen a ROM or project to begin.");
     return;
   }
 
@@ -1069,7 +1249,7 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   ImVec2 resolved_card_size = card_size;
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 
-  // Subtle hover scale (only on actual hover, no animation)
+  // Subtle hover scale.
   float hover_scale = card_hover_scale_[index];
   if (hover_scale != 1.0f) {
     ImVec2 center(cursor_pos.x + resolved_card_size.x / 2,
@@ -1080,19 +1260,16 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     resolved_card_size.y *= hover_scale;
   }
 
-  const float layout_scale = resolved_card_size.y / kRecentCardBaseHeight;
-  const float padding = 8.0f * layout_scale;
-  const float icon_radius = 15.0f * layout_scale;
-  const float icon_offset = 13.0f * layout_scale;
-  const float text_offset = 32.0f * layout_scale;
-  const float name_offset_y = 8.0f * layout_scale;
-  const float rom_offset_y = 35.0f * layout_scale;
-  const float path_offset_y = 58.0f * layout_scale;
+  ImVec4 accent = kTriforceGold;
+  if (project.unavailable) {
+    accent = kHeartRed;
+  } else if (project.item_type == "ROM") {
+    accent = kHyruleGreen;
+  } else if (project.item_type == "Project") {
+    accent = kMasterSwordBlue;
+  }
 
-  // Draw card background with subtle gradient
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-  // Gradient background
   ImVec4 color_top = ImLerp(surface_variant, surface, 0.7f);
   ImVec4 color_bottom = ImLerp(surface_variant, surface, 0.3f);
   ImU32 color_top_u32 = ImGui::GetColorU32(color_top);
@@ -1103,12 +1280,8 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
              cursor_pos.y + resolved_card_size.y),
       color_top_u32, color_top_u32, color_bottom_u32, color_bottom_u32);
 
-  // Static themed border
-  ImVec4 border_color_base = (index % 3 == 0)   ? kHyruleGreen
-                             : (index % 3 == 1) ? kMasterSwordBlue
-                                                : kTriforceGold;
-  ImU32 border_color = ImGui::GetColorU32(ImVec4(
-      border_color_base.x, border_color_base.y, border_color_base.z, 0.5f));
+  ImU32 border_color =
+      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.6f));
 
   draw_list->AddRect(cursor_pos,
                      ImVec2(cursor_pos.x + resolved_card_size.x,
@@ -1144,79 +1317,107 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     ImGui::EndPopup();
   }
 
-  // Subtle hover glow (no particles)
   if (is_hovered) {
-    ImU32 hover_color = ImGui::GetColorU32(
-        ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f));
+    ImU32 hover_color =
+        ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.16f));
     draw_list->AddRectFilled(cursor_pos,
                              ImVec2(cursor_pos.x + resolved_card_size.x,
                                     cursor_pos.y + resolved_card_size.y),
                              hover_color, 6.0f);
   }
 
-  // Draw content (tighter layout)
-  ImVec2 content_pos(cursor_pos.x + padding, cursor_pos.y + padding);
+  const float layout_scale = resolved_card_size.y / kRecentCardBaseHeight;
+  const float padding = 10.0f * layout_scale;
+  const float icon_radius = 14.0f * layout_scale;
+  const float icon_spacing = 10.0f * layout_scale;
+  const float line_spacing = 2.0f * layout_scale;
 
-  // Icon with colored background circle (compact)
-  ImVec2 icon_center(content_pos.x + icon_offset, content_pos.y + icon_offset);
-  ImU32 icon_bg = ImGui::GetColorU32(border_color_base);
-  draw_list->AddCircleFilled(icon_center, icon_radius, icon_bg, 24);
+  const ImVec2 icon_center(cursor_pos.x + padding + icon_radius,
+                           cursor_pos.y + padding + icon_radius);
+  draw_list->AddCircleFilled(icon_center, icon_radius,
+                             ImGui::GetColorU32(accent), 24);
 
-  // Center the icon properly
-  ImVec2 icon_size = ImGui::CalcTextSize(ICON_MD_VIDEOGAME_ASSET);
-  ImGui::SetCursorScreenPos(
-      ImVec2(icon_center.x - icon_size.x / 2, icon_center.y - icon_size.y / 2));
-  gui::ColoredText(ICON_MD_VIDEOGAME_ASSET, text_primary);
+  const char* item_icon = project.item_icon.empty() ? ICON_MD_INSERT_DRIVE_FILE
+                                                    : project.item_icon.c_str();
+  const ImVec2 icon_size = ImGui::CalcTextSize(item_icon);
+  ImGui::SetCursorScreenPos(ImVec2(icon_center.x - icon_size.x * 0.5f,
+                                   icon_center.y - icon_size.y * 0.5f));
+  gui::ColoredText(item_icon, text_primary);
 
-  // Project name (compact, shorten if too long)
-  ImGui::SetCursorScreenPos(
-      ImVec2(content_pos.x + text_offset, content_pos.y + name_offset_y));
-  ImGui::PushTextWrapPos(cursor_pos.x + resolved_card_size.x - padding);
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Default font
-  std::string short_name = project.name;
-  const float approx_char_width = ImGui::CalcTextSize("A").x;
-  const float name_max_width =
-      std::max(120.0f, resolved_card_size.x - text_offset - padding);
-  size_t max_chars = static_cast<size_t>(
-      std::max(12.0f, name_max_width / std::max(approx_char_width, 1.0f)));
-  if (short_name.length() > max_chars) {
-    short_name = short_name.substr(0, max_chars - 3) + "...";
-  }
-  ImGui::TextColored(kTriforceGold, "%s", short_name.c_str());
-  ImGui::PopFont();
-  ImGui::PopTextWrapPos();
+  const std::string badge_text =
+      project.item_type.empty() ? "File" : project.item_type;
+  const ImVec2 badge_text_size = ImGui::CalcTextSize(badge_text.c_str());
+  const float badge_pad_x = 6.0f * layout_scale;
+  const float badge_pad_y = 2.0f * layout_scale;
+  const ImVec2 badge_min(cursor_pos.x + resolved_card_size.x - padding -
+                             badge_text_size.x - (badge_pad_x * 2.0f),
+                         cursor_pos.y + padding);
+  const ImVec2 badge_max(
+      badge_min.x + badge_text_size.x + (badge_pad_x * 2.0f),
+      badge_min.y + badge_text_size.y + (badge_pad_y * 2.0f));
+  draw_list->AddRectFilled(
+      badge_min, badge_max,
+      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.24f)), 4.0f);
+  draw_list->AddRect(
+      badge_min, badge_max,
+      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.50f)), 4.0f);
+  draw_list->AddText(
+      ImVec2(badge_min.x + badge_pad_x, badge_min.y + badge_pad_y),
+      ImGui::GetColorU32(text_primary), badge_text.c_str());
 
-  // ROM title (compact)
-  ImGui::SetCursorScreenPos(
-      ImVec2(content_pos.x + padding * 0.5f, content_pos.y + rom_offset_y));
-  gui::ColoredTextF(text_secondary, ICON_MD_GAMEPAD " %s",
-                    project.rom_title.c_str());
+  const float content_x = icon_center.x + icon_radius + icon_spacing;
+  const float content_right = badge_min.x - (6.0f * layout_scale);
+  const float text_max_w = std::max(80.0f, content_right - content_x);
 
-  // Path in card (compact)
-  ImGui::SetCursorScreenPos(
-      ImVec2(content_pos.x + padding * 0.5f, content_pos.y + path_offset_y));
-  {
-    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_disabled);
-    std::string short_path = project.filepath;
-    const float path_max_width =
-        std::max(120.0f, resolved_card_size.x - padding * 2.0f);
-    size_t max_path_chars = static_cast<size_t>(
-        std::max(18.0f, path_max_width / std::max(approx_char_width, 1.0f)));
-    if (short_path.length() > max_path_chars) {
-      short_path =
-          "..." +
-          short_path.substr(short_path.length() - (max_path_chars - 3));
+  auto ellipsize = [text_max_w](const std::string& text) {
+    if (text.empty()) {
+      return std::string();
     }
-    ImGui::Text(ICON_MD_FOLDER " %s", short_path.c_str());
-  }
+    if (ImGui::CalcTextSize(text.c_str()).x <= text_max_w) {
+      return text;
+    }
+    std::string clipped = text;
+    while (!clipped.empty() &&
+           ImGui::CalcTextSize((clipped + "...").c_str()).x > text_max_w) {
+      clipped.pop_back();
+    }
+    return clipped.empty() ? std::string("...") : clipped + "...";
+  };
 
-  // Tooltip
+  float text_y = cursor_pos.y + padding;
+  const std::string display_name = ellipsize(project.name);
+  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
+  gui::ColoredText(display_name.c_str(), text_primary);
+
+  text_y += ImGui::GetTextLineHeight() + line_spacing;
+  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
+  gui::ColoredTextF(text_secondary, "%s", ellipsize(project.rom_title).c_str());
+
+  const std::string summary = project.metadata_summary.empty()
+                                  ? project.last_modified
+                                  : project.metadata_summary;
+  text_y += ImGui::GetTextLineHeight() + line_spacing;
+  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
+  gui::ColoredTextF(text_secondary, "%s", ellipsize(summary).c_str());
+
+  text_y += ImGui::GetTextLineHeight() + line_spacing;
+  const std::string opened_line =
+      project.last_modified.empty()
+          ? ""
+          : absl::StrFormat("Last opened: %s", project.last_modified.c_str());
+  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
+  gui::ColoredTextF(text_disabled, "%s", ellipsize(opened_line).c_str());
+
   if (is_hovered) {
     ImGui::BeginTooltip();
-    ImGui::TextColored(kMasterSwordBlue, ICON_MD_INFO " Project Details");
+    ImGui::TextColored(kMasterSwordBlue, ICON_MD_INFO " Recent Item");
     ImGui::Separator();
+    ImGui::Text("Type: %s", badge_text.c_str());
     ImGui::Text("Name: %s", project.name.c_str());
-    ImGui::Text("ROM: %s", project.rom_title.c_str());
+    ImGui::Text("Details: %s", project.rom_title.c_str());
+    if (!project.metadata_summary.empty()) {
+      ImGui::Text("Metadata: %s", project.metadata_summary.c_str());
+    }
     ImGui::Text("Last opened: %s", project.last_modified.c_str());
     ImGui::Text("Path: %s", project.filepath.c_str());
     ImGui::Separator();
@@ -1441,9 +1642,8 @@ void WelcomeScreen::DrawTemplatesSection() {
   // Use Template button - enabled and functional
   {
     gui::StyleColorGuard button_colors({
-        {ImGuiCol_Button,
-         ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f,
-                kSpiritOrange.z * 0.6f, 0.8f)},
+        {ImGuiCol_Button, ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f,
+                                 kSpiritOrange.z * 0.6f, 0.8f)},
         {ImGuiCol_ButtonHovered, kSpiritOrange},
         {ImGuiCol_ButtonActive,
          ImVec4(kSpiritOrange.x * 1.2f, kSpiritOrange.y * 1.2f,
@@ -1487,7 +1687,7 @@ void WelcomeScreen::DrawTipsSection() {
   // animation)
   const char* tips[] = {
       "Open a ROM first, then save a copy before editing",
-      "Projects track ROM versions, templates, and settings",
+      "Projects track ROM versions and editor settings",
       "Use Project Management to swap ROMs and manage snapshots",
       "Press Ctrl+Shift+P for the command palette and F1 for help",
       "Shortcuts are configurable in Settings > Keyboard Shortcuts",
