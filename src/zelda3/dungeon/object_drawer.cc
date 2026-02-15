@@ -269,7 +269,9 @@ absl::Status ObjectDrawer::DrawObject(
       (object.id_ == 0xC8) ||                         // Water floor overlay
       (object.id_ == 0xC6) ||                         // Layer 2 mask (large)
       (object.id_ == 0xD7) ||                         // Layer 2 mask (medium)
+      (object.id_ == 0xD8) ||                         // Flood water overlay
       (object.id_ == 0xD9) ||                         // Layer 2 swim mask
+      (object.id_ == 0xDA) ||                         // Flood water overlay B
       (object.id_ == 0xFE6) ||                        // Type 3 pit
       (object.id_ == 0xFF3);                          // Type 3 layer 2 mask (full)
 
@@ -2772,7 +2774,7 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
     std::span<const gfx::TileInfo> tiles,
     [[maybe_unused]] const DungeonState* state) {
   // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
-  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 6-tile Y
+  // This is 4 columns × 2 rows = 8 tiles in ROW-MAJOR order with 6-tile Y
   // spacing.
   int size = obj.size_ & 0x0F;
 
@@ -2781,18 +2783,17 @@ void ObjectDrawer::DrawDownwardsDecor4x2spaced4_1to16(
 
   for (int s = 0; s < count; s++) {
     if (tiles.size() >= 8) {
-      // Draw 4x2 pattern in COLUMN-MAJOR order:
-      // Col 0: tiles[0], tiles[1]
-      // Col 1: tiles[2], tiles[3]
-      // Col 2: tiles[4], tiles[5]
-      // Col 3: tiles[6], tiles[7]
+      // Draw 4x2 pattern in ROW-MAJOR order:
+      // Row 0: tiles[0..3], Row 1: tiles[4..7].
       const int base_y = obj.y_ + (s * 6);
-      for (int x = 0; x < 4; ++x) {
-        for (int y = 0; y < 2; ++y) {
-          const size_t tile_idx = static_cast<size_t>((x * 2) + y);
-          WriteTile8(bg, obj.x_ + x, base_y + y, tiles[tile_idx]);
-        }
-      }
+      WriteTile8(bg, obj.x_, base_y, tiles[0]);
+      WriteTile8(bg, obj.x_ + 1, base_y, tiles[1]);
+      WriteTile8(bg, obj.x_ + 2, base_y, tiles[2]);
+      WriteTile8(bg, obj.x_ + 3, base_y, tiles[3]);
+      WriteTile8(bg, obj.x_, base_y + 1, tiles[4]);
+      WriteTile8(bg, obj.x_ + 1, base_y + 1, tiles[5]);
+      WriteTile8(bg, obj.x_ + 2, base_y + 1, tiles[6]);
+      WriteTile8(bg, obj.x_ + 3, base_y + 1, tiles[7]);
     }
   }
 }

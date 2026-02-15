@@ -43,7 +43,7 @@ void DrawDownwards4x2_1to16_BothBG(const DrawContext& ctx);
  * @brief Draw 4x2 decoration downward with spacing (1-16 iterations)
  *
  * Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
- * This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 6-tile Y
+ * This is 4 columns × 2 rows = 8 tiles in ROW-MAJOR order with 6-tile Y
  * spacing Based on bank_01.asm RoomDraw_DownwardsDecor4x2spaced4_1to16
  *
  * @param ctx Draw context containing object, tiles, and target buffer

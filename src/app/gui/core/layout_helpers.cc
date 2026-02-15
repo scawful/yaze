@@ -360,9 +360,23 @@ void LayoutHelpers::BeginToolbar(const char* label) {
 }
 
 void LayoutHelpers::EndToolbar() {
-  ImGui::EndChild();
-  ImGui::PopStyleVar(1);
-  ImGui::PopStyleColor(1);
+  ImGuiContext* ctx = ImGui::GetCurrentContext();
+  const bool has_child_window =
+      ctx != nullptr && ctx->CurrentWindow != nullptr &&
+      ((ctx->CurrentWindow->Flags & ImGuiWindowFlags_ChildWindow) != 0);
+
+  // Guard against scope recovery edge-cases where the current window stack has
+  // already been unwound before toolbar teardown.
+  if (has_child_window) {
+    ImGui::EndChild();
+  }
+
+  if (ctx != nullptr && ctx->StyleVarStack.Size > 0) {
+    ImGui::PopStyleVar(1);
+  }
+  if (ctx != nullptr && ctx->ColorStack.Size > 0) {
+    ImGui::PopStyleColor(1);
+  }
 }
 
 void LayoutHelpers::ToolbarSeparator() {

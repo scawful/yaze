@@ -86,7 +86,7 @@ void DrawDownwards4x2_1to16_BothBG(const DrawContext& ctx) {
 
 void DrawDownwardsDecor4x2spaced4_1to16(const DrawContext& ctx) {
   // Pattern: Draws 4x2 decoration downward with spacing (objects 0x65-0x66)
-  // This is 4 columns × 2 rows = 8 tiles in COLUMN-MAJOR order with 6-tile Y
+  // This is 4 columns × 2 rows = 8 tiles in ROW-MAJOR order with 6-tile Y
   // spacing.
   int size = ctx.object.size_ & 0x0F;
 
@@ -95,19 +95,25 @@ void DrawDownwardsDecor4x2spaced4_1to16(const DrawContext& ctx) {
 
   for (int s = 0; s < count; s++) {
     if (ctx.tiles.size() >= 8) {
-      // Draw 4x2 pattern in COLUMN-MAJOR order:
-      // Col 0: tiles[0], tiles[1]
-      // Col 1: tiles[2], tiles[3]
-      // Col 2: tiles[4], tiles[5]
-      // Col 3: tiles[6], tiles[7]
+      // Draw 4x2 pattern in ROW-MAJOR order:
+      // Row 0: tiles[0..3], Row 1: tiles[4..7].
       const int base_y = ctx.object.y_ + (s * 6);
-      for (int x = 0; x < 4; ++x) {
-        for (int y = 0; y < 2; ++y) {
-          const size_t tile_idx = static_cast<size_t>((x * 2) + y);
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       base_y + y, ctx.tiles[tile_idx]);
-        }
-      }
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y,
+                                   ctx.tiles[0]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y,
+                                   ctx.tiles[1]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, base_y,
+                                   ctx.tiles[2]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3, base_y,
+                                   ctx.tiles[3]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 1,
+                                   ctx.tiles[4]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                                   base_y + 1, ctx.tiles[5]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2,
+                                   base_y + 1, ctx.tiles[6]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
+                                   base_y + 1, ctx.tiles[7]);
     }
   }
 }
