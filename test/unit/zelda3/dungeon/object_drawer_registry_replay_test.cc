@@ -251,7 +251,7 @@ TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     DownwardsDecor4x2Spaced4UsesColumnMajorTileOrder) {
+     DownwardsDecor4x2Spaced4UsesRowMajorTileOrder) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -286,14 +286,14 @@ TEST(ObjectDrawerRegistryReplayTest,
     by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
   }
 
-  // Column-major 4x2 at y=20..21
+  // Row-major 4x2 at y=20..21
   EXPECT_EQ(by_pos[key(10, 20)], 0);
-  EXPECT_EQ(by_pos[key(10, 21)], 1);
-  EXPECT_EQ(by_pos[key(11, 20)], 2);
-  EXPECT_EQ(by_pos[key(11, 21)], 3);
-  EXPECT_EQ(by_pos[key(12, 20)], 4);
-  EXPECT_EQ(by_pos[key(12, 21)], 5);
-  EXPECT_EQ(by_pos[key(13, 20)], 6);
+  EXPECT_EQ(by_pos[key(11, 20)], 1);
+  EXPECT_EQ(by_pos[key(12, 20)], 2);
+  EXPECT_EQ(by_pos[key(13, 20)], 3);
+  EXPECT_EQ(by_pos[key(10, 21)], 4);
+  EXPECT_EQ(by_pos[key(11, 21)], 5);
+  EXPECT_EQ(by_pos[key(12, 21)], 6);
   EXPECT_EQ(by_pos[key(13, 21)], 7);
 
   // Second slice uses +6 vertical stride.
@@ -515,6 +515,60 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2WaterFloorMasksBG1Transparent) {
 
   EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255);
   EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255);
+}
+
+TEST(ObjectDrawerMaskPropagationTest, Layer2FloodWaterMasksBG1Transparent) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(1);
+
+  gfx::PaletteGroup palette_group;
+
+  for (const int object_id : {0x00D8, 0x00DA}) {
+    gfx::BackgroundBuffer obj_bg1(512, 512);
+    gfx::BackgroundBuffer obj_bg2(512, 512);
+    gfx::BackgroundBuffer layout_bg1(512, 512);
+    obj_bg1.EnsureBitmapInitialized();
+    obj_bg2.EnsureBitmapInitialized();
+    layout_bg1.EnsureBitmapInitialized();
+
+    obj_bg1.bitmap().Fill(10);
+    layout_bg1.bitmap().Fill(11);
+    obj_bg2.bitmap().Fill(255);
+    obj_bg1.ClearPriorityBuffer();
+    obj_bg2.ClearPriorityBuffer();
+    layout_bg1.ClearPriorityBuffer();
+
+    ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+
+    RoomObject obj(object_id, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
+    obj.tiles_loaded_ = true;
+    obj.tiles_.clear();
+    for (int i = 0; i < 8; ++i) {
+      obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                         false, false, false));
+    }
+
+    const int px = obj.x_ * 8;
+    const int py = obj.y_ * 8;
+    const int idx = py * obj_bg1.bitmap().width() + px;
+    ASSERT_GE(idx, 0);
+    ASSERT_LT(idx, static_cast<int>(obj_bg1.bitmap().size()));
+
+    ASSERT_TRUE(drawer
+                    .DrawObject(obj, obj_bg1, obj_bg2, palette_group,
+                                /*state=*/nullptr,
+                                /*layout_bg1=*/&layout_bg1)
+                    .ok());
+
+    EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255) << object_id;
+    EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255) << object_id;
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest, PrisonCellDrawsToBothBuffersWhenMarkedBothBG) {
