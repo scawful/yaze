@@ -1168,15 +1168,17 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   panel_manager_.SetPanelBrowserCategoryWidth(
       user_settings_.prefs().panel_browser_category_width,
       /*notify=*/false);
-  if (!user_settings_.prefs().sidebar_active_category.empty()) {
-    const std::string& category =
-        user_settings_.prefs().sidebar_active_category;
-    panel_manager_.SetActiveCategory(category, /*notify=*/false);
-    SyncEditorContextForCategory(category);
-    auto it = user_settings_.prefs().panel_visibility_state.find(category);
-    if (it != user_settings_.prefs().panel_visibility_state.end()) {
-      panel_manager_.RestoreVisibilityState(panel_manager_.GetActiveSessionId(),
-                                            it->second);
+  {
+    const std::string category = GetPreferredStartupCategory(
+        user_settings_.prefs().sidebar_active_category, {});
+    if (!category.empty()) {
+      panel_manager_.SetActiveCategory(category, /*notify=*/false);
+      SyncEditorContextForCategory(category);
+      auto it = user_settings_.prefs().panel_visibility_state.find(category);
+      if (it != user_settings_.prefs().panel_visibility_state.end()) {
+        panel_manager_.RestoreVisibilityState(
+            panel_manager_.GetActiveSessionId(), it->second);
+      }
     }
   }
 
@@ -1746,6 +1748,28 @@ void EditorManager::ApplyLayoutDefaultsMigrationIfNeeded() {
            kTargetRevision);
 }
 
+std::string EditorManager::GetPreferredStartupCategory(
+    const std::string& saved_category,
+    const std::vector<std::string>& available_categories) const {
+  // If saved category is valid and not Emulator, use it directly
+  if (!saved_category.empty() && saved_category != "Emulator") {
+    // Validate it exists in available_categories if the list is provided
+    if (available_categories.empty()) {
+      return saved_category;
+    }
+    for (const auto& cat : available_categories) {
+      if (cat == saved_category)
+        return saved_category;
+    }
+  }
+  // Pick first non-Emulator category from available list
+  for (const auto& cat : available_categories) {
+    if (cat != "Emulator")
+      return cat;
+  }
+  return {};
+}
+
 void EditorManager::SetAssetLoadMode(AssetLoadMode mode) {
   asset_load_mode_ = mode;
 }
@@ -2196,14 +2220,16 @@ void EditorManager::DrawInterface() {
 
     std::string sidebar_category = panel_manager_.GetActiveCategory();
     if (sidebar_category.empty() && !all_categories.empty()) {
-      sidebar_category = all_categories[0];
-      panel_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
-      SyncEditorContextForCategory(sidebar_category);
-      auto it =
-          user_settings_.prefs().panel_visibility_state.find(sidebar_category);
-      if (it != user_settings_.prefs().panel_visibility_state.end()) {
-        panel_manager_.RestoreVisibilityState(
-            panel_manager_.GetActiveSessionId(), it->second);
+      sidebar_category = GetPreferredStartupCategory("", all_categories);
+      if (!sidebar_category.empty()) {
+        panel_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
+        SyncEditorContextForCategory(sidebar_category);
+        auto it = user_settings_.prefs().panel_visibility_state.find(
+            sidebar_category);
+        if (it != user_settings_.prefs().panel_visibility_state.end()) {
+          panel_manager_.RestoreVisibilityState(
+              panel_manager_.GetActiveSessionId(), it->second);
+        }
       }
     }
 
@@ -3350,6 +3376,15 @@ absl::Status EditorManager::LoadProjectWithRom() {
   session->feature_flags = current_project_.feature_flags;
   core::FeatureFlags::get() = current_project_.feature_flags;
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+#if !defined(NDEBUG)
+  LOG_INFO(
+      "EditorManager",
+      "Feature flags applied: kEnableCustomObjects=%s, "
+      "custom_objects_folder='%s', custom_object_files=%zu entries",
+      current_project_.feature_flags.kEnableCustomObjects ? "true" : "false",
+      current_project_.custom_objects_folder.c_str(),
+      current_project_.custom_object_files.size());
+#endif
 
   core::RomSettings::Get().SetAddressOverrides(
       current_project_.rom_address_overrides);
