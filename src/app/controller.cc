@@ -1,7 +1,7 @@
 #include "controller.h"
 
-#include "app/platform/sdl_compat.h"
 #include "app/application.h"
+#include "app/platform/sdl_compat.h"
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
@@ -11,19 +11,20 @@
 
 #include "absl/status/status.h"
 #include "app/editor/core/content_registry.h"
-#include "app/editor/events/core_events.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/events/core_events.h"
+#include "app/emu/emulator.h"
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/emu/emulator.h"
 #include "app/platform/iwindow.h"
 #include "app/platform/timing.h"
 #include "app/service/screenshot_utils.h"
 #include "imgui/imgui.h"
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
 #include "app/platform/ios/ios_platform_state.h"
 #endif
 
@@ -42,7 +43,8 @@ absl::Status Controller::OnEntry(std::string filename) {
     renderer_type = gfx::RendererBackendType::Null;
   }
 
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
   backend_type = platform::WindowBackendType::IOS;
   renderer_type = gfx::RendererBackendType::Metal;
 #endif
@@ -55,8 +57,9 @@ absl::Status Controller::OnEntry(std::string filename) {
   platform::WindowConfig config;
   config.title = "Yet Another Zelda3 Editor";
   config.resizable = true;
-  config.high_dpi = false;  // Disabled to match legacy behavior (SDL_WINDOW_RESIZABLE only)
-  
+  config.high_dpi =
+      false;  // Disabled to match legacy behavior (SDL_WINDOW_RESIZABLE only)
+
   if (app_config.service_mode) {
     LOG_INFO("Controller", "Starting in Service Mode (Hidden Window)");
     config.hidden = true;
@@ -81,9 +84,11 @@ absl::Status Controller::OnEntry(std::string filename) {
   if (audio_buffer) {
     editor_manager_.emulator().set_audio_buffer(audio_buffer.get());
   }
-  editor_manager_.emulator().set_audio_device_id(window_backend_->GetAudioDevice());
+  editor_manager_.emulator().set_audio_device_id(
+      window_backend_->GetAudioDevice());
 
-  editor_manager_.SetAssetLoadMode(Application::Instance().GetConfig().asset_load_mode);
+  editor_manager_.SetAssetLoadMode(
+      Application::Instance().GetConfig().asset_load_mode);
 
   // Initialize editor manager with renderer
   editor_manager_.Initialize(renderer_.get(), filename);
@@ -102,7 +107,8 @@ void Controller::SetStartupEditor(const std::string& editor_name,
 }
 
 void Controller::OnInput() {
-  if (!window_backend_) return;
+  if (!window_backend_)
+    return;
 
   platform::WindowEvent event;
   while (window_backend_->PollEvent(event)) {
@@ -164,7 +170,8 @@ absl::Status Controller::OnLoad() {
   float bottom_offset = editor_manager_.GetBottomLayoutOffset();
 
   float top_offset = 0.0f;
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
   // On iOS, inset the dockspace by the safe area so content doesn't render
   // behind the notch/Dynamic Island (top) or home indicator (bottom).
   {
@@ -192,7 +199,8 @@ absl::Status Controller::OnLoad() {
   if (editor_manager_.ui_coordinator()) {
     show_menu_bar = editor_manager_.ui_coordinator()->IsMenuBarVisible();
   }
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
   show_menu_bar = false;
 #endif
 
@@ -202,9 +210,8 @@ absl::Status Controller::OnLoad() {
   }
   window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-  window_flags |=
-      ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus |
-      ImGuiWindowFlags_NoBackground;
+  window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus |
+                  ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
   ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -228,7 +235,8 @@ absl::Status Controller::OnLoad() {
   }
   ImGui::End();
 
-#if !defined(__APPLE__) || (TARGET_OS_IPHONE != 1 && TARGET_IPHONE_SIMULATOR != 1)
+#if !defined(__APPLE__) || \
+    (TARGET_OS_IPHONE != 1 && TARGET_IPHONE_SIMULATOR != 1)
   // Draw menu bar restore button when menu is hidden (WASM)
   if (!show_menu_bar && editor_manager_.ui_coordinator()) {
     editor_manager_.ui_coordinator()->DrawMenuBarRestoreButton();
@@ -239,7 +247,8 @@ absl::Status Controller::OnLoad() {
   gui::WidgetIdRegistry::Instance().EndFrame();
   RETURN_IF_ERROR(update_status);
 
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
   {
     platform::ios::EditorStateSnapshot snap;
     auto* editor = editor_manager_.GetCurrentEditor();
@@ -263,10 +272,23 @@ absl::Status Controller::OnLoad() {
 }
 
 void Controller::DoRender() const {
-  if (!window_backend_ || !renderer_) return;
+  if (!window_backend_ || !renderer_)
+    return;
 
-  // Process pending texture commands (max 8 per frame for consistent performance)
-  gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
+  // Process pending texture commands.
+  // During layout transitions, use a time-budgeted approach to reduce GPU
+  // pressure and avoid Metal crashes from too many texture uploads per frame.
+  // Every 30th frame during transitions, do a full queue pass to prevent starvation.
+  {
+    const auto sync_state = editor_manager_.GetUiSyncStateSnapshot();
+    const bool in_transition = sync_state.layout_rebuild_pending ||
+                               sync_state.pending_layout_actions > 0;
+    if (in_transition && (sync_state.frame_id % 30 != 0)) {
+      gfx::Arena::Get().ProcessTextureQueueWithBudget(renderer_.get(), 2.0f);
+    } else {
+      gfx::Arena::Get().ProcessTextureQueue(renderer_.get());
+    }
+  }
 
   if (Application::Instance().GetConfig().headless) {
     // In HEADLESS mode, we MUST still end the ImGui frame to satisfy assertions
