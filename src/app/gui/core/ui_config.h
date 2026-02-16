@@ -72,6 +72,11 @@ struct UIConfig {
   static constexpr float kPanelPaddingMedium = 8.0f;
   static constexpr float kPanelPaddingLarge = 12.0f;
 
+  // Splitter / header button spacing
+  static constexpr float kSplitterWidth = 6.0f;
+  static constexpr float kHeaderButtonSpacing = 6.0f;
+  static constexpr float kHeaderButtonGap = 2.0f;
+
   // Animation
   static constexpr float kAnimationSpeed = 8.0f;  // Lerp speed multiplier
   static constexpr float kAnimationSnapThreshold = 0.01f;

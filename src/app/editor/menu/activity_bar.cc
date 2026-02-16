@@ -568,9 +568,9 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     auto draw_pin_toggle_button = [&](const std::string& widget_id,
                                       bool pinned) -> bool {
       ImGui::PushID(widget_id.c_str());
-      const ImVec4 pin_col =
-          pinned ? gui::ConvertColorToImVec4(theme.primary)
-                 : gui::ConvertColorToImVec4(theme.text_disabled);
+      // Use secondary text color for unpinned (more visible than text_disabled)
+      const ImVec4 pin_col = pinned ? gui::ConvertColorToImVec4(theme.primary)
+                                    : gui::GetTextSecondaryVec4();
       const bool clicked = gui::TransparentIconButton(
           pinned ? ICON_MD_PUSH_PIN : ICON_MD_PIN, pin_button_size,
           pinned ? "Unpin panel" : "Pin panel", pinned, pin_col, "activity_bar",

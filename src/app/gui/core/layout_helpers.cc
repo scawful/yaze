@@ -98,11 +98,9 @@ LayoutHelpers::SafeAreaInsets LayoutHelpers::GetSafeAreaInsets() {
   insets.top = ios_insets.top;
   insets.bottom = ios_insets.bottom;
 #else
-  const ImVec2 pad = ImGui::GetStyle().DisplaySafeAreaPadding;
-  insets.left = pad.x;
-  insets.right = pad.x;
-  insets.top = pad.y;
-  insets.bottom = pad.y;
+  // Desktop (macOS, Linux, Windows): no safe area insets needed.
+  // DisplaySafeAreaPadding default (3px) is meant for mobile notch, not desktop.
+  insets = {};
 #endif
   return insets;
 }

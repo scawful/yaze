@@ -44,10 +44,10 @@ const ImVec4 kHeartRedFallback = ImVec4(0.863f, 0.078f, 0.235f, 1.0f);
 const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 const ImVec4 kShadowPurpleFallback = ImVec4(0.416f, 0.353f, 0.804f, 1.0f);
 
-constexpr float kRecentCardBaseWidth = 220.0f;
-constexpr float kRecentCardBaseHeight = 112.0f;
-constexpr float kRecentCardWidthMaxFactor = 1.25f;
-constexpr float kRecentCardHeightMaxFactor = 1.25f;
+constexpr float kRecentCardBaseWidth = 240.0f;
+constexpr float kRecentCardBaseHeight = 128.0f;
+constexpr float kRecentCardWidthMaxFactor = 1.30f;
+constexpr float kRecentCardHeightMaxFactor = 1.30f;
 
 // Active colors (updated each frame from theme)
 ImVec4 kTriforceGold = kTriforceGoldFallback;
@@ -547,7 +547,7 @@ bool WelcomeScreen::Show(bool* p_open) {
 
   // Size based on dockspace region, not full viewport
   float width = std::clamp(dockspace_width * 0.85f, 480.0f, 1400.0f);
-  float height = std::clamp(viewport_size.y * 0.85f, 360.0f, 900.0f);
+  float height = std::clamp(viewport_size.y * 0.85f, 360.0f, 1050.0f);
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
@@ -756,7 +756,7 @@ bool WelcomeScreen::Show(bool* p_open) {
 
     ImGui::Dummy(ImVec2(0, 14));
 
-    ImGui::BeginChild("WelcomeContent", ImVec2(0, -60), false);
+    ImGui::BeginChild("WelcomeContent", ImVec2(0, -40), false);
     const float content_width = ImGui::GetContentRegionAvail().x;
     const float content_height = ImGui::GetContentRegionAvail().y;
     const bool narrow_layout = content_width < 900.0f;
@@ -764,7 +764,7 @@ bool WelcomeScreen::Show(bool* p_open) {
 
     if (narrow_layout) {
       const float quick_actions_h = std::clamp(
-          content_height * 0.28f, 150.0f * layout_scale, 240.0f * layout_scale);
+          content_height * 0.35f, 160.0f * layout_scale, 300.0f * layout_scale);
       const float release_h = std::clamp(
           content_height * 0.32f, 160.0f * layout_scale, 320.0f * layout_scale);
 
@@ -792,7 +792,7 @@ bool WelcomeScreen::Show(bool* p_open) {
                         ImGuiWindowFlags_NoScrollbar);
       const float left_height = ImGui::GetContentRegionAvail().y;
       const float quick_actions_h = std::clamp(
-          left_height * 0.27f, 150.0f * layout_scale, 220.0f * layout_scale);
+          left_height * 0.35f, 180.0f * layout_scale, 300.0f * layout_scale);
 
       ImGui::BeginChild("QuickActionsWide", ImVec2(0, quick_actions_h), false,
                         ImGuiWindowFlags_NoScrollbar);
