@@ -2,6 +2,8 @@
 
 #include <array>
 #include <cstdint>
+#include <filesystem>
+#include <fstream>
 #include <set>
 #include <unordered_map>
 #include <vector>
@@ -10,6 +12,7 @@
 #include "rom/rom.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_tile.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
@@ -91,6 +94,68 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   // If the routine wrote only to the tile buffer (SetTileAt) and not to the
   // bitmap-backed buffers, this would remain 255.
   EXPECT_NE(bg1.bitmap().data()[idx], 255);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     CustomObjectPreservesRelativeOffsetsFromBinary) {
+  ScopedCustomObjectsFlag enable_custom(true);
+
+  auto& manager = CustomObjectManager::Get();
+  const std::string previous_base = manager.GetBasePath();
+  std::filesystem::path temp_dir =
+      std::filesystem::temp_directory_path() / "yaze_custom_draw_offset_test";
+  struct RestoreCustomObjectManagerState {
+    CustomObjectManager& manager;
+    std::string previous_base;
+    std::filesystem::path temp_dir;
+    ~RestoreCustomObjectManagerState() {
+      manager.Initialize(previous_base);
+      manager.ClearObjectFileMap();
+      std::filesystem::remove_all(temp_dir);
+    }
+  } restore{manager, previous_base, temp_dir};
+
+  manager.ClearObjectFileMap();
+  std::filesystem::remove_all(temp_dir);
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+
+  // First segment advances by 0x82 bytes with no tiles (x+1, y+1), second
+  // segment emits one tile. The renderer should preserve that +1,+1 offset.
+  const std::vector<uint8_t> binary = {
+      0x00, 0x82,  // Header 1: count=0, jump=0x82
+      0x01, 0x00,  // Header 2: count=1, jump=0
+      0x42, 0x00,  // Tile word (id=0x42)
+      0x00, 0x00,  // Terminator
+  };
+  {
+    std::ofstream out(temp_dir / "track_LR.bin", std::ios::binary);
+    ASSERT_TRUE(out.good());
+    out.write(reinterpret_cast<const char*>(binary.data()), binary.size());
+    ASSERT_TRUE(out.good());
+  }
+  manager.Initialize(temp_dir.string());
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+  RoomObject obj(0x0031, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  obj.tiles_.push_back(gfx::TileInfo(/*id=*/0, /*pal=*/2, false, false, false));
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 1u);
+  EXPECT_EQ(trace[0].x_tile, 11);
+  EXPECT_EQ(trace[0].y_tile, 21);
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

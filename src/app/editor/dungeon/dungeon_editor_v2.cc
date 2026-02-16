@@ -407,7 +407,8 @@ absl::Status DungeonEditorV2::Load() {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  // Load object dimension table for accurate hit-testing
+  // Initialize ObjectDimensionTable so DimensionService's fallback path works.
+  // DimensionService::Get() queries this table internally but has no Load API.
   auto& dim_table = zelda3::ObjectDimensionTable::Get();
   if (!dim_table.IsLoaded()) {
     RETURN_IF_ERROR(dim_table.LoadFromRom(rom_));
@@ -1317,6 +1318,7 @@ void DungeonEditorV2::DrawRoomPanels() {
       ReleaseRoomPanelSlotId(room_id);
       // Clean up viewer
       room_viewers_.erase(room_id);
+      RemoveViewerFromLru(room_id);
       i--;
       continue;
     }
@@ -1362,6 +1364,7 @@ void DungeonEditorV2::DrawRoomPanels() {
       room_cards_.erase(room_id);
       active_rooms_.erase(active_rooms_.Data + i);
       room_viewers_.erase(room_id);
+      RemoveViewerFromLru(room_id);
       ReleaseRoomPanelSlotId(room_id);
       i--;
     }
@@ -1842,6 +1845,10 @@ void DungeonEditorV2::ProcessPendingSwap() {
     room_viewers_[new_room_id] = std::move(it->second);
     room_viewers_.erase(it);
   }
+  RemoveViewerFromLru(old_room_id);
+  if (room_viewers_.find(new_room_id) != room_viewers_.end()) {
+    TouchViewerLru(new_room_id);
+  }
 
   // Replace old room with new room in active_rooms_
   active_rooms_[swap_index] = new_room_id;
@@ -1892,6 +1899,17 @@ void DungeonEditorV2::ProcessPendingWorkflowMode() {
   const bool show_toast = pending_workflow_mode_.show_toast;
   pending_workflow_mode_.pending = false;
   SetWorkbenchWorkflowMode(enabled, show_toast);
+}
+
+void DungeonEditorV2::TouchViewerLru(int room_id) {
+  RemoveViewerFromLru(room_id);
+  viewer_lru_.push_back(room_id);
+}
+
+void DungeonEditorV2::RemoveViewerFromLru(int room_id) {
+  viewer_lru_.erase(
+      std::remove(viewer_lru_.begin(), viewer_lru_.end(), room_id),
+      viewer_lru_.end());
 }
 
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
@@ -2040,11 +2058,12 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     room_viewers_[room_id] = std::move(viewer);
 
     // Add to LRU (most recent at back)
-    viewer_lru_.push_back(room_id);
+    TouchViewerLru(room_id);
 
     // Evict old viewers if over limit
     while (room_viewers_.size() > kMaxCachedViewers) {
-      bool evicted = false;
+      bool removed_lru_entry = false;
+      bool evicted_viewer = false;
       // Walk LRU from oldest (front) to newest (back)
       for (auto lru_it = viewer_lru_.begin(); lru_it != viewer_lru_.end(); ++lru_it) {
         int candidate_room_id = *lru_it;
@@ -2061,16 +2080,20 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
           continue;
         }
 
-        // Evict this viewer
-        room_viewers_.erase(candidate_room_id);
+        removed_lru_entry = true;
+        // Evict this viewer if present; stale LRU entries are cleaned too.
+        evicted_viewer = room_viewers_.erase(candidate_room_id) > 0;
         viewer_lru_.erase(lru_it);
-        evicted = true;
         break;
       }
 
-      // Safety: if we couldn't evict anything (all rooms are active), break
-      if (!evicted) {
+      // Safety: if we couldn't remove any LRU entry, all cached rooms are active.
+      if (!removed_lru_entry) {
         break;
+      }
+      // If we only removed a stale LRU entry, keep trimming until size is valid.
+      if (!evicted_viewer) {
+        continue;
       }
     }
 
@@ -2078,11 +2101,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   }
 
   // Viewer already exists - update LRU (move to back as most recent)
-  auto lru_it = std::find(viewer_lru_.begin(), viewer_lru_.end(), room_id);
-  if (lru_it != viewer_lru_.end()) {
-    viewer_lru_.erase(lru_it);
-  }
-  viewer_lru_.push_back(room_id);
+  TouchViewerLru(room_id);
 
   // Update pinned state from manager even if viewer already exists
   if (dependencies_.panel_manager) {

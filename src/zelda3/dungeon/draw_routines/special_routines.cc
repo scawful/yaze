@@ -1,6 +1,8 @@
 #include "special_routines.h"
 
+#include "core/features.h"
 #include "util/log.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/room_object.h"
@@ -80,11 +82,48 @@ void DrawNothing([[maybe_unused]] const DrawContext& ctx) {
 
 void CustomDraw(const DrawContext& ctx) {
   // Pattern: Custom draw routine (objects 0x31-0x32)
-  // For now, fall back to simple 1x1
-  if (ctx.tiles.size() >= 1) {
-    // Use first 8x8 tile from span
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                                 ctx.tiles[0]);
+  // When custom objects are enabled, load tile data from external binary files
+  // managed by CustomObjectManager. Each binary encodes SNES tilemap entries
+  // with relative x/y positions computed from the buffer stride layout.
+
+  if (!core::FeatureFlags::get().kEnableCustomObjects) {
+    // Feature disabled: fall back to vanilla 1x1 draw from ROM tile span
+    if (ctx.tiles.size() >= 1) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
+                                   ctx.tiles[0]);
+    }
+    return;
+  }
+
+  // Look up the custom object by ID and subtype.
+  // ctx.object.id_ is 0x31 or 0x32; ctx.object.size_ encodes the subtype.
+  auto result = CustomObjectManager::Get().GetObjectInternal(
+      ctx.object.id_, ctx.object.size_);
+
+  if (!result.ok() || !result.value() || result.value()->IsEmpty()) {
+    // Custom object not found or empty: fall back to 1x1 draw
+    if (ctx.tiles.size() >= 1) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
+                                   ctx.tiles[0]);
+    }
+    return;
+  }
+
+  const auto& custom_obj = *result.value();
+
+  for (const auto& entry : custom_obj.tiles) {
+    // Convert SNES tilemap word (vhopppcc cccccccc) to TileInfo.
+    // Low byte = entry.tile_data & 0xFF, high byte = (entry.tile_data >> 8).
+    uint8_t lo = static_cast<uint8_t>(entry.tile_data & 0xFF);
+    uint8_t hi = static_cast<uint8_t>((entry.tile_data >> 8) & 0xFF);
+    gfx::TileInfo tile_info(lo, hi);
+
+    // rel_x/rel_y are already decoded as object-relative coordinates from the
+    // binary stream's buffer position arithmetic; preserve those offsets.
+    int draw_x = ctx.object.x_ + entry.rel_x;
+    int draw_y = ctx.object.y_ + entry.rel_y;
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, draw_x, draw_y, tile_info);
   }
 }
 
@@ -934,6 +973,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -954,6 +994,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 1,
+      .min_tiles = 1,  // at least one tile for door graphic
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -974,6 +1015,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1079,6 +1121,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 16,  // 4x4 stair pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1089,6 +1132,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 16,  // 4x4 stair pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1099,6 +1143,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 16,  // 4x4 stair pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1109,6 +1154,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 16,  // 4x4 stair pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1119,6 +1165,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 16,  // 4x4 stair pattern
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1131,6 +1178,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 3,  // 4x3 pattern
+      .min_tiles = 12,   // 4x3 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1142,6 +1190,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 3,  // 4x3 pattern
+      .min_tiles = 12,   // 4x3 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1153,6 +1202,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 3,  // 4x3 pattern
+      .min_tiles = 12,   // 4x3 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1164,6 +1214,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 3,  // 4x3 pattern
+      .min_tiles = 12,   // 4x3 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1175,6 +1226,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1185,6 +1237,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1196,6 +1249,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1206,6 +1260,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1216,6 +1271,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1246,12 +1302,12 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kMovingWallWest,  // 80
       .name = "MovingWallWest",
       .function = [](const DrawContext& ctx) {
-        // Placeholder - actual logic in ObjectDrawer
-        DrawNothing(ctx);
+        DrawMovingWall(ctx, /*is_west=*/true);
       },
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 8,
+      .min_tiles = 4,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1259,12 +1315,12 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .id = DrawRoutineIds::kMovingWallEast,  // 81
       .name = "MovingWallEast",
       .function = [](const DrawContext& ctx) {
-        // Placeholder - actual logic in ObjectDrawer
-        DrawNothing(ctx);
+        DrawMovingWall(ctx, /*is_west=*/false);
       },
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 8,
+      .min_tiles = 4,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1319,31 +1375,20 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 23,  // size + 23
+      .min_tiles = 3,     // corner + middle + end tiles
       .category = DrawRoutineInfo::Category::Special,
   });
 
   // Custom Object routine (ID 130) - Oracle of Secrets objects 0x31, 0x32
   // These use external binary files instead of ROM tile data.
+  // CustomDraw() handles feature-flag gating and binary file lookup.
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kCustomObject,  // 130
       .name = "CustomObject",
-      .function = [](const DrawContext& ctx) {
-        // Custom objects use external binary files
-        // Geometry: dimensions depend on the binary file content
-        // For now, assume a 4x4 tile pattern as reasonable default
-        for (int row = 0; row < 4 && row < 4; ++row) {
-          for (int col = 0; col < 4 && col < 4; ++col) {
-            if (static_cast<size_t>(row * 4 + col) < ctx.tiles.size()) {
-              DrawRoutineUtils::WriteTile8(ctx.target_bg,
-                  ctx.object.x_ + col, ctx.object.y_ + row,
-                  ctx.tiles[row * 4 + col]);
-            }
-          }
-        }
-      },
+      .function = CustomDraw,
       .draws_to_both_bgs = false,
-      .base_width = 4,   // Default: 4x4 tiles
-      .base_height = 4,
+      .base_width = 0,   // Variable: depends on binary file content
+      .base_height = 0,  // Variable: depends on binary file content
       .category = DrawRoutineInfo::Category::Special,
   });
 }
