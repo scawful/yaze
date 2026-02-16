@@ -215,6 +215,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
+    unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/core/asar_compiler_test.cc
     unit/zelda3/overworld_test.cc

@@ -260,8 +260,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
 
   {
-    // Scope style-var overrides so they are unwound before EndToolbar() closes
-    // the child window. ImGui asserts if a child ends with leaked style vars.
+    // Scope style-var overrides so they are unwound before the toolbar child
+    // window closes. ImGui asserts if a child ends with leaked style vars.
     const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
     gui::StyleVarGuard frame_pad_guard(
         ImGuiStyleVar_FramePadding,

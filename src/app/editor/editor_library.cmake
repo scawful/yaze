@@ -8,6 +8,7 @@ set(
   app/editor/code/project_file_editor.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_rendering_helpers.cc
+  app/editor/dungeon/dungeon_overlay_controls.cc
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
