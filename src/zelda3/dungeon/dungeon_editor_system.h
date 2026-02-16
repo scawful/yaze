@@ -4,6 +4,7 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -112,6 +113,25 @@ class DungeonEditorSystem {
  */
 std::unique_ptr<DungeonEditorSystem> CreateDungeonEditorSystem(
     Rom* rom, GameData* game_data = nullptr);
+
+/**
+ * @brief Export a room's layout as a JSON template string.
+ *
+ * Captures objects, sprites, pot items, and key room properties
+ * (blockset, palette, layout, spriteset) so the template can be
+ * applied to another room.
+ */
+absl::StatusOr<std::string> ExportRoomLayoutTemplate(const Room& room);
+
+/**
+ * @brief Apply a previously exported layout template to a room.
+ *
+ * Replaces the room's objects, sprites, and pot items with those
+ * from the template. Room properties (blockset, palette, etc.) are
+ * optionally applied via @p apply_properties.
+ */
+absl::Status ApplyRoomLayoutTemplate(Room& room, const std::string& json,
+                                     bool apply_properties = false);
 
 }  // namespace zelda3
 }  // namespace yaze

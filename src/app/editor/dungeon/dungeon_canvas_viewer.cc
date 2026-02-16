@@ -9,15 +9,16 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/gui/core/theme_manager.h"
-#include "app/gui/core/agent_theme.h"
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas_menu.h"
+#include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/theme_manager.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_coordinates.h"
@@ -46,8 +47,6 @@ constexpr int kRoomMatrixRows = 19;
 constexpr int kRoomPropertyColumns = 2;
 
 enum class TrackDir : uint8_t { North, East, South, West };
-
-
 
 using TrackDirectionMasks = yaze::editor::TrackDirectionMasks;
 
@@ -221,7 +220,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       prev_spriteset_ = room.spriteset;
     }
     if (header_visible_) {
-        DrawRoomHeader(room, room_id);
+      DrawRoomHeader(room, room_id);
     }
   }
 
@@ -417,9 +416,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     canvas_.AddContextMenuItem(layer_menu);
 
-    if (group_selection) {
-      canvas_.AddContextMenuItem(
-          gui::CanvasMenuItem::Disabled("Save As New Layout..."));
+    // Room layout template export (available when room is loaded)
+    if (rooms_) {
+      gui::CanvasMenuItem export_layout_item(
+          "Export Layout Template...", ICON_MD_FILE_DOWNLOAD,
+          [this, room_id]() {
+            auto& room = (*rooms_)[room_id];
+            auto result = zelda3::ExportRoomLayoutTemplate(room);
+            if (result.ok()) {
+              ImGui::SetClipboardText(result.value().c_str());
+            }
+          });
+      canvas_.AddContextMenuItem(export_layout_item);
     }
 
     if (single_selection && rooms_) {
@@ -686,8 +694,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     custom_menu.subitems.push_back(gui::CanvasMenuItem(
         show_custom_collision_overlay_ ? "Hide Custom Collision"
                                        : "Show Custom Collision",
-        ICON_MD_GRID_ON,
-        [this]() {
+        ICON_MD_GRID_ON, [this]() {
           show_custom_collision_overlay_ = !show_custom_collision_overlay_;
         }));
 
@@ -728,8 +735,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     canvas_.AddContextMenuItem(custom_menu);
 
     // Dungeon Settings panel access
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        "Dungeon Settings", ICON_MD_SETTINGS, [this]() {
+    canvas_.AddContextMenuItem(
+        gui::CanvasMenuItem("Dungeon Settings", ICON_MD_SETTINGS, [this]() {
           if (show_dungeon_settings_callback_) {
             show_dungeon_settings_callback_();
           }
@@ -881,6 +888,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
   // This replaces DrawBackground + DrawContextMenu with a unified frame
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
+
+  // Update touch handler for long-press gesture detection
+  touch_handler_.ProcessForCanvas(canvas_rt.canvas_p0, canvas_rt.canvas_sz,
+                                  canvas_rt.hovered);
+  touch_handler_.Update();
 
   // When the header is hidden (e.g. split/compare stitched views), draw a small
   // in-canvas label so the user always knows what they're looking at.
@@ -1162,8 +1174,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         size_t idx = selected.front();
         if (idx < objects.size()) {
           const auto& obj = objects[idx];
-          gui::BeginRoomObjectDragSource(
-              static_cast<uint16_t>(obj.id_), room_id, obj.x_, obj.y_);
+          gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj.id_),
+                                         room_id, obj.x_, obj.y_);
         }
       }
 
@@ -1178,6 +1190,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           }
         }
       }
+
+      // Touch long-press context menu for entity interaction
+      HandleTouchLongPressContextMenu(canvas_rt, room);
     }
 
     // --- DROP TARGETS on canvas ---
@@ -1208,20 +1223,20 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       // Sprites use 16-pixel units, tiles are 8-pixel
       int sprite_x = (tile_x * 8) / 16;
       int sprite_y = (tile_y * 8) / 16;
-      if (sprite_x >= 0 && sprite_x < 32 && sprite_y >= 0 &&
-          sprite_y < 32) {
+      if (sprite_x >= 0 && sprite_x < 32 && sprite_y >= 0 && sprite_y < 32) {
         // Use 5-arg constructor: (id, x, y, subtype, layer)
-        zelda3::Sprite new_sprite(
-            static_cast<uint8_t>(sprite_drop.sprite_id),
-            static_cast<uint8_t>(sprite_x),
-            static_cast<uint8_t>(sprite_y), 0, 0);
-        if (auto* ctx =
-                object_interaction_.entity_coordinator().sprite_handler().context()) {
+        zelda3::Sprite new_sprite(static_cast<uint8_t>(sprite_drop.sprite_id),
+                                  static_cast<uint8_t>(sprite_x),
+                                  static_cast<uint8_t>(sprite_y), 0, 0);
+        if (auto* ctx = object_interaction_.entity_coordinator()
+                            .sprite_handler()
+                            .context()) {
           ctx->NotifyMutation(MutationDomain::kSprites);
         }
         room.GetSprites().push_back(new_sprite);
-        if (auto* ctx =
-                object_interaction_.entity_coordinator().sprite_handler().context()) {
+        if (auto* ctx = object_interaction_.entity_coordinator()
+                            .sprite_handler()
+                            .context()) {
           ctx->NotifyInvalidateCache(MutationDomain::kSprites);
         }
       }
@@ -1413,7 +1428,11 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
 
   const auto& theme = AgentUI::GetTheme();
 
-  // Render sprites as 16x16 colored squares with sprite name/ID
+  // Adaptive entity size: expand on touch devices for easier tapping
+  const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
+  const int entity_size = is_touch ? 24 : 16;
+
+  // Render sprites as colored squares with sprite name/ID
   // NOTE: Sprite coordinates are in 16-pixel units (0-31 range = 512 pixels)
   // unlike object coordinates which are in 8-pixel tile units
   for (const auto& sprite : room.GetSprites()) {
@@ -1421,9 +1440,8 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
     int canvas_x = sprite.x() * 16;
     int canvas_y = sprite.y() * 16;
 
-    if (canvas_x >= -16 && canvas_y >= -16 && canvas_x < 512 + 16 &&
-        canvas_y < 512 + 16) {
-      // Draw 16x16 square for sprite (like overworld entities)
+    if (canvas_x >= -entity_size && canvas_y >= -entity_size &&
+        canvas_x < 512 + entity_size && canvas_y < 512 + entity_size) {
       ImVec4 sprite_color;
 
       // Color-code sprites based on layer
@@ -1433,8 +1451,9 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
         sprite_color = theme.dungeon_sprite_layer1;  // Blue for layer 1
       }
 
-      // Draw filled square using runtime-based helper
-      gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, sprite_color);
+      // Draw square with adaptive size for touch targets
+      gui::DrawRect(rt, canvas_x, canvas_y, entity_size, entity_size,
+                    sprite_color);
 
       // Draw sprite ID and name using unified ResourceLabelProvider
       std::string full_name = zelda3::GetSpriteLabel(sprite.id());
@@ -1511,10 +1530,15 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
     // Convert to canvas coordinates (already in pixels, just need offset)
     // Note: pot item coords are already in full room pixel space
     auto [canvas_x, canvas_y] =
-        DungeonRenderingHelpers::RoomToCanvasCoordinates(pixel_x / 8, pixel_y / 8);
+        DungeonRenderingHelpers::RoomToCanvasCoordinates(pixel_x / 8,
+                                                         pixel_y / 8);
 
-    if (canvas_x >= -16 && canvas_y >= -16 && canvas_x < 512 + 16 &&
-        canvas_y < 512 + 16) {
+    // Adaptive entity size for touch devices
+    const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
+    const int entity_size = is_touch ? 24 : 16;
+
+    if (canvas_x >= -entity_size && canvas_y >= -entity_size &&
+        canvas_x < 512 + entity_size && canvas_y < 512 + entity_size) {
       // Draw colored square
       const auto& theme = AgentUI::GetTheme();
       ImVec4 pot_item_color;
@@ -1526,7 +1550,8 @@ void DungeonCanvasViewer::RenderPotItems(const gui::CanvasRuntime& rt,
         pot_item_color.w = 0.75f;
       }
 
-      gui::DrawRect(rt, canvas_x, canvas_y, 16, 16, pot_item_color);
+      gui::DrawRect(rt, canvas_x, canvas_y, entity_size, entity_size,
+                    pot_item_color);
 
       // Get item name
       std::string item_name;
@@ -1551,8 +1576,137 @@ void DungeonCanvasViewer::RenderEntityOverlay(const gui::CanvasRuntime& rt,
   RenderPotItems(rt, room);
 }
 
+void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
+    const gui::CanvasRuntime& rt, const zelda3::Room& room) {
+  constexpr const char* kPopupId = "##TouchEntityContextMenu";
+  const ImGuiIO& io = ImGui::GetIO();
+  const bool touch_context_click =
+      rt.hovered && io.MouseSource == ImGuiMouseSource_TouchScreen &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+  const bool gesture_long_press = touch_handler_.WasLongPressed();
+  const bool should_open_context = gesture_long_press || touch_context_click;
 
-// Room layout visualization
+  // On long-press, hit-test entities at the gesture position and open popup.
+  // iOS maps long-press to right-click; treat that as a touch context gesture.
+  if (should_open_context) {
+    ImVec2 gesture_pos = gesture_long_press
+                             ? touch_handler_.GetGesturePosition()
+                             : ImGui::GetMousePos();
+    float scale = rt.scale > 0.0f ? rt.scale : 1.0f;
+
+    // Convert screen position to room pixel coordinates
+    float rel_x = (gesture_pos.x - rt.canvas_p0.x) / scale;
+    float rel_y = (gesture_pos.y - rt.canvas_p0.y) / scale;
+
+    // Adaptive hit-test size for touch devices
+    const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
+    const int hit_size = is_touch ? 24 : 16;
+
+    // Hit-test sprites
+    const auto& sprites = room.GetSprites();
+    for (size_t idx = 0; idx < sprites.size(); ++idx) {
+      int sprite_px = sprites[idx].x() * 16;
+      int sprite_py = sprites[idx].y() * 16;
+      if (rel_x >= sprite_px && rel_x < sprite_px + hit_size &&
+          rel_y >= sprite_py && rel_y < sprite_py + hit_size) {
+        object_interaction_.SelectEntity(EntityType::Sprite, idx);
+        ImGui::OpenPopup(kPopupId);
+        break;
+      }
+    }
+
+    // Hit-test pot items
+    if (!ImGui::IsPopupOpen(kPopupId)) {
+      const auto& pot_items = room.GetPotItems();
+      for (size_t idx = 0; idx < pot_items.size(); ++idx) {
+        int item_px = pot_items[idx].GetPixelX();
+        int item_py = pot_items[idx].GetPixelY();
+        if (rel_x >= item_px && rel_x < item_px + hit_size &&
+            rel_y >= item_py && rel_y < item_py + hit_size) {
+          object_interaction_.SelectEntity(EntityType::Item, idx);
+          ImGui::OpenPopup(kPopupId);
+          break;
+        }
+      }
+    }
+
+    // Hit-test tile objects (variable-size entities)
+    if (!ImGui::IsPopupOpen(kPopupId)) {
+      const auto& objects = room.GetTileObjects();
+      for (size_t idx = 0; idx < objects.size(); ++idx) {
+        const auto& obj = objects[idx];
+        int obj_px = obj.x() * 8;
+        int obj_py = obj.y() * 8;
+        auto [obj_w, obj_h] =
+            zelda3::DimensionService::Get().GetPixelDimensions(obj);
+        obj_w = std::max(obj_w, 8);
+        obj_h = std::max(obj_h, 8);
+        if (rel_x >= obj_px && rel_x < obj_px + obj_w && rel_y >= obj_py &&
+            rel_y < obj_py + obj_h) {
+          object_interaction_.SetSelectedObjects({idx});
+          ImGui::OpenPopup(kPopupId);
+          break;
+        }
+      }
+    }
+  }
+
+  // Render the context popup
+  if (ImGui::BeginPopup(kPopupId)) {
+    // Show actions based on what's selected
+    if (object_interaction_.HasEntitySelection()) {
+      auto sel = object_interaction_.GetSelectedEntity();
+      if (sel.type == EntityType::Sprite) {
+        const auto& sprites = room.GetSprites();
+        if (sel.index < sprites.size()) {
+          std::string label = zelda3::GetSpriteLabel(sprites[sel.index].id());
+          ImGui::TextDisabled("Sprite: %02X %s", sprites[sel.index].id(),
+                              label.c_str());
+          ImGui::Separator();
+        }
+        if (ImGui::MenuItem("Delete Sprite")) {
+          object_interaction_.entity_coordinator().DeleteSelectedEntity();
+        }
+      } else if (sel.type == EntityType::Item) {
+        ImGui::TextDisabled("Pot Item");
+        ImGui::Separator();
+        if (ImGui::MenuItem("Delete Item")) {
+          object_interaction_.entity_coordinator().DeleteSelectedEntity();
+        }
+      }
+    } else if (object_interaction_.GetSelectionCount() > 0) {
+      const auto indices = object_interaction_.GetSelectedObjectIndices();
+      if (indices.size() == 1) {
+        const auto& objects = room.GetTileObjects();
+        if (indices[0] < objects.size()) {
+          std::string name = GetObjectName(objects[indices[0]].id_);
+          ImGui::TextDisabled("Object: %03X %s", objects[indices[0]].id_,
+                              name.c_str());
+          ImGui::Separator();
+        }
+      } else {
+        ImGui::TextDisabled("%zu objects selected",
+                            object_interaction_.GetSelectionCount());
+        ImGui::Separator();
+      }
+      if (ImGui::MenuItem("Delete")) {
+        object_interaction_.HandleDeleteSelected();
+      }
+      if (ImGui::MenuItem("Copy")) {
+        object_interaction_.HandleCopySelected();
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("Send to Front")) {
+        object_interaction_.SendSelectedToFront();
+      }
+      if (ImGui::MenuItem("Send to Back")) {
+        object_interaction_.SendSelectedToBack();
+      }
+    }
+    ImGui::EndPopup();
+  }
+}
+
 // Room layout visualization
 
 // Object visualization methods
@@ -1602,8 +1756,8 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
 
     // Convert object position (tile coordinates) to canvas pixel coordinates
     // (UNSCALED)
-    auto [canvas_x, canvas_y] = DungeonRenderingHelpers::RoomToCanvasCoordinates(
-        obj.x(), obj.y());
+    auto [canvas_x, canvas_y] =
+        DungeonRenderingHelpers::RoomToCanvasCoordinates(obj.x(), obj.y());
 
     // Calculate object dimensions via DimensionService
     auto [width, height] =
@@ -1676,8 +1830,9 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
         if (tile < 256 && (track_collision_config_.track_tiles[tile] ||
                            track_collision_config_.stop_tiles[tile] ||
                            track_collision_config_.switch_tiles[tile])) {
-          cache.entries.push_back(DungeonRenderingHelpers::CollisionOverlayEntry{
-              static_cast<uint8_t>(x), static_cast<uint8_t>(y), tile});
+          cache.entries.push_back(
+              DungeonRenderingHelpers::CollisionOverlayEntry{
+                  static_cast<uint8_t>(x), static_cast<uint8_t>(y), tile});
         }
       }
     }
@@ -1728,16 +1883,16 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
     int palette_id = static_cast<int>(room.palette);
     if (room.palette < game_data_->paletteset_ids.size() &&
         !game_data_->paletteset_ids[room.palette].empty()) {
-      const auto dungeon_palette_ptr = game_data_->paletteset_ids[room.palette][0];
-      auto palette_word =
-          rom_->ReadWord(zelda3::kDungeonPalettePointerTable + dungeon_palette_ptr);
+      const auto dungeon_palette_ptr =
+          game_data_->paletteset_ids[room.palette][0];
+      auto palette_word = rom_->ReadWord(zelda3::kDungeonPalettePointerTable +
+                                         dungeon_palette_ptr);
       if (palette_word.ok()) {
         palette_id = palette_word.value() / 180;
       }
     }
-    current_palette_group_id_ =
-        std::min<uint64_t>(std::max(0, palette_id),
-                           static_cast<int>(dungeon_main.size() - 1));
+    current_palette_group_id_ = std::min<uint64_t>(
+        std::max(0, palette_id), static_cast<int>(dungeon_main.size() - 1));
 
     auto full_palette = dungeon_main[current_palette_group_id_];
     ASSIGN_OR_RETURN(current_palette_group_,
@@ -1812,8 +1967,8 @@ void DungeonCanvasViewer::DrawMaskHighlights(const gui::CanvasRuntime& rt,
     }
 
     // Convert object position to canvas coordinates
-    auto [canvas_x, canvas_y] = DungeonRenderingHelpers::RoomToCanvasCoordinates(
-        obj.x(), obj.y());
+    auto [canvas_x, canvas_y] =
+        DungeonRenderingHelpers::RoomToCanvasCoordinates(obj.x(), obj.y());
 
     // Calculate object dimensions via DimensionService
     auto [width, height] =
@@ -1830,7 +1985,8 @@ void DungeonCanvasViewer::DrawMaskHighlights(const gui::CanvasRuntime& rt,
 
 void DungeonCanvasViewer::DrawRoomHeader(zelda3::Room& room, int room_id) {
   ImGui::Separator();
-  if (header_read_only_) ImGui::BeginDisabled();
+  if (header_read_only_)
+    ImGui::BeginDisabled();
 
   constexpr ImGuiTableFlags kPropsTableFlags =
       ImGuiTableFlags_NoPadOuterX | ImGuiTableFlags_NoBordersInBody;
@@ -1839,7 +1995,8 @@ void DungeonCanvasViewer::DrawRoomHeader(zelda3::Room& room, int room_id) {
     const float nav_col_width = (ImGui::GetFrameHeight() * 4.0f) +
                                 (ImGui::GetStyle().ItemSpacing.x * 3.0f) +
                                 (ImGui::GetStyle().FramePadding.x * 2.0f);
-    ImGui::TableSetupColumn("NavCol", ImGuiTableColumnFlags_WidthFixed, nav_col_width);
+    ImGui::TableSetupColumn("NavCol", ImGuiTableColumnFlags_WidthFixed,
+                            nav_col_width);
     ImGui::TableSetupColumn("PropsCol", ImGuiTableColumnFlags_WidthStretch);
 
     ImGui::TableNextRow();
@@ -1859,53 +2016,78 @@ void DungeonCanvasViewer::DrawRoomHeader(zelda3::Room& room, int room_id) {
     ImGui::EndTable();
   }
 
-  if (header_read_only_) ImGui::EndDisabled();
+  if (header_read_only_)
+    ImGui::EndDisabled();
 }
 
 void DungeonCanvasViewer::DrawRoomNavigation(int room_id) {
-  if (!room_swap_callback_ && !room_navigation_callback_) return;
+  if (!room_swap_callback_ && !room_navigation_callback_)
+    return;
 
   const int col = room_id % kRoomMatrixCols;
   const int row = room_id / kRoomMatrixCols;
 
   auto room_if_valid = [](int candidate) -> std::optional<int> {
-    if (candidate < 0 || candidate >= zelda3::NumberOfRooms) return std::nullopt;
+    if (candidate < 0 || candidate >= zelda3::NumberOfRooms) {
+      return std::nullopt;
+    }
     return candidate;
   };
 
   const auto north = room_if_valid(row > 0 ? room_id - kRoomMatrixCols : -1);
-  const auto south = room_if_valid(row < kRoomMatrixRows - 1 ? room_id + kRoomMatrixCols : -1);
+  const auto south =
+      room_if_valid(row < kRoomMatrixRows - 1 ? room_id + kRoomMatrixCols : -1);
   const auto west = room_if_valid(col > 0 ? room_id - 1 : -1);
   const auto east = room_if_valid(col < kRoomMatrixCols - 1 ? room_id + 1 : -1);
 
-  auto make_tooltip = [](const std::optional<int>& target, const char* direction) -> std::string {
-    if (!target.has_value()) return "";
-    return absl::StrFormat("%s: [%03X] %s", direction, *target, zelda3::GetRoomLabel(*target));
+  auto make_tooltip = [](const std::optional<int>& target,
+                         const char* direction) -> std::string {
+    if (!target.has_value())
+      return "";
+    return absl::StrFormat("%s: [%03X] %s", direction, *target,
+                           zelda3::GetRoomLabel(*target));
   };
 
-  auto nav_button = [&](const char* icon, const std::optional<int>& target, const std::string& tooltip) {
+  auto nav_button = [&](const char* id, ImGuiDir dir,
+                        const std::optional<int>& target,
+                        const std::string& tooltip) {
     const bool enabled = target.has_value();
-    if (gui::ThemedIconButton(icon, tooltip.empty() ? nullptr : tooltip.c_str(),
-                              ImVec2(0, 0), false, !enabled)) {
-      if (enabled) {
-        if (room_swap_callback_) room_swap_callback_(room_id, *target);
-        else if (room_navigation_callback_) room_navigation_callback_(*target);
+    if (!enabled) {
+      ImGui::BeginDisabled();
+    }
+    const bool pressed = ImGui::ArrowButton(id, dir);
+    if (!enabled) {
+      ImGui::EndDisabled();
+    }
+    if (enabled && ImGui::IsItemHovered() && !tooltip.empty()) {
+      ImGui::SetTooltip("%s", tooltip.c_str());
+    }
+    if (pressed && enabled) {
+      if (room_swap_callback_) {
+        room_swap_callback_(room_id, *target);
+      } else if (room_navigation_callback_) {
+        room_navigation_callback_(*target);
       }
     }
   };
 
+  ImGui::PushID(room_id);
   ImGui::BeginGroup();
-  nav_button(ICON_MD_ARROW_BACK, west, make_tooltip(west, "West"));
+  nav_button("##RoomNavWest", ImGuiDir_Left, west, make_tooltip(west, "West"));
   ImGui::SameLine();
-  nav_button(ICON_MD_ARROW_UPWARD, north, make_tooltip(north, "North"));
+  nav_button("##RoomNavNorth", ImGuiDir_Up, north,
+             make_tooltip(north, "North"));
   ImGui::SameLine();
-  nav_button(ICON_MD_ARROW_DOWNWARD, south, make_tooltip(south, "South"));
+  nav_button("##RoomNavSouth", ImGuiDir_Down, south,
+             make_tooltip(south, "South"));
   ImGui::SameLine();
-  nav_button(ICON_MD_ARROW_FORWARD, east, make_tooltip(east, "East"));
+  nav_button("##RoomNavEast", ImGuiDir_Right, east, make_tooltip(east, "East"));
   ImGui::EndGroup();
+  ImGui::PopID();
 }
 
-void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room, int room_id) {
+void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
+                                                int room_id) {
   ImGui::AlignTextToFramePadding();
   ImGui::Text(ICON_MD_TUNE " %03X", room_id);
   ImGui::SameLine();
@@ -1919,27 +2101,31 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room, int room_id)
     ImGui::SameLine();
   }
 
-  if (gui::ThemedIconButton(show_room_details_ ? ICON_MD_EXPAND_LESS : ICON_MD_EXPAND_MORE,
-                            show_room_details_ ? "Hide Details" : "Show Details")) {
+  if (gui::ThemedIconButton(
+          show_room_details_ ? ICON_MD_EXPAND_LESS : ICON_MD_EXPAND_MORE,
+          show_room_details_ ? "Hide Details" : "Show Details")) {
     show_room_details_ = !show_room_details_;
   }
   ImGui::SameLine();
 
   // Core properties (Blockset, Palette, Layout, Spriteset)
-  auto hex_input = [&](const char* label, const char* icon, uint8_t* val, uint8_t max, const char* tooltip) {
+  auto hex_input = [&](const char* label, const char* icon, uint8_t* val,
+                       uint8_t max, const char* tooltip) {
     ImGui::TextDisabled("%s", icon);
     ImGui::SameLine(0, 2);
     if (gui::InputHexByteEx(label, val, max, 32.f, true).ShouldApply()) {
       return true;
     }
-    if (ImGui::IsItemHovered()) ImGui::SetTooltip("%s", tooltip);
+    if (ImGui::IsItemHovered())
+      ImGui::SetTooltip("%s", tooltip);
     return false;
   };
 
   uint8_t bs = room.blockset;
   if (hex_input("##BS", ICON_MD_VIEW_MODULE, &bs, 81, "Blockset")) {
     room.SetBlockset(bs);
-    if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    if (room.rom() && room.rom()->is_loaded())
+      room.RenderRoomGraphics();
   }
   ImGui::SameLine();
 
@@ -1947,7 +2133,8 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room, int room_id)
   if (hex_input("##Pal", ICON_MD_PALETTE, &pal, 71, "Palette")) {
     room.SetPalette(pal);
     // ... palette update logic ...
-    if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    if (room.rom() && room.rom()->is_loaded())
+      room.RenderRoomGraphics();
   }
   ImGui::SameLine();
 
@@ -1955,25 +2142,29 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room, int room_id)
   if (hex_input("##Lyr", ICON_MD_GRID_VIEW, &lyr, 7, "Layout")) {
     room.layout = lyr;
     room.MarkLayoutDirty();
-    if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    if (room.rom() && room.rom()->is_loaded())
+      room.RenderRoomGraphics();
   }
   ImGui::SameLine();
 
   uint8_t ss = room.spriteset;
   if (hex_input("##SS", ICON_MD_PEST_CONTROL, &ss, 143, "Spriteset")) {
     room.SetSpriteset(ss);
-    if (room.rom() && room.rom()->is_loaded()) room.RenderRoomGraphics();
+    if (room.rom() && room.rom()->is_loaded())
+      room.RenderRoomGraphics();
   }
 
   if (show_room_details_) {
     // Floor and Effects (simplified for plan)
-    ImGui::TableNextRow(); ImGui::TableNextColumn(); ImGui::TableNextColumn();
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    ImGui::TableNextColumn();
     ImGui::TextDisabled("Ext Props: Floor/Effect/Tags...");
   }
 }
 
-void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& room, int room_id) {
-  const auto& theme = AgentUI::GetTheme();
+void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& /*room*/,
+                                            int room_id) {
   auto& interaction = object_interaction_;
 
   interaction.SetLayersMerged(GetRoomLayerManager(room_id).AreLayersMerged());
