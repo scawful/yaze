@@ -11,16 +11,16 @@
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/canvas/canvas_touch_handler.h"
 #include "core/project.h"
 #include "dungeon_object_interaction.h"
+#include "dungeon_rendering_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
-#include "dungeon_rendering_helpers.h"
-
 
 namespace yaze {
 namespace editor {
@@ -96,7 +96,8 @@ class DungeonCanvasViewer {
   }
 
   bool CanNavigateRooms() const {
-    return room_swap_callback_ != nullptr || room_navigation_callback_ != nullptr;
+    return room_swap_callback_ != nullptr ||
+           room_navigation_callback_ != nullptr;
   }
 
   // Navigate to another dungeon room using the same semantics as the header
@@ -139,11 +140,15 @@ class DungeonCanvasViewer {
     return show_custom_collision_overlay_;
   }
 
-  void set_show_water_fill_overlay(bool show) { show_water_fill_overlay_ = show; }
+  void set_show_water_fill_overlay(bool show) {
+    show_water_fill_overlay_ = show;
+  }
   bool show_water_fill_overlay() const { return show_water_fill_overlay_; }
 
   // Overlay toggles (used by settings panels / workbench UI).
-  bool show_track_collision_overlay() const { return show_track_collision_overlay_; }
+  bool show_track_collision_overlay() const {
+    return show_track_collision_overlay_;
+  }
   void set_show_track_collision_overlay(bool show) {
     show_track_collision_overlay_ = show;
   }
@@ -153,21 +158,27 @@ class DungeonCanvasViewer {
   void set_show_camera_quadrant_overlay(bool show) {
     show_camera_quadrant_overlay_ = show;
   }
-  bool show_minecart_sprite_overlay() const { return show_minecart_sprite_overlay_; }
+  bool show_minecart_sprite_overlay() const {
+    return show_minecart_sprite_overlay_;
+  }
   void set_show_minecart_sprite_overlay(bool show) {
     show_minecart_sprite_overlay_ = show;
   }
   bool show_track_gap_overlay() const { return show_track_gap_overlay_; }
   void set_show_track_gap_overlay(bool show) { show_track_gap_overlay_ = show; }
   bool show_track_route_overlay() const { return show_track_route_overlay_; }
-  void set_show_track_route_overlay(bool show) { show_track_route_overlay_ = show; }
+  void set_show_track_route_overlay(bool show) {
+    show_track_route_overlay_ = show;
+  }
 
   bool show_grid() const { return show_grid_; }
   void set_show_grid(bool show) { show_grid_ = show; }
   bool show_object_bounds() const { return show_object_bounds_; }
   void set_show_object_bounds(bool show) { show_object_bounds_ = show; }
   bool show_coordinate_overlay() const { return show_coordinate_overlay_; }
-  void set_show_coordinate_overlay(bool show) { show_coordinate_overlay_ = show; }
+  void set_show_coordinate_overlay(bool show) {
+    show_coordinate_overlay_ = show;
+  }
   void SetShowRoomGraphicsCallback(std::function<void()> callback) {
     show_room_graphics_callback_ = std::move(callback);
   }
@@ -372,12 +383,16 @@ class DungeonCanvasViewer {
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
                            const zelda3::Room& room);
 
+  // Touch interaction: long-press context menu for entities
+  void HandleTouchLongPressContextMenu(const gui::CanvasRuntime& rt,
+                                       const zelda3::Room& room);
 
   // Visualization
   void DrawObjectPositionOutlines(const gui::CanvasRuntime& rt,
                                   const zelda3::Room& room);
   void ApplyTrackCollisionConfig();
-  const DungeonRenderingHelpers::CollisionOverlayCache& GetCollisionOverlayCache(int room_id);
+  const DungeonRenderingHelpers::CollisionOverlayCache&
+  GetCollisionOverlayCache(int room_id);
 
   // Draw semi-transparent overlay on BG2/Layer 1 objects when mask mode is active
   void DrawMaskHighlights(const gui::CanvasRuntime& rt,
@@ -393,6 +408,9 @@ class DungeonCanvasViewer {
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
   // ObjectRenderer removed - use ObjectDrawer for rendering (production system)
   DungeonObjectInteraction object_interaction_;
+
+  // Touch gesture handler for long-press context menus on touch devices
+  gui::CanvasTouchHandler touch_handler_;
 
   // Scroll target
   std::optional<std::pair<int, int>> pending_scroll_target_;
@@ -450,7 +468,8 @@ class DungeonCanvasViewer {
   std::vector<uint16_t> track_tile_order_;
   std::vector<uint16_t> switch_tile_order_;
   DungeonRenderingHelpers::TrackCollisionConfig track_collision_config_;
-  std::unordered_map<int, DungeonRenderingHelpers::CollisionOverlayCache> collision_overlay_cache_;
+  std::unordered_map<int, DungeonRenderingHelpers::CollisionOverlayCache>
+      collision_overlay_cache_;
   std::bitset<256> minecart_sprite_ids_{};
 
   // Object rendering cache
