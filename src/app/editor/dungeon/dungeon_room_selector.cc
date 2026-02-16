@@ -33,9 +33,29 @@ void DungeonRoomSelector::RebuildRoomFilterCache() {
 
   for (int i = 0; i < zelda3::kNumberOfRooms; ++i) {
     std::string display_name = zelda3::GetRoomLabel(i);
-    if (room_filter_.PassFilter(display_name.c_str())) {
+    if (room_filter_.PassFilter(display_name.c_str()) &&
+        PassesEntityTypeFilter(i)) {
       filtered_room_indices_.push_back(i);
     }
+  }
+}
+
+bool DungeonRoomSelector::PassesEntityTypeFilter(int room_id) const {
+  if (entity_type_filter_ == kFilterAll)
+    return true;
+  if (!rooms_ || room_id < 0 || room_id >= static_cast<int>(rooms_->size())) {
+    return true;
+  }
+  const auto& room = (*rooms_)[room_id];
+  switch (entity_type_filter_) {
+    case kFilterHasSprites:
+      return !room.GetSprites().empty();
+    case kFilterHasItems:
+      return !room.GetPotItems().empty();
+    case kFilterHasObjects:
+      return !room.GetTileObjects().empty();
+    default:
+      return true;
   }
 }
 
@@ -66,6 +86,28 @@ void DungeonRoomSelector::DrawRoomSelector(
 
   room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
+  // Entity-type filter chips (compact, touch-friendly)
+  {
+    const char* labels[] = {"All", "Sprites", "Items", "Objects"};
+    const EntityTypeFilter values[] = {kFilterAll, kFilterHasSprites,
+                                       kFilterHasItems, kFilterHasObjects};
+    for (int idx = 0; idx < 4; ++idx) {
+      if (idx > 0)
+        ImGui::SameLine();
+      bool selected = (entity_type_filter_ == values[idx]);
+      if (selected) {
+        ImGui::PushStyleColor(ImGuiCol_Button,
+                              ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
+      }
+      if (ImGui::SmallButton(labels[idx])) {
+        entity_type_filter_ = values[idx];
+      }
+      if (selected) {
+        ImGui::PopStyleColor();
+      }
+    }
+  }
+
   // Rebuild every frame so renamed room labels appear immediately.
   // Room count is small (296), so this remains cheap.
   std::string current_filter(room_filter_.InputBuf);
@@ -78,8 +120,9 @@ void DungeonRoomSelector::DrawRoomSelector(
   const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
   std::optional<gui::StyleVarGuard> touch_pad_guard;
   if (is_touch) {
-    float touch_pad = std::max(6.0f,
-        (gui::LayoutHelpers::GetMinTouchTarget() - ImGui::GetFontSize()) * 0.5f);
+    float touch_pad = std::max(
+        6.0f, (gui::LayoutHelpers::GetMinTouchTarget() - ImGui::GetFontSize()) *
+                  0.5f);
     touch_pad_guard.emplace(ImGuiStyleVar_CellPadding,
                             ImVec2(ImGui::GetStyle().CellPadding.x, touch_pad));
   }
@@ -333,7 +376,8 @@ void DungeonRoomSelector::DrawEntranceSelector() {
           if (i < static_cast<int>(entrances_->size())) {
             // Publish selection changed event
             if (auto* bus = ContentRegistry::Context::event_bus()) {
-              bus->Publish(SelectionChangedEvent::CreateSingle("dungeon_entrance", i));
+              bus->Publish(
+                  SelectionChangedEvent::CreateSingle("dungeon_entrance", i));
             }
 
             // Legacy callback support

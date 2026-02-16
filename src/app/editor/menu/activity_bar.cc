@@ -226,7 +226,7 @@ void ActivityBar::DrawActivityBarStrip(
       panel_manager_.TriggerShowShortcuts();
     }
     ImGui::Separator();
-    if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM")) {
+    if (ImGui::MenuItem(ICON_MD_FOLDER_OPEN " Open ROM / Project")) {
       panel_manager_.TriggerOpenRom();
     }
     if (ImGui::MenuItem(ICON_MD_SETTINGS " Settings")) {
@@ -260,7 +260,7 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       ImVec2(viewport->WorkPos.x + bar_width, viewport->WorkPos.y + top_inset),
       ImVec2(panel_width, panel_height),
       {.bg = gui::ConvertColorToImVec4(theme.surface),
-       .padding = {10.0f, 10.0f},
+       .padding = {8.0f, 8.0f},
        .border_size = 1.0f,
        .rounding = 0.0f},
       ImGuiWindowFlags_NoFocusOnAppearing);
@@ -273,15 +273,12 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
 
     // Collapse button (right-aligned)
     float avail_width = ImGui::GetContentRegionAvail().x;
-    float button_size = 24.0f;
-    ImGui::SameLine(ImGui::GetCursorPosX() + avail_width - button_size);
-    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);
-    if (ImGui::Button(ICON_MD_KEYBOARD_DOUBLE_ARROW_LEFT,
-                      ImVec2(button_size, button_size))) {
+    const ImVec2 chrome_icon_size = gui::IconSize::Small();
+    ImGui::SameLine(ImGui::GetCursorPosX() + avail_width - chrome_icon_size.x);
+    if (gui::TransparentIconButton(ICON_MD_CHEVRON_LEFT, chrome_icon_size,
+                                   "Collapse Panel", false, ImVec4(0, 0, 0, 0),
+                                   "activity_bar", "collapse_side_panel")) {
       panel_manager_.SetPanelExpanded(false);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Collapse Panel");
     }
 
     ImGui::Separator();
@@ -289,9 +286,31 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
 
     // Search Bar
     static char sidebar_search[256] = "";
-    ImGui::SetNextItemWidth(-1);
+    const ImVec2 search_button_size = gui::IconSize::Small();
+    const float standard_spacing =
+        std::clamp(gui::LayoutHelpers::GetStandardSpacing(), 4.0f, 8.0f);
+    const float compact_spacing = std::max(4.0f, standard_spacing * 0.75f);
+    const float search_spacing = compact_spacing;
+    const float search_width =
+        std::max(140.0f, ImGui::GetContentRegionAvail().x -
+                             search_button_size.x - search_spacing);
+    ImGui::SetNextItemWidth(search_width);
     ImGui::InputTextWithHint("##SidebarSearch", ICON_MD_SEARCH " Filter...",
                              sidebar_search, sizeof(sidebar_search));
+    ImGui::SameLine(0.0f, search_spacing);
+    const bool filter_empty = sidebar_search[0] == '\0';
+    if (filter_empty) {
+      ImGui::BeginDisabled();
+    }
+    if (gui::TransparentIconButton(ICON_MD_CLEAR, search_button_size,
+                                   "Clear filter", false,
+                                   gui::GetTextSecondaryVec4(), "activity_bar",
+                                   "clear_sidebar_filter")) {
+      sidebar_search[0] = '\0';
+    }
+    if (filter_empty) {
+      ImGui::EndDisabled();
+    }
 
     const auto is_dungeon_panel_mode_card =
         [](const std::string& panel_id) -> bool {
@@ -310,14 +329,18 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     };
     bool dungeon_workbench_mode = read_dungeon_workbench_mode();
 
-    auto switch_to_dungeon_workbench_mode = [&]() {
+    auto switch_to_dungeon_workbench_mode = [&]() -> bool {
       if (category != "Dungeon") {
-        return;
+        return false;
+      }
+      if (dungeon_workbench_mode) {
+        return false;
       }
       if (set_dungeon_workflow_mode_) {
         set_dungeon_workflow_mode_(true);
-        dungeon_workbench_mode = read_dungeon_workbench_mode();
-        return;
+        // Workflow switches are applied next frame; reflect requested state now.
+        dungeon_workbench_mode = true;
+        return true;
       }
       panel_manager_.ShowPanel(session_id, "dungeon.workbench");
       for (const auto& descriptor :
@@ -334,21 +357,27 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
         }
       }
       dungeon_workbench_mode = read_dungeon_workbench_mode();
+      return dungeon_workbench_mode;
     };
 
-    auto switch_to_dungeon_panel_mode = [&]() {
+    auto switch_to_dungeon_panel_mode = [&]() -> bool {
       if (category != "Dungeon") {
-        return;
+        return false;
+      }
+      if (!dungeon_workbench_mode) {
+        return false;
       }
       if (set_dungeon_workflow_mode_) {
         set_dungeon_workflow_mode_(false);
-        dungeon_workbench_mode = read_dungeon_workbench_mode();
-        return;
+        // Workflow switches are applied next frame; reflect requested state now.
+        dungeon_workbench_mode = false;
+        return true;
       }
       panel_manager_.HidePanel(session_id, "dungeon.workbench");
       panel_manager_.ShowPanel(session_id, "dungeon.room_selector");
       panel_manager_.ShowPanel(session_id, "dungeon.room_matrix");
       dungeon_workbench_mode = read_dungeon_workbench_mode();
+      return !dungeon_workbench_mode;
     };
 
     auto ensure_dungeon_panel_mode_for_card =
@@ -357,31 +386,66 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
           !is_dungeon_panel_mode_card(panel_id)) {
         return false;
       }
-      switch_to_dungeon_panel_mode();
-      return true;
+      return switch_to_dungeon_panel_mode();
     };
 
     if (category == "Dungeon") {
       ImGui::Spacing();
       ImGui::TextDisabled(ICON_MD_WORKSPACES " Workflow");
-      ImGui::SameLine();
-      if (gui::TransparentIconButton(
-              ICON_MD_WORKSPACES, gui::IconSize::Toolbar(),
+      ImGui::Spacing();
+
+      const float workflow_gap = compact_spacing;
+      const float workflow_min_button_width = 96.0f;
+      const float workflow_available_width =
+          std::max(1.0f, ImGui::GetContentRegionAvail().x);
+      const bool stack_workflow_buttons =
+          workflow_available_width <=
+          (workflow_min_button_width * 2.0f + workflow_gap);
+      const float workflow_button_width =
+          stack_workflow_buttons
+              ? workflow_available_width
+              : std::max(workflow_min_button_width,
+                         (workflow_available_width - workflow_gap) * 0.5f);
+      const float workflow_button_height =
+          std::max(24.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
+      auto draw_workflow_button =
+          [&](const char* id, const char* icon, const char* label, bool active,
+              const char* tooltip, const ImVec2& button_size) -> bool {
+        const ImVec4 active_bg = gui::GetPrimaryVec4();
+        const ImVec4 inactive_bg = gui::GetSurfaceContainerHighVec4();
+        const ImVec4 inactive_hover = gui::GetSurfaceContainerHighestVec4();
+        gui::StyleColorGuard colors(
+            {{ImGuiCol_Button, active ? active_bg : inactive_bg},
+             {ImGuiCol_ButtonHovered, active ? active_bg : inactive_hover},
+             {ImGuiCol_ButtonActive, active ? active_bg : inactive_hover}});
+        const std::string button_label =
+            absl::StrFormat("%s %s##%s", icon, label, id);
+        const bool clicked = ImGui::Button(button_label.c_str(), button_size);
+        if (ImGui::IsItemHovered() && tooltip && *tooltip) {
+          ImGui::SetTooltip("%s", tooltip);
+        }
+        return clicked;
+      };
+      const ImVec2 workflow_button_size(workflow_button_width,
+                                        workflow_button_height);
+
+      if (draw_workflow_button(
+              "workflow_workbench", ICON_MD_WORKSPACES, "Workbench",
+              dungeon_workbench_mode,
               "Workbench mode: integrated room browser + inspector",
-              dungeon_workbench_mode, gui::GetPrimaryVec4(), "activity_bar",
-              "dungeon_workflow_workbench")) {
+              workflow_button_size)) {
         switch_to_dungeon_workbench_mode();
       }
-      ImGui::SameLine();
-      if (gui::TransparentIconButton(
-              ICON_MD_VIEW_QUILT, gui::IconSize::Toolbar(),
+      if (!stack_workflow_buttons) {
+        ImGui::SameLine(0.0f, workflow_gap);
+      }
+      if (draw_workflow_button(
+              "workflow_panels", ICON_MD_VIEW_QUILT, "Panels",
+              !dungeon_workbench_mode,
               "Panel mode: standalone Room List + Room Matrix + room windows",
-              !dungeon_workbench_mode, gui::GetPrimaryVec4(), "activity_bar",
-              "dungeon_workflow_panels")) {
+              workflow_button_size)) {
         switch_to_dungeon_panel_mode();
       }
-      ImGui::SameLine(0.0f, 6.0f);
-      ImGui::TextDisabled(dungeon_workbench_mode ? "Workbench" : "Panels");
       ImGui::Spacing();
       ImGui::Separator();
       ImGui::Spacing();
@@ -392,6 +456,92 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     // Disable non-emulator categories when no ROM is loaded
     const bool rom_loaded = has_rom ? has_rom() : true;
     const bool disable_cards = !rom_loaded && category != "Emulator";
+
+    const auto category_cards =
+        panel_manager_.GetPanelsInCategory(session_id, category);
+    int visible_cards_in_category = 0;
+    for (const auto& category_card : category_cards) {
+      if (category_card.visibility_flag && *category_card.visibility_flag) {
+        ++visible_cards_in_category;
+      }
+    }
+
+    ImGui::TextDisabled("%d / %d visible", visible_cards_in_category,
+                        static_cast<int>(category_cards.size()));
+    ImGui::Spacing();
+
+    const float action_gap = compact_spacing;
+    const float action_min_button_width = 84.0f;
+    const float action_available_width =
+        std::max(1.0f, ImGui::GetContentRegionAvail().x);
+    const bool stack_action_buttons =
+        action_available_width <=
+        (action_min_button_width * 3.0f + (action_gap * 2.0f));
+    const float action_button_width =
+        stack_action_buttons
+            ? action_available_width
+            : std::max(action_min_button_width,
+                       (action_available_width - (action_gap * 2.0f)) / 3.0f);
+    const float action_button_height =
+        std::max(24.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
+    auto draw_action_button = [&](const char* id, const char* icon,
+                                  const char* label, const char* tooltip,
+                                  const ImVec2& button_size) -> bool {
+      const std::string button_label =
+          absl::StrFormat("%s %s##%s", icon, label, id);
+      const bool clicked = ImGui::Button(button_label.c_str(), button_size);
+      if (ImGui::IsItemHovered() && tooltip && *tooltip) {
+        ImGui::SetTooltip("%s", tooltip);
+      }
+      return clicked;
+    };
+    const ImVec2 action_button_size(action_button_width, action_button_height);
+
+    if (draw_action_button("open_panel_browser", ICON_MD_APPS, "Browser",
+                           "Open Panel Browser", action_button_size)) {
+      panel_manager_.TriggerShowPanelBrowser();
+    }
+    if (!stack_action_buttons) {
+      ImGui::SameLine(0.0f, action_gap);
+    }
+
+    const bool bulk_actions_enabled =
+        !disable_cards && !(category == "Dungeon" && dungeon_workbench_mode);
+    bool bulk_action_hovered = false;
+    if (!bulk_actions_enabled) {
+      ImGui::BeginDisabled();
+    }
+    if (draw_action_button("show_category_panels", ICON_MD_VISIBILITY, "Show",
+                           "Show all panels in this category",
+                           action_button_size)) {
+      panel_manager_.ShowAllPanelsInCategory(session_id, category);
+    }
+    if (!stack_action_buttons) {
+      ImGui::SameLine(0.0f, action_gap);
+    }
+    if (!bulk_actions_enabled &&
+        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      bulk_action_hovered = true;
+    }
+    if (draw_action_button("hide_category_panels", ICON_MD_VISIBILITY_OFF,
+                           "Hide", "Hide all panels in this category",
+                           action_button_size)) {
+      panel_manager_.HideAllPanelsInCategory(session_id, category);
+    }
+    if (!bulk_actions_enabled) {
+      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+        bulk_action_hovered = true;
+      }
+      if (bulk_action_hovered && category == "Dungeon" &&
+          dungeon_workbench_mode) {
+        ImGui::SetTooltip(
+            "Switch to Panel workflow to bulk-manage room panels.");
+      }
+      ImGui::EndDisabled();
+    }
+
+    ImGui::Spacing();
+
     if (disable_cards) {
       ImGui::TextUnformatted(ICON_MD_FOLDER_OPEN
                              " Open a ROM to enable this category");
@@ -412,19 +562,25 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       }
       return visible ? gui::GetOnSurfaceVec4() : gui::GetTextSecondaryVec4();
     };
+    const float pin_button_side =
+        std::max(20.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
+    const ImVec2 pin_button_size(pin_button_side, pin_button_side);
     auto draw_pin_toggle_button = [&](const std::string& widget_id,
                                       bool pinned) -> bool {
+      ImGui::PushID(widget_id.c_str());
       const ImVec4 pin_col =
           pinned ? gui::ConvertColorToImVec4(theme.primary)
                  : gui::ConvertColorToImVec4(theme.text_disabled);
-      gui::StyleColorGuard pin_color(ImGuiCol_Text, pin_col);
-      gui::StyleVarGuard compact_padding(ImGuiStyleVar_FramePadding,
-                                         ImVec2(1.5f, 0.5f));
-      return ImGui::SmallButton(
-          absl::StrFormat("%s##%s", ICON_MD_PUSH_PIN, widget_id).c_str());
+      const bool clicked = gui::TransparentIconButton(
+          pinned ? ICON_MD_PUSH_PIN : ICON_MD_PIN, pin_button_size,
+          pinned ? "Unpin panel" : "Pin panel", pinned, pin_col, "activity_bar",
+          widget_id.c_str());
+      ImGui::PopID();
+      return clicked;
     };
 
     // --- Pinned Section (panels that persist across editors) ---
+    bool pinned_section_open = false;
     if (sidebar_search[0] == '\0' && !pinned_cards.empty()) {
       bool has_pinned_in_category = false;
       for (const auto& card_id : pinned_cards) {
@@ -437,8 +593,9 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
       }
 
       if (has_pinned_in_category) {
-        if (ImGui::CollapsingHeader(ICON_MD_PUSH_PIN " Pinned",
-                                    ImGuiTreeNodeFlags_DefaultOpen)) {
+        pinned_section_open = ImGui::CollapsingHeader(
+            ICON_MD_PUSH_PIN " Pinned", ImGuiTreeNodeFlags_DefaultOpen);
+        if (pinned_section_open) {
           for (const auto& card_id : pinned_cards) {
             const auto* card =
                 panel_manager_.GetPanelDescriptor(session_id, card_id);
@@ -450,13 +607,10 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
 
             // Unpin button
             if (draw_pin_toggle_button("pin_" + card->card_id, true)) {
-              panel_manager_.SetPanelPinned(card->card_id, false);
-            }
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Unpin panel");
+              panel_manager_.SetPanelPinned(session_id, card->card_id, false);
             }
 
-            ImGui::SameLine(0.0f, 6.0f);
+            ImGui::SameLine(0.0f, compact_spacing);
 
             // Panel Item
             std::string label = absl::StrFormat("%s  %s", card->icon.c_str(),
@@ -466,11 +620,18 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
             {
               gui::StyleColorGuard text_color(ImGuiCol_Text,
                                               panel_text_color(visible));
-              ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
+              ImVec2 item_size(ImGui::GetContentRegionAvail().x,
+                               pin_button_size.y);
               if (ImGui::Selectable(label.c_str(), visible,
                                     ImGuiSelectableFlags_None, item_size)) {
-                ensure_dungeon_panel_mode_for_card(card->card_id);
-                panel_manager_.TogglePanel(session_id, card->card_id);
+                const bool switched_mode =
+                    ensure_dungeon_panel_mode_for_card(card->card_id);
+                if (switched_mode) {
+                  // Keep requested panel visible after implicit mode switch.
+                  panel_manager_.ShowPanel(session_id, card->card_id);
+                } else {
+                  panel_manager_.TogglePanel(session_id, card->card_id);
+                }
 
                 bool new_visible =
                     card->visibility_flag ? *card->visibility_flag : false;
@@ -496,73 +657,80 @@ void ActivityBar::DrawSidePanel(size_t session_id, const std::string& category,
     // Content - panels sorted by MRU (pinned first, then most recently used)
     auto cards = panel_manager_.GetPanelsSortedByMRU(session_id, category);
 
-    // Panels section (uses all available height)
-    ImGui::BeginChild("##PanelContent", ImVec2(0, 0), false,
-                      ImGuiWindowFlags_None);
-    for (const auto& card : cards) {
-      // Apply search filter
-      if (sidebar_search[0] != '\0') {
-        std::string search_str = sidebar_search;
-        std::string card_name = card.display_name;
-        std::transform(search_str.begin(), search_str.end(), search_str.begin(),
-                       ::tolower);
-        std::transform(card_name.begin(), card_name.end(), card_name.begin(),
-                       ::tolower);
-        if (card_name.find(search_str) == std::string::npos) {
+    // Panels section (minimum height so list never collapses)
+    const bool panel_content_open = gui::LayoutHelpers::BeginContentChild(
+        "##PanelContent", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList),
+        false, ImGuiWindowFlags_None);
+    if (panel_content_open) {
+      for (const auto& card : cards) {
+        // Apply search filter
+        if (sidebar_search[0] != '\0') {
+          std::string search_str = sidebar_search;
+          std::string card_name = card.display_name;
+          std::transform(search_str.begin(), search_str.end(),
+                         search_str.begin(), ::tolower);
+          std::transform(card_name.begin(), card_name.end(), card_name.begin(),
+                         ::tolower);
+          if (card_name.find(search_str) == std::string::npos) {
+            continue;
+          }
+        }
+
+        const bool is_pinned = panel_manager_.IsPanelPinned(card.card_id);
+        // Avoid duplicate entries when pinned panels are already listed above.
+        if (pinned_section_open && is_pinned) {
           continue;
         }
-      }
 
-      bool visible = card.visibility_flag ? *card.visibility_flag : false;
+        bool visible = card.visibility_flag ? *card.visibility_flag : false;
 
-      // Pin Toggle Button
-      bool is_pinned = panel_manager_.IsPanelPinned(card.card_id);
-      ImGui::PushID(card.card_id.c_str());
-      if (draw_pin_toggle_button("pin_" + card.card_id, is_pinned)) {
-        panel_manager_.SetPanelPinned(card.card_id, !is_pinned);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(is_pinned
-                              ? "Unpin - panel will hide when switching editors"
-                              : "Pin - keep visible across all editors");
-      }
-      ImGui::PopID();
-      ImGui::SameLine(0.0f, 6.0f);
+        // Pin toggle button
+        if (draw_pin_toggle_button("pin_" + card.card_id, is_pinned)) {
+          panel_manager_.SetPanelPinned(session_id, card.card_id, !is_pinned);
+        }
+        ImGui::SameLine(0.0f, compact_spacing);
 
-      // Panel Item with Icon
-      std::string label = absl::StrFormat("%s  %s", card.icon.c_str(),
-                                          card.display_name.c_str());
-      ImGui::PushID((std::string("panel_select_") + card.card_id).c_str());
-      {
-        gui::StyleColorGuard text_color(ImGuiCol_Text,
-                                        panel_text_color(visible));
-        ImVec2 item_size(ImGui::GetContentRegionAvail().x, 0.0f);
-        if (ImGui::Selectable(label.c_str(), visible, ImGuiSelectableFlags_None,
-                              item_size)) {
-          ensure_dungeon_panel_mode_for_card(card.card_id);
-          panel_manager_.TogglePanel(session_id, card.card_id);
+        // Panel Item with Icon
+        std::string label = absl::StrFormat("%s  %s", card.icon.c_str(),
+                                            card.display_name.c_str());
+        ImGui::PushID((std::string("panel_select_") + card.card_id).c_str());
+        {
+          gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                          panel_text_color(visible));
+          ImVec2 item_size(ImGui::GetContentRegionAvail().x, pin_button_size.y);
+          if (ImGui::Selectable(label.c_str(), visible,
+                                ImGuiSelectableFlags_None, item_size)) {
+            const bool switched_mode =
+                ensure_dungeon_panel_mode_for_card(card.card_id);
+            if (switched_mode) {
+              // Keep requested panel visible after implicit mode switch.
+              panel_manager_.ShowPanel(session_id, card.card_id);
+            } else {
+              panel_manager_.TogglePanel(session_id, card.card_id);
+            }
 
-          bool new_visible =
-              card.visibility_flag ? *card.visibility_flag : false;
-          if (new_visible) {
-            panel_manager_.MarkPanelRecentlyUsed(card.card_id);
-            panel_manager_.TriggerPanelClicked(card.category);
-            const std::string window_name =
-                panel_manager_.GetPanelWindowName(card);
-            if (!window_name.empty()) {
-              ImGui::SetWindowFocus(window_name.c_str());
+            bool new_visible =
+                card.visibility_flag ? *card.visibility_flag : false;
+            if (new_visible) {
+              panel_manager_.MarkPanelRecentlyUsed(card.card_id);
+              panel_manager_.TriggerPanelClicked(card.category);
+              const std::string window_name =
+                  panel_manager_.GetPanelWindowName(card);
+              if (!window_name.empty()) {
+                ImGui::SetWindowFocus(window_name.c_str());
+              }
             }
           }
         }
-      }
-      ImGui::PopID();
+        ImGui::PopID();
 
-      // Shortcut hint on hover
-      if (ImGui::IsItemHovered() && !card.shortcut_hint.empty()) {
-        ImGui::SetTooltip("%s", card.shortcut_hint.c_str());
+        // Shortcut hint on hover
+        if (ImGui::IsItemHovered() && !card.shortcut_hint.empty()) {
+          ImGui::SetTooltip("%s", card.shortcut_hint.c_str());
+        }
       }
     }
-    ImGui::EndChild();
+    gui::LayoutHelpers::EndContentChild();
 
     if (disable_cards) {
       ImGui::EndDisabled();
@@ -770,7 +938,7 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
                                 ImGuiTableFlags_Resizable)) {
         ImGui::TableSetupColumn("Visible", ImGuiTableColumnFlags_WidthFixed,
                                 60);
-        ImGui::TableSetupColumn("Pin", ImGuiTableColumnFlags_WidthFixed, 44);
+        ImGui::TableSetupColumn("Pin", ImGuiTableColumnFlags_WidthFixed, 36);
         ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
         ImGui::TableSetupColumn("Category", ImGuiTableColumnFlags_WidthFixed,
                                 130);
@@ -828,18 +996,19 @@ void ActivityBar::DrawPanelBrowser(size_t session_id, bool* p_open) {
           const bool is_pinned = panel_manager_.IsPanelPinned(card->card_id);
           const ImVec4 pin_color =
               is_pinned ? gui::GetPrimaryVec4() : gui::GetTextDisabledVec4();
-          {
-            gui::StyleColorGuard pin_text(ImGuiCol_Text, pin_color);
-            if (ImGui::SmallButton(absl::StrFormat("%s##pin_%s",
-                                                   ICON_MD_PUSH_PIN,
-                                                   card->card_id.c_str())
-                                       .c_str())) {
-              panel_manager_.SetPanelPinned(card->card_id, !is_pinned);
-            }
+          const float pin_side =
+              std::max(20.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
+          ImGui::PushID(
+              absl::StrFormat("browser_pin_%s", card->card_id).c_str());
+          if (gui::TransparentIconButton(
+                  is_pinned ? ICON_MD_PUSH_PIN : ICON_MD_PIN,
+                  ImVec2(pin_side, pin_side),
+                  is_pinned ? "Unpin panel" : "Pin panel", is_pinned, pin_color,
+                  "panel_browser", card->card_id.c_str())) {
+            panel_manager_.SetPanelPinned(session_id, card->card_id,
+                                          !is_pinned);
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip(is_pinned ? "Unpin panel" : "Pin panel");
-          }
+          ImGui::PopID();
 
           ImGui::TableNextColumn();
           ImGui::Text("%s %s", card->icon.c_str(), card->display_name.c_str());

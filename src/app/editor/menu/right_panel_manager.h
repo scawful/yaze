@@ -121,6 +121,14 @@ class RightPanelManager {
   void ClosePanel();
 
   /**
+   * @brief Cycle to the next/previous right panel in header order.
+   * @param direction Positive for next, negative for previous.
+   */
+  void CyclePanel(int direction);
+  void CycleToNextPanel() { CyclePanel(1); }
+  void CycleToPreviousPanel() { CyclePanel(-1); }
+
+  /**
    * @brief Snap transient animations when host visibility changes.
    *
    * This is used for OS space switches / focus loss so partially animated
@@ -173,7 +181,8 @@ class RightPanelManager {
    * @param editor The optional editor type for context-aware sizing
    * @return Default width in logical pixels
    */
-  static float GetDefaultPanelWidth(PanelType type, EditorType editor = EditorType::kUnknown);
+  static float GetDefaultPanelWidth(PanelType type,
+                                    EditorType editor = EditorType::kUnknown);
 
   struct PanelSizeLimits {
     float min_width = 280.0f;
@@ -190,14 +199,12 @@ class RightPanelManager {
    * @brief Persist/restore per-panel widths for user settings.
    */
   std::unordered_map<std::string, float> SerializePanelWidths() const;
-  void RestorePanelWidths(
-      const std::unordered_map<std::string, float>& widths);
+  void RestorePanelWidths(const std::unordered_map<std::string, float>& widths);
 
   void SetPanelWidthChangedCallback(
       std::function<void(PanelType, float)> callback) {
     on_panel_width_changed_ = std::move(callback);
   }
-
 
   // ============================================================================
   // Rendering
@@ -225,7 +232,9 @@ class RightPanelManager {
   AgentChat* agent_chat() const { return agent_chat_; }
   ProposalDrawer* proposal_drawer() const { return proposal_drawer_; }
   SettingsPanel* settings_panel() const { return settings_panel_; }
-  SelectionPropertiesPanel* properties_panel() const { return properties_panel_; }
+  SelectionPropertiesPanel* properties_panel() const {
+    return properties_panel_;
+  }
   ProjectManagementPanel* project_panel() const { return project_panel_; }
 
  private:
@@ -296,7 +305,7 @@ class RightPanelManager {
   float panel_animation_ = 0.0f;   // 0.0 = fully closed, 1.0 = fully open
   float animation_target_ = 0.0f;  // Target value for lerp
   bool animating_ = false;
-  bool closing_ = false;           // True during close animation
+  bool closing_ = false;                        // True during close animation
   PanelType closing_panel_ = PanelType::kNone;  // Panel being animated closed
   std::unordered_map<std::string, PanelSizeLimits> panel_size_limits_;
   std::function<void(PanelType, float)> on_panel_width_changed_;

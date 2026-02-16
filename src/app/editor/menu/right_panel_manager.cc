@@ -1,14 +1,15 @@
 #include "app/editor/menu/right_panel_manager.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cmath>
 #include <filesystem>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_chat.h"
-#include "app/editor/system/shortcut_manager.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/shortcut_manager.h"
 #include "app/editor/ui/project_management_panel.h"
 #include "app/editor/ui/selection_properties_panel.h"
 #include "app/editor/ui/settings_panel.h"
@@ -21,8 +22,8 @@
 #include "app/gui/core/style.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/gui/core/ui_helpers.h"
 #include "app/gui/core/ui_config.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "util/platform_paths.h"
@@ -44,13 +45,12 @@ std::string ResolveAgentChatHistoryPath() {
   return (std::filesystem::current_path() / "agent_chat_history.json").string();
 }
 
-std::string BuildSelectionContextSummary(
-    const SelectionContext& selection) {
+std::string BuildSelectionContextSummary(const SelectionContext& selection) {
   if (selection.type == SelectionType::kNone) {
     return "";
   }
-  std::string context = absl::StrFormat(
-      "Selection: %s", GetSelectionTypeName(selection.type));
+  std::string context =
+      absl::StrFormat("Selection: %s", GetSelectionTypeName(selection.type));
   if (!selection.display_name.empty()) {
     context += absl::StrFormat("\nName: %s", selection.display_name);
   }
@@ -64,6 +64,61 @@ std::string BuildSelectionContextSummary(
     context += "\nRead Only: true";
   }
   return context;
+}
+
+const std::array<RightPanelManager::PanelType, 7> kRightPanelSwitchOrder = {
+    RightPanelManager::PanelType::kProject,
+    RightPanelManager::PanelType::kProperties,
+    RightPanelManager::PanelType::kAgentChat,
+    RightPanelManager::PanelType::kProposals,
+    RightPanelManager::PanelType::kNotifications,
+    RightPanelManager::PanelType::kHelp,
+    RightPanelManager::PanelType::kSettings,
+};
+
+int FindRightPanelIndex(RightPanelManager::PanelType type) {
+  for (size_t i = 0; i < kRightPanelSwitchOrder.size(); ++i) {
+    if (kRightPanelSwitchOrder[i] == type) {
+      return static_cast<int>(i);
+    }
+  }
+  return -1;
+}
+
+RightPanelManager::PanelType StepRightPanel(
+    RightPanelManager::PanelType current, int direction) {
+  if (kRightPanelSwitchOrder.empty()) {
+    return RightPanelManager::PanelType::kNone;
+  }
+  int index = FindRightPanelIndex(current);
+  if (index < 0) {
+    index = 0;
+  }
+  const int size = static_cast<int>(kRightPanelSwitchOrder.size());
+  const int next = (index + direction + size) % size;
+  return kRightPanelSwitchOrder[static_cast<size_t>(next)];
+}
+
+const char* GetPanelShortcutAction(RightPanelManager::PanelType type) {
+  switch (type) {
+    case RightPanelManager::PanelType::kProject:
+      return "View: Toggle Project Panel";
+    case RightPanelManager::PanelType::kAgentChat:
+      return "View: Toggle AI Agent Panel";
+    case RightPanelManager::PanelType::kProposals:
+      return "View: Toggle Proposals Panel";
+    case RightPanelManager::PanelType::kSettings:
+      return "View: Toggle Settings Panel";
+    case RightPanelManager::PanelType::kHelp:
+      return "View: Toggle Help Panel";
+    case RightPanelManager::PanelType::kNotifications:
+      return "View: Toggle Notifications Panel";
+    case RightPanelManager::PanelType::kProperties:
+      return "View: Toggle Properties Panel";
+    case RightPanelManager::PanelType::kNone:
+    default:
+      return "";
+  }
 }
 
 }  // namespace
@@ -185,6 +240,21 @@ void RightPanelManager::ClosePanel() {
   animation_target_ = 0.0f;
 }
 
+void RightPanelManager::CyclePanel(int direction) {
+  if (direction == 0) {
+    return;
+  }
+
+  const PanelType current_panel =
+      (active_panel_ != PanelType::kNone) ? active_panel_ : closing_panel_;
+  if (current_panel == PanelType::kNone) {
+    return;
+  }
+
+  const int step = direction > 0 ? 1 : -1;
+  OpenPanel(StepRightPanel(current_panel, step));
+}
+
 void RightPanelManager::OnHostVisibilityChanged(bool visible) {
   // Snap transition state to a stable endpoint. This avoids stale intermediate
   // frames being composited when the OS moves the app across spaces.
@@ -282,25 +352,29 @@ void RightPanelManager::SetPanelWidth(PanelType type, float width) {
 }
 
 void RightPanelManager::ResetPanelWidths() {
-  SetPanelWidth(PanelType::kAgentChat,
-                GetDefaultPanelWidth(PanelType::kAgentChat, active_editor_type_));
-  SetPanelWidth(PanelType::kProposals,
-                GetDefaultPanelWidth(PanelType::kProposals, active_editor_type_));
-  SetPanelWidth(PanelType::kSettings,
-                GetDefaultPanelWidth(PanelType::kSettings, active_editor_type_));
+  SetPanelWidth(
+      PanelType::kAgentChat,
+      GetDefaultPanelWidth(PanelType::kAgentChat, active_editor_type_));
+  SetPanelWidth(
+      PanelType::kProposals,
+      GetDefaultPanelWidth(PanelType::kProposals, active_editor_type_));
+  SetPanelWidth(
+      PanelType::kSettings,
+      GetDefaultPanelWidth(PanelType::kSettings, active_editor_type_));
   SetPanelWidth(PanelType::kHelp,
                 GetDefaultPanelWidth(PanelType::kHelp, active_editor_type_));
-  SetPanelWidth(PanelType::kNotifications,
-                GetDefaultPanelWidth(PanelType::kNotifications,
-                                     active_editor_type_));
-  SetPanelWidth(PanelType::kProperties,
-                GetDefaultPanelWidth(PanelType::kProperties,
-                                     active_editor_type_));
+  SetPanelWidth(
+      PanelType::kNotifications,
+      GetDefaultPanelWidth(PanelType::kNotifications, active_editor_type_));
+  SetPanelWidth(
+      PanelType::kProperties,
+      GetDefaultPanelWidth(PanelType::kProperties, active_editor_type_));
   SetPanelWidth(PanelType::kProject,
                 GetDefaultPanelWidth(PanelType::kProject, active_editor_type_));
 }
 
-float RightPanelManager::GetDefaultPanelWidth(PanelType type, EditorType editor) {
+float RightPanelManager::GetDefaultPanelWidth(PanelType type,
+                                              EditorType editor) {
   switch (type) {
     case PanelType::kAgentChat:
       return std::max(gui::UIConfig::kPanelWidthAgentChat, 480.0f);
@@ -331,7 +405,8 @@ void RightPanelManager::SetPanelSizeLimits(PanelType type,
     return;
   }
   PanelSizeLimits normalized = limits;
-  normalized.min_width = std::max(180.0f, normalized.min_width);
+  normalized.min_width =
+      std::max(gui::UIConfig::kPanelMinWidthAbsolute, normalized.min_width);
   normalized.max_width_ratio =
       std::clamp(normalized.max_width_ratio, 0.25f, 0.95f);
   panel_size_limits_[PanelTypeKey(type)] = normalized;
@@ -347,31 +422,31 @@ RightPanelManager::PanelSizeLimits RightPanelManager::GetPanelSizeLimits(
   PanelSizeLimits defaults;
   switch (type) {
     case PanelType::kAgentChat:
-      defaults.min_width = 360.0f;
+      defaults.min_width = gui::UIConfig::kPanelMinWidthAgentChat;
       defaults.max_width_ratio = 0.90f;
       break;
     case PanelType::kProposals:
-      defaults.min_width = 340.0f;
+      defaults.min_width = gui::UIConfig::kPanelMinWidthProposals;
       defaults.max_width_ratio = 0.86f;
       break;
     case PanelType::kSettings:
-      defaults.min_width = 300.0f;
+      defaults.min_width = gui::UIConfig::kPanelMinWidthSettings;
       defaults.max_width_ratio = 0.80f;
       break;
     case PanelType::kHelp:
-      defaults.min_width = 300.0f;
+      defaults.min_width = gui::UIConfig::kPanelMinWidthHelp;
       defaults.max_width_ratio = 0.80f;
       break;
     case PanelType::kNotifications:
-      defaults.min_width = 320.0f;
+      defaults.min_width = gui::UIConfig::kPanelMinWidthNotifications;
       defaults.max_width_ratio = 0.82f;
       break;
     case PanelType::kProperties:
-      defaults.min_width = 340.0f;
+      defaults.min_width = gui::UIConfig::kPanelMinWidthProperties;
       defaults.max_width_ratio = 0.90f;
       break;
     case PanelType::kProject:
-      defaults.min_width = 340.0f;
+      defaults.min_width = gui::UIConfig::kPanelMinWidthProject;
       defaults.max_width_ratio = 0.86f;
       break;
     case PanelType::kNone:
@@ -464,7 +539,8 @@ void RightPanelManager::Draw() {
       ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ClosePanel();
     // Don't return — we need to start drawing the close animation this frame
-    if (!closing_) return;
+    if (!closing_)
+      return;
   }
 
   const bool animations_enabled = gui::GetAnimator().IsEnabled();
@@ -544,56 +620,55 @@ void RightPanelManager::Draw() {
   // Position panel: slides from right edge. At animation=1.0, fully visible.
   // At animation=0.0, fully off-screen to the right.
   float panel_x = viewport->WorkPos.x + viewport_width - animated_width;
-  ImGui::SetNextWindowPos(
-      ImVec2(panel_x, viewport->WorkPos.y + top_inset));
+  ImGui::SetNextWindowPos(ImVec2(panel_x, viewport->WorkPos.y + top_inset));
   ImGui::SetNextWindowSize(ImVec2(full_width, viewport_height));
 
-  gui::StyledWindow panel(
-      "##RightPanel",
-      {.bg = panel_bg,
-       .border = panel_border,
-       .padding = ImVec2(0.0f, 0.0f),
-       .border_size = 1.0f},
-      nullptr, panel_flags);
+  gui::StyledWindow panel("##RightPanel",
+                          {.bg = panel_bg,
+                           .border = panel_border,
+                           .padding = ImVec2(0.0f, 0.0f),
+                           .border_size = 1.0f},
+                          nullptr, panel_flags);
   if (panel) {
     // Draw enhanced panel header
-    DrawPanelHeader(GetPanelTypeName(draw_panel),
-                    GetPanelTypeIcon(draw_panel));
+    DrawPanelHeader(GetPanelTypeName(draw_panel), GetPanelTypeIcon(draw_panel));
 
-    // Content area with padding
-    gui::StyleVarGuard content_padding(ImGuiStyleVar_WindowPadding,
-                                       ImVec2(12.0f, 8.0f));
-    ImGui::BeginChild("##PanelContent", ImVec2(0, 0), false,
-                      ImGuiWindowFlags_AlwaysUseWindowPadding);
-
-    // Draw panel content based on type
-    switch (draw_panel) {
-      case PanelType::kAgentChat:
-        DrawAgentChatPanel();
-        break;
-      case PanelType::kProposals:
-        DrawProposalsPanel();
-        break;
-      case PanelType::kSettings:
-        DrawSettingsPanel();
-        break;
-      case PanelType::kHelp:
-        DrawHelpPanel();
-        break;
-      case PanelType::kNotifications:
-        DrawNotificationsPanel();
-        break;
-      case PanelType::kProperties:
-        DrawPropertiesPanel();
-        break;
-      case PanelType::kProject:
-        DrawProjectPanel();
-        break;
-      default:
-        break;
+    // Content area with padding and minimum height so content never collapses
+    gui::StyleVarGuard content_padding(
+        ImGuiStyleVar_WindowPadding,
+        ImVec2(gui::UIConfig::kPanelPaddingLarge,
+               gui::UIConfig::kPanelPaddingMedium));
+    const bool panel_content_open = gui::LayoutHelpers::BeginContentChild(
+        "##PanelContent", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList),
+        false, ImGuiWindowFlags_AlwaysUseWindowPadding);
+    if (panel_content_open) {
+      switch (draw_panel) {
+        case PanelType::kAgentChat:
+          DrawAgentChatPanel();
+          break;
+        case PanelType::kProposals:
+          DrawProposalsPanel();
+          break;
+        case PanelType::kSettings:
+          DrawSettingsPanel();
+          break;
+        case PanelType::kHelp:
+          DrawHelpPanel();
+          break;
+        case PanelType::kNotifications:
+          DrawNotificationsPanel();
+          break;
+        case PanelType::kProperties:
+          DrawPropertiesPanel();
+          break;
+        case PanelType::kProject:
+          DrawProjectPanel();
+          break;
+        default:
+          break;
+      }
     }
-
-    ImGui::EndChild();
+    gui::LayoutHelpers::EndContentChild();
 
     // VSCode-style splitter: drag from the left edge to resize.
     if (!closing_ && active_panel_ != PanelType::kNone) {
@@ -615,10 +690,11 @@ void RightPanelManager::Draw() {
                       GetDefaultPanelWidth(active_panel_, active_editor_type_));
       }
       if (handle_active) {
-        const float new_width =
-            GetConfiguredPanelWidth(active_panel_) - ImGui::GetIO().MouseDelta.x;
+        const float new_width = GetConfiguredPanelWidth(active_panel_) -
+                                ImGui::GetIO().MouseDelta.x;
         SetPanelWidth(active_panel_, new_width);
-        ImGui::SetTooltip("Width: %.0f px", GetConfiguredPanelWidth(active_panel_));
+        ImGui::SetTooltip("Width: %.0f px",
+                          GetConfiguredPanelWidth(active_panel_));
       }
 
       ImVec4 handle_color = gui::GetOutlineVec4();
@@ -633,7 +709,7 @@ void RightPanelManager::Draw() {
 
 void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   const float header_height = gui::UIConfig::kPanelHeaderHeight;
-  const float padding = 12.0f;
+  const float padding = gui::UIConfig::kPanelPaddingLarge;
 
   // Header background - slightly elevated surface
   ImVec2 header_min = ImGui::GetCursorScreenPos();
@@ -663,28 +739,91 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
   // Panel title (use current style text color)
   gui::ColoredText(title, ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
+  const PanelType current_panel =
+      (active_panel_ != PanelType::kNone) ? active_panel_ : closing_panel_;
+  const std::string previous_shortcut =
+      GetShortcutLabel("View: Previous Right Panel", "");
+  const std::string next_shortcut =
+      GetShortcutLabel("View: Next Right Panel", "");
+  const std::string previous_tooltip =
+      previous_shortcut.empty() ? "Previous right panel"
+                                : absl::StrFormat("Previous right panel (%s)",
+                                                  previous_shortcut.c_str());
+  const std::string next_tooltip =
+      next_shortcut.empty()
+          ? "Next right panel"
+          : absl::StrFormat("Next right panel (%s)", next_shortcut.c_str());
+
+  ImGui::SameLine(0.0f, 6.0f);
+  if (gui::TransparentIconButton(ICON_MD_CHEVRON_LEFT, gui::IconSize::Small(),
+                                 previous_tooltip.c_str(), false,
+                                 gui::GetTextSecondaryVec4(), "right_sidebar",
+                                 "switch_panel_prev")) {
+    CycleToPreviousPanel();
+  }
+
+  ImGui::SameLine(0.0f, 2.0f);
+  if (gui::TransparentIconButton(
+          ICON_MD_SWAP_HORIZ, gui::IconSize::Small(), "Panel switcher", false,
+          gui::GetTextSecondaryVec4(), "right_sidebar", "switch_panel_menu")) {
+    ImGui::OpenPopup("##RightPanelSwitcher");
+  }
+
+  ImGui::SameLine(0.0f, 2.0f);
+  if (gui::TransparentIconButton(ICON_MD_CHEVRON_RIGHT, gui::IconSize::Small(),
+                                 next_tooltip.c_str(), false,
+                                 gui::GetTextSecondaryVec4(), "right_sidebar",
+                                 "switch_panel_next")) {
+    CycleToNextPanel();
+  }
+
+  if (ImGui::BeginPopup("##RightPanelSwitcher")) {
+    for (PanelType panel_type : kRightPanelSwitchOrder) {
+      std::string label = absl::StrFormat("%s %s", GetPanelTypeIcon(panel_type),
+                                          GetPanelTypeName(panel_type));
+      const char* shortcut_action = GetPanelShortcutAction(panel_type);
+      std::string shortcut;
+      if (shortcut_action[0] != '\0') {
+        shortcut = GetShortcutLabel(shortcut_action, "");
+        if (shortcut == "Unassigned") {
+          shortcut.clear();
+        }
+      }
+      if (ImGui::MenuItem(label.c_str(),
+                          shortcut.empty() ? nullptr : shortcut.c_str(),
+                          current_panel == panel_type)) {
+        OpenPanel(panel_type);
+      }
+    }
+    ImGui::EndPopup();
+  }
+
   // Right-aligned buttons
-  const float button_size = gui::LayoutHelpers::GetStandardWidgetHeight();
+  const ImVec2 chrome_button_size = gui::IconSize::Toolbar();
+  const float button_size = chrome_button_size.x;
+  const float button_y =
+      header_min.y + (header_height - chrome_button_size.y) * 0.5f;
   float current_x = ImGui::GetWindowWidth() - button_size - padding;
 
   // Close button
-  ImGui::SameLine(current_x);
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() - 4.0f);  // Center vertically
-
-  if (gui::TransparentIconButton(ICON_MD_CLOSE, ImVec2(button_size, button_size),
-                                 "Close Panel (Esc)")) {
+  ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, button_y));
+  if (gui::TransparentIconButton(ICON_MD_CANCEL, chrome_button_size,
+                                 "Close Panel (Esc)", false, ImVec4(0, 0, 0, 0),
+                                 "right_sidebar", "close_panel")) {
     ClosePanel();
   }
 
   // Lock Toggle (Only for Properties Panel)
   if (active_panel_ == PanelType::kProperties) {
     current_x -= (button_size + 4.0f);
-    ImGui::SameLine(current_x);
+    ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, button_y));
 
-    if (gui::TransparentIconButton(properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
-                                   ImVec2(button_size, button_size),
-                                   properties_locked_ ? "Unlock Selection" : "Lock Selection",
-                                   properties_locked_)) {
+    if (gui::TransparentIconButton(
+            properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
+            chrome_button_size,
+            properties_locked_ ? "Unlock Selection" : "Lock Selection",
+            properties_locked_, ImVec4(0, 0, 0, 0), "right_sidebar",
+            "lock_selection")) {
       properties_locked_ = !properties_locked_;
     }
   }
@@ -796,10 +935,6 @@ void RightPanelManager::DrawShortcutRow(const std::string& action,
 
 void RightPanelManager::DrawAgentChatPanel() {
 #ifdef YAZE_BUILD_AGENT_UI
-  const ImVec4 header_bg = gui::GetSurfaceContainerHighVec4();
-  const ImVec4 hero_text = gui::GetOnSurfaceVec4();
-  const ImVec4 accent = gui::GetPrimaryVec4();
-
   if (!agent_chat_) {
     gui::ColoredText(ICON_MD_SMART_TOY " AI Agent Not Available",
                      gui::GetTextSecondaryVec4());
@@ -810,123 +945,42 @@ void RightPanelManager::DrawAgentChatPanel() {
     return;
   }
 
-  bool chat_active = *agent_chat_->active();
-
-  {
-    gui::StyledChild hero_child("AgentHero", ImVec2(0, 110),
-                                {.bg = header_bg, .rounding = 8.0f}, true);
-    if (hero_child) {
-      // TextColored sets its own color, no Push/Pop needed
-      ImGui::TextColored(accent, "%s AI Agent", ICON_MD_SMART_TOY);
-      ImGui::SameLine();
-      gui::ColoredText("Right Sidebar", gui::GetTextSecondaryVec4());
-
-      ImGui::Spacing();
-      DrawPanelValue("Status", chat_active ? "Active" : "Inactive");
-      DrawPanelValue("Provider", "Configured via Agent Editor");
-    }
-  }
-
-  ImGui::Spacing();
   agent_chat_->set_active(true);
 
-  const float footer_height = ImGui::GetFrameHeightWithSpacing() * 3.5f;
-  float content_height =
-      std::max(120.0f, ImGui::GetContentRegionAvail().y - footer_height);
+  const float action_bar_height = ImGui::GetFrameHeightWithSpacing() + 8.0f;
+  const float content_height =
+      std::max(gui::UIConfig::kContentMinHeightChat,
+               ImGui::GetContentRegionAvail().y - action_bar_height);
 
-  static int active_tab = 0;  // 0 = Chat, 1 = Quick Config
-  if (ImGui::BeginTabBar("AgentSidebarTabs")) {
-    if (ImGui::BeginTabItem(ICON_MD_CHAT " Chat")) {
-      active_tab = 0;
-      ImGui::EndTabItem();
-    }
-    if (ImGui::BeginTabItem(ICON_MD_SETTINGS " Quick Config")) {
-      active_tab = 1;
-      ImGui::EndTabItem();
-    }
-    ImGui::EndTabBar();
+  if (ImGui::BeginChild("AgentChatBody", ImVec2(0, content_height), true)) {
+    agent_chat_->Draw(0.0f);
   }
+  ImGui::EndChild();
 
-  if (active_tab == 0) {
-    if (ImGui::BeginChild("AgentChatBody", ImVec2(0, content_height), true)) {
-      bool drew_quick_actions = DrawAgentQuickActions();
-      if (drew_quick_actions) {
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-      }
-      agent_chat_->Draw(0.0f);
-    }
-    ImGui::EndChild();
-  } else {
-    if (ImGui::BeginChild("AgentQuickConfig", ImVec2(0, content_height),
-                          true)) {
-      bool auto_scroll = agent_chat_->auto_scroll();
-      bool show_ts = agent_chat_->show_timestamps();
-      bool show_reasoning = agent_chat_->show_reasoning();
-
-      ImGui::TextColored(accent, "%s Display", ICON_MD_TUNE);
-      if (ImGui::Checkbox("Auto-scroll", &auto_scroll)) {
-        agent_chat_->set_auto_scroll(auto_scroll);
-      }
-      if (ImGui::Checkbox("Show timestamps", &show_ts)) {
-        agent_chat_->set_show_timestamps(show_ts);
-      }
-      if (ImGui::Checkbox("Show reasoning traces", &show_reasoning)) {
-        agent_chat_->set_show_reasoning(show_reasoning);
-      }
-
-      ImGui::Separator();
-      ImGui::TextColored(accent, "%s Provider", ICON_MD_SMART_TOY);
-      DrawPanelDescription(
-          "Change provider/model in the main Agent Editor. This sidebar shows "
-          "active chat controls.");
-    }
-    ImGui::EndChild();
-  }
-
-  // Footer actions (always visible, not clipped)
-  gui::StyleVarGuard footer_spacing(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-  {
-    gui::StyleColorGuard focus_btn_colors({
-        {ImGuiCol_Button, gui::GetPrimaryVec4()},
-        {ImGuiCol_ButtonHovered, gui::GetPrimaryHoverVec4()},
-        {ImGuiCol_ButtonActive, gui::GetPrimaryActiveVec4()},
-    });
-    if (ImGui::Button(ICON_MD_OPEN_IN_NEW " Focus Agent Chat",
-                      ImVec2(-1, 0))) {
-      agent_chat_->set_active(true);
-      agent_chat_->ScrollToBottom();
-    }
-  }
+  gui::StyleVarGuard action_spacing(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
+  const ImVec2 action_size = gui::IconSize::Toolbar();
+  const ImVec4 transparent_bg(0, 0, 0, 0);
 
   if (proposal_drawer_) {
-    {
-      gui::StyleColorGuard secondary_btn_colors({
-          {ImGuiCol_Button, gui::GetSurfaceContainerVec4()},
-          {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
-          {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-      });
-      if (ImGui::Button(ICON_MD_DESCRIPTION " Open Proposals", ImVec2(-1, 0))) {
-        OpenPanel(PanelType::kProposals);
-      }
-    }
-  }
-
-  ImVec2 half_width(ImGui::GetContentRegionAvail().x / 2 - 4, 0);
-  {
-    gui::StyleColorGuard secondary_btn_colors({
-        {ImGuiCol_Button, gui::GetSurfaceContainerVec4()},
-        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
-        {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-    });
-    if (ImGui::Button(ICON_MD_DELETE_FOREVER " Clear", half_width)) {
-      agent_chat_->ClearHistory();
+    if (gui::TransparentIconButton(ICON_MD_DESCRIPTION, action_size,
+                                   "Open Proposals", false, transparent_bg,
+                                   "agent_sidebar", "open_proposals")) {
+      OpenPanel(PanelType::kProposals);
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_FILE_DOWNLOAD " Save", half_width)) {
-      agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
-    }
+  }
+
+  if (gui::TransparentIconButton(ICON_MD_DELETE_FOREVER, action_size,
+                                 "Clear Chat History", false, transparent_bg,
+                                 "agent_sidebar", "clear_history")) {
+    agent_chat_->ClearHistory();
+  }
+  ImGui::SameLine();
+
+  if (gui::TransparentIconButton(ICON_MD_FILE_DOWNLOAD, action_size,
+                                 "Save Chat History", false, transparent_bg,
+                                 "agent_sidebar", "save_history")) {
+    agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
   }
 #else
   gui::ColoredText(ICON_MD_SMART_TOY " AI Agent Not Available",
@@ -963,9 +1017,10 @@ bool RightPanelManager::DrawAgentQuickActions() {
     actions.push_back({"Explain selection",
                        "Explain this selection and how to edit it safely.\n\n" +
                            selection_context});
-    actions.push_back({"Suggest fixes",
-                       "Suggest improvements or checks for this selection.\n\n" +
-                           selection_context});
+    actions.push_back(
+        {"Suggest fixes",
+         "Suggest improvements or checks for this selection.\n\n" +
+             selection_context});
   }
 
   switch (active_editor_type_) {
@@ -1294,8 +1349,8 @@ void RightPanelManager::DrawEditorSpecificShortcuts() {
 void RightPanelManager::DrawEditorSpecificHelp() {
   switch (active_editor_type_) {
     case EditorType::kOverworld: {
-      gui::StyleColorGuard text_color(
-          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                      ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Paint tiles by selecting from Tile16 Selector");
       ImGui::Bullet();
@@ -1309,8 +1364,8 @@ void RightPanelManager::DrawEditorSpecificHelp() {
     } break;
 
     case EditorType::kDungeon: {
-      gui::StyleColorGuard text_color(
-          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                      ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Select rooms from the Room Selector or Room Matrix");
       ImGui::Bullet();
@@ -1323,8 +1378,8 @@ void RightPanelManager::DrawEditorSpecificHelp() {
     } break;
 
     case EditorType::kGraphics: {
-      gui::StyleColorGuard text_color(
-          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                      ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Browse graphics sheets using the Sheet Browser");
       ImGui::Bullet();
@@ -1336,8 +1391,8 @@ void RightPanelManager::DrawEditorSpecificHelp() {
     } break;
 
     case EditorType::kPalette: {
-      gui::StyleColorGuard text_color(
-          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                      ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Edit overworld, dungeon, and sprite palettes");
       ImGui::Bullet();
@@ -1347,8 +1402,8 @@ void RightPanelManager::DrawEditorSpecificHelp() {
     } break;
 
     case EditorType::kMusic: {
-      gui::StyleColorGuard text_color(
-          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                      ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Browse songs in the Song Browser");
       ImGui::Bullet();
@@ -1358,8 +1413,8 @@ void RightPanelManager::DrawEditorSpecificHelp() {
     } break;
 
     case EditorType::kMessage: {
-      gui::StyleColorGuard text_color(
-          ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+      gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                      ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
       ImGui::TextWrapped("Edit all in-game dialog messages");
       ImGui::Bullet();
@@ -1423,8 +1478,7 @@ void RightPanelManager::DrawQuickActionButtons() {
         {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
         {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
     });
-    if (ImGui::Button(ICON_MD_FORUM " Join Discord",
-                      ImVec2(button_width, 0))) {
+    if (ImGui::Button(ICON_MD_FORUM " Join Discord", ImVec2(button_width, 0))) {
       gui::OpenUrl("https://discord.gg/zU5qDm8MZg");
     }
   }
@@ -1506,97 +1560,98 @@ void RightPanelManager::DrawNotificationsPanel() {
 
   ImGui::Spacing();
 
-  // Scrollable notification list
-  ImGui::BeginChild("##NotificationList", ImVec2(0, 0), false,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  // Scrollable notification list (minimum height so list never collapses)
+  const bool notification_list_open = gui::LayoutHelpers::BeginContentChild(
+      "##NotificationList", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList),
+      false, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  if (notification_list_open) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    auto now = std::chrono::system_clock::now();
 
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  auto now = std::chrono::system_clock::now();
+    // Group by time (Today, Yesterday, Older)
+    bool shown_today = false;
+    bool shown_yesterday = false;
+    bool shown_older = false;
 
-  // Group by time (Today, Yesterday, Older)
-  bool shown_today = false;
-  bool shown_yesterday = false;
-  bool shown_older = false;
+    for (const auto& entry : history) {
+      auto diff =
+          std::chrono::duration_cast<std::chrono::hours>(now - entry.timestamp)
+              .count();
 
-  for (const auto& entry : history) {
-    auto diff =
-        std::chrono::duration_cast<std::chrono::hours>(now - entry.timestamp)
-            .count();
+      // Time grouping headers
+      if (diff < 24 && !shown_today) {
+        DrawPanelLabel("Today");
+        shown_today = true;
+      } else if (diff >= 24 && diff < 48 && !shown_yesterday) {
+        ImGui::Spacing();
+        DrawPanelLabel("Yesterday");
+        shown_yesterday = true;
+      } else if (diff >= 48 && !shown_older) {
+        ImGui::Spacing();
+        DrawPanelLabel("Older");
+        shown_older = true;
+      }
 
-    // Time grouping headers
-    if (diff < 24 && !shown_today) {
-      DrawPanelLabel("Today");
-      shown_today = true;
-    } else if (diff >= 24 && diff < 48 && !shown_yesterday) {
-      ImGui::Spacing();
-      DrawPanelLabel("Yesterday");
-      shown_yesterday = true;
-    } else if (diff >= 48 && !shown_older) {
-      ImGui::Spacing();
-      DrawPanelLabel("Older");
-      shown_older = true;
-    }
+      // Notification item
+      ImGui::PushID(&entry);
 
-    // Notification item
-    ImGui::PushID(&entry);
+      // Icon and color based on type
+      const char* icon;
+      ImVec4 color;
+      switch (entry.type) {
+        case ToastType::kSuccess:
+          icon = ICON_MD_CHECK_CIRCLE;
+          color = gui::ConvertColorToImVec4(theme.success);
+          break;
+        case ToastType::kWarning:
+          icon = ICON_MD_WARNING;
+          color = gui::ConvertColorToImVec4(theme.warning);
+          break;
+        case ToastType::kError:
+          icon = ICON_MD_ERROR;
+          color = gui::ConvertColorToImVec4(theme.error);
+          break;
+        default:
+          icon = ICON_MD_INFO;
+          color = gui::ConvertColorToImVec4(theme.info);
+          break;
+      }
 
-    // Icon and color based on type
-    const char* icon;
-    ImVec4 color;
-    switch (entry.type) {
-      case ToastType::kSuccess:
-        icon = ICON_MD_CHECK_CIRCLE;
-        color = gui::ConvertColorToImVec4(theme.success);
-        break;
-      case ToastType::kWarning:
-        icon = ICON_MD_WARNING;
-        color = gui::ConvertColorToImVec4(theme.warning);
-        break;
-      case ToastType::kError:
-        icon = ICON_MD_ERROR;
-        color = gui::ConvertColorToImVec4(theme.error);
-        break;
-      default:
-        icon = ICON_MD_INFO;
-        color = gui::ConvertColorToImVec4(theme.info);
-        break;
-    }
+      // Unread indicator
+      if (!entry.read) {
+        gui::ColoredText(ICON_MD_FIBER_MANUAL_RECORD, gui::GetPrimaryVec4());
+        ImGui::SameLine();
+      }
 
-    // Unread indicator
-    if (!entry.read) {
-      gui::ColoredText(ICON_MD_FIBER_MANUAL_RECORD, gui::GetPrimaryVec4());
+      // Icon
+      gui::ColoredTextF(color, "%s", icon);
       ImGui::SameLine();
+
+      // Message
+      ImGui::TextWrapped("%s", entry.message.c_str());
+
+      // Timestamp
+      auto diff_sec = std::chrono::duration_cast<std::chrono::seconds>(
+                          now - entry.timestamp)
+                          .count();
+      std::string time_str;
+      if (diff_sec < 60) {
+        time_str = "just now";
+      } else if (diff_sec < 3600) {
+        time_str = absl::StrFormat("%dm ago", diff_sec / 60);
+      } else if (diff_sec < 86400) {
+        time_str = absl::StrFormat("%dh ago", diff_sec / 3600);
+      } else {
+        time_str = absl::StrFormat("%dd ago", diff_sec / 86400);
+      }
+
+      gui::ColoredTextF(gui::GetTextDisabledVec4(), "  %s", time_str.c_str());
+
+      ImGui::PopID();
+      ImGui::Spacing();
     }
-
-    // Icon
-    gui::ColoredTextF(color, "%s", icon);
-    ImGui::SameLine();
-
-    // Message
-    ImGui::TextWrapped("%s", entry.message.c_str());
-
-    // Timestamp
-    auto diff_sec =
-        std::chrono::duration_cast<std::chrono::seconds>(now - entry.timestamp)
-            .count();
-    std::string time_str;
-    if (diff_sec < 60) {
-      time_str = "just now";
-    } else if (diff_sec < 3600) {
-      time_str = absl::StrFormat("%dm ago", diff_sec / 60);
-    } else if (diff_sec < 86400) {
-      time_str = absl::StrFormat("%dh ago", diff_sec / 3600);
-    } else {
-      time_str = absl::StrFormat("%dd ago", diff_sec / 86400);
-    }
-
-    gui::ColoredTextF(gui::GetTextDisabledVec4(), "  %s", time_str.c_str());
-
-    ImGui::PopID();
-    ImGui::Spacing();
   }
-
-  ImGui::EndChild();
+  gui::LayoutHelpers::EndContentChild();
 }
 
 void RightPanelManager::DrawPropertiesPanel() {
@@ -1680,19 +1735,17 @@ void RightPanelManager::DrawProjectPanel() {
 bool RightPanelManager::DrawPanelToggleButtons() {
   bool clicked = false;
 
-  // Helper lambda for drawing panel toggle buttons with consistent styling
+  // Keep menu-bar controls on SmallButton metrics so baseline/spacing stays
+  // consistent with the session + notification controls.
   auto DrawPanelButton = [&](const char* icon, const char* base_tooltip,
                              const char* shortcut_action, PanelType type) {
-    bool is_active = IsPanelActive(type);
-
-    // Consistent button styling - transparent background with hover states
-    gui::StyleColorGuard btn_colors({
+    const bool is_active = IsPanelActive(type);
+    gui::StyleColorGuard button_colors({
         {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
         {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
         {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-        // Active = primary color, inactive = secondary text color
-        {ImGuiCol_Text, is_active ? gui::GetPrimaryVec4()
-                                  : gui::GetTextSecondaryVec4()},
+        {ImGuiCol_Text,
+         is_active ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4()},
     });
 
     if (ImGui::SmallButton(icon)) {
@@ -1701,7 +1754,7 @@ bool RightPanelManager::DrawPanelToggleButtons() {
     }
 
     if (ImGui::IsItemHovered()) {
-      std::string shortcut = GetShortcutLabel(shortcut_action, "");
+      const std::string shortcut = GetShortcutLabel(shortcut_action, "");
       if (shortcut.empty() || shortcut == "Unassigned") {
         ImGui::SetTooltip("%s", base_tooltip);
       } else {
@@ -1710,27 +1763,22 @@ bool RightPanelManager::DrawPanelToggleButtons() {
     }
   };
 
-  // Project button
   DrawPanelButton(ICON_MD_FOLDER_SPECIAL, "Project Panel",
                   "View: Toggle Project Panel", PanelType::kProject);
   ImGui::SameLine();
 
-  // Agent Chat button
   DrawPanelButton(ICON_MD_SMART_TOY, "AI Agent Panel",
                   "View: Toggle AI Agent Panel", PanelType::kAgentChat);
   ImGui::SameLine();
 
-  // Help button
-  DrawPanelButton(ICON_MD_HELP_OUTLINE, "Help Panel",
-                  "View: Toggle Help Panel", PanelType::kHelp);
+  DrawPanelButton(ICON_MD_HELP_OUTLINE, "Help Panel", "View: Toggle Help Panel",
+                  PanelType::kHelp);
   ImGui::SameLine();
 
-  // Settings button
   DrawPanelButton(ICON_MD_SETTINGS, "Settings Panel",
                   "View: Toggle Settings Panel", PanelType::kSettings);
   ImGui::SameLine();
 
-  // Properties button (last button - no SameLine after)
   DrawPanelButton(ICON_MD_LIST_ALT, "Properties Panel",
                   "View: Toggle Properties Panel", PanelType::kProperties);
 

@@ -332,7 +332,7 @@ void UICoordinator::DrawMenuBarExtras() {
   const float item_spacing = 6.0f;
   const float padding = 8.0f;
 
-  auto CalcSmallButtonWidth = [] (const char* label) -> float {
+  auto CalcSmallButtonWidth = [](const char* label) -> float {
     // SmallButton width = text width + frame padding * 2
     const float frame_padding = ImGui::GetStyle().FramePadding.x;
     const float text_w = ImGui::CalcTextSize(label).x;
@@ -345,7 +345,8 @@ void UICoordinator::DrawMenuBarExtras() {
 
   // Calculate panel toggle region width
   // Keep this in sync with RightPanelManager::DrawPanelToggleButtons().
-  const bool has_panel_toggles = editor_manager_->right_panel_manager() != nullptr;
+  const bool has_panel_toggles =
+      editor_manager_->right_panel_manager() != nullptr;
   float panel_buttons_width = 0.0f;
   if (has_panel_toggles) {
     const char* kIcons[] = {
@@ -365,12 +366,13 @@ void UICoordinator::DrawMenuBarExtras() {
     }
   }
 
-  float panel_region_width = (panel_buttons_width > 0.0f)
-                                 ? (panel_buttons_width + padding)
-                                 : 0.0f;
+  // Reserve only the real button footprint so compact icon toggles do not
+  // leave a dead gap before the right edge cluster.
+  float panel_region_width = panel_buttons_width;
 #ifdef __EMSCRIPTEN__
   // WASM hide menu bar toggle (drawn inline after panel buttons).
-  panel_region_width += CalcSmallButtonWidth(ICON_MD_EXPAND_LESS) + item_spacing;
+  panel_region_width +=
+      CalcSmallButtonWidth(ICON_MD_EXPAND_LESS) + item_spacing;
 #endif
 
   // Calculate screen X position for panel toggles (fixed at viewport right edge)
@@ -491,7 +493,6 @@ void UICoordinator::DrawMenuBarExtras() {
     show_menu_bar_ = false;
   }
 #endif
-
 }
 
 void UICoordinator::DrawMenuBarRestoreButton() {
@@ -571,8 +572,7 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
     // Notifications
     if (unread > 0) {
       gui::ColoredTextF(gui::GetPrimaryVec4(), "%s %zu new notification%s",
-                        ICON_MD_NOTIFICATIONS, unread,
-                        unread == 1 ? "" : "s");
+                        ICON_MD_NOTIFICATIONS, unread, unread == 1 ? "" : "s");
     } else {
       gui::ColoredText(ICON_MD_NOTIFICATIONS " No new notifications",
                        gui::GetTextSecondaryVec4());
@@ -583,11 +583,10 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
     // Show hidden status items if any
     if (!show_dirty && has_dirty_rom) {
       ImGui::Separator();
-      gui::ColoredTextF(
-          gui::ConvertColorToImVec4(
-              gui::ThemeManager::Get().GetCurrentTheme().warning),
-          ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s",
-          current_rom->short_name().c_str());
+      gui::ColoredTextF(gui::ConvertColorToImVec4(
+                            gui::ThemeManager::Get().GetCurrentTheme().warning),
+                        ICON_MD_FIBER_MANUAL_RECORD " Unsaved changes: %s",
+                        current_rom->short_name().c_str());
     }
 
     if (!show_session && has_multiple_sessions) {
@@ -887,7 +886,6 @@ void UICoordinator::ShowDisplaySettings() {
   popup_manager_.Show(PopupID::kDisplaySettings);
 }
 
-
 // ============================================================================
 // Sidebar Visibility (delegates to PanelManager)
 // ============================================================================
@@ -1183,7 +1181,8 @@ void UICoordinator::DrawCommandPalette() {
 }
 
 void UICoordinator::DrawPanelFinder() {
-  if (!show_panel_finder_) return;
+  if (!show_panel_finder_)
+    return;
 
   using namespace ImGui;
   const size_t session_id = panel_manager_.GetActiveSessionId();
@@ -1251,7 +1250,8 @@ void UICoordinator::DrawPanelFinder() {
       if (!query.empty()) {
         score = CommandPalette::FuzzyScore(desc.display_name, query) +
                 CommandPalette::FuzzyScore(desc.category, query) / 2;
-        if (score <= 0) continue;
+        if (score <= 0)
+          continue;
       }
 
       bool vis = desc.visibility_flag ? *desc.visibility_flag : false;
@@ -1265,18 +1265,22 @@ void UICoordinator::DrawPanelFinder() {
       // Empty query: pinned first, then MRU order (higher time = more recent)
       std::sort(entries.begin(), entries.end(),
                 [this](const PanelEntry& lhs, const PanelEntry& rhs) {
-                  if (lhs.pinned != rhs.pinned) return lhs.pinned > rhs.pinned;
+                  if (lhs.pinned != rhs.pinned)
+                    return lhs.pinned > rhs.pinned;
                   uint64_t lhs_t = panel_manager_.GetPanelMRUTime(lhs.card_id);
                   uint64_t rhs_t = panel_manager_.GetPanelMRUTime(rhs.card_id);
-                  if (lhs_t != rhs_t) return lhs_t > rhs_t;
+                  if (lhs_t != rhs_t)
+                    return lhs_t > rhs_t;
                   return lhs.display_name < rhs.display_name;
                 });
     } else {
       // With query: sort by score descending, pinned tiebreaker
       std::sort(entries.begin(), entries.end(),
                 [](const PanelEntry& lhs, const PanelEntry& rhs) {
-                  if (lhs.score != rhs.score) return lhs.score > rhs.score;
-                  if (lhs.pinned != rhs.pinned) return lhs.pinned > rhs.pinned;
+                  if (lhs.score != rhs.score)
+                    return lhs.score > rhs.score;
+                  if (lhs.pinned != rhs.pinned)
+                    return lhs.pinned > rhs.pinned;
                   return lhs.display_name < rhs.display_name;
                 });
     }
@@ -1316,17 +1320,17 @@ void UICoordinator::DrawPanelFinder() {
         dim_guard.emplace(ImGuiCol_Text, dimmed);
       }
 
-      std::string label = absl::StrFormat(
-          "%s %s  %s", vis_icon, entry.icon.c_str(),
-          entry.display_name.c_str());
+      std::string label =
+          absl::StrFormat("%s %s  %s", vis_icon, entry.icon.c_str(),
+                          entry.display_name.c_str());
 
       // Touch: ensure selectable meets 44px minimum height
-      float item_h = is_touch ? std::max(GetTextLineHeightWithSpacing(), 44.0f)
-                              : 0.0f;
+      float item_h =
+          is_touch ? std::max(GetTextLineHeightWithSpacing(), 44.0f) : 0.0f;
 
       PushID(entry.card_id.c_str());
-      if (Selectable(label.c_str(), is_selected,
-                     ImGuiSelectableFlags_None, ImVec2(0, item_h))) {
+      if (Selectable(label.c_str(), is_selected, ImGuiSelectableFlags_None,
+                     ImVec2(0, item_h))) {
         panel_manager_.ShowPanel(session_id, entry.card_id);
         panel_manager_.MarkPanelRecentlyUsed(entry.card_id);
         show_panel_finder_ = false;
@@ -1383,19 +1387,16 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   });
 
   // Register layout/profile commands
-  command_palette_.AddCommand(
-      "Apply: Minimal Layout", CommandCategory::kLayout,
-      "Switch to essential cards only", "",
-      [this]() {
-        if (editor_manager_) {
-          editor_manager_->ApplyLayoutPreset("Minimal");
-        }
-      });
+  command_palette_.AddCommand("Apply: Minimal Layout", CommandCategory::kLayout,
+                              "Switch to essential cards only", "", [this]() {
+                                if (editor_manager_) {
+                                  editor_manager_->ApplyLayoutPreset("Minimal");
+                                }
+                              });
 
   command_palette_.AddCommand(
       "Apply: Logic Debugger Layout", CommandCategory::kLayout,
-      "Switch to debug and development focused layout", "",
-      [this]() {
+      "Switch to debug and development focused layout", "", [this]() {
         if (editor_manager_) {
           editor_manager_->ApplyLayoutPreset("Logic Debugger");
         }
@@ -1403,8 +1404,7 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
 
   command_palette_.AddCommand(
       "Apply: Overworld Artist Layout", CommandCategory::kLayout,
-      "Switch to visual and overworld focused layout", "",
-      [this]() {
+      "Switch to visual and overworld focused layout", "", [this]() {
         if (editor_manager_) {
           editor_manager_->ApplyLayoutPreset("Overworld Artist");
         }
@@ -1412,8 +1412,7 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
 
   command_palette_.AddCommand(
       "Apply: Dungeon Master Layout", CommandCategory::kLayout,
-      "Switch to comprehensive dungeon editing layout", "",
-      [this]() {
+      "Switch to comprehensive dungeon editing layout", "", [this]() {
         if (editor_manager_) {
           editor_manager_->ApplyLayoutPreset("Dungeon Master");
         }
@@ -1421,8 +1420,7 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
 
   command_palette_.AddCommand(
       "Apply: Audio Engineer Layout", CommandCategory::kLayout,
-      "Switch to music and sound editing layout", "",
-      [this]() {
+      "Switch to music and sound editing layout", "", [this]() {
         if (editor_manager_) {
           editor_manager_->ApplyLayoutPreset("Audio Engineer");
         }

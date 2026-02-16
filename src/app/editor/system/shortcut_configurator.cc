@@ -2,9 +2,19 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/code/assembly_editor.h"
+#include "app/editor/code/memory_editor.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/screen_editor.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/message/message_editor.h"
+#include "app/editor/music/music_editor.h"
+#include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/palette/palette_editor.h"
+#include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
@@ -12,16 +22,6 @@
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/code/assembly_editor.h"
-#include "app/editor/code/memory_editor.h"
-#include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "app/editor/graphics/graphics_editor.h"
-#include "app/editor/graphics/screen_editor.h"
-#include "app/editor/message/message_editor.h"
-#include "app/editor/music/music_editor.h"
-#include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/palette/palette_editor.h"
-#include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/workspace_manager.h"
 #include "core/project.h"
@@ -338,20 +338,25 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       RegisterIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
-            if (!editor_manager) return;
+            if (!editor_manager)
+              return;
             auto* current_editor = editor_manager->GetCurrentEditor();
-            if (!current_editor || current_editor->type() != EditorType::kMusic) {
+            if (!current_editor ||
+                current_editor->type() != EditorType::kMusic) {
               return;
             }
             auto* editor_set = editor_manager->GetCurrentEditorSet();
-            auto* music_editor = editor_set ? editor_set->GetMusicEditor() : nullptr;
-            if (!music_editor) return;
+            auto* music_editor =
+                editor_set ? editor_set->GetMusicEditor() : nullptr;
+            if (!music_editor)
+              return;
 
             if (id == "music.play_pause") {
               music_editor->TogglePlayPause();
             } else if (id == "music.stop") {
               music_editor->StopPlayback();
-            } else if (id == "music.speed_up" || id == "music.speed_up_keypad") {
+            } else if (id == "music.speed_up" ||
+                       id == "music.speed_up_keypad") {
               music_editor->SpeedUp();
             } else if (id == "music.speed_down" ||
                        id == "music.speed_down_keypad") {
@@ -368,17 +373,21 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       RegisterIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
-            if (!editor_manager) return;
+            if (!editor_manager)
+              return;
             auto* current_editor = editor_manager->GetCurrentEditor();
             if (!current_editor ||
                 current_editor->type() != EditorType::kDungeon) {
               return;
             }
             auto* editor_set = editor_manager->GetCurrentEditorSet();
-            auto* dungeon_editor = editor_set ? editor_set->GetDungeonEditor() : nullptr;
-            if (!dungeon_editor) return;
+            auto* dungeon_editor =
+                editor_set ? editor_set->GetDungeonEditor() : nullptr;
+            if (!dungeon_editor)
+              return;
             auto* obj_panel = dungeon_editor->object_editor_panel();
-            if (!obj_panel) return;
+            if (!obj_panel)
+              return;
 
             if (id == "dungeon.object.select_tool") {
               // Unified mode: cancel placement to switch to selection
@@ -411,7 +420,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       RegisterIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
-            if (!editor_manager) return;
+            if (!editor_manager)
+              return;
             auto* current_editor = editor_manager->GetCurrentEditor();
             if (!current_editor ||
                 current_editor->type() != EditorType::kOverworld) {
@@ -420,7 +430,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
             auto* editor_set = editor_manager->GetCurrentEditorSet();
             auto* overworld_editor =
                 editor_set ? editor_set->GetOverworldEditor() : nullptr;
-            if (!overworld_editor) return;
+            if (!overworld_editor)
+              return;
 
             if (id == "overworld.brush_toggle") {
               overworld_editor->ToggleBrushTool();
@@ -442,7 +453,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       RegisterIfValid(
           shortcut_manager, def.id, def.keys,
           [editor_manager, id = def.id]() {
-            if (!editor_manager) return;
+            if (!editor_manager)
+              return;
             auto* current_editor = editor_manager->GetCurrentEditor();
             if (!current_editor ||
                 current_editor->type() != EditorType::kGraphics) {
@@ -451,7 +463,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
             auto* editor_set = editor_manager->GetCurrentEditorSet();
             auto* graphics_editor =
                 editor_set ? editor_set->GetGraphicsEditor() : nullptr;
-            if (!graphics_editor) return;
+            if (!graphics_editor)
+              return;
 
             if (id == "graphics.next_sheet") {
               graphics_editor->NextSheet();
@@ -487,6 +500,32 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       [ui_coordinator]() {
         if (ui_coordinator) {
           ui_coordinator->ShowPanelBrowser();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
+      shortcut_manager, "View: Previous Right Panel",
+      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_LeftBracket},
+      [editor_manager]() {
+        if (!editor_manager) {
+          return;
+        }
+        if (auto* right_panel = editor_manager->right_panel_manager()) {
+          right_panel->CycleToPreviousPanel();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
+      shortcut_manager, "View: Next Right Panel",
+      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_RightBracket},
+      [editor_manager]() {
+        if (!editor_manager) {
+          return;
+        }
+        if (auto* right_panel = editor_manager->right_panel_manager()) {
+          right_panel->CycleToNextPanel();
         }
       },
       Shortcut::Scope::kGlobal);
@@ -546,12 +585,11 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   // ============================================================================
   // Layout Presets and Profiles (command palette only - no keyboard shortcuts)
   // ============================================================================
-  shortcut_manager->RegisterCommand(
-      "Layout Profile: Code", [editor_manager]() {
-        if (editor_manager) {
-          editor_manager->ApplyLayoutProfile("code");
-        }
-      });
+  shortcut_manager->RegisterCommand("Layout Profile: Code", [editor_manager]() {
+    if (editor_manager) {
+      editor_manager->ApplyLayoutProfile("code");
+    }
+  });
   shortcut_manager->RegisterCommand(
       "Layout Profile: Debug", [editor_manager]() {
         if (editor_manager) {
@@ -564,12 +602,11 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
           editor_manager->ApplyLayoutProfile("mapping");
         }
       });
-  shortcut_manager->RegisterCommand(
-      "Layout Profile: Chat", [editor_manager]() {
-        if (editor_manager) {
-          editor_manager->ApplyLayoutProfile("chat");
-        }
-      });
+  shortcut_manager->RegisterCommand("Layout Profile: Chat", [editor_manager]() {
+    if (editor_manager) {
+      editor_manager->ApplyLayoutProfile("chat");
+    }
+  });
   shortcut_manager->RegisterCommand(
       "Layout Snapshot: Capture", [editor_manager]() {
         if (editor_manager) {
@@ -666,10 +703,14 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       };
       for (const auto& cmd : panel_cmds) {
         shortcut_manager->RegisterCommand(
-            cmd.label, [rpm, panel_type = cmd.type]() {
-              rpm->TogglePanel(panel_type);
-            });
+            cmd.label,
+            [rpm, panel_type = cmd.type]() { rpm->TogglePanel(panel_type); });
       }
+      shortcut_manager->RegisterCommand("View: Previous Right Panel", [rpm]() {
+        rpm->CycleToPreviousPanel();
+      });
+      shortcut_manager->RegisterCommand("View: Next Right Panel",
+                                        [rpm]() { rpm->CycleToNextPanel(); });
     }
   }
 

@@ -2,6 +2,8 @@
 #define YAZE_APP_GUI_WIDGETS_THEMED_WIDGETS_H_
 
 #include <string>
+
+#include "app/gui/core/ui_config.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -15,11 +17,21 @@ namespace gui {
 // ============================================================================
 
 namespace IconSize {
-inline ImVec2 Small() { return {24, 24}; }
-inline ImVec2 Medium() { return {32, 32}; }
-inline ImVec2 Large() { return {48, 48}; }
-inline ImVec2 Toolbar() { return {28, 28}; }
-inline ImVec2 ActivityBar() { return {48, 40}; }
+inline ImVec2 Small() {
+  return {UIConfig::kIconButtonSmall, UIConfig::kIconButtonSmall};
+}
+inline ImVec2 Medium() {
+  return {UIConfig::kIconButtonMedium, UIConfig::kIconButtonMedium};
+}
+inline ImVec2 Large() {
+  return {UIConfig::kIconButtonLarge, UIConfig::kIconButtonLarge};
+}
+inline ImVec2 Toolbar() {
+  return {UIConfig::kIconButtonToolbar, UIConfig::kIconButtonToolbar};
+}
+inline ImVec2 ActivityBar() {
+  return {UIConfig::kActivityBarIconWidth, UIConfig::kActivityBarIconHeight};
+}
 }  // namespace IconSize
 
 /**
@@ -63,10 +75,8 @@ bool BouncyButton(const char* label, const ImVec2& size = ImVec2(0, 0),
  * @return true if clicked
  */
 bool ThemedIconButton(const char* icon, const char* tooltip = nullptr,
-                      const ImVec2& size = ImVec2(0, 0),
-                      bool is_active = false,
-                      bool is_disabled = false,
-                      const char* panel_id = nullptr,
+                      const ImVec2& size = ImVec2(0, 0), bool is_active = false,
+                      bool is_disabled = false, const char* panel_id = nullptr,
                       const char* anim_id = nullptr);
 
 /**
@@ -167,8 +177,7 @@ void SectionHeader(const char* label);
  * @param anim_id Optional animation key (defaults to ImGui ID)
  */
 bool PaletteColorButton(const char* id, const struct SnesColor& color,
-                        bool is_selected, bool is_modified,
-                        const ImVec2& size,
+                        bool is_selected, bool is_modified, const ImVec2& size,
                         const char* panel_id = nullptr,
                         const char* anim_id = nullptr);
 

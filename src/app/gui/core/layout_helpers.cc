@@ -7,6 +7,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -152,8 +153,7 @@ LayoutHelpers::WindowClampResult LayoutHelpers::ClampWindowToRect(
 
   result.pos.x = std::clamp(pos.x, min_x, max_x);
   result.pos.y = std::clamp(pos.y, min_y, max_y);
-  result.clamped =
-      (result.pos.x != pos.x) || (result.pos.y != pos.y);
+  result.clamped = (result.pos.x != pos.x) || (result.pos.y != pos.y);
   return result;
 }
 
@@ -232,6 +232,12 @@ void LayoutHelpers::EndCanvasPanel() {
   ImGui::EndChild();
   ImGui::PopStyleVar(1);
   ImGui::PopStyleColor(1);
+}
+
+bool LayoutHelpers::BeginContentChild(const char* id, const ImVec2& min_size,
+                                      bool border, ImGuiWindowFlags flags) {
+  const ImVec2 size = GetContentRegionAvailClamped(min_size);
+  return ImGui::BeginChild(id, size, border, flags);
 }
 
 // Input field helpers
@@ -351,7 +357,7 @@ void LayoutHelpers::BeginToolbar(const char* label) {
   // especially at higher DPI or with larger icon glyphs. Use touch-safe height
   // so iOS toolbars meet the 44px Apple HIG minimum.
   const float min_height =
-      GetTouchSafeWidgetHeight() + (GetButtonPadding() * 2.0f) + 1.0f;
+      (GetTouchSafeWidgetHeight() + 6.0f) + (GetButtonPadding() * 2.0f) + 2.0f;
   const float height = std::max(GetToolbarHeight(), min_height);
 
   ImGui::BeginChild(

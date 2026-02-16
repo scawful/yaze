@@ -38,6 +38,25 @@ struct UIConfig {
   static constexpr float kPanelHeaderHeight = 44.0f;
   static constexpr float kMaxPanelWidthRatio = 0.35f;
 
+  // Minimum panel widths (for right panel and similar; used with SetPanelWidth /
+  // clamp)
+  static constexpr float kPanelMinWidthAbsolute = 180.0f;
+  static constexpr float kPanelMinWidthAgentChat = 360.0f;
+  static constexpr float kPanelMinWidthProposals = 360.0f;
+  static constexpr float kPanelMinWidthSettings = 340.0f;
+  static constexpr float kPanelMinWidthHelp = 340.0f;
+  static constexpr float kPanelMinWidthNotifications = 300.0f;
+  static constexpr float kPanelMinWidthProperties = 340.0f;
+  static constexpr float kPanelMinWidthProject = 320.0f;
+
+  // Content region minimums (for child windows so they never collapse to zero)
+  static constexpr float kContentMinHeightChat = 120.0f;  // Agent chat body
+  static constexpr float kContentMinHeightList =
+      80.0f;  // Lists, notification list
+  static constexpr float kContentMinHeightCanvas =
+      200.0f;  // Canvas areas (dungeon, overworld)
+  static constexpr float kContentMinWidthSidebar = 160.0f;  // Sidebar content
+
   // Icon button size presets
   static constexpr float kIconButtonSmall = 24.0f;
   static constexpr float kIconButtonMedium = 32.0f;
@@ -124,6 +143,26 @@ inline SizeConstraints ConstrainToViewport(ImVec2 min_size,
 inline ImVec2 ScaledSize(float base_width, float base_height) {
   const float scale = ImGui::GetIO().FontGlobalScale;
   return ImVec2(base_width * scale, base_height * scale);
+}
+
+// ---------------------------------------------------------------------------
+// Content region sizing (for BeginChild and panel content areas)
+// ---------------------------------------------------------------------------
+
+/**
+ * @brief Returns content region available size clamped to a minimum.
+ *
+ * Use before BeginChild when the child should fill available space but never
+ * shrink below min_size. Preserves ImGui layout and scrollbars when content
+ * exceeds available space.
+ *
+ * Usage:
+ *   ImVec2 size = GetContentRegionAvailClamped(ImVec2(0, UIConfig::kContentMinHeightChat));
+ *   if (ImGui::BeginChild("id", size, true)) { ... }
+ */
+inline ImVec2 GetContentRegionAvailClamped(const ImVec2& min_size) {
+  const ImVec2 avail = ImGui::GetContentRegionAvail();
+  return ImVec2(std::max(avail.x, min_size.x), std::max(avail.y, min_size.y));
 }
 
 }  // namespace yaze::gui
