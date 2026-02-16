@@ -230,6 +230,9 @@ class DungeonEditorV2 : public Editor {
 
  private:
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
+  friend class DungeonEditorV2RomSafetyTest_ViewerCacheLRUEviction_Test;
+  friend class DungeonEditorV2RomSafetyTest_ViewerCacheNeverEvictsActiveRooms_Test;
+  friend class DungeonEditorV2RomSafetyTest_ViewerCacheLRUAccessOrderUpdate_Test;
 
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -263,6 +266,8 @@ class DungeonEditorV2 : public Editor {
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
   DungeonCanvasViewer* GetWorkbenchViewer();
   DungeonCanvasViewer* GetWorkbenchCompareViewer();
+  void TouchViewerLru(int room_id);
+  void RemoveViewerFromLru(int room_id);
 
   absl::Status SaveRoomData(int room_id);
 

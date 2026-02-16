@@ -35,10 +35,37 @@ struct CustomObject {
     int rel_y;
     uint16_t tile_data; // vhopppcc cccccccc
   };
-  
+
+  struct BoundingBox {
+    int min_x = 0;
+    int min_y = 0;
+    int max_x = 0;
+    int max_y = 0;
+    int width() const { return (max_x - min_x) + 1; }
+    int height() const { return (max_y - min_y) + 1; }
+  };
+
   std::vector<TileMapEntry> tiles;
-  
+
   bool IsEmpty() const { return tiles.empty(); }
+
+  // Compute the bounding box from all tile entries.
+  // If tiles is empty, returns the default-initialized box (min/max=0).
+  BoundingBox GetBoundingBox() const {
+    if (tiles.empty()) return {};
+    BoundingBox bb;
+    bb.min_x = tiles[0].rel_x;
+    bb.max_x = tiles[0].rel_x;
+    bb.min_y = tiles[0].rel_y;
+    bb.max_y = tiles[0].rel_y;
+    for (size_t i = 1; i < tiles.size(); ++i) {
+      if (tiles[i].rel_x < bb.min_x) bb.min_x = tiles[i].rel_x;
+      if (tiles[i].rel_x > bb.max_x) bb.max_x = tiles[i].rel_x;
+      if (tiles[i].rel_y < bb.min_y) bb.min_y = tiles[i].rel_y;
+      if (tiles[i].rel_y > bb.max_y) bb.max_y = tiles[i].rel_y;
+    }
+    return bb;
+  }
 };
 
 /**
