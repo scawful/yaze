@@ -1,6 +1,7 @@
 #include "zelda3/resource_labels.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <sstream>
 #include <string>
@@ -80,6 +81,44 @@ ResourceType StringToResourceType(const std::string& type_str) {
   return ResourceType::kSprite;
 }
 
+namespace {
+
+std::string LookupProjectLabel(const ResourceLabelProvider::LabelMap& labels,
+                               int id) {
+  auto lookup = [&](const std::string& key) -> std::string {
+    auto it = labels.find(key);
+    if (it != labels.end() && !it->second.empty()) {
+      return it->second;
+    }
+    return "";
+  };
+
+  // Canonical storage uses decimal keys.
+  if (std::string decimal = lookup(std::to_string(id)); !decimal.empty()) {
+    return decimal;
+  }
+
+  // Compatibility: older Oracle label bundles often use prefixed hex keys.
+  const std::string hex_upper = absl::StrFormat("%X", id);
+  const std::string hex_lower = absl::StrFormat("%x", id);
+  const std::array<std::string, 8> keys = {
+      absl::StrFormat("0x%s", hex_lower), absl::StrFormat("0x%s", hex_upper),
+      absl::StrFormat("0X%s", hex_upper), absl::StrFormat("$%s", hex_upper),
+      absl::StrFormat("0x%02X", id),      absl::StrFormat("0x%03X", id),
+      absl::StrFormat("0x%04X", id),      absl::StrFormat("$%02X", id),
+  };
+
+  for (const auto& key : keys) {
+    if (std::string label = lookup(key); !label.empty()) {
+      return label;
+    }
+  }
+
+  return "";
+}
+
+}  // namespace
+
 // ============================================================================
 // Global Provider Instance
 // ============================================================================
@@ -96,13 +135,15 @@ ResourceLabelProvider& GetResourceLabels() {
 std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
   std::string type_str = ResourceTypeToString(type);
 
-  // 1. Check project-specific labels first
+  // 1. Check project-specific labels first.
+  // Accept decimal keys and prefixed hex keys for compatibility with older
+  // Oracle label bundles.
   if (project_labels_) {
     auto type_it = project_labels_->find(type_str);
     if (type_it != project_labels_->end()) {
-      auto label_it = type_it->second.find(std::to_string(id));
-      if (label_it != type_it->second.end() && !label_it->second.empty()) {
-        return label_it->second;
+      if (std::string project_label = LookupProjectLabel(type_it->second, id);
+          !project_label.empty()) {
+        return project_label;
       }
     }
   }
@@ -165,7 +206,7 @@ bool ResourceLabelProvider::HasProjectLabel(ResourceType type, int id) const {
   if (type_it == project_labels_->end()) {
     return false;
   }
-  return type_it->second.find(std::to_string(id)) != type_it->second.end();
+  return !LookupProjectLabel(type_it->second, id).empty();
 }
 
 std::string ResourceLabelProvider::GetVanillaLabel(ResourceType type,

@@ -32,7 +32,8 @@ TEST_F(ResourceLabelsTest, ResolvesVanillaLabelsByDefault) {
   EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kSprite, 0x00), "Raven");
 
   // Tag 0 is "Nothing" or similar
-  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x00), "Nothing");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x00),
+            "Nothing");
 }
 
 TEST_F(ResourceLabelsTest, ResolvesHackManifestLabels) {
@@ -52,10 +53,12 @@ TEST_F(ResourceLabelsTest, ResolvesHackManifestLabels) {
   GetResourceLabels().SetHackManifest(&manifest_);
 
   // Should resolve from manifest
-  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x39), "Custom_Tag_Label");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x39),
+            "Custom_Tag_Label");
 
   // Should still fall back for non-existent IDs
-  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x00), "Nothing");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x00),
+            "Nothing");
 }
 
 TEST_F(ResourceLabelsTest, PriorityLabels) {
@@ -76,7 +79,24 @@ TEST_F(ResourceLabelsTest, PriorityLabels) {
   GetResourceLabels().SetHackManifest(&manifest_);
 
   // Project labels take priority over manifest
-  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x39), "ProjectOverride");
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoomTag, 0x39),
+            "ProjectOverride");
+}
+
+TEST_F(ResourceLabelsTest, ResolvesProjectLabelsWithHexPrefixedKeys) {
+  project_labels_["room"]["0x33"] = "Shrine of Courage";
+
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x33),
+            "Shrine of Courage");
+  EXPECT_TRUE(GetResourceLabels().HasProjectLabel(ResourceType::kRoom, 0x33));
+}
+
+TEST_F(ResourceLabelsTest, PrefersDecimalLabelsOverHexFallback) {
+  project_labels_["room"]["51"] = "Decimal Room Label";  // 0x33 decimal
+  project_labels_["room"]["0x33"] = "Hex Room Label";
+
+  EXPECT_EQ(GetResourceLabels().GetLabel(ResourceType::kRoom, 0x33),
+            "Decimal Room Label");
 }
 
 TEST_F(ResourceLabelsTest, ConvenienceFunctionsWork) {

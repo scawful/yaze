@@ -29,12 +29,20 @@ int GetExpandedTextDataEnd() {
 }
 
 uint8_t FindMatchingCharacter(char value) {
-  for (const auto [key, char_value] : CharEncoder) {
-    if (value == char_value) {
-      return key;
+  // CharEncoder contains duplicate glyph mappings (for example, space), so we
+  // choose the lowest byte value to keep reverse lookups deterministic.
+  uint8_t best_match = 0xFF;
+  const wchar_t target =
+      static_cast<wchar_t>(static_cast<unsigned char>(value));
+  for (const auto& [key, char_value] : CharEncoder) {
+    if (char_value != target) {
+      continue;
+    }
+    if (best_match == 0xFF || key < best_match) {
+      best_match = key;
     }
   }
-  return 0xFF;
+  return best_match;
 }
 
 int8_t FindDictionaryEntry(uint8_t value) {

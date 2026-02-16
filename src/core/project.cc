@@ -1238,10 +1238,12 @@ std::string YazeProject::GetRelativePath(
 
   try {
     std::filesystem::path relative =
-        std::filesystem::relative(abs_path, project_dir);
-    return relative.string();
+        std::filesystem::relative(abs_path.lexically_normal(), project_dir);
+    // Persist relative paths in a platform-neutral format for project files.
+    return relative.generic_string();
   } catch (...) {
-    return absolute_path;  // Return absolute path if relative conversion fails
+    // Return normalized absolute path if relative conversion fails.
+    return abs_path.lexically_normal().generic_string();
   }
 }
 
@@ -1254,9 +1256,12 @@ std::string YazeProject::GetAbsolutePath(
       std::filesystem::path(filepath).parent_path();
   std::filesystem::path abs_path(relative_path);
   if (abs_path.is_absolute()) {
+    abs_path = abs_path.lexically_normal();
+    abs_path.make_preferred();
     return abs_path.string();
   }
-  abs_path = project_dir / abs_path;
+  abs_path = (project_dir / abs_path).lexically_normal();
+  abs_path.make_preferred();
 
   return abs_path.string();
 }
@@ -1328,64 +1333,113 @@ void YazeProject::TryLoadHackManifest() {
   hack_manifest.Clear();
   zelda3::GetResourceLabels().SetHackManifest(nullptr);
 
-  // Priority 1: Explicit hack_manifest_file setting from project
-  if (!hack_manifest_file.empty()) {
-    auto manifest_path = GetAbsolutePath(hack_manifest_file);
-    if (std::filesystem::exists(manifest_path)) {
-      auto status = hack_manifest.LoadFromFile(manifest_path);
-      if (status.ok()) {
-        LOG_DEBUG("Project", "Loaded hack manifest: %s", manifest_path.c_str());
-        zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
-      } else {
-        LOG_WARN("Project", "Failed to load hack manifest %s: %s",
-                 manifest_path.c_str(), std::string(status.message()).c_str());
-      }
-      return;
+  std::filesystem::path loaded_manifest_path;
+  auto load_manifest = [&](const std::filesystem::path& candidate,
+                           bool update_project_setting) -> bool {
+    if (candidate.empty() || !std::filesystem::exists(candidate)) {
+      return false;
     }
+    auto status = hack_manifest.LoadFromFile(candidate.string());
+    if (!status.ok()) {
+      LOG_WARN("Project", "Failed to load hack manifest %s: %s",
+               candidate.string().c_str(),
+               std::string(status.message()).c_str());
+      return false;
+    }
+    loaded_manifest_path = candidate;
+    if (update_project_setting) {
+      hack_manifest_file = GetRelativePath(candidate.string());
+    }
+    LOG_DEBUG("Project", "Loaded hack manifest: %s",
+              candidate.string().c_str());
+    zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
+    return true;
+  };
+
+  // Priority 1: Explicit hack_manifest_file setting from project.
+  if (!hack_manifest_file.empty()) {
+    (void)load_manifest(GetAbsolutePath(hack_manifest_file), false);
   }
 
-  // Priority 2: Auto-discover hack_manifest.json in code_folder
-  if (!code_folder.empty()) {
+  // Priority 2: Auto-discover hack_manifest.json in code_folder.
+  if (!hack_manifest.loaded() && !code_folder.empty()) {
     auto code_path = GetAbsolutePath(code_folder);
     auto candidate = std::filesystem::path(code_path) / "hack_manifest.json";
-    if (std::filesystem::exists(candidate)) {
-      auto status = hack_manifest.LoadFromFile(candidate.string());
-      if (status.ok()) {
-        hack_manifest_file = GetRelativePath(candidate.string());
-        LOG_DEBUG("Project", "Auto-discovered hack manifest: %s",
-                  candidate.string().c_str());
-      } else {
-        LOG_WARN("Project", "Failed to load auto-discovered hack manifest %s: %s",
-                 candidate.string().c_str(),
-                 std::string(status.message()).c_str());
-      }
+    (void)load_manifest(candidate, true);
+  }
+
+  // Priority 3: Fallback to the project file directory (or its parent).
+  if (!hack_manifest.loaded() && !filepath.empty()) {
+    const std::filesystem::path project_dir =
+        std::filesystem::path(filepath).parent_path();
+    (void)load_manifest(project_dir / "hack_manifest.json", true);
+    if (!hack_manifest.loaded() && project_dir.has_parent_path()) {
+      (void)load_manifest(project_dir.parent_path() / "hack_manifest.json",
+                          true);
     }
   }
 
-  // Update resource labels with the loaded manifest
-  if (hack_manifest.loaded()) {
-    zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
+  if (!hack_manifest.loaded()) {
+    return;
+  }
 
-    // Load project registry (dungeons.json, overworld.json, room labels)
-    if (!code_folder.empty()) {
-      auto status =
-          hack_manifest.LoadProjectRegistry(GetAbsolutePath(code_folder));
-      if (status.ok() && hack_manifest.HasProjectRegistry()) {
-        // Inject all Oracle resource labels into project resource_labels
-        size_t injected = 0;
-        for (const auto& [type_key, labels] :
-             hack_manifest.project_registry().all_resource_labels) {
-          for (const auto& [id_str, label] : labels) {
-            resource_labels[type_key][id_str] = label;
-            ++injected;
-          }
-        }
-        LOG_DEBUG("Project",
-                  "Loaded project registry: %zu resource labels injected",
-                  injected);
-      }
+  zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
+
+  auto try_load_registry = [&](const std::filesystem::path& base) -> bool {
+    if (base.empty()) {
+      return false;
+    }
+    const auto planning = base / "Docs" / "Dev" / "Planning";
+    if (!std::filesystem::exists(planning)) {
+      return false;
+    }
+    auto status = hack_manifest.LoadProjectRegistry(base.string());
+    if (!status.ok()) {
+      LOG_WARN("Project", "Failed to load project registry from %s: %s",
+               base.string().c_str(), std::string(status.message()).c_str());
+      return false;
+    }
+    return hack_manifest.HasProjectRegistry();
+  };
+
+  bool registry_loaded = false;
+
+  // Prefer configured code_folder when valid.
+  if (!code_folder.empty()) {
+    registry_loaded =
+        try_load_registry(std::filesystem::path(GetAbsolutePath(code_folder)));
+  }
+
+  // Fallback to the manifest directory if code_folder is stale/misconfigured.
+  if (!registry_loaded && !loaded_manifest_path.empty()) {
+    registry_loaded = try_load_registry(loaded_manifest_path.parent_path());
+  }
+
+  // Last fallback: project directory.
+  if (!registry_loaded && !filepath.empty()) {
+    registry_loaded =
+        try_load_registry(std::filesystem::path(filepath).parent_path());
+  }
+
+  if (!registry_loaded) {
+    LOG_WARN("Project",
+             "Hack manifest loaded but project registry was not found "
+             "(code_folder='%s', manifest='%s')",
+             code_folder.c_str(), loaded_manifest_path.string().c_str());
+    return;
+  }
+
+  // Inject all Oracle resource labels into project resource_labels.
+  size_t injected = 0;
+  for (const auto& [type_key, labels] :
+       hack_manifest.project_registry().all_resource_labels) {
+    for (const auto& [id_str, label] : labels) {
+      resource_labels[type_key][id_str] = label;
+      ++injected;
     }
   }
+  LOG_DEBUG("Project", "Loaded project registry: %zu resource labels injected",
+            injected);
 }
 
 void YazeProject::InitializeDefaults() {

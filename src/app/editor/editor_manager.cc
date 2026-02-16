@@ -34,6 +34,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/string_view.h"
 #include "imgui/imgui.h"
@@ -87,6 +88,7 @@
 #include "util/rom_hash.h"
 #include "yaze_config.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/water_fill_zone.h"
@@ -152,6 +154,11 @@ bool HasAnyOverride(const core::RomAddressOverrides& overrides,
     }
   }
   return false;
+}
+
+bool ProjectUsesCustomObjects(const project::YazeProject& project) {
+  return !project.custom_objects_folder.empty() ||
+         !project.custom_object_files.empty();
 }
 
 std::vector<std::string> ValidateRomAddressOverrides(
@@ -700,7 +707,7 @@ void EditorManager::InitializeSubsystems() {
         if (auto* editor_set = GetCurrentEditorSet()) {
           if (auto* dungeon_editor = editor_set->GetEditorAs<DungeonEditorV2>(
                   EditorType::kDungeon)) {
-            dungeon_editor->SetWorkbenchWorkflowMode(enabled);
+            dungeon_editor->QueueWorkbenchWorkflowMode(enabled);
           }
         }
       });
@@ -770,6 +777,8 @@ void EditorManager::SubscribeToEvents() {
   // Subscribe to FrameGuiBeginEvent for ImGui-safe deferred action processing
   // This replaces scattered manual processing calls with event-driven execution
   event_bus_.Subscribe<FrameGuiBeginEvent>([this](const FrameGuiBeginEvent&) {
+    ui_sync_frame_id_.fetch_add(1, std::memory_order_relaxed);
+
     // Process LayoutCoordinator's deferred actions
     layout_coordinator_.ProcessDeferredActions();
 
@@ -777,8 +786,17 @@ void EditorManager::SubscribeToEvents() {
     if (!deferred_actions_.empty()) {
       std::vector<std::function<void()>> actions_to_execute;
       actions_to_execute.swap(deferred_actions_);
+      const int processed_count = static_cast<int>(actions_to_execute.size());
       for (auto& action : actions_to_execute) {
         action();
+      }
+      if (processed_count > 0) {
+        const int remaining = pending_editor_deferred_actions_.fetch_sub(
+                                  processed_count, std::memory_order_relaxed) -
+                              processed_count;
+        if (remaining < 0) {
+          pending_editor_deferred_actions_.store(0, std::memory_order_relaxed);
+        }
       }
     }
   });
@@ -812,6 +830,71 @@ EditorManager::~EditorManager() {
 // Session Event Handlers (EventBus subscribers)
 // ============================================================================
 
+void EditorManager::RefreshResourceLabelProvider() {
+  auto& provider = zelda3::GetResourceLabels();
+  static zelda3::ResourceLabelProvider::ProjectLabels empty_labels;
+  static zelda3::ResourceLabelProvider::ProjectLabels merged_labels;
+
+  auto merge_labels =
+      [](zelda3::ResourceLabelProvider::ProjectLabels* dst,
+         const zelda3::ResourceLabelProvider::ProjectLabels& src) {
+        for (const auto& [type, labels] : src) {
+          auto& out = (*dst)[type];
+          for (const auto& [key, value] : labels) {
+            out[key] = value;
+          }
+        }
+      };
+
+  merged_labels.clear();
+  std::vector<std::string> source_parts;
+
+  // 1) ROM-local labels as baseline for active session.
+  if (auto* rom = GetCurrentRom();
+      rom && rom->resource_label() && !rom->resource_label()->labels_.empty()) {
+    merge_labels(&merged_labels, rom->resource_label()->labels_);
+    source_parts.push_back("rom");
+  }
+
+  // 2) Oracle project registry labels from hack manifest.
+  if (current_project_.project_opened() &&
+      current_project_.hack_manifest.loaded() &&
+      current_project_.hack_manifest.HasProjectRegistry()) {
+    merge_labels(
+        &merged_labels,
+        current_project_.hack_manifest.project_registry().all_resource_labels);
+    source_parts.push_back("registry");
+  }
+
+  // 3) Explicit project labels override all other sources.
+  if (current_project_.project_opened() &&
+      !current_project_.resource_labels.empty()) {
+    merge_labels(&merged_labels, current_project_.resource_labels);
+    source_parts.push_back("project");
+  }
+
+  auto* label_source = merged_labels.empty() ? &empty_labels : &merged_labels;
+  std::string source =
+      source_parts.empty() ? "empty" : absl::StrJoin(source_parts, "+");
+
+  provider.SetProjectLabels(label_source);
+  provider.SetHackManifest(current_project_.project_opened() &&
+                                   current_project_.hack_manifest.loaded()
+                               ? &current_project_.hack_manifest
+                               : nullptr);
+
+  const bool prefer_hmagic =
+      current_project_.project_opened()
+          ? current_project_.workspace_settings.prefer_hmagic_names
+          : user_settings_.prefs().prefer_hmagic_sprite_names;
+  provider.SetPreferHMagicNames(prefer_hmagic);
+
+  LOG_DEBUG("EditorManager",
+            "ResourceLabelProvider refreshed (source=%s, project_open=%s)",
+            source.c_str(),
+            current_project_.project_opened() ? "true" : "false");
+}
+
 void EditorManager::HandleSessionSwitched(size_t new_index,
                                           RomSession* session) {
   // Update RightPanelManager with the new session's settings editor
@@ -828,6 +911,9 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
   ContentRegistry::Context::SetRom(session ? &session->rom : nullptr);
   ContentRegistry::Context::SetGameData(session ? &session->game_data
                                                 : nullptr);
+
+  // Keep room/sprite labels in sync with active session context.
+  RefreshResourceLabelProvider();
 
   const std::string category = panel_manager_.GetActiveCategory();
   if (!category.empty() && category != PanelManager::kDashboardCategory) {
@@ -858,6 +944,9 @@ void EditorManager::HandleSessionClosed(size_t index) {
     ContentRegistry::Context::Clear();
   }
 
+  // Avoid dangling/stale label map pointers after session close.
+  RefreshResourceLabelProvider();
+
 #ifdef YAZE_ENABLE_TESTING
   // Update test manager - it will get the new current ROM on next switch
   test::TestManager::Get().SetCurrentRom(GetCurrentRom());
@@ -879,6 +968,7 @@ void EditorManager::HandleSessionRomLoaded(size_t index, Rom* rom) {
     if (session) {
       ContentRegistry::Context::SetGameData(&session->game_data);
     }
+    RefreshResourceLabelProvider();
   }
 
 #ifdef YAZE_ENABLE_TESTING
@@ -958,9 +1048,14 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       }
       break;
 
-    case Action::kOpenRom:
-      // Open ROM dialog - handled elsewhere, but included for completeness
-      break;
+    case Action::kOpenRom: {
+      auto status = LoadRom();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            std::string("Open failed: ") + std::string(status.message()),
+            ToastType::kError);
+      }
+    } break;
 
     case Action::kSaveRom:
       if (GetCurrentRom() && GetCurrentRom()->is_loaded()) {
@@ -2394,18 +2489,19 @@ absl::Status EditorManager::LoadRom() {
     rom_file_manager_.SetBackupKeepDaily(true);
     rom_file_manager_.SetBackupKeepDailyDays(14);
 
-    // Initialize resource labels for LoadRom() - use defaults with current project settings
-    auto& label_provider = zelda3::GetResourceLabels();
-    label_provider.SetProjectLabels(&current_project_.resource_labels);
-    label_provider.SetPreferHMagicNames(
-        current_project_.workspace_settings.prefer_hmagic_names);
-    LOG_INFO("EditorManager", "Initialized ResourceLabelProvider for LoadRom");
+    // Keep ResourceLabelProvider in sync with the newly-active ROM session
+    // before any editors/assets query room/sprite names.
+    RefreshResourceLabelProvider();
 
 #ifdef YAZE_ENABLE_TESTING
     test::TestManager::Get().SetCurrentRom(GetCurrentRom());
 #endif
 
     auto& manager = project::RecentFilesManager::GetInstance();
+    const auto& recent_files = manager.GetRecentFiles();
+    const bool is_first_time_rom_path =
+        std::find(recent_files.begin(), recent_files.end(), file_name) ==
+        recent_files.end();
     manager.AddFile(file_name);
     manager.Save();
 
@@ -2414,8 +2510,8 @@ absl::Status EditorManager::LoadRom() {
     if (ui_coordinator_) {
       ui_coordinator_->SetWelcomeScreenVisible(false);
 
-      // Show ROM load options dialog for ZSCustomOverworld and feature settings
-      rom_load_options_dialog_.Open(GetCurrentRom());
+      // Show ROM load options and bias new ROM paths toward project creation.
+      rom_load_options_dialog_.Open(GetCurrentRom(), is_first_time_rom_path);
       show_rom_load_options_ = true;
     }
 
@@ -3022,14 +3118,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     session->feature_flags = current_project_.feature_flags;
     core::FeatureFlags::get() = current_project_.feature_flags;
 
-    // Initialize resource labels for ROM-only loading (use defaults)
-    // This ensures labels are available before any editors access them
-    auto& label_provider = zelda3::GetResourceLabels();
-    label_provider.SetProjectLabels(&current_project_.resource_labels);
-    label_provider.SetPreferHMagicNames(
-        current_project_.workspace_settings.prefer_hmagic_names);
-    LOG_INFO("EditorManager",
-             "Initialized ResourceLabelProvider for ROM-only load");
+    // Keep ResourceLabelProvider in sync with the active ROM session before
+    // editors register room/sprite labels.
+    RefreshResourceLabelProvider();
 
     // Update test manager with current ROM for ROM-dependent tests (only when
     // tests are enabled)
@@ -3042,15 +3133,16 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 
     if (auto* editor_set = GetCurrentEditorSet();
         editor_set && !current_project_.code_folder.empty()) {
+      const std::string absolute_code_folder =
+          current_project_.GetAbsolutePath(current_project_.code_folder);
       // iOS: avoid blocking the main thread during project open / scene updates.
       // Large iCloud-backed projects can trigger watchdog termination if we
       // eagerly enumerate folders here.
 #if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
-      editor_set->OpenAssemblyFolder(current_project_.code_folder);
+      editor_set->OpenAssemblyFolder(absolute_code_folder);
 #endif
       // Also set the sidebar file browser path (refresh happens during UI draw).
-      panel_manager_.SetFileBrowserPath("Assembly",
-                                        current_project_.code_folder);
+      panel_manager_.SetFileBrowserPath("Assembly", absolute_code_folder);
     }
 
 #ifdef __EMSCRIPTEN__
@@ -3242,9 +3334,22 @@ absl::Status EditorManager::LoadProjectWithRom() {
                               GetCurrentSessionId());
   UpdateCurrentRomHash();
 
-  // Apply project feature flags to both session and global singleton
+  // Auto-enable custom object rendering when a project defines custom object
+  // data but the stale feature flag is off.
+  if (ProjectUsesCustomObjects(current_project_) &&
+      !current_project_.feature_flags.kEnableCustomObjects) {
+    current_project_.feature_flags.kEnableCustomObjects = true;
+    LOG_WARN("EditorManager",
+             "Project has custom object data but 'enable_custom_objects' was "
+             "disabled. Enabling at runtime.");
+    toast_manager_.Show("Custom object rendering auto-enabled for this project",
+                        ToastType::kInfo);
+  }
+
+  // Apply project feature flags to both session and global singleton.
   session->feature_flags = current_project_.feature_flags;
   core::FeatureFlags::get() = current_project_.feature_flags;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
   core::RomSettings::Get().SetAddressOverrides(
       current_project_.rom_address_overrides);
@@ -3299,13 +3404,19 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   if (auto* editor_set = GetCurrentEditorSet();
       editor_set && !current_project_.code_folder.empty()) {
+    const std::string absolute_code_folder =
+        current_project_.GetAbsolutePath(current_project_.code_folder);
     // iOS: avoid blocking the main thread during project open / scene updates.
 #if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
-    editor_set->OpenAssemblyFolder(current_project_.code_folder);
+    editor_set->OpenAssemblyFolder(absolute_code_folder);
 #endif
     // Also set the sidebar file browser path (refresh happens during UI draw).
-    panel_manager_.SetFileBrowserPath("Assembly", current_project_.code_folder);
+    panel_manager_.SetFileBrowserPath("Assembly", absolute_code_folder);
   }
+
+  // Initialize labels before loading editor assets so room lists / command
+  // palette entries resolve Oracle project labels on first render.
+  RefreshResourceLabelProvider();
 
   RETURN_IF_ERROR(LoadAssetsForMode());
 
@@ -3329,11 +3440,6 @@ absl::Status EditorManager::LoadProjectWithRom() {
   user_settings_.prefs().backup_before_save =
       current_project_.workspace_settings.backup_on_save;
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
-
-  // Initialize resource labels early - before any editors access them
-  current_project_.InitializeResourceLabelProvider();
-  LOG_INFO("EditorManager",
-           "Initialized ResourceLabelProvider with project labels");
 
   // Publish project context for Oracle panels and other consumers
   ContentRegistry::Context::SetCurrentProject(&current_project_);
@@ -3504,6 +3610,7 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
         session_coordinator_->SwitchToSession(i);
         // Update test manager with current ROM for ROM-dependent tests
         test::TestManager::Get().SetCurrentRom(GetCurrentRom());
+        RefreshResourceLabelProvider();
         UpdateCurrentRomHash();
         return absl::OkStatus();
       }
@@ -3618,6 +3725,27 @@ void EditorManager::SwitchToSession(size_t index) {
 size_t EditorManager::GetCurrentSessionIndex() const {
   return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex()
                               : 0;
+}
+
+EditorManager::UiSyncState EditorManager::GetUiSyncStateSnapshot() const {
+  UiSyncState state;
+  state.frame_id = ui_sync_frame_id_.load(std::memory_order_relaxed);
+
+  int pending_editor =
+      pending_editor_deferred_actions_.load(std::memory_order_relaxed);
+  if (pending_editor < 0) {
+    pending_editor = 0;
+  }
+  state.pending_editor_actions = pending_editor;
+
+  int pending_layout = layout_coordinator_.PendingDeferredActionCount();
+  if (pending_layout < 0) {
+    pending_layout = 0;
+  }
+  state.pending_layout_actions = pending_layout;
+  state.layout_rebuild_pending =
+      layout_manager_ ? layout_manager_->IsRebuildRequested() : false;
+  return state;
 }
 
 size_t EditorManager::GetActiveSessionCount() const {

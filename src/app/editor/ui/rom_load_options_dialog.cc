@@ -34,7 +34,13 @@ RomLoadOptionsDialog::RomLoadOptionsDialog() {
 
 void RomLoadOptionsDialog::Open(Rom* rom) {
   if (rom) {
-    Open(rom, rom->filename());
+    Open(rom, rom->filename(), false);
+  }
+}
+
+void RomLoadOptionsDialog::Open(Rom* rom, bool suggest_project_creation) {
+  if (rom) {
+    Open(rom, rom->filename(), suggest_project_creation);
   }
 }
 
@@ -43,10 +49,25 @@ void RomLoadOptionsDialog::Draw(bool* p_open) {
 }
 
 void RomLoadOptionsDialog::Open(Rom* rom, const std::string& rom_filename) {
+  Open(rom, rom_filename, false);
+}
+
+void RomLoadOptionsDialog::Open(Rom* rom, const std::string& rom_filename,
+                                bool suggest_project_creation) {
   rom_ = rom;
   rom_filename_ = rom_filename;
   is_open_ = true;
   confirmed_ = false;
+  show_advanced_ = false;
+
+  // Reset options for each open so stale state from previous ROM loads does
+  // not carry over.
+  options_ = LoadOptions{};
+  options_.save_overworld_maps = true;
+  options_.save_overworld_entrances = true;
+  options_.save_overworld_exits = true;
+  options_.save_overworld_items = true;
+  options_.create_project = suggest_project_creation;
 
   // Detect ROM version
   if (rom_ && rom_->is_loaded()) {
@@ -88,6 +109,7 @@ void RomLoadOptionsDialog::Open(Rom* rom, const std::string& rom_filename) {
   }
 
   ApplyPreset(kPresetNames[selected_preset_index_]);
+  options_.create_project = suggest_project_creation;
 }
 
 bool RomLoadOptionsDialog::Show(bool* p_open) {
@@ -353,11 +375,9 @@ void RomLoadOptionsDialog::DrawActionButtons() {
     gui::StyleColorGuard btn_guard(
         {{ImGuiCol_Button, accent},
          {ImGuiCol_ButtonHovered,
-          ImVec4(accent.x * 1.1f, accent.y * 1.1f, accent.z * 1.1f,
-                 accent.w)},
-         {ImGuiCol_ButtonActive,
-          ImVec4(accent.x * 0.9f, accent.y * 0.9f, accent.z * 0.9f,
-                 accent.w)}});
+          ImVec4(accent.x * 1.1f, accent.y * 1.1f, accent.z * 1.1f, accent.w)},
+         {ImGuiCol_ButtonActive, ImVec4(accent.x * 0.9f, accent.y * 0.9f,
+                                        accent.z * 0.9f, accent.w)}});
 
     if (ImGui::Button(absl::StrFormat("%s Continue", ICON_MD_CHECK).c_str(),
                       ImVec2(button_width, 0))) {

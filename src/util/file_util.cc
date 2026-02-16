@@ -86,7 +86,10 @@ std::string GetResourcePath(const std::string& resource_path) {
 
 FileDialogOptions MakeRomFileDialogOptions(bool include_all_files) {
   FileDialogOptions options;
+  options.filters.push_back(
+      {"ROM/Project Files", "sfc,smc,yaze,yazeproj,zsproj"});
   options.filters.push_back({"ROM Files", "sfc,smc"});
+  options.filters.push_back({"Project Files", "yaze,yazeproj,zsproj"});
   if (include_all_files) {
     options.filters.push_back({"All Files", "*"});
   }

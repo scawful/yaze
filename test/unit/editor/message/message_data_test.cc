@@ -67,6 +67,7 @@ TEST_F(MessageDataTest, ExportMessagesToJson) {
   ASSERT_TRUE(j.is_array());
   ASSERT_EQ(j.size(), 2);
   EXPECT_EQ(j[0]["raw_string"], "Test Message 1");
+  file.close();
 
   std::filesystem::remove(test_file);
 }
@@ -111,7 +112,8 @@ TEST(CharEncoderTest, FindMatchingCharacterUnknown) {
 TEST(CharEncoderTest, RoundTripAllCharacters) {
   for (const auto& [byte_val, char_val] : CharEncoder) {
     // Skip non-ASCII wide chars and duplicate space mappings
-    if (char_val > 127) continue;
+    if (char_val > 127)
+      continue;
 
     uint8_t encoded = FindMatchingCharacter(static_cast<char>(char_val));
     // Some characters map to multiple byte values (e.g., space at 0x59, 0x62-0x65)
@@ -217,10 +219,8 @@ TEST(MessageBundleTest, SerializeMessageBundle) {
   std::vector<MessageData> vanilla;
   std::vector<MessageData> expanded;
 
-  vanilla.push_back(
-      MessageData(0, 0x100, "Hello", {}, "Hello", {}));
-  expanded.push_back(
-      MessageData(1, 0x200, "Expanded", {}, "Expanded", {}));
+  vanilla.push_back(MessageData(0, 0x100, "Hello", {}, "Hello", {}));
+  expanded.push_back(MessageData(1, 0x200, "Expanded", {}, "Expanded", {}));
 
   nlohmann::json bundle = SerializeMessageBundle(vanilla, expanded);
   EXPECT_EQ(bundle["format"], "yaze-message-bundle");
@@ -931,7 +931,8 @@ TEST(ExpandedBankTest, ReadExpandedTextDataEmpty) {
   std::vector<uint8_t> rom_data(0x180000, 0x00);
   rom_data[kExpandedTextDataDefault] = 0xFF;
 
-  auto messages = ReadExpandedTextData(rom_data.data(), kExpandedTextDataDefault);
+  auto messages =
+      ReadExpandedTextData(rom_data.data(), kExpandedTextDataDefault);
   EXPECT_TRUE(messages.empty());
 }
 
