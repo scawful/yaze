@@ -12,9 +12,11 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   // Message colors - derived from theme.agent
   t.user_message_color = gui::ConvertColorToImVec4(theme.agent.user_message);
   t.agent_message_color = gui::ConvertColorToImVec4(theme.agent.agent_message);
-  t.system_message_color = gui::ConvertColorToImVec4(theme.agent.system_message);
+  t.system_message_color =
+      gui::ConvertColorToImVec4(theme.agent.system_message);
 
-  t.text_secondary_color = gui::ConvertColorToImVec4(theme.agent.text_secondary);
+  t.text_secondary_color =
+      gui::ConvertColorToImVec4(theme.agent.text_secondary);
 
   // Content colors - derived from theme.agent
   t.json_text_color = gui::ConvertColorToImVec4(theme.agent.json_text);
@@ -41,16 +43,20 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   t.provider_openai = gui::ConvertColorToImVec4(theme.agent.provider_openai);
 
   // Collaboration colors
-  t.collaboration_active = gui::ConvertColorToImVec4(theme.agent.collaboration_active);
-  t.collaboration_inactive = gui::ConvertColorToImVec4(theme.agent.collaboration_inactive);
+  t.collaboration_active =
+      gui::ConvertColorToImVec4(theme.agent.collaboration_active);
+  t.collaboration_inactive =
+      gui::ConvertColorToImVec4(theme.agent.collaboration_inactive);
 
   // Proposal colors - derived from theme.agent
-  t.proposal_panel_bg = gui::ConvertColorToImVec4(theme.agent.proposal_panel_bg);
+  t.proposal_panel_bg =
+      gui::ConvertColorToImVec4(theme.agent.proposal_panel_bg);
   t.proposal_accent = gui::ConvertColorToImVec4(theme.agent.proposal_accent);
 
   // Button colors - derived from theme.agent
   t.button_copy = gui::ConvertColorToImVec4(theme.agent.button_copy);
-  t.button_copy_hover = gui::ConvertColorToImVec4(theme.agent.button_copy_hover);
+  t.button_copy_hover =
+      gui::ConvertColorToImVec4(theme.agent.button_copy_hover);
 
   // Gradient colors - derived from theme.agent
   t.gradient_top = gui::ConvertColorToImVec4(theme.agent.gradient_top);
@@ -69,7 +75,8 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   t.selection_pulsing = gui::ConvertColorToImVec4(theme.selection_pulsing);
   t.selection_handle = gui::ConvertColorToImVec4(theme.selection_handle);
   t.drag_preview = gui::ConvertColorToImVec4(theme.drag_preview);
-  t.drag_preview_outline = gui::ConvertColorToImVec4(theme.drag_preview_outline);
+  t.drag_preview_outline =
+      gui::ConvertColorToImVec4(theme.drag_preview_outline);
 
   // Entity colors
   t.entrance_color = gui::ConvertColorToImVec4(theme.entrance_color);
@@ -81,32 +88,53 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
   t.music_zone_color = gui::ConvertColorToImVec4(theme.music_zone_color);
 
   // Dungeon editor colors - derived from theme.dungeon
-  t.dungeon_selection_primary = gui::ConvertColorToImVec4(theme.dungeon.selection_primary);
-  t.dungeon_selection_secondary = gui::ConvertColorToImVec4(theme.dungeon.selection_secondary);
-  t.dungeon_selection_pulsing = gui::ConvertColorToImVec4(theme.dungeon.selection_pulsing);
-  t.dungeon_selection_handle = gui::ConvertColorToImVec4(theme.dungeon.selection_handle);
-  t.dungeon_drag_preview = gui::ConvertColorToImVec4(theme.dungeon.drag_preview);
-  t.dungeon_drag_preview_outline = gui::ConvertColorToImVec4(theme.dungeon.drag_preview_outline);
+  t.dungeon_selection_primary =
+      gui::ConvertColorToImVec4(theme.dungeon.selection_primary);
+  t.dungeon_selection_secondary =
+      gui::ConvertColorToImVec4(theme.dungeon.selection_secondary);
+  t.dungeon_selection_pulsing =
+      gui::ConvertColorToImVec4(theme.dungeon.selection_pulsing);
+  t.dungeon_selection_handle =
+      gui::ConvertColorToImVec4(theme.dungeon.selection_handle);
+  t.dungeon_drag_preview =
+      gui::ConvertColorToImVec4(theme.dungeon.drag_preview);
+  t.dungeon_drag_preview_outline =
+      gui::ConvertColorToImVec4(theme.dungeon.drag_preview_outline);
   t.dungeon_object_wall = gui::ConvertColorToImVec4(theme.dungeon.object_wall);
-  t.dungeon_object_floor = gui::ConvertColorToImVec4(theme.dungeon.object_floor);
-  t.dungeon_object_chest = gui::ConvertColorToImVec4(theme.dungeon.object_chest);
+  t.dungeon_object_floor =
+      gui::ConvertColorToImVec4(theme.dungeon.object_floor);
+  t.dungeon_object_chest =
+      gui::ConvertColorToImVec4(theme.dungeon.object_chest);
   t.dungeon_object_door = gui::ConvertColorToImVec4(theme.dungeon.object_door);
   t.dungeon_object_pot = gui::ConvertColorToImVec4(theme.dungeon.object_pot);
-  t.dungeon_object_stairs = gui::ConvertColorToImVec4(theme.dungeon.object_stairs);
-  t.dungeon_object_decoration = gui::ConvertColorToImVec4(theme.dungeon.object_decoration);
-  t.dungeon_object_default = gui::ConvertColorToImVec4(theme.dungeon.object_default);
-  t.dungeon_grid_cell_highlight = gui::ConvertColorToImVec4(theme.dungeon.grid_cell_highlight);
-  t.dungeon_grid_cell_selected = gui::ConvertColorToImVec4(theme.dungeon.grid_cell_selected);
-  t.dungeon_grid_cell_border = gui::ConvertColorToImVec4(theme.dungeon.grid_cell_border);
+  t.dungeon_object_stairs =
+      gui::ConvertColorToImVec4(theme.dungeon.object_stairs);
+  t.dungeon_object_decoration =
+      gui::ConvertColorToImVec4(theme.dungeon.object_decoration);
+  t.dungeon_object_default =
+      gui::ConvertColorToImVec4(theme.dungeon.object_default);
+  t.dungeon_grid_cell_highlight =
+      gui::ConvertColorToImVec4(theme.dungeon.grid_cell_highlight);
+  t.dungeon_grid_cell_selected =
+      gui::ConvertColorToImVec4(theme.dungeon.grid_cell_selected);
+  t.dungeon_grid_cell_border =
+      gui::ConvertColorToImVec4(theme.dungeon.grid_cell_border);
   t.dungeon_grid_text = gui::ConvertColorToImVec4(theme.dungeon.grid_text);
   t.dungeon_room_border = gui::ConvertColorToImVec4(theme.dungeon.room_border);
-  t.dungeon_room_border_dark = gui::ConvertColorToImVec4(theme.dungeon.room_border_dark);
-  t.dungeon_sprite_layer0 = gui::ConvertColorToImVec4(theme.dungeon.sprite_layer0);
-  t.dungeon_sprite_layer1 = gui::ConvertColorToImVec4(theme.dungeon.sprite_layer1);
-  t.dungeon_sprite_layer2 = gui::ConvertColorToImVec4(theme.dungeon.sprite_layer2);
-  t.dungeon_outline_layer0 = gui::ConvertColorToImVec4(theme.dungeon.outline_layer0);
-  t.dungeon_outline_layer1 = gui::ConvertColorToImVec4(theme.dungeon.outline_layer1);
-  t.dungeon_outline_layer2 = gui::ConvertColorToImVec4(theme.dungeon.outline_layer2);
+  t.dungeon_room_border_dark =
+      gui::ConvertColorToImVec4(theme.dungeon.room_border_dark);
+  t.dungeon_sprite_layer0 =
+      gui::ConvertColorToImVec4(theme.dungeon.sprite_layer0);
+  t.dungeon_sprite_layer1 =
+      gui::ConvertColorToImVec4(theme.dungeon.sprite_layer1);
+  t.dungeon_sprite_layer2 =
+      gui::ConvertColorToImVec4(theme.dungeon.sprite_layer2);
+  t.dungeon_outline_layer0 =
+      gui::ConvertColorToImVec4(theme.dungeon.outline_layer0);
+  t.dungeon_outline_layer1 =
+      gui::ConvertColorToImVec4(theme.dungeon.outline_layer1);
+  t.dungeon_outline_layer2 =
+      gui::ConvertColorToImVec4(theme.dungeon.outline_layer2);
 
   // Text colors - derived from base theme
   t.text_primary = gui::ConvertColorToImVec4(theme.text_primary);
@@ -126,19 +154,21 @@ AgentUITheme AgentUITheme::FromCurrentTheme() {
 
 // Global theme instance
 static AgentUITheme g_current_theme;
+static bool g_theme_initialized = false;
 
 namespace AgentUI {
 
 const AgentUITheme& GetTheme() {
-  // Initialize if needed (lazy)
-  if (g_current_theme.user_message_color.w == 0.0f) {
+  if (!g_theme_initialized) {
     g_current_theme = AgentUITheme::FromCurrentTheme();
+    g_theme_initialized = true;
   }
   return g_current_theme;
 }
 
 void RefreshTheme() {
   g_current_theme = AgentUITheme::FromCurrentTheme();
+  g_theme_initialized = true;
 }
 
 void PushPanelStyle() {
@@ -233,12 +263,12 @@ void HorizontalSpacing(float amount) {
 
 bool StyledButton(const char* label, const ImVec4& color, const ImVec2& size) {
   ImGui::PushStyleColor(ImGuiCol_Button, color);
-  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                        ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f,
-                               color.w));
-  ImGui::PushStyleColor(ImGuiCol_ButtonActive,
-                        ImVec4(color.x * 0.8f, color.y * 0.8f, color.z * 0.8f,
-                               color.w));
+  ImGui::PushStyleColor(
+      ImGuiCol_ButtonHovered,
+      ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, color.w));
+  ImGui::PushStyleColor(
+      ImGuiCol_ButtonActive,
+      ImVec4(color.x * 0.8f, color.y * 0.8f, color.z * 0.8f, color.w));
   bool clicked = ImGui::Button(label, size);
   ImGui::PopStyleColor(3);
   return clicked;

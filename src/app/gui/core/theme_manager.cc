@@ -10,6 +10,7 @@
 
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "app/gui/core/agent_theme.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"  // For ColorsYaze function
 #include "imgui/imgui.h"
@@ -116,7 +117,8 @@ void Theme::ApplyToImGui() const {
 
   // Apply style parameters
   style->WindowRounding = window_rounding;
-  style->ChildRounding = window_rounding * 0.5f;  // Consistent with window rounding
+  style->ChildRounding =
+      window_rounding * 0.5f;  // Consistent with window rounding
   style->FrameRounding = frame_rounding;
   style->PopupRounding = frame_rounding;
   style->ScrollbarRounding = scrollbar_rounding;
@@ -331,20 +333,20 @@ void ThemeManager::CreateFallbackYazeClassic() {
   // Unified selection and interaction colors
   theme.selection_primary = RGBA(255, 230, 51, 204);    // Yellow
   theme.selection_secondary = RGBA(51, 230, 255, 204);  // Cyan
-  theme.selection_hover = RGBA(255, 255, 255, 100);     // Semi-transparent white
-  theme.selection_pulsing = RGBA(255, 255, 255, 204);   // White pulse
-  theme.selection_handle = RGBA(255, 255, 255, 255);    // White handle
-  theme.drag_preview = RGBA(128, 128, 255, 102);        // Blueish
+  theme.selection_hover = RGBA(255, 255, 255, 100);    // Semi-transparent white
+  theme.selection_pulsing = RGBA(255, 255, 255, 204);  // White pulse
+  theme.selection_handle = RGBA(255, 255, 255, 255);   // White handle
+  theme.drag_preview = RGBA(128, 128, 255, 102);       // Blueish
   theme.drag_preview_outline = RGBA(153, 153, 255, 204);
 
   // Common entity colors
-  theme.entrance_color = RGBA(51, 255, 51, 200);    // Green
+  theme.entrance_color = RGBA(51, 255, 51, 200);     // Green
   theme.hole_color = RGBA(255, 51, 255, 200);        // Magenta
-  theme.exit_color = RGBA(255, 51, 51, 200);        // Red
-  theme.item_color = RGBA(255, 214, 0, 200);        // Gold
-  theme.sprite_color = RGBA(51, 153, 255, 200);     // Blue
-  theme.transport_color = RGBA(153, 102, 255, 200); // Purple
-  theme.music_zone_color = RGBA(255, 153, 51, 200); // Orange
+  theme.exit_color = RGBA(255, 51, 51, 200);         // Red
+  theme.item_color = RGBA(255, 214, 0, 200);         // Gold
+  theme.sprite_color = RGBA(51, 153, 255, 200);      // Blue
+  theme.transport_color = RGBA(153, 102, 255, 200);  // Purple
+  theme.music_zone_color = RGBA(255, 153, 51, 200);  // Orange
 
   // Dungeon editor colors
   theme.dungeon.selection_primary = RGBA(255, 230, 51, 153);    // Yellow
@@ -397,7 +399,8 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.agent.provider_ollama = RGBA(230, 230, 230, 255);
   theme.agent.provider_gemini = RGBA(77, 153, 230, 255);
   theme.agent.provider_mock = RGBA(128, 128, 128, 255);
-  theme.agent.provider_openai = RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
+  theme.agent.provider_openai =
+      RGBA(51, 204, 153, 255);  // Teal/green for OpenAI
 
   theme.agent.collaboration_active = theme.success;
   theme.agent.collaboration_inactive = theme.text_disabled;
@@ -431,6 +434,8 @@ absl::Status ThemeManager::LoadTheme(const std::string& theme_name) {
   current_theme_ = it->second;
   current_theme_name_ = theme_name;
   current_theme_.ApplyToImGui();
+  // Keep AgentUI-derived palettes in lockstep with active theme selection.
+  editor::AgentUI::RefreshTheme();
   // Cancel any in-progress color transition so the requested theme applies
   // immediately and doesn't get overridden by UpdateTransition().
   transitioning_ = false;
@@ -556,6 +561,9 @@ void ThemeManager::ApplyTheme(const Theme& theme) {
     transitioning_ = false;
     transition_progress_ = 0.0f;
   }
+
+  // Keep AgentUI theme cache in sync with the new theme colors.
+  editor::AgentUI::RefreshTheme();
 }
 
 void ThemeManager::UpdateTransition() {
@@ -578,14 +586,14 @@ void ThemeManager::UpdateTransition() {
 
   ImVec4* colors = ImGui::GetStyle().Colors;
   for (int idx = 0; idx < ImGuiCol_COUNT; ++idx) {
-    colors[idx].x =
-        transition_from_[idx].x + (transition_to_[idx].x - transition_from_[idx].x) * eased;
-    colors[idx].y =
-        transition_from_[idx].y + (transition_to_[idx].y - transition_from_[idx].y) * eased;
-    colors[idx].z =
-        transition_from_[idx].z + (transition_to_[idx].z - transition_from_[idx].z) * eased;
-    colors[idx].w =
-        transition_from_[idx].w + (transition_to_[idx].w - transition_from_[idx].w) * eased;
+    colors[idx].x = transition_from_[idx].x +
+                    (transition_to_[idx].x - transition_from_[idx].x) * eased;
+    colors[idx].y = transition_from_[idx].y +
+                    (transition_to_[idx].y - transition_from_[idx].y) * eased;
+    colors[idx].z = transition_from_[idx].z +
+                    (transition_to_[idx].z - transition_from_[idx].z) * eased;
+    colors[idx].w = transition_from_[idx].w +
+                    (transition_to_[idx].w - transition_from_[idx].w) * eased;
   }
 }
 
@@ -1023,8 +1031,17 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
 void ThemeManager::ApplySmartDefaults(Theme& theme) {
   // Helper to check if a color is uninitialized (all zeros)
   auto is_unset = [](const Color& color) {
-    return color.red == 0.0f && color.green == 0.0f &&
-           color.blue == 0.0f && color.alpha == 0.0f;
+    return color.red == 0.0f && color.green == 0.0f && color.blue == 0.0f &&
+           color.alpha == 0.0f;
+  };
+  // Legacy theme files often omit newer semantic fields, which then remain at
+  // default-constructed opaque black (0,0,0,1). Treat that as "missing" for
+  // semantic/interaction colors to avoid black overlays and handles.
+  auto needs_semantic_default = [&](const Color& color) {
+    const bool default_opaque_black = color.red == 0.0f &&
+                                      color.green == 0.0f &&
+                                      color.blue == 0.0f && color.alpha == 1.0f;
+    return is_unset(color) || default_opaque_black;
   };
 
   // Helper to create a color with modified alpha
@@ -1034,20 +1051,16 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
 
   // Helper to lighten a color
   auto lighten = [](const Color& color, float amount) {
-    return Color{
-        std::min(1.0f, color.red + amount),
-        std::min(1.0f, color.green + amount),
-        std::min(1.0f, color.blue + amount),
-        color.alpha};
+    return Color{std::min(1.0f, color.red + amount),
+                 std::min(1.0f, color.green + amount),
+                 std::min(1.0f, color.blue + amount), color.alpha};
   };
 
   // Helper to darken a color
   auto darken = [](const Color& color, float amount) {
-    return Color{
-        std::max(0.0f, color.red - amount),
-        std::max(0.0f, color.green - amount),
-        std::max(0.0f, color.blue - amount),
-        color.alpha};
+    return Color{std::max(0.0f, color.red - amount),
+                 std::max(0.0f, color.green - amount),
+                 std::max(0.0f, color.blue - amount), color.alpha};
   };
 
   // Borders and separators
@@ -1198,49 +1211,217 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
   }
 
   // Interaction defaults
-  if (is_unset(theme.selection_primary)) {
+  if (needs_semantic_default(theme.selection_primary)) {
     theme.selection_primary = theme.warning;
   }
-  if (is_unset(theme.selection_secondary)) {
+  if (needs_semantic_default(theme.selection_secondary)) {
     theme.selection_secondary = theme.info;
   }
-  if (is_unset(theme.selection_hover)) {
+  if (needs_semantic_default(theme.selection_hover)) {
     theme.selection_hover = with_alpha(theme.text_primary, 0.2f);
   }
-  if (is_unset(theme.selection_pulsing)) {
+  if (needs_semantic_default(theme.selection_pulsing)) {
     theme.selection_pulsing = with_alpha(theme.text_primary, 0.8f);
   }
-  if (is_unset(theme.selection_handle)) {
+  if (needs_semantic_default(theme.selection_handle)) {
     theme.selection_handle = theme.text_primary;
   }
-  if (is_unset(theme.drag_preview)) {
+  if (needs_semantic_default(theme.drag_preview)) {
     theme.drag_preview = with_alpha(theme.secondary, 0.4f);
   }
-  if (is_unset(theme.drag_preview_outline)) {
+  if (needs_semantic_default(theme.drag_preview_outline)) {
     theme.drag_preview_outline = with_alpha(theme.secondary, 0.8f);
   }
 
   // Entity defaults
-  if (is_unset(theme.entrance_color)) {
+  if (needs_semantic_default(theme.entrance_color)) {
     theme.entrance_color = theme.success;
   }
-  if (is_unset(theme.hole_color)) {
+  if (needs_semantic_default(theme.hole_color)) {
     theme.hole_color = theme.secondary;
   }
-  if (is_unset(theme.exit_color)) {
+  if (needs_semantic_default(theme.exit_color)) {
     theme.exit_color = theme.error;
   }
-  if (is_unset(theme.item_color)) {
+  if (needs_semantic_default(theme.item_color)) {
     theme.item_color = theme.warning;
   }
-  if (is_unset(theme.sprite_color)) {
+  if (needs_semantic_default(theme.sprite_color)) {
     theme.sprite_color = theme.info;
   }
-  if (is_unset(theme.transport_color)) {
+  if (needs_semantic_default(theme.transport_color)) {
     theme.transport_color = lighten(theme.secondary, 0.2f);
   }
-  if (is_unset(theme.music_zone_color)) {
+  if (needs_semantic_default(theme.music_zone_color)) {
     theme.music_zone_color = darken(theme.warning, 0.1f);
+  }
+
+  // Dungeon semantic defaults
+  if (needs_semantic_default(theme.dungeon.selection_primary)) {
+    theme.dungeon.selection_primary = theme.selection_primary;
+  }
+  if (needs_semantic_default(theme.dungeon.selection_secondary)) {
+    theme.dungeon.selection_secondary = theme.selection_secondary;
+  }
+  if (needs_semantic_default(theme.dungeon.selection_pulsing)) {
+    theme.dungeon.selection_pulsing = theme.selection_pulsing;
+  }
+  if (needs_semantic_default(theme.dungeon.selection_handle)) {
+    theme.dungeon.selection_handle = theme.selection_handle;
+  }
+  if (needs_semantic_default(theme.dungeon.drag_preview)) {
+    theme.dungeon.drag_preview = theme.drag_preview;
+  }
+  if (needs_semantic_default(theme.dungeon.drag_preview_outline)) {
+    theme.dungeon.drag_preview_outline = theme.drag_preview_outline;
+  }
+  if (needs_semantic_default(theme.dungeon.object_wall)) {
+    theme.dungeon.object_wall = with_alpha(theme.text_secondary, 1.0f);
+  }
+  if (needs_semantic_default(theme.dungeon.object_floor)) {
+    theme.dungeon.object_floor =
+        darken(with_alpha(theme.text_secondary, 1.0f), 0.2f);
+  }
+  if (needs_semantic_default(theme.dungeon.object_chest)) {
+    theme.dungeon.object_chest = theme.warning;
+  }
+  if (needs_semantic_default(theme.dungeon.object_door)) {
+    theme.dungeon.object_door = darken(theme.warning, 0.45f);
+  }
+  if (needs_semantic_default(theme.dungeon.object_pot)) {
+    theme.dungeon.object_pot = darken(theme.warning, 0.25f);
+  }
+  if (needs_semantic_default(theme.dungeon.object_stairs)) {
+    theme.dungeon.object_stairs = lighten(theme.warning, 0.1f);
+  }
+  if (needs_semantic_default(theme.dungeon.object_decoration)) {
+    theme.dungeon.object_decoration = theme.success;
+  }
+  if (needs_semantic_default(theme.dungeon.object_default)) {
+    theme.dungeon.object_default = theme.text_secondary;
+  }
+  if (needs_semantic_default(theme.dungeon.grid_cell_highlight)) {
+    theme.dungeon.grid_cell_highlight = with_alpha(theme.success, 0.3f);
+  }
+  if (needs_semantic_default(theme.dungeon.grid_cell_selected)) {
+    theme.dungeon.grid_cell_selected = with_alpha(theme.success, 0.5f);
+  }
+  if (needs_semantic_default(theme.dungeon.grid_cell_border)) {
+    theme.dungeon.grid_cell_border = with_alpha(theme.border, 0.5f);
+  }
+  if (needs_semantic_default(theme.dungeon.grid_text)) {
+    theme.dungeon.grid_text = with_alpha(theme.text_primary, 0.8f);
+  }
+  if (needs_semantic_default(theme.dungeon.room_border)) {
+    theme.dungeon.room_border = with_alpha(theme.text_secondary, 1.0f);
+  }
+  if (needs_semantic_default(theme.dungeon.room_border_dark)) {
+    theme.dungeon.room_border_dark =
+        darken(with_alpha(theme.text_secondary, 1.0f), 0.3f);
+  }
+  if (needs_semantic_default(theme.dungeon.sprite_layer0)) {
+    theme.dungeon.sprite_layer0 = theme.success;
+  }
+  if (needs_semantic_default(theme.dungeon.sprite_layer1)) {
+    theme.dungeon.sprite_layer1 = theme.info;
+  }
+  if (needs_semantic_default(theme.dungeon.sprite_layer2)) {
+    theme.dungeon.sprite_layer2 = theme.info;
+  }
+  if (needs_semantic_default(theme.dungeon.outline_layer0)) {
+    theme.dungeon.outline_layer0 = theme.error;
+  }
+  if (needs_semantic_default(theme.dungeon.outline_layer1)) {
+    theme.dungeon.outline_layer1 = theme.success;
+  }
+  if (needs_semantic_default(theme.dungeon.outline_layer2)) {
+    theme.dungeon.outline_layer2 = theme.info;
+  }
+
+  // Agent semantic defaults
+  if (needs_semantic_default(theme.agent.user_message)) {
+    theme.agent.user_message = theme.info;
+  }
+  if (needs_semantic_default(theme.agent.agent_message)) {
+    theme.agent.agent_message = theme.success;
+  }
+  if (needs_semantic_default(theme.agent.system_message)) {
+    theme.agent.system_message = theme.text_secondary;
+  }
+  if (needs_semantic_default(theme.agent.text_secondary)) {
+    theme.agent.text_secondary = theme.text_secondary;
+  }
+  if (needs_semantic_default(theme.agent.json_text)) {
+    theme.agent.json_text = theme.warning;
+  }
+  if (needs_semantic_default(theme.agent.command_text)) {
+    theme.agent.command_text = theme.error;
+  }
+  if (needs_semantic_default(theme.agent.code_background)) {
+    theme.agent.code_background = darken(theme.surface, 0.1f);
+  }
+  if (needs_semantic_default(theme.agent.panel_bg)) {
+    theme.agent.panel_bg = theme.child_bg;
+  }
+  if (needs_semantic_default(theme.agent.panel_bg_darker)) {
+    theme.agent.panel_bg_darker = with_alpha(theme.surface, 0.2f);
+  }
+  if (needs_semantic_default(theme.agent.panel_border)) {
+    theme.agent.panel_border = theme.border;
+  }
+  if (needs_semantic_default(theme.agent.accent)) {
+    theme.agent.accent = theme.accent;
+  }
+  if (needs_semantic_default(theme.agent.status_active)) {
+    theme.agent.status_active = theme.success;
+  }
+  if (needs_semantic_default(theme.agent.status_inactive)) {
+    theme.agent.status_inactive = theme.text_disabled;
+  }
+  if (needs_semantic_default(theme.agent.status_success)) {
+    theme.agent.status_success = theme.success;
+  }
+  if (needs_semantic_default(theme.agent.status_warning)) {
+    theme.agent.status_warning = theme.warning;
+  }
+  if (needs_semantic_default(theme.agent.status_error)) {
+    theme.agent.status_error = theme.error;
+  }
+  if (needs_semantic_default(theme.agent.provider_ollama)) {
+    theme.agent.provider_ollama = theme.text_primary;
+  }
+  if (needs_semantic_default(theme.agent.provider_gemini)) {
+    theme.agent.provider_gemini = theme.info;
+  }
+  if (needs_semantic_default(theme.agent.provider_mock)) {
+    theme.agent.provider_mock = theme.text_disabled;
+  }
+  if (needs_semantic_default(theme.agent.provider_openai)) {
+    theme.agent.provider_openai = theme.success;
+  }
+  if (needs_semantic_default(theme.agent.collaboration_active)) {
+    theme.agent.collaboration_active = theme.success;
+  }
+  if (needs_semantic_default(theme.agent.collaboration_inactive)) {
+    theme.agent.collaboration_inactive = theme.text_disabled;
+  }
+  if (needs_semantic_default(theme.agent.proposal_panel_bg)) {
+    theme.agent.proposal_panel_bg = with_alpha(theme.surface, 1.0f);
+  }
+  if (needs_semantic_default(theme.agent.proposal_accent)) {
+    theme.agent.proposal_accent = theme.info;
+  }
+  if (needs_semantic_default(theme.agent.button_copy)) {
+    theme.agent.button_copy = with_alpha(theme.secondary, 1.0f);
+  }
+  if (needs_semantic_default(theme.agent.button_copy_hover)) {
+    theme.agent.button_copy_hover = lighten(theme.secondary, 0.1f);
+  }
+  if (needs_semantic_default(theme.agent.gradient_top)) {
+    theme.agent.gradient_top = theme.primary;
+  }
+  if (needs_semantic_default(theme.agent.gradient_bottom)) {
+    theme.agent.gradient_bottom = theme.secondary;
   }
 }
 
@@ -1267,7 +1448,8 @@ Theme ThemeManager::GenerateThemeFromAccent(const Color& accent,
     theme.surface = Color::FromHSL(accent_hsl.h, 0.12f, 0.12f);
     theme.window_bg = theme.background.WithAlpha(0.95f);
     theme.child_bg = Color::FromHSL(accent_hsl.h, 0.10f, 0.10f).WithAlpha(0.8f);
-    theme.popup_bg = Color::FromHSL(accent_hsl.h, 0.12f, 0.14f).WithAlpha(0.98f);
+    theme.popup_bg =
+        Color::FromHSL(accent_hsl.h, 0.12f, 0.14f).WithAlpha(0.98f);
     theme.modal_bg = theme.popup_bg;
 
     // Light text on dark backgrounds
@@ -2047,8 +2229,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
                     .c_str())) {
           // Export current theme to ~/.yaze/themes/ for cross-platform sharing
           std::string user_themes_dir = GetUserThemesDirectory();
-          std::string safe_name =
-              current_theme_.name.empty() ? "custom_theme" : current_theme_.name;
+          std::string safe_name = current_theme_.name.empty()
+                                      ? "custom_theme"
+                                      : current_theme_.name;
           // Sanitize filename: replace invalid characters with underscores
           for (char& c : safe_name) {
             if (c == ' ' || c == '/' || c == '\\' || c == ':' || c == '*' ||
@@ -2060,7 +2243,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
           auto status = SaveThemeToFile(current_theme_, file_path);
           if (status.ok()) {
-            LOG_INFO("Theme Manager", "Exported theme to: %s", file_path.c_str());
+            LOG_INFO("Theme Manager", "Exported theme to: %s",
+                     file_path.c_str());
           } else {
             LOG_ERROR("Theme Manager", "Failed to export theme to user themes");
           }
@@ -2196,7 +2380,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ImVec4 accent_vec = ConvertColorToImVec4(accent_picker_color);
         if (ImGui::ColorEdit3("##AccentPicker", &accent_vec.x,
                               ImGuiColorEditFlags_NoInputs)) {
-          accent_picker_color = {accent_vec.x, accent_vec.y, accent_vec.z, 1.0f};
+          accent_picker_color = {accent_vec.x, accent_vec.y, accent_vec.z,
+                                 1.0f};
         }
 
         ImGui::SameLine();
@@ -2226,7 +2411,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
         ImGui::ColorButton("##prev_primary", prev_primary, 0, ImVec2(24, 24));
         ImGui::SameLine(0, 2);
-        ImGui::ColorButton("##prev_secondary", prev_secondary, 0, ImVec2(24, 24));
+        ImGui::ColorButton("##prev_secondary", prev_secondary, 0,
+                           ImVec2(24, 24));
         ImGui::SameLine(0, 2);
         ImGui::ColorButton("##prev_bg", prev_bg, 0, ImVec2(24, 24));
         ImGui::SameLine(0, 2);
@@ -3005,8 +3191,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ImGui::Separator();
 
         // Density Preset Selector
-        ImGui::TextColored(ImVec4(0.7f, 0.8f, 1.0f, 1.0f),
-                           "%s Quick Presets", ICON_MD_TUNE);
+        ImGui::TextColored(ImVec4(0.7f, 0.8f, 1.0f, 1.0f), "%s Quick Presets",
+                           ICON_MD_TUNE);
         ImGui::Spacing();
 
         // Get current preset
@@ -3023,8 +3209,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
               ImVec4(edit_theme.accent.red, edit_theme.accent.green,
                      edit_theme.accent.blue, 0.8f));
         }
-        if (ImGui::Button(absl::StrFormat("%s Compact", ICON_MD_COMPRESS).c_str(),
-                          ImVec2(130, 50))) {
+        if (ImGui::Button(
+                absl::StrFormat("%s Compact", ICON_MD_COMPRESS).c_str(),
+                ImVec2(130, 50))) {
           edit_theme.ApplyDensityPreset(DensityPreset::kCompact);
           apply_live_preview();
         }
@@ -3032,8 +3219,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           ImGui::PopStyleColor();
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Dense UI with smaller widgets and tighter spacing\n"
-                            "Best for: Information-dense workflows");
+          ImGui::SetTooltip(
+              "Dense UI with smaller widgets and tighter spacing\n"
+              "Best for: Information-dense workflows");
         }
 
         ImGui::SameLine();
@@ -3055,8 +3243,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           ImGui::PopStyleColor();
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Balanced spacing and widget sizes\n"
-                            "Best for: General use");
+          ImGui::SetTooltip(
+              "Balanced spacing and widget sizes\n"
+              "Best for: General use");
         }
 
         ImGui::SameLine();
@@ -3079,8 +3268,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           ImGui::PopStyleColor();
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Spacious layout with larger click targets\n"
-                            "Best for: Touch screens, accessibility");
+          ImGui::SetTooltip(
+              "Spacious layout with larger click targets\n"
+              "Best for: Touch screens, accessibility");
         }
 
         ImGui::PopStyleVar(2);
@@ -3102,8 +3292,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             apply_live_preview();
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Global density multiplier (0.5 = very compact, "
-                              "1.5 = very spacious)");
+            ImGui::SetTooltip(
+                "Global density multiplier (0.5 = very compact, "
+                "1.5 = very spacious)");
           }
 
           ImGui::Spacing();
@@ -3453,7 +3644,8 @@ std::vector<std::string> ThemeManager::DiscoverAvailableThemeFiles() const {
       }
 
       // Iterate directory entries using std::filesystem (cross-platform)
-      for (const auto& entry : std::filesystem::directory_iterator(dir_path, ec)) {
+      for (const auto& entry :
+           std::filesystem::directory_iterator(dir_path, ec)) {
         if (ec) {
           LOG_WARN("Theme Manager", "Error iterating directory: %s",
                    ec.message().c_str());

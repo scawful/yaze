@@ -15,26 +15,28 @@
 #include "imgui/imgui.h"
 
 // Project headers
-#include "app/gui/core/theme_manager.h"
+#include "app/editor/dungeon/panels/object_tile_editor_panel.h"
 #include "app/gui/core/agent_theme.h"
-#include "app/gui/widgets/themed_widgets.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/asset_browser.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "app/platform/window.h"
-#include "zelda3/dungeon/dimension_service.h"
 #include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/object_drawer.h"
-#include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/object_tile_editor.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"  // For GetObjectName()
-#include "app/editor/dungeon/panels/object_tile_editor_panel.h"
 
 namespace yaze::editor {
 
@@ -48,12 +50,14 @@ void DungeonObjectSelector::DrawTileSelector() {
   EnsureRegistryInitialized();
   if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Room Graphics")) {
-      if (ImGuiID child_id = ImGui::GetID((void*)(intptr_t)3);
-          BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                     ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+      const bool room_graphics_tab_open = gui::LayoutHelpers::BeginContentChild(
+          "##RoomGraphicsTab",
+          ImVec2(0.0f, gui::UIConfig::kContentMinHeightList), true,
+          ImGuiWindowFlags_AlwaysVerticalScrollbar);
+      if (room_graphics_tab_open) {
         DrawRoomGraphics();
       }
-      EndChild();
+      gui::LayoutHelpers::EndContentChild();
       EndTabItem();
     }
 
@@ -80,49 +84,55 @@ void DungeonObjectSelector::DrawObjectRenderer() {
                             ImGuiTableColumnFlags_WidthStretch);
     ImGui::TableHeadersRow();
 
-    // Left column: AssetBrowser for object selection
+    // Left column: AssetBrowser for object selection (minimum size so list never collapses)
     ImGui::TableNextColumn();
-    ImGui::BeginChild("AssetBrowser", ImVec2(0, 0), true,
-                      ImGuiWindowFlags_AlwaysVerticalScrollbar);
-
-    DrawObjectAssetBrowser();
-
-    ImGui::EndChild();
+    const bool asset_browser_open = gui::LayoutHelpers::BeginContentChild(
+        "AssetBrowser",
+        ImVec2(gui::UIConfig::kContentMinWidthSidebar,
+               gui::UIConfig::kContentMinHeightList),
+        true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+    if (asset_browser_open) {
+      DrawObjectAssetBrowser();
+    }
+    gui::LayoutHelpers::EndContentChild();
 
     // Right column: Preview and placement controls
     ImGui::TableNextColumn();
-    ImGui::BeginChild("PreviewCanvas", ImVec2(0, 0), true);
+    const bool preview_canvas_open = gui::LayoutHelpers::BeginContentChild(
+        "PreviewCanvas", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas),
+        true);
+    if (preview_canvas_open) {
+      // Object placement controls
+      ImGui::SeparatorText("Object Placement");
+      ImGui::InputInt("X Position", &place_x_);
+      ImGui::InputInt("Y Position", &place_y_);
 
-    // Object placement controls
-    ImGui::SeparatorText("Object Placement");
-    ImGui::InputInt("X Position", &place_x_);
-    ImGui::InputInt("Y Position", &place_y_);
+      if (ImGui::Button("Place Object") && object_loaded_) {
+        PlaceObjectAtPosition(place_x_, place_y_);
+      }
 
-    if (ImGui::Button("Place Object") && object_loaded_) {
-      PlaceObjectAtPosition(place_x_, place_y_);
-    }
+      ImGui::Separator();
 
-    ImGui::Separator();
+      // Preview canvas
+      gui::CanvasFrameOptions frame_opts;
+      frame_opts.canvas_size = ImVec2(256 + 1, 0x10 * 0x40 + 1);
+      frame_opts.draw_grid = true;
+      frame_opts.grid_step = 32.0f;
+      frame_opts.render_popups = true;
+      gui::CanvasFrame frame(object_canvas_, frame_opts);
 
-    // Preview canvas
-    gui::CanvasFrameOptions frame_opts;
-    frame_opts.canvas_size = ImVec2(256 + 1, 0x10 * 0x40 + 1);
-    frame_opts.draw_grid = true;
-    frame_opts.grid_step = 32.0f;
-    frame_opts.render_popups = true;
-    gui::CanvasFrame frame(object_canvas_, frame_opts);
+      // Render selected object preview with graphical rendering
+      if (object_loaded_ && preview_object_.id_ >= 0) {
+        int preview_x = 128 - 24;  // Center horizontally
+        int preview_y = 128 - 24;  // Center vertically
 
-    // Render selected object preview with graphical rendering
-    if (object_loaded_ && preview_object_.id_ >= 0) {
-      int preview_x = 128 - 24;  // Center horizontally
-      int preview_y = 128 - 24;  // Center vertically
-
-      if (!DrawObjectPreview(preview_object_, ImVec2(preview_x, preview_y), 48.0f)) {
-        RenderObjectPrimitive(preview_object_, preview_x, preview_y);
+        if (!DrawObjectPreview(preview_object_, ImVec2(preview_x, preview_y),
+                               48.0f)) {
+          RenderObjectPrimitive(preview_object_, preview_x, preview_y);
+        }
       }
     }
-
-    ImGui::EndChild();
+    gui::LayoutHelpers::EndContentChild();
     ImGui::EndTable();
   }
 
@@ -184,13 +194,9 @@ void DungeonObjectSelector::DrawRoomGraphics() {
   if (rom_ && rom_->is_loaded() && rooms_) {
     int active_room_id = current_room_id_;
     auto& room = (*rooms_)[active_room_id];
+    // Keep room-sheet assignments in sync with the active room header.
+    room.LoadRoomGraphics(room.blockset);
     auto blocks = room.blocks();
-
-    // Load graphics for this room if not already loaded
-    if (blocks.empty()) {
-      room.LoadRoomGraphics(room.blockset);
-      blocks = room.blocks();
-    }
 
     int current_block = 0;
     const int max_blocks_per_row = 2;  // 2 blocks per row for 300px column
@@ -358,11 +364,14 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   // Type 3 objects (0xF80-0xFFF) - Special room features
   if (object_id >= 0xF80) {
     if (object_id >= 0xF80 && object_id <= 0xF8F) {
-      return ImGui::ColorConvertFloat4ToU32(theme.selection_secondary);  // Light blue for layer indicators
+      return ImGui::ColorConvertFloat4ToU32(
+          theme.selection_secondary);  // Light blue for layer indicators
     } else if (object_id >= 0xF90 && object_id <= 0xF9F) {
-      return ImGui::ColorConvertFloat4ToU32(theme.transport_color);  // Orange/Purple for door indicators
+      return ImGui::ColorConvertFloat4ToU32(
+          theme.transport_color);  // Orange/Purple for door indicators
     } else {
-      return ImGui::ColorConvertFloat4ToU32(theme.music_zone_color);  // Purple for misc Type 3
+      return ImGui::ColorConvertFloat4ToU32(
+          theme.music_zone_color);  // Purple for misc Type 3
     }
   }
 
@@ -373,7 +382,8 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     } else if (object_id >= 0x110 && object_id <= 0x11F) {
       return IM_COL32(150, 150, 200, 255);  // Blue-gray for blocks
     } else if (object_id >= 0x120 && object_id <= 0x12F) {
-      return ImGui::ColorConvertFloat4ToU32(theme.status_success);  // Green for switches
+      return ImGui::ColorConvertFloat4ToU32(
+          theme.status_success);  // Green for switches
     } else if (object_id >= 0x130 && object_id <= 0x13F) {
       return ImGui::GetColorU32(theme.selection_primary);  // Yellow for stairs
     } else {
@@ -391,9 +401,11 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   } else if (object_id >= 0x17 && object_id <= 0x1E) {
     return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for doors
   } else if (object_id == 0x2F || object_id == 0x2B) {
-    return ImGui::GetColorU32(theme.dungeon_object_pot);  // Saddle brown for pots
+    return ImGui::GetColorU32(
+        theme.dungeon_object_pot);  // Saddle brown for pots
   } else if (object_id >= 0x30 && object_id <= 0x3F) {
-    return ImGui::GetColorU32(theme.dungeon_object_decoration);  // Dim gray for decorations
+    return ImGui::GetColorU32(
+        theme.dungeon_object_decoration);  // Dim gray for decorations
   } else if (object_id >= 0x00 && object_id <= 0x0F) {
     return IM_COL32(120, 120, 180, 255);  // Blue-gray for corners
   } else {
@@ -524,12 +536,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
   // Search + category filter
   ImGui::SetNextItemWidth(-1.0f);
-  ImGui::InputTextWithHint("##ObjectSearch",
-                           ICON_MD_SEARCH " Filter by name or hex...",
-                           object_search_buffer_,
-                           sizeof(object_search_buffer_));
-  static const char* kFilterLabels[] = {
-      "All", "Walls", "Floors", "Chests", "Doors", "Decor", "Stairs"};
+  ImGui::InputTextWithHint(
+      "##ObjectSearch", ICON_MD_SEARCH " Filter by name or hex...",
+      object_search_buffer_, sizeof(object_search_buffer_));
+  static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
+                                        "Doors", "Decor", "Stairs"};
   ImGui::SetNextItemWidth(160.0f);
   ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                IM_ARRAYSIZE(kFilterLabels));
@@ -558,7 +569,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     for (const auto& range : ranges) {
       // Section header for each type
       gui::StyleColorGuard section_guard(
-          {{ImGuiCol_Header, ImGui::ColorConvertU32ToFloat4(range.header_color)},
+          {{ImGuiCol_Header,
+            ImGui::ColorConvertU32ToFloat4(range.header_color)},
            {ImGuiCol_HeaderHovered,
             ImGui::ColorConvertU32ToFloat4(
                 IM_COL32((range.header_color & 0xFF) + 30,
@@ -714,26 +726,30 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
         // Enhanced tooltip
         if (ImGui::IsItemHovered()) {
-          gui::StyleColorGuard tooltip_guard({
-              {ImGuiCol_PopupBg, theme.panel_bg_color},
-              {ImGuiCol_Border, theme.panel_border_color}});
+          gui::StyleColorGuard tooltip_guard(
+              {{ImGuiCol_PopupBg, theme.panel_bg_color},
+               {ImGuiCol_Border, theme.panel_border_color}});
 
           if (ImGui::BeginTooltip()) {
-            ImGui::TextColored(theme.selection_primary, "Object 0x%03X", obj_id);
+            ImGui::TextColored(theme.selection_primary, "Object 0x%03X",
+                               obj_id);
             ImGui::Text("%s", full_name.c_str());
             int subtype = zelda3::GetObjectSubtype(obj_id);
-            ImGui::TextColored(theme.text_secondary_gray, "Subtype %d", subtype);
+            ImGui::TextColored(theme.text_secondary_gray, "Subtype %d",
+                               subtype);
             ImGui::Separator();
 
-            uint32_t layout_key =
-                (static_cast<uint32_t>(obj_id) << 16) | static_cast<uint32_t>(subtype);
-            const bool can_capture_layout =
-                rom_ && rooms_ && current_room_id_ >= 0 && current_room_id_ < 296;
-            if (can_capture_layout && layout_cache_.find(layout_key) == layout_cache_.end()) {
+            uint32_t layout_key = (static_cast<uint32_t>(obj_id) << 16) |
+                                  static_cast<uint32_t>(subtype);
+            const bool can_capture_layout = rom_ && rooms_ &&
+                                            current_room_id_ >= 0 &&
+                                            current_room_id_ < 296;
+            if (can_capture_layout &&
+                layout_cache_.find(layout_key) == layout_cache_.end()) {
               zelda3::ObjectTileEditor editor(rom_);
               auto& room_ref = (*rooms_)[current_room_id_];
-              auto layout_or =
-                  editor.CaptureObjectLayout(obj_id, room_ref, current_palette_group_);
+              auto layout_or = editor.CaptureObjectLayout(
+                  obj_id, room_ref, current_palette_group_);
               if (layout_or.ok()) {
                 layout_cache_[layout_key] = layout_or.value();
               }
@@ -741,14 +757,16 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
             if (layout_cache_.count(layout_key)) {
               const auto& layout = layout_cache_[layout_key];
-              ImGui::TextColored(theme.status_success, "Tiles: %zu", layout.cells.size());
+              ImGui::TextColored(theme.status_success, "Tiles: %zu",
+                                 layout.cells.size());
 
               if (can_capture_layout) {
                 auto& room_ref = (*rooms_)[current_room_id_];
                 zelda3::ObjectDrawer drawer(rom_, current_room_id_,
                                             room_ref.get_gfx_buffer().data());
                 int rid = drawer.GetDrawRoutineId(obj_id);
-                ImGui::TextColored(theme.status_active, "Draw Routine: %d", rid);
+                ImGui::TextColored(theme.status_active, "Draw Routine: %d",
+                                   rid);
               }
 
               ImGui::Text("Layout:");
@@ -1083,9 +1101,8 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
     ImGui::Text("Room Doors: %zu", doors.size());
 
     if (!doors.empty()) {
-      gui::StyledChild door_list(
-          "##DoorList", ImVec2(-1, 120),
-          {.bg = ImVec4(0.1f, 0.1f, 0.15f, 0.5f)}, true);
+      gui::StyledChild door_list("##DoorList", ImVec2(-1, 120),
+                                 {.bg = ImVec4(0.1f, 0.1f, 0.15f, 0.5f)}, true);
       if (door_list) {
         for (size_t i = 0; i < doors.size(); ++i) {
           const auto& door = doors[i];
@@ -1309,7 +1326,8 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   const uint8_t* gfx_data = room.get_gfx_buffer().data();
 
   zelda3::ObjectTileEditor editor(rom_);
-  auto layout_or = editor.CaptureObjectLayout(object.id_, room, current_palette_group_);
+  auto layout_or =
+      editor.CaptureObjectLayout(object.id_, room, current_palette_group_);
   if (!layout_or.ok()) {
     return false;
   }
@@ -1322,7 +1340,8 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   preview->EnsureBitmapInitialized();
 
   // Render layout to bitmap
-  auto render_status = editor.RenderLayoutToBitmap(layout, preview->bitmap(), gfx_data, current_palette_group_);
+  auto render_status = editor.RenderLayoutToBitmap(
+      layout, preview->bitmap(), gfx_data, current_palette_group_);
   if (!render_status.ok()) {
     return false;
   }
@@ -1332,11 +1351,13 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   if (bitmap.surface()) {
     // Sync to surface
     SDL_LockSurface(bitmap.surface());
-    memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(), bitmap.mutable_data().size());
+    memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(),
+           bitmap.mutable_data().size());
     SDL_UnlockSurface(bitmap.surface());
 
     // Create texture
-    gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE, &bitmap);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bitmap);
     gfx::Arena::Get().ProcessTextureQueue(nullptr);
   }
 
@@ -1418,8 +1439,7 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
         error_msg = "Custom objects folder not configured in project";
       } else {
         // Check if file already exists
-        auto path = std::filesystem::path(mgr.GetBasePath()) /
-                    create_filename_;
+        auto path = std::filesystem::path(mgr.GetBasePath()) / create_filename_;
         if (std::filesystem::exists(path)) {
           valid = false;
           error_msg = "File already exists: " + std::string(create_filename_);
@@ -1434,14 +1454,16 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
 
     ImGui::Separator();
 
-    if (!valid) ImGui::BeginDisabled();
+    if (!valid)
+      ImGui::BeginDisabled();
     if (ImGui::Button("Create", ImVec2(120, 0))) {
       tile_editor_panel_->OpenForNewObject(
           create_width_, create_height_, create_filename_,
           static_cast<int16_t>(create_object_id_), current_room_id_, rooms_);
       ImGui::CloseCurrentPopup();
     }
-    if (!valid) ImGui::EndDisabled();
+    if (!valid)
+      ImGui::EndDisabled();
 
     ImGui::SameLine();
     if (ImGui::Button("Cancel", ImVec2(120, 0))) {

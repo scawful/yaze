@@ -1,9 +1,12 @@
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
 
+#include <algorithm>
+
 #include "app/editor/core/content_registry.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -15,7 +18,7 @@ void DungeonRoomGraphicsPanel::Draw(bool* p_open) {
     return;
   }
 
-  // Get context from ContentRegistry if not set via legacy constructor
+  // Get context from ContentRegistry if not set via legacy constructor.
   if (current_room_id_ == nullptr || rooms_ == nullptr) {
     auto* editor = ContentRegistry::Context::current_editor();
     if (editor != nullptr) {
@@ -27,7 +30,6 @@ void DungeonRoomGraphicsPanel::Draw(bool* p_open) {
     }
   }
 
-  // Validate we have required data
   if (current_room_id_ == nullptr || rooms_ == nullptr) {
     ImGui::TextDisabled("No room data available");
     ImGui::End();
@@ -35,56 +37,77 @@ void DungeonRoomGraphicsPanel::Draw(bool* p_open) {
   }
 
   const int active_room_id = *current_room_id_;
-  if (active_room_id < 0 || active_room_id >= static_cast<int>(rooms_->size())) {
+  if (active_room_id < 0 ||
+      active_room_id >= static_cast<int>(rooms_->size())) {
     ImGui::TextDisabled("Invalid room ID: %d", active_room_id);
     ImGui::End();
     return;
   }
 
   auto& room = (*rooms_)[active_room_id];
+  // Refresh room sheet assignments from current room header values.
+  room.LoadRoomGraphics(room.blockset);
   auto blocks = room.blocks();
 
-  ImGui::Text("Room %d Graphics Blocks", active_room_id);
+  if (renderer_ != nullptr) {
+    gfx::Arena::Get().ProcessTextureQueue(renderer_);
+  }
+
+  constexpr float kBlockWidth = 128.0f;
+  constexpr float kBlockHeight = 32.0f;
+  constexpr int kBlocksPerRow = 2;
+  constexpr float kPadding = 4.0f;
+
+  const int block_count = static_cast<int>(blocks.size());
+  const int row_count =
+      std::max(1, (block_count + kBlocksPerRow - 1) / kBlocksPerRow);
+  const ImVec2 canvas_size(
+      kPadding + (kBlockWidth + kPadding) * static_cast<float>(kBlocksPerRow),
+      kPadding + (kBlockHeight + kPadding) * static_cast<float>(row_count));
+
+  ImGui::Text("Room %03X Graphics Blocks", active_room_id);
+  ImGui::TextDisabled("Blockset %02X | Spriteset %02X", room.blockset,
+                      room.spriteset);
   ImGui::Separator();
 
-  // Canvas frame for graphics display
-  const int block_width = 128;
-  const int block_height = 32;
-  const int max_blocks_per_row = 2;
-
   gui::CanvasFrameOptions frame_opts;
-  frame_opts.draw_grid = true;
-  frame_opts.grid_step = 32.0f;
-  frame_opts.render_popups = true;
+  frame_opts.canvas_size = canvas_size;
+  frame_opts.draw_grid = false;
+  frame_opts.draw_overlay = false;
+  frame_opts.draw_context_menu = false;
+  frame_opts.render_popups = false;
 
-  gui::CanvasFrame frame(room_gfx_canvas_, frame_opts);
-  room_gfx_canvas_.DrawTileSelector(32);
+  auto runtime = gui::BeginCanvas(room_gfx_canvas_, frame_opts);
+  (void)runtime;
 
-  int current_block = 0;
-  for (int block_id : blocks) {
-    if (current_block >= 16) break;  // Only show first 16 blocks
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  for (int i = 0; i < block_count; ++i) {
+    const uint8_t block_id = blocks[static_cast<size_t>(i)];
+    const int row = i / kBlocksPerRow;
+    const int col = i % kBlocksPerRow;
+    const ImVec2 local_pos(kPadding + col * (kBlockWidth + kPadding),
+                           kPadding + row * (kBlockHeight + kPadding));
 
-    // Get the graphics sheet from Arena using the block ID
-    if (block_id < static_cast<int>(gfx::Arena::Get().gfx_sheets().size())) {
-      auto& gfx_sheet = gfx::Arena::Get().gfx_sheets()[block_id];
-
-      int row = current_block / max_blocks_per_row;
-      int col = current_block % max_blocks_per_row;
-
-      ImVec2 local_pos(2 + (col * block_width), 2 + (row * block_height));
-
-      // Ensure we don't exceed canvas bounds
-      if (local_pos.x + block_width <= room_gfx_canvas_.width() &&
-          local_pos.y + block_height <= room_gfx_canvas_.height()) {
-        if (gfx_sheet.texture() != 0) {
-          room_gfx_canvas_.AddImageAt(
-              (ImTextureID)(intptr_t)gfx_sheet.texture(), local_pos,
-              ImVec2(block_width, block_height));
-        }
-      }
+    const auto& sheets = gfx::Arena::Get().gfx_sheets();
+    if (block_id < sheets.size() && sheets[block_id].texture() != 0) {
+      room_gfx_canvas_.AddImageAt(
+          (ImTextureID)(intptr_t)sheets[block_id].texture(), local_pos,
+          ImVec2(kBlockWidth, kBlockHeight));
+    } else {
+      const ImVec2 zero = room_gfx_canvas_.zero_point();
+      const float scale = room_gfx_canvas_.global_scale();
+      const ImVec2 screen_pos(zero.x + local_pos.x, zero.y + local_pos.y);
+      const ImVec2 screen_end(screen_pos.x + kBlockWidth * scale,
+                              screen_pos.y + kBlockHeight * scale);
+      draw_list->AddRect(screen_pos, screen_end,
+                         ImGui::GetColorU32(gui::GetOutlineVec4()));
+      draw_list->AddText(ImVec2(screen_pos.x + 6.0f, screen_pos.y + 6.0f),
+                         ImGui::GetColorU32(gui::GetTextSecondaryVec4()),
+                         "Missing");
     }
-    ++current_block;
   }
+
+  gui::EndCanvas(room_gfx_canvas_, runtime, frame_opts);
 
   ImGui::End();
 }
