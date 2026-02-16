@@ -15,6 +15,7 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
@@ -26,6 +27,13 @@ constexpr float kTightCompareStackThreshold = 520.0f;
 class ScopedWorkbenchToolbar {
  public:
   explicit ScopedWorkbenchToolbar(const char* label) {
+    context_ = ImGui::GetCurrentContext();
+    if (context_ != nullptr) {
+      style_stack_before_ = context_->StyleVarStack.Size;
+      color_stack_before_ = context_->ColorStack.Size;
+      window_stack_before_ = context_->CurrentWindowStack.Size;
+    }
+
     const auto& theme = gui::LayoutHelpers::GetTheme();
     ImGui::PushStyleColor(ImGuiCol_ChildBg,
                           gui::ConvertColorToImVec4(theme.menu_bar_bg));
@@ -42,13 +50,33 @@ class ScopedWorkbenchToolbar {
     ImGui::BeginChild(
         label, ImVec2(0, height), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    began_child_ = true;
   }
 
   ~ScopedWorkbenchToolbar() {
-    ImGui::EndChild();
-    ImGui::PopStyleVar(1);
-    ImGui::PopStyleColor(1);
+    ImGuiContext* ctx =
+        context_ != nullptr ? context_ : ImGui::GetCurrentContext();
+    const bool has_child_window =
+        ctx != nullptr && ctx->CurrentWindow != nullptr &&
+        ctx->CurrentWindowStack.Size > window_stack_before_ &&
+        ((ctx->CurrentWindow->Flags & ImGuiWindowFlags_ChildWindow) != 0);
+    if (began_child_ && has_child_window) {
+      ImGui::EndChild();
+    }
+    if (ctx != nullptr && ctx->StyleVarStack.Size > style_stack_before_) {
+      ImGui::PopStyleVar(1);
+    }
+    if (ctx != nullptr && ctx->ColorStack.Size > color_stack_before_) {
+      ImGui::PopStyleColor(1);
+    }
   }
+
+ private:
+  ImGuiContext* context_ = nullptr;
+  int style_stack_before_ = 0;
+  int color_stack_before_ = 0;
+  int window_stack_before_ = 0;
+  bool began_child_ = false;
 };
 
 float CalcIconButtonWidth(const char* icon, float btn_height) {
