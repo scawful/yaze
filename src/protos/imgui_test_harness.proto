@@ -19,6 +19,11 @@ service ImGuiTestHarness {
   
   // Assert that a condition is true
   rpc Assert(AssertRequest) returns (AssertResponse);
+
+  // Deterministic UI synchronization helpers
+  rpc FlushUiActions(FlushUiActionsRequest) returns (FlushUiActionsResponse);
+  rpc WaitForIdle(WaitForIdleRequest) returns (WaitForIdleResponse);
+  rpc GetUiSyncState(GetUiSyncStateRequest) returns (GetUiSyncStateResponse);
   
   // Capture a screenshot
   rpc Screenshot(ScreenshotRequest) returns (ScreenshotResponse);
@@ -136,6 +141,68 @@ message AssertResponse {
   string test_id = 5;          // Unique test identifier for introspection
   string resolved_widget_key = 6;
   string resolved_path = 7;
+}
+
+// ============================================================================
+// Deterministic UI Sync
+// ============================================================================
+
+message FlushUiActionsRequest {
+  // Maximum wait while an ImGui frame drains deferred queues
+  int32 timeout_ms = 1;
+}
+
+message FlushUiActionsResponse {
+  bool success = 1;
+  string message = 2;
+  int32 elapsed_ms = 3;
+  int64 frame_id = 4;
+  int32 pending_editor_actions = 5;
+  int32 pending_layout_actions = 6;
+  bool layout_rebuild_pending = 7;
+  int32 pending_harness_tests = 8;
+  int32 queued_harness_tests = 9;
+  int32 running_harness_tests = 10;
+}
+
+message WaitForIdleRequest {
+  // Maximum wait for deterministic idle state
+  int32 timeout_ms = 1;
+  // Number of consecutive idle frames required
+  int32 stable_frames = 2;
+  // If true, first wait for a frame boundary to flush deferred queues
+  bool flush_first = 3;
+  // Poll interval while waiting
+  int32 poll_interval_ms = 4;
+}
+
+message WaitForIdleResponse {
+  bool success = 1;
+  string message = 2;
+  int32 elapsed_ms = 3;
+  int64 last_frame_id = 4;
+  int32 stable_frames_observed = 5;
+  int32 pending_editor_actions = 6;
+  int32 pending_layout_actions = 7;
+  bool layout_rebuild_pending = 8;
+  int32 pending_harness_tests = 9;
+  int32 queued_harness_tests = 10;
+  int32 running_harness_tests = 11;
+  string timeout_reason = 12;
+}
+
+message GetUiSyncStateRequest {}
+
+message GetUiSyncStateResponse {
+  int64 frame_id = 1;
+  int32 pending_editor_actions = 2;
+  int32 pending_layout_actions = 3;
+  bool layout_rebuild_pending = 4;
+  int32 pending_harness_tests = 5;
+  int32 queued_harness_tests = 6;
+  int32 running_harness_tests = 7;
+  int64 sampled_at_ms = 8;
+  bool idle = 9;
 }
 
 // ============================================================================

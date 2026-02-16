@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_LAYOUT_LAYOUT_COORDINATOR_H_
 #define YAZE_APP_EDITOR_LAYOUT_LAYOUT_COORDINATOR_H_
 
+#include <atomic>
 #include <functional>
 #include <memory>
 #include <string>
@@ -146,6 +147,13 @@ class LayoutCoordinator {
    */
   void ProcessDeferredActions();
 
+  /**
+   * @brief Approximate pending deferred layout actions for sync diagnostics.
+   */
+  int PendingDeferredActionCount() const {
+    return pending_deferred_actions_.load(std::memory_order_relaxed);
+  }
+
   // ==========================================================================
   // Accessors
   // ==========================================================================
@@ -166,10 +174,10 @@ class LayoutCoordinator {
 
   // Deferred action queue
   std::vector<std::function<void()>> deferred_actions_;
+  std::atomic<int> pending_deferred_actions_{0};
 };
 
 }  // namespace editor
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_LAYOUT_LAYOUT_COORDINATOR_H_
-

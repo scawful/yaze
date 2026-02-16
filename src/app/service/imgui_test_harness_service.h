@@ -33,6 +33,12 @@ class WaitRequest;
 class WaitResponse;
 class AssertRequest;
 class AssertResponse;
+class FlushUiActionsRequest;
+class FlushUiActionsResponse;
+class WaitForIdleRequest;
+class WaitForIdleResponse;
+class GetUiSyncStateRequest;
+class GetUiSyncStateResponse;
 class ScreenshotRequest;
 class ScreenshotResponse;
 class GetTestStatusRequest;
@@ -80,6 +86,14 @@ class ImGuiTestHarnessServiceImpl {
 
   // Assert that a condition is true
   absl::Status Assert(const AssertRequest* request, AssertResponse* response);
+
+  // Deterministic UI synchronization helpers
+  absl::Status FlushUiActions(const FlushUiActionsRequest* request,
+                              FlushUiActionsResponse* response);
+  absl::Status WaitForIdle(const WaitForIdleRequest* request,
+                           WaitForIdleResponse* response);
+  absl::Status GetUiSyncState(const GetUiSyncStateRequest* request,
+                              GetUiSyncStateResponse* response);
 
   // Capture a screenshot
   absl::Status Screenshot(const ScreenshotRequest* request,

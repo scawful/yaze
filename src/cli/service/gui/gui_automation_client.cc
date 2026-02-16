@@ -70,6 +70,24 @@ TestRunStatus ConvertStatusProto(
       return TestRunStatus::kUnknown;
   }
 }
+
+UiSyncStateSnapshot BuildUiSyncStateSnapshot(
+    int64_t frame_id, int32_t pending_editor_actions,
+    int32_t pending_layout_actions, bool layout_rebuild_pending,
+    int32_t pending_harness_tests, int32_t queued_harness_tests,
+    int32_t running_harness_tests, int64_t sampled_at_ms, bool idle) {
+  UiSyncStateSnapshot state;
+  state.frame_id = frame_id;
+  state.pending_editor_actions = pending_editor_actions;
+  state.pending_layout_actions = pending_layout_actions;
+  state.layout_rebuild_pending = layout_rebuild_pending;
+  state.pending_harness_tests = pending_harness_tests;
+  state.queued_harness_tests = queued_harness_tests;
+  state.running_harness_tests = running_harness_tests;
+  state.sampled_at = OptionalTimeFromMillis(sampled_at_ms);
+  state.idle = idle;
+  return state;
+}
 #endif  // YAZE_WITH_GRPC
 
 }  // namespace
@@ -426,6 +444,115 @@ absl::StatusOr<AutomationResult> GuiAutomationClient::Assert(
   result.resolved_widget_key = response.resolved_widget_key();
   result.resolved_path = response.resolved_path();
   return result;
+#else
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<UiSyncStateSnapshot> GuiAutomationClient::FlushUiActions(
+    int timeout_ms) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError(
+        "Not connected. Call Connect() first.");
+  }
+
+  yaze::test::FlushUiActionsRequest request;
+  request.set_timeout_ms(timeout_ms);
+
+  yaze::test::FlushUiActionsResponse response;
+  grpc::ClientContext context;
+  grpc::Status status = stub_->FlushUiActions(&context, request, &response);
+  if (!status.ok()) {
+    return absl::InternalError(absl::StrFormat("FlushUiActions RPC failed: %s",
+                                               status.error_message()));
+  }
+
+  const bool idle = response.pending_editor_actions() == 0 &&
+                    response.pending_layout_actions() == 0 &&
+                    !response.layout_rebuild_pending() &&
+                    response.pending_harness_tests() == 0;
+  return BuildUiSyncStateSnapshot(
+      response.frame_id(), response.pending_editor_actions(),
+      response.pending_layout_actions(), response.layout_rebuild_pending(),
+      response.pending_harness_tests(), response.queued_harness_tests(),
+      response.running_harness_tests(), /*sampled_at_ms=*/0, idle);
+#else
+  (void)timeout_ms;
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<WaitForIdleResult> GuiAutomationClient::WaitForIdle(
+    int timeout_ms, int stable_frames, bool flush_first, int poll_interval_ms) {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError(
+        "Not connected. Call Connect() first.");
+  }
+
+  yaze::test::WaitForIdleRequest request;
+  request.set_timeout_ms(timeout_ms);
+  request.set_stable_frames(stable_frames);
+  request.set_flush_first(flush_first);
+  request.set_poll_interval_ms(poll_interval_ms);
+
+  yaze::test::WaitForIdleResponse response;
+  grpc::ClientContext context;
+  grpc::Status status = stub_->WaitForIdle(&context, request, &response);
+  if (!status.ok()) {
+    return absl::InternalError(
+        absl::StrFormat("WaitForIdle RPC failed: %s", status.error_message()));
+  }
+
+  WaitForIdleResult result;
+  result.success = response.success();
+  result.message = response.message();
+  result.elapsed = std::chrono::milliseconds(response.elapsed_ms());
+  result.last_frame_id = response.last_frame_id();
+  result.stable_frames_observed = response.stable_frames_observed();
+  const bool idle = response.pending_editor_actions() == 0 &&
+                    response.pending_layout_actions() == 0 &&
+                    !response.layout_rebuild_pending() &&
+                    response.pending_harness_tests() == 0;
+  result.state = BuildUiSyncStateSnapshot(
+      response.last_frame_id(), response.pending_editor_actions(),
+      response.pending_layout_actions(), response.layout_rebuild_pending(),
+      response.pending_harness_tests(), response.queued_harness_tests(),
+      response.running_harness_tests(), /*sampled_at_ms=*/0, idle);
+  result.timeout_reason = response.timeout_reason();
+  return result;
+#else
+  (void)timeout_ms;
+  (void)stable_frames;
+  (void)flush_first;
+  (void)poll_interval_ms;
+  return absl::UnimplementedError("gRPC not available");
+#endif
+}
+
+absl::StatusOr<UiSyncStateSnapshot> GuiAutomationClient::GetUiSyncState() {
+#ifdef YAZE_WITH_GRPC
+  if (!stub_) {
+    return absl::FailedPreconditionError(
+        "Not connected. Call Connect() first.");
+  }
+
+  yaze::test::GetUiSyncStateRequest request;
+  yaze::test::GetUiSyncStateResponse response;
+  grpc::ClientContext context;
+  grpc::Status status = stub_->GetUiSyncState(&context, request, &response);
+  if (!status.ok()) {
+    return absl::InternalError(absl::StrFormat("GetUiSyncState RPC failed: %s",
+                                               status.error_message()));
+  }
+
+  return BuildUiSyncStateSnapshot(
+      response.frame_id(), response.pending_editor_actions(),
+      response.pending_layout_actions(), response.layout_rebuild_pending(),
+      response.pending_harness_tests(), response.queued_harness_tests(),
+      response.running_harness_tests(), response.sampled_at_ms(),
+      response.idle());
 #else
   return absl::UnimplementedError("gRPC not available");
 #endif
