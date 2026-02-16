@@ -26,6 +26,7 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "util/log.h"
 #include "util/platform_paths.h"
 
 namespace yaze {
@@ -348,6 +349,11 @@ void RightPanelManager::SetPanelWidth(PanelType type, float width) {
     return;
   }
   *target = clamped;
+#if !defined(NDEBUG)
+  LOG_INFO("RightPanelManager",
+           "SetPanelWidth type=%d requested=%.1f clamped=%.1f",
+           static_cast<int>(type), width, clamped);
+#endif
   NotifyPanelWidthChanged(type, *target);
 }
 
@@ -513,6 +519,10 @@ std::unordered_map<std::string, float> RightPanelManager::SerializePanelWidths()
 
 void RightPanelManager::RestorePanelWidths(
     const std::unordered_map<std::string, float>& widths) {
+#if !defined(NDEBUG)
+  LOG_INFO("RightPanelManager", "RestorePanelWidths: %zu entries from settings",
+           widths.size());
+#endif
   auto apply = [&](PanelType type) {
     auto it = widths.find(PanelTypeKey(type));
     if (it != widths.end()) {
@@ -672,7 +682,7 @@ void RightPanelManager::Draw() {
 
     // VSCode-style splitter: drag from the left edge to resize.
     if (!closing_ && active_panel_ != PanelType::kNone) {
-      const float handle_width = 6.0f;
+      const float handle_width = gui::UIConfig::kSplitterWidth;
       const ImVec2 win_pos = ImGui::GetWindowPos();
       const float win_height = ImGui::GetWindowHeight();
       ImGui::SetCursorScreenPos(
@@ -754,7 +764,7 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
           ? "Next right panel"
           : absl::StrFormat("Next right panel (%s)", next_shortcut.c_str());
 
-  ImGui::SameLine(0.0f, 6.0f);
+  ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonSpacing);
   if (gui::TransparentIconButton(ICON_MD_CHEVRON_LEFT, gui::IconSize::Small(),
                                  previous_tooltip.c_str(), false,
                                  gui::GetTextSecondaryVec4(), "right_sidebar",
@@ -762,14 +772,14 @@ void RightPanelManager::DrawPanelHeader(const char* title, const char* icon) {
     CycleToPreviousPanel();
   }
 
-  ImGui::SameLine(0.0f, 2.0f);
+  ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonGap);
   if (gui::TransparentIconButton(
           ICON_MD_SWAP_HORIZ, gui::IconSize::Small(), "Panel switcher", false,
           gui::GetTextSecondaryVec4(), "right_sidebar", "switch_panel_menu")) {
     ImGui::OpenPopup("##RightPanelSwitcher");
   }
 
-  ImGui::SameLine(0.0f, 2.0f);
+  ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonGap);
   if (gui::TransparentIconButton(ICON_MD_CHEVRON_RIGHT, gui::IconSize::Small(),
                                  next_tooltip.c_str(), false,
                                  gui::GetTextSecondaryVec4(), "right_sidebar",
