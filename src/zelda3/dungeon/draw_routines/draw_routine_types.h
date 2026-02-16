@@ -60,6 +60,12 @@ struct DrawRoutineInfo {
   int base_width;                   // Base width in tiles (0 = variable)
   int base_height;                  // Base height in tiles (0 = variable)
 
+  // Minimum number of tiles required for this routine to render correctly.
+  // When > 0, ObjectDrawer::DrawObject will skip the routine if the object's
+  // tile payload is smaller, preventing out-of-bounds access in fixed-size
+  // draw patterns. Routines with variable tile counts should leave this at 0.
+  int min_tiles = 0;
+
   // Category for organization
   enum class Category {
     Special,     // Chest, Nothing, Custom, DoorSwitcher

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 
 namespace yaze {
 class Rom;
@@ -45,6 +46,18 @@ struct OracleRomSafetyPreflightOptions {
 // surface detailed diagnostics and machine-readable reports.
 OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
     Rom* rom, const OracleRomSafetyPreflightOptions& options = {});
+
+// Compute SHA-256 hash of a file, returning the lowercase hex string.
+//
+// Uses CommonCrypto (CC_SHA256) on macOS or falls back to shelling out
+// to platform hash utilities (certutil, sha256sum, or shasum).
+absl::StatusOr<std::string> ComputeSha256(const std::string& file_path);
+
+// Verify that the SHA-256 hash of a file matches an expected value.
+//
+// Returns OK if the hashes match, or a DataLoss status if they differ.
+absl::Status VerifySha256(const std::string& file_path,
+                          const std::string& expected_hash);
 
 }  // namespace yaze::zelda3
 

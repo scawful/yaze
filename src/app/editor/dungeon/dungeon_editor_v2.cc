@@ -392,7 +392,7 @@ void DungeonEditorV2::Initialize() {
             recent_rooms_.end());
       },
       [this](const std::string& id) { ShowPanel(id); },
-      [this](bool enabled) { SetWorkbenchWorkflowMode(enabled); }, rom_));
+      [this](bool enabled) { QueueWorkbenchWorkflowMode(enabled); }, rom_));
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
       &entrances_, &current_entrance_id_,
@@ -700,6 +700,8 @@ absl::Status DungeonEditorV2::Load() {
 }
 
 absl::Status DungeonEditorV2::Update() {
+  ProcessPendingWorkflowMode();
+
   const auto& theme = AgentUI::GetTheme();
   if (room_window_class_.ClassId == 0) {
     room_window_class_.ClassId = ImGui::GetID("DungeonRoomClass");
@@ -1292,6 +1294,13 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
   }
 }
 
+void DungeonEditorV2::QueueWorkbenchWorkflowMode(bool enabled,
+                                                 bool show_toast) {
+  pending_workflow_mode_.enabled = enabled;
+  pending_workflow_mode_.show_toast = show_toast;
+  pending_workflow_mode_.pending = true;
+}
+
 void DungeonEditorV2::DrawRoomPanels() {
   for (int i = 0; i < active_rooms_.Size; i++) {
     int room_id = active_rooms_[i];
@@ -1874,6 +1883,17 @@ void DungeonEditorV2::ProcessPendingSwap() {
   OnRoomSelected(new_room_id, /*request_focus=*/false);
 }
 
+void DungeonEditorV2::ProcessPendingWorkflowMode() {
+  if (!pending_workflow_mode_.pending) {
+    return;
+  }
+
+  const bool enabled = pending_workflow_mode_.enabled;
+  const bool show_toast = pending_workflow_mode_.show_toast;
+  pending_workflow_mode_.pending = false;
+  SetWorkbenchWorkflowMode(enabled, show_toast);
+}
+
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   if (IsWorkbenchWorkflowEnabled()) {
     (void)room_id;
@@ -1882,6 +1902,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
 
   auto it = room_viewers_.find(room_id);
   if (it == room_viewers_.end()) {
+    // Creating a new viewer - will add to LRU and evict if needed
     auto viewer = std::make_unique<DungeonCanvasViewer>(rom_);
     viewer->SetCompactHeaderMode(false);
     viewer->SetRoomDetailsExpanded(true);
@@ -2017,8 +2038,51 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetProject(dependencies_.project);
 
     room_viewers_[room_id] = std::move(viewer);
+
+    // Add to LRU (most recent at back)
+    viewer_lru_.push_back(room_id);
+
+    // Evict old viewers if over limit
+    while (room_viewers_.size() > kMaxCachedViewers) {
+      bool evicted = false;
+      // Walk LRU from oldest (front) to newest (back)
+      for (auto lru_it = viewer_lru_.begin(); lru_it != viewer_lru_.end(); ++lru_it) {
+        int candidate_room_id = *lru_it;
+
+        // Skip active rooms (never evict open tabs)
+        bool is_active = false;
+        for (int i = 0; i < active_rooms_.size(); ++i) {
+          if (active_rooms_[i] == candidate_room_id) {
+            is_active = true;
+            break;
+          }
+        }
+        if (is_active) {
+          continue;
+        }
+
+        // Evict this viewer
+        room_viewers_.erase(candidate_room_id);
+        viewer_lru_.erase(lru_it);
+        evicted = true;
+        break;
+      }
+
+      // Safety: if we couldn't evict anything (all rooms are active), break
+      if (!evicted) {
+        break;
+      }
+    }
+
     return room_viewers_[room_id].get();
   }
+
+  // Viewer already exists - update LRU (move to back as most recent)
+  auto lru_it = std::find(viewer_lru_.begin(), viewer_lru_.end(), room_id);
+  if (lru_it != viewer_lru_.end()) {
+    viewer_lru_.erase(lru_it);
+  }
+  viewer_lru_.push_back(room_id);
 
   // Update pinned state from manager even if viewer already exists
   if (dependencies_.panel_manager) {
@@ -2239,16 +2303,21 @@ void DungeonEditorV2::BeginUndoSnapshot(int room_id) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
     return;
 
-  // If there's already a pending snapshot, finalize it first. This handles:
-  // 1. Drag operations where NotifyMutation fires once at drag start but
-  //    NotifyInvalidateCache doesn't fire until later (or the next mutation).
-  // 2. The rare case where two mutations fire for different rooms.
-  if (pending_undo_.room_id >= 0) {
-    FinalizeUndoAction(pending_undo_.room_id);
+  // Detect leaked undo snapshots (double-Begin without Finalize).
+  if (has_pending_undo_) {
+    LOG_ERROR("DungeonEditor",
+              "BeginUndoSnapshot called twice without FinalizeUndoAction. "
+              "Previous snapshot for room %d is being leaked. Finalizing now.",
+              pending_undo_.room_id);
+    // Auto-finalize the leaked snapshot to prevent silent state loss.
+    if (pending_undo_.room_id >= 0) {
+      FinalizeUndoAction(pending_undo_.room_id);
+    }
   }
 
   pending_undo_.room_id = room_id;
   pending_undo_.before_objects = rooms_[room_id].GetTileObjects();
+  has_pending_undo_ = true;
 }
 
 void DungeonEditorV2::FinalizeUndoAction(int room_id) {
@@ -2269,6 +2338,7 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
 
   pending_undo_.room_id = -1;
   pending_undo_.before_objects.clear();
+  has_pending_undo_ = false;
 }
 
 void DungeonEditorV2::SyncPanelsToRoom(int room_id) {

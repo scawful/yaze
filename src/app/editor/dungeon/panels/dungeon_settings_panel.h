@@ -103,6 +103,18 @@ class DungeonSettingsPanel : public EditorPanel {
       }
       ImGui::Unindent();
     }
+
+    if (ImGui::CollapsingHeader(ICON_MD_PALETTE " Layer Compositing",
+                                ImGuiTreeNodeFlags_None)) {
+      ImGui::Indent();
+      if (viewer_ && current_room_id_ && *current_room_id_ >= 0 &&
+          *current_room_id_ < 0x128) {
+        DrawLayerCompositingControls(*current_room_id_);
+      } else {
+        ImGui::TextDisabled("No active room");
+      }
+      ImGui::Unindent();
+    }
   }
 
  private:
@@ -120,6 +132,8 @@ class DungeonSettingsPanel : public EditorPanel {
     flags.kSaveTorches = value;
     flags.kSavePits = value;
   }
+
+  void DrawLayerCompositingControls(int room_id);
 
   DungeonCanvasViewer* viewer_ = nullptr;
   std::function<void(int)> save_room_callback_;

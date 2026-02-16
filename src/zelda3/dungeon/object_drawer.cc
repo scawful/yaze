@@ -221,6 +221,30 @@ absl::Status ObjectDrawer::DrawObject(
     return absl::OkStatus();
   }
 
+  // Null-tile guard: skip routines whose tile payload is too small.
+  // Hack ROMs with abbreviated tile tables would otherwise cause
+  // out-of-bounds access in fixed-size draw patterns.
+  const DrawRoutineInfo* routine_info =
+      DrawRoutineRegistry::Get().GetRoutineInfo(routine_id);
+  if (routine_info && routine_info->min_tiles > 0 &&
+      static_cast<int>(mutable_obj.tiles().size()) <
+          routine_info->min_tiles) {
+    LOG_WARN("ObjectDrawer",
+             "Object 0x%03X at (%d,%d): tile payload too small "
+             "(%zu < %d required by routine '%s') - skipping",
+             object.id_, object.x_, object.y_,
+             mutable_obj.tiles().size(), routine_info->min_tiles,
+             routine_info->name.c_str());
+    // Fall through to 1x1 fallback if any tiles are present
+    if (!mutable_obj.tiles().empty()) {
+      const auto& tile_info = mutable_obj.tiles()[0];
+      SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
+                                      : RoomObject::LayerType::BG1);
+      WriteTile8(target_bg, object.x_, object.y_, tile_info);
+    }
+    return absl::OkStatus();
+  }
+
   bool trace_hook_active = false;
   if (trace_collector_) {
     DrawRoutineUtils::SetTraceHook(&ObjectDrawer::TraceHookThunk, this,

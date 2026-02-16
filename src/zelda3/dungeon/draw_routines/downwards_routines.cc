@@ -227,6 +227,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -239,6 +240,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 2,
+      .min_tiles = 8,  // 4x2 block
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -248,6 +250,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 2,
+      .min_tiles = 8,  // 4x2 block
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -257,6 +260,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 2,
+      .min_tiles = 8,  // 4x2 block
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -266,6 +270,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -275,6 +280,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 3,
+      .min_tiles = 3,  // top edge + middle + bottom edge
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -284,6 +290,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 1,
+      .min_tiles = 1,  // single repeated tile
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -293,6 +300,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 1,
+      .min_tiles = 2,  // 2x1 block
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -302,6 +310,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 1,
+      .min_tiles = 2,  // 2x1 block
       .category = Category::Downwards});
 }
 

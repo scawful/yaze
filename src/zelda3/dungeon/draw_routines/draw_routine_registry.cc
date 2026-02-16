@@ -24,6 +24,14 @@ void DrawRoutineRegistry::Initialize() {
   initialized_ = true;
 }
 
+void DrawRoutineRegistry::RefreshFeatureFlagMappings() {
+  if (!initialized_) {
+    Initialize();
+    return;
+  }
+  BuildObjectMapping();
+}
+
 void DrawRoutineRegistry::BuildRegistry() {
   routines_.clear();
   routine_map_.clear();

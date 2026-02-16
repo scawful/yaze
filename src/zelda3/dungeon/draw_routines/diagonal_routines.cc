@@ -144,6 +144,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 0,  // Variable based on size parameter
       .base_height = 5,
+      .min_tiles = 5,  // 2x2 + 1 diagonal step
       .category = DrawRoutineInfo::Category::Diagonal,
   });
 
@@ -154,6 +155,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 0,  // Variable based on size parameter
       .base_height = 5,
+      .min_tiles = 5,  // 2x2 + 1 diagonal step
       .category = DrawRoutineInfo::Category::Diagonal,
   });
 
@@ -164,6 +166,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 0,  // Variable based on size parameter
       .base_height = 5,
+      .min_tiles = 5,  // 2x2 + 1 diagonal step
       .category = DrawRoutineInfo::Category::Diagonal,
   });
 
@@ -174,6 +177,7 @@ void RegisterDiagonalRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 0,  // Variable based on size parameter
       .base_height = 5,
+      .min_tiles = 5,  // 2x2 + 1 diagonal step
       .category = DrawRoutineInfo::Category::Diagonal,
   });
 }

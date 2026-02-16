@@ -179,6 +179,9 @@ class DrawRoutineRegistry {
   // Initialize the registry - must be called once at startup
   void Initialize();
 
+  // Rebuild object->routine mapping after runtime feature-flag changes.
+  void RefreshFeatureFlagMappings();
+
   // Look up routine info by ID
   const DrawRoutineInfo* GetRoutineInfo(int routine_id) const;
 
