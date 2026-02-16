@@ -416,6 +416,11 @@ class EditorManager {
   void InitializeTestSuites();
   void ApplyStartupVisibilityOverrides();
   void ApplyLayoutDefaultsMigrationIfNeeded();
+  // Returns a preferred startup category, skipping "Emulator" to prevent
+  // the emulator panel from auto-opening on project load.
+  std::string GetPreferredStartupCategory(
+      const std::string& saved_category,
+      const std::vector<std::string>& available_categories) const;
 
   // Session event handlers (EventBus subscribers)
   void HandleSessionSwitched(size_t new_index, RomSession* session);
