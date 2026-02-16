@@ -35,17 +35,22 @@ void ExpectTile16Equals(const gfx::Tile16& lhs, const gfx::Tile16& rhs) {
 class Tile16EditorIntegrationTest : public ::testing::Test {
  protected:
   static void SetUpTestSuite() {
+#ifdef YAZE_ENABLE_ROM_TESTS
     // Initialize SDL and rendering system once for all tests
     InitializeTestEnvironment();
+#endif
   }
 
   static void TearDownTestSuite() {
+#ifdef YAZE_ENABLE_ROM_TESTS
     // Clean up SDL
     if (window_initialized_) {
       auto shutdown_result = core::ShutdownWindow(test_window_);
       (void)shutdown_result;  // Suppress unused variable warning
       window_initialized_ = false;
     }
+    test_renderer_.reset();
+#endif
   }
 
   void SetUp() override {
@@ -56,9 +61,8 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
     // Load the test ROM
     rom_ = std::make_unique<Rom>();
-    YAZE_SKIP_IF_ROM_MISSING(
-        yaze::test::RomRole::kVanilla,
-        "Tile16EditorIntegrationTest");
+    YAZE_SKIP_IF_ROM_MISSING(yaze::test::RomRole::kVanilla,
+                             "Tile16EditorIntegrationTest");
     const std::string rom_path =
         yaze::test::TestRomManager::GetRomPath(yaze::test::RomRole::kVanilla);
     auto load_result = rom_->LoadFromFile(rom_path);
@@ -122,6 +126,7 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
       window_initialized_ = true;
     } else {
       window_initialized_ = false;
+      test_renderer_.reset();
       // Log the error but don't fail test setup
       std::cerr << "Failed to initialize test window: "
                 << window_result.message() << std::endl;
@@ -345,7 +350,8 @@ TEST_F(Tile16EditorIntegrationTest, ScratchSpaceWithROM) {
   ExpectTile16Equals(*target_tile, *source_tile);
 
   auto clear_result = editor_->ClearScratchSpace(kSlot);
-  EXPECT_TRUE(clear_result.ok()) << "Scratch clear failed: " << clear_result.message();
+  EXPECT_TRUE(clear_result.ok())
+      << "Scratch clear failed: " << clear_result.message();
 #else
   GTEST_SKIP() << "ROM tests disabled";
 #endif
@@ -411,10 +417,14 @@ TEST_F(Tile16EditorIntegrationTest, FlipHorizontalPersistsQuadrantMapping) {
   EXPECT_EQ(after->tile1_.id_, before->tile0_.id_);
   EXPECT_EQ(after->tile2_.id_, before->tile3_.id_);
   EXPECT_EQ(after->tile3_.id_, before->tile2_.id_);
-  EXPECT_EQ(after->tile0_.horizontal_mirror_, !before->tile1_.horizontal_mirror_);
-  EXPECT_EQ(after->tile1_.horizontal_mirror_, !before->tile0_.horizontal_mirror_);
-  EXPECT_EQ(after->tile2_.horizontal_mirror_, !before->tile3_.horizontal_mirror_);
-  EXPECT_EQ(after->tile3_.horizontal_mirror_, !before->tile2_.horizontal_mirror_);
+  EXPECT_EQ(after->tile0_.horizontal_mirror_,
+            !before->tile1_.horizontal_mirror_);
+  EXPECT_EQ(after->tile1_.horizontal_mirror_,
+            !before->tile0_.horizontal_mirror_);
+  EXPECT_EQ(after->tile2_.horizontal_mirror_,
+            !before->tile3_.horizontal_mirror_);
+  EXPECT_EQ(after->tile3_.horizontal_mirror_,
+            !before->tile2_.horizontal_mirror_);
 #else
   GTEST_SKIP() << "ROM tests disabled";
 #endif
@@ -432,7 +442,7 @@ TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux1Sheets) {
 
   // Sheet 3 also uses row-based (same values)
   EXPECT_EQ(editor_->GetActualPaletteSlot(0, 3), 32);
-  EXPECT_EQ(editor_->GetActualPaletteSlot(4, 3), 96);   // Row 6
+  EXPECT_EQ(editor_->GetActualPaletteSlot(4, 3), 96);  // Row 6
 
   // Sheet 4 also uses row-based
   EXPECT_EQ(editor_->GetActualPaletteSlot(0, 4), 32);

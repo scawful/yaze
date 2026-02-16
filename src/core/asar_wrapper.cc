@@ -10,8 +10,8 @@
 #include <iterator>
 #include <sstream>
 #ifndef _WIN32
-#include <unistd.h>
 #include <sys/wait.h>
+#include <unistd.h>
 #else
 #include <process.h>
 #endif
@@ -474,7 +474,7 @@ absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithBinary(
 
   if (exit_code != 0 && last_errors_.empty()) {
     last_errors_.push_back(
-        absl::StrFormat("Asar CLI exited with status %d", exit_code));
+        absl::StrFormat("Asar CLI error: exited with status %d", exit_code));
   }
 
   if (!last_errors_.empty()) {

@@ -17,7 +17,8 @@ namespace yaze::editor {
 namespace {
 
 struct DungeonSaveFlagsGuard {
-  decltype(core::FeatureFlags::get().dungeon) prev = core::FeatureFlags::get().dungeon;
+  decltype(core::FeatureFlags::get().dungeon) prev =
+      core::FeatureFlags::get().dungeon;
   ~DungeonSaveFlagsGuard() { core::FeatureFlags::get().dungeon = prev; }
 };
 
@@ -121,7 +122,8 @@ TEST(DungeonEditorV2RomSafetyTest,
   editor->rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
   editor->rooms()[0].set_water_fill_sram_bit_mask(0x01);
   editor->rooms()[1].SetWaterFillTile(/*x=*/2, /*y=*/2, /*filled=*/true);
-  editor->rooms()[1].set_water_fill_sram_bit_mask(0x01);  // Duplicate on purpose.
+  editor->rooms()[1].set_water_fill_sram_bit_mask(
+      0x01);  // Duplicate on purpose.
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -153,7 +155,8 @@ TEST(DungeonEditorV2RomSafetyTest,
 
   auto editor = std::make_unique<DungeonEditorV2>(&rom);
   editor->rooms()[0].SetWaterFillTile(/*x=*/4, /*y=*/4, /*filled=*/true);
-  editor->rooms()[0].set_water_fill_sram_bit_mask(0x03);  // Invalid (not single-bit).
+  editor->rooms()[0].set_water_fill_sram_bit_mask(
+      0x03);  // Invalid (not single-bit).
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -237,8 +240,8 @@ TEST(DungeonEditorV2RomSafetyTest, UndoSnapshotLeakDetection) {
   room.ClearTileObjects();
 
   // Add an initial object to make changes detectable.
-  room.AddTileObject(
-      zelda3::RoomObject(/*id=*/0x01, /*x=*/10, /*y=*/10, /*size=*/0, /*layer=*/0));
+  room.AddTileObject(zelda3::RoomObject(/*id=*/0x01, /*x=*/10, /*y=*/10,
+                                        /*size=*/0, /*layer=*/0));
 
   // First BeginUndoSnapshot should work normally.
   editor->BeginUndoSnapshot(0);
@@ -250,7 +253,8 @@ TEST(DungeonEditorV2RomSafetyTest, UndoSnapshotLeakDetection) {
   // This tests that double-Begin is handled gracefully.
   editor->BeginUndoSnapshot(0);
   EXPECT_TRUE(editor->has_pending_undo_)
-      << "has_pending_undo_ should still be true after second BeginUndoSnapshot";
+      << "has_pending_undo_ should still be true after second "
+         "BeginUndoSnapshot";
 
   // FinalizeUndoAction should clear the flag.
   editor->FinalizeUndoAction(0);
@@ -266,6 +270,120 @@ TEST(DungeonEditorV2RomSafetyTest, UndoSnapshotLeakDetection) {
   editor->FinalizeUndoAction(0);
   EXPECT_FALSE(editor->has_pending_undo_)
       << "has_pending_undo_ should be false after final FinalizeUndoAction";
+}
+
+TEST(DungeonEditorV2RomSafetyTest, ViewerCacheLRUEviction) {
+  test::MockRom rom;
+  ASSERT_TRUE(rom.SetTestData(std::vector<uint8_t>(0x8000, 0)).ok());
+
+  // Disable workbench mode to test individual room viewers
+  auto prev_workbench = core::FeatureFlags::get().dungeon.kUseWorkbench;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = false;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+
+  // Create 25 viewers (exceeds kMaxCachedViewers = 20)
+  for (int i = 0; i < 25; ++i) {
+    auto* viewer = editor->GetViewerForRoom(i);
+    ASSERT_NE(viewer, nullptr) << "Failed to get viewer for room " << i;
+  }
+
+  // Verify that viewer count is at most kMaxCachedViewers
+  EXPECT_LE(editor->room_viewers_.size(),
+            static_cast<size_t>(DungeonEditorV2::kMaxCachedViewers))
+      << "Viewer cache should not exceed kMaxCachedViewers";
+
+  // Verify LRU ordering: most recent rooms (20-24) should still be cached
+  for (int i = 20; i < 25; ++i) {
+    EXPECT_NE(editor->room_viewers_.find(i), editor->room_viewers_.end())
+        << "Recent room " << i << " should still be cached";
+  }
+
+  // Verify oldest rooms (0-4) were evicted
+  int evicted_count = 0;
+  for (int i = 0; i < 5; ++i) {
+    if (editor->room_viewers_.find(i) == editor->room_viewers_.end()) {
+      evicted_count++;
+    }
+  }
+  EXPECT_GT(evicted_count, 0) << "Some old rooms should have been evicted";
+
+  // Restore workbench flag
+  core::FeatureFlags::get().dungeon.kUseWorkbench = prev_workbench;
+}
+
+TEST(DungeonEditorV2RomSafetyTest, ViewerCacheNeverEvictsActiveRooms) {
+  test::MockRom rom;
+  ASSERT_TRUE(rom.SetTestData(std::vector<uint8_t>(0x8000, 0)).ok());
+
+  // Disable workbench mode to test individual room viewers
+  auto prev_workbench = core::FeatureFlags::get().dungeon.kUseWorkbench;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = false;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+
+  // Mark room 0 as active
+  editor->active_rooms_.push_back(0);
+
+  // Get viewer for room 0
+  auto* viewer0 = editor->GetViewerForRoom(0);
+  ASSERT_NE(viewer0, nullptr);
+
+  // Create 25 more viewers (should trigger eviction)
+  for (int i = 1; i < 26; ++i) {
+    auto* viewer = editor->GetViewerForRoom(i);
+    ASSERT_NE(viewer, nullptr);
+  }
+
+  // Verify room 0 is still cached (it's active, so should not be evicted)
+  EXPECT_NE(editor->room_viewers_.find(0), editor->room_viewers_.end())
+      << "Active room 0 should never be evicted";
+
+  // Verify the same viewer instance is returned
+  EXPECT_EQ(editor->GetViewerForRoom(0), viewer0)
+      << "Active room viewer should remain the same instance";
+
+  // Restore workbench flag
+  core::FeatureFlags::get().dungeon.kUseWorkbench = prev_workbench;
+}
+
+TEST(DungeonEditorV2RomSafetyTest, ViewerCacheLRUAccessOrderUpdate) {
+  test::MockRom rom;
+  ASSERT_TRUE(rom.SetTestData(std::vector<uint8_t>(0x8000, 0)).ok());
+
+  // Disable workbench mode to test individual room viewers
+  auto prev_workbench = core::FeatureFlags::get().dungeon.kUseWorkbench;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = false;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+
+  // Create 20 viewers (exactly at limit)
+  for (int i = 0; i < 20; ++i) {
+    auto* viewer = editor->GetViewerForRoom(i);
+    ASSERT_NE(viewer, nullptr);
+  }
+
+  EXPECT_EQ(editor->room_viewers_.size(),
+            static_cast<size_t>(DungeonEditorV2::kMaxCachedViewers));
+
+  // Access room 0 again (should move it to the back of LRU)
+  auto* viewer0 = editor->GetViewerForRoom(0);
+  ASSERT_NE(viewer0, nullptr);
+
+  // Create one more viewer (should evict room 1, not room 0)
+  auto* viewer20 = editor->GetViewerForRoom(20);
+  ASSERT_NE(viewer20, nullptr);
+
+  // Verify room 0 is still cached (was recently accessed)
+  EXPECT_NE(editor->room_viewers_.find(0), editor->room_viewers_.end())
+      << "Recently accessed room 0 should not be evicted";
+
+  // Verify room 1 was evicted (oldest in LRU after room 0 was accessed)
+  EXPECT_EQ(editor->room_viewers_.find(1), editor->room_viewers_.end())
+      << "Room 1 should have been evicted as the oldest";
+
+  // Restore workbench flag
+  core::FeatureFlags::get().dungeon.kUseWorkbench = prev_workbench;
 }
 
 }  // namespace yaze::editor

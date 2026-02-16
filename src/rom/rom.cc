@@ -66,6 +66,34 @@ void MaybeStripSmcHeader(std::vector<uint8_t>& rom_data, unsigned long& size) {
   }
 }
 
+std::string MakeSafeTimestamp(std::time_t now_c) {
+  std::string timestamp = std::ctime(&now_c);
+  timestamp.erase(std::remove(timestamp.begin(), timestamp.end(), '\n'),
+                  timestamp.end());
+  std::replace(timestamp.begin(), timestamp.end(), ' ', '_');
+
+  // Keep backup/save-new filenames valid across platforms (especially
+  // Windows, where ':' and several other characters are not allowed).
+  for (char& ch : timestamp) {
+    switch (ch) {
+      case '<':
+      case '>':
+      case ':':
+      case '"':
+      case '/':
+      case '\\':
+      case '|':
+      case '?':
+      case '*':
+        ch = '-';
+        break;
+      default:
+        break;
+    }
+  }
+  return timestamp;
+}
+
 #ifdef __EMSCRIPTEN__
 inline void MaybeBroadcastChange(uint32_t offset,
                                  const std::vector<uint8_t>& old_bytes,
@@ -84,11 +112,10 @@ inline void MaybeBroadcastChange(uint32_t offset,
 void BestEffortFsyncFile(const std::filesystem::path& path) {
 #if defined(_WIN32)
   // FlushFileBuffers requires GENERIC_WRITE access.
-  HANDLE handle = CreateFileW(path.wstring().c_str(), GENERIC_WRITE,
-                              FILE_SHARE_READ | FILE_SHARE_WRITE |
-                                  FILE_SHARE_DELETE,
-                              nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-                              nullptr);
+  HANDLE handle =
+      CreateFileW(path.wstring().c_str(), GENERIC_WRITE,
+                  FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+                  nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
   if (handle == INVALID_HANDLE_VALUE) {
     return;
   }
@@ -201,24 +228,24 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
     // Simple heuristic: Z3 is LoROM
     size_t header_offset = 0x7FC0;
     if (rom_data_.size() >= 0x10000) {
-        // Compute checksums to verify?
-        // For now default to LoROM
+      // Compute checksums to verify?
+      // For now default to LoROM
     }
-    
+
     if (header_offset + 21 <= rom_data_.size()) {
-        char buffer[22] = {0};
-        for (int i = 0; i < 21; ++i) {
-            uint8_t c = rom_data_[header_offset + i];
-            buffer[i] = (c >= 32 && c <= 126) ? c : ' ';
-        }
-        title_ = std::string(buffer);
-        // Trim trailing spaces safely
-        auto last_non_space = title_.find_last_not_of(' ');
-        if (last_non_space == std::string::npos) {
-          title_.clear();
-        } else {
-          title_.erase(last_non_space + 1);
-        }
+      char buffer[22] = {0};
+      for (int i = 0; i < 21; ++i) {
+        uint8_t c = rom_data_[header_offset + i];
+        buffer[i] = (c >= 32 && c <= 126) ? c : ' ';
+      }
+      title_ = std::string(buffer);
+      // Trim trailing spaces safely
+      auto last_non_space = title_.find_last_not_of(' ');
+      if (last_non_space == std::string::npos) {
+        title_.clear();
+      } else {
+        title_.erase(last_non_space + 1);
+      }
     }
   }
 
@@ -243,18 +270,18 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
   if (rom_data_.size() >= 0x8000) {
     size_t header_offset = 0x7FC0;
     if (header_offset + 21 <= rom_data_.size()) {
-        char buffer[22] = {0};
-        for (int i = 0; i < 21; ++i) {
-            uint8_t c = rom_data_[header_offset + i];
-            buffer[i] = (c >= 32 && c <= 126) ? c : ' ';
-        }
-        title_ = std::string(buffer);
-        auto last_non_space = title_.find_last_not_of(' ');
-        if (last_non_space == std::string::npos) {
-          title_.clear();
-        } else {
-          title_.erase(last_non_space + 1);
-        }
+      char buffer[22] = {0};
+      for (int i = 0; i < 21; ++i) {
+        uint8_t c = rom_data_[header_offset + i];
+        buffer[i] = (c >= 32 && c <= 126) ? c : ' ';
+      }
+      title_ = std::string(buffer);
+      auto last_non_space = title_.find_last_not_of(' ');
+      if (last_non_space == std::string::npos) {
+        title_.clear();
+      } else {
+        title_.erase(last_non_space + 1);
+      }
     }
   }
 
@@ -275,12 +302,7 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     std::string backup_filename =
-        absl::StrCat(filename, "_backup_", std::ctime(&now_c));
-
-    backup_filename.erase(
-        std::remove(backup_filename.begin(), backup_filename.end(), '\n'),
-        backup_filename.end());
-    std::replace(backup_filename.begin(), backup_filename.end(), ' ', '_');
+        absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
 
     try {
       std::filesystem::copy(filename_, backup_filename,
@@ -294,12 +316,8 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
-    filename = absl::StrCat(filename_no_ext, "_", std::ctime(&now_c));
-    filename.erase(std::remove(filename.begin(), filename.end(), ' '),
-                   filename.end());
-    filename.erase(std::remove(filename.begin(), filename.end(), '\n'),
-                   filename.end());
-    filename = filename + ".sfc";
+    filename =
+        absl::StrCat(filename_no_ext, "_", MakeSafeTimestamp(now_c), ".sfc");
   }
 
   // Save stability: write to a temp file in the same directory and rename into
@@ -320,8 +338,8 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     file.close();
     std::error_code rm_ec;
     std::filesystem::remove(temp_path, rm_ec);
-    return absl::InternalError(absl::StrCat("Error while writing ROM file: ",
-                                            temp_path.string()));
+    return absl::InternalError(
+        absl::StrCat("Error while writing ROM file: ", temp_path.string()));
   }
 
   file.close();
