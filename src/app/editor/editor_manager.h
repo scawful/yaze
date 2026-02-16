@@ -3,6 +3,7 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 
+#include <atomic>
 #include <cstddef>
 #include <functional>
 #include <memory>
@@ -12,43 +13,43 @@
 #include "absl/status/status.h"
 #include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/code/project_file_editor.h"
-#include "app/editor/editor.h"
-#include "app/editor/menu/activity_bar.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/core/editor_context.h"
 #include "app/editor/core/event_bus.h"
+#include "app/editor/editor.h"
+#include "app/editor/layout/layout_coordinator.h"
+#include "app/editor/layout/layout_manager.h"
+#include "app/editor/layout/window_delegate.h"
+#include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/menu/right_panel_manager.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/panel_host.h"
-#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/editor_activator.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/ui/popup_manager.h"
+#include "app/editor/system/panel_host.h"
+#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/ui/toast_manager.h"
 #include "app/editor/system/user_settings.h"
-#include "app/editor/layout/layout_coordinator.h"
-#include "app/editor/layout/layout_manager.h"
-#include "app/editor/layout/window_delegate.h"
 #include "app/editor/ui/dashboard_panel.h"
-#include "app/editor/ui/rom_load_options_dialog.h"
+#include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/project_management_panel.h"
+#include "app/editor/ui/rom_load_options_dialog.h"
 #include "app/editor/ui/selection_properties_panel.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/editor/ui/workspace_manager.h"
 #include "app/emu/emulator.h"
 #include "app/startup_flags.h"
-#include "rom/rom.h"
 #include "core/project.h"
 #include "core/version_manager.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "util/log.h"
 #include "yaze_config.h"
 #include "zelda3/overworld/overworld.h"
@@ -85,6 +86,13 @@ namespace editor {
  */
 class EditorManager {
  public:
+  struct UiSyncState {
+    uint64_t frame_id = 0;
+    int pending_editor_actions = 0;
+    int pending_layout_actions = 0;
+    bool layout_rebuild_pending = false;
+  };
+
   enum class PotItemSaveDecision {
     kSaveWithPotItems,
     kSaveWithoutPotItems,
@@ -101,14 +109,14 @@ class EditorManager {
   // Processes startup flags to open a specific editor and panels.
   void OpenEditorAndPanelsFromFlags(const std::string& editor_name,
                                     const std::string& panels_str);
-                                   
+
   // Apply startup actions based on AppConfig
   void ProcessStartupActions(const AppConfig& config);
   void ApplyStartupVisibility(const AppConfig& config);
 
   void SetAssetLoadMode(AssetLoadMode mode);
   AssetLoadMode asset_load_mode() const { return asset_load_mode_; }
-                                   
+
   absl::Status Update();
   void DrawMainMenuBar();
 
@@ -118,11 +126,12 @@ class EditorManager {
   auto emulator() -> emu::Emulator& { return emulator_; }
   auto quit() const { return quit_; }
   auto version() const { return version_; }
-  
 
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
-  RightPanelManager* right_panel_manager() { return right_panel_manager_.get(); }
+  RightPanelManager* right_panel_manager() {
+    return right_panel_manager_.get();
+  }
   StatusBar* status_bar() { return &status_bar_; }
   ToastManager* toast_manager() { return &toast_manager_; }
   PanelManager* GetPanelManager() { return &panel_manager_; }
@@ -130,7 +139,7 @@ class EditorManager {
   const PanelManager& panel_manager() const { return panel_manager_; }
   PanelHost* panel_host() { return panel_host_.get(); }
   const PanelHost* panel_host() const { return panel_host_.get(); }
-  
+
   // Deprecated compatibility wrappers
   PanelManager& card_registry() { return panel_manager_; }
   const PanelManager& card_registry() const { return panel_manager_; }
@@ -207,8 +216,10 @@ class EditorManager {
   // Get current session's feature flags (falls back to global if no session)
   core::FeatureFlags::Flags* GetCurrentFeatureFlags() {
     size_t current_index = GetCurrentSessionIndex();
-    if (session_coordinator_ && current_index < session_coordinator_->GetTotalSessionCount()) {
-      auto* session = static_cast<RomSession*>(session_coordinator_->GetSession(current_index));
+    if (session_coordinator_ &&
+        current_index < session_coordinator_->GetTotalSessionCount()) {
+      auto* session = static_cast<RomSession*>(
+          session_coordinator_->GetSession(current_index));
       if (session) {
         return &session->feature_flags;
       }
@@ -250,7 +261,6 @@ class EditorManager {
       ui_coordinator_->SetPanelSidebarVisible(visible);
     }
   }
-
 
   // Lazy asset loading helpers
   absl::Status EnsureEditorAssetsLoaded(EditorType type);
@@ -302,7 +312,10 @@ class EditorManager {
   // Use this to avoid modifying ImGui state during menu/popup rendering
   void QueueDeferredAction(std::function<void()> action) {
     deferred_actions_.push_back(std::move(action));
+    pending_editor_deferred_actions_.fetch_add(1, std::memory_order_relaxed);
   }
+
+  UiSyncState GetUiSyncStateSnapshot() const;
 
   // Public for SessionCoordinator to configure new sessions
   void ConfigureSession(RomSession* session);
@@ -369,12 +382,14 @@ class EditorManager {
   // Project management
   absl::Status LoadProjectWithRom();
   project::YazeProject* GetCurrentProject() { return &current_project_; }
-  const project::YazeProject* GetCurrentProject() const { return &current_project_; }
+  const project::YazeProject* GetCurrentProject() const {
+    return &current_project_;
+  }
   core::VersionManager* GetVersionManager() { return version_manager_.get(); }
-  
+
   // Show project management panel in right sidebar
   void ShowProjectManagement();
-  
+
   // Show project file editor
   void ShowProjectFileEditor();
 
@@ -425,6 +440,7 @@ class EditorManager {
   void RunEmulator();
 
   void HandleSessionRomLoaded(size_t index, Rom* rom);
+  void RefreshResourceLabelProvider();
 
   // UI action event handler (EventBus subscriber for UIActionRequestEvent)
   void HandleUIActionRequest(UIActionRequestEvent::Action action);
@@ -502,11 +518,11 @@ class EditorManager {
   EditorActivator editor_activator_;
   std::unique_ptr<SessionCoordinator> session_coordinator_;
   std::unique_ptr<LayoutManager>
-      layout_manager_;  // DockBuilder layout management
+      layout_manager_;                    // DockBuilder layout management
   LayoutCoordinator layout_coordinator_;  // Facade for layout operations
   std::unique_ptr<RightPanelManager>
       right_panel_manager_;  // Right-side panel system
-  StatusBar status_bar_;    // Bottom status bar
+  StatusBar status_bar_;     // Bottom status bar
   std::unique_ptr<ActivityBar> activity_bar_;
   WorkspaceManager workspace_manager_{&toast_manager_};
 
@@ -537,6 +553,8 @@ class EditorManager {
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;
+  std::atomic<int> pending_editor_deferred_actions_{0};
+  std::atomic<uint64_t> ui_sync_frame_id_{0};
 
   // Core Event Bus and Context
   EventBus event_bus_;
