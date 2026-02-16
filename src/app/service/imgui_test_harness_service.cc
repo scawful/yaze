@@ -429,6 +429,84 @@ absl::StatusOr<ParsedCondition> ResolveCondition(
   return parsed;
 }
 
+struct UiSyncSnapshot {
+  int64_t frame_id = 0;
+  int32_t pending_editor_actions = 0;
+  int32_t pending_layout_actions = 0;
+  bool layout_rebuild_pending = false;
+  int32_t pending_harness_tests = 0;
+  int32_t queued_harness_tests = 0;
+  int32_t running_harness_tests = 0;
+};
+
+editor::EditorManager* GetEditorManagerForSync() {
+  Controller* controller = Application::Instance().GetController();
+  if (!controller) {
+    return nullptr;
+  }
+  return controller->editor_manager();
+}
+
+UiSyncSnapshot CaptureUiSyncSnapshot(TestManager* test_manager) {
+  UiSyncSnapshot snapshot;
+  if (editor::EditorManager* editor_manager = GetEditorManagerForSync()) {
+    const editor::EditorManager::UiSyncState state =
+        editor_manager->GetUiSyncStateSnapshot();
+    snapshot.frame_id = static_cast<int64_t>(state.frame_id);
+    snapshot.pending_editor_actions = state.pending_editor_actions;
+    snapshot.pending_layout_actions = state.pending_layout_actions;
+    snapshot.layout_rebuild_pending = state.layout_rebuild_pending;
+  }
+
+  if (test_manager) {
+    const std::vector<HarnessTestSummary> summaries =
+        test_manager->ListHarnessTestSummaries();
+    for (const HarnessTestSummary& summary : summaries) {
+      switch (summary.latest_execution.status) {
+        case HarnessTestStatus::kQueued:
+          snapshot.queued_harness_tests++;
+          break;
+        case HarnessTestStatus::kRunning:
+          snapshot.running_harness_tests++;
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  snapshot.pending_harness_tests =
+      snapshot.queued_harness_tests + snapshot.running_harness_tests;
+  return snapshot;
+}
+
+bool IsUiIdle(const UiSyncSnapshot& snapshot) {
+  return snapshot.pending_editor_actions == 0 &&
+         snapshot.pending_layout_actions == 0 &&
+         !snapshot.layout_rebuild_pending &&
+         snapshot.pending_harness_tests == 0;
+}
+
+std::string BuildIdleTimeoutReason(const UiSyncSnapshot& snapshot) {
+  return absl::StrFormat(
+      "pending_editor=%d pending_layout=%d layout_rebuild=%s queued_tests=%d "
+      "running_tests=%d",
+      snapshot.pending_editor_actions, snapshot.pending_layout_actions,
+      snapshot.layout_rebuild_pending ? "true" : "false",
+      snapshot.queued_harness_tests, snapshot.running_harness_tests);
+}
+
+int32_t NormalizeTimeoutMs(int32_t timeout_ms, int32_t fallback_ms) {
+  return timeout_ms <= 0 ? fallback_ms : timeout_ms;
+}
+
+int32_t NormalizePollIntervalMs(int32_t poll_interval_ms) {
+  if (poll_interval_ms <= 0) {
+    return 25;
+  }
+  return std::clamp(poll_interval_ms, 5, 1000);
+}
+
 }  // namespace
 
 // gRPC service wrapper that forwards to our implementation
@@ -465,6 +543,24 @@ class ImGuiTestHarnessServiceGrpc final : public ImGuiTestHarness::Service {
                         const AssertRequest* request,
                         AssertResponse* response) override {
     return ConvertStatus(impl_->Assert(request, response));
+  }
+
+  ::grpc::Status FlushUiActions(::grpc::ServerContext* context,
+                                const FlushUiActionsRequest* request,
+                                FlushUiActionsResponse* response) override {
+    return ConvertStatus(impl_->FlushUiActions(request, response));
+  }
+
+  ::grpc::Status WaitForIdle(::grpc::ServerContext* context,
+                             const WaitForIdleRequest* request,
+                             WaitForIdleResponse* response) override {
+    return ConvertStatus(impl_->WaitForIdle(request, response));
+  }
+
+  ::grpc::Status GetUiSyncState(::grpc::ServerContext* context,
+                                const GetUiSyncStateRequest* request,
+                                GetUiSyncStateResponse* response) override {
+    return ConvertStatus(impl_->GetUiSyncState(request, response));
   }
 
   ::grpc::Status Screenshot(::grpc::ServerContext* context,
@@ -1411,6 +1507,164 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
 #endif
 
   return finalize(absl::OkStatus());
+}
+
+absl::Status ImGuiTestHarnessServiceImpl::FlushUiActions(
+    const FlushUiActionsRequest* request, FlushUiActionsResponse* response) {
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  const int32_t timeout_ms =
+      NormalizeTimeoutMs(request ? request->timeout_ms() : 0, 2000);
+  const absl::Duration timeout = absl::Milliseconds(timeout_ms);
+  const absl::Time deadline = absl::Now() + timeout;
+  const absl::Time started_at = absl::Now();
+
+  UiSyncSnapshot initial = CaptureUiSyncSnapshot(test_manager_);
+  UiSyncSnapshot snapshot = initial;
+
+  if (initial.pending_editor_actions == 0 &&
+      initial.pending_layout_actions == 0 && !initial.layout_rebuild_pending) {
+    response->set_success(true);
+    response->set_message("UI queues already idle");
+    response->set_elapsed_ms(0);
+    response->set_frame_id(initial.frame_id);
+    response->set_pending_editor_actions(initial.pending_editor_actions);
+    response->set_pending_layout_actions(initial.pending_layout_actions);
+    response->set_layout_rebuild_pending(initial.layout_rebuild_pending);
+    response->set_pending_harness_tests(initial.pending_harness_tests);
+    response->set_queued_harness_tests(initial.queued_harness_tests);
+    response->set_running_harness_tests(initial.running_harness_tests);
+    return absl::OkStatus();
+  }
+
+  while (absl::Now() <= deadline) {
+    snapshot = CaptureUiSyncSnapshot(test_manager_);
+    const bool frame_advanced = snapshot.frame_id > initial.frame_id;
+    const bool queues_flushed = snapshot.pending_editor_actions == 0 &&
+                                snapshot.pending_layout_actions == 0 &&
+                                !snapshot.layout_rebuild_pending;
+    if (frame_advanced && queues_flushed) {
+      break;
+    }
+    absl::SleepFor(absl::Milliseconds(10));
+  }
+
+  const int32_t elapsed_ms = ClampDurationToInt32(absl::Now() - started_at);
+  const bool success = snapshot.pending_editor_actions == 0 &&
+                       snapshot.pending_layout_actions == 0 &&
+                       !snapshot.layout_rebuild_pending;
+  response->set_success(success);
+  response->set_message(success ? "Deferred UI actions flushed"
+                                : "Timed out waiting for UI action flush");
+  response->set_elapsed_ms(elapsed_ms);
+  response->set_frame_id(snapshot.frame_id);
+  response->set_pending_editor_actions(snapshot.pending_editor_actions);
+  response->set_pending_layout_actions(snapshot.pending_layout_actions);
+  response->set_layout_rebuild_pending(snapshot.layout_rebuild_pending);
+  response->set_pending_harness_tests(snapshot.pending_harness_tests);
+  response->set_queued_harness_tests(snapshot.queued_harness_tests);
+  response->set_running_harness_tests(snapshot.running_harness_tests);
+  return absl::OkStatus();
+}
+
+absl::Status ImGuiTestHarnessServiceImpl::WaitForIdle(
+    const WaitForIdleRequest* request, WaitForIdleResponse* response) {
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  const int32_t timeout_ms =
+      NormalizeTimeoutMs(request ? request->timeout_ms() : 0, 5000);
+  const int32_t required_stable_frames =
+      std::max(1, request ? request->stable_frames() : 2);
+  const int32_t poll_interval_ms =
+      NormalizePollIntervalMs(request ? request->poll_interval_ms() : 25);
+  const bool flush_first = request ? request->flush_first() : false;
+
+  const absl::Time started_at = absl::Now();
+  const absl::Time deadline = started_at + absl::Milliseconds(timeout_ms);
+
+  if (flush_first) {
+    FlushUiActionsRequest flush_request;
+    flush_request.set_timeout_ms(std::min(timeout_ms, 2000));
+    FlushUiActionsResponse flush_response;
+    absl::Status flush_status = FlushUiActions(&flush_request, &flush_response);
+    if (!flush_status.ok()) {
+      return flush_status;
+    }
+  }
+
+  UiSyncSnapshot snapshot = CaptureUiSyncSnapshot(test_manager_);
+  int32_t stable_frames_observed = 0;
+  int64_t last_frame_id = -1;
+
+  while (absl::Now() <= deadline) {
+    snapshot = CaptureUiSyncSnapshot(test_manager_);
+
+    const bool is_idle_now = IsUiIdle(snapshot);
+    if (snapshot.frame_id != last_frame_id) {
+      last_frame_id = snapshot.frame_id;
+      stable_frames_observed = is_idle_now ? (stable_frames_observed + 1) : 0;
+    } else if (!is_idle_now) {
+      stable_frames_observed = 0;
+    }
+
+    if (stable_frames_observed >= required_stable_frames) {
+      response->set_success(true);
+      response->set_message(absl::StrFormat(
+          "UI idle for %d consecutive frame(s)", stable_frames_observed));
+      response->set_elapsed_ms(ClampDurationToInt32(absl::Now() - started_at));
+      response->set_last_frame_id(snapshot.frame_id);
+      response->set_stable_frames_observed(stable_frames_observed);
+      response->set_pending_editor_actions(snapshot.pending_editor_actions);
+      response->set_pending_layout_actions(snapshot.pending_layout_actions);
+      response->set_layout_rebuild_pending(snapshot.layout_rebuild_pending);
+      response->set_pending_harness_tests(snapshot.pending_harness_tests);
+      response->set_queued_harness_tests(snapshot.queued_harness_tests);
+      response->set_running_harness_tests(snapshot.running_harness_tests);
+      response->set_timeout_reason("");
+      return absl::OkStatus();
+    }
+
+    absl::SleepFor(absl::Milliseconds(poll_interval_ms));
+  }
+
+  const std::string timeout_reason = BuildIdleTimeoutReason(snapshot);
+  response->set_success(false);
+  response->set_message("Timed out waiting for deterministic UI idle");
+  response->set_elapsed_ms(ClampDurationToInt32(absl::Now() - started_at));
+  response->set_last_frame_id(snapshot.frame_id);
+  response->set_stable_frames_observed(stable_frames_observed);
+  response->set_pending_editor_actions(snapshot.pending_editor_actions);
+  response->set_pending_layout_actions(snapshot.pending_layout_actions);
+  response->set_layout_rebuild_pending(snapshot.layout_rebuild_pending);
+  response->set_pending_harness_tests(snapshot.pending_harness_tests);
+  response->set_queued_harness_tests(snapshot.queued_harness_tests);
+  response->set_running_harness_tests(snapshot.running_harness_tests);
+  response->set_timeout_reason(timeout_reason);
+  return absl::OkStatus();
+}
+
+absl::Status ImGuiTestHarnessServiceImpl::GetUiSyncState(
+    const GetUiSyncStateRequest* /*request*/,
+    GetUiSyncStateResponse* response) {
+  if (!response) {
+    return absl::InvalidArgumentError("response cannot be null");
+  }
+
+  const UiSyncSnapshot snapshot = CaptureUiSyncSnapshot(test_manager_);
+  response->set_frame_id(snapshot.frame_id);
+  response->set_pending_editor_actions(snapshot.pending_editor_actions);
+  response->set_pending_layout_actions(snapshot.pending_layout_actions);
+  response->set_layout_rebuild_pending(snapshot.layout_rebuild_pending);
+  response->set_pending_harness_tests(snapshot.pending_harness_tests);
+  response->set_queued_harness_tests(snapshot.queued_harness_tests);
+  response->set_running_harness_tests(snapshot.running_harness_tests);
+  response->set_sampled_at_ms(absl::ToUnixMillis(absl::Now()));
+  response->set_idle(IsUiIdle(snapshot));
+  return absl::OkStatus();
 }
 
 absl::Status ImGuiTestHarnessServiceImpl::Screenshot(

@@ -209,6 +209,28 @@ struct DiscoverWidgetsResult {
   std::optional<absl::Time> generated_at;
 };
 
+struct UiSyncStateSnapshot {
+  int64_t frame_id = 0;
+  int pending_editor_actions = 0;
+  int pending_layout_actions = 0;
+  bool layout_rebuild_pending = false;
+  int pending_harness_tests = 0;
+  int queued_harness_tests = 0;
+  int running_harness_tests = 0;
+  std::optional<absl::Time> sampled_at;
+  bool idle = false;
+};
+
+struct WaitForIdleResult {
+  bool success = false;
+  std::string message;
+  std::chrono::milliseconds elapsed{0};
+  int64_t last_frame_id = 0;
+  int stable_frames_observed = 0;
+  UiSyncStateSnapshot state;
+  std::string timeout_reason;
+};
+
 /**
  * @brief Client for automating YAZE GUI through gRPC
  *
@@ -295,6 +317,24 @@ class GuiAutomationClient {
    */
   absl::StatusOr<AutomationResult> Assert(const std::string& condition,
                                           const std::string& widget_key = "");
+
+  /**
+   * @brief Force a frame-boundary flush for deferred UI actions.
+   */
+  absl::StatusOr<UiSyncStateSnapshot> FlushUiActions(int timeout_ms = 2000);
+
+  /**
+   * @brief Wait until UI reaches deterministic idle criteria.
+   */
+  absl::StatusOr<WaitForIdleResult> WaitForIdle(int timeout_ms = 5000,
+                                                int stable_frames = 2,
+                                                bool flush_first = true,
+                                                int poll_interval_ms = 25);
+
+  /**
+   * @brief Fetch low-level UI synchronization counters for diagnostics.
+   */
+  absl::StatusOr<UiSyncStateSnapshot> GetUiSyncState();
 
   /**
    * @brief Capture a screenshot

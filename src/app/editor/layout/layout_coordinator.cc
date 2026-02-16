@@ -252,6 +252,7 @@ void LayoutCoordinator::InitializeEditorLayout(EditorType type) {
 
 void LayoutCoordinator::QueueDeferredAction(std::function<void()> action) {
   deferred_actions_.push_back(std::move(action));
+  pending_deferred_actions_.fetch_add(1, std::memory_order_relaxed);
 }
 
 void LayoutCoordinator::ProcessDeferredActions() {
@@ -261,9 +262,19 @@ void LayoutCoordinator::ProcessDeferredActions() {
 
   std::vector<std::function<void()>> actions_to_execute;
   actions_to_execute.swap(deferred_actions_);
+  const int processed_count = static_cast<int>(actions_to_execute.size());
 
   for (auto& action : actions_to_execute) {
     action();
+  }
+
+  if (processed_count > 0) {
+    const int remaining = pending_deferred_actions_.fetch_sub(
+                              processed_count, std::memory_order_relaxed) -
+                          processed_count;
+    if (remaining < 0) {
+      pending_deferred_actions_.store(0, std::memory_order_relaxed);
+    }
   }
 }
 
