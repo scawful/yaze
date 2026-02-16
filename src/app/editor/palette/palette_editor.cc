@@ -1,5 +1,7 @@
 #include "palette_editor.h"
 
+#include <algorithm>
+
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -108,19 +110,30 @@ static inline float color_saturate(float f) {
 absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   static ImVec4 color = ImVec4(0, 0, 0, 1.0f);
   static ImVec4 current_palette[256] = {};
+  static int current_palette_count = 0;
   ImGuiColorEditFlags misc_flags = ImGuiColorEditFlags_AlphaPreview |
                                    ImGuiColorEditFlags_NoDragDrop |
                                    ImGuiColorEditFlags_NoOptions;
 
   // Reload palette colors whenever the palette data is available.
   if (loaded) {
-    for (size_t n = 0; n < palette.size(); n++) {
-      auto color = palette[n];
-      current_palette[n].x = color.rgb().x / 255.0f;
-      current_palette[n].y = color.rgb().y / 255.0f;
-      current_palette[n].z = color.rgb().z / 255.0f;
+    current_palette_count =
+        std::min<int>(static_cast<int>(palette.size()),
+                      static_cast<int>(IM_ARRAYSIZE(current_palette)));
+
+    for (int n = 0; n < current_palette_count; ++n) {
+      const auto palette_color = palette[static_cast<size_t>(n)];
+      current_palette[n].x = palette_color.rgb().x / 255.0f;
+      current_palette[n].y = palette_color.rgb().y / 255.0f;
+      current_palette[n].z = palette_color.rgb().z / 255.0f;
       current_palette[n].w = 1.0f;
     }
+    for (int n = current_palette_count;
+         n < static_cast<int>(IM_ARRAYSIZE(current_palette)); ++n) {
+      current_palette[n] = ImVec4(0, 0, 0, 1.0f);
+    }
+  } else {
+    current_palette_count = 0;
   }
 
   static ImVec4 backup_color;
@@ -165,7 +178,10 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
     // List of Colors in Overworld Palette
     Separator();
     Text("Palette");
-    for (int n = 0; n < IM_ARRAYSIZE(current_palette); n++) {
+    if (current_palette_count <= 0) {
+      ImGui::TextDisabled("No palette entries loaded.");
+    }
+    for (int n = 0; n < current_palette_count; n++) {
       PushID(n);
       if ((n % 8) != 0)
         SameLine(0.0f, GetStyle().ItemSpacing.y);
@@ -953,16 +969,15 @@ void PaletteEditor::DrawControlPanel() {
   size_t modified_count = gfx::PaletteManager::Get().GetModifiedColorCount();
 
   ImGui::BeginDisabled(!has_unsaved);
-  if (ImGui::Button(absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)",
-                                    modified_count)
-                        .c_str(),
-                    ImVec2(-1, 0))) {
+  if (ImGui::Button(
+          absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)", modified_count)
+              .c_str(),
+          ImVec2(-1, 0))) {
     auto status = gfx::PaletteManager::Get().SaveAllToRom();
     if (!status.ok()) {
       if (dependencies_.toast_manager) {
         dependencies_.toast_manager->Show(
-            absl::StrFormat("Failed to save palettes: %s",
-                            status.message()),
+            absl::StrFormat("Failed to save palettes: %s", status.message()),
             ToastType::kError);
       }
     }
@@ -1022,8 +1037,7 @@ void PaletteEditor::DrawControlPanel() {
           nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text("Discard all unsaved changes?");
     ImGui::TextColored(gui::GetWarningColor(),
-                       "This will revert %zu modified colors.",
-                       modified_count);
+                       "This will revert %zu modified colors.", modified_count);
     ImGui::Separator();
 
     if (ImGui::Button("Discard", ImVec2(120, 0))) {
@@ -1042,8 +1056,7 @@ void PaletteEditor::DrawControlPanel() {
                                               gui::PopupNames::kSaveError)
                                  .c_str(),
                              nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextColored(gui::GetErrorColor(),
-                       "Failed to save changes");
+    ImGui::TextColored(gui::GetErrorColor(), "Failed to save changes");
     ImGui::Text("An error occurred while saving to ROM.");
     ImGui::Separator();
 

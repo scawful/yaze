@@ -3,8 +3,8 @@
 
 #include <array>
 #include <cctype>
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -75,7 +75,8 @@ class DungeonRoomMatrixPanel : public EditorPanel {
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!current_room_id_ || !active_rooms_) return;
+    if (!current_room_id_ || !active_rooms_)
+      return;
 
     const auto& theme = AgentUI::GetTheme();
 
@@ -88,8 +89,10 @@ class DungeonRoomMatrixPanel : public EditorPanel {
     // Responsive cell size based on available panel width
     float panel_width = ImGui::GetContentRegionAvail().x;
     // Calculate cell size to fit 16 cells with spacing in available width
-    float cell_size = std::max(12.0f, std::min(24.0f,
-        (panel_width - kCellSpacing * (kRoomsPerRow - 1)) / kRoomsPerRow));
+    float cell_size = std::max(
+        12.0f,
+        std::min(24.0f, (panel_width - kCellSpacing * (kRoomsPerRow - 1)) /
+                            kRoomsPerRow));
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
@@ -129,21 +132,21 @@ class DungeonRoomMatrixPanel : public EditorPanel {
             glow_color.w = 0.3f;  // 30% opacity outer glow
             ImVec2 glow_min(cell_min.x - 2, cell_min.y - 2);
             ImVec2 glow_max(cell_max.x + 2, cell_max.y + 2);
-            draw_list->AddRect(glow_min, glow_max, 
-                              ImGui::ColorConvertFloat4ToU32(glow_color), 
-                              0.0f, 0, 3.0f);
-            
+            draw_list->AddRect(glow_min, glow_max,
+                               ImGui::ColorConvertFloat4ToU32(glow_color), 0.0f,
+                               0, 3.0f);
+
             // Inner bright border
-            ImU32 sel_color = ImGui::ColorConvertFloat4ToU32(
-                theme.dungeon_selection_primary);
+            ImU32 sel_color =
+                ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary);
             draw_list->AddRect(cell_min, cell_max, sel_color, 0.0f, 0, 2.5f);
           } else if (is_open) {
             ImU32 open_color = ImGui::ColorConvertFloat4ToU32(
                 theme.dungeon_grid_cell_selected);
             draw_list->AddRect(cell_min, cell_max, open_color, 0.0f, 0, 2.0f);
           } else {
-            ImU32 border_color = ImGui::ColorConvertFloat4ToU32(
-                theme.dungeon_grid_cell_border);
+            ImU32 border_color =
+                ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_cell_border);
             draw_list->AddRect(cell_min, cell_max, border_color, 0.0f, 0, 1.0f);
           }
 
@@ -155,8 +158,8 @@ class DungeonRoomMatrixPanel : public EditorPanel {
             ImVec2 text_pos =
                 ImVec2(cell_min.x + (cell_size - text_size.x) * 0.5f,
                        cell_min.y + (cell_size - text_size.y) * 0.5f);
-            ImU32 text_color = ImGui::ColorConvertFloat4ToU32(
-                theme.dungeon_grid_text);
+            ImU32 text_color =
+                ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_text);
             draw_list->AddText(text_pos, text_color, label);
           }
 
@@ -170,8 +173,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
             if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
               // Double-click: open as standalone panel
               if (on_room_intent_) {
-                on_room_intent_(room_id,
-                                RoomSelectionIntent::kOpenStandalone);
+                on_room_intent_(room_id, RoomSelectionIntent::kOpenStandalone);
               } else if (on_room_selected_) {
                 on_room_selected_(room_id);
               }
@@ -182,11 +184,11 @@ class DungeonRoomMatrixPanel : public EditorPanel {
 
           if (ImGui::BeginPopupContextItem()) {
             const bool can_swap =
-                on_room_swap_ && current_room_id_ &&
-                *current_room_id_ >= 0 && *current_room_id_ < kTotalRooms &&
-                *current_room_id_ != room_id;
+                on_room_swap_ && current_room_id_ && *current_room_id_ >= 0 &&
+                *current_room_id_ < kTotalRooms && *current_room_id_ != room_id;
 
-            std::string open_label = is_open ? "Focus Room" : "Open in Workbench";
+            std::string open_label =
+                is_open ? "Focus Room" : "Open in Workbench";
             if (ImGui::MenuItem(open_label.c_str())) {
               if (on_room_intent_) {
                 on_room_intent_(room_id,
@@ -198,8 +200,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
 
             if (ImGui::MenuItem("Open as Panel")) {
               if (on_room_intent_) {
-                on_room_intent_(room_id,
-                                RoomSelectionIntent::kOpenStandalone);
+                on_room_intent_(room_id, RoomSelectionIntent::kOpenStandalone);
               } else if (on_room_selected_) {
                 on_room_selected_(room_id);
               }
@@ -231,18 +232,17 @@ class DungeonRoomMatrixPanel : public EditorPanel {
             ImGui::BeginTooltip();
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
-            
+
             if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
               // Show palette info
-              ImGui::TextDisabled("Palette: %d | Blockset: %d", 
+              ImGui::TextDisabled("Palette: %d | Blockset: %d",
                                   (*rooms_)[room_id].palette,
                                   (*rooms_)[room_id].blockset);
-              
+
               // Show thumbnail preview of the room
               auto& room = (*rooms_)[room_id];
               zelda3::RoomLayerManager layer_mgr;
               layer_mgr.ApplyLayerMerging(room.layer_merging());
-              layer_mgr.ApplyRoomEffect(room.effect());
               auto& preview_bitmap = room.GetCompositeBitmap(layer_mgr);
               if (preview_bitmap.is_active() && preview_bitmap.texture() != 0) {
                 ImGui::Separator();
@@ -252,7 +252,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
                              ImVec2(kThumbnailSize, kThumbnailSize));
               }
             }
-            
+
             ImGui::TextDisabled("Click to %s", is_open ? "focus" : "open");
             ImGui::EndTooltip();
           }
@@ -279,7 +279,8 @@ class DungeonRoomMatrixPanel : public EditorPanel {
    * @brief Get color for a room from dominant preview color, with fallback.
    */
   ImU32 GetRoomColor(int room_id, const AgentUITheme& theme) {
-    auto sample_dominant_color = [](gfx::Bitmap& bitmap) -> std::optional<ImU32> {
+    auto sample_dominant_color =
+        [](gfx::Bitmap& bitmap) -> std::optional<ImU32> {
       if (!bitmap.is_active() || bitmap.width() <= 0 || bitmap.height() <= 0 ||
           bitmap.data() == nullptr || bitmap.surface() == nullptr ||
           bitmap.surface()->format == nullptr ||
@@ -320,52 +321,51 @@ class DungeonRoomMatrixPanel : public EditorPanel {
       return IM_COL32(c.r, c.g, c.b, 255);
     };
 
+    auto soften_color = [&](ImU32 color, float blend = 0.32f) -> ImU32 {
+      ImVec4 src = ImGui::ColorConvertU32ToFloat4(color);
+      const ImVec4 bg = theme.panel_bg_darker;
+      src.x = (src.x * (1.0f - blend)) + (bg.x * blend);
+      src.y = (src.y * (1.0f - blend)) + (bg.y * blend);
+      src.z = (src.z * (1.0f - blend)) + (bg.z * blend);
+      src.w = 1.0f;
+      return ImGui::ColorConvertFloat4ToU32(src);
+    };
+
     // If room data is available and loaded, sample the actual room bitmap and
     // choose its most frequent indexed color.
     if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
       auto& room = (*rooms_)[room_id];
       zelda3::RoomLayerManager layer_mgr;
       layer_mgr.ApplyLayerMerging(room.layer_merging());
-      layer_mgr.ApplyRoomEffect(room.effect());
       auto& composite = room.GetCompositeBitmap(layer_mgr);
       if (auto composite_color = sample_dominant_color(composite);
           composite_color.has_value()) {
-        return composite_color.value();
+        return soften_color(composite_color.value());
       }
 
       if (auto bg1_color = sample_dominant_color(room.bg1_buffer().bitmap());
           bg1_color.has_value()) {
-        return bg1_color.value();
+        return soften_color(bg1_color.value());
       }
     }
 
-    // Fallback: Algorithmic coloring based on room ID
-    // Group rooms by their approximate dungeon (rooms are organized in blocks)
-    int dungeon_group = room_id / 0x20;  // 32 rooms per rough dungeon block
-    float hue = (dungeon_group * 45.0f) + (room_id % 8) * 5.0f;
-    float saturation = 0.35f + (room_id % 3) * 0.1f;
-    float value = 0.45f + (room_id % 5) * 0.08f;
+    // Fallback: neutral deterministic color buckets (no rainbow hue wheel).
+    const auto clamp01 = [](float v) {
+      return (v < 0.0f) ? 0.0f : (v > 1.0f ? 1.0f : v);
+    };
 
-    float h = fmodf(hue, 360.0f) / 60.0f;
-    int i = static_cast<int>(h);
-    float f = h - i;
-    float p = value * (1 - saturation);
-    float q = value * (1 - saturation * f);
-    float t = value * (1 - saturation * (1 - f));
+    const ImVec4 dark = theme.panel_bg_darker;
+    const ImVec4 mid = theme.panel_bg_color;
+    const float group_mix =
+        0.16f + (static_cast<float>((room_id >> 4) & 0x03) * 0.08f);
+    const float step = static_cast<float>(room_id & 0x07) * 0.0125f;
 
-    float r, g, b;
-    switch (i % 6) {
-      case 0: r = value; g = t; b = p; break;
-      case 1: r = q; g = value; b = p; break;
-      case 2: r = p; g = value; b = t; break;
-      case 3: r = p; g = q; b = value; break;
-      case 4: r = t; g = p; b = value; break;
-      case 5: r = value; g = p; b = q; break;
-      default: r = g = b = 0.3f; break;
-    }
-    return IM_COL32(static_cast<int>(r * 255),
-                    static_cast<int>(g * 255),
-                    static_cast<int>(b * 255), 255);
+    ImVec4 fallback;
+    fallback.x = clamp01(dark.x + (mid.x - dark.x) * group_mix + step);
+    fallback.y = clamp01(dark.y + (mid.y - dark.y) * group_mix + step);
+    fallback.z = clamp01(dark.z + (mid.z - dark.z) * group_mix + step);
+    fallback.w = 1.0f;
+    return ImGui::ColorConvertFloat4ToU32(fallback);
   }
 
   int* current_room_id_ = nullptr;

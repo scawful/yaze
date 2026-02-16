@@ -2,12 +2,15 @@
 
 #include "app/platform/sdl_compat.h"
 
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <stdexcept>
+#include <string_view>
+#include <utility>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
@@ -385,39 +388,64 @@ absl::Status LoadOverworldMiniMapPalettes(
 }
 }  // namespace palette_group_internal
 
-const absl::flat_hash_map<std::string, uint32_t> kPaletteGroupAddressMap = {
-    {"ow_main", kOverworldPaletteMain},
-    {"ow_aux", kOverworldPaletteAux},
-    {"ow_animated", kOverworldPaletteAnimated},
-    {"hud", kHudPalettes},
-    {"global_sprites", kGlobalSpritesLW},
-    {"armors", kArmorPalettes},
-    {"swords", kSwordPalettes},
-    {"shields", kShieldPalettes},
-    {"sprites_aux1", kSpritesPalettesAux1},
-    {"sprites_aux2", kSpritesPalettesAux2},
-    {"sprites_aux3", kSpritesPalettesAux3},
-    {"dungeon_main", kDungeonMainPalettes},
-    {"grass", kHardcodedGrassLW},
-    {"3d_object", kTriforcePalette},
-    {"ow_mini_map", kOverworldMiniMapPalettes},
-};
+constexpr std::array<std::pair<absl::string_view, uint32_t>, 15>
+    kPaletteGroupAddressMap = {{
+        {"ow_main", kOverworldPaletteMain},
+        {"ow_aux", kOverworldPaletteAux},
+        {"ow_animated", kOverworldPaletteAnimated},
+        {"hud", kHudPalettes},
+        {"global_sprites", kGlobalSpritesLW},
+        {"armors", kArmorPalettes},
+        {"swords", kSwordPalettes},
+        {"shields", kShieldPalettes},
+        {"sprites_aux1", kSpritesPalettesAux1},
+        {"sprites_aux2", kSpritesPalettesAux2},
+        {"sprites_aux3", kSpritesPalettesAux3},
+        {"dungeon_main", kDungeonMainPalettes},
+        {"grass", kHardcodedGrassLW},
+        {"3d_object", kTriforcePalette},
+        {"ow_mini_map", kOverworldMiniMapPalettes},
+    }};
 
-const absl::flat_hash_map<std::string, uint32_t> kPaletteGroupColorCounts = {
-    {"ow_main", 35},     {"ow_aux", 21},         {"ow_animated", 7},
-    {"hud", 32},         {"global_sprites", 60}, {"armors", 15},
-    {"swords", 3},       {"shields", 4},         {"sprites_aux1", 7},
-    {"sprites_aux2", 7}, {"sprites_aux3", 7},    {"dungeon_main", 90},
-    {"grass", 1},        {"3d_object", 8},       {"ow_mini_map", 128},
-};
+constexpr std::array<std::pair<absl::string_view, uint32_t>, 15>
+    kPaletteGroupColorCounts = {{
+        {"ow_main", 35},
+        {"ow_aux", 21},
+        {"ow_animated", 7},
+        {"hud", 32},
+        {"global_sprites", 60},
+        {"armors", 15},
+        {"swords", 3},
+        {"shields", 4},
+        {"sprites_aux1", 7},
+        {"sprites_aux2", 7},
+        {"sprites_aux3", 7},
+        {"dungeon_main", 90},
+        {"grass", 1},
+        {"3d_object", 8},
+        {"ow_mini_map", 128},
+    }};
+
+template <size_t N>
+uint32_t LookupPaletteGroupValue(
+    absl::string_view group_name,
+    const std::array<std::pair<absl::string_view, uint32_t>, N>& table) {
+  for (const auto& [name, value] : table) {
+    if (name == group_name) {
+      return value;
+    }
+  }
+  throw std::out_of_range(
+      absl::StrFormat("Unknown palette group: %s", group_name));
+}
 
 uint32_t GetPaletteAddress(const std::string& group_name, size_t palette_index,
                            size_t color_index) {
-  // Retrieve the base address for the palette group
-  uint32_t base_address = kPaletteGroupAddressMap.at(group_name);
-
-  // Retrieve the number of colors for each palette in the group
-  uint32_t colors_per_palette = kPaletteGroupColorCounts.at(group_name);
+  // Retrieve the base address and palette width for the palette group.
+  const uint32_t base_address =
+      LookupPaletteGroupValue(group_name, kPaletteGroupAddressMap);
+  const uint32_t colors_per_palette =
+      LookupPaletteGroupValue(group_name, kPaletteGroupColorCounts);
 
   // Calculate the address for thes specified color in the ROM
   uint32_t address = base_address + (palette_index * colors_per_palette * 2) +
