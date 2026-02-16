@@ -59,6 +59,12 @@ class LayoutHelpers {
                                ImVec2* canvas_size = nullptr);
   static void EndCanvasPanel();
 
+  // Content child with minimum size (fill available, never smaller than min_size)
+  static bool BeginContentChild(const char* id, const ImVec2& min_size,
+                                bool border = false,
+                                ImGuiWindowFlags flags = 0);
+  static void EndContentChild() { ImGui::EndChild(); }
+
   // Input field helpers
   static bool AutoSizedInputField(const char* label, char* buf, size_t buf_size,
                                   ImGuiInputTextFlags flags = 0);

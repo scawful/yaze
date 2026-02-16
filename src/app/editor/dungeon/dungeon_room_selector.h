@@ -6,8 +6,8 @@
 #include <vector>
 
 #include "app/editor/editor.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/game_data.h"
@@ -32,9 +32,8 @@ class DungeonRoomSelector {
   explicit DungeonRoomSelector(Rom* rom = nullptr) : rom_(rom) {}
 
   void Draw();
-  void DrawRoomSelector(
-      RoomSelectionIntent single_click_intent =
-          RoomSelectionIntent::kFocusInWorkbench);
+  void DrawRoomSelector(RoomSelectionIntent single_click_intent =
+                            RoomSelectionIntent::kFocusInWorkbench);
   void DrawEntranceSelector();
 
   // Unified context setter (preferred)
@@ -116,6 +115,16 @@ class DungeonRoomSelector {
   ImGuiTextFilter room_filter_;
   ImGuiTextFilter entrance_filter_;
 
+  // Object-type filter for room list (especially useful on iOS)
+  // When enabled, only rooms containing the selected entity types are shown
+  enum EntityTypeFilter : uint8_t {
+    kFilterAll = 0,
+    kFilterHasSprites = 1,
+    kFilterHasItems = 2,
+    kFilterHasObjects = 3,
+  };
+  EntityTypeFilter entity_type_filter_ = kFilterAll;
+
   // Cached filtered indices for virtualization
   std::vector<int> filtered_room_indices_;
   std::vector<int> filtered_entrance_indices_;
@@ -125,6 +134,7 @@ class DungeonRoomSelector {
   // Rebuild filtered indices when filter changes
   void RebuildRoomFilterCache();
   void RebuildEntranceFilterCache();
+  bool PassesEntityTypeFilter(int room_id) const;
 };
 
 }  // namespace editor

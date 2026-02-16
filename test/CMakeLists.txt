@@ -202,6 +202,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/rom_file_manager_test.cc
     unit/editor/panel_system_test.cc
     unit/editor/panel_manager_policy_test.cc
+    unit/editor/right_panel_manager_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc

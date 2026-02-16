@@ -194,22 +194,28 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   ImGui::TableNextColumn();
   if (show_left) {
     measured_left_w = ImGui::GetContentRegionAvail().x;
-    ImGui::BeginChild("##DungeonWorkbenchSidebar", ImVec2(0, 0), true);
+    const bool sidebar_open = gui::LayoutHelpers::BeginContentChild(
+        "##DungeonWorkbenchSidebar",
+        ImVec2(gui::UIConfig::kContentMinWidthSidebar, 0.0f), true);
+    if (sidebar_open) {
+      // Header with collapse button
+      ImGui::TextDisabled(ICON_MD_LIST " Rooms");
+      ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
+      if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms",
+                        ImVec2(btn, btn))) {
+        if (layout_state_)
+          layout_state_->show_left_sidebar = false;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Collapse room browser");
+      }
 
-    // Header with collapse button
-    ImGui::TextDisabled(ICON_MD_LIST " Rooms");
-    ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
-    if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms",
-                      ImVec2(btn, btn))) {
-      if (layout_state_)
-        layout_state_->show_left_sidebar = false;
+      ImGui::Separator();
+      ImGui::PushID("RoomSelectorEmbedded");
+      room_selector_->DrawRoomSelector();
+      ImGui::PopID();
     }
-
-    ImGui::Separator();
-    ImGui::PushID("RoomSelectorEmbedded");
-    room_selector_->DrawRoomSelector();
-    ImGui::PopID();
-    ImGui::EndChild();
+    gui::LayoutHelpers::EndContentChild();
   } else {
     // Collapsed sidebar rail
     ImGui::BeginChild("##DungeonWorkbenchSidebarCollapsed", ImVec2(0, 0), true);
@@ -233,43 +239,53 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::EndChild();
   }
 
-  // Canvas: main room view
+  // Canvas: main room view (minimum height so canvas never collapses)
   ImGui::TableNextColumn();
-  ImGui::BeginChild("##DungeonWorkbenchCanvas", ImVec2(0, 0), false);
-  if (primary_viewer) {
-    DrawRecentRoomTabs();
-    if (split_view_enabled_ && *split_view_enabled_) {
-      DrawSplitView(*primary_viewer);
+  const bool canvas_open = gui::LayoutHelpers::BeginContentChild(
+      "##DungeonWorkbenchCanvas",
+      ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas), false);
+  if (canvas_open) {
+    if (primary_viewer) {
+      DrawRecentRoomTabs();
+      if (split_view_enabled_ && *split_view_enabled_) {
+        DrawSplitView(*primary_viewer);
+      } else {
+        primary_viewer->DrawDungeonCanvas(*current_room_id_);
+      }
     } else {
-      primary_viewer->DrawDungeonCanvas(*current_room_id_);
+      ImGui::TextDisabled("No active viewer");
     }
-  } else {
-    ImGui::TextDisabled("No active viewer");
   }
-  ImGui::EndChild();
+  gui::LayoutHelpers::EndContentChild();
 
   // Inspector: placeholder (step 3 will replace this)
   ImGui::TableNextColumn();
   if (show_right) {
     measured_right_w = ImGui::GetContentRegionAvail().x;
-    ImGui::BeginChild("##DungeonWorkbenchInspector", ImVec2(0, 0), true);
+    const bool inspector_open = gui::LayoutHelpers::BeginContentChild(
+        "##DungeonWorkbenchInspector",
+        ImVec2(gui::UIConfig::kContentMinWidthSidebar, 0.0f), true);
+    if (inspector_open) {
+      // Header with collapse button
+      ImGui::TextDisabled(ICON_MD_TUNE " Inspector");
+      ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
+      if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##CollapseInspector",
+                        ImVec2(btn, btn))) {
+        if (layout_state_)
+          layout_state_->show_right_inspector = false;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Collapse inspector");
+      }
 
-    // Header with collapse button
-    ImGui::TextDisabled(ICON_MD_TUNE " Inspector");
-    ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
-    if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##CollapseInspector",
-                      ImVec2(btn, btn))) {
-      if (layout_state_)
-        layout_state_->show_right_inspector = false;
+      ImGui::Separator();
+      if (primary_viewer) {
+        DrawInspector(*primary_viewer);
+      } else {
+        ImGui::TextDisabled("No active viewer");
+      }
     }
-
-    ImGui::Separator();
-    if (primary_viewer) {
-      DrawInspector(*primary_viewer);
-    } else {
-      ImGui::TextDisabled("No active viewer");
-    }
-    ImGui::EndChild();
+    gui::LayoutHelpers::EndContentChild();
   } else {
     // Collapsed inspector rail
     ImGui::BeginChild("##DungeonWorkbenchInspectorCollapsed", ImVec2(0, 0),
@@ -323,21 +339,29 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
                                       ImGuiTabBarFlags_FittingPolicyScroll |
                                       ImGuiTabBarFlags_TabListPopupButton;
 
-  // Some Material icon glyphs can get clipped at small tab heights; slightly
-  // increasing Y padding here keeps the trailing toggle readable without
-  // affecting global theme metrics.
+  // Adaptive frame padding: larger tabs on touch/iPad for easier tapping
   const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
-  gui::StyleVarGuard pad_guard(ImGuiStyleVar_FramePadding,
-                               ImVec2(frame_pad.x, frame_pad.y + 1.0f));
+  const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
+  const float extra_y = is_touch ? 6.0f : 1.0f;
+  const float extra_x = is_touch ? 4.0f : 0.0f;
+  gui::StyleVarGuard pad_guard(
+      ImGuiStyleVar_FramePadding,
+      ImVec2(frame_pad.x + extra_x, frame_pad.y + extra_y));
 
   if (ImGui::BeginTabBar("##DungeonRecentRooms", kFlags)) {
     for (int room_id : recent_ids) {
       bool open = true;
       const ImGuiTabItemFlags tab_flags =
           (room_id == *current_room_id_) ? ImGuiTabItemFlags_SetSelected : 0;
-      char tab_label[32];
-      snprintf(tab_label, sizeof(tab_label), "%03X##recent_%03X", room_id,
-               room_id);
+      const auto room_name = zelda3::GetRoomLabel(room_id);
+      char tab_label[64];
+      if (room_name.empty() || room_name == "Unknown") {
+        snprintf(tab_label, sizeof(tab_label), "%03X##recent_%03X", room_id,
+                 room_id);
+      } else {
+        snprintf(tab_label, sizeof(tab_label), "%03X %.12s##recent_%03X",
+                 room_id, room_name.c_str(), room_id);
+      }
       const bool selected = ImGui::BeginTabItem(tab_label, &open, tab_flags);
 
       if (!open && forget_recent_room_) {
@@ -426,26 +450,34 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   ImGui::TableSetupColumn("Compare", ImGuiTableColumnFlags_WidthStretch);
   ImGui::TableNextRow();
 
-  // Active pane
+  // Active pane (minimum height so canvas never collapses)
   ImGui::TableNextColumn();
-  ImGui::BeginChild("##SplitActive", ImVec2(0, 0), false);
-  primary_viewer.DrawDungeonCanvas(*current_room_id_);
-  ImGui::EndChild();
+  const bool split_active_open = gui::LayoutHelpers::BeginContentChild(
+      "##SplitActive", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas),
+      false);
+  if (split_active_open) {
+    primary_viewer.DrawDungeonCanvas(*current_room_id_);
+  }
+  gui::LayoutHelpers::EndContentChild();
 
   // Compare pane
   ImGui::TableNextColumn();
-  ImGui::BeginChild("##SplitCompare", ImVec2(0, 0), false);
-  if (auto* compare_viewer =
-          get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
-    if (layout_state_ && layout_state_->sync_split_view) {
-      compare_viewer->canvas().ApplyScaleSnapshot(
-          primary_viewer.canvas().GetConfig());
+  const bool split_compare_open = gui::LayoutHelpers::BeginContentChild(
+      "##SplitCompare", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas),
+      false);
+  if (split_compare_open) {
+    if (auto* compare_viewer =
+            get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
+      if (layout_state_ && layout_state_->sync_split_view) {
+        compare_viewer->canvas().ApplyScaleSnapshot(
+            primary_viewer.canvas().GetConfig());
+      }
+      compare_viewer->DrawDungeonCanvas(*compare_room_id_);
+    } else {
+      ImGui::TextDisabled("No compare viewer");
     }
-    compare_viewer->DrawDungeonCanvas(*compare_room_id_);
-  } else {
-    ImGui::TextDisabled("No compare viewer");
   }
-  ImGui::EndChild();
+  gui::LayoutHelpers::EndContentChild();
 
   ImGui::EndTable();
 }

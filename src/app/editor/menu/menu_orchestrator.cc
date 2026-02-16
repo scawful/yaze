@@ -70,7 +70,7 @@ void MenuOrchestrator::AddFileMenuItems() {
   // ROM Operations
   menu_builder_
       .Item(
-          "Open ROM", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); },
+          "Open ROM / Project...", ICON_MD_FILE_OPEN, [this]() { OnOpenRom(); },
           SHORTCUT_CTRL(O))
       .Item(
           "Save ROM", ICON_MD_SAVE, [this]() { OnSaveRom(); }, SHORTCUT_CTRL(S),
@@ -86,7 +86,8 @@ void MenuOrchestrator::AddFileMenuItems() {
   menu_builder_
       .Item("New Project", ICON_MD_CREATE_NEW_FOLDER,
             [this]() { OnCreateProject(); })
-      .Item("Open Project", ICON_MD_FOLDER_OPEN, [this]() { OnOpenProject(); })
+      .Item("Open Project Only...", ICON_MD_FOLDER_OPEN,
+            [this]() { OnOpenProject(); })
       .Item(
           "Save Project", ICON_MD_SAVE, [this]() { OnSaveProject(); }, nullptr,
           [this]() { return CanSaveProject(); })
@@ -112,9 +113,10 @@ void MenuOrchestrator::AddFileMenuItems() {
       .Item(
           "Create Backup", ICON_MD_BACKUP, [this]() { OnCreateBackup(); },
           nullptr, [this]() { return HasActiveRom(); })
-      .Item("ROM Backups...", ICON_MD_BACKUP,
-            [this]() { popup_manager_.Show(PopupID::kRomBackups); }, nullptr,
-            [this]() { return HasActiveRom(); })
+      .Item(
+          "ROM Backups...", ICON_MD_BACKUP,
+          [this]() { popup_manager_.Show(PopupID::kRomBackups); }, nullptr,
+          [this]() { return HasActiveRom(); })
       .Item(
           "Validate ROM", ICON_MD_CHECK_CIRCLE, [this]() { OnValidateRom(); },
           nullptr, [this]() { return HasActiveRom(); })
@@ -218,11 +220,14 @@ void MenuOrchestrator::AddAppearanceMenuItems() {
       .Separator()
       .Item("Display Settings", ICON_MD_DISPLAY_SETTINGS,
             [this]() { OnShowDisplaySettings(); })
-      .Item("Welcome Screen", ICON_MD_HOME, [this]() { OnShowWelcomeScreen(); });
+      .Item("Welcome Screen", ICON_MD_HOME,
+            [this]() { OnShowWelcomeScreen(); });
 }
 
 void MenuOrchestrator::AddLayoutMenuItems() {
-  const auto layout_enabled = [this]() { return HasCurrentEditor(); };
+  const auto layout_enabled = [this]() {
+    return HasCurrentEditor();
+  };
 
   menu_builder_.BeginSubMenu("Layout", ICON_MD_VIEW_QUILT)
       .Item(
@@ -299,10 +304,18 @@ void MenuOrchestrator::AddPanelsMenuItems() {
   }
 
   // Panel Browser action at top
-  if (ImGui::MenuItem(
-          absl::StrFormat("%s Panel Browser", ICON_MD_APPS).c_str(),
-          SHORTCUT_CTRL_SHIFT(B))) {
+  if (ImGui::MenuItem(absl::StrFormat("%s Panel Browser", ICON_MD_APPS).c_str(),
+                      SHORTCUT_CTRL_SHIFT(B))) {
     OnShowPanelBrowser();
+  }
+  if (ImGui::MenuItem(
+          absl::StrFormat("%s Show All Panels", ICON_MD_VISIBILITY).c_str())) {
+    panel_manager_->ShowAllPanelsInSession(session_id);
+  }
+  if (ImGui::MenuItem(
+          absl::StrFormat("%s Hide All Panels", ICON_MD_VISIBILITY_OFF)
+              .c_str())) {
+    panel_manager_->HideAllPanelsInSession(session_id);
   }
   ImGui::Separator();
 
@@ -322,18 +335,31 @@ void MenuOrchestrator::AddPanelsMenuItems() {
       if (cards.empty()) {
         ImGui::TextDisabled("No panels in this category");
       } else {
+        if (ImGui::MenuItem(
+                absl::StrFormat("%s Show Category", ICON_MD_VISIBILITY)
+                    .c_str())) {
+          panel_manager_->ShowAllPanelsInCategory(session_id, category);
+        }
+        if (ImGui::MenuItem(
+                absl::StrFormat("%s Hide Category", ICON_MD_VISIBILITY_OFF)
+                    .c_str())) {
+          panel_manager_->HideAllPanelsInCategory(session_id, category);
+        }
+        ImGui::Separator();
+
         for (const auto& card : cards) {
           bool is_visible =
               panel_manager_->IsPanelVisible(session_id, card.card_id);
-          const char* shortcut = card.shortcut_hint.empty()
-                                     ? nullptr
-                                     : card.shortcut_hint.c_str();
+          const char* shortcut =
+              card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
 
           // Show icon for visible panels
-          std::string item_label = is_visible
-              ? absl::StrFormat("%s %s", ICON_MD_CHECK_BOX, card.display_name)
-              : absl::StrFormat("%s %s", ICON_MD_CHECK_BOX_OUTLINE_BLANK,
-                                card.display_name);
+          std::string item_label =
+              is_visible
+                  ? absl::StrFormat("%s %s", ICON_MD_CHECK_BOX,
+                                    card.display_name)
+                  : absl::StrFormat("%s %s", ICON_MD_CHECK_BOX_OUTLINE_BLANK,
+                                    card.display_name);
 
           if (ImGui::MenuItem(item_label.c_str(), shortcut)) {
             panel_manager_->TogglePanel(session_id, card.card_id);
@@ -388,8 +414,8 @@ void MenuOrchestrator::AddSearchMenuItems() {
           "Command Palette", ICON_MD_SEARCH,
           [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
       .Item(
-          "Panel Finder", ICON_MD_DASHBOARD,
-          [this]() { OnShowPanelFinder(); }, SHORTCUT_CTRL(P))
+          "Panel Finder", ICON_MD_DASHBOARD, [this]() { OnShowPanelFinder(); },
+          SHORTCUT_CTRL(P))
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); });
 }
@@ -445,8 +471,7 @@ void MenuOrchestrator::AddDevelopmentMenuItems() {
       .Item("Performance Dashboard", ICON_MD_SPEED,
             [this]() { OnShowPerformanceDashboard(); })
 #ifdef YAZE_BUILD_AGENT_UI
-      .Item("Agent Workspace", ICON_MD_SMART_TOY,
-            [this]() { OnShowAIAgent(); })
+      .Item("Agent Workspace", ICON_MD_SMART_TOY, [this]() { OnShowAIAgent(); })
 #endif
 #ifdef YAZE_WITH_GRPC
       .Item("Agent Proposals", ICON_MD_PREVIEW,
@@ -460,16 +485,17 @@ void MenuOrchestrator::AddTestingMenuItems() {
   menu_builder_.BeginSubMenu("Testing", ICON_MD_SCIENCE);
 #ifdef YAZE_ENABLE_TESTING
   menu_builder_
-      .Item("Test Dashboard", ICON_MD_DASHBOARD,
-            [this]() { OnShowTestDashboard(); }, SHORTCUT_CTRL(T))
+      .Item(
+          "Test Dashboard", ICON_MD_DASHBOARD,
+          [this]() { OnShowTestDashboard(); }, SHORTCUT_CTRL(T))
       .Item("Run All Tests", ICON_MD_PLAY_ARROW, [this]() { OnRunAllTests(); })
       .Item("Run Unit Tests", ICON_MD_CHECK_BOX, [this]() { OnRunUnitTests(); })
       .Item("Run Integration Tests", ICON_MD_INTEGRATION_INSTRUCTIONS,
             [this]() { OnRunIntegrationTests(); })
       .Item("Run E2E Tests", ICON_MD_VISIBILITY, [this]() { OnRunE2ETests(); });
 #else
-  menu_builder_.DisabledItem("Testing support disabled (YAZE_ENABLE_TESTING=OFF)",
-                            ICON_MD_INFO);
+  menu_builder_.DisabledItem(
+      "Testing support disabled (YAZE_ENABLE_TESTING=OFF)", ICON_MD_INFO);
 #endif
   menu_builder_.EndMenu();
 }
@@ -613,11 +639,10 @@ void MenuOrchestrator::AddWindowMenuItems() {
           layout_actions_enabled)
       .Item(
           "Designer", ICON_MD_DESIGN_SERVICES,
-          [this]() { OnLoadDesignerLayout(); }, nullptr,
-          layout_actions_enabled)
+          [this]() { OnLoadDesignerLayout(); }, nullptr, layout_actions_enabled)
       .Item(
-          "Modder", ICON_MD_BUILD, [this]() { OnLoadModderLayout(); },
-          nullptr, layout_actions_enabled)
+          "Modder", ICON_MD_BUILD, [this]() { OnLoadModderLayout(); }, nullptr,
+          layout_actions_enabled)
       .Item(
           "Overworld Expert", ICON_MD_MAP,
           [this]() {
@@ -701,8 +726,7 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item(
-          "About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
 }
 
 // Menu state management
@@ -939,7 +963,6 @@ void MenuOrchestrator::OnShowHexEditor() {
   }
 }
 
-
 void MenuOrchestrator::OnShowPanelBrowser() {
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
@@ -973,7 +996,6 @@ void MenuOrchestrator::OnShowAIAgent() {
   }
 }
 
-
 void MenuOrchestrator::OnShowProposalDrawer() {
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
@@ -995,7 +1017,6 @@ void MenuOrchestrator::OnDuplicateCurrentSession() {
 void MenuOrchestrator::OnCloseCurrentSession() {
   session_coordinator_.CloseCurrentSession();
 }
-
 
 void MenuOrchestrator::OnShowSessionSwitcher() {
   // Delegate to UICoordinator for session switcher UI
@@ -1183,7 +1204,6 @@ void MenuOrchestrator::OnShowAbout() {
 void MenuOrchestrator::OnShowGettingStarted() {
   popup_manager_.Show(PopupID::kGettingStarted);
 }
-
 
 void MenuOrchestrator::OnShowBuildInstructions() {
   popup_manager_.Show(PopupID::kBuildInstructions);
