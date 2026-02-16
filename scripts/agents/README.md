@@ -9,6 +9,7 @@
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Smoke-checks HTTP API endpoints (health/models/symbols + core POSTs) via curl; defaults to localhost:8080. |
 | `test-grpc-api.sh` | Smoke-checks gRPC automation API via grpcurl; defaults to localhost:50052 and the ImGui test harness Ping. |
+| `gui-complexity-baseline.sh` | Generates GUI/editor complexity baseline tables (LOC/includes/method counts + hot spans + test fragility metrics). |
 | `ralph-loop-codex.sh` | Runs a Ralph Wiggum loop with Codex CLI using a mission prompt file. |
 | `ralph-loop-report.sh` | Builds a Markdown report from Ralph loop logs for structured review. |
 | `ralph-loop-lock.sh` | Acquire/release simple lock files to prevent multi-agent overlap. |
@@ -42,6 +43,9 @@ scripts/agents/test-http-api.sh
 
 # Smoke-check gRPC automation API (defaults to localhost:50052)
 scripts/agents/test-grpc-api.sh
+
+# Generate GUI/editor complexity baseline report
+scripts/agents/gui-complexity-baseline.sh
 
 # Run the Codex Ralph loop with the yaze mission prompt
 scripts/agents/ralph-loop-codex.sh --mission docs/internal/plans/ralph-wiggum-codex-mission.md \
@@ -85,6 +89,9 @@ scripts/dev/local-workflow.sh all
 # Install hooks and check release/version hygiene
 scripts/install-git-hooks.sh install
 scripts/dev/release-version-check.sh --staged
+
+# Run pre-push checks (includes change-aware UI regression gates)
+scripts/pre-push.sh
 ```
 
 z3ed dungeon edit quick reference (dry-run by default; add `--write` to persist):

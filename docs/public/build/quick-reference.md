@@ -159,50 +159,30 @@ For AI-enabled builds, use the `*-ai` presets and specify only the targets you n
 cmake --build --preset mac-ai --target yaze z3ed
 ```
 
-### Local Nightly Install (Isolated)
+### Local AI Runtime Deploy (Recommended)
 
-Use `scripts/install-nightly.sh` to keep a separate clone and install prefix for
-nightly builds so your dev `build/` stays untouched.
+Use the unified workflow to build from `build_ai` presets and sync the runtime
+bundle to a single canonical app path: `/Applications/yaze.app`.
 
 ```bash
-scripts/install-nightly.sh
+scripts/dev/local-workflow.sh all
 ```
 
-Wrappers are created under `~/.local/bin`:
-- `yaze-nightly` (GUI)
-- `yaze-nightly-grpc` (GUI + gRPC for MCP)
-- `z3ed-nightly` (CLI)
-- `yaze-mcp-nightly` (MCP server; expects `~/.yaze/yaze-mcp/venv`)
+For faster iteration when tests are already green:
 
-On macOS, a stable app link is created (default: `~/Applications/Yaze Nightly.app`).
-Use that path for menu bar launchers (Sketchybar, Raycast, Alfred, etc.).
-Example Sketchybar click script: `open -a "$HOME/Applications/Yaze Nightly.app"`.
-
-How it works:
-- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/.yaze/nightly/repo`) and keeps it clean.
-- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/.yaze/nightly/repo/build-nightly`).
-- Installs into `$YAZE_NIGHTLY_PREFIX/releases/<timestamp>` and updates `.../current` symlink.
-- Writes wrapper scripts to `$YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`).
-
-Updating:
 ```bash
-scripts/install-nightly.sh  # re-pulls and installs a new release
+scripts/dev/local-workflow.sh build --skip-tests
+scripts/dev/local-workflow.sh sync
 ```
 
-Removing:
+Menu launchers (SketchyBar, Raycast, Alfred, etc.) should target:
+
 ```bash
-rm -rf ~/.local/yaze/nightly ~/.local/bin/yaze-nightly* ~/.local/bin/z3ed-nightly ~/.local/bin/yaze-mcp-nightly
+open -a "/Applications/yaze.app"
 ```
 
-Key overrides:
-```bash
-export YAZE_NIGHTLY_REPO="$HOME/.yaze/nightly/repo"
-export YAZE_NIGHTLY_PREFIX="$HOME/.local/yaze/nightly"
-export YAZE_NIGHTLY_BUILD_TYPE=RelWithDebInfo
-export YAZE_GRPC_PORT=50051
-export YAZE_MCP_REPO="$HOME/.yaze/yaze-mcp"
-export YAZE_NIGHTLY_APP_DIR="$HOME/Applications"
-```
+The sync workflow also prunes legacy aliases such as `/Applications/Yaze.app`
+and older Nightly app links when present.
 
 ### Shared Dependency Caches (Recommended)
 

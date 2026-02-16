@@ -1,6 +1,7 @@
 name = "yaze"
-description = "Zelda editor and tooling"
-tags = ["game-dev", "romhacking", "tools", "active"]
+description = "C++23 ROM editor for Zelda: A Link to the Past with GUI editors, built-in SNES emulator, and z3ed CLI"
+aliases = ["yet-another-zelda3-editor", "z3ed"]
+tags = ["tools", "romhacking", "editor", "emulator", "imgui", "active"]
 platforms = ["mac", "linux", "windows", "ios"]
 
 stage = "beta"

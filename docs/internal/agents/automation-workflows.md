@@ -128,6 +128,7 @@ Key operational commands:
 scripts/dev/local-workflow.sh hooks         # install pre-commit + pre-push
 scripts/dev/local-workflow.sh release-check # VERSION/changelog guardrail
 scripts/dev/local-workflow.sh status        # verify selected binaries + sync status
+scripts/pre-push.sh                         # fast checks + change-aware UI regression gate
 ```
 
 Release/versioning and multi-agent ownership protocol:
