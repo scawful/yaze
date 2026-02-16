@@ -151,18 +151,32 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody |
       ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX;
 
-  if (!ImGui::BeginTable("##DungeonWorkbenchLayout", 3, kLayoutFlags)) {
+  const bool show_left =
+      layout_state_ ? layout_state_->show_left_sidebar : true;
+  const bool show_right =
+      layout_state_ ? layout_state_->show_right_inspector : true;
+
+  // Detect collapse->expand transitions. When a sidebar re-expands, bump a
+  // table generation counter so ImGui sees a fresh table ID and applies the
+  // TableSetupColumn initial widths instead of restoring cached collapsed widths.
+  const bool left_just_expanded = show_left && !prev_show_left_;
+  const bool right_just_expanded = show_right && !prev_show_right_;
+  prev_show_left_ = show_left;
+  prev_show_right_ = show_right;
+  if (left_just_expanded || right_just_expanded) {
+    ++table_generation_;
+  }
+  char table_id[64];
+  std::snprintf(table_id, sizeof(table_id), "##DungeonWorkbenchLayout_%d",
+                table_generation_);
+
+  if (!ImGui::BeginTable(table_id, 3, kLayoutFlags)) {
     return;
   }
 
   const float btn = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
   const float rail_w =
       std::max({32.0f, btn + 8.0f, gui::LayoutHelpers::GetMinTouchTarget()});
-
-  const bool show_left =
-      layout_state_ ? layout_state_->show_left_sidebar : true;
-  const bool show_right =
-      layout_state_ ? layout_state_->show_right_inspector : true;
 
   const float left_w =
       show_left ? (layout_state_ ? layout_state_->left_width

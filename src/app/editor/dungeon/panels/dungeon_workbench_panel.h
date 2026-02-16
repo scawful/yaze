@@ -21,23 +21,20 @@ enum class RoomSelectionIntent;
 // Single stable window for dungeon editing. This is step 2 in the Workbench plan.
 class DungeonWorkbenchPanel : public EditorPanel {
  public:
-  DungeonWorkbenchPanel(DungeonRoomSelector* room_selector,
-                        int* current_room_id,
-                        int* previous_room_id,
-                        bool* split_view_enabled,
-                        int* compare_room_id,
-                        DungeonWorkbenchLayoutState* layout_state,
-                        std::function<void(int)> on_room_selected,
-                        std::function<void(int, RoomSelectionIntent)>
-                            on_room_selected_with_intent,
-                        std::function<void(int)> on_save_room,
-                        std::function<DungeonCanvasViewer*()> get_viewer,
-                        std::function<DungeonCanvasViewer*()> get_compare_viewer,
-                        std::function<const std::deque<int>&()> get_recent_rooms,
-                        std::function<void(int)> forget_recent_room,
-                        std::function<void(const std::string&)> show_panel,
-                        std::function<void(bool)> set_workflow_mode,
-                        Rom* rom = nullptr);
+  DungeonWorkbenchPanel(
+      DungeonRoomSelector* room_selector, int* current_room_id,
+      int* previous_room_id, bool* split_view_enabled, int* compare_room_id,
+      DungeonWorkbenchLayoutState* layout_state,
+      std::function<void(int)> on_room_selected,
+      std::function<void(int, RoomSelectionIntent)>
+          on_room_selected_with_intent,
+      std::function<void(int)> on_save_room,
+      std::function<DungeonCanvasViewer*()> get_viewer,
+      std::function<DungeonCanvasViewer*()> get_compare_viewer,
+      std::function<const std::deque<int>&()> get_recent_rooms,
+      std::function<void(int)> forget_recent_room,
+      std::function<void(const std::string&)> show_panel,
+      std::function<void(bool)> set_workflow_mode, Rom* rom = nullptr);
 
   std::string GetId() const override;
   std::string GetDisplayName() const override;
@@ -77,6 +74,11 @@ class DungeonWorkbenchPanel : public EditorPanel {
   Rom* rom_ = nullptr;
 
   char compare_search_buf_[64] = {};
+
+  // Track collapse→expand transitions for one-shot column width reset
+  bool prev_show_left_ = true;
+  bool prev_show_right_ = true;
+  int table_generation_ = 0;
 };
 
 }  // namespace yaze::editor
