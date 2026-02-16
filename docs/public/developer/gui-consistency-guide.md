@@ -877,6 +877,33 @@ LayoutHelpers::HorizontalSpacing(20.0f);  // 20px horizontal space
 LayoutHelpers::SeparatorText("Section Name");
 ```
 
+### UI Sizing (Content Minimums)
+
+Use centralized constants and helpers so content regions never collapse to zero and panels have consistent minimum sizes.
+
+**Rules:**
+
+1. **UIConfig constants** — Use `gui::UIConfig` for all panel and content minimums (e.g. `kContentMinHeightChat`, `kContentMinHeightList`, `kContentMinHeightCanvas`, `kContentMinWidthSidebar`, `kPanelPaddingLarge`). Do not introduce new magic numbers; add named constants to `app/gui/core/ui_config.h`.
+2. **BeginContentChild** — For any child region that must have a minimum size (chat body, lists, canvas, sidebars), use `gui::LayoutHelpers::BeginContentChild(id, min_size, border, flags)` and `gui::LayoutHelpers::EndContentChild()`. This fills available space but never shrinks below `min_size`.
+3. **GetContentRegionAvailClamped** — When you need the clamped size without opening a child (e.g. to compute height minus a toolbar), use `gui::GetContentRegionAvailClamped(ImVec2(min_x, min_y))` from `ui_config.h`.
+4. **Padding** — Use `gui::UIConfig::kPanelPaddingLarge` / `kPanelPaddingMedium` or `gui::LayoutHelpers::GetPanelPadding()` instead of hardcoded `12.0f` / `8.0f`.
+
+**Example:**
+
+```cpp
+#include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/ui_config.h"
+
+// Content area that never collapses below 80px height
+if (gui::LayoutHelpers::BeginContentChild(
+        "##List", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList), true)) {
+  for (const auto& item : items) {
+    ImGui::Selectable(item.c_str());
+  }
+  gui::LayoutHelpers::EndContentChild();
+}
+```
+
 ### Responsive Layout
 
 ```cpp

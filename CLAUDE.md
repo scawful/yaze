@@ -48,6 +48,8 @@ Key files: `IWindowBackend`, `WindowBackendFactory`, `sdl2_window_backend.cc`, `
 
 **Multi-area maps**: Always use `Overworld::ConfigureMultiAreaMap()`, never set `area_size` directly
 
+**UI sizing**: Use `gui::UIConfig` for panel/content minimums and padding; use `gui::LayoutHelpers::BeginContentChild(id, min_size, ...)` / `EndContentChild()` for child regions that must not collapse. See `docs/public/developer/gui-consistency-guide.md` (UI Sizing).
+
 ## Naming
 
 - **Load**: ROM → memory

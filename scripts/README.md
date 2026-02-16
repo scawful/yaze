@@ -11,48 +11,22 @@ scripts/fetch_usdasm.sh
 # or: USDASM_DIR=/path/to/usdasm scripts/fetch_usdasm.sh
 ```
 
-## install-nightly.sh
+## dev/local-workflow.sh
 
-Builds and installs an isolated nightly build in a separate clone (no dev build overlap)
-and creates wrapper commands (`yaze-nightly`, `yaze-nightly-grpc`, `z3ed-nightly`,
-`yaze-mcp-nightly`) under `~/.local/bin`.
+Canonical local workflow for AI builds and runtime deployment.
 
 ```bash
-scripts/install-nightly.sh
-YAZE_NIGHTLY_REPO="$HOME/.yaze/nightly/repo" YAZE_NIGHTLY_BUILD_TYPE=RelWithDebInfo scripts/install-nightly.sh
+scripts/dev/local-workflow.sh all
+scripts/dev/local-workflow.sh build
+scripts/dev/local-workflow.sh sync
+scripts/dev/local-workflow.sh status
 ```
 
-### What it does
-- Clones `origin` into `$YAZE_NIGHTLY_REPO` (default `~/.yaze/nightly/repo`) and keeps it clean.
-- Builds into `$YAZE_NIGHTLY_BUILD_DIR` (default `~/.yaze/nightly/repo/build-nightly`).
-- Installs into `$YAZE_NIGHTLY_PREFIX/releases/<timestamp>` and updates `.../current`.
-- Writes wrapper scripts to `$YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`).
-- On macOS, creates a stable app link at `~/Applications/Yaze Nightly.app` for menu launchers.
+On macOS, `sync` deploys to `/Applications/yaze.app` and refreshes
+`/usr/local/bin/z3ed`. Legacy app aliases (`/Applications/Yaze.app`,
+old Nightly links) are pruned automatically.
 
-### Environment Overrides
-- `YAZE_NIGHTLY_REPO` (default `~/.yaze/nightly/repo`)
-- `YAZE_NIGHTLY_BRANCH` (default `master`)
-- `YAZE_NIGHTLY_BUILD_DIR` (default `$YAZE_NIGHTLY_REPO/build-nightly`)
-- `YAZE_NIGHTLY_BUILD_TYPE` (default `RelWithDebInfo`)
-- `YAZE_NIGHTLY_PREFIX` (default `~/.local/yaze/nightly`)
-- `YAZE_NIGHTLY_BIN_DIR` (default `~/.local/bin`)
-- `YAZE_NIGHTLY_APP_DIR` (default `~/Applications`, macOS only)
-- `YAZE_GRPC_HOST`/`YAZE_GRPC_PORT` (for `yaze-mcp-nightly`, defaults `localhost:50051`)
-- `YAZE_MCP_REPO` (default `~/.yaze/yaze-mcp`)
-
-### Typical usage
-```bash
-yaze-nightly-grpc     # start GUI with gRPC on 50051
-yaze-mcp-nightly      # start MCP server against the same port
-z3ed-nightly          # run CLI without touching dev build
-```
-
-### Removal
-```bash
-rm -rf ~/.local/yaze/nightly ~/.local/bin/yaze-nightly* ~/.local/bin/z3ed-nightly ~/.local/bin/yaze-mcp-nightly
-```
-
-See `docs/public/build/quick-reference.md` for environment overrides and runtime notes.
+See `docs/public/build/quick-reference.md` for full workflow details.
 
 ## build-ios.sh
 

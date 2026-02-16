@@ -65,17 +65,14 @@ cd build-wasm && npx http-server .
 - When creating packages (Homebrew/Chocolatey/winget), pin the release URL and checksum and align dependencies to the CMake presets (`mac-*/lin-*/win-*`).
 - Keep CLI and GUI in the same archive to avoid mismatched versions; CLI entry is `z3ed`, GUI entry is `yaze`.
 
-## Local Nightly (Self-Build)
-For an isolated nightly build separate from your dev tree, use:
+## Local AI Build Deploy (Self-Build)
+For local iteration, use the standard AI build + deploy workflow:
 ```bash
-scripts/install-nightly.sh
+scripts/dev/local-workflow.sh all
 ```
-This installs into `~/.local/yaze/nightly/current` and exposes wrapper commands
-(`yaze-nightly`, `z3ed-nightly`, `yaze-mcp-nightly`).
-Re-run the script to update to the latest commit.
-By default, the clone lives under `~/.yaze/nightly/repo` (override with
-`YAZE_NIGHTLY_REPO`). On macOS, a stable app link is created at
-`~/Applications/Yaze Nightly.app` (override with `YAZE_NIGHTLY_APP_DIR`).
+This builds from AI presets, syncs the GUI app to `/Applications/yaze.app`,
+and refreshes the PATH-visible `z3ed` link. Menu launchers should point to
+`/Applications/yaze.app`.
 
 ## Quick Links
 - Build quick reference: `docs/public/build/quick-reference.md`

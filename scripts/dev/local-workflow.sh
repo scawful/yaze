@@ -11,7 +11,7 @@
 #   release-check  Validate version/changelog protocol
 #
 # Options:
-#   --preset <name>         CMake build preset (default: dev)
+#   --preset <name>         CMake build preset (default: platform AI preset)
 #   --ctest-preset <name>   CTest preset (default auto by platform)
 #   --jobs <n>              Build parallelism (default: auto)
 #   --app-dest <path>       App destination on macOS (default: /Applications/yaze.app)
@@ -42,7 +42,7 @@ if [[ $# -gt 0 ]]; then
   shift
 fi
 
-PRESET="${YAZE_DEV_PRESET:-dev}"
+PRESET="${YAZE_DEV_PRESET:-}"
 CTEST_PRESET="${YAZE_DEV_CTEST_PRESET:-}"
 JOBS="${YAZE_BUILD_JOBS:-0}"
 APP_DEST="${YAZE_APP_DEST:-/Applications/yaze.app}"
@@ -50,6 +50,13 @@ Z3ED_LINK="${YAZE_Z3ED_LINK:-/usr/local/bin/z3ed}"
 SKIP_TESTS=false
 SKIP_SYNC=false
 DRY_RUN=false
+
+legacy_app_aliases=(
+  "/Applications/Yaze.app"
+  "$HOME/Applications/Yaze.app"
+  "$HOME/Applications/Yaze Nightly.app"
+  "$HOME/Applications/yaze nightly.app"
+)
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -78,6 +85,15 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+detect_default_build_preset() {
+  case "$(uname -s)" in
+    Darwin) echo "mac-ai" ;;
+    Linux) echo "lin-ai" ;;
+    MINGW*|MSYS*|CYGWIN*|Windows_NT) echo "win-ai" ;;
+    *) echo "dev-test-ai" ;;
+  esac
+}
+
 detect_default_ctest_preset() {
   case "$(uname -s)" in
     Darwin) echo "mac-ai-quick-editor" ;;
@@ -85,6 +101,10 @@ detect_default_ctest_preset() {
     *) echo "fast" ;;
   esac
 }
+
+if [[ -z "$PRESET" ]]; then
+  PRESET="$(detect_default_build_preset)"
+fi
 
 if [[ -z "$CTEST_PRESET" ]]; then
   CTEST_PRESET="$(detect_default_ctest_preset)"
@@ -129,12 +149,12 @@ resolve_yaze_app_bundle() {
 
   local c
   for c in \
-    "$ROOT/build/bin/Debug/yaze.app" \
-    "$ROOT/build/bin/RelWithDebInfo/yaze.app" \
-    "$ROOT/build/bin/Release/yaze.app" \
     "$ROOT/build_ai/bin/Debug/yaze.app" \
     "$ROOT/build_ai/bin/RelWithDebInfo/yaze.app" \
-    "$ROOT/build_ai/bin/Release/yaze.app"; do
+    "$ROOT/build_ai/bin/Release/yaze.app" \
+    "$ROOT/build/bin/Debug/yaze.app" \
+    "$ROOT/build/bin/RelWithDebInfo/yaze.app" \
+    "$ROOT/build/bin/Release/yaze.app"; do
     if [[ -d "$c" ]]; then
       echo "$c"
       return 0
@@ -142,6 +162,30 @@ resolve_yaze_app_bundle() {
   done
 
   return 1
+}
+
+prune_legacy_app_aliases() {
+  if [[ "$(uname -s)" != "Darwin" ]]; then
+    return
+  fi
+
+  local app_dest_fold
+  app_dest_fold="$(printf '%s' "$APP_DEST" | tr '[:upper:]' '[:lower:]')"
+  for legacy_app in "${legacy_app_aliases[@]}"; do
+    local legacy_fold
+    legacy_fold="$(printf '%s' "$legacy_app" | tr '[:upper:]' '[:lower:]')"
+    if [[ -z "$legacy_app" || "$legacy_fold" == "$app_dest_fold" ]]; then
+      continue
+    fi
+    if [[ -e "$legacy_app" ]]; then
+      run_cmd "rm -rf '$legacy_app'"
+      if [[ "$DRY_RUN" == true ]]; then
+        print_info "Would remove legacy app alias ${legacy_app}"
+      else
+        print_ok "Removed legacy app alias ${legacy_app}"
+      fi
+    fi
+  done
 }
 
 status() {
@@ -174,6 +218,16 @@ status() {
     else
       print_warn "Application bundle missing: ${APP_DEST}"
     fi
+
+    local app_dest_fold
+    app_dest_fold="$(printf '%s' "$APP_DEST" | tr '[:upper:]' '[:lower:]')"
+    for legacy_app in "${legacy_app_aliases[@]}"; do
+      local legacy_fold
+      legacy_fold="$(printf '%s' "$legacy_app" | tr '[:upper:]' '[:lower:]')"
+      if [[ -n "$legacy_app" && "$legacy_fold" != "$app_dest_fold" && -e "$legacy_app" ]]; then
+        print_warn "Legacy app alias still present: ${legacy_app}"
+      fi
+    done
   fi
 
   print_ok "status complete"
@@ -223,6 +277,7 @@ sync_runtime() {
   if [[ "$(uname -s)" == "Darwin" ]]; then
     run_cmd "mkdir -p '$(dirname "$APP_DEST")'"
     run_cmd "rsync -a --delete '${yaze_app}/' '${APP_DEST}/'"
+    prune_legacy_app_aliases
     if [[ "$DRY_RUN" == true ]]; then
       print_info "Would sync yaze.app to ${APP_DEST}"
     else

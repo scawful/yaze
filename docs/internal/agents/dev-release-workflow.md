@@ -73,7 +73,10 @@ Hook responsibilities:
   - shell syntax (`bash -n`)
   - python syntax (`python3 -m py_compile`)
   - version/changelog protocol (`release-version-check --staged`)
-- `pre-push` runs project validation (`scripts/pre-push.sh`)
+- `pre-push` runs fast project validation (`scripts/pre-push.sh`):
+  - Builds `yaze_test_unit`
+  - Runs unit smoke tests
+  - Runs change-aware UI regression filters for panel/workflow paths
 
 Emergency bypass is allowed but discouraged:
 - `git commit --no-verify`
