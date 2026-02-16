@@ -255,6 +255,98 @@ TEST_F(RoomDrawObjectDataTest, DrawRoomDrawObjectData2x2_TorchLitVsUnlitOffsets)
   EXPECT_NE(trace_unlit[0].tile_id, trace_lit[0].tile_id);
 }
 
+// ==========================================================================
+// Null-Tile Guard Tests
+// ==========================================================================
+
+class NullTileGuardTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rom_ = std::make_unique<Rom>();
+    // Create a dummy ROM large enough for tile table lookups
+    std::vector<uint8_t> dummy_data(0x200000, 0);
+    rom_->LoadFromData(dummy_data);
+  }
+
+  std::unique_ptr<Rom> rom_;
+};
+
+TEST_F(NullTileGuardTest, DrawObject_InsufficientTiles_DoesNotCrash) {
+  // Object 0x00 maps to routine 0 (Rightwards2x2_1to15or32) which needs
+  // min_tiles=4. We give it 0 tiles to verify the guard skips the routine.
+  ObjectDrawer drawer(rom_.get(), 0, nullptr);
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  RoomObject obj(0x00, 5, 5, 0);
+  obj.SetRom(rom_.get());
+  // Lock tiles_loaded_ to true, then force an empty payload so DrawObject
+  // cannot repopulate tiles from ROM during the call.
+  obj.EnsureTilesLoaded();
+  obj.mutable_tiles().clear();
+
+  auto status =
+      drawer.DrawObject(obj, bg1, bg2, palette_group, nullptr, nullptr);
+  EXPECT_TRUE(status.ok()) << status.message();
+}
+
+TEST_F(NullTileGuardTest, DrawObject_ExactMinTiles_Succeeds) {
+  // Object 0x00 maps to routine 0 (Rightwards2x2_1to15or32) with min_tiles=4.
+  // We provide exactly 4 tiles to verify the routine is allowed to run.
+  ObjectDrawer drawer(rom_.get(), 0, nullptr);
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  RoomObject obj(0x00, 5, 5, 0);
+  obj.SetRom(rom_.get());
+  // Lock tiles_loaded_ to true, then force exactly min_tiles.
+  obj.EnsureTilesLoaded();
+  obj.mutable_tiles().clear();
+  for (int i = 0; i < 4; ++i) {
+    obj.mutable_tiles().emplace_back(i, 0, false, false, false);
+  }
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, true);
+
+  auto status =
+      drawer.DrawObject(obj, bg1, bg2, palette_group, nullptr, nullptr);
+  EXPECT_TRUE(status.ok()) << status.message();
+  // With exactly min_tiles, the routine should run and produce tile writes
+  EXPECT_GT(trace.size(), 0u);
+}
+
+TEST_F(NullTileGuardTest, DrawObject_4x4Routine_WithOneTile_Skipped) {
+  // Object 0x33 maps to routine 16 (Rightwards4x4_1to16) with min_tiles=16.
+  // Give it only 1 tile to trigger the guard.
+  ObjectDrawer drawer(rom_.get(), 0, nullptr);
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  RoomObject obj(0x33, 5, 5, 0);
+  obj.SetRom(rom_.get());
+  // Call EnsureTilesLoaded first to mark tiles_loaded_ = true, then replace
+  // the decoded tiles with a single sentinel tile.
+  obj.EnsureTilesLoaded();
+  obj.mutable_tiles().clear();
+  obj.mutable_tiles().emplace_back(42, 0, false, false, false);
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, true);
+
+  auto status =
+      drawer.DrawObject(obj, bg1, bg2, palette_group, nullptr, nullptr);
+  EXPECT_TRUE(status.ok()) << status.message();
+  // Should have drawn exactly 1 tile via the 1x1 fallback path
+  EXPECT_EQ(trace.size(), 1u);
+  if (!trace.empty()) {
+    EXPECT_EQ(trace[0].tile_id, 42u);
+  }
+}
+
 }  // namespace
 }  // namespace zelda3
 }  // namespace yaze

@@ -1,6 +1,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 #include "core/features.h"
@@ -44,17 +45,17 @@ TEST(DungeonEditorV2RomSafetyTest, SaveUsesRoomIndicesNotInternalIds) {
   // No rooms are loaded, so SaveRoomData should be a no-op and never write.
   EXPECT_CALL(rom, WriteHelper(testing::_)).Times(0);
 
-  DungeonEditorV2 editor(&rom);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
 
   // Inject a room with an out-of-range internal ID. Save must not use
   // room.id() for iteration (otherwise it would try SaveRoomData(999)).
-  editor.rooms()[5] = zelda3::Room(999, &rom, nullptr);
-  editor.rooms()[5].SetLoaded(false);
+  editor->rooms()[5] = zelda3::Room(999, &rom, nullptr);
+  editor->rooms()[5].SetLoaded(false);
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
 
-  auto status = editor.Save();
+  auto status = editor->Save();
   EXPECT_TRUE(status.ok()) << status.message();
 }
 
@@ -63,18 +64,18 @@ TEST(DungeonEditorV2RomSafetyTest, SaveRoomBlocksInvalidRoomBeforeWriting) {
   ASSERT_TRUE(rom.SetTestData(std::vector<uint8_t>(0x8000, 0)).ok());
   EXPECT_CALL(rom, WriteHelper(testing::_)).Times(0);
 
-  DungeonEditorV2 editor(&rom);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
 
-  auto& room = editor.rooms()[0];
+  auto& room = editor->rooms()[0];
   room.SetLoaded(true);
   room.ClearTileObjects();
   room.AddTileObject(zelda3::RoomObject(/*id=*/0x01, /*x=*/70, /*y=*/0,
                                         /*size=*/0, /*layer=*/0));
 
-  auto status = editor.SaveRoom(0);
+  auto status = editor->SaveRoom(0);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
 }
@@ -84,9 +85,9 @@ TEST(DungeonEditorV2RomSafetyTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
-  DungeonEditorV2 editor(&rom);
-  editor.rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
-  ASSERT_TRUE(editor.rooms()[0].water_fill_dirty());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
+  ASSERT_TRUE(editor->rooms()[0].water_fill_dirty());
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -95,11 +96,11 @@ TEST(DungeonEditorV2RomSafetyTest,
   d.kSaveCollision = false;
   d.kSaveWaterFillZones = true;
 
-  auto status = editor.Save();
+  auto status = editor->Save();
   EXPECT_TRUE(status.ok()) << status.message();
 
-  EXPECT_FALSE(editor.rooms()[0].water_fill_dirty());
-  EXPECT_EQ(editor.rooms()[0].water_fill_sram_bit_mask(), 0x01);
+  EXPECT_FALSE(editor->rooms()[0].water_fill_dirty());
+  EXPECT_EQ(editor->rooms()[0].water_fill_sram_bit_mask(), 0x01);
 
   auto zones_or = zelda3::LoadWaterFillTable(&rom);
   ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
@@ -116,11 +117,11 @@ TEST(DungeonEditorV2RomSafetyTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
-  DungeonEditorV2 editor(&rom);
-  editor.rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
-  editor.rooms()[0].set_water_fill_sram_bit_mask(0x01);
-  editor.rooms()[1].SetWaterFillTile(/*x=*/2, /*y=*/2, /*filled=*/true);
-  editor.rooms()[1].set_water_fill_sram_bit_mask(0x01);  // Duplicate on purpose.
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
+  editor->rooms()[0].set_water_fill_sram_bit_mask(0x01);
+  editor->rooms()[1].SetWaterFillTile(/*x=*/2, /*y=*/2, /*filled=*/true);
+  editor->rooms()[1].set_water_fill_sram_bit_mask(0x01);  // Duplicate on purpose.
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -129,11 +130,11 @@ TEST(DungeonEditorV2RomSafetyTest,
   d.kSaveCollision = false;
   d.kSaveWaterFillZones = true;
 
-  auto status = editor.Save();
+  auto status = editor->Save();
   EXPECT_TRUE(status.ok()) << status.message();
 
-  EXPECT_EQ(editor.rooms()[0].water_fill_sram_bit_mask(), 0x01);
-  EXPECT_EQ(editor.rooms()[1].water_fill_sram_bit_mask(), 0x02);
+  EXPECT_EQ(editor->rooms()[0].water_fill_sram_bit_mask(), 0x01);
+  EXPECT_EQ(editor->rooms()[1].water_fill_sram_bit_mask(), 0x02);
 
   auto zones_or = zelda3::LoadWaterFillTable(&rom);
   ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
@@ -150,9 +151,9 @@ TEST(DungeonEditorV2RomSafetyTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
-  DungeonEditorV2 editor(&rom);
-  editor.rooms()[0].SetWaterFillTile(/*x=*/4, /*y=*/4, /*filled=*/true);
-  editor.rooms()[0].set_water_fill_sram_bit_mask(0x03);  // Invalid (not single-bit).
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->rooms()[0].SetWaterFillTile(/*x=*/4, /*y=*/4, /*filled=*/true);
+  editor->rooms()[0].set_water_fill_sram_bit_mask(0x03);  // Invalid (not single-bit).
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -161,9 +162,9 @@ TEST(DungeonEditorV2RomSafetyTest,
   d.kSaveCollision = false;
   d.kSaveWaterFillZones = true;
 
-  auto status = editor.Save();
+  auto status = editor->Save();
   EXPECT_TRUE(status.ok()) << status.message();
-  EXPECT_EQ(editor.rooms()[0].water_fill_sram_bit_mask(), 0x01);
+  EXPECT_EQ(editor->rooms()[0].water_fill_sram_bit_mask(), 0x01);
 
   auto zones_or = zelda3::LoadWaterFillTable(&rom);
   ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
@@ -178,7 +179,7 @@ TEST(DungeonEditorV2RomSafetyTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
-  DungeonEditorV2 editor(&rom);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -186,10 +187,10 @@ TEST(DungeonEditorV2RomSafetyTest,
   d.kSaveObjects = false;
   d.kSaveWaterFillZones = true;
 
-  EXPECT_TRUE(editor.CollectWriteRanges().empty());
+  EXPECT_TRUE(editor->CollectWriteRanges().empty());
 
-  editor.rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
-  auto ranges = editor.CollectWriteRanges();
+  editor->rooms()[0].SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
+  auto ranges = editor->CollectWriteRanges();
   ASSERT_EQ(ranges.size(), 1u);
   EXPECT_EQ(ranges[0].first,
             static_cast<uint32_t>(zelda3::kWaterFillTableStart));
@@ -202,7 +203,7 @@ TEST(DungeonEditorV2RomSafetyTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
-  DungeonEditorV2 editor(&rom);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -210,10 +211,10 @@ TEST(DungeonEditorV2RomSafetyTest,
   d.kSaveObjects = false;
   d.kSaveCollision = true;
 
-  EXPECT_TRUE(editor.CollectWriteRanges().empty());
+  EXPECT_TRUE(editor->CollectWriteRanges().empty());
 
-  editor.rooms()[0].SetCollisionTile(/*x=*/0, /*y=*/0, /*tile=*/0x08);
-  auto ranges = editor.CollectWriteRanges();
+  editor->rooms()[0].SetCollisionTile(/*x=*/0, /*y=*/0, /*tile=*/0x08);
+  auto ranges = editor->CollectWriteRanges();
   ASSERT_EQ(ranges.size(), 2u);
   EXPECT_EQ(ranges[0].first,
             static_cast<uint32_t>(zelda3::kCustomCollisionRoomPointers));
@@ -224,6 +225,47 @@ TEST(DungeonEditorV2RomSafetyTest,
             static_cast<uint32_t>(zelda3::kCustomCollisionDataPosition));
   EXPECT_EQ(ranges[1].second,
             static_cast<uint32_t>(zelda3::kCustomCollisionDataSoftEnd));
+}
+
+TEST(DungeonEditorV2RomSafetyTest, UndoSnapshotLeakDetection) {
+  test::MockRom rom;
+  ASSERT_TRUE(rom.SetTestData(std::vector<uint8_t>(0x8000, 0)).ok());
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.ClearTileObjects();
+
+  // Add an initial object to make changes detectable.
+  room.AddTileObject(
+      zelda3::RoomObject(/*id=*/0x01, /*x=*/10, /*y=*/10, /*size=*/0, /*layer=*/0));
+
+  // First BeginUndoSnapshot should work normally.
+  editor->BeginUndoSnapshot(0);
+  EXPECT_TRUE(editor->has_pending_undo_)
+      << "has_pending_undo_ should be true after BeginUndoSnapshot";
+
+  // Second BeginUndoSnapshot without FinalizeUndoAction should auto-finalize
+  // the first snapshot (preventing leak) and start a new one.
+  // This tests that double-Begin is handled gracefully.
+  editor->BeginUndoSnapshot(0);
+  EXPECT_TRUE(editor->has_pending_undo_)
+      << "has_pending_undo_ should still be true after second BeginUndoSnapshot";
+
+  // FinalizeUndoAction should clear the flag.
+  editor->FinalizeUndoAction(0);
+  EXPECT_FALSE(editor->has_pending_undo_)
+      << "has_pending_undo_ should be false after FinalizeUndoAction";
+
+  // BeginUndoSnapshot after FinalizeUndoAction should work normally again.
+  editor->BeginUndoSnapshot(0);
+  EXPECT_TRUE(editor->has_pending_undo_)
+      << "has_pending_undo_ should be true after new BeginUndoSnapshot";
+
+  // Clean up pending undo.
+  editor->FinalizeUndoAction(0);
+  EXPECT_FALSE(editor->has_pending_undo_)
+      << "has_pending_undo_ should be false after final FinalizeUndoAction";
 }
 
 }  // namespace yaze::editor

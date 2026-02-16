@@ -498,6 +498,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -510,6 +511,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 4,
+      .min_tiles = 8,  // 2x4 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -522,6 +524,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 2,  // Adjacent spacing (s * 2)
       .base_height = 4,
+      .min_tiles = 8,  // 2x4 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -534,6 +537,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,  // 2x4 blocks; repeat step is 6 tiles (2 wide + 4 gap)
       .base_height = 4,
+      .min_tiles = 8,  // 2x4 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -544,6 +548,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -554,6 +559,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 3,
+      .min_tiles = 2,  // cap + middle tiles
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -564,6 +570,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 1,
+      .min_tiles = 3,  // left edge + middle + right edge
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -574,6 +581,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 3,
       .base_height = 1,
+      .min_tiles = 3,  // left edge + middle + right edge
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -584,6 +592,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 23,
       .base_height = 1,
+      .min_tiles = 3,  // left edge + middle + right edge
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -594,6 +603,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 2,
+      .min_tiles = 2,  // 1x2 pattern
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -604,6 +614,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 2,  // spans y+1 to y+2
+      .min_tiles = 2,  // 1x2 pattern
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -614,6 +625,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 16,  // 4x4 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -624,6 +636,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 1,
+      .min_tiles = 4,  // solid fill uses 4 directional tiles
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -634,6 +647,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 6,  // 4 tiles + 2 spacing
       .base_height = 4,
+      .min_tiles = 16,  // 4x4 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -644,6 +658,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,  // 2 tiles + 2 spacing
       .base_height = 3,
+      .min_tiles = 6,  // 2x3 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -654,6 +669,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 6,  // 2 tiles + 4 spacing
       .base_height = 4,
+      .min_tiles = 8,  // 2x4 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -664,6 +680,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 6,  // 4 tiles + 2 spacing (actually the calculation seems off, kept as is)
       .base_height = 3,
+      .min_tiles = 12,  // 4x3 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -674,6 +691,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 6,  // 4 tiles + 2 spacing
       .base_height = 2,
+      .min_tiles = 8,  // 4x2 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 
@@ -684,6 +702,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 14,  // 2 tiles + 12 spacing
       .base_height = 2,
+      .min_tiles = 4,  // 2x2 block
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 }

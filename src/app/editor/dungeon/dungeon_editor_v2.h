@@ -6,6 +6,7 @@
 #include <deque>
 #include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -158,6 +159,7 @@ class DungeonEditorV2 : public Editor {
 
     // Reset viewers on ROM change
     room_viewers_.clear();
+    viewer_lru_.clear();
 
     // Create render service if needed
     if (rom && rom->is_loaded() && !render_service_) {
@@ -195,6 +197,8 @@ class DungeonEditorV2 : public Editor {
 
   // Explicit workflow toggle between integrated Workbench and standalone panels.
   void SetWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
+  // Queue a workflow mode change to run at a safe point in the next update.
+  void QueueWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
   bool IsWorkbenchWorkflowEnabled() const;
 
   // Panel card IDs for programmatic access
@@ -225,6 +229,8 @@ class DungeonEditorV2 : public Editor {
   const std::deque<int>& GetRecentRooms() const { return recent_rooms_; }
 
  private:
+  friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
+
   gfx::IRenderer* renderer_ = nullptr;
 
   // Draw the Room Panels
@@ -294,7 +300,9 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
   // canvas_viewer_ removed in favor of room_viewers_
+  static constexpr int kMaxCachedViewers = 20;
   std::map<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_;
+  std::deque<int> viewer_lru_;  // LRU tracking (most recent at back)
   std::unique_ptr<DungeonCanvasViewer> workbench_viewer_;
   std::unique_ptr<DungeonCanvasViewer> workbench_compare_viewer_;
 
@@ -343,6 +351,7 @@ class DungeonEditorV2 : public Editor {
     std::vector<zelda3::RoomObject> before_objects;
   };
   PendingUndo pending_undo_;
+  bool has_pending_undo_ = false;
 
   struct PendingCollisionUndo {
     int room_id = -1;
@@ -364,6 +373,13 @@ class DungeonEditorV2 : public Editor {
   };
   PendingSwap pending_swap_;
 
+  struct PendingWorkflowMode {
+    bool enabled = false;
+    bool show_toast = true;
+    bool pending = false;
+  };
+  PendingWorkflowMode pending_workflow_mode_;
+
   // Two-phase undo capture: BeginUndoSnapshot saves state before mutation,
   // FinalizeUndoAction captures state after mutation and pushes the action.
   void BeginUndoSnapshot(int room_id);
@@ -381,6 +397,7 @@ class DungeonEditorV2 : public Editor {
   void RestoreRoomWaterFill(int room_id, const WaterFillSnapshot& snap);
   void SwapRoomInPanel(int old_room_id, int new_room_id);
   void ProcessPendingSwap();  // Process deferred swap after draw
+  void ProcessPendingWorkflowMode();
 
   // Room panel slot IDs provide stable ImGui window IDs across "swap room in
   // panel" navigation. This keeps the window position/dock state when the room

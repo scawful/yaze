@@ -1,7 +1,19 @@
 #include "integration/dungeon_editor_v2_test.h"
 
+#include "core/features.h"
+
 namespace yaze {
 namespace test {
+
+namespace {
+
+struct DungeonFeatureFlagsGuard {
+  decltype(core::FeatureFlags::get().dungeon) prev =
+      core::FeatureFlags::get().dungeon;
+  ~DungeonFeatureFlagsGuard() { core::FeatureFlags::get().dungeon = prev; }
+};
+
+}  // namespace
 
 // ============================================================================
 // Basic Initialization Tests
@@ -67,6 +79,69 @@ TEST_F(DungeonEditorV2IntegrationTest, UpdateAfterLoad) {
   // Update should delegate to components
   auto status = dungeon_editor_v2_->Update();
   EXPECT_TRUE(status.ok());
+}
+
+TEST_F(DungeonEditorV2IntegrationTest,
+       QueueWorkbenchWorkflowModeDefersDisableUntilUpdate) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  const size_t session_id = panel_manager_->GetActiveSessionId();
+
+  ASSERT_TRUE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomMatrixId));
+
+  dungeon_editor_v2_->QueueWorkbenchWorkflowMode(false, /*show_toast=*/false);
+
+  // Queued mode changes are deferred to Update().
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+
+  auto status = dungeon_editor_v2_->Update();
+  ASSERT_TRUE(status.ok());
+
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomMatrixId));
+}
+
+TEST_F(DungeonEditorV2IntegrationTest,
+       QueueWorkbenchWorkflowModeDefersEnableUntilUpdate) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  const size_t session_id = panel_manager_->GetActiveSessionId();
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
+  ASSERT_FALSE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  ASSERT_TRUE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  ASSERT_TRUE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomMatrixId));
+
+  dungeon_editor_v2_->QueueWorkbenchWorkflowMode(true, /*show_toast=*/false);
+
+  // Mode does not flip until the next update tick.
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+
+  auto status = dungeon_editor_v2_->Update();
+  ASSERT_TRUE(status.ok());
+
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomMatrixId));
 }
 
 // ============================================================================

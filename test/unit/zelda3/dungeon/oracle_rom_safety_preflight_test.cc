@@ -1,5 +1,10 @@
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 
+#include <chrono>
+#include <cstdint>
+#include <filesystem>
+#include <fstream>
+#include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -74,6 +79,83 @@ TEST(OracleRomSafetyPreflightTest,
   const auto result = RunOracleRomSafetyPreflight(&rom, options);
   EXPECT_FALSE(result.ok());
   EXPECT_TRUE(HasErrorCode(result, "ORACLE_COLLISION_POINTER_INVALID"));
+}
+
+// ---------------------------------------------------------------------------
+// SHA-256 utility tests
+// ---------------------------------------------------------------------------
+
+class Sha256Test : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const auto nonce = static_cast<uint64_t>(
+        std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    temp_path_ = std::filesystem::temp_directory_path() /
+                 ("yaze_sha256_test_" + std::to_string(nonce));
+  }
+
+  void TearDown() override {
+    std::error_code ec;
+    std::filesystem::remove(temp_path_, ec);
+  }
+
+  // Write raw bytes to the temp file.
+  void WriteBytes(const std::vector<uint8_t>& data) {
+    std::ofstream out(temp_path_, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char*>(data.data()), data.size());
+    out.close();
+  }
+
+  std::filesystem::path temp_path_;
+};
+
+TEST_F(Sha256Test, ComputesKnownHash) {
+  // "yaze_test_payload_1234" has a well-known SHA-256.
+  const std::string payload = "yaze_test_payload_1234";
+  const std::string expected_hash =
+      "8ba9a29c82f1588b86b3128006ca0e3aed232fbe94a7baa1f89e3f59ba653ebc";
+
+  WriteBytes(std::vector<uint8_t>(payload.begin(), payload.end()));
+
+  auto hash_or = ComputeSha256(temp_path_.string());
+  ASSERT_TRUE(hash_or.ok()) << hash_or.status();
+  EXPECT_EQ(*hash_or, expected_hash);
+}
+
+TEST_F(Sha256Test, VerifyMatchesExpectedHash) {
+  const std::string payload = "yaze_test_payload_1234";
+  const std::string expected_hash =
+      "8ba9a29c82f1588b86b3128006ca0e3aed232fbe94a7baa1f89e3f59ba653ebc";
+
+  WriteBytes(std::vector<uint8_t>(payload.begin(), payload.end()));
+
+  EXPECT_TRUE(VerifySha256(temp_path_.string(), expected_hash).ok());
+}
+
+TEST_F(Sha256Test, DetectsSingleByteMismatch) {
+  const std::string payload = "yaze_test_payload_1234";
+  const std::string original_hash =
+      "8ba9a29c82f1588b86b3128006ca0e3aed232fbe94a7baa1f89e3f59ba653ebc";
+
+  // Write the original content and verify it matches.
+  WriteBytes(std::vector<uint8_t>(payload.begin(), payload.end()));
+  ASSERT_TRUE(VerifySha256(temp_path_.string(), original_hash).ok());
+
+  // Flip one byte and verify the hash no longer matches.
+  std::vector<uint8_t> modified(payload.begin(), payload.end());
+  modified[0] ^= 0x01;
+  WriteBytes(modified);
+
+  auto status = VerifySha256(temp_path_.string(), original_hash);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kDataLoss);
+}
+
+TEST_F(Sha256Test, ReturnsErrorForMissingFile) {
+  auto hash_or = ComputeSha256("/nonexistent/path/to/file.bin");
+  EXPECT_FALSE(hash_or.ok());
+  EXPECT_EQ(hash_or.status().code(), absl::StatusCode::kNotFound);
 }
 
 }  // namespace

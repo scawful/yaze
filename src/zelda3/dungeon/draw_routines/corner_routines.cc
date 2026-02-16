@@ -117,6 +117,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 4,  // handles 4, 8, or 16 tile variants
       .category = DrawRoutineInfo::Category::Corner,
   });
 
@@ -127,6 +128,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 4,
+      .min_tiles = 4,  // handles 4, 8, or 16 tile variants
       .category = DrawRoutineInfo::Category::Corner,
   });
 
@@ -137,6 +139,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 2,
+      .min_tiles = 8,  // 4x2 block
       .category = DrawRoutineInfo::Category::Corner,
   });
 
@@ -147,6 +150,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 2,
+      .min_tiles = 8,  // 4x2 block
       .category = DrawRoutineInfo::Category::Corner,
   });
 }

@@ -26,6 +26,7 @@ set(
   app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/interaction/interaction_mode.cc
   app/editor/dungeon/panels/dungeon_room_graphics_panel.cc
+  app/editor/dungeon/panels/dungeon_settings_panel.cc
   app/editor/dungeon/panels/dungeon_workbench_panel.cc
   app/editor/dungeon/panels/object_editor_panel.cc
   app/editor/dungeon/panels/object_tile_editor_panel.cc
