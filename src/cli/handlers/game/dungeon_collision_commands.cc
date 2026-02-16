@@ -225,15 +225,16 @@ absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
     if (status.ok()) {
       return report_status;
     }
-    return absl::InternalError(absl::StrFormat(
-        "Command failed (%s) and report write failed (%s)", status.message(),
-        report_status.message()));
+    return absl::InternalError(
+        absl::StrFormat("Command failed (%s) and report write failed (%s)",
+                        status.message(), report_status.message()));
   }
 
   return status;
 }
 
-json BuildPreflightJson(const zelda3::OracleRomSafetyPreflightResult& preflight) {
+json BuildPreflightJson(
+    const zelda3::OracleRomSafetyPreflightResult& preflight) {
   json out;
   out["ok"] = preflight.ok();
   json errors = json::array();
@@ -272,10 +273,11 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
   formatter.BeginObject("Dungeon Custom Collision");
   formatter.AddField("room_id", room_id);
   formatter.AddHexField("room_id_hex", room_id, 2);
-  formatter.AddField("filter_mode",
-                     !filter_tiles.empty()
-                         ? "tiles"
-                         : (list_all ? "all" : (list_nonzero ? "nonzero" : "all")));
+  formatter.AddField(
+      "filter_mode",
+      !filter_tiles.empty()
+          ? "tiles"
+          : (list_all ? "all" : (list_nonzero ? "nonzero" : "all")));
 
   auto map_or = zelda3::LoadCustomCollisionMap(rom, room_id);
   if (!map_or.ok()) {
@@ -429,9 +431,12 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
         zelda3::LoadCustomCollisionRoomsFromJsonString(json_content));
     report["imported_room_entries"] = static_cast<int>(imported_rooms.size());
 
-    std::array<zelda3::Room, zelda3::kNumberOfRooms> rooms;
+    // Keep room storage on the heap: zelda3::Room is large enough that a full
+    // `kNumberOfRooms` array can overflow stack frames in optimized builds.
+    std::vector<zelda3::Room> rooms;
+    rooms.reserve(zelda3::kNumberOfRooms);
     for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
-      rooms[room_id] = zelda3::Room(room_id, rom, nullptr);
+      rooms.emplace_back(room_id, rom, nullptr);
     }
 
     int populated_rooms = 0;

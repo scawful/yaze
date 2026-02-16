@@ -2,16 +2,16 @@
 #define YAZE_CLI_HANDLERS_TOOLS_DUNGEON_OBJECT_VALIDATE_COMMANDS_H
 
 #include "cli/service/resources/command_handler.h"
-#include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/dimension_service.h"
 
 namespace yaze::cli {
 
 namespace detail {
 
-zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
-    const zelda3::ObjectDimensionTable& dimension_table, int object_id,
-    int size, const zelda3::ObjectDimensionTable::SelectionBounds& bounds,
-    int object_x, int object_y);
+zelda3::DimensionService::DimensionResult ClipSelectionBoundsToRoom(
+    int object_id, int size,
+    const zelda3::DimensionService::DimensionResult& bounds, int object_x,
+    int object_y);
 
 }  // namespace detail
 
@@ -45,8 +45,7 @@ class DungeonObjectValidateCommandHandler : public resources::CommandHandler {
     return desc;
   }
 
-  absl::Status ValidateArgs(
-      const resources::ArgumentParser& parser) override {
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     (void)parser;
     return absl::OkStatus();
   }

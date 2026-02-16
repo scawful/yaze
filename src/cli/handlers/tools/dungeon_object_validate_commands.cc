@@ -14,6 +14,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "core/features.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/object_dimensions.h"
@@ -76,14 +77,16 @@ TraceBounds ComputeBounds(
 // (origin + expected.offset + expected.size) fits inside the 64x64 validation
 // canvas. This avoids false mismatches from traces being clipped at y<0/x<0.
 std::pair<int, int> ChooseOriginForExpectedBounds(
-    const zelda3::ObjectDimensionTable::SelectionBounds& expected_bounds) {
+    const zelda3::DimensionService::DimensionResult& expected_bounds) {
   constexpr int kRoomMaxX = zelda3::DrawContext::kMaxTilesX - 1;
   constexpr int kRoomMaxY = zelda3::DrawContext::kMaxTilesY - 1;
 
-  const int min_x = expected_bounds.offset_x;
-  const int min_y = expected_bounds.offset_y;
-  const int max_x = expected_bounds.offset_x + expected_bounds.width - 1;
-  const int max_y = expected_bounds.offset_y + expected_bounds.height - 1;
+  const int min_x = expected_bounds.offset_x_tiles;
+  const int min_y = expected_bounds.offset_y_tiles;
+  const int max_x =
+      expected_bounds.offset_x_tiles + expected_bounds.width_tiles - 1;
+  const int max_y =
+      expected_bounds.offset_y_tiles + expected_bounds.height_tiles - 1;
 
   const int low_x = std::max(0, -min_x);
   const int low_y = std::max(0, -min_y);
@@ -111,24 +114,28 @@ std::pair<int, int> ChooseOriginForExpectedBounds(
 
 namespace detail {
 
-zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
-    const zelda3::ObjectDimensionTable& dimension_table, int object_id,
-    int size, const zelda3::ObjectDimensionTable::SelectionBounds& bounds,
-    int object_x, int object_y) {
+zelda3::DimensionService::DimensionResult ClipSelectionBoundsToRoom(
+    int object_id, int size,
+    const zelda3::DimensionService::DimensionResult& bounds, int object_x,
+    int object_y) {
   constexpr int kRoomTilesX = zelda3::DrawContext::kMaxTilesX;
   constexpr int kRoomTilesY = zelda3::DrawContext::kMaxTilesY;
   const int room_max_x = kRoomTilesX - 1;
   const int room_max_y = kRoomTilesY - 1;
 
-  const int min_x = object_x + bounds.offset_x;
-  const int min_y = object_y + bounds.offset_y;
-  int max_x = min_x + bounds.width - 1;
-  int max_y = min_y + bounds.height - 1;
+  const int min_x = object_x + bounds.offset_x_tiles;
+  const int min_y = object_y + bounds.offset_y_tiles;
+  int max_x = min_x + bounds.width_tiles - 1;
+  int max_y = min_y + bounds.height_tiles - 1;
 
   if (size > 0) {
-    const auto [base_w, base_h] = dimension_table.GetBaseDimensions(object_id);
-    const int sel_w = bounds.width;
-    const int sel_h = bounds.height;
+    // Get base dimensions (size=0) through DimensionService.
+    zelda3::RoomObject base_obj(object_id, 0, 0, 0, 0);
+    auto base_dims = zelda3::DimensionService::Get().GetDimensions(base_obj);
+    const int base_w = base_dims.width_tiles;
+    const int base_h = base_dims.height_tiles;
+    const int sel_w = bounds.width_tiles;
+    const int sel_h = bounds.height_tiles;
 
     const bool extends_h = (sel_w > base_w) && (sel_h == base_h);
     const bool extends_v = (sel_h > base_h) && (sel_w == base_w);
@@ -171,11 +178,11 @@ zelda3::ObjectDimensionTable::SelectionBounds ClipSelectionBoundsToRoom(
   const int clipped_max_x = std::clamp(max_x, 0, room_max_x);
   const int clipped_max_y = std::clamp(max_y, 0, room_max_y);
 
-  zelda3::ObjectDimensionTable::SelectionBounds clipped = bounds;
-  clipped.offset_x = clipped_min_x - object_x;
-  clipped.offset_y = clipped_min_y - object_y;
-  clipped.width = std::max(0, clipped_max_x - clipped_min_x + 1);
-  clipped.height = std::max(0, clipped_max_y - clipped_min_y + 1);
+  zelda3::DimensionService::DimensionResult clipped = bounds;
+  clipped.offset_x_tiles = clipped_min_x - object_x;
+  clipped.offset_y_tiles = clipped_min_y - object_y;
+  clipped.width_tiles = std::max(0, clipped_max_x - clipped_min_x + 1);
+  clipped.height_tiles = std::max(0, clipped_max_y - clipped_min_y + 1);
   return clipped;
 }
 
@@ -508,11 +515,13 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         absl::StrFormat("Room ID must be between 0 and %d", kNumRooms - 1));
   }
 
+  // Initialize ObjectDimensionTable so DimensionService's fallback path works.
   auto& dimension_table = zelda3::ObjectDimensionTable::Get();
   auto load_status = dimension_table.LoadFromRom(rom);
   if (!load_status.ok()) {
     return load_status;
   }
+  auto& dim_service = zelda3::DimensionService::Get();
 
   std::vector<int> object_ids = BuildObjectIds(object_arg);
   std::vector<int> sizes = BuildSizes(size_arg);
@@ -572,11 +581,9 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         return draw_status;
       }
 
-      auto expected_bounds =
-          dimension_table.GetSelectionBounds(object_id, obj.size_);
+      auto expected_bounds = dim_service.GetDimensions(obj);
       expected_bounds = detail::ClipSelectionBoundsToRoom(
-          dimension_table, object_id, obj.size_, expected_bounds, obj.x_,
-          obj.y_);
+          object_id, obj.size_, expected_bounds, obj.x_, obj.y_);
 
       TraceBounds bounds = ComputeBounds(trace);
       if (write_trace_dump) {
@@ -602,10 +609,10 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
       result.object_x = obj.x_;
       result.object_y = obj.y_;
       result.object_layer = obj.GetLayerValue();
-      result.expected_width = expected_bounds.width;
-      result.expected_height = expected_bounds.height;
-      result.expected_offset_x = expected_bounds.offset_x;
-      result.expected_offset_y = expected_bounds.offset_y;
+      result.expected_width = expected_bounds.width_tiles;
+      result.expected_height = expected_bounds.height_tiles;
+      result.expected_offset_x = expected_bounds.offset_x_tiles;
+      result.expected_offset_y = expected_bounds.offset_y_tiles;
 
       if (!bounds.has_tiles) {
         empty_trace_count++;
@@ -633,13 +640,14 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
       result.trace_min_y = bounds.min_y;
       result.trace_offset_x = bounds.min_x - obj.x_;
       result.trace_offset_y = bounds.min_y - obj.y_;
-      result.size_mismatch = (bounds.width != expected_bounds.width ||
-                              bounds.height != expected_bounds.height);
+      result.size_mismatch = (bounds.width != expected_bounds.width_tiles ||
+                              bounds.height != expected_bounds.height_tiles);
       result.offset_mismatch =
-          (result.trace_offset_x != expected_bounds.offset_x ||
-           result.trace_offset_y != expected_bounds.offset_y);
+          (result.trace_offset_x != expected_bounds.offset_x_tiles ||
+           result.trace_offset_y != expected_bounds.offset_y_tiles);
 
-      if (expected_bounds.offset_x < 0 || expected_bounds.offset_y < 0) {
+      if (expected_bounds.offset_x_tiles < 0 ||
+          expected_bounds.offset_y_tiles < 0) {
         negative_offset_count++;
       }
 
@@ -659,8 +667,11 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         total_tests++;
         trace.clear();
 
-        auto expected_bounds =
-            dimension_table.GetSelectionBounds(object_id, size);
+        // Use a temporary object at origin (0,0) to get initial dimensions,
+        // then choose a safe origin that keeps bounds within the room canvas.
+        zelda3::RoomObject temp_obj(object_id, 0, 0, static_cast<uint8_t>(size),
+                                    0);
+        auto expected_bounds = dim_service.GetDimensions(temp_obj);
         const auto [origin_x, origin_y] =
             ChooseOriginForExpectedBounds(expected_bounds);
 
@@ -668,12 +679,14 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
                                static_cast<uint8_t>(size), 0);
         obj.layer_ = zelda3::RoomObject::LayerType::BG1;
 
-        // Apply the same clipping logic used in room-mode so the selection
-        // bounds contract matches what can actually be traced inside a room.
+        // Re-query with the positioned object so DimensionService sees the
+        // final coordinates, then apply room-boundary clipping.
+        expected_bounds = dim_service.GetDimensions(obj);
         expected_bounds = detail::ClipSelectionBoundsToRoom(
-            dimension_table, object_id, size, expected_bounds, obj.x_, obj.y_);
+            object_id, size, expected_bounds, obj.x_, obj.y_);
 
-        if (expected_bounds.offset_x < 0 || expected_bounds.offset_y < 0) {
+        if (expected_bounds.offset_x_tiles < 0 ||
+            expected_bounds.offset_y_tiles < 0) {
           negative_offset_count++;
         }
 
@@ -700,10 +713,10 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
           result.trace_height = 0;
           result.trace_min_x = 0;
           result.trace_min_y = 0;
-          result.expected_width = expected_bounds.width;
-          result.expected_height = expected_bounds.height;
-          result.expected_offset_x = expected_bounds.offset_x;
-          result.expected_offset_y = expected_bounds.offset_y;
+          result.expected_width = expected_bounds.width_tiles;
+          result.expected_height = expected_bounds.height_tiles;
+          result.expected_offset_x = expected_bounds.offset_x_tiles;
+          result.expected_offset_y = expected_bounds.offset_y_tiles;
           result.size_mismatch = true;
           result.offset_mismatch = false;
           mismatch_count++;
@@ -724,15 +737,15 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         result.trace_min_y = bounds.min_y;
         result.trace_offset_x = bounds.min_x - obj.x_;
         result.trace_offset_y = bounds.min_y - obj.y_;
-        result.expected_width = expected_bounds.width;
-        result.expected_height = expected_bounds.height;
-        result.expected_offset_x = expected_bounds.offset_x;
-        result.expected_offset_y = expected_bounds.offset_y;
-        result.size_mismatch = (bounds.width != expected_bounds.width ||
-                                bounds.height != expected_bounds.height);
+        result.expected_width = expected_bounds.width_tiles;
+        result.expected_height = expected_bounds.height_tiles;
+        result.expected_offset_x = expected_bounds.offset_x_tiles;
+        result.expected_offset_y = expected_bounds.offset_y_tiles;
+        result.size_mismatch = (bounds.width != expected_bounds.width_tiles ||
+                                bounds.height != expected_bounds.height_tiles);
         result.offset_mismatch =
-            (result.trace_offset_x != expected_bounds.offset_x ||
-             result.trace_offset_y != expected_bounds.offset_y);
+            (result.trace_offset_x != expected_bounds.offset_x_tiles ||
+             result.trace_offset_y != expected_bounds.offset_y_tiles);
 
         if (result.size_mismatch || result.offset_mismatch) {
           mismatch_count++;

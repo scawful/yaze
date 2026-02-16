@@ -280,7 +280,7 @@ ResourceSchema MakeAgentSchema() {
   list_action.synopsis = "z3ed agent list";
   list_action.stability = "prototype";
   list_action.arguments = {};
-  list_action.effects = {{"reads", "proposal_registry"}};
+  list_action.effects = {"reads:proposal_registry"};
   list_action.returns = {
       {"proposals", "array",
        "List of all proposals with ID, status, prompt, and metadata."}};
@@ -294,7 +294,7 @@ ResourceSchema MakeAgentSchema() {
                        "Optional proposal ID to view specific proposal. "
                        "Defaults to latest pending."},
   };
-  diff_action.effects = {{"reads", "proposal_registry"}, {"reads", "sandbox"}};
+  diff_action.effects = {"reads:proposal_registry", "reads:sandbox"};
   diff_action.returns = {
       {"diff", "string", "Unified diff showing changes to ROM."},
       {"log", "string", "Execution log of commands run."},
