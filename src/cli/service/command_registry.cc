@@ -198,6 +198,25 @@ void CommandRegistry::RegisterHandlers(
     } else if (name.find("music-") == 0) {
       metadata.category = "game";
       metadata.description = "Music/audio inspection";
+    } else if (name.find("oracle-") == 0) {
+      metadata.category = "oracle";
+      metadata.description = "Oracle-of-Secrets project tooling";
+      if (name == "oracle-menu-index") {
+        metadata.examples = {
+            "z3ed oracle-menu-index --project=/path/to/oracle-of-secrets "
+            "--format=json",
+            "z3ed oracle-menu-index --table=Menu_ItemCursorPositions "
+            "--missing-bins --format=json"};
+      } else if (name == "oracle-menu-set-offset") {
+        metadata.examples = {
+            "z3ed oracle-menu-set-offset "
+            "--asm=Menu/menu_select_item.asm "
+            "--table=Menu_ItemCursorPositions --index=0 --row=7 --col=2",
+            "z3ed oracle-menu-set-offset "
+            "--asm=Menu/menu_select_item.asm "
+            "--table=Menu_ItemCursorPositions --index=0 --row=7 --col=2 "
+            "--write"};
+      }
     } else if (name == "simple-chat" || name == "chat") {
       metadata.category = "agent";
       metadata.description = "AI conversational agent";

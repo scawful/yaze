@@ -57,6 +57,8 @@ class DungeonPlaceSpriteCommandHandler;
 class DungeonRemoveSpriteCommandHandler;
 class DungeonPlaceObjectCommandHandler;
 class DungeonSetCollisionTileCommandHandler;
+class OracleMenuIndexCommandHandler;
+class OracleMenuSetOffsetCommandHandler;
 
 class OverworldFindTileCommandHandler;
 class OverworldDescribeMapCommandHandler;

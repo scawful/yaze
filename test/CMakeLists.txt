@@ -166,6 +166,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/hack_manifest_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
+    unit/core/oracle_menu_registry_test.cc
     unit/core/story_event_graph_test.cc
     unit/core/story_event_graph_query_test.cc
     unit/core/project_paths_test.cc

@@ -96,6 +96,7 @@ set(
   app/editor/menu/menu_builder.cc
   app/editor/menu/activity_bar.cc
   app/editor/oracle/panels/annotation_overlay_panel.cc
+  app/editor/oracle/panels/menu_inspector_panel.cc
   app/editor/oracle/panels/progression_dashboard_panel.cc
   app/editor/oracle/panels/story_event_graph_panel.cc
   app/editor/ui/rom_load_options_dialog.cc
