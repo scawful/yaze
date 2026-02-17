@@ -372,6 +372,21 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
 }
 
 int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
+  // Water face variants:
+  // - 0xF80 (Empty) may branch to the 0xF81 tile block at runtime, so we load
+  //   both spans to preserve parity for state-dependent rendering.
+  // - 0xF81 (Spitting): 4x5
+  // - 0xF82 (Drenching): 4x7
+  if (object_id == 0xF80) {
+    return 32;
+  }
+  if (object_id == 0xF81) {
+    return 20;
+  }
+  if (object_id == 0xF82) {
+    return 28;
+  }
+
   // BigChest (0xFB1 = ASM 0x231) and OpenBigChest (0xFB2 = ASM 0x232): 12 tiles
   // These use RoomDraw_1x3N_rightwards with N=4 (4 columns × 3 rows)
   if (object_id == 0xFB1 || object_id == 0xFB2) {

@@ -47,7 +47,8 @@ TEST(ObjectGeometryTest, MeasureByObjectIdKnownObject) {
 }
 
 TEST(ObjectGeometryTest, MeasureByObjectIdUnmappedReturnsError) {
-  RoomObject obj(/*id=*/0xF8, /*x=*/0, /*y=*/0, /*size=*/0);
+  // 0xF8 is now mapped (routine 39), use a truly unmapped ID
+  RoomObject obj(/*id=*/0x7FFF, /*x=*/0, /*y=*/0, /*size=*/0);
   auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
   EXPECT_FALSE(bounds.ok());
 }
