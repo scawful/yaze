@@ -1,5 +1,7 @@
 #include "special_routines.h"
 
+#include <algorithm>
+
 #include "core/features.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
@@ -874,22 +876,60 @@ void DrawMovingWall(const DrawContext& ctx, bool is_west) {
 // Water Face Variants
 // ============================================================================
 
+namespace {
+constexpr int kWaterFaceWidthTiles = 4;
+
+void DrawWaterFaceRows(const DrawContext& ctx, int row_count, int tile_offset) {
+  if (row_count <= 0 || tile_offset < 0 || ctx.tiles.empty()) {
+    return;
+  }
+
+  if (tile_offset >= static_cast<int>(ctx.tiles.size())) {
+    return;
+  }
+
+  const int available_tiles = static_cast<int>(ctx.tiles.size()) - tile_offset;
+  const int available_rows = available_tiles / kWaterFaceWidthTiles;
+  const int rows_to_draw = std::min(row_count, available_rows);
+
+  for (int row = 0; row < rows_to_draw; ++row) {
+    const int row_base = tile_offset + (row * kWaterFaceWidthTiles);
+    for (int col = 0; col < kWaterFaceWidthTiles; ++col) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + col,
+                                   ctx.object.y_ + row,
+                                   ctx.tiles[row_base + col]);
+    }
+  }
+}
+}  // namespace
+
 void DrawEmptyWaterFace(const DrawContext& ctx) {
   // ASM: RoomDraw_EmptyWaterFace ($019D29)
-  // No water spout, just the face
-  DrawWaterFace(ctx);
+  //
+  // usdasm behavior:
+  // - Base state draws a 4x3 face using data at offset 0x1614.
+  // - "Water active" branch draws a 4x5 variant using data at offset 0x162C.
+  //
+  // IMPORTANT: this uses dedicated water-face state, not door state. Tying
+  // this branch to IsDoorOpen created cross-feature rendering regressions.
+  const bool water_active =
+      (ctx.state != nullptr) && ctx.state->IsWaterFaceActive(ctx.room_id);
+
+  const int row_count = water_active ? 5 : 3;
+  const int tile_offset = water_active ? 12 : 0;  // 0x162C - 0x1614 = 24 bytes
+  DrawWaterFaceRows(ctx, row_count, tile_offset);
 }
 
 void DrawSpittingWaterFace(const DrawContext& ctx) {
   // ASM: RoomDraw_SpittingWaterFace ($019D64)
-  // Face with periodic water spout
-  DrawWaterFace(ctx);
+  // Draws a 4x5 face/spout shape.
+  DrawWaterFaceRows(ctx, /*row_count=*/5, /*tile_offset=*/0);
 }
 
 void DrawDrenchingWaterFace(const DrawContext& ctx) {
   // ASM: RoomDraw_DrenchingWaterFace ($019D83)
-  // Face with continuous water stream
-  DrawWaterFace(ctx);
+  // Draws a 4x7 continuous stream.
+  DrawWaterFaceRows(ctx, /*row_count=*/7, /*tile_offset=*/0);
 }
 
 // ============================================================================
@@ -1247,9 +1287,9 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "EmptyWaterFace",
       .function = DrawEmptyWaterFace,
       .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
+      .base_width = 4,
+      .base_height = 3,
+      .min_tiles = 12,  // base 4x3 variant
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1258,9 +1298,9 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "SpittingWaterFace",
       .function = DrawSpittingWaterFace,
       .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
+      .base_width = 4,
+      .base_height = 5,
+      .min_tiles = 20,  // 4x5 variant
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1269,9 +1309,9 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "DrenchingWaterFace",
       .function = DrawDrenchingWaterFace,
       .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
+      .base_width = 4,
+      .base_height = 7,
+      .min_tiles = 28,  // 4x7 variant
       .category = DrawRoutineInfo::Category::Special,
   });
 

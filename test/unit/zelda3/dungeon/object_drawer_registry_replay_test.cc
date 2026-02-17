@@ -34,6 +34,7 @@ struct ScopedCustomObjectsFlag {
 class FakeDungeonState : public DungeonState {
  public:
   int open_lock_room_id = -1;
+  int water_face_active_room_id = -1;
 
   bool IsChestOpen(int /*room_id*/, int /*chest_index*/) const override {
     return false;
@@ -47,6 +48,9 @@ class FakeDungeonState : public DungeonState {
     return room_id == open_lock_room_id;
   }
   bool IsDoorSwitchActive(int /*room_id*/) const override { return false; }
+  bool IsWaterFaceActive(int room_id) const override {
+    return room_id == water_face_active_room_id;
+  }
 
   bool IsWallMoved(int /*room_id*/) const override { return false; }
   bool IsFloorBombable(int /*room_id*/) const override { return false; }
@@ -426,6 +430,151 @@ TEST(ObjectDrawerRegistryReplayTest, RegistryRoutinesUseObjectDrawerRoomIdForSta
 
   // When opened, BigKeyLock draws the second 2x2 tile set (tiles[4..7]).
   EXPECT_EQ(trace[0].tile_id, lock.tiles_[4].id_);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     EmptyWaterFaceUsesStateSensitiveRowsAndTileBlock) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject water_face(0x0F80, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
+  water_face.tiles_loaded_ = true;
+  water_face.tiles_.clear();
+  for (int i = 0; i < 32; ++i) {
+    water_face.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i),
+                                              /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  // Default branch: 4x3 using tiles[0..11].
+  ASSERT_TRUE(drawer.DrawObject(water_face, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 12u);
+  EXPECT_EQ(trace[0].x_tile, 10);
+  EXPECT_EQ(trace[0].y_tile, 20);
+  EXPECT_EQ(trace[0].tile_id, 0);
+  EXPECT_EQ(trace[3].x_tile, 13);
+  EXPECT_EQ(trace[3].y_tile, 20);
+  EXPECT_EQ(trace[3].tile_id, 3);
+  EXPECT_EQ(trace[11].x_tile, 13);
+  EXPECT_EQ(trace[11].y_tile, 22);
+  EXPECT_EQ(trace[11].tile_id, 11);
+
+  // Door-open state must NOT affect water-face rendering.
+  FakeDungeonState unrelated_door_state;
+  unrelated_door_state.open_lock_room_id = 0x42;
+  trace.clear();
+  ASSERT_TRUE(drawer
+                  .DrawObject(water_face, bg1, bg2, palette_group,
+                              &unrelated_door_state)
+                  .ok());
+  ASSERT_EQ(trace.size(), 12u);
+  EXPECT_EQ(trace[0].tile_id, 0);
+  EXPECT_EQ(trace[11].tile_id, 11);
+
+  // Active-water branch: 4x5 using shifted block tiles[12..31].
+  FakeDungeonState state;
+  state.water_face_active_room_id = 0x42;
+  trace.clear();
+  ASSERT_TRUE(
+      drawer.DrawObject(water_face, bg1, bg2, palette_group, &state).ok());
+  ASSERT_EQ(trace.size(), 20u);
+  EXPECT_EQ(trace[0].x_tile, 10);
+  EXPECT_EQ(trace[0].y_tile, 20);
+  EXPECT_EQ(trace[0].tile_id, 12);
+  EXPECT_EQ(trace[19].x_tile, 13);
+  EXPECT_EQ(trace[19].y_tile, 24);
+  EXPECT_EQ(trace[19].tile_id, 31);
+}
+
+TEST(ObjectDrawerRegistryReplayTest, SpittingWaterFaceDraws4x5RowMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject water_face(0x0F81, /*x=*/6, /*y=*/7, /*size=*/0, /*layer=*/0);
+  water_face.tiles_loaded_ = true;
+  water_face.tiles_.clear();
+  for (int i = 0; i < 20; ++i) {
+    water_face.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(100 + i),
+                                              /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(water_face, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 20u);
+  EXPECT_EQ(trace[0].x_tile, 6);
+  EXPECT_EQ(trace[0].y_tile, 7);
+  EXPECT_EQ(trace[0].tile_id, 100);
+  EXPECT_EQ(trace[3].x_tile, 9);
+  EXPECT_EQ(trace[3].y_tile, 7);
+  EXPECT_EQ(trace[3].tile_id, 103);
+  EXPECT_EQ(trace[4].x_tile, 6);
+  EXPECT_EQ(trace[4].y_tile, 8);
+  EXPECT_EQ(trace[4].tile_id, 104);
+  EXPECT_EQ(trace[19].x_tile, 9);
+  EXPECT_EQ(trace[19].y_tile, 11);
+  EXPECT_EQ(trace[19].tile_id, 119);
+}
+
+TEST(ObjectDrawerRegistryReplayTest, DrenchingWaterFaceDraws4x7RowMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject water_face(0x0F82, /*x=*/3, /*y=*/5, /*size=*/0, /*layer=*/0);
+  water_face.tiles_loaded_ = true;
+  water_face.tiles_.clear();
+  for (int i = 0; i < 28; ++i) {
+    water_face.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(200 + i),
+                                              /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(water_face, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 28u);
+  EXPECT_EQ(trace[0].x_tile, 3);
+  EXPECT_EQ(trace[0].y_tile, 5);
+  EXPECT_EQ(trace[0].tile_id, 200);
+  EXPECT_EQ(trace[3].x_tile, 6);
+  EXPECT_EQ(trace[3].y_tile, 5);
+  EXPECT_EQ(trace[3].tile_id, 203);
+  EXPECT_EQ(trace[4].x_tile, 3);
+  EXPECT_EQ(trace[4].y_tile, 6);
+  EXPECT_EQ(trace[4].tile_id, 204);
+  EXPECT_EQ(trace[27].x_tile, 6);
+  EXPECT_EQ(trace[27].y_tile, 11);
+  EXPECT_EQ(trace[27].tile_id, 227);
 }
 
 TEST(ObjectDrawerMaskPropagationTest, Layer2PitMaskMarksBG1Transparent) {
