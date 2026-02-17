@@ -14,6 +14,11 @@ High-level release summary. For detailed notes, see
   - Named workspace presets: Dungeon Master, Overworld Artist, Logic Debugger, Audio Engineer.
 - Unified UndoManager with per-editor undo/redo (overworld, dungeon, graphics, music, message).
 - SNES priority compositing in dungeon renderer with coverage masks.
+- **Dungeon Object Drawing Parity**:
+  - 100% vanilla object routine coverage (448/448 objects mapped across all 3 subtypes).
+  - Expanded room effects: Moving_Water, Moving_Floor, Torch_Show_Floor, Red_Flashes, Ganon_Room.
+  - SNES color math translucent blending for BG2 compositing (`(bg1 + bg2) / 2` with palette-aware nearest-color lookup).
+  - 19 parity validation tests covering routine coverage, palette offsets, pit/mask objects, BothBG flags, water objects, room effects, and layer merging.
 - Custom collision editor with JSON import/export.
 - Water fill zone authoring with brush support.
 - Entity drag-drop and selection inspector in dungeon editor.

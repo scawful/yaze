@@ -13,6 +13,11 @@
 - Mutation tagging by domain (tile objects, custom collision, water fill).
 - Custom collision editor with JSON import/export.
 - Water fill zone authoring with brush radius support.
+- **Object Drawing Parity**: 100% vanilla object routine coverage (448/448 objects across subtypes 1/2/3).
+  - Filled mapping gaps for objects 0xF8, 0xFE, 0xFF.
+  - Room effects expanded: `ApplyRoomEffect()` handles Moving_Water, Moving_Floor, Torch_Show_Floor, Red_Flashes, Ganon_Room with appropriate layer blend modes.
+  - SNES color math translucent blending in `CompositeToOutput()`: palette lookup, `(bg1_rgb + bg2_rgb) / 2`, nearest-color-in-bank for palette-indexed output.
+  - 19 parity validation tests covering: routine coverage, palette offsets, pit/mask object identification, BothBG flag correctness, water object layer semantics, room effect blend modes, layer merge types, and drawer fallback behavior.
 
 ### UI
 - Semantic color system replacing hardcoded ImGui style pushes.
