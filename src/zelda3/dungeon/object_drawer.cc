@@ -4015,10 +4015,10 @@ void ObjectDrawer::DrawWaterFace(const RoomObject& obj,
                                  gfx::BackgroundBuffer& bg,
                                  std::span<const gfx::TileInfo> tiles,
                                  [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Water Face (Type 3 objects 0xF80-0xF82)
-  // Draws a 2x2 face in COLUMN-MAJOR order
-  // TODO: Implement state check from RoomDraw_EmptyWaterFace ($019D29)
-  // Checks Room ID ($AF), Room State ($7EF000), Door Flags ($0403) to switch graphic
+  // Generic 2x2 face helper used by corner-routine fallbacks.
+  //
+  // The true Type-3 water-face variants (0xF80-0xF82, routines 94-96) are
+  // handled in draw_routines::special_routines with state-aware 4xN patterns.
   if (tiles.size() >= 4) {
     WriteTile8(bg, obj.x_, obj.y_, tiles[0]);          // col 0, row 0
     WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);      // col 0, row 1
@@ -5166,10 +5166,20 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
 
     case 94:  // EmptyWaterFace
+      width = 32;
+      // Base empty-water variant is 4x3; stateful runtime branch can extend to
+      // 4x5 when water is active.
+      height = 24;
+      break;
+
     case 95:  // SpittingWaterFace
+      width = 32;
+      height = 40;
+      break;
+
     case 96:  // DrenchingWaterFace
       width = 32;
-      height = 32;
+      height = 56;
       break;
 
     case 97:  // PrisonCell

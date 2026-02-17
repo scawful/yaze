@@ -39,8 +39,9 @@ TEST(DrawRoutineRegistryTest, GetRoutineIdForRepresentativeObjects) {
 
 TEST(DrawRoutineRegistryTest, UnmappedObjectReturnsNegativeOne) {
   auto& reg = DrawRoutineRegistry::Get();
-  EXPECT_EQ(reg.GetRoutineIdForObject(0xF8), -1);
+  // 0xF8 is now mapped (routine 39), use truly unmapped IDs
   EXPECT_EQ(reg.GetRoutineIdForObject(0x7FFF), -1);
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xFFFF), -1);
 }
 
 TEST(DrawRoutineRegistryTest, RegistryMatchesObjectDrawer) {
@@ -172,6 +173,9 @@ TEST_F(ObjectDimensionTableTest,
       {0xC0, 0x00, "SuperSquare_4x4_size0"},
       {0xC3, 0x09, "SuperSquare_3x3_size0x09"},
       {0xDE, 0x00, "SuperSquare_spike2x2_size0"},
+      {0xF80, 0x00, "Subtype3_empty_water_face"},
+      {0xF81, 0x00, "Subtype3_spitting_water_face"},
+      {0xF82, 0x00, "Subtype3_drenching_water_face"},
       {0xF9, 0x00, "Chest_small_size0"},
       {0xFD, 0x0F, "Chest_big_size0x0F"},
       {0x122, 0x00, "Subtype2_bed_size0"},

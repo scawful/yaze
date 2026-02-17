@@ -69,12 +69,11 @@ void DrawDoorSwitcherer(const DrawContext& ctx);
 void DrawSomariaLine(const DrawContext& ctx);
 
 /**
- * @brief Draw water face pattern (2x2)
+ * @brief Draw a generic 2x2 water-face helper pattern.
  *
- * Pattern: Water Face (Type 3 objects 0xF80-0xF82)
- * Draws a 2x2 face in COLUMN-MAJOR order.
- * TODO: Implement state check from RoomDraw_EmptyWaterFace ($019D29)
- * Should check Room ID, Room State, Door Flags to switch graphic.
+ * Used as a compact fallback shape in shared corner routines.
+ * The stateful Type-3 water-face variants (routines 94-96) are implemented in
+ * DrawEmptyWaterFace / DrawSpittingWaterFace / DrawDrenchingWaterFace.
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */

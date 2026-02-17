@@ -925,6 +925,14 @@ void ObjectDimensionTable::InitializeDefaults() {
   }
 
   // Override specific Type 3 objects with known sizes
+  // Water face family:
+  // - Empty face defaults to 4x3 (state can extend to 4x5 at runtime)
+  // - Spitting face is 4x5
+  // - Drenching face is 4x7
+  dimensions_[0xF80] = {4, 3, Dir::None, 0, false};
+  dimensions_[0xF81] = {4, 5, Dir::None, 0, false};
+  dimensions_[0xF82] = {4, 7, Dir::None, 0, false};
+
   // Prison cell bars (10x4 tiles)
   dimensions_[0xF8D] = {10, 4, Dir::None, 0, false};
   dimensions_[0xF97] = {10, 4, Dir::None, 0, false};

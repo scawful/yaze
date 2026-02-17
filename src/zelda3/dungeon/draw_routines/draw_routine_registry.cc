@@ -329,13 +329,16 @@ void DrawRoutineRegistry::BuildObjectMapping() {
     object_to_routine_map_[id] = 38;
   }
 
-  // 0xF0-0xFD
+  // 0xF0-0xFF (complete subtype 1 coverage)
   for (int id = 0xF0; id <= 0xF7; id++) {
     object_to_routine_map_[id] = 38;
   }
+  object_to_routine_map_[0xF8] = 39;  // Chest variant
   for (int id = 0xF9; id <= 0xFD; id++) {
     object_to_routine_map_[id] = 39;
   }
+  object_to_routine_map_[0xFE] = 38;  // Unused in vanilla
+  object_to_routine_map_[0xFF] = 38;  // Unused in vanilla
 
   // Subtype 2 Object Mappings (0x100-0x13F)
   for (int id = 0x100; id <= 0x107; id++) {
