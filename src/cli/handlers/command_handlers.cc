@@ -12,6 +12,7 @@
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
+#include "cli/handlers/game/oracle_menu_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
@@ -64,6 +65,10 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MusicListCommandHandler>());
   handlers.push_back(std::make_unique<MusicInfoCommandHandler>());
   handlers.push_back(std::make_unique<MusicTracksCommandHandler>());
+
+  // Oracle menu tooling
+  handlers.push_back(std::make_unique<OracleMenuIndexCommandHandler>());
+  handlers.push_back(std::make_unique<OracleMenuSetOffsetCommandHandler>());
 
   // Dialogue commands
   handlers.push_back(std::make_unique<DialogueListCommandHandler>());

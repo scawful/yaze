@@ -36,6 +36,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/message_commands.cc
   cli/handlers/game/minecart_commands.cc
   cli/handlers/game/music_commands.cc
+  cli/handlers/game/oracle_menu_commands.cc
   cli/handlers/game/overworld.cc
   cli/handlers/game/overworld_commands.cc
   cli/handlers/game/overworld_graph_commands.cc
