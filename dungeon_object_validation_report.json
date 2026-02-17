@@ -1,0 +1,13 @@
+{
+  "summary": {
+    "object_count": 1,
+    "size_cases": 1,
+    "test_cases": 1,
+    "mismatch_count": 0,
+    "empty_traces": 0,
+    "negative_offsets": 1,
+    "skipped_nothing": 0
+  },
+  "mismatches": [
+  ]
+}
