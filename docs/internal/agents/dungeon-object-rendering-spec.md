@@ -3,8 +3,8 @@
 Status: ACTIVE  
 Owner: zelda3-hacking-expert  
 Created: 2025-12-06  
-Last Reviewed: 2025-12-06  
-Next Review: 2025-12-20  
+Last Reviewed: 2026-02-17
+Next Review: 2026-03-03  
 Board: docs/internal/agents/coordination-board.md (2025-12-06 zelda3-hacking-expert – Dungeon object render/selection spec)
 
 ## Scope
@@ -105,4 +105,21 @@ Board: docs/internal/agents/coordination-board.md (2025-12-06 zelda3-hacking-exp
 - Update selection bounds to honor the size helpers (including the nibble-zero fallbacks and the `+4` base for diagonal ceilings).
 - Mark BothBG/merged-layer routines so layer toggles do not hide or exclude them.
 - Align palette/symbology labels with the disasm names: arrows for `Rightwards/Downwards`, diagonal for `Diagonal*`, large-square for `4x4*/SuperSquare`, dual-layer for `_BothBG`/merged stairs.
+
+## Implementation Status (February 2026)
+
+| Action Item | Status | Notes |
+|-------------|--------|-------|
+| **Object routine coverage** | Done | 448/448 vanilla objects mapped in `DrawRoutineRegistry`. |
+| **BothBG flag marking** | Done | `draws_to_both_bgs` set on routines 2, 9, 17, 18, 19, 35, 36, 37, 97. Validated by parity tests. |
+| **Room effect blend modes** | Done | `RoomLayerManager::ApplyRoomEffect()` handles all `EffectKey` types. |
+| **Translucent BG2 compositing** | Done | `CompositeToOutput()` uses SNES color math `(bg1 + bg2) / 2` with palette-aware nearest-color lookup. |
+| **Pit/mask object identification** | Done | `is_pit_or_mask` list validated; marks BG1 transparent to reveal BG2. |
+| **Palette offset correctness** | Done | `(pal - 2) * 16` for palettes 2-7 verified correct per SNES CGRAM layout. |
+| **Selection bounds / size helpers** | Partial | `ObjectGeometry` implements routine-based measurement; nibble-zero fallbacks (26/32) handled. Diagonal ceiling `+4` base not yet wired to selection outlines. |
+| **Four-pass build order** | Not started | Editor still uses layout + main object pass. BG2/BG1 overlay streams not split. |
+| **Symbology label alignment** | Not started | UI icons/badges not yet tied to routine family names. |
+
+**Validation:** 19 parity tests in `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc`.
+See `docs/internal/agents/dungeon-object-parity-plan.md` for the full fix history.
 

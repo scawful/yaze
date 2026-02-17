@@ -3,6 +3,11 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-16 imgui-frontend-engineer – Dungeon Water-Face Parity + Custom Object UX
+- COMPLETE 2026-02-16 (imgui-frontend-engineer): corrected Type-3 water-face rendering parity to usdasm row geometry (0xF80/0xF81/0xF82), including state-sensitive empty-face branch and subtype-3 tile-count alignment.
+- Scope: `special_routines` water-face draw logic + routine metadata, subtype-3 parser counts for water-face assets, dimension-table parity for water-face objects, and custom-object browser UX (folder/reload visibility + file/corner-override tooltip diagnostics).
+- Validation: `cmake --build build --target yaze_test_unit -j8`; `yaze_test_unit --gtest_filter='ObjectDrawerRegistryReplayTest.*:ObjectDrawerMaskPropagationTest.*:ObjectDrawerPillarStrideTest.*:ObjectDrawerCannonHoleTest.*'` (17/17 pass); `yaze_test_unit --gtest_filter='ObjectDimensionTableTest.FocusedScopeSelectionBoundsMatchObjectGeometry:ObjectDimensionTableTest.BroadSelectionBoundsParitySweepAgainstObjectGeometry'` (2/2 pass); `yaze_test_unit --gtest_filter='ObjectParserTest.*:ObjectDrawingComprehensiveTest.DrawRoutineMapping_Type3SpecialObjects'` (10/10 pass).
+
 ### 2026-02-14 backend-infra-engineer – AI Runtime Sync + Project-Open Freeze Guardrail
 - COMPLETE 2026-02-14 (backend-infra-engineer): defaulted local workflow to platform AI presets and fixed runtime sync resolution to prefer AI app bundles/binaries.
 - Scope delivered: resolved relative `code_folder` freeze path by using project-absolute assembly paths in `EditorManager` and bounded directory traversal in `AssemblyEditor::LoadFolder`; repaired Oracle project prompt/code paths; bootstrapped iCloud `Oracle-of-Secrets.yazeproj`.
