@@ -1,6 +1,8 @@
 #include "zelda3/dungeon/room_layer_manager.h"
 
 #include <algorithm>
+#include <array>
+#include <climits>
 #include <vector>
 
 #include "SDL.h"
@@ -104,6 +106,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     //
     // We first combine Layout+Objects for each BG (objects overwrite layout),
     // then resolve BG1 vs BG2 per-pixel using the stored priority buffers.
+    // When BG2 is translucent (water rooms, color math), we blend colors
+    // using the SDL palette instead of simple overwrite.
     auto layer_enabled = [&](LayerType type, const gfx::BackgroundBuffer& buf) {
       if (!IsLayerVisible(type)) {
         return false;
@@ -131,6 +135,75 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     if (layer_enabled(LayerType::BG2_Objects, bg2_objects)) {
       CopyPaletteIfNeeded(bg2_objects.bitmap());
     }
+
+    // Check if BG2 uses translucent blending (water rooms, color math effects).
+    // When translucent, overlapping BG1+BG2 pixels are averaged in RGB space.
+    const bool bg2_translucent =
+        (GetLayerBlendMode(LayerType::BG2_Layout) == LayerBlendMode::Translucent) ||
+        (GetLayerBlendMode(LayerType::BG2_Objects) == LayerBlendMode::Translucent);
+
+    // Build palette lookup table for color blending (only when needed).
+    // Extract from the output bitmap's SDL palette so we can do RGB math.
+    std::vector<SDL_Color> pal_lut;
+    if (bg2_translucent && output.surface() && output.surface()->format &&
+        output.surface()->format->palette) {
+      SDL_Palette* sdl_pal = output.surface()->format->palette;
+      int n = std::min(sdl_pal->ncolors, 256);
+      pal_lut.resize(256, {0, 0, 0, 0});
+      for (int i = 0; i < n; ++i) {
+        pal_lut[i] = sdl_pal->colors[i];
+      }
+    }
+
+    // Nearest-color lookup for blended result.
+    // Searches within the same 16-color bank as the BG1 pixel to preserve
+    // palette coherence (avoids cross-bank color artifacts).
+    auto find_nearest_in_bank = [&](uint8_t base_idx, uint8_t r, uint8_t g,
+                                     uint8_t b) -> uint8_t {
+      if (pal_lut.empty()) return base_idx;
+      int bank_start = (base_idx / 16) * 16;
+      int bank_end = bank_start + 16;
+      int best_idx = base_idx;
+      int best_dist = INT_MAX;
+      for (int i = bank_start + 1; i < bank_end && i < 256; ++i) {
+        int dr = static_cast<int>(pal_lut[i].r) - r;
+        int dg = static_cast<int>(pal_lut[i].g) - g;
+        int db = static_cast<int>(pal_lut[i].b) - b;
+        int dist = dr * dr + dg * dg + db * db;
+        if (dist < best_dist) {
+          best_dist = dist;
+          best_idx = i;
+        }
+      }
+      return static_cast<uint8_t>(best_idx);
+    };
+
+    // Cache resolved blended indices to avoid repeating nearest-bank searches
+    // for the same winner/other palette pair in this frame.
+    std::array<uint8_t, 256 * 256> blend_cache{};
+    std::array<uint8_t, 256 * 256> blend_cache_valid{};
+    auto resolve_blended_index = [&](uint8_t winner_idx,
+                                     uint8_t other_idx) -> uint8_t {
+      if (pal_lut.empty() || winner_idx == other_idx) {
+        return winner_idx;
+      }
+      const size_t key =
+          (static_cast<size_t>(winner_idx) << 8) | static_cast<size_t>(other_idx);
+      if (blend_cache_valid[key] != 0) {
+        return blend_cache[key];
+      }
+
+      const SDL_Color& c1 = pal_lut[winner_idx];
+      const SDL_Color& c2 = pal_lut[other_idx];
+      const uint8_t blend_r = static_cast<uint8_t>((c1.r + c2.r) / 2);
+      const uint8_t blend_g = static_cast<uint8_t>((c1.g + c2.g) / 2);
+      const uint8_t blend_b = static_cast<uint8_t>((c1.b + c2.b) / 2);
+      const uint8_t resolved =
+          find_nearest_in_bank(winner_idx, blend_r, blend_g, blend_b);
+      blend_cache[key] = resolved;
+      blend_cache_valid[key] = 1;
+      return resolved;
+    };
 
     auto normalize_pri = [](uint8_t pri) -> uint8_t {
       // 0xFF is our "unset" value. Treat unset as low priority.
@@ -202,9 +275,21 @@ void RoomLayerManager::CompositeToOutput(Room& room,
         continue;
       }
 
+      // Both layers have opaque pixels. Resolve using priority + blend mode.
       const int r1 = rank_for(/*is_bg1=*/true, bg1_pri);
       const int r2 = rank_for(/*is_bg1=*/false, bg2_pri);
-      dst_data[idx] = (r1 >= r2) ? bg1_pixel : bg2_pixel;
+
+      // SNES color math: when BG2 is translucent and both layers are visible,
+      // blend the two pixel colors using (main + sub) / 2 formula.
+      // This matches the SNES half-color-math used for water rooms.
+      if (bg2_translucent && !pal_lut.empty()) {
+        const bool bg1_wins = (r1 >= r2);
+        const uint8_t winner = bg1_wins ? bg1_pixel : bg2_pixel;
+        const uint8_t other = bg1_wins ? bg2_pixel : bg1_pixel;
+        dst_data[idx] = resolve_blended_index(winner, other);
+      } else {
+        dst_data[idx] = (r1 >= r2) ? bg1_pixel : bg2_pixel;
+      }
     }
   } else {
     // Fallback to simple back-to-front layer order: BG2 then BG1.
