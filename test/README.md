@@ -390,6 +390,7 @@ These tests have no external dependencies and run fast. They're enabled by defau
 - Zelda3 data structures
 - ASAR wrapper functionality
 - CLI utilities
+- **Dungeon object parity validation** (see below)
 
 **Stable Integration Tests**
 - Tile editor workflows
@@ -486,6 +487,44 @@ ctest --test-dir build --verbose
 ### Performance Issues
 - Use `-j4` to parallelize: `ctest --test-dir build -j4`
 - Skip benchmarks: `ctest --test-dir build -L "^(?!benchmark)"`
+
+## Dungeon Object Parity Tests
+
+The dungeon object parity test suite validates that the editor's drawing pipeline matches SNES behavior for all vanilla dungeon objects. Located at `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc`.
+
+**What it validates (19 tests):**
+
+| Test | Coverage |
+|------|----------|
+| `ParityFullSubtype1RoutineCoverage` | All 256 subtype 1 objects have valid routine IDs |
+| `ParityFullSubtype2RoutineCoverage` | All 64 subtype 2 objects have valid routine IDs |
+| `ParityFullSubtype3RoutineCoverage` | All 128 subtype 3 objects have valid routine IDs |
+| `ParityAllRoutineIdsInBounds` | All routine IDs index within the draw routines array |
+| `ParityPaletteOffsetBanks` | Palettes 2-7 map to correct 16-color SDL banks |
+| `ParityPitMaskObjectsIdentified` | Water/pit overlay objects flagged correctly |
+| `ParityBothBGRoutinesCorrect` | Dual-layer routines (corners, prison cells) have draws_to_both_bgs |
+| `ParityWaterObjectsLayerCorrect` | Water overlay objects route to BG2 |
+| `ParityType3WaterFaceRoutines` | Water face objects use expected routines (94/95/96) |
+| `ParitySubtype1TileCountsComplete` | All subtype 1 objects have non-zero tile counts |
+| `ParitySubtype2TileCountsComplete` | All subtype 2 objects have non-zero tile counts |
+| `ParitySubtype3TileCountsComplete` | All subtype 3 objects have non-zero tile counts |
+| `ParityRoomEffectMovingWater` | Moving Water sets BG2 to translucent blend |
+| `ParityRoomEffectTorchShowFloor` | Torch rooms set BG1 to dark blend |
+| `ParityRoomEffectGanonRoom` | Ganon room sets BG2 layout translucent |
+| `ParityRoomEffectNothingIsNoOp` | No-effect rooms leave blend modes at Normal |
+| `ParityLayerMergeTranslucent` | Translucent merge type configures BG2 correctly |
+| `ParityLayerMergeDarkRoom` | Dark room merge configures BG1 correctly |
+| `ParityObjectDrawerFallback` | Empty tile payloads skip gracefully without failing draw |
+
+**Run parity tests specifically:**
+```bash
+ctest --test-dir build -R "ObjectDrawingComprehensive" --output-on-failure
+```
+
+**Related docs:**
+- Plan: `docs/internal/agents/dungeon-object-parity-plan.md`
+- Spec: `docs/internal/agents/dungeon-object-rendering-spec.md`
+- Architecture: `docs/internal/architecture/dungeon_editor_system.md` (Room Layer Manager section)
 
 ## Adding New Tests
 
