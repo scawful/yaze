@@ -1,7 +1,7 @@
 # Dungeon Editor System Architecture
 
 **Status**: Active  
-**Last Updated**: 2025-11-26  
+**Last Updated**: 2026-02-17  
 **Related Code**: `src/app/editor/dungeon/`, `src/zelda3/dungeon/`, `test/integration/dungeon_editor_v2_test.cc`, `test/e2e/dungeon_editor_smoke_test.cc`
 
 ## Overview
@@ -85,6 +85,37 @@ New subsystem for visual editing of the 8x8 tile composition of dungeon objects.
 - Custom objects: re-serializes to binary format matching `CustomObjectManager::ParseBinaryData()`, writes `.bin` file, calls `ReloadAll()`.
 
 **Status:** Core implementation complete (Phases 1–3). Keyboard shortcuts, object selector preview enhancement, and custom object creation remain (Phases 4–5).
+
+### Room Layer Manager & Compositing (February 2026)
+
+Subsystem for accurate SNES-style layer compositing of dungeon room renders.
+
+**Architecture:**
+- **RoomLayerManager** (`zelda3/dungeon/room_layer_manager.{h,cc}`) — Manages per-layer blend modes and composites BG1/BG2 layout + object buffers into the final output bitmap.
+- **LayerBlendMode** — Per-layer enum: `Normal`, `Translucent`, `Dark`. Stored per logical layer (BG1_Layout, BG1_Objects, BG2_Layout, BG2_Objects).
+- **ApplyRoomEffect()** — Configures blend modes based on the room's `EffectKey`:
+  - `Moving_Water`: Sets BG2 layers to Translucent.
+  - `Moving_Floor`: No blend change (conveyor belt effect is positional, not visual).
+  - `Torch_Show_Floor`: Sets BG1 layers to Dark (lantern reveals BG2 floor underneath).
+  - `Red_Flashes`: No persistent blend change (Ganon fight lightning is temporal).
+  - `Ganon_Room`: Sets BG2 layout to Translucent.
+- **CompositeToOutput()** — Priority-aware pixel compositing:
+  - Builds a palette RGB lookup table from the room's SDL surface palette.
+  - For translucent layers: computes `(bg1_rgb + bg2_rgb) / 2` per channel, then finds the nearest palette index within the same palette bank via `find_nearest_in_bank`.
+  - For dark layers: dims BG1 pixels to simulate unlit rooms.
+  - Respects SNES priority bits: BG2 priority=1 tiles render above BG1 priority=0 tiles.
+
+**Key files:**
+- `src/zelda3/dungeon/room_layer_manager.h` — Blend mode API, `ApplyRoomEffect()`.
+- `src/zelda3/dungeon/room_layer_manager.cc` — `CompositeToOutput()` with RGB color math.
+- `src/zelda3/dungeon/room.h` — `EffectKey` enum, `LayerMergeType` constants.
+
+**Draw Routine Registry:**
+- **DrawRoutineRegistry** (`zelda3/dungeon/draw_routines/draw_routine_registry.{h,cc}`) — Singleton mapping all 448 vanilla object IDs to routine IDs (0–130). 100% coverage: 256 subtype 1, 64 subtype 2, 128 subtype 3.
+- Per-routine metadata includes `draws_to_both_bgs` flag for routines that explicitly write both tilemaps (e.g., routine 2/kRightwards2x4, routine 19/Corner4x4, routine 97/PrisonCell).
+
+**Validation:**
+- 19 parity tests in `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc` validate routine coverage, palette offsets, pit/mask identification, BothBG flags, water layer semantics, room effects, and layer merge behavior.
 
 ## Current Limitations / Gaps
 
