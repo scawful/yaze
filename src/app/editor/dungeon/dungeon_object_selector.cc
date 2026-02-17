@@ -827,10 +827,32 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         }
       }
 
+      auto& obj_manager = zelda3::CustomObjectManager::Get();
+      const std::string custom_base_path = obj_manager.GetBasePath();
+      if (custom_base_path.empty()) {
+        ImGui::TextColored(theme.text_secondary_gray,
+                           "Custom objects folder: not configured");
+      } else {
+        ImGui::Text("Custom objects folder: %s", custom_base_path.c_str());
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s", custom_base_path.c_str());
+        }
+        ImGui::SameLine();
+        if (ImGui::SmallButton(ICON_MD_REFRESH " Reload")) {
+          obj_manager.ReloadAll();
+          InvalidatePreviewCache();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Reload custom object binaries and refresh previews");
+        }
+      }
+      ImGui::TextColored(theme.text_secondary_gray,
+                         "Corner overrides: 0x100/0x101/0x102/0x103 use 0x31 "
+                         "subtypes 02/04/03/05");
+
       DrawNewCustomObjectDialog();
 
       int custom_col = 0;
-      auto& obj_manager = zelda3::CustomObjectManager::Get();
 
       // Initialize if needed (hacky lazy init if drawer hasn't done it yet)
       // Ideally should be initialized by system.
@@ -926,6 +948,57 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                                  button_pos.y + item_size - id_size.y - 2);
           draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
                              id_text.c_str());
+
+          if (ImGui::IsItemHovered()) {
+            gui::StyleColorGuard tooltip_guard(
+                {{ImGuiCol_PopupBg, theme.panel_bg_color},
+                 {ImGuiCol_Border, theme.panel_border_color}});
+            if (ImGui::BeginTooltip()) {
+              const std::string filename =
+                  obj_manager.ResolveFilename(obj_id, subtype);
+              const bool has_base = !custom_base_path.empty();
+              std::filesystem::path full_path =
+                  has_base ? (std::filesystem::path(custom_base_path) /
+                              filename)
+                           : std::filesystem::path();
+              const bool file_exists =
+                  has_base && !filename.empty() && std::filesystem::exists(full_path);
+
+              ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
+                                 obj_id, subtype);
+              ImGui::Text("%s", subtype_name.c_str());
+              ImGui::Separator();
+              ImGui::Text("File: %s",
+                          filename.empty() ? "(unmapped)" : filename.c_str());
+              if (!has_base) {
+                ImGui::TextColored(theme.text_warning_yellow,
+                                   "Folder not configured in project");
+              } else if (file_exists) {
+                ImGui::TextColored(theme.status_success, "File found");
+              } else {
+                ImGui::TextColored(theme.status_error,
+                                   "File missing: %s",
+                                   full_path.string().c_str());
+              }
+
+              if (obj_id == 0x31 && subtype >= 2 && subtype <= 5) {
+                const char* corner_id = "";
+                if (subtype == 2) {
+                  corner_id = "0x100 (TL)";
+                } else if (subtype == 3) {
+                  corner_id = "0x102 (TR)";
+                } else if (subtype == 4) {
+                  corner_id = "0x101 (BL)";
+                } else {
+                  corner_id = "0x103 (BR)";
+                }
+                ImGui::Separator();
+                ImGui::TextColored(theme.status_active,
+                                   "Also used by corner override %s", corner_id);
+              }
+              ImGui::EndTooltip();
+            }
+          }
 
           ImGui::PopID();
           custom_col = (custom_col + 1) % columns;
