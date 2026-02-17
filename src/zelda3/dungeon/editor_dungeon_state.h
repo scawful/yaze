@@ -60,6 +60,18 @@ class EditorDungeonState : public DungeonState {
     door_switch_states_[room_id] = active;
   }
 
+  bool IsWaterFaceActive(int room_id) const override {
+    auto it = water_face_active_states_.find(room_id);
+    if (it != water_face_active_states_.end()) {
+      return it->second;
+    }
+    return false;
+  }
+
+  void SetWaterFaceActive(int room_id, bool active) {
+    water_face_active_states_[room_id] = active;
+  }
+
   // Object State
   bool IsWallMoved(int room_id) const override {
     auto it = wall_moved_states_.find(room_id);
@@ -107,6 +119,7 @@ class EditorDungeonState : public DungeonState {
     big_chest_open_ = false;
     door_states_.clear();
     door_switch_states_.clear();
+    water_face_active_states_.clear();
     wall_moved_states_.clear();
     floor_bombable_states_.clear();
     rupee_floor_states_.clear();
@@ -123,6 +136,7 @@ class EditorDungeonState : public DungeonState {
   
   std::map<std::pair<int, int>, bool> door_states_;
   std::map<int, bool> door_switch_states_;
+  std::map<int, bool> water_face_active_states_;
   
   std::map<int, bool> wall_moved_states_;
   std::map<int, bool> floor_bombable_states_;

@@ -25,6 +25,13 @@ class DungeonState {
   virtual bool IsDoorOpen(int room_id, int door_index) const = 0;
   virtual bool IsDoorSwitchActive(int room_id) const = 0;
 
+  // Water Face State (Type 3 object 0xF80 active variant)
+  // Default false so implementations can opt in without breaking callers.
+  virtual bool IsWaterFaceActive(int room_id) const {
+    (void)room_id;
+    return false;
+  }
+
   // Object State
   virtual bool IsWallMoved(int room_id) const = 0;
   virtual bool IsFloorBombable(int room_id) const = 0;
