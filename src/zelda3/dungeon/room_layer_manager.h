@@ -227,7 +227,8 @@ class RoomLayerManager {
   void ApplyRoomEffect(EffectKey effect) {
     switch (effect) {
       case EffectKey::Moving_Water:
-        // Promote BG2 to translucent when no stronger blend is already set.
+        // Water rooms: BG2 shows water with translucent overlay on BG1.
+        // SNES uses HDMA-driven color math to blend water layer.
         if (GetLayerBlendMode(LayerType::BG2_Layout) ==
             LayerBlendMode::Normal) {
           SetLayerBlendMode(LayerType::BG2_Layout,
@@ -239,6 +240,35 @@ class RoomLayerManager {
                             LayerBlendMode::Translucent);
         }
         break;
+
+      case EffectKey::Moving_Floor:
+        // Conveyor belt rooms: BG2 scrolls independently.
+        // No blend change needed - BG2 is opaque floor tiles.
+        break;
+
+      case EffectKey::Torch_Show_Floor:
+        // Dark rooms where lighting a torch reveals BG2 floor.
+        // BG1 is the dark overlay, BG2 is the revealed floor.
+        // In-game, HDMA window controls which scanlines show BG2.
+        // For editor preview: darken BG1, keep BG2 visible.
+        SetLayerBlendMode(LayerType::BG1_Layout, LayerBlendMode::Dark);
+        SetLayerBlendMode(LayerType::BG1_Objects, LayerBlendMode::Dark);
+        break;
+
+      case EffectKey::Red_Flashes:
+        // Lightning/flash effect (Ganon fight). No persistent blend change.
+        break;
+
+      case EffectKey::Ganon_Room:
+        // Ganon's room: special rendering with translucent BG2 for
+        // the Triforce floor pattern showing through.
+        if (GetLayerBlendMode(LayerType::BG2_Layout) ==
+            LayerBlendMode::Normal) {
+          SetLayerBlendMode(LayerType::BG2_Layout,
+                            LayerBlendMode::Translucent);
+        }
+        break;
+
       default:
         break;
     }

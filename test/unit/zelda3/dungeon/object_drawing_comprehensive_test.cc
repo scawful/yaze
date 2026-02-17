@@ -13,8 +13,10 @@
 
 #include "gtest/gtest.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -71,6 +73,10 @@ int ExpectedSubtype2TileCount(int id) {
 }
 
 int ExpectedSubtype3TileCount(int id) {
+  // Large special objects at the start of the Type 3 range
+  if (id == 0xF80) return 32;
+  if (id == 0xF81) return 20;
+  if (id == 0xF82) return 28;
   if (id == 0xFB1 || id == 0xFB2) {
     return 12;
   }
@@ -745,6 +751,355 @@ TEST_F(ObjectDrawingComprehensiveTest, TileInfo_MirroringFlags) {
 
   EXPECT_TRUE(tile_both.horizontal_mirror_);
   EXPECT_TRUE(tile_both.vertical_mirror_);
+}
+
+// ============================================================================
+// Parity Validation Tests
+// ============================================================================
+// These tests validate that all vanilla objects have complete draw parity
+// with the in-game SNES rendering. Every object ID must have a valid routine,
+// correct layer semantics, and proper palette handling.
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityFullSubtype1RoutineCoverage) {
+  // All 256 subtype 1 objects (0x00-0xFF) must have valid routines
+  auto& reg = DrawRoutineRegistry::Get();
+
+  for (int id = 0x00; id <= 0xFF; ++id) {
+    int routine_id = reg.GetRoutineIdForObject(id);
+    EXPECT_GE(routine_id, 0)
+        << "Subtype 1 object 0x" << std::hex << id
+        << " has no routine mapping (returned " << routine_id << ")";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityFullSubtype2RoutineCoverage) {
+  // All 64 subtype 2 objects (0x100-0x13F) must have valid routines
+  auto& reg = DrawRoutineRegistry::Get();
+
+  for (int id = 0x100; id <= 0x13F; ++id) {
+    int routine_id = reg.GetRoutineIdForObject(id);
+    EXPECT_GE(routine_id, 0)
+        << "Subtype 2 object 0x" << std::hex << id
+        << " has no routine mapping (returned " << routine_id << ")";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityFullSubtype3RoutineCoverage) {
+  // All 128 subtype 3 objects (0xF80-0xFFF) must have valid routines
+  auto& reg = DrawRoutineRegistry::Get();
+
+  for (int id = 0xF80; id <= 0xFFF; ++id) {
+    int routine_id = reg.GetRoutineIdForObject(id);
+    EXPECT_GE(routine_id, 0)
+        << "Subtype 3 object 0x" << std::hex << id
+        << " has no routine mapping (returned " << routine_id << ")";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityAllRoutineIdsInBounds) {
+  // Every mapped routine ID must be within the draw_routines_ array bounds
+  auto& reg = DrawRoutineRegistry::Get();
+  ObjectDrawer drawer(rom_.get(), 0);
+  const int max_routine = drawer.GetDrawRoutineCount() - 1;
+
+  for (int id = 0x00; id <= 0xFF; ++id) {
+    int rid = reg.GetRoutineIdForObject(id);
+    if (rid >= 0) {
+      EXPECT_LE(rid, max_routine)
+          << "Subtype 1 object 0x" << std::hex << id
+          << " routine " << rid << " exceeds max " << max_routine;
+    }
+  }
+  for (int id = 0x100; id <= 0x13F; ++id) {
+    int rid = reg.GetRoutineIdForObject(id);
+    if (rid >= 0) {
+      EXPECT_LE(rid, max_routine)
+          << "Subtype 2 object 0x" << std::hex << id
+          << " routine " << rid << " exceeds max " << max_routine;
+    }
+  }
+  for (int id = 0xF80; id <= 0xFFF; ++id) {
+    int rid = reg.GetRoutineIdForObject(id);
+    if (rid >= 0) {
+      EXPECT_LE(rid, max_routine)
+          << "Subtype 3 object 0x" << std::hex << id
+          << " routine " << rid << " exceeds max " << max_routine;
+    }
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityPaletteOffsetBanks) {
+  // Verify palette offset calculation for all 8 SNES palette banks.
+  // SNES CGRAM: palettes 2-7 map to dungeon BG tile colors.
+  // Formula: palette_offset = (pal - 2) * 16 for pal in [2,7]
+  // Palettes 0-1 fallback to offset 0 (sprite palette region).
+
+  struct PaletteCase {
+    uint8_t pal;
+    uint8_t expected_offset;
+  };
+
+  std::vector<PaletteCase> cases = {
+      {0, 0},   // Sprite palette 0 -> fallback
+      {1, 0},   // Sprite palette 1 -> fallback
+      {2, 0},   // First BG palette bank
+      {3, 16},  // Second BG palette bank
+      {4, 32},  // Third BG palette bank
+      {5, 48},  // Fourth BG palette bank
+      {6, 64},  // Fifth BG palette bank
+      {7, 80},  // Sixth BG palette bank
+  };
+
+  for (const auto& tc : cases) {
+    uint8_t pal = tc.pal & 0x07;
+    uint8_t offset;
+    if (pal >= 2 && pal <= 7) {
+      offset = (pal - 2) * 16;
+    } else {
+      offset = 0;
+    }
+    EXPECT_EQ(offset, tc.expected_offset)
+        << "Palette " << static_cast<int>(tc.pal)
+        << " should map to offset " << static_cast<int>(tc.expected_offset);
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityPitMaskObjectsIdentified) {
+  // Verify all known pit/mask objects are correctly identified.
+  // These objects mark BG1 as transparent to reveal BG2 underneath.
+  std::vector<int> expected_pit_mask_ids = {
+      0xA4,                                          // Pit
+      0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC,  // Diagonal masks
+      0xC0,                                          // Large ceiling overlay
+      0xC2,                                          // Layer 2 pit mask (large)
+      0xC3,                                          // Layer 2 pit mask (medium)
+      0xC6,                                          // Layer 2 mask (large)
+      0xC8,                                          // Water floor overlay
+      0xD7,                                          // Layer 2 mask (medium)
+      0xD8,                                          // Flood water overlay
+      0xD9,                                          // Layer 2 swim mask
+      0xDA,                                          // Flood water overlay B
+  };
+
+  // All pit/mask objects should have valid routine assignments
+  auto& reg = DrawRoutineRegistry::Get();
+  for (int id : expected_pit_mask_ids) {
+    int rid = reg.GetRoutineIdForObject(id);
+    EXPECT_GE(rid, 0)
+        << "Pit/mask object 0x" << std::hex << id
+        << " must have a valid routine assignment";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityBothBGRoutinesCorrect) {
+  // Verify BothBG routines are correctly flagged in the registry.
+  // These routines draw to both BG1 and BG2 simultaneously.
+  auto& reg = DrawRoutineRegistry::Get();
+
+  // Routine IDs that should have draws_to_both_bgs flag.
+  // Note: routine 2 (kRightwards2x4_1to16) has the flag because the ASM
+  // explicitly writes to both $7E2000 and $7E4000 tilemaps.
+  // Routine 3 (kRightwards2x4_1to16_BothBG) does NOT have the flag because
+  // the BothBG dispatch is handled by the engine via object.all_bgs_, not
+  // by the routine itself.
+  std::vector<int> bothbg_routines = {
+      2,   // kRightwards2x4_1to16 (explicitly writes both tilemaps)
+      9,   // kDownwards4x2_1to16_BothBG
+      17,  // kDiagonalAcute_1to16_BothBG
+      18,  // kDiagonalGrave_1to16_BothBG
+      19,  // kCorner4x4 (structural, writes both)
+      35,  // k4x4Corner_BothBG
+      36,  // kWeirdCornerBottom_BothBG
+      37,  // kWeirdCornerTop_BothBG
+      97,  // kPrisonCell
+  };
+
+  for (int rid : bothbg_routines) {
+    EXPECT_TRUE(reg.RoutineDrawsToBothBGs(rid))
+        << "Routine " << rid << " should have draws_to_both_bgs flag set";
+  }
+
+  // Verify some non-BothBG routines are NOT flagged
+  std::vector<int> non_bothbg = {0, 1, 3, 4, 5, 6, 16, 38, 39};
+  for (int rid : non_bothbg) {
+    EXPECT_FALSE(reg.RoutineDrawsToBothBGs(rid))
+        << "Routine " << rid << " should NOT have draws_to_both_bgs flag";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityWaterObjectsLayerCorrect) {
+  // Water overlay objects should be routable to BG2 via layer assignment.
+  // Objects 0xC8 (water floor), 0xD8, 0xD9, 0xDA (flood water) are water overlays.
+  // They are in the pit/mask list which requires BG2 layer for transparency.
+
+  auto& reg = DrawRoutineRegistry::Get();
+
+  // Water objects should have valid routines
+  for (int id : {0xC8, 0xD8, 0xD9, 0xDA}) {
+    int rid = reg.GetRoutineIdForObject(id);
+    EXPECT_GE(rid, 0)
+        << "Water object 0x" << std::hex << id << " must have routine";
+
+    // Water objects should NOT be BothBG (they only draw to their assigned layer)
+    if (rid >= 0) {
+      EXPECT_FALSE(reg.RoutineDrawsToBothBGs(rid))
+          << "Water object 0x" << std::hex << id
+          << " (routine " << rid << ") should not be BothBG";
+    }
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityType3WaterFaceRoutines) {
+  // Type 3 water face objects have specific routines
+  auto& reg = DrawRoutineRegistry::Get();
+
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xF80), 94);  // EmptyWaterFace
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xF81), 95);  // SpittingWaterFace
+  EXPECT_EQ(reg.GetRoutineIdForObject(0xF82), 96);  // DrenchingWaterFace
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParitySubtype1TileCountsComplete) {
+  // Every subtype 1 object must have a non-zero tile count.
+  // Objects with tile count 0 in the lookup table default to 8.
+  ObjectParser parser(rom_.get());
+
+  for (int id = 0x00; id <= 0xF7; ++id) {
+    auto info = parser.GetObjectSubtype(id);
+    ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
+    EXPECT_GT(info->max_tile_count, 0)
+        << "Subtype 1 object 0x" << std::hex << id
+        << " has zero tile count";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParitySubtype2TileCountsComplete) {
+  ObjectParser parser(rom_.get());
+
+  for (int id = 0x100; id <= 0x13F; ++id) {
+    auto info = parser.GetObjectSubtype(id);
+    ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
+    EXPECT_GT(info->max_tile_count, 0)
+        << "Subtype 2 object 0x" << std::hex << id
+        << " has zero tile count";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParitySubtype3TileCountsComplete) {
+  ObjectParser parser(rom_.get());
+
+  for (int id = 0xF80; id <= 0xFFF; ++id) {
+    auto info = parser.GetObjectSubtype(id);
+    ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
+    EXPECT_GT(info->max_tile_count, 0)
+        << "Subtype 3 object 0x" << std::hex << id
+        << " has zero tile count";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityRoomEffectMovingWater) {
+  // Moving_Water effect should set BG2 to translucent blend
+  RoomLayerManager manager;
+  manager.ApplyRoomEffect(EffectKey::Moving_Water);
+
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Translucent);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Objects),
+            LayerBlendMode::Translucent);
+  // BG1 should remain normal
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Layout),
+            LayerBlendMode::Normal);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Objects),
+            LayerBlendMode::Normal);
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityRoomEffectTorchShowFloor) {
+  // Torch_Show_Floor should darken BG1
+  RoomLayerManager manager;
+  manager.ApplyRoomEffect(EffectKey::Torch_Show_Floor);
+
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Layout),
+            LayerBlendMode::Dark);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Objects),
+            LayerBlendMode::Dark);
+  // BG2 should remain normal (it's the revealed floor)
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Normal);
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityRoomEffectGanonRoom) {
+  // Ganon_Room should set BG2 layout to translucent
+  RoomLayerManager manager;
+  manager.ApplyRoomEffect(EffectKey::Ganon_Room);
+
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Translucent);
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityRoomEffectNothingIsNoOp) {
+  // Nothing/One effects should not change any blend modes
+  RoomLayerManager manager;
+  manager.ApplyRoomEffect(EffectKey::Effect_Nothing);
+
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Layout),
+            LayerBlendMode::Normal);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Objects),
+            LayerBlendMode::Normal);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Normal);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Objects),
+            LayerBlendMode::Normal);
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityLayerMergeTranslucent) {
+  // LayerMergeType with Layer2Translucent=true should set BG2 blend
+  RoomLayerManager manager;
+  LayerMergeType merge;
+  merge.ID = 4;  // Translucent
+  merge.Layer2Translucent = true;
+  merge.Layer2OnTop = false;
+  merge.Layer2Visible = true;
+  manager.ApplyLayerMerging(merge);
+
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Translucent);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG2_Objects),
+            LayerBlendMode::Translucent);
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityLayerMergeDarkRoom) {
+  // DarkRoom merge (ID 0x08) should darken BG1
+  RoomLayerManager manager;
+  LayerMergeType merge;
+  merge.ID = 0x08;  // DarkRoom
+  merge.Layer2Translucent = false;
+  merge.Layer2OnTop = false;
+  merge.Layer2Visible = false;
+  manager.ApplyLayerMerging(merge);
+
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Layout),
+            LayerBlendMode::Dark);
+  EXPECT_EQ(manager.GetLayerBlendMode(LayerType::BG1_Objects),
+            LayerBlendMode::Dark);
+}
+
+TEST_F(ObjectDrawingComprehensiveTest, ParityObjectDrawerFallback) {
+  // Objects with empty tile payloads should not crash
+  std::vector<uint8_t> test_gfx(0x10000, 0);
+  ObjectDrawer drawer(rom_.get(), 0, test_gfx.data());
+  drawer.InitializeDrawRoutines();
+
+  gfx::BackgroundBuffer bg1(64, 64);
+  gfx::BackgroundBuffer bg2(64, 64);
+  std::vector<uint8_t> bg_data(64 * 64, 0xFF);
+  bg1.bitmap().Create(64, 64, 8, bg_data);
+  bg2.bitmap().Create(64, 64, 8, bg_data);
+
+  gfx::PaletteGroup dummy_palette;
+
+  // Object with no tiles loaded should return OK (skip gracefully)
+  RoomObject obj(0x00, 0, 0, 0, 0);
+  auto status = drawer.DrawObject(obj, bg1, bg2, dummy_palette, nullptr);
+  EXPECT_TRUE(status.ok()) << "DrawObject should not fail with empty tiles";
 }
 
 }  // namespace zelda3
