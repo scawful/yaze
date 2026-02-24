@@ -14,53 +14,11 @@ set(_YAZE_USE_SYSTEM_GTEST ${YAZE_USE_SYSTEM_DEPS})
 
 # Detect Homebrew installation automatically (helps offline builds)
 if(APPLE AND NOT _YAZE_USE_SYSTEM_GTEST)
-  set(_YAZE_GTEST_PREFIX_CANDIDATES)
-  set(_YAZE_HOST_ARCH "${CMAKE_SYSTEM_PROCESSOR}")
-  if(NOT _YAZE_HOST_ARCH)
-    execute_process(
-      COMMAND uname -m
-      OUTPUT_VARIABLE _YAZE_HOST_ARCH
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_QUIET)
-  endif()
-
-  if(_YAZE_HOST_ARCH STREQUAL "arm64")
-    list(APPEND _YAZE_GTEST_PREFIX_CANDIDATES
-      /opt/homebrew/opt/googletest)
-  else()
-    list(APPEND _YAZE_GTEST_PREFIX_CANDIDATES
-      /usr/local/opt/googletest
-      /opt/homebrew/opt/googletest)
-  endif()
-
-  foreach(_prefix IN LISTS _YAZE_GTEST_PREFIX_CANDIDATES)
-    if(EXISTS "${_prefix}")
-      list(APPEND CMAKE_PREFIX_PATH "${_prefix}")
-      message(STATUS "Added Homebrew googletest prefix: ${_prefix}")
-      set(_YAZE_USE_SYSTEM_GTEST ON)
-      break()
-    endif()
-  endforeach()
-
-  if(NOT _YAZE_USE_SYSTEM_GTEST)
-    find_program(HOMEBREW_EXECUTABLE brew)
-    if(HOMEBREW_EXECUTABLE)
-      execute_process(
-        COMMAND "${HOMEBREW_EXECUTABLE}" --prefix googletest
-        OUTPUT_VARIABLE HOMEBREW_GTEST_PREFIX
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        RESULT_VARIABLE HOMEBREW_GTEST_RESULT
-        ERROR_QUIET)
-      if(HOMEBREW_GTEST_RESULT EQUAL 0 AND EXISTS "${HOMEBREW_GTEST_PREFIX}")
-        if(_YAZE_HOST_ARCH STREQUAL "arm64" AND NOT HOMEBREW_GTEST_PREFIX MATCHES "^/opt/homebrew")
-          message(STATUS "Skipping Homebrew googletest prefix on arm64: ${HOMEBREW_GTEST_PREFIX}")
-        else()
-        list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_GTEST_PREFIX}")
-        message(STATUS "Added Homebrew googletest prefix: ${HOMEBREW_GTEST_PREFIX}")
-        set(_YAZE_USE_SYSTEM_GTEST ON)
-        endif()
-      endif()
-    endif()
+  include(cmake/platform/homebrew.cmake)
+  yaze_homebrew_find_package(googletest RESULT_VAR _yaze_gtest_hb)
+  if(_yaze_gtest_hb)
+    list(APPEND CMAKE_PREFIX_PATH "${_yaze_gtest_hb}")
+    set(_YAZE_USE_SYSTEM_GTEST ON)
   endif()
 endif()
 

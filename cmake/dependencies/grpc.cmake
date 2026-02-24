@@ -9,7 +9,7 @@ endif()
 include(cmake/CPM.cmake)
 include(cmake/dependencies.lock)
 
-message(STATUS "Setting up gRPC ${GRPC_VERSION}")
+message(STATUS "Setting up gRPC (platform-selected version from dependencies.lock)")
 
 #-----------------------------------------------------------------------
 # Option: YAZE_PREFER_SYSTEM_GRPC - Use system-installed gRPC/protobuf/abseil
@@ -22,32 +22,34 @@ message(STATUS "Setting up gRPC ${GRPC_VERSION}")
 #-----------------------------------------------------------------------
 option(YAZE_PREFER_SYSTEM_GRPC "Prefer system-installed gRPC/protobuf over CPM" OFF)
 
-if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
-  message(STATUS "Attempting to use system gRPC/protobuf packages...")
+macro(yaze_grpc_ensure_openssl_targets)
+  include(cmake/platform/homebrew.cmake)
 
   # Ensure OpenSSL is discoverable for Homebrew gRPC on macOS.
-  # gRPC's CMake config references OpenSSL::SSL and fails hard if missing.
   find_package(OpenSSL QUIET)
   if(APPLE AND (NOT OpenSSL_FOUND OR NOT TARGET OpenSSL::SSL))
-    set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
+    yaze_homebrew_find_package(openssl@3 RESULT_VAR _yaze_openssl_hb)
+    if(_yaze_openssl_hb)
+      set(OPENSSL_ROOT_DIR "${_yaze_openssl_hb}")
+    endif()
     find_package(OpenSSL QUIET)
   endif()
+
+  # Fallback: synthesize imported targets when OpenSSL is installed but
+  # FindOpenSSL doesn't provide modern targets.
   if(NOT TARGET OpenSSL::SSL)
-    # Fallback: synthesize imported targets when OpenSSL is installed but the
-    # FindOpenSSL module wasn't able to produce modern targets. Homebrew gRPC
-    # exports OpenSSL::SSL in its link interface, so we must define it.
     if(NOT DEFINED OPENSSL_ROOT_DIR AND APPLE)
-      set(OPENSSL_ROOT_DIR "/opt/homebrew/opt/openssl@3")
+      yaze_homebrew_find_package(openssl@3 RESULT_VAR _yaze_openssl_hb)
+      if(_yaze_openssl_hb)
+        set(OPENSSL_ROOT_DIR "${_yaze_openssl_hb}")
+      endif()
     endif()
+
     set(_YAZE_OPENSSL_HINT_LIBS "")
     set(_YAZE_OPENSSL_HINT_INCS "")
     if(DEFINED OPENSSL_ROOT_DIR)
       list(APPEND _YAZE_OPENSSL_HINT_LIBS "${OPENSSL_ROOT_DIR}/lib")
       list(APPEND _YAZE_OPENSSL_HINT_INCS "${OPENSSL_ROOT_DIR}/include")
-    endif()
-    if(APPLE)
-      list(APPEND _YAZE_OPENSSL_HINT_LIBS "/opt/homebrew/opt/openssl@3/lib")
-      list(APPEND _YAZE_OPENSSL_HINT_INCS "/opt/homebrew/opt/openssl@3/include")
     endif()
 
     find_library(_YAZE_OPENSSL_SSL_LIB NAMES ssl HINTS ${_YAZE_OPENSSL_HINT_LIBS})
@@ -69,6 +71,32 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
       )
     endif()
   endif()
+endmacro()
+
+macro(yaze_grpc_add_absl_include_dirs _target _absl_include_var)
+  if(DEFINED ${_absl_include_var} AND NOT "${${_absl_include_var}}" STREQUAL "")
+    target_include_directories(${_target} INTERFACE ${${_absl_include_var}})
+    message(STATUS "  Added Abseil include: ${${_absl_include_var}}")
+  elseif(YAZE_HOMEBREW_AVAILABLE)
+    target_include_directories(${_target} INTERFACE "${YAZE_HOMEBREW_ROOT}/include")
+    message(STATUS "  Added Homebrew Abseil include: ${YAZE_HOMEBREW_ROOT}/include")
+  endif()
+endmacro()
+
+macro(yaze_grpc_add_absl_compile_options _absl_include_var)
+  if(DEFINED ${_absl_include_var} AND NOT "${${_absl_include_var}}" STREQUAL "")
+    add_compile_options(-I${${_absl_include_var}})
+    message(STATUS "  Added Abseil include via compile options: ${${_absl_include_var}}")
+  elseif(YAZE_HOMEBREW_AVAILABLE)
+    add_compile_options(-I${YAZE_HOMEBREW_ROOT}/include)
+    message(STATUS "  Added Homebrew include via compile options: ${YAZE_HOMEBREW_ROOT}/include")
+  endif()
+endmacro()
+
+if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
+  message(STATUS "Attempting to use system gRPC/protobuf packages...")
+
+  yaze_grpc_ensure_openssl_targets()
 
   # Try CMake's find_package first (works with Homebrew on macOS)
   find_package(gRPC CONFIG QUIET)
@@ -164,14 +192,7 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
       # Ensure Abseil include directories are available
       # Homebrew's abseil may not properly export include dirs
       get_target_property(_ABSL_BASE_INCLUDE absl::base INTERFACE_INCLUDE_DIRECTORIES)
-      if(_ABSL_BASE_INCLUDE)
-        target_include_directories(yaze_grpc_deps INTERFACE ${_ABSL_BASE_INCLUDE})
-        message(STATUS "  Added Abseil include: ${_ABSL_BASE_INCLUDE}")
-      elseif(APPLE)
-        # Fallback for Homebrew on macOS
-        target_include_directories(yaze_grpc_deps INTERFACE /opt/homebrew/include)
-        message(STATUS "  Added Homebrew Abseil include: /opt/homebrew/include")
-      endif()
+      yaze_grpc_add_absl_include_dirs(yaze_grpc_deps _ABSL_BASE_INCLUDE)
 
       # Create interface libraries for compatibility with CPM target names
       # CPM gRPC creates lowercase 'grpc++' targets
@@ -180,12 +201,8 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
       if(NOT TARGET grpc++)
         add_library(grpc++ INTERFACE)
         target_link_libraries(grpc++ INTERFACE gRPC::grpc++)
-        # Add abseil includes for targets linking to grpc++
-        if(_ABSL_BASE_INCLUDE)
-          target_include_directories(grpc++ INTERFACE ${_ABSL_BASE_INCLUDE})
-        elseif(APPLE)
-          target_include_directories(grpc++ INTERFACE /opt/homebrew/include)
-        endif()
+        # Add Abseil include dirs for targets linking to grpc++
+        yaze_grpc_add_absl_include_dirs(grpc++ _ABSL_BASE_INCLUDE)
       endif()
       if(NOT TARGET grpc++_reflection)
         add_library(grpc++_reflection INTERFACE)
@@ -266,13 +283,7 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
       # Add global include directories for system packages
       # This ensures all targets can find abseil headers even if target propagation fails
       # Use add_compile_options for reliable include path propagation with Ninja Multi-Config
-      if(_ABSL_BASE_INCLUDE)
-        add_compile_options(-I${_ABSL_BASE_INCLUDE})
-        message(STATUS "  Added Abseil include via compile options: ${_ABSL_BASE_INCLUDE}")
-      elseif(APPLE)
-        add_compile_options(-I/opt/homebrew/include)
-        message(STATUS "  Added Homebrew include via compile options: /opt/homebrew/include")
-      endif()
+      yaze_grpc_add_absl_compile_options(_ABSL_BASE_INCLUDE)
 
       message(STATUS "✓ Using SYSTEM gRPC stack - fast configure!")
       message(STATUS "  Protobuf gens dir: ${_gRPC_PROTO_GENS_DIR}")
@@ -396,9 +407,17 @@ set(CMAKE_SKIP_INSTALL_RULES TRUE)
 # GIT_SUBMODULES "" disables submodule recursion since gRPC handles its own deps via CMake
 
 if(WIN32)
-  set(GRPC_VERSION_TO_USE "1.67.1")
+  if(DEFINED GRPC_VERSION_WINDOWS)
+    set(GRPC_VERSION_TO_USE "${GRPC_VERSION_WINDOWS}")
+  else()
+    set(GRPC_VERSION_TO_USE "1.67.1")
+  endif()
 else()
-  set(GRPC_VERSION_TO_USE "1.76.0")
+  if(DEFINED GRPC_VERSION_UNIX)
+    set(GRPC_VERSION_TO_USE "${GRPC_VERSION_UNIX}")
+  else()
+    set(GRPC_VERSION_TO_USE "1.76.0")
+  endif()
 endif()
 
 message(STATUS "Selected gRPC version ${GRPC_VERSION_TO_USE} for platform ${CMAKE_SYSTEM_NAME}")

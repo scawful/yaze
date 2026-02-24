@@ -4,10 +4,7 @@
 include(cmake/CPM.cmake)
 include(cmake/dependencies.lock)
 
-message(STATUS "Setting up SDL3 (experimental) with CPM.cmake")
-
-# SDL3 specific version (using latest stable 3.2 release)
-set(SDL3_VERSION "3.2.26")
+message(STATUS "Setting up SDL3 ${SDL3_VERSION} with CPM.cmake")
 
 # Try to use system packages first if requested
 if(YAZE_USE_SYSTEM_DEPS)
@@ -63,9 +60,12 @@ if(NOT TARGET yaze_sdl3)
     message(STATUS "Using SDL3::SDL3-static target")
     target_link_libraries(yaze_sdl3 INTERFACE SDL3::SDL3-static)
     # For local Homebrew SDL3, also add include path explicitly
-    if(YAZE_PLATFORM_MACOS AND EXISTS "/opt/homebrew/opt/sdl3/include/SDL3")
-      target_include_directories(yaze_sdl3 INTERFACE /opt/homebrew/opt/sdl3/include/SDL3)
-      message(STATUS "Added Homebrew SDL3 include path: /opt/homebrew/opt/sdl3/include/SDL3")
+    if(YAZE_PLATFORM_MACOS)
+      include(cmake/platform/homebrew.cmake)
+      yaze_homebrew_find_package(sdl3 RESULT_VAR _yaze_sdl3_hb)
+      if(_yaze_sdl3_hb AND EXISTS "${_yaze_sdl3_hb}/include/SDL3")
+        target_include_directories(yaze_sdl3 INTERFACE "${_yaze_sdl3_hb}/include/SDL3")
+      endif()
     endif()
   else()
     message(STATUS "Using SDL3::SDL3 target")
@@ -117,8 +117,5 @@ endif()
 
 # Export SDL3 targets for use in other CMake files
 set(YAZE_SDL3_TARGETS yaze_sdl3)
-
-# Set a flag to indicate SDL3 is being used
-set(YAZE_SDL2_TARGETS ${YAZE_SDL3_TARGETS})  # For compatibility with existing code
 
 message(STATUS "SDL3 setup complete - YAZE_SDL3_TARGETS = ${YAZE_SDL3_TARGETS}")
