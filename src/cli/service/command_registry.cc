@@ -135,6 +135,16 @@ void CommandRegistry::RegisterHandlers(
             "--size=4 --rom=/tmp/oos-work.sfc --format=json",
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
             "--size=4 --write --rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-oracle-preflight") {
+        metadata.description =
+            "Oracle ROM safety preflight: water-fill region/table, collision "
+            "maps, and optional required-room checks";
+        metadata.examples = {
+            "z3ed dungeon-oracle-preflight --rom oos168.sfc --format=json",
+            "z3ed dungeon-oracle-preflight --rom oos168.sfc "
+            "--required-collision-rooms=0x25,0x27 --format=json",
+            "z3ed dungeon-oracle-preflight --rom oos168.sfc "
+            "--report=/tmp/preflight.json"};
       } else if (name == "dungeon-set-collision-tile") {
         metadata.description =
             "Set one or more custom collision tiles in a dungeon room";
@@ -152,6 +162,37 @@ void CommandRegistry::RegisterHandlers(
       if (name == "overworld-find-tile") {
         metadata.examples = {
             "z3ed overworld-find-tile --tile=0x42 --format=json"};
+      }
+    } else if (name.find("project-bundle-") == 0) {
+      metadata.category = "project";
+      metadata.requires_rom = false;
+      if (name == "project-bundle-verify") {
+        metadata.description = "Project bundle verification";
+        metadata.examples = {
+            "z3ed project-bundle-verify --project MyProject.yazeproj "
+            "--format=json",
+            "z3ed project-bundle-verify --project project.yaze "
+            "--report report.json",
+            "z3ed project-bundle-verify --project MyProject.yazeproj "
+            "--check-rom-hash --format=json"};
+      } else if (name == "project-bundle-pack") {
+        metadata.description = "Pack bundle into zip archive";
+        metadata.examples = {
+            "z3ed project-bundle-pack --project MyProject.yazeproj "
+            "--out MyProject.zip --format=json",
+            "z3ed project-bundle-pack --project MyProject.yazeproj "
+            "--out MyProject.zip --overwrite"};
+      } else if (name == "project-bundle-unpack") {
+        metadata.description = "Unpack zip archive into bundle";
+        metadata.examples = {
+            "z3ed project-bundle-unpack --archive MyProject.zip "
+            "--out ./projects --format=json",
+            "z3ed project-bundle-unpack --archive MyProject.zip "
+            "--out ./projects --overwrite",
+            "z3ed project-bundle-unpack --archive MyProject.zip "
+            "--out ./projects --keep-partial-output",
+            "z3ed project-bundle-unpack --archive MyProject.zip "
+            "--out ./projects --dry-run"};
       }
     } else if (name.find("rom-") == 0) {
       metadata.category = "rom";
@@ -216,6 +257,20 @@ void CommandRegistry::RegisterHandlers(
             "--asm=Menu/menu_select_item.asm "
             "--table=Menu_ItemCursorPositions --index=0 --row=7 --col=2 "
             "--write"};
+      } else if (name == "oracle-menu-validate") {
+        metadata.examples = {
+            "z3ed oracle-menu-validate --project=/path/to/oracle-of-secrets",
+            "z3ed oracle-menu-validate --project=/path/to/oracle-of-secrets "
+            "--strict --max-row=31 --max-col=31"};
+      } else if (name == "oracle-smoke-check") {
+        metadata.examples = {
+            "z3ed oracle-smoke-check --rom oos168.sfc --format=json",
+            "z3ed oracle-smoke-check --rom oos168.sfc --strict-readiness "
+            "--format=json",
+            "z3ed oracle-smoke-check --rom oos168.sfc "
+            "--min-d6-track-rooms=4 --format=json",
+            "z3ed oracle-smoke-check --rom oos168.sfc "
+            "--report=/tmp/smoke.json"};
       }
     } else if (name == "simple-chat" || name == "chat") {
       metadata.category = "agent";

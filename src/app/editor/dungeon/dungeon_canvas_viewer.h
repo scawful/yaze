@@ -170,6 +170,12 @@ class DungeonCanvasViewer {
   void set_show_track_route_overlay(bool show) {
     show_track_route_overlay_ = show;
   }
+  bool show_custom_objects_overlay() const {
+    return show_custom_objects_overlay_;
+  }
+  void set_show_custom_objects_overlay(bool show) {
+    show_custom_objects_overlay_ = show;
+  }
 
   bool show_grid() const { return show_grid_; }
   void set_show_grid(bool show) { show_grid_ = show; }
@@ -378,6 +384,7 @@ class DungeonCanvasViewer {
   void DrawRoomNavigation(int room_id);
   void DrawRoomPropertyTable(zelda3::Room& room, int room_id);
   void DrawLayerControls(zelda3::Room& room, int room_id);
+  void DrawCompactLayerToggles(int room_id);
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
@@ -457,6 +464,7 @@ class DungeonCanvasViewer {
   bool show_minecart_sprite_overlay_ = false;
   bool show_track_gap_overlay_ = false;
   bool show_track_route_overlay_ = false;
+  bool show_custom_objects_overlay_ = false;
   bool show_custom_collision_overlay_ = false;
   bool show_water_fill_overlay_ = false;
   bool show_room_details_ = false;

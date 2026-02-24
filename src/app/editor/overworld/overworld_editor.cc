@@ -1674,6 +1674,7 @@ absl::Status OverworldEditor::DrawTile16Selector() {
     selector_config.highlight_color = theme.selection_primary;
 
     selector_config.enable_drag = true;
+    selector_config.show_hover_tooltip = true;
 
     blockset_selector_ = std::make_unique<gui::TileSelectorWidget>(
         "OwBlocksetSelector", selector_config);
@@ -1681,6 +1682,15 @@ absl::Status OverworldEditor::DrawTile16Selector() {
   }
 
   UpdateBlocksetSelectorState();
+
+  // Tile ID search/jump bar
+  if (blockset_selector_->DrawFilterBar()) {
+    current_tile16_ = blockset_selector_->GetSelectedTileID();
+    auto status = tile16_editor_.SetCurrentTile(current_tile16_);
+    if (!status.ok()) {
+      util::logf("Failed to set tile16: %s", status.message().data());
+    }
+  }
 
   gfx::Bitmap& atlas = tile16_blockset_.atlas;
   bool atlas_ready = map_blockset_loaded_ && atlas.is_active();

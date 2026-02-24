@@ -8,12 +8,14 @@ if(YAZE_BUILD_TESTS)
   function(yaze_add_test_suite suite_name label is_gui_test)
     set(sources ${ARGN})
     
-    # Only GUI tests need controller.cc (yaze_test.cc uses Controller when config.enable_ui_tests is true)
-    # Controller is legacy code with circular dependencies - avoid it in non-GUI tests
+    # GUI tests need application.cc + controller.cc (full app context).
+    # Non-GUI tests use a minimal Application::Instance() stub (app_instance_stub.cc)
+    # to satisfy editor-library references without pulling in controller.cc, which
+    # has circular dependencies that break non-GUI test link.
     if(is_gui_test)
       add_executable(${suite_name} yaze_test.cc ../src/app/application.cc ../src/app/controller.cc ${sources})
     else()
-      add_executable(${suite_name} yaze_test.cc ${sources})
+      add_executable(${suite_name} yaze_test.cc app_instance_stub.cc ${sources})
     endif()
 
     target_include_directories(${suite_name} PUBLIC
@@ -169,8 +171,10 @@ if(YAZE_BUILD_TESTS)
     unit/core/oracle_menu_registry_test.cc
     unit/core/story_event_graph_test.cc
     unit/core/story_event_graph_query_test.cc
+    unit/core/rom_hash_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
+    unit/core/project_bundle_path_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc
@@ -178,6 +182,12 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/dungeon_minecart_audit_test.cc
+    unit/cli/dungeon_oracle_preflight_test.cc
+    unit/cli/oracle_smoke_check_test.cc
+    unit/cli/oracle_menu_commands_test.cc
+    unit/cli/project_bundle_verify_test.cc
+    unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
     unit/rom/write_fence_test.cc
@@ -200,7 +210,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/message/message_expanded_write_test.cc
+    unit/editor/oracle_validation_view_model_test.cc
     unit/editor/rom_file_manager_test.cc
+    unit/editor/project_manager_validator_test.cc
     unit/editor/panel_system_test.cc
     unit/editor/panel_manager_policy_test.cc
     unit/editor/right_panel_manager_test.cc
@@ -216,9 +228,11 @@ if(YAZE_BUILD_TESTS)
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
+    unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
+    unit/editor/toast_dedup_test.cc
     unit/core/asar_compiler_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
@@ -229,6 +243,8 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/sprite_builder_test.cc
     unit/zelda3/music_parser_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
+    unit/zelda3/dungeon/dungeon_limits_test.cc
+    unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
@@ -260,6 +276,7 @@ if(YAZE_BUILD_TESTS)
     unit/dungeon_object_drawer_test.cc
     unit/object_selection_test.cc
     unit/editor/tile_object_handler_test.cc
+    unit/editor/sprite_door_handler_test.cc
     unit/editor/interaction_coordinator_test.cc
     # Platform Tests
     platform/sdl3_audio_backend_test.cc
@@ -285,6 +302,9 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_object_rom_validation_test.cc
     integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
+    integration/zelda3/minecart_audit_integration_test.cc
+    integration/zelda3/oracle_workflow_integration_test.cc
+    integration/zelda3/oracle_smoke_check_integration_test.cc
     integration/zelda3/sprite_position_test.cc
     integration/zelda3/message_test.cc
     integration/palette_manager_test.cc
@@ -333,6 +353,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_paths_test.cc
+    unit/core/project_bundle_path_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/mesen_socket_client_test.cc
@@ -351,7 +372,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
+    unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
+    unit/editor/project_manager_validator_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
@@ -363,6 +386,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_water_fill_state_test.cc
     unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
+    unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/object_layer_semantics_test.cc
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc

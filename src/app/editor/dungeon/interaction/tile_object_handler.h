@@ -18,6 +18,12 @@ namespace yaze::editor {
  */
 class TileObjectHandler : public BaseEntityHandler {
  public:
+  enum class PlacementBlockReason {
+    kNone = 0,
+    kInvalidRoom,
+    kObjectLimit,
+  };
+
   TileObjectHandler() : ghost_preview_buffer_(nullptr) {}
   explicit TileObjectHandler(InteractionContext* ctx) { SetContext(ctx); }
 
@@ -93,9 +99,20 @@ class TileObjectHandler : public BaseEntityHandler {
   void ResizeObjects(int room_id, const std::vector<size_t>& indices, int delta);
 
   /**
-   * @brief Place a new object.
+   * @brief Place a new object. Returns false if blocked by ROM limits.
    */
-  void PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x, int y);
+  bool PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x, int y);
+
+  /// True if the most recent PlaceObjectAt was blocked.
+  bool was_placement_blocked() const {
+    return placement_block_reason_ != PlacementBlockReason::kNone;
+  }
+  PlacementBlockReason placement_block_reason() const {
+    return placement_block_reason_;
+  }
+  void clear_placement_blocked() {
+    placement_block_reason_ = PlacementBlockReason::kNone;
+  }
 
   void UpdateObjectsId(int room_id, const std::vector<size_t>& indices, int16_t new_id);
 
@@ -142,6 +159,7 @@ class TileObjectHandler : public BaseEntityHandler {
  private:
   // Placement state
   bool object_placement_mode_ = false;
+  PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
   zelda3::RoomObject preview_object_{-1, 0, 0, 0};
   std::unique_ptr<gfx::BackgroundBuffer> ghost_preview_buffer_;
 
