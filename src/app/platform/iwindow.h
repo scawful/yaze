@@ -23,14 +23,15 @@ namespace platform {
  */
 struct WindowConfig {
   std::string title = "Yet Another Zelda3 Editor";
-  int width = 0;   // 0 means auto-detect from display
-  int height = 0;  // 0 means auto-detect from display
+  int width = 0;               // 0 means auto-detect from display
+  int height = 0;              // 0 means auto-detect from display
   float display_scale = 0.8f;  // Percentage of display to use when auto-detect
   bool resizable = true;
   bool maximized = false;
   bool fullscreen = false;
-  bool high_dpi = false;  // Disabled by default - causes issues on macOS Retina with SDL_Renderer
-  bool hidden = false;    // Start window hidden (for service mode)
+  bool high_dpi =
+      false;  // Disabled by default - causes issues on macOS Retina with SDL_Renderer
+  bool hidden = false;  // Start window hidden (for service mode)
 };
 
 /**
@@ -283,9 +284,10 @@ class IWindowBackend {
 enum class WindowBackendType {
   SDL2,
   SDL3,
+  GLFW,  // Reserved for future native multi-viewport backend
   IOS,
   Null,  // Headless/Server mode
-  Auto  // Automatically select based on availability
+  Auto   // Automatically select based on availability
 };
 
 /**
