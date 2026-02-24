@@ -16,34 +16,11 @@ set(_YAZE_USE_SYSTEM_YAML ${YAZE_USE_SYSTEM_DEPS})
 
 # Detect Homebrew installation automatically (helps offline builds)
 if(APPLE AND NOT _YAZE_USE_SYSTEM_YAML)
-  set(_YAZE_YAML_PREFIX_CANDIDATES
-    /opt/homebrew/opt/yaml-cpp
-    /usr/local/opt/yaml-cpp)
-
-  foreach(_prefix IN LISTS _YAZE_YAML_PREFIX_CANDIDATES)
-    if(EXISTS "${_prefix}")
-      list(APPEND CMAKE_PREFIX_PATH "${_prefix}")
-      message(STATUS "Added Homebrew yaml-cpp prefix: ${_prefix}")
-      set(_YAZE_USE_SYSTEM_YAML ON)
-      break()
-    endif()
-  endforeach()
-
-  if(NOT _YAZE_USE_SYSTEM_YAML)
-    find_program(HOMEBREW_EXECUTABLE brew)
-    if(HOMEBREW_EXECUTABLE)
-      execute_process(
-        COMMAND "${HOMEBREW_EXECUTABLE}" --prefix yaml-cpp
-        OUTPUT_VARIABLE HOMEBREW_YAML_PREFIX
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        RESULT_VARIABLE HOMEBREW_YAML_RESULT
-        ERROR_QUIET)
-      if(HOMEBREW_YAML_RESULT EQUAL 0 AND EXISTS "${HOMEBREW_YAML_PREFIX}")
-        list(APPEND CMAKE_PREFIX_PATH "${HOMEBREW_YAML_PREFIX}")
-        message(STATUS "Added Homebrew yaml-cpp prefix: ${HOMEBREW_YAML_PREFIX}")
-        set(_YAZE_USE_SYSTEM_YAML ON)
-      endif()
-    endif()
+  include(cmake/platform/homebrew.cmake)
+  yaze_homebrew_find_package(yaml-cpp RESULT_VAR _yaze_yaml_hb)
+  if(_yaze_yaml_hb)
+    list(APPEND CMAKE_PREFIX_PATH "${_yaze_yaml_hb}")
+    set(_YAZE_USE_SYSTEM_YAML ON)
   endif()
 endif()
 
@@ -61,9 +38,9 @@ if(_YAZE_USE_SYSTEM_YAML)
       # HACK: Explicitly add the library directory for Homebrew if detected
       # This fixes 'ld: library not found for -lyaml-cpp' when the imported target
       # doesn't propagate the library path correctly to the linker command line
-      if(EXISTS "/opt/homebrew/opt/yaml-cpp/lib")
-        link_directories("/opt/homebrew/opt/yaml-cpp/lib")
-        message(STATUS "Added yaml-cpp link directory: /opt/homebrew/opt/yaml-cpp/lib")
+      if(_yaze_yaml_hb AND EXISTS "${_yaze_yaml_hb}/lib")
+        link_directories("${_yaze_yaml_hb}/lib")
+        message(STATUS "Added yaml-cpp link directory: ${_yaze_yaml_hb}/lib")
       endif()
     else()
       message(STATUS "Linking yaze_yaml against yaml-cpp (legacy)")
@@ -81,7 +58,7 @@ CPMAddPackage(
   NAME yaml-cpp
   VERSION ${YAML_CPP_VERSION}
   GITHUB_REPOSITORY jbeder/yaml-cpp
-  GIT_TAG 0.8.0
+  GIT_TAG ${YAML_CPP_VERSION}
   OPTIONS
     "YAML_CPP_BUILD_TESTS OFF"
     "YAML_CPP_BUILD_CONTRIB OFF"

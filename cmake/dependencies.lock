@@ -1,30 +1,90 @@
-# CPM Dependencies Lock File
-# This file pins exact versions to ensure reproducible builds
-# Update versions here when upgrading dependencies
+# Yaze dependency catalog and version lock
+#
+# This file is the single source of truth for third-party dependency versions.
+# Keep this file updated whenever dependency versions or sources change.
+#
+# Format:
+#   set(<NAME> "<VERSION>" CACHE STRING "<description>")
+#   # source: <repo|path>
+#   # license: <license>
 
-# Core dependencies
+# =============================================================================
+# CPM / Fetch dependencies
+# =============================================================================
+
+# SDL
 set(SDL2_VERSION "2.30.0" CACHE STRING "SDL2 version")
-set(YAML_CPP_VERSION "0.8.0" CACHE STRING "yaml-cpp version")
-set(NLOHMANN_JSON_VERSION "3.11.3" CACHE STRING "nlohmann/json version")
-set(HTTPLIB_VERSION "0.26.0" CACHE STRING "cpp-httplib version")
+# source: https://github.com/libsdl-org/SDL
+# license: zlib
 
-# gRPC and related
-# Using v1.67.1 for MSVC compatibility (v1.75.1 has UPB compilation errors on Windows)
-set(GRPC_VERSION "1.67.1" CACHE STRING "gRPC version - MSVC compatible")
-set(PROTOBUF_VERSION "3.25.1" CACHE STRING "Protobuf version")
-set(ABSEIL_VERSION "20240116.0" CACHE STRING "Abseil version")
-# Cache revision: increment to force CPM cache invalidation (current: 2)
+set(SDL3_VERSION "3.2.26" CACHE STRING "SDL3 version")
+# source: https://github.com/libsdl-org/SDL
+# license: zlib
+
+# Data / config libraries
+set(YAML_CPP_VERSION "0.8.0" CACHE STRING "yaml-cpp version")
+# source: https://github.com/jbeder/yaml-cpp
+# license: MIT
+
+set(NLOHMANN_JSON_VERSION "3.11.3" CACHE STRING "nlohmann/json version")
+# source: https://github.com/nlohmann/json
+# license: MIT
+
+set(HTTPLIB_VERSION "0.26.0" CACHE STRING "cpp-httplib version")
+# source: https://github.com/yhirose/cpp-httplib
+# license: MIT
+
+# gRPC stack (platform split)
+set(GRPC_VERSION_WINDOWS "1.67.1" CACHE STRING "gRPC version for MSVC compatibility")
+set(GRPC_VERSION_UNIX "1.76.0" CACHE STRING "gRPC version for Linux/macOS")
+# source: https://github.com/grpc/grpc
+# license: Apache-2.0
+
+# Compatibility alias used in status output and legacy scripts.
+set(GRPC_VERSION "${GRPC_VERSION_WINDOWS}" CACHE STRING "Legacy gRPC version alias")
+
+set(PROTOBUF_VERSION "3.25.1" CACHE STRING "Protobuf version (system package path)")
+# source: https://github.com/protocolbuffers/protobuf
+# license: BSD-3-Clause
+
+set(ABSEIL_VERSION "20240116.0" CACHE STRING "Abseil version (system package path)")
+# source: https://github.com/abseil/abseil-cpp
+# license: Apache-2.0
 
 # Testing
-set(GTEST_VERSION "1.14.0" CACHE STRING "Google Test version")
+set(GTEST_VERSION "1.14.0" CACHE STRING "GoogleTest version")
+# source: https://github.com/google/googletest
+# license: BSD-3-Clause
+
 set(BENCHMARK_VERSION "1.8.3" CACHE STRING "Google Benchmark version")
+# source: https://github.com/google/benchmark
+# license: Apache-2.0
 
-# CLI tools
+# CLI
 set(FTXUI_VERSION "5.0.0" CACHE STRING "FTXUI version")
+# source: https://github.com/ArthurSonzogni/FTXUI
+# license: MIT
 
-# ImGui
-set(IMGUI_VERSION "1.90.4" CACHE STRING "Dear ImGui version")
-# Cache revision: increment to force rebuild (current: 2)
+# =============================================================================
+# Vendored dependencies (tracked for auditability)
+# =============================================================================
 
-# ASAR
-set(ASAR_VERSION "main" CACHE STRING "ASAR version")
+set(IMGUI_VERSION "1.92.5-WIP" CACHE STRING "Dear ImGui bundled version")
+# source: ext/imgui
+# license: MIT
+
+set(SDL2_BUNDLED_VERSION "2.33.0" CACHE STRING "Bundled SDL snapshot version")
+# source: ext/SDL
+# license: zlib
+
+set(NATIVEFILEDIALOG_EXT_VERSION "1.1.0+" CACHE STRING "nativefiledialog-extended interface level")
+# source: ext/nativefiledialog-extended
+# license: zlib
+
+set(MINIZ_VERSION "11.0.2" CACHE STRING "miniz bundled version")
+# source: ext/miniz
+# license: Public Domain / Unlicense
+
+set(ASAR_VERSION "main" CACHE STRING "ASAR source snapshot")
+# source: ext/asar
+# license: mixed (BSD-3-Clause / LGPL / GPL / WTFPL) per upstream files

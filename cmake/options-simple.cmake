@@ -186,8 +186,15 @@ endif()
 if(NOT DEFINED YAZE_USE_SDL3)
   option(YAZE_USE_SDL3 "Use SDL3 instead of SDL2 (experimental)" OFF)
 endif()
+if(NOT DEFINED YAZE_USE_GLFW)
+  option(YAZE_USE_GLFW "Use GLFW window backend (scaffold, not yet implemented)" OFF)
+endif()
 if(NOT DEFINED YAZE_WASM_TERMINAL)
   option(YAZE_WASM_TERMINAL "Build z3ed for WASM terminal mode (no TUI)" OFF)
+endif()
+
+if(YAZE_USE_GLFW AND YAZE_USE_SDL3)
+  message(FATAL_ERROR "YAZE_USE_GLFW and YAZE_USE_SDL3 are mutually exclusive")
 endif()
 
 #===============================================================================
