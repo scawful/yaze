@@ -42,4 +42,78 @@ echo "$out" | grep -q "agent-b.output" || {
   exit 4
 }
 
-echo "PASS: watch-claude-tasks symlink/regular log discovery"
+mock_project="$tmp_dir/mock-project"
+mkdir -p "$mock_project/scripts/agents"
+mock_coord="$mock_project/scripts/agents/coord"
+cat >"$mock_coord" <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" != "task-list" ]]; then
+  exit 0
+fi
+fmt="text"
+for ((i = 1; i <= $#; i++)); do
+  if [[ "${!i}" == "--format" ]]; then
+    j=$((i + 1))
+    fmt="${!j:-text}"
+    break
+  fi
+done
+if [[ "$fmt" == "json" ]]; then
+  python3 - <<'PY'
+import json
+from datetime import datetime, timedelta, timezone
+now = datetime.now(timezone.utc)
+payload = [
+    {
+        "task_id": "task_recent",
+        "status": "active",
+        "assignee": "ai-infra-architect",
+        "priority": "B",
+        "title": "Recent task",
+        "updated_at": now.isoformat().replace("+00:00", "Z"),
+    },
+    {
+        "task_id": "task_old",
+        "status": "active",
+        "assignee": "ai-infra-architect",
+        "priority": "B",
+        "title": "Old imported task",
+        "updated_at": (now - timedelta(minutes=240)).isoformat().replace("+00:00", "Z"),
+    },
+]
+print(json.dumps(payload))
+PY
+  exit 0
+fi
+cat <<TXT
+task_id	status	assignee	priority	title
+task_recent	active	ai-infra-architect	B	Recent task
+task_old	active	ai-infra-architect	B	Old imported task
+TXT
+EOF
+chmod +x "$mock_coord"
+
+out_coord="$("$WATCH_SCRIPT" \
+  --once \
+  --project-root "$mock_project" \
+  --task-root "$task_root" \
+  --window-min 10 \
+  --tail 2 \
+  --max-files 2 \
+  --coord-recent-min 30)"
+
+echo "$out_coord" | grep -q "Active Tasks, <= 30m" || {
+  echo "FAIL: coord recency header not shown" >&2
+  exit 5
+}
+echo "$out_coord" | grep -q "task_recent" || {
+  echo "FAIL: recent coord task missing from filtered output" >&2
+  exit 6
+}
+echo "$out_coord" | grep -q "task_old" && {
+  echo "FAIL: old coord task should be filtered out" >&2
+  exit 7
+}
+
+echo "PASS: watch-claude-tasks symlink/regular log discovery + coord recency filter"
