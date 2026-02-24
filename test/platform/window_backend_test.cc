@@ -17,12 +17,14 @@ TEST(WindowBackendFactoryTest, DefaultTypeRespectsBuildFlag) {
   EXPECT_TRUE(WindowBackendFactory::IsAvailable(WindowBackendType::SDL2));
   EXPECT_FALSE(WindowBackendFactory::IsAvailable(WindowBackendType::SDL3));
 #endif
+
+  EXPECT_FALSE(WindowBackendFactory::IsAvailable(WindowBackendType::GLFW));
 }
 
 TEST(WindowBackendFactoryTest, CreateAutoReturnsDefault) {
   auto backend = WindowBackendFactory::Create(WindowBackendType::Auto);
   ASSERT_NE(backend, nullptr);
-  
+
 #ifdef YAZE_USE_SDL3
   EXPECT_EQ(backend->GetSDLVersion(), 3);
 #else
@@ -30,6 +32,14 @@ TEST(WindowBackendFactoryTest, CreateAutoReturnsDefault) {
   // Typically SDL2 returns 2xxx
   EXPECT_NE(backend->GetSDLVersion(), 3);
 #endif
+}
+
+TEST(WindowBackendFactoryTest, CreateGlfwFallsBackToDefault) {
+  auto glfw_backend = WindowBackendFactory::Create(WindowBackendType::GLFW);
+  auto default_backend = WindowBackendFactory::Create(WindowBackendType::Auto);
+  ASSERT_NE(glfw_backend, nullptr);
+  ASSERT_NE(default_backend, nullptr);
+  EXPECT_EQ(glfw_backend->GetBackendName(), default_backend->GetBackendName());
 }
 
 }  // namespace test

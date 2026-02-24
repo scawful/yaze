@@ -2,15 +2,16 @@
 
 #include "app/platform/iwindow.h"
 
-#include "app/platform/sdl2_window_backend.h"
 #include "app/platform/null_window_backend.h"
+#include "app/platform/sdl2_window_backend.h"
 #include "util/log.h"
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
 
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
 #include "app/platform/ios/ios_window_backend.h"
 #endif
 
@@ -42,8 +43,15 @@ std::unique_ptr<IWindowBackend> WindowBackendFactory::Create(
       return std::make_unique<SDL2WindowBackend>();
 #endif
 
+    case WindowBackendType::GLFW:
+      LOG_WARN("WindowBackendFactory",
+               "GLFW backend requested but not implemented yet, using default "
+               "backend");
+      return Create(GetDefaultType());
+
     case WindowBackendType::IOS:
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
       return std::make_unique<IOSWindowBackend>();
 #else
       LOG_WARN("WindowBackendFactory",
@@ -61,7 +69,8 @@ std::unique_ptr<IWindowBackend> WindowBackendFactory::Create(
 }
 
 WindowBackendType WindowBackendFactory::GetDefaultType() {
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
   return WindowBackendType::IOS;
 #endif
 #ifdef YAZE_USE_SDL3
@@ -87,11 +96,15 @@ bool WindowBackendFactory::IsAvailable(WindowBackendType type) {
       return false;  // SDL3 not built in
 #endif
 
+    case WindowBackendType::GLFW:
+      return false;  // Declared but not runtime-implemented yet
+
     case WindowBackendType::Auto:
       return true;  // Auto always available
 
     case WindowBackendType::IOS:
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
       return true;
 #else
       return false;
