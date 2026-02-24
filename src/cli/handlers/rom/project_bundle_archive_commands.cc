@@ -15,6 +15,19 @@ namespace yaze::cli::handlers {
 
 namespace fs = std::filesystem;
 
+namespace {
+
+bool HasTraversalPathComponent(const fs::path& path) {
+  for (const auto& component : path) {
+    if (component == "..") {
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace
+
 // ============================================================================
 // Pack
 // ============================================================================
@@ -218,6 +231,10 @@ absl::Status ProjectBundleUnpackCommandHandler::Execute(
 
   std::error_code fserr;
   auto add_cleanup_field = [&]() {
+    if (dry_run) {
+      formatter.AddField("cleanup", std::string("skipped (dry-run)"));
+      return;
+    }
     if (keep_partial) {
       formatter.AddField("cleanup",
                          std::string("skipped (--keep-partial-output)"));
@@ -260,7 +277,7 @@ absl::Status ProjectBundleUnpackCommandHandler::Execute(
 
   // When --overwrite, remove stale content before extraction to prevent
   // leftover files from a previous unpack polluting the result.
-  if (overwrite && fs::exists(out_dir, fserr)) {
+  if (overwrite && !dry_run && fs::exists(out_dir, fserr)) {
     fs::remove_all(out_dir, fserr);
   }
 
@@ -300,8 +317,8 @@ absl::Status ProjectBundleUnpackCommandHandler::Execute(
     }
 
     // ---- Path traversal safety ----
-    // Reject entries with ".." components
-    if (entry_name.find("..") != std::string::npos) {
+    // Reject entries with explicit ".." path components.
+    if (HasTraversalPathComponent(fs::path(entry_name))) {
       mz_zip_reader_end(&zip);
       formatter.AddField("ok", false);
       formatter.AddField("error",
