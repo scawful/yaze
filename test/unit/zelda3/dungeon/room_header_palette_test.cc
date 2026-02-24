@@ -56,7 +56,7 @@ TEST(RoomHeaderPaletteTest, PaletteIdIsNotTruncatedToSixBits) {
 
   Room room = LoadRoomHeaderFromRom(&rom, room_id);
 
-  EXPECT_EQ(room.palette, 0x40);
+  EXPECT_EQ(room.palette(), 0x40);
 
   room.SetPalette(0x47);
   ASSERT_TRUE(room.SaveRoomHeader().ok());
@@ -66,4 +66,3 @@ TEST(RoomHeaderPaletteTest, PaletteIdIsNotTruncatedToSixBits) {
 
 }  // namespace
 }  // namespace yaze::zelda3::test
-

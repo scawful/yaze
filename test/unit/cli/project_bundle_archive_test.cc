@@ -673,6 +673,79 @@ TEST(ProjectBundleUnpackTest, DryRunDoesNotCreateFiles) {
       << "dry-run must not create output directory";
 }
 
+TEST(ProjectBundleUnpackTest, DryRunOverwriteDoesNotDeleteExistingOutput) {
+  ScopedTempDir tmp;
+  fs::path bundle = tmp.path / "DryRunKeep.yazeproj";
+  CreateBundle(bundle);
+  fs::path zip_out = tmp.path / "DryRunKeep.zip";
+  fs::path unpack_dir = tmp.path / "existing_output";
+  fs::create_directories(unpack_dir);
+  const fs::path sentinel = unpack_dir / "keep_me.txt";
+  {
+    std::ofstream out(sentinel, std::ios::out | std::ios::binary);
+    out << "keep";
+  }
+
+  // Pack a valid bundle.
+  {
+    handlers::ProjectBundlePackCommandHandler handler;
+    std::string out;
+    auto status = handler.Run(
+        {"--project=" + bundle.string(), "--out=" + zip_out.string(),
+         "--format=json"},
+        nullptr, &out);
+    ASSERT_TRUE(status.ok()) << status.message() << "\n" << out;
+  }
+
+  handlers::ProjectBundleUnpackCommandHandler handler;
+  std::string out;
+  auto status = handler.Run(
+      {"--archive=" + zip_out.string(), "--out=" + unpack_dir.string(),
+       "--dry-run", "--overwrite", "--format=json"},
+      nullptr, &out);
+  EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
+
+  auto doc = json::parse(out, nullptr, false);
+  ASSERT_FALSE(doc.is_discarded());
+  EXPECT_TRUE(doc.value("ok", false));
+  EXPECT_EQ(doc.value("files_extracted", -1), 0);
+  EXPECT_TRUE(fs::exists(unpack_dir));
+  EXPECT_TRUE(fs::exists(sentinel))
+      << "dry-run must not delete or mutate existing output";
+}
+
+TEST(ProjectBundleUnpackTest, DryRunAllowsDoubleDotInsideFilenameComponent) {
+  ScopedTempDir tmp;
+  fs::path zip_path = tmp.path / "double_dot_name.zip";
+  {
+    mz_zip_archive zip;
+    std::memset(&zip, 0, sizeof(zip));
+    ASSERT_TRUE(mz_zip_writer_init_file(&zip, zip_path.string().c_str(), 0));
+    const char* payload = "x";
+    ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "Good.yazeproj/project.yaze", payload,
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
+    ASSERT_TRUE(mz_zip_writer_add_mem(&zip, "Good.yazeproj/a..b.txt", payload,
+                                      std::strlen(payload),
+                                      MZ_DEFAULT_COMPRESSION));
+    ASSERT_TRUE(mz_zip_writer_finalize_archive(&zip));
+    mz_zip_writer_end(&zip);
+  }
+
+  handlers::ProjectBundleUnpackCommandHandler handler;
+  std::string out;
+  auto status = handler.Run(
+      {"--archive=" + zip_path.string(), "--out=" + (tmp.path / "out").string(),
+       "--dry-run", "--format=json"},
+      nullptr, &out);
+
+  EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
+  auto doc = json::parse(out, nullptr, false);
+  ASSERT_FALSE(doc.is_discarded());
+  EXPECT_TRUE(doc.value("ok", false));
+  EXPECT_TRUE(doc.value("is_valid_bundle", false));
+}
+
 TEST(ProjectBundleUnpackTest, DryRunDetectsTraversal) {
   ScopedTempDir tmp;
 

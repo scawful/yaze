@@ -374,7 +374,7 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
                   (rom->data()[table_offset_2 + 1] << 8) +
                   rom->data()[table_offset_2];
 
-  int msg_addr = messages_id_dungeon + (room_id * 2);
+  int msg_addr = kMessagesIdDungeon + (room_id * 2);
   if (msg_addr >= 0 && msg_addr + 1 < static_cast<int>(rom->size())) {
     uint16_t msg_val = (rom->data()[msg_addr + 1] << 8) | rom->data()[msg_addr];
     room.SetMessageId(msg_val);
@@ -388,7 +388,6 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
     return room;
   }
 
-  hpos++;
   uint8_t b = rom->data()[hpos];
 
   room.SetLayer2Mode((b >> 5));
@@ -459,10 +458,10 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   const auto& sprite_gfx = game_data_->spriteset_ids;
 
   LOG_DEBUG("Room", "Room %d: blockset=%d, spriteset=%d, palette=%d", room_id_,
-            blockset, spriteset, palette);
+            blockset_, spriteset_, palette_);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = game_data_->main_blockset_ids[blockset][i];
+    blocks_[i] = game_data_->main_blockset_ids[blockset_][i];
     // Block 6 can be overridden by entrance-specific room graphics (index 3)
     // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
     if (i == 6) {
@@ -477,7 +476,7 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   blocks_[10] = 115 + 6;
   blocks_[11] = 115 + 7;
   for (int i = 0; i < 4; i++) {
-    blocks_[12 + i] = (uint8_t)(sprite_gfx[spriteset + 64][i] + 115);
+    blocks_[12 + i] = (uint8_t)(sprite_gfx[spriteset_ + 64][i] + 115);
   }  // 12-16 sprites
 
   LOG_DEBUG("Room", "Sheet IDs BG[0-7]: %d %d %d %d %d %d %d %d", blocks_[0],
@@ -531,7 +530,7 @@ void Room::CopyRoomGraphicsToBuffer() {
     if (slot < 0 || slot >= 8) {
       return false;
     }
-    if (blockset < 0x20) {
+    if (blockset_ < 0x20) {
       return slot >= 4;
     }
     return (slot == 2 || slot == 3 || slot == 4 || slot == 7);
@@ -587,9 +586,9 @@ void Room::CopyRoomGraphicsToBuffer() {
 }
 
 gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
-  if (composite_dirty_) {
+  if (dirty_state_.composite) {
     layer_mgr.CompositeToOutput(*this, composite_bitmap_);
-    composite_dirty_ = false;
+    dirty_state_.composite = false;
   }
   return composite_bitmap_;
 }
@@ -599,17 +598,17 @@ void Room::RenderRoomGraphics() {
   bool properties_changed = false;
 
   // Check if graphics properties changed
-  if (cached_blockset_ != blockset || cached_spriteset_ != spriteset ||
-      cached_palette_ != palette || cached_layout_ != layout ||
+  if (cached_blockset_ != blockset_ || cached_spriteset_ != spriteset_ ||
+      cached_palette_ != palette_ || cached_layout_ != layout_id_ ||
       cached_floor1_graphics_ != floor1_graphics_ ||
       cached_floor2_graphics_ != floor2_graphics_) {
-    cached_blockset_ = blockset;
-    cached_spriteset_ = spriteset;
-    cached_palette_ = palette;
-    cached_layout_ = layout;
+    cached_blockset_ = blockset_;
+    cached_spriteset_ = spriteset_;
+    cached_palette_ = palette_;
+    cached_layout_ = layout_id_;
     cached_floor1_graphics_ = floor1_graphics_;
     cached_floor2_graphics_ = floor2_graphics_;
-    graphics_dirty_ = true;
+    dirty_state_.graphics = true;
     properties_changed = true;
   }
 
@@ -619,13 +618,13 @@ void Room::RenderRoomGraphics() {
     cached_effect_ = static_cast<uint8_t>(effect_);
     cached_tag1_ = tag1_;
     cached_tag2_ = tag2_;
-    objects_dirty_ = true;
+    dirty_state_.objects = true;
     properties_changed = true;
   }
 
   // If nothing changed and textures exist, skip rendering
-  if (!properties_changed && !graphics_dirty_ && !objects_dirty_ &&
-      !layout_dirty_ && !textures_dirty_) {
+  if (!properties_changed && !dirty_state_.graphics && !dirty_state_.objects &&
+      !dirty_state_.layout && !dirty_state_.textures) {
     auto& bg1_bmp = bg1_buffer_.bitmap();
     auto& bg2_bmp = bg2_buffer_.bitmap();
     if (bg1_bmp.texture() && bg2_bmp.texture()) {
@@ -637,20 +636,20 @@ void Room::RenderRoomGraphics() {
 
   LOG_DEBUG("[RenderRoomGraphics]",
             "Room %d: Rendering graphics (dirty_flags: g=%d o=%d l=%d t=%d)",
-            room_id_, graphics_dirty_, objects_dirty_, layout_dirty_,
-            textures_dirty_);
+            room_id_, dirty_state_.graphics, dirty_state_.objects,
+            dirty_state_.layout, dirty_state_.textures);
 
   // Capture dirty state BEFORE clearing flags (needed for floor/bg draw logic)
-  bool was_graphics_dirty = graphics_dirty_;
-  bool was_layout_dirty = layout_dirty_;
+  bool was_graphics_dirty = dirty_state_.graphics;
+  bool was_layout_dirty = dirty_state_.layout;
 
   // STEP 0: Load graphics if needed
-  if (graphics_dirty_) {
+  if (dirty_state_.graphics) {
     // Ensure blocks_[] array is properly initialized before copying graphics
     // LoadRoomGraphics sets up which sheets go into which blocks
-    LoadRoomGraphics(blockset);
+    LoadRoomGraphics(blockset_);
     CopyRoomGraphicsToBuffer();
-    graphics_dirty_ = false;
+    dirty_state_.graphics = false;
   }
 
   // Debug: Log floor graphics values
@@ -673,9 +672,9 @@ void Room::RenderRoomGraphics() {
   }
 
   if (need_floor_draw) {
-    bg1_buffer_.DrawFloor(rom()->vector(), tile_address, tile_address_floor,
+    bg1_buffer_.DrawFloor(rom()->vector(), kTileAddress, kTileAddressFloor,
                           floor1_graphics_);
-    bg2_buffer_.DrawFloor(rom()->vector(), tile_address, tile_address_floor,
+    bg2_buffer_.DrawFloor(rom()->vector(), kTileAddress, kTileAddressFloor,
                           floor2_graphics_);
   }
 
@@ -697,7 +696,7 @@ void Room::RenderRoomGraphics() {
   // See docs/internal/agents/dungeon-object-rendering-spec.md.
   if (was_layout_dirty || need_floor_draw) {
     LoadLayoutTilesToBuffer();
-    layout_dirty_ = false;
+    dirty_state_.layout = false;
   }
 
   // Get and apply palette BEFORE rendering objects (so objects use correct colors)
@@ -712,10 +711,10 @@ void Room::RenderRoomGraphics() {
   // paletteset_ids[palette][0] contains a BYTE OFFSET into the palette pointer
   // table at kDungeonPalettePointerTable. The word at that offset, divided by
   // 180 (bytes per palette), gives the actual palette index (0-19).
-  int palette_id = palette;
-  if (palette < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
+  int palette_id = palette_;
+  if (palette_ < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette_].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette_][0];
     auto palette_word =
         rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
     if (palette_word.ok()) {
@@ -885,11 +884,11 @@ void Room::RenderRoomGraphics() {
   queue_texture(&object_bg2_buffer_.bitmap(), "object_bg2_buffer");
 
   // Mark textures as clean after successful queuing
-  textures_dirty_ = false;
+  dirty_state_.textures = false;
 
   // IMPORTANT: Mark composite as dirty after any render work
   // This ensures GetCompositeBitmap() regenerates the merged output
-  composite_dirty_ = true;
+  dirty_state_.composite = true;
 
   // REMOVED: Don't process texture queue here - let it be batched!
   // Processing happens once per frame in DrawDungeonCanvas()
@@ -901,7 +900,7 @@ void Room::RenderRoomGraphics() {
 
 void Room::LoadLayoutTilesToBuffer() {
   LOG_DEBUG("Room", "LoadLayoutTilesToBuffer for room %d, layout=%d", room_id_,
-            layout);
+            layout_id_);
 
   if (!rom_ || !rom_->is_loaded()) {
     LOG_DEBUG("Room", "ROM not loaded, aborting");
@@ -910,15 +909,15 @@ void Room::LoadLayoutTilesToBuffer() {
 
   // Load layout tiles from ROM if not already loaded
   layout_.SetRom(rom_);
-  auto layout_status = layout_.LoadLayout(layout);
+  auto layout_status = layout_.LoadLayout(layout_id_);
   if (!layout_status.ok()) {
-    LOG_DEBUG("Room", "Failed to load layout %d: %s", layout,
+    LOG_DEBUG("Room", "Failed to load layout %d: %s", layout_id_,
               layout_status.message().data());
     return;
   }
 
   const auto& layout_objects = layout_.GetObjects();
-  LOG_DEBUG("Room", "Layout %d has %zu objects", layout, layout_objects.size());
+  LOG_DEBUG("Room", "Layout %d has %zu objects", layout_id_, layout_objects.size());
   if (layout_objects.empty()) {
     return;
   }
@@ -937,10 +936,10 @@ void Room::LoadLayoutTilesToBuffer() {
   int num_palettes = dungeon_pal_group.size();
   if (num_palettes == 0)
     return;
-  int palette_id = palette;
-  if (palette < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
+  int palette_id = palette_;
+  if (palette_ < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette_].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette_][0];
     auto palette_word =
         rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
     if (palette_word.ok()) {
@@ -990,7 +989,7 @@ void Room::RenderObjectsToBackground() {
   bool bitmaps_exist = bg1_bmp.is_active() && bg1_bmp.width() > 0 &&
                        bg2_bmp.is_active() && bg2_bmp.width() > 0;
 
-  if (!objects_dirty_ && !graphics_dirty_ && bitmaps_exist) {
+  if (!dirty_state_.objects && !dirty_state_.graphics && bitmaps_exist) {
     LOG_DEBUG("[RenderObjectsToBackground]",
               "Room %d: Objects not dirty, skipping render", room_id_);
     return;
@@ -1009,10 +1008,10 @@ void Room::RenderObjectsToBackground() {
 
   // Look up dungeon palette ID using the two-level paletteset_ids table.
   // (same lookup as RenderRoomGraphics and LoadLayoutTilesToBuffer)
-  int palette_id = palette;
-  if (palette < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette][0];
+  int palette_id = palette_;
+  if (palette_ < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette_].empty()) {
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette_][0];
     auto palette_word =
         rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
     if (palette_word.ok()) {
@@ -1206,10 +1205,10 @@ void Room::RenderObjectsToBackground() {
         }
       }
     }
-    objects_dirty_ = false;  // Mark as clean after manual draw
+    dirty_state_.objects = false;  // Mark as clean after manual draw
   } else {
     // Mark objects as clean after successful render
-    objects_dirty_ = false;
+    dirty_state_.objects = false;
     LOG_DEBUG("[RenderObjectsToBackground]",
               "Room %d: Objects rendered successfully", room_id_);
   }
@@ -1293,9 +1292,9 @@ void Room::LoadObjects() {
   auto rom_data = rom()->vector();
 
   // Enhanced object loading with comprehensive validation
-  int object_pointer = (rom_data[room_object_pointer + 2] << 16) +
-                       (rom_data[room_object_pointer + 1] << 8) +
-                       (rom_data[room_object_pointer]);
+  int object_pointer = (rom_data[kRoomObjectPointer + 2] << 16) +
+                       (rom_data[kRoomObjectPointer + 1] << 8) +
+                       (rom_data[kRoomObjectPointer]);
   object_pointer = SnesToPc(object_pointer);
 
   // Enhanced bounds checking for object pointer
@@ -1332,7 +1331,7 @@ void Room::LoadObjects() {
                 room_id_, floor1_graphics_, floor2_graphics_);
     }
 
-    layout = static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
+    layout_id_ = static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
   }
 
   LoadChests();
@@ -1685,9 +1684,9 @@ absl::Status Room::SaveObjects() {
   auto rom_data = rom()->vector();
 
   // Get object pointer
-  int object_pointer = (rom_data[room_object_pointer + 2] << 16) +
-                       (rom_data[room_object_pointer + 1] << 8) +
-                       (rom_data[room_object_pointer]);
+  int object_pointer = (rom_data[kRoomObjectPointer + 2] << 16) +
+                       (rom_data[kRoomObjectPointer + 1] << 8) +
+                       (rom_data[kRoomObjectPointer]);
   object_pointer = SnesToPc(object_pointer);
 
   if (object_pointer < 0 || object_pointer >= (int)rom_->size()) {
@@ -1735,7 +1734,7 @@ absl::Status Room::SaveObjects() {
                                static_cast<int>(doors_.size()) * 2 - 2;
   const int door_pointer_pc = write_pos + door_list_offset;
   RETURN_IF_ERROR(
-      rom_->WriteLong(doorPointers + (room_id_ * 3),
+      rom_->WriteLong(kDoorPointers + (room_id_ * 3),
                       static_cast<uint32_t>(PcToSnes(door_pointer_pc))));
 
   return absl::OkStatus();
@@ -1833,14 +1832,14 @@ absl::Status Room::SaveRoomHeader() {
                   (static_cast<uint8_t>(collision()) << 2) |
                   (IsLight() ? 1 : 0);
   // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
-  uint8_t byte1 = palette;
+  uint8_t byte1 = palette_;
   uint8_t byte7 = (staircase_plane(0) << 2) | (staircase_plane(1) << 4) |
                   (staircase_plane(2) << 6);
 
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 0, byte0));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 1, byte1));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 2, blockset));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 3, spriteset));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 2, blockset_));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 3, spriteset_));
   RETURN_IF_ERROR(
       rom_->WriteByte(header_location + 4, static_cast<uint8_t>(effect())));
   RETURN_IF_ERROR(
@@ -1849,7 +1848,7 @@ absl::Status Room::SaveRoomHeader() {
       rom_->WriteByte(header_location + 6, static_cast<uint8_t>(tag2())));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 7, byte7));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 8, staircase_plane(3)));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 9, holewarp));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 9, holewarp_));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 10, staircase_room(0)));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 11, staircase_room(1)));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 12, staircase_room(2)));
@@ -1942,7 +1941,7 @@ bool Room::ValidateObject(const RoomObject& object) const {
 void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
                                 int& nbr_of_staircase) {
   // Handle staircase objects
-  for (short stair : stairsObjects) {
+  for (short stair : kStairsObjects) {
     if (stair == oid) {
       if (nbr_of_staircase < 4) {
         tile_objects_.back().set_options(ObjectOption::Stairs |
@@ -2034,11 +2033,11 @@ void Room::LoadSprites() {
 
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
-  uint32_t cpos = SnesToPc((rom_data[chests_data_pointer1 + 2] << 16) +
-                           (rom_data[chests_data_pointer1 + 1] << 8) +
-                           (rom_data[chests_data_pointer1]));
-  size_t clength = (rom_data[chests_length_pointer + 1] << 8) +
-                   (rom_data[chests_length_pointer]);
+  uint32_t cpos = SnesToPc((rom_data[kChestsDataPointer1 + 2] << 16) +
+                           (rom_data[kChestsDataPointer1 + 1] << 8) +
+                           (rom_data[kChestsDataPointer1]));
+  size_t clength = (rom_data[kChestsLengthPointer + 1] << 8) +
+                   (rom_data[kChestsLengthPointer]);
 
   for (size_t i = 0; i < clength; i++) {
     if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
@@ -2076,8 +2075,8 @@ void Room::LoadTorches() {
   auto rom_data = rom()->vector();
 
   // Read torch data length
-  int bytes_count = (rom_data[torches_length_pointer + 1] << 8) |
-                    rom_data[torches_length_pointer];
+  int bytes_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
+                    rom_data[kTorchesLengthPointer];
 
   LOG_DEBUG("Room", "LoadTorches: room_id=%d, bytes_count=%d", room_id_,
             bytes_count);
@@ -2096,8 +2095,8 @@ void Room::LoadTorches() {
     if (i + 1 >= bytes_count)
       break;
 
-    uint8_t b1 = rom_data[torch_data + i];
-    uint8_t b2 = rom_data[torch_data + i + 1];
+    uint8_t b1 = rom_data[kTorchData + i];
+    uint8_t b2 = rom_data[kTorchData + i + 1];
 
     // Skip 0xFFFF markers
     if (b1 == 0xFF && b2 == 0xFF) {
@@ -2113,8 +2112,8 @@ void Room::LoadTorches() {
         if (i + 1 >= bytes_count)
           break;
 
-        b1 = rom_data[torch_data + i];
-        b2 = rom_data[torch_data + i + 1];
+        b1 = rom_data[kTorchData + i];
+        b2 = rom_data[kTorchData + i + 1];
 
         // End of torch list for this room
         if (b1 == 0xFF && b2 == 0xFF) {
@@ -2148,8 +2147,8 @@ void Room::LoadTorches() {
       while (i < bytes_count) {
         if (i + 1 >= bytes_count)
           break;
-        b1 = rom_data[torch_data + i];
-        b2 = rom_data[torch_data + i + 1];
+        b1 = rom_data[kTorchData + i];
+        b2 = rom_data[kTorchData + i + 1];
         if (b1 == 0xFF && b2 == 0xFF) {
           break;
         }
@@ -2633,7 +2632,7 @@ void Room::LoadBlocks() {
 
   // Read blocks length
   int blocks_count =
-      (rom_data[blocks_length + 1] << 8) | rom_data[blocks_length];
+      (rom_data[kBlocksLength + 1] << 8) | rom_data[kBlocksLength];
 
   LOG_DEBUG("Room", "LoadBlocks: room_id=%d, blocks_count=%d", room_id_,
             blocks_count);
@@ -2650,10 +2649,10 @@ void Room::LoadBlocks() {
   // Load block data from multiple pointers
   std::vector<uint8_t> blocks_data(blocks_count);
 
-  int pos1 = blocks_pointer1;
-  int pos2 = blocks_pointer2;
-  int pos3 = blocks_pointer3;
-  int pos4 = blocks_pointer4;
+  int pos1 = kBlocksPointer1;
+  int pos2 = kBlocksPointer2;
+  int pos3 = kBlocksPointer3;
+  int pos4 = kBlocksPointer4;
 
   // Read block data from 4 different locations
   for (int i = 0; i < 0x80 && i < blocks_count; i++) {
@@ -2759,11 +2758,11 @@ void Room::LoadPits() {
   auto rom_data = rom()->vector();
 
   // Read pit count
-  int pit_entries = rom_data[pit_count] / 2;
+  int pit_entries = rom_data[kPitCount] / 2;
 
   // Read pit pointer (long pointer)
-  int pit_ptr = (rom_data[pit_pointer + 2] << 16) |
-                (rom_data[pit_pointer + 1] << 8) | rom_data[pit_pointer];
+  int pit_ptr = (rom_data[kPitPointer + 2] << 16) |
+                (rom_data[kPitPointer + 1] << 8) | rom_data[kPitPointer];
   int pit_data_addr = SnesToPc(pit_ptr);
 
   LOG_DEBUG("Room", "LoadPits: room_id=%d, pit_entries=%d, pit_ptr=0x%06X",
@@ -2788,7 +2787,7 @@ std::map<DungeonLimit, int> Room::GetLimitedObjectCounts() const {
   auto counts = CreateLimitCounter();
 
   // Count sprites
-  counts[DungeonLimit::Sprites] = static_cast<int>(sprites_.size());
+  counts[DungeonLimit::kSprites] = static_cast<int>(sprites_.size());
 
   // Count overlords (sprites with ID > 0x40 are overlords in ALTTP)
   for (const auto& sprite : sprites_) {
@@ -2798,10 +2797,10 @@ std::map<DungeonLimit, int> Room::GetLimitedObjectCounts() const {
   }
 
   // Count chests
-  counts[DungeonLimit::Chests] = static_cast<int>(chests_in_room_.size());
+  counts[DungeonLimit::kChests] = static_cast<int>(chests_in_room_.size());
 
   // Count doors (total and special)
-  counts[DungeonLimit::Doors] = static_cast<int>(doors_.size());
+  counts[DungeonLimit::kDoors] = static_cast<int>(doors_.size());
   for (const auto& door : doors_) {
     // Special doors: shutters and key-locked doors.
     const bool is_special = [&]() -> bool {
