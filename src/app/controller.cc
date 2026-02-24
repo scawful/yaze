@@ -23,6 +23,9 @@
 #include "app/platform/timing.h"
 #include "app/service/screenshot_utils.h"
 #include "imgui/imgui.h"
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#include "app/test/test_manager.h"
+#endif
 #if defined(__APPLE__) && \
     (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
 #include "app/platform/ios/ios_platform_state.h"
@@ -305,6 +308,10 @@ void Controller::DoRender() const {
   window_backend_->RenderImGui(renderer_.get());
 
   renderer_->Present();
+
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+  test::TestManager::Get().OnPostSwap();
+#endif
 
   // Process any pending screenshot requests on the main thread after present
   ProcessScreenshotRequests();
