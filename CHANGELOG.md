@@ -3,6 +3,21 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
+## 0.6.1 (February 2026)
+- **Oracle Workflow & Validation**:
+  - Added Oracle smoke/preflight command flows in `z3ed` and editor integration for faster structural checks.
+  - Added D6 minecart threshold gating (`--min-d6-track-rooms`) to catch track-object regressions.
+- **Project Bundle Reliability (`.yazeproj`)**:
+  - Added bundle verify/pack/unpack command paths with structured JSON output.
+  - Added safer unpack behavior: traversal rejection, failure cleanup by default, and `--keep-partial-output` opt-out.
+  - Added `--dry-run` unpack validation and `--check-rom-hash` verification support.
+- **Cross-Platform Hashing**:
+  - Replaced platform-conditional hash behavior with portable SHA1 output for bundle verification consistency.
+- **Dungeon/Overworld UX Improvements**:
+  - Added live room limit indicators and improved placement feedback for objects/sprites/doors.
+  - Added custom-object overlay visibility controls and D6 quick navigation in workbench.
+  - Improved Tile16 selector usability with hover previews, ID jump/filter bar, range validation feedback, and explicit decimal input (`d:<id>`).
+
 ## 0.6.0 (February 2026)
 - **GUI & Theming Modernization**:
   - Unified themed widget system (`ThemedButton`, `ThemedIconButton`, `SectionHeader`).

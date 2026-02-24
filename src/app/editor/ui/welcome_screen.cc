@@ -1851,6 +1851,12 @@ void WelcomeScreen::DrawWhatsNew() {
     int highlight_count;
   };
 
+  const ReleaseHighlight highlights_061[] = {
+      {ICON_MD_SHIELD, "Oracle smoke/preflight workflow hardening"},
+      {ICON_MD_ARCHIVE, "Cross-platform .yazeproj verify/pack/unpack flows"},
+      {ICON_MD_TUNE, "Dungeon placement feedback and workbench UX upgrades"},
+      {ICON_MD_GRID_VIEW, "Tile selector jump/filter and decimal ID input"},
+  };
   const ReleaseHighlight highlights_060[] = {
       {ICON_MD_PALETTE, "GUI modernization with unified themed widgets"},
       {ICON_MD_COLOR_LENS, "Semantic theming and smooth editor transitions"},
@@ -1893,6 +1899,9 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   const ReleaseEntry releases[] = {
+      {ICON_MD_ROCKET_LAUNCH, "0.6.1", "Oracle + bundle workflow hardening",
+       "Feb 24, 2026", kHyruleGreen, highlights_061,
+       static_cast<int>(sizeof(highlights_061) / sizeof(highlights_061[0]))},
       {ICON_MD_AUTO_AWESOME, "0.6.0", "GUI Modernization + Tile Editor",
        "Feb 13, 2026", kTriforceGold, highlights_060,
        static_cast<int>(sizeof(highlights_060) / sizeof(highlights_060[0]))},

@@ -1,10 +1,10 @@
-# Feature & Test Coverage Report (v0.6.0)
+# Feature & Test Coverage Report (v0.6.1)
 
 This report summarizes feature status and persistence behavior across the
 desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
 to current automated test coverage. Status levels follow the desktop rubric:
 Stable = reliable core workflows, Beta = usable but incomplete, WIP = core operations missing.
-As of v0.6.0, app data is consolidated under `~/.yaze` on desktop/CLI and
+As of v0.6.1, app data is consolidated under `~/.yaze` on desktop/CLI and
 `/.yaze` in the web build (IDBFS), with legacy migrations from AppData/Library/XDG.
 
 ## Desktop App (yaze)
