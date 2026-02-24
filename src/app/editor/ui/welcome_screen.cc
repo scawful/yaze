@@ -1899,8 +1899,9 @@ void WelcomeScreen::DrawWhatsNew() {
   };
 
   const ReleaseEntry releases[] = {
-      {ICON_MD_ROCKET_LAUNCH, "0.6.1", "Oracle + bundle workflow hardening",
-       "Feb 24, 2026", kHyruleGreen, highlights_061,
+      {ICON_MD_ROCKET_LAUNCH, YAZE_VERSION_STRING,
+       "Oracle + bundle workflow hardening", "Feb 24, 2026", kHyruleGreen,
+       highlights_061,
        static_cast<int>(sizeof(highlights_061) / sizeof(highlights_061[0]))},
       {ICON_MD_AUTO_AWESOME, "0.6.0", "GUI Modernization + Tile Editor",
        "Feb 13, 2026", kTriforceGold, highlights_060,

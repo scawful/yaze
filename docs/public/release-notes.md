@@ -1,5 +1,26 @@
 # Release Notes
 
+## v0.6.2 (February 2026)
+
+**Type:** Release Consistency + Bundle/Validation Hardening
+**Date:** 2026-02-24
+
+### 🔄 Version Consistency
+- Updated all current-release markers and app-facing metadata to `0.6.2`.
+- Aligned release/coverage documentation with the current build version.
+
+### 📦 `.yazeproj` Bundle Workflow
+- Hardened bundle unpack cleanup behavior on invalid bundle failures.
+- Expanded dry-run validation and bundle verification coverage.
+
+### 🧪 Oracle Validation
+- Continued smoke/preflight workflow improvements for Oracle development loops.
+
+### 🎛️ Editor UX
+- Continued refinement of dungeon placement feedback and tile selector usability.
+
+---
+
 ## v0.6.1 (February 2026)
 
 **Type:** Oracle Validation + Bundle Workflow + Editor UX Hardening

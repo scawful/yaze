@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.6.2 (February 2026)
+
+### Release Consistency
+- Updated current-release metadata and docs markers to align all surfaces on `0.6.2`.
+- Kept build/version source-of-truth flow pinned to the `VERSION` file.
+
+### Project Bundles (`.yazeproj`)
+- Improved unpack failure cleanup behavior and dry-run structural validation checks.
+- Expanded bundle verification paths and hash compatibility handling.
+
+### Oracle Tooling & Validation
+- Continued smoke/preflight flow hardening for Oracle development and CI workflows.
+
+### Editor UX
+- Continued polish on dungeon placement feedback and tile selector interaction UX.
+
 ## 0.6.1 (February 2026)
 
 ### Oracle Tooling & Validation

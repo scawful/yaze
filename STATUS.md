@@ -1,8 +1,8 @@
 # yaze Status
 
 ## Current Release
-- **Version**: v0.6.0 (February 2026)
-- **Focus**: Unified undo system, dungeon compositing, UI overhaul, dead code cleanup
+- **Version**: v0.6.2 (February 2026)
+- **Focus**: Oracle workflow hardening, `.yazeproj` bundle reliability, editor UX refinement
 
 ## CI/CD
 - GitHub Actions CI covers Linux/macOS/Windows with stable test labels.
