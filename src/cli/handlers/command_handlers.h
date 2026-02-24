@@ -59,6 +59,7 @@ class DungeonPlaceObjectCommandHandler;
 class DungeonSetCollisionTileCommandHandler;
 class OracleMenuIndexCommandHandler;
 class OracleMenuSetOffsetCommandHandler;
+class OracleMenuValidateCommandHandler;
 
 class OverworldFindTileCommandHandler;
 class OverworldDescribeMapCommandHandler;
@@ -88,6 +89,11 @@ class EmulatorReadMemoryCommandHandler;
 class EmulatorWriteMemoryCommandHandler;
 class EmulatorGetRegistersCommandHandler;
 class EmulatorGetMetricsCommandHandler;
+
+// Project bundle management
+class ProjectBundleVerifyCommandHandler;
+class ProjectBundlePackCommandHandler;
+class ProjectBundleUnpackCommandHandler;
 
 // Test helper tools
 class ToolsHarnessStateCommandHandler;

@@ -3,6 +3,36 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-02-23 imgui-frontend-engineer – Dungeon/Tile16/Object Editor UX Pass
+- COMPLETE 2026-02-23 (imgui-frontend-engineer): four incremental UX improvements across Dungeon, Tile16, and Object editors.
+- (1) Room validation bar in Object Editor: real-time object/sprite/door/chest counters with color-coded limits + inline DungeonValidator warnings/errors. (2) Keyboard shortcut help popup: `?` key or button shows all Object Editor shortcuts in a categorized window. (3) Compact layer visibility toggles above canvas: BG1/BG2/Sprites/Grid/ObjectBounds quick-toggle buttons with color-coded state. (4) Tile16 hover preview tooltip: shows tile ID (hex+decimal) and 4x zoomed texture preview on hover in both Overworld and Tile16 editor selectors.
+- Files: object_editor_panel.h/.cc, dungeon_canvas_viewer.h/.cc, tile_selector_widget.h/.cc, tile16_editor.h, overworld_editor.cc.
+- Validation: `cmake --build build_ai --target yaze_test_unit z3ed --parallel 8` (clean); `yaze_test_unit` targeted 21/21 pass; Oracle preflight 27/27 pass; quick editor 116/116 pass; stable 1469/1469 pass.
+
+### 2026-02-23 test-infrastructure-expert – oracle-smoke-check C++ Command
+- COMPLETE 2026-02-23 (test-infrastructure-expert): first-class `oracle-smoke-check` z3ed command (oracle_smoke_check_commands.h/.cc, cli_core.cmake). D4 structural + readiness, D6 0xA8/0xB8/0xD8/0xDA minecart audit, D3 room 0x32 readiness. `--strict-readiness` flag; `--report` with fail-fast ValidateArgs probe. 8 unit tests + 4 ROM-gated integration tests.
+- CLI: default → exit 0 (structural_ok=true, D4/D3 readiness false); `--strict-readiness` → exit 1. Build 615/624 ✓; unit 36/36 ✓; integration 13/13 ✓. Docs: rom-safety-guardrails.md updated.
+
+### 2026-02-23 test-infrastructure-expert – Oracle Regression Smoke Workflow
+- COMPLETE 2026-02-23 (test-infrastructure-expert): stabilized Oracle workflow verification by keeping integration value assertions and hardening `scripts/oracle_smoke.sh` command resolution (defaults to `scripts/z3ed`, fail-fast on missing subcommands).
+- Scope update: smoke now distinguishes structural safety from authoring readiness; D4/D3 required-room gaps are reported in JSON (`required_rooms_ok`/`ok`) but do not fail exit code when structural preflight is healthy.
+- Docs: added operator-focused yaze + Mesen2-OOS workflow/testing plan to `docs/internal/agents/rom-safety-guardrails.md` (CLI smoke, subsystem checks, runtime test matrix).
+- Validation: `./build_ai/bin/Debug/yaze_test_integration --gtest_filter='MinecartAuditIntegrationTest.*:OracleWorkflowTest.*'` (9/9 pass); `bash scripts/oracle_smoke.sh` (exit 0 with D4/D3 readiness fields false, D6 true).
+
+### 2026-02-22 test-infrastructure-expert – Oracle CLI/Preflight Follow-up Hardening
+- COMPLETE 2026-02-22 (test-infrastructure-expert): closed Oracle workflow QA follow-up gaps after initial 19-test pass.
+- Scope: fix `oracle-menu-validate` failure-output contract, wire D4 required-room collision preflight into water-fill import path, remove unsafe Mesen unknown-button fallback, and add/adjust focused regression tests.
+- Validation: `cmake --build build --target yaze_test_unit --parallel 8`; `./build/bin/Debug/yaze_test_unit --gtest_filter='OracleMenuCommandsTest.*:CommandHandlerTest.RunCapturesFormatterOutputOnExecuteFailure:DungeonCollisionJsonCommandsTest.WaterFillImportNormalizesMasks:DungeonCollisionJsonCommandsTest.WaterFillImportDryRunDoesNotWrite:DungeonCollisionJsonCommandsTest.WaterFillImportFailsWhenRequiredD4RoomHasNoCollisionData:DungeonCollisionJsonCommandsTest.WaterFillImportStrictMasksFailsAndWritesReport:DungeonCollisionJsonCommandsTest.ZoraTemple*:DungeonMinecartAuditTest.*:OracleRomSafetyPreflightTest.*'` (26/26 pass).
+
+### 2026-02-22 test-infrastructure-expert – dungeon-oracle-preflight + Minecart Integration Test
+- COMPLETE 2026-02-22 (test-infrastructure-expert): added `dungeon-oracle-preflight` CLI command (oracle_menu_commands.h/.cc + command_handlers.cc): consolidated JSON ROM check with `ok`, per-check booleans (water_fill_region/table/collision_maps/required_rooms), `errors[]`, `--required-collision-rooms` flag, non-zero exit on failure.
+- Also added ROM-gated minecart integration test (integration/zelda3/minecart_audit_integration_test.cc): 4 tests against oos168.sfc (auto-discovered), GTEST_SKIP if absent. 8 unit tests for preflight in unit/cli/dungeon_oracle_preflight_test.cc.
+- Validation: `cmake --build build_ai --target yaze_test_unit yaze_test_integration --parallel 8`; `yaze_test_unit --gtest_filter='DungeonMinecartAuditTest.*:DungeonCollisionJsonCommandsTest.*:OracleRomSafetyPreflightTest.*:DungeonOraclePreflightTest.*'` (37/37 pass); `yaze_test_integration --gtest_filter='MinecartAuditIntegrationTest.*'` (4/4 pass, 280ms real-ROM).
+
+### 2026-02-22 test-infrastructure-expert – Oracle Workflow Validation Tests
+- COMPLETE 2026-02-22 (test-infrastructure-expert): added 16 new tests across 3 Oracle workflows: (1) D6 minecart — 10 tests in `unit/cli/dungeon_minecart_audit_test.cc` (4 ValidateArgs via direct ArgumentParser, 6 audit-logic); (2) D4 Zora water profile — 3 tests in `dungeon_collision_json_commands_test.cc`; (3) D3 prison preflight — 3 tests in `oracle_rom_safety_preflight_test.cc` via new `room_ids_requiring_custom_collision` field.
+- Validation: `cmake --build build_ai --target yaze_test_unit --parallel 8`; `yaze_test_unit --gtest_filter='DungeonMinecartAuditTest.*:DungeonCollisionJsonCommandsTest.ZoraTemple*:OracleRomSafetyPreflightTest.*'` (19/19 pass — 16 new + 3 pre-existing preflight).
+
 ### 2026-02-16 imgui-frontend-engineer – Dungeon Water-Face Parity + Custom Object UX
 - COMPLETE 2026-02-16 (imgui-frontend-engineer): corrected Type-3 water-face rendering parity to usdasm row geometry (0xF80/0xF81/0xF82), including state-sensitive empty-face branch and subtype-3 tile-count alignment.
 - Scope: `special_routines` water-face draw logic + routine metadata, subtype-3 parser counts for water-face assets, dimension-table parity for water-face objects, and custom-object browser UX (folder/reload visibility + file/corner-override tooltip diagnostics).

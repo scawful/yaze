@@ -1,6 +1,7 @@
 #include "app/gui/widgets/tile_selector_widget.h"
 
 #include <algorithm>
+#include <cstdio>
 
 #include "app/gui/core/drag_drop.h"
 
@@ -86,6 +87,38 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
                         config_.display_scale);
 
     result = HandleInteraction(tile_display_size);
+
+    // Hover tooltip: show tile ID and zoomed preview
+    if (config_.show_hover_tooltip && ImGui::IsItemHovered()) {
+      int hovered_tile = ResolveTileAtCursor(tile_display_size);
+      if (IsValidTileId(hovered_tile)) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Tile %d (0x%03X)", hovered_tile, hovered_tile);
+
+        // Extract and draw a zoomed preview of the hovered tile
+        int tile_col = hovered_tile % config_.tiles_per_row;
+        int tile_row = hovered_tile / config_.tiles_per_row;
+        int src_x = tile_col * config_.tile_size;
+        int src_y = tile_row * config_.tile_size;
+
+        // Use ImGui texture coords for the atlas to show the tile zoomed
+        auto* texture_id = atlas.texture();
+        if (texture_id != nullptr) {
+          float atlas_w = static_cast<float>(atlas.width());
+          float atlas_h = static_cast<float>(atlas.height());
+          if (atlas_w > 0 && atlas_h > 0) {
+            ImVec2 uv0(src_x / atlas_w, src_y / atlas_h);
+            ImVec2 uv1((src_x + config_.tile_size) / atlas_w,
+                       (src_y + config_.tile_size) / atlas_h);
+            float preview_size = config_.tile_size * 4.0f;
+            ImGui::Image((ImTextureID)(intptr_t)texture_id,
+                         ImVec2(preview_size, preview_size), uv0, uv1);
+          }
+        }
+
+        ImGui::EndTooltip();
+      }
+    }
 
     if (config_.show_tile_ids) {
       DrawTileIdLabels(tile_display_size);
@@ -199,6 +232,45 @@ ImVec2 TileSelectorWidget::TileOrigin(int tile_id) const {
   const int row = tile_id / config_.tiles_per_row;
   return ImVec2(config_.draw_offset.x + column * tile_display_size,
                 config_.draw_offset.y + row * tile_display_size);
+}
+
+bool TileSelectorWidget::DrawFilterBar() {
+  bool jumped = false;
+  const int max_tile_id = GetMaxTileId();
+
+  ImGui::PushItemWidth(80);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted("Go:");
+  ImGui::SameLine();
+
+  constexpr ImGuiInputTextFlags kHexFlags =
+      ImGuiInputTextFlags_CharsHexadecimal |
+      ImGuiInputTextFlags_EnterReturnsTrue |
+      ImGuiInputTextFlags_AutoSelectAll;
+
+  ImGui::PushID(widget_id_.c_str());
+  if (ImGui::InputText("##TileFilterID", filter_buf_, sizeof(filter_buf_),
+                       kHexFlags)) {
+    unsigned int parsed = 0;
+    if (std::sscanf(filter_buf_, "%x", &parsed) == 1) {
+      int tile_id = static_cast<int>(parsed);
+      if (IsValidTileId(tile_id)) {
+        selected_tile_id_ = tile_id;
+        ScrollToTile(tile_id, true);
+        jumped = true;
+      }
+    }
+  }
+  ImGui::PopID();
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Enter hex tile ID and press Enter to jump");
+  }
+
+  ImGui::SameLine();
+  ImGui::TextDisabled("/ max %d (0x%03X)", max_tile_id, max_tile_id);
+  ImGui::PopItemWidth();
+
+  return jumped;
 }
 
 bool TileSelectorWidget::IsValidTileId(int tile_id) const {

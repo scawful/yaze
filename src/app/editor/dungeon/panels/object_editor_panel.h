@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_OBJECT_EDITOR_PANEL_H_
 
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
@@ -16,6 +17,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
@@ -129,6 +131,10 @@ class ObjectEditorPanel : public EditorPanel {
   void PasteObjects();
   void CancelPlacement();  // Cancel current object placement
 
+  // Show a red error message near the object controls for ~2 seconds.
+  // Called from DungeonEditorV2::HandleObjectPlaced on placement failure.
+  void SetPlacementError(const std::string& message);
+
   // ==========================================================================
   // Static Object Editor (double-click to open)
   // ==========================================================================
@@ -154,6 +160,8 @@ class ObjectEditorPanel : public EditorPanel {
   void DrawEmulatorPreview();
   void DrawSelectedObjectInfo();
   void DrawStaticObjectEditor();
+  void DrawRoomValidationBar();
+  void DrawKeyboardShortcutHelp();
 
   // Keyboard shortcuts
   void HandleKeyboardShortcuts();
@@ -211,6 +219,14 @@ class ObjectEditorPanel : public EditorPanel {
   // Door placement state
   zelda3::DoorType selected_door_type_ = zelda3::DoorType::NormalDoor;
   bool door_placement_mode_ = false;
+
+  // Shortcut help popup state
+  bool show_shortcut_help_ = false;
+
+  // Placement error feedback: shown in red for kPlacementErrorDuration seconds.
+  static constexpr double kPlacementErrorDuration = 2.0;
+  std::string last_placement_error_;
+  double placement_error_time_ = -1.0;  // ImGui::GetTime() when error was set
 
   // Tile editor callback
   TileEditorCallback tile_editor_callback_;

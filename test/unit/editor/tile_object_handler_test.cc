@@ -101,11 +101,34 @@ TEST_F(TileObjectHandlerTest, PlaceObjectRejectsInvalidRoom) {
   auto obj = CreateTestObject(0, 0, 0x00, 0x01);
   
   // Room ID out of bounds
-  handler_.PlaceObjectAt(999, obj, 10, 15);
+  EXPECT_FALSE(handler_.PlaceObjectAt(999, obj, 10, 15));
+  EXPECT_TRUE(handler_.was_placement_blocked());
+  EXPECT_EQ(handler_.placement_block_reason(),
+            TileObjectHandler::PlacementBlockReason::kInvalidRoom);
+  handler_.clear_placement_blocked();
+  EXPECT_FALSE(handler_.was_placement_blocked());
   
   // Nothing should be added to room 0
   const auto& objects = rooms_[0].GetTileObjects();
   EXPECT_EQ(objects.size(), 0);
+}
+
+TEST_F(TileObjectHandlerTest, PlaceObjectBlocksAtRoomObjectLimit) {
+  // Fill room to max object count.
+  constexpr int kMaxObjects = 400;
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(kMaxObjects);
+  for (int i = 0; i < kMaxObjects; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x01));
+  }
+  AddTestObjects(objects);
+
+  auto obj = CreateTestObject(0, 0, 0x00, 0x01);
+  EXPECT_FALSE(handler_.PlaceObjectAt(0, obj, 10, 15));
+  EXPECT_TRUE(handler_.was_placement_blocked());
+  EXPECT_EQ(handler_.placement_block_reason(),
+            TileObjectHandler::PlacementBlockReason::kObjectLimit);
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), static_cast<size_t>(kMaxObjects));
 }
 
 // ============================================================================

@@ -493,7 +493,9 @@ class Tile16Editor : public gfx::GfxContext {
   gui::Canvas blockset_canvas_{
       "blocksetCanvas", ImVec2(kTilesheetEditorWidth, kTilesheetEditorHeight),
       gui::CanvasGridSize::k32x32};
-  gui::TileSelectorWidget blockset_selector_{"Tile16BlocksetSelector"};
+  gui::TileSelectorWidget blockset_selector_{
+      "Tile16BlocksetSelector",
+      gui::TileSelectorWidget::Config{.show_hover_tooltip = true}};
   gfx::Bitmap tile16_blockset_bmp_;
 
   // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles

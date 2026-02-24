@@ -23,6 +23,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
@@ -104,6 +105,31 @@ void ObjectEditorPanel::OnSelectionChanged() {
 void ObjectEditorPanel::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
 
+  // Check if placement was blocked by ROM limits
+  if (canvas_viewer_) {
+    auto& handler =
+        canvas_viewer_->object_interaction().entity_coordinator().tile_handler();
+    if (handler.was_placement_blocked()) {
+      const auto reason = handler.placement_block_reason();
+      handler.clear_placement_blocked();
+      switch (reason) {
+        case TileObjectHandler::PlacementBlockReason::kObjectLimit:
+          SetPlacementError("Object limit reached (400 max) - placement blocked");
+          break;
+        case TileObjectHandler::PlacementBlockReason::kInvalidRoom:
+          SetPlacementError("Invalid room target - placement blocked");
+          break;
+        case TileObjectHandler::PlacementBlockReason::kNone:
+        default:
+          SetPlacementError("Object placement blocked");
+          break;
+      }
+    }
+  }
+
+  // Room validation bar (object/sprite/door/chest counts)
+  DrawRoomValidationBar();
+
   // Door Section (Collapsible)
   if (ImGui::CollapsingHeader(ICON_MD_DOOR_FRONT " Doors",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -153,8 +179,21 @@ void ObjectEditorPanel::Draw(bool* p_open) {
       ImGui::TextColored(
           theme.text_secondary_gray, ICON_MD_MOUSE
           " Selection Mode - Click to select, drag to multi-select");
-      ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MENU
-                         " Right-click the canvas for Cut/Copy/Paste options");
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_HELP_OUTLINE " ?")) {
+        show_shortcut_help_ = true;
+      }
+    }
+  }
+
+  // Placement error feedback (timed)
+  if (!last_placement_error_.empty()) {
+    double elapsed = ImGui::GetTime() - placement_error_time_;
+    if (elapsed < kPlacementErrorDuration) {
+      ImGui::TextColored(theme.status_error,
+                         ICON_MD_ERROR " %s", last_placement_error_.c_str());
+    } else {
+      last_placement_error_.clear();
     }
   }
 
@@ -173,6 +212,9 @@ void ObjectEditorPanel::Draw(bool* p_open) {
     ImGui::PopID();
   }
 
+  // Keyboard shortcut help popup
+  DrawKeyboardShortcutHelp();
+
   // Handle keyboard shortcuts
   HandleKeyboardShortcuts();
 }
@@ -184,6 +226,11 @@ void ObjectEditorPanel::SelectObject(int obj_id) {
 void ObjectEditorPanel::SetAgentOptimizedLayout(bool enabled) {
   // In agent mode, we might force tabs open or change layout
   (void)enabled;
+}
+
+void ObjectEditorPanel::SetPlacementError(const std::string& message) {
+  last_placement_error_ = message;
+  placement_error_time_ = ImGui::GetTime();
 }
 
 void ObjectEditorPanel::DrawObjectSelector() {
@@ -436,6 +483,7 @@ void ObjectEditorPanel::DrawSelectedObjectInfo() {
   }
 
   ImGui::EndGroup();
+
   ImGui::Separator();
 
   // Delegate property editing to the backend
@@ -700,6 +748,151 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
 }
 
 // =============================================================================
+// Room Validation Bar
+// =============================================================================
+
+void ObjectEditorPanel::DrawRoomValidationBar() {
+  auto* rooms = object_selector_.get_rooms();
+  if (!rooms || current_room_id_ < 0 ||
+      current_room_id_ >= zelda3::kNumberOfRooms) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  const auto& room = (*rooms)[current_room_id_];
+
+  // Gather counts
+  size_t object_count = room.GetTileObjects().size();
+  size_t sprite_count = room.GetSprites().size();
+  size_t door_count = room.GetDoors().size();
+
+  // Count chests (objects in 0xF9-0xFD range)
+  int chest_count = 0;
+  for (const auto& obj : room.GetTileObjects()) {
+    if (obj.id_ >= 0xF9 && obj.id_ <= 0xFD) {
+      chest_count++;
+    }
+  }
+
+  // Limits from DungeonValidator
+  constexpr int kMaxObjects = 400;
+  constexpr int kMaxSprites = 64;
+  constexpr int kMaxDoors = 16;
+  constexpr int kMaxChests = 6;
+
+  // Helper to pick color based on usage ratio
+  auto usage_color = [&](size_t count, int max_val) -> ImVec4 {
+    float ratio = static_cast<float>(count) / static_cast<float>(max_val);
+    if (ratio >= 1.0f) {
+      return theme.status_error;
+    }
+    if (ratio >= 0.75f) {
+      return theme.status_warning;
+    }
+    return theme.text_secondary_gray;
+  };
+
+  // Compact inline counters
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 2));
+
+  ImGui::TextColored(usage_color(object_count, kMaxObjects),
+                     ICON_MD_WIDGETS " %zu/%d", object_count, kMaxObjects);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Objects: %zu of %d maximum", object_count, kMaxObjects);
+  }
+
+  ImGui::SameLine();
+  ImGui::TextColored(usage_color(sprite_count, kMaxSprites),
+                     ICON_MD_PEST_CONTROL " %zu/%d", sprite_count, kMaxSprites);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Sprites: %zu of %d maximum", sprite_count, kMaxSprites);
+  }
+
+  ImGui::SameLine();
+  ImGui::TextColored(usage_color(door_count, kMaxDoors),
+                     ICON_MD_DOOR_FRONT " %zu/%d", door_count, kMaxDoors);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Doors: %zu of %d maximum", door_count, kMaxDoors);
+  }
+
+  ImGui::SameLine();
+  ImGui::TextColored(usage_color(chest_count, kMaxChests),
+                     ICON_MD_INVENTORY_2 " %d/%d", chest_count, kMaxChests);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Chests: %d of %d maximum", chest_count, kMaxChests);
+  }
+
+  ImGui::PopStyleVar();
+
+  // Run full validation and show warnings/errors inline
+  zelda3::DungeonValidator validator;
+  auto result = validator.ValidateRoom(room);
+  if (!result.errors.empty() || !result.warnings.empty()) {
+    for (const auto& err : result.errors) {
+      ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s", err.c_str());
+    }
+    for (const auto& warn : result.warnings) {
+      ImGui::TextColored(theme.status_warning, ICON_MD_WARNING " %s",
+                         warn.c_str());
+    }
+  }
+
+  ImGui::Separator();
+}
+
+// =============================================================================
+// Keyboard Shortcut Help
+// =============================================================================
+
+void ObjectEditorPanel::DrawKeyboardShortcutHelp() {
+  if (!show_shortcut_help_) {
+    return;
+  }
+
+  ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_Appearing);
+  if (ImGui::Begin("Keyboard Shortcuts##ObjEditor", &show_shortcut_help_,
+                   ImGuiWindowFlags_NoCollapse)) {
+    const auto& theme = AgentUI::GetTheme();
+
+    auto shortcut_row = [&](const char* keys, const char* desc) {
+      ImGui::TextColored(theme.status_warning, "%-18s", keys);
+      ImGui::SameLine();
+      ImGui::TextUnformatted(desc);
+    };
+
+    ImGui::TextColored(theme.status_success, ICON_MD_KEYBOARD " Selection");
+    ImGui::Separator();
+    shortcut_row("Ctrl+A", "Select all objects");
+    shortcut_row("Ctrl+Shift+A", "Deselect all");
+    shortcut_row("Tab / Shift+Tab", "Cycle selection");
+    shortcut_row("Escape", "Cancel placement / deselect");
+
+    ImGui::Spacing();
+    ImGui::TextColored(theme.status_success, ICON_MD_EDIT " Editing");
+    ImGui::Separator();
+    shortcut_row("Delete", "Remove selected");
+    shortcut_row("Ctrl+D", "Duplicate selected");
+    shortcut_row("Ctrl+C", "Copy selected");
+    shortcut_row("Ctrl+V", "Paste");
+    shortcut_row("Ctrl+Z", "Undo");
+    shortcut_row("Ctrl+Shift+Z", "Redo");
+
+    ImGui::Spacing();
+    ImGui::TextColored(theme.status_success, ICON_MD_OPEN_WITH " Movement");
+    ImGui::Separator();
+    shortcut_row("Arrow Keys", "Nudge selected (1px)");
+
+    ImGui::Spacing();
+    ImGui::TextColored(theme.status_success, ICON_MD_VISIBILITY " Display");
+    ImGui::Separator();
+    shortcut_row("G", "Toggle grid");
+    shortcut_row("I", "Toggle object ID labels");
+    shortcut_row("?", "Show this help");
+  }
+  ImGui::End();
+}
+
+// =============================================================================
 // Keyboard Shortcuts
 // =============================================================================
 
@@ -795,6 +988,11 @@ void ObjectEditorPanel::HandleKeyboardShortcuts() {
     } else {
       DeselectAllObjects();
     }
+  }
+
+  // ?: Toggle shortcut help (Shift+/ on US keyboards)
+  if (ImGui::IsKeyPressed(ImGuiKey_Slash) && io.KeyShift) {
+    show_shortcut_help_ = !show_shortcut_help_;
   }
 }
 

@@ -25,6 +25,7 @@ class TileSelectorWidget {
     ImVec2 draw_offset = {2.0f, 0.0f};
     bool show_tile_ids = false;
     bool enable_drag = false;
+    bool show_hover_tooltip = false;
     int drag_source_map_id = -1;
     ImVec4 highlight_color = {1.0f, 0.85f, 0.35f, 1.0f};
   };
@@ -44,8 +45,13 @@ class TileSelectorWidget {
   void SetTileCount(int total_tiles);
   void SetSelectedTile(int tile_id);
   int GetSelectedTileID() const { return selected_tile_id_; }
+  int GetMaxTileId() const { return total_tiles_ > 0 ? total_tiles_ - 1 : 0; }
 
   RenderResult Render(gfx::Bitmap& atlas, bool atlas_ready);
+
+  /// Draw a compact filter/search bar above the tile grid. Returns true if
+  /// the user jumped to a tile (selection + scroll triggered).
+  bool DrawFilterBar();
 
   void ScrollToTile(int tile_id, bool use_imgui_scroll = true);
   ImVec2 TileOrigin(int tile_id) const;
@@ -67,6 +73,9 @@ class TileSelectorWidget {
   // context)
   mutable int pending_scroll_tile_id_ = -1;
   mutable bool pending_scroll_use_imgui_ = true;
+
+  // Filter bar state
+  char filter_buf_[8] = {};
 };
 
 }  // namespace yaze::gui

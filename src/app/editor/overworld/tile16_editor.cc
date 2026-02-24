@@ -508,6 +508,11 @@ absl::Status Tile16Editor::UpdateBlockset() {
   gui::BeginPadding(2);
   gui::BeginChildWithScrollbar("##Tile16EditorBlocksetScrollRegion");
 
+  // Tile ID search/jump bar
+  if (blockset_selector_.DrawFilterBar()) {
+    RequestTileSwitch(blockset_selector_.GetSelectedTileID());
+  }
+
   // Configure canvas frame options for blockset view
   gui::CanvasFrameOptions frame_opts;
   frame_opts.draw_grid = true;

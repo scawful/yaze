@@ -1,5 +1,10 @@
 #include "util/rom_hash.h"
 
+#include <cstring>
+#include <fstream>
+#include <ios>
+#include <vector>
+
 #include "absl/strings/str_format.h"
 
 namespace yaze::util {
@@ -64,6 +69,166 @@ uint32_t CalculateCrc32(const uint8_t* data, size_t size) {
 
 std::string ComputeRomHash(const uint8_t* data, size_t size) {
   return absl::StrFormat("%08x", CalculateCrc32(data, size));
+}
+
+// ---------------------------------------------------------------------------
+// SHA-1 computation (portable, no platform dependencies)
+//
+// Based on RFC 3174. This is a minimal self-contained implementation so that
+// ComputeSha1Hex always returns a 40-character lowercase hex digest on every
+// platform (macOS, Linux, Windows).
+// ---------------------------------------------------------------------------
+
+namespace {
+
+struct Sha1State {
+  uint32_t h[5];
+  uint64_t total_bytes;
+  uint8_t buf[64];
+  size_t buf_len;
+};
+
+inline uint32_t LeftRotate(uint32_t val, unsigned bits) {
+  return (val << bits) | (val >> (32 - bits));
+}
+
+void Sha1ProcessBlock(Sha1State& state, const uint8_t block[64]) {
+  uint32_t w[80];
+  for (int i = 0; i < 16; ++i) {
+    w[i] = (static_cast<uint32_t>(block[i * 4]) << 24) |
+            (static_cast<uint32_t>(block[i * 4 + 1]) << 16) |
+            (static_cast<uint32_t>(block[i * 4 + 2]) << 8) |
+            (static_cast<uint32_t>(block[i * 4 + 3]));
+  }
+  for (int i = 16; i < 80; ++i) {
+    w[i] = LeftRotate(w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16], 1);
+  }
+  uint32_t a = state.h[0], b = state.h[1], c = state.h[2];
+  uint32_t d = state.h[3], e = state.h[4];
+  for (int i = 0; i < 80; ++i) {
+    uint32_t f, k;
+    if (i < 20) {
+      f = (b & c) | ((~b) & d);
+      k = 0x5A827999;
+    } else if (i < 40) {
+      f = b ^ c ^ d;
+      k = 0x6ED9EBA1;
+    } else if (i < 60) {
+      f = (b & c) | (b & d) | (c & d);
+      k = 0x8F1BBCDC;
+    } else {
+      f = b ^ c ^ d;
+      k = 0xCA62C1D6;
+    }
+    uint32_t temp = LeftRotate(a, 5) + f + e + k + w[i];
+    e = d;
+    d = c;
+    c = LeftRotate(b, 30);
+    b = a;
+    a = temp;
+  }
+  state.h[0] += a;
+  state.h[1] += b;
+  state.h[2] += c;
+  state.h[3] += d;
+  state.h[4] += e;
+}
+
+void Sha1Init(Sha1State& state) {
+  state.h[0] = 0x67452301;
+  state.h[1] = 0xEFCDAB89;
+  state.h[2] = 0x98BADCFE;
+  state.h[3] = 0x10325476;
+  state.h[4] = 0xC3D2E1F0;
+  state.total_bytes = 0;
+  state.buf_len = 0;
+}
+
+void Sha1Update(Sha1State& state, const uint8_t* data, size_t len) {
+  state.total_bytes += len;
+  size_t offset = 0;
+  if (state.buf_len > 0) {
+    size_t fill = 64 - state.buf_len;
+    if (len < fill) {
+      std::memcpy(state.buf + state.buf_len, data, len);
+      state.buf_len += len;
+      return;
+    }
+    std::memcpy(state.buf + state.buf_len, data, fill);
+    Sha1ProcessBlock(state, state.buf);
+    offset = fill;
+    state.buf_len = 0;
+  }
+  while (offset + 64 <= len) {
+    Sha1ProcessBlock(state, data + offset);
+    offset += 64;
+  }
+  if (offset < len) {
+    state.buf_len = len - offset;
+    std::memcpy(state.buf, data + offset, state.buf_len);
+  }
+}
+
+void Sha1Final(Sha1State& state, uint8_t digest[20]) {
+  uint64_t total_bits = state.total_bytes * 8;
+  uint8_t pad = 0x80;
+  Sha1Update(state, &pad, 1);
+  pad = 0x00;
+  while (state.buf_len != 56) {
+    Sha1Update(state, &pad, 1);
+  }
+  uint8_t len_be[8];
+  for (int i = 7; i >= 0; --i) {
+    len_be[i] = static_cast<uint8_t>(total_bits & 0xFF);
+    total_bits >>= 8;
+  }
+  Sha1Update(state, len_be, 8);
+  for (int i = 0; i < 5; ++i) {
+    digest[i * 4] = static_cast<uint8_t>((state.h[i] >> 24) & 0xFF);
+    digest[i * 4 + 1] = static_cast<uint8_t>((state.h[i] >> 16) & 0xFF);
+    digest[i * 4 + 2] = static_cast<uint8_t>((state.h[i] >> 8) & 0xFF);
+    digest[i * 4 + 3] = static_cast<uint8_t>(state.h[i] & 0xFF);
+  }
+}
+
+}  // namespace
+
+std::string ComputeSha1Hex(const uint8_t* data, size_t size) {
+  if (size > 0 && data == nullptr) {
+    return {};
+  }
+  Sha1State state;
+  Sha1Init(state);
+  Sha1Update(state, data, size);
+  uint8_t digest[20];
+  Sha1Final(state, digest);
+  std::string result;
+  result.reserve(40);
+  for (int i = 0; i < 20; ++i) {
+    result += absl::StrFormat("%02x", digest[i]);
+  }
+  return result;
+}
+
+std::string ComputeFileSha1Hex(const std::string& path) {
+  std::ifstream file(path, std::ios::binary | std::ios::ate);
+  if (!file.is_open()) {
+    return {};
+  }
+  auto size = file.tellg();
+  if (size < 0) {
+    return {};
+  }
+  file.seekg(0, std::ios::beg);
+  std::vector<uint8_t> buffer(static_cast<size_t>(size));
+  if (size > 0) {
+    file.read(reinterpret_cast<char*>(buffer.data()), size);
+  }
+  if (!file && !file.eof()) {
+    return {};
+  }
+  const uint8_t* data = buffer.empty() ? nullptr : buffer.data();
+  return ComputeSha1Hex(data, buffer.size());
 }
 
 }  // namespace yaze::util

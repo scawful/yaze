@@ -96,6 +96,18 @@ TEST_F(TileSelectorWidgetTest, SetTileCount) {
   EXPECT_EQ(widget.GetSelectedTileID(), 0);  // Should reset to 0
 }
 
+TEST_F(TileSelectorWidgetTest, MaxTileIdReflectsTileCount) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+  EXPECT_EQ(widget.GetMaxTileId(), 63);
+
+  widget.SetTileCount(1);
+  EXPECT_EQ(widget.GetMaxTileId(), 0);
+
+  widget.SetTileCount(0);
+  EXPECT_EQ(widget.GetMaxTileId(), 0);
+}
+
 // Test selected tile setting
 TEST_F(TileSelectorWidgetTest, SetSelectedTile) {
   gui::TileSelectorWidget widget("test_widget", config_);

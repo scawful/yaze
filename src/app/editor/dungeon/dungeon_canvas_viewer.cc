@@ -224,6 +224,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     }
   }
 
+  // Compact layer/overlay toggle bar (always visible above canvas)
+  DrawCompactLayerToggles(room_id);
+
   ImGui::EndGroup();
 
   // Set up context menu items BEFORE DrawBackground so DrawContextMenu can be
@@ -1301,6 +1304,55 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           canvas_.global_scale(), GetCollisionOverlayCache(room.id()));
     }
 
+    // Custom Objects overlay: draw a translucent cyan rectangle + label for
+    // each tile object that uses a custom draw routine (IDs 0x31/0x32).
+    if (show_custom_objects_overlay_) {
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      const ImVec2 canvas_pos = canvas_.zero_point();
+      const float scale = canvas_.global_scale();
+      const ImU32 fill_color =
+          ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 1.0f, 0.25f));
+      const ImU32 border_color =
+          ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 1.0f, 0.8f));
+      const ImU32 text_bg_color = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.6f));
+
+      // Custom draw routines are registered for object IDs 0x31 and 0x32
+      // (Oracle of Secrets minecart track objects). Flag any object whose ID
+      // falls in that range so the overlay is general but practically correct.
+      auto is_custom = [](int id) { return id == 0x31 || id == 0x32; };
+
+      for (const auto& obj : room.GetTileObjects()) {
+        if (!is_custom(static_cast<int>(obj.id_))) {
+          continue;
+        }
+
+        // Object positions are in tile units; canvas pixels = tile * 8 * scale.
+        const float px = static_cast<float>(obj.x()) * 8.0f * scale;
+        const float py = static_cast<float>(obj.y()) * 8.0f * scale;
+
+        // Draw a 16x16-pixel (2-tile) highlight box — small but visible.
+        const float box_w = 16.0f * scale;
+        const float box_h = 16.0f * scale;
+        const ImVec2 p0(canvas_pos.x + px, canvas_pos.y + py);
+        const ImVec2 p1(p0.x + box_w, p0.y + box_h);
+
+        draw_list->AddRectFilled(p0, p1, fill_color, 2.0f);
+        draw_list->AddRect(p0, p1, border_color, 2.0f, 0, 1.5f);
+
+        // Label: object ID and subtype
+        char label[32];
+        std::snprintf(label, sizeof(label), "0x%02X s%d",
+                      static_cast<int>(obj.id_),
+                      static_cast<int>(obj.size_ & 0x1F));
+        const ImVec2 text_sz = ImGui::CalcTextSize(label);
+        const ImVec2 tp(p0.x + 1.0f, p0.y - text_sz.y - 1.0f);
+        draw_list->AddRectFilled(
+            tp, ImVec2(tp.x + text_sz.x + 2.0f, tp.y + text_sz.y),
+            text_bg_color, 2.0f);
+        draw_list->AddText(tp, border_color, label);
+      }
+    }
+
     if (minecart_track_panel_) {
       const bool show_tracks = show_minecart_tracks_ ||
                                minecart_track_panel_->IsPickingCoordinates();
@@ -2161,6 +2213,98 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
     ImGui::TableNextColumn();
     ImGui::TextDisabled("Ext Props: Floor/Effect/Tags...");
   }
+}
+
+void DungeonCanvasViewer::DrawCompactLayerToggles(int room_id) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+    return;
+  }
+
+  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+
+  // BG1 toggle
+  bool bg1_visible = IsBG1Visible(room_id);
+  if (bg1_visible) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+  }
+  if (ImGui::SmallButton("BG1")) {
+    SetBG1Visible(room_id, !bg1_visible);
+  }
+  ImGui::PopStyleColor();
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Toggle BG1 (main layer) visibility");
+  }
+
+  ImGui::SameLine();
+
+  // BG2 toggle
+  bool bg2_visible = IsBG2Visible(room_id);
+  if (bg2_visible) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.5f, 0.2f, 1.0f));
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+  }
+  if (ImGui::SmallButton("BG2")) {
+    SetBG2Visible(room_id, !bg2_visible);
+  }
+  ImGui::PopStyleColor();
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Toggle BG2 (overlay layer) visibility");
+  }
+
+  ImGui::SameLine();
+
+  // Sprites toggle
+  bool sprites_visible = entity_visibility_.show_sprites;
+  if (sprites_visible) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.3f, 1.0f));
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+  }
+  if (ImGui::SmallButton(ICON_MD_PEST_CONTROL)) {
+    entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
+  }
+  ImGui::PopStyleColor();
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Toggle sprite visibility");
+  }
+
+  ImGui::SameLine();
+
+  // Grid toggle
+  if (show_grid_) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 0.8f));
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+  }
+  if (ImGui::SmallButton(ICON_MD_GRID_ON)) {
+    show_grid_ = !show_grid_;
+  }
+  ImGui::PopStyleColor();
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Toggle grid overlay");
+  }
+
+  ImGui::SameLine();
+
+  // Object bounds toggle
+  if (show_object_bounds_) {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.8f, 0.2f, 0.8f));
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
+  }
+  if (ImGui::SmallButton(ICON_MD_CROP_FREE)) {
+    show_object_bounds_ = !show_object_bounds_;
+  }
+  ImGui::PopStyleColor();
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Toggle object bounds overlay");
+  }
+
+  ImGui::PopStyleVar(2);
 }
 
 void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& /*room*/,

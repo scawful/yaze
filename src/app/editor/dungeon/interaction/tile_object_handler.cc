@@ -605,15 +605,28 @@ void TileObjectHandler::ResizeObjects(int room_id, const std::vector<size_t>& in
   NotifyChange(room);
 }
 
-void TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x, int y) {
+bool TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x, int y) {
   auto* room = GetRoom(room_id);
-  if (!room) return;
+  if (!room) {
+    placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
+    return false;
+  }
+
+  // Hard-stop: enforce ROM object limit before committing placement
+  constexpr size_t kMaxObjects = 400;
+  if (room->GetTileObjects().size() >= kMaxObjects) {
+    placement_block_reason_ = PlacementBlockReason::kObjectLimit;
+    return false;
+  }
+
+  placement_block_reason_ = PlacementBlockReason::kNone;
   if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto new_obj = object;
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
   room->AddTileObject(new_obj);
   NotifyChange(room);
+  return true;
 }
 
 

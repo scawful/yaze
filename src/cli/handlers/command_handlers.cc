@@ -13,12 +13,15 @@
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
 #include "cli/handlers/game/oracle_menu_commands.h"
+#include "cli/handlers/game/oracle_smoke_check_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
 #include "cli/handlers/graphics/hex_commands.h"
 #include "cli/handlers/graphics/palette_commands.h"
 #include "cli/handlers/graphics/sprite_commands.h"
 #include "cli/handlers/mesen_handlers.h"
+#include "cli/handlers/rom/project_bundle_archive_commands.h"
+#include "cli/handlers/rom/project_bundle_verify_commands.h"
 #include "cli/handlers/rom/rom_commands.h"
 #include "cli/handlers/tools/dungeon_doctor_commands.h"
 #include "cli/handlers/tools/dungeon_object_validate_commands.h"
@@ -69,6 +72,9 @@ CreateCliCommandHandlers() {
   // Oracle menu tooling
   handlers.push_back(std::make_unique<OracleMenuIndexCommandHandler>());
   handlers.push_back(std::make_unique<OracleMenuSetOffsetCommandHandler>());
+  handlers.push_back(std::make_unique<OracleMenuValidateCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonOraclePreflightCommandHandler>());
+  handlers.push_back(std::make_unique<OracleSmokeCheckCommandHandler>());
 
   // Dialogue commands
   handlers.push_back(std::make_unique<DialogueListCommandHandler>());
@@ -88,6 +94,11 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageWriteCommandHandler>());
   handlers.push_back(std::make_unique<MessageExportBinCommandHandler>());
   handlers.push_back(std::make_unique<MessageExportAsmCommandHandler>());
+
+  // Project bundle management
+  handlers.push_back(std::make_unique<ProjectBundleVerifyCommandHandler>());
+  handlers.push_back(std::make_unique<ProjectBundlePackCommandHandler>());
+  handlers.push_back(std::make_unique<ProjectBundleUnpackCommandHandler>());
 
   // ROM commands
   handlers.push_back(std::make_unique<RomReadCommandHandler>());
