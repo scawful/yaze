@@ -9,6 +9,7 @@ WINDOW_MIN=30
 MAX_FILES=8
 RUN_ONCE=0
 COORD_RECENT_MIN="${COORD_RECENT_MIN:-0}"
+COORD_HIDE_IMPORTED="${COORD_HIDE_IMPORTED:-1}"
 
 usage() {
   cat <<'EOF'
@@ -22,6 +23,7 @@ Options:
   --tail <lines>          Tail this many lines per log (default: 20)
   --max-files <count>     Max recent logs to print (default: 8)
   --coord-recent-min <m>  Show active coordination tasks updated within m minutes (0 = all)
+  --show-imported-coord   Include imported legacy tasks (default hides task_id starting with import_)
   --once                  Print one snapshot and exit
   -h, --help              Show this help
 EOF
@@ -99,7 +101,8 @@ PY
 
 coord_recent_tasks_json() {
   local recent_min="$1"
-  python3 - "$recent_min" <<'PY'
+  local hide_imported="$2"
+  python3 - "$recent_min" "$hide_imported" <<'PY'
 import json
 import os
 import sys
@@ -107,6 +110,7 @@ import time
 from datetime import datetime
 
 recent_min = float(sys.argv[1])
+hide_imported = sys.argv[2] == "1"
 raw_payload = os.environ.get("COORD_TASK_JSON", "")
 if not raw_payload:
     print("")
@@ -135,6 +139,9 @@ now = time.time()
 rows = []
 for task in tasks:
     if not isinstance(task, dict):
+        continue
+    task_id = str(task.get("task_id", ""))
+    if hide_imported and task_id.startswith("import_"):
         continue
     updated = parse_ts(task.get("updated_at", ""))
     if updated is None:
@@ -237,7 +244,7 @@ print_coord_tasks() {
     local out_json
     if out_json="$("$coord" task-list --status active --format json 2>/dev/null)"; then
       local rows
-      rows="$(COORD_TASK_JSON="$out_json" coord_recent_tasks_json "$COORD_RECENT_MIN")"
+      rows="$(COORD_TASK_JSON="$out_json" coord_recent_tasks_json "$COORD_RECENT_MIN" "$COORD_HIDE_IMPORTED")"
       if [[ -n "$rows" ]]; then
         echo "  task_id	status	assignee	priority	age	title"
         while IFS=$'\t' read -r task_id status assignee priority age title; do
@@ -258,7 +265,14 @@ print_coord_tasks() {
   local out
   if out="$("$coord" task-list --status active --format text 2>/dev/null)"; then
     if [[ -n "$out" ]]; then
-      echo "$out" | sed 's/^/  /'
+      if [[ "$COORD_HIDE_IMPORTED" == "1" ]]; then
+        echo "$out" | awk '
+          NR==1 { print; next }
+          $1 !~ /^import_/ { print }
+        ' | sed 's/^/  /'
+      else
+        echo "$out" | sed 's/^/  /'
+      fi
     else
       echo "  (none)"
     fi
@@ -296,6 +310,10 @@ while [[ $# -gt 0 ]]; do
     --coord-recent-min)
       COORD_RECENT_MIN="${2:-}"
       shift 2
+      ;;
+    --show-imported-coord)
+      COORD_HIDE_IMPORTED=0
+      shift
       ;;
     --once)
       RUN_ONCE=1
