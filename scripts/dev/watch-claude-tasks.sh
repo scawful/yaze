@@ -8,6 +8,7 @@ TAIL_LINES=20
 WINDOW_MIN=30
 MAX_FILES=8
 RUN_ONCE=0
+COORD_RECENT_MIN="${COORD_RECENT_MIN:-0}"
 
 usage() {
   cat <<'EOF'
@@ -20,6 +21,7 @@ Options:
   --window-min <minutes>  Show logs modified within this many minutes (default: 30)
   --tail <lines>          Tail this many lines per log (default: 20)
   --max-files <count>     Max recent logs to print (default: 8)
+  --coord-recent-min <m>  Show active coordination tasks updated within m minutes (0 = all)
   --once                  Print one snapshot and exit
   -h, --help              Show this help
 EOF
@@ -95,6 +97,70 @@ for mtime, display_path, content_path, size in rows[:max_files]:
 PY
 }
 
+coord_recent_tasks_json() {
+  local recent_min="$1"
+  python3 - "$recent_min" <<'PY'
+import json
+import os
+import sys
+import time
+from datetime import datetime
+
+recent_min = float(sys.argv[1])
+raw_payload = os.environ.get("COORD_TASK_JSON", "")
+if not raw_payload:
+    print("")
+    raise SystemExit
+
+try:
+    payload = json.loads(raw_payload)
+except Exception:
+    print("")
+    raise SystemExit
+
+tasks = payload.get("tasks", payload) if isinstance(payload, dict) else payload
+if not isinstance(tasks, list):
+    print("")
+    raise SystemExit
+
+def parse_ts(value):
+    if not value or not isinstance(value, str):
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+now = time.time()
+rows = []
+for task in tasks:
+    if not isinstance(task, dict):
+        continue
+    updated = parse_ts(task.get("updated_at", ""))
+    if updated is None:
+        continue
+    age_min = (now - updated) / 60.0
+    if recent_min > 0 and age_min > recent_min:
+        continue
+    rows.append((updated, age_min, task))
+
+rows.sort(key=lambda r: r[0], reverse=True)
+for _updated, age_min, task in rows:
+    print(
+        "\t".join(
+            [
+                str(task.get("task_id", "")),
+                str(task.get("status", "")),
+                str(task.get("assignee", "")),
+                str(task.get("priority", "")),
+                f"{age_min:.1f}m",
+                str(task.get("title", "")),
+            ]
+        )
+    )
+PY
+}
+
 print_claude_processes() {
   echo "== Active Claude Sessions =="
   local proc
@@ -166,6 +232,28 @@ print_coord_tasks() {
     return
   fi
   echo
+  if [[ "${COORD_RECENT_MIN}" != "0" ]]; then
+    echo "== Universe Coordination (Active Tasks, <= ${COORD_RECENT_MIN}m) =="
+    local out_json
+    if out_json="$("$coord" task-list --status active --format json 2>/dev/null)"; then
+      local rows
+      rows="$(COORD_TASK_JSON="$out_json" coord_recent_tasks_json "$COORD_RECENT_MIN")"
+      if [[ -n "$rows" ]]; then
+        echo "  task_id	status	assignee	priority	age	title"
+        while IFS=$'\t' read -r task_id status assignee priority age title; do
+          [[ -z "$task_id" ]] && continue
+          printf '  %s\t%s\t%s\t%s\t%s\t%s\n' \
+            "$task_id" "$status" "$assignee" "$priority" "$age" "$title"
+        done <<< "$rows"
+      else
+        echo "  (none)"
+      fi
+    else
+      echo "  (unavailable)"
+    fi
+    return
+  fi
+
   echo "== Universe Coordination (Active Tasks) =="
   local out
   if out="$("$coord" task-list --status active --format text 2>/dev/null)"; then
@@ -203,6 +291,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --max-files)
       MAX_FILES="${2:-}"
+      shift 2
+      ;;
+    --coord-recent-min)
+      COORD_RECENT_MIN="${2:-}"
       shift 2
       ;;
     --once)

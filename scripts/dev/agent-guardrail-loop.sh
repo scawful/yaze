@@ -16,6 +16,7 @@ TASK_ROOT="${TASK_ROOT:-/private/tmp/claude-$(id -u)/-Users-scawful-src-hobby-ya
 STATE_FILE="${STATE_FILE:-/tmp/yaze-agent-guardrail.last}"
 LOG_DIR="${LOG_DIR:-/tmp/yaze-agent-guardrail}"
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
+COORD_RECENT_MIN="${COORD_RECENT_MIN:-0}"
 
 mkdir -p "$LOG_DIR"
 
@@ -114,6 +115,77 @@ print_active_coord_tasks() {
   if [[ ! -x "$coord" ]]; then
     return
   fi
+  if [[ "${COORD_RECENT_MIN}" != "0" ]]; then
+    local out_json filtered
+    out_json="$("$coord" task-list --status active --format json 2>/dev/null || true)"
+    filtered="$(
+      COORD_TASK_JSON="$out_json" python3 - "$COORD_RECENT_MIN" <<'PY'
+import json
+import os
+import sys
+import time
+from datetime import datetime
+
+recent_min = float(sys.argv[1])
+raw_payload = os.environ.get("COORD_TASK_JSON", "")
+if not raw_payload:
+    raise SystemExit
+try:
+    payload = json.loads(raw_payload)
+except Exception:
+    raise SystemExit
+
+tasks = payload.get("tasks", payload) if isinstance(payload, dict) else payload
+if not isinstance(tasks, list):
+    raise SystemExit
+
+def parse_ts(value):
+    if not value or not isinstance(value, str):
+        return None
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).timestamp()
+    except ValueError:
+        return None
+
+now = time.time()
+rows = []
+for task in tasks:
+    if not isinstance(task, dict):
+        continue
+    updated = parse_ts(task.get("updated_at", ""))
+    if updated is None:
+        continue
+    age = (now - updated) / 60.0
+    if recent_min > 0 and age > recent_min:
+        continue
+    rows.append((updated, age, task))
+
+rows.sort(key=lambda item: item[0], reverse=True)
+for _, age, task in rows:
+    print(
+        "\t".join(
+            [
+                str(task.get("task_id", "")),
+                str(task.get("assignee", "")),
+                str(task.get("priority", "")),
+                f"{age:.1f}m",
+                str(task.get("title", "")),
+            ]
+        )
+    )
+PY
+    )"
+    if [[ -n "$filtered" ]]; then
+      echo "[$(timestamp)] [coord] active tasks (<=${COORD_RECENT_MIN}m):"
+      while IFS=$'\t' read -r task_id assignee priority age title; do
+        [[ -z "$task_id" ]] && continue
+        printf '[coord] %s\t%s\t%s\t%s\t%s\n' \
+          "$task_id" "$assignee" "$priority" "$age" "$title"
+      done <<< "$filtered"
+    fi
+    return
+  fi
+
   local out
   out="$("$coord" task-list --status active --format text 2>/dev/null || true)"
   if [[ -n "$out" ]]; then
