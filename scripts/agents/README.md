@@ -26,6 +26,8 @@
 | `protocol-audit.sh` | Validates Layer-1/2/3 protocol wiring, persona/prompt consistency, and required coordination scripts. |
 | `windows-smoke-build.ps1` | PowerShell variant of the smoke build helper for Visual Studio/Ninja presets on Windows. |
 | `../dev/local-workflow.sh` | Standard local development loop (build/test/sync/status/hooks/release-check). |
+| `../dev/auto-refactor-gate.sh` | Watches Claude task logs and re-runs a focused EditorManager/Oracle regression gate on each new drop. |
+| `../dev/post-refactor-smoke.sh` | Runs post-refactor automated smoke checks and writes manual app-testing steps with QA artifacts. |
 | `../install-git-hooks.sh` | Installs both pre-commit and pre-push hooks for local guardrails. |
 
 Usage examples:
@@ -120,6 +122,12 @@ scripts/agents/protocol-audit.sh
 
 # Standard local workflow (build + test + sync + status)
 scripts/dev/local-workflow.sh all
+
+# Auto-rerun refactor gate whenever Claude log output changes
+scripts/dev/auto-refactor-gate.sh --build-dir build_ai --interval 20
+
+# One-shot post-refactor smoke + QA evidence bundle
+scripts/dev/post-refactor-smoke.sh --qa-dir QA/$(date +%Y-%m-%d)-post-refactor-smoke
 
 # Install hooks and check release/version hygiene
 scripts/install-git-hooks.sh install
