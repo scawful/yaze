@@ -205,6 +205,7 @@ class TestManager {
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* GetUITestEngine() { return ui_test_engine_; }
   void InitializeUITesting();
+  void OnPostSwap();
   void StopUITesting();  // Stop test engine while ImGui context is valid
   void DestroyUITestingContext();  // Destroy test engine after ImGui context is
                                    // destroyed
@@ -212,6 +213,7 @@ class TestManager {
 #else
   void* GetUITestEngine() { return nullptr; }
   void InitializeUITesting() {}
+  void OnPostSwap() {}
   void StopUITesting() {}
   void DestroyUITestingContext() {}
   void ShutdownUITesting() {}

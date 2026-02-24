@@ -37,6 +37,7 @@ class EditorManager;
 }  // namespace yaze
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#include "app/test/dungeon_ui_tests.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #endif
 
@@ -184,8 +185,19 @@ void TestManager::InitializeUITesting() {
 
       // Start the test engine
       ImGuiTestEngine_Start(ui_test_engine_, ImGui::GetCurrentContext());
-      LOG_INFO("TestManager", "ImGuiTestEngine initialized successfully");
+
+      // Register static UI tests
+      RegisterDungeonUITests(ui_test_engine_);
+
+      LOG_INFO("TestManager",
+               "ImGuiTestEngine initialized with dungeon UI tests");
     }
+  }
+}
+
+void TestManager::OnPostSwap() {
+  if (ui_test_engine_ && ImGui::GetCurrentContext() != nullptr) {
+    ImGuiTestEngine_PostSwap(ui_test_engine_);
   }
 }
 
@@ -445,11 +457,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
       ImGui::Text("Modified:");
       ImGui::TableNextColumn();
       if (current_rom_->dirty()) {
-        ImGui::TextColored(gui::GetWarningColor(), "%s Yes",
-                           ICON_MD_EDIT);
+        ImGui::TextColored(gui::GetWarningColor(), "%s Yes", ICON_MD_EDIT);
       } else {
-        ImGui::TextColored(gui::GetSuccessColor(), "%s No",
-                           ICON_MD_CHECK);
+        ImGui::TextColored(gui::GetSuccessColor(), "%s No", ICON_MD_CHECK);
       }
 
       ImGui::TableNextRow();
@@ -680,10 +690,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
     // Progress bar showing pass rate
     float pass_rate = last_results_.GetPassRate();
-    ImVec4 progress_color = pass_rate >= 0.9f ? gui::GetSuccessColor()
-                            : pass_rate >= 0.7f
-                                ? gui::GetWarningColor()
-                                : gui::GetErrorColor();
+    ImVec4 progress_color = pass_rate >= 0.9f   ? gui::GetSuccessColor()
+                            : pass_rate >= 0.7f ? gui::GetWarningColor()
+                                                : gui::GetErrorColor();
 
     {
       gui::StyleColorGuard hist_guard(ImGuiCol_PlotHistogram, progress_color);
@@ -836,8 +845,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
                 !result.error_message.empty()) {
               ImGui::Indent();
               {
-                gui::StyleColorGuard err_guard(
-                    ImGuiCol_Text, gui::GetErrorColor());
+                gui::StyleColorGuard err_guard(ImGuiCol_Text,
+                                               gui::GetErrorColor());
                 ImGui::TextWrapped("%s %s", ICON_MD_ERROR_OUTLINE,
                                    result.error_message.c_str());
               }
@@ -849,8 +858,8 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
                 !result.error_message.empty()) {
               ImGui::Indent();
               {
-                gui::StyleColorGuard info_guard(
-                    ImGuiCol_Text, gui::GetSuccessColor());
+                gui::StyleColorGuard info_guard(ImGuiCol_Text,
+                                                gui::GetSuccessColor());
                 ImGui::TextWrapped("%s %s", ICON_MD_INFO,
                                    result.error_message.c_str());
               }
@@ -970,10 +979,9 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
               if (summary.total_runs > 0) {
                 float pass_rate =
                     static_cast<float>(summary.pass_count) / summary.total_runs;
-                ImVec4 rate_color =
-                    pass_rate >= 0.9f   ? gui::GetSuccessColor()
-                    : pass_rate >= 0.7f ? gui::GetWarningColor()
-                                        : gui::GetErrorColor();
+                ImVec4 rate_color = pass_rate >= 0.9f   ? gui::GetSuccessColor()
+                                    : pass_rate >= 0.7f ? gui::GetWarningColor()
+                                                        : gui::GetErrorColor();
                 ImGui::TextColored(rate_color, "%.0f%%", pass_rate * 100.0f);
               } else {
                 ImGui::Text("-");
@@ -1396,8 +1404,7 @@ void TestManager::DrawTestDashboard(bool* show_dashboard) {
 
         ImGui::Separator();
         ImGui::TextColored(
-            gui::GetWarningColor(),
-            ICON_MD_WARNING
+            gui::GetWarningColor(), ICON_MD_WARNING
             " Recommendation: Use 'Enable Safe Tests Only' to avoid crashes");
       }
 

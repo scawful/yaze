@@ -12,6 +12,7 @@
 
 set(YAZE_TEST_SOURCES
   app/test/test_manager.cc
+  app/test/dungeon_ui_tests.cc
   app/test/z3ed_test_suite.cc
   app/test/agent_tools_test.cc
   app/test/ai_vision_verifier.cc
@@ -60,6 +61,17 @@ target_link_libraries(yaze_test_support PUBLIC
   yaze_util
   yaze_common
 )
+
+if(TARGET ImGuiTestEngine)
+  target_link_libraries(yaze_test_support PUBLIC ImGuiTestEngine)
+  target_compile_definitions(yaze_test_support PUBLIC
+    YAZE_ENABLE_IMGUI_TEST_ENGINE=1
+    IMGUI_DEFINE_MATH_OPERATORS=1
+    IMGUI_ENABLE_TEST_ENGINE=1
+    IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1
+  )
+  message(STATUS "  - ImGui test engine enabled in yaze_test_support")
+endif()
 
 if(PNG_FOUND)
   target_link_libraries(yaze_test_support PUBLIC PNG::PNG)
