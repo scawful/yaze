@@ -33,7 +33,7 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 
 ## Project Status
 
-v0.6.0 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
+v0.6.2 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
 
 | Component | Status | Notes |
 |-----------|--------|-------|

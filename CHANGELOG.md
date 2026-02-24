@@ -3,6 +3,18 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
+## 0.6.2 (February 2026)
+- **Release & Version Consistency**:
+  - Synchronized version artifacts and app-facing release metadata to `0.6.2`.
+  - Updated documentation current-release markers and coverage report headers.
+- **Oracle Workflow & Validation**:
+  - Continued hardening for Oracle smoke/preflight workflows and structural gating.
+- **Project Bundle Reliability (`.yazeproj`)**:
+  - Improved bundle unpack safety/cleanup behavior and dry-run validation flow.
+  - Expanded bundle verify coverage with hash and manifest compatibility checks.
+- **Editor UX Polish**:
+  - Refined dungeon placement feedback and tile selector interaction ergonomics.
+
 ## 0.6.1 (February 2026)
 - **Oracle Workflow & Validation**:
   - Added Oracle smoke/preflight command flows in `z3ed` and editor integration for faster structural checks.
