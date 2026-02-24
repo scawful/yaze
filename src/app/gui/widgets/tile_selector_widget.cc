@@ -7,6 +7,63 @@
 
 namespace yaze::gui {
 
+namespace {
+
+std::string_view TrimAsciiWhitespace(std::string_view s) {
+  while (!s.empty() &&
+         (s.front() == ' ' || s.front() == '\t' || s.front() == '\n' ||
+          s.front() == '\r')) {
+    s.remove_prefix(1);
+  }
+  while (!s.empty() &&
+         (s.back() == ' ' || s.back() == '\t' || s.back() == '\n' ||
+          s.back() == '\r')) {
+    s.remove_suffix(1);
+  }
+  return s;
+}
+
+// Parse tile-id text using hex by default, with explicit decimal support via
+// "d:<value>".
+bool ParseTileIdText(std::string_view input, int* out_value) {
+  if (!out_value) {
+    return false;
+  }
+
+  std::string_view trimmed = TrimAsciiWhitespace(input);
+  if (trimmed.empty()) {
+    return false;
+  }
+
+  bool decimal_mode = false;
+  if (trimmed.size() >= 2 &&
+      (trimmed[0] == 'd' || trimmed[0] == 'D') &&
+      trimmed[1] == ':') {
+    decimal_mode = true;
+    trimmed.remove_prefix(2);
+  } else if (trimmed.size() >= 2 && trimmed[0] == '0' &&
+             (trimmed[1] == 'x' || trimmed[1] == 'X')) {
+    trimmed.remove_prefix(2);
+  }
+
+  if (trimmed.empty()) {
+    return false;
+  }
+
+  std::string text(trimmed);
+  unsigned int parsed = 0;
+  char trailing = '\0';
+  const char* format = decimal_mode ? "%u%c" : "%x%c";
+  if (std::sscanf(text.c_str(), format, &parsed, &trailing) != 1) {
+    return false;
+  }
+
+  *out_value = static_cast<int>(parsed);
+  return true;
+}
+
+}  // namespace
+
 TileSelectorWidget::TileSelectorWidget(std::string widget_id)
     : config_(),
       total_tiles_(config_.total_tiles),
@@ -26,11 +83,16 @@ void TileSelectorWidget::SetTileCount(int total_tiles) {
   if (!IsValidTileId(selected_tile_id_)) {
     selected_tile_id_ = 0;
   }
+  if (last_jump_result_ == JumpToTileResult::kOutOfRange &&
+      IsValidTileId(selected_tile_id_)) {
+    last_jump_result_ = JumpToTileResult::kSuccess;
+  }
 }
 
 void TileSelectorWidget::SetSelectedTile(int tile_id) {
   if (IsValidTileId(tile_id)) {
     selected_tile_id_ = tile_id;
+    last_jump_result_ = JumpToTileResult::kSuccess;
   }
 }
 
@@ -147,7 +209,7 @@ TileSelectorWidget::RenderResult TileSelectorWidget::HandleInteraction(
 
   if (clicked || double_clicked) {
     const int hovered_tile = ResolveTileAtCursor(tile_display_size);
-    if (IsValidTileId(hovered_tile)) {
+    if (IsValidTileId(hovered_tile) && IsInFilterRange(hovered_tile)) {
       result.tile_clicked = clicked;
       result.tile_double_clicked = double_clicked;
       if (hovered_tile != selected_tile_id_) {
@@ -234,14 +296,28 @@ ImVec2 TileSelectorWidget::TileOrigin(int tile_id) const {
                 config_.draw_offset.y + row * tile_display_size);
 }
 
+TileSelectorWidget::JumpToTileResult TileSelectorWidget::JumpToTileFromInput(
+    std::string_view input) {
+  int tile_id = -1;
+  if (!ParseTileIdText(input, &tile_id)) {
+    last_jump_result_ = JumpToTileResult::kInvalidFormat;
+    return last_jump_result_;
+  }
+
+  if (!IsValidTileId(tile_id)) {
+    last_jump_result_ = JumpToTileResult::kOutOfRange;
+    return last_jump_result_;
+  }
+
+  selected_tile_id_ = tile_id;
+  ScrollToTile(tile_id, true);
+  last_jump_result_ = JumpToTileResult::kSuccess;
+  return last_jump_result_;
+}
+
 bool TileSelectorWidget::DrawFilterBar() {
   bool jumped = false;
   const int max_tile_id = GetMaxTileId();
-
-  ImGui::PushItemWidth(80);
-  ImGui::AlignTextToFramePadding();
-  ImGui::TextUnformatted("Go:");
-  ImGui::SameLine();
 
   constexpr ImGuiInputTextFlags kHexFlags =
       ImGuiInputTextFlags_CharsHexadecimal |
@@ -249,32 +325,163 @@ bool TileSelectorWidget::DrawFilterBar() {
       ImGuiInputTextFlags_AutoSelectAll;
 
   ImGui::PushID(widget_id_.c_str());
+
+  // Jump-to-ID input
+  ImGui::PushItemWidth(64);
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted("Go:");
+  ImGui::SameLine();
+
   if (ImGui::InputText("##TileFilterID", filter_buf_, sizeof(filter_buf_),
                        kHexFlags)) {
-    unsigned int parsed = 0;
-    if (std::sscanf(filter_buf_, "%x", &parsed) == 1) {
-      int tile_id = static_cast<int>(parsed);
-      if (IsValidTileId(tile_id)) {
-        selected_tile_id_ = tile_id;
-        ScrollToTile(tile_id, true);
+    switch (JumpToTileFromInput(filter_buf_)) {
+      case JumpToTileResult::kSuccess:
         jumped = true;
-      }
+        break;
+      case JumpToTileResult::kInvalidFormat:
+      case JumpToTileResult::kOutOfRange:
+        break;
     }
   }
-  ImGui::PopID();
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Enter hex tile ID and press Enter to jump");
+    ImGui::SetTooltip(
+        "Enter tile ID and press Enter:\n"
+        "hex: 1A or 0x1A\n"
+        "decimal: d:26");
   }
 
   ImGui::SameLine();
-  ImGui::TextDisabled("/ max %d (0x%03X)", max_tile_id, max_tile_id);
+  ImGui::TextDisabled("/ 0x%03X", max_tile_id);
+  if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
+    ImGui::SameLine(0, 8.0f);
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Invalid hex ID");
+  } else if (last_jump_result_ == JumpToTileResult::kOutOfRange) {
+    ImGui::SameLine(0, 8.0f);
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                       "Out of range (max: 0x%03X)", max_tile_id);
+  }
+
+  // Range filter inputs
+  ImGui::SameLine(0, 12.0f);
+  ImGui::TextUnformatted("Range:");
+  ImGui::SameLine();
+
+  bool range_changed = false;
+  if (ImGui::InputText("##RangeMin", filter_min_buf_, sizeof(filter_min_buf_),
+                       kHexFlags)) {
+    range_changed = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Min tile ID. Press Enter to apply.\n"
+        "hex: 1A or 0x1A\n"
+        "decimal: d:26");
+  }
+  ImGui::SameLine();
+  ImGui::TextUnformatted("-");
+  ImGui::SameLine();
+  if (ImGui::InputText("##RangeMax", filter_max_buf_, sizeof(filter_max_buf_),
+                       kHexFlags)) {
+    range_changed = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Max tile ID. Press Enter to apply.\n"
+        "hex: 1A or 0x1A\n"
+        "decimal: d:26");
+  }
+  ImGui::SameLine();
+  ImGui::TextDisabled("(hex, d:dec)");
+
+  if (range_changed) {
+    int parsed_min = 0;
+    int parsed_max = 0;
+    bool has_min = ParseTileIdText(filter_min_buf_, &parsed_min);
+    bool has_max = ParseTileIdText(filter_max_buf_, &parsed_max);
+
+    if (has_min && has_max && parsed_min <= parsed_max) {
+      SetRangeFilter(parsed_min, parsed_max);
+      filter_range_error_ = false;
+      if (filter_range_active_) {
+        filter_out_of_range_ = false;
+        ScrollToTile(filter_range_min_, true);
+      } else {
+        // SetRangeFilter returned early: both values exceeded total_tiles_.
+        filter_out_of_range_ = true;
+      }
+    } else if (!has_min && !has_max) {
+      ClearRangeFilter();
+      filter_range_error_ = false;
+      filter_out_of_range_ = false;
+    } else if (has_min && has_max && parsed_min > parsed_max) {
+      // Invalid range: min must be ≤ max
+      filter_range_error_ = true;
+      filter_out_of_range_ = false;
+    }
+  }
+
+  // Clear button when range is active
+  if (filter_range_active_) {
+    ImGui::SameLine();
+    if (ImGui::SmallButton("X##ClearRange")) {
+      ClearRangeFilter();
+      filter_min_buf_[0] = '\0';
+      filter_max_buf_[0] = '\0';
+      filter_range_error_ = false;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Clear range filter");
+    }
+  }
+
+  // Validation feedback (shown inline after the filter inputs)
+  if (filter_range_error_) {
+    ImGui::SameLine(0, 8.0f);
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Min must be <= Max");
+  } else if (filter_out_of_range_) {
+    ImGui::SameLine(0, 8.0f);
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                       "Out of range (max: 0x%03X)", GetMaxTileId());
+  } else if (filter_range_active_) {
+    int range_count = filter_range_max_ - filter_range_min_ + 1;
+    if (range_count <= 0) {
+      ImGui::SameLine(0, 8.0f);
+      ImGui::TextDisabled("(no tiles in range)");
+    }
+  }
+
   ImGui::PopItemWidth();
+  ImGui::PopID();
 
   return jumped;
 }
 
+void TileSelectorWidget::SetRangeFilter(int min_id, int max_id) {
+  if (min_id < 0) min_id = 0;
+  if (max_id >= total_tiles_) max_id = total_tiles_ - 1;
+  if (min_id > max_id) return;
+
+  filter_range_active_ = true;
+  filter_range_min_ = min_id;
+  filter_range_max_ = max_id;
+  filter_range_error_ = false;
+}
+
+void TileSelectorWidget::ClearRangeFilter() {
+  filter_range_active_ = false;
+  filter_range_min_ = 0;
+  filter_range_max_ = 0;
+  filter_range_error_ = false;
+  filter_out_of_range_ = false;
+}
+
 bool TileSelectorWidget::IsValidTileId(int tile_id) const {
   return tile_id >= 0 && tile_id < total_tiles_;
+}
+
+bool TileSelectorWidget::IsInFilterRange(int tile_id) const {
+  if (!filter_range_active_) return true;
+  return tile_id >= filter_range_min_ && tile_id <= filter_range_max_;
 }
 
 }  // namespace yaze::gui

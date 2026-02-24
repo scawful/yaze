@@ -2,6 +2,7 @@
 #define YAZE_APP_GUI_WIDGETS_TILE_SELECTOR_WIDGET_H
 
 #include <string>
+#include <string_view>
 
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/canvas/canvas.h"
@@ -38,6 +39,12 @@ class TileSelectorWidget {
     int selected_tile = -1;
   };
 
+  enum class JumpToTileResult {
+    kSuccess = 0,
+    kInvalidFormat,
+    kOutOfRange,
+  };
+
   explicit TileSelectorWidget(std::string widget_id);
   TileSelectorWidget(std::string widget_id, Config config);
 
@@ -53,8 +60,22 @@ class TileSelectorWidget {
   /// the user jumped to a tile (selection + scroll triggered).
   bool DrawFilterBar();
 
+  /// Parse a tile ID string and jump selection to that tile.
+  /// Accepted forms:
+  /// - Hex (default): "1A", "0x1A"
+  /// - Decimal (explicit): "d:26"
+  /// Returns a parse/result status for UI and automation.
+  JumpToTileResult JumpToTileFromInput(std::string_view input);
+
   void ScrollToTile(int tile_id, bool use_imgui_scroll = true);
   ImVec2 TileOrigin(int tile_id) const;
+
+  // Range filter accessors (for tests and automation)
+  bool has_active_range_filter() const { return filter_range_active_; }
+  int filter_range_min() const { return filter_range_min_; }
+  int filter_range_max() const { return filter_range_max_; }
+  void SetRangeFilter(int min_id, int max_id);
+  void ClearRangeFilter();
 
  private:
   RenderResult HandleInteraction(int tile_display_size);
@@ -62,6 +83,7 @@ class TileSelectorWidget {
   void DrawHighlight(int tile_display_size) const;
   void DrawTileIdLabels(int tile_display_size) const;
   bool IsValidTileId(int tile_id) const;
+  bool IsInFilterRange(int tile_id) const;
 
   Canvas* canvas_ = nullptr;
   Config config_{};
@@ -76,6 +98,20 @@ class TileSelectorWidget {
 
   // Filter bar state
   char filter_buf_[8] = {};
+
+  // Range filter state
+  bool filter_range_active_ = false;
+  int filter_range_min_ = 0;
+  int filter_range_max_ = 0;
+  char filter_min_buf_[8] = {};
+  char filter_max_buf_[8] = {};
+  // Set when the last range input was invalid (min > max).
+  bool filter_range_error_ = false;
+  // Set when both parsed values exceed total_tiles_ so SetRangeFilter returned
+  // without activating (empty interval after clamping).
+  bool filter_out_of_range_ = false;
+  // Status from the most recent jump-to-ID entry attempt.
+  JumpToTileResult last_jump_result_ = JumpToTileResult::kSuccess;
 };
 
 }  // namespace yaze::gui
