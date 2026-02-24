@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.6.1 (February 2026)
+
+### Oracle Tooling & Validation
+- Added Oracle workflow command surfaces for smoke/preflight-style validation in `z3ed`.
+- Added D6 minecart structural regression gating via `--min-d6-track-rooms`.
+- Improved Oracle validation reporting with clearer structural/readiness status fields.
+
+### Project Bundles (`.yazeproj`)
+- Added project bundle verify command with structured checks and report output.
+- Added project bundle pack/unpack commands with zip archive support.
+- Hardened unpack behavior:
+  - path traversal protection,
+  - default cleanup on invalid bundle extraction failure,
+  - `--keep-partial-output` for debugging extraction failures,
+  - `--dry-run` structural validation mode.
+- Added bundle help/registry examples for faster CLI discovery.
+
+### Hashing & Integrity
+- Replaced platform-conditional SHA1 behavior with portable SHA1 generation.
+- Added ROM-hash verification path (`--check-rom-hash`) for bundle validation.
+- Normalized hash comparisons (whitespace/case tolerant) for manifest compatibility.
+
+### Editor UX
+- Added limit-aware placement feedback for dungeon object/sprite/door workflows.
+- Added custom object overlay controls and D6 quick-navigation affordances in the dungeon workbench.
+- Improved tile selector usability:
+  - hover preview tooltip,
+  - jump-to-tile/filter bar,
+  - range validation feedback,
+  - explicit decimal input mode (`d:<id>`) while preserving hex-default behavior.
+
 ## 0.6.0 (February 2026)
 
 ### Undo/Redo
