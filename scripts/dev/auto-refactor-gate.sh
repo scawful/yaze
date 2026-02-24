@@ -90,6 +90,7 @@ run_gate() {
   local log_file="$LOG_DIR/${ts}-refactor-gate.log"
   local status_file="$LOG_DIR/latest.status"
 
+  set +e
   {
     echo "=== auto-refactor-gate ==="
     echo "timestamp: $(date '+%Y-%m-%d %H:%M:%S')"
@@ -112,6 +113,7 @@ run_gate() {
     "./$BUILD_DIR/bin/Debug/yaze_test_unit" --gtest_filter="$GTEST_FILTER"
   } >"$log_file" 2>&1
   local rc=$?
+  set -e
 
   {
     echo "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
