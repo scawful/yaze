@@ -127,6 +127,84 @@ TEST_F(TileSelectorWidgetTest, SetSelectedTile) {
   EXPECT_EQ(widget.GetSelectedTileID(), 63);  // Should remain unchanged
 }
 
+TEST_F(TileSelectorWidgetTest, JumpToTileFromInputSucceeds) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.AttachCanvas(canvas_.get());
+  widget.SetTileCount(64);
+  widget.SetSelectedTile(0);
+
+  auto result = widget.JumpToTileFromInput("1A");
+  EXPECT_EQ(result, gui::TileSelectorWidget::JumpToTileResult::kSuccess);
+  EXPECT_EQ(widget.GetSelectedTileID(), 0x1A);
+}
+
+TEST_F(TileSelectorWidgetTest, JumpToTileFromInputRejectsInvalidFormat) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.AttachCanvas(canvas_.get());
+  widget.SetTileCount(64);
+  widget.SetSelectedTile(7);
+
+  auto result = widget.JumpToTileFromInput("GG");
+  EXPECT_EQ(result, gui::TileSelectorWidget::JumpToTileResult::kInvalidFormat);
+  EXPECT_EQ(widget.GetSelectedTileID(), 7);
+}
+
+TEST_F(TileSelectorWidgetTest, JumpToTileFromInputRejectsOutOfRange) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.AttachCanvas(canvas_.get());
+  widget.SetTileCount(64);
+  widget.SetSelectedTile(9);
+
+  auto result = widget.JumpToTileFromInput("FF");
+  EXPECT_EQ(result, gui::TileSelectorWidget::JumpToTileResult::kOutOfRange);
+  EXPECT_EQ(widget.GetSelectedTileID(), 9);
+}
+
+TEST_F(TileSelectorWidgetTest, JumpToTileFromInputRejectsEmptyString) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.AttachCanvas(canvas_.get());
+  widget.SetTileCount(64);
+  widget.SetSelectedTile(12);
+
+  auto result = widget.JumpToTileFromInput("");
+  EXPECT_EQ(result, gui::TileSelectorWidget::JumpToTileResult::kInvalidFormat);
+  EXPECT_EQ(widget.GetSelectedTileID(), 12);
+}
+
+TEST_F(TileSelectorWidgetTest, JumpToTileFromInputSupportsDecimalPrefix) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.AttachCanvas(canvas_.get());
+  widget.SetTileCount(128);
+  widget.SetSelectedTile(0);
+
+  auto result = widget.JumpToTileFromInput("d:26");
+  EXPECT_EQ(result, gui::TileSelectorWidget::JumpToTileResult::kSuccess);
+  EXPECT_EQ(widget.GetSelectedTileID(), 26);
+}
+
+TEST_F(TileSelectorWidgetTest,
+       JumpToTileFromInputDefaultNumericRemainsHexForCompatibility) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.AttachCanvas(canvas_.get());
+  widget.SetTileCount(128);
+  widget.SetSelectedTile(0);
+
+  auto result = widget.JumpToTileFromInput("10");
+  EXPECT_EQ(result, gui::TileSelectorWidget::JumpToTileResult::kSuccess);
+  EXPECT_EQ(widget.GetSelectedTileID(), 0x10);
+}
+
+TEST_F(TileSelectorWidgetTest, JumpToTileFromInputDecimalOutOfRange) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.AttachCanvas(canvas_.get());
+  widget.SetTileCount(64);
+  widget.SetSelectedTile(3);
+
+  auto result = widget.JumpToTileFromInput("d:999");
+  EXPECT_EQ(result, gui::TileSelectorWidget::JumpToTileResult::kOutOfRange);
+  EXPECT_EQ(widget.GetSelectedTileID(), 3);
+}
+
 // Test tile origin calculation
 TEST_F(TileSelectorWidgetTest, TileOrigin) {
   gui::TileSelectorWidget widget("test_widget", config_);
@@ -233,6 +311,96 @@ TEST_F(TileSelectorWidgetTest, DifferentConfigs) {
     large_widget.SetSelectedTile(i);
     EXPECT_EQ(large_widget.GetSelectedTileID(), i);
   }
+}
+
+// ============================================================================
+// Range Filter Tests
+// ============================================================================
+
+TEST_F(TileSelectorWidgetTest, RangeFilterDefaultInactive) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  EXPECT_FALSE(widget.has_active_range_filter());
+}
+
+TEST_F(TileSelectorWidgetTest, SetRangeFilterActivatesFilter) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  widget.SetRangeFilter(10, 30);
+  EXPECT_TRUE(widget.has_active_range_filter());
+  EXPECT_EQ(widget.filter_range_min(), 10);
+  EXPECT_EQ(widget.filter_range_max(), 30);
+}
+
+TEST_F(TileSelectorWidgetTest, ClearRangeFilterDeactivates) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  widget.SetRangeFilter(10, 30);
+  EXPECT_TRUE(widget.has_active_range_filter());
+
+  widget.ClearRangeFilter();
+  EXPECT_FALSE(widget.has_active_range_filter());
+}
+
+TEST_F(TileSelectorWidgetTest, RangeFilterClampsToTileCount) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  widget.SetRangeFilter(0, 100);  // Max exceeds total
+  EXPECT_TRUE(widget.has_active_range_filter());
+  EXPECT_EQ(widget.filter_range_min(), 0);
+  EXPECT_EQ(widget.filter_range_max(), 63);  // Clamped to total_tiles - 1
+}
+
+TEST_F(TileSelectorWidgetTest, RangeFilterRejectsInvertedRange) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  widget.SetRangeFilter(30, 10);  // min > max
+  EXPECT_FALSE(widget.has_active_range_filter());
+}
+
+TEST_F(TileSelectorWidgetTest, RangeFilterNegativeMinClampedToZero) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  widget.SetRangeFilter(-5, 20);
+  EXPECT_TRUE(widget.has_active_range_filter());
+  EXPECT_EQ(widget.filter_range_min(), 0);
+  EXPECT_EQ(widget.filter_range_max(), 20);
+}
+
+TEST_F(TileSelectorWidgetTest, RangeFilterSingleTile) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  widget.SetRangeFilter(32, 32);
+  EXPECT_TRUE(widget.has_active_range_filter());
+  EXPECT_EQ(widget.filter_range_min(), 32);
+  EXPECT_EQ(widget.filter_range_max(), 32);
+}
+
+// SetRangeFilter with both values > total_tiles_ should not activate the
+// filter (both clamp, then min > max, so early return).
+TEST_F(TileSelectorWidgetTest, RangeFilterBothOutOfBoundsDoesNotActivate) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);  // tiles 0..63
+
+  widget.SetRangeFilter(100, 200);
+  EXPECT_FALSE(widget.has_active_range_filter());
+}
+
+// SetRangeFilter with min in range and max out of range should activate with
+// clamped max (not the same as both-out-of-bounds case).
+TEST_F(TileSelectorWidgetTest, RangeFilterMinInRangeMaxOutClamps) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);  // tiles 0..63
+
+  widget.SetRangeFilter(10, 200);
+  EXPECT_TRUE(widget.has_active_range_filter());
+  EXPECT_EQ(widget.filter_range_min(), 10);
+  EXPECT_EQ(widget.filter_range_max(), 63);  // clamped to total_tiles - 1
 }
 
 }  // namespace test
