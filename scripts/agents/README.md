@@ -16,6 +16,14 @@
 | `ralph-loop-status.sh` | Print key fields from the Ralph loop state file (delegates to the OOS helper). |
 | `gemini-yolo-loop.sh` | Generic Gemini non-interactive loop runner with YOLO mode + completion marker checks. |
 | `gemini-oracle-workstream.sh` | Runs the Oracle scratchpad Gemini tasks (dialogue/dimensions/wrap/annotation) via YOLO loops. |
+| `universe-coord.sh` | Local cross-project coordination CLI (event log + state + generated board snapshot). |
+| `coord` | Project wrapper around `universe-coord.sh` with default yaze `project_key`. |
+| `coord-heartbeat.sh` | Convenience helper to heartbeat a specific task or auto-select the most recent active task (prefers the given agent). |
+| `import-coordination-board.sh` | Stable entrypoint for legacy board import (delegates to Python importer, dry-run by default). |
+| `import-coordination-board.py` | Imports legacy board entries into universe event log (dry-run/apply). |
+| `migrate-coordination-board.sh` | Safe migration driver: preview first, optional apply, then generated snapshot output. |
+| `test-universe-coord.sh` | Script-level lifecycle/import/migration validation in temp universe dirs. |
+| `protocol-audit.sh` | Validates Layer-1/2/3 protocol wiring, persona/prompt consistency, and required coordination scripts. |
 | `windows-smoke-build.ps1` | PowerShell variant of the smoke build helper for Visual Studio/Ninja presets on Windows. |
 | `../dev/local-workflow.sh` | Standard local development loop (build/test/sync/status/hooks/release-check). |
 | `../install-git-hooks.sh` | Installs both pre-commit and pre-push hooks for local guardrails. |
@@ -83,6 +91,33 @@ scripts/agents/gemini-oracle-workstream.sh \
 # Windows smoke build using PowerShell
 pwsh -File scripts/agents/windows-smoke-build.ps1 -Preset win-ai -Target z3ed
 
+# Universe coordination (project-scoped wrapper)
+scripts/agents/coord task-add --title "Harden bundle archive path semantics" --agent ai-infra-architect
+scripts/agents/coord task-claim --id task_20260224T010203Z_12345 --agent ai-infra-architect
+scripts/agents/coord task-heartbeat --id task_20260224T010203Z_12345 --agent ai-infra-architect --note "build green; writing tests"
+scripts/agents/coord task-complete --id task_20260224T010203Z_12345 --agent ai-infra-architect
+scripts/agents/coord task-generate-board --out docs/internal/agents/coordination-board.generated.md
+
+# Heartbeat helper (auto-select latest active task for this project, preferring agent assignee)
+scripts/agents/coord-heartbeat.sh --agent ai-infra-architect --note "still refactoring room aliases"
+scripts/agents/coord-heartbeat.sh --agent ai-infra-architect --recent-min 180 --dry-run
+
+# Legacy board import (dry-run first)
+scripts/agents/import-coordination-board.sh --dry-run
+scripts/agents/import-coordination-board.sh --apply
+python3 scripts/agents/import-coordination-board.py --dry-run
+python3 scripts/agents/import-coordination-board.py --apply
+
+# End-to-end migration helper (safe preview by default)
+scripts/agents/migrate-coordination-board.sh --dry-run
+scripts/agents/migrate-coordination-board.sh --apply
+
+# Validate coordination scripts in isolated temp dirs
+scripts/agents/test-universe-coord.sh
+
+# Validate protocol routing + persona/prompt wiring
+scripts/agents/protocol-audit.sh
+
 # Standard local workflow (build + test + sync + status)
 scripts/dev/local-workflow.sh all
 
@@ -121,8 +156,8 @@ z3ed dungeon-list-objects --room 0x98 --rom /tmp/oos-work.sfc --format json
 z3ed dungeon-list-custom-collision --room 0xB8 --all --rom /tmp/oos-work.sfc --format json
 ```
 
-When invoking these scripts, log the results on the coordination board so other agents know which
-workflows/builds were triggered and where to find artifacts/logs.
+When invoking these scripts for substantial work, record task status in the universe log
+(`scripts/agents/coord ...`) and generate a board snapshot only when human-readable context is needed.
 
 Ralph loop logs:
 - `.claude/ralph-loop.codex/iteration-*.log` (full console stream per iteration)
