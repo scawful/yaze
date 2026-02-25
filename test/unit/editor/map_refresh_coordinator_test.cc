@@ -75,8 +75,7 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
 // ForceRefreshGraphics
 // ===========================================================================
 
-TEST_F(MapRefreshCoordinatorTest,
-       ForceRefreshGraphicsValidIndexMarksModified) {
+TEST_F(MapRefreshCoordinatorTest, ForceRefreshGraphicsValidIndexMarksModified) {
   ASSERT_FALSE(maps_bmp_[5].modified());
   coordinator_->ForceRefreshGraphics(5);
   EXPECT_TRUE(maps_bmp_[5].modified());
@@ -91,14 +90,12 @@ TEST_F(MapRefreshCoordinatorTest,
   EXPECT_EQ(current_blockset_, 0);
 }
 
-TEST_F(MapRefreshCoordinatorTest,
-       ForceRefreshGraphicsOutOfBoundsDoesNotCrash) {
+TEST_F(MapRefreshCoordinatorTest, ForceRefreshGraphicsOutOfBoundsDoesNotCrash) {
   coordinator_->ForceRefreshGraphics(zelda3::kNumOverworldMaps);
   EXPECT_EQ(current_blockset_, 0);
 }
 
-TEST_F(MapRefreshCoordinatorTest,
-       ForceRefreshGraphicsBoundaryIndex159Works) {
+TEST_F(MapRefreshCoordinatorTest, ForceRefreshGraphicsBoundaryIndex159Works) {
   coordinator_->ForceRefreshGraphics(159);
   EXPECT_TRUE(maps_bmp_[159].modified());
   EXPECT_EQ(current_blockset_, 0xFF);
@@ -170,8 +167,7 @@ TEST_F(MapRefreshCoordinatorTest,
 // InvalidateGraphicsCache
 // ===========================================================================
 
-TEST_F(MapRefreshCoordinatorTest,
-       InvalidateGraphicsCacheAllClearsGraphicsSet) {
+TEST_F(MapRefreshCoordinatorTest, InvalidateGraphicsCacheAllClearsGraphicsSet) {
   // Add some entries to the graphics set.
   current_graphics_set_[0] = std::make_unique<gfx::Bitmap>();
   current_graphics_set_[1] = std::make_unique<gfx::Bitmap>();
@@ -220,8 +216,7 @@ TEST_F(MapRefreshCoordinatorTest,
 // UpdateBlocksetWithPendingTileChanges -- early returns
 // ===========================================================================
 
-TEST_F(MapRefreshCoordinatorTest,
-       UpdateBlocksetNotLoadedReturnsImmediately) {
+TEST_F(MapRefreshCoordinatorTest, UpdateBlocksetNotLoadedReturnsImmediately) {
   map_blockset_loaded_ = false;
   // Should not crash -- exits immediately.
   coordinator_->UpdateBlocksetWithPendingTileChanges();

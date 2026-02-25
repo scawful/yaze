@@ -26,8 +26,8 @@ namespace {
 
 using ::testing::HasSubstr;
 
-constexpr int kSmallRomSize = 0x100000;   // no water-fill region
-constexpr int kFullRomSize  = 0x200000;   // water-fill region present
+constexpr int kSmallRomSize = 0x100000;  // no water-fill region
+constexpr int kFullRomSize = 0x200000;   // water-fill region present
 
 // Injects a stop tile into a room via the import handler so the
 // required-room check can succeed on a blank ROM.
@@ -37,7 +37,8 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
       R"({"version":1,"rooms":[{"room_id":"0x%02X","tiles":[[%d,%d]]}]})",
       room_id, offset, tile_value);
   auto tmp = (std::filesystem::temp_directory_path() /
-              "yaze_oracle_preflight_inject.json").string();
+              "yaze_oracle_preflight_inject.json")
+                 .string();
   {
     std::ofstream f(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
     f << json;
@@ -71,8 +72,7 @@ TEST(DungeonOraclePreflightTest, FullRomPassesWithDefaultOptions) {
 TEST(DungeonOraclePreflightTest, SmallRomFailsWaterFillRegionMissing) {
   // ROM smaller than 0x130000 lacks the water-fill reserved region.
   Rom rom;
-  ASSERT_TRUE(
-      rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
 
   handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
@@ -121,8 +121,7 @@ TEST(DungeonOraclePreflightTest, SkipCollisionMapsOmitsMapCheck) {
 // Required-room checks
 // ---------------------------------------------------------------------------
 
-TEST(DungeonOraclePreflightTest,
-     RequiredCollisionRoomsFailsWhenRoomHasNoData) {
+TEST(DungeonOraclePreflightTest, RequiredCollisionRoomsFailsWhenRoomHasNoData) {
   // Room 0x32 (D3 prison) has no authored collision on a blank ROM.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
@@ -138,8 +137,7 @@ TEST(DungeonOraclePreflightTest,
   EXPECT_THAT(out, HasSubstr("\"required_rooms_check\": \"ran\""));
 }
 
-TEST(DungeonOraclePreflightTest,
-     RequiredCollisionRoomsPassesWhenDataPresent) {
+TEST(DungeonOraclePreflightTest, RequiredCollisionRoomsPassesWhenDataPresent) {
   // Inject collision for room 0x25, then run preflight requiring it.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
@@ -193,23 +191,20 @@ TEST(DungeonOraclePreflightTest, InvalidRoomIdInRequiredListErrors) {
 // required_rooms_check: "skipped" when ROM lacks write-support region
 // ---------------------------------------------------------------------------
 
-TEST(DungeonOraclePreflightTest,
-     RequiredRoomsCheckReportsSkippedOnSmallRom) {
+TEST(DungeonOraclePreflightTest, RequiredRoomsCheckReportsSkippedOnSmallRom) {
   // A small ROM (0x100000) lacks HasCustomCollisionWriteSupport.
   // The preflight library skips the required-room check; the command must
   // report "required_rooms_check": "skipped" rather than silently claiming
   // required_rooms_ok: true.
   Rom rom;
-  ASSERT_TRUE(
-      rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
 
   handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
   // Ignore the status — small ROM fails water-fill region check first.
   // We only care about the shape of the output, not the exit code.
-  [[maybe_unused]] auto ignored_status =
-      handler.Run({"--required-collision-rooms=0x25", "--format=json"}, &rom,
-                  &out);
+  [[maybe_unused]] auto ignored_status = handler.Run(
+      {"--required-collision-rooms=0x25", "--format=json"}, &rom, &out);
 
   EXPECT_THAT(out, HasSubstr("\"required_rooms_check\": \"skipped\""));
   // required_rooms_ok must NOT be present when the check was skipped.
@@ -228,20 +223,19 @@ TEST(DungeonOraclePreflightTest, ReportWriteFailsOnUnwritablePath) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
 
-  const std::string bad_path =
-      "/nonexistent_yaze_test_dir_zzzz/report.json";
+  const std::string bad_path = "/nonexistent_yaze_test_dir_zzzz/report.json";
 
   handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
-  const auto status = handler.Run(
-      {"--report", bad_path, "--format=json"}, &rom, &out);
+  const auto status =
+      handler.Run({"--report", bad_path, "--format=json"}, &rom, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied)
       << status.message();
   // stdout must be empty — the probe fires in ValidateArgs() before the
   // formatter wrapper object is opened by CommandHandler::Run().
-  EXPECT_TRUE(out.empty())
-      << "Expected empty stdout on PermissionDenied, got: " << out;
+  EXPECT_TRUE(out.empty()) << "Expected empty stdout on PermissionDenied, got: "
+                           << out;
 }
 
 TEST(DungeonOraclePreflightTest, InvalidRequiredRoomsDoesNotClobberReportFile) {
@@ -250,14 +244,13 @@ TEST(DungeonOraclePreflightTest, InvalidRequiredRoomsDoesNotClobberReportFile) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
 
-  const auto report_path =
-      (std::filesystem::temp_directory_path() /
-       "yaze_oracle_preflight_no_clobber_report.json")
-          .string();
+  const auto report_path = (std::filesystem::temp_directory_path() /
+                            "yaze_oracle_preflight_no_clobber_report.json")
+                               .string();
   const std::string sentinel = "SENTINEL_REPORT_CONTENT\n";
   {
-    std::ofstream f(report_path, std::ios::out | std::ios::binary |
-                                    std::ios::trunc);
+    std::ofstream f(report_path,
+                    std::ios::out | std::ios::binary | std::ios::trunc);
     ASSERT_TRUE(f.is_open());
     f << sentinel;
     ASSERT_TRUE(f.good());
@@ -265,10 +258,10 @@ TEST(DungeonOraclePreflightTest, InvalidRequiredRoomsDoesNotClobberReportFile) {
 
   handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
-  const auto status = handler.Run(
-      {"--report", report_path, "--required-collision-rooms=not_a_hex",
-       "--format=json"},
-      &rom, &out);
+  const auto status =
+      handler.Run({"--report", report_path,
+                   "--required-collision-rooms=not_a_hex", "--format=json"},
+                  &rom, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument)
       << status.message();
@@ -277,8 +270,10 @@ TEST(DungeonOraclePreflightTest, InvalidRequiredRoomsDoesNotClobberReportFile) {
   const std::string content((std::istreambuf_iterator<char>(f)),
                             std::istreambuf_iterator<char>());
   EXPECT_EQ(content, sentinel);
+  f.close();
 
-  std::filesystem::remove(report_path);
+  std::error_code cleanup_ec;
+  std::filesystem::remove(report_path, cleanup_ec);
 }
 
 TEST(DungeonOraclePreflightTest, ReportWriteSucceedsAndContainsFullJson) {
@@ -286,10 +281,9 @@ TEST(DungeonOraclePreflightTest, ReportWriteSucceedsAndContainsFullJson) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
 
-  const auto report_path =
-      (std::filesystem::temp_directory_path() /
-       "yaze_oracle_preflight_report.json")
-          .string();
+  const auto report_path = (std::filesystem::temp_directory_path() /
+                            "yaze_oracle_preflight_report.json")
+                               .string();
 
   handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
@@ -306,8 +300,10 @@ TEST(DungeonOraclePreflightTest, ReportWriteSucceedsAndContainsFullJson) {
   EXPECT_THAT(content, HasSubstr("\"status\""));
   EXPECT_THAT(content, HasSubstr("\"errors\""));
   EXPECT_THAT(content, HasSubstr("\"water_fill_region_ok\""));
+  f.close();
 
-  std::filesystem::remove(report_path);
+  std::error_code cleanup_ec;
+  std::filesystem::remove(report_path, cleanup_ec);
 }
 
 }  // namespace
