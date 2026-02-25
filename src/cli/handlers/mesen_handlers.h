@@ -154,7 +154,10 @@ class MesenSessionCommandHandler : public resources::CommandHandler {
   std::string GetDescription() const {
     return "Get tracked autonomous control session state";
   }
-  std::string GetUsage() const override { return "mesen-session"; }
+  std::string GetUsage() const override {
+    return "mesen-session [--action <show|reset|export|import>] [--file "
+           "<path>]";
+  }
   bool RequiresRom() const override { return false; }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
@@ -184,8 +187,8 @@ class MesenGoalCommandHandler : public resources::CommandHandler {
     return "Execute atomic goal macros for deterministic debugging";
   }
   std::string GetUsage() const override {
-    return "mesen-goal --goal break-at --address <hex> [--timeout-ms <n>] "
-           "[--poll-ms <n>]";
+    return "mesen-goal --goal <break-at|run-frames|capture-state-at-pc> "
+           "[--address <hex>] [--count <n>] [--timeout-ms <n>] [--poll-ms <n>]";
   }
   bool RequiresRom() const override { return false; }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;

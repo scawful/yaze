@@ -5,6 +5,7 @@
 #include <charconv>
 #include <chrono>
 #include <cstdlib>
+#include <fstream>
 #include <sstream>
 #include <thread>
 #include <unordered_map>
@@ -15,6 +16,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/time.h"
 #include "app/emu/mesen/mesen_client_registry.h"
+#include "nlohmann/json.hpp"
 
 ABSL_DECLARE_FLAG(std::string, mesen_socket);
 
@@ -38,6 +40,10 @@ struct EmulatorAgentSessionState {
 EmulatorAgentSessionState& SessionState() {
   static EmulatorAgentSessionState state;
   return state;
+}
+
+void ResetSessionState() {
+  SessionState() = EmulatorAgentSessionState{};
 }
 
 void UpdateSessionFromRuntime(
@@ -64,6 +70,67 @@ int ClampTimeoutMs(int timeout_ms) {
 
 int ClampPollMs(int poll_ms) {
   return std::clamp(poll_ms, 1, 1000);
+}
+
+::absl::Status ExportSessionStateToFile(const std::string& file_path) {
+  nlohmann::json j;
+  const auto& s = SessionState();
+  j["connected"] = s.connected;
+  j["running"] = s.running;
+  j["paused"] = s.paused;
+  j["frame"] = s.frame;
+  j["pc"] = s.pc;
+  j["last_breakpoint_id"] = s.last_breakpoint_id;
+  j["last_action"] = s.last_action;
+  j["breakpoints"] = nlohmann::json::array();
+  for (const auto& [id, addr] : s.breakpoints_by_id) {
+    j["breakpoints"].push_back({{"id", id}, {"address", addr}});
+  }
+
+  std::ofstream out(file_path);
+  if (!out.is_open()) {
+    return ::absl::PermissionDeniedError("Failed to open session export path");
+  }
+  out << j.dump(2);
+  if (!out.good()) {
+    return ::absl::InternalError("Failed to write session export file");
+  }
+  return ::absl::OkStatus();
+}
+
+::absl::Status ImportSessionStateFromFile(const std::string& file_path) {
+  std::ifstream in(file_path);
+  if (!in.is_open()) {
+    return ::absl::NotFoundError("Session import file not found");
+  }
+  nlohmann::json j;
+  try {
+    in >> j;
+  } catch (const std::exception& e) {
+    return ::absl::InvalidArgumentError(
+        ::absl::StrFormat("Invalid session JSON: %s", e.what()));
+  }
+
+  EmulatorAgentSessionState loaded;
+  loaded.connected = j.value("connected", false);
+  loaded.running = j.value("running", false);
+  loaded.paused = j.value("paused", false);
+  loaded.frame = j.value("frame", 0ULL);
+  loaded.pc = j.value("pc", 0U);
+  loaded.last_breakpoint_id = j.value("last_breakpoint_id", -1);
+  loaded.last_action = j.value("last_action", "import");
+  if (j.contains("breakpoints") && j["breakpoints"].is_array()) {
+    for (const auto& bp : j["breakpoints"]) {
+      const int id = bp.value("id", -1);
+      const uint32_t addr = bp.value("address", 0U);
+      if (id >= 0) {
+        loaded.breakpoints_by_id[id] = addr;
+      }
+    }
+  }
+
+  SessionState() = std::move(loaded);
+  return ::absl::OkStatus();
 }
 
 ::absl::Status EnsureConnected() {
@@ -515,22 +582,21 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
 // MesenSessionCommandHandler
 ::absl::Status MesenSessionCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
-  (void)parser;
-  return ::absl::OkStatus();
+  if (!parser.GetString("action").has_value()) {
+    return ::absl::OkStatus();
+  }
+  const auto action = parser.GetString("action").value_or("show");
+  if (action == "show" || action == "reset") {
+    return ::absl::OkStatus();
+  }
+  if (action == "export" || action == "import") {
+    return parser.RequireArgs({"file"});
+  }
+  return ::absl::InvalidArgumentError(
+      "--action must be show|reset|export|import");
 }
 
-::absl::Status MesenSessionCommandHandler::Execute(
-    Rom* rom, const resources::ArgumentParser& parser,
-    resources::OutputFormatter& formatter) {
-  (void)rom;
-  (void)parser;
-  auto status = EnsureConnected();
-  if (!status.ok()) {
-    return status;
-  }
-
-  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
-  UpdateSessionFromRuntime(client);
+::absl::Status AddSessionFields(resources::OutputFormatter& formatter) {
   const auto& session = SessionState();
   formatter.AddField("connected", session.connected);
   formatter.AddField("running", session.running);
@@ -542,6 +608,63 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   formatter.AddField("last_breakpoint_id", session.last_breakpoint_id);
   formatter.AddField("last_action", session.last_action);
   return ::absl::OkStatus();
+}
+
+::absl::Status MesenSessionCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  const auto action = parser.GetString("action").value_or("show");
+  if (action == "reset") {
+    ResetSessionState();
+    auto& session = SessionState();
+    session.last_action = "reset";
+    formatter.AddField("status", "ok");
+    formatter.AddField("action", "reset");
+    return AddSessionFields(formatter);
+  }
+
+  if (action == "export") {
+    auto file = parser.GetString("file");
+    if (!file.has_value()) {
+      return ::absl::InvalidArgumentError("--file required for export");
+    }
+    auto export_status = ExportSessionStateToFile(*file);
+    if (!export_status.ok()) {
+      return export_status;
+    }
+    auto& session = SessionState();
+    session.last_action = "export";
+    formatter.AddField("status", "ok");
+    formatter.AddField("action", "export");
+    formatter.AddField("file", *file);
+    return AddSessionFields(formatter);
+  }
+
+  if (action == "import") {
+    auto file = parser.GetString("file");
+    if (!file.has_value()) {
+      return ::absl::InvalidArgumentError("--file required for import");
+    }
+    auto import_status = ImportSessionStateFromFile(*file);
+    if (!import_status.ok()) {
+      return import_status;
+    }
+    auto& session = SessionState();
+    session.last_action = "import";
+    formatter.AddField("status", "ok");
+    formatter.AddField("action", "import");
+    formatter.AddField("file", *file);
+    return AddSessionFields(formatter);
+  }
+
+  auto status = EnsureConnected();
+  if (!status.ok()) {
+    return status;
+  }
+  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
+  UpdateSessionFromRuntime(client);
+  return AddSessionFields(formatter);
 }
 
 // MesenAwaitCommandHandler
@@ -700,10 +823,14 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     return status;
   }
   const auto goal = parser.GetString("goal").value_or("");
-  if (goal == "break-at") {
+  if (goal == "break-at" || goal == "capture-state-at-pc") {
     return parser.RequireArgs({"address"});
   }
-  return ::absl::InvalidArgumentError("Unknown --goal. Supported: break-at");
+  if (goal == "run-frames") {
+    return parser.RequireArgs({"count"});
+  }
+  return ::absl::InvalidArgumentError(
+      "Unknown --goal. Supported: break-at|run-frames|capture-state-at-pc");
 }
 
 ::absl::Status MesenGoalCommandHandler::Execute(
@@ -717,7 +844,66 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto& session = SessionState();
   const auto goal = parser.GetString("goal").value_or("");
-  if (goal != "break-at") {
+  if (goal == "run-frames") {
+    auto count_or = parser.GetInt("count");
+    if (!count_or.ok()) {
+      return count_or.status();
+    }
+    const int frame_count = std::max(1, *count_or);
+    auto timeout_or = ParseOptionalInt(parser, "timeout-ms", 2000);
+    if (!timeout_or.ok()) {
+      return timeout_or.status();
+    }
+    auto poll_or = ParseOptionalInt(parser, "poll-ms", 25);
+    if (!poll_or.ok()) {
+      return poll_or.status();
+    }
+    const int timeout_ms = ClampTimeoutMs(*timeout_or);
+    const int poll_ms = ClampPollMs(*poll_or);
+    const auto start = ::absl::Now();
+    const auto deadline = start + ::absl::Milliseconds(timeout_ms);
+
+    if (auto pause_status = client->Pause(); !pause_status.ok()) {
+      return pause_status;
+    }
+    UpdateSessionFromRuntime(client);
+    const uint64_t target_frame =
+        session.frame + static_cast<uint64_t>(frame_count);
+    if (auto resume_status = client->Resume(); !resume_status.ok()) {
+      return resume_status;
+    }
+    bool reached = false;
+    while (::absl::Now() < deadline) {
+      auto state_or = client->GetState();
+      if (!state_or.ok()) {
+        break;
+      }
+      session.running = state_or->running;
+      session.paused = state_or->paused;
+      session.frame = state_or->frame;
+      if (session.frame >= target_frame) {
+        reached = true;
+        break;
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
+    }
+    (void)client->Pause();
+    UpdateSessionFromRuntime(client);
+    if (!reached) {
+      return ::absl::DeadlineExceededError("Goal run-frames timed out");
+    }
+    session.last_action = "goal-run-frames";
+    formatter.AddField("status", "ok");
+    formatter.AddField("goal", "run-frames");
+    formatter.AddField("requested_frames", frame_count);
+    formatter.AddField("frame", static_cast<uint64_t>(session.frame));
+    formatter.AddField("elapsed_ms",
+                       static_cast<uint64_t>(
+                           ::absl::ToInt64Milliseconds(::absl::Now() - start)));
+    return ::absl::OkStatus();
+  }
+
+  if (goal != "break-at" && goal != "capture-state-at-pc") {
     return ::absl::InvalidArgumentError("Unsupported goal");
   }
   auto addr_or = parser.GetHex("address");
@@ -787,9 +973,21 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     return ::absl::DeadlineExceededError("Goal break-at timed out");
   }
 
-  session.last_action = "goal-break-at";
+  session.last_action = (goal == "capture-state-at-pc")
+                            ? "goal-capture-state-at-pc"
+                            : "goal-break-at";
+  if (goal == "capture-state-at-pc") {
+    auto game_state_or = client->GetGameState();
+    if (game_state_or.ok()) {
+      formatter.AddHexField("room_id", game_state_or->game.room_id, 4);
+      formatter.AddField("indoors", game_state_or->game.indoors);
+      formatter.AddField("link_x", game_state_or->link.x);
+      formatter.AddField("link_y", game_state_or->link.y);
+      formatter.AddField("health", game_state_or->items.current_health);
+    }
+  }
   formatter.AddField("status", "ok");
-  formatter.AddField("goal", "break-at");
+  formatter.AddField("goal", goal);
   formatter.AddField("breakpoint_id", bp_id);
   formatter.AddHexField("target_pc", target_pc, 6);
   formatter.AddHexField("pc", session.pc, 6);

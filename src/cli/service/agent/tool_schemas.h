@@ -1207,11 +1207,23 @@ class ToolSchemaRegistry {
          .category = "mesen2",
          .description = "Read tracked autonomous emulator session state",
          .detailed_help =
-             "Returns the command-side session snapshot used for deterministic "
-             "automation: connection state, run/pause state, frame, last PC, "
-             "tracked breakpoints, and last action.",
-         .arguments = {},
-         .examples = {"z3ed mesen-session"},
+             "Returns or manages the command-side session snapshot used for "
+             "deterministic automation: connection state, run/pause state, "
+             "frame, last PC, tracked breakpoints, and last action.",
+         .arguments = {{.name = "action",
+                        .type = "string",
+                        .description =
+                            "Session action (default: show). export/import "
+                            "require --file",
+                        .required = false,
+                        .enum_values = {"show", "reset", "export", "import"}},
+                       {.name = "file",
+                        .type = "string",
+                        .description =
+                            "Session JSON path used by --action=export/import",
+                        .required = false}},
+         .examples = {"z3ed mesen-session", "z3ed mesen-session --action=reset",
+                      "z3ed mesen-session --action=export --file=/tmp/s.json"},
          .requires_rom = false,
          .requires_grpc = true,
          .related_tools = {"mesen-await", "mesen-goal", "mesen-control"}});
@@ -1263,17 +1275,24 @@ class ToolSchemaRegistry {
          .category = "mesen2",
          .description = "Execute deterministic emulator control macros",
          .detailed_help =
-             "Runs atomic multi-step workflows for debugging. Current goal: "
-             "break-at (pause, add breakpoint, resume, wait for hit, pause, "
-             "cleanup).",
+             "Runs atomic multi-step workflows for debugging: break-at "
+             "(pause, add breakpoint, resume, wait for hit, pause, cleanup), "
+             "run-frames (advance by N frames), and capture-state-at-pc "
+             "(break-at plus game state capture).",
          .arguments = {{.name = "goal",
                         .type = "string",
                         .description = "Goal macro name",
                         .required = true,
-                        .enum_values = {"break-at"}},
+                        .enum_values = {"break-at", "run-frames",
+                                        "capture-state-at-pc"}},
                        {.name = "address",
                         .type = "hex",
-                        .description = "Target PC for break-at",
+                        .description =
+                            "Target PC for break-at/capture-state-at-pc",
+                        .required = false},
+                       {.name = "count",
+                        .type = "number",
+                        .description = "Frame count for run-frames",
                         .required = false},
                        {.name = "timeout-ms",
                         .type = "number",
@@ -1285,7 +1304,10 @@ class ToolSchemaRegistry {
                         .description = "Polling interval in milliseconds",
                         .required = false,
                         .default_value = "25"}},
-         .examples = {"z3ed mesen-goal --goal=break-at --address=0x008000"},
+         .examples = {"z3ed mesen-goal --goal=break-at --address=0x008000",
+                      "z3ed mesen-goal --goal=run-frames --count=120",
+                      "z3ed mesen-goal --goal=capture-state-at-pc "
+                      "--address=0x028000"},
          .requires_rom = false,
          .requires_grpc = true,
          .related_tools = {"mesen-await", "mesen-breakpoint",

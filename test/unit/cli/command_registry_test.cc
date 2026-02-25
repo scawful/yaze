@@ -109,11 +109,16 @@ TEST(CommandRegistryTest, MesenAutonomyCommandsExposeUsage) {
   EXPECT_THAT(await_help, ::testing::HasSubstr("--timeout-ms"));
 
   const std::string goal_help = registry.GenerateHelp("mesen-goal");
-  EXPECT_THAT(goal_help, ::testing::HasSubstr("--goal break-at"));
+  EXPECT_THAT(
+      goal_help,
+      ::testing::HasSubstr("--goal <break-at|run-frames|capture-state-at-pc>"));
   EXPECT_THAT(goal_help, ::testing::HasSubstr("--address <hex>"));
+  EXPECT_THAT(goal_help, ::testing::HasSubstr("--count <n>"));
 
   const std::string session_help = registry.GenerateHelp("mesen-session");
-  EXPECT_THAT(session_help, ::testing::HasSubstr("mesen-session"));
+  EXPECT_THAT(session_help, ::testing::HasSubstr(
+                                "mesen-session [--action "
+                                "<show|reset|export|import>] [--file <path>]"));
 }
 
 }  // namespace
