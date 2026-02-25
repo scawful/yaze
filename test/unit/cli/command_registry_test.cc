@@ -119,6 +119,16 @@ TEST(CommandRegistryTest, MesenAutonomyCommandsExposeUsage) {
   EXPECT_THAT(session_help, ::testing::HasSubstr(
                                 "mesen-session [--action "
                                 "<show|reset|export|import>] [--file <path>]"));
+
+  const std::string verify_help = registry.GenerateHelp("mesen-state-verify");
+  EXPECT_THAT(verify_help,
+              ::testing::HasSubstr(
+                  "mesen-state-verify --state <path> --rom-file <path>"));
+
+  const std::string regen_help = registry.GenerateHelp("mesen-state-regen");
+  EXPECT_THAT(regen_help, ::testing::HasSubstr(
+                              "mesen-state-regen --state <path> --rom-file "
+                              "<path>"));
 }
 
 }  // namespace
