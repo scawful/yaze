@@ -24,6 +24,7 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
@@ -42,7 +43,8 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset) {
       R"({"version":1,"rooms":[{"room_id":"0x%02X","tiles":[[%d,184]]}]})",
       room_id, offset);
   auto tmp = (std::filesystem::temp_directory_path() /
-              "yaze_smoke_inject_collision.json").string();
+              "yaze_smoke_inject_collision.json")
+                 .string();
   {
     std::ofstream f(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
     f << body;
@@ -58,7 +60,8 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset) {
 // indent_level > 0 (from inside Execute()).
 const json& GetSmoke(const json& doc) {
   static const json kEmpty = json::object();
-  if (!doc.contains("Oracle Smoke Check")) return kEmpty;
+  if (!doc.contains("Oracle Smoke Check"))
+    return kEmpty;
   return doc.at("Oracle Smoke Check");
 }
 
@@ -90,8 +93,7 @@ TEST(OracleSmokeCheckTest, SmallRomFailsStructuralAndSkipsReadiness) {
   // HasCustomCollisionWriteSupport (readiness checks skipped).
   // required_rooms_ok must NOT appear; required_rooms_check must be "skipped".
   Rom rom;
-  ASSERT_TRUE(
-      rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -112,8 +114,7 @@ TEST(OracleSmokeCheckTest, SmallRomFailsStructuralAndSkipsReadiness) {
   EXPECT_FALSE(d4_check.value("structural_ok", true));
 
   // Readiness check was skipped — field must say "skipped" not "ran".
-  EXPECT_EQ(d4_check.value("required_rooms_check", ""),
-            std::string("skipped"));
+  EXPECT_EQ(d4_check.value("required_rooms_check", ""), std::string("skipped"));
 
   // required_rooms_ok must NOT be present when check was skipped.
   EXPECT_FALSE(d4_check.contains("required_rooms_ok"))
@@ -149,9 +150,8 @@ TEST(OracleSmokeCheckTest, StrictReadinessFailsOnBlankRom) {
   EXPECT_FALSE(smoke.value("ok", true));
   EXPECT_TRUE(smoke.value("strict_readiness", false));
   // d4 structural still passes; required rooms fail
-  const auto& d4 =
-      smoke.value("checks", json::object())
-          .value("d4_zora_temple", json::object());
+  const auto& d4 = smoke.value("checks", json::object())
+                       .value("d4_zora_temple", json::object());
   EXPECT_TRUE(d4.value("structural_ok", false));
   EXPECT_FALSE(d4.value("required_rooms_ok", true));
 }
@@ -181,8 +181,8 @@ TEST(OracleSmokeCheckTest, StrictReadinessPassesWhenAllRoomsHaveCollision) {
   const auto& checks = smoke.value("checks", json::object());
   EXPECT_TRUE(checks.value("d4_zora_temple", json::object())
                   .value("required_rooms_ok", false));
-  EXPECT_TRUE(checks.value("d3_kalyxo_castle", json::object())
-                  .value("ok", false));
+  EXPECT_TRUE(
+      checks.value("d3_kalyxo_castle", json::object()).value("ok", false));
 }
 
 // ---------------------------------------------------------------------------
@@ -262,22 +262,22 @@ TEST(OracleSmokeCheckTest, ReportWriteFailsOnUnwritablePathWithEmptyStdout) {
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
   const auto status = handler.Run(
-      {"--report", "/nonexistent_yaze_dir/smoke.json", "--format=json"},
-      &rom, &out);
+      {"--report", "/nonexistent_yaze_dir/smoke.json", "--format=json"}, &rom,
+      &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied);
   // stdout must be empty — probe fires in ValidateArgs, before formatter opens.
-  EXPECT_TRUE(out.empty())
-      << "Expected empty stdout on PermissionDenied: " << out;
+  EXPECT_TRUE(out.empty()) << "Expected empty stdout on PermissionDenied: "
+                           << out;
 }
 
 TEST(OracleSmokeCheckTest, ReportWriteSucceedsAndContainsAllCheckKeys) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
 
-  const auto report_path =
-      (std::filesystem::temp_directory_path() /
-       "yaze_oracle_smoke_check_report.json").string();
+  const auto report_path = (std::filesystem::temp_directory_path() /
+                            "yaze_oracle_smoke_check_report.json")
+                               .string();
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -288,6 +288,7 @@ TEST(OracleSmokeCheckTest, ReportWriteSucceedsAndContainsAllCheckKeys) {
   std::ifstream report_file(report_path);
   const json report = json::parse(report_file, nullptr, false);
   ASSERT_FALSE(report.is_discarded());
+  report_file.close();
 
   // Report file uses flat nlohmann::json (not nested by formatter).
   EXPECT_TRUE(report.contains("ok"));
@@ -297,7 +298,8 @@ TEST(OracleSmokeCheckTest, ReportWriteSucceedsAndContainsAllCheckKeys) {
   EXPECT_TRUE(report.at("checks").contains("d6_goron_mines"));
   EXPECT_TRUE(report.at("checks").contains("d3_kalyxo_castle"));
 
-  std::filesystem::remove(report_path);
+  std::error_code cleanup_ec;
+  std::filesystem::remove(report_path, cleanup_ec);
 }
 
 // ---------------------------------------------------------------------------
@@ -308,8 +310,7 @@ TEST(OracleSmokeCheckTest, StructuralFailureMessageSaysStructural) {
   // A small ROM fails structurally. Even if --strict-readiness is set, the
   // error message must say "(structural)", not "(strict-readiness)".
   Rom rom;
-  ASSERT_TRUE(
-      rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kSmallRomSize, 0)).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -404,8 +405,7 @@ TEST(OracleSmokeCheckTest,
   const auto status =
       handler.Run({"--min-d6-track-rooms=999", "--format=json"}, &rom, &out);
   ASSERT_FALSE(status.ok());
-  EXPECT_THAT(std::string(status.message()),
-              ::testing::HasSubstr("structural"))
+  EXPECT_THAT(std::string(status.message()), ::testing::HasSubstr("structural"))
       << "D6 threshold miss must be attributed to structural: "
       << status.message();
 }
@@ -422,8 +422,8 @@ TEST(OracleSmokeCheckTest, MinD6TrackRoomsNegativeIsRejectedInValidateArgs) {
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
   // stdout must be empty — error fires in ValidateArgs before formatter opens.
-  EXPECT_TRUE(out.empty())
-      << "Expected empty stdout on InvalidArgument: " << out;
+  EXPECT_TRUE(out.empty()) << "Expected empty stdout on InvalidArgument: "
+                           << out;
 }
 
 }  // namespace

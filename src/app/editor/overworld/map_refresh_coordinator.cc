@@ -37,12 +37,10 @@ void MapRefreshCoordinator::RefreshChildMap(int map_index) {
   PRINT_IF_ERROR(*ctx_.status);
   *ctx_.status =
       ctx_.overworld->mutable_overworld_map(map_index)->BuildTiles16Gfx(
-          *ctx_.overworld->mutable_tiles16(),
-          ctx_.overworld->tiles16().size());
+          *ctx_.overworld->mutable_tiles16(), ctx_.overworld->tiles16().size());
   PRINT_IF_ERROR(*ctx_.status);
-  *ctx_.status =
-      ctx_.overworld->mutable_overworld_map(map_index)->BuildBitmap(
-          ctx_.overworld->GetMapTiles(*ctx_.current_world));
+  *ctx_.status = ctx_.overworld->mutable_overworld_map(map_index)->BuildBitmap(
+      ctx_.overworld->GetMapTiles(*ctx_.current_world));
   (*ctx_.maps_bmp)[map_index].set_data(
       ctx_.overworld->mutable_overworld_map(map_index)->bitmap_data());
   (*ctx_.maps_bmp)[map_index].set_modified(true);
@@ -118,8 +116,7 @@ void MapRefreshCoordinator::RefreshChildMapOnDemand(int map_index) {
     }
 
     // Rebuild bitmap
-    status = map->BuildBitmap(
-        ctx_.overworld->GetMapTiles(*ctx_.current_world));
+    status = map->BuildBitmap(ctx_.overworld->GetMapTiles(*ctx_.current_world));
     if (!status.ok()) {
       LOG_ERROR("MapRefreshCoordinator",
                 "Failed to build bitmap for map %d: %s", map_index,
@@ -141,12 +138,10 @@ void MapRefreshCoordinator::RefreshChildMapOnDemand(int map_index) {
     // Queue texture update to ensure changes are visible
     if ((*ctx_.maps_bmp)[map_index].texture()) {
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::UPDATE,
-          &(*ctx_.maps_bmp)[map_index]);
+          gfx::Arena::TextureCommandType::UPDATE, &(*ctx_.maps_bmp)[map_index]);
     } else {
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE,
-          &(*ctx_.maps_bmp)[map_index]);
+          gfx::Arena::TextureCommandType::CREATE, &(*ctx_.maps_bmp)[map_index]);
     }
   }
 
@@ -267,7 +262,8 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
 
       // Direct refresh for visible siblings
       auto* sibling_map = ctx_.overworld->mutable_overworld_map(sibling);
-      if (!sibling_map) continue;
+      if (!sibling_map)
+        continue;
 
       sibling_map->LoadAreaGraphics();
 
@@ -279,9 +275,8 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
         continue;
       }
 
-      status = sibling_map->BuildTiles16Gfx(
-          *ctx_.overworld->mutable_tiles16(),
-          ctx_.overworld->tiles16().size());
+      status = sibling_map->BuildTiles16Gfx(*ctx_.overworld->mutable_tiles16(),
+                                            ctx_.overworld->tiles16().size());
       if (!status.ok()) {
         LOG_ERROR("MapRefreshCoordinator",
                   "Failed to build tiles16 for sibling %d: %s", sibling,
@@ -319,8 +314,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
       // Queue texture update/creation
       if ((*ctx_.maps_bmp)[sibling].texture()) {
         gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::UPDATE,
-            &(*ctx_.maps_bmp)[sibling]);
+            gfx::Arena::TextureCommandType::UPDATE, &(*ctx_.maps_bmp)[sibling]);
       } else {
         if (ctx_.ensure_map_texture) {
           ctx_.ensure_map_texture(sibling);
@@ -334,8 +328,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
 absl::Status MapRefreshCoordinator::RefreshMapPalette() {
   auto* current_map = ctx_.overworld->mutable_overworld_map(*ctx_.current_map);
   if (!current_map) {
-    return absl::FailedPreconditionError(
-        "Current overworld map not loaded");
+    return absl::FailedPreconditionError("Current overworld map not loaded");
   }
   RETURN_IF_ERROR(current_map->LoadPalette());
   const auto current_map_palette = ctx_.overworld->current_area_palette();
@@ -386,8 +379,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
 
       // Update palette for all siblings - each uses its own loaded palette
       for (int sibling_index : sibling_maps) {
-        if (sibling_index < 0 ||
-            sibling_index >= zelda3::kNumOverworldMaps) {
+        if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
           continue;
         }
         auto* sibling_map =
@@ -409,7 +401,8 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
       // We need to update the map and its siblings if it's a large map
       for (int i = 1; i < 4; i++) {
         int sibling_index = current_map->parent() + i;
-        if (i >= 2) sibling_index += 6;
+        if (i >= 2)
+          sibling_index += 6;
         auto* sibling_map =
             ctx_.overworld->mutable_overworld_map(sibling_index);
         if (!sibling_map) {
@@ -439,8 +432,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
 
 void MapRefreshCoordinator::ForceRefreshGraphics(int map_index) {
   // Mark the bitmap as modified to force refresh on next update
-  if (map_index >= 0 &&
-      map_index < static_cast<int>(ctx_.maps_bmp->size())) {
+  if (map_index >= 0 && map_index < static_cast<int>(ctx_.maps_bmp->size())) {
     (*ctx_.maps_bmp)[map_index].set_modified(true);
 
     // Clear blockset cache
@@ -457,8 +449,7 @@ void MapRefreshCoordinator::ForceRefreshGraphics(int map_index) {
 
 void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
                                                       bool include_self) {
-  if (map_index < 0 ||
-      map_index >= static_cast<int>(ctx_.maps_bmp->size())) {
+  if (map_index < 0 || map_index >= static_cast<int>(ctx_.maps_bmp->size())) {
     return;
   }
 
@@ -503,8 +494,7 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
       RefreshChildMapOnDemand(sibling);
 
       LOG_DEBUG("MapRefreshCoordinator",
-                "RefreshSiblingMapGraphics: Refreshed sibling map %d",
-                sibling);
+                "RefreshSiblingMapGraphics: Refreshed sibling map %d", sibling);
     }
   }
 }
@@ -547,20 +537,16 @@ void MapRefreshCoordinator::RefreshMapProperties() {
 
       // Copy properties from parent map to all siblings
       for (int sibling_index : sibling_maps) {
-        if (sibling_index < 0 ||
-            sibling_index >= zelda3::kNumOverworldMaps) {
+        if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
           continue;
         }
-        auto& map =
-            *ctx_.overworld->mutable_overworld_map(sibling_index);
+        auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
         map.set_area_graphics(current_ow_map.area_graphics());
         map.set_area_palette(current_ow_map.area_palette());
         map.set_sprite_graphics(
-            *ctx_.game_state,
-            current_ow_map.sprite_graphics(*ctx_.game_state));
-        map.set_sprite_palette(
-            *ctx_.game_state,
-            current_ow_map.sprite_palette(*ctx_.game_state));
+            *ctx_.game_state, current_ow_map.sprite_graphics(*ctx_.game_state));
+        map.set_sprite_palette(*ctx_.game_state,
+                               current_ow_map.sprite_palette(*ctx_.game_state));
         map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
@@ -576,16 +562,13 @@ void MapRefreshCoordinator::RefreshMapProperties() {
         if (i >= 2) {
           sibling_index += 6;
         }
-        auto& map =
-            *ctx_.overworld->mutable_overworld_map(sibling_index);
+        auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
         map.set_area_graphics(current_ow_map.area_graphics());
         map.set_area_palette(current_ow_map.area_palette());
         map.set_sprite_graphics(
-            *ctx_.game_state,
-            current_ow_map.sprite_graphics(*ctx_.game_state));
-        map.set_sprite_palette(
-            *ctx_.game_state,
-            current_ow_map.sprite_palette(*ctx_.game_state));
+            *ctx_.game_state, current_ow_map.sprite_graphics(*ctx_.game_state));
+        map.set_sprite_palette(*ctx_.game_state,
+                               current_ow_map.sprite_palette(*ctx_.game_state));
         map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
@@ -623,14 +606,12 @@ absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   if (ctx_.tile16_blockset->atlas.texture() &&
       ctx_.tile16_blockset->atlas.is_active()) {
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE,
-        &ctx_.tile16_blockset->atlas);
+        gfx::Arena::TextureCommandType::UPDATE, &ctx_.tile16_blockset->atlas);
   } else if (!ctx_.tile16_blockset->atlas.texture() &&
              ctx_.tile16_blockset->atlas.is_active()) {
     // Create texture if it doesn't exist yet
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE,
-        &ctx_.tile16_blockset->atlas);
+        gfx::Arena::TextureCommandType::CREATE, &ctx_.tile16_blockset->atlas);
   }
 
   return absl::OkStatus();
@@ -683,8 +664,7 @@ void MapRefreshCoordinator::UpdateBlocksetWithPendingTileChanges() {
     int tile_y = (tile_id / kTilesPerRow) * kTileSize;
 
     // Validate tile position is within atlas bounds
-    if (tile_x + kTileSize > atlas_width ||
-        tile_y + kTileSize > atlas_height) {
+    if (tile_x + kTileSize > atlas_width || tile_y + kTileSize > atlas_height) {
       continue;
     }
 
@@ -697,8 +677,7 @@ void MapRefreshCoordinator::UpdateBlocksetWithPendingTileChanges() {
         int atlas_idx = (tile_y + y) * atlas_width + (tile_x + x);
         int pending_idx = y * pending_bmp->width() + x;
 
-        if (atlas_idx >= 0 &&
-            atlas_idx < static_cast<int>(atlas_data.size()) &&
+        if (atlas_idx >= 0 && atlas_idx < static_cast<int>(atlas_data.size()) &&
             pending_idx >= 0 &&
             pending_idx < static_cast<int>(pending_data.size())) {
           atlas_data[atlas_idx] = pending_data[pending_idx];
@@ -712,8 +691,7 @@ void MapRefreshCoordinator::UpdateBlocksetWithPendingTileChanges() {
   if (atlas_modified && ctx_.tile16_blockset->atlas.texture()) {
     ctx_.tile16_blockset->atlas.set_modified(true);
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE,
-        &ctx_.tile16_blockset->atlas);
+        gfx::Arena::TextureCommandType::UPDATE, &ctx_.tile16_blockset->atlas);
   }
 }
 

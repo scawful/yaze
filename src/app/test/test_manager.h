@@ -29,7 +29,13 @@ class EditorManager;
 }  // namespace yaze
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#if __has_include("imgui_test_engine/imgui_te_engine.h")
 #include "imgui_test_engine/imgui_te_engine.h"
+#elif __has_include("imgui_te_engine.h")
+#include "imgui_te_engine.h"
+#else
+#error "ImGui Test Engine headers not found"
+#endif
 #else
 // Forward declaration when ImGui Test Engine is not available
 struct ImGuiTestEngine;

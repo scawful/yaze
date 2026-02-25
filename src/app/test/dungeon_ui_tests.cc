@@ -3,8 +3,21 @@
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 
 #include "imgui.h"
+#if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
+#elif __has_include("imgui_te_context.h")
+#include "imgui_te_context.h"
+#else
+#error "ImGui Test Engine context header not found"
+#endif
+
+#if __has_include("imgui_test_engine/imgui_te_engine.h")
 #include "imgui_test_engine/imgui_te_engine.h"
+#elif __has_include("imgui_te_engine.h")
+#include "imgui_te_engine.h"
+#else
+#error "ImGui Test Engine engine header not found"
+#endif
 
 namespace yaze::test {
 
