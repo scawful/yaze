@@ -30,52 +30,7 @@ namespace zelda3 {
 class DungeonState;
 class RoomLayerManager;
 
-// ROM addresses moved to dungeon_rom_addresses.h for better organization
-// Use kPrefixedNames for new code (clean naming convention)
-
-// Legacy aliases for backward compatibility (gradual migration)
-constexpr int room_object_layout_pointer = kRoomObjectLayoutPointer;
-constexpr int room_object_pointer = kRoomObjectPointer;
-constexpr int dungeons_main_bg_palette_pointers =
-    kDungeonsMainBgPalettePointers;
-constexpr int dungeons_palettes = kDungeonsPalettes;
-constexpr int room_items_pointers = kRoomItemsPointers;
-constexpr int rooms_sprite_pointer = kRoomsSpritePointer;
-constexpr int gfx_groups_pointer = kGfxGroupsPointer;
-constexpr int chests_length_pointer = kChestsLengthPointer;
-constexpr int chests_data_pointer1 = kChestsDataPointer1;
-constexpr int messages_id_dungeon = kMessagesIdDungeon;
-constexpr int blocks_length = kBlocksLength;
-constexpr int blocks_pointer1 = kBlocksPointer1;
-constexpr int blocks_pointer2 = kBlocksPointer2;
-constexpr int blocks_pointer3 = kBlocksPointer3;
-constexpr int blocks_pointer4 = kBlocksPointer4;
-constexpr int torch_data = kTorchData;
-constexpr int torches_length_pointer = kTorchesLengthPointer;
-constexpr int sprite_blockset_pointer = kSpriteBlocksetPointer;
-constexpr int sprites_data = kSpritesData;
-constexpr int sprites_data_empty_room = kSpritesDataEmptyRoom;
-constexpr int sprites_end_data = kSpritesEndData;
-constexpr int pit_pointer = kPitPointer;
-constexpr int pit_count = kPitCount;
-constexpr int doorPointers = kDoorPointers;
-constexpr int door_gfx_up = kDoorGfxUp;
-constexpr int door_gfx_down = kDoorGfxDown;
-constexpr int door_gfx_cavexit_down = kDoorGfxCaveExitDown;
-constexpr int door_gfx_left = kDoorGfxLeft;
-constexpr int door_gfx_right = kDoorGfxRight;
-constexpr int door_pos_up = kDoorPosUp;
-constexpr int door_pos_down = kDoorPosDown;
-constexpr int door_pos_left = kDoorPosLeft;
-constexpr int door_pos_right = kDoorPosRight;
-constexpr int dungeon_spr_ptrs = kDungeonSpritePointers;
-constexpr int tile_address = kTileAddress;
-constexpr int tile_address_floor = kTileAddressFloor;
-constexpr int NumberOfRooms = kNumberOfRooms;
-constexpr uint16_t stairsObjects[] = {0x139, 0x138, 0x13B, 0x12E, 0x12D};
-
-// TODO: Gradually migrate all code to use kPrefixedNames directly
-// Then remove these legacy aliases
+// ROM addresses defined in dungeon_rom_addresses.h (use kPrefixed names)
 
 struct LayerMergeType {
   uint8_t ID;
@@ -377,19 +332,19 @@ class Room {
 
   // Performance optimization: Mark objects as dirty when modified
   void MarkObjectsDirty() {
-    objects_dirty_ = true;
-    textures_dirty_ = true;
-    composite_dirty_ = true;
+    dirty_state_.objects = true;
+    dirty_state_.textures = true;
+    dirty_state_.composite = true;
   }
   void MarkGraphicsDirty() {
-    graphics_dirty_ = true;
-    textures_dirty_ = true;
-    composite_dirty_ = true;
+    dirty_state_.graphics = true;
+    dirty_state_.textures = true;
+    dirty_state_.composite = true;
   }
   void MarkLayoutDirty() {
-    layout_dirty_ = true;
-    textures_dirty_ = true;
-    composite_dirty_ = true;
+    dirty_state_.layout = true;
+    dirty_state_.textures = true;
+    dirty_state_.composite = true;
   }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
@@ -517,21 +472,21 @@ class Room {
   void SetBg2(background2 bg2) { bg2_ = bg2; }
   void SetCollision(CollisionKey collision) { collision_ = collision; }
   void SetIsLight(bool is_light) { is_light_ = is_light; }
-  void SetPalette(uint8_t palette) {
-    if (this->palette != palette) {
-      this->palette = palette;
+  void SetPalette(uint8_t pal) {
+    if (palette_ != pal) {
+      palette_ = pal;
       MarkGraphicsDirty();
     }
   }
-  void SetBlockset(uint8_t blockset) {
-    if (this->blockset != blockset) {
-      this->blockset = blockset;
+  void SetBlockset(uint8_t bs) {
+    if (blockset_ != bs) {
+      blockset_ = bs;
       MarkGraphicsDirty();
     }
   }
-  void SetSpriteset(uint8_t spriteset) {
-    if (this->spriteset != spriteset) {
-      this->spriteset = spriteset;
+  void SetSpriteset(uint8_t ss) {
+    if (spriteset_ != ss) {
+      spriteset_ = ss;
       MarkGraphicsDirty();
     }
   }
@@ -557,24 +512,23 @@ class Room {
     if (index >= 0 && index < 4)
       staircase_plane_[index] = plane;
   }
-  void SetHolewarp(uint8_t holewarp) { this->holewarp = holewarp; }
+  void SetHolewarp(uint8_t hw) { holewarp_ = hw; }
   void SetStaircaseRoom(int index, uint8_t room) {
     if (index >= 0 && index < 4)
       staircase_rooms_[index] = room;
   }
   // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead
   // (defined above)
-  void SetMessageId(uint16_t message_id) { message_id_ = message_id; }
+  void SetMessageId(uint16_t mid) { message_id_ = mid; }
 
   // Getters for LoadRoomFromRom function
   bool IsLight() const { return is_light_; }
 
   // Additional setters for LoadRoomFromRom function
-  void SetMessageIdDirect(uint16_t message_id) { message_id_ = message_id; }
+  void SetMessageIdDirect(uint16_t mid) { message_id_ = mid; }
   void SetLayer2Mode(uint8_t mode) { layer2_mode_ = mode; }
   void SetLayerMerging(LayerMergeType merging) { layer_merging_ = merging; }
   void SetIsDark(bool is_dark) { is_dark_ = is_dark; }
-  void SetPaletteDirect(uint8_t palette) { palette_ = palette; }
   void SetBackgroundTileset(uint8_t tileset) { background_tileset_ = tileset; }
   void SetSpriteTileset(uint8_t tileset) { sprite_tileset_ = tileset; }
   void SetLayer2Behavior(uint8_t behavior) { layer2_behavior_ = behavior; }
@@ -611,16 +565,23 @@ class Room {
 
   int id() const { return room_id_; }
 
-  uint8_t blockset = 0;
-  uint8_t spriteset = 0;
-  uint8_t palette = 0;
-  uint8_t layout = 0;
-  uint8_t holewarp = 0;
-  // NOTE: floor1/floor2 removed - use floor1() and floor2() accessors instead
-  // Floor graphics are now private (floor1_graphics_, floor2_graphics_)
-  uint16_t message_id_ = 0;
+  // Room header property accessors
+  uint8_t blockset() const { return blockset_; }
+  uint8_t spriteset() const { return spriteset_; }
+  uint8_t palette() const { return palette_; }
+  uint8_t layout_id() const { return layout_id_; }
+  uint8_t holewarp() const { return holewarp_; }
+  uint16_t message_id() const { return message_id_; }
 
-  // Floor graphics accessors (use these instead of direct members!)
+  // Layout ID setter (marks dirty)
+  void SetLayoutId(uint8_t id) {
+    if (layout_id_ != id) {
+      layout_id_ = id;
+      MarkLayoutDirty();
+    }
+  }
+
+  // Floor graphics accessors
   uint8_t floor1() const { return floor1_graphics_; }
   uint8_t floor2() const { return floor2_graphics_; }
   void set_floor1(uint8_t value) {
@@ -680,8 +641,8 @@ class Room {
   const gfx::Bitmap& composite_bitmap() const { return composite_bitmap_; }
 
   /// Mark composite bitmap as needing regeneration
-  void MarkCompositeDirty() { composite_dirty_ = true; }
-  bool IsCompositeDirty() const { return composite_dirty_; }
+  void MarkCompositeDirty() { dirty_state_.composite = true; }
+  bool IsCompositeDirty() const { return dirty_state_.composite; }
 
   DungeonState* GetDungeonState() { return dungeon_state_.get(); }
 
@@ -698,9 +659,17 @@ class Room {
   gfx::BackgroundBuffer object_bg1_buffer_{512, 512};
   gfx::BackgroundBuffer object_bg2_buffer_{512, 512};
 
+  struct DirtyState {
+    bool graphics = true;
+    bool objects = true;
+    bool layout = true;
+    bool textures = true;
+    bool composite = true;
+  };
+
   // Composite bitmap for merged layer output
   mutable gfx::Bitmap composite_bitmap_;
-  mutable bool composite_dirty_ = true;
+  DirtyState dirty_state_;
 
   bool is_light_;
   bool is_loaded_ = false;
@@ -719,22 +688,23 @@ class Room {
   TagKey cached_tag1_ = TagKey::Nothing;
   TagKey cached_tag2_ = TagKey::Nothing;
 
-  // Dirty flags for selective rendering
-  bool graphics_dirty_ = true;
-  bool objects_dirty_ = true;
-  bool layout_dirty_ = true;
-  bool textures_dirty_ = true;
-
   int room_id_ = 0;
   int animated_frame_ = 0;
 
   uint8_t staircase_plane_[4];
   uint8_t staircase_rooms_[4];
 
+  // Room header properties (formerly public)
+  uint8_t blockset_ = 0;
+  uint8_t spriteset_ = 0;
+  uint8_t palette_ = 0;
+  uint8_t layout_id_ = 0;
+  uint8_t holewarp_ = 0;
+  uint16_t message_id_ = 0;
+
   uint8_t background_tileset_;
   uint8_t sprite_tileset_;
   uint8_t layer2_behavior_;
-  uint8_t palette_;
   uint8_t floor1_graphics_;
   uint8_t floor2_graphics_;
   uint8_t layer2_mode_;

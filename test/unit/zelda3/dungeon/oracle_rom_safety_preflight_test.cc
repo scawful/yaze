@@ -4,11 +4,13 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
 
+#include "cli/handlers/game/dungeon_collision_commands.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -79,6 +81,92 @@ TEST(OracleRomSafetyPreflightTest,
   const auto result = RunOracleRomSafetyPreflight(&rom, options);
   EXPECT_FALSE(result.ok());
   EXPECT_TRUE(HasErrorCode(result, "ORACLE_COLLISION_POINTER_INVALID"));
+}
+
+// ---------------------------------------------------------------------------
+// Prison-room entity preflight tests
+//
+// These tests verify the room_ids_requiring_custom_collision check, which
+// unblocks D3 Kalyxo Castle prison sequence validation. A room that is listed
+// as required must have non-empty authored collision data; if it is empty or
+// has an invalid pointer, the preflight reports
+// "ORACLE_REQUIRED_ROOM_MISSING_COLLISION".
+// ---------------------------------------------------------------------------
+
+TEST(OracleRomSafetyPreflightTest,
+     SucceedsWhenRequiredRoomHasCollisionData) {
+  // Import stop-tile data into room 0x32 (D3 prison entrance) then verify
+  // the required-room check passes.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  // Write a valid WaterFill table header so the main preflight doesn't fail.
+  // (zone_count = 0, table is empty but structurally valid.)
+  ASSERT_TRUE(rom.WriteByte(kWaterFillTableStart, 0).ok());
+
+  // Use the import handler to write custom collision for room 0x32.
+  // Offset 100 = y=1, x=36 in the 64x64 collision grid.
+  {
+    const std::string json =
+        R"({"version":1,"rooms":[{"room_id":"0x32","tiles":[[100,184]]}]})";
+    const auto tmp = (std::filesystem::temp_directory_path() /
+                      "yaze_prison_preflight_ok.json").string();
+    std::ofstream out_file(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
+    out_file << json;
+    out_file.close();
+
+    yaze::cli::handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+    std::string out;
+    ASSERT_TRUE(handler.Run({"--in", tmp, "--format=json"}, &rom, &out).ok());
+    std::filesystem::remove(tmp);
+  }
+
+  OracleRomSafetyPreflightOptions options;
+  options.require_water_fill_reserved_region = false;
+  options.validate_water_fill_table = false;
+  options.validate_custom_collision_maps = false;
+  options.room_ids_requiring_custom_collision = {0x32};
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_TRUE(result.ok())
+      << (result.errors.empty() ? "" : result.errors[0].message);
+}
+
+TEST(OracleRomSafetyPreflightTest,
+     FailsWhenRequiredRoomHasNoCollisionData) {
+  // Room 0x32 with no authored data → preflight must report
+  // ORACLE_REQUIRED_ROOM_MISSING_COLLISION.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.require_water_fill_reserved_region = false;
+  options.validate_water_fill_table = false;
+  options.validate_custom_collision_maps = false;
+  options.room_ids_requiring_custom_collision = {0x32};
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_FALSE(result.ok());
+  EXPECT_TRUE(HasErrorCode(result, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION"));
+}
+
+TEST(OracleRomSafetyPreflightTest,
+     EmptyRequiredRoomListSkipsCheck) {
+  // No required rooms → preflight must not add any MISSING_COLLISION errors.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.require_water_fill_reserved_region = false;
+  options.validate_water_fill_table = false;
+  options.validate_custom_collision_maps = false;
+  // room_ids_requiring_custom_collision left empty (default).
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_TRUE(result.ok());
+  for (const auto& err : result.errors) {
+    EXPECT_NE(err.code, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION");
+  }
 }
 
 // ---------------------------------------------------------------------------

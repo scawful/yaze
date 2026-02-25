@@ -7,7 +7,8 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/editor_manager.h"
+#include "app/editor/system/editor_manager_interfaces.h"
+#include "rom/rom.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
@@ -136,8 +137,8 @@ ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
 
 }  // namespace
 
-DashboardPanel::DashboardPanel(EditorManager* editor_manager)
-    : editor_manager_(editor_manager), window_("Dashboard", ICON_MD_DASHBOARD) {
+DashboardPanel::DashboardPanel(IEditorSwitcher* editor_switcher)
+    : editor_switcher_(editor_switcher), window_("Dashboard", ICON_MD_DASHBOARD) {
   window_.SetSaveSettings(false);
   window_.SetDefaultSize(950, 650);
   window_.SetPosition(gui::PanelWindow::Position::Center);
@@ -196,8 +197,8 @@ void DashboardPanel::Draw() {
       ImVec2(420.0f, 360.0f),
       ImVec2(view_size.x * 0.98f, view_size.y * 0.95f));
 
-  has_rom_ = editor_manager_ && editor_manager_->GetCurrentRom() &&
-             editor_manager_->GetCurrentRom()->is_loaded();
+  has_rom_ = editor_switcher_ && editor_switcher_->GetCurrentRom() &&
+             editor_switcher_->GetCurrentRom()->is_loaded();
 
   if (window_.Begin(&show_)) {
     DrawWelcomeHeader();
@@ -303,10 +304,10 @@ void DashboardPanel::DrawRecentEditors() {
       }
       if (ImGui::Button(absl::StrCat(it->icon, " ", it->name).c_str(),
                         button_size)) {
-        if (enabled && editor_manager_) {
+        if (enabled && editor_switcher_) {
           MarkRecentlyUsed(type);
-          editor_manager_->SwitchToEditor(type);
-          editor_manager_->DismissEditorSelection();
+          editor_switcher_->SwitchToEditor(type);
+          editor_switcher_->DismissEditorSelection();
           show_ = false;
         }
       }
@@ -570,10 +571,10 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
   }
 
   if (clicked && enabled) {
-    if (editor_manager_) {
+    if (editor_switcher_) {
       MarkRecentlyUsed(info.type);
-      editor_manager_->SwitchToEditor(info.type);
-      editor_manager_->DismissEditorSelection();
+      editor_switcher_->SwitchToEditor(info.type);
+      editor_switcher_->DismissEditorSelection();
       show_ = false;
     }
   }

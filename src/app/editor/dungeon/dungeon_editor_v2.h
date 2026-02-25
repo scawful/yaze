@@ -4,7 +4,6 @@
 #include <array>
 #include <cstdint>
 #include <deque>
-#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -25,7 +24,7 @@
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
 #include "dungeon_undo_actions.h"
-#include "dungeon_workbench_state.h"
+#include "util/lru_cache.h"
 #include "imgui/imgui.h"
 #include "panels/dungeon_room_graphics_panel.h"
 #include "panels/object_editor_panel.h"
@@ -112,10 +111,9 @@ class DungeonEditorV2 : public Editor {
     }
     // Note: Canvas viewer game data is set lazily in GetViewerForRoom
     // but we should update existing viewers
-    for (auto& [id, viewer] : room_viewers_) {
-      if (viewer)
-        viewer->SetGameData(game_data);
-    }
+    room_viewers_.ForEach([game_data](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+      if (viewer) viewer->SetGameData(game_data);
+    });
   }
 
   // Editor interface
@@ -144,12 +142,6 @@ class DungeonEditorV2 : public Editor {
     room_loader_ = DungeonRoomLoader(rom);
     room_selector_.SetRom(rom);
 
-    // Reset workbench UI state on ROM change.
-    workbench_previous_room_id_ = -1;
-    workbench_split_view_enabled_ = false;
-    workbench_compare_room_id_ = -1;
-    workbench_layout_state_ = DungeonWorkbenchLayoutState{};
-
     // Propagate ROM to all rooms
     if (rom) {
       for (auto& room : rooms_) {
@@ -158,8 +150,7 @@ class DungeonEditorV2 : public Editor {
     }
 
     // Reset viewers on ROM change
-    room_viewers_.clear();
-    viewer_lru_.clear();
+    room_viewers_.Clear();
 
     // Create render service if needed
     if (rom && rom->is_loaded() && !render_service_) {
@@ -289,11 +280,8 @@ class DungeonEditorV2 : public Editor {
   std::deque<int> recent_rooms_;
   std::vector<int> pinned_rooms_;
 
-  // Workbench-only UI state (persisted per ROM session).
-  int workbench_previous_room_id_ = -1;
-  bool workbench_split_view_enabled_ = false;
-  int workbench_compare_room_id_ = -1;
-  DungeonWorkbenchLayoutState workbench_layout_state_{};
+  // Workbench panel pointer (owned by PanelManager, stored for notifications).
+  class DungeonWorkbenchPanel* workbench_panel_ = nullptr;
 
   // Palette management
   gfx::SnesPalette current_palette_;
@@ -304,10 +292,8 @@ class DungeonEditorV2 : public Editor {
   // Components - these do all the work
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
-  // canvas_viewer_ removed in favor of room_viewers_
   static constexpr int kMaxCachedViewers = 20;
-  std::map<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_;
-  std::deque<int> viewer_lru_;  // LRU tracking (most recent at back)
+  util::LruCache<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_{kMaxCachedViewers};
   std::unique_ptr<DungeonCanvasViewer> workbench_viewer_;
   std::unique_ptr<DungeonCanvasViewer> workbench_compare_viewer_;
 
@@ -409,6 +395,12 @@ class DungeonEditorV2 : public Editor {
   // changes via the directional arrows.
   int GetOrCreateRoomPanelSlotId(int room_id);
   void ReleaseRoomPanelSlotId(int room_id);
+
+  // Defensive guard: returns true iff room_id is within the valid range
+  // [0, kNumberOfRooms). Use this instead of open-coded range checks.
+  static bool IsValidRoomId(int room_id) {
+    return room_id >= 0 && room_id < zelda3::kNumberOfRooms;
+  }
 };
 
 }  // namespace editor

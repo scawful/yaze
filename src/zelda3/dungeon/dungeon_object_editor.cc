@@ -57,7 +57,7 @@ absl::Status DungeonObjectEditor::LoadRoom(int room_id) {
     return absl::InvalidArgumentError("ROM is null");
   }
 
-  if (room_id < 0 || room_id >= NumberOfRooms) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
     return absl::InvalidArgumentError("Invalid room ID");
   }
 

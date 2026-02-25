@@ -9,7 +9,9 @@
 #include "imgui/imgui.h"
 
 // Project headers
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "zelda3/dungeon/dungeon_limits.h"
 
 namespace yaze::editor {
 
@@ -104,24 +106,51 @@ void SpriteInteractionHandler::DrawGhostPreview() {
   int snapped_y = (canvas_y / dungeon_coords::kSpriteTileSize) *
                   dungeon_coords::kSpriteTileSize;
 
+  auto* room = GetCurrentRoom();
+  size_t current_sprite_count = room ? room->GetSprites().size() : 0;
+  const bool at_sprite_limit = (current_sprite_count >= zelda3::kMaxTotalSprites);
+  const bool near_sprite_limit = (current_sprite_count >= zelda3::kMaxTotalSprites * 9 / 10);
+
   // Draw ghost rectangle for sprite preview
   ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
                   canvas_pos.y + snapped_y * scale);
   ImVec2 rect_max(rect_min.x + dungeon_coords::kSpriteTileSize * scale,
                   rect_min.y + dungeon_coords::kSpriteTileSize * scale);
 
-  // Semi-transparent green for sprites
-  ImU32 fill_color = IM_COL32(50, 200, 50, 100);
-  ImU32 outline_color = IM_COL32(50, 255, 50, 200);
+  const auto& theme = AgentUI::GetTheme();
+  ImVec4 fill_color = theme.status_success;
+  fill_color.w = 0.40f;
+  ImVec4 outline_color = theme.status_success;
+  outline_color.w = 0.85f;
+  if (at_sprite_limit) {
+    fill_color = theme.status_error;
+    fill_color.w = 0.40f;
+    outline_color = theme.status_error;
+    outline_color.w = 0.85f;
+  } else if (near_sprite_limit) {
+    fill_color = theme.status_warning;
+    fill_color.w = 0.40f;
+    outline_color = theme.status_warning;
+    outline_color.w = 0.85f;
+  }
 
-  canvas->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
-  canvas->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0,
-                               2.0f);
+  canvas->draw_list()->AddRectFilled(rect_min, rect_max,
+                                     ImGui::GetColorU32(fill_color));
+  canvas->draw_list()->AddRect(rect_min, rect_max, ImGui::GetColorU32(outline_color),
+                               0.0f, 0, 2.0f);
 
   // Draw sprite ID label
   std::string label = absl::StrFormat("%02X", preview_sprite_id_);
-  canvas->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255),
+  canvas->draw_list()->AddText(rect_min, ImGui::GetColorU32(theme.text_primary),
                                label.c_str());
+
+  // Capacity tooltip when at/near limit
+  if ((at_sprite_limit || near_sprite_limit) &&
+      ImGui::IsMouseHoveringRect(rect_min, rect_max)) {
+    ImGui::SetTooltip("Sprites: %zu/%zu%s", current_sprite_count, zelda3::kMaxTotalSprites,
+                      at_sprite_limit ? "\nPlacement blocked" : "\nNear limit");
+  }
+
 }
 
 void SpriteInteractionHandler::DrawSelectionHighlight() {
@@ -246,12 +275,24 @@ void SpriteInteractionHandler::DeleteSelected() {
 
 void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
                                                      int canvas_y) {
-  if (!HasValidContext())
+  if (!HasValidContext()) {
+    placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
     return;
+  }
 
   auto* room = GetCurrentRoom();
-  if (!room)
+  if (!room) {
+    placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
     return;
+  }
+
+  // Enforce sprite limit at placement time (matches DungeonValidator::kMaxTotalSprites).
+  if (room->GetSprites().size() >= zelda3::kMaxTotalSprites) {
+    placement_block_reason_ = PlacementBlockReason::kSpriteLimit;
+    return;
+  }
+
+  placement_block_reason_ = PlacementBlockReason::kNone;
 
   auto [sprite_x, sprite_y] = CanvasToSpriteCoords(canvas_x, canvas_y);
 
@@ -267,6 +308,7 @@ void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
 
   // Add sprite to room
   room->GetSprites().push_back(new_sprite);
+  TriggerSuccessToast();
 
   ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
 }

@@ -21,6 +21,7 @@ class GameData;
 namespace editor {
 class EditorPanel;
 class Editor;
+class GlobalEditorContext;
 struct EditorDependencies;
 
 /**
@@ -50,6 +51,16 @@ namespace ContentRegistry {
  * This replaces the need for panels to receive dependencies via constructor.
  */
 namespace Context {
+
+  /**
+   * @brief Set the backing GlobalEditorContext instance.
+   *
+   * When set, Context getters/setters delegate to this instance.
+   * Called once during EditorManager initialization.
+   * Pass nullptr to revert to standalone static storage.
+   */
+  void SetGlobalContext(::yaze::editor::GlobalEditorContext* ctx);
+
   /**
    * @brief Get the current ROM instance.
    * @return Pointer to the current ROM, or nullptr if not set.

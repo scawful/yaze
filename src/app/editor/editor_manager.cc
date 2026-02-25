@@ -135,16 +135,6 @@ std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
 }
 
-std::string NormalizeHash(std::string value) {
-  absl::AsciiStrToLower(&value);
-  if (absl::StartsWith(value, "0x")) {
-    value = value.substr(2);
-  }
-  value.erase(std::remove_if(value.begin(), value.end(),
-                             [](unsigned char c) { return std::isspace(c); }),
-              value.end());
-  return value;
-}
 
 bool HasAnyOverride(const core::RomAddressOverrides& overrides,
                     std::initializer_list<const char*> keys) {
@@ -498,6 +488,7 @@ EditorManager::EditorManager()
 
   // Initialize Core Context
   editor_context_ = std::make_unique<GlobalEditorContext>(event_bus_);
+  ContentRegistry::Context::SetGlobalContext(editor_context_.get());
   status_bar_.Initialize(editor_context_.get());
 
   InitializeSubsystems();
@@ -533,6 +524,16 @@ void EditorManager::InitializeSubsystems() {
   session_coordinator_->SetEventBus(&event_bus_);  // Enable event publishing
   ContentRegistry::Context::SetEventBus(
       &event_bus_);  // Global event bus access
+
+  // STEP 3.5: Initialize RomLifecycleManager (depends on popup_manager_,
+  // session_coordinator_, rom_file_manager_, toast_manager_)
+  rom_lifecycle_.Initialize({
+      .rom_file_manager = &rom_file_manager_,
+      .session_coordinator = session_coordinator_.get(),
+      .toast_manager = &toast_manager_,
+      .popup_manager = popup_manager_.get(),
+      .project = &current_project_,
+  });
 
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
   // session_coordinator_, panel_manager_)
@@ -2498,22 +2499,10 @@ absl::Status EditorManager::LoadRom() {
     ConfigureEditorDependencies(GetCurrentEditorSet(), GetCurrentRom(),
                                 GetCurrentSessionId());
     UpdateCurrentRomHash();
-    rom_file_manager_.SetBackupBeforeSave(
-        user_settings_.prefs().backup_before_save);
-    rom_file_manager_.SetBackupFolder("");
-    rom_file_manager_.SetBackupRetentionCount(20);
-    rom_file_manager_.SetBackupKeepDaily(true);
-    rom_file_manager_.SetBackupKeepDailyDays(14);
-    UpdateCurrentRomHash();
 
     core::RomSettings::Get().ClearOverrides();
     zelda3::CustomObjectManager::Get().ClearObjectFileMap();
-    rom_file_manager_.SetBackupBeforeSave(
-        user_settings_.prefs().backup_before_save);
-    rom_file_manager_.SetBackupFolder("");
-    rom_file_manager_.SetBackupRetentionCount(20);
-    rom_file_manager_.SetBackupKeepDaily(true);
-    rom_file_manager_.SetBackupKeepDailyDays(14);
+    ApplyDefaultBackupPolicy();
 
     // Keep ResourceLabelProvider in sync with the newly-active ROM session
     // before any editors/assets query room/sprite names.
@@ -2798,75 +2787,11 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
  * and the order in which they must be saved to maintain ROM integrity.
  */
 absl::Status EditorManager::CheckRomWritePolicy() {
-  if (!current_project_.project_opened()) {
-    return absl::OkStatus();
-  }
-
-  const auto policy = current_project_.rom_metadata.write_policy;
-  const auto expected =
-      NormalizeHash(current_project_.rom_metadata.expected_hash);
-  const auto actual = NormalizeHash(current_rom_hash_);
-
-  if (expected.empty() || actual.empty() || expected == actual) {
-    return absl::OkStatus();
-  }
-
-  if (policy == project::RomWritePolicy::kAllow) {
-    return absl::OkStatus();
-  }
-
-  if (policy == project::RomWritePolicy::kBlock) {
-    toast_manager_.Show(
-        "ROM write blocked: project expects a different ROM hash",
-        ToastType::kError);
-    return absl::PermissionDeniedError(
-        "ROM write blocked by project write policy");
-  }
-
-  if (!bypass_rom_write_confirm_once_) {
-    pending_rom_write_confirm_ = true;
-    if (popup_manager_) {
-      popup_manager_->Show(PopupID::kRomWriteConfirm);
-    }
-    toast_manager_.Show("ROM hash mismatch: confirmation required to save",
-                        ToastType::kWarning);
-    return absl::CancelledError("ROM write confirmation required");
-  }
-
-  return absl::OkStatus();
+  return rom_lifecycle_.CheckRomWritePolicy(GetCurrentRom());
 }
 
 absl::Status EditorManager::CheckOracleRomSafetyPreSave(Rom* rom) {
-  if (!rom || !rom->is_loaded()) {
-    return absl::InvalidArgumentError("ROM not loaded");
-  }
-
-  // Only apply Oracle-specific guardrails for projects that have loaded a hack
-  // manifest + project registry (a strong signal we're working in the Oracle of
-  // Secrets context). Avoids false positives for vanilla/other hacks.
-  if (!current_project_.project_opened() ||
-      !current_project_.hack_manifest.loaded() ||
-      !current_project_.hack_manifest.HasProjectRegistry()) {
-    return absl::OkStatus();
-  }
-
-  zelda3::OracleRomSafetyPreflightOptions options;
-  options.require_water_fill_reserved_region = true;
-  options.require_custom_collision_write_support = false;
-  options.validate_water_fill_table = true;
-  options.validate_custom_collision_maps = true;
-  options.max_collision_errors = 6;
-
-  const auto preflight = zelda3::RunOracleRomSafetyPreflight(rom, options);
-  if (preflight.ok()) {
-    return absl::OkStatus();
-  }
-
-  const auto& first = preflight.errors.front();
-  toast_manager_.Show(absl::StrFormat("Oracle ROM safety [%s]: %s", first.code,
-                                      first.message.c_str()),
-                      ToastType::kError);
-  return preflight.ToStatus();
+  return rom_lifecycle_.CheckOracleRomSafetyPreSave(rom);
 }
 
 absl::Status EditorManager::SaveRom() {
@@ -2876,42 +2801,41 @@ absl::Status EditorManager::SaveRom() {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
   }
 
-  if (pending_rom_write_confirm_) {
+  // --- State machine checks (delegated to RomLifecycleManager) ---
+  if (rom_lifecycle_.IsRomWriteConfirmPending()) {
     return absl::CancelledError("Save pending confirmation");
   }
 
   RETURN_IF_ERROR(CheckRomWritePolicy());
 
-  if (pending_pot_item_save_confirm_) {
+  if (rom_lifecycle_.HasPendingPotItemSaveConfirmation()) {
     return absl::CancelledError("Save pending confirmation");
   }
 
   const bool pot_items_enabled =
       core::FeatureFlags::get().dungeon.kSavePotItems;
-  if (!bypass_pot_item_confirm_once_ && !suppress_pot_item_save_once_ &&
-      pot_items_enabled) {
+  if (!rom_lifecycle_.ShouldBypassPotItemConfirm() &&
+      !rom_lifecycle_.ShouldSuppressPotItemSave() && pot_items_enabled) {
     const int loaded_rooms = current_editor_set->LoadedDungeonRoomCount();
     const int total_rooms = current_editor_set->TotalDungeonRoomCount();
     if (loaded_rooms < total_rooms) {
-      pending_pot_item_save_confirm_ = true;
-      pending_pot_item_unloaded_rooms_ = total_rooms - loaded_rooms;
-      pending_pot_item_total_rooms_ = total_rooms;
+      rom_lifecycle_.SetPotItemConfirmPending(total_rooms - loaded_rooms,
+                                              total_rooms);
       if (popup_manager_) {
         popup_manager_->Show(PopupID::kDungeonPotItemSaveConfirm);
       }
       toast_manager_.Show(
           absl::StrFormat(
               "Save paused: pot items enabled with %d unloaded rooms",
-              pending_pot_item_unloaded_rooms_),
+              rom_lifecycle_.pending_pot_item_unloaded_rooms()),
           ToastType::kWarning);
       return absl::CancelledError("Pot item save confirmation required");
     }
   }
 
-  const bool bypass_confirm = bypass_pot_item_confirm_once_;
-  const bool suppress_pot_items = suppress_pot_item_save_once_;
-  bypass_pot_item_confirm_once_ = false;
-  suppress_pot_item_save_once_ = false;
+  const bool bypass_confirm = rom_lifecycle_.ShouldBypassPotItemConfirm();
+  const bool suppress_pot_items = rom_lifecycle_.ShouldSuppressPotItemSave();
+  rom_lifecycle_.ClearPotItemBypass();
 
   struct PotItemFlagGuard {
     bool restore = false;
@@ -2931,33 +2855,24 @@ absl::Status EditorManager::SaveRom() {
     // Explicitly allow pot item save once after confirmation.
   }
 
+  // --- Backup policy setup ---
   if (current_project_.project_opened()) {
-    rom_file_manager_.SetBackupBeforeSave(
-        current_project_.workspace_settings.backup_on_save);
-    rom_file_manager_.SetBackupFolder(
-        current_project_.GetAbsolutePath(current_project_.rom_backup_folder));
-    rom_file_manager_.SetBackupRetentionCount(
-        current_project_.workspace_settings.backup_retention_count);
-    rom_file_manager_.SetBackupKeepDaily(
-        current_project_.workspace_settings.backup_keep_daily);
-    rom_file_manager_.SetBackupKeepDailyDays(
+    rom_lifecycle_.ApplyDefaultBackupPolicy(
+        current_project_.workspace_settings.backup_on_save,
+        current_project_.GetAbsolutePath(current_project_.rom_backup_folder),
+        current_project_.workspace_settings.backup_retention_count,
+        current_project_.workspace_settings.backup_keep_daily,
         current_project_.workspace_settings.backup_keep_daily_days);
   } else {
-    rom_file_manager_.SetBackupBeforeSave(
-        user_settings_.prefs().backup_before_save);
-    rom_file_manager_.SetBackupFolder("");
-    rom_file_manager_.SetBackupRetentionCount(20);
-    rom_file_manager_.SetBackupKeepDaily(true);
-    rom_file_manager_.SetBackupKeepDailyDays(14);
+    rom_lifecycle_.ApplyDefaultBackupPolicy(
+        user_settings_.prefs().backup_before_save, "", 20, true, 14);
   }
 
-  // Save editor-specific data first
+  // --- Save editor-specific data ---
   if (auto* editor = current_editor_set->GetEditor(EditorType::kScreen)) {
     RETURN_IF_ERROR(editor->Save());
   }
 
-  // Persist dungeon room objects, sprites, door pointers, and palettes when
-  // saving ROM (matches ZScreamDungeon behavior so "Save ROM" keeps dungeon edits).
   if (auto* editor = current_editor_set->GetEditor(EditorType::kDungeon)) {
     RETURN_IF_ERROR(editor->Save());
   }
@@ -2973,23 +2888,21 @@ absl::Status EditorManager::SaveRom() {
     }
   }
 
-  if (core::FeatureFlags::get().kSaveGraphicsSheet)
+  if (core::FeatureFlags::get().kSaveGraphicsSheet) {
     RETURN_IF_ERROR(zelda3::SaveAllGraphicsData(
         *current_rom, gfx::Arena::Get().gfx_sheets()));
+  }
 
   // Oracle guardrails: refuse to write obviously corrupted ROM layouts.
   RETURN_IF_ERROR(CheckOracleRomSafetyPreSave(current_rom));
 
-  // Write conflict check: analyze actual byte diffs against the on-disk ROM and
-  // warn if we touch ASM-owned/hook-patched regions (asar will overwrite).
+  // --- Write conflict check (ASM-owned address protection) ---
   if (current_project_.project_opened() &&
       current_project_.hack_manifest.loaded()) {
-    if (!bypass_write_conflict_once_) {
+    if (!rom_lifecycle_.ShouldBypassWriteConflict()) {
       std::vector<std::pair<uint32_t, uint32_t>> write_ranges;
       bool diff_computed = false;
 
-      // Prefer an exact diff (disk vs in-memory) to avoid false positives when
-      // we rewrite bytes that are already identical on disk.
       if (!current_rom->filename().empty()) {
         std::ifstream file(current_rom->filename(), std::ios::binary);
         if (file.is_open()) {
@@ -3002,8 +2915,8 @@ absl::Status EditorManager::SaveRom() {
                       static_cast<std::streamsize>(disk_data.size()));
             if (file) {
               diff_computed = true;
-              auto diff = yaze::rom::ComputeDiffRanges(disk_data,
-                                                       current_rom->vector());
+              auto diff = yaze::rom::ComputeDiffRanges(
+                  disk_data, current_rom->vector());
               if (!diff.ranges.empty()) {
                 LOG_DEBUG("EditorManager",
                           "ROM save diff: %zu bytes changed in %zu range(s)",
@@ -3015,7 +2928,6 @@ absl::Status EditorManager::SaveRom() {
         }
       }
 
-      // Fallback: best-effort editor-provided ranges (may be incomplete).
       if (write_ranges.empty() && !diff_computed) {
         write_ranges = current_editor_set->CollectDungeonWriteRanges();
       }
@@ -3024,29 +2936,30 @@ absl::Status EditorManager::SaveRom() {
         auto conflicts =
             current_project_.hack_manifest.AnalyzePcWriteRanges(write_ranges);
         if (!conflicts.empty()) {
-          pending_write_conflicts_ = std::move(conflicts);
+          rom_lifecycle_.SetPendingWriteConflicts(std::move(conflicts));
           if (popup_manager_) {
             popup_manager_->Show(PopupID::kWriteConflictWarning);
           }
           toast_manager_.Show(
               absl::StrFormat(
                   "Save paused: %zu write conflict(s) with ASM hooks",
-                  pending_write_conflicts_.size()),
+                  rom_lifecycle_.pending_write_conflicts().size()),
               ToastType::kWarning);
-          return absl::CancelledError("Write conflict confirmation required");
+          return absl::CancelledError(
+              "Write conflict confirmation required");
         }
       }
     } else {
       // Bypass is single-use, set by the warning popup.
-      bypass_write_conflict_once_ = false;
-      pending_write_conflicts_.clear();
+      rom_lifecycle_.ConsumeWriteConflictBypass();
     }
   }
 
   // Delegate final ROM file writing to RomFileManager
   auto save_status = rom_file_manager_.SaveRom(current_rom);
   if (save_status.ok()) {
-    bypass_rom_write_confirm_once_ = false;
+    // Write-confirm bypass is single-use. Clear it after a successful save.
+    rom_lifecycle_.CancelRomWriteConfirm();
   }
   return save_status;
 }
@@ -3534,19 +3447,16 @@ absl::Status EditorManager::SaveProject() {
 
 void EditorManager::ResolvePotItemSaveConfirmation(
     PotItemSaveDecision decision) {
-  pending_pot_item_save_confirm_ = false;
-  pending_pot_item_unloaded_rooms_ = 0;
-  pending_pot_item_total_rooms_ = 0;
+  // Map EditorManager enum to RomLifecycleManager enum
+  auto lifecycle_decision =
+      static_cast<RomLifecycleManager::PotItemSaveDecision>(
+          static_cast<int>(decision));
+  rom_lifecycle_.ResolvePotItemSaveConfirmation(lifecycle_decision);
 
   if (decision == PotItemSaveDecision::kCancel) {
     toast_manager_.Show("Save cancelled", ToastType::kInfo);
     return;
   }
-
-  if (decision == PotItemSaveDecision::kSaveWithoutPotItems) {
-    suppress_pot_item_save_once_ = true;
-  }
-  bypass_pot_item_confirm_once_ = true;
 
   auto status = SaveRom();
   if (status.ok()) {
@@ -3656,34 +3566,20 @@ absl::Status EditorManager::SetCurrentRom(Rom* rom) {
   return absl::NotFoundError("ROM not found in existing sessions");
 }
 
-void EditorManager::UpdateCurrentRomHash() {
-  auto* rom = GetCurrentRom();
-  if (!rom || !rom->is_loaded()) {
-    current_rom_hash_.clear();
-    return;
-  }
-  current_rom_hash_ = util::ComputeRomHash(rom->data(), rom->size());
+void EditorManager::ApplyDefaultBackupPolicy() {
+  rom_lifecycle_.ApplyDefaultBackupPolicy(
+      user_settings_.prefs().backup_before_save, "", 20, true, 14);
 }
 
-bool EditorManager::IsRomHashMismatch() const {
-  if (!current_project_.project_opened()) {
-    return false;
-  }
-  const auto expected =
-      NormalizeHash(current_project_.rom_metadata.expected_hash);
-  const auto actual = NormalizeHash(current_rom_hash_);
-  if (expected.empty() || actual.empty()) {
-    return false;
-  }
-  return expected != actual;
+void EditorManager::UpdateCurrentRomHash() {
+  rom_lifecycle_.UpdateCurrentRomHash(GetCurrentRom());
 }
+
+// IsRomHashMismatch() is now inline in editor_manager.h delegating to
+// rom_lifecycle_.
 
 std::vector<RomFileManager::BackupEntry> EditorManager::GetRomBackups() const {
-  auto* rom = GetCurrentRom();
-  if (!rom) {
-    return {};
-  }
-  return rom_file_manager_.ListBackups(rom->filename());
+  return rom_lifecycle_.GetRomBackups(GetCurrentRom());
 }
 
 absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
@@ -3707,22 +3603,11 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
 }
 
 absl::Status EditorManager::PruneRomBackups() {
-  auto* rom = GetCurrentRom();
-  if (!rom) {
-    return absl::FailedPreconditionError("No ROM loaded");
-  }
-  return rom_file_manager_.PruneBackups(rom->filename());
+  return rom_lifecycle_.PruneRomBackups(GetCurrentRom());
 }
 
-void EditorManager::ConfirmRomWrite() {
-  bypass_rom_write_confirm_once_ = true;
-  pending_rom_write_confirm_ = false;
-}
-
-void EditorManager::CancelRomWriteConfirm() {
-  bypass_rom_write_confirm_once_ = false;
-  pending_rom_write_confirm_ = false;
-}
+// ConfirmRomWrite() and CancelRomWriteConfirm() are now inline in
+// editor_manager.h delegating to rom_lifecycle_.
 
 void EditorManager::CreateNewSession() {
   if (session_coordinator_) {
@@ -3926,6 +3811,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.user_settings = &user_settings_;
   deps.project = &current_project_;
   deps.version_manager = version_manager_.get();
+  deps.global_context = editor_context_.get();
   deps.status_bar = &status_bar_;
   deps.renderer = renderer_;
   deps.emulator = &emulator_;

@@ -122,6 +122,42 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
     }
   }
 
+  // Check that game-mechanic-critical rooms have authored custom collision data.
+  // This is independent of the pointer-validity sweep above: a room can have a
+  // valid (null) pointer that loads successfully with has_data=false, meaning
+  // the room has not been authored. For rooms like the D3 prison escape room
+  // (which requires MinishSwitch collision geometry to function), missing data
+  // is a gameplay-blocking error.
+  if (!options.room_ids_requiring_custom_collision.empty() &&
+      HasCustomCollisionWriteSupport(rom_size)) {
+    for (int room_id : options.room_ids_requiring_custom_collision) {
+      if (room_id < 0 || room_id >= kNumberOfRooms) {
+        AddError(
+            &result, "ORACLE_REQUIRED_ROOM_OUT_OF_RANGE",
+            absl::StrFormat("Required room 0x%02X is out of valid range (0..0x%02X)",
+                            room_id, kNumberOfRooms - 1),
+            absl::StatusCode::kInvalidArgument);
+        continue;
+      }
+      auto map_or = LoadCustomCollisionMap(rom, room_id);
+      if (!map_or.ok()) {
+        AddError(&result, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION",
+                 absl::StrFormat("Required room 0x%02X: collision pointer invalid: %s",
+                                 room_id,
+                                 std::string(map_or.status().message()).c_str()),
+                 map_or.status().code(), room_id);
+        continue;
+      }
+      if (!map_or->has_data) {
+        AddError(&result, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION",
+                 absl::StrFormat("Required room 0x%02X has no custom collision data "
+                                 "(room not authored)",
+                                 room_id),
+                 absl::StatusCode::kFailedPrecondition, room_id);
+      }
+    }
+  }
+
   return result;
 }
 

@@ -59,6 +59,9 @@ set(
   app/editor/overworld/entity.cc
   app/editor/overworld/entity_operations.cc
   app/editor/overworld/map_properties.cc
+  app/editor/overworld/canvas_navigation_manager.cc
+  app/editor/overworld/map_refresh_coordinator.cc
+  app/editor/overworld/overworld_canvas_renderer.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc
   app/editor/overworld/overworld_navigation.cc
@@ -77,6 +80,7 @@ set(
   app/editor/overworld/panels/tile16_editor_panel.cc
   app/editor/overworld/scratch_space.cc
   app/editor/overworld/tile16_editor.cc
+  app/editor/overworld/tile_painting_manager.cc
   app/editor/overworld/usage_statistics_card.cc
   app/editor/palette/palette_editor.cc
   app/editor/palette/palette_group_panel.cc
@@ -99,6 +103,8 @@ set(
   app/editor/oracle/panels/menu_inspector_panel.cc
   app/editor/oracle/panels/progression_dashboard_panel.cc
   app/editor/oracle/panels/story_event_graph_panel.cc
+  app/editor/oracle/panels/oracle_validation_view_model.cc
+  app/editor/oracle/panels/oracle_validation_panel.cc
   app/editor/ui/rom_load_options_dialog.cc
   app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
@@ -127,6 +133,7 @@ set(
   app/editor/system/extension_manager.cc
   app/editor/system/project_manager.cc
   app/editor/system/rom_file_manager.cc
+  app/editor/system/rom_lifecycle_manager.cc
   app/editor/system/session_coordinator.cc
   app/editor/system/user_settings.cc
 )

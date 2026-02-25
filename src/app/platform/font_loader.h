@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_PLATFORM_FONTLOADER_H
 #define YAZE_APP_PLATFORM_FONTLOADER_H
 
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -19,7 +20,7 @@ struct FontState {
   std::vector<FontConfig> fonts;
 };
 
-static FontState font_registry;
+extern FontState font_registry;
 
 absl::Status LoadPackageFonts();
 

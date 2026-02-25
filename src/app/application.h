@@ -82,6 +82,10 @@ class Application {
   bool IsReady() const { return controller_ != nullptr; }
   const AppConfig& GetConfig() const { return config_; }
 
+#ifdef YAZE_WITH_GRPC
+  emu::IEmulator* GetEmulatorBackend() { return emulator_backend_.get(); }
+#endif
+
  private:
   Application() = default;
   ~Application() = default;

@@ -195,7 +195,7 @@ void DungeonObjectSelector::DrawRoomGraphics() {
     int active_room_id = current_room_id_;
     auto& room = (*rooms_)[active_room_id];
     // Keep room-sheet assignments in sync with the active room header.
-    room.LoadRoomGraphics(room.blockset);
+    room.LoadRoomGraphics(room.blockset());
     auto blocks = room.blocks();
 
     int current_block = 0;
@@ -743,7 +743,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                                   static_cast<uint32_t>(subtype);
             const bool can_capture_layout = rom_ && rooms_ &&
                                             current_room_id_ >= 0 &&
-                                            current_room_id_ < 296;
+                                            current_room_id_ < zelda3::kNumberOfRooms;
             if (can_capture_layout &&
                 layout_cache_.find(layout_key) == layout_cache_.end()) {
               zelda3::ObjectTileEditor editor(rom_);
@@ -1097,7 +1097,7 @@ void DungeonObjectSelector::DrawCompactSpriteEditor() {
   Separator();
 
   // Display current room sprites from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& sprites = room.GetSprites();
 
@@ -1126,7 +1126,7 @@ void DungeonObjectSelector::DrawCompactItemEditor() {
   Separator();
 
   // Display current room pot items from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& pot_items = room.GetPotItems();
 
@@ -1167,7 +1167,7 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
   Separator();
 
   // Show doors from the Room data (if available)
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& doors = room.GetDoors();
 
@@ -1265,7 +1265,7 @@ void DungeonObjectSelector::DrawCompactChestEditor() {
   Separator();
 
   // Display current room chests from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& chests = room.GetChests();
 
@@ -1290,14 +1290,14 @@ void DungeonObjectSelector::DrawCompactPropertiesEditor() {
   Separator();
 
   // Display current room properties from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
+  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
 
     ImGui::Text("Room ID: %03X", current_room_id_);
-    ImGui::Text("Blockset: %d", room.blockset);
-    ImGui::Text("Spriteset: %d", room.spriteset);
-    ImGui::Text("Palette: %d", room.palette);
-    ImGui::Text("Layout: %d", room.layout);
+    ImGui::Text("Blockset: %d", room.blockset());
+    ImGui::Text("Spriteset: %d", room.spriteset());
+    ImGui::Text("Palette: %d", room.palette());
+    ImGui::Text("Layout: %d", room.layout_id());
 
     Separator();
     ImGui::Text("Header Data");
@@ -1369,12 +1369,12 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
 
     // Invalidate cache if room/palette/blockset changed
     if (current_room_id_ != cached_preview_room_id_ ||
-        room.blockset != cached_preview_blockset_ ||
-        room.palette != cached_preview_palette_) {
+        room.blockset() != cached_preview_blockset_ ||
+        room.palette() != cached_preview_palette_) {
       InvalidatePreviewCache();
       cached_preview_room_id_ = current_room_id_;
-      cached_preview_blockset_ = room.blockset;
-      cached_preview_palette_ = room.palette;
+      cached_preview_blockset_ = room.blockset();
+      cached_preview_palette_ = room.palette();
     }
   } else {
     return false;

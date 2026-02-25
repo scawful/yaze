@@ -284,9 +284,9 @@ TEST_F(DungeonGraphicsTransparencyTest, ObjectsDrawToBitmap) {
   // DON'T manually create bitmaps - let DrawFloor/DrawBackground create them
   // with the correct size (512*512 = 262144 bytes)
   // The DrawFloor call initializes the bitmap properly
-  bg1.DrawFloor(rom_->vector(), zelda3::tile_address, zelda3::tile_address_floor,
+  bg1.DrawFloor(rom_->vector(), zelda3::kTileAddress, zelda3::kTileAddressFloor,
                 room.floor1());
-  bg2.DrawFloor(rom_->vector(), zelda3::tile_address, zelda3::tile_address_floor,
+  bg2.DrawFloor(rom_->vector(), zelda3::kTileAddress, zelda3::kTileAddressFloor,
                 room.floor2());
 
   // Get objects

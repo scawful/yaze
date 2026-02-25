@@ -27,7 +27,6 @@ target_precompile_headers(yaze_emulator PRIVATE
 target_include_directories(yaze_emulator PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app
-  ${CMAKE_SOURCE_DIR}/src/lib
   ${CMAKE_SOURCE_DIR}/inc
   ${SDL2_INCLUDE_DIR}
   ${PROJECT_BINARY_DIR}

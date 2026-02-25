@@ -1,146 +1,173 @@
-#ifndef YAZE_APP_ZELDA3_DUNGEON_DUNGEON_LIMITS_H_
-#define YAZE_APP_ZELDA3_DUNGEON_DUNGEON_LIMITS_H_
+#ifndef YAZE_SRC_ZELDA3_DUNGEON_DUNGEON_LIMITS_H_
+#define YAZE_SRC_ZELDA3_DUNGEON_DUNGEON_LIMITS_H_
 
-#include <cstdint>
+// Canonical dungeon entity limits for ALTTP.
+//
+// All interaction handlers, validators, and tests should reference these
+// constants instead of defining their own copies.
+
+#include <cstddef>
+#include <limits>
 #include <map>
-#include <string>
 #include <vector>
 
-namespace yaze {
-namespace zelda3 {
+namespace yaze::zelda3 {
 
-/**
- * @brief Categories of objects with hard limits in dungeon rooms.
- *
- * Based on ZScream's DungeonLimits enum, these represent the maximum
- * quantities of various object types that a room can contain before
- * causing potential issues or crashes.
- */
+// Active sprites rendered per frame (SNES hardware/engine constraint).
+inline constexpr size_t kMaxActiveSprites = 16;
+
+// Total sprites in a room's sprite list (safety limit for ROM encoding).
+inline constexpr size_t kMaxTotalSprites = 64;
+
+// Maximum chests per room (item collection flag constraint).
+inline constexpr size_t kMaxChests = 6;
+
+// Maximum door objects per room (practical ROM encoding limit).
+inline constexpr size_t kMaxDoors = 16;
+
+// Maximum tile objects before processing lag on original hardware.
+inline constexpr size_t kMaxTileObjects = 400;
+
+// BG3-layer object guardrail for unstable rendering on real SNES.
+inline constexpr size_t kMaxBg3Objects = 128;
+
+// Sentinel for categories that are counted but intentionally not hard-limited.
+inline constexpr int kNoHardLimit = std::numeric_limits<int>::max();
+
+// Entity limit category for room validation queries.
 enum class DungeonLimit {
-  Sprites,            ///< Regular sprites (max 16)
-  Overlords,          ///< Overlord sprites (max 8)
-  Chests,             ///< Chest objects (max 6)
-  SpecialDoors,       ///< Shutter, key, big key doors (max 4)
-  Doors,              ///< Total doors including special (max ~8)
-  StarTiles,          ///< Star tile switch objects (max 4)
-  StairsNorth,        ///< Staircase objects going north (max 4)
-  StairsSouth,        ///< Staircase objects going south (max 4)
-  StairsTransition,   ///< Inter-room staircase transitions (max 4)
-  SomariaLine,        ///< Somaria platform paths (max 4)
-  Blocks,             ///< Pushable blocks (max 8)
-  Torches,            ///< Lightable torches (max 8)
-  GeneralManipulable  ///< General counter for manipulable objects
+  kTileObjects,
+  kSprites,
+  kDoors,
+  kChests,
+  kBg3Objects,
+  // Extended categories used by Room::GetLimitedObjectCounts().
+  Overlords,
+  SpecialDoors,
+  StairsTransition,
+  Blocks,
+  Torches,
+  StarTiles,
+  SomariaLine,
+  StairsNorth,
+  StairsSouth,
+  GeneralManipulable,
 };
 
-/**
- * @brief Information about a dungeon object limit.
- */
+// User-facing label for a limit category.
+inline constexpr const char* GetDungeonLimitLabel(DungeonLimit limit) {
+  switch (limit) {
+    case DungeonLimit::kTileObjects:
+      return "Tile Objects";
+    case DungeonLimit::kSprites:
+      return "Sprites";
+    case DungeonLimit::kDoors:
+      return "Doors";
+    case DungeonLimit::kChests:
+      return "Chests";
+    case DungeonLimit::kBg3Objects:
+      return "BG3 Objects";
+    case DungeonLimit::Overlords:
+      return "Overlords";
+    case DungeonLimit::SpecialDoors:
+      return "Special Doors";
+    case DungeonLimit::StairsTransition:
+      return "Stairs (Transition)";
+    case DungeonLimit::Blocks:
+      return "Blocks";
+    case DungeonLimit::Torches:
+      return "Torches";
+    case DungeonLimit::StarTiles:
+      return "Star Tiles";
+    case DungeonLimit::SomariaLine:
+      return "Somaria Line";
+    case DungeonLimit::StairsNorth:
+      return "Stairs North";
+    case DungeonLimit::StairsSouth:
+      return "Stairs South";
+    case DungeonLimit::GeneralManipulable:
+      return "General Manipulable";
+  }
+  return "Unknown";
+}
+
+// Info about a specific exceeded limit (for UI display).
 struct DungeonLimitInfo {
-  DungeonLimit type;
-  int count;       ///< Current count
-  int max;         ///< Maximum allowed
-  std::string name;
-
-  bool IsExceeded() const { return count > max; }
-  bool IsAtLimit() const { return count >= max; }
-  bool IsNearLimit() const { return count >= max - 1; }
+  DungeonLimit limit;
+  int current;
+  int maximum;
+  const char* label;
 };
 
-/**
- * @brief Hard-coded maximum values for dungeon limits.
- *
- * Values based on ZScream's DungeonLimitsHelper and ASM analysis.
- */
-inline int GetDungeonLimitMax(DungeonLimit type) {
-  switch (type) {
-    case DungeonLimit::Sprites: return 16;
-    case DungeonLimit::Overlords: return 8;
-    case DungeonLimit::Chests: return 6;
-    case DungeonLimit::SpecialDoors: return 4;
-    case DungeonLimit::Doors: return 8;
-    case DungeonLimit::StarTiles: return 4;
-    case DungeonLimit::StairsNorth: return 4;
-    case DungeonLimit::StairsSouth: return 4;
-    case DungeonLimit::StairsTransition: return 4;
-    case DungeonLimit::SomariaLine: return 4;
-    case DungeonLimit::Blocks: return 8;
-    case DungeonLimit::Torches: return 8;
-    case DungeonLimit::GeneralManipulable: return 32;  // Soft limit
-    default: return 999;  // Unknown, no limit
+// Get the maximum for a given limit category.
+inline constexpr int GetDungeonLimitMax(DungeonLimit limit) {
+  switch (limit) {
+    case DungeonLimit::kTileObjects:
+      return static_cast<int>(kMaxTileObjects);
+    case DungeonLimit::kSprites:
+      return static_cast<int>(kMaxTotalSprites);
+    case DungeonLimit::kDoors:
+      return static_cast<int>(kMaxDoors);
+    case DungeonLimit::kChests:
+      return static_cast<int>(kMaxChests);
+    case DungeonLimit::kBg3Objects:
+      return static_cast<int>(kMaxBg3Objects);
+    case DungeonLimit::Overlords:
+    case DungeonLimit::SpecialDoors:
+    case DungeonLimit::StairsTransition:
+    case DungeonLimit::Blocks:
+    case DungeonLimit::Torches:
+    case DungeonLimit::StarTiles:
+    case DungeonLimit::SomariaLine:
+    case DungeonLimit::StairsNorth:
+    case DungeonLimit::StairsSouth:
+    case DungeonLimit::GeneralManipulable:
+      return kNoHardLimit;
   }
+  return kNoHardLimit;
 }
 
-/**
- * @brief Get human-readable name for a dungeon limit type.
- */
-inline const char* GetDungeonLimitName(DungeonLimit type) {
-  switch (type) {
-    case DungeonLimit::Sprites: return "Sprites";
-    case DungeonLimit::Overlords: return "Overlords";
-    case DungeonLimit::Chests: return "Chests";
-    case DungeonLimit::SpecialDoors: return "Special Doors";
-    case DungeonLimit::Doors: return "Total Doors";
-    case DungeonLimit::StarTiles: return "Star Tiles";
-    case DungeonLimit::StairsNorth: return "Stairs (North)";
-    case DungeonLimit::StairsSouth: return "Stairs (South)";
-    case DungeonLimit::StairsTransition: return "Stairs (Transition)";
-    case DungeonLimit::SomariaLine: return "Somaria Paths";
-    case DungeonLimit::Blocks: return "Pushable Blocks";
-    case DungeonLimit::Torches: return "Torches";
-    case DungeonLimit::GeneralManipulable: return "Manipulable Objects";
-    default: return "Unknown";
-  }
-}
-
-/**
- * @brief Create a counter map initialized to zero for all limit types.
- */
+// Create a zero-initialized limit counter map.
 inline std::map<DungeonLimit, int> CreateLimitCounter() {
-  std::map<DungeonLimit, int> counter;
-  counter[DungeonLimit::Sprites] = 0;
-  counter[DungeonLimit::Overlords] = 0;
-  counter[DungeonLimit::Chests] = 0;
-  counter[DungeonLimit::SpecialDoors] = 0;
-  counter[DungeonLimit::Doors] = 0;
-  counter[DungeonLimit::StarTiles] = 0;
-  counter[DungeonLimit::StairsNorth] = 0;
-  counter[DungeonLimit::StairsSouth] = 0;
-  counter[DungeonLimit::StairsTransition] = 0;
-  counter[DungeonLimit::SomariaLine] = 0;
-  counter[DungeonLimit::Blocks] = 0;
-  counter[DungeonLimit::Torches] = 0;
-  counter[DungeonLimit::GeneralManipulable] = 0;
-  return counter;
+  return {
+      {DungeonLimit::kTileObjects, 0},
+      {DungeonLimit::kSprites, 0},
+      {DungeonLimit::kDoors, 0},
+      {DungeonLimit::kChests, 0},
+      {DungeonLimit::kBg3Objects, 0},
+  };
 }
 
-/**
- * @brief Check if any limits are exceeded in a counter map.
- */
+// Check if any limit in the counter map is exceeded.
 inline bool HasExceededLimits(const std::map<DungeonLimit, int>& counts) {
-  for (const auto& [type, count] : counts) {
-    if (count > GetDungeonLimitMax(type)) {
+  for (const auto& [limit, count] : counts) {
+    const int max_val = GetDungeonLimitMax(limit);
+    if (max_val == kNoHardLimit) {
+      continue;
+    }
+    if (count > max_val) {
       return true;
     }
   }
   return false;
 }
 
-/**
- * @brief Get a list of all exceeded limits.
- */
+// Get details for all exceeded limits.
 inline std::vector<DungeonLimitInfo> GetExceededLimits(
     const std::map<DungeonLimit, int>& counts) {
-  std::vector<DungeonLimitInfo> exceeded;
-  for (const auto& [type, count] : counts) {
-    int max = GetDungeonLimitMax(type);
-    if (count > max) {
-      exceeded.push_back({type, count, max, GetDungeonLimitName(type)});
+  std::vector<DungeonLimitInfo> result;
+  for (const auto& [limit, count] : counts) {
+    const int max_val = GetDungeonLimitMax(limit);
+    if (max_val == kNoHardLimit) {
+      continue;
+    }
+    if (count > max_val) {
+      result.push_back({limit, count, max_val, GetDungeonLimitLabel(limit)});
     }
   }
-  return exceeded;
+  return result;
 }
 
-}  // namespace zelda3
-}  // namespace yaze
+}  // namespace yaze::zelda3
 
-#endif  // YAZE_APP_ZELDA3_DUNGEON_DUNGEON_LIMITS_H_
+#endif  // YAZE_SRC_ZELDA3_DUNGEON_DUNGEON_LIMITS_H_

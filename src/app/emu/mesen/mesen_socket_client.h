@@ -13,6 +13,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/emu/input/input_backend.h"
 
 namespace yaze {
 namespace emu {
@@ -213,8 +214,26 @@ class MesenSocketClient {
 
   /**
    * @brief Step N CPU instructions (default 1)
+   * @param count Number of steps
+   * @param mode Step mode: "into", "over", "out"
    */
-  absl::Status Step(int count = 1);
+  absl::Status Step(int count = 1, const std::string& mode = "into");
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // Input Commands
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * @brief Set controller button state
+   * @param button SNES button
+   * @param pressed True to press, false to release
+   */
+  absl::Status SetButton(emu::input::SnesButton button, bool pressed);
+
+  /**
+   * @brief Set all buttons at once
+   */
+  absl::Status SetButtons(const emu::input::ControllerState& state);
 
   // ──────────────────────────────────────────────────────────────────────────
   // Memory Access
@@ -403,6 +422,9 @@ class MesenSocketClient {
   std::thread event_thread_;
   std::atomic<bool> event_thread_running_{false};
   std::string pending_event_payload_;
+
+  // Input state
+  emu::input::ControllerState current_input_;
 };
 
 }  // namespace mesen

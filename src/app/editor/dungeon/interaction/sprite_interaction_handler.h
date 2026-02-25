@@ -14,6 +14,12 @@ namespace editor {
  */
 class SpriteInteractionHandler : public BaseEntityHandler {
  public:
+  enum class PlacementBlockReason {
+    kNone = 0,
+    kInvalidRoom,
+    kSpriteLimit,
+  };
+
   // ========================================================================
   // BaseEntityHandler interface
   // ========================================================================
@@ -71,10 +77,22 @@ class SpriteInteractionHandler : public BaseEntityHandler {
    */
   void DeleteSelected();
 
+  /// True if the most recent PlaceSpriteAtPosition was blocked.
+  bool was_placement_blocked() const {
+    return placement_block_reason_ != PlacementBlockReason::kNone;
+  }
+  PlacementBlockReason placement_block_reason() const {
+    return placement_block_reason_;
+  }
+  void clear_placement_blocked() {
+    placement_block_reason_ = PlacementBlockReason::kNone;
+  }
+
  private:
   // Placement state
   bool sprite_placement_mode_ = false;
   uint8_t preview_sprite_id_ = 0;
+  PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
 
   // Selection state
   std::optional<size_t> selected_sprite_index_;

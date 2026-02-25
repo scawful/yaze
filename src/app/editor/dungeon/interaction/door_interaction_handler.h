@@ -17,6 +17,13 @@ namespace editor {
  */
 class DoorInteractionHandler : public BaseEntityHandler {
  public:
+  enum class PlacementBlockReason {
+    kNone = 0,
+    kInvalidRoom,
+    kDoorLimit,
+    kInvalidPosition,
+  };
+
   // ========================================================================
   // BaseEntityHandler interface
   // ========================================================================
@@ -81,9 +88,21 @@ class DoorInteractionHandler : public BaseEntityHandler {
    */
   void DeleteSelected();
 
+  /// True if the most recent PlaceDoorAtSnappedPosition was blocked.
+  bool was_placement_blocked() const {
+    return placement_block_reason_ != PlacementBlockReason::kNone;
+  }
+  PlacementBlockReason placement_block_reason() const {
+    return placement_block_reason_;
+  }
+  void clear_placement_blocked() {
+    placement_block_reason_ = PlacementBlockReason::kNone;
+  }
+
  private:
   // Placement state
   bool door_placement_mode_ = false;
+  PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
   zelda3::DoorType preview_door_type_ = zelda3::DoorType::NormalDoor;
   zelda3::DoorDirection detected_door_direction_ = zelda3::DoorDirection::North;
   uint8_t snapped_door_position_ = 0;

@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/core/editor_context.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/editor/editor.h"
@@ -21,6 +22,12 @@ namespace {
 // Uses lazy initialization to avoid static initialization order issues
 struct RegistryState {
   std::mutex mutex;
+
+  // When global_context is set, Context delegates to it.
+  // The raw pointers below are fallback storage used only before
+  // GlobalEditorContext is wired in (early startup / tests).
+  GlobalEditorContext* global_context = nullptr;
+
   Rom* current_rom = nullptr;
   ::yaze::EventBus* event_bus = nullptr;
   Editor* current_editor = nullptr;
@@ -48,63 +55,101 @@ namespace ContentRegistry {
 
 namespace Context {
 
+void SetGlobalContext(GlobalEditorContext* ctx) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().global_context = ctx;
+}
+
 Rom* rom() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  return RegistryState::Get().current_rom;
+  auto& state = RegistryState::Get();
+  if (state.global_context) return state.global_context->GetCurrentRom();
+  return state.current_rom;
 }
 
 void SetRom(Rom* rom) {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  RegistryState::Get().current_rom = rom;
+  auto& state = RegistryState::Get();
+  if (state.global_context) {
+    state.global_context->SetCurrentRom(rom);
+  }
+  state.current_rom = rom;  // keep fallback in sync
 }
 
 ::yaze::EventBus* event_bus() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  return RegistryState::Get().event_bus;
+  auto& state = RegistryState::Get();
+  if (state.global_context) return &state.global_context->GetEventBus();
+  return state.event_bus;
 }
 
 void SetEventBus(::yaze::EventBus* bus) {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  RegistryState::Get().event_bus = bus;
+  auto& state = RegistryState::Get();
+  // EventBus in GlobalEditorContext is a reference set at construction,
+  // so we don't update it here. Just keep fallback in sync.
+  state.event_bus = bus;
 }
 
 Editor* current_editor() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  return RegistryState::Get().current_editor;
+  auto& state = RegistryState::Get();
+  if (state.global_context) return state.global_context->GetCurrentEditor();
+  return state.current_editor;
 }
 
 void SetCurrentEditor(Editor* editor) {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  RegistryState::Get().current_editor = editor;
+  auto& state = RegistryState::Get();
+  if (state.global_context) {
+    state.global_context->SetCurrentEditor(editor);
+  }
+  state.current_editor = editor;
 }
 
 ::yaze::zelda3::GameData* game_data() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  return RegistryState::Get().game_data;
+  auto& state = RegistryState::Get();
+  if (state.global_context) return state.global_context->GetGameData();
+  return state.game_data;
 }
 
 void SetGameData(::yaze::zelda3::GameData* data) {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  RegistryState::Get().game_data = data;
+  auto& state = RegistryState::Get();
+  if (state.global_context) {
+    state.global_context->SetGameData(data);
+  }
+  state.game_data = data;
 }
 
 ::yaze::project::YazeProject* current_project() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  return RegistryState::Get().current_project;
+  auto& state = RegistryState::Get();
+  if (state.global_context) return state.global_context->GetCurrentProject();
+  return state.current_project;
 }
 
 void SetCurrentProject(::yaze::project::YazeProject* project) {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  RegistryState::Get().current_project = project;
+  auto& state = RegistryState::Get();
+  if (state.global_context) {
+    state.global_context->SetCurrentProject(project);
+  }
+  state.current_project = project;
 }
 
 void Clear() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
-  RegistryState::Get().current_rom = nullptr;
-  RegistryState::Get().event_bus = nullptr;
-  RegistryState::Get().current_editor = nullptr;
-  RegistryState::Get().game_data = nullptr;
-  RegistryState::Get().current_project = nullptr;
+  auto& state = RegistryState::Get();
+  if (state.global_context) {
+    state.global_context->Clear();
+  }
+  state.current_rom = nullptr;
+  state.event_bus = nullptr;
+  state.current_editor = nullptr;
+  state.game_data = nullptr;
+  state.current_project = nullptr;
 }
 
 }  // namespace Context

@@ -359,40 +359,42 @@ void DungeonEditorV2::Initialize() {
     panel_manager->RegisterEditorPanel(std::move(dungeon_map));
   }
 
-  panel_manager->RegisterEditorPanel(std::make_unique<DungeonWorkbenchPanel>(
-      &room_selector_, &current_room_id_, &workbench_previous_room_id_,
-      &workbench_split_view_enabled_, &workbench_compare_room_id_,
-      &workbench_layout_state_,
-      [this](int room_id) { OnRoomSelected(room_id); },
-      [this](int room_id, RoomSelectionIntent intent) {
-        OnRoomSelected(room_id, intent);
-      },
-      [this](int room_id) {
-        auto status = SaveRoom(room_id);
-        if (!status.ok()) {
-          LOG_ERROR("DungeonEditorV2", "Save Room failed: %s",
-                    status.message().data());
-          if (dependencies_.toast_manager) {
-            dependencies_.toast_manager->Show(
-                absl::StrFormat("Save Room failed: %s", status.message()),
-                ToastType::kError);
+  {
+    auto workbench = std::make_unique<DungeonWorkbenchPanel>(
+        &room_selector_, &current_room_id_,
+        [this](int room_id) { OnRoomSelected(room_id); },
+        [this](int room_id, RoomSelectionIntent intent) {
+          OnRoomSelected(room_id, intent);
+        },
+        [this](int room_id) {
+          auto status = SaveRoom(room_id);
+          if (!status.ok()) {
+            LOG_ERROR("DungeonEditorV2", "Save Room failed: %s",
+                      status.message().data());
+            if (dependencies_.toast_manager) {
+              dependencies_.toast_manager->Show(
+                  absl::StrFormat("Save Room failed: %s", status.message()),
+                  ToastType::kError);
+            }
+            return;
           }
-          return;
-        }
-        if (dependencies_.toast_manager) {
-          dependencies_.toast_manager->Show("Room saved", ToastType::kSuccess);
-        }
-      },
-      [this]() { return GetWorkbenchViewer(); },
-      [this]() { return GetWorkbenchCompareViewer(); },
-      [this]() -> const std::deque<int>& { return recent_rooms_; },
-      [this](int room_id) {
-        recent_rooms_.erase(
-            std::remove(recent_rooms_.begin(), recent_rooms_.end(), room_id),
-            recent_rooms_.end());
-      },
-      [this](const std::string& id) { ShowPanel(id); },
-      [this](bool enabled) { QueueWorkbenchWorkflowMode(enabled); }, rom_));
+          if (dependencies_.toast_manager) {
+            dependencies_.toast_manager->Show("Room saved", ToastType::kSuccess);
+          }
+        },
+        [this]() { return GetWorkbenchViewer(); },
+        [this]() { return GetWorkbenchCompareViewer(); },
+        [this]() -> const std::deque<int>& { return recent_rooms_; },
+        [this](int room_id) {
+          recent_rooms_.erase(
+              std::remove(recent_rooms_.begin(), recent_rooms_.end(), room_id),
+              recent_rooms_.end());
+        },
+        [this](const std::string& id) { ShowPanel(id); },
+        [this](bool enabled) { QueueWorkbenchWorkflowMode(enabled); }, rom_);
+    workbench_panel_ = workbench.get();
+    panel_manager->RegisterEditorPanel(std::move(workbench));
+  }
 
   panel_manager->RegisterEditorPanel(std::make_unique<DungeonEntrancesPanel>(
       &entrances_, &current_entrance_id_,
@@ -782,20 +784,19 @@ absl::Status DungeonEditorV2::Update() {
     if (ImGui::GetIO().KeyCtrl) {
       int next_room = -1;
       const int kCols = 16;
-      const int kTotalRooms = 0x128;
 
       if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
         if (current_room_id_ >= kCols)
           next_room = current_room_id_ - kCols;
       } else if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
-        if (current_room_id_ < kTotalRooms - kCols)
+        if (IsValidRoomId(current_room_id_ + kCols))
           next_room = current_room_id_ + kCols;
       } else if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
         if (current_room_id_ % kCols > 0)
           next_room = current_room_id_ - 1;
       } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
         if (current_room_id_ % kCols < kCols - 1 &&
-            current_room_id_ < kTotalRooms - 1)
+            IsValidRoomId(current_room_id_ + 1))
           next_room = current_room_id_ + 1;
       }
 
@@ -1317,8 +1318,7 @@ void DungeonEditorV2::DrawRoomPanels() {
       active_rooms_.erase(active_rooms_.Data + i);
       ReleaseRoomPanelSlotId(room_id);
       // Clean up viewer
-      room_viewers_.erase(room_id);
-      RemoveViewerFromLru(room_id);
+      room_viewers_.Erase(room_id);
       i--;
       continue;
     }
@@ -1363,8 +1363,7 @@ void DungeonEditorV2::DrawRoomPanels() {
 
       room_cards_.erase(room_id);
       active_rooms_.erase(active_rooms_.Data + i);
-      room_viewers_.erase(room_id);
-      RemoveViewerFromLru(room_id);
+      room_viewers_.Erase(room_id);
       ReleaseRoomPanelSlotId(room_id);
       i--;
     }
@@ -1418,7 +1417,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     // This reads the 14-byte room header (blockset, palette, effect, tags)
     // Reference: kRoomHeaderPointer (0xB5DD)
     if (room.blocks().empty()) {
-      room.LoadRoomGraphics(room.blockset);
+      room.LoadRoomGraphics(room.blockset());
       needs_render = true;
       LOG_DEBUG("[DungeonEditorV2]", "Loaded room %d graphics from ROM",
                 room_id);
@@ -1533,8 +1532,8 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     LOG_WARN("DungeonEditorV2", "Ignoring invalid room selection: %d", room_id);
     return;
   }
-  if (room_id != current_room_id_) {
-    workbench_previous_room_id_ = current_room_id_;
+  if (room_id != current_room_id_ && workbench_panel_) {
+    workbench_panel_->NotifyRoomChanged(current_room_id_);
   }
   current_room_id_ = room_id;
   room_selector_.set_current_room_id(static_cast<uint16_t>(room_id));
@@ -1565,7 +1564,7 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     }
 
     if (room.IsLoaded()) {
-      current_palette_id_ = room.palette;
+      current_palette_id_ = room.palette();
       palette_editor_.SetCurrentPaletteId(current_palette_id_);
 
       // Update viewer and object editor palette
@@ -1709,10 +1708,20 @@ void DungeonEditorV2::ProcessDeferredTextures() {
 }
 
 void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
-  if (current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_.size())) {
+  if (!IsValidRoomId(current_room_id_)) {
     LOG_ERROR("DungeonEditorV2", "Cannot place object: Invalid room ID %d",
               current_room_id_);
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Object 0x%02X: no room selected (invalid room %d)",
+                          obj.id_, current_room_id_),
+          ToastType::kError);
+    }
+    if (object_editor_panel_) {
+      object_editor_panel_->SetPlacementError(
+          absl::StrFormat("Cannot place 0x%02X: invalid room %d", obj.id_,
+                          current_room_id_));
+    }
     return;
   }
 
@@ -1725,6 +1734,14 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
   room.RenderRoomGraphics();
   LOG_DEBUG("DungeonEditorV2",
             "Object placed and room re-rendered successfully");
+  // Brief success feedback so the user knows the placement was accepted.
+  // Kept minimal (no inline panel update) — success is non-spammy by design.
+  if (dependencies_.toast_manager) {
+    dependencies_.toast_manager->Show(
+        absl::StrFormat("Placed 0x%02X in room %03X", obj.id_,
+                        current_room_id_),
+        ToastType::kSuccess);
+  }
 }
 
 void DungeonEditorV2::OpenGraphicsEditorForObject(
@@ -1744,7 +1761,7 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   }
 
   auto& room = rooms_[room_id];
-  room.LoadRoomGraphics(room.blockset);
+  room.LoadRoomGraphics(room.blockset());
 
   uint16_t sheet_id = 0;
   uint16_t tile_index = 0;
@@ -1841,14 +1858,7 @@ void DungeonEditorV2::ProcessPendingSwap() {
 
   // Preserve the viewer instance so canvas pan/zoom and UI state don't reset
   // when navigating with arrows (swap-in-panel).
-  if (auto it = room_viewers_.find(old_room_id); it != room_viewers_.end()) {
-    room_viewers_[new_room_id] = std::move(it->second);
-    room_viewers_.erase(it);
-  }
-  RemoveViewerFromLru(old_room_id);
-  if (room_viewers_.find(new_room_id) != room_viewers_.end()) {
-    TouchViewerLru(new_room_id);
-  }
+  room_viewers_.Rename(old_room_id, new_room_id);
 
   // Replace old room with new room in active_rooms_
   active_rooms_[swap_index] = new_room_id;
@@ -1902,14 +1912,12 @@ void DungeonEditorV2::ProcessPendingWorkflowMode() {
 }
 
 void DungeonEditorV2::TouchViewerLru(int room_id) {
-  RemoveViewerFromLru(room_id);
-  viewer_lru_.push_back(room_id);
+  room_viewers_.Touch(room_id);
 }
 
 void DungeonEditorV2::RemoveViewerFromLru(int room_id) {
-  viewer_lru_.erase(
-      std::remove(viewer_lru_.begin(), viewer_lru_.end(), room_id),
-      viewer_lru_.end());
+  // No-op: LruCache handles removal internally via Erase()
+  (void)room_id;
 }
 
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
@@ -1918,9 +1926,37 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     return GetWorkbenchViewer();
   }
 
-  auto it = room_viewers_.find(room_id);
-  if (it == room_viewers_.end()) {
-    // Creating a new viewer - will add to LRU and evict if needed
+  // Set eviction predicate to protect active rooms from eviction
+  room_viewers_.SetEvictionPredicate([this](const int& candidate) {
+    for (int i = 0; i < active_rooms_.size(); ++i) {
+      if (active_rooms_[i] == candidate) return false;
+    }
+    return true;
+  });
+
+  if (auto* existing = room_viewers_.Get(room_id)) {
+    // Viewer already exists - Get() already touched LRU
+    auto* viewer_ptr = existing->get();
+
+    // Update pinned state from manager
+    if (dependencies_.panel_manager) {
+      std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
+      viewer_ptr->SetPinned(dependencies_.panel_manager->IsPanelPinned(card_id));
+      viewer_ptr->SetPinCallback([this, card_id, room_id](bool pinned) {
+        if (dependencies_.panel_manager) {
+          dependencies_.panel_manager->SetPanelPinned(card_id, pinned);
+          if (auto* v = GetViewerForRoom(room_id)) {
+            v->SetPinned(pinned);
+          }
+        }
+      });
+    }
+
+    return viewer_ptr;
+  }
+
+  // Creating a new viewer - Insert will handle LRU and eviction
+  {
     auto viewer = std::make_unique<DungeonCanvasViewer>(rom_);
     viewer->SetCompactHeaderMode(false);
     viewer->SetRoomDetailsExpanded(true);
@@ -2055,71 +2091,9 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
     viewer->SetProject(dependencies_.project);
 
-    room_viewers_[room_id] = std::move(viewer);
-
-    // Add to LRU (most recent at back)
-    TouchViewerLru(room_id);
-
-    // Evict old viewers if over limit
-    while (room_viewers_.size() > kMaxCachedViewers) {
-      bool removed_lru_entry = false;
-      bool evicted_viewer = false;
-      // Walk LRU from oldest (front) to newest (back)
-      for (auto lru_it = viewer_lru_.begin(); lru_it != viewer_lru_.end(); ++lru_it) {
-        int candidate_room_id = *lru_it;
-
-        // Skip active rooms (never evict open tabs)
-        bool is_active = false;
-        for (int i = 0; i < active_rooms_.size(); ++i) {
-          if (active_rooms_[i] == candidate_room_id) {
-            is_active = true;
-            break;
-          }
-        }
-        if (is_active) {
-          continue;
-        }
-
-        removed_lru_entry = true;
-        // Evict this viewer if present; stale LRU entries are cleaned too.
-        evicted_viewer = room_viewers_.erase(candidate_room_id) > 0;
-        viewer_lru_.erase(lru_it);
-        break;
-      }
-
-      // Safety: if we couldn't remove any LRU entry, all cached rooms are active.
-      if (!removed_lru_entry) {
-        break;
-      }
-      // If we only removed a stale LRU entry, keep trimming until size is valid.
-      if (!evicted_viewer) {
-        continue;
-      }
-    }
-
-    return room_viewers_[room_id].get();
+    auto* stored = room_viewers_.Insert(room_id, std::move(viewer));
+    return stored->get();
   }
-
-  // Viewer already exists - update LRU (move to back as most recent)
-  TouchViewerLru(room_id);
-
-  // Update pinned state from manager even if viewer already exists
-  if (dependencies_.panel_manager) {
-    std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
-    it->second->SetPinned(dependencies_.panel_manager->IsPanelPinned(card_id));
-    // Ensure pin callback matches the current room_id, even if the viewer
-    // instance was preserved across an in-panel room swap.
-    it->second->SetPinCallback([this, card_id, room_id](bool pinned) {
-      if (dependencies_.panel_manager) {
-        dependencies_.panel_manager->SetPanelPinned(card_id, pinned);
-        if (auto* v = GetViewerForRoom(room_id)) {
-          v->SetPinned(pinned);
-        }
-      }
-    });
-  }
-
-  return it->second.get();
 }
 
 DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {

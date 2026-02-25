@@ -11,10 +11,10 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
 
   // Check object count
   size_t object_count = room.GetTileObjects().size();
-  if (object_count > kMaxObjects) {
+  if (object_count > kMaxTileObjects) {
     result.warnings.push_back(absl::StrFormat(
         "High object count (%zu > %d). May cause lag or memory issues.",
-        object_count, kMaxObjects));
+        object_count, kMaxTileObjects));
   }
 
   // Check sprite count

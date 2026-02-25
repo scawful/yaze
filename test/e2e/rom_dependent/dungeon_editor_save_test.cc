@@ -265,7 +265,7 @@ TEST_F(DungeonEditorSaveTest, RoomClass_LoadAndModify) {
   zelda3::Room room(test_room_id, rom_.get(), game_data_.get());
 
   // Get current palette value
-  uint8_t original_palette = room.palette;
+  uint8_t original_palette = room.palette();
 
   // Get the header address for direct verification
   uint32_t header_addr = GetRoomHeaderAddress(test_room_id);

@@ -29,7 +29,6 @@ set_target_properties(yaze_cli_agent PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(yaze_cli_agent PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/inc
-  ${CMAKE_SOURCE_DIR}/src/lib
 )
 
 target_link_libraries(yaze_cli_agent PUBLIC

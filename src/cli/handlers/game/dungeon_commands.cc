@@ -118,10 +118,10 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
 
   // Room properties from Room data
   formatter.BeginObject("properties");
-  formatter.AddField("blockset", room.blockset);
-  formatter.AddField("spriteset", room.spriteset);
-  formatter.AddField("palette", room.palette);
-  formatter.AddField("layout", room.layout);
+  formatter.AddField("blockset", room.blockset());
+  formatter.AddField("spriteset", room.spriteset());
+  formatter.AddField("palette", room.palette());
+  formatter.AddField("layout", room.layout_id());
   formatter.AddField("floor1", room.floor1());
   formatter.AddField("floor2", room.floor2());
   formatter.AddField("effect", static_cast<int>(room.effect()));
@@ -200,7 +200,7 @@ absl::Status DungeonListChestsCommandHandler::Execute(
 
   formatter.BeginArray("rooms");
   int start_room = has_room_filter ? room_filter : 0;
-  int end_room = has_room_filter ? room_filter : zelda3::NumberOfRooms - 1;
+  int end_room = has_room_filter ? room_filter : zelda3::kNumberOfRooms - 1;
 
   for (int room_id = start_room; room_id <= end_room; ++room_id) {
     total_rooms++;

@@ -214,28 +214,6 @@ TEST_F(PaletteManagerTest, MultipleListeners) {
 // Color Query Tests (without ROM)
 // ============================================================================
 
-TEST_F(PaletteManagerTest, DISABLED_GetColorWithoutInitialization) {
-  auto& manager = PaletteManager::Get();
-  // Reset for this test
-  manager.Initialize(static_cast<Rom*>(nullptr));
-  
-  // Should not crash, but return a default color or error
-  // Note: Implementation detail - might return black or throw assertion in debug
-  // This test ensures safe failure
-  
-  // Assuming GetColor handles uninitialized state by returning default or safe value
-  // If it asserts, we can't easily test it here without death test
-}
-
-TEST_F(PaletteManagerTest, DISABLED_SetColorWithoutInitializationFails) {
-  auto& manager = PaletteManager::Get();
-  manager.Initialize(static_cast<Rom*>(nullptr));
-  
-  // Should return false/error instead of crashing
-  // Assuming SetColor handles uninitialized state
-  // EXPECT_FALSE(manager.SetColor(0, 0, gfx::SnesColor()));
-}
-
 TEST_F(PaletteManagerTest, ResetColorWithoutInitializationReturnsError) {
   auto& manager = PaletteManager::Get();
 

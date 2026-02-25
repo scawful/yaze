@@ -19,7 +19,6 @@ macro(configure_gfx_library name)
   )
   target_include_directories(${name} PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/lib
     ${CMAKE_SOURCE_DIR}/inc
     ${PROJECT_BINARY_DIR}
   )

@@ -395,7 +395,9 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
 
   room.SetIsDark((b & 0x01) == 0x01);
   hpos++;
-  room.SetPaletteDirect(rom->data()[hpos]);
+  // Skip palette byte here - already set by SetPalette() from the primary
+  // header table above (line ~329). The old SetPaletteDirect wrote to a
+  // separate dead-code member; now palette_ is unified.
   hpos++;
 
   room.SetBackgroundTileset(rom->data()[hpos]);

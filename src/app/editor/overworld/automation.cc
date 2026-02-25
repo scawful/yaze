@@ -46,7 +46,7 @@ bool OverworldEditor::AutomationSetTile(int x, int y, int tile_id) {
   // Update the bitmap
   auto tile_data = gfx::GetTilemapData(tile16_blockset_, tile_id);
   if (!tile_data.empty()) {
-    RenderUpdatedMapBitmap(
+    tile_painting_->RenderUpdatedMapBitmap(
         ImVec2(static_cast<float>(x * 16), static_cast<float>(y * 16)),
         tile_data);
     return true;

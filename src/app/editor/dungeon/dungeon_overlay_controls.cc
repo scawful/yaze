@@ -7,7 +7,7 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr std::array<DungeonOverlayControlSpec, 10> kOverlaySpecs = {{
+constexpr std::array<DungeonOverlayControlSpec, 11> kOverlaySpecs = {{
     {DungeonOverlayControlId::kGrid, "Grid (8x8)"},
     {DungeonOverlayControlId::kObjectBounds, "Object Bounds"},
     {DungeonOverlayControlId::kHoverCoordinates, "Hover Coordinates"},
@@ -18,11 +18,12 @@ constexpr std::array<DungeonOverlayControlSpec, 10> kOverlaySpecs = {{
     {DungeonOverlayControlId::kMinecartPathing, "Minecart Pathing"},
     {DungeonOverlayControlId::kTrackGaps, "Track Gaps"},
     {DungeonOverlayControlId::kTrackRoutes, "Track Routes"},
+    {DungeonOverlayControlId::kCustomObjects, "Custom Objects (Oracle)"},
 }};
 
 }  // namespace
 
-const std::array<DungeonOverlayControlSpec, 10>&
+const std::array<DungeonOverlayControlSpec, 11>&
 GetDungeonOverlayControlSpecs() {
   return kOverlaySpecs;
 }
@@ -50,6 +51,8 @@ bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,
       return viewer.show_track_gap_overlay();
     case DungeonOverlayControlId::kTrackRoutes:
       return viewer.show_track_route_overlay();
+    case DungeonOverlayControlId::kCustomObjects:
+      return viewer.show_custom_objects_overlay();
   }
 
   throw std::invalid_argument("unknown DungeonOverlayControlId");
@@ -87,6 +90,9 @@ void SetDungeonOverlayControlEnabled(DungeonCanvasViewer& viewer,
       return;
     case DungeonOverlayControlId::kTrackRoutes:
       viewer.set_show_track_route_overlay(enabled);
+      return;
+    case DungeonOverlayControlId::kCustomObjects:
+      viewer.set_show_custom_objects_overlay(enabled);
       return;
   }
 

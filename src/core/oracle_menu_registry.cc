@@ -3,7 +3,9 @@
 #include <algorithm>
 #include <cctype>
 #include <fstream>
+#include <map>
 #include <regex>
+#include <set>
 #include <sstream>
 #include <string>
 #include <unordered_map>
@@ -224,6 +226,25 @@ absl::Status WriteLines(const std::filesystem::path& path,
         absl::StrFormat("Failed writing file: %s", path.string()));
   }
   return absl::OkStatus();
+}
+
+void AddValidationIssue(OracleMenuValidationReport* report,
+                        OracleMenuValidationSeverity severity,
+                        absl::string_view code, const std::string& message,
+                        const std::string& asm_path = std::string(),
+                        int line = 0) {
+  OracleMenuValidationIssue issue;
+  issue.severity = severity;
+  issue.code = std::string(code);
+  issue.message = message;
+  issue.asm_path = asm_path;
+  issue.line = line;
+  report->issues.push_back(std::move(issue));
+  if (severity == OracleMenuValidationSeverity::kError) {
+    report->errors++;
+  } else {
+    report->warnings++;
+  }
 }
 
 }  // namespace
@@ -453,6 +474,136 @@ absl::StatusOr<OracleMenuRegistry> BuildOracleMenuRegistry(
             });
 
   return registry;
+}
+
+OracleMenuValidationReport ValidateOracleMenuRegistry(
+    const OracleMenuRegistry& registry, int max_row, int max_col) {
+  OracleMenuValidationReport report;
+
+  if (registry.asm_files.empty()) {
+    AddValidationIssue(
+        &report, OracleMenuValidationSeverity::kError, "no_menu_asm",
+        "No Menu/*.asm files were discovered under the project root.");
+  }
+
+  for (const auto& warning : registry.warnings) {
+    AddValidationIssue(&report, OracleMenuValidationSeverity::kWarning,
+                       "registry_warning", warning);
+  }
+
+  for (const auto& entry : registry.bins) {
+    if (!entry.exists) {
+      AddValidationIssue(
+          &report, OracleMenuValidationSeverity::kError, "missing_bin",
+          absl::StrFormat("Missing incbin asset \"%s\" for label %s",
+                          entry.bin_path,
+                          entry.label.empty() ? "(unlabeled)" : entry.label),
+          entry.asm_path, entry.line);
+      continue;
+    }
+    if (entry.size_bytes == 0) {
+      AddValidationIssue(
+          &report, OracleMenuValidationSeverity::kWarning, "empty_bin",
+          absl::StrFormat("Incbin asset \"%s\" resolves to 0 bytes",
+                          entry.resolved_bin_path),
+          entry.asm_path, entry.line);
+    }
+  }
+
+  struct TableState {
+    int component_count = 0;
+    std::set<int> indices;
+    std::map<std::string, int> coordinate_counts;
+  };
+  std::map<std::string, TableState> table_states;
+
+  for (const auto& component : registry.components) {
+    if (component.table_label.empty()) {
+      AddValidationIssue(
+          &report, OracleMenuValidationSeverity::kError, "empty_table_label",
+          "menu_offset entry was parsed without an owning table label",
+          component.asm_path, component.line);
+      continue;
+    }
+
+    if (component.row < 0 || component.col < 0 || component.row > max_row ||
+        component.col > max_col) {
+      AddValidationIssue(
+          &report, OracleMenuValidationSeverity::kError,
+          "component_out_of_bounds",
+          absl::StrFormat(
+              "%s[%d] has out-of-bounds menu_offset(%d,%d); allowed row=0..%d "
+              "col=0..%d",
+              component.table_label, component.index, component.row,
+              component.col, max_row, max_col),
+          component.asm_path, component.line);
+    }
+
+    TableState& state = table_states[component.table_label];
+    state.component_count++;
+
+    if (!state.indices.insert(component.index).second) {
+      AddValidationIssue(
+          &report, OracleMenuValidationSeverity::kError,
+          "duplicate_component_index",
+          absl::StrFormat("%s contains duplicate index %d",
+                          component.table_label, component.index),
+          component.asm_path, component.line);
+    }
+
+    const std::string coord_key =
+        absl::StrFormat("%d,%d", component.row, component.col);
+    int& coordinate_count = state.coordinate_counts[coord_key];
+    coordinate_count++;
+    if (coordinate_count == 2) {
+      AddValidationIssue(
+          &report, OracleMenuValidationSeverity::kWarning,
+          "duplicate_component_coordinate",
+          absl::StrFormat(
+              "%s reuses menu_offset(%d,%d) for multiple component entries",
+              component.table_label, component.row, component.col),
+          component.asm_path, component.line);
+    }
+  }
+
+  for (const auto& [table_label, state] : table_states) {
+    if (state.component_count <= 0) {
+      continue;
+    }
+
+    std::vector<int> missing_indices;
+    missing_indices.reserve(8);
+    for (int expected = 0; expected < state.component_count; ++expected) {
+      if (state.indices.count(expected) == 0) {
+        missing_indices.push_back(expected);
+      }
+    }
+
+    if (!missing_indices.empty()) {
+      std::string missing_list;
+      const int preview_count =
+          std::min<int>(static_cast<int>(missing_indices.size()), 6);
+      for (int i = 0; i < preview_count; ++i) {
+        if (i > 0) {
+          missing_list.append(", ");
+        }
+        missing_list.append(std::to_string(missing_indices[i]));
+      }
+      if (static_cast<int>(missing_indices.size()) > preview_count) {
+        missing_list.append(", ...");
+      }
+
+      AddValidationIssue(
+          &report, OracleMenuValidationSeverity::kError,
+          "component_index_gap",
+          absl::StrFormat(
+              "%s component indices are not contiguous from 0..%d "
+              "(missing: %s)",
+              table_label, state.component_count - 1, missing_list));
+    }
+  }
+
+  return report;
 }
 
 absl::StatusOr<OracleMenuComponentEditResult> SetOracleMenuComponentOffset(

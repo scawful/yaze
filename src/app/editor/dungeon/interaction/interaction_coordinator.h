@@ -125,6 +125,14 @@ class InteractionCoordinator {
    */
   void DrawSelectionHighlights();
 
+  /**
+   * @brief Draw post-placement success toasts for all handlers (unconditional)
+   *
+   * Called every frame so toasts remain visible even after the user exits
+   * placement mode immediately after a successful placement.
+   */
+  void DrawPostPlacementOverlays();
+
   // ========================================================================
   // Entity Selection
   // ========================================================================

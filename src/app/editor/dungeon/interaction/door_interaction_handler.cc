@@ -6,6 +6,7 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "zelda3/dungeon/dungeon_limits.h"
 
 namespace yaze::editor {
 
@@ -106,6 +107,16 @@ void DoorInteractionHandler::DrawGhostPreview() {
 
   // Try to update snapped position
   if (!UpdateSnappedPosition(canvas_x, canvas_y)) {
+    // Placement guidance: make invalid hover state explicit instead of showing
+    // no preview.
+    if (canvas->IsMouseHovering()) {
+      const auto& theme = AgentUI::GetTheme();
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      ImVec2 hint_pos(io.MousePos.x + 14.0f, io.MousePos.y + 10.0f);
+      draw_list->AddText(hint_pos, ImGui::GetColorU32(theme.status_warning),
+                         "Move cursor near a wall to place door");
+      ImGui::SetTooltip("Door placement requires a wall-adjacent position.");
+    }
     return;  // Not near a wall
   }
 
@@ -132,17 +143,27 @@ void DoorInteractionHandler::DrawGhostPreview() {
 
   const auto& theme = AgentUI::GetTheme();
 
+  // Capacity-aware colors: normal / near-limit (>=14/16) / blocked (>=16/16).
+  
+  auto* room = GetCurrentRoom();
+  size_t current_door_count = room ? room->GetDoors().size() : 0;
+  const bool at_door_limit = (current_door_count >= zelda3::kMaxDoors);
+  const bool near_door_limit = (current_door_count >= zelda3::kMaxDoors - 2);
+
+  ImVec4 base_color = theme.dungeon_selection_primary;
+  if (at_door_limit) {
+    base_color = theme.status_error;
+  } else if (near_door_limit) {
+    base_color = theme.status_warning;
+  }
+
   // Draw semi-transparent filled rectangle
-  ImU32 fill_color =
-      IM_COL32(theme.dungeon_selection_primary.x * 255,
-               theme.dungeon_selection_primary.y * 255,
-               theme.dungeon_selection_primary.z * 255, 80);
-  draw_list->AddRectFilled(preview_start, preview_end, fill_color);
+  ImVec4 fill_vec(base_color.x, base_color.y, base_color.z, 0.31f);
+  draw_list->AddRectFilled(preview_start, preview_end,
+                           ImGui::GetColorU32(fill_vec));
 
   // Draw outline
-  ImVec4 outline_color = ImVec4(theme.dungeon_selection_primary.x,
-                                theme.dungeon_selection_primary.y,
-                                theme.dungeon_selection_primary.z, 0.9f);
+  ImVec4 outline_color(base_color.x, base_color.y, base_color.z, 0.9f);
   draw_list->AddRect(preview_start, preview_end,
                      ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
 
@@ -153,6 +174,14 @@ void DoorInteractionHandler::DrawGhostPreview() {
 
   ImVec2 text_pos(preview_start.x, preview_start.y - 16 * scale);
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 200), label.c_str());
+
+  // Capacity tooltip when at/near limit
+  if ((at_door_limit || near_door_limit) &&
+      ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
+    ImGui::SetTooltip("Doors: %zu/%zu%s", current_door_count, zelda3::kMaxDoors,
+                      at_door_limit ? "\nPlacement blocked" : "\nNear limit");
+  }
+
 }
 
 void DoorInteractionHandler::DrawSelectionHighlight() {
@@ -279,15 +308,29 @@ void DoorInteractionHandler::DeleteSelected() {
 
 void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
                                                          int canvas_y) {
-  if (!HasValidContext()) return;
+  if (!HasValidContext()) {
+    placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
+    return;
+  }
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room) {
+    placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
+    return;
+  }
+
+  // Enforce door limit at placement time (matches DungeonValidator::zelda3::kMaxDoors)
+  
+  if (room->GetDoors().size() >= zelda3::kMaxDoors) {
+    placement_block_reason_ = PlacementBlockReason::kDoorLimit;
+    return;
+  }
 
   // Detect wall from position
   zelda3::DoorDirection direction;
   if (!zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y,
                                                             direction)) {
+    placement_block_reason_ = PlacementBlockReason::kInvalidPosition;
     return;
   }
 
@@ -297,8 +340,11 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
 
   // Validate position
   if (!zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
+    placement_block_reason_ = PlacementBlockReason::kInvalidPosition;
     return;
   }
+
+  placement_block_reason_ = PlacementBlockReason::kNone;
 
   ctx_->NotifyMutation(MutationDomain::kDoors);
 
@@ -315,6 +361,7 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
 
   // Add door to room
   room->AddDoor(new_door);
+  TriggerSuccessToast();
 
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
 }
@@ -356,6 +403,14 @@ void DoorInteractionHandler::DrawSnapIndicators() {
   const auto& theme = AgentUI::GetTheme();
   auto dims = zelda3::GetDoorDimensions(direction);
 
+  // Capacity-aware indicator colors: inherit the same thresholds used in
+  // DrawGhostPreview so dragging mirrors the placement ghost feedback.
+  
+  auto* snap_room = GetCurrentRoom();
+  size_t door_count = snap_room ? snap_room->GetDoors().size() : 0;
+  const bool snap_at_limit = (door_count >= zelda3::kMaxDoors);
+  const bool snap_near_limit = (door_count >= zelda3::kMaxDoors - 2);
+
   // Draw indicators for 6 positions in this section
   for (uint8_t i = 0; i < 6; ++i) {
     uint8_t pos = start_pos + i;
@@ -370,15 +425,24 @@ void DoorInteractionHandler::DrawSnapIndicators() {
                     snap_start.y + dims.height_pixels() * scale);
 
     if (pos == nearest_snap) {
-      // Highlighted nearest position
-      ImVec4 highlight = ImVec4(theme.dungeon_selection_primary.x,
-                                theme.dungeon_selection_primary.y,
-                                theme.dungeon_selection_primary.z, 0.75f);
+      // Highlighted nearest snap position — capacity-aware color.
+      ImVec4 base;
+      if (snap_at_limit) {
+        base = theme.status_error;
+      } else if (snap_near_limit) {
+        base = theme.status_warning;
+      } else {
+        base = theme.dungeon_selection_primary;
+      }
+      ImVec4 highlight(base.x, base.y, base.z, 0.75f);
       draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(highlight),
                          0.0f, 0, 2.5f);
     } else {
-      // Ghosted other positions
-      ImVec4 ghost = ImVec4(1.0f, 1.0f, 1.0f, 0.25f);
+      // Ghosted other positions — tint red when at limit.
+      ImVec4 ghost = snap_at_limit
+                         ? ImVec4(theme.status_error.x, theme.status_error.y,
+                                  theme.status_error.z, 0.20f)
+                         : ImVec4(1.0f, 1.0f, 1.0f, 0.25f);
       draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(ghost), 0.0f,
                          0, 1.0f);
     }

@@ -265,8 +265,45 @@ absl::Status YazeProject::Create(const std::string& project_name,
   return Save();
 }
 
+// static
+std::string YazeProject::ResolveBundleRoot(const std::string& path) {
+  if (path.empty()) {
+    return {};
+  }
+
+  // Walk up the path hierarchy looking for a directory whose filename
+  // (extension) is ".yazeproj". The first match from the leaf upward wins.
+  std::error_code ec;
+  auto current = std::filesystem::path(path).lexically_normal();
+
+  for (; !current.empty(); current = current.parent_path()) {
+    if (current.extension() == ".yazeproj") {
+      // Must be an existing directory to count as a valid bundle root.
+      if (std::filesystem::is_directory(current, ec) && !ec) {
+        return current.string();
+      }
+    }
+    // Guard against infinite loop at the filesystem root.
+    if (current == current.parent_path()) {
+      break;
+    }
+  }
+
+  return {};
+}
+
 absl::Status YazeProject::Open(const std::string& project_path) {
-  filepath = project_path;
+  // Resolve bundle root: if the user opened a file *inside* a .yazeproj
+  // bundle, normalize to the bundle root directory so the existing
+  // .yazeproj handling takes over.
+  std::string resolved_path = project_path;
+  const std::string bundle_root = ResolveBundleRoot(project_path);
+  if (!bundle_root.empty() && bundle_root != project_path) {
+    // The user pointed at a file inside a bundle; redirect to the root.
+    resolved_path = bundle_root;
+  }
+
+  filepath = resolved_path;
 
 #ifdef __EMSCRIPTEN__
   // Prefer persistent storage in WASM builds
@@ -279,15 +316,15 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 
   // Determine format and load accordingly
   absl::Status load_status;
-  if (project_path.ends_with(".yazeproj")) {
+  if (resolved_path.ends_with(".yazeproj")) {
     format = ProjectFormat::kYazeNative;
 
-    const std::filesystem::path bundle_path(project_path);
+    const std::filesystem::path bundle_path(resolved_path);
     std::error_code ec;
     if (!std::filesystem::exists(bundle_path, ec) || ec ||
         !std::filesystem::is_directory(bundle_path, ec) || ec) {
       return absl::InvalidArgumentError(
-          absl::StrFormat("Project bundle does not exist: %s", project_path));
+          absl::StrFormat("Project bundle does not exist: %s", resolved_path));
     }
 
     // Bundle convention: store the actual project config at the root so both
@@ -351,11 +388,11 @@ absl::Status YazeProject::Open(const std::string& project_path) {
     } else {
       load_status = LoadFromYazeFormat(project_file.string());
     }
-  } else if (project_path.ends_with(".yaze")) {
+  } else if (resolved_path.ends_with(".yaze")) {
     format = ProjectFormat::kYazeNative;
 
     // Try to detect if it's JSON format by peeking at first character
-    std::ifstream file(project_path);
+    std::ifstream file(resolved_path);
     if (file.is_open()) {
       std::stringstream buffer;
       buffer << file.rdbuf();
@@ -364,7 +401,7 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
       if (!content.empty() && content.front() == '{') {
         LOG_DEBUG("Project", "Detected JSON format project file");
-        load_status = LoadFromJsonFormat(project_path);
+        load_status = LoadFromJsonFormat(resolved_path);
       } else {
         load_status = ParseFromString(content);
       }
@@ -373,11 +410,11 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 #endif
     } else {
       return absl::InvalidArgumentError(
-          absl::StrFormat("Cannot open project file: %s", project_path));
+          absl::StrFormat("Cannot open project file: %s", resolved_path));
     }
-  } else if (project_path.ends_with(".zsproj")) {
+  } else if (resolved_path.ends_with(".zsproj")) {
     format = ProjectFormat::kZScreamCompat;
-    load_status = ImportFromZScreamFormat(project_path);
+    load_status = ImportFromZScreamFormat(resolved_path);
   } else {
     return absl::InvalidArgumentError("Unsupported project file format");
   }

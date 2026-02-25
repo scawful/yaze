@@ -46,7 +46,7 @@ void DungeonRoomGraphicsPanel::Draw(bool* p_open) {
 
   auto& room = (*rooms_)[active_room_id];
   // Refresh room sheet assignments from current room header values.
-  room.LoadRoomGraphics(room.blockset);
+  room.LoadRoomGraphics(room.blockset());
   auto blocks = room.blocks();
 
   if (renderer_ != nullptr) {
@@ -66,8 +66,8 @@ void DungeonRoomGraphicsPanel::Draw(bool* p_open) {
       kPadding + (kBlockHeight + kPadding) * static_cast<float>(row_count));
 
   ImGui::Text("Room %03X Graphics Blocks", active_room_id);
-  ImGui::TextDisabled("Blockset %02X | Spriteset %02X", room.blockset,
-                      room.spriteset);
+  ImGui::TextDisabled("Blockset %02X | Spriteset %02X", room.blockset(),
+                      room.spriteset());
   ImGui::Separator();
 
   gui::CanvasFrameOptions frame_opts;

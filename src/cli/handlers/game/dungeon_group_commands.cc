@@ -161,7 +161,7 @@ absl::Status DungeonGroupCommandHandler::Execute(
 
   // Find rooms not assigned to any dungeon
   std::set<int> unassigned_rooms;
-  for (int room_id = 0; room_id < zelda3::NumberOfRooms; ++room_id) {
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
     if (room_to_dungeon.find(room_id) == room_to_dungeon.end()) {
       unassigned_rooms.insert(room_id);
     }

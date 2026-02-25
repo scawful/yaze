@@ -721,6 +721,7 @@ void DungeonObjectInteraction::CancelPlacement() {
 
 void DungeonObjectInteraction::DrawEntitySelectionHighlights() {
   entity_coordinator_.DrawSelectionHighlights();
+  entity_coordinator_.DrawPostPlacementOverlays();
 }
 
 void DungeonObjectInteraction::DrawDoorSnapIndicators() {

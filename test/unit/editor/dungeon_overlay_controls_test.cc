@@ -8,16 +8,21 @@ namespace yaze::editor {
 
 TEST(DungeonOverlayControlsTest, SpecsAreUniqueAndNamed) {
   const auto& specs = GetDungeonOverlayControlSpecs();
-  EXPECT_EQ(specs.size(), 10u);
+  EXPECT_EQ(specs.size(), 11u);
 
   std::set<int> seen_ids;
   std::set<std::string> seen_labels;
+  bool saw_custom_objects = false;
   for (const auto& spec : specs) {
     EXPECT_NE(spec.label, nullptr);
     EXPECT_NE(std::string(spec.label), "");
     EXPECT_TRUE(seen_ids.insert(static_cast<int>(spec.id)).second);
     EXPECT_TRUE(seen_labels.insert(spec.label).second);
+    if (spec.id == DungeonOverlayControlId::kCustomObjects) {
+      saw_custom_objects = true;
+    }
   }
+  EXPECT_TRUE(saw_custom_objects);
 }
 
 TEST(DungeonOverlayControlsTest, SetAndGetRoundTripForAllControls) {

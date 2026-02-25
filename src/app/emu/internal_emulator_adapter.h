@@ -29,33 +29,34 @@ class InternalEmulatorAdapter : public IEmulator {
 
   // --- Memory ---
   absl::StatusOr<uint8_t> ReadByte(uint32_t addr) override;
-  absl::StatusOr<std::vector<uint8_t>> ReadBlock(uint32_t addr, size_t len) override;
+  absl::StatusOr<std::vector<uint8_t>> ReadBlock(uint32_t addr,
+                                                  size_t len) override;
   absl::Status WriteByte(uint32_t addr, uint8_t val) override;
-  absl::Status WriteBlock(uint32_t addr, const std::vector<uint8_t>& data) override;
+  absl::Status WriteBlock(uint32_t addr,
+                          const std::vector<uint8_t>& data) override;
 
   // --- CPU State ---
-  absl::Status GetCpuState(yaze::agent::CPUState* out_state) override;
+  absl::Status GetCpuState(CpuStateSnapshot* out_state) override;
 
   // --- Game State (ALTTP specific) ---
-  absl::Status GetGameState(yaze::agent::GameStateResponse* out_state) override;
+  absl::Status GetGameState(GameSnapshot* out_state) override;
 
   // --- Breakpoints ---
-  absl::Status RunToBreakpoint(yaze::agent::BreakpointHitResponse* response) override;
+  absl::Status RunToBreakpoint(BreakpointHitResult* response) override;
 
-  absl::StatusOr<uint32_t> AddBreakpoint(uint32_t addr, 
-                                         yaze::agent::BreakpointType type,
-                                         yaze::agent::CpuType cpu,
-                                         const std::string& condition,
-                                         const std::string& description) override;
-  absl::Status RemoveBreakpoint(uint32_t id) override;
-  absl::Status ToggleBreakpoint(uint32_t id, bool enabled) override;
-  std::vector<yaze::agent::BreakpointInfo> ListBreakpoints() override;
+  absl::StatusOr<uint32_t> AddBreakpoint(
+      uint32_t addr, BreakpointKind type, CpuKind cpu,
+      const std::string& condition,
+      const std::string& description) override;
+  absl::Status RemoveBreakpoint(uint32_t breakpoint_id) override;
+  absl::Status ToggleBreakpoint(uint32_t breakpoint_id, bool enabled) override;
+  std::vector<BreakpointSnapshot> ListBreakpoints() override;
 
   // --- Input ---
-  absl::Status PressButton(yaze::agent::Button button) override;
-  absl::Status ReleaseButton(yaze::agent::Button button) override;
+  absl::Status PressButton(InputButton button) override;
+  absl::Status ReleaseButton(InputButton button) override;
 
-  // Additional setter for external loader callback (needed for LoadRom in internal mode)
+  // Additional setter for external loader callback
   void SetRomLoader(std::function<bool(const std::string&)> loader) {
     rom_loader_ = std::move(loader);
   }
@@ -67,11 +68,10 @@ class InternalEmulatorAdapter : public IEmulator {
   Emulator* emulator_;
   std::function<bool(const std::string&)> rom_loader_;
   std::function<Rom*()> rom_getter_;
-  
-  // Helper for capturing CPU state (was local in service impl)
-  void CaptureCPUState(yaze::agent::CPUState* state);
+
+  void CaptureCPUState(CpuStateSnapshot* state);
   void InitializeStepController();
-  
+
   yaze::emu::debug::StepController step_controller_;
 };
 

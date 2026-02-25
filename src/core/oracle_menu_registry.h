@@ -46,6 +46,25 @@ struct OracleMenuRegistry {
   std::vector<std::string> warnings;
 };
 
+enum class OracleMenuValidationSeverity {
+  kError,
+  kWarning,
+};
+
+struct OracleMenuValidationIssue {
+  OracleMenuValidationSeverity severity = OracleMenuValidationSeverity::kError;
+  std::string code;
+  std::string message;
+  std::string asm_path;
+  int line = 0;
+};
+
+struct OracleMenuValidationReport {
+  int errors = 0;
+  int warnings = 0;
+  std::vector<OracleMenuValidationIssue> issues;
+};
+
 struct OracleMenuComponentEditResult {
   std::string asm_path;
   int line = 0;
@@ -66,6 +85,9 @@ absl::StatusOr<std::filesystem::path> ResolveOracleProjectRoot(
 
 absl::StatusOr<OracleMenuRegistry> BuildOracleMenuRegistry(
     const std::filesystem::path& project_root);
+
+OracleMenuValidationReport ValidateOracleMenuRegistry(
+    const OracleMenuRegistry& registry, int max_row = 31, int max_col = 31);
 
 absl::StatusOr<OracleMenuComponentEditResult> SetOracleMenuComponentOffset(
     const std::filesystem::path& project_root,

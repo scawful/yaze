@@ -478,12 +478,14 @@ absl::Status SymbolProvider::ParseWlaDxSymFile(const std::string& content) {
   // WLA-DX format:
   // [labels]
   // 00:8000 Reset
-  // 00:8034 MainGameLoop
+  // 2C:86BA :neg_1_1 (Leading colon is common in Asar output)
 
   std::istringstream stream(content);
   std::string line;
   bool in_labels_section = false;
 
+  // Pattern: bank:offset name
+  // Spacing can be multiple spaces or tabs
   std::regex label_regex(R"(^([0-9A-Fa-f]{2}):([0-9A-Fa-f]{4})\s+(\S+))");
 
   while (std::getline(stream, line)) {
@@ -493,7 +495,7 @@ absl::Status SymbolProvider::ParseWlaDxSymFile(const std::string& content) {
       in_labels_section = true;
       continue;
     }
-    if (trimmed.empty() || trimmed[0] == '[') {
+    if (trimmed.empty() || (trimmed[0] == '[' && trimmed != "[labels]")) {
       if (trimmed[0] == '[')
         in_labels_section = false;
       continue;
@@ -509,8 +511,15 @@ absl::Status SymbolProvider::ParseWlaDxSymFile(const std::string& content) {
       uint32_t address = (bank << 16) | offset;
       std::string name = match[3].str();
 
-      Symbol sym(name, address);
-      AddSymbol(sym);
+      // Strip leading colon if present
+      if (!name.empty() && name[0] == ':') {
+        name = name.substr(1);
+      }
+
+      if (!name.empty()) {
+        Symbol sym(name, address);
+        AddSymbol(sym);
+      }
     }
   }
 
@@ -519,25 +528,50 @@ absl::Status SymbolProvider::ParseWlaDxSymFile(const std::string& content) {
 
 absl::Status SymbolProvider::ParseMesenMlbFile(const std::string& content) {
   // Mesen .mlb format:
-  // PRG:address:name
-  // or just
-  // address:name
+  // MemoryType:Address[:EndAddress]:Name[:Comment]
+  // e.g., PRG:8000:Reset
+  // e.g., SnesWorkRam:7E0010:MODE:@watch fmt=hex
 
   std::istringstream stream(content);
   std::string line;
-
-  std::regex label_regex(R"(^(?:PRG:)?([0-9A-Fa-f]+):(\S+))");
 
   while (std::getline(stream, line)) {
     std::string trimmed = std::string(absl::StripAsciiWhitespace(line));
     if (trimmed.empty() || trimmed[0] == ';')
       continue;
 
-    std::smatch match;
-    if (std::regex_search(trimmed, match, label_regex)) {
-      auto addr = ParseAddress(match[1].str());
-      if (addr) {
-        Symbol sym(match[2].str(), *addr);
+    std::vector<std::string> parts = absl::StrSplit(trimmed, ':');
+    if (parts.size() < 2)
+      continue;
+
+    // Check if first part is a memory type or an address
+    std::string addr_str;
+    std::string name_str;
+
+    auto first_addr = ParseAddress(parts[0]);
+    if (first_addr) {
+      // Format is address:name or address:end:name
+      addr_str = parts[0];
+      name_str = (parts.size() > 2 && ParseAddress(parts[1])) ? parts[2] : parts[1];
+    } else {
+      // Format is MemoryType:address:name or MemoryType:address:end:name
+      if (parts.size() < 3)
+        continue;
+      addr_str = parts[1];
+      name_str = (parts.size() > 3 && ParseAddress(parts[2])) ? parts[3] : parts[2];
+    }
+
+    auto addr = ParseAddress(addr_str);
+    if (addr && !name_str.empty()) {
+      // Remove any Mesen markers like @watch from name
+      size_t marker_pos = name_str.find('@');
+      if (marker_pos != std::string::npos) {
+        name_str = name_str.substr(0, marker_pos);
+        name_str = std::string(absl::StripAsciiWhitespace(name_str));
+      }
+
+      if (!name_str.empty()) {
+        Symbol sym(name_str, *addr);
         AddSymbol(sym);
       }
     }

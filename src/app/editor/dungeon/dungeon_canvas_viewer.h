@@ -105,7 +105,7 @@ class DungeonCanvasViewer {
   // - If a swap callback exists (workbench mode), swap in-place.
   // - Otherwise, use the navigation callback (opens/switches room view).
   void NavigateToRoom(int target_room) {
-    if (target_room < 0 || target_room >= zelda3::NumberOfRooms) {
+    if (target_room < 0 || target_room >= zelda3::kNumberOfRooms) {
       return;
     }
     if (room_swap_callback_) {

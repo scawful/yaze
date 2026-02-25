@@ -11,22 +11,22 @@ void DungeonUsageTracker::CalculateUsageStats(
   palette_usage_.clear();
 
   for (const auto& room : rooms) {
-    if (blockset_usage_.find(room.blockset) == blockset_usage_.end()) {
-      blockset_usage_[room.blockset] = 1;
+    if (blockset_usage_.find(room.blockset()) == blockset_usage_.end()) {
+      blockset_usage_[room.blockset()] = 1;
     } else {
-      blockset_usage_[room.blockset] += 1;
+      blockset_usage_[room.blockset()] += 1;
     }
 
-    if (spriteset_usage_.find(room.spriteset) == spriteset_usage_.end()) {
-      spriteset_usage_[room.spriteset] = 1;
+    if (spriteset_usage_.find(room.spriteset()) == spriteset_usage_.end()) {
+      spriteset_usage_[room.spriteset()] = 1;
     } else {
-      spriteset_usage_[room.spriteset] += 1;
+      spriteset_usage_[room.spriteset()] += 1;
     }
 
-    if (palette_usage_.find(room.palette) == palette_usage_.end()) {
-      palette_usage_[room.palette] = 1;
+    if (palette_usage_.find(room.palette()) == palette_usage_.end()) {
+      palette_usage_[room.palette()] = 1;
     } else {
-      palette_usage_[room.palette] += 1;
+      palette_usage_[room.palette()] += 1;
     }
   }
 }

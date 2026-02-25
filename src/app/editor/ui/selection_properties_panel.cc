@@ -445,19 +445,19 @@ void SelectionPropertiesPanel::DrawDungeonRoomProperties() {
   }
 
   if (ImGui::CollapsingHeader("Graphics & Layout", ImGuiTreeNodeFlags_DefaultOpen)) {
-    uint8_t blockset = room->blockset;
+    uint8_t blockset = room->blockset();
     if (DrawByteProperty("Blockset", &blockset, "Tile graphics and layout definition")) {
       room->SetBlockset(blockset);
       NotifyChange();
     }
 
-    uint8_t palette = room->palette;
+    uint8_t palette = room->palette();
     if (DrawByteProperty("Palette", &palette, "Room color scheme")) {
       room->SetPalette(palette);
       NotifyChange();
     }
 
-    uint8_t spriteset = room->spriteset;
+    uint8_t spriteset = room->spriteset();
     if (DrawByteProperty("Spriteset", &spriteset, "Enemy graphics and behavior")) {
       room->SetSpriteset(spriteset);
       NotifyChange();

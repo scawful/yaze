@@ -218,6 +218,12 @@ struct YazeProject {
     std::string last_saved_at;
   } music_persistence;
 
+  // Bundle resolution
+  // Walk up the path hierarchy to find the first ancestor directory whose
+  // filename ends with ".yazeproj". If `path` itself is a .yazeproj directory,
+  // returns it as-is. Returns an empty string when no bundle root is found.
+  static std::string ResolveBundleRoot(const std::string& path);
+
   // Methods
   absl::Status Create(const std::string& project_name,
                       const std::string& base_path);

@@ -255,15 +255,32 @@ bool ProjectManager::IsValidProjectFile(const std::string& filename) const {
     return false;
   }
 
+  std::string extension = std::filesystem::path(filename).extension().string();
+
+  // Accept .yazeproj by extension on all platforms. On native builds we can
+  // additionally verify it is a directory; on WASM we trust the extension.
+  if (extension == ".yazeproj") {
 #ifndef __EMSCRIPTEN__
+    return std::filesystem::is_directory(filename);
+#else
+    return true;
+#endif
+  }
+
+#ifndef __EMSCRIPTEN__
+  // Accept a file that lives inside a .yazeproj bundle directory.
+  const std::string bundle_root =
+      project::YazeProject::ResolveBundleRoot(filename);
+  if (!bundle_root.empty()) {
+    return true;
+  }
+
   if (!std::filesystem::exists(filename)) {
     return false;
   }
 #endif
 
-  // Check file extension
-  std::string extension = std::filesystem::path(filename).extension().string();
-  return extension == ".yaze" || extension == ".json";
+  return extension == ".yaze" || extension == ".zsproj";
 }
 
 absl::Status ProjectManager::InitializeProjectStructure(

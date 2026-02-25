@@ -44,6 +44,7 @@ struct GameData;
 namespace editor {
 
 // Forward declarations
+class GlobalEditorContext;
 class PanelManager;
 class ToastManager;
 class UserSettings;
@@ -110,23 +111,36 @@ struct EditorContext {
  * sub_component.Initialize(ctx);
  * ```
  */
-struct EditorDependencies {
-  struct SharedClipboard {
-    bool has_overworld_tile16 = false;
-    std::vector<int> overworld_tile16_ids;
-    int overworld_width = 0;
-    int overworld_height = 0;
+// Shared clipboard for cross-editor copy/paste operations.
+struct SharedClipboard {
+  bool has_overworld_tile16 = false;
+  std::vector<int> overworld_tile16_ids;
+  int overworld_width = 0;
+  int overworld_height = 0;
 
-    void Clear() {
-      has_overworld_tile16 = false;
-      overworld_tile16_ids.clear();
-      overworld_width = 0;
-      overworld_height = 0;
-    }
-  };
+  void Clear() {
+    has_overworld_tile16 = false;
+    overworld_tile16_ids.clear();
+    overworld_width = 0;
+    overworld_height = 0;
+  }
+};
 
+// Data-layer dependencies: ROM, game data, project, session identity.
+struct CoreDependencies {
   Rom* rom = nullptr;
-  zelda3::GameData* game_data = nullptr;  // Zelda3-specific game state
+  zelda3::GameData* game_data = nullptr;
+  project::YazeProject* project = nullptr;
+  core::VersionManager* version_manager = nullptr;
+  GlobalEditorContext* global_context = nullptr;
+  size_t session_id = 0;
+
+  EditorContext context() const { return {rom, game_data}; }
+  bool HasContext() const { return rom != nullptr && game_data != nullptr; }
+};
+
+// UI-layer dependencies: panel/popup/toast/shortcut managers.
+struct UIDependencies {
   PanelManager* panel_manager = nullptr;
   ToastManager* toast_manager = nullptr;
   UndoManager* undo_manager = nullptr;
@@ -134,20 +148,52 @@ struct EditorDependencies {
   ShortcutManager* shortcut_manager = nullptr;
   SharedClipboard* shared_clipboard = nullptr;
   UserSettings* user_settings = nullptr;
+  StatusBar* status_bar = nullptr;
+};
+
+/**
+ * @struct EditorDependencies
+ * @brief Unified dependency container for all editor types.
+ *
+ * Composes CoreDependencies (data layer) and UIDependencies (UI layer)
+ * with optional renderer/emulator pointers for specialized editors.
+ *
+ * All members are accessible directly for backward compatibility.
+ */
+struct EditorDependencies {
+  // --- Core (data-layer) dependencies ---
+  Rom* rom = nullptr;
+  zelda3::GameData* game_data = nullptr;
   project::YazeProject* project = nullptr;
   core::VersionManager* version_manager = nullptr;
-  StatusBar* status_bar = nullptr;
+  GlobalEditorContext* global_context = nullptr;
   size_t session_id = 0;
 
+  // --- UI-layer dependencies ---
+  PanelManager* panel_manager = nullptr;
+  ToastManager* toast_manager = nullptr;
+  UndoManager* undo_manager = nullptr;
+  PopupManager* popup_manager = nullptr;
+  ShortcutManager* shortcut_manager = nullptr;
+  SharedClipboard* shared_clipboard = nullptr;
+  UserSettings* user_settings = nullptr;
+  StatusBar* status_bar = nullptr;
+
+  // --- Specialized dependencies ---
   gfx::IRenderer* renderer = nullptr;
   emu::Emulator* emulator = nullptr;
-
   void* custom_data = nullptr;
 
-  // Get lightweight context for passing to sub-components
-  EditorContext context() const { return {rom, game_data}; }
+  // Extract sub-structs for passing to components that only need a subset.
+  CoreDependencies GetCoreDeps() const {
+    return {rom, game_data, project, version_manager, global_context, session_id};
+  }
+  UIDependencies GetUIDeps() const {
+    return {panel_manager, toast_manager, undo_manager, popup_manager,
+            shortcut_manager, shared_clipboard, user_settings, status_bar};
+  }
 
-  // Check if essential context is available
+  EditorContext context() const { return {rom, game_data}; }
   bool HasContext() const { return rom != nullptr && game_data != nullptr; }
 };
 

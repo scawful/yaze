@@ -34,7 +34,7 @@ absl::StatusOr<CustomCollisionMap> LoadCustomCollisionMap(Rom* rom,
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
-  if (room_id < 0 || room_id >= NumberOfRooms) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
     return absl::OutOfRangeError("Room id out of range");
   }
 

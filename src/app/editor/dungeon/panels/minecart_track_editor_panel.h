@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/gui/core/icons.h"
 #include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
@@ -35,9 +36,7 @@ class MinecartTrackEditorPanel : public EditorPanel {
   // EditorPanel overrides
   std::string GetId() const override { return "dungeon.minecart_tracks"; }
   std::string GetDisplayName() const override { return "Minecart Tracks"; }
-  std::string GetIcon() const override {
-    return "M";
-  }  // Using simple string for now, should include icons header
+  std::string GetIcon() const override { return ICON_MD_TRAIN; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
 
   void Draw(bool* p_open) override;

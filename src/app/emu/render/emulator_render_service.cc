@@ -123,8 +123,8 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObject(
 
   // Inject room context
   InjectRoomContext(req.room_id,
-                    req.use_room_defaults ? room.blockset : req.blockset,
-                    req.use_room_defaults ? room.palette : req.palette);
+                    req.use_room_defaults ? room.blockset() : req.blockset,
+                    req.use_room_defaults ? room.palette() : req.palette);
 
   // Clear tilemap buffers
   ClearTilemapBuffers();
@@ -176,7 +176,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
   room.SetGameData(game_data_);  // Ensure room has access to GameData
 
   // Load room graphics
-  uint8_t blockset = req.use_room_defaults ? room.blockset : req.blockset;
+  uint8_t blockset = req.use_room_defaults ? room.blockset() : req.blockset;
   room.LoadRoomGraphics(blockset);
   room.CopyRoomGraphicsToBuffer();
 
@@ -185,7 +185,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
     return absl::FailedPreconditionError("GameData not available");
   }
   auto& dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
-  uint8_t palette_id = req.use_room_defaults ? room.palette : req.palette;
+  uint8_t palette_id = req.use_room_defaults ? room.palette() : req.palette;
   if (palette_id >= dungeon_main_pal_group.size()) {
     palette_id = 0;
   }

@@ -225,7 +225,6 @@ target_include_directories(yaze_agent
   PUBLIC
     ${CMAKE_SOURCE_DIR}/src
     ${CMAKE_SOURCE_DIR}/inc
-    ${CMAKE_SOURCE_DIR}/src/lib
     ${CMAKE_SOURCE_DIR}/src/cli/handlers
     ${CMAKE_BINARY_DIR}/gens
 )

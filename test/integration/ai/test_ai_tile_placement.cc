@@ -89,7 +89,7 @@ TEST_F(AITilePlacementTest, ActionToStringRoundtrip) {
 
 #ifdef YAZE_WITH_GRPC
 
-TEST_F(AITilePlacementTest, DISABLED_VisionAnalysisBasic) {
+TEST_F(AITilePlacementTest, VisionAnalysisBasic) {
   // This test requires Gemini API key
   const char* api_key = std::getenv("GEMINI_API_KEY");
   if (!api_key || std::string(api_key).empty()) {
@@ -108,7 +108,7 @@ TEST_F(AITilePlacementTest, DISABLED_VisionAnalysisBasic) {
   EXPECT_TRUE(true);
 }
 
-TEST_F(AITilePlacementTest, DISABLED_FullAIControlLoop) {
+TEST_F(AITilePlacementTest, FullAIControlLoop) {
   // This test requires:
   // 1. YAZE GUI running with gRPC test harness
   // 2. Gemini API key for vision

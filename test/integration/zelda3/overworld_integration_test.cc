@@ -106,77 +106,6 @@ class OverworldIntegrationTest : public ::testing::Test {
   bool use_real_rom_ = false;
 };
 
-// Test Tile32 expansion detection
-TEST_F(OverworldIntegrationTest, DISABLED_Tile32ExpansionDetection) {
-  mock_rom_data_[0x01772E] = 0x04;
-  mock_rom_data_[0x140145] = 0xFF;
-  rom_->LoadFromData(mock_rom_data_); // Update ROM
-
-  auto status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
-
-  // Test expanded detection
-  mock_rom_data_[0x01772E] = 0x05;
-  rom_->LoadFromData(mock_rom_data_); // Update ROM
-  overworld_ = std::make_unique<Overworld>(rom_.get());
-
-  status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
-}
-
-// Test Tile16 expansion detection
-TEST_F(OverworldIntegrationTest, DISABLED_Tile16ExpansionDetection) {
-  mock_rom_data_[0x017D28] = 0x0F;
-  mock_rom_data_[0x140145] = 0xFF;
-  rom_->LoadFromData(mock_rom_data_); // Update ROM
-
-  auto status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
-
-  // Test expanded detection
-  mock_rom_data_[0x017D28] = 0x10;
-  rom_->LoadFromData(mock_rom_data_); // Update ROM
-  overworld_ = std::make_unique<Overworld>(rom_.get());
-
-  status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
-}
-
-// Test entrance loading matches ZScream coordinate calculation
-TEST_F(OverworldIntegrationTest, DISABLED_EntranceCoordinateCalculation) {
-  auto status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
-
-  const auto& entrances = overworld_->entrances();
-  EXPECT_EQ(entrances.size(), 129);
-
-  // Verify coordinate calculation matches ZScream logic:
-  // int p = mapPos >> 1;
-  // int x = p % 64;
-  // int y = p >> 6;
-  // int real_x = (x * 16) + (((mapId % 64) - (((mapId % 64) / 8) * 8)) * 512);
-  // int real_y = (y * 16) + (((mapId % 64) / 8) * 512);
-
-  for (int i = 0; i < std::min(10, static_cast<int>(entrances.size())); i++) {
-    const auto& entrance = entrances[i];
-
-    uint16_t map_pos = i * 16;  // Our test data
-    uint16_t map_id = i;        // Our test data
-
-    int position = map_pos >> 1;
-    int x_coord = position % 64;
-    int y_coord = position >> 6;
-    int expected_x =
-        (x_coord * 16) + (((map_id % 64) - (((map_id % 64) / 8) * 8)) * 512);
-    int expected_y = (y_coord * 16) + (((map_id % 64) / 8) * 512);
-
-    EXPECT_EQ(entrance.x_, expected_x);
-    EXPECT_EQ(entrance.y_, expected_y);
-    EXPECT_EQ(entrance.entrance_id_, i);
-    EXPECT_FALSE(entrance.is_hole_);
-  }
-}
-
 // Test exit loading matches ZScream data structure
 TEST_F(OverworldIntegrationTest, ExitDataLoading) {
   if (!use_real_rom_) {
@@ -195,29 +124,6 @@ TEST_F(OverworldIntegrationTest, ExitDataLoading) {
     // EXPECT_EQ(exit.map_id_, i);
     // EXPECT_EQ(exit.map_pos_, i);
   }
-}
-
-// Test ASM version detection affects item loading
-TEST_F(OverworldIntegrationTest, DISABLED_ASMVersionItemLoading) {
-  // Test vanilla ASM (should limit to 0x80 maps)
-  mock_rom_data_[0x140145] = 0xFF;
-  overworld_ = std::make_unique<Overworld>(rom_.get());
-
-  auto status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
-
-  const auto& items = overworld_->all_items();
-
-  // Test v3+ ASM (should support all 0xA0 maps)
-  mock_rom_data_[0x140145] = 0x03;
-  overworld_ = std::make_unique<Overworld>(rom_.get());
-
-  status = overworld_->Load(rom_.get());
-  ASSERT_TRUE(status.ok());
-
-  const auto& items_v3 = overworld_->all_items();
-  // v3 should have more comprehensive support
-  EXPECT_GE(items_v3.size(), items.size());
 }
 
 // Test map size assignment logic

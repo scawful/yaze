@@ -239,6 +239,15 @@ void InteractionCoordinator::DrawSelectionHighlights() {
   }
 }
 
+void InteractionCoordinator::DrawPostPlacementOverlays() {
+  // Render placement success toasts for all handlers unconditionally so they
+  // remain visible even after the user exits placement mode immediately.
+  door_handler_.DrawPostPlacementToast();
+  sprite_handler_.DrawPostPlacementToast();
+  item_handler_.DrawPostPlacementToast();
+  tile_handler_.DrawPostPlacementToast();
+}
+
 bool InteractionCoordinator::TrySelectEntityAtCursor(int canvas_x,
                                                       int canvas_y) {
   // Clear all selections first
