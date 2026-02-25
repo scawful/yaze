@@ -152,6 +152,11 @@ REGISTER_AGENT_TOOL(
     "Audit minecart-related room data (objects/sprites/collision)",
     "dungeon-minecart-audit --room=<id>", {}, true, false,
     DungeonMinecartAuditCommandHandler)
+REGISTER_AGENT_TOOL("dungeon-minecart-map", "dungeon",
+                    "Enumerate track tile positions/types with ASCII grid for "
+                    "spatial reasoning",
+                    "dungeon-minecart-map --room=<id>", {}, true, false,
+                    DungeonMinecartMapCommandHandler)
 REGISTER_AGENT_TOOL("dungeon-get-room-tiles", "dungeon", "Get room tiles",
                     "dungeon-get-room-tiles --room=<id>", {}, true, false,
                     DungeonGetRoomTilesCommandHandler)

@@ -26,6 +26,28 @@ class DungeonMinecartAuditCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+// Enumerate all track tile positions and types from a room's custom collision
+// data. Outputs a tile list with (x, y, value, type, category) for every
+// non-zero track tile, plus a bounded ASCII grid for spatial reasoning.
+class DungeonMinecartMapCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-minecart-map"; }
+  std::string GetDescription() const {
+    return "Enumerate track tile positions and types from custom collision "
+           "data";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-minecart-map --room <hex> [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

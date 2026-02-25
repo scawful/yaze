@@ -18,6 +18,7 @@
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -31,9 +32,8 @@ namespace {
 constexpr int kCollisionWidth = 64;
 constexpr int kCollisionHeight = 64;
 
-constexpr std::array<uint8_t, 11> kDefaultTrackTiles = {0xB0, 0xB1, 0xB2, 0xB3,
-                                                        0xB4, 0xB5, 0xB6, 0xBB,
-                                                        0xBC, 0xBD, 0xBE};
+constexpr std::array<uint8_t, 11> kDefaultTrackTiles = {
+    0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xBB, 0xBC, 0xBD, 0xBE};
 constexpr std::array<uint8_t, 4> kDefaultStopTiles = {0xB7, 0xB8, 0xB9, 0xBA};
 constexpr std::array<uint8_t, 4> kDefaultSwitchTiles = {0xD0, 0xD1, 0xD2, 0xD3};
 
@@ -53,17 +53,17 @@ std::vector<uint8_t> ToVector(const std::array<uint8_t, 4>& a) {
   return std::vector<uint8_t>(a.begin(), a.end());
 }
 
-absl::StatusOr<int> ParseOptionalHexArg(
-    const resources::ArgumentParser& parser, const std::string& name,
-    int default_value) {
+absl::StatusOr<int> ParseOptionalHexArg(const resources::ArgumentParser& parser,
+                                        const std::string& name,
+                                        int default_value) {
   auto s = parser.GetString(name);
   if (!s.has_value()) {
     return default_value;
   }
   int v = 0;
   if (!ParseHexString(s.value(), &v)) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Invalid %s format. Must be hex (e.g., 0x31).", name));
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid %s format. Must be hex (e.g., 0x31).", name));
   }
   return v;
 }
@@ -84,8 +84,7 @@ absl::StatusOr<std::vector<int>> ParseRooms(
   if (room_opt.has_value()) {
     int room = 0;
     if (!ParseHexString(room_opt.value(), &room)) {
-      return absl::InvalidArgumentError(
-          "Invalid room ID format. Must be hex.");
+      return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
     }
     rooms.push_back(room);
     return rooms;
@@ -245,14 +244,16 @@ RoomMinecartAudit AuditRoom(Rom* rom, int room_id, int track_object_id,
     if (track_objects_signal && !audit.track_object_subtypes.empty() &&
         audit.track_object_subtypes.find(spr.subtype) ==
             audit.track_object_subtypes.end()) {
-      audit.issues.push_back(absl::StrFormat(
-          "Minecart sprite subtype %d is not referenced by any track objects in "
-          "this room.",
-          spr.subtype));
+      audit.issues.push_back(
+          absl::StrFormat("Minecart sprite subtype %d is not referenced by any "
+                          "track objects in "
+                          "this room.",
+                          spr.subtype));
     }
   }
   if (has_track_collision && audit.stop_tiles == 0) {
-    audit.issues.push_back("Minecart collision tiles present but no stop tiles.");
+    audit.issues.push_back(
+        "Minecart collision tiles present but no stop tiles.");
   }
 
   return audit;
@@ -324,7 +325,8 @@ absl::Status DungeonMinecartAuditCommandHandler::Execute(
     formatter.BeginObject();
     formatter.AddField("room_id", audit.room_id);
     formatter.AddHexField("room_id_hex", audit.room_id, 2);
-    formatter.AddField("has_custom_collision_data", audit.has_custom_collision_data);
+    formatter.AddField("has_custom_collision_data",
+                       audit.has_custom_collision_data);
     formatter.AddField("track_collision_tiles", audit.track_collision_tiles);
     formatter.AddField("stop_tiles", audit.stop_tiles);
     formatter.AddField("switch_tiles", audit.switch_tiles);
@@ -363,6 +365,231 @@ absl::Status DungeonMinecartAuditCommandHandler::Execute(
 
   formatter.AddField("rooms_emitted", rooms_emitted);
   formatter.AddField("rooms_with_issues", rooms_with_issues);
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+namespace {
+
+bool IsTrackTile(uint8_t v) {
+  return (v >= 0xB0 && v <= 0xBE) || (v >= 0xD0 && v <= 0xD3);
+}
+
+std::string TrackTileTypeName(uint8_t v) {
+  using T = zelda3::TrackTileType;
+  switch (static_cast<T>(v)) {
+    case T::HorizStraight:
+      return "HorizStraight";
+    case T::VertStraight:
+      return "VertStraight";
+    case T::CornerTL:
+      return "CornerTL";
+    case T::CornerBL:
+      return "CornerBL";
+    case T::CornerTR:
+      return "CornerTR";
+    case T::CornerBR:
+      return "CornerBR";
+    case T::Intersection:
+      return "Intersection";
+    case T::StopNorth:
+      return "StopNorth";
+    case T::StopSouth:
+      return "StopSouth";
+    case T::StopWest:
+      return "StopWest";
+    case T::StopEast:
+      return "StopEast";
+    case T::TJuncNorth:
+      return "TJuncNorth";
+    case T::TJuncSouth:
+      return "TJuncSouth";
+    case T::TJuncEast:
+      return "TJuncEast";
+    case T::TJuncWest:
+      return "TJuncWest";
+    case T::SwitchTL:
+      return "SwitchTL";
+    case T::SwitchBL:
+      return "SwitchBL";
+    case T::SwitchTR:
+      return "SwitchTR";
+    case T::SwitchBR:
+      return "SwitchBR";
+    default:
+      return absl::StrFormat("unknown(0x%02X)", v);
+  }
+}
+
+char TrackTileChar(uint8_t v) {
+  using T = zelda3::TrackTileType;
+  switch (static_cast<T>(v)) {
+    case T::HorizStraight:
+      return '-';
+    case T::VertStraight:
+      return '|';
+    case T::CornerTL:
+      return '/';
+    case T::CornerBL:
+      return '\\';
+    case T::CornerTR:
+      return '\\';
+    case T::CornerBR:
+      return '/';
+    case T::Intersection:
+      return '+';
+    case T::StopNorth:
+      return 'N';
+    case T::StopSouth:
+      return 's';
+    case T::StopWest:
+      return 'W';
+    case T::StopEast:
+      return 'E';
+    case T::TJuncNorth:
+    case T::TJuncSouth:
+    case T::TJuncEast:
+    case T::TJuncWest:
+      return 'T';
+    case T::SwitchTL:
+    case T::SwitchBL:
+    case T::SwitchTR:
+    case T::SwitchBR:
+      return 'X';
+    default:
+      return '?';
+  }
+}
+
+std::string TrackTileCategory(uint8_t v) {
+  if (v >= 0xB0 && v <= 0xB6)
+    return "track";
+  if (v >= 0xB7 && v <= 0xBA)
+    return "stop";
+  if (v >= 0xBB && v <= 0xBE)
+    return "junction";
+  if (v >= 0xD0 && v <= 0xD3)
+    return "switch";
+  return "unknown";
+}
+
+}  // namespace
+
+absl::Status DungeonMinecartMapCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto room_str = parser.GetString("room");
+  if (!room_str.has_value()) {
+    return absl::InvalidArgumentError("Missing required argument --room");
+  }
+  int room_id = 0;
+  if (!ParseHexString(room_str.value(), &room_id)) {
+    return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
+  }
+
+  auto map_or = zelda3::LoadCustomCollisionMap(rom, room_id);
+  if (!map_or.ok()) {
+    return map_or.status();
+  }
+  const auto& cmap = map_or.value();
+
+  formatter.BeginObject("Dungeon Minecart Map");
+  formatter.AddField("room_id", room_id);
+  formatter.AddHexField("room_id_hex", room_id, 2);
+  formatter.AddField("has_custom_collision_data", cmap.has_data);
+
+  if (!cmap.has_data) {
+    formatter.AddField("tile_count", 0);
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
+
+  // Collect track tiles and compute bounding box.
+  struct TrackTile {
+    int x, y;
+    uint8_t value;
+  };
+  std::vector<TrackTile> tiles;
+  int min_x = 64, max_x = -1, min_y = 64, max_y = -1;
+
+  for (int y = 0; y < kCollisionHeight; ++y) {
+    for (int x = 0; x < kCollisionWidth; ++x) {
+      uint8_t v = cmap.tiles[static_cast<size_t>(y * kCollisionWidth + x)];
+      if (IsTrackTile(v)) {
+        tiles.push_back({x, y, v});
+        min_x = std::min(min_x, x);
+        max_x = std::max(max_x, x);
+        min_y = std::min(min_y, y);
+        max_y = std::max(max_y, y);
+      }
+    }
+  }
+
+  formatter.AddField("tile_count", static_cast<int>(tiles.size()));
+
+  if (tiles.empty()) {
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
+
+  // Bounding box.
+  formatter.BeginObject("bounding_box");
+  formatter.AddField("min_x", min_x);
+  formatter.AddField("max_x", max_x);
+  formatter.AddField("min_y", min_y);
+  formatter.AddField("max_y", max_y);
+  formatter.EndObject();
+
+  // Tile list.
+  formatter.BeginArray("tiles");
+  for (const auto& t : tiles) {
+    formatter.BeginObject();
+    formatter.AddField("x", t.x);
+    formatter.AddField("y", t.y);
+    formatter.AddHexField("value", t.value, 2);
+    formatter.AddField("type", TrackTileTypeName(t.value));
+    formatter.AddField("category", TrackTileCategory(t.value));
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  // Bounded ASCII grid: column header (tens, units) then one row per tile_y.
+  // Each cell is one character wide at 1:1 scale. Agents can cross-reference
+  // (x, y) from the tile list against this grid to reason about adjacency.
+  {
+    std::unordered_map<int, uint8_t> tile_map;
+    for (const auto& t : tiles) {
+      tile_map[t.y * kCollisionWidth + t.x] = t.value;
+    }
+
+    const int pad = 4;  // "NNN " row label width
+    std::string tens_hdr(pad, ' '), units_hdr(pad, ' ');
+    for (int x = min_x; x <= max_x; ++x) {
+      tens_hdr += (x % 10 == 0) ? static_cast<char>('0' + (x / 10) % 10) : ' ';
+      units_hdr += static_cast<char>('0' + x % 10);
+    }
+
+    std::vector<std::string> grid_lines;
+    grid_lines.push_back(tens_hdr);
+    grid_lines.push_back(units_hdr);
+
+    for (int y = min_y; y <= max_y; ++y) {
+      std::string row = absl::StrFormat("%3d ", y);
+      for (int x = min_x; x <= max_x; ++x) {
+        auto it = tile_map.find(y * kCollisionWidth + x);
+        row += (it != tile_map.end()) ? TrackTileChar(it->second) : ' ';
+      }
+      grid_lines.push_back(row);
+    }
+
+    formatter.BeginArray("ascii_grid");
+    for (const auto& line : grid_lines) {
+      formatter.AddArrayItem(line);
+    }
+    formatter.EndArray();
+  }
+
   formatter.AddField("status", "success");
   formatter.EndObject();
   return absl::OkStatus();

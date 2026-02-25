@@ -53,6 +53,7 @@ class DungeonImportCustomCollisionJsonCommandHandler;
 class DungeonExportWaterFillJsonCommandHandler;
 class DungeonImportWaterFillJsonCommandHandler;
 class DungeonMinecartAuditCommandHandler;
+class DungeonMinecartMapCommandHandler;
 class DungeonPlaceSpriteCommandHandler;
 class DungeonRemoveSpriteCommandHandler;
 class DungeonPlaceObjectCommandHandler;
