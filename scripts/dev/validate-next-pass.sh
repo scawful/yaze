@@ -40,8 +40,8 @@ record_result() {
 # --------------------------------------------------------------------------
 # 1. Build
 # --------------------------------------------------------------------------
-section "Build: yaze_test_unit + z3ed"
-if cmake --build "$BUILD_DIR" --target yaze_test_unit z3ed --parallel 8; then
+section "Build: yaze_test_unit + yaze_test_quick_unit_editor + z3ed"
+if cmake --build "$BUILD_DIR" --target yaze_test_unit yaze_test_quick_unit_editor z3ed --parallel 8; then
   record_result "Build" 0
 else
   record_result "Build" 1
