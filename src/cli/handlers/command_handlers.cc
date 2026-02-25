@@ -138,6 +138,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonGroupCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMapCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonMinecartMapCommandHandler>());
   handlers.push_back(
       std::make_unique<DungeonGenerateTrackCollisionCommandHandler>());
   handlers.push_back(std::make_unique<EntranceInfoCommandHandler>());

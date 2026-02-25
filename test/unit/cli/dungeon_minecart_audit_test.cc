@@ -60,6 +60,34 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
   return status;
 }
 
+absl::Status InjectCollisionTiles(
+    Rom* rom, int room_id, const std::vector<std::pair<int, int>>& entries) {
+  std::string tile_pairs;
+  for (size_t i = 0; i < entries.size(); ++i) {
+    if (i > 0) {
+      tile_pairs += ",";
+    }
+    tile_pairs +=
+        absl::StrFormat("[%d,%d]", entries[i].first, entries[i].second);
+  }
+
+  const std::string json = absl::StrFormat(
+      R"({"version":1,"rooms":[{"room_id":"0x%02X","tiles":[%s]}]})", room_id,
+      tile_pairs);
+  auto tmp = (std::filesystem::temp_directory_path() /
+              "yaze_minecart_inject_collision_many.json")
+                 .string();
+  {
+    std::ofstream f(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
+    f << json;
+  }
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run({"--in", tmp, "--format=json"}, rom, &out);
+  std::filesystem::remove(tmp);
+  return status;
+}
+
 // ---------------------------------------------------------------------------
 // ValidateArgs tests  (no room scanning — just argument parsing)
 // ---------------------------------------------------------------------------
@@ -103,8 +131,7 @@ TEST(DungeonMinecartAuditTest, BlankRoomReportsNoIssues) {
 
   handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  ASSERT_TRUE(
-      handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
+  ASSERT_TRUE(handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
   EXPECT_THAT(out, HasSubstr("\"rooms_with_issues\": 0"));
 }
 
@@ -118,8 +145,7 @@ TEST(DungeonMinecartAuditTest, StopTileWithoutTrackObjectsReportsIssue) {
 
   handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  ASSERT_TRUE(
-      handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
+  ASSERT_TRUE(handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
 
   EXPECT_THAT(out, HasSubstr("\"rooms_with_issues\": 1"));
   EXPECT_THAT(out, HasSubstr("no track objects"));
@@ -134,8 +160,7 @@ TEST(DungeonMinecartAuditTest, TrackTileWithoutStopTilesReportsBothIssues) {
 
   handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  ASSERT_TRUE(
-      handler.Run({"--room=0xA8", "--format=json"}, &rom, &out).ok());
+  ASSERT_TRUE(handler.Run({"--room=0xA8", "--format=json"}, &rom, &out).ok());
 
   EXPECT_THAT(out, HasSubstr("\"rooms_with_issues\": 1"));
   EXPECT_THAT(out, HasSubstr("no stop tiles"));
@@ -153,10 +178,9 @@ TEST(DungeonMinecartAuditTest, OnlyIssuesFlagEmitsIssueRooms) {
 
   handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  ASSERT_TRUE(handler
-                  .Run({"--room=0x25", "--only-issues", "--format=json"}, &rom,
-                       &out)
-                  .ok());
+  ASSERT_TRUE(
+      handler.Run({"--room=0x25", "--only-issues", "--format=json"}, &rom, &out)
+          .ok());
 
   EXPECT_THAT(out, HasSubstr("\"rooms_emitted\": 1"));
   EXPECT_THAT(out, HasSubstr("\"rooms_with_issues\": 1"));
@@ -170,8 +194,7 @@ TEST(DungeonMinecartAuditTest, JsonOutputContainsExpectedTopLevelFields) {
 
   handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  ASSERT_TRUE(
-      handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
+  ASSERT_TRUE(handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
 
   EXPECT_THAT(out, HasSubstr("\"total_rooms_requested\""));
   EXPECT_THAT(out, HasSubstr("\"track_object_id\""));
@@ -191,12 +214,59 @@ TEST(DungeonMinecartAuditTest, MultipleD6RoomsCollisionOnOneIsolatesIssue) {
 
   handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  ASSERT_TRUE(handler
-                  .Run({"--rooms=0xA8,0xB8,0xD8,0xDA", "--format=json"},
-                       &rom, &out)
-                  .ok());
+  ASSERT_TRUE(
+      handler.Run({"--rooms=0xA8,0xB8,0xD8,0xDA", "--format=json"}, &rom, &out)
+          .ok());
 
   EXPECT_THAT(out, HasSubstr("\"rooms_with_issues\": 1"));
+}
+
+// ---------------------------------------------------------------------------
+// Minecart map command tests (tile enumeration + bounded ASCII grid)
+// ---------------------------------------------------------------------------
+
+TEST(DungeonMinecartMapTest, ValidateArgsMissingRoomReturnsInvalidArgument) {
+  handlers::DungeonMinecartMapCommandHandler handler;
+  const resources::ArgumentParser parser({"--format=json"});
+  const auto status = handler.ValidateArgs(parser);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(DungeonMinecartMapTest, BlankRoomReportsNoCustomCollisionData) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kRomSize, 0)).ok());
+
+  handlers::DungeonMinecartMapCommandHandler handler;
+  std::string out;
+  ASSERT_TRUE(handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
+
+  EXPECT_THAT(out, HasSubstr("\"has_custom_collision_data\": false"));
+  EXPECT_THAT(out, HasSubstr("\"tile_count\": 0"));
+}
+
+TEST(DungeonMinecartMapTest, EnumeratesTrackTilesAndAsciiGrid) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kRomSize, 0)).ok());
+
+  // Three minecart tiles in room 0x25:
+  //  - offset 0   -> (0,0)   track straight (0xB0)
+  //  - offset 1   -> (1,0)   stop north    (0xB7)
+  //  - offset 64  -> (0,1)   switch TL     (0xD0)
+  ASSERT_TRUE(
+      InjectCollisionTiles(&rom, 0x25, {{0, 0xB0}, {1, 0xB7}, {64, 0xD0}})
+          .ok());
+
+  handlers::DungeonMinecartMapCommandHandler handler;
+  std::string out;
+  ASSERT_TRUE(handler.Run({"--room=0x25", "--format=json"}, &rom, &out).ok());
+
+  EXPECT_THAT(out, HasSubstr("\"has_custom_collision_data\": true"));
+  EXPECT_THAT(out, HasSubstr("\"tile_count\": 3"));
+  EXPECT_THAT(out, HasSubstr("\"category\": \"track\""));
+  EXPECT_THAT(out, HasSubstr("\"category\": \"stop\""));
+  EXPECT_THAT(out, HasSubstr("\"category\": \"switch\""));
+  EXPECT_THAT(out, HasSubstr("\"ascii_grid\""));
 }
 
 }  // namespace
