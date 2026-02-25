@@ -1,14 +1,19 @@
 #include "cli/handlers/mesen_handlers.h"
 
+#include <algorithm>
 #include <cctype>
 #include <charconv>
+#include <chrono>
 #include <cstdlib>
 #include <sstream>
+#include <thread>
+#include <unordered_map>
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "absl/time/time.h"
 #include "app/emu/mesen/mesen_client_registry.h"
 
 ABSL_DECLARE_FLAG(std::string, mesen_socket);
@@ -18,6 +23,48 @@ namespace cli {
 namespace handlers {
 
 namespace {
+
+struct EmulatorAgentSessionState {
+  bool connected = false;
+  bool running = false;
+  bool paused = false;
+  uint64_t frame = 0;
+  uint32_t pc = 0;
+  int last_breakpoint_id = -1;
+  std::string last_action = "init";
+  std::unordered_map<int, uint32_t> breakpoints_by_id;
+};
+
+EmulatorAgentSessionState& SessionState() {
+  static EmulatorAgentSessionState state;
+  return state;
+}
+
+void UpdateSessionFromRuntime(
+    const std::shared_ptr<emu::mesen::MesenSocketClient>& client) {
+  auto& session = SessionState();
+  session.connected = client && client->IsConnected();
+  if (!session.connected) {
+    return;
+  }
+  if (auto state_or = client->GetState(); state_or.ok()) {
+    session.running = state_or->running;
+    session.paused = state_or->paused;
+    session.frame = state_or->frame;
+  }
+  if (auto cpu_or = client->GetCpuState(); cpu_or.ok()) {
+    session.pc =
+        (static_cast<uint32_t>(cpu_or->K) << 16) | (cpu_or->PC & 0xFFFF);
+  }
+}
+
+int ClampTimeoutMs(int timeout_ms) {
+  return std::max(1, timeout_ms);
+}
+
+int ClampPollMs(int poll_ms) {
+  return std::clamp(poll_ms, 1, 1000);
+}
 
 ::absl::Status EnsureConnected() {
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
@@ -29,20 +76,23 @@ namespace {
         socket_path = env_path;
       }
     }
-    auto status = socket_path.empty() ? client->Connect()
-                                      : client->Connect(socket_path);
+    auto status =
+        socket_path.empty() ? client->Connect() : client->Connect(socket_path);
     if (!status.ok()) {
       return ::absl::UnavailableError(
           "Not connected to Mesen2. Is Mesen2-OoS running?");
     }
+    auto& session = SessionState();
+    session.connected = true;
+    session.last_action = "connect";
   }
+  UpdateSessionFromRuntime(client);
   return ::absl::OkStatus();
 }
 
-::absl::StatusOr<int> ParseOptionalInt(
-    const resources::ArgumentParser& parser,
-    const std::string& name,
-    int default_value) {
+::absl::StatusOr<int> ParseOptionalInt(const resources::ArgumentParser& parser,
+                                       const std::string& name,
+                                       int default_value) {
   if (!parser.GetString(name).has_value()) {
     return default_value;
   }
@@ -69,6 +119,20 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   return data;
 }
 
+::absl::StatusOr<emu::mesen::CpuState> PollCpuStateWithDeadline(
+    const std::shared_ptr<emu::mesen::MesenSocketClient>& client,
+    ::absl::Time deadline) {
+  while (::absl::Now() < deadline) {
+    auto cpu_or = client->GetCpuState();
+    if (cpu_or.ok()) {
+      return cpu_or;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+  }
+  return ::absl::DeadlineExceededError(
+      "Timed out while polling Mesen2 CPU state");
+}
+
 }  // namespace
 
 // MesenGamestateCommandHandler
@@ -84,11 +148,13 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   (void)rom;
   (void)parser;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto result = client->GetGameState();
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   const auto& state = *result;
   formatter.AddField("link_x", state.link.x);
@@ -125,20 +191,21 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     resources::OutputFormatter& formatter) {
   (void)rom;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   bool show_all = parser.HasFlag("all");
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto result = client->GetSprites(show_all);
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   formatter.AddField("count", static_cast<int>(result->size()));
   formatter.BeginArray("sprites");
   for (const auto& sprite : *result) {
-    formatter.AddArrayItem(
-        ::absl::StrFormat("[#%d] type=0x%02X state=%d @(%d,%d) hp=%d",
-                        sprite.slot, sprite.type, sprite.state, sprite.x,
-                        sprite.y, sprite.health));
+    formatter.AddArrayItem(::absl::StrFormat(
+        "[#%d] type=0x%02X state=%d @(%d,%d) hp=%d", sprite.slot, sprite.type,
+        sprite.state, sprite.x, sprite.y, sprite.health));
   }
   formatter.EndArray();
 
@@ -158,11 +225,13 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   (void)rom;
   (void)parser;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto result = client->GetCpuState();
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   const auto& cpu = *result;
   uint32_t pc = (static_cast<uint32_t>(cpu.K) << 16) | (cpu.PC & 0xFFFF);
@@ -190,19 +259,23 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     resources::OutputFormatter& formatter) {
   (void)rom;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto addr_or = parser.GetHex("address");
-  if (!addr_or.ok()) return addr_or.status();
+  if (!addr_or.ok())
+    return addr_or.status();
   uint32_t addr = static_cast<uint32_t>(*addr_or);
 
   auto length_or = ParseOptionalInt(parser, "length", 16);
-  if (!length_or.ok()) return length_or.status();
+  if (!length_or.ok())
+    return length_or.status();
   int length = *length_or;
 
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto result = client->ReadBlock(addr, length);
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   formatter.AddHexField("address", addr, 6);
   formatter.AddField("length", static_cast<int>(result->size()));
@@ -226,10 +299,12 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     resources::OutputFormatter& formatter) {
   (void)rom;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto addr_or = parser.GetHex("address");
-  if (!addr_or.ok()) return addr_or.status();
+  if (!addr_or.ok())
+    return addr_or.status();
   uint32_t addr = static_cast<uint32_t>(*addr_or);
 
   auto data_str = parser.GetString("data");
@@ -244,7 +319,8 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
 
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto write_status = client->WriteBlock(addr, data);
-  if (!write_status.ok()) return write_status;
+  if (!write_status.ok())
+    return write_status;
 
   formatter.AddHexField("address", addr, 6);
   formatter.AddField("bytes_written", static_cast<int>(data.size()));
@@ -263,19 +339,23 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     resources::OutputFormatter& formatter) {
   (void)rom;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto addr_or = parser.GetHex("address");
-  if (!addr_or.ok()) return addr_or.status();
+  if (!addr_or.ok())
+    return addr_or.status();
   uint32_t addr = static_cast<uint32_t>(*addr_or);
 
   auto count_or = ParseOptionalInt(parser, "count", 10);
-  if (!count_or.ok()) return count_or.status();
+  if (!count_or.ok())
+    return count_or.status();
   int count = *count_or;
 
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto result = client->Disassemble(addr, count);
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   formatter.AddHexField("address", addr, 6);
   formatter.AddField("disassembly", *result);
@@ -294,15 +374,18 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     resources::OutputFormatter& formatter) {
   (void)rom;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto count_or = ParseOptionalInt(parser, "count", 20);
-  if (!count_or.ok()) return count_or.status();
+  if (!count_or.ok())
+    return count_or.status();
   int count = *count_or;
 
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   auto result = client->GetTrace(count);
-  if (!result.ok()) return result.status();
+  if (!result.ok())
+    return result.status();
 
   formatter.AddField("count", count);
   formatter.AddField("trace", *result);
@@ -320,7 +403,8 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     resources::OutputFormatter& formatter) {
   (void)rom;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto action = parser.GetString("action");
   if (!action.has_value()) {
@@ -329,7 +413,8 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
 
   if (*action == "add") {
     auto addr_or = parser.GetHex("address");
-    if (!addr_or.ok()) return addr_or.status();
+    if (!addr_or.ok())
+      return addr_or.status();
     uint32_t addr = static_cast<uint32_t>(*addr_or);
 
     std::string type_str = parser.GetString("type").value_or("exec");
@@ -343,24 +428,28 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
 
     auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
     auto result = client->AddBreakpoint(addr, type);
-    if (!result.ok()) return result.status();
+    if (!result.ok())
+      return result.status();
     formatter.AddField("breakpoint_id", *result);
     formatter.AddHexField("address", addr, 6);
     formatter.AddField("status", "added");
   } else if (*action == "remove") {
     auto id_or = parser.GetInt("id");
-    if (!id_or.ok()) return id_or.status();
+    if (!id_or.ok())
+      return id_or.status();
     int id = *id_or;
 
     auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
     auto remove_status = client->RemoveBreakpoint(id);
-    if (!remove_status.ok()) return remove_status;
+    if (!remove_status.ok())
+      return remove_status;
     formatter.AddField("breakpoint_id", id);
     formatter.AddField("status", "removed");
   } else if (*action == "clear") {
     auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
     auto clear_status = client->ClearBreakpoints();
-    if (!clear_status.ok()) return clear_status;
+    if (!clear_status.ok())
+      return clear_status;
     formatter.AddField("status", "cleared");
   } else if (*action == "list") {
     formatter.AddField("status", "not_implemented");
@@ -382,7 +471,8 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     resources::OutputFormatter& formatter) {
   (void)rom;
   auto status = EnsureConnected();
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   auto action = parser.GetString("action");
   if (!action.has_value()) {
@@ -392,25 +482,321 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
   if (*action == "pause") {
     auto result = client->Pause();
-    if (!result.ok()) return result;
+    if (!result.ok())
+      return result;
   } else if (*action == "resume") {
     auto result = client->Resume();
-    if (!result.ok()) return result;
+    if (!result.ok())
+      return result;
   } else if (*action == "step") {
     auto result = client->Step(1);
-    if (!result.ok()) return result;
+    if (!result.ok())
+      return result;
   } else if (*action == "frame") {
     auto result = client->Frame();
-    if (!result.ok()) return result;
+    if (!result.ok())
+      return result;
   } else if (*action == "reset") {
     auto result = client->Reset();
-    if (!result.ok()) return result;
+    if (!result.ok())
+      return result;
   } else {
     return ::absl::InvalidArgumentError("Unknown action: " + *action);
   }
 
+  auto& session = SessionState();
+  session.last_action = *action;
+  UpdateSessionFromRuntime(client);
   formatter.AddField("status", "ok");
   formatter.AddField("action", *action);
+  return ::absl::OkStatus();
+}
+
+// MesenSessionCommandHandler
+::absl::Status MesenSessionCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  (void)parser;
+  return ::absl::OkStatus();
+}
+
+::absl::Status MesenSessionCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  (void)parser;
+  auto status = EnsureConnected();
+  if (!status.ok()) {
+    return status;
+  }
+
+  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
+  UpdateSessionFromRuntime(client);
+  const auto& session = SessionState();
+  formatter.AddField("connected", session.connected);
+  formatter.AddField("running", session.running);
+  formatter.AddField("paused", session.paused);
+  formatter.AddField("frame", static_cast<uint64_t>(session.frame));
+  formatter.AddHexField("pc", session.pc, 6);
+  formatter.AddField("breakpoint_count",
+                     static_cast<int>(session.breakpoints_by_id.size()));
+  formatter.AddField("last_breakpoint_id", session.last_breakpoint_id);
+  formatter.AddField("last_action", session.last_action);
+  return ::absl::OkStatus();
+}
+
+// MesenAwaitCommandHandler
+::absl::Status MesenAwaitCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  auto status = parser.RequireArgs({"type"});
+  if (!status.ok()) {
+    return status;
+  }
+  const auto type = parser.GetString("type").value_or("");
+  if (type == "frame") {
+    return parser.RequireArgs({"count"});
+  }
+  if (type == "pc") {
+    return parser.RequireArgs({"address"});
+  }
+  if (type == "breakpoint") {
+    return parser.RequireArgs({"id"});
+  }
+  return ::absl::InvalidArgumentError(
+      "--type must be one of frame|pc|breakpoint");
+}
+
+::absl::Status MesenAwaitCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  auto status = EnsureConnected();
+  if (!status.ok()) {
+    return status;
+  }
+  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
+  auto& session = SessionState();
+
+  auto timeout_or = ParseOptionalInt(parser, "timeout-ms", 2000);
+  if (!timeout_or.ok()) {
+    return timeout_or.status();
+  }
+  auto poll_or = ParseOptionalInt(parser, "poll-ms", 25);
+  if (!poll_or.ok()) {
+    return poll_or.status();
+  }
+  const int timeout_ms = ClampTimeoutMs(*timeout_or);
+  const int poll_ms = ClampPollMs(*poll_or);
+  const auto start = ::absl::Now();
+  const auto deadline = start + ::absl::Milliseconds(timeout_ms);
+
+  const auto type = parser.GetString("type").value_or("");
+  if (type == "frame") {
+    auto count_or = parser.GetInt("count");
+    if (!count_or.ok()) {
+      return count_or.status();
+    }
+    UpdateSessionFromRuntime(client);
+    const uint64_t target =
+        session.frame + static_cast<uint64_t>(std::max(0, *count_or));
+    while (::absl::Now() < deadline) {
+      if (auto state_or = client->GetState(); state_or.ok()) {
+        session.frame = state_or->frame;
+        session.running = state_or->running;
+        session.paused = state_or->paused;
+        if (session.frame >= target) {
+          session.last_action = "await-frame";
+          formatter.AddField("status", "ok");
+          formatter.AddField("type", "frame");
+          formatter.AddField("target_frame", static_cast<uint64_t>(target));
+          formatter.AddField("frame", static_cast<uint64_t>(session.frame));
+          formatter.AddField("elapsed_ms",
+                             static_cast<uint64_t>(::absl::ToInt64Milliseconds(
+                                 ::absl::Now() - start)));
+          return ::absl::OkStatus();
+        }
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
+    }
+    return ::absl::DeadlineExceededError("Timed out waiting for target frame");
+  }
+
+  if (type == "pc") {
+    auto addr_or = parser.GetHex("address");
+    if (!addr_or.ok()) {
+      return addr_or.status();
+    }
+    const uint32_t target_pc = static_cast<uint32_t>(*addr_or);
+    while (::absl::Now() < deadline) {
+      auto cpu_or = PollCpuStateWithDeadline(client, deadline);
+      if (!cpu_or.ok()) {
+        return cpu_or.status();
+      }
+      const uint32_t pc =
+          (static_cast<uint32_t>(cpu_or->K) << 16) | (cpu_or->PC & 0xFFFF);
+      session.pc = pc;
+      if (pc == target_pc) {
+        session.last_action = "await-pc";
+        formatter.AddField("status", "ok");
+        formatter.AddField("type", "pc");
+        formatter.AddHexField("target_pc", target_pc, 6);
+        formatter.AddHexField("pc", pc, 6);
+        formatter.AddField("elapsed_ms",
+                           static_cast<uint64_t>(::absl::ToInt64Milliseconds(
+                               ::absl::Now() - start)));
+        return ::absl::OkStatus();
+      }
+      std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
+    }
+    return ::absl::DeadlineExceededError("Timed out waiting for target pc");
+  }
+
+  auto id_or = parser.GetInt("id");
+  if (!id_or.ok()) {
+    return id_or.status();
+  }
+  const int id = *id_or;
+  const auto it = session.breakpoints_by_id.find(id);
+  if (it == session.breakpoints_by_id.end()) {
+    return ::absl::NotFoundError("Unknown breakpoint id in session state");
+  }
+  const uint32_t target_pc = it->second;
+  while (::absl::Now() < deadline) {
+    auto state_or = client->GetState();
+    if (!state_or.ok()) {
+      return state_or.status();
+    }
+    session.running = state_or->running;
+    session.paused = state_or->paused;
+    session.frame = state_or->frame;
+    auto cpu_or = client->GetCpuState();
+    if (!cpu_or.ok()) {
+      return cpu_or.status();
+    }
+    const uint32_t pc =
+        (static_cast<uint32_t>(cpu_or->K) << 16) | (cpu_or->PC & 0xFFFF);
+    session.pc = pc;
+    if (session.paused && pc == target_pc) {
+      session.last_action = "await-breakpoint";
+      formatter.AddField("status", "ok");
+      formatter.AddField("type", "breakpoint");
+      formatter.AddField("breakpoint_id", id);
+      formatter.AddHexField("pc", pc, 6);
+      formatter.AddField("frame", static_cast<uint64_t>(session.frame));
+      formatter.AddField("elapsed_ms",
+                         static_cast<uint64_t>(::absl::ToInt64Milliseconds(
+                             ::absl::Now() - start)));
+      return ::absl::OkStatus();
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
+  }
+  return ::absl::DeadlineExceededError("Timed out waiting for breakpoint hit");
+}
+
+// MesenGoalCommandHandler
+::absl::Status MesenGoalCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  auto status = parser.RequireArgs({"goal"});
+  if (!status.ok()) {
+    return status;
+  }
+  const auto goal = parser.GetString("goal").value_or("");
+  if (goal == "break-at") {
+    return parser.RequireArgs({"address"});
+  }
+  return ::absl::InvalidArgumentError("Unknown --goal. Supported: break-at");
+}
+
+::absl::Status MesenGoalCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  auto status = EnsureConnected();
+  if (!status.ok()) {
+    return status;
+  }
+  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
+  auto& session = SessionState();
+  const auto goal = parser.GetString("goal").value_or("");
+  if (goal != "break-at") {
+    return ::absl::InvalidArgumentError("Unsupported goal");
+  }
+  auto addr_or = parser.GetHex("address");
+  if (!addr_or.ok()) {
+    return addr_or.status();
+  }
+  const uint32_t target_pc = static_cast<uint32_t>(*addr_or);
+  auto timeout_or = ParseOptionalInt(parser, "timeout-ms", 2000);
+  if (!timeout_or.ok()) {
+    return timeout_or.status();
+  }
+  auto poll_or = ParseOptionalInt(parser, "poll-ms", 25);
+  if (!poll_or.ok()) {
+    return poll_or.status();
+  }
+  const int timeout_ms = ClampTimeoutMs(*timeout_or);
+  const int poll_ms = ClampPollMs(*poll_or);
+  const auto start = ::absl::Now();
+  const auto deadline = start + ::absl::Milliseconds(timeout_ms);
+
+  if (auto pause_status = client->Pause(); !pause_status.ok()) {
+    return pause_status;
+  }
+  auto bp_or =
+      client->AddBreakpoint(target_pc, emu::mesen::BreakpointType::kExecute);
+  if (!bp_or.ok()) {
+    return bp_or.status();
+  }
+  const int bp_id = *bp_or;
+  session.breakpoints_by_id[bp_id] = target_pc;
+  session.last_breakpoint_id = bp_id;
+
+  if (auto resume_status = client->Resume(); !resume_status.ok()) {
+    (void)client->RemoveBreakpoint(bp_id);
+    session.breakpoints_by_id.erase(bp_id);
+    return resume_status;
+  }
+
+  bool hit = false;
+  while (::absl::Now() < deadline) {
+    auto state_or = client->GetState();
+    if (!state_or.ok()) {
+      break;
+    }
+    session.running = state_or->running;
+    session.paused = state_or->paused;
+    session.frame = state_or->frame;
+    auto cpu_or = client->GetCpuState();
+    if (!cpu_or.ok()) {
+      break;
+    }
+    const uint32_t pc =
+        (static_cast<uint32_t>(cpu_or->K) << 16) | (cpu_or->PC & 0xFFFF);
+    session.pc = pc;
+    if (session.paused && pc == target_pc) {
+      hit = true;
+      break;
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(poll_ms));
+  }
+
+  (void)client->Pause();
+  (void)client->RemoveBreakpoint(bp_id);
+  session.breakpoints_by_id.erase(bp_id);
+  UpdateSessionFromRuntime(client);
+  if (!hit) {
+    return ::absl::DeadlineExceededError("Goal break-at timed out");
+  }
+
+  session.last_action = "goal-break-at";
+  formatter.AddField("status", "ok");
+  formatter.AddField("goal", "break-at");
+  formatter.AddField("breakpoint_id", bp_id);
+  formatter.AddHexField("target_pc", target_pc, 6);
+  formatter.AddHexField("pc", session.pc, 6);
+  formatter.AddField("frame", static_cast<uint64_t>(session.frame));
+  formatter.AddField("elapsed_ms",
+                     static_cast<uint64_t>(
+                         ::absl::ToInt64Milliseconds(::absl::Now() - start)));
   return ::absl::OkStatus();
 }
 
@@ -427,6 +813,9 @@ CreateMesenCommandHandlers() {
   handlers.push_back(std::make_unique<MesenTraceCommandHandler>());
   handlers.push_back(std::make_unique<MesenBreakpointCommandHandler>());
   handlers.push_back(std::make_unique<MesenControlCommandHandler>());
+  handlers.push_back(std::make_unique<MesenSessionCommandHandler>());
+  handlers.push_back(std::make_unique<MesenAwaitCommandHandler>());
+  handlers.push_back(std::make_unique<MesenGoalCommandHandler>());
   return handlers;
 }
 

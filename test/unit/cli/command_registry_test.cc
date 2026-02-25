@@ -101,5 +101,20 @@ TEST(CommandRegistryTest, DungeonRoomGraphRegisteredAndHasUsage) {
   EXPECT_THAT(help, ::testing::HasSubstr("--same-blockset"));
 }
 
+TEST(CommandRegistryTest, MesenAutonomyCommandsExposeUsage) {
+  auto& registry = CommandRegistry::Instance();
+
+  const std::string await_help = registry.GenerateHelp("mesen-await");
+  EXPECT_THAT(await_help, ::testing::HasSubstr("--type <frame|pc|breakpoint>"));
+  EXPECT_THAT(await_help, ::testing::HasSubstr("--timeout-ms"));
+
+  const std::string goal_help = registry.GenerateHelp("mesen-goal");
+  EXPECT_THAT(goal_help, ::testing::HasSubstr("--goal break-at"));
+  EXPECT_THAT(goal_help, ::testing::HasSubstr("--address <hex>"));
+
+  const std::string session_help = registry.GenerateHelp("mesen-session");
+  EXPECT_THAT(session_help, ::testing::HasSubstr("mesen-session"));
+}
+
 }  // namespace
 }  // namespace yaze::cli
