@@ -5,12 +5,12 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
-#include "rom/rom.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -191,7 +191,8 @@ TEST_F(ObjectDimensionTableTest,
     RoomObject obj(test_case.object_id, 0, 0, test_case.size, 0);
 
     auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
-    auto selection = table.GetSelectionBounds(test_case.object_id, test_case.size);
+    auto selection =
+        table.GetSelectionBounds(test_case.object_id, test_case.size);
 
     if (!geo_result.ok()) {
       // Some subtype-2 furniture objects are not yet replay-backed by ObjectGeometry.
@@ -238,7 +239,8 @@ TEST_F(ObjectDimensionTableTest,
     RoomObject obj(test_case.object_id, 0, 0, test_case.size, 0);
 
     auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
-    auto selection = table.GetSelectionBounds(test_case.object_id, test_case.size);
+    auto selection =
+        table.GetSelectionBounds(test_case.object_id, test_case.size);
 
     if (!geo_result.ok()) {
       EXPECT_GE(selection.width, 1);
@@ -332,9 +334,9 @@ TEST_F(ObjectDimensionTableTest,
             << static_cast<int>(size) << std::dec << " sel=("
             << selection.offset_x << "," << selection.offset_y << ","
             << selection.width << "x" << selection.height << ") geo=("
-            << geo_result->min_x_tiles << "," << geo_result->min_y_tiles
-            << "," << geo_result->width_tiles << "x"
-            << geo_result->height_tiles << ")";
+            << geo_result->min_x_tiles << "," << geo_result->min_y_tiles << ","
+            << geo_result->width_tiles << "x" << geo_result->height_tiles
+            << ")";
         mismatches.push_back(oss.str());
       }
     }
@@ -352,8 +354,7 @@ TEST_F(ObjectDimensionTableTest,
 
   if (!mismatches.empty()) {
     std::ostringstream summary;
-    summary << "Found " << mismatches.size()
-            << " selection-bound mismatches.";
+    summary << "Found " << mismatches.size() << " selection-bound mismatches.";
     const size_t limit = std::min<size_t>(25, mismatches.size());
     for (size_t i = 0; i < limit; ++i) {
       summary << "\n  - " << mismatches[i];
@@ -400,14 +401,14 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType1Objects) {
   // Test object 0x00 (horizontal floor tile)
   // Routine 0: DrawRightwards2x2_1to15or32
   // Logic: width = size * 16 (where size 0 -> 32)
-  
-  RoomObject obj00(0x00, 10, 10, 0, 0); // Size 0 -> 32
+
+  RoomObject obj00(0x00, 10, 10, 0, 0);  // Size 0 -> 32
   // width = 32 * 16 = 512
   auto dims = drawer.CalculateObjectDimensions(obj00);
   EXPECT_EQ(dims.first, 512);
   EXPECT_EQ(dims.second, 16);
 
-  RoomObject obj00_size1(0x00, 10, 10, 1, 0); // Size 1
+  RoomObject obj00_size1(0x00, 10, 10, 1, 0);  // Size 1
   // width = 1 * 16 = 16
   dims = drawer.CalculateObjectDimensions(obj00_size1);
   EXPECT_EQ(dims.first, 16);
@@ -420,14 +421,14 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForDiagonalWalls) {
   // Test object 0x10 (Diagonal Wall /)
   // Routine 5: DrawDiagonalAcute_1to16
   // Logic: width = (size + 7) * 8
-  
-  RoomObject obj10(0x10, 10, 10, 0, 0); // Size 0
+
+  RoomObject obj10(0x10, 10, 10, 0, 0);  // Size 0
   // width = (0 + 7) * 8 = 56
   auto dims = drawer.CalculateObjectDimensions(obj10);
   EXPECT_EQ(dims.first, 56);
   EXPECT_EQ(dims.second, 88);
 
-  RoomObject obj10_size10(0x10, 10, 10, 10, 0); // Size 10
+  RoomObject obj10_size10(0x10, 10, 10, 10, 0);  // Size 10
   // width = (10 + 7) * 8 = 136
   dims = drawer.CalculateObjectDimensions(obj10_size10);
   EXPECT_EQ(dims.first, 136);
@@ -454,7 +455,7 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType3Objects) {
   // Currently falls back to default logic or specific if added.
   // If not added to switch, default is 8 + size*4.
   // Water Face size usually 0?
-  
+
   RoomObject obj200(0x200, 10, 10, 0, 0);
   auto dims = drawer.CalculateObjectDimensions(obj200);
   // If unhandled, check fallback behavior or add case.
@@ -473,11 +474,12 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForSomariaLine) {
 
   RoomObject obj203(0x203, 10, 10, 0, 0);
   auto dims = drawer.CalculateObjectDimensions(obj203);
-  EXPECT_EQ(dims.first, 8);   // Default fallback for unmapped objects
+  EXPECT_EQ(dims.first, 8);  // Default fallback for unmapped objects
   EXPECT_EQ(dims.second, 8);
 }
 
-TEST_F(ObjectDimensionsTest, CalculatesDimensionsForSuperSquareObjectsUse2BitSizes) {
+TEST_F(ObjectDimensionsTest,
+       CalculatesDimensionsForSuperSquareObjectsUse2BitSizes) {
   ObjectDrawer drawer(rom_.get(), 0);
 
   // SuperSquare objects (e.g. 0xC2) use 2-bit X/Y sizes packed as:
@@ -493,6 +495,76 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForSuperSquareObjectsUse2BitSiz
   dims = drawer.CalculateObjectDimensions(obj_c2_x4_y3);
   EXPECT_EQ(dims.first, 128);  // 4 super squares * 32px
   EXPECT_EQ(dims.second, 96);  // 3 super squares * 32px
+}
+
+TEST_F(ObjectDimensionTableTest, DiagonalCeilingBaseHeightIsCorrect) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  // All 12 diagonal ceiling IDs (0xA0-0xAC, excluding 0xA4 which is BigHole)
+  const std::vector<int> diagonal_ids = {0xA0, 0xA1, 0xA2, 0xA3, 0xA5, 0xA6,
+                                         0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC};
+
+  for (int id : diagonal_ids) {
+    SCOPED_TRACE(absl::StrFormat("object 0x%02X size=0", id));
+    auto [w, h] = table.GetDimensions(id, 0);
+    // At size=0: w = base_width(4) + 0 = 4, h = base_height(8) + 0 = 8
+    EXPECT_EQ(w, 4);
+    EXPECT_EQ(h, 8);
+  }
+
+  for (int id : diagonal_ids) {
+    SCOPED_TRACE(absl::StrFormat("object 0x%02X size=3", id));
+    auto [w, h] = table.GetDimensions(id, 3);
+    // At size=3: w = 4 + 3 = 7, h = 8 + 3 = 11
+    EXPECT_EQ(w, 7);
+    EXPECT_EQ(h, 11);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest, DiagonalCeilingSelectionOffsetsCorrect) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  // TopLeft (extends down-right): no offsets
+  for (int id : {0xA0, 0xA5, 0xA9}) {
+    SCOPED_TRACE(absl::StrFormat("TopLeft 0x%02X", id));
+    auto bounds = table.GetSelectionBounds(id, 0);
+    EXPECT_EQ(bounds.offset_x, 0);
+    EXPECT_EQ(bounds.offset_y, 0);
+    EXPECT_EQ(bounds.width, 4);
+    EXPECT_EQ(bounds.height, 8);
+  }
+
+  // BottomLeft (extends up-right): offset_y = -(width-1)
+  for (int id : {0xA1, 0xA6, 0xAA}) {
+    SCOPED_TRACE(absl::StrFormat("BottomLeft 0x%02X", id));
+    auto bounds = table.GetSelectionBounds(id, 0);
+    EXPECT_EQ(bounds.offset_x, 0);
+    EXPECT_EQ(bounds.offset_y, -(bounds.width - 1));
+    EXPECT_EQ(bounds.width, 4);
+    EXPECT_EQ(bounds.height, 8);
+  }
+
+  // TopRight (extends down-left): offset_x = -(width-1)
+  for (int id : {0xA2, 0xA7, 0xAB}) {
+    SCOPED_TRACE(absl::StrFormat("TopRight 0x%02X", id));
+    auto bounds = table.GetSelectionBounds(id, 0);
+    EXPECT_EQ(bounds.offset_x, -(bounds.width - 1));
+    EXPECT_EQ(bounds.offset_y, 0);
+    EXPECT_EQ(bounds.width, 4);
+    EXPECT_EQ(bounds.height, 8);
+  }
+
+  // BottomRight (extends up-left): both offsets = -(width-1)
+  for (int id : {0xA3, 0xA8, 0xAC}) {
+    SCOPED_TRACE(absl::StrFormat("BottomRight 0x%02X", id));
+    auto bounds = table.GetSelectionBounds(id, 0);
+    EXPECT_EQ(bounds.offset_x, -(bounds.width - 1));
+    EXPECT_EQ(bounds.offset_y, -(bounds.width - 1));
+    EXPECT_EQ(bounds.width, 4);
+    EXPECT_EQ(bounds.height, 8);
+  }
 }
 
 }  // namespace zelda3

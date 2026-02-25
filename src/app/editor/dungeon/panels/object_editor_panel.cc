@@ -25,8 +25,8 @@
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_validator.h"
-#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -240,8 +240,8 @@ void ObjectEditorPanel::Draw(bool* p_open) {
   if (!last_placement_error_.empty()) {
     double elapsed = ImGui::GetTime() - placement_error_time_;
     if (elapsed < kPlacementErrorDuration) {
-      ImGui::TextColored(theme.status_error,
-                         ICON_MD_ERROR " %s", last_placement_error_.c_str());
+      ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s",
+                         last_placement_error_.c_str());
     } else {
       last_placement_error_.clear();
     }
@@ -502,14 +502,14 @@ void ObjectEditorPanel::DrawSelectedObjectInfo() {
             const auto& obj = objects[selected[0]];
             const auto semantics = zelda3::GetObjectLayerSemantics(obj);
             ImGui::Text("Object #%zu (ID: 0x%02X)", selected[0], obj.id_);
-            ImGui::TextColored(theme.text_secondary_gray,
-                               "  Position: (%d, %d)  Size: 0x%02X  Layer: %s  Draws: %s",
-                               obj.x_, obj.y_, obj.size_,
-                               obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
-                               : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                                       : "BG3",
-                               zelda3::EffectiveBgLayerLabel(
-                                   semantics.effective_bg_layer));
+            ImGui::TextColored(
+                theme.text_secondary_gray,
+                "  Position: (%d, %d)  Size: 0x%02X  Layer: %s  Draws: %s",
+                obj.x_, obj.y_, obj.size_,
+                obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
+                : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
+                                                        : "BG3",
+                zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
           }
         } else {
           ImGui::Text("1 object");
@@ -743,7 +743,8 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
 
         if (ImGui::Button(ICON_MD_GRID_ON " Edit Tiles", ImVec2(-1, 0))) {
           if (tile_editor_callback_) {
-            tile_editor_callback_(static_cast<int16_t>(static_editor_object_id_));
+            tile_editor_callback_(
+                static_cast<int16_t>(static_editor_object_id_));
           }
         }
         if (ImGui::IsItemHovered()) {
@@ -1200,6 +1201,7 @@ void ObjectEditorPanel::CycleObjectSelection(int direction) {
   size_t next_idx = (current_idx + direction + total_objects) % total_objects;
 
   interaction.SetSelectedObjects({next_idx});
+  ScrollToObject(next_idx);
 }
 
 void ObjectEditorPanel::ScrollToObject(size_t index) {
@@ -1210,8 +1212,8 @@ void ObjectEditorPanel::ScrollToObject(size_t index) {
   if (index >= objects.size())
     return;
 
-  // TODO: Implement ScrollTo in DungeonCanvasViewer
-  (void)objects;
+  const auto& obj = objects[index];
+  canvas_viewer_->ScrollToTile(obj.x(), obj.y());
 }
 
 }  // namespace editor
