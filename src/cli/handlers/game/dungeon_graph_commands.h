@@ -56,8 +56,7 @@ class EntranceInfoCommandHandler : public resources::CommandHandler {
            "[--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(
-      const resources::ArgumentParser& parser) override {
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"entrance"});
   }
 
@@ -83,8 +82,43 @@ class DungeonDiscoverCommandHandler : public resources::CommandHandler {
            "[--depth <max_depth>] [--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(
-      const resources::ArgumentParser& parser) override {
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"entrance"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Full room connectivity graph including door edges
+ *
+ * Starting from an entrance, performs BFS through both door connections
+ * (inferred from grid adjacency by direction) and staircase/holewarp edges.
+ * Door edges include tile coordinates so the Python navigator can teleport
+ * Link to a door tile and press the direction to trigger the transition.
+ *
+ * Exit-type doors (FancyDungeonExit, CaveExit, etc.) are included in the
+ * output but NOT followed during BFS (marked is_exit=true, to="exit").
+ *
+ * Usage:
+ *   dungeon-room-graph --entrance=0x27 [--depth=50] [--same-blockset]
+ *
+ * --same-blockset: only follow doors to rooms with the same blockset as the
+ *   starting room. Prevents cross-dungeon cascade on the shared ALTTP grid.
+ */
+class DungeonRoomGraphCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-room-graph"; }
+  std::string GetDescription() const {
+    return "Build full room graph (doors + staircases) from an entrance";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-room-graph --entrance <id> [--depth <max>] "
+           "[--same-blockset]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     return parser.RequireArgs({"entrance"});
   }
 

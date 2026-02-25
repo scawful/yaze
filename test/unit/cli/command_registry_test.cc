@@ -90,5 +90,16 @@ TEST(CommandRegistryTest, ProjectBundleUnpackHelpIncludesExamples) {
   EXPECT_THAT(help, ::testing::HasSubstr("--out"));
 }
 
+TEST(CommandRegistryTest, DungeonRoomGraphRegisteredAndHasUsage) {
+  auto& registry = CommandRegistry::Instance();
+  auto dungeon_commands = registry.GetCommandsInCategory("dungeon");
+
+  EXPECT_THAT(dungeon_commands, ::testing::Contains("dungeon-room-graph"));
+
+  const std::string help = registry.GenerateHelp("dungeon-room-graph");
+  EXPECT_THAT(help, ::testing::HasSubstr("dungeon-room-graph --entrance"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--same-blockset"));
+}
+
 }  // namespace
 }  // namespace yaze::cli

@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
@@ -53,6 +54,91 @@ int GetRoomDungeonId(Rom* rom, int room_id) {
     }
   }
   return -1;  // Unknown dungeon
+}
+
+// Returns true for door types that exit the dungeon (overworld, cave exit, etc.)
+bool IsExitDoorType(zelda3::DoorType type) {
+  switch (type) {
+    case zelda3::DoorType::FancyDungeonExit:
+    case zelda3::DoorType::FancyDungeonExitLower:
+    case zelda3::DoorType::CaveExit:
+    case zelda3::DoorType::LitCaveExitLower:
+    case zelda3::DoorType::ExitLower:
+    case zelda3::DoorType::UnusedCaveExit:
+    case zelda3::DoorType::BombableCaveExit:
+    case zelda3::DoorType::WaterfallDoor:
+    case zelda3::DoorType::ExitMarker:
+      return true;
+    default:
+      return false;
+  }
+}
+
+// Compute neighbor room ID from door direction using ALTTP 16-wide grid.
+// Returns -1 if the computed ID is out of range.
+int NeighborRoomId(int room_id, zelda3::DoorDirection dir) {
+  int neighbor = -1;
+  switch (dir) {
+    case zelda3::DoorDirection::North:
+      neighbor = room_id - 0x10;
+      break;
+    case zelda3::DoorDirection::South:
+      neighbor = room_id + 0x10;
+      break;
+    case zelda3::DoorDirection::West:
+      neighbor = room_id - 0x01;
+      break;
+    case zelda3::DoorDirection::East:
+      neighbor = room_id + 0x01;
+      break;
+    default:
+      break;
+  }
+  if (neighbor < 0 || neighbor >= zelda3::kNumberOfRooms)
+    return -1;
+  return neighbor;
+}
+
+// Opposite direction for reciprocal door check
+zelda3::DoorDirection OppositeDir(zelda3::DoorDirection dir) {
+  switch (dir) {
+    case zelda3::DoorDirection::North:
+      return zelda3::DoorDirection::South;
+    case zelda3::DoorDirection::South:
+      return zelda3::DoorDirection::North;
+    case zelda3::DoorDirection::West:
+      return zelda3::DoorDirection::East;
+    case zelda3::DoorDirection::East:
+      return zelda3::DoorDirection::West;
+    default:
+      return zelda3::DoorDirection::North;
+  }
+}
+
+// Check if a room has a non-exit door in the given direction.
+// Used to verify reciprocal connectivity (A→North→B requires B has a South door).
+bool RoomHasDoorIn(Rom* rom, int room_id, zelda3::DoorDirection dir) {
+  zelda3::Room neighbor_room = zelda3::LoadRoomFromRom(rom, room_id);
+  for (const auto& door : neighbor_room.GetDoors()) {
+    if (door.direction == dir && !IsExitDoorType(door.type))
+      return true;
+  }
+  return false;
+}
+
+std::string DoorEdgeTypeName(zelda3::DoorDirection dir) {
+  switch (dir) {
+    case zelda3::DoorDirection::North:
+      return "door_north";
+    case zelda3::DoorDirection::South:
+      return "door_south";
+    case zelda3::DoorDirection::West:
+      return "door_west";
+    case zelda3::DoorDirection::East:
+      return "door_east";
+    default:
+      return "door_unknown";
+  }
 }
 
 }  // namespace
@@ -238,9 +324,8 @@ absl::Status EntranceInfoCommandHandler::Execute(
 
   // Validate entrance ID range
   if (entrance_id < 0 || entrance_id > 0x84) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Entrance ID 0x%02X out of range (0x00-0x84).",
-                        entrance_id));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Entrance ID 0x%02X out of range (0x00-0x84).", entrance_id));
   }
 
   zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id),
@@ -249,9 +334,11 @@ absl::Status EntranceInfoCommandHandler::Execute(
   formatter.BeginObject("entrance");
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("is_spawn_point", is_spawn_point);
-  formatter.AddField("room_id", absl::StrFormat("0x%02X", entrance.room_ & 0xFF));
+  formatter.AddField("room_id",
+                     absl::StrFormat("0x%02X", entrance.room_ & 0xFF));
   formatter.AddField("room_id_full", absl::StrFormat("0x%04X", entrance.room_));
-  formatter.AddField("dungeon_id", absl::StrFormat("0x%02X", entrance.dungeon_id_));
+  formatter.AddField("dungeon_id",
+                     absl::StrFormat("0x%02X", entrance.dungeon_id_));
   formatter.AddField("exit_id", absl::StrFormat("0x%04X", entrance.exit_));
 
   formatter.BeginObject("position");
@@ -270,22 +357,32 @@ absl::Status EntranceInfoCommandHandler::Execute(
   formatter.AddField("blockset", absl::StrFormat("0x%02X", entrance.blockset_));
   formatter.AddField("floor", absl::StrFormat("0x%02X", entrance.floor_));
   formatter.AddField("door", absl::StrFormat("0x%02X", entrance.door_));
-  formatter.AddField("ladder_bg", absl::StrFormat("0x%02X", entrance.ladder_bg_));
-  formatter.AddField("scrolling", absl::StrFormat("0x%02X", entrance.scrolling_));
+  formatter.AddField("ladder_bg",
+                     absl::StrFormat("0x%02X", entrance.ladder_bg_));
+  formatter.AddField("scrolling",
+                     absl::StrFormat("0x%02X", entrance.scrolling_));
   formatter.AddField("scroll_quadrant",
                      absl::StrFormat("0x%02X", entrance.scroll_quadrant_));
   formatter.AddField("music", absl::StrFormat("0x%02X", entrance.music_));
   formatter.EndObject();
 
   formatter.BeginObject("camera_boundaries");
-  formatter.AddField("qn", absl::StrFormat("0x%02X", entrance.camera_boundary_qn_));
-  formatter.AddField("fn", absl::StrFormat("0x%02X", entrance.camera_boundary_fn_));
-  formatter.AddField("qs", absl::StrFormat("0x%02X", entrance.camera_boundary_qs_));
-  formatter.AddField("fs", absl::StrFormat("0x%02X", entrance.camera_boundary_fs_));
-  formatter.AddField("qw", absl::StrFormat("0x%02X", entrance.camera_boundary_qw_));
-  formatter.AddField("fw", absl::StrFormat("0x%02X", entrance.camera_boundary_fw_));
-  formatter.AddField("qe", absl::StrFormat("0x%02X", entrance.camera_boundary_qe_));
-  formatter.AddField("fe", absl::StrFormat("0x%02X", entrance.camera_boundary_fe_));
+  formatter.AddField("qn",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_qn_));
+  formatter.AddField("fn",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_fn_));
+  formatter.AddField("qs",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_qs_));
+  formatter.AddField("fs",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_fs_));
+  formatter.AddField("qw",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_qw_));
+  formatter.AddField("fw",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_fw_));
+  formatter.AddField("qe",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_qe_));
+  formatter.AddField("fe",
+                     absl::StrFormat("0x%02X", entrance.camera_boundary_fe_));
   formatter.EndObject();
 
   formatter.EndObject();
@@ -307,14 +404,16 @@ absl::Status DungeonDiscoverCommandHandler::Execute(
 
   // Validate entrance ID range
   if (entrance_id < 0 || entrance_id > 0x84) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Entrance ID 0x%02X out of range (0x00-0x84).",
-                        entrance_id));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Entrance ID 0x%02X out of range (0x00-0x84).", entrance_id));
   }
 
   int max_depth = 20;  // Default depth limit
   if (depth_opt.has_value()) {
-    max_depth = std::stoi(depth_opt.value());
+    if (!absl::SimpleAtoi(depth_opt.value(), &max_depth)) {
+      return absl::InvalidArgumentError(
+          "Invalid depth format. Must be an integer between 1 and 100.");
+    }
     if (max_depth < 1 || max_depth > 100) {
       return absl::InvalidArgumentError("Depth must be between 1 and 100.");
     }
@@ -378,13 +477,16 @@ absl::Status DungeonDiscoverCommandHandler::Execute(
   formatter.BeginObject("discovery");
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("start_room", absl::StrFormat("0x%02X", start_room));
-  formatter.AddField("dungeon_id", absl::StrFormat("0x%02X", entrance.dungeon_id_));
+  formatter.AddField("dungeon_id",
+                     absl::StrFormat("0x%02X", entrance.dungeon_id_));
   formatter.AddField("max_depth", max_depth);
-  formatter.AddField("rooms_discovered", static_cast<int>(discovered_rooms.size()));
+  formatter.AddField("rooms_discovered",
+                     static_cast<int>(discovered_rooms.size()));
 
   // Room list
   formatter.BeginArray("discovered_rooms");
-  std::vector<int> sorted_rooms(discovered_rooms.begin(), discovered_rooms.end());
+  std::vector<int> sorted_rooms(discovered_rooms.begin(),
+                                discovered_rooms.end());
   std::sort(sorted_rooms.begin(), sorted_rooms.end());
   for (int room_id : sorted_rooms) {
     formatter.BeginObject();
@@ -412,6 +514,210 @@ absl::Status DungeonDiscoverCommandHandler::Execute(
 
   formatter.EndObject();
 
+  return absl::OkStatus();
+}
+
+absl::Status DungeonRoomGraphCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  auto entrance_id_str = parser.GetString("entrance").value();
+  auto depth_opt = parser.GetString("depth");
+
+  int entrance_id;
+  if (!ParseHexString(entrance_id_str, &entrance_id)) {
+    return absl::InvalidArgumentError(
+        "Invalid entrance ID format. Must be hex (e.g., 0x27).");
+  }
+  if (entrance_id < 0 || entrance_id > 0x84) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Entrance ID 0x%02X out of range (0x00-0x84).", entrance_id));
+  }
+
+  int max_depth = 50;
+  if (depth_opt.has_value()) {
+    if (!absl::SimpleAtoi(depth_opt.value(), &max_depth)) {
+      return absl::InvalidArgumentError(
+          "Invalid depth format. Must be an integer between 1 and 200.");
+    }
+    if (max_depth < 1 || max_depth > 200) {
+      return absl::InvalidArgumentError("Depth must be between 1 and 200.");
+    }
+  }
+
+  bool same_blockset_filter = parser.HasFlag("same-blockset");
+
+  zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
+  int start_room = entrance.room_ & 0xFF;
+
+  // Get starting room's blockset for optional filtering
+  uint8_t start_blockset = 0xFF;
+  if (same_blockset_filter) {
+    zelda3::Room start_room_data =
+        zelda3::LoadRoomHeaderFromRom(rom, start_room);
+    start_blockset = start_room_data.blockset();
+  }
+
+  struct DoorEdge {
+    int from_room;
+    int to_room;       // -1 if exit
+    std::string type;  // "door_north", "door_south", etc.
+    std::string door_type_name;
+    int tile_x;
+    int tile_y;
+    bool is_exit;
+  };
+
+  struct StairEdge {
+    int from_room;
+    int to_room;
+    std::string type;  // "stair1"-"stair4" or "holewarp"
+  };
+
+  std::set<int> visited;
+  std::vector<DoorEdge> door_edges;
+  std::vector<StairEdge> stair_edges;
+  std::queue<std::pair<int, int>> to_visit;  // (room_id, depth)
+
+  to_visit.push({start_room, 0});
+  visited.insert(start_room);
+
+  while (!to_visit.empty()) {
+    auto [room_id, depth] = to_visit.front();
+    to_visit.pop();
+
+    if (depth >= max_depth)
+      continue;
+
+    zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+
+    // Door edges — infer neighbor from grid position + direction
+    for (const auto& door : room.GetDoors()) {
+      bool is_exit = IsExitDoorType(door.type);
+      int neighbor = is_exit ? -1 : NeighborRoomId(room_id, door.direction);
+      auto [tx, ty] = door.GetTileCoords();
+
+      DoorEdge edge;
+      edge.from_room = room_id;
+      edge.to_room = neighbor;
+      edge.type = DoorEdgeTypeName(door.direction);
+      edge.door_type_name = std::string(door.GetTypeName());
+      edge.tile_x = tx;
+      edge.tile_y = ty;
+      edge.is_exit = is_exit;
+      door_edges.push_back(edge);
+
+      // Only follow non-exit doors that have a reciprocal door on the other side.
+      // This prevents cascading across the entire dungeon grid.
+      if (!is_exit && neighbor >= 0 &&
+          visited.find(neighbor) == visited.end() &&
+          RoomHasDoorIn(rom, neighbor, OppositeDir(door.direction))) {
+        // Optional: skip neighbors with a different blockset than the start room
+        if (same_blockset_filter) {
+          zelda3::Room nbr = zelda3::LoadRoomHeaderFromRom(rom, neighbor);
+          if (nbr.blockset() != start_blockset)
+            continue;
+        }
+        visited.insert(neighbor);
+        to_visit.push({neighbor, depth + 1});
+      }
+    }
+
+    // Staircase edges
+    for (int i = 0; i < 4; ++i) {
+      uint8_t dest = room.staircase_room(i);
+      if (dest == 0)
+        continue;
+      StairEdge edge;
+      edge.from_room = room_id;
+      edge.to_room = dest;
+      edge.type = absl::StrFormat("stair%d", i + 1);
+      stair_edges.push_back(edge);
+      if (visited.find(dest) == visited.end()) {
+        visited.insert(dest);
+        to_visit.push({dest, depth + 1});
+      }
+    }
+
+    // Holewarp edge
+    uint8_t hw = room.holewarp();
+    if (hw != 0) {
+      StairEdge edge;
+      edge.from_room = room_id;
+      edge.to_room = hw;
+      edge.type = "holewarp";
+      stair_edges.push_back(edge);
+      if (visited.find(hw) == visited.end()) {
+        visited.insert(hw);
+        to_visit.push({hw, depth + 1});
+      }
+    }
+  }
+
+  // Output
+  formatter.BeginObject("room_graph");
+  formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
+  formatter.AddField("start_room", absl::StrFormat("0x%02X", start_room));
+  formatter.AddField("dungeon_id",
+                     absl::StrFormat("0x%02X", entrance.dungeon_id_));
+  formatter.AddField("rooms_discovered", static_cast<int>(visited.size()));
+
+  formatter.BeginArray("rooms");
+  std::vector<int> sorted_rooms(visited.begin(), visited.end());
+  std::sort(sorted_rooms.begin(), sorted_rooms.end());
+  for (int rid : sorted_rooms) {
+    formatter.BeginObject();
+    formatter.AddField("room_id", absl::StrFormat("0x%02X", rid));
+    if (rid >= 0 && rid < 297) {
+      formatter.AddField("name", std::string(zelda3::kRoomNames[rid]));
+    } else {
+      formatter.AddField("name", absl::StrFormat("Room 0x%02X", rid));
+    }
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  // Door edges (include exits so the navigator knows where NOT to go)
+  formatter.BeginArray("door_edges");
+  for (const auto& edge : door_edges) {
+    formatter.BeginObject();
+    formatter.AddField("from", absl::StrFormat("0x%02X", edge.from_room));
+    if (edge.is_exit || edge.to_room < 0) {
+      formatter.AddField("to", "exit");
+    } else {
+      formatter.AddField("to", absl::StrFormat("0x%02X", edge.to_room));
+    }
+    formatter.AddField("type", edge.type);
+    formatter.AddField("door_type", edge.door_type_name);
+    formatter.AddField("tile_x", edge.tile_x);
+    formatter.AddField("tile_y", edge.tile_y);
+    formatter.AddField("is_exit", edge.is_exit);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  // Stair/holewarp edges
+  formatter.BeginArray("stair_edges");
+  for (const auto& edge : stair_edges) {
+    formatter.BeginObject();
+    formatter.AddField("from", absl::StrFormat("0x%02X", edge.from_room));
+    formatter.AddField("to", absl::StrFormat("0x%02X", edge.to_room));
+    formatter.AddField("type", edge.type);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+
+  int exit_count = 0;
+  for (const auto& edge : door_edges) {
+    if (edge.is_exit)
+      exit_count++;
+  }
+  formatter.BeginObject("stats");
+  formatter.AddField("door_edges", static_cast<int>(door_edges.size()));
+  formatter.AddField("exit_doors", exit_count);
+  formatter.AddField("stair_edges", static_cast<int>(stair_edges.size()));
+  formatter.EndObject();
+
+  formatter.EndObject();
   return absl::OkStatus();
 }
 
