@@ -332,8 +332,12 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
 }
 
 absl::Status MapRefreshCoordinator::RefreshMapPalette() {
-  RETURN_IF_ERROR(
-      ctx_.overworld->mutable_overworld_map(*ctx_.current_map)->LoadPalette());
+  auto* current_map = ctx_.overworld->mutable_overworld_map(*ctx_.current_map);
+  if (!current_map) {
+    return absl::FailedPreconditionError(
+        "Current overworld map not loaded");
+  }
+  RETURN_IF_ERROR(current_map->LoadPalette());
   const auto current_map_palette = ctx_.overworld->current_area_palette();
   *ctx_.palette = current_map_palette;
   // Keep tile16 editor in sync with the currently active overworld palette
@@ -355,14 +359,12 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
   if (use_v3_area_sizes) {
     // Use v3 area size system
     using zelda3::AreaSizeEnum;
-    auto area_size =
-        ctx_.overworld->overworld_map(*ctx_.current_map)->area_size();
+    auto area_size = current_map->area_size();
 
     if (area_size != AreaSizeEnum::SmallArea) {
       // Get all sibling maps that need palette updates
       std::vector<int> sibling_maps;
-      int parent_id =
-          ctx_.overworld->overworld_map(*ctx_.current_map)->parent();
+      int parent_id = current_map->parent();
 
       switch (area_size) {
         case AreaSizeEnum::LargeArea:
@@ -390,6 +392,9 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
         }
         auto* sibling_map =
             ctx_.overworld->mutable_overworld_map(sibling_index);
+        if (!sibling_map) {
+          continue;
+        }
         RETURN_IF_ERROR(sibling_map->LoadPalette());
         (*ctx_.maps_bmp)[sibling_index].SetPalette(
             sibling_map->current_palette());
@@ -400,14 +405,16 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
     }
   } else {
     // Legacy logic for vanilla and v2 ROMs
-    if (ctx_.overworld->overworld_map(*ctx_.current_map)->is_large_map()) {
+    if (current_map->is_large_map()) {
       // We need to update the map and its siblings if it's a large map
       for (int i = 1; i < 4; i++) {
-        int sibling_index =
-            ctx_.overworld->overworld_map(*ctx_.current_map)->parent() + i;
+        int sibling_index = current_map->parent() + i;
         if (i >= 2) sibling_index += 6;
         auto* sibling_map =
             ctx_.overworld->mutable_overworld_map(sibling_index);
+        if (!sibling_map) {
+          continue;
+        }
         RETURN_IF_ERROR(sibling_map->LoadPalette());
 
         // SAFETY: Only set palette if bitmap has a valid surface
