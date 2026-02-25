@@ -20,7 +20,7 @@ struct FontState {
   std::vector<FontConfig> fonts;
 };
 
-extern FontState font_registry;
+inline FontState font_registry;
 
 absl::Status LoadPackageFonts();
 

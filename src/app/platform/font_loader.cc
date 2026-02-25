@@ -15,8 +15,6 @@
 
 namespace yaze {
 
-FontState font_registry;
-
 static const char* KARLA_REGULAR = "Karla-Regular.ttf";
 static const char* ROBOTO_MEDIUM = "Roboto-Medium.ttf";
 static const char* COUSINE_REGULAR = "Cousine-Regular.ttf";

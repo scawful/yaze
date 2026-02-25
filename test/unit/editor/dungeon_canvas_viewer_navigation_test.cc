@@ -63,4 +63,17 @@ TEST(DungeonCanvasViewerNavigationTest, NavigateToRoomUsesNavigationFallback) {
   EXPECT_EQ(nav_target, 0xDA);
 }
 
+TEST(DungeonCanvasViewerNavigationTest, ScrollToTileStoresPendingTarget) {
+  DungeonCanvasViewer viewer;
+
+  EXPECT_FALSE(viewer.HasPendingScrollTarget());
+
+  viewer.ScrollToTile(12, 34);
+
+  ASSERT_TRUE(viewer.HasPendingScrollTarget());
+  ASSERT_TRUE(viewer.GetPendingScrollTarget().has_value());
+  EXPECT_EQ(viewer.GetPendingScrollTarget()->first, 12);
+  EXPECT_EQ(viewer.GetPendingScrollTarget()->second, 34);
+}
+
 }  // namespace yaze::editor
