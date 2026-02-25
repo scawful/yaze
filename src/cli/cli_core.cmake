@@ -32,7 +32,12 @@ set(YAZE_CLI_CORE_SOURCES
   cli/handlers/game/dungeon_graph_commands.cc
   cli/handlers/game/dungeon_group_commands.cc
   cli/handlers/game/dungeon_map_commands.cc
+  cli/handlers/game/dungeon_render_commands.cc
   cli/handlers/game/message.cc
+
+  # Headless rendering (used by dungeon-render command and HTTP render endpoint)
+  app/service/headless_overlay_renderer.cc
+  app/service/render_service.cc
   cli/handlers/game/message_commands.cc
   cli/handlers/game/minecart_commands.cc
   cli/handlers/game/music_commands.cc
@@ -117,6 +122,16 @@ target_link_libraries(yaze_cli_core PUBLIC
 
 if(YAZE_ENABLE_JSON)
   target_link_libraries(yaze_cli_core PUBLIC nlohmann_json::nlohmann_json)
+endif()
+
+# libpng for headless dungeon rendering (render_service.cc)
+if(NOT YAZE_PLATFORM_IOS)
+  find_package(PNG QUIET)
+  if(PNG_FOUND)
+    target_link_libraries(yaze_cli_core PUBLIC PNG::PNG)
+  else()
+    message(WARNING "libpng not found — dungeon-render command will fail to link")
+  endif()
 endif()
 
 if(NOT EMSCRIPTEN AND YAZE_HTTPLIB_TARGETS)
