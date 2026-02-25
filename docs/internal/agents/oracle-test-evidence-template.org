@@ -1,9 +1,9 @@
-#+TITLE: Yaze 0.6.1 Test Evidence Template
+#+TITLE: Yaze 0.6.2 Test Evidence Template
 #+AUTHOR: codex
 #+DATE: 2026-02-24
 
 * Session Metadata
-- Release target: `0.6.1`
+- Release target: `0.6.2`
 - Date: 2026-02-24
 - Tester: ai-infra-architect (automated)
 - Branch: master
@@ -11,7 +11,7 @@
 - Build preset (`build_ai` expected):
 - ROM path:
 - Session start/end:
-- QA artifact dir (e.g. `QA/YYYY-MM-DD-v0.6.1`):
+- QA artifact dir (e.g. `QA/YYYY-MM-DD-v0.6.2`):
 - Automated gate summary file (if used):
   `QA/.../automation-summary.org`
 
@@ -29,18 +29,18 @@ Summary:
 * Automated Gate Results
 | ID | Command | Expected | Actual | Pass/Fail | Log Path |
 |----+---------+----------+--------+-----------+----------|
-| A1 | build (`yaze_test_unit`, `z3ed`) | exit 0 | PASS | build.log | 615 units |
-| A2 | focused gtest filter | all pass | PASS | focused-tests.log | 163/163 pass (16 suites) |
-| A3 | `ctest -R yaze_test_quick_unit_editor` | 100% pass | PASS | quick-editor.log | 152/152 pass, 118s |
-| A4 | `oracle-smoke-check` structural | `ok=true` | PASS | oracle-smoke-structural.json | exit 0 |
-| A5 | `oracle-smoke-check --strict-readiness` | `ok=false` exit 1 (D4 0x25 + D3 0x32 not authored) | PASS (expected fail) | oracle-smoke-strict.json | NOT a regression |
-| A6 | `dungeon-oracle-preflight --required-collision-rooms=0x25,0x27,0x32` | `ok=false` exit 1 (0x25 + 0x32 missing) | PASS (expected fail) | oracle-preflight.json | NOT a regression |
-| A7 | `project-bundle-verify` (original bundle) | `ok=true` | DEFER | | Needs real bundle |
-| A8 | `project-bundle-pack` | pass | DEFER | | Needs real bundle |
-| A9 | `project-bundle-unpack` | pass | DEFER | | Needs real bundle |
-| A10 | `project-bundle-verify` (unpacked bundle) | `ok=true` | DEFER | | Needs real bundle |
-| A11 | non-bundle unpack: exit 1, output dir cleaned up | exit 1 + no residual | PASS | unit test | NonBundleZipCleansUpByDefault |
-| A12 | `--keep-partial-output`: exit 1, files preserved | exit 1 + files exist | PASS | unit test | KeepPartialOutputPreservesFilesOnFailure |
+| A1 | build (`yaze_test_unit`, `z3ed`) | exit 0 | | | |
+| A2 | focused gtest filter | all pass | | | |
+| A3 | `ctest -R yaze_test_quick_unit_editor` | 100% pass | | | |
+| A4 | `oracle-smoke-check` structural | `ok=true` | | | |
+| A5 | `oracle-smoke-check --strict-readiness` | `ok=false` exit 1 (known authoring gaps only) | | | |
+| A6 | `dungeon-oracle-preflight --required-collision-rooms=0x25,0x27,0x32` | `ok=false` exit 1 (if known missing rooms) | | | |
+| A7 | `project-bundle-verify` (original bundle) | `ok=true` | | | |
+| A8 | `project-bundle-pack` | pass | | | |
+| A9 | `project-bundle-unpack` | pass | | | |
+| A10 | `project-bundle-verify` (unpacked bundle) | `ok=true` | | | |
+| A11 | non-bundle unpack: exit 1, output dir cleaned up | exit 1 + no residual | | | |
+| A12 | `--keep-partial-output`: exit 1, files preserved | exit 1 + files exist | | | |
 
 Tip:
 - You can populate A1-A6/A11/A12 in one run via:
@@ -110,20 +110,20 @@ bash scripts/dev/run-061-automated-gates.sh --qa-dir "$QA_DIR"
 - Evidence path:
 - Mitigation/workaround:
 
-* 0.6.1 Release Decision
+* 0.6.2 Release Decision
 ** Hard gate status
-- Build green: YES (exit 0)
-- Focused tests green: YES (163/163)
-- Quick editor green: YES (152/152)
-- Oracle structural smoke green: YES (ok=true, exit 0)
-- Bundle verify/pack/unpack green: PARTIAL (unit: 18/18 green; manual bundle DEFER)
-- No new crash/data-loss defects: YES (no regressions found)
+- Build green:
+- Focused tests green:
+- Quick editor green:
+- Oracle structural smoke green:
+- Bundle verify/pack/unpack green:
+- No new crash/data-loss defects:
 
 ** Decision
 - GO / NO-GO: CONDITIONAL GO (automated gates pass; manual blocks B/C/E + real bundle test pending)
 - Reason:
-  - All automated gates pass.
-  - Known expected failures (D4/D3 readiness) are documented as authoring gaps, not regressions.
+  - 
+  - 
 
 * Next Actions
 | Priority | Task | Owner | Status | Target |
