@@ -24,6 +24,23 @@ namespace {
 constexpr char kDefaultOpenAiBaseUrl[] = "https://api.openai.com";
 constexpr char kDefaultOllamaHost[] = "http://localhost:11434";
 
+std::string NormalizeProviderAlias(std::string provider) {
+  provider = absl::AsciiStrToLower(provider);
+  if (provider == "claude" || provider == "anthropic-claude" ||
+      provider == "sonnet" || provider == "opus") {
+    return "anthropic";
+  }
+  if (provider == "chatgpt" || provider == "gpt" || provider == "lmstudio" ||
+      provider == "lm-studio" || provider == "custom-openai" ||
+      provider == "openai-compatible") {
+    return "openai";
+  }
+  if (provider == "google" || provider == "google-gemini") {
+    return "gemini";
+  }
+  return provider;
+}
+
 bool HasOllamaHint(const yaze::cli::AIServiceConfig& config) {
   if (config.ollama_host != kDefaultOllamaHost) {
     return true;
@@ -53,7 +70,7 @@ namespace cli {
 std::unique_ptr<AIService> CreateAIService() {
   // Read configuration from flags
   AIServiceConfig config;
-  config.provider = absl::AsciiStrToLower(absl::GetFlag(FLAGS_ai_provider));
+  config.provider = NormalizeProviderAlias(absl::GetFlag(FLAGS_ai_provider));
   config.model = absl::GetFlag(FLAGS_ai_model);
   config.gemini_api_key = absl::GetFlag(FLAGS_gemini_api_key);
   config.anthropic_api_key = absl::GetFlag(FLAGS_anthropic_api_key);
@@ -105,6 +122,7 @@ std::unique_ptr<AIService> CreateAIService() {
 
 std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
   AIServiceConfig effective_config = config;
+  effective_config.provider = NormalizeProviderAlias(effective_config.provider);
   effective_config.openai_base_url =
       NormalizeOpenAiBaseUrl(effective_config.openai_base_url);
   if (effective_config.provider.empty()) {
@@ -137,14 +155,15 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
       effective_config.provider = "openai";
     } else
 #endif
-    if (HasOllamaHint(effective_config)) {
+        if (HasOllamaHint(effective_config)) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found Ollama configuration, using Ollama\n";
       effective_config.provider = "ollama";
     } else {
       std::cout << "🤖 No AI provider configured, using MockAIService\n";
-      std::cout << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,"
-                   " OPENAI_BASE_URL, or OLLAMA_HOST/OLLAMA_MODEL\n";
+      std::cout
+          << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,"
+             " OPENAI_BASE_URL, or OLLAMA_HOST/OLLAMA_MODEL\n";
       effective_config.provider = "mock";
     }
   }
@@ -165,7 +184,7 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
 
 absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     const AIServiceConfig& config) {
-  std::string provider = absl::AsciiStrToLower(config.provider);
+  std::string provider = NormalizeProviderAlias(config.provider);
   if (provider.empty() || provider == "auto") {
     return absl::InvalidArgumentError(
         "CreateAIServiceStrict requires an explicit provider (not 'auto')");

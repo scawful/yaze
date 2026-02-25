@@ -150,10 +150,33 @@ TEST(AIServiceFactoryTest, AnthropicMissingKeyReturnsError) {
   EXPECT_THAT(service_or.status().message(),
               testing::HasSubstr("Anthropic API key"));
 }
+
+TEST(AIServiceFactoryTest, ClaudeAliasMapsToAnthropic) {
+  AIServiceConfig config;
+  config.provider = "claude";
+  config.anthropic_api_key = "test-key";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  ASSERT_TRUE(service_or.ok());
+  EXPECT_EQ(service_or.value()->GetProviderName(), "anthropic");
+}
 #else
 TEST(AIServiceFactoryTest, AnthropicUnavailableWithoutJsonSupport) {
   AIServiceConfig config;
   config.provider = "anthropic";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  EXPECT_FALSE(service_or.ok());
+  EXPECT_EQ(service_or.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(service_or.status().message(),
+              testing::HasSubstr("YAZE_WITH_JSON"));
+}
+
+TEST(AIServiceFactoryTest, ClaudeAliasRequiresJsonSupport) {
+  AIServiceConfig config;
+  config.provider = "claude";
 
   auto service_or = CreateAIServiceStrict(config);
 
@@ -169,6 +192,28 @@ TEST(AIServiceFactoryTest, OpenAIWithKeyCreatesService) {
   AIServiceConfig config;
   config.provider = "openai";
   config.openai_api_key = "test-key";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  ASSERT_TRUE(service_or.ok());
+  EXPECT_EQ(service_or.value()->GetProviderName(), "openai");
+}
+
+TEST(AIServiceFactoryTest, ChatGptAliasMapsToOpenAI) {
+  AIServiceConfig config;
+  config.provider = "chatgpt";
+  config.openai_api_key = "test-key";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  ASSERT_TRUE(service_or.ok());
+  EXPECT_EQ(service_or.value()->GetProviderName(), "openai");
+}
+
+TEST(AIServiceFactoryTest, LmStudioAliasUsesOpenAIWithLocalBase) {
+  AIServiceConfig config;
+  config.provider = "lmstudio";
+  config.openai_base_url = "http://localhost:1234";
 
   auto service_or = CreateAIServiceStrict(config);
 
@@ -236,8 +281,7 @@ TEST(AIServiceFactoryTest, AutoDetectsOpenAIBaseFromApiBaseEnv) {
   ScopedEnvVar clear_openai_base("OPENAI_BASE_URL", nullptr);
   ScopedEnvVar clear_ollama_host("OLLAMA_HOST", nullptr);
   ScopedEnvVar clear_ollama_model("OLLAMA_MODEL", nullptr);
-  ScopedEnvVar openai_api_base("OPENAI_API_BASE",
-                               "http://localhost:1234/v1");
+  ScopedEnvVar openai_api_base("OPENAI_API_BASE", "http://localhost:1234/v1");
 
   auto service = CreateAIService();
 
@@ -245,6 +289,20 @@ TEST(AIServiceFactoryTest, AutoDetectsOpenAIBaseFromApiBaseEnv) {
   EXPECT_EQ(service->GetProviderName(), "openai");
 }
 #endif  // YAZE_WITH_JSON
+
+#ifndef YAZE_WITH_JSON
+TEST(AIServiceFactoryTest, ChatGptAliasRequiresJsonSupport) {
+  AIServiceConfig config;
+  config.provider = "chatgpt";
+  config.openai_api_key = "test-key";
+
+  auto service_or = CreateAIServiceStrict(config);
+
+  EXPECT_FALSE(service_or.ok());
+  EXPECT_EQ(service_or.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_THAT(service_or.status().message(), testing::HasSubstr("Unknown AI"));
+}
+#endif
 
 TEST(AIServiceFactoryTest, AutoDetectsOllamaFromEnv) {
   ScopedFlagState flag_state;
