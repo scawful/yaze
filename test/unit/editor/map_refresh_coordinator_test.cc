@@ -209,6 +209,13 @@ TEST_F(MapRefreshCoordinatorTest, RefreshOverworldMapDelegatesToOnDemand) {
   // Just verify no crash. The deferred path is tested separately.
 }
 
+TEST_F(MapRefreshCoordinatorTest,
+       RefreshMapPaletteFailsWhenCurrentMapIsNotLoaded) {
+  const absl::Status status = coordinator_->RefreshMapPalette();
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+}
+
 // ===========================================================================
 // UpdateBlocksetWithPendingTileChanges -- early returns
 // ===========================================================================
