@@ -15,7 +15,13 @@ namespace emu {
 namespace debug {
 class SymbolProvider;
 }
+}  // namespace emu
+
+namespace app {
+namespace service {
+class RenderService;
 }
+}  // namespace app
 
 namespace cli {
 namespace api {
@@ -43,6 +49,17 @@ void HandleWindowHide(const httplib::Request& req, httplib::Response& res,
 
 // Apply common CORS headers to a response.
 void ApplyCorsHeaders(httplib::Response& res);
+
+// Render dungeon room to PNG image.
+// GET /api/v1/render/dungeon?room=<id>[&overlays=collision,sprites,...][&scale=<f>]
+void HandleRenderDungeon(const httplib::Request& req, httplib::Response& res,
+                         yaze::app::service::RenderService* render_service);
+
+// Return JSON metadata for a dungeon room (no rendering).
+// GET /api/v1/render/dungeon/metadata?room=<id>
+void HandleRenderDungeonMetadata(
+    const httplib::Request& req, httplib::Response& res,
+    yaze::app::service::RenderService* render_service);
 
 // CORS preflight handler for OPTIONS requests.
 void HandleCorsPreflight(const httplib::Request& req, httplib::Response& res);

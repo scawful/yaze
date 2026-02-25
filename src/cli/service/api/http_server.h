@@ -18,8 +18,14 @@ namespace emu {
 namespace debug {
 class SymbolProvider;
 }
+}  // namespace emu
+
+namespace app {
+namespace service {
+class RenderService;
 }
-}
+}  // namespace app
+}  // namespace yaze
 
 namespace yaze {
 namespace cli {
@@ -28,6 +34,7 @@ namespace api {
 class HttpServer {
  public:
   using SymbolProviderSource = std::function<emu::debug::SymbolProvider*()>;
+  using RenderServiceSource = std::function<app::service::RenderService*()>;
   using WindowAction = std::function<bool()>;
 
   HttpServer();
@@ -47,6 +54,11 @@ class HttpServer {
     symbol_source_ = std::move(source);
   }
 
+  // Set the source for the render service (headless dungeon rendering).
+  void SetRenderServiceSource(RenderServiceSource source) {
+    render_source_ = std::move(source);
+  }
+
   // Optional window control hooks (GUI builds only)
   void SetWindowActions(WindowAction show, WindowAction hide) {
     window_show_ = std::move(show);
@@ -64,6 +76,7 @@ class HttpServer {
   std::unique_ptr<std::thread> server_thread_;
   std::atomic<bool> is_running_{false};
   SymbolProviderSource symbol_source_;
+  RenderServiceSource render_source_;
   WindowAction window_show_;
   WindowAction window_hide_;
 };

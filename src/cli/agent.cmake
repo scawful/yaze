@@ -125,6 +125,10 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/ai/vision_action_refiner.cc
   cli/service/api/http_server.cc
   cli/service/api/api_handlers.cc
+
+  # Headless dungeon rendering (requires libpng)
+  app/service/headless_overlay_renderer.cc
+  app/service/render_service.cc
 )
 
 if(YAZE_ENABLE_REMOTE_AUTOMATION)
@@ -328,6 +332,17 @@ if(YAZE_ENABLE_OPENCV AND OpenCV_FOUND)
   target_link_libraries(yaze_agent PUBLIC ${OpenCV_LIBS})
   target_include_directories(yaze_agent PUBLIC ${OpenCV_INCLUDE_DIRS})
   message(STATUS "✓ OpenCV visual analysis enabled for yaze_agent")
+endif()
+
+# libpng for headless dungeon rendering (render_service.cc / EncodePng)
+if(NOT YAZE_PLATFORM_IOS)
+  find_package(PNG QUIET)
+  if(PNG_FOUND)
+    target_link_libraries(yaze_agent PUBLIC PNG::PNG)
+    message(STATUS "✓ libpng linked to yaze_agent (headless render endpoint)")
+  else()
+    message(WARNING "libpng not found — headless render endpoint will fail to link")
+  endif()
 endif()
 
 # NOTE: yaze_agent should NOT link to yaze_test_support to avoid circular dependency.
