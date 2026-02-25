@@ -4,6 +4,7 @@
 #include <array>
 #include <functional>
 #include <map>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 
@@ -361,6 +362,18 @@ class DungeonCanvasViewer {
   void ClearPreviewObject() {
     object_interaction_.SetPreviewObject(zelda3::RoomObject{0, 0, 0, 0, 0},
                                          false);
+  }
+
+  // Scroll the canvas to center on the given tile coordinates.
+  // The pending target is consumed by Draw() on the next frame.
+  void ScrollToTile(int tile_x, int tile_y) {
+    pending_scroll_target_ = {tile_x, tile_y};
+  }
+  bool HasPendingScrollTarget() const {
+    return pending_scroll_target_.has_value();
+  }
+  std::optional<std::pair<int, int>> GetPendingScrollTarget() const {
+    return pending_scroll_target_;
   }
 
   // Object manipulation

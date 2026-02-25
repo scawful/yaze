@@ -390,8 +390,19 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
     bounds.offset_y = -(bounds.width - 1);
   }
 
-  // Diagonal ceiling bottom-right (objects 0xA3, 0xA8, 0xAC) extend upward
+  // Diagonal ceilings: offsets depend on which corner is the origin.
+  // TopLeft (0xA0, 0xA5, 0xA9): extends down-right - no offset needed.
+  // BottomLeft (0xA1, 0xA6, 0xAA): extends up-right - offset_y negative.
+  if (object_id == 0xA1 || object_id == 0xA6 || object_id == 0xAA) {
+    bounds.offset_y = -(bounds.width - 1);
+  }
+  // TopRight (0xA2, 0xA7, 0xAB): extends down-left - offset_x negative.
+  if (object_id == 0xA2 || object_id == 0xA7 || object_id == 0xAB) {
+    bounds.offset_x = -(bounds.width - 1);
+  }
+  // BottomRight (0xA3, 0xA8, 0xAC): extends up-left - both offsets negative.
   if (object_id == 0xA3 || object_id == 0xA8 || object_id == 0xAC) {
+    bounds.offset_x = -(bounds.width - 1);
     bounds.offset_y = -(bounds.width - 1);
   }
 
@@ -716,19 +727,19 @@ void ObjectDimensionTable::InitializeDefaults() {
   // ASM: These have fixed patterns, count = (size & 0x0F) + 4
   // TopLeft: 0xA0, 0xA5, 0xA9
   for (int id : {0xA0, 0xA5, 0xA9}) {
-    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
   }
   // BottomLeft: 0xA1, 0xA6, 0xAA
   for (int id : {0xA1, 0xA6, 0xAA}) {
-    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
   }
   // TopRight: 0xA2, 0xA7, 0xAB
   for (int id : {0xA2, 0xA7, 0xAB}) {
-    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
   }
   // BottomRight: 0xA3, 0xA8, 0xAC
   for (int id : {0xA3, 0xA8, 0xAC}) {
-    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
   }
   // BigHole4x4: 0xA4 - extends both directions
   dimensions_[0xA4] = {4, 4, Dir::Both, 1, false};

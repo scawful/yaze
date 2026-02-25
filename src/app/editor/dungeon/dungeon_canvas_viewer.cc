@@ -147,35 +147,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     return;
   }
 
-  // Handle pending scroll request
-  if (pending_scroll_target_.has_value()) {
-    auto [target_x, target_y] = pending_scroll_target_.value();
-
-    // Convert tile coordinates to pixels
-    float scale = canvas_.global_scale();
-    if (scale <= 0.0f)
-      scale = 1.0f;
-
-    float pixel_x = target_x * 8 * scale;
-    float pixel_y = target_y * 8 * scale;
-
-    // Center in view
-    ImVec2 view_size = ImGui::GetWindowSize();
-    float scroll_x = pixel_x - (view_size.x * 0.5f);
-    float scroll_y = pixel_y - (view_size.y * 0.5f);
-
-    // Account for canvas position offset if possible, but roughly centering is
-    // usually enough Ideally we'd add the cursor position y-offset to scroll_y
-    // to account for the UI above canvas but GetCursorPosY() might not be
-    // accurate before content is laid out. For X, canvas usually starts at
-    // left, so it's fine.
-
-    ImGui::SetScrollX(scroll_x);
-    ImGui::SetScrollY(scroll_y);
-
-    pending_scroll_target_.reset();
-  }
-
   ImGui::BeginGroup();
 
   // CRITICAL: Canvas coordinate system for dungeons
@@ -205,7 +176,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     // Check if critical properties changed and trigger reload
     if (prev_blockset_ != room.blockset() || prev_palette_ != room.palette() ||
-        prev_layout_ != room.layout_id() || prev_spriteset_ != room.spriteset()) {
+        prev_layout_ != room.layout_id() ||
+        prev_spriteset_ != room.spriteset()) {
       // Only reload if ROM is properly loaded
       if (room.rom() && room.rom()->is_loaded()) {
         // Force reload of room graphics
@@ -893,6 +865,31 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // This replaces DrawBackground + DrawContextMenu with a unified frame
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
 
+  // Handle pending scroll request using the canvas's internal scrolling model.
+  if (pending_scroll_target_.has_value()) {
+    const auto [target_x, target_y] = pending_scroll_target_.value();
+    float scale = canvas_.global_scale();
+    if (scale <= 0.0f) {
+      scale = 1.0f;
+    }
+
+    const float pixel_x =
+        static_cast<float>(target_x * kDungeonTileSize) * scale;
+    const float pixel_y =
+        static_cast<float>(target_y * kDungeonTileSize) * scale;
+    const ImVec2 view_size = canvas_rt.canvas_sz;
+    const ImVec2 content_size(static_cast<float>(kRoomPixelWidth) * scale,
+                              static_cast<float>(kRoomPixelHeight) * scale);
+
+    const ImVec2 desired_scroll((view_size.x * 0.5f) - pixel_x,
+                                (view_size.y * 0.5f) - pixel_y);
+    canvas_.set_scrolling(
+        gui::ClampScroll(desired_scroll, content_size, view_size));
+    canvas_rt.scrolling = canvas_.scrolling();
+
+    pending_scroll_target_.reset();
+  }
+
   // Update touch handler for long-press gesture detection
   touch_handler_.ProcessForCanvas(canvas_rt.canvas_p0, canvas_rt.canvas_sz,
                                   canvas_rt.hovered);
@@ -911,10 +908,12 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       const auto& room = (*rooms_)[room_id];
       if (!object_interaction_enabled_) {
         snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
-                 room.blockset(), room.palette(), room.layout_id(), room.spriteset());
+                 room.blockset(), room.palette(), room.layout_id(),
+                 room.spriteset());
       } else {
         snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
-                 room.blockset(), room.palette(), room.layout_id(), room.spriteset());
+                 room.blockset(), room.palette(), room.layout_id(),
+                 room.spriteset());
       }
       show_meta = true;
     } else if (!object_interaction_enabled_) {
@@ -1774,13 +1773,6 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
   const auto& theme = AgentUI::GetTheme();
   const auto& objects = room.GetTileObjects();
 
-  // Create ObjectDrawer for accurate dimension calculation
-  // ObjectDrawer uses game-accurate draw routine mapping to determine sizes
-  // Note: const_cast needed because rom() accessor is non-const, but we don't
-  // modify ROM
-  zelda3::ObjectDrawer drawer(const_cast<zelda3::Room&>(room).rom(), room.id(),
-                              nullptr);
-
   for (const auto& obj : objects) {
     // Filter by object type (default to true if unknown type)
     bool show_this_type = true;  // Default to showing
@@ -1809,14 +1801,10 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
       continue;
     }
 
-    // Convert object position (tile coordinates) to canvas pixel coordinates
-    // (UNSCALED)
-    auto [canvas_x, canvas_y] =
-        DungeonRenderingHelpers::RoomToCanvasCoordinates(obj.x(), obj.y());
-
-    // Calculate object dimensions via DimensionService
-    auto [width, height] =
-        zelda3::DimensionService::Get().GetPixelDimensions(obj);
+    // Use GetSelectionBoundsPixels which includes position offsets for objects
+    // that extend in negative directions (diagonals, moving walls, etc.)
+    auto [canvas_x, canvas_y, width, height] =
+        zelda3::DimensionService::Get().GetSelectionBoundsPixels(obj);
 
     // IMPORTANT: Do NOT apply canvas scale here - DrawRect handles it
     // Clamp to reasonable sizes (in logical space)
