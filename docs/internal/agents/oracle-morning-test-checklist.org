@@ -1,0 +1,159 @@
+#+TITLE: Yaze 0.6.1 Test Checklist (Oracle + Editor UX)
+#+AUTHOR: codex
+#+DATE: 2026-02-24
+
+* Goal
+Ship a stable `0.6.1` candidate for:
+- dungeon editor UX updates (placement feedback, overlays, navigation)
+- overworld/tile16 UX updates (hover preview, jump/filter behavior)
+- Oracle safety tooling (`oracle-smoke-check`, `dungeon-oracle-preflight`)
+- project bundle workflows (`verify`, `pack`, `unpack`)
+
+* Use This Like A Script (ADHD-Friendly)
+- Do one block at a time.
+- If blocked >10 minutes, mark blocker and continue to next block.
+- Save evidence continuously, not at the end.
+- Use the matching evidence template file:
+  `docs/internal/agents/oracle-test-evidence-template.org`
+
+* Session Bootstrap (5-10 min)
+- [ ] Create evidence directory:
+#+begin_src bash
+export QA_DIR="QA/$(date +%Y-%m-%d)-v0.6.1"
+mkdir -p "$QA_DIR"/{logs,screenshots,notes}
+#+end_src
+- [ ] (Optional but recommended) run all automated gates in one command:
+#+begin_src bash
+bash scripts/dev/run-061-automated-gates.sh --qa-dir "$QA_DIR"
+#+end_src
+- [ ] Capture repo state:
+#+begin_src bash
+git rev-parse --abbrev-ref HEAD | tee "$QA_DIR/notes/branch.txt"
+git rev-parse --short HEAD | tee "$QA_DIR/notes/sha.txt"
+git status --short > "$QA_DIR/notes/git-status.txt"
+#+end_src
+
+* Block A: Automated Release Gate (20-30 min)
+** A1. Build + focused tests
+- [ ] Run:
+#+begin_src bash
+cmake --build build_ai --target yaze_test_unit z3ed --parallel 8 \
+  | tee "$QA_DIR/logs/build.log"
+
+./build_ai/bin/Debug/yaze_test_unit \
+  --gtest_filter='TileObjectHandlerTest.*:TileSelectorWidgetTest.*:SpriteInteractionHandlerTest.*:DoorInteractionHandlerTest.*:DungeonWorkbenchToolbarTest.*:DungeonCanvasViewerNavigationTest.*:DungeonOverlayControlsTest.*:ProjectBundleVerifyTest.*:ProjectBundlePackTest.*:ProjectBundleUnpackTest.*:ProjectBundleArchiveTest.*:OracleSmokeCheckTest.*:DungeonOraclePreflightTest.*' \
+  | tee "$QA_DIR/logs/focused-tests.log"
+
+ctest --test-dir build_ai -R yaze_test_quick_unit_editor --output-on-failure \
+  | tee "$QA_DIR/logs/quick-editor.log"
+#+end_src
+
+** A2. Oracle CLI sanity (expected outcomes documented)
+Expected results for current ROM (oos168.sfc):
+- Structural smoke: `ok=true` (exit 0). D4 structural_ok=true, D6 meets_min=true.
+- Strict readiness: `ok=false` (exit 1). D4 required_rooms_ok=false (0x25 not authored), D3 ok=false (0x32 not authored). This is NOT a regression — it's an authoring gap.
+- Preflight: `ok=false` (exit 1). ORACLE_REQUIRED_ROOM_MISSING_COLLISION for 0x25. This is expected.
+If structural smoke fails (ok=false in default mode), that IS a regression. Investigate immediately.
+- [ ] Structural smoke:
+#+begin_src bash
+./build_ai/bin/Debug/z3ed oracle-smoke-check \
+  --rom roms/oos168.sfc --min-d6-track-rooms=4 --format=json \
+  | tee "$QA_DIR/logs/oracle-smoke-structural.json"
+#+end_src
+- [ ] Strict readiness:
+#+begin_src bash
+./build_ai/bin/Debug/z3ed oracle-smoke-check \
+  --rom roms/oos168.sfc --min-d6-track-rooms=4 --strict-readiness --format=json \
+  | tee "$QA_DIR/logs/oracle-smoke-strict.json"
+#+end_src
+- [ ] Preflight:
+#+begin_src bash
+./build_ai/bin/Debug/z3ed dungeon-oracle-preflight \
+  --rom roms/oos168.sfc --required-collision-rooms=0x25,0x27,0x32 --format=json \
+  | tee "$QA_DIR/logs/oracle-preflight.json"
+#+end_src
+
+* Block B: Dungeon Editor Manual UX (25-35 min)
+** B1. Placement limit enforcement
+- [ ] Tile object ghost shows normal/near-limit(≥360)/blocked(≥400) colors.
+- [ ] Sprite ghost shows normal/near-limit(≥58)/blocked(≥64) colors.
+- [ ] Door ghost shows normal/near-limit(≥14)/blocked(≥16) colors.
+- [ ] At limit: click placement does NOT add entity. Toast or tooltip confirms block.
+- [ ] One below limit: placement succeeds. Entity appears in room.
+- [ ] Invalid door placement (center room, far from walls) gives kInvalidPosition error.
+- [ ] Placement blocked messages appear, dedup within 1s, and clear after ~2s TTL.
+- [ ] Limits match `zelda3/dungeon/dungeon_limits.h` canonical values (regression guard).
+
+** B2. Workbench navigation/visibility
+- [ ] Room badge shows `0xHEX (DEC)` format.
+- [ ] Copy room ID button copies correct `0x...` value.
+- [ ] D6 quick-nav buttons jump correctly: `0xA8, 0xB8, 0xD8, 0xDA`.
+- [ ] Custom object overlay toggle visibly affects canvas.
+- [ ] Recent rooms list can re-open prior rooms correctly.
+
+* Block C: Overworld + Tile16 UX (20-25 min)
+- [ ] Hover tooltip shows tile ID + zoom preview.
+- [ ] Jump-to-tile works for valid hex ID.
+- [ ] Jump-to-tile ignores invalid ID without crashing.
+- [ ] Range filter valid interval behaves correctly.
+- [ ] Range filter invalid (`min > max`) shows inline error.
+- [ ] Range filter out-of-range input shows inline error.
+- [ ] Clear filter restores full interaction.
+
+* Block D: Bundle Workflow (20-30 min)
+- [ ] Open existing `.yazeproj` in GUI.
+- [ ] Verify bundle:
+#+begin_src bash
+./build_ai/bin/Debug/z3ed project-bundle-verify \
+  --project <path-to-bundle>.yazeproj --format=json \
+  | tee "$QA_DIR/logs/bundle-verify-original.json"
+#+end_src
+- [ ] Pack + unpack + reverify:
+#+begin_src bash
+./build_ai/bin/Debug/z3ed project-bundle-pack \
+  --project <path-to-bundle>.yazeproj \
+  --out "$QA_DIR/MyProject.zip" --overwrite --format=json \
+  | tee "$QA_DIR/logs/bundle-pack.json"
+
+./build_ai/bin/Debug/z3ed project-bundle-unpack \
+  --archive "$QA_DIR/MyProject.zip" \
+  --out "$QA_DIR/unpack" --overwrite --format=json \
+  | tee "$QA_DIR/logs/bundle-unpack.json"
+
+./build_ai/bin/Debug/z3ed project-bundle-verify \
+  --project "$QA_DIR/unpack/<bundle-name>.yazeproj" --format=json \
+  | tee "$QA_DIR/logs/bundle-verify-unpacked.json"
+#+end_src
+- [ ] Non-bundle zip cleanup: unpack a non-.yazeproj zip, verify exit 1 and output dir removed.
+- [ ] Debug mode: `--keep-partial-output` preserves extracted files on failure for inspection.
+
+* Block E: Oracle Runtime Workflow (Mesen2) (30-45 min)
+- [ ] Validate D4 water gate/drain behavior end-to-end.
+- [ ] Validate D6 minecart rooms with latest editor placement data.
+- [ ] Validate D3 prison sequence status (expected known blocker or fixed).
+- [ ] After any ROM authoring change, rerun Block A2 commands.
+
+* 0.6.1 Release Decision Gate
+** Must-pass (hard gate)
+- [ ] Build passes.
+- [ ] Focused/unit + quick editor suites pass.
+- [ ] `oracle-smoke-check` structural pass (`ok=true`).
+- [ ] No new crash/data-loss issues in manual UX.
+- [ ] Bundle verify/pack/unpack roundtrip succeeds.
+
+** Allowed known gaps (document explicitly)
+- [ ] D3 strict-readiness authoring gap only (if still expected).
+- [ ] Non-critical UI polish issues with filed follow-up tasks.
+
+** Decision
+- [ ] GO for `0.6.1`
+- [ ] NO-GO for `0.6.1`
+
+Rationale:
+- 
+- 
+
+* If You Stall
+- Write one line: `BLOCKED: <what>`.
+- Capture one screenshot + one short repro note.
+- Move to next unchecked block.

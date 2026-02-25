@@ -1,7 +1,62 @@
 # Coordination Board
 
+> Legacy history file. New coordination writes should go through
+> `scripts/agents/coord` (universe event log) and snapshots should be generated,
+> not manually authored.
+
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
+
+### 2026-02-24 ai-infra-architect – Universe Coordination System MVP
+- COMPLETE 2026-02-24 (ai-infra-architect): Local-first file-based task coordination replacing manual board editing. JSONL event log + materialized state.json. CLI: `universe-coord.sh` (init, task-add/claim/heartbeat/handoff/complete/cancel, task-generate-board, rebuild-state). Yaze wrapper: `scripts/agents/coord`. Board import: `import-coordination-board.sh` (dry-run tested, 25+ entries parsed). AGENTS.md updated with coordination commands. Spec: `docs/internal/agents/universe-coordination-spec.md`.
+- Files: `scripts/agents/{universe-coord.sh,coord,import-coordination-board.sh}`, `docs/internal/agents/universe-coordination-spec.md`, `AGENTS.md`.
+
+### 2026-02-24 imgui-frontend-engineer – Follow-up: Oracle Labels + Toast Visibility + Snap Capacity Colors
+- COMPLETE 2026-02-24 (imgui-frontend-engineer): Three follow-up improvements from previous session. (1) Oracle dungeon group labels: `DungeonWorkbenchPanel` lazy-builds `room_id→dungeon_name` cache from ROM entrance (0x84) and spawn (0x14) tables via `RoomEntrance`; `DrawInspectorShelfRoom` prefers cache over static blockset table for accurate Oracle group labels. Cache invalidates on `SetRom()`. (2) Toast visibility outside placement mode: `DrawPostPlacementToast()` added as public method on `BaseEntityHandler`; `InteractionCoordinator::DrawPostPlacementOverlays()` calls it on all handlers every frame via `DrawEntitySelectionHighlights()`; inline toast removed from `DrawGhostPreview()` in all three handlers. (3) Door snap indicator capacity coloring: `DrawSnapIndicators()` reads door count and colors nearest-snap + ghost indicators with `status_error`/`status_warning` matching the placement ghost states.
+- Files: `base_entity_handler.h`, `interaction_coordinator.h/.cc`, `dungeon_object_interaction.cc`, `door_interaction_handler.cc`, `sprite_interaction_handler.cc`, `tile_object_handler.cc`, `dungeon_workbench_panel.h/.cc`.
+- Validation: build clean (611/612); `DoorInteractionHandlerTest` 4/4 pass; `SpriteInteractionHandlerTest` 5/5 pass; `TileObjectHandlerTest` spot-checks 3/3 pass; `TileSelectorWidgetTest` 20/20 pass.
+
+### 2026-02-24 imgui-frontend-engineer – Door Ghost Parity + Placement Toast + Room Dungeon Context
+- COMPLETE 2026-02-24 (imgui-frontend-engineer): (1) Door ghost preview capacity parity: `DoorInteractionHandler::DrawGhostPreview` now checks door count vs 16-limit with normal/warning(≥14)/blocked(=16) fill+outline colors using `AgentUI::GetTheme()` and hover tooltip. (2) Placement success toast: `BaseEntityHandler` gains `TriggerSuccessToast()` + `DrawSuccessToastOverlay()` helpers; all three handlers (tile/sprite/door) call `TriggerSuccessToast()` on successful placement and render a fading "Placed" overlay in `DrawGhostPreview()`. Toast extends on rapid placements (dedup via expiry extension, 1.5s decay, 0.4s fade). (3) Workbench room badge dungeon context: `DrawInspectorShelfRoom` now shows `ICON_MD_CASTLE " Group – Label"` using a static blockset→dungeon-group table (vanilla 0-12).
+- Files: `door_interaction_handler.cc`, `base_entity_handler.h`, `tile_object_handler.cc`, `sprite_interaction_handler.cc`, `dungeon_workbench_panel.cc`.
+- Validation: build clean (611/612); `DoorInteractionHandlerTest:SpriteInteractionHandlerTest:TileObjectHandlerTest` 58/58 pass; `ctest -R yaze_test_quick_unit_editor` 152/152 pass.
+
+### 2026-02-24 ai-infra-architect – UX Pass Validation Infra + Toast Dedup
+- COMPLETE 2026-02-24 (ai-infra-architect): (1) `scripts/dev/validate-next-pass.sh` — local validation gate (build, focused gtest, quick editor, oracle smoke). (2) Toast dedup: `ToastManager::Show` now suppresses identical message+type within 1s cooldown; 8 unit tests. (3) CI: existing run-tests summary already covers editor suite — no changes needed.
+- Files: `scripts/dev/validate-next-pass.sh`, `src/app/editor/ui/toast_manager.h`, `test/unit/editor/toast_dedup_test.cc`, `test/CMakeLists.txt`.
+
+### 2026-02-24 zelda3-hacking-expert – Dungeon UX Validation Pass (QA Checklist)
+- COMPLETE 2026-02-24 (zelda3-hacking-expert): built manual QA checklist for door ghost preview (4 states), placement error toast (5 cases incl. dedup), room badge copy (3 cases), tile selector range filter (6 cases incl. error/clear). Identified 3 gaps as follow-ups (door ghost capacity coloring, toast min-TTL dedup guard, range filter hex label). Oracle structural ok=true (exit 0); strict-readiness ok=false/exit 1 (D4/D3 known gaps). No source files touched.
+- Validation: build clean; targeted `TileSelectorWidgetTest.*:DoorInteractionHandlerTest.*:SpriteInteractionHandlerTest.*:TileObjectHandlerTest.*` 55/55 pass (0 fail); `ctest -R yaze_test_quick_unit_editor` 152/152 pass; oracle-smoke exit 0.
+- File: `docs/internal/agents/dungeon-ux-validation-pass.md`.
+
+### 2026-02-24 imgui-frontend-engineer – Ghost Preview Warning States + Filter Feedback + Room Copy
+- COMPLETE 2026-02-24 (imgui-frontend-engineer): Three incremental dungeon/tile UX improvements. (1) Ghost preview capacity awareness: `TileObjectHandler::DrawGhostPreview` now checks room object count vs 400-limit and colors ghost red (at-limit) or yellow (≥90%) + tooltip "Placement blocked"/"Near limit". `SpriteInteractionHandler::DrawGhostPreview` does the same for 64-sprite limit. (2) Tile selector range filter validation: `DrawFilterBar()` now sets `filter_range_error_` when min>max and shows inline "Min ≤ Max" error text; clears on valid/empty input. (3) Room badge one-click copy: inspector's `DrawInspectorShelfRoom` shows hex+dec room ID with copy button (`ICON_MD_CONTENT_COPY`).
+- Files: `tile_object_handler.cc`, `sprite_interaction_handler.cc`, `tile_selector_widget.h/.cc`, `dungeon_workbench_panel.cc`.
+- Validation: `cmake --build build_ai --target yaze_test_unit z3ed --parallel 8` (clean); `TileSelectorWidgetTest.*` 18/18 pass; `ctest -R yaze_test_quick_unit_editor` 152/152 pass.
+
+### 2026-02-24 ai-infra-architect – P1-03: project-bundle-pack/unpack CLI Commands
+- COMPLETE 2026-02-24 (ai-infra-architect): `z3ed project-bundle-pack --project <path.yazeproj> --out <archive.zip> [--overwrite]` and `z3ed project-bundle-unpack --archive <zip> --out <dir> [--overwrite]`. Uses miniz (public domain, ext/miniz/) for cross-platform zip. Unpack enforces path traversal safety. Round-trip tested: pack → unpack → verify. 12 unit tests.
+- Files: `src/cli/handlers/rom/project_bundle_archive_commands.{h,cc}`, `ext/miniz/{miniz.h,miniz.c}`, `cli_core.cmake`, `command_handlers.{h,cc}`, `command_registry.cc`, `test/unit/cli/project_bundle_archive_test.cc`, `docs/public/usage/yazeproj-bundles.md`.
+
+### 2026-02-24 ai-infra-architect – CI/Infra Hardening Pass
+- COMPLETE 2026-02-24 (ai-infra-architect): (A) added `concurrency: cancel-in-progress` to `ci.yml` (skips master); (B) fixed SC2129 actionlint warning (consolidated `>>` redirects); (C) fixed multi-platform artifact collision in `run-tests/action.yml` (added `platform` input → `test-results-{type}-{platform}`); (D) added `GITHUB_STEP_SUMMARY` pass/timing table; (E) added `release-readiness` job gating on `scripts/dev/release-version-check.sh`.
+- Validation: `actionlint ci.yml` → exit 0; `release-version-check.sh` → pass; `cmake --build build_ai --target yaze_test_unit z3ed --parallel 8` → clean; `ctest -R yaze_test_quick_unit_editor` → 152/152 pass; oracle-smoke → 0.25s structural ok.
+- Files: `.github/workflows/ci.yml`, `.github/actions/run-tests/action.yml`.
+
+### 2026-02-23 ai-infra-architect – P1-02: project-bundle-verify CLI Command
+- COMPLETE 2026-02-23 (ai-infra-architect): `z3ed project-bundle-verify --project <path> [--format=json|text] [--report <path>]`. Verifies path existence, format recognition, bundle structure, project.yaze parsing, path portability (absolute path warnings), and ROM accessibility. Exit 0 on pass/warn, exit 1 on any fail. Supports .yaze files and .yazeproj bundles. 11 unit tests, manual JSON fixture validation.
+- Files: `src/cli/handlers/rom/project_bundle_verify_commands.{h,cc}`, `cli_core.cmake`, `command_handlers.{h,cc}`, `test/unit/cli/project_bundle_verify_test.cc`, `docs/public/usage/yazeproj-bundles.md`.
+
+### 2026-02-23 imgui-frontend-engineer – Sprite/Door Placement Error Feedback
+- COMPLETE 2026-02-23 (imgui-frontend-engineer): wired sprite and door placement block reasons into `ObjectEditorPanel::Draw()` — mirrors existing tile-object hard-stop feedback. `SpriteInteractionHandler::PlaceSpriteAtPosition` (kSpriteLimit=64) and `DoorInteractionHandler::PlaceDoorAtSnappedPosition` (kDoorLimit=16, kInvalidPosition) already enforced limits; panel now surfaces timed error messages for all three handlers. Added `DoorInteractionHandlerTest::PlacementBlocksAtInvalidPosition` to fill the kInvalidPosition coverage gap.
+- Files: `src/app/editor/dungeon/panels/object_editor_panel.cc` (Draw — 3 handler checks), `test/unit/editor/sprite_door_handler_test.cc` (+1 test).
+- Validation: `cmake --build build_ai --target yaze_test_unit --parallel 8` (clean); `SpriteInteractionHandlerTest.*:DoorInteractionHandlerTest.*:TileObjectHandlerTest.*` 58/58 pass.
+
+### 2026-02-23 imgui-frontend-engineer – Placement Guardrails + Tile16 Filter + Recent Rooms
+- COMPLETE 2026-02-23 (imgui-frontend-engineer): three incremental UX improvements. (1) Object placement hard-stop: `TileObjectHandler::PlaceObjectAt` now checks 400-object ROM limit and returns false if at capacity; `ObjectEditorPanel` reads `was_placement_blocked()` flag and shows timed error message. (2) Tile16 filter bar: `TileSelectorWidget::DrawFilterBar()` adds hex ID search/jump input to both Overworld and Tile16 editor selectors. (3) Recent rooms quick-jump: workbench Inspector Room shelf shows selectable recent rooms list for one-click navigation.
+- Files: tile_object_handler.h/.cc, object_editor_panel.cc, tile_selector_widget.h/.cc, overworld_editor.cc, tile16_editor.cc, dungeon_workbench_panel.cc.
+- Validation: `cmake --build build_ai --target yaze_test_unit z3ed --parallel 8` (clean); targeted 69/69 pass; quick editor 116/116 pass; Oracle preflight 8/8 pass.
 
 ### 2026-02-23 imgui-frontend-engineer – Dungeon/Tile16/Object Editor UX Pass
 - COMPLETE 2026-02-23 (imgui-frontend-engineer): four incremental UX improvements across Dungeon, Tile16, and Object editors.

@@ -60,6 +60,22 @@ cd build-wasm && npx http-server .
 ```
 - Open the local URL in a modern browser; no installation required.
 
+## .yazeproj Bundles
+
+YAZE projects can be stored as `.yazeproj` bundle directories. A bundle packages the ROM, project configuration, backups, and build output together for portability across machines and platforms.
+
+| Platform | How to Open |
+|----------|-------------|
+| macOS | Double-click the bundle, or `File > Open ROM / Project` |
+| iOS | Files app (`iCloud Drive > Yaze > Projects`) or in-app Project Browser |
+| Windows | `File > Open ROM / Project`, select the `.yazeproj` folder |
+| Linux | `File > Open ROM / Project`, select the `.yazeproj` directory |
+| CLI | `z3ed <command> --rom=MyProject.yazeproj/rom` |
+
+If the file picker does not allow selecting directories, navigate inside the `.yazeproj` folder and select `project.yaze`. YAZE resolves the bundle root automatically.
+
+See the [.yazeproj Bundle Guide](../usage/yazeproj-bundles.md) for the full directory layout and platform-specific details.
+
 ## Packaging Notes
 - Prefer static/runtime-complete bundles for end users (AppImage on Linux, app bundle on macOS, zip on Windows).
 - When creating packages (Homebrew/Chocolatey/winget), pin the release URL and checksum and align dependencies to the CMake presets (`mac-*/lin-*/win-*`).

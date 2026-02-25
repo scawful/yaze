@@ -5,7 +5,7 @@ Owner: backend-infra-engineer
 Created: 2026-02-14  
 Last Reviewed: 2026-02-14  
 Next Review: 2026-02-21  
-Coordination Board: `docs/internal/agents/coordination-board.md`
+Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
 ## Summary
 - Lead agent/persona: `backend-infra-engineer`

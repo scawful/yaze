@@ -58,9 +58,9 @@ Next Review: 2026-02-14
   - Release notes / changelog entry once Workbench is on by default.
 - Internal docs/templates to update:
   - This initiative file
-  - Coordination board entry
-- Coordination board entry link:
-  - `docs/internal/agents/coordination-board.md`
+  - Universe task notes/history
+- Coordination tracking:
+  - `scripts/agents/coord` (optional snapshot: `docs/internal/agents/coordination-board.generated.md`)
 - Helper scripts to use/log:
   - `scripts/agents/smoke-build.sh`
   - `scripts/install-nightly-local.sh`

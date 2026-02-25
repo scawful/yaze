@@ -5,7 +5,7 @@ Owner: zelda3-hacking-expert
 Created: 2025-12-06  
 Last Reviewed: 2026-02-17
 Next Review: 2026-03-03  
-Board: docs/internal/agents/coordination-board.md (2025-12-06 zelda3-hacking-expert – Dungeon object render/selection spec)
+Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
 ## Scope
 - Source of truth: `assets/asm/usdasm/bank_01.asm` (US 1.0 disasm) plus room headers in the same bank.
@@ -122,4 +122,3 @@ Board: docs/internal/agents/coordination-board.md (2025-12-06 zelda3-hacking-exp
 
 **Validation:** 19 parity tests in `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc`.
 See `docs/internal/agents/dungeon-object-parity-plan.md` for the full fix history.
-

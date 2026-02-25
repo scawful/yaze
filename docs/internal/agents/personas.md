@@ -1,7 +1,7 @@
 # Agent Personas
 
-Use these canonical identifiers when updating the
-[coordination board](coordination-board.md) or referencing responsibilities in other documents.
+Use these canonical identifiers when recording ownership in universe coordination
+(`scripts/agents/coord ...`) and when referencing responsibilities in other documents.
 
 | Agent ID                   | Primary Focus (shared with Oracle-of-Secrets/.claude/agents)      | Notes |
 |----------------------------|-------------------------------------------------------------------|-------|
@@ -15,5 +15,5 @@ Use these canonical identifiers when updating the
 | `GEMINI_AUTOM`             | Automation/testing/CLI improvements, CI integrations              | Scripting-heavy or test harness tasks. |
 | `CODEX`                    | Codex CLI assistant / overseer                                    | Default persona; also monitors docs/build coordination. |
 
-Add new rows as additional personas are created. Every new persona must follow the protocol in
-`AGENTS.md` and post updates to the coordination board before starting work.
+Add new rows as additional personas are created. Every new persona must follow `AGENTS.md`
+and claim work via `scripts/agents/coord task-claim ...` before substantial edits.

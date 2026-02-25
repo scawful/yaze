@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+# yaze convenience wrapper around universe-coord.sh.
+#
+# Sets project-scoped defaults so agents can coordinate without repeatedly
+# passing --project-key.
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+UNIVERSE_COORD="$SCRIPT_DIR/universe-coord.sh"
+
+if [[ ! -x "$UNIVERSE_COORD" ]]; then
+  echo "error: missing executable: $UNIVERSE_COORD" >&2
+  exit 1
+fi
+
+default_project_key() {
+  local root="${PROJECT_ROOT:-$(pwd)}"
+  root="$(cd "$root" && pwd)"
+  printf "%s" "$root" | sed 's#^/##; s#/#:#g'
+}
+
+needs_project_default() {
+  case "${1:-}" in
+    task-add|task-list|task-claim|task-heartbeat|task-handoff|task-complete|task-generate-board)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+has_project_arg() {
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      --project-key|--project-key=*)
+        return 0
+        ;;
+    esac
+  done
+  return 1
+}
+
+cmd="${1:-}"
+if [[ -z "$cmd" ]]; then
+  exec "$UNIVERSE_COORD" --help
+fi
+shift || true
+
+if needs_project_default "$cmd" && ! has_project_arg "$@"; then
+  exec "$UNIVERSE_COORD" "$cmd" --project-key "$(default_project_key)" "$@"
+fi
+
+exec "$UNIVERSE_COORD" "$cmd" "$@"
+

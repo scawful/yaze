@@ -1,51 +1,54 @@
 # YAZE Internal Documentation
 
-**Last Updated**: January 7, 2026
+**Last Updated**: 2026-02-24
 
-Internal documentation for planning, AI agents, research, and historical build notes. These files are intentionally excluded from the public Doxygen site so they can remain verbose and speculative.
+Internal documentation for architecture, AI agent coordination, and development planning.
 
 ## Quick Links
 
-- **Active Work**: [Coordination Board](agents/coordination-board.md)
-- **Roadmap**: [roadmap.md](roadmap.md)
-- **Doc Hygiene Rules**: [agents/doc-hygiene.md](agents/doc-hygiene.md)
-- **Documentation Audit**: [DOCS_AUDIT.md](DOCS_AUDIT.md)
-- **Templates**: [templates/](templates/)
-
-## Technical References
-
-| Module | Documentation |
-|--------|---------------|
-| Zelda3 Core | [zelda3/README.md](zelda3/README.md) - ROM data structures, constants, loaders |
-| GUI Layer | [gui/README.md](gui/README.md) - Canvas system, widgets, theming |
+| What | Where |
+|------|-------|
+| Active task tracking | `scripts/agents/coord task-list` ([universe coordination](agents/universe-coordination-spec.md)) |
+| Refactoring plan | [agents/refactoring-plan-0.7.md](agents/refactoring-plan-0.7.md) |
+| Latest handoff | [agents/refactoring-handoff-2026-02-24.md](agents/refactoring-handoff-2026-02-24.md) |
+| Release test checklist | [agents/oracle-morning-test-checklist.org](agents/oracle-morning-test-checklist.org) |
+| Doc hygiene rules | [agents/doc-hygiene.md](agents/doc-hygiene.md) |
+| Agent scripts | [scripts/agents/README.md](../../scripts/agents/README.md) |
 
 ## Directory Structure
 
 | Directory | Purpose |
 |-----------|---------|
-| `agents/` | AI agent coordination, personas, and board |
-| `architecture/` | System design and architectural documentation |
-| `archive/` | Retired plans, completed features, closed investigations, and maintenance logs |
-| `debug/` | Debugging guides, active logs, and accuracy reports |
-| `gui/` | GUI abstraction layer reference (canvas, widgets) |
-| `hand-off/` | Active handoff documents for in-progress work (e.g. [Editor comparison & plan](hand-off/HANDOFF_EDITOR_COMPARISON_AND_PLAN.md)) |
-| `plans/` | Active implementation plans and roadmaps |
-| `research/` | Exploratory notes, ideas, and technical analysis |
-| `templates/` | Document templates (checklists, initiatives) |
-| `testing/` | Test infrastructure configuration and strategy |
-| `wasm/` | WASM/Web port documentation and guides |
-| `zelda3/` | Game-specific documentation (ALTTP internals) |
-| `roadmap.md` | Master project roadmap |
+| `agents/` | Agent coordination, personas, routing rules, active plans |
+| `agents/archive/` | Retired initiatives, handoffs, and drafts (do not edit) |
+| `architecture/` | System design docs (editor, dungeon, overworld, ROM, graphics, etc.) |
+| `archive/` | Completed features, closed investigations, old plans |
+| `zelda3/` | ALTTP-specific data format documentation |
+| `gui/` | Canvas system and widget layer reference |
+| `wasm/` | Web/WASM port documentation |
+| `testing/` | Test infrastructure and strategy |
 
-## Doc Hygiene
+## Key Architecture Docs
 
-- **Single Source of Truth**: Maintain one canonical spec per initiative.
-- **Templates**: Use `templates/` for new initiatives and release checklists.
-- **Archiving**: Move completed specs to `archive/completed_features/` or `archive/investigations/`.
-- **Coordination**: Use the [Coordination Board](agents/coordination-board.md) for active tasks.
+| System | Doc |
+|--------|-----|
+| EditorManager | [architecture/editor_manager.md](architecture/editor_manager.md) |
+| Dungeon Editor | [architecture/dungeon_editor_system.md](architecture/dungeon_editor_system.md) |
+| Dungeon Interaction | [architecture/dungeon_interaction_architecture.md](architecture/dungeon_interaction_architecture.md) |
+| Overworld Editor | [architecture/overworld_editor_system.md](architecture/overworld_editor_system.md) |
+| Graphics Pipeline | [architecture/graphics_system_architecture.md](architecture/graphics_system_architecture.md) |
+| ROM Layer | [architecture/rom_architecture.md](architecture/rom_architecture.md) |
+| Platform Backends | [architecture/platform_backends.md](architecture/platform_backends.md) |
+| Undo/Redo | [architecture/undo_redo_system.md](architecture/undo_redo_system.md) |
 
-## Version Control & Safety
+## Coordination
 
-- **Coordinate before forceful changes**: Never rewrite history on shared branches.
-- **Back up ROMs and assets**: Work on copies, enable automatic backup.
-- **Run `scripts/verify-build-environment.*`** after pulling significant build changes.
+Task coordination uses the universe event log (not manual markdown edits):
+
+```bash
+scripts/agents/coord task-add --title "Description" --agent "persona-id"
+scripts/agents/coord task-list --status active
+scripts/agents/coord task-complete --id <task_id> --agent <persona-id>
+```
+
+The legacy `coordination-board.md` is history-only. Generated snapshots go to `coordination-board.generated.md`.

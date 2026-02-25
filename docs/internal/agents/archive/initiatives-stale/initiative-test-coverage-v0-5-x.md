@@ -5,7 +5,7 @@ Owner: backend-infra-engineer
 Created: 2026-01-11  
 Last Reviewed: 2026-01-11  
 Next Review: 2026-01-25  
-Coordination Board: docs/internal/agents/coordination-board.md
+Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
 ## Summary
 - Lead agent/persona: backend-infra-engineer
@@ -53,7 +53,7 @@ Coordination Board: docs/internal/agents/coordination-board.md
 ## Documentation Impact
 - Public docs to update: `docs/public/reference/feature-coverage-report.md`, `docs/public/developer/testing-guide.md` (if needed).
 - Internal docs/templates to update: none.
-- Coordination board entry link: docs/internal/agents/coordination-board.md (entry created 2026-01-11).
+- Coordination tracking: universe task notes/history via `scripts/agents/coord`.
 - Helper scripts to log: `scripts/agents/run-tests.sh`, `scripts/agents/run-gh-workflow.sh`, `scripts/agents/smoke-build.sh`.
 
 ## Timeline / Checkpoints

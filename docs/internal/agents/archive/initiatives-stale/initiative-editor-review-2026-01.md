@@ -32,8 +32,8 @@ Next Review: 2026-02-06
 
 ## Documentation Impact
 - Public docs to update: changelog entries for any user-visible fixes.
-- Internal docs/templates to update: this initiative file + coordination board entry.
-- Coordination board entry link: docs/internal/agents/coordination-board.md
+- Internal docs/templates to update: this initiative file + universe task notes.
+- Coordination tracking: `scripts/agents/coord` (optional snapshot: `docs/internal/agents/coordination-board.generated.md`)
 - Helper scripts to use/log: scripts/agents/smoke-build.sh (if applicable).
 
 ## Timeline / Checkpoints

@@ -8,6 +8,10 @@ inputs:
     description: 'CMake preset to use (for reference, tests use minimal preset)'
     required: false
     default: 'minimal'
+  platform:
+    description: 'Platform discriminator for artifact naming (linux, macos, windows)'
+    required: false
+    default: 'unknown'
 
 runs:
   using: 'composite'
@@ -48,10 +52,30 @@ runs:
           --timeout 300 \
           --output-junit build/integration_test_results.xml
 
+    - name: Summarize test results
+      if: always()
+      shell: bash
+      run: |
+        # Emit a compact timing/pass summary to the GitHub Actions job summary.
+        # Fails gracefully if no XML results are present (e.g. skipped runs).
+        echo "## Test Results (${{ inputs.platform }} / ${{ inputs.test-type }})" >> "$GITHUB_STEP_SUMMARY"
+        xml_files=$(ls build/*test_results.xml 2>/dev/null || true)
+        if [ -z "$xml_files" ]; then
+          echo "_No XML test results found._" >> "$GITHUB_STEP_SUMMARY"
+        else
+          for f in $xml_files; do
+            total=$(grep -o 'tests="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*' || echo 0)
+            failures=$(grep -o 'failures="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*' || echo 0)
+            time=$(grep -o 'time="[0-9.]*"' "$f" | head -1 | grep -o '[0-9.]*' || echo 0)
+            echo "- \`$(basename $f)\`: ${total} tests, ${failures} failures, ${time}s" >> "$GITHUB_STEP_SUMMARY"
+          done
+        fi
+
     - name: Upload test results
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-${{ inputs.test-type }}
+        # Include platform in artifact name to prevent collision across matrix legs.
+        name: test-results-${{ inputs.test-type }}-${{ inputs.platform }}
         path: build/*test_results.xml
         if-no-files-found: ignore
         retention-days: 7

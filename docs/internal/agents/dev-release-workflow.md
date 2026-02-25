@@ -6,7 +6,7 @@ Created: 2026-02-14
 Last Reviewed: 2026-02-14
 Next Review: 2026-02-28
 Validation Criteria: `scripts/dev/local-workflow.sh all` succeeds on a configured local machine.
-Exit Criteria: Replaced by a newer protocol doc linked from `coordination-board.md` and archived.
+Exit Criteria: Replaced by a newer protocol doc linked from `AGENTS.md` and archived.
 
 ## 1. Standard Local Workflow
 Use one entrypoint for local build/test/sync:
@@ -84,9 +84,9 @@ Emergency bypass is allowed but discouraged:
 
 ## 5. Multi-Agent Release Protocol
 For release-related work (version bump, release notes, packaging, sync scripts):
-1. Create/update a coordination board entry before edits.
+1. Create/claim a universe coordination task before edits (`scripts/agents/coord task-add ...`, `task-claim ...`).
 2. Assign one release owner persona (`backend-infra-engineer`) and supporting roles.
-3. Require explicit ownership split in board notes:
+3. Require explicit ownership split in task notes/history:
    - Version/changelog owner
    - Build/package owner
    - Validation owner

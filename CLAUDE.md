@@ -1,115 +1,20 @@
-# CLAUDE.md
+# CLAUDE.md (Compact)
 
-_Extends: ~/AGENTS.md, ~/CLAUDE.md_
+Purpose: concise Claude-specific routing for this folder.
 
-C++23 ROM editor for Zelda: A Link to the Past. GUI editor + SNES emulator + AI CLI (`z3ed`).
+Claude Rules
+1. Follow local `AGENTS.md` first when both exist.
+2. Keep edits minimal, reversible, and task-scoped.
+3. Prefer existing scripts/tools over ad-hoc commands.
+4. Validate with focused tests/build checks when possible.
+5. Never claim verification that was not actually run.
+6. Escalate ambiguity or conflicting requirements quickly.
 
-## Build & Test
+Response Contract
+- What changed
+- How it was validated
+- Remaining risks or unknowns
 
-```bash
-cmake --preset mac-dbg && cmake --build build -j8   # Build
-ctest --test-dir build -L stable -j4                 # Test
-./yaze --rom_file=zelda3.sfc --editor=Dungeon        # Run
-```
-
-Presets: `mac-dbg`/`lin-dbg`/`win-dbg`, `mac-ai`/`win-ai`, `*-rel`. See `docs/public/build/quick-reference.md`.
-
-## Architecture
-
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| Rom | `src/app/rom.h` | ROM data access, transactions |
-| Editors | `src/app/editor/` | Overworld, Dungeon, Graphics, Palette |
-| Graphics | `src/app/gfx/` | Bitmap, Arena (async loading), Tiles |
-| Zelda3 | `src/zelda3/` | Overworld (160 maps), Dungeon (296 rooms) |
-| Canvas | `src/app/gui/canvas.h` | ImGui canvas with pan/zoom |
-| CLI | `src/cli/z3ed.cc` | AI-powered ROM hacking tool |
-| Platform | `src/app/platform/` | SDL2/SDL3 backend abstraction |
-
-## Platform Backends
-
-| Backend | Status | Viewports | CMake Option |
-|---------|--------|-----------|--------------|
-| SDL2 | **Default** | Optional | (default) |
-| SDL3 | Experimental | Enabled | `YAZE_USE_SDL3=ON` |
-| GLFW | Not integrated | N/A | — |
-
-Key files: `IWindowBackend`, `WindowBackendFactory`, `sdl2_window_backend.cc`, `sdl3_window_backend.cc`
-
-## Key Patterns
-
-**Graphics refresh**: Update model → `Load*()` → `Renderer::Get().RenderBitmap()`
-
-**Async loading**: `Arena::Get().QueueDeferredTexture(bitmap, priority)` + process in `Update()`
-
-**Bitmap sync**: Use `set_data()` for bulk updates (syncs `data_` and `surface_->pixels`)
-
-**Theming**: Always use `AgentUI::GetTheme()`, never hardcoded colors
-
-**Multi-area maps**: Always use `Overworld::ConfigureMultiAreaMap()`, never set `area_size` directly
-
-**UI sizing**: Use `gui::UIConfig` for panel/content minimums and padding; use `gui::LayoutHelpers::BeginContentChild(id, min_size, ...)` / `EndContentChild()` for child regions that must not collapse. See `docs/public/developer/gui-consistency-guide.md` (UI Sizing).
-
-## Naming
-
-- **Load**: ROM → memory
-- **Render**: Data → bitmap (CPU)
-- **Draw**: Bitmap → screen (GPU)
-
-## Pitfalls
-
-1. Use `set_data()` not `mutable_data()` assignment for bitmap bulk updates
-2. Call `ProcessTextureQueue()` every frame
-3. Pass `0x800` to `DecompressV2`, never `0`
-4. SMC header: `size % 1MB == 512`, not `size % 32KB`
-5. Check `rom_->is_loaded()` before ROM operations
-
-## Code Style
-
-Google C++ Style. Use `absl::Status`/`StatusOr<T>` with `RETURN_IF_ERROR()`/`ASSIGN_OR_RETURN()`.
-
-Format: `cmake --build build --target format`
-
-## AI Debugging Scripts
-
-Located in `scripts/ai/`, these tools integrate with Mesen2-OOS for Oracle of Secrets debugging:
-
-| Script | Purpose |
-|--------|---------|
-| `sentinel.py` | Real-time soft lock detection (B007, B009, INIDISP) |
-| `crash_dump.py` | Post-mortem trace capture + symbol resolution |
-| `profiler.py` | CPU hotspot analysis (lag detection) |
-| `fuzzer.py` | Chaos Monkey automated stress testing |
-| `state_query.py` | Semantic game state queries |
-| `code_graph.py` | Static ASM call graph analysis |
-| `memory_cartographer.py` | RAM search (Cheat Engine-style) |
-
-**Dependencies:**
-- Requires `mesen2_client_lib` from Oracle: `~/src/hobby/oracle-of-secrets/scripts/`
-- Requires `z3ed` binary for symbol resolution: `build_ai/bin/Debug/z3ed`
-- When multiple Mesen2 instances exist (or for headless/CI), set `MESEN2_SOCKET_PATH` so the yaze C++ client, CLI (`--mesen_socket` fallback), and AI scripts all target the same instance.
-
-**Quick Start:**
-```bash
-# Run Sentinel watchdog
-python3 scripts/ai/sentinel.py --z3ed build_ai/bin/Debug/z3ed --rom ~/src/hobby/oracle-of-secrets/Roms/oos168x.sfc
-
-# Run profiler
-python3 scripts/ai/profiler.py --duration 10
-```
-
-**Full Documentation:** `~/src/hobby/oracle-of-secrets/Docs/Tooling/Debugging_Tools_Index.md`
-
-## Cross-Project Integration
-
-| Project | Path | Relationship |
-|---------|------|-------------|
-| **oracle-of-secrets** | `~/src/hobby/oracle-of-secrets/` | Primary debugging target. AI scripts use its `mesen2_client_lib` |
-| **mesen2-oos** | `~/src/hobby/mesen2-oos/` | Emulator fork. Socket API at `/tmp/mesen2-*.sock` via `MESEN2_SOCKET_PATH` |
-| **z3dk** | `~/src/hobby/z3dk/` | `scripts/ai/asm_tuner.py` uses z3asm for syntax validation. libz3dk planned for embedded assembly |
-
-## Docs
-
-- Architecture: `docs/internal/architecture/`
-- Build issues: `docs/BUILD-TROUBLESHOOTING.md`
-- Tests: `test/README.md`
+Reference Material
+- Full legacy guidance: `.context/knowledge/agent-reference.md`.
+- Use `README.md` and `docs/` for project behavior details.

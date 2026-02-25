@@ -4,19 +4,7 @@
 CompileFlags:
   CompilationDatabase: build
   Add:
-    # Additional include paths for better IntelliSense
-    - -I/Users/scawful/Code/yaze/src
-    - -I/Users/scawful/Code/yaze/src/lib
-    - -I/Users/scawful/Code/yaze/src/lib/imgui
-    - -I/Users/scawful/Code/yaze/src/lib/imgui/backends
-    - -I/Users/scawful/Code/yaze/src/lib/SDL/include
-    - -I/Users/scawful/Code/yaze/incl
-    - -I/Users/scawful/Code/yaze/third_party
-    - -I/Users/scawful/Code/yaze/third_party/json/include
-    - -I/Users/scawful/Code/yaze/third_party/httplib
-    - -I/Users/scawful/Code/yaze/build
-    - -I/Users/scawful/Code/yaze/build/src/lib/SDL/include
-    - -I/Users/scawful/Code/yaze/build/src/lib/SDL/include-config-Debug
+    # Include paths are derived from CompilationDatabase (build/)
     # Feature flags
     - -DYAZE_WITH_GRPC
     - -DYAZE_WITH_JSON
