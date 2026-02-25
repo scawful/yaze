@@ -13,6 +13,7 @@
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
@@ -29,6 +30,9 @@
 #include "cli/util/terminal_colors.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/oracle_rom_safety_preflight.h"
+#include "zelda3/dungeon/room.h"
 
 #ifdef SendMessage
 #undef SendMessage
@@ -160,6 +164,114 @@ int CountExecutableCommands(const std::vector<std::string>& commands) {
     }
   }
   return count;
+}
+
+bool IsLikelyOracleRom(const Rom* rom) {
+  if (rom == nullptr) {
+    return false;
+  }
+  const std::string rom_path = absl::AsciiStrToLower(rom->filename());
+  return absl::StrContains(rom_path, "oracle") ||
+         absl::StrContains(rom_path, "oos");
+}
+
+bool IsOracleDebugIntent(const std::string& user_message) {
+  const std::string lowered = absl::AsciiStrToLower(user_message);
+  static constexpr absl::string_view kOracleDebugKeywords[] = {
+      "oracle",    "oos",   "mesen", "dungeon", "collision", "minecart",
+      "preflight", "smoke", "room",  "hook",    "sprite",    "water"};
+  for (const auto keyword : kOracleDebugKeywords) {
+    if (absl::StrContains(lowered, keyword)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+std::string BuildAutoOracleStateHook(Rom* rom,
+                                     const std::string& user_message) {
+  if (rom == nullptr || !rom->is_loaded() || !IsLikelyOracleRom(rom) ||
+      !IsOracleDebugIntent(user_message)) {
+    return "";
+  }
+
+  const bool expanded =
+      zelda3::HasCustomCollisionWriteSupport(rom->vector().size());
+
+  zelda3::OracleRomSafetyPreflightOptions structural_opts;
+  structural_opts.require_water_fill_reserved_region = true;
+  structural_opts.require_custom_collision_write_support = false;
+  structural_opts.validate_water_fill_table = true;
+  structural_opts.validate_custom_collision_maps = false;
+  structural_opts.max_collision_errors = 0;
+  const auto structural =
+      zelda3::RunOracleRomSafetyPreflight(rom, structural_opts);
+
+  bool d4_required_rooms_ok = false;
+  bool d3_required_room_ok = false;
+  std::string d4_check_state = "skipped";
+  std::string d3_check_state = "skipped";
+  if (expanded) {
+    zelda3::OracleRomSafetyPreflightOptions d4_opts;
+    d4_opts.require_water_fill_reserved_region = false;
+    d4_opts.require_custom_collision_write_support = false;
+    d4_opts.validate_water_fill_table = false;
+    d4_opts.validate_custom_collision_maps = false;
+    d4_opts.room_ids_requiring_custom_collision = {0x25, 0x27};
+    const auto d4 = zelda3::RunOracleRomSafetyPreflight(rom, d4_opts);
+    d4_required_rooms_ok = d4.ok();
+    d4_check_state = "ran";
+
+    zelda3::OracleRomSafetyPreflightOptions d3_opts;
+    d3_opts.require_water_fill_reserved_region = false;
+    d3_opts.require_custom_collision_write_support = false;
+    d3_opts.validate_water_fill_table = false;
+    d3_opts.validate_custom_collision_maps = false;
+    d3_opts.room_ids_requiring_custom_collision = {0x32};
+    const auto d3 = zelda3::RunOracleRomSafetyPreflight(rom, d3_opts);
+    d3_required_room_ok = d3.ok();
+    d3_check_state = "ran";
+  }
+
+  int d6_track_rooms = 0;
+  for (int room_id : {0xA8, 0xB8, 0xD8, 0xDA}) {
+    zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+    bool has_track_object = false;
+    for (const auto& object : room.GetTileObjects()) {
+      if (object.id_ == 0x31) {
+        has_track_object = true;
+        break;
+      }
+    }
+    if (has_track_object) {
+      ++d6_track_rooms;
+    }
+  }
+
+  std::ostringstream hook;
+  hook << "[AUTO_ORACLE_STATE_HOOK]\n";
+  hook << "UserRequest: " << user_message << "\n";
+  hook << "OracleRom: " << rom->filename() << "\n";
+  hook << "OracleStructuralOk: " << (structural.ok() ? "true" : "false")
+       << "\n";
+  hook << "CustomCollisionWriteSupport: " << (expanded ? "true" : "false")
+       << "\n";
+  hook << "D4RequiredRoomsCheck: " << d4_check_state << "\n";
+  if (d4_check_state == "ran") {
+    hook << "D4RequiredRoomsOk: " << (d4_required_rooms_ok ? "true" : "false")
+         << "\n";
+  }
+  hook << "D6TrackRoomsFound: " << d6_track_rooms << "/4\n";
+  hook << "D3ReadinessCheck: " << d3_check_state << "\n";
+  if (d3_check_state == "ran") {
+    hook << "D3ReadinessOk: " << (d3_required_room_ok ? "true" : "false")
+         << "\n";
+  }
+  hook << "Guidance: Prefer oracle-smoke-check, dungeon-oracle-preflight, "
+          "dungeon-room-graph, and mesen-* commands when diagnosing Oracle "
+          "runtime state.\n";
+  hook << "[/AUTO_ORACLE_STATE_HOOK]";
+  return hook.str();
 }
 
 ChatMessage CreateMessage(ChatMessage::Sender sender,
@@ -457,6 +569,16 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
   }
 
   if (!message.empty()) {
+#ifdef Z3ED_AI
+    const std::string auto_hook =
+        BuildAutoOracleStateHook(rom_context_, message);
+    if (!auto_hook.empty()) {
+      auto hook_message = CreateMessage(ChatMessage::Sender::kUser, auto_hook);
+      hook_message.is_internal = true;
+      history_.push_back(std::move(hook_message));
+      TrimHistoryIfNeeded();
+    }
+#endif
     history_.push_back(CreateMessage(ChatMessage::Sender::kUser, message));
     TrimHistoryIfNeeded();
     ++metrics_.user_messages;
