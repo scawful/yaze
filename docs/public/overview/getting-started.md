@@ -7,9 +7,11 @@ YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP ve
 ## Quick Start
 
 1. **Download** the latest release for your platform from the [GitHub Releases page](https://github.com/scawful/yaze/releases)
-2. **Launch** the application and load your ROM via `File > Open ROM`
+2. **Launch** the application and load your ROM via `File > Open ROM / Project`
 3. **Choose an Editor** from the toolbar (Overworld, Dungeon, Graphics, etc.)
 4. **Edit** your ROM and save your changes
+
+> **Using .yazeproj bundles?** See the [.yazeproj Bundle Guide](../usage/yazeproj-bundles.md) for how to open bundles on each platform.
 
 > **Building from source?** See the [Build and Test Quick Reference](../build/quick-reference.md).
 

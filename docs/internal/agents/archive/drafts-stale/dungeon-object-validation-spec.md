@@ -6,7 +6,7 @@
 **Last Reviewed:** 2026-02-06
 **Next Review:** 2026-02-20
 **Validation/Exit Criteria:** See "Acceptance Criteria" and "UX Parity Exit Criteria".
-**Coordination Board:** `docs/internal/agents/coordination-board.md` (2026-02-03 ai-infra-architect entry)
+**Coordination:** Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
 ## Decision Summary
 - Start with vanilla ALTTP ROM only.

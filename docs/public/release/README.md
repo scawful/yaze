@@ -45,10 +45,35 @@ The multiplayer/collaboration service ships separately:
 - Local Ollama: install Ollama and set `OLLAMA_MODEL` (example: `qwen2.5-coder:0.5b`).
 - LMStudio: use `z3ed --ai_provider=openai --openai_base_url=http://localhost:1234`.
 
+## .yazeproj Bundles
+
+YAZE supports `.yazeproj` bundle directories that package a ROM, project config,
+code snapshots, and backups into a single portable unit.
+
+**Bundle layout:**
+```
+MyProject.yazeproj/
+  project.yaze      # Project configuration
+  manifest.json     # Bundle metadata
+  rom               # ROM binary (no extension)
+  project/          # Code/asset snapshot
+  backups/          # Per-bundle backups
+  output/           # Build output
+```
+
+**Opening a bundle:**
+- **macOS**: Double-click the `.yazeproj` directory, or use `File > Open ROM / Project`.
+- **iOS**: Tap the bundle in `Files > iCloud Drive > Yaze > Projects`, or use the in-app Project Browser.
+- **Windows**: `File > Open ROM / Project` and select the `.yazeproj` folder. If the picker does not show directories, navigate inside and select `project.yaze`.
+- **Linux**: `File > Open ROM / Project` and select the `.yazeproj` directory.
+- **CLI**: `z3ed <command> --rom=MyProject.yazeproj/rom`
+
+See the full [.yazeproj Bundle Guide](../usage/yazeproj-bundles.md) for details.
+
 ## Data Locations
 - Desktop/CLI: `~/.yaze` (Windows uses `%USERPROFILE%\\.yaze`)
 - Web: `/.yaze` (browser storage via IndexedDB)
-- Projects: store `.yaze` project files wherever you prefer
+- Projects: store `.yaze` or `.yazeproj` project files wherever you prefer
   (recommended: `~/.yaze/projects`)
 
 ## Documentation

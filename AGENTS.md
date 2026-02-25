@@ -1,71 +1,91 @@
-# Agent Protocol
+# AGENTS.md (Protocol Router)
 
-_Extends: [unified_agent_protocol.md](file:///Users/scawful/.context/memory/unified_agent_protocol.md)_
+Purpose: route agents to the minimum correct context for the current task.
+Do not treat this file as a repo overview or style dump.
 
-Project-specific operating procedures for AI agents contributing to `yaze` (~/src/hobby/yaze).
+## Core Principle
+- Prefer hierarchical context loading over monolithic prompts.
+- Load only what is needed for the current task surface.
+- If a file is discoverable from code search, do not duplicate it here.
 
-## 1. Persona Adoption
-**Rule:** You must adopt a specific persona for every session.
-*   **Source of Truth:** [docs/internal/agents/personas.md](docs/internal/agents/personas.md)
-*   **Requirement:** Use the exact `Agent ID` from that list in all logs, commits, and board updates.
-*   **Legacy IDs:** Do not use `CLAUDE_CORE`, `CLAUDE_AIINF`, etc. Use the role-based IDs (e.g., `ai-infra-architect`).
-*   **System Prompts:** Load the matching persona prompt from `.claude/agents/<agent-id>.md` (accessible to all agents) before starting work.
+## Layer 1: Protocol Router
 
-## 2. Workflows & Coordination
+### 1) Task Classification
+Classify the task into one dominant surface:
+- `ui_ux_editor`
+- `build_ci_release`
+- `ai_agent_cli`
+- `emu_runtime_debug`
+- `rom_gameplay_data`
+- `testing_harness`
+- `docs_process`
 
-### Quick Tasks (< 30 min)
-*   **Board:** No update required.
-*   **Tools:** Use `z3ed agent todo` to track your own sub-steps if helpful.
-*   **Commit:** Commit directly with a clear message.
+### 2) Persona Selection (Primary Owner)
+Use one primary owner from `docs/internal/agents/personas.md`:
+- `imgui-frontend-engineer`: ImGui/editor UX, panel behavior, interaction patterns.
+- `backend-infra-engineer`: CMake/toolchains, packaging, CI/CD, release plumbing.
+- `ai-infra-architect`: z3ed CLI/TUI, agent workflows, model/provider plumbing.
+- `snes-emulator-expert`: emulator runtime, performance, rendering correctness.
+- `zelda3-hacking-expert`: ROM/gameplay logic, dungeon/overworld data behavior.
+- `test-infrastructure-expert`: test architecture, flakes, harness reliability.
+- `docs-janitor`: docs, process hygiene, onboarding and migration docs.
 
-### Substantial Work (> 30 min / Multi-file)
-1.  **Check Context:**
-    *   Read [docs/internal/agents/coordination-board.md](docs/internal/agents/coordination-board.md) for `REQUEST` or `BLOCKER` tags.
-    *   Run `git status` and `git diff` to understand the current state.
-2.  **Declare Intent:**
-    *   If your work overlaps with an active task on the board, post a note or Request for Comments (RFC) there first.
-    *   Otherwise, log a new entry on the **Coordination Board**.
-3.  **Execute:**
-    *   Use `z3ed agent todo` to break down the complex task.
-    *   Use `z3ed agent handoff` if you cannot finish in one session.
+### 3) Focused Context Loading
+Load only:
+1. `.claude/agents/<agent-id>.md`
+2. `docs/internal/agents/routing-personas.md`
+3. Relevant entries in `docs/internal/agents/routing-skills-tools.md`
 
-### Multi-Day Initiatives
-*   Create a dedicated document using [docs/internal/agents/initiative-template.md](docs/internal/agents/initiative-template.md).
-*   Link to this document from the Coordination Board.
+### 4) Tool Routing
+Use tool classes intentionally:
+- Code/search/build/test: shell + project scripts.
+- Universe coordination: `scripts/agents/coord`.
+- Legacy import/migration: `scripts/agents/import-coordination-board.sh`, `scripts/agents/migrate-coordination-board.sh`.
 
-### specs & docs
-*   Keep one canonical spec per initiative (link it from the board entry and back).
-*   Add a header with Status/Owner/Created/Last Reviewed/Next Review (≤14 days) and validation/exit criteria.
-*   **Automation:** See [docs/internal/agents/automation-workflows.md](docs/internal/agents/automation-workflows.md) for headless/server mode instructions.
-*   Use existing templates (`initiative-template.md`, `release-checklist-template.md`) instead of creating ad-hoc files.
-*   Archive idle or completed specs to `docs/internal/agents/archive/` with the date; do not open duplicate status pages.
+### 5) Essential Repo Facts (non-discoverable defaults)
+- Build presets commonly used for agent work: `build_ai`.
+- Coordination source of truth: `~/.context/agent-universe/{events.jsonl,state.json}`.
+- Generated human snapshot: `docs/internal/agents/coordination-board.generated.md`.
+- Legacy board file is history-only: `docs/internal/agents/coordination-board.md`.
 
-## 3. The Coordination Board
-**Location:** `docs/internal/agents/coordination-board.md`
+### 6) Dependency Graph
+`Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
 
-*   **Hygiene:** Keep entries concise (≤ 5 lines).
-*   **Status:** Update your entry status to `COMPLETE` or `ARCHIVED` when done.
-*   **Maintenance:** Archive completed work weekly to `docs/internal/agents/archive/`.
+Concretely:
+- `AGENTS.md` -> `.claude/agents/<id>.md` + routing docs -> scripts/tools -> tests/build checks.
+- Coordination state flows through universe events/state; markdown snapshot is derived output only.
 
-## 4. Helper Scripts
-Located in `scripts/agents/`:
-*   `run-gh-workflow.sh`: Trigger CI manually.
-*   `smoke-build.sh`: Fast verification build.
-*   `test-http-api.sh`: Validate the agent API.
+## Layer 2: Focused Persona/Skill Context
+- Persona routing rules: `docs/internal/agents/routing-personas.md`.
+- Skill/tool routing rules: `docs/internal/agents/routing-skills-tools.md`.
+- Persona definitions: `docs/internal/agents/personas.md`.
 
-Project workflow helpers:
-*   `scripts/dev/local-workflow.sh`: Standard local build/test/sync/deploy/status workflow.
-*   `scripts/install-git-hooks.sh`: Installs both `pre-commit` and `pre-push` hooks.
-*   `scripts/dev/release-version-check.sh`: Enforces VERSION/changelog protocol.
+Load the smallest subset that can complete the task.
 
-**Log results:** When running these scripts for significant validation, paste the run ID or result summary to the Board.
+## Layer 3: Maintenance Agent
+Owner: `ai-infra-architect` (with `docs-janitor` support).
 
-## 5. Release + Version Protocol
-*   Follow `docs/internal/agents/dev-release-workflow.md` for local-dev loop, runtime syncing, versioning, and multi-agent release responsibilities.
-*   If `VERSION` changes, include a matching `CHANGELOG.md` section in the same change.
-*   For release-facing changes, assign explicit owner roles on the coordination board before marking `COMPLETE`.
+Maintenance responsibilities:
+- Keep protocol routing files current when scripts/personas/tools change.
+- Prevent stale references to archived/legacy workflows.
+- Run protocol checks:
+  - `scripts/agents/protocol-audit.sh`
+  - `scripts/agents/test-universe-coord.sh`
 
-## 6. Documentation Hygiene
-- Follow [docs/internal/agents/doc-hygiene.md](docs/internal/agents/doc-hygiene.md) to avoid doc sprawl.
-- Keep specs short, template-driven, and linked to the coordination board; prefer edits over new files.
-- Archive completed/idle docs (>=14 days) under `docs/internal/agents/archive/` with dates to keep the root clean.
+## Coordination Contract (Universe Log)
+Use project wrapper:
+- `scripts/agents/coord task-add --title "..."`
+- `scripts/agents/coord task-claim --id <task_id> --agent <agent-id>`
+- `scripts/agents/coord task-heartbeat --id <task_id> --agent <agent-id>`
+- `scripts/agents/coord task-handoff --id <task_id> --agent <agent-id> --to <agent-id>`
+- `scripts/agents/coord task-complete --id <task_id> --agent <agent-id>`
+- `scripts/agents/coord task-list --status active`
+
+Generate markdown snapshot only when humans need it:
+- `scripts/agents/coord task-generate-board --out docs/internal/agents/coordination-board.generated.md`
+
+## Delivery Contract
+At completion, report:
+- What changed.
+- What was validated (exact commands).
+- Residual risks and next follow-ups.

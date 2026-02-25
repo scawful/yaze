@@ -35,6 +35,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 
 ### Usage Guides
 - [Dungeon Editor](usage/dungeon-editor.md) - Room editing guide
+- [.yazeproj Bundles](usage/yazeproj-bundles.md) - Portable project bundle format
 - [z3ed CLI](usage/z3ed-cli.md) - Command-line interface
 - [Web App](usage/web-app.md) - Browser-based editor (preview)
 - [Overworld Loading](usage/overworld-loading.md) - Technical reference
@@ -47,6 +48,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 - [Palette System](developer/palette-system-overview.md) - Color handling
 
 ### Reference
+- [Capability Assessment](reference/capability-assessment.md) - Feature parity vs Hyrule Magic / ZScream
 - [Feature & Test Coverage Report](reference/feature-coverage-report.md) - Feature status and test coverage map
 - [ROM Reference](reference/rom-reference.md) - ROM data structures
 - [Message Bundle Format](reference/message-bundle-format.md) - JSON import/export schema

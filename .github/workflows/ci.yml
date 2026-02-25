@@ -23,6 +23,9 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - '.github/workflows/**'
+      - 'scripts/agents/**'
+      - 'AGENTS.md'
+      - 'docs/internal/agents/**'
   pull_request:
     branches: [ "master", "develop" ]
     paths:
@@ -31,6 +34,9 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - '.github/workflows/**'
+      - 'scripts/agents/**'
+      - 'AGENTS.md'
+      - 'docs/internal/agents/**'
   workflow_dispatch:
     inputs:
       build_type:
@@ -60,6 +66,12 @@ on:
 
 env:
   BUILD_TYPE: ${{ github.event.inputs.build_type || 'RelWithDebInfo' }}
+
+# Cancel redundant in-progress runs for the same branch/PR.
+# Master builds are never cancelled so deployments don't get interrupted.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
 
 jobs:
   build:
@@ -186,6 +198,7 @@ jobs:
         with:
           test-type: stable
           preset: ${{ matrix.preset }}
+          platform: ${{ matrix.platform }}
 
       - name: Run smoke tests (GUI framework validation)
         if: matrix.platform == 'linux'
@@ -230,6 +243,7 @@ jobs:
         with:
           test-type: stable
           preset: ci-windows-ai
+          platform: windows
 
   wasm-smoke-test:
     name: "WASM Build Smoke Test"
@@ -294,9 +308,11 @@ jobs:
         fi
 
         files=$(git diff --name-only "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
-        echo "files<<EOF" >> "$GITHUB_OUTPUT"
-        echo "$files" >> "$GITHUB_OUTPUT"
-        echo "EOF" >> "$GITHUB_OUTPUT"
+        {
+          echo "files<<EOF"
+          echo "$files"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
     
     - name: Check Formatting
       run: |
@@ -316,6 +332,22 @@ jobs:
       run: |
         find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
           xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
+
+  release-readiness:
+    name: "Release Readiness"
+    runs-on: ubuntu-22.04
+    # Only validate on push to gated branches; informational on PRs.
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify VERSION / CHANGELOG hygiene
+        run: bash scripts/dev/release-version-check.sh
+      - name: Protocol audit
+        run: bash scripts/agents/protocol-audit.sh
+      - name: Universe coordination tests
+        run: bash scripts/agents/test-universe-coord.sh
 
   memory-sanitizer:
     name: "Memory Sanitizer"
@@ -394,3 +426,108 @@ jobs:
       run: |
         chmod +x ./scripts/agent_test_suite.sh
         ./scripts/agent_test_suite.sh ollama
+
+  oracle-smoke-check:
+    name: "Oracle ROM Smoke Check"
+    runs-on: macos-14
+    # Runs on both push and pull_request so it can be registered as a required
+    # status check for merge gating. When ORACLE_ROM_URL is not configured
+    # (e.g. fork PRs without access to repo secrets), all ROM-dependent steps
+    # are individually skipped and the job completes successfully — no false
+    # failures on external contributions.
+    if: |
+      (github.event_name == 'push' &&
+       (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/develop')) ||
+      github.event_name == 'pull_request'
+    env:
+      ORACLE_ROM_URL: ${{ secrets.ORACLE_ROM_URL }}
+      ORACLE_ROM_PATH: /tmp/oracle_smoke_rom.sfc
+      SMOKE_ARTIFACT_DIR: /tmp/oracle-smoke-artifacts
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check Oracle ROM availability
+        id: rom-check
+        # Fix: evaluate secret presence via env var, not secrets context directly.
+        # When ORACLE_ROM_URL is unset (fork PRs, unconfigured repos) the job
+        # still passes — ROM-dependent steps are individually skipped below.
+        run: |
+          if [ -n "$ORACLE_ROM_URL" ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+            echo "::notice::Oracle ROM URL configured; smoke check will run."
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ORACLE_ROM_URL secret not set — ROM-dependent steps will be skipped."
+            echo "::notice::To enable: add ORACLE_ROM_URL secret pointing to oos168.sfc download URL."
+          fi
+
+      - name: Download Oracle ROM
+        if: steps.rom-check.outputs.available == 'true'
+        run: |
+          curl -fsSL -o "$ORACLE_ROM_PATH" "$ORACLE_ROM_URL"
+          echo "Downloaded Oracle ROM: $(wc -c < "$ORACLE_ROM_PATH") bytes"
+
+      - name: Setup build environment
+        if: steps.rom-check.outputs.available == 'true'
+        uses: ./.github/actions/setup-build
+        with:
+          platform: macos
+          preset: ci-macos
+          cache-key: oracle-smoke-${{ github.sha }}
+
+      # Fix: configure CMake before building. setup-build only installs deps;
+      # cmake --preset is required to populate the build/ cache directory.
+      - name: Configure CMake (z3ed)
+        if: steps.rom-check.outputs.available == 'true'
+        run: cmake --preset ci-macos
+
+      - name: Build z3ed
+        if: steps.rom-check.outputs.available == 'true'
+        run: cmake --build build --config RelWithDebInfo --target z3ed --parallel
+
+      - name: Create artifact directory
+        if: steps.rom-check.outputs.available == 'true'
+        run: mkdir -p "$SMOKE_ARTIFACT_DIR"
+
+      # ── Structural smoke check (merge-blocking) ──────────────────────────
+      # Fails the job if water-fill region/table is corrupted or D6 track
+      # objects fall below the required minimum. D4/D3 readiness gaps are
+      # informational in this mode and do not block merge.
+      - name: Oracle Smoke Check — Structural (blocking)
+        if: steps.rom-check.outputs.available == 'true'
+        run: |
+          Z3ED_BIN=./build/bin/RelWithDebInfo/z3ed ./scripts/z3ed \
+            oracle-smoke-check \
+            --rom "$ORACLE_ROM_PATH" \
+            --min-d6-track-rooms=4 \
+            --format=json \
+            --report "$SMOKE_ARTIFACT_DIR/oracle_smoke_report.json"
+
+      # ── Strict-readiness check (informational, non-blocking) ─────────────
+      # Reports D4/D3 room-collision readiness gaps. Does not block merge.
+      # Annotation in CI shows authoring progress toward full Oracle release.
+      - name: Oracle Smoke Check — Strict Readiness (informational)
+        if: steps.rom-check.outputs.available == 'true'
+        continue-on-error: true
+        run: |
+          Z3ED_BIN=./build/bin/RelWithDebInfo/z3ed ./scripts/z3ed \
+            oracle-smoke-check \
+            --rom "$ORACLE_ROM_PATH" \
+            --strict-readiness \
+            --min-d6-track-rooms=4 \
+            --format=json \
+            --report "$SMOKE_ARTIFACT_DIR/oracle_smoke_strict_report.json" \
+            || echo "::notice::Strict-readiness gaps detected (non-blocking). See artifact for details."
+
+      - name: Upload Oracle Smoke Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oracle-smoke-reports-${{ github.run_number }}
+          path: ${{ env.SMOKE_ARTIFACT_DIR }}/
+          if-no-files-found: ignore
+          retention-days: 14
