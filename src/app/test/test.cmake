@@ -13,6 +13,7 @@
 set(YAZE_TEST_SOURCES
   app/test/test_manager.cc
   app/test/dungeon_ui_tests.cc
+  app/test/overworld_ui_tests.cc
   app/test/z3ed_test_suite.cc
   app/test/agent_tools_test.cc
   app/test/ai_vision_verifier.cc
