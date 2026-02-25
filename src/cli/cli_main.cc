@@ -18,13 +18,15 @@
 #include "cli/handlers/agent_command_registration.h"
 #endif
 #include "cli/service/command_registry.h"
-#include "rom/rom.h"
 #include "cli/z3ed_ascii_logo.h"
+#include "rom/rom.h"
 #include "yaze_config.h"
 
 #ifdef YAZE_HTTP_API_ENABLED
+#include "app/service/render_service.h"
 #include "cli/service/api/http_server.h"
 #include "util/log.h"
+#include "zelda3/game_data.h"
 #endif
 
 // Define all CLI flags
@@ -172,8 +174,8 @@ void PrintCompactHelp() {
   std::cout << "  --http-port=<port>     HTTP API server port (0=disabled)\n";
   std::cout
       << "  --http-host=<host>     HTTP API display host (printed URLs)\n";
-  std::cout
-      << "                         (no command keeps server alive until Ctrl+C)\n";
+  std::cout << "                         (no command keeps server alive until "
+               "Ctrl+C)\n";
 #endif
   std::cout << "  --mesen-socket=<path>  Override Mesen2 socket path\n";
   std::cout << "\n";
@@ -183,7 +185,8 @@ void PrintCompactHelp() {
   std::cout << "  z3ed agent simple-chat --rom=zelda3.sfc\n";
 #endif
   std::cout << "  z3ed rom-info --rom=zelda3.sfc\n";
-  std::cout << "  z3ed rom read --address=0x1000 --length=16 --rom=zelda3.sfc\n";
+  std::cout
+      << "  z3ed rom read --address=0x1000 --length=16 --rom=zelda3.sfc\n";
   std::cout << "  z3ed debug state\n";
   std::cout
       << "  z3ed message-search --rom=zelda3.sfc --query=\"Master Sword\"\n";
@@ -286,7 +289,8 @@ ParsedGlobals ParseGlobalFlags(int argc, char* argv[]) {
 
       if (token == "--tui" || token == "--interactive") {
         result.error =
-            "--tui/--interactive was removed; use `z3ed help` for CLI workflows";
+            "--tui/--interactive was removed; use `z3ed help` for CLI "
+            "workflows";
         return result;
       }
 
@@ -563,11 +567,36 @@ int main(int argc, char* argv[]) {
 #ifdef YAZE_HTTP_API_ENABLED
   // Start HTTP API server if requested
   std::unique_ptr<yaze::cli::api::HttpServer> http_server;
+
+  // Shared ROM / GameData / RenderService owned here, passed by pointer to the
+  // server.  Lifetime: alive until end of main (outlives the server thread).
+  std::unique_ptr<yaze::Rom> api_rom;
+  std::unique_ptr<yaze::zelda3::GameData> api_game_data;
+  std::unique_ptr<yaze::app::service::RenderService> api_render_service;
+
   int http_port = absl::GetFlag(FLAGS_http_port);
 
   if (http_port > 0) {
     std::string http_host = absl::GetFlag(FLAGS_http_host);
     http_server = std::make_unique<yaze::cli::api::HttpServer>();
+
+    // Wire RenderService if ROM is available.
+    const std::string api_rom_path = absl::GetFlag(FLAGS_rom);
+    if (!api_rom_path.empty()) {
+      api_rom = std::make_unique<yaze::Rom>();
+      auto rom_st = api_rom->LoadFromFile(api_rom_path);
+      if (rom_st.ok()) {
+        api_game_data = std::make_unique<yaze::zelda3::GameData>();
+        auto gd_st = yaze::zelda3::LoadGameData(*api_rom, *api_game_data);
+        if (gd_st.ok()) {
+          api_render_service =
+              std::make_unique<yaze::app::service::RenderService>(
+                  api_rom.get(), api_game_data.get());
+          yaze::app::service::RenderService* rs_raw = api_render_service.get();
+          http_server->SetRenderServiceSource([rs_raw]() { return rs_raw; });
+        }
+      }
+    }
 
     auto status = http_server->Start(http_port);
     if (!status.ok()) {

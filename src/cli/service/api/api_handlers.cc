@@ -2,8 +2,11 @@
 
 #include <algorithm>
 #include <cctype>
+#include <sstream>
 
+#include "absl/status/status.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "app/service/render_service.h"
 #include "cli/service/ai/model_registry.h"
 #include "httplib.h"
 #include "nlohmann/json.hpp"
@@ -27,10 +30,9 @@ bool IsTruthyParam(const std::string& value, bool param_present) {
     return param_present;
   }
   std::string normalized = value;
-  std::transform(normalized.begin(), normalized.end(), normalized.begin(),
-                 [](unsigned char c) {
-                   return static_cast<char>(std::tolower(c));
-                 });
+  std::transform(
+      normalized.begin(), normalized.end(), normalized.begin(),
+      [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   return normalized == "1" || normalized == "true" || normalized == "yes" ||
          normalized == "on";
 }
@@ -47,8 +49,7 @@ void ApplyCorsHeaders(httplib::Response& res) {
 namespace {
 
 void HandleWindowAction(const std::function<bool()>& action,
-                        const char* window_state,
-                        httplib::Response& res) {
+                        const char* window_state, httplib::Response& res) {
   ApplyCorsHeaders(res);
 
   if (action) {
@@ -91,8 +92,8 @@ void HandleHealth(const httplib::Request& req, httplib::Response& res) {
 
 void HandleListModels(const httplib::Request& req, httplib::Response& res) {
   auto& registry = ModelRegistry::GetInstance();
-  const bool force_refresh = IsTruthyParam(req.get_param_value("refresh"),
-                                           req.has_param("refresh"));
+  const bool force_refresh =
+      IsTruthyParam(req.get_param_value("refresh"), req.has_param("refresh"));
   auto models_or = registry.ListAllModels(force_refresh);
 
   ApplyCorsHeaders(res);
@@ -133,9 +134,11 @@ void HandleGetSymbols(const httplib::Request& req, httplib::Response& res,
   ApplyCorsHeaders(res);
 
   std::string format_str = req.get_param_value("format");
-  if (format_str.empty()) format_str = "mesen";
+  if (format_str.empty())
+    format_str = "mesen";
 
-  yaze::emu::debug::SymbolFormat format = yaze::emu::debug::SymbolFormat::kMesen;
+  yaze::emu::debug::SymbolFormat format =
+      yaze::emu::debug::SymbolFormat::kMesen;
   if (format_str == "mesen") {
     format = yaze::emu::debug::SymbolFormat::kMesen;
   } else if (format_str == "asar") {
@@ -282,6 +285,169 @@ void HandleCorsPreflight(const httplib::Request& req, httplib::Response& res) {
   (void)req;
   ApplyCorsHeaders(res);
   res.status = 204;
+}
+
+// ---------------------------------------------------------------------------
+// Render endpoints
+// ---------------------------------------------------------------------------
+
+namespace {
+
+// Parse "room" query param — accepts decimal or 0x-prefixed hex.
+// Returns false and sets a 400 error response on failure.
+bool ParseRoomParam(const httplib::Request& req, httplib::Response& res,
+                    int& room_id) {
+  if (!req.has_param("room")) {
+    json j;
+    j["error"] = "Missing required parameter: room";
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+    return false;
+  }
+  const std::string s = req.get_param_value("room");
+  try {
+    room_id = std::stoi(s, nullptr, 0);
+  } catch (...) {
+    json j;
+    j["error"] = "Invalid room parameter";
+    j["value"] = s;
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+    return false;
+  }
+  return true;
+}
+
+}  // namespace
+
+void HandleRenderDungeon(const httplib::Request& req, httplib::Response& res,
+                         yaze::app::service::RenderService* render_service) {
+  ApplyCorsHeaders(res);
+
+  if (!render_service) {
+    json j;
+    j["error"] = "Render service not available";
+    res.status = 503;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  int room_id = 0;
+  if (!ParseRoomParam(req, res, room_id))
+    return;
+
+  // Parse overlays — comma-separated: collision, sprites, objects, track,
+  // camera, grid, all.
+  uint32_t overlay_flags = yaze::app::service::RenderOverlay::kNone;
+  if (req.has_param("overlays")) {
+    std::istringstream ss(req.get_param_value("overlays"));
+    std::string tok;
+    while (std::getline(ss, tok, ',')) {
+      tok.erase(0, tok.find_first_not_of(" \t"));
+      if (!tok.empty())
+        tok.erase(tok.find_last_not_of(" \t") + 1);
+      if (tok == "collision")
+        overlay_flags |= yaze::app::service::RenderOverlay::kCollision;
+      else if (tok == "sprites")
+        overlay_flags |= yaze::app::service::RenderOverlay::kSprites;
+      else if (tok == "objects")
+        overlay_flags |= yaze::app::service::RenderOverlay::kObjects;
+      else if (tok == "track")
+        overlay_flags |= yaze::app::service::RenderOverlay::kTrack;
+      else if (tok == "camera")
+        overlay_flags |= yaze::app::service::RenderOverlay::kCameraQuads;
+      else if (tok == "grid")
+        overlay_flags |= yaze::app::service::RenderOverlay::kGrid;
+      else if (tok == "all")
+        overlay_flags = yaze::app::service::RenderOverlay::kAll;
+    }
+  }
+
+  // Parse scale (clamped 0.25–8.0, default 1.0).
+  float scale = 1.0f;
+  if (req.has_param("scale")) {
+    try {
+      scale = std::stof(req.get_param_value("scale"));
+      if (scale < 0.25f)
+        scale = 0.25f;
+      if (scale > 8.0f)
+        scale = 8.0f;
+    } catch (...) {}
+  }
+
+  yaze::app::service::RenderRequest render_req;
+  render_req.room_id = room_id;
+  render_req.overlay_flags = overlay_flags;
+  render_req.scale = scale;
+
+  auto result_or = render_service->RenderDungeonRoom(render_req);
+  if (!result_or.ok()) {
+    const auto& s = result_or.status();
+    json j;
+    j["error"] = std::string(s.message());
+    if (s.code() == absl::StatusCode::kInvalidArgument)
+      res.status = 400;
+    else if (s.code() == absl::StatusCode::kFailedPrecondition)
+      res.status = 503;
+    else
+      res.status = 500;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  const auto& result = *result_or;
+  res.status = 200;
+  res.set_content(reinterpret_cast<const char*>(result.png_data.data()),
+                  result.png_data.size(), "image/png");
+  res.set_header("X-Room-Id", std::to_string(room_id));
+  res.set_header("X-Room-Width", std::to_string(result.width));
+  res.set_header("X-Room-Height", std::to_string(result.height));
+}
+
+void HandleRenderDungeonMetadata(
+    const httplib::Request& req, httplib::Response& res,
+    yaze::app::service::RenderService* render_service) {
+  ApplyCorsHeaders(res);
+
+  if (!render_service) {
+    json j;
+    j["error"] = "Render service not available";
+    res.status = 503;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  int room_id = 0;
+  if (!ParseRoomParam(req, res, room_id))
+    return;
+
+  auto meta_or = render_service->GetDungeonRoomMetadata(room_id);
+  if (!meta_or.ok()) {
+    const auto& s = meta_or.status();
+    json j;
+    j["error"] = std::string(s.message());
+    res.status = (s.code() == absl::StatusCode::kInvalidArgument) ? 400 : 500;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  const auto& meta = *meta_or;
+  json j;
+  j["room_id"] = meta.room_id;
+  j["blockset"] = meta.blockset;
+  j["spriteset"] = meta.spriteset;
+  j["palette"] = meta.palette;
+  j["layout_id"] = meta.layout_id;
+  j["effect"] = meta.effect;
+  j["collision"] = meta.collision;
+  j["tag1"] = meta.tag1;
+  j["tag2"] = meta.tag2;
+  j["message_id"] = meta.message_id;
+  j["has_custom_collision"] = meta.has_custom_collision;
+  j["object_count"] = meta.object_count;
+  j["sprite_count"] = meta.sprite_count;
+  res.status = 200;
+  res.set_content(j.dump(), "application/json");
 }
 
 }  // namespace api
