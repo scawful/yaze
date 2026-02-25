@@ -160,7 +160,10 @@ wrapper = json.loads((o / "import-wrapper-dry.json").read_text())
 assert wrapper["mode"] == "dry-run"
 
 wrapper_tasks = json.loads((o / "wrapper-list.json").read_text())
-assert any(t.get("project_key", "").startswith("Users:scawful:src:hobby:yaze") for t in wrapper_tasks), "wrapper default project key missing"
+expected_project_key = str(pathlib.Path.cwd()).lstrip("/").replace("/", ":")
+assert any(t.get("project_key", "") == expected_project_key for t in wrapper_tasks), (
+    f"wrapper default project key missing (expected {expected_project_key})"
+)
 
 generated = (o / "generated.md").read_text()
 assert "Coordination Snapshot (Generated)" in generated
