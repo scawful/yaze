@@ -5,10 +5,20 @@
 
 #include <gtest/gtest.h>
 
+#include "absl/strings/match.h"
 #include "absl/time/time.h"
+#include "rom/rom.h"
 
 namespace yaze::cli::agent {
 namespace {
+
+Rom BuildTestRom(std::string_view filename, size_t size_bytes) {
+  Rom rom;
+  std::vector<uint8_t> data(size_bytes, 0);
+  EXPECT_TRUE(rom.LoadFromData(data).ok());
+  rom.set_filename(filename);
+  return rom;
+}
 
 TEST(ConversationalAgentServiceTest, ReplaceHistoryCountsMessagesAndProposals) {
   ConversationalAgentService service;
@@ -81,6 +91,52 @@ TEST(ConversationalAgentServiceTest, ReplaceHistoryUsesSnapshotMetrics) {
   EXPECT_EQ(metrics.total_proposals, 1);
   EXPECT_DOUBLE_EQ(metrics.total_elapsed_seconds, 12.0);
   EXPECT_DOUBLE_EQ(metrics.average_latency_seconds, 3.0);
+}
+
+TEST(ConversationalAgentServiceTest,
+     SendMessageInjectsOracleHookForOracleDebugIntent) {
+  ConversationalAgentService service;
+  Rom rom = BuildTestRom("roms/oos168.sfc", 0x400000);
+  service.SetRomContext(&rom);
+
+  auto response_or = service.SendMessage("mesen oracle smoke status");
+  ASSERT_TRUE(response_or.ok());
+
+#ifdef Z3ED_AI
+  const auto& history = service.GetHistory();
+  ASSERT_GE(history.size(), 3u);
+  EXPECT_EQ(history[0].sender, ChatMessage::Sender::kUser);
+  EXPECT_TRUE(history[0].is_internal);
+  EXPECT_TRUE(
+      absl::StrContains(history[0].message, "[AUTO_ORACLE_STATE_HOOK]"));
+  EXPECT_TRUE(
+      absl::StrContains(history[0].message, "OracleRom: roms/oos168.sfc"));
+  EXPECT_EQ(history[1].sender, ChatMessage::Sender::kUser);
+  EXPECT_FALSE(history[1].is_internal);
+  EXPECT_EQ(history[1].message, "mesen oracle smoke status");
+#else
+  const auto& history = service.GetHistory();
+  ASSERT_GE(history.size(), 2u);
+  EXPECT_EQ(history[0].sender, ChatMessage::Sender::kUser);
+  EXPECT_FALSE(history[0].is_internal);
+  EXPECT_EQ(history[0].message, "mesen oracle smoke status");
+#endif
+}
+
+TEST(ConversationalAgentServiceTest,
+     SendMessageDoesNotInjectOracleHookForNonOracleIntent) {
+  ConversationalAgentService service;
+  Rom rom = BuildTestRom("roms/oos168.sfc", 0x400000);
+  service.SetRomContext(&rom);
+
+  auto response_or = service.SendMessage("tell me a joke");
+  ASSERT_TRUE(response_or.ok());
+
+  const auto& history = service.GetHistory();
+  ASSERT_GE(history.size(), 2u);
+  EXPECT_EQ(history[0].sender, ChatMessage::Sender::kUser);
+  EXPECT_FALSE(history[0].is_internal);
+  EXPECT_EQ(history[0].message, "tell me a joke");
 }
 
 }  // namespace
