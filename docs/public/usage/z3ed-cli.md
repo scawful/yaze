@@ -32,6 +32,10 @@ AI features require at least one provider:
 | **Anthropic** (cloud) | `export ANTHROPIC_API_KEY=your_key` |
 
 Use `--ai_provider` to force a specific backend (e.g., `--ai_provider=openai`).
+Provider aliases are supported:
+- `claude` maps to `anthropic`
+- `chatgpt` and `lmstudio` map to `openai`
+
 The default `--ai_provider=auto` selects the first configured provider.
 Set the model with `--ai_model` (or `OLLAMA_MODEL` for Ollama). You can also
 override local endpoints with `OLLAMA_HOST` or `OPENAI_BASE_URL` (alias:
@@ -40,6 +44,20 @@ override local endpoints with `OLLAMA_HOST` or `OPENAI_BASE_URL` (alias:
 your local model name.
 
 > Without a provider, z3ed still works but agent commands use manual plans.
+
+### Provider Matrix Smoke Test
+
+Use the local matrix script to validate all configured providers before rollout:
+
+```bash
+# Mock-only sanity
+scripts/dev/ai-provider-matrix-smoke.sh --providers mock
+
+# Full matrix (auto-skips providers without keys/endpoints)
+scripts/dev/ai-provider-matrix-smoke.sh \
+  --providers mock,ollama,gemini,claude,chatgpt,lmstudio \
+  --output QA/ai/provider-matrix.json
+```
 
 ---
 

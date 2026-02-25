@@ -98,6 +98,19 @@ cmake --build --preset mac-ai --target z3ed
 ./build/bin/z3ed --help | grep -i agent
 ```
 
+### Provider Rollout Gate
+
+Before enabling new model/provider defaults, run the provider matrix smoke script:
+
+```bash
+scripts/dev/ai-provider-matrix-smoke.sh \
+  --providers mock,ollama,gemini,claude,chatgpt,lmstudio \
+  --output QA/ai/provider-matrix.json
+```
+
+This gives a pass/fail/skip summary per provider and catches obvious auth or
+endpoint regressions early in local validation.
+
 ## Quick Start
 
 ### Example 1: Debug a Build Error

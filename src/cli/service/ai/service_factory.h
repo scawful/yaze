@@ -11,8 +11,9 @@ namespace yaze {
 namespace cli {
 
 struct AIServiceConfig {
-  // "auto" (try gemini→anthropic→openai→mock), "gemini", "anthropic",
-  // "openai", "ollama", or "mock".
+  // "auto" (try gemini→anthropic→openai→ollama→mock), "gemini",
+  // "anthropic", "openai", "ollama", or "mock".
+  // Aliases: "claude" => anthropic, "chatgpt"/"lmstudio" => openai.
   std::string provider = "auto";
   // Provider-specific model name.
   std::string model;

@@ -79,7 +79,7 @@ Prefer `z3ed debug ...` as the front door (Mesen2 is the default backend).
 | `--format json\|text` | Output format |
 | `--data-format hex\|ascii\|both` | Byte view for read commands |
 | `--verbose` | Detailed output |
-| `--ai_provider <name>` | AI provider for agent commands (ollama, gemini, openai, anthropic, mock) |
+| `--ai_provider <name>` | AI provider for agent commands (`ollama`, `gemini`, `openai`, `anthropic`, `mock`). Aliases: `claude`=>`anthropic`, `chatgpt`/`lmstudio`=>`openai` |
 | `--ai_model <name>` | Provider-specific model override |
 | `--openai_base_url <url>` | OpenAI-compatible base URL (LM Studio: `http://localhost:1234`) |
 | `--mesen-socket <path>` | Override Mesen2 socket path |
