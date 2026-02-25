@@ -1,9 +1,9 @@
-#+TITLE: Yaze 0.6.1 Test Checklist (Oracle + Editor UX)
+#+TITLE: Yaze 0.6.2 Test Checklist (Oracle + Editor UX)
 #+AUTHOR: codex
 #+DATE: 2026-02-24
 
 * Goal
-Ship a stable `0.6.1` candidate for:
+Ship a stable `0.6.2` candidate for:
 - dungeon editor UX updates (placement feedback, overlays, navigation)
 - overworld/tile16 UX updates (hover preview, jump/filter behavior)
 - Oracle safety tooling (`oracle-smoke-check`, `dungeon-oracle-preflight`)
@@ -19,7 +19,7 @@ Ship a stable `0.6.1` candidate for:
 * Session Bootstrap (5-10 min)
 - [ ] Create evidence directory:
 #+begin_src bash
-export QA_DIR="QA/$(date +%Y-%m-%d)-v0.6.1"
+export QA_DIR="QA/$(date +%Y-%m-%d)-v0.6.2"
 mkdir -p "$QA_DIR"/{logs,screenshots,notes}
 #+end_src
 - [ ] (Optional but recommended) run all automated gates in one command:
@@ -133,7 +133,7 @@ If structural smoke fails (ok=false in default mode), that IS a regression. Inve
 - [ ] Validate D3 prison sequence status (expected known blocker or fixed).
 - [ ] After any ROM authoring change, rerun Block A2 commands.
 
-* 0.6.1 Release Decision Gate
+* 0.6.2 Release Decision Gate
 ** Must-pass (hard gate)
 - [ ] Build passes.
 - [ ] Focused/unit + quick editor suites pass.
@@ -146,8 +146,8 @@ If structural smoke fails (ok=false in default mode), that IS a regression. Inve
 - [ ] Non-critical UI polish issues with filed follow-up tasks.
 
 ** Decision
-- [ ] GO for `0.6.1`
-- [ ] NO-GO for `0.6.1`
+- [ ] GO for `0.6.2`
+- [ ] NO-GO for `0.6.2`
 
 Rationale:
 - 
