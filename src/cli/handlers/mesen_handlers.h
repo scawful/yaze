@@ -196,6 +196,39 @@ class MesenGoalCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+class MesenStateVerifyCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "mesen-state-verify"; }
+  std::string GetDescription() const {
+    return "Verify a savestate matches current ROM hash and metadata";
+  }
+  std::string GetUsage() const override {
+    return "mesen-state-verify --state <path> --rom-file <path> [--meta "
+           "<path>] "
+           "[--scenario <id>]";
+  }
+  bool RequiresRom() const override { return false; }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class MesenStateRegenCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "mesen-state-regen"; }
+  std::string GetDescription() const {
+    return "Regenerate savestate freshness metadata for current ROM";
+  }
+  std::string GetUsage() const override {
+    return "mesen-state-regen --state <path> --rom-file <path> [--meta <path>] "
+           "[--scenario <id>]";
+  }
+  bool RequiresRom() const override { return false; }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 /**
  * @brief Factory function to create Mesen2 command handlers
  */

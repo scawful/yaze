@@ -1312,6 +1312,76 @@ class ToolSchemaRegistry {
          .requires_grpc = true,
          .related_tools = {"mesen-await", "mesen-breakpoint",
                            "mesen-control"}});
+
+    Register(
+        {.name = "mesen-state-verify",
+         .category = "mesen2",
+         .description =
+             "Verify savestate freshness against ROM hash and metadata",
+         .detailed_help =
+             "Loads a sidecar metadata JSON and validates that the savestate "
+             "file hash and ROM hash match the current files. Returns non-zero "
+             "if stale or mismatched.",
+         .arguments =
+             {{.name = "state",
+               .type = "string",
+               .description = "Savestate file path",
+               .required = true},
+              {.name = "rom-file",
+               .type = "string",
+               .description = "ROM file path to validate against",
+               .required = true},
+              {.name = "meta",
+               .type = "string",
+               .description =
+                   "Optional metadata path (default: <state>.meta.json)",
+               .required = false},
+              {.name = "scenario",
+               .type = "string",
+               .description = "Optional scenario ID expectation",
+               .required = false}},
+         .examples = {"z3ed mesen-state-verify --state=foo.state "
+                      "--rom-file=Roms/oos168x.sfc",
+                      "z3ed mesen-state-verify --state=foo.state "
+                      "--rom-file=Roms/oos168x.sfc --scenario=d6_room_88"},
+         .requires_rom = false,
+         .requires_grpc = false,
+         .related_tools = {"mesen-state-regen", "mesen-session",
+                           "mesen-goal"}});
+
+    Register(
+        {.name = "mesen-state-regen",
+         .category = "mesen2",
+         .description = "Regenerate savestate metadata for freshness checks",
+         .detailed_help =
+             "Writes a metadata sidecar (hashes + optional runtime info) for "
+             "a savestate file. Use with mesen-state-verify to pin fixtures to "
+             "a specific ROM hash.",
+         .arguments = {{.name = "state",
+                        .type = "string",
+                        .description = "Savestate file path",
+                        .required = true},
+                       {.name = "rom-file",
+                        .type = "string",
+                        .description = "ROM file path",
+                        .required = true},
+                       {.name = "meta",
+                        .type = "string",
+                        .description = "Optional output metadata path "
+                                       "(default: <state>.meta.json)",
+                        .required = false},
+                       {.name = "scenario",
+                        .type = "string",
+                        .description = "Optional scenario ID to store",
+                        .required = false}},
+         .examples = {"z3ed mesen-state-regen --state=foo.state "
+                      "--rom-file=Roms/oos168x.sfc",
+                      "z3ed mesen-state-regen --state=foo.state "
+                      "--rom-file=Roms/oos168x.sfc --scenario=d6_room_88"},
+         .requires_rom = false,
+         .requires_grpc = false,
+         .related_tools = {"mesen-state-verify", "mesen-session",
+                           "mesen-goal"}});
   }
 
   std::map<std::string, ToolSchema> schemas_;
