@@ -25,7 +25,7 @@ namespace agent {
  */
 struct ArgumentSchema {
   std::string name;
-  std::string type;         // "string", "number", "boolean", "enum"
+  std::string type;  // "string", "number", "boolean", "enum"
   std::string description;
   bool required = false;
   std::string default_value;
@@ -44,7 +44,8 @@ struct ArgumentSchema {
       json += ", \"enum\": [";
       for (size_t i = 0; i < enum_values.size(); ++i) {
         json += "\"" + enum_values[i] + "\"";
-        if (i < enum_values.size() - 1) json += ", ";
+        if (i < enum_values.size() - 1)
+          json += ", ";
       }
       json += "]";
     }
@@ -90,12 +91,14 @@ struct ToolSchema {
         json += ",\n        \"enum\": [";
         for (size_t j = 0; j < arg.enum_values.size(); ++j) {
           json += "\"" + arg.enum_values[j] + "\"";
-          if (j < arg.enum_values.size() - 1) json += ", ";
+          if (j < arg.enum_values.size() - 1)
+            json += ", ";
         }
         json += "]";
       }
       json += "\n      }";
-      if (i < arguments.size() - 1) json += ",";
+      if (i < arguments.size() - 1)
+        json += ",";
       json += "\n";
     }
 
@@ -106,7 +109,8 @@ struct ToolSchema {
     bool first = true;
     for (const auto& arg : arguments) {
       if (arg.required) {
-        if (!first) json += ", ";
+        if (!first)
+          json += ", ";
         json += "\"" + arg.name + "\"";
         first = false;
       }
@@ -115,16 +119,18 @@ struct ToolSchema {
     json += "  },\n";
 
     // Additional metadata
-    json += "  \"requires_rom\": " + std::string(requires_rom ? "true" : "false")
-         + ",\n";
-    json += "  \"requires_grpc\": " +
-            std::string(requires_grpc ? "true" : "false");
+    json +=
+        "  \"requires_rom\": " + std::string(requires_rom ? "true" : "false") +
+        ",\n";
+    json +=
+        "  \"requires_grpc\": " + std::string(requires_grpc ? "true" : "false");
 
     if (!examples.empty()) {
       json += ",\n  \"examples\": [\n";
       for (size_t i = 0; i < examples.size(); ++i) {
         json += "    \"" + examples[i] + "\"";
-        if (i < examples.size() - 1) json += ",";
+        if (i < examples.size() - 1)
+          json += ",";
         json += "\n";
       }
       json += "  ]";
@@ -134,7 +140,8 @@ struct ToolSchema {
       json += ",\n  \"related_tools\": [";
       for (size_t i = 0; i < related_tools.size(); ++i) {
         json += "\"" + related_tools[i] + "\"";
-        if (i < related_tools.size() - 1) json += ", ";
+        if (i < related_tools.size() - 1)
+          json += ", ";
       }
       json += "]";
     }
@@ -227,7 +234,8 @@ class ToolSchemaRegistry {
     std::string json = "[\n";
     bool first = true;
     for (const auto& [_, schema] : schemas_) {
-      if (!first) json += ",\n";
+      if (!first)
+        json += ",\n";
       json += schema.ToJson();
       first = false;
     }
@@ -273,8 +281,10 @@ class ToolSchemaRegistry {
         for (size_t i = 0; i < schema.arguments.size(); ++i) {
           const auto& arg = schema.arguments[i];
           prompt += arg.name;
-          if (arg.required) prompt += "*";
-          if (i < schema.arguments.size() - 1) prompt += ", ";
+          if (arg.required)
+            prompt += "*";
+          if (i < schema.arguments.size() - 1)
+            prompt += ", ";
         }
         prompt += "\n";
       }
@@ -332,27 +342,28 @@ class ToolSchemaRegistry {
               .related_tools = {"resource-search"}});
 
     // Dungeon tools
-    Register({.name = "dungeon-list-sprites",
-              .category = "dungeon",
-              .description = "List sprites in a dungeon room",
-              .detailed_help =
-                  "Lists all sprites in the room, including ID, resolved name, "
-                  "X/Y, subtype, and layer. Use --sprite-registry to load "
-                  "Oracle-of-Secrets custom sprite names.",
-              .arguments = {{.name = "room",
-                             .type = "number",
-                             .description = "Room ID (0-319)",
-                             .required = true},
-                            {.name = "sprite-registry",
-                             .type = "string",
-                             .description =
-                                 "Optional path to an Oracle sprite registry "
-                                 "JSON to resolve custom sprite names",
-                             .required = false}},
-              .examples = {"z3ed dungeon-list-sprites --room=0x77",
-                           "z3ed dungeon-list-sprites --room=0x77 "
-                           "--sprite-registry=oracle_sprite_registry.json"},
-              .related_tools = {"dungeon-describe-room", "dungeon-list-objects"}});
+    Register(
+        {.name = "dungeon-list-sprites",
+         .category = "dungeon",
+         .description = "List sprites in a dungeon room",
+         .detailed_help =
+             "Lists all sprites in the room, including ID, resolved name, "
+             "X/Y, subtype, and layer. Use --sprite-registry to load "
+             "Oracle-of-Secrets custom sprite names.",
+         .arguments = {{.name = "room",
+                        .type = "number",
+                        .description = "Room ID (0-319)",
+                        .required = true},
+                       {.name = "sprite-registry",
+                        .type = "string",
+                        .description =
+                            "Optional path to an Oracle sprite registry "
+                            "JSON to resolve custom sprite names",
+                        .required = false}},
+         .examples = {"z3ed dungeon-list-sprites --room=0x77",
+                      "z3ed dungeon-list-sprites --room=0x77 "
+                      "--sprite-registry=oracle_sprite_registry.json"},
+         .related_tools = {"dungeon-describe-room", "dungeon-list-objects"}});
 
     Register(
         {.name = "dungeon-describe-room",
@@ -368,17 +379,18 @@ class ToolSchemaRegistry {
          .examples = {"z3ed dungeon-describe-room --room=5"},
          .related_tools = {"dungeon-list-sprites", "dungeon-list-objects"}});
 
-    Register({.name = "dungeon-list-objects",
-              .category = "dungeon",
-              .description = "List tile objects in a dungeon room",
-              .detailed_help =
-                  "Lists all tile objects for a room (ID, X/Y, size, layer).",
-              .arguments = {{.name = "room",
-                             .type = "number",
-                             .description = "Room ID (0-319)",
-                             .required = true}},
-              .examples = {"z3ed dungeon-list-objects --room=0x77"},
-              .related_tools = {"dungeon-describe-room", "dungeon-list-sprites"}});
+    Register(
+        {.name = "dungeon-list-objects",
+         .category = "dungeon",
+         .description = "List tile objects in a dungeon room",
+         .detailed_help =
+             "Lists all tile objects for a room (ID, X/Y, size, layer).",
+         .arguments = {{.name = "room",
+                        .type = "number",
+                        .description = "Room ID (0-319)",
+                        .required = true}},
+         .examples = {"z3ed dungeon-list-objects --room=0x77"},
+         .related_tools = {"dungeon-describe-room", "dungeon-list-sprites"}});
 
     Register(
         {.name = "dungeon-list-custom-collision",
@@ -386,8 +398,10 @@ class ToolSchemaRegistry {
          .description = "List custom collision tiles for a dungeon room",
          .detailed_help =
              "Loads the ZScream-style custom collision map (64x64) for a room. "
-             "This is where Oracle-of-Secrets stores minecart tracks/stop tiles "
-             "(B0-BE, B7-BA) and switch tiles (D0-D3). By default, returns only "
+             "This is where Oracle-of-Secrets stores minecart tracks/stop "
+             "tiles "
+             "(B0-BE, B7-BA) and switch tiles (D0-D3). By default, returns "
+             "only "
              "nonzero entries unless you pass --all or --tiles.",
          .arguments =
              {{.name = "room",
@@ -421,35 +435,34 @@ class ToolSchemaRegistry {
              "Exports per-room custom collision tiles (64x64 map) to a JSON "
              "authoring format. Supports filtering by --room/--rooms/--all. "
              "Use --report to emit machine-readable diagnostics to disk.",
-         .arguments =
-             {{.name = "out",
-               .type = "string",
-               .description = "Output JSON path",
-               .required = true},
-              {.name = "room",
-               .type = "number",
-               .description = "Single room ID (hex)",
-               .required = false},
-              {.name = "rooms",
-              .type = "string",
-              .description = "Comma-separated room IDs (hex)",
-              .required = false},
-              {.name = "all",
-               .type = "boolean",
-               .description = "Export all dungeon rooms (0-319)",
-               .required = false},
-              {.name = "report",
-               .type = "string",
-               .description = "Optional JSON report path for automation",
-               .required = false}},
-         .examples = {
-             "z3ed dungeon-export-custom-collision-json --all "
-             "--out=custom_collision.json",
-             "z3ed dungeon-export-custom-collision-json --rooms=0x25,0x27 "
-             "--out=water_rooms_collision.json"},
+         .arguments = {{.name = "out",
+                        .type = "string",
+                        .description = "Output JSON path",
+                        .required = true},
+                       {.name = "room",
+                        .type = "number",
+                        .description = "Single room ID (hex)",
+                        .required = false},
+                       {.name = "rooms",
+                        .type = "string",
+                        .description = "Comma-separated room IDs (hex)",
+                        .required = false},
+                       {.name = "all",
+                        .type = "boolean",
+                        .description = "Export all dungeon rooms (0-319)",
+                        .required = false},
+                       {.name = "report",
+                        .type = "string",
+                        .description =
+                            "Optional JSON report path for automation",
+                        .required = false}},
+         .examples =
+             {"z3ed dungeon-export-custom-collision-json --all "
+              "--out=custom_collision.json",
+              "z3ed dungeon-export-custom-collision-json --rooms=0x25,0x27 "
+              "--out=water_rooms_collision.json"},
          .related_tools = {"dungeon-import-custom-collision-json",
-                           "dungeon-list-custom-collision",
-                           "dungeon-map"}});
+                           "dungeon-list-custom-collision", "dungeon-map"}});
 
     Register(
         {.name = "dungeon-import-custom-collision-json",
@@ -461,35 +474,34 @@ class ToolSchemaRegistry {
              "write support. Use --dry-run for validation-only and --report "
              "for machine-readable diagnostics. --replace-all requires "
              "--force unless running --dry-run.",
-         .arguments = {
-             {.name = "in",
-              .type = "string",
-              .description = "Input JSON path",
-              .required = true},
-             {.name = "replace-all",
-              .type = "boolean",
-              .description =
-                  "Clear custom collision for rooms not in the JSON file",
-              .required = false},
-             {.name = "force",
-              .type = "boolean",
-              .description =
-                  "Required with --replace-all in write mode (safety gate)",
-              .required = false},
-             {.name = "dry-run",
-              .type = "boolean",
-              .description = "Validate and summarize without writing ROM data",
-              .required = false},
-             {.name = "report",
-              .type = "string",
-              .description = "Optional JSON report path for automation",
-              .required = false}},
-         .examples = {
-             "z3ed dungeon-import-custom-collision-json "
-             "--in=custom_collision.json --dry-run "
-             "--report=custom_collision.report.json",
-             "z3ed dungeon-import-custom-collision-json "
-             "--in=custom_collision.json --replace-all --force"},
+         .arguments =
+             {{.name = "in",
+               .type = "string",
+               .description = "Input JSON path",
+               .required = true},
+              {.name = "replace-all",
+               .type = "boolean",
+               .description =
+                   "Clear custom collision for rooms not in the JSON file",
+               .required = false},
+              {.name = "force",
+               .type = "boolean",
+               .description =
+                   "Required with --replace-all in write mode (safety gate)",
+               .required = false},
+              {.name = "dry-run",
+               .type = "boolean",
+               .description = "Validate and summarize without writing ROM data",
+               .required = false},
+              {.name = "report",
+               .type = "string",
+               .description = "Optional JSON report path for automation",
+               .required = false}},
+         .examples = {"z3ed dungeon-import-custom-collision-json "
+                      "--in=custom_collision.json --dry-run "
+                      "--report=custom_collision.report.json",
+                      "z3ed dungeon-import-custom-collision-json "
+                      "--in=custom_collision.json --replace-all --force"},
          .related_tools = {"dungeon-export-custom-collision-json",
                            "dungeon-list-custom-collision",
                            "dungeon-minecart-audit"}});
@@ -502,34 +514,32 @@ class ToolSchemaRegistry {
              "Exports WaterFill zone data from the reserved ROM table to JSON. "
              "Supports filtering by --room/--rooms/--all. Use --report to "
              "emit machine-readable diagnostics to disk.",
-         .arguments =
-             {{.name = "out",
-               .type = "string",
-               .description = "Output JSON path",
-               .required = true},
-              {.name = "room",
-               .type = "number",
-               .description = "Single room ID (hex)",
-               .required = false},
-              {.name = "rooms",
-              .type = "string",
-              .description = "Comma-separated room IDs (hex)",
-              .required = false},
-              {.name = "all",
-               .type = "boolean",
-               .description = "Export all dungeon rooms (0-319)",
-               .required = false},
-              {.name = "report",
-               .type = "string",
-               .description = "Optional JSON report path for automation",
-               .required = false}},
-         .examples = {
-             "z3ed dungeon-export-water-fill-json --all "
-             "--out=water_fill_zones.json",
-             "z3ed dungeon-export-water-fill-json --rooms=0x25,0x27 "
-             "--out=d4_water_fill.json"},
-         .related_tools = {"dungeon-import-water-fill-json",
-                           "rom-doctor"}});
+         .arguments = {{.name = "out",
+                        .type = "string",
+                        .description = "Output JSON path",
+                        .required = true},
+                       {.name = "room",
+                        .type = "number",
+                        .description = "Single room ID (hex)",
+                        .required = false},
+                       {.name = "rooms",
+                        .type = "string",
+                        .description = "Comma-separated room IDs (hex)",
+                        .required = false},
+                       {.name = "all",
+                        .type = "boolean",
+                        .description = "Export all dungeon rooms (0-319)",
+                        .required = false},
+                       {.name = "report",
+                        .type = "string",
+                        .description =
+                            "Optional JSON report path for automation",
+                        .required = false}},
+         .examples = {"z3ed dungeon-export-water-fill-json --all "
+                      "--out=water_fill_zones.json",
+                      "z3ed dungeon-export-water-fill-json --rooms=0x25,0x27 "
+                      "--out=d4_water_fill.json"},
+         .related_tools = {"dungeon-import-water-fill-json", "rom-doctor"}});
 
     Register(
         {.name = "dungeon-import-water-fill-json",
@@ -541,29 +551,30 @@ class ToolSchemaRegistry {
              "when the reserved region is missing. Use --dry-run for "
              "validation-only and --strict-masks to fail when normalization "
              "would be required.",
-         .arguments = {
-             {.name = "in",
-              .type = "string",
-              .description = "Input JSON path",
-              .required = true},
-             {.name = "dry-run",
-              .type = "boolean",
-              .description = "Validate and summarize without writing ROM data",
-              .required = false},
-             {.name = "strict-masks",
-              .type = "boolean",
-              .description =
-                  "Fail if SRAM masks require normalization (fail-closed mode)",
-              .required = false},
-             {.name = "report",
-              .type = "string",
-              .description = "Optional JSON report path for automation",
-              .required = false}},
-         .examples = {
-             "z3ed dungeon-import-water-fill-json --in=water_fill_zones.json "
-             "--dry-run --report=water_fill.report.json",
-             "z3ed dungeon-import-water-fill-json --in=water_fill_zones.json "
-             "--strict-masks"},
+         .arguments = {{.name = "in",
+                        .type = "string",
+                        .description = "Input JSON path",
+                        .required = true},
+                       {.name = "dry-run",
+                        .type = "boolean",
+                        .description =
+                            "Validate and summarize without writing ROM data",
+                        .required = false},
+                       {.name = "strict-masks",
+                        .type = "boolean",
+                        .description = "Fail if SRAM masks require "
+                                       "normalization (fail-closed mode)",
+                        .required = false},
+                       {.name = "report",
+                        .type = "string",
+                        .description =
+                            "Optional JSON report path for automation",
+                        .required = false}},
+         .examples =
+             {"z3ed dungeon-import-water-fill-json --in=water_fill_zones.json "
+              "--dry-run --report=water_fill.report.json",
+              "z3ed dungeon-import-water-fill-json --in=water_fill_zones.json "
+              "--strict-masks"},
          .related_tools = {"dungeon-export-water-fill-json", "rom-doctor"}});
 
     Register(
@@ -577,7 +588,8 @@ class ToolSchemaRegistry {
          .arguments =
              {{.name = "room",
                .type = "number",
-               .description = "Room ID (0-319). Mutually exclusive with rooms/all",
+               .description =
+                   "Room ID (0-319). Mutually exclusive with rooms/all",
                .required = false},
               {.name = "rooms",
                .type = "string",
@@ -613,21 +625,20 @@ class ToolSchemaRegistry {
                .required = false}},
          .examples = {"z3ed dungeon-minecart-audit --room=0x77 --only-issues",
                       "z3ed dungeon-minecart-audit --rooms=0x77,0xA8,0xB8"},
-         .related_tools = {"dungeon-list-sprites",
-                           "dungeon-list-objects",
-                           "dungeon-list-custom-collision",
-                           "dungeon-map"}});
+         .related_tools = {"dungeon-list-sprites", "dungeon-list-objects",
+                           "dungeon-list-custom-collision", "dungeon-map"}});
 
     // Overworld tools
-    Register({.name = "overworld-describe-map",
-              .category = "overworld",
-              .description = "Get detailed description of an overworld map",
-              .arguments = {{.name = "map",
-                             .type = "number",
-                             .description = "Map ID (0-159)",
-                             .required = true}},
-              .examples = {"z3ed overworld-describe-map --map=0"},
-              .related_tools = {"overworld-list-sprites", "overworld-find-tile"}});
+    Register(
+        {.name = "overworld-describe-map",
+         .category = "overworld",
+         .description = "Get detailed description of an overworld map",
+         .arguments = {{.name = "map",
+                        .type = "number",
+                        .description = "Map ID (0-159)",
+                        .required = true}},
+         .examples = {"z3ed overworld-describe-map --map=0"},
+         .related_tools = {"overworld-list-sprites", "overworld-find-tile"}});
 
     // Filesystem tools
     Register({.name = "filesystem-list",
@@ -735,7 +746,7 @@ class ToolSchemaRegistry {
                            "z3ed visual-find-similar-tiles --tile_id=10 "
                            "--sheet=5 --threshold=90"},
               .related_tools = {"visual-analyze-spritesheet",
-                               "visual-tile-histogram"}});
+                                "visual-tile-histogram"}});
 
     Register({.name = "visual-analyze-spritesheet",
               .category = "visual",
@@ -746,7 +757,8 @@ class ToolSchemaRegistry {
                   "the location and size of each free region.",
               .arguments = {{.name = "sheet",
                              .type = "number",
-                             .description = "Specific sheet to analyze (all if omitted)",
+                             .description =
+                                 "Specific sheet to analyze (all if omitted)",
                              .required = false},
                             {.name = "tile_size",
                              .type = "number",
@@ -776,82 +788,88 @@ class ToolSchemaRegistry {
                            "z3ed visual-palette-usage --type=dungeon"},
               .related_tools = {"visual-tile-histogram"}});
 
-    Register({.name = "visual-tile-histogram",
-              .category = "visual",
-              .description = "Generate frequency histogram of tile usage",
-              .detailed_help =
-                  "Counts the frequency of each tile ID used across tilemaps "
-                  "to identify commonly and rarely used tiles. Useful for "
-                  "understanding tile distribution and finding candidates "
-                  "for replacement.",
-              .arguments = {{.name = "type",
-                             .type = "string",
-                             .description = "Map type to analyze",
-                             .required = false,
-                             .default_value = "overworld",
-                             .enum_values = {"overworld", "dungeon"}},
-                            {.name = "top",
-                             .type = "number",
-                             .description = "Number of top entries to return",
-                             .required = false,
-                             .default_value = "20"}},
-              .examples = {"z3ed visual-tile-histogram",
-                           "z3ed visual-tile-histogram --type=dungeon --top=50"},
-              .related_tools = {"visual-palette-usage",
-                               "visual-find-similar-tiles"}});
+    Register(
+        {.name = "visual-tile-histogram",
+         .category = "visual",
+         .description = "Generate frequency histogram of tile usage",
+         .detailed_help =
+             "Counts the frequency of each tile ID used across tilemaps "
+             "to identify commonly and rarely used tiles. Useful for "
+             "understanding tile distribution and finding candidates "
+             "for replacement.",
+         .arguments = {{.name = "type",
+                        .type = "string",
+                        .description = "Map type to analyze",
+                        .required = false,
+                        .default_value = "overworld",
+                        .enum_values = {"overworld", "dungeon"}},
+                       {.name = "top",
+                        .type = "number",
+                        .description = "Number of top entries to return",
+                        .required = false,
+                        .default_value = "20"}},
+         .examples = {"z3ed visual-tile-histogram",
+                      "z3ed visual-tile-histogram --type=dungeon --top=50"},
+         .related_tools = {"visual-palette-usage",
+                           "visual-find-similar-tiles"}});
 
     // =========================================================================
     // Code Generation Tools
     // =========================================================================
 
-    Register({.name = "codegen-asm-hook",
-              .category = "codegen",
-              .description = "Generate ASM hook at ROM address",
-              .detailed_help =
-                  "Generates Asar-compatible ASM code to hook into the ROM at "
-                  "a specified address using JSL. Validates the address is safe "
-                  "and not already hooked. Includes known safe hook locations.",
-              .arguments = {{.name = "address",
-                             .type = "hex",
-                             .description = "ROM address to hook (hex)",
-                             .required = true},
-                            {.name = "label",
-                             .type = "string",
-                             .description = "Label name for the hook",
-                             .required = true},
-                            {.name = "nop-fill",
-                             .type = "number",
-                             .description = "Number of NOP bytes to add",
-                             .required = false,
-                             .default_value = "1"}},
-              .examples = {"z3ed codegen-asm-hook --address=0x02AB08 --label=MyHook",
-                           "z3ed codegen-asm-hook --address=0x00893D --label=ForceBlankHook --nop-fill=2"},
-              .requires_rom = true,
-              .related_tools = {"codegen-freespace-patch", "memory-analyze"}});
+    Register(
+        {.name = "codegen-asm-hook",
+         .category = "codegen",
+         .description = "Generate ASM hook at ROM address",
+         .detailed_help =
+             "Generates Asar-compatible ASM code to hook into the ROM at "
+             "a specified address using JSL. Validates the address is safe "
+             "and not already hooked. Includes known safe hook locations.",
+         .arguments = {{.name = "address",
+                        .type = "hex",
+                        .description = "ROM address to hook (hex)",
+                        .required = true},
+                       {.name = "label",
+                        .type = "string",
+                        .description = "Label name for the hook",
+                        .required = true},
+                       {.name = "nop-fill",
+                        .type = "number",
+                        .description = "Number of NOP bytes to add",
+                        .required = false,
+                        .default_value = "1"}},
+         .examples = {"z3ed codegen-asm-hook --address=0x02AB08 --label=MyHook",
+                      "z3ed codegen-asm-hook --address=0x00893D "
+                      "--label=ForceBlankHook --nop-fill=2"},
+         .requires_rom = true,
+         .related_tools = {"codegen-freespace-patch", "memory-analyze"}});
 
-    Register({.name = "codegen-freespace-patch",
-              .category = "codegen",
-              .description = "Generate patch using detected free regions",
-              .detailed_help =
-                  "Detects available freespace in the ROM (regions with >80% "
-                  "0x00/0xFF bytes) and generates a patch to allocate space "
-                  "for custom code. Returns available regions and generated ASM.",
-              .arguments = {{.name = "label",
-                             .type = "string",
-                             .description = "Label for the code block",
-                             .required = true},
-                            {.name = "size",
-                             .type = "hex",
-                             .description = "Size in bytes needed (hex)",
-                             .required = true},
-                            {.name = "prefer-bank",
-                             .type = "hex",
-                             .description = "Preferred bank number (hex)",
-                             .required = false}},
-              .examples = {"z3ed codegen-freespace-patch --label=MyCode --size=0x100",
-                           "z3ed codegen-freespace-patch --label=CustomRoutine --size=0x200 --prefer-bank=0x3F"},
-              .requires_rom = true,
-              .related_tools = {"codegen-asm-hook", "memory-regions"}});
+    Register(
+        {.name = "codegen-freespace-patch",
+         .category = "codegen",
+         .description = "Generate patch using detected free regions",
+         .detailed_help =
+             "Detects available freespace in the ROM (regions with >80% "
+             "0x00/0xFF bytes) and generates a patch to allocate space "
+             "for custom code. Returns available regions and generated ASM.",
+         .arguments = {{.name = "label",
+                        .type = "string",
+                        .description = "Label for the code block",
+                        .required = true},
+                       {.name = "size",
+                        .type = "hex",
+                        .description = "Size in bytes needed (hex)",
+                        .required = true},
+                       {.name = "prefer-bank",
+                        .type = "hex",
+                        .description = "Preferred bank number (hex)",
+                        .required = false}},
+         .examples =
+             {"z3ed codegen-freespace-patch --label=MyCode --size=0x100",
+              "z3ed codegen-freespace-patch --label=CustomRoutine --size=0x200 "
+              "--prefer-bank=0x3F"},
+         .requires_rom = true,
+         .related_tools = {"codegen-asm-hook", "memory-regions"}});
 
     Register({.name = "codegen-sprite-template",
               .category = "codegen",
@@ -873,34 +891,37 @@ class ToolSchemaRegistry {
                              .description = "Main loop ASM code",
                              .required = false}},
               .examples = {"z3ed codegen-sprite-template --name=MySprite",
-                           "z3ed codegen-sprite-template --name=CustomChest --init-code=\"LDA #$42 : STA $0DC0,X\""},
+                           "z3ed codegen-sprite-template --name=CustomChest "
+                           "--init-code=\"LDA #$42 : STA $0DC0,X\""},
               .requires_rom = false,
               .related_tools = {"codegen-event-handler"}});
 
-    Register({.name = "codegen-event-handler",
-              .category = "codegen",
-              .description = "Generate event handler code",
-              .detailed_help =
-                  "Generates ASM event handler code for NMI, IRQ, or Reset "
-                  "handlers. Includes proper state preservation and known "
-                  "hook addresses for each event type.",
-              .arguments = {{.name = "type",
-                             .type = "string",
-                             .description = "Event type",
-                             .required = true,
-                             .enum_values = {"nmi", "irq", "reset"}},
-                            {.name = "label",
-                             .type = "string",
-                             .description = "Handler label name",
-                             .required = true},
-                            {.name = "custom-code",
-                             .type = "string",
-                             .description = "Custom ASM code",
-                             .required = false}},
-              .examples = {"z3ed codegen-event-handler --type=nmi --label=MyVBlank",
-                           "z3ed codegen-event-handler --type=nmi --label=MyHandler --custom-code=\"LDA #$80 : STA $2100\""},
-              .requires_rom = false,
-              .related_tools = {"codegen-asm-hook", "codegen-sprite-template"}});
+    Register(
+        {.name = "codegen-event-handler",
+         .category = "codegen",
+         .description = "Generate event handler code",
+         .detailed_help =
+             "Generates ASM event handler code for NMI, IRQ, or Reset "
+             "handlers. Includes proper state preservation and known "
+             "hook addresses for each event type.",
+         .arguments = {{.name = "type",
+                        .type = "string",
+                        .description = "Event type",
+                        .required = true,
+                        .enum_values = {"nmi", "irq", "reset"}},
+                       {.name = "label",
+                        .type = "string",
+                        .description = "Handler label name",
+                        .required = true},
+                       {.name = "custom-code",
+                        .type = "string",
+                        .description = "Custom ASM code",
+                        .required = false}},
+         .examples = {"z3ed codegen-event-handler --type=nmi --label=MyVBlank",
+                      "z3ed codegen-event-handler --type=nmi --label=MyHandler "
+                      "--custom-code=\"LDA #$80 : STA $2100\""},
+         .requires_rom = false,
+         .related_tools = {"codegen-asm-hook", "codegen-sprite-template"}});
 
     // =========================================================================
     // Project Management Tools
@@ -934,9 +955,11 @@ class ToolSchemaRegistry {
                              .description = "Optional description",
                              .required = false}},
               .examples = {"z3ed project-snapshot --name=before-edit",
-                           "z3ed project-snapshot --name=dungeon-complete --description=\"Finished dungeon 1\""},
+                           "z3ed project-snapshot --name=dungeon-complete "
+                           "--description=\"Finished dungeon 1\""},
               .requires_rom = true,
-              .related_tools = {"project-status", "project-restore", "project-diff"}});
+              .related_tools = {"project-status", "project-restore",
+                                "project-diff"}});
 
     Register({.name = "project-restore",
               .category = "project",
@@ -953,24 +976,25 @@ class ToolSchemaRegistry {
               .requires_rom = true,
               .related_tools = {"project-snapshot", "project-status"}});
 
-    Register({.name = "project-export",
-              .category = "project",
-              .description = "Export project as portable archive",
-              .detailed_help =
-                  "Exports the project metadata and all snapshots as a "
-                  "portable archive file. Optionally includes the base ROM.",
-              .arguments = {{.name = "path",
-                             .type = "string",
-                             .description = "Output file path",
-                             .required = true},
-                            {.name = "include-rom",
-                             .type = "flag",
-                             .description = "Include base ROM in export",
-                             .required = false}},
-              .examples = {"z3ed project-export --path=myproject.tar.gz",
-                           "z3ed project-export --path=backup.tar.gz --include-rom"},
-              .requires_rom = true,
-              .related_tools = {"project-import"}});
+    Register(
+        {.name = "project-export",
+         .category = "project",
+         .description = "Export project as portable archive",
+         .detailed_help =
+             "Exports the project metadata and all snapshots as a "
+             "portable archive file. Optionally includes the base ROM.",
+         .arguments = {{.name = "path",
+                        .type = "string",
+                        .description = "Output file path",
+                        .required = true},
+                       {.name = "include-rom",
+                        .type = "flag",
+                        .description = "Include base ROM in export",
+                        .required = false}},
+         .examples = {"z3ed project-export --path=myproject.tar.gz",
+                      "z3ed project-export --path=backup.tar.gz --include-rom"},
+         .requires_rom = true,
+         .related_tools = {"project-import"}});
 
     Register({.name = "project-import",
               .category = "project",
@@ -986,23 +1010,24 @@ class ToolSchemaRegistry {
               .requires_rom = false,
               .related_tools = {"project-export"}});
 
-    Register({.name = "project-diff",
-              .category = "project",
-              .description = "Compare two project states",
-              .detailed_help =
-                  "Compares two snapshots and shows the differences in edits "
-                  "between them. Useful for reviewing changes between versions.",
-              .arguments = {{.name = "snapshot1",
-                             .type = "string",
-                             .description = "First snapshot name",
-                             .required = true},
-                            {.name = "snapshot2",
-                             .type = "string",
-                             .description = "Second snapshot name",
-                             .required = true}},
-              .examples = {"z3ed project-diff --snapshot1=v1 --snapshot2=v2"},
-              .requires_rom = true,
-              .related_tools = {"project-snapshot", "rom-diff"}});
+    Register(
+        {.name = "project-diff",
+         .category = "project",
+         .description = "Compare two project states",
+         .detailed_help =
+             "Compares two snapshots and shows the differences in edits "
+             "between them. Useful for reviewing changes between versions.",
+         .arguments = {{.name = "snapshot1",
+                        .type = "string",
+                        .description = "First snapshot name",
+                        .required = true},
+                       {.name = "snapshot2",
+                        .type = "string",
+                        .description = "Second snapshot name",
+                        .required = true}},
+         .examples = {"z3ed project-diff --snapshot1=v1 --snapshot2=v2"},
+         .requires_rom = true,
+         .related_tools = {"project-snapshot", "rom-diff"}});
 
     // =========================================================================
     // Mesen2 Debugging Tools (Live Emulator Integration)
@@ -1051,45 +1076,47 @@ class ToolSchemaRegistry {
               .requires_grpc = true,
               .related_tools = {"mesen-gamestate", "mesen-disasm"}});
 
-    Register({.name = "mesen-memory-read",
-              .category = "mesen2",
-              .description = "Read memory from Mesen2 emulator",
-              .detailed_help =
-                  "Reads a block of memory from the running Mesen2 instance. "
-                  "Returns hex dump of the specified region. Useful for "
-                  "inspecting live game state.",
-              .arguments = {{.name = "address",
-                             .type = "hex",
-                             .description = "Start address (hex)",
-                             .required = true},
-                            {.name = "length",
-                             .type = "number",
-                             .description = "Number of bytes to read",
-                             .required = false,
-                             .default_value = "16"}},
-              .examples = {"z3ed mesen-memory-read --address=0x7E0020 --length=16"},
-              .requires_rom = false,
-              .requires_grpc = true,
-              .related_tools = {"mesen-memory-write", "memory-analyze"}});
+    Register(
+        {.name = "mesen-memory-read",
+         .category = "mesen2",
+         .description = "Read memory from Mesen2 emulator",
+         .detailed_help =
+             "Reads a block of memory from the running Mesen2 instance. "
+             "Returns hex dump of the specified region. Useful for "
+             "inspecting live game state.",
+         .arguments = {{.name = "address",
+                        .type = "hex",
+                        .description = "Start address (hex)",
+                        .required = true},
+                       {.name = "length",
+                        .type = "number",
+                        .description = "Number of bytes to read",
+                        .required = false,
+                        .default_value = "16"}},
+         .examples = {"z3ed mesen-memory-read --address=0x7E0020 --length=16"},
+         .requires_rom = false,
+         .requires_grpc = true,
+         .related_tools = {"mesen-memory-write", "memory-analyze"}});
 
-    Register({.name = "mesen-memory-write",
-              .category = "mesen2",
-              .description = "Write memory in Mesen2 emulator",
-              .detailed_help =
-                  "Writes bytes to memory in the running Mesen2 instance. "
-                  "Useful for testing ROM patches or modifying game state.",
-              .arguments = {{.name = "address",
-                             .type = "hex",
-                             .description = "Target address (hex)",
-                             .required = true},
-                            {.name = "data",
-                             .type = "string",
-                             .description = "Hex bytes to write",
-                             .required = true}},
-              .examples = {"z3ed mesen-memory-write --address=0x7EF36D --data=A0"},
-              .requires_rom = false,
-              .requires_grpc = true,
-              .related_tools = {"mesen-memory-read"}});
+    Register(
+        {.name = "mesen-memory-write",
+         .category = "mesen2",
+         .description = "Write memory in Mesen2 emulator",
+         .detailed_help =
+             "Writes bytes to memory in the running Mesen2 instance. "
+             "Useful for testing ROM patches or modifying game state.",
+         .arguments = {{.name = "address",
+                        .type = "hex",
+                        .description = "Target address (hex)",
+                        .required = true},
+                       {.name = "data",
+                        .type = "string",
+                        .description = "Hex bytes to write",
+                        .required = true}},
+         .examples = {"z3ed mesen-memory-write --address=0x7EF36D --data=A0"},
+         .requires_rom = false,
+         .requires_grpc = true,
+         .related_tools = {"mesen-memory-read"}});
 
     Register({.name = "mesen-disasm",
               .category = "mesen2",
@@ -1129,32 +1156,33 @@ class ToolSchemaRegistry {
               .requires_grpc = true,
               .related_tools = {"mesen-disasm", "mesen-cpu"}});
 
-    Register({.name = "mesen-breakpoint",
-              .category = "mesen2",
-              .description = "Manage breakpoints in Mesen2",
-              .detailed_help =
-                  "Add, remove, or list breakpoints in the running Mesen2 "
-                  "instance. Supports execution, read, and write breakpoints.",
-              .arguments = {{.name = "action",
-                             .type = "string",
-                             .description = "Breakpoint action",
-                             .required = true,
-                             .enum_values = {"add", "remove", "clear", "list"}},
-                            {.name = "address",
-                             .type = "hex",
-                             .description = "Address for add/remove",
-                             .required = false},
-                            {.name = "type",
-                             .type = "string",
-                             .description = "Breakpoint type",
-                             .required = false,
-                             .default_value = "exec",
-                             .enum_values = {"exec", "read", "write", "rw"}}},
-              .examples = {"z3ed mesen-breakpoint --action=add --address=0x008000",
-                           "z3ed mesen-breakpoint --action=clear"},
-              .requires_rom = false,
-              .requires_grpc = true,
-              .related_tools = {"mesen-cpu", "mesen-trace"}});
+    Register(
+        {.name = "mesen-breakpoint",
+         .category = "mesen2",
+         .description = "Manage breakpoints in Mesen2",
+         .detailed_help =
+             "Add, remove, or list breakpoints in the running Mesen2 "
+             "instance. Supports execution, read, and write breakpoints.",
+         .arguments = {{.name = "action",
+                        .type = "string",
+                        .description = "Breakpoint action",
+                        .required = true,
+                        .enum_values = {"add", "remove", "clear", "list"}},
+                       {.name = "address",
+                        .type = "hex",
+                        .description = "Address for add/remove",
+                        .required = false},
+                       {.name = "type",
+                        .type = "string",
+                        .description = "Breakpoint type",
+                        .required = false,
+                        .default_value = "exec",
+                        .enum_values = {"exec", "read", "write", "rw"}}},
+         .examples = {"z3ed mesen-breakpoint --action=add --address=0x008000",
+                      "z3ed mesen-breakpoint --action=clear"},
+         .requires_rom = false,
+         .requires_grpc = true,
+         .related_tools = {"mesen-cpu", "mesen-trace"}});
 
     Register({.name = "mesen-control",
               .category = "mesen2",
@@ -1166,12 +1194,102 @@ class ToolSchemaRegistry {
                              .type = "string",
                              .description = "Control action",
                              .required = true,
-                             .enum_values = {"pause", "resume", "step", "frame", "reset"}}},
+                             .enum_values = {"pause", "resume", "step", "frame",
+                                             "reset"}}},
               .examples = {"z3ed mesen-control --action=pause",
                            "z3ed mesen-control --action=frame"},
               .requires_rom = false,
               .requires_grpc = true,
               .related_tools = {"mesen-cpu", "mesen-gamestate"}});
+
+    Register(
+        {.name = "mesen-session",
+         .category = "mesen2",
+         .description = "Read tracked autonomous emulator session state",
+         .detailed_help =
+             "Returns the command-side session snapshot used for deterministic "
+             "automation: connection state, run/pause state, frame, last PC, "
+             "tracked breakpoints, and last action.",
+         .arguments = {},
+         .examples = {"z3ed mesen-session"},
+         .requires_rom = false,
+         .requires_grpc = true,
+         .related_tools = {"mesen-await", "mesen-goal", "mesen-control"}});
+
+    Register(
+        {.name = "mesen-await",
+         .category = "mesen2",
+         .description = "Block until frame/pc/breakpoint condition is met",
+         .detailed_help =
+             "Polling wait primitive for deterministic automation. Waits until "
+             "a frame delta is reached, CPU PC matches an address, or a "
+             "tracked "
+             "breakpoint ID is hit.",
+         .arguments = {{.name = "type",
+                        .type = "string",
+                        .description = "Await condition type",
+                        .required = true,
+                        .enum_values = {"frame", "pc", "breakpoint"}},
+                       {.name = "count",
+                        .type = "number",
+                        .description = "Frame delta when --type=frame",
+                        .required = false},
+                       {.name = "address",
+                        .type = "hex",
+                        .description = "Target PC when --type=pc",
+                        .required = false},
+                       {.name = "id",
+                        .type = "number",
+                        .description = "Breakpoint ID when --type=breakpoint",
+                        .required = false},
+                       {.name = "timeout-ms",
+                        .type = "number",
+                        .description = "Timeout in milliseconds",
+                        .required = false,
+                        .default_value = "2000"},
+                       {.name = "poll-ms",
+                        .type = "number",
+                        .description = "Polling interval in milliseconds",
+                        .required = false,
+                        .default_value = "25"}},
+         .examples = {"z3ed mesen-await --type=frame --count=60",
+                      "z3ed mesen-await --type=pc --address=0x028000"},
+         .requires_rom = false,
+         .requires_grpc = true,
+         .related_tools = {"mesen-breakpoint", "mesen-goal", "mesen-session"}});
+
+    Register(
+        {.name = "mesen-goal",
+         .category = "mesen2",
+         .description = "Execute deterministic emulator control macros",
+         .detailed_help =
+             "Runs atomic multi-step workflows for debugging. Current goal: "
+             "break-at (pause, add breakpoint, resume, wait for hit, pause, "
+             "cleanup).",
+         .arguments = {{.name = "goal",
+                        .type = "string",
+                        .description = "Goal macro name",
+                        .required = true,
+                        .enum_values = {"break-at"}},
+                       {.name = "address",
+                        .type = "hex",
+                        .description = "Target PC for break-at",
+                        .required = false},
+                       {.name = "timeout-ms",
+                        .type = "number",
+                        .description = "Timeout in milliseconds",
+                        .required = false,
+                        .default_value = "2000"},
+                       {.name = "poll-ms",
+                        .type = "number",
+                        .description = "Polling interval in milliseconds",
+                        .required = false,
+                        .default_value = "25"}},
+         .examples = {"z3ed mesen-goal --goal=break-at --address=0x008000"},
+         .requires_rom = false,
+         .requires_grpc = true,
+         .related_tools = {"mesen-await", "mesen-breakpoint",
+                           "mesen-control"}});
   }
 
   std::map<std::string, ToolSchema> schemas_;

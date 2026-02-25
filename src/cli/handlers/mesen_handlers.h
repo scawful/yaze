@@ -64,7 +64,8 @@ class MesenMemoryReadCommandHandler : public resources::CommandHandler {
     return "Read memory from Mesen2 emulator";
   }
   std::string GetUsage() const override {
-    return "mesen-memory-read --address <hex> [--length <n>] [--format <json|text>]";
+    return "mesen-memory-read --address <hex> [--length <n>] [--format "
+           "<json|text>]";
   }
   bool RequiresRom() const override { return false; }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
@@ -79,7 +80,8 @@ class MesenMemoryWriteCommandHandler : public resources::CommandHandler {
     return "Write memory in Mesen2 emulator";
   }
   std::string GetUsage() const override {
-    return "mesen-memory-write --address <hex> --data <hexbytes> [--format <json|text>]";
+    return "mesen-memory-write --address <hex> --data <hexbytes> [--format "
+           "<json|text>]";
   }
   bool RequiresRom() const override { return false; }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
@@ -120,11 +122,10 @@ class MesenTraceCommandHandler : public resources::CommandHandler {
 class MesenBreakpointCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "mesen-breakpoint"; }
-  std::string GetDescription() const {
-    return "Manage breakpoints in Mesen2";
-  }
+  std::string GetDescription() const { return "Manage breakpoints in Mesen2"; }
   std::string GetUsage() const override {
-    return "mesen-breakpoint --action <add|remove|clear|list> [--address <hex>] [--id <n>] [--type <exec|read|write|rw>]";
+    return "mesen-breakpoint --action <add|remove|clear|list> [--address "
+           "<hex>] [--id <n>] [--type <exec|read|write|rw>]";
   }
   bool RequiresRom() const override { return false; }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
@@ -140,6 +141,51 @@ class MesenControlCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const override {
     return "mesen-control --action <pause|resume|step|frame|reset>";
+  }
+  bool RequiresRom() const override { return false; }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class MesenSessionCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "mesen-session"; }
+  std::string GetDescription() const {
+    return "Get tracked autonomous control session state";
+  }
+  std::string GetUsage() const override { return "mesen-session"; }
+  bool RequiresRom() const override { return false; }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class MesenAwaitCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "mesen-await"; }
+  std::string GetDescription() const {
+    return "Block until frame/pc/breakpoint condition is met";
+  }
+  std::string GetUsage() const override {
+    return "mesen-await --type <frame|pc|breakpoint> [--count <n>] [--address "
+           "<hex>] [--id <n>] [--timeout-ms <n>] [--poll-ms <n>]";
+  }
+  bool RequiresRom() const override { return false; }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class MesenGoalCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "mesen-goal"; }
+  std::string GetDescription() const {
+    return "Execute atomic goal macros for deterministic debugging";
+  }
+  std::string GetUsage() const override {
+    return "mesen-goal --goal break-at --address <hex> [--timeout-ms <n>] "
+           "[--poll-ms <n>]";
   }
   bool RequiresRom() const override { return false; }
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
