@@ -100,7 +100,6 @@ set_target_properties(yaze_cli_core PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(yaze_cli_core PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/inc
-  ${CMAKE_SOURCE_DIR}/src/lib
   ${CMAKE_BINARY_DIR}/gens
   ${CMAKE_SOURCE_DIR}/ext/miniz
 )

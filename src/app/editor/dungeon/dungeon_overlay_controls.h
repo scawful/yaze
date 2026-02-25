@@ -18,6 +18,7 @@ enum class DungeonOverlayControlId {
   kMinecartPathing,
   kTrackGaps,
   kTrackRoutes,
+  kCustomObjects,
 };
 
 struct DungeonOverlayControlSpec {
@@ -25,7 +26,7 @@ struct DungeonOverlayControlSpec {
   const char* label;
 };
 
-const std::array<DungeonOverlayControlSpec, 10>&
+const std::array<DungeonOverlayControlSpec, 11>&
 GetDungeonOverlayControlSpecs();
 
 bool GetDungeonOverlayControlEnabled(const DungeonCanvasViewer& viewer,

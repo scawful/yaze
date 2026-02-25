@@ -175,6 +175,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_bundle_path_test.cc
+    unit/util/lru_cache_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc
@@ -233,6 +234,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/toast_dedup_test.cc
+    unit/editor/tile_painting_manager_test.cc
+    unit/editor/canvas_navigation_manager_test.cc
+    unit/editor/map_refresh_coordinator_test.cc
     unit/core/asar_compiler_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
@@ -375,6 +379,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/project_manager_validator_test.cc
+    unit/editor/tile_painting_manager_test.cc
+    unit/editor/canvas_navigation_manager_test.cc
+    unit/editor/map_refresh_coordinator_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc

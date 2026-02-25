@@ -79,13 +79,13 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
     auto room_size = zelda3::CalculateRoomSize(rom_, i);
     // rooms[i].LoadObjects(); // DEFERRED: Load on demand
 
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette][0];
+    auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette()][0];
     auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
     if (palette_id.status() == absl::OkStatus()) {
       int p_id = palette_id.value() / 180;
       auto color = dungeon_man_pal_group[p_id][3];
       room_size_results.emplace_back(i, room_size);
-      room_palette_results.emplace_back(rooms[i].palette, color.rgb());
+      room_palette_results.emplace_back(rooms[i].palette(), color.rgb());
     }
   }
 
@@ -135,7 +135,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
         // rooms[i].LoadObjects();
 
         // Process palette
-        auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette][0];
+        auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette()][0];
         auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
         if (palette_id.status() == absl::OkStatus()) {
           int p_id = palette_id.value() / 180;
@@ -145,7 +145,7 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
           {
             std::lock_guard<std::mutex> lock(results_mutex);
             room_size_results.emplace_back(i, room_size);
-            room_palette_results.emplace_back(rooms[i].palette, color.rgb());
+            room_palette_results.emplace_back(rooms[i].palette(), color.rgb());
           }
         }
       }
@@ -251,7 +251,7 @@ absl::Status DungeonRoomLoader::LoadAndRenderRoomGraphics(zelda3::Room& room) {
   }
 
   // Load room graphics with proper blockset
-  room.LoadRoomGraphics(room.blockset);
+  room.LoadRoomGraphics(room.blockset());
 
   // Render the room graphics to the graphics arena
   room.RenderRoomGraphics();

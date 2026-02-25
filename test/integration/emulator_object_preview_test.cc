@@ -285,38 +285,10 @@ TEST_F(EmulatorObjectPreviewTest, ObjectHandlerTableLookup) {
   printf("[TEST] Handler 0x200 = $%04X\n", handler_200);
 }
 
-// DISABLED: CPU execution from manually-set PC doesn't work as expected.
+// NOTE: CPU execution from manually-set PC doesn't work as expected.
 // After Init(), the emulator's internal state causes RunOpcode() to
 // jump to the reset vector ($8000) instead of executing from the set PC.
-// This documents a limitation in using the emulator for isolated code execution.
-TEST_F(EmulatorObjectPreviewTest, DISABLED_CpuCanExecuteInstructions) {
-  auto& cpu = snes_->cpu();
-
-  // Write a NOP (EA) instruction to WRAM at a known location
-  snes_->Write(0x7E1000, 0xEA);  // NOP
-  snes_->Write(0x7E1001, 0xEA);  // NOP
-  snes_->Write(0x7E1002, 0xEA);  // NOP
-
-  // Verify the writes worked
-  EXPECT_EQ(snes_->Read(0x7E1000), 0xEA) << "WRAM write should persist";
-
-  // Setup CPU to execute from WRAM
-  cpu.PB = 0x7E;
-  cpu.PC = 0x1000;
-  cpu.DB = 0x7E;
-  cpu.SetSP(0x01FF);
-  cpu.status = 0x30;
-
-  uint16_t initial_pc = cpu.PC;
-
-  // Execute one NOP instruction
-  cpu.RunOpcode();
-
-  // NOP is a 1-byte instruction, so PC should advance by 1
-  EXPECT_EQ(cpu.PC, initial_pc + 1)
-      << "PC should advance by 1 after NOP (was " << initial_pc
-      << ", now " << cpu.PC << ")";
-}
+// This is a known limitation of using the emulator for isolated code execution.
 
 TEST_F(EmulatorObjectPreviewTest, WramReadWrite) {
   // Test WRAM access
@@ -366,7 +338,7 @@ TEST_F(EmulatorObjectPreviewTest, RoomGraphicsCanBeLoaded) {
   zelda3::Room room = zelda3::LoadRoomFromRom(rom(), 0);
 
   // Load graphics
-  room.LoadRoomGraphics(room.blockset);
+  room.LoadRoomGraphics(room.blockset());
   room.CopyRoomGraphicsToBuffer();
 
   const auto& gfx_buffer = room.get_gfx_buffer();
@@ -387,7 +359,7 @@ TEST_F(EmulatorObjectPreviewTest, RoomGraphicsCanBeLoaded) {
 TEST_F(EmulatorObjectPreviewTest, GraphicsConversionProducesValidData) {
   // Load room graphics
   zelda3::Room room = zelda3::LoadRoomFromRom(rom(), 0);
-  room.LoadRoomGraphics(room.blockset);
+  room.LoadRoomGraphics(room.blockset());
   room.CopyRoomGraphicsToBuffer();
 
   const auto& gfx_buffer = room.get_gfx_buffer();

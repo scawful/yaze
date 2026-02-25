@@ -56,7 +56,13 @@ inline constexpr float kTableButtonQuick = 75.f;
 inline constexpr float kCompactItemSpacing = 4.f;
 inline constexpr float kCompactFramePadding = 2.f;
 
-// Map Size Constants - using the one from overworld_editor.h
+// Map Size Constants (shared across overworld subsystems)
+inline constexpr unsigned int kOverworldMapSize = 0x200;
+
+// Zoom/pan constants - centralized for consistency across all zoom controls
+inline constexpr float kOverworldMinZoom = 0.1f;
+inline constexpr float kOverworldMaxZoom = 5.0f;
+inline constexpr float kOverworldZoomStep = 0.25f;
 
 enum class EditingMode { MOUSE = 0, DRAW_TILE = 1, FILL_TILE = 2 };
 

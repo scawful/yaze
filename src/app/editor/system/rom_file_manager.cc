@@ -134,7 +134,8 @@ absl::Status RomFileManager::OpenRomOrProject(Rom* rom,
 
   std::string extension = std::filesystem::path(filename).extension().string();
 
-  if (extension == ".yaze" || extension == ".json") {
+  if (extension == ".yaze" || extension == ".yazeproj" ||
+      extension == ".zsproj") {
     return absl::UnimplementedError("Project file loading not yet implemented");
   }
 

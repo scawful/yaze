@@ -22,6 +22,7 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -104,17 +105,24 @@ void ObjectEditorPanel::OnSelectionChanged() {
 
 void ObjectEditorPanel::Draw(bool* p_open) {
   const auto& theme = AgentUI::GetTheme();
+  const int max_objects = static_cast<int>(zelda3::kMaxTileObjects);
+  const int max_sprites = static_cast<int>(zelda3::kMaxTotalSprites);
+  const int max_doors = static_cast<int>(zelda3::kMaxDoors);
 
   // Check if placement was blocked by ROM limits
   if (canvas_viewer_) {
-    auto& handler =
-        canvas_viewer_->object_interaction().entity_coordinator().tile_handler();
-    if (handler.was_placement_blocked()) {
-      const auto reason = handler.placement_block_reason();
-      handler.clear_placement_blocked();
+    auto& coordinator =
+        canvas_viewer_->object_interaction().entity_coordinator();
+
+    auto& tile_handler = coordinator.tile_handler();
+    if (tile_handler.was_placement_blocked()) {
+      const auto reason = tile_handler.placement_block_reason();
+      tile_handler.clear_placement_blocked();
       switch (reason) {
         case TileObjectHandler::PlacementBlockReason::kObjectLimit:
-          SetPlacementError("Object limit reached (400 max) - placement blocked");
+          SetPlacementError(absl::StrFormat(
+              "Object limit reached (%d max) - placement blocked",
+              max_objects));
           break;
         case TileObjectHandler::PlacementBlockReason::kInvalidRoom:
           SetPlacementError("Invalid room target - placement blocked");
@@ -122,6 +130,48 @@ void ObjectEditorPanel::Draw(bool* p_open) {
         case TileObjectHandler::PlacementBlockReason::kNone:
         default:
           SetPlacementError("Object placement blocked");
+          break;
+      }
+    }
+
+    auto& sprite_handler = coordinator.sprite_handler();
+    if (sprite_handler.was_placement_blocked()) {
+      const auto reason = sprite_handler.placement_block_reason();
+      sprite_handler.clear_placement_blocked();
+      switch (reason) {
+        case SpriteInteractionHandler::PlacementBlockReason::kSpriteLimit:
+          SetPlacementError(absl::StrFormat(
+              "Sprite limit reached (%d max) - placement blocked",
+              max_sprites));
+          break;
+        case SpriteInteractionHandler::PlacementBlockReason::kInvalidRoom:
+          SetPlacementError("Invalid room target - sprite placement blocked");
+          break;
+        case SpriteInteractionHandler::PlacementBlockReason::kNone:
+        default:
+          SetPlacementError("Sprite placement blocked");
+          break;
+      }
+    }
+
+    auto& door_handler = coordinator.door_handler();
+    if (door_handler.was_placement_blocked()) {
+      const auto reason = door_handler.placement_block_reason();
+      door_handler.clear_placement_blocked();
+      switch (reason) {
+        case DoorInteractionHandler::PlacementBlockReason::kDoorLimit:
+          SetPlacementError(absl::StrFormat(
+              "Door limit reached (%d max) - placement blocked", max_doors));
+          break;
+        case DoorInteractionHandler::PlacementBlockReason::kInvalidPosition:
+          SetPlacementError("Invalid door position - must be near a wall");
+          break;
+        case DoorInteractionHandler::PlacementBlockReason::kInvalidRoom:
+          SetPlacementError("Invalid room target - door placement blocked");
+          break;
+        case DoorInteractionHandler::PlacementBlockReason::kNone:
+        default:
+          SetPlacementError("Door placement blocked");
           break;
       }
     }
@@ -229,6 +279,14 @@ void ObjectEditorPanel::SetAgentOptimizedLayout(bool enabled) {
 }
 
 void ObjectEditorPanel::SetPlacementError(const std::string& message) {
+  // Avoid refreshing the timer for repeated identical errors; keeps the
+  // message stable during rapid blocked clicks.
+  if (message == last_placement_error_ && placement_error_time_ >= 0.0) {
+    double elapsed = ImGui::GetTime() - placement_error_time_;
+    if (elapsed < kPlacementErrorDuration) {
+      return;
+    }
+  }
   last_placement_error_ = message;
   placement_error_time_ = ImGui::GetTime();
 }
@@ -517,7 +575,7 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
 
     // Ensure room graphics are loaded
     if (!room.IsLoaded()) {
-      room.LoadRoomGraphics(room.blockset);
+      room.LoadRoomGraphics(room.blockset());
     }
 
     // Clear preview buffer and initialize bitmap
@@ -774,11 +832,11 @@ void ObjectEditorPanel::DrawRoomValidationBar() {
     }
   }
 
-  // Limits from DungeonValidator
-  constexpr int kMaxObjects = 400;
-  constexpr int kMaxSprites = 64;
-  constexpr int kMaxDoors = 16;
-  constexpr int kMaxChests = 6;
+  // Canonical limits shared across handlers/validator.
+  const int kMaxObjects = static_cast<int>(zelda3::kMaxTileObjects);
+  const int kMaxSprites = static_cast<int>(zelda3::kMaxTotalSprites);
+  const int kMaxDoors = static_cast<int>(zelda3::kMaxDoors);
+  const int kMaxChests = static_cast<int>(zelda3::kMaxChests);
 
   // Helper to pick color based on usage ratio
   auto usage_color = [&](size_t count, int max_val) -> ImVec4 {

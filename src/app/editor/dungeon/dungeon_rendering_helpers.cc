@@ -330,7 +330,7 @@ void DungeonRenderingHelpers::DrawCameraQuadrantOverlay(
   draw_list->AddLine(ImVec2(canvas_pos.x + mid_px, canvas_pos.y), ImVec2(canvas_pos.x + mid_px, canvas_pos.y + room_size_px), line_color, thickness);
   draw_list->AddLine(ImVec2(canvas_pos.x, canvas_pos.y + mid_px), ImVec2(canvas_pos.x + room_size_px, canvas_pos.y + mid_px), line_color, thickness);
 
-  std::string label = absl::StrFormat("Layout %d", room.layout);
+  std::string label = absl::StrFormat("Layout %d", room.layout_id());
   draw_list->AddText(ImVec2(canvas_pos.x + 6.0f, canvas_pos.y + 6.0f), ImGui::GetColorU32(theme.text_secondary_color), label.c_str());
 }
 

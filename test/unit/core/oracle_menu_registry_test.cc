@@ -1,5 +1,6 @@
 #include "core/oracle_menu_registry.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -149,6 +150,75 @@ TEST(OracleMenuRegistryTest, SetOffsetRejectsAsmPathOutsideProjectRoot) {
   std::error_code ec;
   std::filesystem::remove_all(root, ec);
   std::filesystem::remove_all(external_root, ec);
+}
+
+TEST(OracleMenuRegistryTest, ValidateDetectsMissingBinsAndBounds) {
+  const std::filesystem::path root = MakeTempRoot();
+  const std::filesystem::path menu_asm = root / "Menu" / "menu.asm";
+
+  WriteTextFile(menu_asm,
+                "Menu_ItemCursorPositions:\n"
+                "  dw menu_offset(6,2)\n"
+                "  dw menu_offset(40,5)\n"
+                "menu_frame: incbin \"tilemaps/missing.tilemap\"\n");
+
+  auto registry_or = BuildOracleMenuRegistry(root);
+  ASSERT_TRUE(registry_or.ok()) << registry_or.status();
+
+  const auto report = ValidateOracleMenuRegistry(registry_or.value(), 31, 31);
+  EXPECT_GE(report.errors, 2);
+
+  bool saw_missing_bin = false;
+  bool saw_bounds = false;
+  for (const auto& issue : report.issues) {
+    if (issue.code == "missing_bin") {
+      saw_missing_bin = true;
+    } else if (issue.code == "component_out_of_bounds") {
+      saw_bounds = true;
+    }
+  }
+  EXPECT_TRUE(saw_missing_bin);
+  EXPECT_TRUE(saw_bounds);
+
+  std::error_code ec;
+  std::filesystem::remove_all(root, ec);
+}
+
+TEST(OracleMenuRegistryTest, ValidateDetectsIndexGapsAndDuplicateCoordinates) {
+  OracleMenuRegistry registry;
+  registry.asm_files = {"Menu/menu_select_item.asm"};
+  registry.components = {
+      {.table_label = "Menu_ItemCursorPositions",
+       .index = 0,
+       .row = 6,
+       .col = 2,
+       .asm_path = "Menu/menu_select_item.asm",
+       .line = 10},
+      {.table_label = "Menu_ItemCursorPositions",
+       .index = 2,
+       .row = 6,
+       .col = 2,
+       .asm_path = "Menu/menu_select_item.asm",
+       .line = 11},
+  };
+
+  const auto report = ValidateOracleMenuRegistry(registry, 31, 31);
+  EXPECT_GE(report.errors, 1);
+  EXPECT_GE(report.warnings, 1);
+
+  const bool has_gap = std::any_of(
+      report.issues.begin(), report.issues.end(),
+      [](const OracleMenuValidationIssue& issue) {
+        return issue.code == "component_index_gap";
+      });
+  const bool has_duplicate_coordinate = std::any_of(
+      report.issues.begin(), report.issues.end(),
+      [](const OracleMenuValidationIssue& issue) {
+        return issue.code == "duplicate_component_coordinate";
+      });
+
+  EXPECT_TRUE(has_gap);
+  EXPECT_TRUE(has_duplicate_coordinate);
 }
 
 }  // namespace yaze::core

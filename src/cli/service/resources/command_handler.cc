@@ -108,6 +108,14 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   // 9. Execute command business logic
   auto execute_status = Execute(rom, parser, formatter);
   if (!execute_status.ok()) {
+    // Preserve structured output for failing commands so callers can inspect
+    // machine-readable diagnostics even when status is non-OK.
+    formatter.EndObject();
+    if (captured_output) {
+      *captured_output = formatter.GetOutput();
+    } else {
+      formatter.Print();
+    }
     return execute_status;
   }
 

@@ -78,32 +78,35 @@ unsigned char* Tracker::GetSpcAddr(Rom& rom, unsigned short addr, short bank) {
   unsigned short b;
   spcbank = bank + 1;
 
-again:
-  rom_ptr = rom.mutable_data() + sbank_ofs[spcbank];
+  // Try the requested bank first, then fall back to bank 0
+  for (int attempt = 0; attempt < 2; ++attempt) {
+    rom_ptr = rom.mutable_data() + sbank_ofs[spcbank];
 
-  for (;;) {
-    a = *(unsigned short*)rom_ptr;
+    for (;;) {
+      a = *(unsigned short*)rom_ptr;
 
-    if (!a) {
-      if (spcbank) {
-        spcbank = 0;
+      if (!a) {
+        if (spcbank) {
+          spcbank = 0;
+          break;  // retry with bank 0
+        } else {
+          return nullptr;
+        }
+      }
 
-        goto again;
-      } else
-        return nullptr;
+      b = *(unsigned short*)(rom_ptr + 2);
+      rom_ptr += 4;
+
+      if (addr >= b && addr - b < a) {
+        spclen = a;
+        return rom_ptr + addr - b;
+      }
+
+      rom_ptr += a;
     }
-
-    b = *(unsigned short*)(rom_ptr + 2);
-    rom_ptr += 4;
-
-    if (addr >= b && addr - b < a) {
-      spclen = a;
-
-      return rom_ptr + addr - b;
-    }
-
-    rom_ptr += a;
   }
+
+  return nullptr;
 }
 
 /**
@@ -885,20 +888,22 @@ int Tracker::WriteSpcData(Rom& rom, void* buf, int len, int addr, int spc,
   if (!len)
     return addr;
 
+  auto report_space_error = [&]() -> int {
+    printf("Not enough space for sound data");
+    m_modf = 1;
+    return 0xc8000;
+  };
+
   if (((addr + len + 4) & 0x7fff) > 0x7ffb) {
     if (addr + 5 > limit)
-      goto error;
+      return report_space_error();
     *(int*)(rom_data + addr) = 0x00010140;
     rom_data[addr + 4] = 0xff;
     addr += 5;
   }
 
-  if (addr + len + 4 > limit) {
-  error:
-    printf("Not enough space for sound data");
-    m_modf = 1;
-    return 0xc8000;
-  }
+  if (addr + len + 4 > limit)
+    return report_space_error();
 
   *(short*)(rom_data + addr) = len;
   *(short*)(rom_data + addr + 2) = spc;
@@ -1390,7 +1395,8 @@ void Tracker::EditTrack(Rom& rom, short i) {
 
   if (i >= m_size) {
     printf("Invalid address: %04X", i);
-    goto error;
+    printf("Error");
+    return;
   }
 
   for (;;) {
@@ -1408,7 +1414,6 @@ void Tracker::EditTrack(Rom& rom, short i) {
 
   if (l == k) {
     printf("Not found: %04X", i);
-  error:
     printf("Error");
     return;
   }

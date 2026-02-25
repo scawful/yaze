@@ -54,10 +54,10 @@ absl::StatusOr<int> GetOptionalInt(const resources::ArgumentParser& parser,
 }
 
 absl::Status ValidateRoomId(int room_id) {
-  if (room_id < 0 || room_id >= zelda3::NumberOfRooms) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Room ID out of range: 0x%X (expected 0x00-0x%02X)",
-                        room_id, zelda3::NumberOfRooms - 1));
+                        room_id, zelda3::kNumberOfRooms - 1));
   }
   return absl::OkStatus();
 }

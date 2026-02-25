@@ -21,6 +21,7 @@
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
@@ -38,6 +39,28 @@ const char* GetObjectCategory(int object_id) {
   if (object_id >= 0xF80)
     return "Special";
   return "Unknown";
+}
+
+// Derive a short dungeon-group label from a room's blockset value.
+// Blockset 0-12 map to vanilla ALTTP dungeons; higher values are custom.
+const char* GetBlocksetGroupName(uint8_t blockset) {
+  static const char* kGroupNames[] = {
+    "HC/Sewers",  // 0
+    "Eastern",    // 1
+    "Desert",     // 2
+    "Hera",       // 3
+    "A-Tower",    // 4
+    "PoD",        // 5
+    "Swamp",      // 6
+    "Skull",      // 7
+    "Thieves",    // 8
+    "Ice",        // 9
+    "Misery",     // 10
+    "Turtle",     // 11
+    "GT",         // 12
+  };
+  constexpr size_t kCount = sizeof(kGroupNames) / sizeof(kGroupNames[0]);
+  return blockset < kCount ? kGroupNames[blockset] : "Custom";
 }
 
 // Pot item names for the inspector
@@ -59,8 +82,6 @@ const char* GetPotItemName(uint8_t item) {
 
 DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     DungeonRoomSelector* room_selector, int* current_room_id,
-    int* previous_room_id, bool* split_view_enabled, int* compare_room_id,
-    DungeonWorkbenchLayoutState* layout_state,
     std::function<void(int)> on_room_selected,
     std::function<void(int, RoomSelectionIntent)> on_room_selected_with_intent,
     std::function<void(int)> on_save_room,
@@ -72,10 +93,6 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
     std::function<void(bool)> set_workflow_mode, Rom* rom)
     : room_selector_(room_selector),
       current_room_id_(current_room_id),
-      previous_room_id_(previous_room_id),
-      split_view_enabled_(split_view_enabled),
-      compare_room_id_(compare_room_id),
-      layout_state_(layout_state),
       on_room_selected_(std::move(on_room_selected)),
       on_room_selected_with_intent_(std::move(on_room_selected_with_intent)),
       on_save_room_(std::move(on_save_room)),
@@ -105,6 +122,8 @@ int DungeonWorkbenchPanel::GetPriority() const {
 
 void DungeonWorkbenchPanel::SetRom(Rom* rom) {
   rom_ = rom;
+  room_dungeon_cache_.clear();
+  room_dungeon_cache_built_ = false;
 }
 
 void DungeonWorkbenchPanel::Draw(bool* p_open) {
@@ -124,13 +143,13 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   DungeonCanvasViewer* compare_viewer =
       get_compare_viewer_ ? get_compare_viewer_() : nullptr;
 
-  if (layout_state_ && current_room_id_) {
+  if (current_room_id_) {
     DungeonWorkbenchToolbarParams params;
-    params.layout = layout_state_;
+    params.layout = &layout_state_;
     params.current_room_id = current_room_id_;
-    params.previous_room_id = previous_room_id_;
-    params.split_view_enabled = split_view_enabled_;
-    params.compare_room_id = compare_room_id_;
+    params.previous_room_id = &previous_room_id_;
+    params.split_view_enabled = &split_view_enabled_;
+    params.compare_room_id = &compare_room_id_;
     params.primary_viewer = primary_viewer;
     params.compare_viewer = compare_viewer;
     params.on_room_selected = on_room_selected_;
@@ -151,10 +170,8 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       ImGuiTableFlags_Resizable | ImGuiTableFlags_NoBordersInBody |
       ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_NoPadOuterX;
 
-  const bool show_left =
-      layout_state_ ? layout_state_->show_left_sidebar : true;
-  const bool show_right =
-      layout_state_ ? layout_state_->show_right_inspector : true;
+  const bool show_left = layout_state_.show_left_sidebar;
+  const bool show_right = layout_state_.show_right_inspector;
 
   // Detect collapse->expand transitions. When a sidebar re-expands, bump a
   // table generation counter so ImGui sees a fresh table ID and applies the
@@ -179,13 +196,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       std::max({32.0f, btn + 8.0f, gui::LayoutHelpers::GetMinTouchTarget()});
 
   const float left_w =
-      show_left ? (layout_state_ ? layout_state_->left_width
-                                 : gui::UIConfig::kPanelWidthProperties)
-                : rail_w;
+      show_left ? layout_state_.left_width : rail_w;
   const float right_w =
-      show_right ? (layout_state_ ? layout_state_->right_width
-                                  : gui::UIConfig::kPanelWidthProperties)
-                 : rail_w;
+      show_right ? layout_state_.right_width : rail_w;
 
   ImGuiTableColumnFlags left_flags = ImGuiTableColumnFlags_WidthFixed;
   if (!show_left) {
@@ -217,8 +230,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
       if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms",
                         ImVec2(btn, btn))) {
-        if (layout_state_)
-          layout_state_->show_left_sidebar = false;
+        layout_state_.show_left_sidebar = false;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Collapse room browser");
@@ -240,9 +252,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::SetCursorPosY(8.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##ExpandRooms",
                       ImVec2(expand_btn_w, btn))) {
-      if (layout_state_) {
-        layout_state_->show_left_sidebar = true;
-      }
+      layout_state_.show_left_sidebar = true;
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Show room browser");
@@ -261,7 +271,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   if (canvas_open) {
     if (primary_viewer) {
       DrawRecentRoomTabs();
-      if (split_view_enabled_ && *split_view_enabled_) {
+      if (split_view_enabled_) {
         DrawSplitView(*primary_viewer);
       } else {
         primary_viewer->DrawDungeonCanvas(*current_room_id_);
@@ -285,8 +295,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
       if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##CollapseInspector",
                         ImVec2(btn, btn))) {
-        if (layout_state_)
-          layout_state_->show_right_inspector = false;
+        layout_state_.show_right_inspector = false;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Collapse inspector");
@@ -311,9 +320,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::SetCursorPosY(8.0f);
     if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##ExpandInspector",
                       ImVec2(expand_btn_w, btn))) {
-      if (layout_state_) {
-        layout_state_->show_right_inspector = true;
-      }
+      layout_state_.show_right_inspector = true;
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Show inspector");
@@ -322,21 +329,18 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   }
 
   // Remember widths for next frame.
-  if (layout_state_) {
-    if (show_left && measured_left_w > 0.0f) {
-      layout_state_->left_width = measured_left_w;
-    }
-    if (show_right && measured_right_w > 0.0f) {
-      layout_state_->right_width = measured_right_w;
-    }
+  if (show_left && measured_left_w > 0.0f) {
+    layout_state_.left_width = measured_left_w;
+  }
+  if (show_right && measured_right_w > 0.0f) {
+    layout_state_.right_width = measured_right_w;
   }
 
   ImGui::EndTable();
 }
 
 void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
-  if (!get_recent_rooms_ || !current_room_id_ || !on_room_selected_ ||
-      !split_view_enabled_) {
+  if (!get_recent_rooms_ || !current_room_id_ || !on_room_selected_) {
     return;
   }
 
@@ -393,10 +397,8 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
 
       if (ImGui::BeginPopupContextItem()) {
         if (ImGui::MenuItem(ICON_MD_COMPARE_ARROWS " Compare")) {
-          *split_view_enabled_ = true;
-          if (compare_room_id_) {
-            *compare_room_id_ = room_id;
-          }
+          split_view_enabled_ = true;
+          compare_room_id_ = room_id;
         }
         if (on_room_selected_with_intent_ &&
             ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open as Panel")) {
@@ -425,28 +427,28 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
 }
 
 void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
-  if (!current_room_id_ || !split_view_enabled_ || !compare_room_id_) {
+  if (!current_room_id_ || !split_view_enabled_ || compare_room_id_ < 0) {
     if (split_view_enabled_) {
-      *split_view_enabled_ = false;
+      split_view_enabled_ = false;
     }
     return;
   }
 
   // Choose a sensible default compare room (most-recent non-current).
-  if (*compare_room_id_ < 0 || *compare_room_id_ == *current_room_id_) {
+  if (compare_room_id_ < 0 || compare_room_id_ == *current_room_id_) {
     if (get_recent_rooms_) {
       for (int rid : get_recent_rooms_()) {
         if (rid != *current_room_id_) {
-          *compare_room_id_ = rid;
+          compare_room_id_ = rid;
           break;
         }
       }
     }
   }
 
-  if (*compare_room_id_ < 0) {
+  if (compare_room_id_ < 0) {
     // Nothing to compare yet.
-    *split_view_enabled_ = false;
+    split_view_enabled_ = false;
     primary_viewer.DrawDungeonCanvas(*current_room_id_);
     return;
   }
@@ -482,11 +484,11 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   if (split_compare_open) {
     if (auto* compare_viewer =
             get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
-      if (layout_state_ && layout_state_->sync_split_view) {
+      if (layout_state_.sync_split_view) {
         compare_viewer->canvas().ApplyScaleSnapshot(
             primary_viewer.canvas().GetConfig());
       }
-      compare_viewer->DrawDungeonCanvas(*compare_room_id_);
+      compare_viewer->DrawDungeonCanvas(compare_room_id_);
     } else {
       ImGui::TextDisabled("No compare viewer");
     }
@@ -494,6 +496,53 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   gui::LayoutHelpers::EndContentChild();
 
   ImGui::EndTable();
+}
+
+void DungeonWorkbenchPanel::BuildRoomDungeonCache() {
+  room_dungeon_cache_.clear();
+  room_dungeon_cache_built_ = true;  // Always set, even if ROM missing.
+  if (!rom_ || !rom_->is_loaded()) return;
+
+  // Short dungeon names for display in the inspector badge.
+  // Indices 0-13 = vanilla ALTTP dungeons; higher indices = custom/Oracle.
+  static const char* const kShortNames[] = {
+      "Sewers",   "HC",      "Eastern", "Desert",  "A-Tower",
+      "Swamp",    "PoD",     "Misery",  "Skull",   "Ice",
+      "Hera",     "Thieves", "Turtle",  "GT",
+  };
+  constexpr int kVanillaCount = static_cast<int>(
+      sizeof(kShortNames) / sizeof(kShortNames[0]));
+
+  auto AddRoom = [&](int room_id, int dungeon_id) {
+    if (room_id < 0) return;
+    if (room_dungeon_cache_.contains(room_id)) return;  // Entrance wins over spawn.
+    if (dungeon_id >= 0 && dungeon_id < kVanillaCount) {
+      room_dungeon_cache_[room_id] = kShortNames[dungeon_id];
+    } else {
+      char buf[16];
+      snprintf(buf, sizeof(buf), "Dungeon %02X", dungeon_id);
+      room_dungeon_cache_[room_id] = buf;
+    }
+  };
+
+  // Standard entrances (0x00–0x83) — authoritative dungeon assignment.
+  for (int i = 0; i < 0x84; ++i) {
+    zelda3::RoomEntrance ent(rom_, static_cast<uint8_t>(i), false);
+    int did = ent.dungeon_id_;
+    if (did >= 0 && did < kVanillaCount) {
+      room_dungeon_cache_[ent.room_] = kShortNames[did];
+    } else {
+      char buf[16];
+      snprintf(buf, sizeof(buf), "Dungeon %02X", did);
+      room_dungeon_cache_[ent.room_] = buf;
+    }
+  }
+
+  // Spawn points (0x00–0x13) — fill in rooms not covered by entrances.
+  for (int i = 0; i < 0x14; ++i) {
+    zelda3::RoomEntrance ent(rom_, static_cast<uint8_t>(i), true);
+    AddRoom(static_cast<int>(ent.room_), static_cast<int>(ent.dungeon_id_));
+  }
 }
 
 void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
@@ -539,8 +588,50 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
   const std::string room_label =
       (room_id >= 0) ? zelda3::GetRoomLabel(room_id) : std::string("None");
 
-  ImGui::Text("Room: 0x%03X", room_id);
-  ImGui::TextDisabled("%s", room_label.c_str());
+  // Room badge: hex ID + copy button (only for valid room IDs).
+  if (room_id >= 0) {
+    ImGui::Text("Room: 0x%03X (%d)", room_id, room_id);
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CONTENT_COPY "##CopyRoomId")) {
+      char buf[16];
+      snprintf(buf, sizeof(buf), "0x%03X", room_id);
+      ImGui::SetClipboardText(buf);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Copy room ID (0x%03X) to clipboard", room_id);
+    }
+  } else {
+    ImGui::TextUnformatted("Room: None");
+  }
+
+  // Dungeon group context: prefer ROM entrance-based lookup (accurate for
+  // custom Oracle dungeons); fall back to blockset-derived name.
+  if (!room_dungeon_cache_built_ && rom_ && rom_->is_loaded()) {
+    BuildRoomDungeonCache();
+  }
+  if (room_id >= 0) {
+    const char* group_name = nullptr;
+    {
+      auto cache_it = room_dungeon_cache_.find(room_id);
+      if (cache_it != room_dungeon_cache_.end() && !cache_it->second.empty()) {
+        group_name = cache_it->second.c_str();
+      }
+    }
+    if (!group_name) {
+      auto* rooms = viewer.rooms();
+      if (rooms && room_id < static_cast<int>(rooms->size())) {
+        group_name = GetBlocksetGroupName((*rooms)[room_id].blockset());
+      }
+    }
+    if (group_name) {
+      ImGui::TextDisabled(ICON_MD_CASTLE " %s – %s", group_name,
+                          room_label.c_str());
+    } else {
+      ImGui::TextDisabled("%s", room_label.c_str());
+    }
+  } else {
+    ImGui::TextDisabled("%s", room_label.c_str());
+  }
 
   // Quick actions.
   ImGui::Spacing();
@@ -644,10 +735,10 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
       rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[room_id];
 
-    uint8_t blockset_val = room.blockset;
-    uint8_t palette_val = room.palette;
-    uint8_t layout_val = room.layout;
-    uint8_t spriteset_val = room.spriteset;
+    uint8_t blockset_val = room.blockset();
+    uint8_t palette_val = room.palette();
+    uint8_t layout_val = room.layout_id();
+    uint8_t spriteset_val = room.spriteset();
 
     constexpr float kHexW = 92.0f;
 
@@ -692,7 +783,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
         if (auto res =
                 gui::InputHexByteEx("##Layout", &layout_val, 7, kHexW, true);
             res.ShouldApply()) {
-          room.layout = layout_val;
+          room.SetLayoutId(layout_val);
           room.MarkLayoutDirty();
           if (room.rom() && room.rom()->is_loaded()) {
             room.RenderRoomGraphics();

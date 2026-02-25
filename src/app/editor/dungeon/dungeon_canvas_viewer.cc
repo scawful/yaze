@@ -18,6 +18,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "dungeon_canvas_viewer.h"
@@ -203,21 +204,21 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     auto& room = (*rooms_)[room_id];
 
     // Check if critical properties changed and trigger reload
-    if (prev_blockset_ != room.blockset || prev_palette_ != room.palette ||
-        prev_layout_ != room.layout || prev_spriteset_ != room.spriteset) {
+    if (prev_blockset_ != room.blockset() || prev_palette_ != room.palette() ||
+        prev_layout_ != room.layout_id() || prev_spriteset_ != room.spriteset()) {
       // Only reload if ROM is properly loaded
       if (room.rom() && room.rom()->is_loaded()) {
         // Force reload of room graphics
         // Room buffers are now self-contained - no need for separate palette
         // operations
-        room.LoadRoomGraphics(room.blockset);
+        room.LoadRoomGraphics(room.blockset());
         room.RenderRoomGraphics();  // Applies palettes internally
       }
 
-      prev_blockset_ = room.blockset;
-      prev_palette_ = room.palette;
-      prev_layout_ = room.layout;
-      prev_spriteset_ = room.spriteset;
+      prev_blockset_ = room.blockset();
+      prev_palette_ = room.palette();
+      prev_layout_ = room.layout_id();
+      prev_spriteset_ = room.spriteset();
     }
     if (header_visible_) {
       DrawRoomHeader(room, room_id);
@@ -864,7 +865,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     gui::CanvasMenuItem force_reload_item(
         "Force Reload", ICON_MD_REFRESH, [&room]() {
           room.LoadObjects();
-          room.LoadRoomGraphics(room.blockset);
+          room.LoadRoomGraphics(room.blockset());
           room.RenderRoomGraphics();
         });
     debug_menu.subitems.push_back(force_reload_item);
@@ -874,7 +875,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         "Log Room State", ICON_MD_PRINT, [&room, room_id]() {
           LOG_DEBUG("DungeonDebug", "=== Room %03X Debug ===", room_id);
           LOG_DEBUG("DungeonDebug", "Blockset: %d, Palette: %d, Layout: %d",
-                    room.blockset, room.palette, room.layout);
+                    room.blockset(), room.palette(), room.layout_id());
           LOG_DEBUG("DungeonDebug", "Objects: %zu, Sprites: %zu",
                     room.GetTileObjects().size(), room.GetSprites().size());
           LOG_DEBUG("DungeonDebug", "BG1: %dx%d, BG2: %dx%d",
@@ -910,10 +911,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       const auto& room = (*rooms_)[room_id];
       if (!object_interaction_enabled_) {
         snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
-                 room.blockset, room.palette, room.layout, room.spriteset);
+                 room.blockset(), room.palette(), room.layout_id(), room.spriteset());
       } else {
         snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
-                 room.blockset, room.palette, room.layout, room.spriteset);
+                 room.blockset(), room.palette(), room.layout_id(), room.spriteset());
       }
       show_meta = true;
     } else if (!object_interaction_enabled_) {
@@ -957,10 +958,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImGui::Text("Room: 0x%03X (%d)", room_id, room_id);
       ImGui::Separator();
       ImGui::Text("Graphics");
-      ImGui::Text("  Blockset: 0x%02X", room.blockset);
-      ImGui::Text("  Palette: 0x%02X", room.palette);
-      ImGui::Text("  Layout: 0x%02X", room.layout);
-      ImGui::Text("  Spriteset: 0x%02X", room.spriteset);
+      ImGui::Text("  Blockset: 0x%02X", room.blockset());
+      ImGui::Text("  Palette: 0x%02X", room.palette());
+      ImGui::Text("  Layout: 0x%02X", room.layout_id());
+      ImGui::Text("  Spriteset: 0x%02X", room.spriteset());
       ImGui::Separator();
       ImGui::Text("Content");
       ImGui::Text("  Objects: %zu", room.GetTileObjects().size());
@@ -1319,7 +1320,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       // Custom draw routines are registered for object IDs 0x31 and 0x32
       // (Oracle of Secrets minecart track objects). Flag any object whose ID
       // falls in that range so the overlay is general but practically correct.
-      auto is_custom = [](int id) { return id == 0x31 || id == 0x32; };
+      auto is_custom = [](int id) {
+        return id == 0x31 || id == 0x32;
+      };
 
       for (const auto& obj : room.GetTileObjects()) {
         if (!is_custom(static_cast<int>(obj.id_))) {
@@ -1898,7 +1901,7 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
 absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   LOG_DEBUG("[LoadAndRender]", "START room_id=%d", room_id);
 
-  if (room_id < 0 || room_id >= zelda3::NumberOfRooms) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     LOG_DEBUG("[LoadAndRender]", "ERROR: Invalid room ID");
     return absl::InvalidArgumentError("Invalid room ID");
   }
@@ -1918,8 +1921,8 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
 
   // Load room graphics with proper blockset
   LOG_DEBUG("[LoadAndRender]", "Loading graphics for blockset %d",
-            room.blockset);
-  room.LoadRoomGraphics(room.blockset);
+            room.blockset());
+  room.LoadRoomGraphics(room.blockset());
   LOG_DEBUG("[LoadAndRender]", "Graphics loaded");
 
   // Load the room's palette with bounds checking
@@ -1932,11 +1935,11 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
     // Match Room::RenderRoomGraphics palette resolution:
     // paletteset_ids[palette][0] is an offset into the pointer table, and the
     // pointed word divided by 180 yields the actual dungeon palette index.
-    int palette_id = static_cast<int>(room.palette);
-    if (room.palette < game_data_->paletteset_ids.size() &&
-        !game_data_->paletteset_ids[room.palette].empty()) {
+    int palette_id = static_cast<int>(room.palette());
+    if (room.palette() < game_data_->paletteset_ids.size() &&
+        !game_data_->paletteset_ids[room.palette()].empty()) {
       const auto dungeon_palette_ptr =
-          game_data_->paletteset_ids[room.palette][0];
+          game_data_->paletteset_ids[room.palette()][0];
       auto palette_word = rom_->ReadWord(zelda3::kDungeonPalettePointerTable +
                                          dungeon_palette_ptr);
       if (palette_word.ok()) {
@@ -1964,7 +1967,7 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
 }
 
 void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
-  if (room_id < 0 || room_id >= zelda3::NumberOfRooms || !rooms_)
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms || !rooms_)
     return;
 
   auto& room = (*rooms_)[room_id];
@@ -2080,7 +2083,7 @@ void DungeonCanvasViewer::DrawRoomNavigation(int room_id) {
   const int row = room_id / kRoomMatrixCols;
 
   auto room_if_valid = [](int candidate) -> std::optional<int> {
-    if (candidate < 0 || candidate >= zelda3::NumberOfRooms) {
+    if (candidate < 0 || candidate >= zelda3::kNumberOfRooms) {
       return std::nullopt;
     }
     return candidate;
@@ -2173,7 +2176,7 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
     return false;
   };
 
-  uint8_t bs = room.blockset;
+  uint8_t bs = room.blockset();
   if (hex_input("##BS", ICON_MD_VIEW_MODULE, &bs, 81, "Blockset")) {
     room.SetBlockset(bs);
     if (room.rom() && room.rom()->is_loaded())
@@ -2181,7 +2184,7 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   }
   ImGui::SameLine();
 
-  uint8_t pal = room.palette;
+  uint8_t pal = room.palette();
   if (hex_input("##Pal", ICON_MD_PALETTE, &pal, 71, "Palette")) {
     room.SetPalette(pal);
     // ... palette update logic ...
@@ -2190,16 +2193,16 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   }
   ImGui::SameLine();
 
-  uint8_t lyr = room.layout;
+  uint8_t lyr = room.layout_id();
   if (hex_input("##Lyr", ICON_MD_GRID_VIEW, &lyr, 7, "Layout")) {
-    room.layout = lyr;
+    room.SetLayoutId(lyr);
     room.MarkLayoutDirty();
     if (room.rom() && room.rom()->is_loaded())
       room.RenderRoomGraphics();
   }
   ImGui::SameLine();
 
-  uint8_t ss = room.spriteset;
+  uint8_t ss = room.spriteset();
   if (hex_input("##SS", ICON_MD_PEST_CONTROL, &ss, 143, "Spriteset")) {
     room.SetSpriteset(ss);
     if (room.rom() && room.rom()->is_loaded())
@@ -2220,91 +2223,89 @@ void DungeonCanvasViewer::DrawCompactLayerToggles(int room_id) {
     return;
   }
 
-  ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4, 2));
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  const float compact_gap =
+      std::max(2.0f, gui::LayoutHelpers::GetStandardSpacing() * 0.25f);
+  const float compact_padding =
+      std::clamp(gui::LayoutHelpers::GetButtonPadding(), 2.0f, 6.0f);
 
-  // BG1 toggle
-  bool bg1_visible = IsBG1Visible(room_id);
-  if (bg1_visible) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.5f, 0.8f, 1.0f));
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
-  }
-  if (ImGui::SmallButton("BG1")) {
-    SetBG1Visible(room_id, !bg1_visible);
-  }
-  ImGui::PopStyleColor();
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Toggle BG1 (main layer) visibility");
-  }
+  gui::StyleVarGuard compact_style({
+      {ImGuiStyleVar_FramePadding,
+       ImVec2(compact_padding, compact_padding * 0.5f)},
+      {ImGuiStyleVar_ItemSpacing, ImVec2(compact_gap, 0.0f)},
+  });
 
-  ImGui::SameLine();
+  auto as_button_color = [](ImVec4 color, float alpha) {
+    color.w = alpha;
+    return color;
+  };
 
-  // BG2 toggle
-  bool bg2_visible = IsBG2Visible(room_id);
-  if (bg2_visible) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.5f, 0.2f, 1.0f));
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
-  }
-  if (ImGui::SmallButton("BG2")) {
-    SetBG2Visible(room_id, !bg2_visible);
-  }
-  ImGui::PopStyleColor();
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Toggle BG2 (overlay layer) visibility");
-  }
+  const ImVec4 inactive_color =
+      as_button_color(gui::ConvertColorToImVec4(theme.frame_bg), 0.55f);
+  const ImVec4 inactive_hover =
+      as_button_color(gui::ConvertColorToImVec4(theme.frame_bg_hovered), 0.7f);
+  const ImVec4 inactive_active =
+      as_button_color(gui::ConvertColorToImVec4(theme.frame_bg_active), 0.85f);
 
-  ImGui::SameLine();
+  auto draw_toggle = [&](const char* label, bool enabled, ImVec4 active_color,
+                         const char* tooltip, auto&& on_toggle) {
+    const ImVec4 button = enabled ? active_color : inactive_color;
+    const ImVec4 hovered =
+        enabled ? as_button_color(
+                      gui::ConvertColorToImVec4(theme.button_hovered), 0.95f)
+                : inactive_hover;
+    const ImVec4 pressed =
+        enabled ? as_button_color(
+                      gui::ConvertColorToImVec4(theme.button_active), 1.0f)
+                : inactive_active;
 
-  // Sprites toggle
-  bool sprites_visible = entity_visibility_.show_sprites;
-  if (sprites_visible) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.3f, 1.0f));
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
-  }
-  if (ImGui::SmallButton(ICON_MD_PEST_CONTROL)) {
-    entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
-  }
-  ImGui::PopStyleColor();
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Toggle sprite visibility");
-  }
+    gui::StyleColorGuard button_colors({
+        {ImGuiCol_Button, button},
+        {ImGuiCol_ButtonHovered, hovered},
+        {ImGuiCol_ButtonActive, pressed},
+    });
 
-  ImGui::SameLine();
+    if (ImGui::SmallButton(label)) {
+      on_toggle();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tooltip);
+    }
+  };
 
-  // Grid toggle
-  if (show_grid_) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.5f, 0.5f, 0.5f, 0.8f));
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
-  }
-  if (ImGui::SmallButton(ICON_MD_GRID_ON)) {
-    show_grid_ = !show_grid_;
-  }
-  ImGui::PopStyleColor();
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Toggle grid overlay");
-  }
+  const bool bg1_visible = IsBG1Visible(room_id);
+  draw_toggle("BG1##LayerToggleBG1", bg1_visible,
+              as_button_color(gui::ConvertColorToImVec4(theme.info), 0.9f),
+              "Toggle BG1 (main layer) visibility",
+              [&]() { SetBG1Visible(room_id, !bg1_visible); });
 
   ImGui::SameLine();
+  const bool bg2_visible = IsBG2Visible(room_id);
+  draw_toggle("BG2##LayerToggleBG2", bg2_visible,
+              as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
+              "Toggle BG2 (overlay layer) visibility",
+              [&]() { SetBG2Visible(room_id, !bg2_visible); });
 
-  // Object bounds toggle
-  if (show_object_bounds_) {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.8f, 0.2f, 0.8f));
-  } else {
-    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
-  }
-  if (ImGui::SmallButton(ICON_MD_CROP_FREE)) {
-    show_object_bounds_ = !show_object_bounds_;
-  }
-  ImGui::PopStyleColor();
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Toggle object bounds overlay");
-  }
+  ImGui::SameLine();
+  const bool sprites_visible = entity_visibility_.show_sprites;
+  draw_toggle(ICON_MD_PEST_CONTROL "##LayerToggleSprites", sprites_visible,
+              as_button_color(gui::ConvertColorToImVec4(theme.success), 0.9f),
+              "Toggle sprite visibility", [&]() {
+                entity_visibility_.show_sprites =
+                    !entity_visibility_.show_sprites;
+              });
 
-  ImGui::PopStyleVar(2);
+  ImGui::SameLine();
+  draw_toggle(ICON_MD_GRID_ON "##LayerToggleGrid", show_grid_,
+              as_button_color(gui::ConvertColorToImVec4(theme.secondary), 0.9f),
+              "Toggle grid overlay", [&]() { show_grid_ = !show_grid_; });
+
+  ImGui::SameLine();
+  draw_toggle(
+      ICON_MD_CROP_FREE "##LayerToggleBounds", show_object_bounds_,
+      as_button_color(gui::ConvertColorToImVec4(theme.selection_primary), 0.9f),
+      "Toggle object bounds overlay",
+      [&]() { show_object_bounds_ = !show_object_bounds_; });
 }
 
 void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& /*room*/,

@@ -1717,14 +1717,14 @@ std::string WasmControlApi::GetRoomProperties(int room_id) {
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
 
   result["room_id"] = room_id;
-  result["blockset"] = room.blockset;
-  result["spriteset"] = room.spriteset;
-  result["palette"] = room.palette;
+  result["blockset"] = room.blockset();
+  result["spriteset"] = room.spriteset();
+  result["palette"] = room.palette();
   result["floor1"] = room.floor1();
   result["floor2"] = room.floor2();
-  result["layout"] = room.layout;
-  result["holewarp"] = room.holewarp;
-  result["message_id"] = room.message_id_;
+  result["layout"] = room.layout_id();
+  result["holewarp"] = room.holewarp();
+  result["message_id"] = room.message_id();
 
   // Effect and tags
   result["effect"] = static_cast<int>(room.effect());

@@ -12,15 +12,18 @@
 #include "absl/debugging/symbolize.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
-#include "app/emu/snes.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/input/input_manager.h"
+#include "app/emu/snes.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/platform/iwindow.h"
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+#include "app/test/test_manager.h"
+#endif
+#include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "util/sdl_deleter.h"
-#include "imgui/imgui.h"
 
 ABSL_FLAG(std::string, emu_rom, "", "Path to the ROM file to load.");
 ABSL_FLAG(bool, emu_no_gui, false, "Disable GUI and run in headless mode.");
@@ -32,7 +35,8 @@ ABSL_FLAG(int, emu_max_frames, 180,
           "seconds).");
 ABSL_FLAG(bool, emu_debug_apu, false, "Enable detailed APU/SPC700 logging.");
 ABSL_FLAG(bool, emu_debug_cpu, false, "Enable detailed CPU execution logging.");
-ABSL_FLAG(bool, emu_fix_red_tint, true, "Fix red/blue channel swap (BGR->RGB).");
+ABSL_FLAG(bool, emu_fix_red_tint, true,
+          "Fix red/blue channel swap (BGR->RGB).");
 
 using yaze::util::SDL_Deleter;
 
@@ -63,7 +67,8 @@ int main(int argc, char** argv) {
     if (!absl::GetFlag(FLAGS_emu_load_state).empty()) {
       auto status = snes.loadState(absl::GetFlag(FLAGS_emu_load_state));
       if (!status.ok()) {
-        printf("Failed to load state: %s\n", std::string(status.message()).c_str());
+        printf("Failed to load state: %s\n",
+               std::string(status.message()).c_str());
         return EXIT_FAILURE;
       }
     }
@@ -75,7 +80,8 @@ int main(int argc, char** argv) {
     if (!absl::GetFlag(FLAGS_emu_dump_state).empty()) {
       auto status = snes.saveState(absl::GetFlag(FLAGS_emu_dump_state));
       if (!status.ok()) {
-        printf("Failed to save state: %s\n", std::string(status.message()).c_str());
+        printf("Failed to save state: %s\n",
+               std::string(status.message()).c_str());
         return EXIT_FAILURE;
       }
     }
@@ -92,7 +98,8 @@ int main(int argc, char** argv) {
   config.width = 512;
   config.height = 480;
   config.resizable = true;
-  config.high_dpi = false;  // Disabled - causes issues on macOS Retina with SDL_Renderer
+  config.high_dpi =
+      false;  // Disabled - causes issues on macOS Retina with SDL_Renderer
 
   if (!window_backend->Initialize(config).ok()) {
     printf("Failed to initialize window backend\n");
@@ -136,8 +143,8 @@ int main(int argc, char** argv) {
     // CRITICAL: Without this, audio plays at 1.5x speed (48000/32040 = 1.498)
     if (audio_backend->SupportsAudioStream()) {
       audio_backend->SetAudioStreamResampling(true, kNativeSampleRate, 2);
-      printf("Audio resampling enabled: %dHz -> %dHz\n",
-             kNativeSampleRate, audio_config.sample_rate);
+      printf("Audio resampling enabled: %dHz -> %dHz\n", kNativeSampleRate,
+             audio_config.sample_rate);
     }
   }
 
@@ -160,7 +167,8 @@ int main(int argc, char** argv) {
 
   // Initialize input manager
   // TODO: Use factory or detect backend
-  input_manager_.Initialize(yaze::emu::input::InputBackendFactory::BackendType::SDL2);
+  input_manager_.Initialize(
+      yaze::emu::input::InputBackendFactory::BackendType::SDL2);
 
   // Emulator state
   bool running = true;
@@ -221,7 +229,8 @@ int main(int argc, char** argv) {
             // Audio stream resampling handles conversion to device rate
             wanted_samples = kNativeSampleRate / static_cast<int>(refresh_rate);
 
-            printf("Loaded new ROM via drag-and-drop: %s\n", event.dropped_file.c_str());
+            printf("Loaded new ROM via drag-and-drop: %s\n",
+                   event.dropped_file.c_str());
             frame_count = 0;  // Reset frame counter
             loaded = true;
           }
@@ -294,16 +303,18 @@ int main(int argc, char** argv) {
         if (audio_backend && audio_backend->IsInitialized()) {
           auto status = audio_backend->GetStatus();
           // Keep up to 6 frames queued
-          if (status.queued_frames <= static_cast<uint32_t>(wanted_samples * 6)) {
+          if (status.queued_frames <=
+              static_cast<uint32_t>(wanted_samples * 6)) {
             // Use QueueSamplesNative for proper resampling (32040 Hz -> device rate)
             // DO NOT use QueueSamples directly - that causes 1.5x speed bug!
-            if (!audio_backend->QueueSamplesNative(audio_buffer.get(), wanted_samples,
-                                                    2, kNativeSampleRate)) {
+            if (!audio_backend->QueueSamplesNative(
+                    audio_buffer.get(), wanted_samples, 2, kNativeSampleRate)) {
               // If resampling failed, try to re-enable and retry once
               if (audio_backend->SupportsAudioStream()) {
-                audio_backend->SetAudioStreamResampling(true, kNativeSampleRate, 2);
-                audio_backend->QueueSamplesNative(audio_buffer.get(), wanted_samples,
-                                                   2, kNativeSampleRate);
+                audio_backend->SetAudioStreamResampling(true, kNativeSampleRate,
+                                                        2);
+                audio_backend->QueueSamplesNative(
+                    audio_buffer.get(), wanted_samples, 2, kNativeSampleRate);
               }
             }
           }
@@ -316,7 +327,7 @@ int main(int argc, char** argv) {
                                   &ppu_pitch)) {
           uint8_t* pixels = static_cast<uint8_t*>(ppu_pixels);
           snes_.SetPixels(pixels);
-          
+
           // Fix red tint if enabled (BGR -> RGB swap)
           // This assumes 32-bit BGRA/RGBA buffer. PPU outputs XRGB.
           // SDL textures are often ARGB/BGRA.
@@ -329,7 +340,7 @@ int main(int argc, char** argv) {
               pixels[i * 4 + 2] = b;
             }
           }
-          
+
           renderer->UnlockTexture(ppu_texture);
         }
       }
@@ -337,29 +348,33 @@ int main(int argc, char** argv) {
 
     // Present rendered frame
     window_backend->NewImGuiFrame();
-    
+
     // Simple debug overlay
     ImGui::Begin("Emulator Stats");
     ImGui::Text("Frame: %d", frame_count);
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     ImGui::Checkbox("Fix Red Tint", &fix_red_tint);
     if (loaded) {
-        ImGui::Separator();
-        ImGui::Text("CPU PC: $%02X:%04X", snes_.cpu().PB, snes_.cpu().PC);
-        ImGui::Text("SPC PC: $%04X", snes_.apu().spc700().PC);
+      ImGui::Separator();
+      ImGui::Text("CPU PC: $%02X:%04X", snes_.cpu().PB, snes_.cpu().PC);
+      ImGui::Text("SPC PC: $%04X", snes_.apu().spc700().PC);
     }
     ImGui::End();
-    
+
     renderer->Clear();
-    
+
     // Render texture (scaled to window)
     // TODO: Use proper aspect ratio handling
     renderer->RenderCopy(ppu_texture, nullptr, nullptr);
-    
+
     // Render ImGui draw data and handle viewports
-    window_backend->RenderImGui(renderer.get()); 
-    
+    window_backend->RenderImGui(renderer.get());
+
     renderer->Present();
+
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+    yaze::test::TestManager::Get().OnPostSwap();
+#endif
   }
 
   // === Cleanup SDL resources (in reverse order of initialization) ===

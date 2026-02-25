@@ -4,6 +4,7 @@
 #include <deque>
 #include <functional>
 #include <string>
+#include <unordered_map>
 
 #include "app/editor/dungeon/dungeon_workbench_state.h"
 #include "app/editor/system/editor_panel.h"
@@ -23,8 +24,6 @@ class DungeonWorkbenchPanel : public EditorPanel {
  public:
   DungeonWorkbenchPanel(
       DungeonRoomSelector* room_selector, int* current_room_id,
-      int* previous_room_id, bool* split_view_enabled, int* compare_room_id,
-      DungeonWorkbenchLayoutState* layout_state,
       std::function<void(int)> on_room_selected,
       std::function<void(int, RoomSelectionIntent)>
           on_room_selected_with_intent,
@@ -44,6 +43,11 @@ class DungeonWorkbenchPanel : public EditorPanel {
 
   void SetRom(Rom* rom);
 
+  /// Called by the editor when the current room changes.
+  void NotifyRoomChanged(int previous_room_id) {
+    previous_room_id_ = previous_room_id;
+  }
+
   void Draw(bool* p_open) override;
 
  private:
@@ -56,12 +60,18 @@ class DungeonWorkbenchPanel : public EditorPanel {
   void DrawInspectorShelfView(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfTools(DungeonCanvasViewer& viewer);
 
+  // Lazily build a room_id → dungeon_name cache from ROM entrance tables so the
+  // room badge can show accurate group context for custom Oracle dungeons.
+  void BuildRoomDungeonCache();
+
   DungeonRoomSelector* room_selector_ = nullptr;
   int* current_room_id_ = nullptr;
-  int* previous_room_id_ = nullptr;
-  bool* split_view_enabled_ = nullptr;
-  int* compare_room_id_ = nullptr;
-  DungeonWorkbenchLayoutState* layout_state_ = nullptr;
+
+  // Workbench-owned UI state (was in DungeonEditorV2, moved here Phase 6.2).
+  int previous_room_id_ = -1;
+  bool split_view_enabled_ = false;
+  int compare_room_id_ = -1;
+  DungeonWorkbenchLayoutState layout_state_{};
   std::function<void(int)> on_room_selected_;
   std::function<void(int, RoomSelectionIntent)> on_room_selected_with_intent_;
   std::function<void(int)> on_save_room_;
@@ -79,6 +89,10 @@ class DungeonWorkbenchPanel : public EditorPanel {
   bool prev_show_left_ = true;
   bool prev_show_right_ = true;
   int table_generation_ = 0;
+
+  // ROM-based room→dungeon group label cache (lazy-built on first room render).
+  std::unordered_map<int, std::string> room_dungeon_cache_;
+  bool room_dungeon_cache_built_ = false;
 };
 
 }  // namespace yaze::editor

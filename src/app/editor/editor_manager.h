@@ -32,7 +32,9 @@
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/editor_manager_interfaces.h"
 #include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/rom_lifecycle_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/dashboard_panel.h"
@@ -84,7 +86,7 @@ namespace editor {
  * notifications (SessionSwitchedEvent, SessionCreatedEvent, etc.) and
  * updates cross-cutting concerns accordingly.
  */
-class EditorManager {
+class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
  public:
   struct UiSyncState {
     uint64_t frame_id = 0;
@@ -157,7 +159,7 @@ class EditorManager {
   }
 
   absl::Status SetCurrentRom(Rom* rom);
-  auto GetCurrentRom() const -> Rom* {
+  Rom* GetCurrentRom() const override {
     return session_coordinator_ ? session_coordinator_->GetCurrentRom()
                                 : nullptr;
   }
@@ -170,7 +172,9 @@ class EditorManager {
                                 : nullptr;
   }
   auto GetCurrentEditor() const -> Editor* { return current_editor_; }
-  std::string GetCurrentRomHash() const { return current_rom_hash_; }
+  std::string GetCurrentRomHash() const {
+    return rom_lifecycle_.current_rom_hash();
+  }
   project::RomRole GetProjectRomRole() const {
     return current_project_.rom_metadata.role;
   }
@@ -180,21 +184,27 @@ class EditorManager {
   std::string GetProjectExpectedRomHash() const {
     return current_project_.rom_metadata.expected_hash;
   }
-  bool IsRomHashMismatch() const;
+  bool IsRomHashMismatch() const {
+    return rom_lifecycle_.IsRomHashMismatch();
+  }
   std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
   absl::Status RestoreRomBackup(const std::string& backup_path);
   absl::Status PruneRomBackups();
-  void ConfirmRomWrite();
-  void CancelRomWriteConfirm();
-  bool IsRomWriteConfirmPending() const { return pending_rom_write_confirm_; }
+  void ConfirmRomWrite() { rom_lifecycle_.ConfirmRomWrite(); }
+  void CancelRomWriteConfirm() { rom_lifecycle_.CancelRomWriteConfirm(); }
+  bool IsRomWriteConfirmPending() const {
+    return rom_lifecycle_.IsRomWriteConfirmPending();
+  }
 
   // Write conflict warning (ASM-owned address protection)
   const std::vector<core::WriteConflict>& pending_write_conflicts() const {
-    return pending_write_conflicts_;
+    return rom_lifecycle_.pending_write_conflicts();
   }
-  void BypassWriteConflictOnce() { bypass_write_conflict_once_ = true; }
-  void ClearPendingWriteConflicts() { pending_write_conflicts_.clear(); }
-  void SetCurrentEditor(Editor* editor) {
+  void BypassWriteConflictOnce() { rom_lifecycle_.BypassWriteConflictOnce(); }
+  void ClearPendingWriteConflicts() {
+    rom_lifecycle_.ClearPendingWriteConflicts();
+  }
+  void SetCurrentEditor(Editor* editor) override {
     current_editor_ = editor;
     // Update ContentRegistry context for panel access
     ContentRegistry::Context::SetCurrentEditor(editor);
@@ -248,8 +258,8 @@ class EditorManager {
 
   // Jump-to functionality for cross-editor navigation
   void SwitchToEditor(EditorType editor_type, bool force_visible = false,
-                      bool from_dialog = false);
-  void DismissEditorSelection();
+                      bool from_dialog = false) override;
+  void DismissEditorSelection() override;
 
   // Panel-based editor registry
   static bool IsPanelBasedEditor(EditorType type);
@@ -318,7 +328,7 @@ class EditorManager {
   UiSyncState GetUiSyncStateSnapshot() const;
 
   // Public for SessionCoordinator to configure new sessions
-  void ConfigureSession(RomSession* session);
+  void ConfigureSession(RomSession* session) override;
 
 #ifdef YAZE_WITH_GRPC
   void SetCanvasAutomationService(CanvasAutomationServiceImpl* service) {
@@ -367,13 +377,13 @@ class EditorManager {
   absl::Status SaveProjectAs();
 
   bool HasPendingPotItemSaveConfirmation() const {
-    return pending_pot_item_save_confirm_;
+    return rom_lifecycle_.HasPendingPotItemSaveConfirmation();
   }
   int pending_pot_item_unloaded_rooms() const {
-    return pending_pot_item_unloaded_rooms_;
+    return rom_lifecycle_.pending_pot_item_unloaded_rooms();
   }
   int pending_pot_item_total_rooms() const {
-    return pending_pot_item_total_rooms_;
+    return rom_lifecycle_.pending_pot_item_total_rooms();
   }
   void ResolvePotItemSaveConfirmation(PotItemSaveDecision decision);
   absl::Status ImportProject(const std::string& project_path);
@@ -504,7 +514,7 @@ class EditorManager {
 
   project::YazeProject current_project_;
   std::unique_ptr<core::VersionManager> version_manager_;
-  EditorDependencies::SharedClipboard shared_clipboard_;
+  SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
   MenuBuilder menu_builder_;
@@ -534,6 +544,7 @@ class EditorManager {
   emu::input::InputConfig BuildInputConfigFromSettings() const;
   void PersistInputConfig(const emu::input::InputConfig& config);
   void UpdateCurrentRomHash();
+  void ApplyDefaultBackupPolicy();
   absl::Status CheckRomWritePolicy();
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
 
@@ -542,19 +553,9 @@ class EditorManager {
   float settings_dirty_timestamp_ = 0.0f;
   bool pending_layout_defaults_reset_ = false;
 
-  // Save safety prompt state
-  bool pending_pot_item_save_confirm_ = false;
-  int pending_pot_item_unloaded_rooms_ = 0;
-  int pending_pot_item_total_rooms_ = 0;
-  bool bypass_pot_item_confirm_once_ = false;
-  bool suppress_pot_item_save_once_ = false;
-  bool pending_rom_write_confirm_ = false;
-  bool bypass_rom_write_confirm_once_ = false;
-  std::string current_rom_hash_;
-
-  // Write conflict warning state (ASM-owned address protection)
-  std::vector<core::WriteConflict> pending_write_conflicts_;
-  bool bypass_write_conflict_once_ = false;
+  // ROM lifecycle state (hash, write policy, confirmation dialogs, backups)
+  // Mutable because some const accessors delegate to it.
+  mutable RomLifecycleManager rom_lifecycle_;
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;

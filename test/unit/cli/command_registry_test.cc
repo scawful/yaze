@@ -48,5 +48,47 @@ TEST(CommandRegistryTest, DungeonSetCollisionTileHelpIncludesTilesSyntax) {
   EXPECT_THAT(help, ::testing::HasSubstr("10,5,0xB7;50,45,0xBA"));
 }
 
+TEST(CommandRegistryTest, DungeonOraclePreflightHelpIncludesExamples) {
+  // dungeon-oracle-preflight starts with "dungeon-" not "oracle-"; examples
+  // must be registered in the dungeon branch and thus be reachable.
+  auto& registry = CommandRegistry::Instance();
+  const std::string help = registry.GenerateHelp("dungeon-oracle-preflight");
+
+  EXPECT_THAT(help, ::testing::HasSubstr("Examples:"));
+  EXPECT_THAT(help, ::testing::HasSubstr("required-collision-rooms"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--report="));
+}
+
+TEST(CommandRegistryTest, OracleSmokeCheckHelpIncludesExamples) {
+  // oracle-smoke-check starts with "oracle-" and its examples are in the
+  // oracle branch — verify they're actually reachable.
+  auto& registry = CommandRegistry::Instance();
+  const std::string help = registry.GenerateHelp("oracle-smoke-check");
+
+  EXPECT_THAT(help, ::testing::HasSubstr("Examples:"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--strict-readiness"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--min-d6-track-rooms="));
+  EXPECT_THAT(help, ::testing::HasSubstr("--report="));
+}
+
+TEST(CommandRegistryTest, ProjectBundlePackHelpIncludesExamples) {
+  auto& registry = CommandRegistry::Instance();
+  const std::string help = registry.GenerateHelp("project-bundle-pack");
+
+  EXPECT_THAT(help, ::testing::HasSubstr("Examples:"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--project"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--out"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--overwrite"));
+}
+
+TEST(CommandRegistryTest, ProjectBundleUnpackHelpIncludesExamples) {
+  auto& registry = CommandRegistry::Instance();
+  const std::string help = registry.GenerateHelp("project-bundle-unpack");
+
+  EXPECT_THAT(help, ::testing::HasSubstr("Examples:"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--archive"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--out"));
+}
+
 }  // namespace
 }  // namespace yaze::cli

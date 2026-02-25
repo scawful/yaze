@@ -14,7 +14,7 @@ constexpr int kRoomMatrixCols = 16;
 constexpr int kRoomMatrixRows = 19;
 
 std::optional<int> RoomIfValid(int candidate) {
-  if (candidate < 0 || candidate >= zelda3::NumberOfRooms) {
+  if (candidate < 0 || candidate >= zelda3::kNumberOfRooms) {
     return std::nullopt;
   }
   return candidate;
@@ -56,7 +56,7 @@ bool ArrowButtonWithTooltip(const char* id, ImGuiDir dir,
 }  // namespace
 
 DungeonRoomNavWidget::Neighbors DungeonRoomNavWidget::GetNeighbors(int room_id) {
-  if (room_id < 0 || room_id >= zelda3::NumberOfRooms) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return {};
   }
 

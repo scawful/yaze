@@ -12,11 +12,11 @@
 namespace yaze {
 namespace editor {
 
-class EditorManager;
+class IEditorSwitcher;
 
 class DashboardPanel {
  public:
-  explicit DashboardPanel(EditorManager* editor_manager);
+  explicit DashboardPanel(IEditorSwitcher* editor_switcher);
   ~DashboardPanel() = default;
 
   void Draw();
@@ -48,7 +48,7 @@ class DashboardPanel {
   void DrawEditorPanel(const EditorInfo& info, int index,
                        const ImVec2& card_size, bool enabled);
 
-  EditorManager* editor_manager_;
+  IEditorSwitcher* editor_switcher_;
   gui::PanelWindow window_;
   bool show_ = true;
   bool has_rom_ = false;

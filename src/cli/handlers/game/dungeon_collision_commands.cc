@@ -252,6 +252,25 @@ json BuildPreflightJson(
   return out;
 }
 
+std::vector<int> RequiredCollisionRoomsForImportedWaterFillZones(
+    const std::vector<zelda3::WaterFillZoneEntry>& zones) {
+  constexpr std::array<int, 2> kD4RoomIdsRequiringCollision = {0x25, 0x27};
+
+  std::unordered_set<int> imported_rooms;
+  imported_rooms.reserve(zones.size());
+  for (const auto& zone : zones) {
+    imported_rooms.insert(zone.room_id);
+  }
+
+  std::vector<int> required_rooms;
+  for (int room_id : kD4RoomIdsRequiringCollision) {
+    if (imported_rooms.contains(room_id)) {
+      required_rooms.push_back(room_id);
+    }
+  }
+  return required_rooms;
+}
+
 }  // namespace
 
 absl::Status DungeonListCustomCollisionCommandHandler::Execute(
@@ -569,21 +588,32 @@ absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
           "WaterFill reserved region missing in this ROM");
     }
 
+    ASSIGN_OR_RETURN(const std::string json_content, ReadTextFile(in_path));
+    ASSIGN_OR_RETURN(auto zones,
+                     zelda3::LoadWaterFillZonesFromJsonString(json_content));
+    const auto required_collision_rooms =
+        RequiredCollisionRoomsForImportedWaterFillZones(zones);
+    if (!required_collision_rooms.empty()) {
+      json required_rooms_json = json::array();
+      for (int room_id : required_collision_rooms) {
+        required_rooms_json.push_back(absl::StrFormat("0x%02X", room_id));
+      }
+      report["required_collision_rooms"] = std::move(required_rooms_json);
+    }
+
     zelda3::OracleRomSafetyPreflightOptions preflight_options;
     preflight_options.require_water_fill_reserved_region = true;
     preflight_options.require_custom_collision_write_support = false;
     preflight_options.validate_water_fill_table = true;
     preflight_options.validate_custom_collision_maps = true;
+    preflight_options.room_ids_requiring_custom_collision =
+        required_collision_rooms;
     const auto preflight =
         zelda3::RunOracleRomSafetyPreflight(rom, preflight_options);
     report["preflight"] = BuildPreflightJson(preflight);
     if (!preflight.ok()) {
       return preflight.ToStatus();
     }
-
-    ASSIGN_OR_RETURN(const std::string json_content, ReadTextFile(in_path));
-    ASSIGN_OR_RETURN(auto zones,
-                     zelda3::LoadWaterFillZonesFromJsonString(json_content));
 
     auto original_zones = zones;
     RETURN_IF_ERROR(zelda3::NormalizeWaterFillZoneMasks(&zones));

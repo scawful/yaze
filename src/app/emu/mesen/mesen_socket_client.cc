@@ -478,9 +478,49 @@ absl::Status MesenSocketClient::Frame() {
   return result.status();
 }
 
-absl::Status MesenSocketClient::Step(int count) {
-  auto result =
-      SendCommand(BuildJsonCommand("STEP", {{"count", std::to_string(count)}}));
+absl::Status MesenSocketClient::Step(int count, const std::string& mode) {
+  auto result = SendCommand(BuildJsonCommand(
+      "STEP", {{"count", std::to_string(count)}, {"mode", mode}}));
+  return result.status();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Input Commands
+// ─────────────────────────────────────────────────────────────────────────────
+
+absl::Status MesenSocketClient::SetButton(emu::input::SnesButton button,
+                                          bool pressed) {
+  current_input_.SetButton(button, pressed);
+  return SetButtons(current_input_);
+}
+
+absl::Status MesenSocketClient::SetButtons(
+    const emu::input::ControllerState& state) {
+  current_input_ = state;
+
+  std::vector<std::string> buttons;
+  if (state.IsPressed(emu::input::SnesButton::A)) buttons.push_back("a");
+  if (state.IsPressed(emu::input::SnesButton::B)) buttons.push_back("b");
+  if (state.IsPressed(emu::input::SnesButton::X)) buttons.push_back("x");
+  if (state.IsPressed(emu::input::SnesButton::Y)) buttons.push_back("y");
+  if (state.IsPressed(emu::input::SnesButton::L)) buttons.push_back("l");
+  if (state.IsPressed(emu::input::SnesButton::R)) buttons.push_back("r");
+  if (state.IsPressed(emu::input::SnesButton::SELECT))
+    buttons.push_back("select");
+  if (state.IsPressed(emu::input::SnesButton::START))
+    buttons.push_back("start");
+  if (state.IsPressed(emu::input::SnesButton::UP)) buttons.push_back("up");
+  if (state.IsPressed(emu::input::SnesButton::DOWN)) buttons.push_back("down");
+  if (state.IsPressed(emu::input::SnesButton::LEFT)) buttons.push_back("left");
+  if (state.IsPressed(emu::input::SnesButton::RIGHT)) buttons.push_back("right");
+
+  std::string buttons_str;
+  for (size_t i = 0; i < buttons.size(); ++i) {
+    if (i > 0) buttons_str += ",";
+    buttons_str += buttons[i];
+  }
+
+  auto result = SendCommand(BuildJsonCommand("INPUT", {{"buttons", buttons_str}}));
   return result.status();
 }
 

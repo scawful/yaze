@@ -33,12 +33,12 @@ std::string GenerateProposalId() {
 std::string BuildRoomRawJson(const zelda3::Room& room) {
   nlohmann::json payload = nlohmann::json::object();
   payload["room_id"] = room.id();
-  payload["layout"] = room.layout;
+  payload["layout"] = room.layout_id();
   payload["floor1"] = room.floor1();
   payload["floor2"] = room.floor2();
-  payload["blockset"] = room.blockset;
-  payload["spriteset"] = room.spriteset;
-  payload["palette"] = room.palette;
+  payload["blockset"] = room.blockset();
+  payload["spriteset"] = room.spriteset();
+  payload["palette"] = room.palette();
   payload["effect"] = static_cast<int>(room.effect());
   payload["tag1"] = static_cast<int>(room.tag1());
   payload["tag2"] = static_cast<int>(room.tag2());

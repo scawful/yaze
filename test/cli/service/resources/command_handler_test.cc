@@ -58,6 +58,25 @@ class MockRomCommandHandler : public CommandHandler {
   bool rom_loaded_ = false;
 };
 
+class FailingCommandHandler : public CommandHandler {
+ public:
+  std::string GetName() const override { return "failing"; }
+  std::string GetUsage() const override { return "failing"; }
+  bool RequiresRom() const override { return false; }
+
+ protected:
+  absl::Status ValidateArgs(const ArgumentParser&) override {
+    return absl::OkStatus();
+  }
+
+  absl::Status Execute(Rom*, const ArgumentParser&,
+                       OutputFormatter& formatter) override {
+    formatter.AddField("status", "fail");
+    formatter.AddField("reason", "expected");
+    return absl::FailedPreconditionError("expected failure");
+  }
+};
+
 TEST(CommandHandlerTest, RunWithoutRomUsesFormatter) {
   NoRomCommandHandler handler;
   std::string output;
@@ -87,6 +106,17 @@ TEST(CommandHandlerTest, RunRejectsUnknownFormat) {
   EXPECT_FALSE(status.ok());
   EXPECT_THAT(std::string(status.message()),
               ::testing::HasSubstr("Unknown format"));
+}
+
+TEST(CommandHandlerTest, RunCapturesFormatterOutputOnExecuteFailure) {
+  FailingCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run({"--format=json"}, nullptr, &output);
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(output, ::testing::HasSubstr("\"status\": \"fail\""));
+  EXPECT_THAT(output, ::testing::HasSubstr("\"reason\": \"expected\""));
 }
 
 }  // namespace

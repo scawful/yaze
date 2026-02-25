@@ -369,7 +369,7 @@ class DungeonMapPanel : public EditorPanel {
         ImGui::Text("[%03X] %s", room_id, 
                     zelda3::GetRoomLabel(room_id).c_str());
         if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-          ImGui::TextDisabled("Palette: %d", (*rooms_)[room_id].palette);
+          ImGui::TextDisabled("Palette: %d", (*rooms_)[room_id].palette());
         }
         ImGui::TextDisabled("Click to select");
         ImGui::EndTooltip();

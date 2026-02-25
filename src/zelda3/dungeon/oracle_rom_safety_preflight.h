@@ -38,6 +38,16 @@ struct OracleRomSafetyPreflightOptions {
   bool validate_custom_collision_maps = true;
   // Limit per-room collision map errors to keep reports actionable.
   int max_collision_errors = 8;
+
+  // Room IDs that must have non-empty custom collision data authored.
+  //
+  // Use this to verify that game-mechanic-critical rooms (e.g. the D3 Kalyxo
+  // Castle prison escape room, which requires MinishSwitch collision geometry)
+  // have been fully authored before any write path is allowed to proceed.
+  //
+  // Rooms are checked independently of validate_custom_collision_maps.
+  // Errors use code "ORACLE_REQUIRED_ROOM_MISSING_COLLISION".
+  std::vector<int> room_ids_requiring_custom_collision;
 };
 
 // Run Oracle ROM safety checks used by save/import write paths.

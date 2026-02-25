@@ -1,9 +1,11 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_BASE_ENTITY_HANDLER_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_BASE_ENTITY_HANDLER_H_
 
+#include <algorithm>
 #include <optional>
 #include <utility>
 
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "imgui/imgui.h"
@@ -125,8 +127,59 @@ class BaseEntityHandler {
   virtual std::optional<size_t> GetEntityAtPosition(int canvas_x,
                                                      int canvas_y) const = 0;
 
+  // Per-frame toast render called unconditionally by InteractionCoordinator so
+  // the "Placed" message remains visible even after the user exits placement
+  // mode immediately after a successful click.
+  void DrawPostPlacementToast() {
+    if (ImGui::GetCurrentContext() == nullptr) return;
+    DrawSuccessToastOverlay("Placed",
+                            ImGui::GetColorU32(AgentUI::GetTheme().status_success));
+  }
+
  protected:
   InteractionContext* ctx_ = nullptr;
+
+  // ========================================================================
+  // Placement Success Toast (shared by all derived handlers)
+  // ========================================================================
+
+  // Call after a successful entity placement.  Extends the toast display by
+  // kToastDuration seconds; rapid placements simply prolong the same toast.
+  void TriggerSuccessToast() {
+    if (ImGui::GetCurrentContext() == nullptr) return;
+    toast_expire_time_ =
+        static_cast<float>(ImGui::GetTime()) + kToastDuration;
+  }
+
+  // Draw a fading "OK" toast near the canvas origin.
+  // @param msg  Short message to display (e.g. "Placed").
+  // @param color Opaque RGBA colour for the text (alpha will be modulated).
+  void DrawSuccessToastOverlay(const char* msg, ImU32 color) const {
+    if (ImGui::GetCurrentContext() == nullptr) return;
+    if (toast_expire_time_ <= 0.0f ||
+        ImGui::GetTime() >= toast_expire_time_) {
+      return;
+    }
+    float remaining =
+        toast_expire_time_ - static_cast<float>(ImGui::GetTime());
+    // Fade out during the last 0.4 s; keep full opacity the rest of the time.
+    float alpha = std::min(1.0f, remaining / 0.4f);
+    // Blend alpha into supplied colour.
+    ImU32 base_rgb = color & 0x00FFFFFFu;
+    ImU32 alpha_ch = static_cast<ImU32>(alpha * 255.0f) << 24;
+    ImU32 toast_color = base_rgb | alpha_ch;
+
+    ImVec2 canvas_pos = GetCanvasZeroPoint();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    // Render near the top-left canvas corner so it never overlaps tiles.
+    draw_list->AddText(ImVec2(canvas_pos.x + 8.0f, canvas_pos.y + 6.0f),
+                       toast_color, msg);
+  }
+
+  // Shared toast expiry timestamp (seconds, from ImGui::GetTime()).
+  float toast_expire_time_ = 0.0f;
+
+  static constexpr float kToastDuration = 1.5f;
 
   // ========================================================================
   // Helper Methods (available to all derived handlers)

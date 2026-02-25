@@ -20,8 +20,8 @@ namespace gfx {
 std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
                                          int const oldsize, int* const size,
                                          int const flag) {
-  unsigned char* b2 =
-      (unsigned char*)malloc(0x1000);  // allocate a 2^12 sized buffer
+  // Allocate buffer large enough for worst-case output
+  std::vector<uint8_t> b2(std::max(0x1000, oldsize * 2));
 
   int i, j, k, l, m = 0, n, o = 0, bd = 0, p, q = 0, r;
 
@@ -48,10 +48,6 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
 
     for (n = i + 1; n < oldsize; n++) {
       if (src[n] != l) {
-        // look for chars identical to the first one.
-        // stop if we can't find one.
-        // n will reach i+k+1 for some k >= 0.
-
         break;
       }
     }
@@ -107,7 +103,7 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
         b2[bd++] = (unsigned char)q;
         q++;
 
-        memcpy(b2 + bd, src + i - q, q);
+        memcpy(b2.data() + bd, src + i - q, q);
 
         bd += q;
         q = 0;
@@ -158,24 +154,22 @@ std::vector<uint8_t> HyruleMagicCompress(uint8_t const* const src,
     b2[bd++] = (unsigned char)q;
     q++;
 
-    memcpy(b2 + bd, src + i - q, q);
+    memcpy(b2.data() + bd, src + i - q, q);
 
     bd += q;
   }
 
   b2[bd++] = 255;
-  b2 = (unsigned char*)realloc(b2, bd);
+  b2.resize(bd);
   *size = bd;
 
-  std::vector<uint8_t> compressed_data(b2, b2 + bd);
-  free(b2);
-  return compressed_data;
+  return b2;
 }
 
 std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
                                            int const p_big_endian,
                                            size_t max_src_size) {
-  unsigned char* b2 = (unsigned char*)malloc(1024);
+  std::vector<uint8_t> b2(1024);
   const uint8_t* const src_start = src;
 
   int bd = 0, bs = 1024;
@@ -184,234 +178,200 @@ std::vector<uint8_t> HyruleMagicDecompress(uint8_t const* src, int* const size,
   unsigned char b;
   unsigned short c, d;
 
-  for (;;) {
-    // Bounds check: Ensure we can read at least one byte (command)
-    if (max_src_size != static_cast<size_t>(-1) &&
-        (size_t)(src - src_start) >= max_src_size) {
-      std::cerr << "HyruleMagicDecompress: Reached end of buffer unexpectedly."
-                << std::endl;
-      break;
-    }
-
-    // retrieve a uint8_t from the buffer.
-    a = *(src++);
-
-    // end the decompression routine if we encounter 0xff.
-    if (a == 0xff)
-      break;
-
-    // examine the top 3 bits of a.
-    b = (a >> 5);
-
-    if (b == 7)  // i.e. 0b 111
-    {
-      // get bits 0b 0001 1100
-      b = ((a >> 2) & 7);
-
-      // get bits 0b 0000 0011, multiply by 256, OR with the next byte.
-      c = ((a & 0x0003) << 8);
-
-      // Bounds check: Ensure we can read the next byte
+  // Use a lambda to allow early returns instead of goto end_decompression
+  auto decompress_loop = [&]() {
+    for (;;) {
+      // Bounds check: Ensure we can read at least one byte (command)
       if (max_src_size != static_cast<size_t>(-1) &&
           (size_t)(src - src_start) >= max_src_size) {
-        std::cerr << "HyruleMagicDecompress: Reached end of buffer reading "
-                     "extended len"
-                  << std::endl;
-        break;
+        std::cerr
+            << "HyruleMagicDecompress: Reached end of buffer unexpectedly."
+            << std::endl;
+        return;
       }
-      c |= *(src++);
-    } else
-      // or get bits 0b 0001 1111
-      c = (uint16_t)(a & 31);
 
-    c++;
+      // retrieve a uint8_t from the buffer.
+      a = *(src++);
 
-    if ((bd + c) > (bs - 512)) {
-      // need to increase the buffer size.
-      bs += 1024;
-      // Safety check for excessive allocation
-      if (bs > 1024 * 1024 * 16) {  // 16MB limit
-        std::cerr << "HyruleMagicDecompress: Excessive allocation detected."
-                  << std::endl;
-        free(b2);
-        return std::vector<uint8_t>();
-      }
-      unsigned char* new_b2 = (unsigned char*)realloc(b2, bs);
-      if (!new_b2) {
-        free(b2);
-        return std::vector<uint8_t>();
-      }
-      b2 = new_b2;
-    }
+      // end the decompression routine if we encounter 0xff.
+      if (a == 0xff)
+        return;
 
-    // 7 was handled, here we handle other decompression codes.
+      // examine the top 3 bits of a.
+      b = (a >> 5);
 
-    switch (b) {
-      case 0:  // 0b 000
+      if (b == 7)  // i.e. 0b 111
+      {
+        // get bits 0b 0001 1100
+        b = ((a >> 2) & 7);
 
-        // raw copy
+        // get bits 0b 0000 0011, multiply by 256, OR with the next byte.
+        c = ((a & 0x0003) << 8);
 
-        // Bounds check: Ensure we can read c bytes
-        if (max_src_size != static_cast<size_t>(-1) &&
-            (size_t)(src - src_start + c) > max_src_size) {
-          std::cerr << "HyruleMagicDecompress: Raw copy exceeds buffer."
-                    << std::endl;
-          goto end_decompression;
-        }
-
-        // copy info from the src buffer to our new buffer,
-        // at offset bd (which we'll be increasing;
-        memcpy(b2 + bd, src, c);
-
-        // increment the src pointer accordingly.
-        src += c;
-
-        bd += c;
-
-        break;
-
-      case 1:  // 0b 001
-
-        // rle copy
-
-        // Bounds check: Ensure we can read 1 byte
+        // Bounds check: Ensure we can read the next byte
         if (max_src_size != static_cast<size_t>(-1) &&
             (size_t)(src - src_start) >= max_src_size) {
-          std::cerr << "HyruleMagicDecompress: RLE copy exceeds buffer."
+          std::cerr << "HyruleMagicDecompress: Reached end of buffer reading "
+                       "extended len"
                     << std::endl;
-          goto end_decompression;
+          return;
         }
+        c |= *(src++);
+      } else
+        // or get bits 0b 0001 1111
+        c = (uint16_t)(a & 31);
 
-        // make c duplicates of one byte, inc the src pointer.
-        memset(b2 + bd, *(src++), c);
+      c++;
 
-        // increase the b2 offset.
-        bd += c;
-
-        break;
-
-      case 2:  // 0b 010
-
-        // rle 16-bit alternating copy
-
-        // Bounds check: Ensure we can read 2 bytes
-        if (max_src_size != static_cast<size_t>(-1) &&
-            (size_t)(src - src_start + 2) > max_src_size) {
-          std::cerr << "HyruleMagicDecompress: RLE 16-bit copy exceeds buffer."
+      if ((bd + c) > (bs - 512)) {
+        // need to increase the buffer size.
+        bs += 1024;
+        // Safety check for excessive allocation
+        if (bs > 1024 * 1024 * 16) {  // 16MB limit
+          std::cerr << "HyruleMagicDecompress: Excessive allocation detected."
                     << std::endl;
-          goto end_decompression;
+          bd = 0;
+          return;
         }
+        b2.resize(bs);
+      }
 
-        d = zelda3::ldle16b(src);
+      // 7 was handled, here we handle other decompression codes.
 
-        src += 2;
+      switch (b) {
+        case 0:  // 0b 000
 
-        while (c > 1) {
-          // copy that 16-bit number c/2 times into the b2 buffer.
-          zelda3::stle16b(b2 + bd, d);
+          // raw copy
 
-          bd += 2;
-          c -= 2;  // hence c/2
-        }
+          // Bounds check: Ensure we can read c bytes
+          if (max_src_size != static_cast<size_t>(-1) &&
+              (size_t)(src - src_start + c) > max_src_size) {
+            std::cerr << "HyruleMagicDecompress: Raw copy exceeds buffer."
+                      << std::endl;
+            return;
+          }
 
-        if (c)  // if there's a remainder of c/2, this handles it.
-          b2[bd++] = (char)d;
+          // copy info from the src buffer to our new buffer
+          memcpy(b2.data() + bd, src, c);
 
-        break;
+          // increment the src pointer accordingly.
+          src += c;
 
-      case 3:  // 0b 011
+          bd += c;
 
-        // incrementing copy
+          break;
 
-        // Bounds check: Ensure we can read 1 byte
-        if (max_src_size != static_cast<size_t>(-1) &&
-            (size_t)(src - src_start) >= max_src_size) {
-          std::cerr << "HyruleMagicDecompress: Inc copy exceeds buffer."
-                    << std::endl;
-          goto end_decompression;
-        }
+        case 1:  // 0b 001
 
-        // get the current src byte.
-        a = *(src++);
+          // rle copy
 
-        while (c--) {
-          // increment that byte and copy to b2 in c iterations.
-          // e.g. a = 4, b2 will have 4,5,6,7,8... written to it.
-          b2[bd++] = a++;
-        }
+          // Bounds check: Ensure we can read 1 byte
+          if (max_src_size != static_cast<size_t>(-1) &&
+              (size_t)(src - src_start) >= max_src_size) {
+            std::cerr << "HyruleMagicDecompress: RLE copy exceeds buffer."
+                      << std::endl;
+            return;
+          }
 
-        break;
+          // make c duplicates of one byte, inc the src pointer.
+          memset(b2.data() + bd, *(src++), c);
 
-      default:  // 0b 100, 101, 110
+          // increase the b2 offset.
+          bd += c;
 
-        // lz copy
+          break;
 
-        // Bounds check: Ensure we can read 2 bytes
-        if (max_src_size != static_cast<size_t>(-1) &&
-            (size_t)(src - src_start + 2) > max_src_size) {
-          std::cerr << "HyruleMagicDecompress: LZ copy exceeds buffer."
-                    << std::endl;
-          goto end_decompression;
-        }
+        case 2:  // 0b 010
 
-        if (p_big_endian) {
-          d = (*src << 8) + src[1];
-        } else {
+          // rle 16-bit alternating copy
+
+          // Bounds check: Ensure we can read 2 bytes
+          if (max_src_size != static_cast<size_t>(-1) &&
+              (size_t)(src - src_start + 2) > max_src_size) {
+            std::cerr
+                << "HyruleMagicDecompress: RLE 16-bit copy exceeds buffer."
+                << std::endl;
+            return;
+          }
+
           d = zelda3::ldle16b(src);
-        }
 
-        // Safety check for LZ back-reference
-        if (d >= bd) {
-          // This is technically allowed in some LZ variants (referencing future bytes that are 0 initialized)
-          // but usually indicates corruption in this context if d is way out.
-          // However, standard LZ references previous data.
-          // If d is an absolute offset in the buffer, it must be < bd?
-          // Wait, b2[d++] implies d is an index into b2.
-          // If d >= bd, we are reading uninitialized data or data we haven't written yet.
-          // But if it's a sliding window, d could be relative?
-          // The code says `b2[d++]`. This looks like absolute offset in output buffer.
-          // If d > bd, it's definitely suspicious, but maybe valid if it wraps?
-          // But this implementation reallocs b2, so it's a linear buffer.
-          // Let's just check if d + c > bs (buffer size) or something?
-          // Actually, if d points to garbage, we just copy garbage.
-          // But if d exceeds allocated memory, we crash.
-          // We realloc b2 to `bs`. So we must ensure `d + c <= bs`?
-          // No, `d` increments.
-          // We need to ensure `d` stays within valid `b2` range.
-          // Since we are writing to `bd`, `d` should probably be < `bd` usually.
-          // But let's just ensure `d < bs`.
-        }
+          src += 2;
 
-        while (c--) {
-          // copy from a different location in the buffer.
-          if (d >= bs) {
-            // Expand buffer if needed? Or just clamp?
-            // If we are reading past buffer size, it's bad.
-            // But we might have realloced b2 to be larger than bd.
-            // So d < bs is the hard limit.
-            if (d >= bs) {
+          while (c > 1) {
+            // copy that 16-bit number c/2 times into the b2 buffer.
+            zelda3::stle16b(b2.data() + bd, d);
+
+            bd += 2;
+            c -= 2;  // hence c/2
+          }
+
+          if (c)  // if there's a remainder of c/2, this handles it.
+            b2[bd++] = (char)d;
+
+          break;
+
+        case 3:  // 0b 011
+
+          // incrementing copy
+
+          // Bounds check: Ensure we can read 1 byte
+          if (max_src_size != static_cast<size_t>(-1) &&
+              (size_t)(src - src_start) >= max_src_size) {
+            std::cerr << "HyruleMagicDecompress: Inc copy exceeds buffer."
+                      << std::endl;
+            return;
+          }
+
+          // get the current src byte.
+          a = *(src++);
+
+          while (c--) {
+            b2[bd++] = a++;
+          }
+
+          break;
+
+        default:  // 0b 100, 101, 110
+
+          // lz copy
+
+          // Bounds check: Ensure we can read 2 bytes
+          if (max_src_size != static_cast<size_t>(-1) &&
+              (size_t)(src - src_start + 2) > max_src_size) {
+            std::cerr << "HyruleMagicDecompress: LZ copy exceeds buffer."
+                      << std::endl;
+            return;
+          }
+
+          if (p_big_endian) {
+            d = (*src << 8) + src[1];
+          } else {
+            d = zelda3::ldle16b(src);
+          }
+
+          while (c--) {
+            if (d >= static_cast<unsigned short>(bs)) {
               std::cerr << "HyruleMagicDecompress: LZ ref out of bounds."
                         << std::endl;
-              goto end_decompression;
+              return;
             }
+            b2[bd++] = b2[d++];
           }
-          b2[bd++] = b2[d++];
-        }
 
-        src += 2;
+          src += 2;
+      }
     }
-  }
+  };
 
-end_decompression:
-  b2 = (unsigned char*)realloc(b2, bd);
+  decompress_loop();
+
+  b2.resize(bd);
 
   if (size)
     (*size) = bd;
 
-  // return the unsigned char* buffer b2, which contains the uncompressed data.
-  std::vector<uint8_t> decompressed_data(b2, b2 + bd);
-  free(b2);
-  return decompressed_data;
+  return b2;
 }
 
 namespace lc_lz2 {

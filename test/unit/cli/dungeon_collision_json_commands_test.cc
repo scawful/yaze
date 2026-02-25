@@ -1,5 +1,6 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -27,6 +28,34 @@ std::string ReadFile(const std::filesystem::path& path) {
 void WriteFile(const std::filesystem::path& path, const std::string& contents) {
   std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc);
   out << contents;
+}
+
+void SeedCustomCollisionRooms(Rom* rom, const std::vector<int>& room_ids) {
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto in_path = std::filesystem::temp_directory_path() /
+                       ("yaze_seed_required_collision_" +
+                        std::to_string(nonce) + ".json");
+
+  nlohmann::json payload;
+  payload["version"] = 1;
+  payload["rooms"] = nlohmann::json::array();
+  for (int room_id : room_ids) {
+    payload["rooms"].push_back({
+        {"room_id", room_id},
+        {"tiles", nlohmann::json::array({nlohmann::json::array({100, 184})})},
+    });
+  }
+
+  WriteFile(in_path, payload.dump(2) + "\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, rom, &output);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  std::filesystem::remove(in_path);
 }
 
 TEST(DungeonCollisionJsonCommandsTest, CustomCollisionImportExportRoundTrip) {
@@ -104,6 +133,7 @@ TEST(DungeonCollisionJsonCommandsTest,
 TEST(DungeonCollisionJsonCommandsTest, WaterFillImportNormalizesMasks) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
   const auto in_path = std::filesystem::temp_directory_path() /
                        "yaze_water_fill_import_test.json";
@@ -231,6 +261,7 @@ TEST(DungeonCollisionJsonCommandsTest, CustomCollisionReplaceAllRequiresForce) {
 TEST(DungeonCollisionJsonCommandsTest, WaterFillImportDryRunDoesNotWrite) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  SeedCustomCollisionRooms(&rom, {0x27});
 
   const auto in_path =
       std::filesystem::temp_directory_path() / "yaze_water_fill_dry_run.json";
@@ -257,9 +288,53 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillImportDryRunDoesNotWrite) {
 }
 
 TEST(DungeonCollisionJsonCommandsTest,
+     WaterFillImportFailsWhenRequiredD4RoomHasNoCollisionData) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  const auto in_path =
+      std::filesystem::temp_directory_path() / "yaze_water_fill_required_room.json";
+  const auto report_path = std::filesystem::temp_directory_path() /
+                           "yaze_water_fill_required_room.report.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"zones\": [\n"
+            "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--in", in_path.string(), "--dry-run",
+                   "--report", report_path.string(), "--format=json"},
+                  &rom, &output);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+
+  const auto report = nlohmann::json::parse(ReadFile(report_path));
+  ASSERT_TRUE(report.contains("preflight"));
+  ASSERT_TRUE(report["preflight"].contains("errors"));
+
+  bool found_required_room_error = false;
+  for (const auto& err : report["preflight"]["errors"]) {
+    if (err.value("code", "") == "ORACLE_REQUIRED_ROOM_MISSING_COLLISION") {
+      found_required_room_error = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found_required_room_error);
+
+  std::filesystem::remove(in_path);
+  std::filesystem::remove(report_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
      WaterFillImportStrictMasksFailsAndWritesReport) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
   const auto in_path =
       std::filesystem::temp_directory_path() / "yaze_water_fill_strict.json";
@@ -350,6 +425,147 @@ TEST(DungeonCollisionJsonCommandsTest,
 
   std::filesystem::remove(in_path);
   std::filesystem::remove(report_path);
+}
+
+// ---------------------------------------------------------------------------
+// D4 Zora Temple water-profile tests
+//
+// D4 has two water-fill zones: room 0x25 (Water Grate, mask 0x02) and
+// room 0x27 (Water Gate, mask 0x01). These tests verify the profile constraint:
+// both zones must round-trip correctly and must receive unique, deterministic
+// SRAM bit masks.
+// ---------------------------------------------------------------------------
+
+TEST(DungeonCollisionJsonCommandsTest,
+     ZoraTempleProfileBothRoomsRoundtrip) {
+  // Write both D4 zones with correct masks, then export+verify both survive.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  SeedCustomCollisionRooms(&rom, {0x25, 0x27});
+
+  const auto in_path = std::filesystem::temp_directory_path() /
+                       "yaze_d4_profile_import.json";
+  const auto out_path = std::filesystem::temp_directory_path() /
+                        "yaze_d4_profile_export.json";
+
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"zones\": [\n"
+            "    { \"room_id\": \"0x25\", \"mask\": \"0x02\", \"offsets\": [100, 101] },\n"
+            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [200, 201] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler import_handler;
+  std::string import_output;
+  ASSERT_TRUE(
+      import_handler
+          .Run({"--in", in_path.string(), "--format=json"}, &rom, &import_output)
+          .ok());
+
+  handlers::DungeonExportWaterFillJsonCommandHandler export_handler;
+  std::string export_output;
+  ASSERT_TRUE(
+      export_handler
+          .Run({"--rooms=0x25,0x27", "--out", out_path.string(), "--format=json"},
+               &rom, &export_output)
+          .ok());
+
+  auto zones_or =
+      zelda3::LoadWaterFillZonesFromJsonString(ReadFile(out_path));
+  ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
+  ASSERT_EQ(zones_or->size(), 2u);
+
+  // Both rooms must be present with their correct masks.
+  bool found_25 = false;
+  bool found_27 = false;
+  for (const auto& zone : *zones_or) {
+    if (zone.room_id == 0x25) {
+      EXPECT_EQ(zone.sram_bit_mask, 0x02u);
+      ASSERT_EQ(zone.fill_offsets.size(), 2u);
+      EXPECT_EQ(zone.fill_offsets[0], 100u);
+      found_25 = true;
+    } else if (zone.room_id == 0x27) {
+      EXPECT_EQ(zone.sram_bit_mask, 0x01u);
+      ASSERT_EQ(zone.fill_offsets.size(), 2u);
+      EXPECT_EQ(zone.fill_offsets[0], 200u);
+      found_27 = true;
+    }
+  }
+  EXPECT_TRUE(found_25) << "Room 0x25 (Water Grate) missing from export";
+  EXPECT_TRUE(found_27) << "Room 0x27 (Water Gate) missing from export";
+
+  std::filesystem::remove(in_path);
+  std::filesystem::remove(out_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     ZoraTempleProfileMaskNormalizationAssignsUniquePerRoom) {
+  // Both D4 zones with mask=0 (auto) must receive unique, non-zero masks.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  SeedCustomCollisionRooms(&rom, {0x25, 0x27});
+
+  const auto in_path = std::filesystem::temp_directory_path() /
+                       "yaze_d4_mask_norm.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"zones\": [\n"
+            "    { \"room_id\": \"0x27\", \"mask\": \"0x00\", \"offsets\": [50] },\n"
+            "    { \"room_id\": \"0x25\", \"mask\": \"0x00\", \"offsets\": [60] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  auto zones_or = zelda3::LoadWaterFillTable(&rom);
+  ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
+  ASSERT_EQ(zones_or->size(), 2u);
+
+  // Normalization is deterministic: masks are reassigned in ascending room_id
+  // order, so room 0x25 gets 0x01 and room 0x27 gets 0x02.
+  EXPECT_EQ((*zones_or)[0].room_id, 0x25);
+  EXPECT_EQ((*zones_or)[0].sram_bit_mask, 0x01u);
+  EXPECT_EQ((*zones_or)[1].room_id, 0x27);
+  EXPECT_EQ((*zones_or)[1].sram_bit_mask, 0x02u);
+
+  std::filesystem::remove(in_path);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     ZoraTempleProfileExportRespectsSingleRoomFilter) {
+  // Verify that exporting only room 0x25 does not include room 0x27.
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  std::vector<zelda3::WaterFillZoneEntry> zones;
+  zones.push_back({.room_id = 0x25, .sram_bit_mask = 0x02, .fill_offsets = {1, 2}});
+  zones.push_back({.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {3, 4}});
+  ASSERT_TRUE(zelda3::WriteWaterFillTable(&rom, zones).ok());
+
+  const auto out_path = std::filesystem::temp_directory_path() /
+                        "yaze_d4_single_room_export.json";
+  handlers::DungeonExportWaterFillJsonCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(
+      handler.Run({"--room=0x25", "--out", out_path.string(), "--format=json"},
+                  &rom, &output)
+          .ok());
+
+  auto exported_or =
+      zelda3::LoadWaterFillZonesFromJsonString(ReadFile(out_path));
+  ASSERT_TRUE(exported_or.ok()) << exported_or.status().message();
+  ASSERT_EQ(exported_or->size(), 1u);
+  EXPECT_EQ((*exported_or)[0].room_id, 0x25);
+  EXPECT_EQ((*exported_or)[0].sram_bit_mask, 0x02u);
+
+  std::filesystem::remove(out_path);
 }
 
 }  // namespace

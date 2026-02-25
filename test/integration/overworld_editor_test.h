@@ -31,7 +31,7 @@ class OverworldEditorTest : public HeadlessEditorTest {
     ASSERT_TRUE(zelda3::LoadGameData(*rom_, *game_data_).ok());
 
     // Create Dependencies
-    shared_clipboard_ = std::make_unique<editor::EditorDependencies::SharedClipboard>();
+    shared_clipboard_ = std::make_unique<editor::SharedClipboard>();
     editor::EditorDependencies deps;
     deps.rom = rom_.get();
     deps.game_data = game_data_.get();
@@ -56,7 +56,7 @@ class OverworldEditorTest : public HeadlessEditorTest {
 
   std::unique_ptr<editor::OverworldEditor> overworld_editor_;
   std::unique_ptr<zelda3::GameData> game_data_;
-  std::unique_ptr<editor::EditorDependencies::SharedClipboard> shared_clipboard_;
+  std::unique_ptr<editor::SharedClipboard> shared_clipboard_;
 };
 
 }  // namespace test

@@ -396,7 +396,7 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
 
   // Validate and clamp palette ID
-  int palette_id = default_room.palette;
+  int palette_id = default_room.palette();
   if (palette_id < 0 ||
       palette_id >= static_cast<int>(dungeon_main_pal_group.size())) {
     printf("[EMU] Warning: Room palette %d out of bounds, using palette 0\n",
@@ -425,7 +425,7 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   // 4. Load graphics into VRAM
   // Graphics buffer contains 8BPP linear data, but VRAM needs 4BPP planar
-  default_room.LoadRoomGraphics(default_room.blockset);
+  default_room.LoadRoomGraphics(default_room.blockset());
   default_room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = default_room.get_gfx_buffer();
 
@@ -786,7 +786,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
     return;
   }
   auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
-  int palette_id = room.palette;
+  int palette_id = room.palette();
   if (palette_id < 0 ||
       palette_id >= static_cast<int>(dungeon_main_pal_group.size())) {
     palette_id = 0;
@@ -823,7 +823,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   }
 
   // Load room graphics
-  room.LoadRoomGraphics(room.blockset);
+  room.LoadRoomGraphics(room.blockset());
   room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = room.get_gfx_buffer();
 

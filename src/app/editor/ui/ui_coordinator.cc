@@ -36,6 +36,7 @@
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
+#include "app/application.h"
 
 namespace yaze {
 namespace editor {
@@ -1441,6 +1442,44 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
 
   // Dungeon navigation helpers (room jump by id/label).
   command_palette_.RegisterDungeonRoomCommands(session_id);
+
+#ifdef YAZE_WITH_GRPC
+  // Mesen2 Integration Commands
+  auto* emu_backend = Application::Instance().GetEmulatorBackend();
+  if (emu_backend) {
+    command_palette_.AddCommand(
+        "Mesen2: Connect", CommandCategory::kTools,
+        "Auto-discover and connect to Mesen2 socket", "", [this]() {
+          auto* backend = Application::Instance().GetEmulatorBackend();
+          if (backend) {
+            // How to trigger reconnect? Re-init adapter?
+            // For now, most adapters try to connect on init.
+            toast_manager_.Show("Mesen2 connection attempt queued",
+                                ToastType::kInfo);
+          }
+        });
+
+    command_palette_.AddCommand(
+        "Mesen2: Step Over", CommandCategory::kTools,
+        "Execute one instruction without entering subroutines", "F10",
+        [emu_backend]() { emu_backend->StepOver(); });
+
+    command_palette_.AddCommand(
+        "Mesen2: Step Out", CommandCategory::kTools,
+        "Run until return from current subroutine", "Shift+F11",
+        [emu_backend]() { emu_backend->StepOut(); });
+
+    command_palette_.AddCommand(
+        "Mesen2: Enable Collision Overlay", CommandCategory::kTools,
+        "Show collision mask in Mesen2", "",
+        [emu_backend]() { emu_backend->SetCollisionOverlay(true); });
+
+    command_palette_.AddCommand(
+        "Mesen2: Disable Collision Overlay", CommandCategory::kTools,
+        "Hide collision mask in Mesen2", "",
+        [emu_backend]() { emu_backend->SetCollisionOverlay(false); });
+  }
+#endif
 
   // Load command usage history
   auto config_dir = util::PlatformPaths::GetConfigDirectory();

@@ -35,7 +35,7 @@ absl::Status DungeonEditorSystem::SaveDungeon() {
   if (!rom_)
     return absl::InvalidArgumentError("ROM is null");
 
-  for (int i = 0; i < NumberOfRooms; ++i) {
+  for (int i = 0; i < kNumberOfRooms; ++i) {
     auto status = SaveRoomData(i);
     if (!status.ok()) {
       return status;
@@ -57,7 +57,7 @@ absl::Status DungeonEditorSystem::ReloadRoom(int room_id) {
 }
 
 absl::Status DungeonEditorSystem::SetCurrentRoom(int room_id) {
-  if (room_id < 0 || room_id >= NumberOfRooms) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
     return absl::InvalidArgumentError("Invalid room ID");
   }
 
@@ -70,7 +70,7 @@ int DungeonEditorSystem::GetCurrentRoom() const {
 }
 
 absl::StatusOr<Room> DungeonEditorSystem::GetRoom(int room_id) {
-  if (room_id < 0 || room_id >= NumberOfRooms) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
     return absl::InvalidArgumentError("Invalid room ID");
   }
 
@@ -195,10 +195,10 @@ absl::StatusOr<std::string> ExportRoomLayoutTemplate(const Room& room) {
 
   // Room properties
   json props;
-  props["blockset"] = room.blockset;
-  props["palette"] = room.palette;
-  props["layout"] = room.layout;
-  props["spriteset"] = room.spriteset;
+  props["blockset"] = room.blockset();
+  props["palette"] = room.palette();
+  props["layout"] = room.layout_id();
+  props["spriteset"] = room.spriteset();
   tmpl["properties"] = props;
 
   // Tile objects
@@ -260,13 +260,13 @@ absl::Status ApplyRoomLayoutTemplate(Room& room, const std::string& json_str,
   if (apply_properties && tmpl.contains("properties")) {
     const auto& props = tmpl["properties"];
     if (props.contains("blockset"))
-      room.blockset = props["blockset"];
+      room.SetBlockset(props["blockset"]);
     if (props.contains("palette"))
-      room.palette = props["palette"];
+      room.SetPalette(props["palette"]);
     if (props.contains("layout"))
-      room.layout = props["layout"];
+      room.SetLayoutId(props["layout"]);
     if (props.contains("spriteset"))
-      room.spriteset = props["spriteset"];
+      room.SetSpriteset(props["spriteset"]);
   }
 
   // Apply objects

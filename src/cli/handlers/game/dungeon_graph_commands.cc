@@ -88,7 +88,7 @@ absl::Status DungeonGraphCommandHandler::Execute(
 
   // Determine scan range
   int start_room = (room_filter >= 0) ? room_filter : 0;
-  int end_room = (room_filter >= 0) ? room_filter : zelda3::NumberOfRooms - 1;
+  int end_room = (room_filter >= 0) ? room_filter : zelda3::kNumberOfRooms - 1;
 
   for (int room_id = start_room; room_id <= end_room; ++room_id) {
     // Load room header to get staircase and holewarp data
@@ -110,7 +110,7 @@ absl::Status DungeonGraphCommandHandler::Execute(
     } else {
       node.name = absl::StrFormat("Room 0x%02X", room_id);
     }
-    node.holewarp = room.holewarp;
+    node.holewarp = room.holewarp();
     node.has_connections = false;
 
     // Extract staircase destinations
@@ -360,15 +360,15 @@ absl::Status DungeonDiscoverCommandHandler::Execute(
     }
 
     // Check holewarp connection
-    if (room.holewarp != 0 &&
-        discovered_rooms.find(room.holewarp) == discovered_rooms.end()) {
-      discovered_rooms.insert(room.holewarp);
-      to_visit.push({room.holewarp, current_depth + 1});
+    if (room.holewarp() != 0 &&
+        discovered_rooms.find(room.holewarp()) == discovered_rooms.end()) {
+      discovered_rooms.insert(room.holewarp());
+      to_visit.push({room.holewarp(), current_depth + 1});
     }
-    if (room.holewarp != 0) {
+    if (room.holewarp() != 0) {
       RoomEdge edge;
       edge.from_room = current_room;
-      edge.to_room = room.holewarp;
+      edge.to_room = room.holewarp();
       edge.type = "holewarp";
       edges.push_back(edge);
     }

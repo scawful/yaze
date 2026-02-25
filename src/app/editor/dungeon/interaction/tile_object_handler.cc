@@ -9,6 +9,7 @@
 #include "app/gfx/resource/arena.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "app/editor/dungeon/object_selection.h"
@@ -19,11 +20,14 @@ namespace yaze::editor {
 
 namespace {
 constexpr size_t kMaxLayerBatchMutation = 128;
-constexpr int kMaxBg3ObjectsAfterBatchMutation = 128;
 }  // namespace
 
 zelda3::Room* TileObjectHandler::GetRoom(int room_id) {
-  if (!ctx_ || !ctx_->rooms || room_id < 0 || room_id >= 296) return nullptr;
+  if (!ctx_ || !ctx_->rooms) return nullptr;
+  if (room_id < 0 ||
+      room_id >= static_cast<int>(ctx_->rooms->size())) {
+    return nullptr;
+  }
   return &(*ctx_->rooms)[room_id];
 }
 
@@ -256,31 +260,51 @@ void TileObjectHandler::DrawGhostPreview() {
   ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale, canvas_pos.y + snap_canvas_y * scale);
   ImVec2 preview_end(preview_start.x + obj_width * scale, preview_start.y + obj_height * scale);
 
+  zelda3::Room* room = GetRoom(ctx_->current_room_id);
+  size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
+  const bool at_obj_limit = (current_obj_count >= zelda3::kMaxTileObjects);
+  const bool near_obj_limit = (current_obj_count >= zelda3::kMaxTileObjects * 9 / 10);
+
   const auto& theme = AgentUI::GetTheme();
+  ImVec4 outline_color = theme.dungeon_selection_primary;
+  if (at_obj_limit) {
+    outline_color = theme.status_error;
+  } else if (near_obj_limit) {
+    outline_color = theme.status_warning;
+  }
   bool drew_bitmap = false;
 
   if (ghost_preview_buffer_) {
     auto& bitmap = ghost_preview_buffer_->bitmap();
     if (bitmap.texture()) {
       ImVec2 bitmap_end(preview_start.x + bitmap.width() * scale, preview_start.y + bitmap.height() * scale);
-      ImVec4 tint = theme.text_primary;
+      ImVec4 tint = at_obj_limit ? theme.status_error : theme.text_primary;
       tint.w = 0.70f;
       draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), preview_start,
                           bitmap_end, ImVec2(0, 0), ImVec2(1, 1),
                           ImGui::GetColorU32(tint));
-      draw_list->AddRect(preview_start, bitmap_end, ImGui::GetColorU32(theme.dungeon_selection_primary), 0.0f, 0, 2.0f);
+      draw_list->AddRect(preview_start, bitmap_end, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
       drew_bitmap = true;
     }
   }
 
   if (!drew_bitmap) {
-    draw_list->AddRectFilled(preview_start, preview_end, ImGui::GetColorU32(ImVec4(theme.dungeon_selection_primary.x, theme.dungeon_selection_primary.y, theme.dungeon_selection_primary.z, 0.25f)));
-    draw_list->AddRect(preview_start, preview_end, ImGui::GetColorU32(theme.dungeon_selection_primary), 0.0f, 0, 2.0f);
+    draw_list->AddRectFilled(preview_start, preview_end,
+        ImGui::GetColorU32(ImVec4(outline_color.x, outline_color.y, outline_color.z, 0.25f)));
+    draw_list->AddRect(preview_start, preview_end, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
   }
 
-  // ID and Crosshair
+  // ID label
   std::string id_text = absl::StrFormat("0x%02X", preview_object_.id_);
   draw_list->AddText(ImVec2(preview_start.x + 2, preview_start.y + 1), ImGui::GetColorU32(theme.text_primary), id_text.c_str());
+
+  // Capacity tooltip while hovering — proactive warning before user clicks.
+  if ((at_obj_limit || near_obj_limit) &&
+      ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
+    ImGui::SetTooltip("Objects: %zu/%zu%s", current_obj_count, zelda3::kMaxTileObjects,
+                      at_obj_limit ? "\nPlacement blocked" : "\nNear limit");
+  }
+
 }
 
 void TileObjectHandler::DrawSelectionHighlight() {
@@ -441,10 +465,10 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id, const std::vector<size_t
   }
   const int projected_bg3_count =
       current_bg3_count - moving_from_bg3 + moving_to_bg3;
-  if (projected_bg3_count > kMaxBg3ObjectsAfterBatchMutation) {
+  if (projected_bg3_count > zelda3::kMaxBg3Objects) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer mutation: projected BG3 count %d exceeds max %d",
-             projected_bg3_count, kMaxBg3ObjectsAfterBatchMutation);
+             projected_bg3_count, zelda3::kMaxBg3Objects);
     return;
   }
 
@@ -612,9 +636,8 @@ bool TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& obj
     return false;
   }
 
-  // Hard-stop: enforce ROM object limit before committing placement
-  constexpr size_t kMaxObjects = 400;
-  if (room->GetTileObjects().size() >= kMaxObjects) {
+  // Hard-stop: enforce ROM object limit before committing placement.
+  if (room->GetTileObjects().size() >= zelda3::kMaxTileObjects) {
     placement_block_reason_ = PlacementBlockReason::kObjectLimit;
     return false;
   }
@@ -626,6 +649,7 @@ bool TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& obj
   new_obj.y_ = std::clamp(y, 0, 63);
   room->AddTileObject(new_obj);
   NotifyChange(room);
+  TriggerSuccessToast();
   return true;
 }
 

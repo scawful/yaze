@@ -2,17 +2,22 @@
 #define YAZE_APP_EDITOR_OVERWORLDEDITOR_H
 
 #include <chrono>
+#include <memory>
 #include <optional>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
+#include "app/editor/overworld/canvas_navigation_manager.h"
+#include "app/editor/overworld/overworld_canvas_renderer.h"
 #include "app/editor/overworld/debug_window_card.h"
+#include "app/editor/overworld/map_refresh_coordinator.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/tile16_editor.h"
+#include "app/editor/overworld/tile_painting_manager.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
 #include "app/editor/palette/palette_editor.h"
@@ -81,7 +86,6 @@ constexpr unsigned int k4BPP = 4;
 constexpr unsigned int kByteSize = 3;
 constexpr unsigned int kMessageIdSize = 5;
 constexpr unsigned int kNumSheetsToLoad = 223;
-constexpr unsigned int kOverworldMapSize = 0x200;
 constexpr ImVec2 kOverworldCanvasSize(kOverworldMapSize * 8,
                                       kOverworldMapSize * 8);
 constexpr ImVec2 kCurrentGfxCanvasSize(0x100 + 1, 0x10 * 0x40 + 1);
@@ -96,11 +100,6 @@ constexpr absl::string_view kWorldList =
     "Light World\0Dark World\0Extra World\0";
 
 constexpr absl::string_view kGamePartComboString = "Part 0\0Part 1\0Part 2\0";
-
-// Zoom/pan constants - centralized for consistency across all zoom controls
-constexpr float kOverworldMinZoom = 0.1f;
-constexpr float kOverworldMaxZoom = 5.0f;
-constexpr float kOverworldZoomStep = 0.25f;
 
 constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
 
@@ -123,6 +122,8 @@ constexpr absl::string_view kOWMapTable = "#MapSettingsTable";
  * @see tile16_editor.h for tile editing details
  */
 class OverworldEditor : public Editor, public gfx::GfxContext {
+  friend class OverworldCanvasRenderer;
+
  public:
   // ===========================================================================
   // Construction and Initialization
@@ -249,10 +250,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Keyboard Shortcuts
   // ===========================================================================
   
-  void ToggleBrushTool();
-  void ActivateFillTool();
+  void ToggleBrushTool() { if (tile_painting_) tile_painting_->ToggleBrushTool(); }
+  void ActivateFillTool() { if (tile_painting_) tile_painting_->ActivateFillTool(); }
   void CycleTileSelection(int delta);
-  bool PickTile16FromHoveredCanvas();
+  bool PickTile16FromHoveredCanvas() {
+    return tile_painting_ && tile_painting_->PickTile16FromHoveredCanvas();
+  }
 
   /// @brief Handle keyboard shortcuts for the Overworld Editor
   /// Shortcuts: 1-2 (modes), 3-8 (entities), F11 (fullscreen),
@@ -264,23 +267,32 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Panel Drawing Methods
   // ===========================================================================
   // These are called by the panel wrapper classes in the panels/ subdirectory.
-  
-  absl::Status DrawAreaGraphics();
-  absl::Status DrawTile16Selector();
-  void DrawMapProperties();
+  // Drawing is delegated to OverworldCanvasRenderer.
+
+  absl::Status DrawAreaGraphics() {
+    if (!canvas_renderer_) return absl::FailedPreconditionError("Renderer not initialized");
+    return canvas_renderer_->DrawAreaGraphics();
+  }
+  absl::Status DrawTile16Selector() {
+    if (!canvas_renderer_) return absl::FailedPreconditionError("Renderer not initialized");
+    return canvas_renderer_->DrawTile16Selector();
+  }
+  void DrawMapProperties() { if (canvas_renderer_) canvas_renderer_->DrawMapProperties(); }
 
   /// @brief Invalidate cached graphics for a specific map or all maps
   /// @param map_id The map to invalidate (-1 to invalidate all maps)
   /// Call this when palette or graphics settings change.
-  void InvalidateGraphicsCache(int map_id = -1);
+  void InvalidateGraphicsCache(int map_id = -1) {
+    if (map_refresh_) map_refresh_->InvalidateGraphicsCache(map_id);
+  }
   absl::Status DrawScratchSpace();
-  void DrawTile8Selector();
+  void DrawTile8Selector() { if (canvas_renderer_) canvas_renderer_->DrawTile8Selector(); }
   absl::Status UpdateGfxGroupEditor();
-  void DrawV3Settings();
-  
+  void DrawV3Settings() { if (canvas_renderer_) canvas_renderer_->DrawV3Settings(); }
+
   /// @brief Access usage statistics card for panel
   UsageStatisticsCard* usage_stats_card() { return usage_stats_card_.get(); }
-  
+
   /// @brief Access debug window card for panel
   DebugWindowCard* debug_window_card() { return debug_window_card_.get(); }
 
@@ -288,18 +300,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   Tile16Editor& tile16_editor() { return tile16_editor_; }
 
   /// @brief Draw the main overworld canvas
-  void DrawOverworldCanvas();
+  void DrawOverworldCanvas() { if (canvas_renderer_) canvas_renderer_->DrawOverworldCanvas(); }
 
  private:
-  // ===========================================================================
-  // Canvas Drawing
-  // ===========================================================================
-  
-  void DrawFullscreenCanvas();
-  void DrawOverworldMaps();
-  void DrawOverworldEdits();
-  void DrawOverworldProperties();
-
   // ===========================================================================
   // Entity Interaction System
   // ===========================================================================
@@ -322,45 +325,77 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawEntityEditorPopups();
 
   // ===========================================================================
-  // Map Refresh System
+  // Map Refresh System (delegated to MapRefreshCoordinator)
   // ===========================================================================
-  // Methods to refresh map graphics after property changes.
-  
-  void RefreshChildMap(int map_index);
-  void RefreshOverworldMap();
-  void RefreshOverworldMapOnDemand(int map_index);
-  void RefreshChildMapOnDemand(int map_index);
-  void RefreshMultiAreaMapsSafely(int map_index, zelda3::OverworldMap* map);
-  absl::Status RefreshMapPalette();
-  void RefreshMapProperties();
-  absl::Status RefreshTile16Blockset();
-  void UpdateBlocksetWithPendingTileChanges();
-  void ForceRefreshGraphics(int map_index);
-  void RefreshSiblingMapGraphics(int map_index, bool include_self = false);
+
+  /// @brief Initialize the map refresh coordinator (called during Initialize)
+  void InitMapRefreshCoordinator();
+
+  // Convenience delegation methods for internal use
+  void RefreshChildMap(int map_index) {
+    if (map_refresh_) map_refresh_->RefreshChildMap(map_index);
+  }
+  void RefreshOverworldMap() {
+    if (map_refresh_) map_refresh_->RefreshOverworldMap();
+  }
+  void RefreshOverworldMapOnDemand(int map_index) {
+    if (map_refresh_) map_refresh_->RefreshOverworldMapOnDemand(map_index);
+  }
+  void RefreshChildMapOnDemand(int map_index) {
+    if (map_refresh_) map_refresh_->RefreshChildMapOnDemand(map_index);
+  }
+  absl::Status RefreshMapPalette() {
+    if (map_refresh_) return map_refresh_->RefreshMapPalette();
+    return absl::FailedPreconditionError("MapRefreshCoordinator not initialized");
+  }
+  void RefreshMapProperties() {
+    if (map_refresh_) map_refresh_->RefreshMapProperties();
+  }
+  absl::Status RefreshTile16Blockset() {
+    if (map_refresh_) return map_refresh_->RefreshTile16Blockset();
+    return absl::FailedPreconditionError("MapRefreshCoordinator not initialized");
+  }
+  void UpdateBlocksetWithPendingTileChanges() {
+    if (map_refresh_) map_refresh_->UpdateBlocksetWithPendingTileChanges();
+  }
+  void ForceRefreshGraphics(int map_index) {
+    if (map_refresh_) map_refresh_->ForceRefreshGraphics(map_index);
+  }
+  void RefreshSiblingMapGraphics(int map_index, bool include_self = false) {
+    if (map_refresh_) map_refresh_->RefreshSiblingMapGraphics(map_index, include_self);
+  }
 
   // ===========================================================================
   // Tile Editing System
   // ===========================================================================
   // Handles tile painting and selection on the main canvas.
 
-  void RenderUpdatedMapBitmap(const ImVec2& click_position,
-                              const std::vector<uint8_t>& tile_data);
+  /// @brief Initialize the tile painting manager (called after graphics load)
+  void InitTilePaintingManager();
 
-  /// @brief Check for tile edits - handles painting and selection
+  /// @brief Check for tile edits - delegates to TilePaintingManager
   void CheckForOverworldEdits();
-
-  /// @brief Draw and create the tile16 IDs that are currently selected
-  void CheckForSelectRectangle();
 
   /// @brief Check for map changes and refresh if needed
   absl::Status CheckForCurrentMap();
-  
-  void CheckForMousePan();
-  void UpdateBlocksetSelectorState();
+
   void HandleMapInteraction();
+  void UpdateBlocksetSelectorState();
 
   /// @brief Scroll the blockset canvas to show the current selected tile16
   void ScrollBlocksetCanvasToCurrentTile();
+
+  /// @brief Initialize the canvas navigation manager (called during Initialize)
+  void InitCanvasNavigationManager();
+
+  // Canvas navigation (delegated to CanvasNavigationManager)
+  void HandleOverworldPan();
+  void HandleOverworldZoom();
+  void ZoomIn();
+  void ZoomOut();
+  void ClampOverworldScroll();
+  void ResetOverworldView();
+  void CenterOverworldView();
 
   // ===========================================================================
   // Texture and Graphics Loading
@@ -375,16 +410,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void EnsureMapTexture(int map_index);
 
   // ===========================================================================
-  // Canvas Navigation
+  // Canvas Navigation (delegated to CanvasNavigationManager)
   // ===========================================================================
-
-  void HandleOverworldPan();
-  void HandleOverworldZoom();  // No-op, use ZoomIn/ZoomOut instead
-  void ZoomIn();
-  void ZoomOut();
-  void ClampOverworldScroll();  // Re-clamp scroll to valid bounds
-  void ResetOverworldView();
-  void CenterOverworldView();
 
   // ===========================================================================
   // Canvas Automation API
@@ -408,17 +435,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawScratchSpacePattern();
   void DrawScratchSpaceSelection();
   void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id);
-
-  // ===========================================================================
-  // Background Map Pre-loading
-  // ===========================================================================
-  // Optimization to load adjacent maps before they're needed.
-
-  /// @brief Queue adjacent maps for background pre-loading
-  void QueueAdjacentMapsForPreload(int center_map);
-
-  /// @brief Process one map from the preload queue (called each frame)
-  void ProcessPreloadQueue();
 
   // ===========================================================================
   // Undo/Redo System
@@ -498,22 +514,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   bool show_overlay_preview_ = false;
 
   // ===========================================================================
-  // Performance Optimization State
-  // ===========================================================================
-
-  // Hover optimization - debounce map building during rapid hover
-  int last_hovered_map_ = -1;
-  float hover_time_ = 0.0f;
-  static constexpr float kHoverBuildDelay = 0.15f;
-
-  // Background pre-loading for adjacent maps
-  std::vector<int> preload_queue_;
-  static constexpr float kPreloadStartDelay = 0.3f;
-
-  // ===========================================================================
   // UI Subsystem Components
   // ===========================================================================
 
+  std::unique_ptr<OverworldCanvasRenderer> canvas_renderer_;
+  std::unique_ptr<CanvasNavigationManager> canvas_nav_;
+  std::unique_ptr<TilePaintingManager> tile_painting_;
+  std::unique_ptr<MapRefreshCoordinator> map_refresh_;
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
   std::unique_ptr<OverworldSidebar> sidebar_;
   std::unique_ptr<OverworldEntityRenderer> entity_renderer_;

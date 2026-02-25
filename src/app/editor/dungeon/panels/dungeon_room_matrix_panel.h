@@ -236,8 +236,8 @@ class DungeonRoomMatrixPanel : public EditorPanel {
             if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
               // Show palette info
               ImGui::TextDisabled("Palette: %d | Blockset: %d",
-                                  (*rooms_)[room_id].palette,
-                                  (*rooms_)[room_id].blockset);
+                                  (*rooms_)[room_id].palette(),
+                                  (*rooms_)[room_id].blockset());
 
               // Show thumbnail preview of the room
               auto& room = (*rooms_)[room_id];

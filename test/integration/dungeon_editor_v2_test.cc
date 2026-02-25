@@ -43,14 +43,6 @@ TEST_F(DungeonEditorV2IntegrationTest, LoadAllRooms) {
   ASSERT_TRUE(status.ok()) << "Load failed: " << status.message();
 }
 
-TEST_F(DungeonEditorV2IntegrationTest, DISABLED_LoadWithoutRom) {
-  // Test error handling when ROM is not available
-  editor::DungeonEditorV2 editor(nullptr);
-  auto status = editor.Load();
-  EXPECT_FALSE(status.ok());
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
-}
-
 TEST_F(DungeonEditorV2IntegrationTest, LoadSequence) {
   // Test the full initialization sequence
   dungeon_editor_v2_->Initialize();
@@ -148,14 +140,6 @@ TEST_F(DungeonEditorV2IntegrationTest,
 // Save Tests - Component Delegation
 // ============================================================================
 
-TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SaveWithoutRom) {
-  // Test error handling when ROM is not available
-  editor::DungeonEditorV2 editor(nullptr);
-  auto status = editor.Save();
-  EXPECT_FALSE(status.ok());
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
-}
-
 TEST_F(DungeonEditorV2IntegrationTest, SaveAfterLoad) {
   dungeon_editor_v2_->Initialize();
   auto load_status = dungeon_editor_v2_->Load();
@@ -221,29 +205,6 @@ TEST_F(DungeonEditorV2IntegrationTest, ComponentsInitializedAfterLoad) {
 // ============================================================================
 // ROM Management Tests
 // ============================================================================
-
-TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SetRomAfterConstruction) {
-  // Create editor without ROM
-  editor::DungeonEditorV2 editor;
-  EXPECT_EQ(editor.rom(), nullptr);
-
-  // Set ROM
-  editor.SetRom(rom_.get());
-  EXPECT_EQ(editor.rom(), rom_.get());
-  EXPECT_TRUE(editor.IsRomLoaded());
-}
-
-TEST_F(DungeonEditorV2IntegrationTest, DISABLED_SetRomAndLoad) {
-  // Create editor without ROM
-  editor::DungeonEditorV2 editor;
-
-  // Set ROM and load
-  editor.SetRom(rom_.get());
-  editor.Initialize();
-  auto status = editor.Load();
-
-  EXPECT_TRUE(status.ok());
-}
 
 // ============================================================================
 // Unimplemented Methods Tests

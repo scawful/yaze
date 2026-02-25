@@ -39,9 +39,24 @@ struct NotificationEntry {
 class ToastManager {
  public:
   static constexpr size_t kMaxHistorySize = 50;
+  // Suppress duplicate (same message+type) toasts within this window.
+  static constexpr float kDedupCooldownSeconds = 1.0f;
 
   void Show(const std::string& message, ToastType type = ToastType::kInfo,
             float ttl_seconds = 3.0f) {
+    // Dedup: skip if same message+type was shown within the cooldown window.
+    auto now = std::chrono::steady_clock::now();
+    if (message == last_shown_message_ && type == last_shown_type_) {
+      auto elapsed = std::chrono::duration<float>(now - last_shown_time_);
+      if (elapsed.count() < kDedupCooldownSeconds) {
+        ++dedup_suppressed_count_;
+        return;
+      }
+    }
+    last_shown_message_ = message;
+    last_shown_type_ = type;
+    last_shown_time_ = now;
+
     toasts_.push_back({message, type, ttl_seconds});
 
     // Also add to notification history
@@ -58,6 +73,10 @@ class ToastManager {
       notification_history_.pop_back();
     }
   }
+
+  /// Number of toasts suppressed by dedup since last reset.
+  size_t dedup_suppressed_count() const { return dedup_suppressed_count_; }
+  void reset_dedup_stats() { dedup_suppressed_count_ = 0; }
 
   void Draw() {
     if (toasts_.empty())
@@ -156,6 +175,12 @@ class ToastManager {
  private:
   std::deque<Toast> toasts_;
   std::deque<NotificationEntry> notification_history_;
+
+  // Dedup state: suppress rapid-fire identical toasts.
+  std::string last_shown_message_;
+  ToastType last_shown_type_ = ToastType::kInfo;
+  std::chrono::steady_clock::time_point last_shown_time_{};
+  size_t dedup_suppressed_count_ = 0;
 };
 
 }  // namespace editor

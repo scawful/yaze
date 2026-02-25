@@ -289,20 +289,20 @@ TEST(DungeonEditorV2RomSafetyTest, ViewerCacheLRUEviction) {
   }
 
   // Verify that viewer count is at most kMaxCachedViewers
-  EXPECT_LE(editor->room_viewers_.size(),
+  EXPECT_LE(editor->room_viewers_.Size(),
             static_cast<size_t>(DungeonEditorV2::kMaxCachedViewers))
       << "Viewer cache should not exceed kMaxCachedViewers";
 
   // Verify LRU ordering: most recent rooms (20-24) should still be cached
   for (int i = 20; i < 25; ++i) {
-    EXPECT_NE(editor->room_viewers_.find(i), editor->room_viewers_.end())
+    EXPECT_TRUE(editor->room_viewers_.Contains(i))
         << "Recent room " << i << " should still be cached";
   }
 
   // Verify oldest rooms (0-4) were evicted
   int evicted_count = 0;
   for (int i = 0; i < 5; ++i) {
-    if (editor->room_viewers_.find(i) == editor->room_viewers_.end()) {
+    if (!editor->room_viewers_.Contains(i)) {
       evicted_count++;
     }
   }
@@ -336,7 +336,7 @@ TEST(DungeonEditorV2RomSafetyTest, ViewerCacheNeverEvictsActiveRooms) {
   }
 
   // Verify room 0 is still cached (it's active, so should not be evicted)
-  EXPECT_NE(editor->room_viewers_.find(0), editor->room_viewers_.end())
+  EXPECT_TRUE(editor->room_viewers_.Contains(0))
       << "Active room 0 should never be evicted";
 
   // Verify the same viewer instance is returned
@@ -363,7 +363,7 @@ TEST(DungeonEditorV2RomSafetyTest, ViewerCacheLRUAccessOrderUpdate) {
     ASSERT_NE(viewer, nullptr);
   }
 
-  EXPECT_EQ(editor->room_viewers_.size(),
+  EXPECT_EQ(editor->room_viewers_.Size(),
             static_cast<size_t>(DungeonEditorV2::kMaxCachedViewers));
 
   // Access room 0 again (should move it to the back of LRU)
@@ -375,11 +375,11 @@ TEST(DungeonEditorV2RomSafetyTest, ViewerCacheLRUAccessOrderUpdate) {
   ASSERT_NE(viewer20, nullptr);
 
   // Verify room 0 is still cached (was recently accessed)
-  EXPECT_NE(editor->room_viewers_.find(0), editor->room_viewers_.end())
+  EXPECT_TRUE(editor->room_viewers_.Contains(0))
       << "Recently accessed room 0 should not be evicted";
 
   // Verify room 1 was evicted (oldest in LRU after room 0 was accessed)
-  EXPECT_EQ(editor->room_viewers_.find(1), editor->room_viewers_.end())
+  EXPECT_FALSE(editor->room_viewers_.Contains(1))
       << "Room 1 should have been evicted as the oldest";
 
   // Restore workbench flag
