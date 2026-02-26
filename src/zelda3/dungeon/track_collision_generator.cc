@@ -12,6 +12,7 @@
 #include "rom/snes.h"
 #include "rom/write_fence.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -141,21 +142,18 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
   // RoomObject x_ and y_ are in tile coordinates (each tile = 8 pixels).
   // The collision grid is 64x64 (covering 512x512 pixels = full room).
   std::array<bool, kGridSize * kGridSize> occupied{};
+  auto& dimension_service = DimensionService::Get();
 
   for (const auto& obj : room->GetTileObjects()) {
     if (obj.id_ != static_cast<int16_t>(options.track_object_id)) {
       continue;
     }
 
-    // Object x_/y_ are tile coordinates in the room.
-    // Object size determines extent. For rail objects (0x31), the size
-    // field encodes the track subtype in bits 0-4 and direction/extent
-    // information varies. We use width_/height_ which are computed during
-    // object loading and represent the tile extent.
-    int base_x = obj.x_;
-    int base_y = obj.y_;
-    int w = std::max(1, obj.width_);
-    int h = std::max(1, obj.height_);
+    const auto dims = dimension_service.GetDimensions(obj);
+    int base_x = obj.x_ + dims.offset_x_tiles;
+    int base_y = obj.y_ + dims.offset_y_tiles;
+    int w = std::max(1, dims.width_tiles);
+    int h = std::max(1, dims.height_tiles);
 
     for (int dy = 0; dy < h; ++dy) {
       for (int dx = 0; dx < w; ++dx) {
