@@ -1130,3 +1130,11 @@
 
 Historical entries from 2025-11-20 to 2025-11-22 have been archived to:
 `docs/internal/agents/archive/coordination-board-2025-11-20-to-22.md`
+
+---
+
+### 2026-02-26 ai-infra-architect - Mesen Savestate Agent Hooks
+- TASK: Add capture + hook primitives and scenario registry for emulator automation
+- SCOPE: mesen handlers/schemas, command registry, refresh/preflight scripts
+- STATUS: COMPLETE
+- NOTES: Added `mesen-state-capture`, `mesen-state-hook`, `scripts/dev/mesen-agent-preflight.sh`, and tracked scenario map.

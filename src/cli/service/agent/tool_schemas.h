@@ -1382,6 +1382,92 @@ class ToolSchemaRegistry {
          .requires_grpc = false,
          .related_tools = {"mesen-state-verify", "mesen-session",
                            "mesen-goal"}});
+
+    Register(
+        {.name = "mesen-state-capture",
+         .category = "mesen2",
+         .description = "Capture savestate metadata in one command",
+         .detailed_help =
+             "Creates or refreshes a savestate+metadata fixture. Can trigger a "
+             "Mesen slot save first, then hash and write metadata for the "
+             "target state path.",
+         .arguments =
+             {{.name = "state",
+               .type = "string",
+               .description = "Target savestate path",
+               .required = true},
+              {.name = "rom-file",
+               .type = "string",
+               .description = "ROM file path",
+               .required = true},
+              {.name = "meta",
+               .type = "string",
+               .description = "Optional output metadata path "
+                              "(default: <state>.meta.json)",
+               .required = false},
+              {.name = "scenario",
+               .type = "string",
+               .description = "Optional scenario ID to store",
+               .required = false},
+              {.name = "slot",
+               .type = "number",
+               .description = "Optional Mesen save slot to trigger before "
+                              "metadata refresh",
+               .required = false},
+              {.name = "states-dir",
+               .type = "string",
+               .description = "Optional directory to auto-locate latest "
+                              ".state when target path is missing",
+               .required = false},
+              {.name = "wait-ms",
+               .type = "number",
+               .description = "Delay after slot save before file capture",
+               .required = false,
+               .default_value = "400"}},
+         .examples =
+             {"z3ed mesen-state-capture --state=foo.state "
+              "--rom-file=Roms/oos168x.sfc --scenario=d6_room_88",
+              "z3ed mesen-state-capture --state=Roms/SaveStates/d6.state "
+              "--rom-file=Roms/oos168x.sfc --slot=1 "
+              "--states-dir=~/Library/Application\\ Support/Mesen2/SaveStates"},
+         .requires_rom = false,
+         .requires_grpc = false,
+         .related_tools = {"mesen-state-verify", "mesen-state-regen",
+                           "mesen-session"}});
+
+    Register(
+        {.name = "mesen-state-hook",
+         .category = "mesen2",
+         .description = "Agent preflight hook for savestate freshness",
+         .detailed_help =
+             "Returns a compact preflight summary (hashes, scenario, reasons) "
+             "and exits non-zero when stale. Intended for automation wrappers "
+             "that run before any emulator action.",
+         .arguments =
+             {{.name = "state",
+               .type = "string",
+               .description = "Savestate file path",
+               .required = true},
+              {.name = "rom-file",
+               .type = "string",
+               .description = "ROM file path",
+               .required = true},
+              {.name = "meta",
+               .type = "string",
+               .description =
+                   "Optional metadata path (default: <state>.meta.json)",
+               .required = false},
+              {.name = "scenario",
+               .type = "string",
+               .description = "Optional scenario ID expectation",
+               .required = false}},
+         .examples = {"z3ed mesen-state-hook --state=foo.state "
+                      "--rom-file=Roms/oos168x.sfc --scenario=d6_room_88",
+                      "z3ed mesen-state-hook --state=foo.state "
+                      "--rom-file=Roms/oos168x.sfc --format=json"},
+         .requires_rom = false,
+         .requires_grpc = false,
+         .related_tools = {"mesen-state-verify", "mesen-state-capture"}});
   }
 
   std::map<std::string, ToolSchema> schemas_;

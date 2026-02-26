@@ -219,6 +219,24 @@ void CommandRegistry::RegisterHandlers(
             "z3ed emulator-set-breakpoint --address=0x83D7 --description='NMI "
             "handler'"};
       }
+    } else if (name.find("mesen-") == 0) {
+      metadata.category = "mesen2";
+      metadata.description = "Mesen2 socket automation and introspection";
+      metadata.requires_rom = false;
+      if (name == "mesen-state-capture") {
+        metadata.examples = {
+            "z3ed mesen-state-capture --state=foo.state "
+            "--rom-file=Roms/oos168x.sfc --scenario=d6_room_88",
+            "z3ed mesen-state-capture --state=Roms/SaveStates/d6_room_88.state "
+            "--rom-file=Roms/oos168x.sfc --slot=1 "
+            "--states-dir=~/Library/Application\\ Support/Mesen2/SaveStates"};
+      } else if (name == "mesen-state-hook") {
+        metadata.examples = {
+            "z3ed mesen-state-hook --state=foo.state "
+            "--rom-file=Roms/oos168x.sfc --scenario=d6_room_88",
+            "z3ed mesen-state-hook --state=foo.state "
+            "--rom-file=Roms/oos168x.sfc --format=json"};
+      }
     } else if (name.find("gui-") == 0) {
       metadata.category = "gui";
       metadata.description = "GUI automation";
