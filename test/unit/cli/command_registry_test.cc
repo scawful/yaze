@@ -129,6 +129,17 @@ TEST(CommandRegistryTest, MesenAutonomyCommandsExposeUsage) {
   EXPECT_THAT(regen_help, ::testing::HasSubstr(
                               "mesen-state-regen --state <path> --rom-file "
                               "<path>"));
+
+  const std::string capture_help = registry.GenerateHelp("mesen-state-capture");
+  EXPECT_THAT(capture_help, ::testing::HasSubstr(
+                                "mesen-state-capture --state <path> --rom-file "
+                                "<path>"));
+  EXPECT_THAT(capture_help, ::testing::HasSubstr("--slot <n>"));
+
+  const std::string hook_help = registry.GenerateHelp("mesen-state-hook");
+  EXPECT_THAT(hook_help,
+              ::testing::HasSubstr(
+                  "mesen-state-hook --state <path> --rom-file <path>"));
 }
 
 }  // namespace

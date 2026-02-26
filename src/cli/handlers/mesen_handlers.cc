@@ -127,6 +127,204 @@ std::string OptionalScenario(const resources::ArgumentParser& parser) {
   return parser.GetString("scenario").value_or("");
 }
 
+struct SavestateFreshnessResult {
+  bool fresh = false;
+  std::string state_path;
+  std::string rom_path;
+  std::string meta_path;
+  std::string expected_scenario;
+  std::string recorded_scenario;
+  std::string current_rom_sha1;
+  std::string current_state_sha1;
+  std::string recorded_rom_sha1;
+  std::string recorded_state_sha1;
+  std::vector<std::string> stale_reasons;
+};
+
+::absl::StatusOr<SavestateFreshnessResult> ComputeSavestateFreshness(
+    const std::string& state_path, const std::string& rom_path,
+    const std::string& meta_path, const std::string& expected_scenario) {
+  auto state_status = EnsureFileExists(state_path, "state file");
+  if (!state_status.ok()) {
+    return state_status;
+  }
+  auto rom_status = EnsureFileExists(rom_path, "ROM file");
+  if (!rom_status.ok()) {
+    return rom_status;
+  }
+  auto meta_status = EnsureFileExists(meta_path, "metadata file");
+  if (!meta_status.ok()) {
+    return meta_status;
+  }
+
+  auto meta_or = LoadJsonFile(meta_path);
+  if (!meta_or.ok()) {
+    return meta_or.status();
+  }
+  const auto& meta = *meta_or;
+
+  SavestateFreshnessResult result;
+  result.state_path = state_path;
+  result.rom_path = rom_path;
+  result.meta_path = meta_path;
+  result.expected_scenario = expected_scenario;
+  result.current_rom_sha1 = util::ComputeFileSha1Hex(rom_path);
+  result.current_state_sha1 = util::ComputeFileSha1Hex(state_path);
+  if (result.current_rom_sha1.empty()) {
+    return ::absl::InternalError("Failed to hash ROM file");
+  }
+  if (result.current_state_sha1.empty()) {
+    return ::absl::InternalError("Failed to hash state file");
+  }
+
+  result.recorded_rom_sha1 = meta.value("rom_sha1", "");
+  result.recorded_state_sha1 = meta.value("state_sha1", "");
+  result.recorded_scenario = meta.value("scenario", "");
+
+  const bool rom_match = !result.recorded_rom_sha1.empty() &&
+                         result.recorded_rom_sha1 == result.current_rom_sha1;
+  const bool state_match =
+      !result.recorded_state_sha1.empty() &&
+      result.recorded_state_sha1 == result.current_state_sha1;
+  const bool scenario_match =
+      result.expected_scenario.empty() ||
+      result.expected_scenario == result.recorded_scenario;
+  if (!rom_match) {
+    result.stale_reasons.push_back("rom_sha1_mismatch");
+  }
+  if (!state_match) {
+    result.stale_reasons.push_back("state_sha1_mismatch");
+  }
+  if (!scenario_match) {
+    result.stale_reasons.push_back("scenario_mismatch");
+  }
+  result.fresh = result.stale_reasons.empty();
+  return result;
+}
+
+void AddSavestateFreshnessFields(resources::OutputFormatter& formatter,
+                                 const SavestateFreshnessResult& result) {
+  formatter.AddField("status", result.fresh ? "pass" : "fail");
+  formatter.AddField("ok", result.fresh);
+  formatter.AddField("state", result.state_path);
+  formatter.AddField("rom", result.rom_path);
+  formatter.AddField("meta", result.meta_path);
+  formatter.AddField("fresh", result.fresh);
+  formatter.AddField("recorded_rom_sha1", result.recorded_rom_sha1);
+  formatter.AddField("current_rom_sha1", result.current_rom_sha1);
+  formatter.AddField("recorded_state_sha1", result.recorded_state_sha1);
+  formatter.AddField("current_state_sha1", result.current_state_sha1);
+  if (!result.recorded_scenario.empty()) {
+    formatter.AddField("recorded_scenario", result.recorded_scenario);
+  }
+  if (!result.expected_scenario.empty()) {
+    formatter.AddField("expected_scenario", result.expected_scenario);
+  }
+  if (!result.stale_reasons.empty()) {
+    formatter.AddField("reasons", absl::StrJoin(result.stale_reasons, ","));
+  }
+}
+
+::absl::StatusOr<nlohmann::json> BuildSavestateMetadata(
+    const std::string& state_path, const std::string& rom_path,
+    const std::string& scenario, const std::string& generator_name) {
+  auto state_status = EnsureFileExists(state_path, "state file");
+  if (!state_status.ok()) {
+    return state_status;
+  }
+  auto rom_status = EnsureFileExists(rom_path, "ROM file");
+  if (!rom_status.ok()) {
+    return rom_status;
+  }
+
+  const std::string rom_sha1 = util::ComputeFileSha1Hex(rom_path);
+  const std::string state_sha1 = util::ComputeFileSha1Hex(state_path);
+  if (rom_sha1.empty()) {
+    return ::absl::InternalError("Failed to hash ROM file");
+  }
+  if (state_sha1.empty()) {
+    return ::absl::InternalError("Failed to hash state file");
+  }
+
+  nlohmann::json meta;
+  meta["schema"] = "mesen_state_meta/v1";
+  meta["state_path"] = state_path;
+  meta["state_sha1"] = state_sha1;
+  meta["rom_path"] = rom_path;
+  meta["rom_sha1"] = rom_sha1;
+  meta["generated_at"] = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
+  meta["generator"] = generator_name;
+  if (!scenario.empty()) {
+    meta["scenario"] = scenario;
+  }
+
+  // Best-effort runtime capture when Mesen2 is connected.
+  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
+  if (client && client->IsConnected()) {
+    nlohmann::json runtime;
+    if (auto state_or = client->GetState(); state_or.ok()) {
+      runtime["frame"] = state_or->frame;
+      runtime["running"] = state_or->running;
+      runtime["paused"] = state_or->paused;
+    }
+    if (auto cpu_or = client->GetCpuState(); cpu_or.ok()) {
+      const uint32_t pc =
+          (static_cast<uint32_t>(cpu_or->K) << 16) | (cpu_or->PC & 0xFFFF);
+      runtime["pc"] = absl::StrFormat("0x%06X", pc);
+    }
+    if (auto game_or = client->GetGameState(); game_or.ok()) {
+      runtime["indoors"] = game_or->game.indoors;
+      runtime["room_id"] = absl::StrFormat("0x%04X", game_or->game.room_id);
+      runtime["link_x"] = game_or->link.x;
+      runtime["link_y"] = game_or->link.y;
+    }
+    if (!runtime.empty()) {
+      meta["runtime"] = runtime;
+    }
+  }
+  return meta;
+}
+
+::absl::StatusOr<std::filesystem::path> FindLatestStateFileInDir(
+    const std::filesystem::path& states_dir) {
+  std::error_code ec;
+  if (!std::filesystem::exists(states_dir, ec) || ec ||
+      !std::filesystem::is_directory(states_dir, ec) || ec) {
+    return ::absl::NotFoundError(::absl::StrFormat(
+        "states directory not found: %s", states_dir.string()));
+  }
+
+  bool found = false;
+  std::filesystem::path latest_path;
+  std::filesystem::file_time_type latest_time;
+  for (const auto& entry :
+       std::filesystem::directory_iterator(states_dir, ec)) {
+    if (ec) {
+      break;
+    }
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    if (entry.path().extension() != ".state") {
+      continue;
+    }
+    const auto file_time = entry.last_write_time(ec);
+    if (ec) {
+      continue;
+    }
+    if (!found || file_time > latest_time) {
+      found = true;
+      latest_time = file_time;
+      latest_path = entry.path();
+    }
+  }
+  if (!found) {
+    return ::absl::NotFoundError(
+        ::absl::StrFormat("no .state files found in %s", states_dir.string()));
+  }
+  return latest_path;
+}
+
 ::absl::Status ExportSessionStateToFile(const std::string& file_path) {
   nlohmann::json j;
   const auto& s = SessionState();
@@ -1069,70 +1267,13 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
       parser.GetString("meta").value_or(DefaultMetaPathForState(state_path));
   const std::string expected_scenario = OptionalScenario(parser);
 
-  auto state_status = EnsureFileExists(state_path, "state file");
-  if (!state_status.ok())
-    return state_status;
-  auto rom_status = EnsureFileExists(rom_path, "ROM file");
-  if (!rom_status.ok())
-    return rom_status;
-  auto meta_status = EnsureFileExists(meta_path, "metadata file");
-  if (!meta_status.ok())
-    return meta_status;
-
-  auto meta_or = LoadJsonFile(meta_path);
-  if (!meta_or.ok())
-    return meta_or.status();
-  const auto& meta = *meta_or;
-
-  const std::string current_rom_sha1 = util::ComputeFileSha1Hex(rom_path);
-  const std::string current_state_sha1 = util::ComputeFileSha1Hex(state_path);
-  if (current_rom_sha1.empty()) {
-    return ::absl::InternalError("Failed to hash ROM file");
+  auto result_or = ComputeSavestateFreshness(state_path, rom_path, meta_path,
+                                             expected_scenario);
+  if (!result_or.ok()) {
+    return result_or.status();
   }
-  if (current_state_sha1.empty()) {
-    return ::absl::InternalError("Failed to hash state file");
-  }
-
-  const std::string recorded_rom_sha1 = meta.value("rom_sha1", "");
-  const std::string recorded_state_sha1 = meta.value("state_sha1", "");
-  const std::string recorded_scenario = meta.value("scenario", "");
-  const bool rom_match =
-      !recorded_rom_sha1.empty() && recorded_rom_sha1 == current_rom_sha1;
-  const bool state_match =
-      !recorded_state_sha1.empty() && recorded_state_sha1 == current_state_sha1;
-  const bool scenario_match =
-      expected_scenario.empty() || expected_scenario == recorded_scenario;
-
-  std::vector<std::string> stale_reasons;
-  if (!rom_match)
-    stale_reasons.push_back("rom_sha1_mismatch");
-  if (!state_match)
-    stale_reasons.push_back("state_sha1_mismatch");
-  if (!scenario_match)
-    stale_reasons.push_back("scenario_mismatch");
-
-  const bool fresh = stale_reasons.empty();
-  formatter.AddField("status", fresh ? "pass" : "fail");
-  formatter.AddField("ok", fresh);
-  formatter.AddField("state", state_path);
-  formatter.AddField("rom", rom_path);
-  formatter.AddField("meta", meta_path);
-  formatter.AddField("fresh", fresh);
-  formatter.AddField("recorded_rom_sha1", recorded_rom_sha1);
-  formatter.AddField("current_rom_sha1", current_rom_sha1);
-  formatter.AddField("recorded_state_sha1", recorded_state_sha1);
-  formatter.AddField("current_state_sha1", current_state_sha1);
-  if (!recorded_scenario.empty()) {
-    formatter.AddField("recorded_scenario", recorded_scenario);
-  }
-  if (!expected_scenario.empty()) {
-    formatter.AddField("expected_scenario", expected_scenario);
-  }
-  if (!stale_reasons.empty()) {
-    formatter.AddField("reasons", absl::StrJoin(stale_reasons, ","));
-  }
-
-  if (!fresh) {
+  AddSavestateFreshnessFields(formatter, *result_or);
+  if (!result_or->fresh) {
     return ::absl::FailedPreconditionError(
         "Savestate freshness verification failed");
   }
@@ -1155,60 +1296,13 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
       parser.GetString("meta").value_or(DefaultMetaPathForState(state_path));
   const std::string scenario = OptionalScenario(parser);
 
-  auto state_status = EnsureFileExists(state_path, "state file");
-  if (!state_status.ok())
-    return state_status;
-  auto rom_status = EnsureFileExists(rom_path, "ROM file");
-  if (!rom_status.ok())
-    return rom_status;
-
-  const std::string rom_sha1 = util::ComputeFileSha1Hex(rom_path);
-  const std::string state_sha1 = util::ComputeFileSha1Hex(state_path);
-  if (rom_sha1.empty()) {
-    return ::absl::InternalError("Failed to hash ROM file");
-  }
-  if (state_sha1.empty()) {
-    return ::absl::InternalError("Failed to hash state file");
+  auto meta_or = BuildSavestateMetadata(state_path, rom_path, scenario,
+                                        "z3ed mesen-state-regen");
+  if (!meta_or.ok()) {
+    return meta_or.status();
   }
 
-  nlohmann::json meta;
-  meta["schema"] = "mesen_state_meta/v1";
-  meta["state_path"] = state_path;
-  meta["state_sha1"] = state_sha1;
-  meta["rom_path"] = rom_path;
-  meta["rom_sha1"] = rom_sha1;
-  meta["generated_at"] = absl::FormatTime(absl::Now(), absl::UTCTimeZone());
-  meta["generator"] = "z3ed mesen-state-regen";
-  if (!scenario.empty()) {
-    meta["scenario"] = scenario;
-  }
-
-  // Best-effort runtime capture when Mesen2 is connected.
-  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
-  if (client && client->IsConnected()) {
-    nlohmann::json runtime;
-    if (auto state_or = client->GetState(); state_or.ok()) {
-      runtime["frame"] = state_or->frame;
-      runtime["running"] = state_or->running;
-      runtime["paused"] = state_or->paused;
-    }
-    if (auto cpu_or = client->GetCpuState(); cpu_or.ok()) {
-      const uint32_t pc =
-          (static_cast<uint32_t>(cpu_or->K) << 16) | (cpu_or->PC & 0xFFFF);
-      runtime["pc"] = absl::StrFormat("0x%06X", pc);
-    }
-    if (auto game_or = client->GetGameState(); game_or.ok()) {
-      runtime["indoors"] = game_or->game.indoors;
-      runtime["room_id"] = absl::StrFormat("0x%04X", game_or->game.room_id);
-      runtime["link_x"] = game_or->link.x;
-      runtime["link_y"] = game_or->link.y;
-    }
-    if (!runtime.empty()) {
-      meta["runtime"] = runtime;
-    }
-  }
-
-  auto write_status = WriteJsonFile(meta_path, meta);
+  auto write_status = WriteJsonFile(meta_path, *meta_or);
   if (!write_status.ok())
     return write_status;
 
@@ -1216,9 +1310,146 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
   formatter.AddField("state", state_path);
   formatter.AddField("rom", rom_path);
   formatter.AddField("meta", meta_path);
-  formatter.AddField("rom_sha1", rom_sha1);
-  formatter.AddField("state_sha1", state_sha1);
+  formatter.AddField("rom_sha1", meta_or->value("rom_sha1", ""));
+  formatter.AddField("state_sha1", meta_or->value("state_sha1", ""));
   formatter.AddField("scenario", scenario);
+  return ::absl::OkStatus();
+}
+
+// MesenStateCaptureCommandHandler
+::absl::Status MesenStateCaptureCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"state", "rom-file"});
+}
+
+::absl::Status MesenStateCaptureCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  const std::string requested_state_path = *parser.GetString("state");
+  const std::string rom_path = *parser.GetString("rom-file");
+  const std::string scenario = OptionalScenario(parser);
+  const std::string meta_path = parser.GetString("meta").value_or(
+      DefaultMetaPathForState(requested_state_path));
+  const int wait_ms = parser.GetInt("wait-ms").value_or(400);
+  const int slot = parser.GetInt("slot").value_or(-1);
+  const std::string states_dir = parser.GetString("states-dir").value_or("");
+
+  auto rom_status = EnsureFileExists(rom_path, "ROM file");
+  if (!rom_status.ok()) {
+    return rom_status;
+  }
+
+  std::string resolved_state_path = requested_state_path;
+  bool captured_from_mesen_slot = false;
+  if (slot >= 0) {
+    auto status = EnsureConnected();
+    if (!status.ok()) {
+      return status;
+    }
+    auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
+    auto save_status = client->SaveState(slot);
+    if (!save_status.ok()) {
+      return save_status;
+    }
+    captured_from_mesen_slot = true;
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(std::max(1, wait_ms)));
+  }
+
+  std::error_code ec;
+  if (!std::filesystem::exists(resolved_state_path, ec) || ec) {
+    if (states_dir.empty()) {
+      return ::absl::NotFoundError(
+          ::absl::StrFormat("state file not found after capture: %s (use "
+                            "--states-dir to auto-locate latest .state)",
+                            resolved_state_path));
+    }
+    auto latest_or = FindLatestStateFileInDir(states_dir);
+    if (!latest_or.ok()) {
+      return latest_or.status();
+    }
+    const auto source_path = *latest_or;
+    auto parent = std::filesystem::path(resolved_state_path).parent_path();
+    if (!parent.empty()) {
+      std::filesystem::create_directories(parent, ec);
+      if (ec) {
+        return ::absl::PermissionDeniedError(::absl::StrFormat(
+            "failed to create directory: %s", parent.string()));
+      }
+    }
+    std::filesystem::copy_file(
+        source_path, resolved_state_path,
+        std::filesystem::copy_options::overwrite_existing, ec);
+    if (ec) {
+      return ::absl::InternalError(::absl::StrFormat(
+          "failed to copy state from %s to %s: %s", source_path.string(),
+          resolved_state_path, ec.message()));
+    }
+  }
+
+  auto meta_or = BuildSavestateMetadata(resolved_state_path, rom_path, scenario,
+                                        "z3ed mesen-state-capture");
+  if (!meta_or.ok()) {
+    return meta_or.status();
+  }
+  auto write_status = WriteJsonFile(meta_path, *meta_or);
+  if (!write_status.ok()) {
+    return write_status;
+  }
+
+  auto verify_or = ComputeSavestateFreshness(resolved_state_path, rom_path,
+                                             meta_path, scenario);
+  if (!verify_or.ok()) {
+    return verify_or.status();
+  }
+  formatter.AddField("status", "ok");
+  formatter.AddField("state", resolved_state_path);
+  formatter.AddField("rom", rom_path);
+  formatter.AddField("meta", meta_path);
+  formatter.AddField("scenario", scenario);
+  formatter.AddField("captured_from_mesen_slot", captured_from_mesen_slot);
+  formatter.AddField("slot", slot);
+  formatter.AddField("fresh", verify_or->fresh);
+  formatter.AddField("rom_sha1", meta_or->value("rom_sha1", ""));
+  formatter.AddField("state_sha1", meta_or->value("state_sha1", ""));
+  return ::absl::OkStatus();
+}
+
+// MesenStateHookCommandHandler
+::absl::Status MesenStateHookCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return parser.RequireArgs({"state", "rom-file"});
+}
+
+::absl::Status MesenStateHookCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  (void)rom;
+  const std::string state_path = *parser.GetString("state");
+  const std::string rom_path = *parser.GetString("rom-file");
+  const std::string meta_path =
+      parser.GetString("meta").value_or(DefaultMetaPathForState(state_path));
+  const std::string expected_scenario = OptionalScenario(parser);
+
+  auto result_or = ComputeSavestateFreshness(state_path, rom_path, meta_path,
+                                             expected_scenario);
+  if (!result_or.ok()) {
+    return result_or.status();
+  }
+
+  AddSavestateFreshnessFields(formatter, *result_or);
+  formatter.AddField(
+      "hook_summary",
+      absl::StrFormat(
+          "fresh=%s scenario=%s rom_sha1=%s state_sha1=%s",
+          result_or->fresh ? "true" : "false",
+          result_or->recorded_scenario.empty() ? "(none)"
+                                               : result_or->recorded_scenario,
+          result_or->current_rom_sha1, result_or->current_state_sha1));
+  if (!result_or->fresh) {
+    return ::absl::FailedPreconditionError("mesen preflight hook failed");
+  }
   return ::absl::OkStatus();
 }
 
@@ -1240,6 +1471,8 @@ CreateMesenCommandHandlers() {
   handlers.push_back(std::make_unique<MesenGoalCommandHandler>());
   handlers.push_back(std::make_unique<MesenStateVerifyCommandHandler>());
   handlers.push_back(std::make_unique<MesenStateRegenCommandHandler>());
+  handlers.push_back(std::make_unique<MesenStateCaptureCommandHandler>());
+  handlers.push_back(std::make_unique<MesenStateHookCommandHandler>());
   return handlers;
 }
 

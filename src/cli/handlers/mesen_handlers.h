@@ -229,6 +229,39 @@ class MesenStateRegenCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+class MesenStateCaptureCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "mesen-state-capture"; }
+  std::string GetDescription() const {
+    return "Capture/refresh savestate metadata in one command";
+  }
+  std::string GetUsage() const override {
+    return "mesen-state-capture --state <path> --rom-file <path> [--meta "
+           "<path>] [--scenario <id>] [--slot <n>] [--states-dir <path>] "
+           "[--wait-ms <n>]";
+  }
+  bool RequiresRom() const override { return false; }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class MesenStateHookCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "mesen-state-hook"; }
+  std::string GetDescription() const {
+    return "Preflight hook summary for agent automation";
+  }
+  std::string GetUsage() const override {
+    return "mesen-state-hook --state <path> --rom-file <path> [--meta "
+           "<path>] [--scenario <id>]";
+  }
+  bool RequiresRom() const override { return false; }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 /**
  * @brief Factory function to create Mesen2 command handlers
  */

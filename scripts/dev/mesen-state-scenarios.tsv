@@ -1,0 +1,10 @@
+# state_filename\tscenario_id\tnotes
+# Canonical scenario registry for Mesen2/OoS automation fixtures.
+# Keep scenario_id stable so agents can reference deterministic hooks.
+minecart_room_88.state	d6_room_88_live	Goron Mines room 0x88 live entry
+minecart_room_88_static.state	d6_room_88_static	Goron Mines room 0x88 static fixture
+minecart_room_98.state	d6_room_98_hub	Goron Mines room 0x98 hub doorway
+minecart_room_87.state	d6_room_87_path	Goron Mines room 0x87 route path
+minecart_room_a8.state	d6_room_a8_blocked	Known blocked transition from large room
+minecart_room_d8.state	d6_room_d8_holewarp	Requires holewarp in room 0x88
+minecart_room_da.state	d6_room_da_stair	Requires stair in room 0x99

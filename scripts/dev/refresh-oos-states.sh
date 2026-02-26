@@ -8,6 +8,7 @@ ROM_PATH="${ROM_PATH:-Roms/oos168x.sfc}"
 STATES_DIR=""
 SCENARIO_MAP=""
 Z3ED_BIN="${Z3ED_BIN:-./build_ai/bin/Debug/z3ed}"
+DEFAULT_SCENARIO_MAP="scripts/dev/mesen-state-scenarios.tsv"
 
 usage() {
   cat <<'EOF'
@@ -101,6 +102,10 @@ if [[ ${#STATES[@]} -eq 0 ]]; then
 fi
 
 declare -A SCENARIOS=()
+if [[ -z "$SCENARIO_MAP" && -f "$DEFAULT_SCENARIO_MAP" ]]; then
+  SCENARIO_MAP="$DEFAULT_SCENARIO_MAP"
+fi
+
 if [[ -n "$SCENARIO_MAP" ]]; then
   if [[ ! -f "$SCENARIO_MAP" ]]; then
     echo "Scenario map not found: $SCENARIO_MAP" >&2
