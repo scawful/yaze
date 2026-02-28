@@ -13,6 +13,7 @@
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gui/animation/animator.h"
 #include "app/gui/canvas/canvas_menu.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
@@ -858,28 +859,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       show_meta = true;
     }
 
-    ImDrawList* dl = ImGui::GetWindowDrawList();
-    const ImVec2 pad(8.0f, 6.0f);
-    const ImVec2 zp = canvas_.zero_point();
-    const ImVec2 p0(zp.x + 10.0f, zp.y + 10.0f);
-    const ImVec2 ts1 = ImGui::CalcTextSize(text1);
-    const ImVec2 ts2 = show_meta ? ImGui::CalcTextSize(text2) : ImVec2(0, 0);
-    const float gap = show_meta ? 2.0f : 0.0f;
-    const float w = std::max(ts1.x, ts2.x);
-    const float h = ts1.y + (show_meta ? (gap + ts2.y) : 0.0f);
-    const ImVec2 p1(p0.x + w + pad.x * 2.0f, p0.y + h + pad.y * 2.0f);
+    const float pad = 10.0f;
+    const ImVec2 hud_pos(canvas_.zero_point().x + pad,
+                         canvas_.zero_point().y + pad);
+    const ImVec2 hud_size(0, 0);  // Auto-resize
 
-    ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
-    bg.w = std::min(0.90f, bg.w + 0.25f);
-    dl->AddRectFilled(p0, p1, ImGui::ColorConvertFloat4ToU32(bg), 6.0f);
-    dl->AddRect(p0, p1, ImGui::GetColorU32(ImGuiCol_Border), 6.0f);
-
-    const ImVec2 t0(p0.x + pad.x, p0.y + pad.y);
-    dl->AddText(t0, ImGui::GetColorU32(ImGuiCol_Text), text1);
-    if (show_meta) {
-      dl->AddText(ImVec2(t0.x, t0.y + ts1.y + gap),
-                  ImGui::GetColorU32(ImGuiCol_Text), text2);
-    }
+    gui::DrawCanvasHUD("##MetadataHUD", hud_pos, hud_size, [&]() {
+      ImGui::TextUnformatted(text1);
+      if (show_meta) {
+        ImGui::TextDisabled("%s", text2);
+      }
+    });
   }
 
   // Draw persistent debug overlays
@@ -1359,30 +1349,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       int sprite_x = canvas_x / dungeon_coords::kSpriteTileSize;
       int sprite_y = canvas_y / dungeon_coords::kSpriteTileSize;
 
-      // Draw coordinate info box at mouse position
+      // Draw coordinate HUD at mouse position
       ImVec2 mouse_pos = ImGui::GetMousePos();
       ImVec2 overlay_pos = ImVec2(mouse_pos.x + 15, mouse_pos.y + 15);
 
-      // Build coordinate text
-      std::string coord_text = absl::StrFormat(
-          "Tile: (%d, %d)\n"
-          "Pixel: (%d, %d)\n"
-          "Camera: ($%04X, $%04X)\n"
-          "Sprite: (%d, %d)",
-          tile_x, tile_y, canvas_x, canvas_y, camera_x, camera_y, sprite_x,
-          sprite_y);
-
-      // Draw background box
-      ImVec2 text_size = ImGui::CalcTextSize(coord_text.c_str());
-      ImVec2 box_min = ImVec2(overlay_pos.x - 4, overlay_pos.y - 2);
-      ImVec2 box_max = ImVec2(overlay_pos.x + text_size.x + 8,
-                              overlay_pos.y + text_size.y + 4);
-
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      draw_list->AddRectFilled(box_min, box_max, IM_COL32(0, 0, 0, 200), 4.0f);
-      draw_list->AddRect(box_min, box_max, IM_COL32(100, 100, 100, 255), 4.0f);
-      draw_list->AddText(overlay_pos, IM_COL32(255, 255, 255, 255),
-                         coord_text.c_str());
+      gui::DrawCanvasHUD("##CoordHUD", overlay_pos, ImVec2(0, 0), [&]() {
+        ImGui::Text("Tile: (%d, %d)", tile_x, tile_y);
+        ImGui::Text("Pixel: (%d, %d)", canvas_x, canvas_y);
+        ImGui::Text("Camera: ($%04X, $%04X)", camera_x, camera_y);
+        ImGui::Text("Sprite: (%d, %d)", sprite_x, sprite_y);
+      });
     }
   }
 
@@ -2093,7 +2069,26 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
                        uint8_t max, const char* tooltip) {
     ImGui::TextDisabled("%s", icon);
     ImGui::SameLine(0, 2);
-    if (gui::InputHexByteEx(label, val, max, 32.f, true).ShouldApply()) {
+
+    // Apply flash feedback to the background of the input
+    const std::string anim_id = std::string(label) + "_Flash";
+    const ImVec4 flash_color = gui::GetAnimator().AnimateColor(
+        "##RoomProps", anim_id, ImVec4(0, 0, 0, 0), 8.0f);
+
+    if (flash_color.w > 0.01f) {
+      ImGui::PushStyleColor(ImGuiCol_FrameBg, flash_color);
+    }
+
+    auto res = gui::InputHexByteEx(label, val, max, 32.f, true);
+    bool changed = res.ShouldApply();
+
+    if (flash_color.w > 0.01f) {
+      ImGui::PopStyleColor();
+    }
+
+    gui::ValueChangeFlash(changed, anim_id.c_str());
+
+    if (changed) {
       return true;
     }
     if (ImGui::IsItemHovered())
