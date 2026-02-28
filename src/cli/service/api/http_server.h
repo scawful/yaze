@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "absl/status/status.h"
+#include "cli/service/api/bonjour_publisher.h"
 
 namespace httplib {
 class Server;
@@ -25,6 +26,8 @@ namespace service {
 class RenderService;
 }
 }  // namespace app
+
+class Rom;
 }  // namespace yaze
 
 namespace yaze {
@@ -35,6 +38,8 @@ class HttpServer {
  public:
   using SymbolProviderSource = std::function<emu::debug::SymbolProvider*()>;
   using RenderServiceSource = std::function<app::service::RenderService*()>;
+  using RomSource = std::function<Rom*()>;
+  using ProjectPathSource = std::function<std::string()>;
   using WindowAction = std::function<bool()>;
 
   HttpServer();
@@ -59,6 +64,17 @@ class HttpServer {
     render_source_ = std::move(source);
   }
 
+  // Set the source for ROM context (used by command execution).
+  void SetRomSource(RomSource source) { rom_source_ = std::move(source); }
+
+  // Set the source for project path (used by annotation endpoints).
+  void SetProjectPathSource(ProjectPathSource source) {
+    project_path_source_ = std::move(source);
+  }
+
+  // Get current port.
+  int port() const { return port_; }
+
   // Optional window control hooks (GUI builds only)
   void SetWindowActions(WindowAction show, WindowAction hide) {
     window_show_ = std::move(show);
@@ -68,6 +84,9 @@ class HttpServer {
   // Get current symbol source
   SymbolProviderSource GetSymbolSource() const { return symbol_source_; }
 
+  // Access the Bonjour publisher (e.g. to update ROM title).
+  BonjourPublisher& GetBonjourPublisher() { return bonjour_; }
+
  private:
   void RunServer(int port);
   void RegisterRoutes();
@@ -75,8 +94,12 @@ class HttpServer {
   std::unique_ptr<httplib::Server> server_;
   std::unique_ptr<std::thread> server_thread_;
   std::atomic<bool> is_running_{false};
+  int port_ = 0;
+  BonjourPublisher bonjour_;
   SymbolProviderSource symbol_source_;
   RenderServiceSource render_source_;
+  RomSource rom_source_;
+  ProjectPathSource project_path_source_;
   WindowAction window_show_;
   WindowAction window_hide_;
 };

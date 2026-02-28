@@ -4,12 +4,16 @@
 #include <cctype>
 #include <sstream>
 
+#include <fstream>
+
 #include "absl/status/status.h"
 #include "app/emu/debug/symbol_provider.h"
 #include "app/service/render_service.h"
 #include "cli/service/ai/model_registry.h"
+#include "cli/service/command_registry.h"
 #include "httplib.h"
 #include "nlohmann/json.hpp"
+#include "rom/rom.h"
 #include "util/log.h"
 
 namespace yaze {
@@ -448,6 +452,368 @@ void HandleRenderDungeonMetadata(
   j["sprite_count"] = meta.sprite_count;
   res.status = 200;
   res.set_content(j.dump(), "application/json");
+}
+
+// ---------------------------------------------------------------------------
+// Command execution endpoints (Phase 3)
+// ---------------------------------------------------------------------------
+
+void HandleCommandExecute(const httplib::Request& req, httplib::Response& res,
+                          yaze::Rom* rom) {
+  ApplyCorsHeaders(res);
+
+  try {
+    json body = json::parse(req.body);
+    std::string command_name = body.value("command", "");
+    if (command_name.empty()) {
+      json j;
+      j["error"] = "Missing 'command' field";
+      res.status = 400;
+      res.set_content(j.dump(), "application/json");
+      return;
+    }
+
+    std::vector<std::string> args;
+    if (body.contains("args") && body["args"].is_array()) {
+      for (const auto& arg : body["args"]) {
+        args.push_back(arg.get<std::string>());
+      }
+    }
+
+    auto& registry = CommandRegistry::Instance();
+    if (!registry.HasCommand(command_name)) {
+      json j;
+      j["error"] = "Unknown command: " + command_name;
+      res.status = 404;
+      res.set_content(j.dump(), "application/json");
+      return;
+    }
+
+    std::string captured_output;
+    auto status = registry.Execute(command_name, args, rom, &captured_output);
+
+    json response;
+    if (status.ok()) {
+      response["status"] = "ok";
+      response["command"] = command_name;
+      // Try to parse output as JSON, fall back to string
+      try {
+        response["result"] = json::parse(captured_output);
+      } catch (...) {
+        response["result"] = captured_output;
+      }
+      res.status = 200;
+    } else {
+      response["status"] = "error";
+      response["command"] = command_name;
+      response["error"] = std::string(status.message());
+      if (!captured_output.empty()) {
+        response["output"] = captured_output;
+      }
+      res.status = 500;
+    }
+    res.set_content(response.dump(), "application/json");
+  } catch (const std::exception& e) {
+    json j;
+    j["error"] = e.what();
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+  }
+}
+
+void HandleCommandList(const httplib::Request& req, httplib::Response& res) {
+  (void)req;
+  ApplyCorsHeaders(res);
+
+  auto& registry = CommandRegistry::Instance();
+  json j_commands = json::array();
+
+  for (const auto& category : registry.GetCategories()) {
+    for (const auto& cmd_name : registry.GetCommandsInCategory(category)) {
+      const auto* meta = registry.GetMetadata(cmd_name);
+      if (!meta)
+        continue;
+
+      json j_cmd;
+      j_cmd["name"] = meta->name;
+      j_cmd["category"] = meta->category;
+      j_cmd["description"] = meta->description;
+      j_cmd["usage"] = meta->usage;
+      j_cmd["requires_rom"] = meta->requires_rom;
+      j_commands.push_back(j_cmd);
+    }
+  }
+
+  json response;
+  response["commands"] = j_commands;
+  response["count"] = j_commands.size();
+  res.status = 200;
+  res.set_content(response.dump(), "application/json");
+}
+
+// ---------------------------------------------------------------------------
+// Annotation CRUD endpoints (Phase 4)
+// ---------------------------------------------------------------------------
+
+namespace {
+
+std::string ResolveAnnotationsPath(const std::string& project_path) {
+  if (project_path.empty())
+    return "";
+  // Match the iOS AnnotationStore resolution logic
+  return project_path + "/Docs/Dev/Planning/annotations.json";
+}
+
+json LoadAnnotationsFile(const std::string& path) {
+  if (path.empty())
+    return json::object();
+  std::ifstream file(path);
+  if (!file.is_open())
+    return json::object();
+  try {
+    return json::parse(file);
+  } catch (...) {
+    return json::object();
+  }
+}
+
+bool SaveAnnotationsFile(const std::string& path, const json& data) {
+  if (path.empty())
+    return false;
+
+  // Ensure parent directory exists
+  auto last_slash = path.find_last_of('/');
+  if (last_slash != std::string::npos) {
+    std::string dir = path.substr(0, last_slash);
+    // Use mkdir -p equivalent (simple approach)
+    std::string cmd = "mkdir -p '" + dir + "'";
+    (void)system(cmd.c_str());
+  }
+
+  std::ofstream file(path);
+  if (!file.is_open())
+    return false;
+  file << data.dump(2);
+  return file.good();
+}
+
+}  // namespace
+
+void HandleAnnotationList(const httplib::Request& req, httplib::Response& res,
+                          const std::string& project_path) {
+  ApplyCorsHeaders(res);
+
+  std::string path = ResolveAnnotationsPath(project_path);
+  if (path.empty()) {
+    json j;
+    j["error"] = "No project path configured";
+    res.status = 503;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  json file_data = LoadAnnotationsFile(path);
+  json annotations = file_data.value("annotations", json::array());
+
+  // Optional room filter
+  if (req.has_param("room")) {
+    int room_id = 0;
+    try {
+      room_id = std::stoi(req.get_param_value("room"), nullptr, 0);
+    } catch (...) {
+      json j;
+      j["error"] = "Invalid room parameter";
+      res.status = 400;
+      res.set_content(j.dump(), "application/json");
+      return;
+    }
+
+    json filtered = json::array();
+    for (const auto& ann : annotations) {
+      if (ann.value("room_id", -1) == room_id) {
+        filtered.push_back(ann);
+      }
+    }
+    annotations = filtered;
+  }
+
+  json response;
+  response["annotations"] = annotations;
+  res.status = 200;
+  res.set_content(response.dump(), "application/json");
+}
+
+void HandleAnnotationCreate(const httplib::Request& req, httplib::Response& res,
+                            const std::string& project_path) {
+  ApplyCorsHeaders(res);
+
+  std::string path = ResolveAnnotationsPath(project_path);
+  if (path.empty()) {
+    json j;
+    j["error"] = "No project path configured";
+    res.status = 503;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  try {
+    json new_annotation = json::parse(req.body);
+    json file_data = LoadAnnotationsFile(path);
+
+    if (!file_data.contains("annotations")) {
+      file_data["annotations"] = json::array();
+    }
+    file_data["annotations"].push_back(new_annotation);
+
+    if (SaveAnnotationsFile(path, file_data)) {
+      json response;
+      response["status"] = "ok";
+      response["id"] = new_annotation.value("id", "");
+      res.status = 201;
+      res.set_content(response.dump(), "application/json");
+    } else {
+      json j;
+      j["error"] = "Failed to write annotations file";
+      res.status = 500;
+      res.set_content(j.dump(), "application/json");
+    }
+  } catch (const std::exception& e) {
+    json j;
+    j["error"] = e.what();
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+  }
+}
+
+void HandleAnnotationUpdate(const httplib::Request& req, httplib::Response& res,
+                            const std::string& project_path) {
+  ApplyCorsHeaders(res);
+
+  std::string path = ResolveAnnotationsPath(project_path);
+  if (path.empty()) {
+    json j;
+    j["error"] = "No project path configured";
+    res.status = 503;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  // Extract annotation ID from URL path
+  std::string annotation_id;
+  if (!req.matches.empty() && req.matches.size() > 1) {
+    annotation_id = req.matches[1].str();
+  }
+  if (annotation_id.empty()) {
+    json j;
+    j["error"] = "Missing annotation ID in URL";
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  try {
+    json updated = json::parse(req.body);
+    json file_data = LoadAnnotationsFile(path);
+    json& annotations = file_data["annotations"];
+
+    bool found = false;
+    for (auto& ann : annotations) {
+      if (ann.value("id", "") == annotation_id) {
+        // Merge updated fields
+        for (auto it = updated.begin(); it != updated.end(); ++it) {
+          ann[it.key()] = it.value();
+        }
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      json j;
+      j["error"] = "Annotation not found: " + annotation_id;
+      res.status = 404;
+      res.set_content(j.dump(), "application/json");
+      return;
+    }
+
+    if (SaveAnnotationsFile(path, file_data)) {
+      json response;
+      response["status"] = "ok";
+      response["id"] = annotation_id;
+      res.status = 200;
+      res.set_content(response.dump(), "application/json");
+    } else {
+      json j;
+      j["error"] = "Failed to write annotations file";
+      res.status = 500;
+      res.set_content(j.dump(), "application/json");
+    }
+  } catch (const std::exception& e) {
+    json j;
+    j["error"] = e.what();
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+  }
+}
+
+void HandleAnnotationDelete(const httplib::Request& req, httplib::Response& res,
+                            const std::string& project_path) {
+  ApplyCorsHeaders(res);
+  (void)req;
+
+  std::string path = ResolveAnnotationsPath(project_path);
+  if (path.empty()) {
+    json j;
+    j["error"] = "No project path configured";
+    res.status = 503;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  std::string annotation_id;
+  if (!req.matches.empty() && req.matches.size() > 1) {
+    annotation_id = req.matches[1].str();
+  }
+  if (annotation_id.empty()) {
+    json j;
+    j["error"] = "Missing annotation ID in URL";
+    res.status = 400;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  json file_data = LoadAnnotationsFile(path);
+  json& annotations = file_data["annotations"];
+
+  size_t original_size = annotations.size();
+  json filtered = json::array();
+  for (const auto& ann : annotations) {
+    if (ann.value("id", "") != annotation_id) {
+      filtered.push_back(ann);
+    }
+  }
+
+  if (filtered.size() == original_size) {
+    json j;
+    j["error"] = "Annotation not found: " + annotation_id;
+    res.status = 404;
+    res.set_content(j.dump(), "application/json");
+    return;
+  }
+
+  file_data["annotations"] = filtered;
+  if (SaveAnnotationsFile(path, file_data)) {
+    json response;
+    response["status"] = "ok";
+    response["id"] = annotation_id;
+    res.status = 200;
+    res.set_content(response.dump(), "application/json");
+  } else {
+    json j;
+    j["error"] = "Failed to write annotations file";
+    res.status = 500;
+    res.set_content(j.dump(), "application/json");
+  }
 }
 
 }  // namespace api
