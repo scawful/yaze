@@ -12,6 +12,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/panels/shortcut_legend_panel.h"
 #include "app/editor/dungeon/widgets/dungeon_status_bar.h"
 #include "app/editor/dungeon/widgets/dungeon_workbench_toolbar.h"
 #include "app/gui/core/icons.h"
@@ -277,9 +278,32 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       }
 
       // Status bar at the bottom of the canvas area
-      auto status =
-          DungeonStatusBar::BuildState(*primary_viewer, "Select", false);
-      DungeonStatusBar::Draw(status);
+      {
+        const char* tool_mode = get_tool_mode_ ? get_tool_mode_() : "Select";
+        auto status =
+            DungeonStatusBar::BuildState(*primary_viewer, tool_mode, false);
+        if (can_undo_)
+          status.can_undo = can_undo_();
+        if (can_redo_)
+          status.can_redo = can_redo_();
+        if (undo_desc_) {
+          static std::string s_undo_desc;
+          s_undo_desc = undo_desc_();
+          status.undo_desc =
+              s_undo_desc.empty() ? nullptr : s_undo_desc.c_str();
+        }
+        if (redo_desc_) {
+          static std::string s_redo_desc;
+          s_redo_desc = redo_desc_();
+          status.redo_desc =
+              s_redo_desc.empty() ? nullptr : s_redo_desc.c_str();
+        }
+        if (undo_depth_)
+          status.undo_depth = undo_depth_();
+        status.on_undo = on_undo_;
+        status.on_redo = on_redo_;
+        DungeonStatusBar::Draw(status);
+      }
     } else {
       ImGui::TextDisabled("No active viewer");
     }
@@ -1145,6 +1169,12 @@ void DungeonWorkbenchPanel::DrawInspectorShelfTools(
   }
 
   ImGui::EndTable();
+
+  ImGui::Spacing();
+  if (ImGui::Button(ICON_MD_KEYBOARD " Keyboard Shortcuts", ImVec2(-1, 0))) {
+    show_shortcut_legend_ = true;
+  }
+  ShortcutLegendPanel::Draw(&show_shortcut_legend_);
 }
 
 }  // namespace yaze::editor

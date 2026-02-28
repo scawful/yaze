@@ -21,23 +21,24 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/panels/custom_collision_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/panels/dungeon_map_panel.h"
-#include "app/editor/dungeon/panels/custom_collision_panel.h"
-#include "app/editor/dungeon/panels/water_fill_panel.h"
-#include "app/editor/dungeon/panels/dungeon_settings_panel.h"
-#include "app/editor/dungeon/panels/dungeon_workbench_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_selector_panel.h"
+#include "app/editor/dungeon/panels/dungeon_settings_panel.h"
+#include "app/editor/dungeon/panels/dungeon_workbench_panel.h"
 #include "app/editor/dungeon/panels/item_editor_panel.h"
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/panels/object_editor_panel.h"
 #include "app/editor/dungeon/panels/object_tile_editor_panel.h"
+#include "app/editor/dungeon/panels/overlay_manager_panel.h"
 #include "app/editor/dungeon/panels/room_tag_editor_panel.h"
 #include "app/editor/dungeon/panels/sprite_editor_panel.h"
+#include "app/editor/dungeon/panels/water_fill_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/system/panel_manager.h"
@@ -57,8 +58,8 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
-#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
@@ -69,7 +70,8 @@ namespace yaze::editor {
 
 namespace {
 
-absl::Status SaveWaterFillZones(Rom* rom, std::array<zelda3::Room, 0x128>& rooms) {
+absl::Status SaveWaterFillZones(Rom* rom,
+                                std::array<zelda3::Room, 0x128>& rooms) {
   if (!rom || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -99,8 +101,8 @@ absl::Status SaveWaterFillZones(Rom* rom, std::array<zelda3::Room, 0x128>& rooms
     }
     if (tile_count > 255) {
       return absl::InvalidArgumentError(absl::StrFormat(
-          "Water fill zone in room 0x%02X has %d tiles (max 255)",
-          room_id, tile_count));
+          "Water fill zone in room 0x%02X has %d tiles (max 255)", room_id,
+          tile_count));
     }
 
     zelda3::WaterFillZoneEntry z;
@@ -379,7 +381,8 @@ void DungeonEditorV2::Initialize() {
             return;
           }
           if (dependencies_.toast_manager) {
-            dependencies_.toast_manager->Show("Room saved", ToastType::kSuccess);
+            dependencies_.toast_manager->Show("Room saved",
+                                              ToastType::kSuccess);
           }
         },
         [this]() { return GetWorkbenchViewer(); },
@@ -393,6 +396,13 @@ void DungeonEditorV2::Initialize() {
         [this](const std::string& id) { ShowPanel(id); },
         [this](bool enabled) { QueueWorkbenchWorkflowMode(enabled); }, rom_);
     workbench_panel_ = workbench.get();
+    workbench_panel_->SetUndoRedoProvider(
+        [this]() { return undo_manager_.CanUndo(); },
+        [this]() { return undo_manager_.CanRedo(); },
+        [this]() { Undo().IgnoreError(); }, [this]() { Redo().IgnoreError(); },
+        [this]() { return undo_manager_.GetUndoDescription(); },
+        [this]() { return undo_manager_.GetRedoDescription(); },
+        [this]() { return static_cast<int>(undo_manager_.UndoStackSize()); });
     panel_manager->RegisterEditorPanel(std::move(workbench));
   }
 
@@ -501,14 +511,13 @@ absl::Status DungeonEditorV2::Load() {
   }
 
   // Wire tile editor callback before transferring ownership
-  object_editor->set_tile_editor_callback(
-      [this](int16_t object_id) {
-        if (object_tile_editor_panel_) {
-          object_tile_editor_panel_->OpenForObject(
-              object_id, current_room_id_, &rooms_);
-          ShowPanel("dungeon.object_tile_editor");
-        }
-      });
+  object_editor->set_tile_editor_callback([this](int16_t object_id) {
+    if (object_tile_editor_panel_) {
+      object_tile_editor_panel_->OpenForObject(object_id, current_room_id_,
+                                               &rooms_);
+      ShowPanel("dungeon.object_tile_editor");
+    }
+  });
 
   // Register the ObjectEditorPanel directly (it inherits from EditorPanel)
   // Panel manager takes ownership
@@ -527,14 +536,17 @@ absl::Status DungeonEditorV2::Load() {
     item_editor_panel_ = item_panel.get();
     dependencies_.panel_manager->RegisterEditorPanel(std::move(item_panel));
 
-    auto collision_panel = std::make_unique<CustomCollisionPanel>(nullptr, nullptr); // Placeholder, will be set in OnRoomSelected
+    auto collision_panel = std::make_unique<CustomCollisionPanel>(
+        nullptr, nullptr);  // Placeholder, will be set in OnRoomSelected
     custom_collision_panel_ = collision_panel.get();
-    dependencies_.panel_manager->RegisterEditorPanel(std::move(collision_panel));
+    dependencies_.panel_manager->RegisterEditorPanel(
+        std::move(collision_panel));
 
     auto water_fill_panel =
         std::make_unique<WaterFillPanel>(nullptr, nullptr);  // Placeholder
     water_fill_panel_ = water_fill_panel.get();
-    dependencies_.panel_manager->RegisterEditorPanel(std::move(water_fill_panel));
+    dependencies_.panel_manager->RegisterEditorPanel(
+        std::move(water_fill_panel));
 
     // Object Tile Editor Panel
     {
@@ -589,6 +601,14 @@ absl::Status DungeonEditorV2::Load() {
       room_tag_editor_panel_ = room_tag_panel.get();
       dependencies_.panel_manager->RegisterEditorPanel(
           std::move(room_tag_panel));
+    }
+
+    // Overlay Manager Panel
+    {
+      auto overlay_panel = std::make_unique<OverlayManagerPanel>();
+      overlay_manager_panel_ = overlay_panel.get();
+      dependencies_.panel_manager->RegisterEditorPanel(
+          std::move(overlay_panel));
     }
 
     // Feature Flag: Custom Objects / Minecart Tracks
@@ -749,7 +769,8 @@ absl::Status DungeonEditorV2::Update() {
           if (current_idx != -1) {
             int next_idx;
             if (ImGui::GetIO().KeyShift) {
-              next_idx = (current_idx + 1) % static_cast<int>(recent_rooms_.size());
+              next_idx =
+                  (current_idx + 1) % static_cast<int>(recent_rooms_.size());
             } else {
               next_idx =
                   (current_idx - 1 + static_cast<int>(recent_rooms_.size())) %
@@ -824,8 +845,7 @@ absl::Status DungeonEditorV2::Save() {
 
   const auto& flags = core::FeatureFlags::get().dungeon;
 
-  if (flags.kSavePalettes &&
-      gfx::PaletteManager::Get().HasUnsavedChanges()) {
+  if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
     auto status = gfx::PaletteManager::Get().SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
@@ -837,7 +857,8 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
-    for (int room_id = 0; room_id < static_cast<int>(rooms_.size()); ++room_id) {
+    for (int room_id = 0; room_id < static_cast<int>(rooms_.size());
+         ++room_id) {
       auto status = SaveRoomData(room_id);
       if (!status.ok()) {
         return status;
@@ -911,8 +932,8 @@ absl::Status DungeonEditorV2::Save() {
   return absl::OkStatus();
 }
 
-std::vector<std::pair<uint32_t, uint32_t>>
-DungeonEditorV2::CollectWriteRanges() const {
+std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
+    const {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
 
   if (!rom_ || !rom_->is_loaded()) {
@@ -945,9 +966,8 @@ DungeonEditorV2::CollectWriteRanges() const {
     const bool has_ptr_table =
         (zelda3::kCustomCollisionRoomPointers + ptrs_size <=
          static_cast<int>(rom_data.size()));
-    const bool has_data_region =
-        (zelda3::kCustomCollisionDataSoftEnd <=
-         static_cast<int>(rom_data.size()));
+    const bool has_data_region = (zelda3::kCustomCollisionDataSoftEnd <=
+                                  static_cast<int>(rom_data.size()));
     if (has_ptr_table && has_data_region) {
       for (const auto& room : rooms_) {
         if (room.custom_collision_dirty()) {
@@ -970,9 +990,10 @@ DungeonEditorV2::CollectWriteRanges() const {
     // Header range
     if (flags.kSaveRoomHeaders) {
       if (zelda3::kRoomHeaderPointer + 2 < static_cast<int>(rom_data.size())) {
-        int header_ptr_table = (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
-                               (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
-                               rom_data[zelda3::kRoomHeaderPointer];
+        int header_ptr_table =
+            (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
+            (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
+            rom_data[zelda3::kRoomHeaderPointer];
         header_ptr_table = yaze::SnesToPc(header_ptr_table);
         int table_offset = header_ptr_table + (room_id * 2);
 
@@ -1021,8 +1042,7 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
   }
 
   const auto& flags = core::FeatureFlags::get().dungeon;
-  if (flags.kSavePalettes &&
-      gfx::PaletteManager::Get().HasUnsavedChanges()) {
+  if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
     auto status = gfx::PaletteManager::Get().SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
@@ -1118,9 +1138,10 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
     // 1. Validate Header Range
     if (flags.kSaveRoomHeaders) {
       if (zelda3::kRoomHeaderPointer + 2 < static_cast<int>(rom_data.size())) {
-        int header_ptr_table = (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
-                               (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
-                               rom_data[zelda3::kRoomHeaderPointer];
+        int header_ptr_table =
+            (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
+            (rom_data[zelda3::kRoomHeaderPointer + 1] << 8) |
+            rom_data[zelda3::kRoomHeaderPointer];
         header_ptr_table = yaze::SnesToPc(header_ptr_table);
         int table_offset = header_ptr_table + (room_id * 2);
 
@@ -1164,15 +1185,17 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
     // address space (LoROM), so convert before analysis.
     auto conflicts = manifest.AnalyzePcWriteRanges(ranges);
     if (!conflicts.empty()) {
-      const auto write_policy = dependencies_.project->rom_metadata.write_policy;
-      std::string error_msg =
-          absl::StrFormat("Hack manifest write conflicts while saving room 0x%03X:\n\n",
-                          room_id);
+      const auto write_policy =
+          dependencies_.project->rom_metadata.write_policy;
+      std::string error_msg = absl::StrFormat(
+          "Hack manifest write conflicts while saving room 0x%03X:\n\n",
+          room_id);
       for (const auto& conflict : conflicts) {
         absl::StrAppend(
             &error_msg,
-            absl::StrFormat("- Address 0x%06X is %s", conflict.address,
-                            core::AddressOwnershipToString(conflict.ownership)));
+            absl::StrFormat(
+                "- Address 0x%06X is %s", conflict.address,
+                core::AddressOwnershipToString(conflict.ownership)));
         if (!conflict.module.empty()) {
           absl::StrAppend(&error_msg, " (Module: ", conflict.module, ")");
         }
@@ -1336,7 +1359,7 @@ void DungeonEditorV2::DrawRoomPanels() {
 
     // Ensure room card exists (should have been created by ShowRoomPanel/ShowPanel)
     if (room_cards_.find(room_id) == room_cards_.end()) {
-        ShowRoomPanel(room_id);
+      ShowRoomPanel(room_id);
     }
 
     auto& room_card = room_cards_[room_id];
@@ -1718,9 +1741,8 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
           ToastType::kError);
     }
     if (object_editor_panel_) {
-      object_editor_panel_->SetPlacementError(
-          absl::StrFormat("Cannot place 0x%02X: invalid room %d", obj.id_,
-                          current_room_id_));
+      object_editor_panel_->SetPlacementError(absl::StrFormat(
+          "Cannot place 0x%02X: invalid room %d", obj.id_, current_room_id_));
     }
     return;
   }
@@ -1747,13 +1769,12 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
 void DungeonEditorV2::OpenGraphicsEditorForObject(
     int room_id, const zelda3::RoomObject& object) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-    LOG_WARN("DungeonEditorV2",
-             "Edit Graphics ignored (invalid room id %d)", room_id);
+    LOG_WARN("DungeonEditorV2", "Edit Graphics ignored (invalid room id %d)",
+             room_id);
     return;
   }
 
-  auto* editor_manager =
-      static_cast<EditorManager*>(dependencies_.custom_data);
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
   if (!editor_manager) {
     LOG_WARN("DungeonEditorV2",
              "Edit Graphics ignored (editor manager unavailable)");
@@ -1766,8 +1787,8 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   uint16_t sheet_id = 0;
   uint16_t tile_index = 0;
   bool resolved_sheet = false;
-  if (auto tiles_or = object.GetTiles(); tiles_or.ok() &&
-      !tiles_or.value().empty()) {
+  if (auto tiles_or = object.GetTiles();
+      tiles_or.ok() && !tiles_or.value().empty()) {
     const uint16_t tile_id = tiles_or.value().front().id_;
     const size_t block_index = static_cast<size_t>(tile_id / 64);
     const auto blocks = room.blocks();
@@ -1788,9 +1809,8 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
     if (auto* graphics = editor_set->GetGraphicsEditor()) {
       if (resolved_sheet) {
         graphics->SelectSheet(sheet_id);
-        graphics->HighlightTile(
-            sheet_id, tile_index,
-            absl::StrFormat("Object 0x%02X", object.id_));
+        graphics->HighlightTile(sheet_id, tile_index,
+                                absl::StrFormat("Object 0x%02X", object.id_));
       }
     }
   }
@@ -1867,7 +1887,8 @@ void DungeonEditorV2::ProcessPendingSwap() {
   // Unregister old panel
   if (dependencies_.panel_manager) {
     std::string old_card_id = absl::StrFormat("dungeon.room_%d", old_room_id);
-    const bool old_pinned = dependencies_.panel_manager->IsPanelPinned(old_card_id);
+    const bool old_pinned =
+        dependencies_.panel_manager->IsPanelPinned(old_card_id);
     dependencies_.panel_manager->UnregisterPanel(old_card_id);
 
     // Register new panel
@@ -1929,7 +1950,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   // Set eviction predicate to protect active rooms from eviction
   room_viewers_.SetEvictionPredicate([this](const int& candidate) {
     for (int i = 0; i < active_rooms_.size(); ++i) {
-      if (active_rooms_[i] == candidate) return false;
+      if (active_rooms_[i] == candidate)
+        return false;
     }
     return true;
   });
@@ -1941,7 +1963,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     // Update pinned state from manager
     if (dependencies_.panel_manager) {
       std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
-      viewer_ptr->SetPinned(dependencies_.panel_manager->IsPanelPinned(card_id));
+      viewer_ptr->SetPinned(
+          dependencies_.panel_manager->IsPanelPinned(card_id));
       viewer_ptr->SetPinCallback([this, card_id, room_id](bool pinned) {
         if (dependencies_.panel_manager) {
           dependencies_.panel_manager->SetPanelPinned(card_id, pinned);
@@ -1986,43 +2009,43 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
       }
     });
 
-    viewer->object_interaction().SetCacheInvalidationCallback(
-        [this, viewer_ptr]() {
-          const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
-          if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-            const auto domain =
-                viewer_ptr->object_interaction().last_invalidation_domain();
-            if (domain == MutationDomain::kTileObjects) {
-              rooms_[rid].MarkObjectsDirty();
-              rooms_[rid].RenderRoomGraphics();
-              // Drag edits invalidate incrementally; finalize once the drag ends
-              // (TileObjectHandler emits an extra invalidation on release).
-              const auto mode =
-                  viewer_ptr->object_interaction().mode_manager().GetMode();
-              if (mode != InteractionMode::DraggingObjects) {
-                FinalizeUndoAction(rid);
-              }
-            } else if (domain == MutationDomain::kCustomCollision) {
-              const auto mode =
-                  viewer_ptr->object_interaction().mode_manager().GetMode();
-              const auto& st =
-                  viewer_ptr->object_interaction().mode_manager().GetModeState();
-              if (mode == InteractionMode::PaintCollision && st.is_painting) {
-                return;
-              }
-              FinalizeCollisionUndoAction(rid);
-            } else if (domain == MutationDomain::kWaterFill) {
-              const auto mode =
-                  viewer_ptr->object_interaction().mode_manager().GetMode();
-              const auto& st =
-                  viewer_ptr->object_interaction().mode_manager().GetModeState();
-              if (mode == InteractionMode::PaintWaterFill && st.is_painting) {
-                return;
-              }
-              FinalizeWaterFillUndoAction(rid);
-            }
+    viewer->object_interaction().SetCacheInvalidationCallback([this,
+                                                               viewer_ptr]() {
+      const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
+      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
+        const auto domain =
+            viewer_ptr->object_interaction().last_invalidation_domain();
+        if (domain == MutationDomain::kTileObjects) {
+          rooms_[rid].MarkObjectsDirty();
+          rooms_[rid].RenderRoomGraphics();
+          // Drag edits invalidate incrementally; finalize once the drag ends
+          // (TileObjectHandler emits an extra invalidation on release).
+          const auto mode =
+              viewer_ptr->object_interaction().mode_manager().GetMode();
+          if (mode != InteractionMode::DraggingObjects) {
+            FinalizeUndoAction(rid);
           }
-        });
+        } else if (domain == MutationDomain::kCustomCollision) {
+          const auto mode =
+              viewer_ptr->object_interaction().mode_manager().GetMode();
+          const auto& st =
+              viewer_ptr->object_interaction().mode_manager().GetModeState();
+          if (mode == InteractionMode::PaintCollision && st.is_painting) {
+            return;
+          }
+          FinalizeCollisionUndoAction(rid);
+        } else if (domain == MutationDomain::kWaterFill) {
+          const auto mode =
+              viewer_ptr->object_interaction().mode_manager().GetMode();
+          const auto& st =
+              viewer_ptr->object_interaction().mode_manager().GetModeState();
+          if (mode == InteractionMode::PaintWaterFill && st.is_painting) {
+            return;
+          }
+          FinalizeWaterFillUndoAction(rid);
+        }
+      }
+    });
 
     viewer->object_interaction().SetObjectPlacedCallback(
         [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
@@ -2132,20 +2155,25 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
         if (domain == MutationDomain::kTileObjects) {
           rooms_[rid].MarkObjectsDirty();
           rooms_[rid].RenderRoomGraphics();
-          const auto mode = viewer->object_interaction().mode_manager().GetMode();
+          const auto mode =
+              viewer->object_interaction().mode_manager().GetMode();
           if (mode != InteractionMode::DraggingObjects) {
             FinalizeUndoAction(rid);
           }
         } else if (domain == MutationDomain::kCustomCollision) {
-          const auto mode = viewer->object_interaction().mode_manager().GetMode();
-          const auto& st = viewer->object_interaction().mode_manager().GetModeState();
+          const auto mode =
+              viewer->object_interaction().mode_manager().GetMode();
+          const auto& st =
+              viewer->object_interaction().mode_manager().GetModeState();
           if (mode == InteractionMode::PaintCollision && st.is_painting) {
             return;
           }
           FinalizeCollisionUndoAction(rid);
         } else if (domain == MutationDomain::kWaterFill) {
-          const auto mode = viewer->object_interaction().mode_manager().GetMode();
-          const auto& st = viewer->object_interaction().mode_manager().GetModeState();
+          const auto mode =
+              viewer->object_interaction().mode_manager().GetMode();
+          const auto& st =
+              viewer->object_interaction().mode_manager().GetModeState();
           if (mode == InteractionMode::PaintWaterFill && st.is_painting) {
             return;
           }
@@ -2374,6 +2402,34 @@ void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
   if (room_tag_editor_panel_) {
     room_tag_editor_panel_->SetCurrentRoomId(room_id);
   }
+
+  if (overlay_manager_panel_) {
+    auto* viewer = GetViewerForRoom(room_id);
+    if (viewer) {
+      OverlayManagerPanel::OverlayState overlay_state;
+      overlay_state.show_grid = viewer->mutable_show_grid();
+      overlay_state.show_object_bounds = viewer->mutable_show_object_bounds();
+      overlay_state.show_coordinate_overlay =
+          viewer->mutable_show_coordinate_overlay();
+      overlay_state.show_room_debug_info =
+          viewer->mutable_show_room_debug_info();
+      overlay_state.show_texture_debug = viewer->mutable_show_texture_debug();
+      overlay_state.show_layer_info = viewer->mutable_show_layer_info();
+      overlay_state.show_minecart_tracks =
+          viewer->mutable_show_minecart_tracks();
+      overlay_state.show_custom_collision =
+          viewer->mutable_show_custom_collision_overlay();
+      overlay_state.show_track_collision =
+          viewer->mutable_show_track_collision_overlay();
+      overlay_state.show_camera_quadrants =
+          viewer->mutable_show_camera_quadrant_overlay();
+      overlay_state.show_minecart_sprites =
+          viewer->mutable_show_minecart_sprite_overlay();
+      overlay_state.show_collision_legend =
+          viewer->mutable_show_track_collision_legend();
+      overlay_manager_panel_->SetState(overlay_state);
+    }
+  }
 }
 
 void DungeonEditorV2::ShowRoomPanel(int room_id) {
@@ -2394,7 +2450,7 @@ void DungeonEditorV2::ShowRoomPanel(int room_id) {
   }
 
   std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
-  
+
   if (dependencies_.panel_manager) {
     if (!dependencies_.panel_manager->GetPanelDescriptor(
             dependencies_.panel_manager->GetActiveSessionId(), card_id)) {
@@ -2420,9 +2476,9 @@ void DungeonEditorV2::ShowRoomPanel(int room_id) {
     const int slot_id = GetOrCreateRoomPanelSlotId(room_id);
     std::string card_name_str = absl::StrFormat(
         "%s###RoomPanelSlot%d", MakePanelTitle(base_name).c_str(), slot_id);
-    
-    auto card = std::make_shared<gui::PanelWindow>(
-        card_name_str.c_str(), ICON_MD_GRID_ON);
+
+    auto card = std::make_shared<gui::PanelWindow>(card_name_str.c_str(),
+                                                   ICON_MD_GRID_ON);
     card->SetDefaultSize(620, 700);
     room_cards_[room_id] = card;
   }
@@ -2545,7 +2601,7 @@ void DungeonEditorV2::FinalizeWaterFillUndoAction(int room_id) {
 }
 
 void DungeonEditorV2::RestoreRoomWaterFill(int room_id,
-                                          const WaterFillSnapshot& snap) {
+                                           const WaterFillSnapshot& snap) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
     return;
 

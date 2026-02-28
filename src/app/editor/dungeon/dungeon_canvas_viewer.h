@@ -186,6 +186,44 @@ class DungeonCanvasViewer {
   void set_show_coordinate_overlay(bool show) {
     show_coordinate_overlay_ = show;
   }
+  bool show_room_debug_info() const { return show_room_debug_info_; }
+  void set_show_room_debug_info(bool show) { show_room_debug_info_ = show; }
+  bool show_texture_debug() const { return show_texture_debug_; }
+  void set_show_texture_debug(bool show) { show_texture_debug_ = show; }
+  bool show_layer_info() const { return show_layer_info_; }
+  void set_show_layer_info(bool show) { show_layer_info_ = show; }
+  bool show_minecart_tracks() const { return show_minecart_tracks_; }
+  void set_show_minecart_tracks(bool show) { show_minecart_tracks_ = show; }
+  bool show_track_collision_legend() const {
+    return show_track_collision_legend_;
+  }
+  void set_show_track_collision_legend(bool show) {
+    show_track_collision_legend_ = show;
+  }
+
+  // Mutable pointer accessors for OverlayManagerPanel binding.
+  bool* mutable_show_grid() { return &show_grid_; }
+  bool* mutable_show_object_bounds() { return &show_object_bounds_; }
+  bool* mutable_show_coordinate_overlay() { return &show_coordinate_overlay_; }
+  bool* mutable_show_room_debug_info() { return &show_room_debug_info_; }
+  bool* mutable_show_texture_debug() { return &show_texture_debug_; }
+  bool* mutable_show_layer_info() { return &show_layer_info_; }
+  bool* mutable_show_minecart_tracks() { return &show_minecart_tracks_; }
+  bool* mutable_show_custom_collision_overlay() {
+    return &show_custom_collision_overlay_;
+  }
+  bool* mutable_show_track_collision_overlay() {
+    return &show_track_collision_overlay_;
+  }
+  bool* mutable_show_camera_quadrant_overlay() {
+    return &show_camera_quadrant_overlay_;
+  }
+  bool* mutable_show_minecart_sprite_overlay() {
+    return &show_minecart_sprite_overlay_;
+  }
+  bool* mutable_show_track_collision_legend() {
+    return &show_track_collision_legend_;
+  }
   void SetShowRoomGraphicsCallback(std::function<void()> callback) {
     show_room_graphics_callback_ = std::move(callback);
   }

@@ -24,11 +24,11 @@
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
 #include "dungeon_undo_actions.h"
-#include "util/lru_cache.h"
 #include "imgui/imgui.h"
 #include "panels/dungeon_room_graphics_panel.h"
 #include "panels/object_editor_panel.h"
 #include "rom/rom.h"
+#include "util/lru_cache.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -40,6 +40,7 @@ namespace editor {
 
 class MinecartTrackEditorPanel;
 class ObjectTileEditorPanel;
+class OverlayManagerPanel;
 class RoomTagEditorPanel;
 
 /**
@@ -111,9 +112,11 @@ class DungeonEditorV2 : public Editor {
     }
     // Note: Canvas viewer game data is set lazily in GetViewerForRoom
     // but we should update existing viewers
-    room_viewers_.ForEach([game_data](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
-      if (viewer) viewer->SetGameData(game_data);
-    });
+    room_viewers_.ForEach(
+        [game_data](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+          if (viewer)
+            viewer->SetGameData(game_data);
+        });
   }
 
   // Editor interface
@@ -222,8 +225,10 @@ class DungeonEditorV2 : public Editor {
  private:
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
   friend class DungeonEditorV2RomSafetyTest_ViewerCacheLRUEviction_Test;
-  friend class DungeonEditorV2RomSafetyTest_ViewerCacheNeverEvictsActiveRooms_Test;
-  friend class DungeonEditorV2RomSafetyTest_ViewerCacheLRUAccessOrderUpdate_Test;
+  friend class
+      DungeonEditorV2RomSafetyTest_ViewerCacheNeverEvictsActiveRooms_Test;
+  friend class
+      DungeonEditorV2RomSafetyTest_ViewerCacheLRUAccessOrderUpdate_Test;
 
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -293,7 +298,8 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomLoader room_loader_;
   DungeonRoomSelector room_selector_;
   static constexpr int kMaxCachedViewers = 20;
-  util::LruCache<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_{kMaxCachedViewers};
+  util::LruCache<int, std::unique_ptr<DungeonCanvasViewer>> room_viewers_{
+      kMaxCachedViewers};
   std::unique_ptr<DungeonCanvasViewer> workbench_viewer_;
   std::unique_ptr<DungeonCanvasViewer> workbench_compare_viewer_;
 
@@ -310,6 +316,7 @@ class DungeonEditorV2 : public Editor {
   class WaterFillPanel* water_fill_panel_ = nullptr;
   ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
   class DungeonSettingsPanel* dungeon_settings_panel_ = nullptr;
+  OverlayManagerPanel* overlay_manager_panel_ = nullptr;
 
   // Fallback ownership for tests when PanelManager is not available.
   // In production, this remains nullptr and panels are owned by PanelManager.

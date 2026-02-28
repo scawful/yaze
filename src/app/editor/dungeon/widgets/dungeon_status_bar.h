@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_WIDGETS_DUNGEON_STATUS_BAR_H
 #define YAZE_APP_EDITOR_DUNGEON_WIDGETS_DUNGEON_STATUS_BAR_H
 
+#include <functional>
 #include <string>
 
 namespace yaze::editor {
@@ -37,9 +38,8 @@ struct DungeonStatusBarState {
   int undo_depth = 0;               // Number of undo actions available
 
   // Callbacks for undo/redo buttons (set by the host panel)
-  using UndoCallback = void (*)();
-  UndoCallback on_undo = nullptr;
-  UndoCallback on_redo = nullptr;
+  std::function<void()> on_undo;
+  std::function<void()> on_redo;
 };
 
 // Thin persistent bar drawn at the bottom of the dungeon editor canvas area.
