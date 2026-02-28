@@ -305,7 +305,8 @@ void AddSavestateFreshnessFields(resources::OutputFormatter& formatter,
     if (!entry.is_regular_file()) {
       continue;
     }
-    if (entry.path().extension() != ".state") {
+    const auto ext = entry.path().extension().string();
+    if (ext != ".state" && ext != ".mss") {
       continue;
     }
     const auto file_time = entry.last_write_time(ec);
@@ -319,8 +320,8 @@ void AddSavestateFreshnessFields(resources::OutputFormatter& formatter,
     }
   }
   if (!found) {
-    return ::absl::NotFoundError(
-        ::absl::StrFormat("no .state files found in %s", states_dir.string()));
+    return ::absl::NotFoundError(::absl::StrFormat(
+        "no state files (.state/.mss) found in %s", states_dir.string()));
   }
   return latest_path;
 }
@@ -1362,7 +1363,7 @@ std::vector<uint8_t> ParseHexBytes(const std::string& data_str) {
     if (states_dir.empty()) {
       return ::absl::NotFoundError(
           ::absl::StrFormat("state file not found after capture: %s (use "
-                            "--states-dir to auto-locate latest .state)",
+                            "--states-dir to auto-locate latest state file)",
                             resolved_state_path));
     }
     auto latest_or = FindLatestStateFileInDir(states_dir);

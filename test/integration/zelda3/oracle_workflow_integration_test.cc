@@ -26,6 +26,8 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
+#include "cli/handlers/game/dungeon_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/oracle_menu_commands.h"
 #include "nlohmann/json.hpp"
@@ -43,19 +45,18 @@ using json = nlohmann::json;
 // ---------------------------------------------------------------------------
 
 std::string FindOracleRom() {
-  for (const char* env_var :
-       {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
-        "YAZE_TEST_ROM_EXPANDED_PATH"}) {
+  for (const char* env_var : {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
+                              "YAZE_TEST_ROM_EXPANDED_PATH"}) {
     if (const char* path = std::getenv(env_var)) {
       if (std::filesystem::exists(path)) {
         return path;
       }
     }
   }
-  static const std::vector<std::string> kDirs = {
-      ".", "roms", "Roms", "../roms", "../../roms"};
-  static const std::vector<std::string> kNames = {
-      "oos168.sfc", "oos168x.sfc", "oracle_of_secrets.sfc"};
+  static const std::vector<std::string> kDirs = {".", "roms", "Roms", "../roms",
+                                                 "../../roms"};
+  static const std::vector<std::string> kNames = {"oos168.sfc", "oos168x.sfc",
+                                                  "oracle_of_secrets.sfc"};
   for (const auto& dir : kDirs) {
     for (const auto& name : kNames) {
       std::filesystem::path path = std::filesystem::path(dir) / name;
@@ -114,9 +115,8 @@ TEST_F(OracleWorkflowTest, D4WaterFillTableMasksAreUniqueAndSingleBit) {
   std::unordered_set<uint8_t> seen_masks;
   for (const auto& zone : zones) {
     // Each mask must be non-zero.
-    EXPECT_NE(zone.sram_bit_mask, 0u)
-        << "Zone for room 0x" << std::hex << zone.room_id
-        << " has zero SRAM mask.";
+    EXPECT_NE(zone.sram_bit_mask, 0u) << "Zone for room 0x" << std::hex
+                                      << zone.room_id << " has zero SRAM mask.";
 
     // Each mask must be a single power-of-2 bit.
     EXPECT_EQ(zone.sram_bit_mask & (zone.sram_bit_mask - 1u), 0u)
@@ -138,9 +138,8 @@ TEST_F(OracleWorkflowTest, D4PreflightConfirmsExpandedRomHasWriteSupport) {
   cli::handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
   // Ignore exit code — room data may not be authored yet.
-  [[maybe_unused]] auto ignored =
-      handler.Run({"--required-collision-rooms=0x25,0x27", "--format=json"},
-                  &rom_, &out);
+  [[maybe_unused]] auto ignored = handler.Run(
+      {"--required-collision-rooms=0x25,0x27", "--format=json"}, &rom_, &out);
 
   EXPECT_THAT(out, HasSubstr("\"required_rooms_check\": \"ran\""))
       << "Expected check to run on expanded ROM, got: " << out;
@@ -160,10 +159,9 @@ TEST_F(OracleWorkflowTest, D4PreflightConfirmsExpandedRomHasWriteSupport) {
 TEST_F(OracleWorkflowTest, D6AuditWithIncludeTrackObjectsFindsRailObjects) {
   cli::handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  const auto status = handler.Run(
-      {"--rooms=0xA8,0xB8,0xD8,0xDA", "--include-track-objects",
-       "--format=json"},
-      &rom_, &out);
+  const auto status = handler.Run({"--rooms=0xA8,0xB8,0xD8,0xDA",
+                                   "--include-track-objects", "--format=json"},
+                                  &rom_, &out);
   ASSERT_TRUE(status.ok()) << status.message();
 
   const auto doc = json::parse(out, nullptr, /*allow_exceptions=*/false);
@@ -189,7 +187,8 @@ TEST_F(OracleWorkflowTest, D6AuditWithIncludeTrackObjectsFindsRailObjects) {
   }
   EXPECT_TRUE(found_track_objects)
       << "No D6 room returned track_object_subtypes — did the minecart room "
-         "configuration get lost? Full output: " << out;
+         "configuration get lost? Full output: "
+      << out;
 }
 
 TEST_F(OracleWorkflowTest, D6AuditEmittedCountMatchesRequestedCount) {
@@ -197,12 +196,11 @@ TEST_F(OracleWorkflowTest, D6AuditEmittedCountMatchesRequestedCount) {
   // because they all have rail objects, regardless of collision/sprite state.
   cli::handlers::DungeonMinecartAuditCommandHandler handler;
   std::string out;
-  ASSERT_TRUE(
-      handler
-          .Run({"--rooms=0xA8,0xB8,0xD8,0xDA", "--include-track-objects",
-                "--format=json"},
-               &rom_, &out)
-          .ok());
+  ASSERT_TRUE(handler
+                  .Run({"--rooms=0xA8,0xB8,0xD8,0xDA",
+                        "--include-track-objects", "--format=json"},
+                       &rom_, &out)
+                  .ok());
 
   const auto doc = json::parse(out, nullptr, false);
   ASSERT_FALSE(doc.is_discarded());
@@ -214,6 +212,53 @@ TEST_F(OracleWorkflowTest, D6AuditEmittedCountMatchesRequestedCount) {
   // is set and all rooms have track objects.
   EXPECT_EQ(audit.value("rooms_emitted", -1), 4)
       << "Expected 4 rooms emitted (all have track objects), got: " << out;
+}
+
+TEST_F(OracleWorkflowTest,
+       D6TrackCollisionGenerationStaysWithinPlausibleBounds) {
+  struct RoomBounds {
+    int room_id;
+    int min_tiles;
+    int max_tiles;
+  };
+
+  // Guardrails for known D6 minecart rooms:
+  // - lower bounds catch degenerate 1x1 footprint collapse
+  // - upper bounds catch runaway oversized footprints
+  const std::vector<RoomBounds> kRooms = {
+      {0xA8, 30, 80},
+      {0xB8, 150, 350},
+      {0xD8, 180, 420},
+      {0xDA, 120, 320},
+  };
+
+  cli::handlers::DungeonGenerateTrackCollisionCommandHandler handler;
+  for (const auto& room : kRooms) {
+    std::string out;
+    const auto status = handler.Run(
+        {absl::StrFormat("--room=0x%02X", room.room_id), "--format=json"},
+        &rom_, &out);
+    ASSERT_TRUE(status.ok()) << status.message();
+
+    const auto doc = json::parse(out, nullptr, /*allow_exceptions=*/false);
+    ASSERT_FALSE(doc.is_discarded()) << "JSON parse failed: " << out;
+    ASSERT_TRUE(doc.contains("Track Collision Generation"))
+        << "Missing 'Track Collision Generation' key; formatter changed? "
+        << out;
+
+    const auto& result = doc.at("Track Collision Generation");
+    ASSERT_TRUE(result.contains("tiles_generated"))
+        << "Missing tiles_generated for room 0x" << std::hex << room.room_id
+        << ": " << out;
+
+    const int tiles = result.value("tiles_generated", -1);
+    EXPECT_GE(tiles, room.min_tiles)
+        << "Room 0x" << std::hex << room.room_id
+        << " collapsed below plausible tile footprint. Output: " << out;
+    EXPECT_LE(tiles, room.max_tiles)
+        << "Room 0x" << std::hex << room.room_id
+        << " exceeded plausible tile footprint. Output: " << out;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -229,9 +274,8 @@ TEST_F(OracleWorkflowTest, D3PreflightCheckRanNotSkippedOnExpandedRom) {
   cli::handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
   // Ignore exit code: room 0x32 may not be authored yet.
-  [[maybe_unused]] auto ignored =
-      handler.Run({"--required-collision-rooms=0x32", "--format=json"},
-                  &rom_, &out);
+  [[maybe_unused]] auto ignored = handler.Run(
+      {"--required-collision-rooms=0x32", "--format=json"}, &rom_, &out);
 
   // The key correctness assertion: the check RAN (not "skipped").
   // "skipped" would mean the ROM lacks the expanded collision write region,

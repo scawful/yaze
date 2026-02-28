@@ -8,7 +8,10 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "core/features.h"
+#include "core/project.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"
 
 namespace yaze {
 namespace cli {
@@ -29,6 +32,7 @@ class CommandContext {
   struct Config {
     std::optional<std::string> rom_path;
     std::optional<std::string> symbols_path;
+    std::optional<std::string> project_context_path;
     bool use_mock_rom = false;
     std::string format = "json";  // "json" or "text"
     bool verbose = false;
@@ -38,7 +42,7 @@ class CommandContext {
   };
 
   explicit CommandContext(const Config& config);
-  ~CommandContext() = default;
+  ~CommandContext();
 
   /**
    * @brief Initialize the context and load ROM if needed
@@ -70,12 +74,27 @@ class CommandContext {
    */
   absl::Status EnsureLabelsLoaded(Rom* rom);
 
+  /**
+   * @brief Returns loaded project context when --project-context was used.
+   */
+  project::YazeProject* GetProjectContext() {
+    return loaded_project_.has_value() ? &loaded_project_.value() : nullptr;
+  }
+
  private:
+  absl::Status ApplyProjectRuntimeContext();
+  void RestoreProjectRuntimeContext();
+
   Config config_;
   Rom rom_storage_;  // Owned ROM if loaded from file
   Rom* active_rom_ =
       nullptr;  // Points to either rom_storage_ or external_rom_context
   emu::debug::SymbolProvider symbol_provider_;
+  std::optional<project::YazeProject> loaded_project_;
+  std::optional<core::FeatureFlags::Flags> previous_feature_flags_;
+  std::optional<zelda3::CustomObjectManager::State>
+      previous_custom_object_state_;
+  bool project_runtime_applied_ = false;
   bool initialized_ = false;
 };
 

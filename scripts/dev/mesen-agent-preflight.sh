@@ -9,6 +9,7 @@ ROM_PATH="${ROM_PATH:-Roms/oos168x.sfc}"
 META_PATH=""
 SCENARIO=""
 SCENARIO_MAP=""
+STRICT_SCENARIO=1
 OUT_JSON="${OUT_JSON:-.context/runtime/mesen_preflight.json}"
 Z3ED_BIN="${Z3ED_BIN:-./build_ai/bin/Debug/z3ed}"
 DEFAULT_SCENARIO_MAP="scripts/dev/mesen-state-scenarios.tsv"
@@ -24,6 +25,8 @@ Options:
   --meta <path>          Metadata path (default: <state>.meta.json)
   --scenario <id>        Expected scenario id (optional)
   --scenario-map <path>  TSV mapping: <state_filename>\t<scenario_id>
+  --strict-scenario      Require a resolved scenario id (default)
+  --no-strict-scenario   Allow running preflight without a scenario id
   --out <path>           Persist JSON output (default: .context/runtime/mesen_preflight.json)
   --z3ed <path>          z3ed binary path
   -h, --help             Show help
@@ -57,6 +60,14 @@ while [[ $# -gt 0 ]]; do
     --scenario-map)
       SCENARIO_MAP="$2"
       shift 2
+      ;;
+    --strict-scenario)
+      STRICT_SCENARIO=1
+      shift
+      ;;
+    --no-strict-scenario)
+      STRICT_SCENARIO=0
+      shift
       ;;
     --out)
       OUT_JSON="$2"
@@ -101,12 +112,32 @@ if [[ -z "$SCENARIO_MAP" && -f "$DEFAULT_SCENARIO_MAP" ]]; then
   SCENARIO_MAP="$DEFAULT_SCENARIO_MAP"
 fi
 
-if [[ -z "$SCENARIO" && -n "$SCENARIO_MAP" && -f "$SCENARIO_MAP" ]]; then
+if [[ -n "$SCENARIO_MAP" && ! -f "$SCENARIO_MAP" ]]; then
+  echo "Scenario map not found: $SCENARIO_MAP" >&2
+  exit 1
+fi
+
+map_scenario=""
+if [[ -n "$SCENARIO_MAP" ]]; then
   base="$(basename "$STATE_PATH")"
-  found="$(awk -F'\t' -v key="$base" '$1==key {print $2; exit}' "$SCENARIO_MAP" || true)"
-  if [[ -n "$found" ]]; then
-    SCENARIO="$found"
+  map_scenario="$(awk -F'\t' -v key="$base" '$1==key {print $2; exit}' "$SCENARIO_MAP" || true)"
+  if [[ -n "$SCENARIO" && -n "$map_scenario" && "$SCENARIO" != "$map_scenario" ]]; then
+    echo "Scenario mismatch for '$base': --scenario '$SCENARIO' != map '$map_scenario'" >&2
+    exit 1
   fi
+  if [[ -z "$SCENARIO" && -n "$map_scenario" ]]; then
+    SCENARIO="$map_scenario"
+  fi
+fi
+
+if [[ "$STRICT_SCENARIO" -eq 1 && -z "$SCENARIO" ]]; then
+  if [[ -n "$SCENARIO_MAP" ]]; then
+    echo "No scenario mapping found for '$(basename "$STATE_PATH")' in '$SCENARIO_MAP'." >&2
+    echo "Add it to the map, pass --scenario, or use --no-strict-scenario." >&2
+  else
+    echo "No scenario provided and no scenario map available. Pass --scenario or use --no-strict-scenario." >&2
+  fi
+  exit 1
 fi
 
 args=(mesen-state-hook --state "$STATE_PATH" --rom-file "$ROM_PATH" --format=json)

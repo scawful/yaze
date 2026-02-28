@@ -2,10 +2,10 @@
 #define YAZE_ZELDA3_DUNGEON_CUSTOM_OBJECT_H_
 
 #include <cstdint>
-#include <string>
-#include <vector>
 #include <memory>
+#include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -33,7 +33,7 @@ struct CustomObject {
   struct TileMapEntry {
     int rel_x;
     int rel_y;
-    uint16_t tile_data; // vhopppcc cccccccc
+    uint16_t tile_data;  // vhopppcc cccccccc
   };
 
   struct BoundingBox {
@@ -52,17 +52,22 @@ struct CustomObject {
   // Compute the bounding box from all tile entries.
   // If tiles is empty, returns the default-initialized box (min/max=0).
   BoundingBox GetBoundingBox() const {
-    if (tiles.empty()) return {};
+    if (tiles.empty())
+      return {};
     BoundingBox bb;
     bb.min_x = tiles[0].rel_x;
     bb.max_x = tiles[0].rel_x;
     bb.min_y = tiles[0].rel_y;
     bb.max_y = tiles[0].rel_y;
     for (size_t i = 1; i < tiles.size(); ++i) {
-      if (tiles[i].rel_x < bb.min_x) bb.min_x = tiles[i].rel_x;
-      if (tiles[i].rel_x > bb.max_x) bb.max_x = tiles[i].rel_x;
-      if (tiles[i].rel_y < bb.min_y) bb.min_y = tiles[i].rel_y;
-      if (tiles[i].rel_y > bb.max_y) bb.max_y = tiles[i].rel_y;
+      if (tiles[i].rel_x < bb.min_x)
+        bb.min_x = tiles[i].rel_x;
+      if (tiles[i].rel_x > bb.max_x)
+        bb.max_x = tiles[i].rel_x;
+      if (tiles[i].rel_y < bb.min_y)
+        bb.min_y = tiles[i].rel_y;
+      if (tiles[i].rel_y > bb.max_y)
+        bb.max_y = tiles[i].rel_y;
     }
     return bb;
   }
@@ -73,6 +78,11 @@ struct CustomObject {
  */
 class CustomObjectManager {
  public:
+  struct State {
+    std::string base_path;
+    std::unordered_map<int, std::vector<std::string>> custom_file_map;
+  };
+
   static CustomObjectManager& Get();
 
   // Initialize with the full path to the custom objects folder
@@ -86,11 +96,13 @@ class CustomObjectManager {
   bool HasCustomFileMap() const { return !custom_file_map_.empty(); }
 
   // Load a custom object from a binary file
-  absl::StatusOr<std::shared_ptr<CustomObject>> LoadObject(const std::string& filename);
-  
+  absl::StatusOr<std::shared_ptr<CustomObject>> LoadObject(
+      const std::string& filename);
+
   // Get an object by ID/Subtype mapping (0x31 or 0x32)
   // Subtype index maps to the .ObjOffset table
-  absl::StatusOr<std::shared_ptr<CustomObject>> GetObjectInternal(int object_id, int subtype);
+  absl::StatusOr<std::shared_ptr<CustomObject>> GetObjectInternal(int object_id,
+                                                                  int subtype);
 
   // Get number of subtypes for a custom object ID
   int GetSubtypeCount(int object_id) const;
@@ -108,23 +120,28 @@ class CustomObjectManager {
   const std::string& GetBasePath() const { return base_path_; }
   std::string ResolveFilename(int object_id, int subtype) const;
 
+  // Snapshot/restore helpers for scoped CLI/runtime feature application.
+  State SnapshotState() const;
+  void RestoreState(const State& state);
+
  private:
   CustomObjectManager() = default;
 
-  absl::StatusOr<CustomObject> ParseBinaryData(const std::vector<uint8_t>& data);
+  absl::StatusOr<CustomObject> ParseBinaryData(
+      const std::vector<uint8_t>& data);
   const std::vector<std::string>* ResolveFileList(int object_id) const;
 
   std::string base_path_;
   std::unordered_map<std::string, std::shared_ptr<CustomObject>> cache_;
   std::unordered_map<int, std::vector<std::string>> custom_file_map_;
-  
+
   // Mapping from subtype index to filename for ID 0x31
   static const std::vector<std::string> kSubtype1Filenames;
   // Mapping from subtype index to filename for ID 0x32
   static const std::vector<std::string> kSubtype2Filenames;
 };
 
-} // namespace zelda3
-} // namespace yaze
+}  // namespace zelda3
+}  // namespace yaze
 
-#endif // YAZE_ZELDA3_DUNGEON_CUSTOM_OBJECT_H_
+#endif  // YAZE_ZELDA3_DUNGEON_CUSTOM_OBJECT_H_

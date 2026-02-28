@@ -7,6 +7,7 @@ cd "$ROOT_DIR"
 ROM_PATH="${ROM_PATH:-Roms/oos168x.sfc}"
 STATES_DIR=""
 SCENARIO_MAP=""
+STRICT_MINECART_SCENARIOS=1
 Z3ED_BIN="${Z3ED_BIN:-./build_ai/bin/Debug/z3ed}"
 DEFAULT_SCENARIO_MAP="scripts/dev/mesen-state-scenarios.tsv"
 
@@ -19,6 +20,10 @@ Options:
   --rom <path>            ROM path for hash pinning (default: Roms/oos168x.sfc)
   --states-dir <path>     Directory to auto-scan for *.state files
   --scenario-map <path>   Optional TSV: <state_filename>\t<scenario_id>
+  --strict-minecart-scenarios
+                          Require scenario map entries for minecart_room_*.state (default)
+  --no-strict-minecart-scenarios
+                          Allow unmapped minecart_room_*.state files
   --z3ed <path>           z3ed binary (default: ./build_ai/bin/Debug/z3ed)
   -h, --help              Show this help
 
@@ -43,6 +48,14 @@ while [[ $# -gt 0 ]]; do
     --scenario-map)
       SCENARIO_MAP="$2"
       shift 2
+      ;;
+    --strict-minecart-scenarios)
+      STRICT_MINECART_SCENARIOS=1
+      shift
+      ;;
+    --no-strict-minecart-scenarios)
+      STRICT_MINECART_SCENARIOS=0
+      shift
       ;;
     --z3ed)
       Z3ED_BIN="$2"
@@ -128,6 +141,13 @@ for state in "${STATES[@]}"; do
 
   base="$(basename "$state")"
   scenario="${SCENARIOS[$base]:-}"
+
+  if [[ "$STRICT_MINECART_SCENARIOS" -eq 1 && -z "$scenario" &&
+        "$base" == minecart_room_*.state ]]; then
+    echo "Missing scenario mapping for minecart fixture: $base" >&2
+    echo "Add it to $SCENARIO_MAP or use --no-strict-minecart-scenarios." >&2
+    exit 1
+  fi
 
   regen_args=(mesen-state-regen --state "$state" --rom-file "$ROM_PATH")
   verify_args=(mesen-state-verify --state "$state" --rom-file "$ROM_PATH")

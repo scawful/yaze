@@ -24,6 +24,8 @@ namespace {
 constexpr int kGridSize = 64;
 constexpr uint16_t kCollisionSingleTileMarker = 0xF0F0;
 constexpr uint16_t kCollisionEndMarker = 0xFFFF;
+constexpr int kFallbackTrackFootprintWidthTiles = 2;
+constexpr int kFallbackTrackFootprintHeightTiles = 2;
 
 // Map corner type to its switch equivalent for promotion.
 TrackTileType PromoteCornerToSwitch(TrackTileType corner) {
@@ -55,8 +57,7 @@ bool IsCornerTile(uint8_t tile) {
 //   - 3 neighbors → T-junction
 //   - 4 neighbors → intersection
 uint8_t ClassifyTile(bool up, bool down, bool left, bool right) {
-  int count = (up ? 1 : 0) + (down ? 1 : 0) + (left ? 1 : 0) +
-              (right ? 1 : 0);
+  int count = (up ? 1 : 0) + (down ? 1 : 0) + (left ? 1 : 0) + (right ? 1 : 0);
 
   if (count == 0) {
     // Isolated tile — treat as intersection (shouldn't happen in practice)
@@ -66,28 +67,42 @@ uint8_t ClassifyTile(bool up, bool down, bool left, bool right) {
   if (count == 1) {
     // Endpoint → stop tile. Direction is where the neighbor IS, because
     // the cart arrives from that direction and will depart back that way.
-    if (down) return static_cast<uint8_t>(TrackTileType::StopNorth);
-    if (up) return static_cast<uint8_t>(TrackTileType::StopSouth);
-    if (right) return static_cast<uint8_t>(TrackTileType::StopWest);
-    if (left) return static_cast<uint8_t>(TrackTileType::StopEast);
+    if (down)
+      return static_cast<uint8_t>(TrackTileType::StopNorth);
+    if (up)
+      return static_cast<uint8_t>(TrackTileType::StopSouth);
+    if (right)
+      return static_cast<uint8_t>(TrackTileType::StopWest);
+    if (left)
+      return static_cast<uint8_t>(TrackTileType::StopEast);
   }
 
   if (count == 2) {
     // Two neighbors — either a straight line or a corner
-    if (left && right) return static_cast<uint8_t>(TrackTileType::HorizStraight);
-    if (up && down) return static_cast<uint8_t>(TrackTileType::VertStraight);
-    if (down && right) return static_cast<uint8_t>(TrackTileType::CornerTL);
-    if (up && right) return static_cast<uint8_t>(TrackTileType::CornerBL);
-    if (down && left) return static_cast<uint8_t>(TrackTileType::CornerTR);
-    if (up && left) return static_cast<uint8_t>(TrackTileType::CornerBR);
+    if (left && right)
+      return static_cast<uint8_t>(TrackTileType::HorizStraight);
+    if (up && down)
+      return static_cast<uint8_t>(TrackTileType::VertStraight);
+    if (down && right)
+      return static_cast<uint8_t>(TrackTileType::CornerTL);
+    if (up && right)
+      return static_cast<uint8_t>(TrackTileType::CornerBL);
+    if (down && left)
+      return static_cast<uint8_t>(TrackTileType::CornerTR);
+    if (up && left)
+      return static_cast<uint8_t>(TrackTileType::CornerBR);
   }
 
   if (count == 3) {
     // T-junction — named for the direction WITHOUT a neighbor
-    if (!up) return static_cast<uint8_t>(TrackTileType::TJuncSouth);
-    if (!down) return static_cast<uint8_t>(TrackTileType::TJuncNorth);
-    if (!left) return static_cast<uint8_t>(TrackTileType::TJuncEast);
-    if (!right) return static_cast<uint8_t>(TrackTileType::TJuncWest);
+    if (!up)
+      return static_cast<uint8_t>(TrackTileType::TJuncSouth);
+    if (!down)
+      return static_cast<uint8_t>(TrackTileType::TJuncNorth);
+    if (!left)
+      return static_cast<uint8_t>(TrackTileType::TJuncEast);
+    if (!right)
+      return static_cast<uint8_t>(TrackTileType::TJuncWest);
   }
 
   // count == 4: full intersection
@@ -97,27 +112,66 @@ uint8_t ClassifyTile(bool up, bool down, bool left, bool right) {
 // Get the tile label character for ASCII visualization.
 char TileToChar(uint8_t tile) {
   switch (tile) {
-    case 0xB0: return '-';   // horiz straight
-    case 0xB1: return '|';   // vert straight
-    case 0xB2: return '/';   // corner TL (down+right)
-    case 0xB3: return '\\';  // corner BL (up+right)
-    case 0xB4: return '\\';  // corner TR (down+left)
-    case 0xB5: return '/';   // corner BR (up+left)
-    case 0xB6: return '+';   // intersection
-    case 0xB7: return 'N';   // stop north
-    case 0xB8: return 'S';   // stop south
-    case 0xB9: return 'W';   // stop west
-    case 0xBA: return 'E';   // stop east
-    case 0xBB: return 'T';   // T-junc north
-    case 0xBC: return 'T';   // T-junc south
-    case 0xBD: return 'T';   // T-junc east
-    case 0xBE: return 'T';   // T-junc west
-    case 0xD0: return '@';   // switch TL
-    case 0xD1: return '@';   // switch BL
-    case 0xD2: return '@';   // switch TR
-    case 0xD3: return '@';   // switch BR
-    default: return '.';
+    case 0xB0:
+      return '-';  // horiz straight
+    case 0xB1:
+      return '|';  // vert straight
+    case 0xB2:
+      return '/';  // corner TL (down+right)
+    case 0xB3:
+      return '\\';  // corner BL (up+right)
+    case 0xB4:
+      return '\\';  // corner TR (down+left)
+    case 0xB5:
+      return '/';  // corner BR (up+left)
+    case 0xB6:
+      return '+';  // intersection
+    case 0xB7:
+      return 'N';  // stop north
+    case 0xB8:
+      return 'S';  // stop south
+    case 0xB9:
+      return 'W';  // stop west
+    case 0xBA:
+      return 'E';  // stop east
+    case 0xBB:
+      return 'T';  // T-junc north
+    case 0xBC:
+      return 'T';  // T-junc south
+    case 0xBD:
+      return 'T';  // T-junc east
+    case 0xBE:
+      return 'T';  // T-junc west
+    case 0xD0:
+      return '@';  // switch TL
+    case 0xD1:
+      return '@';  // switch BL
+    case 0xD2:
+      return '@';  // switch TR
+    case 0xD3:
+      return '@';  // switch BR
+    default:
+      return '.';
   }
+}
+
+DimensionService::DimensionResult ResolveTrackObjectDimensions(
+    const RoomObject& obj, const GeneratorOptions& options,
+    const DimensionService& dimension_service) {
+  auto dims = dimension_service.GetDimensions(obj);
+
+  // In CLI-only contexts, custom object feature flags are often disabled.
+  // Object 0x31 may then map through DrawNothing and collapse to a 1x1
+  // footprint. Track assets are authored as 2x2 pieces, so recover a stable
+  // fallback here to avoid sparse/gapped collision generation.
+  if (obj.id_ == static_cast<int16_t>(options.track_object_id) &&
+      dims.offset_x_tiles == 0 && dims.offset_y_tiles == 0 &&
+      dims.width_tiles == 1 && dims.height_tiles == 1) {
+    dims.width_tiles = kFallbackTrackFootprintWidthTiles;
+    dims.height_tiles = kFallbackTrackFootprintHeightTiles;
+  }
+
+  return dims;
 }
 
 }  // namespace
@@ -149,7 +203,8 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
       continue;
     }
 
-    const auto dims = dimension_service.GetDimensions(obj);
+    const auto dims =
+        ResolveTrackObjectDimensions(obj, options, dimension_service);
     int base_x = obj.x_ + dims.offset_x_tiles;
     int base_y = obj.y_ + dims.offset_y_tiles;
     int w = std::max(1, dims.width_tiles);
@@ -169,7 +224,8 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
   // Step 2: Classify each occupied tile by neighbor connectivity.
   for (int y = 0; y < kGridSize; ++y) {
     for (int x = 0; x < kGridSize; ++x) {
-      if (!occupied[y * kGridSize + x]) continue;
+      if (!occupied[y * kGridSize + x])
+        continue;
 
       bool up = (y > 0) && occupied[(y - 1) * kGridSize + x];
       bool down = (y < kGridSize - 1) && occupied[(y + 1) * kGridSize + x];
@@ -180,14 +236,17 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
       result.collision_map.tiles[y * kGridSize + x] = tile;
       result.tiles_generated++;
 
-      if (tile >= 0xB7 && tile <= 0xBA) result.stop_count++;
-      if (tile >= 0xB2 && tile <= 0xB5) result.corner_count++;
+      if (tile >= 0xB7 && tile <= 0xBA)
+        result.stop_count++;
+      if (tile >= 0xB2 && tile <= 0xB5)
+        result.corner_count++;
     }
   }
 
   // Step 3: Apply switch promotions.
   for (const auto& [sx, sy] : options.switch_promotions) {
-    if (sx < 0 || sx >= kGridSize || sy < 0 || sy >= kGridSize) continue;
+    if (sx < 0 || sx >= kGridSize || sy < 0 || sy >= kGridSize)
+      continue;
     size_t idx = sy * kGridSize + sx;
     uint8_t tile = result.collision_map.tiles[idx];
     if (IsCornerTile(tile)) {
@@ -200,7 +259,8 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
 
   // Step 4: Apply manual stop overrides.
   for (const auto& [ox, oy, otype] : options.stop_overrides) {
-    if (ox < 0 || ox >= kGridSize || oy < 0 || oy >= kGridSize) continue;
+    if (ox < 0 || ox >= kGridSize || oy < 0 || oy >= kGridSize)
+      continue;
     size_t idx = oy * kGridSize + ox;
     if (result.collision_map.tiles[idx] != 0) {
       result.collision_map.tiles[idx] = static_cast<uint8_t>(otype);
@@ -228,7 +288,8 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
   }
 
   const int ptrs_size = kNumberOfRooms * 3;
-  if (kCustomCollisionRoomPointers + ptrs_size > static_cast<int>(data.size())) {
+  if (kCustomCollisionRoomPointers + ptrs_size >
+      static_cast<int>(data.size())) {
     return absl::FailedPreconditionError(
         "Custom collision pointer table not present in this ROM");
   }
@@ -244,13 +305,14 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
   // Save-time guardrails: only allow writes to the collision pointer table and
   // collision data bank (excluding the reserved WaterFill tail region).
   yaze::rom::WriteFence fence;
-  RETURN_IF_ERROR(fence.Allow(static_cast<uint32_t>(kCustomCollisionRoomPointers),
-                              static_cast<uint32_t>(kCustomCollisionRoomPointers +
-                                                    ptrs_size),
-                              "CustomCollisionPointers"));
-  RETURN_IF_ERROR(fence.Allow(static_cast<uint32_t>(kCustomCollisionDataPosition),
-                              static_cast<uint32_t>(kCustomCollisionDataSoftEnd),
-                              "CustomCollisionData"));
+  RETURN_IF_ERROR(fence.Allow(
+      static_cast<uint32_t>(kCustomCollisionRoomPointers),
+      static_cast<uint32_t>(kCustomCollisionRoomPointers + ptrs_size),
+      "CustomCollisionPointers"));
+  RETURN_IF_ERROR(
+      fence.Allow(static_cast<uint32_t>(kCustomCollisionDataPosition),
+                  static_cast<uint32_t>(kCustomCollisionDataSoftEnd),
+                  "CustomCollisionData"));
   yaze::rom::ScopedWriteFence scope(rom, &fence);
 
   // Encode collision data in single-tile format.
@@ -262,7 +324,8 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
   for (int y = 0; y < kGridSize; ++y) {
     for (int x = 0; x < kGridSize; ++x) {
       uint8_t tile = map.tiles[y * kGridSize + x];
-      if (tile == 0) continue;
+      if (tile == 0)
+        continue;
       uint16_t offset = static_cast<uint16_t>(y * kGridSize + x);
       encoded.push_back(offset & 0xFF);
       encoded.push_back(offset >> 8);
@@ -280,22 +343,26 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
   uint32_t max_used_pc = static_cast<uint32_t>(kCustomCollisionDataPosition);
   for (int r = 0; r < kNumberOfRooms; ++r) {
     int ptr_offset = kCustomCollisionRoomPointers + (r * 3);
-    if (ptr_offset + 2 >= static_cast<int>(data.size())) continue;
+    if (ptr_offset + 2 >= static_cast<int>(data.size()))
+      continue;
 
     uint32_t snes_ptr = data[ptr_offset] | (data[ptr_offset + 1] << 8) |
                         (data[ptr_offset + 2] << 16);
-    if (snes_ptr == 0) continue;
+    if (snes_ptr == 0)
+      continue;
 
     uint32_t pc = SnesToPc(snes_ptr);
     if (pc < static_cast<uint32_t>(kCustomCollisionDataPosition)) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Custom collision pointer for room 0x%02X points before data region (pc=0x%06X)",
-          r, pc));
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Custom collision pointer for room 0x%02X points "
+                          "before data region (pc=0x%06X)",
+                          r, pc));
     }
     if (pc >= static_cast<uint32_t>(kCustomCollisionDataSoftEnd)) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Custom collision pointer for room 0x%02X overlaps WaterFill reserved region (pc=0x%06X)",
-          r, pc));
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Custom collision pointer for room 0x%02X overlaps "
+                          "WaterFill reserved region (pc=0x%06X)",
+                          r, pc));
     }
     if (pc >= data.size()) {
       return absl::OutOfRangeError("Custom collision pointer out of ROM range");
@@ -317,7 +384,8 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
       }
       if (!single_mode) {
         // Rectangle mode: skip width, height, then width*height bytes
-        if (cursor + 1 >= safe_end) break;
+        if (cursor + 1 >= safe_end)
+          break;
         uint8_t w = data[cursor];
         uint8_t h = data[cursor + 1];
         cursor += 2;
@@ -329,9 +397,10 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
     }
     // If we hit the reserved region without an end marker, treat as corruption.
     if (!found_end_marker && cursor + 1 >= safe_end) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Custom collision data for room 0x%02X is unterminated before WaterFill reserved region",
-          r));
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Custom collision data for room 0x%02X is "
+                          "unterminated before WaterFill reserved region",
+                          r));
     }
     if (cursor > max_used_pc) {
       max_used_pc = static_cast<uint32_t>(cursor);
@@ -348,9 +417,10 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
   }
 
   if (write_pos + encoded.size() > data.size()) {
-    return absl::OutOfRangeError(absl::StrFormat(
-        "ROM too small for custom collision write (need end=0x%06X, size=0x%06X)",
-        write_pos + encoded.size(), data.size()));
+    return absl::OutOfRangeError(
+        absl::StrFormat("ROM too small for custom collision write (need "
+                        "end=0x%06X, size=0x%06X)",
+                        write_pos + encoded.size(), data.size()));
   }
   RETURN_IF_ERROR(
       rom->WriteVector(static_cast<int>(write_pos), std::move(encoded)));
@@ -379,7 +449,8 @@ std::string VisualizeCollisionMap(const CustomCollisionMap& map) {
     }
   }
 
-  if (min_x > max_x) return "(empty)\n";
+  if (min_x > max_x)
+    return "(empty)\n";
 
   // Add 1-tile padding
   min_x = std::max(0, min_x - 1);

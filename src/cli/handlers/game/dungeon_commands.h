@@ -211,16 +211,15 @@ class DungeonRoomHeaderCommandHandler : public resources::CommandHandler {
 class DungeonGenerateTrackCollisionCommandHandler
     : public resources::CommandHandler {
  public:
-  std::string GetName() const {
-    return "dungeon-generate-track-collision";
-  }
+  std::string GetName() const { return "dungeon-generate-track-collision"; }
   std::string GetDescription() const {
     return "Generate collision overlay from rail objects for minecart rooms";
   }
   std::string GetUsage() const {
     return "dungeon-generate-track-collision --room <room_id> | "
            "--rooms <hex,hex,...> "
-           "[--write] [--visualize] [--promote-switch X,Y] "
+           "[--write] [--preserve-stops] [--visualize] [--promote-switch X,Y] "
+           "[--project-context <path.yaze|path.yazeproj>] "
            "[--format <json|text>]";
   }
 
@@ -230,8 +229,7 @@ class DungeonGenerateTrackCollisionCommandHandler
         parser.GetString("rooms").has_value()) {
       return absl::OkStatus();
     }
-    return absl::InvalidArgumentError(
-        "Either --room or --rooms is required");
+    return absl::InvalidArgumentError("Either --room or --rooms is required");
   }
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,

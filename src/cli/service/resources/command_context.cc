@@ -1,5 +1,6 @@
 #include "cli/service/resources/command_context.h"
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
@@ -12,6 +13,7 @@
 #include "cli/handlers/rom/mock_rom.h"
 #include "cli/util/hex_util.h"
 #include "core/project.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/zelda3_labels.h"
 
 using yaze::cli::util::ParseHexString;
@@ -23,11 +25,24 @@ namespace yaze {
 namespace cli {
 namespace resources {
 
+namespace {
+
+bool ProjectUsesCustomObjects(const project::YazeProject& project) {
+  return !project.custom_objects_folder.empty() ||
+         !project.custom_object_files.empty();
+}
+
+}  // namespace
+
 // ============================================================================
 // CommandContext Implementation
 // ============================================================================
 
 CommandContext::CommandContext(const Config& config) : config_(config) {}
+
+CommandContext::~CommandContext() {
+  RestoreProjectRuntimeContext();
+}
 
 absl::Status CommandContext::Initialize() {
   if (initialized_) {
@@ -35,7 +50,9 @@ absl::Status CommandContext::Initialize() {
   }
 
   // Determine ROM source
-  std::string rom_path = config_.rom_path.has_value() ? *config_.rom_path : absl::GetFlag(FLAGS_rom);
+  std::string rom_path = config_.rom_path.has_value()
+                             ? *config_.rom_path
+                             : absl::GetFlag(FLAGS_rom);
 
   if (config_.external_rom_context != nullptr &&
       config_.external_rom_context->is_loaded()) {
@@ -49,9 +66,8 @@ absl::Status CommandContext::Initialize() {
   } else if (!rom_path.empty()) {
     auto status = rom_storage_.LoadFromFile(rom_path);
     if (!status.ok()) {
-      return absl::FailedPreconditionError(
-          absl::StrFormat("Failed to load ROM from '%s': %s", rom_path,
-                          status.message()));
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Failed to load ROM from '%s': %s", rom_path, status.message()));
     }
     active_rom_ = &rom_storage_;
   }
@@ -61,10 +77,14 @@ absl::Status CommandContext::Initialize() {
         "No ROM loaded. Use --rom=<path> or --mock-rom for testing.");
   }
 
-  initialized_ = true;
+  auto project_status = ApplyProjectRuntimeContext();
+  if (!project_status.ok()) {
+    return project_status;
+  }
 
   // Auto-load symbols if available
-  std::string symbols_path = config_.symbols_path.has_value() ? *config_.symbols_path : "";
+  std::string symbols_path =
+      config_.symbols_path.has_value() ? *config_.symbols_path : "";
   if (symbols_path.empty() && !rom_path.empty()) {
     // Try ROM name with .mlb or .sym
     std::string base = rom_path;
@@ -72,9 +92,10 @@ absl::Status CommandContext::Initialize() {
     if (last_dot != std::string::npos) {
       base = base.substr(0, last_dot);
     }
-    
+
     // Try common extensions
-    std::vector<std::string> exts = {".mlb", ".sfc.mlb", ".sym", ".cpu.sym", "sourcemap.json"};
+    std::vector<std::string> exts = {".mlb", ".sfc.mlb", ".sym", ".cpu.sym",
+                                     "sourcemap.json"};
     for (const auto& ext : exts) {
       std::string path = base + ext;
       if (std::ifstream(path).good()) {
@@ -88,10 +109,12 @@ absl::Status CommandContext::Initialize() {
   } else if (!symbols_path.empty()) {
     auto sym_status = symbol_provider_.LoadSymbolFile(symbols_path);
     if (!sym_status.ok() && config_.verbose) {
-      std::cerr << "Warning: Failed to load symbols from " << symbols_path << ": " << sym_status.message() << std::endl;
+      std::cerr << "Warning: Failed to load symbols from " << symbols_path
+                << ": " << sym_status.message() << std::endl;
     }
   }
 
+  initialized_ = true;
   return absl::OkStatus();
 }
 
@@ -137,6 +160,86 @@ absl::Status CommandContext::EnsureLabelsLoaded(Rom* rom) {
   }
 
   return absl::OkStatus();
+}
+
+absl::Status CommandContext::ApplyProjectRuntimeContext() {
+  if (project_runtime_applied_) {
+    return absl::OkStatus();
+  }
+  if (!config_.project_context_path.has_value()) {
+    return absl::OkStatus();
+  }
+  if (config_.project_context_path->empty()) {
+    return absl::InvalidArgumentError("--project-context cannot be empty");
+  }
+
+  project::YazeProject project;
+  auto open_status = project.Open(*config_.project_context_path);
+  if (!open_status.ok()) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Failed to open project context '%s': %s",
+                        *config_.project_context_path, open_status.message()));
+  }
+
+  // Keep editor parity by auto-enabling custom objects when project config
+  // defines custom object data but stale feature flags are still disabled.
+  if (ProjectUsesCustomObjects(project) &&
+      !project.feature_flags.kEnableCustomObjects) {
+    project.feature_flags.kEnableCustomObjects = true;
+    if (config_.verbose) {
+      std::cerr
+          << "Warning: project context has custom object data but "
+             "kEnableCustomObjects was disabled. Enabling for this command.\n";
+    }
+  }
+
+  loaded_project_ = std::move(project);
+  previous_feature_flags_ = core::FeatureFlags::get();
+  previous_custom_object_state_ =
+      zelda3::CustomObjectManager::Get().SnapshotState();
+
+  auto& active_project = loaded_project_.value();
+  core::FeatureFlags::get() = active_project.feature_flags;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+
+  if (!active_project.custom_object_files.empty()) {
+    zelda3::CustomObjectManager::Get().SetObjectFileMap(
+        active_project.custom_object_files);
+  } else {
+    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+  }
+
+  if (!active_project.custom_objects_folder.empty()) {
+    zelda3::CustomObjectManager::Get().Initialize(
+        active_project.GetAbsolutePath(active_project.custom_objects_folder));
+  } else {
+    // Avoid inheriting a stale base path from a previous singleton state.
+    zelda3::CustomObjectManager::Get().Initialize("");
+  }
+
+  project_runtime_applied_ = true;
+  return absl::OkStatus();
+}
+
+void CommandContext::RestoreProjectRuntimeContext() {
+  if (!project_runtime_applied_) {
+    return;
+  }
+
+  if (previous_custom_object_state_.has_value()) {
+    zelda3::CustomObjectManager::Get().RestoreState(
+        *previous_custom_object_state_);
+  }
+
+  if (previous_feature_flags_.has_value()) {
+    core::FeatureFlags::get() = *previous_feature_flags_;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+
+  previous_custom_object_state_.reset();
+  previous_feature_flags_.reset();
+  loaded_project_.reset();
+  project_runtime_applied_ = false;
 }
 
 // ============================================================================
@@ -401,7 +504,7 @@ void OutputFormatter::BeginArray(const std::string& key) {
     AddIndent();
     buffer_ += absl::StrFormat("\"%s\": [\n", EscapeJson(key));
     indent_level_++;
-    first_field_ = true; // Reset for array elements
+    first_field_ = true;  // Reset for array elements
   } else {
     buffer_ += absl::StrFormat("  %s:\n", key);
   }
@@ -422,7 +525,8 @@ void OutputFormatter::EndArray() {
       AddIndent();
       buffer_ += "]";
     }
-    first_field_ = false; // Array itself was a field, so next field needs a comma
+    first_field_ =
+        false;  // Array itself was a field, so next field needs a comma
   }
 }
 

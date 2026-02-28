@@ -27,7 +27,7 @@ int CountExpectedTilesInBounds(const RoomObject& obj) {
 
 TEST(TrackCollisionGeneratorTest, UsesDimensionServiceNotLegacyWidthHeight) {
   Room room;
-  RoomObject track_obj(0x31, 10, 10, 0, 0);
+  RoomObject track_obj(0x01, 10, 10, 0, 0);
 
   // Legacy width_/height_ can be stale; generator must ignore them.
   track_obj.width_ = 16;
@@ -37,11 +37,33 @@ TEST(TrackCollisionGeneratorTest, UsesDimensionServiceNotLegacyWidthHeight) {
   const int expected = CountExpectedTilesInBounds(track_obj);
   ASSERT_GT(expected, 0);
 
-  auto result_or = GenerateTrackCollision(&room, GeneratorOptions{});
+  GeneratorOptions options;
+  options.track_object_id = 0x01;
+  auto result_or = GenerateTrackCollision(&room, options);
   ASSERT_TRUE(result_or.ok()) << result_or.status();
 
   const auto& result = result_or.value();
   EXPECT_EQ(result.tiles_generated, expected);
+}
+
+TEST(TrackCollisionGeneratorTest, DegenerateTrackDimensionsFallbackToTwoByTwo) {
+  Room room;
+  RoomObject track_obj(0x31, 10, 10, 0, 0);
+  room.AddTileObject(track_obj);
+
+  auto result_or = GenerateTrackCollision(&room, GeneratorOptions{});
+  ASSERT_TRUE(result_or.ok()) << result_or.status();
+
+  const auto& result = result_or.value();
+  EXPECT_EQ(result.tiles_generated, 4);
+
+  const auto idx = [](int x, int y) {
+    return static_cast<size_t>(y * 64 + x);
+  };
+  EXPECT_NE(result.collision_map.tiles[idx(10, 10)], 0);
+  EXPECT_NE(result.collision_map.tiles[idx(11, 10)], 0);
+  EXPECT_NE(result.collision_map.tiles[idx(10, 11)], 0);
+  EXPECT_NE(result.collision_map.tiles[idx(11, 11)], 0);
 }
 
 TEST(TrackCollisionGeneratorTest, LegacyWidthHeightDoesNotChangeOutput) {
