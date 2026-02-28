@@ -29,8 +29,8 @@ extern "C" {
 
 #ifndef YAZE_VERSION_STRING
 /* Fallback if yaze_config.h not included - will be overridden by build */
-#define YAZE_VERSION_STRING "0.6.0"
-#define YAZE_VERSION_NUMBER 600
+#define YAZE_VERSION_STRING "0.7.0"
+#define YAZE_VERSION_NUMBER 700
 #endif
 
 /** @} */
