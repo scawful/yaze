@@ -44,9 +44,16 @@ Use tool classes intentionally:
 
 ### 5) Essential Repo Facts (non-discoverable defaults)
 - Build presets commonly used for agent work: `build_ai`.
+- Build command: `cmake --preset mac-ai && cmake --build --preset mac-ai`
+- Unit tests: `ctest --preset mac-ai-unit`
 - Coordination source of truth: `~/.context/agent-universe/{events.jsonl,state.json}`.
 - Generated human snapshot: `docs/internal/agents/coordination-board.generated.md`.
 - Legacy board file is history-only: `docs/internal/agents/coordination-board.md`.
+
+### 5a) Oracle of Secrets Integration
+- `oos<VERSION>.sfc` = edit target, `oos<VERSION>x.sfc` = patched/emulator only
+- `z3ed --write` targets the base ROM (`oos168.sfc`), never `oos168x.sfc`
+- Oracle context: `../oracle-of-secrets/.context/scratchpad/agent_handoff.md`
 
 ### 6) Dependency Graph
 `Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
