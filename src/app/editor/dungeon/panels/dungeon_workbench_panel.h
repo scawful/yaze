@@ -48,6 +48,28 @@ class DungeonWorkbenchPanel : public EditorPanel {
     previous_room_id_ = previous_room_id;
   }
 
+  // Wire undo/redo state from the editor's UndoManager.
+  void SetUndoRedoProvider(std::function<bool()> can_undo,
+                           std::function<bool()> can_redo,
+                           std::function<void()> on_undo,
+                           std::function<void()> on_redo,
+                           std::function<std::string()> undo_desc,
+                           std::function<std::string()> redo_desc,
+                           std::function<int()> undo_depth) {
+    can_undo_ = std::move(can_undo);
+    can_redo_ = std::move(can_redo);
+    on_undo_ = std::move(on_undo);
+    on_redo_ = std::move(on_redo);
+    undo_desc_ = std::move(undo_desc);
+    redo_desc_ = std::move(redo_desc);
+    undo_depth_ = std::move(undo_depth);
+  }
+
+  // Wire tool mode name provider (e.g., from DungeonToolset::GetToolModeName).
+  void SetToolModeProvider(std::function<const char*()> provider) {
+    get_tool_mode_ = std::move(provider);
+  }
+
   void Draw(bool* p_open) override;
 
  private:
@@ -93,6 +115,21 @@ class DungeonWorkbenchPanel : public EditorPanel {
   // ROM-based room→dungeon group label cache (lazy-built on first room render).
   std::unordered_map<int, std::string> room_dungeon_cache_;
   bool room_dungeon_cache_built_ = false;
+
+  // Undo/redo providers (set via SetUndoRedoProvider).
+  std::function<bool()> can_undo_;
+  std::function<bool()> can_redo_;
+  std::function<void()> on_undo_;
+  std::function<void()> on_redo_;
+  std::function<std::string()> undo_desc_;
+  std::function<std::string()> redo_desc_;
+  std::function<int()> undo_depth_;
+
+  // Tool mode name provider (set via SetToolModeProvider).
+  std::function<const char*()> get_tool_mode_;
+
+  // Shortcut legend toggle.
+  bool show_shortcut_legend_ = false;
 };
 
 }  // namespace yaze::editor
