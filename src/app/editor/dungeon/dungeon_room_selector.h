@@ -93,6 +93,9 @@ class DungeonRoomSelector {
     SetEntranceSelectedCallback(std::move(callback));
   }
 
+  // Get dungeon name from blockset value (public utility)
+  static const char* GetBlocksetGroupName(uint8_t blockset);
+
  private:
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
@@ -115,6 +118,13 @@ class DungeonRoomSelector {
   ImGuiTextFilter room_filter_;
   ImGuiTextFilter entrance_filter_;
 
+  // View mode for room list
+  enum ViewMode : uint8_t {
+    kViewList = 0,     // Flat list (original)
+    kViewGrouped = 1,  // Grouped by dungeon/blockset
+  };
+  ViewMode view_mode_ = kViewList;
+
   // Object-type filter for room list (especially useful on iOS)
   // When enabled, only rooms containing the selected entity types are shown
   enum EntityTypeFilter : uint8_t {
@@ -131,10 +141,12 @@ class DungeonRoomSelector {
   std::string last_room_filter_;
   std::string last_entrance_filter_;
 
-  // Rebuild filtered indices when filter changes
   void RebuildRoomFilterCache();
   void RebuildEntranceFilterCache();
   bool PassesEntityTypeFilter(int room_id) const;
+
+  // Draw the grouped-by-dungeon view
+  void DrawGroupedRoomList(RoomSelectionIntent single_click_intent);
 };
 
 }  // namespace editor

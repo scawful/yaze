@@ -1,10 +1,12 @@
 #include "dungeon_room_selector.h"
 
 #include <algorithm>
+#include <map>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/events/core_events.h"
+#include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
@@ -13,6 +15,7 @@
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
@@ -86,8 +89,20 @@ void DungeonRoomSelector::DrawRoomSelector(
 
   room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
-  // Entity-type filter chips (compact, touch-friendly)
+  // View mode + entity-type filter row
   {
+    // View mode toggle
+    if (ImGui::SmallButton(view_mode_ == kViewList ? ICON_MD_LIST " List"
+                                                   : ICON_MD_FOLDER
+                               " Grouped")) {
+      view_mode_ = (view_mode_ == kViewList) ? kViewGrouped : kViewList;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Toggle between flat list and dungeon-grouped view");
+    }
+    ImGui::SameLine(0, 12);
+
+    // Entity-type filter chips (compact, touch-friendly)
     const char* labels[] = {"All", "Sprites", "Items", "Objects"};
     const EntityTypeFilter values[] = {kFilterAll, kFilterHasSprites,
                                        kFilterHasItems, kFilterHasObjects};
@@ -109,7 +124,6 @@ void DungeonRoomSelector::DrawRoomSelector(
   }
 
   // Rebuild every frame so renamed room labels appear immediately.
-  // Room count is small (296), so this remains cheap.
   std::string current_filter(room_filter_.InputBuf);
   if (current_filter != last_room_filter_) {
     last_room_filter_ = current_filter;
@@ -127,6 +141,13 @@ void DungeonRoomSelector::DrawRoomSelector(
                             ImVec2(ImGui::GetStyle().CellPadding.x, touch_pad));
   }
 
+  // Dispatch to appropriate view mode
+  if (view_mode_ == kViewGrouped) {
+    DrawGroupedRoomList(single_click_intent);
+    return;
+  }
+
+  // === Flat list view (original) ===
   if (ImGui::BeginTable("RoomList", 2,
                         ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |
                             ImGuiTableFlags_RowBg |
@@ -161,7 +182,6 @@ void DungeonRoomSelector::DrawRoomSelector(
           }
 
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            // Double-click: open as standalone panel
             if (room_intent_callback_) {
               room_intent_callback_(room_id,
                                     RoomSelectionIntent::kOpenStandalone);
@@ -169,8 +189,6 @@ void DungeonRoomSelector::DrawRoomSelector(
               room_selected_callback_(room_id);
             }
           } else {
-            // Single-click intent is caller-controlled:
-            // dedicated Room List opens standalone, workbench focuses.
             if (room_intent_callback_) {
               room_intent_callback_(room_id, single_click_intent);
             } else if (room_selected_callback_) {
@@ -179,7 +197,7 @@ void DungeonRoomSelector::DrawRoomSelector(
           }
         }
 
-        // Context menu (right-click on desktop, long-press on touch)
+        // Context menu
         if (ImGui::BeginPopupContextItem()) {
           if (ImGui::MenuItem("Open in Workbench")) {
             current_room_id_ = room_id;
@@ -206,6 +224,26 @@ void DungeonRoomSelector::DrawRoomSelector(
             ImGui::SetClipboardText(id_buf);
           }
           ImGui::EndPopup();
+        }
+
+        // Tooltip with room name and thumbnail
+        if (ImGui::IsItemHovered()) {
+          ImGui::BeginTooltip();
+          ImGui::Text("%s", display_name.c_str());
+          if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
+            ImGui::TextDisabled("Blockset: %d | Palette: %d",
+                                (*rooms_)[room_id].blockset(),
+                                (*rooms_)[room_id].palette());
+            auto& room = (*rooms_)[room_id];
+            zelda3::RoomLayerManager layer_mgr;
+            layer_mgr.ApplyLayerMerging(room.layer_merging());
+            auto& bmp = room.GetCompositeBitmap(layer_mgr);
+            if (bmp.is_active() && bmp.texture() != 0) {
+              ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
+                           ImVec2(64, 64));
+            }
+          }
+          ImGui::EndTooltip();
         }
 
         ImGui::TableNextColumn();
@@ -399,6 +437,168 @@ void DungeonRoomSelector::DrawEntranceSelector() {
 
     ImGui::EndTable();
   }
+}
+
+}  // namespace yaze::editor
+
+// ============================================================================
+// Grouped view + Blockset group name helper (appended)
+// ============================================================================
+
+namespace yaze::editor {
+
+const char* DungeonRoomSelector::GetBlocksetGroupName(uint8_t blockset) {
+  // ALttP blockset -> dungeon name mapping (vanilla ROM)
+  switch (blockset) {
+    case 0:
+      return "Hyrule Castle";
+    case 1:
+      return "Eastern Palace";
+    case 2:
+      return "Desert Palace";
+    case 3:
+      return "Tower of Hera";
+    case 4:
+      return "Agahnim's Tower";
+    case 5:
+      return "Palace of Darkness";
+    case 6:
+      return "Swamp Palace";
+    case 7:
+      return "Skull Woods";
+    case 8:
+      return "Thieves' Town";
+    case 9:
+      return "Ice Palace";
+    case 10:
+      return "Misery Mire";
+    case 11:
+      return "Turtle Rock";
+    case 12:
+      return "Ganon's Tower";
+    case 13:
+      return "Cave";
+    case 14:
+      return "Sanctuary / Church";
+    case 15:
+      return "Houses / Interior";
+    case 16:
+      return "Shops";
+    case 17:
+      return "Fairy Fountain";
+    case 18:
+      return "Underground";
+    case 19:
+      return "Master Sword";
+    case 20:
+      return "Fortune Teller";
+    case 21:
+      return "Tower (Ganon)";
+    case 22:
+      return "Chris Houlihan";
+    case 23:
+      return "Links House";
+    case 24:
+      return "Tomb";
+    default:
+      return "Unknown";
+  }
+}
+
+void DungeonRoomSelector::DrawGroupedRoomList(
+    RoomSelectionIntent single_click_intent) {
+  // Build groups from filtered rooms
+  // Group key = blockset (if rooms loaded), else "Unloaded"
+  struct GroupInfo {
+    const char* name;
+    std::vector<int> room_ids;
+  };
+  std::map<int, GroupInfo> groups;
+
+  for (int room_id : filtered_room_indices_) {
+    int key = 255;  // Unknown/unloaded
+    const char* group_name = "Unloaded";
+    if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size()) &&
+        (*rooms_)[room_id].IsLoaded()) {
+      key = (*rooms_)[room_id].blockset();
+      group_name = GetBlocksetGroupName(static_cast<uint8_t>(key));
+    }
+    auto& g = groups[key];
+    g.name = group_name;
+    g.room_ids.push_back(room_id);
+  }
+
+  // Draw as scrollable child with collapsible tree nodes
+  if (ImGui::BeginChild("##GroupedRoomList", ImVec2(0, 0), false,
+                        ImGuiWindowFlags_None)) {
+    for (auto& [key, group] : groups) {
+      char header[64];
+      snprintf(header, sizeof(header), "%s (%zu rooms)##grp%d", group.name,
+               group.room_ids.size(), key);
+
+      // Auto-open the group that contains the currently selected room
+      bool has_current =
+          std::find(group.room_ids.begin(), group.room_ids.end(),
+                    static_cast<int>(current_room_id_)) != group.room_ids.end();
+      if (has_current) {
+        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+      }
+
+      if (ImGui::CollapsingHeader(header)) {
+        for (int room_id : group.room_ids) {
+          std::string display_name = zelda3::GetRoomLabel(room_id);
+          char label[64];
+          snprintf(label, sizeof(label), "%03X  %s##r%d", room_id,
+                   display_name.c_str(), room_id);
+
+          if (ImGui::Selectable(label, current_room_id_ == room_id,
+                                ImGuiSelectableFlags_AllowDoubleClick)) {
+            current_room_id_ = room_id;
+
+            if (auto* bus = ContentRegistry::Context::event_bus()) {
+              bus->Publish(
+                  SelectionChangedEvent::CreateSingle("dungeon_room", room_id));
+            }
+
+            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+              if (room_intent_callback_) {
+                room_intent_callback_(room_id,
+                                      RoomSelectionIntent::kOpenStandalone);
+              } else if (room_selected_callback_) {
+                room_selected_callback_(room_id);
+              }
+            } else {
+              if (room_intent_callback_) {
+                room_intent_callback_(room_id, single_click_intent);
+              } else if (room_selected_callback_) {
+                room_selected_callback_(room_id);
+              }
+            }
+          }
+
+          // Tooltip with thumbnail
+          if (ImGui::IsItemHovered() && rooms_ &&
+              (*rooms_)[room_id].IsLoaded()) {
+            ImGui::BeginTooltip();
+            ImGui::Text("%s", display_name.c_str());
+            ImGui::TextDisabled("Blockset: %d | Palette: %d",
+                                (*rooms_)[room_id].blockset(),
+                                (*rooms_)[room_id].palette());
+            auto& room = (*rooms_)[room_id];
+            zelda3::RoomLayerManager layer_mgr;
+            layer_mgr.ApplyLayerMerging(room.layer_merging());
+            auto& bmp = room.GetCompositeBitmap(layer_mgr);
+            if (bmp.is_active() && bmp.texture() != 0) {
+              ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
+                           ImVec2(64, 64));
+            }
+            ImGui::EndTooltip();
+          }
+        }
+      }
+    }
+  }
+  ImGui::EndChild();
 }
 
 }  // namespace yaze::editor

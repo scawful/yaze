@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -514,7 +515,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
 
-    // === Room Menu ===
+    // === Room Menu (Save, Copy, Navigate, Settings, Re-render) ===
     gui::CanvasMenuItem room_menu;
     room_menu.label = "Room";
     room_menu.icon = ICON_MD_HOME;
@@ -535,98 +536,74 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     room_menu.subitems.push_back(gui::CanvasMenuItem(
         "Copy Room Name", ICON_MD_CONTENT_COPY,
         [room_label]() { ImGui::SetClipboardText(room_label.c_str()); }));
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Re-render Room", ICON_MD_REFRESH,
+        [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
 
     room_menu.subitems.push_back(
         gui::CanvasMenuItem("Open Room List", ICON_MD_LIST, [this]() {
-          if (show_room_list_callback_) {
+          if (show_room_list_callback_)
             show_room_list_callback_();
-          }
         }));
     room_menu.subitems.push_back(
         gui::CanvasMenuItem("Open Room Matrix", ICON_MD_GRID_VIEW, [this]() {
-          if (show_room_matrix_callback_) {
+          if (show_room_matrix_callback_)
             show_room_matrix_callback_();
-          }
         }));
     room_menu.subitems.push_back(
         gui::CanvasMenuItem("Open Entrance List", ICON_MD_DOOR_FRONT, [this]() {
-          if (show_entrance_list_callback_) {
+          if (show_entrance_list_callback_)
             show_entrance_list_callback_();
-          }
         }));
     room_menu.subitems.push_back(
         gui::CanvasMenuItem("Open Room Graphics", ICON_MD_IMAGE, [this]() {
-          if (show_room_graphics_callback_) {
+          if (show_room_graphics_callback_)
             show_room_graphics_callback_();
+        }));
+    room_menu.subitems.push_back(
+        gui::CanvasMenuItem("Dungeon Settings", ICON_MD_SETTINGS, [this]() {
+          if (show_dungeon_settings_callback_)
+            show_dungeon_settings_callback_();
+        }));
+
+    // Room layout template export (available when room is loaded)
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Export Layout Template...", ICON_MD_FILE_DOWNLOAD, [this, room_id]() {
+          auto& r = (*rooms_)[room_id];
+          auto result = zelda3::ExportRoomLayoutTemplate(r);
+          if (result.ok()) {
+            ImGui::SetClipboardText(result.value().c_str());
           }
         }));
 
     canvas_.AddContextMenuItem(room_menu);
 
-    // === Entity Placement Menu ===
-    gui::CanvasMenuItem place_menu;
-    place_menu.label = "Place Entity";
-    place_menu.icon = ICON_MD_ADD;
+    // === View Menu (Layer Visibility + Entity Visibility + Grid) ===
+    gui::CanvasMenuItem view_menu;
+    view_menu.label = "View";
+    view_menu.icon = ICON_MD_VISIBILITY;
 
-    // Place Object option
-    place_menu.subitems.push_back(
-        gui::CanvasMenuItem("Object", ICON_MD_WIDGETS, [this]() {
-          if (show_object_panel_callback_) {
-            show_object_panel_callback_();
-          }
-        }));
-
-    // Place Sprite option
-    place_menu.subitems.push_back(
-        gui::CanvasMenuItem("Sprite", ICON_MD_PERSON, [this]() {
-          bool active = object_interaction_.IsSpritePlacementActive();
-          object_interaction_.SetSpritePlacementMode(!active, 0x09);
-        }));
-
-    // Place Item option
-    place_menu.subitems.push_back(
-        gui::CanvasMenuItem("Item", ICON_MD_INVENTORY, [this]() {
-          bool active = object_interaction_.IsItemPlacementActive();
-          object_interaction_.SetItemPlacementMode(!active, 1);
-        }));
-
-    // Place Door option
-    place_menu.subitems.push_back(
-        gui::CanvasMenuItem("Door", ICON_MD_DOOR_FRONT, [this]() {
-          bool active = object_interaction_.IsDoorPlacementActive();
-          object_interaction_.SetDoorPlacementMode(
-              !active, zelda3::DoorType::NormalDoor);
-        }));
-
-    canvas_.AddContextMenuItem(place_menu);
-
-    // Add room property quick toggles (4-way layer visibility)
-    gui::CanvasMenuItem layer_menu;
-    layer_menu.label = "Layer Visibility";
-    layer_menu.icon = ICON_MD_LAYERS;
-
-    layer_menu.subitems.push_back(
-        gui::CanvasMenuItem("BG1 Layout", [this, room_id]() {
-          auto& mgr = GetRoomLayerManager(room_id);
-          mgr.SetLayerVisible(
-              zelda3::LayerType::BG1_Layout,
-              !mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout));
-        }));
-    layer_menu.subitems.push_back(
+    // Layer visibility toggles
+    view_menu.subitems.push_back(gui::CanvasMenuItem("BG1 Layout", [this,
+                                                                    room_id]() {
+      auto& mgr = GetRoomLayerManager(room_id);
+      mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout,
+                          !mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout));
+    }));
+    view_menu.subitems.push_back(
         gui::CanvasMenuItem("BG1 Objects", [this, room_id]() {
           auto& mgr = GetRoomLayerManager(room_id);
           mgr.SetLayerVisible(
               zelda3::LayerType::BG1_Objects,
               !mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects));
         }));
-    layer_menu.subitems.push_back(
-        gui::CanvasMenuItem("BG2 Layout", [this, room_id]() {
-          auto& mgr = GetRoomLayerManager(room_id);
-          mgr.SetLayerVisible(
-              zelda3::LayerType::BG2_Layout,
-              !mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout));
-        }));
-    layer_menu.subitems.push_back(
+    view_menu.subitems.push_back(gui::CanvasMenuItem("BG2 Layout", [this,
+                                                                    room_id]() {
+      auto& mgr = GetRoomLayerManager(room_id);
+      mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout,
+                          !mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout));
+    }));
+    view_menu.subitems.push_back(
         gui::CanvasMenuItem("BG2 Objects", [this, room_id]() {
           auto& mgr = GetRoomLayerManager(room_id);
           mgr.SetLayerVisible(
@@ -634,29 +611,52 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
               !mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects));
         }));
 
-    canvas_.AddContextMenuItem(layer_menu);
-
-    // Entity Visibility menu
-    gui::CanvasMenuItem entity_menu;
-    entity_menu.label = "Entity Visibility";
-    entity_menu.icon = ICON_MD_PERSON;
-
-    entity_menu.subitems.push_back(
-        gui::CanvasMenuItem("Show Sprites", [this]() {
+    // Entity visibility
+    view_menu.subitems.push_back(
+        gui::CanvasMenuItem("Sprites", ICON_MD_PERSON, [this]() {
           entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
         }));
-    entity_menu.subitems.push_back(
-        gui::CanvasMenuItem("Show Pot Items", [this]() {
+    view_menu.subitems.push_back(
+        gui::CanvasMenuItem("Pot Items", ICON_MD_INVENTORY, [this]() {
           entity_visibility_.show_pot_items =
               !entity_visibility_.show_pot_items;
         }));
 
-    canvas_.AddContextMenuItem(entity_menu);
+    // Grid options
+    view_menu.subitems.push_back(gui::CanvasMenuItem(
+        show_grid_ ? "Hide Grid" : "Show Grid",
+        show_grid_ ? ICON_MD_GRID_OFF : ICON_MD_GRID_ON,
+        [this]() { show_grid_ = !show_grid_; }, "G"));
 
-    // Custom overlays (minecart tracks, etc.)
-    gui::CanvasMenuItem custom_menu;
-    custom_menu.label = "Custom Overlays";
-    custom_menu.icon = ICON_MD_TRAIN;
+    gui::CanvasMenuItem grid_size_menu;
+    grid_size_menu.label = "Grid Size";
+    grid_size_menu.icon = ICON_MD_GRID_ON;
+    grid_size_menu.subitems.push_back(gui::CanvasMenuItem("8x8", [this]() {
+      custom_grid_size_ = 8;
+      show_grid_ = true;
+    }));
+    grid_size_menu.subitems.push_back(gui::CanvasMenuItem("16x16", [this]() {
+      custom_grid_size_ = 16;
+      show_grid_ = true;
+    }));
+    grid_size_menu.subitems.push_back(gui::CanvasMenuItem("32x32", [this]() {
+      custom_grid_size_ = 32;
+      show_grid_ = true;
+    }));
+    view_menu.subitems.push_back(grid_size_menu);
+
+    // Coordinate overlay
+    view_menu.subitems.push_back(gui::CanvasMenuItem(
+        show_coordinate_overlay_ ? "Hide Coordinates" : "Show Coordinates",
+        ICON_MD_MY_LOCATION,
+        [this]() { show_coordinate_overlay_ = !show_coordinate_overlay_; }));
+
+    canvas_.AddContextMenuItem(view_menu);
+
+    // === Overlays Menu (custom overlays consolidated) ===
+    gui::CanvasMenuItem overlays_menu;
+    overlays_menu.label = "Overlays";
+    overlays_menu.icon = ICON_MD_LAYERS;
 
     gui::CanvasMenuItem minecart_toggle(
         show_minecart_tracks_ ? "Hide Minecart Tracks" : "Show Minecart Tracks",
@@ -665,125 +665,70 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     minecart_toggle.enabled_condition = [this]() {
       return minecart_track_panel_ != nullptr;
     };
-    custom_menu.subitems.push_back(minecart_toggle);
+    overlays_menu.subitems.push_back(minecart_toggle);
 
-    custom_menu.subitems.push_back(gui::CanvasMenuItem(
+    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
         show_custom_collision_overlay_ ? "Hide Custom Collision"
                                        : "Show Custom Collision",
         ICON_MD_GRID_ON, [this]() {
           show_custom_collision_overlay_ = !show_custom_collision_overlay_;
         }));
 
-    gui::CanvasMenuItem collision_toggle(
+    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
         show_track_collision_overlay_ ? "Hide Track Collision"
                                       : "Show Track Collision",
         ICON_MD_LAYERS, [this]() {
           show_track_collision_overlay_ = !show_track_collision_overlay_;
-        });
-    custom_menu.subitems.push_back(collision_toggle);
+        }));
 
-    gui::CanvasMenuItem quadrant_toggle(
+    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
         show_camera_quadrant_overlay_ ? "Hide Camera Quadrants"
                                       : "Show Camera Quadrants",
         ICON_MD_GRID_VIEW, [this]() {
           show_camera_quadrant_overlay_ = !show_camera_quadrant_overlay_;
-        });
-    custom_menu.subitems.push_back(quadrant_toggle);
+        }));
 
-    gui::CanvasMenuItem cart_sprite_toggle(
+    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
         show_minecart_sprite_overlay_ ? "Hide Minecart Sprites"
                                       : "Show Minecart Sprites",
         ICON_MD_TRAIN, [this]() {
           show_minecart_sprite_overlay_ = !show_minecart_sprite_overlay_;
-        });
-    custom_menu.subitems.push_back(cart_sprite_toggle);
+        }));
 
     if (show_track_collision_overlay_) {
-      gui::CanvasMenuItem legend_toggle(
+      overlays_menu.subitems.push_back(gui::CanvasMenuItem(
           show_track_collision_legend_ ? "Hide Collision Legend"
                                        : "Show Collision Legend",
           ICON_MD_INFO, [this]() {
             show_track_collision_legend_ = !show_track_collision_legend_;
-          });
-      custom_menu.subitems.push_back(legend_toggle);
+          }));
     }
 
-    canvas_.AddContextMenuItem(custom_menu);
+    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
+        show_object_bounds_ ? "Hide Object Bounds" : "Show Object Bounds",
+        ICON_MD_CROP_SQUARE,
+        [this]() { show_object_bounds_ = !show_object_bounds_; }));
 
-    // Dungeon Settings panel access
-    canvas_.AddContextMenuItem(
-        gui::CanvasMenuItem("Dungeon Settings", ICON_MD_SETTINGS, [this]() {
-          if (show_dungeon_settings_callback_) {
-            show_dungeon_settings_callback_();
-          }
-        }));
-
-    // Add re-render option
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        "Re-render Room", ICON_MD_REFRESH,
-        [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
-
-    // Grid Options
-    gui::CanvasMenuItem grid_menu;
-    grid_menu.label = "Grid Options";
-    grid_menu.icon = ICON_MD_GRID_ON;
-
-    // Toggle grid visibility
-    gui::CanvasMenuItem toggle_grid_item(
-        show_grid_ ? "Hide Grid" : "Show Grid",
-        show_grid_ ? ICON_MD_GRID_OFF : ICON_MD_GRID_ON,
-        [this]() { show_grid_ = !show_grid_; }, "G");
-    grid_menu.subitems.push_back(toggle_grid_item);
-
-    // Grid size options (only show if grid is visible)
-    grid_menu.subitems.push_back(gui::CanvasMenuItem("8x8", [this]() {
-      custom_grid_size_ = 8;
-      show_grid_ = true;
-    }));
-    grid_menu.subitems.push_back(gui::CanvasMenuItem("16x16", [this]() {
-      custom_grid_size_ = 16;
-      show_grid_ = true;
-    }));
-    grid_menu.subitems.push_back(gui::CanvasMenuItem("32x32", [this]() {
-      custom_grid_size_ = 32;
-      show_grid_ = true;
-    }));
-
-    canvas_.AddContextMenuItem(grid_menu);
+    canvas_.AddContextMenuItem(overlays_menu);
 
     // === DEBUG MENU ===
     gui::CanvasMenuItem debug_menu;
     debug_menu.label = "Debug";
     debug_menu.icon = ICON_MD_BUG_REPORT;
 
-    // Show room info
-    gui::CanvasMenuItem room_info_item(
+    debug_menu.subitems.push_back(gui::CanvasMenuItem(
         "Show Room Info", ICON_MD_INFO,
-        [this]() { show_room_debug_info_ = !show_room_debug_info_; });
-    debug_menu.subitems.push_back(room_info_item);
+        [this]() { show_room_debug_info_ = !show_room_debug_info_; }));
 
-    // Show texture info
-    gui::CanvasMenuItem texture_info_item(
+    debug_menu.subitems.push_back(gui::CanvasMenuItem(
         "Show Texture Debug", ICON_MD_IMAGE,
-        [this]() { show_texture_debug_ = !show_texture_debug_; });
-    debug_menu.subitems.push_back(texture_info_item);
+        [this]() { show_texture_debug_ = !show_texture_debug_; }));
 
-    // Toggle coordinate overlay
-    gui::CanvasMenuItem coord_overlay_item(
-        show_coordinate_overlay_ ? "Hide Coordinates" : "Show Coordinates",
-        ICON_MD_MY_LOCATION,
-        [this]() { show_coordinate_overlay_ = !show_coordinate_overlay_; });
-    debug_menu.subitems.push_back(coord_overlay_item);
-
-    // Show object bounds with sub-menu for categories
+    // Object bounds type/layer filter (sub-menu)
     gui::CanvasMenuItem object_bounds_menu;
-    object_bounds_menu.label = "Show Object Bounds";
+    object_bounds_menu.label = "Object Bounds Filter";
     object_bounds_menu.icon = ICON_MD_CROP_SQUARE;
-    object_bounds_menu.callback = [this]() {
-      show_object_bounds_ = !show_object_bounds_;
-    };
 
-    // Sub-menu for filtering by type
     object_bounds_menu.subitems.push_back(
         gui::CanvasMenuItem("Type 1 (0x00-0xFF)", [this]() {
           object_outline_toggles_.show_type1_objects =
@@ -800,7 +745,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
               !object_outline_toggles_.show_type3_objects;
         }));
 
-    // Separator
     gui::CanvasMenuItem sep;
     sep.label = "---";
     sep.enabled_condition = []() {
@@ -808,7 +752,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     };
     object_bounds_menu.subitems.push_back(sep);
 
-    // Sub-menu for filtering by layer
     object_bounds_menu.subitems.push_back(
         gui::CanvasMenuItem("Layer 0 (BG1)", [this]() {
           object_outline_toggles_.show_layer0_objects =
@@ -827,23 +770,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     debug_menu.subitems.push_back(object_bounds_menu);
 
-    // Show layer info
-    gui::CanvasMenuItem layer_info_item(
+    debug_menu.subitems.push_back(gui::CanvasMenuItem(
         "Show Layer Info", ICON_MD_LAYERS,
-        [this]() { show_layer_info_ = !show_layer_info_; });
-    debug_menu.subitems.push_back(layer_info_item);
+        [this]() { show_layer_info_ = !show_layer_info_; }));
 
-    // Force reload room
-    gui::CanvasMenuItem force_reload_item(
-        "Force Reload", ICON_MD_REFRESH, [&room]() {
+    debug_menu.subitems.push_back(
+        gui::CanvasMenuItem("Force Reload", ICON_MD_REFRESH, [&room]() {
           room.LoadObjects();
           room.LoadRoomGraphics(room.blockset());
           room.RenderRoomGraphics();
-        });
-    debug_menu.subitems.push_back(force_reload_item);
+        }));
 
-    // Log room state
-    gui::CanvasMenuItem log_item(
+    debug_menu.subitems.push_back(gui::CanvasMenuItem(
         "Log Room State", ICON_MD_PRINT, [&room, room_id]() {
           LOG_DEBUG("DungeonDebug", "=== Room %03X Debug ===", room_id);
           LOG_DEBUG("DungeonDebug", "Blockset: %d, Palette: %d, Layout: %d",
@@ -855,8 +793,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                     room.bg1_buffer().bitmap().height(),
                     room.bg2_buffer().bitmap().width(),
                     room.bg2_buffer().bitmap().height());
-        });
-    debug_menu.subitems.push_back(log_item);
+        }));
 
     canvas_.AddContextMenuItem(debug_menu);
   }
@@ -2151,7 +2088,7 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   }
   ImGui::SameLine();
 
-  // Core properties (Blockset, Palette, Layout, Spriteset)
+  // Core properties with human-readable names
   auto hex_input = [&](const char* label, const char* icon, uint8_t* val,
                        uint8_t max, const char* tooltip) {
     ImGui::TextDisabled("%s", icon);
@@ -2170,12 +2107,14 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
     if (room.rom() && room.rom()->is_loaded())
       room.RenderRoomGraphics();
   }
+  // Show dungeon name after blockset hex input
+  ImGui::SameLine(0, 2);
+  ImGui::TextDisabled("(%s)", DungeonRoomSelector::GetBlocksetGroupName(bs));
   ImGui::SameLine();
 
   uint8_t pal = room.palette();
   if (hex_input("##Pal", ICON_MD_PALETTE, &pal, 71, "Palette")) {
     room.SetPalette(pal);
-    // ... palette update logic ...
     if (room.rom() && room.rom()->is_loaded())
       room.RenderRoomGraphics();
   }
@@ -2198,11 +2137,9 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   }
 
   if (show_room_details_) {
-    // Floor and Effects (simplified for plan)
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::TableNextColumn();
-    ImGui::TextDisabled("Ext Props: Floor/Effect/Tags...");
+    // Show extended properties
+    ImGui::TextDisabled("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d",
+                        room.floor1(), room.effect(), room.tag1(), room.tag2());
   }
 }
 
