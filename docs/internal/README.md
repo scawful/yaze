@@ -1,6 +1,6 @@
 # YAZE Internal Documentation
 
-**Last Updated**: 2026-02-24
+**Last Updated**: 2026-02-26
 
 Internal documentation for architecture, AI agent coordination, and development planning.
 
@@ -12,6 +12,7 @@ Internal documentation for architecture, AI agent coordination, and development 
 | Refactoring plan | [agents/refactoring-plan-0.7.md](agents/refactoring-plan-0.7.md) |
 | Latest handoff | [agents/refactoring-handoff-2026-02-24.md](agents/refactoring-handoff-2026-02-24.md) |
 | Release test checklist | [agents/oracle-morning-test-checklist.org](agents/oracle-morning-test-checklist.org) |
+| Goron Mines regression tracker | [oracle/goron-mines-minecart-regression-tracker-2026-02-26.md](oracle/goron-mines-minecart-regression-tracker-2026-02-26.md) |
 | Doc hygiene rules | [agents/doc-hygiene.md](agents/doc-hygiene.md) |
 | Agent scripts | [scripts/agents/README.md](../../scripts/agents/README.md) |
 
@@ -23,6 +24,7 @@ Internal documentation for architecture, AI agent coordination, and development 
 | `agents/archive/` | Retired initiatives, handoffs, and drafts (do not edit) |
 | `architecture/` | System design docs (editor, dungeon, overworld, ROM, graphics, etc.) |
 | `archive/` | Completed features, closed investigations, old plans |
+| `oracle/` | Oracle-of-Secrets dungeon/collision runtime docs and regression tracking |
 | `zelda3/` | ALTTP-specific data format documentation |
 | `gui/` | Canvas system and widget layer reference |
 | `wasm/` | Web/WASM port documentation |

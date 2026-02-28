@@ -1,9 +1,13 @@
 # Coordination Snapshot (Generated)
 
-- Generated: `2026-02-24T10:54:38Z`
+- Generated: `2026-02-26T04:39:16Z`
 - Source: `~/.context/agent-universe/state.json`
+- Project Key: `Users:scawful:src:hobby:yaze`
 
 ## Active
+- `task_20260225T032329Z_28215` [A] AFS+z3dk model infra phase1-2 bootstrap (asar eval, z3dk refs, dataset builder) (assignee: `ai-infra-architect`, updated: `2026-02-25T03:23:33Z`)
+- `task_20260225T031729Z_382` [A] AI provider matrix + training/integration plan for Claude/OpenAI/Gemini/custom (assignee: `ai-infra-architect`, updated: `2026-02-25T03:17:33Z`)
+- `task_20260224T210424Z_17502` [B] Create refactoring handoff document (assignee: `ai-infra-architect`, updated: `2026-02-24T22:26:22Z`)
 - `import_20260214_0023_gui_editor_simplification_automation_reliability` [B] GUI Editor Simplification + Automation Reliability (assignee: `backend-infra-engineer`, updated: `2026-02-14T00:00:00Z`)
 - `import_20260214_0022_0_6_0_ci_stabilization_linux_windows_quality` [B] 0.6.0 CI Stabilization (Linux/Windows/Quality) (assignee: `backend-infra-engineer`, updated: `2026-02-14T00:00:00Z`)
 - `import_20260211_0046_ceiling_pit_transparency_follow_up` [B] Ceiling/Pit Transparency Follow-up (assignee: `CODEX`, updated: `2026-02-11T00:00:00Z`)
@@ -24,6 +28,13 @@
 - `import_20251123_0133_v0_3_9_release_rerun` [B] v0.3.9 release rerun (assignee: `CODEX`, updated: `2025-11-23T00:00:00Z`)
 
 ## Open
+- `task_20260226T043912Z_9206` [B] GM-004: Enforce savestate freshness/scenario validation for Goron Mines live smoke (assignee: `ai-infra-architect`, updated: `2026-02-26T04:39:12Z`)
+- `task_20260226T043912Z_5419` [A] GM-001: Fix minecart track-collision footprint undercount in CLI (assignee: `ai-infra-architect`, updated: `2026-02-26T04:39:12Z`)
+- `task_20260226T043912Z_25422` [C] GM-007: Add object-level room inspection output for minecart debug in CLI (assignee: `ai-infra-architect`, updated: `2026-02-26T04:39:12Z`)
+- `task_20260226T043912Z_22848` [A] GM-002: Add CLI/project feature-flag parity for custom-object-dependent generation (assignee: `ai-infra-architect`, updated: `2026-02-26T04:39:12Z`)
+- `task_20260226T043912Z_21048` [B] GM-005: Guardrail ROM edit workflow (oos168_test2 vs derived ROM targets) (assignee: `docs-janitor`, updated: `2026-02-26T04:39:12Z`)
+- `task_20260226T043912Z_1757` [A] GM-003: Add regression tests/gates for Goron Mines track footprint stability (assignee: `test-infrastructure-expert`, updated: `2026-02-26T04:39:12Z`)
+- `task_20260226T043912Z_17567` [B] GM-006: Preserve stop tiles during dungeon-generate-track-collision writes (assignee: `zelda3-hacking-expert`, updated: `2026-02-26T04:39:12Z`)
 - `import_20260207_0057_dungeon_workbench_panel_scopes` [B] Dungeon Workbench + Panel Scopes (assignee: `imgui-frontend-engineer`, updated: `2026-02-07T00:00:00Z`)
 - `import_20260207_0055_hackmanifest_guardrails` [B] HackManifest Guardrails (assignee: `ai-infra-architect`, updated: `2026-02-07T00:00:00Z`)
 - `import_20260206_0059_room_mode_validation_skill` [B] Room-mode validation + skill (assignee: `docs-janitor`, updated: `2026-02-06T00:00:00Z`)
@@ -38,23 +49,23 @@
 - `import_20251126_0123_menu_bar_right_panel_ui_ux_overhaul` [B] Menu Bar & Right Panel UI/UX Overhaul (assignee: `ui-architect`, updated: `2025-11-26T00:00:00Z`)
 
 ## Recently Completed
+- `task_20260225T211943Z_29730` [A] Integrate pending dungeon graph command edits (assignee: `zelda3-hacking-expert`, updated: `2026-02-25T21:24:55Z`)
+- `task_20260224T220223Z_29884` [B] Document yaze capability assessment + competitor parity matrix (assignee: `docs-janitor`, updated: `2026-02-24T22:04:38Z`)
+- `task_20260224T210824Z_28339` [B] Docs cleanup: remove outdated docs, simplify navigation (assignee: `docs-janitor`, updated: `2026-02-24T21:18:17Z`)
+- `task_20260224T210022Z_13029` [B] Delete src/lib, fix DISABLED dungeon tests, homebrew cmake, proto converter tests (assignee: `ai-infra-architect`, updated: `2026-02-24T21:07:08Z`)
+- `task_20260224T203624Z_24516` [B] Fix emulator service input validation + error propagation + CPU arg + toast draw guard (assignee: `ai-infra-architect`, updated: `2026-02-24T20:49:45Z`)
+- `task_20260224T190022Z_12668` [B] Remove src/lib include paths + create emulator domain types (assignee: `ai-infra-architect`, updated: `2026-02-24T20:19:22Z`)
+- `task_20260224T185135Z_22761` [B] Phase 1/2 prep: src/lib audit, Homebrew dedup analysis, IEmulator proto inventory (assignee: `ai-infra-architect`, updated: `2026-02-24T18:53:17Z`)
+- `task_20260224T180545Z_30443` [B] Refactoring plan review + phase 0 quick wins (assignee: `ai-infra-architect`, updated: `2026-02-24T18:10:30Z`)
+- `task_20260224T172621Z_16327` [B] Tier 1 ImGui Test Engine tests for dungeon editor panels (assignee: `ai-infra-architect`, updated: `2026-02-24T17:36:53Z`)
+- `task_20260224T162803Z_32644` [B] Cross-platform SHA1 + dry-run structural checks + hash normalize (assignee: `ai-infra-architect`, updated: `2026-02-24T16:35:51Z`)
+- `task_20260224T155920Z_17654` [B] Bundle verify --check-rom-hash + unpack --dry-run (assignee: `ai-infra-architect`, updated: `2026-02-24T16:12:28Z`)
+- `task_20260224T160119Z_31494` [B] UI/UX polish: door placement clarity + tile filter feedback (assignee: `imgui-frontend-engineer`, updated: `2026-02-24T16:09:34Z`)
+- `task_20260224T134231Z_20647` [B] 0.6.1 release gate: safety fix + CI checks + evidence automation (assignee: `ai-infra-architect`, updated: `2026-02-24T13:53:47Z`)
+- `task_20260224T132551Z_5707` [B] Unpack safe cleanup + --keep-partial-output flag (assignee: `ai-infra-architect`, updated: `2026-02-24T13:29:54Z`)
+- `task_20260224T125636Z_26840` [B] 0.6.1 follow-ups: limits tests, enum cleanup, Oracle header extraction (assignee: `ai-infra-architect`, updated: `2026-02-24T13:04:26Z`)
+- `task_20260224T121324Z_30554` [B] 0.6.1 refactor: unify project format, harden bundle archive, dedup backup, centralize limits (assignee: `ai-infra-architect`, updated: `2026-02-24T12:27:24Z`)
+- `task_20260224T120307Z_8807` [B] Add semantic protocol checks to protocol-audit.sh (assignee: `ai-infra-architect`, updated: `2026-02-24T12:04:13Z`)
+- `task_20260224T111726Z_29333` [B] Protocol compliance verification run (assignee: `ai-infra-architect`, updated: `2026-02-24T11:17:49Z`)
 - `import_20260224_0007_ci_infra_hardening_pass` [B] CI/Infra Hardening Pass (assignee: `ai-infra-architect`, updated: `2026-02-24T00:00:00Z`)
 - `import_20260224_0006_p1_03_project_bundle_pack_unpack_cli_commands` [B] P1-03: project-bundle-pack/unpack CLI Commands (assignee: `ai-infra-architect`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260224_0005_ghost_preview_warning_states_filter_feedback_roo` [B] Ghost Preview Warning States + Filter Feedback + Room Copy (assignee: `imgui-frontend-engineer`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260224_0004_dungeon_ux_validation_pass_qa_checklist` [B] Dungeon UX Validation Pass (QA Checklist) (assignee: `zelda3-hacking-expert`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260224_0003_ux_pass_validation_infra_toast_dedup` [B] UX Pass Validation Infra + Toast Dedup (assignee: `ai-infra-architect`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260224_0002_door_ghost_parity_placement_toast_room_dungeon_c` [B] Door Ghost Parity + Placement Toast + Room Dungeon Context (assignee: `imgui-frontend-engineer`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260224_0001_follow_up_oracle_labels_toast_visibility_snap_ca` [B] Follow-up: Oracle Labels + Toast Visibility + Snap Capacity Colors (assignee: `imgui-frontend-engineer`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260224_0000_universe_coordination_system_mvp` [B] Universe Coordination System MVP (assignee: `ai-infra-architect`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260223_0013_oracle_regression_smoke_workflow` [B] Oracle Regression Smoke Workflow (assignee: `test-infrastructure-expert`, updated: `2026-02-23T00:00:00Z`)
-- `import_20260223_0012_oracle_smoke_check_c_command` [B] oracle-smoke-check C++ Command (assignee: `test-infrastructure-expert`, updated: `2026-02-23T00:00:00Z`)
-- `import_20260223_0011_dungeon_tile16_object_editor_ux_pass` [B] Dungeon/Tile16/Object Editor UX Pass (assignee: `imgui-frontend-engineer`, updated: `2026-02-23T00:00:00Z`)
-- `import_20260223_0010_placement_guardrails_tile16_filter_recent_rooms` [B] Placement Guardrails + Tile16 Filter + Recent Rooms (assignee: `imgui-frontend-engineer`, updated: `2026-02-23T00:00:00Z`)
-- `import_20260223_0009_sprite_door_placement_error_feedback` [B] Sprite/Door Placement Error Feedback (assignee: `imgui-frontend-engineer`, updated: `2026-02-23T00:00:00Z`)
-- `import_20260223_0008_p1_02_project_bundle_verify_cli_command` [B] P1-02: project-bundle-verify CLI Command (assignee: `ai-infra-architect`, updated: `2026-02-23T00:00:00Z`)
-- `import_20260222_0016_oracle_workflow_validation_tests` [B] Oracle Workflow Validation Tests (assignee: `test-infrastructure-expert`, updated: `2026-02-22T00:00:00Z`)
-- `import_20260222_0015_dungeon_oracle_preflight_minecart_integration_te` [B] dungeon-oracle-preflight + Minecart Integration Test (assignee: `test-infrastructure-expert`, updated: `2026-02-22T00:00:00Z`)
-- `import_20260222_0014_oracle_cli_preflight_follow_up_hardening` [B] Oracle CLI/Preflight Follow-up Hardening (assignee: `test-infrastructure-expert`, updated: `2026-02-22T00:00:00Z`)
-- `import_20260216_0017_dungeon_water_face_parity_custom_object_ux` [B] Dungeon Water-Face Parity + Custom Object UX (assignee: `imgui-frontend-engineer`, updated: `2026-02-16T00:00:00Z`)
-- `import_20260214_0030_z3ed_help_ux_ninja_stability` [B] z3ed Help UX + Ninja Stability (assignee: `backend-infra-engineer`, updated: `2026-02-14T00:00:00Z`)
-- `import_20260214_0029_0_6_0_gui_claim_verification` [B] 0.6.0 GUI Claim Verification (assignee: `imgui-frontend-engineer`, updated: `2026-02-14T00:00:00Z`)
