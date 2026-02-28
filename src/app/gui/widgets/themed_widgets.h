@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_GUI_WIDGETS_THEMED_WIDGETS_H_
 #define YAZE_APP_GUI_WIDGETS_THEMED_WIDGETS_H_
 
+#include <functional>
 #include <string>
 
 #include "app/gui/core/ui_config.h"
@@ -161,9 +162,54 @@ bool ToolbarIconButton(const char* icon, const char* tooltip = nullptr,
                        bool is_active = false);
 
 /**
+ * @brief Convenience wrapper for small inline icon buttons.
+ *
+ * Wraps ThemedIconButton with IconSize::Small() preset.
+ * Suitable for status bars, property rows, and inline actions.
+ *
+ * @param icon The icon string (e.g., ICON_MD_UNDO)
+ * @param tooltip Optional tooltip text
+ * @param is_active Whether the button is in an active/toggled state
+ * @return true if clicked
+ */
+bool InlineIconButton(const char* icon, const char* tooltip = nullptr,
+                      bool is_active = false);
+
+/**
  * @brief Draw a section header.
  */
 void SectionHeader(const char* label);
+
+/**
+ * @brief A stylized tab bar with "Mission Control" branding.
+ */
+bool BeginThemedTabBar(const char* id, ImGuiTabBarFlags flags = 0);
+void EndThemedTabBar();
+
+/**
+ * @brief Provide visual "flash" feedback when a value changes.
+ *
+ * Triggers a brief color pulse on the widget background or border
+ * to confirm data entry/mutation.
+ *
+ * @param changed The result from an ImGui input (e.g., InputHexByte)
+ * @param id Unique ID for the animation state
+ */
+void ValueChangeFlash(bool changed, const char* id);
+
+/**
+ * @brief Draw a stylized Heads-Up Display (HUD) for canvas status.
+ *
+ * Encloses text/icons in a semi-transparent dark container with a
+ * subtle accent border. Used for Zoom, Coords, etc.
+ *
+ * @param label Unique ID for the HUD window
+ * @param pos Screen position for the HUD
+ * @param size HUD dimensions
+ * @param draw_content Callback to render HUD contents
+ */
+void DrawCanvasHUD(const char* label, const ImVec2& pos, const ImVec2& size,
+                   std::function<void()> draw_content);
 
 /**
  * @brief Draw a palette color button.
