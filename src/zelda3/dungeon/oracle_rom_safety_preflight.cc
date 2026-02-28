@@ -79,21 +79,24 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
              absl::StatusCode::kFailedPrecondition);
   }
 
-  if (options.validate_water_fill_table && HasWaterFillReservedRegion(rom_size)) {
+  if (options.validate_water_fill_table &&
+      HasWaterFillReservedRegion(rom_size)) {
     const auto& data = rom->vector();
     const uint8_t zone_count =
         data[static_cast<std::size_t>(kWaterFillTableStart)];
     if (zone_count > 8) {
-      AddError(&result, "ORACLE_WATER_FILL_HEADER_CORRUPT",
-               absl::StrFormat("WaterFill table header corrupted (zone_count=%u)",
-                               zone_count),
-               absl::StatusCode::kFailedPrecondition);
+      AddError(
+          &result, "ORACLE_WATER_FILL_HEADER_CORRUPT",
+          absl::StrFormat("WaterFill table header corrupted (zone_count=%u)",
+                          zone_count),
+          absl::StatusCode::kFailedPrecondition);
     }
 
     auto zones_or = LoadWaterFillTable(rom);
     if (!zones_or.ok()) {
       AddError(&result, "ORACLE_WATER_FILL_TABLE_INVALID",
-               std::string(zones_or.status().message()), zones_or.status().code());
+               std::string(zones_or.status().message()),
+               zones_or.status().code());
     }
   }
 
@@ -113,9 +116,10 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
       ++collision_errors;
       if (collision_errors >= max_errors) {
         AddError(&result, "ORACLE_COLLISION_POINTER_INVALID_TRUNCATED",
-                 absl::StrFormat("Collision pointer validation stopped after %d "
-                                 "errors (increase max_collision_errors to scan more)",
-                                 max_errors),
+                 absl::StrFormat(
+                     "Collision pointer validation stopped after %d "
+                     "errors (increase max_collision_errors to scan more)",
+                     max_errors),
                  absl::StatusCode::kFailedPrecondition);
         break;
       }
@@ -132,28 +136,29 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
       HasCustomCollisionWriteSupport(rom_size)) {
     for (int room_id : options.room_ids_requiring_custom_collision) {
       if (room_id < 0 || room_id >= kNumberOfRooms) {
-        AddError(
-            &result, "ORACLE_REQUIRED_ROOM_OUT_OF_RANGE",
-            absl::StrFormat("Required room 0x%02X is out of valid range (0..0x%02X)",
-                            room_id, kNumberOfRooms - 1),
-            absl::StatusCode::kInvalidArgument);
+        AddError(&result, "ORACLE_REQUIRED_ROOM_OUT_OF_RANGE",
+                 absl::StrFormat(
+                     "Required room 0x%02X is out of valid range (0..0x%02X)",
+                     room_id, kNumberOfRooms - 1),
+                 absl::StatusCode::kInvalidArgument);
         continue;
       }
       auto map_or = LoadCustomCollisionMap(rom, room_id);
       if (!map_or.ok()) {
         AddError(&result, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION",
-                 absl::StrFormat("Required room 0x%02X: collision pointer invalid: %s",
-                                 room_id,
-                                 std::string(map_or.status().message()).c_str()),
+                 absl::StrFormat(
+                     "Required room 0x%02X: collision pointer invalid: %s",
+                     room_id, std::string(map_or.status().message()).c_str()),
                  map_or.status().code(), room_id);
         continue;
       }
       if (!map_or->has_data) {
-        AddError(&result, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION",
-                 absl::StrFormat("Required room 0x%02X has no custom collision data "
-                                 "(room not authored)",
-                                 room_id),
-                 absl::StatusCode::kFailedPrecondition, room_id);
+        AddError(
+            &result, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION",
+            absl::StrFormat("Required room 0x%02X has no custom collision data "
+                            "(room not authored)",
+                            room_id),
+            absl::StatusCode::kFailedPrecondition, room_id);
       }
     }
   }
@@ -177,16 +182,34 @@ std::string ExtractHexDigestLine(const std::string& output) {
   std::istringstream lines(output);
   std::string line;
   while (std::getline(lines, line)) {
-    std::string compact;
-    compact.reserve(line.size());
-    for (unsigned char c : line) {
-      if (std::isxdigit(c)) {
-        compact.push_back(static_cast<char>(std::tolower(c)));
+    // sha256sum/shasum output: "<hash>  <filename>"
+    // certutil output: hash on its own line
+    // Extract the first whitespace-delimited token from each line.
+    std::istringstream tokens(line);
+    std::string token;
+    if (!(tokens >> token))
+      continue;
+
+    // Validate: must be exactly 64 lowercase hex chars.
+    if (token.size() != 64)
+      continue;
+    bool valid = true;
+    for (unsigned char c : token) {
+      if (!std::isxdigit(c)) {
+        valid = false;
+        break;
       }
     }
-    if (compact.size() == 64) {
-      return compact;
+    if (!valid)
+      continue;
+
+    // Normalize to lowercase.
+    std::string hash;
+    hash.reserve(64);
+    for (unsigned char c : token) {
+      hash.push_back(static_cast<char>(std::tolower(c)));
     }
+    return hash;
   }
   return {};
 }
@@ -207,8 +230,7 @@ absl::StatusOr<std::string> ComputeSha256(const std::string& file_path) {
 
   std::array<char, 8192> buffer;
   while (file.read(buffer.data(), buffer.size()) || file.gcount() > 0) {
-    CC_SHA256_Update(&ctx, buffer.data(),
-                     static_cast<CC_LONG>(file.gcount()));
+    CC_SHA256_Update(&ctx, buffer.data(), static_cast<CC_LONG>(file.gcount()));
   }
 
   unsigned char digest[CC_SHA256_DIGEST_LENGTH];
@@ -275,9 +297,9 @@ absl::Status VerifySha256(const std::string& file_path,
 
   const std::string& actual_hash = *actual_hash_or;
   if (actual_hash != expected_hash) {
-    return absl::DataLossError(absl::StrFormat(
-        "SHA-256 mismatch for %s: expected %s, got %s", file_path,
-        expected_hash, actual_hash));
+    return absl::DataLossError(
+        absl::StrFormat("SHA-256 mismatch for %s: expected %s, got %s",
+                        file_path, expected_hash, actual_hash));
   }
 
   return absl::OkStatus();
