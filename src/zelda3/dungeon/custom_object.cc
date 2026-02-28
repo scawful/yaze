@@ -269,5 +269,15 @@ std::string CustomObjectManager::ResolveFilename(int object_id,
   return "";
 }
 
+CustomObjectManager::State CustomObjectManager::SnapshotState() const {
+  return {.base_path = base_path_, .custom_file_map = custom_file_map_};
+}
+
+void CustomObjectManager::RestoreState(const State& state) {
+  base_path_ = state.base_path;
+  custom_file_map_ = state.custom_file_map;
+  cache_.clear();
+}
+
 }  // namespace zelda3
 }  // namespace yaze

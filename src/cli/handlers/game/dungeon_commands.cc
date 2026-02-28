@@ -8,6 +8,7 @@
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
@@ -23,6 +24,25 @@ namespace handlers {
 using util::ParseHexString;
 
 namespace {
+
+constexpr uint8_t kStopTileMin = 0xB7;
+constexpr uint8_t kStopTileMax = 0xBA;
+
+bool IsStopTile(uint8_t v) {
+  return v >= kStopTileMin && v <= kStopTileMax;
+}
+
+// Merge stop tiles from |existing| into |generated| without overwriting
+// track tiles that were just produced. Stop tiles in |existing| that sit on
+// cells that are zero in |generated| are copied across unchanged.
+void MergeStopTiles(const zelda3::CustomCollisionMap& existing,
+                    zelda3::CustomCollisionMap& generated) {
+  for (int i = 0; i < static_cast<int>(existing.tiles.size()); ++i) {
+    if (IsStopTile(existing.tiles[i]) && generated.tiles[i] == 0) {
+      generated.tiles[i] = existing.tiles[i];
+    }
+  }
+}
 
 // Helper to load sprite registry from file if --sprite-registry flag is provided
 absl::Status MaybeLoadSpriteRegistry(const resources::ArgumentParser& parser) {
@@ -614,6 +634,7 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
   }
 
   bool do_write = parser.HasFlag("write");
+  bool do_preserve_stops = parser.HasFlag("preserve-stops");
   bool do_visualize = parser.HasFlag("visualize");
 
   // Determine room list: --rooms (batch) or --room (single)
@@ -640,8 +661,7 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
     // Single room mode (backwards compatible)
     int rid;
     if (!ParseHexString(room_arg.value(), &rid)) {
-      return absl::InvalidArgumentError(
-          "Invalid room ID format. Must be hex.");
+      return absl::InvalidArgumentError("Invalid room ID format. Must be hex.");
     }
     room_ids.push_back(rid);
   } else {
@@ -674,9 +694,16 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
         formatter.AddHexField("failed_room", room_id, 3);
         formatter.AddField("error", std::string(result.status().message()));
         formatter.EndObject();
-        return absl::InternalError(absl::StrFormat(
-            "Generation failed for room 0x%03X: %s", room_id,
-            result.status().message()));
+        return absl::InternalError(
+            absl::StrFormat("Generation failed for room 0x%03X: %s", room_id,
+                            result.status().message()));
+      }
+
+      if (do_preserve_stops && do_write) {
+        auto existing = zelda3::LoadCustomCollisionMap(rom, room_id);
+        if (existing.ok() && existing->has_data) {
+          MergeStopTiles(*existing, result->collision_map);
+        }
       }
 
       formatter.BeginObject();
@@ -685,6 +712,9 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
       formatter.AddField("stop_count", result->stop_count);
       formatter.AddField("corner_count", result->corner_count);
       formatter.AddField("switch_count", result->switch_count);
+      if (do_preserve_stops) {
+        formatter.AddField("stops_preserved", true);
+      }
 
       if (do_visualize) {
         formatter.AddField("visualization", result->ascii_visualization);
@@ -700,9 +730,9 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
           formatter.EndObject();
           formatter.EndArray();
           formatter.EndObject();
-          return absl::InternalError(absl::StrFormat(
-              "Write failed for room 0x%03X: %s", room_id,
-              write_status.message()));
+          return absl::InternalError(
+              absl::StrFormat("Write failed for room 0x%03X: %s", room_id,
+                              write_status.message()));
         }
         formatter.AddField("write_status", "success");
       }
@@ -751,6 +781,13 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
       return result.status();
     }
 
+    if (do_preserve_stops && do_write) {
+      auto existing = zelda3::LoadCustomCollisionMap(rom, room_id);
+      if (existing.ok() && existing->has_data) {
+        MergeStopTiles(*existing, result->collision_map);
+      }
+    }
+
     formatter.BeginObject("Track Collision Generation");
     formatter.AddHexField("room_id", room_id, 3);
     formatter.AddField("tiles_generated", result->tiles_generated);
@@ -758,6 +795,9 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
     formatter.AddField("corner_count", result->corner_count);
     formatter.AddField("switch_count", result->switch_count);
     formatter.AddField("mode", do_write ? "write" : "dry-run");
+    if (do_preserve_stops) {
+      formatter.AddField("stops_preserved", true);
+    }
 
     if (do_visualize || !do_write) {
       formatter.AddField("visualization", result->ascii_visualization);

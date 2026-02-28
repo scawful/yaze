@@ -1,12 +1,20 @@
 #include "cli/service/resources/command_context.h"
 
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "rom/rom.h"
+#include "core/features.h"
+#include "core/project.h"
 #include "mocks/mock_rom.h"
+#include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze {
 namespace cli {
@@ -19,9 +27,59 @@ class CommandContextTest : public ::testing::Test {
     std::vector<uint8_t> test_data(1024, 0);  // 1KB of empty data
     auto status = mock_rom_.SetTestData(test_data);
     ASSERT_TRUE(status.ok());
+
+    previous_feature_flags_ = core::FeatureFlags::get();
+    previous_custom_object_state_ =
+        zelda3::CustomObjectManager::Get().SnapshotState();
+
+    temp_root_ =
+        std::filesystem::temp_directory_path() /
+        ("yaze_command_context_test_" +
+         std::to_string(
+             std::chrono::steady_clock::now().time_since_epoch().count()));
+    std::filesystem::create_directories(temp_root_);
+  }
+
+  void TearDown() override {
+    core::FeatureFlags::get() = previous_feature_flags_;
+    zelda3::CustomObjectManager::Get().RestoreState(
+        previous_custom_object_state_);
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    std::filesystem::remove_all(temp_root_);
+  }
+
+  std::string CreateProjectWithCustomObjectConfig(bool feature_flag_enabled) {
+    const std::string project_name =
+        "ctxproj_" +
+        std::to_string(
+            std::chrono::steady_clock::now().time_since_epoch().count());
+
+    project::YazeProject project;
+    auto create_status = project.Create(project_name, temp_root_.string());
+    EXPECT_TRUE(create_status.ok());
+
+    std::filesystem::path custom_dir = temp_root_ / project_name / "custom";
+    std::filesystem::create_directories(custom_dir);
+    {
+      // Minimal custom object binary payload: immediate terminator.
+      std::ofstream out(custom_dir / "track_LR.bin",
+                        std::ios::out | std::ios::binary | std::ios::trunc);
+      out.put('\0');
+      out.put('\0');
+    }
+
+    project.feature_flags.kEnableCustomObjects = feature_flag_enabled;
+    project.custom_objects_folder = custom_dir.string();
+    project.custom_object_files[0x31] = {"track_LR.bin"};
+    auto save_status = project.Save();
+    EXPECT_TRUE(save_status.ok());
+    return project.filepath;
   }
 
   yaze::test::MockRom mock_rom_;
+  core::FeatureFlags::Flags previous_feature_flags_;
+  zelda3::CustomObjectManager::State previous_custom_object_state_;
+  std::filesystem::path temp_root_;
 };
 
 TEST_F(CommandContextTest, LoadsRomFromConfig) {
@@ -87,6 +145,64 @@ TEST_F(CommandContextTest, IsVerboseReturnsConfigVerbose) {
   CommandContext context(config);
 
   EXPECT_TRUE(context.IsVerbose());
+}
+
+TEST_F(CommandContextTest, ProjectContextAppliesCustomObjectRuntimeState) {
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  EXPECT_EQ(zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(0x31),
+            zelda3::DrawRoutineIds::kNothing);
+
+  {
+    CommandContext::Config config;
+    config.use_mock_rom = true;
+    config.project_context_path = CreateProjectWithCustomObjectConfig(true);
+
+    CommandContext context(config);
+    auto rom_or = context.GetRom();
+    ASSERT_TRUE(rom_or.ok());
+    ASSERT_NE(context.GetProjectContext(), nullptr);
+
+    EXPECT_TRUE(core::FeatureFlags::get().kEnableCustomObjects);
+    EXPECT_EQ(zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(0x31),
+              zelda3::DrawRoutineIds::kCustomObject);
+    EXPECT_FALSE(
+        zelda3::CustomObjectManager::Get().GetEffectiveFileList(0x31).empty());
+    EXPECT_FALSE(zelda3::CustomObjectManager::Get().GetBasePath().empty());
+  }
+
+  EXPECT_FALSE(core::FeatureFlags::get().kEnableCustomObjects);
+  EXPECT_EQ(zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(0x31),
+            zelda3::DrawRoutineIds::kNothing);
+}
+
+TEST_F(CommandContextTest,
+       ProjectContextAutoEnablesCustomObjectsWhenProjectHasCustomData) {
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+
+  CommandContext::Config config;
+  config.use_mock_rom = true;
+  config.project_context_path = CreateProjectWithCustomObjectConfig(false);
+
+  CommandContext context(config);
+  auto rom_or = context.GetRom();
+  ASSERT_TRUE(rom_or.ok());
+
+  EXPECT_TRUE(core::FeatureFlags::get().kEnableCustomObjects);
+  EXPECT_EQ(zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(0x31),
+            zelda3::DrawRoutineIds::kCustomObject);
+}
+
+TEST_F(CommandContextTest, InvalidProjectContextFailsInitialization) {
+  CommandContext::Config config;
+  config.use_mock_rom = true;
+  config.project_context_path = (temp_root_ / "does_not_exist.yaze").string();
+
+  CommandContext context(config);
+  auto rom_or = context.GetRom();
+  EXPECT_FALSE(rom_or.ok());
+  EXPECT_EQ(rom_or.status().code(), absl::StatusCode::kFailedPrecondition);
 }
 
 // ArgumentParser Tests

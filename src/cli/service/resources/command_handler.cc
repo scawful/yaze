@@ -58,8 +58,16 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   }
 
   // Check for --symbols override
-  if (auto symbols_path = parser.GetString("symbols"); symbols_path.has_value()) {
+  if (auto symbols_path = parser.GetString("symbols");
+      symbols_path.has_value()) {
     config.symbols_path = *symbols_path;
+  }
+
+  // Optional project runtime context used to mirror editor feature/custom object
+  // behavior during CLI execution.
+  if (auto project_path = parser.GetString("project-context");
+      project_path.has_value()) {
+    config.project_context_path = *project_path;
   }
 
   // Check for --mock-rom flag
@@ -71,13 +79,14 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   Rom* rom = nullptr;
   std::optional<Rom> sandbox_rom;
   bool sandbox_enabled = false;
-  
+
   // Set symbol provider regardless of ROM loading (it might load its own symbols)
   SetSymbolProvider(context.GetSymbolProvider());
 
   if (RequiresRom()) {
     ASSIGN_OR_RETURN(rom, context.GetRom());
     SetRomContext(rom);
+    SetProjectContext(context.GetProjectContext());
 
     if (absl::GetFlag(FLAGS_sandbox) || parser.HasFlag("sandbox")) {
       sandbox_enabled = true;
