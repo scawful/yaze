@@ -18,7 +18,7 @@ struct UIConfig {
   static constexpr float kActivityBarWidth = 48.0f;
 
   // Status bar
-  static constexpr float kStatusBarHeight = 24.0f;
+  static constexpr float kStatusBarHeight = 28.0f;
 
   // Right panel defaults
   static constexpr float kPanelWidthNarrow = 300.0f;
@@ -61,7 +61,7 @@ struct UIConfig {
   static constexpr float kIconButtonSmall = 24.0f;
   static constexpr float kIconButtonMedium = 32.0f;
   static constexpr float kIconButtonLarge = 48.0f;
-  static constexpr float kIconButtonToolbar = 28.0f;
+  static constexpr float kIconButtonToolbar = 32.0f;
 
   // Activity bar icon dimensions
   static constexpr float kActivityBarIconWidth = 48.0f;

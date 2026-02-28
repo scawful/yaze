@@ -15,6 +15,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/hex.h"
@@ -261,39 +262,33 @@ void ScreenEditor::DrawInventoryToolset() {
     ImGui::TableSetupColumn("#itemTool");
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_UNDO)) {
+    if (gui::ToolbarIconButton(ICON_MD_UNDO, "Undo")) {
       // status_ = inventory_.Undo();
     }
-    HOVER_HINT("Undo");
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_REDO)) {
+    if (gui::ToolbarIconButton(ICON_MD_REDO, "Redo")) {
       // status_ = inventory_.Redo();
     }
-    HOVER_HINT("Redo");
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
+    if (gui::ToolbarIconButton(ICON_MD_ZOOM_OUT, "Zoom Out")) {
       screen_canvas_.ZoomOut();
     }
-    HOVER_HINT("Zoom Out");
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_ZOOM_IN)) {
+    if (gui::ToolbarIconButton(ICON_MD_ZOOM_IN, "Zoom In")) {
       screen_canvas_.ZoomIn();
     }
-    HOVER_HINT("Zoom In");
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_DRAW)) {
+    if (gui::ToolbarIconButton(ICON_MD_DRAW, "Draw Mode")) {
       current_mode_ = EditingMode::DRAW;
     }
-    HOVER_HINT("Draw Mode");
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_BUILD)) {
+    if (gui::ToolbarIconButton(ICON_MD_BUILD, "Build Mode")) {
       // current_mode_ = EditingMode::BUILD;
     }
-    HOVER_HINT("Build Mode");
 
     ImGui::EndTable();
   }
@@ -693,15 +688,15 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
  */
 void ScreenEditor::DrawDungeonMapsEditor() {
   // Enhanced editing mode controls with visual feedback
-  if (ImGui::Button(ICON_MD_DRAW)) {
+  if (gui::ToolbarIconButton(ICON_MD_DRAW, "Draw Mode")) {
     current_mode_ = EditingMode::DRAW;
   }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_EDIT)) {
+  if (gui::ToolbarIconButton(ICON_MD_EDIT, "Edit Mode")) {
     current_mode_ = EditingMode::EDIT;
   }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_SAVE)) {
+  if (gui::ToolbarIconButton(ICON_MD_SAVE, "Save dungeon map tiles")) {
     PRINT_IF_ERROR(zelda3::SaveDungeonMapTile16(tile16_blockset_, *rom()));
   }
 
@@ -1060,7 +1055,8 @@ void ScreenEditor::DrawOverworldMapEditor() {
     status_ = ow_map_screen_.Create(rom());
     if (!status_.ok()) {
       const auto& theme = AgentUI::GetTheme();
-      ImGui::TextColored(theme.text_error_red, "Error loading overworld map: %s",
+      ImGui::TextColored(theme.text_error_red,
+                         "Error loading overworld map: %s",
                          status_.message().data());
       return;
     }

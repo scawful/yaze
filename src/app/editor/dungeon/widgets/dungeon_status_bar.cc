@@ -8,6 +8,8 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_config.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -15,9 +17,10 @@ namespace yaze::editor {
 void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
-  // Reserve a fixed-height bar at the bottom
-  const float bar_height =
+  // Reserve a fixed-height bar at the bottom, respecting UIConfig minimum
+  const float font_bar =
       ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+  const float bar_height = std::max(font_bar, gui::UIConfig::kStatusBarHeight);
 
   gui::StyleColorGuard bar_colors({
       {ImGuiCol_ChildBg, gui::ConvertColorToImVec4(theme.frame_bg)},
@@ -32,7 +35,7 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   // Tool mode indicator
   ImGui::AlignTextToFramePadding();
   ImGui::TextDisabled(ICON_MD_BUILD);
-  ImGui::SameLine(0, 2);
+  ImGui::SameLine(0, 4);
   ImGui::Text("%s", state.tool_mode);
   ImGui::SameLine(0, spacing * 2);
 
@@ -44,27 +47,31 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   {
     if (!state.can_undo)
       ImGui::BeginDisabled();
-    if (ImGui::SmallButton(ICON_MD_UNDO)) {
+
+    // Build tooltip string for undo
+    char undo_tip[128];
+    snprintf(undo_tip, sizeof(undo_tip), "Undo%s%s",
+             state.undo_desc ? ": " : "",
+             state.undo_desc ? state.undo_desc : "");
+    if (gui::InlineIconButton(ICON_MD_UNDO, undo_tip)) {
       if (state.on_undo)
         state.on_undo();
     }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("Undo%s%s", state.undo_desc ? ": " : "",
-                        state.undo_desc ? state.undo_desc : "");
-    }
     if (!state.can_undo)
       ImGui::EndDisabled();
-    ImGui::SameLine(0, 2);
+    ImGui::SameLine(0, 4);
 
     if (!state.can_redo)
       ImGui::BeginDisabled();
-    if (ImGui::SmallButton(ICON_MD_REDO)) {
+
+    // Build tooltip string for redo
+    char redo_tip[128];
+    snprintf(redo_tip, sizeof(redo_tip), "Redo%s%s",
+             state.redo_desc ? ": " : "",
+             state.redo_desc ? state.redo_desc : "");
+    if (gui::InlineIconButton(ICON_MD_REDO, redo_tip)) {
       if (state.on_redo)
         state.on_redo();
-    }
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("Redo%s%s", state.redo_desc ? ": " : "",
-                        state.redo_desc ? state.redo_desc : "");
     }
     if (!state.can_redo)
       ImGui::EndDisabled();
@@ -83,7 +90,7 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   // Selection summary
   if (state.selection_count > 0) {
     ImGui::TextDisabled(ICON_MD_SELECT_ALL);
-    ImGui::SameLine(0, 2);
+    ImGui::SameLine(0, 4);
     if (state.selection_layer >= 0) {
       ImGui::Text("%d obj, L%d", state.selection_count,
                   state.selection_layer + 1);
@@ -101,7 +108,7 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
 
   // Zoom level
   ImGui::TextDisabled(ICON_MD_ZOOM_IN);
-  ImGui::SameLine(0, 2);
+  ImGui::SameLine(0, 4);
   ImGui::Text("%d%%", state.zoom_percent);
   ImGui::SameLine(0, spacing * 2);
 
@@ -112,7 +119,7 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   // Cursor tile coordinates
   if (state.cursor_tile_x >= 0 && state.cursor_tile_y >= 0) {
     ImGui::TextDisabled(ICON_MD_MY_LOCATION);
-    ImGui::SameLine(0, 2);
+    ImGui::SameLine(0, 4);
     ImGui::Text("(%d, %d)", state.cursor_tile_x, state.cursor_tile_y);
   } else {
     ImGui::TextDisabled(ICON_MD_MY_LOCATION " --");
