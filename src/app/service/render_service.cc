@@ -14,7 +14,9 @@
 #include "zelda3/dungeon/room_layer_manager.h"
 
 #include <SDL.h>
+#ifdef YAZE_CLI_HAS_PNG
 #include <png.h>
+#endif
 
 namespace yaze {
 namespace app {
@@ -22,6 +24,7 @@ namespace service {
 
 namespace {
 
+#ifdef YAZE_CLI_HAS_PNG
 // PNG write helpers (mirrored from visual_diff_engine.cc).
 struct PngCtx {
   std::vector<uint8_t>* buf;
@@ -33,6 +36,7 @@ void PngWrite(png_structp png, png_bytep data, png_size_t len) {
 }
 
 void PngFlush(png_structp /*png*/) {}
+#endif
 
 // Returns the overlay RGBA color for a custom-collision tile value.
 // Returns alpha=0 for tiles we don't want to highlight.
@@ -112,12 +116,17 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
   }
 
   // Encode to PNG.
+#ifdef YAZE_CLI_HAS_PNG
   auto png_or = EncodePng(rgba, out_w, out_h);
   if (!png_or.ok())
     return png_or.status();
 
   RenderResult result;
   result.png_data = std::move(png_or).value();
+#else
+  RenderResult result;
+  result.png_data = std::move(rgba);
+#endif
   result.width = out_w;
   result.height = out_h;
   return result;
@@ -280,6 +289,7 @@ void RenderService::ApplyOverlays(std::vector<uint8_t>& rgba, int width,
   }
 }
 
+#ifdef YAZE_CLI_HAS_PNG
 absl::StatusOr<std::vector<uint8_t>> RenderService::EncodePng(
     const std::vector<uint8_t>& rgba, int width, int height) {
   png_structp png =
@@ -319,6 +329,12 @@ absl::StatusOr<std::vector<uint8_t>> RenderService::EncodePng(
 
   return output;
 }
+#else
+absl::StatusOr<std::vector<uint8_t>> RenderService::EncodePng(
+    const std::vector<uint8_t>& /*rgba*/, int /*width*/, int /*height*/) {
+  return absl::UnimplementedError("PNG encoding unavailable (libpng missing)");
+}
+#endif
 
 }  // namespace service
 }  // namespace app
