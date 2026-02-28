@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.7.0 (February 2026)
+
+### iOS Remote Control & Review
+- Added Bonjour discovery (`_yaze._tcp.`) for automatic LAN desktop detection from iPad.
+- Added Remote Room Viewer: browse all 296 dungeon rooms with overlay toggles, scale control, and metadata inspection.
+- Added Remote Command Runner: execute z3ed CLI commands from iPad with autocomplete catalog, command history, and `--write` safety confirmation.
+- Added Annotation Review Mode: browse rooms with annotation overlays, create/edit/delete annotations with REST-based desktop sync.
+- Added Desktop Connection view with discovered hosts, manual IP entry, and persistent connection status pill in overlay bar.
+
+### Desktop HTTP API
+- Added `POST /api/v1/command/execute` for remote command execution via CommandRegistry.
+- Added `GET /api/v1/command/list` exposing the full z3ed command catalog with metadata.
+- Added `GET/POST/PUT/DELETE /api/v1/annotations` for annotation CRUD against project `annotations.json`.
+- Added `BonjourPublisher` for macOS `dns_sd.h` service advertisement with TXT metadata.
+
+### Themed Widget System
+- Added `BeginThemedTabBar`/`EndThemedTabBar` for consistent styled tab bars.
+- Adopted themed widget APIs across dungeon workbench, status bar, pixel editor, and screen editor.
+
 ## 0.6.2 (February 2026)
 
 ### Release Consistency
