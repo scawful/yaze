@@ -48,6 +48,10 @@ class DungeonToolset {
   void set_background_type(BackgroundType type) { background_type_ = type; }
   void set_placement_type(PlacementType type) { placement_type_ = type; }
 
+  // Returns a human-readable name for the current placement mode
+  // (e.g., "Select", "Objects", "Sprites")
+  const char* GetToolModeName() const;
+
   // Callbacks
   void SetUndoCallback(std::function<void()> callback) {
     undo_callback_ = callback;

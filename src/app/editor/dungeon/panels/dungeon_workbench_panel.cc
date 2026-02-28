@@ -12,6 +12,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/widgets/dungeon_status_bar.h"
 #include "app/editor/dungeon/widgets/dungeon_workbench_toolbar.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -45,19 +46,19 @@ const char* GetObjectCategory(int object_id) {
 // Blockset 0-12 map to vanilla ALTTP dungeons; higher values are custom.
 const char* GetBlocksetGroupName(uint8_t blockset) {
   static const char* kGroupNames[] = {
-    "HC/Sewers",  // 0
-    "Eastern",    // 1
-    "Desert",     // 2
-    "Hera",       // 3
-    "A-Tower",    // 4
-    "PoD",        // 5
-    "Swamp",      // 6
-    "Skull",      // 7
-    "Thieves",    // 8
-    "Ice",        // 9
-    "Misery",     // 10
-    "Turtle",     // 11
-    "GT",         // 12
+      "HC/Sewers",  // 0
+      "Eastern",    // 1
+      "Desert",     // 2
+      "Hera",       // 3
+      "A-Tower",    // 4
+      "PoD",        // 5
+      "Swamp",      // 6
+      "Skull",      // 7
+      "Thieves",    // 8
+      "Ice",        // 9
+      "Misery",     // 10
+      "Turtle",     // 11
+      "GT",         // 12
   };
   constexpr size_t kCount = sizeof(kGroupNames) / sizeof(kGroupNames[0]);
   return blockset < kCount ? kGroupNames[blockset] : "Custom";
@@ -195,10 +196,8 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   const float rail_w =
       std::max({32.0f, btn + 8.0f, gui::LayoutHelpers::GetMinTouchTarget()});
 
-  const float left_w =
-      show_left ? layout_state_.left_width : rail_w;
-  const float right_w =
-      show_right ? layout_state_.right_width : rail_w;
+  const float left_w = show_left ? layout_state_.left_width : rail_w;
+  const float right_w = show_right ? layout_state_.right_width : rail_w;
 
   ImGuiTableColumnFlags left_flags = ImGuiTableColumnFlags_WidthFixed;
   if (!show_left) {
@@ -276,6 +275,11 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       } else {
         primary_viewer->DrawDungeonCanvas(*current_room_id_);
       }
+
+      // Status bar at the bottom of the canvas area
+      auto status =
+          DungeonStatusBar::BuildState(*primary_viewer, "Select", false);
+      DungeonStatusBar::Draw(status);
     } else {
       ImGui::TextDisabled("No active viewer");
     }
@@ -501,21 +505,23 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
 void DungeonWorkbenchPanel::BuildRoomDungeonCache() {
   room_dungeon_cache_.clear();
   room_dungeon_cache_built_ = true;  // Always set, even if ROM missing.
-  if (!rom_ || !rom_->is_loaded()) return;
+  if (!rom_ || !rom_->is_loaded())
+    return;
 
   // Short dungeon names for display in the inspector badge.
   // Indices 0-13 = vanilla ALTTP dungeons; higher indices = custom/Oracle.
   static const char* const kShortNames[] = {
-      "Sewers",   "HC",      "Eastern", "Desert",  "A-Tower",
-      "Swamp",    "PoD",     "Misery",  "Skull",   "Ice",
-      "Hera",     "Thieves", "Turtle",  "GT",
+      "Sewers", "HC",    "Eastern", "Desert", "A-Tower", "Swamp",  "PoD",
+      "Misery", "Skull", "Ice",     "Hera",   "Thieves", "Turtle", "GT",
   };
-  constexpr int kVanillaCount = static_cast<int>(
-      sizeof(kShortNames) / sizeof(kShortNames[0]));
+  constexpr int kVanillaCount =
+      static_cast<int>(sizeof(kShortNames) / sizeof(kShortNames[0]));
 
   auto AddRoom = [&](int room_id, int dungeon_id) {
-    if (room_id < 0) return;
-    if (room_dungeon_cache_.contains(room_id)) return;  // Entrance wins over spawn.
+    if (room_id < 0)
+      return;
+    if (room_dungeon_cache_.contains(room_id))
+      return;  // Entrance wins over spawn.
     if (dungeon_id >= 0 && dungeon_id < kVanillaCount) {
       room_dungeon_cache_[room_id] = kShortNames[dungeon_id];
     } else {
@@ -558,18 +564,21 @@ void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
 
   if (ImGui::BeginTabItem(ICON_MD_CASTLE " Room")) {
     DrawInspectorShelfRoom(viewer);
+
+    // --- View toggles (collapsed by default) ---
+    if (ImGui::CollapsingHeader(ICON_MD_VISIBILITY " View Toggles")) {
+      DrawInspectorShelfView(viewer);
+    }
+
+    // --- Quick launch buttons (collapsed by default) ---
+    if (ImGui::CollapsingHeader(ICON_MD_BUILD " Tools")) {
+      DrawInspectorShelfTools(viewer);
+    }
+
     ImGui::EndTabItem();
   }
   if (ImGui::BeginTabItem(ICON_MD_SELECT_ALL " Selection")) {
     DrawInspectorShelfSelection(viewer);
-    ImGui::EndTabItem();
-  }
-  if (ImGui::BeginTabItem(ICON_MD_VISIBILITY " View")) {
-    DrawInspectorShelfView(viewer);
-    ImGui::EndTabItem();
-  }
-  if (ImGui::BeginTabItem(ICON_MD_BUILD " Tools")) {
-    DrawInspectorShelfTools(viewer);
     ImGui::EndTabItem();
   }
 
@@ -660,7 +669,10 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
           "Rooms flagged for minecart audit (2026-02-13).");
     }
 
-    struct D6Room { int id; const char* label; };
+    struct D6Room {
+      int id;
+      const char* label;
+    };
     static constexpr D6Room kD6Rooms[] = {
         {0xA8, "0xA8 Entry"},
         {0xB8, "0xB8 L-Shape"},
@@ -704,9 +716,10 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
       ImGui::TextDisabled(ICON_MD_HISTORY " Recent Rooms");
 
       ImGui::BeginChild("##RecentRoomsQuickJump", ImVec2(0, 0),
-                         ImGuiChildFlags_AutoResizeY);
+                        ImGuiChildFlags_AutoResizeY);
       for (int rid : recent) {
-        if (rid == room_id) continue;
+        if (rid == room_id)
+          continue;
         ImGui::PushID(rid);
         auto name = zelda3::GetRoomLabel(rid);
         char label[64];
