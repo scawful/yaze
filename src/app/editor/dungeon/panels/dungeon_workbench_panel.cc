@@ -394,7 +394,7 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
       ImGuiStyleVar_FramePadding,
       ImVec2(frame_pad.x + extra_x, frame_pad.y + extra_y));
 
-  if (ImGui::BeginTabBar("##DungeonRecentRooms", kFlags)) {
+  if (gui::BeginThemedTabBar("##DungeonRecentRooms", kFlags)) {
     for (int room_id : recent_ids) {
       bool open = true;
       const ImGuiTabItemFlags tab_flags =
@@ -444,7 +444,7 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
       }
     }
 
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 
   if (!to_forget.empty() && forget_recent_room_) {
@@ -582,7 +582,7 @@ void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
 void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
   constexpr ImGuiTabBarFlags kFlags = ImGuiTabBarFlags_FittingPolicyResizeDown;
 
-  if (!ImGui::BeginTabBar("##DungeonWorkbenchInspectorTabs", kFlags)) {
+  if (!gui::BeginThemedTabBar("##DungeonWorkbenchInspectorTabs", kFlags)) {
     return;
   }
 
@@ -606,7 +606,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
     ImGui::EndTabItem();
   }
 
-  ImGui::EndTabBar();
+  gui::EndThemedTabBar();
 }
 
 void DungeonWorkbenchPanel::DrawInspectorShelfRoom(

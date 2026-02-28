@@ -13,6 +13,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -115,28 +116,25 @@ void PixelEditorPanel::DrawToolbar() {
   ImGui::SameLine();
 
   ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanUndo());
-  if (ImGui::Button(ICON_MD_UNDO) && undo_manager_) {
+  if (gui::ToolbarIconButton(ICON_MD_UNDO, "Undo (Ctrl+Z)") && undo_manager_) {
     undo_manager_->Undo().IgnoreError();
   }
   ImGui::EndDisabled();
-  HOVER_HINT("Undo (Ctrl+Z)");
 
   ImGui::SameLine();
 
   ImGui::BeginDisabled(!undo_manager_ || !undo_manager_->CanRedo());
-  if (ImGui::Button(ICON_MD_REDO) && undo_manager_) {
+  if (gui::ToolbarIconButton(ICON_MD_REDO, "Redo (Ctrl+Y)") && undo_manager_) {
     undo_manager_->Redo().IgnoreError();
   }
   ImGui::EndDisabled();
-  HOVER_HINT("Redo (Ctrl+Y)");
 }
 
 void PixelEditorPanel::DrawViewControls() {
   // Zoom controls
-  if (ImGui::Button(ICON_MD_ZOOM_OUT)) {
+  if (gui::ToolbarIconButton(ICON_MD_ZOOM_OUT, "Zoom out (-)")) {
     state_->ZoomOut();
   }
-  HOVER_HINT("Zoom out (-)");
   ImGui::SameLine();
 
   ImGui::SetNextItemWidth(100);
@@ -146,10 +144,9 @@ void PixelEditorPanel::DrawViewControls() {
   }
   ImGui::SameLine();
 
-  if (ImGui::Button(ICON_MD_ZOOM_IN)) {
+  if (gui::ToolbarIconButton(ICON_MD_ZOOM_IN, "Zoom in (+)")) {
     state_->ZoomIn();
   }
-  HOVER_HINT("Zoom in (+)");
 
   ImGui::SameLine();
   ImGui::Text("|");
@@ -428,7 +425,8 @@ void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
   const int tile_x = static_cast<int>(tile_index % tiles_per_row);
   const int tile_y = static_cast<int>(tile_index / tiles_per_row);
 
-  const float pulse = 0.5f + 0.5f * std::sin(static_cast<float>(elapsed) * 6.0f);
+  const float pulse =
+      0.5f + 0.5f * std::sin(static_cast<float>(elapsed) * 6.0f);
   const float alpha = 0.25f + (pulse * 0.35f);
 
   ImVec2 min = PixelToScreen(tile_x * 8, tile_y * 8);
@@ -1006,7 +1004,8 @@ void PixelEditorPanel::FlipSelectionVertical() {
 }
 
 void PixelEditorPanel::SaveUndoState() {
-  if (!undo_manager_) return;
+  if (!undo_manager_)
+    return;
   auto& sheet = gfx::Arena::Get().gfx_sheets()[state_->current_sheet_id];
   pending_undo_sheet_id_ = state_->current_sheet_id;
   pending_undo_before_data_ = sheet.vector();
