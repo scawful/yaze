@@ -11,6 +11,8 @@ struct Response;
 }  // namespace httplib
 
 namespace yaze {
+class Rom;
+
 namespace emu {
 namespace debug {
 class SymbolProvider;
@@ -63,6 +65,32 @@ void HandleRenderDungeonMetadata(
 
 // CORS preflight handler for OPTIONS requests.
 void HandleCorsPreflight(const httplib::Request& req, httplib::Response& res);
+
+// Execute a z3ed CLI command.
+// POST /api/v1/command/execute  Body: {"command":"name","args":["--flag=val"]}
+void HandleCommandExecute(const httplib::Request& req, httplib::Response& res,
+                          yaze::Rom* rom);
+
+// List all registered z3ed commands.
+// GET /api/v1/command/list
+void HandleCommandList(const httplib::Request& req, httplib::Response& res);
+
+// Annotation CRUD endpoints.
+// GET    /api/v1/annotations[?room=<id>]
+void HandleAnnotationList(const httplib::Request& req, httplib::Response& res,
+                          const std::string& project_path);
+
+// POST   /api/v1/annotations
+void HandleAnnotationCreate(const httplib::Request& req, httplib::Response& res,
+                            const std::string& project_path);
+
+// PUT    /api/v1/annotations/<id>
+void HandleAnnotationUpdate(const httplib::Request& req, httplib::Response& res,
+                            const std::string& project_path);
+
+// DELETE /api/v1/annotations/<id>
+void HandleAnnotationDelete(const httplib::Request& req, httplib::Response& res,
+                            const std::string& project_path);
 
 }  // namespace api
 }  // namespace cli

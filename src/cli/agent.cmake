@@ -125,6 +125,7 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/ai/vision_action_refiner.cc
   cli/service/api/http_server.cc
   cli/service/api/api_handlers.cc
+  cli/service/api/bonjour_publisher.cc
   # Note: app/service/render_service.cc and headless_overlay_renderer.cc
   # live in yaze_cli_core (which yaze_agent links) to avoid duplication.
 )

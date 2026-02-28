@@ -17,6 +17,7 @@ private enum OverlayCommand: String {
   case showProjectFile = "show_project_file"
   case showProjectBrowser = "show_project_browser"
   case showOracleTools = "show_oracle_tools"
+  case showRemoteDesktop = "show_remote_desktop"
   case hideOverlay = "hide_overlay"
   case showOverlay = "show_overlay"
 }
@@ -70,6 +71,7 @@ struct YazeOverlayView: View {
     case mainMenu
     case projectBrowser
     case oracleTools
+    case remoteDesktop
   }
 
   @ObservedObject var settingsStore: YazeSettingsStore
@@ -85,6 +87,8 @@ struct YazeOverlayView: View {
   @State private var showExportPicker = false
   @State private var showProjectBrowser = false
   @State private var showOracleTools = false
+  @State private var showRemoteDesktop = false
+  @StateObject private var desktopAPIClient = DesktopAPIClient()
   @State private var exportURL: URL?
   @State private var showMainMenu = false
   @State private var overlayHeight: CGFloat = 0
@@ -255,6 +259,11 @@ struct YazeOverlayView: View {
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
     }
+    .sheet(isPresented: $showRemoteDesktop) {
+      DesktopConnectionView(apiClient: desktopAPIClient)
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+    }
   }
 
   private func topBar() -> some View {
@@ -276,6 +285,25 @@ struct YazeOverlayView: View {
 
       // Center: Editor picker
       editorPicker(controlSize: controlSize)
+
+      if desktopAPIClient.isConnected {
+        Button {
+          openRemoteDesktop()
+        } label: {
+          HStack(spacing: 4) {
+            Circle()
+              .fill(.green)
+              .frame(width: 6, height: 6)
+            Text("Desktop")
+              .font(.caption2.weight(.medium))
+          }
+          .padding(.horizontal, 8)
+          .padding(.vertical, 4)
+          .background(.green.opacity(0.15))
+          .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
+      }
 
       Spacer()
 
@@ -411,6 +439,11 @@ struct YazeOverlayView: View {
           openBuildPanel()
         } label: {
           Label("Remote Build", systemImage: "hammer")
+        }
+        Button {
+          openRemoteDesktop()
+        } label: {
+          Label("Desktop Remote", systemImage: "desktopcomputer")
         }
         Button {
           openFilesPanel()
@@ -662,6 +695,11 @@ struct YazeOverlayView: View {
     presentSheet(.oracleTools)
   }
 
+  private func openRemoteDesktop() {
+    triggerSelectionHaptic()
+    presentSheet(.remoteDesktop)
+  }
+
   private func focusDungeonRoom(_ roomID: Int) {
     guard roomID >= 0 else { return }
     triggerSelectionHaptic()
@@ -729,6 +767,7 @@ struct YazeOverlayView: View {
     showMainMenu = false
     showProjectBrowser = false
     showOracleTools = false
+    showRemoteDesktop = false
   }
 
   private func presentSheet(_ target: OverlaySheetTarget) {
@@ -755,6 +794,8 @@ struct YazeOverlayView: View {
         showProjectBrowser = true
       case .oracleTools:
         showOracleTools = true
+      case .remoteDesktop:
+        showRemoteDesktop = true
       }
     }
   }
@@ -799,6 +840,8 @@ struct YazeOverlayView: View {
       presentSheet(.projectBrowser)
     case .showOracleTools:
       presentSheet(.oracleTools)
+    case .showRemoteDesktop:
+      presentSheet(.remoteDesktop)
     case .hideOverlay:
       break  // Toolbar is always visible now
     case .showOverlay:

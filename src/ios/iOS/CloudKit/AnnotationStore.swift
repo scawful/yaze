@@ -161,6 +161,61 @@ final class AnnotationStore: ObservableObject {
     testResults.filter { $0.roomID == roomID }
   }
 
+  // MARK: - Remote REST sync
+
+  /// Sync annotations with a desktop yaze instance via its REST API.
+  /// Uses last-writer-wins by `modifiedAt` timestamp (matching existing strategy).
+  func syncWithRemote(apiClient: DesktopAPIClient) {
+    Task {
+      do {
+        // Pull remote annotations
+        let remoteAnnotations = try await apiClient.fetchAnnotations()
+        let iso = ISO8601DateFormatter()
+        iso.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+
+        await MainActor.run {
+          for remote in remoteAnnotations {
+            var annotation = Annotation(
+              roomID: remote.roomID,
+              text: remote.text,
+              priority: AnnotationPriority(rawValue: remote.priority) ?? .note,
+              category: remote.category,
+              createdBy: remote.createdBy ?? ""
+            )
+            annotation.id = remote.id
+            if let createdAt = remote.createdAt, let date = iso.date(from: createdAt) {
+              annotation.createdAt = date
+            }
+            if let modifiedAt = remote.modifiedAt, let date = iso.date(from: modifiedAt) {
+              annotation.modifiedAt = date
+            }
+            upsertSyncedAnnotation(annotation)
+          }
+
+          // Push local-only annotations to remote
+          let remoteIds = Set(remoteAnnotations.map(\.id))
+          for local in annotations where !remoteIds.contains(local.id) {
+            let remote = RemoteAnnotation(
+              id: local.id,
+              roomID: local.roomID,
+              text: local.text,
+              priority: local.priority.rawValue,
+              category: local.category,
+              createdAt: iso.string(from: local.createdAt),
+              modifiedAt: iso.string(from: local.modifiedAt),
+              createdBy: local.createdBy
+            )
+            Task {
+              try? await apiClient.pushAnnotation(remote)
+            }
+          }
+        }
+      } catch {
+        // Remote sync failed; local SQLite remains source of truth.
+      }
+    }
+  }
+
   // MARK: - Export
 
   /// Export annotations as JSON for desktop compatibility.

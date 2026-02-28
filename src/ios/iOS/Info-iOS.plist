@@ -92,8 +92,12 @@
 			</dict>
 		</dict>
 	</dict>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_yaze._tcp</string>
+	</array>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>YAZE needs local network access to reach AI and build/test servers.</string>
+	<string>YAZE needs local network access to discover desktop instances and reach AI and build/test servers.</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

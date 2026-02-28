@@ -28,6 +28,7 @@ absl::Status HttpServer::Start(int port) {
 
   RegisterRoutes();
 
+  port_ = port;
   is_running_ = true;
   server_thread_ = std::make_unique<std::thread>([this, port]() {
     LOG_INFO("HttpServer", "Starting API server on port %d", port);
@@ -38,12 +39,16 @@ absl::Status HttpServer::Start(int port) {
     is_running_ = false;
   });
 
+  // Publish Bonjour service for LAN discovery by iOS clients.
+  bonjour_.Publish(port);
+
   return absl::OkStatus();
 }
 
 void HttpServer::Stop() {
   if (is_running_) {
     LOG_INFO("HttpServer", "Stopping API server...");
+    bonjour_.Unpublish();
     server_->stop();
     if (server_thread_ && server_thread_->joinable()) {
       server_thread_->join();
@@ -141,6 +146,43 @@ void HttpServer::RegisterRoutes() {
                  HandleRenderDungeonMetadata(req, res, rs);
                });
   server_->Options("/api/v1/render/dungeon/metadata", HandleCorsPreflight);
+
+  // Command execution endpoints (Phase 3)
+  server_->Post("/api/v1/command/execute",
+                [this](const httplib::Request& req, httplib::Response& res) {
+                  Rom* rom = rom_source_ ? rom_source_() : nullptr;
+                  HandleCommandExecute(req, res, rom);
+                });
+  server_->Get("/api/v1/command/list", HandleCommandList);
+  server_->Options("/api/v1/command/execute", HandleCorsPreflight);
+  server_->Options("/api/v1/command/list", HandleCorsPreflight);
+
+  // Annotation CRUD endpoints (Phase 4)
+  auto project_path_lambda = [this]() -> std::string {
+    return project_path_source_ ? project_path_source_() : "";
+  };
+  server_->Get("/api/v1/annotations",
+               [project_path_lambda](const httplib::Request& req,
+                                     httplib::Response& res) {
+                 HandleAnnotationList(req, res, project_path_lambda());
+               });
+  server_->Post("/api/v1/annotations",
+                [project_path_lambda](const httplib::Request& req,
+                                      httplib::Response& res) {
+                  HandleAnnotationCreate(req, res, project_path_lambda());
+                });
+  server_->Put(R"(/api/v1/annotations/(.+))",
+               [project_path_lambda](const httplib::Request& req,
+                                     httplib::Response& res) {
+                 HandleAnnotationUpdate(req, res, project_path_lambda());
+               });
+  server_->Delete(R"(/api/v1/annotations/(.+))",
+                  [project_path_lambda](const httplib::Request& req,
+                                        httplib::Response& res) {
+                    HandleAnnotationDelete(req, res, project_path_lambda());
+                  });
+  server_->Options("/api/v1/annotations", HandleCorsPreflight);
+  server_->Options(R"(/api/v1/annotations/(.+))", HandleCorsPreflight);
 }
 
 }  // namespace api

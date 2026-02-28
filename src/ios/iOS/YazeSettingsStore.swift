@@ -207,6 +207,25 @@ struct YazeSettings: Codable {
     }
   }
 
+  struct ManualHost: Codable, Identifiable {
+    var id: String = UUID().uuidString
+    var label: String
+    var host: String
+    var port: Int = 8080
+  }
+
+  struct Remote: Codable {
+    var activeDesktopHostId: String = ""
+    var manualHosts: [ManualHost] = []
+    var autoConnect: Bool = true
+
+    enum CodingKeys: String, CodingKey {
+      case activeDesktopHostId = "active_desktop_host_id"
+      case manualHosts = "manual_hosts"
+      case autoConnect = "auto_connect"
+    }
+  }
+
   struct Mobile: Codable {
     var compactToolbar: Bool = true
     var showQuickActions: Bool = false
@@ -234,6 +253,7 @@ struct YazeSettings: Codable {
   var statusBar: StatusBar = StatusBar()
   var layouts: Layouts = Layouts()
   var filesystem: Filesystem = Filesystem()
+  var remote: Remote = Remote()
   var mobile: Mobile = Mobile()
 }
 
