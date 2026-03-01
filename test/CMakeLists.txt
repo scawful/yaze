@@ -323,6 +323,7 @@ if(YAZE_BUILD_TESTS)
       unit/cli/ai_service_factory_test.cc
       unit/cli/model_registry_test.cc
       unit/cli/http_api_handlers_test.cc
+      unit/cli/api_handlers_test.cc
       unit/cli/vision_action_refiner_test.cc
       unit/tools/build_tool_test.cc
       unit/tools/filesystem_tool_test.cc

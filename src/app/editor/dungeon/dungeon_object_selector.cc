@@ -42,13 +42,13 @@ namespace yaze::editor {
 
 using ImGui::BeginChild;
 using ImGui::EndChild;
-using ImGui::EndTabBar;
 using ImGui::EndTabItem;
 using ImGui::Separator;
 
 void DungeonObjectSelector::DrawTileSelector() {
   EnsureRegistryInitialized();
-  if (ImGui::BeginTabBar("##TabBar", ImGuiTabBarFlags_FittingPolicyScroll)) {
+  if (gui::BeginThemedTabBar("##TabBar",
+                             ImGuiTabBarFlags_FittingPolicyScroll)) {
     if (ImGui::BeginTabItem("Room Graphics")) {
       const bool room_graphics_tab_open = gui::LayoutHelpers::BeginContentChild(
           "##RoomGraphicsTab",
@@ -65,7 +65,7 @@ void DungeonObjectSelector::DrawTileSelector() {
       DrawObjectRenderer();
       EndTabItem();
     }
-    EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 
@@ -159,7 +159,7 @@ void DungeonObjectSelector::DrawObjectRenderer() {
 }
 
 void DungeonObjectSelector::Draw() {
-  if (ImGui::BeginTabBar("##ObjectSelectorTabBar")) {
+  if (gui::BeginThemedTabBar("##ObjectSelectorTabBar")) {
     // Object Selector tab - for placing objects with new AssetBrowser
     if (ImGui::BeginTabItem("Object Selector")) {
       DrawObjectRenderer();
@@ -178,7 +178,7 @@ void DungeonObjectSelector::Draw() {
       ImGui::EndTabItem();
     }
 
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 
@@ -240,7 +240,7 @@ void DungeonObjectSelector::DrawIntegratedEditingPanels() {
   }
 
   // Create a tabbed interface for different editing modes
-  if (ImGui::BeginTabBar("##EditingPanels")) {
+  if (gui::BeginThemedTabBar("##EditingPanels")) {
     // Object Editor Tab
     if (ImGui::BeginTabItem("Objects")) {
       DrawCompactObjectEditor();
@@ -284,7 +284,7 @@ void DungeonObjectSelector::DrawIntegratedEditingPanels() {
     }
 
     // Minecart Editor Tab
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 
@@ -741,9 +741,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
             uint32_t layout_key = (static_cast<uint32_t>(obj_id) << 16) |
                                   static_cast<uint32_t>(subtype);
-            const bool can_capture_layout = rom_ && rooms_ &&
-                                            current_room_id_ >= 0 &&
-                                            current_room_id_ < zelda3::kNumberOfRooms;
+            const bool can_capture_layout =
+                rom_ && rooms_ && current_room_id_ >= 0 &&
+                current_room_id_ < zelda3::kNumberOfRooms;
             if (can_capture_layout &&
                 layout_cache_.find(layout_key) == layout_cache_.end()) {
               zelda3::ObjectTileEditor editor(rom_);
@@ -843,7 +843,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           InvalidatePreviewCache();
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Reload custom object binaries and refresh previews");
+          ImGui::SetTooltip(
+              "Reload custom object binaries and refresh previews");
         }
       }
       ImGui::TextColored(theme.text_secondary_gray,
@@ -958,11 +959,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                   obj_manager.ResolveFilename(obj_id, subtype);
               const bool has_base = !custom_base_path.empty();
               std::filesystem::path full_path =
-                  has_base ? (std::filesystem::path(custom_base_path) /
-                              filename)
-                           : std::filesystem::path();
-              const bool file_exists =
-                  has_base && !filename.empty() && std::filesystem::exists(full_path);
+                  has_base
+                      ? (std::filesystem::path(custom_base_path) / filename)
+                      : std::filesystem::path();
+              const bool file_exists = has_base && !filename.empty() &&
+                                       std::filesystem::exists(full_path);
 
               ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
                                  obj_id, subtype);
@@ -976,8 +977,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               } else if (file_exists) {
                 ImGui::TextColored(theme.status_success, "File found");
               } else {
-                ImGui::TextColored(theme.status_error,
-                                   "File missing: %s",
+                ImGui::TextColored(theme.status_error, "File missing: %s",
                                    full_path.string().c_str());
               }
 
@@ -994,7 +994,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                 }
                 ImGui::Separator();
                 ImGui::TextColored(theme.status_active,
-                                   "Also used by corner override %s", corner_id);
+                                   "Also used by corner override %s",
+                                   corner_id);
               }
               ImGui::EndTooltip();
             }
@@ -1097,7 +1098,8 @@ void DungeonObjectSelector::DrawCompactSpriteEditor() {
   Separator();
 
   // Display current room sprites from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
+  if (rooms_ && current_room_id_ >= 0 &&
+      current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& sprites = room.GetSprites();
 
@@ -1126,7 +1128,8 @@ void DungeonObjectSelector::DrawCompactItemEditor() {
   Separator();
 
   // Display current room pot items from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
+  if (rooms_ && current_room_id_ >= 0 &&
+      current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& pot_items = room.GetPotItems();
 
@@ -1167,7 +1170,8 @@ void DungeonObjectSelector::DrawCompactDoorEditor() {
   Separator();
 
   // Show doors from the Room data (if available)
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
+  if (rooms_ && current_room_id_ >= 0 &&
+      current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& doors = room.GetDoors();
 
@@ -1265,7 +1269,8 @@ void DungeonObjectSelector::DrawCompactChestEditor() {
   Separator();
 
   // Display current room chests from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
+  if (rooms_ && current_room_id_ >= 0 &&
+      current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
     const auto& chests = room.GetChests();
 
@@ -1290,7 +1295,8 @@ void DungeonObjectSelector::DrawCompactPropertiesEditor() {
   Separator();
 
   // Display current room properties from Room data
-  if (rooms_ && current_room_id_ >= 0 && current_room_id_ < zelda3::kNumberOfRooms) {
+  if (rooms_ && current_room_id_ >= 0 &&
+      current_room_id_ < zelda3::kNumberOfRooms) {
     const auto& room = (*rooms_)[current_room_id_];
 
     ImGui::Text("Room ID: %03X", current_room_id_);

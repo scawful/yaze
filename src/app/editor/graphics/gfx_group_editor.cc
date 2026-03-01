@@ -11,6 +11,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 
@@ -20,13 +21,11 @@ namespace editor {
 using ImGui::BeginChild;
 using ImGui::BeginCombo;
 using ImGui::BeginGroup;
-using ImGui::BeginTabBar;
 using ImGui::BeginTabItem;
 using ImGui::BeginTable;
 using ImGui::EndChild;
 using ImGui::EndCombo;
 using ImGui::EndGroup;
-using ImGui::EndTabBar;
 using ImGui::EndTabItem;
 using ImGui::EndTable;
 using ImGui::GetContentRegionAvail;
@@ -86,7 +85,7 @@ absl::Status GfxGroupEditor::Update() {
   DrawPaletteControls();
   Separator();
 
-  if (BeginTabBar("##GfxGroupEditorTabs")) {
+  if (gui::BeginThemedTabBar("##GfxGroupEditorTabs")) {
     if (BeginTabItem("Blocksets")) {
       gui::InputHexByte("Selected Blockset", &selected_blockset_,
                         static_cast<uint8_t>(0x24));
@@ -117,7 +116,7 @@ absl::Status GfxGroupEditor::Update() {
       EndTabItem();
     }
 
-    EndTabBar();
+    gui::EndThemedTabBar();
   }
 
   return absl::OkStatus();

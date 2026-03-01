@@ -449,7 +449,7 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
 
 void ScreenEditor::DrawDungeonMapsTabs() {
   auto& current_dungeon = dungeon_maps_[selected_dungeon];
-  if (ImGui::BeginTabBar("##DungeonMapTabs")) {
+  if (gui::BeginThemedTabBar("##DungeonMapTabs")) {
     auto nbr_floors =
         current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
     for (int i = 0; i < nbr_floors; i++) {
@@ -464,7 +464,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
         ImGui::EndTabItem();
       }
     }
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 
   gui::InputHexByte(

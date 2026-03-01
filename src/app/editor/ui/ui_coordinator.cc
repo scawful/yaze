@@ -12,6 +12,7 @@
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #endif
+#include "app/application.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
@@ -32,11 +33,11 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/platform_paths.h"
-#include "app/application.h"
 
 namespace yaze {
 namespace editor {
@@ -1062,7 +1063,7 @@ void UICoordinator::DrawCommandPalette() {
               [](const auto& a, const auto& b) { return a.score > b.score; });
 
     // Display results with categories
-    if (BeginTabBar("CommandCategories")) {
+    if (gui::BeginThemedTabBar("CommandCategories")) {
       if (BeginTabItem(
               absl::StrFormat("%s All Commands", ICON_MD_LIST).c_str())) {
         if (gui::LayoutHelpers::BeginTableWithTheming(
@@ -1156,7 +1157,7 @@ void UICoordinator::DrawCommandPalette() {
         EndTabItem();
       }
 
-      EndTabBar();
+      gui::EndThemedTabBar();
     }
 
     // Status bar with tips
@@ -1464,10 +1465,10 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
         "Execute one instruction without entering subroutines", "F10",
         [emu_backend]() { emu_backend->StepOver(); });
 
-    command_palette_.AddCommand(
-        "Mesen2: Step Out", CommandCategory::kTools,
-        "Run until return from current subroutine", "Shift+F11",
-        [emu_backend]() { emu_backend->StepOut(); });
+    command_palette_.AddCommand("Mesen2: Step Out", CommandCategory::kTools,
+                                "Run until return from current subroutine",
+                                "Shift+F11",
+                                [emu_backend]() { emu_backend->StepOut(); });
 
     command_palette_.AddCommand(
         "Mesen2: Enable Collision Overlay", CommandCategory::kTools,
@@ -1527,7 +1528,7 @@ void UICoordinator::DrawGlobalSearch() {
     ImGui::Separator();
 
     // Tabbed search results for better organization
-    if (ImGui::BeginTabBar("SearchResultTabs")) {
+    if (gui::BeginThemedTabBar("SearchResultTabs")) {
       // Recent Files Tab
       if (ImGui::BeginTabItem(
               absl::StrFormat("%s Recent Files", ICON_MD_HISTORY).c_str())) {
@@ -1671,7 +1672,7 @@ void UICoordinator::DrawGlobalSearch() {
         }
       }
 
-      ImGui::EndTabBar();
+      gui::EndThemedTabBar();
     }
 
     // Status bar

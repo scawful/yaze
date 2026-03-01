@@ -19,6 +19,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "core/patch/asm_patch.h"
 #include "core/patch/patch_manager.h"
 #include "imgui/imgui.h"
@@ -844,12 +845,12 @@ void SettingsPanel::DrawAppearanceSettings() {
     auto draw_swatch = [&](const gui::Color& color, float offset_x) {
       ImVec2 p_min(cursor.x + offset_x, cursor.y);
       ImVec2 p_max(p_min.x + swatch_size, p_min.y + swatch_size);
-      ImU32 col = ImGui::ColorConvertFloat4ToU32(
-          gui::ConvertColorToImVec4(color));
+      ImU32 col =
+          ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(color));
       draw_list->AddRectFilled(p_min, p_max, col);
-      draw_list->AddRect(p_min, p_max,
-                         ImGui::ColorConvertFloat4ToU32(
-                             ImVec4(0.5f, 0.5f, 0.5f, 0.6f)));
+      draw_list->AddRect(
+          p_min, p_max,
+          ImGui::ColorConvertFloat4ToU32(ImVec4(0.5f, 0.5f, 0.5f, 0.6f)));
     };
 
     draw_swatch(current_theme.primary, 0.0f);
@@ -857,8 +858,8 @@ void SettingsPanel::DrawAppearanceSettings() {
     draw_swatch(current_theme.accent, 2.0f * (swatch_size + spacing));
 
     // Advance cursor past the swatches
-    ImGui::Dummy(ImVec2(3.0f * swatch_size + 2.0f * spacing + 4.0f,
-                        swatch_size));
+    ImGui::Dummy(
+        ImVec2(3.0f * swatch_size + 2.0f * spacing + 4.0f, swatch_size));
   }
 
   ImGui::SameLine();
@@ -885,16 +886,15 @@ void SettingsPanel::DrawAppearanceSettings() {
         const float total_swatch_width =
             3.0f * swatch_size + 2.0f * swatch_spacing + 6.0f;
 
-        auto draw_small_swatch = [&](const gui::Color& color,
-                                     float offset_x) {
+        auto draw_small_swatch = [&](const gui::Color& color, float offset_x) {
           ImVec2 p_min(cursor.x + offset_x, cursor.y + 2.0f);
           ImVec2 p_max(p_min.x + swatch_size, p_min.y + swatch_size);
-          ImU32 col = ImGui::ColorConvertFloat4ToU32(
-              gui::ConvertColorToImVec4(color));
+          ImU32 col =
+              ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(color));
           draw_list->AddRectFilled(p_min, p_max, col);
-          draw_list->AddRect(p_min, p_max,
-                             ImGui::ColorConvertFloat4ToU32(
-                                 ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
+          draw_list->AddRect(
+              p_min, p_max,
+              ImGui::ColorConvertFloat4ToU32(ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
         };
 
         draw_small_swatch(theme_data->primary, 0.0f);
@@ -980,7 +980,8 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Disable panel/editor transition animations for a calmer editing experience.");
+        "Disable panel/editor transition animations for a calmer editing "
+        "experience.");
   }
 
   int switch_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
@@ -996,7 +997,8 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Controls editor/workspace switch timing and easing for panel fades and sidebar slides.");
+        "Controls editor/workspace switch timing and easing for panel fades "
+        "and sidebar slides.");
   }
 
   ImGui::Spacing();
@@ -1007,8 +1009,7 @@ void SettingsPanel::DrawAppearanceSettings() {
     ImGui::Separator();
     ImGui::Text("Global Font Scale");
     float scale = user_settings_->prefs().font_global_scale;
-    if (ImGui::SliderFloat("##global_font_scale", &scale, 0.5f, 2.0f,
-                           "%.2f")) {
+    if (ImGui::SliderFloat("##global_font_scale", &scale, 0.5f, 2.0f, "%.2f")) {
       user_settings_->prefs().font_global_scale = scale;
       ImGui::GetIO().FontGlobalScale = scale;
       user_settings_->Save();
@@ -1852,8 +1853,8 @@ void SettingsPanel::DrawPatchSettings() {
   ImGui::Spacing();
 
   // Folder tabs
-  if (ImGui::BeginTabBar("##PatchFolders",
-                         ImGuiTabBarFlags_FittingPolicyScroll)) {
+  if (gui::BeginThemedTabBar("##PatchFolders",
+                             ImGuiTabBarFlags_FittingPolicyScroll)) {
     for (const auto& folder : patch_manager_.folders()) {
       if (ImGui::BeginTabItem(folder.c_str())) {
         selected_folder_ = folder;
@@ -1861,7 +1862,7 @@ void SettingsPanel::DrawPatchSettings() {
         ImGui::EndTabItem();
       }
     }
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 
   ImGui::Spacing();

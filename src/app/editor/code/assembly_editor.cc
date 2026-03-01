@@ -24,6 +24,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/text_editor.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "core/project.h"
 #include "core/version_manager.h"
 #include "util/file_util.h"
@@ -1025,10 +1026,10 @@ void AssemblyEditor::DrawFileTabView() {
     return;
   }
 
-  if (ImGui::BeginTabBar("##OpenFileTabs",
-                         ImGuiTabBarFlags_Reorderable |
-                             ImGuiTabBarFlags_AutoSelectNewTabs |
-                             ImGuiTabBarFlags_FittingPolicyScroll)) {
+  if (gui::BeginThemedTabBar("##OpenFileTabs",
+                             ImGuiTabBarFlags_Reorderable |
+                                 ImGuiTabBarFlags_AutoSelectNewTabs |
+                                 ImGuiTabBarFlags_FittingPolicyScroll)) {
     for (int i = 0; i < active_files_.Size; i++) {
       int file_id = active_files_[i];
       if (file_id >= files_.size()) {
@@ -1070,7 +1071,7 @@ void AssemblyEditor::DrawFileTabView() {
         i--;
       }
     }
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 

@@ -6,6 +6,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/core/panel_registration.h"
 #include "app/gui/core/agent_theme.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "core/project.h"
 
 namespace yaze::editor {
@@ -315,7 +316,7 @@ void OracleMenuInspectorPanel::Draw(bool* /*p_open*/) {
     return;
   }
 
-  if (ImGui::BeginTabBar("oracle_menu_tabs")) {
+  if (gui::BeginThemedTabBar("oracle_menu_tabs")) {
     if (ImGui::BeginTabItem("Bins")) {
       DrawBinsTab();
       ImGui::EndTabItem();
@@ -338,7 +339,7 @@ void OracleMenuInspectorPanel::Draw(bool* /*p_open*/) {
       }
       ImGui::EndTabItem();
     }
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 

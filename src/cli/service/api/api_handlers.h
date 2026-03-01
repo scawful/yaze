@@ -11,6 +11,14 @@ struct Response;
 }  // namespace httplib
 
 namespace yaze {
+namespace cli {
+namespace api {
+class BonjourPublisher;
+}
+}  // namespace cli
+}  // namespace yaze
+
+namespace yaze {
 class Rom;
 
 namespace emu {
@@ -28,8 +36,10 @@ class RenderService;
 namespace cli {
 namespace api {
 
-// Health check endpoint
-void HandleHealth(const httplib::Request& req, httplib::Response& res);
+// Health check endpoint.  The optional |bonjour| pointer is used to report
+// discovery availability in the response JSON.
+void HandleHealth(const httplib::Request& req, httplib::Response& res,
+                  const BonjourPublisher* bonjour = nullptr);
 
 // List available models
 void HandleListModels(const httplib::Request& req, httplib::Response& res);
