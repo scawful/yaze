@@ -12,6 +12,7 @@
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
@@ -197,8 +198,8 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
   Separator();
 
   // Create tabs for different property categories
-  if (ImGui::BeginTabBar("MapPropertiesTabs",
-                         ImGuiTabBarFlags_FittingPolicyScroll)) {
+  if (gui::BeginThemedTabBar("MapPropertiesTabs",
+                             ImGuiTabBarFlags_FittingPolicyScroll)) {
     // Basic Properties Tab
     if (ImGui::BeginTabItem("Basic Properties")) {
       DrawBasicPropertiesTab(current_map);
@@ -231,7 +232,7 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
       ImGui::EndTabItem();
     }
 
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 
@@ -648,7 +649,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
           "Custom tile graphics require ZSCustomOverworld v1+.\n"
           "Upgrade your ROM to access 8 customizable graphics sheets.");
     }
-    ImGui::PopID();         // Pop GraphicsPopup ID scope
+    ImGui::PopID();  // Pop GraphicsPopup ID scope
     ImGui::EndPopup();
   }
 }
@@ -714,7 +715,7 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
       show_custom_bg_color_editor = !show_custom_bg_color_editor;
     }
     HOVER_HINT("Open custom background color editor (v2+)");
-    ImGui::PopID();         // Pop PalettesPopup ID scope
+    ImGui::PopID();  // Pop PalettesPopup ID scope
     ImGui::EndPopup();
   }
 }
@@ -833,7 +834,7 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
     }
     HOVER_HINT("Open detailed area configuration with all settings tabs");
 
-    ImGui::PopID();         // Pop ConfigPopup ID scope
+    ImGui::PopID();  // Pop ConfigPopup ID scope
     ImGui::EndPopup();
   }
 }
@@ -1728,7 +1729,7 @@ void MapPropertiesSystem::DrawViewPopup() {
     }
     HOVER_HINT("Reset zoom to 100%");
 
-    ImGui::PopID();         // Pop ViewPopup ID scope
+    ImGui::PopID();  // Pop ViewPopup ID scope
     ImGui::EndPopup();
   }
 }
@@ -1770,7 +1771,7 @@ void MapPropertiesSystem::DrawQuickAccessPopup() {
     }
     HOVER_HINT("Lock/unlock current map (Ctrl+L)");
 
-    ImGui::PopID();         // Pop QuickPopup ID scope
+    ImGui::PopID();  // Pop QuickPopup ID scope
     ImGui::EndPopup();
   }
 }

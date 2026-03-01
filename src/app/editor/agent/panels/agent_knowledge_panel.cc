@@ -3,6 +3,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "cli/service/agent/learned_knowledge_service.h"
 #include "imgui/imgui.h"
 
@@ -28,7 +29,7 @@ void AgentKnowledgePanel::Draw(
   ImGui::Separator();
 
   // Tab bar for different categories
-  if (ImGui::BeginTabBar("##KnowledgeTabs")) {
+  if (gui::BeginThemedTabBar("##KnowledgeTabs")) {
     if (ImGui::BeginTabItem(ICON_MD_SETTINGS " Preferences")) {
       selected_tab_ = 0;
       RenderPreferencesTab(knowledge_service, callbacks, toast_manager);
@@ -53,7 +54,7 @@ void AgentKnowledgePanel::Draw(
       ImGui::EndTabItem();
     }
 
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 
   ImGui::Separator();
@@ -216,8 +217,8 @@ void AgentKnowledgePanel::RenderPatternsTab(
     ImGui::PushID(static_cast<int>(i));
 
     // Pattern type header
-    bool open =
-        ImGui::TreeNode("##Pattern", "%s %s", ICON_MD_PATTERN, pattern.pattern_type.c_str());
+    bool open = ImGui::TreeNode("##Pattern", "%s %s", ICON_MD_PATTERN,
+                                pattern.pattern_type.c_str());
 
     if (open) {
       ImGui::TextDisabled("ROM Hash: %s...",

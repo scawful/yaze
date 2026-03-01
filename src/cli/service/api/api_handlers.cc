@@ -10,6 +10,7 @@
 #include "app/emu/debug/symbol_provider.h"
 #include "app/service/render_service.h"
 #include "cli/service/ai/model_registry.h"
+#include "cli/service/api/bonjour_publisher.h"
 #include "cli/service/command_registry.h"
 #include "httplib.h"
 #include "nlohmann/json.hpp"
@@ -82,12 +83,20 @@ void HandleWindowAction(const std::function<bool()>& action,
 
 }  // namespace
 
-void HandleHealth(const httplib::Request& req, httplib::Response& res) {
+void HandleHealth(const httplib::Request& req, httplib::Response& res,
+                  const BonjourPublisher* bonjour) {
   (void)req;
   json j;
   j["status"] = "ok";
   j["version"] = "1.0";
   j["service"] = "yaze-agent-api";
+
+  // Report LAN discovery mechanism availability.
+  if (bonjour && bonjour->IsAvailable()) {
+    j["discovery"] = "bonjour";
+  } else {
+    j["discovery"] = "none";
+  }
 
   res.status = 200;
   res.set_content(j.dump(), "application/json");

@@ -26,6 +26,16 @@ class BonjourPublisher {
 
   bool IsPublished() const { return published_; }
 
+  /// Returns true on macOS where Bonjour (dns_sd) is natively available,
+  /// false on all other platforms.
+  bool IsAvailable() const {
+#ifdef __APPLE__
+    return true;
+#else
+    return false;
+#endif
+  }
+
  private:
   bool published_ = false;
 #ifdef __APPLE__

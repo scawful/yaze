@@ -41,6 +41,17 @@ absl::Status HttpServer::Start(int port) {
 
   // Publish Bonjour service for LAN discovery by iOS clients.
   bonjour_.Publish(port);
+  if (bonjour_.IsAvailable()) {
+    if (bonjour_.IsPublished()) {
+      LOG_INFO("HttpServer", "Bonjour discovery published on port %d", port);
+    } else {
+      LOG_ERROR("HttpServer", "Bonjour discovery failed to publish on port %d",
+                port);
+    }
+  } else {
+    LOG_INFO("HttpServer",
+             "Bonjour discovery not available on this platform, skipping");
+  }
 
   return absl::OkStatus();
 }
@@ -97,7 +108,10 @@ void HttpServer::RegisterRoutes() {
         res.set_content(body, "application/json");
       });
 
-  server_->Get("/api/v1/health", HandleHealth);
+  server_->Get("/api/v1/health",
+               [this](const httplib::Request& req, httplib::Response& res) {
+                 HandleHealth(req, res, &bonjour_);
+               });
   server_->Get("/api/v1/models", HandleListModels);
   server_->Options("/api/v1/health", HandleCorsPreflight);
   server_->Options("/api/v1/models", HandleCorsPreflight);

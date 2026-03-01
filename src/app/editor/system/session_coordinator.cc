@@ -22,6 +22,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "core/color.h"
 #include "editor/editor.h"
 #include "editor/system/user_settings.h"
@@ -39,7 +40,6 @@ SessionCoordinator::SessionCoordinator(PanelManager* panel_manager,
     : panel_manager_(panel_manager),
       toast_manager_(toast_manager),
       user_settings_(user_settings) {}
-
 
 void SessionCoordinator::NotifySessionSwitched(size_t index,
                                                RomSession* session) {
@@ -456,7 +456,7 @@ void SessionCoordinator::DrawSessionTabs() {
   if (sessions_.empty())
     return;
 
-  if (ImGui::BeginTabBar("SessionTabs")) {
+  if (gui::BeginThemedTabBar("SessionTabs")) {
     for (size_t i = 0; i < sessions_.size(); ++i) {
       bool is_active = (i == active_session_index_);
       const auto& session = sessions_[i];
@@ -485,7 +485,7 @@ void SessionCoordinator::DrawSessionTabs() {
         ImGui::EndPopup();
       }
     }
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 

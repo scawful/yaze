@@ -14,6 +14,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 
@@ -348,7 +349,7 @@ void AgentProposalsPanel::DrawProposalDetail() {
   ImGui::Separator();
 
   // Tabs for diff/log
-  if (ImGui::BeginTabBar("DetailTabs")) {
+  if (gui::BeginThemedTabBar("DetailTabs")) {
     if (ImGui::BeginTabItem("Diff")) {
       DrawDiffView();
       ImGui::EndTabItem();
@@ -357,7 +358,7 @@ void AgentProposalsPanel::DrawProposalDetail() {
       DrawLogView();
       ImGui::EndTabItem();
     }
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 
   ImGui::EndChild();

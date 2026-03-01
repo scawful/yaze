@@ -176,10 +176,10 @@ void PixelEditorPanel::DrawCanvas() {
   }
 
   // Tab bar for open sheets
-  if (ImGui::BeginTabBar("##SheetTabs",
-                         ImGuiTabBarFlags_AutoSelectNewTabs |
-                             ImGuiTabBarFlags_Reorderable |
-                             ImGuiTabBarFlags_TabListPopupButton)) {
+  if (gui::BeginThemedTabBar("##SheetTabs",
+                             ImGuiTabBarFlags_AutoSelectNewTabs |
+                                 ImGuiTabBarFlags_Reorderable |
+                                 ImGuiTabBarFlags_TabListPopupButton)) {
     std::vector<uint16_t> sheets_to_close;
 
     for (uint16_t sheet_id : state_->open_sheets) {
@@ -296,7 +296,7 @@ void PixelEditorPanel::DrawCanvas() {
       state_->CloseSheet(sheet_id);
     }
 
-    ImGui::EndTabBar();
+    gui::EndThemedTabBar();
   }
 }
 

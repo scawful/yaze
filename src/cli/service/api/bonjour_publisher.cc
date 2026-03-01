@@ -58,7 +58,8 @@ void BonjourPublisher::Publish(int port, const std::string& rom_title) {
 #else
   (void)port;
   (void)rom_title;
-  LOG_INFO("BonjourPublisher", "Bonjour not available on this platform");
+  LOG_INFO("BonjourPublisher",
+           "Bonjour discovery not available on this platform");
 #endif
 }
 

@@ -14,9 +14,10 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "util/file_util.h"
-#include "util/macro.h"
 #include "util/hex.h"
+#include "util/macro.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -169,7 +170,7 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
     TableNextColumn();
     static int next_tab_id = 0;
 
-    if (ImGui::BeginTabBar("SpriteTabBar", kSpriteTabBarFlags)) {
+    if (gui::BeginThemedTabBar("SpriteTabBar", kSpriteTabBarFlags)) {
       if (ImGui::TabItemButton(ICON_MD_ADD, kSpriteTabFlags)) {
         if (std::find(active_sprites_.begin(), active_sprites_.end(),
                       current_sprite_id_) != active_sprites_.end()) {
@@ -199,7 +200,7 @@ void SpriteEditor::DrawVanillaSpriteEditor() {
           n++;
       }
 
-      ImGui::EndTabBar();
+      gui::EndThemedTabBar();
     }
 
     TableNextColumn();
@@ -425,8 +426,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
                               : custom_sprites_[i].sprName;
       if (Selectable(label.c_str(), current_custom_sprite_index_ == (int)i)) {
         current_custom_sprite_index_ = static_cast<int>(i);
-        current_frame_ =
-            custom_sprites_[i].editor.Frames.empty() ? -1 : 0;
+        current_frame_ = custom_sprites_[i].editor.Frames.empty() ? -1 : 0;
         current_animation_index_ =
             custom_sprites_[i].animations.empty() ? -1 : 0;
         selected_tile_index_ = -1;
@@ -444,7 +444,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   // Show properties for selected sprite
   if (current_custom_sprite_index_ >= 0 &&
       current_custom_sprite_index_ < (int)custom_sprites_.size()) {
-    if (ImGui::BeginTabBar("SpriteDataTabs")) {
+    if (gui::BeginThemedTabBar("SpriteDataTabs")) {
       if (ImGui::BeginTabItem("Properties")) {
         DrawSpritePropertiesPanel();
         ImGui::EndTabItem();
@@ -457,7 +457,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
         DrawUserRoutinesPanel();
         ImGui::EndTabItem();
       }
-      ImGui::EndTabBar();
+      gui::EndThemedTabBar();
     }
   } else {
     Text("No sprite selected");
@@ -495,8 +495,7 @@ void SpriteEditor::LoadZsmFile(const std::string& path) {
     custom_sprites_.push_back(std::move(sprite));
     custom_sprite_paths_.push_back(path);
     current_custom_sprite_index_ = static_cast<int>(custom_sprites_.size()) - 1;
-    current_frame_ =
-        custom_sprites_.back().editor.Frames.empty() ? -1 : 0;
+    current_frame_ = custom_sprites_.back().editor.Frames.empty() ? -1 : 0;
     current_animation_index_ =
         custom_sprites_.back().animations.empty() ? -1 : 0;
     selected_tile_index_ = -1;
