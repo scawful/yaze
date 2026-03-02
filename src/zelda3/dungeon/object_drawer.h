@@ -206,16 +206,6 @@ class ObjectDrawer {
       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawRightwards2x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                                std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDiagonalAcute_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                               std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDiagonalGrave_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                               std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDiagonalAcute_1to16_BothBG(const RoomObject& obj,
-                                      gfx::BackgroundBuffer& bg,
-                                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDiagonalGrave_1to16_BothBG(const RoomObject& obj,
-                                      gfx::BackgroundBuffer& bg,
-                                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawRightwards1x2_1to16_plus2(const RoomObject& obj,
                                      gfx::BackgroundBuffer& bg,
                                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
@@ -281,33 +271,7 @@ class ObjectDrawer {
                                             std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
   // Downwards draw routines
-  void DrawDownwards2x2_1to15or32(const RoomObject& obj,
-                                  gfx::BackgroundBuffer& bg,
-                                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwards4x2_1to15or26(const RoomObject& obj,
-                                  gfx::BackgroundBuffer& bg,
-                                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwards4x2_1to16_BothBG(const RoomObject& obj,
-                                     gfx::BackgroundBuffer& bg,
-                                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwardsDecor4x2spaced4_1to16(const RoomObject& obj,
-                                          gfx::BackgroundBuffer& bg,
-                                          std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwards2x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwardsHasEdge1x1_1to16_plus3(
-      const RoomObject& obj, gfx::BackgroundBuffer& bg,
-      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawDownwardsHasEdge1x1_1to16_plus23(
-      const RoomObject& obj, gfx::BackgroundBuffer& bg,
-      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwardsEdge1x1_1to16(const RoomObject& obj,
-                                  gfx::BackgroundBuffer& bg,
-                                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwardsLeftCorners2x1_1to16_plus12(
-      const RoomObject& obj, gfx::BackgroundBuffer& bg,
-      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDownwardsRightCorners2x1_1to16_plus12(
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
