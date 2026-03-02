@@ -1,14 +1,26 @@
 # Roadmap
 
-**Last Updated: February 10, 2026**
+**Last Updated: March 2, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ---
 
-## Current Focus (v0.6.x)
+## Current Focus (v0.7.0)
 
-Four parallel workstreams developed concurrently.
+0.7.0 shipped iOS Remote Control, themed widgets, and desktop HTTP API.
+The release is being finalized with editor feature completion before
+moving to 0.8.0. See `docs/internal/plans/0.7.0-feature-completion.md`
+for the detailed task breakdown and agent assignments.
+
+**0.7.0 completion priorities:**
+- P0 remaining: Sprite undo/redo, Screen undo/redo, Desktop BPS export
+- P0 completed: Tile16 palette/render fix, Message replace
+- P1 remaining: Tracker stubs, OW item deletion fix, CLI palette commands
+- P1 completed: Overworld usage statistics card data wiring
+- P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
+
+Four parallel workstreams continue from the 0.6.x cycle.
 
 ### Track A: Editor Stability & ZScream Parity
 
@@ -32,7 +44,10 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ SharedClipboard copy/paste
 - ✅ Fill Screen (32x32 tile screen)
 - 🟡 Paste undo tracking (not captured in undo stack)
-- 🟡 Tile16 palette inconsistencies
+- ✅ Tile16 palette rendering (pixel transform + per-quadrant metadata)
+- ✅ Tile16 renderer extracted to `zelda3::RenderTile16BitmapFromMetadata` + unit tests
+- ✅ Tile8 usage index extracted to shared `zelda3` service + unit tests
+- ✅ Usage statistics card now uses real overworld map data (no placeholder zeros)
 - 🟡 Overworld sprite workflow incomplete
 - 🟡 Item deletion only hides, doesn't remove
 - 🟡 Export file dialog not implemented
@@ -52,7 +67,7 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 | Entrance/exit editing | ✅ Full support | ✅ Parity | — |
 | Sprite placement | ✅ In-room editing | ✅ Parity | — |
 | Chest/door editing | ✅ Full support | ✅ Parity | — |
-| Tile16 editor | ✅ 16x16 composites | ✅ Parity | — |
+| Tile16 editor | ✅ 16x16 composites | ✅ Parity (palette fix landed) | — |
 | Palette editor | ✅ All contexts | ✅ Parity | — |
 
 **Music Editor** (Beta)
@@ -173,16 +188,30 @@ Mobile testing and review companion for desktop development.
 
 ---
 
-## Future (v0.7.x+)
+## Future (v0.8.0+)
 
 - **SDL3 Migration**: GPU-based rendering (backend infrastructure exists, needs editor porting)
 - **Plugin Architecture**: Community extensions framework
 - **Enhanced Memory Editor**: Search, data interpretation, disassembly view
 - **Documentation Overhaul**: Auto-generated C++ API docs, user guide
+- **Clipboard parity**: Cut/Copy/Paste/Find for Graphics, Screen editors
+- **Music Editor**: SPC/MML import, multi-segment tracker, event clipboard
+- **Project lifecycle**: `.yaze`/`.yazeproj` file loading, session save/restore
 
 ---
 
 ## Release History
+
+### v0.7.0 (February-March 2026)
+- iOS Remote Control: Bonjour discovery, Remote Room Viewer, Command Runner
+- Themed widget system (BeginThemedTabBar/EndThemedTabBar)
+- Desktop HTTP API: command execution, catalog, annotation CRUD
+- Tile16 editor palette rendering fix (ZScream-parity pixel transform)
+- Tile16 renderer/usage index service extraction with dedicated unit coverage
+- Message editor find/replace + replace-all implementation
+- Overworld usage statistics card data wiring
+- 6-phase refactoring complete (EditorManager split, OverworldEditor decomposition)
+- Sprite undo/redo, Screen undo/redo, Desktop BPS export (in progress)
 
 ### v0.6.0 (February 2026)
 - Unified UndoManager in Editor base class
