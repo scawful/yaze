@@ -176,6 +176,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_bundle_test.cc
     unit/core/project_bundle_path_test.cc
     unit/util/lru_cache_test.cc
+    unit/util/bps_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc

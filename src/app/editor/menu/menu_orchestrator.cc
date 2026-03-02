@@ -1,5 +1,7 @@
 #include "menu_orchestrator.h"
 
+#include <fstream>
+
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
@@ -17,6 +19,8 @@
 #include "app/gui/core/platform_keys.h"
 #include "core/features.h"
 #include "rom/rom.h"
+#include "util/bps.h"
+#include "util/file_util.h"
 #include "zelda3/overworld/overworld_map.h"
 
 // Platform-aware shortcut macros for menu display
@@ -119,6 +123,17 @@ void MenuOrchestrator::AddFileMenuItems() {
           [this]() { return HasActiveRom(); })
       .Item(
           "Validate ROM", ICON_MD_CHECK_CIRCLE, [this]() { OnValidateRom(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Separator();
+
+  // BPS Patch Operations
+  menu_builder_
+      .Item(
+          "Export BPS Patch...", ICON_MD_DIFFERENCE,
+          [this]() { OnExportBpsPatch(); }, nullptr,
+          [this]() { return HasActiveRom(); })
+      .Item(
+          "Apply BPS Patch...", ICON_MD_BUILD, [this]() { OnApplyBpsPatch(); },
           nullptr, [this]() { return HasActiveRom(); })
       .Separator();
 
@@ -1439,6 +1454,138 @@ void MenuOrchestrator::OnShowAssemblyEditor() {
   if (editor_manager_) {
     editor_manager_->SwitchToEditor(EditorType::kAssembly);
   }
+}
+
+void MenuOrchestrator::OnExportBpsPatch() {
+  if (!editor_manager_)
+    return;
+  auto* rom = editor_manager_->GetCurrentRom();
+  if (!rom || !rom->is_loaded())
+    return;
+
+  // Ask user to select the original/clean ROM to diff against
+  auto options = util::MakeRomFileDialogOptions();
+  std::string original_path =
+      util::FileDialogWrapper::ShowOpenFileDialog(options);
+  if (original_path.empty()) {
+    return;  // User cancelled
+  }
+
+  // Load the original ROM
+  Rom original_rom;
+  auto load_status = original_rom.LoadFromFile(original_path);
+  if (!load_status.ok()) {
+    toast_manager_.Show(absl::StrFormat("Failed to load original ROM: %s",
+                                        load_status.message()),
+                        ToastType::kError);
+    return;
+  }
+
+  // Generate BPS patch
+  std::vector<uint8_t> patch_data;
+  auto create_status =
+      util::CreateBpsPatch(original_rom.vector(), rom->vector(), patch_data);
+  if (!create_status.ok()) {
+    toast_manager_.Show(absl::StrFormat("Failed to create BPS patch: %s",
+                                        create_status.message()),
+                        ToastType::kError);
+    return;
+  }
+
+  // Ask user where to save the patch
+  std::string default_name = rom->short_name() + ".bps";
+  std::string save_path =
+      util::FileDialogWrapper::ShowSaveFileDialog(default_name, "bps");
+  if (save_path.empty()) {
+    return;  // User cancelled
+  }
+
+  // Ensure .bps extension
+  if (save_path.size() < 4 ||
+      save_path.substr(save_path.size() - 4) != ".bps") {
+    save_path += ".bps";
+  }
+
+  // Write the patch file
+  std::ofstream file(save_path, std::ios::binary);
+  if (!file.is_open()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to open file for writing: %s", save_path),
+        ToastType::kError);
+    return;
+  }
+
+  file.write(reinterpret_cast<const char*>(patch_data.data()),
+             patch_data.size());
+  file.close();
+
+  if (file.fail()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to write patch file: %s", save_path),
+        ToastType::kError);
+    return;
+  }
+
+  toast_manager_.Show(absl::StrFormat("BPS patch exported: %s (%zu bytes)",
+                                      save_path, patch_data.size()),
+                      ToastType::kSuccess);
+}
+
+void MenuOrchestrator::OnApplyBpsPatch() {
+  if (!editor_manager_)
+    return;
+  auto* rom = editor_manager_->GetCurrentRom();
+  if (!rom || !rom->is_loaded())
+    return;
+
+  // Ask user to select a .bps file
+  util::FileDialogOptions options;
+  options.filters.push_back({"BPS Patch", "bps"});
+  std::string patch_path = util::FileDialogWrapper::ShowOpenFileDialog(options);
+  if (patch_path.empty()) {
+    return;  // User cancelled
+  }
+
+  // Read the patch file
+  std::ifstream file(patch_path, std::ios::binary);
+  if (!file.is_open()) {
+    toast_manager_.Show(
+        absl::StrFormat("Failed to open patch file: %s", patch_path),
+        ToastType::kError);
+    return;
+  }
+
+  std::vector<uint8_t> patch_data((std::istreambuf_iterator<char>(file)),
+                                  std::istreambuf_iterator<char>());
+  file.close();
+
+  if (patch_data.empty()) {
+    toast_manager_.Show("Patch file is empty", ToastType::kError);
+    return;
+  }
+
+  // Apply the patch
+  std::vector<uint8_t> patched_rom;
+  auto apply_status =
+      util::ApplyBpsPatch(rom->vector(), patch_data, patched_rom);
+  if (!apply_status.ok()) {
+    toast_manager_.Show(absl::StrFormat("Failed to apply BPS patch: %s",
+                                        apply_status.message()),
+                        ToastType::kError);
+    return;
+  }
+
+  // Load the patched data into the ROM
+  auto load_status = rom->LoadFromData(patched_rom);
+  if (!load_status.ok()) {
+    toast_manager_.Show(absl::StrFormat("Failed to load patched ROM data: %s",
+                                        load_status.message()),
+                        ToastType::kError);
+    return;
+  }
+
+  rom->set_dirty(true);
+  toast_manager_.Show("BPS patch applied successfully", ToastType::kSuccess);
 }
 
 }  // namespace editor

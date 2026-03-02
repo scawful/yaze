@@ -148,6 +148,10 @@ class MenuOrchestrator {
   void OnToggleAsarPatch();
   void OnLoadAsmFile();
 
+  // BPS Patch menu actions
+  void OnExportBpsPatch();
+  void OnApplyBpsPatch();
+
   // Editor launch actions
   void OnShowAssemblyEditor();
 
