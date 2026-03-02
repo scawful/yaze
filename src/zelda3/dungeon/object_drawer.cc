@@ -572,8 +572,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawCorner4x4(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(19, obj, bg, tiles, state);
   });
 
   // Routine 20 - Edge objects 1x2 +2
@@ -685,22 +685,22 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->Draw4x4Corner_BothBG(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(35, obj, bg, tiles, state);
   });
   // Routine 36 - Weird Corner Bottom BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawWeirdCornerBottom_BothBG(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(36, obj, bg, tiles, state);
   });
   // Routine 37 - Weird Corner Top BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawWeirdCornerTop_BothBG(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(37, obj, bg, tiles, state);
   });
   // Routine 38 - Nothing
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -2036,45 +2036,6 @@ void ObjectDrawer::DrawDiagonalGrave_1to16_BothBG(
     WriteTile8(bg, tile_x, tile_y + 4, tiles[4]);
   }
   // Note: BothBG should write to both BG1 and BG2 - handled by DrawObject caller
-}
-
-void ObjectDrawer::DrawCorner4x4(const RoomObject& obj,
-                                 gfx::BackgroundBuffer& bg,
-                                 std::span<const gfx::TileInfo> tiles,
-                                 [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 4x4 grid corner for Type 2 objects
-  // LAYOUT CORNERS: 0x100-0x103 (upper-left, lower-left, upper-right, lower-right)
-  //   - These are the concave corners used in room layouts
-  //   - GetSubtype2TileCount returns 16 tiles for these (32 bytes of tile data)
-  // OTHER CORNERS: 0x108-0x10F (BothBG variants handled by routine 35)
-  // Type 2 objects may have 8 or 16 tiles depending on the specific object
-
-  if (tiles.size() >= 16) {
-    // Full 4x4 pattern - Column-major ordering per ZScream
-    int tid = 0;
-    for (int xx = 0; xx < 4; xx++) {
-      for (int yy = 0; yy < 4; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  } else if (tiles.size() >= 8) {
-    // Type 2 objects: 8 tiles arranged in 2x4 column-major pattern
-    // This is the standard Type 2 tile layout
-    int tid = 0;
-    for (int xx = 0; xx < 2; xx++) {
-      for (int yy = 0; yy < 4; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  } else if (tiles.size() >= 4) {
-    // Fallback: 2x2 pattern
-    int tid = 0;
-    for (int xx = 0; xx < 2; xx++) {
-      for (int yy = 0; yy < 2; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  }
 }
 
 void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
@@ -4024,84 +3985,6 @@ void ObjectDrawer::DrawWaterFace(const RoomObject& obj,
     WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);      // col 0, row 1
     WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[2]);      // col 1, row 0
     WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);  // col 1, row 1
-  }
-}
-
-void ObjectDrawer::Draw4x4Corner_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 4x4 Corner for Both BG (objects 0x108-0x10F for Type 2)
-  // Type 3 objects (0xF9B-0xF9D) only have 8 tiles, draw 2x4 pattern
-  if (tiles.size() >= 16) {
-    DrawCorner4x4(obj, bg, tiles);
-  } else if (tiles.size() >= 8) {
-    // Draw 2x4 corner pattern (column-major)
-    int tid = 0;
-    for (int xx = 0; xx < 2; xx++) {
-      for (int yy = 0; yy < 4; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  } else if (tiles.size() >= 4) {
-    // Fallback: 2x2 pattern
-    DrawWaterFace(obj, bg, tiles);
-  }
-}
-
-void ObjectDrawer::DrawWeirdCornerBottom_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Weird Corner Bottom (objects 0x110-0x113 for Type 2)
-  // ASM: RoomDraw_WeirdCornerBottom_BothBG sets count=3, uses 4x4Corner pattern
-  // Pattern: 3 columns × 4 rows = 12 tiles, column-major order
-  if (tiles.size() >= 12) {
-    // Draw 3x4 corner pattern (column-major, 3 columns × 4 rows)
-    int tid = 0;
-    for (int xx = 0; xx < 3; xx++) {
-      for (int yy = 0; yy < 4; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  } else if (tiles.size() >= 8) {
-    // Fallback: 2x4 column-major pattern
-    int tid = 0;
-    for (int xx = 0; xx < 2; xx++) {
-      for (int yy = 0; yy < 4; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  } else if (tiles.size() >= 4) {
-    DrawWaterFace(obj, bg, tiles);
-  }
-}
-
-void ObjectDrawer::DrawWeirdCornerTop_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Weird Corner Top (objects 0x114-0x117 for Type 2)
-  // ASM: RoomDraw_WeirdCornerTop_BothBG draws 4 columns of 3 tiles each
-  // Pattern: 4 columns × 3 rows = 12 tiles, column-major order
-  if (tiles.size() >= 12) {
-    // Draw 4x3 corner pattern (column-major, 4 columns × 3 rows)
-    int tid = 0;
-    for (int xx = 0; xx < 4; xx++) {
-      for (int yy = 0; yy < 3; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  } else if (tiles.size() >= 8) {
-    // Fallback: 2x4 column-major pattern
-    int tid = 0;
-    for (int xx = 0; xx < 2; xx++) {
-      for (int yy = 0; yy < 4; yy++) {
-        WriteTile8(bg, obj.x_ + xx, obj.y_ + yy, tiles[tid++]);
-      }
-    }
-  } else if (tiles.size() >= 4) {
-    DrawWaterFace(obj, bg, tiles);
   }
 }
 

@@ -280,10 +280,6 @@ class ObjectDrawer {
   void DrawRightwardsBlock2x2spaced2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                                             std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
-  // Corner draw routines
-  void DrawCorner4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-
   // Downwards draw routines
   void DrawDownwards2x2_1to15or32(const RoomObject& obj,
                                   gfx::BackgroundBuffer& bg,
@@ -402,14 +398,6 @@ class ObjectDrawer {
                        std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawWaterFace(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void Draw4x4Corner_BothBG(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                            std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawWeirdCornerBottom_BothBG(const RoomObject& obj,
-                                    gfx::BackgroundBuffer& bg,
-                                    std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawWeirdCornerTop_BothBG(const RoomObject& obj,
-                                 gfx::BackgroundBuffer& bg,
-                                 std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawLargeCanvasObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                              std::span<const gfx::TileInfo> tiles, int width,
                              int height);
