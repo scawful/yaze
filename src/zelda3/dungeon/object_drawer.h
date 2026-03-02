@@ -206,30 +206,6 @@ class ObjectDrawer {
   void DrawRightwardsCannonHole4x3_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                                           std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
 
-  // Phase 4 Step 3: Diagonal Ceiling Routines (0xA0-0xAC range)
-  void DrawDiagonalCeilingTopLeft(const RoomObject& obj,
-                                   gfx::BackgroundBuffer& bg,
-                                   std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDiagonalCeilingBottomLeft(const RoomObject& obj,
-                                      gfx::BackgroundBuffer& bg,
-                                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDiagonalCeilingTopRight(const RoomObject& obj,
-                                    gfx::BackgroundBuffer& bg,
-                                    std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDiagonalCeilingBottomRight(const RoomObject& obj,
-                                       gfx::BackgroundBuffer& bg,
-                                       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-
-  // Phase 4 Step 5: Special Routines (0xC1, 0xCD, 0xCE, 0xDC)
-  void DrawClosedChestPlatform(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                               std::span<const gfx::TileInfo> tiles);
-  void DrawMovingWallWest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                          std::span<const gfx::TileInfo> tiles);
-  void DrawMovingWallEast(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                          std::span<const gfx::TileInfo> tiles);
-  void DrawOpenChestPlatform(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                             std::span<const gfx::TileInfo> tiles);
-
   // Type 3 / Special Routines
   void DrawLargeCanvasObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                              std::span<const gfx::TileInfo> tiles, int width,
