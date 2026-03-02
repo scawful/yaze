@@ -1,0 +1,31 @@
+#ifndef YAZE_ZELDA3_OVERWORLD_TILE16_RENDERER_H
+#define YAZE_ZELDA3_OVERWORLD_TILE16_RENDERER_H
+
+#include <cstdint>
+#include <vector>
+
+#include "absl/status/status.h"
+#include "app/gfx/core/bitmap.h"
+#include "app/gfx/types/snes_tile.h"
+
+namespace yaze::zelda3 {
+
+// Compose a tile16 pixel buffer from ALTTP TileInfo metadata.
+//
+// Rules:
+// - Each quadrant resolves tile8 ID + h/v flip from TileInfo.
+// - Pixel index is low nibble from source tile8.
+// - Palette row is encoded per quadrant: (pixel & 0x0F) + (palette * 0x10).
+std::vector<uint8_t> RenderTile16PixelsFromMetadata(
+    const gfx::Tile16& tile_data,
+    const std::vector<gfx::Bitmap>& tile8_bitmaps);
+
+// Compose a tile16 bitmap (16x16, 8bpp) from metadata using the same transform
+// as RenderTile16PixelsFromMetadata.
+absl::Status RenderTile16BitmapFromMetadata(
+    const gfx::Tile16& tile_data,
+    const std::vector<gfx::Bitmap>& tile8_bitmaps, gfx::Bitmap* output_bitmap);
+
+}  // namespace yaze::zelda3
+
+#endif  // YAZE_ZELDA3_OVERWORLD_TILE16_RENDERER_H

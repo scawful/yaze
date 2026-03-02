@@ -24,6 +24,7 @@
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "util/notify.h"
+#include "zelda3/overworld/tile16_usage_index.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -180,18 +181,12 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status FlipTile16Vertical();
   absl::Status RotateTile16();
   absl::Status FillTile16WithTile8(int tile8_id);
-  absl::Status AutoTileTile16();
   absl::Status ClearTile16();
 
   // Palette management
   absl::Status CyclePalette(bool forward = true);
   absl::Status ApplyPaletteToAll(uint8_t palette_id);
   absl::Status PreviewPaletteChange(uint8_t palette_id);
-
-  // Batch operations
-  absl::Status ApplyToSelection(const std::function<void(int)>& operation);
-  absl::Status BatchEdit(const std::vector<int>& tile_ids,
-                         const std::function<void(int)>& operation);
 
   // History and undo system
   absl::Status Undo();
@@ -458,6 +453,11 @@ class Tile16Editor : public gfx::GfxContext {
   bool grid_snap_enabled_ = true;
   bool show_tile_info_ = true;
   bool show_palette_preview_ = true;
+  int tile8_stamp_size_ = 1;  // ZScream parity: 1x, 2x, 4x tile8 stamping.
+  bool highlight_tile8_usage_ = false;
+
+  zelda3::Tile8UsageIndex tile8_usage_cache_;
+  bool tile8_usage_cache_dirty_ = true;
 
   // Palette management settings
   bool show_palette_settings_ = false;
@@ -476,6 +476,9 @@ class Tile16Editor : public gfx::GfxContext {
   std::map<int, gfx::Bitmap> pending_tile16_bitmaps_;
   bool show_unsaved_changes_dialog_ = false;
   int pending_tile_switch_target_ = -1;  // Target tile for pending switch
+  bool has_rom_write_history_ = false;
+  int last_rom_write_count_ = 0;
+  std::chrono::steady_clock::time_point last_rom_write_time_{};
 
   // Navigation controls for expanded tile support
   int jump_to_tile_id_ = 0;       // Input field for jump to tile ID
@@ -534,6 +537,18 @@ class Tile16Editor : public gfx::GfxContext {
   // Apply the active palette (overworld area if available) to the current
   // tile16 bitmap using sheet-aware offsets.
   void ApplyPaletteToCurrentTile16Bitmap();
+
+  // Build a 16x16 bitmap for a tile from TileInfo metadata using the shared
+  // palette/index transform path.
+  absl::Status BuildTile16BitmapFromData(const gfx::Tile16& tile_data,
+                                         gfx::Bitmap* output_bitmap) const;
+
+  // Copy a 16x16 tile bitmap into the blockset preview and atlas at tile_id.
+  void CopyTileBitmapToBlockset(int tile_id, const gfx::Bitmap& tile_bitmap);
+
+  // Rebuild and render reverse-usage highlight overlays (ZScream parity).
+  absl::Status RebuildTile8UsageCache();
+  void DrawTile8UsageOverlay();
 
   // Handle keyboard shortcuts (shared between Update and UpdateAsPanel)
   void HandleKeyboardShortcuts();
