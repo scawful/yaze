@@ -37,6 +37,24 @@ TEST(ObjectGeometryTest, DiagonalAcuteExtendsUpward) {
   EXPECT_EQ(bounds->min_y_tiles, -6);   // routine walks upward from origin
 }
 
+TEST(ObjectGeometryTest, WeirdCornerBottomBothBGUsesUsdasm3x4Shape) {
+  // USDASM: RoomDraw_WeirdCornerBottom_BothBG ($01:9854) -> 3 columns x 4 rows.
+  RoomObject obj(/*id=*/0x110, /*x=*/0, /*y=*/0, /*size=*/0);
+  auto bounds = ObjectGeometry::Get().MeasureByRoutineId(/*routine_id=*/36, obj);
+  ASSERT_TRUE(bounds.ok());
+  EXPECT_EQ(bounds->width_tiles, 3);
+  EXPECT_EQ(bounds->height_tiles, 4);
+}
+
+TEST(ObjectGeometryTest, WeirdCornerTopBothBGUsesUsdasm4x3Shape) {
+  // USDASM: RoomDraw_WeirdCornerTop_BothBG ($01:985C) -> 4 columns x 3 rows.
+  RoomObject obj(/*id=*/0x114, /*x=*/0, /*y=*/0, /*size=*/0);
+  auto bounds = ObjectGeometry::Get().MeasureByRoutineId(/*routine_id=*/37, obj);
+  ASSERT_TRUE(bounds.ok());
+  EXPECT_EQ(bounds->width_tiles, 4);
+  EXPECT_EQ(bounds->height_tiles, 3);
+}
+
 TEST(ObjectGeometryTest, MeasureByObjectIdKnownObject) {
   // Object 0x00 -> routine 0 (Rightwards2x2_1to15or32)
   RoomObject obj(/*id=*/0x00, /*x=*/0, /*y=*/0, /*size=*/0);

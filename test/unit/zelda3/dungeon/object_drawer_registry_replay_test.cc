@@ -275,6 +275,118 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
   EXPECT_EQ(by_pos[key(13, 23)], 7);
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     WeirdCornerBottomBothBGMatchesUsdasm3x4ColumnMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  // USDASM: RoomDraw_WeirdCornerBottom_BothBG at $01:9854
+  // Shape is 3 columns x 4 rows, column-major, written to both BGs.
+  RoomObject obj(0x0110, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 12; ++i) {
+    obj.tiles_.push_back(
+        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 24u);  // 12 tiles × BG1+BG2
+
+  std::vector<ObjectDrawer::TileTrace> bg1_trace;
+  for (const auto& t : trace) {
+    if (t.layer == static_cast<uint8_t>(RoomObject::LayerType::BG1)) {
+      bg1_trace.push_back(t);
+    }
+  }
+  ASSERT_EQ(bg1_trace.size(), 12u);
+
+  struct Expected {
+    int x;
+    int y;
+    uint16_t tile_id;
+  };
+  const std::vector<Expected> expected = {
+      {10, 20, 0}, {10, 21, 1},  {10, 22, 2},  {10, 23, 3},
+      {11, 20, 4}, {11, 21, 5},  {11, 22, 6},  {11, 23, 7},
+      {12, 20, 8}, {12, 21, 9},  {12, 22, 10}, {12, 23, 11},
+  };
+  ASSERT_EQ(bg1_trace.size(), expected.size());
+  for (size_t i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(bg1_trace[i].x_tile, expected[i].x) << "idx=" << i;
+    EXPECT_EQ(bg1_trace[i].y_tile, expected[i].y) << "idx=" << i;
+    EXPECT_EQ(bg1_trace[i].tile_id, expected[i].tile_id) << "idx=" << i;
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     WeirdCornerTopBothBGMatchesUsdasm4x3ColumnMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  // USDASM: RoomDraw_WeirdCornerTop_BothBG at $01:985C
+  // Shape is 4 columns x 3 rows, column-major, written to both BGs.
+  RoomObject obj(0x0114, /*x=*/8, /*y=*/9, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 12; ++i) {
+    obj.tiles_.push_back(
+        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 24u);  // 12 tiles × BG1+BG2
+
+  std::vector<ObjectDrawer::TileTrace> bg1_trace;
+  for (const auto& t : trace) {
+    if (t.layer == static_cast<uint8_t>(RoomObject::LayerType::BG1)) {
+      bg1_trace.push_back(t);
+    }
+  }
+  ASSERT_EQ(bg1_trace.size(), 12u);
+
+  struct Expected {
+    int x;
+    int y;
+    uint16_t tile_id;
+  };
+  const std::vector<Expected> expected = {
+      {8, 9, 0},   {8, 10, 1},  {8, 11, 2},  {9, 9, 3},
+      {9, 10, 4},  {9, 11, 5},  {10, 9, 6},  {10, 10, 7},
+      {10, 11, 8}, {11, 9, 9},  {11, 10, 10}, {11, 11, 11},
+  };
+  ASSERT_EQ(bg1_trace.size(), expected.size());
+  for (size_t i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(bg1_trace[i].x_tile, expected[i].x) << "idx=" << i;
+    EXPECT_EQ(bg1_trace[i].y_tile, expected[i].y) << "idx=" << i;
+    EXPECT_EQ(bg1_trace[i].tile_id, expected[i].tile_id) << "idx=" << i;
+  }
+}
+
 TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
   ScopedCustomObjectsFlag disable_custom(false);
 

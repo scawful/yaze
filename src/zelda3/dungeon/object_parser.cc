@@ -757,11 +757,29 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
       info.routine_name = "DefaultSolid";
       info.tile_count = 1;
     }
-  } else if (object_id >= 0x100 && object_id <= 0x10F) {
+  } else if (object_id >= 0x100 && object_id <= 0x107) {
     info.draw_routine_id = 16;  // RoomDraw_Rightwards4x4_1to16 (Type 2)
     info.routine_name = "Rightwards4x4_1to16";
     info.tile_count = 16;
     info.is_horizontal = true;
+  } else if (object_id >= 0x108 && object_id <= 0x10F) {
+    info.draw_routine_id = 35;  // RoomDraw_4x4Corner_BothBG
+    info.routine_name = "4x4Corner_BothBG";
+    info.tile_count = 16;
+    info.is_horizontal = true;
+    info.both_layers = true;
+  } else if (object_id >= 0x110 && object_id <= 0x113) {
+    info.draw_routine_id = 36;  // RoomDraw_WeirdCornerBottom_BothBG
+    info.routine_name = "WeirdCornerBottom_BothBG";
+    info.tile_count = 12;
+    info.is_horizontal = true;
+    info.both_layers = true;
+  } else if (object_id >= 0x114 && object_id <= 0x117) {
+    info.draw_routine_id = 37;  // RoomDraw_WeirdCornerTop_BothBG
+    info.routine_name = "WeirdCornerTop_BothBG";
+    info.tile_count = 12;
+    info.is_horizontal = true;
+    info.both_layers = true;
   } else {
     // Default to simple 1x1 solid for unmapped objects
     info.draw_routine_id = 25;  // Use solid block routine (0x34)

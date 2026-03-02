@@ -37,9 +37,9 @@ void Draw4x4Corner_BothBG(const DrawContext& ctx);
 /**
  * @brief Draw a weird corner bottom pattern for both BG layers
  *
- * Used by objects 0x110-0x113 for Type 2, 0xF9E-0xFA1 for Type 3
- * Type 3 objects use 8 tiles in 4x2 bottom corner layout
- * Draws in row-major order for bottom corners
+ * USDASM parity: RoomDraw_WeirdCornerBottom_BothBG ($01:9854)
+ * Canonical shape is 3x4 (12 tiles), column-major.
+ * Fallback path supports truncated 8-tile payloads as 2x4.
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
@@ -48,9 +48,9 @@ void DrawWeirdCornerBottom_BothBG(const DrawContext& ctx);
 /**
  * @brief Draw a weird corner top pattern for both BG layers
  *
- * Used by objects 0x114-0x117 for Type 2, 0xFA2-0xFA5 for Type 3
- * Type 3 objects use 8 tiles in 4x2 top corner layout
- * Draws in row-major order for top corners
+ * USDASM parity: RoomDraw_WeirdCornerTop_BothBG ($01:985C)
+ * Canonical shape is 4x3 (12 tiles), column-major.
+ * Fallback path supports truncated 8-tile payloads as 2x4.
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */

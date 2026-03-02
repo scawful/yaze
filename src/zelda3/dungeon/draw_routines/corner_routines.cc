@@ -48,12 +48,13 @@ void DrawCorner4x4(const DrawContext& ctx) {
 }
 
 void Draw4x4Corner_BothBG(const DrawContext& ctx) {
-  // Pattern: 4x4 Corner for Both BG (objects 0x108-0x10F for Type 2)
-  // Type 3 objects (0xF9B-0xF9D) only have 8 tiles, draw 2x4 pattern
+  // USDASM: RoomDraw_4x4Corner_BothBG ($01:9813)
+  // Canonical shape is 4 columns x 4 rows (column-major). We retain smaller
+  // fallback shapes for abbreviated hack-ROM payloads.
   if (ctx.tiles.size() >= 16) {
     DrawCorner4x4(ctx);
   } else if (ctx.tiles.size() >= 8) {
-    // Draw 2x4 corner pattern (column-major)
+    // Fallback: 2x4 corner pattern (column-major)
     int tid = 0;
     for (int xx = 0; xx < 2; xx++) {
       for (int yy = 0; yy < 4; yy++) {
@@ -68,15 +69,22 @@ void Draw4x4Corner_BothBG(const DrawContext& ctx) {
 }
 
 void DrawWeirdCornerBottom_BothBG(const DrawContext& ctx) {
-  // Pattern: Weird Corner Bottom (objects 0x110-0x113 for Type 2)
-  // Type 3 objects (0xF9E-0xFA1) use 8 tiles in 4x2 bottom corner layout
-  if (ctx.tiles.size() >= 16) {
-    DrawCorner4x4(ctx);
-  } else if (ctx.tiles.size() >= 8) {
-    // Draw 4x2 bottom corner pattern (row-major for bottom corners)
+  // USDASM: RoomDraw_WeirdCornerBottom_BothBG ($01:9854)
+  // ASM sets count=3 and reuses RoomDraw_4x4Corner_BothBG_set_count:
+  // 3 columns x 4 rows, column-major (12 tiles).
+  if (ctx.tiles.size() >= 12) {
     int tid = 0;
-    for (int yy = 0; yy < 2; yy++) {
-      for (int xx = 0; xx < 4; xx++) {
+    for (int xx = 0; xx < 3; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + xx,
+                                     ctx.object.y_ + yy, ctx.tiles[tid++]);
+      }
+    }
+  } else if (ctx.tiles.size() >= 8) {
+    // Fallback for truncated payloads: 2x4 column-major.
+    int tid = 0;
+    for (int xx = 0; xx < 2; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
         DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + xx,
                                      ctx.object.y_ + yy, ctx.tiles[tid++]);
       }
@@ -87,15 +95,22 @@ void DrawWeirdCornerBottom_BothBG(const DrawContext& ctx) {
 }
 
 void DrawWeirdCornerTop_BothBG(const DrawContext& ctx) {
-  // Pattern: Weird Corner Top (objects 0x114-0x117 for Type 2)
-  // Type 3 objects (0xFA2-0xFA5) use 8 tiles in 4x2 top corner layout
-  if (ctx.tiles.size() >= 16) {
-    DrawCorner4x4(ctx);
-  } else if (ctx.tiles.size() >= 8) {
-    // Draw 4x2 top corner pattern (row-major for top corners)
+  // USDASM: RoomDraw_WeirdCornerTop_BothBG ($01:985C)
+  // ASM writes 3 rows per column and advances source by 6 bytes each loop:
+  // 4 columns x 3 rows, column-major (12 tiles).
+  if (ctx.tiles.size() >= 12) {
     int tid = 0;
-    for (int yy = 0; yy < 2; yy++) {
-      for (int xx = 0; xx < 4; xx++) {
+    for (int xx = 0; xx < 4; xx++) {
+      for (int yy = 0; yy < 3; yy++) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + xx,
+                                     ctx.object.y_ + yy, ctx.tiles[tid++]);
+      }
+    }
+  } else if (ctx.tiles.size() >= 8) {
+    // Fallback for truncated payloads: 2x4 column-major.
+    int tid = 0;
+    for (int xx = 0; xx < 2; xx++) {
+      for (int yy = 0; yy < 4; yy++) {
         DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + xx,
                                      ctx.object.y_ + yy, ctx.tiles[tid++]);
       }
@@ -137,9 +152,9 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "WeirdCornerBottom_BothBG",
       .function = DrawWeirdCornerBottom_BothBG,
       .draws_to_both_bgs = true,
-      .base_width = 4,
-      .base_height = 2,
-      .min_tiles = 8,  // 4x2 block
+      .base_width = 3,
+      .base_height = 4,
+      .min_tiles = 8,  // Supports truncated 2x4 fallback.
       .category = DrawRoutineInfo::Category::Corner,
   });
 
@@ -149,8 +164,8 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .function = DrawWeirdCornerTop_BothBG,
       .draws_to_both_bgs = true,
       .base_width = 4,
-      .base_height = 2,
-      .min_tiles = 8,  // 4x2 block
+      .base_height = 3,
+      .min_tiles = 8,  // Supports truncated 2x4 fallback.
       .category = DrawRoutineInfo::Category::Corner,
   });
 }
