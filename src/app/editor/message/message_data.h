@@ -213,6 +213,22 @@ std::vector<DictionaryEntry> BuildDictionaryEntries(Rom* rom);
 std::string ReplaceAllDictionaryWords(
     std::string str, const std::vector<DictionaryEntry>& dictionary);
 
+// Finds the next match position for query in text starting at start_pos.
+// Returns std::nullopt when no match is found or query is empty.
+std::optional<size_t> FindTextMatch(std::string_view text,
+                                    std::string_view query, size_t start_pos,
+                                    bool case_sensitive,
+                                    bool match_whole_word);
+
+// Replaces query occurrences in text and returns replacement count.
+// If replace_all is false, only the first matching occurrence at/after
+// start_pos is replaced.
+int ReplaceTextMatches(std::string* text, std::string_view query,
+                       std::string_view replacement, size_t start_pos,
+                       bool replace_all, bool case_sensitive,
+                       bool match_whole_word,
+                       size_t* first_replaced_pos = nullptr);
+
 // Looks up a dictionary entry by its ROM byte value
 DictionaryEntry FindRealDictionaryEntry(
     uint8_t value, const std::vector<DictionaryEntry>& dictionary);

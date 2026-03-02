@@ -1355,25 +1355,187 @@ void MessageEditor::SelectAll() {
 absl::Status MessageEditor::Find() {
   if (ImGui::Begin("Find Text", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
     static char find_text[256] = "";
+    static char replace_text[256] = "";
+    static std::string last_query;
+    static size_t next_find_cursor = 0;
+    static std::string status_text;
+    static bool status_error = false;
+
+    auto reset_find_state_if_needed = [&]() {
+      const std::string current_query(find_text);
+      if (current_query != last_query) {
+        last_query = current_query;
+        next_find_cursor = 0;
+      }
+    };
+
+    auto clear_selection = [&]() {
+      message_text_box_.has_selection = false;
+      message_text_box_.selection_start = 0;
+      message_text_box_.selection_end = 0;
+      message_text_box_.selection_length = 0;
+    };
+
+    auto set_selection = [&](size_t start, size_t length) {
+      message_text_box_.selection_start = static_cast<int>(start);
+      message_text_box_.selection_end = static_cast<int>(start + length);
+      message_text_box_.selection_length = static_cast<int>(length);
+      message_text_box_.has_selection = length > 0;
+    };
+
     ImGui::InputText("Search", find_text, IM_ARRAYSIZE(find_text));
+    ImGui::InputText("Replace With", replace_text, IM_ARRAYSIZE(replace_text));
 
     if (ImGui::Button("Find Next")) {
       search_text_ = find_text;
+      reset_find_state_if_needed();
+
+      if (search_text_.empty()) {
+        clear_selection();
+        status_text = "Search query is empty.";
+        status_error = true;
+      } else {
+        auto match = FindTextMatch(message_text_box_.text, search_text_,
+                                   next_find_cursor, case_sensitive_,
+                                   match_whole_word_);
+        if (!match.has_value() && next_find_cursor > 0) {
+          // Wrap once to the beginning for cyclic "Find Next".
+          match = FindTextMatch(message_text_box_.text, search_text_, 0,
+                               case_sensitive_, match_whole_word_);
+        }
+
+        if (match.has_value()) {
+          set_selection(*match, search_text_.size());
+          next_find_cursor = *match + search_text_.size();
+          status_text = absl::StrFormat("Match at position %zu", *match);
+          status_error = false;
+        } else {
+          clear_selection();
+          next_find_cursor = 0;
+          status_text = "No match found.";
+          status_error = true;
+        }
+      }
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Find All")) {
       search_text_ = find_text;
+      reset_find_state_if_needed();
+
+      if (search_text_.empty()) {
+        status_text = "Search query is empty.";
+        status_error = true;
+      } else {
+        int match_count = 0;
+        size_t cursor = 0;
+        while (true) {
+          auto match =
+              FindTextMatch(message_text_box_.text, search_text_, cursor,
+                            case_sensitive_, match_whole_word_);
+          if (!match.has_value()) {
+            break;
+          }
+          match_count++;
+          cursor = *match + search_text_.size();
+          if (cursor > message_text_box_.text.size()) {
+            break;
+          }
+        }
+
+        status_text =
+            absl::StrFormat("Found %d match%s.", match_count,
+                            match_count == 1 ? "" : "es");
+        status_error = false;
+        if (match_count == 0) {
+          clear_selection();
+          status_error = true;
+        }
+      }
     }
 
     ImGui::SameLine();
     if (ImGui::Button("Replace")) {
-      // TODO: Implement replace functionality
+      search_text_ = find_text;
+      reset_find_state_if_needed();
+
+      if (search_text_.empty()) {
+        status_text = "Search query is empty.";
+        status_error = true;
+      } else {
+        size_t first_replaced_pos = std::string::npos;
+        int replaced = ReplaceTextMatches(&message_text_box_.text, search_text_,
+                                          replace_text, next_find_cursor,
+                                          /*replace_all=*/false,
+                                          case_sensitive_, match_whole_word_,
+                                          &first_replaced_pos);
+        if (replaced == 0 && next_find_cursor > 0) {
+          // Wrap once if no forward match from current cursor.
+          replaced = ReplaceTextMatches(
+              &message_text_box_.text, search_text_, replace_text, 0,
+              /*replace_all=*/false, case_sensitive_, match_whole_word_,
+              &first_replaced_pos);
+        }
+
+        if (replaced > 0) {
+          UpdateCurrentMessageFromText(message_text_box_.text);
+          FinalizePendingUndo();
+          if (first_replaced_pos != std::string::npos) {
+            set_selection(first_replaced_pos,
+                          std::string(replace_text).size());
+            next_find_cursor =
+                first_replaced_pos + std::string(replace_text).size();
+          } else {
+            clear_selection();
+            next_find_cursor = 0;
+          }
+          status_text = "Replaced 1 match.";
+          status_error = false;
+        } else {
+          status_text = "No match found to replace.";
+          status_error = true;
+        }
+      }
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Replace All")) {
+      search_text_ = find_text;
+      reset_find_state_if_needed();
+
+      if (search_text_.empty()) {
+        status_text = "Search query is empty.";
+        status_error = true;
+      } else {
+        int replaced = ReplaceTextMatches(&message_text_box_.text, search_text_,
+                                          replace_text, 0,
+                                          /*replace_all=*/true,
+                                          case_sensitive_, match_whole_word_);
+        if (replaced > 0) {
+          UpdateCurrentMessageFromText(message_text_box_.text);
+          FinalizePendingUndo();
+          clear_selection();
+          next_find_cursor = 0;
+          status_text =
+              absl::StrFormat("Replaced %d match%s.", replaced,
+                              replaced == 1 ? "" : "es");
+          status_error = false;
+        } else {
+          status_text = "No matches found to replace.";
+          status_error = true;
+        }
+      }
     }
 
     ImGui::Checkbox("Case Sensitive", &case_sensitive_);
     ImGui::SameLine();
     ImGui::Checkbox("Match Whole Word", &match_whole_word_);
+
+    if (!status_text.empty()) {
+      const ImVec4 color = status_error ? ImVec4(1.0f, 0.45f, 0.45f, 1.0f)
+                                        : ImVec4(0.55f, 0.9f, 0.55f, 1.0f);
+      ImGui::TextColored(color, "%s", status_text.c_str());
+    }
   }
   ImGui::End();
 
