@@ -42,6 +42,8 @@ set(
   zelda3/overworld/diggable_tiles_patch.cc
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_map.cc
+  zelda3/overworld/tile16_renderer.cc
+  zelda3/overworld/tile16_usage_index.cc
   zelda3/overworld/overworld_entrance.cc
   zelda3/overworld/overworld_exit.cc
   zelda3/overworld/overworld_item.cc
