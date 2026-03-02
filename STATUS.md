@@ -6,7 +6,7 @@
 
 ## 0.7.0 Completion Tracking
 - See `docs/internal/plans/0.7.0-feature-completion.md` for full task breakdown
-- P0 (must-ship): Tile16 palette/render pipeline (DONE), Message replace (DONE), Sprite undo, Screen undo, BPS export
+- P0 (must-ship): Tile16 palette/render pipeline (DONE), Message replace (DONE), Sprite undo (DONE), Screen undo, BPS export
 - P1 (should-ship): Usage statistics card (DONE), Tracker stubs, OW item deletion, CLI palette commands
 
 ## Recent Commits (March 2, 2026)
