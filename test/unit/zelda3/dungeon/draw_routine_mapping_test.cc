@@ -48,6 +48,7 @@
 
 #include "gtest/gtest.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/object_drawer.h"
 
 namespace yaze {
@@ -66,22 +67,22 @@ class DrawRoutineMappingTest : public ::testing::Test {
 
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype1Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
-  
+
   // Test a few key mappings from bank_01.asm analysis
-  
+
   // 0x00 -> Routine 0 (Rightwards2x2_1to15or32)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x00), 0);
-  
+
   // 0x01-0x02 -> Routine 1 (Rightwards2x4_1to15or26)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x01), 1);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x02), 1);
-  
+
   // 0x09 -> Routine 5 (DiagonalAcute_1to16)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x09), 5);
-  
+
   // 0x15 -> Routine 17 (DiagonalAcute_BothBG)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x15), 17);
-  
+
   // 0x33 -> Routine 16 (4x4)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x33), 16);
 }
@@ -155,35 +156,48 @@ TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step5SpecialMappings) {
 
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
-  
+
   // 0x100-0x107 -> Routine 16 (RoomDraw_4x4)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x100), 16);
-  
+
   // 0x108 -> Routine 35 (4x4 Corner BothBG)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x108), 35);
-  
+
   // 0x110 -> Routine 36 (Weird Corner Bottom)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x110), 36);
+
+  // Type-2 specials
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x122), DrawRoutineIds::kBed4x5);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x12C), DrawRoutineIds::kRightwards3x6);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x13E), DrawRoutineIds::kUtility6x3);
 }
 
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // Type 3 objects (0x200+) are special objects
-  // Currently returning -1 (unmapped) as these need special handling
-  // TODO(Phase 5): Implement Type 3 object mappings
-  // Expected once implemented:
-  // - 0x200 -> Routine 34 (Water Face)
-  // - 0x203 -> Routine 33 (Somaria Line)
-  int routine_200 = drawer.GetDrawRoutineId(0x200);
-  int routine_203 = drawer.GetDrawRoutineId(0x203);
-
-  // For now, accept either -1 (unmapped) or the expected values
-  EXPECT_TRUE(routine_200 == -1 || routine_200 == 34)
-      << "0x200 expected -1 or 34, got " << routine_200;
-  EXPECT_TRUE(routine_203 == -1 || routine_203 == 33)
-      << "0x203 expected -1 or 33, got " << routine_203;
+  // Type-3 key mappings from usdasm routine table.
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF80), DrawRoutineIds::kEmptyWaterFace);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF83), DrawRoutineIds::kSomariaLine);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF8D), DrawRoutineIds::kPrisonCell);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF90), DrawRoutineIds::kSingle2x2);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF92), DrawRoutineIds::kRupeeFloor);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFB1), DrawRoutineIds::kSingle4x3);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFD5), DrawRoutineIds::kUtility3x5);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFBA),
+            DrawRoutineIds::kVerticalTurtleRockPipe);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFBC),
+            DrawRoutineIds::kHorizontalTurtleRockPipe);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFE0),
+            DrawRoutineIds::kArcheryGameTargetDoor);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFE6), DrawRoutineIds::kActual4x4);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFE9), DrawRoutineIds::kSolidWallDecor3x4);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFEB), DrawRoutineIds::kSingle4x4);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFF0), DrawRoutineIds::kLightBeam);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFF1), DrawRoutineIds::kBigLightBeam);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFF2), DrawRoutineIds::kBossShell4x4);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFF8),
+            DrawRoutineIds::kGanonTriforceFloorDecor);
 }
 
-} // namespace zelda3
-} // namespace yaze
+}  // namespace zelda3
+}  // namespace yaze

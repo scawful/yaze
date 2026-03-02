@@ -1,11 +1,11 @@
-#include "gtest/gtest.h"
-#include "zelda3/dungeon/object_drawer.h"
-#include "zelda3/dungeon/editor_dungeon_state.h"
-#include "zelda3/dungeon/room_object.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
+#include "gtest/gtest.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/editor_dungeon_state.h"
+#include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -17,9 +17,9 @@ class ObjectDrawerTest : public ::testing::Test {
   void SetUp() override {
     // Initialize minimal dependencies
     state_ = std::make_unique<EditorDungeonState>(nullptr, nullptr);
-    
+
     // Initialize ObjectDrawer
-    drawer_ = std::make_unique<ObjectDrawer>(nullptr, 0); // Room ID 0
+    drawer_ = std::make_unique<ObjectDrawer>(nullptr, 0);  // Room ID 0
   }
 
   std::unique_ptr<EditorDungeonState> state_;
@@ -28,25 +28,25 @@ class ObjectDrawerTest : public ::testing::Test {
 
 TEST_F(ObjectDrawerTest, ChestStateHandling) {
   // Setup a chest object (ID 0x140 maps to DrawChest)
-  RoomObject chest_obj(0x140, 10, 10, 0); 
-  
+  RoomObject chest_obj(0x140, 10, 10, 0);
+
   // Setup background buffer (dummy)
   gfx::BackgroundBuffer bg(256, 256);
-  
+
   // Setup tiles
   // 4 tiles for closed state, 4 tiles for open state (total 8)
   std::vector<gfx::TileInfo> tiles;
   for (int i = 0; i < 8; ++i) {
     tiles.emplace_back(i, 0, false, false, false);
   }
-  
+
   // Setup PaletteGroup (dummy)
   gfx::PaletteGroup palette_group;
-  
+
   // Test Closed State (Default)
   // Set chest closed
   state_->SetChestOpen(0, 0, false);
-  
+
   // Draw
   // Should use first 4 tiles
   // We rely on DrawObject calling DrawChest internally
@@ -58,12 +58,12 @@ TEST_F(ObjectDrawerTest, ChestStateHandling) {
   // We need to populate the tiles in the object.
   // RoomObject doesn't have a setter for tiles, it usually decodes them.
   // However, for testing, we might need to subclass or mock.
-  
+
   // Actually, ObjectDrawer::DrawObject calls `mutable_obj.tiles()`.
   // If `tiles_` is empty, it might try to decode.
   // We need to ensure `tiles_` is populated.
   // Let's check RoomObject definition.
-  
+
   // If we can't easily populate tiles, we might need to call DrawChest directly.
   // But DrawChest is private.
   // We can make a derived class of ObjectDrawer that exposes DrawChest for testing.
@@ -72,70 +72,66 @@ TEST_F(ObjectDrawerTest, ChestStateHandling) {
 class TestableObjectDrawer : public ObjectDrawer {
  public:
   using ObjectDrawer::ObjectDrawer;
-  
+
   void PublicDrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                       std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+                       std::span<const gfx::TileInfo> tiles,
+                       const DungeonState* state) {
     DrawChest(obj, bg, tiles, state);
   }
 
-  void PublicDrawSingle4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                           std::span<const gfx::TileInfo> tiles,
-                           const DungeonState* state) {
-    DrawSingle4x4(obj, bg, tiles, state);
-  }
-
-  void PublicSetTraceContext(const RoomObject& obj, RoomObject::LayerType layer) {
-    SetTraceContext(obj, layer);
-  }
-  
-  void ResetIndex() {
-    ResetChestIndex();
-  }
+  void ResetIndex() { ResetChestIndex(); }
 };
 
 TEST_F(ObjectDrawerTest, ChestStateHandlingDirect) {
   // Use TestableObjectDrawer
   TestableObjectDrawer test_drawer(nullptr, 0);
-  
+
   RoomObject chest_obj(0x140, 10, 10, 0);
   gfx::BackgroundBuffer bg(256, 256);
-  
+
   std::vector<gfx::TileInfo> tiles;
   for (int i = 0; i < 8; ++i) {
     tiles.emplace_back(i, 0, false, false, false);
   }
-  
+
   // Test Closed State
   state_->SetChestOpen(0, 0, false);
   test_drawer.PublicDrawChest(chest_obj, bg, tiles, state_.get());
-  
+
   // Reset index
   test_drawer.ResetIndex();
-  
+
   // Test Open State
   state_->SetChestOpen(0, 0, true);
   test_drawer.PublicDrawChest(chest_obj, bg, tiles, state_.get());
-  
+
   // Verify no crash.
   // To verify logic, we'd need to inspect bg pixels or mock WriteTile8.
   // For now, this ensures the code path is executed and state is queried.
 }
 
 TEST_F(ObjectDrawerTest, Single4x4DrawsColumnMajorTiles) {
-  TestableObjectDrawer test_drawer(nullptr, 0);
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+  TestableObjectDrawer test_drawer(&rom, 0);
   RoomObject obj(0xFEB, 2, 3, 0);
-  gfx::BackgroundBuffer bg(64, 64);
+  obj.tiles_loaded_ = true;
 
   std::vector<gfx::TileInfo> tiles;
   tiles.reserve(16);
   for (int i = 0; i < 16; ++i) {
     tiles.emplace_back(i, 0, false, false, false);
   }
+  obj.tiles_ = tiles;
+
+  gfx::BackgroundBuffer bg1(64, 64);
+  gfx::BackgroundBuffer bg2(64, 64);
+  gfx::PaletteGroup palette_group;
 
   std::vector<ObjectDrawer::TileTrace> trace;
   test_drawer.SetTraceCollector(&trace, true);
-  test_drawer.PublicSetTraceContext(obj, RoomObject::LayerType::BG1);
-  test_drawer.PublicDrawSingle4x4(obj, bg, tiles, nullptr);
+  ASSERT_TRUE(test_drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
 
   ASSERT_EQ(trace.size(), 16u);
   for (int x = 0; x < 4; ++x) {
@@ -209,7 +205,8 @@ TEST_F(RoomDrawObjectDataTest, DrawRoomDrawObjectData2x2_ColumnMajorOrder) {
   }
 }
 
-TEST_F(RoomDrawObjectDataTest, DrawRoomDrawObjectData2x2_TorchLitVsUnlitOffsets) {
+TEST_F(RoomDrawObjectDataTest,
+       DrawRoomDrawObjectData2x2_TorchLitVsUnlitOffsets) {
   // USDASM bank_00.asm:
   //  #obj0EC2: dw $0DE0, $0DF0, $4DE0, $4DF0 (unlit)
   //  #obj0ECA: dw $0DC0, $0DC1, $4DC0, $4DC1 (lit)
@@ -233,8 +230,8 @@ TEST_F(RoomDrawObjectDataTest, DrawRoomDrawObjectData2x2_TorchLitVsUnlitOffsets)
   drawer.SetTraceCollector(&trace_unlit, true);
   ASSERT_TRUE(drawer
                   .DrawRoomDrawObjectData2x2(0x0150, 1, 1,
-                                              RoomObject::LayerType::BG1,
-                                              0x0EC2, bg1, bg2)
+                                             RoomObject::LayerType::BG1, 0x0EC2,
+                                             bg1, bg2)
                   .ok());
 
   drawer.ClearTraceCollector();
@@ -243,8 +240,8 @@ TEST_F(RoomDrawObjectDataTest, DrawRoomDrawObjectData2x2_TorchLitVsUnlitOffsets)
   drawer.SetTraceCollector(&trace_lit, true);
   ASSERT_TRUE(drawer
                   .DrawRoomDrawObjectData2x2(0x0150, 1, 1,
-                                              RoomObject::LayerType::BG1,
-                                              0x0ECA, bg1, bg2)
+                                             RoomObject::LayerType::BG1, 0x0ECA,
+                                             bg1, bg2)
                   .ok());
 
   ASSERT_EQ(trace_unlit.size(), 4u);

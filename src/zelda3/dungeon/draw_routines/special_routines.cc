@@ -13,6 +13,67 @@ namespace yaze {
 namespace zelda3 {
 namespace draw_routines {
 
+namespace {
+
+const gfx::TileInfo& TileAtWrapped(std::span<const gfx::TileInfo> tiles,
+                                   size_t index) {
+  return tiles[index % tiles.size()];
+}
+
+void DrawColumnMajor(gfx::BackgroundBuffer& bg, int base_x, int base_y, int w,
+                     int h, std::span<const gfx::TileInfo> tiles,
+                     size_t start_index = 0) {
+  if (tiles.empty())
+    return;
+
+  size_t index = start_index;
+  for (int x = 0; x < w; ++x) {
+    for (int y = 0; y < h; ++y) {
+      DrawRoutineUtils::WriteTile8(bg, base_x + x, base_y + y,
+                                   TileAtWrapped(tiles, index++));
+    }
+  }
+}
+
+void DrawRowMajor(gfx::BackgroundBuffer& bg, int base_x, int base_y, int w,
+                  int h, std::span<const gfx::TileInfo> tiles,
+                  size_t start_index = 0) {
+  if (tiles.empty())
+    return;
+
+  size_t index = start_index;
+  for (int y = 0; y < h; ++y) {
+    for (int x = 0; x < w; ++x) {
+      DrawRoutineUtils::WriteTile8(bg, base_x + x, base_y + y,
+                                   TileAtWrapped(tiles, index++));
+    }
+  }
+}
+
+void Draw1x3NRightwards(const DrawContext& ctx, int columns, size_t start_index,
+                        int y_offset = 0) {
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_ + y_offset,
+                  columns, 3, ctx.tiles, start_index);
+}
+
+void DrawNx4(const DrawContext& ctx, int columns, size_t start_index) {
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, columns, 4,
+                  ctx.tiles, start_index);
+}
+
+void Draw1x5Column(const DrawContext& ctx, int x_offset, size_t start_index) {
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_ + x_offset, ctx.object.y_, 1, 5,
+                  ctx.tiles, start_index);
+}
+
+void Draw4x4ColumnMajor(const DrawContext& ctx, int x_offset, int y_offset,
+                        size_t start_index) {
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_ + x_offset,
+                  ctx.object.y_ + y_offset, 4, 4, ctx.tiles, start_index);
+}
+
+}  // namespace
+
 void DrawChest(const DrawContext& ctx, int chest_index) {
   // Determine if chest is open
   bool is_open = false;
@@ -99,8 +160,8 @@ void CustomDraw(const DrawContext& ctx) {
 
   // Look up the custom object by ID and subtype.
   // ctx.object.id_ is 0x31 or 0x32; ctx.object.size_ encodes the subtype.
-  auto result = CustomObjectManager::Get().GetObjectInternal(
-      ctx.object.id_, ctx.object.size_);
+  auto result = CustomObjectManager::Get().GetObjectInternal(ctx.object.id_,
+                                                             ctx.object.size_);
 
   if (!result.ok() || !result.value() || result.value()->IsEmpty()) {
     // Custom object not found or empty: fall back to 1x1 draw
@@ -160,7 +221,8 @@ void DrawSomariaLine(const DrawContext& ctx) {
   //   0x0E-0x0F: Additional patterns
   //   0x14: Another line type
 
-  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.empty())
+    return;
 
   int length = (ctx.object.size_ & 0x0F) + 1;
   int obj_subid = ctx.object.id_ & 0x0F;  // Low nibble determines direction
@@ -264,6 +326,243 @@ void DrawLargeCanvasObject(const DrawContext& ctx, int width, int height) {
   }
 }
 
+void DrawBed4x5(const DrawContext& ctx) {
+  // ASM: RoomDraw_Bed4x5 ($019AEE) writes 4 columns per row, 5 rows total.
+  DrawRowMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 4, 5, ctx.tiles);
+}
+
+void DrawRightwards3x6(const DrawContext& ctx) {
+  // ASM: RoomDraw_DrawRightwards3x6 ($019B50) is RoomDraw_1x3N_rightwards with
+  // A=6 -> 6 columns x 3 rows, column-major.
+  Draw1x3NRightwards(ctx, /*columns=*/6, /*start_index=*/0);
+}
+
+void DrawUtility6x3(const DrawContext& ctx) {
+  // ASM: RoomDraw_Utility6x3 ($019A0C) is also 1x3N_rightwards with A=6.
+  Draw1x3NRightwards(ctx, /*columns=*/6, /*start_index=*/0);
+}
+
+void DrawUtility3x5(const DrawContext& ctx) {
+  // ASM: RoomDraw_Utility3x5 ($01A194) uses:
+  // - top row: tiles 0..2
+  // - middle 3 rows: tiles 3..5 repeated per row
+  // - bottom row: tiles 6..8
+  if (ctx.tiles.empty())
+    return;
+
+  // Top row.
+  for (int x = 0; x < 3; ++x) {
+    DrawRoutineUtils::WriteTile8(
+        ctx.target_bg, ctx.object.x_ + x, ctx.object.y_,
+        TileAtWrapped(ctx.tiles, static_cast<size_t>(x)));
+  }
+
+  // Middle rows (rows 1..3) reuse tiles 3..5.
+  for (int y = 1; y <= 3; ++y) {
+    for (int x = 0; x < 3; ++x) {
+      DrawRoutineUtils::WriteTile8(
+          ctx.target_bg, ctx.object.x_ + x, ctx.object.y_ + y,
+          TileAtWrapped(ctx.tiles, static_cast<size_t>(3 + x)));
+    }
+  }
+
+  // Bottom row.
+  for (int x = 0; x < 3; ++x) {
+    DrawRoutineUtils::WriteTile8(
+        ctx.target_bg, ctx.object.x_ + x, ctx.object.y_ + 4,
+        TileAtWrapped(ctx.tiles, static_cast<size_t>(6 + x)));
+  }
+}
+
+void DrawVerticalTurtleRockPipe(const DrawContext& ctx) {
+  // ASM: RoomDraw_VerticalTurtleRockPipe ($019A90)
+  // Two stacked 4x3 sections: first uses tiles 0..11, second 12..23.
+  if (ctx.tiles.empty())
+    return;
+  Draw1x3NRightwards(ctx, /*columns=*/4, /*start_index=*/0, /*y_offset=*/0);
+  Draw1x3NRightwards(ctx, /*columns=*/4, /*start_index=*/12, /*y_offset=*/3);
+}
+
+void DrawHorizontalTurtleRockPipe(const DrawContext& ctx) {
+  // ASM: RoomDraw_HorizontalTurtleRockPipe ($019AA3) -> RoomDraw_Nx4 with A=6.
+  DrawNx4(ctx, /*columns=*/6, /*start_index=*/0);
+}
+
+void DrawLightBeamOnFloor(const DrawContext& ctx) {
+  // ASM: RoomDraw_LightBeamOnFloor ($01A7B6)
+  // Draw three 4x4 blocks at y offsets 0, +2, +6.
+  if (ctx.tiles.empty())
+    return;
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/2, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/6, /*start_index=*/32);
+}
+
+void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
+  // ASM: RoomDraw_BigLightBeamOnFloor / RoomDraw_FloorLight
+  // The active path draws four 4x4 blocks in a 2x2 grid (8x8 footprint).
+  // State-gating on $7EF0CA is not currently modeled in DungeonState.
+  if (ctx.tiles.empty())
+    return;
+
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/0, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/32);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/48);
+}
+
+void DrawBossShell4x4(const DrawContext& ctx) {
+  // ASM-mapped objects route through RoomDraw_4x4.
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+}
+
+void DrawSolidWallDecor3x4(const DrawContext& ctx) {
+  // ASM: RoomDraw_SolidWallDecor3x4 ($0199EC) -> RoomDraw_Nx4 with A=3.
+  DrawNx4(ctx, /*columns=*/3, /*start_index=*/0);
+}
+
+void DrawArcheryGameTargetDoor(const DrawContext& ctx) {
+  // ASM: RoomDraw_ArcheryGameTargetDoor ($01A7A3)
+  // Two 3x3 sections stacked vertically.
+  if (ctx.tiles.empty())
+    return;
+  Draw1x3NRightwards(ctx, /*columns=*/3, /*start_index=*/0, /*y_offset=*/0);
+  Draw1x3NRightwards(ctx, /*columns=*/3, /*start_index=*/9, /*y_offset=*/3);
+}
+
+void DrawGanonTriforceFloorDecor(const DrawContext& ctx) {
+  // ASM: RoomDraw_GanonTriforceFloorDecor ($01A7F0)
+  // Top block uses 0..15 at +2 X, then two bottom 4x4 blocks use 16..31.
+  if (ctx.tiles.empty())
+    return;
+
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/2, /*y_offset=*/0, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/16);
+}
+
+void DrawSingle2x2(const DrawContext& ctx) {
+  // ASM: RoomDraw_Single2x2 ($019A8D) -> RoomDraw_Downwards2x2
+  // Single 2x2 in column-major order.
+  if (ctx.tiles.size() < 4)
+    return;
+
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
+                               ctx.tiles[0]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_ + 1,
+                               ctx.tiles[1]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, ctx.object.y_,
+                               ctx.tiles[2]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                               ctx.object.y_ + 1, ctx.tiles[3]);
+}
+
+void DrawSingle4x4(const DrawContext& ctx) {
+  // ASM: RoomDraw_4x4 ($0197ED), column-major 4x4 block (16 tiles).
+  if (ctx.tiles.size() < 16)
+    return;
+
+  int tid = 0;
+  for (int x = 0; x < 4; ++x) {
+    for (int y = 0; y < 4; ++y) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                   ctx.object.y_ + y, ctx.tiles[tid++]);
+    }
+  }
+}
+
+void DrawSingle4x3(const DrawContext& ctx) {
+  // ASM: RoomDraw_TableRock4x3 ($0199E6), column-major 4x3 block (12 tiles).
+  if (ctx.tiles.size() < 12)
+    return;
+
+  int tid = 0;
+  for (int x = 0; x < 4; ++x) {
+    for (int y = 0; y < 3; ++y) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                   ctx.object.y_ + y, ctx.tiles[tid++]);
+    }
+  }
+}
+
+void DrawRupeeFloor(const DrawContext& ctx) {
+  // ASM: RoomDraw_RupeeFloor ($019AA9), preview shape:
+  // 3 columns of 2-tile pairs at rows [0..1], [3..4], [6..7].
+  if (ctx.tiles.size() < 2)
+    return;
+
+  for (int col = 0; col < 3; ++col) {
+    int x = ctx.object.x_ + (col * 2);
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 1,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 1,
+                                 ctx.tiles[1]);
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 3,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 3,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 4,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 4,
+                                 ctx.tiles[1]);
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 6,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 6,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 7,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 7,
+                                 ctx.tiles[1]);
+  }
+}
+
+void DrawActual4x4(const DrawContext& ctx) {
+  // ASM: RoomDraw_4x4 ($0197ED), used for true 4x4 tile8 objects.
+  DrawSingle4x4(ctx);
+}
+
+void DrawWaterfall47(const DrawContext& ctx) {
+  // ASM: RoomDraw_Waterfall47 ($019466)
+  // First 1x5 column from 0..4, middle columns from 5..9, final from 10..14.
+  if (ctx.tiles.empty())
+    return;
+
+  const int size = ctx.object.size_ & 0x0F;
+  const int middle_columns = (size + 1) * 2;  // ASL $B2
+
+  Draw1x5Column(ctx, /*x_offset=*/0, /*start_index=*/0);
+  for (int i = 0; i < middle_columns; ++i) {
+    Draw1x5Column(ctx, /*x_offset=*/1 + i, /*start_index=*/5);
+  }
+  Draw1x5Column(ctx, /*x_offset=*/1 + middle_columns, /*start_index=*/10);
+}
+
+void DrawWaterfall48(const DrawContext& ctx) {
+  // ASM: RoomDraw_Waterfall48 ($019488)
+  // First 1x3 column from 0..2, middle columns from 3..5, final from 6..8.
+  if (ctx.tiles.empty())
+    return;
+
+  const int size = ctx.object.size_ & 0x0F;
+  const int middle_columns = (size + 1) * 2;  // ASL $B2
+
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, /*w=*/1, /*h=*/3,
+                  ctx.tiles, /*start_index=*/0);
+  for (int i = 0; i < middle_columns; ++i) {
+    DrawColumnMajor(ctx.target_bg, ctx.object.x_ + 1 + i, ctx.object.y_,
+                    /*w=*/1, /*h=*/3, ctx.tiles, /*start_index=*/3);
+  }
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_ + 1 + middle_columns,
+                  ctx.object.y_, /*w=*/1, /*h=*/3, ctx.tiles,
+                  /*start_index=*/6);
+}
+
 // ============================================================================
 // SuperSquare Routines (Phase 4)
 // ============================================================================
@@ -292,8 +591,8 @@ void Draw4x4BlocksIn4x4SuperSquare(const DrawContext& ctx) {
   // Use first tile for all blocks
   const auto& tile = ctx.tiles[0];
   LOG_DEBUG("DrawRoutines",
-            "Draw4x4BlocksIn4x4SuperSquare: tile[0] id=%d palette=%d",
-            tile.id_, tile.palette_);
+            "Draw4x4BlocksIn4x4SuperSquare: tile[0] id=%d palette=%d", tile.id_,
+            tile.palette_);
 
   for (int sy = 0; sy < size_y; ++sy) {
     for (int sx = 0; sx < size_x; ++sx) {
@@ -318,7 +617,8 @@ void Draw3x3FloorIn4x4SuperSquare(const DrawContext& ctx) {
   int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
   int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.empty())
+    return;
 
   const auto& tile = ctx.tiles[0];
   for (int sy = 0; sy < size_y; ++sy) {
@@ -343,7 +643,8 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
   int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
   int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.empty())
+    return;
   if (ctx.tiles.size() < 8) {
     // Some hacks provide abbreviated tile payloads for these objects.
     // Fall back to a visible fill instead of silently skipping draw.
@@ -450,7 +751,8 @@ void DrawBigHole4x4_1to16(const DrawContext& ctx) {
   // Draws a rectangular hole with border tiles using Size as the expansion.
   int size = ctx.object.size_ & 0x0F;
 
-  if (ctx.tiles.size() < 24) return;
+  if (ctx.tiles.size() < 24)
+    return;
 
   int base_x = ctx.object.x_;
   int base_y = ctx.object.y_;
@@ -491,15 +793,15 @@ void DrawSpike2x2In4x4SuperSquare(const DrawContext& ctx) {
   int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
   int size_y = (ctx.object.size_ & 0x03) + 1;
 
-  if (ctx.tiles.size() < 4) return;
+  if (ctx.tiles.size() < 4)
+    return;
 
   for (int sy = 0; sy < size_y; ++sy) {
     for (int sx = 0; sx < size_x; ++sx) {
       int base_x = ctx.object.x_ + (sx * 2);
       int base_y = ctx.object.y_ + (sy * 2);
 
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y,
-                                   ctx.tiles[0]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y, ctx.tiles[0]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y,
                                    ctx.tiles[2]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y + 1,
@@ -515,7 +817,8 @@ void DrawTableRock4x4_1to16(const DrawContext& ctx) {
   int size_x = ((ctx.object.size_ >> 2) & 0x03);
   int size_y = (ctx.object.size_ & 0x03);
 
-  if (ctx.tiles.size() < 16) return;
+  if (ctx.tiles.size() < 16)
+    return;
 
   int right_x = ctx.object.x_ + (3 + (size_x * 2));
   int bottom_y = ctx.object.y_ + (3 + (size_y * 2));
@@ -571,8 +874,7 @@ void DrawTableRock4x4_1to16(const DrawContext& ctx) {
                                ctx.tiles[12]);
   DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, ctx.object.y_,
                                ctx.tiles[3]);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, bottom_y,
-                               ctx.tiles[15]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, bottom_y, ctx.tiles[15]);
 }
 
 void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
@@ -580,14 +882,15 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
   // NOTE: In the original game, this is an HDMA control object that sets up
   // the wavy water distortion effect. It doesn't draw tiles directly.
   // For the editor, we draw the available tile data as a visual indicator.
-  
+
   int size_x = ((ctx.object.size_ >> 2) & 0x03);
   int size_y = (ctx.object.size_ & 0x03);
 
   int count_x = size_x + 2;
   int count_y = size_y + 2;
 
-  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.empty())
+    return;
   if (ctx.tiles.size() < 8) {
     // Fallback for abbreviated tile payloads: still stamp a visible overlay.
     for (int yy = 0; yy < count_y; ++yy) {
@@ -636,7 +939,8 @@ void DrawInterRoomFatStairsUp(const DrawContext& ctx) {
   // In original game, registers position in $06B0 for transition handling
   // For editor display, we just draw the visual representation
 
-  if (ctx.tiles.size() < 16) return;
+  if (ctx.tiles.size() < 16)
+    return;
 
   // Draw 4x4 stair pattern
   for (int y = 0; y < 4; ++y) {
@@ -667,7 +971,8 @@ void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper) {
   (void)going_up;
   (void)is_upper;
 
-  if (ctx.tiles.size() < 12) return;
+  if (ctx.tiles.size() < 12)
+    return;
 
   // Draw 4x3 pattern in COLUMN-MAJOR order (matching ASM)
   int tid = 0;
@@ -682,7 +987,8 @@ void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper) {
 void DrawAutoStairs(const DrawContext& ctx) {
   // ASM: RoomDraw_AutoStairs* routines
   // Multi-layer or merged layer stair patterns
-  if (ctx.tiles.size() < 16) return;
+  if (ctx.tiles.size() < 16)
+    return;
 
   for (int y = 0; y < 4; ++y) {
     for (int x = 0; x < 4; ++x) {
@@ -696,7 +1002,8 @@ void DrawAutoStairs(const DrawContext& ctx) {
 void DrawStraightInterRoomStairs(const DrawContext& ctx) {
   // ASM: RoomDraw_StraightInterroomStairs* routines
   // North/South, Up/Down variants
-  if (ctx.tiles.size() < 16) return;
+  if (ctx.tiles.size() < 16)
+    return;
 
   for (int y = 0; y < 4; ++y) {
     for (int x = 0; x < 4; ++x) {
@@ -717,7 +1024,8 @@ void DrawPrisonCell(const DrawContext& ctx) {
   // The ASM writes to $7E2xxx (BG1) and also uses ORA #$4000 for horizontal flip
   // Pattern: 5 iterations drawing a complex bar pattern
 
-  if (ctx.tiles.size() < 6) return;
+  if (ctx.tiles.size() < 6)
+    return;
 
   // Prison cell layout based on ASM analysis:
   // The routine draws 5 columns of bars, each with specific tile patterns
@@ -855,7 +1163,8 @@ void DrawMovingWall(const DrawContext& ctx, bool is_west) {
   // Size determines wall length
   int size = (ctx.object.size_ & 0x0F) + 1;
 
-  if (ctx.tiles.size() < 4) return;
+  if (ctx.tiles.size() < 4)
+    return;
 
   for (int s = 0; s < size; ++s) {
     int offset = has_moved ? 2 : 0;  // Offset position if wall has moved
@@ -943,7 +1252,8 @@ void DrawClosedChestPlatform(const DrawContext& ctx) {
   int size_x = (ctx.object.size_ & 0x0F) + 4;  // Width is size + 4
   int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
 
-  if (ctx.tiles.size() < 16) return;
+  if (ctx.tiles.size() < 16)
+    return;
 
   // Draw top horizontal wall with corners
   for (int x = 0; x < size_x; ++x) {
@@ -976,7 +1286,8 @@ void DrawChestPlatformHorizontalWall(const DrawContext& ctx) {
   // ASM: RoomDraw_ChestPlatformHorizontalWallWithCorners ($018D0D)
   int width = (ctx.object.size_ & 0x0F) + 1;
 
-  if (ctx.tiles.size() < 3) return;
+  if (ctx.tiles.size() < 3)
+    return;
 
   for (int x = 0; x < width; ++x) {
     size_t tile_idx = (x == 0) ? 0 : ((x == width - 1) ? 2 : 1);
@@ -989,7 +1300,8 @@ void DrawChestPlatformVerticalWall(const DrawContext& ctx) {
   // ASM: RoomDraw_ChestPlatformVerticalWall ($019E70)
   int height = (ctx.object.size_ & 0x0F) + 1;
 
-  if (ctx.tiles.empty()) return;
+  if (ctx.tiles.empty())
+    return;
 
   for (int y = 0; y < height; ++y) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
@@ -1326,14 +1638,209 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kBed4x5,  // 98
+      .name = "Bed4x5",
+      .function = DrawBed4x5,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 5,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kRightwards3x6,  // 99
+      .name = "Rightwards3x6",
+      .function = DrawRightwards3x6,
+      .draws_to_both_bgs = false,
+      .base_width = 6,
+      .base_height = 3,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kUtility6x3,  // 100
+      .name = "Utility6x3",
+      .function = DrawUtility6x3,
+      .draws_to_both_bgs = false,
+      .base_width = 6,
+      .base_height = 3,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kUtility3x5,  // 101
+      .name = "Utility3x5",
+      .function = DrawUtility3x5,
+      .draws_to_both_bgs = false,
+      .base_width = 3,
+      .base_height = 5,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kVerticalTurtleRockPipe,  // 102
+      .name = "VerticalTurtleRockPipe",
+      .function = DrawVerticalTurtleRockPipe,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 6,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kHorizontalTurtleRockPipe,  // 103
+      .name = "HorizontalTurtleRockPipe",
+      .function = DrawHorizontalTurtleRockPipe,
+      .draws_to_both_bgs = false,
+      .base_width = 6,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kLightBeam,  // 104
+      .name = "LightBeam",
+      .function = DrawLightBeamOnFloor,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 10,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kBigLightBeam,  // 105
+      .name = "BigLightBeam",
+      .function = DrawBigLightBeamOnFloor,
+      .draws_to_both_bgs = false,
+      .base_width = 8,
+      .base_height = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kBossShell4x4,  // 106
+      .name = "BossShell4x4",
+      .function = DrawBossShell4x4,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kSolidWallDecor3x4,  // 107
+      .name = "SolidWallDecor3x4",
+      .function = DrawSolidWallDecor3x4,
+      .draws_to_both_bgs = false,
+      .base_width = 3,
+      .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kArcheryGameTargetDoor,  // 108
+      .name = "ArcheryGameTargetDoor",
+      .function = DrawArcheryGameTargetDoor,
+      .draws_to_both_bgs = false,
+      .base_width = 3,
+      .base_height = 6,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kGanonTriforceFloorDecor,  // 109
+      .name = "GanonTriforceFloorDecor",
+      .function = DrawGanonTriforceFloorDecor,
+      .draws_to_both_bgs = false,
+      .base_width = 8,
+      .base_height = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kSingle2x2,  // 110
+      .name = "Single2x2",
+      .function = DrawSingle2x2,
+      .draws_to_both_bgs = false,
+      .base_width = 2,
+      .base_height = 2,
+      .min_tiles = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kSingle4x4,  // 113
+      .name = "Single4x4",
+      .function = DrawSingle4x4,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .min_tiles = 16,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kSingle4x3,  // 114
+      .name = "Single4x3",
+      .function = DrawSingle4x3,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 3,
+      .min_tiles = 12,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kRupeeFloor,  // 115
+      .name = "RupeeFloor",
+      .function = DrawRupeeFloor,
+      .draws_to_both_bgs = false,
+      .base_width = 6,
+      .base_height = 8,
+      .min_tiles = 2,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kActual4x4,  // 116
+      .name = "Actual4x4",
+      .function = DrawActual4x4,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .min_tiles = 16,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kWaterfall47,  // 111
+      .name = "Waterfall47",
+      .function = DrawWaterfall47,
+      .draws_to_both_bgs = false,
+      .base_width = 0,  // Variable with size
+      .base_height = 5,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kWaterfall48,  // 112
+      .name = "Waterfall48",
+      .function = DrawWaterfall48,
+      .draws_to_both_bgs = false,
+      .base_width = 0,  // Variable with size
+      .base_height = 3,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
   // Chest platform routines - use canonical IDs from DrawRoutineIds
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kClosedChestPlatform,  // 79
       .name = "ClosedChestPlatform",
       .function = DrawClosedChestPlatform,
       .draws_to_both_bgs = false,
-      .base_width = 0,  // Variable: width = (size & 0x0F) + 4
-      .base_height = 0, // Variable: height = ((size >> 4) & 0x0F) + 1
+      .base_width = 0,   // Variable: width = (size & 0x0F) + 4
+      .base_height = 0,  // Variable: height = ((size >> 4) & 0x0F) + 1
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1341,9 +1848,8 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kMovingWallWest,  // 80
       .name = "MovingWallWest",
-      .function = [](const DrawContext& ctx) {
-        DrawMovingWall(ctx, /*is_west=*/true);
-      },
+      .function =
+          [](const DrawContext& ctx) { DrawMovingWall(ctx, /*is_west=*/true); },
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 8,
@@ -1354,9 +1860,10 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kMovingWallEast,  // 81
       .name = "MovingWallEast",
-      .function = [](const DrawContext& ctx) {
-        DrawMovingWall(ctx, /*is_west=*/false);
-      },
+      .function =
+          [](const DrawContext& ctx) {
+            DrawMovingWall(ctx, /*is_west=*/false);
+          },
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 8,
@@ -1367,25 +1874,27 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kOpenChestPlatform,  // 82
       .name = "OpenChestPlatform",
-      .function = [](const DrawContext& ctx) {
-        // Open chest platform - draws multi-segment pattern
-        // Size: width = (size & 0x0F) + 1, segments = ((size >> 4) & 0x0F) * 2 + 5
-        int width = (ctx.object.size_ & 0x0F) + 1;
-        int segments = ((ctx.object.size_ >> 4) & 0x0F) * 2 + 5;
-        // For geometry purposes, just set reasonable bounds
-        for (int s = 0; s < segments && s < 8; ++s) {
-          for (int x = 0; x < width && x < 8; ++x) {
-            if (ctx.tiles.size() > 0) {
-              size_t idx = (s * width + x) % ctx.tiles.size();
-              DrawRoutineUtils::WriteTile8(ctx.target_bg, 
-                  ctx.object.x_ + x, ctx.object.y_ + s, ctx.tiles[idx]);
+      .function =
+          [](const DrawContext& ctx) {
+            // Open chest platform - draws multi-segment pattern
+            // Size: width = (size & 0x0F) + 1, segments = ((size >> 4) & 0x0F) * 2 + 5
+            int width = (ctx.object.size_ & 0x0F) + 1;
+            int segments = ((ctx.object.size_ >> 4) & 0x0F) * 2 + 5;
+            // For geometry purposes, just set reasonable bounds
+            for (int s = 0; s < segments && s < 8; ++s) {
+              for (int x = 0; x < width && x < 8; ++x) {
+                if (ctx.tiles.size() > 0) {
+                  size_t idx = (s * width + x) % ctx.tiles.size();
+                  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                               ctx.object.y_ + s,
+                                               ctx.tiles[idx]);
+                }
+              }
             }
-          }
-        }
-      },
+          },
       .draws_to_both_bgs = false,
-      .base_width = 0,  // Variable
-      .base_height = 0, // Variable
+      .base_width = 0,   // Variable
+      .base_height = 0,  // Variable
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1394,24 +1903,29 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23,  // 117
       .name = "DownwardsHasEdge1x1_1to16_plus23",
-      .function = [](const DrawContext& ctx) {
-        // CORNER+MIDDLE+END pattern vertically
-        int size = ctx.object.size_ & 0x0F;
-        int count = size + 21;
-        if (ctx.tiles.size() < 3) return;
-        
-        int tile_y = ctx.object.y_;
-        // Corner
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y, ctx.tiles[0]);
-        tile_y++;
-        // Middle tiles
-        for (int s = 0; s < count; s++) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y, ctx.tiles[1]);
-          tile_y++;
-        }
-        // End tile
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y, ctx.tiles[2]);
-      },
+      .function =
+          [](const DrawContext& ctx) {
+            // CORNER+MIDDLE+END pattern vertically
+            int size = ctx.object.size_ & 0x0F;
+            int count = size + 21;
+            if (ctx.tiles.size() < 3)
+              return;
+
+            int tile_y = ctx.object.y_;
+            // Corner
+            DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y,
+                                         ctx.tiles[0]);
+            tile_y++;
+            // Middle tiles
+            for (int s = 0; s < count; s++) {
+              DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y,
+                                           ctx.tiles[1]);
+              tile_y++;
+            }
+            // End tile
+            DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y,
+                                         ctx.tiles[2]);
+          },
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 23,  // size + 23

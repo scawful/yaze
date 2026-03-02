@@ -59,6 +59,21 @@ TEST(DrawRoutineRegistryTest, RegistryMatchesObjectDrawer) {
   }
 }
 
+TEST(DrawRoutineRegistryTest, Subtype3SpecialMappingsHaveRegisteredRoutines) {
+  auto& reg = DrawRoutineRegistry::Get();
+
+  for (int16_t object_id :
+       {0x0122, 0x012C, 0x013E, 0x0F90, 0x0F92, 0x0FB1, 0x0FD5, 0x0FBA, 0x0FBC,
+        0x0FE0, 0x0FE6, 0x0FE9, 0x0FEB, 0x0FF0, 0x0FF1, 0x0FF2, 0x0FF8, 0x0047,
+        0x0048}) {
+    int routine_id = reg.GetRoutineIdForObject(object_id);
+    ASSERT_GE(routine_id, 0) << "Object 0x" << std::hex << object_id;
+    EXPECT_NE(reg.GetRoutineInfo(routine_id), nullptr)
+        << "Object 0x" << std::hex << object_id
+        << " maps to unregistered routine " << std::dec << routine_id;
+  }
+}
+
 // =============================================================================
 // ObjectDimensionTable Tests (Phase 3)
 // =============================================================================

@@ -906,7 +906,7 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0x12B] = {2, 2, Dir::Horizontal, 2, false};
   // 0x134: Rightwards 2x2 (repeatable)
   dimensions_[0x134] = {2, 2, Dir::Horizontal, 2, false};
-  dimensions_[0x12C] = {3, 6, Dir::None, 0, false};  // 3x6 pattern
+  dimensions_[0x12C] = {6, 3, Dir::None, 0, false};  // 6x3 pattern
   // 0x12D-0x133: Inter-room fat stairs + auto stairs (fixed 4x4)
   for (int id = 0x12D; id <= 0x133; id++) {
     dimensions_[id] = {4, 4, Dir::None, 0, false};
@@ -953,10 +953,10 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF94] = {4, 3, Dir::Horizontal, 6, false};
   // Single hammer peg (1x1 +3)
   dimensions_[0xF96] = {4, 1, Dir::Horizontal, 1, false};
-  // Boss shells (repeatable 4x4)
-  dimensions_[0xF95] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFF2] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFFB] = {4, 4, Dir::Horizontal, 4, false};
+  // Boss shells (single 4x4)
+  dimensions_[0xF95] = {4, 4, Dir::None, 0, false};
+  dimensions_[0xFF2] = {4, 4, Dir::None, 0, false};
+  dimensions_[0xFFB] = {4, 4, Dir::None, 0, false};
   // Auto/straight stairs (fixed 4x4)
   for (int id = 0xF9B; id <= 0xFA1; id++) {
     dimensions_[id] = {4, 4, Dir::None, 0, false};
@@ -992,8 +992,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFEE] = {3, 4, Dir::None, 0, false};
   dimensions_[0xFEF] = {3, 4, Dir::None, 0, false};
   // Light beams + Triforce floor
-  dimensions_[0xFF0] = {4, 4, Dir::None, 0, false};
-  dimensions_[0xFF1] = {6, 6, Dir::None, 0, false};
+  dimensions_[0xFF0] = {4, 10, Dir::None, 0, false};
+  dimensions_[0xFF1] = {8, 8, Dir::None, 0, false};
   dimensions_[0xFF8] = {8, 8, Dir::None, 0, false};
   // Table rock 4x3 (repeatable with 6-tile spacing)
   dimensions_[0xFF9] = {4, 3, Dir::Horizontal, 6, false};
@@ -1011,11 +1011,11 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFEC] = {4, 3, Dir::None, 0, false};
   dimensions_[0xFED] = {4, 3, Dir::None, 0, false};
   // Turtle Rock pipes
-  dimensions_[0xFBA] = {2, 6, Dir::None, 0, false};
-  dimensions_[0xFBB] = {2, 6, Dir::None, 0, false};
-  dimensions_[0xFBC] = {6, 2, Dir::None, 0, false};
-  dimensions_[0xFBD] = {6, 2, Dir::None, 0, false};
-  dimensions_[0xFDC] = {6, 2, Dir::None, 0, false};
+  dimensions_[0xFBA] = {4, 6, Dir::None, 0, false};
+  dimensions_[0xFBB] = {4, 6, Dir::None, 0, false};
+  dimensions_[0xFBC] = {6, 4, Dir::None, 0, false};
+  dimensions_[0xFBD] = {6, 4, Dir::None, 0, false};
+  dimensions_[0xFDC] = {6, 4, Dir::None, 0, false};
   // Rightwards 4x4 repeated
   dimensions_[0xFFA] = {4, 4, Dir::Horizontal, 4, false};
   // 0xFB1-0xFB2: Big Chest 4x3
