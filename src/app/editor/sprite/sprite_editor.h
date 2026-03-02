@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -9,6 +10,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/sprite/panels/sprite_editor_panels.h"
 #include "app/editor/sprite/sprite_drawer.h"
+#include "app/editor/sprite/sprite_undo_actions.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
@@ -49,8 +51,8 @@ class SpriteEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
@@ -114,6 +116,15 @@ class SpriteEditor : public Editor {
   void LoadSpritePalettes();
   void RenderVanillaSprite(const zelda3::SpriteOamLayout& layout);
   void LoadSheetsForSprite(const std::array<uint8_t, 4>& sheets);
+
+  // Undo helpers for custom ZSprite editing
+  bool HasSelectedCustomSprite() const;
+  SpriteSnapshot CaptureCurrentSpriteSnapshot() const;
+  void RestoreSpriteSnapshot(const SpriteSnapshot& snapshot);
+  void PushCustomSpriteEditAction(const std::string& description,
+                                  SpriteSnapshot before_snapshot);
+  void ApplyCustomSpriteEdit(const std::string& description,
+                             const std::function<void()>& mutation);
 
   // ============================================================
   // Vanilla Sprite State
