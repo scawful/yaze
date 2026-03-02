@@ -278,12 +278,9 @@ TEST_F(ObjectDimensionTableTest,
     // These routines are currently not deterministic under ObjectGeometry replay:
     // - chest bounds depend on tile payload size (dummy payload forces 4x4 path)
     // - moving wall routines are still placeholder no-op in replay
-    // - weird corner variants branch on tile payload shape
     if (routine == DrawRoutineIds::kChest ||
         routine == DrawRoutineIds::kMovingWallWest ||
-        routine == DrawRoutineIds::kMovingWallEast ||
-        routine == DrawRoutineIds::kWeirdCornerBottom_BothBG ||
-        routine == DrawRoutineIds::kWeirdCornerTop_BothBG) {
+        routine == DrawRoutineIds::kMovingWallEast) {
       deterministic_skips += static_cast<int>(sizes.size());
       return;
     }
