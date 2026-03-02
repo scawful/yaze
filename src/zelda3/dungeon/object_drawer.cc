@@ -997,32 +997,32 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawDiagonalCeilingTopLeft(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(75, obj, bg, tiles, state);
   });
 
   // Routine 76 - Diagonal Ceiling Bottom Left (objects 0xA1, 0xA6, 0xAA)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawDiagonalCeilingBottomLeft(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(76, obj, bg, tiles, state);
   });
 
   // Routine 77 - Diagonal Ceiling Top Right (objects 0xA2, 0xA7, 0xAB)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawDiagonalCeilingTopRight(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(77, obj, bg, tiles, state);
   });
 
   // Routine 78 - Diagonal Ceiling Bottom Right (objects 0xA3, 0xA8, 0xAC)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawDiagonalCeilingBottomRight(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(78, obj, bg, tiles, state);
   });
 
   // ============================================================================
@@ -1033,32 +1033,32 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawClosedChestPlatform(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(79, obj, bg, tiles, state);
   });
 
   // Routine 80 - Moving Wall West (object 0xCD, 28 tiles)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawMovingWallWest(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(80, obj, bg, tiles, state);
   });
 
   // Routine 81 - Moving Wall East (object 0xCE, 28 tiles)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawMovingWallEast(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(81, obj, bg, tiles, state);
   });
 
   // Routine 82 - Open Chest Platform (object 0xDC, 21 tiles)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawOpenChestPlatform(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(82, obj, bg, tiles, state);
   });
 
   // ============================================================================
@@ -1918,249 +1918,6 @@ void ObjectDrawer::DrawRightwardsCannonHole4x3_1to16(
   int right_base_x = obj.x_ + (count * 2);
   draw_column(right_base_x + 0, obj.y_, tiles[6], tiles[7], tiles[8]);
   draw_column(right_base_x + 1, obj.y_, tiles[9], tiles[10], tiles[11]);
-}
-
-// ============================================================================
-// Phase 4 Step 3: Diagonal Ceiling Routines
-// ============================================================================
-
-void ObjectDrawer::DrawDiagonalCeilingTopLeft(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling top-left - TRIANGLE shape (objects 0xA0, 0xA5, 0xA9)
-  // Assembly: RoomDraw_DiagonalCeilingTopLeftA/B with GetSize_1to16_timesA(4)
-  // count = (size & 0x0F) + 4 per ASM
-  int count = (obj.size_ & 0x0F) + 4;
-
-  if (tiles.empty()) {
-    LOG_DEBUG("ObjectDrawer", "DiagonalCeilingTopLeft: No tiles for obj 0x%02X",
-              obj.id_);
-    return;
-  }
-
-  LOG_DEBUG("ObjectDrawer",
-            "DiagonalCeilingTopLeft: obj=0x%02X pos=(%d,%d) size=%d count=%d",
-            obj.id_, obj.x_, obj.y_, obj.size_, count);
-
-  // Each row: starts with 'count' tiles, then count-1, count-2, etc.
-  int tiles_in_row = count;
-  for (int row = 0; row < count && tiles_in_row > 0; row++) {
-    for (int col = 0; col < tiles_in_row; col++) {
-      WriteTile8(bg, obj.x_ + col, obj.y_ + row, tiles[0]);
-    }
-    tiles_in_row--;  // One fewer tile each row (DEC $B2)
-  }
-}
-
-void ObjectDrawer::DrawDiagonalCeilingBottomLeft(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling bottom-left - TRIANGLE shape (objects 0xA1, 0xA6, 0xAA)
-  // Assembly: RoomDraw_DiagonalCeilingBottomLeftA/B with GetSize_1to16_timesA(4)
-  // count = (size & 0x0F) + 4 per ASM
-  int count = (obj.size_ & 0x0F) + 4;
-
-  if (tiles.empty())
-    return;
-
-  // Row 0: 1 tile, Row 1: 2 tiles, ..., Row count-1: count tiles
-  for (int row = 0; row < count; row++) {
-    int tiles_in_row = row + 1;
-    for (int col = 0; col < tiles_in_row; col++) {
-      WriteTile8(bg, obj.x_ + col, obj.y_ + row, tiles[0]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawDiagonalCeilingTopRight(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling top-right - TRIANGLE shape (objects 0xA2, 0xA7, 0xAB)
-  // Assembly: RoomDraw_DiagonalCeilingTopRightA/B with GetSize_1to16_timesA(4)
-  // count = (size & 0x0F) + 4 per ASM
-  int count = (obj.size_ & 0x0F) + 4;
-
-  if (tiles.empty())
-    return;
-
-  // Row 0 at (x,y): count tiles, Row 1 at (x+1,y+1): count-1 tiles, etc.
-  int tiles_in_row = count;
-  for (int row = 0; row < count && tiles_in_row > 0; row++) {
-    for (int col = 0; col < tiles_in_row; col++) {
-      WriteTile8(bg, obj.x_ + row + col, obj.y_ + row, tiles[0]);
-    }
-    tiles_in_row--;
-  }
-}
-
-void ObjectDrawer::DrawDiagonalCeilingBottomRight(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Diagonal ceiling bottom-right - TRIANGLE shape (objects 0xA3, 0xA8, 0xAC)
-  // Assembly: RoomDraw_DiagonalCeilingBottomRightA/B with GetSize_1to16_timesA(4)
-  // count = (size & 0x0F) + 4 per ASM
-  int count = (obj.size_ & 0x0F) + 4;
-
-  if (tiles.empty())
-    return;
-
-  // Row 0 at (x, y): count tiles, Row 1 at (x+1, y-1): count-1 tiles, etc.
-  int tiles_in_row = count;
-  for (int row = 0; row < count && tiles_in_row > 0; row++) {
-    for (int col = 0; col < tiles_in_row; col++) {
-      WriteTile8(bg, obj.x_ + row + col, obj.y_ - row, tiles[0]);
-    }
-    tiles_in_row--;
-  }
-}
-
-// ============================================================================
-// Phase 4 Step 5: Special Routines (0xC1, 0xCD, 0xCE, 0xDC)
-// ============================================================================
-
-void ObjectDrawer::DrawClosedChestPlatform(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles) {
-  // ASM: RoomDraw_ClosedChestPlatform ($018CC7)
-  //
-  // Structure:
-  //   LDA.b $B2         ; Width size
-  //   CLC
-  //   ADC.w #$0004      ; width = B2 + 4
-  //   STA.b $B2
-  //   STA.b $0A
-  //   INC.b $B4         ; height = B4 + 1
-  //   JSR RoomDraw_ChestPlatformHorizontalWallWithCorners
-  //   ... vertical walls on sides ...
-  //
-  // The platform has 68 tiles forming a frame + carpet pattern.
-  // Layer handling uses same $BF check as OpenChestPlatform.
-
-  if (tiles.size() < 16)
-    return;
-
-  // width = B2 + 4, height = B4 + 1
-  int width = (obj.size_ & 0x0F) + 4;
-  int height = ((obj.size_ >> 4) & 0x0F) + 1;
-
-  LOG_DEBUG("ObjectDrawer",
-            "DrawClosedChestPlatform: obj=0x%03X pos=(%d,%d) size=0x%02X "
-            "width=%d height=%d",
-            obj.id_, obj.x_, obj.y_, obj.size_, width, height);
-
-  // Draw outer frame + interior carpet pattern
-  // The routine builds a rectangular platform with walls and floor
-  size_t tile_idx = 0;
-  for (int row = 0; row < height * 3; ++row) {
-    for (int col = 0; col < width * 2; ++col) {
-      WriteTile8(bg, obj.x_ + col, obj.y_ + row,
-                 tiles[tile_idx % tiles.size()]);
-      tile_idx++;
-    }
-  }
-}
-
-void ObjectDrawer::DrawMovingWallWest(const RoomObject& obj,
-                                      gfx::BackgroundBuffer& bg,
-                                      std::span<const gfx::TileInfo> tiles) {
-  // ASM: RoomDraw_MovingWallWest ($019190)
-  // Draw vertical wall structure (28 tiles) - always draw in editor
-  if (tiles.size() < 6)
-    return;
-
-  int count = ((obj.size_ >> 4) & 0x0F) + 4;
-
-  // Draw wall columns
-  for (int row = 0; row < count; ++row) {
-    for (int col = 0; col < 3; ++col) {
-      size_t tile_idx = (row * 3 + col) % tiles.size();
-      WriteTile8(bg, obj.x_ + col, obj.y_ + row, tiles[tile_idx]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawMovingWallEast(const RoomObject& obj,
-                                      gfx::BackgroundBuffer& bg,
-                                      std::span<const gfx::TileInfo> tiles) {
-  // ASM: RoomDraw_MovingWallEast ($01921C)
-  // Mirror of West - draws from right-to-left
-  if (tiles.size() < 6)
-    return;
-
-  int count = ((obj.size_ >> 4) & 0x0F) + 4;
-
-  for (int row = 0; row < count; ++row) {
-    for (int col = 0; col < 3; ++col) {
-      size_t tile_idx = (row * 3 + col) % tiles.size();
-      WriteTile8(bg, obj.x_ - col, obj.y_ + row, tiles[tile_idx]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawOpenChestPlatform(const RoomObject& obj,
-                                         gfx::BackgroundBuffer& bg,
-                                         std::span<const gfx::TileInfo> tiles) {
-  // ASM: RoomDraw_OpenChestPlatform ($019733)
-  //
-  // Layer handling from ASM:
-  //   LDA.b $BF         ; Load current layer pointer
-  //   CMP.w #$4000      ; Compare with lower_layer ($4000)
-  //   BNE .upper_layer  ; Skip if upper layer
-  //   TYA
-  //   ORA.w #$2000      ; Set BG2 priority bit for lower layer
-  //   TAY
-  //
-  // In the editor, layer handling is done via the object's layer_ field
-  // and the DrawObject() method routes to the appropriate buffer.
-  // The BG2 priority bit is not directly applicable here since we use
-  // separate bitmaps for compositing.
-
-  if (tiles.size() < 8)
-    return;
-
-  // width = B2 + 1 (ASM: INC.b $B2)
-  int width = (obj.size_ & 0x0F) + 1;
-
-  // segments = (B4 * 2) + 5 (ASM: LDA.b $B4; ASL A; CLC; ADC.w #$0005)
-  int segments = ((obj.size_ >> 4) & 0x0F) * 2 + 5;
-
-  LOG_DEBUG("ObjectDrawer",
-            "DrawOpenChestPlatform: obj=0x%03X pos=(%d,%d) size=0x%02X "
-            "width=%d segments=%d",
-            obj.id_, obj.x_, obj.y_, obj.size_, width, segments);
-
-  // ASM: obj0AB4 is the tile data source (21 tiles total)
-  // The routine draws segments, each segment is a row of 'width' tiles
-  // Then draws two additional segments at the end (INY INY; JSR .draw_segment; INY INY)
-
-  // Draw the main segments
-  int tile_offset = 0;
-  for (int seg = 0; seg < segments; ++seg) {
-    for (int col = 0; col < width; ++col) {
-      size_t tile_idx = tile_offset % tiles.size();
-      WriteTile8(bg, obj.x_ + col, obj.y_ + seg, tiles[tile_idx]);
-      tile_offset++;
-    }
-  }
-
-  // Draw final two segments (ASM: INY INY; JSR .draw_segment; INY INY; JSR .draw_segment)
-  // These use tiles at offset +2 and +4 from the current position
-  tile_offset += 2;
-  for (int col = 0; col < width; ++col) {
-    size_t tile_idx = tile_offset % tiles.size();
-    WriteTile8(bg, obj.x_ + col, obj.y_ + segments, tiles[tile_idx]);
-    tile_offset++;
-  }
-  tile_offset += 2;
-  for (int col = 0; col < width; ++col) {
-    size_t tile_idx = tile_offset % tiles.size();
-    WriteTile8(bg, obj.x_ + col, obj.y_ + segments + 1, tiles[tile_idx]);
-    tile_offset++;
-  }
 }
 
 // ============================================================================
