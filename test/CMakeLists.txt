@@ -218,6 +218,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/panel_manager_policy_test.cc
     unit/editor/right_panel_manager_test.cc
     unit/editor/undo_manager_test.cc
+    unit/editor/sprite_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_manager_test.cc
