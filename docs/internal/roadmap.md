@@ -14,7 +14,7 @@ moving to 0.8.0. See `docs/internal/plans/0.7.0-feature-completion.md`
 for the detailed task breakdown and agent assignments.
 
 **0.7.0 completion priorities:**
-- P0 remaining: Screen undo/redo, Desktop BPS export
+- P0 remaining: Desktop BPS export
 - P0 completed: Tile16 palette/render fix, Message replace, Sprite undo/redo
 - P1 remaining: Tracker stubs, OW item deletion fix, CLI palette commands
 - P1 completed: Overworld usage statistics card data wiring
@@ -80,7 +80,8 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 
 **Screen Editor** (WIP)
 - ✅ Load/Save works for 5 screen types
-- ❌ Undo/Redo/Cut/Copy/Paste all return `UnimplementedError` (`screen_editor.h:46-52`)
+- ✅ Undo/Redo implemented for dungeon-map edits (snapshot-based)
+- 🟡 Cut/Copy/Paste/Find remain `UnimplementedError` (deferred)
 
 **Sprite Editor** (Beta)
 - ✅ Vanilla sprite viewer (OAM rendering, sheet loading)
@@ -211,9 +212,10 @@ Mobile testing and review companion for desktop development.
 - Tile16 renderer/usage index service extraction with dedicated unit coverage
 - Message editor find/replace + replace-all implementation
 - Sprite editor undo/redo with snapshot-based action support
+- Screen editor dungeon-map undo/redo with snapshot-based actions
 - Overworld usage statistics card data wiring
 - 6-phase refactoring complete (EditorManager split, OverworldEditor decomposition)
-- Sprite undo/redo, Screen undo/redo, Desktop BPS export (in progress)
+- Desktop BPS export (in progress)
 
 ### v0.6.0 (February 2026)
 - Unified UndoManager in Editor base class
