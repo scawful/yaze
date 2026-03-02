@@ -14,8 +14,8 @@ moving to 0.8.0. See `docs/internal/plans/0.7.0-feature-completion.md`
 for the detailed task breakdown and agent assignments.
 
 **0.7.0 completion priorities:**
-- P0 remaining: Sprite undo/redo, Screen undo/redo, Desktop BPS export
-- P0 completed: Tile16 palette/render fix, Message replace
+- P0 remaining: Screen undo/redo, Desktop BPS export
+- P0 completed: Tile16 palette/render fix, Message replace, Sprite undo/redo
 - P1 remaining: Tracker stubs, OW item deletion fix, CLI palette commands
 - P1 completed: Overworld usage statistics card data wiring
 - P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
@@ -85,7 +85,8 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 **Sprite Editor** (Beta)
 - ✅ Vanilla sprite viewer (OAM rendering, sheet loading)
 - ✅ ZSprite animation playback and property editing
-- ❌ Undo/Redo/Copy/Paste stubbed
+- ✅ Undo/Redo implemented (snapshot-based)
+- ❌ Copy/Paste stubbed
 
 **Memory Editor** (WIP)
 - ✅ Hex viewing
@@ -209,6 +210,7 @@ Mobile testing and review companion for desktop development.
 - Tile16 editor palette rendering fix (ZScream-parity pixel transform)
 - Tile16 renderer/usage index service extraction with dedicated unit coverage
 - Message editor find/replace + replace-all implementation
+- Sprite editor undo/redo with snapshot-based action support
 - Overworld usage statistics card data wiring
 - 6-phase refactoring complete (EditorManager split, OverworldEditor decomposition)
 - Sprite undo/redo, Screen undo/redo, Desktop BPS export (in progress)
