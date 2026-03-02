@@ -9,9 +9,9 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
+#include "app/editor/message/message_preview.h"
 #include "app/editor/message/message_undo_actions.h"
 #include "app/editor/message/panels/message_editor_panels.h"
-#include "app/editor/message/message_preview.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
@@ -83,6 +83,13 @@ class MessageEditor : public Editor {
   bool case_sensitive_ = false;
   bool match_whole_word_ = false;
   std::string search_text_ = "";
+  std::string replace_text_ = "";
+  std::string replace_status_ = "";
+  bool replace_status_error_ = false;
+
+  // Replace helpers
+  int ReplaceCurrentMatch();
+  int ReplaceAllMatches();
 
   std::array<uint8_t, 0x4000> raw_font_gfx_data_;
   std::vector<std::string> parsed_messages_;

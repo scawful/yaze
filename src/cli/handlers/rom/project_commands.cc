@@ -1,6 +1,7 @@
 #include "cli/handlers/rom/project_commands.h"
 
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 
 #include "core/asar_wrapper.h"
@@ -69,13 +70,32 @@ absl::Status ProjectBuildCommandHandler::Execute(
   }
 
   for (const auto& patch_file : bps_files) {
-    std::vector<uint8_t> patch_data;
-    auto patch_contents = util::LoadFile(patch_file);
-    std::copy(patch_contents.begin(), patch_contents.end(),
-              std::back_inserter(patch_data));
+    std::ifstream patch_stream(patch_file, std::ios::binary);
+    if (!patch_stream.is_open()) {
+      return absl::InternalError("Failed to open BPS patch: " + patch_file);
+    }
+
+    std::vector<uint8_t> patch_data(
+        (std::istreambuf_iterator<char>(patch_stream)),
+        std::istreambuf_iterator<char>());
+    if (patch_data.empty()) {
+      return absl::InvalidArgumentError("BPS patch is empty: " + patch_file);
+    }
+
     std::vector<uint8_t> patched_rom;
-    util::ApplyBpsPatch(build_rom.vector(), patch_data, patched_rom);
-    build_rom.LoadFromData(patched_rom);
+    auto apply_status =
+        util::ApplyBpsPatch(build_rom.vector(), patch_data, patched_rom);
+    if (!apply_status.ok()) {
+      return absl::InternalError("Failed to apply BPS patch " + patch_file +
+                                 ": " + std::string(apply_status.message()));
+    }
+
+    auto load_patched_status = build_rom.LoadFromData(patched_rom);
+    if (!load_patched_status.ok()) {
+      return absl::InternalError("Failed to load patched ROM after " +
+                                 patch_file + ": " +
+                                 std::string(load_patched_status.message()));
+    }
   }
 
   // Run asar on assembly files - cross-platform
@@ -104,9 +124,8 @@ absl::Status ProjectBuildCommandHandler::Execute(
         auto result = asar.ApplyPatch(asm_file, rom_data);
 
         if (!result.ok()) {
-          return absl::InternalError(
-              "ASM patch failed for " + asm_file + ": " +
-              std::string(result.status().message()));
+          return absl::InternalError("ASM patch failed for " + asm_file + ": " +
+                                     std::string(result.status().message()));
         }
 
         if (result->success) {

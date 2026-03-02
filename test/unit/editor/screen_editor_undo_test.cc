@@ -1,91 +1,130 @@
-#include "app/editor/core/undo_manager.h"
 #include "app/editor/graphics/screen_undo_actions.h"
 
-#include <array>
-#include <cstdint>
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "gtest/gtest.h"
+#include <gtest/gtest.h>
+
+#include "app/editor/core/undo_manager.h"
 
 namespace yaze::editor {
 namespace {
 
-ScreenSnapshot MakeSnapshot(uint8_t room_value, uint8_t gfx_value,
-                            uint16_t boss_room, uint8_t selected_room,
-                            const std::string& label) {
-  ScreenSnapshot snapshot;
+// ---------------------------------------------------------------------------
+// ScreenEditAction unit tests (no ImGui / ROM dependency)
+// ---------------------------------------------------------------------------
 
-  std::vector<std::array<uint8_t, zelda3::kNumRooms>> floor_rooms(1);
-  floor_rooms[0].fill(0x0F);
-  floor_rooms[0][selected_room] = room_value;
+TEST(ScreenEditActionTest, DungeonMapUndoRedoRoundTrip) {
+  // Build a "before" dungeon map snapshot
+  ScreenSnapshot before;
+  before.edit_type = ScreenEditType::kDungeonMap;
+  before.dungeon_map.dungeon_index = 0;
+  before.dungeon_map.map_data = zelda3::DungeonMap(
+      /*boss_room=*/0x0001, /*nbr_of_floor=*/1, /*nbr_of_basement=*/0,
+      /*floor_rooms=*/{{}}, /*floor_gfx=*/{{}});
+  before.dungeon_map.map_data.floor_gfx[0][0] = 0x0A;
 
-  std::vector<std::array<uint8_t, zelda3::kNumRooms>> floor_gfx(1);
-  floor_gfx[0].fill(0xFF);
-  floor_gfx[0][selected_room] = gfx_value;
+  // Build an "after" dungeon map snapshot (tile changed)
+  ScreenSnapshot after = before;
+  after.dungeon_map.map_data.floor_gfx[0][0] = 0x1B;
 
-  snapshot.dungeon_maps.emplace_back(boss_room, 1, 0, floor_rooms, floor_gfx);
-  snapshot.dungeon_map_labels[0].emplace_back();
-  snapshot.dungeon_map_labels[0][0][selected_room] = label;
-  snapshot.selected_dungeon = 0;
-  snapshot.floor_number = 0;
-  snapshot.selected_room = selected_room;
-  return snapshot;
+  // Track which snapshot was last restored
+  ScreenSnapshot restored;
+  auto restore = [&](const ScreenSnapshot& snap) {
+    restored = snap;
+  };
+
+  ScreenEditAction action(before, after, restore, "Place tile on dungeon map");
+
+  // Undo should restore the before-state
+  ASSERT_TRUE(action.Undo().ok());
+  EXPECT_EQ(restored.edit_type, ScreenEditType::kDungeonMap);
+  EXPECT_EQ(restored.dungeon_map.map_data.floor_gfx[0][0], 0x0A);
+
+  // Redo should restore the after-state
+  ASSERT_TRUE(action.Redo().ok());
+  EXPECT_EQ(restored.dungeon_map.map_data.floor_gfx[0][0], 0x1B);
 }
 
-TEST(ScreenUndoActionsTest, UndoRedoRestoresDungeonMapAndSelectionState) {
-  constexpr uint8_t kEditedRoom = 3;
-  ScreenSnapshot before =
-      MakeSnapshot(0x12, 0x34, 0x0001, kEditedRoom, "Before");
-  ScreenSnapshot after = MakeSnapshot(0x24, 0x56, 0x0002, kEditedRoom, "After");
+TEST(ScreenEditActionTest, Tile16CompUndoRedoRoundTrip) {
+  ScreenSnapshot before;
+  before.edit_type = ScreenEditType::kTile16Edit;
+  before.tile16_comp.tile16_id = 5;
+  before.tile16_comp.tile_info[0] = gfx::TileInfo(10, 0, false, false, false);
+
+  ScreenSnapshot after = before;
+  after.tile16_comp.tile_info[0] = gfx::TileInfo(20, 1, true, false, false);
 
   ScreenSnapshot restored;
-  ScreenEditAction action(
-      before, after,
-      [&](const ScreenSnapshot& snapshot) { restored = snapshot; },
-      "Edit dungeon map");
+  auto restore = [&](const ScreenSnapshot& snap) {
+    restored = snap;
+  };
+
+  ScreenEditAction action(before, after, restore, "Modify tile16 #5");
 
   ASSERT_TRUE(action.Undo().ok());
-  ASSERT_EQ(restored.dungeon_maps.size(), 1u);
-  EXPECT_EQ(restored.dungeon_maps[0].boss_room, 0x0001);
-  EXPECT_EQ(restored.dungeon_maps[0].floor_rooms[0][kEditedRoom], 0x12);
-  EXPECT_EQ(restored.dungeon_maps[0].floor_gfx[0][kEditedRoom], 0x34);
-  EXPECT_EQ(restored.dungeon_map_labels[0][0][kEditedRoom], "Before");
-  EXPECT_EQ(restored.selected_room, kEditedRoom);
+  EXPECT_EQ(restored.tile16_comp.tile_info[0].id_, 10);
 
   ASSERT_TRUE(action.Redo().ok());
-  ASSERT_EQ(restored.dungeon_maps.size(), 1u);
-  EXPECT_EQ(restored.dungeon_maps[0].boss_room, 0x0002);
-  EXPECT_EQ(restored.dungeon_maps[0].floor_rooms[0][kEditedRoom], 0x24);
-  EXPECT_EQ(restored.dungeon_maps[0].floor_gfx[0][kEditedRoom], 0x56);
-  EXPECT_EQ(restored.dungeon_map_labels[0][0][kEditedRoom], "After");
-  EXPECT_EQ(restored.selected_room, kEditedRoom);
+  EXPECT_EQ(restored.tile16_comp.tile_info[0].id_, 20);
 }
 
-TEST(ScreenUndoActionsTest, UndoManagerIntegrationUsesDescriptionAndRestores) {
-  constexpr uint8_t kEditedRoom = 5;
-  UndoManager manager;
-  ScreenSnapshot before = MakeSnapshot(0x11, 0x22, 0x0010, kEditedRoom, "Old");
-  ScreenSnapshot after = MakeSnapshot(0x33, 0x44, 0x0020, kEditedRoom, "New");
+TEST(ScreenEditActionTest, DescriptionAndMemoryUsage) {
+  ScreenSnapshot before;
+  before.edit_type = ScreenEditType::kDungeonMap;
+  before.dungeon_map.dungeon_index = 3;
+  before.dungeon_map.map_data = zelda3::DungeonMap(0, 1, 0, {{}}, {{}});
+
+  ScreenSnapshot after = before;
+
+  ScreenEditAction action(
+      before, after, [](const ScreenSnapshot&) {}, "Add floor");
+
+  EXPECT_EQ(action.Description(), "Add floor");
+  EXPECT_GT(action.MemoryUsage(), 0u);
+  EXPECT_FALSE(action.CanMergeWith(action));
+}
+
+TEST(ScreenEditActionTest, NullRestoreCallbackReturnsError) {
+  ScreenSnapshot snap;
+  ScreenEditAction action(snap, snap, nullptr, "bad action");
+
+  auto undo_status = action.Undo();
+  EXPECT_FALSE(undo_status.ok());
+
+  auto redo_status = action.Redo();
+  EXPECT_FALSE(redo_status.ok());
+}
+
+TEST(ScreenEditActionTest, UndoManagerIntegration) {
+  // Verify ScreenEditAction works with UndoManager push/undo/redo cycle.
+  UndoManager mgr;
+
+  ScreenSnapshot before;
+  before.edit_type = ScreenEditType::kDungeonMap;
+  before.dungeon_map.dungeon_index = 0;
+  before.dungeon_map.map_data =
+      zelda3::DungeonMap(0xFFFF, 2, 1, {{}, {}, {}}, {{}, {}, {}});
+
+  ScreenSnapshot after = before;
+  after.dungeon_map.map_data.nbr_of_floor = 3;
+
   ScreenSnapshot restored;
+  auto restore = [&](const ScreenSnapshot& snap) {
+    restored = snap;
+  };
 
-  manager.Push(std::make_unique<ScreenEditAction>(
-      before, after,
-      [&](const ScreenSnapshot& snapshot) { restored = snapshot; },
-      "Paint dungeon room gfx"));
+  mgr.Push(
+      std::make_unique<ScreenEditAction>(before, after, restore, "Add floor"));
 
-  EXPECT_TRUE(manager.CanUndo());
-  EXPECT_EQ(manager.GetUndoDescription(), "Paint dungeon room gfx");
+  EXPECT_TRUE(mgr.CanUndo());
+  EXPECT_FALSE(mgr.CanRedo());
+  EXPECT_EQ(mgr.GetUndoDescription(), "Add floor");
 
-  ASSERT_TRUE(manager.Undo().ok());
-  EXPECT_EQ(restored.dungeon_maps[0].floor_gfx[0][kEditedRoom], 0x22);
-  EXPECT_EQ(restored.dungeon_map_labels[0][0][kEditedRoom], "Old");
-  EXPECT_TRUE(manager.CanRedo());
+  ASSERT_TRUE(mgr.Undo().ok());
+  EXPECT_EQ(restored.dungeon_map.map_data.nbr_of_floor, 2);
 
-  ASSERT_TRUE(manager.Redo().ok());
-  EXPECT_EQ(restored.dungeon_maps[0].floor_gfx[0][kEditedRoom], 0x44);
-  EXPECT_EQ(restored.dungeon_map_labels[0][0][kEditedRoom], "New");
+  ASSERT_TRUE(mgr.Redo().ok());
+  EXPECT_EQ(restored.dungeon_map.map_data.nbr_of_floor, 3);
 }
 
 }  // namespace

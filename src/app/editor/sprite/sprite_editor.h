@@ -2,7 +2,6 @@
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
 #include <cstdint>
-#include <functional>
 #include <string>
 #include <vector>
 
@@ -51,8 +50,8 @@ class SpriteEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
-  absl::Status Undo() override;
-  absl::Status Redo() override;
+  absl::Status Undo() override { return undo_manager_.Undo(); }
+  absl::Status Redo() override { return undo_manager_.Redo(); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
@@ -117,14 +116,14 @@ class SpriteEditor : public Editor {
   void RenderVanillaSprite(const zelda3::SpriteOamLayout& layout);
   void LoadSheetsForSprite(const std::array<uint8_t, 4>& sheets);
 
-  // Undo helpers for custom ZSprite editing
-  bool HasSelectedCustomSprite() const;
+  // ============================================================
+  // Undo/Redo Helpers
+  // ============================================================
   SpriteSnapshot CaptureCurrentSpriteSnapshot() const;
-  void RestoreSpriteSnapshot(const SpriteSnapshot& snapshot);
-  void PushCustomSpriteEditAction(const std::string& description,
-                                  SpriteSnapshot before_snapshot);
-  void ApplyCustomSpriteEdit(const std::string& description,
-                             const std::function<void()>& mutation);
+  void RestoreFromSnapshot(const SpriteSnapshot& snapshot);
+  void BeginUndoTransaction();
+  void CommitUndoTransaction();
+  void MarkSpriteMutated();
 
   // ============================================================
   // Vanilla Sprite State
@@ -190,6 +189,13 @@ class SpriteEditor : public Editor {
   gui::Canvas graphics_sheet_canvas_{"GraphicsSheetCanvas",
                                      ImVec2(0x80 * 2 + 2, 0x40 * 8 + 2),
                                      gui::CanvasGridSize::k16x16};
+
+  // ============================================================
+  // Undo State
+  // ============================================================
+  bool undo_snapshot_pending_ = false;
+  bool sprite_mutated_this_frame_ = false;
+  SpriteSnapshot undo_before_snapshot_;
 
   // ============================================================
   // Common State

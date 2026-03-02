@@ -7,6 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/sprite/sprite_drawer.h"
+#include "app/editor/sprite/sprite_undo_actions.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -97,108 +98,13 @@ absl::Status SpriteEditor::Update() {
   // Panel drawing is handled by PanelManager via registered EditorPanels
   // Each panel's Draw() callback invokes the appropriate draw method
 
+  // Commit any pending undo transaction at the end of the frame
+  CommitUndoTransaction();
+
   return status_.ok() ? absl::OkStatus() : status_;
 }
 
-absl::Status SpriteEditor::Undo() { return undo_manager_.Undo(); }
-
-absl::Status SpriteEditor::Redo() { return undo_manager_.Redo(); }
-
-bool SpriteEditor::HasSelectedCustomSprite() const {
-  return current_custom_sprite_index_ >= 0 &&
-         current_custom_sprite_index_ <
-             static_cast<int>(custom_sprites_.size());
-}
-
-SpriteSnapshot SpriteEditor::CaptureCurrentSpriteSnapshot() const {
-  SpriteSnapshot snapshot;
-  if (!HasSelectedCustomSprite()) {
-    return snapshot;
-  }
-
-  snapshot.sprite_index = current_custom_sprite_index_;
-  snapshot.sprite = custom_sprites_[current_custom_sprite_index_];
-  snapshot.sprite_path = GetCurrentZsmPath();
-  snapshot.zsm_dirty = zsm_dirty_;
-  snapshot.current_frame = current_frame_;
-  snapshot.current_animation_index = current_animation_index_;
-  snapshot.selected_tile_index = selected_tile_index_;
-  snapshot.selected_routine_index = selected_routine_index_;
-  snapshot.animation_playing = animation_playing_;
-  snapshot.frame_timer = frame_timer_;
-  return snapshot;
-}
-
-void SpriteEditor::RestoreSpriteSnapshot(const SpriteSnapshot& snapshot) {
-  if (snapshot.sprite_index < 0 ||
-      snapshot.sprite_index >= static_cast<int>(custom_sprites_.size())) {
-    return;
-  }
-
-  custom_sprites_[snapshot.sprite_index] = snapshot.sprite;
-  EnsureCustomSpritePaths();
-  if (snapshot.sprite_index < static_cast<int>(custom_sprite_paths_.size())) {
-    custom_sprite_paths_[snapshot.sprite_index] = snapshot.sprite_path;
-  }
-
-  current_custom_sprite_index_ = snapshot.sprite_index;
-  current_frame_ = snapshot.current_frame;
-  current_animation_index_ = snapshot.current_animation_index;
-  selected_tile_index_ = snapshot.selected_tile_index;
-  selected_routine_index_ = snapshot.selected_routine_index;
-  animation_playing_ = snapshot.animation_playing;
-  frame_timer_ = snapshot.frame_timer;
-  zsm_dirty_ = snapshot.zsm_dirty;
-  preview_needs_update_ = true;
-}
-
-void SpriteEditor::PushCustomSpriteEditAction(const std::string& description,
-                                              SpriteSnapshot before_snapshot) {
-  if (!HasSelectedCustomSprite()) {
-    return;
-  }
-
-  SpriteSnapshot after_snapshot = CaptureCurrentSpriteSnapshot();
-  after_snapshot.zsm_dirty = true;
-  zsm_dirty_ = true;
-
-  auto restore_fn = [this](const SpriteSnapshot& snapshot) {
-    RestoreSpriteSnapshot(snapshot);
-  };
-  undo_manager_.Push(std::make_unique<SpriteEditAction>(
-      std::move(before_snapshot), std::move(after_snapshot),
-      std::move(restore_fn), description));
-}
-
-void SpriteEditor::ApplyCustomSpriteEdit(const std::string& description,
-                                         const std::function<void()>& mutation) {
-  if (!HasSelectedCustomSprite() || !mutation) {
-    return;
-  }
-
-  SpriteSnapshot before_snapshot = CaptureCurrentSpriteSnapshot();
-  mutation();
-  PushCustomSpriteEditAction(description, std::move(before_snapshot));
-}
-
 void SpriteEditor::HandleEditorShortcuts() {
-  const ImGuiIO& io = ImGui::GetIO();
-
-  if (io.KeyCtrl && !io.WantTextInput && ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-    if (io.KeyShift) {
-      if (undo_manager_.CanRedo()) {
-        status_ = Redo();
-      }
-    } else if (undo_manager_.CanUndo()) {
-      status_ = Undo();
-    }
-  } else if (io.KeyCtrl && !io.WantTextInput &&
-             ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
-    if (undo_manager_.CanRedo()) {
-      status_ = Redo();
-    }
-  }
-
   // Animation playback shortcuts (when custom sprite panel is active)
   if (ImGui::IsKeyPressed(ImGuiKey_Space, false) &&
       !ImGui::GetIO().WantTextInput) {
@@ -218,13 +124,14 @@ void SpriteEditor::HandleEditorShortcuts() {
   }
 
   // Sprite navigation
-  if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
+  if (ImGui::GetIO().KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
     if (current_sprite_id_ > 0) {
       current_sprite_id_--;
       vanilla_preview_needs_update_ = true;
     }
   }
-  if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
+  if (ImGui::GetIO().KeyCtrl &&
+      ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
     current_sprite_id_++;
     vanilla_preview_needs_update_ = true;
   }
@@ -485,6 +392,14 @@ void SpriteEditor::DrawCustomSprites() {
 }
 
 void SpriteEditor::DrawCustomSpritesMetadata() {
+  // Capture undo snapshot before any widgets can mutate sprite data.
+  // CommitUndoTransaction() in Update() will push the action only if
+  // a mutation actually occurred (zsm_dirty_ was set).
+  if (current_custom_sprite_index_ >= 0 &&
+      current_custom_sprite_index_ < static_cast<int>(custom_sprites_.size())) {
+    BeginUndoTransaction();
+  }
+
   // File operations toolbar
   if (ImGui::Button(ICON_MD_ADD " New")) {
     CreateNewZSprite();
@@ -639,18 +554,16 @@ void SpriteEditor::DrawSpritePropertiesPanel() {
   static char name_buf[256];
   CopyStringToBuffer(sprite.sprName, name_buf);
   if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
-    ApplyCustomSpriteEdit("Rename custom sprite", [&]() {
-      sprite.sprName = name_buf;
-      sprite.property_sprname.Text = name_buf;
-    });
+    sprite.sprName = name_buf;
+    sprite.property_sprname.Text = name_buf;
+    MarkSpriteMutated();
   }
 
   static char id_buf[32];
   CopyStringToBuffer(sprite.property_sprid.Text, id_buf);
   if (ImGui::InputText("Sprite ID", id_buf, sizeof(id_buf))) {
-    ApplyCustomSpriteEdit("Edit sprite ID", [&]() {
-      sprite.property_sprid.Text = id_buf;
-    });
+    sprite.property_sprid.Text = id_buf;
+    MarkSpriteMutated();
   }
 
   Separator();
@@ -668,50 +581,38 @@ void SpriteEditor::DrawStatProperties() {
   // Use InputInt for numeric values
   int prize = ParseIntOrDefault(sprite.property_prize.Text);
   if (ImGui::InputInt("Prize", &prize)) {
-    const int clamped = std::clamp(prize, 0, 255);
-    ApplyCustomSpriteEdit("Edit prize stat", [&]() {
-      sprite.property_prize.Text = std::to_string(clamped);
-    });
+    sprite.property_prize.Text = std::to_string(std::clamp(prize, 0, 255));
+    MarkSpriteMutated();
   }
 
   int palette = ParseIntOrDefault(sprite.property_palette.Text);
   if (ImGui::InputInt("Palette", &palette)) {
-    const int clamped = std::clamp(palette, 0, 7);
-    ApplyCustomSpriteEdit("Edit palette stat", [&]() {
-      sprite.property_palette.Text = std::to_string(clamped);
-    });
+    sprite.property_palette.Text = std::to_string(std::clamp(palette, 0, 7));
+    MarkSpriteMutated();
   }
 
   int oamnbr = ParseIntOrDefault(sprite.property_oamnbr.Text);
   if (ImGui::InputInt("OAM Count", &oamnbr)) {
-    const int clamped = std::clamp(oamnbr, 0, 255);
-    ApplyCustomSpriteEdit("Edit OAM count stat", [&]() {
-      sprite.property_oamnbr.Text = std::to_string(clamped);
-    });
+    sprite.property_oamnbr.Text = std::to_string(std::clamp(oamnbr, 0, 255));
+    MarkSpriteMutated();
   }
 
   int hitbox = ParseIntOrDefault(sprite.property_hitbox.Text);
   if (ImGui::InputInt("Hitbox", &hitbox)) {
-    const int clamped = std::clamp(hitbox, 0, 255);
-    ApplyCustomSpriteEdit("Edit hitbox stat", [&]() {
-      sprite.property_hitbox.Text = std::to_string(clamped);
-    });
+    sprite.property_hitbox.Text = std::to_string(std::clamp(hitbox, 0, 255));
+    MarkSpriteMutated();
   }
 
   int health = ParseIntOrDefault(sprite.property_health.Text);
   if (ImGui::InputInt("Health", &health)) {
-    const int clamped = std::clamp(health, 0, 255);
-    ApplyCustomSpriteEdit("Edit health stat", [&]() {
-      sprite.property_health.Text = std::to_string(clamped);
-    });
+    sprite.property_health.Text = std::to_string(std::clamp(health, 0, 255));
+    MarkSpriteMutated();
   }
 
   int damage = ParseIntOrDefault(sprite.property_damage.Text);
   if (ImGui::InputInt("Damage", &damage)) {
-    const int clamped = std::clamp(damage, 0, 255);
-    ApplyCustomSpriteEdit("Edit damage stat", [&]() {
-      sprite.property_damage.Text = std::to_string(clamped);
-    });
+    sprite.property_damage.Text = std::to_string(std::clamp(damage, 0, 255));
+    MarkSpriteMutated();
   }
 }
 
@@ -722,65 +623,58 @@ void SpriteEditor::DrawBooleanProperties() {
 
   // Two columns for boolean properties
   if (ImGui::BeginTable("BoolProps", 2, ImGuiTableFlags_None)) {
-    const SpriteSnapshot before_snapshot = CaptureCurrentSpriteSnapshot();
-    bool any_changed = false;
-
     // Column 1
     ImGui::TableNextColumn();
     if (ImGui::Checkbox("Blockable", &sprite.property_blockable.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Can Fall", &sprite.property_canfall.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Collision Layer",
                         &sprite.property_collisionlayer.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Custom Death", &sprite.property_customdeath.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Damage Sound", &sprite.property_damagesound.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Deflect Arrows",
                         &sprite.property_deflectarrows.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Deflect Projectiles",
                         &sprite.property_deflectprojectiles.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Fast", &sprite.property_fast.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Harmless", &sprite.property_harmless.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Impervious", &sprite.property_impervious.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
 
     // Column 2
     ImGui::TableNextColumn();
     if (ImGui::Checkbox("Impervious Arrow",
                         &sprite.property_imperviousarrow.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Impervious Melee",
                         &sprite.property_imperviousmelee.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Interaction", &sprite.property_interaction.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Is Boss", &sprite.property_isboss.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Persist", &sprite.property_persist.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Shadow", &sprite.property_shadow.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Small Shadow", &sprite.property_smallshadow.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Stasis", &sprite.property_statis.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Statue", &sprite.property_statue.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
     if (ImGui::Checkbox("Water Sprite", &sprite.property_watersprite.IsChecked))
-      any_changed = true;
+      MarkSpriteMutated();
 
     ImGui::EndTable();
-
-    if (any_changed) {
-      PushCustomSpriteEditAction("Toggle behavior flags", before_snapshot);
-    }
   }
 }
 
@@ -825,10 +719,9 @@ void SpriteEditor::DrawAnimationPanel() {
   Text("Animations");
   if (ImGui::Button(ICON_MD_ADD " Add Animation")) {
     int frame_count = static_cast<int>(sprite.editor.Frames.size());
-    ApplyCustomSpriteEdit("Add animation", [&]() {
-      sprite.animations.emplace_back(0, frame_count > 0 ? frame_count - 1 : 0,
-                                     1, "New Animation");
-    });
+    sprite.animations.emplace_back(0, frame_count > 0 ? frame_count - 1 : 0, 1,
+                                   "New Animation");
+    MarkSpriteMutated();
   }
   HOVER_HINT("Add a new animation sequence");
 
@@ -856,9 +749,8 @@ void SpriteEditor::DrawAnimationPanel() {
     static char anim_name[128];
     CopyStringToBuffer(anim.frame_name, anim_name);
     if (ImGui::InputText("Name##Anim", anim_name, sizeof(anim_name))) {
-      ApplyCustomSpriteEdit("Rename animation", [&]() {
-        anim.frame_name = anim_name;
-      });
+      anim.frame_name = anim_name;
+      MarkSpriteMutated();
     }
 
     int start = anim.frame_start;
@@ -867,30 +759,25 @@ void SpriteEditor::DrawAnimationPanel() {
 
     if (ImGui::SliderInt("Start Frame", &start, 0,
                          std::max(0, (int)sprite.editor.Frames.size() - 1))) {
-      ApplyCustomSpriteEdit("Edit animation start frame", [&]() {
-        anim.frame_start = static_cast<uint8_t>(start);
-      });
+      anim.frame_start = static_cast<uint8_t>(start);
+      MarkSpriteMutated();
     }
     if (ImGui::SliderInt("End Frame", &end, 0,
                          std::max(0, (int)sprite.editor.Frames.size() - 1))) {
-      ApplyCustomSpriteEdit("Edit animation end frame", [&]() {
-        anim.frame_end = static_cast<uint8_t>(end);
-      });
+      anim.frame_end = static_cast<uint8_t>(end);
+      MarkSpriteMutated();
     }
     if (ImGui::SliderInt("Speed", &speed, 1, 16)) {
-      ApplyCustomSpriteEdit("Edit animation speed", [&]() {
-        anim.frame_speed = static_cast<uint8_t>(speed);
-      });
+      anim.frame_speed = static_cast<uint8_t>(speed);
+      MarkSpriteMutated();
     }
 
     if (ImGui::Button("Delete Animation") && sprite.animations.size() > 1) {
-      ApplyCustomSpriteEdit("Delete animation", [&]() {
-        sprite.animations.erase(sprite.animations.begin() +
-                                current_animation_index_);
-        current_animation_index_ =
-            std::min(current_animation_index_,
-                     static_cast<int>(sprite.animations.size()) - 1);
-      });
+      sprite.animations.erase(sprite.animations.begin() +
+                              current_animation_index_);
+      current_animation_index_ =
+          std::min(current_animation_index_, (int)sprite.animations.size() - 1);
+      MarkSpriteMutated();
     }
     HOVER_HINT("Delete the selected animation");
   }
@@ -904,21 +791,18 @@ void SpriteEditor::DrawFrameEditor() {
 
   Text("Frames");
   if (ImGui::Button(ICON_MD_ADD " Add Frame")) {
-    ApplyCustomSpriteEdit("Add frame", [&]() {
-      sprite.editor.Frames.emplace_back();
-      preview_needs_update_ = true;
-    });
+    sprite.editor.Frames.emplace_back();
+    MarkSpriteMutated();
   }
   HOVER_HINT("Add a new animation frame");
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_DELETE " Delete Frame") &&
       sprite.editor.Frames.size() > 1 && current_frame_ >= 0) {
-    ApplyCustomSpriteEdit("Delete frame", [&]() {
-      sprite.editor.Frames.erase(sprite.editor.Frames.begin() + current_frame_);
-      current_frame_ =
-          std::min(current_frame_, static_cast<int>(sprite.editor.Frames.size()) - 1);
-      preview_needs_update_ = true;
-    });
+    sprite.editor.Frames.erase(sprite.editor.Frames.begin() + current_frame_);
+    current_frame_ =
+        std::min(current_frame_, (int)sprite.editor.Frames.size() - 1);
+    MarkSpriteMutated();
+    preview_needs_update_ = true;
   }
   HOVER_HINT("Delete the current frame");
 
@@ -948,10 +832,9 @@ void SpriteEditor::DrawFrameEditor() {
     Text("Tiles in Frame %d", current_frame_);
 
     if (ImGui::Button(ICON_MD_ADD " Add Tile")) {
-      ApplyCustomSpriteEdit("Add frame tile", [&]() {
-        frame.Tiles.emplace_back();
-        preview_needs_update_ = true;
-      });
+      frame.Tiles.emplace_back();
+      MarkSpriteMutated();
+      preview_needs_update_ = true;
     }
     HOVER_HINT("Add a new tile to this frame");
 
@@ -973,55 +856,50 @@ void SpriteEditor::DrawFrameEditor() {
 
       int tile_id = tile.id;
       if (ImGui::InputInt("Tile ID", &tile_id)) {
-        const int clamped = std::clamp(tile_id, 0, 511);
-        ApplyCustomSpriteEdit("Edit tile ID", [&]() {
-          tile.id = static_cast<uint16_t>(clamped);
-          preview_needs_update_ = true;
-        });
+        tile.id = static_cast<uint16_t>(std::clamp(tile_id, 0, 511));
+        MarkSpriteMutated();
+        preview_needs_update_ = true;
       }
 
       int x = tile.x, y = tile.y;
       if (ImGui::InputInt("X", &x)) {
-        const int clamped = std::clamp(x, 0, 251);
-        ApplyCustomSpriteEdit("Edit tile X", [&]() {
-          tile.x = static_cast<uint8_t>(clamped);
-          preview_needs_update_ = true;
-        });
+        tile.x = static_cast<uint8_t>(std::clamp(x, 0, 251));
+        MarkSpriteMutated();
+        preview_needs_update_ = true;
       }
       if (ImGui::InputInt("Y", &y)) {
-        const int clamped = std::clamp(y, 0, 219);
-        ApplyCustomSpriteEdit("Edit tile Y", [&]() {
-          tile.y = static_cast<uint8_t>(clamped);
-          preview_needs_update_ = true;
-        });
+        tile.y = static_cast<uint8_t>(std::clamp(y, 0, 219));
+        MarkSpriteMutated();
+        preview_needs_update_ = true;
       }
 
       int pal = tile.palette;
       if (ImGui::SliderInt("Palette##Tile", &pal, 0, 7)) {
-        ApplyCustomSpriteEdit("Edit tile palette", [&]() {
-          tile.palette = static_cast<uint8_t>(pal);
-          preview_needs_update_ = true;
-        });
+        tile.palette = static_cast<uint8_t>(pal);
+        MarkSpriteMutated();
+        preview_needs_update_ = true;
       }
 
-      bool any_tile_flag_changed = false;
-      const SpriteSnapshot before_tile_flags = CaptureCurrentSpriteSnapshot();
-      if (ImGui::Checkbox("16x16", &tile.size)) any_tile_flag_changed = true;
-      ImGui::SameLine();
-      if (ImGui::Checkbox("Flip X", &tile.mirror_x)) any_tile_flag_changed = true;
-      ImGui::SameLine();
-      if (ImGui::Checkbox("Flip Y", &tile.mirror_y)) any_tile_flag_changed = true;
-      if (any_tile_flag_changed) {
+      if (ImGui::Checkbox("16x16", &tile.size)) {
+        MarkSpriteMutated();
         preview_needs_update_ = true;
-        PushCustomSpriteEditAction("Toggle tile flags", before_tile_flags);
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("Flip X", &tile.mirror_x)) {
+        MarkSpriteMutated();
+        preview_needs_update_ = true;
+      }
+      ImGui::SameLine();
+      if (ImGui::Checkbox("Flip Y", &tile.mirror_y)) {
+        MarkSpriteMutated();
+        preview_needs_update_ = true;
       }
 
       if (ImGui::Button("Delete Tile")) {
-        ApplyCustomSpriteEdit("Delete frame tile", [&]() {
-          frame.Tiles.erase(frame.Tiles.begin() + selected_tile_index_);
-          selected_tile_index_ = -1;
-          preview_needs_update_ = true;
-        });
+        frame.Tiles.erase(frame.Tiles.begin() + selected_tile_index_);
+        selected_tile_index_ = -1;
+        MarkSpriteMutated();
+        preview_needs_update_ = true;
       }
       HOVER_HINT("Delete the selected tile");
     }
@@ -1063,9 +941,8 @@ void SpriteEditor::DrawUserRoutinesPanel() {
   auto& sprite = custom_sprites_[current_custom_sprite_index_];
 
   if (ImGui::Button(ICON_MD_ADD " Add Routine")) {
-    ApplyCustomSpriteEdit("Add user routine", [&]() {
-      sprite.userRoutines.emplace_back("New Routine", "; ASM code here\n");
-    });
+    sprite.userRoutines.emplace_back("New Routine", "; ASM code here\n");
+    MarkSpriteMutated();
   }
   HOVER_HINT("Add a new ASM routine");
 
@@ -1090,9 +967,8 @@ void SpriteEditor::DrawUserRoutinesPanel() {
     static char routine_name[128];
     CopyStringToBuffer(routine.name, routine_name);
     if (ImGui::InputText("Routine Name", routine_name, sizeof(routine_name))) {
-      ApplyCustomSpriteEdit("Rename user routine", [&]() {
-        routine.name = routine_name;
-      });
+      routine.name = routine_name;
+      MarkSpriteMutated();
     }
 
     Text("ASM Code:");
@@ -1102,17 +978,15 @@ void SpriteEditor::DrawUserRoutinesPanel() {
     CopyStringToBuffer(routine.code, code_buffer);
     if (ImGui::InputTextMultiline("##RoutineCode", code_buffer,
                                   sizeof(code_buffer), ImVec2(-1, 200))) {
-      ApplyCustomSpriteEdit("Edit user routine code", [&]() {
-        routine.code = code_buffer;
-      });
+      routine.code = code_buffer;
+      MarkSpriteMutated();
     }
 
     if (ImGui::Button("Delete Routine")) {
-      ApplyCustomSpriteEdit("Delete user routine", [&]() {
-        sprite.userRoutines.erase(sprite.userRoutines.begin() +
-                                  selected_routine_index_);
-        selected_routine_index_ = -1;
-      });
+      sprite.userRoutines.erase(sprite.userRoutines.begin() +
+                                selected_routine_index_);
+      selected_routine_index_ = -1;
+      MarkSpriteMutated();
     }
     HOVER_HINT("Delete the selected routine");
   }
@@ -1408,6 +1282,72 @@ void SpriteEditor::DrawZSpriteOnCanvas() {
     }
   }
   ImGui::EndChild();
+}
+
+// ============================================================
+// Undo/Redo Helpers
+// ============================================================
+
+SpriteSnapshot SpriteEditor::CaptureCurrentSpriteSnapshot() const {
+  SpriteSnapshot snapshot;
+  snapshot.sprite_index = current_custom_sprite_index_;
+  snapshot.current_frame = current_frame_;
+  snapshot.current_animation_index = current_animation_index_;
+  if (current_custom_sprite_index_ >= 0 &&
+      current_custom_sprite_index_ < static_cast<int>(custom_sprites_.size())) {
+    snapshot.sprite_data = custom_sprites_[current_custom_sprite_index_];
+  }
+  return snapshot;
+}
+
+void SpriteEditor::RestoreFromSnapshot(const SpriteSnapshot& snapshot) {
+  if (snapshot.sprite_index < 0 ||
+      snapshot.sprite_index >= static_cast<int>(custom_sprites_.size())) {
+    return;
+  }
+  current_custom_sprite_index_ = snapshot.sprite_index;
+  current_frame_ = snapshot.current_frame;
+  current_animation_index_ = snapshot.current_animation_index;
+  custom_sprites_[snapshot.sprite_index] = snapshot.sprite_data;
+  preview_needs_update_ = true;
+  zsm_dirty_ = true;
+}
+
+void SpriteEditor::BeginUndoTransaction() {
+  if (undo_snapshot_pending_) {
+    return;  // Already in a transaction
+  }
+  undo_before_snapshot_ = CaptureCurrentSpriteSnapshot();
+  undo_snapshot_pending_ = true;
+}
+
+void SpriteEditor::CommitUndoTransaction() {
+  if (!undo_snapshot_pending_) {
+    return;
+  }
+
+  if (!sprite_mutated_this_frame_) {
+    // No mutation happened; discard the pending snapshot so we can
+    // capture a fresh one next frame.
+    undo_snapshot_pending_ = false;
+    return;
+  }
+
+  undo_snapshot_pending_ = false;
+  sprite_mutated_this_frame_ = false;
+
+  auto after = CaptureCurrentSpriteSnapshot();
+  auto restore_fn = [this](const SpriteSnapshot& snapshot) {
+    RestoreFromSnapshot(snapshot);
+  };
+  undo_manager_.Push(std::make_unique<SpriteEditAction>(
+      std::move(undo_before_snapshot_), std::move(after),
+      std::move(restore_fn)));
+}
+
+void SpriteEditor::MarkSpriteMutated() {
+  zsm_dirty_ = true;
+  sprite_mutated_this_frame_ = true;
 }
 
 void SpriteEditor::EnsureCustomSpritePaths() {

@@ -2,7 +2,6 @@
 #define YAZE_APP_EDITOR_SCREEN_EDITOR_H
 
 #include <array>
-#include <string>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
@@ -45,8 +44,8 @@ class ScreenEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
-  absl::Status Undo() override;
-  absl::Status Redo() override;
+  absl::Status Undo() override { return undo_manager_.Undo(); }
+  absl::Status Redo() override { return undo_manager_.Redo(); }
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
@@ -83,12 +82,16 @@ class ScreenEditor : public Editor {
   void DrawDungeonMapsEditor();
   void DrawDungeonMapsRoomGfx();
 
-  ScreenSnapshot CaptureScreenSnapshot() const;
-  void RestoreScreenSnapshot(const ScreenSnapshot& snapshot);
-  void PushDungeonMapUndo(ScreenSnapshot before, std::string description);
-  void ClampDungeonSelection();
-
   void LoadBinaryGfx();
+
+  // Undo/redo helpers
+  ScreenSnapshot CaptureDungeonMapSnapshot() const;
+  ScreenSnapshot CaptureTile16CompSnapshot() const;
+  void SaveDungeonMapUndoState(const std::string& description);
+  void SaveTile16CompUndoState(const std::string& description);
+  void CommitDungeonMapUndo();
+  void CommitTile16CompUndo();
+  void RestoreFromSnapshot(const ScreenSnapshot& snapshot);
 
   enum class EditingMode { DRAW, EDIT };
 
@@ -155,6 +158,14 @@ class ScreenEditor : public Editor {
                              gui::CanvasGridSize::k8x8, 1.0f};
   gui::Canvas ow_tileset_canvas_{"##OWTilesetCanvas", ImVec2(128, 128),
                                  gui::CanvasGridSize::k8x8, 2.0f};
+
+  // Undo/redo pending state
+  bool has_pending_dungeon_undo_ = false;
+  bool has_pending_tile16_undo_ = false;
+  ScreenSnapshot pending_dungeon_before_;
+  ScreenSnapshot pending_tile16_before_;
+  std::string pending_dungeon_desc_;
+  std::string pending_tile16_desc_;
 
   Rom* rom_;
   absl::Status status_;
