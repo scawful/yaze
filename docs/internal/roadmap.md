@@ -16,8 +16,9 @@ for the detailed task breakdown and agent assignments.
 **0.7.0 completion priorities:**
 - P0 completed: Tile16 palette/render fix, Message replace, Sprite undo/redo,
   Screen undo/redo, Desktop BPS export
-- P1 remaining: Tracker stubs, OW item deletion fix, CLI palette commands
+- P1 remaining: Tracker stubs, CLI palette commands
 - P1 completed: Overworld usage statistics card data wiring
+- P1 completed: Overworld item deletion now physically removes entries
 - P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
 
 Four parallel workstreams continue from the 0.6.x cycle.
@@ -49,7 +50,7 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ Tile8 usage index extracted to shared `zelda3` service + unit tests
 - ✅ Usage statistics card now uses real overworld map data (no placeholder zeros)
 - 🟡 Overworld sprite workflow incomplete
-- 🟡 Item deletion only hides, doesn't remove
+- ✅ Item deletion now removes entries from `all_items` (with operation tests)
 - 🟡 Export file dialog not implemented
 - 🟡 **Persistent scratch pad**: ZScream saves `ScratchPad.dat`; yaze scratch is session-only
 - 🟡 **Eyedropper tool**: no dedicated tool/shortcut (ZScream has right-click sampling)
@@ -214,6 +215,7 @@ Mobile testing and review companion for desktop development.
 - Sprite editor undo/redo with snapshot-based action support
 - Screen editor dungeon-map undo/redo with snapshot-based actions
 - Overworld usage statistics card data wiring
+- Overworld item deletion now physically removes entries (plus unit coverage)
 - 6-phase refactoring complete (EditorManager split, OverworldEditor decomposition)
 - Desktop BPS export/import completed (menu actions + BPS utility/tests)
 

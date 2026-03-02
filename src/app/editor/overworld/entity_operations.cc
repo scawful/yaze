@@ -1,5 +1,7 @@
 #include "entity_operations.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "util/log.h"
 
@@ -233,6 +235,28 @@ absl::StatusOr<zelda3::OverworldItem*> InsertItem(zelda3::Overworld* overworld,
             item_id);
 
   return inserted_item;
+}
+
+absl::Status RemoveItem(zelda3::Overworld* overworld,
+                        const zelda3::OverworldItem* item_ptr) {
+  if (!overworld) {
+    return absl::InvalidArgumentError("Overworld is null");
+  }
+  if (!item_ptr) {
+    return absl::InvalidArgumentError("Item pointer is null");
+  }
+
+  auto* items = overworld->mutable_all_items();
+  auto it = std::find_if(items->begin(), items->end(),
+                         [item_ptr](const zelda3::OverworldItem& item) {
+                           return &item == item_ptr;
+                         });
+  if (it == items->end()) {
+    return absl::NotFoundError("Item pointer not found in overworld item list");
+  }
+
+  items->erase(it);
+  return absl::OkStatus();
 }
 
 }  // namespace editor

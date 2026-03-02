@@ -20,8 +20,8 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "util/log.h"
 #include "util/notify.h"
 #include "zelda3/overworld/tile16_usage_index.h"
@@ -37,16 +37,16 @@ namespace editor {
 // Tile16 Editor Constants
 // ============================================================================
 
-constexpr int kTile16Size = 16;                    // 16x16 pixel tile
-constexpr int kTile8Size = 8;                      // 8x8 pixel sub-tile
-constexpr int kTilesheetEditorWidth = 0x100;       // 256 pixels wide
-constexpr int kTilesheetEditorHeight = 0x4000;     // 16384 pixels tall
-constexpr int kTile16CanvasSize = 0x20;            // 32 pixels
-constexpr int kTile8CanvasHeight = 0x175;          // 373 pixels
-constexpr int kNumScratchSlots = 4;                // 4 scratch space slots
-constexpr int kNumPalettes = 8;                    // 8 palette buttons (0-7)
-constexpr int kTile8PixelCount = 64;               // 8x8 = 64 pixels
-constexpr int kTile16PixelCount = 256;             // 16x16 = 256 pixels
+constexpr int kTile16Size = 16;                 // 16x16 pixel tile
+constexpr int kTile8Size = 8;                   // 8x8 pixel sub-tile
+constexpr int kTilesheetEditorWidth = 0x100;    // 256 pixels wide
+constexpr int kTilesheetEditorHeight = 0x4000;  // 16384 pixels tall
+constexpr int kTile16CanvasSize = 0x20;         // 32 pixels
+constexpr int kTile8CanvasHeight = 0x175;       // 373 pixels
+constexpr int kNumScratchSlots = 4;             // 4 scratch space slots
+constexpr int kNumPalettes = 8;                 // 8 palette buttons (0-7)
+constexpr int kTile8PixelCount = 64;            // 8x8 = 64 pixels
+constexpr int kTile16PixelCount = 256;          // 16x16 = 256 pixels
 
 struct Tile16ClipboardData {
   gfx::Tile16 tile_data;
@@ -206,19 +206,19 @@ class Tile16Editor : public gfx::GfxContext {
   // ===========================================================================
   // These methods handle the connection between tile editing and ROM data.
   // The workflow is: Edit -> Pending -> Commit -> ROM
-  
+
   /// @brief Write current tile16 data directly to ROM (bypasses pending system)
   absl::Status SaveTile16ToROM();
-  
+
   /// @brief Update the overworld tilemap to reflect tile changes
   absl::Status UpdateOverworldTilemap();
-  
+
   /// @brief Commit pending changes to the blockset atlas
   absl::Status CommitChangesToBlockset();
-  
+
   /// @brief Full commit workflow: ROM + blockset + notify parent
   absl::Status CommitChangesToOverworld();
-  
+
   /// @brief Discard current tile's changes (single tile)
   absl::Status DiscardChanges();
 
@@ -235,35 +235,36 @@ class Tile16Editor : public gfx::GfxContext {
   //   4. User clicks Discard -> DiscardAllChanges()
   //
   // The on_changes_committed_ callback notifies OverworldEditor to refresh.
-  
+
   /// @brief Check if any tiles have uncommitted changes
   bool has_pending_changes() const { return !pending_tile16_changes_.empty(); }
-  
+
   /// @brief Get count of tiles with pending changes
   int pending_changes_count() const {
     return static_cast<int>(pending_tile16_changes_.size());
   }
-  
+
   /// @brief Check if a specific tile has pending changes
   bool is_tile_modified(int tile_id) const {
-    return pending_tile16_changes_.find(tile_id) != pending_tile16_changes_.end();
+    return pending_tile16_changes_.find(tile_id) !=
+           pending_tile16_changes_.end();
   }
-  
+
   /// @brief Get preview bitmap for a pending tile (nullptr if not modified)
   const gfx::Bitmap* GetPendingTileBitmap(int tile_id) const {
     auto it = pending_tile16_bitmaps_.find(tile_id);
     return it != pending_tile16_bitmaps_.end() ? &it->second : nullptr;
   }
-  
+
   /// @brief Write all pending changes to ROM and notify parent
   absl::Status CommitAllChanges();
-  
+
   /// @brief Discard all pending changes (revert to ROM state)
   void DiscardAllChanges();
-  
+
   /// @brief Discard only the current tile's pending changes
   void DiscardCurrentTileChanges();
-  
+
   /// @brief Mark the current tile as having pending changes
   void MarkCurrentTileModified();
 
@@ -283,13 +284,13 @@ class Tile16Editor : public gfx::GfxContext {
   //
   // The palette button (0-7) selects which of the 8 available sub-palettes
   // to use, and the sheet index determines the base offset.
-  
+
   /// @brief Update palette for a specific tile8
   absl::Status UpdateTile8Palette(int tile8_id);
-  
+
   /// @brief Refresh all tile8 palettes after a palette change
   absl::Status RefreshAllPalettes();
-  
+
   /// @brief Draw palette settings UI
   void DrawPaletteSettings();
 
@@ -302,7 +303,7 @@ class Tile16Editor : public gfx::GfxContext {
   /// @param palette_button User-selected palette (0-7)
   /// @param sheet_index Graphics sheet the tile8 belongs to
   /// @return Final palette slot index in 256-color palette
-  /// 
+  ///
   /// This is the core palette mapping function. It combines:
   ///   - palette_button: Which of 8 sub-palettes user selected
   ///   - sheet_index: Which graphics sheet contains the tile8
@@ -318,7 +319,7 @@ class Tile16Editor : public gfx::GfxContext {
   /// @param tile8_id Tile8 ID from the graphics buffer
   /// @return Sheet index (0-7) based on tile position
   int GetSheetIndexForTile8(int tile8_id) const;
-  
+
   /// @brief Get the palette slot for the current tile being edited
   /// @return Palette slot based on current_tile8_ and current_palette_
   int GetActualPaletteSlotForCurrentTile16() const;
@@ -441,7 +442,8 @@ class Tile16Editor : public gfx::GfxContext {
   bool live_preview_enabled_ = true;
   gfx::Bitmap preview_tile16_;
   bool preview_dirty_ = false;
-  gfx::Bitmap tile8_preview_bmp_;  // Persistent preview to keep arena commands valid
+  gfx::Bitmap
+      tile8_preview_bmp_;  // Persistent preview to keep arena commands valid
 
   // Selection system
   std::vector<int> selected_tiles_;
@@ -481,9 +483,9 @@ class Tile16Editor : public gfx::GfxContext {
   std::chrono::steady_clock::time_point last_rom_write_time_{};
 
   // Navigation controls for expanded tile support
-  int jump_to_tile_id_ = 0;       // Input field for jump to tile ID
-  bool scroll_to_current_ = false; // Flag to scroll to current tile
-  int current_page_ = 0;          // Current page (64 tiles per page)
+  int jump_to_tile_id_ = 0;                 // Input field for jump to tile ID
+  bool scroll_to_current_ = false;          // Flag to scroll to current tile
+  int current_page_ = 0;                    // Current page (64 tiles per page)
   static constexpr int kTilesPerPage = 64;  // 8x8 tiles per page
   static constexpr int kTilesPerRow = 8;    // Tiles per row in grid
 
@@ -537,6 +539,12 @@ class Tile16Editor : public gfx::GfxContext {
   // Apply the active palette (overworld area if available) to the current
   // tile16 bitmap using sheet-aware offsets.
   void ApplyPaletteToCurrentTile16Bitmap();
+
+  // Resolve the best available 256-color palette source for tile previews.
+  const gfx::SnesPalette* ResolveDisplayPalette() const;
+
+  // Detect whether bitmap pixels already encode non-zero palette rows.
+  bool BitmapHasEncodedPaletteRows(const gfx::Bitmap& bitmap) const;
 
   // Build a 16x16 bitmap for a tile from TileInfo metadata using the shared
   // palette/index transform path.

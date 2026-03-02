@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_OPERATIONS_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_OPERATIONS_H
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld.h"
@@ -100,6 +101,19 @@ absl::StatusOr<zelda3::OverworldItem*> InsertItem(zelda3::Overworld* overworld,
                                                   ImVec2 mouse_pos,
                                                   int current_map,
                                                   uint8_t item_id = 0);
+
+/**
+ * @brief Remove an item from the overworld item list by pointer identity.
+ *
+ * Overworld item deletion should physically erase the item entry so it no
+ * longer participates in in-memory workflows and save pipelines.
+ *
+ * @param overworld Overworld data containing the all_items array
+ * @param item_ptr Pointer to the item to remove (must point into all_items)
+ * @return OkStatus on success, NotFound if pointer is not in all_items
+ */
+absl::Status RemoveItem(zelda3::Overworld* overworld,
+                        const zelda3::OverworldItem* item_ptr);
 
 /**
  * @brief Helper to get parent map ID for multi-area maps

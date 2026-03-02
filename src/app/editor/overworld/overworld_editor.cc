@@ -29,17 +29,17 @@
 #include "imgui/imgui.h"
 
 // Project headers
-#include "app/editor/core/undo_manager.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/core/undo_manager.h"
 #include "app/editor/overworld/canvas_navigation_manager.h"
 #include "app/editor/overworld/debug_window_card.h"
-#include "app/editor/overworld/overworld_undo_actions.h"
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/entity_operations.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
+#include "app/editor/overworld/overworld_undo_actions.h"
 // Note: All overworld panels now self-register via REGISTER_PANEL macro:
 // AreaGraphicsPanel, DebugWindowPanel, GfxGroupsPanel, MapPropertiesPanel,
 // OverworldCanvasPanel, ScratchSpacePanel, Tile16EditorPanel, Tile16SelectorPanel,
@@ -48,6 +48,7 @@
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
 #include "app/editor/system/panel_manager.h"
+#include "app/editor/ui/toast_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/render/tilemap.h"
@@ -64,7 +65,6 @@
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/imgui_memory_editor.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "app/editor/ui/toast_manager.h"
 #include "core/asar_wrapper.h"
 #include "core/features.h"
 #include "core/project.h"
@@ -473,8 +473,8 @@ void OverworldEditor::HandleKeyboardShortcuts() {
 
   const bool ctrl_held = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
                          ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-  const bool alt_held = ImGui::IsKeyDown(ImGuiKey_LeftAlt) ||
-                        ImGui::IsKeyDown(ImGuiKey_RightAlt);
+  const bool alt_held =
+      ImGui::IsKeyDown(ImGuiKey_LeftAlt) || ImGui::IsKeyDown(ImGuiKey_RightAlt);
 
   // Track mode changes for canvas usage mode updates
   EditingMode old_mode = current_mode;
@@ -685,7 +685,26 @@ void OverworldEditor::DrawEntityEditorPopups() {
   if (DrawItemEditorPopup(current_item_)) {
     if (current_entity_ && current_entity_->entity_type_ ==
                                zelda3::GameEntity::EntityType::kItem) {
-      *static_cast<zelda3::OverworldItem*>(current_entity_) = current_item_;
+      auto* live_item = static_cast<zelda3::OverworldItem*>(current_entity_);
+      if (current_item_.deleted) {
+        auto remove_status = RemoveItem(&overworld_, live_item);
+        if (!remove_status.ok()) {
+          util::logf("Failed to remove overworld item: %s",
+                     remove_status.message().data());
+          if (dependencies_.toast_manager) {
+            dependencies_.toast_manager->Show("Failed to delete overworld item",
+                                              ToastType::kError);
+          }
+        } else if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Deleted overworld item 0x%02X",
+                              static_cast<int>(current_item_.id_)),
+              ToastType::kSuccess);
+        }
+        current_entity_ = nullptr;
+      } else {
+        *live_item = current_item_;
+      }
       rom_->set_dirty(true);
     }
   }
@@ -832,7 +851,8 @@ absl::Status OverworldEditor::Paste() {
 }
 
 absl::Status OverworldEditor::CheckForCurrentMap() {
-  if (canvas_nav_) return canvas_nav_->CheckForCurrentMap();
+  if (canvas_nav_)
+    return canvas_nav_->CheckForCurrentMap();
   return absl::OkStatus();
 }
 
@@ -852,7 +872,8 @@ absl::Status OverworldEditor::UpdateGfxGroupEditor() {
 
 absl::Status OverworldEditor::Save() {
   // HACK MANIFEST VALIDATION
-  const bool saving_maps = core::FeatureFlags::get().overworld.kSaveOverworldMaps;
+  const bool saving_maps =
+      core::FeatureFlags::get().overworld.kSaveOverworldMaps;
   if (saving_maps && dependencies_.project &&
       dependencies_.project->hack_manifest.loaded()) {
     const auto& manifest = dependencies_.project->hack_manifest;
@@ -869,8 +890,9 @@ absl::Status OverworldEditor::Save() {
       for (const auto& conflict : conflicts) {
         absl::StrAppend(
             &error_msg,
-            absl::StrFormat("- Address 0x%06X is %s", conflict.address,
-                            core::AddressOwnershipToString(conflict.ownership)));
+            absl::StrFormat(
+                "- Address 0x%06X is %s", conflict.address,
+                core::AddressOwnershipToString(conflict.ownership)));
         if (!conflict.module.empty()) {
           absl::StrAppend(&error_msg, " (Module: ", conflict.module, ")");
         }
@@ -983,13 +1005,11 @@ void OverworldEditor::FinalizePaintOperation() {
   }
   auto action = std::make_unique<OverworldTilePaintAction>(
       current_paint_operation_->map_id, current_paint_operation_->world,
-      std::move(changes), &overworld_,
-      [this]() { RefreshOverworldMap(); });
+      std::move(changes), &overworld_, [this]() { RefreshOverworldMap(); });
   undo_manager_.Push(std::move(action));
 
   current_paint_operation_.reset();
 }
-
 
 absl::Status OverworldEditor::Undo() {
   // Finalize any pending paint operation first
@@ -1283,11 +1303,13 @@ void OverworldEditor::InitMapRefreshCoordinator() {
 }
 
 void OverworldEditor::HandleMapInteraction() {
-  if (canvas_nav_) canvas_nav_->HandleMapInteraction();
+  if (canvas_nav_)
+    canvas_nav_->HandleMapInteraction();
 }
 
 void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
-  if (canvas_nav_) canvas_nav_->ScrollBlocksetCanvasToCurrentTile();
+  if (canvas_nav_)
+    canvas_nav_->ScrollBlocksetCanvasToCurrentTile();
 }
 
 absl::Status OverworldEditor::Clear() {
@@ -1469,7 +1491,8 @@ absl::Status OverworldEditor::UpdateROMVersionMarkers(int target_version) {
 }
 
 void OverworldEditor::UpdateBlocksetSelectorState() {
-  if (canvas_nav_) canvas_nav_->UpdateBlocksetSelectorState();
+  if (canvas_nav_)
+    canvas_nav_->UpdateBlocksetSelectorState();
 }
 
 void OverworldEditor::CycleTileSelection(int delta) {
