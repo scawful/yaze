@@ -14,8 +14,8 @@ moving to 0.8.0. See `docs/internal/plans/0.7.0-feature-completion.md`
 for the detailed task breakdown and agent assignments.
 
 **0.7.0 completion priorities:**
-- P0 remaining: Desktop BPS export
-- P0 completed: Tile16 palette/render fix, Message replace, Sprite undo/redo
+- P0 completed: Tile16 palette/render fix, Message replace, Sprite undo/redo,
+  Screen undo/redo, Desktop BPS export
 - P1 remaining: Tracker stubs, OW item deletion fix, CLI palette commands
 - P1 completed: Overworld usage statistics card data wiring
 - P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
@@ -215,7 +215,7 @@ Mobile testing and review companion for desktop development.
 - Screen editor dungeon-map undo/redo with snapshot-based actions
 - Overworld usage statistics card data wiring
 - 6-phase refactoring complete (EditorManager split, OverworldEditor decomposition)
-- Desktop BPS export (in progress)
+- Desktop BPS export/import completed (menu actions + BPS utility/tests)
 
 ### v0.6.0 (February 2026)
 - Unified UndoManager in Editor base class
