@@ -656,7 +656,38 @@ void TrackerView::HandleKeyboardInput(MusicSong* song) {
 
     // Handle range deletion if selected
     if (selection_anchor_row_ != -1) {
-      // TODO: Implement range deletion logic
+      TriggerEdit();
+
+      int row_start = std::min(selected_row_, selection_anchor_row_);
+      int row_end = std::max(selected_row_, selection_anchor_row_);
+      int col_start = std::min(selected_col_, selection_anchor_col_);
+      int col_end = std::max(selected_col_, selection_anchor_col_);
+
+      int tick_start = row_start * ticks_per_row_;
+      int tick_end = (row_end + 1) * ticks_per_row_;
+
+      // Delete events in each selected channel within the tick range
+      auto& segment = song->segments[0];
+      for (int c = col_start; c <= col_end; ++c) {
+        int ch_idx = c - 1;
+        if (ch_idx < 0 || ch_idx >= 8)
+          continue;
+
+        auto& ch_track = segment.tracks[ch_idx];
+        // Remove events in reverse to preserve indices
+        for (int i = static_cast<int>(ch_track.events.size()) - 1; i >= 0;
+             --i) {
+          int evt_tick = ch_track.events[i].tick;
+          if (evt_tick >= tick_start && evt_tick < tick_end) {
+            ch_track.RemoveEvent(static_cast<size_t>(i));
+          }
+        }
+      }
+
+      // Clear selection range
+      selection_anchor_row_ = -1;
+      selection_anchor_col_ = -1;
+      changed = true;
     } else {
       // Single cell deletion
       for (size_t i = 0; i < track.events.size(); ++i) {
@@ -678,7 +709,29 @@ void TrackerView::HandleKeyboardInput(MusicSong* song) {
   if (ImGui::IsKeyPressed(ImGuiKey_Space)) {
     // Insert Key Off / Rest
     TriggerEdit();
-    // TODO: Check existing and set to Rest (0xC9) or insert Rest
+
+    // Check if an event already exists at this tick
+    bool found = false;
+    for (auto& evt : track.events) {
+      if (evt.tick == tick) {
+        // Convert existing event to a rest
+        evt.type = TrackEvent::Type::Note;
+        evt.note.pitch = kNoteRest;
+        evt.note.duration = kDurationSixteenth;
+        evt.note.velocity = 0;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      // Insert a new rest event
+      track.InsertEvent(
+          TrackEvent::MakeNote(tick, kNoteRest, kDurationSixteenth));
+    }
+
+    // Auto-advance cursor
+    selected_row_++;
   }
 }
 

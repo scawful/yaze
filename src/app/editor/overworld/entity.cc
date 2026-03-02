@@ -232,14 +232,24 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
       // Reset state from entity
       doorType = exit.door_type_1_;
       fancyDoorType = exit.door_type_2_;
-      xPos = 0; // Unknown mapping
-      yPos = 0; // Unknown mapping
-      
+      xPos = 0;  // Unknown mapping
+      yPos = 0;  // Unknown mapping
+
       // Reset other static vars to avoid pollution
-      centerY = 0; centerX = 0; unk1 = 0; unk2 = 0;
-      linkPosture = 0; spriteGFX = 0; bgGFX = 0;
-      palette = 0; sprPal = 0; top = 0; bottom = 0;
-      left = 0; right = 0; leftEdgeOfMap = 0;
+      centerY = 0;
+      centerX = 0;
+      unk1 = 0;
+      unk2 = 0;
+      linkPosture = 0;
+      spriteGFX = 0;
+      bgGFX = 0;
+      palette = 0;
+      sprPal = 0;
+      top = 0;
+      bottom = 0;
+      left = 0;
+      right = 0;
+      leftEdgeOfMap = 0;
       special_exit = false;
       show_properties = false;
     }
@@ -277,11 +287,14 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
 
     gui::TextWithSeparators("Unimplemented below");
 
-    if (ImGui::RadioButton("None", &doorType, 0)) exit.door_type_1_ = doorType;
+    if (ImGui::RadioButton("None", &doorType, 0))
+      exit.door_type_1_ = doorType;
     SameLine();
-    if (ImGui::RadioButton("Wooden", &doorType, 1)) exit.door_type_1_ = doorType;
+    if (ImGui::RadioButton("Wooden", &doorType, 1))
+      exit.door_type_1_ = doorType;
     SameLine();
-    if (ImGui::RadioButton("Bombable", &doorType, 2)) exit.door_type_1_ = doorType;
+    if (ImGui::RadioButton("Bombable", &doorType, 2))
+      exit.door_type_1_ = doorType;
 
     // If door type is not None, input positions
     if (doorType != 0) {
@@ -289,11 +302,14 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
       gui::InputHex("Door Y pos", &yPos);
     }
 
-    if (ImGui::RadioButton("None##Fancy", &fancyDoorType, 0)) exit.door_type_2_ = fancyDoorType;
+    if (ImGui::RadioButton("None##Fancy", &fancyDoorType, 0))
+      exit.door_type_2_ = fancyDoorType;
     SameLine();
-    if (ImGui::RadioButton("Sanctuary", &fancyDoorType, 1)) exit.door_type_2_ = fancyDoorType;
+    if (ImGui::RadioButton("Sanctuary", &fancyDoorType, 1))
+      exit.door_type_2_ = fancyDoorType;
     SameLine();
-    if (ImGui::RadioButton("Palace", &fancyDoorType, 2)) exit.door_type_2_ = fancyDoorType;
+    if (ImGui::RadioButton("Palace", &fancyDoorType, 2))
+      exit.door_type_2_ = fancyDoorType;
 
     // If fancy door type is not None, input positions
     if (fancyDoorType != 0) {
@@ -379,7 +395,6 @@ void DrawItemInsertPopup() {
   }
 }
 
-// TODO: Implement deleting OverworldItem objects, currently only hides them
 bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
   bool set_done = false;
   if (ImGui::BeginPopupModal(
@@ -420,7 +435,8 @@ bool DrawItemEditorPopup(zelda3::OverworldItem& item) {
 
 const ImGuiTableSortSpecs* SpriteItem::s_current_sort_specs = nullptr;
 
-void DrawSpriteTable(std::function<void(int)> onSpriteSelect, int& selected_id) {
+void DrawSpriteTable(std::function<void(int)> onSpriteSelect,
+                     int& selected_id) {
   static ImGuiTextFilter filter;
   static std::vector<SpriteItem> items;
 
@@ -472,7 +488,7 @@ void DrawSpriteInserterPopup() {
     static int new_sprite_id = 0;
     static int x_pos = 0;
     static int y_pos = 0;
-    
+
     if (ImGui::IsWindowAppearing()) {
       new_sprite_id = 0;
       x_pos = 0;
@@ -484,7 +500,8 @@ void DrawSpriteInserterPopup() {
 
     BeginChild("ScrollRegion", ImVec2(250, 200), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
-    DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; }, new_sprite_id);
+    DrawSpriteTable([](int selected_id) { new_sprite_id = selected_id; },
+                    new_sprite_id);
     EndChild();
 
     ImGui::Separator();
@@ -530,10 +547,12 @@ bool DrawSpriteEditorPopup(zelda3::Sprite& sprite) {
     ImGui::BeginGroup();
     Text("%s", sprite.name().c_str());
 
-    DrawSpriteTable([&sprite](int id) {
-      sprite.set_id(id);
-      sprite.UpdateMapProperties(sprite.map_id(), nullptr);
-    }, selected_id);
+    DrawSpriteTable(
+        [&sprite](int id) {
+          sprite.set_id(id);
+          sprite.UpdateMapProperties(sprite.map_id(), nullptr);
+        },
+        selected_id);
     ImGui::EndGroup();
     EndChild();
 
@@ -568,10 +587,10 @@ bool DrawDiggableTilesEditorPopup(
     return true;
   }
 
-  if (ImGui::BeginPopupModal(
-          gui::MakePopupId(gui::EditorNames::kOverworld, "Diggable Tiles Editor")
-              .c_str(),
-          NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+  if (ImGui::BeginPopupModal(gui::MakePopupId(gui::EditorNames::kOverworld,
+                                              "Diggable Tiles Editor")
+                                 .c_str(),
+                             NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
     static ImGuiTextFilter filter;
     static int patch_mode = 0;  // 0=Vanilla, 1=ZS Compatible, 2=Custom
     static zelda3::DiggableTilesPatchConfig patch_config;
@@ -626,8 +645,7 @@ bool DrawDiggableTilesEditorPopup(
       dig_color.reset();
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Tile $%03X - %s",
-                          tile_id,
+        ImGui::SetTooltip("Tile $%03X - %s", tile_id,
                           would_be_diggable ? "Auto-detected as diggable"
                                             : "Manually configured");
       }
@@ -668,8 +686,9 @@ bool DrawDiggableTilesEditorPopup(
       diggable_tiles->SetVanillaDefaults();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Reset to vanilla diggable tiles:\n$034, $035, $071, "
-                        "$0DA, $0E1, $0E2, $0F8, $10D, $10E, $10F");
+      ImGui::SetTooltip(
+          "Reset to vanilla diggable tiles:\n$034, $035, $071, "
+          "$0DA, $0E1, $0E2, $0F8, $10D, $10E, $10F");
     }
 
     SameLine();
@@ -710,9 +729,8 @@ bool DrawDiggableTilesEditorPopup(
       if (Button(ICON_MD_FILE_DOWNLOAD " Export .asm Patch")) {
         // TODO: Open file dialog and export
         // For now, generate to a default location
-        std::string patch_content =
-            zelda3::DiggableTilesPatch::GeneratePatch(*diggable_tiles,
-                                                      patch_config);
+        std::string patch_content = zelda3::DiggableTilesPatch::GeneratePatch(
+            *diggable_tiles, patch_config);
         // Would normally open a save dialog here
       }
 

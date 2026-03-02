@@ -1,0 +1,43 @@
+#include "app/editor/dungeon/dungeon_usage_tracker.h"
+
+#include "gtest/gtest.h"
+
+namespace yaze::editor {
+
+TEST(DungeonUsageTrackerTest, DefaultStateIsEmpty) {
+  DungeonUsageTracker tracker;
+  EXPECT_TRUE(tracker.GetBlocksetUsage().empty());
+  EXPECT_TRUE(tracker.GetSpritesetUsage().empty());
+  EXPECT_TRUE(tracker.GetPaletteUsage().empty());
+  EXPECT_EQ(tracker.GetSelectedBlockset(), 0xFFFF);
+  EXPECT_EQ(tracker.GetSelectedSpriteset(), 0xFFFF);
+  EXPECT_EQ(tracker.GetSelectedPalette(), 0xFFFF);
+}
+
+TEST(DungeonUsageTrackerTest, SelectionRoundTrips) {
+  DungeonUsageTracker tracker;
+  tracker.SetSelectedBlockset(5);
+  tracker.SetSelectedSpriteset(10);
+  tracker.SetSelectedPalette(3);
+  EXPECT_EQ(tracker.GetSelectedBlockset(), 5);
+  EXPECT_EQ(tracker.GetSelectedSpriteset(), 10);
+  EXPECT_EQ(tracker.GetSelectedPalette(), 3);
+}
+
+TEST(DungeonUsageTrackerTest, ClearResetsEverything) {
+  DungeonUsageTracker tracker;
+  tracker.SetSelectedBlockset(5);
+  tracker.SetSelectedSpriteset(10);
+  tracker.SetSelectedPalette(3);
+
+  tracker.ClearUsageStats();
+
+  EXPECT_EQ(tracker.GetSelectedBlockset(), 0xFFFF);
+  EXPECT_EQ(tracker.GetSelectedSpriteset(), 0xFFFF);
+  EXPECT_EQ(tracker.GetSelectedPalette(), 0xFFFF);
+  EXPECT_TRUE(tracker.GetBlocksetUsage().empty());
+  EXPECT_TRUE(tracker.GetSpritesetUsage().empty());
+  EXPECT_TRUE(tracker.GetPaletteUsage().empty());
+}
+
+}  // namespace yaze::editor

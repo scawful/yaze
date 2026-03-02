@@ -188,6 +188,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_oracle_preflight_test.cc
     unit/cli/oracle_smoke_check_test.cc
     unit/cli/oracle_menu_commands_test.cc
+    unit/cli/palette_commands_test.cc
     unit/cli/project_bundle_verify_test.cc
     unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_diff_test.cc
@@ -233,11 +234,13 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/toast_dedup_test.cc
     unit/editor/tile_painting_manager_test.cc
+    unit/editor/overworld_item_operations_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/core/asar_compiler_test.cc
