@@ -4056,9 +4056,7 @@ void ObjectDrawer::DrawWeirdCornerBottom_BothBG(
   // Pattern: Weird Corner Bottom (objects 0x110-0x113 for Type 2)
   // ASM: RoomDraw_WeirdCornerBottom_BothBG sets count=3, uses 4x4Corner pattern
   // Pattern: 3 columns × 4 rows = 12 tiles, column-major order
-  if (tiles.size() >= 16) {
-    DrawCorner4x4(obj, bg, tiles);
-  } else if (tiles.size() >= 12) {
+  if (tiles.size() >= 12) {
     // Draw 3x4 corner pattern (column-major, 3 columns × 4 rows)
     int tid = 0;
     for (int xx = 0; xx < 3; xx++) {
@@ -4086,9 +4084,7 @@ void ObjectDrawer::DrawWeirdCornerTop_BothBG(
   // Pattern: Weird Corner Top (objects 0x114-0x117 for Type 2)
   // ASM: RoomDraw_WeirdCornerTop_BothBG draws 4 columns of 3 tiles each
   // Pattern: 4 columns × 3 rows = 12 tiles, column-major order
-  if (tiles.size() >= 16) {
-    DrawCorner4x4(obj, bg, tiles);
-  } else if (tiles.size() >= 12) {
+  if (tiles.size() >= 12) {
     // Draw 4x3 corner pattern (column-major, 4 columns × 3 rows)
     int tid = 0;
     for (int xx = 0; xx < 4; xx++) {

@@ -128,6 +128,67 @@ TEST_F(CustomObjectManagerTest, MissingFile) {
   EXPECT_EQ(result.status().code(), absl::StatusCode::kNotFound);
 }
 
+TEST_F(CustomObjectManagerTest, CornerObjectIdsMapToTrackCornerOverrides) {
+  auto one_tile_object = [](uint16_t tile_word) {
+    return std::vector<uint8_t>{
+        0x01, 0x00,                              // count=1, jump=0
+        static_cast<uint8_t>(tile_word & 0xFF),  // tile low
+        static_cast<uint8_t>(tile_word >> 8),    // tile high
+        0x00, 0x00                               // terminator
+    };
+  };
+
+  // These file names are the canonical object 0x31 corner slots:
+  // index 2=TL, 3=TR, 4=BL, 5=BR.
+  WriteBinaryFile("track_corner_TL.bin", one_tile_object(0x1111));
+  WriteBinaryFile("track_corner_TR.bin", one_tile_object(0x2222));
+  WriteBinaryFile("track_corner_BL.bin", one_tile_object(0x3333));
+  WriteBinaryFile("track_corner_BR.bin", one_tile_object(0x4444));
+
+  auto tl = CustomObjectManager::Get().GetObjectInternal(/*object_id=*/0x100,
+                                                         /*subtype=*/0);
+  ASSERT_TRUE(tl.ok());
+  ASSERT_EQ(tl.value()->tiles.size(), 1u);
+  EXPECT_EQ(tl.value()->tiles[0].tile_data, 0x1111);
+
+  auto bl = CustomObjectManager::Get().GetObjectInternal(/*object_id=*/0x101,
+                                                         /*subtype=*/0);
+  ASSERT_TRUE(bl.ok());
+  ASSERT_EQ(bl.value()->tiles.size(), 1u);
+  EXPECT_EQ(bl.value()->tiles[0].tile_data, 0x3333);
+
+  auto tr = CustomObjectManager::Get().GetObjectInternal(/*object_id=*/0x102,
+                                                         /*subtype=*/0);
+  ASSERT_TRUE(tr.ok());
+  ASSERT_EQ(tr.value()->tiles.size(), 1u);
+  EXPECT_EQ(tr.value()->tiles[0].tile_data, 0x2222);
+
+  auto br = CustomObjectManager::Get().GetObjectInternal(/*object_id=*/0x103,
+                                                         /*subtype=*/0);
+  ASSERT_TRUE(br.ok());
+  ASSERT_EQ(br.value()->tiles.size(), 1u);
+  EXPECT_EQ(br.value()->tiles[0].tile_data, 0x4444);
+}
+
+TEST_F(CustomObjectManagerTest, CornerObjectIdsResolveExpectedOverrideFilenames) {
+  // For corner aliases, filename selection must be independent of subtype.
+  EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(/*object_id=*/0x100,
+                                                       /*subtype=*/0),
+            "track_corner_TL.bin");
+  EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(/*object_id=*/0x100,
+                                                       /*subtype=*/0x12),
+            "track_corner_TL.bin");
+  EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(/*object_id=*/0x101,
+                                                       /*subtype=*/0),
+            "track_corner_BL.bin");
+  EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(/*object_id=*/0x102,
+                                                       /*subtype=*/0),
+            "track_corner_TR.bin");
+  EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(/*object_id=*/0x103,
+                                                       /*subtype=*/0),
+            "track_corner_BR.bin");
+}
+
 // ============================================================================
 // GetBoundingBox Tests
 // ============================================================================

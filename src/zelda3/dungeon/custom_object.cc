@@ -9,6 +9,33 @@
 namespace yaze {
 namespace zelda3 {
 
+namespace {
+
+bool ResolveCornerOverrideIndex(int object_id, int* out_index) {
+  if (out_index == nullptr) {
+    return false;
+  }
+
+  switch (object_id) {
+    case 0x100:
+      *out_index = 2;  // track_corner_TL.bin
+      return true;
+    case 0x101:
+      *out_index = 4;  // track_corner_BL.bin
+      return true;
+    case 0x102:
+      *out_index = 3;  // track_corner_TR.bin
+      return true;
+    case 0x103:
+      *out_index = 5;  // track_corner_BR.bin
+      return true;
+    default:
+      return false;
+  }
+}
+
+}  // namespace
+
 const std::vector<std::string> CustomObjectManager::kSubtype1Filenames = {
     "track_LR.bin",               // 00
     "track_UD.bin",               // 01
@@ -182,26 +209,8 @@ CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
   const std::vector<std::string>* list = ResolveFileList(object_id);
   int index = subtype;
 
-  if (!list && object_id >= 0x100 && object_id <= 0x103) {
-    // Minecart Track Override for standard corners
-    // 0x100 = TL -> index 2 (track_corner_TL.bin)
-    // 0x101 = BL -> index 4 (track_corner_BL.bin)
-    // 0x102 = TR -> index 3 (track_corner_TR.bin)
-    // 0x103 = BR -> index 5 (track_corner_BR.bin)
-    switch (object_id) {
-      case 0x100:
-        index = 2;
-        break;
-      case 0x101:
-        index = 4;
-        break;
-      case 0x102:
-        index = 3;
-        break;
-      case 0x103:
-        index = 5;
-        break;
-    }
+  if (!list && ResolveCornerOverrideIndex(object_id, &index)) {
+    // Minecart track corner aliases for subtype-2 wall-corner objects.
     list = ResolveFileList(0x31);
   }
 
@@ -260,11 +269,12 @@ void CustomObjectManager::ReloadAll() {
 std::string CustomObjectManager::ResolveFilename(int object_id,
                                                  int subtype) const {
   const auto* list = ResolveFileList(object_id);
-  if (!list && object_id >= 0x100 && object_id <= 0x103) {
+  int index = subtype;
+  if (!list && ResolveCornerOverrideIndex(object_id, &index)) {
     list = ResolveFileList(0x31);
   }
-  if (list && subtype >= 0 && subtype < static_cast<int>(list->size())) {
-    return (*list)[subtype];
+  if (list && index >= 0 && index < static_cast<int>(list->size())) {
+    return (*list)[index];
   }
   return "";
 }

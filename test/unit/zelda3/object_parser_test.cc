@@ -147,6 +147,23 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   EXPECT_EQ(info_subtype1_default.tile_count, 8);
 }
 
+TEST_F(ObjectParserTest, DrawInfoMapsSubtype2CornerRoutinesToUsdasmParity) {
+  auto corner_4x4_both = parser_->GetObjectDrawInfo(0x108);
+  EXPECT_EQ(corner_4x4_both.draw_routine_id, 35);
+  EXPECT_TRUE(corner_4x4_both.both_layers);
+  EXPECT_EQ(corner_4x4_both.tile_count, 16);
+
+  auto weird_bottom = parser_->GetObjectDrawInfo(0x110);
+  EXPECT_EQ(weird_bottom.draw_routine_id, 36);
+  EXPECT_TRUE(weird_bottom.both_layers);
+  EXPECT_EQ(weird_bottom.tile_count, 12);
+
+  auto weird_top = parser_->GetObjectDrawInfo(0x114);
+  EXPECT_EQ(weird_top.draw_routine_id, 37);
+  EXPECT_TRUE(weird_top.both_layers);
+  EXPECT_EQ(weird_top.tile_count, 12);
+}
+
 TEST_F(ObjectParserTest, InvalidObjectId) {
   auto result = parser_->ParseObject(-1);
   EXPECT_FALSE(result.ok());
