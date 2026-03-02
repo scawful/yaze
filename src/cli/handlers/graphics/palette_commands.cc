@@ -5,6 +5,7 @@
 #include <set>
 #include <string>
 
+#include "absl/status/status.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_color.h"
@@ -145,6 +146,9 @@ absl::Status PaletteGetColorsCommandHandler::Execute(
 
   // Optional: narrow to a single palette index within the group.
   auto index_result = parser.GetInt("index");
+  if (!index_result.ok() && !absl::IsNotFound(index_result.status())) {
+    return index_result.status();
+  }
 
   formatter.BeginObject("Palette Colors");
   formatter.AddField("group", group_name);

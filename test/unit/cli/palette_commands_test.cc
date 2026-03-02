@@ -150,5 +150,31 @@ TEST(PaletteCommandsTest, HandlerUsageStrings) {
   EXPECT_THAT(analyze_handler.GetUsage(), HasSubstr("--group"));
 }
 
+TEST(PaletteCommandsTest, GetColorsInvalidIndexReturnsInvalidArgument) {
+  handlers::PaletteGetColorsCommandHandler handler;
+  Rom rom;
+  std::vector<uint8_t> rom_data(0x200000, 0x00);
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  std::string output;
+  absl::Status status =
+      handler.Run({"--group", "ow_main", "--index", "bad"}, &rom, &output);
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Invalid integer for '--index'"));
+}
+
+TEST(PaletteCommandsTest, GetColorsWithoutIndexStillSucceeds) {
+  handlers::PaletteGetColorsCommandHandler handler;
+  Rom rom;
+  std::vector<uint8_t> rom_data(0x200000, 0x00);
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  std::string output;
+  absl::Status status = handler.Run({"--group", "ow_main"}, &rom, &output);
+  EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_THAT(output, HasSubstr("ow_main"));
+}
+
 }  // namespace
 }  // namespace yaze::cli

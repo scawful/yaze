@@ -227,6 +227,9 @@ void DungeonUsageTracker::RenderSetUsage(
   ImGui::Separator();
 
   // Table with ID, usage count, and visual bar.
+  // Scope table IDs by usage_map address so multiple calls in one frame
+  // (spriteset + palette sections) do not collide in ImGui state.
+  ImGui::PushID(static_cast<const void*>(&usage_map));
   if (ImGui::BeginTable("SetUsageTable", 3,
                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                             ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable,
@@ -286,6 +289,7 @@ void DungeonUsageTracker::RenderSetUsage(
 
     ImGui::EndTable();
   }
+  ImGui::PopID();
 }
 
 void DungeonUsageTracker::ClearUsageStats() {
