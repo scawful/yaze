@@ -2,17 +2,19 @@
 #define YAZE_APP_EDITOR_SCREEN_EDITOR_H
 
 #include <array>
+#include <string>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/panels/screen_editor_panels.h"
+#include "app/editor/graphics/screen_undo_actions.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "zelda3/screen/dungeon_map.h"
 #include "zelda3/screen/inventory.h"
 #include "zelda3/screen/overworld_map_screen.h"
@@ -43,8 +45,8 @@ class ScreenEditor : public Editor {
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
-  absl::Status Undo() override { return absl::UnimplementedError("Undo"); }
-  absl::Status Redo() override { return absl::UnimplementedError("Redo"); }
+  absl::Status Undo() override;
+  absl::Status Redo() override;
   absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
   absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
   absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
@@ -80,6 +82,11 @@ class ScreenEditor : public Editor {
   void DrawDungeonMapsTabs();
   void DrawDungeonMapsEditor();
   void DrawDungeonMapsRoomGfx();
+
+  ScreenSnapshot CaptureScreenSnapshot() const;
+  void RestoreScreenSnapshot(const ScreenSnapshot& snapshot);
+  void PushDungeonMapUndo(ScreenSnapshot before, std::string description);
+  void ClampDungeonSelection();
 
   void LoadBinaryGfx();
 
