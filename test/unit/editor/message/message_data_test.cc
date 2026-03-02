@@ -735,6 +735,54 @@ TEST(DictionaryEntryTest, ReplaceInstancesOfIn) {
 }
 
 // ===========================================================================
+// Text Find/Replace Tests
+// ===========================================================================
+
+TEST(TextFindReplaceTest, FindTextMatchCaseInsensitive) {
+  auto match = FindTextMatch("The Hero of Time", "hero", 0, false, false);
+  ASSERT_TRUE(match.has_value());
+  EXPECT_EQ(*match, 4u);
+}
+
+TEST(TextFindReplaceTest, FindTextMatchWholeWord) {
+  auto no_match = FindTextMatch("there is a theme", "the", 0, false, true);
+  EXPECT_FALSE(no_match.has_value());
+
+  auto word_match = FindTextMatch("the hero", "the", 0, false, true);
+  ASSERT_TRUE(word_match.has_value());
+  EXPECT_EQ(*word_match, 0u);
+}
+
+TEST(TextFindReplaceTest, ReplaceTextMatchesSingleFromOffset) {
+  std::string text = "hero hero hero";
+  int replaced = ReplaceTextMatches(&text, "hero", "LINK", 5,
+                                    /*replace_all=*/false,
+                                    /*case_sensitive=*/true,
+                                    /*match_whole_word=*/true);
+
+  EXPECT_EQ(replaced, 1);
+  EXPECT_EQ(text, "hero LINK hero");
+}
+
+TEST(TextFindReplaceTest, ReplaceTextMatchesAllCaseInsensitiveWholeWord) {
+  std::string text = "Hero hero heroic HERO";
+  int replaced = ReplaceTextMatches(&text, "hero", "Link", 0,
+                                    /*replace_all=*/true,
+                                    /*case_sensitive=*/false,
+                                    /*match_whole_word=*/true);
+
+  EXPECT_EQ(replaced, 3);
+  EXPECT_EQ(text, "Link Link heroic Link");
+}
+
+TEST(TextFindReplaceTest, ReplaceTextMatchesNoopForEmptyQuery) {
+  std::string text = "hello";
+  int replaced = ReplaceTextMatches(&text, "", "x", 0, true, false, false);
+  EXPECT_EQ(replaced, 0);
+  EXPECT_EQ(text, "hello");
+}
+
+// ===========================================================================
 // MessageData Tests
 // ===========================================================================
 

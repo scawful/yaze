@@ -1,5 +1,6 @@
 #include "message_data.h"
 
+#include <cctype>
 #include <fstream>
 #include <optional>
 #include <sstream>
@@ -17,6 +18,31 @@
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+bool IsWordChar(char c) {
+  const unsigned char uc = static_cast<unsigned char>(c);
+  return std::isalnum(uc) || c == '_';
+}
+
+bool MatchesWholeWordAt(std::string_view text, size_t pos, size_t len) {
+  const bool left_boundary = (pos == 0) || !IsWordChar(text[pos - 1]);
+  const size_t right_index = pos + len;
+  const bool right_boundary =
+      (right_index >= text.size()) || !IsWordChar(text[right_index]);
+  return left_boundary && right_boundary;
+}
+
+std::string LowercaseCopy(std::string_view input) {
+  std::string lowered(input);
+  for (char& c : lowered) {
+    c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
+  }
+  return lowered;
+}
+
+}  // namespace
 
 int GetExpandedTextDataStart() {
   return static_cast<int>(core::RomSettings::Get().GetAddressOr(
@@ -329,6 +355,73 @@ std::string ReplaceAllDictionaryWords(
     }
   }
   return temp;
+}
+
+std::optional<size_t> FindTextMatch(std::string_view text,
+                                    std::string_view query, size_t start_pos,
+                                    bool case_sensitive,
+                                    bool match_whole_word) {
+  if (query.empty() || start_pos > text.size()) {
+    return std::nullopt;
+  }
+
+  std::string haystack_storage;
+  std::string query_storage;
+  std::string_view haystack = text;
+  std::string_view needle = query;
+  if (!case_sensitive) {
+    haystack_storage = LowercaseCopy(text);
+    query_storage = LowercaseCopy(query);
+    haystack = haystack_storage;
+    needle = query_storage;
+  }
+
+  size_t pos = haystack.find(needle, start_pos);
+  while (pos != std::string::npos) {
+    if (!match_whole_word || MatchesWholeWordAt(text, pos, query.size())) {
+      return pos;
+    }
+    pos = haystack.find(needle, pos + 1);
+  }
+
+  return std::nullopt;
+}
+
+int ReplaceTextMatches(std::string* text, std::string_view query,
+                       std::string_view replacement, size_t start_pos,
+                       bool replace_all, bool case_sensitive,
+                       bool match_whole_word,
+                       size_t* first_replaced_pos) {
+  if (!text || query.empty() || start_pos > text->size()) {
+    return 0;
+  }
+
+  int replacements = 0;
+  size_t cursor = start_pos;
+  while (true) {
+    const auto match_pos =
+        FindTextMatch(*text, query, cursor, case_sensitive, match_whole_word);
+    if (!match_pos.has_value()) {
+      break;
+    }
+
+    text->replace(*match_pos, query.size(), replacement);
+    if (replacements == 0 && first_replaced_pos != nullptr) {
+      *first_replaced_pos = *match_pos;
+    }
+    replacements++;
+
+    cursor = *match_pos + replacement.size();
+    if (!replace_all) {
+      break;
+    }
+
+    if (cursor > text->size()) {
+      break;
+    }
+  }
+
+  return replacements;
 }
 
 DictionaryEntry FindRealDictionaryEntry(
