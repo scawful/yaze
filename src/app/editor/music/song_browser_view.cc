@@ -256,7 +256,13 @@ void SongBrowserView::Draw(MusicBank& bank) {
             }
             if (ImGui::MenuItem(ICON_MD_DRIVE_FILE_RENAME_OUTLINE " Rename")) {
               rename_target_index_ = i;
-              // TODO: Open rename popup
+              rename_popup_open_ = true;
+              const auto* rename_song = bank.GetSong(i);
+              if (rename_song) {
+                std::strncpy(rename_buffer_, rename_song->name.c_str(),
+                             sizeof(rename_buffer_) - 1);
+                rename_buffer_[sizeof(rename_buffer_) - 1] = '\0';
+              }
             }
             ImGui::Separator();
             if (ImGui::MenuItem(ICON_MD_FILE_DOWNLOAD " Export to ASM...")) {
@@ -286,6 +292,51 @@ void SongBrowserView::Draw(MusicBank& bank) {
   }
 
   ImGui::EndChild();
+
+  // Rename popup (rendered at top level so it isn't clipped by the child)
+  if (rename_popup_open_) {
+    ImGui::OpenPopup("Rename Song");
+    rename_popup_open_ = false;
+  }
+
+  if (ImGui::BeginPopupModal("Rename Song", nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::Text("Enter a new name for the song:");
+    ImGui::SetNextItemWidth(300);
+
+    bool enter_pressed = ImGui::InputText("##RenameSongInput", rename_buffer_,
+                                          sizeof(rename_buffer_),
+                                          ImGuiInputTextFlags_EnterReturnsTrue);
+
+    // Focus the input on first appearance
+    if (ImGui::IsWindowAppearing()) {
+      ImGui::SetKeyboardFocusHere(-1);
+    }
+
+    bool apply = enter_pressed || ImGui::Button("OK");
+    ImGui::SameLine();
+    bool cancel = ImGui::Button("Cancel");
+
+    if (apply && rename_target_index_ >= 0) {
+      auto* target_song = bank.GetSong(rename_target_index_);
+      if (target_song && std::strlen(rename_buffer_) > 0) {
+        target_song->name = rename_buffer_;
+        target_song->modified = true;
+        if (on_edit_)
+          on_edit_();
+        last_search_buffer_.clear();  // Force filter rebuild.
+      }
+      rename_target_index_ = -1;
+      ImGui::CloseCurrentPopup();
+    }
+
+    if (cancel) {
+      rename_target_index_ = -1;
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::EndPopup();
+  }
 }
 
 bool SongBrowserView::MatchesSearch(const std::string& name) const {
@@ -312,8 +363,7 @@ void SongBrowserView::RebuildFilterCache(const MusicBank& bank) {
     if (!song)
       continue;
 
-    std::string display_name =
-        absl::StrFormat("%02X: %s", i + 1, song->name);
+    std::string display_name = absl::StrFormat("%02X: %s", i + 1, song->name);
     if (!MatchesSearch(display_name))
       continue;
 

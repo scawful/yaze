@@ -2,11 +2,13 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <memory>
 #include <vector>
 
 #include "rom/rom.h"
 #include "zelda3/overworld/diggable_tiles.h"
+#include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -88,59 +90,59 @@ TEST_F(OverworldRegressionTest, VanillaRomUsesFetchLargeMaps) {
   //
   // Let's look at Overworld public API.
   // GetMap(int index) returns OverworldMap&.
-  
+
   // To properly test this without mocking the entire ROM, we might need to
   // rely on the fact that we can inspect the maps AFTER Load.
   // But Load will fail.
-  
+
   // Actually, let's look at Overworld::Load again.
   // It calls DecompressAllMapTilesParallel().
   // This reads pointers and decompresses. With 0x00 data, pointers are 0.
   // It tries to decompress from 0. 0x00 is not valid compressed data?
   // HyruleMagicDecompress might fail or return empty.
-  
+
   // If we can't run Load(), we can't easily test this integration.
   // However, we can modify the test to just check the logic if we could.
-  
+
   // Let's try to run Load() and see if it crashes. If it does, we'll need a better plan.
   // But for now, let's assume we can at least reach Phase 4.
   // Actually, Phase 2 comes before Phase 4.
-  
+
   // Maybe we can just instantiate Overworld (which we did) and then manually
   // call the private methods if we use a friend test or similar?
   // No, that's messy.
-  
+
   // Let's look at what FetchLargeMaps does.
   // It sets map 129 to Large.
-  
-  // If we can't run Load, we can't verify the fix easily with a unit test 
+
+  // If we can't run Load, we can't verify the fix easily with a unit test
   // unless we mock the internal methods or make them protected/virtual.
-  
+
   // WAIT! I can use the `OverworldVersionHelper` unit tests to verify the *helper* logic,
   // and then manually verify the integration.
   // OR, I can create a test that mocks the ROM data enough for Decompression to "pass" (return empty).
   // 0xFF is the terminator for Hyrule Magic compression? No, it's more complex.
-  
+
   // Let's stick to testing the OverworldVersionHelper first, as that's the core of the fix.
   // Then I will apply the fix in overworld.cc.
 }
 
 TEST_F(OverworldRegressionTest, VersionHelperLogic) {
   // This test verifies the logic we WANT to implement.
-  
+
   // Vanilla (0xFF)
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
   uint8_t version = (*rom_)[OverworldCustomASMHasBeenApplied];
-  
+
   // The BUG:
-  // EXPECT_TRUE(version >= 3); 
-  
+  // EXPECT_TRUE(version >= 3);
+
   // The FIX:
   // With OverworldVersionHelper, this should now be correctly identified as Vanilla
   auto ov_version = OverworldVersionHelper::GetVersion(*rom_);
   EXPECT_EQ(ov_version, OverworldVersion::kVanilla);
   EXPECT_FALSE(OverworldVersionHelper::SupportsAreaEnum(ov_version));
-  
+
   // ZScream v3 (0x03)
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
   ov_version = OverworldVersionHelper::GetVersion(*rom_);
@@ -171,7 +173,8 @@ TEST_F(OverworldRegressionTest, DeathMountainPaletteUsesExactParents) {
 // to custom address space (0x140000+) to prevent vanilla ROM corruption.
 // =============================================================================
 
-TEST_F(OverworldRegressionTest, SaveAreaSpecificBGColors_VanillaRom_SkipsWrite) {
+TEST_F(OverworldRegressionTest,
+       SaveAreaSpecificBGColors_VanillaRom_SkipsWrite) {
   // Set version to Vanilla (0xFF)
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
 
@@ -223,7 +226,8 @@ TEST_F(OverworldRegressionTest, SaveCustomOverworldASM_VanillaRom_SkipsWrite) {
   uint8_t original_byte = (*rom_)[OverworldCustomAreaSpecificBGEnabled];
 
   // Call save - should be a no-op for vanilla
-  auto status = overworld_->SaveCustomOverworldASM(true, true, true, true, true, true);
+  auto status =
+      overworld_->SaveCustomOverworldASM(true, true, true, true, true, true);
   ASSERT_TRUE(status.ok());
 
   // Verify enable flags were NOT modified
@@ -318,6 +322,114 @@ TEST_F(OverworldRegressionTest, SupportsAreaEnum_VersionMatrix) {
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
   EXPECT_TRUE(OverworldVersionHelper::SupportsAreaEnum(
       OverworldVersionHelper::GetVersion(*rom_)));
+}
+
+// =============================================================================
+// P1-02: Deleted OverworldItem must not persist after save
+// =============================================================================
+
+TEST_F(OverworldRegressionTest, SaveItems_DeletedItemsExcludedFromRom) {
+  // Create three items on map 0, then mark the middle one deleted.
+  // After SaveItems + LoadItems round-trip only two items should remain.
+
+  std::vector<OverworldItem> items;
+  // Item A: id=1, map 0, game coords (2, 3)
+  OverworldItem item_a(/*id=*/1, /*room_map_id=*/0, /*x=*/32, /*y=*/48,
+                       /*bg2=*/false);
+  // Item B: id=2, map 0, game coords (4, 5) -- will be deleted
+  OverworldItem item_b(/*id=*/2, /*room_map_id=*/0, /*x=*/64, /*y=*/80,
+                       /*bg2=*/false);
+  item_b.deleted = true;
+  // Item C: id=3, map 0, game coords (6, 7)
+  OverworldItem item_c(/*id=*/3, /*room_map_id=*/0, /*x=*/96, /*y=*/112,
+                       /*bg2=*/false);
+
+  items.push_back(item_a);
+  items.push_back(item_b);
+  items.push_back(item_c);
+
+  // Save items to ROM (the free function already skips deleted items).
+  auto save_status = SaveItems(rom_.get(), items);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+
+  // Reload items from ROM. We need OverworldMaps for LoadItems.
+  // Construct minimal maps (small area, parent == index).
+  std::vector<OverworldMap> maps;
+  maps.reserve(kNumOverworldMaps);
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, rom_.get());
+  }
+
+  auto loaded_or = LoadItems(rom_.get(), maps);
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status().message();
+  const auto& loaded = loaded_or.value();
+
+  // Only the two non-deleted items should have been saved and reloaded.
+  EXPECT_EQ(loaded.size(), 2u);
+
+  // Verify the deleted item (id=2) is absent.
+  bool found_deleted =
+      std::any_of(loaded.begin(), loaded.end(),
+                  [](const OverworldItem& it) { return it.id_ == 2; });
+  EXPECT_FALSE(found_deleted)
+      << "Deleted item (id=2) should not appear after save/load round-trip";
+
+  // Verify the surviving items are present.
+  bool found_a =
+      std::any_of(loaded.begin(), loaded.end(),
+                  [](const OverworldItem& it) { return it.id_ == 1; });
+  bool found_c =
+      std::any_of(loaded.begin(), loaded.end(),
+                  [](const OverworldItem& it) { return it.id_ == 3; });
+  EXPECT_TRUE(found_a) << "Item A (id=1) should survive save/load";
+  EXPECT_TRUE(found_c) << "Item C (id=3) should survive save/load";
+}
+
+TEST_F(OverworldRegressionTest, SaveItems_AllDeletedProducesEmptyRoundTrip) {
+  // If every item is deleted, the round-trip should yield zero items.
+  std::vector<OverworldItem> items;
+  OverworldItem item(/*id=*/5, /*room_map_id=*/0, /*x=*/16, /*y=*/16,
+                     /*bg2=*/false);
+  item.deleted = true;
+  items.push_back(item);
+
+  auto save_status = SaveItems(rom_.get(), items);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+
+  std::vector<OverworldMap> maps;
+  maps.reserve(kNumOverworldMaps);
+  for (int i = 0; i < kNumOverworldMaps; ++i) {
+    maps.emplace_back(i, rom_.get());
+  }
+
+  auto loaded_or = LoadItems(rom_.get(), maps);
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status().message();
+  EXPECT_EQ(loaded_or.value().size(), 0u);
+}
+
+TEST_F(OverworldRegressionTest, CompactDeletedItemsFromVector) {
+  // Verify that the erase-remove idiom used in Overworld::SaveItems()
+  // correctly compacts the vector, removing deleted items in-place.
+  std::vector<OverworldItem> items;
+  items.emplace_back(/*id=*/1, /*room_map_id=*/0, /*x=*/0, /*y=*/0,
+                     /*bg2=*/false);
+  items.emplace_back(/*id=*/2, /*room_map_id=*/0, /*x=*/16, /*y=*/0,
+                     /*bg2=*/false);
+  items.emplace_back(/*id=*/3, /*room_map_id=*/0, /*x=*/32, /*y=*/0,
+                     /*bg2=*/false);
+
+  items[0].deleted = true;
+  items[2].deleted = true;
+
+  // Apply the same erase-remove idiom used in Overworld::SaveItems()
+  items.erase(
+      std::remove_if(items.begin(), items.end(),
+                     [](const OverworldItem& it) { return it.deleted; }),
+      items.end());
+
+  ASSERT_EQ(items.size(), 1u);
+  EXPECT_EQ(items[0].id_, 2);
+  EXPECT_FALSE(items[0].deleted);
 }
 
 }  // namespace zelda3

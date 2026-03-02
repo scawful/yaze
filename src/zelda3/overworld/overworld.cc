@@ -417,8 +417,9 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
       if (sibling < 0 || sibling >= kNumOverworldMaps)
         continue;
 
-      RETURN_IF_ERROR(rom()->WriteByte(GetOverworldMapParentIdExpanded() + sibling,
-                                       overworld_maps_[sibling].parent()));
+      RETURN_IF_ERROR(
+          rom()->WriteByte(GetOverworldMapParentIdExpanded() + sibling,
+                           overworld_maps_[sibling].parent()));
       RETURN_IF_ERROR(rom()->WriteByte(
           kOverworldScreenSize + sibling,
           static_cast<uint8_t>(overworld_maps_[sibling].area_size())));
@@ -1478,8 +1479,9 @@ std::vector<std::pair<uint32_t, uint32_t>> Overworld::GetProjectedWriteRanges()
   ranges.emplace_back(ptr_low, ptr_low + (3 * kNumOverworldMaps));
   ranges.emplace_back(ptr_high, ptr_high + (3 * kNumOverworldMaps));
 
-  ranges.emplace_back(kOverworldCompressedMapPos, kCompressedBank0bEnd);  // Bank 0B
-  ranges.emplace_back(kCompressedBank0cStart, kCompressedBank0cEnd);      // Bank 0C
+  ranges.emplace_back(kOverworldCompressedMapPos,
+                      kCompressedBank0bEnd);                          // Bank 0B
+  ranges.emplace_back(kCompressedBank0cStart, kCompressedBank0cEnd);  // Bank 0C
   ranges.emplace_back(kOverworldMapDataOverflow,
                       kOverworldCompressedOverflowPos);  // Overflow Area
 
@@ -2385,8 +2387,9 @@ absl::Status Overworld::SaveLargeMapsExpanded() {
     int parent_x_pos = (overworld_maps_[i].parent() % 0x40) % 8;
 
     // Write the map parent ID to expanded parent table
-    RETURN_IF_ERROR(rom()->WriteByte(zelda3::GetOverworldMapParentIdExpanded() + i,
-                                     overworld_maps_[i].parent()));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(zelda3::GetOverworldMapParentIdExpanded() + i,
+                         overworld_maps_[i].parent()));
 
     // Handle transitions based on area size
     switch (overworld_maps_[i].area_size()) {
@@ -2898,12 +2901,12 @@ absl::Status Overworld::SaveMap16Expanded() {
   RETURN_IF_ERROR(
       rom()->WriteShort(SnesToPc(0x02FE33), PcToSnes(map16_expanded + 6)));
 
-  RETURN_IF_ERROR(rom()->WriteByte(
-      SnesToPc(0x02FD28),
-      static_cast<uint8_t>(PcToSnes(map16_expanded) >> 16)));
-  RETURN_IF_ERROR(rom()->WriteByte(
-      SnesToPc(0x02FD39),
-      static_cast<uint8_t>(PcToSnes(map16_expanded) >> 16)));
+  RETURN_IF_ERROR(
+      rom()->WriteByte(SnesToPc(0x02FD28),
+                       static_cast<uint8_t>(PcToSnes(map16_expanded) >> 16)));
+  RETURN_IF_ERROR(
+      rom()->WriteByte(SnesToPc(0x02FD39),
+                       static_cast<uint8_t>(PcToSnes(map16_expanded) >> 16)));
 
   int tpos = map16_expanded;
   for (int i = 0; i < NumberOfMap16Ex; i += 1)  // 4096
@@ -2960,6 +2963,14 @@ absl::Status Overworld::SaveExits() {
 
 absl::Status Overworld::SaveItems() {
   RETURN_IF_ERROR(::yaze::zelda3::SaveItems(rom_, all_items_));
+
+  // Compact the in-memory vector: physically remove items flagged as deleted
+  // so they don't accumulate across save cycles or leak through the API.
+  all_items_.erase(
+      std::remove_if(all_items_.begin(), all_items_.end(),
+                     [](const OverworldItem& item) { return item.deleted; }),
+      all_items_.end());
+
   return absl::OkStatus();
 }
 
@@ -3308,8 +3319,8 @@ absl::Status Overworld::SaveAreaSizes() {
   // Save message IDs to expanded table
   for (int i = 0; i < kNumOverworldMaps; i++) {
     uint16_t message_id = overworld_maps_[i].message_id();
-    RETURN_IF_ERROR(
-        rom()->WriteShort(GetOverworldMessagesExpanded() + (i * 2), message_id));
+    RETURN_IF_ERROR(rom()->WriteShort(GetOverworldMessagesExpanded() + (i * 2),
+                                      message_id));
   }
 
   return absl::OkStatus();

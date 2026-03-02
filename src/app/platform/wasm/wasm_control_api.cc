@@ -1855,7 +1855,7 @@ std::string WasmControlApi::GetMapEntities(int map_id) {
 
   // Get items for this map (using map_id_ from GameEntity base class)
   for (const auto& item : overworld->all_items()) {
-    if (item.map_id_ == static_cast<uint16_t>(map_id)) {
+    if (!item.deleted && item.map_id_ == static_cast<uint16_t>(map_id)) {
       nlohmann::json i;
       i["id"] = item.id_;
       i["x"] = item.x_;

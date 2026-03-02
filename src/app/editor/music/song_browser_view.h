@@ -37,7 +37,9 @@ class SongBrowserView {
   /**
    * @brief Set callback for when edits occur (e.g. renaming).
    */
-  void SetOnEditCallback(std::function<void()> callback) { on_edit_ = callback; }
+  void SetOnEditCallback(std::function<void()> callback) {
+    on_edit_ = callback;
+  }
   void SetOnEdit(std::function<void()> callback) { on_edit_ = callback; }
 
   /**
@@ -73,7 +75,8 @@ class SongBrowserView {
 
  private:
   void DrawCustomSection(MusicBank& bank, int current_index);
-  void DrawSongItem(MusicBank& bank, int index, bool is_selected, bool is_custom);
+  void DrawSongItem(MusicBank& bank, int index, bool is_selected,
+                    bool is_custom);
   void HandleContextMenu(MusicBank& bank, int index, bool is_custom);
 
   // Search
@@ -81,7 +84,7 @@ class SongBrowserView {
   std::string last_search_buffer_;
   std::vector<int> filtered_vanilla_indices_;
   std::vector<int> filtered_custom_indices_;
-  
+
   bool MatchesSearch(const std::string& name) const;
   void RebuildFilterCache(const MusicBank& bank);
 
@@ -92,10 +95,12 @@ class SongBrowserView {
   std::function<void(int)> on_export_asm_;
   std::function<void(int)> on_import_asm_;
   std::function<void()> on_edit_;
-  
+
   // State
   int selected_song_index_ = 0;
   int rename_target_index_ = -1;
+  bool rename_popup_open_ = false;
+  char rename_buffer_[128] = "";
 };
 
 }  // namespace music
