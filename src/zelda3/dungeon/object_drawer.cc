@@ -439,36 +439,36 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards2x2_1to15or32(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(0, obj, bg, tiles, state);
   });
   // Routine 1
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards2x4_1to15or26(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(1, obj, bg, tiles, state);
   });
   // Routine 2 - 2x4 tiles with adjacent spacing (s * 2), count = size + 1
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards2x4_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(2, obj, bg, tiles, state);
   });
   // Routine 3 - Same as routine 2 but draws to both BG1 and BG2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards2x4_1to16_BothBG(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(3, obj, bg, tiles, state);
   });
   // Routine 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards2x2_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(4, obj, bg, tiles, state);
   });
   // Routine 5
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -551,8 +551,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards4x4_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(16, obj, bg, tiles, state);
   });
   // Routine 17 - Diagonal Acute BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -580,43 +580,43 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards1x2_1to16_plus2(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(20, obj, bg, tiles, state);
   });
   // Routine 21 - Edge with perimeter 1x1 +3
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsHasEdge1x1_1to16_plus3(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(21, obj, bg, tiles, state);
   });
   // Routine 22 - Edge variant 1x1 +2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsHasEdge1x1_1to16_plus2(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(22, obj, bg, tiles, state);
   });
   // Routine 23 - Top corners 1x2 +13
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsTopCorners1x2_1to16_plus13(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(23, obj, bg, tiles, state);
   });
   // Routine 24 - Bottom corners 1x2 +13
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsBottomCorners1x2_1to16_plus13(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(24, obj, bg, tiles, state);
   });
   // Routine 25 - Solid fill 1x1 +3 (floor patterns)
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards1x1Solid_1to16_plus3(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(25, obj, bg, tiles, state);
   });
   // Routine 26 - Door switcherer
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -629,43 +629,43 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsDecor4x4spaced2_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(27, obj, bg, tiles, state);
   });
   // Routine 28 - Statues 2x3 spaced 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsStatue2x3spaced2_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(28, obj, bg, tiles, state);
   });
   // Routine 29 - Pillars 2x4 spaced 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsPillar2x4spaced4_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(29, obj, bg, tiles, state);
   });
   // Routine 30 - Decorations 4x3 spaced 4
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsDecor4x3spaced4_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(30, obj, bg, tiles, state);
   });
   // Routine 31 - Doubled 2x2 spaced 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsDoubled2x2spaced2_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(31, obj, bg, tiles, state);
   });
   // Routine 32 - Decorations 2x2 spaced 12
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsDecor2x2spaced12_1to16(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(32, obj, bg, tiles, state);
   });
   // Routine 33 - Somaria Line
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -1753,240 +1753,6 @@ void ObjectDrawer::DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
             obj.id_);
 }
 
-void ObjectDrawer::DrawRightwards2x2_1to15or32(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 2x2 tiles rightward (object 0x00 = ceiling, 0xB8-0xB9)
-  // Size byte determines how many times to repeat (1-15 or 32)
-  // ROM tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
-  int size = obj.size_;
-  if (size == 0)
-    size = 32;  // Special case for object 0x00
-
-  // Debug: Log ceiling objects (0x00, 0xB8, 0xB9)
-  bool is_ceiling = (obj.id_ == 0x00 || obj.id_ == 0xB8 || obj.id_ == 0xB9);
-  if (is_ceiling && tiles.size() >= 4) {
-    LOG_DEBUG("ObjectDrawer",
-              "Ceiling Draw: obj=0x%02X pos=(%d,%d) size=%d tiles=%zu", obj.id_,
-              obj.x_, obj.y_, size, tiles.size());
-    LOG_DEBUG("ObjectDrawer", "  Tile IDs: [%d, %d, %d, %d]", tiles[0].id_,
-              tiles[1].id_, tiles[2].id_, tiles[3].id_);
-    LOG_DEBUG("ObjectDrawer", "  Palettes: [%d, %d, %d, %d]", tiles[0].palette_,
-              tiles[1].palette_, tiles[2].palette_, tiles[3].palette_);
-  }
-
-  LOG_DEBUG("ObjectDrawer",
-            "DrawRightwards2x2: obj=%04X pos=(%d,%d) size=%d tiles=%zu",
-            obj.id_, obj.x_, obj.y_, size, tiles.size());
-
-  for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 4) {
-      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
-      // tiles[0] → $BF → (col 0, row 0) = top-left
-      // tiles[1] → $CB → (col 0, row 1) = bottom-left
-      // tiles[2] → $C2 → (col 1, row 0) = top-right
-      // tiles[3] → $CE → (col 1, row 1) = bottom-right
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[2]);  // col 1, row 0
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1,
-                 tiles[3]);  // col 1, row 1
-    } else {
-      LOG_DEBUG("ObjectDrawer",
-                "DrawRightwards2x2: SKIPPING - tiles.size()=%zu < 4",
-                tiles.size());
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwards2x4_1to15or26(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 2x4 tiles rightward (objects 0x01-0x02)
-  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR:
-  // [col0_row0, col0_row1, col0_row2, col0_row3, col1_row0, col1_row1, col1_row2, col1_row3]
-  int size = obj.size_;
-  if (size == 0)
-    size = 26;  // Special case
-
-  LOG_DEBUG("ObjectDrawer",
-            "Wall Draw 2x4: obj=0x%03X pos=(%d,%d) size=%d tiles=%zu", obj.id_,
-            obj.x_, obj.y_, size, tiles.size());
-  LOG_DEBUG("ObjectDrawer",
-            "DrawRightwards2x4: obj=%04X pos=(%d,%d) size=%d tiles=%zu",
-            obj.id_, obj.x_, obj.y_, size, tiles.size());
-
-  for (int s = 0; s < size; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 2x4 pattern in COLUMN-MAJOR order (matching RoomDraw_Nx4)
-      // Column 0 (tiles 0-3)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);  // col 0, row 2
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);  // col 0, row 3
-      // Column 1 (tiles 4-7)
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[4]);  // col 1, row 0
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1,
-                 tiles[5]);  // col 1, row 1
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2,
-                 tiles[6]);  // col 1, row 2
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3,
-                 tiles[7]);  // col 1, row 3
-    } else if (tiles.size() >= 4) {
-      // Fallback: with 4 tiles we can only draw 1 column (1x4 pattern)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwards2x4_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 2x4 tiles rightward with adjacent spacing (objects 0x03-0x04)
-  // Uses RoomDraw_Nx4 with N=2, tiles are COLUMN-MAJOR
-  // ASM: GetSize_1to16 means count = size + 1
-  int size = obj.size_ & 0x0F;
-  int count = size + 1;
-
-  LOG_DEBUG("ObjectDrawer",
-            "DrawRightwards2x4_1to16: obj=%04X pos=(%d,%d) size=%d count=%d "
-            "tiles=%zu",
-            obj.id_, obj.x_, obj.y_, size, count, tiles.size());
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 2x4 pattern in COLUMN-MAJOR order with adjacent spacing (s * 2)
-      // Column 0 (tiles 0-3)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);  // col 0, row 2
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);  // col 0, row 3
-      // Column 1 (tiles 4-7)
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[4]);  // col 1, row 0
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1,
-                 tiles[5]);  // col 1, row 1
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 2,
-                 tiles[6]);  // col 1, row 2
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 3,
-                 tiles[7]);  // col 1, row 3
-    } else if (tiles.size() >= 4) {
-      // Fallback: with 4 tiles we can only draw 1 column (1x4 pattern)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 2, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 3, tiles[3]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwards2x4_1to16_BothBG(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Same as DrawRightwards2x4_1to16 but draws to both BG1 and BG2 (objects 0x05-0x06)
-  DrawRightwards2x4_1to16(obj, bg, tiles);
-  // Note: BothBG would require access to both buffers - simplified for now
-}
-
-void ObjectDrawer::DrawRightwards2x2_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 2x2 tiles rightward (objects 0x07-0x08)
-  // ROM tile order is COLUMN-MAJOR: [col0_row0, col0_row1, col1_row0, col1_row1]
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: JSR RoomDraw_GetSize_1to16
-  // GetSize_1to16: count = size + 1
-  int count = size + 1;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 4) {
-      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_, tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_ + (s * 2), obj.y_ + 1, tiles[1]);  // col 0, row 1
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_, tiles[2]);  // col 1, row 0
-      WriteTile8(bg, obj.x_ + (s * 2) + 1, obj.y_ + 1,
-                 tiles[3]);  // col 1, row 1
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwards1x2_1to16_plus2(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 1x3 tiles rightward with caps (object 0x21)
-  // ZScream: left cap (tiles 0-2), middle columns (tiles 3-5), right cap (tiles 6-8)
-  int size = obj.size_ & 0x0F;
-
-  if (tiles.size() >= 9) {
-    auto draw_column = [&](int x, int base) {
-      WriteTile8(bg, x, obj.y_, tiles[base + 0]);
-      WriteTile8(bg, x, obj.y_ + 1, tiles[base + 1]);
-      WriteTile8(bg, x, obj.y_ + 2, tiles[base + 2]);
-    };
-
-    // Left cap at origin
-    draw_column(obj.x_, 0);
-
-    // Middle columns: two per size step (size + 1 iterations)
-    int mid_cols = (size + 1) * 2;
-    for (int s = 0; s < mid_cols; s++) {
-      draw_column(obj.x_ + 1 + s, 3);
-    }
-
-    // Right cap
-    draw_column(obj.x_ + 1 + mid_cols, 6);
-    return;
-  }
-
-  // Fallback: simple 1x2 pattern
-  int count = (size * 2) + 1;
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 2) {
-      WriteTile8(bg, obj.x_ + s + 2, obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + s + 2, obj.y_ + 1, tiles[1]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus3(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Rail with corner check (object 0x22 small rails)
-  // ASM: RoomDraw_RightwardsHasEdge1x1_1to16_plus3
-  // ZScream: count = size + 2
-  // Structure: [CORNER] -> [MIDDLE * count] -> [END]
-  int size = obj.size_ & 0x0F;
-  int count = size + 2;
-
-  if (tiles.size() < 3)
-    return;
-
-  int x = obj.x_;
-
-  // Draw corner tile (tile 0) - in editor we always draw it
-  WriteTile8(bg, x, obj.y_, tiles[0]);
-  x++;
-
-  // Draw middle tiles (tile 1) repeated
-  for (int s = 0; s < count; s++) {
-    WriteTile8(bg, x, obj.y_, tiles[1]);
-    x++;
-  }
-
-  // Draw end tile (tile 2)
-  WriteTile8(bg, x, obj.y_, tiles[2]);
-}
-
 void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus23(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles,
@@ -2009,74 +1775,6 @@ void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus23(
   }
 
   WriteTile8(bg, x, obj.y_, tiles[2]);
-}
-
-void ObjectDrawer::DrawRightwardsHasEdge1x1_1to16_plus2(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Rail with corner check (objects 0x23-0x2E carpet trim, 0x3F-0x46)
-  // ASM: RoomDraw_RightwardsHasEdge1x1_1to16_plus2
-  // Uses GetSize_1to16, count = size + 1
-  // Structure: [CORNER if needed] -> [MIDDLE * count] -> [END]
-  int size = obj.size_ & 0x0F;
-  int count = size + 1;
-
-  if (tiles.size() < 3)
-    return;
-
-  int x = obj.x_;
-
-  // Draw corner tile (tile 0) - in editor we always draw it
-  WriteTile8(bg, x, obj.y_, tiles[0]);
-  x++;
-
-  // Draw middle tiles (tile 1) repeated
-  for (int s = 0; s < count; s++) {
-    WriteTile8(bg, x, obj.y_, tiles[1]);
-    x++;
-  }
-
-  // Draw end tile (tile 2)
-  WriteTile8(bg, x, obj.y_, tiles[2]);
-}
-
-void ObjectDrawer::DrawRightwardsTopCorners1x2_1to16_plus13(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Top corner 1x2 tiles with +13 offset (object 0x2F)
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
-  int count = size + 10;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 2) {
-      // Use first tile span for 1x2 pattern
-      WriteTile8(bg, obj.x_ + s + 13, obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + s + 13, obj.y_ + 1, tiles[1]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsBottomCorners1x2_1to16_plus13(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    const std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Bottom corner 1x2 tiles with +13 offset (object 0x30)
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
-  int count = size + 10;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 2) {
-      // Use first tile span for 1x2 pattern
-      WriteTile8(bg, obj.x_ + s + 13, obj.y_ + 1, tiles[0]);
-      WriteTile8(bg, obj.x_ + s + 13, obj.y_ + 2, tiles[1]);
-    }
-  }
 }
 
 void ObjectDrawer::CustomDraw(const RoomObject& obj, gfx::BackgroundBuffer& bg,
@@ -2125,95 +1823,6 @@ void ObjectDrawer::DrawRightwards4x4_1to16(
   }
 }
 
-void ObjectDrawer::DrawRightwards1x1Solid_1to16_plus3(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 1x1 solid tiles +3 offset (object 0x34)
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16_timesA(4), so count = size + 4
-  int count = size + 4;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 1) {
-      // Use first 8x8 tile from span
-      WriteTile8(bg, obj.x_ + s + 3, obj.y_, tiles[0]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsDecor4x4spaced2_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 4x4 decoration with spacing (objects 0x36-0x37)
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16, so count = size + 1
-  int count = size + 1;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 16) {
-      // Draw 4x4 pattern with spacing in COLUMN-MAJOR order (matching assembly)
-      for (int x = 0; x < 4; ++x) {
-        for (int y = 0; y < 4; ++y) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 4 + y]);
-        }
-      }
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsStatue2x3spaced2_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 2x3 statue with spacing (object 0x38)
-  // 2 columns × 3 rows = 6 tiles in COLUMN-MAJOR order
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16, so count = size + 1
-  int count = size + 1;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 6) {
-      // Draw 2x3 pattern in COLUMN-MAJOR order (matching assembly)
-      for (int x = 0; x < 2; ++x) {
-        for (int y = 0; y < 3; ++y) {
-          WriteTile8(bg, obj.x_ + (s * 4) + x, obj.y_ + y, tiles[x * 3 + y]);
-        }
-      }
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsPillar2x4spaced4_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 2x4 pillar with spacing (objects 0x39, 0x3D)
-  // 2 columns × 4 rows = 8 tiles in COLUMN-MAJOR order
-  // ASM: calls RoomDraw_Nx4(A=2) which advances X by 2 tiles, then adds
-  // ADC #$0008 (4 tiles). Total start-to-start stride is 6 tiles, i.e. 4 tiles
-  // of empty space between 2-tile-wide pillars.
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16, so count = size + 1
-  int count = size + 1;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 2x4 pattern in COLUMN-MAJOR order (matching assembly)
-      for (int x = 0; x < 2; ++x) {
-        for (int y = 0; y < 4; ++y) {
-          WriteTile8(bg, obj.x_ + (s * 6) + x, obj.y_ + y, tiles[x * 4 + y]);
-        }
-      }
-    }
-  }
-}
-
 void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles,
@@ -2236,60 +1845,6 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
           WriteTile8(bg, obj.x_ + (s * 8) + x, obj.y_ + y, tiles[x * 3 + y]);
         }
       }
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsDoubled2x2spaced2_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 2x2 block repeated with a vertical gap (object 0x3C)
-  int size = obj.size_ & 0x0F;
-  int count = size + 1;
-
-  if (tiles.size() < 4)
-    return;
-
-  for (int s = 0; s < count; s++) {
-    int base_x = obj.x_ + (s * 4);
-
-    // Top 2x2 block
-    WriteTile8(bg, base_x, obj.y_, tiles[0]);
-    WriteTile8(bg, base_x + 1, obj.y_, tiles[2]);
-    WriteTile8(bg, base_x, obj.y_ + 1, tiles[1]);
-    WriteTile8(bg, base_x + 1, obj.y_ + 1, tiles[3]);
-
-    // Bottom 2x2 block (offset by 6 tiles)
-    WriteTile8(bg, base_x, obj.y_ + 6, tiles[0]);
-    WriteTile8(bg, base_x + 1, obj.y_ + 6, tiles[2]);
-    WriteTile8(bg, base_x, obj.y_ + 7, tiles[1]);
-    WriteTile8(bg, base_x + 1, obj.y_ + 7, tiles[3]);
-  }
-}
-
-void ObjectDrawer::DrawRightwardsDecor2x2spaced12_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: 2x2 decoration with large spacing (object 0x3E)
-  int size = obj.size_ & 0x0F;
-
-  // Assembly: GetSize_1to16, so count = size + 1
-  int count = size + 1;
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 4) {
-      // Draw 2x2 pattern in COLUMN-MAJOR order (matching assembly)
-      // tiles[0] → col 0, row 0 = top-left
-      // tiles[1] → col 0, row 1 = bottom-left
-      // tiles[2] → col 1, row 0 = top-right
-      // tiles[3] → col 1, row 1 = bottom-right
-      WriteTile8(bg, obj.x_ + (s * 14), obj.y_, tiles[0]);      // col 0, row 0
-      WriteTile8(bg, obj.x_ + (s * 14), obj.y_ + 1, tiles[1]);  // col 0, row 1
-      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_, tiles[2]);  // col 1, row 0
-      WriteTile8(bg, obj.x_ + (s * 14) + 1, obj.y_ + 1,
-                 tiles[3]);  // col 1, row 1
     }
   }
 }
