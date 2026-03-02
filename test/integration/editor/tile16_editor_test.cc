@@ -572,8 +572,8 @@ TEST_F(Tile16EditorIntegrationTest,
   // For each quadrant, non-zero pixels should encode the quadrant's palette row
   // in the high nibble: (pixel & 0xF0) >> 4 == tile_info.palette_
   const gfx::TileInfo* quadrant_infos[4] = {
-      &tile_data->tile0_, &tile_data->tile1_,
-      &tile_data->tile2_, &tile_data->tile3_};
+      &tile_data->tile0_, &tile_data->tile1_, &tile_data->tile2_,
+      &tile_data->tile3_};
 
   // We can't easily get the private bitmap, but SetCurrentTile + regenerate
   // produces a bitmap accessible through the commit workflow. Instead, test via
@@ -596,7 +596,8 @@ TEST_F(Tile16EditorIntegrationTest,
         int px = (qx * 8) + tx;
         int py = (qy * 8) + ty;
         uint8_t pixel = bmp->data()[py * 16 + px];
-        if (pixel == 0) continue;  // transparent, skip
+        if (pixel == 0)
+          continue;  // transparent, skip
 
         found_nonzero = true;
         uint8_t encoded_row = (pixel & 0xF0) >> 4;
@@ -653,8 +654,7 @@ TEST_F(Tile16EditorIntegrationTest,
 #endif
 }
 
-TEST_F(Tile16EditorIntegrationTest,
-       ApplyPaletteToAllSetsAllQuadrantPalettes) {
+TEST_F(Tile16EditorIntegrationTest, ApplyPaletteToAllSetsAllQuadrantPalettes) {
 #ifdef YAZE_ENABLE_ROM_TESTS
   if (!rom_loaded_) {
     GTEST_SKIP() << "ROM not loaded, skipping integration test";
@@ -697,8 +697,82 @@ TEST_F(Tile16EditorIntegrationTest, ApplyPaletteToAllRejectsInvalidPalette) {
   EXPECT_EQ(result.code(), absl::StatusCode::kInvalidArgument);
 }
 
+TEST_F(Tile16EditorIntegrationTest, DiscardChangesClearsCurrentPendingTile) {
+#ifdef YAZE_ENABLE_ROM_TESTS
+  if (!rom_loaded_) {
+    GTEST_SKIP() << "ROM not loaded, skipping integration test";
+  }
+
+  constexpr int kTile = 12;
+  ASSERT_TRUE(editor_->SetCurrentTile(kTile).ok());
+  editor_->MarkCurrentTileModified();
+  ASSERT_TRUE(editor_->is_tile_modified(kTile));
+  ASSERT_EQ(editor_->pending_changes_count(), 1);
+
+  ASSERT_TRUE(editor_->DiscardChanges().ok());
+  EXPECT_FALSE(editor_->is_tile_modified(kTile));
+  EXPECT_FALSE(editor_->has_pending_changes());
+#else
+  GTEST_SKIP() << "ROM tests disabled";
+#endif
+}
+
 TEST_F(Tile16EditorIntegrationTest,
-       NormalizedPixelsUseFallbackSubPalettePath) {
+       DiscardCurrentTileChangesKeepsOtherPendingTiles) {
+#ifdef YAZE_ENABLE_ROM_TESTS
+  if (!rom_loaded_) {
+    GTEST_SKIP() << "ROM not loaded, skipping integration test";
+  }
+
+  constexpr int kTileA = 13;
+  constexpr int kTileB = 14;
+
+  ASSERT_TRUE(editor_->SetCurrentTile(kTileA).ok());
+  editor_->MarkCurrentTileModified();
+  ASSERT_TRUE(editor_->SetCurrentTile(kTileB).ok());
+  editor_->MarkCurrentTileModified();
+
+  ASSERT_TRUE(editor_->is_tile_modified(kTileA));
+  ASSERT_TRUE(editor_->is_tile_modified(kTileB));
+  ASSERT_EQ(editor_->pending_changes_count(), 2);
+
+  editor_->DiscardCurrentTileChanges();
+  EXPECT_TRUE(editor_->is_tile_modified(kTileA));
+  EXPECT_FALSE(editor_->is_tile_modified(kTileB));
+  EXPECT_EQ(editor_->pending_changes_count(), 1);
+
+  editor_->DiscardAllChanges();
+#else
+  GTEST_SKIP() << "ROM tests disabled";
+#endif
+}
+
+TEST_F(Tile16EditorIntegrationTest, CommitAllChangesClearsPendingQueue) {
+#ifdef YAZE_ENABLE_ROM_TESTS
+  if (!rom_loaded_) {
+    GTEST_SKIP() << "ROM not loaded, skipping integration test";
+  }
+
+  constexpr int kTileA = 15;
+  constexpr int kTileB = 16;
+
+  ASSERT_TRUE(editor_->SetCurrentTile(kTileA).ok());
+  editor_->MarkCurrentTileModified();
+  ASSERT_TRUE(editor_->SetCurrentTile(kTileB).ok());
+  editor_->MarkCurrentTileModified();
+  ASSERT_EQ(editor_->pending_changes_count(), 2);
+
+  ASSERT_TRUE(editor_->CommitAllChanges().ok());
+  EXPECT_FALSE(editor_->has_pending_changes());
+  EXPECT_EQ(editor_->pending_changes_count(), 0);
+  EXPECT_FALSE(editor_->is_tile_modified(kTileA));
+  EXPECT_FALSE(editor_->is_tile_modified(kTileB));
+#else
+  GTEST_SKIP() << "ROM tests disabled";
+#endif
+}
+
+TEST_F(Tile16EditorIntegrationTest, NormalizedPixelsUseFallbackSubPalettePath) {
 #ifdef YAZE_ENABLE_ROM_TESTS
   if (!rom_loaded_) {
     GTEST_SKIP() << "ROM not loaded, skipping integration test";
@@ -723,9 +797,8 @@ TEST_F(Tile16EditorIntegrationTest,
   // Cycle through all 8 palettes — each should succeed and produce valid state
   for (int p = 0; p < 8; ++p) {
     auto cycle_result = editor_->CyclePalette(true);
-    EXPECT_TRUE(cycle_result.ok())
-        << "CyclePalette failed at step " << p << ": "
-        << cycle_result.message();
+    EXPECT_TRUE(cycle_result.ok()) << "CyclePalette failed at step " << p
+                                   << ": " << cycle_result.message();
   }
 
   // After cycling through all 8, we should be back to original palette

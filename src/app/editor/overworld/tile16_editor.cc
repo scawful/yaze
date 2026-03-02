@@ -50,7 +50,8 @@ gfx::TileInfo& TileInfoForQuadrant(gfx::Tile16* tile, int quadrant) {
   }
 }
 
-const gfx::TileInfo& TileInfoForQuadrant(const gfx::Tile16& tile, int quadrant) {
+const gfx::TileInfo& TileInfoForQuadrant(const gfx::Tile16& tile,
+                                         int quadrant) {
   switch (quadrant) {
     case 0:
       return tile.tile0_;
@@ -88,7 +89,8 @@ int ComputeTile16Count(const gfx::Tilemap* tile16_blockset) {
     return kTile16Count;
   }
 
-  const int tiles_per_row = std::max(1, tile16_blockset->atlas.width() / kTile16Size);
+  const int tiles_per_row =
+      std::max(1, tile16_blockset->atlas.width() / kTile16Size);
   const int rows = std::max(1, tile16_blockset->atlas.height() / kTile16Size);
   const int computed = tiles_per_row * rows;
   return std::clamp(computed, 1, kTile16Count);
@@ -107,7 +109,8 @@ void BlitTile16BitmapToBitmap(gfx::Bitmap* destination, int tile_id,
   for (int ty = 0; ty < kTile16Size; ++ty) {
     for (int tx = 0; tx < kTile16Size; ++tx) {
       const int src_index = ty * kTile16Size + tx;
-      const int dst_index = (tile_y + ty) * destination->width() + (tile_x + tx);
+      const int dst_index =
+          (tile_y + ty) * destination->width() + (tile_x + tx);
       if (src_index < static_cast<int>(source_bitmap.size()) &&
           dst_index < static_cast<int>(destination->size())) {
         destination->WriteToPixel(dst_index, source_bitmap.data()[src_index]);
@@ -621,8 +624,8 @@ absl::Status Tile16Editor::RefreshTile16Blockset() {
 
 absl::Status Tile16Editor::BuildTile16BitmapFromData(
     const gfx::Tile16& tile_data, gfx::Bitmap* output_bitmap) const {
-  return zelda3::RenderTile16BitmapFromMetadata(tile_data, current_gfx_individual_,
-                                                output_bitmap);
+  return zelda3::RenderTile16BitmapFromMetadata(
+      tile_data, current_gfx_individual_, output_bitmap);
 }
 
 void Tile16Editor::CopyTileBitmapToBlockset(int tile_id,
@@ -728,7 +731,8 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
   const int tile8_count =
       static_cast<int>(std::min<size_t>(current_gfx_individual_.size(), 1024));
   const int max_tile8_id = std::max(0, tile8_count - 1);
-  const int tile8_row_stride = std::max(1, current_gfx_bmp_.width() / kTile8Size);
+  const int tile8_row_stride =
+      std::max(1, current_gfx_bmp_.width() / kTile8Size);
 
   auto make_tile_info = [&](int tile8_id) {
     const uint16_t clamped_id =
@@ -775,7 +779,8 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
     // ZScream parity: 4x writes a 2x2 tile16 patch from a 4x4 tile8 region.
     for (int patch_x = 0; patch_x < 2; ++patch_x) {
       for (int patch_y = 0; patch_y < 2; ++patch_y) {
-        const int target_tile16 = current_tile16_ + patch_x + (patch_y * kTilesPerRow);
+        const int target_tile16 =
+            current_tile16_ + patch_x + (patch_y * kTilesPerRow);
         if (target_tile16 < 0 || target_tile16 >= kTile16Count) {
           continue;
         }
@@ -797,11 +802,12 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
     if (tile16_id == current_tile16_) {
       current_tile16_data_ = tile_data;
       SyncTilesInfoArray(&current_tile16_data_);
-      current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8, staged_bitmap.vector());
+      current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8,
+                                 staged_bitmap.vector());
       ApplyPaletteToCurrentTile16Bitmap();
       current_tile16_bmp_.set_modified(true);
-      gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
-                                            &current_tile16_bmp_);
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
       MarkCurrentTileModified();
     } else {
       pending_tile16_changes_[tile16_id] = tile_data;
@@ -857,6 +863,13 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   ImGui::TextDisabled("|");
   ImGui::SameLine();
   ImGui::TextDisabled("Palette: %d", current_palette_);
+  ImGui::SameLine();
+  ImGui::TextDisabled("| RMB: Pick Tile8");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Usage mode: Right-click the Tile16 preview to pick the source Tile8 "
+        "and brush palette from that quadrant.");
+  }
 
   // Show actual palette slot for debugging
   if (show_debug_info) {
@@ -878,20 +891,20 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   }
 
   // Sticky staged-state bar so users always know what is only staged vs. written
-  const ImVec4 staged_bar_bg = current_tile_pending
-                                   ? ImVec4(0.27f, 0.18f, 0.09f, 0.65f)
-                                   : (has_pending ? ImVec4(0.16f, 0.15f, 0.18f, 0.65f)
-                                                  : ImVec4(0.12f, 0.17f, 0.13f, 0.65f));
+  const ImVec4 staged_bar_bg =
+      current_tile_pending ? ImVec4(0.27f, 0.18f, 0.09f, 0.65f)
+                           : (has_pending ? ImVec4(0.16f, 0.15f, 0.18f, 0.65f)
+                                          : ImVec4(0.12f, 0.17f, 0.13f, 0.65f));
   gui::StyleColorGuard staged_bar_guard(ImGuiCol_ChildBg, staged_bar_bg);
-  if (ImGui::BeginChild("##Tile16StagedStateBar", ImVec2(0, 58), true,
-                        ImGuiWindowFlags_NoScrollbar |
-                            ImGuiWindowFlags_NoScrollWithMouse)) {
+  if (ImGui::BeginChild(
+          "##Tile16StagedStateBar", ImVec2(0, 58), true,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
     if (current_tile_pending) {
-      ImGui::TextColored(ImVec4(1.0f, 0.82f, 0.30f, 1.0f),
-                         "Tile %02X: STAGED", current_tile16_);
+      ImGui::TextColored(ImVec4(1.0f, 0.82f, 0.30f, 1.0f), "Tile %02X: STAGED",
+                         current_tile16_);
     } else {
-      ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.55f, 1.0f),
-                         "Tile %02X: CLEAN", current_tile16_);
+      ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.55f, 1.0f), "Tile %02X: CLEAN",
+                         current_tile16_);
     }
 
     ImGui::SameLine();
@@ -988,125 +1001,126 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     // Navigation controls row
     {
-    gui::StyleVarGuard nav_spacing_guard(ImGuiStyleVar_ItemSpacing,
-                                         ImVec2(4, 4));
+      gui::StyleVarGuard nav_spacing_guard(ImGuiStyleVar_ItemSpacing,
+                                           ImVec2(4, 4));
 
-    // Jump to Tile ID input - live navigation as user types
-    ImGui::SetNextItemWidth(80);
-    if (ImGui::InputInt("##JumpToTile", &jump_to_tile_id_, 0, 0)) {
-      // Clamp to valid range
-      jump_to_tile_id_ = std::clamp(jump_to_tile_id_, 0, total_tiles - 1);
-      if (jump_to_tile_id_ != current_tile16_) {
-        RequestTileSwitch(jump_to_tile_id_);
+      // Jump to Tile ID input - live navigation as user types
+      ImGui::SetNextItemWidth(80);
+      if (ImGui::InputInt("##JumpToTile", &jump_to_tile_id_, 0, 0)) {
+        // Clamp to valid range
+        jump_to_tile_id_ = std::clamp(jump_to_tile_id_, 0, total_tiles - 1);
+        if (jump_to_tile_id_ != current_tile16_) {
+          RequestTileSwitch(jump_to_tile_id_);
+          scroll_to_current_ = true;
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Tile ID (0-%d) - navigates as you type",
+                          total_tiles - 1);
+      }
+
+      ImGui::SameLine();
+      ImGui::TextDisabled("|");
+      ImGui::SameLine();
+
+      // Page navigation
+      int total_pages = (total_tiles + kTilesPerPage - 1) / kTilesPerPage;
+      current_page_ = current_tile16_ / kTilesPerPage;
+
+      if (ImGui::Button("<<")) {
+        RequestTileSwitch(0);
         scroll_to_current_ = true;
       }
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Tile ID (0-%d) - navigates as you type",
-                        total_tiles - 1);
-    }
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("First page");
 
-    ImGui::SameLine();
-    ImGui::TextDisabled("|");
-    ImGui::SameLine();
-
-    // Page navigation
-    int total_pages = (total_tiles + kTilesPerPage - 1) / kTilesPerPage;
-    current_page_ = current_tile16_ / kTilesPerPage;
-
-    if (ImGui::Button("<<")) {
-      RequestTileSwitch(0);
-      scroll_to_current_ = true;
-    }
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("First page");
-
-    ImGui::SameLine();
-    if (ImGui::Button("<")) {
-      int new_tile = std::max(0, current_tile16_ - kTilesPerPage);
-      RequestTileSwitch(new_tile);
-      scroll_to_current_ = true;
-    }
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Previous page (PageUp)");
-
-    ImGui::SameLine();
-    ImGui::TextDisabled("Page %d/%d", current_page_ + 1, total_pages);
-
-    ImGui::SameLine();
-    if (ImGui::Button(">")) {
-      int new_tile = std::min(total_tiles - 1, current_tile16_ + kTilesPerPage);
-      RequestTileSwitch(new_tile);
-      scroll_to_current_ = true;
-    }
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Next page (PageDown)");
-
-    ImGui::SameLine();
-    if (ImGui::Button(">>")) {
-      RequestTileSwitch(total_tiles - 1);
-      scroll_to_current_ = true;
-    }
-    if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Last page");
-
-    // Display current tile info (sheet and palette)
-    ImGui::SameLine();
-    ImGui::TextDisabled("|");
-    ImGui::SameLine();
-    int sheet_idx = GetSheetIndexForTile8(current_tile8_);
-    ImGui::Text("Sheet: %d | Palette: %d", sheet_idx, current_palette_);
-
-    // Handle keyboard shortcuts for page navigation
-    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
-      if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
+      ImGui::SameLine();
+      if (ImGui::Button("<")) {
         int new_tile = std::max(0, current_tile16_ - kTilesPerPage);
         RequestTileSwitch(new_tile);
         scroll_to_current_ = true;
       }
-      if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Previous page (PageUp)");
+
+      ImGui::SameLine();
+      ImGui::TextDisabled("Page %d/%d", current_page_ + 1, total_pages);
+
+      ImGui::SameLine();
+      if (ImGui::Button(">")) {
         int new_tile =
             std::min(total_tiles - 1, current_tile16_ + kTilesPerPage);
         RequestTileSwitch(new_tile);
         scroll_to_current_ = true;
       }
-      if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
-        RequestTileSwitch(0);
-        scroll_to_current_ = true;
-      }
-      if (ImGui::IsKeyPressed(ImGuiKey_End)) {
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Next page (PageDown)");
+
+      ImGui::SameLine();
+      if (ImGui::Button(">>")) {
         RequestTileSwitch(total_tiles - 1);
         scroll_to_current_ = true;
       }
+      if (ImGui::IsItemHovered())
+        ImGui::SetTooltip("Last page");
 
-      // Arrow keys for single-tile navigation (when Ctrl not held)
-      if (!ImGui::GetIO().KeyCtrl) {
-        if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-          if (current_tile16_ > 0) {
-            RequestTileSwitch(current_tile16_ - 1);
-            scroll_to_current_ = true;
-          }
+      // Display current tile info (sheet and palette)
+      ImGui::SameLine();
+      ImGui::TextDisabled("|");
+      ImGui::SameLine();
+      int sheet_idx = GetSheetIndexForTile8(current_tile8_);
+      ImGui::Text("Sheet: %d | Palette: %d", sheet_idx, current_palette_);
+
+      // Handle keyboard shortcuts for page navigation
+      if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+        if (ImGui::IsKeyPressed(ImGuiKey_PageUp)) {
+          int new_tile = std::max(0, current_tile16_ - kTilesPerPage);
+          RequestTileSwitch(new_tile);
+          scroll_to_current_ = true;
         }
-        if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-          if (current_tile16_ < total_tiles - 1) {
-            RequestTileSwitch(current_tile16_ + 1);
-            scroll_to_current_ = true;
-          }
+        if (ImGui::IsKeyPressed(ImGuiKey_PageDown)) {
+          int new_tile =
+              std::min(total_tiles - 1, current_tile16_ + kTilesPerPage);
+          RequestTileSwitch(new_tile);
+          scroll_to_current_ = true;
         }
-        if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
-          if (current_tile16_ >= kTilesPerRow) {
-            RequestTileSwitch(current_tile16_ - kTilesPerRow);
-            scroll_to_current_ = true;
-          }
+        if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
+          RequestTileSwitch(0);
+          scroll_to_current_ = true;
         }
-        if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
-          if (current_tile16_ + kTilesPerRow < total_tiles) {
-            RequestTileSwitch(current_tile16_ + kTilesPerRow);
-            scroll_to_current_ = true;
+        if (ImGui::IsKeyPressed(ImGuiKey_End)) {
+          RequestTileSwitch(total_tiles - 1);
+          scroll_to_current_ = true;
+        }
+
+        // Arrow keys for single-tile navigation (when Ctrl not held)
+        if (!ImGui::GetIO().KeyCtrl) {
+          if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
+            if (current_tile16_ > 0) {
+              RequestTileSwitch(current_tile16_ - 1);
+              scroll_to_current_ = true;
+            }
+          }
+          if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
+            if (current_tile16_ < total_tiles - 1) {
+              RequestTileSwitch(current_tile16_ + 1);
+              scroll_to_current_ = true;
+            }
+          }
+          if (ImGui::IsKeyPressed(ImGuiKey_UpArrow)) {
+            if (current_tile16_ >= kTilesPerRow) {
+              RequestTileSwitch(current_tile16_ - kTilesPerRow);
+              scroll_to_current_ = true;
+            }
+          }
+          if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
+            if (current_tile16_ + kTilesPerRow < total_tiles) {
+              RequestTileSwitch(current_tile16_ + kTilesPerRow);
+              scroll_to_current_ = true;
+            }
           }
         }
       }
-    }
 
     }  // nav_spacing_guard scope
 
@@ -1203,7 +1217,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       }
 
       // ZScream parity: hold right-click on tile8 source to show usage overlay.
-      if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+      if (ImGui::IsItemHovered() &&
+          ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
         highlight_tile8_usage_ = true;
       } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
         highlight_tile8_usage_ = false;
@@ -1226,7 +1241,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
         if (new_tile8 != current_tile8_ && new_tile8 >= 0 &&
             new_tile8 < static_cast<int>(current_gfx_individual_.size()) &&
-          current_gfx_individual_[new_tile8].is_active()) {
+            current_gfx_individual_[new_tile8].is_active()) {
           current_tile8_ = new_tile8;
           RETURN_IF_ERROR(UpdateTile8Palette(current_tile8_));
           if (right_clicked) {
@@ -1519,20 +1534,18 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         ImGui::PushID(i);
 
         gui::StyleColorGuard palette_btn_colors(
-            {{ImGuiCol_Button,
-              is_current ? ImVec4(0.2f, 0.7f, 0.3f, 1.0f)
-                         : ImVec4(0.3f, 0.3f, 0.35f, 1.0f)},
-             {ImGuiCol_ButtonHovered,
-              is_current ? ImVec4(0.3f, 0.8f, 0.4f, 1.0f)
-                         : ImVec4(0.4f, 0.4f, 0.45f, 1.0f)},
-             {ImGuiCol_ButtonActive,
-              is_current ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)
-                         : ImVec4(0.25f, 0.25f, 0.3f, 1.0f)},
-             {ImGuiCol_Border,
-              is_current ? ImVec4(0.4f, 0.9f, 0.5f, 1.0f)
-                         : ImVec4(0.5f, 0.5f, 0.5f, 0.3f)}});
-        gui::StyleVarGuard palette_btn_border(
-            ImGuiStyleVar_FrameBorderSize, 1.0f);
+            {{ImGuiCol_Button, is_current ? ImVec4(0.2f, 0.7f, 0.3f, 1.0f)
+                                          : ImVec4(0.3f, 0.3f, 0.35f, 1.0f)},
+             {ImGuiCol_ButtonHovered, is_current
+                                          ? ImVec4(0.3f, 0.8f, 0.4f, 1.0f)
+                                          : ImVec4(0.4f, 0.4f, 0.45f, 1.0f)},
+             {ImGuiCol_ButtonActive, is_current
+                                         ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)
+                                         : ImVec4(0.25f, 0.25f, 0.3f, 1.0f)},
+             {ImGuiCol_Border, is_current ? ImVec4(0.4f, 0.9f, 0.5f, 1.0f)
+                                          : ImVec4(0.5f, 0.5f, 0.5f, 0.3f)}});
+        gui::StyleVarGuard palette_btn_border(ImGuiStyleVar_FrameBorderSize,
+                                              1.0f);
 
         if (ImGui::Button(absl::StrFormat("%d", i).c_str(),
                           ImVec2(button_size, button_size))) {
@@ -1578,7 +1591,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
     }
     HOVER_HINT(
-        "Copy the Brush Palette into Tile Palette metadata for all 4 quadrants");
+        "Copy the Brush Palette into Tile Palette metadata for all 4 "
+        "quadrants");
 
     Separator();
 
@@ -2018,8 +2032,8 @@ absl::Status Tile16Editor::SaveTile16ToScratchSpace(int slot) {
                                      current_tile16_bmp_.vector());
   scratch_space_[slot].bitmap.SetPalette(current_tile16_bmp_.palette());
   // Queue texture creation via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::CREATE, &scratch_space_[slot].bitmap);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &scratch_space_[slot].bitmap);
 
   scratch_space_[slot].has_data = true;
   return absl::OkStatus();
@@ -2160,8 +2174,9 @@ absl::Status Tile16Editor::FillTile16WithTile8(int tile8_id) {
 
   SaveUndoState();
 
-  const gfx::TileInfo fill_info(static_cast<uint16_t>(tile8_id), current_palette_,
-                                y_flip, x_flip, priority_tile);
+  const gfx::TileInfo fill_info(static_cast<uint16_t>(tile8_id),
+                                current_palette_, y_flip, x_flip,
+                                priority_tile);
   for (int quadrant = 0; quadrant < 4; ++quadrant) {
     TileInfoForQuadrant(&current_tile16_data_, quadrant) = fill_info;
   }
@@ -2240,30 +2255,32 @@ absl::Status Tile16Editor::PreviewPaletteChange(uint8_t palette_id) {
     preview_tile16_.Create(16, 16, 8, current_tile16_bmp_.vector());
   }
 
-  if (!game_data())
-    return absl::FailedPreconditionError("GameData not available");
-  const auto& ow_main_pal_group = game_data()->palette_groups.overworld_main;
-  const gfx::SnesPalette* display_palette = nullptr;
-  if (overworld_palette_.size() >= 256) {
-    display_palette = &overworld_palette_;
-  } else if (palette_.size() >= 256) {
-    display_palette = &palette_;
-  } else if (ow_main_pal_group.size() > 0) {
-    display_palette = &ow_main_pal_group[0];
+  const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
+  if (!display_palette || display_palette->empty()) {
+    return absl::OkStatus();
   }
 
-  if (display_palette && !display_palette->empty()) {
-    if (auto_normalize_pixels_ && ow_main_pal_group.size() > palette_id) {
-      preview_tile16_.SetPaletteWithTransparent(ow_main_pal_group[0],
-                                                palette_id);
+  const bool use_sub_palette_view =
+      auto_normalize_pixels_ && !BitmapHasEncodedPaletteRows(preview_tile16_);
+  if (use_sub_palette_view) {
+    const int sheet_index = GetSheetIndexForTile8(current_tile8_);
+    const int palette_slot =
+        GetActualPaletteSlot(static_cast<int>(palette_id), sheet_index);
+    if (palette_slot >= 0 &&
+        static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
+      preview_tile16_.SetPaletteWithTransparent(
+          *display_palette, static_cast<size_t>(palette_slot + 1), 15);
     } else {
-      preview_tile16_.SetPalette(*display_palette);
+      preview_tile16_.SetPaletteWithTransparent(*display_palette, 1, 15);
     }
-    // Queue texture update via Arena's deferred system
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &preview_tile16_);
-    preview_dirty_ = true;
+  } else {
+    preview_tile16_.SetPalette(*display_palette);
   }
+
+  // Queue texture update via Arena's deferred system
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &preview_tile16_);
+  preview_dirty_ = true;
 
   return absl::OkStatus();
 }
@@ -2320,12 +2337,13 @@ void Tile16Editor::RestoreFromSnapshot(const Tile16Snapshot& snapshot) {
   priority_tile = snapshot.priority;
   pending_tile16_changes_[current_tile16_] = current_tile16_data_;
   pending_tile16_bitmaps_[current_tile16_] = current_tile16_bmp_;
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &current_tile16_bmp_);
 }
 
 void Tile16Editor::FinalizePendingUndo() {
-  if (!pending_undo_before_.has_value()) return;
+  if (!pending_undo_before_.has_value())
+    return;
   if (!current_tile16_bmp_.is_active()) {
     pending_undo_before_.reset();
     return;
@@ -2400,8 +2418,7 @@ absl::Status Tile16Editor::ValidateTile16Data() {
 }
 
 bool Tile16Editor::IsTile16Valid(int tile_id) const {
-  return tile16_blockset_ != nullptr && tile_id >= 0 &&
-         tile_id < kTile16Count;
+  return tile16_blockset_ != nullptr && tile_id >= 0 && tile_id < kTile16Count;
 }
 
 // Integration with overworld system
@@ -2501,6 +2518,12 @@ absl::Status Tile16Editor::CommitChangesToOverworld() {
 }
 
 absl::Status Tile16Editor::DiscardChanges() {
+  // Drop the current tile's staged copy first; SetCurrentTile consults pending
+  // state before ROM state.
+  pending_tile16_changes_.erase(current_tile16_);
+  pending_tile16_bitmaps_.erase(current_tile16_);
+  tile8_usage_cache_dirty_ = true;
+
   // Reload the current tile16 from ROM to discard any local changes
   RETURN_IF_ERROR(SetCurrentTile(current_tile16_));
 
@@ -2596,8 +2619,8 @@ void Tile16Editor::MarkCurrentTileModified() {
   preview_dirty_ = true;
   tile8_usage_cache_dirty_ = true;
 
-  util::logf("Marked tile %d as modified (total pending: %zu)",
-             current_tile16_, pending_tile16_changes_.size());
+  util::logf("Marked tile %d as modified (total pending: %zu)", current_tile16_,
+             pending_tile16_changes_.size());
 }
 
 absl::Status Tile16Editor::RebuildTile8UsageCache() {
@@ -2646,7 +2669,8 @@ void Tile16Editor::DrawTile8UsageOverlay() {
   const float scale = blockset_canvas_.GetGlobalScale();
   const float tile16_display = 32.0f * scale;
   const float quadrant_display = 16.0f * scale;
-  const int tiles_per_row = std::max(1, tile16_blockset_bmp_.width() / kTile16Size);
+  const int tiles_per_row =
+      std::max(1, tile16_blockset_bmp_.width() / kTile16Size);
 
   for (const auto& hit : hits) {
     const int tile_x = hit.tile16_id % tiles_per_row;
@@ -2654,10 +2678,9 @@ void Tile16Editor::DrawTile8UsageOverlay() {
     const int quad_x = hit.quadrant % 2;
     const int quad_y = hit.quadrant / 2;
 
-    const ImVec2 min(canvas_pos.x + (tile_x * tile16_display) +
-                         (quad_x * quadrant_display),
-                     canvas_pos.y + (tile_y * tile16_display) +
-                         (quad_y * quadrant_display));
+    const ImVec2 min(
+        canvas_pos.x + (tile_x * tile16_display) + (quad_x * quadrant_display),
+        canvas_pos.y + (tile_y * tile16_display) + (quad_y * quadrant_display));
     const ImVec2 max(min.x + quadrant_display, min.y + quadrant_display);
 
     // Mirrors ZScream's right-click usage tint (purple, transparent).
@@ -2876,22 +2899,39 @@ int Tile16Editor::GetEncodedPaletteRow(uint8_t pixel_value) const {
   return pixel_value / 16;
 }
 
+const gfx::SnesPalette* Tile16Editor::ResolveDisplayPalette() const {
+  if (overworld_palette_.size() >= 256) {
+    return &overworld_palette_;
+  }
+  if (palette_.size() >= 256) {
+    return &palette_;
+  }
+  if (game_data() && !game_data()->palette_groups.overworld_main.empty()) {
+    return &game_data()->palette_groups.overworld_main.palette_ref(0);
+  }
+  return nullptr;
+}
+
+bool Tile16Editor::BitmapHasEncodedPaletteRows(
+    const gfx::Bitmap& bitmap) const {
+  if (!bitmap.is_active() || bitmap.data() == nullptr) {
+    return false;
+  }
+
+  for (size_t i = 0; i < bitmap.size(); ++i) {
+    if ((bitmap.data()[i] & 0xF0) != 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void Tile16Editor::ApplyPaletteToCurrentTile16Bitmap() {
   if (!current_tile16_bmp_.is_active()) {
     return;
   }
 
-  const gfx::SnesPalette* display_palette = nullptr;
-  if (overworld_palette_.size() >= 256) {
-    display_palette = &overworld_palette_;
-  } else if (palette_.size() >= 256) {
-    display_palette = &palette_;
-  } else if (game_data() &&
-             !game_data()->palette_groups.overworld_main.empty()) {
-    display_palette =
-        &game_data()->palette_groups.overworld_main.palette_ref(0);
-  }
-
+  const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
   if (!display_palette || display_palette->empty()) {
     return;
   }
@@ -2900,17 +2940,8 @@ void Tile16Editor::ApplyPaletteToCurrentTile16Bitmap() {
   // via (pixel & 0x0F) + (palette * 0x10). In that case, apply the full palette.
   // If normalization produced low-nibble-only pixels, keep the legacy sub-palette
   // view path so the advanced normalization workflow still renders correctly.
-  bool has_encoded_palette_rows = false;
-  if (current_tile16_bmp_.data() != nullptr) {
-    for (size_t i = 0; i < current_tile16_bmp_.size(); ++i) {
-      if ((current_tile16_bmp_.data()[i] & 0xF0) != 0) {
-        has_encoded_palette_rows = true;
-        break;
-      }
-    }
-  }
-
-  if (auto_normalize_pixels_ && !has_encoded_palette_rows) {
+  if (auto_normalize_pixels_ &&
+      !BitmapHasEncodedPaletteRows(current_tile16_bmp_)) {
     const int palette_slot = GetActualPaletteSlotForCurrentTile16();
     if (palette_slot >= 0 &&
         static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
@@ -2943,20 +2974,9 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
     return absl::FailedPreconditionError("ROM not set");
   }
 
-  // Use the complete 256-color overworld palette for consistency
-  gfx::SnesPalette display_palette;
-  if (overworld_palette_.size() >= 256) {
-    display_palette = overworld_palette_;
-  } else if (palette_.size() >= 256) {
-    display_palette = palette_;
-  } else if (game_data()) {
-    // Fallback to GameData palette
-    const auto& palette_groups = game_data()->palette_groups;
-    if (palette_groups.overworld_main.size() > 0) {
-      display_palette = palette_groups.overworld_main[0];
-    } else {
-      return absl::FailedPreconditionError("No overworld palette available");
-    }
+  const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
+  if (!display_palette || display_palette->empty()) {
+    return absl::FailedPreconditionError("No overworld palette available");
   }
 
   // Validate current_palette_ index
@@ -2970,19 +2990,17 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
       GetActualPaletteSlot(static_cast<int>(current_palette_), sheet_index);
 
   // Apply palette based on whether pixel values retain CGRAM row offsets.
-  if (!display_palette.empty()) {
-    if (auto_normalize_pixels_) {
-      if (palette_slot >= 0 &&
-          static_cast<size_t>(palette_slot + 16) <= display_palette.size()) {
-        current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
-            display_palette, static_cast<size_t>(palette_slot + 1), 15);
-      } else {
-        current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
-            display_palette, 1, 15);
-      }
+  if (auto_normalize_pixels_) {
+    if (palette_slot >= 0 &&
+        static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
+      current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
+          *display_palette, static_cast<size_t>(palette_slot + 1), 15);
     } else {
-      current_gfx_individual_[tile8_id].SetPalette(display_palette);
+      current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
+          *display_palette, 1, 15);
     }
+  } else {
+    current_gfx_individual_[tile8_id].SetPalette(*display_palette);
   }
 
   current_gfx_individual_[tile8_id].set_modified(true);
@@ -2991,7 +3009,7 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
                                         &current_gfx_individual_[tile8_id]);
 
   util::logf("Updated tile8 %d with palette slot %d (palette size: %zu colors)",
-             tile8_id, current_palette_, display_palette.size());
+             tile8_id, current_palette_, display_palette->size());
 
   return absl::OkStatus();
 }
@@ -3007,35 +3025,12 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
     current_palette_ = 0;
   }
 
-  // CRITICAL FIX: Use the complete overworld palette for proper color
-  // coordination
-  gfx::SnesPalette display_palette;
-
-  if (overworld_palette_.size() >= 256) {
-    // Use the complete 256-color palette from overworld editor
-    display_palette = overworld_palette_;
-    util::logf("Using complete overworld palette with %zu colors",
-               display_palette.size());
-  } else if (palette_.size() >= 256) {
-    // Fallback to the old palette_ if it's complete
-    display_palette = palette_;
-    util::logf("Using fallback complete palette with %zu colors",
-               display_palette.size());
-  } else if (game_data()) {
-    // Last resort: Use GameData palette groups
-    const auto& palette_groups = game_data()->palette_groups;
-    if (palette_groups.overworld_main.size() > 0) {
-      display_palette = palette_groups.overworld_main[0];
-      util::logf("Warning: Using ROM main palette with %zu colors",
-                 display_palette.size());
-    } else {
-      return absl::FailedPreconditionError("No palette available");
-    }
-  }
-
-  if (display_palette.empty()) {
+  const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
+  if (!display_palette || display_palette->empty()) {
     return absl::FailedPreconditionError("Display palette empty");
   }
+  util::logf("Using resolved display palette with %zu colors",
+             display_palette->size());
 
   // The source bitmap (current_gfx_bmp_) contains 8bpp indexed pixel data.
   // If palette offsets are preserved, apply the full CGRAM palette. Otherwise,
@@ -3043,12 +3038,12 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
   if (current_gfx_bmp_.is_active()) {
     if (auto_normalize_pixels_) {
       gfx::SnesPalette remapped_palette =
-          CreateRemappedPaletteForViewing(display_palette, current_palette_);
+          CreateRemappedPaletteForViewing(*display_palette, current_palette_);
       current_gfx_bmp_.SetPalette(remapped_palette);
       util::logf("Applied remapped palette (button %d) to source bitmap",
                  current_palette_);
     } else {
-      current_gfx_bmp_.SetPalette(display_palette);
+      current_gfx_bmp_.SetPalette(*display_palette);
       util::logf("Applied full CGRAM palette to source bitmap");
     }
 
@@ -3064,7 +3059,7 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
     auto regen_status = RegenerateTile16BitmapFromROM();
     if (!regen_status.ok()) {
       // Fallback: just apply palette directly
-      current_tile16_bmp_.SetPalette(display_palette);
+      current_tile16_bmp_.SetPalette(*display_palette);
       current_tile16_bmp_.set_modified(true);
       gfx::Arena::Get().QueueTextureCommand(
           gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
@@ -3084,16 +3079,16 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
 
       // Apply sub-palette with transparent color 0
       if (palette_slot >= 0 &&
-          static_cast<size_t>(palette_slot + 16) <= display_palette.size()) {
+          static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
         current_gfx_individual_[i].SetPaletteWithTransparent(
-            display_palette, static_cast<size_t>(palette_slot + 1), 15);
+            *display_palette, static_cast<size_t>(palette_slot + 1), 15);
       } else {
         // Fallback to slot 1 if computed slot exceeds palette bounds
-        current_gfx_individual_[i].SetPaletteWithTransparent(display_palette, 1,
-                                                             15);
+        current_gfx_individual_[i].SetPaletteWithTransparent(*display_palette,
+                                                             1, 15);
       }
     } else {
-      current_gfx_individual_[i].SetPalette(display_palette);
+      current_gfx_individual_[i].SetPalette(*display_palette);
     }
 
     current_gfx_individual_[i].set_modified(true);
@@ -3605,25 +3600,23 @@ absl::Status Tile16Editor::UpdateLivePreview() {
   }
 
   // Apply the current palette
-  if (game_data()) {
-    const auto& ow_main_pal_group = game_data()->palette_groups.overworld_main;
-    const gfx::SnesPalette* display_palette = nullptr;
-    if (overworld_palette_.size() >= 256) {
-      display_palette = &overworld_palette_;
-    } else if (palette_.size() >= 256) {
-      display_palette = &palette_;
-    } else if (ow_main_pal_group.size() > 0) {
-      display_palette = &ow_main_pal_group[0];
-    }
-
-    if (display_palette && !display_palette->empty()) {
-      if (auto_normalize_pixels_ &&
-          ow_main_pal_group.size() > current_palette_) {
-        preview_tile16_.SetPaletteWithTransparent(ow_main_pal_group[0],
-                                                  current_palette_);
+  const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
+  if (display_palette && !display_palette->empty()) {
+    const bool use_sub_palette_view =
+        auto_normalize_pixels_ && !BitmapHasEncodedPaletteRows(preview_tile16_);
+    if (use_sub_palette_view) {
+      const int sheet_index = GetSheetIndexForTile8(current_tile8_);
+      const int palette_slot =
+          GetActualPaletteSlot(static_cast<int>(current_palette_), sheet_index);
+      if (palette_slot >= 0 &&
+          static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
+        preview_tile16_.SetPaletteWithTransparent(
+            *display_palette, static_cast<size_t>(palette_slot + 1), 15);
       } else {
-        preview_tile16_.SetPalette(*display_palette);
+        preview_tile16_.SetPaletteWithTransparent(*display_palette, 1, 15);
       }
+    } else {
+      preview_tile16_.SetPalette(*display_palette);
     }
   }
 
@@ -3714,8 +3707,8 @@ void Tile16Editor::CopyTile16ToAtlas(int tile_id) {
                            current_tile16_bmp_);
 
   tile16_blockset_->atlas.set_modified(true);
-  gfx::Arena::Get().QueueTextureCommand(
-      gfx::Arena::TextureCommandType::UPDATE, &tile16_blockset_->atlas);
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                        &tile16_blockset_->atlas);
 }
 
 }  // namespace editor
