@@ -139,12 +139,12 @@ constexpr int kEmptyWaterFace = 94;
 constexpr int kSpittingWaterFace = 95;
 constexpr int kDrenchingWaterFace = 96;
 
-// Additional Type 2/3 routines (97-115)
-constexpr int kWaterfall = 97;
-constexpr int kFloorTile4x2 = 98;
-constexpr int kCannonHole4x3 = 99;
-constexpr int kBed4x5 = 100;
-constexpr int kRightwards3x6 = 101;
+// Additional Type 2/3 routines (97-116)
+constexpr int kPrisonCell = 97;
+constexpr int kBed4x5 = 98;
+constexpr int kRightwards3x6 = 99;
+constexpr int kUtility6x3 = 100;
+constexpr int kUtility3x5 = 101;
 constexpr int kVerticalTurtleRockPipe = 102;
 constexpr int kHorizontalTurtleRockPipe = 103;
 constexpr int kLightBeam = 104;
@@ -153,12 +153,13 @@ constexpr int kBossShell4x4 = 106;
 constexpr int kSolidWallDecor3x4 = 107;
 constexpr int kArcheryGameTargetDoor = 108;
 constexpr int kGanonTriforceFloorDecor = 109;
-constexpr int kLargeCanvasObject = 110;
-constexpr int kUtility6x3 = 111;
-constexpr int kUtility3x5 = 112;
+constexpr int kSingle2x2 = 110;
+constexpr int kWaterfall47 = 111;
+constexpr int kWaterfall48 = 112;
 constexpr int kSingle4x4 = 113;
 constexpr int kSingle4x3 = 114;
 constexpr int kRupeeFloor = 115;
+constexpr int kActual4x4 = 116;
 
 // Custom object routines (130+)
 constexpr int kCustomObject = 130;
@@ -186,13 +187,16 @@ class DrawRoutineRegistry {
   const DrawRoutineInfo* GetRoutineInfo(int routine_id) const;
 
   // Get all registered routines
-  const std::vector<DrawRoutineInfo>& GetAllRoutines() const { return routines_; }
+  const std::vector<DrawRoutineInfo>& GetAllRoutines() const {
+    return routines_;
+  }
 
   // Check if a routine draws to both BG layers
   bool RoutineDrawsToBothBGs(int routine_id) const;
 
   // Get routine metadata for dimension calculation
-  bool GetRoutineDimensions(int routine_id, int* base_width, int* base_height) const;
+  bool GetRoutineDimensions(int routine_id, int* base_width,
+                            int* base_height) const;
 
   // Look up draw routine ID for an object ID. Returns -1 if unmapped.
   int GetRoutineIdForObject(int16_t object_id) const;

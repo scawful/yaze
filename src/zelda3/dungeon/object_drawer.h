@@ -10,11 +10,11 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
-#include "zelda3/dungeon/door_types.h"
-#include "zelda3/dungeon/door_position.h"
-#include "zelda3/dungeon/room_object.h"
-#include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/door_position.h"
+#include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -35,7 +35,8 @@ namespace zelda3 {
  */
 class ObjectDrawer {
  public:
-  explicit ObjectDrawer(Rom* rom, int room_id, const uint8_t* room_gfx_buffer = nullptr);
+  explicit ObjectDrawer(Rom* rom, int room_id,
+                        const uint8_t* room_gfx_buffer = nullptr);
 
   /**
    * @brief Draw a room object to background buffers
@@ -53,19 +54,19 @@ class ObjectDrawer {
                           gfx::BackgroundBuffer* layout_bg1 = nullptr);
 
   struct DoorDef {
-      DoorType type;
-      DoorDirection direction;
-      uint8_t position;
+    DoorType type;
+    DoorDirection direction;
+    uint8_t position;
 
-      // Helper to get position coordinates using DoorPositionManager
-      std::pair<int, int> GetTileCoords() const {
-        return DoorPositionManager::PositionToTileCoords(position, direction);
-      }
+    // Helper to get position coordinates using DoorPositionManager
+    std::pair<int, int> GetTileCoords() const {
+      return DoorPositionManager::PositionToTileCoords(position, direction);
+    }
 
-      // Helper to get door dimensions
-      DoorDimensions GetDimensions() const {
-        return GetDoorDimensions(direction);
-      }
+    // Helper to get door dimensions
+    DoorDimensions GetDimensions() const {
+      return GetDoorDimensions(direction);
+    }
   };
 
   // Chest index tracking for state queries
@@ -78,7 +79,8 @@ class ObjectDrawer {
    * @param bg2 Background layer 2 buffer
    */
   void DrawDoor(const DoorDef& door, int door_index, gfx::BackgroundBuffer& bg1,
-                gfx::BackgroundBuffer& bg2, const DungeonState* state = nullptr);
+                gfx::BackgroundBuffer& bg2,
+                const DungeonState* state = nullptr);
 
   /**
    * @brief Draw a pot item visualization
@@ -151,10 +153,11 @@ class ObjectDrawer {
    * @param room_draw_object_data_offset Offset from RoomDrawObjectData base (not an absolute PC address)
    */
   absl::Status DrawRoomDrawObjectData2x2(uint16_t object_id, int tile_x,
-                                        int tile_y, RoomObject::LayerType layer,
-                                        uint16_t room_draw_object_data_offset,
-                                        gfx::BackgroundBuffer& bg1,
-                                        gfx::BackgroundBuffer& bg2);
+                                         int tile_y,
+                                         RoomObject::LayerType layer,
+                                         uint16_t room_draw_object_data_offset,
+                                         gfx::BackgroundBuffer& bg1,
+                                         gfx::BackgroundBuffer& bg2);
 
   /**
    * @brief Calculate the dimensions (width, height) of an object in pixels
@@ -180,10 +183,9 @@ class ObjectDrawer {
 
  protected:
   // Draw routine function type
-  using DrawRoutine = std::function<void(ObjectDrawer*, const RoomObject&,
-                                         gfx::BackgroundBuffer&,
-                                         std::span<const gfx::TileInfo>,
-                                         const DungeonState*)>;
+  using DrawRoutine = std::function<void(
+      ObjectDrawer*, const RoomObject&, gfx::BackgroundBuffer&,
+      std::span<const gfx::TileInfo>, const DungeonState*)>;
 
   // Core draw routines (based on ZScream's subtype1_routines table)
   void DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
@@ -191,67 +193,39 @@ class ObjectDrawer {
                  const DungeonState* state = nullptr);
 
   void DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                   std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+                   std::span<const gfx::TileInfo> tiles,
+                   const DungeonState* state = nullptr);
   void CustomDraw(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+                  std::span<const gfx::TileInfo> tiles,
+                  const DungeonState* state = nullptr);
   void DrawRightwards4x4_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                               std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawRightwardsDecor4x3spaced4_1to16(
-      const RoomObject& obj, gfx::BackgroundBuffer& bg,
-      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+                               std::span<const gfx::TileInfo> tiles,
+                               const DungeonState* state = nullptr);
+  void DrawRightwardsDecor4x3spaced4_1to16(const RoomObject& obj,
+                                           gfx::BackgroundBuffer& bg,
+                                           std::span<const gfx::TileInfo> tiles,
+                                           const DungeonState* state = nullptr);
   void DrawRightwards4x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                               std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawRightwardsDecor4x2spaced8_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                                            std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawRightwardsCannonHole4x3_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                                          std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+                               std::span<const gfx::TileInfo> tiles,
+                               const DungeonState* state = nullptr);
+  void DrawRightwardsDecor4x2spaced8_1to16(const RoomObject& obj,
+                                           gfx::BackgroundBuffer& bg,
+                                           std::span<const gfx::TileInfo> tiles,
+                                           const DungeonState* state = nullptr);
+  void DrawRightwardsCannonHole4x3_1to16(const RoomObject& obj,
+                                         gfx::BackgroundBuffer& bg,
+                                         std::span<const gfx::TileInfo> tiles,
+                                         const DungeonState* state = nullptr);
 
   // Type 3 / Special Routines
   void DrawLargeCanvasObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                              std::span<const gfx::TileInfo> tiles, int width,
                              int height);
 
-  // Type 2 Special Object Routines (0x122, 0x12C, 0x13E, etc.)
-  void DrawBed4x5(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawRightwards3x6(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                         std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawUtility6x3(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawUtility3x5(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-
-  // Type 3 Special Object Routines (pipes, shells, lighting, etc.)
-  void DrawVerticalTurtleRockPipe(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                                  std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawHorizontalTurtleRockPipe(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                                    std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawLightBeam(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawBigLightBeam(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                        std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawBossShell4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                        std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawSolidWallDecor3x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                             std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawArcheryGameTargetDoor(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                                 std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawGanonTriforceFloorDecor(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                                   std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawSingle2x2(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawSingle4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawSingle4x3(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawRupeeFloor(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                      std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawActual4x4(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-                     
   // Custom Object Routine
   void DrawCustomObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                        std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
+                        std::span<const gfx::TileInfo> tiles,
+                        const DungeonState* state = nullptr);
 
   // Utility methods
   // Execute a DrawRoutineRegistry routine (pure DrawContext function) but render
@@ -302,8 +276,7 @@ class ObjectDrawer {
   void SetTraceContext(const RoomObject& object, RoomObject::LayerType layer);
   void PushTrace(int tile_x, int tile_y, const gfx::TileInfo& tile_info);
   static void TraceHookThunk(int tile_x, int tile_y,
-                             const gfx::TileInfo& tile_info,
-                             void* user_data);
+                             const gfx::TileInfo& tile_info, void* user_data);
 
   TraceContext trace_context_{};
   std::vector<TileTrace>* trace_collector_ = nullptr;

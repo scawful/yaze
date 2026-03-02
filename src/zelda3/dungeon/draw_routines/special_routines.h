@@ -91,6 +91,139 @@ void DrawWaterFace(const DrawContext& ctx);
  */
 void DrawLargeCanvasObject(const DrawContext& ctx, int width, int height);
 
+/**
+ * @brief Draw a 4x5 bed pattern (row-major)
+ *
+ * ASM: RoomDraw_Bed4x5 ($019AEE)
+ */
+void DrawBed4x5(const DrawContext& ctx);
+
+/**
+ * @brief Draw a 6x3 pattern via RoomDraw_1x3N_rightwards semantics
+ *
+ * ASM: RoomDraw_DrawRightwards3x6 ($019B50)
+ */
+void DrawRightwards3x6(const DrawContext& ctx);
+
+/**
+ * @brief Draw utility 6x3 pattern via RoomDraw_1x3N_rightwards
+ *
+ * ASM: RoomDraw_Utility6x3 ($019A0C)
+ */
+void DrawUtility6x3(const DrawContext& ctx);
+
+/**
+ * @brief Draw utility 3x5 pattern (special row pattern)
+ *
+ * ASM: RoomDraw_Utility3x5 ($01A194)
+ */
+void DrawUtility3x5(const DrawContext& ctx);
+
+/**
+ * @brief Draw vertical Turtle Rock pipe (two stacked 4x3 sections)
+ *
+ * ASM: RoomDraw_VerticalTurtleRockPipe ($019A90)
+ */
+void DrawVerticalTurtleRockPipe(const DrawContext& ctx);
+
+/**
+ * @brief Draw horizontal Turtle Rock pipe (6x4)
+ *
+ * ASM: RoomDraw_HorizontalTurtleRockPipe ($019AA3)
+ */
+void DrawHorizontalTurtleRockPipe(const DrawContext& ctx);
+
+/**
+ * @brief Draw floor light beam composed of three 4x4 blocks
+ *
+ * ASM: RoomDraw_LightBeamOnFloor ($01A7B6)
+ */
+void DrawLightBeamOnFloor(const DrawContext& ctx);
+
+/**
+ * @brief Draw big floor light beam (8x8 footprint)
+ *
+ * ASM: RoomDraw_BigLightBeamOnFloor / RoomDraw_FloorLight ($01A7D3/$01A7DC)
+ */
+void DrawBigLightBeamOnFloor(const DrawContext& ctx);
+
+/**
+ * @brief Draw boss shell 4x4
+ *
+ * ASM: object group routed to RoomDraw_4x4
+ */
+void DrawBossShell4x4(const DrawContext& ctx);
+
+/**
+ * @brief Draw solid wall decor 3x4
+ *
+ * ASM: RoomDraw_SolidWallDecor3x4 ($0199EC)
+ */
+void DrawSolidWallDecor3x4(const DrawContext& ctx);
+
+/**
+ * @brief Draw archery game target door (two 3x3 sections)
+ *
+ * ASM: RoomDraw_ArcheryGameTargetDoor ($01A7A3)
+ */
+void DrawArcheryGameTargetDoor(const DrawContext& ctx);
+
+/**
+ * @brief Draw Ganon triforce floor decor (three 4x4 sections)
+ *
+ * ASM: RoomDraw_GanonTriforceFloorDecor ($01A7F0)
+ */
+void DrawGanonTriforceFloorDecor(const DrawContext& ctx);
+
+/**
+ * @brief Draw a single 2x2 block (column-major order)
+ *
+ * ASM: RoomDraw_Single2x2 ($019A8D -> RoomDraw_Downwards2x2)
+ */
+void DrawSingle2x2(const DrawContext& ctx);
+
+/**
+ * @brief Draw a single 4x4 block (column-major order)
+ *
+ * ASM: RoomDraw_4x4 ($0197ED)
+ */
+void DrawSingle4x4(const DrawContext& ctx);
+
+/**
+ * @brief Draw a single 4x3 block (column-major order)
+ *
+ * ASM: RoomDraw_TableRock4x3 ($0199E6)
+ */
+void DrawSingle4x3(const DrawContext& ctx);
+
+/**
+ * @brief Draw the blue rupee floor pattern (6x8 with gaps)
+ *
+ * ASM: RoomDraw_RupeeFloor ($019AA9)
+ */
+void DrawRupeeFloor(const DrawContext& ctx);
+
+/**
+ * @brief Draw an actual 4x4 tile8 pattern (column-major order)
+ *
+ * ASM: RoomDraw_4x4 ($0197ED)
+ */
+void DrawActual4x4(const DrawContext& ctx);
+
+/**
+ * @brief Draw waterfall object 0x47 pattern
+ *
+ * ASM: RoomDraw_Waterfall47 ($019466)
+ */
+void DrawWaterfall47(const DrawContext& ctx);
+
+/**
+ * @brief Draw waterfall object 0x48 pattern
+ *
+ * ASM: RoomDraw_Waterfall48 ($019488)
+ */
+void DrawWaterfall48(const DrawContext& ctx);
+
 // ============================================================================
 // SuperSquare Routines (Phase 4)
 // ============================================================================

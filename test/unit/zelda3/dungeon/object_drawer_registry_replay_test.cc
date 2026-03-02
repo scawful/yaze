@@ -8,10 +8,10 @@
 #include <unordered_map>
 #include <vector>
 
-#include "core/features.h"
-#include "rom/rom.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_tile.h"
+#include "core/features.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -230,8 +230,8 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 8; ++i) {
-    obj.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
   }
 
   gfx::BackgroundBuffer bg1(512, 512);
@@ -244,7 +244,9 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
   ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
   ASSERT_EQ(trace.size(), 16u);
 
-  auto key = [](int x, int y) { return (y << 8) | x; };
+  auto key = [](int x, int y) {
+    return (y << 8) | x;
+  };
   std::unordered_map<int, uint16_t> by_pos;
   by_pos.reserve(trace.size());
 
@@ -291,8 +293,8 @@ TEST(ObjectDrawerRegistryReplayTest,
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 12; ++i) {
-    obj.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
   }
 
   gfx::BackgroundBuffer bg1(512, 512);
@@ -319,9 +321,9 @@ TEST(ObjectDrawerRegistryReplayTest,
     uint16_t tile_id;
   };
   const std::vector<Expected> expected = {
-      {10, 20, 0}, {10, 21, 1},  {10, 22, 2},  {10, 23, 3},
-      {11, 20, 4}, {11, 21, 5},  {11, 22, 6},  {11, 23, 7},
-      {12, 20, 8}, {12, 21, 9},  {12, 22, 10}, {12, 23, 11},
+      {10, 20, 0}, {10, 21, 1}, {10, 22, 2},  {10, 23, 3},
+      {11, 20, 4}, {11, 21, 5}, {11, 22, 6},  {11, 23, 7},
+      {12, 20, 8}, {12, 21, 9}, {12, 22, 10}, {12, 23, 11},
   };
   ASSERT_EQ(bg1_trace.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
@@ -347,8 +349,8 @@ TEST(ObjectDrawerRegistryReplayTest,
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 12; ++i) {
-    obj.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
   }
 
   gfx::BackgroundBuffer bg1(512, 512);
@@ -375,9 +377,9 @@ TEST(ObjectDrawerRegistryReplayTest,
     uint16_t tile_id;
   };
   const std::vector<Expected> expected = {
-      {8, 9, 0},   {8, 10, 1},  {8, 11, 2},  {9, 9, 3},
-      {9, 10, 4},  {9, 11, 5},  {10, 9, 6},  {10, 10, 7},
-      {10, 11, 8}, {11, 9, 9},  {11, 10, 10}, {11, 11, 11},
+      {8, 9, 0},   {8, 10, 1}, {8, 11, 2},   {9, 9, 3},
+      {9, 10, 4},  {9, 11, 5}, {10, 9, 6},   {10, 10, 7},
+      {10, 11, 8}, {11, 9, 9}, {11, 10, 10}, {11, 11, 11},
   };
   ASSERT_EQ(bg1_trace.size(), expected.size());
   for (size_t i = 0; i < expected.size(); ++i) {
@@ -385,6 +387,190 @@ TEST(ObjectDrawerRegistryReplayTest,
     EXPECT_EQ(bg1_trace[i].y_tile, expected[i].y) << "idx=" << i;
     EXPECT_EQ(bg1_trace[i].tile_id, expected[i].tile_id) << "idx=" << i;
   }
+}
+
+TEST(ObjectDrawerRegistryReplayTest, Bed4x5UsesUsdasmRowMajorOrder) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject obj(0x0122, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 20; ++i) {
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 20u);
+
+  auto key = [](int x, int y) {
+    return (y << 8) | x;
+  };
+  std::unordered_map<int, uint16_t> by_pos;
+  by_pos.reserve(trace.size());
+  for (const auto& t : trace) {
+    by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
+  }
+
+  for (int y = 0; y < 5; ++y) {
+    for (int x = 0; x < 4; ++x) {
+      EXPECT_EQ(by_pos[key(10 + x, 20 + y)], static_cast<uint16_t>(y * 4 + x))
+          << "x=" << x << " y=" << y;
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     Rightwards3x6UsesUsdasmSixByThreeColumnMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject obj(0x012C, /*x=*/8, /*y=*/9, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 18; ++i) {
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 18u);
+
+  auto key = [](int x, int y) {
+    return (y << 8) | x;
+  };
+  std::unordered_map<int, uint16_t> by_pos;
+  by_pos.reserve(trace.size());
+  for (const auto& t : trace) {
+    by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
+  }
+
+  for (int x = 0; x < 6; ++x) {
+    for (int y = 0; y < 3; ++y) {
+      EXPECT_EQ(by_pos[key(8 + x, 9 + y)], static_cast<uint16_t>(x * 3 + y))
+          << "x=" << x << " y=" << y;
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest, Waterfall48UsesStartMiddleEndTileBlocks) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject obj(0x0048, /*x=*/5, /*y=*/6, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 9; ++i) {
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(100 + i),
+                                       /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 12u);  // 4 columns x 3 rows
+
+  auto key = [](int x, int y) {
+    return (y << 8) | x;
+  };
+  std::unordered_map<int, uint16_t> by_pos;
+  by_pos.reserve(trace.size());
+  for (const auto& t : trace) {
+    by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
+  }
+
+  EXPECT_EQ(by_pos[key(5, 6)], 100);
+  EXPECT_EQ(by_pos[key(5, 7)], 101);
+  EXPECT_EQ(by_pos[key(5, 8)], 102);
+
+  for (int x = 6; x <= 7; ++x) {
+    EXPECT_EQ(by_pos[key(x, 6)], 103);
+    EXPECT_EQ(by_pos[key(x, 7)], 104);
+    EXPECT_EQ(by_pos[key(x, 8)], 105);
+  }
+
+  EXPECT_EQ(by_pos[key(8, 6)], 106);
+  EXPECT_EQ(by_pos[key(8, 7)], 107);
+  EXPECT_EQ(by_pos[key(8, 8)], 108);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     LightBeamOnFloorMatchesUsdasmStackedBlocks) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject obj(0x0FF0, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 48; ++i) {
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i),
+                                       /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 48u);
+
+  auto key = [](int x, int y) {
+    return (y << 8) | x;
+  };
+  std::unordered_map<int, uint16_t> final_by_pos;
+  final_by_pos.reserve(trace.size());
+  for (const auto& t : trace) {
+    final_by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
+  }
+
+  EXPECT_EQ(final_by_pos[key(10, 20)], 0);   // top block
+  EXPECT_EQ(final_by_pos[key(10, 22)], 16);  // middle block overwrites overlap
+  EXPECT_EQ(final_by_pos[key(13, 25)], 31);
+  EXPECT_EQ(final_by_pos[key(10, 26)], 32);  // bottom block
+  EXPECT_EQ(final_by_pos[key(13, 29)], 47);
 }
 
 TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
@@ -402,8 +588,8 @@ TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 8; ++i) {
-    obj.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
   }
 
   gfx::BackgroundBuffer bg1(512, 512);
@@ -446,8 +632,8 @@ TEST(ObjectDrawerRegistryReplayTest,
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 8; ++i) {
-    obj.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
   }
 
   gfx::BackgroundBuffer bg1(512, 512);
@@ -460,7 +646,9 @@ TEST(ObjectDrawerRegistryReplayTest,
   ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
   ASSERT_EQ(trace.size(), 16u);
 
-  auto key = [](int x, int y) { return (y << 8) | x; };
+  auto key = [](int x, int y) {
+    return (y << 8) | x;
+  };
   std::unordered_map<int, uint16_t> by_pos;
   by_pos.reserve(trace.size());
   for (const auto& t : trace) {
@@ -482,7 +670,8 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_EQ(by_pos[key(13, 27)], 7);
 }
 
-TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorShortTilePayloadFallsBack) {
+TEST(ObjectDrawerRegistryReplayTest,
+     SuperSquare4x4FloorShortTilePayloadFallsBack) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -509,7 +698,8 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorShortTilePayloadFallsBac
   EXPECT_FALSE(trace.empty());
 }
 
-TEST(ObjectDrawerRegistryReplayTest, RegistryRoutinesUseObjectDrawerRoomIdForStateQueries) {
+TEST(ObjectDrawerRegistryReplayTest,
+     RegistryRoutinesUseObjectDrawerRoomIdForStateQueries) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -526,8 +716,8 @@ TEST(ObjectDrawerRegistryReplayTest, RegistryRoutinesUseObjectDrawerRoomIdForSta
   lock.tiles_loaded_ = true;
   lock.tiles_.clear();
   for (int i = 0; i < 8; ++i) {
-    lock.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    lock.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                        false, false, false));
   }
 
   gfx::BackgroundBuffer bg1(512, 512);
@@ -822,8 +1012,8 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2WaterFloorMasksBG1Transparent) {
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 8; ++i) {
-    obj.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
   }
 
   gfx::PaletteGroup palette_group;
@@ -897,7 +1087,8 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2FloodWaterMasksBG1Transparent) {
   }
 }
 
-TEST(ObjectDrawerRegistryReplayTest, PrisonCellDrawsToBothBuffersWhenMarkedBothBG) {
+TEST(ObjectDrawerRegistryReplayTest,
+     PrisonCellDrawsToBothBuffersWhenMarkedBothBG) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -922,8 +1113,8 @@ TEST(ObjectDrawerRegistryReplayTest, PrisonCellDrawsToBothBuffersWhenMarkedBothB
   cell.tiles_loaded_ = true;
   cell.tiles_.clear();
   for (int i = 0; i < 6; ++i) {
-    cell.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    cell.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                        false, false, false));
   }
 
   gfx::PaletteGroup palette_group;
@@ -941,7 +1132,8 @@ TEST(ObjectDrawerRegistryReplayTest, PrisonCellDrawsToBothBuffersWhenMarkedBothB
   EXPECT_NE(bg2.bitmap().data()[idx], 255);
 }
 
-TEST(ObjectDrawerCannonHoleTest, RightwardsRepeatsLeftSegmentAndDrawsRightEdgeOnce) {
+TEST(ObjectDrawerCannonHoleTest,
+     RightwardsRepeatsLeftSegmentAndDrawsRightEdgeOnce) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -964,8 +1156,8 @@ TEST(ObjectDrawerCannonHoleTest, RightwardsRepeatsLeftSegmentAndDrawsRightEdgeOn
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 12; ++i) {
-    obj.tiles_.push_back(
-        gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2, false, false, false));
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
   }
 
   std::vector<ObjectDrawer::TileTrace> trace;
@@ -982,14 +1174,26 @@ TEST(ObjectDrawerCannonHoleTest, RightwardsRepeatsLeftSegmentAndDrawsRightEdgeOn
 
   const std::vector<Expected> expected = {
       // Segment 0 (left 2 columns)
-      {10, 20, 0}, {10, 21, 1}, {10, 22, 2},
-      {11, 20, 3}, {11, 21, 4}, {11, 22, 5},
+      {10, 20, 0},
+      {10, 21, 1},
+      {10, 22, 2},
+      {11, 20, 3},
+      {11, 21, 4},
+      {11, 22, 5},
       // Segment 1 (repeat left 2 columns)
-      {12, 20, 0}, {12, 21, 1}, {12, 22, 2},
-      {13, 20, 3}, {13, 21, 4}, {13, 22, 5},
+      {12, 20, 0},
+      {12, 21, 1},
+      {12, 22, 2},
+      {13, 20, 3},
+      {13, 21, 4},
+      {13, 22, 5},
       // Right edge (last 2 columns)
-      {14, 20, 6}, {14, 21, 7}, {14, 22, 8},
-      {15, 20, 9}, {15, 21, 10}, {15, 22, 11},
+      {14, 20, 6},
+      {14, 21, 7},
+      {14, 22, 8},
+      {15, 20, 9},
+      {15, 21, 10},
+      {15, 22, 11},
   };
 
   ASSERT_EQ(trace.size(), expected.size());
