@@ -231,8 +231,6 @@ class ObjectDrawer {
   void DrawRightwards1x1Solid_1to16_plus3(const RoomObject& obj,
                                           gfx::BackgroundBuffer& bg,
                                           std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawDoorSwitcherer(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                          std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawRightwardsDecor4x4spaced2_1to16(
       const RoomObject& obj, gfx::BackgroundBuffer& bg,
       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
@@ -358,10 +356,6 @@ class ObjectDrawer {
                              std::span<const gfx::TileInfo> tiles);
 
   // Type 3 / Special Routines
-  void DrawSomariaLine(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                       std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
-  void DrawWaterFace(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                     std::span<const gfx::TileInfo> tiles, const DungeonState* state = nullptr);
   void DrawLargeCanvasObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                              std::span<const gfx::TileInfo> tiles, int width,
                              int height);

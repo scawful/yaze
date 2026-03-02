@@ -622,8 +622,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawDoorSwitcherer(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(26, obj, bg, tiles, state);
   });
   // Routine 27 - Decorations 4x4 spaced 2
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -671,15 +671,15 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawSomariaLine(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(33, obj, bg, tiles, state);
   });
   // Routine 34 - Water Face
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawWaterFace(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(34, obj, bg, tiles, state);
   });
   // Routine 35 - 4x4 Corner BothBG
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
@@ -706,8 +706,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
                               gfx::BackgroundBuffer& bg,
                               std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawNothing(obj, bg, tiles);
+                              const DungeonState* state) {
+    self->DrawUsingRegistryRoutine(38, obj, bg, tiles, state);
   });
   // Routine 39 - Chest rendering (small + big)
   draw_routines_.push_back(
@@ -2143,26 +2143,6 @@ void ObjectDrawer::DrawRightwards1x1Solid_1to16_plus3(
   }
 }
 
-void ObjectDrawer::DrawDoorSwitcherer(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Door switcher (object 0x35)
-  // Special door logic
-  // Check state to decide graphic
-  int tile_index = 0;
-  if (state && state->IsDoorSwitchActive(room_id_)) {
-    // Use active tile if available (assuming 2nd tile is active state)
-    if (tiles.size() >= 2) {
-      tile_index = 1;
-    }
-  }
-
-  if (tiles.size() > tile_index) {
-    WriteTile8(bg, obj.x_, obj.y_, tiles[tile_index]);
-  }
-}
-
 void ObjectDrawer::DrawRightwardsDecor4x4spaced2_1to16(
     const RoomObject& obj, gfx::BackgroundBuffer& bg,
     std::span<const gfx::TileInfo> tiles,
@@ -3558,108 +3538,6 @@ absl::Status ObjectDrawer::DrawRoomDrawObjectData2x2(
 // ============================================================================
 // Type 3 / Special Routine Implementations
 // ============================================================================
-
-void ObjectDrawer::DrawSomariaLine(const RoomObject& obj,
-                                   gfx::BackgroundBuffer& bg,
-                                   std::span<const gfx::TileInfo> tiles,
-                                   [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Somaria Line (objects 0x203-0x20F, 0x214)
-  // Draws a line of tiles based on direction encoded in object ID
-  // Direction mapping based on ZScream reference:
-  //   0x203: Horizontal right
-  //   0x204: Vertical down
-  //   0x205: Diagonal down-right
-  //   0x206: Diagonal down-left
-  //   0x207-0x209: Variations
-  //   0x20A-0x20C: More variations
-  //   0x20E-0x20F: Additional patterns
-  //   0x214: Another line type
-
-  if (tiles.empty())
-    return;
-
-  int length = (obj.size_ & 0x0F) + 1;
-  int obj_subid = obj.id_ & 0x0F;  // Low nibble determines direction
-
-  // Determine direction based on object sub-ID
-  int dx = 1, dy = 0;  // Default: horizontal right
-  switch (obj_subid) {
-    case 0x03:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal right
-    case 0x04:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical down
-    case 0x05:
-      dx = 1;
-      dy = 1;
-      break;  // Diagonal down-right
-    case 0x06:
-      dx = -1;
-      dy = 1;
-      break;  // Diagonal down-left
-    case 0x07:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal (variant)
-    case 0x08:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical (variant)
-    case 0x09:
-      dx = 1;
-      dy = 1;
-      break;  // Diagonal (variant)
-    case 0x0A:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal
-    case 0x0B:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical
-    case 0x0C:
-      dx = 1;
-      dy = 1;
-      break;  // Diagonal
-    case 0x0E:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal
-    case 0x0F:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical
-    default:
-      dx = 1;
-      dy = 0;
-      break;  // Default horizontal
-  }
-
-  // Draw tiles along the path using first tile (Somaria uses single tile)
-  for (int i = 0; i < length; ++i) {
-    int tile_idx = i % tiles.size();  // Cycle through tiles if multiple
-    WriteTile8(bg, obj.x_ + (i * dx), obj.y_ + (i * dy), tiles[tile_idx]);
-  }
-}
-
-void ObjectDrawer::DrawWaterFace(const RoomObject& obj,
-                                 gfx::BackgroundBuffer& bg,
-                                 std::span<const gfx::TileInfo> tiles,
-                                 [[maybe_unused]] const DungeonState* state) {
-  // Generic 2x2 face helper used by corner-routine fallbacks.
-  //
-  // The true Type-3 water-face variants (0xF80-0xF82, routines 94-96) are
-  // handled in draw_routines::special_routines with state-aware 4xN patterns.
-  if (tiles.size() >= 4) {
-    WriteTile8(bg, obj.x_, obj.y_, tiles[0]);          // col 0, row 0
-    WriteTile8(bg, obj.x_, obj.y_ + 1, tiles[1]);      // col 0, row 1
-    WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[2]);      // col 1, row 0
-    WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);  // col 1, row 1
-  }
-}
 
 void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
                                          gfx::BackgroundBuffer& bg,
