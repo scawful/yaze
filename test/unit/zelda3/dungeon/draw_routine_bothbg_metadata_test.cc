@@ -29,7 +29,8 @@ TEST(DrawRoutineBothBGMetadataTest, RegistryMarksUsdasmBothBGWritersAsBothBG) {
       DrawRoutineIds::kCorner4x4_BothBG));  // $01:9813 (Type2 0x108-0x10F)
 }
 
-TEST(DrawRoutineBothBGMetadataTest, RegistryDoesNotOverMarkPointerBasedRoutines) {
+TEST(DrawRoutineBothBGMetadataTest,
+     RegistryDoesNotOverMarkPointerBasedRoutines) {
   auto& registry = DrawRoutineRegistry::Get();
 
   // These route through the current tilemap pointer set (single-layer).
@@ -52,6 +53,25 @@ TEST(DrawRoutineBothBGMetadataTest, ObjectDrawerUsesRegistryMetadata) {
       DrawRoutineIds::kCorner4x4_BothBG));
   EXPECT_FALSE(TestObjectDrawer::RoutineDrawsToBothBGs(
       DrawRoutineIds::kRightwards2x4_1to16_BothBG));
+}
+
+TEST(DrawRoutineBothBGMetadataTest,
+     WeirdCornerRoutinesUseCanonicalUsdasmShape) {
+  auto& registry = DrawRoutineRegistry::Get();
+
+  const DrawRoutineInfo* bottom =
+      registry.GetRoutineInfo(DrawRoutineIds::kWeirdCornerBottom_BothBG);
+  ASSERT_NE(bottom, nullptr);
+  EXPECT_EQ(bottom->base_width, 3);
+  EXPECT_EQ(bottom->base_height, 4);
+  EXPECT_EQ(bottom->min_tiles, 12);
+
+  const DrawRoutineInfo* top =
+      registry.GetRoutineInfo(DrawRoutineIds::kWeirdCornerTop_BothBG);
+  ASSERT_NE(top, nullptr);
+  EXPECT_EQ(top->base_width, 4);
+  EXPECT_EQ(top->base_height, 3);
+  EXPECT_EQ(top->min_tiles, 12);
 }
 
 }  // namespace zelda3

@@ -154,7 +154,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 3,
       .base_height = 4,
-      .min_tiles = 8,  // Supports truncated 2x4 fallback.
+      .min_tiles = 12,  // Enforce canonical USDASM payload size.
       .category = DrawRoutineInfo::Category::Corner,
   });
 
@@ -165,7 +165,7 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = true,
       .base_width = 4,
       .base_height = 3,
-      .min_tiles = 8,  // Supports truncated 2x4 fallback.
+      .min_tiles = 12,  // Enforce canonical USDASM payload size.
       .category = DrawRoutineInfo::Category::Corner,
   });
 }
