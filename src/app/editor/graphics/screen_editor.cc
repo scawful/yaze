@@ -1,8 +1,11 @@
 #include "screen_editor.h"
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -178,6 +181,67 @@ absl::Status ScreenEditor::Update() {
   return status_;
 }
 
+absl::Status ScreenEditor::Undo() {
+  return undo_manager_.Undo();
+}
+
+absl::Status ScreenEditor::Redo() {
+  return undo_manager_.Redo();
+}
+
+ScreenSnapshot ScreenEditor::CaptureScreenSnapshot() const {
+  ScreenSnapshot snapshot;
+  snapshot.dungeon_maps = dungeon_maps_;
+  snapshot.dungeon_map_labels = dungeon_map_labels_;
+  snapshot.selected_dungeon = selected_dungeon;
+  snapshot.floor_number = floor_number;
+  snapshot.selected_room = selected_room;
+  return snapshot;
+}
+
+void ScreenEditor::RestoreScreenSnapshot(const ScreenSnapshot& snapshot) {
+  dungeon_maps_ = snapshot.dungeon_maps;
+  dungeon_map_labels_ = snapshot.dungeon_map_labels;
+  selected_dungeon = snapshot.selected_dungeon;
+  floor_number = snapshot.floor_number;
+  selected_room = snapshot.selected_room;
+  ClampDungeonSelection();
+}
+
+void ScreenEditor::PushDungeonMapUndo(ScreenSnapshot before,
+                                      std::string description) {
+  undo_manager_.Push(std::make_unique<ScreenEditAction>(
+      std::move(before), CaptureScreenSnapshot(),
+      [this](const ScreenSnapshot& snapshot) {
+        RestoreScreenSnapshot(snapshot);
+      },
+      std::move(description)));
+}
+
+void ScreenEditor::ClampDungeonSelection() {
+  if (dungeon_maps_.empty()) {
+    selected_dungeon = 0;
+    floor_number = 0;
+    selected_room = 0;
+    return;
+  }
+
+  selected_dungeon = std::clamp(selected_dungeon, 0,
+                                static_cast<int>(dungeon_maps_.size()) - 1);
+  const auto& current_dungeon = dungeon_maps_[selected_dungeon];
+  const int total_floors =
+      current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
+  if (total_floors <= 0) {
+    floor_number = 0;
+  } else {
+    floor_number = std::clamp(floor_number, 0, total_floors - 1);
+  }
+
+  if (selected_room >= zelda3::kNumRooms) {
+    selected_room = 0;
+  }
+}
+
 void ScreenEditor::DrawToolset() {
   // Sidebar is now drawn by EditorManager for card-based editors
   // This method kept for compatibility but sidebar handles card toggles
@@ -262,13 +326,17 @@ void ScreenEditor::DrawInventoryToolset() {
     ImGui::TableSetupColumn("#itemTool");
 
     ImGui::TableNextColumn();
+    ImGui::BeginDisabled(!undo_manager_.CanUndo());
     if (gui::ToolbarIconButton(ICON_MD_UNDO, "Undo")) {
-      // status_ = inventory_.Undo();
+      status_ = Undo();
     }
+    ImGui::EndDisabled();
     ImGui::TableNextColumn();
+    ImGui::BeginDisabled(!undo_manager_.CanRedo());
     if (gui::ToolbarIconButton(ICON_MD_REDO, "Redo")) {
-      // status_ = inventory_.Redo();
+      status_ = Redo();
     }
+    ImGui::EndDisabled();
     ImGui::TableNextColumn();
     ImGui::Text(ICON_MD_MORE_VERT);
     ImGui::TableNextColumn();
@@ -448,6 +516,11 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
 }
 
 void ScreenEditor::DrawDungeonMapsTabs() {
+  if (dungeon_maps_.empty()) {
+    ImGui::TextDisabled("Dungeon maps not loaded.");
+    return;
+  }
+  ClampDungeonSelection();
   auto& current_dungeon = dungeon_maps_[selected_dungeon];
   if (gui::BeginThemedTabBar("##DungeonMapTabs")) {
     auto nbr_floors =
@@ -467,36 +540,67 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     gui::EndThemedTabBar();
   }
 
-  gui::InputHexByte(
-      "Selected Room",
-      &current_dungeon.floor_rooms[floor_number].at(selected_room));
+  const int total_floors =
+      current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
+  if (total_floors > 0 &&
+      floor_number < static_cast<int>(current_dungeon.floor_rooms.size())) {
+    ScreenSnapshot before = CaptureScreenSnapshot();
+    if (gui::InputHexByte(
+            "Selected Room",
+            &current_dungeon.floor_rooms[floor_number].at(selected_room))) {
+      PushDungeonMapUndo(std::move(before), "Edit dungeon room value");
+    }
+  } else {
+    ImGui::TextDisabled("No floor data for this dungeon.");
+  }
 
-  gui::InputHexWord("Boss Room", &current_dungeon.boss_room);
+  {
+    ScreenSnapshot before = CaptureScreenSnapshot();
+    if (gui::InputHexWord("Boss Room", &current_dungeon.boss_room)) {
+      PushDungeonMapUndo(std::move(before), "Edit dungeon boss room");
+    }
+  }
 
   const auto button_size = ImVec2(130, 0);
 
   if (ImGui::Button("Add Floor", button_size) &&
       current_dungeon.nbr_of_floor < 8) {
+    ScreenSnapshot before = CaptureScreenSnapshot();
     current_dungeon.nbr_of_floor++;
     dungeon_map_labels_[selected_dungeon].emplace_back();
+    ClampDungeonSelection();
+    PushDungeonMapUndo(std::move(before), "Add dungeon floor");
   }
   ImGui::SameLine();
   if (ImGui::Button("Remove Floor", button_size) &&
       current_dungeon.nbr_of_floor > 0) {
+    ScreenSnapshot before = CaptureScreenSnapshot();
     current_dungeon.nbr_of_floor--;
-    dungeon_map_labels_[selected_dungeon].pop_back();
+    if (!dungeon_map_labels_[selected_dungeon].empty()) {
+      dungeon_map_labels_[selected_dungeon].pop_back();
+    }
+    ClampDungeonSelection();
+    PushDungeonMapUndo(std::move(before), "Remove dungeon floor");
   }
 
   if (ImGui::Button("Add Basement", button_size) &&
       current_dungeon.nbr_of_basement < 8) {
+    ScreenSnapshot before = CaptureScreenSnapshot();
     current_dungeon.nbr_of_basement++;
     dungeon_map_labels_[selected_dungeon].emplace_back();
+    ClampDungeonSelection();
+    PushDungeonMapUndo(std::move(before), "Add dungeon basement");
   }
   ImGui::SameLine();
   if (ImGui::Button("Remove Basement", button_size) &&
       current_dungeon.nbr_of_basement > 0) {
+    ScreenSnapshot before = CaptureScreenSnapshot();
     current_dungeon.nbr_of_basement--;
-    dungeon_map_labels_[selected_dungeon].pop_back();
+    if (!dungeon_map_labels_[selected_dungeon].empty()) {
+      dungeon_map_labels_[selected_dungeon].pop_back();
+    }
+    ClampDungeonSelection();
+    PushDungeonMapUndo(std::move(before), "Remove dungeon basement");
   }
 
   if (ImGui::Button("Copy Floor", button_size)) {
@@ -526,6 +630,19 @@ void ScreenEditor::DrawDungeonMapsTabs() {
  */
 void ScreenEditor::DrawDungeonMapsRoomGfx() {
   gfx::ScopedTimer timer("screen_editor_draw_dungeon_maps_room_gfx");
+  if (dungeon_maps_.empty()) {
+    ImGui::TextDisabled("Dungeon maps not loaded.");
+    return;
+  }
+  ClampDungeonSelection();
+  const auto& current_dungeon = dungeon_maps_[selected_dungeon];
+  const int total_floors =
+      current_dungeon.nbr_of_floor + current_dungeon.nbr_of_basement;
+  if (total_floors <= 0 ||
+      floor_number >= static_cast<int>(current_dungeon.floor_gfx.size())) {
+    ImGui::TextDisabled("No floor gfx available.");
+    return;
+  }
 
   if (ImGui::BeginChild("##DungeonMapTiles", ImVec2(0, 0), true)) {
     // Enhanced tilesheet canvas with BeginCanvas/EndCanvas pattern
@@ -567,8 +684,13 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
 
     if (!tilesheet_canvas_.points().empty() &&
         !screen_canvas_.points().empty()) {
-      dungeon_maps_[selected_dungeon].floor_gfx[floor_number][selected_room] =
-          selected_tile16_;
+      auto& room_gfx = dungeon_maps_[selected_dungeon]
+                           .floor_gfx[floor_number][selected_room];
+      if (room_gfx != selected_tile16_) {
+        ScreenSnapshot before = CaptureScreenSnapshot();
+        room_gfx = static_cast<uint8_t>(selected_tile16_);
+        PushDungeonMapUndo(std::move(before), "Paint dungeon room gfx");
+      }
       tilesheet_canvas_.mutable_points()->clear();
     }
 
