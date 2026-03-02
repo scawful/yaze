@@ -67,7 +67,7 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 | Entrance/exit editing | ✅ Full support | ✅ Parity | — |
 | Sprite placement | ✅ In-room editing | ✅ Parity | — |
 | Chest/door editing | ✅ Full support | ✅ Parity | — |
-| Tile16 editor | ✅ 16x16 composites | ✅ Parity (palette fix landed) | — |
+| Tile16 editor | ✅ 16x16 composites | 🟡 In progress (palette fix landed; UX/parity checklist pending) | — |
 | Palette editor | ✅ All contexts | ✅ Parity | — |
 
 **Music Editor** (Beta)
