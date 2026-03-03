@@ -5,6 +5,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/overworld/tile16_editor_action_state.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -1422,42 +1423,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     Separator();
 
-    // Compact action buttons
-    if (Button("Clear", ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(ClearTile16());
-    }
-
-    if (Button("Copy", ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
-    }
-
-    if (Button("Paste", ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(PasteTile16FromClipboard());
-    }
-
-    Separator();
-
-    // Save/Discard - full width buttons
-    if (Button("Write Pending to ROM", ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(CommitAllChanges());
-    }
-    HOVER_HINT("Write all pending tile16 edits to ROM");
-
-    if (Button("Discard Changes", ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(DiscardChanges());
-    }
-    HOVER_HINT("Reload tile16 from ROM, discarding local changes");
-
-    Separator();
-
-    bool can_undo = undo_manager_.CanUndo();
-    if (!can_undo)
-      BeginDisabled();
-    if (Button("Undo", ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(Undo());
-    }
-    if (!can_undo)
-      EndDisabled();
+    RETURN_IF_ERROR(DrawPrimaryActionControls());
 
     // Advanced controls (collapsible)
     if (show_advanced_controls) {
@@ -1873,6 +1839,68 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
       "Copy the Brush Palette into Tile Palette metadata for all 4 "
       "quadrants.\n"
       "Tip: right-click any brush palette button above for a one-step apply.");
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::DrawPrimaryActionControls() {
+  const Tile16ActionControlState action_state = ComputeTile16ActionControlState(
+      has_pending_changes(), is_tile_modified(current_tile16_),
+      undo_manager_.CanUndo());
+
+  // Compact action buttons
+  if (Button("Clear", ImVec2(-1, 0))) {
+    RETURN_IF_ERROR(ClearTile16());
+  }
+
+  if (Button("Copy", ImVec2(-1, 0))) {
+    RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
+  }
+
+  if (Button("Paste", ImVec2(-1, 0))) {
+    RETURN_IF_ERROR(PasteTile16FromClipboard());
+  }
+
+  Separator();
+
+  // Save/Discard - full width buttons
+  if (!action_state.can_write_pending) {
+    BeginDisabled();
+  }
+  if (Button("Write Pending to ROM", ImVec2(-1, 0))) {
+    RETURN_IF_ERROR(CommitAllChanges());
+  }
+  if (!action_state.can_write_pending) {
+    EndDisabled();
+  }
+  HOVER_HINT(action_state.can_write_pending
+                 ? "Write all pending tile16 edits to ROM"
+                 : "No pending tile16 edits to write");
+
+  if (!action_state.can_discard_current) {
+    BeginDisabled();
+  }
+  if (Button("Discard Changes", ImVec2(-1, 0))) {
+    RETURN_IF_ERROR(DiscardChanges());
+  }
+  if (!action_state.can_discard_current) {
+    EndDisabled();
+  }
+  HOVER_HINT(action_state.can_discard_current
+                 ? "Reload tile16 from ROM, discarding local staged changes"
+                 : "Current tile has no staged changes");
+
+  Separator();
+
+  if (!action_state.can_undo) {
+    BeginDisabled();
+  }
+  if (Button("Undo", ImVec2(-1, 0))) {
+    RETURN_IF_ERROR(Undo());
+  }
+  if (!action_state.can_undo) {
+    EndDisabled();
+  }
+
   return absl::OkStatus();
 }
 

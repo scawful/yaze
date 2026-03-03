@@ -240,6 +240,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/toast_dedup_test.cc
     unit/editor/tile_painting_manager_test.cc
+    unit/editor/tile16_editor_action_state_test.cc
     unit/editor/overworld_item_operations_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc

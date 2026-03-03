@@ -577,6 +577,9 @@ class Tile16Editor : public gfx::GfxContext {
 
   // Draw brush palette controls and tile palette metadata controls.
   absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
+
+  // Draw primary edit/commit controls in the right action column.
+  absl::Status DrawPrimaryActionControls();
 };
 
 }  // namespace editor
