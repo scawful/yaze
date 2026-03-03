@@ -5,11 +5,31 @@
 
 #include <vector>
 
+#include "core/features.h"
 #include "mocks/mock_rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze {
 namespace test {
+
+namespace {
+
+struct ScopedCustomObjectsFlag {
+  bool previous = false;
+
+  explicit ScopedCustomObjectsFlag(bool enabled) {
+    previous = core::FeatureFlags::get().kEnableCustomObjects;
+    core::FeatureFlags::get().kEnableCustomObjects = enabled;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+
+  ~ScopedCustomObjectsFlag() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+};
+
+}  // namespace
 
 class ObjectParserTest : public ::testing::Test {
  protected:
@@ -173,6 +193,49 @@ TEST_F(ObjectParserTest,
     SCOPED_TRACE(id);
     auto info = parser_->GetObjectDrawInfo(id);
     EXPECT_EQ(info.draw_routine_id, registry.GetRoutineIdForObject(id));
+  }
+}
+
+TEST_F(ObjectParserTest,
+       DrawInfoMatchesRegistryForAllSubtype1Objects_CustomFlagOnOff) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+
+  for (bool enabled : {false, true}) {
+    ScopedCustomObjectsFlag scoped_flag(enabled);
+
+    const int expected_custom_routine =
+        enabled ? zelda3::DrawRoutineIds::kCustomObject
+                : zelda3::DrawRoutineIds::kNothing;
+
+    for (int id = 0x00; id <= 0xF7; ++id) {
+      SCOPED_TRACE(::testing::Message() << "custom=" << enabled
+                                        << " object_id=0x" << std::hex << id);
+
+      const int expected_routine = registry.GetRoutineIdForObject(id);
+      ASSERT_GE(expected_routine, 0);
+
+      auto info = parser_->GetObjectDrawInfo(id);
+      EXPECT_EQ(info.draw_routine_id, expected_routine);
+
+      const zelda3::DrawRoutineInfo* routine =
+          registry.GetRoutineInfo(expected_routine);
+      if (routine != nullptr) {
+        EXPECT_EQ(info.routine_name, routine->name);
+        EXPECT_EQ(info.both_layers, routine->draws_to_both_bgs);
+      } else {
+        EXPECT_EQ(info.routine_name, "DefaultSolid");
+        EXPECT_FALSE(info.both_layers);
+      }
+
+      auto subtype = parser_->GetObjectSubtype(id);
+      ASSERT_TRUE(subtype.ok());
+      EXPECT_EQ(info.tile_count, subtype->max_tile_count);
+    }
+
+    EXPECT_EQ(parser_->GetObjectDrawInfo(0x31).draw_routine_id,
+              expected_custom_routine);
+    EXPECT_EQ(parser_->GetObjectDrawInfo(0x32).draw_routine_id,
+              expected_custom_routine);
   }
 }
 
