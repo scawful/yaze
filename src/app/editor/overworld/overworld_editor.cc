@@ -687,6 +687,7 @@ void OverworldEditor::DrawEntityEditorPopups() {
                                zelda3::GameEntity::EntityType::kItem) {
       auto* live_item = static_cast<zelda3::OverworldItem*>(current_entity_);
       if (current_item_.deleted) {
+        const uint8_t deleted_item_id = current_item_.id_;
         auto remove_status = RemoveItemByIdentity(&overworld_, current_item_);
         if (!remove_status.ok()) {
           util::logf("Failed to remove overworld item: %s",
@@ -695,13 +696,32 @@ void OverworldEditor::DrawEntityEditorPopups() {
             dependencies_.toast_manager->Show("Failed to delete overworld item",
                                               ToastType::kError);
           }
-        } else if (dependencies_.toast_manager) {
-          dependencies_.toast_manager->Show(
-              absl::StrFormat("Deleted overworld item 0x%02X",
-                              static_cast<int>(current_item_.id_)),
-              ToastType::kSuccess);
+        } else {
+          auto* nearest_item =
+              FindNearestItemForSelection(&overworld_, current_item_);
+          if (nearest_item) {
+            current_item_ = *nearest_item;
+            current_entity_ = nearest_item;
+          } else {
+            current_entity_ = nullptr;
+          }
+
+          if (dependencies_.toast_manager) {
+            if (nearest_item) {
+              dependencies_.toast_manager->Show(
+                  absl::StrFormat(
+                      "Deleted item 0x%02X (selected nearest 0x%02X)",
+                      static_cast<int>(deleted_item_id),
+                      static_cast<int>(nearest_item->id_)),
+                  ToastType::kSuccess);
+            } else {
+              dependencies_.toast_manager->Show(
+                  absl::StrFormat("Deleted overworld item 0x%02X",
+                                  static_cast<int>(deleted_item_id)),
+                  ToastType::kSuccess);
+            }
+          }
         }
-        current_entity_ = nullptr;
       } else {
         *live_item = current_item_;
       }

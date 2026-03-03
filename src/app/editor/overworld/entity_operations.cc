@@ -1,6 +1,7 @@
 #include "entity_operations.h"
 
 #include <algorithm>
+#include <cstdint>
 
 #include "absl/strings/str_format.h"
 #include "util/log.h"
@@ -286,6 +287,49 @@ absl::Status RemoveItemByIdentity(zelda3::Overworld* overworld,
 
   items->erase(it);
   return absl::OkStatus();
+}
+
+zelda3::OverworldItem* FindNearestItemForSelection(
+    zelda3::Overworld* overworld,
+    const zelda3::OverworldItem& anchor_identity) {
+  if (!overworld) {
+    return nullptr;
+  }
+
+  auto* items = overworld->mutable_all_items();
+  if (!items || items->empty()) {
+    return nullptr;
+  }
+
+  const int anchor_x = anchor_identity.x_;
+  const int anchor_y = anchor_identity.y_;
+  const uint16_t anchor_map = anchor_identity.room_map_id_;
+
+  auto rank = [&](const zelda3::OverworldItem& item) {
+    const int same_map_rank = (item.room_map_id_ == anchor_map) ? 0 : 1;
+    const std::int64_t dx = static_cast<std::int64_t>(item.x_) - anchor_x;
+    const std::int64_t dy = static_cast<std::int64_t>(item.y_) - anchor_y;
+    const std::int64_t dist2 = (dx * dx) + (dy * dy);
+    return std::pair<int, std::int64_t>(same_map_rank, dist2);
+  };
+
+  auto best_it = items->end();
+  std::pair<int, std::int64_t> best_rank = {2, 0};
+  for (auto it = items->begin(); it != items->end(); ++it) {
+    if (it->deleted) {
+      continue;
+    }
+    const auto current_rank = rank(*it);
+    if (best_it == items->end() || current_rank < best_rank) {
+      best_it = it;
+      best_rank = current_rank;
+    }
+  }
+
+  if (best_it == items->end()) {
+    return nullptr;
+  }
+  return &(*best_it);
 }
 
 }  // namespace editor

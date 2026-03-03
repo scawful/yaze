@@ -136,6 +136,34 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
 }
 
+TEST_F(DungeonEditorV2IntegrationTest,
+       ToggleWorkbenchWorkflowModeDefersFlipUntilUpdate) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  const size_t session_id = panel_manager_->GetActiveSessionId();
+  ASSERT_TRUE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+
+  dungeon_editor_v2_->ToggleWorkbenchWorkflowMode(/*show_toast=*/false);
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+
+  auto status = dungeon_editor_v2_->Update();
+  ASSERT_TRUE(status.ok());
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+
+  dungeon_editor_v2_->ToggleWorkbenchWorkflowMode(/*show_toast=*/false);
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+
+  status = dungeon_editor_v2_->Update();
+  ASSERT_TRUE(status.ok());
+  EXPECT_TRUE(panel_manager_->IsPanelVisible(session_id, "dungeon.workbench"));
+  EXPECT_FALSE(panel_manager_->IsPanelVisible(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+}
+
 // ============================================================================
 // Save Tests - Component Delegation
 // ============================================================================

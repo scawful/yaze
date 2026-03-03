@@ -325,7 +325,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       if (p.set_workflow_mode) {
         ImGui::SameLine();
         if (SquareIconButton("##PanelMode", ICON_MD_VIEW_QUILT, btn,
-                             "Switch to standalone panel workflow")) {
+                             "Switch to standalone panel workflow "
+                             "(Ctrl+Shift+W)")) {
           request_panel_mode = true;
         }
       }

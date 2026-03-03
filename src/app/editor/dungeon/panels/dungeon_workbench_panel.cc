@@ -311,7 +311,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   }
   gui::LayoutHelpers::EndContentChild();
 
-  // Inspector: placeholder (step 3 will replace this)
+  // Inspector: room, selection, and quick-tool shelves.
   ImGui::TableNextColumn();
   if (show_right) {
     measured_right_w = ImGui::GetContentRegionAvail().x;
