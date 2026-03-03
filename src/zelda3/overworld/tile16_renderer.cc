@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include "zelda3/overworld/tile16_metadata.h"
+
 namespace yaze::zelda3 {
 
 namespace {
@@ -9,19 +11,6 @@ namespace {
 constexpr int kTile8Size = 8;
 constexpr int kTile16Size = 16;
 constexpr int kTile16PixelCount = 256;
-
-const gfx::TileInfo& TileInfoForQuadrant(const gfx::Tile16& tile, int quadrant) {
-  switch (quadrant) {
-    case 0:
-      return tile.tile0_;
-    case 1:
-      return tile.tile1_;
-    case 2:
-      return tile.tile2_;
-    default:
-      return tile.tile3_;
-  }
-}
 
 }  // namespace
 
@@ -31,7 +20,7 @@ std::vector<uint8_t> RenderTile16PixelsFromMetadata(
   std::vector<uint8_t> tile16_pixels(kTile16PixelCount, 0);
 
   for (int quadrant = 0; quadrant < 4; ++quadrant) {
-    const gfx::TileInfo& tile_info = TileInfoForQuadrant(tile_data, quadrant);
+    const gfx::TileInfo& tile_info = Tile16QuadrantInfo(tile_data, quadrant);
     const int quadrant_x = quadrant % 2;
     const int quadrant_y = quadrant / 2;
     const int tile8_id = tile_info.id_;
@@ -47,7 +36,8 @@ std::vector<uint8_t> RenderTile16PixelsFromMetadata(
 
     const bool x_flip = tile_info.horizontal_mirror_;
     const bool y_flip = tile_info.vertical_mirror_;
-    const uint8_t palette_index = static_cast<uint8_t>(tile_info.palette_ & 0x07);
+    const uint8_t palette_index =
+        static_cast<uint8_t>(tile_info.palette_ & 0x07);
 
     for (int ty = 0; ty < kTile8Size; ++ty) {
       for (int tx = 0; tx < kTile8Size; ++tx) {
@@ -59,7 +49,8 @@ std::vector<uint8_t> RenderTile16PixelsFromMetadata(
         const int dst_y = (quadrant_y * kTile8Size) + ty;
         const int dst_index = dst_y * kTile16Size + dst_x;
 
-        if (src_index < 0 || src_index >= static_cast<int>(source_tile8.size()) ||
+        if (src_index < 0 ||
+            src_index >= static_cast<int>(source_tile8.size()) ||
             dst_index < 0 || dst_index >= kTile16PixelCount) {
           continue;
         }
@@ -74,8 +65,8 @@ std::vector<uint8_t> RenderTile16PixelsFromMetadata(
 }
 
 absl::Status RenderTile16BitmapFromMetadata(
-    const gfx::Tile16& tile_data,
-    const std::vector<gfx::Bitmap>& tile8_bitmaps, gfx::Bitmap* output_bitmap) {
+    const gfx::Tile16& tile_data, const std::vector<gfx::Bitmap>& tile8_bitmaps,
+    gfx::Bitmap* output_bitmap) {
   if (!output_bitmap) {
     return absl::InvalidArgumentError("Output bitmap pointer is null");
   }
