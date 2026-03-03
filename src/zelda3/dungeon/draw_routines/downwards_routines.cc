@@ -11,7 +11,8 @@ void DrawDownwards2x2_1to15or32(const DrawContext& ctx) {
   // Pattern: Draws 2x2 tiles downward (object 0x60)
   // Size byte determines how many times to repeat (1-15 or 32)
   int size = ctx.object.size_;
-  if (size == 0) size = 32;  // Special case for object 0x60
+  if (size == 0)
+    size = 32;  // Special case for object 0x60
 
   for (int s = 0; s < size; s++) {
     if (ctx.tiles.size() >= 4) {
@@ -22,17 +23,17 @@ void DrawDownwards2x2_1to15or32(const DrawContext& ctx) {
       // tiles[2] → $C2 → (col 1, row 0) = top-right
       // tiles[3] → $CE → (col 1, row 1) = bottom-right
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 2),
-                                    ctx.tiles[0]);  // col 0, row 0
+                                   ctx.object.y_ + (s * 2),
+                                   ctx.tiles[0]);  // col 0, row 0
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 2) + 1,
-                                    ctx.tiles[1]);  // col 0, row 1
+                                   ctx.object.y_ + (s * 2) + 1,
+                                   ctx.tiles[1]);  // col 0, row 1
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 2),
-                                    ctx.tiles[2]);  // col 1, row 0
+                                   ctx.object.y_ + (s * 2),
+                                   ctx.tiles[2]);  // col 1, row 0
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 2) + 1,
-                                    ctx.tiles[3]);  // col 1, row 1
+                                   ctx.object.y_ + (s * 2) + 1,
+                                   ctx.tiles[3]);  // col 1, row 1
     }
   }
 }
@@ -41,39 +42,40 @@ void DrawDownwards4x2_1to15or26(const DrawContext& ctx) {
   // Pattern: Draws 4x2 tiles downward (objects 0x61-0x62)
   // This is 4 columns × 2 rows = 8 tiles in ROW-MAJOR order (per ZScream)
   int size = ctx.object.size_;
-  if (size == 0) size = 26;  // Special case
+  if (size == 0)
+    size = 26;  // Special case
 
   for (int s = 0; s < size; s++) {
     if (ctx.tiles.size() >= 8) {
       // Draw 4x2 pattern in ROW-MAJOR order (matching ZScream)
       // Row 0: tiles 0, 1, 2, 3 at x+0, x+1, x+2, x+3
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[0]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[0]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[1]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[1]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[2]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[2]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[3]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[3]);
       // Row 1: tiles 4, 5, 6, 7 at x+0, x+1, x+2, x+3
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 2) + 1, ctx.tiles[4]);
+                                   ctx.object.y_ + (s * 2) + 1, ctx.tiles[4]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 2) + 1, ctx.tiles[5]);
+                                   ctx.object.y_ + (s * 2) + 1, ctx.tiles[5]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2,
-                                    ctx.object.y_ + (s * 2) + 1, ctx.tiles[6]);
+                                   ctx.object.y_ + (s * 2) + 1, ctx.tiles[6]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
-                                    ctx.object.y_ + (s * 2) + 1, ctx.tiles[7]);
+                                   ctx.object.y_ + (s * 2) + 1, ctx.tiles[7]);
     } else if (ctx.tiles.size() >= 4) {
       // Fallback: with 4 tiles draw 4x1 row pattern
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[0]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[0]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[1]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[1]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[2]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[2]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
-                                    ctx.object.y_ + (s * 2), ctx.tiles[3]);
+                                   ctx.object.y_ + (s * 2), ctx.tiles[3]);
     }
   }
 }
@@ -108,12 +110,12 @@ void DrawDownwardsDecor4x2spaced4_1to16(const DrawContext& ctx) {
                                    ctx.tiles[3]);
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 1,
                                    ctx.tiles[4]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                   base_y + 1, ctx.tiles[5]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2,
-                                   base_y + 1, ctx.tiles[6]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3,
-                                   base_y + 1, ctx.tiles[7]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 1,
+                                   ctx.tiles[5]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, base_y + 1,
+                                   ctx.tiles[6]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3, base_y + 1,
+                                   ctx.tiles[7]);
     }
   }
 }
@@ -133,17 +135,17 @@ void DrawDownwards2x2_1to16(const DrawContext& ctx) {
       // tiles[2] → col 1, row 0 = top-right
       // tiles[3] → col 1, row 1 = bottom-right
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 2),
-                                    ctx.tiles[0]);  // col 0, row 0
+                                   ctx.object.y_ + (s * 2),
+                                   ctx.tiles[0]);  // col 0, row 0
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + (s * 2) + 1,
-                                    ctx.tiles[1]);  // col 0, row 1
+                                   ctx.object.y_ + (s * 2) + 1,
+                                   ctx.tiles[1]);  // col 0, row 1
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 2),
-                                    ctx.tiles[2]);  // col 1, row 0
+                                   ctx.object.y_ + (s * 2),
+                                   ctx.tiles[2]);  // col 1, row 0
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                    ctx.object.y_ + (s * 2) + 1,
-                                    ctx.tiles[3]);  // col 1, row 1
+                                   ctx.object.y_ + (s * 2) + 1,
+                                   ctx.tiles[3]);  // col 1, row 1
     }
   }
 }
@@ -153,7 +155,8 @@ void DrawDownwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx) {
   int size = ctx.object.size_ & 0x0F;
   int count = size + 1;
 
-  if (ctx.tiles.size() < 3) return;
+  if (ctx.tiles.size() < 3)
+    return;
 
   int y = ctx.object.y_;
   DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[0]);
@@ -176,59 +179,390 @@ void DrawDownwardsEdge1x1_1to16(const DrawContext& ctx) {
     if (ctx.tiles.size() >= 1) {
       // Use first 8x8 tile from span
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                    ctx.object.y_ + s, ctx.tiles[0]);
+                                   ctx.object.y_ + s, ctx.tiles[0]);
     }
   }
 }
 
 void DrawDownwardsLeftCorners2x1_1to16_plus12(const DrawContext& ctx) {
   // Pattern: Left corner 2x1 tiles with +12 offset downward (object 0x6C)
-  int size = ctx.object.size_ & 0x0F;
+  const int size = ctx.object.size_ & 0x0F;
+  // USDASM $01:9045 - Object_Size_N_to_N_plus_15 with N=0x0A.
+  const int count = size + 10;
+  if (count <= 0 || ctx.tiles.empty()) {
+    return;
+  }
 
-  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
-  int count = size + 10;
+  // Middle rows are (left=tile3, right=tile0). Ends use cap tiles.
+  const gfx::TileInfo& right_fill = ctx.tiles[0];
+  const gfx::TileInfo& left_fill =
+      ctx.tiles.size() > 3 ? ctx.tiles[3] : ctx.tiles[0];
+  const gfx::TileInfo& start_cap_left =
+      ctx.tiles.size() > 1 ? ctx.tiles[1] : left_fill;
+  const gfx::TileInfo& end_cap_left =
+      ctx.tiles.size() > 4 ? ctx.tiles[4] : left_fill;
 
-  for (int s = 0; s < count; s++) {
-    if (ctx.tiles.size() >= 2) {
-      // Use first tile span for 2x1 pattern
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12,
-                                    ctx.object.y_ + s, ctx.tiles[0]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12 + 1,
-                                    ctx.object.y_ + s, ctx.tiles[1]);
-    }
+  for (int s = 0; s < count; ++s) {
+    const gfx::TileInfo& left_tile = (s == 0)           ? start_cap_left
+                                     : (s == count - 1) ? end_cap_left
+                                                        : left_fill;
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12,
+                                 ctx.object.y_ + s, left_tile);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 13,
+                                 ctx.object.y_ + s, right_fill);
   }
 }
 
 void DrawDownwardsRightCorners2x1_1to16_plus12(const DrawContext& ctx) {
   // Pattern: Right corner 2x1 tiles with +12 offset downward (object 0x6D)
-  int size = ctx.object.size_ & 0x0F;
+  const int size = ctx.object.size_ & 0x0F;
+  // USDASM $01:908F - mirrored variant of the left-corner routine.
+  const int count = size + 10;
+  if (count <= 0 || ctx.tiles.empty()) {
+    return;
+  }
 
-  // Assembly: GetSize_1to16_timesA(0x0A), so count = size + 10
-  int count = size + 10;
+  const gfx::TileInfo& left_fill = ctx.tiles[0];
+  const gfx::TileInfo& right_fill =
+      ctx.tiles.size() > 3 ? ctx.tiles[3] : ctx.tiles[0];
+  const gfx::TileInfo& start_cap_right =
+      ctx.tiles.size() > 1 ? ctx.tiles[1] : right_fill;
+  const gfx::TileInfo& end_cap_right =
+      ctx.tiles.size() > 4 ? ctx.tiles[4] : right_fill;
 
-  for (int s = 0; s < count; s++) {
-    if (ctx.tiles.size() >= 2) {
-      // Use first tile span for 2x1 pattern
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12,
-                                    ctx.object.y_ + s, ctx.tiles[0]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12 + 1,
-                                    ctx.object.y_ + s, ctx.tiles[1]);
+  for (int s = 0; s < count; ++s) {
+    const gfx::TileInfo& right_tile = (s == 0)           ? start_cap_right
+                                      : (s == count - 1) ? end_cap_right
+                                                         : right_fill;
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12,
+                                 ctx.object.y_ + s, left_fill);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 13,
+                                 ctx.object.y_ + s, right_tile);
+  }
+}
+
+void DrawDownwardsFloor4x4_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 16) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 4);
+    for (int x = 0; x < 4; ++x) {
+      for (int y = 0; y < 4; ++y) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     base_y + y, ctx.tiles[x * 4 + y]);
+      }
     }
   }
+}
+
+void DrawDownwards1x1Solid_1to16_plus3(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 4;
+  if (ctx.tiles.empty()) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
+                                 ctx.object.y_ + s + 3, ctx.tiles[0]);
+  }
+}
+
+void DrawDownwardsDecor4x4spaced2_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 16) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 6);
+    for (int x = 0; x < 4; ++x) {
+      for (int y = 0; y < 4; ++y) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     base_y + y, ctx.tiles[x * 4 + y]);
+      }
+    }
+  }
+}
+
+void DrawDownwardsPillar2x4spaced2_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 8) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 6);
+    for (int x = 0; x < 2; ++x) {
+      for (int y = 0; y < 4; ++y) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     base_y + y, ctx.tiles[x * 4 + y]);
+      }
+    }
+  }
+}
+
+void DrawDownwardsDecor3x4spaced4_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 12) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 8);
+    for (int x = 0; x < 3; ++x) {
+      for (int y = 0; y < 4; ++y) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     base_y + y, ctx.tiles[x * 4 + y]);
+      }
+    }
+  }
+}
+
+void DrawDownwardsDecor2x2spaced12_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 4) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 14);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 0,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 1,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 0,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 1,
+                                 ctx.tiles[3]);
+  }
+}
+
+void DrawDownwardsLine1x1_1to16plus1(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 2;
+  if (ctx.tiles.empty()) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
+                                 ctx.object.y_ + s, ctx.tiles[0]);
+  }
+}
+
+void DrawDownwardsDecor2x4spaced8_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 8) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 12);
+    for (int x = 0; x < 2; ++x) {
+      for (int y = 0; y < 4; ++y) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     base_y + y, ctx.tiles[x * 4 + y]);
+      }
+    }
+  }
+}
+
+void DrawDownwardsDecor3x4spaced2_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 12) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 6);
+    for (int x = 0; x < 3; ++x) {
+      for (int y = 0; y < 4; ++y) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     base_y + y, ctx.tiles[x * 4 + y]);
+      }
+    }
+  }
+}
+
+void DrawDownwardsBigRail3x1_1to16plus5(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int middle_rows = size + 1;
+  const int total_rows = size + 6;  // 2 top + (size+1) middle + 3 bottom.
+
+  if (ctx.tiles.size() >= 12) {
+    // USDASM $01:8F0C:
+    // - Top cap: 2x2 (tiles 0..3, column-major)
+    // - Middle: repeated 2x1 rows (tiles 4..5)
+    // - Bottom cap: 2 columns x 3 rows (tiles 6..11)
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0,
+                                 ctx.object.y_ + 0, ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0,
+                                 ctx.object.y_ + 1, ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                                 ctx.object.y_ + 0, ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                                 ctx.object.y_ + 1, ctx.tiles[3]);
+
+    int base_y = ctx.object.y_ + 2;
+    for (int row = 0; row < middle_rows; ++row) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0,
+                                   base_y + row, ctx.tiles[4]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                                   base_y + row, ctx.tiles[5]);
+    }
+
+    const int cap_y = base_y + middle_rows;
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, cap_y + 0,
+                                 ctx.tiles[6]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, cap_y + 1,
+                                 ctx.tiles[7]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, cap_y + 2,
+                                 ctx.tiles[8]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, cap_y + 0,
+                                 ctx.tiles[9]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, cap_y + 1,
+                                 ctx.tiles[10]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, cap_y + 2,
+                                 ctx.tiles[11]);
+    return;
+  }
+
+  if (ctx.tiles.empty() || total_rows <= 0) {
+    return;
+  }
+  const gfx::TileInfo& left = ctx.tiles[0];
+  const gfx::TileInfo& right =
+      ctx.tiles.size() > 1 ? ctx.tiles[1] : ctx.tiles[0];
+  for (int row = 0; row < total_rows; ++row) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0,
+                                 ctx.object.y_ + row, left);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                                 ctx.object.y_ + row, right);
+  }
+}
+
+void DrawDownwardsBlock2x2spaced2_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 4) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 4);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 0,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 1,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 0,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 1,
+                                 ctx.tiles[3]);
+  }
+}
+
+void DrawDownwardsCannonHole3x4_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int repeat_count = size + 1;
+  if (ctx.tiles.size() < 12) {
+    return;
+  }
+
+  auto draw_segment = [&](int base_y, int tile_base) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 0,
+                                 ctx.tiles[tile_base + 0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 0,
+                                 ctx.tiles[tile_base + 1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, base_y + 0,
+                                 ctx.tiles[tile_base + 2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 1,
+                                 ctx.tiles[tile_base + 3]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 1,
+                                 ctx.tiles[tile_base + 4]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, base_y + 1,
+                                 ctx.tiles[tile_base + 5]);
+  };
+
+  // USDASM $01:9CEB:
+  // - Repeat the left 3x2 segment (tiles 0..5) size+1 times
+  // - Append one 3x2 edge segment (tiles 6..11)
+  for (int s = 0; s < repeat_count; ++s) {
+    draw_segment(ctx.object.y_ + (s * 2), /*tile_base=*/0);
+  }
+  draw_segment(ctx.object.y_ + (repeat_count * 2), /*tile_base=*/6);
+}
+
+void DrawDownwardsBar2x5_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int middle_rows = (size + 2) * 2;
+  if (ctx.tiles.size() < 4) {
+    return;
+  }
+
+  // USDASM $01:97B5:
+  // - top row uses tiles 0..1
+  // - remaining rows use tiles 2..3, repeated 2*(size+2) times
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0,
+                               ctx.object.y_ + 0, ctx.tiles[0]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                               ctx.object.y_ + 0, ctx.tiles[1]);
+  for (int row = 0; row < middle_rows; ++row) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0,
+                                 ctx.object.y_ + 1 + row, ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                                 ctx.object.y_ + 1 + row, ctx.tiles[3]);
+  }
+}
+
+void DrawDownwardsPots2x2_1to16(const DrawContext& ctx) {
+  const int size = ctx.object.size_ & 0x0F;
+  const int count = size + 1;
+  if (ctx.tiles.size() < 4) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int base_y = ctx.object.y_ + (s * 2);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 0,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 1,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 0,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 1,
+                                 ctx.tiles[3]);
+  }
+}
+
+void DrawDownwardsHammerPegs2x2_1to16(const DrawContext& ctx) {
+  DrawDownwardsPots2x2_1to16(ctx);
 }
 
 void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   using Category = DrawRoutineInfo::Category;
 
-  registry.push_back(DrawRoutineInfo{
-      .id = 7,  // RoomDraw_Downwards2x2_1to15or32
-      .name = "Downwards2x2_1to15or32",
-      .function = DrawDownwards2x2_1to15or32,
-      .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
-      .category = Category::Downwards});
+  registry.push_back(
+      DrawRoutineInfo{.id = 7,  // RoomDraw_Downwards2x2_1to15or32
+                      .name = "Downwards2x2_1to15or32",
+                      .function = DrawDownwards2x2_1to15or32,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 2,
+                      .min_tiles = 4,  // 2x2 block
+                      .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
       .id = 8,  // RoomDraw_Downwards4x2_1to15or26
@@ -243,55 +577,54 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .min_tiles = 8,  // 4x2 block
       .category = Category::Downwards});
 
-  registry.push_back(DrawRoutineInfo{
-      .id = 9,  // RoomDraw_Downwards4x2_1to16_BothBG
-      .name = "Downwards4x2_1to16_BothBG",
-      .function = DrawDownwards4x2_1to16_BothBG,
-      .draws_to_both_bgs = true,
-      .base_width = 4,
-      .base_height = 2,
-      .min_tiles = 8,  // 4x2 block
-      .category = Category::Downwards});
+  registry.push_back(
+      DrawRoutineInfo{.id = 9,  // RoomDraw_Downwards4x2_1to16_BothBG
+                      .name = "Downwards4x2_1to16_BothBG",
+                      .function = DrawDownwards4x2_1to16_BothBG,
+                      .draws_to_both_bgs = true,
+                      .base_width = 4,
+                      .base_height = 2,
+                      .min_tiles = 8,  // 4x2 block
+                      .category = Category::Downwards});
 
-  registry.push_back(DrawRoutineInfo{
-      .id = 10,  // RoomDraw_DownwardsDecor4x2spaced4_1to16
-      .name = "DownwardsDecor4x2spaced4_1to16",
-      .function = DrawDownwardsDecor4x2spaced4_1to16,
-      .draws_to_both_bgs = false,
-      .base_width = 4,
-      .base_height = 2,
-      .min_tiles = 8,  // 4x2 block
-      .category = Category::Downwards});
+  registry.push_back(
+      DrawRoutineInfo{.id = 10,  // RoomDraw_DownwardsDecor4x2spaced4_1to16
+                      .name = "DownwardsDecor4x2spaced4_1to16",
+                      .function = DrawDownwardsDecor4x2spaced4_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 4,
+                      .base_height = 2,
+                      .min_tiles = 8,  // 4x2 block
+                      .category = Category::Downwards});
 
-  registry.push_back(DrawRoutineInfo{
-      .id = 11,  // RoomDraw_Downwards2x2_1to16
-      .name = "Downwards2x2_1to16",
-      .function = DrawDownwards2x2_1to16,
-      .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
-      .category = Category::Downwards});
+  registry.push_back(DrawRoutineInfo{.id = 11,  // RoomDraw_Downwards2x2_1to16
+                                     .name = "Downwards2x2_1to16",
+                                     .function = DrawDownwards2x2_1to16,
+                                     .draws_to_both_bgs = false,
+                                     .base_width = 2,
+                                     .base_height = 2,
+                                     .min_tiles = 4,  // 2x2 block
+                                     .category = Category::Downwards});
 
-  registry.push_back(DrawRoutineInfo{
-      .id = 12,  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
-      .name = "DownwardsHasEdge1x1_1to16_plus3",
-      .function = DrawDownwardsHasEdge1x1_1to16_plus3,
-      .draws_to_both_bgs = false,
-      .base_width = 1,
-      .base_height = 3,
-      .min_tiles = 3,  // top edge + middle + bottom edge
-      .category = Category::Downwards});
+  registry.push_back(
+      DrawRoutineInfo{.id = 12,  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
+                      .name = "DownwardsHasEdge1x1_1to16_plus3",
+                      .function = DrawDownwardsHasEdge1x1_1to16_plus3,
+                      .draws_to_both_bgs = false,
+                      .base_width = 1,
+                      .base_height = 3,
+                      .min_tiles = 3,  // top edge + middle + bottom edge
+                      .category = Category::Downwards});
 
-  registry.push_back(DrawRoutineInfo{
-      .id = 13,  // RoomDraw_DownwardsEdge1x1_1to16
-      .name = "DownwardsEdge1x1_1to16",
-      .function = DrawDownwardsEdge1x1_1to16,
-      .draws_to_both_bgs = false,
-      .base_width = 1,
-      .base_height = 1,
-      .min_tiles = 1,  // single repeated tile
-      .category = Category::Downwards});
+  registry.push_back(
+      DrawRoutineInfo{.id = 13,  // RoomDraw_DownwardsEdge1x1_1to16
+                      .name = "DownwardsEdge1x1_1to16",
+                      .function = DrawDownwardsEdge1x1_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 1,
+                      .base_height = 1,
+                      .min_tiles = 1,  // single repeated tile
+                      .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
       .id = 14,  // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
@@ -300,7 +633,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 1,
-      .min_tiles = 2,  // 2x1 block
+      .min_tiles = 6,  // cap + body + endpoint tile spans from subtype-1 table
       .category = Category::Downwards});
 
   registry.push_back(DrawRoutineInfo{
@@ -310,8 +643,158 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 2,
       .base_height = 1,
-      .min_tiles = 2,  // 2x1 block
+      .min_tiles = 6,  // cap + body + endpoint tile spans from subtype-1 table
       .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsFloor4x4_1to16,
+                      .name = "DownwardsFloor4x4_1to16",
+                      .function = DrawDownwardsFloor4x4_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 4,
+                      .base_height = 4,
+                      .min_tiles = 16,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwards1x1Solid_1to16_plus3,
+                      .name = "Downwards1x1Solid_1to16_plus3",
+                      .function = DrawDownwards1x1Solid_1to16_plus3,
+                      .draws_to_both_bgs = false,
+                      .base_width = 1,
+                      .base_height = 1,
+                      .min_tiles = 1,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsDecor4x4spaced2_1to16,
+                      .name = "DownwardsDecor4x4spaced2_1to16",
+                      .function = DrawDownwardsDecor4x4spaced2_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 4,
+                      .base_height = 4,
+                      .min_tiles = 16,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsPillar2x4spaced2_1to16,
+                      .name = "DownwardsPillar2x4spaced2_1to16",
+                      .function = DrawDownwardsPillar2x4spaced2_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 4,
+                      .min_tiles = 8,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsDecor3x4spaced4_1to16,
+                      .name = "DownwardsDecor3x4spaced4_1to16",
+                      .function = DrawDownwardsDecor3x4spaced4_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 3,
+                      .base_height = 4,
+                      .min_tiles = 12,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsDecor2x2spaced12_1to16,
+                      .name = "DownwardsDecor2x2spaced12_1to16",
+                      .function = DrawDownwardsDecor2x2spaced12_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 2,
+                      .min_tiles = 4,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsLine1x1_1to16plus1,
+                      .name = "DownwardsLine1x1_1to16plus1",
+                      .function = DrawDownwardsLine1x1_1to16plus1,
+                      .draws_to_both_bgs = false,
+                      .base_width = 1,
+                      .base_height = 1,
+                      .min_tiles = 1,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsDecor2x4spaced8_1to16,
+                      .name = "DownwardsDecor2x4spaced8_1to16",
+                      .function = DrawDownwardsDecor2x4spaced8_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 4,
+                      .min_tiles = 8,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsDecor3x4spaced2_1to16,
+                      .name = "DownwardsDecor3x4spaced2_1to16",
+                      .function = DrawDownwardsDecor3x4spaced2_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 3,
+                      .base_height = 4,
+                      .min_tiles = 12,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsBigRail3x1_1to16plus5,
+                      .name = "DownwardsBigRail3x1_1to16plus5",
+                      .function = DrawDownwardsBigRail3x1_1to16plus5,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 6,
+                      .min_tiles = 12,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsBlock2x2spaced2_1to16,
+                      .name = "DownwardsBlock2x2spaced2_1to16",
+                      .function = DrawDownwardsBlock2x2spaced2_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 2,
+                      .min_tiles = 4,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsCannonHole3x4_1to16,
+                      .name = "DownwardsCannonHole3x4_1to16",
+                      .function = DrawDownwardsCannonHole3x4_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 3,
+                      .base_height = 4,
+                      .min_tiles = 12,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsBar2x5_1to16,
+                      .name = "DownwardsBar2x5_1to16",
+                      .function = DrawDownwardsBar2x5_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 5,
+                      .min_tiles = 4,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsPots2x2_1to16,
+                      .name = "DownwardsPots2x2_1to16",
+                      .function = DrawDownwardsPots2x2_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 2,
+                      .min_tiles = 4,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsHammerPegs2x2_1to16,
+                      .name = "DownwardsHammerPegs2x2_1to16",
+                      .function = DrawDownwardsHammerPegs2x2_1to16,
+                      .draws_to_both_bgs = false,
+                      .base_width = 2,
+                      .base_height = 2,
+                      .min_tiles = 4,
+                      .category = Category::Downwards});
 }
 
 }  // namespace draw_routines

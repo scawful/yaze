@@ -625,6 +625,98 @@ TEST(ObjectDrawerRegistryReplayTest,
   }
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     RightwardsCornerVariantsMatchUsdasmTileOrientation) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 7;
+  constexpr uint8_t kSize = 0;  // count = size + 10
+  constexpr int kCount = 10;
+
+  auto top_trace = ReplayObjectTrace(
+      /*object_id=*/0x002F, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/6));
+  auto bottom_trace = ReplayObjectTrace(
+      /*object_id=*/0x0030, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/6));
+
+  const auto top_bg1 =
+      FilterTraceByLayer(top_trace, RoomObject::LayerType::BG1);
+  const auto bottom_bg1 =
+      FilterTraceByLayer(bottom_trace, RoomObject::LayerType::BG1);
+
+  std::vector<SnapshotTileWrite> expected_top;
+  std::vector<SnapshotTileWrite> expected_bottom;
+  expected_top.reserve(kCount * 2);
+  expected_bottom.reserve(kCount * 2);
+
+  // USDASM:
+  // - $01:8FBD (top corners): body uses top=tile3, bottom=tile0.
+  // - $01:9001 (bottom corners): mirrored body uses top=tile0, bottom=tile3.
+  // Endpoints consume cap tiles (tile1 at start, tile4 at end).
+  for (int s = 0; s < kCount; ++s) {
+    const uint16_t top_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
+    const uint16_t bottom_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
+    const int x = kX + 13 + s;
+
+    expected_top.push_back({x, kY, top_cap});
+    expected_top.push_back({x, kY + 1, 0});
+
+    expected_bottom.push_back({x, kY + 1, 0});
+    expected_bottom.push_back({x, kY + 2, bottom_cap});
+  }
+
+  ExpectTraceMatchesSnapshot(top_bg1, expected_top);
+  ExpectTraceMatchesSnapshot(bottom_bg1, expected_bottom);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     DownwardsCornerVariantsMatchUsdasmTileOrientation) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 6;
+  constexpr int kY = 8;
+  constexpr uint8_t kSize = 0;  // count = size + 10
+  constexpr int kCount = 10;
+
+  auto left_trace = ReplayObjectTrace(
+      /*object_id=*/0x006C, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/6));
+  auto right_trace = ReplayObjectTrace(
+      /*object_id=*/0x006D, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/6));
+
+  const auto left_bg1 =
+      FilterTraceByLayer(left_trace, RoomObject::LayerType::BG1);
+  const auto right_bg1 =
+      FilterTraceByLayer(right_trace, RoomObject::LayerType::BG1);
+
+  std::vector<SnapshotTileWrite> expected_left;
+  std::vector<SnapshotTileWrite> expected_right;
+  expected_left.reserve(kCount * 2);
+  expected_right.reserve(kCount * 2);
+
+  // USDASM:
+  // - $01:9045 (left corners): body uses left=tile3, right=tile0.
+  // - $01:908F (right corners): mirrored body uses left=tile0, right=tile3.
+  // Endpoints consume cap tiles (tile1 at start, tile4 at end).
+  for (int s = 0; s < kCount; ++s) {
+    const uint16_t left_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
+    const uint16_t right_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
+    const int y = kY + s;
+
+    expected_left.push_back({kX + 12, y, left_cap});
+    expected_left.push_back({kX + 13, y, 0});
+
+    expected_right.push_back({kX + 12, y, 0});
+    expected_right.push_back({kX + 13, y, right_cap});
+  }
+
+  ExpectTraceMatchesSnapshot(left_bg1, expected_left);
+  ExpectTraceMatchesSnapshot(right_bg1, expected_right);
+}
+
 TEST(ObjectDrawerRoutineSnapshotHarnessTest,
      RepresentativeObjectsMatchRoutineSnapshots) {
   ScopedCustomObjectsFlag disable_custom(false);
@@ -1546,6 +1638,140 @@ TEST(ObjectDrawerCannonHoleTest,
     EXPECT_EQ(trace[i].y_tile, expected[i].y) << "trace idx=" << i;
     EXPECT_EQ(trace[i].tile_id, expected[i].tile_id) << "trace idx=" << i;
   }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     RightwardsBigRailUsesUsdasmStartMiddleEndColumns) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 4;
+  constexpr int kY = 6;
+  constexpr uint8_t kSize = 1;  // middle columns = size + 2 = 3
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x005D, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/15));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  std::vector<SnapshotTileWrite> expected;
+  expected.reserve(21);
+
+  auto append_column = [&](int x, uint16_t top, uint16_t mid, uint16_t bot) {
+    expected.push_back({x, kY + 0, top});
+    expected.push_back({x, kY + 1, mid});
+    expected.push_back({x, kY + 2, bot});
+  };
+
+  append_column(kX + 0, 0, 1, 2);
+  append_column(kX + 1, 3, 4, 5);
+  append_column(kX + 2, 6, 7, 8);
+  append_column(kX + 3, 6, 7, 8);
+  append_column(kX + 4, 6, 7, 8);
+  append_column(kX + 5, 9, 10, 11);
+  append_column(kX + 6, 12, 13, 14);
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     DownwardsBigRailUsesUsdasmTopMiddleBottomSegments) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 6;
+  constexpr int kY = 5;
+  constexpr uint8_t kSize = 1;  // middle rows = size + 1 = 2
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0088, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/12));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  const std::vector<SnapshotTileWrite> expected = {
+      // Top 2x2 cap (column-major).
+      {kX + 0, kY + 0, 0},
+      {kX + 0, kY + 1, 1},
+      {kX + 1, kY + 0, 2},
+      {kX + 1, kY + 1, 3},
+      // Middle repeated 2x1 rows.
+      {kX + 0, kY + 2, 4},
+      {kX + 1, kY + 2, 5},
+      {kX + 0, kY + 3, 4},
+      {kX + 1, kY + 3, 5},
+      // Bottom 2 columns x 3 rows.
+      {kX + 0, kY + 4, 6},
+      {kX + 0, kY + 5, 7},
+      {kX + 0, kY + 6, 8},
+      {kX + 1, kY + 4, 9},
+      {kX + 1, kY + 5, 10},
+      {kX + 1, kY + 6, 11},
+  };
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     DownwardsCannonHoleUsesUsdasmSegmentRepeatAndEdge) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 8;
+  constexpr int kY = 9;
+  constexpr uint8_t kSize = 1;  // repeat left segment size+1 times.
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0085, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/12));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  const std::vector<SnapshotTileWrite> expected = {
+      // Repeated left segment #0 (3x2, row-major).
+      {kX + 0, kY + 0, 0},
+      {kX + 1, kY + 0, 1},
+      {kX + 2, kY + 0, 2},
+      {kX + 0, kY + 1, 3},
+      {kX + 1, kY + 1, 4},
+      {kX + 2, kY + 1, 5},
+      // Repeated left segment #1.
+      {kX + 0, kY + 2, 0},
+      {kX + 1, kY + 2, 1},
+      {kX + 2, kY + 2, 2},
+      {kX + 0, kY + 3, 3},
+      {kX + 1, kY + 3, 4},
+      {kX + 2, kY + 3, 5},
+      // Final edge segment.
+      {kX + 0, kY + 4, 6},
+      {kX + 1, kY + 4, 7},
+      {kX + 2, kY + 4, 8},
+      {kX + 0, kY + 5, 9},
+      {kX + 1, kY + 5, 10},
+      {kX + 2, kY + 5, 11},
+  };
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest, DownwardsBarUsesUsdasmTopThenBodyRows) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 3;
+  constexpr int kY = 4;
+  constexpr uint8_t kSize = 1;  // body rows = 2 * (size + 2) = 6
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x008F, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/4));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  std::vector<SnapshotTileWrite> expected;
+  expected.reserve(14);
+
+  expected.push_back({kX + 0, kY + 0, 0});
+  expected.push_back({kX + 1, kY + 0, 1});
+  for (int row = 0; row < 6; ++row) {
+    expected.push_back({kX + 0, kY + 1 + row, 2});
+    expected.push_back({kX + 1, kY + 1 + row, 3});
+  }
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
 }
 
 }  // namespace

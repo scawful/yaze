@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last Updated: March 2, 2026**
+**Last Updated: March 3, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
@@ -16,9 +16,10 @@ for the detailed task breakdown and agent assignments.
 **0.7.0 completion priorities:**
 - P0 completed: Tile16 palette/render fix, Message replace, Sprite undo/redo,
   Screen undo/redo, Desktop BPS export
-- P1 remaining: Tracker stubs, CLI palette commands
+- P1 completed: Tracker stubs, CLI palette commands
 - P1 completed: Overworld usage statistics card data wiring
 - P1 completed: Overworld item deletion now physically removes entries
+- P1 completed: Dungeon usage visualization grid
 - P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
 
 Four parallel workstreams continue from the 0.6.x cycle.
@@ -33,7 +34,9 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ Entity drag-drop with selection inspector
 - ✅ Custom collision editor with JSON import/export
 - ✅ ROM write fence stack
+- ✅ usdasm replay parity tests for corner variants and rail/cannon/bar routines
 - 🟡 **Object tile counts**: yaze hardcodes 8 tiles per object; ZScream uses object-specific counts (4-242). Complex objects (altars, carpets, large platforms) render incorrectly.
+- 🟡 Selection-bounds parity sweep still reports mismatches (currently 135 cases; e.g. 0x4C-0x53 family). Scheduled for 0.8.0 hardening.
 - 🟡 Object preview rendering (stubbed)
 - 🟡 12+ unknown dungeon object types need verification
 - 🟡 Visual discrepancies in specific objects (vertical rails, doors)

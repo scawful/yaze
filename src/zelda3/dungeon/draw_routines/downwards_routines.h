@@ -101,6 +101,81 @@ void DrawDownwardsLeftCorners2x1_1to16_plus12(const DrawContext& ctx);
 void DrawDownwardsRightCorners2x1_1to16_plus12(const DrawContext& ctx);
 
 /**
+ * @brief Draw downwards 4x4 floor blocks
+ */
+void DrawDownwardsFloor4x4_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 1x1 solid line with +3 extension
+ */
+void DrawDownwards1x1Solid_1to16_plus3(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 4x4 decoration with 2-tile spacing
+ */
+void DrawDownwardsDecor4x4spaced2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 2x4 pillar with 2-tile spacing
+ */
+void DrawDownwardsPillar2x4spaced2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 3x4 decoration with 4-tile spacing
+ */
+void DrawDownwardsDecor3x4spaced4_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 2x2 decoration with 12-tile spacing
+ */
+void DrawDownwardsDecor2x2spaced12_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 1x1 line with +1 extension
+ */
+void DrawDownwardsLine1x1_1to16plus1(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 2x4 decoration with 8-tile spacing
+ */
+void DrawDownwardsDecor2x4spaced8_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 3x4 decoration with 2-tile spacing
+ */
+void DrawDownwardsDecor3x4spaced2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards big rail pattern (3x1 family, +5 extension)
+ */
+void DrawDownwardsBigRail3x1_1to16plus5(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 2x2 block pattern with 2-tile spacing
+ */
+void DrawDownwardsBlock2x2spaced2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards cannon-hole 3x4 pattern
+ */
+void DrawDownwardsCannonHole3x4_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 2x5 bar pattern
+ */
+void DrawDownwardsBar2x5_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 2x2 pots pattern
+ */
+void DrawDownwardsPots2x2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw downwards 2x2 hammer pegs pattern
+ */
+void DrawDownwardsHammerPegs2x2_1to16(const DrawContext& ctx);
+
+/**
  * @brief Register all downwards draw routines to the registry
  *
  * @param registry Vector of DrawRoutineInfo to register routines into
