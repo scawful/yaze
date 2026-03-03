@@ -25,6 +25,13 @@ for the detailed task breakdown and agent assignments.
 - P1 completed: Overworld item iteration UX
   (list/filter panel + duplicate/nudge shortcuts)
 - P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
+- Validation gate snapshot (March 3, 2026):
+  - `ctest --preset mac-ai-unit --output-on-failure` => 1622/1622 passed
+  - `ctest --preset mac-ai-integration --output-on-failure` => 237/237 passed
+- Remaining 0.7.0 stretch tasks are tracked in universe coordination:
+  - `task_20260303T212605Z_32450` (Tile16 quadrant parity tests)
+  - `task_20260303T212605Z_29503` (Overworld item batch-undo coverage)
+  - `task_20260303T212605Z_17791` (Dungeon dispatcher/docs cleanup)
 
 Four parallel workstreams continue from the 0.6.x cycle.
 
