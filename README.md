@@ -39,7 +39,7 @@ v0.7.0 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Overworld Editor | Beta | 160 maps, undo/redo, copy/paste; tile16 palette issues, sprite workflow incomplete |
+| Overworld Editor | Beta | 160 maps, undo/redo, copy/paste; tile16 palette pipeline fixed, item workflow expanded, sprite workflow incomplete |
 | Dungeon Editor | Beta | 296 rooms, entity drag-drop, ROM safety; 12+ unknown object types, visual discrepancies |
 | Graphics Editor | Beta | Sheet editing, undo/redo |
 | Palette Editor | Beta | Live preview; JSON import/export not implemented |
@@ -47,7 +47,7 @@ v0.7.0 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
 | Assembly Editor | Beta | Symbol navigation, Asar integration; project file editor incomplete |
 | Sprite Editor | Beta | Viewing works, editing limited |
 | Music Editor | Beta | Playback and editing, no clipboard ops |
-| Screen Editor | WIP | Core operations unimplemented |
+| Screen Editor | WIP | Load/save + dungeon-map undo/redo; cut/copy/paste/find still unimplemented |
 | Memory Editor | WIP | Hex viewing only, search unimplemented |
 | Emulator | Beta | Functional, save-state UI incomplete |
 
