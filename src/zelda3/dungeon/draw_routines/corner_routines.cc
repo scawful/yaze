@@ -8,6 +8,48 @@ namespace yaze {
 namespace zelda3 {
 namespace draw_routines {
 
+namespace {
+
+enum class DiagonalCeilingAnchor {
+  kTopLeft,
+  kBottomLeft,
+  kTopRight,
+  kBottomRight,
+};
+
+void DrawDiagonalCeiling(const DrawContext& ctx, DiagonalCeilingAnchor anchor) {
+  // USDASM parity:
+  // RoomDraw_DiagonalCeiling* uses GetSize_1to16_timesA with A=4.
+  // Effective side length is (size_nibble & 0x0F) + 4.
+  if (ctx.tiles.empty()) {
+    return;
+  }
+
+  const int side = (ctx.object.size_ & 0x0F) + 4;
+  const gfx::TileInfo& fill_tile = ctx.tiles[0];
+
+  const bool mirror_x = anchor == DiagonalCeilingAnchor::kTopRight ||
+                        anchor == DiagonalCeilingAnchor::kBottomRight;
+  const bool mirror_y = anchor == DiagonalCeilingAnchor::kBottomLeft ||
+                        anchor == DiagonalCeilingAnchor::kBottomRight;
+
+  const int base_x = ctx.object.x_ - (mirror_x ? (side - 1) : 0);
+  const int base_y = ctx.object.y_ - (mirror_y ? (side - 1) : 0);
+
+  // Fill a right-triangle in the local square and mirror as needed.
+  for (int row = 0; row < side; ++row) {
+    const int span = side - row;
+    for (int col = 0; col < span; ++col) {
+      const int x = mirror_x ? (side - 1 - col) : col;
+      const int y = mirror_y ? (side - 1 - row) : row;
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
+                                   fill_tile);
+    }
+  }
+}
+
+}  // namespace
+
 // Note: DrawWaterFace is defined in special_routines.cc along with other
 // water face variants (Empty, Spitting, Drenching)
 
@@ -120,6 +162,22 @@ void DrawWeirdCornerTop_BothBG(const DrawContext& ctx) {
   }
 }
 
+void DrawDiagonalCeilingTopLeft(const DrawContext& ctx) {
+  DrawDiagonalCeiling(ctx, DiagonalCeilingAnchor::kTopLeft);
+}
+
+void DrawDiagonalCeilingBottomLeft(const DrawContext& ctx) {
+  DrawDiagonalCeiling(ctx, DiagonalCeilingAnchor::kBottomLeft);
+}
+
+void DrawDiagonalCeilingTopRight(const DrawContext& ctx) {
+  DrawDiagonalCeiling(ctx, DiagonalCeilingAnchor::kTopRight);
+}
+
+void DrawDiagonalCeilingBottomRight(const DrawContext& ctx) {
+  DrawDiagonalCeiling(ctx, DiagonalCeilingAnchor::kBottomRight);
+}
+
 void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
   // Note: Routine IDs are assigned based on the assembly routine table
   // These corner routines are part of the core 40 draw routines
@@ -166,6 +224,50 @@ void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 4,
       .base_height = 3,
       .min_tiles = 12,  // Enforce canonical USDASM payload size.
+      .category = DrawRoutineInfo::Category::Corner,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kDiagonalCeilingTopLeft,
+      .name = "DiagonalCeilingTopLeft",
+      .function = DrawDiagonalCeilingTopLeft,
+      .draws_to_both_bgs = false,
+      .base_width = 4,   // size_nibble + 4
+      .base_height = 4,  // size_nibble + 4
+      .min_tiles = 1,
+      .category = DrawRoutineInfo::Category::Corner,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kDiagonalCeilingBottomLeft,
+      .name = "DiagonalCeilingBottomLeft",
+      .function = DrawDiagonalCeilingBottomLeft,
+      .draws_to_both_bgs = false,
+      .base_width = 4,   // size_nibble + 4
+      .base_height = 4,  // size_nibble + 4
+      .min_tiles = 1,
+      .category = DrawRoutineInfo::Category::Corner,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kDiagonalCeilingTopRight,
+      .name = "DiagonalCeilingTopRight",
+      .function = DrawDiagonalCeilingTopRight,
+      .draws_to_both_bgs = false,
+      .base_width = 4,   // size_nibble + 4
+      .base_height = 4,  // size_nibble + 4
+      .min_tiles = 1,
+      .category = DrawRoutineInfo::Category::Corner,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kDiagonalCeilingBottomRight,
+      .name = "DiagonalCeilingBottomRight",
+      .function = DrawDiagonalCeilingBottomRight,
+      .draws_to_both_bgs = false,
+      .base_width = 4,   // size_nibble + 4
+      .base_height = 4,  // size_nibble + 4
+      .min_tiles = 1,
       .category = DrawRoutineInfo::Category::Corner,
   });
 }

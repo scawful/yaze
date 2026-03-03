@@ -190,6 +190,75 @@ void DrawRightwardsDoubled2x2spaced2_1to16(const DrawContext& ctx);
 void DrawRightwardsDecor2x2spaced12_1to16(const DrawContext& ctx);
 
 /**
+ * @brief Draw 4x2 floor tiles rightward
+ *
+ * Pattern: Draws 4x2 tiles in ROW-MAJOR order (objects 0x49-0x4A)
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawRightwards4x2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw 1x8 decorative columns with wide horizontal spacing
+ *
+ * Pattern: Draws one tile-wide, eight tile-high columns (objects 0x55-0x56)
+ * with 12-tile horizontal step.
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawRightwardsDecor4x2spaced8_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw cannon-hole spans with repeated left segment and right cap
+ *
+ * Pattern: Draws 4x3 cannon-hole tiles (objects 0x51-0x52, 0x5B-0x5C)
+ * using the usdasm repeat-and-cap behavior.
+ *
+ * @param ctx Draw context containing object, tiles, and target buffer
+ */
+void DrawRightwardsCannonHole4x3_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards 1x1 line with +1 extension
+ */
+void DrawRightwardsLine1x1_1to16plus1(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards 4x3 bar pattern
+ */
+void DrawRightwardsBar4x3_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards 4x4 shelf pattern
+ */
+void DrawRightwardsShelf4x4_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards big rail pattern (1x3 columns with +5 extension)
+ */
+void DrawRightwardsBigRail1x3_1to16plus5(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards 2x2 blocks with 2-tile spacing
+ */
+void DrawRightwardsBlock2x2spaced2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards 1x1 edge line with +7 extension
+ */
+void DrawRightwardsEdge1x1_1to16plus7(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards 2x2 pot groups
+ */
+void DrawRightwardsPots2x2_1to16(const DrawContext& ctx);
+
+/**
+ * @brief Draw rightwards 2x2 hammer-peg groups
+ */
+void DrawRightwardsHammerPegs2x2_1to16(const DrawContext& ctx);
+
+/**
  * @brief Register all rightwards draw routines to the registry
  *
  * @param registry Vector of DrawRoutineInfo to register routines into

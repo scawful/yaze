@@ -205,17 +205,6 @@ class ObjectDrawer {
                                            gfx::BackgroundBuffer& bg,
                                            std::span<const gfx::TileInfo> tiles,
                                            const DungeonState* state = nullptr);
-  void DrawRightwards4x2_1to16(const RoomObject& obj, gfx::BackgroundBuffer& bg,
-                               std::span<const gfx::TileInfo> tiles,
-                               const DungeonState* state = nullptr);
-  void DrawRightwardsDecor4x2spaced8_1to16(const RoomObject& obj,
-                                           gfx::BackgroundBuffer& bg,
-                                           std::span<const gfx::TileInfo> tiles,
-                                           const DungeonState* state = nullptr);
-  void DrawRightwardsCannonHole4x3_1to16(const RoomObject& obj,
-                                         gfx::BackgroundBuffer& bg,
-                                         std::span<const gfx::TileInfo> tiles,
-                                         const DungeonState* state = nullptr);
 
   // Type 3 / Special Routines
   void DrawLargeCanvasObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
