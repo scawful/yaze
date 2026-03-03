@@ -112,26 +112,29 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
 
 bool CustomObjectManager::IsCornerAliasOverrideEnabled(
     int resolved_index) const {
-  const auto* list = ResolveFileList(0x31);
-  if (list == nullptr || resolved_index < 0 ||
-      resolved_index >= static_cast<int>(list->size())) {
+  // Guardrail: subtype-2 corner aliases (0x100..0x103) should only route
+  // through custom payloads when the project explicitly provides an object 0x31
+  // file map. Folder-only custom-object contexts must keep vanilla wall-corner
+  // behavior.
+  const auto custom_it = custom_file_map_.find(0x31);
+  if (custom_it == custom_file_map_.end()) {
     return false;
   }
 
-  const std::string& filename = (*list)[resolved_index];
+  const auto& list = custom_it->second;
+  if (resolved_index < 0 || resolved_index >= static_cast<int>(list.size())) {
+    return false;
+  }
+
+  const std::string& filename = list[resolved_index];
   if (filename.empty()) {
     return false;
   }
 
-  const bool has_explicit_track_mapping =
-      custom_file_map_.find(0x31) != custom_file_map_.end();
-  if (base_path_.empty() && !has_explicit_track_mapping) {
-    return false;
+  std::filesystem::path candidate = filename;
+  if (!candidate.is_absolute() && !base_path_.empty()) {
+    candidate = std::filesystem::path(base_path_) / candidate;
   }
-
-  const std::filesystem::path candidate =
-      base_path_.empty() ? std::filesystem::path(filename)
-                         : std::filesystem::path(base_path_) / filename;
   return std::filesystem::exists(candidate);
 }
 

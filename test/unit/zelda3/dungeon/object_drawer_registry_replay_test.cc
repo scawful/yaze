@@ -555,9 +555,67 @@ TEST(ObjectDrawerRegistryReplayTest,
       RoomObject::LayerType::BG1,
       MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/400));
 
-  // Guardrail: without explicit custom-object source configuration, subtype-2
-  // wall corners must stay on the vanilla registry path.
-  EXPECT_GT(trace.size(), 1u);
+  // USDASM parity guardrail: without explicit custom-object source
+  // configuration, subtype-2 wall corners must stay on the vanilla 4x4
+  // column-major path.
+  const auto bg1_trace = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto expected =
+      MakeColumnMajorSnapshot(/*x=*/20, /*y=*/30, /*width=*/4, /*height=*/4,
+                              /*start_tile_id=*/400);
+  ExpectTraceMatchesSnapshot(bg1_trace, expected);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     CornerAliasOverridesDoNotActivateFromFolderOnlyContext) {
+  ScopedCustomObjectsFlag custom_enabled(true);
+
+  auto& manager = CustomObjectManager::Get();
+  const auto previous_state = manager.SnapshotState();
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto temp_dir = std::filesystem::temp_directory_path() /
+                        ("yaze_corner_alias_folder_only_" +
+                         std::to_string(static_cast<long long>(nonce)));
+
+  struct RestoreManagerStateAndCleanup {
+    CustomObjectManager& manager;
+    CustomObjectManager::State previous_state;
+    std::filesystem::path temp_dir;
+    ~RestoreManagerStateAndCleanup() {
+      manager.RestoreState(previous_state);
+      std::filesystem::remove_all(temp_dir);
+    }
+  } restore{manager, previous_state, temp_dir};
+
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  manager.Initialize(temp_dir.string());
+  manager.ClearObjectFileMap();
+
+  // Folder-only custom-object setups should not remap vanilla 0x100..0x103
+  // wall corners into track-corner custom payloads.
+  WriteBinaryFile(temp_dir / "track_corner_TL.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/0, /*rel_y=*/0, /*tile_word=*/0x0001));
+  WriteBinaryFile(temp_dir / "track_corner_TR.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/1, /*rel_y=*/0, /*tile_word=*/0x0002));
+  WriteBinaryFile(temp_dir / "track_corner_BL.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/0, /*rel_y=*/1, /*tile_word=*/0x0003));
+  WriteBinaryFile(temp_dir / "track_corner_BR.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/1, /*rel_y=*/1, /*tile_word=*/0x0004));
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0100, /*x=*/20, /*y=*/30, /*size=*/0,
+      RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/500));
+  const auto bg1_trace = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto expected =
+      MakeColumnMajorSnapshot(/*x=*/20, /*y=*/30, /*width=*/4, /*height=*/4,
+                              /*start_tile_id=*/500);
+  ExpectTraceMatchesSnapshot(bg1_trace, expected);
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
@@ -598,6 +656,10 @@ TEST(ObjectDrawerRegistryReplayTest,
   WriteBinaryFile(temp_dir / "track_corner_BR.bin",
                   MakeSingleTileCustomObjectBinary(
                       /*rel_x=*/1, /*rel_y=*/1, /*tile_word=*/0x0004));
+  manager.SetObjectFileMap({{0x31,
+                             {"track_LR.bin", "track_UD.bin",
+                              "track_corner_TL.bin", "track_corner_TR.bin",
+                              "track_corner_BL.bin", "track_corner_BR.bin"}}});
 
   struct CornerAliasCase {
     int16_t object_id;

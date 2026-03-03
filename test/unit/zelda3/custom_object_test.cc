@@ -131,10 +131,12 @@ TEST_F(CustomObjectManagerTest, MissingFile) {
 TEST_F(CustomObjectManagerTest, CornerObjectIdsMapToTrackCornerOverrides) {
   auto one_tile_object = [](uint16_t tile_word) {
     return std::vector<uint8_t>{
-        0x01, 0x00,                              // count=1, jump=0
+        0x01,
+        0x00,                                    // count=1, jump=0
         static_cast<uint8_t>(tile_word & 0xFF),  // tile low
         static_cast<uint8_t>(tile_word >> 8),    // tile high
-        0x00, 0x00                               // terminator
+        0x00,
+        0x00  // terminator
     };
   };
 
@@ -144,6 +146,11 @@ TEST_F(CustomObjectManagerTest, CornerObjectIdsMapToTrackCornerOverrides) {
   WriteBinaryFile("track_corner_TR.bin", one_tile_object(0x2222));
   WriteBinaryFile("track_corner_BL.bin", one_tile_object(0x3333));
   WriteBinaryFile("track_corner_BR.bin", one_tile_object(0x4444));
+  CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31,
+        {"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
+         "track_corner_TR.bin", "track_corner_BL.bin",
+         "track_corner_BR.bin"}}});
 
   auto tl = CustomObjectManager::Get().GetObjectInternal(/*object_id=*/0x100,
                                                          /*subtype=*/0);
@@ -170,7 +177,35 @@ TEST_F(CustomObjectManagerTest, CornerObjectIdsMapToTrackCornerOverrides) {
   EXPECT_EQ(br.value()->tiles[0].tile_data, 0x4444);
 }
 
-TEST_F(CustomObjectManagerTest, CornerObjectIdsResolveExpectedOverrideFilenames) {
+TEST_F(CustomObjectManagerTest,
+       CornerObjectIdsRequireExplicitTrackMappingForOverrides) {
+  auto one_tile_object = [](uint16_t tile_word) {
+    return std::vector<uint8_t>{
+        0x01,
+        0x00,                                    // count=1, jump=0
+        static_cast<uint8_t>(tile_word & 0xFF),  // tile low
+        static_cast<uint8_t>(tile_word >> 8),    // tile high
+        0x00,
+        0x00  // terminator
+    };
+  };
+
+  // Files exist on disk, but without an explicit object 0x31 mapping the
+  // subtype-2 corner aliases must stay disabled.
+  WriteBinaryFile("track_corner_TL.bin", one_tile_object(0x1111));
+  WriteBinaryFile("track_corner_TR.bin", one_tile_object(0x2222));
+  WriteBinaryFile("track_corner_BL.bin", one_tile_object(0x3333));
+  WriteBinaryFile("track_corner_BR.bin", one_tile_object(0x4444));
+  CustomObjectManager::Get().ClearObjectFileMap();
+
+  auto tl = CustomObjectManager::Get().GetObjectInternal(/*object_id=*/0x100,
+                                                         /*subtype=*/0);
+  EXPECT_FALSE(tl.ok());
+  EXPECT_EQ(tl.status().code(), absl::StatusCode::kNotFound);
+}
+
+TEST_F(CustomObjectManagerTest,
+       CornerObjectIdsResolveExpectedOverrideFilenames) {
   // For corner aliases, filename selection must be independent of subtype.
   EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(/*object_id=*/0x100,
                                                        /*subtype=*/0),
