@@ -37,6 +37,8 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ usdasm replay parity tests for corner variants and rail/cannon/bar routines
 - ✅ Selection-bounds parity sweep now passes against `ObjectGeometry`
   (negative-offset clipped cases intentionally excluded from the sweep harness).
+- ✅ Corner alias override guardrails now keep vanilla `0x100..0x103` wall
+  corners on the USDASM path unless an explicit custom `0x31` mapping is present
 - 🟡 **Object tile count fallback**: parser uses object-specific counts for known
   IDs but still falls back to 8 for uncataloged cases; continue ROM-trace audits
   for rare objects.
@@ -57,6 +59,8 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ Usage statistics card now uses real overworld map data (no placeholder zeros)
 - 🟡 Overworld sprite workflow incomplete
 - ✅ Item deletion now removes entries from `all_items` (with operation tests)
+- 🟡 Tile16 UX flow still needs parity polish (mode clarity, quadrant focus, sticky staged-commit actions)
+- 🟡 Overworld item workflow needs faster iteration UX (list/filter pane, post-delete reselection, duplicate/nudge shortcuts)
 - 🟡 Export file dialog not implemented
 - 🟡 **Persistent scratch pad**: ZScream saves `ScratchPad.dat`; yaze scratch is session-only
 - 🟡 **Eyedropper tool**: no dedicated tool/shortcut (ZScream has right-click sampling)

@@ -130,6 +130,8 @@ class CustomObjectManager {
   absl::StatusOr<CustomObject> ParseBinaryData(
       const std::vector<uint8_t>& data);
   const std::vector<std::string>* ResolveFileList(int object_id) const;
+  // Corner alias overrides (0x100..0x103) are enabled only when object 0x31
+  // has an explicit project mapping for the requested corner slot.
   bool IsCornerAliasOverrideEnabled(int resolved_index) const;
 
   std::string base_path_;
