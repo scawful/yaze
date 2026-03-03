@@ -20,8 +20,8 @@
 #include "absl/status/status.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_palette.h"
-#include "rom/rom.h"
 #include "gtest/gtest.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
@@ -99,6 +99,41 @@ TEST_F(ObjectRenderingTest, ObjectParserDetectsDrawRoutines) {
   EXPECT_EQ(info_34.draw_routine_id, 16);
   EXPECT_EQ(info_34.routine_name, "Rightwards1x1Solid_1to16_plus3");
   EXPECT_TRUE(info_34.is_horizontal);
+
+  auto info_49 = parser.GetObjectDrawInfo(0x49);
+  EXPECT_EQ(info_49.draw_routine_id, 40);
+  EXPECT_EQ(info_49.routine_name, "Rightwards4x2_1to16");
+  EXPECT_TRUE(info_49.is_horizontal);
+
+  auto info_55 = parser.GetObjectDrawInfo(0x55);
+  EXPECT_EQ(info_55.draw_routine_id, 41);
+  EXPECT_EQ(info_55.routine_name, "RightwardsDecor4x2spaced8_1to16");
+  EXPECT_TRUE(info_55.is_horizontal);
+
+  auto info_51 = parser.GetObjectDrawInfo(0x51);
+  EXPECT_EQ(info_51.draw_routine_id, 42);
+  EXPECT_EQ(info_51.routine_name, "RightwardsCannonHole4x3_1to16");
+  EXPECT_TRUE(info_51.is_horizontal);
+
+  auto info_a0 = parser.GetObjectDrawInfo(0xA0);
+  EXPECT_EQ(info_a0.draw_routine_id, 75);
+  EXPECT_EQ(info_a0.routine_name, "DiagonalCeilingTopLeft");
+  EXPECT_FALSE(info_a0.is_horizontal);
+
+  auto info_a1 = parser.GetObjectDrawInfo(0xA1);
+  EXPECT_EQ(info_a1.draw_routine_id, 76);
+  EXPECT_EQ(info_a1.routine_name, "DiagonalCeilingBottomLeft");
+  EXPECT_FALSE(info_a1.is_horizontal);
+
+  auto info_a2 = parser.GetObjectDrawInfo(0xA2);
+  EXPECT_EQ(info_a2.draw_routine_id, 77);
+  EXPECT_EQ(info_a2.routine_name, "DiagonalCeilingTopRight");
+  EXPECT_FALSE(info_a2.is_horizontal);
+
+  auto info_a3 = parser.GetObjectDrawInfo(0xA3);
+  EXPECT_EQ(info_a3.draw_routine_id, 78);
+  EXPECT_EQ(info_a3.routine_name, "DiagonalCeilingBottomRight");
+  EXPECT_FALSE(info_a3.is_horizontal);
 
   // Test unmapped object defaults to solid block routine
   auto info_unknown = parser.GetObjectDrawInfo(0x999);

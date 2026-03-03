@@ -57,6 +57,30 @@ void DrawWeirdCornerBottom_BothBG(const DrawContext& ctx);
 void DrawWeirdCornerTop_BothBG(const DrawContext& ctx);
 
 /**
+ * @brief Draw diagonal ceiling triangle anchored at top-left.
+ *
+ * USDASM parity: RoomDraw_DiagonalCeilingTopLeft ($01:8BE0 family)
+ * Size semantics use GetSize_1to16_timesA with A=4:
+ *   count = (size_nibble & 0x0F) + 4
+ */
+void DrawDiagonalCeilingTopLeft(const DrawContext& ctx);
+
+/**
+ * @brief Draw diagonal ceiling triangle anchored at bottom-left.
+ */
+void DrawDiagonalCeilingBottomLeft(const DrawContext& ctx);
+
+/**
+ * @brief Draw diagonal ceiling triangle anchored at top-right.
+ */
+void DrawDiagonalCeilingTopRight(const DrawContext& ctx);
+
+/**
+ * @brief Draw diagonal ceiling triangle anchored at bottom-right.
+ */
+void DrawDiagonalCeilingBottomRight(const DrawContext& ctx);
+
+/**
  * @brief Register all corner draw routines to the registry
  *
  * @param registry Vector of DrawRoutineInfo to register routines into
