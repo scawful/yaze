@@ -876,121 +876,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   const bool current_tile_pending = is_tile_modified(current_tile16_);
   const int pending_count = pending_changes_count();
 
-  // Header section with better visual hierarchy
-  ImGui::BeginGroup();
-  ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "Tile16 Editor");
-  ImGui::SameLine();
-  ImGui::TextDisabled("ID: %02X", current_tile16_);
-  ImGui::SameLine();
-  ImGui::TextDisabled("|");
-  ImGui::SameLine();
-  ImGui::TextDisabled("Palette: %d", current_palette_);
-  ImGui::SameLine();
-  ImGui::TextDisabled("| RMB: Pick Tile8");
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "Usage mode: Right-click the Tile16 preview to pick the source Tile8 "
-        "and brush palette from that quadrant.");
-  }
-
-  // Show actual palette slot for debugging
-  if (show_debug_info) {
-    ImGui::SameLine();
-    int actual_slot = GetActualPaletteSlotForCurrentTile16();
-    ImGui::TextDisabled("(Slot: %d)", actual_slot);
-  }
-
-  ImGui::EndGroup();
-
-  // Editor controls
-  ImGui::SameLine(ImGui::GetContentRegionAvail().x - 180);
-  if (ImGui::Button("Debug Info", ImVec2(80, 0))) {
-    show_debug_info = !show_debug_info;
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Advanced", ImVec2(80, 0))) {
-    show_advanced_controls = !show_advanced_controls;
-  }
-
-  // Sticky staged-state bar so users always know what is only staged vs. written
-  const ImVec4 staged_bar_bg =
-      current_tile_pending ? ImVec4(0.27f, 0.18f, 0.09f, 0.65f)
-                           : (has_pending ? ImVec4(0.16f, 0.15f, 0.18f, 0.65f)
-                                          : ImVec4(0.12f, 0.17f, 0.13f, 0.65f));
-  gui::StyleColorGuard staged_bar_guard(ImGuiCol_ChildBg, staged_bar_bg);
-  if (ImGui::BeginChild(
-          "##Tile16StagedStateBar", ImVec2(0, 58), true,
-          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-    if (current_tile_pending) {
-      ImGui::TextColored(ImVec4(1.0f, 0.82f, 0.30f, 1.0f), "Tile %02X: STAGED",
-                         current_tile16_);
-    } else {
-      ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.55f, 1.0f), "Tile %02X: CLEAN",
-                         current_tile16_);
-    }
-
-    ImGui::SameLine();
-    ImGui::TextDisabled("| Queue: %d tile%s pending", pending_count,
-                        pending_count == 1 ? "" : "s");
-
-    if (has_rom_write_history_) {
-      const auto seconds_since_write =
-          std::chrono::duration_cast<std::chrono::seconds>(
-              std::chrono::steady_clock::now() - last_rom_write_time_)
-              .count();
-      ImGui::SameLine();
-      ImGui::TextDisabled("| Last write: %d tile%s, %lds ago",
-                          last_rom_write_count_,
-                          last_rom_write_count_ == 1 ? "" : "s",
-                          static_cast<long>(seconds_since_write));
-    }
-
-    if (!has_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (gui::SuccessButton("Write Pending", ImVec2(110, 0))) {
-      auto status = CommitAllChanges();
-      if (!status.ok()) {
-        util::logf("Failed to commit changes: %s", status.message().data());
-      }
-    }
-    if (!has_pending) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Write all %d pending changes to ROM", pending_count);
-    }
-
-    ImGui::SameLine();
-    if (!has_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (gui::DangerButton("Discard All", ImVec2(95, 0))) {
-      DiscardAllChanges();
-    }
-    if (!has_pending) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Discard all %d pending tile edits", pending_count);
-    }
-
-    ImGui::SameLine();
-    if (!current_tile_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (ImGui::Button("Discard Current", ImVec2(110, 0))) {
-      DiscardCurrentTileChanges();
-    }
-    if (!current_tile_pending) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Discard staged edits for tile %02X only",
-                        current_tile16_);
-    }
-  }
-  ImGui::EndChild();
+  DrawEditorHeader(show_debug_info);
+  DrawEditorHeaderToggles(&show_debug_info, &show_advanced_controls);
+  DrawStagedStateBar(has_pending, current_tile_pending, pending_count);
 
   ImGui::Separator();
 
@@ -1530,156 +1418,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     Separator();
 
-    // Palette selector - this is the paint brush palette for new placements.
-    Text("Brush Palette:");
-    if (show_debug_info) {
-      SameLine();
-      int actual_slot = GetActualPaletteSlotForCurrentTile16();
-      ImGui::TextDisabled("(Slot %d)", actual_slot);
-    }
-    ImGui::TextDisabled("Used for new tile8 placements");
-
-    // Compact palette grid
-    ImGui::BeginGroup();
-    float available_width = ImGui::GetContentRegionAvail().x;
-    float button_size = std::min(32.0f, (available_width - 16.0f) / 4.0f);
-
-    for (int row = 0; row < 2; ++row) {
-      for (int col = 0; col < 4; ++col) {
-        if (col > 0)
-          ImGui::SameLine();
-
-        int i = row * 4 + col;
-        bool is_current = (current_palette_ == i);
-
-        // Modern button styling with better visual hierarchy
-        ImGui::PushID(i);
-
-        gui::StyleColorGuard palette_btn_colors(
-            {{ImGuiCol_Button, is_current ? ImVec4(0.2f, 0.7f, 0.3f, 1.0f)
-                                          : ImVec4(0.3f, 0.3f, 0.35f, 1.0f)},
-             {ImGuiCol_ButtonHovered, is_current
-                                          ? ImVec4(0.3f, 0.8f, 0.4f, 1.0f)
-                                          : ImVec4(0.4f, 0.4f, 0.45f, 1.0f)},
-             {ImGuiCol_ButtonActive, is_current
-                                         ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)
-                                         : ImVec4(0.25f, 0.25f, 0.3f, 1.0f)},
-             {ImGuiCol_Border, is_current ? ImVec4(0.4f, 0.9f, 0.5f, 1.0f)
-                                          : ImVec4(0.5f, 0.5f, 0.5f, 0.3f)}});
-        gui::StyleVarGuard palette_btn_border(ImGuiStyleVar_FrameBorderSize,
-                                              1.0f);
-
-        if (ImGui::Button(absl::StrFormat("%d", i).c_str(),
-                          ImVec2(button_size, button_size))) {
-          if (current_palette_ != i) {
-            current_palette_ = i;
-            auto status = RefreshAllPalettes();
-            if (!status.ok()) {
-              util::logf("Failed to refresh palettes: %s",
-                         status.message().data());
-            } else {
-              util::logf("Palette successfully changed to %d",
-                         current_palette_);
-            }
-          }
-        }
-
-        ImGui::PopID();
-
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          current_palette_ = static_cast<uint8_t>(i);
-          RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
-        }
-
-        // Tooltip with palette info
-        if (ImGui::IsItemHovered()) {
-          ImGui::BeginTooltip();
-          if (show_debug_info) {
-            ImGui::Text("Palette %d → Slots:", i);
-            ImGui::Text("  S0,3,4: %d", GetActualPaletteSlot(i, 0));
-            ImGui::Text("  S1,2: %d", GetActualPaletteSlot(i, 1));
-            ImGui::Text("  S5,6: %d", GetActualPaletteSlot(i, 5));
-            ImGui::Text("  S7: %d", GetActualPaletteSlot(i, 7));
-          } else {
-            ImGui::Text("Palette %d", i);
-            ImGui::TextDisabled("Applied to new tile8 placements");
-            ImGui::TextDisabled("RMB: apply to all tile quadrants");
-            if (is_current) {
-              ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), "Active");
-            }
-          }
-          ImGui::EndTooltip();
-        }
-      }
-    }
-    ImGui::EndGroup();
-
-    if (auto* tile_data = GetCurrentTile16Data(); tile_data != nullptr) {
-      Text("Quadrant Palettes:");
-      static constexpr std::array<const char*, 4> kQuadrantLabels = {
-          "TL", "TR", "BL", "BR"};
-      for (int q = 0; q < 4; ++q) {
-        if (q > 0) {
-          SameLine();
-        }
-
-        const uint8_t quadrant_palette =
-            TileInfoForQuadrant(*tile_data, q).palette_;
-        const bool matches_brush = (quadrant_palette == current_palette_);
-
-        ImGui::PushID(100 + q);
-        gui::StyleColorGuard quadrant_btn_colors(
-            {{ImGuiCol_Button, matches_brush
-                                   ? ImVec4(0.18f, 0.42f, 0.62f, 1.0f)
-                                   : ImVec4(0.28f, 0.28f, 0.32f, 1.0f)},
-             {ImGuiCol_ButtonHovered, matches_brush
-                                          ? ImVec4(0.22f, 0.50f, 0.72f, 1.0f)
-                                          : ImVec4(0.38f, 0.38f, 0.42f, 1.0f)},
-             {ImGuiCol_ButtonActive, matches_brush
-                                         ? ImVec4(0.14f, 0.34f, 0.52f, 1.0f)
-                                         : ImVec4(0.24f, 0.24f, 0.28f, 1.0f)}});
-
-        if (ImGui::Button(
-                absl::StrFormat("%s:%d", kQuadrantLabels[q], quadrant_palette)
-                    .c_str(),
-                ImVec2(button_size, 0))) {
-          if (current_palette_ != quadrant_palette) {
-            current_palette_ = quadrant_palette;
-            auto status = RefreshAllPalettes();
-            if (!status.ok()) {
-              util::logf("Failed to refresh palettes: %s",
-                         status.message().data());
-            }
-          }
-        }
-
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          RETURN_IF_ERROR(ApplyPaletteToQuadrant(q, current_palette_));
-        }
-
-        if (ImGui::IsItemHovered()) {
-          ImGui::BeginTooltip();
-          ImGui::Text("Quadrant %s palette: %d", kQuadrantLabels[q],
-                      quadrant_palette);
-          ImGui::TextDisabled("LMB: set brush palette from this quadrant");
-          ImGui::TextDisabled(
-              "RMB: apply current brush palette to this quadrant");
-          ImGui::EndTooltip();
-        }
-
-        ImGui::PopID();
-      }
-    }
-
-    // Copy the current brush palette into all stored quadrant palette fields.
-    if (Button("Apply Brush to All Quadrants", ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
-    }
-    HOVER_HINT(
-        "Copy the Brush Palette into Tile Palette metadata for all 4 "
-        "quadrants.\n"
-        "Tip: right-click any brush palette button above for a one-step "
-        "apply.");
+    RETURN_IF_ERROR(DrawBrushAndTilePaletteControls(show_debug_info));
 
     Separator();
 
@@ -1833,6 +1572,307 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   tile16_edit_canvas_.ShowAdvancedCanvasProperties();
   tile16_edit_canvas_.ShowScalingControls();
 
+  return absl::OkStatus();
+}
+
+void Tile16Editor::DrawEditorHeader(bool show_debug_info) {
+  int quadrant_palette_tl = -1;
+  int quadrant_palette_tr = -1;
+  int quadrant_palette_bl = -1;
+  int quadrant_palette_br = -1;
+  if (const auto* tile_data = GetCurrentTile16Data()) {
+    quadrant_palette_tl = tile_data->tile0_.palette_;
+    quadrant_palette_tr = tile_data->tile1_.palette_;
+    quadrant_palette_bl = tile_data->tile2_.palette_;
+    quadrant_palette_br = tile_data->tile3_.palette_;
+  }
+
+  ImGui::BeginGroup();
+  ImGui::TextColored(ImVec4(0.8f, 0.9f, 1.0f, 1.0f), "Tile16 Editor");
+  ImGui::SameLine();
+  ImGui::TextDisabled("ID: %02X", current_tile16_);
+  ImGui::SameLine();
+  ImGui::TextDisabled("| Brush Palette: %d", current_palette_);
+
+  if (quadrant_palette_tl >= 0) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("| Tile Meta TL/TR/BL/BR: %d/%d/%d/%d",
+                        quadrant_palette_tl, quadrant_palette_tr,
+                        quadrant_palette_bl, quadrant_palette_br);
+  }
+
+  ImGui::SameLine();
+  const bool usage_mode_active = highlight_tile8_usage_;
+  ImGui::TextColored(usage_mode_active ? ImVec4(0.55f, 0.90f, 0.60f, 1.0f)
+                                       : ImVec4(0.95f, 0.86f, 0.46f, 1.0f),
+                     usage_mode_active ? "Usage Mode: ACTIVE"
+                                       : "Usage Mode: Hold RMB (Tile8 Source)");
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::Text("Usage Mode");
+    ImGui::Separator();
+    ImGui::TextDisabled(
+        "Hold RMB on the Tile8 Source panel to enable usage highlighting.");
+    ImGui::TextDisabled(
+        "RMB on Tile16 preview samples the source Tile8 + brush palette.");
+    ImGui::TextDisabled("Navigation shortcuts: PgUp/PgDn/Home/End + arrows.");
+    ImGui::EndTooltip();
+  }
+
+  if (show_debug_info) {
+    ImGui::SameLine();
+    const int actual_slot = GetActualPaletteSlotForCurrentTile16();
+    ImGui::TextDisabled("(Slot: %d)", actual_slot);
+  }
+  ImGui::EndGroup();
+}
+
+void Tile16Editor::DrawEditorHeaderToggles(bool* show_debug_info,
+                                           bool* show_advanced_controls) {
+  ImGui::SameLine(ImGui::GetContentRegionAvail().x - 180);
+  if (ImGui::Button("Debug Info", ImVec2(80, 0))) {
+    *show_debug_info = !*show_debug_info;
+  }
+  ImGui::SameLine();
+  if (ImGui::Button("Advanced", ImVec2(80, 0))) {
+    *show_advanced_controls = !*show_advanced_controls;
+  }
+}
+
+void Tile16Editor::DrawStagedStateBar(bool has_pending,
+                                      bool current_tile_pending,
+                                      int pending_count) {
+  const ImVec4 staged_bar_bg =
+      current_tile_pending ? ImVec4(0.27f, 0.18f, 0.09f, 0.65f)
+                           : (has_pending ? ImVec4(0.16f, 0.15f, 0.18f, 0.65f)
+                                          : ImVec4(0.12f, 0.17f, 0.13f, 0.65f));
+  gui::StyleColorGuard staged_bar_guard(ImGuiCol_ChildBg, staged_bar_bg);
+  if (ImGui::BeginChild(
+          "##Tile16StagedStateBar", ImVec2(0, 58), true,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+    if (current_tile_pending) {
+      ImGui::TextColored(ImVec4(1.0f, 0.82f, 0.30f, 1.0f), "Tile %02X: STAGED",
+                         current_tile16_);
+    } else {
+      ImGui::TextColored(ImVec4(0.45f, 0.85f, 0.55f, 1.0f), "Tile %02X: CLEAN",
+                         current_tile16_);
+    }
+
+    ImGui::SameLine();
+    ImGui::TextDisabled("| Queue: %d tile%s pending", pending_count,
+                        pending_count == 1 ? "" : "s");
+
+    if (has_rom_write_history_) {
+      const auto seconds_since_write =
+          std::chrono::duration_cast<std::chrono::seconds>(
+              std::chrono::steady_clock::now() - last_rom_write_time_)
+              .count();
+      ImGui::SameLine();
+      ImGui::TextDisabled("| Last write: %d tile%s, %lds ago",
+                          last_rom_write_count_,
+                          last_rom_write_count_ == 1 ? "" : "s",
+                          static_cast<long>(seconds_since_write));
+    }
+
+    if (!has_pending) {
+      ImGui::BeginDisabled();
+    }
+    if (gui::SuccessButton("Write Pending", ImVec2(110, 0))) {
+      auto status = CommitAllChanges();
+      if (!status.ok()) {
+        util::logf("Failed to commit changes: %s", status.message().data());
+      }
+    }
+    if (!has_pending) {
+      ImGui::EndDisabled();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Write all %d pending changes to ROM", pending_count);
+    }
+
+    ImGui::SameLine();
+    if (!has_pending) {
+      ImGui::BeginDisabled();
+    }
+    if (gui::DangerButton("Discard All", ImVec2(95, 0))) {
+      DiscardAllChanges();
+    }
+    if (!has_pending) {
+      ImGui::EndDisabled();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Discard all %d pending tile edits", pending_count);
+    }
+
+    ImGui::SameLine();
+    if (!current_tile_pending) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Discard Current", ImVec2(110, 0))) {
+      DiscardCurrentTileChanges();
+    }
+    if (!current_tile_pending) {
+      ImGui::EndDisabled();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Discard staged edits for tile %02X only",
+                        current_tile16_);
+    }
+  }
+  ImGui::EndChild();
+}
+
+absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
+    bool show_debug_info) {
+  // Palette selector - this is the paint brush palette for new placements.
+  Text("Brush Palette:");
+  if (show_debug_info) {
+    SameLine();
+    int actual_slot = GetActualPaletteSlotForCurrentTile16();
+    ImGui::TextDisabled("(Slot %d)", actual_slot);
+  }
+  ImGui::TextDisabled("Used for new tile8 placements");
+
+  // Compact palette grid
+  ImGui::BeginGroup();
+  float available_width = ImGui::GetContentRegionAvail().x;
+  float button_size = std::min(32.0f, (available_width - 16.0f) / 4.0f);
+
+  for (int row = 0; row < 2; ++row) {
+    for (int col = 0; col < 4; ++col) {
+      if (col > 0)
+        ImGui::SameLine();
+
+      int i = row * 4 + col;
+      bool is_current = (current_palette_ == i);
+
+      // Modern button styling with better visual hierarchy
+      ImGui::PushID(i);
+
+      gui::StyleColorGuard palette_btn_colors(
+          {{ImGuiCol_Button, is_current ? ImVec4(0.2f, 0.7f, 0.3f, 1.0f)
+                                        : ImVec4(0.3f, 0.3f, 0.35f, 1.0f)},
+           {ImGuiCol_ButtonHovered, is_current
+                                        ? ImVec4(0.3f, 0.8f, 0.4f, 1.0f)
+                                        : ImVec4(0.4f, 0.4f, 0.45f, 1.0f)},
+           {ImGuiCol_ButtonActive, is_current
+                                       ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)
+                                       : ImVec4(0.25f, 0.25f, 0.3f, 1.0f)},
+           {ImGuiCol_Border, is_current ? ImVec4(0.4f, 0.9f, 0.5f, 1.0f)
+                                        : ImVec4(0.5f, 0.5f, 0.5f, 0.3f)}});
+      gui::StyleVarGuard palette_btn_border(ImGuiStyleVar_FrameBorderSize,
+                                            1.0f);
+
+      if (ImGui::Button(absl::StrFormat("%d", i).c_str(),
+                        ImVec2(button_size, button_size))) {
+        if (current_palette_ != i) {
+          current_palette_ = i;
+          auto status = RefreshAllPalettes();
+          if (!status.ok()) {
+            util::logf("Failed to refresh palettes: %s",
+                       status.message().data());
+          } else {
+            util::logf("Palette successfully changed to %d", current_palette_);
+          }
+        }
+      }
+
+      ImGui::PopID();
+
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        current_palette_ = static_cast<uint8_t>(i);
+        RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
+      }
+
+      // Tooltip with palette info
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        if (show_debug_info) {
+          ImGui::Text("Palette %d -> Slots:", i);
+          ImGui::Text("  S0,3,4: %d", GetActualPaletteSlot(i, 0));
+          ImGui::Text("  S1,2: %d", GetActualPaletteSlot(i, 1));
+          ImGui::Text("  S5,6: %d", GetActualPaletteSlot(i, 5));
+          ImGui::Text("  S7: %d", GetActualPaletteSlot(i, 7));
+        } else {
+          ImGui::Text("Brush Palette %d", i);
+          ImGui::TextDisabled("Applied to new tile8 placements");
+          ImGui::TextDisabled("RMB: apply to all tile quadrants");
+          ImGui::TextDisabled(
+              "Tile metadata is shown in quadrant buttons below");
+          if (is_current) {
+            ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), "Active");
+          }
+        }
+        ImGui::EndTooltip();
+      }
+    }
+  }
+  ImGui::EndGroup();
+
+  if (auto* tile_data = GetCurrentTile16Data(); tile_data != nullptr) {
+    Text("Quadrant Palettes:");
+    static constexpr std::array<const char*, 4> kQuadrantLabels = {"TL", "TR",
+                                                                   "BL", "BR"};
+    for (int q = 0; q < 4; ++q) {
+      if (q > 0) {
+        SameLine();
+      }
+
+      const uint8_t quadrant_palette =
+          TileInfoForQuadrant(*tile_data, q).palette_;
+      const bool matches_brush = (quadrant_palette == current_palette_);
+
+      ImGui::PushID(100 + q);
+      gui::StyleColorGuard quadrant_btn_colors(
+          {{ImGuiCol_Button, matches_brush ? ImVec4(0.18f, 0.42f, 0.62f, 1.0f)
+                                           : ImVec4(0.28f, 0.28f, 0.32f, 1.0f)},
+           {ImGuiCol_ButtonHovered, matches_brush
+                                        ? ImVec4(0.22f, 0.50f, 0.72f, 1.0f)
+                                        : ImVec4(0.38f, 0.38f, 0.42f, 1.0f)},
+           {ImGuiCol_ButtonActive, matches_brush
+                                       ? ImVec4(0.14f, 0.34f, 0.52f, 1.0f)
+                                       : ImVec4(0.24f, 0.24f, 0.28f, 1.0f)}});
+
+      if (ImGui::Button(
+              absl::StrFormat("%s:%d", kQuadrantLabels[q], quadrant_palette)
+                  .c_str(),
+              ImVec2(button_size, 0))) {
+        if (current_palette_ != quadrant_palette) {
+          current_palette_ = quadrant_palette;
+          auto status = RefreshAllPalettes();
+          if (!status.ok()) {
+            util::logf("Failed to refresh palettes: %s",
+                       status.message().data());
+          }
+        }
+      }
+
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        RETURN_IF_ERROR(ApplyPaletteToQuadrant(q, current_palette_));
+      }
+
+      if (ImGui::IsItemHovered()) {
+        ImGui::BeginTooltip();
+        ImGui::Text("Quadrant %s palette metadata: %d", kQuadrantLabels[q],
+                    quadrant_palette);
+        ImGui::TextDisabled("LMB: set brush palette from this quadrant");
+        ImGui::TextDisabled(
+            "RMB: apply current brush palette to this quadrant");
+        ImGui::EndTooltip();
+      }
+
+      ImGui::PopID();
+    }
+  }
+
+  // Copy the current brush palette into all stored quadrant palette fields.
+  if (Button("Apply Brush to All Quadrants", ImVec2(-1, 0))) {
+    RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
+  }
+  HOVER_HINT(
+      "Copy the Brush Palette into Tile Palette metadata for all 4 "
+      "quadrants.\n"
+      "Tip: right-click any brush palette button above for a one-step apply.");
   return absl::OkStatus();
 }
 

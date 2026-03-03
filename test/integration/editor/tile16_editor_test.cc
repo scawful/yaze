@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -30,7 +31,82 @@ void ExpectTile16Equals(const gfx::Tile16& lhs, const gfx::Tile16& rhs) {
   EXPECT_EQ(gfx::TileInfoToWord(lhs.tile3_), gfx::TileInfoToWord(rhs.tile3_));
 }
 
+gfx::SnesPalette MakeTestPalette256() {
+  std::vector<gfx::SnesColor> colors;
+  colors.reserve(256);
+  for (int i = 0; i < 256; ++i) {
+    const float t = static_cast<float>(i) / 255.0f;
+    colors.emplace_back(ImVec4(t, 1.0f - t, 0.5f, 1.0f));
+  }
+  if (!colors.empty()) {
+    colors[0].set_transparent(true);
+  }
+  return gfx::SnesPalette(colors);
+}
+
+gfx::Tile16 MakeTile16WithPalette(uint16_t base_tile_id, uint8_t palette_id) {
+  return gfx::Tile16(
+      gfx::TileInfo(base_tile_id, palette_id, false, false, false),
+      gfx::TileInfo(base_tile_id + 1, palette_id, false, false, false),
+      gfx::TileInfo(base_tile_id + 2, palette_id, false, false, false),
+      gfx::TileInfo(base_tile_id + 3, palette_id, false, false, false));
+}
+
 }  // namespace
+
+class Tile16EditorSyntheticFixture : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rom_ = std::make_unique<Rom>();
+    rom_->Expand(0x300000);
+
+    // Seed a few Tile16 entries so SetCurrentTile() and commit paths have
+    // deterministic in-memory ROM data.
+    ASSERT_TRUE(
+        rom_->WriteTile16(0, zelda3::kTile16Ptr, MakeTile16WithPalette(0, 1))
+            .ok());
+    ASSERT_TRUE(
+        rom_->WriteTile16(1, zelda3::kTile16Ptr, MakeTile16WithPalette(4, 2))
+            .ok());
+
+    palette_ = MakeTestPalette256();
+
+    std::vector<uint8_t> tile16_blockset_data(128 * 32, 0);
+    tile16_blockset_ = std::make_unique<gfx::Tilemap>(
+        gfx::CreateTilemap(nullptr, tile16_blockset_data, 128, 32, 16,
+                           zelda3::kNumTile16Individual, palette_));
+
+    current_gfx_bmp_ = std::make_unique<gfx::Bitmap>();
+    std::vector<uint8_t> gfx_data(128 * 32, 0);
+    for (int y = 0; y < 32; ++y) {
+      for (int x = 0; x < 128; ++x) {
+        gfx_data[y * 128 + x] = static_cast<uint8_t>(0x10 + ((x + y) & 0x0F));
+      }
+    }
+    current_gfx_bmp_->Create(128, 32, 8, gfx_data);
+    current_gfx_bmp_->SetPalette(palette_);
+
+    tile16_blockset_bmp_ = std::make_unique<gfx::Bitmap>();
+    tile16_blockset_bmp_->Create(128, 32, 8, tile16_blockset_data);
+    tile16_blockset_bmp_->SetPalette(palette_);
+
+    std::array<uint8_t, 0x200> all_tiles_types{};
+    editor_ =
+        std::make_unique<Tile16Editor>(rom_.get(), tile16_blockset_.get());
+    ASSERT_TRUE(editor_
+                    ->Initialize(*tile16_blockset_bmp_, *current_gfx_bmp_,
+                                 all_tiles_types)
+                    .ok());
+    editor_->set_palette(palette_);
+  }
+
+  std::unique_ptr<Rom> rom_;
+  std::unique_ptr<gfx::Tilemap> tile16_blockset_;
+  std::unique_ptr<gfx::Bitmap> current_gfx_bmp_;
+  std::unique_ptr<gfx::Bitmap> tile16_blockset_bmp_;
+  gfx::SnesPalette palette_;
+  std::unique_ptr<Tile16Editor> editor_;
+};
 
 class Tile16EditorIntegrationTest : public ::testing::Test {
  protected:
@@ -151,6 +227,59 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 bool Tile16EditorIntegrationTest::window_initialized_ = false;
 core::Window Tile16EditorIntegrationTest::test_window_;
 std::unique_ptr<gfx::IRenderer> Tile16EditorIntegrationTest::test_renderer_;
+
+TEST_F(Tile16EditorSyntheticFixture,
+       ApplyPaletteToAllPropagatesAndPersistsWithoutExternalRomFixture) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  ASSERT_TRUE(editor_->ApplyPaletteToAll(6).ok());
+
+  EXPECT_TRUE(editor_->is_tile_modified(0));
+  EXPECT_EQ(editor_->pending_changes_count(), 1);
+
+  ASSERT_TRUE(editor_->CommitAllChanges().ok());
+
+  auto tile_after = rom_->ReadTile16(0, zelda3::kTile16Ptr);
+  ASSERT_TRUE(tile_after.ok());
+  EXPECT_EQ(tile_after->tile0_.palette_, 6);
+  EXPECT_EQ(tile_after->tile1_.palette_, 6);
+  EXPECT_EQ(tile_after->tile2_.palette_, 6);
+  EXPECT_EQ(tile_after->tile3_.palette_, 6);
+  EXPECT_FALSE(editor_->has_pending_changes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       DiscardCurrentTileKeepsOtherPendingTilesWithoutExternalRomFixture) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->MarkCurrentTileModified();
+  ASSERT_TRUE(editor_->SetCurrentTile(1).ok());
+  editor_->MarkCurrentTileModified();
+  ASSERT_EQ(editor_->pending_changes_count(), 2);
+
+  editor_->DiscardCurrentTileChanges();
+
+  EXPECT_TRUE(editor_->is_tile_modified(0));
+  EXPECT_FALSE(editor_->is_tile_modified(1));
+  EXPECT_EQ(editor_->pending_changes_count(), 1);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       DiscardChangesRestoresCurrentTileStagingWithoutExternalRomFixture) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+
+  auto before = rom_->ReadTile16(0, zelda3::kTile16Ptr);
+  ASSERT_TRUE(before.ok());
+
+  ASSERT_TRUE(editor_->ApplyPaletteToQuadrant(2, 7).ok());
+  ASSERT_TRUE(editor_->is_tile_modified(0));
+
+  ASSERT_TRUE(editor_->DiscardChanges().ok());
+  EXPECT_FALSE(editor_->is_tile_modified(0));
+  EXPECT_FALSE(editor_->has_pending_changes());
+
+  auto after = rom_->ReadTile16(0, zelda3::kTile16Ptr);
+  ASSERT_TRUE(after.ok());
+  ExpectTile16Equals(*before, *after);
+}
 
 // Basic validation tests (no ROM required)
 TEST_F(Tile16EditorIntegrationTest, BasicValidation) {
