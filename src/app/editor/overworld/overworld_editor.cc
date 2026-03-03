@@ -43,7 +43,7 @@
 // Note: All overworld panels now self-register via REGISTER_PANEL macro:
 // AreaGraphicsPanel, DebugWindowPanel, GfxGroupsPanel, MapPropertiesPanel,
 // OverworldCanvasPanel, ScratchSpacePanel, Tile16EditorPanel, Tile16SelectorPanel,
-// Tile8SelectorPanel, UsageStatisticsPanel, V3SettingsPanel
+// Tile8SelectorPanel, UsageStatisticsPanel, V3SettingsPanel, OverworldItemListPanel
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
@@ -473,6 +473,8 @@ void OverworldEditor::HandleKeyboardShortcuts() {
 
   const bool ctrl_held = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
                          ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+  const bool shift_held = ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
+                          ImGui::IsKeyDown(ImGuiKey_RightShift);
   const bool alt_held =
       ImGui::IsKeyDown(ImGuiKey_LeftAlt) || ImGui::IsKeyDown(ImGuiKey_RightAlt);
 
@@ -530,8 +532,181 @@ void OverworldEditor::HandleKeyboardShortcuts() {
     }
   }
 
+  // Toggle Overworld Item List with Ctrl+Shift+I
+  if (ctrl_held && shift_held && ImGui::IsKeyPressed(ImGuiKey_I, false)) {
+    if (dependencies_.panel_manager) {
+      dependencies_.panel_manager->TogglePanel(0, OverworldPanelIds::kItemList);
+    }
+  }
+
+  // Item workflow shortcuts (duplicate + nudge) when in item edit mode.
+  if (entity_edit_mode_ == EntityEditMode::ITEMS) {
+    if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_D, false)) {
+      (void)DuplicateSelectedItem();
+    } else if (!ctrl_held) {
+      const int step = shift_held ? 16 : 1;
+      int delta_x = 0;
+      int delta_y = 0;
+      if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false)) {
+        delta_x = -step;
+      } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, false)) {
+        delta_x = step;
+      } else if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
+        delta_y = -step;
+      } else if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
+        delta_y = step;
+      }
+      if (delta_x != 0 || delta_y != 0) {
+        (void)NudgeSelectedItem(delta_x, delta_y);
+      }
+    }
+  }
+
   // Undo/Redo shortcuts
   HandleUndoRedoShortcuts();
+}
+
+bool OverworldEditor::SelectItemByIdentity(
+    const zelda3::OverworldItem& item_identity) {
+  auto* item = FindItemByIdentity(&overworld_, item_identity);
+  if (!item) {
+    return false;
+  }
+
+  selected_item_identity_ = *item;
+  current_item_ = *item;
+  current_entity_ = item;
+  return true;
+}
+
+void OverworldEditor::ClearSelectedItem() {
+  selected_item_identity_.reset();
+  if (current_entity_ &&
+      current_entity_->entity_type_ == zelda3::GameEntity::EntityType::kItem) {
+    current_entity_ = nullptr;
+  }
+}
+
+zelda3::OverworldItem* OverworldEditor::GetSelectedItem() {
+  if (!selected_item_identity_.has_value()) {
+    return nullptr;
+  }
+
+  auto* item = FindItemByIdentity(&overworld_, *selected_item_identity_);
+  if (!item) {
+    ClearSelectedItem();
+    return nullptr;
+  }
+
+  current_item_ = *item;
+  current_entity_ = item;
+  return item;
+}
+
+const zelda3::OverworldItem* OverworldEditor::GetSelectedItem() const {
+  return const_cast<OverworldEditor*>(this)->GetSelectedItem();
+}
+
+bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
+  auto* selected_item = GetSelectedItem();
+  if (!selected_item) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          "Select an overworld item first (Item Mode: key 5)",
+          ToastType::kInfo);
+    }
+    return false;
+  }
+
+  auto duplicate_or =
+      DuplicateItemByIdentity(&overworld_, *selected_item, offset_x, offset_y);
+  if (!duplicate_or.ok()) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show("Failed to duplicate overworld item",
+                                        ToastType::kError);
+    }
+    return false;
+  }
+
+  auto* duplicated_item = *duplicate_or;
+  selected_item_identity_ = *duplicated_item;
+  current_item_ = *duplicated_item;
+  current_entity_ = duplicated_item;
+  rom_->set_dirty(true);
+  if (dependencies_.toast_manager) {
+    dependencies_.toast_manager->Show(
+        absl::StrFormat("Duplicated item 0x%02X",
+                        static_cast<int>(duplicated_item->id_)),
+        ToastType::kSuccess);
+  }
+  return true;
+}
+
+bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
+  auto* selected_item = GetSelectedItem();
+  if (!selected_item) {
+    return false;
+  }
+
+  auto status = NudgeItem(selected_item, delta_x, delta_y);
+  if (!status.ok()) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show("Failed to move selected item",
+                                        ToastType::kError);
+    }
+    return false;
+  }
+
+  selected_item_identity_ = *selected_item;
+  current_item_ = *selected_item;
+  current_entity_ = selected_item;
+  rom_->set_dirty(true);
+  return true;
+}
+
+bool OverworldEditor::DeleteSelectedItem() {
+  auto* selected_item = GetSelectedItem();
+  if (!selected_item) {
+    return false;
+  }
+
+  const zelda3::OverworldItem selected_identity = *selected_item;
+  const uint8_t deleted_item_id = selected_identity.id_;
+  auto remove_status = RemoveItemByIdentity(&overworld_, selected_identity);
+  if (!remove_status.ok()) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show("Failed to delete selected item",
+                                        ToastType::kError);
+    }
+    return false;
+  }
+
+  auto* nearest_item =
+      FindNearestItemForSelection(&overworld_, selected_identity);
+  if (nearest_item) {
+    selected_item_identity_ = *nearest_item;
+    current_item_ = *nearest_item;
+    current_entity_ = nearest_item;
+  } else {
+    ClearSelectedItem();
+  }
+
+  rom_->set_dirty(true);
+  if (dependencies_.toast_manager) {
+    if (nearest_item) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Deleted item 0x%02X (selected nearest 0x%02X)",
+                          static_cast<int>(deleted_item_id),
+                          static_cast<int>(nearest_item->id_)),
+          ToastType::kSuccess);
+    } else {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("Deleted overworld item 0x%02X",
+                          static_cast<int>(deleted_item_id)),
+          ToastType::kSuccess);
+    }
+  }
+  return true;
 }
 
 void OverworldEditor::HandleEntityEditingShortcuts() {
@@ -634,7 +809,11 @@ void OverworldEditor::HandleEntityContextMenus(
               .c_str());
       break;
     case zelda3::GameEntity::EntityType::kItem:
-      current_item_ = *static_cast<zelda3::OverworldItem*>(hovered_entity);
+      if (!SelectItemByIdentity(
+              *static_cast<zelda3::OverworldItem*>(hovered_entity))) {
+        current_item_ = *static_cast<zelda3::OverworldItem*>(hovered_entity);
+        current_entity_ = hovered_entity;
+      }
       ImGui::OpenPopup(
           gui::MakePopupId(gui::EditorNames::kOverworld, "Item Editor")
               .c_str());
@@ -687,43 +866,16 @@ void OverworldEditor::DrawEntityEditorPopups() {
                                zelda3::GameEntity::EntityType::kItem) {
       auto* live_item = static_cast<zelda3::OverworldItem*>(current_entity_);
       if (current_item_.deleted) {
-        const uint8_t deleted_item_id = current_item_.id_;
-        auto remove_status = RemoveItemByIdentity(&overworld_, current_item_);
-        if (!remove_status.ok()) {
-          util::logf("Failed to remove overworld item: %s",
-                     remove_status.message().data());
-          if (dependencies_.toast_manager) {
-            dependencies_.toast_manager->Show("Failed to delete overworld item",
-                                              ToastType::kError);
-          }
-        } else {
-          auto* nearest_item =
-              FindNearestItemForSelection(&overworld_, current_item_);
-          if (nearest_item) {
-            current_item_ = *nearest_item;
-            current_entity_ = nearest_item;
-          } else {
-            current_entity_ = nullptr;
-          }
-
-          if (dependencies_.toast_manager) {
-            if (nearest_item) {
-              dependencies_.toast_manager->Show(
-                  absl::StrFormat(
-                      "Deleted item 0x%02X (selected nearest 0x%02X)",
-                      static_cast<int>(deleted_item_id),
-                      static_cast<int>(nearest_item->id_)),
-                  ToastType::kSuccess);
-            } else {
-              dependencies_.toast_manager->Show(
-                  absl::StrFormat("Deleted overworld item 0x%02X",
-                                  static_cast<int>(deleted_item_id)),
-                  ToastType::kSuccess);
-            }
+        if (!DeleteSelectedItem()) {
+          auto remove_status = RemoveItemByIdentity(&overworld_, current_item_);
+          if (!remove_status.ok()) {
+            util::logf("Failed to remove overworld item: %s",
+                       remove_status.message().data());
           }
         }
       } else {
         *live_item = current_item_;
+        selected_item_identity_ = *live_item;
       }
       rom_->set_dirty(true);
     }

@@ -48,6 +48,12 @@ constexpr int kNumPalettes = 8;                 // 8 palette buttons (0-7)
 constexpr int kTile8PixelCount = 64;            // 8x8 = 64 pixels
 constexpr int kTile16PixelCount = 256;          // 16x16 = 256 pixels
 
+enum class Tile16EditMode {
+  kPaint = 0,
+  kPick = 1,
+  kUsageProbe = 2,
+};
+
 struct Tile16ClipboardData {
   gfx::Tile16 tile_data;
   gfx::Bitmap bitmap;
@@ -401,6 +407,7 @@ class Tile16Editor : public gfx::GfxContext {
   void set_active_quadrant(int quadrant) {
     active_quadrant_ = std::clamp(quadrant, 0, 3);
   }
+  Tile16EditMode edit_mode() const { return edit_mode_; }
 
   // Diagnostic function to analyze tile8 source data format
   void AnalyzeTile8SourceData() const;
@@ -418,6 +425,7 @@ class Tile16Editor : public gfx::GfxContext {
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
   int active_quadrant_ = 0;
+  Tile16EditMode edit_mode_ = Tile16EditMode::kPaint;
 
   // Clipboard for Tile16 graphics and metadata
   Tile16ClipboardData clipboard_tile16_;
@@ -587,8 +595,12 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status DrawTile8SourcePanel();
   absl::Status HandleTile8SourceSelection(bool right_clicked);
 
-  // Draw primary edit/commit controls in the right action column.
+  // Draw primary local edit controls in the right action column.
   absl::Status DrawPrimaryActionControls();
+
+  // Draw sticky action rail pinned to the bottom of the editor.
+  absl::Status DrawBottomActionRail(bool has_pending, bool current_tile_pending,
+                                    int pending_count);
 };
 
 }  // namespace editor

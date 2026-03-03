@@ -37,6 +37,16 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   ImGui::TextDisabled(ICON_MD_BUILD);
   ImGui::SameLine(0, 4);
   ImGui::Text("%s", state.tool_mode);
+  if (state.workflow_mode != nullptr && state.workflow_mode[0] != '\0') {
+    ImGui::SameLine(0, spacing);
+    ImGui::TextDisabled("|");
+    ImGui::SameLine(0, spacing);
+    const ImVec4 workflow_color =
+        state.workflow_primary ? gui::ConvertColorToImVec4(theme.success)
+                               : gui::ConvertColorToImVec4(theme.warning);
+    ImGui::TextColored(workflow_color, "%s %s", ICON_MD_WORKSPACES,
+                       state.workflow_mode);
+  }
   ImGui::SameLine(0, spacing * 2);
 
   // Separator

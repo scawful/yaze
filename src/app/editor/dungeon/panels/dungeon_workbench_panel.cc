@@ -283,6 +283,8 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
         const char* tool_mode = get_tool_mode_ ? get_tool_mode_() : "Select";
         auto status =
             DungeonStatusBar::BuildState(*primary_viewer, tool_mode, false);
+        status.workflow_mode = "Workbench";
+        status.workflow_primary = true;
         if (can_undo_)
           status.can_undo = can_undo_();
         if (can_redo_)

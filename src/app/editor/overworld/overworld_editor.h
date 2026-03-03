@@ -9,10 +9,10 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/overworld/canvas_navigation_manager.h"
-#include "app/editor/overworld/overworld_canvas_renderer.h"
 #include "app/editor/overworld/debug_window_card.h"
-#include "app/editor/overworld/map_refresh_coordinator.h"
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/map_refresh_coordinator.h"
+#include "app/editor/overworld/overworld_canvas_renderer.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
@@ -27,8 +27,8 @@
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/input.h"
 #include "app/gui/widgets/tile_selector_widget.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
 // =============================================================================
@@ -128,7 +128,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
   // Construction and Initialization
   // ===========================================================================
-  
+
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.SetRom(rom);
@@ -151,7 +151,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
   // Editor Interface Implementation
   // ===========================================================================
-  
+
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() final;
@@ -163,7 +163,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status Clear() override;
-  
+
   /// @brief Access the underlying Overworld data
   zelda3::Overworld& overworld() { return overworld_; }
 
@@ -186,7 +186,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
   // ROM State
   // ===========================================================================
-  
+
   bool IsRomLoaded() const override { return rom_ && rom_->is_loaded(); }
   std::string GetRomStatus() const override {
     if (!rom_)
@@ -212,6 +212,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
+  int current_map_id() const { return current_map_; }
+  int current_world_id() const { return current_world_; }
 
   // ===========================================================================
   // Graphics Loading
@@ -246,12 +248,42 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// Gets the tile16 under the cursor and opens the Tile16Editor focused on it.
   void HandleTile16Edit();
 
+  /// @brief Select an overworld item using value identity matching.
+  bool SelectItemByIdentity(const zelda3::OverworldItem& item_identity);
+
+  /// @brief Clear active item selection.
+  void ClearSelectedItem();
+
+  /// @brief Get current selected item identity snapshot.
+  std::optional<zelda3::OverworldItem> selected_item_identity() const {
+    return selected_item_identity_;
+  }
+
+  /// @brief Resolve selected item identity to the current live item pointer.
+  zelda3::OverworldItem* GetSelectedItem();
+  const zelda3::OverworldItem* GetSelectedItem() const;
+
+  /// @brief Duplicate selected item with optional pixel offset.
+  bool DuplicateSelectedItem(int offset_x = 16, int offset_y = 0);
+
+  /// @brief Move selected item by signed pixel deltas.
+  bool NudgeSelectedItem(int delta_x, int delta_y);
+
+  /// @brief Delete selected item and preserve nearest-item selection continuity.
+  bool DeleteSelectedItem();
+
   // ===========================================================================
   // Keyboard Shortcuts
   // ===========================================================================
-  
-  void ToggleBrushTool() { if (tile_painting_) tile_painting_->ToggleBrushTool(); }
-  void ActivateFillTool() { if (tile_painting_) tile_painting_->ActivateFillTool(); }
+
+  void ToggleBrushTool() {
+    if (tile_painting_)
+      tile_painting_->ToggleBrushTool();
+  }
+  void ActivateFillTool() {
+    if (tile_painting_)
+      tile_painting_->ActivateFillTool();
+  }
   void CycleTileSelection(int delta);
   bool PickTile16FromHoveredCanvas() {
     return tile_painting_ && tile_painting_->PickTile16FromHoveredCanvas();
@@ -270,25 +302,37 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Drawing is delegated to OverworldCanvasRenderer.
 
   absl::Status DrawAreaGraphics() {
-    if (!canvas_renderer_) return absl::FailedPreconditionError("Renderer not initialized");
+    if (!canvas_renderer_)
+      return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawAreaGraphics();
   }
   absl::Status DrawTile16Selector() {
-    if (!canvas_renderer_) return absl::FailedPreconditionError("Renderer not initialized");
+    if (!canvas_renderer_)
+      return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawTile16Selector();
   }
-  void DrawMapProperties() { if (canvas_renderer_) canvas_renderer_->DrawMapProperties(); }
+  void DrawMapProperties() {
+    if (canvas_renderer_)
+      canvas_renderer_->DrawMapProperties();
+  }
 
   /// @brief Invalidate cached graphics for a specific map or all maps
   /// @param map_id The map to invalidate (-1 to invalidate all maps)
   /// Call this when palette or graphics settings change.
   void InvalidateGraphicsCache(int map_id = -1) {
-    if (map_refresh_) map_refresh_->InvalidateGraphicsCache(map_id);
+    if (map_refresh_)
+      map_refresh_->InvalidateGraphicsCache(map_id);
   }
   absl::Status DrawScratchSpace();
-  void DrawTile8Selector() { if (canvas_renderer_) canvas_renderer_->DrawTile8Selector(); }
+  void DrawTile8Selector() {
+    if (canvas_renderer_)
+      canvas_renderer_->DrawTile8Selector();
+  }
   absl::Status UpdateGfxGroupEditor();
-  void DrawV3Settings() { if (canvas_renderer_) canvas_renderer_->DrawV3Settings(); }
+  void DrawV3Settings() {
+    if (canvas_renderer_)
+      canvas_renderer_->DrawV3Settings();
+  }
 
   /// @brief Access usage statistics card for panel
   UsageStatisticsCard* usage_stats_card() { return usage_stats_card_.get(); }
@@ -300,14 +344,17 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   Tile16Editor& tile16_editor() { return tile16_editor_; }
 
   /// @brief Draw the main overworld canvas
-  void DrawOverworldCanvas() { if (canvas_renderer_) canvas_renderer_->DrawOverworldCanvas(); }
+  void DrawOverworldCanvas() {
+    if (canvas_renderer_)
+      canvas_renderer_->DrawOverworldCanvas();
+  }
 
  private:
   // ===========================================================================
   // Entity Interaction System
   // ===========================================================================
   // Handles mouse interactions with entities in MOUSE mode.
-  
+
   void HandleEntityEditingShortcuts();
   void HandleUndoRedoShortcuts();
 
@@ -333,36 +380,48 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   // Convenience delegation methods for internal use
   void RefreshChildMap(int map_index) {
-    if (map_refresh_) map_refresh_->RefreshChildMap(map_index);
+    if (map_refresh_)
+      map_refresh_->RefreshChildMap(map_index);
   }
   void RefreshOverworldMap() {
-    if (map_refresh_) map_refresh_->RefreshOverworldMap();
+    if (map_refresh_)
+      map_refresh_->RefreshOverworldMap();
   }
   void RefreshOverworldMapOnDemand(int map_index) {
-    if (map_refresh_) map_refresh_->RefreshOverworldMapOnDemand(map_index);
+    if (map_refresh_)
+      map_refresh_->RefreshOverworldMapOnDemand(map_index);
   }
   void RefreshChildMapOnDemand(int map_index) {
-    if (map_refresh_) map_refresh_->RefreshChildMapOnDemand(map_index);
+    if (map_refresh_)
+      map_refresh_->RefreshChildMapOnDemand(map_index);
   }
   absl::Status RefreshMapPalette() {
-    if (map_refresh_) return map_refresh_->RefreshMapPalette();
-    return absl::FailedPreconditionError("MapRefreshCoordinator not initialized");
+    if (map_refresh_)
+      return map_refresh_->RefreshMapPalette();
+    return absl::FailedPreconditionError(
+        "MapRefreshCoordinator not initialized");
   }
   void RefreshMapProperties() {
-    if (map_refresh_) map_refresh_->RefreshMapProperties();
+    if (map_refresh_)
+      map_refresh_->RefreshMapProperties();
   }
   absl::Status RefreshTile16Blockset() {
-    if (map_refresh_) return map_refresh_->RefreshTile16Blockset();
-    return absl::FailedPreconditionError("MapRefreshCoordinator not initialized");
+    if (map_refresh_)
+      return map_refresh_->RefreshTile16Blockset();
+    return absl::FailedPreconditionError(
+        "MapRefreshCoordinator not initialized");
   }
   void UpdateBlocksetWithPendingTileChanges() {
-    if (map_refresh_) map_refresh_->UpdateBlocksetWithPendingTileChanges();
+    if (map_refresh_)
+      map_refresh_->UpdateBlocksetWithPendingTileChanges();
   }
   void ForceRefreshGraphics(int map_index) {
-    if (map_refresh_) map_refresh_->ForceRefreshGraphics(map_index);
+    if (map_refresh_)
+      map_refresh_->ForceRefreshGraphics(map_index);
   }
   void RefreshSiblingMapGraphics(int map_index, bool include_self = false) {
-    if (map_refresh_) map_refresh_->RefreshSiblingMapGraphics(map_index, include_self);
+    if (map_refresh_)
+      map_refresh_->RefreshSiblingMapGraphics(map_index, include_self);
   }
 
   // ===========================================================================
@@ -457,34 +516,43 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
   // Editing Mode State
   // ===========================================================================
-  
+
   EditingMode current_mode = EditingMode::DRAW_TILE;
   EditingMode previous_mode = EditingMode::DRAW_TILE;
   EntityEditMode entity_edit_mode_ = EntityEditMode::NONE;
 
   enum OverworldProperty {
-    LW_AREA_GFX, DW_AREA_GFX, LW_AREA_PAL, DW_AREA_PAL,
-    LW_SPR_GFX_PART1, LW_SPR_GFX_PART2, DW_SPR_GFX_PART1, DW_SPR_GFX_PART2,
-    LW_SPR_PAL_PART1, LW_SPR_PAL_PART2, DW_SPR_PAL_PART1, DW_SPR_PAL_PART2,
+    LW_AREA_GFX,
+    DW_AREA_GFX,
+    LW_AREA_PAL,
+    DW_AREA_PAL,
+    LW_SPR_GFX_PART1,
+    LW_SPR_GFX_PART2,
+    DW_SPR_GFX_PART1,
+    DW_SPR_GFX_PART2,
+    LW_SPR_PAL_PART1,
+    LW_SPR_PAL_PART2,
+    DW_SPR_PAL_PART1,
+    DW_SPR_PAL_PART2,
   };
 
   // ===========================================================================
   // Current Selection State
   // ===========================================================================
 
-  int current_world_ = 0;           // 0=Light, 1=Dark, 2=Special
-  int current_map_ = 0;             // Current map index (0-159)
-  int current_parent_ = 0;          // Parent map for multi-area
+  int current_world_ = 0;   // 0=Light, 1=Dark, 2=Special
+  int current_map_ = 0;     // Current map index (0-159)
+  int current_parent_ = 0;  // Parent map for multi-area
   int current_entrance_id_ = 0;
   int current_exit_id_ = 0;
   int current_item_id_ = 0;
   int current_sprite_id_ = 0;
   int current_blockset_ = 0;
-  int game_state_ = 1;              // 0=Beginning, 1=Pendants, 2=Crystals
-  int current_tile16_ = 0;          // Selected tile16 for painting
+  int game_state_ = 1;      // 0=Beginning, 1=Pendants, 2=Crystals
+  int current_tile16_ = 0;  // Selected tile16 for painting
   int selected_entrance_ = 0;
   int selected_usage_map_ = 0xFFFF;
-  
+
   // Selected tile IDs for rectangle selection
   std::vector<int> selected_tile16_ids_;
 
@@ -552,7 +620,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   Rom* rom_;
   zelda3::GameData* game_data_ = nullptr;
   gfx::IRenderer* renderer_;
-  
+
   // Sub-editors
   Tile16Editor tile16_editor_{rom_, &tile16_blockset_};
   GfxGroupEditor gfx_group_editor_;
@@ -590,6 +658,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   zelda3::GameEntity* current_entity_ = nullptr;
   zelda3::GameEntity* dragged_entity_ = nullptr;
+  std::optional<zelda3::OverworldItem> selected_item_identity_;
 
   // Deferred entity insertion (needed for popup flow from context menu)
   std::string pending_entity_insert_type_;

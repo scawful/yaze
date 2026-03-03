@@ -136,10 +136,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     if (editor_->entity_renderer_) {
       editor_->entity_renderer_->DrawExits(canvas_rt, editor_->current_world_);
       editor_->entity_renderer_->DrawEntrances(canvas_rt,
-                                                editor_->current_world_);
+                                               editor_->current_world_);
       editor_->entity_renderer_->DrawItems(canvas_rt, editor_->current_world_);
-      editor_->entity_renderer_->DrawSprites(
-          canvas_rt, editor_->current_world_, editor_->game_state_);
+      editor_->entity_renderer_->DrawSprites(canvas_rt, editor_->current_world_,
+                                             editor_->game_state_);
     }
 
     // Draw overlay preview if enabled
@@ -169,6 +169,11 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
           ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
         editor_->dragged_entity_ = hovered_entity;
         editor_->is_dragging_entity_ = true;
+        if (hovered_entity->entity_type_ ==
+            zelda3::GameEntity::EntityType::kItem) {
+          editor_->SelectItemByIdentity(
+              *static_cast<zelda3::OverworldItem*>(hovered_entity));
+        }
         if (editor_->dragged_entity_->entity_type_ ==
             zelda3::GameEntity::EntityType::kExit) {
           editor_->dragged_entity_free_movement_ = true;
@@ -263,8 +268,8 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
 
     if (can_draw) {
       // Draw bitmap at scaled position with scale applied to size
-      editor_->ow_map_canvas_.DrawBitmap(editor_->maps_bmp_[world_index],
-                                         map_x, map_y, scale);
+      editor_->ow_map_canvas_.DrawBitmap(editor_->maps_bmp_[world_index], map_x,
+                                         map_y, scale);
     } else {
       // Draw a placeholder for maps that haven't loaded yet
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -341,10 +346,9 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
 
   // Tile ID search/jump bar
   if (editor_->blockset_selector_->DrawFilterBar()) {
-    editor_->current_tile16_ =
-        editor_->blockset_selector_->GetSelectedTileID();
-    auto status = editor_->tile16_editor_.SetCurrentTile(
-        editor_->current_tile16_);
+    editor_->current_tile16_ = editor_->blockset_selector_->GetSelectedTileID();
+    auto status =
+        editor_->tile16_editor_.SetCurrentTile(editor_->current_tile16_);
     if (!status.ok()) {
       util::logf("Failed to set tile16: %s", status.message().data());
     }
@@ -357,8 +361,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   if (result.selection_changed) {
     editor_->current_tile16_ = result.selected_tile;
     // Set the current tile in the editor (original behavior)
-    auto status = editor_->tile16_editor_.SetCurrentTile(
-        editor_->current_tile16_);
+    auto status =
+        editor_->tile16_editor_.SetCurrentTile(editor_->current_tile16_);
     if (!status.ok()) {
       util::logf("Failed to set tile16: %s", status.message().data());
     }
@@ -391,8 +395,7 @@ void OverworldCanvasRenderer::DrawTile8Selector() {
   frame_opts.render_popups = true;
   frame_opts.use_child_window = false;
 
-  auto canvas_rt =
-      gui::BeginCanvas(editor_->graphics_bin_canvas_, frame_opts);
+  auto canvas_rt = gui::BeginCanvas(editor_->graphics_bin_canvas_, frame_opts);
 
   if (editor_->all_gfx_loaded_) {
     int key = 0;
@@ -446,8 +449,7 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   ImGui::BeginGroup();
   gui::BeginChildWithScrollbar("##AreaGraphicsScrollRegion");
 
-  auto canvas_rt =
-      gui::BeginCanvas(editor_->current_gfx_canvas_, frame_opts);
+  auto canvas_rt = gui::BeginCanvas(editor_->current_gfx_canvas_, frame_opts);
   gui::EndPadding();
 
   if (editor_->current_graphics_set_.contains(editor_->current_map_) &&
@@ -517,8 +519,8 @@ void OverworldCanvasRenderer::DrawMapProperties() {
 
   if (ImGui::BeginPopup("OverlayEditor")) {
     if (editor_->map_properties_system_) {
-      editor_->map_properties_system_->DrawOverlayEditor(
-          editor_->current_map_, show_overlay_editor);
+      editor_->map_properties_system_->DrawOverlayEditor(editor_->current_map_,
+                                                         show_overlay_editor);
     }
     ImGui::EndPopup();
   }
@@ -530,8 +532,7 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
   if (!init_properties) {
     for (int i = 0; i < 0x40; i++) {
       std::string area_graphics_str = absl::StrFormat(
-          "%02hX",
-          editor_->overworld_.overworld_map(i)->area_graphics());
+          "%02hX", editor_->overworld_.overworld_map(i)->area_graphics());
       editor_->properties_canvas_
           .mutable_labels(OverworldEditor::OverworldProperty::LW_AREA_GFX)
           ->push_back(area_graphics_str);
@@ -544,81 +545,67 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
           ->push_back(area_graphics_str);
 
       std::string area_palette_str = absl::StrFormat(
-          "%02hX",
-          editor_->overworld_.overworld_map(i)->area_palette());
+          "%02hX", editor_->overworld_.overworld_map(i)->area_palette());
       editor_->properties_canvas_
           .mutable_labels(OverworldEditor::OverworldProperty::LW_AREA_PAL)
           ->push_back(area_palette_str);
 
       area_palette_str = absl::StrFormat(
-          "%02hX",
-          editor_->overworld_.overworld_map(i + 0x40)->area_palette());
+          "%02hX", editor_->overworld_.overworld_map(i + 0x40)->area_palette());
       editor_->properties_canvas_
           .mutable_labels(OverworldEditor::OverworldProperty::DW_AREA_PAL)
           ->push_back(area_palette_str);
 
       std::string sprite_gfx_str = absl::StrFormat(
-          "%02hX",
-          editor_->overworld_.overworld_map(i)->sprite_graphics(1));
+          "%02hX", editor_->overworld_.overworld_map(i)->sprite_graphics(1));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::LW_SPR_GFX_PART1)
+          .mutable_labels(OverworldEditor::OverworldProperty::LW_SPR_GFX_PART1)
           ->push_back(sprite_gfx_str);
 
       sprite_gfx_str = absl::StrFormat(
-          "%02hX",
-          editor_->overworld_.overworld_map(i)->sprite_graphics(2));
+          "%02hX", editor_->overworld_.overworld_map(i)->sprite_graphics(2));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::LW_SPR_GFX_PART2)
+          .mutable_labels(OverworldEditor::OverworldProperty::LW_SPR_GFX_PART2)
           ->push_back(sprite_gfx_str);
 
       sprite_gfx_str = absl::StrFormat(
           "%02hX",
           editor_->overworld_.overworld_map(i + 0x40)->sprite_graphics(1));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::DW_SPR_GFX_PART1)
+          .mutable_labels(OverworldEditor::OverworldProperty::DW_SPR_GFX_PART1)
           ->push_back(sprite_gfx_str);
 
       sprite_gfx_str = absl::StrFormat(
           "%02hX",
           editor_->overworld_.overworld_map(i + 0x40)->sprite_graphics(2));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::DW_SPR_GFX_PART2)
+          .mutable_labels(OverworldEditor::OverworldProperty::DW_SPR_GFX_PART2)
           ->push_back(sprite_gfx_str);
 
       std::string sprite_palette_str = absl::StrFormat(
-          "%02hX",
-          editor_->overworld_.overworld_map(i)->sprite_palette(1));
+          "%02hX", editor_->overworld_.overworld_map(i)->sprite_palette(1));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::LW_SPR_PAL_PART1)
+          .mutable_labels(OverworldEditor::OverworldProperty::LW_SPR_PAL_PART1)
           ->push_back(sprite_palette_str);
 
       sprite_palette_str = absl::StrFormat(
-          "%02hX",
-          editor_->overworld_.overworld_map(i)->sprite_palette(2));
+          "%02hX", editor_->overworld_.overworld_map(i)->sprite_palette(2));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::LW_SPR_PAL_PART2)
+          .mutable_labels(OverworldEditor::OverworldProperty::LW_SPR_PAL_PART2)
           ->push_back(sprite_palette_str);
 
       sprite_palette_str = absl::StrFormat(
           "%02hX",
           editor_->overworld_.overworld_map(i + 0x40)->sprite_palette(1));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::DW_SPR_PAL_PART1)
+          .mutable_labels(OverworldEditor::OverworldProperty::DW_SPR_PAL_PART1)
           ->push_back(sprite_palette_str);
 
       sprite_palette_str = absl::StrFormat(
           "%02hX",
           editor_->overworld_.overworld_map(i + 0x40)->sprite_palette(2));
       editor_->properties_canvas_
-          .mutable_labels(
-              OverworldEditor::OverworldProperty::DW_SPR_PAL_PART2)
+          .mutable_labels(OverworldEditor::OverworldProperty::DW_SPR_PAL_PART2)
           ->push_back(sprite_palette_str);
     }
     init_properties = true;
@@ -626,12 +613,10 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
 
   ImGui::Text("Area Gfx LW/DW");
   editor_->properties_canvas_.UpdateInfoGrid(
-      ImVec2(256, 256), 32,
-      OverworldEditor::OverworldProperty::LW_AREA_GFX);
+      ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::LW_AREA_GFX);
   ImGui::SameLine();
   editor_->properties_canvas_.UpdateInfoGrid(
-      ImVec2(256, 256), 32,
-      OverworldEditor::OverworldProperty::DW_AREA_GFX);
+      ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::DW_AREA_GFX);
   ImGui::Separator();
 
   ImGui::Text("Sprite Gfx LW/DW");
@@ -654,12 +639,10 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
 
   ImGui::Text("Area Pal LW/DW");
   editor_->properties_canvas_.UpdateInfoGrid(
-      ImVec2(256, 256), 32,
-      OverworldEditor::OverworldProperty::LW_AREA_PAL);
+      ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::LW_AREA_PAL);
   ImGui::SameLine();
   editor_->properties_canvas_.UpdateInfoGrid(
-      ImVec2(256, 256), 32,
-      OverworldEditor::OverworldProperty::DW_AREA_PAL);
+      ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::DW_AREA_PAL);
 
   static bool show_gfx_group = false;
   ImGui::Checkbox("Show Gfx Group Editor", &show_gfx_group);

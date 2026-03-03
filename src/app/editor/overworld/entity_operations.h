@@ -129,6 +129,39 @@ absl::Status RemoveItemByIdentity(zelda3::Overworld* overworld,
                                   const zelda3::OverworldItem& item_identity);
 
 /**
+ * @brief Find a live item by value identity.
+ *
+ * @param overworld Overworld data containing the all_items array
+ * @param item_identity Snapshot identity to resolve
+ * @return Pointer to matching item in all_items or nullptr if not found
+ */
+zelda3::OverworldItem* FindItemByIdentity(
+    zelda3::Overworld* overworld, const zelda3::OverworldItem& item_identity);
+
+/**
+ * @brief Duplicate an existing item by identity with a positional offset.
+ *
+ * @param overworld Overworld data containing the all_items array
+ * @param item_identity Snapshot identity of source item
+ * @param offset_x Signed world-space offset in pixels
+ * @param offset_y Signed world-space offset in pixels
+ * @return Pointer to new duplicated item on success
+ */
+absl::StatusOr<zelda3::OverworldItem*> DuplicateItemByIdentity(
+    zelda3::Overworld* overworld, const zelda3::OverworldItem& item_identity,
+    int offset_x = 16, int offset_y = 0);
+
+/**
+ * @brief Move an item by pixel deltas with overworld bounds clamping.
+ *
+ * @param item Item pointer to mutate
+ * @param delta_x Signed world-space X delta
+ * @param delta_y Signed world-space Y delta
+ * @return OkStatus when applied
+ */
+absl::Status NudgeItem(zelda3::OverworldItem* item, int delta_x, int delta_y);
+
+/**
  * @brief Find the best next item to keep selection continuity after deletion.
  *
  * Selection preference:
