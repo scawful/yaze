@@ -16,10 +16,13 @@
 
 #include "cli/handlers/game/minecart_commands.h"
 
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -39,6 +42,21 @@ using ::testing::HasSubstr;
 
 constexpr int kRomSize = 0x200000;
 
+std::filesystem::path MakeUniqueTempPath(const std::string& base_name) {
+  static std::atomic<uint64_t> counter{0};
+  std::random_device rd;
+  const uint64_t entropy =
+      (static_cast<uint64_t>(rd()) << 32) ^ static_cast<uint64_t>(rd());
+  const uint64_t stamp = static_cast<uint64_t>(
+      std::chrono::steady_clock::now().time_since_epoch().count());
+  const uint64_t sequence = counter.fetch_add(1, std::memory_order_relaxed);
+  return std::filesystem::temp_directory_path() /
+         absl::StrFormat("%s_%016llX_%016llX_%016llX.json", base_name,
+                         static_cast<unsigned long long>(stamp),
+                         static_cast<unsigned long long>(entropy),
+                         static_cast<unsigned long long>(sequence));
+}
+
 // Injects a single tile into `room_id` at collision offset `offset` via the
 // real import handler (exercises the full write path).
 absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
@@ -46,9 +64,8 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
   const std::string json = absl::StrFormat(
       R"({"version":1,"rooms":[{"room_id":"0x%02X","tiles":[[%d,%d]]}]})",
       room_id, offset, tile_value);
-  auto tmp = (std::filesystem::temp_directory_path() /
-              "yaze_minecart_inject_collision.json")
-                 .string();
+  const auto tmp_path = MakeUniqueTempPath("yaze_minecart_inject_collision");
+  const auto tmp = tmp_path.string();
   {
     std::ofstream f(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
     f << json;
@@ -56,7 +73,7 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
   handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
   std::string out;
   const auto status = handler.Run({"--in", tmp, "--format=json"}, rom, &out);
-  std::filesystem::remove(tmp);
+  std::filesystem::remove(tmp_path);
   return status;
 }
 
@@ -74,9 +91,9 @@ absl::Status InjectCollisionTiles(
   const std::string json = absl::StrFormat(
       R"({"version":1,"rooms":[{"room_id":"0x%02X","tiles":[%s]}]})", room_id,
       tile_pairs);
-  auto tmp = (std::filesystem::temp_directory_path() /
-              "yaze_minecart_inject_collision_many.json")
-                 .string();
+  const auto tmp_path =
+      MakeUniqueTempPath("yaze_minecart_inject_collision_many");
+  const auto tmp = tmp_path.string();
   {
     std::ofstream f(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
     f << json;
@@ -84,7 +101,7 @@ absl::Status InjectCollisionTiles(
   handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
   std::string out;
   const auto status = handler.Run({"--in", tmp, "--format=json"}, rom, &out);
-  std::filesystem::remove(tmp);
+  std::filesystem::remove(tmp_path);
   return status;
 }
 

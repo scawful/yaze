@@ -355,6 +355,41 @@ if(YAZE_BUILD_TESTS)
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+  if(YAZE_ENABLE_ROM_TESTS)
+    target_compile_definitions(yaze_test_integration PRIVATE
+      YAZE_ENABLE_ROM_TESTS=1
+    )
+    if(YAZE_TEST_ROM_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_PATH="${YAZE_TEST_ROM_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_VANILLA_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_VANILLA_PATH="${YAZE_TEST_ROM_VANILLA_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_US_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_US_PATH="${YAZE_TEST_ROM_US_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_JP_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_JP_PATH="${YAZE_TEST_ROM_JP_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_EU_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_EU_PATH="${YAZE_TEST_ROM_EU_PATH}"
+      )
+    endif()
+    if(YAZE_TEST_ROM_EXPANDED_PATH)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_TEST_ROM_EXPANDED_PATH="${YAZE_TEST_ROM_EXPANDED_PATH}"
+      )
+    endif()
+  endif()
 
   # --- Quick Test Suites (Fast Iteration) ---
   # These suites are intentionally NOT labeled "stable" to avoid duplicate runs
