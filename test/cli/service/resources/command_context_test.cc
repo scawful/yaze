@@ -48,7 +48,8 @@ class CommandContextTest : public ::testing::Test {
     std::filesystem::remove_all(temp_root_);
   }
 
-  std::string CreateProjectWithCustomObjectConfig(bool feature_flag_enabled) {
+  std::string CreateProjectWithCustomObjectConfig(bool feature_flag_enabled,
+                                                  bool include_track_map) {
     const std::string project_name =
         "ctxproj_" +
         std::to_string(
@@ -70,7 +71,9 @@ class CommandContextTest : public ::testing::Test {
 
     project.feature_flags.kEnableCustomObjects = feature_flag_enabled;
     project.custom_objects_folder = custom_dir.string();
-    project.custom_object_files[0x31] = {"track_LR.bin"};
+    if (include_track_map) {
+      project.custom_object_files[0x31] = {"track_LR.bin"};
+    }
     auto save_status = project.Save();
     EXPECT_TRUE(save_status.ok());
     return project.filepath;
@@ -156,7 +159,8 @@ TEST_F(CommandContextTest, ProjectContextAppliesCustomObjectRuntimeState) {
   {
     CommandContext::Config config;
     config.use_mock_rom = true;
-    config.project_context_path = CreateProjectWithCustomObjectConfig(true);
+    config.project_context_path =
+        CreateProjectWithCustomObjectConfig(true, true);
 
     CommandContext context(config);
     auto rom_or = context.GetRom();
@@ -183,7 +187,8 @@ TEST_F(CommandContextTest,
 
   CommandContext::Config config;
   config.use_mock_rom = true;
-  config.project_context_path = CreateProjectWithCustomObjectConfig(false);
+  config.project_context_path =
+      CreateProjectWithCustomObjectConfig(false, true);
 
   CommandContext context(config);
   auto rom_or = context.GetRom();
@@ -192,6 +197,26 @@ TEST_F(CommandContextTest,
   EXPECT_TRUE(core::FeatureFlags::get().kEnableCustomObjects);
   EXPECT_EQ(zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(0x31),
             zelda3::DrawRoutineIds::kCustomObject);
+}
+
+TEST_F(CommandContextTest,
+       ProjectContextSeedsTrackObjectMapWhenFolderConfiguredWithoutMap) {
+  CommandContext::Config config;
+  config.use_mock_rom = true;
+  config.project_context_path = CreateProjectWithCustomObjectConfig(
+      /*feature_flag_enabled=*/true, /*include_track_map=*/false);
+
+  CommandContext context(config);
+  auto rom_or = context.GetRom();
+  ASSERT_TRUE(rom_or.ok());
+
+  const auto state = zelda3::CustomObjectManager::Get().SnapshotState();
+  auto track_it = state.custom_file_map.find(0x31);
+  ASSERT_NE(track_it, state.custom_file_map.end());
+  EXPECT_THAT(
+      track_it->second,
+      ::testing::ElementsAreArray(
+          zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(0x31)));
 }
 
 TEST_F(CommandContextTest, InvalidProjectContextFailsInitialization) {

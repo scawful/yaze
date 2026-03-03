@@ -116,6 +116,11 @@ class CustomObjectManager {
   // Get the resolved file list for an object_id (empty if none)
   std::vector<std::string> GetEffectiveFileList(int object_id) const;
 
+  // Returns the built-in subtype filename list for supported object IDs
+  // (currently 0x31 and 0x32). Returns an empty list for other IDs.
+  static const std::vector<std::string>& DefaultSubtypeFilenamesForObject(
+      int object_id);
+
   // Accessors for tile editor write-back
   const std::string& GetBasePath() const { return base_path_; }
   std::string ResolveFilename(int object_id, int subtype) const;

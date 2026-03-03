@@ -397,6 +397,10 @@ class Tile16Editor : public gfx::GfxContext {
   }
   int current_tile16() const { return current_tile16_; }
   int current_tile8() const { return current_tile8_; }
+  int active_quadrant() const { return active_quadrant_; }
+  void set_active_quadrant(int quadrant) {
+    active_quadrant_ = std::clamp(quadrant, 0, 3);
+  }
 
   // Diagnostic function to analyze tile8 source data format
   void AnalyzeTile8SourceData() const;
@@ -413,6 +417,7 @@ class Tile16Editor : public gfx::GfxContext {
   int current_tile16_ = 0;
   int current_tile8_ = 0;
   uint8_t current_palette_ = 0;
+  int active_quadrant_ = 0;
 
   // Clipboard for Tile16 graphics and metadata
   Tile16ClipboardData clipboard_tile16_;

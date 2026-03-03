@@ -273,11 +273,9 @@ void CustomObjectManager::AddObjectFile(int object_id,
                                         const std::string& filename) {
   // If no custom_file_map_ entry exists, seed from static defaults
   if (custom_file_map_.find(object_id) == custom_file_map_.end()) {
-    const auto* defaults = (object_id == 0x31)   ? &kSubtype1Filenames
-                           : (object_id == 0x32) ? &kSubtype2Filenames
-                                                 : nullptr;
-    if (defaults) {
-      custom_file_map_[object_id] = *defaults;
+    const auto& defaults = DefaultSubtypeFilenamesForObject(object_id);
+    if (!defaults.empty()) {
+      custom_file_map_[object_id] = defaults;
     }
   }
   custom_file_map_[object_id].push_back(filename);
@@ -292,6 +290,18 @@ std::vector<std::string> CustomObjectManager::GetEffectiveFileList(
   if (list)
     return *list;
   return {};
+}
+
+const std::vector<std::string>&
+CustomObjectManager::DefaultSubtypeFilenamesForObject(int object_id) {
+  static const std::vector<std::string> kEmpty;
+  if (object_id == 0x31) {
+    return kSubtype1Filenames;
+  }
+  if (object_id == 0x32) {
+    return kSubtype2Filenames;
+  }
+  return kEmpty;
 }
 
 void CustomObjectManager::ReloadAll() {

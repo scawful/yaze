@@ -150,6 +150,38 @@ bool ProjectUsesCustomObjects(const project::YazeProject& project) {
          !project.custom_object_files.empty();
 }
 
+constexpr int kTrackCustomObjectId = 0x31;
+
+bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
+                                  std::string* warning) {
+  if (project == nullptr) {
+    return false;
+  }
+  if (project->custom_objects_folder.empty()) {
+    return false;
+  }
+  if (project->custom_object_files.find(kTrackCustomObjectId) !=
+      project->custom_object_files.end()) {
+    return false;
+  }
+
+  const auto& defaults =
+      zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(
+          kTrackCustomObjectId);
+  if (defaults.empty()) {
+    return false;
+  }
+
+  project->custom_object_files[kTrackCustomObjectId] = defaults;
+  if (warning != nullptr) {
+    *warning = absl::StrFormat(
+        "Project defines custom_objects_folder but is missing "
+        "custom_object_files[0x%02X]. Seeded default mapping (%d entries).",
+        kTrackCustomObjectId, static_cast<int>(defaults.size()));
+  }
+  return true;
+}
+
 std::vector<std::string> ValidateRomAddressOverrides(
     const core::RomAddressOverrides& overrides, const Rom& rom) {
   std::vector<std::string> warnings;
@@ -3281,6 +3313,15 @@ absl::Status EditorManager::LoadProjectWithRom() {
              "disabled. Enabling at runtime.");
     toast_manager_.Show("Custom object rendering auto-enabled for this project",
                         ToastType::kInfo);
+  }
+  std::string legacy_mapping_warning;
+  if (SeedLegacyTrackObjectMapping(&current_project_,
+                                   &legacy_mapping_warning)) {
+    LOG_WARN("EditorManager", "%s", legacy_mapping_warning.c_str());
+    toast_manager_.Show(
+        "Seeded default custom object mapping for object 0x31 (save project "
+        "to persist)",
+        ToastType::kWarning);
   }
 
   // Apply project feature flags to both session and global singleton.
