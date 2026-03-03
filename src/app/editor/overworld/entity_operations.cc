@@ -7,6 +7,16 @@
 
 namespace yaze {
 namespace editor {
+namespace {
+
+bool MatchesItemIdentity(const zelda3::OverworldItem& lhs,
+                         const zelda3::OverworldItem& rhs) {
+  return lhs.id_ == rhs.id_ && lhs.room_map_id_ == rhs.room_map_id_ &&
+         lhs.x_ == rhs.x_ && lhs.y_ == rhs.y_ && lhs.game_x_ == rhs.game_x_ &&
+         lhs.game_y_ == rhs.game_y_ && lhs.bg2_ == rhs.bg2_;
+}
+
+}  // namespace
 
 absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
     zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map,
@@ -253,6 +263,25 @@ absl::Status RemoveItem(zelda3::Overworld* overworld,
                          });
   if (it == items->end()) {
     return absl::NotFoundError("Item pointer not found in overworld item list");
+  }
+
+  items->erase(it);
+  return absl::OkStatus();
+}
+
+absl::Status RemoveItemByIdentity(zelda3::Overworld* overworld,
+                                  const zelda3::OverworldItem& item_identity) {
+  if (!overworld) {
+    return absl::InvalidArgumentError("Overworld is null");
+  }
+
+  auto* items = overworld->mutable_all_items();
+  auto it = std::find_if(items->begin(), items->end(),
+                         [&item_identity](const zelda3::OverworldItem& item) {
+                           return MatchesItemIdentity(item, item_identity);
+                         });
+  if (it == items->end()) {
+    return absl::NotFoundError("No matching item identity in overworld list");
   }
 
   items->erase(it);
