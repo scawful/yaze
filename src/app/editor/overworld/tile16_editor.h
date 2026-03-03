@@ -165,6 +165,8 @@ class Tile16Editor : public gfx::GfxContext {
 
   absl::Status DrawToCurrentTile16(ImVec2 pos,
                                    const gfx::Bitmap* source_tile = nullptr);
+  absl::Status HandleTile16CanvasClick(const ImVec2& tile_position,
+                                       bool left_click, bool right_click);
 
   absl::Status UpdateTile16Edit();
 
@@ -408,6 +410,7 @@ class Tile16Editor : public gfx::GfxContext {
     active_quadrant_ = std::clamp(quadrant, 0, 3);
   }
   Tile16EditMode edit_mode() const { return edit_mode_; }
+  void set_edit_mode(Tile16EditMode mode) { edit_mode_ = mode; }
 
   // Diagnostic function to analyze tile8 source data format
   void AnalyzeTile8SourceData() const;

@@ -1,5 +1,6 @@
 #include "zelda3/dungeon/custom_object.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -13,15 +14,27 @@ namespace {
 class CustomObjectManagerTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Create a temporary directory for testing
-    temp_dir_ = std::filesystem::temp_directory_path() / "yaze_custom_obj_test";
-    std::filesystem::create_directories(temp_dir_ / "Sprites/Objects/Data");
+    // Use a unique temp directory per test invocation to avoid parallel ctest
+    // teardown races across independently spawned gtest processes.
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    temp_dir_ = std::filesystem::temp_directory_path() /
+                ("yaze_custom_obj_test_" +
+                 std::to_string(static_cast<long long>(nonce)));
+
+    std::error_code cleanup_error;
+    std::filesystem::remove_all(temp_dir_, cleanup_error);
+    ASSERT_TRUE(std::filesystem::create_directories(temp_dir_ /
+                                                    "Sprites/Objects/Data"));
 
     // Set up manager with temp root
     CustomObjectManager::Get().Initialize(temp_dir_.string());
   }
 
-  void TearDown() override { std::filesystem::remove_all(temp_dir_); }
+  void TearDown() override {
+    std::error_code cleanup_error;
+    std::filesystem::remove_all(temp_dir_, cleanup_error);
+  }
 
   void WriteBinaryFile(const std::string& filename,
                        const std::vector<uint8_t>& data) {
