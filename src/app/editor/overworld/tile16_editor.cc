@@ -66,41 +66,6 @@ void SyncTilesInfoArray(gfx::Tile16* tile) {
   zelda3::SyncTile16TilesInfo(tile);
 }
 
-int ComputeTile16Count(const gfx::Tilemap* tile16_blockset) {
-  if (!tile16_blockset || !tile16_blockset->atlas.is_active()) {
-    return kTile16Count;
-  }
-
-  const int tiles_per_row =
-      std::max(1, tile16_blockset->atlas.width() / kTile16Size);
-  const int rows = std::max(1, tile16_blockset->atlas.height() / kTile16Size);
-  const int computed = tiles_per_row * rows;
-  return std::clamp(computed, 1, kTile16Count);
-}
-
-void BlitTile16BitmapToBitmap(gfx::Bitmap* destination, int tile_id,
-                              const gfx::Bitmap& source_bitmap) {
-  if (!destination || !destination->is_active() || !source_bitmap.is_active()) {
-    return;
-  }
-
-  const int tiles_per_row = std::max(1, destination->width() / kTile16Size);
-  const int tile_x = (tile_id % tiles_per_row) * kTile16Size;
-  const int tile_y = (tile_id / tiles_per_row) * kTile16Size;
-
-  for (int ty = 0; ty < kTile16Size; ++ty) {
-    for (int tx = 0; tx < kTile16Size; ++tx) {
-      const int src_index = ty * kTile16Size + tx;
-      const int dst_index =
-          (tile_y + ty) * destination->width() + (tile_x + tx);
-      if (src_index < static_cast<int>(source_bitmap.size()) &&
-          dst_index < static_cast<int>(destination->size())) {
-        destination->WriteToPixel(dst_index, source_bitmap.data()[src_index]);
-      }
-    }
-  }
-}
-
 }  // namespace
 
 absl::Status Tile16Editor::Initialize(
@@ -616,13 +581,14 @@ void Tile16Editor::CopyTileBitmapToBlockset(int tile_id,
     return;
   }
 
-  BlitTile16BitmapToBitmap(&tile16_blockset_bmp_, tile_id, tile_bitmap);
+  zelda3::BlitTile16BitmapToAtlas(&tile16_blockset_bmp_, tile_id, tile_bitmap);
   if (tile16_blockset_bmp_.is_active()) {
     tile16_blockset_bmp_.set_modified(true);
   }
 
   if (tile16_blockset_ && tile16_blockset_->atlas.is_active()) {
-    BlitTile16BitmapToBitmap(&tile16_blockset_->atlas, tile_id, tile_bitmap);
+    zelda3::BlitTile16BitmapToAtlas(&tile16_blockset_->atlas, tile_id,
+                                    tile_bitmap);
     tile16_blockset_->atlas.set_modified(true);
   }
 }
@@ -875,7 +841,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     ImGui::SameLine();
 
     // Show current tile and total tiles
-    int total_tiles = ComputeTile16Count(tile16_blockset_);
+    int total_tiles = zelda3::ComputeTile16Count(tile16_blockset_);
     ImGui::TextDisabled("(%d / %d)", current_tile16_, total_tiles);
 
     // Navigation controls row
@@ -2772,7 +2738,7 @@ absl::Status Tile16Editor::RebuildTile8UsageCache() {
     return absl::FailedPreconditionError("ROM not available for usage cache");
   }
 
-  const int total_tiles = ComputeTile16Count(tile16_blockset_);
+  const int total_tiles = zelda3::ComputeTile16Count(tile16_blockset_);
   auto tile_provider = [this](int tile_id) -> absl::StatusOr<gfx::Tile16> {
     auto pending_it = pending_tile16_changes_.find(tile_id);
     if (pending_it != pending_tile16_changes_.end()) {
@@ -3549,7 +3515,7 @@ absl::Status Tile16Editor::SaveLayoutToScratch(int slot) {
     return absl::InvalidArgumentError("Invalid scratch slot");
   }
 
-  int total_tiles = ComputeTile16Count(tile16_blockset_);
+  int total_tiles = zelda3::ComputeTile16Count(tile16_blockset_);
   if (total_tiles <= 0) {
     return absl::FailedPreconditionError("Tile16 blockset is not available");
   }
@@ -3852,8 +3818,8 @@ void Tile16Editor::CopyTile16ToAtlas(int tile_id) {
     return;
   }
 
-  BlitTile16BitmapToBitmap(&tile16_blockset_->atlas, tile_id,
-                           current_tile16_bmp_);
+  zelda3::BlitTile16BitmapToAtlas(&tile16_blockset_->atlas, tile_id,
+                                  current_tile16_bmp_);
 
   tile16_blockset_->atlas.set_modified(true);
   gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,

@@ -4,12 +4,14 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "zelda3/overworld/overworld.h"
 
 namespace yaze::zelda3 {
 
 namespace {
 
 constexpr int kTile8Size = 8;
+constexpr int kTile16Size = 16;
 
 gfx::Bitmap MakeTile8Bitmap(const std::vector<uint8_t>& pixels) {
   gfx::Bitmap bmp;
@@ -27,6 +29,17 @@ std::vector<uint8_t> MakeCoordinateTilePixels() {
   for (int y = 0; y < kTile8Size; ++y) {
     for (int x = 0; x < kTile8Size; ++x) {
       pixels.push_back(static_cast<uint8_t>((y * kTile8Size + x) & 0x0F));
+    }
+  }
+  return pixels;
+}
+
+std::vector<uint8_t> MakeCoordinateTile16Pixels() {
+  std::vector<uint8_t> pixels;
+  pixels.reserve(kTile16Size * kTile16Size);
+  for (int y = 0; y < kTile16Size; ++y) {
+    for (int x = 0; x < kTile16Size; ++x) {
+      pixels.push_back(static_cast<uint8_t>((y * kTile16Size + x) & 0xFF));
     }
   }
   return pixels;
@@ -52,7 +65,8 @@ TEST(Tile16RendererTest, RendersQuadrantsWithPaletteRowEncoding) {
       // Out-of-range palette should be masked to the low 3 bits (7).
       gfx::TileInfo(3, 15, false, false, false));
 
-  const auto rendered = RenderTile16PixelsFromMetadata(tile_data, tile8_bitmaps);
+  const auto rendered =
+      RenderTile16PixelsFromMetadata(tile_data, tile8_bitmaps);
 
   ASSERT_EQ(rendered.size(), 256u);
   EXPECT_EQ(PixelAt(rendered, 0, 0), 0x01);
@@ -69,13 +83,13 @@ TEST(Tile16RendererTest, AppliesPerQuadrantFlipMetadata) {
   std::vector<gfx::Bitmap> tile8_bitmaps;
   tile8_bitmaps.push_back(MakeTile8Bitmap(MakeCoordinateTilePixels()));
 
-  gfx::Tile16 tile_data(
-      gfx::TileInfo(0, 0, false, false, false),
-      gfx::TileInfo(0, 0, false, true, false),
-      gfx::TileInfo(0, 0, true, false, false),
-      gfx::TileInfo(0, 3, true, true, false));
+  gfx::Tile16 tile_data(gfx::TileInfo(0, 0, false, false, false),
+                        gfx::TileInfo(0, 0, false, true, false),
+                        gfx::TileInfo(0, 0, true, false, false),
+                        gfx::TileInfo(0, 3, true, true, false));
 
-  const auto rendered = RenderTile16PixelsFromMetadata(tile_data, tile8_bitmaps);
+  const auto rendered =
+      RenderTile16PixelsFromMetadata(tile_data, tile8_bitmaps);
 
   ASSERT_EQ(rendered.size(), 256u);
 
@@ -101,13 +115,13 @@ TEST(Tile16RendererTest, SkipsInactiveOrOutOfRangeTile8Sources) {
   tile8_bitmaps.push_back(MakeTile8Bitmap(MakeFilledTilePixels(0x05)));
   tile8_bitmaps.emplace_back();  // Inactive bitmap
 
-  gfx::Tile16 tile_data(
-      gfx::TileInfo(0, 2, false, false, false),
-      gfx::TileInfo(1, 1, false, false, false),
-      gfx::TileInfo(99, 0, false, false, false),
-      gfx::TileInfo(0, 0, false, false, false));
+  gfx::Tile16 tile_data(gfx::TileInfo(0, 2, false, false, false),
+                        gfx::TileInfo(1, 1, false, false, false),
+                        gfx::TileInfo(99, 0, false, false, false),
+                        gfx::TileInfo(0, 0, false, false, false));
 
-  const auto rendered = RenderTile16PixelsFromMetadata(tile_data, tile8_bitmaps);
+  const auto rendered =
+      RenderTile16PixelsFromMetadata(tile_data, tile8_bitmaps);
 
   ASSERT_EQ(rendered.size(), 256u);
   EXPECT_EQ(PixelAt(rendered, 0, 0), 0x25);
@@ -125,11 +139,13 @@ TEST(Tile16RendererTest, BitmapRendererValidatesInputsAndCreates16x16Bitmap) {
   std::vector<gfx::Bitmap> tile8_bitmaps;
   tile8_bitmaps.push_back(MakeTile8Bitmap(MakeFilledTilePixels(0x0A)));
 
-  auto null_output = RenderTile16BitmapFromMetadata(tile_data, tile8_bitmaps, nullptr);
+  auto null_output =
+      RenderTile16BitmapFromMetadata(tile_data, tile8_bitmaps, nullptr);
   EXPECT_FALSE(null_output.ok());
 
   gfx::Bitmap output_bitmap;
-  auto empty_source = RenderTile16BitmapFromMetadata(tile_data, {}, &output_bitmap);
+  auto empty_source =
+      RenderTile16BitmapFromMetadata(tile_data, {}, &output_bitmap);
   EXPECT_FALSE(empty_source.ok());
 
   auto status =
@@ -142,6 +158,39 @@ TEST(Tile16RendererTest, BitmapRendererValidatesInputsAndCreates16x16Bitmap) {
   EXPECT_EQ(output_bitmap.size(), 256u);
   EXPECT_EQ(output_bitmap.GetPixel(0, 0), 0x4A);
   EXPECT_EQ(output_bitmap.GetPixel(15, 15), 0x4A);
+}
+
+TEST(Tile16RendererTest, ComputeTile16CountUsesAtlasDimensionsAndFallback) {
+  EXPECT_EQ(ComputeTile16Count(nullptr), kNumTile16Individual);
+
+  gfx::Tilemap tilemap;
+  EXPECT_EQ(ComputeTile16Count(&tilemap), kNumTile16Individual);
+
+  tilemap.atlas.Create(64, 48, 8, std::vector<uint8_t>(64 * 48, 0));
+  EXPECT_EQ(ComputeTile16Count(&tilemap), 12);
+
+  gfx::Tilemap oversized;
+  const int oversized_width = (kNumTile16Individual * kTile16Size);
+  oversized.atlas.Create(oversized_width, 32, 8,
+                         std::vector<uint8_t>(oversized_width * 32, 0));
+  EXPECT_EQ(ComputeTile16Count(&oversized), kNumTile16Individual);
+}
+
+TEST(Tile16RendererTest, BlitTile16BitmapToAtlasWritesRequestedTileSlot) {
+  gfx::Bitmap destination;
+  destination.Create(32, 16, 8, std::vector<uint8_t>(32 * 16, 0));
+
+  gfx::Bitmap source;
+  source.Create(16, 16, 8, MakeCoordinateTile16Pixels());
+  BlitTile16BitmapToAtlas(&destination, 1, source);
+
+  EXPECT_EQ(destination.GetPixel(0, 0), 0x00);
+  EXPECT_EQ(destination.GetPixel(15, 15), 0x00);
+
+  EXPECT_EQ(destination.GetPixel(16, 0), source.GetPixel(0, 0));
+  EXPECT_EQ(destination.GetPixel(31, 0), source.GetPixel(15, 0));
+  EXPECT_EQ(destination.GetPixel(16, 15), source.GetPixel(0, 15));
+  EXPECT_EQ(destination.GetPixel(31, 15), source.GetPixel(15, 15));
 }
 
 }  // namespace yaze::zelda3
