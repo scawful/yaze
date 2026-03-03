@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "mocks/mock_rom.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze {
 namespace test {
@@ -162,6 +163,17 @@ TEST_F(ObjectParserTest, DrawInfoMapsSubtype2CornerRoutinesToUsdasmParity) {
   EXPECT_EQ(weird_top.draw_routine_id, 37);
   EXPECT_TRUE(weird_top.both_layers);
   EXPECT_EQ(weird_top.tile_count, 12);
+}
+
+TEST_F(ObjectParserTest,
+       DrawInfoUsesRegistryRoutineMappingForSubtype1Midrange) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+
+  for (int id : {0x40, 0x47, 0x48, 0x4C, 0x4D, 0x50, 0x5D, 0x5F}) {
+    SCOPED_TRACE(id);
+    auto info = parser_->GetObjectDrawInfo(id);
+    EXPECT_EQ(info.draw_routine_id, registry.GetRoutineIdForObject(id));
+  }
 }
 
 TEST_F(ObjectParserTest, InvalidObjectId) {

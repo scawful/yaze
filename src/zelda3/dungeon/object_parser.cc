@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "util/log.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room_object.h"
 
 // ROM addresses for object data are defined in room_object.h:
@@ -786,6 +787,21 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
     info.routine_name = "DefaultSolid";
     info.tile_count = 1;
     info.is_horizontal = true;
+  }
+
+  // DrawRoutineRegistry owns the canonical object->routine mapping used by
+  // ObjectDrawer. Override parser metadata with that mapping so editor-facing
+  // draw info stays aligned with runtime behavior.
+  auto& registry = DrawRoutineRegistry::Get();
+  int registry_routine = registry.GetRoutineIdForObject(object_id);
+  if (registry_routine >= 0) {
+    info.draw_routine_id = registry_routine;
+    if (const DrawRoutineInfo* routine_info =
+            registry.GetRoutineInfo(registry_routine);
+        routine_info != nullptr) {
+      info.routine_name = routine_info->name;
+      info.both_layers = info.both_layers || routine_info->draws_to_both_bgs;
+    }
   }
 
   // Tile count should always come from subtype lookup tables to avoid stale
