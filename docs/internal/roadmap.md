@@ -35,8 +35,11 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ Custom collision editor with JSON import/export
 - ✅ ROM write fence stack
 - ✅ usdasm replay parity tests for corner variants and rail/cannon/bar routines
-- 🟡 **Object tile counts**: yaze hardcodes 8 tiles per object; ZScream uses object-specific counts (4-242). Complex objects (altars, carpets, large platforms) render incorrectly.
-- 🟡 Selection-bounds parity sweep still reports mismatches (currently 135 cases; e.g. 0x4C-0x53 family). Scheduled for 0.8.0 hardening.
+- ✅ Selection-bounds parity sweep now passes against `ObjectGeometry`
+  (negative-offset clipped cases intentionally excluded from the sweep harness).
+- 🟡 **Object tile count fallback**: parser uses object-specific counts for known
+  IDs but still falls back to 8 for uncataloged cases; continue ROM-trace audits
+  for rare objects.
 - 🟡 Object preview rendering (stubbed)
 - 🟡 12+ unknown dungeon object types need verification
 - 🟡 Visual discrepancies in specific objects (vertical rails, doors)
