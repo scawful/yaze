@@ -1,10 +1,12 @@
 #include "gtest/gtest.h"
 
 #include <array>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -58,6 +60,129 @@ class FakeDungeonState : public DungeonState {
 
   bool IsCrystalSwitchBlue() const override { return true; }
 };
+
+struct SnapshotTileWrite {
+  int x = 0;
+  int y = 0;
+  uint16_t tile_id = 0;
+};
+
+std::vector<gfx::TileInfo> MakeSequentialTiles(int count,
+                                               uint16_t start_tile_id = 0,
+                                               uint8_t palette = 2) {
+  std::vector<gfx::TileInfo> tiles;
+  tiles.reserve(count);
+  for (int i = 0; i < count; ++i) {
+    tiles.push_back(gfx::TileInfo(static_cast<uint16_t>(start_tile_id + i),
+                                  palette, false, false, false));
+  }
+  return tiles;
+}
+
+std::vector<ObjectDrawer::TileTrace> ReplayObjectTrace(
+    int16_t object_id, int x, int y, uint8_t size, RoomObject::LayerType layer,
+    const std::vector<gfx::TileInfo>& tiles,
+    const DungeonState* state = nullptr) {
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+  RoomObject obj(object_id, x, y, size, static_cast<int>(layer));
+  obj.tiles_loaded_ = true;
+  obj.tiles_ = tiles;
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  EXPECT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group, state).ok());
+  return trace;
+}
+
+std::vector<ObjectDrawer::TileTrace> FilterTraceByLayer(
+    const std::vector<ObjectDrawer::TileTrace>& trace,
+    RoomObject::LayerType layer) {
+  std::vector<ObjectDrawer::TileTrace> filtered;
+  for (const auto& t : trace) {
+    if (t.layer == static_cast<uint8_t>(layer)) {
+      filtered.push_back(t);
+    }
+  }
+  return filtered;
+}
+
+std::vector<SnapshotTileWrite> MakeColumnMajorSnapshot(int x, int y, int width,
+                                                       int height,
+                                                       uint16_t start_tile_id) {
+  std::vector<SnapshotTileWrite> out;
+  out.reserve(width * height);
+  uint16_t tile_id = start_tile_id;
+  for (int xx = 0; xx < width; ++xx) {
+    for (int yy = 0; yy < height; ++yy) {
+      out.push_back({x + xx, y + yy, tile_id++});
+    }
+  }
+  return out;
+}
+
+std::vector<SnapshotTileWrite> MakeRowMajorSnapshot(int x, int y, int width,
+                                                    int height,
+                                                    uint16_t start_tile_id) {
+  std::vector<SnapshotTileWrite> out;
+  out.reserve(width * height);
+  uint16_t tile_id = start_tile_id;
+  for (int yy = 0; yy < height; ++yy) {
+    for (int xx = 0; xx < width; ++xx) {
+      out.push_back({x + xx, y + yy, tile_id++});
+    }
+  }
+  return out;
+}
+
+void ExpectTraceMatchesSnapshot(
+    const std::vector<ObjectDrawer::TileTrace>& trace,
+    const std::vector<SnapshotTileWrite>& expected) {
+  ASSERT_EQ(trace.size(), expected.size());
+  for (size_t i = 0; i < expected.size(); ++i) {
+    EXPECT_EQ(trace[i].x_tile, expected[i].x) << "trace idx=" << i;
+    EXPECT_EQ(trace[i].y_tile, expected[i].y) << "trace idx=" << i;
+    EXPECT_EQ(trace[i].tile_id, expected[i].tile_id) << "trace idx=" << i;
+  }
+}
+
+std::vector<uint8_t> MakeSingleTileCustomObjectBinary(int rel_x, int rel_y,
+                                                      uint16_t tile_word) {
+  std::vector<uint8_t> data;
+  // Advance full rows first (stride 0x80 bytes per row in custom object
+  // buffer space), then advance columns (2 bytes per tile), then emit one tile.
+  for (int row = 0; row < rel_y; ++row) {
+    data.push_back(0x00);
+    data.push_back(0x80);
+  }
+  if (rel_x > 0) {
+    data.push_back(0x00);
+    data.push_back(static_cast<uint8_t>(rel_x * 2));
+  }
+  data.push_back(0x01);
+  data.push_back(0x00);
+  data.push_back(static_cast<uint8_t>(tile_word & 0xFF));
+  data.push_back(static_cast<uint8_t>((tile_word >> 8) & 0xFF));
+  data.push_back(0x00);
+  data.push_back(0x00);
+  return data;
+}
+
+void WriteBinaryFile(const std::filesystem::path& path,
+                     const std::vector<uint8_t>& data) {
+  std::ofstream out(path, std::ios::binary);
+  ASSERT_TRUE(out.good());
+  out.write(reinterpret_cast<const char*>(data.data()), data.size());
+  ASSERT_TRUE(out.good());
+}
 
 TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   ScopedCustomObjectsFlag disable_custom(false);
@@ -386,6 +511,225 @@ TEST(ObjectDrawerRegistryReplayTest,
     EXPECT_EQ(bg1_trace[i].x_tile, expected[i].x) << "idx=" << i;
     EXPECT_EQ(bg1_trace[i].y_tile, expected[i].y) << "idx=" << i;
     EXPECT_EQ(bg1_trace[i].tile_id, expected[i].tile_id) << "idx=" << i;
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     Corner4x4BothBGMatchesUsdasm4x4ColumnMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0108, /*x=*/6, /*y=*/7, /*size=*/0,
+      RoomObject::LayerType::BG1, MakeSequentialTiles(/*count=*/16));
+
+  const auto bg1_trace = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2_trace = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+
+  const auto expected =
+      MakeColumnMajorSnapshot(/*x=*/6, /*y=*/7, /*width=*/4, /*height=*/4,
+                              /*start_tile_id=*/0);
+
+  ExpectTraceMatchesSnapshot(bg1_trace, expected);
+  ExpectTraceMatchesSnapshot(bg2_trace, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     CornerAliasOverridesUseCustomTrackCornerFiles) {
+  ScopedCustomObjectsFlag custom_enabled(true);
+
+  auto& manager = CustomObjectManager::Get();
+  const auto previous_state = manager.SnapshotState();
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto temp_dir = std::filesystem::temp_directory_path() /
+                        ("yaze_corner_alias_override_" +
+                         std::to_string(static_cast<long long>(nonce)));
+
+  struct RestoreManagerStateAndCleanup {
+    CustomObjectManager& manager;
+    CustomObjectManager::State previous_state;
+    std::filesystem::path temp_dir;
+    ~RestoreManagerStateAndCleanup() {
+      manager.RestoreState(previous_state);
+      std::filesystem::remove_all(temp_dir);
+    }
+  } restore{manager, previous_state, temp_dir};
+
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  manager.Initialize(temp_dir.string());
+  manager.ClearObjectFileMap();
+
+  WriteBinaryFile(temp_dir / "track_corner_TL.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/0, /*rel_y=*/0, /*tile_word=*/0x0001));
+  WriteBinaryFile(temp_dir / "track_corner_TR.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/1, /*rel_y=*/0, /*tile_word=*/0x0002));
+  WriteBinaryFile(temp_dir / "track_corner_BL.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/0, /*rel_y=*/1, /*tile_word=*/0x0003));
+  WriteBinaryFile(temp_dir / "track_corner_BR.bin",
+                  MakeSingleTileCustomObjectBinary(
+                      /*rel_x=*/1, /*rel_y=*/1, /*tile_word=*/0x0004));
+
+  struct CornerAliasCase {
+    int16_t object_id;
+    const char* filename;
+    int rel_x;
+    int rel_y;
+    uint16_t tile_id;
+  };
+
+  const std::vector<CornerAliasCase> cases = {
+      {0x0100, "track_corner_TL.bin", 0, 0, 1},
+      {0x0101, "track_corner_BL.bin", 0, 1, 3},
+      {0x0102, "track_corner_TR.bin", 1, 0, 2},
+      {0x0103, "track_corner_BR.bin", 1, 1, 4},
+  };
+
+  std::unordered_map<int16_t, std::vector<ObjectDrawer::TileTrace>>
+      vanilla_traces;
+
+  {
+    ScopedCustomObjectsFlag custom_disabled(false);
+    for (const auto& tc : cases) {
+      SCOPED_TRACE(tc.object_id);
+      EXPECT_EQ(manager.ResolveFilename(tc.object_id, /*subtype=*/0),
+                tc.filename);
+
+      auto trace = ReplayObjectTrace(
+          tc.object_id, /*x=*/20, /*y=*/30, /*size=*/0,
+          RoomObject::LayerType::BG1,
+          MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/400));
+      // Vanilla path for 0x100..0x103 is a routine-driven multi-tile draw,
+      // while the custom override fixture draws a single tile.
+      EXPECT_GT(trace.size(), 1u);
+      vanilla_traces[tc.object_id] = trace;
+    }
+  }
+
+  for (const auto& tc : cases) {
+    SCOPED_TRACE(tc.object_id);
+    auto trace = ReplayObjectTrace(
+        tc.object_id, /*x=*/20, /*y=*/30, /*size=*/0,
+        RoomObject::LayerType::BG1,
+        MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/400));
+    ASSERT_EQ(trace.size(), 1u);
+    EXPECT_EQ(trace[0].x_tile, 20 + tc.rel_x);
+    EXPECT_EQ(trace[0].y_tile, 30 + tc.rel_y);
+    EXPECT_EQ(trace[0].tile_id, tc.tile_id);
+
+    const auto it = vanilla_traces.find(tc.object_id);
+    ASSERT_NE(it, vanilla_traces.end());
+    EXPECT_NE(it->second.size(), trace.size());
+  }
+}
+
+TEST(ObjectDrawerRoutineSnapshotHarnessTest,
+     RepresentativeObjectsMatchRoutineSnapshots) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  struct SnapshotReplayCase {
+    const char* name = nullptr;
+    int16_t object_id = 0;
+    uint8_t size = 0;
+    int x = 0;
+    int y = 0;
+    RoomObject::LayerType layer = RoomObject::LayerType::BG1;
+    int tile_count = 0;
+    std::vector<SnapshotTileWrite> expected_bg1;
+    bool expect_bg2_mirror = false;
+  };
+
+  std::vector<SnapshotReplayCase> cases;
+  cases.push_back(
+      {.name = "Corner4x4BothBG",
+       .object_id = 0x0108,
+       .size = 0,
+       .x = 4,
+       .y = 5,
+       .layer = RoomObject::LayerType::BG1,
+       .tile_count = 16,
+       .expected_bg1 = MakeColumnMajorSnapshot(
+           /*x=*/4, /*y=*/5, /*width=*/4, /*height=*/4, /*start_tile_id=*/0),
+       .expect_bg2_mirror = true});
+  cases.push_back(
+      {.name = "WeirdCornerBottomBothBG",
+       .object_id = 0x0110,
+       .size = 0,
+       .x = 8,
+       .y = 9,
+       .layer = RoomObject::LayerType::BG1,
+       .tile_count = 12,
+       .expected_bg1 = MakeColumnMajorSnapshot(
+           /*x=*/8, /*y=*/9, /*width=*/3, /*height=*/4, /*start_tile_id=*/0),
+       .expect_bg2_mirror = true});
+  cases.push_back(
+      {.name = "WeirdCornerTopBothBG",
+       .object_id = 0x0114,
+       .size = 0,
+       .x = 10,
+       .y = 11,
+       .layer = RoomObject::LayerType::BG1,
+       .tile_count = 12,
+       .expected_bg1 = MakeColumnMajorSnapshot(
+           /*x=*/10, /*y=*/11, /*width=*/4, /*height=*/3, /*start_tile_id=*/0),
+       .expect_bg2_mirror = true});
+  cases.push_back(
+      {.name = "Bed4x5",
+       .object_id = 0x0122,
+       .size = 0,
+       .x = 6,
+       .y = 7,
+       .layer = RoomObject::LayerType::BG1,
+       .tile_count = 20,
+       .expected_bg1 = MakeRowMajorSnapshot(
+           /*x=*/6, /*y=*/7, /*width=*/4, /*height=*/5, /*start_tile_id=*/0)});
+  cases.push_back({.name = "Rightwards3x6",
+                   .object_id = 0x012C,
+                   .size = 0,
+                   .x = 12,
+                   .y = 13,
+                   .layer = RoomObject::LayerType::BG1,
+                   .tile_count = 18,
+                   .expected_bg1 = MakeColumnMajorSnapshot(
+                       /*x=*/12, /*y=*/13, /*width=*/6, /*height=*/3,
+                       /*start_tile_id=*/0)});
+  cases.push_back({.name = "Waterfall48",
+                   .object_id = 0x0048,
+                   .size = 0,
+                   .x = 2,
+                   .y = 3,
+                   .layer = RoomObject::LayerType::BG1,
+                   .tile_count = 9,
+                   .expected_bg1 = std::vector<SnapshotTileWrite>{{2, 3, 0},
+                                                                  {2, 4, 1},
+                                                                  {2, 5, 2},
+                                                                  {3, 3, 3},
+                                                                  {3, 4, 4},
+                                                                  {3, 5, 5},
+                                                                  {4, 3, 3},
+                                                                  {4, 4, 4},
+                                                                  {4, 5, 5},
+                                                                  {5, 3, 6},
+                                                                  {5, 4, 7},
+                                                                  {5, 5, 8}}});
+
+  for (const auto& tc : cases) {
+    SCOPED_TRACE(tc.name);
+    auto trace = ReplayObjectTrace(tc.object_id, tc.x, tc.y, tc.size, tc.layer,
+                                   MakeSequentialTiles(tc.tile_count));
+    const auto bg1_trace =
+        FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    ExpectTraceMatchesSnapshot(bg1_trace, tc.expected_bg1);
+
+    const auto bg2_trace =
+        FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+    if (tc.expect_bg2_mirror) {
+      ExpectTraceMatchesSnapshot(bg2_trace, tc.expected_bg1);
+    } else {
+      EXPECT_TRUE(bg2_trace.empty());
+    }
   }
 }
 
