@@ -2,6 +2,7 @@
 
 #include <algorithm>
 
+#include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/tile16_metadata.h"
 
 namespace yaze::zelda3 {
@@ -77,6 +78,41 @@ absl::Status RenderTile16BitmapFromMetadata(
   const auto pixels = RenderTile16PixelsFromMetadata(tile_data, tile8_bitmaps);
   output_bitmap->Create(kTile16Size, kTile16Size, 8, pixels);
   return absl::OkStatus();
+}
+
+int ComputeTile16Count(const gfx::Tilemap* tile16_blockset) {
+  if (!tile16_blockset || !tile16_blockset->atlas.is_active()) {
+    return kNumTile16Individual;
+  }
+
+  const int tiles_per_row =
+      std::max(1, tile16_blockset->atlas.width() / kTile16Size);
+  const int rows = std::max(1, tile16_blockset->atlas.height() / kTile16Size);
+  const int computed = tiles_per_row * rows;
+  return std::clamp(computed, 1, kNumTile16Individual);
+}
+
+void BlitTile16BitmapToAtlas(gfx::Bitmap* destination, int tile_id,
+                             const gfx::Bitmap& source_bitmap) {
+  if (!destination || !destination->is_active() || !source_bitmap.is_active()) {
+    return;
+  }
+
+  const int tiles_per_row = std::max(1, destination->width() / kTile16Size);
+  const int tile_x = (tile_id % tiles_per_row) * kTile16Size;
+  const int tile_y = (tile_id / tiles_per_row) * kTile16Size;
+
+  for (int ty = 0; ty < kTile16Size; ++ty) {
+    for (int tx = 0; tx < kTile16Size; ++tx) {
+      const int src_index = ty * kTile16Size + tx;
+      const int dst_index =
+          (tile_y + ty) * destination->width() + (tile_x + tx);
+      if (src_index < static_cast<int>(source_bitmap.size()) &&
+          dst_index < static_cast<int>(destination->size())) {
+        destination->WriteToPixel(dst_index, source_bitmap.data()[src_index]);
+      }
+    }
+  }
 }
 
 }  // namespace yaze::zelda3
