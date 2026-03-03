@@ -694,6 +694,7 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
   const int quadrant_x = (pos.x >= kTile8Size) ? 1 : 0;
   const int quadrant_y = (pos.y >= kTile8Size) ? 1 : 0;
   const int quadrant_index = quadrant_x + (quadrant_y * 2);
+  active_quadrant_ = std::clamp(quadrant_index, 0, 3);
 
   zelda3::Tile16StampRequest stamp_request;
   stamp_request.current_tile16 = current_tile16_data_;
@@ -1373,6 +1374,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 }
 
 void Tile16Editor::DrawEditorHeader(bool show_debug_info) {
+  active_quadrant_ = std::clamp(active_quadrant_, 0, 3);
+  static constexpr std::array<const char*, 4> kQuadrantLabels = {"TL", "TR",
+                                                                 "BL", "BR"};
   int quadrant_palette_tl = -1;
   int quadrant_palette_tr = -1;
   int quadrant_palette_bl = -1;
@@ -1390,6 +1394,9 @@ void Tile16Editor::DrawEditorHeader(bool show_debug_info) {
   ImGui::TextDisabled("ID: %02X", current_tile16_);
   ImGui::SameLine();
   ImGui::TextDisabled("| Brush Palette: %d", current_palette_);
+  ImGui::SameLine();
+  ImGui::TextDisabled("| Active Quadrant: %s",
+                      kQuadrantLabels[active_quadrant_]);
 
   if (quadrant_palette_tl >= 0) {
     ImGui::SameLine();
@@ -1413,6 +1420,7 @@ void Tile16Editor::DrawEditorHeader(bool show_debug_info) {
     ImGui::TextDisabled(
         "RMB on Tile16 preview samples the source Tile8 + brush palette.");
     ImGui::TextDisabled("Navigation shortcuts: PgUp/PgDn/Home/End + arrows.");
+    ImGui::TextDisabled("Palette: Ctrl+1..8 | Quadrant Focus: 1..4");
     ImGui::EndTooltip();
   }
 
@@ -1594,8 +1602,9 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
           ImGui::Text("Brush Palette %d", i);
           ImGui::TextDisabled("Applied to new tile8 placements");
           ImGui::TextDisabled("RMB: apply to all tile quadrants");
+          ImGui::TextDisabled("Quadrant metadata is shown in strip below");
           ImGui::TextDisabled(
-              "Tile metadata is shown in quadrant buttons below");
+              "Hotkeys: Ctrl+1..8 palette, 1..4 quadrant focus");
           if (is_current) {
             ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), "Active");
           }
@@ -1607,33 +1616,51 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
   ImGui::EndGroup();
 
   if (auto* tile_data = GetCurrentTile16Data(); tile_data != nullptr) {
-    Text("Quadrant Palettes:");
+    active_quadrant_ = std::clamp(active_quadrant_, 0, 3);
+    Text("Quadrant Focus:");
+    SameLine();
+    ImGui::TextDisabled("1-4");
     static constexpr std::array<const char*, 4> kQuadrantLabels = {"TL", "TR",
                                                                    "BL", "BR"};
+    const float quadrant_button_width = std::max(58.0f, button_size + 24.0f);
     for (int q = 0; q < 4; ++q) {
       if (q > 0) {
         SameLine();
       }
 
-      const uint8_t quadrant_palette =
-          TileInfoForQuadrant(*tile_data, q).palette_;
+      const gfx::TileInfo& info = TileInfoForQuadrant(*tile_data, q);
+      const uint8_t quadrant_palette = info.palette_;
+      const bool is_active_quadrant = (active_quadrant_ == q);
       const bool matches_brush = (quadrant_palette == current_palette_);
 
       ImGui::PushID(100 + q);
       gui::StyleColorGuard quadrant_btn_colors(
-          {{ImGuiCol_Button, matches_brush ? ImVec4(0.18f, 0.42f, 0.62f, 1.0f)
-                                           : ImVec4(0.28f, 0.28f, 0.32f, 1.0f)},
-           {ImGuiCol_ButtonHovered, matches_brush
-                                        ? ImVec4(0.22f, 0.50f, 0.72f, 1.0f)
-                                        : ImVec4(0.38f, 0.38f, 0.42f, 1.0f)},
-           {ImGuiCol_ButtonActive, matches_brush
-                                       ? ImVec4(0.14f, 0.34f, 0.52f, 1.0f)
-                                       : ImVec4(0.24f, 0.24f, 0.28f, 1.0f)}});
+          {{ImGuiCol_Button,
+            is_active_quadrant
+                ? ImVec4(0.16f, 0.48f, 0.72f, 1.0f)
+                : (matches_brush ? ImVec4(0.23f, 0.35f, 0.50f, 1.0f)
+                                 : ImVec4(0.28f, 0.28f, 0.32f, 1.0f))},
+           {ImGuiCol_ButtonHovered,
+            is_active_quadrant
+                ? ImVec4(0.20f, 0.56f, 0.82f, 1.0f)
+                : (matches_brush ? ImVec4(0.28f, 0.43f, 0.60f, 1.0f)
+                                 : ImVec4(0.38f, 0.38f, 0.42f, 1.0f))},
+           {ImGuiCol_ButtonActive,
+            is_active_quadrant
+                ? ImVec4(0.12f, 0.40f, 0.62f, 1.0f)
+                : (matches_brush ? ImVec4(0.18f, 0.30f, 0.44f, 1.0f)
+                                 : ImVec4(0.24f, 0.24f, 0.28f, 1.0f))},
+           {ImGuiCol_Border, is_active_quadrant
+                                 ? ImVec4(0.45f, 0.78f, 1.0f, 1.0f)
+                                 : ImVec4(0.4f, 0.4f, 0.4f, 0.4f)}});
+      gui::StyleVarGuard quadrant_btn_border(ImGuiStyleVar_FrameBorderSize,
+                                             is_active_quadrant ? 2.0f : 1.0f);
 
-      if (ImGui::Button(
-              absl::StrFormat("%s:%d", kQuadrantLabels[q], quadrant_palette)
-                  .c_str(),
-              ImVec2(button_size, 0))) {
+      if (ImGui::Button(absl::StrFormat("%d %s:%d", q + 1, kQuadrantLabels[q],
+                                        quadrant_palette)
+                            .c_str(),
+                        ImVec2(quadrant_button_width, 0))) {
+        active_quadrant_ = q;
         if (current_palette_ != quadrant_palette) {
           current_palette_ = quadrant_palette;
           auto status = RefreshAllPalettes();
@@ -1645,21 +1672,45 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
       }
 
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        active_quadrant_ = q;
         RETURN_IF_ERROR(ApplyPaletteToQuadrant(q, current_palette_));
       }
 
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("Quadrant %s palette metadata: %d", kQuadrantLabels[q],
-                    quadrant_palette);
+        ImGui::Text("Quadrant %s metadata", kQuadrantLabels[q]);
+        ImGui::Separator();
+        ImGui::Text("Tile8: %02X", info.id_);
+        ImGui::Text("Palette: %d", quadrant_palette);
+        ImGui::Text("Flip: H:%s V:%s", info.horizontal_mirror_ ? "Y" : "N",
+                    info.vertical_mirror_ ? "Y" : "N");
+        ImGui::Text("Priority: %s", info.over_ ? "Y" : "N");
         ImGui::TextDisabled("LMB: set brush palette from this quadrant");
         ImGui::TextDisabled(
             "RMB: apply current brush palette to this quadrant");
+        ImGui::TextDisabled("Keys 1..4: focus TL/TR/BL/BR");
         ImGui::EndTooltip();
       }
 
       ImGui::PopID();
     }
+
+    const gfx::TileInfo& active_info =
+        TileInfoForQuadrant(*tile_data, active_quadrant_);
+    ImGui::TextDisabled("Active %s: Tile8 %02X | P%d | H:%s V:%s | Pri:%s",
+                        kQuadrantLabels[active_quadrant_], active_info.id_,
+                        active_info.palette_,
+                        active_info.horizontal_mirror_ ? "Y" : "N",
+                        active_info.vertical_mirror_ ? "Y" : "N",
+                        active_info.over_ ? "Y" : "N");
+
+    if (Button("Apply Brush to Active Quadrant", ImVec2(-1, 0))) {
+      RETURN_IF_ERROR(
+          ApplyPaletteToQuadrant(active_quadrant_, current_palette_));
+    }
+    HOVER_HINT(
+        "Copy the Brush Palette into the selected quadrant metadata.\n"
+        "Use keys 1..4 to change active quadrant quickly.");
   }
 
   // Copy the current brush palette into all stored quadrant palette fields.
@@ -2774,6 +2825,7 @@ absl::Status Tile16Editor::PickTile8FromTile16(const ImVec2& position) {
   int quad_x = (position.x < 8) ? 0 : 1;  // Left or right half
   int quad_y = (position.y < 8) ? 0 : 1;  // Top or bottom half
   int quadrant = quad_x + (quad_y * 2);   // 0=TL, 1=TR, 2=BL, 3=BR
+  active_quadrant_ = std::clamp(quadrant, 0, 3);
 
   // Get the tile16 data structure
   auto* tile16_data = GetCurrentTile16Data();
@@ -2781,22 +2833,8 @@ absl::Status Tile16Editor::PickTile8FromTile16(const ImVec2& position) {
     return absl::FailedPreconditionError("Failed to get tile16 data");
   }
 
-  // Extract the tile8 ID from the appropriate quadrant
-  gfx::TileInfo tile_info;
-  switch (quadrant) {
-    case 0:
-      tile_info = tile16_data->tile0_;
-      break;  // Top-left
-    case 1:
-      tile_info = tile16_data->tile1_;
-      break;  // Top-right
-    case 2:
-      tile_info = tile16_data->tile2_;
-      break;  // Bottom-left
-    case 3:
-      tile_info = tile16_data->tile3_;
-      break;  // Bottom-right
-  }
+  // Extract tile metadata from the clicked quadrant.
+  gfx::TileInfo tile_info = TileInfoForQuadrant(*tile16_data, quadrant);
 
   // Set the current tile8 and palette
   current_tile8_ = tile_info.id_;
@@ -3744,16 +3782,24 @@ void Tile16Editor::HandleKeyboardShortcuts() {
       status_ = CyclePalette(true);
     }
 
-    // Palette number shortcuts (1-8) - just set and refresh, don't cycle
-    for (int i = 0; i < 8; ++i) {
-      if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_1 + i))) {
-        current_palette_ = i;
-        status_ = RefreshAllPalettes();
+    // Quadrant focus hotkeys (1-4).
+    if (!ctrl_held) {
+      for (int q = 0; q < 4; ++q) {
+        if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_1 + q))) {
+          active_quadrant_ = q;
+        }
       }
     }
 
     // Ctrl-modified shortcuts
     if (ctrl_held) {
+      // Palette shortcuts moved to Ctrl+1..8 so plain 1..4 can focus quadrants.
+      for (int i = 0; i < 8; ++i) {
+        if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_1 + i))) {
+          current_palette_ = i;
+          status_ = RefreshAllPalettes();
+        }
+      }
       if (ImGui::IsKeyPressed(ImGuiKey_Z)) {
         status_ = Undo();
       }

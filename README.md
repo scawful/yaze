@@ -33,7 +33,9 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 
 ## Project Status
 
-v0.6.2 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
+v0.7.0 is the current release. See [`CHANGELOG.md`](CHANGELOG.md) for details.
+
+**v0.7.0 headline features:** iOS Remote Control (Bonjour discovery, remote room viewer, command runner, annotation review), Themed Widget System (consistent styled tab bars across editors), and Desktop HTTP API Expansion (command execution and catalog endpoints, annotation CRUD).
 
 | Component | Status | Notes |
 |-----------|--------|-------|

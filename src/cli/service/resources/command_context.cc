@@ -27,9 +27,42 @@ namespace resources {
 
 namespace {
 
+constexpr int kTrackCustomObjectId = 0x31;
+
 bool ProjectUsesCustomObjects(const project::YazeProject& project) {
   return !project.custom_objects_folder.empty() ||
          !project.custom_object_files.empty();
+}
+
+bool SeedLegacyTrackObjectMapping(project::YazeProject* project,
+                                  std::string* warning) {
+  if (project == nullptr) {
+    return false;
+  }
+  if (project->custom_objects_folder.empty()) {
+    return false;
+  }
+  if (project->custom_object_files.find(kTrackCustomObjectId) !=
+      project->custom_object_files.end()) {
+    return false;
+  }
+
+  const auto& defaults =
+      zelda3::CustomObjectManager::DefaultSubtypeFilenamesForObject(
+          kTrackCustomObjectId);
+  if (defaults.empty()) {
+    return false;
+  }
+
+  project->custom_object_files[kTrackCustomObjectId] = defaults;
+  if (warning != nullptr) {
+    *warning = absl::StrFormat(
+        "project context defines custom_objects_folder but is missing "
+        "custom_object_files[0x%02X]. Seeded default mapping (%d entries); "
+        "save project to persist.",
+        kTrackCustomObjectId, static_cast<int>(defaults.size()));
+  }
+  return true;
 }
 
 }  // namespace
@@ -191,6 +224,11 @@ absl::Status CommandContext::ApplyProjectRuntimeContext() {
           << "Warning: project context has custom object data but "
              "kEnableCustomObjects was disabled. Enabling for this command.\n";
     }
+  }
+  std::string legacy_mapping_warning;
+  if (SeedLegacyTrackObjectMapping(&project, &legacy_mapping_warning) &&
+      config_.verbose) {
+    std::cerr << "Warning: " << legacy_mapping_warning << '\n';
   }
 
   loaded_project_ = std::move(project);

@@ -166,21 +166,26 @@ TEST(ObjectTileEditorTest, CustomObjectRoundtrip) {
   std::filesystem::remove_all(temp_base);
 }
 
-TEST(ObjectTileEditorTest, CaptureLayoutForCornerAliasResolvesCustomFilename) {
+TEST(ObjectTileEditorTest,
+     CaptureLayoutForCornerAliasResolvesCustomFilenameWithExplicitTrackMap) {
   const bool old_custom_objects_flag =
       core::FeatureFlags::get().kEnableCustomObjects;
+  const auto old_custom_object_state =
+      CustomObjectManager::Get().SnapshotState();
   core::FeatureFlags::get().kEnableCustomObjects = true;
 
   std::string temp_base = "/tmp/yaze_test_corner_alias_capture";
   std::filesystem::create_directories(temp_base);
   struct Cleanup {
     bool old_custom_objects_flag;
+    CustomObjectManager::State old_custom_object_state;
     std::string temp_base;
     ~Cleanup() {
       core::FeatureFlags::get().kEnableCustomObjects = old_custom_objects_flag;
+      CustomObjectManager::Get().RestoreState(old_custom_object_state);
       std::filesystem::remove_all(temp_base);
     }
-  } cleanup{old_custom_objects_flag, temp_base};
+  } cleanup{old_custom_objects_flag, old_custom_object_state, temp_base};
 
   auto write_one_tile_object = [&](const std::string& filename) {
     std::ofstream file(std::filesystem::path(temp_base) / filename,
@@ -196,6 +201,11 @@ TEST(ObjectTileEditorTest, CaptureLayoutForCornerAliasResolvesCustomFilename) {
   write_one_tile_object("track_corner_TL.bin");
 
   CustomObjectManager::Get().Initialize(temp_base);
+  CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31,
+        {"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
+         "track_corner_TR.bin", "track_corner_BL.bin",
+         "track_corner_BR.bin"}}});
 
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -209,6 +219,53 @@ TEST(ObjectTileEditorTest, CaptureLayoutForCornerAliasResolvesCustomFilename) {
   ASSERT_TRUE(layout_or.ok());
   EXPECT_TRUE(layout_or->is_custom);
   EXPECT_EQ(layout_or->custom_filename, "track_corner_TL.bin");
+}
+
+TEST(ObjectTileEditorTest,
+     CaptureLayoutForCornerAliasWithoutTrackMapStaysVanilla) {
+  const bool old_custom_objects_flag =
+      core::FeatureFlags::get().kEnableCustomObjects;
+  const auto old_custom_object_state =
+      CustomObjectManager::Get().SnapshotState();
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+
+  std::string temp_base = "/tmp/yaze_test_corner_alias_capture_no_map";
+  std::filesystem::create_directories(temp_base);
+  struct Cleanup {
+    bool old_custom_objects_flag;
+    CustomObjectManager::State old_custom_object_state;
+    std::string temp_base;
+    ~Cleanup() {
+      core::FeatureFlags::get().kEnableCustomObjects = old_custom_objects_flag;
+      CustomObjectManager::Get().RestoreState(old_custom_object_state);
+      std::filesystem::remove_all(temp_base);
+    }
+  } cleanup{old_custom_objects_flag, old_custom_object_state, temp_base};
+
+  std::ofstream file(std::filesystem::path(temp_base) / "track_corner_TL.bin",
+                     std::ios::binary);
+  const std::vector<uint8_t> data = {
+      0x01, 0x00,  // count=1, jump=0
+      0x11, 0x11,  // tile word
+      0x00, 0x00   // terminator
+  };
+  file.write(reinterpret_cast<const char*>(data.data()), data.size());
+
+  CustomObjectManager::Get().Initialize(temp_base);
+  CustomObjectManager::Get().ClearObjectFileMap();
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+
+  auto layout_or =
+      editor.CaptureObjectLayout(/*object_id=*/0x100, room, palette);
+  ASSERT_TRUE(layout_or.ok());
+  EXPECT_FALSE(layout_or->is_custom);
+  EXPECT_TRUE(layout_or->custom_filename.empty());
 }
 
 }  // namespace
