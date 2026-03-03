@@ -193,6 +193,8 @@ class DungeonEditorV2 : public Editor {
   void SetWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
   // Queue a workflow mode change to run at a safe point in the next update.
   void QueueWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
+  // Queue a mode flip (Workbench <-> Standalone) for next update.
+  void ToggleWorkbenchWorkflowMode(bool show_toast = true);
   bool IsWorkbenchWorkflowEnabled() const;
 
   // Panel card IDs for programmatic access

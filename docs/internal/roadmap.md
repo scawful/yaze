@@ -20,6 +20,8 @@ for the detailed task breakdown and agent assignments.
 - P1 completed: Overworld usage statistics card data wiring
 - P1 completed: Overworld item deletion now physically removes entries
 - P1 completed: Dungeon usage visualization grid
+- P1 in progress: Dungeon workbench/panel workflow polish + overworld item
+  iteration UX (nearest reselection landed; list/filter + duplicate/nudge next)
 - P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
 
 Four parallel workstreams continue from the 0.6.x cycle.
@@ -39,6 +41,8 @@ for reliable ROM hacking. ZScream is the stability benchmark.
   (negative-offset clipped cases intentionally excluded from the sweep harness).
 - ✅ Corner alias override guardrails now keep vanilla `0x100..0x103` wall
   corners on the USDASM path unless an explicit custom `0x31` mapping is present
+- ✅ Workbench workflow toggle (`Ctrl+Shift+W`) now flips between integrated
+  workbench and standalone panel mode via deferred safe-mode switching
 - 🟡 **Object tile count fallback**: parser uses object-specific counts for known
   IDs but still falls back to 8 for uncataloged cases; continue ROM-trace audits
   for rare objects.
@@ -59,8 +63,11 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ Usage statistics card now uses real overworld map data (no placeholder zeros)
 - 🟡 Overworld sprite workflow incomplete
 - ✅ Item deletion now removes entries from `all_items` (with operation tests)
+- ✅ Item delete flow now auto-selects nearest surviving item (same-map first)
+  to keep inspector/edit iteration continuous
 - 🟡 Tile16 UX flow still needs parity polish (mode clarity, quadrant focus, sticky staged-commit actions)
-- 🟡 Overworld item workflow needs faster iteration UX (list/filter pane, post-delete reselection, duplicate/nudge shortcuts)
+- 🟡 Overworld item workflow needs faster iteration UX (list/filter pane,
+  duplicate/nudge shortcuts)
 - 🟡 Export file dialog not implemented
 - 🟡 **Persistent scratch pad**: ZScream saves `ScratchPad.dat`; yaze scratch is session-only
 - 🟡 **Eyedropper tool**: no dedicated tool/shortcut (ZScream has right-click sampling)
@@ -226,6 +233,10 @@ Mobile testing and review companion for desktop development.
 - Screen editor dungeon-map undo/redo with snapshot-based actions
 - Overworld usage statistics card data wiring
 - Overworld item deletion now physically removes entries (plus unit coverage)
+- Overworld item delete flow now reselects nearest surviving item for faster
+  edit iteration
+- Dungeon workbench workflow toggle shortcut (`Ctrl+Shift+W`) with deferred
+  safe mode switching
 - 6-phase refactoring complete (EditorManager split, OverworldEditor decomposition)
 - Desktop BPS export/import completed (menu actions + BPS utility/tests)
 

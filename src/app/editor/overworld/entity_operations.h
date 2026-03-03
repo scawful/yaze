@@ -129,6 +129,21 @@ absl::Status RemoveItemByIdentity(zelda3::Overworld* overworld,
                                   const zelda3::OverworldItem& item_identity);
 
 /**
+ * @brief Find the best next item to keep selection continuity after deletion.
+ *
+ * Selection preference:
+ * 1) Remaining items on the same map as the deleted anchor item
+ * 2) Smallest world-space distance to the anchor position
+ * 3) Stable first-match order as tie-breaker
+ *
+ * @param overworld Overworld data containing the all_items array
+ * @param anchor_identity Snapshot of the deleted item's identity/position
+ * @return Pointer to the best candidate in `all_items`, or nullptr if none
+ */
+zelda3::OverworldItem* FindNearestItemForSelection(
+    zelda3::Overworld* overworld, const zelda3::OverworldItem& anchor_identity);
+
+/**
  * @brief Helper to get parent map ID for multi-area maps
  *
  * Returns the parent map ID, handling the case where a map is its own parent.

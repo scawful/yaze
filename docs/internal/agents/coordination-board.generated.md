@@ -1,10 +1,13 @@
 # Coordination Snapshot (Generated)
 
-- Generated: `2026-02-26T04:39:16Z`
+- Generated: `2026-03-03T08:22:33Z`
 - Source: `~/.context/agent-universe/state.json`
 - Project Key: `Users:scawful:src:hobby:yaze`
 
 ## Active
+- `task_20260303T082212Z_22993` [A] 0.7.0 Tile16 explicit edit modes + sticky staged action rail (assignee: `CODEX`, updated: `2026-03-03T08:22:30Z`)
+- `task_20260303T082212Z_5320` [A] 0.7.0 Overworld item iteration UX (list/filter + duplicate/nudge) (assignee: `CODEX`, updated: `2026-03-03T08:22:19Z`)
+- `task_20260303T082212Z_12941` [A] 0.7.0 Dungeon workbench/panel flow polish (status badge + return affordance) (assignee: `CODEX`, updated: `2026-03-03T08:22:19Z`)
 - `task_20260225T032329Z_28215` [A] AFS+z3dk model infra phase1-2 bootstrap (asar eval, z3dk refs, dataset builder) (assignee: `ai-infra-architect`, updated: `2026-02-25T03:23:33Z`)
 - `task_20260225T031729Z_382` [A] AI provider matrix + training/integration plan for Claude/OpenAI/Gemini/custom (assignee: `ai-infra-architect`, updated: `2026-02-25T03:17:33Z`)
 - `task_20260224T210424Z_17502` [B] Create refactoring handoff document (assignee: `ai-infra-architect`, updated: `2026-02-24T22:26:22Z`)
@@ -28,6 +31,10 @@
 - `import_20251123_0133_v0_3_9_release_rerun` [B] v0.3.9 release rerun (assignee: `CODEX`, updated: `2025-11-23T00:00:00Z`)
 
 ## Open
+- `task_20260303T082212Z_10810` [A] 0.7.0 USDASM parity harness expansion for dungeon object overrides (assignee: `CODEX`, updated: `2026-03-03T08:22:12Z`)
+- `task_20260301T233636Z_31719` [B] [B] Tile16 refactor: add reusable tile-usage index service for editor overlays (assignee: `unassigned`, updated: `2026-03-01T23:36:36Z`)
+- `task_20260301T233636Z_12235` [B] [A] Tile16 refactor: centralize ALTTP palette-row mapping docs + tests (assignee: `unassigned`, updated: `2026-03-01T23:36:36Z`)
+- `task_20260301T233635Z_18372` [B] [A] Tile16 refactor: extract metadata->bitmap renderer into zelda3 namespace utility (assignee: `unassigned`, updated: `2026-03-01T23:36:35Z`)
 - `task_20260226T043912Z_9206` [B] GM-004: Enforce savestate freshness/scenario validation for Goron Mines live smoke (assignee: `ai-infra-architect`, updated: `2026-02-26T04:39:12Z`)
 - `task_20260226T043912Z_5419` [A] GM-001: Fix minecart track-collision footprint undercount in CLI (assignee: `ai-infra-architect`, updated: `2026-02-26T04:39:12Z`)
 - `task_20260226T043912Z_25422` [C] GM-007: Add object-level room inspection output for minecart debug in CLI (assignee: `ai-infra-architect`, updated: `2026-02-26T04:39:12Z`)
@@ -49,6 +56,12 @@
 - `import_20251126_0123_menu_bar_right_panel_ui_ux_overhaul` [B] Menu Bar & Right Panel UI/UX Overhaul (assignee: `ui-architect`, updated: `2025-11-26T00:00:00Z`)
 
 ## Recently Completed
+- `task_20260301T231320Z_11301` [B] Tile16 UX parity: right-click tile8 reverse-usage highlight overlay in blockset (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:35:49Z`)
+- `task_20260301T231316Z_10384` [B] Tile16 UX parity: add stamp draw sizes (1x/2x/4x) for tile8 painting (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:35:49Z`)
+- `task_20260301T231325Z_3675` [C] Tile16 UX: clarify palette controls labels (Brush Palette vs Tile Palette) (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:23:49Z`)
+- `task_20260301T231313Z_6087` [B] Tile16 UX: make tile-switch unsaved dialog non-destructive by default (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:22:05Z`)
+- `task_20260301T231310Z_18865` [A] Tile16 UX: add sticky state bar for pending count and primary actions (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:22:05Z`)
+- `task_20260301T231307Z_12836` [A] Tile16 UX: unify staged/apply/write semantics across all entry points (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:21:39Z`)
 - `task_20260225T211943Z_29730` [A] Integrate pending dungeon graph command edits (assignee: `zelda3-hacking-expert`, updated: `2026-02-25T21:24:55Z`)
 - `task_20260224T220223Z_29884` [B] Document yaze capability assessment + competitor parity matrix (assignee: `docs-janitor`, updated: `2026-02-24T22:04:38Z`)
 - `task_20260224T210824Z_28339` [B] Docs cleanup: remove outdated docs, simplify navigation (assignee: `docs-janitor`, updated: `2026-02-24T21:18:17Z`)
@@ -63,9 +76,3 @@
 - `task_20260224T160119Z_31494` [B] UI/UX polish: door placement clarity + tile filter feedback (assignee: `imgui-frontend-engineer`, updated: `2026-02-24T16:09:34Z`)
 - `task_20260224T134231Z_20647` [B] 0.6.1 release gate: safety fix + CI checks + evidence automation (assignee: `ai-infra-architect`, updated: `2026-02-24T13:53:47Z`)
 - `task_20260224T132551Z_5707` [B] Unpack safe cleanup + --keep-partial-output flag (assignee: `ai-infra-architect`, updated: `2026-02-24T13:29:54Z`)
-- `task_20260224T125636Z_26840` [B] 0.6.1 follow-ups: limits tests, enum cleanup, Oracle header extraction (assignee: `ai-infra-architect`, updated: `2026-02-24T13:04:26Z`)
-- `task_20260224T121324Z_30554` [B] 0.6.1 refactor: unify project format, harden bundle archive, dedup backup, centralize limits (assignee: `ai-infra-architect`, updated: `2026-02-24T12:27:24Z`)
-- `task_20260224T120307Z_8807` [B] Add semantic protocol checks to protocol-audit.sh (assignee: `ai-infra-architect`, updated: `2026-02-24T12:04:13Z`)
-- `task_20260224T111726Z_29333` [B] Protocol compliance verification run (assignee: `ai-infra-architect`, updated: `2026-02-24T11:17:49Z`)
-- `import_20260224_0007_ci_infra_hardening_pass` [B] CI/Infra Hardening Pass (assignee: `ai-infra-architect`, updated: `2026-02-24T00:00:00Z`)
-- `import_20260224_0006_p1_03_project_bundle_pack_unpack_cli_commands` [B] P1-03: project-bundle-pack/unpack CLI Commands (assignee: `ai-infra-architect`, updated: `2026-02-24T00:00:00Z`)

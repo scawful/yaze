@@ -102,6 +102,48 @@ TEST_F(OverworldItemOperationsTest,
 }
 
 TEST_F(OverworldItemOperationsTest,
+       FindNearestItemForSelectionPrefersSameMapCandidates) {
+  auto* items = overworld_->mutable_all_items();
+  items->emplace_back(0x10, 0x01, 24, 24, false);    // Different map, closer
+  items->emplace_back(0x20, 0x00, 320, 320, false);  // Same map, farther
+  items->emplace_back(0x30, 0x00, 40, 48, false);    // Same map, nearest
+
+  zelda3::OverworldItem deleted_anchor(0x44, 0x00, 16, 16, false);
+  auto* selected =
+      FindNearestItemForSelection(overworld_.get(), deleted_anchor);
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->id_, 0x30);
+  EXPECT_EQ(selected->room_map_id_, 0x00);
+}
+
+TEST_F(OverworldItemOperationsTest,
+       FindNearestItemForSelectionFallsBackToClosestCrossMap) {
+  auto* items = overworld_->mutable_all_items();
+  items->emplace_back(0x10, 0x02, 300, 300, false);
+  items->emplace_back(0x20, 0x03, 48, 48, false);
+
+  zelda3::OverworldItem deleted_anchor(0x44, 0x00, 16, 16, false);
+  auto* selected =
+      FindNearestItemForSelection(overworld_.get(), deleted_anchor);
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->id_, 0x20);
+  EXPECT_EQ(selected->room_map_id_, 0x03);
+}
+
+TEST_F(OverworldItemOperationsTest,
+       FindNearestItemForSelectionSkipsDeletedAndHandlesEmpty) {
+  zelda3::OverworldItem deleted_anchor(0x44, 0x00, 16, 16, false);
+  EXPECT_EQ(FindNearestItemForSelection(overworld_.get(), deleted_anchor),
+            nullptr);
+
+  auto* items = overworld_->mutable_all_items();
+  items->emplace_back(0x10, 0x00, 32, 32, false);
+  items->back().deleted = true;
+  EXPECT_EQ(FindNearestItemForSelection(overworld_.get(), deleted_anchor),
+            nullptr);
+}
+
+TEST_F(OverworldItemOperationsTest,
        IdentityDeleteProtectsAgainstStaleSelectionDoubleDelete) {
   auto* items = overworld_->mutable_all_items();
   items->emplace_back(0x10, 0x00, 16, 16, false);
