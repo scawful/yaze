@@ -24,6 +24,7 @@
 #include "util/macro.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/tile16_metadata.h"
 #include "zelda3/overworld/tile16_renderer.h"
 #include "zelda3/overworld/tile16_usage_index.h"
 
@@ -53,40 +54,16 @@ gfx::SnesPalette BuildFallbackDisplayPalette() {
 }
 
 gfx::TileInfo& TileInfoForQuadrant(gfx::Tile16* tile, int quadrant) {
-  switch (quadrant) {
-    case 0:
-      return tile->tile0_;
-    case 1:
-      return tile->tile1_;
-    case 2:
-      return tile->tile2_;
-    default:
-      return tile->tile3_;
-  }
+  return zelda3::MutableTile16QuadrantInfo(*tile, quadrant);
 }
 
 const gfx::TileInfo& TileInfoForQuadrant(const gfx::Tile16& tile,
                                          int quadrant) {
-  switch (quadrant) {
-    case 0:
-      return tile.tile0_;
-    case 1:
-      return tile.tile1_;
-    case 2:
-      return tile.tile2_;
-    default:
-      return tile.tile3_;
-  }
+  return zelda3::Tile16QuadrantInfo(tile, quadrant);
 }
 
 void SyncTilesInfoArray(gfx::Tile16* tile) {
-  if (!tile) {
-    return;
-  }
-  tile->tiles_info[0] = tile->tile0_;
-  tile->tiles_info[1] = tile->tile1_;
-  tile->tiles_info[2] = tile->tile2_;
-  tile->tiles_info[3] = tile->tile3_;
+  zelda3::SyncTile16TilesInfo(tile);
 }
 
 gfx::TileInfo HorizontalFlipInfo(gfx::TileInfo info) {
@@ -2461,13 +2438,7 @@ absl::Status Tile16Editor::ApplyPaletteToAll(uint8_t palette_id) {
   }
 
   SaveUndoState();
-
-  // Set all 4 quadrant TileInfo palette fields
-  tile_data->tile0_.palette_ = palette_id;
-  tile_data->tile1_.palette_ = palette_id;
-  tile_data->tile2_.palette_ = palette_id;
-  tile_data->tile3_.palette_ = palette_id;
-  SyncTilesInfoArray(tile_data);
+  zelda3::SetTile16AllQuadrantPalettes(tile_data, palette_id);
 
   // Update current palette to match
   current_palette_ = palette_id;
@@ -2504,8 +2475,9 @@ absl::Status Tile16Editor::ApplyPaletteToQuadrant(int quadrant,
   }
 
   SaveUndoState();
-  TileInfoForQuadrant(tile_data, quadrant).palette_ = palette_id;
-  SyncTilesInfoArray(tile_data);
+  if (!zelda3::SetTile16QuadrantPalette(tile_data, quadrant, palette_id)) {
+    return absl::InvalidArgumentError("Invalid quadrant index");
+  }
   current_palette_ = palette_id;
 
   RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
