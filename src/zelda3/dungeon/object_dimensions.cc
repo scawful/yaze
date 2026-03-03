@@ -364,6 +364,11 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
       bounds.offset_x = 12;
       break;
 
+    // Downwards solid +3 writes from y+3 to y+(size+6).
+    case 0x71:
+      bounds.offset_y = 3;
+      break;
+
     // Moving wall east draws from x to x-2
     case 0xCE:
       bounds.offset_x = -2;
@@ -537,20 +542,20 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x4B: Decor 2x2 spaced 12 - spacing 14 tiles
   dimensions_[0x4B] = {2, 2, Dir::Horizontal, 14, false};
 
-  // 0x4C: Bar 4x3 - spacing 6 tiles
-  dimensions_[0x4C] = {4, 3, Dir::Horizontal, 2, false};
+  // 0x4C: Bar 4x3 - count=(size+1), step=4
+  dimensions_[0x4C] = {4, 3, Dir::Horizontal, 4, false};
 
-  // 0x4D-0x4F: Shelf 4x4 - spacing 6 tiles
+  // 0x4D-0x4F: Shelf 4x4 - count=(size+1), step=4
   for (int id = 0x4D; id <= 0x4F; id++) {
-    dimensions_[id] = {4, 4, Dir::Horizontal, 6, false};
+    dimensions_[id] = {4, 4, Dir::Horizontal, 4, false};
   }
 
   // 0x50: Line 1x1 +1 (count = size + 2)
   dimensions_[0x50] = {2, 1, Dir::Horizontal, 1, false};
 
-  // 0x51-0x52: Cannon Hole 4x3 - GetSize_1to16
+  // 0x51-0x52: Cannon Hole 4x3 (left segment repeats by 2 tiles, right cap once)
   for (int id = 0x51; id <= 0x52; id++) {
-    dimensions_[id] = {4, 3, Dir::Horizontal, 4, false};
+    dimensions_[id] = {4, 3, Dir::Horizontal, 2, false};
   }
 
   // 0x53: Floor 2x2 - GetSize_1to16
@@ -565,9 +570,9 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {1, 8, Dir::Horizontal, 12, false};
   }
 
-  // 0x5B-0x5C: Cannon Hole 4x3
+  // 0x5B-0x5C: Cannon Hole 4x3 (same as 0x51-0x52)
   for (int id = 0x5B; id <= 0x5C; id++) {
-    dimensions_[id] = {4, 3, Dir::Horizontal, 4, false};
+    dimensions_[id] = {4, 3, Dir::Horizontal, 2, false};
   }
 
   // 0x5D: Big Rail 1x3 +5 (count = size + 6)
@@ -661,9 +666,9 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x7E: Nothing
   dimensions_[0x7E] = {1, 1, Dir::None, 0, false};
 
-  // 0x7F-0x80: Downwards Decor 2x4 spaced 8
+  // 0x7F-0x80: Downwards Decor 2x4 spaced 8 (12-tile step)
   for (int id = 0x7F; id <= 0x80; id++) {
-    dimensions_[id] = {2, 4, Dir::Vertical, 10, false};
+    dimensions_[id] = {2, 4, Dir::Vertical, 12, false};
   }
 
   // 0x81-0x84: Downwards Decor 3x4 spaced 2 (6-tile spacing)
@@ -671,9 +676,9 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {3, 4, Dir::Vertical, 6, false};
   }
 
-  // 0x85-0x86: Downwards Cannon Hole 3x6
+  // 0x85-0x86: Downwards Cannon Hole 3x4 (height = 2*(size+2))
   for (int id = 0x85; id <= 0x86; id++) {
-    dimensions_[id] = {3, 6, Dir::Vertical, 6, false};
+    dimensions_[id] = {3, 4, Dir::Vertical, 2, false};
   }
 
   // 0x87: Downwards Pillar 2x4 spaced 2
@@ -695,8 +700,8 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {1, 1, Dir::Vertical, 1, false};
   }
 
-  // 0x8F: Downwards Bar 2x3
-  dimensions_[0x8F] = {2, 3, Dir::Vertical, 3, false};
+  // 0x8F: Downwards Bar 2x5 (height = (2*size)+5)
+  dimensions_[0x8F] = {2, 5, Dir::Vertical, 2, false};
 
   // 0x90-0x91: Downwards 4x2 - GetSize_1to15or26
   for (int id = 0x90; id <= 0x91; id++) {
@@ -727,19 +732,19 @@ void ObjectDimensionTable::InitializeDefaults() {
   // ASM: These have fixed patterns, count = (size & 0x0F) + 4
   // TopLeft: 0xA0, 0xA5, 0xA9
   for (int id : {0xA0, 0xA5, 0xA9}) {
-    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
   }
   // BottomLeft: 0xA1, 0xA6, 0xAA
   for (int id : {0xA1, 0xA6, 0xAA}) {
-    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
   }
   // TopRight: 0xA2, 0xA7, 0xAB
   for (int id : {0xA2, 0xA7, 0xAB}) {
-    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
   }
   // BottomRight: 0xA3, 0xA8, 0xAC
   for (int id : {0xA3, 0xA8, 0xAC}) {
-    dimensions_[id] = {4, 8, Dir::Diagonal, 1, false};
+    dimensions_[id] = {4, 4, Dir::Diagonal, 1, false};
   }
   // BigHole4x4: 0xA4 - extends both directions
   dimensions_[0xA4] = {4, 4, Dir::Both, 1, false};
