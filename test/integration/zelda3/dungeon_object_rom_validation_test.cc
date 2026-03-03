@@ -50,7 +50,8 @@ class DungeonObjectRomValidationTest : public ::testing::Test {
 // Subtype 1 Object Tile Pointer Validation
 // ============================================================================
 
-TEST_F(DungeonObjectRomValidationTest, Subtype1TilePointerTable_ValidAddresses) {
+TEST_F(DungeonObjectRomValidationTest,
+       Subtype1TilePointerTable_ValidAddresses) {
   // The subtype 1 tile pointer table is at kRoomObjectSubtype1 (0x8000)
   // Each entry is 2 bytes pointing to tile data offset from 0x1B52
 
@@ -88,11 +89,13 @@ TEST_F(DungeonObjectRomValidationTest, Subtype1TilePointerTable_Object0x00) {
   // Object 0x00 offset should be within reasonable bounds
   // The ROM stores offset 984 (0x03D8) for Object 0x00
   EXPECT_GT(offset, 0) << "Object 0x00 should have non-zero tile pointer";
-  EXPECT_LT(offset, 0x4000) << "Object 0x00 tile pointer should be in valid range";
+  EXPECT_LT(offset, 0x4000)
+      << "Object 0x00 tile pointer should be in valid range";
 
   // Read first tile at that address
   int tile_addr = kTileDataBase + offset;
-  uint16_t first_tile = rom_->data()[tile_addr] | (rom_->data()[tile_addr + 1] << 8);
+  uint16_t first_tile =
+      rom_->data()[tile_addr] | (rom_->data()[tile_addr + 1] << 8);
 
   // Should have valid tile info (non-zero)
   EXPECT_NE(first_tile, 0) << "Object 0x00 should have valid tile data";
@@ -124,7 +127,7 @@ TEST_F(DungeonObjectRomValidationTest, TileCountTable_KnownValues) {
       {0x00, 4, "Floor object"},
       {0x01, 8, "Wall rightwards 2x4"},
       {0x10, 5, "Diagonal wall acute"},
-      {0x21, 9, "Edge rightwards 1x2+2"},  // kSubtype1TileLengths[0x21] = 9
+      {0x21, 9, "Edge rightwards 1x2+2"},     // kSubtype1TileLengths[0x21] = 9
       {0x22, 3, "Edge rightwards has edge"},  // 3 tiles
       {0x34, 1, "Solid 1x1 block"},
       {0x33, 16, "4x4 block"},  // kSubtype1TileLengths[0x33] = 16
@@ -132,12 +135,13 @@ TEST_F(DungeonObjectRomValidationTest, TileCountTable_KnownValues) {
 
   for (const auto& test : tests) {
     auto info = parser.GetObjectSubtype(test.object_id);
-    ASSERT_TRUE(info.ok()) << "Failed to get subtype for 0x" << std::hex << test.object_id;
+    ASSERT_TRUE(info.ok()) << "Failed to get subtype for 0x" << std::hex
+                           << test.object_id;
 
     EXPECT_EQ(info->max_tile_count, test.expected_tiles)
         << test.description << " (0x" << std::hex << test.object_id << ")"
-        << " expected " << std::dec << test.expected_tiles
-        << " tiles, got " << info->max_tile_count;
+        << " expected " << std::dec << test.expected_tiles << " tiles, got "
+        << info->max_tile_count;
   }
 }
 
@@ -155,16 +159,14 @@ TEST_F(DungeonObjectRomValidationTest, ObjectDecoding_Type1_TileDataLoads) {
       << "Object 0x10 should have tiles loaded from ROM";
 
   // Diagonal walls (0x10) should have 5 tiles
-  EXPECT_EQ(obj.tiles().size(), 5)
-      << "Object 0x10 should have exactly 5 tiles";
+  EXPECT_EQ(obj.tiles().size(), 5) << "Object 0x10 should have exactly 5 tiles";
 
   // Verify tiles have valid IDs (non-zero, within range)
   for (size_t i = 0; i < obj.tiles().size(); ++i) {
     const auto& tile = obj.tiles()[i];
     EXPECT_LT(tile.id_, 1024)
         << "Tile " << i << " ID should be within valid range";
-    EXPECT_LT(tile.palette_, 8)
-        << "Tile " << i << " palette should be 0-7";
+    EXPECT_LT(tile.palette_, 8) << "Tile " << i << " palette should be 0-7";
   }
 }
 
@@ -181,7 +183,8 @@ TEST_F(DungeonObjectRomValidationTest, ObjectDecoding_Type2_TileDataLoads) {
 
 TEST_F(DungeonObjectRomValidationTest, ObjectDecoding_Type3_TileDataLoads) {
   // Create a Type 3 object (0xF80-0xFFF range)
-  zelda3::RoomObject obj(0xF80, 5, 5, 0, 0);  // First Type 3 object (Water Face)
+  zelda3::RoomObject obj(0xF80, 5, 5, 0,
+                         0);  // First Type 3 object (Water Face)
   obj.SetRom(rom_.get());
   obj.EnsureTilesLoaded();
 
@@ -194,31 +197,138 @@ TEST_F(DungeonObjectRomValidationTest, ObjectDecoding_Type3_TileDataLoads) {
 // Draw Routine Mapping Validation
 // ============================================================================
 
-TEST_F(DungeonObjectRomValidationTest, DrawRoutineMapping_AllType1ObjectsHaveRoutines) {
+TEST_F(DungeonObjectRomValidationTest,
+       DrawRoutineMapping_AllType1ObjectsHaveRoutines) {
   zelda3::ObjectDrawer drawer(rom_.get(), 0);
 
   // All Type 1 objects (0x00-0xF7) should have valid draw routines
   for (int id = 0x00; id <= 0xF7; ++id) {
     int routine = drawer.GetDrawRoutineId(id);
-    EXPECT_GE(routine, 0)
-        << "Object 0x" << std::hex << id << " should have a valid draw routine";
+    EXPECT_GE(routine, 0) << "Object 0x" << std::hex << id
+                          << " should have a valid draw routine";
     EXPECT_LT(routine, drawer.GetDrawRoutineCount())
-        << "Object 0x" << std::hex << id << " routine ID should be < registry size";
+        << "Object 0x" << std::hex << id
+        << " routine ID should be < registry size";
   }
 }
 
-TEST_F(DungeonObjectRomValidationTest, DrawRoutineMapping_Type3ObjectsHaveRoutines) {
+TEST_F(DungeonObjectRomValidationTest,
+       DrawRoutineMapping_Type3ObjectsHaveRoutines) {
   zelda3::ObjectDrawer drawer(rom_.get(), 0);
 
   // Key Type 3 objects should have valid draw routines
   std::vector<int> type3_ids = {0xF80, 0xF81, 0xF82,  // Water Face
-                                 0xF83, 0xF84,         // Somaria Line
-                                 0xF97, 0xF98};        // Chests
+                                0xF83, 0xF84,         // Somaria Line
+                                0xF97, 0xF98};        // Chests
 
   for (int id : type3_ids) {
     int routine = drawer.GetDrawRoutineId(id);
-    EXPECT_GE(routine, 0)
-        << "Type 3 object 0x" << std::hex << id << " should have a valid draw routine";
+    EXPECT_GE(routine, 0) << "Type 3 object 0x" << std::hex << id
+                          << " should have a valid draw routine";
+  }
+}
+
+TEST_F(DungeonObjectRomValidationTest,
+       RuntimeTraceReplay_RepresentativeUsdasmObjectsUseRomTilePayloads) {
+  struct ReplayCase {
+    const char* name;
+    int16_t object_id;
+    uint8_t size;
+    int x;
+    int y;
+    int width;
+    int height;
+    bool column_major;
+    bool expect_bg2_mirror;
+  };
+
+  const std::vector<ReplayCase> cases = {
+      {"Corner4x4BothBG", 0x0108, 0, 5, 7, 4, 4, true, true},
+      {"WeirdCornerBottomBothBG", 0x0110, 0, 8, 6, 3, 4, true, true},
+      {"WeirdCornerTopBothBG", 0x0114, 0, 9, 10, 4, 3, true, true},
+      {"Bed4x5", 0x0122, 0, 4, 11, 4, 5, false, false},
+      {"Rightwards3x6", 0x012C, 0, 12, 4, 6, 3, true, false},
+  };
+
+  auto filter_by_layer =
+      [](const std::vector<zelda3::ObjectDrawer::TileTrace>& trace,
+         zelda3::RoomObject::LayerType layer) {
+        std::vector<zelda3::ObjectDrawer::TileTrace> filtered;
+        for (const auto& t : trace) {
+          if (t.layer == static_cast<uint8_t>(layer)) {
+            filtered.push_back(t);
+          }
+        }
+        return filtered;
+      };
+
+  for (const auto& tc : cases) {
+    SCOPED_TRACE(tc.name);
+
+    zelda3::RoomObject obj(
+        tc.object_id, tc.x, tc.y, tc.size,
+        static_cast<int>(zelda3::RoomObject::LayerType::BG1));
+    obj.SetRom(rom_.get());
+    obj.EnsureTilesLoaded();
+
+    const int expected_count = tc.width * tc.height;
+    ASSERT_GE(static_cast<int>(obj.tiles().size()), expected_count)
+        << "Object 0x" << std::hex << tc.object_id
+        << " should have canonical tile payload for replay";
+
+    zelda3::ObjectDrawer drawer(rom_.get(), /*room_id=*/0);
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    gfx::PaletteGroup palette_group;
+    std::vector<zelda3::ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+    ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+
+    const auto bg1_trace =
+        filter_by_layer(trace, zelda3::RoomObject::LayerType::BG1);
+    const auto bg2_trace =
+        filter_by_layer(trace, zelda3::RoomObject::LayerType::BG2);
+
+    ASSERT_EQ(static_cast<int>(bg1_trace.size()), expected_count);
+    if (tc.expect_bg2_mirror) {
+      ASSERT_EQ(bg2_trace.size(), bg1_trace.size());
+    } else {
+      EXPECT_TRUE(bg2_trace.empty());
+    }
+
+    size_t tid = 0;
+    auto expect_entry = [&](int col, int row) {
+      const int expected_x = tc.x + col;
+      const int expected_y = tc.y + row;
+      ASSERT_LT(tid, bg1_trace.size());
+      ASSERT_LT(tid, obj.tiles().size());
+      EXPECT_EQ(bg1_trace[tid].x_tile, expected_x) << "idx=" << tid;
+      EXPECT_EQ(bg1_trace[tid].y_tile, expected_y) << "idx=" << tid;
+      EXPECT_EQ(bg1_trace[tid].tile_id, obj.tiles()[tid].id_) << "idx=" << tid;
+
+      if (tc.expect_bg2_mirror) {
+        EXPECT_EQ(bg2_trace[tid].x_tile, expected_x) << "idx=" << tid;
+        EXPECT_EQ(bg2_trace[tid].y_tile, expected_y) << "idx=" << tid;
+        EXPECT_EQ(bg2_trace[tid].tile_id, obj.tiles()[tid].id_)
+            << "idx=" << tid;
+      }
+      ++tid;
+    };
+
+    if (tc.column_major) {
+      for (int xx = 0; xx < tc.width; ++xx) {
+        for (int yy = 0; yy < tc.height; ++yy) {
+          expect_entry(xx, yy);
+        }
+      }
+    } else {
+      for (int yy = 0; yy < tc.height; ++yy) {
+        for (int xx = 0; xx < tc.width; ++xx) {
+          expect_entry(xx, yy);
+        }
+      }
+    }
+    EXPECT_EQ(static_cast<int>(tid), expected_count);
   }
 }
 
@@ -235,10 +345,12 @@ TEST_F(DungeonObjectRomValidationTest, Room0_LinksHouse_HasExpectedStructure) {
 
   // Room should have reasonable number of objects (not empty, not absurdly large)
   EXPECT_GT(objects.size(), 0u) << "Room 0 should have objects";
-  EXPECT_LT(objects.size(), 200u) << "Room 0 should have reasonable object count";
+  EXPECT_LT(objects.size(), 200u)
+      << "Room 0 should have reasonable object count";
 }
 
-TEST_F(DungeonObjectRomValidationTest, Room1_LinksHouseBasement_LoadsCorrectly) {
+TEST_F(DungeonObjectRomValidationTest,
+       Room1_LinksHouseBasement_LoadsCorrectly) {
   // Room 1 is typically basement/cellar
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_.get(), 1);
 
@@ -335,11 +447,11 @@ TEST_F(DungeonObjectRomValidationTest, ObjectDrawing_ProducesNonEmptyOutput) {
   const auto& data = bg1.bitmap().vector();
   int non_zero_count = 0;
   for (uint8_t pixel : data) {
-    if (pixel != 0) non_zero_count++;
+    if (pixel != 0)
+      non_zero_count++;
   }
 
-  EXPECT_GT(non_zero_count, 0)
-      << "Drawing should produce some non-zero pixels";
+  EXPECT_GT(non_zero_count, 0) << "Drawing should produce some non-zero pixels";
 }
 
 // ============================================================================
@@ -361,7 +473,8 @@ TEST_F(DungeonObjectRomValidationTest, GameData_GraphicsBufferPopulated) {
   // Count non-zero bytes in graphics buffer
   int non_zero_count = 0;
   for (uint8_t byte : game_data.graphics_buffer) {
-    if (byte != 0 && byte != 0xFF) non_zero_count++;
+    if (byte != 0 && byte != 0xFF)
+      non_zero_count++;
   }
 
   EXPECT_GT(non_zero_count, 100000)
@@ -430,7 +543,8 @@ TEST_F(DungeonObjectRomValidationTest, Room_GraphicsBufferCopy) {
   // Count non-zero bytes
   int non_zero_count = 0;
   for (size_t i = 0; i < gfx16.size(); ++i) {
-    if (gfx16[i] != 0) non_zero_count++;
+    if (gfx16[i] != 0)
+      non_zero_count++;
   }
 
   EXPECT_GT(non_zero_count, 1000)
@@ -445,13 +559,13 @@ TEST_F(DungeonObjectRomValidationTest, Room_GraphicsBufferCopy) {
     int block_start = i * 4096;
     int block_non_zero = 0;
     for (int j = 0; j < 4096; ++j) {
-      if (gfx16[block_start + j] != 0) block_non_zero++;
+      if (gfx16[block_start + j] != 0)
+        block_non_zero++;
     }
 
-    EXPECT_GT(block_non_zero, 100)
-        << "Block " << i << " (sheet " << blocks[i]
-        << ") should have graphics data, got " << block_non_zero
-        << " non-zero bytes";
+    EXPECT_GT(block_non_zero, 100) << "Block " << i << " (sheet " << blocks[i]
+                                   << ") should have graphics data, got "
+                                   << block_non_zero << " non-zero bytes";
   }
 }
 
@@ -480,13 +594,11 @@ TEST_F(DungeonObjectRomValidationTest, Room_LayoutLoading) {
   auto& bg2_bmp = room.bg2_buffer().bitmap();
 
   std::cout << "BG1 bitmap: active=" << bg1_bmp.is_active()
-            << " w=" << bg1_bmp.width()
-            << " h=" << bg1_bmp.height()
+            << " w=" << bg1_bmp.width() << " h=" << bg1_bmp.height()
             << " size=" << bg1_bmp.size() << std::endl;
 
   std::cout << "BG2 bitmap: active=" << bg2_bmp.is_active()
-            << " w=" << bg2_bmp.width()
-            << " h=" << bg2_bmp.height()
+            << " w=" << bg2_bmp.width() << " h=" << bg2_bmp.height()
             << " size=" << bg2_bmp.size() << std::endl;
 
   EXPECT_TRUE(bg1_bmp.is_active()) << "BG1 bitmap should be active";
@@ -497,10 +609,10 @@ TEST_F(DungeonObjectRomValidationTest, Room_LayoutLoading) {
   if (bg1_bmp.is_active() && bg1_bmp.size() > 0) {
     int non_zero = 0;
     for (size_t i = 0; i < bg1_bmp.size(); ++i) {
-      if (bg1_bmp.data()[i] != 0) non_zero++;
+      if (bg1_bmp.data()[i] != 0)
+        non_zero++;
     }
-    std::cout << "BG1 non-zero pixels: " << non_zero
-              << " / " << bg1_bmp.size()
+    std::cout << "BG1 non-zero pixels: " << non_zero << " / " << bg1_bmp.size()
               << " (" << (100.0f * non_zero / bg1_bmp.size()) << "%)"
               << std::endl;
 
