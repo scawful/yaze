@@ -289,6 +289,63 @@ absl::Status RemoveItemByIdentity(zelda3::Overworld* overworld,
   return absl::OkStatus();
 }
 
+zelda3::OverworldItem* FindItemByIdentity(
+    zelda3::Overworld* overworld, const zelda3::OverworldItem& item_identity) {
+  if (!overworld) {
+    return nullptr;
+  }
+
+  auto* items = overworld->mutable_all_items();
+  auto it = std::find_if(items->begin(), items->end(),
+                         [&item_identity](const zelda3::OverworldItem& item) {
+                           return !item.deleted &&
+                                  MatchesItemIdentity(item, item_identity);
+                         });
+  if (it == items->end()) {
+    return nullptr;
+  }
+  return &(*it);
+}
+
+absl::StatusOr<zelda3::OverworldItem*> DuplicateItemByIdentity(
+    zelda3::Overworld* overworld, const zelda3::OverworldItem& item_identity,
+    int offset_x, int offset_y) {
+  if (!overworld) {
+    return absl::InvalidArgumentError("Overworld is null");
+  }
+
+  auto* source_item = FindItemByIdentity(overworld, item_identity);
+  if (!source_item) {
+    return absl::NotFoundError("No matching item identity in overworld list");
+  }
+
+  zelda3::OverworldItem duplicate = *source_item;
+  const ImVec2 clamped_pos = ClampToOverworldBounds(
+      ImVec2(static_cast<float>(source_item->x_ + offset_x),
+             static_cast<float>(source_item->y_ + offset_y)));
+  duplicate.x_ = static_cast<int>(clamped_pos.x);
+  duplicate.y_ = static_cast<int>(clamped_pos.y);
+  duplicate.deleted = false;
+  duplicate.UpdateMapProperties(duplicate.room_map_id_);
+
+  auto* items = overworld->mutable_all_items();
+  items->push_back(duplicate);
+  return &items->back();
+}
+
+absl::Status NudgeItem(zelda3::OverworldItem* item, int delta_x, int delta_y) {
+  if (!item) {
+    return absl::InvalidArgumentError("Item pointer is null");
+  }
+  const ImVec2 clamped_pos =
+      ClampToOverworldBounds(ImVec2(static_cast<float>(item->x_ + delta_x),
+                                    static_cast<float>(item->y_ + delta_y)));
+  item->x_ = static_cast<int>(clamped_pos.x);
+  item->y_ = static_cast<int>(clamped_pos.y);
+  item->UpdateMapProperties(item->room_map_id_);
+  return absl::OkStatus();
+}
+
 zelda3::OverworldItem* FindNearestItemForSelection(
     zelda3::Overworld* overworld,
     const zelda3::OverworldItem& anchor_identity) {

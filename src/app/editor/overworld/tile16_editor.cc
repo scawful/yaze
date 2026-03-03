@@ -67,6 +67,19 @@ void SyncTilesInfoArray(gfx::Tile16* tile) {
   zelda3::SyncTile16TilesInfo(tile);
 }
 
+const char* EditModeLabel(Tile16EditMode mode) {
+  switch (mode) {
+    case Tile16EditMode::kPaint:
+      return "Paint";
+    case Tile16EditMode::kPick:
+      return "Pick";
+    case Tile16EditMode::kUsageProbe:
+      return "Usage Probe";
+    default:
+      return "Paint";
+  }
+}
+
 }  // namespace
 
 absl::Status Tile16Editor::Initialize(
@@ -1114,8 +1127,10 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         tile16_edit_canvas_.DrawTilePainter(tile8_preview_bmp_, 8,
                                             kTile8DisplayScale);
 
-        // Check for simple click to paint tile8 to tile16
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        const bool left_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
+        const bool right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+
+        if (left_clicked || right_clicked) {
           const ImGuiIO& io = ImGui::GetIO();
           ImVec2 canvas_pos = tile16_edit_canvas_.zero_point();
           ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x,
@@ -1134,38 +1149,29 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           tile_x = std::max(0, std::min(15, tile_x));
           tile_y = std::max(0, std::min(15, tile_y));
 
-          util::logf("Tile16 canvas click: (%.2f, %.2f) -> Tile16: (%d, %d)",
-                     mouse_pos.x, mouse_pos.y, tile_x, tile_y);
+          util::logf(
+              "Tile16 canvas click: (%.2f, %.2f) -> Tile16: (%d, %d), mode=%s",
+              mouse_pos.x, mouse_pos.y, tile_x, tile_y,
+              EditModeLabel(edit_mode_));
 
-          // Pass nullptr to let DrawToCurrentTile16 handle flipping and store
-          // correct TileInfo metadata. The preview bitmap is pre-flipped for
-          // display only.
-          RETURN_IF_ERROR(DrawToCurrentTile16(ImVec2(tile_x, tile_y), nullptr));
-        }
-
-        // Right-click to pick tile8 from tile16
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-          const ImGuiIO& io = ImGui::GetIO();
-          ImVec2 canvas_pos = tile16_edit_canvas_.zero_point();
-          ImVec2 mouse_pos = ImVec2(io.MousePos.x - canvas_pos.x,
-                                    io.MousePos.y - canvas_pos.y);
-
-          // Convert canvas coordinates to tile16 coordinates
-          // Account for bitmap offset (2,2) and scale (4x)
-          constexpr float kBitmapOffset = 2.0f;
-          constexpr float kBitmapScale = 4.0f;
-          int tile_x =
-              static_cast<int>((mouse_pos.x - kBitmapOffset) / kBitmapScale);
-          int tile_y =
-              static_cast<int>((mouse_pos.y - kBitmapOffset) / kBitmapScale);
-
-          // Clamp to valid range (0-15 for 16x16 tile)
-          tile_x = std::max(0, std::min(15, tile_x));
-          tile_y = std::max(0, std::min(15, tile_y));
-
-          RETURN_IF_ERROR(PickTile8FromTile16(ImVec2(tile_x, tile_y)));
-          util::logf("Right-clicked to pick tile8 from tile16 at (%d, %d)",
-                     tile_x, tile_y);
+          if (right_clicked) {
+            RETURN_IF_ERROR(PickTile8FromTile16(ImVec2(tile_x, tile_y)));
+            util::logf("Picked tile8 from tile16 at (%d, %d)", tile_x, tile_y);
+          } else if (left_clicked) {
+            switch (edit_mode_) {
+              case Tile16EditMode::kPaint:
+                // Pass nullptr to let DrawToCurrentTile16 handle flipping and
+                // store correct TileInfo metadata. The preview bitmap is
+                // pre-flipped for display only.
+                RETURN_IF_ERROR(
+                    DrawToCurrentTile16(ImVec2(tile_x, tile_y), nullptr));
+                break;
+              case Tile16EditMode::kPick:
+              case Tile16EditMode::kUsageProbe:
+                RETURN_IF_ERROR(PickTile8FromTile16(ImVec2(tile_x, tile_y)));
+                break;
+            }
+          }
         }
       }
 
@@ -1248,6 +1254,25 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     HOVER_HINT(
         "1x: paint one quadrant\n2x: fill current tile16 from a 2x2 tile8 "
         "block\n4x: stamp a 2x2 tile16 patch from a 4x4 tile8 block");
+
+    Text("Edit Mode:");
+    if (ImGui::RadioButton("Paint (P)", edit_mode_ == Tile16EditMode::kPaint)) {
+      edit_mode_ = Tile16EditMode::kPaint;
+    }
+    SameLine();
+    if (ImGui::RadioButton("Pick (I)", edit_mode_ == Tile16EditMode::kPick)) {
+      edit_mode_ = Tile16EditMode::kPick;
+    }
+    SameLine();
+    if (ImGui::RadioButton("Usage (U)",
+                           edit_mode_ == Tile16EditMode::kUsageProbe)) {
+      edit_mode_ = Tile16EditMode::kUsageProbe;
+    }
+    HOVER_HINT(
+        "Paint: left-click places Tile8 into Tile16.\n"
+        "Pick: left-click samples Tile8 from Tile16.\n"
+        "Usage: keeps usage overlay visible and samples on click.\n"
+        "Right-click on Tile16 preview always samples.");
 
     Separator();
 
@@ -1359,6 +1384,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     EndTable();
   }
 
+  RETURN_IF_ERROR(
+      DrawBottomActionRail(has_pending, current_tile_pending, pending_count));
+
   // Draw palette settings and canvas popups
   DrawPaletteSettings();
 
@@ -1397,6 +1425,8 @@ void Tile16Editor::DrawEditorHeader(bool show_debug_info) {
   ImGui::SameLine();
   ImGui::TextDisabled("| Active Quadrant: %s",
                       kQuadrantLabels[active_quadrant_]);
+  ImGui::SameLine();
+  ImGui::TextDisabled("| Edit Mode: %s", EditModeLabel(edit_mode_));
 
   if (quadrant_palette_tl >= 0) {
     ImGui::SameLine();
@@ -1407,20 +1437,25 @@ void Tile16Editor::DrawEditorHeader(bool show_debug_info) {
 
   ImGui::SameLine();
   const bool usage_mode_active = highlight_tile8_usage_;
-  ImGui::TextColored(usage_mode_active ? ImVec4(0.55f, 0.90f, 0.60f, 1.0f)
-                                       : ImVec4(0.95f, 0.86f, 0.46f, 1.0f),
-                     usage_mode_active ? "Usage Mode: ACTIVE"
-                                       : "Usage Mode: Hold RMB (Tile8 Source)");
+  ImGui::TextColored(
+      usage_mode_active ? ImVec4(0.55f, 0.90f, 0.60f, 1.0f)
+                        : ImVec4(0.95f, 0.86f, 0.46f, 1.0f),
+      usage_mode_active ? "Usage Mode: ACTIVE" : "Usage Mode: Hold RMB or U");
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
     ImGui::Text("Usage Mode");
     ImGui::Separator();
+    ImGui::TextDisabled("Current edit mode: %s", EditModeLabel(edit_mode_));
     ImGui::TextDisabled(
-        "Hold RMB on the Tile8 Source panel to enable usage highlighting.");
+        "Press U to lock usage overlay and probe interactions.");
     ImGui::TextDisabled(
-        "RMB on Tile16 preview samples the source Tile8 + brush palette.");
+        "Hold RMB on the Tile8 Source panel for temporary usage highlighting.");
+    ImGui::TextDisabled(
+        "Pick mode (I) and Usage mode (U) sample on left-click.");
+    ImGui::TextDisabled(
+        "Paint mode (P) places Tile8 data and metadata on left-click.");
     ImGui::TextDisabled("Navigation shortcuts: PgUp/PgDn/Home/End + arrows.");
-    ImGui::TextDisabled("Palette: Ctrl+1..8 | Quadrant Focus: 1..4");
+    ImGui::TextDisabled("Modes: P/I/U | Palette: Ctrl+1..8 | Quadrants: 1..4");
     ImGui::EndTooltip();
   }
 
@@ -1478,51 +1513,8 @@ void Tile16Editor::DrawStagedStateBar(bool has_pending,
                           last_rom_write_count_ == 1 ? "" : "s",
                           static_cast<long>(seconds_since_write));
     }
-
-    if (!has_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (gui::SuccessButton("Write Pending", ImVec2(110, 0))) {
-      auto status = CommitAllChanges();
-      if (!status.ok()) {
-        util::logf("Failed to commit changes: %s", status.message().data());
-      }
-    }
-    if (!has_pending) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Write all %d pending changes to ROM", pending_count);
-    }
-
-    ImGui::SameLine();
-    if (!has_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (gui::DangerButton("Discard All", ImVec2(95, 0))) {
-      DiscardAllChanges();
-    }
-    if (!has_pending) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Discard all %d pending tile edits", pending_count);
-    }
-
-    ImGui::SameLine();
-    if (!current_tile_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (ImGui::Button("Discard Current", ImVec2(110, 0))) {
-      DiscardCurrentTileChanges();
-    }
-    if (!current_tile_pending) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Discard staged edits for tile %02X only",
-                        current_tile16_);
-    }
+    ImGui::TextDisabled(
+        "Action rail at bottom: Write Pending / Discard / Undo");
   }
   ImGui::EndChild();
 }
@@ -1747,8 +1739,10 @@ absl::Status Tile16Editor::DrawTile8SourcePanel() {
     const bool right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
 
     // ZScream parity: hold right-click on tile8 source to show usage overlay.
-    highlight_tile8_usage_ = ComputeTile8UsageHighlight(
+    const bool temporary_usage = ComputeTile8UsageHighlight(
         ImGui::IsItemHovered(), ImGui::IsMouseDown(ImGuiMouseButton_Right));
+    highlight_tile8_usage_ =
+        (edit_mode_ == Tile16EditMode::kUsageProbe) || temporary_usage;
 
     if (left_clicked || right_clicked) {
       RETURN_IF_ERROR(HandleTile8SourceSelection(right_clicked));
@@ -1788,11 +1782,7 @@ absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked) {
 }
 
 absl::Status Tile16Editor::DrawPrimaryActionControls() {
-  const Tile16ActionControlState action_state = ComputeTile16ActionControlState(
-      has_pending_changes(), is_tile_modified(current_tile16_),
-      undo_manager_.CanUndo());
-
-  // Compact action buttons
+  // Local tile-shaping actions stay in the right column.
   if (Button("Clear", ImVec2(-1, 0))) {
     RETURN_IF_ERROR(ClearTile16());
   }
@@ -1805,47 +1795,78 @@ absl::Status Tile16Editor::DrawPrimaryActionControls() {
     RETURN_IF_ERROR(PasteTile16FromClipboard());
   }
 
-  Separator();
+  return absl::OkStatus();
+}
 
-  // Save/Discard - full width buttons
-  if (!action_state.can_write_pending) {
-    BeginDisabled();
-  }
-  if (Button("Write Pending to ROM", ImVec2(-1, 0))) {
-    RETURN_IF_ERROR(CommitAllChanges());
-  }
-  if (!action_state.can_write_pending) {
-    EndDisabled();
-  }
-  HOVER_HINT(action_state.can_write_pending
-                 ? "Write all pending tile16 edits to ROM"
-                 : "No pending tile16 edits to write");
+absl::Status Tile16Editor::DrawBottomActionRail(bool has_pending,
+                                                bool current_tile_pending,
+                                                int pending_count) {
+  const Tile16ActionControlState action_state = ComputeTile16ActionControlState(
+      has_pending, current_tile_pending, undo_manager_.CanUndo());
 
-  if (!action_state.can_discard_current) {
-    BeginDisabled();
-  }
-  if (Button("Discard Changes", ImVec2(-1, 0))) {
-    RETURN_IF_ERROR(DiscardChanges());
-  }
-  if (!action_state.can_discard_current) {
-    EndDisabled();
-  }
-  HOVER_HINT(action_state.can_discard_current
-                 ? "Reload tile16 from ROM, discarding local staged changes"
-                 : "Current tile has no staged changes");
+  gui::StyleColorGuard rail_bg(
+      {{ImGuiCol_ChildBg, ImVec4(0.10f, 0.13f, 0.16f, 0.85f)}});
+  if (ImGui::BeginChild(
+          "##Tile16BottomActionRail", ImVec2(0, 64), true,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+    ImGui::TextDisabled("Queue: %d tile%s staged", pending_count,
+                        pending_count == 1 ? "" : "s");
+    ImGui::SameLine();
+    ImGui::TextDisabled("| Mode: %s", EditModeLabel(edit_mode_));
 
-  Separator();
+    const float spacing = ImGui::GetStyle().ItemSpacing.x;
+    const float avail = ImGui::GetContentRegionAvail().x;
+    const float button_width =
+        std::max(110.0f, (avail - spacing * 3.0f) / 4.0f);
 
-  if (!action_state.can_undo) {
-    BeginDisabled();
-  }
-  if (Button("Undo", ImVec2(-1, 0))) {
-    RETURN_IF_ERROR(Undo());
-  }
-  if (!action_state.can_undo) {
-    EndDisabled();
-  }
+    if (!action_state.can_write_pending) {
+      ImGui::BeginDisabled();
+    }
+    if (gui::SuccessButton("Write Pending", ImVec2(button_width, 0))) {
+      RETURN_IF_ERROR(CommitAllChanges());
+    }
+    if (!action_state.can_write_pending) {
+      ImGui::EndDisabled();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Write all %d pending tile16 edits to ROM",
+                        pending_count);
+    }
 
+    ImGui::SameLine();
+    if (!action_state.can_discard_current) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Discard Current", ImVec2(button_width, 0))) {
+      DiscardCurrentTileChanges();
+    }
+    if (!action_state.can_discard_current) {
+      ImGui::EndDisabled();
+    }
+
+    ImGui::SameLine();
+    if (!action_state.can_write_pending) {
+      ImGui::BeginDisabled();
+    }
+    if (gui::DangerButton("Discard All", ImVec2(button_width, 0))) {
+      DiscardAllChanges();
+    }
+    if (!action_state.can_write_pending) {
+      ImGui::EndDisabled();
+    }
+
+    ImGui::SameLine();
+    if (!action_state.can_undo) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button("Undo", ImVec2(button_width, 0))) {
+      RETURN_IF_ERROR(Undo());
+    }
+    if (!action_state.can_undo) {
+      ImGui::EndDisabled();
+    }
+  }
+  ImGui::EndChild();
   return absl::OkStatus();
 }
 
@@ -3771,6 +3792,18 @@ void Tile16Editor::HandleKeyboardShortcuts() {
       if (current_tile8_ >= 0 &&
           current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
         status_ = FillTile16WithTile8(current_tile8_);
+      }
+    }
+
+    if (!ctrl_held) {
+      if (ImGui::IsKeyPressed(ImGuiKey_P)) {
+        edit_mode_ = Tile16EditMode::kPaint;
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_I)) {
+        edit_mode_ = Tile16EditMode::kPick;
+      }
+      if (ImGui::IsKeyPressed(ImGuiKey_U)) {
+        edit_mode_ = Tile16EditMode::kUsageProbe;
       }
     }
 

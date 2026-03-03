@@ -24,6 +24,7 @@ struct OverworldPanelIds {
   static constexpr const char* kAreaGraphics = "overworld.area_graphics";
   static constexpr const char* kGfxGroups = "overworld.gfx_groups";
   static constexpr const char* kUsageStats = "overworld.usage_stats";
+  static constexpr const char* kItemList = "overworld.item_list";
   static constexpr const char* kScratchSpace = "overworld.scratch";
   static constexpr const char* kMapProperties = "overworld.properties";
   static constexpr const char* kV3Settings = "overworld.v3_settings";

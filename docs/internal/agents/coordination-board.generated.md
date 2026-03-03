@@ -1,13 +1,10 @@
 # Coordination Snapshot (Generated)
 
-- Generated: `2026-03-03T08:22:33Z`
+- Generated: `2026-03-03T08:50:14Z`
 - Source: `~/.context/agent-universe/state.json`
 - Project Key: `Users:scawful:src:hobby:yaze`
 
 ## Active
-- `task_20260303T082212Z_22993` [A] 0.7.0 Tile16 explicit edit modes + sticky staged action rail (assignee: `CODEX`, updated: `2026-03-03T08:22:30Z`)
-- `task_20260303T082212Z_5320` [A] 0.7.0 Overworld item iteration UX (list/filter + duplicate/nudge) (assignee: `CODEX`, updated: `2026-03-03T08:22:19Z`)
-- `task_20260303T082212Z_12941` [A] 0.7.0 Dungeon workbench/panel flow polish (status badge + return affordance) (assignee: `CODEX`, updated: `2026-03-03T08:22:19Z`)
 - `task_20260225T032329Z_28215` [A] AFS+z3dk model infra phase1-2 bootstrap (asar eval, z3dk refs, dataset builder) (assignee: `ai-infra-architect`, updated: `2026-02-25T03:23:33Z`)
 - `task_20260225T031729Z_382` [A] AI provider matrix + training/integration plan for Claude/OpenAI/Gemini/custom (assignee: `ai-infra-architect`, updated: `2026-02-25T03:17:33Z`)
 - `task_20260224T210424Z_17502` [B] Create refactoring handoff document (assignee: `ai-infra-architect`, updated: `2026-02-24T22:26:22Z`)
@@ -56,6 +53,9 @@
 - `import_20251126_0123_menu_bar_right_panel_ui_ux_overhaul` [B] Menu Bar & Right Panel UI/UX Overhaul (assignee: `ui-architect`, updated: `2025-11-26T00:00:00Z`)
 
 ## Recently Completed
+- `task_20260303T082212Z_5320` [A] 0.7.0 Overworld item iteration UX (list/filter + duplicate/nudge) (assignee: `CODEX`, updated: `2026-03-03T08:49:16Z`)
+- `task_20260303T082212Z_22993` [A] 0.7.0 Tile16 explicit edit modes + sticky staged action rail (assignee: `CODEX`, updated: `2026-03-03T08:49:16Z`)
+- `task_20260303T082212Z_12941` [A] 0.7.0 Dungeon workbench/panel flow polish (status badge + return affordance) (assignee: `CODEX`, updated: `2026-03-03T08:49:16Z`)
 - `task_20260301T231320Z_11301` [B] Tile16 UX parity: right-click tile8 reverse-usage highlight overlay in blockset (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:35:49Z`)
 - `task_20260301T231316Z_10384` [B] Tile16 UX parity: add stamp draw sizes (1x/2x/4x) for tile8 painting (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:35:49Z`)
 - `task_20260301T231325Z_3675` [C] Tile16 UX: clarify palette controls labels (Brush Palette vs Tile Palette) (assignee: `imgui-frontend-engineer`, updated: `2026-03-01T23:23:49Z`)
@@ -73,6 +73,3 @@
 - `task_20260224T172621Z_16327` [B] Tier 1 ImGui Test Engine tests for dungeon editor panels (assignee: `ai-infra-architect`, updated: `2026-02-24T17:36:53Z`)
 - `task_20260224T162803Z_32644` [B] Cross-platform SHA1 + dry-run structural checks + hash normalize (assignee: `ai-infra-architect`, updated: `2026-02-24T16:35:51Z`)
 - `task_20260224T155920Z_17654` [B] Bundle verify --check-rom-hash + unpack --dry-run (assignee: `ai-infra-architect`, updated: `2026-02-24T16:12:28Z`)
-- `task_20260224T160119Z_31494` [B] UI/UX polish: door placement clarity + tile filter feedback (assignee: `imgui-frontend-engineer`, updated: `2026-02-24T16:09:34Z`)
-- `task_20260224T134231Z_20647` [B] 0.6.1 release gate: safety fix + CI checks + evidence automation (assignee: `ai-infra-architect`, updated: `2026-02-24T13:53:47Z`)
-- `task_20260224T132551Z_5707` [B] Unpack safe cleanup + --keep-partial-output flag (assignee: `ai-infra-architect`, updated: `2026-02-24T13:29:54Z`)

@@ -102,6 +102,55 @@ TEST_F(OverworldItemOperationsTest,
 }
 
 TEST_F(OverworldItemOperationsTest,
+       FindItemByIdentityReturnsLiveItemWhenPresent) {
+  auto* items = overworld_->mutable_all_items();
+  items->emplace_back(0x12, 0x00, 32, 48, false);
+  items->emplace_back(0x34, 0x00, 64, 80, false);
+
+  const zelda3::OverworldItem snapshot = items->at(1);
+  auto* live = FindItemByIdentity(overworld_.get(), snapshot);
+  ASSERT_NE(live, nullptr);
+  EXPECT_EQ(live->id_, 0x34);
+  EXPECT_EQ(live->x_, 64);
+  EXPECT_EQ(live->y_, 80);
+}
+
+TEST_F(OverworldItemOperationsTest,
+       DuplicateItemByIdentityClonesAndOffsetsItem) {
+  auto* items = overworld_->mutable_all_items();
+  items->emplace_back(0x27, 0x00, 32, 48, false);
+  ASSERT_EQ(items->size(), 1u);
+
+  const zelda3::OverworldItem source = items->front();
+  auto duplicate_or =
+      DuplicateItemByIdentity(overworld_.get(), source, /*offset_x=*/16,
+                              /*offset_y=*/-16);
+  ASSERT_TRUE(duplicate_or.ok()) << duplicate_or.status().message();
+  ASSERT_EQ(items->size(), 2u);
+
+  auto* duplicated = duplicate_or.value();
+  EXPECT_EQ(duplicated->id_, source.id_);
+  EXPECT_EQ(duplicated->room_map_id_, source.room_map_id_);
+  EXPECT_EQ(duplicated->x_, 48);
+  EXPECT_EQ(duplicated->y_, 32);
+  EXPECT_FALSE(duplicated->deleted);
+}
+
+TEST_F(OverworldItemOperationsTest, NudgeItemMovesAndClampsToBounds) {
+  auto* items = overworld_->mutable_all_items();
+  items->emplace_back(0x55, 0x00, 0, 0, false);
+  auto* item = &items->back();
+
+  ASSERT_TRUE(NudgeItem(item, -64, -64).ok());
+  EXPECT_EQ(item->x_, 0);
+  EXPECT_EQ(item->y_, 0);
+
+  ASSERT_TRUE(NudgeItem(item, 5000, 5000).ok());
+  EXPECT_EQ(item->x_, 4080);
+  EXPECT_EQ(item->y_, 4080);
+}
+
+TEST_F(OverworldItemOperationsTest,
        FindNearestItemForSelectionPrefersSameMapCandidates) {
   auto* items = overworld_->mutable_all_items();
   items->emplace_back(0x10, 0x01, 24, 24, false);    // Different map, closer

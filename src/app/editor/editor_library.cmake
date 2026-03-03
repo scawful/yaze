@@ -74,6 +74,7 @@ set(
   app/editor/overworld/panels/overworld_canvas_panel.cc
   app/editor/overworld/panels/scratch_space_panel.cc
   app/editor/overworld/panels/usage_statistics_panel.cc
+  app/editor/overworld/panels/overworld_item_list_panel.cc
   app/editor/overworld/panels/tile8_selector_panel.cc
   app/editor/overworld/panels/debug_window_panel.cc
   app/editor/overworld/panels/gfx_groups_panel.cc

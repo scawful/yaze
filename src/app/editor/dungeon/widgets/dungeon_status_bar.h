@@ -13,6 +13,10 @@ struct DungeonStatusBarState {
   // Current placement/edit mode label (e.g., "Object", "Sprite", "Select")
   const char* tool_mode = "Select";
 
+  // Workflow badge (e.g., "Workbench", "Standalone")
+  const char* workflow_mode = nullptr;
+  bool workflow_primary = false;
+
   // Number of selected objects and which layer they're on
   int selection_count = 0;
   int selection_layer = -1;  // -1 = mixed/none

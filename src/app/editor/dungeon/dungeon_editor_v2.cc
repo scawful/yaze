@@ -1491,6 +1491,21 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   ImGui::SameLine();
   ImGui::TextDisabled("Objects: %zu", room.GetTileObjects().size());
 
+  if (core::FeatureFlags::get().dungeon.kUseWorkbench &&
+      !IsWorkbenchWorkflowEnabled()) {
+    ImGui::SameLine();
+    const std::string return_label = absl::StrFormat(
+        ICON_MD_WORKSPACES " Workbench##return_workbench_%03X", room_id);
+    if (ImGui::SmallButton(return_label.c_str())) {
+      QueueWorkbenchWorkflowMode(true);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Switch back to the integrated Dungeon Workbench workflow "
+          "(Ctrl+Shift+W).");
+    }
+  }
+
   // Warp to Room button — sends room ID to running Mesen2 emulator
   ImGui::SameLine();
   {
