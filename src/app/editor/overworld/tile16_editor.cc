@@ -26,6 +26,7 @@
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/tile16_metadata.h"
 #include "zelda3/overworld/tile16_renderer.h"
+#include "zelda3/overworld/tile16_stamp.h"
 #include "zelda3/overworld/tile16_usage_index.h"
 
 namespace yaze {
@@ -690,66 +691,31 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
   const int max_tile8_id = std::max(0, tile8_count - 1);
   const int tile8_row_stride =
       std::max(1, current_gfx_bmp_.width() / kTile8Size);
-
-  auto make_tile_info = [&](int tile8_id) {
-    const uint16_t clamped_id =
-        static_cast<uint16_t>(std::clamp(tile8_id, 0, max_tile8_id));
-    return gfx::TileInfo(clamped_id, current_palette_, y_flip, x_flip,
-                         priority_tile);
-  };
-
-  auto make_2x_stamp_tile = [&](int base_tile8, bool reorder_for_flip_layout) {
-    gfx::TileInfo t0 = make_tile_info(base_tile8);
-    gfx::TileInfo t1 = make_tile_info(base_tile8 + 1);
-    gfx::TileInfo t2 = make_tile_info(base_tile8 + tile8_row_stride);
-    gfx::TileInfo t3 = make_tile_info(base_tile8 + tile8_row_stride + 1);
-
-    gfx::Tile16 stamped_tile{};
-    if (reorder_for_flip_layout && x_flip && y_flip) {
-      stamped_tile = gfx::Tile16(t3, t2, t1, t0);
-    } else if (reorder_for_flip_layout && x_flip) {
-      stamped_tile = gfx::Tile16(t1, t0, t3, t2);
-    } else if (reorder_for_flip_layout && y_flip) {
-      stamped_tile = gfx::Tile16(t2, t3, t0, t1);
-    } else {
-      stamped_tile = gfx::Tile16(t0, t1, t2, t3);
-    }
-    SyncTilesInfoArray(&stamped_tile);
-    return stamped_tile;
-  };
-
-  std::vector<std::pair<int, gfx::Tile16>> staged_tiles;
   const int quadrant_x = (pos.x >= kTile8Size) ? 1 : 0;
   const int quadrant_y = (pos.y >= kTile8Size) ? 1 : 0;
   const int quadrant_index = quadrant_x + (quadrant_y * 2);
 
-  if (tile8_stamp_size_ == 1) {
-    gfx::Tile16 staged_current = current_tile16_data_;
-    TileInfoForQuadrant(&staged_current, quadrant_index) =
-        make_tile_info(current_tile8_);
-    SyncTilesInfoArray(&staged_current);
-    staged_tiles.emplace_back(current_tile16_, staged_current);
-  } else if (tile8_stamp_size_ == 2) {
-    staged_tiles.emplace_back(current_tile16_,
-                              make_2x_stamp_tile(current_tile8_, true));
-  } else {
-    // ZScream parity: 4x writes a 2x2 tile16 patch from a 4x4 tile8 region.
-    for (int patch_x = 0; patch_x < 2; ++patch_x) {
-      for (int patch_y = 0; patch_y < 2; ++patch_y) {
-        const int target_tile16 =
-            current_tile16_ + patch_x + (patch_y * kTilesPerRow);
-        if (target_tile16 < 0 || target_tile16 >= kTile16Count) {
-          continue;
-        }
-        const int base_tile8 =
-            current_tile8_ + (patch_x * 2) + (patch_y * tile8_row_stride * 2);
-        staged_tiles.emplace_back(target_tile16,
-                                  make_2x_stamp_tile(base_tile8, false));
-      }
-    }
-  }
+  zelda3::Tile16StampRequest stamp_request;
+  stamp_request.current_tile16 = current_tile16_data_;
+  stamp_request.current_tile16_id = current_tile16_;
+  stamp_request.selected_tile8_id = current_tile8_;
+  stamp_request.stamp_size = tile8_stamp_size_;
+  stamp_request.quadrant_index = quadrant_index;
+  stamp_request.palette_id = current_palette_;
+  stamp_request.x_flip = x_flip;
+  stamp_request.y_flip = y_flip;
+  stamp_request.priority = priority_tile;
+  stamp_request.tile8_row_stride = tile8_row_stride;
+  stamp_request.tile16_row_stride = kTilesPerRow;
+  stamp_request.max_tile8_id = max_tile8_id;
+  stamp_request.max_tile16_id = kTile16Count - 1;
 
-  for (const auto& [tile16_id, tile_data] : staged_tiles) {
+  ASSIGN_OR_RETURN(auto staged_tiles,
+                   zelda3::BuildTile16StampMutations(stamp_request));
+
+  for (const auto& mutation : staged_tiles) {
+    const int tile16_id = mutation.tile16_id;
+    const gfx::Tile16& tile_data = mutation.tile_data;
     gfx::Bitmap staged_bitmap;
     RETURN_IF_ERROR(BuildTile16BitmapFromData(tile_data, &staged_bitmap));
     if (current_tile16_bmp_.palette().size() > 0) {

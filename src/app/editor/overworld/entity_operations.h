@@ -116,6 +116,19 @@ absl::Status RemoveItem(zelda3::Overworld* overworld,
                         const zelda3::OverworldItem* item_ptr);
 
 /**
+ * @brief Remove an item by value identity instead of pointer identity.
+ *
+ * This is safer for UI flows where selected pointers may become stale after
+ * vector erases/reallocation.
+ *
+ * @param overworld Overworld data containing the all_items array
+ * @param item_identity Snapshot identity of the item to remove
+ * @return OkStatus on success, NotFound if no matching identity is present
+ */
+absl::Status RemoveItemByIdentity(zelda3::Overworld* overworld,
+                                  const zelda3::OverworldItem& item_identity);
+
+/**
  * @brief Helper to get parent map ID for multi-area maps
  *
  * Returns the parent map ID, handling the case where a map is its own parent.

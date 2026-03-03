@@ -687,7 +687,7 @@ void OverworldEditor::DrawEntityEditorPopups() {
                                zelda3::GameEntity::EntityType::kItem) {
       auto* live_item = static_cast<zelda3::OverworldItem*>(current_entity_);
       if (current_item_.deleted) {
-        auto remove_status = RemoveItem(&overworld_, live_item);
+        auto remove_status = RemoveItemByIdentity(&overworld_, current_item_);
         if (!remove_status.ok()) {
           util::logf("Failed to remove overworld item: %s",
                      remove_status.message().data());

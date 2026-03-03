@@ -43,6 +43,7 @@ set(
   zelda3/overworld/overworld.cc
   zelda3/overworld/overworld_map.cc
   zelda3/overworld/tile16_metadata.cc
+  zelda3/overworld/tile16_stamp.cc
   zelda3/overworld/tile16_renderer.cc
   zelda3/overworld/tile16_usage_index.cc
   zelda3/overworld/overworld_entrance.cc
