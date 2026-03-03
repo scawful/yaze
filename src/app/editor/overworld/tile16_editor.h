@@ -565,6 +565,18 @@ class Tile16Editor : public gfx::GfxContext {
   // Copy current tile16 bitmap pixels into the blockset atlas at the given
   // tile position. Consolidates the repeated 16x16 copy loops.
   void CopyTile16ToAtlas(int tile_id);
+
+  // Draw the top header row and mode toggle buttons for the editor.
+  void DrawEditorHeader(bool show_debug_info);
+  void DrawEditorHeaderToggles(bool* show_debug_info,
+                               bool* show_advanced_controls);
+
+  // Draw the sticky staged-state strip (pending/commit/discard controls).
+  void DrawStagedStateBar(bool has_pending, bool current_tile_pending,
+                          int pending_count);
+
+  // Draw brush palette controls and tile palette metadata controls.
+  absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
 };
 
 }  // namespace editor
