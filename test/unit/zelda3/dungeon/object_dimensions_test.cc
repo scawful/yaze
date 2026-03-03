@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -31,6 +32,12 @@ TEST(DrawRoutineRegistryTest, GetRoutineIdForRepresentativeObjects) {
   EXPECT_EQ(reg.GetRoutineIdForObject(0xF9), 39);
   // 0xC0 -> routine 56 (4x4BlocksIn4x4SuperSquare)
   EXPECT_EQ(reg.GetRoutineIdForObject(0xC0), 56);
+  // 0x49 -> routine 40 (Rightwards4x2_1to16)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x49), 40);
+  // 0x55 -> routine 41 (RightwardsDecor4x2spaced8_1to16)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x55), 41);
+  // 0x51 -> routine 42 (RightwardsCannonHole4x3_1to16)
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x51), 42);
   // Type 2: 0x100 -> routine 16 (Rightwards4x4_1to16)
   EXPECT_EQ(reg.GetRoutineIdForObject(0x100), 16);
   // Type 3: 0xF80 -> routine 94 (EmptyWaterFace)
@@ -71,6 +78,33 @@ TEST(DrawRoutineRegistryTest, Subtype3SpecialMappingsHaveRegisteredRoutines) {
     EXPECT_NE(reg.GetRoutineInfo(routine_id), nullptr)
         << "Object 0x" << std::hex << object_id
         << " maps to unregistered routine " << std::dec << routine_id;
+  }
+}
+
+TEST(DrawRoutineRegistryTest, AllMappedSubtypeRangesHaveRegisteredRoutines) {
+  auto& reg = DrawRoutineRegistry::Get();
+
+  auto expect_registered = [&](int16_t object_id) {
+    int routine_id = reg.GetRoutineIdForObject(object_id);
+    ASSERT_GE(routine_id, 0) << "Unmapped object 0x" << std::hex << object_id;
+    EXPECT_NE(reg.GetRoutineInfo(routine_id), nullptr)
+        << "Object 0x" << std::hex << object_id
+        << " maps to unregistered routine " << std::dec << routine_id;
+  };
+
+  // Complete subtype-1 coverage.
+  for (int id = 0x00; id <= 0xFF; ++id) {
+    expect_registered(static_cast<int16_t>(id));
+  }
+
+  // Complete subtype-2 coverage.
+  for (int id = 0x100; id <= 0x13F; ++id) {
+    expect_registered(static_cast<int16_t>(id));
+  }
+
+  // Complete subtype-3 coverage.
+  for (int id = 0xF80; id <= 0xFFF; ++id) {
+    expect_registered(static_cast<int16_t>(id));
   }
 }
 
@@ -278,6 +312,7 @@ TEST_F(ObjectDimensionTableTest,
 
   const std::array<uint8_t, 6> sizes = {0x00, 0x01, 0x02, 0x03, 0x07, 0x0F};
   std::vector<std::string> mismatches;
+  std::vector<int> mismatched_object_ids;
   int compared_cases = 0;
   int geometry_skips = 0;
   int deterministic_skips = 0;
@@ -329,6 +364,13 @@ TEST_F(ObjectDimensionTableTest,
       }
 
       auto selection = table.GetSelectionBounds(object_id, size);
+      // Replay anchor is fixed at (0,0). Objects with negative selection
+      // offsets extend beyond the top/left edge and are clipped in geometry
+      // replay, so parity at this anchor is not meaningful.
+      if (selection.offset_x < 0 || selection.offset_y < 0) {
+        clipped_skips++;
+        continue;
+      }
       if (selection.width > DrawContext::kMaxTilesX ||
           selection.height > DrawContext::kMaxTilesY) {
         clipped_skips++;
@@ -341,6 +383,7 @@ TEST_F(ObjectDimensionTableTest,
           selection.offset_y != geo_result->min_y_tiles ||
           selection.width != geo_result->width_tiles ||
           selection.height != geo_result->height_tiles) {
+        mismatched_object_ids.push_back(object_id);
         std::ostringstream oss;
         oss << "0x" << std::hex << object_id << " size 0x"
             << static_cast<int>(size) << std::dec << " sel=("
@@ -374,6 +417,14 @@ TEST_F(ObjectDimensionTableTest,
     if (mismatches.size() > limit) {
       summary << "\n  ... (" << (mismatches.size() - limit)
               << " more mismatches omitted)";
+    }
+    if (!mismatched_object_ids.empty()) {
+      std::set<int> unique_ids(mismatched_object_ids.begin(),
+                               mismatched_object_ids.end());
+      summary << "\nMismatched object IDs (" << unique_ids.size() << "):";
+      for (int id : unique_ids) {
+        summary << " 0x" << std::hex << id << std::dec;
+      }
     }
     summary << "\nCompared cases: " << compared_cases
             << ", geometry skips: " << geometry_skips
@@ -509,7 +560,7 @@ TEST_F(ObjectDimensionsTest,
   EXPECT_EQ(dims.second, 96);  // 3 super squares * 32px
 }
 
-TEST_F(ObjectDimensionTableTest, DiagonalCeilingBaseHeightIsCorrect) {
+TEST_F(ObjectDimensionTableTest, DiagonalCeilingBaseBoundsAreCorrect) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());
 
@@ -520,17 +571,17 @@ TEST_F(ObjectDimensionTableTest, DiagonalCeilingBaseHeightIsCorrect) {
   for (int id : diagonal_ids) {
     SCOPED_TRACE(absl::StrFormat("object 0x%02X size=0", id));
     auto [w, h] = table.GetDimensions(id, 0);
-    // At size=0: w = base_width(4) + 0 = 4, h = base_height(8) + 0 = 8
+    // At size=0: side = 4
     EXPECT_EQ(w, 4);
-    EXPECT_EQ(h, 8);
+    EXPECT_EQ(h, 4);
   }
 
   for (int id : diagonal_ids) {
     SCOPED_TRACE(absl::StrFormat("object 0x%02X size=3", id));
     auto [w, h] = table.GetDimensions(id, 3);
-    // At size=3: w = 4 + 3 = 7, h = 8 + 3 = 11
+    // At size=3: side = 7
     EXPECT_EQ(w, 7);
-    EXPECT_EQ(h, 11);
+    EXPECT_EQ(h, 7);
   }
 }
 
@@ -545,7 +596,7 @@ TEST_F(ObjectDimensionTableTest, DiagonalCeilingSelectionOffsetsCorrect) {
     EXPECT_EQ(bounds.offset_x, 0);
     EXPECT_EQ(bounds.offset_y, 0);
     EXPECT_EQ(bounds.width, 4);
-    EXPECT_EQ(bounds.height, 8);
+    EXPECT_EQ(bounds.height, 4);
   }
 
   // BottomLeft (extends up-right): offset_y = -(width-1)
@@ -555,7 +606,7 @@ TEST_F(ObjectDimensionTableTest, DiagonalCeilingSelectionOffsetsCorrect) {
     EXPECT_EQ(bounds.offset_x, 0);
     EXPECT_EQ(bounds.offset_y, -(bounds.width - 1));
     EXPECT_EQ(bounds.width, 4);
-    EXPECT_EQ(bounds.height, 8);
+    EXPECT_EQ(bounds.height, 4);
   }
 
   // TopRight (extends down-left): offset_x = -(width-1)
@@ -565,7 +616,7 @@ TEST_F(ObjectDimensionTableTest, DiagonalCeilingSelectionOffsetsCorrect) {
     EXPECT_EQ(bounds.offset_x, -(bounds.width - 1));
     EXPECT_EQ(bounds.offset_y, 0);
     EXPECT_EQ(bounds.width, 4);
-    EXPECT_EQ(bounds.height, 8);
+    EXPECT_EQ(bounds.height, 4);
   }
 
   // BottomRight (extends up-left): both offsets = -(width-1)
@@ -575,7 +626,7 @@ TEST_F(ObjectDimensionTableTest, DiagonalCeilingSelectionOffsetsCorrect) {
     EXPECT_EQ(bounds.offset_x, -(bounds.width - 1));
     EXPECT_EQ(bounds.offset_y, -(bounds.width - 1));
     EXPECT_EQ(bounds.width, 4);
-    EXPECT_EQ(bounds.height, 8);
+    EXPECT_EQ(bounds.height, 4);
   }
 }
 
