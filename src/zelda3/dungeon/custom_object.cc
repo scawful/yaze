@@ -110,6 +110,31 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
   return nullptr;
 }
 
+bool CustomObjectManager::IsCornerAliasOverrideEnabled(
+    int resolved_index) const {
+  const auto* list = ResolveFileList(0x31);
+  if (list == nullptr || resolved_index < 0 ||
+      resolved_index >= static_cast<int>(list->size())) {
+    return false;
+  }
+
+  const std::string& filename = (*list)[resolved_index];
+  if (filename.empty()) {
+    return false;
+  }
+
+  const bool has_explicit_track_mapping =
+      custom_file_map_.find(0x31) != custom_file_map_.end();
+  if (base_path_.empty() && !has_explicit_track_mapping) {
+    return false;
+  }
+
+  const std::filesystem::path candidate =
+      base_path_.empty() ? std::filesystem::path(filename)
+                         : std::filesystem::path(base_path_) / filename;
+  return std::filesystem::exists(candidate);
+}
+
 absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(
     const std::string& filename) {
   if (cache_.contains(filename)) {
@@ -210,6 +235,10 @@ CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
   int index = subtype;
 
   if (!list && ResolveCornerOverrideIndex(object_id, &index)) {
+    if (!IsCornerAliasOverrideEnabled(index)) {
+      return absl::NotFoundError(
+          "Corner alias override not configured for current runtime context");
+    }
     // Minecart track corner aliases for subtype-2 wall-corner objects.
     list = ResolveFileList(0x31);
   }

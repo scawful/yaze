@@ -6,6 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/tile16_editor_action_state.h"
+#include "app/editor/overworld/tile8_source_interaction.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -1098,76 +1099,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     // ========== COLUMN 2: Tile8 Source ==========
     ImGui::TableNextColumn();
     ImGui::BeginGroup();
-
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Tile8 Source");
-
-    tile8_source_canvas_.set_draggable(false);
-
-    // Scrollable tile8 source
-    if (BeginChild("##Tile8SourceScrollable", ImVec2(0, 0), true,
-                   ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      // Configure canvas frame options for tile8 source
-      gui::CanvasFrameOptions tile8_frame_opts;
-      tile8_frame_opts.draw_grid = true;
-      tile8_frame_opts.grid_step = 32.0f;  // Tile8 grid (8px * 4 scale)
-      tile8_frame_opts.draw_context_menu = true;
-      tile8_frame_opts.draw_overlay = true;
-      tile8_frame_opts.render_popups = true;
-      tile8_frame_opts.use_child_window = false;
-
-      auto tile8_rt = gui::BeginCanvas(tile8_source_canvas_, tile8_frame_opts);
-
-      // Tile8 selection with improved feedback
-      bool tile8_selected = false;
-      tile8_source_canvas_.DrawTileSelector(32.0F);
-
-      const bool left_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
-      const bool right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
-      if (left_clicked || right_clicked) {
-        tile8_selected = true;
-      }
-
-      // ZScream parity: hold right-click on tile8 source to show usage overlay.
-      if (ImGui::IsItemHovered() &&
-          ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-        highlight_tile8_usage_ = true;
-      } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-        highlight_tile8_usage_ = false;
-      }
-
-      if (tile8_selected) {
-        const ImGuiIO& io = ImGui::GetIO();
-        ImVec2 canvas_pos = tile8_source_canvas_.zero_point();
-        ImVec2 mouse_pos =
-            ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
-
-        // Account for dynamic zoom when calculating tile position
-        int tile_x = static_cast<int>(
-            mouse_pos.x / (8 * kTile8DisplayScale));  // 8 pixel tile * scale
-        int tile_y = static_cast<int>(mouse_pos.y / (8 * kTile8DisplayScale));
-
-        // Calculate tiles per row based on bitmap width
-        int tiles_per_row = current_gfx_bmp_.width() / 8;
-        int new_tile8 = tile_x + (tile_y * tiles_per_row);
-
-        if (new_tile8 != current_tile8_ && new_tile8 >= 0 &&
-            new_tile8 < static_cast<int>(current_gfx_individual_.size()) &&
-            current_gfx_individual_[new_tile8].is_active()) {
-          current_tile8_ = new_tile8;
-          RETURN_IF_ERROR(UpdateTile8Palette(current_tile8_));
-          if (right_clicked) {
-            tile8_usage_cache_dirty_ = true;
-          }
-          util::logf("Selected Tile8: %d", current_tile8_);
-        }
-      }
-
-      tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 2, 2,
-                                      kTile8DisplayScale);
-
-      gui::EndCanvas(tile8_source_canvas_, tile8_rt, tile8_frame_opts);
-    }
-    EndChild();
+    RETURN_IF_ERROR(DrawTile8SourcePanel());
     ImGui::EndGroup();
 
     // ========== COLUMN 3: Tile16 Editor + Controls ==========
@@ -1839,6 +1771,69 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
       "Copy the Brush Palette into Tile Palette metadata for all 4 "
       "quadrants.\n"
       "Tip: right-click any brush palette button above for a one-step apply.");
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::DrawTile8SourcePanel() {
+  ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Tile8 Source");
+
+  tile8_source_canvas_.set_draggable(false);
+
+  if (BeginChild("##Tile8SourceScrollable", ImVec2(0, 0), true,
+                 ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    gui::CanvasFrameOptions tile8_frame_opts;
+    tile8_frame_opts.draw_grid = true;
+    tile8_frame_opts.grid_step = 32.0f;  // Tile8 grid (8px * 4 scale)
+    tile8_frame_opts.draw_context_menu = true;
+    tile8_frame_opts.draw_overlay = true;
+    tile8_frame_opts.render_popups = true;
+    tile8_frame_opts.use_child_window = false;
+
+    auto tile8_rt = gui::BeginCanvas(tile8_source_canvas_, tile8_frame_opts);
+
+    tile8_source_canvas_.DrawTileSelector(32.0F);
+
+    const bool left_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
+    const bool right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+
+    // ZScream parity: hold right-click on tile8 source to show usage overlay.
+    highlight_tile8_usage_ = ComputeTile8UsageHighlight(
+        ImGui::IsItemHovered(), ImGui::IsMouseDown(ImGuiMouseButton_Right));
+
+    if (left_clicked || right_clicked) {
+      RETURN_IF_ERROR(HandleTile8SourceSelection(right_clicked));
+    }
+
+    tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 2, 2, kTile8DisplayScale);
+
+    gui::EndCanvas(tile8_source_canvas_, tile8_rt, tile8_frame_opts);
+  }
+  EndChild();
+
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked) {
+  const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 canvas_pos = tile8_source_canvas_.zero_point();
+  ImVec2 mouse_pos =
+      ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+
+  const int new_tile8 = ComputeTile8IndexFromCanvasMouse(
+      mouse_pos.x, mouse_pos.y, current_gfx_bmp_.width(),
+      static_cast<int>(current_gfx_individual_.size()), kTile8DisplayScale);
+  if (new_tile8 < 0 || new_tile8 == current_tile8_ ||
+      !current_gfx_individual_[new_tile8].is_active()) {
+    return absl::OkStatus();
+  }
+
+  current_tile8_ = new_tile8;
+  RETURN_IF_ERROR(UpdateTile8Palette(current_tile8_));
+  if (right_clicked) {
+    tile8_usage_cache_dirty_ = true;
+  }
+  util::logf("Selected Tile8: %d", current_tile8_);
+
   return absl::OkStatus();
 }
 

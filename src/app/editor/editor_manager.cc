@@ -135,7 +135,6 @@ std::string GetEditorName(EditorType type) {
   return kEditorNames[static_cast<int>(type)];
 }
 
-
 bool HasAnyOverride(const core::RomAddressOverrides& overrides,
                     std::initializer_list<const char*> keys) {
   for (const char* key : keys) {
@@ -2915,8 +2914,8 @@ absl::Status EditorManager::SaveRom() {
                       static_cast<std::streamsize>(disk_data.size()));
             if (file) {
               diff_computed = true;
-              auto diff = yaze::rom::ComputeDiffRanges(
-                  disk_data, current_rom->vector());
+              auto diff = yaze::rom::ComputeDiffRanges(disk_data,
+                                                       current_rom->vector());
               if (!diff.ranges.empty()) {
                 LOG_DEBUG("EditorManager",
                           "ROM save diff: %zu bytes changed in %zu range(s)",
@@ -2945,8 +2944,7 @@ absl::Status EditorManager::SaveRom() {
                   "Save paused: %zu write conflict(s) with ASM hooks",
                   rom_lifecycle_.pending_write_conflicts().size()),
               ToastType::kWarning);
-          return absl::CancelledError(
-              "Write conflict confirmation required");
+          return absl::CancelledError("Write conflict confirmation required");
         }
       }
     } else {
@@ -3311,6 +3309,9 @@ absl::Status EditorManager::LoadProjectWithRom() {
     zelda3::CustomObjectManager::Get().Initialize(
         current_project_.GetAbsolutePath(
             current_project_.custom_objects_folder));
+  } else {
+    // Avoid inheriting stale singleton state from previous projects.
+    zelda3::CustomObjectManager::Get().Initialize("");
   }
   rom_file_manager_.SetBackupBeforeSave(
       current_project_.workspace_settings.backup_on_save);

@@ -637,6 +637,9 @@ absl::Status DungeonEditorV2::Load() {
           zelda3::CustomObjectManager::Get().Initialize(
               dependencies_.project->GetAbsolutePath(
                   dependencies_.project->custom_objects_folder));
+        } else {
+          // Avoid inheriting stale singleton state from previous projects.
+          zelda3::CustomObjectManager::Get().Initialize("");
         }
       }
     }
