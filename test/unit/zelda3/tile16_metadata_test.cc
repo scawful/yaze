@@ -78,5 +78,57 @@ TEST(Tile16MetadataTest, NullTilePointersAreHandledGracefully) {
   EXPECT_FALSE(SetTile16QuadrantPalette(nullptr, 0, 3));
 }
 
+TEST(Tile16MetadataTest, HorizontalFlipTile16ReordersQuadrantsAndFlipsX) {
+  const gfx::Tile16 tile(
+      gfx::TileInfo(/*id=*/1, /*palette=*/0, false, false, false),
+      gfx::TileInfo(/*id=*/2, /*palette=*/1, true, false, false),
+      gfx::TileInfo(/*id=*/3, /*palette=*/2, false, true, false),
+      gfx::TileInfo(/*id=*/4, /*palette=*/3, true, true, true));
+
+  const gfx::Tile16 flipped = HorizontalFlipTile16(tile);
+  EXPECT_EQ(flipped.tile0_.id_, 2);
+  EXPECT_EQ(flipped.tile1_.id_, 1);
+  EXPECT_EQ(flipped.tile2_.id_, 4);
+  EXPECT_EQ(flipped.tile3_.id_, 3);
+  EXPECT_EQ(flipped.tile0_.horizontal_mirror_, !tile.tile1_.horizontal_mirror_);
+  EXPECT_EQ(flipped.tile1_.horizontal_mirror_, !tile.tile0_.horizontal_mirror_);
+  EXPECT_EQ(flipped.tile2_.horizontal_mirror_, !tile.tile3_.horizontal_mirror_);
+  EXPECT_EQ(flipped.tile3_.horizontal_mirror_, !tile.tile2_.horizontal_mirror_);
+  EXPECT_EQ(flipped.tiles_info[0], flipped.tile0_);
+  EXPECT_EQ(flipped.tiles_info[1], flipped.tile1_);
+  EXPECT_EQ(flipped.tiles_info[2], flipped.tile2_);
+  EXPECT_EQ(flipped.tiles_info[3], flipped.tile3_);
+}
+
+TEST(Tile16MetadataTest, VerticalFlipAndRotateMatchEditorSemantics) {
+  const gfx::Tile16 tile(
+      gfx::TileInfo(/*id=*/10, /*palette=*/0, false, false, false),
+      gfx::TileInfo(/*id=*/11, /*palette=*/1, false, true, false),
+      gfx::TileInfo(/*id=*/12, /*palette=*/2, true, false, false),
+      gfx::TileInfo(/*id=*/13, /*palette=*/3, true, true, false));
+
+  const gfx::Tile16 vflip = VerticalFlipTile16(tile);
+  EXPECT_EQ(vflip.tile0_.id_, 12);
+  EXPECT_EQ(vflip.tile1_.id_, 13);
+  EXPECT_EQ(vflip.tile2_.id_, 10);
+  EXPECT_EQ(vflip.tile3_.id_, 11);
+  EXPECT_EQ(vflip.tile0_.vertical_mirror_, !tile.tile2_.vertical_mirror_);
+  EXPECT_EQ(vflip.tile1_.vertical_mirror_, !tile.tile3_.vertical_mirror_);
+  EXPECT_EQ(vflip.tile2_.vertical_mirror_, !tile.tile0_.vertical_mirror_);
+  EXPECT_EQ(vflip.tile3_.vertical_mirror_, !tile.tile1_.vertical_mirror_);
+
+  const gfx::Tile16 rotated = RotateTile16Clockwise(tile);
+  EXPECT_EQ(rotated.tile0_.id_, 12);
+  EXPECT_EQ(rotated.tile1_.id_, 10);
+  EXPECT_EQ(rotated.tile2_.id_, 13);
+  EXPECT_EQ(rotated.tile3_.id_, 11);
+  EXPECT_EQ(rotated.tile0_.horizontal_mirror_, tile.tile2_.horizontal_mirror_);
+  EXPECT_EQ(rotated.tile1_.vertical_mirror_, tile.tile0_.vertical_mirror_);
+  EXPECT_EQ(rotated.tiles_info[0], rotated.tile0_);
+  EXPECT_EQ(rotated.tiles_info[1], rotated.tile1_);
+  EXPECT_EQ(rotated.tiles_info[2], rotated.tile2_);
+  EXPECT_EQ(rotated.tiles_info[3], rotated.tile3_);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

@@ -61,4 +61,44 @@ bool SetTile16QuadrantPalette(gfx::Tile16* tile, int quadrant,
   return true;
 }
 
+gfx::TileInfo HorizontalFlipTileInfo(gfx::TileInfo info) {
+  info.horizontal_mirror_ = !info.horizontal_mirror_;
+  return info;
+}
+
+gfx::TileInfo VerticalFlipTileInfo(gfx::TileInfo info) {
+  info.vertical_mirror_ = !info.vertical_mirror_;
+  return info;
+}
+
+gfx::Tile16 HorizontalFlipTile16(gfx::Tile16 tile) {
+  const gfx::Tile16 original = tile;
+  tile.tile0_ = HorizontalFlipTileInfo(original.tile1_);
+  tile.tile1_ = HorizontalFlipTileInfo(original.tile0_);
+  tile.tile2_ = HorizontalFlipTileInfo(original.tile3_);
+  tile.tile3_ = HorizontalFlipTileInfo(original.tile2_);
+  SyncTile16TilesInfo(&tile);
+  return tile;
+}
+
+gfx::Tile16 VerticalFlipTile16(gfx::Tile16 tile) {
+  const gfx::Tile16 original = tile;
+  tile.tile0_ = VerticalFlipTileInfo(original.tile2_);
+  tile.tile1_ = VerticalFlipTileInfo(original.tile3_);
+  tile.tile2_ = VerticalFlipTileInfo(original.tile0_);
+  tile.tile3_ = VerticalFlipTileInfo(original.tile1_);
+  SyncTile16TilesInfo(&tile);
+  return tile;
+}
+
+gfx::Tile16 RotateTile16Clockwise(gfx::Tile16 tile) {
+  const gfx::Tile16 original = tile;
+  tile.tile0_ = original.tile2_;  // BL -> TL
+  tile.tile1_ = original.tile0_;  // TL -> TR
+  tile.tile2_ = original.tile3_;  // BR -> BL
+  tile.tile3_ = original.tile1_;  // TR -> BR
+  SyncTile16TilesInfo(&tile);
+  return tile;
+}
+
 }  // namespace yaze::zelda3

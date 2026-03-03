@@ -66,16 +66,6 @@ void SyncTilesInfoArray(gfx::Tile16* tile) {
   zelda3::SyncTile16TilesInfo(tile);
 }
 
-gfx::TileInfo HorizontalFlipInfo(gfx::TileInfo info) {
-  info.horizontal_mirror_ = !info.horizontal_mirror_;
-  return info;
-}
-
-gfx::TileInfo VerticalFlipInfo(gfx::TileInfo info) {
-  info.vertical_mirror_ = !info.vertical_mirror_;
-  return info;
-}
-
 int ComputeTile16Count(const gfx::Tilemap* tile16_blockset) {
   if (!tile16_blockset || !tile16_blockset->atlas.is_active()) {
     return kTile16Count;
@@ -2224,12 +2214,7 @@ absl::Status Tile16Editor::FlipTile16Horizontal() {
 
   SaveUndoState();
 
-  const gfx::Tile16 original = current_tile16_data_;
-  current_tile16_data_.tile0_ = HorizontalFlipInfo(original.tile1_);
-  current_tile16_data_.tile1_ = HorizontalFlipInfo(original.tile0_);
-  current_tile16_data_.tile2_ = HorizontalFlipInfo(original.tile3_);
-  current_tile16_data_.tile3_ = HorizontalFlipInfo(original.tile2_);
-  SyncTilesInfoArray(&current_tile16_data_);
+  current_tile16_data_ = zelda3::HorizontalFlipTile16(current_tile16_data_);
 
   RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
   RETURN_IF_ERROR(UpdateBlocksetBitmap());
@@ -2250,12 +2235,7 @@ absl::Status Tile16Editor::FlipTile16Vertical() {
 
   SaveUndoState();
 
-  const gfx::Tile16 original = current_tile16_data_;
-  current_tile16_data_.tile0_ = VerticalFlipInfo(original.tile2_);
-  current_tile16_data_.tile1_ = VerticalFlipInfo(original.tile3_);
-  current_tile16_data_.tile2_ = VerticalFlipInfo(original.tile0_);
-  current_tile16_data_.tile3_ = VerticalFlipInfo(original.tile1_);
-  SyncTilesInfoArray(&current_tile16_data_);
+  current_tile16_data_ = zelda3::VerticalFlipTile16(current_tile16_data_);
 
   RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
   RETURN_IF_ERROR(UpdateBlocksetBitmap());
@@ -2278,12 +2258,7 @@ absl::Status Tile16Editor::RotateTile16() {
 
   // Tile16 metadata does not support arbitrary 8x8 rotation flags.
   // Rotate the 2x2 quadrant layout in a persistable way.
-  const gfx::Tile16 original = current_tile16_data_;
-  current_tile16_data_.tile0_ = original.tile2_;  // BL -> TL
-  current_tile16_data_.tile1_ = original.tile0_;  // TL -> TR
-  current_tile16_data_.tile2_ = original.tile3_;  // BR -> BL
-  current_tile16_data_.tile3_ = original.tile1_;  // TR -> BR
-  SyncTilesInfoArray(&current_tile16_data_);
+  current_tile16_data_ = zelda3::RotateTile16Clockwise(current_tile16_data_);
 
   RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
   RETURN_IF_ERROR(UpdateBlocksetBitmap());
