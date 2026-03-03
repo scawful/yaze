@@ -186,6 +186,7 @@ class Tile16Editor : public gfx::GfxContext {
   // Palette management
   absl::Status CyclePalette(bool forward = true);
   absl::Status ApplyPaletteToAll(uint8_t palette_id);
+  absl::Status ApplyPaletteToQuadrant(int quadrant, uint8_t palette_id);
   absl::Status PreviewPaletteChange(uint8_t palette_id);
 
   // History and undo system

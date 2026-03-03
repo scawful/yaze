@@ -566,7 +566,8 @@ TEST_F(Tile16EditorIntegrationTest,
   ASSERT_TRUE(tile_data.ok());
 
   // Force regeneration
-  ASSERT_TRUE(editor_->RegenerateTile16BitmapFromROM().ok());
+  auto regen_status = editor_->RegenerateTile16BitmapFromROM();
+  ASSERT_TRUE(regen_status.ok()) << regen_status.message();
 
   // The bitmap is 16x16 = 256 pixels indexed at 8bpp.
   // For each quadrant, non-zero pixels should encode the quadrant's palette row
@@ -693,6 +694,64 @@ TEST_F(Tile16EditorIntegrationTest, ApplyPaletteToAllRejectsInvalidPalette) {
   EXPECT_EQ(result.code(), absl::StatusCode::kInvalidArgument);
 
   result = editor_->ApplyPaletteToAll(255);
+  EXPECT_FALSE(result.ok());
+  EXPECT_EQ(result.code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST_F(Tile16EditorIntegrationTest,
+       ApplyPaletteToQuadrantUpdatesOnlyTargetQuadrant) {
+#ifdef YAZE_ENABLE_ROM_TESTS
+  if (!rom_loaded_) {
+    GTEST_SKIP() << "ROM not loaded, skipping integration test";
+  }
+
+  constexpr int kTestTile = 11;
+  constexpr int kTargetQuadrant = 2;  // bottom-left
+
+  ASSERT_TRUE(editor_->SetCurrentTile(kTestTile).ok());
+
+  auto before = rom_->ReadTile16(kTestTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(before.ok());
+
+  const uint8_t kTargetPalette = static_cast<uint8_t>(
+      (before->tile2_.palette_ + 1) % 8);  // ensure observable change
+  ASSERT_TRUE(
+      editor_->ApplyPaletteToQuadrant(kTargetQuadrant, kTargetPalette).ok());
+  ASSERT_TRUE(editor_->CommitChangesToOverworld().ok());
+
+  auto after = rom_->ReadTile16(kTestTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(after.ok());
+
+  EXPECT_EQ(after->tile2_.palette_, kTargetPalette);
+  EXPECT_EQ(after->tile2_.id_, before->tile2_.id_);
+  EXPECT_EQ(after->tile2_.over_, before->tile2_.over_);
+  EXPECT_EQ(after->tile2_.vertical_mirror_, before->tile2_.vertical_mirror_);
+  EXPECT_EQ(after->tile2_.horizontal_mirror_,
+            before->tile2_.horizontal_mirror_);
+
+  // Other quadrants should remain unchanged.
+  EXPECT_EQ(gfx::TileInfoToWord(after->tile0_),
+            gfx::TileInfoToWord(before->tile0_));
+  EXPECT_EQ(gfx::TileInfoToWord(after->tile1_),
+            gfx::TileInfoToWord(before->tile1_));
+  EXPECT_EQ(gfx::TileInfoToWord(after->tile3_),
+            gfx::TileInfoToWord(before->tile3_));
+  EXPECT_EQ(editor_->current_palette(), kTargetPalette);
+#else
+  GTEST_SKIP() << "ROM tests disabled";
+#endif
+}
+
+TEST_F(Tile16EditorIntegrationTest, ApplyPaletteToQuadrantRejectsInvalidArgs) {
+  auto result = editor_->ApplyPaletteToQuadrant(-1, 0);
+  EXPECT_FALSE(result.ok());
+  EXPECT_EQ(result.code(), absl::StatusCode::kInvalidArgument);
+
+  result = editor_->ApplyPaletteToQuadrant(4, 0);
+  EXPECT_FALSE(result.ok());
+  EXPECT_EQ(result.code(), absl::StatusCode::kInvalidArgument);
+
+  result = editor_->ApplyPaletteToQuadrant(0, 8);
   EXPECT_FALSE(result.ok());
   EXPECT_EQ(result.code(), absl::StatusCode::kInvalidArgument);
 }

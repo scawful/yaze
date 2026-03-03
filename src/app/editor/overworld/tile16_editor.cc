@@ -37,6 +37,19 @@ namespace {
 
 constexpr int kTile16Count = zelda3::kNumTile16Individual;
 
+gfx::SnesPalette BuildFallbackDisplayPalette() {
+  std::vector<gfx::SnesColor> grayscale;
+  grayscale.reserve(gfx::SnesPalette::kMaxColors);
+  for (int i = 0; i < static_cast<int>(gfx::SnesPalette::kMaxColors); ++i) {
+    const float value = static_cast<float>(i) / 255.0f;
+    grayscale.emplace_back(ImVec4(value, value, value, 1.0f));
+  }
+  if (!grayscale.empty()) {
+    grayscale[0].set_transparent(true);
+  }
+  return gfx::SnesPalette(grayscale);
+}
+
 gfx::TileInfo& TileInfoForQuadrant(gfx::Tile16* tile, int quadrant) {
   switch (quadrant) {
     case 0:
@@ -679,6 +692,15 @@ absl::Status Tile16Editor::RegenerateTile16BitmapFromROM() {
   auto* tile_data = GetCurrentTile16Data();
   if (!tile_data) {
     return absl::FailedPreconditionError("Cannot access current tile16 data");
+  }
+
+  // Tests and some initialization paths reach regeneration before tile8 previews
+  // are built; lazily populate them so metadata->bitmap rendering can proceed.
+  if (current_gfx_individual_.empty()) {
+    if (!current_gfx_bmp_.is_active()) {
+      return absl::FailedPreconditionError("Tile8 source bitmap not active");
+    }
+    RETURN_IF_ERROR(LoadTile8());
   }
 
   // Shared render path used by regeneration, stamping, and multi-tile updates.
@@ -1564,6 +1586,11 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
         ImGui::PopID();
 
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          current_palette_ = static_cast<uint8_t>(i);
+          RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
+        }
+
         // Tooltip with palette info
         if (ImGui::IsItemHovered()) {
           ImGui::BeginTooltip();
@@ -1576,6 +1603,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
           } else {
             ImGui::Text("Palette %d", i);
             ImGui::TextDisabled("Applied to new tile8 placements");
+            ImGui::TextDisabled("RMB: apply to all tile quadrants");
             if (is_current) {
               ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), "Active");
             }
@@ -1586,13 +1614,72 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     }
     ImGui::EndGroup();
 
+    if (auto* tile_data = GetCurrentTile16Data(); tile_data != nullptr) {
+      Text("Quadrant Palettes:");
+      static constexpr std::array<const char*, 4> kQuadrantLabels = {
+          "TL", "TR", "BL", "BR"};
+      for (int q = 0; q < 4; ++q) {
+        if (q > 0) {
+          SameLine();
+        }
+
+        const uint8_t quadrant_palette =
+            TileInfoForQuadrant(*tile_data, q).palette_;
+        const bool matches_brush = (quadrant_palette == current_palette_);
+
+        ImGui::PushID(100 + q);
+        gui::StyleColorGuard quadrant_btn_colors(
+            {{ImGuiCol_Button, matches_brush
+                                   ? ImVec4(0.18f, 0.42f, 0.62f, 1.0f)
+                                   : ImVec4(0.28f, 0.28f, 0.32f, 1.0f)},
+             {ImGuiCol_ButtonHovered, matches_brush
+                                          ? ImVec4(0.22f, 0.50f, 0.72f, 1.0f)
+                                          : ImVec4(0.38f, 0.38f, 0.42f, 1.0f)},
+             {ImGuiCol_ButtonActive, matches_brush
+                                         ? ImVec4(0.14f, 0.34f, 0.52f, 1.0f)
+                                         : ImVec4(0.24f, 0.24f, 0.28f, 1.0f)}});
+
+        if (ImGui::Button(
+                absl::StrFormat("%s:%d", kQuadrantLabels[q], quadrant_palette)
+                    .c_str(),
+                ImVec2(button_size, 0))) {
+          if (current_palette_ != quadrant_palette) {
+            current_palette_ = quadrant_palette;
+            auto status = RefreshAllPalettes();
+            if (!status.ok()) {
+              util::logf("Failed to refresh palettes: %s",
+                         status.message().data());
+            }
+          }
+        }
+
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          RETURN_IF_ERROR(ApplyPaletteToQuadrant(q, current_palette_));
+        }
+
+        if (ImGui::IsItemHovered()) {
+          ImGui::BeginTooltip();
+          ImGui::Text("Quadrant %s palette: %d", kQuadrantLabels[q],
+                      quadrant_palette);
+          ImGui::TextDisabled("LMB: set brush palette from this quadrant");
+          ImGui::TextDisabled(
+              "RMB: apply current brush palette to this quadrant");
+          ImGui::EndTooltip();
+        }
+
+        ImGui::PopID();
+      }
+    }
+
     // Copy the current brush palette into all stored quadrant palette fields.
-    if (Button("Set Tile Palette (All Quadrants)", ImVec2(-1, 0))) {
+    if (Button("Apply Brush to All Quadrants", ImVec2(-1, 0))) {
       RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
     }
     HOVER_HINT(
         "Copy the Brush Palette into Tile Palette metadata for all 4 "
-        "quadrants");
+        "quadrants.\n"
+        "Tip: right-click any brush palette button above for a one-step "
+        "apply.");
 
     Separator();
 
@@ -1823,9 +1910,17 @@ absl::Status Tile16Editor::LoadTile8() {
     }
   }
 
-  // Apply current palette settings to all tiles
+  // Apply current palette settings to all tiles when a display palette is ready.
+  // Some integration/headless initialization paths populate tile graphics before
+  // the overworld palette is available; defer palette refresh in that case.
   if (rom_) {
-    RETURN_IF_ERROR(RefreshAllPalettes());
+    const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
+    if (display_palette && !display_palette->empty()) {
+      RETURN_IF_ERROR(RefreshAllPalettes());
+    } else {
+      util::logf(
+          "LoadTile8: display palette not available yet; deferring refresh");
+    }
   }
 
   // Ensure canvas scroll size matches the full tilesheet at preview scale
@@ -2163,6 +2258,13 @@ absl::Status Tile16Editor::RotateTile16() {
 }
 
 absl::Status Tile16Editor::FillTile16WithTile8(int tile8_id) {
+  if (current_gfx_individual_.empty()) {
+    if (!current_gfx_bmp_.is_active()) {
+      return absl::FailedPreconditionError("Source tile8 bitmap not active");
+    }
+    RETURN_IF_ERROR(LoadTile8());
+  }
+
   if (tile8_id < 0 ||
       tile8_id >= static_cast<int>(current_gfx_individual_.size())) {
     return absl::InvalidArgumentError("Invalid tile8 ID");
@@ -2302,6 +2404,7 @@ absl::Status Tile16Editor::ApplyPaletteToAll(uint8_t palette_id) {
   tile_data->tile1_.palette_ = palette_id;
   tile_data->tile2_.palette_ = palette_id;
   tile_data->tile3_.palette_ = palette_id;
+  SyncTilesInfoArray(tile_data);
 
   // Update current palette to match
   current_palette_ = palette_id;
@@ -2320,6 +2423,37 @@ absl::Status Tile16Editor::ApplyPaletteToAll(uint8_t palette_id) {
 
   util::logf("Applied palette %d to all quadrants of tile %d", palette_id,
              current_tile16_);
+  return absl::OkStatus();
+}
+
+absl::Status Tile16Editor::ApplyPaletteToQuadrant(int quadrant,
+                                                  uint8_t palette_id) {
+  if (palette_id >= 8) {
+    return absl::InvalidArgumentError("Invalid palette ID");
+  }
+  if (quadrant < 0 || quadrant > 3) {
+    return absl::InvalidArgumentError("Invalid quadrant index");
+  }
+
+  auto* tile_data = GetCurrentTile16Data();
+  if (!tile_data) {
+    return absl::FailedPreconditionError("No current tile16 data");
+  }
+
+  SaveUndoState();
+  TileInfoForQuadrant(tile_data, quadrant).palette_ = palette_id;
+  SyncTilesInfoArray(tile_data);
+  current_palette_ = palette_id;
+
+  RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
+  RETURN_IF_ERROR(UpdateBlocksetBitmap());
+  if (live_preview_enabled_) {
+    RETURN_IF_ERROR(UpdateOverworldTilemap());
+  }
+
+  MarkCurrentTileModified();
+  util::logf("Applied palette %d to quadrant %d of tile %d", palette_id,
+             quadrant, current_tile16_);
   return absl::OkStatus();
 }
 
@@ -2932,8 +3066,10 @@ void Tile16Editor::ApplyPaletteToCurrentTile16Bitmap() {
   }
 
   const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
+  gfx::SnesPalette fallback_palette;
   if (!display_palette || display_palette->empty()) {
-    return;
+    fallback_palette = BuildFallbackDisplayPalette();
+    display_palette = &fallback_palette;
   }
 
   // Most tile16 edit paths now encode the palette row directly in pixel indices
@@ -3026,8 +3162,11 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
   }
 
   const gfx::SnesPalette* display_palette = ResolveDisplayPalette();
+  gfx::SnesPalette fallback_palette;
   if (!display_palette || display_palette->empty()) {
-    return absl::FailedPreconditionError("Display palette empty");
+    fallback_palette = BuildFallbackDisplayPalette();
+    display_palette = &fallback_palette;
+    util::logf("Display palette unavailable; using fallback grayscale palette");
   }
   util::logf("Using resolved display palette with %zu colors",
              display_palette->size());
