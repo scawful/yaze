@@ -520,6 +520,21 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
       routine_info != nullptr) {
     info.routine_name = routine_info->name;
     info.both_layers = routine_info->draws_to_both_bgs;
+
+    switch (routine_info->category) {
+      case DrawRoutineInfo::Category::Downwards:
+        info.is_horizontal = false;
+        info.is_vertical = true;
+        break;
+      case DrawRoutineInfo::Category::Diagonal:
+        info.is_horizontal = false;
+        info.is_vertical = false;
+        break;
+      default:
+        info.is_horizontal = true;
+        info.is_vertical = false;
+        break;
+    }
   }
 
   return info;

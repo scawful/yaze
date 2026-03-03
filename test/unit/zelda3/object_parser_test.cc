@@ -168,6 +168,20 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   EXPECT_EQ(info_subtype1_default.tile_count, 8);
 }
 
+TEST_F(ObjectParserTest, DrawInfoOrientationFollowsRoutineCategory) {
+  auto horizontal = parser_->GetObjectDrawInfo(0x33);
+  EXPECT_TRUE(horizontal.is_horizontal);
+  EXPECT_FALSE(horizontal.is_vertical);
+
+  auto vertical = parser_->GetObjectDrawInfo(0x60);
+  EXPECT_FALSE(vertical.is_horizontal);
+  EXPECT_TRUE(vertical.is_vertical);
+
+  auto diagonal = parser_->GetObjectDrawInfo(0x09);
+  EXPECT_FALSE(diagonal.is_horizontal);
+  EXPECT_FALSE(diagonal.is_vertical);
+}
+
 TEST_F(ObjectParserTest, DrawInfoMapsSubtype2CornerRoutinesToUsdasmParity) {
   auto corner_4x4_both = parser_->GetObjectDrawInfo(0x108);
   EXPECT_EQ(corner_4x4_both.draw_routine_id, 35);
