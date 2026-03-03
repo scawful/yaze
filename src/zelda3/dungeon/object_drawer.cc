@@ -674,26 +674,23 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawChest(obj, bg, tiles, state);
       });
   // Routine 40 - Rightwards 4x2 (Floor Tile)
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwards4x2_1to16(obj, bg, tiles);
-  });
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(40, obj, bg, tiles, state);
+      });
   // Routine 41 - Rightwards Decor 4x2 spaced 8 (12-column spacing)
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsDecor4x2spaced8_1to16(obj, bg, tiles);
-  });
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(41, obj, bg, tiles, state);
+      });
   // Routine 42 - Rightwards Cannon Hole 4x3
-  draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                              gfx::BackgroundBuffer& bg,
-                              std::span<const gfx::TileInfo> tiles,
-                              [[maybe_unused]] const DungeonState* state) {
-    self->DrawRightwardsCannonHole4x3_1to16(obj, bg, tiles);
-  });
+  draw_routines_.push_back(
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(42, obj, bg, tiles, state);
+      });
   // Routine 43 - Downwards Floor 4x4 (object 0x70)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
@@ -1687,101 +1684,6 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
   }
 }
 
-void ObjectDrawer::DrawRightwards4x2_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 4x2 tiles rightward (objects 0x49-0x4A: Floor Tile 4x2)
-  // Assembly: RoomDraw_RightwardsFloorTile4x2_1to16 -> RoomDraw_Downwards4x2VariableSpacing
-  // This is 4 columns × 2 rows = 8 tiles in ROW-MAJOR order with horizontal spacing
-  // Spacing of $0008 = 4 tile columns = 32 pixels
-  int size = obj.size_ & 0x0F;
-  int count = size + 1;  // GetSize_1to16
-
-  for (int s = 0; s < count; s++) {
-    if (tiles.size() >= 8) {
-      // Draw 4x2 pattern in ROW-MAJOR order (matching assembly RoomDraw_Downwards4x2VariableSpacing)
-      // Row 0: tiles 0, 1, 2, 3 at x+0, x+1, x+2, x+3
-      WriteTile8(bg, obj.x_ + (s * 4), obj.y_, tiles[0]);
-      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_, tiles[1]);
-      WriteTile8(bg, obj.x_ + (s * 4) + 2, obj.y_, tiles[2]);
-      WriteTile8(bg, obj.x_ + (s * 4) + 3, obj.y_, tiles[3]);
-      // Row 1: tiles 4, 5, 6, 7 at x+0, x+1, x+2, x+3
-      WriteTile8(bg, obj.x_ + (s * 4), obj.y_ + 1, tiles[4]);
-      WriteTile8(bg, obj.x_ + (s * 4) + 1, obj.y_ + 1, tiles[5]);
-      WriteTile8(bg, obj.x_ + (s * 4) + 2, obj.y_ + 1, tiles[6]);
-      WriteTile8(bg, obj.x_ + (s * 4) + 3, obj.y_ + 1, tiles[7]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsDecor4x2spaced8_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 1x8 column tiles rightward with spacing (objects 0x55-0x56 wall torches)
-  // Assembly: RoomDraw_RightwardsDecor4x2spaced8_1to16 -> RoomDraw_Downwards4x2VariableSpacing
-  // ASM writes to 8 consecutive row buffers ([$BF] through [$D4]) = 1 column × 8 rows
-  // Spacing = 0x18 = 24 bytes = 12 tile columns between repetitions
-  int size = obj.size_ & 0x0F;
-  int count = size + 1;  // GetSize_1to16
-
-  if (tiles.size() < 8)
-    return;
-
-  for (int s = 0; s < count; s++) {
-    // Draw 1x8 column pattern with 12-tile horizontal spacing
-    int base_x = obj.x_ + (s * 12);  // spacing of 12 columns
-    for (int row = 0; row < 8; row++) {
-      WriteTile8(bg, base_x, obj.y_ + row, tiles[row]);
-    }
-  }
-}
-
-void ObjectDrawer::DrawRightwardsCannonHole4x3_1to16(
-    const RoomObject& obj, gfx::BackgroundBuffer& bg,
-    std::span<const gfx::TileInfo> tiles,
-    [[maybe_unused]] const DungeonState* state) {
-  // Pattern: Draws 4x3 tiles (objects 0x51-0x52, 0x5B-0x5C: Cannon Hole)
-  // Assembly: RoomDraw_RightwardsCannonHole4x3_1to16
-  //
-  // USDASM ground truth:
-  // - RoomDraw_RightwardsCannonHole4x3_1to16 calls RoomDraw_1x3N_rightwards
-  //   with A=2 multiple times, repeating the LEFT 2-column segment "count"
-  //   times, then draws the RIGHT 2-column edge once (after X += 0x000C).
-  // - RoomDraw_1x3N_rightwards draws in COLUMN-MAJOR order (per-column 3 words).
-  //
-  // So the tile span is treated as 4 columns x 3 rows in COLUMN-MAJOR order:
-  //   col0: tiles[0..2], col1: tiles[3..5], col2: tiles[6..8], col3: tiles[9..11]
-  int size = obj.size_ & 0x0F;
-  int count = size + 1;  // GetSize_1to16
-
-  if (tiles.size() < 12) {
-    return;
-  }
-
-  auto draw_column = [&](int x, int y, const gfx::TileInfo& t0,
-                         const gfx::TileInfo& t1, const gfx::TileInfo& t2) {
-    // Match RoomDraw_1x3N_rightwards order: row0, row1, row2 per column.
-    WriteTile8(bg, x, y, t0);
-    WriteTile8(bg, x, y + 1, t1);
-    WriteTile8(bg, x, y + 2, t2);
-  };
-
-  // Repeat the left 2-column segment count times (each repetition advances by 2
-  // tiles to the right).
-  for (int s = 0; s < count; ++s) {
-    int base_x = obj.x_ + (s * 2);
-    draw_column(base_x + 0, obj.y_, tiles[0], tiles[1], tiles[2]);
-    draw_column(base_x + 1, obj.y_, tiles[3], tiles[4], tiles[5]);
-  }
-
-  // Draw the right edge once after the repeated middle.
-  int right_base_x = obj.x_ + (count * 2);
-  draw_column(right_base_x + 0, obj.y_, tiles[6], tiles[7], tiles[8]);
-  draw_column(right_base_x + 1, obj.y_, tiles[9], tiles[10], tiles[11]);
-}
-
 // ============================================================================
 // Utility Methods
 // ============================================================================
@@ -2585,21 +2487,22 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
     }
 
-    case 68:  // DownwardsCannonHole3x6
+    case 68:  // DownwardsCannonHole3x4
     {
       size = size & 0x0F;
-      int count = size + 1;
       width = 24;
-      height = count * 6 * 8;
+      // Height = repeated 3x2 segment (size+1) + final 3x2 edge segment.
+      // => (2 * (size + 2)) tiles.
+      height = (2 * (size + 2)) * 8;
       break;
     }
 
-    case 69:  // DownwardsBar2x3
+    case 69:  // DownwardsBar2x5
     {
       size = size & 0x0F;
-      int count = size + 1;
       width = 16;
-      height = ((count - 1) * 3 + 3) * 8;
+      // 1 top row + 2*(size+2) body rows.
+      height = (2 * size + 5) * 8;
       break;
     }
 

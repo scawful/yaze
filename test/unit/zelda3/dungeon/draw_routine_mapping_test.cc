@@ -14,8 +14,8 @@
 // - 0x81-0x84: routine 65 (DrawDownwardsDecor3x4spaced2_1to16)
 // - 0x88: routine 66 (DrawDownwardsBigRail3x1_1to16plus5)
 // - 0x89: routine 67 (DrawDownwardsBlock2x2spaced2_1to16)
-// - 0x85-0x86: routine 68 (DrawDownwardsCannonHole3x6_1to16)
-// - 0x8F: routine 69 (DrawDownwardsBar2x3_1to16)
+// - 0x85-0x86: routine 68 (DrawDownwardsCannonHole3x4_1to16)
+// - 0x8F: routine 69 (DrawDownwardsBar2x5_1to16)
 // - 0x95: routine 70 (DrawDownwardsPots2x2_1to16)
 // - 0x96: routine 71 (DrawDownwardsHammerPegs2x2_1to16)
 // - 0xB0-0xB1: routine 72 (DrawRightwardsEdge1x1_1to16plus7)
@@ -46,10 +46,16 @@
 // - 0xDC: routine 82 (DrawOpenChestPlatform)
 // - 0xD3-0xD6: routine 38 (DrawNothing - logic-only objects)
 
+#include <algorithm>
+#include <vector>
+
+#include "app/gfx/render/background_buffer.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -64,6 +70,36 @@ class DrawRoutineMappingTest : public ::testing::Test {
 
   std::unique_ptr<Rom> rom_;
 };
+
+namespace {
+
+struct TilePoint {
+  int x;
+  int y;
+};
+
+std::vector<TilePoint> CollectNonZeroTiles(const gfx::BackgroundBuffer& bg) {
+  std::vector<TilePoint> points;
+  for (int y = 0; y < 64; ++y) {
+    for (int x = 0; x < 64; ++x) {
+      if (bg.GetTileAt(x, y) != 0) {
+        points.push_back({x, y});
+      }
+    }
+  }
+  return points;
+}
+
+bool ContainsPoint(const std::vector<TilePoint>& points, int x, int y) {
+  for (const auto& point : points) {
+    if (point.x == x && point.y == y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+}  // namespace
 
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype1Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
@@ -129,6 +165,112 @@ TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step3DiagonalCeilingMappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xA3), 78);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xA8), 78);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xAC), 78);
+}
+
+TEST_F(DrawRoutineMappingTest,
+       DiagonalCeilingRoutinesRenderExpectedOrientationAndArea) {
+  auto& reg = DrawRoutineRegistry::Get();
+
+  gfx::TileInfo fill_tile;
+  fill_tile.id_ = 1;
+  fill_tile.palette_ = 0;
+  std::vector<gfx::TileInfo> tiles = {fill_tile};
+
+  struct Case {
+    int routine_id;
+    RoomObject object;
+    int expected_min_x;
+    int expected_max_x;
+    int expected_min_y;
+    int expected_max_y;
+    TilePoint anchor;
+    TilePoint should_exist;
+    TilePoint should_not_exist;
+  };
+
+  const std::vector<Case> cases = {
+      {75,
+       RoomObject(0xA0, 10, 10, 0, 0),
+       10,
+       13,
+       10,
+       13,
+       {10, 10},
+       {13, 10},
+       {13, 13}},
+      {76,
+       RoomObject(0xA1, 10, 10, 0, 0),
+       10,
+       13,
+       7,
+       10,
+       {10, 10},
+       {10, 7},
+       {13, 7}},
+      {77,
+       RoomObject(0xA2, 10, 10, 0, 0),
+       7,
+       10,
+       10,
+       13,
+       {10, 10},
+       {7, 10},
+       {7, 13}},
+      {78,
+       RoomObject(0xA3, 10, 10, 0, 0),
+       7,
+       10,
+       7,
+       10,
+       {10, 10},
+       {10, 7},
+       {7, 7}},
+  };
+
+  for (const auto& tc : cases) {
+    SCOPED_TRACE(::testing::Message() << "routine=" << tc.routine_id);
+
+    const DrawRoutineInfo* info = reg.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+
+    gfx::BackgroundBuffer bg;
+    DrawContext ctx{bg,
+                    tc.object,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    const auto points = CollectNonZeroTiles(bg);
+    ASSERT_FALSE(points.empty());
+
+    // size nibble=0 => side=(0+4), triangle area = 4+3+2+1 = 10 tiles.
+    EXPECT_EQ(points.size(), 10u);
+
+    int min_x = points.front().x;
+    int max_x = points.front().x;
+    int min_y = points.front().y;
+    int max_y = points.front().y;
+    for (const auto& point : points) {
+      min_x = std::min(min_x, point.x);
+      max_x = std::max(max_x, point.x);
+      min_y = std::min(min_y, point.y);
+      max_y = std::max(max_y, point.y);
+    }
+
+    EXPECT_EQ(min_x, tc.expected_min_x);
+    EXPECT_EQ(max_x, tc.expected_max_x);
+    EXPECT_EQ(min_y, tc.expected_min_y);
+    EXPECT_EQ(max_y, tc.expected_max_y);
+
+    EXPECT_TRUE(ContainsPoint(points, tc.anchor.x, tc.anchor.y));
+    EXPECT_TRUE(ContainsPoint(points, tc.should_exist.x, tc.should_exist.y));
+    EXPECT_FALSE(
+        ContainsPoint(points, tc.should_not_exist.x, tc.should_not_exist.y));
+  }
 }
 
 TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step5SpecialMappings) {

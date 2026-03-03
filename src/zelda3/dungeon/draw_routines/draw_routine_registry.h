@@ -69,8 +69,8 @@ constexpr int kDownwardsDecor2x4spaced8_1to16 = 50;
 constexpr int kDownwardsDecor3x4spaced2_1to16 = 65;
 constexpr int kDownwardsBigRail3x1_1to16plus5 = 66;
 constexpr int kDownwardsBlock2x2spaced2_1to16 = 67;
-constexpr int kDownwardsCannonHole3x6_1to16 = 68;
-constexpr int kDownwardsBar2x3_1to16 = 69;
+constexpr int kDownwardsCannonHole3x4_1to16 = 68;
+constexpr int kDownwardsBar2x5_1to16 = 69;
 constexpr int kDownwardsPots2x2_1to16 = 70;
 constexpr int kDownwardsHammerPegs2x2_1to16 = 71;
 
@@ -95,6 +95,9 @@ constexpr int kNothing = 38;
 constexpr int kChest = 39;
 
 // Additional rightwards (51-55, 72-74)
+constexpr int kRightwards4x2_1to16 = 40;
+constexpr int kRightwardsDecor4x2spaced8_1to16 = 41;
+constexpr int kRightwardsCannonHole4x3_1to16 = 42;
 constexpr int kRightwardsLine1x1_1to16plus1 = 51;
 constexpr int kRightwardsBar4x3_1to16 = 52;
 constexpr int kRightwardsShelf4x4_1to16 = 53;
