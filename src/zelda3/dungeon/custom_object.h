@@ -130,6 +130,7 @@ class CustomObjectManager {
   absl::StatusOr<CustomObject> ParseBinaryData(
       const std::vector<uint8_t>& data);
   const std::vector<std::string>* ResolveFileList(int object_id) const;
+  bool IsCornerAliasOverrideEnabled(int resolved_index) const;
 
   std::string base_path_;
   std::unordered_map<std::string, std::shared_ptr<CustomObject>> cache_;

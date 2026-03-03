@@ -578,6 +578,10 @@ class Tile16Editor : public gfx::GfxContext {
   // Draw brush palette controls and tile palette metadata controls.
   absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
 
+  // Draw the Tile8 source column and handle source selection interaction.
+  absl::Status DrawTile8SourcePanel();
+  absl::Status HandleTile8SourceSelection(bool right_clicked);
+
   // Draw primary edit/commit controls in the right action column.
   absl::Status DrawPrimaryActionControls();
 };

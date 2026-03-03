@@ -534,6 +534,33 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     CornerAliasOverridesRequireExplicitCustomObjectContext) {
+  ScopedCustomObjectsFlag custom_enabled(true);
+
+  auto& manager = CustomObjectManager::Get();
+  const auto previous_state = manager.SnapshotState();
+  struct RestoreManagerState {
+    CustomObjectManager& manager;
+    CustomObjectManager::State previous_state;
+    ~RestoreManagerState() { manager.RestoreState(previous_state); }
+  } restore{manager, previous_state};
+
+  // Simulate an editor/runtime context where custom-object mode is enabled
+  // but no project custom-object folder/mapping has been configured.
+  manager.ClearObjectFileMap();
+  manager.Initialize("");
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0100, /*x=*/20, /*y=*/30, /*size=*/0,
+      RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/400));
+
+  // Guardrail: without explicit custom-object source configuration, subtype-2
+  // wall corners must stay on the vanilla registry path.
+  EXPECT_GT(trace.size(), 1u);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      CornerAliasOverridesUseCustomTrackCornerFiles) {
   ScopedCustomObjectsFlag custom_enabled(true);
 
