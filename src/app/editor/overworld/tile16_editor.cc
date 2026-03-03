@@ -778,6 +778,37 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
   return absl::OkStatus();
 }
 
+absl::Status Tile16Editor::HandleTile16CanvasClick(const ImVec2& tile_position,
+                                                   bool left_click,
+                                                   bool right_click) {
+  if (!left_click && !right_click) {
+    return absl::OkStatus();
+  }
+
+  if (right_click) {
+    RETURN_IF_ERROR(PickTile8FromTile16(tile_position));
+    util::logf("Picked tile8 from tile16 at (%d, %d)",
+               static_cast<int>(tile_position.x),
+               static_cast<int>(tile_position.y));
+    return absl::OkStatus();
+  }
+
+  switch (edit_mode_) {
+    case Tile16EditMode::kPaint:
+      // Pass nullptr to let DrawToCurrentTile16 handle flipping and store
+      // correct TileInfo metadata. The preview bitmap is pre-flipped for
+      // display only.
+      RETURN_IF_ERROR(DrawToCurrentTile16(tile_position, nullptr));
+      break;
+    case Tile16EditMode::kPick:
+    case Tile16EditMode::kUsageProbe:
+      RETURN_IF_ERROR(PickTile8FromTile16(tile_position));
+      break;
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status Tile16Editor::UpdateTile16Edit() {
   static bool show_advanced_controls = false;
   static bool show_debug_info = false;
@@ -1154,24 +1185,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
               mouse_pos.x, mouse_pos.y, tile_x, tile_y,
               EditModeLabel(edit_mode_));
 
-          if (right_clicked) {
-            RETURN_IF_ERROR(PickTile8FromTile16(ImVec2(tile_x, tile_y)));
-            util::logf("Picked tile8 from tile16 at (%d, %d)", tile_x, tile_y);
-          } else if (left_clicked) {
-            switch (edit_mode_) {
-              case Tile16EditMode::kPaint:
-                // Pass nullptr to let DrawToCurrentTile16 handle flipping and
-                // store correct TileInfo metadata. The preview bitmap is
-                // pre-flipped for display only.
-                RETURN_IF_ERROR(
-                    DrawToCurrentTile16(ImVec2(tile_x, tile_y), nullptr));
-                break;
-              case Tile16EditMode::kPick:
-              case Tile16EditMode::kUsageProbe:
-                RETURN_IF_ERROR(PickTile8FromTile16(ImVec2(tile_x, tile_y)));
-                break;
-            }
-          }
+          RETURN_IF_ERROR(HandleTile16CanvasClick(ImVec2(tile_x, tile_y),
+                                                  left_clicked, right_clicked));
         }
       }
 

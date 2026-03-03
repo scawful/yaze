@@ -281,6 +281,56 @@ TEST_F(Tile16EditorSyntheticFixture,
   ExpectTile16Equals(*before, *after);
 }
 
+TEST_F(Tile16EditorSyntheticFixture, CanvasClickPaintModeStagesTileMutation) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kPaint);
+
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(ImVec2(2.0f, 2.0f), true, false).ok());
+  EXPECT_TRUE(editor_->is_tile_modified(0));
+  EXPECT_EQ(editor_->pending_changes_count(), 1);
+  EXPECT_EQ(editor_->active_quadrant(), 0);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       CanvasClickPickModeSamplesWithoutStagingMutation) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kPick);
+
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(ImVec2(12.0f, 12.0f), true, false).ok());
+  EXPECT_FALSE(editor_->has_pending_changes());
+  EXPECT_EQ(editor_->active_quadrant(), 3);
+  EXPECT_EQ(editor_->current_tile8(), 3);
+  EXPECT_EQ(editor_->current_palette(), 1);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       CanvasClickUsageProbeModeSamplesWithoutStagingMutation) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kUsageProbe);
+
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(ImVec2(2.0f, 12.0f), true, false).ok());
+  EXPECT_FALSE(editor_->has_pending_changes());
+  EXPECT_EQ(editor_->active_quadrant(), 2);
+  EXPECT_EQ(editor_->current_tile8(), 2);
+  EXPECT_EQ(editor_->current_palette(), 1);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       CanvasRightClickAlwaysSamplesTileEvenInPaintMode) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kPaint);
+
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(ImVec2(12.0f, 2.0f), false, true).ok());
+  EXPECT_FALSE(editor_->has_pending_changes());
+  EXPECT_EQ(editor_->active_quadrant(), 1);
+  EXPECT_EQ(editor_->current_tile8(), 1);
+  EXPECT_EQ(editor_->current_palette(), 1);
+}
+
 // Basic validation tests (no ROM required)
 TEST_F(Tile16EditorIntegrationTest, BasicValidation) {
   // Test with invalid tile ID

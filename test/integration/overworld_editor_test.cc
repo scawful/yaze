@@ -6,7 +6,7 @@ namespace test {
 TEST_F(OverworldEditorTest, LoadAndSave) {
   // Verify initial state
   EXPECT_TRUE(overworld_editor_->IsRomLoaded());
-  
+
   // Perform Save
   auto status = overworld_editor_->Save();
   EXPECT_TRUE(status.ok()) << "Save failed: " << status.message();
@@ -15,11 +15,11 @@ TEST_F(OverworldEditorTest, LoadAndSave) {
 TEST_F(OverworldEditorTest, SwitchMaps) {
   // Test switching maps
   overworld_editor_->set_current_map(0);
-  overworld_editor_->Update(); // Trigger sync
+  overworld_editor_->Update();  // Trigger sync
   EXPECT_EQ(overworld_editor_->overworld().current_map_id(), 0);
 
   overworld_editor_->set_current_map(1);
-  overworld_editor_->Update(); // Trigger sync
+  overworld_editor_->Update();  // Trigger sync
   EXPECT_EQ(overworld_editor_->overworld().current_map_id(), 1);
 }
 
@@ -54,6 +54,66 @@ TEST_F(OverworldEditorTest, ClipboardRoundTripSingleTile) {
   EXPECT_EQ(shared_clipboard_->overworld_tile16_ids[0], 42);
   EXPECT_EQ(shared_clipboard_->overworld_width, 1);
   EXPECT_EQ(shared_clipboard_->overworld_height, 1);
+}
+
+TEST_F(OverworldEditorTest,
+       ItemSelectionWorkflowDuplicateNudgeDeleteMaintainsContinuity) {
+  auto* items = overworld_editor_->overworld().mutable_all_items();
+  ASSERT_NE(items, nullptr);
+
+  items->clear();
+  items->emplace_back(/*id=*/0x40, /*room_map_id=*/0x00, /*x=*/96, /*y=*/112,
+                      /*bg2=*/false);
+  items->emplace_back(/*id=*/0x41, /*room_map_id=*/0x00, /*x=*/400, /*y=*/400,
+                      /*bg2=*/false);
+
+  const zelda3::OverworldItem source_identity = items->at(0);
+  ASSERT_TRUE(overworld_editor_->SelectItemByIdentity(source_identity));
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+
+  ASSERT_TRUE(overworld_editor_->DuplicateSelectedItem(/*offset_x=*/16,
+                                                       /*offset_y=*/0));
+  ASSERT_EQ(items->size(), 3u);
+
+  auto* selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->x_, 112);
+  EXPECT_EQ(selected->y_, 112);
+
+  ASSERT_TRUE(overworld_editor_->NudgeSelectedItem(/*delta_x=*/1,
+                                                   /*delta_y=*/-1));
+  selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->x_, 113);
+  EXPECT_EQ(selected->y_, 111);
+  EXPECT_EQ(selected->game_x_, 7);
+  EXPECT_EQ(selected->game_y_, 6);
+
+  ASSERT_TRUE(overworld_editor_->DeleteSelectedItem());
+  ASSERT_EQ(items->size(), 2u);
+  selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->id_, 0x40);
+  EXPECT_EQ(selected->x_, 96);
+  EXPECT_EQ(selected->y_, 112);
+}
+
+TEST_F(OverworldEditorTest, StaleItemSelectionClearsWhenBackingItemIsRemoved) {
+  auto* items = overworld_editor_->overworld().mutable_all_items();
+  ASSERT_NE(items, nullptr);
+
+  items->clear();
+  items->emplace_back(/*id=*/0x51, /*room_map_id=*/0x00, /*x=*/160, /*y=*/176,
+                      /*bg2=*/false);
+
+  const zelda3::OverworldItem selected_identity = items->at(0);
+  ASSERT_TRUE(overworld_editor_->SelectItemByIdentity(selected_identity));
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+
+  items->clear();
+  EXPECT_EQ(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_FALSE(overworld_editor_->selected_item_identity().has_value());
+  EXPECT_FALSE(overworld_editor_->DeleteSelectedItem());
 }
 
 }  // namespace test
