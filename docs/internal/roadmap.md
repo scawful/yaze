@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last Updated: March 3, 2026**
+**Last Updated: March 5, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
@@ -24,13 +24,16 @@ for the detailed task breakdown and agent assignments.
   (status badge + standalone return affordance)
 - P1 completed: Overworld item iteration UX
   (list/filter panel + duplicate/nudge shortcuts)
+- Stretch completed: Overworld batch item undo coverage
+  (multi-delete + nudge sequence undo/redo tests)
+- Stretch in progress: Tile16 quadrant strip/hotkey parity tests
+  (numeric shortcut policy extracted + unit tests added)
 - P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
 - Validation gate snapshot (March 3, 2026):
   - `ctest --preset mac-ai-unit --output-on-failure` => 1622/1622 passed
   - `ctest --preset mac-ai-integration --output-on-failure` => 237/237 passed
 - Remaining 0.7.0 stretch tasks are tracked in universe coordination:
   - `task_20260303T212605Z_32450` (Tile16 quadrant parity tests)
-  - `task_20260303T212605Z_29503` (Overworld item batch-undo coverage)
   - `task_20260303T212605Z_17791` (Dungeon dispatcher/docs cleanup)
 
 Four parallel workstreams continue from the 0.6.x cycle.
@@ -80,6 +83,8 @@ for reliable ROM hacking. ZScream is the stability benchmark.
   action rail)
 - ✅ Overworld item workflow iteration UX landed (filterable item list panel +
   duplicate/nudge shortcuts)
+- ✅ Overworld item batch undo coverage added (multi-delete and nudge
+  sequences with undo/redo integration tests)
 - 🟡 Export file dialog not implemented
 - 🟡 **Persistent scratch pad**: ZScream saves `ScratchPad.dat`; yaze scratch is session-only
 - 🟡 **Eyedropper tool**: no dedicated tool/shortcut (ZScream has right-click sampling)

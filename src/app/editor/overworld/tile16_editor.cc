@@ -6,6 +6,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/tile16_editor_action_state.h"
+#include "app/editor/overworld/tile16_editor_shortcuts.h"
 #include "app/editor/overworld/tile8_source_interaction.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
@@ -3830,24 +3831,26 @@ void Tile16Editor::HandleKeyboardShortcuts() {
       status_ = CyclePalette(true);
     }
 
-    // Quadrant focus hotkeys (1-4).
-    if (!ctrl_held) {
-      for (int q = 0; q < 4; ++q) {
-        if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_1 + q))) {
-          active_quadrant_ = q;
-        }
+    // Numeric shortcuts:
+    //  - 1..4 focus tile16 quadrants
+    //  - Ctrl+1..8 switch brush palette rows
+    for (int i = 0; i < 8; ++i) {
+      if (!ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_1 + i))) {
+        continue;
+      }
+      const Tile16NumericShortcutResult shortcut =
+          ResolveTile16NumericShortcut(ctrl_held, i);
+      if (shortcut.quadrant_focus.has_value()) {
+        active_quadrant_ = *shortcut.quadrant_focus;
+      }
+      if (shortcut.palette_id.has_value()) {
+        current_palette_ = *shortcut.palette_id;
+        status_ = RefreshAllPalettes();
       }
     }
 
     // Ctrl-modified shortcuts
     if (ctrl_held) {
-      // Palette shortcuts moved to Ctrl+1..8 so plain 1..4 can focus quadrants.
-      for (int i = 0; i < 8; ++i) {
-        if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_1 + i))) {
-          current_palette_ = i;
-          status_ = RefreshAllPalettes();
-        }
-      }
       if (ImGui::IsKeyPressed(ImGuiKey_Z)) {
         status_ = Undo();
       }
