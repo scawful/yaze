@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstddef>
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -13,6 +14,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_item.h"
 
 namespace yaze {
 namespace editor {
@@ -50,11 +52,10 @@ class OverworldTilePaintAction : public UndoAction {
    * @param overworld    Non-owning pointer to the Overworld data layer
    * @param refresh_fn   Callback to refresh map visuals after undo/redo
    */
-  OverworldTilePaintAction(
-      int map_id, int world,
-      std::vector<OverworldTileChange> tile_changes,
-      zelda3::Overworld* overworld,
-      std::function<void()> refresh_fn)
+  OverworldTilePaintAction(int map_id, int world,
+                           std::vector<OverworldTileChange> tile_changes,
+                           zelda3::Overworld* overworld,
+                           std::function<void()> refresh_fn)
       : map_id_(map_id),
         world_(world),
         tile_changes_(std::move(tile_changes)),
@@ -91,23 +92,23 @@ class OverworldTilePaintAction : public UndoAction {
   }
 
   std::string Description() const override {
-    return absl::StrFormat("Paint %d tile%s on map %d",
-                           tile_changes_.size(),
-                           tile_changes_.size() == 1 ? "" : "s",
-                           map_id_);
+    return absl::StrFormat("Paint %d tile%s on map %d", tile_changes_.size(),
+                           tile_changes_.size() == 1 ? "" : "s", map_id_);
   }
 
   size_t MemoryUsage() const override {
-    return sizeof(*this) +
-           tile_changes_.size() * sizeof(OverworldTileChange);
+    return sizeof(*this) + tile_changes_.size() * sizeof(OverworldTileChange);
   }
 
   bool CanMergeWith(const UndoAction& prev) const override {
     const auto* prev_paint =
         dynamic_cast<const OverworldTilePaintAction*>(&prev);
-    if (!prev_paint) return false;
-    if (prev_paint->map_id_ != map_id_) return false;
-    if (prev_paint->world_ != world_) return false;
+    if (!prev_paint)
+      return false;
+    if (prev_paint->map_id_ != map_id_)
+      return false;
+    if (prev_paint->world_ != world_)
+      return false;
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
         timestamp_ - prev_paint->timestamp_);
@@ -155,9 +156,74 @@ class OverworldTilePaintAction : public UndoAction {
   int map_id_;
   int world_;
   std::vector<OverworldTileChange> tile_changes_;
-  zelda3::Overworld* overworld_;       // non-owning
-  std::function<void()> refresh_fn_;   // callback to refresh map visuals
+  zelda3::Overworld* overworld_;      // non-owning
+  std::function<void()> refresh_fn_;  // callback to refresh map visuals
   std::chrono::steady_clock::time_point timestamp_;
+};
+
+/**
+ * @brief Snapshot of overworld item list + current item selection.
+ *
+ * Used to restore delete/duplicate/move item workflows in one undo step.
+ */
+struct OverworldItemsSnapshot {
+  std::vector<zelda3::OverworldItem> items;
+  std::optional<zelda3::OverworldItem> selected_item_identity;
+};
+
+/**
+ * @class OverworldItemsEditAction
+ * @brief Undoable action for overworld item mutations.
+ *
+ * Stores before/after snapshots and applies them through a restore callback.
+ */
+class OverworldItemsEditAction : public UndoAction {
+ public:
+  using RestoreFn = std::function<void(const OverworldItemsSnapshot&)>;
+
+  OverworldItemsEditAction(OverworldItemsSnapshot before,
+                           OverworldItemsSnapshot after, RestoreFn restore,
+                           std::string description)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        restore_(std::move(restore)),
+        description_(std::move(description)) {}
+
+  absl::Status Undo() override {
+    if (!restore_) {
+      return absl::InternalError(
+          "OverworldItemsEditAction: no restore callback");
+    }
+    restore_(before_);
+    return absl::OkStatus();
+  }
+
+  absl::Status Redo() override {
+    if (!restore_) {
+      return absl::InternalError(
+          "OverworldItemsEditAction: no restore callback");
+    }
+    restore_(after_);
+    return absl::OkStatus();
+  }
+
+  std::string Description() const override { return description_; }
+
+  size_t MemoryUsage() const override {
+    const size_t before_size =
+        before_.items.size() * sizeof(zelda3::OverworldItem);
+    const size_t after_size =
+        after_.items.size() * sizeof(zelda3::OverworldItem);
+    return sizeof(*this) + before_size + after_size;
+  }
+
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
+
+ private:
+  OverworldItemsSnapshot before_;
+  OverworldItemsSnapshot after_;
+  RestoreFn restore_;
+  std::string description_;
 };
 
 }  // namespace editor

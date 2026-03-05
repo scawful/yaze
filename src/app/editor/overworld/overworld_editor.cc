@@ -84,6 +84,40 @@
 
 namespace yaze::editor {
 
+namespace {
+
+bool ItemIdentityMatchesForUndo(const zelda3::OverworldItem& lhs,
+                                const zelda3::OverworldItem& rhs) {
+  return lhs.id_ == rhs.id_ && lhs.room_map_id_ == rhs.room_map_id_ &&
+         lhs.x_ == rhs.x_ && lhs.y_ == rhs.y_ && lhs.bg2_ == rhs.bg2_;
+}
+
+bool ItemSnapshotsEqual(const OverworldItemsSnapshot& lhs,
+                        const OverworldItemsSnapshot& rhs) {
+  if (lhs.items.size() != rhs.items.size()) {
+    return false;
+  }
+
+  for (size_t i = 0; i < lhs.items.size(); ++i) {
+    if (!ItemIdentityMatchesForUndo(lhs.items[i], rhs.items[i])) {
+      return false;
+    }
+  }
+
+  if (lhs.selected_item_identity.has_value() !=
+      rhs.selected_item_identity.has_value()) {
+    return false;
+  }
+  if (!lhs.selected_item_identity.has_value()) {
+    return true;
+  }
+
+  return ItemIdentityMatchesForUndo(*lhs.selected_item_identity,
+                                    *rhs.selected_item_identity);
+}
+
+}  // namespace
+
 void OverworldEditor::Initialize() {
   // Register panels with PanelManager (dependency injection)
   if (!dependencies_.panel_manager) {
@@ -607,6 +641,56 @@ const zelda3::OverworldItem* OverworldEditor::GetSelectedItem() const {
   return const_cast<OverworldEditor*>(this)->GetSelectedItem();
 }
 
+OverworldItemsSnapshot OverworldEditor::CaptureItemUndoSnapshot() const {
+  OverworldItemsSnapshot snapshot;
+  snapshot.items = overworld_.all_items();
+  snapshot.selected_item_identity = selected_item_identity_;
+  return snapshot;
+}
+
+void OverworldEditor::RestoreItemUndoSnapshot(
+    const OverworldItemsSnapshot& snapshot) {
+  auto* items = overworld_.mutable_all_items();
+  if (!items) {
+    return;
+  }
+
+  *items = snapshot.items;
+  selected_item_identity_ = snapshot.selected_item_identity;
+  if (selected_item_identity_.has_value()) {
+    auto* selected_item =
+        FindItemByIdentity(&overworld_, *selected_item_identity_);
+    if (selected_item) {
+      current_item_ = *selected_item;
+      current_entity_ = selected_item;
+    } else {
+      ClearSelectedItem();
+    }
+  } else {
+    ClearSelectedItem();
+  }
+
+  if (rom_) {
+    rom_->set_dirty(true);
+  }
+  RefreshOverworldMap();
+}
+
+void OverworldEditor::PushItemUndoAction(OverworldItemsSnapshot before,
+                                         std::string description) {
+  OverworldItemsSnapshot after = CaptureItemUndoSnapshot();
+  if (ItemSnapshotsEqual(before, after)) {
+    return;
+  }
+
+  undo_manager_.Push(std::make_unique<OverworldItemsEditAction>(
+      std::move(before), std::move(after),
+      [this](const OverworldItemsSnapshot& snapshot) {
+        RestoreItemUndoSnapshot(snapshot);
+      },
+      std::move(description)));
+}
+
 bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
   auto* selected_item = GetSelectedItem();
   if (!selected_item) {
@@ -618,6 +702,7 @@ bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
     return false;
   }
 
+  auto before_snapshot = CaptureItemUndoSnapshot();
   auto duplicate_or =
       DuplicateItemByIdentity(&overworld_, *selected_item, offset_x, offset_y);
   if (!duplicate_or.ok()) {
@@ -632,6 +717,9 @@ bool OverworldEditor::DuplicateSelectedItem(int offset_x, int offset_y) {
   selected_item_identity_ = *duplicated_item;
   current_item_ = *duplicated_item;
   current_entity_ = duplicated_item;
+  PushItemUndoAction(std::move(before_snapshot),
+                     absl::StrFormat("Duplicate overworld item 0x%02X",
+                                     static_cast<int>(duplicated_item->id_)));
   rom_->set_dirty(true);
   if (dependencies_.toast_manager) {
     dependencies_.toast_manager->Show(
@@ -648,6 +736,7 @@ bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
     return false;
   }
 
+  auto before_snapshot = CaptureItemUndoSnapshot();
   auto status = NudgeItem(selected_item, delta_x, delta_y);
   if (!status.ok()) {
     if (dependencies_.toast_manager) {
@@ -660,6 +749,10 @@ bool OverworldEditor::NudgeSelectedItem(int delta_x, int delta_y) {
   selected_item_identity_ = *selected_item;
   current_item_ = *selected_item;
   current_entity_ = selected_item;
+  PushItemUndoAction(
+      std::move(before_snapshot),
+      absl::StrFormat("Move overworld item 0x%02X (%+d,%+d)",
+                      static_cast<int>(selected_item->id_), delta_x, delta_y));
   rom_->set_dirty(true);
   return true;
 }
@@ -670,6 +763,7 @@ bool OverworldEditor::DeleteSelectedItem() {
     return false;
   }
 
+  auto before_snapshot = CaptureItemUndoSnapshot();
   const zelda3::OverworldItem selected_identity = *selected_item;
   const uint8_t deleted_item_id = selected_identity.id_;
   auto remove_status = RemoveItemByIdentity(&overworld_, selected_identity);
@@ -691,6 +785,9 @@ bool OverworldEditor::DeleteSelectedItem() {
     ClearSelectedItem();
   }
 
+  PushItemUndoAction(std::move(before_snapshot),
+                     absl::StrFormat("Delete overworld item 0x%02X",
+                                     static_cast<int>(deleted_item_id)));
   rom_->set_dirty(true);
   if (dependencies_.toast_manager) {
     if (nearest_item) {

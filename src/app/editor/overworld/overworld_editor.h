@@ -78,6 +78,8 @@
 namespace yaze {
 namespace editor {
 
+struct OverworldItemsSnapshot;
+
 // =============================================================================
 // Constants
 // =============================================================================
@@ -512,6 +514,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void CreateUndoPoint(int map_id, int world, int x, int y, int old_tile_id);
   void FinalizePaintOperation();
   auto& GetWorldTiles(int world);
+  OverworldItemsSnapshot CaptureItemUndoSnapshot() const;
+  void RestoreItemUndoSnapshot(const OverworldItemsSnapshot& snapshot);
+  void PushItemUndoAction(OverworldItemsSnapshot before,
+                          std::string description);
 
   // ===========================================================================
   // Editing Mode State
