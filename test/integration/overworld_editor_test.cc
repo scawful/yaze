@@ -98,6 +98,100 @@ TEST_F(OverworldEditorTest,
   EXPECT_EQ(selected->y_, 112);
 }
 
+TEST_F(OverworldEditorTest, ItemMultiDeleteUndoRedoRestoresListAndSelection) {
+  auto* items = overworld_editor_->overworld().mutable_all_items();
+  ASSERT_NE(items, nullptr);
+
+  items->clear();
+  items->emplace_back(/*id=*/0x40, /*room_map_id=*/0x00, /*x=*/96, /*y=*/112,
+                      /*bg2=*/false);
+  items->emplace_back(/*id=*/0x41, /*room_map_id=*/0x00, /*x=*/120, /*y=*/112,
+                      /*bg2=*/false);
+  items->emplace_back(/*id=*/0x42, /*room_map_id=*/0x00, /*x=*/200, /*y=*/112,
+                      /*bg2=*/false);
+
+  ASSERT_TRUE(overworld_editor_->SelectItemByIdentity(items->at(1)));
+  ASSERT_TRUE(overworld_editor_->DeleteSelectedItem());
+  ASSERT_EQ(items->size(), 2u);
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_EQ(overworld_editor_->GetSelectedItem()->id_, 0x40);
+
+  ASSERT_TRUE(overworld_editor_->DeleteSelectedItem());
+  ASSERT_EQ(items->size(), 1u);
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_EQ(overworld_editor_->GetSelectedItem()->id_, 0x42);
+
+  ASSERT_TRUE(overworld_editor_->Undo().ok());
+  ASSERT_EQ(items->size(), 2u);
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_EQ(overworld_editor_->GetSelectedItem()->id_, 0x40);
+
+  ASSERT_TRUE(overworld_editor_->Undo().ok());
+  ASSERT_EQ(items->size(), 3u);
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_EQ(overworld_editor_->GetSelectedItem()->id_, 0x41);
+
+  ASSERT_TRUE(overworld_editor_->Redo().ok());
+  ASSERT_EQ(items->size(), 2u);
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_EQ(overworld_editor_->GetSelectedItem()->id_, 0x40);
+
+  ASSERT_TRUE(overworld_editor_->Redo().ok());
+  ASSERT_EQ(items->size(), 1u);
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_EQ(overworld_editor_->GetSelectedItem()->id_, 0x42);
+}
+
+TEST_F(OverworldEditorTest, ItemNudgeSequenceUndoRedoRestoresCoordinates) {
+  auto* items = overworld_editor_->overworld().mutable_all_items();
+  ASSERT_NE(items, nullptr);
+
+  items->clear();
+  items->emplace_back(/*id=*/0x55, /*room_map_id=*/0x00, /*x=*/160, /*y=*/176,
+                      /*bg2=*/false);
+
+  ASSERT_TRUE(overworld_editor_->SelectItemByIdentity(items->at(0)));
+  ASSERT_TRUE(overworld_editor_->NudgeSelectedItem(/*delta_x=*/16,
+                                                   /*delta_y=*/0));
+  ASSERT_TRUE(overworld_editor_->NudgeSelectedItem(/*delta_x=*/0,
+                                                   /*delta_y=*/-16));
+
+  auto* selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->x_, 176);
+  EXPECT_EQ(selected->y_, 160);
+  EXPECT_EQ(selected->game_x_, 11);
+  EXPECT_EQ(selected->game_y_, 10);
+
+  ASSERT_TRUE(overworld_editor_->Undo().ok());
+  selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->x_, 176);
+  EXPECT_EQ(selected->y_, 176);
+  EXPECT_EQ(selected->game_x_, 11);
+  EXPECT_EQ(selected->game_y_, 11);
+
+  ASSERT_TRUE(overworld_editor_->Undo().ok());
+  selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->x_, 160);
+  EXPECT_EQ(selected->y_, 176);
+  EXPECT_EQ(selected->game_x_, 10);
+  EXPECT_EQ(selected->game_y_, 11);
+
+  ASSERT_TRUE(overworld_editor_->Redo().ok());
+  selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->x_, 176);
+  EXPECT_EQ(selected->y_, 176);
+
+  ASSERT_TRUE(overworld_editor_->Redo().ok());
+  selected = overworld_editor_->GetSelectedItem();
+  ASSERT_NE(selected, nullptr);
+  EXPECT_EQ(selected->x_, 176);
+  EXPECT_EQ(selected->y_, 160);
+}
+
 TEST_F(OverworldEditorTest, StaleItemSelectionClearsWhenBackingItemIsRemoved) {
   auto* items = overworld_editor_->overworld().mutable_all_items();
   ASSERT_NE(items, nullptr);
