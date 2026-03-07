@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -57,6 +58,14 @@ gfx::Tile16 MakeTile16WithPalette(uint16_t base_tile_id, uint8_t palette_id) {
 class Tile16EditorSyntheticFixture : public ::testing::Test {
  protected:
   void SetUp() override {
+    imgui_context_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(imgui_context_);
+    ImGuiIO& io = ImGui::GetIO();
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
     rom_ = std::make_unique<Rom>();
     rom_->Expand(0x300000);
 
@@ -100,6 +109,74 @@ class Tile16EditorSyntheticFixture : public ::testing::Test {
     editor_->set_palette(palette_);
   }
 
+  void TearDown() override {
+    editor_.reset();
+    tile16_blockset_bmp_.reset();
+    current_gfx_bmp_.reset();
+    tile16_blockset_.reset();
+    rom_.reset();
+
+    if (imgui_context_) {
+      ImGui::SetCurrentContext(imgui_context_);
+      ImGui::DestroyContext(imgui_context_);
+      imgui_context_ = nullptr;
+    }
+  }
+
+  void RunPanelFrame(std::function<void(ImGuiIO&)> inject_events = nullptr) {
+    ImGui::SetCurrentContext(imgui_context_);
+    ImGuiIO& io = ImGui::GetIO();
+    if (inject_events) {
+      inject_events(io);
+    }
+
+    io.DisplaySize = ImVec2(1280, 720);
+    io.DeltaTime = 1.0f / 60.0f;
+
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(960, 720));
+    ImGui::SetNextWindowFocus();
+    ImGui::Begin("##Tile16SyntheticHost", nullptr,
+                 ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+                     ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoSavedSettings);
+    ASSERT_TRUE(editor_->UpdateAsPanel().ok());
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+
+  void PressNumberShortcut(int number_index, bool ctrl_held) {
+    ASSERT_GE(number_index, 0);
+    ASSERT_LE(number_index, 7);
+
+    if (ctrl_held) {
+      RunPanelFrame([](ImGuiIO& io) {
+        const ImGuiKey primary_mod =
+            io.ConfigMacOSXBehaviors ? ImGuiKey_LeftSuper : ImGuiKey_LeftCtrl;
+        io.AddKeyEvent(primary_mod, true);
+      });
+    }
+
+    RunPanelFrame([number_index](ImGuiIO& io) {
+      io.AddKeyEvent(static_cast<ImGuiKey>(ImGuiKey_1 + number_index), true);
+    });
+
+    RunPanelFrame([number_index](ImGuiIO& io) {
+      io.AddKeyEvent(static_cast<ImGuiKey>(ImGuiKey_1 + number_index), false);
+    });
+
+    if (ctrl_held) {
+      RunPanelFrame([](ImGuiIO& io) {
+        const ImGuiKey primary_mod =
+            io.ConfigMacOSXBehaviors ? ImGuiKey_LeftSuper : ImGuiKey_LeftCtrl;
+        io.AddKeyEvent(primary_mod, false);
+      });
+    }
+  }
+
+  ImGuiContext* imgui_context_ = nullptr;
   std::unique_ptr<Rom> rom_;
   std::unique_ptr<gfx::Tilemap> tile16_blockset_;
   std::unique_ptr<gfx::Bitmap> current_gfx_bmp_;
@@ -329,6 +406,29 @@ TEST_F(Tile16EditorSyntheticFixture,
   EXPECT_EQ(editor_->active_quadrant(), 1);
   EXPECT_EQ(editor_->current_tile8(), 1);
   EXPECT_EQ(editor_->current_palette(), 1);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       NumericHotkeysOneThroughFourFocusQuadrantsInImGuiFrame) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_active_quadrant(0);
+
+  for (int quadrant = 0; quadrant < 4; ++quadrant) {
+    PressNumberShortcut(quadrant, /*ctrl_held=*/false);
+    EXPECT_EQ(editor_->active_quadrant(), quadrant);
+  }
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       CtrlNumericHotkeysOneThroughEightSwitchBrushPaletteRowsInImGuiFrame) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_active_quadrant(3);
+
+  for (int palette = 0; palette < 8; ++palette) {
+    PressNumberShortcut(palette, /*ctrl_held=*/true);
+    EXPECT_EQ(editor_->current_palette(), palette);
+    EXPECT_EQ(editor_->active_quadrant(), 3);
+  }
 }
 
 // Basic validation tests (no ROM required)
