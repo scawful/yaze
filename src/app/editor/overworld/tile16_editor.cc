@@ -3788,8 +3788,15 @@ absl::Status Tile16Editor::UpdateLivePreview() {
 
 void Tile16Editor::HandleKeyboardShortcuts() {
   if (!ImGui::IsAnyItemActive()) {
-    bool ctrl_held = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-                     ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+    const ImGuiIO& io = ImGui::GetIO();
+#if defined(__APPLE__)
+    const bool platform_primary_held = io.KeyCtrl || io.KeySuper;
+#else
+    const bool platform_primary_held = io.KeyCtrl;
+#endif
+    const bool ctrl_held = platform_primary_held ||
+                           ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+                           ImGui::IsKeyDown(ImGuiKey_RightCtrl);
 
     // Editing shortcuts (only fire without Ctrl to avoid conflicts)
     if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
