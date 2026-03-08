@@ -2,6 +2,8 @@
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 
+#include <string>
+
 #include "imgui.h"
 #if __has_include("imgui_test_engine/imgui_te_context.h")
 #include "imgui_test_engine/imgui_te_context.h"
@@ -20,6 +22,34 @@
 #endif
 
 namespace yaze::test {
+
+namespace {
+
+void EnsureTile16PanelOpenAndFocused(ImGuiTestContext* ctx) {
+  ctx->SetRef("Tile16 Editor");
+  if (ctx->GetWindowByRef("") == nullptr) {
+    ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_T);
+    ctx->Yield(4);
+  }
+
+  ctx->SetRef("Tile16 Editor");
+  IM_CHECK(ctx->GetWindowByRef("") != nullptr);
+  ctx->WindowFocus("");
+  ctx->Yield(2);
+}
+
+void ExpectActiveQuadrant(ImGuiTestContext* ctx, const char* label) {
+  const std::string pattern = std::string("**/Active ") + label + ":*";
+  IM_CHECK(ctx->ItemExists(pattern.c_str()));
+}
+
+void ExpectBrushPalette(ImGuiTestContext* ctx, int palette) {
+  const std::string pattern =
+      std::string("**/*Brush Palette: ") + std::to_string(palette) + "*";
+  IM_CHECK(ctx->ItemExists(pattern.c_str()));
+}
+
+}  // namespace
 
 // ============================================================================
 // Test: Keyboard shortcut mode switching
@@ -150,6 +180,59 @@ static void RegisterKeyboardShortcutTests(ImGuiTestEngine* engine) {
       // Toggle back
       ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_T);
       ctx->Yield(1);
+    };
+  }
+
+  // Test: Keys 1..4 update tile16 quadrant focus in panel state text.
+  {
+    ImGuiTest* test = IM_REGISTER_TEST(engine, "overworld_keys",
+                                       "tile16_quadrant_hotkeys_apply_focus");
+    test->TestFunc = [](ImGuiTestContext* ctx) {
+      EnsureTile16PanelOpenAndFocused(ctx);
+
+      struct QuadrantStep {
+        ImGuiKey key;
+        const char* label;
+      };
+      const QuadrantStep steps[] = {
+          {ImGuiKey_1, "TL"},
+          {ImGuiKey_2, "TR"},
+          {ImGuiKey_3, "BL"},
+          {ImGuiKey_4, "BR"},
+      };
+
+      for (const auto& step : steps) {
+        ctx->KeyPress(step.key);
+        ctx->Yield(2);
+        ExpectActiveQuadrant(ctx, step.label);
+      }
+
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_T);
+      ctx->Yield(2);
+    };
+  }
+
+  // Test: Ctrl+1..8 update brush palette while preserving active quadrant.
+  {
+    ImGuiTest* test = IM_REGISTER_TEST(
+        engine, "overworld_keys", "tile16_ctrl_numeric_hotkeys_palette_rows");
+    test->TestFunc = [](ImGuiTestContext* ctx) {
+      EnsureTile16PanelOpenAndFocused(ctx);
+
+      ctx->KeyPress(ImGuiKey_4);
+      ctx->Yield(2);
+      ExpectActiveQuadrant(ctx, "BR");
+
+      for (int palette = 0; palette < 8; ++palette) {
+        const ImGuiKey number_key = static_cast<ImGuiKey>(ImGuiKey_1 + palette);
+        ctx->KeyPress(ImGuiMod_Ctrl | number_key);
+        ctx->Yield(2);
+        ExpectBrushPalette(ctx, palette);
+        ExpectActiveQuadrant(ctx, "BR");
+      }
+
+      ctx->KeyPress(ImGuiMod_Ctrl | ImGuiKey_T);
+      ctx->Yield(2);
     };
   }
 }
