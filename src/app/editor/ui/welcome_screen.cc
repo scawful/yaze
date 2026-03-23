@@ -1851,6 +1851,19 @@ void WelcomeScreen::DrawWhatsNew() {
     int highlight_count;
   };
 
+  const ReleaseHighlight highlights_070[] = {
+      {ICON_MD_TABLET, "iOS Remote Control with Bonjour LAN auto-discovery"},
+      {ICON_MD_GRID_VIEW,
+       "Remote Room Viewer: browse all 296 dungeon rooms on iPad"},
+      {ICON_MD_TERMINAL,
+       "Remote Command Runner: z3ed CLI from iPad with autocomplete"},
+      {ICON_MD_TUNE, "Themed tab bar and widget system across all editors"},
+  };
+  const ReleaseHighlight highlights_062[] = {
+      {ICON_MD_ARCHIVE, ".yazeproj bundle verify/pack/unpack reliability"},
+      {ICON_MD_SHIELD, "Oracle smoke/preflight workflow hardening"},
+      {ICON_MD_TUNE, "Dungeon placement feedback and editor UX polish"},
+  };
   const ReleaseHighlight highlights_061[] = {
       {ICON_MD_SHIELD, "Oracle smoke/preflight workflow hardening"},
       {ICON_MD_ARCHIVE, "Cross-platform .yazeproj verify/pack/unpack flows"},
@@ -1900,8 +1913,15 @@ void WelcomeScreen::DrawWhatsNew() {
 
   const ReleaseEntry releases[] = {
       {ICON_MD_ROCKET_LAUNCH, YAZE_VERSION_STRING,
-       "Oracle + bundle workflow hardening", "Feb 24, 2026", kHyruleGreen,
-       highlights_061,
+       "iOS Remote Control + HTTP API Expansion", "Feb 2026", kHyruleGreen,
+       highlights_070,
+       static_cast<int>(sizeof(highlights_070) / sizeof(highlights_070[0]))},
+      {ICON_MD_ARCHIVE, "0.6.2",
+       "Bundle reliability + Oracle workflow hardening", "Feb 2026",
+       kSpiritOrange, highlights_062,
+       static_cast<int>(sizeof(highlights_062) / sizeof(highlights_062[0]))},
+      {ICON_MD_SHIELD, "0.6.1", "Oracle + bundle workflow hardening",
+       "Feb 24, 2026", kMasterSwordBlue, highlights_061,
        static_cast<int>(sizeof(highlights_061) / sizeof(highlights_061[0]))},
       {ICON_MD_AUTO_AWESOME, "0.6.0", "GUI Modernization + Tile Editor",
        "Feb 13, 2026", kTriforceGold, highlights_060,
