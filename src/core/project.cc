@@ -362,10 +362,11 @@ absl::Status YazeProject::Open(const std::string& project_path) {
       // Bundle layout defaults (paths stored as absolute; serializer writes
       // relative values for portability).
       const std::filesystem::path rom_candidate = bundle_path / "rom";
-      if (std::filesystem::exists(rom_candidate, ec) &&
-          std::filesystem::is_regular_file(rom_candidate, ec) && !ec) {
-        rom_filename = rom_candidate.string();
-      }
+      // Always set the expected bundle ROM path even if the file is not yet
+      // present on disk (e.g. still downloading from iCloud). The load
+      // attempt in LoadProjectWithRom() handles the missing-file case without
+      // corrupting the project by saving a temporary path.
+      rom_filename = rom_candidate.string();
 
       const std::filesystem::path project_dir = bundle_path / "project";
       const std::filesystem::path code_dir = bundle_path / "code";

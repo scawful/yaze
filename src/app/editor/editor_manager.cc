@@ -2565,16 +2565,12 @@ absl::Status EditorManager::LoadRom() {
   };
 
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
-  util::FileDialogWrapper::ShowOpenFileDialogAsync(
-      util::MakeRomFileDialogOptions(false),
-      [this, load_from_path](const std::string& file_name) {
-        auto status = load_from_path(file_name);
-        if (!status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Failed to load ROM: %s", status.message()),
-              ToastType::kError);
-        }
-      });
+  // On iOS, route through the SwiftUI overlay document picker to get proper
+  // security-scoped access to iCloud Drive and Files app locations. This
+  // mirrors how OpenProject() works on iOS and supports cloud ROMs.
+  // The SwiftUI picker calls YazeIOSBridge.loadRomAtPath: after importing the
+  // ROM to a persistent sandbox directory.
+  platform::ios::PostOverlayCommand("open_rom");
   return absl::OkStatus();
 #else
   auto file_name = util::FileDialogWrapper::ShowOpenFileDialog(
@@ -3209,6 +3205,23 @@ absl::Status EditorManager::LoadProjectWithRom() {
         "Project has no ROM file configured. Please select a ROM.",
         editor::ToastType::kInfo);
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
+    // Guard: if the project lives inside a .yazeproj bundle the ROM path
+    // defaults to bundle/rom, which may not exist yet because iCloud hasn't
+    // finished the download. Popping the file picker here would let a
+    // temporary path overwrite the correct bundle path in project.yaze.
+    // Show guidance and let the user reopen the project once the download
+    // is complete.
+    {
+      auto bundle_parent =
+          std::filesystem::path(current_project_.filepath).parent_path();
+      if (bundle_parent.extension() == ".yazeproj") {
+        toast_manager_.Show(
+            "ROM is downloading from iCloud. Reopen the project in a few "
+            "seconds.",
+            ToastType::kInfo, 6.0f);
+        return absl::OkStatus();
+      }
+    }
     util::FileDialogWrapper::ShowOpenFileDialogAsync(
         util::MakeRomFileDialogOptions(false),
         [this](const std::string& rom_path) {
@@ -3256,6 +3269,21 @@ absl::Status EditorManager::LoadProjectWithRom() {
                         current_project_.rom_filename, load_status.message()),
         editor::ToastType::kWarning, 5.0f);
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
+    // If the ROM is inside a .yazeproj bundle its path may not be readable
+    // yet because iCloud hasn't finished downloading it.  Saving any other
+    // path here would corrupt the project file with a temporary location.
+    // Show guidance and bail without touching current_project_.rom_filename.
+    {
+      auto rom_parent =
+          std::filesystem::path(current_project_.rom_filename).parent_path();
+      if (rom_parent.extension() == ".yazeproj") {
+        toast_manager_.Show(
+            "ROM is still downloading from iCloud. Try reopening the project "
+            "in a moment.",
+            ToastType::kInfo, 6.0f);
+        return absl::OkStatus();
+      }
+    }
     util::FileDialogWrapper::ShowOpenFileDialogAsync(
         util::MakeRomFileDialogOptions(false),
         [this](const std::string& rom_path) {
