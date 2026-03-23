@@ -1227,27 +1227,50 @@ yaze::ios::IOSHost g_ios_host;
 
   if (self.completionHandler) {
     if (selectedFileURL) {
-      // Create a temporary file path
-      NSString *tempDir = NSTemporaryDirectory();
+      // Copy the ROM to a persistent sandbox directory so the path remains
+      // valid across app sessions. NSTemporaryDirectory() is cleared by the
+      // system, which would cause project files to save a stale temp path.
+      NSArray<NSURL *> *docURLs = [[NSFileManager defaultManager]
+          URLsForDirectory:NSDocumentDirectory
+                 inDomains:NSUserDomainMask];
+      NSURL *docsURL = docURLs.firstObject;
+      NSURL *romsDir = [[docsURL URLByAppendingPathComponent:@"Yaze"
+                                                 isDirectory:YES]
+          URLByAppendingPathComponent:@"ROMs"
+                          isDirectory:YES];
+      [[NSFileManager defaultManager] createDirectoryAtURL:romsDir
+                               withIntermediateDirectories:YES
+                                                attributes:nil
+                                                     error:nil];
+
       NSString *fileName = [selectedFileURL lastPathComponent];
-      NSString *tempPath = [tempDir stringByAppendingPathComponent:fileName];
-      NSURL *tempURL = [NSURL fileURLWithPath:tempPath];
-      
-      // Copy the file to the temporary location
-      NSError *error = nil;
-      [[NSFileManager defaultManager] removeItemAtURL:tempURL error:nil]; // Remove if exists
-      
+      NSURL *destURL = [romsDir URLByAppendingPathComponent:fileName];
+
+      // Trigger iCloud download before copying (safe no-op for local files).
       [selectedFileURL startAccessingSecurityScopedResource];
-      BOOL success = [[NSFileManager defaultManager] copyItemAtURL:selectedFileURL toURL:tempURL error:&error];
-      [selectedFileURL stopAccessingSecurityScopedResource];
-      
-      if (success) {
-        std::string cppPath = std::string([tempPath UTF8String]);
-        NSLog(@"File copied to temporary path: %s", cppPath.c_str());
-        self.completionHandler(tempPath);
+      [[NSFileManager defaultManager]
+          startDownloadingUbiquitousItemAtURL:selectedFileURL
+                                        error:nil];
+
+      NSError *error = nil;
+      // If the file already exists in the sandbox, skip the copy.
+      if ([[NSFileManager defaultManager] fileExistsAtPath:destURL.path]) {
+        [selectedFileURL stopAccessingSecurityScopedResource];
+        self.completionHandler(destURL.path);
       } else {
-        NSLog(@"Failed to copy ROM to temp directory: %@", error);
-        self.completionHandler(@"");
+        BOOL success = [[NSFileManager defaultManager]
+            copyItemAtURL:selectedFileURL
+                    toURL:destURL
+                    error:&error];
+        [selectedFileURL stopAccessingSecurityScopedResource];
+
+        if (success) {
+          NSLog(@"ROM copied to persistent path: %@", destURL.path);
+          self.completionHandler(destURL.path);
+        } else {
+          NSLog(@"Failed to copy ROM to Documents/Yaze/ROMs/: %@", error);
+          self.completionHandler(@"");
+        }
       }
     } else {
       self.completionHandler(@"");
