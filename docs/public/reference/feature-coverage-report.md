@@ -1,10 +1,10 @@
-# Feature & Test Coverage Report (v0.6.2)
+# Feature & Test Coverage Report (v0.7.0)
 
 This report summarizes feature status and persistence behavior across the
 desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
 to current automated test coverage. Status levels follow the desktop rubric:
 Stable = reliable core workflows, Beta = usable but incomplete, WIP = core operations missing.
-As of v0.6.2, app data is consolidated under `~/.yaze` on desktop/CLI and
+As of v0.7.0, app data is consolidated under `~/.yaze` on desktop/CLI and
 `/.yaze` in the web build (IDBFS), with legacy migrations from AppData/Library/XDG.
 
 ## Desktop App (yaze)
@@ -17,9 +17,9 @@ As of v0.6.2, app data is consolidated under `~/.yaze` on desktop/CLI and
 | Dungeon Editor | Beta | Room objects/tiles/palettes persist to ROM; shared undo/redo. 12+ unknown object types, visual discrepancies in specific objects, object preview stubbed. |
 | Palette Editor | Beta | Palette changes persist to ROM; JSON import/export not implemented. |
 | Graphics Editor | Beta | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
-| Sprite Editor | Beta | Sprite viewing works; editing and test coverage are limited. |
+| Sprite Editor | Beta | Sprite viewing/editing works with undo/redo; deeper workflow coverage is still limited. |
 | Message Editor | Stable | Text edits persist to ROM. |
-| Screen Editor | WIP | Undo/Redo/Cut/Copy/Paste all unimplemented. |
+| Screen Editor | WIP | Dungeon-map undo/redo is implemented; cut/copy/paste/find remain incomplete. |
 | Memory Editor | WIP | Hex viewing works; search unimplemented. |
 | Assembly/Asar | Beta | Patches apply to ROM; project file editor is incomplete. |
 | Emulator | Beta | Runtime-only; save-state format exists but UI is not fully wired. |
@@ -94,13 +94,13 @@ As of v0.6.2, app data is consolidated under `~/.yaze` on desktop/CLI and
 
 - **Palette serialization**: JSON import/export not implemented (`palette_group_panel.cc:529,534`)
 - **Music bank persistence**: SaveInstruments/SaveSamples return UnimplementedError (`music_bank.cc:925,996`)
-- **Screen editor operations**: Undo/Redo/Cut/Copy/Paste stubs (`screen_editor.h:46-52`)
+- **Screen editor operations**: Cut/Copy/Paste/Find are still incomplete (`screen_editor.h`)
 - **Workspace layout**: Save/Load/Reset are TODOs (`workspace_manager.cc:18,26,34`)
 - **Platform backend**: Minimal factory tests only (`window_backend_test.cc` - 38 lines)
 - **Room object types**: 12+ unknown object types in `room_object.h` need verification
 - **CRC32 calculation**: Stubbed with 0 in ASAR wrapper (`asar_wrapper.cc:330,501`)
 
-## Coverage Plan (v0.6.x)
+## Coverage Plan (v0.7.x)
 
 1) [DONE] Add GUI smoke tests for Graphics, Sprite, Message, and Music editors.
 2) [DONE] Add emulator save-state UI smoke coverage (workflow tests pending).
