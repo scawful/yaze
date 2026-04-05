@@ -3,20 +3,41 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.7.0 (February 2026)
+## 0.7.0 (March 2026)
 - **iOS Remote Control & Review**:
   - Bonjour discovery (`_yaze._tcp.`) auto-finds desktop instances on LAN.
   - Remote Room Viewer: browse and render all 296 dungeon rooms with overlay toggles and metadata.
   - Remote Command Runner: execute z3ed CLI commands from iPad with autocomplete and `--write` safety.
   - Annotation Review Mode: browse, create, edit, and delete room annotations with REST-based desktop sync.
   - Desktop Connection view with discovered hosts list, manual IP entry, and connection status pill.
+- **Desktop HTTP API Expansion**:
+  - Added command execution endpoint (`POST /api/v1/command/execute`) with CommandRegistry integration.
+  - Added command catalog endpoint (`GET /api/v1/command/list`) exposing registered z3ed commands.
+  - Added annotation CRUD endpoints (`GET/POST/PUT/DELETE /api/v1/annotations`).
+  - Added macOS Bonjour service advertisement (`BonjourPublisher`) for desktop discovery.
+- **Editor Completion & Workflow Polish**:
+  - Sprite Editor undo/redo landed with snapshot-based actions and unit coverage.
+  - Screen Editor undo/redo landed for dungeon map edits; toolbar wiring is re-enabled.
+  - Message Editor replace/replace-all is now functional.
+  - Music tracker stubs completed (Space rest/key-off, range delete, song rename popup).
+- **Dungeon Editor Improvements**:
+  - Added `DungeonUsageTracker` visual grids for blockset/spriteset/palette usage analysis.
+  - Polished workbench/panel flow with clearer workflow status and return affordances.
+  - Extended undo/redo coverage into adjacent dungeon map editing flows (screen editor integration).
+- **Custom ROM Hack Features**:
+  - Added desktop BPS patch export/import with CRC validation for distributable patch workflows.
+  - Strengthened overworld hack editing safety via hard-delete semantics, list/filter/sort + duplicate/nudge iteration flow, and undo-backed batch workflows.
+- **CLI Expansion**:
+  - Added palette command set: `palette-get-colors`, `palette-set-color`, and `palette-analyze`.
 - **Themed Widget System**:
   - Added `BeginThemedTabBar`/`EndThemedTabBar` for consistent styled tab bars across editors.
   - Adopted themed widget APIs in dungeon workbench, status bar, pixel editor, and screen editor.
-- **Desktop HTTP API Expansion**:
-  - Added command execution endpoint (`POST /api/v1/command/execute`) with full CommandRegistry integration.
-  - Added command catalog endpoint (`GET /api/v1/command/list`) exposing all registered z3ed commands.
-  - Added annotation CRUD endpoints (`GET/POST/PUT/DELETE /api/v1/annotations`).
+- **Known deferred items (targeting 0.8.0)**:
+  - Persistent overworld scratch pad.
+  - Overworld eyedropper tool.
+  - Graphics editor clipboard flow.
+  - Music SPC/MML import workflow.
+  - Final dungeon draw-routine registry dedupe/documentation cleanup.
 
 ## 0.6.2 (February 2026)
 - **Release & Version Consistency**:

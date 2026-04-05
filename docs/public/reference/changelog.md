@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.0 (February 2026)
+## 0.7.0 (March 2026)
 
 ### iOS Remote Control & Review
 - Added Bonjour discovery (`_yaze._tcp.`) for automatic LAN desktop detection from iPad.
@@ -15,9 +15,36 @@
 - Added `GET/POST/PUT/DELETE /api/v1/annotations` for annotation CRUD against project `annotations.json`.
 - Added `BonjourPublisher` for macOS `dns_sd.h` service advertisement with TXT metadata.
 
+### Editor Completion & Workflow Polish
+- Added sprite editor undo/redo via snapshot actions with unit coverage.
+- Added screen editor undo/redo for dungeon-map edits and restored toolbar wiring.
+- Added message editor replace + replace-all operations.
+- Completed music tracker stubs: Space key rest/key-off insertion, anchored range delete, and song rename popup.
+
+### Dungeon Editor Improvements
+- Added `DungeonUsageTracker` visual usage grids for blockset/spriteset/palette analysis.
+- Polished dungeon workbench/panel workflow (mode clarity, status badge, and return affordances).
+- Extended undo/redo coverage into adjacent dungeon map edit flows.
+
+### Custom ROM Hack Features
+- Added desktop BPS patch export/import with deterministic CRC validation for patch-based distribution.
+- Improved overworld hack editing reliability with hard-delete semantics, list/filter/sort + duplicate/nudge iteration flow, and undo-backed batch flows.
+
+### CLI
+- Added `palette-get-colors` for palette dump/report output.
+- Added `palette-set-color` for direct palette writes.
+- Added `palette-analyze` for palette usage analysis.
+
 ### Themed Widget System
 - Added `BeginThemedTabBar`/`EndThemedTabBar` for consistent styled tab bars.
 - Adopted themed widget APIs across dungeon workbench, status bar, pixel editor, and screen editor.
+
+### Deferred to 0.8.0
+- Persistent overworld scratch-pad storage in project bundles.
+- Overworld eyedropper tooling.
+- Graphics editor clipboard operations.
+- Music editor SPC/MML import path.
+- Final dungeon draw-routine registry dedupe + ownership documentation cleanup.
 
 ## 0.6.2 (February 2026)
 

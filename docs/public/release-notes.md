@@ -1,5 +1,58 @@
 # Release Notes
 
+## v0.7.0 (March 2026)
+
+**Type:** Feature Completion + iOS Remote Control + API Expansion
+**Date:** 2026-03-03
+
+### 📱 iOS Remote Control
+- Added Bonjour LAN discovery (`_yaze._tcp.`) for auto-detecting desktop instances.
+- Added Remote Room Viewer for all 296 dungeon rooms with overlay/metadata controls.
+- Added Remote Command Runner with command catalog autocomplete/history and `--write` safety confirmation.
+- Added Annotation Review Mode with create/edit/delete workflows synced through desktop REST endpoints.
+- Added desktop connection controls with discovered hosts, manual IP fallback, and persistent status pill.
+
+### 🌐 Desktop HTTP API
+- Added `POST /api/v1/command/execute` for remote z3ed command execution.
+- Added `GET /api/v1/command/list` for command metadata and autocomplete catalogs.
+- Added `GET/POST/PUT/DELETE /api/v1/annotations` for annotation CRUD against `annotations.json`.
+- Added Bonjour publisher integration for desktop service advertisement on macOS.
+
+### 🧰 Editor Completion (0.7.0 must-ship + should-ship)
+- Added Sprite Editor undo/redo with snapshot actions and unit tests.
+- Added Screen Editor undo/redo and restored toolbar wiring for map edits.
+- Added Message Editor replace + replace-all behavior.
+- Completed music tracker stubs (rest/key-off insertion, range delete, song rename popup).
+
+### 🏰 Dungeon Editor Improvements
+- Added `DungeonUsageTracker` visual usage grids for blockset/spriteset/palette analysis.
+- Polished dungeon workbench/panel workflow (mode clarity, status badges, and return affordances).
+- Extended undo/redo coverage into adjacent dungeon map edit workflows.
+
+### 🛠️ Custom ROM Hack Features
+- Added desktop BPS patch export/import with CRC validation for patch-based release flows.
+- Strengthened overworld hack editing reliability with hard-delete semantics, list/filter/sort + duplicate/nudge iteration flow, and undo-backed item workflows.
+
+### 💻 CLI Expansion
+- Added palette command set (`palette-get-colors`, `palette-set-color`, `palette-analyze`) for scripted ROM-hack iteration and automation.
+
+### 🎨 UI and Theming
+- Added themed tab-bar primitives (`BeginThemedTabBar`/`EndThemedTabBar`).
+- Adopted themed widgets in key editor surfaces (dungeon workbench, status bar, pixel editor, screen editor).
+
+### ✅ Validation Snapshot
+- `ctest --preset mac-ai-unit --output-on-failure` passed on the release candidate revision.
+- `ctest --preset mac-ai-integration --output-on-failure` passed on the release candidate revision.
+
+### 🗂️ Deferred to 0.8.0
+- Overworld scratch-pad persistence.
+- Overworld eyedropper mode.
+- Graphics editor clipboard workflow.
+- Music SPC/MML import.
+- Final dungeon draw-routine registry dedupe/docs cleanup.
+
+---
+
 ## v0.6.2 (February 2026)
 
 **Type:** Release Consistency + Bundle/Validation Hardening

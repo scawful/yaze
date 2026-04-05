@@ -1857,7 +1857,11 @@ void WelcomeScreen::DrawWhatsNew() {
        "Remote Room Viewer: browse all 296 dungeon rooms on iPad"},
       {ICON_MD_TERMINAL,
        "Remote Command Runner: z3ed CLI from iPad with autocomplete"},
-      {ICON_MD_TUNE, "Themed tab bar and widget system across all editors"},
+      {ICON_MD_API, "Desktop HTTP API: command execute/list + annotation CRUD"},
+      {ICON_MD_UNDO,
+       "Sprite + Screen editor undo/redo and message replace-all"},
+      {ICON_MD_ARCHIVE, "Desktop BPS patch export/import with CRC validation"},
+      {ICON_MD_TUNE, "Themed tab bar and widget adoption across key editors"},
   };
   const ReleaseHighlight highlights_062[] = {
       {ICON_MD_ARCHIVE, ".yazeproj bundle verify/pack/unpack reliability"},
@@ -1913,7 +1917,7 @@ void WelcomeScreen::DrawWhatsNew() {
 
   const ReleaseEntry releases[] = {
       {ICON_MD_ROCKET_LAUNCH, YAZE_VERSION_STRING,
-       "iOS Remote Control + HTTP API Expansion", "Feb 2026", kHyruleGreen,
+       "Feature Completion + iOS Remote Control", "Mar 2026", kHyruleGreen,
        highlights_070,
        static_cast<int>(sizeof(highlights_070) / sizeof(highlights_070[0]))},
       {ICON_MD_ARCHIVE, "0.6.2",

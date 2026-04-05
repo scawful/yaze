@@ -14,9 +14,72 @@ on:
 env:
   VERSION: ${{ github.event.inputs.version || github.ref_name }}
 
+permissions:
+  contents: write
+
 jobs:
+  release-preflight:
+    name: "Release Preflight"
+    runs-on: ubuntu-22.04
+    outputs:
+      version_tag: ${{ steps.version.outputs.version_tag }}
+      version_plain: ${{ steps.version.outputs.version_plain }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Resolve and validate release version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          input_version="${{ env.VERSION }}"
+          if [[ -z "${input_version}" ]]; then
+            echo "VERSION input is empty"
+            exit 1
+          fi
+
+          version_plain="${input_version#v}"
+          version_tag="v${version_plain}"
+
+          if [[ ! "${version_plain}" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][A-Za-z0-9]+)*$ ]]; then
+            echo "Invalid release version: ${input_version}"
+            exit 1
+          fi
+
+          repo_version="$(tr -d '[:space:]' < VERSION)"
+          if [[ "${repo_version}" != "${version_plain}" ]]; then
+            echo "VERSION file (${repo_version}) does not match release version (${version_plain})"
+            exit 1
+          fi
+
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            ref_tag="${{ github.ref_name }}"
+            if [[ "${ref_tag}" != "${version_tag}" ]]; then
+              echo "Tag/ref (${ref_tag}) does not match resolved release tag (${version_tag})"
+              exit 1
+            fi
+          fi
+
+          echo "version_tag=${version_tag}" >> "$GITHUB_OUTPUT"
+          echo "version_plain=${version_plain}" >> "$GITHUB_OUTPUT"
+          echo "Resolved release: ${version_tag}"
+
+      - name: Verify release version/changelog protocol
+        run: bash scripts/dev/release-version-check.sh
+
+      - name: Verify release notes section exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/release/extract-release-notes.sh \
+            "${{ steps.version.outputs.version_tag }}" \
+            docs/public/release-notes.md >/tmp/release-notes-extract.md
+          test -s /tmp/release-notes-extract.md
+
   build:
     name: "Build Release - ${{ matrix.name }}"
+    needs: [release-preflight]
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -180,10 +243,10 @@ jobs:
         shell: bash
         run: |
           chmod +x ./scripts/create-macos-bundle.sh
-          ./scripts/create-macos-bundle.sh ${{ env.VERSION }} yaze-${{ env.VERSION }}-bundle || true
-          if [ -f "yaze-${{ env.VERSION }}-bundle.dmg" ]; then
+          ./scripts/create-macos-bundle.sh ${{ needs.release-preflight.outputs.version_plain }} yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle || true
+          if [ -f "yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle.dmg" ]; then
             mkdir -p build/packages
-            mv yaze-${{ env.VERSION }}-bundle.dmg build/packages/
+            mv yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle.dmg build/packages/
           fi
 
       - name: Validate macOS artifacts
@@ -268,7 +331,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: yaze-${{ matrix.platform }}-${{ env.VERSION }}
+          name: yaze-${{ matrix.platform }}-${{ needs.release-preflight.outputs.version_tag }}
           path: |
             build/packages/*.deb
             build/packages/*.tar.gz
@@ -280,9 +343,8 @@ jobs:
 
   test:
     name: "Test Release - ${{ matrix.name }}"
-    needs: build
+    needs: [release-preflight, build]
     runs-on: ${{ matrix.os }}
-    continue-on-error: true  # informational pre-1.0; release publication gates on build
     strategy:
       fail-fast: false
       matrix:
@@ -349,7 +411,7 @@ jobs:
 
   create-release:
     name: "Create Release"
-    needs: [build]  # Tests are informational only in pre-1.0
+    needs: [release-preflight, build, test]  # Tests are informational only in pre-1.0
     runs-on: ubuntu-22.04
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
@@ -383,52 +445,29 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
 
+      - name: Generate release body from docs
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash scripts/release/extract-release-notes.sh \
+            "${{ needs.release-preflight.outputs.version_tag }}" \
+            docs/public/release-notes.md > release-body.md
+          echo "" >> release-body.md
+          echo "## Checksums" >> release-body.md
+          echo "" >> release-body.md
+          echo "\`\`\`" >> release-body.md
+          cat release-files/checksums.txt >> release-body.md
+          echo "\`\`\`" >> release-body.md
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.VERSION }}
-          name: "YAZE ${{ env.VERSION }}"
-          body: |
-            ## What's Changed
-
-            See [release notes](https://github.com/scawful/yaze/blob/master/docs/public/release-notes.md) for detailed changelog.
-
-            ## Downloads
-
-            ### Linux
-            - **DEB Package**: `yaze-*.deb` (Ubuntu/Debian)
-            - **Tarball**: `yaze-*.tar.gz` (Generic Linux)
-
-            ### macOS
-            - **DMG**: `yaze-*.dmg` (macOS 11.0+)
-
-            ### Windows
-            - **ZIP**: `yaze-*.zip` (Portable)
-
-            ## Installation
-
-            ### Linux (DEB)
-            ```bash
-            sudo dpkg -i yaze-*.deb
-            ```
-
-            ### macOS
-            ```bash
-            # Mount the DMG and drag to Applications
-            open yaze-*.dmg
-            ```
-
-            ### Windows
-            Extract the ZIP and run `yaze.exe` directly.
-
-            ## Notes
-
-            - AI features require an Ollama server or Gemini/OpenAI/Anthropic/LMStudio API.
-            - z3ed CLI supports `--openai_base_url` for LMStudio and other local servers.
-            - Collaboration server setup lives in the separate yaze-server repo.
+          tag_name: ${{ needs.release-preflight.outputs.version_tag }}
+          name: "YAZE ${{ needs.release-preflight.outputs.version_tag }}"
+          body_path: release-body.md
           files: |
             release-files/*
           draft: false
-          prerelease: ${{ contains(env.VERSION, 'alpha') || contains(env.VERSION, 'beta') || contains(env.VERSION, 'rc') }}
+          prerelease: ${{ contains(needs.release-preflight.outputs.version_tag, 'alpha') || contains(needs.release-preflight.outputs.version_tag, 'beta') || contains(needs.release-preflight.outputs.version_tag, 'rc') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
