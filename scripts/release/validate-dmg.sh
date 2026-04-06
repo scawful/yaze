@@ -73,8 +73,16 @@ if command -v codesign >/dev/null 2>&1; then
   if ! codesign --verify --deep --strict "$mount_dir/yaze.app"; then
     echo "Invalid code signature for yaze.app"
     codesign -dv --verbose=2 "$mount_dir/yaze.app" 2>&1 || true
-    exit 1
+    if [[ -n "${CODESIGN_IDENTITY:-}" || "${REQUIRE_VALID_CODESIGN:-}" == "1" || "${REQUIRE_VALID_CODESIGN:-}" == "true" ]]; then
+      exit 1
+    fi
+    echo "No signing identity configured; accepting ad-hoc signature for CI validation."
   fi
+fi
+
+if [[ ! -x "$mount_dir/yaze.app/Contents/MacOS/yaze" ]]; then
+  echo "yaze.app is missing executable Contents/MacOS/yaze"
+  exit 1
 fi
 
 if [[ -d "$mount_dir/bin" ]]; then

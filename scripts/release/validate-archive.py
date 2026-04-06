@@ -55,6 +55,23 @@ def has_any(entries, root, options):
     return any(has_file(entries, root, option) for option in options)
 
 
+def has_basename(entries, filename):
+    return any(os.path.basename(entry) == filename for entry in entries)
+
+
+def has_any_basename(entries, filenames):
+    return any(has_basename(entries, filename) for filename in filenames)
+
+
+def has_assets_path(entries):
+    return any(
+        entry.startswith("assets/")
+        or "/assets/" in entry
+        or entry.endswith("/assets")
+        for entry in entries
+    )
+
+
 def list_zip_entries(path):
     """Return entries list, file entries, and an open ZipFile handle.
 
@@ -147,6 +164,31 @@ def validate_windows_dlls(entries):
     return errors
 
 
+def validate_deb(entries):
+    errors = []
+    files = [entry for entry in entries if not entry.endswith("/")]
+
+    for rel in REQUIRED_FILES:
+        if not has_basename(files, rel):
+            errors.append(f"missing required file: {rel}")
+
+    if not has_assets_path(entries):
+        errors.append("missing assets directory")
+
+    if not has_any_basename(files, REQUIRED_YAZE):
+        errors.append("missing yaze binary")
+
+    if not has_any_basename(files, REQUIRED_Z3ED):
+        errors.append("missing z3ed binary")
+
+    for entry in files:
+        base = os.path.basename(entry)
+        if base in BANNED_HELPERS or base in {f"{name}.exe" for name in BANNED_HELPERS}:
+            errors.append(f"contains helper tool: {base}")
+
+    return errors
+
+
 def validate_archive(path):
     errors = []
     lower = path.lower()
@@ -187,8 +229,7 @@ def validate_archive(path):
         entries = list_deb_entries(path)
         if entries is None:
             return ["dpkg-deb unavailable for .deb validation"]
-        root = detect_root(entries)
-        errors.extend(validate_common(entries, entries, root))
+        errors.extend(validate_deb(entries))
         return errors
 
     return [f"unsupported archive format: {path}"]
