@@ -1,13 +1,16 @@
 #include "cli/handlers/game/dungeon_commands.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
+#include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -473,15 +476,31 @@ absl::Status DungeonGetRoomTilesCommandHandler::Execute(
 
   auto& room = room_or.value();
 
-  // TODO: Implement tile data retrieval from room
-  formatter.AddField("room_width", "Unknown");
-  formatter.AddField("room_height", "Unknown");
-  formatter.AddField("total_tiles", "Unknown");
-  formatter.AddField("status", "not_implemented");
-  formatter.AddField("message",
-                     "Tile data retrieval requires room tile parsing");
+  room.LoadObjects();
 
-  formatter.BeginArray("tiles");
+  formatter.AddField("room_width", 64);
+  formatter.AddField("room_height", 64);
+  formatter.AddField("total_tiles", 64 * 64);
+  formatter.AddField("has_custom_collision", room.has_custom_collision());
+  formatter.AddField("object_count",
+                     static_cast<int>(room.GetTileObjects().size()));
+  formatter.AddField("status", "success");
+
+  // Emit tile rows as compact hex strings to keep output manageable while still
+  // returning deterministic room-tile data.
+  formatter.BeginArray("collision_rows");
+  const auto& collision = room.custom_collision().tiles;
+  for (int y = 0; y < 64; ++y) {
+    std::string row;
+    row.reserve(64 * 3);
+    for (int x = 0; x < 64; ++x) {
+      if (!row.empty()) {
+        row.push_back(' ');
+      }
+      absl::StrAppend(&row, absl::StrFormat("%02X", collision[y * 64 + x]));
+    }
+    formatter.AddArrayItem(row);
+  }
   formatter.EndArray();
   formatter.EndObject();
 
@@ -515,10 +534,51 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
     return room_or.status();
   }
 
-  // TODO: Implement property setting
-  formatter.AddField("status", "not_implemented");
-  formatter.AddField("message",
-                     "Property setting requires room property system");
+  auto& room = room_or.value();
+
+  int parsed_value = 0;
+  if (!ParseHexString(value, &parsed_value)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Invalid value format: %s (expected integer/hex)", value));
+  }
+
+  const std::string prop = absl::AsciiStrToLower(property);
+  if (prop == "palette") {
+    room.SetPalette(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else if (prop == "blockset") {
+    room.SetBlockset(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else if (prop == "spriteset") {
+    room.SetSpriteset(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else if (prop == "layout" || prop == "layout_id") {
+    room.SetLayoutId(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else if (prop == "floor1") {
+    room.set_floor1(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else if (prop == "floor2") {
+    room.set_floor2(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else if (prop == "effect") {
+    room.SetEffect(static_cast<zelda3::EffectKey>(parsed_value & 0xFF));
+  } else if (prop == "tag1") {
+    room.SetTag1(static_cast<zelda3::TagKey>(parsed_value & 0xFF));
+  } else if (prop == "tag2") {
+    room.SetTag2(static_cast<zelda3::TagKey>(parsed_value & 0xFF));
+  } else if (prop == "holewarp") {
+    room.SetHolewarp(static_cast<uint8_t>(parsed_value & 0xFF));
+  } else {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Unsupported property: %s", property));
+  }
+
+  RETURN_IF_ERROR(room.SaveRoomHeader());
+
+  formatter.AddField("status", "success");
+  if (parser.HasFlag("mock-rom")) {
+    formatter.AddField("save_status", "mock-rom-skipped");
+  } else {
+    Rom::SaveSettings save_settings;
+    save_settings.backup = true;
+    RETURN_IF_ERROR(rom->SaveToFile(save_settings));
+    formatter.AddField("save_status", "saved");
+  }
   formatter.EndObject();
 
   return absl::OkStatus();

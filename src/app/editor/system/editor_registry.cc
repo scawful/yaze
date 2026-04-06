@@ -62,6 +62,14 @@ bool EditorRegistry::IsPanelBasedEditor(EditorType type) {
   return it != kPanelBasedEditors.end() && it->second;
 }
 
+std::string EditorRegistry::GetEditorName(EditorType type) {
+  auto it = kEditorNames.find(type);
+  if (it != kEditorNames.end()) {
+    return it->second;
+  }
+  return "Unknown Editor";
+}
+
 std::string EditorRegistry::GetEditorCategory(EditorType type) {
   auto it = kEditorCategories.find(type);
   if (it != kEditorCategories.end()) {

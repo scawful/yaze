@@ -41,6 +41,7 @@
 #include "app/editor/dungeon/panels/water_fill_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/system/hack_manifest_save_validation.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/emu/mesen/mesen_client_registry.h"
@@ -1191,47 +1192,10 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
 
     // `ranges` are PC offsets (ROM file offsets). The hack manifest is in SNES
     // address space (LoROM), so convert before analysis.
-    auto conflicts = manifest.AnalyzePcWriteRanges(ranges);
-    if (!conflicts.empty()) {
-      const auto write_policy =
-          dependencies_.project->rom_metadata.write_policy;
-      std::string error_msg = absl::StrFormat(
-          "Hack manifest write conflicts while saving room 0x%03X:\n\n",
-          room_id);
-      for (const auto& conflict : conflicts) {
-        absl::StrAppend(
-            &error_msg,
-            absl::StrFormat(
-                "- Address 0x%06X is %s", conflict.address,
-                core::AddressOwnershipToString(conflict.ownership)));
-        if (!conflict.module.empty()) {
-          absl::StrAppend(&error_msg, " (Module: ", conflict.module, ")");
-        }
-        absl::StrAppend(&error_msg, "\n");
-      }
-
-      if (write_policy == project::RomWritePolicy::kAllow) {
-        LOG_DEBUG("DungeonEditorV2", "%s", error_msg.c_str());
-      } else {
-        LOG_WARN("DungeonEditorV2", "%s", error_msg.c_str());
-      }
-
-      if (dependencies_.toast_manager &&
-          write_policy == project::RomWritePolicy::kWarn) {
-        dependencies_.toast_manager->Show(
-            "Save warning: write conflict with hack manifest (see log)",
-            ToastType::kWarning);
-      }
-
-      if (write_policy == project::RomWritePolicy::kBlock) {
-        if (dependencies_.toast_manager) {
-          dependencies_.toast_manager->Show(
-              "Save blocked: write conflict with hack manifest (see log)",
-              ToastType::kError);
-        }
-        return absl::PermissionDeniedError("Write conflict with Hack Manifest");
-      }
-    }
+    const auto write_policy = dependencies_.project->rom_metadata.write_policy;
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        manifest, write_policy, ranges, absl::StrFormat("room 0x%03X", room_id),
+        "DungeonEditorV2", dependencies_.toast_manager));
   }
 
   if (flags.kSaveObjects) {

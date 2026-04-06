@@ -7,6 +7,42 @@ namespace yaze {
 namespace cli {
 namespace handlers {
 
+class OverworldGetTileCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "overworld-get-tile"; }
+  std::string GetDescription() const {
+    return "Read an overworld tile at map/tile coordinates";
+  }
+  std::string GetUsage() const {
+    return "overworld-get-tile --map <map_id> --x <x> --y <y>";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"map", "x", "y"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+class OverworldSetTileCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const { return "overworld-set-tile"; }
+  std::string GetDescription() const {
+    return "Write an overworld tile at map/tile coordinates";
+  }
+  std::string GetUsage() const {
+    return "overworld-set-tile --map <map_id> --x <x> --y <y> --tile <tile_id>";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"map", "x", "y", "tile"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 /**
  * @brief Command handler for finding tiles in overworld
  */

@@ -36,6 +36,7 @@ set(
   app/editor/editor_manager.cc
   app/editor/session_types.cc
   app/editor/system/default_editor_factories.cc
+  app/editor/system/hack_manifest_save_validation.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/link_sprite_panel.cc

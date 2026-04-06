@@ -54,6 +54,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonMinecartMapCommandHandler>());
 
   // Overworld commands
+  handlers.push_back(std::make_unique<OverworldGetTileCommandHandler>());
+  handlers.push_back(std::make_unique<OverworldSetTileCommandHandler>());
   handlers.push_back(std::make_unique<OverworldFindTileCommandHandler>());
   handlers.push_back(std::make_unique<OverworldDescribeMapCommandHandler>());
   handlers.push_back(std::make_unique<OverworldListWarpsCommandHandler>());

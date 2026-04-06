@@ -47,6 +47,7 @@
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
+#include "app/editor/system/hack_manifest_save_validation.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gfx/core/bitmap.h"
@@ -1152,44 +1153,9 @@ absl::Status OverworldEditor::Save() {
     // `ranges` are PC offsets (ROM file offsets). The hack manifest is in SNES
     // address space (LoROM), so convert before analysis.
     auto ranges = overworld_.GetProjectedWriteRanges();
-    auto conflicts = manifest.AnalyzePcWriteRanges(ranges);
-    if (!conflicts.empty()) {
-      std::string error_msg =
-          "Hack manifest write conflicts while saving overworld maps:\n\n";
-      for (const auto& conflict : conflicts) {
-        absl::StrAppend(
-            &error_msg,
-            absl::StrFormat(
-                "- Address 0x%06X is %s", conflict.address,
-                core::AddressOwnershipToString(conflict.ownership)));
-        if (!conflict.module.empty()) {
-          absl::StrAppend(&error_msg, " (Module: ", conflict.module, ")");
-        }
-        absl::StrAppend(&error_msg, "\n");
-      }
-
-      if (write_policy == project::RomWritePolicy::kAllow) {
-        LOG_DEBUG("OverworldEditor", "%s", error_msg.c_str());
-      } else {
-        LOG_WARN("OverworldEditor", "%s", error_msg.c_str());
-      }
-
-      if (dependencies_.toast_manager &&
-          write_policy == project::RomWritePolicy::kWarn) {
-        dependencies_.toast_manager->Show(
-            "Save warning: write conflict with hack manifest (see log)",
-            ToastType::kWarning);
-      }
-
-      if (write_policy == project::RomWritePolicy::kBlock) {
-        if (dependencies_.toast_manager) {
-          dependencies_.toast_manager->Show(
-              "Save blocked: write conflict with hack manifest (see log)",
-              ToastType::kError);
-        }
-        return absl::PermissionDeniedError("Write conflict with Hack Manifest");
-      }
-    }
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        manifest, write_policy, ranges, "overworld maps", "OverworldEditor",
+        dependencies_.toast_manager));
   }
 
   if (saving_maps) {
@@ -1495,19 +1461,31 @@ void OverworldEditor::ProcessDeferredTextures() {
   int refresh_count = 0;
   const int max_refreshes_per_frame = 2;
 
-  for (int i = 0;
-       i < zelda3::kNumOverworldMaps && refresh_count < max_refreshes_per_frame;
-       ++i) {
-    if (maps_bmp_[i].modified() && maps_bmp_[i].is_active()) {
-      // Check if this map is in current world (prioritize)
-      bool is_current_world = (i / 0x40 == current_world_);
-      bool is_current_map = (i == current_map_);
-
-      if (is_current_map || is_current_world) {
-        RefreshOverworldMapOnDemand(i);
-        refresh_count++;
-      }
+  auto try_refresh_map = [&](int map_index) {
+    if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+      return;
     }
+    if (refresh_count >= max_refreshes_per_frame) {
+      return;
+    }
+    if (maps_bmp_[map_index].modified() && maps_bmp_[map_index].is_active()) {
+      RefreshOverworldMapOnDemand(map_index);
+      ++refresh_count;
+    }
+  };
+
+  // Highest priority: current map.
+  try_refresh_map(current_map_);
+
+  // Then refresh maps in the active world only, avoiding a full-map scan each frame.
+  const int world_start = current_world_ * 0x40;
+  const int world_end = std::min(world_start + 0x40, zelda3::kNumOverworldMaps);
+  for (int i = world_start;
+       i < world_end && refresh_count < max_refreshes_per_frame; ++i) {
+    if (i == current_map_) {
+      continue;
+    }
+    try_refresh_map(i);
   }
 }
 

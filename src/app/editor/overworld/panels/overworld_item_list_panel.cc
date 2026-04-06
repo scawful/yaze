@@ -6,9 +6,8 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/core/content_registry.h"
 #include "app/editor/core/panel_registration.h"
-#include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/panels/overworld_panel_access.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_item.h"
 
@@ -59,12 +58,7 @@ bool MatchesItemFilter(const zelda3::OverworldItem& item,
 
 void OverworldItemListPanel::Draw(bool* p_open) {
   (void)p_open;
-  auto* editor = ContentRegistry::Context::current_editor();
-  if (!editor) {
-    return;
-  }
-
-  auto* ow_editor = dynamic_cast<OverworldEditor*>(editor);
+  auto* ow_editor = CurrentOverworldEditor();
   if (!ow_editor) {
     return;
   }

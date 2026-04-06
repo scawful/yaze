@@ -1,5 +1,8 @@
 #include "app/editor/overworld/entity.h"
 
+#include <fstream>
+#include <string>
+
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/popup_id.h"
@@ -285,7 +288,7 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
       Text("Game coords: (%d, %d)", exit.game_x_, exit.game_y_);
     }
 
-    gui::TextWithSeparators("Unimplemented below");
+    gui::TextWithSeparators("Advanced Door/Exit Controls");
 
     if (ImGui::RadioButton("None", &doorType, 0))
       exit.door_type_1_ = doorType;
@@ -594,6 +597,7 @@ bool DrawDiggableTilesEditorPopup(
     static ImGuiTextFilter filter;
     static int patch_mode = 0;  // 0=Vanilla, 1=ZS Compatible, 2=Custom
     static zelda3::DiggableTilesPatchConfig patch_config;
+    static std::string export_message;
 
     // Stats header
     int diggable_count = diggable_tiles->GetDiggableCount();
@@ -727,11 +731,20 @@ bool DrawDiggableTilesEditorPopup(
       }
 
       if (Button(ICON_MD_FILE_DOWNLOAD " Export .asm Patch")) {
-        // TODO: Open file dialog and export
-        // For now, generate to a default location
         std::string patch_content = zelda3::DiggableTilesPatch::GeneratePatch(
             *diggable_tiles, patch_config);
-        // Would normally open a save dialog here
+        const std::string out_path = "diggable_tiles_patch.asm";
+        std::ofstream out(out_path, std::ios::trunc);
+        if (out.good()) {
+          out << patch_content;
+          out.close();
+          export_message = "Exported patch to " + out_path;
+        } else {
+          export_message = "Failed to write " + out_path;
+        }
+      }
+      if (!export_message.empty()) {
+        ImGui::TextWrapped("%s", export_message.c_str());
       }
 
       ImGui::Unindent();
