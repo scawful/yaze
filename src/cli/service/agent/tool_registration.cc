@@ -169,6 +169,13 @@ REGISTER_AGENT_TOOL("dungeon-room-header", "dungeon", "Debug room header bytes",
                     DungeonRoomHeaderCommandHandler)
 
 // Overworld commands
+REGISTER_AGENT_TOOL("overworld-get-tile", "overworld", "Get tile by map/x/y",
+                    "overworld-get-tile --map=<id> --x=<x> --y=<y>", {}, true,
+                    false, OverworldGetTileCommandHandler)
+REGISTER_AGENT_TOOL(
+    "overworld-set-tile", "overworld", "Set tile by map/x/y",
+    "overworld-set-tile --map=<id> --x=<x> --y=<y> --tile=<tile>", {}, true,
+    true, OverworldSetTileCommandHandler)
 REGISTER_AGENT_TOOL("overworld-find-tile", "overworld", "Find tile locations",
                     "overworld-find-tile --tile=<id>", {}, true, false,
                     OverworldFindTileCommandHandler)

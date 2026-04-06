@@ -2,7 +2,7 @@
 
 This guide summarizes the architecture and implementation standards used across the editor codebase.
 
-## Editor Status (January 2026)
+## Editor Status (April 2026)
 
 **Status rubric**:
 - **Stable**: Core workflows function reliably; remaining TODOs are UX polish.
@@ -11,13 +11,13 @@ This guide summarizes the architecture and implementation standards used across 
 
 | Editor | State | Evidence |
 |--------|-------|----------|
-| Overworld | Stable | E2E coverage; TODOs for v3 settings UI and entity deletion. |
-| Dungeon | Stable | E2E coverage; TODOs for usage tracker, selection preview, and rendering TODOs in `src/zelda3/dungeon`. |
+| Overworld | Beta | Core editing is reliable, but completion work remains (v3 settings UI, entity/exit workflows, and command-surface parity). |
+| Dungeon | Beta | Core room workflows are in place, but interaction consolidation, command-surface completion, and object UX work remain. |
 | Message | Stable | TODO: replace workflow in message editor. |
 | Palette | Stable | TODO: JSON export/import and notifications. |
-| Graphics | Beta | Explicit experimental section; screen editor marked WIP. |
+| Graphics | Beta | Core workflows are available; advanced workflows and regression coverage are still expanding. |
 | Sprite | Stable | Core sprite panels present; no WIP markers in editor code. |
-| Screen | Experimental | `screen_editor.h` labeled WIP; title/inventory TODOs. |
+| Screen | Experimental | `screen_editor.h` labeled WIP; cut/copy/paste/find remain incomplete. |
 | Emulator | Beta | Debug UI + PPU TODOs; save-state UI not fully wired. |
 | Assembly | Beta | TODOs in assembly editor and project file editor. |
 | Hex | Beta | Memory editor lacks search and richer UX; see `src/app/editor/code`. |
@@ -28,13 +28,13 @@ This guide summarizes the architecture and implementation standards used across 
 For a cross-app status view (desktop/CLI/web), persistence notes, and test
 coverage, see the [Feature & Test Coverage Report](../reference/feature-coverage-report.md).
 
-### Recent Improvements (v0.3.9)
+### Recent Improvements (v0.7.0)
 
-- **EditorManager Refactoring**: 90% feature parity with 44% code reduction
-- **Panel-Based UI**: All 34 editor panels (formerly cards) with X-button close, multi-session support
-- **SDL3 Backend Infrastructure**: 17 abstraction files for future migration
-- **WASM Web Port**: Real-time collaboration via WebSocket
-- **AI Agent Tools**: Phases 1-4 complete (meta-tools, schemas, validation)
+- **Release Hardening**: Version/changelog/release-notes preflight gating is enforced in release workflow.
+- **Packaging Validation**: Linux, macOS, and Windows artifacts are validated before release publishing.
+- **Editor Workflow Maturity**: Dungeon and Overworld gained broader save and interaction coverage while retaining a Beta status for remaining completion work.
+- **UI Foundation Work**: Shared UI/theming patterns continue to consolidate ahead of dungeon/overworld completion.
+- **UI Module Migration RFC**: New editor UI work now targets feature-oriented `ui/<module>/...` folders and blocks new `_panel`/`panels` additions via editor guardrails.
 
 ### Known Issues
 

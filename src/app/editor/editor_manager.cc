@@ -130,11 +130,6 @@
 namespace yaze::editor {
 
 namespace {
-// TODO: Move to EditorRegistry
-std::string GetEditorName(EditorType type) {
-  return kEditorNames[static_cast<int>(type)];
-}
-
 bool HasAnyOverride(const core::RomAddressOverrides& overrides,
                     std::initializer_list<const char*> keys) {
   for (const char* key : keys) {
@@ -296,7 +291,7 @@ std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name) {
   const std::string lower = absl::AsciiStrToLower(std::string(name));
   for (int i = 0; i < static_cast<int>(EditorType::kSettings) + 1; ++i) {
     const std::string candidate = absl::AsciiStrToLower(
-        std::string(GetEditorName(static_cast<EditorType>(i))));
+        EditorRegistry::GetEditorName(static_cast<EditorType>(i)));
     if (candidate == lower) {
       return static_cast<EditorType>(i);
     }

@@ -466,8 +466,8 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
 }
 
 void OverworldCanvasRenderer::DrawV3Settings() {
-  // v3 Settings panel - placeholder for ZSCustomOverworld configuration
-  ImGui::TextWrapped("ZSCustomOverworld v3 settings panel");
+  // Lightweight v3 controls for map size and feature visibility.
+  ImGui::TextWrapped("ZSCustomOverworld v3 settings");
   ImGui::Separator();
 
   if (!editor_->rom_ || !editor_->rom_->is_loaded()) {
@@ -475,16 +475,48 @@ void OverworldCanvasRenderer::DrawV3Settings() {
     return;
   }
 
-  ImGui::TextWrapped(
-      "This panel will contain ZSCustomOverworld configuration options "
-      "such as custom map sizes, extended tile sets, and other v3 features.");
+  const uint8_t asm_version =
+      (*editor_->rom_)[zelda3::OverworldCustomASMHasBeenApplied];
+  ImGui::Text("ASM Version: 0x%02X", asm_version);
 
-  // TODO: Implement v3 settings UI
-  // Could include:
-  // - Custom map size toggles
-  // - Extended tileset configuration
-  // - Override settings
-  // - Version information display
+  if (asm_version == 0x00 || asm_version == 0xFF || asm_version < 0x03) {
+    ImGui::Spacing();
+    ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.25f, 1.0f),
+                       "v3 controls require ZSCustomOverworld v3+");
+    ImGui::TextDisabled("Apply the v3 patch to enable map-size editing.");
+    return;
+  }
+
+  auto* map = editor_->overworld_.overworld_map(editor_->current_map_);
+  if (!map) {
+    ImGui::TextDisabled("Current map is unavailable.");
+    return;
+  }
+
+  ImGui::Spacing();
+  ImGui::Text("Current map: 0x%02X", editor_->current_map_);
+  ImGui::Text("Parent map:  0x%02X", map->parent());
+
+  static int selected_area_size = 0;
+  selected_area_size = static_cast<int>(map->area_size());
+  const char* area_size_labels[] = {"Small", "Wide", "Tall", "Large"};
+  ImGui::SetNextItemWidth(220.0f);
+  ImGui::Combo("Area Size", &selected_area_size, area_size_labels,
+               IM_ARRAYSIZE(area_size_labels));
+
+  if (ImGui::Button(ICON_MD_SAVE " Apply Area Size")) {
+    auto status = editor_->overworld_.ConfigureMultiAreaMap(
+        map->parent(), static_cast<zelda3::AreaSizeEnum>(selected_area_size));
+    if (status.ok()) {
+      editor_->RefreshOverworldMap();
+      editor_->RefreshSiblingMapGraphics(editor_->current_map_, true);
+    }
+  }
+
+  ImGui::Spacing();
+  ImGui::TextDisabled(
+      "Area-size changes update sibling map relationships for this parent "
+      "map.");
 }
 
 void OverworldCanvasRenderer::DrawMapProperties() {

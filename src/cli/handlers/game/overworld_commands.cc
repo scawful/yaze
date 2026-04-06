@@ -3,6 +3,7 @@
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/overworld_inspect.h"
 #include "cli/util/hex_util.h"
+#include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/zelda3_labels.h"
@@ -12,6 +13,115 @@ namespace cli {
 namespace handlers {
 
 using util::ParseHexString;
+
+namespace {
+
+absl::Status SetOverworldContextForMap(int map_id,
+                                       zelda3::Overworld* overworld) {
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Map ID out of range: 0x%02X", map_id));
+  }
+
+  int world = 0;
+  if (map_id < 0x40) {
+    world = 0;
+  } else if (map_id < 0x80) {
+    world = 1;
+  } else {
+    world = 2;
+  }
+  overworld->set_current_world(world);
+  overworld->set_current_map(map_id);
+  return absl::OkStatus();
+}
+
+absl::Status ValidateTileCoordinates(int x, int y) {
+  if (x < 0 || x >= 64 || y < 0 || y >= 64) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Tile coordinates out of range: (%d,%d)", x, y));
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace
+
+absl::Status OverworldGetTileCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int map_id = 0;
+  int x = 0;
+  int y = 0;
+  if (!ParseHexString(parser.GetString("map").value(), &map_id) ||
+      !ParseHexString(parser.GetString("x").value(), &x) ||
+      !ParseHexString(parser.GetString("y").value(), &y)) {
+    return absl::InvalidArgumentError("Invalid numeric argument for map/x/y.");
+  }
+  RETURN_IF_ERROR(ValidateTileCoordinates(x, y));
+
+  zelda3::Overworld overworld(rom);
+  RETURN_IF_ERROR(overworld.Load(rom));
+  RETURN_IF_ERROR(SetOverworldContextForMap(map_id, &overworld));
+
+  const uint16_t tile = overworld.GetTile(x, y);
+  formatter.BeginObject("Overworld Tile");
+  formatter.AddHexField("map_id", map_id, 2);
+  formatter.AddField("x", x);
+  formatter.AddField("y", y);
+  formatter.AddHexField("tile_id", tile, 4);
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+absl::Status OverworldSetTileCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int map_id = 0;
+  int x = 0;
+  int y = 0;
+  int tile_value = 0;
+  if (!ParseHexString(parser.GetString("map").value(), &map_id) ||
+      !ParseHexString(parser.GetString("x").value(), &x) ||
+      !ParseHexString(parser.GetString("y").value(), &y) ||
+      !ParseHexString(parser.GetString("tile").value(), &tile_value)) {
+    return absl::InvalidArgumentError(
+        "Invalid numeric argument for map/x/y/tile.");
+  }
+  RETURN_IF_ERROR(ValidateTileCoordinates(x, y));
+  if (tile_value < 0 || tile_value > 0xFFFF) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Tile ID out of range: 0x%X", tile_value));
+  }
+
+  zelda3::Overworld overworld(rom);
+  RETURN_IF_ERROR(overworld.Load(rom));
+  RETURN_IF_ERROR(SetOverworldContextForMap(map_id, &overworld));
+
+  const uint16_t before = overworld.GetTile(x, y);
+  overworld.SetTile(x, y, static_cast<uint16_t>(tile_value));
+  const uint16_t after = overworld.GetTile(x, y);
+
+  RETURN_IF_ERROR(overworld.SaveMap16Tiles());
+  RETURN_IF_ERROR(overworld.SaveMap32Tiles());
+  RETURN_IF_ERROR(overworld.SaveOverworldMaps());
+
+  formatter.BeginObject("Overworld Tile Write");
+  formatter.AddHexField("map_id", map_id, 2);
+  formatter.AddField("x", x);
+  formatter.AddField("y", y);
+  formatter.AddHexField("tile_before", before, 4);
+  formatter.AddHexField("tile_after", after, 4);
+  if (parser.HasFlag("mock-rom")) {
+    formatter.AddField("save_status", "mock-rom-skipped");
+  } else {
+    Rom::SaveSettings save_settings;
+    save_settings.backup = true;
+    RETURN_IF_ERROR(rom->SaveToFile(save_settings));
+    formatter.AddField("save_status", "saved");
+  }
+  formatter.EndObject();
+  return absl::OkStatus();
+}
 
 absl::Status OverworldFindTileCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,

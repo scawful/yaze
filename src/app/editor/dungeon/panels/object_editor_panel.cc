@@ -735,10 +735,20 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
         }
 
         if (ImGui::Button(ICON_MD_CODE " Export ASM", ImVec2(-1, 0))) {
-          // TODO: Implement ASM export (Phase 5)
+          const std::string asm_preview = absl::StrFormat(
+              "; Object 0x%02X (%s)\n"
+              "; Auto-generated preview stub\n"
+              "org $000000\n"
+              "dw $%02X ; object id\n"
+              "; draw_routine=%d tile_count=%d\n",
+              static_editor_object_id_, static_editor_draw_info_.routine_name,
+              static_editor_object_id_,
+              static_editor_draw_info_.draw_routine_id,
+              static_editor_draw_info_.tile_count);
+          ImGui::SetClipboardText(asm_preview.c_str());
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Export object draw routine as ASM (Phase 5)");
+          ImGui::SetTooltip("Copy ASM preview stub to clipboard");
         }
 
         if (ImGui::Button(ICON_MD_GRID_ON " Edit Tiles", ImVec2(-1, 0))) {

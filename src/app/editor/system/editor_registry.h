@@ -30,6 +30,7 @@ class EditorRegistry {
 
   // Editor type management (static methods for global access)
   static bool IsPanelBasedEditor(EditorType type);
+  static std::string GetEditorName(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);
 
@@ -72,7 +73,6 @@ class EditorRegistry {
 
   // Editor factories (for EditorSet/session creation).
   std::unordered_map<EditorType, EditorFactory> editor_factories_;
-
 
   // Helper methods
   bool IsValidEditorType(EditorType type) const;

@@ -184,6 +184,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/editor_completion_command_handlers_test.cc
     unit/cli/dungeon_minecart_audit_test.cc
     unit/cli/dungeon_oracle_preflight_test.cc
     unit/cli/oracle_smoke_check_test.cc
@@ -436,6 +437,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/editor_completion_command_handlers_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
     unit/zelda3/dungeon/custom_collision_reserved_region_test.cc
     unit/zelda3/dungeon/custom_collision_json_test.cc

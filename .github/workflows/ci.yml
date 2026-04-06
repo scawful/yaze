@@ -217,8 +217,7 @@ jobs:
         run: |
           cd build
           # Run just the smoke tests to validate GUI framework is working
-          ./bin/yaze_test_gui -nogui --gtest_filter="*Smoke*" || true
-        continue-on-error: true
+          ./bin/yaze_test_gui -nogui --gtest_filter="*Smoke*"
 
       - name: Run HTTP API tests
         if: github.event.inputs.enable_http_api_tests == 'true'
@@ -319,12 +318,22 @@ jobs:
           fi
         fi
 
+        echo "base=$base" >> "$GITHUB_OUTPUT"
+        echo "head=$head" >> "$GITHUB_OUTPUT"
+
         files=$(git diff --name-only "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
         {
           echo "files<<EOF"
           echo "$files"
           echo "EOF"
         } >> "$GITHUB_OUTPUT"
+
+    - name: Enforce editor guardrails
+      run: |
+        chmod +x scripts/dev/editor-guardrails.sh
+        scripts/dev/editor-guardrails.sh \
+          "${{ steps.changed.outputs.base }}" \
+          "${{ steps.changed.outputs.head }}"
     
     - name: Check Formatting
       run: |
