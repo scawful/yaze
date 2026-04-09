@@ -16,13 +16,17 @@ using util::ParseHexString;
 
 namespace {
 
-absl::Status SetOverworldContextForMap(int map_id,
-                                       zelda3::Overworld* overworld) {
+absl::Status ValidateMapId(int map_id) {
   if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Map ID out of range: 0x%02X", map_id));
   }
+  return absl::OkStatus();
+}
 
+absl::Status SetOverworldContextForMap(int map_id,
+                                       zelda3::Overworld* overworld) {
+  RETURN_IF_ERROR(ValidateMapId(map_id));
   int world = 0;
   if (map_id < 0x40) {
     world = 0;
@@ -57,6 +61,7 @@ absl::Status OverworldGetTileCommandHandler::Execute(
       !ParseHexString(parser.GetString("y").value(), &y)) {
     return absl::InvalidArgumentError("Invalid numeric argument for map/x/y.");
   }
+  RETURN_IF_ERROR(ValidateMapId(map_id));
   RETURN_IF_ERROR(ValidateTileCoordinates(x, y));
 
   zelda3::Overworld overworld(rom);
@@ -87,6 +92,7 @@ absl::Status OverworldSetTileCommandHandler::Execute(
     return absl::InvalidArgumentError(
         "Invalid numeric argument for map/x/y/tile.");
   }
+  RETURN_IF_ERROR(ValidateMapId(map_id));
   RETURN_IF_ERROR(ValidateTileCoordinates(x, y));
   if (tile_value < 0 || tile_value > 0xFFFF) {
     return absl::InvalidArgumentError(
