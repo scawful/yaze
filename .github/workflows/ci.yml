@@ -215,9 +215,15 @@ jobs:
       - name: Run smoke tests (GUI framework validation)
         if: matrix.platform == 'linux'
         run: |
-          cd build
-          # Run just the smoke tests to validate GUI framework is working
-          ./bin/yaze_test_gui -nogui --gtest_filter="*Smoke*"
+          # Run just the smoke tests to validate GUI framework is working.
+          # CI presets emit binaries under build/presets/<preset>/bin.
+          test_bin="build/presets/${{ matrix.preset }}/bin/yaze_test_gui"
+          if [[ ! -x "$test_bin" ]]; then
+            echo "Smoke test binary missing or not executable: $test_bin"
+            ls -la "build/presets/${{ matrix.preset }}/bin" || true
+            exit 1
+          fi
+          "$test_bin" -nogui --gtest_filter="*Smoke*"
 
       - name: Run HTTP API tests
         if: github.event.inputs.enable_http_api_tests == 'true'
@@ -279,9 +285,9 @@ jobs:
       - name: Quick WASM build test
         run: |
           emcmake cmake --preset wasm-debug
-          cmake --build build-wasm-debug --target yaze --parallel
+          cmake --build --preset wasm-debug --target yaze --parallel
           # Verify output exists
-          test -f build-wasm-debug/bin/yaze.wasm
+          test -f build/presets/wasm-debug/bin/yaze.wasm
           echo "WASM build successful!"
 
   code-quality:
@@ -417,21 +423,14 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    
+
     - name: Install Dependencies
-      run: brew install ollama ninja
-    
+      run: brew install ollama ninja grpc protobuf abseil
+
     - name: Build z3ed
       run: |
-        cmake -B build_test -G Ninja \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DYAZE_ENABLE_AI=ON \
-          -DYAZE_BUILD_Z3ED=ON \
-          -DYAZE_ENABLE_AI_RUNTIME=ON \
-          -DYAZE_ENABLE_GRPC=ON \
-          -DYAZE_ENABLE_REMOTE_AUTOMATION=ON \
-          -DYAZE_BUILD_AGENT_UI=ON
-        cmake --build build_test --target z3ed
+        cmake --preset mac-ai-fast
+        cmake --build --preset mac-ai-fast --target z3ed
     
     - name: Start Ollama
       env:
