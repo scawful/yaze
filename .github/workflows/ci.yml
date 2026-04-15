@@ -216,11 +216,25 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           # Run just the smoke tests to validate GUI framework is working.
-          # CI presets emit binaries under build/presets/<preset>/bin.
-          test_bin="build/presets/${{ matrix.preset }}/bin/yaze_test_gui"
-          if [[ ! -x "$test_bin" ]]; then
-            echo "Smoke test binary missing or not executable: $test_bin"
+          # Different generators/layouts may place binaries either directly under
+          # bin/ or under bin/<config>/.
+          test_bin=""
+          for candidate in \
+            "build/bin/yaze_test_gui" \
+            "build/bin/${BUILD_TYPE}/yaze_test_gui" \
+            "build/presets/${{ matrix.preset }}/bin/yaze_test_gui" \
+            "build/presets/${{ matrix.preset }}/bin/${BUILD_TYPE}/yaze_test_gui"; do
+            if [[ -x "$candidate" ]]; then
+              test_bin="$candidate"
+              break
+            fi
+          done
+          if [[ -z "$test_bin" ]]; then
+            echo "Smoke test binary missing. Tried common output paths."
+            ls -la "build/bin" || true
+            ls -la "build/bin/${BUILD_TYPE}" || true
             ls -la "build/presets/${{ matrix.preset }}/bin" || true
+            ls -la "build/presets/${{ matrix.preset }}/bin/${BUILD_TYPE}" || true
             exit 1
           fi
           "$test_bin" -nogui --gtest_filter="*Smoke*"
