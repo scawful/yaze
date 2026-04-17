@@ -23,20 +23,22 @@
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/menu/menu_orchestrator.h"
-#include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
+#include "app/editor/system/background_command_task.h"
 #include "app/editor/system/editor_activator.h"
-#include "app/editor/system/editor_registry.h"
-#include "app/editor/system/panel_host.h"
-#include "app/editor/system/panel_manager.h"
-#include "app/editor/system/project_manager.h"
-#include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/editor_manager_interfaces.h"
+#include "app/editor/system/editor_registry.h"
+#include "app/editor/system/project_manager.h"
+#include "app/editor/system/project_workflow_status.h"
+#include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/rom_lifecycle_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/user_settings.h"
+#include "app/editor/system/window_host.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/project_management_panel.h"
@@ -63,7 +65,10 @@ class CanvasAutomationServiceImpl;
 
 namespace yaze::editor {
 class AgentEditor;
-}
+namespace workflow {
+class HackWorkflowBackend;
+}  // namespace workflow
+}  // namespace yaze::editor
 
 namespace yaze {
 
@@ -115,6 +120,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // Apply startup actions based on AppConfig
   void ProcessStartupActions(const AppConfig& config);
   void ApplyStartupVisibility(const AppConfig& config);
+  void SetStartupLoadHints(const AppConfig& config);
 
   void SetAssetLoadMode(AssetLoadMode mode);
   AssetLoadMode asset_load_mode() const { return asset_load_mode_; }
@@ -131,20 +137,28 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   MenuBuilder& menu_builder() { return menu_builder_; }
   WorkspaceManager* workspace_manager() { return &workspace_manager_; }
-  RightPanelManager* right_panel_manager() {
-    return right_panel_manager_.get();
+  RightDrawerManager* right_drawer_manager() {
+    return right_drawer_manager_.get();
+  }
+  const RightDrawerManager* right_drawer_manager() const {
+    return right_drawer_manager_.get();
   }
   StatusBar* status_bar() { return &status_bar_; }
   ToastManager* toast_manager() { return &toast_manager_; }
-  PanelManager* GetPanelManager() { return &panel_manager_; }
-  PanelManager& panel_manager() { return panel_manager_; }
-  const PanelManager& panel_manager() const { return panel_manager_; }
-  PanelHost* panel_host() { return panel_host_.get(); }
-  const PanelHost* panel_host() const { return panel_host_.get(); }
-
-  // Deprecated compatibility wrappers
-  PanelManager& card_registry() { return panel_manager_; }
-  const PanelManager& card_registry() const { return panel_manager_; }
+  WorkspaceWindowManager* GetWindowManager() { return &window_manager_; }
+  WorkspaceWindowManager& window_manager() { return window_manager_; }
+  const WorkspaceWindowManager& window_manager() const {
+    return window_manager_;
+  }
+  [[deprecated("Use window_host() instead.")]] PanelHost* panel_host() {
+    return window_host_.get();
+  }
+  [[deprecated("Use window_host() instead.")]]
+  const PanelHost* panel_host() const {
+    return window_host_.get();
+  }
+  WindowHost* window_host() { return window_host_.get(); }
+  const WindowHost* window_host() const { return window_host_.get(); }
 
   // Layout offset calculation for dockspace adjustment
   // Delegates to LayoutCoordinator for cleaner separation of concerns
@@ -184,9 +198,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::string GetProjectExpectedRomHash() const {
     return current_project_.rom_metadata.expected_hash;
   }
-  bool IsRomHashMismatch() const {
-    return rom_lifecycle_.IsRomHashMismatch();
-  }
+  bool IsRomHashMismatch() const { return rom_lifecycle_.IsRomHashMismatch(); }
   std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
   absl::Status RestoreRomBackup(const std::string& backup_path);
   absl::Status PruneRomBackups();
@@ -209,8 +221,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     // Update ContentRegistry context for panel access
     ContentRegistry::Context::SetCurrentEditor(editor);
     // Update help panel's editor context for context-aware help
-    if (right_panel_manager_ && editor) {
-      right_panel_manager_->SetActiveEditor(editor->type());
+    if (right_drawer_manager_ && editor) {
+      right_drawer_manager_->SetActiveEditor(editor->type());
     }
   }
   size_t GetCurrentSessionId() const {
@@ -375,6 +387,10 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status OpenProject();
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
+  absl::Status BuildCurrentProject();
+  void QueueBuildCurrentProject();
+  void CancelQueuedProjectBuild();
+  absl::Status RunCurrentProject();
 
   bool HasPendingPotItemSaveConfirmation() const {
     return rom_lifecycle_.HasPendingPotItemSaveConfirmation();
@@ -421,6 +437,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void SyncEditorContextForCategory(const std::string& category);
   bool EditorRequiresGameData(EditorType type) const;
   bool EditorInitRequiresGameData(EditorType type) const;
+  std::vector<EditorType> CollectEditorsToPreload(EditorSet* editor_set) const;
 
   // Testing system
   void InitializeTestSuites();
@@ -449,10 +466,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void InitializeShortcutSystem();
   void ProcessInput();
   void UpdateEditorState();
+  void PollProjectWorkflowTasks();
   void DrawInterface();
   void DrawSecondaryWindows();
   void UpdateSystemUIs();
   void RunEmulator();
+  void RefreshHackWorkflowBackend();
 
   void HandleSessionRomLoaded(size_t index, Rom* rom);
   void RefreshResourceLabelProvider();
@@ -493,6 +512,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   StartupVisibility dashboard_mode_override_ = StartupVisibility::kAuto;
   StartupVisibility sidebar_mode_override_ = StartupVisibility::kAuto;
   AssetLoadMode asset_load_mode_ = AssetLoadMode::kFull;
+  std::string startup_editor_hint_;
+  std::vector<std::string> startup_panel_hints_;
 
   // Properties panel for selection editing
   SelectionPropertiesPanel selection_properties_panel_;
@@ -522,8 +543,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   UserSettings user_settings_;
 
   // New delegated components (dependency injection architecture)
-  PanelManager panel_manager_;  // Panel management with session awareness
-  std::unique_ptr<PanelHost> panel_host_;
+  WorkspaceWindowManager
+      window_manager_;  // Window management with session awareness
+  std::unique_ptr<WindowHost> window_host_;
   EditorRegistry editor_registry_;
   std::unique_ptr<MenuOrchestrator> menu_orchestrator_;
   ProjectManager project_manager_;
@@ -535,9 +557,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::unique_ptr<LayoutManager>
       layout_manager_;                    // DockBuilder layout management
   LayoutCoordinator layout_coordinator_;  // Facade for layout operations
-  std::unique_ptr<RightPanelManager>
-      right_panel_manager_;  // Right-side panel system
-  StatusBar status_bar_;     // Bottom status bar
+  std::unique_ptr<RightDrawerManager>
+      right_drawer_manager_;  // Right-side drawer system
+  StatusBar status_bar_;      // Bottom status bar
   std::unique_ptr<ActivityBar> activity_bar_;
   WorkspaceManager workspace_manager_{&toast_manager_};
 
@@ -545,6 +567,17 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void PersistInputConfig(const emu::input::InputConfig& config);
   void UpdateCurrentRomHash();
   void ApplyDefaultBackupPolicy();
+  ProjectWorkflowStatus MakeBuildStatus(const std::string& summary,
+                                        const std::string& detail,
+                                        ProjectWorkflowState state,
+                                        const std::string& output_tail = "",
+                                        bool can_cancel = false) const;
+  ProjectWorkflowStatus MakeRunStatus(const std::string& summary,
+                                      const std::string& detail,
+                                      ProjectWorkflowState state) const;
+  absl::StatusOr<std::string> RunProjectBuildCommand();
+  absl::StatusOr<std::string> ResolveProjectBuildCommand() const;
+  absl::StatusOr<std::string> ResolveProjectRunTarget() const;
   absl::Status CheckRomWritePolicy();
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
 
@@ -561,10 +594,13 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::vector<std::function<void()>> deferred_actions_;
   std::atomic<int> pending_editor_deferred_actions_{0};
   std::atomic<uint64_t> ui_sync_frame_id_{0};
+  std::unique_ptr<BackgroundCommandTask> active_project_build_;
+  bool active_project_build_reported_ = false;
 
   // Core Event Bus and Context
   EventBus event_bus_;
   std::unique_ptr<GlobalEditorContext> editor_context_;
+  std::unique_ptr<workflow::HackWorkflowBackend> hack_workflow_backend_;
 
 #ifdef YAZE_WITH_GRPC
   CanvasAutomationServiceImpl* canvas_automation_service_ = nullptr;

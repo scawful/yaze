@@ -1,6 +1,15 @@
 #include "app/application.h"
 
+#include <chrono>
 #include <ctime>
+#include <memory>
+#include <string>
+#include <utility>
+#include "absl/status/status.h"
+#include "activity_file.h"
+#include "controller.h"
+#include "emu/emulator.h"
+#include "emu/i_emulator.h"
 
 #ifndef _WIN32
 #include <unistd.h>  // getpid()
@@ -13,11 +22,11 @@
 #include "util/log.h"
 
 #ifdef YAZE_WITH_GRPC
+#include "app/emu/internal_emulator_adapter.h"
+#include "app/emu/mesen/mesen_emulator_adapter.h"
 #include "app/service/canvas_automation_service.h"
 #include "app/service/unified_grpc_server.h"
 #include "app/test/test_manager.h"
-#include "app/emu/internal_emulator_adapter.h"
-#include "app/emu/mesen/mesen_emulator_adapter.h"
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -38,6 +47,9 @@ void Application::Initialize(const AppConfig& config) {
   LOG_INFO("App", "Initializing Application instance...");
 
   controller_ = std::make_unique<Controller>();
+  if (controller_->editor_manager()) {
+    controller_->editor_manager()->SetStartupLoadHints(config_);
+  }
 
   // Process pending ROM load if we have one (from flags/config - non-WASM only)
   std::string start_path = config_.rom_file;
@@ -62,110 +74,123 @@ void Application::Initialize(const AppConfig& config) {
   // Always call OnEntry to initialize Window/Renderer, even with empty path
   auto status = controller_->OnEntry(start_path);
   if (!status.ok()) {
-     LOG_ERROR("App", "Failed to initialize controller: %s", std::string(status.message()).c_str());
+    LOG_ERROR("App", "Failed to initialize controller: %s",
+              std::string(status.message()).c_str());
   } else {
-     LOG_INFO("App", "Controller initialized successfully. Active: %s", controller_->IsActive() ? "Yes" : "No");
+    LOG_INFO("App", "Controller initialized successfully. Active: %s",
+             controller_->IsActive() ? "Yes" : "No");
 
-     if (controller_->editor_manager()) {
-       controller_->editor_manager()->ApplyStartupVisibility(config_);
-     }
+    if (controller_->editor_manager()) {
+      controller_->editor_manager()->ApplyStartupVisibility(config_);
+    }
 
-     // If we successfully loaded a ROM at startup, run startup actions
-     if (!start_path.empty() && controller_->editor_manager()) {
-         RunStartupActions();
-     }
+    // If we successfully loaded a ROM at startup, run startup actions
+    if (!start_path.empty() && controller_->editor_manager()) {
+      RunStartupActions();
+    }
 
 #ifdef YAZE_WITH_GRPC
-     // Initialize gRPC unified server
-     if (config_.enable_test_harness) {
-       LOG_INFO("App", "Initializing Unified gRPC Server...");
-       canvas_automation_service_ = std::make_unique<CanvasAutomationServiceImpl>();
-       grpc_server_ = std::make_unique<YazeGRPCServer>();
+    // Initialize gRPC unified server
+    if (config_.enable_test_harness) {
+      LOG_INFO("App", "Initializing Unified gRPC Server...");
+      canvas_automation_service_ =
+          std::make_unique<CanvasAutomationServiceImpl>();
+      grpc_server_ = std::make_unique<YazeGRPCServer>();
 
-       auto rom_getter = [this]() { return controller_->GetCurrentRom(); };
-       auto rom_loader = [this](const std::string& path) -> bool {
-         if (!controller_ || !controller_->editor_manager()) return false;
-         auto status = controller_->editor_manager()->OpenRomOrProject(path);
-         return status.ok();
-       };
+      auto rom_getter = [this]() {
+        return controller_->GetCurrentRom();
+      };
+      auto rom_loader = [this](const std::string& path) -> bool {
+        if (!controller_ || !controller_->editor_manager())
+          return false;
+        auto status = controller_->editor_manager()->OpenRomOrProject(path);
+        return status.ok();
+      };
 
-       emu::IEmulator* emulator_interface = nullptr;
+      emu::IEmulator* emulator_interface = nullptr;
 
-       if (config_.backend == "mesen") {
-           LOG_INFO("App", "Using Mesen2 backend for emulator service");
-           emulator_backend_ = std::make_unique<emu::mesen::MesenEmulatorAdapter>();
-           emulator_interface = emulator_backend_.get();
-       } else {
-           emu::Emulator* internal_emulator = nullptr;
-           if (controller_->editor_manager()) {
-               internal_emulator = &controller_->editor_manager()->emulator();
-           } else {
-               LOG_WARN("App", "EditorManager not ready; internal emulator services may be limited");
-           }
-           
-           auto adapter = std::make_unique<emu::InternalEmulatorAdapter>(internal_emulator);
-           
-           // Set up internal helpers for the adapter
-           adapter->SetRomLoader([this](const std::string& path) -> bool {
-             if (!controller_ || !controller_->editor_manager()) return false;
-             auto status = controller_->editor_manager()->OpenRomOrProject(path);
-             return status.ok();
-           });
-           
-           adapter->SetRomGetter([this]() { return controller_->GetCurrentRom(); });
-           
-           emulator_backend_ = std::move(adapter);
-           emulator_interface = emulator_backend_.get();
-       }
+      if (config_.backend == "mesen") {
+        LOG_INFO("App", "Using Mesen2 backend for emulator service");
+        emulator_backend_ =
+            std::make_unique<emu::mesen::MesenEmulatorAdapter>();
+        emulator_interface = emulator_backend_.get();
+      } else {
+        emu::Emulator* internal_emulator = nullptr;
+        if (controller_->editor_manager()) {
+          internal_emulator = &controller_->editor_manager()->emulator();
+        } else {
+          LOG_WARN("App",
+                   "EditorManager not ready; internal emulator services may be "
+                   "limited");
+        }
 
-       // Initialize server with all services
-       auto status = grpc_server_->Initialize(
-           config_.test_harness_port,
-           emulator_interface,
-           rom_getter,
-           rom_loader,
-           &yaze::test::TestManager::Get(),
-           nullptr, // Version manager not ready
-           nullptr, // Approval manager not ready
-           canvas_automation_service_.get()
-       );
+        auto adapter =
+            std::make_unique<emu::InternalEmulatorAdapter>(internal_emulator);
 
-       if (status.ok()) {
-         status = grpc_server_->StartAsync(); // Start in background thread
-         if (!status.ok()) {
-           LOG_ERROR("App", "Failed to start gRPC server: %s", std::string(status.message()).c_str());
-         } else {
-           LOG_INFO("App", "Unified gRPC server started on port %d", config_.test_harness_port);
-         }
-       } else {
-         LOG_ERROR("App", "Failed to initialize gRPC server: %s", std::string(status.message()).c_str());
-       }
+        // Set up internal helpers for the adapter
+        adapter->SetRomLoader([this](const std::string& path) -> bool {
+          if (!controller_ || !controller_->editor_manager())
+            return false;
+          auto status = controller_->editor_manager()->OpenRomOrProject(path);
+          return status.ok();
+        });
 
-       // Connect services to controller/editor manager
-       if (canvas_automation_service_) {
-         controller_->SetCanvasAutomationService(canvas_automation_service_.get());
-       }
-     }
+        adapter->SetRomGetter(
+            [this]() { return controller_->GetCurrentRom(); });
+
+        emulator_backend_ = std::move(adapter);
+        emulator_interface = emulator_backend_.get();
+      }
+
+      // Initialize server with all services
+      auto status = grpc_server_->Initialize(
+          config_.test_harness_port, emulator_interface, rom_getter, rom_loader,
+          &yaze::test::TestManager::Get(),
+          nullptr,  // Version manager not ready
+          nullptr,  // Approval manager not ready
+          canvas_automation_service_.get());
+
+      if (status.ok()) {
+        status = grpc_server_->StartAsync();  // Start in background thread
+        if (!status.ok()) {
+          LOG_ERROR("App", "Failed to start gRPC server: %s",
+                    std::string(status.message()).c_str());
+        } else {
+          LOG_INFO("App", "Unified gRPC server started on port %d",
+                   config_.test_harness_port);
+        }
+      } else {
+        LOG_ERROR("App", "Failed to initialize gRPC server: %s",
+                  std::string(status.message()).c_str());
+      }
+
+      // Connect services to controller/editor manager
+      if (canvas_automation_service_) {
+        controller_->SetCanvasAutomationService(
+            canvas_automation_service_.get());
+      }
+    }
 #endif
   }
 
 #ifdef __EMSCRIPTEN__
   // Register the ROM load handler now that controller is ready.
-  yaze::app::wasm::SetRomLoadHandler([](std::string path) {
-    Application::Instance().LoadRom(path);
-  });
+  yaze::app::wasm::SetRomLoadHandler(
+      [](std::string path) { Application::Instance().LoadRom(path); });
 #else
   // Create activity file for instance discovery (non-WASM only)
   auto pid = getpid();
   activity_file_ = std::make_unique<app::ActivityFile>(
       absl::StrFormat("/tmp/yaze-%d.status", pid));
   UpdateActivityStatus();
-  LOG_INFO("App", "Activity file created: %s", activity_file_->GetPath().c_str());
+  LOG_INFO("App", "Activity file created: %s",
+           activity_file_->GetPath().c_str());
 #endif
 }
 
 void Application::Tick() {
-  if (!controller_) return;
+  if (!controller_)
+    return;
 
   // Calculate delta time
   auto now = std::chrono::steady_clock::now();
@@ -191,7 +216,8 @@ void Application::Tick() {
   controller_->OnInput();
   auto status = controller_->OnLoad();
   if (!status.ok()) {
-    LOG_ERROR("App", "Controller Load Error: %s", std::string(status.message()).c_str());
+    LOG_ERROR("App", "Controller Load Error: %s",
+              std::string(status.message()).c_str());
 #ifdef __EMSCRIPTEN__
     emscripten_cancel_main_loop();
 #endif
@@ -199,8 +225,8 @@ void Application::Tick() {
   }
 
   if (!controller_->IsActive()) {
-      // Window closed
-      // LOG_INFO("App", "Controller became inactive");
+    // Window closed
+    // LOG_INFO("App", "Controller became inactive");
   }
 
   controller_->DoRender();
@@ -217,7 +243,9 @@ void Application::LoadRom(const std::string& path) {
   if (!controller_) {
 #ifdef __EMSCRIPTEN__
     yaze::app::wasm::TriggerRomLoad(path);
-    LOG_INFO("App", "Forwarded to wasm_bootstrap queue (controller not ready): %s", path.c_str());
+    LOG_INFO("App",
+             "Forwarded to wasm_bootstrap queue (controller not ready): %s",
+             path.c_str());
 #else
     pending_rom_ = path;
     LOG_INFO("App", "Queued ROM load (controller not ready): %s", path.c_str());
@@ -228,21 +256,24 @@ void Application::LoadRom(const std::string& path) {
   // Controller exists.
   absl::Status status;
   if (!controller_->IsActive()) {
-     status = controller_->OnEntry(path);
+    status = controller_->OnEntry(path);
   } else {
-     status = controller_->editor_manager()->OpenRomOrProject(path);
+    status = controller_->editor_manager()->OpenRomOrProject(path);
   }
 
   if (!status.ok()) {
-    std::string error_msg = absl::StrCat("Failed to load ROM: ", status.message());
+    std::string error_msg =
+        absl::StrCat("Failed to load ROM: ", status.message());
     LOG_ERROR("App", "%s", error_msg.c_str());
 
 #ifdef __EMSCRIPTEN__
-    EM_ASM({
-      var msg = UTF8ToString($0);
-      console.error(msg);
-      alert(msg);
-    }, error_msg.c_str());
+    EM_ASM(
+        {
+          var msg = UTF8ToString($0);
+          console.error(msg);
+          alert(msg);
+        },
+        error_msg.c_str());
 #endif
   } else {
     LOG_INFO("App", "ROM loaded successfully: %s", path.c_str());
@@ -260,15 +291,16 @@ void Application::LoadRom(const std::string& path) {
 #endif
 
 #ifdef __EMSCRIPTEN__
-    EM_ASM({
-      console.log("ROM loaded successfully: " + UTF8ToString($0));
-    }, path.c_str());
+    EM_ASM(
+        { console.log("ROM loaded successfully: " + UTF8ToString($0)); },
+        path.c_str());
 #endif
   }
 }
 
 void Application::RunStartupActions() {
-  if (!controller_ || !controller_->editor_manager()) return;
+  if (!controller_ || !controller_->editor_manager())
+    return;
 
   auto* manager = controller_->editor_manager();
   manager->ProcessStartupActions(config_);
@@ -276,7 +308,8 @@ void Application::RunStartupActions() {
 
 #ifndef __EMSCRIPTEN__
 void Application::UpdateActivityStatus() {
-  if (!activity_file_) return;
+  if (!activity_file_)
+    return;
 
   app::ActivityStatus status;
   status.pid = getpid();
@@ -290,7 +323,8 @@ void Application::UpdateActivityStatus() {
 
 #ifdef YAZE_WITH_GRPC
   if (config_.enable_test_harness && config_.test_harness_port > 0) {
-    status.socket_path = absl::StrFormat("localhost:%d", config_.test_harness_port);
+    status.socket_path =
+        absl::StrFormat("localhost:%d", config_.test_harness_port);
   }
 #endif
 
@@ -321,7 +355,8 @@ void Application::Shutdown() {
 #ifndef __EMSCRIPTEN__
   // Clean up activity file for instance discovery
   if (activity_file_) {
-    LOG_INFO("App", "Removing activity file: %s", activity_file_->GetPath().c_str());
+    LOG_INFO("App", "Removing activity file: %s",
+             activity_file_->GetPath().c_str());
     activity_file_.reset();  // Destructor deletes the file
   }
 #endif
