@@ -134,9 +134,11 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
   }
 
   ObjectDrawer drawer(rom_, room_id, gfx_data);
-  // Pass bg1 as layout_bg1 so BG2 objects (pits/masks) will mark the
-  // corresponding area in BG1 as transparent via MarkBG1Transparent().
-  // This creates "holes" in BG1 that allow BG2 content to show through.
+  drawer.SetAllowTrackCornerAliases(false);
+
+  // Layout objects use the room-layout stream directly. Keep their decoded layer
+  // semantics intact (notably pits/masks that intentionally target BG2), but do
+  // not allow custom track-corner aliases to hijack vanilla layout corners.
   return drawer.DrawObjectList(objects_, bg1, bg2, palette_group, state, &bg1);
 }
 
