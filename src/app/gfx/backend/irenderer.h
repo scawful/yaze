@@ -87,6 +87,15 @@ class IRenderer {
   virtual TextureHandle CreateTexture(int width, int height) = 0;
 
   /**
+   * @brief Creates a texture intended to be used as a render target.
+   * @param width The width of the texture in pixels.
+   * @param height The height of the texture in pixels.
+   * @return An abstract TextureHandle to the newly created texture, or nullptr
+   * on failure.
+   */
+  virtual TextureHandle CreateRenderTargetTexture(int width, int height) = 0;
+
+  /**
    * @brief Creates a new texture with a specific pixel format.
    * @param width The width of the texture in pixels.
    * @param height The height of the texture in pixels.

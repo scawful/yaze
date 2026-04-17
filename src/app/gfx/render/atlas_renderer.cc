@@ -394,9 +394,10 @@ void AtlasRenderer::CreateNewAtlas() {
   atlases_.push_back(std::make_unique<Atlas>(size));
   current_atlas_ = atlases_.size() - 1;
 
-  // Create SDL texture for the atlas
+  // Atlas textures are rebuilt via SetRenderTarget()/RenderCopy(), so they must
+  // be created with render-target capability on every backend.
   auto& atlas = *atlases_[current_atlas_];
-  atlas.texture = renderer_->CreateTexture(size, size);
+  atlas.texture = renderer_->CreateRenderTargetTexture(size, size);
 
   if (!atlas.texture) {
     SDL_Log("Failed to create atlas texture: %s", SDL_GetError());

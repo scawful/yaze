@@ -11,7 +11,9 @@ namespace gfx {
 
 SDL3Renderer::SDL3Renderer() = default;
 
-SDL3Renderer::~SDL3Renderer() { Shutdown(); }
+SDL3Renderer::~SDL3Renderer() {
+  Shutdown();
+}
 
 /**
  * @brief Initializes the SDL3 renderer.
@@ -59,10 +61,15 @@ void SDL3Renderer::Shutdown() {
 TextureHandle SDL3Renderer::CreateTexture(int width, int height) {
   // SDL3 texture creation is largely unchanged from SDL2.
   return static_cast<TextureHandle>(SDL_CreateTexture(
-      renderer_,
-      static_cast<SDL_PixelFormat>(SDL_PIXELFORMAT_RGBA8888),
+      renderer_, static_cast<SDL_PixelFormat>(SDL_PIXELFORMAT_RGBA8888),
       static_cast<SDL_TextureAccess>(SDL_TEXTUREACCESS_STREAMING), width,
       height));
+}
+
+TextureHandle SDL3Renderer::CreateRenderTargetTexture(int width, int height) {
+  return static_cast<TextureHandle>(SDL_CreateTexture(
+      renderer_, static_cast<SDL_PixelFormat>(SDL_PIXELFORMAT_RGBA8888),
+      static_cast<SDL_TextureAccess>(SDL_TEXTUREACCESS_TARGET), width, height));
 }
 
 /**
@@ -75,8 +82,7 @@ TextureHandle SDL3Renderer::CreateTextureWithFormat(int width, int height,
                                                     uint32_t format,
                                                     int access) {
   return static_cast<TextureHandle>(
-      SDL_CreateTexture(renderer_,
-                        static_cast<SDL_PixelFormat>(format),
+      SDL_CreateTexture(renderer_, static_cast<SDL_PixelFormat>(format),
                         static_cast<SDL_TextureAccess>(access), width, height));
 }
 
@@ -152,12 +158,16 @@ void SDL3Renderer::UnlockTexture(TextureHandle texture) {
 /**
  * @brief Clears the screen with the current draw color.
  */
-void SDL3Renderer::Clear() { SDL_RenderClear(renderer_); }
+void SDL3Renderer::Clear() {
+  SDL_RenderClear(renderer_);
+}
 
 /**
  * @brief Presents the rendered frame to the screen.
  */
-void SDL3Renderer::Present() { SDL_RenderPresent(renderer_); }
+void SDL3Renderer::Present() {
+  SDL_RenderPresent(renderer_);
+}
 
 /**
  * @brief Copies a texture to the render target.

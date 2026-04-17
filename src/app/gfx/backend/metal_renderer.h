@@ -17,6 +17,7 @@ class MetalRenderer final : public IRenderer {
   void Shutdown() override;
 
   TextureHandle CreateTexture(int width, int height) override;
+  TextureHandle CreateRenderTargetTexture(int width, int height) override;
   TextureHandle CreateTextureWithFormat(int width, int height, uint32_t format,
                                         int access) override;
   void UpdateTexture(TextureHandle texture, const Bitmap& bitmap) override;
