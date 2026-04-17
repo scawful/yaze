@@ -129,6 +129,74 @@ void DungeonWorkbenchPanel::SetRom(Rom* rom) {
   room_dungeon_cache_built_ = false;
 }
 
+void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size) {
+  ImGui::TextDisabled(ICON_MD_EXPLORE " Navigate");
+
+  const bool can_open_overview = static_cast<bool>(show_panel_);
+  const float collapse_x = ImGui::GetWindowWidth() - button_size - 8.0f;
+  const float aux_button_w = button_size + 6.0f;
+
+  float cursor_x = collapse_x;
+  if (can_open_overview) {
+    cursor_x -= (aux_button_w * 2.0f) + 8.0f;
+    ImGui::SameLine(cursor_x);
+    if (ImGui::Button(ICON_MD_GRID_VIEW "##OpenRoomMatrix",
+                      ImVec2(aux_button_w, button_size))) {
+      show_panel_("dungeon.room_matrix");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open room matrix overview");
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_MAP "##OpenDungeonMap",
+                      ImVec2(aux_button_w, button_size))) {
+      show_panel_("dungeon.dungeon_map");
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open dungeon map overview");
+    }
+  }
+
+  ImGui::SameLine(collapse_x);
+  if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms",
+                    ImVec2(button_size, button_size))) {
+    layout_state_.show_left_sidebar = false;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Collapse navigation");
+  }
+
+  ImGui::Spacing();
+  if (ImGui::Selectable("Rooms", sidebar_mode_ == SidebarMode::Rooms, 0,
+                        ImVec2(0.0f, 0.0f))) {
+    sidebar_mode_ = SidebarMode::Rooms;
+  }
+  ImGui::SameLine();
+  if (ImGui::Selectable("Entrances", sidebar_mode_ == SidebarMode::Entrances, 0,
+                        ImVec2(0.0f, 0.0f))) {
+    sidebar_mode_ = SidebarMode::Entrances;
+  }
+}
+
+void DungeonWorkbenchPanel::DrawSidebarContent() {
+  if (!room_selector_) {
+    ImGui::TextDisabled("Room navigation unavailable");
+    return;
+  }
+
+  ImGui::PushID("WorkbenchSidebarMode");
+  switch (sidebar_mode_) {
+    case SidebarMode::Rooms:
+      room_selector_->DrawRoomSelector();
+      break;
+    case SidebarMode::Entrances:
+      room_selector_->DrawEntranceSelector();
+      break;
+  }
+  ImGui::PopID();
+}
+
 void DungeonWorkbenchPanel::Draw(bool* p_open) {
   (void)p_open;
   const auto& theme = AgentUI::GetTheme();
@@ -226,21 +294,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
         "##DungeonWorkbenchSidebar",
         ImVec2(gui::UIConfig::kContentMinWidthSidebar, 0.0f), true);
     if (sidebar_open) {
-      // Header with collapse button
-      ImGui::TextDisabled(ICON_MD_LIST " Rooms");
-      ImGui::SameLine(ImGui::GetWindowWidth() - btn - 8.0f);
-      if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms",
-                        ImVec2(btn, btn))) {
-        layout_state_.show_left_sidebar = false;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Collapse room browser");
-      }
-
+      DrawSidebarHeader(btn);
       ImGui::Separator();
-      ImGui::PushID("RoomSelectorEmbedded");
-      room_selector_->DrawRoomSelector();
-      ImGui::PopID();
+      DrawSidebarContent();
     }
     gui::LayoutHelpers::EndContentChild();
   } else {

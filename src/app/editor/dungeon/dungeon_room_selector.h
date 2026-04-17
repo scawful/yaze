@@ -124,7 +124,7 @@ class DungeonRoomSelector {
     kViewList = 0,     // Flat list (original)
     kViewGrouped = 1,  // Grouped by dungeon/blockset
   };
-  ViewMode view_mode_ = kViewList;
+  ViewMode view_mode_ = kViewGrouped;
 
   // Object-type filter for room list (especially useful on iOS)
   // When enabled, only rooms containing the selected entity types are shown

@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_WORKBENCH_PANEL_H
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_WORKBENCH_PANEL_H
 
+#include <cstdint>
 #include <deque>
 #include <functional>
 #include <string>
@@ -20,7 +21,7 @@ class DungeonRoomSelector;
 enum class RoomSelectionIntent;
 
 // Single stable window for dungeon editing. This is step 2 in the Workbench plan.
-class DungeonWorkbenchPanel : public EditorPanel {
+class DungeonWorkbenchPanel : public WindowContent {
  public:
   DungeonWorkbenchPanel(
       DungeonRoomSelector* room_selector, int* current_room_id,
@@ -74,6 +75,8 @@ class DungeonWorkbenchPanel : public EditorPanel {
 
  private:
   void DrawRecentRoomTabs();
+  void DrawSidebarHeader(float button_size);
+  void DrawSidebarContent();
   void DrawSplitView(DungeonCanvasViewer& primary_viewer);
   void DrawInspector(DungeonCanvasViewer& viewer);
   void DrawInspectorShelf(DungeonCanvasViewer& viewer);
@@ -104,6 +107,9 @@ class DungeonWorkbenchPanel : public EditorPanel {
   std::function<void(const std::string&)> show_panel_;
   std::function<void(bool)> set_workflow_mode_;
   Rom* rom_ = nullptr;
+
+  enum class SidebarMode : uint8_t { Rooms, Entrances };
+  SidebarMode sidebar_mode_ = SidebarMode::Rooms;
 
   char compare_search_buf_[64] = {};
 
