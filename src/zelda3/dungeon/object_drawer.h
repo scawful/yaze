@@ -71,6 +71,9 @@ class ObjectDrawer {
 
   // Chest index tracking for state queries
   void ResetChestIndex() { current_chest_index_ = 0; }
+  void SetAllowTrackCornerAliases(bool allow) {
+    allow_track_corner_aliases_ = allow;
+  }
 
   /**
    * @brief Draw a door to background buffers
@@ -98,6 +101,8 @@ class ObjectDrawer {
    * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
    * @param layout_bg1 Optional layout buffer to mask for BG2 object transparency
+   * @param reset_chest_index If true, reset per-room chest counter before drawing
+   *        (set false on subsequent USDASM list passes; see Room::RenderObjectsToBackground)
    * @return Status of the drawing operation
    */
   absl::Status DrawObjectList(const std::vector<RoomObject>& objects,
@@ -105,7 +110,8 @@ class ObjectDrawer {
                               gfx::BackgroundBuffer& bg2,
                               const gfx::PaletteGroup& palette_group,
                               const DungeonState* state = nullptr,
-                              gfx::BackgroundBuffer* layout_bg1 = nullptr);
+                              gfx::BackgroundBuffer* layout_bg1 = nullptr,
+                              bool reset_chest_index = true);
 
   /**
    * @brief Get draw routine ID for an object
@@ -215,6 +221,8 @@ class ObjectDrawer {
   void DrawCustomObject(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                         std::span<const gfx::TileInfo> tiles,
                         const DungeonState* state = nullptr);
+  void DrawMissingCustomObjectPlaceholder(gfx::BackgroundBuffer& bg, int tile_x,
+                                          int tile_y);
 
   // Utility methods
   // Execute a DrawRoutineRegistry routine (pure DrawContext function) but render
@@ -247,6 +255,10 @@ class ObjectDrawer {
   void MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x, int tile_y,
                           int pixel_width, int pixel_height);
 
+  // Pixel-space variant for explicit rectangular transparency writes.
+  void MarkBg1RectTransparent(gfx::BackgroundBuffer& bg1, int start_px,
+                              int start_py, int pixel_width, int pixel_height);
+
   // Door indicator fallback when graphics unavailable
   void DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                          int width, int height, DoorType type,
@@ -274,6 +286,7 @@ class ObjectDrawer {
   Rom* rom_;
   int room_id_;
   mutable int current_chest_index_ = 0;
+  bool allow_track_corner_aliases_ = true;
   const uint8_t*
       room_gfx_buffer_;  // Room-specific graphics buffer (current_gfx16_)
 
