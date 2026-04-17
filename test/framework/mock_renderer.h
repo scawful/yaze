@@ -11,7 +11,8 @@ class MockRenderer : public gfx::IRenderer {
  public:
   MockRenderer() {
     using ::testing::Return;
-    ON_CALL(*this, CreateTexture)
+    ON_CALL(*this, CreateTexture).WillByDefault(Return(DummyTextureHandle()));
+    ON_CALL(*this, CreateRenderTargetTexture)
         .WillByDefault(Return(DummyTextureHandle()));
     ON_CALL(*this, CreateTextureWithFormat)
         .WillByDefault(Return(DummyTextureHandle()));
@@ -19,26 +20,37 @@ class MockRenderer : public gfx::IRenderer {
     ON_CALL(*this, GetBackendRenderer).WillByDefault(Return(nullptr));
   }
 
-  MOCK_METHOD(bool, Initialize, (SDL_Window* window), (override));
+  MOCK_METHOD(bool, Initialize, (SDL_Window * window), (override));
   MOCK_METHOD(void, Shutdown, (), (override));
 
-  MOCK_METHOD(gfx::TextureHandle, CreateTexture, (int width, int height), (override));
-  MOCK_METHOD(gfx::TextureHandle, CreateTextureWithFormat, 
+  MOCK_METHOD(gfx::TextureHandle, CreateTexture, (int width, int height),
+              (override));
+  MOCK_METHOD(gfx::TextureHandle, CreateRenderTargetTexture,
+              (int width, int height), (override));
+  MOCK_METHOD(gfx::TextureHandle, CreateTextureWithFormat,
               (int width, int height, uint32_t format, int access), (override));
-  
-  MOCK_METHOD(void, UpdateTexture, (gfx::TextureHandle texture, const gfx::Bitmap& bitmap), (override));
+
+  MOCK_METHOD(void, UpdateTexture,
+              (gfx::TextureHandle texture, const gfx::Bitmap& bitmap),
+              (override));
   MOCK_METHOD(void, DestroyTexture, (gfx::TextureHandle texture), (override));
 
-  MOCK_METHOD(bool, LockTexture, (gfx::TextureHandle texture, SDL_Rect* rect, void** pixels, int* pitch), (override));
+  MOCK_METHOD(bool, LockTexture,
+              (gfx::TextureHandle texture, SDL_Rect* rect, void** pixels,
+               int* pitch),
+              (override));
   MOCK_METHOD(void, UnlockTexture, (gfx::TextureHandle texture), (override));
 
   MOCK_METHOD(void, Clear, (), (override));
   MOCK_METHOD(void, Present, (), (override));
-  MOCK_METHOD(void, RenderCopy, (gfx::TextureHandle texture, const SDL_Rect* srcrect, const SDL_Rect* dstrect), (override));
-  
+  MOCK_METHOD(void, RenderCopy,
+              (gfx::TextureHandle texture, const SDL_Rect* srcrect,
+               const SDL_Rect* dstrect),
+              (override));
+
   MOCK_METHOD(void, SetRenderTarget, (gfx::TextureHandle texture), (override));
   MOCK_METHOD(void, SetDrawColor, (SDL_Color color), (override));
-  
+
   MOCK_METHOD(void*, GetBackendRenderer, (), (override));
 
  private:
