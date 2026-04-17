@@ -234,23 +234,27 @@ class DungeonRoomMatrixPanel : public WindowContent {
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
 
-            if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-              // Show palette info
-              ImGui::TextDisabled("Palette: %d | Blockset: %d",
-                                  (*rooms_)[room_id].palette(),
-                                  (*rooms_)[room_id].blockset());
+            if (rooms_) {
+              auto* loaded_room = rooms_->GetIfLoaded(room_id);
+              if (loaded_room != nullptr) {
+                // Show palette info
+                ImGui::TextDisabled("Palette: %d | Blockset: %d",
+                                    loaded_room->palette(),
+                                    loaded_room->blockset());
 
-              // Show thumbnail preview of the room
-              auto& room = (*rooms_)[room_id];
-              zelda3::RoomLayerManager layer_mgr;
-              layer_mgr.ApplyLayerMerging(room.layer_merging());
-              auto& preview_bitmap = room.GetCompositeBitmap(layer_mgr);
-              if (preview_bitmap.is_active() && preview_bitmap.texture() != 0) {
-                ImGui::Separator();
-                // Render at thumbnail size (80x80 from 512x512)
-                constexpr float kThumbnailSize = 80.0f;
-                ImGui::Image((ImTextureID)(intptr_t)preview_bitmap.texture(),
-                             ImVec2(kThumbnailSize, kThumbnailSize));
+                // Show thumbnail preview of the room
+                auto& room = *loaded_room;
+                zelda3::RoomLayerManager layer_mgr;
+                layer_mgr.ApplyLayerMerging(room.layer_merging());
+                auto& preview_bitmap = room.GetCompositeBitmap(layer_mgr);
+                if (preview_bitmap.is_active() &&
+                    preview_bitmap.texture() != 0) {
+                  ImGui::Separator();
+                  // Render at thumbnail size (80x80 from 512x512)
+                  constexpr float kThumbnailSize = 80.0f;
+                  ImGui::Image((ImTextureID)(intptr_t)preview_bitmap.texture(),
+                               ImVec2(kThumbnailSize, kThumbnailSize));
+                }
               }
             }
 
@@ -281,7 +285,7 @@ class DungeonRoomMatrixPanel : public WindowContent {
    */
   ImU32 GetRoomColor(int room_id, const AgentUITheme& theme) {
     auto sample_dominant_color =
-        [](gfx::Bitmap& bitmap) -> std::optional<ImU32> {
+        [](const gfx::Bitmap& bitmap) -> std::optional<ImU32> {
       if (!bitmap.is_active() || bitmap.width() <= 0 || bitmap.height() <= 0 ||
           bitmap.data() == nullptr || bitmap.surface() == nullptr ||
           bitmap.surface()->format == nullptr ||
@@ -334,19 +338,21 @@ class DungeonRoomMatrixPanel : public WindowContent {
 
     // If room data is available and loaded, sample the actual room bitmap and
     // choose its most frequent indexed color.
-    if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-      auto& room = (*rooms_)[room_id];
-      zelda3::RoomLayerManager layer_mgr;
-      layer_mgr.ApplyLayerMerging(room.layer_merging());
-      auto& composite = room.GetCompositeBitmap(layer_mgr);
-      if (auto composite_color = sample_dominant_color(composite);
-          composite_color.has_value()) {
-        return soften_color(composite_color.value());
-      }
+    if (rooms_) {
+      auto* room = rooms_->GetIfLoaded(room_id);
+      if (room != nullptr) {
+        zelda3::RoomLayerManager layer_mgr;
+        layer_mgr.ApplyLayerMerging(room->layer_merging());
+        auto& composite = room->GetCompositeBitmap(layer_mgr);
+        if (auto composite_color = sample_dominant_color(composite);
+            composite_color.has_value()) {
+          return soften_color(composite_color.value());
+        }
 
-      if (auto bg1_color = sample_dominant_color(room.bg1_buffer().bitmap());
-          bg1_color.has_value()) {
-        return soften_color(bg1_color.value());
+        if (auto bg1_color = sample_dominant_color(room->bg1_buffer().bitmap());
+            bg1_color.has_value()) {
+          return soften_color(bg1_color.value());
+        }
       }
     }
 

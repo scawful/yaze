@@ -452,16 +452,6 @@ absl::Status DungeonEditorV2::Load() {
 
   // Canvas viewers are lazily created in GetViewerForRoom
 
-  if (!render_service_) {
-    render_service_ =
-        std::make_unique<emu::render::EmulatorRenderService>(rom_);
-    auto status = render_service_->Initialize();
-    if (!status.ok()) {
-      LOG_ERROR("DungeonEditorV2", "Failed to initialize render service: %s",
-                status.message().data());
-    }
-  }
-
   if (game_data()) {
     gfx::PaletteManager::Get().Initialize(game_data());
   } else {
