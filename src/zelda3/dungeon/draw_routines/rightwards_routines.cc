@@ -930,7 +930,8 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 1,
       .base_height = 1,
-      .min_tiles = 4,  // solid fill uses 4 directional tiles
+      .min_tiles =
+          1,  // object 0x34 repeats a single tile from the subtype-1 table
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 

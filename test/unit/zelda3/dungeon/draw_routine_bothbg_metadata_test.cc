@@ -74,5 +74,15 @@ TEST(DrawRoutineBothBGMetadataTest,
   EXPECT_EQ(top->min_tiles, 12);
 }
 
+TEST(DrawRoutineBothBGMetadataTest,
+     SingleTileScalableRoutinesAdvertiseSingleTilePayloads) {
+  auto& registry = DrawRoutineRegistry::Get();
+
+  const DrawRoutineInfo* solid_plus3 =
+      registry.GetRoutineInfo(DrawRoutineIds::kRightwards1x1Solid_1to16_plus3);
+  ASSERT_NE(solid_plus3, nullptr);
+  EXPECT_EQ(solid_plus3->min_tiles, 1);
+}
+
 }  // namespace zelda3
 }  // namespace yaze
