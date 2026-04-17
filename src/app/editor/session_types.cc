@@ -1,5 +1,7 @@
 #include "app/editor/session_types.h"
 
+#include <algorithm>
+
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
@@ -21,84 +23,156 @@ namespace yaze::editor {
 EditorSet::EditorSet(Rom* rom, zelda3::GameData* game_data,
                      UserSettings* user_settings, size_t session_id,
                      EditorRegistry* editor_registry)
-    : session_id_(session_id), game_data_(game_data) {
-  auto create_editor = [&](EditorType type,
-                           auto&& fallback) -> std::unique_ptr<Editor> {
-    if (editor_registry) {
-      if (auto created = editor_registry->CreateEditor(type, rom)) {
-        return created;
+    : session_id_(session_id),
+      rom_(rom),
+      game_data_(game_data),
+      user_settings_(user_settings),
+      editor_registry_(editor_registry) {
+  auto register_factory = [&](EditorType type, auto&& fallback) {
+    editor_factories_[type] =
+        [this, type,
+         fallback = std::forward<decltype(fallback)>(
+             fallback)]() mutable -> std::unique_ptr<Editor> {
+      if (editor_registry_) {
+        if (auto created = editor_registry_->CreateEditor(type, rom_)) {
+          return created;
+        }
       }
-    }
-    return fallback();
+      return fallback();
+    };
   };
 
-  editors_[EditorType::kAssembly] =
-      create_editor(EditorType::kAssembly,
-                    [&]() { return std::make_unique<AssemblyEditor>(rom); });
-  editors_[EditorType::kDungeon] =
-      create_editor(EditorType::kDungeon,
-                    [&]() { return std::make_unique<DungeonEditorV2>(rom); });
-  editors_[EditorType::kGraphics] =
-      create_editor(EditorType::kGraphics,
-                    [&]() { return std::make_unique<GraphicsEditor>(rom); });
-  editors_[EditorType::kMusic] =
-      create_editor(EditorType::kMusic,
-                    [&]() { return std::make_unique<MusicEditor>(rom); });
-  editors_[EditorType::kOverworld] =
-      create_editor(EditorType::kOverworld,
-                    [&]() { return std::make_unique<OverworldEditor>(rom); });
-  editors_[EditorType::kPalette] =
-      create_editor(EditorType::kPalette,
-                    [&]() { return std::make_unique<PaletteEditor>(rom); });
-  editors_[EditorType::kScreen] =
-      create_editor(EditorType::kScreen,
-                    [&]() { return std::make_unique<ScreenEditor>(rom); });
-  editors_[EditorType::kSprite] =
-      create_editor(EditorType::kSprite,
-                    [&]() { return std::make_unique<SpriteEditor>(rom); });
-  editors_[EditorType::kMessage] =
-      create_editor(EditorType::kMessage,
-                    [&]() { return std::make_unique<MessageEditor>(rom); });
-  editors_[EditorType::kHex] =
-      create_editor(EditorType::kHex,
-                    [&]() { return std::make_unique<MemoryEditor>(rom); });
-  editors_[EditorType::kSettings] =
-      create_editor(EditorType::kSettings,
-                    [&]() { return std::make_unique<SettingsPanel>(); });
-
-  // Propagate game_data to editors that need it
-  if (game_data) {
-    GetDungeonEditor()->SetGameData(game_data);
-    GetGraphicsEditor()->SetGameData(game_data);
-    GetOverworldEditor()->SetGameData(game_data);
-  }
-
-  active_editors_ = {
-      GetEditor(EditorType::kOverworld), GetEditor(EditorType::kDungeon),
-      GetEditor(EditorType::kGraphics),  GetEditor(EditorType::kPalette),
-      GetEditor(EditorType::kSprite),    GetEditor(EditorType::kMessage),
-      GetEditor(EditorType::kMusic),     GetEditor(EditorType::kScreen),
-      GetEditor(EditorType::kAssembly)};
+  register_factory(EditorType::kAssembly,
+                   [this]() { return std::make_unique<AssemblyEditor>(rom_); });
+  register_factory(EditorType::kDungeon, [this]() {
+    return std::make_unique<DungeonEditorV2>(rom_);
+  });
+  register_factory(EditorType::kGraphics,
+                   [this]() { return std::make_unique<GraphicsEditor>(rom_); });
+  register_factory(EditorType::kMusic,
+                   [this]() { return std::make_unique<MusicEditor>(rom_); });
+  register_factory(EditorType::kOverworld, [this]() {
+    return std::make_unique<OverworldEditor>(rom_);
+  });
+  register_factory(EditorType::kPalette,
+                   [this]() { return std::make_unique<PaletteEditor>(rom_); });
+  register_factory(EditorType::kScreen,
+                   [this]() { return std::make_unique<ScreenEditor>(rom_); });
+  register_factory(EditorType::kSprite,
+                   [this]() { return std::make_unique<SpriteEditor>(rom_); });
+  register_factory(EditorType::kMessage,
+                   [this]() { return std::make_unique<MessageEditor>(rom_); });
+  register_factory(EditorType::kHex,
+                   [this]() { return std::make_unique<MemoryEditor>(rom_); });
+  register_factory(EditorType::kSettings,
+                   []() { return std::make_unique<SettingsPanel>(); });
 }
 
 EditorSet::~EditorSet() = default;
 
 void EditorSet::set_user_settings(UserSettings* settings) {
-  GetSettingsPanel()->SetUserSettings(settings);
+  user_settings_ = settings;
+  if (auto* panel = GetSettingsPanel()) {
+    panel->SetUserSettings(settings);
+  }
+}
+
+void EditorSet::SetGameData(zelda3::GameData* game_data) {
+  game_data_ = game_data;
+  for (auto& [type, editor] : editors_) {
+    (void)type;
+    editor->SetGameData(game_data_);
+  }
 }
 
 void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
+  dependencies_ = dependencies;
   for (auto& [type, editor] : editors_) {
     editor->SetDependencies(dependencies);
   }
 }
 
 Editor* EditorSet::GetEditor(EditorType type) const {
-  auto it = editors_.find(type);
-  if (it != editors_.end()) {
+  return EnsureEditorCreated(type);
+}
+
+Editor* EditorSet::FindEditor(EditorType type) const {
+  if (type == EditorType::kUnknown) {
+    return nullptr;
+  }
+
+  if (auto it = editors_.find(type); it != editors_.end()) {
     return it->second.get();
   }
   return nullptr;
+}
+
+Editor* EditorSet::EnsureEditorCreated(EditorType type) const {
+  if (type == EditorType::kUnknown) {
+    return nullptr;
+  }
+
+  if (auto* editor = FindEditor(type)) {
+    return editor;
+  }
+
+  auto factory_it = editor_factories_.find(type);
+  if (factory_it == editor_factories_.end()) {
+    return nullptr;
+  }
+
+  auto editor = factory_it->second();
+  if (!editor) {
+    return nullptr;
+  }
+
+  if (dependencies_.has_value()) {
+    editor->SetDependencies(*dependencies_);
+  }
+  if (game_data_ != nullptr) {
+    editor->SetGameData(game_data_);
+  }
+  if (type == EditorType::kSettings && user_settings_ != nullptr) {
+    if (auto* settings_panel = static_cast<SettingsPanel*>(editor.get())) {
+      settings_panel->SetUserSettings(user_settings_);
+    }
+  }
+
+  Editor* editor_ptr = editor.get();
+  editors_[type] = std::move(editor);
+
+  if (ShouldTrackAsActiveEditor(type)) {
+    const_cast<EditorSet*>(this)->TrackActiveEditor(editor_ptr);
+  }
+
+  return editor_ptr;
+}
+
+bool EditorSet::ShouldTrackAsActiveEditor(EditorType type) const {
+  switch (type) {
+    case EditorType::kAssembly:
+    case EditorType::kDungeon:
+    case EditorType::kGraphics:
+    case EditorType::kMessage:
+    case EditorType::kMusic:
+    case EditorType::kOverworld:
+    case EditorType::kPalette:
+    case EditorType::kScreen:
+    case EditorType::kSprite:
+      return true;
+    default:
+      return false;
+  }
+}
+
+void EditorSet::TrackActiveEditor(Editor* editor) {
+  if (editor == nullptr) {
+    return;
+  }
+  if (std::find(active_editors_.begin(), active_editors_.end(), editor) ==
+      active_editors_.end()) {
+    active_editors_.push_back(editor);
+  }
 }
 
 void EditorSet::OpenAssemblyFolder(const std::string& folder_path) const {
@@ -114,36 +188,41 @@ void EditorSet::ChangeActiveAssemblyFile(std::string_view path) const {
 }
 
 core::AsarWrapper* EditorSet::GetAsarWrapper() const {
-  if (auto* editor = GetAssemblyEditor()) {
+  if (auto* editor =
+          static_cast<AssemblyEditor*>(FindEditor(EditorType::kAssembly))) {
     return editor->asar_wrapper();
   }
   return nullptr;
 }
 
 int EditorSet::LoadedDungeonRoomCount() const {
-  if (auto* editor = GetDungeonEditor()) {
+  if (auto* editor =
+          static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     return editor->LoadedRoomCount();
   }
   return 0;
 }
 
 int EditorSet::TotalDungeonRoomCount() const {
-  if (auto* editor = GetDungeonEditor()) {
+  if (auto* editor =
+          static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     return editor->TotalRoomCount();
   }
   return 0;
 }
 
-std::vector<std::pair<uint32_t, uint32_t>> EditorSet::CollectDungeonWriteRanges()
-    const {
-  if (auto* editor = GetDungeonEditor()) {
+std::vector<std::pair<uint32_t, uint32_t>>
+EditorSet::CollectDungeonWriteRanges() const {
+  if (auto* editor =
+          static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
     return editor->CollectWriteRanges();
   }
   return {};
 }
 
 zelda3::Overworld* EditorSet::GetOverworldData() const {
-  if (auto* editor = GetOverworldEditor()) {
+  if (auto* editor =
+          static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {
     return &editor->overworld();
   }
   return nullptr;

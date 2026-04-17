@@ -1273,15 +1273,20 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
       user_settings_.prefs().panel_browser_category_width,
       /*notify=*/false);
   {
-    const std::string category = GetPreferredStartupCategory(
-        user_settings_.prefs().sidebar_active_category, {});
-    if (!category.empty()) {
-      window_manager_.SetActiveCategory(category, /*notify=*/false);
-      SyncEditorContextForCategory(category);
-      auto it = user_settings_.prefs().panel_visibility_state.find(category);
-      if (it != user_settings_.prefs().panel_visibility_state.end()) {
-        window_manager_.RestoreVisibilityState(
-            window_manager_.GetActiveSessionId(), it->second);
+    const bool prefer_dashboard_only =
+        dashboard_mode_override_ == StartupVisibility::kShow &&
+        startup_editor_hint_.empty() && startup_panel_hints_.empty();
+    if (!prefer_dashboard_only) {
+      const std::string category = GetPreferredStartupCategory(
+          user_settings_.prefs().sidebar_active_category, {});
+      if (!category.empty()) {
+        window_manager_.SetActiveCategory(category, /*notify=*/false);
+        SyncEditorContextForCategory(category);
+        auto it = user_settings_.prefs().panel_visibility_state.find(category);
+        if (it != user_settings_.prefs().panel_visibility_state.end()) {
+          window_manager_.RestoreVisibilityState(
+              window_manager_.GetActiveSessionId(), it->second);
+        }
       }
     }
   }
@@ -1853,6 +1858,9 @@ void EditorManager::ApplyStartupVisibility(const AppConfig& config) {
 void EditorManager::SetStartupLoadHints(const AppConfig& config) {
   startup_editor_hint_ = config.startup_editor;
   startup_panel_hints_ = config.open_panels;
+  welcome_mode_override_ = config.welcome_mode;
+  dashboard_mode_override_ = config.dashboard_mode;
+  sidebar_mode_override_ = config.sidebar_mode;
 }
 
 void EditorManager::ApplyLayoutDefaultsMigrationIfNeeded() {
@@ -2076,6 +2084,10 @@ std::vector<EditorType> EditorManager::CollectEditorsToPreload(
     return std::vector<EditorType>(types.begin(), types.end());
   }
 
+  if (dashboard_mode_override_ == StartupVisibility::kShow) {
+    return {};
+  }
+
   if (editor_set) {
     for (auto* editor : editor_set->active_editors_) {
       if (editor != nullptr && *editor->active()) {
@@ -2178,14 +2190,7 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
 
   auto* game_data = &session->game_data;
   auto* editor_set = &session->editors;
-  for (EditorType type :
-       {EditorType::kDungeon, EditorType::kOverworld, EditorType::kGraphics,
-        EditorType::kScreen, EditorType::kPalette, EditorType::kSprite,
-        EditorType::kMessage}) {
-    if (auto* editor = editor_set->GetEditor(type)) {
-      editor->SetGameData(game_data);
-    }
-  }
+  editor_set->SetGameData(game_data);
 
   ContentRegistry::Context::SetGameData(game_data);
   session->game_data_loaded = true;
@@ -2496,8 +2501,12 @@ void EditorManager::DrawInterface() {
       }
     }
 
+    const bool prefer_dashboard_only =
+        dashboard_mode_override_ == StartupVisibility::kShow &&
+        startup_editor_hint_.empty() && startup_panel_hints_.empty();
     std::string sidebar_category = window_manager_.GetActiveCategory();
-    if (sidebar_category.empty() && !all_categories.empty()) {
+    if (!prefer_dashboard_only && sidebar_category.empty() &&
+        !all_categories.empty()) {
       sidebar_category = GetPreferredStartupCategory("", all_categories);
       if (!sidebar_category.empty()) {
         window_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
@@ -2894,8 +2903,12 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
     emulator_.set_renderer(renderer_);
   }
 
-  // Initialize all editors - this registers their cards with WorkspaceWindowManager
-  // and sets up any editor-specific resources. Must be called before Load().
+  const auto preload_editor_list = CollectEditorsToPreload(current_editor_set);
+  const std::unordered_set<EditorType> preload_types(
+      preload_editor_list.begin(), preload_editor_list.end());
+
+  // Initialize only the editors needed for the current startup surface. This
+  // registers their windows and sets up editor-specific resources before Load().
   struct InitStep {
     EditorType type;
     bool mark_loaded;
@@ -2908,6 +2921,9 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
       {EditorType::kDungeon, false},
   };
   for (const auto& step : init_steps) {
+    if (!preload_types.contains(step.type)) {
+      continue;
+    }
     if (auto* editor = current_editor_set->GetEditor(step.type)) {
       editor->Initialize();
       MarkEditorInitialized(current_session, step.type);
@@ -2929,20 +2945,10 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   *gfx::Arena::Get().mutable_gfx_sheets() =
       current_session->game_data.gfx_bitmaps;
 
-  // Propagate GameData to all editors that need it
+  // Propagate GameData to editors that already exist; future editors inherit it
+  // on first construction via EditorSet.
   auto* game_data = &current_session->game_data;
-  for (EditorType type :
-       {EditorType::kDungeon, EditorType::kOverworld, EditorType::kGraphics,
-        EditorType::kScreen, EditorType::kPalette, EditorType::kSprite,
-        EditorType::kMessage}) {
-    if (auto* editor = current_editor_set->GetEditor(type)) {
-      editor->SetGameData(game_data);
-    }
-  }
-
-  const auto preload_editor_list = CollectEditorsToPreload(current_editor_set);
-  const std::unordered_set<EditorType> preload_types(
-      preload_editor_list.begin(), preload_editor_list.end());
+  current_editor_set->SetGameData(game_data);
 
   struct LoadStep {
     EditorType type;
