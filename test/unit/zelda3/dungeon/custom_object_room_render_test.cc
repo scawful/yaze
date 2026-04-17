@@ -267,6 +267,33 @@ TEST_F(CustomObjectRoomRenderTest,
          "not disappear into BG2 behind the floor.";
 }
 
+TEST_F(CustomObjectRoomRenderTest, LayoutPitMasksStayOnBg2Path) {
+  WriteLayoutObjects(
+      /*layout_id=*/0,
+      {RoomObject(/*id=*/0x0A4, /*x=*/6, /*y=*/7, /*size=*/0, /*layer=*/0)});
+
+  Room room(/*room_id=*/0, rom_.get(), &game_data_);
+  room.SetLayoutId(0);
+  room.MarkGraphicsDirty();
+  room.MarkLayoutDirty();
+  room.LoadRoomGraphics();
+  room.CopyRoomGraphicsToBuffer();
+  room.RenderRoomGraphics();
+
+  const auto& bg1_coverage = room.bg1_buffer().coverage_data();
+  const auto& bg2_coverage = room.bg2_buffer().coverage_data();
+  const int bg1_covered_pixels =
+      static_cast<int>(std::count(bg1_coverage.begin(), bg1_coverage.end(), 1));
+  const int bg2_covered_pixels =
+      static_cast<int>(std::count(bg2_coverage.begin(), bg2_coverage.end(), 1));
+
+  EXPECT_GT(bg2_covered_pixels, 0)
+      << "Layout pit/mask objects should still render into BG2 to reveal the "
+         "lower layer.";
+  EXPECT_LT(bg1_covered_pixels, bg2_covered_pixels)
+      << "Pit/mask layout objects should not be forced wholesale onto BG1.";
+}
+
 TEST_F(CustomObjectRoomRenderTest,
        PrimaryRoomObjectListRendersToBg1WhileBg2OverlayUsesBg2) {
   EnableCustomObjects({"track_LR.bin"});
