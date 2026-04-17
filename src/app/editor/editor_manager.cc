@@ -4,7 +4,9 @@
 // C system headers
 #include <cctype>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
+#include <ctime>
 
 // C++ standard library headers
 #include <algorithm>
@@ -43,6 +45,9 @@
 #include "app/application.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
+#include "app/editor/hack/workflow/hack_workflow_backend.h"
+#include "app/editor/hack/workflow/hack_workflow_backend_factory.h"
+#include "app/editor/hack/workflow/project_workflow_output_panel.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/activity_bar.h"
@@ -50,8 +55,9 @@
 #include "app/editor/session_types.h"
 #include "app/editor/system/default_editor_factories.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/shortcut_configurator.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/dashboard_panel.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/project_management_panel.h"
@@ -75,7 +81,7 @@
 #include "editor/core/editor_context.h"
 #include "editor/events/core_events.h"
 #include "editor/layout/layout_coordinator.h"
-#include "editor/menu/right_panel_manager.h"
+#include "editor/menu/right_drawer_manager.h"
 #include "editor/system/editor_activator.h"
 #include "editor/system/shortcut_manager.h"
 #include "editor/ui/rom_load_options_dialog.h"
@@ -138,6 +144,52 @@ bool HasAnyOverride(const core::RomAddressOverrides& overrides,
     }
   }
   return false;
+}
+
+std::string LastNonEmptyLine(const std::string& text) {
+  std::vector<std::string> lines = absl::StrSplit(text, '\n');
+  for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
+    std::string line = std::string(*it);
+    absl::StripAsciiWhitespace(&line);
+    if (!line.empty()) {
+      return line;
+    }
+  }
+  return "";
+}
+
+void UpdateBuildWorkflowStatus(StatusBar* status_bar,
+                               ProjectManagementPanel* project_panel,
+                               const ProjectWorkflowStatus& status) {
+  ContentRegistry::Context::SetBuildWorkflowStatus(status);
+  if (status_bar != nullptr) {
+    status_bar->SetBuildStatus(status);
+  }
+  if (project_panel != nullptr) {
+    project_panel->SetBuildStatus(status);
+  }
+}
+
+void UpdateRunWorkflowStatus(StatusBar* status_bar,
+                             ProjectManagementPanel* project_panel,
+                             const ProjectWorkflowStatus& status) {
+  ContentRegistry::Context::SetRunWorkflowStatus(status);
+  if (status_bar != nullptr) {
+    status_bar->SetRunStatus(status);
+  }
+  if (project_panel != nullptr) {
+    project_panel->SetRunStatus(status);
+  }
+}
+
+void AppendWorkflowHistoryEntry(const std::string& kind,
+                                const ProjectWorkflowStatus& status,
+                                const std::string& output_log) {
+  ContentRegistry::Context::AppendWorkflowHistory(
+      {.kind = kind,
+       .status = status,
+       .output_log = output_log,
+       .timestamp = std::chrono::system_clock::now()});
 }
 
 bool ProjectUsesCustomObjects(const project::YazeProject& project) {
@@ -388,7 +440,7 @@ void SeedOracleProjectInRecents() {
 }  // namespace
 
 // Static registry of editors that use the card-based layout system
-// These editors register their cards with EditorPanelManager and manage their
+// These editors register their cards with WorkspaceWindowManager and manage their
 // own windows They do NOT need the traditional ImGui::Begin/End wrapper - they
 // create cards internally
 bool EditorManager::IsPanelBasedEditor(EditorType type) {
@@ -418,12 +470,13 @@ bool EditorManager::ApplyLayoutProfile(const std::string& profile_id) {
     return false;
   }
 
-  if (applied_profile.open_agent_chat && right_panel_manager_) {
-    right_panel_manager_->OpenPanel(RightPanelManager::PanelType::kAgentChat);
-    const float default_width = RightPanelManager::GetDefaultPanelWidth(
-        RightPanelManager::PanelType::kAgentChat, current_type);
-    right_panel_manager_->SetPanelWidth(
-        RightPanelManager::PanelType::kAgentChat,
+  if (applied_profile.open_agent_chat && right_drawer_manager_) {
+    right_drawer_manager_->OpenDrawer(
+        RightDrawerManager::DrawerType::kAgentChat);
+    const float default_width = RightDrawerManager::GetDefaultDrawerWidth(
+        RightDrawerManager::DrawerType::kAgentChat, current_type);
+    right_drawer_manager_->SetDrawerWidth(
+        RightDrawerManager::DrawerType::kAgentChat,
         std::max(default_width, 480.0f));
   }
 
@@ -492,11 +545,11 @@ void EditorManager::ShowAIAgent() {
   // UI to respect the user's preferred provider/model.
   // TODO: Implement LoadAgentSettingsFromProject in AgentChat or AgentEditor
   agent_ui_.ShowAgent();
-  panel_manager_.SetActiveCategory("Agent");
+  window_manager_.SetActiveCategory("Agent");
   layout_coordinator_.InitializeEditorLayout(EditorType::kAgent);
-  for (const auto& panel_id :
-       LayoutPresets::GetDefaultPanels(EditorType::kAgent)) {
-    panel_manager_.ShowPanel(panel_id);
+  for (const auto& window_id :
+       LayoutPresets::GetDefaultWindows(EditorType::kAgent)) {
+    window_manager_.OpenWindow(window_id);
   }
 }
 
@@ -526,13 +579,15 @@ EditorManager::EditorManager()
 }
 
 void EditorManager::InitializeSubsystems() {
+  RefreshHackWorkflowBackend();
+
   // STEP 1: Initialize PopupManager FIRST
   popup_manager_ = std::make_unique<PopupManager>(this);
   popup_manager_->Initialize();  // Registers all popups with PopupID constants
 
   // STEP 2: Initialize SessionCoordinator (independent of popups)
   session_coordinator_ = std::make_unique<SessionCoordinator>(
-      &panel_manager_, &toast_manager_, &user_settings_);
+      &window_manager_, &toast_manager_, &user_settings_);
   session_coordinator_->SetEditorRegistry(&editor_registry_);
 
   // STEP 3: Initialize MenuOrchestrator (depends on popup_manager_,
@@ -541,8 +596,8 @@ void EditorManager::InitializeSubsystems() {
       this, menu_builder_, rom_file_manager_, project_manager_,
       editor_registry_, *session_coordinator_, toast_manager_, *popup_manager_);
 
-  // Wire up card registry for Panels submenu in View menu
-  menu_orchestrator_->SetPanelManager(&panel_manager_);
+  // Wire up the window manager for the View menu window listing
+  menu_orchestrator_->SetWindowManager(&window_manager_);
   menu_orchestrator_->SetStatusBar(&status_bar_);
   menu_orchestrator_->SetUserSettings(&user_settings_);
 
@@ -562,15 +617,15 @@ void EditorManager::InitializeSubsystems() {
   });
 
   // STEP 4: Initialize UICoordinator (depends on popup_manager_,
-  // session_coordinator_, panel_manager_)
+  // session_coordinator_, window_manager_)
   ui_coordinator_ = std::make_unique<UICoordinator>(
       this, rom_file_manager_, project_manager_, editor_registry_,
-      panel_manager_, *session_coordinator_, window_delegate_, toast_manager_,
+      window_manager_, *session_coordinator_, window_delegate_, toast_manager_,
       *popup_manager_, shortcut_manager_);
 
   // STEP 4.5: Initialize LayoutManager (DockBuilder layouts for editors)
   layout_manager_ = std::make_unique<LayoutManager>();
-  layout_manager_->SetPanelManager(&panel_manager_);
+  layout_manager_->SetWindowManager(&window_manager_);
   layout_manager_->UseGlobalLayouts();
   workspace_manager_.set_layout_manager(layout_manager_.get());
   workspace_manager_.set_apply_preset_callback(
@@ -582,12 +637,12 @@ void EditorManager::InitializeSubsystems() {
         ApplyLayoutPreset(preset_name);
       });
 
-  // STEP 4.6: Initialize RightPanelManager (right-side sliding panels)
-  right_panel_manager_ = std::make_unique<RightPanelManager>();
-  right_panel_manager_->SetToastManager(&toast_manager_);
-  right_panel_manager_->SetProposalDrawer(&proposal_drawer_);
-  right_panel_manager_->SetPropertiesPanel(&selection_properties_panel_);
-  right_panel_manager_->SetShortcutManager(&shortcut_manager_);
+  // STEP 4.6: Initialize RightDrawerManager (right-side sliding drawers)
+  right_drawer_manager_ = std::make_unique<RightDrawerManager>();
+  right_drawer_manager_->SetToastManager(&toast_manager_);
+  right_drawer_manager_->SetProposalDrawer(&proposal_drawer_);
+  right_drawer_manager_->SetPropertiesPanel(&selection_properties_panel_);
+  right_drawer_manager_->SetShortcutManager(&shortcut_manager_);
   selection_properties_panel_.SetAgentCallbacks(
       [this](const std::string& prompt) {
 #if defined(YAZE_BUILD_AGENT_UI)
@@ -607,16 +662,16 @@ void EditorManager::InitializeSubsystems() {
       },
       [this]() {
 #if defined(YAZE_BUILD_AGENT_UI)
-        if (right_panel_manager_) {
-          right_panel_manager_->OpenPanel(
-              RightPanelManager::PanelType::kAgentChat);
+        if (right_drawer_manager_) {
+          right_drawer_manager_->OpenDrawer(
+              RightDrawerManager::DrawerType::kAgentChat);
         }
 #endif
       });
   status_bar_.SetAgentToggleCallback([this]() {
-    if (right_panel_manager_) {
-      right_panel_manager_->TogglePanel(
-          RightPanelManager::PanelType::kAgentChat);
+    if (right_drawer_manager_) {
+      right_drawer_manager_->ToggleDrawer(
+          RightDrawerManager::DrawerType::kAgentChat);
     } else {
       agent_ui_.ShowAgent();
     }
@@ -625,6 +680,8 @@ void EditorManager::InitializeSubsystems() {
   // Initialize ProjectManagementPanel for project/version management
   project_management_panel_ = std::make_unique<ProjectManagementPanel>();
   project_management_panel_->SetToastManager(&toast_manager_);
+  window_manager_.RegisterWindowContent(
+      std::make_unique<workflow::ProjectWorkflowOutputPanel>());
   project_management_panel_->SetSwapRomCallback([this]() {
     // Prompt user to select a new ROM for the project
     auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
@@ -673,7 +730,7 @@ void EditorManager::InitializeSubsystems() {
 #if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
               editor_set->OpenAssemblyFolder(folder_path);
 #endif
-              panel_manager_.SetFileBrowserPath("Assembly", folder_path);
+              window_manager_.SetFileBrowserPath("Assembly", folder_path);
             }
           } else if (type == "assets") {
             current_project_.assets_folder = folder_path;
@@ -683,25 +740,41 @@ void EditorManager::InitializeSubsystems() {
                               ToastType::kSuccess);
         }
       });
-  right_panel_manager_->SetProjectManagementPanel(
+  project_management_panel_->SetBuildProjectCallback(
+      [this]() { QueueBuildCurrentProject(); });
+  project_management_panel_->SetCancelBuildCallback(
+      [this]() { CancelQueuedProjectBuild(); });
+  project_management_panel_->SetRunProjectCallback(
+      [this]() { (void)RunCurrentProject(); });
+  ContentRegistry::Context::SetStartBuildWorkflowCallback(
+      [this]() { QueueBuildCurrentProject(); });
+  ContentRegistry::Context::SetRunProjectWorkflowCallback(
+      [this]() { (void)RunCurrentProject(); });
+  ContentRegistry::Context::SetShowWorkflowOutputCallback([this]() {
+    window_manager_.OpenWindow("workflow.output");
+    window_manager_.MarkWindowRecentlyUsed("workflow.output");
+  });
+  ContentRegistry::Context::SetCancelBuildWorkflowCallback(
+      [this]() { CancelQueuedProjectBuild(); });
+  right_drawer_manager_->SetProjectManagementPanel(
       project_management_panel_.get());
 
   // STEP 4.6.1: Initialize LayoutCoordinator (facade for layout operations)
   LayoutCoordinator::Dependencies layout_deps;
   layout_deps.layout_manager = layout_manager_.get();
-  layout_deps.panel_manager = &panel_manager_;
+  layout_deps.window_manager = &window_manager_;
   layout_deps.ui_coordinator = ui_coordinator_.get();
   layout_deps.toast_manager = &toast_manager_;
   layout_deps.status_bar = &status_bar_;
-  layout_deps.right_panel_manager = right_panel_manager_.get();
+  layout_deps.right_drawer_manager = right_drawer_manager_.get();
   layout_coordinator_.Initialize(layout_deps);
 
   // STEP 4.6.2: Initialize EditorActivator (editor switching and jump navigation)
   EditorActivator::Dependencies activator_deps;
-  activator_deps.panel_manager = &panel_manager_;
+  activator_deps.window_manager = &window_manager_;
   activator_deps.layout_manager = layout_manager_.get();
   activator_deps.ui_coordinator = ui_coordinator_.get();
-  activator_deps.right_panel_manager = right_panel_manager_.get();
+  activator_deps.right_drawer_manager = right_drawer_manager_.get();
   activator_deps.toast_manager = &toast_manager_;
   activator_deps.event_bus = &event_bus_;
   activator_deps.ensure_editor_assets_loaded = [this](EditorType type) {
@@ -720,7 +793,7 @@ void EditorManager::InitializeSubsystems() {
 
   // STEP 4.7: Initialize ActivityBar
   activity_bar_ = std::make_unique<ActivityBar>(
-      panel_manager_,
+      window_manager_,
       [this]() -> bool {
         if (auto* editor_set = GetCurrentEditorSet()) {
           if (auto* dungeon_editor = editor_set->GetEditorAs<DungeonEditorV2>(
@@ -739,26 +812,26 @@ void EditorManager::InitializeSubsystems() {
         }
       });
 
-  // PanelHost is the declarative panel registration surface used by
+  // WindowHost is the declarative window registration surface used by
   // editor/runtime systems.
-  panel_host_ = std::make_unique<PanelHost>(&panel_manager_);
+  window_host_ = std::make_unique<WindowHost>(&window_manager_);
 
-  // Wire up EventBus to PanelManager for action event publishing
-  panel_manager_.SetEventBus(&event_bus_);
+  // Wire up EventBus to WorkspaceWindowManager for action event publishing
+  window_manager_.SetEventBus(&event_bus_);
 }
 
 void EditorManager::RegisterEditors() {
   // Auto-register panels from ContentRegistry (Unified Panel System)
   auto registry_panels = ContentRegistry::Panels::CreateAll();
   for (auto& panel : registry_panels) {
-    panel_manager_.RegisterRegistryPanel(std::move(panel));
+    window_manager_.RegisterRegistryWindowContent(std::move(panel));
   }
 
   // STEP 4.8: Initialize DashboardPanel
   dashboard_panel_ = std::make_unique<DashboardPanel>(this);
 
-  if (panel_host_) {
-    PanelDefinition dashboard_definition;
+  if (window_host_) {
+    WindowDefinition dashboard_definition;
     dashboard_definition.id = "dashboard.main";
     dashboard_definition.display_name = "Dashboard";
     dashboard_definition.icon = ICON_MD_DASHBOARD;
@@ -767,9 +840,9 @@ void EditorManager::RegisterEditors() {
     dashboard_definition.shortcut_hint = "F1";
     dashboard_definition.priority = 0;
     dashboard_definition.visibility_flag = dashboard_panel_->visibility_flag();
-    panel_host_->RegisterPanel(dashboard_definition);
+    window_host_->RegisterWindow(dashboard_definition);
   } else {
-    panel_manager_.RegisterPanel(
+    window_manager_.RegisterWindow(
         {.card_id = "dashboard.main",
          .display_name = "Dashboard",
          .window_title = " Dashboard",
@@ -829,7 +902,7 @@ void EditorManager::SubscribeToEvents() {
   });
 
   // Subscribe to UIActionRequestEvent for activity bar actions
-  // This replaces direct callbacks from PanelManager
+  // This replaces direct callbacks from WorkspaceWindowManager
   event_bus_.Subscribe<UIActionRequestEvent>(
       [this](const UIActionRequestEvent& e) {
         HandleUIActionRequest(e.action);
@@ -838,7 +911,7 @@ void EditorManager::SubscribeToEvents() {
   event_bus_.Subscribe<PanelVisibilityChangedEvent>(
       [this](const PanelVisibilityChangedEvent& e) {
         if (e.category.empty() ||
-            e.category == PanelManager::kDashboardCategory) {
+            e.category == WorkspaceWindowManager::kDashboardCategory) {
           return;
         }
         auto& prefs = user_settings_.prefs();
@@ -883,7 +956,7 @@ void EditorManager::RefreshResourceLabelProvider() {
     source_parts.push_back("rom");
   }
 
-  // 2) Oracle project registry labels from hack manifest.
+  // 2) Project registry labels from the active hack manifest.
   if (current_project_.project_opened() &&
       current_project_.hack_manifest.loaded() &&
       current_project_.hack_manifest.HasProjectRegistry()) {
@@ -924,9 +997,10 @@ void EditorManager::RefreshResourceLabelProvider() {
 
 void EditorManager::HandleSessionSwitched(size_t new_index,
                                           RomSession* session) {
-  // Update RightPanelManager with the new session's settings editor
-  if (right_panel_manager_ && session) {
-    right_panel_manager_->SetSettingsPanel(session->editors.GetSettingsPanel());
+  // Update RightDrawerManager with the new session's settings editor
+  if (right_drawer_manager_ && session) {
+    right_drawer_manager_->SetSettingsPanel(
+        session->editors.GetSettingsPanel());
   }
 
   // Update properties panel with new ROM
@@ -942,11 +1016,12 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
   // Keep room/sprite labels in sync with active session context.
   RefreshResourceLabelProvider();
 
-  const std::string category = panel_manager_.GetActiveCategory();
-  if (!category.empty() && category != PanelManager::kDashboardCategory) {
+  const std::string category = window_manager_.GetActiveCategory();
+  if (!category.empty() &&
+      category != WorkspaceWindowManager::kDashboardCategory) {
     auto it = user_settings_.prefs().panel_visibility_state.find(category);
     if (it != user_settings_.prefs().panel_visibility_state.end()) {
-      panel_manager_.RestoreVisibilityState(new_index, it->second);
+      window_manager_.RestoreVisibilityState(new_index, it->second);
     }
   }
 
@@ -958,8 +1033,8 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
 }
 
 void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
-  panel_manager_.RegisterRegistryPanelsForSession(index);
-  panel_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
+  window_manager_.RegisterRegistryWindowContentsForSession(index);
+  window_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
   LOG_INFO("EditorManager", "Session %zu created via EventBus", index);
 }
 
@@ -1018,9 +1093,9 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
 
     case Action::kShowSettings:
       // Toggle Settings panel in sidebar
-      if (right_panel_manager_) {
-        right_panel_manager_->TogglePanel(
-            RightPanelManager::PanelType::kSettings);
+      if (right_drawer_manager_) {
+        right_drawer_manager_->ToggleDrawer(
+            RightDrawerManager::DrawerType::kSettings);
       } else {
         SwitchToEditor(EditorType::kSettings);
       }
@@ -1028,7 +1103,7 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
 
     case Action::kShowPanelBrowser:
       if (ui_coordinator_) {
-        ui_coordinator_->ShowPanelBrowser();
+        ui_coordinator_->ShowWindowBrowser();
       }
       break;
 
@@ -1050,9 +1125,10 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       break;
 
     case Action::kShowHelp:
-      if (right_panel_manager_) {
+      if (right_drawer_manager_) {
         // Toggle Help panel in sidebar
-        right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kHelp);
+        right_drawer_manager_->ToggleDrawer(
+            RightDrawerManager::DrawerType::kHelp);
       } else if (popup_manager_) {
         // Fallback to "About" dialog if sidebar not available
         popup_manager_->Show(PopupID::kAbout);
@@ -1060,18 +1136,18 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       break;
 
     case Action::kShowAgentChatSidebar:
-      if (right_panel_manager_) {
-        right_panel_manager_->OpenPanel(
-            RightPanelManager::PanelType::kAgentChat);
+      if (right_drawer_manager_) {
+        right_drawer_manager_->OpenDrawer(
+            RightDrawerManager::DrawerType::kAgentChat);
       } else {
         SwitchToEditor(EditorType::kAgent);
       }
       break;
 
     case Action::kShowAgentProposalsSidebar:
-      if (right_panel_manager_) {
-        right_panel_manager_->OpenPanel(
-            RightPanelManager::PanelType::kProposals);
+      if (right_drawer_manager_) {
+        right_drawer_manager_->OpenDrawer(
+            RightDrawerManager::DrawerType::kProposals);
       }
       break;
 
@@ -1165,9 +1241,9 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   RegisterDefaultEditorFactories(&editor_registry_);
   SeedOracleProjectInRecents();
 
-  // Inject card_registry into emulator and workspace_manager
-  emulator_.set_panel_manager(&panel_manager_);
-  workspace_manager_.set_panel_manager(&panel_manager_);
+  // Inject the window manager into emulator and workspace_manager
+  emulator_.set_window_manager(&window_manager_);
+  workspace_manager_.set_window_manager(&window_manager_);
 
   // Point to a blank editor set when no ROM is loaded
   // current_editor_set_ = &blank_editor_set_;
@@ -1186,25 +1262,26 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
   // Apply sidebar state from settings AFTER registering callbacks
   // This triggers the callbacks but they should be safe now
-  panel_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible,
-                                   /*notify=*/false);
-  panel_manager_.SetPanelExpanded(user_settings_.prefs().sidebar_panel_expanded,
-                                  /*notify=*/false);
-  panel_manager_.SetStoredSidePanelWidth(
+  window_manager_.SetSidebarVisible(user_settings_.prefs().sidebar_visible,
+                                    /*notify=*/false);
+  window_manager_.SetSidebarExpanded(
+      user_settings_.prefs().sidebar_panel_expanded,
+      /*notify=*/false);
+  window_manager_.SetStoredSidePanelWidth(
       user_settings_.prefs().sidebar_panel_width, /*notify=*/false);
-  panel_manager_.SetPanelBrowserCategoryWidth(
+  window_manager_.SetWindowBrowserCategoryWidth(
       user_settings_.prefs().panel_browser_category_width,
       /*notify=*/false);
   {
     const std::string category = GetPreferredStartupCategory(
         user_settings_.prefs().sidebar_active_category, {});
     if (!category.empty()) {
-      panel_manager_.SetActiveCategory(category, /*notify=*/false);
+      window_manager_.SetActiveCategory(category, /*notify=*/false);
       SyncEditorContextForCategory(category);
       auto it = user_settings_.prefs().panel_visibility_state.find(category);
       if (it != user_settings_.prefs().panel_visibility_state.end()) {
-        panel_manager_.RestoreVisibilityState(
-            panel_manager_.GetActiveSessionId(), it->second);
+        window_manager_.RestoreVisibilityState(
+            window_manager_.GetActiveSessionId(), it->second);
       }
     }
   }
@@ -1226,7 +1303,7 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
 
 void EditorManager::RegisterEmulatorPanels() {
   // Register emulator panels early (emulator Initialize might not be called).
-  const std::vector<PanelDefinition> panel_definitions = {
+  const std::vector<WindowDefinition> panel_definitions = {
       {.id = "emulator.cpu_debugger",
        .display_name = "CPU Debugger",
        .icon = ICON_MD_BUG_REPORT,
@@ -1291,13 +1368,13 @@ void EditorManager::RegisterEmulatorPanels() {
        .legacy_ids = {"Memory Editor"}},
   };
 
-  if (panel_host_) {
-    panel_host_->RegisterPanels(panel_definitions);
+  if (window_host_) {
+    window_host_->RegisterPanels(panel_definitions);
     return;
   }
 
   for (const auto& definition : panel_definitions) {
-    PanelDescriptor descriptor;
+    WindowDescriptor descriptor;
     descriptor.card_id = definition.id;
     descriptor.display_name = definition.display_name;
     descriptor.window_title = definition.window_title;
@@ -1306,19 +1383,19 @@ void EditorManager::RegisterEmulatorPanels() {
     descriptor.shortcut_hint = definition.shortcut_hint;
     descriptor.priority = definition.priority;
     descriptor.scope = definition.scope;
-    descriptor.panel_category = definition.panel_category;
+    descriptor.window_lifecycle = definition.window_lifecycle;
     descriptor.context_scope = definition.context_scope;
     descriptor.visibility_flag = definition.visibility_flag;
     descriptor.on_show = definition.on_show;
     descriptor.on_hide = definition.on_hide;
 
     for (const auto& legacy_id : definition.legacy_ids) {
-      panel_manager_.RegisterPanelAlias(legacy_id, definition.id);
+      window_manager_.RegisterPanelAlias(legacy_id, definition.id);
     }
 
-    panel_manager_.RegisterPanel(descriptor);
+    window_manager_.RegisterWindow(descriptor);
     if (definition.visible_by_default) {
-      panel_manager_.ShowPanel(definition.id);
+      window_manager_.OpenWindow(definition.id);
     }
   }
 }
@@ -1329,7 +1406,7 @@ void EditorManager::InitializeServices() {
 
   // Initialize agent UI (no-op when agent UI is disabled)
   agent_ui_.Initialize(&toast_manager_, &proposal_drawer_,
-                       right_panel_manager_.get(), &panel_manager_,
+                       right_drawer_manager_.get(), &window_manager_,
                        &user_settings_);
 
   // Note: Unified gRPC Server is started from Application::Initialize()
@@ -1350,22 +1427,22 @@ void EditorManager::InitializeServices() {
 
   ApplyLayoutDefaultsMigrationIfNeeded();
 
-  if (right_panel_manager_) {
+  if (right_drawer_manager_) {
     if (pending_layout_defaults_reset_) {
-      right_panel_manager_->ResetPanelWidths();
+      right_drawer_manager_->ResetDrawerWidths();
       user_settings_.prefs().right_panel_widths =
-          right_panel_manager_->SerializePanelWidths();
+          right_drawer_manager_->SerializeDrawerWidths();
     } else {
-      right_panel_manager_->RestorePanelWidths(
+      right_drawer_manager_->RestoreDrawerWidths(
           user_settings_.prefs().right_panel_widths);
     }
-    right_panel_manager_->SetPanelWidthChangedCallback(
-        [this](RightPanelManager::PanelType, float) {
-          if (!right_panel_manager_) {
+    right_drawer_manager_->SetDrawerWidthChangedCallback(
+        [this](RightDrawerManager::DrawerType, float) {
+          if (!right_drawer_manager_) {
             return;
           }
           user_settings_.prefs().right_panel_widths =
-              right_panel_manager_->SerializePanelWidths();
+              right_drawer_manager_->SerializeDrawerWidths();
           settings_dirty_ = true;
           settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
         });
@@ -1375,7 +1452,7 @@ void EditorManager::InitializeServices() {
   yaze::zelda3::SetPreferHmagicSpriteNames(
       user_settings_.prefs().prefer_hmagic_sprite_names);
 
-  panel_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
+  window_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
 
   // Apply font scale after loading (only if ImGui context exists)
   if (ImGui::GetCurrentContext() != nullptr) {
@@ -1507,80 +1584,84 @@ void EditorManager::SetupWelcomeScreenCallbacks() {
 void EditorManager::SetupSidebarCallbacks() {
   // Utility callbacks removed - now handled via EventBus
 
-  panel_manager_.SetSidebarStateChangedCallback(
+  window_manager_.SetSidebarStateChangedCallback(
       [this](bool visible, bool expanded) {
         user_settings_.prefs().sidebar_visible = visible;
         user_settings_.prefs().sidebar_panel_expanded = expanded;
         settings_dirty_ = true;
         settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
       });
-  panel_manager_.SetSidePanelWidthChangedCallback([this](float width) {
+  window_manager_.SetSidePanelWidthChangedCallback([this](float width) {
     user_settings_.prefs().sidebar_panel_width = width;
     settings_dirty_ = true;
     settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
   });
-  panel_manager_.SetPanelBrowserCategoryWidthChangedCallback(
+  window_manager_.SetPanelBrowserCategoryWidthChangedCallback(
       [this](float width) {
         user_settings_.prefs().panel_browser_category_width = width;
         settings_dirty_ = true;
         settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
       });
 
-  panel_manager_.SetCategoryChangedCallback(
-      [this](const std::string& category) {
-        if (category.empty() || category == PanelManager::kDashboardCategory) {
-          return;
-        }
-        SyncEditorContextForCategory(category);
-        user_settings_.prefs().sidebar_active_category = category;
-
-        const auto& prefs = user_settings_.prefs();
-        auto it = prefs.panel_visibility_state.find(category);
-        if (it != prefs.panel_visibility_state.end()) {
-          panel_manager_.RestoreVisibilityState(
-              panel_manager_.GetActiveSessionId(), it->second);
-        } else {
-          // No saved visibility state for this category yet.
-          //
-          // Apply LayoutPresets defaults only when this category has *no*
-          // visible panels (editors may have already shown their own defaults,
-          // e.g. Dungeon Workbench).
-          const size_t session_id = panel_manager_.GetActiveSessionId();
-          bool any_visible = false;
-          for (const auto& desc :
-               panel_manager_.GetPanelsInCategory(session_id, category)) {
-            if (desc.visibility_flag && *desc.visibility_flag) {
-              any_visible = true;
-              break;
-            }
-          }
-
-          if (!any_visible) {
-            const EditorType type =
-                EditorRegistry::GetEditorTypeFromCategory(category);
-            for (const auto& panel_id : LayoutPresets::GetDefaultPanels(type)) {
-              panel_manager_.ShowPanel(session_id, panel_id);
-            }
-          }
-        }
-
-        settings_dirty_ = true;
-        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
-      });
-
-  panel_manager_.SetEditorResolver(
-      [this](const std::string& category) -> Editor* {
-        return ResolveEditorForCategory(category);
-      });
-
-  panel_manager_.SetOnPanelClickedCallback([this](const std::string& category) {
-    EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
-    if (type != EditorType::kSettings && type != EditorType::kUnknown) {
-      SwitchToEditor(type, true);
+  window_manager_.SetCategoryChangedCallback([this](
+                                                 const std::string& category) {
+    if (category.empty() ||
+        category == WorkspaceWindowManager::kDashboardCategory) {
+      return;
     }
+    SyncEditorContextForCategory(category);
+    user_settings_.prefs().sidebar_active_category = category;
+
+    const auto& prefs = user_settings_.prefs();
+    auto it = prefs.panel_visibility_state.find(category);
+    if (it != prefs.panel_visibility_state.end()) {
+      window_manager_.RestoreVisibilityState(
+          window_manager_.GetActiveSessionId(), it->second);
+    } else {
+      // No saved visibility state for this category yet.
+      //
+      // Apply LayoutPresets defaults only when this category has *no*
+      // visible panels (editors may have already shown their own defaults,
+      // e.g. Dungeon Workbench).
+      const size_t session_id = window_manager_.GetActiveSessionId();
+      bool any_visible = false;
+      for (const auto& desc :
+           window_manager_.GetWindowsInCategory(session_id, category)) {
+        if (desc.visibility_flag && *desc.visibility_flag) {
+          any_visible = true;
+          break;
+        }
+      }
+
+      if (!any_visible) {
+        const EditorType type =
+            EditorRegistry::GetEditorTypeFromCategory(category);
+        for (const auto& window_id : LayoutPresets::GetDefaultWindows(type)) {
+          window_manager_.OpenWindow(session_id, window_id);
+        }
+      }
+    }
+
+    settings_dirty_ = true;
+    settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
   });
 
-  panel_manager_.SetOnCategorySelectedCallback(
+  window_manager_.SetEditorResolver(
+      [this](const std::string& category) -> Editor* {
+        Editor* editor = ResolveEditorForCategory(category);
+        ContentRegistry::Context::SetEditorWindowContext(category, editor);
+        return editor;
+      });
+
+  window_manager_.SetOnWindowClickedCallback(
+      [this](const std::string& category) {
+        EditorType type = EditorRegistry::GetEditorTypeFromCategory(category);
+        if (type != EditorType::kSettings && type != EditorType::kUnknown) {
+          SwitchToEditor(type, true);
+        }
+      });
+
+  window_manager_.SetOnWindowCategorySelectedCallback(
       [this](const std::string& category) {
         if (ui_coordinator_) {
           ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
@@ -1599,9 +1680,9 @@ void EditorManager::SetupSidebarCallbacks() {
         }
       });
 
-  panel_manager_.EnableFileBrowser("Assembly");
+  window_manager_.EnableFileBrowser("Assembly");
 
-  panel_manager_.SetFileClickedCallback(
+  window_manager_.SetFileClickedCallback(
       [this](const std::string& category, const std::string& path) {
         if (category == "Assembly") {
           if (auto* editor_set = GetCurrentEditorSet()) {
@@ -1624,7 +1705,7 @@ void EditorManager::InitializeShortcutSystem() {
   shortcut_deps.workspace_manager = &workspace_manager_;
   shortcut_deps.popup_manager = popup_manager_.get();
   shortcut_deps.toast_manager = &toast_manager_;
-  shortcut_deps.panel_manager = &panel_manager_;
+  shortcut_deps.window_manager = &window_manager_;
   shortcut_deps.user_settings = &user_settings_;
 
   ConfigureEditorShortcuts(shortcut_deps, &shortcut_manager_);
@@ -1655,13 +1736,13 @@ void EditorManager::OpenEditorAndPanelsFromFlags(
     SwitchToEditor(*editor_type_to_open, true, /*from_dialog=*/true);
   }
 
-  // Open panels via PanelManager - works for any editor type
+  // Open windows via WorkspaceWindowManager - works for any editor type
   if (!has_panels) {
     return;
   }
 
   const size_t session_id = GetCurrentSessionId();
-  std::string last_known_category = panel_manager_.GetActiveCategory();
+  std::string last_known_category = window_manager_.GetActiveCategory();
   bool applied_category_from_panel = false;
 
   for (absl::string_view token :
@@ -1688,8 +1769,9 @@ void EditorManager::OpenEditorAndPanelsFromFlags(
       if (ui_coordinator_) {
         ui_coordinator_->SetDashboardBehavior(StartupVisibility::kShow);
       }
-      panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory,
-                                       /*notify=*/false);
+      window_manager_.SetActiveCategory(
+          WorkspaceWindowManager::kDashboardCategory,
+          /*notify=*/false);
       continue;
     }
 
@@ -1709,11 +1791,11 @@ void EditorManager::OpenEditorAndPanelsFromFlags(
     }
 
     std::optional<std::string> resolved_panel;
-    if (panel_manager_.GetPanelDescriptor(session_id, panel_name)) {
+    if (window_manager_.GetWindowDescriptor(session_id, panel_name)) {
       resolved_panel = panel_name;
     } else {
       for (const auto& [prefixed_id, descriptor] :
-           panel_manager_.GetAllPanelDescriptors()) {
+           window_manager_.GetAllWindowDescriptors()) {
         const std::string base_id = StripSessionPrefix(prefixed_id);
         const std::string card_lower = absl::AsciiStrToLower(base_id);
         const std::string display_lower =
@@ -1730,20 +1812,29 @@ void EditorManager::OpenEditorAndPanelsFromFlags(
       LOG_WARN("EditorManager",
                "Unknown panel '%s' from --open_panels (known count: %zu)",
                panel_name.c_str(),
-               panel_manager_.GetAllPanelDescriptors().size());
+               window_manager_.GetAllWindowDescriptors().size());
       continue;
     }
 
-    if (panel_manager_.ShowPanel(session_id, *resolved_panel)) {
+    if (window_manager_.OpenWindow(session_id, *resolved_panel)) {
       const auto* descriptor =
-          panel_manager_.GetPanelDescriptor(session_id, *resolved_panel);
+          window_manager_.GetWindowDescriptor(session_id, *resolved_panel);
+      if (descriptor != nullptr) {
+        const EditorType type =
+            EditorRegistry::GetEditorTypeFromCategory(descriptor->category);
+        const auto ensure_status = EnsureEditorAssetsLoaded(type);
+        if (!ensure_status.ok()) {
+          LOG_WARN("EditorManager", "Failed to load assets for panel '%s': %s",
+                   resolved_panel->c_str(), ensure_status.message().data());
+        }
+      }
       if (descriptor && !applied_category_from_panel &&
-          descriptor->category != PanelManager::kDashboardCategory) {
-        panel_manager_.SetActiveCategory(descriptor->category);
+          descriptor->category != WorkspaceWindowManager::kDashboardCategory) {
+        window_manager_.SetActiveCategory(descriptor->category);
         applied_category_from_panel = true;
       } else if (!applied_category_from_panel && descriptor &&
                  descriptor->category.empty() && !last_known_category.empty()) {
-        panel_manager_.SetActiveCategory(last_known_category);
+        window_manager_.SetActiveCategory(last_known_category);
       }
     } else {
       LOG_WARN("EditorManager", "Failed to show panel '%s'",
@@ -1757,6 +1848,11 @@ void EditorManager::ApplyStartupVisibility(const AppConfig& config) {
   dashboard_mode_override_ = config.dashboard_mode;
   sidebar_mode_override_ = config.sidebar_mode;
   ApplyStartupVisibilityOverrides();
+}
+
+void EditorManager::SetStartupLoadHints(const AppConfig& config) {
+  startup_editor_hint_ = config.startup_editor;
+  startup_panel_hints_ = config.open_panels;
 }
 
 void EditorManager::ApplyLayoutDefaultsMigrationIfNeeded() {
@@ -1810,7 +1906,7 @@ void EditorManager::ApplyStartupVisibilityOverrides() {
   if (sidebar_mode_override_ != StartupVisibility::kAuto) {
     const bool sidebar_visible =
         sidebar_mode_override_ == StartupVisibility::kShow;
-    panel_manager_.SetSidebarVisible(sidebar_visible, /*notify=*/false);
+    window_manager_.SetSidebarVisible(sidebar_visible, /*notify=*/false);
     if (ui_coordinator_) {
       ui_coordinator_->SetPanelSidebarVisible(sidebar_visible);
     }
@@ -1820,7 +1916,7 @@ void EditorManager::ApplyStartupVisibilityOverrides() {
   // This prevents visual overlap/clutter on startup
   if (welcome_mode_override_ == StartupVisibility::kShow ||
       dashboard_mode_override_ == StartupVisibility::kShow) {
-    panel_manager_.SetPanelExpanded(false, /*notify=*/false);
+    window_manager_.SetSidebarExpanded(false, /*notify=*/false);
   }
 
   if (dashboard_panel_) {
@@ -1914,13 +2010,105 @@ bool EditorManager::EditorInitRequiresGameData(EditorType type) const {
   return type == EditorType::kMessage;
 }
 
+std::vector<EditorType> EditorManager::CollectEditorsToPreload(
+    EditorSet* editor_set) const {
+  std::unordered_set<EditorType> types;
+
+  auto add_type = [&types](EditorType type) {
+    switch (type) {
+      case EditorType::kUnknown:
+      case EditorType::kEmulator:
+      case EditorType::kSettings:
+      case EditorType::kAgent:
+        return;
+      default:
+        types.insert(type);
+        return;
+    }
+  };
+
+  auto add_category = [&](const std::string& category) {
+    if (category.empty() ||
+        category == WorkspaceWindowManager::kDashboardCategory) {
+      return;
+    }
+    add_type(EditorRegistry::GetEditorTypeFromCategory(category));
+  };
+
+  const size_t session_id = GetCurrentSessionId();
+  bool used_startup_hints = false;
+
+  if (!startup_editor_hint_.empty()) {
+    if (auto startup_type = ParseEditorTypeFromString(startup_editor_hint_)) {
+      add_type(*startup_type);
+      used_startup_hints = true;
+    }
+  }
+
+  for (const auto& panel_name : startup_panel_hints_) {
+    if (panel_name.empty()) {
+      continue;
+    }
+
+    if (const auto* descriptor =
+            window_manager_.GetWindowDescriptor(session_id, panel_name)) {
+      add_category(descriptor->category);
+      used_startup_hints = true;
+      continue;
+    }
+
+    const std::string lower_name = absl::AsciiStrToLower(panel_name);
+    for (const auto& [prefixed_id, descriptor] :
+         window_manager_.GetAllWindowDescriptors()) {
+      const std::string base_id = StripSessionPrefix(prefixed_id);
+      const std::string card_lower = absl::AsciiStrToLower(base_id);
+      const std::string display_lower =
+          absl::AsciiStrToLower(descriptor.display_name);
+      if (card_lower == lower_name || display_lower == lower_name) {
+        add_category(descriptor.category);
+        used_startup_hints = true;
+        break;
+      }
+    }
+  }
+
+  if (used_startup_hints) {
+    return std::vector<EditorType>(types.begin(), types.end());
+  }
+
+  if (editor_set) {
+    for (auto* editor : editor_set->active_editors_) {
+      if (editor != nullptr && *editor->active()) {
+        add_type(editor->type());
+      }
+    }
+  }
+
+  if (current_editor_ != nullptr) {
+    add_type(current_editor_->type());
+  }
+
+  add_category(window_manager_.GetActiveCategory());
+
+  for (const auto& window_id :
+       window_manager_.GetVisibleWindowIds(session_id)) {
+    if (const auto* descriptor =
+            window_manager_.GetWindowDescriptor(session_id, window_id)) {
+      add_category(descriptor->category);
+    }
+  }
+
+  return std::vector<EditorType>(types.begin(), types.end());
+}
+
 Editor* EditorManager::GetEditorByType(EditorType type,
                                        EditorSet* editor_set) const {
   return editor_set ? editor_set->GetEditor(type) : nullptr;
 }
 
 Editor* EditorManager::ResolveEditorForCategory(const std::string& category) {
-  if (category.empty() || category == PanelManager::kDashboardCategory) {
+  if (category.empty() ||
+      category == WorkspaceWindowManager::kDashboardCategory) {
     return nullptr;
   }
 
@@ -1950,7 +2138,7 @@ void EditorManager::SyncEditorContextForCategory(const std::string& category) {
   if (Editor* resolved = ResolveEditorForCategory(category)) {
     SetCurrentEditor(resolved);
   } else if (!category.empty() &&
-             category != PanelManager::kDashboardCategory) {
+             category != WorkspaceWindowManager::kDashboardCategory) {
     LOG_DEBUG("EditorManager", "No editor context available for category '%s'",
               category.c_str());
   }
@@ -2006,10 +2194,6 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
 }
 
 absl::Status EditorManager::EnsureEditorAssetsLoaded(EditorType type) {
-  if (asset_load_mode_ != AssetLoadMode::kLazy) {
-    return absl::OkStatus();
-  }
-
   if (type == EditorType::kUnknown) {
     return absl::OkStatus();
   }
@@ -2061,7 +2245,7 @@ absl::Status EditorManager::EnsureEditorAssetsLoaded(EditorType type) {
  * 4. Draw toasts (ToastManager) - user notifications
  * 5. Iterate all sessions and update active editors
  * 6. Draw session UI (SessionCoordinator) - session switcher, manager
- * 7. Draw sidebar (PanelManager) - card-based editor UI
+ * 7. Draw sidebar (WorkspaceWindowManager) - card-based editor UI
  *
  * Note: EditorManager retains the main loop to coordinate multi-session
  * updates, but delegates specific drawing/state operations to specialized
@@ -2079,8 +2263,8 @@ void EditorManager::HandleHostVisibilityChanged(bool visible) {
   // Space/focus transitions can leave mid-animation surfaces ghosted.
   // Reset transient animation state to a stable endpoint.
   gui::GetAnimator().ClearAllAnimations();
-  if (right_panel_manager_) {
-    right_panel_manager_->OnHostVisibilityChanged(visible);
+  if (right_drawer_manager_) {
+    right_drawer_manager_->OnHostVisibilityChanged(visible);
   }
 }
 
@@ -2094,6 +2278,10 @@ void EditorManager::ProcessInput() {
 
 void EditorManager::UpdateEditorState() {
   status_ = absl::OkStatus();
+  PollProjectWorkflowTasks();
+  if (ui_coordinator_) {
+    ui_coordinator_->RefreshWorkflowActions();
+  }
   // Check for layout rebuild requests and execute if needed (delegated to LayoutCoordinator)
   bool is_emulator_visible =
       ui_coordinator_ && ui_coordinator_->IsEmulatorVisible();
@@ -2165,6 +2353,69 @@ void EditorManager::UpdateEditorState() {
   }
 }
 
+void EditorManager::PollProjectWorkflowTasks() {
+  if (!active_project_build_) {
+    return;
+  }
+
+  const auto snapshot = active_project_build_->GetSnapshot();
+  UpdateBuildWorkflowStatus(
+      &status_bar_, project_management_panel_.get(),
+      MakeBuildStatus(
+          snapshot.running
+              ? "Build running"
+              : (snapshot.status.ok() ? "Build succeeded" : "Build failed"),
+          snapshot.output_tail.empty()
+              ? (snapshot.running
+                     ? std::string(
+                           "Running the configured project build command")
+                     : std::string(snapshot.status.message()))
+              : snapshot.output_tail,
+          snapshot.running
+              ? ProjectWorkflowState::kRunning
+              : (snapshot.status.ok() ? ProjectWorkflowState::kSuccess
+                                      : ProjectWorkflowState::kFailure),
+          snapshot.output_tail, snapshot.running));
+  if (project_management_panel_) {
+    project_management_panel_->SetBuildLogOutput(snapshot.output);
+  }
+  ContentRegistry::Context::SetBuildWorkflowLog(snapshot.output);
+
+  if (snapshot.running || active_project_build_reported_) {
+    return;
+  }
+
+  active_project_build_reported_ = true;
+  if (!snapshot.status.ok()) {
+    AppendWorkflowHistoryEntry(
+        "Build",
+        MakeBuildStatus("Build failed", std::string(snapshot.status.message()),
+                        ProjectWorkflowState::kFailure, snapshot.output_tail,
+                        false),
+        snapshot.output);
+    toast_manager_.Show(
+        absl::StrFormat("Build failed: %s", snapshot.status.message()),
+        snapshot.status.code() == absl::StatusCode::kCancelled
+            ? ToastType::kInfo
+            : ToastType::kError);
+    return;
+  }
+
+  AppendWorkflowHistoryEntry(
+      "Build",
+      MakeBuildStatus(
+          "Build succeeded",
+          snapshot.output_tail.empty() ? std::string("Project build completed")
+                                       : snapshot.output_tail,
+          ProjectWorkflowState::kSuccess, snapshot.output_tail, false),
+      snapshot.output);
+  toast_manager_.Show(snapshot.output_tail.empty()
+                          ? "Project build completed"
+                          : absl::StrFormat("Project build completed: %s",
+                                            snapshot.output_tail),
+                      ToastType::kSuccess);
+}
+
 void EditorManager::DrawInterface() {
 
   // Draw editor selection dialog (managed by UICoordinator)
@@ -2181,14 +2432,14 @@ void EditorManager::DrawInterface() {
     rom_load_options_dialog_.Draw(&show_rom_load_options_);
   }
 
-  // Draw panel browser (managed by UICoordinator)
-  if (ui_coordinator_ && ui_coordinator_->IsPanelBrowserVisible()) {
+  // Draw window browser (managed by UICoordinator)
+  if (ui_coordinator_ && ui_coordinator_->IsWindowBrowserVisible()) {
     bool show = true;
     if (activity_bar_) {
-      activity_bar_->DrawPanelBrowser(GetCurrentSessionId(), &show);
+      activity_bar_->DrawWindowBrowser(GetCurrentSessionId(), &show);
     }
     if (!show) {
-      ui_coordinator_->SetPanelBrowserVisible(false);
+      ui_coordinator_->SetWindowBrowserVisible(false);
     }
   }
 
@@ -2204,8 +2455,8 @@ void EditorManager::DrawInterface() {
 
   // Handle Welcome screen early-exit for rendering
   if (ui_coordinator_ && ui_coordinator_->ShouldShowWelcome()) {
-    if (right_panel_manager_) {
-      right_panel_manager_->ClosePanel();
+    if (right_drawer_manager_) {
+      right_drawer_manager_->CloseDrawer();
     }
     return;
   }
@@ -2245,17 +2496,17 @@ void EditorManager::DrawInterface() {
       }
     }
 
-    std::string sidebar_category = panel_manager_.GetActiveCategory();
+    std::string sidebar_category = window_manager_.GetActiveCategory();
     if (sidebar_category.empty() && !all_categories.empty()) {
       sidebar_category = GetPreferredStartupCategory("", all_categories);
       if (!sidebar_category.empty()) {
-        panel_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
+        window_manager_.SetActiveCategory(sidebar_category, /*notify=*/false);
         SyncEditorContextForCategory(sidebar_category);
         auto it = user_settings_.prefs().panel_visibility_state.find(
             sidebar_category);
         if (it != user_settings_.prefs().panel_visibility_state.end()) {
-          panel_manager_.RestoreVisibilityState(
-              panel_manager_.GetActiveSessionId(), it->second);
+          window_manager_.RestoreVisibilityState(
+              window_manager_.GetActiveSessionId(), it->second);
         }
       }
     }
@@ -2273,9 +2524,9 @@ void EditorManager::DrawInterface() {
   }
 
   // Draw right panel
-  if (right_panel_manager_) {
-    right_panel_manager_->SetRom(GetCurrentRom());
-    right_panel_manager_->Draw();
+  if (right_drawer_manager_) {
+    right_drawer_manager_->SetRom(GetCurrentRom());
+    right_drawer_manager_->Draw();
   }
 
   // Update and draw status bar
@@ -2301,19 +2552,22 @@ void EditorManager::DrawInterface() {
   if (!has_agent_info) {
     status_bar_.ClearAgentInfo();
   }
+  if (!current_project_.project_opened()) {
+    status_bar_.ClearProjectWorkflowStatus();
+  }
   status_bar_.Draw();
 
   // Check if ROM is loaded before drawing panels
   auto* current_editor_set = GetCurrentEditorSet();
   if (!current_editor_set || !GetCurrentRom()) {
-    if (panel_manager_.GetActiveCategory() == "Agent") {
-      panel_manager_.DrawAllVisiblePanels();
+    if (window_manager_.GetActiveCategory() == "Agent") {
+      window_manager_.DrawVisibleWindows();
     }
     return;
   }
 
-  // Central panel drawing
-  panel_manager_.DrawAllVisiblePanels();
+  // Central workspace window drawing
+  window_manager_.DrawVisibleWindows();
 
   if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().Render();
@@ -2331,7 +2585,7 @@ void EditorManager::DrawMainMenuBar() {
   if (ImGui::BeginMenuBar()) {
     // Consistent button styling for sidebar toggle
     {
-      const bool sidebar_visible = panel_manager_.IsSidebarVisible();
+      const bool sidebar_visible = window_manager_.IsSidebarVisible();
       gui::StyleColorGuard sidebar_btn_guard(
           {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
            {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
@@ -2341,12 +2595,12 @@ void EditorManager::DrawMainMenuBar() {
 
       const char* icon = sidebar_visible ? ICON_MD_MENU_OPEN : ICON_MD_MENU;
       if (ImGui::SmallButton(icon)) {
-        panel_manager_.ToggleSidebarVisibility();
+        window_manager_.ToggleSidebarVisibility();
       }
     }
 
     if (ImGui::IsItemHovered()) {
-      const char* tooltip = panel_manager_.IsSidebarVisible()
+      const char* tooltip = window_manager_.IsSidebarVisible()
                                 ? "Hide Activity Bar (Ctrl+B)"
                                 : "Show Activity Bar (Ctrl+B)";
       ImGui::SetTooltip("%s", tooltip);
@@ -2388,7 +2642,7 @@ void EditorManager::DrawSecondaryWindows() {
   // Legacy window-based editors
   if (auto* editor_set = GetCurrentEditorSet()) {
     bool* hex_visibility =
-        panel_manager_.GetVisibilityFlag("memory.hex_editor");
+        window_manager_.GetWindowVisibilityFlag("memory.hex_editor");
     if (hex_visibility) {
       if (auto* editor = editor_set->GetEditor(EditorType::kHex)) {
         // Keep the legacy panel visibility flag in sync with the window close
@@ -2469,6 +2723,13 @@ void EditorManager::RunEmulator() {
       }
     }
   }
+}
+
+void EditorManager::RefreshHackWorkflowBackend() {
+  hack_workflow_backend_ =
+      workflow::CreateHackWorkflowBackendForProject(&current_project_);
+  ContentRegistry::Context::SetHackWorkflowBackend(
+      hack_workflow_backend_.get());
 }
 
 /**
@@ -2633,7 +2894,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
     emulator_.set_renderer(renderer_);
   }
 
-  // Initialize all editors - this registers their cards with PanelManager
+  // Initialize all editors - this registers their cards with WorkspaceWindowManager
   // and sets up any editor-specific resources. Must be called before Load().
   struct InitStep {
     EditorType type;
@@ -2679,6 +2940,10 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
     }
   }
 
+  const auto preload_editor_list = CollectEditorsToPreload(current_editor_set);
+  const std::unordered_set<EditorType> preload_types(
+      preload_editor_list.begin(), preload_editor_list.end());
+
   struct LoadStep {
     EditorType type;
     const char* progress_message;
@@ -2694,6 +2959,9 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
       {EditorType::kPalette, "Loading palettes..."},
   };
   for (const auto& step : load_steps) {
+    if (!preload_types.contains(step.type)) {
+      continue;
+    }
 #ifdef __EMSCRIPTEN__
     update_progress(step.progress_message);
 #endif
@@ -2707,10 +2975,10 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   update_progress("Finishing up...");
 #endif
 
-  // Set up RightPanelManager with session's settings editor
-  if (right_panel_manager_) {
+  // Set up RightDrawerManager with session's settings editor
+  if (right_drawer_manager_) {
     auto* settings = current_editor_set->GetSettingsPanel();
-    right_panel_manager_->SetSettingsPanel(settings);
+    right_drawer_manager_->SetSettingsPanel(settings);
   }
 
   // Apply user preferences to status bar
@@ -2776,9 +3044,9 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
   }
 
   // Wire settings panel to right panel manager for the current session.
-  if (right_panel_manager_) {
+  if (right_drawer_manager_) {
     auto* settings = current_editor_set->GetSettingsPanel();
-    right_panel_manager_->SetSettingsPanel(settings);
+    right_drawer_manager_->SetSettingsPanel(settings);
   }
 
   // Apply user preferences to status bar
@@ -3046,6 +3314,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     // Open the project file
     RETURN_IF_ERROR(current_project_.Open(filename));
     SyncLayoutScopeFromCurrentProject();
+    RefreshHackWorkflowBackend();
 
     // Initialize VersionManager for the project
     version_manager_ =
@@ -3062,6 +3331,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
 #endif
     Rom temp_rom;
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, filename));
+    RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&temp_rom));
 
     auto session_or = session_coordinator_->CreateSessionFromRom(
         std::move(temp_rom), filename);
@@ -3102,7 +3372,7 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
       editor_set->OpenAssemblyFolder(absolute_code_folder);
 #endif
       // Also set the sidebar file browser path (refresh happens during UI draw).
-      panel_manager_.SetFileBrowserPath("Assembly", absolute_code_folder);
+      window_manager_.SetFileBrowserPath("Assembly", absolute_code_folder);
     }
 
 #ifdef __EMSCRIPTEN__
@@ -3123,8 +3393,9 @@ absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
     ui_coordinator_->SetEditorSelectionVisible(true);
 
     // Set Dashboard category to suppress panel drawing until user selects an editor
-    panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory,
-                                     /*notify=*/false);
+    window_manager_.SetActiveCategory(
+        WorkspaceWindowManager::kDashboardCategory,
+        /*notify=*/false);
   }
   return absl::OkStatus();
 }
@@ -3315,6 +3586,8 @@ absl::Status EditorManager::LoadProjectWithRom() {
 #endif
   }
 
+  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&temp_rom));
+
   auto session_or = session_coordinator_->CreateSessionFromRom(
       std::move(temp_rom), current_project_.rom_filename);
   if (!session_or.ok()) {
@@ -3424,11 +3697,11 @@ absl::Status EditorManager::LoadProjectWithRom() {
     editor_set->OpenAssemblyFolder(absolute_code_folder);
 #endif
     // Also set the sidebar file browser path (refresh happens during UI draw).
-    panel_manager_.SetFileBrowserPath("Assembly", absolute_code_folder);
+    window_manager_.SetFileBrowserPath("Assembly", absolute_code_folder);
   }
 
   // Initialize labels before loading editor assets so room lists / command
-  // palette entries resolve Oracle project labels on first render.
+  // palette entries resolve project registry labels on first render.
   RefreshResourceLabelProvider();
 
   RETURN_IF_ERROR(LoadAssetsForMode());
@@ -3440,8 +3713,8 @@ absl::Status EditorManager::LoadProjectWithRom() {
   }
 
   // Set Dashboard category to suppress panel drawing until user selects an editor
-  panel_manager_.SetActiveCategory(PanelManager::kDashboardCategory,
-                                   /*notify=*/false);
+  window_manager_.SetActiveCategory(WorkspaceWindowManager::kDashboardCategory,
+                                    /*notify=*/false);
 
   // Apply workspace settings
   user_settings_.prefs().font_global_scale =
@@ -3454,7 +3727,22 @@ absl::Status EditorManager::LoadProjectWithRom() {
       current_project_.workspace_settings.backup_on_save;
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
 
-  // Publish project context for Oracle panels and other consumers
+  RefreshHackWorkflowBackend();
+
+  status_bar_.ClearProjectWorkflowStatus();
+  ContentRegistry::Context::SetBuildWorkflowStatus(ProjectWorkflowStatus{});
+  ContentRegistry::Context::SetRunWorkflowStatus(ProjectWorkflowStatus{});
+  ContentRegistry::Context::ClearWorkflowHistory();
+  if (project_management_panel_) {
+    project_management_panel_->SetBuildStatus(ProjectWorkflowStatus{});
+    project_management_panel_->SetRunStatus(ProjectWorkflowStatus{});
+    project_management_panel_->SetBuildLogOutput("");
+  }
+  ContentRegistry::Context::SetBuildWorkflowLog("");
+  active_project_build_.reset();
+  active_project_build_reported_ = false;
+
+  // Publish project context for hack workflow panels and other consumers
   ContentRegistry::Context::SetCurrentProject(&current_project_);
 
   // Add to recent files
@@ -3577,12 +3865,288 @@ absl::Status EditorManager::SaveProjectAs() {
   return save_status;
 }
 
+absl::StatusOr<std::string> EditorManager::ResolveProjectBuildCommand() const {
+  if (!current_project_.project_opened()) {
+    return absl::FailedPreconditionError("No project open");
+  }
+
+  std::string command = current_project_.build_script;
+  if (command.empty() && current_project_.hack_manifest.loaded()) {
+    command = current_project_.hack_manifest.build_pipeline().build_script;
+  }
+  if (command.empty()) {
+    return absl::NotFoundError("Project does not define a build command");
+  }
+  return command;
+}
+
+absl::StatusOr<std::string> EditorManager::ResolveProjectRunTarget() const {
+  if (!current_project_.project_opened()) {
+    return absl::FailedPreconditionError("No project open");
+  }
+
+  std::string target;
+  if (current_project_.hack_manifest.loaded()) {
+    target = current_project_.hack_manifest.build_pipeline().patched_rom;
+  }
+  if (target.empty()) {
+    target = current_project_.build_target;
+  }
+  if (target.empty()) {
+    return absl::NotFoundError("Project does not define a run target ROM");
+  }
+  return current_project_.GetAbsolutePath(target);
+}
+
+ProjectWorkflowStatus EditorManager::MakeBuildStatus(
+    const std::string& summary, const std::string& detail,
+    ProjectWorkflowState state, const std::string& output_tail,
+    bool can_cancel) const {
+  return {.visible = true,
+          .can_cancel = can_cancel,
+          .label = "Build",
+          .summary = summary,
+          .detail = detail,
+          .output_tail = output_tail,
+          .state = state};
+}
+
+ProjectWorkflowStatus EditorManager::MakeRunStatus(
+    const std::string& summary, const std::string& detail,
+    ProjectWorkflowState state) const {
+  return {.visible = true,
+          .label = "Run",
+          .summary = summary,
+          .detail = detail,
+          .state = state};
+}
+
+absl::StatusOr<std::string> EditorManager::RunProjectBuildCommand() {
+  auto command_or = ResolveProjectBuildCommand();
+  if (!command_or.ok()) {
+    return command_or.status();
+  }
+
+  const std::string command = *command_or;
+  const std::filesystem::path project_root =
+      std::filesystem::path(current_project_.filepath).parent_path();
+  BackgroundCommandTask task;
+  auto start_status = task.Start(command, project_root.string());
+  if (!start_status.ok()) {
+    return start_status;
+  }
+  auto wait_status = task.Wait();
+  const auto snapshot = task.GetSnapshot();
+  if (!wait_status.ok()) {
+    return wait_status;
+  }
+  const std::string summary = LastNonEmptyLine(snapshot.output);
+  return summary.empty() ? command : summary;
+}
+
+absl::Status EditorManager::BuildCurrentProject() {
+  const std::string running_detail =
+      "Running the configured project build command";
+  UpdateBuildWorkflowStatus(
+      &status_bar_, project_management_panel_.get(),
+      MakeBuildStatus("Build running", running_detail,
+                      ProjectWorkflowState::kRunning, "", false));
+
+  auto result_or = RunProjectBuildCommand();
+  if (!result_or.ok()) {
+    UpdateBuildWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeBuildStatus("Build failed",
+                        std::string(result_or.status().message()),
+                        ProjectWorkflowState::kFailure));
+    toast_manager_.Show(
+        absl::StrFormat("Build unavailable: %s", result_or.status().message()),
+        ToastType::kWarning);
+    return result_or.status();
+  }
+
+  const std::string summary = *result_or;
+  UpdateBuildWorkflowStatus(&status_bar_, project_management_panel_.get(),
+                            MakeBuildStatus("Build succeeded", summary,
+                                            ProjectWorkflowState::kSuccess));
+  toast_manager_.Show(
+      summary.empty() ? "Project build completed"
+                      : absl::StrFormat("Project build completed: %s", summary),
+      ToastType::kSuccess);
+  LOG_INFO("EditorManager", "Project build completed: %s", summary.c_str());
+  return absl::OkStatus();
+}
+
+void EditorManager::QueueBuildCurrentProject() {
+  if (active_project_build_) {
+    const auto snapshot = active_project_build_->GetSnapshot();
+    if (snapshot.running) {
+      toast_manager_.Show("A project build is already running",
+                          ToastType::kInfo);
+      return;
+    }
+  }
+
+  auto command_or = ResolveProjectBuildCommand();
+  if (!command_or.ok()) {
+    UpdateBuildWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeBuildStatus("Build unavailable",
+                        std::string(command_or.status().message()),
+                        ProjectWorkflowState::kFailure));
+    toast_manager_.Show(
+        absl::StrFormat("Build unavailable: %s", command_or.status().message()),
+        ToastType::kWarning);
+    return;
+  }
+
+  const std::filesystem::path project_root =
+      std::filesystem::path(current_project_.filepath).parent_path();
+  active_project_build_ = std::make_unique<BackgroundCommandTask>();
+  auto start_status =
+      active_project_build_->Start(*command_or, project_root.string());
+  if (!start_status.ok()) {
+    UpdateBuildWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeBuildStatus("Build unavailable",
+                        std::string(start_status.message()),
+                        ProjectWorkflowState::kFailure));
+    toast_manager_.Show(
+        absl::StrFormat("Build unavailable: %s", start_status.message()),
+        ToastType::kWarning);
+    active_project_build_.reset();
+    return;
+  }
+
+  active_project_build_reported_ = false;
+  UpdateBuildWorkflowStatus(
+      &status_bar_, project_management_panel_.get(),
+      MakeBuildStatus("Build running",
+                      "Running the configured project build command",
+                      ProjectWorkflowState::kRunning, "", true));
+  if (project_management_panel_) {
+    project_management_panel_->SetBuildLogOutput("");
+  }
+  ContentRegistry::Context::SetBuildWorkflowLog("");
+}
+
+void EditorManager::CancelQueuedProjectBuild() {
+  if (!active_project_build_) {
+    return;
+  }
+
+  const auto snapshot = active_project_build_->GetSnapshot();
+  if (!snapshot.running) {
+    return;
+  }
+
+  active_project_build_->Cancel();
+  UpdateBuildWorkflowStatus(
+      &status_bar_, project_management_panel_.get(),
+      MakeBuildStatus("Cancelling build", "Stopping the active project build",
+                      ProjectWorkflowState::kRunning, snapshot.output_tail,
+                      false));
+}
+
+absl::Status EditorManager::RunCurrentProject() {
+  UpdateRunWorkflowStatus(
+      &status_bar_, project_management_panel_.get(),
+      MakeRunStatus("Run queued",
+                    "Preparing the project output for emulator reload",
+                    ProjectWorkflowState::kRunning));
+
+  auto run_target_or = ResolveProjectRunTarget();
+  if (!run_target_or.ok()) {
+    UpdateRunWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeRunStatus("Run unavailable",
+                      std::string(run_target_or.status().message()),
+                      ProjectWorkflowState::kFailure));
+    toast_manager_.Show(absl::StrFormat("Run unavailable: %s",
+                                        run_target_or.status().message()),
+                        ToastType::kWarning);
+    return run_target_or.status();
+  }
+  const std::string run_target = *run_target_or;
+  if (!std::filesystem::exists(run_target)) {
+    UpdateRunWorkflowStatus(&status_bar_, project_management_panel_.get(),
+                            MakeRunStatus("Run target missing", run_target,
+                                          ProjectWorkflowState::kFailure));
+    toast_manager_.Show("Run target ROM not found. Build the project first.",
+                        ToastType::kWarning);
+    return absl::NotFoundError("Run target ROM not found");
+  }
+
+  if (auto* emulator_backend = Application::Instance().GetEmulatorBackend()) {
+    auto load_status = emulator_backend->LoadRom(run_target);
+    if (load_status.ok()) {
+      AppendWorkflowHistoryEntry(
+          "Run",
+          MakeRunStatus("Reloaded in backend", run_target,
+                        ProjectWorkflowState::kSuccess),
+          "");
+      UpdateRunWorkflowStatus(&status_bar_, project_management_panel_.get(),
+                              MakeRunStatus("Reloaded in backend", run_target,
+                                            ProjectWorkflowState::kSuccess));
+      if (ui_coordinator_) {
+        ui_coordinator_->SetEmulatorVisible(true);
+      }
+      toast_manager_.Show(
+          absl::StrFormat("Reloaded project output in emulator backend: %s",
+                          run_target),
+          ToastType::kInfo);
+      return absl::OkStatus();
+    }
+  }
+
+  Rom temp_rom;
+  auto load_rom_status = rom_file_manager_.LoadRom(&temp_rom, run_target);
+  if (!load_rom_status.ok()) {
+    UpdateRunWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeRunStatus("Run load failed", std::string(load_rom_status.message()),
+                      ProjectWorkflowState::kFailure));
+    toast_manager_.Show(absl::StrFormat("Failed to load run target ROM: %s",
+                                        load_rom_status.message()),
+                        ToastType::kError);
+    return load_rom_status;
+  }
+
+  auto reload_status = emulator_.ReloadRuntimeRom(temp_rom.vector());
+  if (!reload_status.ok()) {
+    UpdateRunWorkflowStatus(
+        &status_bar_, project_management_panel_.get(),
+        MakeRunStatus("Reload failed", std::string(reload_status.message()),
+                      ProjectWorkflowState::kFailure));
+    toast_manager_.Show(absl::StrFormat("Failed to reload emulator runtime: %s",
+                                        reload_status.message()),
+                        ToastType::kError);
+    return reload_status;
+  }
+
+  if (ui_coordinator_) {
+    ui_coordinator_->SetEmulatorVisible(true);
+  }
+  AppendWorkflowHistoryEntry("Run",
+                             MakeRunStatus("Reloaded in emulator", run_target,
+                                           ProjectWorkflowState::kSuccess),
+                             "");
+  UpdateRunWorkflowStatus(&status_bar_, project_management_panel_.get(),
+                          MakeRunStatus("Reloaded in emulator", run_target,
+                                        ProjectWorkflowState::kSuccess));
+  toast_manager_.Show(
+      absl::StrFormat("Reloaded project output in emulator: %s", run_target),
+      ToastType::kInfo);
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::ImportProject(const std::string& project_path) {
   // Delegate to ProjectManager for import logic
   RETURN_IF_ERROR(project_manager_.ImportProject(project_path));
   // Sync local project reference
   current_project_ = project_manager_.GetCurrentProject();
   SyncLayoutScopeFromCurrentProject();
+  RefreshHackWorkflowBackend();
   return absl::OkStatus();
 }
 
@@ -3831,14 +4395,15 @@ bool EditorManager::HasDuplicateSession(const std::string& filepath) {
  * - emulator: For accessing emulator functionality (music editor playback)
  */
 void EditorManager::ShowProjectManagement() {
-  if (right_panel_manager_) {
+  if (right_drawer_manager_) {
     // Update project panel context before showing
     if (project_management_panel_) {
       project_management_panel_->SetProject(&current_project_);
       project_management_panel_->SetVersionManager(version_manager_.get());
       project_management_panel_->SetRom(GetCurrentRom());
     }
-    right_panel_manager_->TogglePanel(RightPanelManager::PanelType::kProject);
+    right_drawer_manager_->ToggleDrawer(
+        RightDrawerManager::DrawerType::kProject);
   }
 }
 
@@ -3868,7 +4433,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   EditorDependencies deps;
   deps.rom = rom;
   deps.session_id = session_id;
-  deps.panel_manager = &panel_manager_;
+  deps.window_manager = &window_manager_;
   deps.toast_manager = &toast_manager_;
   deps.popup_manager = popup_manager_.get();
   deps.shortcut_manager = &shortcut_manager_;
