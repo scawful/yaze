@@ -66,6 +66,19 @@ const char* GetBlocksetGroupName(uint8_t blockset) {
   return blockset < kCount ? kGroupNames[blockset] : "Custom";
 }
 
+const char* GetObjectStreamName(int layer_value) {
+  switch (layer_value) {
+    case 0:
+      return "Primary (main pass)";
+    case 1:
+      return "BG2 overlay";
+    case 2:
+      return "BG1 overlay";
+    default:
+      return "Unknown";
+  }
+}
+
 // Pot item names for the inspector
 const char* GetPotItemName(uint8_t item) {
   static const char* kNames[] = {
@@ -1000,10 +1013,11 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
             }
           });
 
-          // Layer
-          gui::LayoutHelpers::PropertyRow("Layer", [&]() {
+          // Stream / layer routing
+          gui::LayoutHelpers::PropertyRow("Stream", [&]() {
             int layer = static_cast<int>(obj.GetLayerValue());
-            const char* layer_names[] = {"BG1", "BG2", "BG3"};
+            const char* layer_names[] = {"Primary (main pass)", "BG2 overlay",
+                                         "BG1 overlay"};
             ImGui::SetNextItemWidth(-1);
             if (ImGui::Combo("##SelObjLayer", &layer, layer_names,
                              IM_ARRAYSIZE(layer_names))) {
@@ -1011,6 +1025,9 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
               interaction.SetObjectLayer(
                   idx, static_cast<zelda3::RoomObject::LayerType>(layer));
             }
+          });
+          gui::LayoutHelpers::PropertyRow("Route", [&]() {
+            ImGui::TextDisabled("%s", GetObjectStreamName(obj.GetLayerValue()));
           });
 
           // Pixel coords (read-only info)

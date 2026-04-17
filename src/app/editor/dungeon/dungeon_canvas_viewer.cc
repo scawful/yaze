@@ -53,6 +53,19 @@ enum class TrackDir : uint8_t { North, East, South, West };
 
 using TrackDirectionMasks = yaze::editor::TrackDirectionMasks;
 
+const char* GetObjectStreamLabel(int layer_value) {
+  switch (layer_value) {
+    case 0:
+      return "Primary";
+    case 1:
+      return "BG2 overlay";
+    case 2:
+      return "BG1 overlay";
+    default:
+      return "Unknown";
+  }
+}
+
 }  // namespace
 
 // Use shared GetObjectName() from zelda3/dungeon/room_object.h
@@ -370,19 +383,19 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     layer_menu.enabled_condition = enabled_if(has_selection);
 
     gui::CanvasMenuItem layer1_item(
-        "Layer 1 (BG1)", ICON_MD_LOOKS_ONE,
+        "Primary (main pass)", ICON_MD_LOOKS_ONE,
         [&interaction]() { interaction.SendSelectedToLayer(0); }, "1");
     layer1_item.enabled_condition = enabled_if(has_selection);
     layer_menu.subitems.push_back(layer1_item);
 
     gui::CanvasMenuItem layer2_item(
-        "Layer 2 (BG2)", ICON_MD_LOOKS_TWO,
+        "BG2 overlay", ICON_MD_LOOKS_TWO,
         [&interaction]() { interaction.SendSelectedToLayer(1); }, "2");
     layer2_item.enabled_condition = enabled_if(has_selection);
     layer_menu.subitems.push_back(layer2_item);
 
     gui::CanvasMenuItem layer3_item(
-        "Layer 3 (BG3)", ICON_MD_LOOKS_3,
+        "BG1 overlay", ICON_MD_LOOKS_3,
         [&interaction]() { interaction.SendSelectedToLayer(2); }, "3");
     layer3_item.enabled_condition = enabled_if(has_selection);
     layer_menu.subitems.push_back(layer3_item);
@@ -749,17 +762,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     object_bounds_menu.subitems.push_back(sep);
 
     object_bounds_menu.subitems.push_back(
-        gui::CanvasMenuItem("Layer 0 (BG1)", [this]() {
+        gui::CanvasMenuItem("Primary (main pass)", [this]() {
           object_outline_toggles_.show_layer0_objects =
               !object_outline_toggles_.show_layer0_objects;
         }));
     object_bounds_menu.subitems.push_back(
-        gui::CanvasMenuItem("Layer 1 (BG2)", [this]() {
+        gui::CanvasMenuItem("BG2 overlay", [this]() {
           object_outline_toggles_.show_layer1_objects =
               !object_outline_toggles_.show_layer1_objects;
         }));
     object_bounds_menu.subitems.push_back(
-        gui::CanvasMenuItem("Layer 2 (BG3)", [this]() {
+        gui::CanvasMenuItem("BG1 overlay", [this]() {
           object_outline_toggles_.show_layer2_objects =
               !object_outline_toggles_.show_layer2_objects;
         }));
@@ -934,11 +947,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         ImGui::Checkbox("Type 2", &object_outline_toggles_.show_type2_objects);
         ImGui::Checkbox("Type 3", &object_outline_toggles_.show_type3_objects);
         ImGui::Text("By Layer:");
-        ImGui::Checkbox("Layer 0",
+        ImGui::Checkbox("Primary (main pass)",
                         &object_outline_toggles_.show_layer0_objects);
-        ImGui::Checkbox("Layer 1",
+        ImGui::Checkbox("BG2 overlay",
                         &object_outline_toggles_.show_layer1_objects);
-        ImGui::Checkbox("Layer 2",
+        ImGui::Checkbox("BG1 overlay",
                         &object_outline_toggles_.show_layer2_objects);
       }
     }
@@ -1740,8 +1753,7 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
     // Draw outline rectangle using runtime-based helper
     gui::DrawRect(rt, canvas_x, canvas_y, width, height, outline_color);
 
-    // Draw object ID label with hex ID and abbreviated name
-    // Format: "0xNN Name" where name is truncated if needed
+    // Draw object ID label with hex ID, abbreviated name, and draw stream.
     std::string name = GetObjectName(obj.id_);
     // Truncate name to fit (approx 12 chars for small objects)
     if (name.length() > 12) {
@@ -1749,11 +1761,13 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
     }
     std::string label;
     if (obj.id_ >= 0x100) {
-      label = absl::StrFormat("0x%03X\n%s\n[%dx%d]", obj.id_, name.c_str(),
-                              width, height);
+      label = absl::StrFormat("0x%03X\n%s\n%s  [%dx%d]", obj.id_, name.c_str(),
+                              GetObjectStreamLabel(obj.GetLayerValue()), width,
+                              height);
     } else {
-      label = absl::StrFormat("0x%02X\n%s\n[%dx%d]", obj.id_, name.c_str(),
-                              width, height);
+      label = absl::StrFormat("0x%02X\n%s\n%s  [%dx%d]", obj.id_, name.c_str(),
+                              GetObjectStreamLabel(obj.GetLayerValue()), width,
+                              height);
     }
     gui::DrawText(rt, label, canvas_x + 1, canvas_y + 1);
   }
