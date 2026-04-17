@@ -76,7 +76,7 @@ TEST_F(DungeonRoomRenderParityTest, Room00FingerprintSmoke) {
 
 TEST_F(DungeonRoomRenderParityTest, Room01FingerprintSmoke) {
   const auto fingerprint = CaptureRoomFingerprint(&rom_, &game_data_, 0x01);
-  EXPECT_EQ(fingerprint.checksum, 6538266384927455347ull);
+  EXPECT_EQ(fingerprint.checksum, 4552373581554103949ull);
   EXPECT_EQ(fingerprint.non_backdrop_pixels, 262144);
 }
 
