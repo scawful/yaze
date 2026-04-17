@@ -11,9 +11,9 @@
 namespace yaze {
 namespace gfx {
 
-Tilemap CreateTilemap(IRenderer* renderer, std::vector<uint8_t>& data,
+Tilemap CreateTilemap(IRenderer* renderer, const std::vector<uint8_t>& data,
                       int width, int height, int tile_size, int num_tiles,
-                      SnesPalette& palette) {
+                      const SnesPalette& palette) {
   Tilemap tilemap;
   tilemap.tile_size.x = tile_size;
   tilemap.tile_size.y = tile_size;
@@ -66,9 +66,8 @@ void RenderTile(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
       return;
     }
     // Cache uses copy semantics - safe to use
-    gfx::Bitmap new_tile = gfx::Bitmap(
-        tilemap.tile_size.x, tilemap.tile_size.y, 8,
-        tile_data, tilemap.atlas.palette());
+    gfx::Bitmap new_tile = gfx::Bitmap(tilemap.tile_size.x, tilemap.tile_size.y,
+                                       8, tile_data, tilemap.atlas.palette());
     tilemap.tile_cache.CacheTile(tile_id, new_tile);
   }
 }
@@ -105,9 +104,8 @@ void RenderTile16(IRenderer* renderer, Tilemap& tilemap, int tile_id) {
       return;
     }
     // Cache uses copy semantics - safe to use
-    gfx::Bitmap new_tile = gfx::Bitmap(
-        tilemap.tile_size.x, tilemap.tile_size.y, 8,
-        tile_data, tilemap.atlas.palette());
+    gfx::Bitmap new_tile = gfx::Bitmap(tilemap.tile_size.x, tilemap.tile_size.y,
+                                       8, tile_data, tilemap.atlas.palette());
     tilemap.tile_cache.CacheTile(tile_id, new_tile);
   }
 }

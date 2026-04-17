@@ -95,6 +95,8 @@
 
 namespace yaze::zelda3 {
 
+inline constexpr int kEssentialMapsPerWorld = 1;
+
 constexpr int GravesYTilePos = 0x49968;          // short (0x0F entries)
 constexpr int GravesXTilePos = 0x49986;          // short (0x0F entries)
 constexpr int GravesTilemapPos = 0x499A4;        // short (0x0F entries)
@@ -177,11 +179,11 @@ constexpr int ExpandedOverlaySpace = 0x120000;
 
 // Expanded pointer table markers for tail map support (maps 0xA0-0xBF)
 // Set by TailMapExpansion.asm patch after ZSCustomOverworld v3
-constexpr int kExpandedPtrTableMarker = 0x1423FF;   // Location of marker byte
-constexpr uint8_t kExpandedPtrTableMagic = 0xEA;    // Marker value when applied
-constexpr int kExpandedPtrTableHigh = 0x142400;     // New high table location
-constexpr int kExpandedPtrTableLow = 0x142640;      // New low table location
-constexpr int kExpandedMapCount = 192;              // 0x00-0xBF
+constexpr int kExpandedPtrTableMarker = 0x1423FF;  // Location of marker byte
+constexpr uint8_t kExpandedPtrTableMagic = 0xEA;   // Marker value when applied
+constexpr int kExpandedPtrTableHigh = 0x142400;    // New high table location
+constexpr int kExpandedPtrTableLow = 0x142640;     // New low table location
+constexpr int kExpandedMapCount = 192;             // 0x00-0xBF
 
 constexpr int overworldTilesType = 0x071459;
 constexpr int overworldMessages = 0x03F51D;
@@ -215,8 +217,7 @@ inline int GetExpandedPtrTableMarker() {
 
 inline uint8_t GetExpandedPtrTableMagic() {
   return static_cast<uint8_t>(core::RomSettings::Get().GetAddressOr(
-      core::RomAddressKey::kOverworldExpandedPtrMagic,
-      kExpandedPtrTableMagic));
+      core::RomAddressKey::kOverworldExpandedPtrMagic, kExpandedPtrTableMagic));
 }
 
 inline int GetExpandedPtrTableHigh() {
@@ -228,7 +229,6 @@ inline int GetExpandedPtrTableLow() {
   return static_cast<int>(core::RomSettings::Get().GetAddressOr(
       core::RomAddressKey::kOverworldExpandedPtrLow, kExpandedPtrTableLow));
 }
-
 
 constexpr int kOverworldCompressedMapPos = 0x058000;
 constexpr int kOverworldCompressedOverflowPos = 0x137FFF;
@@ -260,32 +260,33 @@ constexpr int kNumMapsPerWorld = 0x40;
  */
 class Overworld {
  public:
-  Overworld(Rom* rom, GameData* game_data = nullptr) 
+  Overworld(Rom* rom, GameData* game_data = nullptr)
       : rom_(rom), game_data_(game_data) {}
 
   void SetGameData(GameData* game_data) { game_data_ = game_data; }
-  
+
   /// @brief Get version-specific ROM addresses
   zelda3_version_pointers version_constants() const {
-    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version
+                                              : zelda3_version::US);
   }
 
   // ===========================================================================
   // Loading Methods
   // ===========================================================================
-  
+
   /// @brief Load all overworld data from ROM
   absl::Status Load(Rom* rom);
-  
+
   /// @brief Load overworld map tile data
   absl::Status LoadOverworldMaps();
-  
+
   /// @brief Load tile type collision data
   void LoadTileTypes();
 
   /// @brief Load sprite data for all game states
   absl::Status LoadSprites();
-  
+
   /// @brief Load sprites from a specific map range
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
                                   int sprite_index);
@@ -335,40 +336,40 @@ class Overworld {
   //   2. SaveMap32Tiles() - Write tile32 definitions
   //   3. SaveMap16Tiles() - Write tile16 definitions
   //   4. SaveOverworldMaps() - Write compressed map data
-  
+
   /// @brief Master save method (calls sub-methods in correct order)
   absl::Status Save(Rom* rom);
-  
+
   /// @brief Save compressed map tile data to ROM
   absl::Status SaveOverworldMaps();
-  
+
   /// @brief Save large map parent/sibling relationships
   absl::Status SaveLargeMaps();
-  
+
   /// @brief Save expanded large map data (v1+ ROMs)
   absl::Status SaveLargeMapsExpanded();
-  
+
   /// @brief Save screen transition data for small (1x1) areas
   absl::Status SaveSmallAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
       int transition_target_west, int transition_pos_x, int transition_pos_y,
       int screen_change_1, int screen_change_2, int screen_change_3,
       int screen_change_4);
-      
+
   /// @brief Save screen transition data for large (2x2) areas
   absl::Status SaveLargeAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
       int transition_target_west, int transition_pos_x, int transition_pos_y,
       int screen_change_1, int screen_change_2, int screen_change_3,
       int screen_change_4);
-      
+
   /// @brief Save screen transition data for wide (2x1) areas (v3+ only)
   absl::Status SaveWideAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
       int transition_target_west, int transition_pos_x, int transition_pos_y,
       int screen_change_1, int screen_change_2, int screen_change_3,
       int screen_change_4);
-      
+
   /// @brief Save screen transition data for tall (1x2) areas (v3+ only)
   absl::Status SaveTallAreaTransitions(
       int i, int parent_x_pos, int parent_y_pos, int transition_target_north,
@@ -379,26 +380,26 @@ class Overworld {
   // ===========================================================================
   // Save Methods - Entities (Independent, any order)
   // ===========================================================================
-  
+
   /// @brief Save entrance warp points to ROM
   absl::Status SaveEntrances();
-  
+
   /// @brief Save exit return points to ROM
   absl::Status SaveExits();
-  
+
   /// @brief Save hidden overworld items to ROM
   absl::Status SaveItems();
-  
+
   /// @brief Save interactive overlay data to ROM
   absl::Status SaveMapOverlays();
-  
+
   /// @brief Save tile type collision data to ROM
   absl::Status SaveOverworldTilesType();
 
   // ===========================================================================
   // Save Methods - Custom Features (v2+/v3+)
   // ===========================================================================
-  
+
   /// @brief Save custom ASM feature enable flags
   absl::Status SaveCustomOverworldASM(bool enable_bg_color,
                                       bool enable_main_palette,
@@ -406,43 +407,43 @@ class Overworld {
                                       bool enable_gfx_groups,
                                       bool enable_subscreen_overlay,
                                       bool enable_animated);
-  
+
   /// @brief Save per-area background colors (v2+)
   absl::Status SaveAreaSpecificBGColors();
 
   // ===========================================================================
   // Save Methods - Tile Definitions
   // ===========================================================================
-  
+
   /// @brief Build tile32 tilemap from current tile16 data
   /// @note Must be called before SaveMap32Tiles()
   absl::Status CreateTile32Tilemap();
-  
+
   /// @brief Save expanded tile16 definitions (v1+ ROMs)
   absl::Status SaveMap16Expanded();
-  
+
   /// @brief Save tile16 definitions to ROM
   absl::Status SaveMap16Tiles();
-  
+
   /// @brief Save expanded tile32 definitions (v1+ ROMs)
   absl::Status SaveMap32Expanded();
-  
+
   /// @brief Save tile32 definitions to ROM
   absl::Status SaveMap32Tiles();
 
   // ===========================================================================
   // Save Methods - Properties
   // ===========================================================================
-  
+
   /// @brief Save per-area graphics, palettes, and messages
   absl::Status SaveMapProperties();
-  
+
   /// @brief Save per-area music IDs
   absl::Status SaveMusic();
-  
+
   /// @brief Save area size enum data (v3+ only)
   absl::Status SaveAreaSizes();
-  
+
   /// @brief Assign map sizes based on area size enum (v3+)
   void AssignMapSizes(std::vector<OverworldMap>& maps);
 
@@ -524,7 +525,9 @@ class Overworld {
     }
   }
 
-  auto overworld_maps() const { return overworld_maps_; }
+  const std::vector<OverworldMap>& overworld_maps() const {
+    return overworld_maps_;
+  }
   auto overworld_map(int i) const {
     if (i < 0 || i >= static_cast<int>(overworld_maps_.size())) {
       return static_cast<const OverworldMap*>(nullptr);
@@ -539,19 +542,23 @@ class Overworld {
   }
   auto exits() const { return &all_exits_; }
   auto mutable_exits() { return &all_exits_; }
-  std::vector<gfx::Tile16> tiles16() const { return tiles16_; }
+  const std::vector<gfx::Tile16>& tiles16() const { return tiles16_; }
   auto tiles32_unique() const { return tiles32_unique_; }
   auto mutable_tiles16() { return &tiles16_; }
   auto sprites(int state) const {
-    if (state < 0 || state >= 3) return std::vector<Sprite>{};
+    if (state < 0 || state >= 3)
+      return std::vector<Sprite>{};
     return all_sprites_[state];
   }
   auto mutable_sprites(int state) {
-    if (state < 0 || state >= 3) return static_cast<std::vector<Sprite>*>(nullptr);
+    if (state < 0 || state >= 3)
+      return static_cast<std::vector<Sprite>*>(nullptr);
     return &all_sprites_[state];
   }
-  auto current_graphics() const {
-    if (!is_current_map_valid()) return std::vector<uint8_t>{};
+  const std::vector<uint8_t>& current_graphics() const {
+    static const std::vector<uint8_t> kEmpty;
+    if (!is_current_map_valid())
+      return kEmpty;
     return overworld_maps_[current_map_].current_graphics();
   }
   const std::vector<OverworldEntrance>& entrances() const {
@@ -564,21 +571,28 @@ class Overworld {
   auto mutable_holes() { return &all_holes_; }
   auto deleted_entrances() const { return deleted_entrances_; }
   auto mutable_deleted_entrances() { return &deleted_entrances_; }
-  auto current_area_palette() const {
-    if (!is_current_map_valid()) return gfx::SnesPalette{};
+  const gfx::SnesPalette& current_area_palette() const {
+    static const gfx::SnesPalette kEmpty;
+    if (!is_current_map_valid())
+      return kEmpty;
     return overworld_maps_[current_map_].current_palette();
   }
-  auto current_map_bitmap_data() const {
-    if (!is_current_map_valid()) return std::vector<uint8_t>{};
+  const std::vector<uint8_t>& current_map_bitmap_data() const {
+    static const std::vector<uint8_t> kEmpty;
+    if (!is_current_map_valid())
+      return kEmpty;
     return overworld_maps_[current_map_].bitmap_data();
   }
-  auto tile16_blockset_data() const {
-    if (!is_current_map_valid()) return std::vector<uint8_t>{};
+  const std::vector<uint8_t>& tile16_blockset_data() const {
+    static const std::vector<uint8_t> kEmpty;
+    if (!is_current_map_valid())
+      return kEmpty;
     return overworld_maps_[current_map_].current_tile16_blockset();
   }
 
   bool is_current_map_valid() const {
-    return current_map_ >= 0 && current_map_ < static_cast<int>(overworld_maps_.size());
+    return current_map_ >= 0 &&
+           current_map_ < static_cast<int>(overworld_maps_.size());
   }
   auto is_loaded() const { return is_loaded_; }
   auto expanded_tile16() const { return expanded_tile16_; }
@@ -664,9 +678,10 @@ class Overworld {
   // Thread safety for parallel operations
   mutable std::mutex map_tiles_mutex_;
 
-  // LRU cache for built maps to prevent memory exhaustion
-  // Max ~20 maps = ~25MB of memory (1.25MB per map)
-  static constexpr int kMaxBuiltMaps = 20;
+  // LRU cache for built maps to prevent memory exhaustion.
+  // Keep this aligned with the essential preload set so the default startup
+  // world stays warm without permanently retaining dozens of maps.
+  static constexpr int kMaxBuiltMaps = 8;
   std::deque<int> built_map_lru_;
 
   // Graphics config cache for blockset reuse

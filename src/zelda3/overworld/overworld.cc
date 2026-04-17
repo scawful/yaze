@@ -751,22 +751,18 @@ absl::Status Overworld::LoadOverworldMaps() {
   // Performance optimization: Only build essential maps initially
   // Essential maps are the first few maps of each world that are commonly
   // accessed
-#ifdef __EMSCRIPTEN__
-  // WASM: Fewer maps for faster initial load (rest load on-demand)
-  constexpr int kEssentialMapsPerWorld = 4;
-#else
-  constexpr int kEssentialMapsPerWorld = 16;
-#endif
-  constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
+  constexpr int kLightWorldEssential = yaze::zelda3::kEssentialMapsPerWorld;
   constexpr int kDarkWorldEssential =
-      kDarkWorldMapIdStart + kEssentialMapsPerWorld;
+      kDarkWorldMapIdStart + yaze::zelda3::kEssentialMapsPerWorld;
   constexpr int kSpecialWorldEssential =
-      kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
+      kSpecialWorldMapIdStart + yaze::zelda3::kEssentialMapsPerWorld;
+  std::vector<int> essential_map_ids;
+  essential_map_ids.reserve(yaze::zelda3::kEssentialMapsPerWorld * 3);
 
   util::logf(
       "Building essential maps only (first %d maps per world) for faster "
       "loading",
-      kEssentialMapsPerWorld);
+      yaze::zelda3::kEssentialMapsPerWorld);
 
 #ifdef __EMSCRIPTEN__
   // WASM: Use sequential loading to avoid spawning excessive Web Workers
@@ -785,6 +781,7 @@ absl::Status Overworld::LoadOverworldMaps() {
     }
 
     if (is_essential) {
+      essential_map_ids.push_back(i);
       int world_type = 0;
       if (i >= kDarkWorldMapIdStart && i < kSpecialWorldMapIdStart) {
         world_type = 1;
@@ -835,6 +832,7 @@ absl::Status Overworld::LoadOverworldMaps() {
       if (!cached_tileset) {
         CacheTileset(config_hash, overworld_maps_[i].current_graphics());
       }
+      built_map_lru_.push_front(i);
     } else {
       overworld_maps_[i].SetNotBuilt();
     }
@@ -879,6 +877,11 @@ absl::Status Overworld::LoadOverworldMaps() {
   for (auto& future : futures) {
     future.wait();
     RETURN_IF_ERROR(future.get());
+  }
+
+  built_map_lru_.clear();
+  for (int map_index : essential_map_ids) {
+    built_map_lru_.push_front(map_index);
   }
 #endif
 

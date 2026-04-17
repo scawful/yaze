@@ -127,9 +127,9 @@ struct Tilemap {
 std::vector<uint8_t> FetchTileDataFromGraphicsBuffer(
     const std::vector<uint8_t>& data, int tile_id, int sheet_offset);
 
-Tilemap CreateTilemap(IRenderer* renderer, std::vector<uint8_t>& data,
+Tilemap CreateTilemap(IRenderer* renderer, const std::vector<uint8_t>& data,
                       int width, int height, int tile_size, int num_tiles,
-                      SnesPalette& palette);
+                      const SnesPalette& palette);
 
 void UpdateTilemap(IRenderer* renderer, Tilemap& tilemap,
                    const std::vector<uint8_t>& data);

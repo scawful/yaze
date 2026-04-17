@@ -84,26 +84,11 @@ const char* EditModeLabel(Tile16EditMode mode) {
 }  // namespace
 
 absl::Status Tile16Editor::Initialize(
-    const gfx::Bitmap& tile16_blockset_bmp, const gfx::Bitmap& current_gfx_bmp,
+    gfx::Bitmap& tile16_blockset_bmp, gfx::Bitmap& current_gfx_bmp,
     std::array<uint8_t, 0x200>& all_tiles_types) {
   all_tiles_types_ = all_tiles_types;
-
-  // Copy the graphics bitmap (palette will be set later by overworld editor)
-  current_gfx_bmp_.Create(current_gfx_bmp.width(), current_gfx_bmp.height(),
-                          current_gfx_bmp.depth(), current_gfx_bmp.vector());
-  current_gfx_bmp_.SetPalette(current_gfx_bmp.palette());  // Temporary palette
-  // Queue texture for later rendering.
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
-                                        &current_gfx_bmp_);
-
-  // Copy the tile16 blockset bitmap
-  tile16_blockset_bmp_.Create(
-      tile16_blockset_bmp.width(), tile16_blockset_bmp.height(),
-      tile16_blockset_bmp.depth(), tile16_blockset_bmp.vector());
-  tile16_blockset_bmp_.SetPalette(tile16_blockset_bmp.palette());
-  // Queue texture for later rendering.
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
-                                        &tile16_blockset_bmp_);
+  tile16_blockset_bmp_ = &tile16_blockset_bmp;
+  current_gfx_bmp_ = &current_gfx_bmp;
 
   // Note: LoadTile8() will be called after palette is set by overworld editor
   // This ensures proper palette coordination from the start
@@ -528,8 +513,13 @@ absl::Status Tile16Editor::UpdateBlockset() {
     blockset_selector_.SetSelectedTile(current_tile16_);
   }
 
+  if (tile16_blockset_bmp_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "Tile16 blockset bitmap not initialized");
+  }
+
   // Render the selector widget (handles bitmap, grid, highlights, interaction)
-  auto result = blockset_selector_.Render(tile16_blockset_bmp_, true);
+  auto result = blockset_selector_.Render(*tile16_blockset_bmp_, true);
 
   if (result.selection_changed) {
     // Use RequestTileSwitch to handle pending changes confirmation
@@ -596,9 +586,11 @@ void Tile16Editor::CopyTileBitmapToBlockset(int tile_id,
     return;
   }
 
-  zelda3::BlitTile16BitmapToAtlas(&tile16_blockset_bmp_, tile_id, tile_bitmap);
-  if (tile16_blockset_bmp_.is_active()) {
-    tile16_blockset_bmp_.set_modified(true);
+  if (tile16_blockset_bmp_ != nullptr) {
+    zelda3::BlitTile16BitmapToAtlas(tile16_blockset_bmp_, tile_id, tile_bitmap);
+  }
+  if (HasTile16BlocksetBitmap()) {
+    tile16_blockset_bmp_->set_modified(true);
   }
 
   if (tile16_blockset_ && tile16_blockset_->atlas.is_active()) {
@@ -625,9 +617,9 @@ absl::Status Tile16Editor::UpdateBlocksetBitmap() {
 
   CopyTileBitmapToBlockset(current_tile16_, current_tile16_bmp_);
 
-  if (tile16_blockset_bmp_.is_active()) {
+  if (HasTile16BlocksetBitmap()) {
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &tile16_blockset_bmp_);
+        gfx::Arena::TextureCommandType::UPDATE, tile16_blockset_bmp_);
   }
   if (tile16_blockset_ && tile16_blockset_->atlas.is_active()) {
     gfx::Arena::Get().QueueTextureCommand(
@@ -647,7 +639,7 @@ absl::Status Tile16Editor::RegenerateTile16BitmapFromROM() {
   // Tests and some initialization paths reach regeneration before tile8 previews
   // are built; lazily populate them so metadata->bitmap rendering can proceed.
   if (current_gfx_individual_.empty()) {
-    if (!current_gfx_bmp_.is_active()) {
+    if (!HasCurrentGfxBitmap()) {
       return absl::FailedPreconditionError("Tile8 source bitmap not active");
     }
     RETURN_IF_ERROR(LoadTile8());
@@ -692,10 +684,6 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
         absl::StrFormat("Invalid tile8 index: %d", current_tile8_));
   }
 
-  if (!current_gfx_individual_[current_tile8_].is_active()) {
-    return absl::FailedPreconditionError("Source tile8 bitmap not active");
-  }
-
   if (!current_tile16_bmp_.is_active()) {
     return absl::FailedPreconditionError("Target tile16 bitmap not active");
   }
@@ -704,7 +692,7 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
       static_cast<int>(std::min<size_t>(current_gfx_individual_.size(), 1024));
   const int max_tile8_id = std::max(0, tile8_count - 1);
   const int tile8_row_stride =
-      std::max(1, current_gfx_bmp_.width() / kTile8Size);
+      std::max(1, current_gfx_bmp_->width() / kTile8Size);
   const int quadrant_x = (pos.x >= kTile8Size) ? 1 : 0;
   const int quadrant_y = (pos.y >= kTile8Size) ? 1 : 0;
   const int quadrant_index = quadrant_x + (quadrant_y * 2);
@@ -756,9 +744,9 @@ absl::Status Tile16Editor::DrawToCurrentTile16(ImVec2 pos,
     CopyTileBitmapToBlockset(tile16_id, staged_bitmap);
   }
 
-  if (tile16_blockset_bmp_.is_active()) {
+  if (HasTile16BlocksetBitmap()) {
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &tile16_blockset_bmp_);
+        gfx::Arena::TextureCommandType::UPDATE, tile16_blockset_bmp_);
   }
   if (tile16_blockset_ && tile16_blockset_->atlas.is_active()) {
     gfx::Arena::Get().QueueTextureCommand(
@@ -1033,7 +1021,9 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         }
       }
 
-      blockset_canvas_.DrawBitmap(tile16_blockset_bmp_, 0, true, 2);
+      if (tile16_blockset_bmp_ != nullptr) {
+        blockset_canvas_.DrawBitmap(*tile16_blockset_bmp_, 0, true, 2);
+      }
       DrawTile8UsageOverlay();
 
       gui::EndCanvas(blockset_canvas_, blockset_rt, blockset_frame_opts);
@@ -1075,8 +1065,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
       // Handle tile8 painting with improved hover preview
       if (current_tile8_ >= 0 &&
-          current_tile8_ < static_cast<int>(current_gfx_individual_.size()) &&
-          current_gfx_individual_[current_tile8_].is_active()) {
+          current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
         // Create a display tile that shows the current palette selection
         if (!tile8_preview_bmp_.is_active()) {
           tile8_preview_bmp_.Create(8, 8, 8,
@@ -1085,8 +1074,10 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
         // Get the original pixel data (already has sheet offsets from
         // ProcessGraphicsBuffer)
-        tile8_preview_bmp_.set_data(
-            current_gfx_individual_[current_tile8_].vector());
+        auto& preview_data = tile8_preview_bmp_.mutable_data();
+        std::copy(current_gfx_individual_[current_tile8_].begin(),
+                  current_gfx_individual_[current_tile8_].end(),
+                  preview_data.begin());
 
         // Apply the correct sheet-aware palette slice for the preview
         const gfx::SnesPalette* display_palette = nullptr;
@@ -1095,7 +1086,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         } else if (palette_.size() >= 256) {
           display_palette = &palette_;
         } else {
-          display_palette = &current_gfx_individual_[current_tile8_].palette();
+          display_palette =
+              current_gfx_bmp_ ? &current_gfx_bmp_->palette() : &palette_;
         }
 
         if (display_palette && !display_palette->empty()) {
@@ -1202,11 +1194,10 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
     // Tile8 info and preview
     if (current_tile8_ >= 0 &&
-        current_tile8_ < static_cast<int>(current_gfx_individual_.size()) &&
-        current_gfx_individual_[current_tile8_].is_active()) {
+        current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
       Text("Tile8: %02X", current_tile8_);
       SameLine();
-      auto* tile8_texture = current_gfx_individual_[current_tile8_].texture();
+      auto* tile8_texture = tile8_preview_bmp_.texture();
       if (tile8_texture) {
         ImGui::Image((ImTextureID)(intptr_t)tile8_texture, ImVec2(24, 24));
       }
@@ -1764,7 +1755,10 @@ absl::Status Tile16Editor::DrawTile8SourcePanel() {
       RETURN_IF_ERROR(HandleTile8SourceSelection(right_clicked));
     }
 
-    tile8_source_canvas_.DrawBitmap(current_gfx_bmp_, 2, 2, kTile8DisplayScale);
+    if (current_gfx_bmp_ != nullptr) {
+      tile8_source_canvas_.DrawBitmap(*current_gfx_bmp_, 2, 2,
+                                      kTile8DisplayScale);
+    }
 
     gui::EndCanvas(tile8_source_canvas_, tile8_rt, tile8_frame_opts);
   }
@@ -1780,10 +1774,9 @@ absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked) {
       ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
 
   const int new_tile8 = ComputeTile8IndexFromCanvasMouse(
-      mouse_pos.x, mouse_pos.y, current_gfx_bmp_.width(),
+      mouse_pos.x, mouse_pos.y, current_gfx_bmp_->width(),
       static_cast<int>(current_gfx_individual_.size()), kTile8DisplayScale);
-  if (new_tile8 < 0 || new_tile8 == current_tile8_ ||
-      !current_gfx_individual_[new_tile8].is_active()) {
+  if (new_tile8 < 0 || new_tile8 == current_tile8_) {
     return absl::OkStatus();
   }
 
@@ -1887,7 +1880,7 @@ absl::Status Tile16Editor::DrawBottomActionRail(bool has_pending,
 }
 
 absl::Status Tile16Editor::LoadTile8() {
-  if (!current_gfx_bmp_.is_active() || current_gfx_bmp_.data() == nullptr) {
+  if (!HasCurrentGfxBitmap() || current_gfx_bmp_->data() == nullptr) {
     return absl::FailedPreconditionError(
         "Current graphics bitmap not initialized");
   }
@@ -1897,8 +1890,8 @@ absl::Status Tile16Editor::LoadTile8() {
   // Calculate how many 8x8 tiles we can fit based on the current graphics
   // bitmap size SNES graphics are typically 128 pixels wide (16 tiles of 8
   // pixels each)
-  const int tiles_per_row = current_gfx_bmp_.width() / 8;
-  const int total_rows = current_gfx_bmp_.height() / 8;
+  const int tiles_per_row = current_gfx_bmp_->width() / 8;
+  const int total_rows = current_gfx_bmp_->height() / 8;
   const int total_tiles = tiles_per_row * total_rows;
 
   current_gfx_individual_.reserve(total_tiles);
@@ -1906,7 +1899,7 @@ absl::Status Tile16Editor::LoadTile8() {
   // Extract individual 8x8 tiles from the graphics bitmap
   for (int tile_y = 0; tile_y < total_rows; ++tile_y) {
     for (int tile_x = 0; tile_x < tiles_per_row; ++tile_x) {
-      std::vector<uint8_t> tile_data(64);  // 8x8 = 64 pixels
+      zelda3::Tile8PixelData tile_data{};
 
       // Extract tile data from the main graphics bitmap.
       // Preserve encoded palette offsets unless normalization is enabled.
@@ -1914,12 +1907,12 @@ absl::Status Tile16Editor::LoadTile8() {
         for (int px = 0; px < 8; ++px) {
           int src_x = tile_x * 8 + px;
           int src_y = tile_y * 8 + py;
-          int src_index = src_y * current_gfx_bmp_.width() + src_x;
+          int src_index = src_y * current_gfx_bmp_->width() + src_x;
           int dst_index = py * 8 + px;
 
-          if (src_index < static_cast<int>(current_gfx_bmp_.size()) &&
+          if (src_index < static_cast<int>(current_gfx_bmp_->size()) &&
               dst_index < 64) {
-            uint8_t pixel_value = current_gfx_bmp_.data()[src_index];
+            uint8_t pixel_value = current_gfx_bmp_->data()[src_index];
 
             if (auto_normalize_pixels_) {
               pixel_value &= palette_normalization_mask_;
@@ -1930,33 +1923,7 @@ absl::Status Tile16Editor::LoadTile8() {
         }
       }
 
-      // Create the individual tile bitmap
-      current_gfx_individual_.emplace_back();
-      auto& tile_bitmap = current_gfx_individual_.back();
-
-      try {
-        tile_bitmap.Create(8, 8, 8, tile_data);
-
-        // Set default palette using the same system as overworld
-        if (overworld_palette_.size() >= 256) {
-          // Use complete 256-color palette (same as overworld system)
-          // The pixel data already contains correct color indices for the
-          // 256-color palette
-          tile_bitmap.SetPalette(overworld_palette_);
-        } else if (game_data() &&
-                   game_data()->palette_groups.overworld_main.size() > 0) {
-          // Fallback to GameData palette
-          tile_bitmap.SetPalette(game_data()->palette_groups.overworld_main[0]);
-        }
-        // Queue texture creation via Arena's deferred system
-        gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::CREATE, &tile_bitmap);
-      } catch (const std::exception& e) {
-        util::logf("Error creating tile at (%d,%d): %s", tile_x, tile_y,
-                   e.what());
-        // Create an empty bitmap as fallback
-        tile_bitmap.Create(8, 8, 8, std::vector<uint8_t>(64, 0));
-      }
+      current_gfx_individual_.push_back(tile_data);
     }
   }
 
@@ -1975,8 +1942,8 @@ absl::Status Tile16Editor::LoadTile8() {
 
   // Ensure canvas scroll size matches the full tilesheet at preview scale
   tile8_source_canvas_.SetCanvasSize(
-      ImVec2(current_gfx_bmp_.width() * kTile8DisplayScale,
-             current_gfx_bmp_.height() * kTile8DisplayScale));
+      ImVec2(current_gfx_bmp_->width() * kTile8DisplayScale,
+             current_gfx_bmp_->height() * kTile8DisplayScale));
 
   util::logf("Loaded %zu individual tile8 graphics",
              current_gfx_individual_.size());
@@ -2294,7 +2261,7 @@ absl::Status Tile16Editor::RotateTile16() {
 
 absl::Status Tile16Editor::FillTile16WithTile8(int tile8_id) {
   if (current_gfx_individual_.empty()) {
-    if (!current_gfx_bmp_.is_active()) {
+    if (!HasCurrentGfxBitmap()) {
       return absl::FailedPreconditionError("Source tile8 bitmap not active");
     }
     RETURN_IF_ERROR(LoadTile8());
@@ -2303,10 +2270,6 @@ absl::Status Tile16Editor::FillTile16WithTile8(int tile8_id) {
   if (tile8_id < 0 ||
       tile8_id >= static_cast<int>(current_gfx_individual_.size())) {
     return absl::InvalidArgumentError("Invalid tile8 ID");
-  }
-
-  if (!current_gfx_individual_[tile8_id].is_active()) {
-    return absl::FailedPreconditionError("Source tile8 not active");
   }
 
   SaveUndoState();
@@ -2834,7 +2797,7 @@ void Tile16Editor::DrawTile8UsageOverlay() {
   const float tile16_display = 32.0f * scale;
   const float quadrant_display = 16.0f * scale;
   const int tiles_per_row =
-      std::max(1, tile16_blockset_bmp_.width() / kTile16Size);
+      std::max(1, tile16_blockset_bmp_->width() / kTile16Size);
 
   for (const auto& hit : hits) {
     const int tile_x = hit.tile16_id % tiles_per_row;
@@ -3119,10 +3082,6 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
     return absl::InvalidArgumentError("Invalid tile8 ID");
   }
 
-  if (!current_gfx_individual_[tile8_id].is_active()) {
-    return absl::OkStatus();  // Skip inactive tiles
-  }
-
   if (!rom_) {
     return absl::FailedPreconditionError("ROM not set");
   }
@@ -3141,25 +3100,6 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
   const int sheet_index = GetSheetIndexForTile8(tile8_id);
   const int palette_slot =
       GetActualPaletteSlot(static_cast<int>(current_palette_), sheet_index);
-
-  // Apply palette based on whether pixel values retain CGRAM row offsets.
-  if (auto_normalize_pixels_) {
-    if (palette_slot >= 0 &&
-        static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
-      current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
-          *display_palette, static_cast<size_t>(palette_slot + 1), 15);
-    } else {
-      current_gfx_individual_[tile8_id].SetPaletteWithTransparent(
-          *display_palette, 1, 15);
-    }
-  } else {
-    current_gfx_individual_[tile8_id].SetPalette(*display_palette);
-  }
-
-  current_gfx_individual_[tile8_id].set_modified(true);
-  // Queue texture update via Arena's deferred system
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
-                                        &current_gfx_individual_[tile8_id]);
 
   util::logf("Updated tile8 %d with palette slot %d (palette size: %zu colors)",
              tile8_id, current_palette_, display_palette->size());
@@ -3191,22 +3131,22 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
   // The source bitmap (current_gfx_bmp_) contains 8bpp indexed pixel data.
   // If palette offsets are preserved, apply the full CGRAM palette. Otherwise,
   // remap the palette to the user-selected row.
-  if (current_gfx_bmp_.is_active()) {
+  if (HasCurrentGfxBitmap()) {
     if (auto_normalize_pixels_) {
       gfx::SnesPalette remapped_palette =
           CreateRemappedPaletteForViewing(*display_palette, current_palette_);
-      current_gfx_bmp_.SetPalette(remapped_palette);
+      current_gfx_bmp_->SetPalette(remapped_palette);
       util::logf("Applied remapped palette (button %d) to source bitmap",
                  current_palette_);
     } else {
-      current_gfx_bmp_.SetPalette(*display_palette);
+      current_gfx_bmp_->SetPalette(*display_palette);
       util::logf("Applied full CGRAM palette to source bitmap");
     }
 
-    current_gfx_bmp_.set_modified(true);
+    current_gfx_bmp_->set_modified(true);
     // Queue texture update via Arena's deferred system
     gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &current_gfx_bmp_);
+        gfx::Arena::TextureCommandType::UPDATE, current_gfx_bmp_);
   }
 
   // Update current tile16 being edited - regenerate from ROM so per-quadrant
@@ -3222,37 +3162,6 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
     }
   }
 
-  // Update individual tile8 graphics
-  for (size_t i = 0; i < current_gfx_individual_.size(); ++i) {
-    if (!current_gfx_individual_[i].is_active()) {
-      continue;
-    }
-
-    if (auto_normalize_pixels_) {
-      // Calculate per-tile8 palette slot based on which sheet it belongs to
-      int sheet_index = GetSheetIndexForTile8(static_cast<int>(i));
-      int palette_slot = GetActualPaletteSlot(current_palette_, sheet_index);
-
-      // Apply sub-palette with transparent color 0
-      if (palette_slot >= 0 &&
-          static_cast<size_t>(palette_slot + 16) <= display_palette->size()) {
-        current_gfx_individual_[i].SetPaletteWithTransparent(
-            *display_palette, static_cast<size_t>(palette_slot + 1), 15);
-      } else {
-        // Fallback to slot 1 if computed slot exceeds palette bounds
-        current_gfx_individual_[i].SetPaletteWithTransparent(*display_palette,
-                                                             1, 15);
-      }
-    } else {
-      current_gfx_individual_[i].SetPalette(*display_palette);
-    }
-
-    current_gfx_individual_[i].set_modified(true);
-    // Queue texture update via Arena's deferred system
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &current_gfx_individual_[i]);
-  }
-
   util::logf(
       "Successfully refreshed all palettes in tile16 editor with palette %d",
       current_palette_);
@@ -3264,18 +3173,19 @@ void Tile16Editor::AnalyzeTile8SourceData() const {
 
   // Analyze current_gfx_bmp_
   util::logf("current_gfx_bmp_:");
-  util::logf("  - Active: %s", current_gfx_bmp_.is_active() ? "yes" : "no");
-  util::logf("  - Size: %dx%d", current_gfx_bmp_.width(),
-             current_gfx_bmp_.height());
-  util::logf("  - Depth: %d bpp", current_gfx_bmp_.depth());
-  util::logf("  - Data size: %zu bytes", current_gfx_bmp_.size());
-  util::logf("  - Palette size: %zu colors", current_gfx_bmp_.palette().size());
+  util::logf("  - Active: %s", HasCurrentGfxBitmap() ? "yes" : "no");
+  util::logf("  - Size: %dx%d", current_gfx_bmp_->width(),
+             current_gfx_bmp_->height());
+  util::logf("  - Depth: %d bpp", current_gfx_bmp_->depth());
+  util::logf("  - Data size: %zu bytes", current_gfx_bmp_->size());
+  util::logf("  - Palette size: %zu colors",
+             current_gfx_bmp_->palette().size());
 
   // Analyze pixel value distribution in first 64 pixels (first tile8)
-  if (current_gfx_bmp_.data() && current_gfx_bmp_.size() >= 64) {
+  if (current_gfx_bmp_->data() && current_gfx_bmp_->size() >= 64) {
     std::map<uint8_t, int> pixel_counts;
     for (size_t i = 0; i < 64; ++i) {
-      uint8_t val = current_gfx_bmp_.data()[i];
+      uint8_t val = current_gfx_bmp_->data()[i];
       pixel_counts[val]++;
     }
     util::logf("  - First tile8 (Sheet 0) pixel distribution:");
@@ -3308,24 +3218,18 @@ void Tile16Editor::AnalyzeTile8SourceData() const {
   util::logf("current_gfx_individual_:");
   util::logf("  - Count: %zu tiles", current_gfx_individual_.size());
 
-  if (!current_gfx_individual_.empty() &&
-      current_gfx_individual_[0].is_active()) {
+  if (!current_gfx_individual_.empty()) {
     const auto& first_tile = current_gfx_individual_[0];
     util::logf("  - First tile:");
-    util::logf("    - Size: %dx%d", first_tile.width(), first_tile.height());
-    util::logf("    - Depth: %d bpp", first_tile.depth());
-    util::logf("    - Palette size: %zu colors", first_tile.palette().size());
-
-    if (first_tile.data() && first_tile.size() >= 64) {
-      std::map<uint8_t, int> pixel_counts;
-      for (size_t i = 0; i < 64; ++i) {
-        uint8_t val = first_tile.data()[i];
-        pixel_counts[val]++;
-      }
-      util::logf("    - Pixel distribution:");
-      for (const auto& [val, count] : pixel_counts) {
-        util::logf("      Value 0x%02X (%3d): %d pixels", val, val, count);
-      }
+    util::logf("    - Size: 8x8");
+    util::logf("    - Depth: 8 bpp");
+    std::map<uint8_t, int> pixel_counts;
+    for (uint8_t val : first_tile) {
+      pixel_counts[val]++;
+    }
+    util::logf("    - Pixel distribution:");
+    for (const auto& [val, count] : pixel_counts) {
+      util::logf("      Value 0x%02X (%3d): %d pixels", val, val, count);
     }
   }
 
@@ -3444,11 +3348,9 @@ void Tile16Editor::DrawPaletteSettings() {
       Separator();
       Text("Color Analysis:");
       if (current_tile8_ >= 0 &&
-          current_tile8_ < static_cast<int>(current_gfx_individual_.size()) &&
-          current_gfx_individual_[current_tile8_].is_active()) {
+          current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
         Text("Selected Tile8 Analysis:");
-        const auto& tile_data =
-            current_gfx_individual_[current_tile8_].vector();
+        const auto& tile_data = current_gfx_individual_[current_tile8_];
         std::map<uint8_t, int> pixel_counts;
         for (uint8_t pixel : tile_data) {
           pixel_counts[pixel & 0x0F]++;  // Normalize to 4-bit
@@ -3462,12 +3364,16 @@ void Tile16Editor::DrawPaletteSettings() {
         }
 
         Text("Palette Colors Used:");
-        const auto& palette = current_gfx_individual_[current_tile8_].palette();
+        const gfx::SnesPalette* analysis_palette = ResolveDisplayPalette();
+        if (analysis_palette == nullptr || analysis_palette->empty()) {
+          analysis_palette =
+              current_gfx_bmp_ ? &current_gfx_bmp_->palette() : &palette_;
+        }
         for (const auto& pair : pixel_counts) {
           int value = pair.first;
           int count = pair.second;
-          if (value < static_cast<int>(palette.size())) {
-            auto color = palette[value];
+          if (value < static_cast<int>(analysis_palette->size())) {
+            auto color = (*analysis_palette)[value];
             ImVec4 display_color = color.rgb();
             ImGui::ColorButton(("##analysis" + std::to_string(value)).c_str(),
                                display_color, ImGuiColorEditFlags_NoTooltip,
