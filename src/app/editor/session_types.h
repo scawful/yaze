@@ -3,7 +3,9 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -55,6 +57,7 @@ class EditorSet {
   ~EditorSet();
 
   void set_user_settings(UserSettings* settings);
+  void SetGameData(zelda3::GameData* game_data);
 
   void ApplyDependencies(const EditorDependencies& dependencies);
 
@@ -106,10 +109,22 @@ class EditorSet {
   std::vector<Editor*> active_editors_;
 
  private:
-  size_t session_id_ = 0;
-  zelda3::GameData* game_data_ = nullptr;
+  using EditorFactory = std::function<std::unique_ptr<Editor>()>;
 
-  std::unordered_map<EditorType, std::unique_ptr<Editor>> editors_;
+  Editor* FindEditor(EditorType type) const;
+  Editor* EnsureEditorCreated(EditorType type) const;
+  bool ShouldTrackAsActiveEditor(EditorType type) const;
+  void TrackActiveEditor(Editor* editor);
+
+  size_t session_id_ = 0;
+  Rom* rom_ = nullptr;
+  zelda3::GameData* game_data_ = nullptr;
+  UserSettings* user_settings_ = nullptr;
+  EditorRegistry* editor_registry_ = nullptr;
+
+  std::optional<EditorDependencies> dependencies_;
+  mutable std::unordered_map<EditorType, std::unique_ptr<Editor>> editors_;
+  std::unordered_map<EditorType, EditorFactory> editor_factories_;
 };
 
 /**

@@ -2,10 +2,10 @@
 
 #include <memory>
 
+#include "app/editor/code/assembly_editor.h"
 #include "app/editor/code/memory_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/session_types.h"
-#include "app/editor/code/assembly_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "rom/rom.h"
 
@@ -43,9 +43,12 @@ TEST_F(UnitTest_EditorSet, GenericContainerOperations) {
 
 TEST_F(UnitTest_EditorSet, ActiveEditorsList) {
   EditorSet editor_set;
-  EXPECT_FALSE(editor_set.active_editors_.empty());
+  EXPECT_TRUE(editor_set.active_editors_.empty());
 
-  // Verify some expected editors are in the active list
+  ASSERT_NE(editor_set.GetEditor(EditorType::kDungeon), nullptr);
+  ASSERT_FALSE(editor_set.active_editors_.empty());
+
+  // Verify created panel-based editors are tracked in the active list.
   bool found_dungeon = false;
   for (Editor* editor : editor_set.active_editors_) {
     ASSERT_NE(editor, nullptr);
@@ -55,6 +58,17 @@ TEST_F(UnitTest_EditorSet, ActiveEditorsList) {
     }
   }
   EXPECT_TRUE(found_dungeon);
+}
+
+TEST_F(UnitTest_EditorSet, PassiveHelpersDoNotMaterializeEditors) {
+  EditorSet editor_set;
+
+  EXPECT_EQ(editor_set.GetAsarWrapper(), nullptr);
+  EXPECT_EQ(editor_set.LoadedDungeonRoomCount(), 0);
+  EXPECT_EQ(editor_set.TotalDungeonRoomCount(), 0);
+  EXPECT_TRUE(editor_set.CollectDungeonWriteRanges().empty());
+  EXPECT_EQ(editor_set.GetOverworldData(), nullptr);
+  EXPECT_TRUE(editor_set.active_editors_.empty());
 }
 
 TEST_F(UnitTest_EditorSet, ApplyDependenciesSetsRomAndWiresMemoryEditor) {
@@ -90,8 +104,8 @@ TEST_F(UnitTest_EditorSet, UsesEditorRegistryFactoriesWhenProvided) {
   EditorSet editor_set(&rom, /*game_data=*/nullptr, /*user_settings=*/nullptr,
                        /*session_id=*/0, &registry);
 
-  EXPECT_TRUE(factory_called);
   EXPECT_NE(editor_set.GetEditor(EditorType::kAssembly), nullptr);
+  EXPECT_TRUE(factory_called);
 }
 
 }  // namespace
