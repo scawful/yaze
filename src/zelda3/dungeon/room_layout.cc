@@ -138,13 +138,15 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
 
   std::vector<RoomObject> render_objects = objects_;
   for (auto& obj : render_objects) {
-    obj.layer_ = RoomObject::LayerType::BG1;
+    if (!IsPitOrMaskObject(obj.id_)) {
+      obj.layer_ = RoomObject::LayerType::BG1;
+    }
   }
 
   // Layout objects render through the room-layout stream, which in ALTTP uses the
-  // upper-layer tilemap pointer set. Keep track-corner aliases disabled so
-  // vanilla wall corners survive, but force layout quads onto BG1 to match the
-  // visible room shell built by the game.
+  // upper-layer tilemap pointer set for the visible room shell. Keep track-corner
+  // aliases disabled so vanilla wall corners survive, but preserve BG2 routing for
+  // pit/mask objects that intentionally reveal the lower layer.
   return drawer.DrawObjectList(render_objects, bg1, bg2, palette_group, state,
                                &bg1);
 }
