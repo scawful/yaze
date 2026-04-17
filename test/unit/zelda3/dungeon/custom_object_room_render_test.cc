@@ -258,6 +258,13 @@ TEST_F(CustomObjectRoomRenderTest,
   EXPECT_GT(covered_pixels, 64)
       << "Vanilla layout corners should keep their full wall footprint instead "
          "of being replaced by a one-tile custom track alias";
+
+  const auto& bg2_coverage = room.bg2_buffer().coverage_data();
+  const int bg2_covered_pixels =
+      static_cast<int>(std::count(bg2_coverage.begin(), bg2_coverage.end(), 1));
+  EXPECT_EQ(bg2_covered_pixels, 0)
+      << "Room layout corners should render through the upper/BG1 layout path, "
+         "not disappear into BG2 behind the floor.";
 }
 
 TEST_F(CustomObjectRoomRenderTest,
