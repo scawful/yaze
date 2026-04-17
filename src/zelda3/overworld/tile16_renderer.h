@@ -1,6 +1,7 @@
 #ifndef YAZE_ZELDA3_OVERWORLD_TILE16_RENDERER_H
 #define YAZE_ZELDA3_OVERWORLD_TILE16_RENDERER_H
 
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -11,6 +12,8 @@
 
 namespace yaze::zelda3 {
 
+using Tile8PixelData = std::array<uint8_t, 64>;
+
 // Compose a tile16 pixel buffer from ALTTP TileInfo metadata.
 //
 // Rules:
@@ -19,10 +22,17 @@ namespace yaze::zelda3 {
 // - Palette row is encoded per quadrant: (pixel & 0x0F) + (palette * 0x10).
 std::vector<uint8_t> RenderTile16PixelsFromMetadata(
     const gfx::Tile16& tile_data,
+    const std::vector<Tile8PixelData>& tile8_pixels);
+std::vector<uint8_t> RenderTile16PixelsFromMetadata(
+    const gfx::Tile16& tile_data,
     const std::vector<gfx::Bitmap>& tile8_bitmaps);
 
 // Compose a tile16 bitmap (16x16, 8bpp) from metadata using the same transform
 // as RenderTile16PixelsFromMetadata.
+absl::Status RenderTile16BitmapFromMetadata(
+    const gfx::Tile16& tile_data,
+    const std::vector<Tile8PixelData>& tile8_pixels,
+    gfx::Bitmap* output_bitmap);
 absl::Status RenderTile16BitmapFromMetadata(
     const gfx::Tile16& tile_data, const std::vector<gfx::Bitmap>& tile8_bitmaps,
     gfx::Bitmap* output_bitmap);

@@ -161,9 +161,9 @@ class OverworldMap : public gfx::GfxContext {
    * @param cached_tileset Pre-computed tileset data (nullptr to build fresh)
    */
   absl::Status BuildMapWithCache(int count, int game_state, int world,
-                                  std::vector<gfx::Tile16>& tiles16,
-                                  OverworldBlockset& world_blockset,
-                                  const std::vector<uint8_t>* cached_tileset);
+                                 std::vector<gfx::Tile16>& tiles16,
+                                 OverworldBlockset& world_blockset,
+                                 const std::vector<uint8_t>* cached_tileset);
 
   void LoadAreaGraphics();
   absl::Status LoadPalette();
@@ -183,10 +183,12 @@ class OverworldMap : public gfx::GfxContext {
 
   void DrawAnimatedTiles();
 
-  auto current_tile16_blockset() const { return current_blockset_; }
-  auto current_graphics() const { return current_gfx_; }
-  auto current_palette() const { return current_palette_; }
-  auto bitmap_data() const { return bitmap_data_; }
+  const std::vector<uint8_t>& current_tile16_blockset() const {
+    return current_blockset_;
+  }
+  const std::vector<uint8_t>& current_graphics() const { return current_gfx_; }
+  const gfx::SnesPalette& current_palette() const { return current_palette_; }
+  const std::vector<uint8_t>& bitmap_data() const { return bitmap_data_; }
   auto is_large_map() const { return large_map_; }
   auto is_initialized() const { return initialized_; }
   auto is_built() const { return built_; }
@@ -341,7 +343,8 @@ class OverworldMap : public gfx::GfxContext {
 
   // Helper to get version constants from game_data or default to US
   zelda3_version_pointers version_constants() const {
-    return kVersionConstantsMap.at(game_data_ ? game_data_->version : zelda3_version::US);
+    return kVersionConstantsMap.at(game_data_ ? game_data_->version
+                                              : zelda3_version::US);
   }
 
   Rom* rom_;

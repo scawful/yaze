@@ -48,7 +48,7 @@
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
 #include "app/editor/system/hack_manifest_save_validation.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -120,11 +120,11 @@ bool ItemSnapshotsEqual(const OverworldItemsSnapshot& lhs,
 }  // namespace
 
 void OverworldEditor::Initialize() {
-  // Register panels with PanelManager (dependency injection)
-  if (!dependencies_.panel_manager) {
+  // Register panels with WorkspaceWindowManager (dependency injection)
+  if (!dependencies_.window_manager) {
     return;
   }
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
 
   // Initialize renderer from dependencies
   renderer_ = dependencies_.renderer;
@@ -134,7 +134,7 @@ void OverworldEditor::Initialize() {
 
   // Register Overworld Canvas (main canvas panel with toolset)
 
-  // Note: All EditorPanel instances now self-register via REGISTER_PANEL macro
+  // Note: All WindowContent instances now self-register via REGISTER_PANEL macro
   // and use ContentRegistry::Context to access the current editor.
   // See comment at include section for full list of panels.
 
@@ -257,6 +257,17 @@ void OverworldEditor::InitCanvasNavigationManager() {
   callbacks.pick_tile16_from_hovered_canvas = [this]() -> bool {
     return this->PickTile16FromHoveredCanvas();
   };
+  callbacks.open_map_properties_panel = [this]() {
+    if (dependencies_.window_manager) {
+      const size_t session_id =
+          dependencies_.window_manager->GetActiveSessionId();
+      dependencies_.window_manager->OpenWindow(
+          session_id, OverworldPanelIds::kMapProperties);
+      dependencies_.window_manager->MarkWindowRecentlyUsed(
+          OverworldPanelIds::kMapProperties);
+    }
+    show_map_properties_panel_ = true;
+  };
   callbacks.is_entity_hovered = [this]() -> bool {
     return entity_renderer_ && entity_renderer_->hovered_entity() != nullptr;
   };
@@ -271,6 +282,11 @@ absl::Status OverworldEditor::Load() {
   LOG_DEBUG("OverworldEditor", "Loading overworld.");
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  if (dependencies_.window_manager) {
+    dependencies_.window_manager->RegisterPanelAlias("overworld.debug_window",
+                                                     "overworld.debug");
   }
 
   // Clear undo/redo state when loading new ROM data
@@ -360,9 +376,9 @@ absl::Status OverworldEditor::Update() {
     UpdateBlocksetWithPendingTileChanges();
   }
 
-  // Early return if panel_manager is not available
+  // Early return if window_manager is not available
   // (panels won't be drawn without it, so no point continuing)
-  if (!dependencies_.panel_manager) {
+  if (!dependencies_.window_manager) {
     return status_;
   }
 
@@ -374,11 +390,11 @@ absl::Status OverworldEditor::Update() {
   // Main Overworld Canvas
   // ===========================================================================
   // The panels (Tile16 Selector, Area Graphics, etc.) are now managed by
-  // EditorPanel/PanelManager and drawn automatically. This section only
+  // WindowContent/WorkspaceWindowManager and drawn automatically. This section only
   // handles the main canvas and toolbar.
 
   // ===========================================================================
-  // Non-Panel Windows (not managed by EditorPanel system)
+  // Non-Panel Windows (not managed by WindowContent system)
   // ===========================================================================
   // These are separate feature windows, not part of the panel system
 
@@ -410,7 +426,7 @@ absl::Status OverworldEditor::Update() {
     ImGui::End();
   }
 
-  // Note: Tile16 Editor is now managed as an EditorPanel (Tile16EditorPanel)
+  // Note: Tile16 Editor is now managed as an WindowContent (Tile16EditorPanel)
   // It uses UpdateAsPanel() which provides a context menu instead of MenuBar
 
   // ===========================================================================
@@ -481,12 +497,12 @@ absl::Status OverworldEditor::Update() {
     ImGui::EndPopup();
   }
 
-  // All editor windows are now rendered in Update() using either EditorPanel
+  // All editor windows are now rendered in Update() using either WindowContent
   // system or MapPropertiesSystem for map-specific panels. This keeps the
   // toolset clean and prevents ImGui ID stack issues.
 
   // Legacy window code removed - windows rendered in Update() include:
-  // - Graphics Groups (EditorPanel)
+  // - Graphics Groups (WindowContent)
   // - Area Configuration (MapPropertiesSystem)
   // - Background Color Editor (MapPropertiesSystem)
   // - Visual Effects Editor (MapPropertiesSystem)
@@ -561,16 +577,21 @@ void OverworldEditor::HandleKeyboardShortcuts() {
 
   // Toggle Tile16 editor with Ctrl+T
   if (ctrl_held && ImGui::IsKeyPressed(ImGuiKey_T, false)) {
-    if (dependencies_.panel_manager) {
-      dependencies_.panel_manager->TogglePanel(
-          0, OverworldPanelIds::kTile16Editor);
+    if (dependencies_.window_manager) {
+      const size_t session_id =
+          dependencies_.window_manager->GetActiveSessionId();
+      dependencies_.window_manager->ToggleWindow(
+          session_id, OverworldPanelIds::kTile16Editor);
     }
   }
 
   // Toggle Overworld Item List with Ctrl+Shift+I
   if (ctrl_held && shift_held && ImGui::IsKeyPressed(ImGuiKey_I, false)) {
-    if (dependencies_.panel_manager) {
-      dependencies_.panel_manager->TogglePanel(0, OverworldPanelIds::kItemList);
+    if (dependencies_.window_manager) {
+      const size_t session_id =
+          dependencies_.window_manager->GetActiveSessionId();
+      dependencies_.window_manager->ToggleWindow(session_id,
+                                                 OverworldPanelIds::kItemList);
     }
   }
 
@@ -1303,7 +1324,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   map_blockset_loaded_ = true;
 
   // Copy the tile16 data into individual tiles.
-  auto tile16_blockset_data = overworld_.tile16_blockset_data();
+  const auto& tile16_blockset_data = overworld_.tile16_blockset_data();
   LOG_DEBUG("OverworldEditor", "Loading overworld tile16 graphics.");
 
   {
@@ -1320,102 +1341,10 @@ absl::Status OverworldEditor::LoadGraphics() {
     }
   }
 
-  // Phase 2: Create bitmaps only for essential maps initially
-  // Non-essential maps will be created on-demand when accessed
-  // IMPORTANT: Must match kEssentialMapsPerWorld in overworld.cc
-#ifdef __EMSCRIPTEN__
-  constexpr int kEssentialMapsPerWorld = 4;  // Match WASM build in overworld.cc
-#else
-  constexpr int kEssentialMapsPerWorld =
-      16;  // Match native build in overworld.cc
-#endif
-  constexpr int kLightWorldEssential = kEssentialMapsPerWorld;
-  constexpr int kDarkWorldEssential =
-      zelda3::kDarkWorldMapIdStart + kEssentialMapsPerWorld;
-  constexpr int kSpecialWorldEssential =
-      zelda3::kSpecialWorldMapIdStart + kEssentialMapsPerWorld;
-
-  LOG_DEBUG(
-      "OverworldEditor",
-      "Creating bitmaps for essential maps only (first %d maps per world)",
-      kEssentialMapsPerWorld);
-
-  std::vector<gfx::Bitmap*> maps_to_texture;
-  maps_to_texture.reserve(kEssentialMapsPerWorld *
-                          3);  // 8 maps per world * 3 worlds
-
-  {
-    gfx::ScopedTimer maps_timer("CreateEssentialOverworldMaps");
-    for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
-      bool is_essential = false;
-
-      // Check if this is an essential map
-      if (i < kLightWorldEssential) {
-        is_essential = true;
-      } else if (i >= zelda3::kDarkWorldMapIdStart && i < kDarkWorldEssential) {
-        is_essential = true;
-      } else if (i >= zelda3::kSpecialWorldMapIdStart &&
-                 i < kSpecialWorldEssential) {
-        is_essential = true;
-      }
-
-      if (is_essential) {
-        overworld_.set_current_map(i);
-        auto palette = overworld_.current_area_palette();
-        try {
-          // Create bitmap data and surface but defer texture creation
-          maps_bmp_[i].Create(kOverworldMapSize, kOverworldMapSize, 0x80,
-                              overworld_.current_map_bitmap_data());
-          maps_bmp_[i].SetPalette(palette);
-          maps_to_texture.push_back(&maps_bmp_[i]);
-        } catch (const std::bad_alloc& e) {
-          std::cout << "Error allocating map " << i << ": " << e.what()
-                    << std::endl;
-          continue;
-        }
-      }
-      // Non-essential maps will be created on-demand when accessed
-    }
-  }
-
-  // Phase 3: Create textures only for currently visible maps
-  // Only create textures for the first few maps initially
-  const int initial_texture_count =
-      std::min(4, static_cast<int>(maps_to_texture.size()));
-  {
-    gfx::ScopedTimer initial_textures_timer("CreateInitialTextures");
-    for (int i = 0; i < initial_texture_count; ++i) {
-      // Queue texture creation/update for initial maps via Arena's deferred
-      // system
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, maps_to_texture[i]);
-    }
-  }
-
-  // Queue remaining maps for progressive loading via Arena
-  // Priority based on current world (0 = current world, 11+ = other worlds)
-  for (size_t i = initial_texture_count; i < maps_to_texture.size(); ++i) {
-    // Determine priority based on which world this map belongs to
-    int map_index = -1;
-    for (int j = 0; j < zelda3::kNumOverworldMaps; ++j) {
-      if (&maps_bmp_[j] == maps_to_texture[i]) {
-        map_index = j;
-        break;
-      }
-    }
-
-    int priority = 15;  // Default low priority
-    if (map_index >= 0) {
-      int map_world = map_index / 0x40;
-      priority = (map_world == current_world_)
-                     ? 5
-                     : 15;  // Current world = priority 5, others = 15
-    }
-
-    // Queue texture creation for remaining maps via Arena's deferred system
-    // Note: Priority system to be implemented in future enhancement
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, maps_to_texture[i]);
+  // Phase 2: reset map bitmaps and leave them fully on-demand.
+  // The canvas/navigation path will materialize only the visible/current maps.
+  for (auto& bitmap : maps_bmp_) {
+    bitmap = gfx::Bitmap();
   }
 
   if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
@@ -1507,7 +1436,7 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
   // If bitmap doesn't exist yet (non-essential map), create it now
   if (!bitmap.is_active()) {
     overworld_.set_current_map(map_index);
-    auto palette = overworld_.current_area_palette();
+    const auto& palette = overworld_.current_area_palette();
     try {
       bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
                     overworld_.current_map_bitmap_data());

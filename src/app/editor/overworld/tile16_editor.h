@@ -24,6 +24,7 @@
 #include "rom/rom.h"
 #include "util/log.h"
 #include "util/notify.h"
+#include "zelda3/overworld/tile16_renderer.h"
 #include "zelda3/overworld/tile16_usage_index.h"
 
 namespace yaze {
@@ -133,14 +134,14 @@ class Tile16Editor : public gfx::GfxContext {
  public:
   Tile16Editor(Rom* rom, gfx::Tilemap* tile16_blockset)
       : rom_(rom), tile16_blockset_(tile16_blockset) {}
-  absl::Status Initialize(const gfx::Bitmap& tile16_blockset_bmp,
-                          const gfx::Bitmap& current_gfx_bmp,
+  absl::Status Initialize(gfx::Bitmap& tile16_blockset_bmp,
+                          gfx::Bitmap& current_gfx_bmp,
                           std::array<uint8_t, 0x200>& all_tiles_types);
 
   absl::Status Update();
 
   /**
-   * @brief Update the editor content without MenuBar (for EditorPanel usage)
+   * @brief Update the editor content without MenuBar (for WindowContent usage)
    *
    * This is the panel-friendly version that doesn't require ImGuiWindowFlags_MenuBar.
    * Menu items are available through the context menu instead.
@@ -378,7 +379,7 @@ class Tile16Editor : public gfx::GfxContext {
     }
 
     // CRITICAL FIX: Load tile8 graphics now that we have the proper palette
-    if (rom_ && current_gfx_bmp_.is_active()) {
+    if (rom_ && current_gfx_bmp_ && current_gfx_bmp_->is_active()) {
       auto status = LoadTile8();
       if (!status.ok()) {
         util::logf("Failed to load tile8 graphics with new palette: %s",
@@ -518,7 +519,7 @@ class Tile16Editor : public gfx::GfxContext {
   gui::TileSelectorWidget blockset_selector_{
       "Tile16BlocksetSelector",
       gui::TileSelectorWidget::Config{.show_hover_tooltip = true}};
-  gfx::Bitmap tile16_blockset_bmp_;
+  gfx::Bitmap* tile16_blockset_bmp_ = nullptr;
 
   // Canvas for editing the selected tile - optimized for 2x2 grid of 8x8 tiles
   // (16x16 total)
@@ -533,13 +534,13 @@ class Tile16Editor : public gfx::GfxContext {
       "Tile8SourceCanvas",
       ImVec2(gfx::kTilesheetWidth * 8, gfx::kTilesheetHeight * 0x10 * 8),
       gui::CanvasGridSize::k32x32};
-  gfx::Bitmap current_gfx_bmp_;
+  gfx::Bitmap* current_gfx_bmp_ = nullptr;
 
   gui::Table tile_edit_table_{"##TileEditTable", 3, ImGuiTableFlags_Borders,
                               ImVec2(0, 0)};
 
   gfx::Tilemap* tile16_blockset_ = nullptr;
-  std::vector<gfx::Bitmap> current_gfx_individual_;
+  std::vector<zelda3::Tile8PixelData> current_gfx_individual_;
 
   PaletteEditor palette_editor_;
   gfx::SnesPalette palette_;
@@ -577,6 +578,14 @@ class Tile16Editor : public gfx::GfxContext {
 
   // Handle keyboard shortcuts (shared between Update and UpdateAsPanel)
   void HandleKeyboardShortcuts();
+
+  bool HasCurrentGfxBitmap() const {
+    return current_gfx_bmp_ != nullptr && current_gfx_bmp_->is_active();
+  }
+
+  bool HasTile16BlocksetBitmap() const {
+    return tile16_blockset_bmp_ != nullptr && tile16_blockset_bmp_->is_active();
+  }
 
   // Copy current tile16 bitmap pixels into the blockset atlas at the given
   // tile position. Consolidates the repeated 16x16 copy loops.

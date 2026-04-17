@@ -24,7 +24,7 @@
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
@@ -59,11 +59,11 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     // Check if scratch space has data
     bool scratch_has_data = editor_->scratch_space_.in_use;
 
-    // Pass PanelManager to toolbar for panel visibility management
+    // Pass WorkspaceWindowManager to toolbar for panel visibility management
     editor_->toolbar_->Draw(
         editor_->current_world_, editor_->current_map_,
         editor_->current_map_lock_, editor_->current_mode,
-        editor_->entity_edit_mode_, editor_->dependencies_.panel_manager,
+        editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
         has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_);
 
     // Toolbar toggles don't currently update canvas usage mode.
@@ -93,7 +93,17 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->ow_map_canvas_, editor_->current_map_,
         editor_->current_map_lock_, editor_->show_map_properties_panel_,
         editor_->show_custom_bg_color_editor_, editor_->show_overlay_editor_,
-        static_cast<int>(editor_->current_mode));
+        static_cast<int>(editor_->current_mode), [this]() {
+          if (editor_->dependencies_.window_manager) {
+            const size_t session_id =
+                editor_->dependencies_.window_manager->GetActiveSessionId();
+            editor_->dependencies_.window_manager->OpenWindow(
+                session_id, OverworldPanelIds::kMapProperties);
+            editor_->dependencies_.window_manager->MarkWindowRecentlyUsed(
+                OverworldPanelIds::kMapProperties);
+          }
+          editor_->show_map_properties_panel_ = true;
+        });
   }
 
   // Configure canvas frame options
@@ -254,9 +264,9 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
     int map_x = static_cast<int>(xx * kOverworldMapSize * scale);
     int map_y = static_cast<int>(yy * kOverworldMapSize * scale);
 
-    // Check if the map has a texture, if not, ensure it gets loaded
-    if (!editor_->maps_bmp_[world_index].texture() &&
-        editor_->maps_bmp_[world_index].is_active()) {
+    // Ensure visible maps are materialized on demand before drawing.
+    if (!editor_->maps_bmp_[world_index].is_active() ||
+        !editor_->maps_bmp_[world_index].texture()) {
       editor_->EnsureMapTexture(world_index);
     }
 
@@ -373,8 +383,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
 
   if (result.tile_double_clicked) {
-    if (editor_->dependencies_.panel_manager) {
-      editor_->dependencies_.panel_manager->ShowPanel(
+    if (editor_->dependencies_.window_manager) {
+      editor_->dependencies_.window_manager->OpenWindow(
           OverworldPanelIds::kTile16Editor);
     }
   }

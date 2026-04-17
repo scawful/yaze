@@ -144,8 +144,8 @@ TEST(Tile16RendererTest, BitmapRendererValidatesInputsAndCreates16x16Bitmap) {
   EXPECT_FALSE(null_output.ok());
 
   gfx::Bitmap output_bitmap;
-  auto empty_source =
-      RenderTile16BitmapFromMetadata(tile_data, {}, &output_bitmap);
+  auto empty_source = RenderTile16BitmapFromMetadata(
+      tile_data, std::vector<gfx::Bitmap>{}, &output_bitmap);
   EXPECT_FALSE(empty_source.ok());
 
   auto status =

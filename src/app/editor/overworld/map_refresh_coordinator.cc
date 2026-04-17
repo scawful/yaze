@@ -597,7 +597,7 @@ absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
         gfx::Arena::TextureCommandType::UPDATE, ctx_.current_gfx_bmp);
   }
 
-  const auto tile16_data = ctx_.overworld->tile16_blockset_data();
+  const auto& tile16_data = ctx_.overworld->tile16_blockset_data();
 
   gfx::UpdateTilemap(ctx_.renderer, *ctx_.tile16_blockset, tile16_data);
   ctx_.tile16_blockset->atlas.SetPalette(*ctx_.palette);
