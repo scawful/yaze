@@ -180,13 +180,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (prev_blockset_ != room.blockset() || prev_palette_ != room.palette() ||
         prev_layout_ != room.layout_id() ||
         prev_spriteset_ != room.spriteset()) {
-      // Only reload if ROM is properly loaded
       if (room.rom() && room.rom()->is_loaded()) {
-        // Force reload of room graphics
-        // Room buffers are now self-contained - no need for separate palette
-        // operations
-        room.LoadRoomGraphics(room.blockset());
-        room.RenderRoomGraphics();  // Applies palettes internally
+        room.ReloadGraphics(room.blockset());
       }
 
       prev_blockset_ = room.blockset();
@@ -775,12 +770,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         "Show Layer Info", ICON_MD_LAYERS,
         [this]() { show_layer_info_ = !show_layer_info_; }));
 
-    debug_menu.subitems.push_back(
-        gui::CanvasMenuItem("Force Reload", ICON_MD_REFRESH, [&room]() {
-          room.LoadObjects();
-          room.LoadRoomGraphics(room.blockset());
-          room.RenderRoomGraphics();
-        }));
+    debug_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Force Reload", ICON_MD_REFRESH,
+        [&room]() { room.ReloadGraphics(room.blockset()); }));
 
     debug_menu.subitems.push_back(gui::CanvasMenuItem(
         "Log Room State", ICON_MD_PRINT, [&room, room_id]() {
@@ -964,6 +956,25 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       auto& bg1 = room.bg1_buffer().bitmap();
       auto& bg2 = room.bg2_buffer().bitmap();
 
+      auto ensure_bitmap_texture = [this](gfx::Bitmap& bitmap) {
+        if (!renderer_ || !bitmap.is_active() || bitmap.width() <= 0) {
+          return;
+        }
+        if (!bitmap.texture()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::CREATE, &bitmap);
+        } else if (bitmap.modified()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              gfx::Arena::TextureCommandType::UPDATE, &bitmap);
+        }
+      };
+
+      ensure_bitmap_texture(bg1);
+      ensure_bitmap_texture(bg2);
+      if (renderer_) {
+        gfx::Arena::Get().ProcessTextureQueue(renderer_);
+      }
+
       ImGui::Text("BG1 Bitmap");
       ImGui::Text("  Size: %dx%d", bg1.width(), bg1.height());
       ImGui::Text("  Active: %s", bg1.is_active() ? "YES" : "NO");
@@ -1032,35 +1043,27 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     // Update object interaction context
     object_interaction_.SetCurrentRoom(rooms_, room_id);
 
-    // Check if THIS ROOM's buffers need rendering (not global arena!)
-    auto& bg1_bitmap = room.bg1_buffer().bitmap();
-    bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
-
-    // Render immediately if needed (but only once per room change)
-    static int last_rendered_room = -1;
-    static bool has_rendered = false;
-    if (needs_render && (last_rendered_room != room_id || !has_rendered)) {
-      printf(
-          "[DungeonCanvasViewer] Loading and rendering graphics for room %d\n",
-          room_id);
-      (void)LoadAndRenderRoomGraphics(room_id);
-      last_rendered_room = room_id;
-      has_rendered = true;
-    }
-
-    // Load room objects if not already loaded
-    if (room.GetTileObjects().empty()) {
+    if (!room.AreObjectsLoaded()) {
       room.LoadObjects();
     }
 
-    // Load sprites if not already loaded
-    if (room.GetSprites().empty()) {
+    if (!room.AreSpritesLoaded()) {
       room.LoadSprites();
     }
 
-    // Load pot items if not already loaded
-    if (room.GetPotItems().empty()) {
+    if (!room.ArePotItemsLoaded()) {
       room.LoadPotItems();
+    }
+
+    auto& bg1_bitmap = room.bg1_buffer().bitmap();
+    bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
+
+    static int last_rendered_room = -1;
+    static bool has_rendered = false;
+    if (needs_render && (last_rendered_room != room_id || !has_rendered)) {
+      (void)LoadAndRenderRoomGraphics(room_id);
+      last_rendered_room = room_id;
+      has_rendered = true;
     }
 
     // CRITICAL: Process texture queue BEFORE drawing to ensure textures are
@@ -1820,12 +1823,6 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   auto& room = (*rooms_)[room_id];
   LOG_DEBUG("[LoadAndRender]", "Got room reference");
 
-  // Load room graphics with proper blockset
-  LOG_DEBUG("[LoadAndRender]", "Loading graphics for blockset %d",
-            room.blockset());
-  room.LoadRoomGraphics(room.blockset());
-  LOG_DEBUG("[LoadAndRender]", "Graphics loaded");
-
   // Load the room's palette with bounds checking
   if (!game_data_) {
     LOG_ERROR("[LoadAndRender]", "GameData not available");
@@ -1833,22 +1830,10 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
   }
   const auto& dungeon_main = game_data_->palette_groups.dungeon_main;
   if (!dungeon_main.empty()) {
-    // Match Room::RenderRoomGraphics palette resolution:
-    // paletteset_ids[palette][0] is an offset into the pointer table, and the
-    // pointed word divided by 180 yields the actual dungeon palette index.
-    int palette_id = static_cast<int>(room.palette());
-    if (room.palette() < game_data_->paletteset_ids.size() &&
-        !game_data_->paletteset_ids[room.palette()].empty()) {
-      const auto dungeon_palette_ptr =
-          game_data_->paletteset_ids[room.palette()][0];
-      auto palette_word = rom_->ReadWord(zelda3::kDungeonPalettePointerTable +
-                                         dungeon_palette_ptr);
-      if (palette_word.ok()) {
-        palette_id = palette_word.value() / 180;
-      }
-    }
-    current_palette_group_id_ = std::min<uint64_t>(
-        std::max(0, palette_id), static_cast<int>(dungeon_main.size() - 1));
+    // Use Room's canonical two-level palette resolver; it already clamps to
+    // the dungeon_main group size.
+    current_palette_group_id_ =
+        static_cast<uint64_t>(room.ResolveDungeonPaletteId());
 
     auto full_palette = dungeon_main[current_palette_group_id_];
     ASSIGN_OR_RETURN(current_palette_group_,
@@ -1859,7 +1844,7 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
 
   // Render the room graphics (self-contained - handles all palette application)
   LOG_DEBUG("[LoadAndRender]", "Calling room.RenderRoomGraphics()...");
-  room.RenderRoomGraphics();
+  room.ReloadGraphics(room.blockset());
   LOG_DEBUG("[LoadAndRender]",
             "RenderRoomGraphics() complete - room buffers self-contained");
 
