@@ -708,7 +708,8 @@ void Room::RenderRoomGraphics() {
       !dirty_state_.layout && !dirty_state_.textures) {
     auto& bg1_bmp = bg1_buffer_.bitmap();
     auto& bg2_bmp = bg2_buffer_.bitmap();
-    if (bg1_bmp.texture() && bg2_bmp.texture()) {
+    if (bg1_bmp.is_active() && bg1_bmp.width() > 0 && bg2_bmp.is_active() &&
+        bg2_bmp.width() > 0) {
       LOG_DEBUG("[RenderRoomGraphics]",
                 "Room %d: No changes detected, skipping render", room_id_);
       return;
@@ -926,31 +927,18 @@ void Room::RenderRoomGraphics() {
   // set
   RenderObjectsToBackground();
 
-  // PERFORMANCE OPTIMIZATION: Queue texture commands but DON'T process
-  // immediately. This allows multiple rooms to batch their texture updates
-  // together. Processing happens in DrawDungeonCanvas() once per frame.
-  //
-  // IMPORTANT: Check each buffer INDIVIDUALLY for existing texture.
-  // Layout and object buffers may have different states (e.g., layout rendered
-  // but objects added later need CREATE, not UPDATE).
-  auto queue_texture = [](gfx::Bitmap* bitmap, const char* name) {
+  auto release_texture = [](gfx::Bitmap* bitmap) {
     if (bitmap->texture()) {
-      LOG_DEBUG("[RenderRoomGraphics]", "Queueing UPDATE for %s", name);
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::UPDATE, bitmap);
-    } else {
-      LOG_DEBUG("[RenderRoomGraphics]", "Queueing CREATE for %s", name);
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, bitmap);
+          gfx::Arena::TextureCommandType::DESTROY, bitmap);
     }
   };
 
-  queue_texture(&bg1_bmp, "bg1_buffer");
-  queue_texture(&bg2_bmp, "bg2_buffer");
-  queue_texture(&object_bg1_buffer_.bitmap(), "object_bg1_buffer");
-  queue_texture(&object_bg2_buffer_.bitmap(), "object_bg2_buffer");
+  release_texture(&bg1_bmp);
+  release_texture(&bg2_bmp);
+  release_texture(&object_bg1_buffer_.bitmap());
+  release_texture(&object_bg2_buffer_.bitmap());
 
-  // Mark textures as clean after successful queuing
   dirty_state_.textures = false;
 
   // IMPORTANT: Mark composite as dirty after any render work

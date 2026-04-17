@@ -13,10 +13,12 @@
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "core/hack_manifest.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
@@ -283,10 +285,24 @@ class DungeonMapPanel : public WindowContent {
       if (rooms_) {
         auto* loaded_room = rooms_->GetIfLoaded(room_id);
         if (loaded_room != nullptr) {
-          auto& bg1_bitmap = loaded_room->bg1_buffer().bitmap();
-          if (bg1_bitmap.is_active() && bg1_bitmap.texture() != 0) {
+          zelda3::RoomLayerManager layer_mgr;
+          layer_mgr.ApplyLayerMerging(loaded_room->layer_merging());
+          auto& preview_bitmap = loaded_room->GetCompositeBitmap(layer_mgr);
+          if (preview_bitmap.is_active() && preview_bitmap.width() > 0) {
+            if (!preview_bitmap.texture()) {
+              gfx::Arena::Get().QueueTextureCommand(
+                  gfx::Arena::TextureCommandType::CREATE, &preview_bitmap);
+              gfx::Arena::Get().ProcessTextureQueue(nullptr);
+            } else if (preview_bitmap.modified()) {
+              gfx::Arena::Get().QueueTextureCommand(
+                  gfx::Arena::TextureCommandType::UPDATE, &preview_bitmap);
+              gfx::Arena::Get().ProcessTextureQueue(nullptr);
+              preview_bitmap.set_modified(false);
+            }
+          }
+          if (preview_bitmap.is_active() && preview_bitmap.texture() != 0) {
             // Draw room thumbnail
-            draw_list->AddImage((ImTextureID)(intptr_t)bg1_bitmap.texture(),
+            draw_list->AddImage((ImTextureID)(intptr_t)preview_bitmap.texture(),
                                 room_min, room_max);
           } else {
             // Placeholder for loaded but no texture
