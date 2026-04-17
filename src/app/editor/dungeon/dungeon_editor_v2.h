@@ -148,13 +148,6 @@ class DungeonEditorV2 : public Editor {
 
     // Reset viewers on ROM change
     room_viewers_.Clear();
-
-    // Create render service if needed
-    if (rom && rom->is_loaded() && !render_service_) {
-      render_service_ =
-          std::make_unique<emu::render::EmulatorRenderService>(rom);
-      render_service_->Initialize();
-    }
   }
   Rom* rom() const { return rom_; }
 

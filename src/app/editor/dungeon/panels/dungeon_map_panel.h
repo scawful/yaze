@@ -280,17 +280,35 @@ class DungeonMapPanel : public WindowContent {
       }
 
       // Draw room thumbnail or placeholder
-      if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-        auto& bg1_bitmap = (*rooms_)[room_id].bg1_buffer().bitmap();
-        if (bg1_bitmap.is_active() && bg1_bitmap.texture() != 0) {
-          // Draw room thumbnail
-          draw_list->AddImage((ImTextureID)(intptr_t)bg1_bitmap.texture(),
-                              room_min, room_max);
+      if (rooms_) {
+        auto* loaded_room = rooms_->GetIfLoaded(room_id);
+        if (loaded_room != nullptr) {
+          auto& bg1_bitmap = loaded_room->bg1_buffer().bitmap();
+          if (bg1_bitmap.is_active() && bg1_bitmap.texture() != 0) {
+            // Draw room thumbnail
+            draw_list->AddImage((ImTextureID)(intptr_t)bg1_bitmap.texture(),
+                                room_min, room_max);
+          } else {
+            // Placeholder for loaded but no texture
+            draw_list->AddRectFilled(
+                room_min, room_max,
+                ImGui::ColorConvertFloat4ToU32(theme.panel_bg_color));
+          }
         } else {
-          // Placeholder for loaded but no texture
+          // Not loaded - gray placeholder
           draw_list->AddRectFilled(
               room_min, room_max,
-              ImGui::ColorConvertFloat4ToU32(theme.panel_bg_color));
+              ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker));
+
+          // Show room ID
+          char label[8];
+          snprintf(label, sizeof(label), "%02X", room_id);
+          ImVec2 text_size = ImGui::CalcTextSize(label);
+          ImVec2 text_pos(room_min.x + (kRoomWidth - text_size.x) * 0.5f,
+                          room_min.y + (kRoomHeight - text_size.y) * 0.5f);
+          draw_list->AddText(
+              text_pos,
+              ImGui::ColorConvertFloat4ToU32(theme.text_secondary_gray), label);
         }
       } else {
         // Not loaded - gray placeholder
@@ -375,8 +393,10 @@ class DungeonMapPanel : public WindowContent {
         ImGui::BeginTooltip();
         ImGui::Text("[%03X] %s", room_id,
                     zelda3::GetRoomLabel(room_id).c_str());
-        if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-          ImGui::TextDisabled("Palette: %d", (*rooms_)[room_id].palette());
+        if (rooms_) {
+          if (auto* loaded_room = rooms_->GetIfLoaded(room_id)) {
+            ImGui::TextDisabled("Palette: %d", loaded_room->palette());
+          }
         }
         ImGui::TextDisabled("Click to select");
         ImGui::EndTooltip();

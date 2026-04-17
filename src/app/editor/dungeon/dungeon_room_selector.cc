@@ -49,14 +49,17 @@ bool DungeonRoomSelector::PassesEntityTypeFilter(int room_id) const {
   if (!rooms_ || room_id < 0 || room_id >= static_cast<int>(rooms_->size())) {
     return true;
   }
-  const auto& room = (*rooms_)[room_id];
+  const auto* room = rooms_->GetIfLoaded(room_id);
+  if (room == nullptr) {
+    return false;
+  }
   switch (entity_type_filter_) {
     case kFilterHasSprites:
-      return !room.GetSprites().empty();
+      return !room->GetSprites().empty();
     case kFilterHasItems:
-      return !room.GetPotItems().empty();
+      return !room->GetPotItems().empty();
     case kFilterHasObjects:
-      return !room.GetTileObjects().empty();
+      return !room->GetTileObjects().empty();
     default:
       return true;
   }
@@ -230,17 +233,20 @@ void DungeonRoomSelector::DrawRoomSelector(
         if (ImGui::IsItemHovered()) {
           ImGui::BeginTooltip();
           ImGui::Text("%s", display_name.c_str());
-          if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
-            ImGui::TextDisabled("Blockset: %d | Palette: %d",
-                                (*rooms_)[room_id].blockset(),
-                                (*rooms_)[room_id].palette());
-            auto& room = (*rooms_)[room_id];
-            zelda3::RoomLayerManager layer_mgr;
-            layer_mgr.ApplyLayerMerging(room.layer_merging());
-            auto& bmp = room.GetCompositeBitmap(layer_mgr);
-            if (bmp.is_active() && bmp.texture() != 0) {
-              ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
-                           ImVec2(64, 64));
+          if (rooms_) {
+            auto* loaded_room = rooms_->GetIfLoaded(room_id);
+            if (loaded_room != nullptr) {
+              ImGui::TextDisabled("Blockset: %d | Palette: %d",
+                                  loaded_room->blockset(),
+                                  loaded_room->palette());
+              auto& room = *loaded_room;
+              zelda3::RoomLayerManager layer_mgr;
+              layer_mgr.ApplyLayerMerging(room.layer_merging());
+              auto& bmp = room.GetCompositeBitmap(layer_mgr);
+              if (bmp.is_active() && bmp.texture() != 0) {
+                ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
+                             ImVec2(64, 64));
+              }
             }
           }
           ImGui::EndTooltip();
@@ -518,10 +524,11 @@ void DungeonRoomSelector::DrawGroupedRoomList(
   for (int room_id : filtered_room_indices_) {
     int key = 255;  // Unknown/unloaded
     const char* group_name = "Unloaded";
-    if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size()) &&
-        (*rooms_)[room_id].IsLoaded()) {
-      key = (*rooms_)[room_id].blockset();
-      group_name = GetBlocksetGroupName(static_cast<uint8_t>(key));
+    if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size())) {
+      if (auto* loaded_room = rooms_->GetIfLoaded(room_id)) {
+        key = loaded_room->blockset();
+        group_name = GetBlocksetGroupName(static_cast<uint8_t>(key));
+      }
     }
     auto& g = groups[key];
     g.name = group_name;
@@ -577,22 +584,24 @@ void DungeonRoomSelector::DrawGroupedRoomList(
           }
 
           // Tooltip with thumbnail
-          if (ImGui::IsItemHovered() && rooms_ &&
-              (*rooms_)[room_id].IsLoaded()) {
-            ImGui::BeginTooltip();
-            ImGui::Text("%s", display_name.c_str());
-            ImGui::TextDisabled("Blockset: %d | Palette: %d",
-                                (*rooms_)[room_id].blockset(),
-                                (*rooms_)[room_id].palette());
-            auto& room = (*rooms_)[room_id];
-            zelda3::RoomLayerManager layer_mgr;
-            layer_mgr.ApplyLayerMerging(room.layer_merging());
-            auto& bmp = room.GetCompositeBitmap(layer_mgr);
-            if (bmp.is_active() && bmp.texture() != 0) {
-              ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
-                           ImVec2(64, 64));
+          if (ImGui::IsItemHovered() && rooms_) {
+            auto* loaded_room = rooms_->GetIfLoaded(room_id);
+            if (loaded_room != nullptr) {
+              ImGui::BeginTooltip();
+              ImGui::Text("%s", display_name.c_str());
+              ImGui::TextDisabled("Blockset: %d | Palette: %d",
+                                  loaded_room->blockset(),
+                                  loaded_room->palette());
+              auto& room = *loaded_room;
+              zelda3::RoomLayerManager layer_mgr;
+              layer_mgr.ApplyLayerMerging(room.layer_merging());
+              auto& bmp = room.GetCompositeBitmap(layer_mgr);
+              if (bmp.is_active() && bmp.texture() != 0) {
+                ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
+                             ImVec2(64, 64));
+              }
+              ImGui::EndTooltip();
             }
-            ImGui::EndTooltip();
           }
         }
       }
