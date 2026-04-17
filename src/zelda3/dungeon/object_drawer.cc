@@ -165,7 +165,10 @@ absl::Status ObjectDrawer::DrawObject(
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
   int subtype = object.size_ & 0x1F;
   bool is_custom_object = false;
-  if (core::FeatureFlags::get().kEnableCustomObjects &&
+  const bool is_track_corner_alias = object.id_ >= 0x100 && object.id_ <= 0x103;
+  const bool allow_custom_override =
+      !is_track_corner_alias || this->allow_track_corner_aliases_;
+  if (core::FeatureFlags::get().kEnableCustomObjects && allow_custom_override &&
       CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok()) {
     is_custom_object = true;
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
@@ -322,8 +325,10 @@ absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
     [[maybe_unused]] const DungeonState* state,
-    gfx::BackgroundBuffer* layout_bg1) {
-  ResetChestIndex();
+    gfx::BackgroundBuffer* layout_bg1, bool reset_chest_index) {
+  if (reset_chest_index) {
+    ResetChestIndex();
+  }
   absl::Status status = absl::OkStatus();
 
   // DEBUG: Count objects routed to each buffer
@@ -1688,25 +1693,18 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
 // Utility Methods
 // ============================================================================
 
-void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
-                                      int tile_y, int pixel_width,
-                                      int pixel_height) {
+void ObjectDrawer::MarkBg1RectTransparent(gfx::BackgroundBuffer& bg1,
+                                          int start_px, int start_py,
+                                          int pixel_width, int pixel_height) {
   auto& bitmap = bg1.bitmap();
   if (!bitmap.is_active() || bitmap.width() == 0) {
-    LOG_DEBUG("ObjectDrawer", "MarkBG1Transparent: Bitmap not ready, skipping");
-    return;  // Bitmap not ready
+    return;
   }
 
-  int start_px = tile_x * 8;
-  int start_py = tile_y * 8;
   int canvas_width = bitmap.width();
   int canvas_height = bitmap.height();
   auto& data = bitmap.mutable_data();
 
-  int pixels_marked = 0;
-
-  // Mark pixels as transparent (255) where BG2 overlay objects are drawn
-  // This creates "holes" in BG1 that allow BG2 content to show through
   for (int py = start_py; py < start_py + pixel_height && py < canvas_height;
        py++) {
     if (py < 0)
@@ -1717,18 +1715,18 @@ void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
         continue;
       int idx = py * canvas_width + px;
       if (idx >= 0 && idx < static_cast<int>(data.size())) {
-        data[idx] = 255;  // 255 = transparent in our compositing system
-        pixels_marked++;
+        data[idx] = 255;
       }
     }
   }
   bitmap.set_modified(true);
+}
 
-  LOG_DEBUG("ObjectDrawer",
-            "MarkBG1Transparent: Marked %d pixels at tile(%d,%d) pixel(%d,%d) "
-            "size(%d,%d)",
-            pixels_marked, tile_x, tile_y, start_px, start_py, pixel_width,
-            pixel_height);
+void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
+                                      int tile_y, int pixel_width,
+                                      int pixel_height) {
+  MarkBg1RectTransparent(bg1, tile_x * 8, tile_y * 8, pixel_width,
+                         pixel_height);
 }
 
 void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
@@ -2753,10 +2751,14 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(
   auto& manager = CustomObjectManager::Get();
 
   int subtype = obj.size_ & 0x1F;
+  const std::string filename = manager.ResolveFilename(obj.id_, subtype);
   auto result = manager.GetObjectInternal(obj.id_, subtype);
   if (!result.ok()) {
-    LOG_DEBUG("ObjectDrawer", "Custom object 0x%03X subtype %d not found: %s",
-              obj.id_, subtype, result.status().message().data());
+    DrawMissingCustomObjectPlaceholder(bg, obj.x_, obj.y_);
+    LOG_DEBUG("ObjectDrawer",
+              "Custom object 0x%03X subtype %d (%s) not found: %s", obj.id_,
+              subtype, filename.empty() ? "<unmapped>" : filename.c_str(),
+              result.status().message().data());
     return;
   }
 
@@ -2774,6 +2776,54 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(
     gfx::TileInfo tile_info = gfx::WordToTileInfo(entry.tile_data);
     WriteTile8(bg, tile_x + entry.rel_x, tile_y + entry.rel_y, tile_info);
   }
+}
+
+void yaze::zelda3::ObjectDrawer::DrawMissingCustomObjectPlaceholder(
+    gfx::BackgroundBuffer& bg, int tile_x, int tile_y) {
+  if (trace_only_) {
+    return;
+  }
+
+  auto& bitmap = bg.bitmap();
+  if (!bitmap.is_active() || bitmap.width() <= 0 || bitmap.height() <= 0) {
+    return;
+  }
+
+  auto& pixels = bitmap.mutable_data();
+  auto& coverage = bg.mutable_coverage_data();
+  auto& priority = bg.mutable_priority_data();
+
+  constexpr int kPlaceholderSizePx = 16;
+  constexpr uint8_t kFillColor = 33;
+  constexpr uint8_t kAccentColor = 47;
+
+  const int start_x = tile_x * 8;
+  const int start_y = tile_y * 8;
+  const int width = bitmap.width();
+  const int height = bitmap.height();
+
+  for (int py = 0; py < kPlaceholderSizePx; ++py) {
+    const int dest_y = start_y + py;
+    if (dest_y < 0 || dest_y >= height)
+      continue;
+    for (int px = 0; px < kPlaceholderSizePx; ++px) {
+      const int dest_x = start_x + px;
+      if (dest_x < 0 || dest_x >= width)
+        continue;
+      const bool border =
+          (px == 0 || py == 0 || px == kPlaceholderSizePx - 1 ||
+           py == kPlaceholderSizePx - 1);
+      const bool diagonal =
+          (px == py) || (px + py == kPlaceholderSizePx - 1);
+      const int dest_index = dest_y * width + dest_x;
+      pixels[dest_index] = (border || diagonal) ? kAccentColor : kFillColor;
+      if (dest_index < static_cast<int>(coverage.size()))
+        coverage[dest_index] = 1;
+      if (dest_index < static_cast<int>(priority.size()))
+        priority[dest_index] = 0;
+    }
+  }
+  bitmap.set_modified(true);
 }
 
 void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,

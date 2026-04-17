@@ -51,6 +51,15 @@ class RoomObject {
  public:
   enum LayerType { BG1 = 0, BG2 = 1, BG3 = 2 };
 
+  // ROM room object stream index (0=primary, 1=BG2 overlay, 2=BG1 overlay).
+  // Same numeric values as LayerType for encode buckets; use only when the
+  // object came from the room object stream (see `layer_` comment below).
+  enum ListIndex : uint8_t {
+    kListPrimary = 0,
+    kListBg2Overlay = 1,
+    kListBg1Overlay = 2
+  };
+
   RoomObject(int16_t id, uint8_t x, uint8_t y, uint8_t size, uint8_t layer = 0)
       : id_(id),
         x_(x),
@@ -171,6 +180,10 @@ class RoomObject {
   mutable int tile_count_ = 0;
   mutable int tile_data_ptr_ = -1;  // Pointer to tile data in ROM
 
+  // For ROM-backed rooms this is the object *list* index (0=primary, 1=BG2
+  // overlay, 2=BG1 overlay), matching `Room::EncodeObjects` buckets. The editor
+  // reuses the same 0..2 values; use MapRoomObjectListIndexToDrawLayer() before
+  // passing to ObjectDrawer.
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
 
@@ -180,6 +193,25 @@ class RoomObject {
   void RefreshDerivedFlagsFromId();
   void InvalidateTileCache();
 };
+
+// USDASM (LoadAndBuildRoom): three room-object lists separated by $FFFF after the
+// floor/layout header. `RoomObject::layer_` stores that list index (0, 1, 2) for
+// encode round-trip — not the same as “which SNES buffer”. After
+// `RoomDraw_DrawFloors`, the layout pass and the primary room-object list both
+// still target the upper/BG1 tilemap pointers; only the post-$FFFF overlay pass
+// explicitly swaps to lower/BG2, and the final pass swaps back to upper/BG1.
+// Use this when building draw lists.
+inline RoomObject::LayerType MapRoomObjectListIndexToDrawLayer(
+    uint8_t list_index) {
+  if (list_index > 2) {
+    list_index = 2;
+  }
+  if (list_index == 1) {
+    return RoomObject::LayerType::BG2;
+  }
+  return list_index == 0 ? RoomObject::LayerType::BG1
+                         : RoomObject::LayerType::BG3;
+}
 
 // NOTE: Legacy Subtype1, Subtype2, Subtype3 classes removed.
 // These were ported from ZScream but are no longer used.
@@ -669,9 +701,12 @@ inline std::string GetObjectName(int object_id) {
 
 // Helper to get object type/subtype from ID
 inline int GetObjectSubtype(int object_id) {
-  if (object_id < 0x100) return 1;
-  if (object_id < 0x200) return 2;
-  if (object_id >= 0xF80) return 3;
+  if (object_id < 0x100)
+    return 1;
+  if (object_id < 0x200)
+    return 2;
+  if (object_id >= 0xF80)
+    return 3;
   return 0;  // Unknown
 }
 
