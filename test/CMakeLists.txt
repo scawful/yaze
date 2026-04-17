@@ -321,6 +321,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
     integration/zelda3/dungeon_object_rom_validation_test.cc
+    integration/zelda3/dungeon_room_render_parity_test.cc
     integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
     integration/zelda3/minecart_audit_integration_test.cc
