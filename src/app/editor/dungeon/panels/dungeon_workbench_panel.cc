@@ -647,21 +647,18 @@ void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
 
   if (ImGui::BeginTabItem(ICON_MD_CASTLE " Room")) {
     DrawInspectorShelfRoom(viewer);
-
-    // --- View toggles (collapsed by default) ---
-    if (ImGui::CollapsingHeader(ICON_MD_VISIBILITY " View Toggles")) {
-      DrawInspectorShelfView(viewer);
-    }
-
-    // --- Quick launch buttons (collapsed by default) ---
-    if (ImGui::CollapsingHeader(ICON_MD_BUILD " Tools")) {
-      DrawInspectorShelfTools(viewer);
-    }
-
     ImGui::EndTabItem();
   }
   if (ImGui::BeginTabItem(ICON_MD_SELECT_ALL " Selection")) {
     DrawInspectorShelfSelection(viewer);
+    ImGui::EndTabItem();
+  }
+  if (ImGui::BeginTabItem(ICON_MD_VISIBILITY " View")) {
+    DrawInspectorShelfView(viewer);
+    ImGui::EndTabItem();
+  }
+  if (ImGui::BeginTabItem(ICON_MD_BUILD " Tools")) {
+    DrawInspectorShelfTools(viewer);
     ImGui::EndTabItem();
   }
 
@@ -734,93 +731,20 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
   }
 
   if (show_panel_) {
-    if (ImGui::Button(ICON_MD_IMAGE " Room Graphics", ImVec2(-1, 0))) {
-      show_panel_("dungeon.room_graphics");
-    }
-    if (ImGui::Button(ICON_MD_SETTINGS " Settings", ImVec2(-1, 0))) {
-      show_panel_("dungeon.settings");
-    }
-  }
-
-  // D6 Goron Mines quick-nav: jump to any of the four flagged minecart rooms.
-  if (viewer.CanNavigateRooms()) {
-    ImGui::Spacing();
-    ImGui::TextDisabled(ICON_MD_TRAIN " D6 Goron Mines");
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Jump to a D6 Goron Mines minecart room.\n"
-          "Rooms flagged for minecart audit (2026-02-13).");
-    }
-
-    struct D6Room {
-      int id;
-      const char* label;
-    };
-    static constexpr D6Room kD6Rooms[] = {
-        {0xA8, "0xA8 Entry"},
-        {0xB8, "0xB8 L-Shape"},
-        {0xD8, "0xD8 3-Net"},
-        {0xDA, "0xDA U-Shape"},
-    };
-
-    constexpr ImGuiTableFlags kFlags =
+    ImGui::TextDisabled(ICON_MD_OPEN_IN_NEW " Open Panels");
+    constexpr ImGuiTableFlags kPanelFlags =
         ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
-    if (ImGui::BeginTable("##D6QuickNav", 2, kFlags)) {
-      for (const auto& r : kD6Rooms) {
-        ImGui::TableNextColumn();
-        ImGui::PushID(r.id);
-        const bool is_current = (room_id == r.id);
-        if (is_current) {
-          ImGui::BeginDisabled();
-        }
-        if (ImGui::Button(r.label, ImVec2(-1, 0))) {
-          // NavigateToRoom dispatches through the viewer's configured
-          // room-swap/room-navigation callback; avoid double-calling
-          // on_room_selected_ here.
-          viewer.NavigateToRoom(r.id);
-        }
-        if (is_current) {
-          ImGui::EndDisabled();
-        }
-        if (ImGui::IsItemHovered() && !is_current) {
-          ImGui::SetTooltip("Jump to room 0x%03X", r.id);
-        }
-        ImGui::PopID();
+    if (ImGui::BeginTable("##WorkbenchRoomPanels", 2, kPanelFlags)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      if (ImGui::Button(ICON_MD_IMAGE " Graphics", ImVec2(-1, 0))) {
+        show_panel_("dungeon.room_graphics");
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button(ICON_MD_SETTINGS " Settings", ImVec2(-1, 0))) {
+        show_panel_("dungeon.settings");
       }
       ImGui::EndTable();
-    }
-  }
-
-  // Recent rooms quick-jump
-  if (get_recent_rooms_ && on_room_selected_) {
-    const auto& recent = get_recent_rooms_();
-    if (recent.size() > 1) {
-      ImGui::Spacing();
-      ImGui::TextDisabled(ICON_MD_HISTORY " Recent Rooms");
-
-      ImGui::BeginChild("##RecentRoomsQuickJump", ImVec2(0, 0),
-                        ImGuiChildFlags_AutoResizeY);
-      for (int rid : recent) {
-        if (rid == room_id)
-          continue;
-        ImGui::PushID(rid);
-        auto name = zelda3::GetRoomLabel(rid);
-        char label[64];
-        if (name.empty() || name == "Unknown") {
-          snprintf(label, sizeof(label), ICON_MD_ROOM " 0x%03X", rid);
-        } else {
-          snprintf(label, sizeof(label), ICON_MD_ROOM " 0x%03X %.16s", rid,
-                   name.c_str());
-        }
-        if (ImGui::Selectable(label)) {
-          on_room_selected_(rid);
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Jump to room 0x%03X\n%s", rid, name.c_str());
-        }
-        ImGui::PopID();
-      }
-      ImGui::EndChild();
     }
   }
 
