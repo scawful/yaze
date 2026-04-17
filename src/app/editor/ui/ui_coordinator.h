@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/system/command_palette.h"
+#include "app/editor/ui/new_project_dialog.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/welcome_screen.h"
 #include "app/gui/core/icons.h"
@@ -38,6 +39,7 @@ class SessionCoordinator;
 class ToastManager;
 class WindowDelegate;
 class ShortcutManager;
+class WorkspaceWindowManager;
 
 /**
  * @class UICoordinator
@@ -60,7 +62,7 @@ class UICoordinator {
   UICoordinator(EditorManager* editor_manager, RomFileManager& rom_manager,
                 ProjectManager& project_manager,
                 EditorRegistry& editor_registry,
-                PanelManager& card_registry,
+                WorkspaceWindowManager& card_registry,
                 SessionCoordinator& session_coordinator,
                 WindowDelegate& window_delegate, ToastManager& toast_manager,
                 PopupManager& popup_manager, ShortcutManager& shortcut_manager);
@@ -109,24 +111,26 @@ class UICoordinator {
   void ShowLoadWorkspacePresetDialog() { show_load_workspace_preset_ = true; }
   // Session switcher is now managed by SessionCoordinator
   void ShowSessionSwitcher();
-  // Sidebar visibility delegates to PanelManager (single source of truth)
+  // Sidebar visibility delegates to WorkspaceWindowManager (single source of truth)
   void TogglePanelSidebar();
   void ShowGlobalSearch() { show_global_search_ = true; }
   void ShowCommandPalette() { show_command_palette_ = true; }
   void ShowPanelFinder() { show_panel_finder_ = true; }
-  void ShowPanelBrowser() { show_panel_browser_ = true; }
+  void ShowWindowBrowser() { show_panel_browser_ = true; }
 
   /**
    * @brief Initialize command palette with all discoverable commands
    * @param session_id Current session ID for panel commands
    */
   void InitializeCommandPalette(size_t session_id);
+  void RefreshWorkflowActions();
 
   /**
    * @brief Refresh command palette commands (call after session switch)
    * @param session_id New session ID
    */
   void RefreshCommandPalette(size_t session_id);
+  CommandPalette* command_palette() { return &command_palette_; }
 
   // Menu bar visibility (for WASM/web app mode)
   bool IsMenuBarVisible() const { return show_menu_bar_; }
@@ -153,13 +157,13 @@ class UICoordinator {
   bool IsPerformanceDashboardVisible() const {
     return show_performance_dashboard_;
   }
-  bool IsPanelBrowserVisible() const { return show_panel_browser_; }
+  bool IsWindowBrowserVisible() const { return show_panel_browser_; }
   bool IsCommandPaletteVisible() const { return show_command_palette_; }
-  // Sidebar visibility delegates to PanelManager (single source of truth)
+  // Sidebar visibility delegates to WorkspaceWindowManager (single source of truth)
   bool IsPanelSidebarVisible() const;
   bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
   bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
-  // Emulator visibility delegates to PanelManager (single source of truth)
+  // Emulator visibility delegates to WorkspaceWindowManager (single source of truth)
   bool IsEmulatorVisible() const;
   bool IsMemoryEditorVisible() const { return show_memory_editor_; }
   bool IsAsmEditorVisible() const { return show_asm_editor_; }
@@ -189,15 +193,15 @@ class UICoordinator {
   void SetPerformanceDashboardVisible(bool visible) {
     show_performance_dashboard_ = visible;
   }
-  void SetPanelBrowserVisible(bool visible) { show_panel_browser_ = visible; }
+  void SetWindowBrowserVisible(bool visible) { show_panel_browser_ = visible; }
   void SetCommandPaletteVisible(bool visible) {
     show_command_palette_ = visible;
   }
-  // Sidebar visibility delegates to PanelManager (single source of truth)
+  // Sidebar visibility delegates to WorkspaceWindowManager (single source of truth)
   void SetPanelSidebarVisible(bool visible);
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
-  // Emulator visibility delegates to PanelManager (single source of truth)
+  // Emulator visibility delegates to WorkspaceWindowManager (single source of truth)
   void SetEmulatorVisible(bool visible);
   void SetMemoryEditorVisible(bool visible) { show_memory_editor_ = visible; }
   void SetAsmEditorVisible(bool visible) { show_asm_editor_ = visible; }
@@ -209,13 +213,17 @@ class UICoordinator {
   void SetAIAgentVisible(bool visible) { show_ai_agent_ = visible; }
 
   // Startup surface management (single source of truth)
-  StartupSurface GetCurrentStartupSurface() const { return current_startup_surface_; }
+  StartupSurface GetCurrentStartupSurface() const {
+    return current_startup_surface_;
+  }
   void SetStartupSurface(StartupSurface surface);
   bool ShouldShowWelcome() const;
   bool ShouldShowDashboard() const;
   bool ShouldShowActivityBar() const;
   void SetChatHistoryVisible(bool visible) { show_chat_history_ = visible; }
-  void SetProposalDrawerVisible(bool visible) { show_proposal_drawer_ = visible; }
+  void SetProposalDrawerVisible(bool visible) {
+    show_proposal_drawer_ = visible;
+  }
 
   // Note: Theme styling is handled by ThemeManager, not UICoordinator
 
@@ -225,7 +233,7 @@ class UICoordinator {
   RomFileManager& rom_manager_;
   ProjectManager& project_manager_;
   EditorRegistry& editor_registry_;
-  PanelManager& panel_manager_;
+  WorkspaceWindowManager& window_manager_;
   SessionCoordinator& session_coordinator_;
   WindowDelegate& window_delegate_;
   ToastManager& toast_manager_;
@@ -246,8 +254,8 @@ class UICoordinator {
   bool show_panel_browser_ = false;
   bool show_panel_finder_ = false;
   bool show_command_palette_ = false;
-  // show_emulator_ removed - now managed by PanelManager
-  // show_panel_sidebar_ removed - now managed by PanelManager
+  // show_emulator_ removed - now managed by WorkspaceWindowManager
+  // show_panel_sidebar_ removed - now managed by WorkspaceWindowManager
   bool show_memory_editor_ = false;
   bool show_asm_editor_ = false;
   bool show_palette_editor_ = false;
@@ -257,7 +265,7 @@ class UICoordinator {
   bool show_proposal_drawer_ = false;
   bool show_save_workspace_preset_ = false;
   bool show_load_workspace_preset_ = false;
-  bool show_menu_bar_ = true;      // Menu bar visible by default
+  bool show_menu_bar_ = true;  // Menu bar visible by default
   StartupVisibility welcome_behavior_override_ = StartupVisibility::kAuto;
   StartupVisibility dashboard_behavior_override_ = StartupVisibility::kAuto;
 
@@ -270,7 +278,7 @@ class UICoordinator {
   char command_palette_query_[256] = {};
   int command_palette_selected_idx_ = 0;
 
-  // Panel Finder state
+  // Window Finder state
   char panel_finder_query_[256] = {};
   int panel_finder_selected_idx_ = 0;
 
@@ -280,6 +288,10 @@ class UICoordinator {
   // Welcome screen component
   std::unique_ptr<WelcomeScreen> welcome_screen_;
 
+  // "New Project" guided dialog. Opened when the welcome screen dispatches a
+  // template-creation request; owned here so it survives welcome-screen
+  // visibility transitions during startup.
+  NewProjectDialog new_project_dialog_;
 
   // Menu bar icon button helper - provides consistent styling for all menubar buttons
   // Returns true if button was clicked
@@ -301,7 +313,6 @@ class UICoordinator {
   void CenterWindow(const std::string& window_name);
   void PositionWindow(const std::string& window_name, float x, float y);
   void SetWindowSize(const std::string& window_name, float width, float height);
-
 };
 
 }  // namespace editor

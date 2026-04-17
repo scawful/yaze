@@ -4,6 +4,11 @@ set(
   app/editor/code/assembly_editor.cc
   app/editor/core/content_registry.cc
   app/editor/core/undo_manager.cc
+  app/editor/hack/workflow/hack_workflow_backend_factory.cc
+  app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
+  app/editor/hack/workflow/project_workflow_output_panel.cc
+  app/editor/hack/workflow/workflow_activity_widgets.cc
+  app/editor/system/background_command_task.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
@@ -95,8 +100,10 @@ set(
   app/editor/ui/about_panel.cc
   app/editor/ui/dashboard_panel.cc
   app/editor/ui/editor_selection_dialog.cc
-  app/editor/menu/right_panel_manager.cc
+  app/editor/menu/right_drawer_manager.cc
   app/editor/menu/status_bar.cc
+  app/editor/menu/window_browser.cc
+  app/editor/menu/window_sidebar.cc
   app/editor/ui/settings_panel.cc
   app/editor/ui/selection_properties_panel.cc
   app/editor/ui/project_management_panel.cc
@@ -108,6 +115,9 @@ set(
   app/editor/oracle/panels/story_event_graph_panel.cc
   app/editor/oracle/panels/oracle_validation_view_model.cc
   app/editor/oracle/panels/oracle_validation_panel.cc
+  app/editor/oracle/oracle_hack_workflow_backend.cc
+  app/editor/ui/new_project_dialog.cc
+  app/editor/ui/recent_projects_model.cc
   app/editor/ui/rom_load_options_dialog.cc
   app/editor/ui/ui_coordinator.cc
   app/editor/ui/welcome_screen.cc
@@ -126,7 +136,9 @@ set(
   app/editor/system/editor_activator.cc
   app/editor/system/editor_registry.cc
   app/editor/system/panel_host.cc
-  app/editor/system/panel_manager.cc
+  app/editor/system/workspace_window_manager.cc
+  app/editor/system/workspace_window_manager_state.cc
+  app/editor/system/workspace_window_manager_support.cc
   app/editor/system/file_browser.cc
   app/editor/system/proposal_drawer.cc
 )

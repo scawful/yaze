@@ -10,7 +10,8 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/events/core_events.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/ui/recent_projects_model.h"
 #include "core/project.h"
 #include "util/json.h"
 #include "util/log.h"
@@ -45,7 +46,7 @@ void CommandPalette::RecordUsage(const std::string& name) {
 }
 
 /*static*/ int CommandPalette::FuzzyScore(const std::string& text,
-                                         const std::string& query) {
+                                          const std::string& query) {
   if (query.empty())
     return 0;
 
@@ -242,49 +243,50 @@ std::vector<CommandEntry> CommandPalette::GetAllCommands() const {
   return result;
 }
 
-void CommandPalette::RegisterPanelCommands(PanelManager* panel_manager,
-                                           size_t session_id) {
-  if (!panel_manager) return;
+void CommandPalette::RegisterPanelCommands(
+    WorkspaceWindowManager* window_manager, size_t session_id) {
+  if (!window_manager)
+    return;
 
-  // Get all registered panel descriptors
-  const auto& descriptors = panel_manager->GetAllPanelDescriptors();
-
-  for (const auto& [prefixed_id, descriptor] : descriptors) {
-    // Use the base card_id from the descriptor, not the prefixed map key
-    const std::string& base_id = descriptor.card_id;
+  for (const auto& base_id : window_manager->GetWindowsInSession(session_id)) {
+    const auto* descriptor =
+        window_manager->GetWindowDescriptor(session_id, base_id);
+    if (!descriptor) {
+      continue;
+    }
 
     // Create show command
     std::string show_name =
-        absl::StrFormat("Show: %s", descriptor.display_name);
+        absl::StrFormat("Show: %s", descriptor->display_name);
     std::string show_desc =
-        absl::StrFormat("Show the %s panel", descriptor.display_name);
+        absl::StrFormat("Open the %s window", descriptor->display_name);
 
     AddCommand(show_name, CommandCategory::kPanel, show_desc,
-               descriptor.shortcut_hint,
-               [panel_manager, base_id, session_id]() {
-                 panel_manager->ShowPanel(session_id, base_id);
+               descriptor->shortcut_hint,
+               [window_manager, base_id, session_id]() {
+                 window_manager->OpenWindow(session_id, base_id);
                });
 
     // Create hide command
     std::string hide_name =
-        absl::StrFormat("Hide: %s", descriptor.display_name);
+        absl::StrFormat("Hide: %s", descriptor->display_name);
     std::string hide_desc =
-        absl::StrFormat("Hide the %s panel", descriptor.display_name);
+        absl::StrFormat("Close the %s window", descriptor->display_name);
 
     AddCommand(hide_name, CommandCategory::kPanel, hide_desc, "",
-               [panel_manager, base_id, session_id]() {
-                 panel_manager->HidePanel(session_id, base_id);
+               [window_manager, base_id, session_id]() {
+                 window_manager->CloseWindow(session_id, base_id);
                });
 
     // Create toggle command
     std::string toggle_name =
-        absl::StrFormat("Toggle: %s", descriptor.display_name);
-    std::string toggle_desc =
-        absl::StrFormat("Toggle the %s panel visibility", descriptor.display_name);
+        absl::StrFormat("Toggle: %s", descriptor->display_name);
+    std::string toggle_desc = absl::StrFormat("Toggle the %s window visibility",
+                                              descriptor->display_name);
 
     AddCommand(toggle_name, CommandCategory::kPanel, toggle_desc, "",
-               [panel_manager, base_id, session_id]() {
-                 panel_manager->TogglePanel(session_id, base_id);
+               [window_manager, base_id, session_id]() {
+                 window_manager->ToggleWindow(session_id, base_id);
                });
   }
 }
@@ -313,8 +315,7 @@ void CommandPalette::RegisterLayoutCommands(
   };
 
   static const ProfileInfo profiles[] = {
-      {"code", "Code",
-       "Focused editing workspace with minimal panel noise"},
+      {"code", "Code", "Focused editing workspace with minimal panel noise"},
       {"debug", "Debug",
        "Debugger-first workspace for tracing and memory tools"},
       {"mapping", "Mapping",
@@ -408,13 +409,140 @@ void CommandPalette::RegisterDungeonRoomCommands(size_t session_id) {
     const std::string desc =
         absl::StrFormat("Jump to dungeon room %03X", room_id);
 
-    AddCommand(name, CommandCategory::kNavigation, desc, "",
-               [room_id, session_id]() {
-                 if (auto* bus = ContentRegistry::Context::event_bus()) {
-                   bus->Publish(
-                       JumpToRoomRequestEvent::Create(room_id, session_id));
-                 }
-               });
+    AddCommand(
+        name, CommandCategory::kNavigation, desc, "", [room_id, session_id]() {
+          if (auto* bus = ContentRegistry::Context::event_bus()) {
+            bus->Publish(JumpToRoomRequestEvent::Create(room_id, session_id));
+          }
+        });
+  }
+}
+
+void CommandPalette::RegisterWorkflowCommands(
+    WorkspaceWindowManager* window_manager, size_t session_id) {
+  if (window_manager) {
+    const auto categories = window_manager->GetAllCategories(session_id);
+    for (const auto& category : categories) {
+      for (const auto& descriptor :
+           window_manager->GetWindowsInCategory(session_id, category)) {
+        if (descriptor.workflow_group.empty()) {
+          continue;
+        }
+        if (descriptor.enabled_condition && !descriptor.enabled_condition()) {
+          continue;
+        }
+        const std::string label = descriptor.workflow_label.empty()
+                                      ? descriptor.display_name
+                                      : descriptor.workflow_label;
+        const std::string group = descriptor.workflow_group.empty()
+                                      ? std::string("General")
+                                      : descriptor.workflow_group;
+        const std::string description =
+            descriptor.workflow_description.empty()
+                ? absl::StrFormat("Open %s", descriptor.display_name)
+                : descriptor.workflow_description;
+        AddCommand(
+            absl::StrFormat("%s: %s", group, label), CommandCategory::kWorkflow,
+            description, descriptor.shortcut_hint,
+            [window_manager, session_id, panel_id = descriptor.card_id]() {
+              window_manager->OpenWindow(session_id, panel_id);
+            });
+      }
+    }
+  }
+
+  for (const auto& action : ContentRegistry::WorkflowActions::GetAll()) {
+    if (action.enabled && !action.enabled()) {
+      continue;
+    }
+    const std::string group =
+        action.group.empty() ? std::string("General") : action.group;
+    AddCommand(absl::StrFormat("%s: %s", group, action.label),
+               CommandCategory::kWorkflow, action.description, action.shortcut,
+               action.callback);
+  }
+}
+
+void CommandPalette::RegisterWelcomeCommands(
+    const RecentProjectsModel* model,
+    const std::vector<std::string>& template_names,
+    std::function<void(const std::string&)> remove_callback,
+    std::function<void(const std::string&)> toggle_pin_callback,
+    std::function<void()> undo_remove_callback,
+    std::function<void()> clear_recents_callback,
+    std::function<void(const std::string&)> create_from_template_callback,
+    std::function<void()> dismiss_welcome_callback,
+    std::function<void()> show_welcome_callback) {
+  // Per-entry remove/pin commands. Keeping the palette fully driven by the
+  // same model that powers the welcome screen means this list stays in sync
+  // with pins/renames automatically on the next RefreshCommands().
+  if (model) {
+    for (const auto& entry : model->entries()) {
+      if (entry.unavailable)
+        continue;  // Platform-gated; skip silently.
+      const std::string label = entry.display_name_override.empty()
+                                    ? entry.name
+                                    : entry.display_name_override;
+      const std::string path = entry.filepath;
+
+      if (remove_callback) {
+        const std::string name =
+            absl::StrFormat("Welcome: Remove Recent \"%s\"", label);
+        const std::string desc =
+            absl::StrFormat("Remove %s from the welcome screen's recents list.",
+                            entry.filepath);
+        AddCommand(name, CommandCategory::kFile, desc, "",
+                   [remove_callback, path]() { remove_callback(path); });
+      }
+      if (toggle_pin_callback) {
+        const std::string name = absl::StrFormat(
+            "Welcome: %s Recent \"%s\"", entry.pinned ? "Unpin" : "Pin", label);
+        const std::string desc =
+            absl::StrFormat("%s %s on the welcome screen.",
+                            entry.pinned ? "Unpin" : "Pin", entry.filepath);
+        AddCommand(
+            name, CommandCategory::kFile, desc, "",
+            [toggle_pin_callback, path]() { toggle_pin_callback(path); });
+      }
+    }
+  }
+
+  if (clear_recents_callback) {
+    AddCommand("Welcome: Clear Recent Files", CommandCategory::kFile,
+               "Forget every entry in the welcome screen's recent list.", "",
+               clear_recents_callback);
+  }
+
+  if (undo_remove_callback) {
+    AddCommand("Welcome: Undo Last Recent Removal", CommandCategory::kFile,
+               "Restore the last recent-project entry removed via Forget.", "",
+               undo_remove_callback);
+  }
+
+  if (create_from_template_callback) {
+    for (const auto& template_name : template_names) {
+      if (template_name.empty())
+        continue;
+      const std::string name = absl::StrFormat(
+          "Welcome: Create Project from Template: %s", template_name);
+      const std::string desc = absl::StrFormat(
+          "Start a new project using the \"%s\" template.", template_name);
+      AddCommand(name, CommandCategory::kFile, desc, "",
+                 [create_from_template_callback, template_name]() {
+                   create_from_template_callback(template_name);
+                 });
+    }
+  }
+
+  if (show_welcome_callback) {
+    AddCommand("Welcome: Show Welcome Screen", CommandCategory::kView,
+               "Bring back the welcome screen if it's been dismissed.", "",
+               show_welcome_callback);
+  }
+  if (dismiss_welcome_callback) {
+    AddCommand("Welcome: Dismiss Welcome Screen", CommandCategory::kView,
+               "Hide the welcome screen for the rest of this session.", "",
+               dismiss_welcome_callback);
   }
 }
 

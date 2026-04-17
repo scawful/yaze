@@ -1,31 +1,17 @@
 #ifndef YAZE_APP_EDITOR_UI_WELCOME_SCREEN_H_
 #define YAZE_APP_EDITOR_UI_WELCOME_SCREEN_H_
 
+#include <cstdint>
 #include <functional>
 #include <string>
-#include <vector>
 
+#include "app/editor/ui/recent_projects_model.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
 
-/**
- * @struct RecentProject
- * @brief Information about a recently used project
- */
-struct RecentProject {
-  std::string name;
-  std::string filepath;
-  std::string rom_title;
-  std::string metadata_summary;
-  std::string last_modified;
-  std::string item_type;
-  std::string item_icon;
-  std::string thumbnail_path;  // Optional screenshot
-  bool unavailable = false;
-  int days_ago = 0;
-};
+class UserSettings;
 
 /**
  * @class WelcomeScreen
@@ -101,9 +87,13 @@ class WelcomeScreen {
   }
 
   /**
-   * @brief Refresh recent projects list from the project manager
+   * @brief Refresh recent projects list from the project manager.
+   *
+   * Cheap on the no-op path: compares the RecentFilesManager generation
+   * counter against a cached value and short-circuits when unchanged.
+   * Pass force=true to bypass the cache (e.g. on manual "Refresh").
    */
-  void RefreshRecentProjects();
+  void RefreshRecentProjects(bool force = false);
 
   /**
    * @brief Update animation time for dynamic effects
@@ -119,11 +109,6 @@ class WelcomeScreen {
    * @brief Mark as manually closed (don't show again this session)
    */
   void MarkManuallyClosed() { manually_closed_ = true; }
-
-  /**
-   * @brief Reset first show flag (for testing/forcing display)
-   */
-  void ResetFirstShow() { first_show_attempt_ = true; }
 
   /**
    * @brief Set layout offsets for sidebar awareness
@@ -143,6 +128,24 @@ class WelcomeScreen {
     has_project_ = has_project;
   }
 
+  /**
+   * @brief Wire persisted user settings so animation tweaks survive restart.
+   *
+   * Call once after construction (from UICoordinator). Animation sliders then
+   * load initial values from the preferences and write back + trigger Save()
+   * whenever the user adjusts them.
+   */
+  void SetUserSettings(UserSettings* settings);
+
+  /**
+   * @brief Accessor used by command-palette wiring so the same recent list
+   * drives both the visual cards and the palette's per-entry actions.
+   */
+  RecentProjectsModel& recent_projects() { return recent_projects_model_; }
+  const RecentProjectsModel& recent_projects() const {
+    return recent_projects_model_;
+  }
+
  private:
   void DrawHeader();
   void DrawQuickActions();
@@ -152,10 +155,12 @@ class WelcomeScreen {
   void DrawTemplatesSection();
   void DrawTipsSection();
   void DrawWhatsNew();
+  void DrawFirstRunGuide();
+  void DrawRecentAnnotationPopup();
+  void DrawUndoRemovalBanner();
 
-  std::vector<RecentProject> recent_projects_;
+  RecentProjectsModel recent_projects_model_;
   bool manually_closed_ = false;
-  bool first_show_attempt_ = true;  // Override ImGui ini state on first display
 
   // Callbacks
   std::function<void()> open_rom_callback_;
@@ -169,7 +174,6 @@ class WelcomeScreen {
 
   // UI state
   int selected_template_ = 0;
-  static constexpr int kMaxRecentProjects = 6;
 
   // Animation state
   float animation_time_ = 0.0f;
@@ -200,6 +204,10 @@ class WelcomeScreen {
   };
   Particle particles_[kMaxParticles] = {};
   int active_particle_count_ = 0;
+  // Fractional accumulator for particle spawning. Previously a static local
+  // inside Show(), which silently shared state between (hypothetical) multiple
+  // WelcomeScreen instances and couldn't be reset.
+  float particle_spawn_accumulator_ = 0.0f;
 
   // Triforce animation settings
   bool show_triforce_settings_ = false;
@@ -218,8 +226,19 @@ class WelcomeScreen {
   bool has_rom_ = false;
   bool has_project_ = false;
 
-  // Deferred refresh for recent projects (avoid mutating during draw loop)
-  bool pending_recent_refresh_ = false;
+  // Inline popup state for rename / edit-notes flows triggered from the
+  // recent-project context menu. Single-slot (one popup at a time).
+  enum class RecentAnnotationKind { None, Rename, EditNotes };
+  RecentAnnotationKind pending_annotation_kind_ = RecentAnnotationKind::None;
+  std::string pending_annotation_path_;
+  char rename_buffer_[256] = {};
+  char notes_buffer_[1024] = {};
+
+  // Optional link to persisted user preferences. When set, animation tweaks
+  // flow back through it and survive app restarts.
+  UserSettings* user_settings_ = nullptr;
+
+  void PersistAnimationSettings();
 };
 
 }  // namespace editor

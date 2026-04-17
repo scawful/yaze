@@ -9,8 +9,9 @@
 namespace yaze {
 namespace editor {
 
-class PanelManager;
+class WorkspaceWindowManager;
 class EditorRegistry;
+class RecentProjectsModel;
 
 /**
  * @brief Categories for command palette entries
@@ -24,6 +25,7 @@ struct CommandCategory {
   static constexpr const char* kView = "View";
   static constexpr const char* kNavigation = "Navigation";
   static constexpr const char* kTools = "Tools";
+  static constexpr const char* kWorkflow = "Workflow";
   static constexpr const char* kHelp = "Help";
 };
 
@@ -72,11 +74,12 @@ class CommandPalette {
   // ============================================================================
 
   /**
-   * @brief Register all panel toggle commands from PanelManager
-   * @param panel_manager The panel manager to query for panels
+   * @brief Register all window toggle commands from WorkspaceWindowManager
+   * @param window_manager The panel manager to query for panels
    * @param session_id Current session ID for panel prefixing
    */
-  void RegisterPanelCommands(PanelManager* panel_manager, size_t session_id);
+  void RegisterPanelCommands(WorkspaceWindowManager* window_manager,
+                             size_t session_id);
 
   /**
    * @brief Register all editor switch commands
@@ -109,6 +112,46 @@ class CommandPalette {
    * label (when available). Commands publish JumpToRoomRequestEvent.
    */
   void RegisterDungeonRoomCommands(size_t session_id);
+
+  /**
+   * @brief Register hack workflow commands from workflow-aware panels/actions.
+   */
+  void RegisterWorkflowCommands(WorkspaceWindowManager* window_manager,
+                                size_t session_id);
+
+  /**
+   * @brief Expose welcome-screen actions through the command palette.
+   *
+   * Registers commands that surface recent-project mutations (remove, pin,
+   * undo, clear), template-based project creation, and welcome-screen
+   * visibility toggles. This lets power users drive the welcome screen
+   * entirely from the palette without opening it.
+   *
+   * The RecentProjectsModel pointer may be null; in that case the per-entry
+   * remove/pin commands are skipped but the global commands still register.
+   * @param model Source of recent-project entries (not owned, may be null).
+   * @param template_names Display names of project templates to register
+   *        "Create from Template: <name>" commands for. If empty, the
+   *        template commands are skipped.
+   * @param remove_callback Invoked with the filepath to remove from recents.
+   * @param toggle_pin_callback Invoked with the filepath to flip pin state.
+   * @param undo_remove_callback Invoked to restore the last-removed entry.
+   * @param clear_recents_callback Invoked to clear all recents.
+   * @param create_from_template_callback Invoked with the template display
+   *        name to kick off the "new project" flow for that template.
+   * @param dismiss_welcome_callback Invoked to hide the welcome screen.
+   * @param show_welcome_callback Invoked to bring the welcome screen back.
+   */
+  void RegisterWelcomeCommands(
+      const RecentProjectsModel* model,
+      const std::vector<std::string>& template_names,
+      std::function<void(const std::string&)> remove_callback,
+      std::function<void(const std::string&)> toggle_pin_callback,
+      std::function<void()> undo_remove_callback,
+      std::function<void()> clear_recents_callback,
+      std::function<void(const std::string&)> create_from_template_callback,
+      std::function<void()> dismiss_welcome_callback,
+      std::function<void()> show_welcome_callback);
 
   /**
    * @brief Save command usage history to disk
