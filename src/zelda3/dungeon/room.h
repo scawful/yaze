@@ -4,6 +4,7 @@
 #include <yaze.h>
 
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string_view>
 #include <tuple>
@@ -14,13 +15,13 @@
 
 #include "app/gfx/render/background_buffer.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
-#include "zelda3/dungeon/custom_collision.h"
-#include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -200,15 +201,19 @@ class Room {
   void RenderObjectsToBackground();
   void LoadAnimatedGraphics();
   void LoadObjects();
+  void EnsureObjectsLoaded();
   void LoadSprites();
+  void EnsureSpritesLoaded();
   void LoadChests();
   void LoadPotItems();
+  void EnsurePotItemsLoaded();
   void LoadDoors();
   void LoadTorches();
   void LoadBlocks();
   void LoadPits();
   void LoadLayoutTilesToBuffer();
   void ReloadGraphics(uint8_t entrance_blockset = 0xFF);
+  void PrepareForRender(uint8_t entrance_blockset = 0xFF);
 
   // Public getters and manipulators for sprites
   const std::vector<zelda3::Sprite>& GetSprites() const { return sprites_; }
@@ -295,11 +300,13 @@ class Room {
   std::vector<Door>& GetDoors() { return doors_; }
   void AddDoor(const Door& door) {
     doors_.push_back(door);
+    objects_loaded_ = true;
     MarkObjectsDirty();
   }
   void RemoveDoor(size_t index) {
     if (index < doors_.size()) {
       doors_.erase(doors_.begin() + index);
+      objects_loaded_ = true;
       MarkObjectsDirty();
     }
   }
@@ -317,9 +324,14 @@ class Room {
   std::vector<RoomObject>& GetTileObjects() { return tile_objects_; }
 
   // Methods for modifying tile objects
-  void ClearTileObjects() { tile_objects_.clear(); }
+  void ClearTileObjects() {
+    tile_objects_.clear();
+    objects_loaded_ = true;
+    MarkObjectsDirty();
+  }
   void AddTileObject(const RoomObject& object) {
     tile_objects_.push_back(object);
+    objects_loaded_ = true;
     MarkObjectsDirty();
   }
 
@@ -349,6 +361,7 @@ class Room {
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
       tile_objects_.erase(tile_objects_.begin() + index);
+      objects_loaded_ = true;
       MarkObjectsDirty();
     }
   }
@@ -381,7 +394,9 @@ class Room {
   std::vector<DungeonLimitInfo> GetExceededLimitDetails() const;
 
   // Custom Collision access
-  const CustomCollisionMap& custom_collision() const { return custom_collision_; }
+  const CustomCollisionMap& custom_collision() const {
+    return custom_collision_;
+  }
   CustomCollisionMap& custom_collision() { return custom_collision_; }
   bool has_custom_collision() const { return custom_collision_.has_data; }
   void set_has_custom_collision(bool has) {
@@ -390,14 +405,16 @@ class Room {
       custom_collision_dirty_ = true;
     }
   }
-  
+
   uint8_t GetCollisionTile(int x, int y) const {
-    if (x < 0 || x >= 64 || y < 0 || y >= 64) return 0;
+    if (x < 0 || x >= 64 || y < 0 || y >= 64)
+      return 0;
     return custom_collision_.tiles[y * 64 + x];
   }
-  
+
   void SetCollisionTile(int x, int y, uint8_t tile) {
-    if (x < 0 || x >= 64 || y < 0 || y >= 64) return;
+    if (x < 0 || x >= 64 || y < 0 || y >= 64)
+      return;
     custom_collision_.tiles[y * 64 + x] = tile;
     custom_collision_.has_data = true;
     custom_collision_dirty_ = true;
@@ -413,16 +430,19 @@ class Room {
   bool has_water_fill_zone() const { return water_fill_zone_.has_data; }
 
   bool GetWaterFillTile(int x, int y) const {
-    if (x < 0 || x >= 64 || y < 0 || y >= 64) return false;
+    if (x < 0 || x >= 64 || y < 0 || y >= 64)
+      return false;
     return water_fill_zone_.tiles[y * 64 + x] != 0;
   }
 
   void SetWaterFillTile(int x, int y, bool filled) {
-    if (x < 0 || x >= 64 || y < 0 || y >= 64) return;
+    if (x < 0 || x >= 64 || y < 0 || y >= 64)
+      return;
     const uint8_t val = filled ? 1 : 0;
     const size_t idx = static_cast<size_t>(y * 64 + x);
     const uint8_t prev = water_fill_zone_.tiles[idx];
-    if (prev == val) return;
+    if (prev == val)
+      return;
     water_fill_zone_.tiles[idx] = val;
     if (val) {
       ++water_fill_tile_count_;
@@ -446,11 +466,11 @@ class Room {
     water_fill_dirty_ = true;
   }
 
-  int WaterFillTileCount() const {
-    return water_fill_tile_count_;
-  }
+  int WaterFillTileCount() const { return water_fill_tile_count_; }
 
-  uint8_t water_fill_sram_bit_mask() const { return water_fill_zone_.sram_bit_mask; }
+  uint8_t water_fill_sram_bit_mask() const {
+    return water_fill_zone_.sram_bit_mask;
+  }
   void set_water_fill_sram_bit_mask(uint8_t mask) {
     if (water_fill_zone_.sram_bit_mask != mask) {
       water_fill_zone_.sram_bit_mask = mask;
@@ -465,6 +485,7 @@ class Room {
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {
     tile_objects_ = objects;
+    objects_loaded_ = true;
     MarkObjectsDirty();
   }
 
@@ -548,6 +569,9 @@ class Room {
   // Loaded state
   bool IsLoaded() const { return is_loaded_; }
   void SetLoaded(bool loaded) { is_loaded_ = loaded; }
+  bool AreObjectsLoaded() const { return objects_loaded_; }
+  bool AreSpritesLoaded() const { return sprites_loaded_; }
+  bool ArePotItemsLoaded() const { return pot_items_loaded_; }
 
   // Read-only accessors for metadata
   background2 bg2() const { return bg2_; }
@@ -569,6 +593,12 @@ class Room {
   uint8_t blockset() const { return blockset_; }
   uint8_t spriteset() const { return spriteset_; }
   uint8_t palette() const { return palette_; }
+
+  // Resolves the room's palette-set ID to the concrete dungeon_main palette
+  // index (0-19) via the two-level ROM lookup. Returns 0 when game data is
+  // missing or the resolved index is out of range. See palette_structure.md
+  // "Dungeon Main" section for the lookup algorithm.
+  int ResolveDungeonPaletteId() const;
   uint8_t layout_id() const { return layout_id_; }
   uint8_t holewarp() const { return holewarp_; }
   uint16_t message_id() const { return message_id_; }
@@ -669,10 +699,15 @@ class Room {
 
   // Composite bitmap for merged layer output
   mutable gfx::Bitmap composite_bitmap_;
+  mutable uint64_t composite_signature_ = 0;
+  mutable bool has_composite_signature_ = false;
   DirtyState dirty_state_;
 
   bool is_light_;
   bool is_loaded_ = false;
+  bool objects_loaded_ = false;
+  bool sprites_loaded_ = false;
+  bool pot_items_loaded_ = false;
   bool is_dark_;
   bool is_floor_ = true;
 
@@ -759,6 +794,8 @@ RoomSize CalculateRoomSize(Rom* rom, int room_id);
 
 // Dungeon-level save: aggregate torches from all rooms and write to ROM.
 absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms);
+absl::Status SaveAllTorches(Rom* rom, int room_count,
+                            const std::function<const Room*(int)>& room_lookup);
 
 // Preserve pit count, pointer, and data (read from ROM, write back). No edit support yet.
 absl::Status SaveAllPits(Rom* rom);
@@ -771,6 +808,8 @@ absl::Status SaveAllBlocks(Rom* rom);
 // This writes into the ZScream expanded collision region and updates the room
 // pointer table. Rooms not loaded (or not dirty) are preserved.
 absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms);
+absl::Status SaveAllCollision(Rom* rom, int room_count,
+                              const std::function<Room*(int)>& room_lookup);
 
 // Scan all room sprite pointers and return the highest used PC address end.
 int FindMaxUsedSpriteAddress(Rom* rom);
@@ -781,9 +820,14 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
 
 // Aggregate chests from all rooms and write to ROM. Preserves ROM data for rooms not loaded.
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms);
+absl::Status SaveAllChests(Rom* rom, int room_count,
+                           const std::function<const Room*(int)>& room_lookup);
 
 // Save pot items for all rooms. Preserves ROM data for rooms not loaded.
 absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms);
+absl::Status SaveAllPotItems(
+    Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup);
 
 // RoomEffect names defined in room.cc to avoid static initialization order issues
 extern const std::string RoomEffect[8];

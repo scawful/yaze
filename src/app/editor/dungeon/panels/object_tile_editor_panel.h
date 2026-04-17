@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
@@ -29,7 +30,7 @@ namespace editor {
  *
  * Opened from the Object Editor panel via "Edit Tiles" button.
  */
-class ObjectTileEditorPanel : public EditorPanel {
+class ObjectTileEditorPanel : public WindowContent {
  public:
   ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom);
 
@@ -42,11 +43,10 @@ class ObjectTileEditorPanel : public EditorPanel {
 
   void Draw(bool* p_open) override;
 
-  void OpenForObject(int16_t object_id, int room_id,
-                     std::array<zelda3::Room, 0x128>* rooms);
+  void OpenForObject(int16_t object_id, int room_id, DungeonRoomStore* rooms);
   void OpenForNewObject(int width, int height, const std::string& filename,
                         int16_t object_id, int room_id,
-                        std::array<zelda3::Room, 0x128>* rooms);
+                        DungeonRoomStore* rooms);
   void Close();
   bool IsOpen() const { return is_open_; }
 
@@ -103,7 +103,7 @@ class ObjectTileEditorPanel : public EditorPanel {
   Rom* rom_;
   int current_room_id_ = -1;
   int16_t current_object_id_ = -1;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   gfx::PaletteGroup current_palette_group_;
   bool is_open_ = false;
 };

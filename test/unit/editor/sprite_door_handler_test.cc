@@ -1,6 +1,6 @@
-#include "app/editor/dungeon/interaction/sprite_interaction_handler.h"
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "app/editor/dungeon/interaction/sprite_interaction_handler.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -8,6 +8,7 @@
 #include <gtest/gtest.h>
 #include <array>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 namespace yaze::editor {
 namespace {
 
@@ -27,8 +28,12 @@ class SpriteInteractionHandlerTest : public ::testing::Test {
     ctx_.rooms = &rooms_;
     ctx_.current_room_id = 0;
     ctx_.canvas = canvas_.get();
-    ctx_.on_mutation = [this]() { mutation_count_++; };
-    ctx_.on_invalidate_cache = [this]() { invalidate_count_++; };
+    ctx_.on_mutation = [this]() {
+      mutation_count_++;
+    };
+    ctx_.on_invalidate_cache = [this]() {
+      invalidate_count_++;
+    };
 
     handler_.SetContext(&ctx_);
   }
@@ -48,7 +53,7 @@ class SpriteInteractionHandlerTest : public ::testing::Test {
   }
 
   std::unique_ptr<gui::Canvas> canvas_;
-  std::array<zelda3::Room, 296> rooms_;
+  DungeonRoomStore rooms_;
   InteractionContext ctx_;
   SpriteInteractionHandler handler_;
   int mutation_count_ = 0;
@@ -128,8 +133,12 @@ class DoorInteractionHandlerTest : public ::testing::Test {
     ctx_.rooms = &rooms_;
     ctx_.current_room_id = 0;
     ctx_.canvas = canvas_.get();
-    ctx_.on_mutation = [this]() { mutation_count_++; };
-    ctx_.on_invalidate_cache = [this]() { invalidate_count_++; };
+    ctx_.on_mutation = [this]() {
+      mutation_count_++;
+    };
+    ctx_.on_invalidate_cache = [this]() {
+      invalidate_count_++;
+    };
 
     handler_.SetContext(&ctx_);
   }
@@ -150,7 +159,7 @@ class DoorInteractionHandlerTest : public ::testing::Test {
   }
 
   std::unique_ptr<gui::Canvas> canvas_;
-  std::array<zelda3::Room, 296> rooms_;
+  DungeonRoomStore rooms_;
   InteractionContext ctx_;
   DoorInteractionHandler handler_;
   int mutation_count_ = 0;

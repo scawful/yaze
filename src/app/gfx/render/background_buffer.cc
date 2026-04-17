@@ -11,18 +11,37 @@
 namespace yaze::gfx {
 
 BackgroundBuffer::BackgroundBuffer(int width, int height)
-    : width_(width), height_(height) {
-  // Initialize buffer with size for SNES layers
-  const int total_tiles = (width / 8) * (height / 8);
-  buffer_.resize(total_tiles, 0);
-  // Initialize priority buffer for per-pixel priority tracking
-  // Uses 0xFF as "no priority set" (transparent/empty pixel)
-  priority_buffer_.resize(width * height, 0xFF);
-  // Coverage buffer tracks whether this layer wrote a given pixel.
-  // (0 = not written, 1 = written)
-  coverage_buffer_.resize(width * height, 0);
-  // Note: bitmap_ is NOT initialized here to avoid circular dependency
-  // with Arena::Get(). Call EnsureBitmapInitialized() before accessing bitmap().
+    : width_(width), height_(height) {}
+
+void BackgroundBuffer::EnsureTileBufferAllocated() {
+  const size_t total_tiles = static_cast<size_t>((width_ / 8) * (height_ / 8));
+  if (buffer_.size() != total_tiles) {
+    buffer_.assign(total_tiles, 0);
+  }
+}
+
+void BackgroundBuffer::EnsurePriorityBufferAllocated() {
+  const size_t total_pixels = static_cast<size_t>(width_ * height_);
+  if (priority_buffer_.size() != total_pixels) {
+    priority_buffer_.assign(total_pixels, 0xFF);
+  }
+}
+
+void BackgroundBuffer::EnsureCoverageBufferAllocated() {
+  const size_t total_pixels = static_cast<size_t>(width_ * height_);
+  if (coverage_buffer_.size() != total_pixels) {
+    coverage_buffer_.assign(total_pixels, 0);
+  }
+}
+
+std::vector<uint8_t>& BackgroundBuffer::mutable_priority_data() {
+  EnsurePriorityBufferAllocated();
+  return priority_buffer_;
+}
+
+std::vector<uint8_t>& BackgroundBuffer::mutable_coverage_data() {
+  EnsureCoverageBufferAllocated();
+  return coverage_buffer_;
 }
 
 void BackgroundBuffer::SetTileAt(int x_pos, int y_pos, uint16_t value) {
@@ -34,6 +53,7 @@ void BackgroundBuffer::SetTileAt(int x_pos, int y_pos, uint16_t value) {
   if (x_pos >= tiles_w || y_pos >= tiles_h) {
     return;
   }
+  EnsureTileBufferAllocated();
   buffer_[y_pos * tiles_w + x_pos] = value;
 }
 
@@ -47,19 +67,25 @@ uint16_t BackgroundBuffer::GetTileAt(int x_pos, int y_pos) const {
 }
 
 void BackgroundBuffer::ClearBuffer() {
-  std::fill(buffer_.begin(), buffer_.end(), 0);
+  if (!buffer_.empty()) {
+    std::fill(buffer_.begin(), buffer_.end(), 0);
+  }
   ClearPriorityBuffer();
   ClearCoverageBuffer();
 }
 
 void BackgroundBuffer::ClearPriorityBuffer() {
   // 0xFF indicates no priority set (transparent/empty pixel)
-  std::fill(priority_buffer_.begin(), priority_buffer_.end(), 0xFF);
+  if (!priority_buffer_.empty()) {
+    std::fill(priority_buffer_.begin(), priority_buffer_.end(), 0xFF);
+  }
 }
 
 void BackgroundBuffer::ClearCoverageBuffer() {
   // 0 indicates the layer never wrote here; 1 indicates it did.
-  std::fill(coverage_buffer_.begin(), coverage_buffer_.end(), 0);
+  if (!coverage_buffer_.empty()) {
+    std::fill(coverage_buffer_.begin(), coverage_buffer_.end(), 0);
+  }
 }
 
 uint8_t BackgroundBuffer::GetPriorityAt(int x, int y) const {
@@ -73,6 +99,7 @@ void BackgroundBuffer::SetPriorityAt(int x, int y, uint8_t priority) {
   if (x < 0 || y < 0 || x >= width_ || y >= height_) {
     return;
   }
+  EnsurePriorityBufferAllocated();
   priority_buffer_[y * width_ + x] = priority;
 }
 
@@ -83,33 +110,27 @@ void BackgroundBuffer::EnsureBitmapInitialized() {
     // Only 255 is treated as transparent by IsTransparent().
     bitmap_.Create(width_, height_, 8,
                    std::vector<uint8_t>(width_ * height_, 255));
-    
+
     // Fix: Set index 255 to be transparent so the background is actually transparent
     // instead of white (default SDL palette index 255)
     std::vector<SDL_Color> palette(256);
     // Initialize with grayscale for debugging
     for (int i = 0; i < 256; i++) {
-      palette[i] = {static_cast<Uint8>(i), static_cast<Uint8>(i), static_cast<Uint8>(i), 255};
+      palette[i] = {static_cast<Uint8>(i), static_cast<Uint8>(i),
+                    static_cast<Uint8>(i), 255};
     }
     // Set index 255 to transparent
     palette[255] = {0, 0, 0, 0};
     bitmap_.SetPalette(palette);
-    
+
     // Enable blending
     if (bitmap_.surface()) {
       SDL_SetSurfaceBlendMode(bitmap_.surface(), SDL_BLENDMODE_BLEND);
     }
   }
-  
-  // Ensure priority buffer is properly sized
-  if (priority_buffer_.size() != static_cast<size_t>(width_ * height_)) {
-    priority_buffer_.resize(width_ * height_, 0xFF);
-  }
 
-  // Ensure coverage buffer is properly sized
-  if (coverage_buffer_.size() != static_cast<size_t>(width_ * height_)) {
-    coverage_buffer_.resize(width_ * height_, 0);
-  }
+  EnsurePriorityBufferAllocated();
+  EnsureCoverageBufferAllocated();
 }
 
 void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
@@ -128,31 +149,20 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
     return;  // Skip invalid tiles silently
   }
 
-  int tile_base_x = tile_col_idx * 8;    // 8 pixels wide (8 bytes)
-  int tile_base_y = tile_row_idx * 1024; // 8 rows * 128 bytes stride (sheet width)
+  int tile_base_x = tile_col_idx * 8;  // 8 pixels wide (8 bytes)
+  int tile_base_y =
+      tile_row_idx * 1024;  // 8 rows * 128 bytes stride (sheet width)
 
-  // Palette offset calculation using 16-color bank chunking (matches SNES CGRAM)
-  //
-  // SNES CGRAM layout:
-  // - Each CGRAM row has 16 colors, with index 0 being transparent
-  // - Dungeon tiles use palette bits 2-7, mapping to CGRAM rows 2-7
-  // - We map palette bits 2-7 to SDL banks 0-5
-  //
-  // Drawing formula: final_color = pixel + (bank * 16)
-  // Where pixel 0 = transparent (not written), pixel 1-15 = colors within bank
-  uint8_t pal = tile.palette_ & 0x07;
-  uint8_t palette_offset;
-  if (pal >= 2 && pal <= 7) {
-    // Map palette bits 2-7 to SDL banks 0-5 using 16-color stride
-    palette_offset = (pal - 2) * 16;
-  } else {
-    // Palette 0-1 are for HUD/other - fallback to first bank
-    palette_offset = 0;
-  }
+  // Palette offset: tile palette field (3-bit, 0-7) is the CGRAM row index.
+  // SDL palette mirrors CGRAM directly: dungeon view loads banks 2-7 in
+  // Room::RenderRoomGraphics, leaving banks 0-1 as HUD placeholders.
+  // See object_drawer.cc for the canonical comment.
+  const uint8_t pal = tile.palette_ & 0x07;
+  const uint8_t palette_offset = static_cast<uint8_t>(pal * 16);
 
   // Pre-calculate max valid destination index
   int max_dest = width_ * height_;
-  
+
   // Get priority bit from tile (over_ = priority bit in SNES tilemap)
   uint8_t priority = tile.over_ ? 1 : 0;
 
@@ -168,7 +178,8 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
       int src_index = (src_row * 128) + src_col + tile_base_x + tile_base_y;
 
       // Bounds check source
-      if (src_index < 0 || src_index >= kGfxBufferSize) continue;
+      if (src_index < 0 || src_index >= kGfxBufferSize)
+        continue;
 
       uint8_t pixel = tiledata[src_index];
 
@@ -192,9 +203,7 @@ void BackgroundBuffer::DrawTile(const TileInfo& tile, uint8_t* canvas,
 void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
   int tiles_w = width_ / 8;
   int tiles_h = height_ / 8;
-  if ((int)buffer_.size() < tiles_w * tiles_h) {
-    buffer_.resize(tiles_w * tiles_h);
-  }
+  EnsureTileBufferAllocated();
 
   // NEVER recreate bitmap here - it should be created by DrawFloor or
   // initialized earlier. If bitmap doesn't exist, create it ONCE with 255 fill
@@ -203,11 +212,8 @@ void BackgroundBuffer::DrawBackground(std::span<uint8_t> gfx16_data) {
     bitmap_.Create(width_, height_, 8,
                    std::vector<uint8_t>(width_ * height_, 255));
   }
-  
-  // Ensure priority buffer is properly sized
-  if (priority_buffer_.size() != static_cast<size_t>(width_ * height_)) {
-    priority_buffer_.resize(width_ * height_, 0xFF);
-  }
+
+  EnsurePriorityBufferAllocated();
 
   // For each tile on the tile buffer
   // int drawn_count = 0;

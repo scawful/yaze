@@ -1,6 +1,7 @@
 // Related header
 #include "dungeon_object_interaction.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 
 // C++ standard library headers
 #include <algorithm>
@@ -10,12 +11,12 @@
 #include "imgui/imgui.h"
 
 // Project headers
-#include "app/gui/core/theme_manager.h"
-#include "app/gui/core/agent_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/interaction/paint_util.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/core/agent_theme.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
 #include "zelda3/dungeon/dimension_service.h"
 
 namespace yaze::editor {
@@ -24,7 +25,8 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   const ImGuiIO& io = ImGui::GetIO();
   const bool hovered = canvas_->IsMouseHovering();
   const bool mouse_left_down = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-  const bool mouse_left_released = ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+  const bool mouse_left_released =
+      ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
   // Keep processing drag/release if an interaction started on the canvas but
   // the cursor left the bounds before the mouse button was released.
@@ -104,9 +106,11 @@ void DungeonObjectInteraction::HandleLeftClick(const ImVec2& canvas_mouse_pos) {
   HandleEmptySpaceClick(canvas_mouse_pos);
 }
 
-void DungeonObjectInteraction::UpdateCollisionPainting(const ImVec2& canvas_mouse_pos) {
-  auto [room_x, room_y] = CanvasToRoomCoordinates(
-      static_cast<int>(canvas_mouse_pos.x), static_cast<int>(canvas_mouse_pos.y));
+void DungeonObjectInteraction::UpdateCollisionPainting(
+    const ImVec2& canvas_mouse_pos) {
+  auto [room_x, room_y] =
+      CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                              static_cast<int>(canvas_mouse_pos.y));
   if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
     auto& room = (*rooms_)[current_room_id_];
     auto& state = mode_manager_.GetModeState();
@@ -134,23 +138,25 @@ void DungeonObjectInteraction::UpdateCollisionPainting(const ImVec2& canvas_mous
         }
       };
 
-      paint_util::ForEachPointOnLine(x0, y0, room_x, room_y,
-                                    [&](int lx, int ly) {
-        paint_util::ForEachPointInSquareBrush(
-            lx, ly, state.paint_brush_radius,
-            /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
-            [&](int bx, int by) {
-              if (room.GetCollisionTile(bx, by) == state.paint_collision_value) {
-                return;
-              }
-              ensure_mutation();
-              room.SetCollisionTile(bx, by, state.paint_collision_value);
-              changed = true;
-            });
-      });
+      paint_util::ForEachPointOnLine(
+          x0, y0, room_x, room_y, [&](int lx, int ly) {
+            paint_util::ForEachPointInSquareBrush(
+                lx, ly, state.paint_brush_radius,
+                /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
+                [&](int bx, int by) {
+                  if (room.GetCollisionTile(bx, by) ==
+                      state.paint_collision_value) {
+                    return;
+                  }
+                  ensure_mutation();
+                  room.SetCollisionTile(bx, by, state.paint_collision_value);
+                  changed = true;
+                });
+          });
 
       if (changed) {
-        interaction_context_.NotifyInvalidateCache(MutationDomain::kCustomCollision);
+        interaction_context_.NotifyInvalidateCache(
+            MutationDomain::kCustomCollision);
       }
 
       state.paint_last_tile_x = room_x;
@@ -164,9 +170,9 @@ void DungeonObjectInteraction::UpdateWaterFillPainting(
   const ImGuiIO& io = ImGui::GetIO();
   const bool erase = io.KeyAlt;
 
-  auto [room_x, room_y] = CanvasToRoomCoordinates(
-      static_cast<int>(canvas_mouse_pos.x),
-      static_cast<int>(canvas_mouse_pos.y));
+  auto [room_x, room_y] =
+      CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                              static_cast<int>(canvas_mouse_pos.y));
   if (rooms_ && current_room_id_ >= 0 && current_room_id_ < 296) {
     auto& room = (*rooms_)[current_room_id_];
     auto& state = mode_manager_.GetModeState();
@@ -195,20 +201,20 @@ void DungeonObjectInteraction::UpdateWaterFillPainting(
         }
       };
 
-      paint_util::ForEachPointOnLine(x0, y0, room_x, room_y,
-                                    [&](int lx, int ly) {
-        paint_util::ForEachPointInSquareBrush(
-            lx, ly, state.paint_brush_radius,
-            /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
-            [&](int bx, int by) {
-              if (room.GetWaterFillTile(bx, by) == new_val) {
-                return;
-              }
-              ensure_mutation();
-              room.SetWaterFillTile(bx, by, new_val);
-              changed = true;
-            });
-      });
+      paint_util::ForEachPointOnLine(
+          x0, y0, room_x, room_y, [&](int lx, int ly) {
+            paint_util::ForEachPointInSquareBrush(
+                lx, ly, state.paint_brush_radius,
+                /*min_x=*/0, /*min_y=*/0, /*max_x=*/63, /*max_y=*/63,
+                [&](int bx, int by) {
+                  if (room.GetWaterFillTile(bx, by) == new_val) {
+                    return;
+                  }
+                  ensure_mutation();
+                  room.SetWaterFillTile(bx, by, new_val);
+                  changed = true;
+                });
+          });
 
       if (changed) {
         interaction_context_.NotifyInvalidateCache(MutationDomain::kWaterFill);
@@ -220,7 +226,8 @@ void DungeonObjectInteraction::UpdateWaterFillPainting(
   }
 }
 
-void DungeonObjectInteraction::HandleObjectSelectionStart(const ImVec2& canvas_mouse_pos) {
+void DungeonObjectInteraction::HandleObjectSelectionStart(
+    const ImVec2& canvas_mouse_pos) {
   ClearEntitySelection();
   if (selection_.HasSelection()) {
     mode_manager_.SetMode(InteractionMode::DraggingObjects);
@@ -228,7 +235,8 @@ void DungeonObjectInteraction::HandleObjectSelectionStart(const ImVec2& canvas_m
   }
 }
 
-void DungeonObjectInteraction::HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos) {
+void DungeonObjectInteraction::HandleEmptySpaceClick(
+    const ImVec2& canvas_mouse_pos) {
   const ImGuiIO& io = ImGui::GetIO();
   const bool additive = io.KeyShift || io.KeyCtrl || io.KeySuper;
 
@@ -244,7 +252,6 @@ void DungeonObjectInteraction::HandleEmptySpaceClick(const ImVec2& canvas_mouse_
   // dragging behaves like a normal "clear selection" click.
   entity_coordinator_.tile_handler().BeginMarqueeSelection(canvas_mouse_pos);
 }
-
 
 void DungeonObjectInteraction::HandleMouseRelease() {
   {
@@ -306,8 +313,8 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       canvas_, objects, [](const zelda3::RoomObject& obj) {
         auto result = zelda3::DimensionService::Get().GetDimensions(obj);
         return std::make_tuple(result.offset_x_tiles * 8,
-                               result.offset_y_tiles * 8,
-                               result.width_pixels(), result.height_pixels());
+                               result.offset_y_tiles * 8, result.width_pixels(),
+                               result.height_pixels());
       });
 
   // Enhanced hover tooltip showing object info (always visible on hover)
@@ -322,14 +329,16 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
     ImVec2 canvas_pos = canvas_->zero_point();
     int cursor_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
     int cursor_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
-    auto entity_at_cursor = entity_coordinator_.GetEntityAtPosition(cursor_x, cursor_y);
+    auto entity_at_cursor =
+        entity_coordinator_.GetEntityAtPosition(cursor_x, cursor_y);
     if (entity_at_cursor.has_value()) {
       // Entity has priority - skip object tooltip, DrawHoverHighlight will also skip
       DrawHoverHighlight(objects);
       return;
     }
 
-    auto hovered_index = entity_coordinator_.tile_handler().GetEntityAtPosition(cursor_x, cursor_y);
+    auto hovered_index = entity_coordinator_.tile_handler().GetEntityAtPosition(
+        cursor_x, cursor_y);
     if (hovered_index.has_value() && *hovered_index < objects.size()) {
       const auto& object = objects[*hovered_index];
       std::string object_name = zelda3::GetObjectName(object.id_);
@@ -383,12 +392,14 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   ImVec2 canvas_pos = canvas_->zero_point();
   int cursor_canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
   int cursor_canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
-  auto entity_at_cursor = entity_coordinator_.GetEntityAtPosition(cursor_canvas_x, cursor_canvas_y);
+  auto entity_at_cursor =
+      entity_coordinator_.GetEntityAtPosition(cursor_canvas_x, cursor_canvas_y);
   if (entity_at_cursor.has_value()) {
     return;  // Entity has priority - skip object hover highlight
   }
 
-  auto hovered_index = entity_coordinator_.tile_handler().GetEntityAtPosition(cursor_canvas_x, cursor_canvas_y);
+  auto hovered_index = entity_coordinator_.tile_handler().GetEntityAtPosition(
+      cursor_canvas_x, cursor_canvas_y);
   if (!hovered_index.has_value() || *hovered_index >= objects.size()) {
     return;
   }
@@ -423,7 +434,7 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 
   // Draw subtle hover highlight with unified theme color
   ImVec4 hover_fill = theme.selection_hover;
-  hover_fill.w *= 0.5f; // Make it more subtle for hover fill
+  hover_fill.w *= 0.5f;  // Make it more subtle for hover fill
 
   ImVec4 hover_border = theme.selection_hover;
 
@@ -431,12 +442,13 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   draw_list->AddRectFilled(obj_start, obj_end, ImGui::GetColorU32(hover_fill));
 
   // Draw dashed-style border (simulated with thinner line)
-    draw_list->AddRect(obj_start, obj_end, ImGui::GetColorU32(hover_border), 0.0f,
+  draw_list->AddRect(obj_start, obj_end, ImGui::GetColorU32(hover_border), 0.0f,
                      0, 1.5f);
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
-  entity_coordinator_.tile_handler().PlaceObjectAt(current_room_id_, preview_object_, room_x, room_y);
+  entity_coordinator_.tile_handler().PlaceObjectAt(
+      current_room_id_, preview_object_, room_x, room_y);
 
   if (object_placed_callback_) {
     object_placed_callback_(preview_object_);
@@ -470,8 +482,8 @@ bool DungeonObjectInteraction::IsWithinCanvasBounds(int canvas_x, int canvas_y,
           canvas_y <= scaled_height + margin);
 }
 
-void DungeonObjectInteraction::SetCurrentRoom(
-    std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms, int room_id) {
+void DungeonObjectInteraction::SetCurrentRoom(DungeonRoomStore* rooms,
+                                              int room_id) {
   rooms_ = rooms;
   current_room_id_ = room_id;
   interaction_context_.rooms = rooms;
@@ -508,15 +520,12 @@ void DungeonObjectInteraction::SetPreviewObject(
   }
 }
 
-
-
 void DungeonObjectInteraction::ClearSelection() {
   selection_.ClearSelection();
   if (mode_manager_.GetMode() == InteractionMode::DraggingObjects) {
     mode_manager_.SetMode(InteractionMode::Select);
   }
 }
-
 
 void DungeonObjectInteraction::HandleDeleteSelected() {
   auto indices = selection_.GetSelectedIndices();
@@ -542,15 +551,18 @@ void DungeonObjectInteraction::HandleCopySelected() {
 
 void DungeonObjectInteraction::HandlePasteObjects() {
   auto& handler = entity_coordinator_.tile_handler();
-  if (!handler.HasClipboardData()) return;
+  if (!handler.HasClipboardData())
+    return;
 
   const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_mouse_pos = ImVec2(io.MousePos.x - canvas_->zero_point().x,
                                    io.MousePos.y - canvas_->zero_point().y);
-  auto [paste_x, paste_y] = CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
-                                                    static_cast<int>(canvas_mouse_pos.y));
+  auto [paste_x, paste_y] =
+      CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
+                              static_cast<int>(canvas_mouse_pos.y));
 
-  auto new_indices = handler.PasteFromClipboardAt(current_room_id_, paste_x, paste_y);
+  auto new_indices =
+      handler.PasteFromClipboardAt(current_room_id_, paste_x, paste_y);
 
   // Select the newly pasted objects
   if (!new_indices.empty()) {
@@ -571,17 +583,21 @@ void DungeonObjectInteraction::HandleScrollWheelResize() {
 }
 
 bool DungeonObjectInteraction::SetObjectId(size_t index, int16_t id) {
-  entity_coordinator_.tile_handler().UpdateObjectsId(current_room_id_, {index}, id);
+  entity_coordinator_.tile_handler().UpdateObjectsId(current_room_id_, {index},
+                                                     id);
   return true;
 }
 
 bool DungeonObjectInteraction::SetObjectSize(size_t index, uint8_t size) {
-  entity_coordinator_.tile_handler().UpdateObjectsSize(current_room_id_, {index}, size);
+  entity_coordinator_.tile_handler().UpdateObjectsSize(current_room_id_,
+                                                       {index}, size);
   return true;
 }
 
-bool DungeonObjectInteraction::SetObjectLayer(size_t index, zelda3::RoomObject::LayerType layer) {
-  entity_coordinator_.tile_handler().UpdateObjectsLayer(current_room_id_, {index}, static_cast<int>(layer));
+bool DungeonObjectInteraction::SetObjectLayer(
+    size_t index, zelda3::RoomObject::LayerType layer) {
+  entity_coordinator_.tile_handler().UpdateObjectsLayer(
+      current_room_id_, {index}, static_cast<int>(layer));
   return true;
 }
 
@@ -590,26 +606,29 @@ std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
   return zelda3::DimensionService::Get().GetPixelDimensions(object);
 }
 
-
 void DungeonObjectInteraction::SendSelectedToLayer(int target_layer) {
   entity_coordinator_.tile_handler().UpdateObjectsLayer(
       current_room_id_, selection_.GetSelectedIndices(), target_layer);
 }
 
 void DungeonObjectInteraction::SendSelectedToFront() {
-  entity_coordinator_.tile_handler().SendToFront(current_room_id_, selection_.GetSelectedIndices());
+  entity_coordinator_.tile_handler().SendToFront(
+      current_room_id_, selection_.GetSelectedIndices());
 }
 
 void DungeonObjectInteraction::SendSelectedToBack() {
-  entity_coordinator_.tile_handler().SendToBack(current_room_id_, selection_.GetSelectedIndices());
+  entity_coordinator_.tile_handler().SendToBack(
+      current_room_id_, selection_.GetSelectedIndices());
 }
 
 void DungeonObjectInteraction::BringSelectedForward() {
-  entity_coordinator_.tile_handler().MoveForward(current_room_id_, selection_.GetSelectedIndices());
+  entity_coordinator_.tile_handler().MoveForward(
+      current_room_id_, selection_.GetSelectedIndices());
 }
 
 void DungeonObjectInteraction::SendSelectedBackward() {
-  entity_coordinator_.tile_handler().MoveBackward(current_room_id_, selection_.GetSelectedIndices());
+  entity_coordinator_.tile_handler().MoveBackward(
+      current_room_id_, selection_.GetSelectedIndices());
 }
 
 void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
@@ -653,52 +672,52 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
 // Door Placement Methods
 // ============================================================================
 
-void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled, zelda3::DoorType type) {
+void DungeonObjectInteraction::SetDoorPlacementMode(bool enabled,
+                                                    zelda3::DoorType type) {
   if (enabled) {
     mode_manager_.SetMode(InteractionMode::PlaceDoor);
     entity_coordinator_.door_handler().SetDoorType(type);
     entity_coordinator_.door_handler().BeginPlacement();
   } else {
     entity_coordinator_.door_handler().CancelPlacement();
-    if (mode_manager_.GetMode() == InteractionMode::PlaceDoor) mode_manager_.SetMode(InteractionMode::Select);
+    if (mode_manager_.GetMode() == InteractionMode::PlaceDoor)
+      mode_manager_.SetMode(InteractionMode::Select);
   }
 }
-
-
 
 // ============================================================================
 // Sprite Placement Methods
 // ============================================================================
 
-void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled, uint8_t sprite_id) {
+void DungeonObjectInteraction::SetSpritePlacementMode(bool enabled,
+                                                      uint8_t sprite_id) {
   if (enabled) {
     mode_manager_.SetMode(InteractionMode::PlaceSprite);
     entity_coordinator_.sprite_handler().SetSpriteId(sprite_id);
     entity_coordinator_.sprite_handler().BeginPlacement();
   } else {
     entity_coordinator_.sprite_handler().CancelPlacement();
-    if (mode_manager_.GetMode() == InteractionMode::PlaceSprite) mode_manager_.SetMode(InteractionMode::Select);
+    if (mode_manager_.GetMode() == InteractionMode::PlaceSprite)
+      mode_manager_.SetMode(InteractionMode::Select);
   }
 }
-
-
 
 // ============================================================================
 // Item Placement Methods
 // ============================================================================
 
-void DungeonObjectInteraction::SetItemPlacementMode(bool enabled, uint8_t item_id) {
+void DungeonObjectInteraction::SetItemPlacementMode(bool enabled,
+                                                    uint8_t item_id) {
   if (enabled) {
     mode_manager_.SetMode(InteractionMode::PlaceItem);
     entity_coordinator_.item_handler().SetItemId(item_id);
     entity_coordinator_.item_handler().BeginPlacement();
   } else {
     entity_coordinator_.item_handler().CancelPlacement();
-    if (mode_manager_.GetMode() == InteractionMode::PlaceItem) mode_manager_.SetMode(InteractionMode::Select);
+    if (mode_manager_.GetMode() == InteractionMode::PlaceItem)
+      mode_manager_.SetMode(InteractionMode::Select);
   }
 }
-
-
 
 // ============================================================================
 // Entity Selection Methods (Doors, Sprites, Items)
@@ -728,6 +747,5 @@ void DungeonObjectInteraction::DrawDoorSnapIndicators() {
   // Door snap indicators are now managed by DoorInteractionHandler
   // through the entity coordinator. No-op here for backward compatibility.
 }
-
 
 }  // namespace yaze::editor

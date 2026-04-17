@@ -3,6 +3,7 @@
 
 #include <string>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
@@ -19,22 +20,21 @@ class DungeonEditorV2;
 
 /**
  * @class DungeonRoomGraphicsPanel
- * @brief EditorPanel for displaying room graphics blocks
+ * @brief WindowContent for displaying room graphics blocks
  *
  * This panel shows the graphics blocks used by the current room,
  * displaying a 2x8 grid of 128x32 graphics blocks.
  *
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  */
-class DungeonRoomGraphicsPanel : public EditorPanel {
+class DungeonRoomGraphicsPanel : public WindowContent {
  public:
   // Default constructor for ContentRegistry self-registration
   DungeonRoomGraphicsPanel()
       : room_gfx_canvas_("##RoomGfxCanvasPanel", ImVec2(256 + 1, 256 + 1)) {}
 
   // Legacy constructor for direct instantiation
-  DungeonRoomGraphicsPanel(int* current_room_id,
-                           std::array<zelda3::Room, 0x128>* rooms,
+  DungeonRoomGraphicsPanel(int* current_room_id, DungeonRoomStore* rooms,
                            gfx::IRenderer* renderer = nullptr)
       : current_room_id_(current_room_id),
         rooms_(rooms),
@@ -51,7 +51,7 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
   }
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.room_graphics"; }
@@ -61,14 +61,14 @@ class DungeonRoomGraphicsPanel : public EditorPanel {
   int GetPriority() const override { return 50; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override;
 
  private:
   int* current_room_id_ = nullptr;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   gfx::IRenderer* renderer_ = nullptr;
   gui::Canvas room_gfx_canvas_;
 

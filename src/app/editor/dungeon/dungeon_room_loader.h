@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/editor.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
@@ -39,7 +40,7 @@ class DungeonRoomLoader {
 
   // Room loading
   absl::Status LoadRoom(int room_id, zelda3::Room& room);
-  absl::Status LoadAllRooms(std::array<zelda3::Room, 0x128>& rooms);
+  absl::Status LoadAllRooms(DungeonRoomStore& rooms);
   absl::Status LoadRoomEntrances(
       std::array<zelda3::RoomEntrance, 0x8C>& entrances);
 
@@ -49,7 +50,7 @@ class DungeonRoomLoader {
 
   // Room graphics
   absl::Status LoadAndRenderRoomGraphics(zelda3::Room& room);
-  absl::Status ReloadAllRoomGraphics(std::array<zelda3::Room, 0x128>& rooms);
+  absl::Status ReloadAllRoomGraphics(DungeonRoomStore& rooms);
 
   // Data access
   const std::vector<int64_t>& GetRoomSizePointers() const {

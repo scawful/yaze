@@ -10,6 +10,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_object_interaction.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "util/file_util.h"
@@ -21,7 +22,7 @@
 
 namespace yaze::editor {
 
-class CustomCollisionPanel : public EditorPanel {
+class CustomCollisionPanel : public WindowContent {
  public:
   CustomCollisionPanel(DungeonCanvasViewer* viewer,
                        DungeonObjectInteraction* interaction)
@@ -273,7 +274,7 @@ class CustomCollisionPanel : public EditorPanel {
 
  private:
   static std::vector<zelda3::CustomCollisionRoomEntry> CollectRoomEntries(
-      const std::array<zelda3::Room, 0x128>& rooms) {
+      const DungeonRoomStore& rooms) {
     std::vector<zelda3::CustomCollisionRoomEntry> out;
     out.reserve(16);
     for (int rid = 0; rid < static_cast<int>(rooms.size()); ++rid) {

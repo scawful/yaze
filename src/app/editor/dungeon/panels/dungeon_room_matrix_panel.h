@@ -12,6 +12,7 @@
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -24,7 +25,7 @@ namespace editor {
 
 /**
  * @class DungeonRoomMatrixPanel
- * @brief EditorPanel for displaying a visual 16x19 grid of all dungeon rooms
+ * @brief WindowContent for displaying a visual 16x19 grid of all dungeon rooms
  *
  * This panel provides a compact overview of all 296 dungeon rooms in a matrix
  * layout. Users can click on cells to select and open rooms.
@@ -34,9 +35,9 @@ namespace editor {
  * - Palette-based coloring when room data is available
  * - Theme-aware selection highlighting
  *
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  */
-class DungeonRoomMatrixPanel : public EditorPanel {
+class DungeonRoomMatrixPanel : public WindowContent {
  public:
   /**
    * @brief Construct a room matrix panel
@@ -48,7 +49,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
   DungeonRoomMatrixPanel(int* current_room_id, ImVector<int>* active_rooms,
                          std::function<void(int)> on_room_selected,
                          std::function<void(int, int)> on_room_swap = nullptr,
-                         std::array<zelda3::Room, 0x128>* rooms = nullptr)
+                         DungeonRoomStore* rooms = nullptr)
       : current_room_id_(current_room_id),
         active_rooms_(active_rooms),
         rooms_(rooms),
@@ -56,7 +57,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
         on_room_swap_(std::move(on_room_swap)) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.room_matrix"; }
@@ -71,7 +72,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
   }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
@@ -272,7 +273,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
                         kRoomsPerCol * (cell_size + kCellSpacing)));
   }
 
-  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
 
  private:
   /**
@@ -370,7 +371,7 @@ class DungeonRoomMatrixPanel : public EditorPanel {
 
   int* current_room_id_ = nullptr;
   ImVector<int>* active_rooms_ = nullptr;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   std::function<void(int)> on_room_selected_;
   std::function<void(int, int)> on_room_swap_;
   std::function<void(int, RoomSelectionIntent)> on_room_intent_;

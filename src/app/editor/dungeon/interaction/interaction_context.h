@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
@@ -21,10 +22,10 @@ class ObjectSelection;
  */
 enum class EntityType {
   None,
-  Object,   // Room tile objects
-  Door,     // Door entities
-  Sprite,   // Enemy/NPC sprites
-  Item      // Pot items
+  Object,  // Room tile objects
+  Door,    // Door entities
+  Sprite,  // Enemy/NPC sprites
+  Item     // Pot items
 };
 
 /**
@@ -50,7 +51,7 @@ enum class MutationDomain : uint8_t {
 struct SelectedEntity {
   EntityType type = EntityType::None;
   size_t index = 0;  // Index into the respective container
-  
+
   bool operator==(const SelectedEntity& other) const {
     return type == other.type && index == other.index;
   }
@@ -76,7 +77,7 @@ struct InteractionContext {
   // Core dependencies (required)
   gui::Canvas* canvas = nullptr;
   Rom* rom = nullptr;
-  std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms = nullptr;
+  DungeonRoomStore* rooms = nullptr;
   int current_room_id = 0;
   ObjectSelection* selection = nullptr;
 
@@ -136,7 +137,8 @@ struct InteractionContext {
    */
   void NotifyMutation(MutationDomain domain = MutationDomain::kUnknown) const {
     last_mutation_domain = domain;
-    if (on_mutation) on_mutation();
+    if (on_mutation)
+      on_mutation();
   }
 
   /**
@@ -147,21 +149,24 @@ struct InteractionContext {
   void NotifyInvalidateCache(
       MutationDomain domain = MutationDomain::kUnknown) const {
     last_invalidation_domain = domain;
-    if (on_invalidate_cache) on_invalidate_cache();
+    if (on_invalidate_cache)
+      on_invalidate_cache();
   }
 
   /**
    * @brief Notify that selection has changed
    */
   void NotifySelectionChanged() const {
-    if (on_selection_changed) on_selection_changed();
+    if (on_selection_changed)
+      on_selection_changed();
   }
 
   /**
    * @brief Notify that entity has changed
    */
   void NotifyEntityChanged() const {
-    if (on_entity_changed) on_entity_changed();
+    if (on_entity_changed)
+      on_entity_changed();
   }
 };
 

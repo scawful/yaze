@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/editor.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -64,7 +65,7 @@ class DungeonRoomSelector {
   int current_entrance_id() const { return current_entrance_id_; }
 
   // Room data access
-  void set_rooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  void set_rooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
   void set_entrances(std::array<zelda3::RoomEntrance, 0x8C>* entrances) {
     entrances_ = entrances;
   }
@@ -103,7 +104,7 @@ class DungeonRoomSelector {
   int current_entrance_id_ = 0;
   ImVector<int> active_rooms_;
 
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   std::array<zelda3::RoomEntrance, 0x8C>* entrances_ = nullptr;
 
   // Callback for room selection events (single-click / default)

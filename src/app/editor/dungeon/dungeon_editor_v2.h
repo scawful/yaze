@@ -14,7 +14,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
@@ -23,6 +23,7 @@
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_room_loader.h"
 #include "dungeon_room_selector.h"
+#include "dungeon_room_store.h"
 #include "dungeon_undo_actions.h"
 #include "imgui/imgui.h"
 #include "panels/dungeon_room_graphics_panel.h"
@@ -73,25 +74,22 @@ class RoomTagEditorPanel;
  * - game_data_ - owned by Application, passed via SetGameData()
  * - renderer_ - owned by Application, passed via Initialize()
  *
- * OWNED BY PanelManager (registered EditorPanels):
- * - object_editor_panel_ - registered via RegisterEditorPanel()
- * - room_graphics_panel_ - registered via RegisterEditorPanel()
- * - sprite_editor_panel_ - registered via RegisterEditorPanel()
- * - item_editor_panel_ - registered via RegisterEditorPanel()
+ * OWNED BY WorkspaceWindowManager (registered EditorPanels):
+ * - object_editor_panel_ - registered via RegisterWindowContent()
+ * - room_graphics_panel_ - registered via RegisterWindowContent()
+ * - sprite_editor_panel_ - registered via RegisterWindowContent()
+ * - item_editor_panel_ - registered via RegisterWindowContent()
  *
  * Panel pointers are stored for convenience access but should NOT be
- * deleted by this class. PanelManager owns them.
+ * deleted by this class. WorkspaceWindowManager owns them.
  */
 class DungeonEditorV2 : public Editor {
  public:
   explicit DungeonEditorV2(Rom* rom = nullptr)
-      : rom_(rom), room_loader_(rom), room_selector_(rom) {
+      : rom_(rom), room_loader_(rom), room_selector_(rom), rooms_(rom) {
     type_ = EditorType::kDungeon;
     if (rom) {
       dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
-      for (auto& room : rooms_) {
-        room.SetRom(rom);
-      }
     }
   }
 
@@ -107,9 +105,7 @@ class DungeonEditorV2 : public Editor {
     if (dungeon_editor_system_) {
       dungeon_editor_system_->SetGameData(game_data);
     }
-    for (auto& room : rooms_) {
-      room.SetGameData(game_data);
-    }
+    rooms_.SetGameData(game_data);
     // Note: Canvas viewer game data is set lazily in GetViewerForRoom
     // but we should update existing viewers
     room_viewers_.ForEach(
@@ -147,9 +143,7 @@ class DungeonEditorV2 : public Editor {
 
     // Propagate ROM to all rooms
     if (rom) {
-      for (auto& room : rooms_) {
-        room.SetRom(rom);
-      }
+      rooms_.SetRom(rom);
     }
 
     // Reset viewers on ROM change
@@ -182,10 +176,10 @@ class DungeonEditorV2 : public Editor {
     return absl::StrFormat("ROM loaded: %s", rom_->title());
   }
 
-  // Show a panel by its card_id using PanelManager
-  void ShowPanel(const std::string& card_id) {
-    if (dependencies_.panel_manager) {
-      dependencies_.panel_manager->ShowPanel(card_id);
+  // Open a workspace window by its id using WorkspaceWindowManager.
+  void OpenWindow(const std::string& window_id) {
+    if (dependencies_.window_manager) {
+      dependencies_.window_manager->OpenWindow(window_id);
     }
   }
 
@@ -211,8 +205,8 @@ class DungeonEditorV2 : public Editor {
   const ImVector<int>& active_rooms() const {
     return room_selector_.active_rooms();
   }
-  std::array<zelda3::Room, 0x128>& rooms() { return rooms_; }
-  const std::array<zelda3::Room, 0x128>& rooms() const { return rooms_; }
+  DungeonRoomStore& rooms() { return rooms_; }
+  const DungeonRoomStore& rooms() const { return rooms_; }
   gfx::IRenderer* renderer() const { return renderer_; }
   ObjectEditorPanel* object_editor_panel() const {
     return object_editor_panel_;
@@ -272,7 +266,7 @@ class DungeonEditorV2 : public Editor {
   // Data
   Rom* rom_;
   zelda3::GameData* game_data_ = nullptr;
-  std::array<zelda3::Room, 0x128> rooms_;
+  DungeonRoomStore rooms_;
   std::array<zelda3::RoomEntrance, 0x8C> entrances_;
 
   // Current selection state
@@ -287,7 +281,7 @@ class DungeonEditorV2 : public Editor {
   std::deque<int> recent_rooms_;
   std::vector<int> pinned_rooms_;
 
-  // Workbench panel pointer (owned by PanelManager, stored for notifications).
+  // Workbench panel pointer (owned by WorkspaceWindowManager, stored for notifications).
   class DungeonWorkbenchPanel* workbench_panel_ = nullptr;
 
   // Palette management
@@ -306,7 +300,7 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<DungeonCanvasViewer> workbench_compare_viewer_;
 
   gui::PaletteEditorWidget palette_editor_;
-  // Panel pointers - these are owned by PanelManager when available.
+  // Panel pointers - these are owned by WorkspaceWindowManager when available.
   // Store pointers for direct access to panel methods.
   ObjectEditorPanel* object_editor_panel_ = nullptr;
   DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;
@@ -320,8 +314,8 @@ class DungeonEditorV2 : public Editor {
   class DungeonSettingsPanel* dungeon_settings_panel_ = nullptr;
   OverlayManagerPanel* overlay_manager_panel_ = nullptr;
 
-  // Fallback ownership for tests when PanelManager is not available.
-  // In production, this remains nullptr and panels are owned by PanelManager.
+  // Fallback ownership for tests when WorkspaceWindowManager is not available.
+  // In production, this remains nullptr and panels are owned by WorkspaceWindowManager.
   std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;

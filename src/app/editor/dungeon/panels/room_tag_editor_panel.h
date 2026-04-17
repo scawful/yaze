@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
@@ -16,7 +17,7 @@ namespace editor {
 
 /**
  * @class RoomTagEditorPanel
- * @brief EditorPanel showing all room tag slots and their usage across rooms
+ * @brief WindowContent showing all room tag slots and their usage across rooms
  *
  * Displays a table of tag slots (0x00 through ~0x3A) with columns for:
  * - Slot index (hex)
@@ -28,15 +29,15 @@ namespace editor {
  *
  * Also provides quick-assign combo boxes for the current room's Tag1 and Tag2.
  *
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  * @see HackManifest - ASM tag metadata source
  */
-class RoomTagEditorPanel : public EditorPanel {
+class RoomTagEditorPanel : public WindowContent {
  public:
   RoomTagEditorPanel() = default;
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.room_tags"; }
@@ -46,7 +47,7 @@ class RoomTagEditorPanel : public EditorPanel {
   int GetPriority() const override { return 45; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override;
@@ -56,7 +57,7 @@ class RoomTagEditorPanel : public EditorPanel {
   // ==========================================================================
 
   void SetProject(project::YazeProject* project) { project_ = project; }
-  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) {
+  void SetRooms(DungeonRoomStore* rooms) {
     rooms_ = rooms;
     cache_dirty_ = true;
   }
@@ -68,7 +69,7 @@ class RoomTagEditorPanel : public EditorPanel {
   void RebuildRoomCountCache();
 
   project::YazeProject* project_ = nullptr;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = -1;
 
   // Cache: tag_index -> count of rooms using it

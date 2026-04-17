@@ -14,6 +14,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_object_interaction.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "util/file_util.h"
@@ -22,7 +23,7 @@
 
 namespace yaze::editor {
 
-class WaterFillPanel : public EditorPanel {
+class WaterFillPanel : public WindowContent {
  public:
   WaterFillPanel(DungeonCanvasViewer* viewer,
                  DungeonObjectInteraction* interaction)
@@ -418,7 +419,7 @@ class WaterFillPanel : public EditorPanel {
 
  private:
   static std::vector<zelda3::WaterFillZoneEntry> CollectZones(
-      const std::array<zelda3::Room, 0x128>& rooms) {
+      const DungeonRoomStore& rooms) {
     std::vector<zelda3::WaterFillZoneEntry> zones;
     zones.reserve(8);
     for (int room_id = 0; room_id < static_cast<int>(rooms.size()); ++room_id) {

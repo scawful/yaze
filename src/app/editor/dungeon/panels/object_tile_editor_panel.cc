@@ -8,15 +8,13 @@
 namespace yaze {
 namespace editor {
 
-ObjectTileEditorPanel::ObjectTileEditorPanel(gfx::IRenderer* renderer,
-                                             Rom* rom)
+ObjectTileEditorPanel::ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom)
     : renderer_(renderer), rom_(rom) {
   tile_editor_ = std::make_unique<zelda3::ObjectTileEditor>(rom);
 }
 
-void ObjectTileEditorPanel::OpenForObject(
-    int16_t object_id, int room_id,
-    std::array<zelda3::Room, 0x128>* rooms) {
+void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
+                                          DungeonRoomStore* rooms) {
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
@@ -32,17 +30,17 @@ void ObjectTileEditorPanel::OpenForObject(
   }
 
   auto& room = (*rooms_)[current_room_id_];
-  auto layout_or = tile_editor_->CaptureObjectLayout(
-      object_id, room, current_palette_group_);
+  auto layout_or = tile_editor_->CaptureObjectLayout(object_id, room,
+                                                     current_palette_group_);
   if (layout_or.ok()) {
     current_layout_ = std::move(layout_or.value());
   }
 }
 
-void ObjectTileEditorPanel::OpenForNewObject(
-    int width, int height, const std::string& filename,
-    int16_t object_id, int room_id,
-    std::array<zelda3::Room, 0x128>* rooms) {
+void ObjectTileEditorPanel::OpenForNewObject(int width, int height,
+                                             const std::string& filename,
+                                             int16_t object_id, int room_id,
+                                             DungeonRoomStore* rooms) {
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
@@ -53,8 +51,8 @@ void ObjectTileEditorPanel::OpenForNewObject(
   is_open_ = true;
   is_new_object_ = true;
 
-  current_layout_ = zelda3::ObjectTileLayout::CreateEmpty(
-      width, height, object_id, filename);
+  current_layout_ =
+      zelda3::ObjectTileLayout::CreateEmpty(width, height, object_id, filename);
 }
 
 void ObjectTileEditorPanel::Close() {
@@ -71,7 +69,8 @@ void ObjectTileEditorPanel::SetCurrentPaletteGroup(
 }
 
 void ObjectTileEditorPanel::Draw(bool* p_open) {
-  if (!is_open_ || current_layout_.cells.empty()) return;
+  if (!is_open_ || current_layout_.cells.empty())
+    return;
 
   std::string title;
   if (is_new_object_) {
@@ -82,8 +81,7 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
   } else {
     title = absl::StrFormat(
         ICON_MD_GRID_ON " Object 0x%03X - %s###ObjTileEditor",
-        current_object_id_,
-        zelda3::GetObjectName(current_object_id_).c_str());
+        current_object_id_, zelda3::GetObjectName(current_object_id_).c_str());
   }
 
   ImGui::SetNextWindowSize(ImVec2(550, 500), ImGuiCond_FirstUseEver);
@@ -99,9 +97,9 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
   }
 
   // Two-column layout: tile grid + source sheet
-  if (ImGui::BeginTable("##TileEditorLayout", 2,
-                        ImGuiTableFlags_Resizable |
-                            ImGuiTableFlags_BordersInnerV)) {
+  if (ImGui::BeginTable(
+          "##TileEditorLayout", 2,
+          ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
     ImGui::TableSetupColumn("Tile Grid", ImGuiTableColumnFlags_WidthFixed,
                             280.0f);
     ImGui::TableSetupColumn("Source Sheet", ImGuiTableColumnFlags_WidthStretch);
@@ -130,7 +128,8 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
   }
   if (ImGui::BeginPopupModal("Shared Tile Data", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("This tile data is shared by %d objects.", shared_object_count_);
+    ImGui::Text("This tile data is shared by %d objects.",
+                shared_object_count_);
     ImGui::Text("Changes will affect all of them.");
     ImGui::Spacing();
     if (ImGui::Button("Apply Anyway", ImVec2(120, 0))) {
@@ -148,12 +147,13 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
 }
 
 void ObjectTileEditorPanel::RenderObjectPreview() {
-  if (!rooms_ || current_room_id_ < 0) return;
+  if (!rooms_ || current_room_id_ < 0)
+    return;
   auto& room = (*rooms_)[current_room_id_];
 
   auto status = tile_editor_->RenderLayoutToBitmap(
-      current_layout_, object_preview_bmp_,
-      room.get_gfx_buffer().data(), current_palette_group_);
+      current_layout_, object_preview_bmp_, room.get_gfx_buffer().data(),
+      current_palette_group_);
   if (status.ok()) {
     object_preview_bmp_.UpdateTexture();
     preview_dirty_ = false;
@@ -161,12 +161,13 @@ void ObjectTileEditorPanel::RenderObjectPreview() {
 }
 
 void ObjectTileEditorPanel::RenderTile8Atlas() {
-  if (!rooms_ || current_room_id_ < 0) return;
+  if (!rooms_ || current_room_id_ < 0)
+    return;
   auto& room = (*rooms_)[current_room_id_];
 
   auto status = tile_editor_->BuildTile8Atlas(
-      tile8_atlas_bmp_, room.get_gfx_buffer().data(),
-      current_palette_group_, source_palette_);
+      tile8_atlas_bmp_, room.get_gfx_buffer().data(), current_palette_group_,
+      source_palette_);
   if (status.ok()) {
     tile8_atlas_bmp_.UpdateTexture();
     atlas_dirty_ = false;
@@ -190,9 +191,8 @@ void ObjectTileEditorPanel::DrawTileGrid() {
 
   // Draw the preview bitmap as background
   if (object_preview_bmp_.is_active() && object_preview_bmp_.texture()) {
-    ImGui::Image(
-        (ImTextureID)(intptr_t)object_preview_bmp_.texture(),
-        canvas_size);
+    ImGui::Image((ImTextureID)(intptr_t)object_preview_bmp_.texture(),
+                 canvas_size);
   } else {
     ImGui::Dummy(canvas_size);
   }
@@ -227,8 +227,10 @@ void ObjectTileEditorPanel::DrawTileGrid() {
   // Handle clicks on the grid
   if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(0)) {
     ImVec2 mouse = ImGui::GetMousePos();
-    int click_tile_x = static_cast<int>((mouse.x - canvas_pos.x) / (8 * kScale));
-    int click_tile_y = static_cast<int>((mouse.y - canvas_pos.y) / (8 * kScale));
+    int click_tile_x =
+        static_cast<int>((mouse.x - canvas_pos.x) / (8 * kScale));
+    int click_tile_y =
+        static_cast<int>((mouse.y - canvas_pos.y) / (8 * kScale));
 
     // Find the cell at this position
     for (int idx = 0; idx < static_cast<int>(current_layout_.cells.size());
@@ -244,7 +246,8 @@ void ObjectTileEditorPanel::DrawTileGrid() {
   // Show cell count
   int modified_count = 0;
   for (const auto& cell : current_layout_.cells) {
-    if (cell.modified) ++modified_count;
+    if (cell.modified)
+      ++modified_count;
   }
   ImGui::Text("%zu tiles, %d modified", current_layout_.cells.size(),
               modified_count);
@@ -266,8 +269,7 @@ void ObjectTileEditorPanel::DrawSourceSheet() {
 
   constexpr float kAtlasScale = 2.0f;
   float display_width = zelda3::ObjectTileEditor::kAtlasWidthPx * kAtlasScale;
-  float display_height =
-      zelda3::ObjectTileEditor::kAtlasHeightPx * kAtlasScale;
+  float display_height = zelda3::ObjectTileEditor::kAtlasHeightPx * kAtlasScale;
 
   ImVec2 atlas_pos = ImGui::GetCursorScreenPos();
   ImVec2 atlas_size(display_width, display_height);
@@ -279,9 +281,7 @@ void ObjectTileEditorPanel::DrawSourceSheet() {
   atlas_pos = ImGui::GetCursorScreenPos();
 
   if (tile8_atlas_bmp_.is_active() && tile8_atlas_bmp_.texture()) {
-    ImGui::Image(
-        (ImTextureID)(intptr_t)tile8_atlas_bmp_.texture(),
-        atlas_size);
+    ImGui::Image((ImTextureID)(intptr_t)tile8_atlas_bmp_.texture(), atlas_size);
   } else {
     ImGui::Dummy(atlas_size);
   }
@@ -327,8 +327,8 @@ void ObjectTileEditorPanel::DrawSourceSheet() {
         click_col < zelda3::ObjectTileEditor::kAtlasTilesPerRow &&
         click_row >= 0 &&
         click_row < zelda3::ObjectTileEditor::kAtlasTileRows) {
-      int tile_id = click_row * zelda3::ObjectTileEditor::kAtlasTilesPerRow +
-                    click_col;
+      int tile_id =
+          click_row * zelda3::ObjectTileEditor::kAtlasTilesPerRow + click_col;
       selected_source_tile_ = tile_id;
 
       // If a cell is selected, replace its tile
@@ -441,7 +441,8 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
 void ObjectTileEditorPanel::DrawActionBar() {
   int modified_count = 0;
   for (const auto& cell : current_layout_.cells) {
-    if (cell.modified) ++modified_count;
+    if (cell.modified)
+      ++modified_count;
   }
 
   bool has_mods = modified_count > 0;
@@ -463,21 +464,25 @@ void ObjectTileEditorPanel::DrawActionBar() {
   }
 
   // Apply button
-  if (!has_mods) ImGui::BeginDisabled();
+  if (!has_mods)
+    ImGui::BeginDisabled();
   if (ImGui::Button(ICON_MD_SAVE " Apply")) {
     ApplyChanges();
   }
-  if (!has_mods) ImGui::EndDisabled();
+  if (!has_mods)
+    ImGui::EndDisabled();
 
   ImGui::SameLine();
 
   // Revert button
-  if (!has_mods) ImGui::BeginDisabled();
+  if (!has_mods)
+    ImGui::BeginDisabled();
   if (ImGui::Button(ICON_MD_UNDO " Revert")) {
     current_layout_.RevertAll();
     preview_dirty_ = true;
   }
-  if (!has_mods) ImGui::EndDisabled();
+  if (!has_mods)
+    ImGui::EndDisabled();
 
   ImGui::SameLine();
 
@@ -488,14 +493,17 @@ void ObjectTileEditorPanel::DrawActionBar() {
 
 void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
   // Only handle shortcuts when this window is focused
-  if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) return;
-  if (current_layout_.cells.empty()) return;
+  if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
+    return;
+  if (current_layout_.cells.empty())
+    return;
 
   int cell_count = static_cast<int>(current_layout_.cells.size());
 
   // Arrow keys: navigate selected cell by spatial position
   auto find_neighbor = [&](int dx, int dy) -> int {
-    if (selected_cell_index_ < 0) return 0;
+    if (selected_cell_index_ < 0)
+      return 0;
     const auto& cur = current_layout_.cells[selected_cell_index_];
     int target_x = cur.rel_x + dx;
     int target_y = cur.rel_y + dy;
@@ -525,8 +533,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
   if (selected_cell_index_ >= 0 && selected_cell_index_ < cell_count) {
     auto& cell = current_layout_.cells[selected_cell_index_];
     for (int key = 0; key <= 7; ++key) {
-      if (ImGui::IsKeyPressed(
-              static_cast<ImGuiKey>(ImGuiKey_0 + key), false)) {
+      if (ImGui::IsKeyPressed(static_cast<ImGuiKey>(ImGuiKey_0 + key), false)) {
         cell.tile_info.palette_ = static_cast<uint8_t>(key);
         cell.modified = true;
         preview_dirty_ = true;

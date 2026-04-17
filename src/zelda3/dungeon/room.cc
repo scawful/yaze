@@ -27,6 +27,15 @@
 namespace yaze {
 namespace zelda3 {
 
+namespace {
+
+bool RoomUsesTrackCornerAliases(const std::vector<RoomObject>& objects) {
+  return std::any_of(objects.begin(), objects.end(),
+                     [](const RoomObject& obj) { return obj.id_ == 0x31; });
+}
+
+}  // namespace
+
 // Define room effect names in a single translation unit to avoid SIOF
 const std::string RoomEffect[8] = {"Nothing",
                                    "Nothing",
@@ -111,7 +120,8 @@ absl::Status GetSpritePointerTablePc(const std::vector<uint8_t>& rom_data,
     return absl::InvalidArgumentError("table_pc pointer is null");
   }
   if (kRoomsSpritePointer + 1 >= static_cast<int>(rom_data.size())) {
-    return absl::OutOfRangeError("Sprite pointer table address is out of range");
+    return absl::OutOfRangeError(
+        "Sprite pointer table address is out of range");
   }
 
   int table_snes = (0x09 << 16) | (rom_data[kRoomsSpritePointer + 1] << 8) |
@@ -135,8 +145,8 @@ int ReadRoomSpriteAddressPc(const std::vector<uint8_t>& rom_data, int table_pc,
     return -1;
   }
 
-  int sprite_address_snes = (0x09 << 16) | (rom_data[ptr_off + 1] << 8) |
-                            rom_data[ptr_off];
+  int sprite_address_snes =
+      (0x09 << 16) | (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
   return SnesToPc(sprite_address_snes);
 }
 
@@ -450,6 +460,28 @@ Room::~Room() = default;
 Room::Room(Room&&) = default;
 Room& Room::operator=(Room&&) = default;
 
+int Room::ResolveDungeonPaletteId() const {
+  if (!game_data_ || !rom_)
+    return 0;
+  const auto& group = game_data_->palette_groups.dungeon_main;
+  const int num_palettes = static_cast<int>(group.size());
+  if (num_palettes == 0)
+    return 0;
+
+  int id = palette_;
+  if (palette_ < game_data_->paletteset_ids.size() &&
+      !game_data_->paletteset_ids[palette_].empty()) {
+    const auto offset = game_data_->paletteset_ids[palette_][0];
+    const auto word = rom_->ReadWord(kDungeonPalettePointerTable + offset);
+    if (word.ok()) {
+      id = word.value() / kDungeonPaletteBytes;
+    }
+  }
+  if (id < 0 || id >= num_palettes)
+    id = 0;
+  return id;
+}
+
 void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   if (!game_data_) {
     LOG_DEBUG("Room", "GameData not set for room %d", room_id_);
@@ -484,6 +516,49 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
   LOG_DEBUG("Room", "Sheet IDs BG[0-7]: %d %d %d %d %d %d %d %d", blocks_[0],
             blocks_[1], blocks_[2], blocks_[3], blocks_[4], blocks_[5],
             blocks_[6], blocks_[7]);
+}
+
+void Room::EnsureObjectsLoaded() {
+  if (objects_loaded_) {
+    return;
+  }
+  LoadObjects();
+}
+
+void Room::EnsureSpritesLoaded() {
+  if (sprites_loaded_) {
+    return;
+  }
+  LoadSprites();
+}
+
+void Room::EnsurePotItemsLoaded() {
+  if (pot_items_loaded_) {
+    return;
+  }
+  LoadPotItems();
+}
+
+void Room::ReloadGraphics(uint8_t entrance_blockset) {
+  (void)entrance_blockset;
+  EnsureObjectsLoaded();
+  MarkGraphicsDirty();
+  MarkLayoutDirty();
+  MarkObjectsDirty();
+  RenderRoomGraphics();
+}
+
+void Room::PrepareForRender(uint8_t entrance_blockset) {
+  (void)entrance_blockset;
+  EnsureObjectsLoaded();
+
+  auto& bg1_bmp = bg1_buffer_.bitmap();
+  auto& bg2_bmp = bg2_buffer_.bitmap();
+  if (dirty_state_.graphics || dirty_state_.objects || dirty_state_.layout ||
+      dirty_state_.textures || !bg1_bmp.is_active() || bg1_bmp.width() == 0 ||
+      !bg2_bmp.is_active() || bg2_bmp.width() == 0) {
+    RenderRoomGraphics();
+  }
 }
 
 constexpr int kGfxBufferOffset = 92 * 2048;
@@ -588,9 +663,13 @@ void Room::CopyRoomGraphicsToBuffer() {
 }
 
 gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
-  if (dirty_state_.composite) {
+  const uint64_t requested_signature = layer_mgr.CompositeStateSignature();
+  if (dirty_state_.composite || !has_composite_signature_ ||
+      composite_signature_ != requested_signature) {
     layer_mgr.CompositeToOutput(*this, composite_bitmap_);
     dirty_state_.composite = false;
+    composite_signature_ = requested_signature;
+    has_composite_signature_ = true;
   }
   return composite_bitmap_;
 }
@@ -705,29 +784,14 @@ void Room::RenderRoomGraphics() {
   if (!game_data_)
     return;
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
-  int num_palettes = dungeon_pal_group.size();
-  if (num_palettes == 0)
+  if (dungeon_pal_group.empty())
     return;
 
-  // Look up dungeon palette ID using the two-level paletteset_ids table.
-  // paletteset_ids[palette][0] contains a BYTE OFFSET into the palette pointer
-  // table at kDungeonPalettePointerTable. The word at that offset, divided by
-  // 180 (bytes per palette), gives the actual palette index (0-19).
-  int palette_id = palette_;
-  if (palette_ < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette_].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette_][0];
-    auto palette_word =
-        rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
-    if (palette_word.ok()) {
-      palette_id = palette_word.value() / 180;
-    }
-  }
-  if (palette_id < 0 || palette_id >= num_palettes) {
-    palette_id = 0;
-  }
-
+  const int palette_id = ResolveDungeonPaletteId();
   auto bg1_palette = dungeon_pal_group[palette_id];
+
+  object_bg1_buffer_.EnsureBitmapInitialized();
+  object_bg2_buffer_.EnsureBitmapInitialized();
 
   // DEBUG: Log palette loading
   PaletteDebugger::Get().LogPaletteLoad("Room::RenderRoomGraphics", palette_id,
@@ -746,43 +810,44 @@ void Room::RenderRoomGraphics() {
   PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
 
   if (bg1_palette.size() > 0) {
-    // Apply dungeon palette using 16-color bank chunking (matches SNES CGRAM)
+    // Apply dungeon palette in a layout that mirrors SNES CGRAM directly.
     //
     // SNES CGRAM layout for dungeons:
-    // - CGRAM has 16-color banks, each bank's index 0 is transparent
-    // - Dungeon tiles use palette bits 2-7, mapping to CGRAM rows 2-7
-    // - ROM stores 15 colors per bank (excluding transparent index 0)
-    // - 6 banks × 15 colors = 90 colors in ROM
+    //   Rows 0-1 : HUD palette (not loaded in the dungeon view)
+    //   Rows 2-7 : Dungeon main, 6 banks × 15 colors = 90 colors
+    //              (`PaletteLoad_UnderworldSet` copies starting at color $21)
     //
-    // SDL palette mapping (16-color chunks):
-    // - Bank N (N=0-5): SDL indices [N*16 .. N*16+15]
-    // - Index N*16 = transparent for that bank
-    // - ROM colors [N*15 .. N*15+14] → SDL indices [N*16+1 .. N*16+15]
+    // SDL palette (256 indices) mirrors CGRAM rows 1:1:
+    //   SDL indices [bank*16 .. bank*16+15] for bank = CGRAM row 0-7.
+    //   Slot 0 of each bank is transparent.
+    //   HUD bank 0-1 are left empty placeholders here; dungeon banks 2-7 are
+    //   filled from ROM data.
     //
-    // Drawing formula: final_color = pixel + (bank * 16)
-    // Where pixel 0 = transparent (not written), pixel 1-15 = colors 1-15 in bank
+    // Drawing formula (see ObjectDrawer): final_color = pixel + (pal * 16).
+    // Where pal is the 3-bit tile palette field (0-7) and pixel is 1-15.
     auto set_dungeon_palette = [](gfx::Bitmap& bmp,
                                   const gfx::SnesPalette& pal) {
       std::vector<SDL_Color> colors(
           256, {0, 0, 0, 0});  // Initialize all transparent
 
-      // Map ROM palette to 16-color banks
-      // ROM: 90 colors (6 banks × 15 colors each)
-      // SDL: 96 indices (6 banks × 16 indices each)
       constexpr int kColorsPerRomBank = 15;
       constexpr int kIndicesPerSdlBank = 16;
-      constexpr int kNumBanks = 6;
+      constexpr int kNumRomBanks = 6;
+      // Dungeon main banks occupy CGRAM rows 2-7, so first ROM bank lands at
+      // SDL bank 2. Tiles with palette field 0 or 1 fall into the HUD rows and
+      // render against transparent placeholders (intentional — dungeon view
+      // does not load HUD colors).
+      constexpr int kDungeonBankStart = 2;
 
-      for (int bank = 0; bank < kNumBanks; bank++) {
-        // Index 0 of each bank is transparent (already initialized to {0,0,0,0})
-        // ROM colors map to SDL indices 1-15 within each bank
+      for (int rom_bank = 0; rom_bank < kNumRomBanks; rom_bank++) {
+        const int sdl_bank = rom_bank + kDungeonBankStart;
         for (int color = 0; color < kColorsPerRomBank; color++) {
-          size_t rom_index = bank * kColorsPerRomBank + color;
+          size_t rom_index = rom_bank * kColorsPerRomBank + color;
           if (rom_index >= pal.size())
             break;
 
-          int sdl_index =
-              bank * kIndicesPerSdlBank + color + 1;  // +1 to skip transparent
+          int sdl_index = sdl_bank * kIndicesPerSdlBank + color +
+                          1;  // +1 skips bank slot 0
           ImVec4 rgb = pal[rom_index].rgb();
           colors[sdl_index] = {
               static_cast<Uint8>(rgb.x), static_cast<Uint8>(rgb.y),
@@ -919,7 +984,8 @@ void Room::LoadLayoutTilesToBuffer() {
   }
 
   const auto& layout_objects = layout_.GetObjects();
-  LOG_DEBUG("Room", "Layout %d has %zu objects", layout_id_, layout_objects.size());
+  LOG_DEBUG("Room", "Layout %d has %zu objects", layout_id_,
+            layout_objects.size());
   if (layout_objects.empty()) {
     return;
   }
@@ -933,25 +999,11 @@ void Room::LoadLayoutTilesToBuffer() {
   }
 
   // Get palette for layout rendering
-  // Get palette for layout rendering using two-level lookup
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
-  int num_palettes = dungeon_pal_group.size();
-  if (num_palettes == 0)
+  if (dungeon_pal_group.empty())
     return;
-  int palette_id = palette_;
-  if (palette_ < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette_].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette_][0];
-    auto palette_word =
-        rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
-    if (palette_word.ok()) {
-      palette_id = palette_word.value() / 180;
-    }
-  }
-  if (palette_id < 0 || palette_id >= num_palettes) {
-    palette_id = 0;
-  }
 
+  const int palette_id = ResolveDungeonPaletteId();
   auto room_palette = dungeon_pal_group[palette_id];
   gfx::PaletteGroup palette_group;
   palette_group.AddPalette(room_palette);
@@ -1001,29 +1053,14 @@ void Room::RenderObjectsToBackground() {
   // Emulator or Hybrid mode (use ObjectDrawer)
   LOG_DEBUG("[RenderObjectsToBackground]",
             "Room %d: Emulator rendering objects", room_id_);
-  // Get palette group for object rendering (use SAME lookup as
-  // RenderRoomGraphics)
+  // Get palette group for object rendering (same lookup as other render paths).
   if (!game_data_)
     return;
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
-  int num_palettes = dungeon_pal_group.size();
+  if (dungeon_pal_group.empty())
+    return;
 
-  // Look up dungeon palette ID using the two-level paletteset_ids table.
-  // (same lookup as RenderRoomGraphics and LoadLayoutTilesToBuffer)
-  int palette_id = palette_;
-  if (palette_ < game_data_->paletteset_ids.size() &&
-      !game_data_->paletteset_ids[palette_].empty()) {
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[palette_][0];
-    auto palette_word =
-        rom()->ReadWord(kDungeonPalettePointerTable + dungeon_palette_ptr);
-    if (palette_word.ok()) {
-      palette_id = palette_word.value() / 180;
-    }
-  }
-  if (palette_id < 0 || palette_id >= num_palettes) {
-    palette_id = 0;
-  }
-
+  const int palette_id = ResolveDungeonPaletteId();
   auto room_palette = dungeon_pal_group[palette_id];
   // Dungeon palettes are 90-color palettes for 3BPP graphics (8-color strides)
   // Pass the full palette to ObjectDrawer so it can handle all palette indices
@@ -1035,10 +1072,11 @@ void Room::RenderObjectsToBackground() {
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
+  drawer.SetAllowTrackCornerAliases(RoomUsesTrackCornerAliases(tile_objects_));
   // NOTE: BothBG routines (ceiling corners, merged stairs, prison cells) are
-  // handled by DrawRoutineRegistry's draws_to_both_bgs flag. Full four-pass
-  // stream splitting (layout → main → BG2 overlay → BG1 overlay) remains
-  // future work. See docs/internal/agents/dungeon-object-rendering-spec.md.
+  // handled by DrawRoutineRegistry's draws_to_both_bgs flag. The room object
+  // stream is split here as primary -> BG2 overlay -> BG1 overlay, while the
+  // layout pass is rendered separately by RoomLayout::Draw.
 
   // Clear object buffers before rendering
   // IMPORTANT: Fill with 255 (transparent color key) so objects overlay correctly
@@ -1059,7 +1097,8 @@ void Room::RenderObjectsToBackground() {
   object_bg1_buffer_.ClearCoverageBuffer();
   object_bg2_buffer_.ClearCoverageBuffer();
 
-  // Log layer distribution for this room
+  // Log stream distribution for this room.
+  // USDASM order is: main list -> BG2 overlay list -> BG1 overlay list.
   int layer0_count = 0, layer1_count = 0, layer2_count = 0;
   for (const auto& obj : tile_objects_) {
     switch (obj.GetLayerValue()) {
@@ -1076,16 +1115,23 @@ void Room::RenderObjectsToBackground() {
   }
   LOG_DEBUG(
       "Room",
-      "Room %03X Object Layer Summary: L0(BG1)=%d, L1(BG2)=%d, L2(BG3)=%d",
+      "Room %03X Object Stream Summary: Main=%d, BG2Overlay=%d, BG1Overlay=%d",
       room_id_, layer0_count, layer1_count, layer2_count);
 
-  // Render objects to appropriate buffers
-  // BG1 = Floor/Main (Layer 0, 2)
-  // BG2 = Overlay (Layer 1)
-  // Pass bg1_buffer_ for BG2 object masking - this creates "holes" in the floor
-  // so BG2 overlay content (platforms, statues) shows through BG1 floor tiles
-  std::vector<RoomObject> objects_to_draw;
-  objects_to_draw.reserve(tile_objects_.size());
+  // Render room-object streams in USDASM order.
+  // - List index 0: primary object list -> BG1 object buffer (upper tilemap)
+  // - List index 1: BG2 overlay list -> BG2 object buffer
+  // - List index 2: BG1 overlay list -> BG1 object buffer (BG3 enum; same draw
+  //   path as BG1 in ObjectDrawer for non-BothBG objects)
+  // `tile_objects_[].layer_` holds the list index (0/1/2) for save/load, not
+  // the buffer name. Map with MapRoomObjectListIndexToDrawLayer before drawing.
+  // BothBG routines still fan out to both buffers via DrawRoutineRegistry.
+  // Pass bg1_buffer_ for BG2 mask propagation so pits/layer masks can create
+  // holes in BG1 that reveal BG2 beneath.
+  //
+  // Three DrawObjectList passes match USDASM list order; chest indices continue
+  // across passes (reset_chest_index only on the first non-empty pass).
+  std::vector<std::vector<RoomObject>> by_list(3);
   for (const auto& obj : tile_objects_) {
     // Torches and pushable blocks are NOT part of the room object stream.
     // They come from the global tables and are drawn after the stream in
@@ -1096,12 +1142,30 @@ void Room::RenderObjectsToBackground() {
     if ((obj.options() & ObjectOption::Block) != ObjectOption::Nothing) {
       continue;
     }
-    objects_to_draw.push_back(obj);
+
+    uint8_t list_index = obj.GetLayerValue();
+    if (list_index > 2) {
+      list_index = 2;
+    }
+    RoomObject render_obj = obj;
+    render_obj.layer_ = MapRoomObjectListIndexToDrawLayer(list_index);
+    by_list[list_index].push_back(std::move(render_obj));
   }
 
-  auto status = drawer.DrawObjectList(objects_to_draw, object_bg1_buffer_,
-                                      object_bg2_buffer_, palette_group,
-                                      dungeon_state_.get(), &bg1_buffer_);
+  absl::Status status = absl::OkStatus();
+  bool reset_chest_for_next_chunk = true;
+  for (int pass = 0; pass < 3; ++pass) {
+    if (by_list[pass].empty()) {
+      continue;
+    }
+    auto chunk_status = drawer.DrawObjectList(
+        by_list[pass], object_bg1_buffer_, object_bg2_buffer_, palette_group,
+        dungeon_state_.get(), &bg1_buffer_, reset_chest_for_next_chunk);
+    reset_chest_for_next_chunk = false;
+    if (!chunk_status.ok() && status.ok()) {
+      status = chunk_status;
+    }
+  }
 
   // Render doors using DoorDef struct with enum types
   // Doors are drawn to the OBJECT buffer for layer visibility control
@@ -1164,8 +1228,8 @@ void Room::RenderObjectsToBackground() {
       continue;
     }
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-      const uint16_t off = obj.lit_ ? kRoomDrawObj_TorchLit
-                                    : kRoomDrawObj_TorchUnlit;
+      const uint16_t off =
+          obj.lit_ ? kRoomDrawObj_TorchLit : kRoomDrawObj_TorchUnlit;
       (void)drawer.DrawRoomDrawObjectData2x2(
           static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_, off,
           object_bg1_buffer_, object_bg2_buffer_);
@@ -1173,41 +1237,15 @@ void Room::RenderObjectsToBackground() {
     }
   }
 
-  // Log only failures, not successes
   if (!status.ok()) {
-    LOG_DEBUG(
+    LOG_WARN(
         "[RenderObjectsToBackground]",
-        "ObjectDrawer failed: %s - FALLING BACK TO MANUAL",
+        "Room %03X: ObjectDrawer failed: %s (objects left dirty for retry)",
+        room_id_,
         std::string(status.message().data(), status.message().size()).c_str());
-
-    LOG_DEBUG("[RenderObjectsToBackground]",
-              "Room %d: Manual rendering objects (fallback)", room_id_);
-    auto& bg1_bmp = bg1_buffer_.bitmap();
-    // Simple manual rendering: draw a colored rectangle for each object
-    for (const auto& obj : tile_objects_) {
-      int x = obj.x() * 8;
-      int y = obj.y() * 8;
-      int width = 16;  // Default size for manual draw
-      int height = 16;
-
-      // Basic layer-based coloring for manual mode
-      uint8_t color_idx = 0;  // Default transparent
-      if (obj.GetLayerValue() == 0) {
-        color_idx = 5;  // Example: Reddish for Layer 0
-      } else if (obj.GetLayerValue() == 1) {
-        color_idx = 10;  // Example: Greenish for Layer 1
-      } else {
-        color_idx = 15;  // Example: Bluish for Layer 2
-      }
-      // Draw simple rectangle using WriteToBGRSurface
-      for (int py = y; py < y + height && py < bg1_bmp.height(); ++py) {
-        for (int px = x; px < x + width && px < bg1_bmp.width(); ++px) {
-          int pixel_offset = (py * bg1_bmp.width()) + px;
-          bg1_bmp.WriteToPixel(pixel_offset, color_idx);
-        }
-      }
-    }
-    dirty_state_.objects = false;  // Mark as clean after manual draw
+    // Do not scribble placeholder rectangles into layout buffers; fix the
+    // underlying draw path or ROM state instead.
+    dirty_state_.objects = true;
   } else {
     // Mark objects as clean after successful render
     dirty_state_.objects = false;
@@ -1333,7 +1371,8 @@ void Room::LoadObjects() {
                 room_id_, floor1_graphics_, floor2_graphics_);
     }
 
-    layout_id_ = static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
+    layout_id_ =
+        static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
   }
 
   LoadChests();
@@ -1348,6 +1387,10 @@ void Room::LoadObjects() {
 
   // Freshly loaded from ROM; not dirty until the editor mutates it.
   custom_collision_dirty_ = false;
+  objects_loaded_ = true;
+  MarkGraphicsDirty();
+  MarkLayoutDirty();
+  MarkObjectsDirty();
 }
 
 void Room::ParseObjectsFromLocation(int objects_location) {
@@ -1378,17 +1421,18 @@ void Room::ParseObjectsFromLocation(int objects_location) {
     b1 = rom_data[pos];
     b2 = rom_data[pos + 1];
 
-    // ASM Marker: 0xFF 0xFF - End of Layer
-    // Signals transition between object layers:
-    //   Layer 0 -> BG1 buffer (main floor/walls)
-    //   Layer 1 -> BG2 buffer (overlay layer)
-    //   Layer 2 -> BG1 buffer (priority objects, still on BG1)
+    // ASM Marker: 0xFF 0xFF - End of object list (next list in USDASM order).
+    // Stored in RoomObject::layer_ as list index for EncodeObjects():
+    //   0 = primary list (drawn to BG1/upper object buffer by default)
+    //   1 = BG2 overlay list
+    //   2 = BG1 overlay list (ObjectDrawer uses BG3 enum; still BG1 object path)
     if (b1 == 0xFF && b2 == 0xFF) {
       pos += 2;  // Jump to next layer
       layer++;
-      LOG_DEBUG("Room", "Room %03X: Layer transition to layer %d (%s)",
-                room_id_, layer,
-                layer == 1 ? "BG2" : (layer == 2 ? "BG3" : "END"));
+      LOG_DEBUG(
+          "Room", "Room %03X: Object list transition to index %d (%s)",
+          room_id_, layer,
+          layer == 1 ? "BG2 overlay" : (layer == 2 ? "BG1 overlay" : "END"));
       door = false;
       if (layer == 3) {
         break;
@@ -1457,7 +1501,8 @@ void Room::ParseObjectsFromLocation(int objects_location) {
 std::vector<uint8_t> Room::EncodeObjects() const {
   std::vector<uint8_t> bytes;
 
-  // Organize objects by layer
+  // Organize objects by ROM object-stream index (0=primary, 1=BG2 overlay,
+  // 2=BG1 overlay), stored in RoomObject::layer_ / GetLayerValue().
   std::vector<RoomObject> layer0_objects;
   std::vector<RoomObject> layer1_objects;
   std::vector<RoomObject> layer2_objects;
@@ -1487,16 +1532,16 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   }
 
   // Object stream format (USDASM bank_01.asm LoadAndBuildRoom / RoomDraw_DrawAllObjects):
-  // - Layer 0 object list (terminated by $FFFF)
-  // - Layer 1 object list (terminated by $FFFF)
-  // - Layer 2 object list ends with door marker $FFF0 (bytes F0 FF), then
+  // - List index 0 (primary) terminated by $FFFF
+  // - List index 1 (BG2 overlay) terminated by $FFFF
+  // - List index 2 (BG1 overlay) ends with door marker $FFF0 (bytes F0 FF), then
   //   2-byte door entries, and finally $FFFF which terminates both the door
-  //   list and the Layer 2 list.
+  //   list and the third object list.
   //
   // NOTE: We always emit the door marker and a terminator, even if there are
   // zero doors, because vanilla room data does so as well.
 
-  // Encode Layer 0
+  // Encode list index 0 (primary)
   for (const auto& obj : layer0_objects) {
     auto encoded = obj.EncodeObjectToBytes();
     bytes.push_back(encoded.b1);
@@ -1506,7 +1551,7 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   bytes.push_back(0xFF);
   bytes.push_back(0xFF);
 
-  // Encode Layer 1
+  // Encode list index 1 (BG2 overlay)
   for (const auto& obj : layer1_objects) {
     auto encoded = obj.EncodeObjectToBytes();
     bytes.push_back(encoded.b1);
@@ -1516,7 +1561,7 @@ std::vector<uint8_t> Room::EncodeObjects() const {
   bytes.push_back(0xFF);
   bytes.push_back(0xFF);
 
-  // Encode Layer 2 objects.
+  // Encode list index 2 (BG1 overlay)
   for (const auto& obj : layer2_objects) {
     auto encoded = obj.EncodeObjectToBytes();
     bytes.push_back(encoded.b1);
@@ -1534,7 +1579,7 @@ std::vector<uint8_t> Room::EncodeObjects() const {
     bytes.push_back(b2);
   }
 
-  // Door list terminator (word $FFFF). This is also the Layer 2 terminator.
+  // Door list terminator (word $FFFF). This is also the list-2 terminator.
   bytes.push_back(0xFF);
   bytes.push_back(0xFF);
 
@@ -1582,7 +1627,8 @@ int FindMaxUsedSpriteAddress(Rom* rom) {
     return kSpritesEndData;
   }
 
-  const int hard_end = std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+  const int hard_end =
+      std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
   if (hard_end <= 0) {
     return kSpritesEndData;
   }
@@ -1590,7 +1636,8 @@ int FindMaxUsedSpriteAddress(Rom* rom) {
   int max_used = std::min(hard_end, kSpritesData);
   std::unordered_set<int> visited_addresses;
   for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
-    int sprite_address = ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id);
+    int sprite_address =
+        ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id);
     if (sprite_address < kSpritesData || sprite_address >= hard_end) {
       continue;
     }
@@ -1598,7 +1645,8 @@ int FindMaxUsedSpriteAddress(Rom* rom) {
       continue;
     }
 
-    int stream_size = MeasureSpriteStreamSize(rom_data, sprite_address, hard_end);
+    int stream_size =
+        MeasureSpriteStreamSize(rom_data, sprite_address, hard_end);
     int stream_end = sprite_address + stream_size;
     if (stream_end > max_used) {
       max_used = stream_end;
@@ -1633,12 +1681,13 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
     return absl::OutOfRangeError("Sprite address out of range");
   }
 
-  const int hard_end = std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+  const int hard_end =
+      std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
   const int old_stream_size =
       MeasureSpriteStreamSize(rom_data, old_sprite_address, hard_end);
   const uint8_t sort_mode = rom_data[old_sprite_address];
-  const bool old_pointer_shared =
-      IsSpritePointerShared(rom_data, sprite_pointer, room_id, old_sprite_address);
+  const bool old_pointer_shared = IsSpritePointerShared(
+      rom_data, sprite_pointer, room_id, old_sprite_address);
 
   const int write_pos = FindMaxUsedSpriteAddress(rom);
   const size_t required_size = 1u + encoded_bytes.size();
@@ -1652,9 +1701,10 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   }
   if (static_cast<size_t>(write_pos) + required_size > rom_data.size()) {
     const int required_end = write_pos + static_cast<int>(required_size);
-    return absl::OutOfRangeError(absl::StrFormat(
-        "ROM too small for sprite relocation write (need end=0x%06X, size=0x%06X)",
-        required_end, static_cast<int>(rom_data.size())));
+    return absl::OutOfRangeError(
+        absl::StrFormat("ROM too small for sprite relocation write (need "
+                        "end=0x%06X, size=0x%06X)",
+                        required_end, static_cast<int>(rom_data.size())));
   }
 
   std::vector<uint8_t> relocated;
@@ -1669,10 +1719,10 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   RETURN_IF_ERROR(rom->WriteByte(ptr_off + 1, (snes_addr >> 8) & 0xFF));
 
   if (!old_pointer_shared && old_stream_size > 0 &&
-      old_sprite_address + old_stream_size <= static_cast<int>(rom_data.size())) {
-    RETURN_IF_ERROR(
-        rom->WriteVector(old_sprite_address,
-                         std::vector<uint8_t>(old_stream_size, 0x00)));
+      old_sprite_address + old_stream_size <=
+          static_cast<int>(rom_data.size())) {
+    RETURN_IF_ERROR(rom->WriteVector(
+        old_sprite_address, std::vector<uint8_t>(old_stream_size, 0x00)));
   }
 
   return absl::OkStatus();
@@ -1781,7 +1831,8 @@ absl::Status Room::SaveSprites() {
   }
 
   const int payload_address = sprite_address + 1;
-  if (payload_address < 0 || payload_address >= static_cast<int>(rom_->size())) {
+  if (payload_address < 0 ||
+      payload_address >= static_cast<int>(rom_->size())) {
     return absl::OutOfRangeError(absl::StrFormat(
         "Room %d has invalid sprite payload address", room_id_));
   }
@@ -1877,6 +1928,7 @@ absl::Status Room::AddObject(const RoomObject& object) {
 
   // Add to internal list
   tile_objects_.push_back(object);
+  objects_loaded_ = true;
   MarkObjectsDirty();
 
   return absl::OkStatus();
@@ -1888,6 +1940,7 @@ absl::Status Room::RemoveObject(size_t index) {
   }
 
   tile_objects_.erase(tile_objects_.begin() + index);
+  objects_loaded_ = true;
   MarkObjectsDirty();
 
   return absl::OkStatus();
@@ -1903,6 +1956,7 @@ absl::Status Room::UpdateObject(size_t index, const RoomObject& object) {
   }
 
   tile_objects_[index] = object;
+  objects_loaded_ = true;
   MarkObjectsDirty();
 
   return absl::OkStatus();
@@ -1981,6 +2035,7 @@ void Room::LoadSprites() {
   const auto& rom_data = rom()->vector();
   // Avoid duplicate entries if callers reload sprite data on the same room.
   sprites_.clear();
+  sprites_loaded_ = false;
   if (room_id_ < 0 || room_id_ >= kNumberOfRooms) {
     return;
   }
@@ -1992,7 +2047,8 @@ void Room::LoadSprites() {
 
   int sprite_address =
       ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id_);
-  if (sprite_address < 0 || sprite_address + 1 >= static_cast<int>(rom_data.size())) {
+  if (sprite_address < 0 ||
+      sprite_address + 1 >= static_cast<int>(rom_data.size())) {
     return;
   }
 
@@ -2031,10 +2087,13 @@ void Room::LoadSprites() {
 
     sprite_address += 3;
   }
+
+  sprites_loaded_ = true;
 }
 
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
+  chests_in_room_.clear();
   uint32_t cpos = SnesToPc((rom_data[kChestsDataPointer1 + 2] << 16) +
                            (rom_data[kChestsDataPointer1 + 1] << 8) +
                            (rom_data[kChestsDataPointer1]));
@@ -2207,14 +2266,20 @@ std::vector<std::vector<uint8_t>> ParseRomTorchSegments(
 
 }  // namespace
 
-absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
+template <typename RoomLookup>
+absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
+                                RoomLookup&& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
   bool any_torch_objects = false;
-  for (const auto& room : rooms) {
-    for (const auto& obj : room.GetTileObjects()) {
+  for (int room_id = 0; room_id < room_count; ++room_id) {
+    const Room* room = room_lookup(room_id);
+    if (room == nullptr) {
+      continue;
+    }
+    for (const auto& obj : room->GetTileObjects()) {
       if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
         any_torch_objects = true;
         break;
@@ -2237,20 +2302,23 @@ absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
   auto rom_segments = ParseRomTorchSegments(rom_data, existing_count);
 
   std::vector<uint8_t> bytes;
-  for (size_t room_id = 0;
-       room_id < rooms.size() && room_id < rom_segments.size(); ++room_id) {
-    const auto& room = rooms[room_id];
+  const int room_limit =
+      std::min(room_count, static_cast<int>(rom_segments.size()));
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    const Room* room = room_lookup(room_id);
     bool has_torch_objects = false;
-    for (const auto& obj : room.GetTileObjects()) {
-      if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-        has_torch_objects = true;
-        break;
+    if (room != nullptr) {
+      for (const auto& obj : room->GetTileObjects()) {
+        if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+          has_torch_objects = true;
+          break;
+        }
       }
     }
     if (has_torch_objects) {
       bytes.push_back(room_id & 0xFF);
       bytes.push_back((room_id >> 8) & 0xFF);
-      for (const auto& obj : room.GetTileObjects()) {
+      for (const auto& obj : room->GetTileObjects()) {
         if ((obj.options() & ObjectOption::Torch) == ObjectOption::Nothing) {
           continue;
         }
@@ -2279,9 +2347,6 @@ absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
                         kTorchesMaxSize));
   }
 
-  // Avoid unnecessary writes: if the generated torch blob matches the ROM
-  // exactly, keep the ROM clean. This prevents "save with no changes" from
-  // dirtying the ROM and makes diffs stable.
   const uint16_t current_len =
       static_cast<uint16_t>(rom_data[kTorchesLengthPointer]) |
       (static_cast<uint16_t>(rom_data[kTorchesLengthPointer + 1]) << 8);
@@ -2295,6 +2360,17 @@ absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
   RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
                                  static_cast<uint16_t>(bytes.size())));
   return rom->WriteVector(kTorchData, bytes);
+}
+
+absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
+  return SaveAllTorchesImpl(rom, static_cast<int>(rooms.size()),
+                            [&rooms](int room_id) { return &rooms[room_id]; });
+}
+
+absl::Status SaveAllTorches(
+    Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup) {
+  return SaveAllTorchesImpl(rom, room_count, room_lookup);
 }
 
 absl::Status SaveAllPits(Rom* rom) {
@@ -2367,7 +2443,9 @@ absl::Status SaveAllBlocks(Rom* rom) {
   return absl::OkStatus();
 }
 
-absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
+template <typename RoomLookup>
+absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
+                                  RoomLookup&& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -2382,8 +2460,9 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
   const bool has_data_region = HasCustomCollisionDataRegion(rom_data.size());
 
   if (!has_ptr_table) {
-    for (auto& room : rooms) {
-      if (room.custom_collision_dirty()) {
+    for (int room_id = 0; room_id < room_count; ++room_id) {
+      Room* room = room_lookup(room_id);
+      if (room != nullptr && room->custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision region not present in this ROM");
       }
@@ -2392,8 +2471,9 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
   }
 
   if (!has_data_region) {
-    for (auto& room : rooms) {
-      if (room.custom_collision_dirty()) {
+    for (int room_id = 0; room_id < room_count; ++room_id) {
+      Room* room = room_lookup(room_id);
+      if (room != nullptr && room->custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision data region not present in this ROM");
       }
@@ -2404,38 +2484,41 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
   // Save-time guardrails: custom collision writes must never clobber the
   // reserved WaterFill tail region (Oracle of Secrets).
   yaze::rom::WriteFence fence;
+  RETURN_IF_ERROR(fence.Allow(
+      static_cast<uint32_t>(kCustomCollisionRoomPointers),
+      static_cast<uint32_t>(kCustomCollisionRoomPointers + ptrs_size),
+      "CustomCollisionPointers"));
   RETURN_IF_ERROR(
-      fence.Allow(static_cast<uint32_t>(kCustomCollisionRoomPointers),
-                  static_cast<uint32_t>(kCustomCollisionRoomPointers + ptrs_size),
-                  "CustomCollisionPointers"));
-  RETURN_IF_ERROR(fence.Allow(static_cast<uint32_t>(kCustomCollisionDataPosition),
-                              static_cast<uint32_t>(kCustomCollisionDataSoftEnd),
-                              "CustomCollisionData"));
+      fence.Allow(static_cast<uint32_t>(kCustomCollisionDataPosition),
+                  static_cast<uint32_t>(kCustomCollisionDataSoftEnd),
+                  "CustomCollisionData"));
   yaze::rom::ScopedWriteFence scope(rom, &fence);
 
-  for (auto& room : rooms) {
-    if (!room.custom_collision_dirty()) {
+  const int room_limit = std::min(room_count, kNumberOfRooms);
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    Room* room = room_lookup(room_id);
+    if (room == nullptr || !room->custom_collision_dirty()) {
       continue;
     }
 
-    const int room_id = room.id();
-    const int ptr_offset = kCustomCollisionRoomPointers + (room_id * 3);
+    const int actual_room_id = room->id();
+    const int ptr_offset = kCustomCollisionRoomPointers + (actual_room_id * 3);
     if (ptr_offset + 2 >= static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Custom collision pointer out of range");
     }
 
-    if (!room.has_custom_collision()) {
+    if (!room->has_custom_collision()) {
       // Disable: clear the pointer entry.
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
-      room.ClearCustomCollisionDirty();
+      room->ClearCustomCollisionDirty();
       continue;
     }
 
     // Treat an all-zero map as disabled to avoid wasting space.
     bool any = false;
-    for (uint8_t v : room.custom_collision().tiles) {
+    for (uint8_t v : room->custom_collision().tiles) {
       if (v != 0) {
         any = true;
         break;
@@ -2445,15 +2528,27 @@ absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
-      room.ClearCustomCollisionDirty();
+      room->ClearCustomCollisionDirty();
       continue;
     }
 
-    RETURN_IF_ERROR(WriteTrackCollision(rom, room_id, room.custom_collision()));
-    room.ClearCustomCollisionDirty();
+    RETURN_IF_ERROR(
+        WriteTrackCollision(rom, actual_room_id, room->custom_collision()));
+    room->ClearCustomCollisionDirty();
   }
 
   return absl::OkStatus();
+}
+
+absl::Status SaveAllCollision(Rom* rom, absl::Span<Room> rooms) {
+  return SaveAllCollisionImpl(
+      rom, static_cast<int>(rooms.size()),
+      [&rooms](int room_id) { return &rooms[room_id]; });
+}
+
+absl::Status SaveAllCollision(Rom* rom, int room_count,
+                              const std::function<Room*(int)>& room_lookup) {
+  return SaveAllCollisionImpl(rom, room_count, room_lookup);
 }
 
 namespace {
@@ -2527,7 +2622,9 @@ std::vector<std::vector<uint8_t>> ParseRomPotItems(
 
 }  // namespace
 
-absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {
+template <typename RoomLookup>
+absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
+                               RoomLookup&& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -2544,11 +2641,12 @@ absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {
   auto rom_chests = ParseRomChests(rom_data, cpos, clength);
 
   std::vector<uint8_t> bytes;
-  for (size_t room_id = 0;
-       room_id < rooms.size() && room_id < rom_chests.size(); ++room_id) {
-    const auto& room = rooms[room_id];
-    const auto& chests = room.GetChests();
-    if (chests.empty()) {
+  const int room_limit =
+      std::min(room_count, static_cast<int>(rom_chests.size()));
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    const Room* room = room_lookup(room_id);
+    const auto* chests = room != nullptr ? &room->GetChests() : nullptr;
+    if (chests == nullptr || chests->empty()) {
       for (const auto& [id, big] : rom_chests[room_id]) {
         uint16_t word = room_id | (big ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
@@ -2556,7 +2654,7 @@ absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {
         bytes.push_back(id);
       }
     } else {
-      for (const auto& c : chests) {
+      for (const auto& c : *chests) {
         uint16_t word = room_id | (c.size ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
         bytes.push_back((word >> 8) & 0xFF);
@@ -2574,7 +2672,19 @@ absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {
   return rom->WriteVector(cpos, bytes);
 }
 
-absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms) {
+absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {
+  return SaveAllChestsImpl(rom, static_cast<int>(rooms.size()),
+                           [&rooms](int room_id) { return &rooms[room_id]; });
+}
+
+absl::Status SaveAllChests(Rom* rom, int room_count,
+                           const std::function<const Room*(int)>& room_lookup) {
+  return SaveAllChestsImpl(rom, room_count, room_lookup);
+}
+
+template <typename RoomLookup>
+absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
+                                 RoomLookup&& room_lookup) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -2584,11 +2694,11 @@ absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms) {
   if (table_addr + (kNumberOfRooms * 2) > static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Room items pointer table out of range");
   }
-  for (size_t room_id = 0; room_id < rooms.size() && room_id < kNumberOfRooms;
-       ++room_id) {
-    const auto& room = rooms[room_id];
-    const bool room_loaded = room.IsLoaded();
-    const auto& pot_items = room.GetPotItems();
+  const int room_limit = std::min(room_count, kNumberOfRooms);
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    const Room* room = room_lookup(room_id);
+    const bool room_loaded = room != nullptr && room->IsLoaded();
+    const auto* pot_items = room != nullptr ? &room->GetPotItems() : nullptr;
     int ptr_off = table_addr + (room_id * 2);
     uint16_t item_ptr = (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
     int item_addr = SnesToPc(0x010000 | item_ptr);
@@ -2613,7 +2723,7 @@ absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms) {
         continue;  // Preserve ROM data if room not loaded and nothing parsed.
       }
     } else {
-      for (const auto& pi : pot_items) {
+      for (const auto& pi : *pot_items) {
         bytes.push_back(pi.position & 0xFF);
         bytes.push_back((pi.position >> 8) & 0xFF);
         bytes.push_back(pi.item);
@@ -2627,6 +2737,17 @@ absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms) {
     RETURN_IF_ERROR(rom->WriteVector(item_addr, bytes));
   }
   return absl::OkStatus();
+}
+
+absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms) {
+  return SaveAllPotItemsImpl(rom, static_cast<int>(rooms.size()),
+                             [&rooms](int room_id) { return &rooms[room_id]; });
+}
+
+absl::Status SaveAllPotItems(
+    Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup) {
+  return SaveAllPotItemsImpl(rom, room_count, room_lookup);
 }
 
 void Room::LoadBlocks() {
@@ -2711,6 +2832,8 @@ void Room::LoadPotItems() {
   if (!rom_ || !rom_->is_loaded())
     return;
   auto rom_data = rom()->vector();
+  pot_items_.clear();
+  pot_items_loaded_ = false;
 
   // Load pot items
   // Format per ASM analysis (bank_01.asm):
@@ -2733,8 +2856,6 @@ void Room::LoadPotItems() {
   // Convert to PC address (Bank 01 offset)
   int item_addr = SnesToPc(0x010000 | item_ptr);
 
-  pot_items_.clear();
-
   // Read 3-byte entries until 0xFFFF terminator
   while (item_addr + 2 < static_cast<int>(rom_data.size())) {
     // Read position word (little endian)
@@ -2754,6 +2875,8 @@ void Room::LoadPotItems() {
 
     item_addr += 3;  // Move to next entry
   }
+
+  pot_items_loaded_ = true;
 }
 
 void Room::LoadPits() {
@@ -2832,7 +2955,8 @@ std::map<DungeonLimit, int> Room::GetLimitedObjectCounts() const {
   }
 
   // Count stairs
-  counts[DungeonLimit::StairsTransition] = static_cast<int>(z3_staircases_.size());
+  counts[DungeonLimit::StairsTransition] =
+      static_cast<int>(z3_staircases_.size());
 
   // Count objects with specific options
   for (const auto& obj : tile_objects_) {
@@ -2861,8 +2985,8 @@ std::map<DungeonLimit, int> Room::GetLimitedObjectCounts() const {
     // Count staircase objects based on direction
     if ((options & ObjectOption::Stairs) != ObjectOption::Nothing) {
       // North-facing stairs: IDs 0x130-0x135
-      if ((obj.id_ >= 0x130 && obj.id_ <= 0x135) ||
-          obj.id_ == 0x139 || obj.id_ == 0x13A || obj.id_ == 0x13B) {
+      if ((obj.id_ >= 0x130 && obj.id_ <= 0x135) || obj.id_ == 0x139 ||
+          obj.id_ == 0x13A || obj.id_ == 0x13B) {
         counts[DungeonLimit::StairsNorth]++;
       }
       // South-facing stairs: IDs 0x13B-0x13D

@@ -1,8 +1,8 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_MAP_PANEL_H_
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_MAP_PANEL_H_
 
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <functional>
 #include <map>
@@ -11,6 +11,7 @@
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/hack_manifest.h"
@@ -23,7 +24,7 @@ namespace editor {
 
 /**
  * @class DungeonMapPanel
- * @brief EditorPanel for displaying multiple rooms in a spatial dungeon layout
+ * @brief WindowContent for displaying multiple rooms in a spatial dungeon layout
  *
  * This panel provides an overview of multiple dungeon rooms arranged spatially,
  * allowing users to see room connections and navigate between rooms quickly.
@@ -37,9 +38,9 @@ namespace editor {
  * - Click to select
  *
  * @see DungeonRoomMatrixPanel - For full 296-room grid view
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  */
-class DungeonMapPanel : public EditorPanel {
+class DungeonMapPanel : public WindowContent {
  public:
   /**
    * @brief Construct a dungeon map panel
@@ -50,14 +51,14 @@ class DungeonMapPanel : public EditorPanel {
    */
   DungeonMapPanel(int* current_room_id, ImVector<int>* active_rooms,
                   std::function<void(int)> on_room_selected,
-                  std::array<zelda3::Room, 0x128>* rooms = nullptr)
+                  DungeonRoomStore* rooms = nullptr)
       : current_room_id_(current_room_id),
         active_rooms_(active_rooms),
         rooms_(rooms),
         on_room_selected_(std::move(on_room_selected)) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.dungeon_map"; }
@@ -90,7 +91,8 @@ class DungeonMapPanel : public EditorPanel {
   void AddRoom(int room_id) {
     // Avoid duplicates
     for (int id : dungeon_room_ids_) {
-      if (id == room_id) return;
+      if (id == room_id)
+        return;
     }
     dungeon_room_ids_.push_back(room_id);
     AutoLayoutRooms();
@@ -108,11 +110,11 @@ class DungeonMapPanel : public EditorPanel {
    * @brief Manually set a room's position in the grid
    */
   void SetRoomPosition(int room_id, int grid_x, int grid_y) {
-    room_positions_[room_id] = ImVec2(static_cast<float>(grid_x),
-                                       static_cast<float>(grid_y));
+    room_positions_[room_id] =
+        ImVec2(static_cast<float>(grid_x), static_cast<float>(grid_y));
   }
 
-  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
+  void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
 
   /**
    * @brief Set the hack manifest for project registry access
@@ -122,34 +124,34 @@ class DungeonMapPanel : public EditorPanel {
   }
 
   /**
-   * @brief Load rooms and connections from a DungeonEntry in the project registry
+   * @brief Load rooms and connections from a project area overview.
    */
-  void LoadFromRegistry(const core::DungeonEntry& dungeon) {
+  void LoadFromAreaOverview(const core::RegistryAreaOverview& area) {
     ClearRooms();
-    current_dungeon_name_ = dungeon.name;
-    for (const auto& room : dungeon.rooms) {
+    current_dungeon_name_ = area.name;
+    for (const auto& room : area.rooms) {
       dungeon_room_ids_.push_back(room.id);
-      room_positions_[room.id] =
-          ImVec2(static_cast<float>(room.grid_col),
-                 static_cast<float>(room.grid_row));
+      room_positions_[room.id] = ImVec2(static_cast<float>(room.grid_col),
+                                        static_cast<float>(room.grid_row));
       room_types_[room.id] = room.type;
     }
-    stair_connections_ = dungeon.stairs;
-    holewarp_connections_ = dungeon.holewarps;
+    stair_connections_ = area.stairs;
+    holewarp_connections_ = area.holewarps;
   }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!current_room_id_ || !active_rooms_) return;
+    if (!current_room_id_ || !active_rooms_)
+      return;
 
     const auto& theme = AgentUI::GetTheme();
 
     // Show dungeon selection/quick presets
     DrawDungeonSelector();
-    
+
     ImGui::Separator();
 
     // Room size in the map
@@ -163,8 +165,10 @@ class DungeonMapPanel : public EditorPanel {
       max_x = std::max(max_x, pos.x);
       max_y = std::max(max_y, pos.y);
     }
-    float canvas_width = (max_x + 1) * (kRoomWidth + kRoomSpacing) + kRoomSpacing;
-    float canvas_height = (max_y + 1) * (kRoomHeight + kRoomSpacing) + kRoomSpacing;
+    float canvas_width =
+        (max_x + 1) * (kRoomWidth + kRoomSpacing) + kRoomSpacing;
+    float canvas_height =
+        (max_y + 1) * (kRoomHeight + kRoomSpacing) + kRoomSpacing;
 
     // Minimum size
     canvas_width = std::max(canvas_width, 200.0f);
@@ -177,24 +181,25 @@ class DungeonMapPanel : public EditorPanel {
     // Begin canvas area
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    
+
     // Background
     ImU32 bg_color = ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker);
-    draw_list->AddRectFilled(canvas_pos, 
-                             ImVec2(canvas_pos.x + canvas_size.x,
-                                    canvas_pos.y + canvas_size.y),
-                             bg_color);
+    draw_list->AddRectFilled(
+        canvas_pos,
+        ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        bg_color);
 
     // Helper lambda: compute the center pixel position for a room on the canvas
     auto RoomCenter = [&](int room_id) -> ImVec2 {
       auto it = room_positions_.find(room_id);
-      if (it == room_positions_.end()) return ImVec2(0, 0);
+      if (it == room_positions_.end())
+        return ImVec2(0, 0);
       ImVec2 pos = it->second;
-      return ImVec2(
-          canvas_pos.x + kRoomSpacing +
-              pos.x * (kRoomWidth + kRoomSpacing) + kRoomWidth * 0.5f,
-          canvas_pos.y + kRoomSpacing +
-              pos.y * (kRoomHeight + kRoomSpacing) + kRoomHeight * 0.5f);
+      return ImVec2(canvas_pos.x + kRoomSpacing +
+                        pos.x * (kRoomWidth + kRoomSpacing) + kRoomWidth * 0.5f,
+                    canvas_pos.y + kRoomSpacing +
+                        pos.y * (kRoomHeight + kRoomSpacing) +
+                        kRoomHeight * 0.5f);
     };
 
     // Draw connections between adjacent rooms (gray lines — doors)
@@ -230,8 +235,8 @@ class DungeonMapPanel : public EditorPanel {
           room_positions_.count(conn.to_room)) {
         ImVec2 from = RoomCenter(conn.from_room);
         ImVec2 to = RoomCenter(conn.to_room);
-        DrawDashedLine(draw_list, from, to,
-                       IM_COL32(100, 149, 237, 200), 1.5f, 6.0f);
+        DrawDashedLine(draw_list, from, to, IM_COL32(100, 149, 237, 200), 1.5f,
+                       6.0f);
       }
     }
 
@@ -251,16 +256,19 @@ class DungeonMapPanel : public EditorPanel {
     // Draw each room
     for (int room_id : dungeon_room_ids_) {
       auto pos_it = room_positions_.find(room_id);
-      if (pos_it == room_positions_.end()) continue;
+      if (pos_it == room_positions_.end())
+        continue;
 
       ImVec2 grid_pos = pos_it->second;
-      ImVec2 room_min(
-          canvas_pos.x + kRoomSpacing + grid_pos.x * (kRoomWidth + kRoomSpacing),
-          canvas_pos.y + kRoomSpacing + grid_pos.y * (kRoomHeight + kRoomSpacing));
+      ImVec2 room_min(canvas_pos.x + kRoomSpacing +
+                          grid_pos.x * (kRoomWidth + kRoomSpacing),
+                      canvas_pos.y + kRoomSpacing +
+                          grid_pos.y * (kRoomHeight + kRoomSpacing));
       ImVec2 room_max(room_min.x + kRoomWidth, room_min.y + kRoomHeight);
 
       // Check if room is valid
-      if (room_id < 0 || room_id >= 0x128) continue;
+      if (room_id < 0 || room_id >= 0x128)
+        continue;
 
       bool is_current = (*current_room_id_ == room_id);
       bool is_open = false;
@@ -276,9 +284,8 @@ class DungeonMapPanel : public EditorPanel {
         auto& bg1_bitmap = (*rooms_)[room_id].bg1_buffer().bitmap();
         if (bg1_bitmap.is_active() && bg1_bitmap.texture() != 0) {
           // Draw room thumbnail
-          draw_list->AddImage(
-              (ImTextureID)(intptr_t)bg1_bitmap.texture(),
-              room_min, room_max);
+          draw_list->AddImage((ImTextureID)(intptr_t)bg1_bitmap.texture(),
+                              room_min, room_max);
         } else {
           // Placeholder for loaded but no texture
           draw_list->AddRectFilled(
@@ -290,7 +297,7 @@ class DungeonMapPanel : public EditorPanel {
         draw_list->AddRectFilled(
             room_min, room_max,
             ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker));
-        
+
         // Show room ID
         char label[8];
         snprintf(label, sizeof(label), "%02X", room_id);
@@ -298,8 +305,8 @@ class DungeonMapPanel : public EditorPanel {
         ImVec2 text_pos(room_min.x + (kRoomWidth - text_size.x) * 0.5f,
                         room_min.y + (kRoomHeight - text_size.y) * 0.5f);
         draw_list->AddText(
-            text_pos,
-            ImGui::ColorConvertFloat4ToU32(theme.text_secondary_gray), label);
+            text_pos, ImGui::ColorConvertFloat4ToU32(theme.text_secondary_gray),
+            label);
       }
 
       // Draw border based on state
@@ -310,22 +317,22 @@ class DungeonMapPanel : public EditorPanel {
         ImVec2 glow_min(room_min.x - 2, room_min.y - 2);
         ImVec2 glow_max(room_max.x + 2, room_max.y + 2);
         draw_list->AddRect(glow_min, glow_max,
-                          ImGui::ColorConvertFloat4ToU32(glow), 0.0f, 0, 4.0f);
+                           ImGui::ColorConvertFloat4ToU32(glow), 0.0f, 0, 4.0f);
         // Inner border
-        draw_list->AddRect(room_min, room_max,
-                          ImGui::ColorConvertFloat4ToU32(
-                              theme.dungeon_selection_primary),
-                          0.0f, 0, 2.0f);
+        draw_list->AddRect(
+            room_min, room_max,
+            ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary),
+            0.0f, 0, 2.0f);
       } else if (is_open) {
-        draw_list->AddRect(room_min, room_max,
-                          ImGui::ColorConvertFloat4ToU32(
-                              theme.dungeon_grid_cell_selected),
-                          0.0f, 0, 2.0f);
+        draw_list->AddRect(
+            room_min, room_max,
+            ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_cell_selected),
+            0.0f, 0, 2.0f);
       } else {
-        draw_list->AddRect(room_min, room_max,
-                          ImGui::ColorConvertFloat4ToU32(
-                              theme.dungeon_grid_cell_border),
-                          0.0f, 0, 1.0f);
+        draw_list->AddRect(
+            room_min, room_max,
+            ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_cell_border),
+            0.0f, 0, 1.0f);
       }
 
       // Room type badge (small colored dot in top-left corner)
@@ -333,11 +340,11 @@ class DungeonMapPanel : public EditorPanel {
       if (type_it != room_types_.end()) {
         ImU32 badge_color = 0;
         if (type_it->second == "entrance") {
-          badge_color = IM_COL32(76, 175, 80, 220);   // Green
+          badge_color = IM_COL32(76, 175, 80, 220);  // Green
         } else if (type_it->second == "boss") {
-          badge_color = IM_COL32(244, 67, 54, 220);   // Red
+          badge_color = IM_COL32(244, 67, 54, 220);  // Red
         } else if (type_it->second == "mini_boss") {
-          badge_color = IM_COL32(255, 152, 0, 220);   // Orange
+          badge_color = IM_COL32(255, 152, 0, 220);  // Orange
         }
         if (badge_color != 0) {
           ImVec2 badge_center(room_min.x + 6.0f, room_min.y + 6.0f);
@@ -366,7 +373,7 @@ class DungeonMapPanel : public EditorPanel {
       // Tooltip
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("[%03X] %s", room_id, 
+        ImGui::Text("[%03X] %s", room_id,
                     zelda3::GetRoomLabel(room_id).c_str());
         if (rooms_ && (*rooms_)[room_id].IsLoaded()) {
           ImGui::TextDisabled("Palette: %d", (*rooms_)[room_id].palette());
@@ -389,17 +396,17 @@ class DungeonMapPanel : public EditorPanel {
    */
   void AutoLayoutRooms() {
     room_positions_.clear();
-    
-    int cols = static_cast<int>(std::ceil(std::sqrt(
-        static_cast<double>(dungeon_room_ids_.size()))));
+
+    int cols = static_cast<int>(
+        std::ceil(std::sqrt(static_cast<double>(dungeon_room_ids_.size()))));
     cols = std::max(1, cols);
-    
+
     for (size_t i = 0; i < dungeon_room_ids_.size(); i++) {
       int room_id = dungeon_room_ids_[i];
       int grid_x = static_cast<int>(i % cols);
       int grid_y = static_cast<int>(i / cols);
-      room_positions_[room_id] = ImVec2(static_cast<float>(grid_x),
-                                         static_cast<float>(grid_y));
+      room_positions_[room_id] =
+          ImVec2(static_cast<float>(grid_x), static_cast<float>(grid_y));
     }
   }
 
@@ -438,28 +445,26 @@ class DungeonMapPanel : public EditorPanel {
   }
 
   /**
-   * @brief Selector using Oracle project registry dungeon entries
+   * @brief Selector using project registry area overviews.
    */
   void DrawRegistrySelector() {
-    const auto& registry = hack_manifest_->project_registry();
+    const auto area_overviews =
+        hack_manifest_->project_registry().GetAreaOverviews();
 
-    if (ImGui::BeginCombo("##DungeonRegistry",
-                          current_dungeon_name_.c_str())) {
-      for (size_t i = 0; i < registry.dungeons.size(); i++) {
-        const auto& dungeon = registry.dungeons[i];
-        // Show as "D4: Zora Temple (Thieves' Town)"
+    if (ImGui::BeginCombo("##DungeonRegistry", current_dungeon_name_.c_str())) {
+      for (size_t i = 0; i < area_overviews.size(); i++) {
+        const auto& area = area_overviews[i];
         char label[128];
-        if (!dungeon.vanilla_name.empty()) {
-          snprintf(label, sizeof(label), "%s: %s (%s)",
-                   dungeon.id.c_str(), dungeon.name.c_str(),
-                   dungeon.vanilla_name.c_str());
+        if (!area.subtitle.empty()) {
+          snprintf(label, sizeof(label), "%s: %s (%s)", area.id.c_str(),
+                   area.name.c_str(), area.subtitle.c_str());
         } else {
-          snprintf(label, sizeof(label), "%s: %s",
-                   dungeon.id.c_str(), dungeon.name.c_str());
+          snprintf(label, sizeof(label), "%s: %s", area.id.c_str(),
+                   area.name.c_str());
         }
-        bool selected = (current_dungeon_name_ == dungeon.name);
+        bool selected = (current_dungeon_name_ == area.name);
         if (ImGui::Selectable(label, selected)) {
-          LoadFromRegistry(dungeon);
+          LoadFromAreaOverview(area);
           selected_preset_ = static_cast<int>(i);
         }
       }
@@ -478,18 +483,12 @@ class DungeonMapPanel : public EditorPanel {
     };
 
     static const DungeonPreset kPresets[] = {
-        {"Eastern Palace", 0xC8, 8},
-        {"Desert Palace", 0x33, 8},
-        {"Tower of Hera", 0x07, 8},
-        {"Palace of Darkness", 0x09, 12},
-        {"Swamp Palace", 0x28, 10},
-        {"Skull Woods", 0x29, 10},
-        {"Thieves' Town", 0x44, 8},
-        {"Ice Palace", 0x0E, 12},
-        {"Misery Mire", 0x61, 10},
-        {"Turtle Rock", 0x04, 12},
-        {"Ganon's Tower", 0x0C, 16},
-        {"Hyrule Castle", 0x01, 12},
+        {"Eastern Palace", 0xC8, 8}, {"Desert Palace", 0x33, 8},
+        {"Tower of Hera", 0x07, 8},  {"Palace of Darkness", 0x09, 12},
+        {"Swamp Palace", 0x28, 10},  {"Skull Woods", 0x29, 10},
+        {"Thieves' Town", 0x44, 8},  {"Ice Palace", 0x0E, 12},
+        {"Misery Mire", 0x61, 10},   {"Turtle Rock", 0x04, 12},
+        {"Ganon's Tower", 0x0C, 16}, {"Hyrule Castle", 0x01, 12},
     };
 
     if (ImGui::BeginCombo("##DungeonPreset",
@@ -517,11 +516,12 @@ class DungeonMapPanel : public EditorPanel {
    * @brief Draw a dashed line between two points
    */
   static void DrawDashedLine(ImDrawList* dl, ImVec2 from, ImVec2 to,
-                              ImU32 color, float thickness, float dash_len) {
+                             ImU32 color, float thickness, float dash_len) {
     float dx = to.x - from.x;
     float dy = to.y - from.y;
     float length = std::sqrt(dx * dx + dy * dy);
-    if (length < 1.0f) return;
+    if (length < 1.0f)
+      return;
     float nx = dx / length;
     float ny = dy / length;
 
@@ -530,8 +530,7 @@ class DungeonMapPanel : public EditorPanel {
     while (drawn < length) {
       float seg = std::min(dash_len, length - drawn);
       ImVec2 seg_start(from.x + nx * drawn, from.y + ny * drawn);
-      ImVec2 seg_end(from.x + nx * (drawn + seg),
-                     from.y + ny * (drawn + seg));
+      ImVec2 seg_end(from.x + nx * (drawn + seg), from.y + ny * (drawn + seg));
       if (visible) {
         dl->AddLine(seg_start, seg_end, color, thickness);
       }
@@ -543,12 +542,13 @@ class DungeonMapPanel : public EditorPanel {
   /**
    * @brief Draw a small triangle arrowhead at the 'to' end of a line
    */
-  static void DrawArrowhead(ImDrawList* dl, ImVec2 from, ImVec2 to,
-                             ImU32 color, float size) {
+  static void DrawArrowhead(ImDrawList* dl, ImVec2 from, ImVec2 to, ImU32 color,
+                            float size) {
     float dx = to.x - from.x;
     float dy = to.y - from.y;
     float length = std::sqrt(dx * dx + dy * dy);
-    if (length < 1.0f) return;
+    if (length < 1.0f)
+      return;
     float nx = dx / length;
     float ny = dy / length;
     // Perpendicular
@@ -565,7 +565,7 @@ class DungeonMapPanel : public EditorPanel {
 
   int* current_room_id_ = nullptr;
   ImVector<int>* active_rooms_ = nullptr;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   std::function<void(int)> on_room_selected_;
   std::function<void(int, RoomSelectionIntent)> on_room_intent_;
 

@@ -16,6 +16,7 @@
 #include "core/project.h"
 #include "dungeon_object_interaction.h"
 #include "dungeon_rendering_helpers.h"
+#include "dungeon_room_store.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -63,8 +64,8 @@ class DungeonCanvasViewer {
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
   // Room data access
-  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
-  std::array<zelda3::Room, 0x128>* rooms() const { return rooms_; }
+  void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
+  DungeonRoomStore* rooms() const { return rooms_; }
   bool HasRooms() const { return rooms_ != nullptr; }
 
   // Best-effort "current room" context for auxiliary panels that are driven by
@@ -474,7 +475,7 @@ class DungeonCanvasViewer {
   std::optional<std::pair<int, int>> pending_scroll_target_;
 
   // Room data
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = -1;
   // Used by overworld editor for double-click entrance → open dungeon room
   ImVector<int> active_rooms_;
