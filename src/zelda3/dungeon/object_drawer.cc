@@ -1855,24 +1855,16 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
     draw_debug_count++;
   }
 
-  // Palette offset calculation using 16-color bank chunking (matches SNES CGRAM)
+  // Palette offset calculation using direct CGRAM row mirroring.
   //
-  // SNES CGRAM layout:
-  // - Each CGRAM row has 16 colors, with index 0 being transparent
-  // - Dungeon tiles use palette bits 2-7, mapping to CGRAM rows 2-7
-  // - We map palette bits 2-7 to SDL banks 0-5
+  // Room::RenderRoomGraphics loads dungeon main palettes into SDL bank rows 2-7,
+  // leaving rows 0-1 as transparent HUD placeholders. The tile palette bits are
+  // therefore already the correct SDL bank row index.
   //
-  // Drawing formula: final_color = pixel + (bank * 16)
-  // Where pixel 0 = transparent (not written), pixel 1-15 = colors within bank
+  // Drawing formula: final_color = pixel + (pal * 16)
+  // Where pixel 0 = transparent (not written), pixel 1-15 = colors within bank.
   uint8_t pal = tile_info.palette_ & 0x07;
-  uint8_t palette_offset;
-  if (pal >= 2 && pal <= 7) {
-    // Map palette bits 2-7 to SDL banks 0-5 using 16-color stride
-    palette_offset = (pal - 2) * 16;
-  } else {
-    // Palette 0-1 are for HUD/other - fallback to first bank
-    palette_offset = 0;
-  }
+  const uint8_t palette_offset = static_cast<uint8_t>(pal * 16);
 
   // Draw 8x8 pixels with overwrite semantics.
   //
