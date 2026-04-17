@@ -856,15 +856,60 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
 
   if (!has_entity && obj_count == 0) {
     ImGui::TextDisabled(ICON_MD_INFO " Click an object or entity to inspect");
+    if (show_panel_) {
+      ImGui::Spacing();
+      ImGui::TextDisabled(ICON_MD_BUILD " Jump Into Editing");
+      constexpr ImGuiTableFlags kEmptyStateFlags =
+          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
+      if (ImGui::BeginTable("##SelectionEmptyStateActions", 2,
+                            kEmptyStateFlags)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Button(ICON_MD_WIDGETS " Objects", ImVec2(-1, 0))) {
+          show_panel_("dungeon.object_editor");
+        }
+        ImGui::TableNextColumn();
+        if (ImGui::Button(ICON_MD_PERSON " Sprites", ImVec2(-1, 0))) {
+          show_panel_("dungeon.sprite_editor");
+        }
+        ImGui::EndTable();
+      }
+    }
     return;
   }
 
   // ── Tile Object Selection ──
   if (obj_count > 0) {
-    ImGui::Text(ICON_MD_WIDGETS " %zu object(s)", obj_count);
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_CLEAR " Clear")) {
-      interaction.ClearSelection();
+    ImGui::TextColored(theme.text_primary, ICON_MD_WIDGETS " %zu object%s",
+                       obj_count, obj_count == 1 ? "" : "s");
+    if (obj_count == 1) {
+      ImGui::SameLine();
+      ImGui::TextDisabled("Focused selection");
+    }
+
+    constexpr ImGuiTableFlags kActionFlags =
+        ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
+    if (ImGui::BeginTable("##SelectionObjectActions", 3, kActionFlags)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(-1, 0))) {
+        viewer.DeleteSelectedObjects();
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button(ICON_MD_CLEAR " Clear", ImVec2(-1, 0))) {
+        interaction.ClearSelection();
+      }
+      ImGui::TableNextColumn();
+      if (show_panel_) {
+        if (ImGui::Button(ICON_MD_WIDGETS " Open Editor", ImVec2(-1, 0))) {
+          show_panel_("dungeon.object_editor");
+        }
+      } else {
+        ImGui::BeginDisabled();
+        ImGui::Button(ICON_MD_WIDGETS " Open Editor", ImVec2(-1, 0));
+        ImGui::EndDisabled();
+      }
+      ImGui::EndTable();
     }
 
     const auto indices = interaction.GetSelectedObjectIndices();
@@ -874,6 +919,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
       auto& room = (*viewer.rooms())[room_id];
       auto& objects = room.GetTileObjects();
       ImGui::Separator();
+      ImGui::TextDisabled("Multi-selection summary");
       for (size_t i = 0; i < indices.size() && i < 8; ++i) {
         size_t idx = indices[i];
         if (idx < objects.size()) {
@@ -984,8 +1030,13 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
     auto& room = (*viewer.rooms())[room_id];
     ImGui::Separator();
 
+    const char* entity_panel_id = nullptr;
+    const char* entity_action_label = nullptr;
+
     switch (sel.type) {
       case EntityType::Door: {
+        entity_panel_id = "dungeon.entrance_properties";
+        entity_action_label = ICON_MD_TUNE " Entrance Panel";
         const auto& doors = room.GetDoors();
         if (sel.index < doors.size()) {
           const auto& door = doors[sel.index];
@@ -1005,6 +1056,8 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
         break;
       }
       case EntityType::Sprite: {
+        entity_panel_id = "dungeon.sprite_editor";
+        entity_action_label = ICON_MD_PERSON " Sprite Panel";
         const auto& sprites = room.GetSprites();
         if (sel.index < sprites.size()) {
           const auto& sprite = sprites[sel.index];
@@ -1029,6 +1082,8 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
         break;
       }
       case EntityType::Item: {
+        entity_panel_id = "dungeon.item_editor";
+        entity_action_label = ICON_MD_INVENTORY " Item Panel";
         const auto& items = room.GetPotItems();
         if (sel.index < items.size()) {
           const auto& pot_item = items[sel.index];
@@ -1049,9 +1104,26 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
     }
 
     ImGui::Spacing();
-    if (ImGui::SmallButton(ICON_MD_DELETE " Delete Entity")) {
-      interaction.entity_coordinator().DeleteSelectedEntity();
-      interaction.ClearEntitySelection();
+    if (ImGui::BeginTable(
+            "##EntityActions", 2,
+            ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      if (ImGui::Button(ICON_MD_DELETE " Delete Entity", ImVec2(-1, 0))) {
+        interaction.entity_coordinator().DeleteSelectedEntity();
+        interaction.ClearEntitySelection();
+      }
+      ImGui::TableNextColumn();
+      if (show_panel_ && entity_panel_id && entity_action_label) {
+        if (ImGui::Button(entity_action_label, ImVec2(-1, 0))) {
+          show_panel_(entity_panel_id);
+        }
+      } else {
+        ImGui::BeginDisabled();
+        ImGui::Button(ICON_MD_OPEN_IN_NEW " Open Panel", ImVec2(-1, 0));
+        ImGui::EndDisabled();
+      }
+      ImGui::EndTable();
     }
   }
 }
@@ -1125,6 +1197,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfTools(
     return;
   }
 
+  ImGui::TextDisabled(ICON_MD_EDIT_NOTE " Edit");
   constexpr ImGuiTableFlags kFlags =
       ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
   if (!ImGui::BeginTable("##WorkbenchToolsGrid", 2, kFlags)) {
@@ -1152,6 +1225,31 @@ void DungeonWorkbenchPanel::DrawInspectorShelfTools(
   }
 
   ImGui::EndTable();
+
+  ImGui::Spacing();
+  ImGui::TextDisabled(ICON_MD_TRAVEL_EXPLORE " Review");
+  if (ImGui::BeginTable("##WorkbenchReviewGrid", 2, kFlags)) {
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_GRID_VIEW " Matrix", ImVec2(-1, 0))) {
+      show_panel_("dungeon.room_matrix");
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_MAP " Dungeon Map", ImVec2(-1, 0))) {
+      show_panel_("dungeon.dungeon_map");
+    }
+
+    ImGui::TableNextRow();
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_DOOR_FRONT " Entrances", ImVec2(-1, 0))) {
+      show_panel_("dungeon.entrance_list");
+    }
+    ImGui::TableNextColumn();
+    if (ImGui::Button(ICON_MD_PALETTE " Palette", ImVec2(-1, 0))) {
+      show_panel_("dungeon.palette_editor");
+    }
+    ImGui::EndTable();
+  }
 
   ImGui::Spacing();
   if (ImGui::Button(ICON_MD_KEYBOARD " Keyboard Shortcuts", ImVec2(-1, 0))) {
