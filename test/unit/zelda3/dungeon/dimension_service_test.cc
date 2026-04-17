@@ -52,6 +52,26 @@ TEST(DimensionServiceTest, GetSelectionBoundsPixelsUsesPixelUnits) {
   EXPECT_GT(h_px, 0);
 }
 
+TEST(DimensionServiceTest,
+     DiagonalCeilingSelectionBoundsUseAnchorAwareOffsets) {
+  RoomObject obj(/*id=*/0xA3, /*x=*/10, /*y=*/12, /*size=*/0);
+
+  auto [hit_x, hit_y, hit_w, hit_h] =
+      DimensionService::Get().GetHitTestBounds(obj);
+  auto [sel_x_px, sel_y_px, sel_w_px, sel_h_px] =
+      DimensionService::Get().GetSelectionBoundsPixels(obj);
+
+  // Bottom-right diagonal ceilings extend up-left from the origin. Hit testing
+  // and selection should honor those negative offsets rather than clamping to
+  // the object origin.
+  EXPECT_LT(hit_x, obj.x_);
+  EXPECT_LT(hit_y, obj.y_);
+  EXPECT_EQ(sel_x_px, hit_x * 8);
+  EXPECT_EQ(sel_y_px, hit_y * 8);
+  EXPECT_EQ(sel_w_px, hit_w * 8);
+  EXPECT_EQ(sel_h_px, hit_h * 8);
+}
+
 TEST(DimensionServiceTest, UnmappedObjectStillReturnsSomething) {
   // Object 0xF8 is unmapped in ObjectGeometry
   RoomObject obj(/*id=*/0xF8, /*x=*/0, /*y=*/0, /*size=*/0);

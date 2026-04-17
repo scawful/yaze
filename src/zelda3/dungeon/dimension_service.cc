@@ -39,13 +39,15 @@ DimensionService::DimensionResult DimensionService::GetDimensions(
     };
   }
 
-  // Last resort: naive estimate.
-  int size = obj.size_ & 0x0F;
+  // Last resort: match legacy `ObjectDrawer` default branch (separate X/Y
+  // nibbles in `size_`, each 0..15 meaning span in tiles = nibble + 1).
+  int size_h = obj.size_ & 0x0F;
+  int size_v = (obj.size_ >> 4) & 0x0F;
   return DimensionResult{
       .offset_x_tiles = 0,
       .offset_y_tiles = 0,
-      .width_tiles = std::max(1, 2 + size * 2),
-      .height_tiles = 2,
+      .width_tiles = std::max(1, size_h + 1),
+      .height_tiles = std::max(1, size_v + 1),
   };
 }
 
@@ -57,6 +59,13 @@ std::pair<int, int> DimensionService::GetPixelDimensions(
 
 std::tuple<int, int, int, int> DimensionService::GetHitTestBounds(
     const RoomObject& obj) const {
+  auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
+  if (geo_result.ok()) {
+    const auto selection = geo_result->GetSelectionBounds();
+    return {obj.x_ + selection.x_tiles, obj.y_ + selection.y_tiles,
+            selection.width_tiles, selection.height_tiles};
+  }
+
   auto result = GetDimensions(obj);
   return {obj.x_ + result.offset_x_tiles, obj.y_ + result.offset_y_tiles,
           result.width_tiles, result.height_tiles};
@@ -64,6 +73,14 @@ std::tuple<int, int, int, int> DimensionService::GetHitTestBounds(
 
 std::tuple<int, int, int, int> DimensionService::GetSelectionBoundsPixels(
     const RoomObject& obj) const {
+  auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
+  if (geo_result.ok()) {
+    const auto selection = geo_result->GetSelectionBounds();
+    int x_px = (obj.x_ + selection.x_tiles) * 8;
+    int y_px = (obj.y_ + selection.y_tiles) * 8;
+    return {x_px, y_px, selection.width_pixels(), selection.height_pixels()};
+  }
+
   auto result = GetDimensions(obj);
   int x_px = (obj.x_ + result.offset_x_tiles) * 8;
   int y_px = (obj.y_ + result.offset_y_tiles) * 8;
