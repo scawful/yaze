@@ -136,10 +136,17 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
   ObjectDrawer drawer(rom_, room_id, gfx_data);
   drawer.SetAllowTrackCornerAliases(false);
 
-  // Layout objects use the room-layout stream directly. Keep their decoded layer
-  // semantics intact (notably pits/masks that intentionally target BG2), but do
-  // not allow custom track-corner aliases to hijack vanilla layout corners.
-  return drawer.DrawObjectList(objects_, bg1, bg2, palette_group, state, &bg1);
+  std::vector<RoomObject> render_objects = objects_;
+  for (auto& obj : render_objects) {
+    obj.layer_ = RoomObject::LayerType::BG1;
+  }
+
+  // Layout objects render through the room-layout stream, which in ALTTP uses the
+  // upper-layer tilemap pointer set. Keep track-corner aliases disabled so
+  // vanilla wall corners survive, but force layout quads onto BG1 to match the
+  // visible room shell built by the game.
+  return drawer.DrawObjectList(render_objects, bg1, bg2, palette_group, state,
+                               &bg1);
 }
 
 }  // namespace yaze::zelda3
