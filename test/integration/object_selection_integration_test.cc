@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include "app/editor/dungeon/dungeon_object_interaction.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gui/canvas/canvas.h"
 #include "zelda3/dungeon/room.h"
@@ -32,7 +33,7 @@ class ObjectSelectionIntegrationTest : public ::testing::Test {
     interaction_.SetCurrentRoom(&rooms_, 0);
   }
 
-  std::array<zelda3::Room, 0x128> rooms_;
+  DungeonRoomStore rooms_;
   gui::Canvas canvas_{"TestCanvas", ImVec2(512, 512)};
   DungeonObjectInteraction interaction_{&canvas_};
 };
@@ -83,9 +84,8 @@ TEST_F(ObjectSelectionIntegrationTest, IsObjectSelectedReturnsCorrectValue) {
 
 TEST_F(ObjectSelectionIntegrationTest, SelectionCallbackFires) {
   int callback_count = 0;
-  interaction_.SetSelectionChangeCallback([&callback_count]() {
-    callback_count++;
-  });
+  interaction_.SetSelectionChangeCallback(
+      [&callback_count]() { callback_count++; });
 
   // Setting selection should trigger callback
   interaction_.SetSelectedObjects({0});
@@ -98,7 +98,8 @@ TEST_F(ObjectSelectionIntegrationTest, SelectionCallbackFires) {
   EXPECT_GT(callback_count, count_after_first);
 }
 
-TEST_F(ObjectSelectionIntegrationTest, MultipleSelectionChangesFireMultipleCallbacks) {
+TEST_F(ObjectSelectionIntegrationTest,
+       MultipleSelectionChangesFireMultipleCallbacks) {
   std::vector<std::vector<size_t>> callback_selections;
 
   interaction_.SetSelectionChangeCallback([this, &callback_selections]() {
@@ -135,7 +136,8 @@ TEST_F(ObjectSelectionIntegrationTest, GetSelectionCountReturnsCorrectCount) {
 // Selection Mode Tests (via SetSelectedObjects behavior)
 // =============================================================================
 
-TEST_F(ObjectSelectionIntegrationTest, SetSelectedObjectsReplacesPreviousSelection) {
+TEST_F(ObjectSelectionIntegrationTest,
+       SetSelectedObjectsReplacesPreviousSelection) {
   interaction_.SetSelectedObjects({0, 1});
   EXPECT_EQ(interaction_.GetSelectionCount(), 2);
   EXPECT_TRUE(interaction_.IsObjectSelected(0));
