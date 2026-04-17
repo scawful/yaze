@@ -1,6 +1,7 @@
 #include "app/editor/ui/ui_coordinator.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <functional>
 #include <memory>
 #include <string>
@@ -13,11 +14,12 @@
 #include <emscripten.h>
 #endif
 #include "app/application.h"
+#include "app/editor/core/content_registry.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/layout/window_delegate.h"
-#include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
@@ -45,14 +47,15 @@ namespace editor {
 UICoordinator::UICoordinator(
     EditorManager* editor_manager, RomFileManager& rom_manager,
     ProjectManager& project_manager, EditorRegistry& editor_registry,
-    PanelManager& panel_manager, SessionCoordinator& session_coordinator,
-    WindowDelegate& window_delegate, ToastManager& toast_manager,
-    PopupManager& popup_manager, ShortcutManager& shortcut_manager)
+    WorkspaceWindowManager& window_manager,
+    SessionCoordinator& session_coordinator, WindowDelegate& window_delegate,
+    ToastManager& toast_manager, PopupManager& popup_manager,
+    ShortcutManager& shortcut_manager)
     : editor_manager_(editor_manager),
       rom_manager_(rom_manager),
       project_manager_(project_manager),
       editor_registry_(editor_registry),
-      panel_manager_(panel_manager),
+      window_manager_(window_manager),
       session_coordinator_(session_coordinator),
       window_delegate_(window_delegate),
       toast_manager_(toast_manager),
@@ -60,6 +63,11 @@ UICoordinator::UICoordinator(
       shortcut_manager_(shortcut_manager) {
   // Initialize welcome screen with proper callbacks
   welcome_screen_ = std::make_unique<WelcomeScreen>();
+
+  // Bind persistent prefs so animation tweaks survive restart.
+  if (editor_manager_) {
+    welcome_screen_->SetUserSettings(&editor_manager_->user_settings());
+  }
 
   // Wire welcome screen callbacks to EditorManager
   welcome_screen_->SetOpenRomCallback([this]() {
@@ -106,6 +114,42 @@ UICoordinator::UICoordinator(
       }
     }
   });
+
+  // Template-driven creation now opens the guided dialog instead of chaining
+  // straight into CreateNewProject -> LoadRom. The dialog calls back into
+  // EditorManager once the user has a ROM path and project name picked.
+  welcome_screen_->SetNewProjectWithTemplateCallback(
+      [this](const std::string& template_name) {
+        new_project_dialog_.Open(template_name);
+      });
+
+  new_project_dialog_.SetCreateCallback(
+      [this](const std::string& template_name, const std::string& rom_path,
+             const std::string& project_name) {
+        if (!editor_manager_)
+          return;
+        auto status = editor_manager_->CreateNewProject(template_name);
+        if (!status.ok()) {
+          toast_manager_.Show(
+              absl::StrFormat("Failed to create project: %s", status.message()),
+              ToastType::kError);
+          return;
+        }
+        // Project shell is in place; now open the user's ROM. OpenRomOrProject
+        // handles both ROM and project files, and emits its own toasts on failure.
+        auto rom_status = editor_manager_->OpenRomOrProject(rom_path);
+        if (!rom_status.ok()) {
+          toast_manager_.Show(
+              absl::StrFormat("Project created but ROM failed to load: %s",
+                              rom_status.message()),
+              ToastType::kWarning);
+          return;
+        }
+        toast_manager_.Show(absl::StrFormat("Created project \"%s\" from %s",
+                                            project_name, template_name),
+                            ToastType::kSuccess);
+        SetStartupSurface(StartupSurface::kDashboard);
+      });
 
   welcome_screen_->SetOpenProjectCallback([this](const std::string& filepath) {
     if (editor_manager_) {
@@ -255,8 +299,8 @@ void UICoordinator::DrawAllUI() {
 
   if (show_proposal_drawer_) {
     if (editor_manager_) {
-      if (auto* right_panel = editor_manager_->right_panel_manager()) {
-        right_panel->OpenPanel(RightPanelManager::PanelType::kProposals);
+      if (auto* right_panel = editor_manager_->right_drawer_manager()) {
+        right_panel->OpenDrawer(RightDrawerManager::DrawerType::kProposals);
       }
     }
     show_proposal_drawer_ = false;
@@ -346,9 +390,9 @@ void UICoordinator::DrawMenuBarExtras() {
   const float true_viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
 
   // Calculate panel toggle region width
-  // Keep this in sync with RightPanelManager::DrawPanelToggleButtons().
+  // Keep this in sync with RightDrawerManager::DrawDrawerToggleButtons().
   const bool has_panel_toggles =
-      editor_manager_->right_panel_manager() != nullptr;
+      editor_manager_->right_drawer_manager() != nullptr;
   float panel_buttons_width = 0.0f;
   if (has_panel_toggles) {
     const char* kIcons[] = {
@@ -379,9 +423,9 @@ void UICoordinator::DrawMenuBarExtras() {
 
   // Calculate screen X position for panel toggles (fixed at viewport right edge)
   float panel_screen_x = true_viewport_right - panel_region_width;
-  if (editor_manager_->right_panel_manager() &&
-      editor_manager_->right_panel_manager()->IsPanelExpanded()) {
-    panel_screen_x -= editor_manager_->right_panel_manager()->GetPanelWidth();
+  if (editor_manager_->right_drawer_manager() &&
+      editor_manager_->right_drawer_manager()->IsDrawerExpanded()) {
+    panel_screen_x -= editor_manager_->right_drawer_manager()->GetDrawerWidth();
   }
 
   // Calculate available space for status cluster (version, dirty, session, bell)
@@ -484,7 +528,7 @@ void UICoordinator::DrawMenuBarExtras() {
     ImGui::SetCursorScreenPos(ImVec2(panel_screen_x, menu_bar_y));
 
     // Draw panel toggle buttons
-    editor_manager_->right_panel_manager()->DrawPanelToggleButtons();
+    editor_manager_->right_drawer_manager()->DrawDrawerToggleButtons();
   }
 
 #ifdef __EMSCRIPTEN__
@@ -542,12 +586,12 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
                                          bool has_multiple_sessions) {
   size_t unread = toast_manager_.GetUnreadCount();
   auto* current_rom = editor_manager_->GetCurrentRom();
-  auto* right_panel = editor_manager_->right_panel_manager();
+  auto* right_panel = editor_manager_->right_drawer_manager();
 
   // Check if notifications panel is active
   bool is_active =
-      right_panel &&
-      right_panel->IsPanelActive(RightPanelManager::PanelType::kNotifications);
+      right_panel && right_panel->IsDrawerActive(
+                         RightDrawerManager::DrawerType::kNotifications);
 
   // Bell icon with accent color when there are unread notifications or panel is active
   ImVec4 bell_text_color = (unread > 0 || is_active)
@@ -562,7 +606,7 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
   // Bell button - opens notifications panel in right sidebar
   if (ImGui::SmallButton(ICON_MD_NOTIFICATIONS)) {
     if (right_panel) {
-      right_panel->TogglePanel(RightPanelManager::PanelType::kNotifications);
+      right_panel->ToggleDrawer(RightDrawerManager::DrawerType::kNotifications);
       toast_manager_.MarkAllRead();
     }
   }
@@ -704,13 +748,13 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
   }
 }
 
-// Emulator visibility delegates to PanelManager (single source of truth)
+// Emulator visibility delegates to WorkspaceWindowManager (single source of truth)
 bool UICoordinator::IsEmulatorVisible() const {
   size_t session_id = session_coordinator_.GetActiveSessionIndex();
-  auto emulator_panels =
-      panel_manager_.GetPanelsInCategory(session_id, "Emulator");
-  for (const auto& panel : emulator_panels) {
-    if (panel.visibility_flag && *panel.visibility_flag) {
+  auto emulator_windows =
+      window_manager_.GetWindowsInCategory(session_id, "Emulator");
+  for (const auto& window : emulator_windows) {
+    if (window.visibility_flag && *window.visibility_flag) {
       return true;
     }
   }
@@ -720,13 +764,13 @@ bool UICoordinator::IsEmulatorVisible() const {
 void UICoordinator::SetEmulatorVisible(bool visible) {
   size_t session_id = session_coordinator_.GetActiveSessionIndex();
   if (visible) {
-    auto default_panels =
-        LayoutPresets::GetDefaultPanels(EditorType::kEmulator);
-    for (const auto& panel_id : default_panels) {
-      panel_manager_.ShowPanel(session_id, panel_id);
+    auto default_windows =
+        LayoutPresets::GetDefaultWindows(EditorType::kEmulator);
+    for (const auto& window_id : default_windows) {
+      window_manager_.OpenWindow(session_id, window_id);
     }
   } else {
-    panel_manager_.HideAllPanelsInCategory(session_id, "Emulator");
+    window_manager_.HideAllWindowsInCategory(session_id, "Emulator");
   }
 }
 
@@ -788,10 +832,8 @@ void UICoordinator::DrawWelcomeScreen() {
   welcome_screen_->SetContextState(rom_is_loaded,
                                    project_manager_.HasActiveProject());
 
-  // Reset first show flag to override ImGui ini state
-  welcome_screen_->ResetFirstShow();
-
-  // Update recent projects before showing
+  // Update recent projects before showing (cheap no-op when the
+  // RecentFilesManager generation counter hasn't changed).
   welcome_screen_->RefreshRecentProjects();
 
   // Pass layout offsets so welcome screen centers within dockspace region
@@ -804,6 +846,11 @@ void UICoordinator::DrawWelcomeScreen() {
   // Show the welcome screen window
   bool is_open = true;
   welcome_screen_->Show(&is_open);
+
+  // Dialog is drawn after the welcome screen so its popup layers above the
+  // welcome window. Kept outside the ShouldShowWelcome short-circuit above
+  // because the dialog stays owned here even when welcome is hidden.
+  new_project_dialog_.Draw();
 
   // If user closed it via X button, respect that and transition to appropriate state
   if (!is_open) {
@@ -889,19 +936,19 @@ void UICoordinator::ShowDisplaySettings() {
 }
 
 // ============================================================================
-// Sidebar Visibility (delegates to PanelManager)
+// Sidebar visibility delegates to WorkspaceWindowManager
 // ============================================================================
 
 void UICoordinator::TogglePanelSidebar() {
-  panel_manager_.ToggleSidebarVisibility();
+  window_manager_.ToggleSidebarVisibility();
 }
 
 bool UICoordinator::IsPanelSidebarVisible() const {
-  return panel_manager_.IsSidebarVisible();
+  return window_manager_.IsSidebarVisible();
 }
 
 void UICoordinator::SetPanelSidebarVisible(bool visible) {
-  panel_manager_.SetSidebarVisible(visible);
+  window_manager_.SetSidebarVisible(visible);
 }
 
 void UICoordinator::ShowAllWindows() {
@@ -1187,7 +1234,7 @@ void UICoordinator::DrawPanelFinder() {
     return;
 
   using namespace ImGui;
-  const size_t session_id = panel_manager_.GetActiveSessionId();
+  const size_t session_id = window_manager_.GetActiveSessionId();
 
   // B6: Responsive modal sizing with dim overlay
   const ImGuiViewport* viewport = GetMainViewport();
@@ -1213,7 +1260,7 @@ void UICoordinator::DrawPanelFinder() {
       ImGuiWindowFlags_NoSavedSettings;
 
   bool show = true;
-  if (Begin(ICON_MD_DASHBOARD " Panel Finder", &show, finder_flags)) {
+  if (Begin(ICON_MD_DASHBOARD " Window Finder", &show, finder_flags)) {
     // Auto-focus search on open
     if (IsWindowAppearing()) {
       SetKeyboardFocusHere();
@@ -1222,7 +1269,7 @@ void UICoordinator::DrawPanelFinder() {
 
     SetNextItemWidth(-1);
     bool input_changed = InputTextWithHint(
-        "##panel_finder_query", ICON_MD_SEARCH " Find panel...",
+        "##panel_finder_query", ICON_MD_SEARCH " Find window...",
         panel_finder_query_, IM_ARRAYSIZE(panel_finder_query_));
 
     if (input_changed) {
@@ -1232,7 +1279,7 @@ void UICoordinator::DrawPanelFinder() {
     Separator();
 
     // Build filtered + scored list
-    struct PanelEntry {
+    struct WindowEntry {
       std::string card_id;
       std::string display_name;
       std::string icon;
@@ -1241,44 +1288,50 @@ void UICoordinator::DrawPanelFinder() {
       bool pinned;
       int score;
     };
-    std::vector<PanelEntry> entries;
+    std::vector<WindowEntry> entries;
 
     std::string query(panel_finder_query_);
 
     // B2: Fuzzy scoring via CommandPalette::FuzzyScore
-    for (const auto& [card_id, desc] :
-         panel_manager_.GetAllPanelDescriptors()) {
+    for (const auto& card_id :
+         window_manager_.GetWindowsInSession(session_id)) {
+      const auto* desc =
+          window_manager_.GetWindowDescriptor(session_id, card_id);
+      if (!desc) {
+        continue;
+      }
       int score = 0;
       if (!query.empty()) {
-        score = CommandPalette::FuzzyScore(desc.display_name, query) +
-                CommandPalette::FuzzyScore(desc.category, query) / 2;
+        score = CommandPalette::FuzzyScore(desc->display_name, query) +
+                CommandPalette::FuzzyScore(desc->category, query) / 2;
         if (score <= 0)
           continue;
       }
 
-      bool vis = desc.visibility_flag ? *desc.visibility_flag : false;
-      bool pin = panel_manager_.IsPanelPinned(card_id);
-      entries.push_back({card_id, desc.display_name, desc.icon, desc.category,
-                         vis, pin, score});
+      bool vis = desc->visibility_flag ? *desc->visibility_flag : false;
+      bool pin = window_manager_.IsWindowPinned(session_id, card_id);
+      entries.push_back({card_id, desc->display_name, desc->icon,
+                         desc->category, vis, pin, score});
     }
 
     // B3: MRU + fuzzy sort
     if (query.empty()) {
       // Empty query: pinned first, then MRU order (higher time = more recent)
-      std::sort(entries.begin(), entries.end(),
-                [this](const PanelEntry& lhs, const PanelEntry& rhs) {
-                  if (lhs.pinned != rhs.pinned)
-                    return lhs.pinned > rhs.pinned;
-                  uint64_t lhs_t = panel_manager_.GetPanelMRUTime(lhs.card_id);
-                  uint64_t rhs_t = panel_manager_.GetPanelMRUTime(rhs.card_id);
-                  if (lhs_t != rhs_t)
-                    return lhs_t > rhs_t;
-                  return lhs.display_name < rhs.display_name;
-                });
+      std::sort(
+          entries.begin(), entries.end(),
+          [this](const WindowEntry& lhs, const WindowEntry& rhs) {
+            if (lhs.pinned != rhs.pinned)
+              return lhs.pinned > rhs.pinned;
+            uint64_t lhs_t = window_manager_.GetWindowMRUTime(lhs.card_id);
+            uint64_t rhs_t = window_manager_.GetWindowMRUTime(rhs.card_id);
+            if (lhs_t != rhs_t)
+              return lhs_t > rhs_t;
+            return lhs.display_name < rhs.display_name;
+          });
     } else {
       // With query: sort by score descending, pinned tiebreaker
       std::sort(entries.begin(), entries.end(),
-                [](const PanelEntry& lhs, const PanelEntry& rhs) {
+                [](const WindowEntry& lhs, const WindowEntry& rhs) {
                   if (lhs.score != rhs.score)
                     return lhs.score > rhs.score;
                   if (lhs.pinned != rhs.pinned)
@@ -1333,8 +1386,8 @@ void UICoordinator::DrawPanelFinder() {
       PushID(entry.card_id.c_str());
       if (Selectable(label.c_str(), is_selected, ImGuiSelectableFlags_None,
                      ImVec2(0, item_h))) {
-        panel_manager_.ShowPanel(session_id, entry.card_id);
-        panel_manager_.MarkPanelRecentlyUsed(entry.card_id);
+        window_manager_.OpenWindow(session_id, entry.card_id);
+        window_manager_.MarkWindowRecentlyUsed(entry.card_id);
         show_panel_finder_ = false;
       }
       // Show category badge on the same line
@@ -1348,8 +1401,8 @@ void UICoordinator::DrawPanelFinder() {
 
       // Enter to activate selected
       if (is_selected && enter_pressed) {
-        panel_manager_.ShowPanel(session_id, entry.card_id);
-        panel_manager_.MarkPanelRecentlyUsed(entry.card_id);
+        window_manager_.OpenWindow(session_id, entry.card_id);
+        window_manager_.MarkWindowRecentlyUsed(entry.card_id);
         show_panel_finder_ = false;
       }
 
@@ -1376,9 +1429,11 @@ void UICoordinator::DrawPanelFinder() {
 
 void UICoordinator::InitializeCommandPalette(size_t session_id) {
   command_palette_.Clear();
+  RefreshWorkflowActions();
 
   // Register panel commands
-  command_palette_.RegisterPanelCommands(&panel_manager_, session_id);
+  command_palette_.RegisterPanelCommands(&window_manager_, session_id);
+  command_palette_.RegisterWorkflowCommands(&window_manager_, session_id);
 
   // Register editor switch commands
   command_palette_.RegisterEditorCommands([this](const std::string& category) {
@@ -1444,43 +1499,88 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   // Dungeon navigation helpers (room jump by id/label).
   command_palette_.RegisterDungeonRoomCommands(session_id);
 
-#ifdef YAZE_WITH_GRPC
-  // Mesen2 Integration Commands
-  auto* emu_backend = Application::Instance().GetEmulatorBackend();
-  if (emu_backend) {
-    command_palette_.AddCommand(
-        "Mesen2: Connect", CommandCategory::kTools,
-        "Auto-discover and connect to Mesen2 socket", "", [this]() {
-          auto* backend = Application::Instance().GetEmulatorBackend();
-          if (backend) {
-            // How to trigger reconnect? Re-init adapter?
-            // For now, most adapters try to connect on init.
-            toast_manager_.Show("Mesen2 connection attempt queued",
-                                ToastType::kInfo);
+  // Welcome-screen-scoped commands: per-entry pin/remove, undo, template
+  // creation, and visibility toggles. Recent-entry iteration pulls from the
+  // same model the welcome screen renders, so the palette and the cards stay
+  // in sync without a separate refresh path. We rebuild these whenever
+  // RefreshCommandPalette() is invoked after recents mutate.
+  if (welcome_screen_) {
+    const std::vector<std::string> template_names = {
+        "Vanilla ROM Hack", "ZSCustomOverworld v3", "ZSCustomOverworld v2",
+        "Randomizer Compatible"};
+    command_palette_.RegisterWelcomeCommands(
+        &welcome_screen_->recent_projects(), template_names,
+        /*remove_callback=*/
+        [this](const std::string& path) {
+          if (!welcome_screen_)
+            return;
+          welcome_screen_->recent_projects().RemoveRecent(path);
+          welcome_screen_->RefreshRecentProjects(/*force=*/true);
+          toast_manager_.Show(
+              absl::StrFormat("Removed %s from recents",
+                              std::filesystem::path(path).filename().string()),
+              ToastType::kInfo);
+        },
+        /*toggle_pin_callback=*/
+        [this](const std::string& path) {
+          if (!welcome_screen_)
+            return;
+          auto& model = welcome_screen_->recent_projects();
+          bool currently_pinned = false;
+          for (const auto& entry : model.entries()) {
+            if (entry.filepath == path) {
+              currently_pinned = entry.pinned;
+              break;
+            }
           }
+          model.SetPinned(path, !currently_pinned);
+          welcome_screen_->RefreshRecentProjects(/*force=*/true);
+        },
+        /*undo_remove_callback=*/
+        [this]() {
+          if (!welcome_screen_)
+            return;
+          if (!welcome_screen_->recent_projects().UndoLastRemoval()) {
+            toast_manager_.Show(
+                "Nothing to undo — the last removal has expired.",
+                ToastType::kWarning);
+            return;
+          }
+          welcome_screen_->RefreshRecentProjects(/*force=*/true);
+        },
+        /*clear_recents_callback=*/
+        [this]() {
+          if (!welcome_screen_)
+            return;
+          welcome_screen_->recent_projects().ClearAll();
+          welcome_screen_->RefreshRecentProjects(/*force=*/true);
+        },
+        /*create_from_template_callback=*/
+        [this](const std::string& template_name) {
+          if (!editor_manager_)
+            return;
+          auto status = editor_manager_->CreateNewProject(template_name);
+          if (!status.ok()) {
+            toast_manager_.Show(absl::StrFormat("Failed to create project: %s",
+                                                status.message()),
+                                ToastType::kError);
+          } else {
+            SetStartupSurface(StartupSurface::kDashboard);
+          }
+        },
+        /*dismiss_welcome_callback=*/
+        [this]() {
+          welcome_screen_manually_closed_ = true;
+          if (current_startup_surface_ == StartupSurface::kWelcome) {
+            SetStartupSurface(StartupSurface::kDashboard);
+          }
+        },
+        /*show_welcome_callback=*/
+        [this]() {
+          welcome_screen_manually_closed_ = false;
+          SetStartupSurface(StartupSurface::kWelcome);
         });
-
-    command_palette_.AddCommand(
-        "Mesen2: Step Over", CommandCategory::kTools,
-        "Execute one instruction without entering subroutines", "F10",
-        [emu_backend]() { emu_backend->StepOver(); });
-
-    command_palette_.AddCommand("Mesen2: Step Out", CommandCategory::kTools,
-                                "Run until return from current subroutine",
-                                "Shift+F11",
-                                [emu_backend]() { emu_backend->StepOut(); });
-
-    command_palette_.AddCommand(
-        "Mesen2: Enable Collision Overlay", CommandCategory::kTools,
-        "Show collision mask in Mesen2", "",
-        [emu_backend]() { emu_backend->SetCollisionOverlay(true); });
-
-    command_palette_.AddCommand(
-        "Mesen2: Disable Collision Overlay", CommandCategory::kTools,
-        "Hide collision mask in Mesen2", "",
-        [emu_backend]() { emu_backend->SetCollisionOverlay(false); });
   }
-#endif
 
   // Load command usage history
   auto config_dir = util::PlatformPaths::GetConfigDirectory();
@@ -1490,6 +1590,96 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   }
 
   command_palette_initialized_ = true;
+}
+
+void UICoordinator::RefreshWorkflowActions() {
+  ContentRegistry::WorkflowActions::Clear();
+
+  if (editor_manager_ && editor_manager_->GetCurrentProject() &&
+      editor_manager_->GetCurrentProject()->project_opened()) {
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.project.build",
+         .group = "Build & Run",
+         .label = "Build Project",
+         .description = "Run the active project's configured build command",
+         .shortcut = "",
+         .priority = 5,
+         .callback = [this]() {
+           if (editor_manager_) {
+             editor_manager_->QueueBuildCurrentProject();
+           }
+         }});
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.project.run",
+         .group = "Build & Run",
+         .label = "Run Project Output",
+         .description = "Open the active project's configured run target in a "
+                        "test session",
+         .shortcut = "",
+         .priority = 10,
+         .callback = [this]() {
+           if (editor_manager_) {
+             (void)editor_manager_->RunCurrentProject();
+           }
+         }});
+  }
+
+#ifdef YAZE_WITH_GRPC
+  auto* emu_backend = Application::Instance().GetEmulatorBackend();
+  if (emu_backend) {
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.mesen.connect",
+         .group = "Live Debugging",
+         .label = "Connect Mesen2",
+         .description =
+             "Auto-discover and connect to the active Mesen2 backend",
+         .shortcut = "",
+         .priority = 10,
+         .callback = [this]() {
+           auto* backend = Application::Instance().GetEmulatorBackend();
+           if (backend) {
+             toast_manager_.Show("Mesen2 connection attempt queued",
+                                 ToastType::kInfo);
+           }
+         }});
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.mesen.step_over",
+         .group = "Live Debugging",
+         .label = "Mesen2 Step Over",
+         .description = "Execute one instruction without entering subroutines",
+         .shortcut = "F10",
+         .priority = 20,
+         .callback = [emu_backend]() { emu_backend->StepOver(); }});
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.mesen.step_out",
+         .group = "Live Debugging",
+         .label = "Mesen2 Step Out",
+         .description = "Run until return from the current subroutine",
+         .shortcut = "Shift+F11",
+         .priority = 30,
+         .callback = [emu_backend]() { emu_backend->StepOut(); }});
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.mesen.overlay_on",
+         .group = "Live Debugging",
+         .label = "Enable Collision Overlay",
+         .description = "Show collision overlays in the active Mesen2 backend",
+         .shortcut = "",
+         .priority = 40,
+         .callback = [emu_backend]() {
+           emu_backend->SetCollisionOverlay(true);
+         }});
+    ContentRegistry::WorkflowActions::Register(
+        {.id = "workflow.mesen.overlay_off",
+         .group = "Live Debugging",
+         .label = "Disable Collision Overlay",
+         .description = "Hide collision overlays in the active Mesen2 backend",
+         .shortcut = "",
+         .priority = 50,
+         .callback = [emu_backend]() {
+           emu_backend->SetCollisionOverlay(false);
+         }});
+  }
+#endif
 }
 
 void UICoordinator::RefreshCommandPalette(size_t session_id) {

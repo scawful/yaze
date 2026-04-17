@@ -1,30 +1,24 @@
 #include "app/editor/ui/welcome_screen.h"
 
 #include <algorithm>
-#include <array>
-#include <cctype>
-#include <chrono>
 #include <cmath>
 #include <cstdint>
-#include <filesystem>
-#include <fstream>
-#include <limits>
-#include <vector>
+#include <string>
 
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "app/editor/system/user_settings.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "app/platform/timing.h"
-#include "core/project.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/file_util.h"
-#include "util/rom_hash.h"
+#include "util/log.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -60,6 +54,19 @@ ImVec4 kShadowPurple = kShadowPurpleFallback;
 
 void UpdateWelcomeAccentPalette() {
   auto& theme_mgr = gui::ThemeManager::Get();
+  // Skip the palette recompute when the active theme hasn't changed. The
+  // welcome screen ran this every frame previously, doing 7 ImLerps + 6
+  // Color-to-ImVec4 conversions; cheap individually but pure waste while the
+  // theme is static (almost always).
+  static std::string s_cached_theme_name;
+  static bool s_cached_once = false;
+  const std::string& current_name = theme_mgr.GetCurrentThemeName();
+  if (s_cached_once && current_name == s_cached_theme_name) {
+    return;
+  }
+  s_cached_theme_name = current_name;
+  s_cached_once = true;
+
   const auto& theme = theme_mgr.GetCurrentTheme();
 
   const ImVec4 secondary = gui::ConvertColorToImVec4(theme.secondary);
@@ -80,285 +87,51 @@ void UpdateWelcomeAccentPalette() {
   kShadowPurple = ImLerp(secondary, surface, 0.45f);
 }
 
-std::string GetRelativeTimeString(
-    const std::filesystem::file_time_type& ftime) {
-  auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-      ftime - std::filesystem::file_time_type::clock::now() +
-      std::chrono::system_clock::now());
-  auto now = std::chrono::system_clock::now();
-  auto diff = std::chrono::duration_cast<std::chrono::hours>(now - sctp);
+// Truncate `text` to fit within `max_width` pixels, appending "..." if clipped.
+// Uses binary search over byte positions; CalcTextSize is invoked at most
+// log2(N) times per call instead of the previous O(N) pop_back loop that
+// re-measured the string after every character removal.
+std::string EllipsizeText(const std::string& text, float max_width) {
+  if (text.empty())
+    return std::string();
+  if (ImGui::CalcTextSize(text.c_str()).x <= max_width)
+    return text;
 
-  int hours = diff.count();
-  if (hours < 24) {
-    return "Today";
-  } else if (hours < 48) {
-    return "Yesterday";
-  } else if (hours < 168) {
-    int days = hours / 24;
-    return absl::StrFormat("%d days ago", days);
-  } else if (hours < 720) {
-    int weeks = hours / 168;
-    return absl::StrFormat("%d week%s ago", weeks, weeks > 1 ? "s" : "");
-  } else {
-    int months = hours / 720;
-    return absl::StrFormat("%d month%s ago", months, months > 1 ? "s" : "");
-  }
-}
+  static constexpr const char* kEllipsis = "...";
+  const float ellipsis_w = ImGui::CalcTextSize(kEllipsis).x;
+  if (ellipsis_w > max_width)
+    return std::string(kEllipsis);
 
-std::string ToLowerAscii(std::string value) {
-  std::transform(
-      value.begin(), value.end(), value.begin(),
-      [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-  return value;
-}
+  const float budget = max_width - ellipsis_w;
 
-std::string TrimAscii(const std::string& value) {
-  const auto not_space = [](unsigned char c) {
-    return !std::isspace(c);
-  };
-  auto begin = std::find_if(value.begin(), value.end(), not_space);
-  if (begin == value.end()) {
-    return "";
-  }
-  auto end = std::find_if(value.rbegin(), value.rend(), not_space).base();
-  return std::string(begin, end);
-}
-
-std::string FormatFileSize(uintmax_t bytes) {
-  static constexpr std::array<const char*, 4> kUnits = {"B", "KB", "MB", "GB"};
-  double value = static_cast<double>(bytes);
-  size_t unit = 0;
-  while (value >= 1024.0 && unit + 1 < kUnits.size()) {
-    value /= 1024.0;
-    ++unit;
-  }
-  if (unit == 0) {
-    return absl::StrFormat("%llu %s", static_cast<unsigned long long>(bytes),
-                           kUnits[unit]);
-  }
-  return absl::StrFormat("%.1f %s", value, kUnits[unit]);
-}
-
-bool IsRomPath(const std::filesystem::path& path) {
-  const std::string ext = ToLowerAscii(path.extension().string());
-  return ext == ".sfc" || ext == ".smc";
-}
-
-bool IsProjectPath(const std::filesystem::path& path) {
-  const std::string ext = ToLowerAscii(path.extension().string());
-  return ext == ".yaze" || ext == ".yazeproj" || ext == ".zsproj";
-}
-
-std::string DecodeSnesRegion(uint8_t code) {
-  switch (code) {
-    case 0x00:
-      return "Japan";
-    case 0x01:
-      return "USA";
-    case 0x02:
-      return "Europe";
-    case 0x03:
-      return "Sweden";
-    case 0x06:
-      return "France";
-    case 0x07:
-      return "Netherlands";
-    case 0x08:
-      return "Spain";
-    case 0x09:
-      return "Germany";
-    case 0x0A:
-      return "Italy";
-    case 0x0B:
-      return "China";
-    case 0x0D:
-      return "Korea";
-    default:
-      return "Unknown region";
-  }
-}
-
-std::string DecodeSnesMapMode(uint8_t code) {
-  switch (code & 0x3F) {
-    case 0x20:
-      return "LoROM";
-    case 0x21:
-      return "HiROM";
-    case 0x22:
-      return "ExLoROM";
-    case 0x25:
-      return "ExHiROM";
-    case 0x30:
-      return "Fast LoROM";
-    case 0x31:
-      return "Fast HiROM";
-    default:
-      return absl::StrFormat("Mode %02X", code);
-  }
-}
-
-struct SnesHeaderMetadata {
-  std::string title;
-  std::string region;
-  std::string map_mode;
-  bool valid = false;
-};
-
-bool ReadFileBlock(std::ifstream* file, std::streamoff offset, char* out,
-                   size_t size) {
-  if (!file) {
-    return false;
-  }
-  file->clear();
-  file->seekg(offset, std::ios::beg);
-  if (!file->good()) {
-    return false;
-  }
-  file->read(out, static_cast<std::streamsize>(size));
-  return file->good() && file->gcount() == static_cast<std::streamsize>(size);
-}
-
-bool LooksLikeSnesTitle(const std::string& title) {
-  if (title.empty()) {
-    return false;
-  }
-  int printable = 0;
-  for (unsigned char c : title) {
-    if (c >= 32 && c <= 126) {
-      ++printable;
-    }
-  }
-  return printable >= std::max(6, static_cast<int>(title.size()) / 2);
-}
-
-SnesHeaderMetadata ReadSnesHeaderMetadata(const std::filesystem::path& path) {
-  std::error_code size_ec;
-  const uintmax_t file_size = std::filesystem::file_size(path, size_ec);
-  if (size_ec || file_size < 0x8020) {
-    return {};
-  }
-
-  std::ifstream input(path, std::ios::binary);
-  if (!input.is_open()) {
-    return {};
-  }
-
-  static constexpr std::array<std::streamoff, 2> kHeaderBases = {0x7FC0,
-                                                                 0xFFC0};
-  static constexpr std::array<std::streamoff, 2> kHeaderBiases = {0, 512};
-
-  for (std::streamoff bias : kHeaderBiases) {
-    for (std::streamoff base : kHeaderBases) {
-      const std::streamoff offset = base + bias;
-      if (static_cast<uintmax_t>(offset + 0x20) > file_size) {
-        continue;
-      }
-
-      char header[0x20] = {};
-      if (!ReadFileBlock(&input, offset, header, sizeof(header))) {
-        continue;
-      }
-
-      std::string raw_title(header, header + 21);
-      for (char& c : raw_title) {
-        unsigned char uc = static_cast<unsigned char>(c);
-        if (uc < 32 || uc > 126) {
-          c = ' ';
-        }
-      }
-      const std::string title = TrimAscii(raw_title);
-      if (!LooksLikeSnesTitle(title)) {
-        continue;
-      }
-
-      const uint8_t map_mode_code = static_cast<uint8_t>(header[0x15]);
-      const uint8_t region_code = static_cast<uint8_t>(header[0x19]);
-      return {title, DecodeSnesRegion(region_code),
-              DecodeSnesMapMode(map_mode_code), true};
+  // Binary search the longest byte-prefix whose width is <= budget.
+  // Note: this splits by bytes, not code points; for ASCII-only titles (the
+  // common case here) that is exact. For UTF-8 multi-byte sequences we nudge
+  // the split point back to a code-point boundary after the search.
+  size_t lo = 0;
+  size_t hi = text.size();
+  std::string buffer;
+  buffer.reserve(text.size());
+  while (lo < hi) {
+    size_t mid = lo + (hi - lo + 1) / 2;
+    buffer.assign(text, 0, mid);
+    if (ImGui::CalcTextSize(buffer.c_str()).x <= budget) {
+      lo = mid;
+    } else {
+      hi = mid - 1;
     }
   }
 
-  return {};
-}
-
-std::string ReadFileCrc32(const std::filesystem::path& path) {
-  std::error_code size_ec;
-  const uintmax_t file_size = std::filesystem::file_size(path, size_ec);
-  if (size_ec || file_size == 0 ||
-      file_size > static_cast<uintmax_t>(std::numeric_limits<size_t>::max())) {
-    return "";
+  // Pull back off any UTF-8 continuation bytes so we don't split a codepoint.
+  while (lo > 0 && (static_cast<unsigned char>(text[lo]) & 0xC0) == 0x80) {
+    --lo;
   }
 
-  std::ifstream input(path, std::ios::binary);
-  if (!input.is_open()) {
-    return "";
-  }
-
-  std::vector<uint8_t> data(static_cast<size_t>(file_size));
-  input.read(reinterpret_cast<char*>(data.data()),
-             static_cast<std::streamsize>(data.size()));
-  if (input.gcount() != static_cast<std::streamsize>(data.size())) {
-    return "";
-  }
-
-  return absl::StrFormat("%08X",
-                         util::CalculateCrc32(data.data(), data.size()));
-}
-
-std::string ParseConfigValue(const std::string& line) {
-  if (line.empty()) {
-    return "";
-  }
-  size_t sep = line.find('=');
-  if (sep == std::string::npos) {
-    sep = line.find(':');
-  }
-  if (sep == std::string::npos || sep + 1 >= line.size()) {
-    return "";
-  }
-  std::string value = line.substr(sep + 1);
-  const size_t comment_pos = value.find('#');
-  if (comment_pos != std::string::npos) {
-    value = value.substr(0, comment_pos);
-  }
-  value = TrimAscii(value);
-  if (value.empty()) {
-    return "";
-  }
-  if (!value.empty() && value.back() == ',') {
-    value.pop_back();
-  }
-  value = TrimAscii(value);
-  if (value.size() >= 2 && ((value.front() == '"' && value.back() == '"') ||
-                            (value.front() == '\'' && value.back() == '\''))) {
-    value = value.substr(1, value.size() - 2);
-  }
-  return TrimAscii(value);
-}
-
-std::string ExtractLinkedProjectRomName(const std::filesystem::path& path) {
-  std::ifstream input(path);
-  if (!input.is_open()) {
-    return "";
-  }
-
-  static constexpr std::array<const char*, 3> kKeys = {"rom_filename",
-                                                       "rom_file", "rom_path"};
-  std::string line;
-  while (std::getline(input, line)) {
-    const std::string lowered = ToLowerAscii(line);
-    for (const char* key : kKeys) {
-      const size_t key_pos = lowered.find(key);
-      if (key_pos == std::string::npos) {
-        continue;
-      }
-      const std::string value = ParseConfigValue(line);
-      if (!value.empty()) {
-        return std::filesystem::path(value).filename().string();
-      }
-    }
-  }
-  return "";
+  if (lo == 0)
+    return std::string(kEllipsis);
+  buffer.assign(text, 0, lo);
+  buffer.append(kEllipsis);
+  return buffer;
 }
 
 // Draw a pixelated triforce in the background (ALTTP style)
@@ -498,6 +271,34 @@ WelcomeScreen::WelcomeScreen() {
   RefreshRecentProjects();
 }
 
+void WelcomeScreen::SetUserSettings(UserSettings* settings) {
+  user_settings_ = settings;
+  if (!user_settings_)
+    return;
+  const auto& prefs = user_settings_->prefs();
+  triforce_alpha_multiplier_ = prefs.welcome_triforce_alpha;
+  triforce_speed_multiplier_ = prefs.welcome_triforce_speed;
+  triforce_size_multiplier_ = prefs.welcome_triforce_size;
+  particles_enabled_ = prefs.welcome_particles_enabled;
+  triforce_mouse_repel_enabled_ = prefs.welcome_mouse_repel_enabled;
+}
+
+void WelcomeScreen::PersistAnimationSettings() {
+  if (!user_settings_)
+    return;
+  auto& prefs = user_settings_->prefs();
+  prefs.welcome_triforce_alpha = triforce_alpha_multiplier_;
+  prefs.welcome_triforce_speed = triforce_speed_multiplier_;
+  prefs.welcome_triforce_size = triforce_size_multiplier_;
+  prefs.welcome_particles_enabled = particles_enabled_;
+  prefs.welcome_mouse_repel_enabled = triforce_mouse_repel_enabled_;
+  auto status = user_settings_->Save();
+  if (!status.ok()) {
+    LOG_WARN("WelcomeScreen", "Failed to persist animation settings: %s",
+             status.ToString().c_str());
+  }
+}
+
 // Helper function to calculate staggered animation progress
 float GetStaggeredEntryProgress(float entry_time, int section_index,
                                 float duration, float stagger_delay) {
@@ -545,21 +346,17 @@ bool WelcomeScreen::Show(bool* p_open) {
   float dockspace_center_y = viewport->WorkPos.y + viewport_size.y / 2.0f;
   ImVec2 center(dockspace_center_x, dockspace_center_y);
 
-  // Size based on dockspace region, not full viewport
-  float width = std::clamp(dockspace_width * 0.85f, 480.0f, 1400.0f);
-  float height = std::clamp(viewport_size.y * 0.85f, 360.0f, 1050.0f);
+  // Size based on dockspace region, not full viewport. Clamps scale with the
+  // current font size so high-DPI users and font-scaled layouts get a
+  // proportionally sized window instead of a cramped 480px minimum.
+  const float font_scale = ImGui::GetFontSize() / 16.0f;
+  float width = std::clamp(dockspace_width * 0.85f, 480.0f * font_scale,
+                           1400.0f * font_scale);
+  float height = std::clamp(viewport_size.y * 0.85f, 360.0f * font_scale,
+                            1050.0f * font_scale);
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
-
-  // CRITICAL: Override ImGui's saved window state from imgui.ini
-  // Without this, ImGui will restore the last saved state (hidden/collapsed)
-  // even when our logic says the window should be visible
-  if (first_show_attempt_) {
-    ImGui::SetNextWindowCollapsed(false);  // Force window to be expanded
-    // Don't steal focus - allow menu bar to remain clickable
-    first_show_attempt_ = false;
-  }
 
   // Window flags: allow menu bar to be clickable by not bringing to front
   ImGuiWindowFlags window_flags =
@@ -571,6 +368,15 @@ bool WelcomeScreen::Show(bool* p_open) {
                                           ImVec2(20, 20));
 
   if (ImGui::Begin("##WelcomeScreen", p_open, window_flags)) {
+    // Esc dismisses the welcome screen when it (or one of its children) has
+    // focus. Avoids stealing Esc globally, which would conflict with other
+    // editors that use it for their own "cancel current interaction" flow.
+    if (p_open != nullptr &&
+        ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+        ImGui::IsKeyPressed(ImGuiKey_Escape, /*repeat=*/false)) {
+      *p_open = false;
+    }
+
     ImDrawList* bg_draw_list = ImGui::GetWindowDrawList();
     ImVec2 window_pos = ImGui::GetWindowPos();
     ImVec2 window_size = ImGui::GetWindowSize();
@@ -603,8 +409,13 @@ bool WelcomeScreen::Show(bool* p_open) {
       triforce_positions_initialized_ = true;
     }
 
+    // Skip the triforce background entirely when the user has faded it out.
+    // The alpha_multiplier slider at 0 should mean "no work at all", not
+    // "compute positions and draw transparent triangles".
+    const bool triforces_visible = triforce_alpha_multiplier_ > 0.001f;
+
     // Update triforce positions based on mouse interaction + floating animation
-    for (int i = 0; i < kNumTriforces; ++i) {
+    for (int i = 0; triforces_visible && i < kNumTriforces; ++i) {
       // Update base position in case window moved/resized
       float base_x = window_pos.x + window_size.x * triforce_configs[i].x_pct;
       float base_y = window_pos.y + window_size.y * triforce_configs[i].y_pct;
@@ -665,21 +476,27 @@ bool WelcomeScreen::Show(bool* p_open) {
       triforce_positions_[i].y +=
           (target_pos.y - triforce_positions_[i].y) * lerp_speed;
 
-      // Draw at current position with alpha multiplier
+      // Draw at current position with alpha multiplier. Skip issuing draw
+      // commands for alphas that would quantize to 0 in an 8-bit color.
       float adjusted_alpha =
           triforce_configs[i].alpha * triforce_alpha_multiplier_;
+      if (adjusted_alpha < (1.0f / 255.0f)) {
+        continue;
+      }
       float adjusted_size =
           triforce_configs[i].size * triforce_size_multiplier_;
       DrawTriforceBackground(bg_draw_list, triforce_positions_[i],
                              adjusted_size, adjusted_alpha, 0.0f);
     }
 
-    // Update and draw particle system
-    if (particles_enabled_) {
+    // Update and draw particle system. Also skipped when the triforce alpha
+    // multiplier is 0, because particles inherit that alpha — drawing them
+    // invisibly is pure overhead.
+    if (particles_enabled_ && triforces_visible) {
       // Spawn new particles
-      static float spawn_accumulator = 0.0f;
-      spawn_accumulator += ImGui::GetIO().DeltaTime * particle_spawn_rate_;
-      while (spawn_accumulator >= 1.0f &&
+      particle_spawn_accumulator_ +=
+          ImGui::GetIO().DeltaTime * particle_spawn_rate_;
+      while (particle_spawn_accumulator_ >= 1.0f &&
              active_particle_count_ < kMaxParticles) {
         // Find inactive particle slot
         for (int i = 0; i < kMaxParticles; ++i) {
@@ -702,7 +519,7 @@ bool WelcomeScreen::Show(bool* p_open) {
             break;
           }
         }
-        spawn_accumulator -= 1.0f;
+        particle_spawn_accumulator_ -= 1.0f;
       }
 
       // Update and draw particles
@@ -770,6 +587,7 @@ bool WelcomeScreen::Show(bool* p_open) {
 
       ImGui::BeginChild("QuickActionsNarrow", ImVec2(0, quick_actions_h), true,
                         ImGuiWindowFlags_NoScrollbar);
+      DrawFirstRunGuide();
       DrawQuickActions();
       ImGui::EndChild();
 
@@ -796,6 +614,7 @@ bool WelcomeScreen::Show(bool* p_open) {
 
       ImGui::BeginChild("QuickActionsWide", ImVec2(0, quick_actions_h), false,
                         ImGuiWindowFlags_NoScrollbar);
+      DrawFirstRunGuide();
       DrawQuickActions();
       ImGui::EndChild();
 
@@ -858,124 +677,8 @@ void WelcomeScreen::UpdateAnimations() {
   // position
 }
 
-void WelcomeScreen::RefreshRecentProjects() {
-  recent_projects_.clear();
-
-  // Use the ProjectManager singleton to get recent files
-  auto& manager = project::RecentFilesManager::GetInstance();
-  auto recent_files = manager.GetRecentFiles();  // Copy to allow modification
-
-  std::vector<std::string> files_to_remove;
-
-  for (const auto& filepath : recent_files) {
-    if (recent_projects_.size() >= kMaxRecentProjects) {
-      break;
-    }
-
-    std::filesystem::path path(filepath);
-
-    RecentProject project;
-    project.filepath = filepath;
-    project.name = path.filename().string();
-    if (project.name.empty()) {
-      project.name = filepath;
-    }
-    project.item_type = "File";
-    project.item_icon = ICON_MD_INSERT_DRIVE_FILE;
-    project.rom_title = "Local file";
-    project.metadata_summary = "";
-
-    // Skip and mark for removal if file doesn't exist.
-    //
-    // IMPORTANT (iOS): `std::filesystem::exists(path)` may throw if the app
-    // doesn't have permission to access the path (e.g. iCloud Drive open-in-
-    // place URLs without an active security scope). Use the error_code
-    // overload to avoid crashing at startup.
-    std::error_code exists_ec;
-    const bool exists = std::filesystem::exists(path, exists_ec);
-    if (exists_ec) {
-      // Keep the entry but mark it as unavailable; the user can re-open via the
-      // iOS document picker to re-grant access.
-      project.unavailable = true;
-      project.last_modified = "Unavailable";
-      project.item_type = "Unavailable";
-      project.item_icon = ICON_MD_WARNING;
-      project.rom_title = "Re-open required";
-      project.metadata_summary = "Permission expired for this location";
-      recent_projects_.push_back(project);
-      continue;
-    }
-    if (!exists) {
-      files_to_remove.push_back(filepath);
-      continue;
-    }
-
-    // Get file modification time
-    std::error_code time_ec;
-    auto ftime = std::filesystem::last_write_time(path, time_ec);
-    if (!time_ec) {
-      project.last_modified = GetRelativeTimeString(ftime);
-    } else {
-      project.last_modified = "Unknown";
-    }
-
-    std::error_code size_ec;
-    const uintmax_t size_bytes = std::filesystem::file_size(path, size_ec);
-    const std::string size_text =
-        size_ec ? "Unknown size" : FormatFileSize(size_bytes);
-
-    if (IsRomPath(path)) {
-      project.item_type = "ROM";
-      project.item_icon = ICON_MD_MEMORY;
-
-      const SnesHeaderMetadata metadata = ReadSnesHeaderMetadata(path);
-      const std::string crc32 = ReadFileCrc32(path);
-      const std::string crc32_summary =
-          crc32.empty() ? "CRC unknown"
-                        : absl::StrFormat("CRC %s", crc32.c_str());
-      if (metadata.valid && !metadata.title.empty()) {
-        project.rom_title = metadata.title;
-        project.metadata_summary =
-            absl::StrFormat("%s • %s • %s • %s", metadata.region.c_str(),
-                            metadata.map_mode.c_str(), size_text.c_str(),
-                            crc32_summary.c_str());
-      } else {
-        project.rom_title = "SNES ROM";
-        project.metadata_summary = absl::StrFormat("%s • %s", size_text.c_str(),
-                                                   crc32_summary.c_str());
-      }
-    } else if (IsProjectPath(path)) {
-      project.item_type = "Project";
-      project.item_icon = ICON_MD_FOLDER_SPECIAL;
-
-      const std::string linked_rom = ExtractLinkedProjectRomName(path);
-      if (!linked_rom.empty()) {
-        project.rom_title = absl::StrFormat("ROM: %s", linked_rom.c_str());
-      } else {
-        project.rom_title = "Project metadata + settings";
-      }
-      project.metadata_summary = absl::StrFormat("%s • %s", size_text.c_str(),
-                                                 project.last_modified.c_str());
-    } else {
-      project.item_type = "File";
-      project.item_icon = ICON_MD_INSERT_DRIVE_FILE;
-      project.rom_title = "Imported file";
-      project.metadata_summary = absl::StrFormat("%s • %s", size_text.c_str(),
-                                                 project.last_modified.c_str());
-    }
-
-    recent_projects_.push_back(project);
-  }
-
-  // Remove missing files from the recent files manager
-  for (const auto& missing_file : files_to_remove) {
-    manager.RemoveFile(missing_file);
-  }
-
-  // Save updated list if we removed any files
-  if (!files_to_remove.empty()) {
-    manager.Save();
-  }
+void WelcomeScreen::RefreshRecentProjects(bool force) {
+  recent_projects_model_.Refresh(force);
 }
 
 void WelcomeScreen::DrawHeader() {
@@ -1065,6 +768,64 @@ void WelcomeScreen::DrawHeader() {
   ImGui::Spacing();
 }
 
+void WelcomeScreen::DrawFirstRunGuide() {
+  // Shown above Quick Actions when the user has no recents and no ROM loaded.
+  // Zelda hacking has steep terminology; the cards below otherwise drop a
+  // first-time visitor into "Vanilla ROM Hack vs ZSO3" before they know
+  // what's a ROM file. Three numbered steps lower the activation energy.
+  if (!recent_projects_model_.entries().empty() || has_rom_)
+    return;
+
+  // Entry animation piggybacks on the quick actions section.
+  float progress = GetStaggeredEntryProgress(entry_time_, 1, kEntryAnimDuration,
+                                             kEntryStaggerDelay);
+  if (progress < 0.001f)
+    return;
+  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, progress);
+
+  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+  ImGui::TextColored(kTriforceGold,
+                     ICON_MD_AUTO_AWESOME " New to Zelda hacking?");
+  {
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+    ImGui::TextWrapped(
+        "Three quick steps get you from zero to poking at the game:");
+  }
+  ImGui::Spacing();
+
+  auto numbered_step = [&](int n, const char* icon, const char* title,
+                           const char* body) {
+    ImGui::TextColored(kTriforceGold, "%d.", n);
+    ImGui::SameLine();
+    ImGui::TextColored(kMasterSwordBlue, "%s %s", icon, title);
+    {
+      gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+      ImGui::Indent();
+      ImGui::TextWrapped("%s", body);
+      ImGui::Unindent();
+    }
+    ImGui::Spacing();
+  };
+
+  numbered_step(
+      1, ICON_MD_MEMORY, "Load a ROM",
+      "Click \"Open ROM\" below and pick a vanilla A Link to the Past "
+      "(.sfc or .smc) file. We read it locally — it's never uploaded.");
+  numbered_step(
+      2, ICON_MD_LAYERS, "Pick a project template",
+      "Templates decide what kinds of changes your ROM will support. "
+      "Start with \"Vanilla ROM Hack\" if you just want to edit rooms, "
+      "sprites, or graphics — you can upgrade to ZSO v3 later.");
+  numbered_step(
+      3, ICON_MD_EDIT, "Open an editor",
+      "Use the left sidebar to jump into the overworld, a dungeon, or "
+      "the graphics editor. Changes live in the editor until you save — "
+      "nothing touches the ROM until you click Save.");
+
+  ImGui::Separator();
+  ImGui::Spacing();
+}
+
 void WelcomeScreen::DrawQuickActions() {
   // Entry animation for quick actions (section 2)
   float actions_progress = GetStaggeredEntryProgress(
@@ -1092,10 +853,11 @@ void WelcomeScreen::DrawQuickActions() {
     ImGui::TextWrapped(
         "Open a ROM or project, then create a project when you need metadata.");
   }
+  const auto& entries = recent_projects_model_.entries();
   size_t rom_count = 0;
   size_t project_count = 0;
   size_t unavailable_count = 0;
-  for (const auto& recent : recent_projects_) {
+  for (const auto& recent : entries) {
     if (recent.unavailable) {
       ++unavailable_count;
       continue;
@@ -1109,8 +871,8 @@ void WelcomeScreen::DrawQuickActions() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        "%zu recent entries • %zu ROMs • %zu projects%s",
-        recent_projects_.size(), rom_count, project_count,
+        "%zu recent entries • %zu ROMs • %zu projects%s", entries.size(),
+        rom_count, project_count,
         unavailable_count > 0 ? " • some entries need re-open permission" : "");
   }
   ImGui::Spacing();
@@ -1161,7 +923,7 @@ void WelcomeScreen::DrawQuickActions() {
   ImGui::Spacing();
 
   const RecentProject* last_recent = nullptr;
-  for (const auto& recent : recent_projects_) {
+  for (const auto& recent : recent_projects_model_.entries()) {
     if (!recent.unavailable) {
       last_recent = &recent;
       break;
@@ -1225,7 +987,7 @@ void WelcomeScreen::DrawRecentProjects() {
 
   int rom_count = 0;
   int project_count = 0;
-  for (const auto& item : recent_projects_) {
+  for (const auto& item : recent_projects_model_.entries()) {
     if (item.item_type == "ROM") {
       ++rom_count;
     } else if (item.item_type == "Project") {
@@ -1267,9 +1029,7 @@ void WelcomeScreen::DrawRecentProjects() {
   ImGui::SameLine(0.0f, header_spacing);
   if (ImGui::SmallButton(
           absl::StrFormat("%s Clear", ICON_MD_DELETE_SWEEP).c_str())) {
-    auto& manager = project::RecentFilesManager::GetInstance();
-    manager.Clear();
-    manager.Save();
+    recent_projects_model_.ClearAll();
     RefreshRecentProjects();
   }
 
@@ -1279,9 +1039,11 @@ void WelcomeScreen::DrawRecentProjects() {
     ImGui::Text("%d ROMs • %d projects", rom_count, project_count);
   }
 
+  DrawUndoRemovalBanner();
+
   ImGui::Spacing();
 
-  if (recent_projects_.empty()) {
+  if (recent_projects_model_.entries().empty()) {
     // Simple empty state
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
@@ -1311,13 +1073,14 @@ void WelcomeScreen::DrawRecentProjects() {
       ImGui::GetContentRegionAvail().x, min_width, max_width, min_height,
       max_height, min_width, aspect_ratio, spacing);
 
+  const auto& entries = recent_projects_model_.entries();
   int column = 0;
-  for (size_t i = 0; i < recent_projects_.size(); ++i) {
+  for (size_t i = 0; i < entries.size(); ++i) {
     if (column == 0) {
       ImGui::SetCursorPosX(layout.row_start_x);
     }
 
-    DrawProjectPanel(recent_projects_[i], static_cast<int>(i),
+    DrawProjectPanel(entries[i], static_cast<int>(i),
                      ImVec2(layout.item_width, layout.item_height));
 
     column += 1;
@@ -1329,18 +1092,149 @@ void WelcomeScreen::DrawRecentProjects() {
     }
   }
 
-  if (pending_recent_refresh_) {
-    RefreshRecentProjects();
-    pending_recent_refresh_ = false;
-  }
-
   if (column != 0) {
     ImGui::NewLine();
   }
+
+  DrawRecentAnnotationPopup();
+}
+
+void WelcomeScreen::DrawRecentAnnotationPopup() {
+  if (pending_annotation_kind_ == RecentAnnotationKind::None)
+    return;
+
+  // Open once per transition, then keep the modal visible until the user
+  // hits Save or Cancel. IsPopupOpen gates the OpenPopup call so we don't
+  // re-open every frame.
+  const char* kPopupId = "##RecentAnnotationPopup";
+  if (!ImGui::IsPopupOpen(kPopupId)) {
+    ImGui::OpenPopup(kPopupId);
+  }
+
+  ImGui::SetNextWindowSize(ImVec2(420, 0), ImGuiCond_Appearing);
+  if (ImGui::BeginPopupModal(kPopupId, nullptr,
+                             ImGuiWindowFlags_AlwaysAutoResize |
+                                 ImGuiWindowFlags_NoSavedSettings)) {
+    const bool renaming =
+        pending_annotation_kind_ == RecentAnnotationKind::Rename;
+    ImGui::TextUnformatted(renaming ? ICON_MD_EDIT " Rename"
+                                    : ICON_MD_NOTE " Edit Notes");
+    const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+    {
+      gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+      ImGui::TextWrapped("%s", pending_annotation_path_.c_str());
+    }
+    ImGui::Spacing();
+
+    bool committed = false;
+    if (renaming) {
+      ImGui::SetNextItemWidth(-1);
+      if (ImGui::InputText("##rename_input", rename_buffer_,
+                           sizeof(rename_buffer_),
+                           ImGuiInputTextFlags_EnterReturnsTrue)) {
+        committed = true;
+      }
+      {
+        gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+        ImGui::TextWrapped(
+            "Leave blank to restore the filename. Affects only how this entry "
+            "is displayed on the welcome screen.");
+      }
+    } else {
+      ImGui::SetNextItemWidth(-1);
+      ImGui::InputTextMultiline("##notes_input", notes_buffer_,
+                                sizeof(notes_buffer_), ImVec2(-1, 120));
+      {
+        gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+        ImGui::TextWrapped(
+            "Short free-form note shown on hover. Useful for tagging "
+            "works-in-progress (\"WIP: palette swap\").");
+      }
+    }
+
+    ImGui::Spacing();
+    if (ImGui::Button(ICON_MD_CHECK " Save") || committed) {
+      if (renaming) {
+        recent_projects_model_.SetDisplayName(pending_annotation_path_,
+                                              std::string(rename_buffer_));
+      } else {
+        recent_projects_model_.SetNotes(pending_annotation_path_,
+                                        std::string(notes_buffer_));
+      }
+      pending_annotation_kind_ = RecentAnnotationKind::None;
+      pending_annotation_path_.clear();
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_CLOSE " Cancel") ||
+        ImGui::IsKeyPressed(ImGuiKey_Escape, /*repeat=*/false)) {
+      pending_annotation_kind_ = RecentAnnotationKind::None;
+      pending_annotation_path_.clear();
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+}
+
+void WelcomeScreen::DrawUndoRemovalBanner() {
+  if (!recent_projects_model_.HasUndoableRemoval())
+    return;
+
+  const auto pending = recent_projects_model_.PeekLastRemoval();
+  if (pending.path.empty())
+    return;
+
+  // A single-row inline banner reads as ephemeral feedback, not a dialog.
+  // We colour it with the theme's warning surface so it visually pairs with
+  // destructive-action affordances elsewhere.
+  const ImVec4 warning_bg = gui::ConvertColorToImVec4(
+      gui::ThemeManager::Get().GetCurrentTheme().warning);
+  ImVec4 bg = warning_bg;
+  bg.w = 0.18f;
+
+  const ImVec2 avail = ImGui::GetContentRegionAvail();
+  const float row_height = ImGui::GetFrameHeight() + 6.0f;
+  const ImVec2 cursor = ImGui::GetCursorScreenPos();
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(cursor,
+                           ImVec2(cursor.x + avail.x, cursor.y + row_height),
+                           ImGui::GetColorU32(bg), 4.0f);
+
+  ImGui::Dummy(ImVec2(0, 3.0f));
+  ImGui::SameLine(8.0f);
+  ImGui::TextColored(warning_bg, ICON_MD_INFO);
+  ImGui::SameLine();
+  ImGui::Text("Removed \"%s\"", pending.display_name.c_str());
+  ImGui::SameLine();
+
+  // Right-align the action buttons inside the banner.
+  const float undo_width = ImGui::CalcTextSize(ICON_MD_UNDO " Undo").x +
+                           ImGui::GetStyle().FramePadding.x * 2.0f;
+  const float dismiss_width = ImGui::CalcTextSize(ICON_MD_CLOSE).x +
+                              ImGui::GetStyle().FramePadding.x * 2.0f;
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float button_row = undo_width + dismiss_width + spacing;
+  const float right_edge =
+      ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x;
+  ImGui::SetCursorPosX(
+      std::max(ImGui::GetCursorPosX(), right_edge - button_row - 4.0f));
+
+  if (ImGui::SmallButton(ICON_MD_UNDO " Undo")) {
+    recent_projects_model_.UndoLastRemoval();
+    RefreshRecentProjects(/*force=*/true);
+  }
+  ImGui::SameLine(0.0f, spacing);
+  if (ImGui::SmallButton(ICON_MD_CLOSE "##dismiss_undo")) {
+    recent_projects_model_.DismissLastRemoval();
+  }
+  ImGui::Dummy(ImVec2(0, 2.0f));
 }
 
 void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
                                      const ImVec2& card_size) {
+  // Disambiguate ImGui IDs without allocating a new std::string every frame
+  // (the old code called absl::StrFormat("ProjectPanel_%d", ...) per card).
+  ImGui::PushID(index);
   ImGui::BeginGroup();
 
   const ImVec4 surface = gui::GetSurfaceVec4();
@@ -1393,29 +1287,65 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
 
   // Make the card clickable
   ImGui::SetCursorScreenPos(cursor_pos);
-  ImGui::InvisibleButton(absl::StrFormat("ProjectPanel_%d", index).c_str(),
-                         resolved_card_size);
+  ImGui::InvisibleButton("ProjectPanel", resolved_card_size);
   bool is_hovered = ImGui::IsItemHovered();
   bool is_clicked = ImGui::IsItemClicked();
 
   hovered_card_ =
       is_hovered ? index : (hovered_card_ == index ? -1 : hovered_card_);
 
-  if (ImGui::BeginPopupContextItem(
-          absl::StrFormat("ProjectPanelMenu_%d", index).c_str())) {
-    if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
-      if (open_project_callback_) {
-        open_project_callback_(project.filepath);
+  if (ImGui::BeginPopupContextItem("ProjectPanelMenu")) {
+    if (project.is_missing) {
+      // Missing file: offer relink + forget instead of open. Destructive "Open"
+      // is hidden because it would just fail.
+      if (ImGui::MenuItem(ICON_MD_SEARCH " Locate...")) {
+        const std::string new_path =
+            util::FileDialogWrapper::ShowOpenFileDialog();
+        if (!new_path.empty() && new_path != project.filepath) {
+          recent_projects_model_.RelinkRecent(project.filepath, new_path);
+        }
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "Point at the new location for this file. Pin/rename/notes are "
+            "preserved.");
+      }
+    } else {
+      if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
+        if (open_project_callback_) {
+          open_project_callback_(project.filepath);
+        }
       }
     }
+    ImGui::Separator();
+    if (ImGui::MenuItem(project.pinned ? ICON_MD_PUSH_PIN " Unpin"
+                                       : ICON_MD_PUSH_PIN " Pin")) {
+      recent_projects_model_.SetPinned(project.filepath, !project.pinned);
+    }
+    if (ImGui::MenuItem(ICON_MD_EDIT " Rename...")) {
+      pending_annotation_kind_ = RecentAnnotationKind::Rename;
+      pending_annotation_path_ = project.filepath;
+      // Seed the buffer with the current display name (empty override falls
+      // back to the filename so the user can start from what they see).
+      std::snprintf(rename_buffer_, sizeof(rename_buffer_), "%s",
+                    project.display_name_override.empty()
+                        ? project.name.c_str()
+                        : project.display_name_override.c_str());
+    }
+    if (ImGui::MenuItem(ICON_MD_NOTE " Edit Notes...")) {
+      pending_annotation_kind_ = RecentAnnotationKind::EditNotes;
+      pending_annotation_path_ = project.filepath;
+      std::snprintf(notes_buffer_, sizeof(notes_buffer_), "%s",
+                    project.notes.c_str());
+    }
+    ImGui::Separator();
     if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy Path")) {
       ImGui::SetClipboardText(project.filepath.c_str());
     }
-    if (ImGui::MenuItem(ICON_MD_DELETE_SWEEP " Remove from Recents")) {
-      auto& manager = project::RecentFilesManager::GetInstance();
-      manager.RemoveFile(project.filepath);
-      manager.Save();
-      pending_recent_refresh_ = true;
+    if (ImGui::MenuItem(project.is_missing ? ICON_MD_DELETE_SWEEP " Forget"
+                                           : ICON_MD_DELETE_SWEEP
+                            " Remove from Recents")) {
+      recent_projects_model_.RemoveRecent(project.filepath);
     }
     ImGui::EndPopup();
   }
@@ -1472,36 +1402,23 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   const float content_right = badge_min.x - (6.0f * layout_scale);
   const float text_max_w = std::max(80.0f, content_right - content_x);
 
-  auto ellipsize = [text_max_w](const std::string& text) {
-    if (text.empty()) {
-      return std::string();
-    }
-    if (ImGui::CalcTextSize(text.c_str()).x <= text_max_w) {
-      return text;
-    }
-    std::string clipped = text;
-    while (!clipped.empty() &&
-           ImGui::CalcTextSize((clipped + "...").c_str()).x > text_max_w) {
-      clipped.pop_back();
-    }
-    return clipped.empty() ? std::string("...") : clipped + "...";
-  };
-
   float text_y = cursor_pos.y + padding;
-  const std::string display_name = ellipsize(project.name);
+  const std::string display_name = EllipsizeText(project.name, text_max_w);
   ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
   gui::ColoredText(display_name.c_str(), text_primary);
 
   text_y += ImGui::GetTextLineHeight() + line_spacing;
   ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredTextF(text_secondary, "%s", ellipsize(project.rom_title).c_str());
+  gui::ColoredTextF(text_secondary, "%s",
+                    EllipsizeText(project.rom_title, text_max_w).c_str());
 
   const std::string summary = project.metadata_summary.empty()
                                   ? project.last_modified
                                   : project.metadata_summary;
   text_y += ImGui::GetTextLineHeight() + line_spacing;
   ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredTextF(text_secondary, "%s", ellipsize(summary).c_str());
+  gui::ColoredTextF(text_secondary, "%s",
+                    EllipsizeText(summary, text_max_w).c_str());
 
   text_y += ImGui::GetTextLineHeight() + line_spacing;
   const std::string opened_line =
@@ -1509,7 +1426,8 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
           ? ""
           : absl::StrFormat("Last opened: %s", project.last_modified.c_str());
   ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredTextF(text_disabled, "%s", ellipsize(opened_line).c_str());
+  gui::ColoredTextF(text_disabled, "%s",
+                    EllipsizeText(opened_line, text_max_w).c_str());
 
   if (is_hovered) {
     ImGui::BeginTooltip();
@@ -1534,6 +1452,7 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   }
 
   ImGui::EndGroup();
+  ImGui::PopID();
 }
 
 void WelcomeScreen::DrawTemplatesSection() {
@@ -1571,20 +1490,34 @@ void WelcomeScreen::DrawTemplatesSection() {
       ImGui::TextColored(kGanonPurple, ICON_MD_AUTO_AWESOME " Visual Effects");
       ImGui::Spacing();
 
+      // Persist animation tweaks only when the edit is committed (release of
+      // slider / click of checkbox), so we don't write settings every frame
+      // while the user is dragging.
+      bool changed_commit = false;
+
       ImGui::Text(ICON_MD_OPACITY " Visibility");
       ImGui::SetNextItemWidth(-1);
       ImGui::SliderFloat("##visibility", &triforce_alpha_multiplier_, 0.0f,
                          3.0f, "%.1fx");
+      if (ImGui::IsItemDeactivatedAfterEdit())
+        changed_commit = true;
 
       ImGui::Text(ICON_MD_SPEED " Speed");
       ImGui::SetNextItemWidth(-1);
       ImGui::SliderFloat("##speed", &triforce_speed_multiplier_, 0.05f, 1.0f,
                          "%.2fx");
+      if (ImGui::IsItemDeactivatedAfterEdit())
+        changed_commit = true;
 
-      ImGui::Checkbox(ICON_MD_MOUSE " Mouse Interaction",
-                      &triforce_mouse_repel_enabled_);
+      if (ImGui::Checkbox(ICON_MD_MOUSE " Mouse Interaction",
+                          &triforce_mouse_repel_enabled_)) {
+        changed_commit = true;
+      }
       ImGui::SameLine();
-      ImGui::Checkbox(ICON_MD_AUTO_FIX_HIGH " Particles", &particles_enabled_);
+      if (ImGui::Checkbox(ICON_MD_AUTO_FIX_HIGH " Particles",
+                          &particles_enabled_)) {
+        changed_commit = true;
+      }
 
       if (ImGui::SmallButton(ICON_MD_REFRESH " Reset")) {
         triforce_alpha_multiplier_ = 1.0f;
@@ -1593,6 +1526,11 @@ void WelcomeScreen::DrawTemplatesSection() {
         triforce_mouse_repel_enabled_ = true;
         particles_enabled_ = true;
         particle_spawn_rate_ = 2.0f;
+        changed_commit = true;
+      }
+
+      if (changed_commit) {
+        PersistAnimationSettings();
       }
     }
     ImGui::Spacing();
@@ -1603,45 +1541,58 @@ void WelcomeScreen::DrawTemplatesSection() {
   struct Template {
     const char* icon;
     const char* name;
-    const char* description;
+    const char* use_when;      // 1-line "pick this when..."
+    const char* what_changes;  // plain-English summary of ROM impact
+    int skill_level;           // 1 = beginner, 2 = comfortable, 3 = advanced
     const char* template_id;
     const char** details;
     int detail_count;
     ImVec4 color;
   };
 
-  const char* vanilla_details[] = {"No custom ASM required",
-                                   "Best for vanilla-compatible edits",
-                                   "Overworld data stays vanilla"};
-  const char* zso3_details[] = {"Expanded overworld (wide/tall areas)",
-                                "Entrances, exits, items, and properties",
-                                "Palettes, GFX groups, dungeon maps"};
-  const char* zso2_details[] = {"Custom overworld maps + parent system",
-                                "Lightweight expansion for legacy hacks",
-                                "Palette + BG color support"};
-  const char* rando_details[] = {"Avoids overworld remap + ASM features",
-                                 "Safe for rando patch pipelines",
-                                 "Minimal save surface"};
+  const char* vanilla_details[] = {
+      "Edits vanilla data tables (rooms, sprites, maps)",
+      "No custom ASM required — works with any vanilla ROM",
+      "Overworld layout stays identical to the original"};
+  const char* zso3_details[] = {
+      "Unlocks wider / taller overworld areas",
+      "Adds custom entrances, exits, items, and properties",
+      "Extends palettes, GFX groups, and dungeon maps"};
+  const char* zso2_details[] = {
+      "Older overworld expansion with parent-area system",
+      "Lighter footprint than v3 — good for ports of legacy hacks",
+      "Palette + BG color overrides only"};
+  const char* rando_details[] = {
+      "Skips the features that break randomizer patches",
+      "Leaves ASM hook points alone", "Keeps the save layout minimal"};
 
   Template templates[] = {
       {ICON_MD_COTTAGE, "Vanilla ROM Hack",
-       "Standard editing without custom ASM patches. Ideal for vanilla edits.",
-       "Vanilla ROM Hack", vanilla_details,
+       "You want to edit rooms, sprites, or graphics without custom code.",
+       "Adds project metadata and labels on top of your vanilla ROM. The ROM "
+       "itself is only changed when you save edits you make in the editors.",
+       /*skill_level=*/1, "Vanilla ROM Hack", vanilla_details,
        static_cast<int>(sizeof(vanilla_details) / sizeof(vanilla_details[0])),
        kHyruleGreen},
       {ICON_MD_TERRAIN, "ZSCustomOverworld v3",
-       "Full overworld expansion with modern ZSO feature coverage.",
-       "ZSCustomOverworld v3", zso3_details,
+       "You want to resize overworld areas and add custom map features.",
+       "Applies the ZSO3 patch: expands the overworld table, extends palette "
+       "and GFX group storage, and enables custom entrances/exits.",
+       /*skill_level=*/2, "ZSCustomOverworld v3", zso3_details,
        static_cast<int>(sizeof(zso3_details) / sizeof(zso3_details[0])),
        kMasterSwordBlue},
       {ICON_MD_MAP, "ZSCustomOverworld v2",
-       "Legacy overworld expansion for older ZSO projects.",
-       "ZSCustomOverworld v2", zso2_details,
+       "You're porting an older hack that already uses ZSO v2.",
+       "Applies the legacy ZSO2 patch. Smaller set of customizations than v3; "
+       "pick this only if you need compatibility with an existing ZSO2 hack.",
+       /*skill_level=*/2, "ZSCustomOverworld v2", zso2_details,
        static_cast<int>(sizeof(zso2_details) / sizeof(zso2_details[0])),
        kShadowPurple},
       {ICON_MD_SHUFFLE, "Randomizer Compatible",
-       "Minimal changes that stay friendly to randomizer patches.",
-       "Randomizer Compatible", rando_details,
+       "You're building a ROM that has to work with ALTTPR or similar.",
+       "Keeps your changes inside the surface that randomizers patch over, so "
+       "seeds keep working. Skips ASM hooks and overworld remapping.",
+       /*skill_level=*/3, "Randomizer Compatible", rando_details,
        static_cast<int>(sizeof(rando_details) / sizeof(rando_details[0])),
        kSpiritOrange},
   };
@@ -1682,8 +1633,8 @@ void WelcomeScreen::DrawTemplatesSection() {
       ImGui::PopID();
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s %s\n%s", ICON_MD_INFO, templates[i].name,
-                          templates[i].description);
+        ImGui::SetTooltip("%s %s\nUse when: %s", ICON_MD_INFO,
+                          templates[i].name, templates[i].use_when);
       }
     }
   };
@@ -1691,10 +1642,34 @@ void WelcomeScreen::DrawTemplatesSection() {
   auto draw_template_details = [&]() {
     const Template& active = templates[selected_template_];
     ImGui::TextColored(active.color, "%s %s", active.icon, active.name);
+
+    // Skill dots: filled = required level, empty = headroom. Makes pick-
+    // ability visible at a glance without a numeric label.
+    ImGui::SameLine();
+    const ImVec4 dim =
+        ImVec4(text_secondary.x, text_secondary.y, text_secondary.z, 0.35f);
+    for (int i = 1; i <= 3; ++i) {
+      ImGui::SameLine();
+      ImGui::TextColored(i <= active.skill_level ? active.color : dim,
+                         ICON_MD_STAR);
+    }
+    if (ImGui::IsItemHovered()) {
+      const char* skill_labels[] = {"Beginner friendly",
+                                    "Some familiarity helps",
+                                    "Advanced — know the pipeline"};
+      ImGui::SetTooltip("%s", skill_labels[active.skill_level - 1]);
+    }
+
     ImGui::Spacing();
     {
       gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-      ImGui::TextWrapped("%s", active.description);
+      ImGui::TextWrapped(ICON_MD_LIGHTBULB " %s", active.use_when);
+    }
+    ImGui::Spacing();
+    {
+      gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+      ImGui::TextWrapped(ICON_MD_EDIT " What this changes: %s",
+                         active.what_changes);
     }
     ImGui::Spacing();
     ImGui::TextColored(kTriforceGold, ICON_MD_CHECK_CIRCLE " Includes");

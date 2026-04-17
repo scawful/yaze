@@ -215,6 +215,13 @@ Enhance PaletteColorButton selection with pulsing border.
 
 **Dependencies:** Phase 3 (animations)
 
+> **Update 2026-04-17:** Tasks 4.1–4.3 below have been superseded and
+> extended by the broader welcome-screen initiative. See
+> `docs/internal/plans/welcome-screen-initiative-2026-04.md` for the
+> landed work (recent-projects model + sidecar cache + async scan + undo
+> banner + guided New Project dialog + command-palette surface) and the
+> P1–P3 follow-up list.
+
 ### Task 4.1: Visual Hierarchy
 
 **File:** `src/app/editor/ui/welcome_screen.cc`
