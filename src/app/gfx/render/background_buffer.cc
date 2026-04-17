@@ -63,7 +63,11 @@ uint16_t BackgroundBuffer::GetTileAt(int x_pos, int y_pos) const {
   if (x_pos < 0 || y_pos < 0 || x_pos >= tiles_w || y_pos >= tiles_h) {
     return 0;
   }
-  return buffer_[y_pos * tiles_w + x_pos];
+  const size_t index = static_cast<size_t>(y_pos * tiles_w + x_pos);
+  if (index >= buffer_.size()) {
+    return 0;
+  }
+  return buffer_[index];
 }
 
 void BackgroundBuffer::ClearBuffer() {

@@ -115,7 +115,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
 | **Room effect blend modes** | Done | `RoomLayerManager::ApplyRoomEffect()` handles all `EffectKey` types. |
 | **Translucent BG2 compositing** | Done | `CompositeToOutput()` uses SNES color math `(bg1 + bg2) / 2` with palette-aware nearest-color lookup. |
 | **Pit/mask object identification** | Done | `is_pit_or_mask` list validated; marks BG1 transparent to reveal BG2. |
-| **Palette offset correctness** | Done | `(pal - 2) * 16` for palettes 2-7 verified correct per SNES CGRAM layout. |
+| **Palette offset correctness** | Done | `pal * 16` matches the SDL palette mirroring used by `Room::RenderRoomGraphics`, where dungeon banks already live in CGRAM/SDL rows 2-7. |
 | **Selection bounds / size helpers** | Partial | `ObjectGeometry` implements routine-based measurement; nibble-zero fallbacks (26/32) handled. Diagonal ceiling `+4` base not yet wired to selection outlines. |
 | **Four-pass build order** | Not started | Editor still uses layout + main object pass. BG2/BG1 overlay streams not split. |
 | **Symbology label alignment** | Not started | UI icons/badges not yet tied to routine family names. |

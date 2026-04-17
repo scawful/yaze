@@ -829,10 +829,10 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityAllRoutineIdsInBounds) {
 }
 
 TEST_F(ObjectDrawingComprehensiveTest, ParityPaletteOffsetBanks) {
-  // Verify palette offset calculation for all 8 SNES palette banks.
-  // SNES CGRAM: palettes 2-7 map to dungeon BG tile colors.
-  // Formula: palette_offset = (pal - 2) * 16 for pal in [2,7]
-  // Palettes 0-1 fallback to offset 0 (sprite palette region).
+  // Verify palette offset calculation mirrors SDL bank rows 1:1 with CGRAM.
+  // Room::RenderRoomGraphics loads dungeon colors into SDL rows 2-7 and leaves
+  // rows 0-1 as transparent placeholders, so object drawing should use the tile
+  // palette bits directly as the bank selector.
 
   struct PaletteCase {
     uint8_t pal;
@@ -840,24 +840,19 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityPaletteOffsetBanks) {
   };
 
   std::vector<PaletteCase> cases = {
-      {0, 0},   // Sprite palette 0 -> fallback
-      {1, 0},   // Sprite palette 1 -> fallback
-      {2, 0},   // First BG palette bank
-      {3, 16},  // Second BG palette bank
-      {4, 32},  // Third BG palette bank
-      {5, 48},  // Fourth BG palette bank
-      {6, 64},  // Fifth BG palette bank
-      {7, 80},  // Sixth BG palette bank
+      {0, 0},    // HUD placeholder row 0
+      {1, 16},   // HUD placeholder row 1
+      {2, 32},   // First dungeon bank
+      {3, 48},   // Second dungeon bank
+      {4, 64},   // Third dungeon bank
+      {5, 80},   // Fourth dungeon bank
+      {6, 96},   // Fifth dungeon bank
+      {7, 112},  // Sixth dungeon bank
   };
 
   for (const auto& tc : cases) {
     uint8_t pal = tc.pal & 0x07;
-    uint8_t offset;
-    if (pal >= 2 && pal <= 7) {
-      offset = (pal - 2) * 16;
-    } else {
-      offset = 0;
-    }
+    const uint8_t offset = static_cast<uint8_t>(pal * 16);
     EXPECT_EQ(offset, tc.expected_offset)
         << "Palette " << static_cast<int>(tc.pal)
         << " should map to offset " << static_cast<int>(tc.expected_offset);
