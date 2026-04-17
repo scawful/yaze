@@ -31,8 +31,11 @@ class NullRenderer : public IRenderer {
     return nullptr;
   }
 
-  TextureHandle CreateTextureWithFormat(int width, int height,
-                                        uint32_t format,
+  TextureHandle CreateRenderTargetTexture(int width, int height) override {
+    return CreateTexture(width, height);
+  }
+
+  TextureHandle CreateTextureWithFormat(int width, int height, uint32_t format,
                                         int access) override {
     return nullptr;
   }
@@ -75,9 +78,7 @@ class NullRenderer : public IRenderer {
     // No-op
   }
 
-  void* GetBackendRenderer() override {
-    return nullptr;
-  }
+  void* GetBackendRenderer() override { return nullptr; }
 };
 
 }  // namespace gfx

@@ -55,14 +55,26 @@ TextureHandle SDL2Renderer::CreateTexture(int width, int height) {
   // The TextureHandle is a void*, so we cast the SDL_Texture* to it.
   // SDL2's SDL_CreateTexture takes Uint32 for format
   // SDL2's SDL_CreateTexture takes Uint32 for format
-  SDL_Texture* texture = SDL_CreateTexture(
-      renderer_.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING,
-      width, height);
-  
+  SDL_Texture* texture =
+      SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_RGBA8888,
+                        SDL_TEXTUREACCESS_STREAMING, width, height);
+
   if (texture) {
     SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
   }
-  
+
+  return static_cast<TextureHandle>(texture);
+}
+
+TextureHandle SDL2Renderer::CreateRenderTargetTexture(int width, int height) {
+  SDL_Texture* texture =
+      SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_RGBA8888,
+                        SDL_TEXTUREACCESS_TARGET, width, height);
+
+  if (texture) {
+    SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+  }
+
   return static_cast<TextureHandle>(texture);
 }
 
@@ -148,8 +160,8 @@ void SDL2Renderer::Present() {
  */
 void SDL2Renderer::RenderCopy(TextureHandle texture, const SDL_Rect* srcrect,
                               const SDL_Rect* dstrect) {
-  platform::RenderTexture(renderer_.get(),
-                          static_cast<SDL_Texture*>(texture), srcrect, dstrect);
+  platform::RenderTexture(renderer_.get(), static_cast<SDL_Texture*>(texture),
+                          srcrect, dstrect);
 }
 
 /**

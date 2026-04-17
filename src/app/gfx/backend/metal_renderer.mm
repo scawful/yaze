@@ -113,6 +113,44 @@ TextureHandle MetalRenderer::CreateTexture(int width, int height) {
                                                          width:width
                                                         height:height
                                                      mipmapped:NO];
+  descriptor.usage = MTLTextureUsageShaderRead;
+  descriptor.storageMode = MTLStorageModeShared;
+
+  id<MTLTexture> texture = [device newTextureWithDescriptor:descriptor];
+  return texture ? (__bridge_retained void*)texture : nullptr;
+#else
+  (void)width;
+  (void)height;
+  return nullptr;
+#endif
+}
+
+TextureHandle MetalRenderer::CreateRenderTargetTexture(int width, int height) {
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  if (!metal_view_) {
+    return nullptr;
+  }
+
+  auto* view = static_cast<MTKView*>(metal_view_);
+  id<MTLDevice> device = view.device;
+  if (!device) {
+    device = MTLCreateSystemDefaultDevice();
+    view.device = device;
+  }
+  if (!device) {
+    return nullptr;
+  }
+
+#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+  MTLPixelFormat default_format = MTLPixelFormatRGBA8Unorm;
+#else
+  MTLPixelFormat default_format = MTLPixelFormatBGRA8Unorm;
+#endif
+  MTLTextureDescriptor* descriptor =
+      [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:default_format
+                                                         width:width
+                                                        height:height
+                                                     mipmapped:NO];
   descriptor.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
   descriptor.storageMode = MTLStorageModeShared;
 
@@ -132,7 +170,6 @@ TextureHandle MetalRenderer::CreateTextureWithFormat(int width, int height,
   if (!metal_view_) {
     return nullptr;
   }
-  (void)access;
 
   auto* view = static_cast<MTKView*>(metal_view_);
   id<MTLDevice> device = view.device;
@@ -150,7 +187,10 @@ TextureHandle MetalRenderer::CreateTextureWithFormat(int width, int height,
                                                          width:width
                                                         height:height
                                                      mipmapped:NO];
-  descriptor.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget;
+  descriptor.usage = MTLTextureUsageShaderRead;
+  if (access == SDL_TEXTUREACCESS_TARGET) {
+    descriptor.usage |= MTLTextureUsageRenderTarget;
+  }
   descriptor.storageMode = MTLStorageModeShared;
 
   id<MTLTexture> texture = [device newTextureWithDescriptor:descriptor];

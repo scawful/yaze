@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 #include <random>
 #include <vector>
 
@@ -22,6 +22,10 @@ class BenchmarkRenderer final : public IRenderer {
   void Shutdown() override {}
 
   TextureHandle CreateTexture(int width, int height) override {
+    return NextHandle();
+  }
+
+  TextureHandle CreateRenderTargetTexture(int width, int height) override {
     return NextHandle();
   }
 
