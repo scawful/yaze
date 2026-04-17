@@ -15,7 +15,11 @@ namespace zelda3 {
 namespace {
 
 constexpr int kDummyTileCount = 512;
-constexpr int kAnchorX = 0;
+
+struct AnchorPos {
+  int x = 0;
+  int y = 0;
+};
 
 std::vector<gfx::TileInfo> MakeDummyTiles() {
   std::vector<gfx::TileInfo> tiles;
@@ -28,23 +32,45 @@ std::vector<gfx::TileInfo> MakeDummyTiles() {
   return tiles;
 }
 
-// Choose an anchor Y that avoids clipping for routines that move upward.
-int ChooseAnchorY(const DrawRoutineInfo& routine, const RoomObject& object) {
-  // Acute diagonals move upward (y - s); give them headroom.
+// Choose an anchor (x, y) that avoids buffer clipping for routines that draw
+// leftward or upward from the object origin. Without enough headroom, the
+// off-screen replay in MeasureRoutine loses rows/columns that the real draw
+// routine would have emitted, producing undersized bounds.
+AnchorPos ChooseAnchor(const DrawRoutineInfo& routine,
+                       const RoomObject& object) {
+  AnchorPos anchor;
+  const int size_nibble = object.size_ & 0x0F;
+
+  // Acute diagonals (ids 5, 17) move upward by (y - s) per step.
   if (routine.category == DrawRoutineInfo::Category::Diagonal &&
       (routine.id == 5 || routine.id == 17)) {
-    int size = object.size_ & 0x0F;
-    int count = (routine.id == 5) ? (size + 7) : (size + 6);
-    // Need count-1 tiles of upward travel plus 4 extra rows for the column.
-    int min_anchor = count - 1;
-    int max_anchor = DrawContext::kMaxTilesY - 5;  // leave 4 rows below ceiling
-    if (min_anchor > max_anchor)
-      min_anchor = max_anchor;
-    return std::clamp(min_anchor, 0, max_anchor);
+    const int count = (routine.id == 5) ? (size_nibble + 7) : (size_nibble + 6);
+    const int max_anchor =
+        DrawContext::kMaxTilesY - 5;  // 4 rows headroom below
+    anchor.y = std::clamp(count - 1, 0, std::max(0, max_anchor));
+    return anchor;
   }
 
-  // Default: start at top of canvas.
-  return 0;
+  // Diagonal ceilings (Corner category, ids 75-78) anchor at the visual corner.
+  // The draw routine offsets base by -(side-1) for the mirrored axis, so
+  // bottom-anchored (76, 78) writes into negative Y and right-anchored (77, 78)
+  // writes into negative X without headroom. See corner_routines.cc.
+  if (routine.category == DrawRoutineInfo::Category::Corner &&
+      routine.id >= 75 && routine.id <= 78) {
+    const int side = size_nibble + 4;
+    const bool mirror_x = (routine.id == 77 || routine.id == 78);
+    const bool mirror_y = (routine.id == 76 || routine.id == 78);
+    if (mirror_x) {
+      anchor.x = std::clamp(side - 1, 0, DrawContext::kMaxTilesX - 1);
+    }
+    if (mirror_y) {
+      anchor.y = std::clamp(side - 1, 0, DrawContext::kMaxTilesY - 1);
+    }
+    return anchor;
+  }
+
+  // Default: top-left of canvas.
+  return anchor;
 }
 
 }  // namespace
@@ -87,16 +113,20 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByRoutineId(
     return absl::InvalidArgumentError(
         absl::StrFormat("Unknown routine id %d", routine_id));
   }
-  return MeasureRoutine(*info, object);
+  auto bounds = MeasureRoutine(*info, object);
+  if (!bounds.ok()) {
+    return bounds;
+  }
+  return ApplySelectionBounds(*bounds, routine_id);
 }
 
 absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
     const DrawRoutineInfo& routine, const RoomObject& object) const {
-  // Anchor object so routines that move upward stay within bounds.
+  // Anchor object so routines that move upward or leftward stay within bounds.
   RoomObject adjusted = object;
-  adjusted.x_ = kAnchorX;
-  const int anchor_y = ChooseAnchorY(routine, object);
-  adjusted.y_ = anchor_y;
+  const AnchorPos anchor = ChooseAnchor(routine, object);
+  adjusted.x_ = anchor.x;
+  adjusted.y_ = anchor.y;
 
   // Allocate a dummy tile list large enough for every routine.
   static const std::vector<gfx::TileInfo> kTiles = MakeDummyTiles();
@@ -144,8 +174,8 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
   }
 
   GeometryBounds bounds;
-  bounds.min_x_tiles = min_x - kAnchorX;
-  bounds.min_y_tiles = min_y - anchor_y;
+  bounds.min_x_tiles = min_x - anchor.x;
+  bounds.min_y_tiles = min_y - anchor.y;
   bounds.width_tiles = (max_x - min_x) + 1;
   bounds.height_tiles = (max_y - min_y) + 1;
   bounds.is_bg2_overlay = false;  // Default, set by MeasureForLayerCompositing
@@ -154,8 +184,7 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
 
 absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectId(
     const RoomObject& object) const {
-  int routine_id =
-      DrawRoutineRegistry::Get().GetRoutineIdForObject(object.id_);
+  int routine_id = DrawRoutineRegistry::Get().GetRoutineIdForObject(object.id_);
   if (routine_id < 0) {
     return absl::NotFoundError(
         absl::StrFormat("No routine mapping for object 0x%03X", object.id_));
@@ -176,7 +205,9 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectId(
   return result;
 }
 
-void ObjectGeometry::ClearCache() { cache_.clear(); }
+void ObjectGeometry::ClearCache() {
+  cache_.clear();
+}
 
 absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureForLayerCompositing(
     int routine_id, const RoomObject& object) const {
