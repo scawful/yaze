@@ -38,7 +38,7 @@ class BackgroundBuffer {
   uint8_t GetPriorityAt(int x, int y) const;
   void SetPriorityAt(int x, int y, uint8_t priority);
   const std::vector<uint8_t>& priority_data() const { return priority_buffer_; }
-  std::vector<uint8_t>& mutable_priority_data() { return priority_buffer_; }
+  std::vector<uint8_t>& mutable_priority_data();
 
   // Coverage buffer methods for per-pixel "this layer wrote here" tracking.
   //
@@ -50,14 +50,19 @@ class BackgroundBuffer {
   // - "object layer wrote transparent here" (clear layout; reveal BG2/backdrop).
   void ClearCoverageBuffer();
   const std::vector<uint8_t>& coverage_data() const { return coverage_buffer_; }
-  std::vector<uint8_t>& mutable_coverage_data() { return coverage_buffer_; }
+  std::vector<uint8_t>& mutable_coverage_data();
 
   // Accessors
-  auto buffer() { return buffer_; }
+  std::vector<uint16_t>& buffer() { return buffer_; }
+  const std::vector<uint16_t>& buffer() const { return buffer_; }
   auto& bitmap() { return bitmap_; }
   const gfx::Bitmap& bitmap() const { return bitmap_; }
 
  private:
+  void EnsureTileBufferAllocated();
+  void EnsurePriorityBufferAllocated();
+  void EnsureCoverageBufferAllocated();
+
   std::vector<uint16_t> buffer_;
   std::vector<uint8_t> priority_buffer_;  // Per-pixel priority (0 or 1)
   std::vector<uint8_t> coverage_buffer_;  // Per-pixel coverage (0=unset,1=set)

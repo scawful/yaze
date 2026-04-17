@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_USAGE_TRACKER_H
 
 #include "absl/container/flat_hash_map.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
@@ -18,7 +19,7 @@ class DungeonUsageTracker {
   DungeonUsageTracker() = default;
 
   // Statistics calculation
-  void CalculateUsageStats(const std::array<zelda3::Room, 0x128>& rooms);
+  void CalculateUsageStats(const DungeonRoomStore& rooms);
   void DrawUsageStats();
   void DrawUsageGrid();
   void RenderSetUsage(const absl::flat_hash_map<uint16_t, int>& usage_map,

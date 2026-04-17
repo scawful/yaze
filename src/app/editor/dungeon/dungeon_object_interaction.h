@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/dungeon_snapping.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
@@ -17,20 +18,18 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
-#include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
-#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/sprite/sprite.h"
 
 #include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
-
-
 
 /**
  * @brief Handles object selection, placement, and interaction within the
@@ -97,7 +96,8 @@ class DungeonObjectInteraction {
   void PlaceObjectAtPosition(int room_x, int room_y);
 
   void DrawSelectionHighlights();  // Draw highlights for selected objects
-  void DrawHoverHighlight(const std::vector<zelda3::RoomObject>& objects);  // Draw hover indicator
+  void DrawHoverHighlight(
+      const std::vector<zelda3::RoomObject>& objects);  // Draw hover indicator
 
   // Drag and select box functionality
   void DrawGhostPreview();  // Draw ghost preview for object placement
@@ -108,8 +108,7 @@ class DungeonObjectInteraction {
   bool IsWithinCanvasBounds(int canvas_x, int canvas_y, int margin = 32) const;
 
   // State management
-  void SetCurrentRoom(std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms,
-                      int room_id);
+  void SetCurrentRoom(DungeonRoomStore* rooms, int room_id);
   void SetPreviewObject(const zelda3::RoomObject& object, bool loaded);
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
     current_palette_group_ = group;
@@ -129,7 +128,8 @@ class DungeonObjectInteraction {
   void CancelPlacement();
 
   // Door placement mode
-  void SetDoorPlacementMode(bool enabled, zelda3::DoorType type = zelda3::DoorType::NormalDoor);
+  void SetDoorPlacementMode(
+      bool enabled, zelda3::DoorType type = zelda3::DoorType::NormalDoor);
   bool IsDoorPlacementActive() const {
     return mode_manager_.GetMode() == InteractionMode::PlaceDoor;
   }
@@ -229,8 +229,10 @@ class DungeonObjectInteraction {
 
   // Object ordering (changes draw order within the layer)
   // SNES draws objects in list order - first objects appear behind, last on top
-  void SendSelectedToFront();   // Move to end of list (drawn last, appears on top)
-  void SendSelectedToBack();    // Move to start of list (drawn first, appears behind)
+  void
+  SendSelectedToFront();  // Move to end of list (drawn last, appears on top)
+  void
+  SendSelectedToBack();  // Move to start of list (drawn first, appears behind)
   void BringSelectedForward();  // Move up one position in list
   void SendSelectedBackward();  // Move down one position in list
 
@@ -239,7 +241,9 @@ class DungeonObjectInteraction {
   int GetLayerFilter() const { return selection_.GetLayerFilter(); }
   bool IsLayerFilterActive() const { return selection_.IsLayerFilterActive(); }
   bool IsMaskModeActive() const { return selection_.IsMaskModeActive(); }
-  const char* GetLayerFilterName() const { return selection_.GetLayerFilterName(); }
+  const char* GetLayerFilterName() const {
+    return selection_.GetLayerFilterName();
+  }
   void SetLayersMerged(bool merged) { selection_.SetLayersMerged(merged); }
   bool AreLayersMerged() const { return selection_.AreLayersMerged(); }
 
@@ -272,8 +276,7 @@ class DungeonObjectInteraction {
   SelectedEntity GetSelectedEntity() const {
     return entity_coordinator_.GetSelectedEntity();
   }
-  
-  
+
   // Draw entity selection highlights
   void DrawEntitySelectionHighlights();
   void DrawDoorSnapIndicators();  // Show valid snap positions during door drag
@@ -287,7 +290,7 @@ class DungeonObjectInteraction {
  private:
   gui::Canvas* canvas_;
   zelda3::DungeonEditorSystem* editor_system_ = nullptr;
-  std::array<zelda3::Room, dungeon_coords::kRoomCount>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = 0;
 
   // Unified interaction context and coordinator for entity handling

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
@@ -43,13 +44,13 @@ int MaxCount(const absl::flat_hash_map<uint16_t, int>& usage_map) {
 
 }  // namespace
 
-void DungeonUsageTracker::CalculateUsageStats(
-    const std::array<zelda3::Room, 0x128>& rooms) {
+void DungeonUsageTracker::CalculateUsageStats(const DungeonRoomStore& rooms) {
   blockset_usage_.clear();
   spriteset_usage_.clear();
   palette_usage_.clear();
 
-  for (const auto& room : rooms) {
+  for (int room_id = 0; room_id < static_cast<int>(rooms.size()); ++room_id) {
+    const auto& room = rooms[room_id];
     if (blockset_usage_.find(room.blockset()) == blockset_usage_.end()) {
       blockset_usage_[room.blockset()] = 1;
     } else {

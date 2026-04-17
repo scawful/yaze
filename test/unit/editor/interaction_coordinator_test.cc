@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 #include <array>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "zelda3/dungeon/room.h"
 
@@ -18,13 +19,17 @@ class InteractionCoordinatorTest : public ::testing::Test {
     // Set up context
     ctx_.rooms = &rooms_;
     ctx_.current_room_id = 0;
-    ctx_.on_entity_changed = [this]() { entity_changed_count_++; };
-    ctx_.on_selection_changed = [this]() { selection_changed_count_++; };
+    ctx_.on_entity_changed = [this]() {
+      entity_changed_count_++;
+    };
+    ctx_.on_selection_changed = [this]() {
+      selection_changed_count_++;
+    };
 
     coordinator_.SetContext(&ctx_);
   }
 
-  std::array<zelda3::Room, dungeon_coords::kRoomCount> rooms_;
+  DungeonRoomStore rooms_;
   InteractionContext ctx_;
   InteractionCoordinator coordinator_;
   int entity_changed_count_ = 0;
@@ -36,30 +41,36 @@ class InteractionCoordinatorTest : public ::testing::Test {
 // ============================================================================
 
 TEST_F(InteractionCoordinatorTest, InitializesInSelectMode) {
-  EXPECT_EQ(coordinator_.GetCurrentMode(), InteractionCoordinator::Mode::Select);
+  EXPECT_EQ(coordinator_.GetCurrentMode(),
+            InteractionCoordinator::Mode::Select);
 }
 
 TEST_F(InteractionCoordinatorTest, SetModeToDoor) {
   coordinator_.SetMode(InteractionCoordinator::Mode::PlaceDoor);
-  EXPECT_EQ(coordinator_.GetCurrentMode(), InteractionCoordinator::Mode::PlaceDoor);
+  EXPECT_EQ(coordinator_.GetCurrentMode(),
+            InteractionCoordinator::Mode::PlaceDoor);
 }
 
 TEST_F(InteractionCoordinatorTest, SetModeToSprite) {
   coordinator_.SetMode(InteractionCoordinator::Mode::PlaceSprite);
-  EXPECT_EQ(coordinator_.GetCurrentMode(), InteractionCoordinator::Mode::PlaceSprite);
+  EXPECT_EQ(coordinator_.GetCurrentMode(),
+            InteractionCoordinator::Mode::PlaceSprite);
 }
 
 TEST_F(InteractionCoordinatorTest, SetModeToItem) {
   coordinator_.SetMode(InteractionCoordinator::Mode::PlaceItem);
-  EXPECT_EQ(coordinator_.GetCurrentMode(), InteractionCoordinator::Mode::PlaceItem);
+  EXPECT_EQ(coordinator_.GetCurrentMode(),
+            InteractionCoordinator::Mode::PlaceItem);
 }
 
 TEST_F(InteractionCoordinatorTest, CancelCurrentModeReturnsToSelect) {
   coordinator_.SetMode(InteractionCoordinator::Mode::PlaceDoor);
-  EXPECT_NE(coordinator_.GetCurrentMode(), InteractionCoordinator::Mode::Select);
-  
+  EXPECT_NE(coordinator_.GetCurrentMode(),
+            InteractionCoordinator::Mode::Select);
+
   coordinator_.CancelCurrentMode();
-  EXPECT_EQ(coordinator_.GetCurrentMode(), InteractionCoordinator::Mode::Select);
+  EXPECT_EQ(coordinator_.GetCurrentMode(),
+            InteractionCoordinator::Mode::Select);
 }
 
 // ============================================================================
@@ -76,9 +87,9 @@ TEST_F(InteractionCoordinatorTest, InitiallyHasNoEntitySelection) {
 
 TEST_F(InteractionCoordinatorTest, SelectEntityNotifiesCallback) {
   int initial_count = entity_changed_count_;
-  
+
   coordinator_.SelectEntity(EntityType::Sprite, 3);
-  
+
   EXPECT_GT(entity_changed_count_, initial_count);
 }
 
@@ -86,9 +97,9 @@ TEST_F(InteractionCoordinatorTest, ClearEntitySelectionNotifiesCallback) {
   coordinator_.SelectEntity(EntityType::Sprite, 3);
   EXPECT_GT(entity_changed_count_, 0);
   int initial_count = entity_changed_count_;
-  
+
   coordinator_.ClearEntitySelection();
-  
+
   EXPECT_GT(entity_changed_count_, initial_count);
 }
 
@@ -125,9 +136,9 @@ TEST_F(InteractionCoordinatorTest, CancelPlacementResetsAllHandlers) {
   // Activate placement on multiple handlers
   coordinator_.door_handler().BeginPlacement();
   coordinator_.tile_handler().BeginPlacement();
-  
+
   coordinator_.CancelPlacement();
-  
+
   EXPECT_FALSE(coordinator_.door_handler().IsPlacementActive());
   EXPECT_FALSE(coordinator_.tile_handler().IsPlacementActive());
 }
@@ -141,19 +152,21 @@ TEST_F(InteractionCoordinatorTest, SetContextPropagatestoHandlers) {
   InteractionContext new_ctx;
   new_ctx.rooms = &rooms_;
   new_ctx.current_room_id = 42;
-  
+
   fresh_coordinator.SetContext(&new_ctx);
-  
+
   // Handlers should receive the context
   // Implicitly tested - operations should work without crash
-  fresh_coordinator.tile_handler().PlaceObjectAt(42, zelda3::RoomObject(0x01, 0, 0, 0, 0), 5, 5);
+  fresh_coordinator.tile_handler().PlaceObjectAt(
+      42, zelda3::RoomObject(0x01, 0, 0, 0, 0), 5, 5);
 }
 
 // ============================================================================
 // Ghost Preview Tests
 // ============================================================================
 
-TEST_F(InteractionCoordinatorTest, DrawGhostPreviewsDoesNotCrashWithNoActiveHandler) {
+TEST_F(InteractionCoordinatorTest,
+       DrawGhostPreviewsDoesNotCrashWithNoActiveHandler) {
   // No placement active, should be safe
   coordinator_.DrawGhostPreviews();
 }
@@ -168,7 +181,7 @@ TEST_F(InteractionCoordinatorTest, DrawSelectionHighlightsDoesNotCrash) {
 
 TEST_F(InteractionCoordinatorTest, GetEntityAtPositionReturnsNulloptOnEmpty) {
   auto result = coordinator_.GetEntityAtPosition(100, 100);
-  
+
   // No entities in empty room
   EXPECT_FALSE(result.has_value());
 }
@@ -181,9 +194,9 @@ TEST_F(InteractionCoordinatorTest, ChangingModeCancelsPreviousPlacement) {
   coordinator_.SetMode(InteractionCoordinator::Mode::PlaceDoor);
   coordinator_.door_handler().BeginPlacement();
   EXPECT_TRUE(coordinator_.door_handler().IsPlacementActive());
-  
+
   coordinator_.SetMode(InteractionCoordinator::Mode::PlaceSprite);
-  
+
   // Previous placement should be cancelled
   EXPECT_FALSE(coordinator_.door_handler().IsPlacementActive());
 }

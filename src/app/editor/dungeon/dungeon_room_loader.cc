@@ -31,8 +31,7 @@ absl::Status DungeonRoomLoader::LoadRoom(int room_id, zelda3::Room& room) {
   return absl::OkStatus();
 }
 
-absl::Status DungeonRoomLoader::LoadAllRooms(
-    std::array<zelda3::Room, 0x128>& rooms) {
+absl::Status DungeonRoomLoader::LoadAllRooms(DungeonRoomStore& rooms) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -79,10 +78,8 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
     auto room_size = zelda3::CalculateRoomSize(rom_, i);
     // rooms[i].LoadObjects(); // DEFERRED: Load on demand
 
-    auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette()][0];
-    auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
-    if (palette_id.status() == absl::OkStatus()) {
-      int p_id = palette_id.value() / 180;
+    const int p_id = rooms[i].ResolveDungeonPaletteId();
+    if (p_id >= 0 && p_id < static_cast<int>(dungeon_man_pal_group.size())) {
       auto color = dungeon_man_pal_group[p_id][3];
       room_size_results.emplace_back(i, room_size);
       room_palette_results.emplace_back(rooms[i].palette(), color.rgb());
@@ -134,11 +131,11 @@ absl::Status DungeonRoomLoader::LoadAllRooms(
         // Load room objects - DEFERRED
         // rooms[i].LoadObjects();
 
-        // Process palette
-        auto dungeon_palette_ptr = game_data_->paletteset_ids[rooms[i].palette()][0];
-        auto palette_id = rom_->ReadWord(0xDEC4B + dungeon_palette_ptr);
-        if (palette_id.status() == absl::OkStatus()) {
-          int p_id = palette_id.value() / 180;
+        // Process palette (ResolveDungeonPaletteId handles the two-level
+        // lookup with out-of-range fallback; skip if group is empty).
+        const int p_id = rooms[i].ResolveDungeonPaletteId();
+        if (p_id >= 0 &&
+            p_id < static_cast<int>(dungeon_man_pal_group.size())) {
           auto color = dungeon_man_pal_group[p_id][3];
 
           // Thread-safe collection of results
@@ -250,24 +247,23 @@ absl::Status DungeonRoomLoader::LoadAndRenderRoomGraphics(zelda3::Room& room) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  // Load room graphics with proper blockset
-  room.LoadRoomGraphics(room.blockset());
-
-  // Render the room graphics to the graphics arena
-  room.RenderRoomGraphics();
+  room.ReloadGraphics(room.blockset());
 
   return absl::OkStatus();
 }
 
-absl::Status DungeonRoomLoader::ReloadAllRoomGraphics(
-    std::array<zelda3::Room, 0x128>& rooms) {
+absl::Status DungeonRoomLoader::ReloadAllRoomGraphics(DungeonRoomStore& rooms) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
   // Reload graphics for all rooms
-  for (auto& room : rooms) {
-    auto status = LoadAndRenderRoomGraphics(room);
+  for (int room_id = 0; room_id < static_cast<int>(rooms.size()); ++room_id) {
+    auto* room = rooms.GetIfLoaded(room_id);
+    if (room == nullptr) {
+      continue;
+    }
+    auto status = LoadAndRenderRoomGraphics(*room);
     if (!status.ok()) {
       continue;  // Log error but continue with other rooms
     }

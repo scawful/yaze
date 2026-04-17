@@ -7,10 +7,11 @@
 #include <map>
 #include <memory>
 #include <string>
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/editor.h"
 #include "app/gfx/types/snes_palette.h"
-#include "core/project.h"
 #include "app/gui/canvas/canvas.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
@@ -63,8 +64,8 @@ class DungeonObjectSelector {
   }
 
   // Room data access
-  void set_rooms(std::array<zelda3::Room, 0x128>* rooms) { rooms_ = rooms; }
-  std::array<zelda3::Room, 0x128>* get_rooms() { return rooms_; }
+  void set_rooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
+  DungeonRoomStore* get_rooms() { return rooms_; }
   void set_current_room_id(int room_id) { current_room_id_ = room_id; }
 
   // Palette access
@@ -169,7 +170,7 @@ class DungeonObjectSelector {
   bool custom_objects_initialized_ = false;
 
   // Room data
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = 0;
 
   // Palette data

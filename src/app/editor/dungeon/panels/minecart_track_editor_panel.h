@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
 #include "rom/rom.h"
@@ -28,12 +29,12 @@ struct MinecartTrack {
 
 namespace yaze::editor {
 
-class MinecartTrackEditorPanel : public EditorPanel {
+class MinecartTrackEditorPanel : public WindowContent {
  public:
   explicit MinecartTrackEditorPanel(const std::string& start_root = "")
       : project_root_(start_root) {}
 
-  // EditorPanel overrides
+  // WindowContent overrides
   std::string GetId() const override { return "dungeon.minecart_tracks"; }
   std::string GetDisplayName() const override { return "Minecart Tracks"; }
   std::string GetIcon() const override { return ICON_MD_TRAIN; }
@@ -43,7 +44,7 @@ class MinecartTrackEditorPanel : public EditorPanel {
 
   // Custom methods
   void SetProjectRoot(const std::string& root);
-  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) {
+  void SetRooms(DungeonRoomStore* rooms) {
     rooms_ = rooms;
     audit_dirty_ = true;
   }
@@ -95,7 +96,7 @@ class MinecartTrackEditorPanel : public EditorPanel {
   std::vector<MinecartTrack> tracks_;
   std::string project_root_;
   Rom* rom_ = nullptr;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   project::YazeProject* project_ = nullptr;
   std::unordered_map<int, RoomTrackAudit> room_audit_;
   std::unordered_map<int, std::vector<int>> track_usage_rooms_;

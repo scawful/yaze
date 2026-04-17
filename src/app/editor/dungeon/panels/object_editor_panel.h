@@ -31,7 +31,7 @@ namespace editor {
  * @brief Unified panel for dungeon object editing
  *
  * This panel combines object selection, emulator preview, and canvas
- * interaction into a single EditorPanel component. It provides a complete
+ * interaction into a single WindowContent component. It provides a complete
  * workflow for managing dungeon objects.
  *
  * Features:
@@ -42,18 +42,18 @@ namespace editor {
  * - Unified canvas context menu integration (Cut/Copy/Paste/Duplicate/Delete)
  * - Keyboard shortcuts for efficient editing
  *
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  * @see DungeonObjectSelector - Object browser component
  * @see DungeonObjectEmulatorPreview - Preview component
  */
-class ObjectEditorPanel : public EditorPanel {
+class ObjectEditorPanel : public WindowContent {
  public:
   ObjectEditorPanel(
       gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
       std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr);
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.object_editor"; }
@@ -63,7 +63,7 @@ class ObjectEditorPanel : public EditorPanel {
   int GetPriority() const override { return 60; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override;
@@ -107,9 +107,7 @@ class ObjectEditorPanel : public EditorPanel {
     emulator_preview_.SetGameData(game_data);
   }
 
-  void SetRooms(std::array<zelda3::Room, 0x128>* rooms) {
-    object_selector_.set_rooms(rooms);
-  }
+  void SetRooms(DungeonRoomStore* rooms) { object_selector_.set_rooms(rooms); }
 
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
     object_selector_.SetCurrentPaletteGroup(group);

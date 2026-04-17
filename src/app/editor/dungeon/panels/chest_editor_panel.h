@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
@@ -22,26 +23,25 @@ namespace editor {
 
 /**
  * @class ChestEditorPanel
- * @brief EditorPanel for managing chest contents in dungeon rooms
+ * @brief WindowContent for managing chest contents in dungeon rooms
  *
  * This panel provides chest item editing functionality, similar to
  * ZScream's chest editor. Displays all chests in the current room
  * with their contents and allows editing item type and chest size.
  *
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  * @see SpriteEditorPanel - Similar panel for sprites
  */
-class ChestEditorPanel : public EditorPanel {
+class ChestEditorPanel : public WindowContent {
  public:
-  ChestEditorPanel(int* current_room_id,
-                   std::array<zelda3::Room, 0x128>* rooms,
+  ChestEditorPanel(int* current_room_id, DungeonRoomStore* rooms,
                    DungeonCanvasViewer* canvas_viewer = nullptr)
       : current_room_id_(current_room_id),
         rooms_(rooms),
         canvas_viewer_(canvas_viewer) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.chest_editor"; }
@@ -51,7 +51,7 @@ class ChestEditorPanel : public EditorPanel {
   int GetPriority() const override { return 70; }  // After sprite editor
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
@@ -75,9 +75,7 @@ class ChestEditorPanel : public EditorPanel {
   // Panel-Specific Methods
   // ==========================================================================
 
-  void SetCanvasViewer(DungeonCanvasViewer* viewer) {
-    canvas_viewer_ = viewer;
-  }
+  void SetCanvasViewer(DungeonCanvasViewer* viewer) { canvas_viewer_ = viewer; }
 
   void SetChestModifiedCallback(std::function<void(int, int)> callback) {
     chest_modified_callback_ = std::move(callback);
@@ -93,15 +91,16 @@ class ChestEditorPanel : public EditorPanel {
     int chest_count = static_cast<int>(chests.size());
     ImVec4 count_color =
         chest_count > 6 ? theme.text_error_red : theme.text_primary;
-    ImGui::TextColored(count_color, ICON_MD_INVENTORY_2 " Chests: %d/6", 
+    ImGui::TextColored(count_color, ICON_MD_INVENTORY_2 " Chests: %d/6",
                        chest_count);
-    
+
     if (chest_count > 6) {
       ImGui::SameLine();
       ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Room exceeds chest limit (6 max)!\n"
-                          "This may cause game crashes.");
+        ImGui::SetTooltip(
+            "Room exceeds chest limit (6 max)!\n"
+            "This may cause game crashes.");
       }
     }
 
@@ -110,8 +109,8 @@ class ChestEditorPanel : public EditorPanel {
     if (ImGui::SmallButton(ICON_MD_ADD " Add")) {
       // Add new chest with default values
       zelda3::chest_data new_chest;
-      new_chest.id = 0;      // Default item: nothing
-      new_chest.size = false; // Small chest
+      new_chest.id = 0;        // Default item: nothing
+      new_chest.size = false;  // Small chest
       chests.push_back(new_chest);
       selected_chest_index_ = static_cast<int>(chests.size()) - 1;
       if (chest_modified_callback_) {
@@ -125,49 +124,52 @@ class ChestEditorPanel : public EditorPanel {
     // Chest list
     if (chests.empty()) {
       ImGui::TextColored(theme.text_secondary_gray,
-          ICON_MD_INFO " No chests in this room");
+                         ICON_MD_INFO " No chests in this room");
       return;
     }
 
     const auto& item_names = zelda3::Zelda3Labels::GetItemNames();
-    float list_height = std::min(200.0f, ImGui::GetContentRegionAvail().y * 0.5f);
+    float list_height =
+        std::min(200.0f, ImGui::GetContentRegionAvail().y * 0.5f);
     ImGui::BeginChild("##ChestList", ImVec2(0, list_height), true);
-    
+
     for (size_t i = 0; i < chests.size(); ++i) {
       const auto& chest = chests[i];
       bool is_selected = (selected_chest_index_ == static_cast<int>(i));
-      
+
       ImGui::PushID(static_cast<int>(i));
-      
+
       // Chest icon based on size
-      const char* size_icon = chest.size ? ICON_MD_INVENTORY_2 : ICON_MD_INVENTORY;
+      const char* size_icon =
+          chest.size ? ICON_MD_INVENTORY_2 : ICON_MD_INVENTORY;
       const char* size_label = chest.size ? "Big" : "Small";
-      
+
       // Get item name
-      std::string item_name = (chest.id < item_names.size()) 
-          ? item_names[chest.id] 
-          : absl::StrFormat("Unknown (0x%02X)", chest.id);
-      
+      std::string item_name =
+          (chest.id < item_names.size())
+              ? item_names[chest.id]
+              : absl::StrFormat("Unknown (0x%02X)", chest.id);
+
       // Selectable list item
-      std::string label = absl::StrFormat("%s [%zu] %s: %s", 
-          size_icon, i + 1, size_label, item_name.c_str());
-      
+      std::string label = absl::StrFormat("%s [%zu] %s: %s", size_icon, i + 1,
+                                          size_label, item_name.c_str());
+
       if (ImGui::Selectable(label.c_str(), is_selected)) {
         selected_chest_index_ = static_cast<int>(i);
       }
-      
+
       // Highlight with theme color
       if (is_selected) {
         ImVec2 min = ImGui::GetItemRectMin();
         ImVec2 max = ImGui::GetItemRectMax();
-        ImU32 sel_color = ImGui::ColorConvertFloat4ToU32(
-            theme.dungeon_selection_primary);
+        ImU32 sel_color =
+            ImGui::ColorConvertFloat4ToU32(theme.dungeon_selection_primary);
         ImGui::GetWindowDrawList()->AddRect(min, max, sel_color, 0.0f, 0, 2.0f);
       }
-      
+
       ImGui::PopID();
     }
-    
+
     ImGui::EndChild();
   }
 
@@ -176,10 +178,10 @@ class ChestEditorPanel : public EditorPanel {
     auto& room = (*rooms_)[*current_room_id_];
     auto& chests = room.GetChests();
 
-    if (selected_chest_index_ < 0 || 
+    if (selected_chest_index_ < 0 ||
         selected_chest_index_ >= static_cast<int>(chests.size())) {
       ImGui::TextColored(theme.text_secondary_gray,
-          ICON_MD_INFO " Select a chest to edit");
+                         ICON_MD_INFO " Select a chest to edit");
       return;
     }
 
@@ -209,19 +211,21 @@ class ChestEditorPanel : public EditorPanel {
     // Item selector dropdown
     ImGui::Text("Item:");
     ImGui::SameLine();
-    
-    std::string current_item = (chest.id < item_names.size())
-        ? absl::StrFormat("[%02X] %s", chest.id, item_names[chest.id].c_str())
-        : absl::StrFormat("[%02X] Unknown", chest.id);
-    
+
+    std::string current_item =
+        (chest.id < item_names.size())
+            ? absl::StrFormat("[%02X] %s", chest.id,
+                              item_names[chest.id].c_str())
+            : absl::StrFormat("[%02X] Unknown", chest.id);
+
     ImGui::SetNextItemWidth(-1);
     if (ImGui::BeginCombo("##ItemSelect", current_item.c_str())) {
       // Search filter
       static char search_buf[64] = "";
-      ImGui::InputTextWithHint("##Search", "Search items...", 
-                               search_buf, sizeof(search_buf));
+      ImGui::InputTextWithHint("##Search", "Search items...", search_buf,
+                               sizeof(search_buf));
       ImGui::Separator();
-      
+
       for (size_t i = 0; i < item_names.size(); ++i) {
         // Apply search filter
         if (search_buf[0] != '\0') {
@@ -237,23 +241,23 @@ class ChestEditorPanel : public EditorPanel {
             continue;
           }
         }
-        
-        std::string item_label = absl::StrFormat("[%02X] %s", 
-            static_cast<int>(i), item_names[i].c_str());
+
+        std::string item_label = absl::StrFormat(
+            "[%02X] %s", static_cast<int>(i), item_names[i].c_str());
         bool is_selected = (chest.id == static_cast<uint8_t>(i));
-        
+
         if (ImGui::Selectable(item_label.c_str(), is_selected)) {
           chest.id = static_cast<uint8_t>(i);
           if (chest_modified_callback_) {
             chest_modified_callback_(*current_room_id_, selected_chest_index_);
           }
         }
-        
+
         if (is_selected) {
           ImGui::SetItemDefaultFocus();
         }
       }
-      
+
       ImGui::EndCombo();
     }
 
@@ -272,7 +276,7 @@ class ChestEditorPanel : public EditorPanel {
   }
 
   int* current_room_id_ = nullptr;
-  std::array<zelda3::Room, 0x128>* rooms_ = nullptr;
+  DungeonRoomStore* rooms_ = nullptr;
   DungeonCanvasViewer* canvas_viewer_ = nullptr;
 
   // Selection state
