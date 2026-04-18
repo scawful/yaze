@@ -14,18 +14,20 @@ namespace editor {
 /**
  * @brief Panel for live monitoring of Oracle of Secrets RAM variables
  */
-class OracleRamPanel : public EditorPanel {
+class OracleRamPanel : public WindowContent {
  public:
   OracleRamPanel();
   ~OracleRamPanel() override = default;
 
-  // EditorPanel implementation
+  // WindowContent implementation
   std::string GetId() const override { return "agent.oracle_ram"; }
   std::string GetDisplayName() const override { return "Oracle RAM"; }
-  std::string GetIcon() const override; // Returns ICON_MD_MEMORY
+  std::string GetIcon() const override;  // Returns ICON_MD_MEMORY
   std::string GetEditorCategory() const override { return "Agent"; }
-  PanelCategory GetPanelCategory() const override { return PanelCategory::Persistent; }
-  
+  WindowLifecycle GetWindowLifecycle() const override {
+    return WindowLifecycle::CrossEditor;
+  }
+
   void Draw(bool* p_open) override;
   void OnOpen() override;
 
@@ -34,7 +36,7 @@ class OracleRamPanel : public EditorPanel {
     uint32_t address;
     std::string label;
     std::string description;
-    uint8_t size; // 1 or 2 bytes
+    uint8_t size;  // 1 or 2 bytes
     uint16_t last_value = 0;
   };
 

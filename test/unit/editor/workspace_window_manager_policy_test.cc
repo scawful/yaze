@@ -42,7 +42,7 @@ class MockGlobalEditorPanel final : public WindowContent {
   std::string GetEditorCategory() const override { return category_; }
   WindowScope GetScope() const override { return WindowScope::kGlobal; }
   WindowLifecycle GetWindowLifecycle() const override {
-    return WindowLifecycle::Persistent;
+    return WindowLifecycle::CrossEditor;
   }
 
   void Draw(bool* /*p_open*/) override {}
@@ -149,16 +149,16 @@ TEST(WorkspaceWindowManagerPolicyTest,
                     .category = "Dungeon",
                     .window_lifecycle = WindowLifecycle::EditorBound});
 
-  pm.RegisterPanel({.card_id = "dungeon.manual_persistent",
-                    .display_name = "Persistent",
-                    .window_title = " Persistent",
+  pm.RegisterPanel({.card_id = "dungeon.manual_cross_editor",
+                    .display_name = "Cross-Editor",
+                    .window_title = " Cross-Editor",
                     .icon = "ICON_MOCK",
                     .category = "Dungeon",
-                    .window_lifecycle = WindowLifecycle::Persistent});
+                    .window_lifecycle = WindowLifecycle::CrossEditor});
 
   EXPECT_TRUE(pm.OpenWindow(0, "dungeon.manual_ephemeral"));
   EXPECT_TRUE(pm.OpenWindow(0, "dungeon.manual_pinned"));
-  EXPECT_TRUE(pm.OpenWindow(0, "dungeon.manual_persistent"));
+  EXPECT_TRUE(pm.OpenWindow(0, "dungeon.manual_cross_editor"));
   pm.SetWindowPinned(0, "dungeon.manual_pinned", true);
 
   pm.OnEditorSwitch("Dungeon", "Graphics");
@@ -169,7 +169,7 @@ TEST(WorkspaceWindowManagerPolicyTest,
   // Visibility persistence and default rules are owned by EditorManager.
   EXPECT_TRUE(pm.IsWindowOpen(0, "dungeon.manual_ephemeral"));
   EXPECT_TRUE(pm.IsWindowOpen(0, "dungeon.manual_pinned"));
-  EXPECT_TRUE(pm.IsWindowOpen(0, "dungeon.manual_persistent"));
+  EXPECT_TRUE(pm.IsWindowOpen(0, "dungeon.manual_cross_editor"));
 }
 
 TEST(WorkspaceWindowManagerPolicyTest, GlobalEditorPanelsTrackAcrossSessions) {

@@ -15,12 +15,14 @@ namespace editor {
  *
  * Panels are categorized by how they behave when switching between editors:
  * - EditorBound: Hidden when switching away from parent editor (default)
- * - Persistent: Remains visible across all editor switches
- * - CrossEditor: User can "pin" to make persistent (opt-in by user)
+ * - CrossEditor: User can "pin" to persist across editor switches
+ *
+ * Panels that want always-visible behavior should declare CrossEditor and
+ * seed a default pin on first registration (see UserSettings revision-7
+ * migration for the historical Persistent → CrossEditor collapse).
  */
 enum class WindowLifecycle {
   EditorBound,  ///< Hidden when switching editors (default)
-  Persistent,   ///< Always visible once shown
   CrossEditor   ///< User can pin to persist across editors
 };
 
@@ -47,10 +49,7 @@ enum class WindowContextScope : uint8_t {
  * Session-scoped panels are registered per session (with optional prefixing).
  * Global panels share a single descriptor across all sessions.
  */
-enum class WindowScope {
-  kSession,
-  kGlobal
-};
+enum class WindowScope { kSession, kGlobal };
 
 /**
  * @class WindowContent
@@ -412,7 +411,9 @@ class WindowContent {
 };
 
 // Inline implementation (requires private member to be declared first)
-inline void WindowContent::InvalidateLazyInit() { lazy_init_done_ = false; }
+inline void WindowContent::InvalidateLazyInit() {
+  lazy_init_done_ = false;
+}
 
 }  // namespace editor
 }  // namespace yaze

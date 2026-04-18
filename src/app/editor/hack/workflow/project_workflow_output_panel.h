@@ -22,7 +22,7 @@ class ProjectWorkflowOutputPanel : public WindowContent {
   }
   int GetWorkflowPriority() const override { return 15; }
   WindowLifecycle GetWindowLifecycle() const override {
-    return WindowLifecycle::Persistent;
+    return WindowLifecycle::CrossEditor;
   }
 
   void Draw(bool* p_open) override;
@@ -30,8 +30,7 @@ class ProjectWorkflowOutputPanel : public WindowContent {
  private:
   void DrawStatusCard(const char* fallback_icon,
                       const ProjectWorkflowStatus& status);
-  void DrawHistoryEntry(const ProjectWorkflowHistoryEntry& entry,
-                        int index);
+  void DrawHistoryEntry(const ProjectWorkflowHistoryEntry& entry, int index);
 };
 
 }  // namespace yaze::editor::workflow
