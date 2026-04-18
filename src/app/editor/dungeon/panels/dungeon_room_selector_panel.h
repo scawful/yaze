@@ -13,7 +13,7 @@ namespace editor {
 
 /**
  * @class DungeonRoomSelectorPanel
- * @brief EditorPanel for room list selection
+ * @brief WindowContent for room list selection
  *
  * This panel provides room selection UI for the Dungeon Editor.
  * Selecting a room will open/focus the room's resource panel.
@@ -23,9 +23,9 @@ namespace editor {
  * - Click to open room as resource panel
  *
  * @see DungeonRoomSelector - The underlying component
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  */
-class DungeonRoomSelectorPanel : public EditorPanel {
+class DungeonRoomSelectorPanel : public WindowContent {
  public:
   /**
    * @brief Construct a new panel wrapping a DungeonRoomSelector
@@ -43,7 +43,7 @@ class DungeonRoomSelectorPanel : public EditorPanel {
   }
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.room_selector"; }
@@ -53,7 +53,7 @@ class DungeonRoomSelectorPanel : public EditorPanel {
   int GetPriority() const override { return 20; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

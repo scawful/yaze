@@ -113,7 +113,7 @@ void PaletteControlsPanel::Initialize() {
 }
 
 void PaletteControlsPanel::Draw(bool* p_open) {
-  // EditorPanel interface - delegate to existing Update() logic
+  // WindowContent interface - delegate to existing Update() logic
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::TextDisabled("Load a ROM to manage palettes");
     return;

@@ -17,7 +17,7 @@ namespace editor {
  * Provides palette group selection, quick presets, and
  * apply-to-sheet functionality.
  */
-class PaletteControlsPanel : public EditorPanel {
+class PaletteControlsPanel : public WindowContent {
  public:
   explicit PaletteControlsPanel(GraphicsEditorState* state, Rom* rom,
                                 zelda3::GameData* game_data = nullptr)
@@ -26,7 +26,7 @@ class PaletteControlsPanel : public EditorPanel {
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "graphics.palette_controls"; }
@@ -36,7 +36,7 @@ class PaletteControlsPanel : public EditorPanel {
   int GetPriority() const override { return 30; }
 
   // ==========================================================================
-  // EditorPanel Lifecycle
+  // WindowContent Lifecycle
   // ==========================================================================
 
   /**
@@ -45,7 +45,7 @@ class PaletteControlsPanel : public EditorPanel {
   void Initialize();
 
   /**
-   * @brief Draw the palette controls UI (EditorPanel interface)
+   * @brief Draw the palette controls UI (WindowContent interface)
    */
   void Draw(bool* p_open) override;
 

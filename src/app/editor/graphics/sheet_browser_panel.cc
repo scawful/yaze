@@ -22,7 +22,7 @@ void SheetBrowserPanel::Initialize() {
 }
 
 void SheetBrowserPanel::Draw(bool* p_open) {
-  // EditorPanel interface - delegate to existing Update() logic
+  // WindowContent interface - delegate to existing Update() logic
   DrawSearchBar();
   ImGui::Separator();
   DrawBatchOperations();

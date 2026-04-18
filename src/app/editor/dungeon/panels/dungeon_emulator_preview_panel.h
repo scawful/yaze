@@ -12,22 +12,22 @@ namespace editor {
 
 /**
  * @class DungeonEmulatorPreviewPanel
- * @brief EditorPanel wrapper for DungeonObjectEmulatorPreview
+ * @brief WindowContent wrapper for DungeonObjectEmulatorPreview
  *
  * This panel provides a SNES emulator-based preview of dungeon objects,
  * showing how they will appear in-game.
  *
  * @see DungeonObjectEmulatorPreview - The underlying component
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  */
-class DungeonEmulatorPreviewPanel : public EditorPanel {
+class DungeonEmulatorPreviewPanel : public WindowContent {
  public:
   explicit DungeonEmulatorPreviewPanel(
       gui::DungeonObjectEmulatorPreview* preview)
       : preview_(preview) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.emulator_preview"; }
@@ -37,7 +37,7 @@ class DungeonEmulatorPreviewPanel : public EditorPanel {
   int GetPriority() const override { return 65; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

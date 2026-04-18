@@ -168,7 +168,7 @@ absl::Status PolyhedralEditorPanel::WriteShape(const PolyShape& shape) {
 }
 
 void PolyhedralEditorPanel::Draw(bool* p_open) {
-  // EditorPanel interface - delegate to existing Update() logic
+  // WindowContent interface - delegate to existing Update() logic
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::TextUnformatted("Load a ROM to edit 3D objects.");
     return;

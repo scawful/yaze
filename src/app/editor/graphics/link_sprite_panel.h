@@ -28,7 +28,7 @@ namespace editor {
  * - Integration with main pixel editor
  * - Reset to vanilla option
  */
-class LinkSpritePanel : public EditorPanel {
+class LinkSpritePanel : public WindowContent {
  public:
   static constexpr int kNumLinkSheets = 14;
 
@@ -45,7 +45,7 @@ class LinkSpritePanel : public EditorPanel {
   LinkSpritePanel(GraphicsEditorState* state, Rom* rom);
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "graphics.link_sprite"; }
@@ -55,7 +55,7 @@ class LinkSpritePanel : public EditorPanel {
   int GetPriority() const override { return 40; }
 
   // ==========================================================================
-  // EditorPanel Lifecycle
+  // WindowContent Lifecycle
   // ==========================================================================
 
   /**
@@ -64,7 +64,7 @@ class LinkSpritePanel : public EditorPanel {
   void Initialize();
 
   /**
-   * @brief Draw the panel UI (EditorPanel interface)
+   * @brief Draw the panel UI (WindowContent interface)
    */
   void Draw(bool* p_open) override;
 
