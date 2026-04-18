@@ -236,6 +236,79 @@ TEST_F(DrawRoutineMappingTest,
   }
 }
 
+TEST_F(DrawRoutineMappingTest,
+       DownwardsCornerVariantsSkipOpeningCapWhenCornerAlreadyExists) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0300, 0), MakeTile(0x0301, 1), MakeTile(0x0302, 2),
+      MakeTile(0x0303, 3), MakeTile(0x0304, 4), MakeTile(0x0305, 5)};
+
+  struct Case {
+    int routine_id;
+    RoomObject object;
+    int corner_x;
+    int corner_y;
+    int body_x;
+    int body_y;
+    int fill_x;
+    int fill_y;
+    int end_top_x;
+    int end_bottom_x;
+  };
+
+  const std::vector<Case> cases = {
+      {DrawRoutineIds::kDownwardsLeftCorners2x1_1to16_plus12,
+       RoomObject(0x6C, 6, 8, 0, 0),
+       18,
+       8,
+       18,
+       8,
+       19,
+       8,
+       18,
+       18},
+      {DrawRoutineIds::kDownwardsRightCorners2x1_1to16_plus12,
+       RoomObject(0x6D, 6, 8, 0, 0),
+       19,
+       8,
+       19,
+       8,
+       18,
+       8,
+       19,
+       19},
+  };
+
+  for (const auto& tc : cases) {
+    SCOPED_TRACE(::testing::Message() << "routine=" << tc.routine_id);
+
+    const DrawRoutineInfo* info = reg.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+
+    gfx::BackgroundBuffer bg;
+    const uint16_t preexisting_corner =
+        gfx::TileInfoToWord(MakeTile(0x00E3, 7));
+    bg.SetTileAt(tc.corner_x, tc.corner_y, preexisting_corner);
+
+    DrawContext ctx{bg,
+                    tc.object,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.body_x, tc.body_y), tiles[3].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.fill_x, tc.fill_y), tiles[0].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.end_top_x, tc.object.y_ + 10),
+              tiles[4].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.end_bottom_x, tc.object.y_ + 11),
+              tiles[5].id_);
+  }
+}
+
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype1Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
 

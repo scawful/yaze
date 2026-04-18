@@ -198,25 +198,46 @@ void DrawDownwardsLeftCorners2x1_1to16_plus12(const DrawContext& ctx) {
     return;
   }
 
-  // Middle rows are (left=tile3, right=tile0). Ends use cap tiles.
-  const gfx::TileInfo& right_fill = ctx.tiles[0];
-  const gfx::TileInfo& left_fill =
-      ctx.tiles.size() > 3 ? ctx.tiles[3] : ctx.tiles[0];
-  const gfx::TileInfo& start_cap_left =
-      ctx.tiles.size() > 1 ? ctx.tiles[1] : left_fill;
-  const gfx::TileInfo& end_cap_left =
-      ctx.tiles.size() > 4 ? ctx.tiles[4] : left_fill;
+  const int base_x = ctx.object.x_ + 12;
+  int current_y = ctx.object.y_;
+
+  const gfx::TileInfo& fill = ctx.tiles[0];
+  const gfx::TileInfo& start_top_left =
+      ctx.tiles.size() > 1 ? ctx.tiles[1] : fill;
+  const gfx::TileInfo& start_bottom_left =
+      ctx.tiles.size() > 2 ? ctx.tiles[2] : fill;
+  const gfx::TileInfo& body_left =
+      ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
+  const gfx::TileInfo& end_top_left =
+      ctx.tiles.size() > 4 ? ctx.tiles[4] : body_left;
+  const gfx::TileInfo& end_bottom_left =
+      ctx.tiles.size() > 5 ? ctx.tiles[5] : fill;
+
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, base_x, current_y,
+                                                {0x00E3})) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y,
+                                 start_top_left);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y, fill);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1,
+                                 start_bottom_left);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1,
+                                 fill);
+    current_y += 2;
+  }
 
   for (int s = 0; s < count; ++s) {
-    const gfx::TileInfo& left_tile = (s == 0)           ? start_cap_left
-                                     : (s == count - 1) ? end_cap_left
-                                                        : left_fill;
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12,
-                                 ctx.object.y_ + s, left_tile);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 13,
-                                 ctx.object.y_ + s, right_fill);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + s,
+                                 body_left);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + s,
+                                 fill);
   }
+
+  current_y += count;
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y, end_top_left);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y, fill);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1,
+                               end_bottom_left);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1, fill);
 }
 
 void DrawDownwardsRightCorners2x1_1to16_plus12(const DrawContext& ctx) {
@@ -228,24 +249,45 @@ void DrawDownwardsRightCorners2x1_1to16_plus12(const DrawContext& ctx) {
     return;
   }
 
-  const gfx::TileInfo& left_fill = ctx.tiles[0];
-  const gfx::TileInfo& right_fill =
-      ctx.tiles.size() > 3 ? ctx.tiles[3] : ctx.tiles[0];
-  const gfx::TileInfo& start_cap_right =
-      ctx.tiles.size() > 1 ? ctx.tiles[1] : right_fill;
-  const gfx::TileInfo& end_cap_right =
-      ctx.tiles.size() > 4 ? ctx.tiles[4] : right_fill;
+  const int base_x = ctx.object.x_ + 12;
+  int current_y = ctx.object.y_;
+
+  const gfx::TileInfo& fill = ctx.tiles[0];
+  const gfx::TileInfo& start_top_right =
+      ctx.tiles.size() > 1 ? ctx.tiles[1] : fill;
+  const gfx::TileInfo& start_bottom_right =
+      ctx.tiles.size() > 2 ? ctx.tiles[2] : fill;
+  const gfx::TileInfo& body_right =
+      ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
+  const gfx::TileInfo& end_top_right =
+      ctx.tiles.size() > 4 ? ctx.tiles[4] : body_right;
+  const gfx::TileInfo& end_bottom_right =
+      ctx.tiles.size() > 5 ? ctx.tiles[5] : fill;
+
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, base_x + 1,
+                                                current_y, {0x00E3})) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y, fill);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y,
+                                 start_top_right);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1, fill);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1,
+                                 start_bottom_right);
+    current_y += 2;
+  }
 
   for (int s = 0; s < count; ++s) {
-    const gfx::TileInfo& right_tile = (s == 0)           ? start_cap_right
-                                      : (s == count - 1) ? end_cap_right
-                                                         : right_fill;
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 12,
-                                 ctx.object.y_ + s, left_fill);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 13,
-                                 ctx.object.y_ + s, right_tile);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + s, fill);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + s,
+                                 body_right);
   }
+
+  current_y += count;
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y, fill);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y,
+                               end_top_right);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1, fill);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1,
+                               end_bottom_right);
 }
 
 void DrawDownwardsFloor4x4_1to16(const DrawContext& ctx) {
