@@ -2,17 +2,26 @@
 #define YAZE_APP_EDITOR_ASSEMBLY_EDITOR_H
 
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "app/editor/editor.h"
+#include "app/editor/system/background_command_task.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/style.h"
 #include "app/gui/widgets/text_editor.h"
-#include "rom/rom.h"
 #include "core/asar_wrapper.h"
+#include "rom/rom.h"
+#ifdef YAZE_WITH_Z3DK
+#include "core/z3dk_wrapper.h"
+#endif
+
+namespace yaze::test {
+struct AssemblyEditorGuiTestAccess;
+}
 
 namespace yaze {
 namespace editor {
@@ -91,9 +100,17 @@ class AssemblyEditor : public Editor {
   const std::map<std::string, core::AsarSymbol>& symbols() const {
     return symbols_;
   }
- core::AsarWrapper* asar_wrapper() { return &asar_; }
+  core::AsarWrapper* asar_wrapper() { return &asar_; }
+
+  // Structured diagnostics from the last assemble/validate. Populated by
+  // both backends; richer (file:line:column) when YAZE_WITH_Z3DK is active.
+  const std::vector<core::AssemblyDiagnostic>& last_diagnostics() const {
+    return last_diagnostics_;
+  }
 
  private:
+  friend struct ::yaze::test::AssemblyEditorGuiTestAccess;
+
   TextEditor* GetActiveEditor();
   const TextEditor* GetActiveEditor() const;
   bool HasActiveFile() const {
@@ -101,11 +118,12 @@ class AssemblyEditor : public Editor {
            active_file_id_ < static_cast<int>(open_files_.size());
   }
 
-  // Panel content drawing (called by EditorPanel instances)
+  // Panel content drawing (called by WindowContent instances)
   void DrawCodeEditor();
   void DrawFileBrowser();
   void DrawSymbolsContent();
   void DrawBuildOutput();
+  void DrawDisassemblyContent();
   void DrawToolbarContent();
 
   // Menu drawing
@@ -120,6 +138,27 @@ class AssemblyEditor : public Editor {
   void DrawSymbolPanel();
 
   void ClearSymbolJumpCache();
+  absl::Status NavigateDisassemblyQuery();
+  absl::Status GenerateZ3Disassembly();
+  void PollZ3DisassemblyTask();
+  void RefreshZ3DisassemblyFiles();
+  void LoadSelectedZ3DisassemblyFile();
+  void RefreshSelectedZ3DisassemblyMetadata();
+  absl::Status RunProjectGraphQueryInDrawer(
+      const std::vector<std::string>& args, const std::string& title);
+  std::string ResolveZ3DisasmCommand() const;
+  std::string ResolveZ3DisasmOutputDir() const;
+  std::string ResolveZ3DisasmRomPath() const;
+  std::string BuildProjectGraphBankQuery() const;
+  std::string BuildProjectGraphLookupQuery(uint32_t address) const;
+  int SelectedZ3DisasmBankIndex() const;
+  std::optional<uint32_t> CurrentDisassemblyBank() const;
+
+#ifdef YAZE_WITH_Z3DK
+  core::Z3dkAssembleOptions BuildZ3dkAssembleOptions() const;
+  void ExportZ3dkArtifacts(const core::AsarPatchResult& result,
+                           bool sync_mesen_symbols);
+#endif
 
   bool file_is_loaded_ = false;
   int current_file_id_ = 0;
@@ -137,11 +176,43 @@ class AssemblyEditor : public Editor {
 
   // Asar integration state
   core::AsarWrapper asar_;
+#ifdef YAZE_WITH_Z3DK
+  core::Z3dkWrapper z3dk_;
+#endif
   bool asar_initialized_ = false;
   bool show_symbol_panel_ = false;
+  struct Z3DisasmSourceJump {
+    uint32_t address = 0;
+    std::string file;
+    int line = 0;
+  };
+  struct Z3DisasmHookJump {
+    uint32_t address = 0;
+    int size = 0;
+    std::string kind;
+    std::string name;
+    std::string source;
+  };
   std::map<std::string, core::AsarSymbol> symbols_;
   std::vector<std::string> last_errors_;
   std::vector<std::string> last_warnings_;
+  std::vector<core::AssemblyDiagnostic> last_diagnostics_;
+  BackgroundCommandTask z3disasm_task_;
+  bool z3disasm_all_banks_ = false;
+  int z3disasm_bank_start_ = 0;
+  int z3disasm_bank_end_ = 0;
+  std::string z3disasm_output_dir_;
+  std::vector<std::string> z3disasm_files_;
+  int z3disasm_selected_index_ = -1;
+  std::string z3disasm_selected_path_;
+  std::string z3disasm_selected_contents_;
+  std::vector<Z3DisasmSourceJump> z3disasm_source_jumps_;
+  std::vector<Z3DisasmHookJump> z3disasm_hook_jumps_;
+  std::string z3disasm_status_;
+  bool z3disasm_task_acknowledged_ = true;
+  std::string disasm_query_ = "0x008000";
+  int disasm_instruction_count_ = 24;
+  std::string disasm_status_;
 
   // Symbol jump cache (used by story graph navigation; avoids scanning the
   // entire code folder on repeated lookups).
