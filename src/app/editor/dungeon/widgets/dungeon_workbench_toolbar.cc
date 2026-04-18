@@ -24,6 +24,7 @@ namespace yaze::editor {
 
 namespace {
 
+constexpr float kInlineRoomNavMinToolbarWidth = 760.0f;
 constexpr float kTightCompareStackThreshold = 520.0f;
 
 class ScopedWorkbenchToolbar {
@@ -331,6 +332,10 @@ void DrawComparePicker(
 
 }  // namespace
 
+bool DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(float toolbar_width) {
+  return toolbar_width >= kInlineRoomNavMinToolbarWidth;
+}
+
 bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   if (!p.layout || !p.current_room_id || !p.split_view_enabled ||
       !p.compare_room_id) {
@@ -408,7 +413,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGui::SameLine();
 
       const int rid = *p.current_room_id;
-      const bool show_inline_room_nav = !p.left_sidebar_visible;
+      const bool show_inline_room_nav = ShouldShowInlineRoomNav(toolbar_width);
       if (show_inline_room_nav) {
         DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
         ImGui::SameLine();

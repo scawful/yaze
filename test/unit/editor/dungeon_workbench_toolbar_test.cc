@@ -38,6 +38,13 @@ class DungeonWorkbenchToolbarTest : public ::testing::Test {
   ImGuiContext* context_ = nullptr;
 };
 
+TEST(DungeonWorkbenchToolbarLogicTest,
+     InlineRoomNavStaysVisibleUntilToolbarIsTrulyNarrow) {
+  EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(960.0f));
+  EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(760.0f));
+  EXPECT_FALSE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(759.0f));
+}
+
 TEST_F(DungeonWorkbenchToolbarTest,
        DrawBalancesStyleStacksBeforeToolbarTeardown) {
   ImGuiContext* context = ImGui::GetCurrentContext();
