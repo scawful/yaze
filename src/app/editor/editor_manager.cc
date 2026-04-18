@@ -2843,15 +2843,22 @@ void EditorManager::UpdateSystemUIs() {
 }
 
 void EditorManager::RunEmulator() {
-  if (auto* current_rom = GetCurrentRom()) {
-    if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
-      emulator_.Run(current_rom);
-    } else if (emulator_.running() && emulator_.is_snes_initialized()) {
-      if (emulator_.is_audio_focus_mode()) {
-        emulator_.RunAudioFrame();
-      } else {
-        emulator_.RunFrameOnly();
-      }
+  auto* current_rom = GetCurrentRom();
+  if (!current_rom)
+    return;
+
+  // Visibility gates *rendering*, not *ticking*. Run(rom) is the lazy-init +
+  // render path; the SNES only starts (running_=true, snes_initialized_=true)
+  // after Run(rom) fires while the emulator panel is visible. Once running,
+  // switching to another editor hides the panel but must NOT freeze the game —
+  // the tick-only branch below keeps audio + frame state alive.
+  if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
+    emulator_.Run(current_rom);
+  } else if (emulator_.running() && emulator_.is_snes_initialized()) {
+    if (emulator_.is_audio_focus_mode()) {
+      emulator_.RunAudioFrame();
+    } else {
+      emulator_.RunFrameOnly();
     }
   }
 }
