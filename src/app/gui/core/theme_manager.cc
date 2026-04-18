@@ -440,8 +440,20 @@ absl::Status ThemeManager::LoadTheme(const std::string& theme_name) {
   // immediately and doesn't get overridden by UpdateTransition().
   transitioning_ = false;
   transition_progress_ = 0.0f;
+  NotifyThemeChanged();
 
   return absl::OkStatus();
+}
+
+void ThemeManager::NotifyThemeChanged() {
+  // Suppress during preview so hover-over-theme-names doesn't churn persistence
+  // to disk. EndPreview() fires once the original theme is restored.
+  if (preview_active_) {
+    return;
+  }
+  if (on_theme_changed_) {
+    on_theme_changed_(current_theme_name_);
+  }
 }
 
 absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
@@ -564,6 +576,7 @@ void ThemeManager::ApplyTheme(const Theme& theme) {
 
   // Keep AgentUI theme cache in sync with the new theme colors.
   editor::AgentUI::RefreshTheme();
+  NotifyThemeChanged();
 }
 
 void ThemeManager::UpdateTransition() {
@@ -1614,6 +1627,9 @@ void ThemeManager::ApplyAccentColor(const Color& accent, bool dark_mode) {
   ApplyTheme(generated);
   current_theme_ = generated;
   current_theme_name_ = "Custom Accent";
+  // ApplyTheme(generated) already fired with generated.name; re-fire with the
+  // user-visible "Custom Accent" label so persistence records the right value.
+  NotifyThemeChanged();
 }
 
 Color ThemeManager::ParseColorFromString(const std::string& color_str) const {
@@ -2090,6 +2106,7 @@ void ThemeManager::ApplyClassicYazeTheme() {
   // DON'T add Classic theme to themes map - keep it as a special case
   // themes_["Classic YAZE"] = classic_theme; // REMOVED to prevent off-by-one
   current_theme_ = classic_theme;
+  NotifyThemeChanged();
 }
 
 void ThemeManager::StartPreview(const std::string& theme_name) {
@@ -2122,10 +2139,13 @@ void ThemeManager::EndPreview() {
   current_theme_ = preview_original_theme_;
   current_theme_name_ = preview_original_name_;
 
-  // Re-apply the original theme's colors to ImGui
+  // Re-apply the original theme's colors to ImGui. preview_active_ is still
+  // true here, so ApplyTheme's NotifyThemeChanged() is suppressed — we fire
+  // once below, after clearing the preview flag, with the restored name.
   ApplyTheme(current_theme_);
 
   preview_active_ = false;
+  NotifyThemeChanged();
 }
 
 bool ThemeManager::IsPreviewActive() const {

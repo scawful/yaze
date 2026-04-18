@@ -1,8 +1,10 @@
 #ifndef YAZE_APP_GUI_THEME_MANAGER_H
 #define YAZE_APP_GUI_THEME_MANAGER_H
 
+#include <functional>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -303,6 +305,14 @@ class ThemeManager {
   void ApplyTheme(const Theme& theme);
   void ApplyClassicYazeTheme();  // Apply original ColorsYaze() function
 
+  // Theme-changed callback. Fired after any successful theme application with
+  // the current theme name. Keeps persistence decoupled from ThemeManager —
+  // the editor wires this to UserSettings so the selection survives restart.
+  using ThemeChangedCallback = std::function<void(const std::string&)>;
+  void SetOnThemeChangedCallback(ThemeChangedCallback callback) {
+    on_theme_changed_ = std::move(callback);
+  }
+
   // Theme preview (for hover preview in selector)
   void StartPreview(const std::string& theme_name);
   void EndPreview();
@@ -371,6 +381,12 @@ class ThemeManager {
   float transition_progress_ = 0.0f;
   ImVec4 transition_from_[ImGuiCol_COUNT] = {};
   ImVec4 transition_to_[ImGuiCol_COUNT] = {};
+
+  // Fires on_theme_changed_ with current_theme_name_. Safe to call when no
+  // callback is set (becomes a no-op).
+  void NotifyThemeChanged();
+
+  ThemeChangedCallback on_theme_changed_;
 
   void CreateFallbackYazeClassic();
   absl::Status ParseThemeFile(const std::string& content, Theme& theme);

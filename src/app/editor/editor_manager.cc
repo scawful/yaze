@@ -1495,6 +1495,18 @@ void EditorManager::InitializeServices() {
              status_.ToString().c_str());
   }
 
+  // Wire theme persistence. Any successful theme application (selector click,
+  // command-palette switch, programmatic call) stamps the name into prefs and
+  // rides the existing debounced-save path. Decouples ThemeManager (singleton
+  // in app/gui) from UserSettings (editor-layer) — ThemeManager holds only a
+  // std::function.
+  gui::ThemeManager::Get().SetOnThemeChangedCallback(
+      [this](const std::string& theme_name) {
+        user_settings_.prefs().last_theme_name = theme_name;
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      });
+
   auto& prefs = user_settings_.prefs();
   prefs.switch_motion_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
   gui::GetAnimator().SetMotionPreferences(
@@ -1536,6 +1548,14 @@ void EditorManager::InitializeServices() {
   } else {
     LOG_WARN("EditorManager",
              "ImGui context not available; skipping FontGlobalScale update");
+  }
+
+  // Restore the user's last theme. Empty (first run) or "Custom Accent"
+  // (transient generated themes without a matching discovered preset) both
+  // skip restoration and keep the built-in default (Classic YAZE / YAZE Tre).
+  const auto& last_theme = user_settings_.prefs().last_theme_name;
+  if (!last_theme.empty() && last_theme != "Custom Accent") {
+    gui::ThemeManager::Get().ApplyTheme(last_theme);
   }
 
   // Initialize WASM control and session APIs for browser/agent integration
