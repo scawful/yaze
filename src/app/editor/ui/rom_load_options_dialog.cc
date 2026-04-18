@@ -4,6 +4,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -173,18 +174,17 @@ void RomLoadOptionsDialog::DrawVersionInfo() {
   ImVec4 version_color;
   switch (detected_version_) {
     case zelda3::OverworldVersion::kVanilla:
-      version_color = ImVec4(0.8f, 0.8f, 0.2f, 1.0f);  // Yellow - needs upgrade
+      version_color = gui::GetWarningColor();  // Vanilla ROM needs an upgrade.
       break;
     case zelda3::OverworldVersion::kZSCustomV1:
     case zelda3::OverworldVersion::kZSCustomV2:
-      version_color =
-          ImVec4(0.2f, 0.6f, 0.8f, 1.0f);  // Blue - partial features
+      version_color = gui::GetInfoColor();  // Partial feature support.
       break;
     case zelda3::OverworldVersion::kZSCustomV3:
-      version_color = ImVec4(0.2f, 0.8f, 0.4f, 1.0f);  // Green - full features
+      version_color = gui::GetSuccessColor();  // Full feature support.
       break;
     default:
-      version_color = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+      version_color = gui::GetTextSecondaryVec4();
   }
 
   ImGui::TextColored(version_color, "%s Detected: %s", ICON_MD_VERIFIED,
@@ -192,7 +192,7 @@ void RomLoadOptionsDialog::DrawVersionInfo() {
 
   // Show feature availability
   if (detected_version_ == zelda3::OverworldVersion::kVanilla) {
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f),
+    ImGui::TextColored(gui::GetWarningColor(),
                        "%s This ROM can be upgraded for expanded features",
                        ICON_MD_UPGRADE);
   }
@@ -223,15 +223,15 @@ void RomLoadOptionsDialog::DrawUpgradeOptions() {
       }
 
       // Version comparison
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+      ImGui::TextColored(gui::GetTextSecondaryVec4(),
                          "v2: BG colors, main palettes, parent system");
-      ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+      ImGui::TextColored(gui::GetTextSecondaryVec4(),
                          "v3: + wide/tall areas, animated GFX, overlays");
 
       // Tail expansion option (only for v3)
       if (options_.target_zso_version == 3) {
         ImGui::Spacing();
-        ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Experimental:");
+        ImGui::TextColored(gui::GetWarningColor(), "Experimental:");
         ImGui::Checkbox("Enable special world tail (0xA0-0xBF)",
                         &options_.enable_tail_expansion);
         if (ImGui::IsItemHovered()) {
@@ -246,7 +246,7 @@ void RomLoadOptionsDialog::DrawUpgradeOptions() {
     }
   } else {
     ImGui::TextColored(
-        ImVec4(0.5f, 0.8f, 0.5f, 1.0f),
+        gui::GetSuccessColor(),
         "%s ROM already has ZSCustomOverworld %s", ICON_MD_CHECK_CIRCLE,
         zelda3::OverworldVersionHelper::GetVersionName(detected_version_));
   }
@@ -289,7 +289,7 @@ void RomLoadOptionsDialog::DrawFeatureFlagPresets() {
   }
 
   // Show preset description
-  ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "%s",
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s",
                      kPresetDescriptions[selected_preset_index_]);
 
   // Advanced toggle
@@ -343,7 +343,7 @@ void RomLoadOptionsDialog::DrawProjectOptions() {
     options_.project_name = project_name_buffer_;
 
     ImGui::TextColored(
-        ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
+        gui::GetTextSecondaryVec4(),
         "Project file stores settings, labels, and preferences.");
 
     ImGui::Unindent();
