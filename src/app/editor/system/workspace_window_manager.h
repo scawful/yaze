@@ -1057,6 +1057,11 @@ class WorkspaceWindowManager {
     std::unordered_map<std::string, uint64_t> last_used_at;
     uint64_t mru_counter = 0;
     std::unordered_map<std::string, bool> pinned_windows;
+    // Base-id → pinned entries restored before the matching panel registered.
+    // Consumed by TrackPanelForSession when late-registering panels arrive.
+    // Also included in SerializePinnedState so pins survive a restart even
+    // when the user never actually opened the panel in the prior session.
+    std::unordered_map<std::string, bool> pending_pinned_base_ids;
     size_t session_count = 0;
     size_t active_session = 0;
     std::unordered_map<size_t, std::vector<std::string>> session_windows;
@@ -1093,6 +1098,8 @@ class WorkspaceWindowManager {
   uint64_t& mru_counter_ = session_state_.mru_counter;
   std::unordered_map<std::string, bool>& pinned_panels_ =
       session_state_.pinned_windows;
+  std::unordered_map<std::string, bool>& pending_pinned_base_ids_ =
+      session_state_.pending_pinned_base_ids;
   size_t& session_count_ = session_state_.session_count;
   size_t& active_session_ = session_state_.active_session;
   std::unordered_map<size_t, std::vector<std::string>>& session_cards_ =

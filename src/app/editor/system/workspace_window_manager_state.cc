@@ -296,6 +296,13 @@ WorkspaceWindowManager::SerializePinnedState() const {
     state[base_id] = pinned;
   }
 
+  // Include pins that were restored but never yet matched a live panel — e.g.
+  // the user pinned the emulator panel in a prior session and has not re-opened
+  // that editor yet this run. Without this, a save would drop those intentions.
+  for (const auto& [base_id, pinned] : pending_pinned_base_ids_) {
+    state.try_emplace(base_id, pinned);
+  }
+
   return state;
 }
 
@@ -307,17 +314,26 @@ void WorkspaceWindowManager::RestorePinnedState(
     canonical_state[ResolveBaseWindowId(base_id)] = pinned;
   }
 
+  // Seed pending with every restored entry. TrackPanelForSession consumes
+  // them as matching panels register; leftover entries persist so a repeat
+  // Save round-trips them without asking the panel to actually register.
+  pending_pinned_base_ids_ = canonical_state;
+
   for (const auto& [session_id, card_mapping] : session_card_mapping_) {
     for (const auto& [base_id, prefixed_id] : card_mapping) {
       auto state_it = canonical_state.find(base_id);
       if (state_it != canonical_state.end()) {
         pinned_panels_[prefixed_id] = state_it->second;
+        pending_pinned_base_ids_.erase(base_id);
       }
     }
   }
 
-  LOG_INFO("WorkspaceWindowManager", "Restored pinned state for %zu panels",
-           canonical_state.size());
+  LOG_INFO("WorkspaceWindowManager",
+           "Restored pinned state for %zu panels (%zu still pending "
+           "registration)",
+           canonical_state.size() - pending_pinned_base_ids_.size(),
+           pending_pinned_base_ids_.size());
 }
 
 std::string WorkspaceWindowManager::GetWindowNameImpl(
@@ -478,6 +494,16 @@ void WorkspaceWindowManager::TrackPanelForSession(size_t session_id,
   }
   session_card_mapping_[session_id][canonical_base_id] = panel_id;
   session_reverse_card_mapping_[session_id][panel_id] = canonical_base_id;
+
+  // If RestorePinnedState previously carried a pin for this base id that
+  // couldn't be applied yet (panel hadn't registered), apply it now. User's
+  // live pinned_panels_ wins on unregister/re-register — pending is consumed
+  // exactly once.
+  auto pending_it = pending_pinned_base_ids_.find(canonical_base_id);
+  if (pending_it != pending_pinned_base_ids_.end()) {
+    pinned_panels_[panel_id] = pending_it->second;
+    pending_pinned_base_ids_.erase(pending_it);
+  }
 }
 
 void WorkspaceWindowManager::UnregisterSessionPanels(size_t session_id) {
