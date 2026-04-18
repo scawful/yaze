@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_COMMAND_PALETTE_H_
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -9,9 +10,26 @@
 namespace yaze {
 namespace editor {
 
+class CommandPalette;
 class WorkspaceWindowManager;
 class EditorRegistry;
 class RecentProjectsModel;
+
+/**
+ * @brief Plug-in command source for the palette.
+ *
+ * A provider is a cohesive group of commands (e.g., panel toggles, recent
+ * files). Entries added during Provide() are attributed to the provider's id
+ * so they can be selectively refreshed or removed later.
+ */
+class CommandProvider {
+ public:
+  virtual ~CommandProvider() = default;
+  /// Stable identifier. Used for selective refresh; must be unique.
+  virtual std::string ProviderId() const = 0;
+  /// Populate @p palette with this source's commands.
+  virtual void Provide(CommandPalette* palette) = 0;
+};
 
 /**
  * @brief Categories for command palette entries
@@ -37,6 +55,9 @@ struct CommandEntry {
   std::function<void()> callback;
   int usage_count = 0;
   int64_t last_used_ms = 0;
+  /// Provider attribution. Empty means the entry was added directly (not
+  /// through a registered CommandProvider) and cannot be selectively refreshed.
+  std::string provider_id;
 };
 
 class CommandPalette {
@@ -65,12 +86,38 @@ class CommandPalette {
   size_t GetCommandCount() const { return commands_.size(); }
 
   /**
-   * @brief Clear all commands
+   * @brief Clear all commands (and forget every registered provider).
    */
-  void Clear() { commands_.clear(); }
+  void Clear();
 
   // ============================================================================
-  // Bulk Registration Methods
+  // Providers
+  // ============================================================================
+
+  /// Register @p provider and run it once. Entries added during Provide() are
+  /// attributed to the provider's id. The provider stays registered so it can
+  /// be re-run via RefreshProvider / RefreshProviders. A duplicate id replaces
+  /// the prior registration (the old provider's commands are dropped first).
+  void RegisterProvider(std::unique_ptr<CommandProvider> provider);
+
+  /// Remove every command attributed to @p provider_id and drop the provider.
+  /// No-op if the id is unknown.
+  void UnregisterProvider(const std::string& provider_id);
+
+  /// Remove-and-re-run a single provider. Useful after its underlying data
+  /// changed (e.g., recent-files list). No-op if the id is unknown.
+  void RefreshProvider(const std::string& provider_id);
+
+  /// Remove-and-re-run every registered provider.
+  void RefreshProviders();
+
+  /// Remove every command with the given provider attribution. Leaves the
+  /// provider itself registered so RefreshProvider can repopulate later.
+  void RemoveProviderCommands(const std::string& provider_id);
+
+  // ============================================================================
+  // Bulk Registration Methods (used by built-in providers; kept public so
+  // tests and legacy callers can still drive registration directly).
   // ============================================================================
 
   /**
@@ -169,6 +216,10 @@ class CommandPalette {
 
  private:
   std::unordered_map<std::string, CommandEntry> commands_;
+  std::vector<std::unique_ptr<CommandProvider>> providers_;
+  /// Set while a provider's Provide() call is on the stack; stamped into every
+  /// CommandEntry added during that call. Empty outside Provide().
+  std::string current_provider_id_;
 };
 
 }  // namespace editor
