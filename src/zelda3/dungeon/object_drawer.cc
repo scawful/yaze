@@ -1343,7 +1343,9 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
             tile_y, door_width, door_height);
 
   constexpr int kRoomDrawObjectDataBase = 0x1B52;
+  constexpr int kDoorwayReplacementDoorGfxBase = 0x1A02;
   constexpr int kNorthCurtainClosedOffset = 0x078A;
+  const auto& rom_data = rom_->data();
 
   auto draw_from_object_data =
       [&](gfx::BackgroundBuffer& target, int width, int height,
@@ -1352,7 +1354,6 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         auto& priority_buffer = target.mutable_priority_data();
         auto& coverage_buffer = target.mutable_coverage_data();
         const int bitmap_width = bitmap.width();
-        const auto& rom_data = rom_->data();
         int tile_idx = 0;
 
         for (int dx = 0; dx < width; dx++) {
@@ -1421,6 +1422,41 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
+  if (door.direction == DoorDirection::North &&
+      door.type == DoorType::CurtainDoor && is_door_open) {
+    const int replacement_type_addr =
+        kDoorwayReplacementDoorGfxBase + static_cast<int>(door.type);
+    if (replacement_type_addr < 0 ||
+        replacement_type_addr >= static_cast<int>(rom_->size())) {
+      DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
+                        door.type, door.direction);
+      return;
+    }
+
+    const int replacement_type = rom_data[replacement_type_addr];
+    const int table_entry_addr = kDoorGfxUp + replacement_type;
+    if (table_entry_addr < 0 ||
+        table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
+      DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
+                        door.type, door.direction);
+      return;
+    }
+
+    const uint16_t tile_offset =
+        rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
+    const int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
+    const int data_size = 16 * 2;  // RoomDraw_4x4 open curtain path.
+    if (tile_data_addr < 0 ||
+        tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+      DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
+                        door.type, door.direction);
+      return;
+    }
+
+    draw_from_object_data(bg1, /*width=*/4, /*height=*/4, tile_data_addr);
+    return;
+  }
+
   // Door graphics use an indirect addressing scheme:
   // 1. kDoorGfxUp/Down/Left/Right point to offset tables (DoorGFXDataOffset_*)
   // 2. Each table entry is a 16-bit offset into RoomDrawObjectData
@@ -1456,7 +1492,6 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
-  const auto& rom_data = rom_->data();
   uint16_t tile_offset =
       rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
 
