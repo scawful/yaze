@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "app/editor/core/content_registry.h"
+#include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/emu/mesen/mesen_client_registry.h"
 #include "app/gui/core/icons.h"
@@ -30,23 +31,40 @@ namespace yaze::editor {
  * completion grid. Supports .srm file import and manual bit toggles
  * for testing.
  */
-class ProgressionDashboardPanel : public EditorPanel {
+class ProgressionDashboardPanel : public WindowContent {
  public:
   ~ProgressionDashboardPanel() override { DetachLiveListener(); }
 
   std::string GetId() const override { return "oracle.progression_dashboard"; }
   std::string GetDisplayName() const override {
-    return "Progression Dashboard";
+    return "Game State Dashboard";
   }
   std::string GetIcon() const override { return ICON_MD_DASHBOARD; }
-  std::string GetEditorCategory() const override { return "Oracle"; }
-  PanelCategory GetPanelCategory() const override {
-    return PanelCategory::CrossEditor;
+  std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Game State"; }
+  std::string GetWorkflowDescription() const override {
+    return "Inspect progression, SRAM-derived flags, and live game state";
+  }
+  bool IsEnabled() const override {
+    auto* project = ContentRegistry::Context::current_project();
+    auto* backend = GetProgressionBackend();
+    return project != nullptr && project->project_opened() && backend != nullptr;
+  }
+  std::string GetDisabledTooltip() const override {
+    return "Progression tools are not available for the active hack project";
+  }
+  WindowLifecycle GetWindowLifecycle() const override {
+    return WindowLifecycle::CrossEditor;
   }
   float GetPreferredWidth() const override { return 400.0f; }
 
   void Draw(bool* p_open) override {
     (void)p_open;
+
+    if (!IsEnabled()) {
+      ImGui::TextDisabled("%s", GetDisabledTooltip().c_str());
+      return;
+    }
 
     RefreshLiveClientBinding();
     EnsureLiveSubscription();
@@ -55,7 +73,9 @@ class ProgressionDashboardPanel : public EditorPanel {
     // Lazily resolve the manifest from the project context.
     if (!manifest_) {
       auto* project = ContentRegistry::Context::current_project();
-      if (project && project->hack_manifest.loaded()) {
+      if (auto* backend = GetWorkflowBackend()) {
+        manifest_ = backend->ResolveManifest(project);
+      } else if (project && project->hack_manifest.loaded()) {
         manifest_ = &project->hack_manifest;
       }
     }
@@ -98,7 +118,10 @@ class ProgressionDashboardPanel : public EditorPanel {
       std::string file_path =
           util::FileDialogWrapper::ShowOpenFileDialog(options);
       if (!file_path.empty()) {
-        auto state_or = core::LoadOracleProgressionFromSrmFile(file_path);
+        auto state_or = GetProgressionBackend()
+                            ? GetProgressionBackend()->LoadProgressionStateFromFile(
+                                  file_path)
+                            : core::LoadOracleProgressionFromSrmFile(file_path);
         if (state_or.ok()) {
           state_ = *state_or;
           game_state_slider_ = static_cast<int>(state_.game_state);
@@ -117,7 +140,11 @@ class ProgressionDashboardPanel : public EditorPanel {
       loaded_srm_path_.clear();
       last_srm_error_.clear();
       if (manifest_) {
-        manifest_->ClearOracleProgressionState();
+        if (auto* backend = GetProgressionBackend()) {
+          backend->ClearProgressionState(*manifest_);
+        } else {
+          manifest_->ClearOracleProgressionState();
+        }
       }
     }
 
@@ -180,6 +207,15 @@ class ProgressionDashboardPanel : public EditorPanel {
     }
 
     const auto existing = manifest_->oracle_progression_state();
+    if (auto* backend = GetProgressionBackend()) {
+      const auto backend_existing = backend->GetProgressionState(*manifest_);
+      if (backend_existing.has_value() && StatesEqual(*backend_existing, state_)) {
+        return;
+      }
+      backend->SetProgressionState(*manifest_, state_);
+      return;
+    }
+
     if (existing.has_value() && StatesEqual(*existing, state_)) {
       return;
     }
@@ -438,6 +474,20 @@ class ProgressionDashboardPanel : public EditorPanel {
       return false;
     }
 
+    if (auto* backend = GetProgressionBackend()) {
+      auto state_or = backend->ReadProgressionStateFromLiveSram(*live_client_);
+      if (!state_or.ok()) {
+        live_sync_error_ = std::string(state_or.status().message());
+        return false;
+      }
+      state_ = *state_or;
+      game_state_slider_ = static_cast<int>(state_.game_state);
+      loaded_srm_path_ = "Mesen2 Live";
+      last_srm_error_.clear();
+      live_sync_error_.clear();
+      return true;
+    }
+
     constexpr uint32_t kBaseAddress = 0x7EF000;
     constexpr uint16_t kStartOffset = core::OracleProgressionState::kPendantOffset;
     constexpr uint16_t kEndOffset = core::OracleProgressionState::kSideQuestOffset;
@@ -479,6 +529,14 @@ class ProgressionDashboardPanel : public EditorPanel {
     }
     live_listener_id_ = 0;
     live_subscription_active_ = false;
+  }
+
+  workflow::HackWorkflowBackend* GetWorkflowBackend() const {
+    return ContentRegistry::Context::hack_workflow_backend();
+  }
+
+  workflow::ProgressionCapability* GetProgressionBackend() const {
+    return ContentRegistry::Context::hack_progression_backend();
   }
 
   core::OracleProgressionState state_;
