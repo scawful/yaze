@@ -216,6 +216,12 @@ bool BeginWorkbenchInspectorSection(const char* label, bool default_open) {
       label, default_open ? ImGuiTreeNodeFlags_DefaultOpen : 0);
 }
 
+bool DrawWorkbenchActionButton(const char* label, const ImVec2& size) {
+  gui::StyleVarGuard align_guard(ImGuiStyleVar_ButtonTextAlign,
+                                 ImVec2(0.08f, 0.5f));
+  return ImGui::Button(label, size);
+}
+
 }  // namespace
 
 DungeonWorkbenchPanel::DungeonWorkbenchPanel(
@@ -836,7 +842,8 @@ void DungeonWorkbenchPanel::DrawInspectorPrimarySelector() {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
   }
-  if (ImGui::Button(ICON_MD_CASTLE " Room", ImVec2(button_width, 0.0f))) {
+  if (DrawWorkbenchActionButton(ICON_MD_CASTLE " Room",
+                                ImVec2(button_width, 0.0f))) {
     inspector_focus_ = InspectorFocus::Room;
   }
   if (room_active) {
@@ -849,7 +856,8 @@ void DungeonWorkbenchPanel::DrawInspectorPrimarySelector() {
     ImGui::PushStyleColor(ImGuiCol_Button,
                           ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
   }
-  if (ImGui::Button(ICON_MD_SELECT_ALL " Selection", ImVec2(button_width, 0.0f))) {
+  if (DrawWorkbenchActionButton(ICON_MD_SELECT_ALL " Selection",
+                                ImVec2(button_width, 0.0f))) {
     inspector_focus_ = InspectorFocus::Selection;
   }
   if (selection_active) {
@@ -883,8 +891,8 @@ void DungeonWorkbenchPanel::DrawInspectorCompactSummary(
       ImGui::BulletText("%zu object%s selected", selected_objects,
                         selected_objects == 1 ? "" : "s");
     }
-    if (ImGui::Button(ICON_MD_OPEN_IN_FULL " Open Selection",
-                      ImVec2(-1, 0))) {
+    if (DrawWorkbenchActionButton(ICON_MD_OPEN_IN_FULL " Open Selection",
+                                  ImVec2(-1, 0))) {
       inspector_focus_ = InspectorFocus::Selection;
     }
   } else {
@@ -893,10 +901,12 @@ void DungeonWorkbenchPanel::DrawInspectorCompactSummary(
 
   if (room_id >= 0) {
     ImGui::Spacing();
-    if (on_save_room_ && ImGui::Button(ICON_MD_SAVE " Save Room", ImVec2(-1, 0))) {
+    if (on_save_room_ &&
+        DrawWorkbenchActionButton(ICON_MD_SAVE " Save Room", ImVec2(-1, 0))) {
       on_save_room_(room_id);
     }
-    if (ImGui::Button(ICON_MD_CASTLE " Room Details", ImVec2(-1, 0))) {
+    if (DrawWorkbenchActionButton(ICON_MD_CASTLE " Room Details",
+                                  ImVec2(-1, 0))) {
       inspector_focus_ = InspectorFocus::Room;
     }
   }
@@ -994,7 +1004,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
   // Quick actions.
   DrawWorkbenchInspectorSectionHeader(ICON_MD_SAVE " Room Actions");
   if (on_save_room_ && room_id >= 0) {
-    if (ImGui::Button(ICON_MD_SAVE " Save Room", ImVec2(-1, 0))) {
+    if (DrawWorkbenchActionButton(ICON_MD_SAVE " Save Room", ImVec2(-1, 0))) {
       on_save_room_(room_id);
     }
   }
@@ -1006,11 +1016,13 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
     if (ImGui::BeginTable("##WorkbenchRoomPanels", 2, kPanelFlags)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::Button(ICON_MD_IMAGE " Graphics", ImVec2(-1, 0))) {
+      if (DrawWorkbenchActionButton(ICON_MD_IMAGE " Graphics",
+                                    ImVec2(-1, 0))) {
         show_panel_("dungeon.room_graphics");
       }
       ImGui::TableNextColumn();
-      if (ImGui::Button(ICON_MD_SETTINGS " Settings", ImVec2(-1, 0))) {
+      if (DrawWorkbenchActionButton(ICON_MD_SETTINGS " Settings",
+                                    ImVec2(-1, 0))) {
         show_panel_("dungeon.settings");
       }
       ImGui::EndTable();
@@ -1133,11 +1145,13 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
                             kEmptyStateFlags)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        if (ImGui::Button(ICON_MD_WIDGETS " Objects", ImVec2(-1, 0))) {
+        if (DrawWorkbenchActionButton(ICON_MD_WIDGETS " Objects",
+                                      ImVec2(-1, 0))) {
           show_panel_("dungeon.object_editor");
         }
         ImGui::TableNextColumn();
-        if (ImGui::Button(ICON_MD_PERSON " Sprites", ImVec2(-1, 0))) {
+        if (DrawWorkbenchActionButton(ICON_MD_PERSON " Sprites",
+                                      ImVec2(-1, 0))) {
           show_panel_("dungeon.sprite_editor");
         }
         ImGui::EndTable();
@@ -1161,21 +1175,24 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
     if (ImGui::BeginTable("##SelectionObjectActions", 3, kActionFlags)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(-1, 0))) {
+      if (DrawWorkbenchActionButton(ICON_MD_DELETE " Delete",
+                                    ImVec2(-1, 0))) {
         viewer.DeleteSelectedObjects();
       }
       ImGui::TableNextColumn();
-      if (ImGui::Button(ICON_MD_CLEAR " Clear", ImVec2(-1, 0))) {
+      if (DrawWorkbenchActionButton(ICON_MD_CLEAR " Clear", ImVec2(-1, 0))) {
         interaction.ClearSelection();
       }
       ImGui::TableNextColumn();
       if (show_panel_) {
-        if (ImGui::Button(ICON_MD_WIDGETS " Open Editor", ImVec2(-1, 0))) {
+        if (DrawWorkbenchActionButton(ICON_MD_WIDGETS " Open Editor",
+                                      ImVec2(-1, 0))) {
           show_panel_("dungeon.object_editor");
         }
       } else {
         ImGui::BeginDisabled();
-        ImGui::Button(ICON_MD_WIDGETS " Open Editor", ImVec2(-1, 0));
+        DrawWorkbenchActionButton(ICON_MD_WIDGETS " Open Editor",
+                                  ImVec2(-1, 0));
         ImGui::EndDisabled();
       }
       ImGui::EndTable();
@@ -1378,18 +1395,20 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
             ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::Button(ICON_MD_DELETE " Delete Entity", ImVec2(-1, 0))) {
+      if (DrawWorkbenchActionButton(ICON_MD_DELETE " Delete Entity",
+                                    ImVec2(-1, 0))) {
         interaction.entity_coordinator().DeleteSelectedEntity();
         interaction.ClearEntitySelection();
       }
       ImGui::TableNextColumn();
       if (show_panel_ && entity_panel_id && entity_action_label) {
-        if (ImGui::Button(entity_action_label, ImVec2(-1, 0))) {
+        if (DrawWorkbenchActionButton(entity_action_label, ImVec2(-1, 0))) {
           show_panel_(entity_panel_id);
         }
       } else {
         ImGui::BeginDisabled();
-        ImGui::Button(ICON_MD_OPEN_IN_NEW " Open Panel", ImVec2(-1, 0));
+        DrawWorkbenchActionButton(ICON_MD_OPEN_IN_NEW " Open Panel",
+                                  ImVec2(-1, 0));
         ImGui::EndDisabled();
       }
       ImGui::EndTable();
@@ -1476,21 +1495,22 @@ void DungeonWorkbenchPanel::DrawInspectorShelfTools(
 
   ImGui::TableNextRow();
   ImGui::TableNextColumn();
-  if (ImGui::Button(ICON_MD_WIDGETS " Objects", ImVec2(-1, 0))) {
+  if (DrawWorkbenchActionButton(ICON_MD_WIDGETS " Objects", ImVec2(-1, 0))) {
     show_panel_("dungeon.object_editor");
   }
   ImGui::TableNextColumn();
-  if (ImGui::Button(ICON_MD_PERSON " Sprites", ImVec2(-1, 0))) {
+  if (DrawWorkbenchActionButton(ICON_MD_PERSON " Sprites", ImVec2(-1, 0))) {
     show_panel_("dungeon.sprite_editor");
   }
 
   ImGui::TableNextRow();
   ImGui::TableNextColumn();
-  if (ImGui::Button(ICON_MD_INVENTORY " Items", ImVec2(-1, 0))) {
+  if (DrawWorkbenchActionButton(ICON_MD_INVENTORY " Items", ImVec2(-1, 0))) {
     show_panel_("dungeon.item_editor");
   }
   ImGui::TableNextColumn();
-  if (ImGui::Button(ICON_MD_SETTINGS " Settings", ImVec2(-1, 0))) {
+  if (DrawWorkbenchActionButton(ICON_MD_SETTINGS " Settings",
+                                ImVec2(-1, 0))) {
     show_panel_("dungeon.settings");
   }
 
@@ -1500,28 +1520,33 @@ void DungeonWorkbenchPanel::DrawInspectorShelfTools(
   if (ImGui::BeginTable("##WorkbenchReviewGrid", 2, kFlags)) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_GRID_VIEW " Matrix", ImVec2(-1, 0))) {
+    if (DrawWorkbenchActionButton(ICON_MD_GRID_VIEW " Matrix",
+                                  ImVec2(-1, 0))) {
       show_panel_("dungeon.room_matrix");
     }
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_MAP " Dungeon Map", ImVec2(-1, 0))) {
+    if (DrawWorkbenchActionButton(ICON_MD_MAP " Dungeon Map",
+                                  ImVec2(-1, 0))) {
       show_panel_("dungeon.dungeon_map");
     }
 
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_DOOR_FRONT " Entrances", ImVec2(-1, 0))) {
+    if (DrawWorkbenchActionButton(ICON_MD_DOOR_FRONT " Entrances",
+                                  ImVec2(-1, 0))) {
       show_panel_("dungeon.entrance_list");
     }
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_PALETTE " Palette", ImVec2(-1, 0))) {
+    if (DrawWorkbenchActionButton(ICON_MD_PALETTE " Palette",
+                                  ImVec2(-1, 0))) {
       show_panel_("dungeon.palette_editor");
     }
     ImGui::EndTable();
   }
 
   DrawWorkbenchInspectorSectionHeader(ICON_MD_KEYBOARD " Reference");
-  if (ImGui::Button(ICON_MD_KEYBOARD " Keyboard Shortcuts", ImVec2(-1, 0))) {
+  if (DrawWorkbenchActionButton(ICON_MD_KEYBOARD " Keyboard Shortcuts",
+                                ImVec2(-1, 0))) {
     show_shortcut_legend_ = true;
   }
   ShortcutLegendPanel::Draw(&show_shortcut_legend_);
