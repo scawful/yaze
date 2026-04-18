@@ -247,6 +247,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/theme_style_snapshot_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
     unit/editor/shortcut_configurator_test.cc
@@ -487,6 +488,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/theme_style_snapshot_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
     unit/editor/editor_manager_project_actions_test.cc

@@ -19,6 +19,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
@@ -78,10 +79,11 @@ void MessageEditor::Initialize() {
       std::make_unique<MessageListPanel>([this]() { DrawMessageList(); }));
   window_manager->RegisterWindowContent(
       std::make_unique<MessageEditorPanel>([this]() { DrawCurrentMessage(); }));
-  window_manager->RegisterWindowContent(std::make_unique<FontAtlasPanel>([this]() {
-    DrawFontAtlas();
-    DrawExpandedMessageSettings();
-  }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<FontAtlasPanel>([this]() {
+        DrawFontAtlas();
+        DrawExpandedMessageSettings();
+      }));
   window_manager->RegisterWindowContent(
       std::make_unique<DictionaryPanel>([this]() {
         DrawTextCommands();
@@ -164,9 +166,9 @@ bool MessageEditor::OpenMessageById(int display_id) {
   if (dependencies_.window_manager) {
     const size_t session_id = dependencies_.session_id;
     dependencies_.window_manager->OpenWindow(session_id,
-                                            "message.message_list");
+                                             "message.message_list");
     dependencies_.window_manager->OpenWindow(session_id,
-                                            "message.message_editor");
+                                             "message.message_editor");
   }
 
   if (!resolved->is_expanded) {
@@ -418,9 +420,8 @@ void MessageEditor::DrawMessageList() {
       }
     }
     if (!message_bundle_status_.empty()) {
-      ImVec4 color = message_bundle_status_error_
-                         ? ImVec4(1.0f, 0.4f, 0.4f, 1.0f)
-                         : ImVec4(0.6f, 0.9f, 0.6f, 1.0f);
+      ImVec4 color = message_bundle_status_error_ ? gui::GetErrorColor()
+                                                  : gui::GetSuccessColor();
       ImGui::TextColored(color, "%s", message_bundle_status_.c_str());
     }
     ImGui::Separator();
@@ -459,7 +460,7 @@ void MessageEditor::DrawMessageList() {
             PopID();
 
             TableNextColumn();
-            ImGui::TextColored(ImVec4(0.6f, 0.6f, 1.0f, 1.0f), "Vanilla");
+            ImGui::TextColored(gui::GetInfoColor(), "Vanilla");
 
             TableNextColumn();
             TextWrapped("%s", parsed_messages_[message.ID].c_str());
@@ -490,7 +491,7 @@ void MessageEditor::DrawMessageList() {
             PopID();
 
             TableNextColumn();
-            ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.4f, 1.0f), "Expanded");
+            ImGui::TextColored(gui::GetWarningColor(), "Expanded");
 
             TableNextColumn();
             TextWrapped("%s", display_text);
@@ -518,7 +519,7 @@ void MessageEditor::DrawCurrentMessage() {
   }
   auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
   if (!line_warnings.empty()) {
-    ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "Line width warnings");
+    ImGui::TextColored(gui::GetWarningColor(), "Line width warnings");
     for (const auto& warning : line_warnings) {
       ImGui::BulletText("%s", warning.c_str());
     }
@@ -614,7 +615,7 @@ void MessageEditor::DrawCurrentMessage() {
       uint8_t byte = current_message_.Data[i];
       if (byte == kScrollVertical) {
         scroll_count++;
-        ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f),
+        ImGui::TextColored(gui::GetInfoColor(),
                            "  [V] Scroll at byte %zu (line %d, %d chars)", i,
                            line_num, current_line_chars);
         current_line_chars = 0;
@@ -650,10 +651,9 @@ void MessageEditor::DrawCurrentMessage() {
     ImGui::TextDisabled("Line width budget (max ~170px):");
     int estimated_line_width = current_line_chars * 8;
     float width_ratio = static_cast<float>(estimated_line_width) / 170.0f;
-    ImVec4 width_color = (width_ratio > 1.0f) ? ImVec4(0.9f, 0.2f, 0.2f, 1.0f)
-                         : (width_ratio > 0.85f)
-                             ? ImVec4(0.9f, 0.7f, 0.1f, 1.0f)
-                             : ImVec4(0.2f, 0.8f, 0.2f, 1.0f);
+    ImVec4 width_color = (width_ratio > 1.0f)    ? gui::GetErrorColor()
+                         : (width_ratio > 0.85f) ? gui::GetWarningColor()
+                                                 : gui::GetSuccessColor();
     ImGui::TextColored(width_color, "Last line: ~%dpx / 170px (%d chars)",
                        estimated_line_width, current_line_chars);
   }
@@ -716,11 +716,11 @@ void MessageEditor::DrawExpandedMessageSettings() {
 
     ImVec4 capacity_color;
     if (usage_ratio < 0.75f) {
-      capacity_color = ImVec4(0.2f, 0.8f, 0.2f, 1.0f);  // Green
+      capacity_color = gui::GetSuccessColor();
     } else if (usage_ratio < 0.90f) {
-      capacity_color = ImVec4(0.9f, 0.7f, 0.1f, 1.0f);  // Yellow
+      capacity_color = gui::GetWarningColor();
     } else {
-      capacity_color = ImVec4(0.9f, 0.2f, 0.2f, 1.0f);  // Red
+      capacity_color = gui::GetErrorColor();
     }
     ImGui::TextColored(capacity_color, "Bank: %d / %d bytes (%d free)", used,
                        capacity, remaining);
@@ -1388,8 +1388,8 @@ absl::Status MessageEditor::Find() {
     ImGui::Checkbox("Match Whole Word", &match_whole_word_);
 
     if (!replace_status_.empty()) {
-      ImVec4 color = replace_status_error_ ? ImVec4(1.0f, 0.4f, 0.4f, 1.0f)
-                                           : ImVec4(0.6f, 0.9f, 0.6f, 1.0f);
+      ImVec4 color =
+          replace_status_error_ ? gui::GetErrorColor() : gui::GetSuccessColor();
       ImGui::TextColored(color, "%s", replace_status_.c_str());
     }
   }
