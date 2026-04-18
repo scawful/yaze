@@ -5,14 +5,14 @@
 #include <string>
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "rom/rom.h"
-#include "rom/snes.h"
+#include "framework/headless_editor_test.h"
 #include "gtest/gtest.h"
 #include "imgui.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
 #include "test_utils.h"
-#include "zelda3/game_data.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
-#include "framework/headless_editor_test.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace test {
@@ -28,7 +28,7 @@ class DungeonEditorV2IntegrationTest : public HeadlessEditorTest {
     HeadlessEditorTest::SetUp();
 
     YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla,
-                                     "DungeonEditorV2IntegrationTest");
+                             "DungeonEditorV2IntegrationTest");
     const std::string rom_path = TestRomManager::GetRomPath(RomRole::kVanilla);
     rom_ = std::make_unique<Rom>();
     ASSERT_TRUE(rom_->LoadFromFile(rom_path).ok())
@@ -43,14 +43,14 @@ class DungeonEditorV2IntegrationTest : public HeadlessEditorTest {
     int table_offset = (high << 8) | low;
     int table_snes = (0x09 << 16) | table_offset;
     int table_pc = SnesToPc(table_snes);
-    
+
     // Patch all room pointers to be sequential with 0x20 bytes of space
     // This ensures SaveDungeon passes for all rooms
     int current_offset = 0x1000;
     for (int i = 0; i <= zelda3::kNumberOfRooms; ++i) {
-        rom_->WriteByte(table_pc + (i * 2), current_offset & 0xFF);
-        rom_->WriteByte(table_pc + (i * 2) + 1, (current_offset >> 8) & 0xFF);
-        current_offset += 0x20;
+      rom_->WriteByte(table_pc + (i * 2), current_offset & 0xFF);
+      rom_->WriteByte(table_pc + (i * 2) + 1, (current_offset >> 8) & 0xFF);
+      current_offset += 0x20;
     }
 
     // Load Zelda3-specific game data
@@ -63,12 +63,12 @@ class DungeonEditorV2IntegrationTest : public HeadlessEditorTest {
     // Create V2 editor with ROM and GameData
     dungeon_editor_v2_ = std::make_unique<editor::DungeonEditorV2>(rom_.get());
     dungeon_editor_v2_->SetGameData(game_data_.get());
-    
+
     // Inject dependencies
     editor::EditorDependencies deps;
     deps.rom = rom_.get();
     deps.game_data = game_data_.get();
-    deps.panel_manager = panel_manager_.get();
+    deps.window_manager = window_manager_.get();
     deps.renderer = renderer_.get();
     dungeon_editor_v2_->SetDependencies(deps);
   }
