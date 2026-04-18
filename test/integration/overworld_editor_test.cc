@@ -210,5 +210,32 @@ TEST_F(OverworldEditorTest, StaleItemSelectionClearsWhenBackingItemIsRemoved) {
   EXPECT_FALSE(overworld_editor_->DeleteSelectedItem());
 }
 
+TEST_F(OverworldEditorTest, SelectingNonItemEntityClearsItemSelectionState) {
+  auto* items = overworld_editor_->overworld().mutable_all_items();
+  ASSERT_NE(items, nullptr);
+
+  items->clear();
+  items->emplace_back(/*id=*/0x51, /*room_map_id=*/0x00, /*x=*/160, /*y=*/176,
+                      /*bg2=*/false);
+
+  ASSERT_TRUE(overworld_editor_->SelectItemByIdentity(items->at(0)));
+  ASSERT_TRUE(overworld_editor_->selected_item_identity().has_value());
+  ASSERT_NE(overworld_editor_->GetSelectedItem(), nullptr);
+
+  zelda3::OverworldExit exit(/*room_id=*/0x12, /*map_id=*/0x00,
+                             /*vram_location=*/0x0000, /*y_scroll=*/0x0000,
+                             /*x_scroll=*/0x0000, /*player_y=*/0x0100,
+                             /*player_x=*/0x0120, /*camera_y=*/0x0000,
+                             /*camera_x=*/0x0000, /*scroll_mod_y=*/0x00,
+                             /*scroll_mod_x=*/0x00, /*door_type_1=*/0x0000,
+                             /*door_type_2=*/0x0000, /*deleted=*/false);
+  overworld_editor_->SetCurrentEntity(&exit);
+
+  EXPECT_EQ(overworld_editor_->current_entity(), &exit);
+  EXPECT_FALSE(overworld_editor_->selected_item_identity().has_value());
+  EXPECT_EQ(overworld_editor_->GetSelectedItem(), nullptr);
+  EXPECT_FALSE(overworld_editor_->DeleteSelectedItem());
+}
+
 }  // namespace test
 }  // namespace yaze

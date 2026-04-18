@@ -9,7 +9,10 @@
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/overworld/canvas_navigation_manager.h"
+#include "app/editor/overworld/core/interaction_coordinator.h"
 #include "app/editor/overworld/debug_window_card.h"
+#include "app/editor/overworld/entity/entity_mutation_service.h"
+#include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/map_refresh_coordinator.h"
 #include "app/editor/overworld/overworld_canvas_renderer.h"
@@ -30,6 +33,7 @@
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_upgrade_system.h"
 
 // =============================================================================
 // Overworld Editor - UI Layer
@@ -165,25 +169,16 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
   absl::Status Clear() override;
+  void ContributeStatus(StatusBar* status_bar) override;
 
   /// @brief Access the underlying Overworld data
   zelda3::Overworld& overworld() { return overworld_; }
 
-  // ===========================================================================
-  // ZSCustomOverworld ASM Patching
-  // ===========================================================================
-  // These methods handle upgrading vanilla ROMs to support expanded features.
-  // See overworld_version_helper.h for version detection and feature matrix.
-
-  /// @brief Apply ZSCustomOverworld ASM patch to upgrade ROM version
-  /// @param target_version Target version (2 for v2, 3 for v3)
-  absl::Status ApplyZSCustomOverworldASM(int target_version);
-
-  /// @brief Update ROM version markers and feature flags after ASM patching
-  absl::Status UpdateROMVersionMarkers(int target_version);
-
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
+
+  /// @brief Helper to find the registered Entity Workbench component
+  OverworldEntityWorkbench* GetWorkbench();
 
   // ===========================================================================
   // ROM State
@@ -229,6 +224,40 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
    * assembling the OverworldMap Bitmap objects.
    */
   absl::Status LoadGraphics();
+
+  // ===========================================================================
+  // Entity Interaction API
+  // ===========================================================================
+
+  /// @brief Set the currently active entity for editing
+  void SetCurrentEntity(zelda3::GameEntity* entity);
+  zelda3::GameEntity* current_entity() const { return current_entity_; }
+
+  /// @brief Notify that an entity has been modified, marking ROM as dirty
+  void NotifyEntityModified(zelda3::GameEntity* entity);
+
+  /// @brief Trigger a jump to a dungeon room
+  void RequestJumpToRoom(int room_id) { jump_to_tab_ = room_id; }
+
+  /// @brief Trigger a jump to a dungeon entrance
+  void RequestJumpToEntrance(int entrance_id) { jump_to_tab_ = entrance_id; }
+
+  /// @brief Access the entity mutation service
+  EntityMutationService* entity_mutation_service() {
+    return entity_mutation_service_.get();
+  }
+
+  zelda3::OverworldEntrance& edit_entrance() { return edit_entrance_; }
+  zelda3::OverworldExit& edit_exit() { return edit_exit_; }
+  zelda3::OverworldItem& edit_item() { return edit_item_; }
+  zelda3::Sprite& edit_sprite() { return edit_sprite_; }
+
+  std::string& pending_insert_type() { return pending_insert_type_; }
+  ImVec2& pending_insert_pos() { return pending_insert_pos_; }
+  std::string& insert_error() { return insert_error_; }
+
+  gui::Canvas& ow_map_canvas() { return ow_map_canvas_; }
+  int game_state() const { return game_state_; }
 
   // ===========================================================================
   // Entity System - Insertion and Editing
@@ -291,16 +320,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     return tile_painting_ && tile_painting_->PickTile16FromHoveredCanvas();
   }
 
-  /// @brief Handle keyboard shortcuts for the Overworld Editor
-  /// Shortcuts: 1-2 (modes), 3-8 (entities), F11 (fullscreen),
-  /// I/Right-click (eyedropper in paint modes), Ctrl+L (map lock),
-  /// Ctrl+T (Tile16 editor), Ctrl+Z/Y (undo/redo)
-  void HandleKeyboardShortcuts();
-
   // ===========================================================================
-  // Panel Drawing Methods
+  // WindowContent View Hooks
   // ===========================================================================
-  // These are called by the panel wrapper classes in the panels/ subdirectory.
+  // These are used by focused WindowContent wrappers around Overworld views.
   // Drawing is delegated to OverworldCanvasRenderer.
 
   absl::Status DrawAreaGraphics() {
@@ -357,21 +380,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
   // Handles mouse interactions with entities in MOUSE mode.
 
-  void HandleEntityEditingShortcuts();
-  void HandleUndoRedoShortcuts();
-
-  /// @brief Handle entity interaction in MOUSE mode
-  /// Includes: right-click context menus, double-click navigation, popups
-  void HandleEntityInteraction();
-
-  /// @brief Handle right-click context menus for entities
-  void HandleEntityContextMenus(zelda3::GameEntity* hovered_entity);
-
-  /// @brief Handle double-click actions on entities (e.g., jump to room)
-  void HandleEntityDoubleClick(zelda3::GameEntity* hovered_entity);
-
-  /// @brief Draw entity editor popups and update entity data
-  void DrawEntityEditorPopups();
+  /// @brief Handle overworld keyboard shortcuts and edit-mode hotkeys
+  void HandleKeyboardShortcuts();
 
   // ===========================================================================
   // Map Refresh System (delegated to MapRefreshCoordinator)
@@ -379,6 +389,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Initialize the map refresh coordinator (called during Initialize)
   void InitMapRefreshCoordinator();
+  void InitInteractionCoordinator();
 
   // Convenience delegation methods for internal use
   void RefreshChildMap(int map_index) {
@@ -549,10 +560,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int current_world_ = 0;   // 0=Light, 1=Dark, 2=Special
   int current_map_ = 0;     // Current map index (0-159)
   int current_parent_ = 0;  // Parent map for multi-area
-  int current_entrance_id_ = 0;
-  int current_exit_id_ = 0;
-  int current_item_id_ = 0;
-  int current_sprite_id_ = 0;
   int current_blockset_ = 0;
   int game_state_ = 1;      // 0=Beginning, 1=Pendants, 2=Crystals
   int current_tile16_ = 0;  // Selected tile16 for painting
@@ -594,6 +601,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::unique_ptr<OverworldCanvasRenderer> canvas_renderer_;
   std::unique_ptr<CanvasNavigationManager> canvas_nav_;
   std::unique_ptr<TilePaintingManager> tile_painting_;
+  std::unique_ptr<zelda3::OverworldUpgradeSystem> upgrade_system_;
+  std::unique_ptr<EntityMutationService> entity_mutation_service_;
+  std::unique_ptr<OverworldInteractionCoordinator> interaction_coordinator_;
   std::unique_ptr<MapRefreshCoordinator> map_refresh_;
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
   std::unique_ptr<OverworldSidebar> sidebar_;
@@ -656,20 +666,22 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Entity State
   // ===========================================================================
 
-  zelda3::Sprite current_sprite_;
-  zelda3::OverworldEntrance current_entrance_;
-  zelda3::OverworldExit current_exit_;
-  zelda3::OverworldItem current_item_;
   zelda3::OverworldEntranceTileTypes entrance_tiletypes_ = {};
 
   zelda3::GameEntity* current_entity_ = nullptr;
   zelda3::GameEntity* dragged_entity_ = nullptr;
   std::optional<zelda3::OverworldItem> selected_item_identity_;
 
+  // Edit buffers for popups (session-specific)
+  zelda3::OverworldEntrance edit_entrance_;
+  zelda3::OverworldExit edit_exit_;
+  zelda3::OverworldItem edit_item_;
+  zelda3::Sprite edit_sprite_;
+
   // Deferred entity insertion (needed for popup flow from context menu)
-  std::string pending_entity_insert_type_;
-  ImVec2 pending_entity_insert_pos_;
-  std::string entity_insert_error_message_;
+  std::string pending_insert_type_;
+  ImVec2 pending_insert_pos_ = ImVec2(0.0f, 0.0f);
+  std::string insert_error_;
 
   // ===========================================================================
   // Canvas Components
