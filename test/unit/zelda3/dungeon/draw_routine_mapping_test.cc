@@ -78,6 +78,10 @@ struct TilePoint {
   int y;
 };
 
+gfx::TileInfo MakeTile(uint16_t id, uint8_t palette = 0) {
+  return gfx::TileInfo(id, palette, false, false, false);
+}
+
 std::vector<TilePoint> CollectNonZeroTiles(const gfx::BackgroundBuffer& bg) {
   std::vector<TilePoint> points;
   for (int y = 0; y < 64; ++y) {
@@ -100,6 +104,137 @@ bool ContainsPoint(const std::vector<TilePoint>& points, int x, int y) {
 }
 
 }  // namespace
+
+TEST_F(DrawRoutineMappingTest,
+       HorizontalRailRoutinesKeepExistingSmallCornerTile) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x00E2, 0), MakeTile(0x0240, 1), MakeTile(0x0241, 2)};
+
+  struct Case {
+    int routine_id;
+    RoomObject object;
+    int end_x;
+  };
+
+  const std::vector<Case> cases = {
+      {DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus3,
+       RoomObject(0x22, 5, 7, 0, 0),
+       8},
+      {DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus23,
+       RoomObject(0x5F, 5, 7, 0, 0),
+       27},
+  };
+
+  for (const auto& tc : cases) {
+    SCOPED_TRACE(::testing::Message() << "routine=" << tc.routine_id);
+
+    const DrawRoutineInfo* info = reg.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+
+    gfx::BackgroundBuffer bg;
+    const uint16_t preexisting_corner =
+        gfx::TileInfoToWord(MakeTile(0x00E2, 6));
+    bg.SetTileAt(tc.object.x_, tc.object.y_, preexisting_corner);
+
+    DrawContext ctx{bg,
+                    tc.object,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    EXPECT_EQ(bg.GetTileAt(tc.object.x_, tc.object.y_), preexisting_corner);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.object.x_ + 1, tc.object.y_),
+              tiles[1].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.end_x, tc.object.y_),
+              tiles[2].id_);
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       HorizontalTrimRailRoutineKeepsCompatibleExistingCornerTile) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const DrawRoutineInfo* info =
+      reg.GetRoutineInfo(DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus2);
+  ASSERT_NE(info, nullptr);
+
+  gfx::BackgroundBuffer bg;
+  const RoomObject object(0x23, 9, 11, 0, 0);
+  const uint16_t compatible_corner = gfx::TileInfoToWord(MakeTile(0x01A6, 5));
+  bg.SetTileAt(object.x_, object.y_, compatible_corner);
+
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x01DB, 0), MakeTile(0x0260, 1), MakeTile(0x0261, 2)};
+  DrawContext ctx{bg,
+                  object,
+                  std::span<const gfx::TileInfo>(tiles),
+                  /*state=*/nullptr,
+                  rom_.get(),
+                  /*room_id=*/0,
+                  /*room_gfx_buffer=*/nullptr,
+                  /*secondary_bg=*/nullptr};
+  info->function(ctx);
+
+  EXPECT_EQ(bg.GetTileAt(object.x_, object.y_), compatible_corner);
+  EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, object.x_ + 1, object.y_),
+            tiles[1].id_);
+  EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, object.x_ + 2, object.y_),
+            tiles[2].id_);
+}
+
+TEST_F(DrawRoutineMappingTest,
+       VerticalRailRoutinesKeepExistingSmallCornerTile) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x00E3, 0), MakeTile(0x0280, 1), MakeTile(0x0281, 2)};
+
+  struct Case {
+    int routine_id;
+    RoomObject object;
+    int end_y;
+  };
+
+  const std::vector<Case> cases = {
+      {DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus3,
+       RoomObject(0x69, 13, 3, 0, 0),
+       5},
+      {DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23,
+       RoomObject(0x8A, 13, 3, 0, 0),
+       25},
+  };
+
+  for (const auto& tc : cases) {
+    SCOPED_TRACE(::testing::Message() << "routine=" << tc.routine_id);
+
+    const DrawRoutineInfo* info = reg.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+
+    gfx::BackgroundBuffer bg;
+    const uint16_t preexisting_corner =
+        gfx::TileInfoToWord(MakeTile(0x00E3, 7));
+    bg.SetTileAt(tc.object.x_, tc.object.y_, preexisting_corner);
+
+    DrawContext ctx{bg,
+                    tc.object,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    EXPECT_EQ(bg.GetTileAt(tc.object.x_, tc.object.y_), preexisting_corner);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.object.x_, tc.object.y_ + 1),
+              tiles[1].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.object.x_, tc.end_y),
+              tiles[2].id_);
+  }
+}
 
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype1Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);

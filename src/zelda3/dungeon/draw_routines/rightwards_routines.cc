@@ -263,7 +263,12 @@ void DrawRightwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx) {
     return;
 
   int x = ctx.object.x_;
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  // USDASM $01:8EF6-$01:8F01 suppresses the corner when the slot already
+  // contains the small-rail corner tile.
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, x, ctx.object.y_,
+                                                {0x00E2})) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  }
   x++;
   for (int s = 0; s < count; s++) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[1]);
@@ -281,7 +286,12 @@ void DrawRightwardsHasEdge1x1_1to16_plus2(const DrawContext& ctx) {
     return;
 
   int x = ctx.object.x_;
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  // USDASM $01:8F65-$01:8F7F skips the leading cap when the existing tile is
+  // already the same corner, or one of the compatible trim corner tiles.
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(
+          ctx.target_bg, x, ctx.object.y_, {0x01DB, 0x01A6, 0x01DD, 0x01FC})) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  }
   x++;
   for (int s = 0; s < count; s++) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[1]);
@@ -298,7 +308,12 @@ void DrawRightwardsHasEdge1x1_1to16_plus23(const DrawContext& ctx) {
     return;
 
   int x = ctx.object.x_;
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  // USDASM $01:8EF6-$01:8F01 uses the same small-rail-corner suppression path
+  // for the long horizontal rail.
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, x, ctx.object.y_,
+                                                {0x00E2})) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
+  }
   x++;
   for (int s = 0; s < count; s++) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[1]);

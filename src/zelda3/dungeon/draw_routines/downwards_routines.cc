@@ -159,7 +159,12 @@ void DrawDownwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx) {
     return;
 
   int y = ctx.object.y_;
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[0]);
+  // USDASM $01:8EC9-$01:8ED4 suppresses the leading corner when the existing
+  // tile already contains the small vertical rail corner.
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, ctx.object.x_, y,
+                                                {0x00E3})) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[0]);
+  }
   y++;
   for (int s = 0; s < count; s++) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[1]);
