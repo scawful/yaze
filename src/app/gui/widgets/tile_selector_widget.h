@@ -53,6 +53,8 @@ class TileSelectorWidget {
   void SetSelectedTile(int tile_id);
   int GetSelectedTileID() const { return selected_tile_id_; }
   int GetMaxTileId() const { return total_tiles_ > 0 ? total_tiles_ - 1 : 0; }
+  ImVec2 GetGridContentSize() const;
+  float GetPreferredViewportWidth() const;
 
   RenderResult Render(gfx::Bitmap& atlas, bool atlas_ready);
 

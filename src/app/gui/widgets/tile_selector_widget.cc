@@ -96,6 +96,23 @@ void TileSelectorWidget::SetSelectedTile(int tile_id) {
   }
 }
 
+ImVec2 TileSelectorWidget::GetGridContentSize() const {
+  const int tile_display_size =
+      static_cast<int>(config_.tile_size * config_.display_scale);
+  const int num_rows =
+      (total_tiles_ + config_.tiles_per_row - 1) / config_.tiles_per_row;
+  return ImVec2(
+      config_.tiles_per_row * tile_display_size + config_.draw_offset.x * 2,
+      num_rows * tile_display_size + config_.draw_offset.y * 2);
+}
+
+float TileSelectorWidget::GetPreferredViewportWidth() const {
+  const float grid_width = GetGridContentSize().x;
+  // Leave enough room for the jump/range controls before the filter bar wraps,
+  // while still allowing a narrower compact layout when the dock is squeezed.
+  return std::max(grid_width + 18.0f, 332.0f);
+}
+
 TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
                                                             bool atlas_ready) {
   RenderResult result;
@@ -106,13 +123,7 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
 
   const int tile_display_size =
       static_cast<int>(config_.tile_size * config_.display_scale);
-
-  // Calculate total content size for ImGui child window scrolling
-  const int num_rows =
-      (total_tiles_ + config_.tiles_per_row - 1) / config_.tiles_per_row;
-  const ImVec2 content_size(
-      config_.tiles_per_row * tile_display_size + config_.draw_offset.x * 2,
-      num_rows * tile_display_size + config_.draw_offset.y * 2);
+  const ImVec2 content_size = GetGridContentSize();
 
   // Set content size for ImGui child window (must be called before
   // DrawBackground)
@@ -318,6 +329,14 @@ TileSelectorWidget::JumpToTileResult TileSelectorWidget::JumpToTileFromInput(
 bool TileSelectorWidget::DrawFilterBar() {
   bool jumped = false;
   const int max_tile_id = GetMaxTileId();
+  const float available_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const bool compact_layout = available_width < 420.0f;
+  const float jump_input_width =
+      compact_layout ? std::clamp(available_width * 0.28f, 56.0f, 88.0f)
+                     : 64.0f;
+  const float range_input_width =
+      compact_layout ? std::clamp((available_width - 110.0f) * 0.5f, 56.0f, 88.0f)
+                     : 64.0f;
 
   constexpr ImGuiInputTextFlags kHexFlags =
       ImGuiInputTextFlags_CharsHexadecimal |
@@ -327,11 +346,11 @@ bool TileSelectorWidget::DrawFilterBar() {
   ImGui::PushID(widget_id_.c_str());
 
   // Jump-to-ID input
-  ImGui::PushItemWidth(64);
   ImGui::AlignTextToFramePadding();
   ImGui::TextUnformatted("Go:");
   ImGui::SameLine();
 
+  ImGui::SetNextItemWidth(jump_input_width);
   if (ImGui::InputText("##TileFilterID", filter_buf_, sizeof(filter_buf_),
                        kHexFlags)) {
     switch (JumpToTileFromInput(filter_buf_)) {
@@ -352,21 +371,29 @@ bool TileSelectorWidget::DrawFilterBar() {
 
   ImGui::SameLine();
   ImGui::TextDisabled("/ 0x%03X", max_tile_id);
-  if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
-    ImGui::SameLine(0, 8.0f);
-    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Invalid hex ID");
-  } else if (last_jump_result_ == JumpToTileResult::kOutOfRange) {
-    ImGui::SameLine(0, 8.0f);
-    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                       "Out of range (max: 0x%03X)", max_tile_id);
+
+  if (compact_layout) {
+    ImGui::NewLine();
+  } else {
+    if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
+      ImGui::SameLine(0, 8.0f);
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Invalid hex ID");
+    } else if (last_jump_result_ == JumpToTileResult::kOutOfRange) {
+      ImGui::SameLine(0, 8.0f);
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                         "Out of range (max: 0x%03X)", max_tile_id);
+    }
   }
 
   // Range filter inputs
-  ImGui::SameLine(0, 12.0f);
+  if (!compact_layout) {
+    ImGui::SameLine(0, 12.0f);
+  }
   ImGui::TextUnformatted("Range:");
   ImGui::SameLine();
 
   bool range_changed = false;
+  ImGui::SetNextItemWidth(range_input_width);
   if (ImGui::InputText("##RangeMin", filter_min_buf_, sizeof(filter_min_buf_),
                        kHexFlags)) {
     range_changed = true;
@@ -380,6 +407,7 @@ bool TileSelectorWidget::DrawFilterBar() {
   ImGui::SameLine();
   ImGui::TextUnformatted("-");
   ImGui::SameLine();
+  ImGui::SetNextItemWidth(range_input_width);
   if (ImGui::InputText("##RangeMax", filter_max_buf_, sizeof(filter_max_buf_),
                        kHexFlags)) {
     range_changed = true;
@@ -390,8 +418,13 @@ bool TileSelectorWidget::DrawFilterBar() {
         "hex: 1A or 0x1A\n"
         "decimal: d:26");
   }
-  ImGui::SameLine();
-  ImGui::TextDisabled("(hex, d:dec)");
+  if (!compact_layout) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("(hex, d:dec)");
+  } else {
+    ImGui::NewLine();
+    ImGui::TextDisabled("hex or d:dec");
+  }
 
   if (range_changed) {
     int parsed_min = 0;
@@ -422,7 +455,9 @@ bool TileSelectorWidget::DrawFilterBar() {
 
   // Clear button when range is active
   if (filter_range_active_) {
-    ImGui::SameLine();
+    if (!compact_layout) {
+      ImGui::SameLine();
+    }
     if (ImGui::SmallButton("X##ClearRange")) {
       ClearRangeFilter();
       filter_min_buf_[0] = '\0';
@@ -436,21 +471,26 @@ bool TileSelectorWidget::DrawFilterBar() {
 
   // Validation feedback (shown inline after the filter inputs)
   if (filter_range_error_) {
-    ImGui::SameLine(0, 8.0f);
+    if (!compact_layout) {
+      ImGui::SameLine(0, 8.0f);
+    }
     ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Min must be <= Max");
   } else if (filter_out_of_range_) {
-    ImGui::SameLine(0, 8.0f);
+    if (!compact_layout) {
+      ImGui::SameLine(0, 8.0f);
+    }
     ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
                        "Out of range (max: 0x%03X)", GetMaxTileId());
   } else if (filter_range_active_) {
     int range_count = filter_range_max_ - filter_range_min_ + 1;
     if (range_count <= 0) {
-      ImGui::SameLine(0, 8.0f);
+      if (!compact_layout) {
+        ImGui::SameLine(0, 8.0f);
+      }
       ImGui::TextDisabled("(no tiles in range)");
     }
   }
 
-  ImGui::PopItemWidth();
   ImGui::PopID();
 
   return jumped;

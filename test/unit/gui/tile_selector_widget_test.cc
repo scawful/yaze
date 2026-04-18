@@ -236,6 +236,23 @@ TEST_F(TileSelectorWidgetTest, TileOrigin) {
   EXPECT_FLOAT_EQ(origin.y, -1.0f);
 }
 
+TEST_F(TileSelectorWidgetTest, GridContentSizeMatchesConfigGeometry) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  const ImVec2 content_size = widget.GetGridContentSize();
+  EXPECT_FLOAT_EQ(content_size.x, 260.0f);
+  EXPECT_FLOAT_EQ(content_size.y, 256.0f);
+}
+
+TEST_F(TileSelectorWidgetTest, PreferredViewportWidthLeavesRoomForControls) {
+  gui::TileSelectorWidget widget("test_widget", config_);
+  widget.SetTileCount(64);
+
+  EXPECT_GE(widget.GetPreferredViewportWidth(), 332.0f);
+  EXPECT_GE(widget.GetPreferredViewportWidth(), widget.GetGridContentSize().x);
+}
+
 // Test render without atlas (should not crash)
 // NOTE: This test requires a full ImGui frame context which is complex to set up
 // in a unit test without SDL/renderer backends. We test the early return path

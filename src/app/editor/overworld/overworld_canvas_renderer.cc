@@ -329,11 +329,6 @@ void OverworldCanvasRenderer::DrawOverworldMaps() {
 // =============================================================================
 
 absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
-  gui::BeginPadding(3);
-  ImGui::BeginGroup();
-  gui::BeginChildWithScrollbar("##Tile16SelectorScrollRegion");
-  gui::EndPadding();
-
   if (!editor_->blockset_selector_) {
     gui::TileSelectorWidget::Config selector_config;
     const auto& theme = AgentUI::GetTheme();
@@ -354,11 +349,19 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
 
   editor_->UpdateBlocksetSelectorState();
 
+  gui::BeginPadding(3);
+  ImGui::BeginGroup();
+  gui::BeginChildWithScrollbar(
+      "##Tile16SelectorScrollRegion",
+      ImVec2(editor_->blockset_selector_->GetPreferredViewportWidth(), 0.0f),
+      true);
+  gui::EndPadding();
+
   // Tile ID search/jump bar
   if (editor_->blockset_selector_->DrawFilterBar()) {
-    editor_->current_tile16_ = editor_->blockset_selector_->GetSelectedTileID();
-    auto status =
-        editor_->tile16_editor_.SetCurrentTile(editor_->current_tile16_);
+    editor_->current_tile16_ =
+        editor_->blockset_selector_->GetSelectedTileID();
+    auto status = editor_->tile16_editor_.SetCurrentTile(editor_->current_tile16_);
     if (!status.ok()) {
       util::logf("Failed to set tile16: %s", status.message().data());
     }
