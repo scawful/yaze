@@ -34,7 +34,8 @@ void BeginNoPadding();
 void EndNoPadding();
 
 void BeginChildWithScrollbar(const char* str_id);
-void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size);
+void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size,
+                             bool horizontal_scroll = false);
 
 void BeginChildBothScrollbars(int id);
 

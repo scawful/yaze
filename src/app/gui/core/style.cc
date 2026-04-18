@@ -299,9 +299,12 @@ void BeginChildWithScrollbar(const char* str_id) {
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
 }
 
-void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size) {
-  // Set content size before beginning child to enable proper scrolling
-  if (content_size.x > 0 && content_size.y > 0) {
+void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size,
+                             bool horizontal_scroll) {
+  // Set content size before beginning child to enable proper scrolling.
+  // Allow callers to communicate only one axis when the other should remain
+  // auto-sized by ImGui.
+  if (content_size.x > 0.0f || content_size.y > 0.0f) {
     ImGui::SetNextWindowContentSize(content_size);
   }
 
@@ -312,8 +315,10 @@ void BeginChildWithScrollbar(const char* str_id, ImVec2 content_size) {
   if (available.y < 64.0f)
     available.y = 64.0f;
 
-  ImGui::BeginChild(str_id, available, true,
-                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
+  ImGui::BeginChild(
+      str_id, available, true,
+      ImGuiWindowFlags_AlwaysVerticalScrollbar |
+          (horizontal_scroll ? ImGuiWindowFlags_AlwaysHorizontalScrollbar : 0));
 }
 
 void BeginChildBothScrollbars(int id) {

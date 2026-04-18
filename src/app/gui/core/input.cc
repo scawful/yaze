@@ -293,9 +293,19 @@ namespace gui {
 
 namespace {
 
+bool IsValueWheelAdjustmentAllowedForCurrentItem() {
+  if (!ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
+    return false;
+  }
+
+  const ImGuiIO& io = ImGui::GetIO();
+  const bool platform_primary_held = io.KeyCtrl || io.KeySuper;
+  return ImGui::IsItemActive() || platform_primary_held;
+}
+
 template <typename T>
 bool ApplyHexMouseWheel(T* data, T min_value, T max_value) {
-  if (!ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
+  if (!IsValueWheelAdjustmentAllowedForCurrentItem()) {
     return false;
   }
 
@@ -751,8 +761,9 @@ bool SliderFloatWheel(const char* label, float* v, float v_min, float v_max,
                       ImGuiSliderFlags flags) {
   bool changed = ImGui::SliderFloat(label, v, v_min, v_max, format, flags);
 
-  // Handle mouse wheel when hovering
-  if (ImGui::IsItemHovered()) {
+  // Require active focus or the platform primary modifier so hovering while
+  // scrolling a panel doesn't unexpectedly change the value.
+  if (IsValueWheelAdjustmentAllowedForCurrentItem()) {
     float wheel = ImGui::GetIO().MouseWheel;
     if (wheel != 0.0f) {
       *v = std::clamp(*v + wheel * wheel_step, v_min, v_max);
@@ -766,8 +777,7 @@ bool SliderIntWheel(const char* label, int* v, int v_min, int v_max,
                     const char* format, int wheel_step, ImGuiSliderFlags flags) {
   bool changed = ImGui::SliderInt(label, v, v_min, v_max, format, flags);
 
-  // Handle mouse wheel when hovering
-  if (ImGui::IsItemHovered()) {
+  if (IsValueWheelAdjustmentAllowedForCurrentItem()) {
     float wheel = ImGui::GetIO().MouseWheel;
     if (wheel != 0.0f) {
       int delta = static_cast<int>(wheel) * wheel_step;
