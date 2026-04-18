@@ -22,6 +22,10 @@
 #include "yaze_config.h"
 #include "zelda3/resource_labels.h"
 
+#if defined(YAZE_WITH_Z3DK) && __has_include("z3dk_core/config.h")
+#include "z3dk_core/config.h"
+#endif
+
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_storage.h"
 #endif
@@ -158,6 +162,30 @@ std::string SanitizeStorageKey(absl::string_view input) {
     key = "project";
   }
   return key;
+}
+
+std::pair<std::string, std::string> ParseDefineToken(const std::string& value) {
+  auto [key, parsed_value] = ParseKeyValue(value);
+  if (key.empty()) {
+    return {value, "1"};
+  }
+  return {key, parsed_value.empty() ? "1" : parsed_value};
+}
+
+std::string ResolveOptionalPath(const std::filesystem::path& base_dir,
+                                const std::string& value) {
+  if (value.empty()) {
+    return {};
+  }
+  std::filesystem::path path(value);
+  if (path.is_absolute()) {
+    return path.lexically_normal().string();
+  }
+  return (base_dir / path).lexically_normal().string();
+}
+
+std::string BasenameLower(const std::string& path) {
+  return ToLowerCopy(std::filesystem::path(path).filename().string());
 }
 }  // namespace
 
@@ -427,6 +455,9 @@ absl::Status YazeProject::Open(const std::string& project_path) {
   // Normalize project-relative paths so downstream code never depends on the
   // process working directory (important for iOS and portable bundles).
   NormalizePathsToAbsolute();
+
+  // Auto-load z3dk project config if discoverable.
+  TryLoadZ3dkConfig();
 
   // Auto-load hack manifest if configured or discoverable
   TryLoadHackManifest();
@@ -1358,6 +1389,201 @@ absl::Status YazeProject::ImportFromZScreamFormat(
 
 void YazeProject::ReloadHackManifest() {
   TryLoadHackManifest();
+}
+
+void YazeProject::ReloadZ3dkSettings() {
+  TryLoadZ3dkConfig();
+}
+
+std::string YazeProject::GetZ3dkArtifactPath(
+    absl::string_view artifact_name) const {
+  std::filesystem::path base_dir;
+  if (!output_folder.empty()) {
+    base_dir = output_folder;
+  } else if (!z3dk_settings.config_path.empty()) {
+    base_dir = std::filesystem::path(z3dk_settings.config_path).parent_path();
+  } else if (!code_folder.empty()) {
+    base_dir = code_folder;
+  } else if (!filepath.empty()) {
+    base_dir = std::filesystem::path(filepath).parent_path();
+  }
+
+  if (base_dir.empty()) {
+    return std::string(artifact_name);
+  }
+  return (base_dir / std::string(artifact_name)).lexically_normal().string();
+}
+
+void YazeProject::TryLoadZ3dkConfig() {
+  z3dk_settings = Z3dkSettings{};
+
+#if defined(YAZE_WITH_Z3DK) && __has_include("z3dk_core/config.h")
+  std::vector<std::filesystem::path> candidates;
+  auto add_candidate = [&candidates](const std::filesystem::path& candidate) {
+    if (candidate.empty()) {
+      return;
+    }
+    auto normalized = candidate.lexically_normal();
+    if (std::find(candidates.begin(), candidates.end(), normalized) ==
+        candidates.end()) {
+      candidates.push_back(normalized);
+    }
+  };
+
+  if (!code_folder.empty()) {
+    std::filesystem::path code_path(code_folder);
+    if (!std::filesystem::is_directory(code_path)) {
+      code_path = code_path.parent_path();
+    }
+    add_candidate(code_path / "z3dk.toml");
+  }
+
+  if (!hack_manifest_file.empty()) {
+    add_candidate(std::filesystem::path(hack_manifest_file).parent_path() /
+                  "z3dk.toml");
+  }
+
+  if (!filepath.empty()) {
+    add_candidate(std::filesystem::path(filepath).parent_path() / "z3dk.toml");
+  }
+
+  for (const auto& candidate : candidates) {
+    if (!std::filesystem::exists(candidate)) {
+      continue;
+    }
+
+    std::string error;
+    z3dk::Config config = z3dk::LoadConfigFile(candidate.string(), &error);
+    if (!error.empty()) {
+      LOG_WARN("Project", "Failed to parse z3dk config '%s': %s",
+               candidate.string().c_str(), error.c_str());
+      continue;
+    }
+
+    const std::filesystem::path base_dir = candidate.parent_path();
+    z3dk_settings.loaded = true;
+    z3dk_settings.config_path = candidate.string();
+    if (config.preset.has_value()) {
+      z3dk_settings.preset = *config.preset;
+    }
+
+    z3dk_settings.include_paths.reserve(config.include_paths.size());
+    for (const auto& include_path : config.include_paths) {
+      z3dk_settings.include_paths.push_back(
+          ResolveOptionalPath(base_dir, include_path));
+    }
+
+    z3dk_settings.defines.reserve(config.defines.size());
+    for (const auto& define : config.defines) {
+      z3dk_settings.defines.push_back(ParseDefineToken(define));
+    }
+
+    z3dk_settings.main_files.reserve(config.main_files.size());
+    for (const auto& main_file : config.main_files) {
+      z3dk_settings.main_files.push_back(
+          ResolveOptionalPath(base_dir, main_file));
+    }
+
+    if (config.std_includes_path.has_value()) {
+      z3dk_settings.std_includes_path =
+          ResolveOptionalPath(base_dir, *config.std_includes_path);
+    }
+    if (config.std_defines_path.has_value()) {
+      z3dk_settings.std_defines_path =
+          ResolveOptionalPath(base_dir, *config.std_defines_path);
+    }
+    if (config.mapper.has_value()) {
+      z3dk_settings.mapper = *config.mapper;
+    }
+    if (config.rom_size.has_value()) {
+      z3dk_settings.rom_size = *config.rom_size;
+    }
+    if (config.symbols_format.has_value()) {
+      z3dk_settings.symbols_format = *config.symbols_format;
+    }
+    z3dk_settings.lsp_log_enabled = config.lsp_log_enabled;
+    if (config.lsp_log_path.has_value()) {
+      z3dk_settings.lsp_log_path =
+          ResolveOptionalPath(base_dir, *config.lsp_log_path);
+    }
+
+    z3dk_settings.emits.reserve(config.emits.size());
+    for (const auto& emit_path : config.emits) {
+      z3dk_settings.emits.push_back(ResolveOptionalPath(base_dir, emit_path));
+    }
+
+    for (const auto& range : config.prohibited_memory_ranges) {
+      z3dk_settings.prohibited_memory_ranges.push_back(
+          {.start = range.start, .end = range.end, .reason = range.reason});
+    }
+
+    z3dk_settings.warn_unused_symbols =
+        config.warn_unused_symbols.value_or(true);
+    z3dk_settings.warn_branch_outside_bank =
+        config.warn_branch_outside_bank.value_or(true);
+    z3dk_settings.warn_unknown_width = config.warn_unknown_width.value_or(true);
+    z3dk_settings.warn_org_collision = config.warn_org_collision.value_or(true);
+    z3dk_settings.warn_unauthorized_hook =
+        config.warn_unauthorized_hook.value_or(true);
+    z3dk_settings.warn_stack_balance = config.warn_stack_balance.value_or(true);
+    z3dk_settings.warn_hook_return = config.warn_hook_return.value_or(true);
+
+    if (config.rom_path.has_value()) {
+      z3dk_settings.rom_path = ResolveOptionalPath(base_dir, *config.rom_path);
+    }
+    if (config.symbols_path.has_value()) {
+      z3dk_settings.symbols_path =
+          ResolveOptionalPath(base_dir, *config.symbols_path);
+    }
+
+    for (const auto& emit_path : z3dk_settings.emits) {
+      const std::string basename = BasenameLower(emit_path);
+      if (basename.ends_with(".mlb") &&
+          z3dk_settings.artifact_paths.symbols_mlb.empty()) {
+        z3dk_settings.artifact_paths.symbols_mlb = emit_path;
+      } else if (basename == "sourcemap.json") {
+        z3dk_settings.artifact_paths.sourcemap_json = emit_path;
+      } else if (basename == "annotations.json") {
+        z3dk_settings.artifact_paths.annotations_json = emit_path;
+      } else if (basename == "hooks.json") {
+        z3dk_settings.artifact_paths.hooks_json = emit_path;
+      } else if (basename == "lint.json") {
+        z3dk_settings.artifact_paths.lint_json = emit_path;
+      }
+    }
+
+    if (z3dk_settings.artifact_paths.symbols_mlb.empty()) {
+      if (!z3dk_settings.symbols_path.empty() &&
+          BasenameLower(z3dk_settings.symbols_path).ends_with(".mlb")) {
+        z3dk_settings.artifact_paths.symbols_mlb = z3dk_settings.symbols_path;
+      } else {
+        z3dk_settings.artifact_paths.symbols_mlb =
+            GetZ3dkArtifactPath("symbols.mlb");
+      }
+    }
+    if (z3dk_settings.artifact_paths.sourcemap_json.empty()) {
+      z3dk_settings.artifact_paths.sourcemap_json =
+          GetZ3dkArtifactPath("sourcemap.json");
+    }
+    if (z3dk_settings.artifact_paths.annotations_json.empty()) {
+      z3dk_settings.artifact_paths.annotations_json =
+          GetZ3dkArtifactPath("annotations.json");
+    }
+    if (z3dk_settings.artifact_paths.hooks_json.empty()) {
+      z3dk_settings.artifact_paths.hooks_json =
+          GetZ3dkArtifactPath("hooks.json");
+    }
+    if (z3dk_settings.artifact_paths.lint_json.empty()) {
+      z3dk_settings.artifact_paths.lint_json = GetZ3dkArtifactPath("lint.json");
+    }
+
+    LOG_INFO("Project",
+             "Loaded z3dk config from %s (%zu include paths, %zu defines)",
+             z3dk_settings.config_path.c_str(),
+             z3dk_settings.include_paths.size(), z3dk_settings.defines.size());
+    return;
+  }
+#endif
 }
 
 void YazeProject::TryLoadHackManifest() {

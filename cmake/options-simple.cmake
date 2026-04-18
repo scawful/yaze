@@ -100,10 +100,6 @@ endif()
 if(NOT DEFINED YAZE_BUILD_TOOLS)
   option(YAZE_BUILD_TOOLS "Build development utility tools" ${_PROFILE_TOOLS})
 endif()
-if(NOT DEFINED YAZE_BUILD_LAB)
-  option(YAZE_BUILD_LAB "Build lab sandbox executable" ${_PROFILE_LAB})
-endif()
-
 # Compatibility alias for YAZE_BUILD_APP (deprecated, use YAZE_BUILD_GUI)
 if(DEFINED YAZE_BUILD_APP AND NOT DEFINED YAZE_BUILD_GUI)
   set(YAZE_BUILD_GUI ${YAZE_BUILD_APP} CACHE BOOL "Build GUI application" FORCE)
@@ -142,12 +138,22 @@ endif()
 if(NOT DEFINED YAZE_ENABLE_ASAR)
   option(YAZE_ENABLE_ASAR "Enable ASAR 65816 assembler integration" ON)
 endif()
+if(NOT DEFINED YAZE_ENABLE_Z3DK)
+  option(YAZE_ENABLE_Z3DK "Enable z3dk-core 65816 toolchain integration (experimental)" OFF)
+endif()
 
 #===============================================================================
 # Validate Option Combinations (errors instead of silent mutations)
 #===============================================================================
 if(YAZE_ENABLE_REMOTE_AUTOMATION AND NOT YAZE_ENABLE_GRPC)
   message(FATAL_ERROR "YAZE_ENABLE_REMOTE_AUTOMATION requires YAZE_ENABLE_GRPC=ON")
+endif()
+
+if(YAZE_ENABLE_Z3DK AND YAZE_ENABLE_ASAR)
+  message(FATAL_ERROR
+    "YAZE_ENABLE_Z3DK and YAZE_ENABLE_ASAR are mutually exclusive: both link "
+    "Asar-derived object code and would produce duplicate symbol errors. "
+    "Turn one off (z3dk integration is experimental; keep ASAR=ON by default).")
 endif()
 
 if(YAZE_ENABLE_AI_RUNTIME AND NOT YAZE_ENABLE_AI)

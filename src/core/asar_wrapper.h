@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "core/assembly_diagnostic.h"
 
 namespace yaze {
 namespace core {
@@ -35,6 +36,19 @@ struct AsarPatchResult {
   std::vector<AsarSymbol> symbols;    // Extracted symbols
   uint32_t rom_size;                  // Final ROM size after patching
   uint32_t crc32;                     // CRC32 checksum of patched ROM
+
+  // Structured diagnostics (file:line:column + severity). Populated natively
+  // by z3dk backend; best-effort parsed from errors/warnings by Asar backend.
+  // Consumers that render rich UI (diagnostics panel, jump-to-error) should
+  // prefer this; legacy consumers can keep reading `errors`/`warnings`.
+  std::vector<AssemblyDiagnostic> structured_diagnostics;
+
+  // Optional z3dk-generated artifact payloads. Empty for Asar-backed builds.
+  std::string symbols_mlb;
+  std::string sourcemap_json;
+  std::string annotations_json;
+  std::string hooks_json;
+  std::string lint_json;
 };
 
 /**

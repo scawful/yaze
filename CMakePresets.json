@@ -240,6 +240,13 @@
       "configurePreset": "mac-ai"
     },
     {
+      "displayName": "Mac AI Dev + z3dk",
+      "configuration": "Debug",
+      "jobs": 8,
+      "name": "mac-ai-z3dk",
+      "configurePreset": "mac-ai-z3dk"
+    },
+    {
       "displayName": "Mac AI Fast",
       "configuration": "Debug",
       "jobs": 8,
@@ -408,6 +415,24 @@
         "jobs": 8
       },
       "description": "Run stable unit tests against the mac-ai build"
+    },
+    {
+      "displayName": "Unit Tests (macOS + z3dk)",
+      "name": "mac-ai-z3dk-unit",
+      "configurePreset": "mac-ai-z3dk",
+      "filter": {
+        "include": {
+          "label": "^unit$"
+        }
+      },
+      "output": {
+        "outputOnFailure": true,
+        "shortProgress": true
+      },
+      "execution": {
+        "jobs": 8
+      },
+      "description": "Run stable unit tests against the mac-ai-z3dk build (includes Z3dkSmoke)"
     },
     {
       "displayName": "Integration Tests (macOS)",
@@ -649,7 +674,7 @@
       },
       "description": "Base preset with common settings",
       "generator": "Ninja Multi-Config",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "hidden": true,
       "name": "base"
     },
@@ -666,7 +691,7 @@
       "name": "windows-base",
       "generator": "Ninja Multi-Config",
       "description": "Base Windows preset with MSVC/clang-cl support",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "hidden": true,
       "condition": {
         "type": "equals",
@@ -691,7 +716,7 @@
       "name": "windows-vs-base",
       "generator": "Visual Studio 17 2022",
       "description": "Base Windows preset for Visual Studio Generator",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "hidden": true,
       "condition": {
         "type": "equals",
@@ -706,6 +731,10 @@
     {
       "inherits": "base",
       "name": "mac-base",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/usr/bin/clang",
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++"
+      },
       "environment": {
         "PATH": "$env{HOMEBREW_PREFIX}/bin:/opt/homebrew/bin:/usr/local/bin:$penv{PATH}"
       },
@@ -720,7 +749,7 @@
     {
       "name": "ios-base",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-ios",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "hidden": true,
       "condition": {
         "type": "equals",
@@ -739,7 +768,6 @@
         "YAZE_BUILD_Z3ED": "OFF",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_TOOLS": "OFF",
-        "YAZE_BUILD_LAB": "OFF",
         "YAZE_BUILD_EMU": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_ENABLE_GRPC": "OFF",
@@ -758,7 +786,7 @@
     {
       "name": "ios-sim-base",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-ios-sim",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "hidden": true,
       "condition": {
         "type": "equals",
@@ -777,7 +805,6 @@
         "YAZE_BUILD_Z3ED": "OFF",
         "YAZE_BUILD_TESTS": "OFF",
         "YAZE_BUILD_TOOLS": "OFF",
-        "YAZE_BUILD_LAB": "OFF",
         "YAZE_BUILD_EMU": "ON",
         "YAZE_BUILD_LIB": "ON",
         "YAZE_ENABLE_GRPC": "OFF",
@@ -941,7 +968,7 @@
       "displayName": "Web Assembly Debug",
       "description": "Emscripten build for Web Assembly with debug flags - use with emcmake for local development",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-wasm",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "name": "wasm-debug"
     },
     {
@@ -978,7 +1005,7 @@
       "displayName": "Web Assembly Release",
       "description": "Emscripten build for Web Assembly - use with emcmake for production",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-wasm",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "name": "wasm-release"
     },
     {
@@ -990,7 +1017,7 @@
       },
       "displayName": "WASM Crash Repro",
       "description": "Sanitized release build for crash reproduction",
-      "binaryDir": "${sourceDir}/build-wasm",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "name": "wasm-crash-repro"
     },
     {
@@ -1027,7 +1054,7 @@
       "displayName": "Web Assembly with AI",
       "description": "Emscripten build with browser-based AI services",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-wasm",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "name": "wasm-ai",
       "inherits": "wasm-release"
     },
@@ -1215,7 +1242,7 @@
       },
       "displayName": "Windows AI Development",
       "description": "Full development build with AI features and gRPC",
-      "binaryDir": "${sourceDir}/build_ai",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "name": "win-ai"
     },
     {
@@ -1317,7 +1344,7 @@
       },
       "displayName": "Windows AI Development (Visual Studio)",
       "description": "Full development build with AI features for Visual Studio",
-      "binaryDir": "${sourceDir}/build_ai",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "name": "win-vs-ai"
     },
     {
@@ -1413,13 +1440,29 @@
       },
       "displayName": "macOS AI Development",
       "name": "mac-ai",
-      "binaryDir": "${sourceDir}/build_ai",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "condition": {
         "type": "equals",
         "rhs": "Darwin",
         "lhs": "${hostSystemName}"
       },
       "description": "Full development build with AI features and gRPC"
+    },
+    {
+      "inherits": "mac-ai",
+      "cacheVariables": {
+        "YAZE_ENABLE_ASAR": "OFF",
+        "YAZE_ENABLE_Z3DK": "ON"
+      },
+      "displayName": "macOS AI Development + z3dk (experimental)",
+      "name": "mac-ai-z3dk",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
+      "condition": {
+        "type": "equals",
+        "rhs": "Darwin",
+        "lhs": "${hostSystemName}"
+      },
+      "description": "mac-ai with z3dk-core in place of ext/asar (experimental, requires ext/z3dk submodule or sibling checkout)"
     },
     {
       "inherits": "mac-base",
@@ -1437,7 +1480,7 @@
       },
       "displayName": "Mac AI Fast",
       "name": "mac-ai-fast",
-      "binaryDir": "${sourceDir}/build_ai",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "condition": {
         "type": "equals",
         "rhs": "Darwin",
@@ -1612,7 +1655,7 @@
       },
       "displayName": "Linux AI Development",
       "name": "lin-ai",
-      "binaryDir": "${sourceDir}/build_ai",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "condition": {
         "type": "equals",
         "rhs": "Linux",
@@ -1635,7 +1678,7 @@
       },
       "displayName": "macOS Fast Test",
       "name": "mac-test",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "condition": {
         "type": "equals",
         "rhs": "Darwin",
@@ -1657,7 +1700,7 @@
       },
       "displayName": "Windows Fast Test",
       "description": "Optimized build for fast test iteration (~2-3x faster than Debug)",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "name": "win-test"
     },
     {
@@ -1675,7 +1718,7 @@
       },
       "displayName": "Linux Fast Test",
       "name": "lin-test",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "condition": {
         "type": "equals",
         "rhs": "Linux",

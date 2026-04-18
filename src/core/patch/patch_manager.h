@@ -7,6 +7,9 @@
 
 #include "absl/status/status.h"
 #include "core/patch/asm_patch.h"
+#ifdef YAZE_WITH_Z3DK
+#include "core/z3dk_wrapper.h"
+#endif
 
 namespace yaze {
 class Rom;
@@ -88,6 +91,12 @@ class PatchManager {
    */
   absl::Status ApplyEnabledPatches(Rom* rom);
 
+#ifdef YAZE_WITH_Z3DK
+  void SetZ3dkAssembleOptions(const Z3dkAssembleOptions& options) {
+    z3dk_options_ = options;
+  }
+#endif
+
   /**
    * @brief Generate a combined .asm file that includes all enabled patches
    * @param output_path Path to write the combined patch file
@@ -152,12 +161,16 @@ class PatchManager {
    * @param dir_path Path to the directory
    * @param folder_name Name to assign to patches found
    */
-  void ScanDirectory(const std::string& dir_path, const std::string& folder_name);
+  void ScanDirectory(const std::string& dir_path,
+                     const std::string& folder_name);
 
   std::vector<std::string> folders_;
   std::vector<std::unique_ptr<AsmPatch>> patches_;
   std::string patches_directory_;
   bool is_loaded_ = false;
+#ifdef YAZE_WITH_Z3DK
+  Z3dkAssembleOptions z3dk_options_;
+#endif
 };
 
 }  // namespace yaze::core

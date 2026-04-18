@@ -29,7 +29,9 @@ class ProjectGraphTool : public resources::CommandHandler {
 
   std::string GetName() const override { return "project-graph"; }
   std::string GetUsage() const override {
-    return "project-graph --query=<info|files|symbols> [--path=<folder>]";
+    return "project-graph --query=<info|files|symbols|lookup|writes|bank> "
+           "[--path=<folder>] [--symbol=<name>] [--address=<hex>] "
+           "[--bank=<hex>]";
   }
   bool RequiresRom() const override { return false; }
 
@@ -40,8 +42,15 @@ class ProjectGraphTool : public resources::CommandHandler {
 
  private:
   absl::Status GetProjectInfo(resources::OutputFormatter& formatter) const;
-  absl::Status GetFileStructure(const std::string& path, resources::OutputFormatter& formatter) const;
+  absl::Status GetFileStructure(const std::string& path,
+                                resources::OutputFormatter& formatter) const;
   absl::Status GetSymbolTable(resources::OutputFormatter& formatter) const;
+  absl::Status LookupAddressOrSymbol(
+      const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter) const;
+  absl::Status GetWriteCoverage(resources::OutputFormatter& formatter) const;
+  absl::Status GetBankContext(const resources::ArgumentParser& parser,
+                              resources::OutputFormatter& formatter) const;
 };
 
 }  // namespace tools

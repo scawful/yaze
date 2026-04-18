@@ -2244,6 +2244,11 @@ core::Z3dkAssembleOptions AssemblyEditor::BuildZ3dkAssembleOptions() const {
   const auto& z3dk = dependencies_.project->z3dk_settings;
   options.include_paths = z3dk.include_paths;
   options.defines = z3dk.defines;
+  options.std_includes_path = z3dk.std_includes_path;
+  options.std_defines_path = z3dk.std_defines_path;
+  options.mapper = z3dk.mapper;
+  options.rom_size = z3dk.rom_size;
+  options.capture_nocash_symbols = (z3dk.symbols_format == "nocash");
   options.warn_unused_symbols = z3dk.warn_unused_symbols;
   options.warn_branch_outside_bank = z3dk.warn_branch_outside_bank;
   options.warn_unknown_width = z3dk.warn_unknown_width;
