@@ -11,13 +11,13 @@ namespace yaze {
 namespace editor {
 
 // =============================================================================
-// EditorPanel wrappers for AssemblyEditor panels
+// WindowContent wrappers for AssemblyEditor panels
 // =============================================================================
 
 /**
  * @brief Main code editor panel with text editing
  */
-class AssemblyCodeEditorPanel : public EditorPanel {
+class AssemblyCodeEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -45,7 +45,7 @@ class AssemblyCodeEditorPanel : public EditorPanel {
 /**
  * @brief File browser panel for navigating project files
  */
-class AssemblyFileBrowserPanel : public EditorPanel {
+class AssemblyFileBrowserPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -73,7 +73,7 @@ class AssemblyFileBrowserPanel : public EditorPanel {
 /**
  * @brief Symbol table viewer panel
  */
-class AssemblySymbolsPanel : public EditorPanel {
+class AssemblySymbolsPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -100,7 +100,7 @@ class AssemblySymbolsPanel : public EditorPanel {
 /**
  * @brief Build output / errors panel
  */
-class AssemblyBuildOutputPanel : public EditorPanel {
+class AssemblyBuildOutputPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -125,9 +125,36 @@ class AssemblyBuildOutputPanel : public EditorPanel {
 };
 
 /**
+ * @brief Read-only disassembly browser panel
+ */
+class AssemblyDisassemblyPanel : public WindowContent {
+ public:
+  using DrawCallback = std::function<void()>;
+
+  explicit AssemblyDisassemblyPanel(DrawCallback draw_callback)
+      : draw_callback_(std::move(draw_callback)) {}
+
+  std::string GetId() const override { return "assembly.disassembly"; }
+  std::string GetDisplayName() const override { return "Disassembly"; }
+  std::string GetIcon() const override { return ICON_MD_MEMORY; }
+  std::string GetEditorCategory() const override { return "Assembly"; }
+  int GetPriority() const override { return 35; }
+  float GetPreferredWidth() const override { return 420.0f; }
+
+  void Draw(bool* p_open) override {
+    if (draw_callback_) {
+      draw_callback_();
+    }
+  }
+
+ private:
+  DrawCallback draw_callback_;
+};
+
+/**
  * @brief Toolbar panel with quick actions
  */
-class AssemblyToolbarPanel : public EditorPanel {
+class AssemblyToolbarPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -155,4 +182,3 @@ class AssemblyToolbarPanel : public EditorPanel {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_CODE_PANELS_ASSEMBLY_EDITOR_PANELS_H_
-

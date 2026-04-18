@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <optional>
@@ -17,17 +18,27 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
+#include "absl/strings/str_join.h"
+#include "app/editor/code/diagnostics_panel.h"
 #include "app/editor/code/panels/assembly_editor_panels.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/editor_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
+#include "app/emu/debug/disassembler.h"
+#include "app/emu/mesen/mesen_client_registry.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/text_editor.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "cli/service/agent/tools/project_graph_tool.h"
 #include "core/project.h"
 #include "core/version_manager.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
+#include "rom/snes.h"
 #include "util/file_util.h"
+#include "util/json.h"
 
 namespace yaze::editor {
 
@@ -126,16 +137,124 @@ bool IsIgnoredFile(const std::string& name,
 }
 
 bool ShouldSkipDirectory(const std::string& name) {
-  static const std::array<const char*, 11> kSkippedDirectories = {
-      ".git",         ".context", ".idea",       ".vscode",
-      "build",        "build_ai", "build_agent", "build_test",
-      "node_modules", "dist",     "out"};
+  static const std::array<const char*, 13> kSkippedDirectories = {
+      ".git",       ".context",     ".idea",      ".vscode",   "build",
+      "build_ai",   "build_agent",  "build_test", "build-ios", "build-ios-sim",
+      "build-wasm", "node_modules", "dist"};
   for (const char* skipped : kSkippedDirectories) {
     if (name == skipped) {
       return true;
     }
   }
+  if (name == "out") {
+    return true;
+  }
   return false;
+}
+
+std::string ShellQuote(const std::string& value) {
+  std::string quoted = "'";
+  for (char ch : value) {
+    if (ch == '\'') {
+      quoted += "'\\''";
+    } else {
+      quoted.push_back(ch);
+    }
+  }
+  quoted += "'";
+  return quoted;
+}
+
+std::optional<std::filesystem::path> FindUpwardPath(
+    const std::filesystem::path& start, const std::filesystem::path& relative) {
+  std::error_code ec;
+  auto current = std::filesystem::absolute(start, ec);
+  if (ec) {
+    current = start;
+  }
+  while (!current.empty()) {
+    const auto candidate = current / relative;
+    if (std::filesystem::exists(candidate, ec) && !ec) {
+      return candidate;
+    }
+    if (current == current.root_path() || current == current.parent_path()) {
+      break;
+    }
+    current = current.parent_path();
+  }
+  return std::nullopt;
+}
+
+bool IsGeneratedBankFile(const std::filesystem::path& path) {
+  if (path.extension() != ".asm") {
+    return false;
+  }
+  const std::string name = path.filename().string();
+  return absl::StartsWith(name, "bank_");
+}
+
+bool LoadJsonFile(const std::string& path, Json* out) {
+  if (path.empty()) {
+    return false;
+  }
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    return false;
+  }
+  try {
+    file >> *out;
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+int NormalizeLoRomBankIndex(uint32_t address) {
+  if ((address & 0xFF0000u) >= 0x800000u) {
+    address &= 0x7FFFFFu;
+  }
+  return static_cast<int>((address >> 16) & 0xFFu);
+}
+
+std::optional<int> ParseGeneratedBankIndex(const std::string& path) {
+  const std::string name = std::filesystem::path(path).filename().string();
+  if (!absl::StartsWith(name, "bank_") || !absl::EndsWith(name, ".asm")) {
+    return std::nullopt;
+  }
+  const std::string hex = name.substr(5, name.size() - 9);
+  try {
+    return std::stoi(hex, nullptr, 16);
+  } catch (...) {
+    return std::nullopt;
+  }
+}
+
+std::optional<uint32_t> ParseHexAddress(const std::string& text) {
+  if (text.empty()) {
+    return std::nullopt;
+  }
+
+  std::string token = text;
+  const size_t first = token.find_first_not_of(" \t");
+  if (first == std::string::npos) {
+    return std::nullopt;
+  }
+  const size_t last = token.find_last_not_of(" \t");
+  token = token.substr(first, last - first + 1);
+  if (token.empty()) {
+    return std::nullopt;
+  }
+  if (token[0] == '$') {
+    token = token.substr(1);
+  } else if (token.size() > 2 && token[0] == '0' &&
+             (token[1] == 'x' || token[1] == 'X')) {
+    token = token.substr(2);
+  }
+  try {
+    return static_cast<uint32_t>(std::stoul(token, nullptr, 16));
+  } catch (...) {
+    return std::nullopt;
+  }
 }
 
 void SortFolderItem(FolderItem* item) {
@@ -503,9 +622,7 @@ std::optional<std::filesystem::path> FindAsmFileInFolder(
       const auto name = entry.path().filename().string();
       if (!name.empty() && name.front() == '.') {
         it.disable_recursion_pending();
-      } else if (name == "build" || name == "build_ai" || name == "build-ios" ||
-                 name == "build-ios-sim" || name == "build-wasm" ||
-                 name == "node_modules") {
+      } else if (ShouldSkipDirectory(name)) {
         it.disable_recursion_pending();
       }
       continue;
@@ -546,9 +663,7 @@ std::optional<AsmSymbolLocation> FindLabelInFolder(
       const auto name = entry.path().filename().string();
       if (!name.empty() && name.front() == '.') {
         it.disable_recursion_pending();
-      } else if (name == "build" || name == "build_ai" || name == "build-ios" ||
-                 name == "build-ios-sim" || name == "build-wasm" ||
-                 name == "node_modules") {
+      } else if (ShouldSkipDirectory(name)) {
         it.disable_recursion_pending();
       }
       continue;
@@ -575,29 +690,36 @@ std::optional<AsmSymbolLocation> FindLabelInFolder(
 void AssemblyEditor::Initialize() {
   text_editor_.SetLanguageDefinition(GetAssemblyLanguageDef());
 
-  // Register panels with PanelManager using EditorPanel instances
-  if (!dependencies_.panel_manager)
+  // Register panels with WorkspaceWindowManager using WindowContent instances
+  if (!dependencies_.window_manager)
     return;
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
 
   // Register Code Editor panel - main text editing
-  panel_manager->RegisterEditorPanel(std::make_unique<AssemblyCodeEditorPanel>(
-      [this]() { DrawCodeEditor(); }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<AssemblyCodeEditorPanel>(
+          [this]() { DrawCodeEditor(); }));
 
   // Register File Browser panel - project file navigation
-  panel_manager->RegisterEditorPanel(std::make_unique<AssemblyFileBrowserPanel>(
-      [this]() { DrawFileBrowser(); }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<AssemblyFileBrowserPanel>(
+          [this]() { DrawFileBrowser(); }));
 
   // Register Symbols panel - symbol table viewer
-  panel_manager->RegisterEditorPanel(std::make_unique<AssemblySymbolsPanel>(
+  window_manager->RegisterWindowContent(std::make_unique<AssemblySymbolsPanel>(
       [this]() { DrawSymbolsContent(); }));
 
   // Register Build Output panel - errors/warnings
-  panel_manager->RegisterEditorPanel(std::make_unique<AssemblyBuildOutputPanel>(
-      [this]() { DrawBuildOutput(); }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<AssemblyBuildOutputPanel>(
+          [this]() { DrawBuildOutput(); }));
+
+  window_manager->RegisterWindowContent(
+      std::make_unique<AssemblyDisassemblyPanel>(
+          [this]() { DrawDisassemblyContent(); }));
 
   // Register Toolbar panel - quick actions
-  panel_manager->RegisterEditorPanel(std::make_unique<AssemblyToolbarPanel>(
+  window_manager->RegisterWindowContent(std::make_unique<AssemblyToolbarPanel>(
       [this]() { DrawToolbarContent(); }));
 }
 
@@ -809,7 +931,7 @@ void AssemblyEditor::ClearSymbolJumpCache() {
 }
 
 // =============================================================================
-// Panel Content Drawing (EditorPanel System)
+// Panel Content Drawing (WindowContent System)
 // =============================================================================
 
 void AssemblyEditor::DrawCodeEditor() {
@@ -946,23 +1068,820 @@ void AssemblyEditor::DrawBuildOutput() {
 
   // Output log
   if (ImGui::BeginChild("##build_log", ImVec2(0, 0), true)) {
-    // Show errors in red
-    for (const auto& error : last_errors_) {
-      gui::StyleColorGuard err_guard(ImGuiCol_Text,
-                                     ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
-      ImGui::TextWrapped("%s %s", ICON_MD_ERROR, error.c_str());
-    }
-    // Show warnings in yellow
-    for (const auto& warning : last_warnings_) {
-      gui::StyleColorGuard warn_guard(ImGuiCol_Text,
-                                      ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
-      ImGui::TextWrapped("%s %s", ICON_MD_WARNING, warning.c_str());
-    }
-    if (last_errors_.empty() && last_warnings_.empty()) {
-      ImGui::TextDisabled("No build output");
+    if (!last_diagnostics_.empty()) {
+      // Structured path — when the backend (z3dk, or future enriched Asar)
+      // gave us file:line diagnostics, render via the dedicated panel.
+      DiagnosticsPanelCallbacks callbacks;
+      callbacks.on_diagnostic_activated = [this](const std::string& file,
+                                                 int line, int column) {
+        if (!file.empty()) {
+          std::string reference = file;
+          if (line > 0) {
+            reference = absl::StrCat(reference, ":", line);
+            if (column > 0) {
+              reference = absl::StrCat(reference, ":", column);
+            }
+          }
+          auto status = JumpToReference(reference);
+          if (!status.ok() && dependencies_.toast_manager) {
+            dependencies_.toast_manager->Show(
+                "Failed to open diagnostic location: " +
+                    std::string(status.message()),
+                ToastType::kError);
+          }
+          return;
+        }
+        // TextEditor coords are 0-based; diagnostics are 1-based.
+        if (auto* editor = GetActiveEditor()) {
+          TextEditor::Coordinates coords(line > 0 ? line - 1 : 0,
+                                         column > 0 ? column - 1 : 0);
+          editor->SetCursorPosition(coords);
+        }
+      };
+      DrawDiagnosticsPanel(last_diagnostics_, callbacks);
+    } else {
+      // Legacy flat-string fallback (vanilla Asar without structured output).
+      for (const auto& error : last_errors_) {
+        gui::StyleColorGuard err_guard(ImGuiCol_Text,
+                                       ImVec4(1.0f, 0.4f, 0.4f, 1.0f));
+        ImGui::TextWrapped("%s %s", ICON_MD_ERROR, error.c_str());
+      }
+      for (const auto& warning : last_warnings_) {
+        gui::StyleColorGuard warn_guard(ImGuiCol_Text,
+                                        ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
+        ImGui::TextWrapped("%s %s", ICON_MD_WARNING, warning.c_str());
+      }
+      if (last_errors_.empty() && last_warnings_.empty()) {
+        ImGui::TextDisabled("No build output");
+      }
     }
   }
   ImGui::EndChild();
+}
+
+std::optional<uint32_t> AssemblyEditor::CurrentDisassemblyBank() const {
+  if (auto symbol_it = symbols_.find(disasm_query_);
+      symbol_it != symbols_.end()) {
+    return (symbol_it->second.address >> 16) & 0xFFu;
+  }
+  auto parsed = ParseHexAddress(disasm_query_);
+  if (!parsed.has_value()) {
+    return std::nullopt;
+  }
+  return (*parsed >> 16) & 0xFFu;
+}
+
+std::string AssemblyEditor::ResolveZ3DisasmCommand() const {
+  if (const char* env = std::getenv("Z3DISASM_BIN"); env && env[0] != '\0') {
+    return std::string(env);
+  }
+
+  std::error_code ec;
+  const auto cwd = std::filesystem::current_path(ec);
+  if (!ec) {
+    if (auto script =
+            FindUpwardPath(cwd, std::filesystem::path("scripts") / "z3disasm");
+        script.has_value()) {
+      return script->string();
+    }
+  }
+
+  return "z3disasm";
+}
+
+std::string AssemblyEditor::ResolveZ3DisasmOutputDir() const {
+  if (!z3disasm_output_dir_.empty()) {
+    return z3disasm_output_dir_;
+  }
+  if (dependencies_.project) {
+    return dependencies_.project->GetZ3dkArtifactPath("z3disasm");
+  }
+  if (rom_ && rom_->is_loaded() && !rom_->filename().empty()) {
+    return (std::filesystem::path(rom_->filename()).parent_path() / "z3disasm")
+        .string();
+  }
+  std::error_code ec;
+  return (std::filesystem::current_path(ec) / "z3disasm").string();
+}
+
+std::string AssemblyEditor::ResolveZ3DisasmRomPath() const {
+  if (rom_ && rom_->is_loaded() && !rom_->filename().empty()) {
+    return rom_->filename();
+  }
+  if (dependencies_.project) {
+    if (!dependencies_.project->z3dk_settings.rom_path.empty()) {
+      return dependencies_.project->z3dk_settings.rom_path;
+    }
+    return dependencies_.project->rom_filename;
+  }
+  return {};
+}
+
+int AssemblyEditor::SelectedZ3DisasmBankIndex() const {
+  if (auto bank = ParseGeneratedBankIndex(z3disasm_selected_path_);
+      bank.has_value()) {
+    return *bank;
+  }
+  return -1;
+}
+
+std::string AssemblyEditor::BuildProjectGraphBankQuery() const {
+  const int bank = SelectedZ3DisasmBankIndex();
+  if (bank < 0) {
+    return {};
+  }
+  return absl::StrFormat("project-graph --query=bank --bank=%02X --format=json",
+                         bank);
+}
+
+std::string AssemblyEditor::BuildProjectGraphLookupQuery(
+    uint32_t address) const {
+  return absl::StrFormat(
+      "project-graph --query=lookup --address=%06X --format=json", address);
+}
+
+absl::Status AssemblyEditor::RunProjectGraphQueryInDrawer(
+    const std::vector<std::string>& args, const std::string& title) {
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (!editor_manager || !editor_manager->right_drawer_manager()) {
+    return absl::FailedPreconditionError(
+        "Right drawer manager is unavailable for project-graph results");
+  }
+
+  cli::agent::tools::ProjectGraphTool tool;
+  if (dependencies_.project) {
+    tool.SetProjectContext(dependencies_.project);
+  }
+  tool.SetAssemblySymbolTable(&symbols_);
+  tool.SetAsarWrapper(&asar_);
+
+  std::string output;
+  auto status = tool.Run(args, nullptr, &output);
+  if (!status.ok()) {
+    return status;
+  }
+
+  RightDrawerManager::ToolOutputActions actions;
+  actions.on_open_reference = [this](const std::string& reference) {
+    JumpToReference(reference).IgnoreError();
+  };
+  actions.on_open_address = [this](uint32_t address) {
+    disasm_query_ = absl::StrFormat("0x%06X", address);
+    NavigateDisassemblyQuery().IgnoreError();
+  };
+  actions.on_open_lookup = [this](uint32_t address) {
+    RunProjectGraphQueryInDrawer(
+        {"--query=lookup", absl::StrFormat("--address=%06X", address),
+         "--format=json"},
+        absl::StrFormat("Project Graph Lookup $%06X", address))
+        .IgnoreError();
+  };
+
+  editor_manager->right_drawer_manager()->SetToolOutput(
+      title, absl::StrJoin(args, " "), output, std::move(actions));
+  editor_manager->right_drawer_manager()->OpenDrawer(
+      RightDrawerManager::DrawerType::kToolOutput);
+  return absl::OkStatus();
+}
+
+void AssemblyEditor::RefreshSelectedZ3DisassemblyMetadata() {
+  z3disasm_source_jumps_.clear();
+  z3disasm_hook_jumps_.clear();
+
+  if (!dependencies_.project) {
+    return;
+  }
+
+  const int selected_bank = SelectedZ3DisasmBankIndex();
+  if (selected_bank < 0) {
+    return;
+  }
+
+  const auto& project = *dependencies_.project;
+  Json sourcemap;
+  const std::string sourcemap_path =
+      !project.z3dk_settings.artifact_paths.sourcemap_json.empty()
+          ? project.z3dk_settings.artifact_paths.sourcemap_json
+          : project.GetZ3dkArtifactPath("sourcemap.json");
+  if (LoadJsonFile(sourcemap_path, &sourcemap) &&
+      sourcemap.contains("entries") && sourcemap["entries"].is_array() &&
+      sourcemap.contains("files") && sourcemap["files"].is_array()) {
+    std::map<int, std::string> files_by_id;
+    for (const auto& file : sourcemap["files"]) {
+      files_by_id[file.value("id", -1)] = file.value("path", "");
+    }
+
+    for (const auto& entry : sourcemap["entries"]) {
+      const std::string address_str = entry.value("address", "0x0");
+      auto address = ParseHexAddress(address_str);
+      if (!address.has_value() ||
+          NormalizeLoRomBankIndex(*address) != selected_bank) {
+        continue;
+      }
+
+      Z3DisasmSourceJump jump;
+      jump.address = *address;
+      jump.line = entry.value("line", 0);
+      jump.file = files_by_id[entry.value("file_id", -1)];
+      if (!jump.file.empty()) {
+        z3disasm_source_jumps_.push_back(std::move(jump));
+      }
+    }
+    std::sort(z3disasm_source_jumps_.begin(), z3disasm_source_jumps_.end(),
+              [](const Z3DisasmSourceJump& lhs, const Z3DisasmSourceJump& rhs) {
+                if (lhs.address != rhs.address) {
+                  return lhs.address < rhs.address;
+                }
+                if (lhs.file != rhs.file) {
+                  return lhs.file < rhs.file;
+                }
+                return lhs.line < rhs.line;
+              });
+  }
+
+  Json hooks;
+  const std::string hooks_path =
+      !project.z3dk_settings.artifact_paths.hooks_json.empty()
+          ? project.z3dk_settings.artifact_paths.hooks_json
+          : project.GetZ3dkArtifactPath("hooks.json");
+  if (LoadJsonFile(hooks_path, &hooks) && hooks.contains("hooks") &&
+      hooks["hooks"].is_array()) {
+    for (const auto& hook : hooks["hooks"]) {
+      const std::string address_str = hook.value("address", "0x0");
+      auto address = ParseHexAddress(address_str);
+      if (!address.has_value() ||
+          NormalizeLoRomBankIndex(*address) != selected_bank) {
+        continue;
+      }
+
+      Z3DisasmHookJump jump;
+      jump.address = *address;
+      jump.size = hook.value("size", 0);
+      jump.kind = hook.value("kind", "patch");
+      jump.name = hook.value("name", "");
+      jump.source = hook.value("source", "");
+      z3disasm_hook_jumps_.push_back(std::move(jump));
+    }
+    std::sort(z3disasm_hook_jumps_.begin(), z3disasm_hook_jumps_.end(),
+              [](const Z3DisasmHookJump& lhs, const Z3DisasmHookJump& rhs) {
+                if (lhs.address != rhs.address) {
+                  return lhs.address < rhs.address;
+                }
+                return lhs.name < rhs.name;
+              });
+  }
+}
+
+void AssemblyEditor::LoadSelectedZ3DisassemblyFile() {
+  z3disasm_selected_contents_.clear();
+  z3disasm_selected_path_.clear();
+  z3disasm_source_jumps_.clear();
+  z3disasm_hook_jumps_.clear();
+  if (z3disasm_selected_index_ < 0 ||
+      z3disasm_selected_index_ >= static_cast<int>(z3disasm_files_.size())) {
+    return;
+  }
+
+  z3disasm_selected_path_ = z3disasm_files_[z3disasm_selected_index_];
+  std::ifstream file(z3disasm_selected_path_);
+  if (!file.is_open()) {
+    z3disasm_status_ = absl::StrCat("Failed to open ", z3disasm_selected_path_);
+    return;
+  }
+  z3disasm_selected_contents_.assign(std::istreambuf_iterator<char>(file),
+                                     std::istreambuf_iterator<char>());
+  RefreshSelectedZ3DisassemblyMetadata();
+}
+
+void AssemblyEditor::RefreshZ3DisassemblyFiles() {
+  z3disasm_files_.clear();
+  const std::filesystem::path output_dir(ResolveZ3DisasmOutputDir());
+  std::error_code ec;
+  if (!std::filesystem::exists(output_dir, ec) || ec) {
+    z3disasm_selected_index_ = -1;
+    z3disasm_selected_path_.clear();
+    z3disasm_selected_contents_.clear();
+    z3disasm_source_jumps_.clear();
+    z3disasm_hook_jumps_.clear();
+    return;
+  }
+
+  std::string previous_selection = z3disasm_selected_path_;
+  for (const auto& entry :
+       std::filesystem::directory_iterator(output_dir, ec)) {
+    if (ec) {
+      break;
+    }
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    if (IsGeneratedBankFile(entry.path())) {
+      z3disasm_files_.push_back(entry.path().string());
+    }
+  }
+  std::sort(z3disasm_files_.begin(), z3disasm_files_.end());
+
+  if (z3disasm_files_.empty()) {
+    z3disasm_selected_index_ = -1;
+    z3disasm_selected_path_.clear();
+    z3disasm_selected_contents_.clear();
+    z3disasm_source_jumps_.clear();
+    z3disasm_hook_jumps_.clear();
+    return;
+  }
+
+  z3disasm_selected_index_ = 0;
+  if (!previous_selection.empty()) {
+    const auto it = std::find(z3disasm_files_.begin(), z3disasm_files_.end(),
+                              previous_selection);
+    if (it != z3disasm_files_.end()) {
+      z3disasm_selected_index_ =
+          static_cast<int>(std::distance(z3disasm_files_.begin(), it));
+    }
+  }
+  LoadSelectedZ3DisassemblyFile();
+}
+
+void AssemblyEditor::PollZ3DisassemblyTask() {
+  const auto snapshot = z3disasm_task_.GetSnapshot();
+  if (!snapshot.started) {
+    return;
+  }
+  if (snapshot.running) {
+    z3disasm_status_ =
+        absl::StrCat("z3disasm running...\n", snapshot.output_tail);
+    return;
+  }
+  if (z3disasm_task_acknowledged_ || !snapshot.finished) {
+    return;
+  }
+
+  z3disasm_task_acknowledged_ = true;
+  if (snapshot.status.ok()) {
+    RefreshZ3DisassemblyFiles();
+    z3disasm_status_ = absl::StrCat(
+        "z3disasm finished.",
+        z3disasm_files_.empty()
+            ? std::string(" No bank files were generated.")
+            : absl::StrFormat(" Loaded %d bank file(s).",
+                              static_cast<int>(z3disasm_files_.size())));
+  } else {
+    z3disasm_status_ =
+        absl::StrCat("z3disasm failed: ", snapshot.status.message(), "\n",
+                     snapshot.output_tail);
+  }
+  z3disasm_task_.Wait().IgnoreError();
+}
+
+absl::Status AssemblyEditor::GenerateZ3Disassembly() {
+  if (const auto snapshot = z3disasm_task_.GetSnapshot(); snapshot.running) {
+    return absl::FailedPreconditionError("z3disasm is already running");
+  }
+
+  const std::string rom_path = ResolveZ3DisasmRomPath();
+  if (rom_path.empty()) {
+    return absl::FailedPreconditionError(
+        "No ROM path is available for z3disasm");
+  }
+
+  const std::string command_path = ResolveZ3DisasmCommand();
+  const std::string output_dir = ResolveZ3DisasmOutputDir();
+  z3disasm_output_dir_ = output_dir;
+
+  std::error_code ec;
+  std::filesystem::create_directories(output_dir, ec);
+  for (const auto& entry :
+       std::filesystem::directory_iterator(output_dir, ec)) {
+    if (!ec && entry.is_regular_file() && IsGeneratedBankFile(entry.path())) {
+      std::filesystem::remove(entry.path(), ec);
+    }
+  }
+
+  std::string command = ShellQuote(command_path);
+  command += " --rom ";
+  command += ShellQuote(rom_path);
+  command += " --out ";
+  command += ShellQuote(output_dir);
+
+  if (!z3disasm_all_banks_) {
+    command += absl::StrFormat(" --bank-start %02X --bank-end %02X",
+                               std::clamp(z3disasm_bank_start_, 0, 0xFF),
+                               std::clamp(z3disasm_bank_end_, 0, 0xFF));
+  }
+
+  if (dependencies_.project) {
+    const std::string symbols_path =
+        !dependencies_.project->z3dk_settings.artifact_paths.symbols_mlb.empty()
+            ? dependencies_.project->z3dk_settings.artifact_paths.symbols_mlb
+            : dependencies_.project->GetZ3dkArtifactPath("symbols.mlb");
+    if (!symbols_path.empty() && std::filesystem::exists(symbols_path)) {
+      command += " --symbols ";
+      command += ShellQuote(symbols_path);
+    }
+
+    const std::string hooks_path =
+        !dependencies_.project->z3dk_settings.artifact_paths.hooks_json.empty()
+            ? dependencies_.project->z3dk_settings.artifact_paths.hooks_json
+            : dependencies_.project->GetZ3dkArtifactPath("hooks.json");
+    if (!hooks_path.empty() && std::filesystem::exists(hooks_path)) {
+      command += " --hooks ";
+      command += ShellQuote(hooks_path);
+    }
+  }
+
+  z3disasm_task_acknowledged_ = false;
+  z3disasm_selected_index_ = -1;
+  z3disasm_selected_path_.clear();
+  z3disasm_selected_contents_.clear();
+  z3disasm_source_jumps_.clear();
+  z3disasm_hook_jumps_.clear();
+  z3disasm_files_.clear();
+  z3disasm_status_ = "Launching z3disasm...";
+  return z3disasm_task_.Start(command,
+                              std::filesystem::current_path().string());
+}
+
+absl::Status AssemblyEditor::NavigateDisassemblyQuery() {
+  auto symbol_it = symbols_.find(disasm_query_);
+  if (symbol_it != symbols_.end()) {
+    disasm_query_ = absl::StrCat("0x", absl::Hex(symbol_it->second.address));
+    disasm_status_ = absl::StrCat("Resolved symbol ", symbol_it->first);
+    return absl::OkStatus();
+  }
+
+  auto parsed = ParseHexAddress(disasm_query_);
+  if (!parsed.has_value()) {
+    return absl::InvalidArgumentError("Enter a SNES address or known symbol");
+  }
+
+  disasm_query_ = absl::StrCat("0x", absl::Hex(*parsed));
+  disasm_status_ = absl::StrFormat("Showing disassembly at $%06X", *parsed);
+  return absl::OkStatus();
+}
+
+void AssemblyEditor::DrawDisassemblyContent() {
+  PollZ3DisassemblyTask();
+
+  if (z3disasm_output_dir_.empty()) {
+    z3disasm_output_dir_ = ResolveZ3DisasmOutputDir();
+  }
+  if (z3disasm_files_.empty()) {
+    RefreshZ3DisassemblyFiles();
+  }
+
+  ImGui::TextDisabled(
+      "z3disasm-backed bank browser for generated `bank_XX.asm` files.");
+  const std::string rom_path = ResolveZ3DisasmRomPath();
+  ImGui::TextWrapped("ROM: %s",
+                     rom_path.empty() ? "<unavailable>" : rom_path.c_str());
+  ImGui::TextWrapped("Output: %s", z3disasm_output_dir_.c_str());
+
+  ImGui::Checkbox("All banks", &z3disasm_all_banks_);
+  if (!z3disasm_all_banks_) {
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(70.0f);
+    ImGui::InputInt("Start", &z3disasm_bank_start_);
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(70.0f);
+    ImGui::InputInt("End", &z3disasm_bank_end_);
+    z3disasm_bank_start_ = std::clamp(z3disasm_bank_start_, 0, 0xFF);
+    z3disasm_bank_end_ = std::clamp(z3disasm_bank_end_, 0, 0xFF);
+    if (z3disasm_bank_end_ < z3disasm_bank_start_) {
+      z3disasm_bank_end_ = z3disasm_bank_start_;
+    }
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Use Query Bank")) {
+      if (auto bank = CurrentDisassemblyBank(); bank.has_value()) {
+        z3disasm_bank_start_ = static_cast<int>(*bank);
+        z3disasm_bank_end_ = static_cast<int>(*bank);
+      }
+    }
+  }
+
+  const auto task_snapshot = z3disasm_task_.GetSnapshot();
+  const bool can_generate = !rom_path.empty();
+  ImGui::BeginDisabled(!can_generate || task_snapshot.running);
+  if (ImGui::Button(ICON_MD_REFRESH " Generate / Refresh Banks")) {
+    auto status = GenerateZ3Disassembly();
+    if (!status.ok()) {
+      z3disasm_status_ = std::string(status.message());
+      if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show(z3disasm_status_, ToastType::kError);
+      }
+    }
+  }
+  ImGui::EndDisabled();
+  if (task_snapshot.running) {
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_CANCEL " Cancel")) {
+      z3disasm_task_.Cancel();
+    }
+  }
+  if (!can_generate) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("Load or configure a ROM path first.");
+  }
+
+  if (!z3disasm_status_.empty()) {
+    ImGui::Spacing();
+    ImGui::TextWrapped("%s", z3disasm_status_.c_str());
+  }
+
+  if (!task_snapshot.output_tail.empty()) {
+    if (ImGui::CollapsingHeader("z3disasm Output")) {
+      std::string output_tail = task_snapshot.output_tail;
+      ImGui::InputTextMultiline("##z3disasm_output", &output_tail,
+                                ImVec2(-1.0f, 80.0f),
+                                ImGuiInputTextFlags_ReadOnly);
+    }
+  }
+
+  ImGui::SeparatorText("Bank Browser");
+  if (z3disasm_files_.empty()) {
+    ImGui::TextDisabled(
+        "No generated bank files yet. Run z3disasm to populate this browser.");
+  } else {
+    if (ImGui::BeginTable(
+            "##z3disasm_browser", 2,
+            ImGuiTableFlags_Resizable | ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("Banks", ImGuiTableColumnFlags_WidthFixed,
+                              180.0f);
+      ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableNextRow();
+
+      ImGui::TableSetColumnIndex(0);
+      if (ImGui::BeginChild("##z3disasm_list", ImVec2(0, 0), true)) {
+        for (int i = 0; i < static_cast<int>(z3disasm_files_.size()); ++i) {
+          const std::string name =
+              std::filesystem::path(z3disasm_files_[i]).filename().string();
+          if (ImGui::Selectable(name.c_str(), z3disasm_selected_index_ == i)) {
+            z3disasm_selected_index_ = i;
+            LoadSelectedZ3DisassemblyFile();
+          }
+        }
+      }
+      ImGui::EndChild();
+
+      ImGui::TableSetColumnIndex(1);
+      if (ImGui::BeginChild("##z3disasm_preview", ImVec2(0, 0), true)) {
+        if (!z3disasm_selected_path_.empty()) {
+          const std::string selected_name =
+              std::filesystem::path(z3disasm_selected_path_)
+                  .filename()
+                  .string();
+          ImGui::TextUnformatted(selected_name.c_str());
+          ImGui::SameLine();
+          if (ImGui::SmallButton("Open in Code Editor")) {
+            ChangeActiveFile(z3disasm_selected_path_);
+          }
+          const std::string bank_query = BuildProjectGraphBankQuery();
+          if (!bank_query.empty()) {
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Open Bank Graph")) {
+              auto status = RunProjectGraphQueryInDrawer(
+                  {"--query=bank",
+                   absl::StrFormat("--bank=%02X", SelectedZ3DisasmBankIndex()),
+                   "--format=json"},
+                  absl::StrFormat("Project Graph Bank $%02X",
+                                  SelectedZ3DisasmBankIndex()));
+              if (!status.ok()) {
+                z3disasm_status_ = std::string(status.message());
+              }
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton("Copy Bank Query")) {
+              ImGui::SetClipboardText(bank_query.c_str());
+            }
+            ImGui::TextDisabled("%s", bank_query.c_str());
+          }
+          ImGui::Separator();
+          if (!z3disasm_source_jumps_.empty() &&
+              ImGui::CollapsingHeader("Source Map Jumps",
+                                      ImGuiTreeNodeFlags_DefaultOpen)) {
+            for (const auto& jump : z3disasm_source_jumps_) {
+              ImGui::PushID(static_cast<int>(jump.address) ^ jump.line);
+              const std::string source_label =
+                  absl::StrFormat("Source##source_jump_%06X", jump.address);
+              const std::string graph_label =
+                  absl::StrFormat("Graph##source_graph_%06X", jump.address);
+              const std::string copy_label =
+                  absl::StrFormat("Copy##source_copy_%06X", jump.address);
+              const std::string addr_label =
+                  absl::StrFormat("Addr##source_addr_%06X", jump.address);
+              if (ImGui::SmallButton(source_label.c_str())) {
+                JumpToReference(absl::StrCat(jump.file, ":", jump.line))
+                    .IgnoreError();
+              }
+              ImGui::SameLine();
+              if (ImGui::SmallButton(graph_label.c_str())) {
+                auto status = RunProjectGraphQueryInDrawer(
+                    {"--query=lookup",
+                     absl::StrFormat("--address=%06X", jump.address),
+                     "--format=json"},
+                    absl::StrFormat("Project Graph Lookup $%06X",
+                                    jump.address));
+                if (!status.ok()) {
+                  z3disasm_status_ = std::string(status.message());
+                }
+              }
+              ImGui::SameLine();
+              if (ImGui::SmallButton(copy_label.c_str())) {
+                const std::string query =
+                    BuildProjectGraphLookupQuery(jump.address);
+                ImGui::SetClipboardText(query.c_str());
+              }
+              ImGui::SameLine();
+              if (ImGui::SmallButton(addr_label.c_str())) {
+                disasm_query_ = absl::StrFormat("0x%06X", jump.address);
+                NavigateDisassemblyQuery().IgnoreError();
+              }
+              ImGui::SameLine();
+              ImGui::TextWrapped("$%06X  %s:%d", jump.address,
+                                 jump.file.c_str(), jump.line);
+              ImGui::PopID();
+            }
+          }
+          if (!z3disasm_hook_jumps_.empty() &&
+              ImGui::CollapsingHeader("Hook Jumps",
+                                      ImGuiTreeNodeFlags_DefaultOpen)) {
+            for (const auto& hook : z3disasm_hook_jumps_) {
+              ImGui::PushID(static_cast<int>(hook.address) ^ hook.size ^
+                            0x4000);
+              const std::string source_label =
+                  absl::StrFormat("Source##hook_jump_%06X", hook.address);
+              const std::string graph_label =
+                  absl::StrFormat("Graph##hook_graph_%06X", hook.address);
+              const std::string copy_label =
+                  absl::StrFormat("Copy##hook_copy_%06X", hook.address);
+              const std::string addr_label =
+                  absl::StrFormat("Addr##hook_addr_%06X", hook.address);
+              if (!hook.source.empty() &&
+                  ImGui::SmallButton(source_label.c_str())) {
+                JumpToReference(hook.source).IgnoreError();
+              }
+              if (!hook.source.empty()) {
+                ImGui::SameLine();
+              }
+              if (ImGui::SmallButton(graph_label.c_str())) {
+                auto status = RunProjectGraphQueryInDrawer(
+                    {"--query=lookup",
+                     absl::StrFormat("--address=%06X", hook.address),
+                     "--format=json"},
+                    absl::StrFormat("Project Graph Lookup $%06X",
+                                    hook.address));
+                if (!status.ok()) {
+                  z3disasm_status_ = std::string(status.message());
+                }
+              }
+              ImGui::SameLine();
+              if (ImGui::SmallButton(copy_label.c_str())) {
+                const std::string query =
+                    BuildProjectGraphLookupQuery(hook.address);
+                ImGui::SetClipboardText(query.c_str());
+              }
+              ImGui::SameLine();
+              if (ImGui::SmallButton(addr_label.c_str())) {
+                disasm_query_ = absl::StrFormat("0x%06X", hook.address);
+                NavigateDisassemblyQuery().IgnoreError();
+              }
+              ImGui::SameLine();
+              ImGui::TextWrapped("$%06X  %s %s (+%d) %s", hook.address,
+                                 hook.kind.c_str(), hook.name.c_str(),
+                                 hook.size, hook.source.c_str());
+              ImGui::PopID();
+            }
+          }
+          ImGui::Separator();
+          ImGui::InputTextMultiline(
+              "##z3disasm_text", &z3disasm_selected_contents_,
+              ImVec2(-1.0f, -1.0f), ImGuiInputTextFlags_ReadOnly);
+        } else {
+          ImGui::TextDisabled("Select a generated bank file to preview it.");
+        }
+      }
+      ImGui::EndChild();
+      ImGui::EndTable();
+    }
+  }
+
+  ImGui::SeparatorText("Quick ROM Slice");
+  ImGui::TextDisabled("Inline viewer for the currently loaded ROM buffer.");
+  ImGui::SetNextItemWidth(220.0f);
+  ImGui::InputText("Address or Symbol", &disasm_query_);
+  ImGui::SameLine();
+  if (ImGui::Button("Go")) {
+    auto status = NavigateDisassemblyQuery();
+    if (!status.ok()) {
+      disasm_status_ = std::string(status.message());
+    }
+  }
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(80.0f);
+  ImGui::InputInt("Count", &disasm_instruction_count_);
+  if (disasm_instruction_count_ < 1) {
+    disasm_instruction_count_ = 1;
+  }
+  if (disasm_instruction_count_ > 128) {
+    disasm_instruction_count_ = 128;
+  }
+
+  if (!disasm_status_.empty()) {
+    ImGui::TextDisabled("%s", disasm_status_.c_str());
+  }
+  ImGui::Separator();
+
+  if (!rom_ || !rom_->is_loaded()) {
+    ImGui::TextDisabled("Load a ROM to browse disassembly.");
+    return;
+  }
+
+  uint32_t start_address = 0;
+  if (auto symbol_it = symbols_.find(disasm_query_);
+      symbol_it != symbols_.end()) {
+    start_address = symbol_it->second.address;
+  } else {
+    auto parsed = ParseHexAddress(disasm_query_);
+    if (!parsed.has_value()) {
+      ImGui::TextDisabled(
+          "Enter a SNES address like 0x008000 or a known label.");
+      return;
+    }
+    start_address = *parsed;
+  }
+
+  std::map<uint32_t, std::string> symbols_by_address;
+  for (const auto& [name, symbol] : symbols_) {
+    symbols_by_address.emplace(symbol.address, name);
+  }
+
+  emu::debug::Disassembler65816 disassembler;
+  disassembler.SetSymbolResolver([&symbols_by_address](uint32_t address) {
+    auto it = symbols_by_address.find(address);
+    return it == symbols_by_address.end() ? std::string() : it->second;
+  });
+
+  auto read_byte = [this](uint32_t snes_addr) -> uint8_t {
+    if (!rom_ || !rom_->is_loaded()) {
+      return 0;
+    }
+    const uint32_t pc_addr = SnesToPc(snes_addr);
+    if (pc_addr >= rom_->size()) {
+      return 0;
+    }
+    return rom_->vector()[pc_addr];
+  };
+
+  const auto instructions = disassembler.DisassembleRange(
+      start_address, static_cast<size_t>(disasm_instruction_count_), read_byte);
+  if (instructions.empty()) {
+    ImGui::TextDisabled("No disassembly available for this address.");
+    return;
+  }
+
+  if (ImGui::BeginTable("##assembly_disasm", 3,
+                        ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY |
+                            ImGuiTableFlags_Resizable)) {
+    ImGui::TableSetupColumn("Address", ImGuiTableColumnFlags_WidthFixed,
+                            110.0f);
+    ImGui::TableSetupColumn("Instruction", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Context", ImGuiTableColumnFlags_WidthFixed,
+                            140.0f);
+    ImGui::TableHeadersRow();
+
+    for (const auto& instruction : instructions) {
+      ImGui::PushID(static_cast<int>(instruction.address));
+      ImGui::TableNextRow();
+
+      ImGui::TableSetColumnIndex(0);
+      const std::string address_label =
+          absl::StrFormat("$%06X", instruction.address);
+      ImGui::TextUnformatted(address_label.c_str());
+
+      ImGui::TableSetColumnIndex(1);
+      if (auto label_it = symbols_by_address.find(instruction.address);
+          label_it != symbols_by_address.end()) {
+        ImGui::TextColored(ImVec4(0.75f, 0.85f, 1.0f, 1.0f),
+                           "%s:", label_it->second.c_str());
+      }
+      ImGui::TextWrapped("%s", instruction.full_text.c_str());
+
+      ImGui::TableSetColumnIndex(2);
+      if (instruction.branch_target != 0) {
+        auto target_it = symbols_by_address.find(instruction.branch_target);
+        if (target_it != symbols_by_address.end()) {
+          if (ImGui::SmallButton(target_it->second.c_str())) {
+            JumpToSymbolDefinition(target_it->second).IgnoreError();
+          }
+        } else {
+          ImGui::Text("$%06X", instruction.branch_target);
+        }
+      } else {
+        ImGui::TextDisabled("-");
+      }
+      ImGui::PopID();
+    }
+    ImGui::EndTable();
+  }
 }
 
 void AssemblyEditor::DrawToolbarContent() {
@@ -1084,6 +2003,10 @@ absl::Status AssemblyEditor::Update() {
     return absl::OkStatus();
   }
 
+  if (dependencies_.window_manager != nullptr) {
+    return absl::OkStatus();
+  }
+
   // Legacy window-based update - kept for backward compatibility
   // New code should use the panel system via DrawCodeEditor()
   ImGui::Begin("Assembly Editor", &active_, ImGuiWindowFlags_MenuBar);
@@ -1111,7 +2034,7 @@ void AssemblyEditor::InlineUpdate() {
 }
 
 void AssemblyEditor::UpdateCodeView() {
-  // Deprecated: Use the EditorPanel system instead
+  // Deprecated: Use the WindowContent system instead
   // This method is kept for backward compatibility during transition
   DrawToolbarContent();
   ImGui::Separator();
@@ -1311,6 +2234,127 @@ absl::Status AssemblyEditor::Redo() {
   return absl::OkStatus();
 }
 
+#ifdef YAZE_WITH_Z3DK
+core::Z3dkAssembleOptions AssemblyEditor::BuildZ3dkAssembleOptions() const {
+  core::Z3dkAssembleOptions options;
+  if (!dependencies_.project) {
+    return options;
+  }
+
+  const auto& z3dk = dependencies_.project->z3dk_settings;
+  options.include_paths = z3dk.include_paths;
+  options.defines = z3dk.defines;
+  options.warn_unused_symbols = z3dk.warn_unused_symbols;
+  options.warn_branch_outside_bank = z3dk.warn_branch_outside_bank;
+  options.warn_unknown_width = z3dk.warn_unknown_width;
+  options.warn_org_collision = z3dk.warn_org_collision;
+  options.warn_unauthorized_hook = z3dk.warn_unauthorized_hook;
+  options.warn_stack_balance = z3dk.warn_stack_balance;
+  options.warn_hook_return = z3dk.warn_hook_return;
+  for (const auto& range : z3dk.prohibited_memory_ranges) {
+    options.prohibited_memory_ranges.push_back(
+        {.start = range.start, .end = range.end, .reason = range.reason});
+  }
+
+  auto append_unique = [&options](const std::string& path) {
+    if (path.empty()) {
+      return;
+    }
+    if (std::find(options.include_paths.begin(), options.include_paths.end(),
+                  path) == options.include_paths.end()) {
+      options.include_paths.push_back(path);
+    }
+  };
+
+  append_unique(dependencies_.project->code_folder);
+  if (HasActiveFile()) {
+    append_unique(
+        std::filesystem::path(files_[active_file_id_]).parent_path().string());
+  }
+
+  if (rom_ && rom_->is_loaded() && !rom_->filename().empty()) {
+    options.hooks_rom_path = rom_->filename();
+  } else if (!z3dk.rom_path.empty()) {
+    options.hooks_rom_path = z3dk.rom_path;
+  }
+
+  return options;
+}
+
+void AssemblyEditor::ExportZ3dkArtifacts(const core::AsarPatchResult& result,
+                                         bool sync_mesen_symbols) {
+  if (!dependencies_.project) {
+    return;
+  }
+
+  const auto& project = *dependencies_.project;
+  const auto& configured = project.z3dk_settings.artifact_paths;
+  const std::string symbols_path =
+      configured.symbols_mlb.empty()
+          ? project.GetZ3dkArtifactPath("symbols.mlb")
+          : configured.symbols_mlb;
+  const std::string sourcemap_path =
+      configured.sourcemap_json.empty()
+          ? project.GetZ3dkArtifactPath("sourcemap.json")
+          : configured.sourcemap_json;
+  const std::string annotations_path =
+      configured.annotations_json.empty()
+          ? project.GetZ3dkArtifactPath("annotations.json")
+          : configured.annotations_json;
+  const std::string hooks_path = configured.hooks_json.empty()
+                                     ? project.GetZ3dkArtifactPath("hooks.json")
+                                     : configured.hooks_json;
+  const std::string lint_path = configured.lint_json.empty()
+                                    ? project.GetZ3dkArtifactPath("lint.json")
+                                    : configured.lint_json;
+  auto write_artifact = [](const std::string& path,
+                           const std::string& content) {
+    if (path.empty() || content.empty()) {
+      return;
+    }
+    std::error_code ec;
+    std::filesystem::create_directories(
+        std::filesystem::path(path).parent_path(), ec);
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
+    if (!file.is_open()) {
+      return;
+    }
+    file << content;
+  };
+
+  write_artifact(symbols_path, result.symbols_mlb);
+  write_artifact(sourcemap_path, result.sourcemap_json);
+  write_artifact(annotations_path, result.annotations_json);
+  write_artifact(hooks_path, result.hooks_json);
+  write_artifact(lint_path, result.lint_json);
+
+  if (!sync_mesen_symbols || symbols_path.empty() ||
+      result.symbols_mlb.empty()) {
+    return;
+  }
+
+  auto client = emu::mesen::MesenClientRegistry::GetOrCreate();
+  if (!client->IsConnected()) {
+    client->Connect().IgnoreError();
+  }
+  if (!client->IsConnected()) {
+    return;
+  }
+
+  auto status = client->LoadSymbolsFile(symbols_path);
+  if (!status.ok()) {
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          "Failed to sync Mesen2 symbols: " + std::string(status.message()),
+          ToastType::kWarning);
+    }
+  } else if (dependencies_.toast_manager) {
+    dependencies_.toast_manager->Show(
+        "Synced symbols to Mesen2 from " + symbols_path, ToastType::kSuccess);
+  }
+}
+#endif
+
 // ============================================================================
 // Asar Integration Implementation
 // ============================================================================
@@ -1320,6 +2364,32 @@ absl::Status AssemblyEditor::ValidateCurrentFile() {
     return absl::FailedPreconditionError("No file is currently active");
   }
 
+  const std::string& file_path = files_[active_file_id_];
+
+#ifdef YAZE_WITH_Z3DK
+  const auto options = BuildZ3dkAssembleOptions();
+  // z3dk path: validate via scratch assemble; structured diagnostics are
+  // populated natively. We reuse ApplyPatch against a throwaway buffer so
+  // we get the full AsarPatchResult (including symbols) back.
+  std::vector<uint8_t> scratch;
+  auto result_or = z3dk_.ApplyPatch(file_path, scratch, options);
+  if (!result_or.ok()) {
+    last_errors_.clear();
+    last_errors_.push_back(std::string(result_or.status().message()));
+    last_warnings_.clear();
+    last_diagnostics_.clear();
+    TextEditor::ErrorMarkers empty_markers;
+    GetActiveEditor()->SetErrorMarkers(empty_markers);
+    return result_or.status();
+  }
+  UpdateErrorMarkers(*result_or);
+  if (!result_or->success) {
+    return absl::InternalError("Assembly validation failed");
+  }
+  ExportZ3dkArtifacts(*result_or, false);
+  ClearErrorMarkers();
+  return absl::OkStatus();
+#else
   // Initialize Asar if not already done
   if (!asar_initialized_) {
     auto status = asar_.Initialize();
@@ -1328,9 +2398,6 @@ absl::Status AssemblyEditor::ValidateCurrentFile() {
     }
     asar_initialized_ = true;
   }
-
-  // Get the file path
-  const std::string& file_path = files_[active_file_id_];
 
   // Validate the assembly
   auto status = asar_.ValidateAssembly(file_path);
@@ -1367,6 +2434,7 @@ absl::Status AssemblyEditor::ValidateCurrentFile() {
   // Clear any previous error markers
   ClearErrorMarkers();
   return absl::OkStatus();
+#endif
 }
 
 absl::Status AssemblyEditor::ApplyPatchToRom() {
@@ -1378,6 +2446,31 @@ absl::Status AssemblyEditor::ApplyPatchToRom() {
     return absl::FailedPreconditionError("No file is currently active");
   }
 
+  const std::string& file_path = files_[active_file_id_];
+  std::vector<uint8_t> rom_data = rom_->vector();
+
+#ifdef YAZE_WITH_Z3DK
+  const auto options = BuildZ3dkAssembleOptions();
+  auto result = z3dk_.ApplyPatch(file_path, rom_data, options);
+  if (!result.ok()) {
+    last_errors_.clear();
+    last_errors_.push_back(std::string(result.status().message()));
+    last_warnings_.clear();
+    last_diagnostics_.clear();
+    TextEditor::ErrorMarkers empty_markers;
+    GetActiveEditor()->SetErrorMarkers(empty_markers);
+    return result.status();
+  }
+  UpdateErrorMarkers(*result);
+  if (!result->success) {
+    return absl::InternalError("Patch application failed");
+  }
+  rom_->LoadFromData(rom_data);
+  symbols_ = z3dk_.GetSymbolTable();
+  ExportZ3dkArtifacts(*result, true);
+  ClearErrorMarkers();
+  return absl::OkStatus();
+#else
   // Initialize Asar if not already done
   if (!asar_initialized_) {
     auto status = asar_.Initialize();
@@ -1386,12 +2479,6 @@ absl::Status AssemblyEditor::ApplyPatchToRom() {
     }
     asar_initialized_ = true;
   }
-
-  // Get the file path
-  const std::string& file_path = files_[active_file_id_];
-
-  // Get ROM data as vector for patching
-  std::vector<uint8_t> rom_data = rom_->vector();
 
   // Apply the patch
   auto result = asar_.ApplyPatch(file_path, rom_data);
@@ -1418,11 +2505,13 @@ absl::Status AssemblyEditor::ApplyPatchToRom() {
     UpdateErrorMarkers(*result);
     return absl::InternalError("Patch application failed");
   }
+#endif
 }
 
 void AssemblyEditor::UpdateErrorMarkers(const core::AsarPatchResult& result) {
   last_errors_ = result.errors;
   last_warnings_ = result.warnings;
+  last_diagnostics_ = result.structured_diagnostics;
 
   if (!HasActiveFile()) {
     return;
@@ -1430,26 +2519,34 @@ void AssemblyEditor::UpdateErrorMarkers(const core::AsarPatchResult& result) {
 
   TextEditor::ErrorMarkers markers;
 
-  // Parse error messages to extract line numbers
-  // Example Asar output: "asm/main.asm:42: error: Unknown command."
-  for (const auto& error : result.errors) {
-    try {
-      // Simple parsing: look for first two colons numbers
-      size_t first_colon = error.find(':');
-      if (first_colon != std::string::npos) {
-        size_t second_colon = error.find(':', first_colon + 1);
-        if (second_colon != std::string::npos) {
-          std::string line_str =
-              error.substr(first_colon + 1, second_colon - (first_colon + 1));
-          int line = std::stoi(line_str);
-
-          // Adjust for 1-based line numbers if necessary (ImGuiColorTextEdit usually uses 1-based in UI but 0-based internally? Or vice versa?)
-          // Assuming standard compiler output 1-based, editor usually takes 1-based for markers key.
-          markers[line] = error;
-        }
+  // Prefer the native structured diagnostics when available — they carry
+  // line numbers directly, no string parsing required. Fall back to the
+  // flat error strings only when the backend did not populate structured
+  // diagnostics (e.g., pre-M3 Asar path with a malformed error line).
+  if (!result.structured_diagnostics.empty()) {
+    for (const auto& d : result.structured_diagnostics) {
+      if (d.line > 0 &&
+          d.severity == core::AssemblyDiagnosticSeverity::kError) {
+        markers[d.line] = d.message;
       }
-    } catch (...) {
-      // Ignore parsing errors
+    }
+  } else {
+    // Legacy fallback: parse "file:line:..." out of the flat strings.
+    for (const auto& error : result.errors) {
+      try {
+        size_t first_colon = error.find(':');
+        if (first_colon != std::string::npos) {
+          size_t second_colon = error.find(':', first_colon + 1);
+          if (second_colon != std::string::npos) {
+            std::string line_str =
+                error.substr(first_colon + 1, second_colon - (first_colon + 1));
+            int line = std::stoi(line_str);
+            markers[line] = error;
+          }
+        }
+      } catch (...) {
+        // Ignore parsing errors
+      }
     }
   }
 
@@ -1458,6 +2555,7 @@ void AssemblyEditor::UpdateErrorMarkers(const core::AsarPatchResult& result) {
 
 void AssemblyEditor::ClearErrorMarkers() {
   last_errors_.clear();
+  last_diagnostics_.clear();
 
   if (!HasActiveFile()) {
     return;
@@ -1492,9 +2590,19 @@ void AssemblyEditor::DrawAssembleMenu() {
                         false)) {
       if (dependencies_.project) {
         std::string sym_file = dependencies_.project->symbols_filename;
+        if (dependencies_.project->HasZ3dkConfig() &&
+            !dependencies_.project->z3dk_settings.artifact_paths.symbols_mlb
+                 .empty()) {
+          sym_file =
+              dependencies_.project->z3dk_settings.artifact_paths.symbols_mlb;
+        } else if (sym_file.empty() || !std::filesystem::exists(sym_file)) {
+          sym_file = dependencies_.project->GetZ3dkArtifactPath("symbols.mlb");
+        }
         if (!sym_file.empty()) {
-          std::string abs_path =
-              dependencies_.project->GetAbsolutePath(sym_file);
+          std::string abs_path = sym_file;
+          if (!std::filesystem::path(abs_path).is_absolute()) {
+            abs_path = dependencies_.project->GetAbsolutePath(sym_file);
+          }
           auto status = asar_.LoadSymbolsFromFile(abs_path);
           if (status.ok()) {
             // Copy symbols to local map for display

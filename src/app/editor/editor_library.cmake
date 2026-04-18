@@ -2,6 +2,7 @@ set(
   YAZE_APP_EDITOR_SRC
   app/editor/agent/agent_chat_history_codec.cc
   app/editor/code/assembly_editor.cc
+  app/editor/code/diagnostics_panel.cc
   app/editor/core/content_registry.cc
   app/editor/core/undo_manager.cc
   app/editor/hack/workflow/hack_workflow_backend_factory.cc
