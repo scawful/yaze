@@ -783,24 +783,46 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   std::vector<SnapshotTileWrite> expected_left;
   std::vector<SnapshotTileWrite> expected_right;
-  expected_left.reserve(kCount * 2);
-  expected_right.reserve(kCount * 2);
+  expected_left.reserve((kCount * 2) + 8);
+  expected_right.reserve((kCount * 2) + 8);
 
   // USDASM:
-  // - $01:9045 (left corners): body uses left=tile3, right=tile0.
-  // - $01:908F (right corners): mirrored body uses left=tile0, right=tile3.
-  // Endpoints consume cap tiles (tile1 at start, tile4 at end).
-  for (int s = 0; s < kCount; ++s) {
-    const uint16_t left_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
-    const uint16_t right_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
-    const int y = kY + s;
+  // - $01:9045 (left corners): optional top 2x2 cap, then body uses
+  //   left=tile3/right=tile0, then a bottom 2x2 cap.
+  // - $01:908F (right corners): mirrored variant with body using
+  //   left=tile0/right=tile3 and matching 2x2 caps.
+  //
+  // On a blank destination the opening cap is emitted, so the body begins two
+  // rows below the anchor.
+  expected_left.push_back({kX + 12, kY, 1});
+  expected_left.push_back({kX + 13, kY, 0});
+  expected_left.push_back({kX + 12, kY + 1, 2});
+  expected_left.push_back({kX + 13, kY + 1, 0});
 
-    expected_left.push_back({kX + 12, y, left_cap});
+  expected_right.push_back({kX + 12, kY, 0});
+  expected_right.push_back({kX + 13, kY, 1});
+  expected_right.push_back({kX + 12, kY + 1, 0});
+  expected_right.push_back({kX + 13, kY + 1, 2});
+
+  for (int s = 0; s < kCount; ++s) {
+    const int y = kY + 2 + s;
+
+    expected_left.push_back({kX + 12, y, 3});
     expected_left.push_back({kX + 13, y, 0});
 
     expected_right.push_back({kX + 12, y, 0});
-    expected_right.push_back({kX + 13, y, right_cap});
+    expected_right.push_back({kX + 13, y, 3});
   }
+
+  expected_left.push_back({kX + 12, kY + 2 + kCount, 4});
+  expected_left.push_back({kX + 13, kY + 2 + kCount, 0});
+  expected_left.push_back({kX + 12, kY + 3 + kCount, 5});
+  expected_left.push_back({kX + 13, kY + 3 + kCount, 0});
+
+  expected_right.push_back({kX + 12, kY + 2 + kCount, 0});
+  expected_right.push_back({kX + 13, kY + 2 + kCount, 4});
+  expected_right.push_back({kX + 12, kY + 3 + kCount, 0});
+  expected_right.push_back({kX + 13, kY + 3 + kCount, 5});
 
   ExpectTraceMatchesSnapshot(left_bg1, expected_left);
   ExpectTraceMatchesSnapshot(right_bg1, expected_right);
