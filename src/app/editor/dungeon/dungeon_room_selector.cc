@@ -30,6 +30,16 @@ void DungeonRoomSelector::Draw() {
   DrawRoomSelector();
 }
 
+void DungeonRoomSelector::DrawRoomSelector(
+    RoomSelectionIntent single_click_intent) {
+  DrawRoomSelectorInternal(single_click_intent, true);
+}
+
+void DungeonRoomSelector::DrawRoomBrowser(
+    RoomSelectionIntent single_click_intent) {
+  DrawRoomSelectorInternal(single_click_intent, false);
+}
+
 void DungeonRoomSelector::RebuildRoomFilterCache() {
   filtered_room_indices_.clear();
   filtered_room_indices_.reserve(zelda3::kNumberOfRooms);
@@ -65,30 +75,32 @@ bool DungeonRoomSelector::PassesEntityTypeFilter(int room_id) const {
   }
 }
 
-void DungeonRoomSelector::DrawRoomSelector(
-    RoomSelectionIntent single_click_intent) {
+void DungeonRoomSelector::DrawRoomSelectorInternal(
+    RoomSelectionIntent single_click_intent, bool show_room_id_input) {
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::Text("ROM not loaded");
     return;
   }
 
-  if (gui::InputHexWord("Room ID", &current_room_id_, 50.f, true)) {
-    if (current_room_id_ >= zelda3::kNumberOfRooms) {
-      current_room_id_ = static_cast<uint16_t>(zelda3::kNumberOfRooms - 1);
-    }
+  if (show_room_id_input) {
+    if (gui::InputHexWord("Room ID", &current_room_id_, 50.f, true)) {
+      if (current_room_id_ >= zelda3::kNumberOfRooms) {
+        current_room_id_ = static_cast<uint16_t>(zelda3::kNumberOfRooms - 1);
+      }
 
-    // Publish selection changed event
-    if (auto* bus = ContentRegistry::Context::event_bus()) {
-      bus->Publish(SelectionChangedEvent::CreateSingle("dungeon_room",
-                                                       current_room_id_));
-    }
+      // Publish selection changed event
+      if (auto* bus = ContentRegistry::Context::event_bus()) {
+        bus->Publish(SelectionChangedEvent::CreateSingle("dungeon_room",
+                                                         current_room_id_));
+      }
 
-    // Callback support
-    if (room_selected_callback_) {
-      room_selected_callback_(current_room_id_);
+      // Callback support
+      if (room_selected_callback_) {
+        room_selected_callback_(current_room_id_);
+      }
     }
+    ImGui::Separator();
   }
-  ImGui::Separator();
 
   room_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
@@ -298,6 +310,14 @@ void DungeonRoomSelector::RebuildEntranceFilterCache() {
 }
 
 void DungeonRoomSelector::DrawEntranceSelector() {
+  DrawEntranceSelectorInternal(true);
+}
+
+void DungeonRoomSelector::DrawEntranceBrowser() {
+  DrawEntranceSelectorInternal(false);
+}
+
+void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
   if (!rom_ || !rom_->is_loaded()) {
     ImGui::Text("ROM not loaded");
     return;
@@ -308,65 +328,67 @@ void DungeonRoomSelector::DrawEntranceSelector() {
     return;
   }
 
-  auto current_entrance = (*entrances_)[current_entrance_id_];
+  if (show_properties) {
+    auto current_entrance = (*entrances_)[current_entrance_id_];
 
-  // Organized Properties Table
-  if (ImGui::BeginTable("EntranceProps", 4, ImGuiTableFlags_Borders)) {
-    ImGui::TableSetupColumn("Core", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableSetupColumn("Position", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableSetupColumn("Camera", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableSetupColumn("Scroll", ImGuiTableColumnFlags_WidthStretch);
-    ImGui::TableHeadersRow();
+    // Keep the full property editor in the standalone entrance panel.
+    if (ImGui::BeginTable("EntranceProps", 4, ImGuiTableFlags_Borders)) {
+      ImGui::TableSetupColumn("Core", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Position", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Camera", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Scroll", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableHeadersRow();
 
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    gui::InputHexWord("Entr ID", &current_entrance.entrance_id_);
-    gui::InputHexWord("Room ID", &current_entrance.room_);
-    gui::InputHexByte("Dungeon", &current_entrance.dungeon_id_);
-    gui::InputHexByte("Music", &current_entrance.music_);
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      gui::InputHexWord("Entr ID", &current_entrance.entrance_id_);
+      gui::InputHexWord("Room ID", &current_entrance.room_);
+      gui::InputHexByte("Dungeon", &current_entrance.dungeon_id_);
+      gui::InputHexByte("Music", &current_entrance.music_);
 
-    ImGui::TableNextColumn();
-    gui::InputHexWord("Player X", &current_entrance.x_position_);
-    gui::InputHexWord("Player Y", &current_entrance.y_position_);
-    gui::InputHexByte("Blockset", &current_entrance.blockset_);
-    gui::InputHexByte("Floor", &current_entrance.floor_);
+      ImGui::TableNextColumn();
+      gui::InputHexWord("Player X", &current_entrance.x_position_);
+      gui::InputHexWord("Player Y", &current_entrance.y_position_);
+      gui::InputHexByte("Blockset", &current_entrance.blockset_);
+      gui::InputHexByte("Floor", &current_entrance.floor_);
 
-    ImGui::TableNextColumn();
-    gui::InputHexWord("Cam Trg X", &current_entrance.camera_trigger_x_);
-    gui::InputHexWord("Cam Trg Y", &current_entrance.camera_trigger_y_);
-    gui::InputHexWord("Exit", &current_entrance.exit_);
+      ImGui::TableNextColumn();
+      gui::InputHexWord("Cam Trg X", &current_entrance.camera_trigger_x_);
+      gui::InputHexWord("Cam Trg Y", &current_entrance.camera_trigger_y_);
+      gui::InputHexWord("Exit", &current_entrance.exit_);
 
-    ImGui::TableNextColumn();
-    gui::InputHexWord("Scroll X", &current_entrance.camera_x_);
-    gui::InputHexWord("Scroll Y", &current_entrance.camera_y_);
+      ImGui::TableNextColumn();
+      gui::InputHexWord("Scroll X", &current_entrance.camera_x_);
+      gui::InputHexWord("Scroll Y", &current_entrance.camera_y_);
 
-    ImGui::EndTable();
+      ImGui::EndTable();
+    }
+
+    ImGui::Separator();
+    if (ImGui::CollapsingHeader("Camera Boundaries")) {
+      ImGui::Text("                North   East    South   West");
+      ImGui::Text("Quadrant      ");
+      SameLine();
+      gui::InputHexByte("##QN", &current_entrance.camera_boundary_qn_, 40.f);
+      SameLine();
+      gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 40.f);
+      SameLine();
+      gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 40.f);
+      SameLine();
+      gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 40.f);
+
+      ImGui::Text("Full Room     ");
+      SameLine();
+      gui::InputHexByte("##FN", &current_entrance.camera_boundary_fn_, 40.f);
+      SameLine();
+      gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 40.f);
+      SameLine();
+      gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 40.f);
+      SameLine();
+      gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 40.f);
+    }
+    ImGui::Separator();
   }
-
-  ImGui::Separator();
-  if (ImGui::CollapsingHeader("Camera Boundaries")) {
-    ImGui::Text("                North   East    South   West");
-    ImGui::Text("Quadrant      ");
-    SameLine();
-    gui::InputHexByte("##QN", &current_entrance.camera_boundary_qn_, 40.f);
-    SameLine();
-    gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 40.f);
-    SameLine();
-    gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 40.f);
-    SameLine();
-    gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 40.f);
-
-    ImGui::Text("Full Room     ");
-    SameLine();
-    gui::InputHexByte("##FN", &current_entrance.camera_boundary_fn_, 40.f);
-    SameLine();
-    gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 40.f);
-    SameLine();
-    gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 40.f);
-    SameLine();
-    gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 40.f);
-  }
-  ImGui::Separator();
 
   entrance_filter_.Draw("Filter", ImGui::GetContentRegionAvail().x);
 
