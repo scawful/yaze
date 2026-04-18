@@ -22,11 +22,11 @@ namespace {
 ImVec4 WorkflowStatusColor(ProjectWorkflowState state) {
   switch (state) {
     case ProjectWorkflowState::kRunning:
-      return ImVec4(0.45f, 0.70f, 0.95f, 1.0f);
+      return gui::GetInfoColor();
     case ProjectWorkflowState::kSuccess:
-      return ImVec4(0.35f, 0.80f, 0.45f, 1.0f);
+      return gui::GetSuccessColor();
     case ProjectWorkflowState::kFailure:
-      return ImVec4(0.90f, 0.35f, 0.35f, 1.0f);
+      return gui::GetErrorColor();
     case ProjectWorkflowState::kIdle:
     default:
       return gui::GetTextSecondaryVec4();

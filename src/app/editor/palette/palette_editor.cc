@@ -1384,7 +1384,7 @@ void PaletteEditor::DrawCategorizedPaletteList() {
           }
           std::optional<gui::StyleColorGuard> mod_guard;
           if (is_modified) {
-            mod_guard.emplace(ImGuiCol_Text, ImVec4(1.0f, 0.6f, 0.0f, 1.0f));
+            mod_guard.emplace(ImGuiCol_Text, gui::GetWarningColor());
           }
 
           ImGui::Checkbox(label.c_str(), show_flag);
