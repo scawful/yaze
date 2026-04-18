@@ -3,6 +3,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <map>
 #include <optional>
 #include <string>
 #include <vector>
@@ -439,6 +440,17 @@ class AgentUIContext {
   core::AsarWrapper* GetAsarWrapper() const { return asar_wrapper_; }
   bool HasAsarWrapper() const { return asar_wrapper_ != nullptr; }
 
+  // Backend-agnostic symbol table (works for Asar and z3dk). Preferred over
+  // reaching through GetAsarWrapper()->GetSymbolTable() in new code.
+  void SetAssemblySymbolTable(
+      const std::map<std::string, core::AsarSymbol>* table) {
+    assembly_symbol_table_ = table;
+  }
+  const std::map<std::string, core::AsarSymbol>* GetAssemblySymbolTable()
+      const {
+    return assembly_symbol_table_;
+  }
+
   // Change notification for observers
   using ChangeCallback = std::function<void()>;
   void AddChangeListener(ChangeCallback callback) {
@@ -467,6 +479,8 @@ class AgentUIContext {
   Rom* rom_ = nullptr;
   project::YazeProject* project_ = nullptr; // Project context
   core::AsarWrapper* asar_wrapper_ = nullptr; // AsarWrapper context
+  const std::map<std::string, core::AsarSymbol>* assembly_symbol_table_ =
+      nullptr;  // Backend-agnostic symbol source (Asar or z3dk)
   std::vector<ChangeCallback> change_listeners_;
 };
 

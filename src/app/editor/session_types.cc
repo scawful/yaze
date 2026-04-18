@@ -195,6 +195,16 @@ core::AsarWrapper* EditorSet::GetAsarWrapper() const {
   return nullptr;
 }
 
+const std::map<std::string, core::AsarSymbol>&
+EditorSet::GetAssemblySymbols() const {
+  static const std::map<std::string, core::AsarSymbol> kEmpty;
+  if (auto* editor =
+          static_cast<AssemblyEditor*>(FindEditor(EditorType::kAssembly))) {
+    return editor->symbols();
+  }
+  return kEmpty;
+}
+
 int EditorSet::LoadedDungeonRoomCount() const {
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {

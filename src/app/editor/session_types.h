@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 #include <string>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "app/editor/editor.h"
+#include "core/asar_wrapper.h"  // For AsarSymbol (backend-agnostic symbol shape)
 #include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
@@ -77,6 +79,11 @@ class EditorSet {
   void OpenAssemblyFolder(const std::string& folder_path) const;
   void ChangeActiveAssemblyFile(std::string_view path) const;
   core::AsarWrapper* GetAsarWrapper() const;
+
+  // Backend-agnostic accessor for assembly symbols (works for both Asar
+  // and z3dk backends). Returns the assembly editor's last-known symbol
+  // table. Empty if no editor / no assemble has happened yet.
+  const std::map<std::string, core::AsarSymbol>& GetAssemblySymbols() const;
   int LoadedDungeonRoomCount() const;
   int TotalDungeonRoomCount() const;
   std::vector<std::pair<uint32_t, uint32_t>> CollectDungeonWriteRanges() const;
