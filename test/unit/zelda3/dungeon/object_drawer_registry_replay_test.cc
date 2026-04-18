@@ -184,6 +184,36 @@ void WriteBinaryFile(const std::filesystem::path& path,
   ASSERT_TRUE(out.good());
 }
 
+std::array<uint8_t, 0x10000> MakeOpaqueDoorGfx() {
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(1);
+  return gfx;
+}
+
+void WriteDoorObjectDataWords(std::vector<uint8_t>& rom_data, int object_offset,
+                              uint16_t start_word, int word_count) {
+  constexpr int kRoomDrawObjectDataBase = 0x1B52;
+  const int base = kRoomDrawObjectDataBase + object_offset;
+  for (int i = 0; i < word_count; ++i) {
+    const uint16_t word = static_cast<uint16_t>(start_word + i);
+    rom_data[base + i * 2] = static_cast<uint8_t>(word & 0xFF);
+    rom_data[base + i * 2 + 1] = static_cast<uint8_t>(word >> 8);
+  }
+}
+
+bool TileHasCoverage(const gfx::BackgroundBuffer& bg, int tile_x, int tile_y) {
+  const auto& coverage = bg.coverage_data();
+  if (coverage.empty()) {
+    return false;
+  }
+  const int pixel_x = tile_x * 8;
+  const int pixel_y = tile_y * 8;
+  const int width = bg.bitmap().width();
+  const int index = pixel_y * width + pixel_x;
+  return index >= 0 && index < static_cast<int>(coverage.size()) &&
+         coverage[index] != 0;
+}
+
 TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   ScopedCustomObjectsFlag disable_custom(false);
 
@@ -223,6 +253,80 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   // If the routine wrote only to the tile buffer (SetTileAt) and not to the
   // bitmap-backed buffers, this would remain 255.
   EXPECT_NE(bg1.bitmap().data()[idx], 255);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ClosedExplodingWallDoesNotDrawGenericNorthDoorFootprint) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+  bg1.ClearCoverageBuffer();
+  bg2.ClearCoverageBuffer();
+
+  FakeDungeonState state;
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::ExplodingWall,
+      .direction = DoorDirection::North,
+      .position = 0,
+  };
+
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
+
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 0));
+  EXPECT_FALSE(TileHasCoverage(bg1, 17, 2));
+  EXPECT_FALSE(TileHasCoverage(bg2, 14, 0));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ClosedNorthCurtainDoorUsesFourByFourFootprint) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/0x078A,
+                           /*start_word=*/0x0400, /*word_count=*/16);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+  bg1.ClearCoverageBuffer();
+  bg2.ClearCoverageBuffer();
+
+  FakeDungeonState state;
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::CurtainDoor,
+      .direction = DoorDirection::North,
+      .position = 0,
+  };
+
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
+
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 0));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 0));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 3));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 3));
+  EXPECT_FALSE(TileHasCoverage(bg1, 18, 0));
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 4));
+  EXPECT_FALSE(TileHasCoverage(bg2, 14, 0));
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

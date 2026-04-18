@@ -1307,7 +1307,7 @@ int ObjectDrawer::GetDrawRoutineId(int16_t object_id) const {
 void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
                             gfx::BackgroundBuffer& bg1,
                             gfx::BackgroundBuffer& bg2,
-                            [[maybe_unused]] const DungeonState* state) {
+                            const DungeonState* state) {
   // Door rendering based on ZELDA3_DUNGEON_SPEC.md Section 5 and disassembly
   // Uses DoorType and DoorDirection enums for type safety
   // Position calculations via DoorPositionManager
@@ -1330,6 +1330,9 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
+  const bool is_door_open =
+      state && state->IsDoorOpen(room_id_, door_index);
+
   // Get door position from DoorPositionManager
   auto [tile_x, tile_y] = door.GetTileCoords();
   auto dims = door.GetDimensions();
@@ -1338,6 +1341,85 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   LOG_DEBUG("ObjectDrawer", "DrawDoor: tile_pos=(%d,%d) dims=%dx%d", tile_x,
             tile_y, door_width, door_height);
+
+  constexpr int kRoomDrawObjectDataBase = 0x1B52;
+  constexpr int kNorthCurtainClosedOffset = 0x078A;
+
+  auto draw_from_object_data =
+      [&](gfx::BackgroundBuffer& target, int width, int height,
+          int tile_data_addr) {
+        auto& bitmap = target.bitmap();
+        auto& priority_buffer = target.mutable_priority_data();
+        auto& coverage_buffer = target.mutable_coverage_data();
+        const int bitmap_width = bitmap.width();
+        const auto& rom_data = rom_->data();
+        int tile_idx = 0;
+
+        for (int dx = 0; dx < width; dx++) {
+          for (int dy = 0; dy < height; dy++) {
+            const int addr = tile_data_addr + (tile_idx * 2);
+            const uint16_t tile_word =
+                rom_data[addr] | (rom_data[addr + 1] << 8);
+            const auto tile_info = gfx::WordToTileInfo(tile_word);
+            const int pixel_x = (tile_x + dx) * 8;
+            const int pixel_y = (tile_y + dy) * 8;
+
+            DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y,
+                             room_gfx_buffer_);
+
+            const uint8_t priority = tile_info.over_ ? 1 : 0;
+            const auto& bitmap_data = bitmap.vector();
+            for (int py = 0; py < 8; py++) {
+              const int dest_y = pixel_y + py;
+              if (dest_y < 0 || dest_y >= bitmap.height()) {
+                continue;
+              }
+              for (int px = 0; px < 8; px++) {
+                const int dest_x = pixel_x + px;
+                if (dest_x < 0 || dest_x >= bitmap_width) {
+                  continue;
+                }
+                const int dest_index = dest_y * bitmap_width + dest_x;
+                if (dest_index >= 0 &&
+                    dest_index < static_cast<int>(coverage_buffer.size())) {
+                  coverage_buffer[dest_index] = 1;
+                }
+                if (dest_index < static_cast<int>(bitmap_data.size()) &&
+                    bitmap_data[dest_index] != 255) {
+                  priority_buffer[dest_index] = priority;
+                }
+              }
+            }
+
+            tile_idx++;
+          }
+        }
+      };
+
+  // USDASM has special north-door branches that do not follow the generic 4x3
+  // ranged-door path.
+  if (door.direction == DoorDirection::North &&
+      door.type == DoorType::ExplodingWall && !is_door_open) {
+    LOG_DEBUG("ObjectDrawer",
+              "DrawDoor: closed exploding wall intentionally draws nothing");
+    (void)bg2;
+    return;
+  }
+
+  if (door.direction == DoorDirection::North &&
+      door.type == DoorType::CurtainDoor && !is_door_open) {
+    const int tile_data_addr =
+        kRoomDrawObjectDataBase + kNorthCurtainClosedOffset;
+    const int data_size = 16 * 2;  // RoomDraw_4x4 closed curtain path.
+    if (tile_data_addr < 0 ||
+        tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+      DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
+                        door.type, door.direction);
+      return;
+    }
+    draw_from_object_data(bg1, /*width=*/4, /*height=*/4, tile_data_addr);
+    return;
+  }
 
   // Door graphics use an indirect addressing scheme:
   // 1. kDoorGfxUp/Down/Left/Right point to offset tables (DoorGFXDataOffset_*)
@@ -1379,7 +1461,6 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
       rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
 
   // RoomDrawObjectData base address (PC offset)
-  constexpr int kRoomDrawObjectDataBase = 0x1B52;
   int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
 
   LOG_DEBUG(
@@ -1401,58 +1482,10 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   // Read and render door tiles
   // All directions use column-major tile order (matching ASM draw routines)
-  // The ROM stores tiles in column-major order for all door directions
+  // The ROM stores tiles in column-major order for all door directions.
   LOG_DEBUG("ObjectDrawer", "DrawDoor: Reading %d tiles from 0x%X",
             tiles_per_door, tile_data_addr);
-  int tile_idx = 0;
-  auto& priority_buffer = bg1.mutable_priority_data();
-  auto& coverage_buffer = bg1.mutable_coverage_data();
-  int bitmap_width = bitmap.width();
-
-  for (int dx = 0; dx < door_width; dx++) {
-    for (int dy = 0; dy < door_height; dy++) {
-      int addr = tile_data_addr + (tile_idx * 2);
-      uint16_t tile_word = rom_data[addr] | (rom_data[addr + 1] << 8);
-
-      auto tile_info = gfx::WordToTileInfo(tile_word);
-      int pixel_x = (tile_x + dx) * 8;
-      int pixel_y = (tile_y + dy) * 8;
-
-      if (tile_idx < 4) {
-        LOG_DEBUG("ObjectDrawer",
-                  "DrawDoor: tile[%d] word=0x%04X id=%d pal=%d pixel=(%d,%d)",
-                  tile_idx, tile_word, tile_info.id_, tile_info.palette_,
-                  pixel_x, pixel_y);
-      }
-
-      DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
-
-      // Update priority buffer for this tile
-      uint8_t priority = tile_info.over_ ? 1 : 0;
-      const auto& bitmap_data = bitmap.vector();
-      for (int py = 0; py < 8; py++) {
-        int dest_y = pixel_y + py;
-        if (dest_y < 0 || dest_y >= bitmap.height())
-          continue;
-        for (int px = 0; px < 8; px++) {
-          int dest_x = pixel_x + px;
-          if (dest_x < 0 || dest_x >= bitmap_width)
-            continue;
-          int dest_index = dest_y * bitmap_width + dest_x;
-          if (dest_index >= 0 &&
-              dest_index < static_cast<int>(coverage_buffer.size())) {
-            coverage_buffer[dest_index] = 1;
-          }
-          if (dest_index < static_cast<int>(bitmap_data.size()) &&
-              bitmap_data[dest_index] != 255) {
-            priority_buffer[dest_index] = priority;
-          }
-        }
-      }
-
-      tile_idx++;
-    }
-  }
+  draw_from_object_data(bg1, door_width, door_height, tile_data_addr);
 
   LOG_DEBUG("ObjectDrawer",
             "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d "
