@@ -530,7 +530,11 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
                         false);
   if (canvas_open) {
     if (primary_viewer) {
-      DrawRecentRoomTabs();
+      const bool show_recent_tabs =
+          split_view_enabled_ || !layout_state_.show_left_sidebar;
+      if (show_recent_tabs) {
+        DrawRecentRoomTabs();
+      }
       if (split_view_enabled_) {
         DrawSplitView(*primary_viewer);
       } else {
