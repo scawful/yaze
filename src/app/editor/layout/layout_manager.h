@@ -139,6 +139,36 @@ class LayoutManager {
   void ClearTemporarySessionLayout();
 
   /**
+   * @brief Capture the current workspace under a named, session-scoped slot.
+   *
+   * Named snapshots are held in memory only (never persisted) and identified
+   * by the caller-supplied name. Names are used as the stable lookup key;
+   * duplicate saves overwrite the existing entry.
+   */
+  bool SaveNamedSnapshot(const std::string& name, size_t session_id);
+
+  /**
+   * @brief Restore a named snapshot by name.
+   */
+  bool RestoreNamedSnapshot(const std::string& name, size_t session_id,
+                            bool remove_after_restore = false);
+
+  /**
+   * @brief Delete a named snapshot. Returns true if an entry was removed.
+   */
+  bool DeleteNamedSnapshot(const std::string& name);
+
+  /**
+   * @brief List all named snapshots for the given session.
+   */
+  std::vector<std::string> ListNamedSnapshots(size_t session_id) const;
+
+  /**
+   * @brief Whether a named snapshot with the given name exists.
+   */
+  bool HasNamedSnapshot(const std::string& name) const;
+
+  /**
    * @brief Delete a saved layout by name
    * @param name The name of the layout to delete
    * @return true if layout was deleted, false if not found
@@ -301,6 +331,16 @@ class LayoutManager {
   std::unordered_map<std::string, bool> temp_session_visibility_;
   std::unordered_map<std::string, bool> temp_session_pinned_;
   std::string temp_session_imgui_layout_;
+
+  // Multi-slot named session snapshots (in-memory only, never persisted).
+  // The user-supplied name is the stable key; duplicate saves overwrite.
+  struct SessionSnapshot {
+    size_t session_id = 0;
+    std::unordered_map<std::string, bool> visibility;
+    std::unordered_map<std::string, bool> pinned;
+    std::string imgui_layout;
+  };
+  std::unordered_map<std::string, SessionSnapshot> named_snapshots_;
 
   // Saved ImGui docking layouts (INI data)
   std::unordered_map<std::string, std::string> saved_imgui_layouts_;

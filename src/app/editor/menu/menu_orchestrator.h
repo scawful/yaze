@@ -206,6 +206,11 @@ class MenuOrchestrator {
   // Menu state
   bool menu_needs_refresh_ = false;
 
+  // "Save Snapshot As..." modal state (lives here because the menu owns the
+  // modal open/close flow; implementation stays in menu_orchestrator.cc).
+  bool open_save_snapshot_modal_ = false;
+  char save_snapshot_name_buffer_[96] = {0};
+
   // Helper methods for menu construction
   void AddFileMenuItems();
   void AddEditMenuItems();

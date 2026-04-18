@@ -259,6 +259,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     }
   }
 
+  UserSettings& user_settings() { return user_settings_; }
+  const UserSettings& user_settings() const { return user_settings_; }
+
   // Workspace management (delegates to WorkspaceManager)
   void RefreshWorkspacePresets() { workspace_manager_.RefreshPresets(); }
   void SaveWorkspacePreset(const std::string& name) {
@@ -321,6 +324,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void CaptureTemporaryLayoutSnapshot();
   void RestoreTemporaryLayoutSnapshot(bool clear_after_restore = false);
   void ClearTemporaryLayoutSnapshot();
+
+  // Named, session-scoped layout snapshots (in-memory, multi-slot).
+  bool SaveLayoutSnapshotAs(const std::string& name);
+  bool RestoreLayoutSnapshot(const std::string& name,
+                             bool remove_after_restore = false);
+  bool DeleteLayoutSnapshot(const std::string& name);
+  std::vector<std::string> ListLayoutSnapshots() const;
+
   void ResetCurrentEditorLayout();
 
   // Helper methods

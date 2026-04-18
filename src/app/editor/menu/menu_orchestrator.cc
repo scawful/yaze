@@ -66,6 +66,37 @@ void MenuOrchestrator::BuildMainMenu() {
   // Draw the constructed menu
   menu_builder_.Draw();
 
+  // Render any deferred modal popups owned by the menu layer. These run
+  // after the menu stack unwinds so the popup has a clean ImGui stack.
+  if (open_save_snapshot_modal_) {
+    ImGui::OpenPopup("Save Layout Snapshot##menu_orch_save_snapshot");
+    open_save_snapshot_modal_ = false;
+  }
+  if (ImGui::BeginPopupModal("Save Layout Snapshot##menu_orch_save_snapshot",
+                             nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+    ImGui::TextUnformatted("Snapshot name:");
+    ImGui::SetNextItemWidth(320.0f);
+    const bool submitted =
+        ImGui::InputText("##snapshot_name", save_snapshot_name_buffer_,
+                         sizeof(save_snapshot_name_buffer_),
+                         ImGuiInputTextFlags_EnterReturnsTrue);
+    const bool has_name = save_snapshot_name_buffer_[0] != '\0';
+    ImGui::Separator();
+    if ((ImGui::Button("Save", ImVec2(120, 0)) || submitted) && has_name) {
+      if (editor_manager_) {
+        editor_manager_->SaveLayoutSnapshotAs(save_snapshot_name_buffer_);
+      }
+      save_snapshot_name_buffer_[0] = '\0';
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      save_snapshot_name_buffer_[0] = '\0';
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
+
   menu_needs_refresh_ = false;
 }
 
@@ -683,26 +714,63 @@ void MenuOrchestrator::AddLayoutSubmenu() {
     }
 
     ImGui::Separator();
-    if (ImGui::MenuItem(
-            absl::StrFormat("%s Capture Session Snapshot", ICON_MD_BOOKMARK_ADD)
-                .c_str(),
-            nullptr, false, layout_enabled)) {
-      if (editor_manager_)
-        editor_manager_->CaptureTemporaryLayoutSnapshot();
-    }
-    if (ImGui::MenuItem(
-            absl::StrFormat("%s Restore Session Snapshot", ICON_MD_RESTORE)
-                .c_str(),
-            nullptr, false, layout_enabled)) {
-      if (editor_manager_)
-        editor_manager_->RestoreTemporaryLayoutSnapshot();
-    }
-    if (ImGui::MenuItem(absl::StrFormat("%s Clear Session Snapshot",
-                                        ICON_MD_BOOKMARK_REMOVE)
-                            .c_str(),
-                        nullptr, false, layout_enabled)) {
-      if (editor_manager_)
-        editor_manager_->ClearTemporaryLayoutSnapshot();
+    if (ImGui::BeginMenu(
+            absl::StrFormat("%s Snapshots", ICON_MD_BOOKMARKS).c_str(),
+            layout_enabled)) {
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Save Snapshot As...", ICON_MD_BOOKMARK_ADD)
+                  .c_str(),
+              nullptr, false, layout_enabled)) {
+        save_snapshot_name_buffer_[0] = '\0';
+        open_save_snapshot_modal_ = true;
+      }
+
+      // Named snapshots (session-scoped, in-memory).
+      std::vector<std::string> named =
+          editor_manager_ ? editor_manager_->ListLayoutSnapshots()
+                          : std::vector<std::string>{};
+      if (!named.empty()) {
+        ImGui::Separator();
+        for (const auto& name : named) {
+          ImGui::PushID(name.c_str());
+          if (ImGui::MenuItem(
+                  absl::StrFormat("%s %s", ICON_MD_RESTORE, name).c_str(),
+                  nullptr, false, layout_enabled)) {
+            if (editor_manager_)
+              editor_manager_->RestoreLayoutSnapshot(name);
+          }
+          ImGui::SameLine(ImGui::GetContentRegionAvail().x);
+          if (ImGui::SmallButton(ICON_MD_DELETE)) {
+            if (editor_manager_)
+              editor_manager_->DeleteLayoutSnapshot(name);
+          }
+          ImGui::PopID();
+        }
+      }
+
+      ImGui::Separator();
+      // Legacy unnamed temporary slot (backward-compatible Capture/Restore).
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Capture Unnamed", ICON_MD_BOOKMARK_ADD)
+                  .c_str(),
+              nullptr, false, layout_enabled)) {
+        if (editor_manager_)
+          editor_manager_->CaptureTemporaryLayoutSnapshot();
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Restore Unnamed", ICON_MD_RESTORE).c_str(),
+              nullptr, false, layout_enabled)) {
+        if (editor_manager_)
+          editor_manager_->RestoreTemporaryLayoutSnapshot();
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Clear Unnamed", ICON_MD_BOOKMARK_REMOVE)
+                  .c_str(),
+              nullptr, false, layout_enabled)) {
+        if (editor_manager_)
+          editor_manager_->ClearTemporaryLayoutSnapshot();
+      }
+      ImGui::EndMenu();
     }
 
     ImGui::Separator();

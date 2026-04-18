@@ -517,6 +517,58 @@ void EditorManager::ClearTemporaryLayoutSnapshot() {
   toast_manager_.Show("Cleared temporary layout snapshot", ToastType::kInfo);
 }
 
+bool EditorManager::SaveLayoutSnapshotAs(const std::string& name) {
+  if (!layout_manager_)
+    return false;
+  if (name.empty()) {
+    toast_manager_.Show("Snapshot name cannot be empty", ToastType::kWarning);
+    return false;
+  }
+  const bool ok =
+      layout_manager_->SaveNamedSnapshot(name, GetCurrentSessionId());
+  if (ok) {
+    toast_manager_.Show(absl::StrFormat("Saved snapshot '%s'", name),
+                        ToastType::kSuccess);
+  } else {
+    toast_manager_.Show(absl::StrFormat("Failed to save snapshot '%s'", name),
+                        ToastType::kError);
+  }
+  return ok;
+}
+
+bool EditorManager::RestoreLayoutSnapshot(const std::string& name,
+                                          bool remove_after_restore) {
+  if (!layout_manager_)
+    return false;
+  const bool ok = layout_manager_->RestoreNamedSnapshot(
+      name, GetCurrentSessionId(), remove_after_restore);
+  if (ok) {
+    toast_manager_.Show(absl::StrFormat("Restored snapshot '%s'", name),
+                        ToastType::kSuccess);
+  } else {
+    toast_manager_.Show(absl::StrFormat("Snapshot '%s' not available", name),
+                        ToastType::kWarning);
+  }
+  return ok;
+}
+
+bool EditorManager::DeleteLayoutSnapshot(const std::string& name) {
+  if (!layout_manager_)
+    return false;
+  const bool ok = layout_manager_->DeleteNamedSnapshot(name);
+  if (ok) {
+    toast_manager_.Show(absl::StrFormat("Deleted snapshot '%s'", name),
+                        ToastType::kInfo);
+  }
+  return ok;
+}
+
+std::vector<std::string> EditorManager::ListLayoutSnapshots() const {
+  if (!layout_manager_)
+    return {};
+  return layout_manager_->ListNamedSnapshots(GetCurrentSessionId());
+}
+
 void EditorManager::SyncLayoutScopeFromCurrentProject() {
   if (!layout_manager_) {
     return;
