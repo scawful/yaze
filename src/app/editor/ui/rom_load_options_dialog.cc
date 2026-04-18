@@ -246,8 +246,8 @@ void RomLoadOptionsDialog::DrawUpgradeOptions() {
     }
   } else {
     ImGui::TextColored(
-        gui::GetSuccessColor(),
-        "%s ROM already has ZSCustomOverworld %s", ICON_MD_CHECK_CIRCLE,
+        gui::GetSuccessColor(), "%s ROM already has ZSCustomOverworld %s",
+        ICON_MD_CHECK_CIRCLE,
         zelda3::OverworldVersionHelper::GetVersionName(detected_version_));
   }
 
