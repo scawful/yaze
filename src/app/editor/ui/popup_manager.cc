@@ -1287,7 +1287,7 @@ void PopupManager::DrawDisplaySettingsPopup() {
     Separator();
     Text("Global Font Scale");
     float font_global_scale = io.FontGlobalScale;
-    if (SliderFloat("##global_scale", &font_global_scale, 0.5f, 1.8f, "%.2f")) {
+    if (SliderFloat("##global_scale", &font_global_scale, 0.5f, 2.0f, "%.2f")) {
       if (editor_manager_) {
         editor_manager_->SetFontGlobalScale(font_global_scale);
       } else {
