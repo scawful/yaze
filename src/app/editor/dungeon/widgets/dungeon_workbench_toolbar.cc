@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/widgets/dungeon_room_nav_widget.h"
@@ -14,6 +15,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/core/ui_config.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "zelda3/resource_labels.h"
@@ -122,6 +124,26 @@ CompareDefaultResult PickDefaultCompareRoom(
   return {};
 }
 
+std::string TruncateToolbarLabel(const char* text, float max_width) {
+  if (!text || max_width <= 0.0f) {
+    return "";
+  }
+
+  if (ImGui::CalcTextSize(text).x <= max_width) {
+    return text;
+  }
+
+  std::string truncated(text);
+  while (!truncated.empty()) {
+    truncated.pop_back();
+    std::string candidate = truncated + "...";
+    if (ImGui::CalcTextSize(candidate.c_str()).x <= max_width) {
+      return candidate;
+    }
+  }
+  return "...";
+}
+
 bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
                       bool* value, float btn_size, const char* tooltip_on,
                       const char* tooltip_off) {
@@ -163,6 +185,37 @@ bool SquareIconButton(const char* id, const char* icon, float btn_size,
     ImGui::SetTooltip("%s", tooltip);
   }
   return pressed;
+}
+
+void DrawViewOptionsPopup(DungeonCanvasViewer* viewer, float btn_size) {
+  if (!viewer) {
+    return;
+  }
+
+  if (SquareIconButton("##ViewOptionsPopup", ICON_MD_VISIBILITY, btn_size,
+                       "View options")) {
+    ImGui::OpenPopup("##WorkbenchViewOptions");
+  }
+
+  if (ImGui::BeginPopup("##WorkbenchViewOptions")) {
+    bool v = viewer->show_grid();
+    if (ImGui::Checkbox("Grid", &v)) {
+      viewer->set_show_grid(v);
+    }
+    v = viewer->show_object_bounds();
+    if (ImGui::Checkbox("Object Bounds", &v)) {
+      viewer->set_show_object_bounds(v);
+    }
+    v = viewer->show_coordinate_overlay();
+    if (ImGui::Checkbox("Hover Coordinates", &v)) {
+      viewer->set_show_coordinate_overlay(v);
+    }
+    v = viewer->show_camera_quadrant_overlay();
+    if (ImGui::Checkbox("Camera Quadrants", &v)) {
+      viewer->set_show_camera_quadrant_overlay(v);
+    }
+    ImGui::EndPopup();
+  }
 }
 
 void DrawComparePicker(
@@ -237,20 +290,28 @@ void DrawComparePicker(
     }
 
     ImGui::Spacing();
+    std::vector<int> filtered_rooms;
+    filtered_rooms.reserve(0x128);
+    for (int rid = 0; rid < 0x128; ++rid) {
+      if (rid == current_room_id) {
+        continue;
+      }
+      const auto rid_label = zelda3::GetRoomLabel(rid);
+      char hex_buf[8];
+      snprintf(hex_buf, sizeof(hex_buf), "%03X", rid);
+      if (!icontains(rid_label, filter) && !icontains(hex_buf, filter)) {
+        continue;
+      }
+      filtered_rooms.push_back(rid);
+    }
+
     ImGui::BeginChild("##CompareSearchList", ImVec2(0, 220), true);
     ImGuiListClipper clipper;
-    clipper.Begin(0x128);
+    clipper.Begin(static_cast<int>(filtered_rooms.size()));
     while (clipper.Step()) {
-      for (int rid = clipper.DisplayStart; rid < clipper.DisplayEnd; ++rid) {
-        if (rid == current_room_id) {
-          continue;
-        }
+      for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; ++idx) {
+        const int rid = filtered_rooms[idx];
         const auto rid_label = zelda3::GetRoomLabel(rid);
-        char hex_buf[8];
-        snprintf(hex_buf, sizeof(hex_buf), "%03X", rid);
-        if (!icontains(rid_label, filter) && !icontains(hex_buf, filter)) {
-          continue;
-        }
         char item[128];
         snprintf(item, sizeof(item), "[%03X] %s", rid, rid_label.c_str());
         const bool is_selected = (rid == *compare_room_id);
@@ -282,9 +343,20 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   ScopedWorkbenchToolbar toolbar_scope("##DungeonWorkbenchToolbar");
   bool request_panel_mode = false;
 
+  const float toolbar_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const bool compact_toolbar = toolbar_width < 960.0f;
+  const bool ultra_compact_toolbar = toolbar_width < 760.0f;
   const float btn =
-      std::max(gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 2.0f,
-               gui::LayoutHelpers::GetStandardWidgetHeight() + 6.0f);
+      ultra_compact_toolbar
+          ? std::max(gui::LayoutHelpers::GetStandardWidgetHeight(),
+                     gui::UIConfig::kIconButtonSmall)
+          : (compact_toolbar
+                 ? std::max(
+                       gui::LayoutHelpers::GetStandardWidgetHeight() + 2.0f,
+                       gui::UIConfig::kIconButtonSmall)
+                 : std::max(
+                       gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 2.0f,
+                       gui::LayoutHelpers::GetStandardWidgetHeight() + 6.0f));
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
 
   {
@@ -294,6 +366,9 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     gui::StyleVarGuard frame_pad_guard(
         ImGuiStyleVar_FramePadding,
         ImVec2(frame_pad.x, std::max(frame_pad.y, 4.0f)));
+    gui::StyleVarGuard item_spacing_guard(
+        ImGuiStyleVar_ItemSpacing, ImVec2(std::max(4.0f, spacing * 0.72f),
+                                          ImGui::GetStyle().ItemSpacing.y));
 
     constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_NoBordersInBody |
                                        ImGuiTableFlags_NoPadInnerX |
@@ -305,7 +380,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       const float w_coords = CalcIconButtonWidth(ICON_MD_MY_LOCATION, btn);
       const float w_camera = CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
       const float right_cluster_w =
-          w_grid + w_bounds + w_coords + w_camera + (spacing * 3.0f);
+          w_grid + w_bounds + w_coords + w_camera + (spacing * 2.16f);
       const float right_w = right_cluster_w + 6.0f;  // Avoid edge clipping.
       ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
       ImGui::TableSetupColumn("Middle", ImGuiTableColumnFlags_WidthStretch);
@@ -340,7 +415,11 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       char title[192];
       snprintf(title, sizeof(title), "[%03X] %s", rid, room_label.c_str());
       ImGui::AlignTextToFramePadding();
-      ImGui::TextUnformatted(title);
+      const float title_width =
+          std::max(ImGui::GetContentRegionAvail().x, 80.0f);
+      const std::string visible_title =
+          compact_toolbar ? TruncateToolbarLabel(title, title_width) : title;
+      ImGui::TextUnformatted(visible_title.c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", title);
       }
@@ -366,7 +445,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
         ImGui::SameLine();
 
         const float avail = ImGui::GetContentRegionAvail().x;
-        const bool stacked = avail < kTightCompareStackThreshold;
+        const bool stacked =
+            ultra_compact_toolbar || avail < kTightCompareStackThreshold;
         if (stacked) {
           ImGui::NewLine();
         }
@@ -378,8 +458,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
         ImGui::SameLine();
         uint16_t cmp =
             static_cast<uint16_t>(std::clamp(*p.compare_room_id, 0, 0x127));
-        if (auto res =
-                gui::InputHexWordEx("##CompareRoomId", &cmp, 70.0f, true);
+        if (auto res = gui::InputHexWordEx(
+                "##CompareRoomId", &cmp, compact_toolbar ? 60.0f : 70.0f, true);
             res.ShouldApply()) {
           *p.compare_room_id = std::clamp<int>(cmp, 0, 0x127);
         }
@@ -419,12 +499,28 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       // Right cluster: view toggles (grid/bounds/coords/camera).
       ImGui::TableNextColumn();
       if (p.primary_viewer) {
-        // Right-align by manually moving cursor to the end of the cell.
-        const float total_w = right_cluster_w;
-        const float start_x =
-            ImGui::GetCursorPosX() +
-            std::max(0.0f, ImGui::GetContentRegionAvail().x - total_w);
-        ImGui::SetCursorPosX(start_x);
+        if (compact_toolbar) {
+          const float popup_width =
+              CalcIconButtonWidth(ICON_MD_VISIBILITY, btn);
+          const float start_x =
+              ImGui::GetCursorPosX() +
+              std::max(0.0f, ImGui::GetContentRegionAvail().x - popup_width);
+          ImGui::SetCursorPosX(start_x);
+          DrawViewOptionsPopup(p.primary_viewer, btn);
+          ImGui::EndTable();
+          return request_panel_mode;
+        }
+
+        const float avail = ImGui::GetContentRegionAvail().x;
+        const bool stack_right_cluster =
+            ultra_compact_toolbar || avail < right_cluster_w;
+        if (!stack_right_cluster) {
+          const float total_w = right_cluster_w;
+          const float start_x =
+              ImGui::GetCursorPosX() +
+              std::max(0.0f, ImGui::GetContentRegionAvail().x - total_w);
+          ImGui::SetCursorPosX(start_x);
+        }
 
         bool v = p.primary_viewer->show_grid();
         if (SquareIconButton("##GridToggle",
@@ -432,14 +528,22 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
                              v ? "Hide grid" : "Show grid")) {
           p.primary_viewer->set_show_grid(!v);
         }
-        ImGui::SameLine();
+        if (stack_right_cluster) {
+          ImGui::NewLine();
+        } else {
+          ImGui::SameLine();
+        }
 
         v = p.primary_viewer->show_object_bounds();
         if (SquareIconButton("##BoundsToggle", ICON_MD_CROP_SQUARE, btn,
                              v ? "Hide object bounds" : "Show object bounds")) {
           p.primary_viewer->set_show_object_bounds(!v);
         }
-        ImGui::SameLine();
+        if (stack_right_cluster) {
+          ImGui::SameLine();
+        } else {
+          ImGui::SameLine();
+        }
 
         v = p.primary_viewer->show_coordinate_overlay();
         if (SquareIconButton(
@@ -447,7 +551,11 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
                 v ? "Hide hover coordinates" : "Show hover coordinates")) {
           p.primary_viewer->set_show_coordinate_overlay(!v);
         }
-        ImGui::SameLine();
+        if (stack_right_cluster) {
+          ImGui::NewLine();
+        } else {
+          ImGui::SameLine();
+        }
 
         v = p.primary_viewer->show_camera_quadrant_overlay();
         if (SquareIconButton(
