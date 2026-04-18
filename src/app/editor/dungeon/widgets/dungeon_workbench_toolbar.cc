@@ -408,7 +408,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGui::SameLine();
 
       const int rid = *p.current_room_id;
-      const bool show_inline_room_nav = !p.layout->show_left_sidebar;
+      const bool show_inline_room_nav = !p.left_sidebar_visible;
       if (show_inline_room_nav) {
         DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
         ImGui::SameLine();
