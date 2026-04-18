@@ -22,6 +22,7 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_coordinates.h"
@@ -1253,10 +1254,16 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       const ImVec2 canvas_pos = canvas_.zero_point();
       const float scale = canvas_.global_scale();
+      // Base the highlight on theme.info (semantically: "look here"). The
+      // overlay reuses the accent hue at translucent/opaque alpha for fill
+      // vs border so the pair stays visually linked under any theme.
+      const ImVec4 info = gui::GetInfoColor();
       const ImU32 fill_color =
-          ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 1.0f, 0.25f));
+          ImGui::GetColorU32(ImVec4(info.x, info.y, info.z, 0.25f));
       const ImU32 border_color =
-          ImGui::GetColorU32(ImVec4(0.2f, 0.8f, 1.0f, 0.8f));
+          ImGui::GetColorU32(ImVec4(info.x, info.y, info.z, 0.8f));
+      // Text-background dark overlay stays hardcoded: it's a legibility plate
+      // behind the label, not a themed element.
       const ImU32 text_bg_color = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.6f));
 
       // Custom draw routines are registered for object IDs 0x31 and 0x32

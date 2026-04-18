@@ -14,14 +14,14 @@ namespace editor {
 class AgentChat;
 
 // =============================================================================
-// EditorPanel wrappers for AgentEditor panels
+// WindowContent wrappers for AgentEditor panels
 // Each panel uses a callback to delegate drawing to AgentEditor methods
 // =============================================================================
 
 /**
- * @brief EditorPanel for AI Configuration panel
+ * @brief WindowContent for AI Configuration panel
  */
-class AgentConfigurationPanel : public EditorPanel {
+class AgentConfigurationPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -45,9 +45,9 @@ class AgentConfigurationPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Agent Status panel
+ * @brief WindowContent for Agent Status panel
  */
-class AgentStatusPanel : public EditorPanel {
+class AgentStatusPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -71,9 +71,9 @@ class AgentStatusPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Prompt Editor panel
+ * @brief WindowContent for Prompt Editor panel
  */
-class AgentPromptEditorPanel : public EditorPanel {
+class AgentPromptEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -97,9 +97,9 @@ class AgentPromptEditorPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Bot Profiles panel
+ * @brief WindowContent for Bot Profiles panel
  */
-class AgentBotProfilesPanel : public EditorPanel {
+class AgentBotProfilesPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -123,9 +123,9 @@ class AgentBotProfilesPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Chat History panel
+ * @brief WindowContent for Chat History panel
  */
-class AgentChatHistoryPanel : public EditorPanel {
+class AgentChatHistoryPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -149,9 +149,9 @@ class AgentChatHistoryPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Metrics Dashboard panel
+ * @brief WindowContent for Metrics Dashboard panel
  */
-class AgentMetricsDashboardPanel : public EditorPanel {
+class AgentMetricsDashboardPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -175,9 +175,9 @@ class AgentMetricsDashboardPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Agent Builder panel
+ * @brief WindowContent for Agent Builder panel
  */
-class AgentBuilderPanel : public EditorPanel {
+class AgentBuilderPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -201,9 +201,9 @@ class AgentBuilderPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Mesen2 debug integration
+ * @brief WindowContent for Mesen2 debug integration
  */
-class AgentMesenDebugPanel : public EditorPanel {
+class AgentMesenDebugPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -214,6 +214,10 @@ class AgentMesenDebugPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Mesen2 Debug"; }
   std::string GetIcon() const override { return ICON_MD_BUG_REPORT; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Live Debugging"; }
+  std::string GetWorkflowDescription() const override {
+    return "Inspect and control a connected Mesen2 debugging session";
+  }
   std::string GetShortcutHint() const override { return "Ctrl+Shift+M"; }
   int GetPriority() const override { return 80; }
 
@@ -228,12 +232,12 @@ class AgentMesenDebugPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Knowledge Base panel
+ * @brief WindowContent for Knowledge Base panel
  *
  * Displays learned patterns, preferences, project contexts, and conversation
  * memories from the LearnedKnowledgeService.
  */
-class AgentKnowledgeBasePanel : public EditorPanel {
+class AgentKnowledgeBasePanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -257,9 +261,9 @@ class AgentKnowledgeBasePanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Agent Chat panel
+ * @brief WindowContent for Agent Chat panel
  */
-class AgentChatPanel : public EditorPanel {
+class AgentChatPanel : public WindowContent {
  public:
   explicit AgentChatPanel(AgentChat* chat)
       : chat_(chat) {}
@@ -277,7 +281,7 @@ class AgentChatPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Oracle State Library management
+ * @brief WindowContent for Oracle State Library management
  *
  * Provides UI for managing Oracle of Secrets save states:
  * - View all states with status (canon/draft/deprecated)
@@ -285,7 +289,7 @@ class AgentChatPanel : public EditorPanel {
  * - Verify and promote draft states to canon
  * - Deprecate bad states
  */
-class OracleStateLibraryEditorPanel : public EditorPanel {
+class OracleStateLibraryEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -296,6 +300,11 @@ class OracleStateLibraryEditorPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Oracle States"; }
   std::string GetIcon() const override { return ICON_MD_SAVE; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Live Debugging"; }
+  std::string GetWorkflowLabel() const override { return "State Library"; }
+  std::string GetWorkflowDescription() const override {
+    return "Manage saved emulator states for hack debugging and regression checks";
+  }
   std::string GetShortcutHint() const override { return "Ctrl+Shift+O"; }
   int GetPriority() const override { return 85; }
 
@@ -310,12 +319,12 @@ class OracleStateLibraryEditorPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Feature Flag Editor
+ * @brief WindowContent for Feature Flag Editor
  *
  * Displays ASM feature flags from hack_manifest.json and allows toggling
  * them by writing to Config/feature_flags.asm.
  */
-class FeatureFlagEditorEditorPanel : public EditorPanel {
+class FeatureFlagEditorEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -326,6 +335,10 @@ class FeatureFlagEditorEditorPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Feature Flags"; }
   std::string GetIcon() const override { return ICON_MD_FLAG; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Build & Config"; }
+  std::string GetWorkflowDescription() const override {
+    return "Inspect and edit project feature flags";
+  }
   int GetPriority() const override { return 90; }
 
   void Draw(bool* p_open) override {
@@ -339,12 +352,12 @@ class FeatureFlagEditorEditorPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Hack Manifest Status + Protected Regions Inspector
+ * @brief WindowContent for Hack Manifest Status + Protected Regions Inspector
  *
  * Card B3: manifest freshness (path, mtime, reload button)
  * Card B4: searchable protected regions table
  */
-class ManifestEditorPanel : public EditorPanel {
+class ManifestEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -355,6 +368,10 @@ class ManifestEditorPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "Hack Manifest"; }
   std::string GetIcon() const override { return ICON_MD_DESCRIPTION; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Build & Config"; }
+  std::string GetWorkflowDescription() const override {
+    return "Inspect manifest metadata, protected regions, and registry state";
+  }
   int GetPriority() const override { return 95; }
 
   void Draw(bool* p_open) override {
@@ -368,12 +385,12 @@ class ManifestEditorPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for SRAM Variable Viewer
+ * @brief WindowContent for SRAM Variable Viewer
  *
  * Displays live SRAM variable values from a running Mesen2 emulator,
  * using variable definitions from hack_manifest.json.
  */
-class SramViewerEditorPanel : public EditorPanel {
+class SramViewerEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -384,6 +401,10 @@ class SramViewerEditorPanel : public EditorPanel {
   std::string GetDisplayName() const override { return "SRAM Viewer"; }
   std::string GetIcon() const override { return ICON_MD_MEMORY; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Game State"; }
+  std::string GetWorkflowDescription() const override {
+    return "Inspect live SRAM variables from the active emulator session";
+  }
   int GetPriority() const override { return 88; }
 
   void Draw(bool* p_open) override {
@@ -397,12 +418,12 @@ class SramViewerEditorPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Mesen2 live screenshot preview
+ * @brief WindowContent for Mesen2 live screenshot preview
  *
  * Polls screenshots from a running Mesen2 emulator and renders them as a
  * GPU texture in the ImGui viewport.
  */
-class MesenScreenshotEditorPanel : public EditorPanel {
+class MesenScreenshotEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -415,6 +436,10 @@ class MesenScreenshotEditorPanel : public EditorPanel {
   }
   std::string GetIcon() const override { return ICON_MD_CAMERA_ALT; }
   std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Live Debugging"; }
+  std::string GetWorkflowDescription() const override {
+    return "Preview live emulator screenshots while debugging hack changes";
+  }
   int GetPriority() const override { return 82; }
 
   void Draw(bool* p_open) override {
