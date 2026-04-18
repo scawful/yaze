@@ -222,6 +222,10 @@ bool DrawWorkbenchActionButton(const char* label, const ImVec2& size) {
   return ImGui::Button(label, size);
 }
 
+bool DrawWorkbenchSegment(const char* label, bool selected, float width) {
+  return ImGui::Selectable(label, selected, 0, ImVec2(width, 0.0f));
+}
+
 }  // namespace
 
 DungeonWorkbenchPanel::DungeonWorkbenchPanel(
@@ -270,7 +274,19 @@ void DungeonWorkbenchPanel::SetRom(Rom* rom) {
   room_dungeon_cache_built_ = false;
 }
 
-void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size) {
+void DungeonWorkbenchPanel::DrawSidebarPane(float width, float height,
+                                           float button_size, bool compact) {
+  const bool sidebar_open =
+      ImGui::BeginChild("##DungeonWorkbenchSidebar", ImVec2(width, height),
+                        true);
+  if (sidebar_open) {
+    DrawSidebarHeader(button_size, compact);
+    DrawSidebarContent();
+  }
+  ImGui::EndChild();
+}
+
+void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size, bool compact) {
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
@@ -279,57 +295,41 @@ void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size) {
   const bool can_open_overview = static_cast<bool>(show_panel_);
   const float collapse_w =
       CalcWorkbenchIconButtonWidth(ICON_MD_CHEVRON_LEFT, button_size);
-  const float matrix_w =
-      CalcWorkbenchIconButtonWidth(ICON_MD_GRID_VIEW, button_size);
-  const float map_w = CalcWorkbenchIconButtonWidth(ICON_MD_MAP, button_size);
+  const float menu_w =
+      can_open_overview
+          ? CalcWorkbenchIconButtonWidth(ICON_MD_MORE_HORIZ, button_size)
+          : 0.0f;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float header_width = ImGui::GetContentRegionAvail().x;
-  const float action_cluster_w = collapse_w + spacing;
-  const float overview_buttons_w = matrix_w + spacing + map_w;
-  const bool stack_header_actions = header_width < 232.0f;
-  const bool stack_mode_switch = header_width < 190.0f;
-  const bool show_both_overview_buttons =
-      can_open_overview &&
-      header_width > (180.0f + action_cluster_w + overview_buttons_w);
-  const bool show_one_overview_button =
-      !show_both_overview_buttons && can_open_overview &&
-      header_width > (140.0f + action_cluster_w + matrix_w);
+  const bool stack_mode_switch = header_width < 200.0f;
+  const float action_cluster_w =
+      collapse_w + (can_open_overview ? (spacing + menu_w) : 0.0f);
 
-  ImGui::TextDisabled(ICON_MD_EXPLORE " Navigate");
-  if (!stack_header_actions) {
-    ImGui::SameLine();
-    const float action_start_x =
-        std::max(ImGui::GetCursorPosX(),
-                 ImGui::GetWindowContentRegionMax().x - action_cluster_w -
-                     (show_both_overview_buttons ? overview_buttons_w
-                                                 : (show_one_overview_button
-                                                        ? matrix_w + spacing
-                                                        : 0.0f)));
-    ImGui::SetCursorPosX(action_start_x);
-  } else {
-    ImGui::Spacing();
-  }
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled("%s", compact ? ICON_MD_VIEW_SIDEBAR " Browse"
+                                    : ICON_MD_VIEW_SIDEBAR " Browser");
+  ImGui::SameLine();
+  ImGui::SetCursorPosX(std::max(
+      ImGui::GetCursorPosX(),
+      ImGui::GetWindowContentRegionMax().x - action_cluster_w));
 
-  if (show_both_overview_buttons || show_one_overview_button) {
-    if (ImGui::Button(ICON_MD_GRID_VIEW "##OpenRoomMatrix",
-                      ImVec2(matrix_w, button_size))) {
-      show_panel_("dungeon.room_matrix");
+  if (can_open_overview) {
+    if (ImGui::Button(ICON_MD_MORE_HORIZ "##SidebarQuickActions",
+                      ImVec2(menu_w, button_size))) {
+      ImGui::OpenPopup("##WorkbenchSidebarQuickActions");
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Open room matrix overview");
+      ImGui::SetTooltip("Open room review tools");
     }
-
-    if (show_both_overview_buttons) {
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_MD_MAP "##OpenDungeonMap",
-                        ImVec2(map_w, button_size))) {
+    if (ImGui::BeginPopup("##WorkbenchSidebarQuickActions")) {
+      if (ImGui::MenuItem(ICON_MD_GRID_VIEW " Room Matrix")) {
+        show_panel_("dungeon.room_matrix");
+      }
+      if (ImGui::MenuItem(ICON_MD_MAP " Dungeon Map")) {
         show_panel_("dungeon.dungeon_map");
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Open dungeon map overview");
-      }
+      ImGui::EndPopup();
     }
-
     ImGui::SameLine();
   }
   if (ImGui::Button(ICON_MD_CHEVRON_LEFT "##CollapseRooms",
@@ -341,19 +341,25 @@ void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size) {
   }
 
   ImGui::Spacing();
-  const float mode_width = stack_mode_switch
-                               ? -1.0f
-                               : std::max(72.0f, (header_width - spacing) * 0.5f);
-  if (ImGui::Selectable(ICON_MD_LIST " Rooms", sidebar_mode_ == SidebarMode::Rooms,
-                        0, ImVec2(mode_width, 0.0f))) {
+  DrawSidebarModeTabs(stack_mode_switch);
+  ImGui::Separator();
+}
+
+void DungeonWorkbenchPanel::DrawSidebarModeTabs(bool stacked) {
+  const float width = ImGui::GetContentRegionAvail().x;
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float mode_width =
+      stacked ? -1.0f : std::max(92.0f, (width - spacing) * 0.5f);
+  if (DrawWorkbenchSegment(ICON_MD_LIST " Rooms",
+                           sidebar_mode_ == SidebarMode::Rooms, mode_width)) {
     sidebar_mode_ = SidebarMode::Rooms;
   }
-  if (!stack_mode_switch) {
+  if (!stacked) {
     ImGui::SameLine();
   }
-  if (ImGui::Selectable(ICON_MD_DOOR_FRONT " Entrances",
-                        sidebar_mode_ == SidebarMode::Entrances, 0,
-                        ImVec2(mode_width, 0.0f))) {
+  if (DrawWorkbenchSegment(ICON_MD_DOOR_FRONT " Entrances",
+                           sidebar_mode_ == SidebarMode::Entrances,
+                           mode_width)) {
     sidebar_mode_ = SidebarMode::Entrances;
   }
 }
@@ -392,10 +398,20 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   DungeonCanvasViewer* primary_viewer = get_viewer_ ? get_viewer_() : nullptr;
   DungeonCanvasViewer* compare_viewer =
       get_compare_viewer_ ? get_compare_viewer_() : nullptr;
+  const float splitter_w = gui::UIConfig::kSplitterWidth;
+  const float total_w = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const float min_sidebar_w = gui::UIConfig::kContentMinWidthSidebar;
+  const float min_canvas_w = std::max(320.0f, min_sidebar_w + 120.0f);
+  const ResponsiveWorkbenchLayout responsive = ResolveResponsiveWorkbenchLayout(
+      total_w, min_canvas_w, min_sidebar_w, splitter_w,
+      layout_state_.show_left_sidebar, layout_state_.show_right_inspector);
+  const bool show_left = responsive.show_left;
+  const bool show_right = responsive.show_right;
 
   if (current_room_id_) {
     DungeonWorkbenchToolbarParams params;
     params.layout = &layout_state_;
+    params.left_sidebar_visible = show_left;
     params.current_room_id = current_room_id_;
     params.previous_room_id = &previous_room_id_;
     params.split_view_enabled = &split_view_enabled_;
@@ -417,16 +433,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   }
 
   const float btn = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
-  const float splitter_w = gui::UIConfig::kSplitterWidth;
-  const float total_w = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const float total_h = std::max(ImGui::GetContentRegionAvail().y, 1.0f);
-  const float min_sidebar_w = gui::UIConfig::kContentMinWidthSidebar;
-  const float min_canvas_w = std::max(320.0f, min_sidebar_w + 120.0f);
-  const ResponsiveWorkbenchLayout responsive = ResolveResponsiveWorkbenchLayout(
-      total_w, min_canvas_w, min_sidebar_w, splitter_w,
-      layout_state_.show_left_sidebar, layout_state_.show_right_inspector);
-  const bool show_left = responsive.show_left;
-  const bool show_right = responsive.show_right;
   const float compact_left_w = std::max(136.0f, min_sidebar_w * 0.72f);
   const float compact_right_w = std::max(200.0f, min_sidebar_w + 32.0f);
   const float active_left_min_w =
@@ -500,17 +507,8 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
                                   (show_right ? splitter_w : 0.0f));
   }
 
-  // Sidebar: room navigation (list + filter)
   if (show_left) {
-    const bool sidebar_open =
-        ImGui::BeginChild("##DungeonWorkbenchSidebar", ImVec2(left_w, total_h),
-                          true);
-    if (sidebar_open) {
-      DrawSidebarHeader(btn);
-      ImGui::Separator();
-      DrawSidebarContent();
-    }
-    ImGui::EndChild();
+    DrawSidebarPane(left_w, total_h, btn, responsive.compact_left);
   }
   if (show_left) {
     ImGui::SameLine(0.0f, 0.0f);
@@ -521,62 +519,11 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
                          false);
   }
 
-  // Canvas: main room view (minimum height so canvas never collapses)
   if (show_left) {
     ImGui::SameLine(0.0f, 0.0f);
   }
-  const bool canvas_open =
-      ImGui::BeginChild("##DungeonWorkbenchCanvas", ImVec2(center_w, total_h),
-                        false);
-  if (canvas_open) {
-    if (primary_viewer) {
-      const bool show_recent_tabs =
-          split_view_enabled_ || !layout_state_.show_left_sidebar;
-      if (show_recent_tabs) {
-        DrawRecentRoomTabs();
-      }
-      if (split_view_enabled_) {
-        DrawSplitView(*primary_viewer);
-      } else {
-        primary_viewer->DrawDungeonCanvas(*current_room_id_);
-      }
+  DrawCanvasPane(center_w, total_h, primary_viewer, show_left);
 
-      // Status bar at the bottom of the canvas area
-      {
-        const char* tool_mode = get_tool_mode_ ? get_tool_mode_() : "Select";
-        auto status =
-            DungeonStatusBar::BuildState(*primary_viewer, tool_mode, false);
-        status.workflow_mode = "Workbench";
-        status.workflow_primary = true;
-        if (can_undo_)
-          status.can_undo = can_undo_();
-        if (can_redo_)
-          status.can_redo = can_redo_();
-        if (undo_desc_) {
-          static std::string s_undo_desc;
-          s_undo_desc = undo_desc_();
-          status.undo_desc =
-              s_undo_desc.empty() ? nullptr : s_undo_desc.c_str();
-        }
-        if (redo_desc_) {
-          static std::string s_redo_desc;
-          s_redo_desc = redo_desc_();
-          status.redo_desc =
-              s_redo_desc.empty() ? nullptr : s_redo_desc.c_str();
-        }
-        if (undo_depth_)
-          status.undo_depth = undo_depth_();
-        status.on_undo = on_undo_;
-        status.on_redo = on_redo_;
-        DungeonStatusBar::Draw(status);
-      }
-    } else {
-      ImGui::TextDisabled("No active viewer");
-    }
-  }
-  ImGui::EndChild();
-
-  // Inspector: room, selection, and quick-tool shelves.
   if (show_right) {
     ImGui::SameLine(0.0f, 0.0f);
     DrawVerticalSplitter("##DungeonWorkbenchRightSplitter", total_h,
@@ -587,37 +534,107 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
     ImGui::SameLine(0.0f, 0.0f);
   }
   if (show_right) {
-    const bool inspector_open =
-        ImGui::BeginChild("##DungeonWorkbenchInspector",
-                          ImVec2(right_w, total_h), true);
-    if (inspector_open) {
-      // Header with collapse button
-      const float collapse_w =
-          CalcWorkbenchIconButtonWidth(ICON_MD_CHEVRON_RIGHT, btn);
-      ImGui::TextDisabled("%s",
-                          responsive.compact_right ? ICON_MD_TUNE " Inspect"
-                                                   : ICON_MD_TUNE " Inspector");
-      ImGui::SameLine();
-      ImGui::SetCursorPosX(std::max(
-          ImGui::GetCursorPosX(),
-          ImGui::GetWindowContentRegionMax().x - collapse_w));
-      if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##CollapseInspector",
-                        ImVec2(collapse_w, btn))) {
-        layout_state_.show_right_inspector = false;
+    DrawInspectorPane(right_w, total_h, btn, responsive.compact_right,
+                      primary_viewer);
+  }
+}
+
+void DungeonWorkbenchPanel::DrawCanvasPane(float width, float height,
+                                           DungeonCanvasViewer* primary_viewer,
+                                           bool left_sidebar_visible) {
+  const bool canvas_open =
+      ImGui::BeginChild("##DungeonWorkbenchCanvas", ImVec2(width, height),
+                        false);
+  if (canvas_open) {
+    if (primary_viewer) {
+      const bool show_recent_tabs =
+          split_view_enabled_ || !left_sidebar_visible;
+      if (show_recent_tabs) {
+        DrawRecentRoomTabs();
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Collapse inspector");
+      if (split_view_enabled_) {
+        DrawSplitView(*primary_viewer);
+      } else {
+        primary_viewer->DrawDungeonCanvas(*current_room_id_);
       }
 
-      ImGui::Separator();
-      if (primary_viewer) {
-        DrawInspector(*primary_viewer);
-      } else {
-        ImGui::TextDisabled("No active viewer");
+      const char* tool_mode = get_tool_mode_ ? get_tool_mode_() : "Select";
+      auto status = DungeonStatusBar::BuildState(*primary_viewer, tool_mode,
+                                                 false);
+      status.workflow_mode = "Workbench";
+      status.workflow_primary = true;
+      if (can_undo_)
+        status.can_undo = can_undo_();
+      if (can_redo_)
+        status.can_redo = can_redo_();
+      if (undo_desc_) {
+        static std::string s_undo_desc;
+        s_undo_desc = undo_desc_();
+        status.undo_desc =
+            s_undo_desc.empty() ? nullptr : s_undo_desc.c_str();
       }
+      if (redo_desc_) {
+        static std::string s_redo_desc;
+        s_redo_desc = redo_desc_();
+        status.redo_desc =
+            s_redo_desc.empty() ? nullptr : s_redo_desc.c_str();
+      }
+      if (undo_depth_)
+        status.undo_depth = undo_depth_();
+      status.on_undo = on_undo_;
+      status.on_redo = on_redo_;
+      DungeonStatusBar::Draw(status);
+    } else {
+      ImGui::TextDisabled("No active viewer");
     }
-    ImGui::EndChild();
   }
+  ImGui::EndChild();
+}
+
+void DungeonWorkbenchPanel::DrawInspectorPane(float width, float height,
+                                              float button_size, bool compact,
+                                              DungeonCanvasViewer* viewer) {
+  const bool inspector_open =
+      ImGui::BeginChild("##DungeonWorkbenchInspector", ImVec2(width, height),
+                        true);
+  if (inspector_open) {
+    DrawInspectorHeader(button_size, compact);
+    if (viewer) {
+      DrawInspector(*viewer);
+    } else {
+      ImGui::TextDisabled("No active viewer");
+    }
+  }
+  ImGui::EndChild();
+}
+
+void DungeonWorkbenchPanel::DrawInspectorHeader(float button_size,
+                                                bool compact) {
+  gui::StyleVarGuard item_spacing_guard(
+      ImGuiStyleVar_ItemSpacing,
+      ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
+             ImGui::GetStyle().ItemSpacing.y));
+  const float collapse_w =
+      CalcWorkbenchIconButtonWidth(ICON_MD_CHEVRON_RIGHT, button_size);
+
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled("%s", compact ? ICON_MD_TUNE " Inspect"
+                                    : ICON_MD_TUNE " Inspector");
+  ImGui::SameLine();
+  ImGui::SetCursorPosX(std::max(
+      ImGui::GetCursorPosX(),
+      ImGui::GetWindowContentRegionMax().x - collapse_w));
+  if (ImGui::Button(ICON_MD_CHEVRON_RIGHT "##CollapseInspector",
+                    ImVec2(collapse_w, button_size))) {
+    layout_state_.show_right_inspector = false;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Collapse inspector");
+  }
+
+  ImGui::Spacing();
+  DrawInspectorPrimarySelector();
+  ImGui::Separator();
 }
 
 void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
@@ -831,41 +848,26 @@ void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(6.0f, ImGui::GetStyle().ItemSpacing.x * 0.9f),
              std::max(6.0f, ImGui::GetStyle().ItemSpacing.y * 0.95f)));
-  DrawInspectorPrimarySelector();
   DrawInspectorShelf(viewer);
 }
 
 void DungeonWorkbenchPanel::DrawInspectorPrimarySelector() {
   const float width = ImGui::GetContentRegionAvail().x;
   const bool stack = width < 260.0f;
-  const float button_width = stack ? -1.0f : (width - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
-  const bool room_active = inspector_focus_ == InspectorFocus::Room;
-  const bool selection_active = inspector_focus_ == InspectorFocus::Selection;
-
-  if (room_active) {
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-  }
-  if (DrawWorkbenchActionButton(ICON_MD_CASTLE " Room",
-                                ImVec2(button_width, 0.0f))) {
+  const float button_width =
+      stack ? -1.0f : (width - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+  if (DrawWorkbenchSegment(ICON_MD_CASTLE " Room",
+                           inspector_focus_ == InspectorFocus::Room,
+                           button_width)) {
     inspector_focus_ = InspectorFocus::Room;
-  }
-  if (room_active) {
-    ImGui::PopStyleColor();
   }
   if (!stack) {
     ImGui::SameLine();
   }
-  if (selection_active) {
-    ImGui::PushStyleColor(ImGuiCol_Button,
-                          ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
-  }
-  if (DrawWorkbenchActionButton(ICON_MD_SELECT_ALL " Selection",
-                                ImVec2(button_width, 0.0f))) {
+  if (DrawWorkbenchSegment(ICON_MD_SELECT_ALL " Selection",
+                           inspector_focus_ == InspectorFocus::Selection,
+                           button_width)) {
     inspector_focus_ = InspectorFocus::Selection;
-  }
-  if (selection_active) {
-    ImGui::PopStyleColor();
   }
 }
 

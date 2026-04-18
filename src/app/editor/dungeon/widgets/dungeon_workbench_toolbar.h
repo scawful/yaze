@@ -13,6 +13,7 @@ class DungeonCanvasViewer;
 
 struct DungeonWorkbenchToolbarParams {
   DungeonWorkbenchLayoutState* layout = nullptr;
+  bool left_sidebar_visible = false;
 
   int* current_room_id = nullptr;
   int* previous_room_id = nullptr;
