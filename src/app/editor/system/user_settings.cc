@@ -289,8 +289,8 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "sidebar_panel_expanded=" << (prefs.sidebar_panel_expanded ? 1 : 0)
      << "\n";
   ss << "sidebar_panel_width=" << prefs.sidebar_panel_width << "\n";
-  ss << "panel_browser_category_width="
-     << prefs.panel_browser_category_width << "\n";
+  ss << "panel_browser_category_width=" << prefs.panel_browser_category_width
+     << "\n";
   ss << "panel_layout_defaults_revision="
      << prefs.panel_layout_defaults_revision << "\n";
   ss << "sidebar_active_category=" << prefs.sidebar_active_category << "\n";
@@ -602,8 +602,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         g.value("welcome_triforce_speed", prefs->welcome_triforce_speed);
     prefs->welcome_triforce_size =
         g.value("welcome_triforce_size", prefs->welcome_triforce_size);
-    prefs->welcome_particles_enabled = g.value(
-        "welcome_particles_enabled", prefs->welcome_particles_enabled);
+    prefs->welcome_particles_enabled =
+        g.value("welcome_particles_enabled", prefs->welcome_particles_enabled);
     prefs->welcome_mouse_repel_enabled = g.value(
         "welcome_mouse_repel_enabled", prefs->welcome_mouse_repel_enabled);
   }
@@ -612,8 +612,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     const auto& appearance = root["appearance"];
     prefs->reduced_motion =
         appearance.value("reduced_motion", prefs->reduced_motion);
-    prefs->switch_motion_profile = appearance.value(
-        "switch_motion_profile", prefs->switch_motion_profile);
+    prefs->switch_motion_profile =
+        appearance.value("switch_motion_profile", prefs->switch_motion_profile);
     prefs->last_theme_name =
         appearance.value("last_theme_name", prefs->last_theme_name);
   }
@@ -786,8 +786,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
 
   if (root.contains("layouts")) {
     const auto& layouts = root["layouts"];
-    prefs->panel_layout_defaults_revision =
-        layouts.value("defaults_revision", prefs->panel_layout_defaults_revision);
+    prefs->panel_layout_defaults_revision = layouts.value(
+        "defaults_revision", prefs->panel_layout_defaults_revision);
     if (layouts.contains("panel_visibility")) {
       LoadNestedBoolMap(layouts["panel_visibility"],
                         &prefs->panel_visibility_state);
@@ -1120,6 +1120,17 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
       overworld_windows["overworld.item_list"] = false;
     }
     prefs_.panel_layout_defaults_revision = 6;
+    applied = true;
+  }
+
+  // Revision 7: WindowLifecycle::Persistent collapsed into CrossEditor.
+  // Auto-pin the two former-Persistent panels so existing users keep their
+  // always-visible behavior without manual intervention. A user who later
+  // unpins either gets a normal CrossEditor (category-gated) panel.
+  if (prefs_.panel_layout_defaults_revision < 7 && target_revision >= 7) {
+    prefs_.pinned_panels.try_emplace("agent.oracle_ram", true);
+    prefs_.pinned_panels.try_emplace("workflow.output", true);
+    prefs_.panel_layout_defaults_revision = 7;
     applied = true;
   }
 

@@ -55,14 +55,14 @@ class MockEditorPanel : public WindowContent {
 };
 
 /**
- * @brief Mock panel with custom category behavior
+ * @brief Mock panel that declares itself pinnable across editor switches
  */
-class MockPersistentPanel : public MockEditorPanel {
+class MockCrossEditorPanel : public MockEditorPanel {
  public:
   using MockEditorPanel::MockEditorPanel;
 
   WindowLifecycle GetWindowLifecycle() const override {
-    return WindowLifecycle::Persistent;
+    return WindowLifecycle::CrossEditor;
   }
 };
 
@@ -105,8 +105,8 @@ class MockResourcePanel : public ResourceWindowContent {
 class EditorPanelTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    panel_ = std::make_unique<MockEditorPanel>(
-        "test.panel", "Test Panel", "ICON_MD_TEST", "Test");
+    panel_ = std::make_unique<MockEditorPanel>("test.panel", "Test Panel",
+                                               "ICON_MD_TEST", "Test");
   }
 
   std::unique_ptr<MockEditorPanel> panel_;
@@ -173,11 +173,11 @@ TEST_F(EditorPanelTest, RelationshipDefaults) {
 // WindowLifecycle Tests
 // =============================================================================
 
-TEST(PanelCategoryTest, PersistentPanel) {
-  MockPersistentPanel panel("test.persistent", "Persistent Panel",
-                            "ICON_MD_PUSH_PIN", "Test");
+TEST(PanelCategoryTest, CrossEditorPanel) {
+  MockCrossEditorPanel panel("test.cross_editor", "Cross-Editor Panel",
+                             "ICON_MD_PUSH_PIN", "Test");
 
-  EXPECT_EQ(panel.GetWindowLifecycle(), WindowLifecycle::Persistent);
+  EXPECT_EQ(panel.GetWindowLifecycle(), WindowLifecycle::CrossEditor);
 }
 
 TEST(PanelCategoryTest, EditorBoundDefault) {
@@ -293,8 +293,7 @@ TEST(PanelCollectionTest, PolymorphicStorage) {
 
   panels.push_back(std::make_unique<MockEditorPanel>(
       "test.static", "Static Panel", "ICON_1", "Test"));
-  panels.push_back(
-      std::make_unique<MockResourcePanel>(42, "room", "Dungeon"));
+  panels.push_back(std::make_unique<MockResourcePanel>(42, "room", "Dungeon"));
 
   EXPECT_EQ(panels.size(), 2);
   EXPECT_EQ(panels[0]->GetId(), "test.static");

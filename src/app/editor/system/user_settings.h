@@ -28,7 +28,8 @@ class UserSettings {
       bool supports_streaming = true;
       bool allow_insecure = false;
       std::string api_key;  // Optional plaintext key (desktop/non-keychain)
-      std::string credential_id;  // Keychain reference (never store secrets here)
+      std::string
+          credential_id;  // Keychain reference (never store secrets here)
     };
 
     struct AiModelProfile {
@@ -80,7 +81,8 @@ class UserSettings {
     int undo_history_size = 50;
 
     // AI Agent
-    int ai_provider = 0;  // Legacy default provider (0=Ollama, 1=Gemini, 2=Mock)
+    int ai_provider =
+        0;  // Legacy default provider (0=Ollama, 1=Gemini, 2=Mock)
     std::string ai_model;
     std::string ollama_url = "http://localhost:11434";
     std::string gemini_api_key;
@@ -127,7 +129,7 @@ class UserSettings {
     float sidebar_panel_width = 0.0f;    // 0 = responsive default
     float panel_browser_category_width = 260.0f;
     int panel_layout_defaults_revision = 0;
-    std::string sidebar_active_category; // Last active category
+    std::string sidebar_active_category;  // Last active category
 
     // Sidebar customization (Phase 4): user-controlled category order,
     // hidden set (filtered out of the rail), and pinned set (pinned-first).
@@ -136,7 +138,8 @@ class UserSettings {
     std::unordered_set<std::string> sidebar_pinned;
 
     // Status Bar
-    bool show_status_bar = false;  // Show status bar at bottom (disabled by default)
+    bool show_status_bar =
+        false;  // Show status bar at bottom (disabled by default)
 
     // Panel Visibility State (per editor type)
     // Maps editor_type_name -> (panel_id -> visible)
@@ -164,7 +167,7 @@ class UserSettings {
   // than persisted settings. Returns true when defaults were reset.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 6;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 7;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }

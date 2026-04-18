@@ -799,16 +799,15 @@ void WorkspaceWindowManager::DrawAllVisiblePanels() {
 
     bool is_visible = descriptor.visibility_flag && *descriptor.visibility_flag;
 
-    // Category filtering: only draw if matches active category, pinned, or persistent
+    // Category filtering: draw if matches active category or user has pinned.
+    // Previously a Persistent lifecycle was a third branch here; collapsed into
+    // CrossEditor + default-pin via UserSettings revision-7 migration.
     bool should_draw = false;
     if (is_visible) {
       if (panel->GetEditorCategory() == browser_state_.active_category ||
           descriptor.category == browser_state_.active_category) {
         should_draw = true;
       } else if (IsWindowPinnedImpl(active_session_, base_panel_id)) {
-        should_draw = true;
-      } else if (panel->GetWindowLifecycle() == WindowLifecycle::Persistent ||
-                 descriptor.window_lifecycle == WindowLifecycle::Persistent) {
         should_draw = true;
       }
     }
