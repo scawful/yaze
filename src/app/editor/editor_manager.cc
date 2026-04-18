@@ -2600,9 +2600,13 @@ void EditorManager::DrawInterface() {
     };
 
     if (activity_bar_ && ui_coordinator_->ShouldShowActivityBar()) {
+      auto is_rom_dirty_callback = [this]() -> bool {
+        auto* rom = GetCurrentRom();
+        return rom && rom->is_loaded() && rom->dirty();
+      };
       activity_bar_->Render(GetCurrentSessionId(), sidebar_category,
                             all_categories, active_editor_categories,
-                            has_rom_callback);
+                            has_rom_callback, is_rom_dirty_callback);
     }
   }
 
