@@ -3,6 +3,21 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
+## 0.7.1 (April 2026, pending tag)
+- **Welcome Screen & Project Startup**:
+  - Added a guided New Project flow, async ROM metadata scanning, and recent-project pin/rename/notes actions.
+  - Surfaced welcome/startup actions through the command palette and added undo for recent-project removal.
+- **Dungeon Editor Parity & Polish**:
+  - Restored BG1/BG2 layout routing parity, preserved pit masks, and accepted single-tile `0x034` payloads.
+  - Added ROM-backed parity tests/snapshots, replay-geometry selection bounds, and simplified workbench inspector/navigation flows.
+- **Editor Memory & Startup Footprint**:
+  - Added lazy session-editor construction, deferred hidden full-mode asset loads, overworld eager bitmap trimming, and room-buffer texture release.
+  - Split render-target texture creation to keep backend behavior cleaner across platforms.
+- **CLI / CI Hardening**:
+  - Fixed the WASM dungeon tile-row build path, validated overworld map IDs before ROM access, and hardened Linux GUI smoke-path handling.
+- **Deferred to 0.8.0**:
+  - z3dk integration planning now covers embedded assembly/lint/LSP workflows, shared Mesen2 plumbing, and `.mlb` export.
+
 ## 0.7.0 (March 2026)
 - **iOS Remote Control & Review**:
   - Bonjour discovery (`_yaze._tcp.`) auto-finds desktop instances on LAN.

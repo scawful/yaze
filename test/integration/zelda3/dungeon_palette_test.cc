@@ -58,30 +58,32 @@ TEST_F(DungeonPaletteTest, PaletteOffsetIsCorrectFor8BPP) {
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
 
   // Check pixels
-  // Dungeon tiles use 16-color CGRAM banks with index 0 as transparent.
-  // Formula: final_color = pixel + ((palette - 2) * 16) for palette 2-7.
-  // Palette 2 maps to the first dungeon bank (offset 0).
-  // Pixel at (0,0) was 1. Result should be 1.
-  // Pixel at (1,0) was 2. Result should be 2.
+  // Dungeon tiles use the tile palette bits as direct SDL bank selectors.
+  // Room::RenderRoomGraphics mirrors dungeon colors into SDL rows 2-7, leaving
+  // rows 0-1 as transparent HUD placeholders.
+  // Formula: final_color = pixel + (palette * 16).
+  // Palette 2 therefore maps to SDL row 2 (offset 32).
+  // Pixel at (0,0) was 1. Result should be 33.
+  // Pixel at (1,0) was 2. Result should be 34.
 
   const auto& data = bitmap.vector();
   // Bitmap data is row-major.
   // (0,0) is index 0.
-  EXPECT_EQ(data[0], 1);
-  EXPECT_EQ(data[1], 2);
+  EXPECT_EQ(data[0], 33);
+  EXPECT_EQ(data[1], 34);
 
-  // Test with palette 3 (offset 16)
+  // Test with palette 3 (offset 48)
   tile_info.palette_ = 3;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  EXPECT_EQ(data[0], 17);  // 1 + 16
-  EXPECT_EQ(data[1], 18);  // 2 + 16
+  EXPECT_EQ(data[0], 49);  // 1 + 48
+  EXPECT_EQ(data[1], 50);  // 2 + 48
 
   // Test with palette 7 (last dungeon bank)
   tile_info.palette_ = 7;
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
-  // Palette 7 maps to bank 5 (offset 80).
-  EXPECT_EQ(data[0], 81);  // 1 + 80
-  EXPECT_EQ(data[1], 82);  // 2 + 80
+  // Palette 7 maps to SDL row 7 (offset 112).
+  EXPECT_EQ(data[0], 113);  // 1 + 112
+  EXPECT_EQ(data[1], 114);  // 2 + 112
 }
 
 TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
@@ -99,7 +101,7 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
 
   gfx::TileInfo tile_info;
   tile_info.id_ = 0;
-  tile_info.palette_ = 4;  // Palette 4 → offset 32 (2 * 16)
+  tile_info.palette_ = 4;  // Palette 4 -> SDL row 4 -> offset 64
   tile_info.horizontal_mirror_ = false;
   tile_info.vertical_mirror_ = false;
   tile_info.over_ = false;
@@ -107,12 +109,12 @@ TEST_F(DungeonPaletteTest, PaletteOffsetWorksWithConvertedData) {
   drawer_->DrawTileToBitmap(bitmap, tile_info, 0, 0, tiledata.data());
 
   const auto& data = bitmap.vector();
-  // Dungeon tiles use 16-color CGRAM banks.
-  // Formula: final_color = pixel + ((palette - 2) * 16)
-  // Pixel 3: 3 + 32 = 35
-  // Pixel 5: 5 + 32 = 37
-  EXPECT_EQ(data[0], 35);
-  EXPECT_EQ(data[1], 37);
+  // Dungeon tiles use direct SDL bank rows.
+  // Formula: final_color = pixel + (palette * 16)
+  // Pixel 3: 3 + 64 = 67
+  // Pixel 5: 5 + 64 = 69
+  EXPECT_EQ(data[0], 67);
+  EXPECT_EQ(data[1], 69);
 }
 
 TEST_F(DungeonPaletteTest, InspectActualPaletteColors) {

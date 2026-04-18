@@ -1,20 +1,21 @@
-# Feature & Test Coverage Report (v0.7.0)
+# Feature & Test Coverage Report (v0.7.1)
 
 This report summarizes feature status and persistence behavior across the
 desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
 to current automated test coverage. Status levels follow the desktop rubric:
 Stable = reliable core workflows, Beta = usable but incomplete, WIP = core operations missing.
-As of v0.7.0, app data is consolidated under `~/.yaze` on desktop/CLI and
-`/.yaze` in the web build (IDBFS), with legacy migrations from AppData/Library/XDG.
+As of the v0.7.1 release line, app data is consolidated under `~/.yaze` on
+desktop/CLI and `/.yaze` in the web build (IDBFS), with legacy migrations from
+AppData/Library/XDG.
 
 ## Desktop App (yaze)
 
 | Feature | State | Save/Load & Persistence |
 | --- | --- | --- |
-| Project files (.yaze) | Stable | Project metadata stored in the .yaze file; recent project list persisted. |
+| Project files (.yaze) | Stable | Project metadata stored in the .yaze file; recent project list and metadata cache persisted. |
 | ROM load/save | Stable | ROM loaded from disk; save writes ROM; timestamped backups when enabled. |
 | Overworld Editor | Beta | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. Tile16 palette inconsistencies, paste not tracked in undo, sprite workflow incomplete. |
-| Dungeon Editor | Beta | Room objects/tiles/palettes persist to ROM; shared undo/redo. 12+ unknown object types, visual discrepancies in specific objects, object preview stubbed. |
+| Dungeon Editor | Beta | Room objects/tiles/palettes persist to ROM; shared undo/redo. ROM-backed parity coverage landed, but 12+ unknown object types, specific visual discrepancies, and object preview gaps remain. |
 | Palette Editor | Beta | Palette changes persist to ROM; JSON import/export not implemented. |
 | Graphics Editor | Beta | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
 | Sprite Editor | Beta | Sprite viewing/editing works with undo/redo; deeper workflow coverage is still limited. |
