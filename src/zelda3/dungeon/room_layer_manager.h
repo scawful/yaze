@@ -309,6 +309,37 @@ class RoomLayerManager {
    */
   uint8_t GetMergeTypeId() const { return current_merge_type_id_; }
 
+  // Signature for caching composited output. If any layer/blend/translucency
+  // state changes, callers should treat previously cached composite bitmaps as
+  // stale.
+  uint64_t CompositeStateSignature() const {
+    uint64_t sig = 1469598103934665603ull;
+    const auto mix = [&sig](uint64_t value) {
+      sig ^= value;
+      sig *= 1099511628211ull;
+    };
+
+    for (int i = 0; i < 4; ++i) {
+      mix(layer_visible_[i] ? 1u : 0u);
+      mix(static_cast<uint64_t>(layer_blend_mode_[i]));
+      mix(layer_alpha_[i]);
+    }
+
+    mix(bg2_on_top_ ? 1u : 0u);
+    mix(layers_merged_ ? 1u : 0u);
+    mix(current_merge_type_id_);
+    mix(use_priority_compositing_ ? 1u : 0u);
+
+    mix(static_cast<uint64_t>(object_translucency_.size()));
+    for (const auto& entry : object_translucency_) {
+      mix(static_cast<uint64_t>(entry.object_index));
+      mix(entry.translucent ? 1u : 0u);
+      mix(entry.alpha);
+    }
+
+    return sig;
+  }
+
   // ============================================================================
   // Object Layer Assignment
   // ============================================================================

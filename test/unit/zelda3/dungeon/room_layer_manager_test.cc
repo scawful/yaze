@@ -310,5 +310,34 @@ TEST_F(RoomLayerManagerTest, Coverage_ObjectTransparentWriteClearsLayout) {
   EXPECT_EQ(output.data()[0], 22);
 }
 
+TEST_F(RoomLayerManagerTest,
+       CompositeCacheInvalidatesWhenLayerManagerStateChanges) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  room.bg1_buffer().EnsureBitmapInitialized();
+  room.bg2_buffer().EnsureBitmapInitialized();
+  room.object_bg1_buffer().EnsureBitmapInitialized();
+  room.object_bg2_buffer().EnsureBitmapInitialized();
+
+  room.bg1_buffer().bitmap().Fill(255);
+  room.bg2_buffer().bitmap().Fill(255);
+  room.object_bg1_buffer().bitmap().Fill(255);
+  room.object_bg2_buffer().bitmap().Fill(255);
+
+  room.bg1_buffer().bitmap().mutable_data()[0] = 11;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 22;
+
+  auto& first = room.GetCompositeBitmap(manager_);
+  ASSERT_TRUE(first.is_active());
+  EXPECT_EQ(first.data()[0], 11);
+  EXPECT_FALSE(room.IsCompositeDirty());
+
+  manager_.SetLayerVisible(LayerType::BG1_Layout, false);
+
+  auto& second = room.GetCompositeBitmap(manager_);
+  ASSERT_TRUE(second.is_active());
+  EXPECT_EQ(second.data()[0], 22)
+      << "Changing layer visibility must invalidate cached composites";
+}
+
 }  // namespace zelda3
 }  // namespace yaze
