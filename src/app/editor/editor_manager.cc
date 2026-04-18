@@ -4154,6 +4154,7 @@ absl::Status EditorManager::RunCurrentProject() {
     return absl::NotFoundError("Run target ROM not found");
   }
 
+#ifdef YAZE_WITH_GRPC
   if (auto* emulator_backend = Application::Instance().GetEmulatorBackend()) {
     auto load_status = emulator_backend->LoadRom(run_target);
     if (load_status.ok()) {
@@ -4175,6 +4176,7 @@ absl::Status EditorManager::RunCurrentProject() {
       return absl::OkStatus();
     }
   }
+#endif
 
   Rom temp_rom;
   auto load_rom_status = rom_file_manager_.LoadRom(&temp_rom, run_target);
