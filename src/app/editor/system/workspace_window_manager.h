@@ -722,23 +722,6 @@ class WorkspaceWindowManager {
     browser_state_.on_sidebar_state_changed = std::move(cb);
   }
 
-  // ============================================================================
-  // Unified Visibility Management (single source of truth)
-  // ============================================================================
-
-  bool IsEmulatorVisible() const { return emulator_visible_; }
-  void SetEmulatorVisible(bool visible) {
-    if (emulator_visible_ != visible) {
-      emulator_visible_ = visible;
-      if (on_emulator_visibility_changed_) {
-        on_emulator_visibility_changed_(visible);
-      }
-    }
-  }
-  void ToggleEmulatorVisible() { SetEmulatorVisible(!emulator_visible_); }
-  void SetEmulatorVisibilityChangedCallback(std::function<void(bool)> cb) {
-    on_emulator_visibility_changed_ = std::move(cb);
-  }
   void SetCategoryChangedCallback(std::function<void(const std::string&)> cb) {
     browser_state_.on_category_changed = std::move(cb);
   }
@@ -1149,14 +1132,10 @@ class WorkspaceWindowManager {
 
   WindowBrowserState browser_state_;
 
-  // Unified visibility state (single source of truth)
-  bool emulator_visible_ = false;  // Emulator window visibility
-
   // EventBus for action events (preferred over callbacks)
   EventBus* event_bus_ = nullptr;
 
   // State change callbacks
-  std::function<void(bool)> on_emulator_visibility_changed_;
   std::function<void(const std::string&, const std::string&)> on_file_clicked_;
   std::function<Editor*(const std::string&)> editor_resolver_;
 
