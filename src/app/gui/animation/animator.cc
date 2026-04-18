@@ -86,6 +86,21 @@ void Animator::ClearAnimationsForPanel(const std::string& panel_id) {
   pushed_transition_alpha_.erase(panel_id);
 }
 
+void Animator::ClearWorkspaceTransitionState() {
+  panel_transitions_.clear();
+  pushed_transition_alpha_.clear();
+
+  for (auto panel_it = panels_.begin(); panel_it != panels_.end();) {
+    panel_it->second.erase("panel_alpha");
+    panel_it->second.erase("category_transition");
+    if (panel_it->second.empty()) {
+      panel_it = panels_.erase(panel_it);
+    } else {
+      ++panel_it;
+    }
+  }
+}
+
 void Animator::ClearAllAnimations() {
   panels_.clear();
   panel_transitions_.clear();
@@ -232,8 +247,10 @@ void Animator::ApplyPanelTransitionPre(const std::string& panel_id) {
         ImGuiCond_Always);
   }
 
-  // Apply alpha and record stack push so post-pass can pop safely.
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, transition.alpha);
+  // Multiply with any alpha already applied this frame so workspace fade
+  // transitions compose with panel-alpha fades instead of overwriting them.
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha,
+                      ImGui::GetStyle().Alpha * transition.alpha);
   pushed_transition_alpha_.insert(panel_id);
 }
 
