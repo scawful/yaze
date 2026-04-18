@@ -2056,7 +2056,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         [this]() { OpenWindow("dungeon.sprite_editor"); });
     viewer->SetShowItemPanelCallback(
         [this]() { OpenWindow("dungeon.item_editor"); });
-    viewer->SetShowRoomListCallback([this]() { OpenWindow(kRoomSelectorId); });
+    viewer->SetShowRoomListCallback([this]() {
+      OpenWindow(IsWorkbenchWorkflowEnabled() ? "dungeon.workbench"
+                                             : kRoomSelectorId);
+    });
     viewer->SetShowRoomMatrixCallback([this]() { OpenWindow(kRoomMatrixId); });
     viewer->SetShowEntranceListCallback(
         [this]() { OpenWindow(kEntranceListId); });
@@ -2193,7 +2196,10 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
         [this]() { OpenWindow("dungeon.sprite_editor"); });
     viewer->SetShowItemPanelCallback(
         [this]() { OpenWindow("dungeon.item_editor"); });
-    viewer->SetShowRoomListCallback([this]() { OpenWindow(kRoomSelectorId); });
+    viewer->SetShowRoomListCallback([this]() {
+      OpenWindow(IsWorkbenchWorkflowEnabled() ? "dungeon.workbench"
+                                             : kRoomSelectorId);
+    });
     viewer->SetShowRoomMatrixCallback([this]() { OpenWindow(kRoomMatrixId); });
     viewer->SetShowEntranceListCallback(
         [this]() { OpenWindow(kEntranceListId); });
@@ -2355,6 +2361,9 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
 void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
   // Update object editor card with current viewer
   if (object_editor_panel_) {
+    object_editor_panel_->SetCanvasViewerProvider([this]() {
+      return GetViewerForRoom(current_room_id_);
+    });
     object_editor_panel_->SetCurrentRoom(room_id);
     object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
