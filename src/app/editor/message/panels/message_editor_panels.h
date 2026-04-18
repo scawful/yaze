@@ -11,13 +11,13 @@ namespace yaze {
 namespace editor {
 
 // =============================================================================
-// EditorPanel wrappers for MessageEditor panels
+// WindowContent wrappers for MessageEditor panels
 // =============================================================================
 
 /**
- * @brief EditorPanel for Message List
+ * @brief WindowContent for Message List
  */
-class MessageListPanel : public EditorPanel {
+class MessageListPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -41,9 +41,9 @@ class MessageListPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Message Editor
+ * @brief WindowContent for Message Editor
  */
-class MessageEditorPanel : public EditorPanel {
+class MessageEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -67,9 +67,9 @@ class MessageEditorPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Font Atlas
+ * @brief WindowContent for Font Atlas
  */
-class FontAtlasPanel : public EditorPanel {
+class FontAtlasPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -93,9 +93,9 @@ class FontAtlasPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Dictionary
+ * @brief WindowContent for Dictionary
  */
-class DictionaryPanel : public EditorPanel {
+class DictionaryPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 

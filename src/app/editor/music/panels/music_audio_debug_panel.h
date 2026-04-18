@@ -14,7 +14,7 @@ namespace editor {
 
 /**
  * @class MusicAudioDebugPanel
- * @brief EditorPanel providing audio diagnostics for debugging the music editor
+ * @brief WindowContent providing audio diagnostics for debugging the music editor
  *
  * This panel displays detailed information about the audio pipeline including:
  * - Backend configuration (sample rate, channels, buffer size)
@@ -22,13 +22,13 @@ namespace editor {
  * - Queue status (frames queued, underrun detection)
  * - DSP and APU diagnostic information
  */
-class MusicAudioDebugPanel : public EditorPanel {
+class MusicAudioDebugPanel : public WindowContent {
  public:
   explicit MusicAudioDebugPanel(editor::music::MusicPlayer* player)
       : player_(player) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.audio_debug"; }
@@ -38,7 +38,7 @@ class MusicAudioDebugPanel : public EditorPanel {
   int GetPriority() const override { return 95; }  // Just before Help
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

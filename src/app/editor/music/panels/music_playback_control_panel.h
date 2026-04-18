@@ -24,9 +24,9 @@ namespace editor {
 
 /**
  * @class MusicPlaybackControlPanel
- * @brief EditorPanel for music playback controls and status display
+ * @brief WindowContent for music playback controls and status display
  */
-class MusicPlaybackControlPanel : public EditorPanel {
+class MusicPlaybackControlPanel : public WindowContent {
  public:
   MusicPlaybackControlPanel(zelda3::music::MusicBank* music_bank,
                             int* current_song_index,
@@ -36,7 +36,7 @@ class MusicPlaybackControlPanel : public EditorPanel {
         music_player_(music_player) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.tracker"; }
@@ -58,7 +58,7 @@ class MusicPlaybackControlPanel : public EditorPanel {
   }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

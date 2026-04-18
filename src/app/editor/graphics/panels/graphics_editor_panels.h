@@ -11,13 +11,13 @@ namespace yaze {
 namespace editor {
 
 // =============================================================================
-// EditorPanel wrappers for GraphicsEditor panels
+// WindowContent wrappers for GraphicsEditor panels
 // =============================================================================
 
 /**
  * @brief Sheet browser panel for navigating graphics sheets
  */
-class GraphicsSheetBrowserPanel : public EditorPanel {
+class GraphicsSheetBrowserPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -45,7 +45,7 @@ class GraphicsSheetBrowserPanel : public EditorPanel {
 /**
  * @brief Main pixel editing panel for graphics sheets
  */
-class GraphicsPixelEditorPanel : public EditorPanel {
+class GraphicsPixelEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -73,7 +73,7 @@ class GraphicsPixelEditorPanel : public EditorPanel {
 /**
  * @brief Palette controls panel for managing graphics palettes
  */
-class GraphicsPaletteControlsPanel : public EditorPanel {
+class GraphicsPaletteControlsPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -100,7 +100,7 @@ class GraphicsPaletteControlsPanel : public EditorPanel {
 /**
  * @brief Link sprite editor panel for editing Link's graphics
  */
-class GraphicsLinkSpritePanel : public EditorPanel {
+class GraphicsLinkSpritePanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -127,7 +127,7 @@ class GraphicsLinkSpritePanel : public EditorPanel {
 /**
  * @brief 3D polyhedral object editor panel
  */
-class GraphicsPolyhedralPanel : public EditorPanel {
+class GraphicsPolyhedralPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -154,7 +154,7 @@ class GraphicsPolyhedralPanel : public EditorPanel {
 /**
  * @brief Graphics group editor panel for managing GFX groups
  */
-class GraphicsGfxGroupPanel : public EditorPanel {
+class GraphicsGfxGroupPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -181,7 +181,7 @@ class GraphicsGfxGroupPanel : public EditorPanel {
 /**
  * @brief Prototype graphics viewer for Super Donkey and dev format imports
  */
-class GraphicsPrototypeViewerPanel : public EditorPanel {
+class GraphicsPrototypeViewerPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -208,7 +208,7 @@ class GraphicsPrototypeViewerPanel : public EditorPanel {
 /**
  * @brief Paletteset editor panel for managing dungeon palette associations
  */
-class GraphicsPalettesetPanel : public EditorPanel {
+class GraphicsPalettesetPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 

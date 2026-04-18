@@ -15,11 +15,11 @@ namespace editor {
 
 /**
  * @class MusicPianoRollPanel
- * @brief EditorPanel wrapper for the piano roll view
+ * @brief WindowContent wrapper for the piano roll view
  *
  * Delegates to PianoRollView for the actual UI drawing.
  */
-class MusicPianoRollPanel : public EditorPanel {
+class MusicPianoRollPanel : public WindowContent {
  public:
   MusicPianoRollPanel(zelda3::music::MusicBank* music_bank,
                       int* current_song_index, int* current_segment_index,
@@ -34,7 +34,7 @@ class MusicPianoRollPanel : public EditorPanel {
         music_player_(music_player) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.piano_roll"; }
@@ -53,7 +53,7 @@ class MusicPianoRollPanel : public EditorPanel {
   }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

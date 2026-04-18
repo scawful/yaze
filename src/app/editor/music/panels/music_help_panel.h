@@ -12,12 +12,12 @@ namespace editor {
 
 /**
  * @class MusicHelpPanel
- * @brief EditorPanel providing help documentation for the Music Editor
+ * @brief WindowContent providing help documentation for the Music Editor
  */
-class MusicHelpPanel : public EditorPanel {
+class MusicHelpPanel : public WindowContent {
  public:
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.help"; }
@@ -27,7 +27,7 @@ class MusicHelpPanel : public EditorPanel {
   int GetPriority() const override { return 99; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

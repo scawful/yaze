@@ -14,11 +14,11 @@ namespace editor {
 
 /**
  * @class MusicSongBrowserPanel
- * @brief EditorPanel wrapper for the music song browser
+ * @brief WindowContent wrapper for the music song browser
  *
  * Delegates to SongBrowserView for the actual UI drawing.
  */
-class MusicSongBrowserPanel : public EditorPanel {
+class MusicSongBrowserPanel : public WindowContent {
  public:
   MusicSongBrowserPanel(zelda3::music::MusicBank* music_bank,
                         int* current_song_index,
@@ -28,7 +28,7 @@ class MusicSongBrowserPanel : public EditorPanel {
         song_browser_view_(song_browser_view) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.song_browser"; }
@@ -38,7 +38,7 @@ class MusicSongBrowserPanel : public EditorPanel {
   int GetPriority() const override { return 5; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

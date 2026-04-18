@@ -14,18 +14,18 @@ namespace editor {
 
 /**
  * @class MusicSampleEditorPanel
- * @brief EditorPanel wrapper for the sample editor
+ * @brief WindowContent wrapper for the sample editor
  *
  * Delegates to SampleEditorView for the actual UI drawing.
  */
-class MusicSampleEditorPanel : public EditorPanel {
+class MusicSampleEditorPanel : public WindowContent {
  public:
   MusicSampleEditorPanel(zelda3::music::MusicBank* music_bank,
                          music::SampleEditorView* sample_view)
       : music_bank_(music_bank), sample_view_(sample_view) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.sample_editor"; }
@@ -35,7 +35,7 @@ class MusicSampleEditorPanel : public EditorPanel {
   int GetPriority() const override { return 25; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
