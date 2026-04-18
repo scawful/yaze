@@ -2,7 +2,9 @@
 #define YAZE_CORE_PROJECT_H
 
 #include <algorithm>
+#include <cstdint>
 #include <map>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -108,6 +110,48 @@ struct RomMetadata {
   RomWritePolicy write_policy = RomWritePolicy::kWarn;
 };
 
+struct Z3dkMemoryRange {
+  uint32_t start = 0;
+  uint32_t end = 0;
+  std::string reason;
+};
+
+struct Z3dkArtifactPaths {
+  std::string symbols_mlb;
+  std::string sourcemap_json;
+  std::string annotations_json;
+  std::string hooks_json;
+  std::string lint_json;
+};
+
+struct Z3dkSettings {
+  bool loaded = false;
+  std::string config_path;
+  std::string preset;
+  std::vector<std::string> include_paths;
+  std::vector<std::pair<std::string, std::string>> defines;
+  std::vector<std::string> emits;
+  std::vector<std::string> main_files;
+  std::string std_includes_path;
+  std::string std_defines_path;
+  std::string mapper;
+  int rom_size = 0;
+  std::string symbols_format;
+  std::string symbols_path;
+  std::vector<Z3dkMemoryRange> prohibited_memory_ranges;
+  std::optional<bool> lsp_log_enabled;
+  std::string lsp_log_path;
+  bool warn_unused_symbols = true;
+  bool warn_branch_outside_bank = true;
+  bool warn_unknown_width = true;
+  bool warn_org_collision = true;
+  bool warn_unauthorized_hook = true;
+  bool warn_stack_balance = true;
+  bool warn_hook_return = true;
+  std::string rom_path;
+  Z3dkArtifactPaths artifact_paths;
+};
+
 std::string RomRoleToString(RomRole role);
 RomRole ParseRomRole(absl::string_view value);
 std::string RomWritePolicyToString(RomWritePolicy policy);
@@ -158,6 +202,9 @@ struct YazeProject {
 
   // ASM hack integration manifest (loaded from hack_manifest_file)
   core::HackManifest hack_manifest;
+
+  // Optional z3dk project configuration discovered from z3dk.toml.
+  Z3dkSettings z3dk_settings;
 
   // Build and deployment
   std::string build_script;
@@ -286,6 +333,9 @@ struct YazeProject {
 
   // Hack manifest (ASM integration) reload hook (safe no-op if unset).
   void ReloadHackManifest();
+  void ReloadZ3dkSettings();
+  bool HasZ3dkConfig() const { return z3dk_settings.loaded; }
+  std::string GetZ3dkArtifactPath(absl::string_view artifact_name) const;
 
  private:
   absl::StatusOr<std::string> SerializeToString() const;
@@ -300,6 +350,7 @@ struct YazeProject {
 #endif
 
   void InitializeDefaults();
+  void TryLoadZ3dkConfig();
   void TryLoadHackManifest();
   std::string GenerateProjectId() const;
 };

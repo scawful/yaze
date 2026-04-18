@@ -7,7 +7,7 @@
       "name": "base",
       "hidden": true,
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
@@ -75,7 +75,7 @@
       "displayName": "Web Assembly",
       "description": "Emscripten build for browsers",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-wasm",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "YAZE_BUILD_PROFILE": "EDITOR",

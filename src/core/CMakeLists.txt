@@ -8,12 +8,16 @@
 # Dependencies: yaze_util, yaze_zelda3, asar, absl
 # ==============================================================================
 
-# Include Asar configuration
-include(${CMAKE_SOURCE_DIR}/cmake/asar.cmake)
+# Include Asar configuration (optional — disabled when YAZE_ENABLE_Z3DK=ON, which
+# provides its own assembler via z3dk-core. See cmake/dependencies/z3dk.cmake.)
+if(YAZE_ENABLE_ASAR)
+  include(${CMAKE_SOURCE_DIR}/cmake/asar.cmake)
+endif()
 
 # Core library sources
 set(YAZE_CORE_LIB_SOURCES
   asar_wrapper.cc
+  $<$<BOOL:${YAZE_ENABLE_Z3DK}>:${CMAKE_CURRENT_SOURCE_DIR}/z3dk_wrapper.cc>
   hack_manifest.cc
   oracle_menu_registry.cc
   oracle_progression.cc
@@ -36,13 +40,20 @@ target_compile_features(yaze_core_lib PUBLIC cxx_std_20)
 target_include_directories(yaze_core_lib PUBLIC
   ${CMAKE_SOURCE_DIR}/src
   ${CMAKE_SOURCE_DIR}/src/app  # Needed for app/gui/core/icons.h temporarily
-  ${CMAKE_SOURCE_DIR}/ext/asar/src
-  ${CMAKE_SOURCE_DIR}/ext/asar/src/asar
-  ${CMAKE_SOURCE_DIR}/ext/asar/src/asar-dll-bindings/c
   ${CMAKE_SOURCE_DIR}/ext/imgui  # Needed for ImGui in project.cc temporarily
   ${CMAKE_SOURCE_DIR}/inc
   ${PROJECT_BINARY_DIR}
 )
+
+# Asar headers only when vanilla Asar backend is active. z3dk-core bundles
+# its own Asar fork with a different header layout.
+if(YAZE_ENABLE_ASAR)
+  target_include_directories(yaze_core_lib PUBLIC
+    ${CMAKE_SOURCE_DIR}/ext/asar/src
+    ${CMAKE_SOURCE_DIR}/ext/asar/src/asar
+    ${CMAKE_SOURCE_DIR}/ext/asar/src/asar-dll-bindings/c
+  )
+endif()
 
 # Link dependencies - minimal set
 target_link_libraries(yaze_core_lib PUBLIC
@@ -55,6 +66,11 @@ target_link_libraries(yaze_core_lib PUBLIC
 # JSON support for project serialization
 if(TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(yaze_core_lib PUBLIC nlohmann_json::nlohmann_json)
+endif()
+
+# Add z3dk support (links z3dk-core and adds YAZE_WITH_Z3DK definition)
+if(YAZE_ENABLE_Z3DK AND YAZE_Z3DK_FOUND)
+  yaze_add_z3dk_support(yaze_core_lib)
 endif()
 
 # Add Asar support (links asar-static and adds YAZE_ENABLE_ASAR definition)

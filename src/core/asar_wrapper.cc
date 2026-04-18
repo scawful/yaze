@@ -302,7 +302,7 @@ void AsarWrapper::ProcessWarnings() {
 
 absl::StatusOr<AsarPatchResult> AsarWrapper::ApplyPatchWithLibrary(
     const std::string& patch_path, std::vector<uint8_t>& rom_data,
-    const std::vector<std::string>& /*include_paths*/) {
+    const std::vector<std::string>& include_paths) {
 #ifdef YAZE_ENABLE_ASAR
   if (!initialized_ || !library_enabled_) {
     return absl::FailedPreconditionError("Asar library not initialized");
