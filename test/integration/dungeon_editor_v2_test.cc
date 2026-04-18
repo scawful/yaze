@@ -164,6 +164,45 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
 }
 
+TEST_F(DungeonEditorV2IntegrationTest,
+       SetAgentModeOpensWorkbenchWhenWorkbenchWorkflowEnabled) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  const size_t session_id = window_manager_->GetActiveSessionId();
+
+  dungeon_editor_v2_->SetAgentMode(true);
+
+  EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+  EXPECT_FALSE(window_manager_->IsWindowOpen(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_TRUE(window_manager_->IsWindowOpen(
+      session_id, editor::DungeonEditorV2::kObjectToolsId));
+  EXPECT_TRUE(window_manager_->IsWindowOpen(
+      session_id, editor::DungeonEditorV2::kRoomGraphicsId));
+}
+
+TEST_F(DungeonEditorV2IntegrationTest,
+       SetAgentModeOpensRoomSelectorWhenWorkbenchWorkflowDisabled) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
+  const size_t session_id = window_manager_->GetActiveSessionId();
+
+  dungeon_editor_v2_->SetAgentMode(true);
+
+  EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+  EXPECT_TRUE(window_manager_->IsWindowOpen(
+      session_id, editor::DungeonEditorV2::kRoomSelectorId));
+  EXPECT_TRUE(window_manager_->IsWindowOpen(
+      session_id, editor::DungeonEditorV2::kObjectToolsId));
+  EXPECT_TRUE(window_manager_->IsWindowOpen(
+      session_id, editor::DungeonEditorV2::kRoomGraphicsId));
+}
+
 // ============================================================================
 // Save Tests - Component Delegation
 // ============================================================================
