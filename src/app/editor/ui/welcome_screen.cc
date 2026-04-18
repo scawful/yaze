@@ -1826,6 +1826,22 @@ void WelcomeScreen::DrawWhatsNew() {
     int highlight_count;
   };
 
+  const ReleaseHighlight highlights_071[] = {
+      {ICON_MD_ROCKET_LAUNCH,
+       "Welcome screen overhaul: guided New Project wizard + template picker"},
+      {ICON_MD_HISTORY,
+       "Recent projects: async ROM scan, pin/rename/notes, 8s undo toast"},
+      {ICON_MD_SEARCH,
+       "Welcome actions now surfaced through the command palette"},
+      {ICON_MD_CASTLE,
+       "Dungeon editor parity: BG1/BG2 layout routing + pit mask fix"},
+      {ICON_MD_FACT_CHECK,
+       "Dungeon ROM-backed object parity tests and render snapshots"},
+      {ICON_MD_TUNE,
+       "Simplified workbench inspector/navigation + action-oriented selection"},
+      {ICON_MD_MEMORY,
+       "Lazy session editors + deferred asset loads trim startup footprint"},
+  };
   const ReleaseHighlight highlights_070[] = {
       {ICON_MD_TABLET, "iOS Remote Control with Bonjour LAN auto-discovery"},
       {ICON_MD_GRID_VIEW,
@@ -1892,7 +1908,11 @@ void WelcomeScreen::DrawWhatsNew() {
 
   const ReleaseEntry releases[] = {
       {ICON_MD_ROCKET_LAUNCH, YAZE_VERSION_STRING,
-       "Feature Completion + iOS Remote Control", "Mar 2026", kHyruleGreen,
+       "Welcome screen overhaul + dungeon editor parity", "Apr 2026",
+       kHyruleGreen, highlights_071,
+       static_cast<int>(sizeof(highlights_071) / sizeof(highlights_071[0]))},
+      {ICON_MD_ROCKET_LAUNCH, "0.7.0",
+       "Feature Completion + iOS Remote Control", "Mar 2026", kMasterSwordBlue,
        highlights_070,
        static_cast<int>(sizeof(highlights_070) / sizeof(highlights_070[0]))},
       {ICON_MD_ARCHIVE, "0.6.2",
