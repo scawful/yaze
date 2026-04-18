@@ -231,6 +231,7 @@ class MenuOrchestrator {
   // Submenus that live inside the top-level Windows menu.
   void AddSessionsSubmenu();
   void AddLayoutSubmenu();
+  void AddSidebarSubmenu();
   void AddHelpMenuItems();
 
   // Menu item validation helpers

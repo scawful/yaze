@@ -113,6 +113,7 @@ set(
   app/editor/ui/project_management_panel.cc
   app/editor/menu/menu_builder.cc
   app/editor/menu/activity_bar.cc
+  app/editor/menu/activity_bar_actions_registry.cc
   app/editor/oracle/panels/annotation_overlay_panel.cc
   app/editor/oracle/panels/menu_inspector_panel.cc
   app/editor/oracle/panels/progression_dashboard_panel.cc

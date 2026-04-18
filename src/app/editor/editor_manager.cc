@@ -864,6 +864,25 @@ void EditorManager::InitializeSubsystems() {
         }
       });
 
+  // Wire per-user sidebar prefs so right-click / drag mutate persisted state.
+  activity_bar_->SetUserSettings(&user_settings_);
+
+  // Populate the MoreActions registry with the default rail entries. External
+  // callers can Register/Unregister further entries at runtime.
+  auto& registry = activity_bar_->actions_registry();
+  registry.Register(
+      {"command_palette", "Command Palette", ICON_MD_TERMINAL,
+       [this]() { window_manager_.TriggerShowCommandPalette(); }, {}});
+  registry.Register(
+      {"keyboard_shortcuts", "Keyboard Shortcuts", ICON_MD_KEYBOARD,
+       [this]() { window_manager_.TriggerShowShortcuts(); }, {}});
+  registry.Register(
+      {"open_rom_project", "Open ROM / Project", ICON_MD_FOLDER_OPEN,
+       [this]() { window_manager_.TriggerOpenRom(); }, {}});
+  registry.Register({"settings", "Settings", ICON_MD_SETTINGS,
+                     [this]() { window_manager_.TriggerShowSettings(); },
+                     {}});
+
   // WindowHost is the declarative window registration surface used by
   // editor/runtime systems.
   window_host_ = std::make_unique<WindowHost>(&window_manager_);

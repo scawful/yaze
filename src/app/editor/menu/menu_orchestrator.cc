@@ -371,6 +371,7 @@ void MenuOrchestrator::AddPanelsMenuItems() {
   // CustomMenu's callback runs *inside* an already-open BeginMenu scope.
   AddSessionsSubmenu();
   AddLayoutSubmenu();
+  AddSidebarSubmenu();
   ImGui::Separator();
 
   if (all_categories.empty()) {
@@ -843,6 +844,131 @@ void MenuOrchestrator::AddLayoutSubmenu() {
     }
     ImGui::EndMenu();
   }
+}
+
+// Sidebar submenu — surfaces ActivityBar pin/hide/reorder operations so the
+// feature is discoverable from the menubar without touching the rail.
+void MenuOrchestrator::AddSidebarSubmenu() {
+  if (!user_settings_) {
+    return;
+  }
+
+  if (!ImGui::BeginMenu(
+          absl::StrFormat("%s Sidebar", ICON_MD_VIEW_SIDEBAR).c_str())) {
+    return;
+  }
+
+  auto persist = [this]() { (void)user_settings_->Save(); };
+  auto& prefs = user_settings_->prefs();
+
+  if (ImGui::MenuItem(absl::StrFormat("%s Reset Order", ICON_MD_RESTART_ALT)
+                          .c_str(),
+                      nullptr, false, !prefs.sidebar_order.empty())) {
+    prefs.sidebar_order.clear();
+    persist();
+  }
+  if (ImGui::MenuItem(
+          absl::StrFormat("%s Show All Categories", ICON_MD_VISIBILITY).c_str(),
+          nullptr, false, !prefs.sidebar_hidden.empty())) {
+    prefs.sidebar_hidden.clear();
+    persist();
+  }
+
+  ImGui::Separator();
+
+  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  std::vector<std::string> categories;
+  if (window_manager_) {
+    categories = window_manager_->GetAllCategories(session_id);
+  }
+
+  // Build pinned list (in canonical category order).
+  std::vector<std::string> pinned_list;
+  std::vector<std::string> hidden_list;
+  for (const auto& cat : categories) {
+    if (cat == WorkspaceWindowManager::kDashboardCategory) continue;
+    if (prefs.sidebar_pinned.count(cat)) pinned_list.push_back(cat);
+    if (prefs.sidebar_hidden.count(cat)) hidden_list.push_back(cat);
+  }
+
+  if (ImGui::BeginMenu(
+          absl::StrFormat("%s Pinned", ICON_MD_PUSH_PIN).c_str())) {
+    if (pinned_list.empty()) {
+      ImGui::TextDisabled("(none)");
+    } else {
+      for (const auto& cat : pinned_list) {
+        ImGui::PushID(cat.c_str());
+        if (ImGui::MenuItem(absl::StrFormat("%s Unpin %s", ICON_MD_CLOSE, cat)
+                                .c_str())) {
+          prefs.sidebar_pinned.erase(cat);
+          persist();
+        }
+        ImGui::PopID();
+      }
+    }
+    ImGui::EndMenu();
+  }
+
+  if (ImGui::BeginMenu(
+          absl::StrFormat("%s Hidden", ICON_MD_VISIBILITY_OFF).c_str())) {
+    if (hidden_list.empty()) {
+      ImGui::TextDisabled("(none)");
+    } else {
+      for (const auto& cat : hidden_list) {
+        ImGui::PushID(cat.c_str());
+        if (ImGui::MenuItem(
+                absl::StrFormat("%s Show %s", ICON_MD_VISIBILITY, cat).c_str())) {
+          prefs.sidebar_hidden.erase(cat);
+          persist();
+        }
+        ImGui::PopID();
+      }
+    }
+    ImGui::EndMenu();
+  }
+
+  ImGui::Separator();
+
+  // Per-category toggles (pin/hide) for all categories. Keeps the menu
+  // discoverable even for users who haven't right-clicked the rail.
+  if (ImGui::BeginMenu(
+          absl::StrFormat("%s Customize", ICON_MD_TUNE).c_str())) {
+    if (categories.empty()) {
+      ImGui::TextDisabled("No categories available");
+    } else {
+      for (const auto& cat : categories) {
+        if (cat == WorkspaceWindowManager::kDashboardCategory) continue;
+        ImGui::PushID(cat.c_str());
+        const bool pinned = prefs.sidebar_pinned.count(cat) > 0;
+        const bool hidden = prefs.sidebar_hidden.count(cat) > 0;
+        if (ImGui::BeginMenu(cat.c_str())) {
+          if (ImGui::MenuItem(pinned ? "Unpin from top" : "Pin to top", nullptr,
+                              pinned)) {
+            if (pinned) {
+              prefs.sidebar_pinned.erase(cat);
+            } else {
+              prefs.sidebar_pinned.insert(cat);
+            }
+            persist();
+          }
+          if (ImGui::MenuItem(hidden ? "Show on sidebar" : "Hide from sidebar",
+                              nullptr, hidden)) {
+            if (hidden) {
+              prefs.sidebar_hidden.erase(cat);
+            } else {
+              prefs.sidebar_hidden.insert(cat);
+            }
+            persist();
+          }
+          ImGui::EndMenu();
+        }
+        ImGui::PopID();
+      }
+    }
+    ImGui::EndMenu();
+  }
+
+  ImGui::EndMenu();
 }
 
 void MenuOrchestrator::BuildHelpMenu() {
