@@ -79,6 +79,8 @@ class DungeonWorkbenchPanel : public WindowContent {
   void DrawSidebarContent();
   void DrawSplitView(DungeonCanvasViewer& primary_viewer);
   void DrawInspector(DungeonCanvasViewer& viewer);
+  void DrawInspectorPrimarySelector();
+  void DrawInspectorCompactSummary(DungeonCanvasViewer& viewer);
   void DrawInspectorShelf(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
@@ -110,6 +112,8 @@ class DungeonWorkbenchPanel : public WindowContent {
 
   enum class SidebarMode : uint8_t { Rooms, Entrances };
   SidebarMode sidebar_mode_ = SidebarMode::Rooms;
+  enum class InspectorFocus : uint8_t { Room, Selection };
+  InspectorFocus inspector_focus_ = InspectorFocus::Selection;
 
   char compare_search_buf_[64] = {};
 
