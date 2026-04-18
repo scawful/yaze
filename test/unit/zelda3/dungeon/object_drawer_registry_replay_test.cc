@@ -214,6 +214,11 @@ bool TileHasCoverage(const gfx::BackgroundBuffer& bg, int tile_x, int tile_y) {
          coverage[index] != 0;
 }
 
+void WriteWord(std::vector<uint8_t>& rom_data, int addr, uint16_t value) {
+  rom_data[addr] = static_cast<uint8_t>(value & 0xFF);
+  rom_data[addr + 1] = static_cast<uint8_t>(value >> 8);
+}
+
 TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   ScopedCustomObjectsFlag disable_custom(false);
 
@@ -312,6 +317,60 @@ TEST(ObjectDrawerRegistryReplayTest,
   bg2.ClearCoverageBuffer();
 
   FakeDungeonState state;
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::CurtainDoor,
+      .direction = DoorDirection::North,
+      .position = 0,
+  };
+
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
+
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 0));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 0));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 3));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 3));
+  EXPECT_FALSE(TileHasCoverage(bg1, 18, 0));
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 4));
+  EXPECT_FALSE(TileHasCoverage(bg2, 14, 0));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     OpenNorthCurtainDoorUsesReplacementFourByFourFootprint) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorwayReplacementDoorGfxBase = 0x1A02;
+  constexpr int kDoorGfxNorthTableBase = 0x4D9E;
+  constexpr int kCurtainDoorType = 0x32;
+  constexpr int kOpenCurtainReplacementType = 0x54;
+  constexpr int kOpenCurtainObjectOffset = 0x0800;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  dummy_rom[kDoorwayReplacementDoorGfxBase + kCurtainDoorType] =
+      kOpenCurtainReplacementType;
+  WriteWord(dummy_rom, kDoorGfxNorthTableBase + kCurtainDoorType, 0xFFFF);
+  WriteWord(dummy_rom,
+            kDoorGfxNorthTableBase + kOpenCurtainReplacementType,
+            kOpenCurtainObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kOpenCurtainObjectOffset,
+                           /*start_word=*/0x0500, /*word_count=*/16);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+  bg1.ClearCoverageBuffer();
+  bg2.ClearCoverageBuffer();
+
+  FakeDungeonState state;
+  state.open_lock_room_id = 0x42;
+
   ObjectDrawer::DoorDef door{
       .type = DoorType::CurtainDoor,
       .direction = DoorDirection::North,
