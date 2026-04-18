@@ -2642,6 +2642,15 @@ void EditorManager::DrawInterface() {
   if (!current_project_.project_opened()) {
     status_bar_.ClearProjectWorkflowStatus();
   }
+
+  // Editor-aware context: let the active editor push its own mode/custom
+  // segments for this frame without wiping event-driven cursor/selection/zoom
+  // state that older editors still publish through the event bus.
+  status_bar_.ClearEditorContributions();
+  if (current_editor_) {
+    current_editor_->ContributeStatus(&status_bar_);
+  }
+
   status_bar_.Draw();
 
   // Check if ROM is loaded before drawing panels
