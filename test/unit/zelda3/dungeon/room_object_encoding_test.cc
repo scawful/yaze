@@ -46,6 +46,13 @@ TEST(RoomObjectEncodingTest, DetermineObjectTypeBoundaryCollision) {
 }
 
 // ============================================================================
+TEST(RoomObjectEncodingTest, MapRoomObjectListIndexToDrawLayer) {
+  EXPECT_EQ(MapRoomObjectListIndexToDrawLayer(0), RoomObject::LayerType::BG1);
+  EXPECT_EQ(MapRoomObjectListIndexToDrawLayer(1), RoomObject::LayerType::BG2);
+  EXPECT_EQ(MapRoomObjectListIndexToDrawLayer(2), RoomObject::LayerType::BG3);
+  EXPECT_EQ(MapRoomObjectListIndexToDrawLayer(99), RoomObject::LayerType::BG3);
+}
+
 // Type 1 Object Encoding/Decoding Tests
 // ============================================================================
 
