@@ -12,21 +12,21 @@ namespace editor {
 
 /**
  * @class DungeonPaletteEditorPanel
- * @brief EditorPanel wrapper for PaletteEditorWidget in dungeon context
+ * @brief WindowContent wrapper for PaletteEditorWidget in dungeon context
  *
  * This panel provides palette editing specifically for dungeon rooms,
  * wrapping the PaletteEditorWidget component.
  *
  * @see PaletteEditorWidget - The underlying component
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  */
-class DungeonPaletteEditorPanel : public EditorPanel {
+class DungeonPaletteEditorPanel : public WindowContent {
  public:
   explicit DungeonPaletteEditorPanel(gui::PaletteEditorWidget* palette_editor)
       : palette_editor_(palette_editor) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.palette_editor"; }
@@ -36,7 +36,7 @@ class DungeonPaletteEditorPanel : public EditorPanel {
   int GetPriority() const override { return 70; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

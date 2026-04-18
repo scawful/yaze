@@ -19,14 +19,14 @@ namespace editor {
  * Provides a full-featured pixel editor with tools for drawing,
  * selecting, and manipulating graphics data.
  */
-class PixelEditorPanel : public EditorPanel {
+class PixelEditorPanel : public WindowContent {
  public:
   explicit PixelEditorPanel(GraphicsEditorState* state, Rom* rom,
                             UndoManager* undo_manager = nullptr)
       : state_(state), rom_(rom), undo_manager_(undo_manager) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "graphics.pixel_editor"; }
@@ -36,7 +36,7 @@ class PixelEditorPanel : public EditorPanel {
   int GetPriority() const override { return 20; }
 
   // ==========================================================================
-  // EditorPanel Lifecycle
+  // WindowContent Lifecycle
   // ==========================================================================
 
   /**
@@ -45,7 +45,7 @@ class PixelEditorPanel : public EditorPanel {
   void Initialize();
 
   /**
-   * @brief Draw the pixel editor UI (EditorPanel interface)
+   * @brief Draw the pixel editor UI (WindowContent interface)
    */
   void Draw(bool* p_open) override;
 

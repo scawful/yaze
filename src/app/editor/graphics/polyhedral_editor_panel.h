@@ -33,12 +33,12 @@ struct PolyShape {
   std::vector<PolyFace> faces;
 };
 
-class PolyhedralEditorPanel : public EditorPanel {
+class PolyhedralEditorPanel : public WindowContent {
  public:
   explicit PolyhedralEditorPanel(Rom* rom = nullptr) : rom_(rom) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "graphics.polyhedral"; }
@@ -48,7 +48,7 @@ class PolyhedralEditorPanel : public EditorPanel {
   int GetPriority() const override { return 50; }
 
   // ==========================================================================
-  // EditorPanel Lifecycle
+  // WindowContent Lifecycle
   // ==========================================================================
 
   void SetRom(Rom* rom) {
@@ -59,7 +59,7 @@ class PolyhedralEditorPanel : public EditorPanel {
   absl::Status Load();
 
   /**
-   * @brief Draw the polyhedral editor UI (EditorPanel interface)
+   * @brief Draw the polyhedral editor UI (WindowContent interface)
    */
   void Draw(bool* p_open) override;
 

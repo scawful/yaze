@@ -24,7 +24,7 @@ void LinkSpritePanel::Initialize() {
 }
 
 void LinkSpritePanel::Draw(bool* p_open) {
-  // EditorPanel interface - delegate to existing Update() logic
+  // WindowContent interface - delegate to existing Update() logic
   // Lazy-load Link sheets on first update
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
     auto status = LoadLinkSheets();

@@ -12,17 +12,17 @@ namespace yaze {
 namespace editor {
 
 /**
- * @brief EditorPanel for browsing and selecting graphics sheets
+ * @brief WindowContent for browsing and selecting graphics sheets
  *
  * Displays a grid view of all 223 graphics sheets from the ROM.
  * Supports single/multi-select, search/filter, and batch operations.
  */
-class SheetBrowserPanel : public EditorPanel {
+class SheetBrowserPanel : public WindowContent {
  public:
   explicit SheetBrowserPanel(GraphicsEditorState* state) : state_(state) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "graphics.sheet_browser_v2"; }
@@ -32,7 +32,7 @@ class SheetBrowserPanel : public EditorPanel {
   int GetPriority() const override { return 10; }
 
   // ==========================================================================
-  // EditorPanel Lifecycle
+  // WindowContent Lifecycle
   // ==========================================================================
 
   /**

@@ -11,7 +11,7 @@ class DungeonCanvasViewer;
 
 // Lightweight dockable panel that consolidates all overlay toggles.
 // Replaces the need to dig through context menus to toggle overlays.
-class OverlayManagerPanel : public EditorPanel {
+class OverlayManagerPanel : public WindowContent {
  public:
   // Overlay state — mirrors the booleans in DungeonCanvasViewer.
   struct OverlayState {
@@ -34,7 +34,7 @@ class OverlayManagerPanel : public EditorPanel {
 
   void SetState(OverlayState state) { state_ = state; }
 
-  // EditorPanel identity
+  // WindowContent identity
   std::string GetId() const override { return "dungeon.overlay_manager"; }
   std::string GetDisplayName() const override { return "Overlay Manager"; }
   std::string GetIcon() const override { return ICON_MD_LAYERS; }

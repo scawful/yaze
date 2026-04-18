@@ -9,7 +9,7 @@
 
 namespace yaze::editor {
 
-class DungeonSettingsPanel : public EditorPanel {
+class DungeonSettingsPanel : public WindowContent {
  public:
   DungeonSettingsPanel(DungeonCanvasViewer* viewer = nullptr)
       : viewer_(viewer) {}

@@ -24,7 +24,7 @@ void PixelEditorPanel::Initialize() {
 }
 
 void PixelEditorPanel::Draw(bool* p_open) {
-  // EditorPanel interface - delegate to Update()
+  // WindowContent interface - delegate to Update()
   Update().IgnoreError();
 }
 

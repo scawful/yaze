@@ -17,14 +17,14 @@ namespace editor {
 
 /**
  * @class DungeonEntrancesPanel
- * @brief EditorPanel for displaying and editing dungeon entrances
+ * @brief WindowContent for displaying and editing dungeon entrances
  *
  * This panel provides a list of all dungeon entrances with their properties.
  * Users can select entrances to navigate to their associated rooms.
  *
- * @see EditorPanel - Base interface
+ * @see WindowContent - Base interface
  */
-class DungeonEntrancesPanel : public EditorPanel {
+class DungeonEntrancesPanel : public WindowContent {
  public:
   DungeonEntrancesPanel(
       std::array<zelda3::RoomEntrance, 0x8C>* entrances,
@@ -35,7 +35,7 @@ class DungeonEntrancesPanel : public EditorPanel {
         on_entrance_selected_(std::move(on_entrance_selected)) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.entrance_properties"; }
@@ -45,7 +45,7 @@ class DungeonEntrancesPanel : public EditorPanel {
   int GetPriority() const override { return 26; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
