@@ -408,8 +408,11 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGui::SameLine();
 
       const int rid = *p.current_room_id;
-      DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
-      ImGui::SameLine();
+      const bool show_inline_room_nav = !p.layout->show_left_sidebar;
+      if (show_inline_room_nav) {
+        DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
+        ImGui::SameLine();
+      }
 
       const auto room_label = zelda3::GetRoomLabel(rid);
       char title[192];
