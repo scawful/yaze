@@ -63,12 +63,19 @@ class LayoutPresets {
    * @return PanelLayoutPreset with default panels
    */
   static PanelLayoutPreset GetDefaultPreset(EditorType type);
+  static WorkspaceLayoutPreset GetDefaultWorkspacePreset(EditorType type) {
+    return GetDefaultPreset(type);
+  }
 
   /**
    * @brief Get all available presets
    * @return Map of editor type to preset
    */
   static std::unordered_map<EditorType, PanelLayoutPreset> GetAllPresets();
+  static std::unordered_map<EditorType, WorkspaceLayoutPreset>
+  GetAllWorkspacePresets() {
+    return GetAllPresets();
+  }
 
   /**
    * @brief Get default visible panels for an editor
@@ -76,6 +83,9 @@ class LayoutPresets {
    * @return Vector of panel IDs that should be visible by default
    */
   static std::vector<std::string> GetDefaultPanels(EditorType type);
+  static std::vector<std::string> GetDefaultWindows(EditorType type) {
+    return GetDefaultPanels(type);
+  }
 
   /**
    * @brief Get all available panels for an editor (visible + hidden)
@@ -83,6 +93,9 @@ class LayoutPresets {
    * @return Vector of all panel IDs available for this editor
    */
   static std::vector<std::string> GetAllPanelsForEditor(EditorType type);
+  static std::vector<std::string> GetAllWindowsForEditor(EditorType type) {
+    return GetAllPanelsForEditor(type);
+  }
 
   /**
    * @brief Check if a panel should be visible by default
@@ -91,6 +104,9 @@ class LayoutPresets {
    * @return True if panel should be visible by default
    */
   static bool IsDefaultPanel(EditorType type, const std::string& panel_id);
+  static bool IsDefaultWindow(EditorType type, const std::string& window_id) {
+    return IsDefaultPanel(type, window_id);
+  }
 
   // ============================================================================
   // Named Workspace Presets
@@ -252,6 +268,8 @@ class LayoutPresets {
     // Memory cards (editor_manager.cc)
     static constexpr const char* kMemoryHexEditor = "memory.hex_editor";
   };
+
+  using Windows = Panels;
 };
 
 }  // namespace editor
