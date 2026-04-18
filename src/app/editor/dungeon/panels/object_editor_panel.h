@@ -87,6 +87,10 @@ class ObjectEditorPanel : public WindowContent {
     current_room_id_ = room_id;
     object_selector_.set_current_room_id(room_id);
   }
+  void SetCanvasViewerProvider(
+      std::function<DungeonCanvasViewer*()> provider) {
+    canvas_viewer_provider_ = std::move(provider);
+  }
   void SetCanvasViewer(DungeonCanvasViewer* viewer) {
     // Reset callback flag when viewer changes so we rewire to the new viewer
     if (canvas_viewer_ != viewer) {
@@ -151,6 +155,7 @@ class ObjectEditorPanel : public WindowContent {
  private:
   // Selection change handler
   void OnSelectionChanged();
+  DungeonCanvasViewer* ResolveCanvasViewer();
 
   // Drawing methods
   void DrawObjectSelector();
@@ -175,6 +180,7 @@ class ObjectEditorPanel : public WindowContent {
 
   Rom* rom_ = nullptr;
   DungeonCanvasViewer* canvas_viewer_ = nullptr;
+  std::function<DungeonCanvasViewer*()> canvas_viewer_provider_;
   int current_room_id_ = 0;
 
   // Components

@@ -83,11 +83,24 @@ void ObjectEditorPanel::SetupSelectionCallbacks() {
   selection_callbacks_setup_ = true;
 }
 
+DungeonCanvasViewer* ObjectEditorPanel::ResolveCanvasViewer() {
+  if (canvas_viewer_provider_) {
+    DungeonCanvasViewer* resolved = canvas_viewer_provider_();
+    if (resolved != canvas_viewer_) {
+      canvas_viewer_ = resolved;
+      selection_callbacks_setup_ = false;
+      SetupSelectionCallbacks();
+    }
+  }
+  return canvas_viewer_;
+}
+
 void ObjectEditorPanel::OnSelectionChanged() {
-  if (!canvas_viewer_)
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer)
     return;
 
-  auto& interaction = canvas_viewer_->object_interaction();
+  auto& interaction = viewer->object_interaction();
   cached_selection_count_ = interaction.GetSelectionCount();
 
   // Sync with backend editor if available
@@ -104,6 +117,8 @@ void ObjectEditorPanel::OnSelectionChanged() {
 }
 
 void ObjectEditorPanel::Draw(bool* p_open) {
+  ResolveCanvasViewer();
+
   const auto& theme = AgentUI::GetTheme();
   const int max_objects = static_cast<int>(zelda3::kMaxTileObjects);
   const int max_sprites = static_cast<int>(zelda3::kMaxTotalSprites);
@@ -484,10 +499,11 @@ void ObjectEditorPanel::DrawEmulatorPreview() {
 
 void ObjectEditorPanel::DrawSelectedObjectInfo() {
   const auto& theme = AgentUI::GetTheme();
+  auto* viewer = ResolveCanvasViewer();
 
   // Show selection state at top - with extra safety checks
-  if (canvas_viewer_ && canvas_viewer_->HasRooms()) {
-    auto& interaction = canvas_viewer_->object_interaction();
+  if (viewer && viewer->HasRooms()) {
+    auto& interaction = viewer->object_interaction();
     auto selected = interaction.GetSelectedObjectIndices();
 
     if (!selected.empty()) {
