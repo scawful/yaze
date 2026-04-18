@@ -4,9 +4,11 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "app/editor/core/editor_context.h"
+#include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/editor/editor.h"
@@ -31,12 +33,23 @@ struct RegistryState {
   Rom* current_rom = nullptr;
   ::yaze::EventBus* event_bus = nullptr;
   Editor* current_editor = nullptr;
+  std::unordered_map<std::string, Editor*> current_window_editors;
   ::yaze::zelda3::GameData* game_data = nullptr;
   ::yaze::project::YazeProject* current_project = nullptr;
-  std::vector<std::unique_ptr<EditorPanel>> panels;
+  workflow::HackWorkflowBackend* hack_workflow_backend = nullptr;
+  ProjectWorkflowStatus build_workflow_status;
+  ProjectWorkflowStatus run_workflow_status;
+  std::string build_workflow_log;
+  std::vector<ProjectWorkflowHistoryEntry> workflow_history;
+  std::function<void()> start_build_workflow_callback;
+  std::function<void()> run_project_workflow_callback;
+  std::function<void()> show_workflow_output_callback;
+  std::function<void()> cancel_build_workflow_callback;
+  std::vector<std::unique_ptr<WindowContent>> panels;
   std::vector<ContentRegistry::Panels::PanelFactory> factories;
   std::vector<ContentRegistry::Editors::EditorFactory> editor_factories;
   std::vector<ContentRegistry::Shortcuts::ShortcutDef> shortcuts;
+  std::vector<ContentRegistry::WorkflowActions::ActionDef> workflow_actions;
   std::vector<ContentRegistry::Settings::SettingDef> settings;
 
   static RegistryState& Get() {
@@ -107,6 +120,21 @@ void SetCurrentEditor(Editor* editor) {
   state.current_editor = editor;
 }
 
+Editor* editor_window_context(const std::string& category) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  auto& state = RegistryState::Get();
+  auto it = state.current_window_editors.find(category);
+  return it != state.current_window_editors.end() ? it->second : nullptr;
+}
+
+void SetEditorWindowContext(const std::string& category, Editor* editor) {
+  if (category.empty()) {
+    return;
+  }
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().current_window_editors[category] = editor;
+}
+
 ::yaze::zelda3::GameData* game_data() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
   auto& state = RegistryState::Get();
@@ -139,6 +167,124 @@ void SetCurrentProject(::yaze::project::YazeProject* project) {
   state.current_project = project;
 }
 
+workflow::HackWorkflowBackend* hack_workflow_backend() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().hack_workflow_backend;
+}
+
+workflow::ValidationCapability* hack_validation_backend() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return dynamic_cast<workflow::ValidationCapability*>(
+      RegistryState::Get().hack_workflow_backend);
+}
+
+workflow::ProgressionCapability* hack_progression_backend() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return dynamic_cast<workflow::ProgressionCapability*>(
+      RegistryState::Get().hack_workflow_backend);
+}
+
+workflow::PlanningCapability* hack_planning_backend() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return dynamic_cast<workflow::PlanningCapability*>(
+      RegistryState::Get().hack_workflow_backend);
+}
+
+void SetHackWorkflowBackend(workflow::HackWorkflowBackend* backend) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().hack_workflow_backend = backend;
+}
+
+ProjectWorkflowStatus build_workflow_status() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().build_workflow_status;
+}
+
+void SetBuildWorkflowStatus(const ProjectWorkflowStatus& status) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().build_workflow_status = status;
+}
+
+ProjectWorkflowStatus run_workflow_status() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().run_workflow_status;
+}
+
+void SetRunWorkflowStatus(const ProjectWorkflowStatus& status) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().run_workflow_status = status;
+}
+
+std::string build_workflow_log() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().build_workflow_log;
+}
+
+void SetBuildWorkflowLog(const std::string& output) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().build_workflow_log = output;
+}
+
+std::vector<ProjectWorkflowHistoryEntry> workflow_history() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().workflow_history;
+}
+
+void AppendWorkflowHistory(const ProjectWorkflowHistoryEntry& entry) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  auto& history = RegistryState::Get().workflow_history;
+  history.insert(history.begin(), entry);
+  constexpr size_t kMaxEntries = 20;
+  if (history.size() > kMaxEntries) {
+    history.resize(kMaxEntries);
+  }
+}
+
+void ClearWorkflowHistory() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().workflow_history.clear();
+}
+
+std::function<void()> start_build_workflow_callback() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().start_build_workflow_callback;
+}
+
+void SetStartBuildWorkflowCallback(std::function<void()> callback) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().start_build_workflow_callback = std::move(callback);
+}
+
+std::function<void()> run_project_workflow_callback() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().run_project_workflow_callback;
+}
+
+void SetRunProjectWorkflowCallback(std::function<void()> callback) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().run_project_workflow_callback = std::move(callback);
+}
+
+std::function<void()> show_workflow_output_callback() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().show_workflow_output_callback;
+}
+
+void SetShowWorkflowOutputCallback(std::function<void()> callback) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().show_workflow_output_callback = std::move(callback);
+}
+
+std::function<void()> cancel_build_workflow_callback() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().cancel_build_workflow_callback;
+}
+
+void SetCancelBuildWorkflowCallback(std::function<void()> callback) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().cancel_build_workflow_callback = std::move(callback);
+}
+
 void Clear() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
   auto& state = RegistryState::Get();
@@ -150,6 +296,16 @@ void Clear() {
   state.current_editor = nullptr;
   state.game_data = nullptr;
   state.current_project = nullptr;
+  state.hack_workflow_backend = nullptr;
+  state.current_window_editors.clear();
+  state.build_workflow_status = ProjectWorkflowStatus{};
+  state.run_workflow_status = ProjectWorkflowStatus{};
+  state.build_workflow_log.clear();
+  state.workflow_history.clear();
+  state.start_build_workflow_callback = nullptr;
+  state.run_project_workflow_callback = nullptr;
+  state.show_workflow_output_callback = nullptr;
+  state.cancel_build_workflow_callback = nullptr;
 }
 
 }  // namespace Context
@@ -165,14 +321,14 @@ void RegisterFactory(PanelFactory factory) {
   RegistryState::Get().factories.push_back(std::move(factory));
 }
 
-std::vector<std::unique_ptr<EditorPanel>> CreateAll() {
+std::vector<std::unique_ptr<WindowContent>> CreateAll() {
   std::vector<PanelFactory> factories;
   {
     std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
     factories = RegistryState::Get().factories;
   }
 
-  std::vector<std::unique_ptr<EditorPanel>> result;
+  std::vector<std::unique_ptr<WindowContent>> result;
   result.reserve(factories.size());
 
   for (const auto& factory : factories) {
@@ -183,17 +339,17 @@ std::vector<std::unique_ptr<EditorPanel>> CreateAll() {
   return result;
 }
 
-void Register(std::unique_ptr<EditorPanel> panel) {
+void Register(std::unique_ptr<WindowContent> panel) {
   if (!panel) return;
 
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
   RegistryState::Get().panels.push_back(std::move(panel));
 }
 
-std::vector<EditorPanel*> GetAll() {
+std::vector<WindowContent*> GetAll() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
 
-  std::vector<EditorPanel*> result;
+  std::vector<WindowContent*> result;
   result.reserve(RegistryState::Get().panels.size());
 
   for (const auto& panel : RegistryState::Get().panels) {
@@ -203,7 +359,7 @@ std::vector<EditorPanel*> GetAll() {
   return result;
 }
 
-EditorPanel* Get(const std::string& id) {
+WindowContent* Get(const std::string& id) {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
 
   for (const auto& panel : RegistryState::Get().panels) {
@@ -269,6 +425,38 @@ std::vector<ShortcutDef> GetAll() {
 }
 
 }  // namespace Shortcuts
+
+// =============================================================================
+// WorkflowActions Implementation
+// =============================================================================
+
+namespace WorkflowActions {
+
+void Register(const ActionDef& action) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  auto& actions = RegistryState::Get().workflow_actions;
+  auto it = std::find_if(actions.begin(), actions.end(),
+                         [&](const ActionDef& existing) {
+                           return existing.id == action.id;
+                         });
+  if (it != actions.end()) {
+    *it = action;
+    return;
+  }
+  actions.push_back(action);
+}
+
+std::vector<ActionDef> GetAll() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().workflow_actions;
+}
+
+void Clear() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().workflow_actions.clear();
+}
+
+}  // namespace WorkflowActions
 
 // =============================================================================
 // Settings Implementation

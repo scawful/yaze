@@ -1,17 +1,18 @@
 #include "app/editor/oracle/panels/oracle_validation_panel.h"
 
 #include <chrono>
+#include <fstream>
 #include <string>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/core/panel_registration.h"
+#include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/gui/core/icons.h"
-#include "cli/handlers/game/oracle_menu_commands.h"
-#include "cli/handlers/game/oracle_smoke_check_commands.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
+#include "util/json.h"
 
 namespace yaze::editor {
 namespace {
@@ -20,9 +21,13 @@ constexpr ImVec4 kRed{0.85f, 0.2f, 0.2f, 1.0f};
 constexpr ImVec4 kYellow{0.85f, 0.75f, 0.1f, 1.0f};
 constexpr ImVec4 kGrey{0.55f, 0.55f, 0.55f, 1.0f};
 
-ImVec4 BoolColor(bool flag) { return flag ? kGreen : kRed; }
+ImVec4 BoolColor(bool flag) {
+  return flag ? kGreen : kRed;
+}
 
-const char* CheckStr(bool flag) { return flag ? "OK" : "X"; }
+const char* CheckStr(bool flag) {
+  return flag ? "OK" : "X";
+}
 
 void DrawCheckBadge(const std::string& state) {
   if (state == "ran") {
@@ -45,6 +50,72 @@ void DrawOptionalBool(const char* label, const std::optional<bool>& flag) {
   }
   ImGui::TextColored(kGrey, "-");
 }
+
+bool LoadJsonSummaryFile(const std::string& path, Json* out) {
+  if (path.empty()) {
+    return false;
+  }
+  std::ifstream file(path);
+  if (!file.is_open()) {
+    return false;
+  }
+  try {
+    file >> *out;
+    return true;
+  } catch (...) {
+    return false;
+  }
+}
+
+void DrawZ3dkArtifactSummary() {
+  auto* project = ContentRegistry::Context::current_project();
+  if (!project) {
+    return;
+  }
+
+  Json lint;
+  Json annotations;
+  Json hooks;
+  const bool has_lint =
+      LoadJsonSummaryFile(project->GetZ3dkArtifactPath("lint.json"), &lint);
+  const bool has_annotations = LoadJsonSummaryFile(
+      project->GetZ3dkArtifactPath("annotations.json"), &annotations);
+  const bool has_hooks =
+      LoadJsonSummaryFile(project->GetZ3dkArtifactPath("hooks.json"), &hooks);
+  if (!has_lint && !has_annotations && !has_hooks) {
+    return;
+  }
+
+  if (!ImGui::CollapsingHeader("z3dk Artifacts",
+                               ImGuiTreeNodeFlags_DefaultOpen)) {
+    return;
+  }
+
+  if (has_lint) {
+    const int errors = lint.contains("errors") && lint["errors"].is_array()
+                           ? static_cast<int>(lint["errors"].size())
+                           : 0;
+    const int warnings =
+        lint.contains("warnings") && lint["warnings"].is_array()
+            ? static_cast<int>(lint["warnings"].size())
+            : 0;
+    ImGui::Text("Lint diagnostics: %d error(s), %d warning(s)", errors,
+                warnings);
+  }
+  if (has_annotations) {
+    const int count = annotations.contains("annotations") &&
+                              annotations["annotations"].is_array()
+                          ? static_cast<int>(annotations["annotations"].size())
+                          : 0;
+    ImGui::Text("Annotations: %d", count);
+  }
+  if (has_hooks) {
+    const int count = hooks.contains("hooks") && hooks["hooks"].is_array()
+                          ? static_cast<int>(hooks["hooks"].size())
+                          : 0;
+    ImGui::Text("Hook/write blocks: %d", count);
+  }
+}
 }  // namespace
 
 OracleValidationPanel::~OracleValidationPanel() {
@@ -53,10 +124,12 @@ OracleValidationPanel::~OracleValidationPanel() {
   }
 }
 
-std::string OracleValidationPanel::GetId() const { return "oracle.validation"; }
+std::string OracleValidationPanel::GetId() const {
+  return "oracle.validation";
+}
 
 std::string OracleValidationPanel::GetDisplayName() const {
-  return "Oracle Validation";
+  return "Hack Validation";
 }
 
 std::string OracleValidationPanel::GetIcon() const {
@@ -64,17 +137,45 @@ std::string OracleValidationPanel::GetIcon() const {
 }
 
 std::string OracleValidationPanel::GetEditorCategory() const {
-  return "Oracle";
+  return "Agent";
 }
 
-PanelCategory OracleValidationPanel::GetPanelCategory() const {
-  return PanelCategory::CrossEditor;
+std::string OracleValidationPanel::GetWorkflowGroup() const {
+  return "Validation";
 }
 
-float OracleValidationPanel::GetPreferredWidth() const { return 540.0f; }
+std::string OracleValidationPanel::GetWorkflowLabel() const {
+  return "Hack Validation";
+}
+
+std::string OracleValidationPanel::GetWorkflowDescription() const {
+  return "Run project validation and readiness checks for the active hack";
+}
+
+bool OracleValidationPanel::IsEnabled() const {
+  auto* project = ContentRegistry::Context::current_project();
+  auto* backend = ContentRegistry::Context::hack_validation_backend();
+  return project != nullptr && project->project_opened() && backend != nullptr;
+}
+
+std::string OracleValidationPanel::GetDisabledTooltip() const {
+  return "Validation backend is not available for the active hack project";
+}
+
+WindowLifecycle OracleValidationPanel::GetWindowLifecycle() const {
+  return WindowLifecycle::CrossEditor;
+}
+
+float OracleValidationPanel::GetPreferredWidth() const {
+  return 540.0f;
+}
 
 void OracleValidationPanel::Draw(bool* p_open) {
   (void)p_open;
+  if (!IsEnabled()) {
+    ImGui::TextDisabled("%s", GetDisabledTooltip().c_str());
+    return;
+  }
   PollPendingResult();
   DrawOptions();
   ImGui::Separator();
@@ -84,10 +185,14 @@ void OracleValidationPanel::Draw(bool* p_open) {
 }
 
 std::string OracleValidationPanel::DefaultRomPath() {
+  if (auto* project = ContentRegistry::Context::current_project();
+      project && !project->rom_filename.empty()) {
+    return project->rom_filename;
+  }
   if (auto* rom = ContentRegistry::Context::rom(); rom && rom->is_loaded()) {
     return rom->filename();
   }
-  return "roms/oos168.sfc";
+  return "roms/zelda3.sfc";
 }
 
 void OracleValidationPanel::PollPendingResult() {
@@ -136,73 +241,20 @@ void OracleValidationPanel::LaunchRun(oracle_validation::RunMode mode) {
   running_ = true;
   status_message_ = "Running...";
 
-  pending_ = std::async(std::launch::async,
-                        [mode, smoke_opts, preflight_opts, rom_context]() {
-                          oracle_validation::OracleRunResult result;
-                          result.mode = mode;
-                          result.timestamp =
-                              oracle_validation::CurrentTimestamp();
+  pending_ = std::async(std::launch::async, [mode, smoke_opts, preflight_opts,
+                                             rom_context]() {
+    if (auto* backend = ContentRegistry::Context::hack_validation_backend()) {
+      return backend->RunValidation(mode, smoke_opts, preflight_opts,
+                                    rom_context);
+    }
 
-                          if (mode == oracle_validation::RunMode::kPreflight) {
-                            auto args = oracle_validation::BuildPreflightArgs(
-                                preflight_opts);
-                            result.cli_command = oracle_validation::BuildCliCommand(
-                                "dungeon-oracle-preflight", args);
-
-                            cli::handlers::DungeonOraclePreflightCommandHandler
-                                handler;
-                            auto status =
-                                handler.Run(args, rom_context, &result.raw_output);
-                            result.command_ok =
-                                status.ok() ||
-                                status.code() ==
-                                    absl::StatusCode::kFailedPrecondition;
-                            result.status_code = status.code();
-                            if (!status.ok() &&
-                                status.code() !=
-                                    absl::StatusCode::kFailedPrecondition) {
-                              result.error_message =
-                                  std::string(status.message());
-                              return result;
-                            }
-                            auto parsed = oracle_validation::ParsePreflightOutput(
-                                result.raw_output);
-                            if (parsed.ok()) {
-                              result.preflight = *parsed;
-                            } else {
-                              result.json_parse_failed = true;
-                            }
-                            return result;
-                          }
-
-                          auto args =
-                              oracle_validation::BuildSmokeArgs(smoke_opts);
-                          result.cli_command = oracle_validation::BuildCliCommand(
-                              "oracle-smoke-check", args);
-
-                          cli::handlers::OracleSmokeCheckCommandHandler handler;
-                          auto status =
-                              handler.Run(args, rom_context, &result.raw_output);
-                          result.command_ok =
-                              status.ok() ||
-                              status.code() ==
-                                  absl::StatusCode::kFailedPrecondition;
-                          result.status_code = status.code();
-                          if (!status.ok() &&
-                              status.code() !=
-                                  absl::StatusCode::kFailedPrecondition) {
-                            result.error_message = std::string(status.message());
-                            return result;
-                          }
-                          auto parsed = oracle_validation::ParseSmokeCheckOutput(
-                              result.raw_output);
-                          if (parsed.ok()) {
-                            result.smoke = *parsed;
-                          } else {
-                            result.json_parse_failed = true;
-                          }
-                          return result;
-                        });
+    oracle_validation::OracleRunResult result;
+    result.mode = mode;
+    result.timestamp = oracle_validation::CurrentTimestamp();
+    result.error_message = "No hack workflow backend registered";
+    result.status_code = absl::StatusCode::kFailedPrecondition;
+    return result;
+  });
 }
 
 void OracleValidationPanel::DrawOptions() {
@@ -287,24 +339,21 @@ void OracleValidationPanel::DrawResults() {
           ? result.smoke->ok
           : (result.preflight.has_value() && result.preflight->ok);
 
-  ImGui::TextColored(overall_ok ? kGreen : kRed, "%s %s",
-                     CheckStr(overall_ok), mode_label);
+  ImGui::TextColored(overall_ok ? kGreen : kRed, "%s %s", CheckStr(overall_ok),
+                     mode_label);
   ImGui::SameLine(0.0f, 16.0f);
   ImGui::TextColored(kGrey, "%s", result.timestamp.c_str());
 
   ImGui::SetNextItemWidth(380.0f);
-  ImGui::InputText("##cli_cmd",
-                   const_cast<char*>(result.cli_command.c_str()),
-                   result.cli_command.size() + 1,
-                   ImGuiInputTextFlags_ReadOnly);
+  ImGui::InputText("##cli_cmd", const_cast<char*>(result.cli_command.c_str()),
+                   result.cli_command.size() + 1, ImGuiInputTextFlags_ReadOnly);
   ImGui::SameLine();
   if (ImGui::SmallButton("Copy")) {
     ImGui::SetClipboardText(result.cli_command.c_str());
   }
 
   if (!result.error_message.empty()) {
-    ImGui::TextColored(kRed, ICON_MD_ERROR " %s",
-                       result.error_message.c_str());
+    ImGui::TextColored(kRed, ICON_MD_ERROR " %s", result.error_message.c_str());
     ImGui::TextDisabled(
         "Hint: check that the ROM is loaded and the command is available.");
     DrawRawOutput(result);
@@ -312,8 +361,8 @@ void OracleValidationPanel::DrawResults() {
   }
 
   if (result.json_parse_failed) {
-    ImGui::TextColored(kYellow, ICON_MD_WARNING
-                                " JSON parse failed - raw output:");
+    ImGui::TextColored(kYellow,
+                       ICON_MD_WARNING " JSON parse failed - raw output:");
     DrawRawOutput(result);
     return;
   }
@@ -324,11 +373,13 @@ void OracleValidationPanel::DrawResults() {
   if (result.preflight.has_value()) {
     DrawPreflightCards(*result.preflight);
   }
+  DrawZ3dkArtifactSummary();
 }
 
 void OracleValidationPanel::DrawSmokeCards(
     const oracle_validation::SmokeResult& smoke) {
-  if (ImGui::CollapsingHeader("D4 Zora Temple", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader("D4 Zora Temple",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::TextColored(BoolColor(smoke.d4.structural_ok), "  Structural  %s",
                        CheckStr(smoke.d4.structural_ok));
     ImGui::Text("  Required rooms check:");
@@ -338,17 +389,18 @@ void OracleValidationPanel::DrawSmokeCards(
                      smoke.d4.required_rooms_ok);
   }
 
-  if (ImGui::CollapsingHeader("D6 Goron Mines", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextColored(BoolColor(smoke.d6.meets_min_track_rooms),
-                       "  Track rooms  %d / %d  %s",
-                       smoke.d6.track_rooms_found, smoke.d6.min_track_rooms,
-                       smoke.d6.meets_min_track_rooms ? "(ok)"
-                                                      : "(below threshold)");
+  if (ImGui::CollapsingHeader("D6 Goron Mines",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextColored(
+        BoolColor(smoke.d6.meets_min_track_rooms), "  Track rooms  %d / %d  %s",
+        smoke.d6.track_rooms_found, smoke.d6.min_track_rooms,
+        smoke.d6.meets_min_track_rooms ? "(ok)" : "(below threshold)");
     ImGui::TextColored(BoolColor(smoke.d6.ok), "  Audit command  %s",
                        CheckStr(smoke.d6.ok));
   }
 
-  if (ImGui::CollapsingHeader("D3 Kalyxo Castle", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader("D3 Kalyxo Castle",
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Text("  Readiness check:");
     ImGui::SameLine();
     DrawCheckBadge(smoke.d3.readiness_check);

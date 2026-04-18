@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "app/editor/core/content_registry.h"
+#include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/events/core_events.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/emu/mesen/mesen_client_registry.h"
@@ -38,7 +39,7 @@ namespace yaze::editor {
  * Supports pan/zoom via mouse drag + scroll.
  * Click a node to show detail sidebar with flags, locations, and text IDs.
  */
-class StoryEventGraphPanel : public EditorPanel {
+class StoryEventGraphPanel : public WindowContent {
  public:
   StoryEventGraphPanel() = default;
   ~StoryEventGraphPanel() override { DetachLiveListener(); }
@@ -51,23 +52,42 @@ class StoryEventGraphPanel : public EditorPanel {
   std::string GetId() const override { return "oracle.story_event_graph"; }
   std::string GetDisplayName() const override { return "Story Event Graph"; }
   std::string GetIcon() const override { return ICON_MD_ACCOUNT_TREE; }
-  std::string GetEditorCategory() const override { return "Oracle"; }
-  PanelCategory GetPanelCategory() const override {
-    return PanelCategory::CrossEditor;
+  std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Planning"; }
+  std::string GetWorkflowDescription() const override {
+    return "Inspect narrative and progression dependencies for the active project";
+  }
+  bool IsEnabled() const override {
+    auto* project = ContentRegistry::Context::current_project();
+    auto* backend = GetPlanningBackend();
+    return project != nullptr && project->project_opened() && backend != nullptr;
+  }
+  std::string GetDisabledTooltip() const override {
+    return "Story graph data is not available for the active hack project";
+  }
+  WindowLifecycle GetWindowLifecycle() const override {
+    return WindowLifecycle::CrossEditor;
   }
   float GetPreferredWidth() const override { return 600.0f; }
 
   void Draw(bool* /*p_open*/) override {
+    if (!IsEnabled()) {
+      ImGui::TextDisabled("%s", GetDisabledTooltip().c_str());
+      return;
+    }
+
     // Lazily resolve the manifest from the project context
     if (!manifest_) {
       auto* project = ContentRegistry::Context::current_project();
-      if (project && project->hack_manifest.loaded()) {
+      if (auto* backend = GetWorkflowBackend()) {
+        manifest_ = backend->ResolveManifest(project);
+      } else if (project && project->hack_manifest.loaded()) {
         manifest_ = &project->hack_manifest;
       }
     }
 
     if (!manifest_ || !manifest_->HasProjectRegistry()) {
-      ImGui::TextDisabled("No Oracle project loaded");
+      ImGui::TextDisabled("No hack project loaded");
       ImGui::TextDisabled(
           "Open a project with a hack manifest to view story events.");
       return;
@@ -77,8 +97,8 @@ class StoryEventGraphPanel : public EditorPanel {
     EnsureLiveSubscription();
     ProcessPendingLiveRefresh();
 
-    const auto& graph = manifest_->project_registry().story_events;
-    if (!graph.loaded()) {
+    const auto* graph = GetStoryGraph();
+    if (graph == nullptr || !graph->loaded()) {
       ImGui::TextDisabled("No story events data available");
       return;
     }
@@ -92,10 +112,12 @@ class StoryEventGraphPanel : public EditorPanel {
     ImGui::SameLine();
     ImGui::SliderFloat("Zoom", &zoom_, 0.3f, 2.0f, "%.1f");
     ImGui::SameLine();
-    ImGui::Text("Nodes: %zu  Edges: %zu", graph.nodes().size(),
-                graph.edges().size());
+    ImGui::Text("Nodes: %zu  Edges: %zu", graph->nodes().size(),
+                graph->edges().size());
     ImGui::SameLine();
-    const auto prog_opt = manifest_->oracle_progression_state();
+    const auto prog_opt = GetProgressionBackend()
+                              ? GetProgressionBackend()->GetProgressionState(*manifest_)
+                              : manifest_->oracle_progression_state();
     if (prog_opt.has_value()) {
       ImGui::TextDisabled("Crystals: %d  State: %s",
                           prog_opt->GetCrystalCount(),
@@ -130,8 +152,8 @@ class StoryEventGraphPanel : public EditorPanel {
 
     ImGui::Separator();
 
-    DrawFilterControls(graph);
-    UpdateFilterCache(graph);
+    DrawFilterControls(*graph);
+    UpdateFilterCache(*graph);
 
     ImGui::Separator();
 
@@ -182,9 +204,9 @@ class StoryEventGraphPanel : public EditorPanel {
     float cy = canvas_pos.y + canvas_size.y * 0.5f + scroll_y_;
 
     // Draw edges first (behind nodes)
-    for (const auto& edge : graph.edges()) {
-      const auto* from_node = graph.GetNode(edge.from);
-      const auto* to_node = graph.GetNode(edge.to);
+    for (const auto& edge : graph->edges()) {
+      const auto* from_node = graph->GetNode(edge.from);
+      const auto* to_node = graph->GetNode(edge.to);
       if (!from_node || !to_node) continue;
       if (hide_non_matching_) {
         if (!IsNodeVisible(edge.from) || !IsNodeVisible(edge.to)) continue;
@@ -222,7 +244,7 @@ class StoryEventGraphPanel : public EditorPanel {
     // Draw nodes
     ImVec2 mouse_pos = ImGui::GetIO().MousePos;
 
-    for (const auto& node : graph.nodes()) {
+    for (const auto& node : graph->nodes()) {
       if (hide_non_matching_ && !IsNodeVisible(node.id)) {
         continue;
       }
@@ -281,7 +303,7 @@ class StoryEventGraphPanel : public EditorPanel {
     if (!selected_node_.empty() && sidebar_width > 0) {
       ImGui::SameLine();
       ImGui::BeginGroup();
-      DrawNodeDetail(graph);
+      DrawNodeDetail(*graph);
       ImGui::EndGroup();
     }
   }
@@ -452,7 +474,9 @@ class StoryEventGraphPanel : public EditorPanel {
 
   uint64_t ComputeProgressionFingerprint() const {
     if (!manifest_) return 0;
-    const auto prog_opt = manifest_->oracle_progression_state();
+    const auto prog_opt = GetProgressionBackend()
+                              ? GetProgressionBackend()->GetProgressionState(*manifest_)
+                              : manifest_->oracle_progression_state();
     if (!prog_opt.has_value()) return 0;
 
     const auto& s = *prog_opt;
@@ -586,13 +610,20 @@ class StoryEventGraphPanel : public EditorPanel {
       return;
     }
 
-    auto state_or = core::LoadOracleProgressionFromSrmFile(file_path);
+    auto state_or = GetProgressionBackend()
+                        ? GetProgressionBackend()->LoadProgressionStateFromFile(
+                              file_path)
+                        : core::LoadOracleProgressionFromSrmFile(file_path);
     if (!state_or.ok()) {
       last_srm_error_ = std::string(state_or.status().message());
       return;
     }
 
-    manifest_->SetOracleProgressionState(*state_or);
+    if (auto* backend = GetProgressionBackend()) {
+      backend->SetProgressionState(*manifest_, *state_or);
+    } else {
+      manifest_->SetOracleProgressionState(*state_or);
+    }
     loaded_srm_path_ = file_path;
     last_srm_error_.clear();
 
@@ -602,7 +633,11 @@ class StoryEventGraphPanel : public EditorPanel {
 
   void ClearOracleSramState() {
     if (!manifest_) return;
-    manifest_->ClearOracleProgressionState();
+    if (auto* backend = GetProgressionBackend()) {
+      backend->ClearProgressionState(*manifest_);
+    } else {
+      manifest_->ClearOracleProgressionState();
+    }
     loaded_srm_path_.clear();
     last_srm_error_.clear();
     filter_dirty_ = true;
@@ -725,36 +760,19 @@ class StoryEventGraphPanel : public EditorPanel {
       return false;
     }
 
-    constexpr uint32_t kBaseAddress = 0x7EF000;
-    constexpr uint16_t kStartOffset = core::OracleProgressionState::kPendantOffset;
-    constexpr uint16_t kEndOffset = core::OracleProgressionState::kSideQuestOffset;
-    constexpr size_t kReadLength = kEndOffset - kStartOffset + 1;
-    constexpr uint32_t kReadAddress = kBaseAddress + kStartOffset;
-
-    auto bytes_or = live_client_->ReadBlock(kReadAddress, kReadLength);
-    if (!bytes_or.ok()) {
-      live_sync_error_ = std::string(bytes_or.status().message());
-      return false;
-    }
-    if (bytes_or->size() < kReadLength) {
-      live_sync_error_ = "SRAM read returned truncated data";
+    auto* backend = GetProgressionBackend();
+    if (backend == nullptr) {
+      live_sync_error_ = "No hack workflow backend is available";
       return false;
     }
 
-    core::OracleProgressionState state;
-    const auto read_byte = [&](uint16_t offset) -> uint8_t {
-      return (*bytes_or)[offset - kStartOffset];
-    };
+    auto state_or = backend->ReadProgressionStateFromLiveSram(*live_client_);
+    if (!state_or.ok()) {
+      live_sync_error_ = std::string(state_or.status().message());
+      return false;
+    }
 
-    state.pendants = read_byte(core::OracleProgressionState::kPendantOffset);
-    state.crystal_bitfield =
-        read_byte(core::OracleProgressionState::kCrystalOffset);
-    state.game_state = read_byte(core::OracleProgressionState::kGameStateOffset);
-    state.oosprog2 = read_byte(core::OracleProgressionState::kOosProg2Offset);
-    state.oosprog = read_byte(core::OracleProgressionState::kOosProgOffset);
-    state.side_quest = read_byte(core::OracleProgressionState::kSideQuestOffset);
-
-    manifest_->SetOracleProgressionState(state);
+    backend->SetProgressionState(*manifest_, *state_or);
     loaded_srm_path_ = "Mesen2 Live";
     last_srm_error_.clear();
     live_sync_error_.clear();
@@ -768,6 +786,28 @@ class StoryEventGraphPanel : public EditorPanel {
     }
     live_listener_id_ = 0;
     live_subscription_active_ = false;
+  }
+
+  workflow::HackWorkflowBackend* GetWorkflowBackend() const {
+    return ContentRegistry::Context::hack_workflow_backend();
+  }
+
+  workflow::ProgressionCapability* GetProgressionBackend() const {
+    return ContentRegistry::Context::hack_progression_backend();
+  }
+
+  workflow::PlanningCapability* GetPlanningBackend() const {
+    return ContentRegistry::Context::hack_planning_backend();
+  }
+
+  const core::StoryEventGraph* GetStoryGraph() const {
+    if (!manifest_) {
+      return nullptr;
+    }
+    if (auto* backend = GetPlanningBackend()) {
+      return backend->GetStoryGraph(*manifest_);
+    }
+    return &manifest_->project_registry().story_events;
   }
 
   core::HackManifest* manifest_ = nullptr;

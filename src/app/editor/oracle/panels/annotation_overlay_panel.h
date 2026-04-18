@@ -50,14 +50,18 @@ struct AnnotationEntry {
  * Integration with DungeonMapPanel: colored dots drawn on rooms
  * (red=blocker, orange=bug, blue=note).
  */
-class AnnotationOverlayPanel : public EditorPanel {
+class AnnotationOverlayPanel : public WindowContent {
  public:
   std::string GetId() const override { return "oracle.annotations"; }
   std::string GetDisplayName() const override { return "Annotations"; }
   std::string GetIcon() const override { return ICON_MD_NOTES; }
-  std::string GetEditorCategory() const override { return "Oracle"; }
-  PanelCategory GetPanelCategory() const override {
-    return PanelCategory::CrossEditor;
+  std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Planning"; }
+  std::string GetWorkflowDescription() const override {
+    return "Review and edit room-level project annotations";
+  }
+  WindowLifecycle GetWindowLifecycle() const override {
+    return WindowLifecycle::CrossEditor;
   }
 
   void SetAnnotationsPath(const std::string& path) {

@@ -14,12 +14,12 @@ namespace yaze::editor {
  *
  * Requirements:
  *   - Panel class must have a default constructor
- *   - Panel class must inherit from EditorPanel
+ *   - Panel class must inherit from WindowContent
  *
  * Usage:
  * @code
  *   // In my_panel.h or my_panel.cc (after class definition)
- *   class MyPanel : public EditorPanel {
+ *   class MyPanel : public WindowContent {
  *    public:
  *     MyPanel() = default;
  *     // ... implementation
@@ -31,7 +31,7 @@ namespace yaze::editor {
  * @code
  *   void MyPanel::Draw(bool* p_open) {
  *     auto* rom = ContentRegistry::Context::rom();
- *     auto* editor = ContentRegistry::Context::current_editor();
+ *     auto* editor = ContentRegistry::Context::editor_window_context("Overworld");
  *     // ...
  *   }
  * @endcode
@@ -56,8 +56,8 @@ namespace yaze::editor {
  *
  * Usage:
  * @code
- *   REGISTER_PANEL_FACTORY(MyPanel, []() -> std::unique_ptr<EditorPanel> {
- *     auto* editor = ContentRegistry::Context::current_editor();
+ *   REGISTER_PANEL_FACTORY(MyPanel, []() -> std::unique_ptr<WindowContent> {
+ *     auto* editor = ContentRegistry::Context::editor_window_context("Overworld");
  *     if (!editor) return nullptr;
  *     return std::make_unique<MyPanel>(editor);
  *   });

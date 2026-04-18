@@ -14,7 +14,7 @@ class Rom;
 
 namespace yaze::editor {
 
-class OracleValidationPanel : public EditorPanel {
+class OracleValidationPanel : public WindowContent {
  public:
   ~OracleValidationPanel() override;
 
@@ -22,7 +22,12 @@ class OracleValidationPanel : public EditorPanel {
   std::string GetDisplayName() const override;
   std::string GetIcon() const override;
   std::string GetEditorCategory() const override;
-  PanelCategory GetPanelCategory() const override;
+  std::string GetWorkflowGroup() const override;
+  std::string GetWorkflowLabel() const override;
+  std::string GetWorkflowDescription() const override;
+  bool IsEnabled() const override;
+  std::string GetDisabledTooltip() const override;
+  WindowLifecycle GetWindowLifecycle() const override;
   float GetPreferredWidth() const override;
 
   void Draw(bool* p_open) override;

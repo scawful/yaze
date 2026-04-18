@@ -13,14 +13,18 @@
 
 namespace yaze::editor {
 
-class OracleMenuInspectorPanel : public EditorPanel {
+class OracleMenuInspectorPanel : public WindowContent {
  public:
   std::string GetId() const override { return "oracle.menu_inspector"; }
   std::string GetDisplayName() const override { return "Menu Inspector"; }
   std::string GetIcon() const override { return ICON_MD_MENU_BOOK; }
-  std::string GetEditorCategory() const override { return "Oracle"; }
-  PanelCategory GetPanelCategory() const override {
-    return PanelCategory::CrossEditor;
+  std::string GetEditorCategory() const override { return "Agent"; }
+  std::string GetWorkflowGroup() const override { return "Assets"; }
+  std::string GetWorkflowDescription() const override {
+    return "Inspect menu registries and generated menu assets for the project";
+  }
+  WindowLifecycle GetWindowLifecycle() const override {
+    return WindowLifecycle::CrossEditor;
   }
   float GetPreferredWidth() const override { return 520.0f; }
 

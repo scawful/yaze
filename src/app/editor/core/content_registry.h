@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/system/project_workflow_status.h"
+
 namespace yaze {
 class Rom;
 class EventBus;
@@ -19,10 +21,17 @@ class GameData;
 }  // namespace zelda3
 
 namespace editor {
-class EditorPanel;
+class WindowContent;
 class Editor;
 class GlobalEditorContext;
 struct EditorDependencies;
+
+namespace workflow {
+class HackWorkflowBackend;
+class ValidationCapability;
+class ProgressionCapability;
+class PlanningCapability;
+}  // namespace workflow
 
 /**
  * @brief Central registry for editor content and services.
@@ -99,6 +108,10 @@ namespace Context {
    */
   void SetCurrentEditor(Editor* editor);
 
+  Editor* editor_window_context(const std::string& category);
+  void SetEditorWindowContext(const std::string& category, Editor* editor);
+
+
   /**
    * @brief Get the current game data instance.
    * @return Pointer to the current GameData, or nullptr if not set.
@@ -127,6 +140,30 @@ namespace Context {
    */
   void SetCurrentProject(::yaze::project::YazeProject* project);
 
+  workflow::HackWorkflowBackend* hack_workflow_backend();
+  workflow::ValidationCapability* hack_validation_backend();
+  workflow::ProgressionCapability* hack_progression_backend();
+  workflow::PlanningCapability* hack_planning_backend();
+  void SetHackWorkflowBackend(workflow::HackWorkflowBackend* backend);
+
+  ProjectWorkflowStatus build_workflow_status();
+  void SetBuildWorkflowStatus(const ProjectWorkflowStatus& status);
+  ProjectWorkflowStatus run_workflow_status();
+  void SetRunWorkflowStatus(const ProjectWorkflowStatus& status);
+  std::string build_workflow_log();
+  void SetBuildWorkflowLog(const std::string& output);
+  std::vector<ProjectWorkflowHistoryEntry> workflow_history();
+  void AppendWorkflowHistory(const ProjectWorkflowHistoryEntry& entry);
+  void ClearWorkflowHistory();
+  std::function<void()> start_build_workflow_callback();
+  void SetStartBuildWorkflowCallback(std::function<void()> callback);
+  std::function<void()> run_project_workflow_callback();
+  void SetRunProjectWorkflowCallback(std::function<void()> callback);
+  std::function<void()> show_workflow_output_callback();
+  void SetShowWorkflowOutputCallback(std::function<void()> callback);
+  std::function<void()> cancel_build_workflow_callback();
+  void SetCancelBuildWorkflowCallback(std::function<void()> callback);
+
   /**
    * @brief Clear all context state.
    *
@@ -145,7 +182,7 @@ namespace Context {
  * - Lifecycle management
  */
 namespace Panels {
-  using PanelFactory = std::function<std::unique_ptr<EditorPanel>()>;
+  using PanelFactory = std::function<std::unique_ptr<WindowContent>()>;
 
   /**
    * @brief Register a panel factory.
@@ -166,26 +203,26 @@ namespace Panels {
    * @brief Create new instances of all registered panels.
    * @return Vector of unique pointers to new panel instances.
    */
-  std::vector<std::unique_ptr<EditorPanel>> CreateAll();
+  std::vector<std::unique_ptr<WindowContent>> CreateAll();
 
   /**
    * @brief Register a panel instance (Legacy/Global).
    * @param panel Unique pointer to the panel to register.
    */
-  void Register(std::unique_ptr<EditorPanel> panel);
+  void Register(std::unique_ptr<WindowContent> panel);
 
   /**
    * @brief Get all registered panels.
    * @return Vector of raw pointers to all registered panels.
    */
-  std::vector<EditorPanel*> GetAll();
+  std::vector<WindowContent*> GetAll();
 
   /**
    * @brief Get a specific panel by its ID.
    * @param id The unique identifier of the panel.
    * @return Pointer to the panel, or nullptr if not found.
    */
-  EditorPanel* Get(const std::string& id);
+  WindowContent* Get(const std::string& id);
 
   /**
    * @brief Clear all registered panels.
@@ -230,6 +267,26 @@ namespace Shortcuts {
   void add(const std::string& id, const std::string& key, const std::string& desc);
   std::vector<ShortcutDef> GetAll();
 } // namespace Shortcuts
+
+/**
+ * @brief Registry for hack workflow actions exposed in menus/command palette.
+ */
+namespace WorkflowActions {
+  struct ActionDef {
+    std::string id;
+    std::string group;
+    std::string label;
+    std::string description;
+    std::string shortcut;
+    int priority = 50;
+    std::function<void()> callback;
+    std::function<bool()> enabled;
+  };
+
+  void Register(const ActionDef& action);
+  std::vector<ActionDef> GetAll();
+  void Clear();
+}  // namespace WorkflowActions
 
 /**
  * @brief Registry for User Settings.
