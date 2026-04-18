@@ -35,7 +35,10 @@ class DungeonRoomSelector {
   void Draw();
   void DrawRoomSelector(RoomSelectionIntent single_click_intent =
                             RoomSelectionIntent::kFocusInWorkbench);
+  void DrawRoomBrowser(RoomSelectionIntent single_click_intent =
+                           RoomSelectionIntent::kFocusInWorkbench);
   void DrawEntranceSelector();
+  void DrawEntranceBrowser();
 
   // Unified context setter (preferred)
   void SetContext(EditorContext ctx) {
@@ -145,6 +148,9 @@ class DungeonRoomSelector {
   void RebuildRoomFilterCache();
   void RebuildEntranceFilterCache();
   bool PassesEntityTypeFilter(int room_id) const;
+  void DrawRoomSelectorInternal(RoomSelectionIntent single_click_intent,
+                                bool show_room_id_input);
+  void DrawEntranceSelectorInternal(bool show_properties);
 
   // Draw the grouped-by-dungeon view
   void DrawGroupedRoomList(RoomSelectionIntent single_click_intent);

@@ -361,10 +361,10 @@ void DungeonWorkbenchPanel::DrawSidebarContent() {
   ImGui::PushID("WorkbenchSidebarMode");
   switch (sidebar_mode_) {
     case SidebarMode::Rooms:
-      room_selector_->DrawRoomSelector();
+      room_selector_->DrawRoomBrowser();
       break;
     case SidebarMode::Entrances:
-      room_selector_->DrawEntranceSelector();
+      room_selector_->DrawEntranceBrowser();
       break;
   }
   ImGui::PopID();
