@@ -1017,6 +1017,9 @@ class WorkspaceWindowManager {
   bool IsWindowPinnedImpl(size_t session_id,
                           const std::string& base_card_id) const;
   std::vector<std::string> GetPinnedWindowsImpl(size_t session_id) const;
+  void RememberPinnedStateForRemovedWindow(size_t session_id,
+                                           const std::string& base_card_id,
+                                           const std::string& prefixed_id);
   void SetWindowPinnedImpl(const std::string& base_card_id, bool pinned);
   bool IsWindowPinnedImpl(const std::string& base_card_id) const;
   std::vector<std::string> GetPinnedWindowsImpl() const;

@@ -516,6 +516,12 @@ void WorkspaceWindowManager::UnregisterSessionPanels(size_t session_id) {
     if (global_panel_ids_.find(prefixed_card_id) != global_panel_ids_.end()) {
       continue;
     }
+    const std::string base_card_id =
+        GetBaseIdForPrefixedId(session_id, prefixed_card_id);
+    if (!base_card_id.empty()) {
+      RememberPinnedStateForRemovedWindow(session_id, base_card_id,
+                                          prefixed_card_id);
+    }
     cards_.erase(prefixed_card_id);
     centralized_visibility_.erase(prefixed_card_id);
     pinned_panels_.erase(prefixed_card_id);

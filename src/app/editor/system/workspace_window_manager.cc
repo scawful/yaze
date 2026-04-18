@@ -442,6 +442,8 @@ void WorkspaceWindowManager::UnregisterPanel(size_t session_id,
   if (it != cards_.end()) {
     LOG_INFO("WorkspaceWindowManager", "Unregistered card: %s",
              prefixed_id.c_str());
+    RememberPinnedStateForRemovedWindow(session_id, canonical_base_id,
+                                        prefixed_id);
     UntrackResourceWindow(prefixed_id);
     cards_.erase(it);
     centralized_visibility_.erase(prefixed_id);
@@ -475,23 +477,44 @@ void WorkspaceWindowManager::UnregisterPanel(size_t session_id,
 
 void WorkspaceWindowManager::UnregisterPanelsWithPrefix(
     const std::string& prefix) {
-  std::vector<std::string> to_remove;
+  struct RemovalInfo {
+    std::string prefixed_id;
+    size_t session_id = 0;
+    std::string base_id;
+  };
+  std::vector<RemovalInfo> to_remove;
 
   // Find all cards with the given prefix
   for (const auto& [card_id, card_info] : cards_) {
+    (void)card_info;
     if (card_id.find(prefix) == 0) {  // Starts with prefix
-      to_remove.push_back(card_id);
+      RemovalInfo info;
+      info.prefixed_id = card_id;
+      for (const auto& [session_id, reverse_mapping] :
+           session_reverse_card_mapping_) {
+        auto reverse_it = reverse_mapping.find(card_id);
+        if (reverse_it != reverse_mapping.end()) {
+          info.session_id = session_id;
+          info.base_id = reverse_it->second;
+          break;
+        }
+      }
+      to_remove.push_back(std::move(info));
     }
   }
 
   // Remove them
-  for (const auto& card_id : to_remove) {
-    UntrackResourceWindow(card_id);
-    cards_.erase(card_id);
-    centralized_visibility_.erase(card_id);
-    pinned_panels_.erase(card_id);
+  for (const auto& info : to_remove) {
+    if (!info.base_id.empty()) {
+      RememberPinnedStateForRemovedWindow(info.session_id, info.base_id,
+                                          info.prefixed_id);
+    }
+    UntrackResourceWindow(info.prefixed_id);
+    cards_.erase(info.prefixed_id);
+    centralized_visibility_.erase(info.prefixed_id);
+    pinned_panels_.erase(info.prefixed_id);
     LOG_INFO("WorkspaceWindowManager", "Unregistered card with prefix '%s': %s",
-             prefix.c_str(), card_id.c_str());
+             prefix.c_str(), info.prefixed_id.c_str());
   }
 
   // Also clean up session tracking
