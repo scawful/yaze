@@ -31,7 +31,89 @@ void CommandPalette::AddCommand(const std::string& name,
   entry.description = description;
   entry.shortcut = shortcut;
   entry.callback = callback;
+  entry.provider_id = current_provider_id_;
   commands_[name] = entry;
+}
+
+void CommandPalette::Clear() {
+  commands_.clear();
+  providers_.clear();
+  current_provider_id_.clear();
+}
+
+void CommandPalette::RegisterProvider(
+    std::unique_ptr<CommandProvider> provider) {
+  if (!provider)
+    return;
+  const std::string id = provider->ProviderId();
+  if (id.empty()) {
+    LOG_WARN("CommandPalette",
+             "Provider with empty id refused; skipping registration");
+    return;
+  }
+  // Replace any prior provider with the same id (warn so duplicate-id bugs
+  // don't hide silently).
+  for (auto it = providers_.begin(); it != providers_.end(); ++it) {
+    if ((*it)->ProviderId() == id) {
+      LOG_WARN("CommandPalette", "Replacing existing CommandProvider '%s'",
+               id.c_str());
+      RemoveProviderCommands(id);
+      providers_.erase(it);
+      break;
+    }
+  }
+  CommandProvider* raw = provider.get();
+  providers_.push_back(std::move(provider));
+  current_provider_id_ = id;
+  raw->Provide(this);
+  current_provider_id_.clear();
+}
+
+void CommandPalette::UnregisterProvider(const std::string& provider_id) {
+  RemoveProviderCommands(provider_id);
+  providers_.erase(
+      std::remove_if(providers_.begin(), providers_.end(),
+                     [&](const std::unique_ptr<CommandProvider>& p) {
+                       return p && p->ProviderId() == provider_id;
+                     }),
+      providers_.end());
+}
+
+void CommandPalette::RefreshProvider(const std::string& provider_id) {
+  for (auto& provider : providers_) {
+    if (provider && provider->ProviderId() == provider_id) {
+      RemoveProviderCommands(provider_id);
+      current_provider_id_ = provider_id;
+      provider->Provide(this);
+      current_provider_id_.clear();
+      return;
+    }
+  }
+}
+
+void CommandPalette::RefreshProviders() {
+  // Snapshot ids so we don't iterate while mutating.
+  std::vector<std::string> ids;
+  ids.reserve(providers_.size());
+  for (const auto& provider : providers_) {
+    if (provider)
+      ids.push_back(provider->ProviderId());
+  }
+  for (const auto& id : ids) {
+    RefreshProvider(id);
+  }
+}
+
+void CommandPalette::RemoveProviderCommands(const std::string& provider_id) {
+  if (provider_id.empty())
+    return;
+  for (auto it = commands_.begin(); it != commands_.end();) {
+    if (it->second.provider_id == provider_id) {
+      it = commands_.erase(it);
+    } else {
+      ++it;
+    }
+  }
 }
 
 void CommandPalette::RecordUsage(const std::string& name) {

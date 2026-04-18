@@ -20,6 +20,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/layout/window_delegate.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/system/command_palette_providers.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
@@ -1432,16 +1433,19 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   RefreshWorkflowActions();
 
   // Register panel commands
-  command_palette_.RegisterPanelCommands(&window_manager_, session_id);
-  command_palette_.RegisterWorkflowCommands(&window_manager_, session_id);
+  command_palette_.RegisterProvider(
+      std::make_unique<PanelCommandsProvider>(&window_manager_, session_id));
+  command_palette_.RegisterProvider(
+      std::make_unique<WorkflowCommandsProvider>(&window_manager_, session_id));
 
   // Register editor switch commands
-  command_palette_.RegisterEditorCommands([this](const std::string& category) {
-    auto type = EditorRegistry::GetEditorTypeFromCategory(category);
-    if (type != EditorType::kSettings && editor_manager_) {
-      editor_manager_->SwitchToEditor(type);
-    }
-  });
+  command_palette_.RegisterProvider(std::make_unique<EditorCommandsProvider>(
+      [this](const std::string& category) {
+        auto type = EditorRegistry::GetEditorTypeFromCategory(category);
+        if (type != EditorType::kSettings && editor_manager_) {
+          editor_manager_->SwitchToEditor(type);
+        }
+      }));
 
   // Register layout/profile commands
   command_palette_.AddCommand("Apply: Minimal Layout", CommandCategory::kLayout,
@@ -1484,20 +1488,22 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
       });
 
   // Register recent files commands
-  command_palette_.RegisterRecentFilesCommands(
-      [this](const std::string& filepath) {
-        if (editor_manager_) {
-          auto status = editor_manager_->OpenRomOrProject(filepath);
-          if (!status.ok()) {
-            toast_manager_.Show(
-                absl::StrFormat("Failed to open: %s", status.message()),
-                ToastType::kError);
-          }
-        }
-      });
+  command_palette_.RegisterProvider(
+      std::make_unique<RecentFilesCommandsProvider>(
+          [this](const std::string& filepath) {
+            if (editor_manager_) {
+              auto status = editor_manager_->OpenRomOrProject(filepath);
+              if (!status.ok()) {
+                toast_manager_.Show(
+                    absl::StrFormat("Failed to open: %s", status.message()),
+                    ToastType::kError);
+              }
+            }
+          }));
 
   // Dungeon navigation helpers (room jump by id/label).
-  command_palette_.RegisterDungeonRoomCommands(session_id);
+  command_palette_.RegisterProvider(
+      std::make_unique<DungeonRoomCommandsProvider>(session_id));
 
   // Welcome-screen-scoped commands: per-entry pin/remove, undo, template
   // creation, and visibility toggles. Recent-entry iteration pulls from the
@@ -1505,57 +1511,52 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   // in sync without a separate refresh path. We rebuild these whenever
   // RefreshCommandPalette() is invoked after recents mutate.
   if (welcome_screen_) {
-    const std::vector<std::string> template_names = {
+    WelcomeCommandsProvider::Callbacks welcome_callbacks;
+    welcome_callbacks.model = &welcome_screen_->recent_projects();
+    welcome_callbacks.template_names = {
         "Vanilla ROM Hack", "ZSCustomOverworld v3", "ZSCustomOverworld v2",
         "Randomizer Compatible"};
-    command_palette_.RegisterWelcomeCommands(
-        &welcome_screen_->recent_projects(), template_names,
-        /*remove_callback=*/
-        [this](const std::string& path) {
-          if (!welcome_screen_)
-            return;
-          welcome_screen_->recent_projects().RemoveRecent(path);
-          welcome_screen_->RefreshRecentProjects(/*force=*/true);
-          toast_manager_.Show(
-              absl::StrFormat("Removed %s from recents",
-                              std::filesystem::path(path).filename().string()),
-              ToastType::kInfo);
-        },
-        /*toggle_pin_callback=*/
-        [this](const std::string& path) {
-          if (!welcome_screen_)
-            return;
-          auto& model = welcome_screen_->recent_projects();
-          bool currently_pinned = false;
-          for (const auto& entry : model.entries()) {
-            if (entry.filepath == path) {
-              currently_pinned = entry.pinned;
-              break;
-            }
-          }
-          model.SetPinned(path, !currently_pinned);
-          welcome_screen_->RefreshRecentProjects(/*force=*/true);
-        },
-        /*undo_remove_callback=*/
-        [this]() {
-          if (!welcome_screen_)
-            return;
-          if (!welcome_screen_->recent_projects().UndoLastRemoval()) {
-            toast_manager_.Show(
-                "Nothing to undo — the last removal has expired.",
-                ToastType::kWarning);
-            return;
-          }
-          welcome_screen_->RefreshRecentProjects(/*force=*/true);
-        },
-        /*clear_recents_callback=*/
-        [this]() {
-          if (!welcome_screen_)
-            return;
-          welcome_screen_->recent_projects().ClearAll();
-          welcome_screen_->RefreshRecentProjects(/*force=*/true);
-        },
-        /*create_from_template_callback=*/
+    welcome_callbacks.remove = [this](const std::string& path) {
+      if (!welcome_screen_)
+        return;
+      welcome_screen_->recent_projects().RemoveRecent(path);
+      welcome_screen_->RefreshRecentProjects(/*force=*/true);
+      toast_manager_.Show(
+          absl::StrFormat("Removed %s from recents",
+                          std::filesystem::path(path).filename().string()),
+          ToastType::kInfo);
+    };
+    welcome_callbacks.toggle_pin = [this](const std::string& path) {
+      if (!welcome_screen_)
+        return;
+      auto& model = welcome_screen_->recent_projects();
+      bool currently_pinned = false;
+      for (const auto& entry : model.entries()) {
+        if (entry.filepath == path) {
+          currently_pinned = entry.pinned;
+          break;
+        }
+      }
+      model.SetPinned(path, !currently_pinned);
+      welcome_screen_->RefreshRecentProjects(/*force=*/true);
+    };
+    welcome_callbacks.undo_remove = [this]() {
+      if (!welcome_screen_)
+        return;
+      if (!welcome_screen_->recent_projects().UndoLastRemoval()) {
+        toast_manager_.Show("Nothing to undo — the last removal has expired.",
+                            ToastType::kWarning);
+        return;
+      }
+      welcome_screen_->RefreshRecentProjects(/*force=*/true);
+    };
+    welcome_callbacks.clear_recents = [this]() {
+      if (!welcome_screen_)
+        return;
+      welcome_screen_->recent_projects().ClearAll();
+      welcome_screen_->RefreshRecentProjects(/*force=*/true);
+    };
+    welcome_callbacks.create_from_template =
         [this](const std::string& template_name) {
           if (!editor_manager_)
             return;
@@ -1567,19 +1568,19 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
           } else {
             SetStartupSurface(StartupSurface::kDashboard);
           }
-        },
-        /*dismiss_welcome_callback=*/
-        [this]() {
-          welcome_screen_manually_closed_ = true;
-          if (current_startup_surface_ == StartupSurface::kWelcome) {
-            SetStartupSurface(StartupSurface::kDashboard);
-          }
-        },
-        /*show_welcome_callback=*/
-        [this]() {
-          welcome_screen_manually_closed_ = false;
-          SetStartupSurface(StartupSurface::kWelcome);
-        });
+        };
+    welcome_callbacks.dismiss_welcome = [this]() {
+      welcome_screen_manually_closed_ = true;
+      if (current_startup_surface_ == StartupSurface::kWelcome) {
+        SetStartupSurface(StartupSurface::kDashboard);
+      }
+    };
+    welcome_callbacks.show_welcome = [this]() {
+      welcome_screen_manually_closed_ = false;
+      SetStartupSurface(StartupSurface::kWelcome);
+    };
+    command_palette_.RegisterProvider(std::make_unique<WelcomeCommandsProvider>(
+        std::move(welcome_callbacks)));
   }
 
   // Load command usage history
