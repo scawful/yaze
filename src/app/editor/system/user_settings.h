@@ -4,6 +4,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -53,9 +54,20 @@ class UserSettings {
     bool restore_last_session = true;
     bool prefer_hmagic_sprite_names = true;
 
+    // Welcome screen animation preferences. Match the defaults hard-coded in
+    // WelcomeScreen so first-run behavior is unchanged.
+    float welcome_triforce_alpha = 1.0f;
+    float welcome_triforce_speed = 0.3f;
+    float welcome_triforce_size = 1.0f;
+    bool welcome_particles_enabled = true;
+    bool welcome_mouse_repel_enabled = true;
+
     // Accessibility / interaction
     bool reduced_motion = false;
     int switch_motion_profile = 1;  // 0=Snappy, 1=Standard, 2=Relaxed
+
+    // Theme (last applied theme persists across restart; empty = default)
+    std::string last_theme_name;
 
     // Editor Behavior
     bool backup_before_save = true;
@@ -156,6 +168,13 @@ class UserSettings {
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }
+
+  // Testing hook: redirect Load/Save to a caller-specified path. Production
+  // code should never call this; it only exists so unit tests can exercise
+  // JSON round-trip without touching the user's real settings file.
+  void SetSettingsFilePathForTesting(std::string path) {
+    settings_file_path_ = std::move(path);
+  }
 
  private:
   Preferences prefs_;

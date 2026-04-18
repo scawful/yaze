@@ -78,10 +78,22 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->restore_last_session = (val == "1");
     } else if (key == "prefer_hmagic_sprite_names") {
       prefs->prefer_hmagic_sprite_names = (val == "1");
+    } else if (key == "welcome_triforce_alpha") {
+      prefs->welcome_triforce_alpha = std::stof(val);
+    } else if (key == "welcome_triforce_speed") {
+      prefs->welcome_triforce_speed = std::stof(val);
+    } else if (key == "welcome_triforce_size") {
+      prefs->welcome_triforce_size = std::stof(val);
+    } else if (key == "welcome_particles_enabled") {
+      prefs->welcome_particles_enabled = (val == "1");
+    } else if (key == "welcome_mouse_repel_enabled") {
+      prefs->welcome_mouse_repel_enabled = (val == "1");
     } else if (key == "reduced_motion") {
       prefs->reduced_motion = (val == "1");
     } else if (key == "switch_motion_profile") {
       prefs->switch_motion_profile = std::stoi(val);
+    } else if (key == "last_theme_name") {
+      prefs->last_theme_name = val;
     }
     // Editor Behavior
     else if (key == "backup_before_save") {
@@ -224,8 +236,16 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0) << "\n";
   ss << "prefer_hmagic_sprite_names="
      << (prefs.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
+  ss << "welcome_triforce_alpha=" << prefs.welcome_triforce_alpha << "\n";
+  ss << "welcome_triforce_speed=" << prefs.welcome_triforce_speed << "\n";
+  ss << "welcome_triforce_size=" << prefs.welcome_triforce_size << "\n";
+  ss << "welcome_particles_enabled="
+     << (prefs.welcome_particles_enabled ? 1 : 0) << "\n";
+  ss << "welcome_mouse_repel_enabled="
+     << (prefs.welcome_mouse_repel_enabled ? 1 : 0) << "\n";
   ss << "reduced_motion=" << (prefs.reduced_motion ? 1 : 0) << "\n";
   ss << "switch_motion_profile=" << prefs.switch_motion_profile << "\n";
+  ss << "last_theme_name=" << prefs.last_theme_name << "\n";
 
   // Editor Behavior
   ss << "backup_before_save=" << (prefs.backup_before_save ? 1 : 0) << "\n";
@@ -576,6 +596,16 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         g.value("restore_last_session", prefs->restore_last_session);
     prefs->prefer_hmagic_sprite_names = g.value(
         "prefer_hmagic_sprite_names", prefs->prefer_hmagic_sprite_names);
+    prefs->welcome_triforce_alpha =
+        g.value("welcome_triforce_alpha", prefs->welcome_triforce_alpha);
+    prefs->welcome_triforce_speed =
+        g.value("welcome_triforce_speed", prefs->welcome_triforce_speed);
+    prefs->welcome_triforce_size =
+        g.value("welcome_triforce_size", prefs->welcome_triforce_size);
+    prefs->welcome_particles_enabled = g.value(
+        "welcome_particles_enabled", prefs->welcome_particles_enabled);
+    prefs->welcome_mouse_repel_enabled = g.value(
+        "welcome_mouse_repel_enabled", prefs->welcome_mouse_repel_enabled);
   }
 
   if (root.contains("appearance")) {
@@ -584,6 +614,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         appearance.value("reduced_motion", prefs->reduced_motion);
     prefs->switch_motion_profile = appearance.value(
         "switch_motion_profile", prefs->switch_motion_profile);
+    prefs->last_theme_name =
+        appearance.value("last_theme_name", prefs->last_theme_name);
   }
 
   if (root.contains("editor")) {
@@ -817,11 +849,17 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"show_welcome_on_startup", prefs.show_welcome_on_startup},
       {"restore_last_session", prefs.restore_last_session},
       {"prefer_hmagic_sprite_names", prefs.prefer_hmagic_sprite_names},
+      {"welcome_triforce_alpha", prefs.welcome_triforce_alpha},
+      {"welcome_triforce_speed", prefs.welcome_triforce_speed},
+      {"welcome_triforce_size", prefs.welcome_triforce_size},
+      {"welcome_particles_enabled", prefs.welcome_particles_enabled},
+      {"welcome_mouse_repel_enabled", prefs.welcome_mouse_repel_enabled},
   };
 
   root["appearance"] = {
       {"reduced_motion", prefs.reduced_motion},
       {"switch_motion_profile", prefs.switch_motion_profile},
+      {"last_theme_name", prefs.last_theme_name},
   };
 
   root["editor"] = {
