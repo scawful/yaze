@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/system/project_workflow_status.h"
 #include "core/project.h"
 #include "core/version_manager.h"
 
@@ -42,6 +43,9 @@ class ProjectManagementPanel {
   using SwapRomCallback = std::function<void()>;
   using ReloadRomCallback = std::function<void()>;
   using SaveProjectCallback = std::function<void()>;
+  using BuildProjectCallback = std::function<void()>;
+  using CancelBuildCallback = std::function<void()>;
+  using RunProjectCallback = std::function<void()>;
   using BrowseFolderCallback = std::function<void(const std::string& type)>;
 
   void SetSwapRomCallback(SwapRomCallback cb) { swap_rom_callback_ = cb; }
@@ -49,8 +53,26 @@ class ProjectManagementPanel {
   void SetSaveProjectCallback(SaveProjectCallback cb) {
     save_project_callback_ = cb;
   }
+  void SetBuildProjectCallback(BuildProjectCallback cb) {
+    build_project_callback_ = std::move(cb);
+  }
+  void SetCancelBuildCallback(CancelBuildCallback cb) {
+    cancel_build_callback_ = std::move(cb);
+  }
+  void SetRunProjectCallback(RunProjectCallback cb) {
+    run_project_callback_ = std::move(cb);
+  }
   void SetBrowseFolderCallback(BrowseFolderCallback cb) {
     browse_folder_callback_ = cb;
+  }
+  void SetBuildStatus(const ProjectWorkflowStatus& status) {
+    build_status_ = status;
+  }
+  void SetRunStatus(const ProjectWorkflowStatus& status) {
+    run_status_ = status;
+  }
+  void SetBuildLogOutput(const std::string& output) {
+    build_log_output_ = output;
   }
 
   // Main draw entry point
@@ -73,6 +95,9 @@ class ProjectManagementPanel {
   SwapRomCallback swap_rom_callback_;
   ReloadRomCallback reload_rom_callback_;
   SaveProjectCallback save_project_callback_;
+  BuildProjectCallback build_project_callback_;
+  CancelBuildCallback cancel_build_callback_;
+  RunProjectCallback run_project_callback_;
   BrowseFolderCallback browse_folder_callback_;
 
   // Snapshot creation UI state
@@ -85,6 +110,10 @@ class ProjectManagementPanel {
 
   // Project edit state
   bool project_dirty_ = false;
+
+  ProjectWorkflowStatus build_status_;
+  ProjectWorkflowStatus run_status_;
+  std::string build_log_output_;
 };
 
 }  // namespace editor
