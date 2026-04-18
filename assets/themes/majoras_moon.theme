@@ -1,0 +1,117 @@
+# Majora's Moon Theme
+# Ominous purple-and-orange dusk, inspired by the falling moon's last hours.
+name=Majora's Moon
+description=Ominous dusk: desaturated violet, moonfire orange, deep shadow
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors — moon violet with dim ember glow
+primary=150,100,200,255
+secondary=110,70,160,255
+accent=180,130,220,255
+background=18,12,26,255
+surface=28,20,40,255
+
+# Status colors
+error=220,80,110,255
+warning=235,150,60,255           # Moonfire orange
+success=130,190,150,255
+info=180,140,220,255
+
+# Text colors
+text_primary=235,225,245,255
+text_secondary=180,165,210,255
+text_disabled=120,105,150,255
+
+# Window colors
+window_bg=22,16,32,240
+child_bg=18,12,26,200
+popup_bg=30,22,44,250
+
+# Interactive elements
+button=70,45,110,255
+button_hovered=100,70,150,255
+button_active=130,95,180,255
+frame_bg=35,25,55,200
+frame_bg_hovered=50,35,80,220
+frame_bg_active=75,55,115,240
+
+# Navigation
+header=55,35,90,255
+header_hovered=90,60,140,255
+header_active=120,85,170,255
+tab=40,25,70,255
+tab_hovered=65,40,105,255
+tab_active=95,65,140,255
+menu_bar_bg=28,18,45,255
+title_bg=40,25,70,255
+title_bg_active=55,35,90,255
+title_bg_collapsed=35,22,60,255
+
+# Borders and separators
+border=150,100,200,255
+border_shadow=0,0,0,0
+separator=110,80,160,180
+separator_hovered=140,110,190,220
+separator_active=175,145,225,255
+
+# Scrollbars
+scrollbar_bg=35,25,55,180
+scrollbar_grab=90,65,140,200
+scrollbar_grab_hovered=120,95,170,230
+scrollbar_grab_active=155,125,205,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=180,130,220,153
+resize_grip_active=180,130,220,230
+
+# Controls
+check_mark=235,150,60,255        # Moonfire
+slider_grab=150,100,200,255
+slider_grab_active=180,130,220,255
+
+# Tables
+table_header_bg=55,35,90,255
+table_border_strong=110,80,160,255
+table_border_light=45,32,70,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,20
+
+# Links
+text_link=180,140,220,255
+
+# Navigation and special
+input_text_cursor=235,225,245,255
+nav_cursor=235,150,60,255
+nav_windowing_highlight=180,130,220,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=150,100,200,100
+drag_drop_target=235,150,60,200
+
+# Docking
+docking_preview=150,100,200,180
+docking_empty_bg=30,20,50,255
+
+# Tree lines
+tree_lines=110,85,160,153
+
+# Tab variations
+tab_dimmed=28,18,45,255
+tab_dimmed_selected=55,35,90,255
+tab_dimmed_selected_overline=235,150,60,255
+tab_selected_overline=235,150,60,255
+
+[style]
+window_rounding=8.0
+frame_rounding=6.0
+scrollbar_rounding=8.0
+grab_rounding=4.0
+tab_rounding=6.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.2
