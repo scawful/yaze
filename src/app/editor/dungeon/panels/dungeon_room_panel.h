@@ -18,7 +18,7 @@ namespace editor {
 
 /**
  * @class DungeonRoomPanel
- * @brief ResourcePanel for editing individual dungeon rooms
+ * @brief ResourceWindowContent for editing individual dungeon rooms
  *
  * This panel provides a tabbed view for editing a specific dungeon room.
  * Multiple rooms can be open simultaneously (up to kMaxRoomPanels).
@@ -31,10 +31,10 @@ namespace editor {
  * - Layer visibility toggles
  * - Lazy loading of room data
  *
- * @see ResourcePanel - Base class for resource-bound panels
+ * @see ResourceWindowContent - Base class for resource-bound panels
  * @see DungeonCanvasViewer - The canvas rendering component
  */
-class DungeonRoomPanel : public ResourcePanel {
+class DungeonRoomPanel : public ResourceWindowContent {
  public:
   /**
    * @brief Construct a room panel
@@ -55,7 +55,7 @@ class DungeonRoomPanel : public ResourcePanel {
   }
 
   // ==========================================================================
-  // ResourcePanel Identity
+  // ResourceWindowContent Identity
   // ==========================================================================
 
   int GetResourceId() const override { return room_id_; }
@@ -72,7 +72,7 @@ class DungeonRoomPanel : public ResourcePanel {
   int GetPriority() const override { return 100 + room_id_; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
@@ -100,7 +100,7 @@ class DungeonRoomPanel : public ResourcePanel {
         needs_render = true;
       }
 
-      if (room_->GetTileObjects().empty()) {
+      if (!room_->AreObjectsLoaded()) {
         room_->LoadObjects();
         needs_render = true;
       }
@@ -124,10 +124,9 @@ class DungeonRoomPanel : public ResourcePanel {
 
     // Room Controls
     if (ImGui::CollapsingHeader("Room Controls")) {
-      if (ImGui::Button(ICON_MD_REFRESH " Reload Graphics & Objects", ImVec2(-FLT_MIN, 0))) {
-        room_->LoadRoomGraphics(room_->blockset());
-        room_->LoadObjects();
-        room_->RenderRoomGraphics();
+      if (ImGui::Button(ICON_MD_REFRESH " Reload Graphics & Objects",
+                        ImVec2(-FLT_MIN, 0))) {
+        room_->ReloadGraphics(room_->blockset());
       }
 
       if (ImGui::Button(ICON_MD_CLEANING_SERVICES " Clear Room Buffers",
@@ -137,12 +136,12 @@ class DungeonRoomPanel : public ResourcePanel {
 
       ImGui::Separator();
       ImGui::Text("Floor Graphics Override:");
-      
+
       uint8_t floor1 = room_->floor1();
       uint8_t floor2 = room_->floor2();
       static uint8_t floor_min = 0;
       static uint8_t floor_max = 15;
-      
+
       bool changed = false;
       if (ImGui::SliderScalar("Floor1", ImGuiDataType_U8, &floor1, &floor_min,
                               &floor_max)) {
@@ -154,7 +153,7 @@ class DungeonRoomPanel : public ResourcePanel {
         room_->set_floor2(floor2);
         changed = true;
       }
-      
+
       if (changed && room_->rom() && room_->rom()->is_loaded()) {
         room_->RenderRoomGraphics();
       }
@@ -167,7 +166,7 @@ class DungeonRoomPanel : public ResourcePanel {
   }
 
   // ==========================================================================
-  // ResourcePanel Lifecycle
+  // ResourceWindowContent Lifecycle
   // ==========================================================================
 
   void OnResourceModified() override {
