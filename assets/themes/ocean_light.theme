@@ -1,0 +1,117 @@
+# Ocean Light Theme
+# Light-mode companion to Ocean. Light aqua background with deep navy text.
+name=Ocean Light
+description=Ocean's blue palette in light mode — clear sky over bright sea
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors — ocean blues saturated for light-bg contrast
+primary=30,105,175,255
+secondary=65,125,175,255
+accent=15,110,140,255            # Deep teal accent
+background=235,245,252,255
+surface=220,235,246,255
+
+# Status colors
+error=210,70,70,255
+warning=215,155,50,255
+success=55,150,95,255
+info=30,120,180,255
+
+# Text colors (dark on light)
+text_primary=15,35,55,255
+text_secondary=70,95,125,255
+text_disabled=165,180,195,255
+
+# Window colors
+window_bg=235,245,252,250
+child_bg=220,235,246,220
+popup_bg=240,248,253,255
+
+# Interactive elements
+button=195,220,238,255
+button_hovered=155,195,225,255
+button_active=95,155,210,255
+frame_bg=215,232,245,240
+frame_bg_hovered=198,222,240,245
+frame_bg_active=160,200,230,255
+
+# Navigation
+header=200,225,240,255
+header_hovered=155,195,225,255
+header_active=95,155,210,255
+tab=215,232,245,255
+tab_hovered=195,220,238,255
+tab_active=130,180,220,255
+menu_bar_bg=222,238,247,255
+title_bg=208,228,242,255
+title_bg_active=195,220,238,255
+title_bg_collapsed=220,235,246,255
+
+# Borders and separators
+border=15,110,140,255
+border_shadow=0,0,0,0
+separator=140,175,200,180
+separator_hovered=80,135,180,220
+separator_active=15,110,140,255
+
+# Scrollbars
+scrollbar_bg=220,235,246,180
+scrollbar_grab=150,190,215,200
+scrollbar_grab_hovered=100,160,200,230
+scrollbar_grab_active=30,105,175,255
+
+# Resize grips
+resize_grip=15,110,140,64
+resize_grip_hovered=15,110,140,153
+resize_grip_active=15,110,140,230
+
+# Controls
+check_mark=15,110,140,255
+slider_grab=30,105,175,255
+slider_grab_active=15,110,140,255
+
+# Tables
+table_header_bg=200,225,240,255
+table_border_strong=140,175,200,255
+table_border_light=195,220,238,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=0,0,0,15
+
+# Links
+text_link=15,110,140,255
+
+# Navigation and special
+input_text_cursor=15,35,55,255
+nav_cursor=15,110,140,255
+nav_windowing_highlight=30,105,175,200
+nav_windowing_dim_bg=0,0,0,64
+modal_window_dim_bg=0,0,0,80
+text_selected_bg=30,105,175,100
+drag_drop_target=15,110,140,200
+
+# Docking
+docking_preview=30,105,175,180
+docking_empty_bg=220,235,246,255
+
+# Tree lines
+tree_lines=150,180,205,153
+
+# Tab variations
+tab_dimmed=222,238,247,255
+tab_dimmed_selected=208,228,242,255
+tab_dimmed_selected_overline=15,110,140,255
+tab_selected_overline=15,110,140,255
+
+[style]
+window_rounding=8.0
+frame_rounding=6.0
+scrollbar_rounding=8.0
+grab_rounding=4.0
+tab_rounding=6.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.2
