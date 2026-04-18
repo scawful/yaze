@@ -1433,6 +1433,15 @@ void PopupManager::DrawRomWriteConfirmPopup() {
       project::RomWritePolicyToString(editor_manager_->GetProjectRomWritePolicy());
   const auto expected = editor_manager_->GetProjectExpectedRomHash();
   const auto actual = editor_manager_->GetCurrentRomHash();
+  const auto* project = editor_manager_->GetCurrentProject();
+  const auto actual_path = editor_manager_->GetCurrentRom()
+                               ? editor_manager_->GetCurrentRom()->filename()
+                               : std::string();
+  const auto editable_path =
+      project && project->hack_manifest.loaded() &&
+              !project->hack_manifest.build_pipeline().dev_rom.empty()
+          ? project->GetAbsolutePath(project->hack_manifest.build_pipeline().dev_rom)
+          : (project ? project->rom_filename : std::string());
 
   Text("ROM Write Confirmation");
   Separator();
@@ -1441,12 +1450,16 @@ void PopupManager::DrawRomWriteConfirmPopup() {
   Spacing();
   Text("Role: %s", role.c_str());
   Text("Write policy: %s", policy.c_str());
+  Text("Loaded ROM: %s",
+       actual_path.empty() ? "(unknown)" : actual_path.c_str());
+  Text("Editable target: %s",
+       editable_path.empty() ? "(unset)" : editable_path.c_str());
   Text("Expected: %s", expected.empty() ? "(unset)" : expected.c_str());
   Text("Actual:   %s", actual.empty() ? "(unknown)" : actual.c_str());
   Spacing();
   TextWrapped(
       "Proceeding will write to the current ROM file. This may corrupt a base "
-      "or release ROM if it is not the intended dev ROM.");
+      "or release ROM if it is not the intended editable project ROM.");
 
   Spacing();
   if (Button("Save anyway", ImVec2(0, 0))) {
