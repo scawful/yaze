@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <utility>
 
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/workspace_window_manager.h"
@@ -800,6 +801,79 @@ void LayoutManager::ClearTemporarySessionLayout() {
   temp_session_visibility_.clear();
   temp_session_pinned_.clear();
   temp_session_imgui_layout_.clear();
+}
+
+bool LayoutManager::SaveNamedSnapshot(const std::string& name,
+                                      size_t session_id) {
+  if (!window_manager_ || name.empty()) {
+    return false;
+  }
+  SessionSnapshot snapshot;
+  snapshot.session_id = session_id;
+  snapshot.visibility = window_manager_->SerializeVisibilityState(session_id);
+  snapshot.pinned = window_manager_->SerializePinnedState();
+  size_t ini_size = 0;
+  const char* ini_data = ImGui::SaveIniSettingsToMemory(&ini_size);
+  if (ini_data && ini_size > 0) {
+    snapshot.imgui_layout.assign(ini_data, ini_size);
+  }
+  named_snapshots_[name] = std::move(snapshot);
+  LOG_INFO("LayoutManager", "Saved named snapshot '%s' for session %zu",
+           name.c_str(), session_id);
+  return true;
+}
+
+bool LayoutManager::RestoreNamedSnapshot(const std::string& name,
+                                         size_t session_id,
+                                         bool remove_after_restore) {
+  if (!window_manager_) {
+    return false;
+  }
+  auto it = named_snapshots_.find(name);
+  if (it == named_snapshots_.end()) {
+    return false;
+  }
+  const SessionSnapshot& snapshot = it->second;
+  if (snapshot.session_id != session_id) {
+    return false;
+  }
+  window_manager_->RestoreVisibilityState(session_id, snapshot.visibility,
+                                          /*publish_events=*/true);
+  window_manager_->RestorePinnedState(snapshot.pinned);
+  if (!snapshot.imgui_layout.empty()) {
+    ImGui::LoadIniSettingsFromMemory(snapshot.imgui_layout.c_str(),
+                                     snapshot.imgui_layout.size());
+  }
+  if (remove_after_restore) {
+    named_snapshots_.erase(it);
+  }
+  return true;
+}
+
+bool LayoutManager::DeleteNamedSnapshot(const std::string& name) {
+  auto it = named_snapshots_.find(name);
+  if (it == named_snapshots_.end()) {
+    return false;
+  }
+  named_snapshots_.erase(it);
+  return true;
+}
+
+std::vector<std::string> LayoutManager::ListNamedSnapshots(
+    size_t session_id) const {
+  std::vector<std::string> names;
+  names.reserve(named_snapshots_.size());
+  for (const auto& [name, snapshot] : named_snapshots_) {
+    if (snapshot.session_id == session_id) {
+      names.push_back(name);
+    }
+  }
+  std::sort(names.begin(), names.end());
+  return names;
+}
+
+bool LayoutManager::HasNamedSnapshot(const std::string& name) const {
+  return named_snapshots_.find(name) != named_snapshots_.end();
 }
 
 bool LayoutManager::DeleteLayout(const std::string& name) {
