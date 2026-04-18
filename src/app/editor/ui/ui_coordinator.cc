@@ -775,6 +775,34 @@ void UICoordinator::SetEmulatorVisible(bool visible) {
   }
 }
 
+// Assembly editor visibility: same delegation pattern as the emulator. The
+// `show_asm_editor_` boolean was a parallel source of truth that could drift
+// when the user closed a single Assembly panel via its window close button;
+// reading through the category means the user's last interaction always wins.
+bool UICoordinator::IsAsmEditorVisible() const {
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  auto windows = window_manager_.GetWindowsInCategory(session_id, "Assembly");
+  for (const auto& window : windows) {
+    if (window.visibility_flag && *window.visibility_flag) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void UICoordinator::SetAsmEditorVisible(bool visible) {
+  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  if (visible) {
+    auto default_windows =
+        LayoutPresets::GetDefaultWindows(EditorType::kAssembly);
+    for (const auto& window_id : default_windows) {
+      window_manager_.OpenWindow(session_id, window_id);
+    }
+  } else {
+    window_manager_.HideAllWindowsInCategory(session_id, "Assembly");
+  }
+}
+
 // ============================================================================
 // Layout and Window Management UI
 // ============================================================================
