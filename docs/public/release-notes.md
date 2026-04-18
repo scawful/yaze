@@ -1,5 +1,38 @@
 # Release Notes
 
+## v0.7.1 (April 2026, pending tag)
+
+**Type:** Packaging + Welcome Screen Overhaul + Dungeon Editor Parity/Polish
+**Date:** 2026-04-17 (pending tag)
+
+### Welcome Screen & Project Startup
+- Added a guided New Project flow with clearer startup/project creation affordances.
+- Added async ROM metadata scanning for recent projects plus pin/rename/notes actions.
+- Added a short undo window for recent-project removal and command-palette entry points for welcome actions.
+
+### Dungeon Editor Parity & Polish
+- Restored BG1/BG2 layout routing while preserving pit/mask semantics.
+- Fixed real-room `0x034` rendering for single-tile payloads.
+- Added replay-geometry selection bounds for more accurate object hitboxes.
+- Added ROM-backed parity tests and room render snapshots.
+- Simplified workbench inspector/navigation flows, kept hidden room state sparse, and lazily materialized room state.
+
+### Performance & Footprint
+- Added lazy session-editor construction.
+- Deferred hidden full-mode asset loads.
+- Trimmed eager overworld bitmap memory.
+- Released unused room buffer textures and split render-target texture creation.
+
+### CLI / Build / CI
+- Fixed the WASM dungeon tile-row build path.
+- Added overworld map ID validation before ROM access.
+- Hardened Linux GUI smoke-run binary path handling.
+
+### Deferred to 0.8.0
+- z3dk integration proposal tracks embedded assembler/LSP/lint workflows, unified Mesen2 client work, and `.mlb` export.
+
+---
+
 ## v0.7.0 (March 2026)
 
 **Type:** Feature Completion + iOS Remote Control + API Expansion

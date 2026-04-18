@@ -995,10 +995,10 @@ void Room::LoadLayoutTilesToBuffer() {
   auto room_palette = dungeon_pal_group[palette_id];
   gfx::PaletteGroup palette_group;
   palette_group.AddPalette(room_palette);
-  // Palette chunking follows 16-color banks: subpalettes 2-7 map to SDL
-  // indices [(pal-2)*16..(pal-2)*16+15] with index 0 transparent. Palette
-  // fix plan completed (see docs/internal/archive/completed_features/
-  // dungeon-palette-fix-plan-2025-12.md).
+  // Palette chunking follows direct CGRAM row mirroring: tile palette bits
+  // select SDL bank rows 0-7, and dungeon colors live in rows 2-7 with index 0
+  // transparent within each bank. See the completed palette-fix plan in
+  // docs/internal/archive/completed_features/dungeon-palette-fix-plan-2025-12.md.
 
   // Draw layout objects using proper draw routines via RoomLayout
   auto status = layout_.Draw(room_id_, current_gfx16_.data(), bg1_buffer_,

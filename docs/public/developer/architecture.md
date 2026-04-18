@@ -28,17 +28,17 @@ This guide summarizes the architecture and implementation standards used across 
 For a cross-app status view (desktop/CLI/web), persistence notes, and test
 coverage, see the [Feature & Test Coverage Report](../reference/feature-coverage-report.md).
 
-### Recent Improvements (v0.7.0)
+### Recent Improvements (v0.7.1)
 
-- **Release Hardening**: Version/changelog/release-notes preflight gating is enforced in release workflow.
-- **Packaging Validation**: Linux, macOS, and Windows artifacts are validated before release publishing.
-- **Editor Workflow Maturity**: Dungeon and Overworld gained broader save and interaction coverage while retaining a Beta status for remaining completion work.
-- **UI Foundation Work**: Shared UI/theming patterns continue to consolidate ahead of dungeon/overworld completion.
+- **Welcome/Startup UX**: Guided project creation, async recent-project metadata scanning, and command-palette welcome actions are now part of the startup flow.
+- **Dungeon Parity Hardening**: BG1/BG2 layout routing, pit-mask preservation, replay-geometry selection bounds, and ROM-backed parity coverage tightened the dungeon editor's render path.
+- **Startup/Memory Footprint**: Lazy session editors, deferred hidden asset loads, leaner room state, and trimmed eager bitmap allocation reduce startup and editor overhead.
+- **Release Hardening**: Version/changelog/release-notes preflight gating remains enforced in the release workflow.
 - **UI Module Migration RFC**: New editor UI work now targets feature-oriented `ui/<module>/...` folders and blocks new `_panel`/`panels` additions via editor guardrails.
 
 ### Known Issues
 
-- **Dungeon object rendering**: Regression with object visibility
+- **Dungeon object rendering**: Remaining object-family parity gaps and preview coverage are still being worked through
 - **ZSOW v3 palettes**: Large-area palette issues being investigated
 
 ## Codebase Map

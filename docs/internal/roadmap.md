@@ -1,16 +1,40 @@
 # Roadmap
 
-**Last Updated: March 5, 2026**
+**Last Updated: April 17, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ---
 
-## Current Focus (v0.7.0)
+## Current Focus (v0.7.1)
+
+0.7.1 packages the post-0.7.0 welcome-screen overhaul and the dungeon-editor
+parity/polish work that landed through April 2026. No new cross-cutting
+initiatives — this is a bundled cleanup release. See
+`docs/internal/plans/0.7.1-release-plan.md` for the full commit list and
+release checklist.
+
+**0.7.1 themes:**
+- Welcome screen overhaul: guided New Project wizard, async ROM metadata
+  scan, recent-projects undo/pin, command-palette surface
+  (`docs/internal/plans/welcome-screen-initiative-2026-04.md`)
+- Dungeon editor parity: BG1/BG2 layout routing, pit masks, replay-geometry
+  selection bounds, ROM-backed parity tests, leaner workbench navigation,
+  lazy room materialization
+- Editor memory/startup footprint: lazy session editors, deferred hidden
+  full-mode asset loads, overworld eager bitmap trim, render-target texture
+  split
+
+**Next up (0.8.0):** z3dk toolchain integration (embedded assembler, 65816
+LSP features, unified Mesen2 client, `.mlb` symbol export). Proposal in
+`docs/internal/plans/z3dk-integration-0.8.0.md`.
+
+---
+
+## Previous Focus (v0.7.0, completed)
 
 0.7.0 shipped iOS Remote Control, themed widgets, and desktop HTTP API.
-The release is being finalized with editor feature completion before
-moving to 0.8.0. See `docs/internal/plans/0.7.0-feature-completion.md`
+See `docs/internal/plans/0.7.0-feature-completion.md`
 for the detailed task breakdown and agent assignments.
 
 **0.7.0 completion priorities:**
@@ -227,6 +251,9 @@ Mobile testing and review companion for desktop development.
 
 ## Future (v0.8.0+)
 
+- **z3dk toolchain integration**: embedded `z3asm` assembler, 65816 LSP
+  features (hover/diagnostics/go-to-def), unified Mesen2 socket client,
+  `.mlb` symbol export. See `docs/internal/plans/z3dk-integration-0.8.0.md`.
 - **SDL3 Migration**: GPU-based rendering (backend infrastructure exists, needs editor porting)
 - **Plugin Architecture**: Community extensions framework
 - **Enhanced Memory Editor**: Search, data interpretation, disassembly view
@@ -238,6 +265,24 @@ Mobile testing and review companion for desktop development.
 ---
 
 ## Release History
+
+### v0.7.1 (April 2026, pending tag)
+- Welcome screen overhaul: RecentProjectsModel extraction, sidecar metadata
+  cache (path + size + mtime), async first-scan with cancellation-safe
+  worker, pin/rename/notes, single-slot 8s undo toast, guided New Project
+  modal, command-palette surface for welcome actions
+- Dungeon editor parity: BG1/BG2 layout routing with preserved pit masks,
+  single-tile 0x34 payload acceptance, replay-geometry selection bounds,
+  ROM-backed object parity tests and snapshots, layout-corner vanilla path
+  retention, track geometry + palette parity fix
+- Dungeon editor polish: action-oriented selection inspector, simplified
+  workbench inspector/navigation, sparse hidden room state, lazy room
+  materialization, unused room buffer texture release
+- Editor memory footprint: lazy session editor construction, deferred
+  hidden full-mode asset loads, overworld eager bitmap trim,
+  render-target texture creation split
+- CLI/CI: WASM build fix for dungeon tile rows, overworld map ID
+  validation, Linux GUI smoke path robustness
 
 ### v0.7.0 (February-March 2026)
 - iOS Remote Control: Bonjour discovery, Remote Room Viewer, Command Runner
