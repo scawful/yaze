@@ -666,8 +666,8 @@ absl::Status DungeonEditorV2::Load() {
                 gfx::CreatePaletteGroupFromLargePalette(current_palette_);
             pal_group.ok()) {
           current_palette_group_ = pal_group.value();
-          apply_palette(workbench_viewer_);
-          apply_palette(workbench_compare_viewer_);
+          apply_palette(workbench_viewer_.get());
+          apply_palette(workbench_compare_viewer_.get());
           if (!IsWorkbenchWorkflowEnabled()) {
             if (auto* existing_viewer = room_viewers_.Get(current_room_id_)) {
               apply_palette(existing_viewer->get());
