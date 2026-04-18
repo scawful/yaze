@@ -2420,6 +2420,9 @@ void EditorManager::UpdateEditorState() {
     agent_ui_.SetProjectContext(&current_project_);
     if (auto* editor_set = GetCurrentEditorSet()) {
       agent_ui_.SetAsarWrapperContext(editor_set->GetAsarWrapper());
+      // Backend-agnostic symbol feed. Works for ASAR and z3dk alike; tools
+      // prefer this pointer over reaching through the wrapper.
+      agent_ui_.SetAssemblySymbolTableContext(&editor_set->GetAssemblySymbols());
     }
   }
 
