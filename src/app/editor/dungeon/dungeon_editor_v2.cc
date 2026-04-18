@@ -42,6 +42,8 @@
 #include "app/editor/dungeon/panels/water_fill_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/events/core_events.h"
+#include "app/editor/menu/status_bar.h"
 #include "app/editor/system/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
@@ -842,6 +844,42 @@ absl::Status DungeonEditorV2::Update() {
   ProcessPendingSwap();
 
   return absl::OkStatus();
+}
+
+void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
+  if (!status_bar)
+    return;
+  const int room_id = current_room_id();
+
+  if (room_id >= 0) {
+    StatusBarSegmentOptions room_opts;
+    room_opts.tooltip = "Click to refocus viewer on this room";
+    room_opts.on_click = [this, room_id]() {
+      if (dependencies_.global_context) {
+        dependencies_.global_context->GetEventBus().Publish(
+            JumpToRoomRequestEvent::Create(room_id, dependencies_.session_id));
+      }
+    };
+    status_bar->SetCustomSegment("Room", absl::StrFormat("0x%03X", room_id),
+                                 std::move(room_opts));
+  }
+
+  const int loaded = LoadedRoomCount();
+  const int total = TotalRoomCount();
+  if (total > 0) {
+    StatusBarSegmentOptions rooms_opts;
+    rooms_opts.tooltip =
+        absl::StrFormat("%d rooms loaded of %d total", loaded, total);
+    status_bar->SetCustomSegment("Rooms", absl::StrFormat("%d/%d", loaded, total),
+                                 std::move(rooms_opts));
+  }
+
+  StatusBarSegmentOptions mode_opts;
+  mode_opts.tooltip = "Click to toggle Workbench / Standalone workflow";
+  mode_opts.on_click = [this]() { ToggleWorkbenchWorkflowMode(true); };
+  status_bar->SetEditorMode(
+      IsWorkbenchWorkflowEnabled() ? "Workbench" : "Standalone",
+      std::move(mode_opts));
 }
 
 absl::Status DungeonEditorV2::Save() {
