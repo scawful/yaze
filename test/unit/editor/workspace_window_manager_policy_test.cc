@@ -283,5 +283,35 @@ TEST(WorkspaceWindowManagerPolicyTest,
   EXPECT_EQ(state.count("asm.editor"), 1U);
 }
 
+// Dynamic windows (room panels, music trackers, etc.) routinely unregister
+// when closed and later come back under the same base id. Their pin intent
+// must survive that teardown so a save/reopen cycle or later re-registration
+// does not silently forget the user's choice.
+TEST(WorkspaceWindowManagerPolicyTest,
+     UnregisterPanelPreservesPinStateForReregistration) {
+  WorkspaceWindowManager pm;
+  pm.RegisterSession(0);
+  pm.SetActiveSession(0);
+
+  pm.RegisterPanel({.card_id = "music.song_5",
+                    .display_name = "Song 05",
+                    .icon = "ICON_MOCK",
+                    .category = "Music"});
+  pm.SetWindowPinned(0, "music.song_5", true);
+
+  pm.UnregisterPanel(0, "music.song_5");
+
+  auto state = pm.SerializePinnedState();
+  ASSERT_EQ(state.count("music.song_5"), 1U);
+  EXPECT_TRUE(state["music.song_5"]);
+
+  pm.RegisterPanel({.card_id = "music.song_5",
+                    .display_name = "Song 05",
+                    .icon = "ICON_MOCK",
+                    .category = "Music"});
+
+  EXPECT_TRUE(pm.IsWindowPinned(0, "music.song_5"));
+}
+
 }  // namespace
 }  // namespace yaze::editor

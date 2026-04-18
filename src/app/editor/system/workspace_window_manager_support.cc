@@ -215,6 +215,35 @@ std::vector<std::string> WorkspaceWindowManager::GetPinnedWindowsImpl(
   return result;
 }
 
+void WorkspaceWindowManager::RememberPinnedStateForRemovedWindow(
+    size_t session_id, const std::string& base_card_id,
+    const std::string& prefixed_id) {
+  auto pinned_it = pinned_panels_.find(prefixed_id);
+  if (pinned_it == pinned_panels_.end()) {
+    return;
+  }
+
+  bool has_other_live_instance = false;
+  for (const auto& [mapped_session, mapping] : session_card_mapping_) {
+    (void)mapped_session;
+    auto mapping_it = mapping.find(base_card_id);
+    if (mapping_it == mapping.end()) {
+      continue;
+    }
+    if (mapping_it->second == prefixed_id) {
+      continue;
+    }
+    if (cards_.find(mapping_it->second) != cards_.end()) {
+      has_other_live_instance = true;
+      break;
+    }
+  }
+
+  if (!has_other_live_instance) {
+    pending_pinned_base_ids_[base_card_id] = pinned_it->second;
+  }
+}
+
 void WorkspaceWindowManager::SetWindowPinnedImpl(
     const std::string& base_card_id, bool pinned) {
   SetWindowPinnedImpl(active_session_, base_card_id, pinned);
