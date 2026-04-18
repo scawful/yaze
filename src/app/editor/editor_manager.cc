@@ -2338,7 +2338,7 @@ absl::Status EditorManager::Update() {
 void EditorManager::HandleHostVisibilityChanged(bool visible) {
   // Space/focus transitions can leave mid-animation surfaces ghosted.
   // Reset transient animation state to a stable endpoint.
-  gui::GetAnimator().ClearAllAnimations();
+  gui::GetAnimator().ClearWorkspaceTransitionState();
   if (right_drawer_manager_) {
     right_drawer_manager_->OnHostVisibilityChanged(visible);
   }
