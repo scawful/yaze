@@ -149,13 +149,13 @@ struct Theme {
   Color editor_selection;   // Selected area in editors
 
   // Unified selection and interaction colors (replacing hardcoded values)
-  Color selection_primary;      // Primary selection (typically gold/yellow)
-  Color selection_secondary;    // Secondary selection (typically cyan/blue)
-  Color selection_hover;        // Hover highlight color
-  Color selection_pulsing;      // Pulsing animation color
-  Color selection_handle;       // Corner handles for resizing/moving
-  Color drag_preview;           // Ghost preview when dragging
-  Color drag_preview_outline;   // Outline for drag preview
+  Color selection_primary;     // Primary selection (typically gold/yellow)
+  Color selection_secondary;   // Secondary selection (typically cyan/blue)
+  Color selection_hover;       // Hover highlight color
+  Color selection_pulsing;     // Pulsing animation color
+  Color selection_handle;      // Corner handles for resizing/moving
+  Color drag_preview;          // Ghost preview when dragging
+  Color drag_preview_outline;  // Outline for drag preview
 
   // Common entity colors
   Color entrance_color;
@@ -168,15 +168,15 @@ struct Theme {
 
   // Nested struct for dungeon editor colors
   struct DungeonColors {
-    Color selection_primary;       // Yellow selection
-    Color selection_secondary;     // Cyan selection
-    Color selection_pulsing;       // Animated pulse
-    Color selection_handle;        // Corner handles
-    Color drag_preview;            // Semi-transparent drag
-    Color drag_preview_outline;    // Drag preview outline
+    Color selection_primary;     // Yellow selection
+    Color selection_secondary;   // Cyan selection
+    Color selection_pulsing;     // Animated pulse
+    Color selection_handle;      // Corner handles
+    Color drag_preview;          // Semi-transparent drag
+    Color drag_preview_outline;  // Drag preview outline
     Color object_wall;
     Color object_floor;
-    Color object_chest;            // Gold
+    Color object_chest;  // Gold
     Color object_door;
     Color object_pot;
     Color object_stairs;
@@ -188,12 +188,12 @@ struct Theme {
     Color grid_text;
     Color room_border;
     Color room_border_dark;
-    Color sprite_layer0;           // Green
-    Color sprite_layer1;           // Blue
+    Color sprite_layer0;  // Green
+    Color sprite_layer1;  // Blue
     Color sprite_layer2;
-    Color outline_layer0;          // Red
-    Color outline_layer1;          // Green
-    Color outline_layer2;          // Blue
+    Color outline_layer0;  // Red
+    Color outline_layer1;  // Green
+    Color outline_layer2;  // Blue
   } dungeon;
 
   // Nested struct for chat/agent colors
@@ -280,8 +280,7 @@ class ThemeManager {
 
   // Theme management
   absl::Status LoadTheme(const std::string& theme_name);
-  absl::Status SaveTheme(const Theme& theme,
-                         const std::string& filename);
+  absl::Status SaveTheme(const Theme& theme, const std::string& filename);
   absl::Status LoadThemeFromFile(const std::string& filepath);
   absl::Status SaveThemeToFile(const Theme& theme,
                                const std::string& filepath) const;
@@ -368,6 +367,10 @@ class ThemeManager {
   ThemeManager() { InitializeBuiltInThemes(); }
 
   std::map<std::string, Theme> themes_;
+  // Display name → filesystem path captured at LoadThemeFromFile time. Lets
+  // GetCurrentThemeFilePath return a path that survives display names with
+  // spaces/apostrophes (e.g., "Majora's Moon" → majoras_moon.theme).
+  std::map<std::string, std::string> theme_file_paths_;
   Theme current_theme_;
   std::string current_theme_name_ = "Classic YAZE";
 
@@ -390,7 +393,8 @@ class ThemeManager {
 
   void CreateFallbackYazeClassic();
   absl::Status ParseThemeFile(const std::string& content, Theme& theme);
-  void ApplySmartDefaults(Theme& theme);  // Fill missing properties from primary colors
+  void ApplySmartDefaults(
+      Theme& theme);  // Fill missing properties from primary colors
   Color ParseColorFromString(const std::string& color_str) const;
   std::string SerializeTheme(const Theme& theme) const;
 

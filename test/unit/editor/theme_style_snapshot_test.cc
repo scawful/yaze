@@ -78,6 +78,26 @@ TEST_F(ThemeStyleSnapshotTest, ClassicYazeIdentityColors) {
   ExpectRgbNear(theme.accent, 89, 119, 89);    // TabActive
 }
 
+// Regression for the Phase 5.1 restore path. Classic YAZE is intentionally
+// kept out of themes_ (see ApplyClassicYazeTheme's off-by-one note), so a
+// naive ApplyTheme("Classic YAZE") used to fall through LoadTheme's "not
+// found" branch and land on YAZE Tre. The fix routes by name inside ApplyTheme
+// so startup restore, command-palette switch, and any programmatic caller all
+// end up on Classic YAZE. Without this test, the bug could resurface any time
+// someone refactors the classic-theme off-by-one guard.
+TEST_F(ThemeStyleSnapshotTest, ApplyThemeByNameRestoresClassicYaze) {
+  // Prime to a different theme so the test actually observes a transition.
+  // Avoids the false-positive where current_theme_name_ happened to already
+  // be "Classic YAZE" from a prior TEST_F on the fixture-owned singleton.
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("YAZE Tre");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "YAZE Tre");
+
+  mgr.ApplyTheme("Classic YAZE");
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
+  EXPECT_EQ(mgr.GetCurrentTheme().name, "Classic YAZE");
+}
+
 TEST_F(ThemeStyleSnapshotTest, SemanticHelpersReturnThemeTokens) {
   // The ui_helpers::GetSuccessColor/GetErrorColor/etc. functions are what
   // Phase 5.2 migrated callers use. Assert they return exactly what the

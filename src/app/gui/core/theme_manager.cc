@@ -511,6 +511,11 @@ absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
   ApplySmartDefaults(theme);
 
   themes_[theme.name] = theme;
+  // Remember where the theme came from. Display-name-derived paths won't round-
+  // trip for presets like "Majora's Moon" (filename: majoras_moon.theme) or
+  // "Tokyo Night" (tokyo_night.theme); GetCurrentThemeFilePath consults this
+  // map first so "Save Over Current" works without guessing.
+  theme_file_paths_[theme.name] = successful_path;
   return absl::OkStatus();
 }
 
@@ -528,6 +533,14 @@ const Theme* ThemeManager::GetTheme(const std::string& name) const {
 }
 
 void ThemeManager::ApplyTheme(const std::string& theme_name) {
+  // Classic YAZE is intentionally kept out of themes_ (see ApplyClassicYazeTheme
+  // for the off-by-one note). Route by name so callers — including the restore
+  // path in EditorManager::Initialize — don't silently fall back to YAZE Tre.
+  if (theme_name == "Classic YAZE") {
+    ApplyClassicYazeTheme();
+    return;
+  }
+
   auto status = LoadTheme(theme_name);
   if (!status.ok()) {
     // Fallback to YAZE Tre if theme not found
@@ -3749,7 +3762,21 @@ std::string ThemeManager::GetCurrentThemeFilePath() const {
     return "";  // Classic theme doesn't have a file
   }
 
-  // Try to find the current theme file in the search paths
+  // Prefer the exact load path recorded when the theme file was discovered.
+  // Names like "Majora's Moon" don't normalize back to majoras_moon.theme; the
+  // stored path lets "Save Over Current" succeed without guessing the filename.
+  auto path_it = theme_file_paths_.find(current_theme_name_);
+  if (path_it != theme_file_paths_.end()) {
+    std::ifstream test_file(path_it->second);
+    if (test_file.good()) {
+      return path_it->second;
+    }
+    // Stored path no longer valid (e.g., file moved after install). Fall
+    // through to the filename-synthesis heuristic below.
+  }
+
+  // Fallback: synthesize a filename from the display name. Works for legacy
+  // presets whose filenames match the name after alnum normalization.
   auto search_paths = GetThemeSearchPaths();
   std::string theme_filename = current_theme_name_ + ".theme";
 
