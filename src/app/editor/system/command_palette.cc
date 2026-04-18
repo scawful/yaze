@@ -370,6 +370,22 @@ void CommandPalette::RegisterPanelCommands(
                [window_manager, base_id, session_id]() {
                  window_manager->ToggleWindow(session_id, base_id);
                });
+
+    // Pin-to-global toggle. Mirrors the sidebar right-click pin + the panel
+    // tab pin UI, so users who live in the command palette never need to
+    // reach for the sidebar just to make a panel survive editor switches.
+    std::string pin_toggle_name =
+        absl::StrFormat("Toggle Pin: %s", descriptor->display_name);
+    std::string pin_toggle_desc =
+        absl::StrFormat("Keep the %s window visible across editor switches",
+                        descriptor->display_name);
+
+    AddCommand(pin_toggle_name, CommandCategory::kPanel, pin_toggle_desc, "",
+               [window_manager, base_id, session_id]() {
+                 const bool pinned =
+                     window_manager->IsWindowPinned(session_id, base_id);
+                 window_manager->SetWindowPinned(session_id, base_id, !pinned);
+               });
   }
 }
 
