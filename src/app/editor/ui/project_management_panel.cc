@@ -14,6 +14,56 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+ImVec4 WorkflowColor(ProjectWorkflowState state) {
+  switch (state) {
+    case ProjectWorkflowState::kRunning:
+      return ImVec4(0.45f, 0.70f, 0.95f, 1.0f);
+    case ProjectWorkflowState::kSuccess:
+      return ImVec4(0.35f, 0.80f, 0.45f, 1.0f);
+    case ProjectWorkflowState::kFailure:
+      return ImVec4(0.90f, 0.35f, 0.35f, 1.0f);
+    case ProjectWorkflowState::kIdle:
+    default:
+      return gui::GetTextSecondaryVec4();
+  }
+}
+
+const char* WorkflowIcon(ProjectWorkflowState state, const char* fallback) {
+  switch (state) {
+    case ProjectWorkflowState::kRunning:
+      return ICON_MD_SYNC;
+    case ProjectWorkflowState::kSuccess:
+      return ICON_MD_CHECK_CIRCLE;
+    case ProjectWorkflowState::kFailure:
+      return ICON_MD_ERROR;
+    case ProjectWorkflowState::kIdle:
+    default:
+      return fallback;
+  }
+}
+
+void DrawWorkflowCard(const ProjectWorkflowStatus& status,
+                      const char* fallback_icon) {
+  if (!status.visible) {
+    return;
+  }
+
+  gui::ColoredTextF(
+      WorkflowColor(status.state), "%s %s",
+      WorkflowIcon(status.state, fallback_icon),
+      status.summary.empty() ? status.label.c_str() : status.summary.c_str());
+  if (!status.detail.empty()) {
+    ImGui::TextWrapped("%s", status.detail.c_str());
+  }
+  if (!status.output_tail.empty()) {
+    ImGui::TextWrapped("%s", status.output_tail.c_str());
+  }
+}
+
+}  // namespace
+
 void ProjectManagementPanel::Draw() {
   if (!project_) {
     ImGui::TextDisabled("No project loaded");
@@ -37,14 +87,15 @@ void ProjectManagementPanel::Draw() {
 
 void ProjectManagementPanel::DrawProjectOverview() {
   // Section header
-  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Project", ICON_MD_FOLDER_SPECIAL);
+  gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Project",
+                    ICON_MD_FOLDER_SPECIAL);
   ImGui::Spacing();
 
   ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project Format:");
   ImGui::SameLine();
   ImGui::Text("%s", project_->format == project::ProjectFormat::kYazeNative
-                         ? ".yaze"
-                         : ".zsproj");
+                        ? ".yaze"
+                        : ".zsproj");
 
   ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project YAZE Version:");
   ImGui::SameLine();
@@ -392,6 +443,50 @@ void ProjectManagementPanel::DrawQuickActions() {
       save_project_callback_();
       project_dirty_ = false;
     }
+  }
+
+  if (ImGui::Button(ICON_MD_BUILD " Build Project", ImVec2(button_width, 0))) {
+    if (build_project_callback_) {
+      build_project_callback_();
+    }
+  }
+
+  if (build_status_.state == ProjectWorkflowState::kRunning &&
+      cancel_build_callback_) {
+    if (ImGui::Button(ICON_MD_CANCEL " Cancel Build",
+                      ImVec2(button_width, 0))) {
+      cancel_build_callback_();
+    }
+  }
+
+  if (ImGui::Button(ICON_MD_PLAY_ARROW " Run Project Output",
+                    ImVec2(button_width, 0))) {
+    if (run_project_callback_) {
+      run_project_callback_();
+    }
+  }
+
+  if (build_status_.visible || run_status_.visible) {
+    ImGui::Spacing();
+    gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Build & Run", ICON_MD_ROUTE);
+    if (build_status_.visible) {
+      DrawWorkflowCard(build_status_, ICON_MD_BUILD);
+    }
+    if (!build_log_output_.empty()) {
+      ImGui::Spacing();
+      ImGui::TextColored(gui::GetTextSecondaryVec4(), "Build Output:");
+      ImGui::BeginChild("##build_output_log", ImVec2(0, 140), true,
+                        ImGuiWindowFlags_HorizontalScrollbar);
+      ImGui::TextUnformatted(build_log_output_.c_str());
+      if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY()) {
+        ImGui::SetScrollHereY(1.0f);
+      }
+      ImGui::EndChild();
+    }
+    if (run_status_.visible) {
+      DrawWorkflowCard(run_status_, ICON_MD_PLAY_ARROW);
+    }
+    ImGui::Spacing();
   }
 
   ImGui::Spacing();
