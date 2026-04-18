@@ -719,16 +719,15 @@ TEST_F(ObjectDrawingComprehensiveTest, TileInfo_PaletteIndexMappingVerify) {
   EXPECT_EQ(tile0.palette_ * 16, 0);
   EXPECT_EQ(tile1.palette_ * 16, 16);
 
-  // Test palette clamping - palettes 6,7 wrap to 0,1
+  // Dungeon object drawing uses the raw 3-bit SNES palette row. High rows 6/7
+  // map directly to SDL palette banks 6/7; they do not wrap.
   gfx::TileInfo tile6;
   tile6.palette_ = 6;
-  uint8_t clamped6 = tile6.palette_ % 6;
-  EXPECT_EQ(clamped6, 0);
+  EXPECT_EQ(tile6.palette_ * 16, 96);
 
   gfx::TileInfo tile7;
   tile7.palette_ = 7;
-  uint8_t clamped7 = tile7.palette_ % 6;
-  EXPECT_EQ(clamped7, 1);
+  EXPECT_EQ(tile7.palette_ * 16, 112);
 }
 
 TEST_F(ObjectDrawingComprehensiveTest, TileInfo_MirroringFlags) {
