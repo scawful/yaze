@@ -740,8 +740,7 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   // Active pane (minimum height so canvas never collapses)
   ImGui::TableNextColumn();
   const bool split_active_open = gui::LayoutHelpers::BeginContentChild(
-      "##SplitActive", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas),
-      false);
+      "##SplitActive", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
   if (split_active_open) {
     primary_viewer.DrawDungeonCanvas(*current_room_id_);
   }
@@ -750,8 +749,7 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   // Compare pane
   ImGui::TableNextColumn();
   const bool split_compare_open = gui::LayoutHelpers::BeginContentChild(
-      "##SplitCompare", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas),
-      false);
+      "##SplitCompare", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
   if (split_compare_open) {
     if (auto* compare_viewer =
             get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
@@ -817,13 +815,13 @@ void DungeonWorkbenchPanel::BuildRoomDungeonCache() {
     AddRoom(static_cast<int>(ent.room_), static_cast<int>(ent.dungeon_id_));
   }
 }
+
+void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(6.0f, ImGui::GetStyle().ItemSpacing.x * 0.9f),
              std::max(6.0f, ImGui::GetStyle().ItemSpacing.y * 0.95f)));
   DrawInspectorPrimarySelector();
-
-void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
   DrawInspectorShelf(viewer);
 }
 
@@ -946,9 +944,9 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
 
   const std::string room_label =
       (room_id >= 0) ? zelda3::GetRoomLabel(room_id) : std::string("None");
-  DrawWorkbenchInspectorSectionHeader(ICON_MD_CASTLE " Room Summary");
 
   // Room badge: hex ID + copy button (only for valid room IDs).
+  DrawWorkbenchInspectorSectionHeader(ICON_MD_CASTLE " Room Summary");
   if (room_id >= 0) {
     ImGui::Text("Room: 0x%03X (%d)", room_id, room_id);
     ImGui::SameLine();
@@ -1018,9 +1016,9 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
       ImGui::EndTable();
     }
   }
-  DrawWorkbenchInspectorSectionHeader(ICON_MD_TUNE " Room Properties");
 
   // Core room properties (moved from canvas header).
+  DrawWorkbenchInspectorSectionHeader(ICON_MD_TUNE " Room Properties");
   if (auto* rooms = viewer.rooms();
       rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[room_id];
@@ -1148,9 +1146,9 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
     return;
   }
 
-    DrawWorkbenchInspectorSectionHeader(ICON_MD_WIDGETS " Object Selection");
   // ── Tile Object Selection ──
   if (obj_count > 0) {
+    DrawWorkbenchInspectorSectionHeader(ICON_MD_WIDGETS " Object Selection");
     ImGui::TextColored(theme.text_primary, ICON_MD_WIDGETS " %zu object%s",
                        obj_count, obj_count == 1 ? "" : "s");
     if (obj_count == 1) {
@@ -1399,9 +1397,9 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
   }
 }
 
-  DrawWorkbenchInspectorSectionHeader(ICON_MD_VISIBILITY " Overlay Toggles");
 void DungeonWorkbenchPanel::DrawInspectorShelfView(
     DungeonCanvasViewer& viewer) {
+  DrawWorkbenchInspectorSectionHeader(ICON_MD_VISIBILITY " Overlay Toggles");
   bool val = viewer.show_grid();
   if (ImGui::Checkbox("Grid (8x8)", &val))
     viewer.set_show_grid(val);

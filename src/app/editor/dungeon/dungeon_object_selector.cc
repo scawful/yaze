@@ -52,8 +52,8 @@ void DungeonObjectSelector::DrawTileSelector() {
     if (ImGui::BeginTabItem("Room Graphics")) {
       const bool room_graphics_tab_open = gui::LayoutHelpers::BeginContentChild(
           "##RoomGraphicsTab",
-          ImVec2(0.0f, gui::UIConfig::kContentMinHeightList), true,
-          ImGuiWindowFlags_AlwaysVerticalScrollbar);
+          ImVec2(0.0f, gui::UIConfig::kContentMinHeightList),
+          ImGuiChildFlags_Borders, ImGuiWindowFlags_AlwaysVerticalScrollbar);
       if (room_graphics_tab_open) {
         DrawRoomGraphics();
       }
@@ -90,7 +90,7 @@ void DungeonObjectSelector::DrawObjectRenderer() {
         "AssetBrowser",
         ImVec2(gui::UIConfig::kContentMinWidthSidebar,
                gui::UIConfig::kContentMinHeightList),
-        true, ImGuiWindowFlags_AlwaysVerticalScrollbar);
+        ImGuiChildFlags_Borders, ImGuiWindowFlags_AlwaysVerticalScrollbar);
     if (asset_browser_open) {
       DrawObjectAssetBrowser();
     }
@@ -100,7 +100,7 @@ void DungeonObjectSelector::DrawObjectRenderer() {
     ImGui::TableNextColumn();
     const bool preview_canvas_open = gui::LayoutHelpers::BeginContentChild(
         "PreviewCanvas", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas),
-        true);
+        ImGuiChildFlags_Borders);
     if (preview_canvas_open) {
       // Object placement controls
       ImGui::SeparatorText("Object Placement");
