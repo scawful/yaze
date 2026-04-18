@@ -1,11 +1,13 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_GRAPHICS_PANEL_H_
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_GRAPHICS_PANEL_H_
 
+#include <array>
 #include <string>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
@@ -67,10 +69,30 @@ class DungeonRoomGraphicsPanel : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  struct SheetPreviewMetadata {
+    uint8_t block_id = 0;
+    size_t source_offset = 0;
+    int width = 0;
+    int height = 0;
+    int nonzero_pixels = 0;
+    int palette_colors = 0;
+    bool bitmap_active = false;
+    bool has_surface = false;
+    bool has_texture = false;
+  };
+
+  void RefreshSheetPreviews(const zelda3::Room& room);
+
   int* current_room_id_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
   gfx::IRenderer* renderer_ = nullptr;
   gui::Canvas room_gfx_canvas_;
+  std::array<gfx::Bitmap, 16> sheet_previews_;
+  std::array<SheetPreviewMetadata, 16> sheet_preview_metadata_{};
+  std::array<uint8_t, 16> preview_block_ids_{};
+  int preview_room_id_ = -1;
+  bool preview_cache_valid_ = false;
+  bool show_source_trace_ = false;
 
   // Palette tracking for proper sheet coloring
   gfx::PaletteGroup current_palette_group_;
