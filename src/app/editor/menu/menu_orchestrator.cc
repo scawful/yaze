@@ -1,18 +1,21 @@
 #include "menu_orchestrator.h"
 
+#include <algorithm>
 #include <fstream>
+#include <map>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/core/content_registry.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
@@ -53,9 +56,11 @@ void MenuOrchestrator::BuildMainMenu() {
   BuildFileMenu();
   BuildEditMenu();
   BuildViewMenu();
-  BuildPanelsMenu();  // Dedicated top-level menu for panel management
-  BuildToolsMenu();   // Debug menu items merged into Tools
-  BuildWindowMenu();
+  // Windows menu now owns what used to live in the legacy "Window" menu
+  // (Sessions, Layout, Snapshots) in addition to the dynamic category
+  // toggles from WorkspaceWindowManager.
+  BuildPanelsMenu();
+  BuildToolsMenu();  // Debug menu items merged into Tools
   BuildHelpMenu();
 
   // Draw the constructed menu
@@ -208,12 +213,12 @@ void MenuOrchestrator::AddAppearanceMenuItems() {
       .Item(
           "Show Sidebar", ICON_MD_VIEW_SIDEBAR,
           [this]() {
-            if (panel_manager_)
-              panel_manager_->ToggleSidebarVisibility();
+            if (window_manager_)
+              window_manager_->ToggleSidebarVisibility();
           },
           SHORTCUT_CTRL(B), nullptr,
           [this]() {
-            return panel_manager_ && panel_manager_->IsSidebarVisible();
+            return window_manager_ && window_manager_->IsSidebarVisible();
           })
       .Item(
           "Show Status Bar", ICON_MD_HORIZONTAL_RULE,
@@ -301,38 +306,46 @@ void MenuOrchestrator::AddLayoutMenuItems() {
 
 void MenuOrchestrator::BuildPanelsMenu() {
   // Use CustomMenu to integrate dynamic panel content with the menu builder
-  menu_builder_.CustomMenu("Panels", [this]() { AddPanelsMenuItems(); });
+  menu_builder_.CustomMenu("Windows", [this]() { AddPanelsMenuItems(); });
 }
 
 void MenuOrchestrator::AddPanelsMenuItems() {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     return;
   }
 
   const size_t session_id = session_coordinator_.GetActiveSessionIndex();
-  std::string active_category = panel_manager_->GetActiveCategory();
-  auto all_categories = panel_manager_->GetAllCategories(session_id);
+  std::string active_category = window_manager_->GetActiveCategory();
+  auto all_categories = window_manager_->GetAllCategories(session_id);
 
-  if (all_categories.empty()) {
-    ImGui::TextDisabled("No panels available");
-    return;
-  }
-
-  // Panel Browser action at top
-  if (ImGui::MenuItem(absl::StrFormat("%s Panel Browser", ICON_MD_APPS).c_str(),
-                      SHORTCUT_CTRL_SHIFT(B))) {
+  // Window Browser action at top
+  if (ImGui::MenuItem(
+          absl::StrFormat("%s Window Browser", ICON_MD_APPS).c_str(),
+          SHORTCUT_CTRL_SHIFT(B))) {
     OnShowPanelBrowser();
   }
   if (ImGui::MenuItem(
-          absl::StrFormat("%s Show All Panels", ICON_MD_VISIBILITY).c_str())) {
-    panel_manager_->ShowAllPanelsInSession(session_id);
+          absl::StrFormat("%s Show All Windows", ICON_MD_VISIBILITY).c_str())) {
+    window_manager_->ShowAllWindowsInSession(session_id);
   }
   if (ImGui::MenuItem(
-          absl::StrFormat("%s Hide All Panels", ICON_MD_VISIBILITY_OFF)
+          absl::StrFormat("%s Hide All Windows", ICON_MD_VISIBILITY_OFF)
               .c_str())) {
-    panel_manager_->HideAllPanelsInSession(session_id);
+    window_manager_->HideAllWindowsInSession(session_id);
   }
   ImGui::Separator();
+
+  // Sessions and Layout — folded in from the former "Window" top-level menu.
+  // These draw directly against ImGui (not through MenuBuilder) because
+  // CustomMenu's callback runs *inside* an already-open BeginMenu scope.
+  AddSessionsSubmenu();
+  AddLayoutSubmenu();
+  ImGui::Separator();
+
+  if (all_categories.empty()) {
+    ImGui::TextDisabled("No windows available");
+    return;
+  }
 
   // Show all categories as direct submenus (no nested "All Categories" wrapper)
   for (const auto& category : all_categories) {
@@ -345,26 +358,26 @@ void MenuOrchestrator::AddPanelsMenuItems() {
     }
 
     if (ImGui::BeginMenu(label.c_str())) {
-      auto cards = panel_manager_->GetPanelsInCategory(session_id, category);
+      auto cards = window_manager_->GetWindowsInCategory(session_id, category);
 
       if (cards.empty()) {
-        ImGui::TextDisabled("No panels in this category");
+        ImGui::TextDisabled("No windows in this category");
       } else {
         if (ImGui::MenuItem(
                 absl::StrFormat("%s Show Category", ICON_MD_VISIBILITY)
                     .c_str())) {
-          panel_manager_->ShowAllPanelsInCategory(session_id, category);
+          window_manager_->ShowAllWindowsInCategory(session_id, category);
         }
         if (ImGui::MenuItem(
                 absl::StrFormat("%s Hide Category", ICON_MD_VISIBILITY_OFF)
                     .c_str())) {
-          panel_manager_->HideAllPanelsInCategory(session_id, category);
+          window_manager_->HideAllWindowsInCategory(session_id, category);
         }
         ImGui::Separator();
 
         for (const auto& card : cards) {
           bool is_visible =
-              panel_manager_->IsPanelVisible(session_id, card.card_id);
+              window_manager_->IsWindowOpen(session_id, card.card_id);
           const char* shortcut =
               card.shortcut_hint.empty() ? nullptr : card.shortcut_hint.c_str();
 
@@ -377,7 +390,7 @@ void MenuOrchestrator::AddPanelsMenuItems() {
                                     card.display_name);
 
           if (ImGui::MenuItem(item_label.c_str(), shortcut)) {
-            panel_manager_->TogglePanel(session_id, card.card_id);
+            window_manager_->ToggleWindow(session_id, card.card_id);
           }
         }
       }
@@ -394,6 +407,7 @@ void MenuOrchestrator::BuildToolsMenu() {
 
 void MenuOrchestrator::AddToolsMenuItems() {
   AddSearchMenuItems();
+  AddHackWorkflowMenuItems();
   menu_builder_.Separator();
 
   AddRomAnalysisMenuItems();
@@ -429,10 +443,78 @@ void MenuOrchestrator::AddSearchMenuItems() {
           "Command Palette", ICON_MD_SEARCH,
           [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
       .Item(
-          "Panel Finder", ICON_MD_DASHBOARD, [this]() { OnShowPanelFinder(); },
+          "Window Finder", ICON_MD_DASHBOARD, [this]() { OnShowPanelFinder(); },
           SHORTCUT_CTRL(P))
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); });
+}
+
+void MenuOrchestrator::AddHackWorkflowMenuItems() {
+  using WorkflowItem = ContentRegistry::WorkflowActions::ActionDef;
+
+  std::map<std::string, std::vector<WorkflowItem>> grouped_items;
+
+  if (window_manager_) {
+    const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+    const auto categories = window_manager_->GetAllCategories(session_id);
+    for (const auto& category : categories) {
+      for (const auto& descriptor :
+           window_manager_->GetWindowsInCategory(session_id, category)) {
+        if (descriptor.workflow_group.empty()) {
+          continue;
+        }
+        WorkflowItem item;
+        item.id = absl::StrFormat("panel.%s", descriptor.card_id);
+        item.group = descriptor.workflow_group;
+        item.label = descriptor.workflow_label.empty()
+                         ? descriptor.display_name
+                         : descriptor.workflow_label;
+        item.description =
+            descriptor.workflow_description.empty()
+                ? absl::StrFormat("Open %s", descriptor.display_name)
+                : descriptor.workflow_description;
+        item.shortcut = descriptor.shortcut_hint;
+        item.priority = descriptor.workflow_priority;
+        item.callback = [this, session_id, panel_id = descriptor.card_id]() {
+          if (window_manager_) {
+            window_manager_->OpenWindow(session_id, panel_id);
+          }
+        };
+        item.enabled = descriptor.enabled_condition;
+        const std::string group = item.group.empty() ? "General" : item.group;
+        grouped_items[group].push_back(std::move(item));
+      }
+    }
+  }
+
+  for (const auto& action : ContentRegistry::WorkflowActions::GetAll()) {
+    const std::string group = action.group.empty() ? "General" : action.group;
+    grouped_items[group].push_back(action);
+  }
+
+  if (grouped_items.empty()) {
+    return;
+  }
+
+  menu_builder_.BeginSubMenu("Hack Workflows", ICON_MD_ROUTE);
+  for (auto& [group, items] : grouped_items) {
+    std::sort(items.begin(), items.end(),
+              [](const WorkflowItem& lhs, const WorkflowItem& rhs) {
+                if (lhs.priority != rhs.priority) {
+                  return lhs.priority < rhs.priority;
+                }
+                return lhs.label < rhs.label;
+              });
+    menu_builder_.BeginSubMenu(group.c_str(), ICON_MD_WORKSPACE_PREMIUM);
+    for (const auto& item : items) {
+      MenuBuilder::EnabledCheck enabled = item.enabled;
+      menu_builder_.Item(
+          item.label.c_str(), item.callback,
+          item.shortcut.empty() ? nullptr : item.shortcut.c_str(), enabled);
+    }
+    menu_builder_.EndMenu();
+  }
+  menu_builder_.EndMenu();
 }
 
 void MenuOrchestrator::AddRomAnalysisMenuItems() {
@@ -529,190 +611,170 @@ void MenuOrchestrator::AddCollaborationMenuItems() {
 }
 #endif
 
-void MenuOrchestrator::BuildWindowMenu() {
-  menu_builder_.BeginMenu("Window");
-  AddWindowMenuItems();
-  menu_builder_.EndMenu();
+// Sessions submenu (folded from the former top-level "Window" menu).
+// Drawn inline inside the "Windows" CustomMenu callback using raw ImGui
+// calls so the entries land in the same menu scope.
+void MenuOrchestrator::AddSessionsSubmenu() {
+  if (ImGui::BeginMenu(absl::StrFormat("%s Sessions", ICON_MD_TAB).c_str())) {
+    if (ImGui::MenuItem(absl::StrFormat("%s New Session", ICON_MD_ADD).c_str(),
+                        SHORTCUT_CTRL_SHIFT(N))) {
+      OnCreateNewSession();
+    }
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Duplicate Session", ICON_MD_CONTENT_COPY)
+                .c_str(),
+            nullptr, false, HasActiveRom())) {
+      OnDuplicateCurrentSession();
+    }
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Close Session", ICON_MD_CLOSE).c_str(),
+            SHORTCUT_CTRL_SHIFT(W), false, HasMultipleSessions())) {
+      OnCloseCurrentSession();
+    }
+    ImGui::Separator();
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Session Switcher", ICON_MD_SWITCH_ACCOUNT)
+                .c_str(),
+            SHORTCUT_CTRL(Tab), false, HasMultipleSessions())) {
+      OnShowSessionSwitcher();
+    }
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Session Manager", ICON_MD_VIEW_LIST).c_str())) {
+      OnShowSessionManager();
+    }
+    ImGui::EndMenu();
+  }
 }
 
-void MenuOrchestrator::AddWindowMenuItems() {
-  // Sessions Submenu
-  menu_builder_.BeginSubMenu("Sessions", ICON_MD_TAB)
-      .Item(
-          "New Session", ICON_MD_ADD, [this]() { OnCreateNewSession(); },
-          SHORTCUT_CTRL_SHIFT(N))
-      .Item(
-          "Duplicate Session", ICON_MD_CONTENT_COPY,
-          [this]() { OnDuplicateCurrentSession(); }, nullptr,
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Close Session", ICON_MD_CLOSE, [this]() { OnCloseCurrentSession(); },
-          SHORTCUT_CTRL_SHIFT(W), [this]() { return HasMultipleSessions(); })
-      .Separator()
-      .Item(
-          "Session Switcher", ICON_MD_SWITCH_ACCOUNT,
-          [this]() { OnShowSessionSwitcher(); }, SHORTCUT_CTRL(Tab),
-          [this]() { return HasMultipleSessions(); })
-      .Item("Session Manager", ICON_MD_VIEW_LIST,
-            [this]() { OnShowSessionManager(); })
-      .EndMenu()
-      .Separator();
-
-  // Layout Management
-  const auto layout_actions_enabled = [this]() {
-    return HasCurrentEditor();
+// Layout submenu (folded from the former top-level "Window" menu).
+// Contains Save/Load/Reset, session snapshots, and named presets.
+void MenuOrchestrator::AddLayoutSubmenu() {
+  const bool layout_enabled = HasCurrentEditor();
+  auto apply_preset = [this](const char* name) {
+    if (editor_manager_)
+      editor_manager_->ApplyLayoutPreset(name);
+  };
+  auto apply_profile = [this](const char* name) {
+    if (editor_manager_)
+      editor_manager_->ApplyLayoutProfile(name);
   };
 
-  menu_builder_
-      .Item(
-          "Save Layout", ICON_MD_SAVE, [this]() { OnSaveWorkspaceLayout(); },
-          SHORTCUT_CTRL_SHIFT(S))
-      .Item(
-          "Load Layout", ICON_MD_FOLDER_OPEN,
-          [this]() { OnLoadWorkspaceLayout(); }, SHORTCUT_CTRL_SHIFT(O))
-      .Item("Reset Layout", ICON_MD_RESET_TV,
-            [this]() { OnResetWorkspaceLayout(); })
-      .BeginSubMenu("Layout Presets", ICON_MD_VIEW_QUILT)
-      .Item(
-          "Reset Active Editor Layout", ICON_MD_REFRESH,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ResetCurrentEditorLayout();
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Separator()
-      .Item(
-          "Profile: Code", ICON_MD_CODE,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("code");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Profile: Debug", ICON_MD_BUG_REPORT,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("debug");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Profile: Mapping", ICON_MD_MAP,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("mapping");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Profile: Chat + Agent", ICON_MD_SMART_TOY,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("chat");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Separator()
-      .Item(
-          "Capture Session Snapshot", ICON_MD_BOOKMARK_ADD,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->CaptureTemporaryLayoutSnapshot();
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Restore Session Snapshot", ICON_MD_RESTORE,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->RestoreTemporaryLayoutSnapshot();
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Clear Session Snapshot", ICON_MD_BOOKMARK_REMOVE,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ClearTemporaryLayoutSnapshot();
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Separator()
-      .Item(
-          "Minimal", ICON_MD_VIEW_COMPACT,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutPreset("Minimal");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Developer", ICON_MD_DEVELOPER_MODE,
-          [this]() { OnLoadDeveloperLayout(); }, nullptr,
-          layout_actions_enabled)
-      .Item(
-          "Designer", ICON_MD_DESIGN_SERVICES,
-          [this]() { OnLoadDesignerLayout(); }, nullptr, layout_actions_enabled)
-      .Item(
-          "Modder", ICON_MD_BUILD, [this]() { OnLoadModderLayout(); }, nullptr,
-          layout_actions_enabled)
-      .Item(
-          "Overworld Expert", ICON_MD_MAP,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutPreset("Overworld Expert");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Dungeon Expert", ICON_MD_CASTLE,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutPreset("Dungeon Expert");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Testing", ICON_MD_SCIENCE,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutPreset("Testing");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Item(
-          "Audio", ICON_MD_MUSIC_NOTE,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutPreset("Audio");
-            }
-          },
-          nullptr, layout_actions_enabled)
-      .Separator()
-      .Item("Manage Presets...", ICON_MD_TUNE,
-            [this]() { OnShowLayoutPresets(); })
-      .EndMenu()
-      .Separator();
+  if (ImGui::BeginMenu(
+          absl::StrFormat("%s Layout", ICON_MD_VIEW_QUILT).c_str())) {
+    if (ImGui::MenuItem(absl::StrFormat("%s Save Layout", ICON_MD_SAVE).c_str(),
+                        SHORTCUT_CTRL_SHIFT(S))) {
+      OnSaveWorkspaceLayout();
+    }
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Load Layout", ICON_MD_FOLDER_OPEN).c_str(),
+            SHORTCUT_CTRL_SHIFT(O))) {
+      OnLoadWorkspaceLayout();
+    }
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Reset Layout", ICON_MD_RESET_TV).c_str())) {
+      OnResetWorkspaceLayout();
+    }
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Reset Active Editor Layout", ICON_MD_REFRESH)
+                .c_str(),
+            nullptr, false, layout_enabled)) {
+      if (editor_manager_)
+        editor_manager_->ResetCurrentEditorLayout();
+    }
 
-  // Window Visibility
-  menu_builder_
-      .Item("Show All Windows", ICON_MD_VISIBILITY,
-            [this]() { OnShowAllWindows(); })
-      .Item("Hide All Windows", ICON_MD_VISIBILITY_OFF,
-            [this]() { OnHideAllWindows(); })
-      .Separator();
+    ImGui::Separator();
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Capture Session Snapshot", ICON_MD_BOOKMARK_ADD)
+                .c_str(),
+            nullptr, false, layout_enabled)) {
+      if (editor_manager_)
+        editor_manager_->CaptureTemporaryLayoutSnapshot();
+    }
+    if (ImGui::MenuItem(
+            absl::StrFormat("%s Restore Session Snapshot", ICON_MD_RESTORE)
+                .c_str(),
+            nullptr, false, layout_enabled)) {
+      if (editor_manager_)
+        editor_manager_->RestoreTemporaryLayoutSnapshot();
+    }
+    if (ImGui::MenuItem(absl::StrFormat("%s Clear Session Snapshot",
+                                        ICON_MD_BOOKMARK_REMOVE)
+                            .c_str(),
+                        nullptr, false, layout_enabled)) {
+      if (editor_manager_)
+        editor_manager_->ClearTemporaryLayoutSnapshot();
+    }
 
-  // Panel Browser (requires ROM) - Panels are accessible via the sidebar
-  menu_builder_
-      .Item(
-          "Panel Browser", ICON_MD_DASHBOARD,
-          [this]() { OnShowPanelBrowser(); }, SHORTCUT_CTRL_SHIFT(B),
-          [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // Note: Panel toggle buttons are on the right side of the menu bar
+    ImGui::Separator();
+    if (ImGui::BeginMenu(
+            absl::StrFormat("%s Presets", ICON_MD_DASHBOARD).c_str())) {
+      if (ImGui::MenuItem(absl::StrFormat("%s Code", ICON_MD_CODE).c_str(),
+                          nullptr, false, layout_enabled)) {
+        apply_profile("code");
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Debug", ICON_MD_BUG_REPORT).c_str(), nullptr,
+              false, layout_enabled)) {
+        apply_profile("debug");
+      }
+      if (ImGui::MenuItem(absl::StrFormat("%s Mapping", ICON_MD_MAP).c_str(),
+                          nullptr, false, layout_enabled)) {
+        apply_profile("mapping");
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Chat + Agent", ICON_MD_SMART_TOY).c_str(),
+              nullptr, false, layout_enabled)) {
+        apply_profile("chat");
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Minimal", ICON_MD_VIEW_COMPACT).c_str(),
+              nullptr, false, layout_enabled)) {
+        apply_preset("Minimal");
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Developer", ICON_MD_DEVELOPER_MODE).c_str(),
+              nullptr, false, layout_enabled)) {
+        OnLoadDeveloperLayout();
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Designer", ICON_MD_DESIGN_SERVICES).c_str(),
+              nullptr, false, layout_enabled)) {
+        OnLoadDesignerLayout();
+      }
+      if (ImGui::MenuItem(absl::StrFormat("%s Modder", ICON_MD_BUILD).c_str(),
+                          nullptr, false, layout_enabled)) {
+        OnLoadModderLayout();
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Overworld Expert", ICON_MD_MAP).c_str(),
+              nullptr, false, layout_enabled)) {
+        apply_preset("Overworld Expert");
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Dungeon Expert", ICON_MD_CASTLE).c_str(),
+              nullptr, false, layout_enabled)) {
+        apply_preset("Dungeon Expert");
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Testing", ICON_MD_SCIENCE).c_str(), nullptr,
+              false, layout_enabled)) {
+        apply_preset("Testing");
+      }
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Audio", ICON_MD_MUSIC_NOTE).c_str(), nullptr,
+              false, layout_enabled)) {
+        apply_preset("Audio");
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem(
+              absl::StrFormat("%s Manage Presets...", ICON_MD_TUNE).c_str())) {
+        OnShowLayoutPresets();
+      }
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenu();
+  }
 }
 
 void MenuOrchestrator::BuildHelpMenu() {
@@ -971,9 +1033,9 @@ void MenuOrchestrator::OnShowDisplaySettings() {
 }
 
 void MenuOrchestrator::OnShowHexEditor() {
-  // Show hex editor card via EditorPanelManager
+  // Show hex editor window via WorkspaceWindowManager
   if (editor_manager_) {
-    editor_manager_->panel_manager().ShowPanel(
+    editor_manager_->window_manager().OpenWindow(
         editor_manager_->GetCurrentSessionId(), "Hex Editor");
   }
 }
@@ -981,7 +1043,7 @@ void MenuOrchestrator::OnShowHexEditor() {
 void MenuOrchestrator::OnShowPanelBrowser() {
   if (editor_manager_) {
     if (auto* ui = editor_manager_->ui_coordinator()) {
-      ui->SetPanelBrowserVisible(true);
+      ui->SetWindowBrowserVisible(true);
     }
   }
 }
@@ -1148,7 +1210,7 @@ void MenuOrchestrator::OnShowImGuiMetrics() {
 
 void MenuOrchestrator::OnShowMemoryEditor() {
   if (editor_manager_) {
-    editor_manager_->panel_manager().ShowPanel(
+    editor_manager_->window_manager().OpenWindow(
         editor_manager_->GetCurrentSessionId(), "Memory Editor");
   }
 }
