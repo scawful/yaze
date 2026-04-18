@@ -35,6 +35,10 @@ struct DungeonWorkbenchToolbarParams {
 // toggles). Intended to replace per-canvas header chrome in Workbench mode.
 class DungeonWorkbenchToolbar {
  public:
+  // Keep adjacency navigation available by default; only hide it when the
+  // stitched toolbar is genuinely too narrow to fit cleanly.
+  static bool ShouldShowInlineRoomNav(float toolbar_width);
+
   // Returns true when the user requested switching out of Workbench mode.
   // Caller should apply that mode change after finishing current ImGui scopes.
   static bool Draw(const DungeonWorkbenchToolbarParams& params);
