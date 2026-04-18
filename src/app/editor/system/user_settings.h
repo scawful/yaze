@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -115,6 +116,12 @@ class UserSettings {
     float panel_browser_category_width = 260.0f;
     int panel_layout_defaults_revision = 0;
     std::string sidebar_active_category; // Last active category
+
+    // Sidebar customization (Phase 4): user-controlled category order,
+    // hidden set (filtered out of the rail), and pinned set (pinned-first).
+    std::vector<std::string> sidebar_order;
+    std::unordered_set<std::string> sidebar_hidden;
+    std::unordered_set<std::string> sidebar_pinned;
 
     // Status Bar
     bool show_status_bar = false;  // Show status bar at bottom (disabled by default)

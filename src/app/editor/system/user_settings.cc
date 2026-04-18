@@ -719,6 +719,31 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         "panel_browser_category_width", prefs->panel_browser_category_width);
     prefs->sidebar_active_category =
         sidebar.value("active_category", prefs->sidebar_active_category);
+
+    if (sidebar.contains("order") && sidebar["order"].is_array()) {
+      prefs->sidebar_order.clear();
+      for (const auto& item : sidebar["order"]) {
+        if (item.is_string()) {
+          prefs->sidebar_order.push_back(item.get<std::string>());
+        }
+      }
+    }
+    if (sidebar.contains("hidden") && sidebar["hidden"].is_array()) {
+      prefs->sidebar_hidden.clear();
+      for (const auto& item : sidebar["hidden"]) {
+        if (item.is_string()) {
+          prefs->sidebar_hidden.insert(item.get<std::string>());
+        }
+      }
+    }
+    if (sidebar.contains("pinned") && sidebar["pinned"].is_array()) {
+      prefs->sidebar_pinned.clear();
+      for (const auto& item : sidebar["pinned"]) {
+        if (item.is_string()) {
+          prefs->sidebar_pinned.insert(item.get<std::string>());
+        }
+      }
+    }
   }
 
   if (root.contains("status_bar")) {
@@ -877,12 +902,22 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"editor", ToStringMap(prefs.editor_shortcuts)},
   };
 
+  auto set_to_sorted_vec =
+      [](const std::unordered_set<std::string>& s) -> std::vector<std::string> {
+    std::vector<std::string> v(s.begin(), s.end());
+    std::sort(v.begin(), v.end());
+    return v;
+  };
+
   root["sidebar"] = {
       {"visible", prefs.sidebar_visible},
       {"panel_expanded", prefs.sidebar_panel_expanded},
       {"panel_width", prefs.sidebar_panel_width},
       {"panel_browser_category_width", prefs.panel_browser_category_width},
       {"active_category", prefs.sidebar_active_category},
+      {"order", prefs.sidebar_order},
+      {"hidden", set_to_sorted_vec(prefs.sidebar_hidden)},
+      {"pinned", set_to_sorted_vec(prefs.sidebar_pinned)},
   };
 
   root["status_bar"] = {

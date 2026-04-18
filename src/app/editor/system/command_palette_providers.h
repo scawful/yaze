@@ -12,6 +12,7 @@ namespace editor {
 
 class WorkspaceWindowManager;
 class RecentProjectsModel;
+class UserSettings;
 
 /**
  * Thin, pull-based CommandProvider adapters over the existing Register*Commands
@@ -80,6 +81,23 @@ class WorkflowCommandsProvider : public CommandProvider {
 
  private:
   WorkspaceWindowManager* window_manager_;
+  size_t session_id_;
+};
+
+/// ID: "sidebar". Contributes activity-bar customization commands: pin,
+/// hide, reset-order, and show-all toggles. Reads and mutates UserSettings
+/// directly; refresh after mutation to keep palette entries in sync with the
+/// sidebar state.
+class SidebarCommandsProvider : public CommandProvider {
+ public:
+  SidebarCommandsProvider(WorkspaceWindowManager* window_manager,
+                          UserSettings* user_settings, size_t session_id);
+  std::string ProviderId() const override { return "sidebar"; }
+  void Provide(CommandPalette* palette) override;
+
+ private:
+  WorkspaceWindowManager* window_manager_;
+  UserSettings* user_settings_;
   size_t session_id_;
 };
 

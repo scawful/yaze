@@ -1437,6 +1437,10 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
       std::make_unique<PanelCommandsProvider>(&window_manager_, session_id));
   command_palette_.RegisterProvider(
       std::make_unique<WorkflowCommandsProvider>(&window_manager_, session_id));
+  if (editor_manager_) {
+    command_palette_.RegisterProvider(std::make_unique<SidebarCommandsProvider>(
+        &window_manager_, &editor_manager_->user_settings(), session_id));
+  }
 
   // Register editor switch commands
   command_palette_.RegisterProvider(std::make_unique<EditorCommandsProvider>(
