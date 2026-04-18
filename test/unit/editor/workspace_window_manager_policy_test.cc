@@ -234,5 +234,54 @@ TEST(WorkspaceWindowManagerPolicyTest, SessionQueriesReturnCanonicalWindowIds) {
   EXPECT_EQ(pinned_windows.front(), "dungeon.room_selector");
 }
 
+// Regression: Phase A.2 of the editor window persistence plan. Startup order
+// previously dropped any pin entry whose panel had not yet registered, because
+// RestorePinnedState only iterated session_card_mapping_. Late-registering
+// panels (e.g. the emulator panel the user opens an hour into a session) would
+// silently lose their pin across restarts. The fix stashes unmatched entries
+// in pending_pinned_base_ids_ and drains them in TrackPanelForSession.
+TEST(WorkspaceWindowManagerPolicyTest,
+     RestorePinnedStateAppliesToLateRegisteringPanels) {
+  WorkspaceWindowManager pm;
+  pm.RegisterSession(0);
+  pm.SetActiveSession(0);
+
+  // Pin an id the manager has never heard of. Previous behavior: silently
+  // ignored. New behavior: remembered and applied on registration.
+  pm.RestorePinnedState({{"emulator.main", true}});
+
+  // Panel not registered yet — nothing to pin against.
+  EXPECT_FALSE(pm.IsWindowPinned(0, "emulator.main"));
+
+  // Simulate the user opening the emulator editor later in the session.
+  pm.RegisterPanel({.card_id = "emulator.main",
+                    .display_name = "Emulator",
+                    .icon = "ICON_EMU",
+                    .category = "Emulator"});
+
+  EXPECT_TRUE(pm.IsWindowPinned(0, "emulator.main"))
+      << "Pending pin should flush to pinned_panels_ at registration time";
+
+  // User's explicit unpin must win against any stale pending entry that might
+  // come back from a second RestorePinnedState call later.
+  pm.SetWindowPinned(0, "emulator.main", false);
+  EXPECT_FALSE(pm.IsWindowPinned(0, "emulator.main"));
+}
+
+// Pins for panels that never register this session must round-trip through
+// SerializePinnedState so a subsequent save doesn't forget the user's intent.
+TEST(WorkspaceWindowManagerPolicyTest,
+     SerializePinnedStateIncludesUnappliedPending) {
+  WorkspaceWindowManager pm;
+  pm.RegisterSession(0);
+  pm.SetActiveSession(0);
+
+  pm.RestorePinnedState({{"hex.viewer", true}, {"asm.editor", false}});
+
+  auto state = pm.SerializePinnedState();
+  EXPECT_EQ(state["hex.viewer"], true);
+  EXPECT_EQ(state.count("asm.editor"), 1U);
+}
+
 }  // namespace
 }  // namespace yaze::editor
