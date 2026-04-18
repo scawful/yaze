@@ -1038,24 +1038,54 @@ absl::Status UserSettings::Load() {
 }
 
 bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
-  if (target_revision <= 0 ||
-      prefs_.panel_layout_defaults_revision >= target_revision) {
+  if (target_revision <= 0) {
     return false;
   }
 
-  prefs_.sidebar_visible = true;
-  prefs_.sidebar_panel_expanded = true;
-  prefs_.sidebar_panel_width = 0.0f;
-  prefs_.panel_browser_category_width = 260.0f;
-  prefs_.sidebar_active_category.clear();
+  bool applied = false;
 
-  prefs_.panel_visibility_state.clear();
-  prefs_.pinned_panels.clear();
-  prefs_.right_panel_widths.clear();
-  prefs_.saved_layouts.clear();
+  if (prefs_.panel_layout_defaults_revision < 4 && target_revision >= 4) {
+    prefs_.sidebar_visible = true;
+    prefs_.sidebar_panel_expanded = true;
+    prefs_.sidebar_panel_width = 0.0f;
+    prefs_.panel_browser_category_width = 260.0f;
+    prefs_.sidebar_active_category.clear();
 
-  prefs_.panel_layout_defaults_revision = target_revision;
-  return true;
+    prefs_.panel_visibility_state.clear();
+    prefs_.pinned_panels.clear();
+    prefs_.right_panel_widths.clear();
+    prefs_.saved_layouts.clear();
+
+    prefs_.panel_layout_defaults_revision = 4;
+    applied = true;
+  }
+
+  if (prefs_.panel_layout_defaults_revision < 5 && target_revision >= 5) {
+    auto overworld_it = prefs_.panel_visibility_state.find("Overworld");
+    if (overworld_it != prefs_.panel_visibility_state.end()) {
+      overworld_it->second["overworld.tile16_editor"] = false;
+    }
+    prefs_.panel_layout_defaults_revision = 5;
+    applied = true;
+  }
+
+  if (prefs_.panel_layout_defaults_revision < 6 && target_revision >= 6) {
+    auto overworld_it = prefs_.panel_visibility_state.find("Overworld");
+    if (overworld_it != prefs_.panel_visibility_state.end()) {
+      auto& overworld_windows = overworld_it->second;
+      overworld_windows["overworld.canvas"] = true;
+      overworld_windows["overworld.tile16_selector"] = true;
+      overworld_windows["overworld.properties"] = true;
+      overworld_windows["overworld.tile16_editor"] = false;
+      overworld_windows["overworld.tile8_selector"] = false;
+      overworld_windows["overworld.area_graphics"] = false;
+      overworld_windows["overworld.item_list"] = false;
+    }
+    prefs_.panel_layout_defaults_revision = 6;
+    applied = true;
+  }
+
+  return applied;
 }
 
 absl::Status UserSettings::Save() {

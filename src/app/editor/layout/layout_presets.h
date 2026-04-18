@@ -37,7 +37,10 @@ struct PanelLayoutPreset {
   std::vector<std::string> default_visible_panels;
   std::vector<std::string> optional_panels;  // Available but hidden by default
   std::unordered_map<std::string, DockPosition> panel_positions;
+  bool dock_only_default_visible_panels = false;
 };
+
+using WorkspaceLayoutPreset = PanelLayoutPreset;
 
 /**
  * @class LayoutPresets
@@ -166,8 +169,10 @@ class LayoutPresets {
     static constexpr const char* kOverworldScratch = "overworld.scratch";
     static constexpr const char* kOverworldGfxGroups = "overworld.gfx_groups";
     static constexpr const char* kOverworldUsageStats = "overworld.usage_stats";
+    static constexpr const char* kOverworldItemList = "overworld.item_list";
     static constexpr const char* kOverworldMapProperties = "overworld.properties";
     static constexpr const char* kOverworldV3Settings = "overworld.v3_settings";
+    static constexpr const char* kOverworldDebug = "overworld.debug";
 
     // Dungeon cards (dungeon_editor_v2.cc)
     static constexpr const char* kDungeonWorkbench = "dungeon.workbench";

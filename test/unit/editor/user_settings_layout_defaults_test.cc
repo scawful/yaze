@@ -70,4 +70,62 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_EQ(prefs.switch_motion_profile, 2);
 }
 
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionFiveClosesLegacyOverworldTile16DefaultWithoutFullReset) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 4;
+  prefs.sidebar_visible = false;
+  prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.canvas"] = true;
+  prefs.saved_layouts["custom"]["overworld.tile16_editor"] = true;
+
+  constexpr int kTargetRevision = UserSettings::kLatestPanelLayoutDefaultsRevision;
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(kTargetRevision));
+
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, kTargetRevision);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Overworld"]["overworld.canvas"]);
+  EXPECT_FALSE(prefs.sidebar_visible);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["overworld.tile16_editor"]);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionSixAppliesMinimalOverworldWorkbenchWithoutFullReset) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 5;
+  prefs.sidebar_visible = false;
+  prefs.panel_visibility_state["Overworld"]["overworld.canvas"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.tile16_selector"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.properties"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.tile8_selector"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.area_graphics"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.item_list"] = true;
+  prefs.saved_layouts["custom"]["overworld.item_list"] = true;
+
+  constexpr int kTargetRevision = UserSettings::kLatestPanelLayoutDefaultsRevision;
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(kTargetRevision));
+
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, kTargetRevision);
+  EXPECT_TRUE(prefs.panel_visibility_state["Overworld"]["overworld.canvas"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Overworld"]["overworld.tile16_selector"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Overworld"]["overworld.properties"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Overworld"]["overworld.tile8_selector"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Overworld"]["overworld.area_graphics"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Overworld"]["overworld.item_list"]);
+  EXPECT_FALSE(prefs.sidebar_visible);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["overworld.item_list"]);
+}
+
 }  // namespace yaze::editor
