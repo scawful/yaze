@@ -870,16 +870,24 @@ void EditorManager::InitializeSubsystems() {
   // Populate the MoreActions registry with the default rail entries. External
   // callers can Register/Unregister further entries at runtime.
   auto& registry = activity_bar_->actions_registry();
-  registry.Register(
-      {"command_palette", "Command Palette", ICON_MD_TERMINAL,
-       [this]() { window_manager_.TriggerShowCommandPalette(); }, {}});
-  registry.Register(
-      {"keyboard_shortcuts", "Keyboard Shortcuts", ICON_MD_KEYBOARD,
-       [this]() { window_manager_.TriggerShowShortcuts(); }, {}});
-  registry.Register(
-      {"open_rom_project", "Open ROM / Project", ICON_MD_FOLDER_OPEN,
-       [this]() { window_manager_.TriggerOpenRom(); }, {}});
-  registry.Register({"settings", "Settings", ICON_MD_SETTINGS,
+  registry.Register({"command_palette",
+                     "Command Palette",
+                     ICON_MD_TERMINAL,
+                     [this]() { window_manager_.TriggerShowCommandPalette(); },
+                     {}});
+  registry.Register({"keyboard_shortcuts",
+                     "Keyboard Shortcuts",
+                     ICON_MD_KEYBOARD,
+                     [this]() { window_manager_.TriggerShowShortcuts(); },
+                     {}});
+  registry.Register({"open_rom_project",
+                     "Open ROM / Project",
+                     ICON_MD_FOLDER_OPEN,
+                     [this]() { window_manager_.TriggerOpenRom(); },
+                     {}});
+  registry.Register({"settings",
+                     "Settings",
+                     ICON_MD_SETTINGS,
                      [this]() { window_manager_.TriggerShowSettings(); },
                      {}});
 
@@ -993,6 +1001,12 @@ void EditorManager::SubscribeToEvents() {
 }
 
 EditorManager::~EditorManager() {
+  // ThemeManager is a singleton that outlives us. Clear the theme-changed
+  // callback so it stops calling back into a destroyed EditorManager via the
+  // captured `this` pointer. Matters for unit tests that construct and destroy
+  // multiple EditorManager instances in the same process.
+  gui::ThemeManager::Get().SetOnThemeChangedCallback(nullptr);
+
   // EventBus subscriptions are automatically cleaned up when event_bus_ is
   // destroyed (owned by this class). No manual unsubscription needed.
 }
@@ -2442,7 +2456,8 @@ void EditorManager::UpdateEditorState() {
       agent_ui_.SetAsarWrapperContext(editor_set->GetAsarWrapper());
       // Backend-agnostic symbol feed. Works for ASAR and z3dk alike; tools
       // prefer this pointer over reaching through the wrapper.
-      agent_ui_.SetAssemblySymbolTableContext(&editor_set->GetAssemblySymbols());
+      agent_ui_.SetAssemblySymbolTableContext(
+          &editor_set->GetAssemblySymbols());
     }
   }
 
