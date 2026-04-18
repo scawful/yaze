@@ -65,6 +65,9 @@ class RomLifecycleManager {
   /// Check whether the ROM hash mismatches the project's expected hash.
   bool IsRomHashMismatch() const;
 
+  /// Validate that the loaded ROM is a safe project target to open/edit.
+  absl::Status CheckRomOpenPolicy(Rom* rom);
+
   /// Enforce project write policy; may set pending_rom_write_confirm.
   absl::Status CheckRomWritePolicy(Rom* rom);
 
@@ -78,6 +81,7 @@ class RomLifecycleManager {
   bool IsRomWriteConfirmPending() const { return pending_rom_write_confirm_; }
   void ConfirmRomWrite();
   void CancelRomWriteConfirm();
+  void AllowBuildOutputOpenOnce() { bypass_build_output_open_once_ = true; }
 
   // =========================================================================
   // Write Conflict Management (ASM-owned address protection)
@@ -139,9 +143,9 @@ class RomLifecycleManager {
   absl::Status PruneRomBackups(Rom* rom);
 
   /// Apply default backup policy from user settings.
-  void ApplyDefaultBackupPolicy(
-      bool enabled, const std::string& folder, int retention_count,
-      bool keep_daily, int keep_daily_days);
+  void ApplyDefaultBackupPolicy(bool enabled, const std::string& folder,
+                                int retention_count, bool keep_daily,
+                                int keep_daily_days);
 
  private:
   // Dependencies (non-owning pointers)
@@ -153,10 +157,12 @@ class RomLifecycleManager {
 
   // ROM hash state
   std::string current_rom_hash_;
+  std::string current_rom_path_;
 
   // Write confirmation state machine
   bool pending_rom_write_confirm_ = false;
   bool bypass_rom_write_confirm_once_ = false;
+  bool bypass_build_output_open_once_ = false;
 
   // Pot item save confirmation state
   bool pending_pot_item_save_confirm_ = false;
