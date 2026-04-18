@@ -1,0 +1,117 @@
+# Breath of the Wild Theme
+# Weathered stone with Sheikah cyan and guardian-fire orange.
+name=Breath of the Wild
+description=Weathered stone, Sheikah cyan, guardian-fire orange
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors — Sheikah cyan with stone neutrality
+primary=95,180,200,255
+secondary=145,135,125,255        # Weathered stone
+accent=110,195,215,255           # Sheikah slate cyan
+background=36,32,28,255          # Weathered basalt
+surface=46,42,38,255
+
+# Status colors
+error=200,85,75,255              # Lynel red
+warning=230,135,55,255           # Guardian fire
+success=95,170,110,255           # BOTW forest green
+info=110,195,215,255             # Sheikah cyan
+
+# Text colors
+text_primary=238,230,215,255     # Parchment
+text_secondary=185,175,160,255
+text_disabled=125,118,108,255
+
+# Window colors
+window_bg=40,36,32,240
+child_bg=34,30,26,200
+popup_bg=50,46,42,250
+
+# Interactive elements
+button=70,95,105,255
+button_hovered=95,135,150,255
+button_active=115,170,185,255
+frame_bg=55,50,45,210
+frame_bg_hovered=70,65,58,225
+frame_bg_active=90,85,78,240
+
+# Navigation
+header=60,80,88,255
+header_hovered=80,115,130,255
+header_active=100,150,170,255
+tab=48,44,40,255
+tab_hovered=70,90,98,255
+tab_active=90,125,145,255
+menu_bar_bg=42,38,34,255
+title_bg=50,46,42,255
+title_bg_active=60,80,88,255
+title_bg_collapsed=46,42,38,255
+
+# Borders and separators
+border=110,195,215,255           # Sheikah cyan border
+border_shadow=0,0,0,0
+separator=130,120,110,180
+separator_hovered=160,150,140,220
+separator_active=110,195,215,255
+
+# Scrollbars
+scrollbar_bg=50,46,42,180
+scrollbar_grab=100,95,88,200
+scrollbar_grab_hovered=135,130,120,230
+scrollbar_grab_active=110,195,215,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=110,195,215,153
+resize_grip_active=110,195,215,230
+
+# Controls
+check_mark=110,195,215,255       # Sheikah cyan
+slider_grab=95,180,200,255
+slider_grab_active=230,135,55,255  # Guardian fire
+
+# Tables
+table_header_bg=60,80,88,255
+table_border_strong=130,120,110,255
+table_border_light=55,50,45,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,20
+
+# Links
+text_link=130,205,220,255
+
+# Navigation and special
+input_text_cursor=238,230,215,255
+nav_cursor=110,195,215,255
+nav_windowing_highlight=110,195,215,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=95,180,200,100
+drag_drop_target=230,135,55,200
+
+# Docking
+docking_preview=110,195,215,180
+docking_empty_bg=48,44,40,255
+
+# Tree lines
+tree_lines=130,120,110,153
+
+# Tab variations
+tab_dimmed=42,38,34,255
+tab_dimmed_selected=60,80,88,255
+tab_dimmed_selected_overline=230,135,55,255
+tab_selected_overline=110,195,215,255
+
+[style]
+window_rounding=8.0
+frame_rounding=6.0
+scrollbar_rounding=8.0
+grab_rounding=4.0
+tab_rounding=6.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.2
