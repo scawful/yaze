@@ -12,15 +12,15 @@ namespace editor {
 
 /**
  * @class MusicAssemblyPanel
- * @brief EditorPanel wrapper for the assembly editor view in Music context
+ * @brief WindowContent wrapper for the assembly editor view in Music context
  */
-class MusicAssemblyPanel : public EditorPanel {
+class MusicAssemblyPanel : public WindowContent {
  public:
   explicit MusicAssemblyPanel(AssemblyEditor* assembly_editor)
       : assembly_editor_(assembly_editor) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.assembly"; }
@@ -30,7 +30,7 @@ class MusicAssemblyPanel : public EditorPanel {
   int GetPriority() const override { return 30; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {

@@ -8,13 +8,13 @@
 
 namespace yaze::editor {
 
-class AboutPanel : public EditorPanel {
+class AboutPanel : public WindowContent {
  public:
   std::string GetId() const override { return "yaze.about"; }
   std::string GetDisplayName() const override { return "About Yaze"; }
   std::string GetIcon() const override { return ICON_MD_INFO; }
   std::string GetEditorCategory() const override { return "Settings"; }
-  PanelScope GetScope() const override { return PanelScope::kGlobal; }
+  WindowScope GetScope() const override { return WindowScope::kGlobal; }
 
   void Draw(bool* p_open) override {
     ImGui::Text("Yaze - Yet Another Zelda Editor");

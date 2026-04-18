@@ -11,16 +11,16 @@ namespace yaze {
 namespace editor {
 
 // =============================================================================
-// EditorPanel wrappers for SpriteEditor panels
+// WindowContent wrappers for SpriteEditor panels
 // =============================================================================
 
 /**
- * @brief EditorPanel for Vanilla Sprite Editor
+ * @brief WindowContent for Vanilla Sprite Editor
  *
  * Displays the vanilla sprite browser and editor for ROM sprites.
  * Includes sprite list, canvas preview, and tile selector.
  */
-class VanillaSpriteEditorPanel : public EditorPanel {
+class VanillaSpriteEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 
@@ -46,12 +46,12 @@ class VanillaSpriteEditorPanel : public EditorPanel {
 };
 
 /**
- * @brief EditorPanel for Custom Sprite Editor (ZSM format)
+ * @brief WindowContent for Custom Sprite Editor (ZSM format)
  *
  * Allows creating and editing custom sprites in ZSM format.
  * Includes animation editor, properties panel, and user routines.
  */
-class CustomSpriteEditorPanel : public EditorPanel {
+class CustomSpriteEditorPanel : public WindowContent {
  public:
   using DrawCallback = std::function<void()>;
 

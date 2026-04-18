@@ -14,18 +14,18 @@ namespace editor {
 
 /**
  * @class MusicInstrumentEditorPanel
- * @brief EditorPanel wrapper for the instrument editor
+ * @brief WindowContent wrapper for the instrument editor
  *
  * Delegates to InstrumentEditorView for the actual UI drawing.
  */
-class MusicInstrumentEditorPanel : public EditorPanel {
+class MusicInstrumentEditorPanel : public WindowContent {
  public:
   MusicInstrumentEditorPanel(zelda3::music::MusicBank* music_bank,
                              music::InstrumentEditorView* instrument_view)
       : music_bank_(music_bank), instrument_view_(instrument_view) {}
 
   // ==========================================================================
-  // EditorPanel Identity
+  // WindowContent Identity
   // ==========================================================================
 
   std::string GetId() const override { return "music.instrument_editor"; }
@@ -35,7 +35,7 @@ class MusicInstrumentEditorPanel : public EditorPanel {
   int GetPriority() const override { return 20; }
 
   // ==========================================================================
-  // EditorPanel Drawing
+  // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
