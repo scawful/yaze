@@ -1344,12 +1344,14 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   constexpr int kRoomDrawObjectDataBase = 0x1B52;
   constexpr int kDoorwayReplacementDoorGfxBase = 0x1A02;
+  constexpr int kExplodingWallTilemapPositionBase = 0x19DE;
+  constexpr int kExplodingWallOpenReplacementType = 0x54;
   constexpr int kNorthCurtainClosedOffset = 0x078A;
   const auto& rom_data = rom_->data();
 
   auto draw_from_object_data =
-      [&](gfx::BackgroundBuffer& target, int width, int height,
-          int tile_data_addr) {
+      [&](gfx::BackgroundBuffer& target, int start_tile_x, int start_tile_y,
+          int width, int height, int tile_data_addr) {
         auto& bitmap = target.bitmap();
         auto& priority_buffer = target.mutable_priority_data();
         auto& coverage_buffer = target.mutable_coverage_data();
@@ -1362,8 +1364,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
             const uint16_t tile_word =
                 rom_data[addr] | (rom_data[addr + 1] << 8);
             const auto tile_info = gfx::WordToTileInfo(tile_word);
-            const int pixel_x = (tile_x + dx) * 8;
-            const int pixel_y = (tile_y + dy) * 8;
+            const int pixel_x = (start_tile_x + dx) * 8;
+            const int pixel_y = (start_tile_y + dy) * 8;
 
             DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y,
                              room_gfx_buffer_);
@@ -1397,6 +1399,55 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         }
       };
 
+  auto draw_repeated_tile =
+      [&](gfx::BackgroundBuffer& target, int start_tile_x, int start_tile_y,
+          int width, int height, uint16_t tile_word) {
+        auto& bitmap = target.bitmap();
+        auto& priority_buffer = target.mutable_priority_data();
+        auto& coverage_buffer = target.mutable_coverage_data();
+        const int bitmap_width = bitmap.width();
+        const auto tile_info = gfx::WordToTileInfo(tile_word);
+
+        for (int dx = 0; dx < width; dx++) {
+          for (int dy = 0; dy < height; dy++) {
+            const int pixel_x = (start_tile_x + dx) * 8;
+            const int pixel_y = (start_tile_y + dy) * 8;
+
+            DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y,
+                             room_gfx_buffer_);
+
+            const uint8_t priority = tile_info.over_ ? 1 : 0;
+            const auto& bitmap_data = bitmap.vector();
+            for (int py = 0; py < 8; py++) {
+              const int dest_y = pixel_y + py;
+              if (dest_y < 0 || dest_y >= bitmap.height()) {
+                continue;
+              }
+              for (int px = 0; px < 8; px++) {
+                const int dest_x = pixel_x + px;
+                if (dest_x < 0 || dest_x >= bitmap_width) {
+                  continue;
+                }
+                const int dest_index = dest_y * bitmap_width + dest_x;
+                if (dest_index >= 0 &&
+                    dest_index < static_cast<int>(coverage_buffer.size())) {
+                  coverage_buffer[dest_index] = 1;
+                }
+                if (dest_index < static_cast<int>(bitmap_data.size()) &&
+                    bitmap_data[dest_index] != 255) {
+                  priority_buffer[dest_index] = priority;
+                }
+              }
+            }
+          }
+        }
+      };
+
+  auto tilemap_offset_to_tile_coords = [](uint16_t offset) {
+    return std::pair<int, int>{static_cast<int>((offset % 0x80) / 2),
+                               static_cast<int>(offset / 0x80) - 4};
+  };
+
   // USDASM has special north-door branches that do not follow the generic 4x3
   // ranged-door path.
   if (door.direction == DoorDirection::North &&
@@ -1418,7 +1469,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
                         door.type, door.direction);
       return;
     }
-    draw_from_object_data(bg1, /*width=*/4, /*height=*/4, tile_data_addr);
+    draw_from_object_data(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
+                          tile_data_addr);
     return;
   }
 
@@ -1453,7 +1505,66 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
       return;
     }
 
-    draw_from_object_data(bg1, /*width=*/4, /*height=*/4, tile_data_addr);
+    draw_from_object_data(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
+                          tile_data_addr);
+    return;
+  }
+
+  if (door.direction == DoorDirection::North &&
+      door.type == DoorType::ExplodingWall && is_door_open) {
+    const int position_index = std::min<int>(door.position & 0x0F, 5);
+    const int tilemap_entry_addr =
+        kExplodingWallTilemapPositionBase + (position_index * 2);
+    if (tilemap_entry_addr < 0 ||
+        tilemap_entry_addr + 1 >= static_cast<int>(rom_->size())) {
+      DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
+                        door.type, door.direction);
+      return;
+    }
+
+    const uint16_t tilemap_offset =
+        rom_data[tilemap_entry_addr] | (rom_data[tilemap_entry_addr + 1] << 8);
+    const auto [explosion_tile_x, explosion_tile_y] =
+        tilemap_offset_to_tile_coords(tilemap_offset);
+
+    auto draw_exploding_wall_segment =
+        [&](int table_entry_addr, int segment_tile_y) -> bool {
+      if (table_entry_addr < 0 ||
+          table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
+        return false;
+      }
+
+      const uint16_t tile_offset =
+          rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
+      const int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
+      constexpr int kFillWordIndex = 12;
+      const int min_data_size = (kFillWordIndex + 1) * 2;
+      if (tile_data_addr < 0 ||
+          tile_data_addr + min_data_size > static_cast<int>(rom_->size())) {
+        return false;
+      }
+
+      draw_from_object_data(bg1, explosion_tile_x, segment_tile_y,
+                            /*width=*/2, /*height=*/6, tile_data_addr);
+      const uint16_t fill_word =
+          rom_data[tile_data_addr + (kFillWordIndex * 2)] |
+          (rom_data[tile_data_addr + (kFillWordIndex * 2) + 1] << 8);
+      draw_repeated_tile(bg1, explosion_tile_x + 2, segment_tile_y,
+                         /*width=*/18, /*height=*/6, fill_word);
+      return true;
+    };
+
+    const int south_table_entry_addr =
+        kDoorGfxDown + kExplodingWallOpenReplacementType;
+    const int north_table_entry_addr =
+        kDoorGfxUp + kExplodingWallOpenReplacementType;
+    if (!draw_exploding_wall_segment(south_table_entry_addr,
+                                     explosion_tile_y) ||
+        !draw_exploding_wall_segment(north_table_entry_addr,
+                                     explosion_tile_y + 6)) {
+      DrawDoorIndicator(bg1, explosion_tile_x, explosion_tile_y, /*width=*/20,
+                        /*height=*/12, door.type, door.direction);
+    }
     return;
   }
 
@@ -1520,7 +1631,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   // The ROM stores tiles in column-major order for all door directions.
   LOG_DEBUG("ObjectDrawer", "DrawDoor: Reading %d tiles from 0x%X",
             tiles_per_door, tile_data_addr);
-  draw_from_object_data(bg1, door_width, door_height, tile_data_addr);
+  draw_from_object_data(bg1, tile_x, tile_y, door_width, door_height,
+                        tile_data_addr);
 
   LOG_DEBUG("ObjectDrawer",
             "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d "

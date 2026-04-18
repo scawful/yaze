@@ -389,6 +389,66 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     OpenExplodingWallUsesUsdasmSpecialPlacement) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kExplodingWallTilemapPositionBase = 0x19DE;
+  constexpr int kDoorGfxNorthTableBase = 0x4D9E;
+  constexpr int kDoorGfxSouthTableBase = 0x4E06;
+  constexpr int kExplodingWallReplacementType = 0x54;
+  constexpr int kSouthSegmentObjectOffset = 0x0900;
+  constexpr int kNorthSegmentObjectOffset = 0x0920;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(dummy_rom, kExplodingWallTilemapPositionBase, 0x0D8A);
+  WriteWord(dummy_rom,
+            kDoorGfxSouthTableBase + kExplodingWallReplacementType,
+            kSouthSegmentObjectOffset);
+  WriteWord(dummy_rom,
+            kDoorGfxNorthTableBase + kExplodingWallReplacementType,
+            kNorthSegmentObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom,
+                           /*object_offset=*/kSouthSegmentObjectOffset,
+                           /*start_word=*/0x0600, /*word_count=*/13);
+  WriteDoorObjectDataWords(dummy_rom,
+                           /*object_offset=*/kNorthSegmentObjectOffset,
+                           /*start_word=*/0x0700, /*word_count=*/13);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+  bg1.ClearCoverageBuffer();
+  bg2.ClearCoverageBuffer();
+
+  FakeDungeonState state;
+  state.open_lock_room_id = 0x42;
+
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::ExplodingWall,
+      .direction = DoorDirection::North,
+      .position = 0,
+  };
+
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
+
+  EXPECT_TRUE(TileHasCoverage(bg1, 5, 23));
+  EXPECT_TRUE(TileHasCoverage(bg1, 7, 23));
+  EXPECT_TRUE(TileHasCoverage(bg1, 22, 28));
+  EXPECT_TRUE(TileHasCoverage(bg1, 5, 29));
+  EXPECT_TRUE(TileHasCoverage(bg1, 22, 34));
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 0));
+  EXPECT_FALSE(TileHasCoverage(bg2, 5, 23));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      CustomObjectPreservesRelativeOffsetsFromBinary) {
   ScopedCustomObjectsFlag enable_custom(true);
 
