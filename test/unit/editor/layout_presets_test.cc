@@ -65,5 +65,20 @@ TEST(LayoutPresetsTest, OverworldExpertPositionsMapPropertiesAndGraphicsEditor) 
   EXPECT_EQ(gfx_editor_pos->second, DockPosition::LeftBottom);
 }
 
+TEST(LayoutPresetsTest, WorkspaceAliasesMirrorWindowTerminology) {
+  WorkspaceLayoutPreset preset =
+      LayoutPresets::GetDefaultWorkspacePreset(EditorType::kOverworld);
+
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Windows::kOverworldCanvas));
+  EXPECT_TRUE(LayoutPresets::IsDefaultWindow(
+      EditorType::kOverworld, LayoutPresets::Windows::kOverworldCanvas));
+
+  const auto all_windows =
+      LayoutPresets::GetAllWindowsForEditor(EditorType::kOverworld);
+  EXPECT_TRUE(
+      ContainsPanel(all_windows, LayoutPresets::Windows::kOverworldMapProperties));
+}
+
 }  // namespace
 }  // namespace yaze::editor
