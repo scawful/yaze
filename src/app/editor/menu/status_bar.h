@@ -4,15 +4,30 @@
 #include <functional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "app/editor/core/editor_context.h"
 #include "app/editor/events/ui_events.h"
+#include "app/editor/system/project_workflow_status.h"
 
 namespace yaze {
 
 class Rom;
 
 namespace editor {
+
+/**
+ * @brief Optional behavior for an interactive status bar segment.
+ *
+ * Any segment setter that accepts this struct renders the text with a hand
+ * cursor on hover, invokes @ref on_click when the segment is clicked, and
+ * shows @ref tooltip as a hover tooltip. All fields are optional; a default-
+ * constructed instance renders as plain display-only text.
+ */
+struct StatusBarSegmentOptions {
+  std::function<void()> on_click;
+  std::string tooltip;
+};
 
 /**
  * @class StatusBar
@@ -76,6 +91,8 @@ class StatusBar {
    * @param label Optional label (e.g., "Tile", "Pos", "Map")
    */
   void SetCursorPosition(int x, int y, const char* label = "Pos");
+  void SetCursorPosition(int x, int y, const char* label,
+                         StatusBarSegmentOptions options);
 
   /**
    * @brief Clear cursor position (no cursor in editor)
@@ -100,6 +117,7 @@ class StatusBar {
    * @param level Zoom multiplier (e.g., 1.0, 2.0, 0.5)
    */
   void SetZoom(float level);
+  void SetZoom(float level, StatusBarSegmentOptions options);
 
   /**
    * @brief Clear zoom display
@@ -111,6 +129,7 @@ class StatusBar {
    * @param mode Mode string (e.g., "Draw", "Select", "Entity")
    */
   void SetEditorMode(const std::string& mode);
+  void SetEditorMode(const std::string& mode, StatusBarSegmentOptions options);
 
   /**
    * @brief Clear editor mode display
@@ -123,6 +142,8 @@ class StatusBar {
    * @param value Value to display
    */
   void SetCustomSegment(const std::string& key, const std::string& value);
+  void SetCustomSegment(const std::string& key, const std::string& value,
+                        StatusBarSegmentOptions options);
 
   /**
    * @brief Remove a custom segment
@@ -134,6 +155,15 @@ class StatusBar {
    */
   void ClearAllContext();
 
+  /**
+   * @brief Clear frame-scoped editor contributions.
+   *
+   * Use this before calling Editor::ContributeStatus() each frame. It resets
+   * mode/custom segments without wiping event-driven cursor, selection, or
+   * zoom state that may still be owned by older editors.
+   */
+  void ClearEditorContributions();
+
   // ============================================================================
   // Agent Status
   // ============================================================================
@@ -141,6 +171,14 @@ class StatusBar {
   void SetAgentInfo(const std::string& provider, const std::string& model,
                     bool active);
   void ClearAgentInfo();
+  void SetBuildStatus(const ProjectWorkflowStatus& status) {
+    build_status_ = status;
+  }
+  void SetRunStatus(const ProjectWorkflowStatus& status) { run_status_ = status; }
+  void ClearProjectWorkflowStatus() {
+    build_status_ = ProjectWorkflowStatus{};
+    run_status_ = ProjectWorkflowStatus{};
+  }
   void SetAgentToggleCallback(std::function<void()> callback) {
     agent_toggle_callback_ = std::move(callback);
   }
@@ -176,6 +214,8 @@ class StatusBar {
   void DrawZoomSegment();
   void DrawModeSegment();
   void DrawAgentSegment();
+  void DrawProjectWorkflowSegment(const ProjectWorkflowStatus& status,
+                                  const char* default_icon);
   void DrawCustomSegments();
   void DrawSeparator();
 
@@ -192,6 +232,7 @@ class StatusBar {
   int cursor_x_ = 0;
   int cursor_y_ = 0;
   std::string cursor_label_ = "Pos";
+  StatusBarSegmentOptions cursor_options_;
 
   // Selection
   bool has_selection_ = false;
@@ -202,13 +243,20 @@ class StatusBar {
   // Zoom
   bool has_zoom_ = false;
   float zoom_level_ = 1.0f;
+  StatusBarSegmentOptions zoom_options_;
 
   // Editor mode
   bool has_mode_ = false;
   std::string editor_mode_;
+  StatusBarSegmentOptions mode_options_;
 
-  // Custom segments
-  std::unordered_map<std::string, std::string> custom_segments_;
+  // Custom segments — vector preserves insertion order for stable rendering.
+  struct CustomSegment {
+    std::string key;
+    std::string value;
+    StatusBarSegmentOptions options;
+  };
+  std::vector<CustomSegment> custom_segments_;
 
   // Agent status
   bool has_agent_ = false;
@@ -216,6 +264,9 @@ class StatusBar {
   std::string agent_provider_;
   std::string agent_model_;
   std::function<void()> agent_toggle_callback_;
+
+  ProjectWorkflowStatus build_status_;
+  ProjectWorkflowStatus run_status_;
 };
 
 }  // namespace editor

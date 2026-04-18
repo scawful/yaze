@@ -75,6 +75,7 @@ class GraphicsEditor : public Editor {
   absl::Status Undo() override;
   absl::Status Redo() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
+  void ContributeStatus(StatusBar* status_bar) override;
 
   // Set the ROM pointer
   void set_rom(Rom* rom) { rom_ = rom; }
