@@ -8,6 +8,10 @@
 // GetStyle().Colors[] snapshot would be louder but needs an ImGui context
 // and regenerates on every minor theme tweak. The semantic-token pin is
 // what callers actually depend on.
+#include <cstdio>
+#include <filesystem>
+#include <fstream>
+
 #include "app/gui/core/color.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
@@ -96,6 +100,69 @@ TEST_F(ThemeStyleSnapshotTest, ApplyThemeByNameRestoresClassicYaze) {
   mgr.ApplyTheme("Classic YAZE");
   EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
   EXPECT_EQ(mgr.GetCurrentTheme().name, "Classic YAZE");
+}
+
+// Regression for the review follow-up on 07619173: the new
+// ApplyTheme("Classic YAZE") short-circuit routed directly to
+// ApplyClassicYazeTheme, but that helper skipped the transition reset and
+// AgentUI refresh that LoadTheme and ApplyTheme(const Theme&) perform. Left
+// unchecked, an in-progress transition would keep lerping over the Classic
+// style on subsequent UpdateTransition frames and agent panels would draw
+// against stale cached theme colors. Assert that Classic apply leaves the
+// transition state clean regardless of how it was entered.
+TEST_F(ThemeStyleSnapshotTest, ApplyClassicYazeClearsTransitionState) {
+  auto& mgr = ThemeManager::Get();
+
+  // Prime a non-classic theme, then trigger a transition by re-applying it
+  // through the Theme& overload (which sets transitioning_ when animations
+  // are enabled). YAZE Tre ships with enable_animations=true by default.
+  mgr.ApplyTheme("YAZE Tre");
+  const auto* tre = mgr.GetTheme("YAZE Tre");
+  ASSERT_NE(tre, nullptr);
+  Theme tre_with_animation = *tre;
+  tre_with_animation.enable_animations = true;
+  mgr.ApplyTheme(tre_with_animation);
+  ASSERT_TRUE(mgr.IsTransitioning())
+      << "pre-condition: YAZE Tre re-apply should start a transition";
+
+  mgr.ApplyTheme("Classic YAZE");
+  EXPECT_FALSE(mgr.IsTransitioning())
+      << "Classic YAZE apply must cancel the in-flight transition so "
+         "UpdateTransition doesn't overwrite the Classic style.";
+}
+
+// Regression for the second review follow-up: Phase 5 initially only recorded
+// theme file paths on load, so "Save Over Current" broke for themes that were
+// freshly saved or renamed through the save dialog. SaveThemeToFile now
+// populates theme_file_paths_ too — exercise that round trip.
+TEST_F(ThemeStyleSnapshotTest, SaveThemeToFileRecordsPathForRenamedTheme) {
+  namespace fs = std::filesystem;
+  auto& mgr = ThemeManager::Get();
+
+  // Build a freshly-named theme that has no pre-existing file association.
+  const auto* base = mgr.GetTheme("YAZE Tre");
+  ASSERT_NE(base, nullptr);
+  Theme renamed = *base;
+  renamed.name = "YazeThemeSnapshotRenamed";
+
+  // Write it to a deterministic temp path.
+  fs::path tmp_dir = fs::temp_directory_path();
+  fs::path tmp_path = tmp_dir / "yaze_theme_snapshot_renamed.theme";
+  std::error_code ec;
+  fs::remove(tmp_path, ec);  // ignore absent-file error
+
+  auto save_status = mgr.SaveThemeToFile(renamed, tmp_path.string());
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+
+  // Apply by value so current_theme_name_ matches the renamed theme, then
+  // ask the manager where the current theme lives. Without the save-side
+  // path recording, this would fall through to filename synthesis and miss
+  // the temp path entirely.
+  mgr.ApplyTheme(renamed);
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "YazeThemeSnapshotRenamed");
+  EXPECT_EQ(mgr.GetCurrentThemeFilePath(), tmp_path.string());
+
+  fs::remove(tmp_path, ec);
 }
 
 TEST_F(ThemeStyleSnapshotTest, SemanticHelpersReturnThemeTokens) {

@@ -282,8 +282,10 @@ class ThemeManager {
   absl::Status LoadTheme(const std::string& theme_name);
   absl::Status SaveTheme(const Theme& theme, const std::string& filename);
   absl::Status LoadThemeFromFile(const std::string& filepath);
-  absl::Status SaveThemeToFile(const Theme& theme,
-                               const std::string& filepath) const;
+  // Non-const: records the chosen filepath in theme_file_paths_ on success so
+  // subsequent GetCurrentThemeFilePath calls round-trip for themes created or
+  // renamed via the save dialog (not just ones that were loaded from disk).
+  absl::Status SaveThemeToFile(const Theme& theme, const std::string& filepath);
 
   // Dynamic theme discovery - replaces hardcoded theme lists with automatic
   // discovery This works across development builds, macOS app bundles, and
@@ -298,6 +300,12 @@ class ThemeManager {
   const Theme* GetTheme(const std::string& name) const;
   const Theme& GetCurrentTheme() const { return current_theme_; }
   const std::string& GetCurrentThemeName() const { return current_theme_name_; }
+
+  // Filesystem path the current theme was loaded from (or last saved to via
+  // SaveThemeToFile). Returns empty string for Classic YAZE (no file) or when
+  // no file association exists; "Save Over Current" uses this to decide
+  // whether the overwrite action is available.
+  std::string GetCurrentThemeFilePath() const;
 
   // Theme application
   void ApplyTheme(const std::string& theme_name);
@@ -379,6 +387,11 @@ class ThemeManager {
   Theme preview_original_theme_;
   std::string preview_original_name_;
 
+  // True while InitializeBuiltInThemes is constructing the singleton. Guards
+  // ApplyClassicYazeTheme from calling AgentUI::RefreshTheme, which would
+  // recursively re-enter ThemeManager::Get() and abort on __cxa_guard_acquire.
+  bool initializing_built_ins_ = false;
+
   // Smooth transition state (lerps ImGui colors per-frame)
   bool transitioning_ = false;
   float transition_progress_ = 0.0f;
@@ -402,7 +415,6 @@ class ThemeManager {
   std::vector<std::string> GetThemeSearchPaths() const;
   std::string GetThemesDirectory() const;
   std::string GetUserThemesDirectory() const;  // Returns ~/.yaze/themes/
-  std::string GetCurrentThemeFilePath() const;
 };
 
 // Global convenience functions for easy theme color access

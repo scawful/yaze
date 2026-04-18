@@ -188,6 +188,12 @@ ThemeManager& ThemeManager::Get() {
 }
 
 void ThemeManager::InitializeBuiltInThemes() {
+  // This runs inside the ThemeManager singleton constructor. Anything that
+  // calls ThemeManager::Get() from here (transitively) hits __cxa_guard_acquire
+  // recursively and aborts. The flag lets ApplyClassicYazeTheme skip the
+  // AgentUI palette refresh until the constructor finishes.
+  initializing_built_ins_ = true;
+
   // Always create fallback theme first
   CreateFallbackYazeClassic();
 
@@ -199,6 +205,8 @@ void ThemeManager::InitializeBuiltInThemes() {
   if (!status.ok()) {
     LOG_ERROR("Theme Manager", "Failed to load some theme files");
   }
+
+  initializing_built_ins_ = false;
 
   // Ensure we have a valid current theme (Classic is already set above)
   // Only fallback to file themes if Classic creation failed
@@ -1921,7 +1929,7 @@ std::string ThemeManager::ExportCurrentThemeJson() const {
 }
 
 absl::Status ThemeManager::SaveThemeToFile(const Theme& theme,
-                                           const std::string& filepath) const {
+                                           const std::string& filepath) {
   std::string theme_content = SerializeTheme(theme);
 
   std::ofstream file(filepath);
@@ -1936,6 +1944,13 @@ absl::Status ThemeManager::SaveThemeToFile(const Theme& theme,
   if (file.fail()) {
     return absl::InternalError(
         absl::StrFormat("Failed to write theme file: %s", filepath));
+  }
+
+  // Record the file association so GetCurrentThemeFilePath can find it by
+  // display name without guessing a filename. Covers Save Over Current, Save
+  // As, Save to File, and Export — previously only the load path recorded.
+  if (!theme.name.empty()) {
+    theme_file_paths_[theme.name] = filepath;
   }
 
   return absl::OkStatus();
@@ -2119,6 +2134,18 @@ void ThemeManager::ApplyClassicYazeTheme() {
   // DON'T add Classic theme to themes map - keep it as a special case
   // themes_["Classic YAZE"] = classic_theme; // REMOVED to prevent off-by-one
   current_theme_ = classic_theme;
+
+  // Mirror the bookkeeping that LoadTheme and ApplyTheme(const Theme&) do:
+  // refresh the AgentUI palette cache (stale until RefreshTheme is called) and
+  // cancel any in-progress color transition so switches to Classic apply
+  // immediately instead of getting lerped over by UpdateTransition(). Skip the
+  // AgentUI refresh if we're still inside the singleton constructor — calling
+  // Get() recursively aborts the process.
+  if (!initializing_built_ins_) {
+    editor::AgentUI::RefreshTheme();
+  }
+  transitioning_ = false;
+  transition_progress_ = 0.0f;
   NotifyThemeChanged();
 }
 
