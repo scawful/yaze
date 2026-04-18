@@ -248,8 +248,12 @@ class LayoutPresets {
     static constexpr const char* kMessageDictionary = "message.dictionary";
 
     // Assembly cards (assembly_editor.cc)
-    static constexpr const char* kAssemblyEditor = "assembly.editor";
+    static constexpr const char* kAssemblyEditor = "assembly.code_editor";
     static constexpr const char* kAssemblyFileBrowser = "assembly.file_browser";
+    static constexpr const char* kAssemblySymbols = "assembly.symbols";
+    static constexpr const char* kAssemblyBuildOutput = "assembly.build_output";
+    static constexpr const char* kAssemblyDisassembly = "assembly.disassembly";
+    static constexpr const char* kAssemblyToolbar = "assembly.toolbar";
 
     // Emulator cards (editor_manager.cc)
     static constexpr const char* kEmulatorCpuDebugger = "emulator.cpu_debugger";
