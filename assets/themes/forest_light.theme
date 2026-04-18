@@ -1,0 +1,117 @@
+# Forest Light Theme
+# Light-mode companion to Forest. Warm cream background with deep forest greens.
+name=Forest Light
+description=Forest's green palette in light mode — warm parchment feel
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors — deeper forest greens for light-bg contrast
+primary=55,110,75,255
+secondary=75,135,95,255
+accent=35,95,60,255              # Deep moss accent
+background=250,245,232,255
+surface=240,233,215,255
+
+# Status colors
+error=200,70,70,255
+warning=195,145,40,255
+success=55,135,85,255
+info=55,130,170,255
+
+# Text colors (dark on cream)
+text_primary=20,40,25,255
+text_secondary=80,100,85,255
+text_disabled=175,175,155,255
+
+# Window colors
+window_bg=250,245,232,250
+child_bg=240,233,215,220
+popup_bg=252,248,238,255
+
+# Interactive elements
+button=225,215,195,255
+button_hovered=195,210,180,255
+button_active=145,180,140,255
+frame_bg=235,228,210,240
+frame_bg_hovered=220,215,195,245
+frame_bg_active=190,195,170,255
+
+# Navigation
+header=230,225,205,255
+header_hovered=195,210,180,255
+header_active=145,180,140,255
+tab=235,228,210,255
+tab_hovered=215,220,195,255
+tab_active=165,195,155,255
+menu_bar_bg=240,232,214,255
+title_bg=225,218,200,255
+title_bg_active=215,220,195,255
+title_bg_collapsed=232,225,207,255
+
+# Borders and separators
+border=55,110,75,255
+border_shadow=0,0,0,0
+separator=150,160,135,180
+separator_hovered=105,140,110,220
+separator_active=35,95,60,255
+
+# Scrollbars
+scrollbar_bg=240,233,215,180
+scrollbar_grab=170,185,150,200
+scrollbar_grab_hovered=125,160,120,230
+scrollbar_grab_active=55,110,75,255
+
+# Resize grips
+resize_grip=55,110,75,64
+resize_grip_hovered=55,110,75,153
+resize_grip_active=55,110,75,230
+
+# Controls
+check_mark=35,95,60,255
+slider_grab=55,110,75,255
+slider_grab_active=35,95,60,255
+
+# Tables
+table_header_bg=230,225,205,255
+table_border_strong=150,160,135,255
+table_border_light=225,215,195,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=0,0,0,15
+
+# Links
+text_link=35,95,60,255
+
+# Navigation and special
+input_text_cursor=20,40,25,255
+nav_cursor=35,95,60,255
+nav_windowing_highlight=55,110,75,200
+nav_windowing_dim_bg=0,0,0,64
+modal_window_dim_bg=0,0,0,80
+text_selected_bg=55,110,75,100
+drag_drop_target=55,110,75,200
+
+# Docking
+docking_preview=55,110,75,180
+docking_empty_bg=240,233,215,255
+
+# Tree lines
+tree_lines=170,180,150,153
+
+# Tab variations
+tab_dimmed=240,232,214,255
+tab_dimmed_selected=225,218,200,255
+tab_dimmed_selected_overline=35,95,60,255
+tab_selected_overline=35,95,60,255
+
+[style]
+window_rounding=8.0
+frame_rounding=6.0
+scrollbar_rounding=8.0
+grab_rounding=4.0
+tab_rounding=6.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.2
