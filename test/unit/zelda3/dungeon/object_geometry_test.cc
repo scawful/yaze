@@ -1,5 +1,6 @@
 #include "zelda3/dungeon/geometry/object_geometry.h"
 
+#include "absl/strings/str_format.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -35,6 +36,37 @@ TEST(ObjectGeometryTest, DiagonalAcuteExtendsUpward) {
   EXPECT_EQ(bounds->height_tiles, 11);  // count + 4 rows
   EXPECT_EQ(bounds->min_x_tiles, 0);
   EXPECT_EQ(bounds->min_y_tiles, -6);  // routine walks upward from origin
+}
+
+TEST(ObjectGeometryTest, DiagonalCeilingBoundsMatchRenderForAllAnchors) {
+  // USDASM: RoomDraw_DiagonalCeiling*A ($01:8BE0+) uses GetSize_1to16_timesA
+  // with A=4, so the rendered square's side = (size_nibble & 0x0F) + 4.
+  // All four anchors (TopLeft=75, BottomLeft=76, TopRight=77, BottomRight=78)
+  // must report matching side x side render bounds regardless of anchor.
+  struct Case {
+    int routine_id;
+    const char* name;
+  };
+  const Case anchors[] = {
+      {75, "TopLeft"},
+      {76, "BottomLeft"},
+      {77, "TopRight"},
+      {78, "BottomRight"},
+  };
+
+  const uint8_t sizes[] = {0x00, 0x01, 0x03, 0x07, 0x0F};
+  for (const auto& anchor : anchors) {
+    for (uint8_t size : sizes) {
+      SCOPED_TRACE(absl::StrFormat("%s size=0x%02X", anchor.name, size));
+      const int expected_side = (size & 0x0F) + 4;
+      RoomObject obj(/*id=*/0xA0, /*x=*/0, /*y=*/0, size);
+      auto bounds =
+          ObjectGeometry::Get().MeasureByRoutineId(anchor.routine_id, obj);
+      ASSERT_TRUE(bounds.ok()) << bounds.status();
+      EXPECT_EQ(bounds->width_tiles, expected_side);
+      EXPECT_EQ(bounds->height_tiles, expected_side);
+    }
+  }
 }
 
 TEST(ObjectGeometryTest, WeirdCornerBottomBothBGUsesUsdasm3x4Shape) {
