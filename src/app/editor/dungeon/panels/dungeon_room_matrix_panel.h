@@ -9,6 +9,7 @@
 #include <optional>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
@@ -87,22 +88,60 @@ class DungeonRoomMatrixPanel : public WindowContent {
     constexpr int kTotalRooms = 0x128;  // 296 rooms (0x00-0x127)
     constexpr float kCellSpacing = 1.0f;
 
-    // Responsive cell size based on available panel width
-    float panel_width = ImGui::GetContentRegionAvail().x;
-    // Calculate cell size to fit 16 cells with spacing in available width
-    float cell_size = std::max(
-        12.0f,
-        std::min(24.0f, (panel_width - kCellSpacing * (kRoomsPerRow - 1)) /
-                            kRoomsPerRow));
+    DrawMatrixSummary(theme, kTotalRooms);
+
+    ImGui::PushID("RoomMatrixFilter");
+    ImGui::SetNextItemWidth(
+        std::max(140.0f, ImGui::GetContentRegionAvail().x - 82.0f));
+    ImGui::InputTextWithHint("##Search", ICON_MD_SEARCH " Filter room id/name",
+                             search_filter_, IM_ARRAYSIZE(search_filter_));
+    ImGui::SameLine();
+    const bool has_filter = search_filter_[0] != '\0';
+    if (!has_filter) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button(ICON_MD_CLOSE "##ClearFilter")) {
+      search_filter_[0] = '\0';
+    }
+    if (!has_filter) {
+      ImGui::EndDisabled();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Clear filter");
+    }
+    ImGui::PopID();
+
+    DrawMatrixLegend(theme);
+    ImGui::Spacing();
+
+    const ImVec2 avail = ImGui::GetContentRegionAvail();
+    const float panel_width = std::max(1.0f, avail.x);
+    const float panel_height = std::max(1.0f, avail.y);
+    const float cell_size_by_width =
+        (panel_width - kCellSpacing * (kRoomsPerRow - 1)) / kRoomsPerRow;
+    const float cell_size_by_height =
+        (panel_height - kCellSpacing * (kRoomsPerCol - 1)) / kRoomsPerCol;
+    const float cell_size = std::clamp(
+        std::min(cell_size_by_width, cell_size_by_height), 12.0f, 24.0f);
+
+    const float grid_width =
+        kRoomsPerRow * cell_size + kCellSpacing * (kRoomsPerRow - 1);
+    const float grid_height =
+        kRoomsPerCol * cell_size + kCellSpacing * (kRoomsPerCol - 1);
+    const float x_offset = std::max(0.0f, (panel_width - grid_width) * 0.5f);
+    const float y_offset = std::max(0.0f, (panel_height - grid_height) * 0.5f);
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
+    canvas_pos.x += x_offset;
+    canvas_pos.y += y_offset;
 
     int room_index = 0;
     for (int row = 0; row < kRoomsPerCol; row++) {
       for (int col = 0; col < kRoomsPerRow; col++) {
         int room_id = room_index;
         bool is_valid_room = (room_id < kTotalRooms);
+        const bool matches_filter = MatchesSearchFilter(room_id);
 
         ImVec2 cell_min =
             ImVec2(canvas_pos.x + col * (cell_size + kCellSpacing),
@@ -113,6 +152,11 @@ class DungeonRoomMatrixPanel : public WindowContent {
         if (is_valid_room) {
           // Get color based on room palette if available, else use algorithmic
           ImU32 bg_color = GetRoomColor(room_id, theme);
+          if (!matches_filter) {
+            bg_color = BlendRoomColor(
+                bg_color, ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker),
+                0.72f);
+          }
 
           bool is_current = (*current_room_id_ == room_id);
           bool is_open = false;
@@ -130,7 +174,7 @@ class DungeonRoomMatrixPanel : public WindowContent {
           if (is_current) {
             // Add glow effect for current room (outer glow layers)
             ImVec4 glow_color = theme.dungeon_selection_primary;
-            glow_color.w = 0.3f;  // 30% opacity outer glow
+            glow_color.w = matches_filter ? 0.3f : 0.18f;
             ImVec2 glow_min(cell_min.x - 2, cell_min.y - 2);
             ImVec2 glow_max(cell_max.x + 2, cell_max.y + 2);
             draw_list->AddRect(glow_min, glow_max,
@@ -148,6 +192,11 @@ class DungeonRoomMatrixPanel : public WindowContent {
           } else {
             ImU32 border_color =
                 ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_cell_border);
+            if (!matches_filter) {
+              border_color = BlendRoomColor(
+                  border_color,
+                  ImGui::ColorConvertFloat4ToU32(theme.panel_bg_darker), 0.5f);
+            }
             draw_list->AddRect(cell_min, cell_max, border_color, 0.0f, 0, 1.0f);
           }
 
@@ -159,8 +208,11 @@ class DungeonRoomMatrixPanel : public WindowContent {
             ImVec2 text_pos =
                 ImVec2(cell_min.x + (cell_size - text_size.x) * 0.5f,
                        cell_min.y + (cell_size - text_size.y) * 0.5f);
-            ImU32 text_color =
-                ImGui::ColorConvertFloat4ToU32(theme.dungeon_grid_text);
+            ImVec4 text_color_vec = theme.dungeon_grid_text;
+            if (!matches_filter) {
+              text_color_vec.w *= 0.55f;
+            }
+            ImU32 text_color = ImGui::ColorConvertFloat4ToU32(text_color_vec);
             draw_list->AddText(text_pos, text_color, label);
           }
 
@@ -233,6 +285,15 @@ class DungeonRoomMatrixPanel : public WindowContent {
             ImGui::BeginTooltip();
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
+            ImGui::TextDisabled("Room 0x%02X", room_id);
+
+            if (is_current) {
+              ImGui::TextColored(theme.dungeon_selection_primary,
+                                 ICON_MD_MY_LOCATION " Current workbench room");
+            } else if (is_open) {
+              ImGui::TextColored(theme.status_success,
+                                 ICON_MD_TAB " Open in editor");
+            }
 
             if (rooms_) {
               auto* loaded_room = rooms_->GetIfLoaded(room_id);
@@ -258,7 +319,10 @@ class DungeonRoomMatrixPanel : public WindowContent {
               }
             }
 
+            ImGui::Separator();
             ImGui::TextDisabled("Click to %s", is_open ? "focus" : "open");
+            ImGui::TextDisabled("Double-click to open as panel");
+            ImGui::TextDisabled("Right-click for actions");
             ImGui::EndTooltip();
           }
         } else {
@@ -273,13 +337,122 @@ class DungeonRoomMatrixPanel : public WindowContent {
     }
 
     // Advance cursor past the grid
-    ImGui::Dummy(ImVec2(kRoomsPerRow * (cell_size + kCellSpacing),
-                        kRoomsPerCol * (cell_size + kCellSpacing)));
+    ImGui::Dummy(
+        ImVec2(panel_width, std::max(grid_height + y_offset, panel_height)));
   }
 
   void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
 
  private:
+  void DrawMatrixSummary(const AgentUITheme& theme, int total_rooms) const {
+    const int open_rooms = active_rooms_ ? active_rooms_->Size : 0;
+    const int current_room = current_room_id_ ? *current_room_id_ : -1;
+    const std::string current_label = current_room >= 0
+                                          ? zelda3::GetRoomLabel(current_room)
+                                          : "No room selected";
+
+    ImGui::SeparatorText("Navigator");
+    ImGui::Text("%s", current_label.c_str());
+    ImGui::TextDisabled("Current: 0x%02X", std::max(0, current_room));
+    ImGui::SameLine();
+    ImGui::TextDisabled("%d open", open_rooms);
+
+    if (current_room >= 0) {
+      if (auto room_meta = GetRoomMetadata(current_room);
+          room_meta.has_value()) {
+        ImGui::SameLine();
+        ImGui::TextColored(theme.status_success, "Pal %d / Blockset %d",
+                           room_meta->first, room_meta->second);
+      }
+    }
+  }
+
+  void DrawMatrixLegend(const AgentUITheme& theme) const {
+    ImGui::SeparatorText("Legend");
+    DrawLegendSwatch(theme.dungeon_selection_primary,
+                     ICON_MD_MY_LOCATION " Current");
+    ImGui::SameLine();
+    DrawLegendSwatch(theme.dungeon_grid_cell_selected, ICON_MD_TAB " Open");
+    ImGui::SameLine();
+    DrawLegendSwatch(theme.dungeon_grid_cell_border,
+                     ICON_MD_GRID_VIEW " Other");
+  }
+
+  void DrawLegendSwatch(const ImVec4& color, const char* label) const {
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    const ImVec2 pos = ImGui::GetCursorScreenPos();
+    const float size = ImGui::GetFrameHeight() - 6.0f;
+    const ImVec2 min = ImVec2(pos.x, pos.y + 3.0f);
+    const ImVec2 max = ImVec2(pos.x + size, pos.y + size + 3.0f);
+    draw_list->AddRectFilled(min, max, ImGui::ColorConvertFloat4ToU32(color),
+                             3.0f);
+    draw_list->AddRect(min, max, ImGui::GetColorU32(ImGuiCol_Border), 3.0f);
+    ImGui::Dummy(ImVec2(size + 6.0f, size + 6.0f));
+    ImGui::SameLine(0.0f, 6.0f);
+    ImGui::TextUnformatted(label);
+  }
+
+  bool MatchesSearchFilter(int room_id) const {
+    if (search_filter_[0] == '\0') {
+      return true;
+    }
+
+    const std::string filter = NormalizeForSearch(search_filter_);
+    char id_buf[16];
+    snprintf(id_buf, sizeof(id_buf), "%02X", room_id);
+    char hex_buf[16];
+    snprintf(hex_buf, sizeof(hex_buf), "0x%02X", room_id);
+
+    const std::string room_label =
+        NormalizeForSearch(zelda3::GetRoomLabel(room_id));
+    const std::string id_text = NormalizeForSearch(id_buf);
+    const std::string hex_text = NormalizeForSearch(hex_buf);
+    return room_label.find(filter) != std::string::npos ||
+           id_text.find(filter) != std::string::npos ||
+           hex_text.find(filter) != std::string::npos;
+  }
+
+  static std::string NormalizeForSearch(const std::string& value) {
+    std::string lowered;
+    lowered.reserve(value.size());
+    for (unsigned char ch : value) {
+      lowered.push_back(static_cast<char>(std::tolower(ch)));
+    }
+    return lowered;
+  }
+
+  static ImU32 BlendRoomColor(ImU32 source, ImU32 target, float blend) {
+    ImVec4 src = ImGui::ColorConvertU32ToFloat4(source);
+    ImVec4 dst = ImGui::ColorConvertU32ToFloat4(target);
+    src.x = (src.x * (1.0f - blend)) + (dst.x * blend);
+    src.y = (src.y * (1.0f - blend)) + (dst.y * blend);
+    src.z = (src.z * (1.0f - blend)) + (dst.z * blend);
+    src.w = 1.0f;
+    return ImGui::ColorConvertFloat4ToU32(src);
+  }
+
+  std::optional<std::pair<int, int>> GetRoomMetadata(int room_id) const {
+    if (!rooms_ || room_id < 0 ||
+        room_id >= static_cast<int>(DungeonRoomStore::kRoomCount)) {
+      return std::nullopt;
+    }
+
+    if (const auto* room = rooms_->GetIfMaterialized(room_id);
+        room != nullptr) {
+      return std::make_pair(static_cast<int>(room->palette()),
+                            static_cast<int>(room->blockset()));
+    }
+
+    Rom* rom = rooms_->rom();
+    if (rom == nullptr || !rom->is_loaded()) {
+      return std::nullopt;
+    }
+
+    zelda3::Room header_room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
+    return std::make_pair(static_cast<int>(header_room.palette()),
+                          static_cast<int>(header_room.blockset()));
+  }
+
   /**
    * @brief Get color for a room from dominant preview color, with fallback.
    */
@@ -336,6 +509,29 @@ class DungeonRoomMatrixPanel : public WindowContent {
       return ImGui::ColorConvertFloat4ToU32(src);
     };
 
+    auto palette_fallback_color = [&](int palette_id,
+                                      int blockset_id) -> ImU32 {
+      const ImVec4 bg = theme.panel_bg_darker;
+      const float palette_mix =
+          0.26f + (static_cast<float>(palette_id & 0x07) * 0.055f);
+      const float blockset_mix =
+          0.08f + (static_cast<float>(blockset_id & 0x0F) * 0.018f);
+      ImVec4 tint = theme.dungeon_selection_primary;
+      tint.x = std::clamp(tint.x + blockset_mix, 0.0f, 1.0f);
+      tint.y = std::clamp(tint.y + (palette_mix * 0.35f), 0.0f, 1.0f);
+      tint.z = std::clamp(tint.z - (blockset_mix * 0.2f), 0.0f, 1.0f);
+
+      ImVec4 mixed;
+      mixed.x = std::clamp(
+          (bg.x * (1.0f - palette_mix)) + (tint.x * palette_mix), 0.0f, 1.0f);
+      mixed.y = std::clamp(
+          (bg.y * (1.0f - palette_mix)) + (tint.y * palette_mix), 0.0f, 1.0f);
+      mixed.z = std::clamp(
+          (bg.z * (1.0f - palette_mix)) + (tint.z * palette_mix), 0.0f, 1.0f);
+      mixed.w = 1.0f;
+      return ImGui::ColorConvertFloat4ToU32(mixed);
+    };
+
     // If room data is available and loaded, sample the actual room bitmap and
     // choose its most frequent indexed color.
     if (rooms_) {
@@ -353,6 +549,12 @@ class DungeonRoomMatrixPanel : public WindowContent {
             bg1_color.has_value()) {
           return soften_color(bg1_color.value());
         }
+
+        return palette_fallback_color(room->palette(), room->blockset());
+      }
+
+      if (auto room_meta = GetRoomMetadata(room_id); room_meta.has_value()) {
+        return palette_fallback_color(room_meta->first, room_meta->second);
       }
     }
 
@@ -381,6 +583,7 @@ class DungeonRoomMatrixPanel : public WindowContent {
   std::function<void(int)> on_room_selected_;
   std::function<void(int, int)> on_room_swap_;
   std::function<void(int, RoomSelectionIntent)> on_room_intent_;
+  char search_filter_[64] = "";
 };
 
 }  // namespace editor
