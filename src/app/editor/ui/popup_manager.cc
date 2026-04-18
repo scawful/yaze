@@ -1130,12 +1130,12 @@ void PopupManager::DrawLayoutPresetsPopup() {
               ImVec2(button_width, button_height))) {
         // Apply the preset
         auto preset = presets[i].getter();
-        auto& panel_manager = editor_manager_->panel_manager();
+        auto& window_manager = editor_manager_->window_manager();
         // Hide all panels first
-        panel_manager.HideAll();
+        window_manager.HideAll();
         // Show preset panels
         for (const auto& panel_id : preset.default_visible_panels) {
-          panel_manager.ShowPanel(panel_id);
+          window_manager.OpenWindow(panel_id);
         }
         Hide(PopupID::kLayoutPresets);
       }
@@ -1156,11 +1156,11 @@ void PopupManager::DrawLayoutPresetsPopup() {
   if (Button(
           absl::StrFormat("%s Reset Current Editor", ICON_MD_REFRESH).c_str(),
           ImVec2(-1, 0))) {
-    auto& panel_manager = editor_manager_->card_registry();
+    auto& window_manager = editor_manager_->window_manager();
     auto* current_editor = editor_manager_->GetCurrentEditor();
     if (current_editor) {
       auto current_type = current_editor->type();
-      panel_manager.ResetToDefaults(0, current_type);
+      window_manager.ResetToDefaults(0, current_type);
     }
     Hide(PopupID::kLayoutPresets);
   }
