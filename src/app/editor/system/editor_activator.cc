@@ -12,6 +12,7 @@
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"
+#include "app/gui/animation/animator.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -142,6 +143,10 @@ void EditorActivator::ActivatePanelBasedEditor(EditorType type,
 
   // Only trigger OnEditorSwitch if category actually changes
   if (old_category != new_category) {
+    // Kill any in-flight panel transitions from the previous editor so the
+    // new editor's windows start their fade from a clean state. Without this,
+    // stale alpha values leave old bitmap surfaces ghosted during the switch.
+    gui::GetAnimator().ClearWorkspaceTransitionState();
     deps_.window_manager->OnEditorSwitch(old_category, new_category);
   }
 
@@ -174,6 +179,7 @@ void EditorActivator::DeactivatePanelBasedEditor(EditorType type,
       std::string new_category =
           EditorRegistry::GetEditorCategory(other->type());
       if (old_category != new_category) {
+        gui::GetAnimator().ClearWorkspaceTransitionState();
         deps_.window_manager->OnEditorSwitch(old_category, new_category);
       }
       break;

@@ -69,6 +69,7 @@ class Animator {
   void ApplyPanelTransitionPost(const std::string& panel_id);
 
   void ClearAnimationsForPanel(const std::string& panel_id);
+  void ClearWorkspaceTransitionState();
   void ClearAllAnimations();
 
   bool IsEnabled() const;
