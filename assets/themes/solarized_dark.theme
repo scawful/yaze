@@ -1,0 +1,118 @@
+# Solarized Dark Theme
+# Ethan Schoonover's Solarized Dark palette. Spec: solarized.com
+# base03 (bg) / base02 (surface) / base0 (text) / yellow+blue accents
+name=Solarized Dark
+description=Ethan Schoonover's Solarized Dark — legendary muted palette
+author=YAZE Team (palette: Ethan Schoonover)
+version=1.0
+
+[colors]
+# Primary colors — solarized blue/cyan on base03 background
+primary=38,139,210,255           # blue
+secondary=42,161,152,255         # cyan
+accent=181,137,0,255             # yellow (signature Solarized accent)
+background=0,43,54,255           # base03
+surface=7,54,66,255              # base02
+
+# Status colors (canonical Solarized semantics)
+error=220,50,47,255              # red
+warning=181,137,0,255            # yellow
+success=133,153,0,255            # green
+info=38,139,210,255              # blue
+
+# Text colors
+text_primary=131,148,150,255     # base0
+text_secondary=147,161,161,255   # base1
+text_disabled=88,110,117,255     # base01
+
+# Window colors
+window_bg=0,43,54,240            # base03
+child_bg=7,54,66,200             # base02
+popup_bg=7,54,66,250
+
+# Interactive elements
+button=38,139,210,180            # blue
+button_hovered=42,161,152,220    # cyan
+button_active=181,137,0,255      # yellow
+frame_bg=7,54,66,220             # base02
+frame_bg_hovered=88,110,117,220  # base01
+frame_bg_active=101,123,131,240  # base00
+
+# Navigation
+header=7,54,66,255
+header_hovered=88,110,117,255
+header_active=38,139,210,255
+tab=0,43,54,255
+tab_hovered=7,54,66,255
+tab_active=38,139,210,255
+menu_bar_bg=7,54,66,255
+title_bg=7,54,66,255
+title_bg_active=38,139,210,255
+title_bg_collapsed=7,54,66,200
+
+# Borders and separators
+border=38,139,210,255            # blue
+border_shadow=0,0,0,0
+separator=88,110,117,180
+separator_hovered=101,123,131,220
+separator_active=38,139,210,255
+
+# Scrollbars
+scrollbar_bg=0,43,54,180
+scrollbar_grab=88,110,117,200
+scrollbar_grab_hovered=101,123,131,230
+scrollbar_grab_active=38,139,210,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=38,139,210,153
+resize_grip_active=38,139,210,230
+
+# Controls
+check_mark=181,137,0,255         # yellow
+slider_grab=38,139,210,255
+slider_grab_active=181,137,0,255
+
+# Tables
+table_header_bg=7,54,66,255
+table_border_strong=88,110,117,255
+table_border_light=7,54,66,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,20
+
+# Links
+text_link=38,139,210,255
+
+# Navigation and special
+input_text_cursor=131,148,150,255
+nav_cursor=181,137,0,255
+nav_windowing_highlight=38,139,210,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=38,139,210,100
+drag_drop_target=181,137,0,200
+
+# Docking
+docking_preview=38,139,210,180
+docking_empty_bg=7,54,66,255
+
+# Tree lines
+tree_lines=88,110,117,153
+
+# Tab variations
+tab_dimmed=0,43,54,255
+tab_dimmed_selected=7,54,66,255
+tab_dimmed_selected_overline=181,137,0,255
+tab_selected_overline=181,137,0,255
+
+[style]
+window_rounding=4.0
+frame_rounding=3.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

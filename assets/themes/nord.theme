@@ -1,0 +1,118 @@
+# Nord Theme
+# Arctic palette by Arctic Ice Studio. Spec: nordtheme.com
+# Polar Night (bg) / Snow Storm (fg) / Frost (accent) / Aurora (semantic)
+name=Nord
+description=Nord — arctic palette with frost-blue accents and aurora semantics
+author=YAZE Team (palette: Arctic Ice Studio)
+version=1.0
+
+[colors]
+# Primary colors — Frost cyan/blue accents on Polar Night bg
+primary=129,161,193,255          # nord9
+secondary=94,129,172,255         # nord10
+accent=136,192,208,255           # nord8 (frost cyan)
+background=46,52,64,255          # nord0
+surface=59,66,82,255             # nord1
+
+# Status colors — Aurora set
+error=191,97,106,255             # nord11
+warning=235,203,139,255          # nord13
+success=163,190,140,255          # nord14
+info=136,192,208,255             # nord8
+
+# Text colors — Snow Storm
+text_primary=236,239,244,255     # nord6
+text_secondary=216,222,233,255   # nord4
+text_disabled=76,86,106,255      # nord3
+
+# Window colors
+window_bg=46,52,64,240
+child_bg=59,66,82,200
+popup_bg=67,76,94,250            # nord2
+
+# Interactive elements
+button=67,76,94,255              # nord2
+button_hovered=94,129,172,220    # nord10
+button_active=129,161,193,255    # nord9
+frame_bg=59,66,82,220
+frame_bg_hovered=67,76,94,240
+frame_bg_active=76,86,106,255    # nord3
+
+# Navigation
+header=67,76,94,255
+header_hovered=94,129,172,255
+header_active=129,161,193,255
+tab=59,66,82,255
+tab_hovered=67,76,94,255
+tab_active=94,129,172,255
+menu_bar_bg=59,66,82,255
+title_bg=59,66,82,255
+title_bg_active=67,76,94,255
+title_bg_collapsed=46,52,64,200
+
+# Borders and separators
+border=136,192,208,255           # frost cyan
+border_shadow=0,0,0,0
+separator=76,86,106,180
+separator_hovered=94,129,172,220
+separator_active=136,192,208,255
+
+# Scrollbars
+scrollbar_bg=46,52,64,180
+scrollbar_grab=76,86,106,200
+scrollbar_grab_hovered=94,129,172,230
+scrollbar_grab_active=136,192,208,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=136,192,208,153
+resize_grip_active=136,192,208,230
+
+# Controls
+check_mark=136,192,208,255
+slider_grab=129,161,193,255
+slider_grab_active=136,192,208,255
+
+# Tables
+table_header_bg=67,76,94,255
+table_border_strong=76,86,106,255
+table_border_light=59,66,82,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,20
+
+# Links
+text_link=143,188,187,255        # nord7 (frost teal)
+
+# Navigation and special
+input_text_cursor=236,239,244,255
+nav_cursor=136,192,208,255
+nav_windowing_highlight=136,192,208,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=94,129,172,100
+drag_drop_target=136,192,208,200
+
+# Docking
+docking_preview=136,192,208,180
+docking_empty_bg=59,66,82,255
+
+# Tree lines
+tree_lines=76,86,106,153
+
+# Tab variations
+tab_dimmed=46,52,64,255
+tab_dimmed_selected=59,66,82,255
+tab_dimmed_selected_overline=136,192,208,255
+tab_selected_overline=136,192,208,255
+
+[style]
+window_rounding=4.0
+frame_rounding=3.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0
