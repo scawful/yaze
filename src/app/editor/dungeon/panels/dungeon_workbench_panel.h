@@ -113,11 +113,6 @@ class DungeonWorkbenchPanel : public WindowContent {
 
   char compare_search_buf_[64] = {};
 
-  // Track collapse→expand transitions for one-shot column width reset
-  bool prev_show_left_ = true;
-  bool prev_show_right_ = true;
-  int table_generation_ = 0;
-
   // ROM-based room→dungeon group label cache (lazy-built on first room render).
   std::unordered_map<int, std::string> room_dungeon_cache_;
   bool room_dungeon_cache_built_ = false;
