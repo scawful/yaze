@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
@@ -67,6 +68,19 @@ uint8_t ReadByteAt(const std::filesystem::path& path, std::streamoff offset) {
   return static_cast<uint8_t>(b);
 }
 
+void WriteTestRom(const std::filesystem::path& path,
+                  const std::string& title = "YAZE TEST ROM") {
+  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  for (size_t i = 0; i < title.size() && (0x7FC0 + i) < rom_data.size(); ++i) {
+    rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
+  }
+  std::ofstream out(path, std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(out.is_open());
+  out.write(reinterpret_cast<const char*>(rom_data.data()),
+            static_cast<std::streamsize>(rom_data.size()));
+  ASSERT_TRUE(out.good());
+}
+
 void DisableRomWritesForTest() {
   auto& flags = core::FeatureFlags::get();
   flags.kSaveDungeonMaps = false;
@@ -93,7 +107,8 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldProperties = false;
 }
 
-TEST(EditorManagerRomWritePolicyTest, SaveRomWarnsOnHashMismatchAndConfirmsOnce) {
+TEST(EditorManagerRomWritePolicyTest,
+     SaveRomWarnsOnHashMismatchAndConfirmsOnce) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -217,6 +232,119 @@ TEST(EditorManagerRomWritePolicyTest,
             original);
 }
 
+TEST(EditorManagerRomWritePolicyTest,
+     EditableProjectTargetBypassesHashMismatchChecks) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const std::filesystem::path dev_rom_path =
+      MakeTempFilePath("yaze_project_dev_target.sfc");
+  const std::filesystem::path build_rom_path =
+      MakeTempFilePath("yaze_project_build_target.sfc");
+  ScopedFileCleanup dev_cleanup{dev_rom_path};
+  ScopedFileCleanup build_cleanup{build_rom_path};
+  WriteTestRom(dev_rom_path, "YAZE DEV TARGET");
+  WriteTestRom(build_rom_path, "YAZE BUILD OUT");
+
+  ASSERT_OK(manager->OpenRomOrProject(dev_rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "EditableProjectTarget";
+  project->filepath = (dev_rom_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_filename = dev_rom_path.filename().string();
+  project->build_target = build_rom_path.filename().string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  ASSERT_TRUE(
+      project->hack_manifest
+          .LoadFromString(absl::StrFormat(R"json(
+{
+  "manifest_version": 2,
+  "hack_name": "Editable Project Target",
+  "build_pipeline": {
+    "dev_rom": "%s",
+    "patched_rom": "%s"
+  }
+}
+)json",
+                                          dev_rom_path.filename().string(),
+                                          build_rom_path.filename().string()))
+          .ok());
+
+  ASSERT_FALSE(manager->GetCurrentRomHash().empty());
+  project->rom_metadata.expected_hash = "deadbeef";
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+}
+
+TEST(EditorManagerRomWritePolicyTest,
+     SaveRomBlocksWhenLoadedRomMatchesProjectBuildOutput) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const std::filesystem::path dev_rom_path =
+      MakeTempFilePath("yaze_build_output_editable.sfc");
+  const std::filesystem::path build_rom_path =
+      MakeTempFilePath("yaze_build_output_loaded.sfc");
+  ScopedFileCleanup dev_cleanup{dev_rom_path};
+  ScopedFileCleanup build_cleanup{build_rom_path};
+  WriteTestRom(dev_rom_path, "YAZE DEV TARGET");
+  WriteTestRom(build_rom_path, "YAZE BUILD OUT");
+
+  ASSERT_OK(manager->OpenRomOrProject(build_rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "BuildOutputLoaded";
+  project->filepath = (build_rom_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_filename = dev_rom_path.filename().string();
+  project->build_target = build_rom_path.filename().string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  ASSERT_TRUE(
+      project->hack_manifest
+          .LoadFromString(absl::StrFormat(R"json(
+{
+  "manifest_version": 2,
+  "hack_name": "Build Output Loaded",
+  "build_pipeline": {
+    "dev_rom": "%s",
+    "patched_rom": "%s"
+  }
+}
+)json",
+                                          dev_rom_path.filename().string(),
+                                          build_rom_path.filename().string()))
+          .ok());
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_TRUE(rom->is_loaded());
+
+  constexpr uint32_t kPcOffset = 0x1234;
+  const uint8_t original =
+      ReadByteAt(build_rom_path, static_cast<std::streamoff>(kPcOffset));
+  const uint8_t mutated = static_cast<uint8_t>(original ^ 0xFF);
+  ASSERT_OK(rom->WriteByte(static_cast<int>(kPcOffset), mutated));
+
+  auto status = manager->SaveRom();
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_FALSE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(ReadByteAt(build_rom_path, static_cast<std::streamoff>(kPcOffset)),
+            original);
+}
+
 }  // namespace
 }  // namespace yaze::editor
-
