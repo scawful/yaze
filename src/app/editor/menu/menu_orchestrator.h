@@ -19,7 +19,7 @@ class EditorManager;
 class RomFileManager;
 class ProjectManager;
 class EditorRegistry;
-class PanelManager;
+class WorkspaceWindowManager;
 class SessionCoordinator;
 class ToastManager;
 class PopupManager;
@@ -50,7 +50,9 @@ class MenuOrchestrator {
   ~MenuOrchestrator() = default;
 
   // Set optional dependencies for advanced features
-  void SetPanelManager(PanelManager* manager) { panel_manager_ = manager; }
+  void SetWindowManager(WorkspaceWindowManager* manager) {
+    window_manager_ = manager;
+  }
   void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
 
@@ -63,9 +65,11 @@ class MenuOrchestrator {
   void BuildFileMenu();
   void BuildEditMenu();
   void BuildViewMenu();
-  void BuildPanelsMenu();  // Top-level Panels menu for panel management
-  void BuildToolsMenu();   // Also contains former Debug menu items
-  void BuildWindowMenu();
+  // Top-level "Windows" menu — panel toggles, sessions, and layout
+  // management. The legacy top-level "Window" menu has been folded in here as
+  // Sessions ▸ and Layout ▸ submenus.
+  void BuildPanelsMenu();
+  void BuildToolsMenu();  // Also contains former Debug menu items
   void BuildHelpMenu();
 
   // Menu state management
@@ -195,7 +199,7 @@ class MenuOrchestrator {
   PopupManager& popup_manager_;
 
   // Optional dependencies for advanced features
-  PanelManager* panel_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
   StatusBar* status_bar_ = nullptr;
   UserSettings* user_settings_ = nullptr;
 
@@ -211,6 +215,7 @@ class MenuOrchestrator {
   void AddPanelsMenuItems();  // Top-level panels menu items
   void AddToolsMenuItems();   // Also contains former Debug menu items
   void AddSearchMenuItems();
+  void AddHackWorkflowMenuItems();
   void AddRomAnalysisMenuItems();
   void AddAsarIntegrationMenuItems();
   void AddDevelopmentMenuItems();
@@ -218,7 +223,9 @@ class MenuOrchestrator {
 #ifdef YAZE_WITH_GRPC
   void AddCollaborationMenuItems();
 #endif
-  void AddWindowMenuItems();
+  // Submenus that live inside the top-level Windows menu.
+  void AddSessionsSubmenu();
+  void AddLayoutSubmenu();
   void AddHelpMenuItems();
 
   // Menu item validation helpers

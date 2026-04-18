@@ -1,11 +1,12 @@
 #include "app/editor/layout/layout_manager.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <string>
 
 #include "app/editor/layout/layout_presets.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gui/core/background_renderer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -22,17 +23,22 @@ namespace editor {
 
 namespace {
 
-// Helper function to show default cards from LayoutPresets
-void ShowDefaultPanelsForEditor(PanelManager* registry, EditorType type) {
-  if (!registry) return;
+constexpr char kLegacyPanelsKey[] = "panels";
+constexpr char kWindowsKey[] = "windows";
 
-  auto default_panels = LayoutPresets::GetDefaultPanels(type);
-  for (const auto& panel_id : default_panels) {
-    registry->ShowPanel(panel_id);
+// Helper function to show default windows from LayoutPresets
+void ShowDefaultWindowsForEditor(WorkspaceWindowManager* registry,
+                                 EditorType type) {
+  if (!registry)
+    return;
+
+  auto default_windows = LayoutPresets::GetDefaultWindows(type);
+  for (const auto& window_id : default_windows) {
+    registry->OpenWindow(window_id);
   }
 
-  LOG_INFO("LayoutManager", "Showing %zu default panels for editor type %d",
-           default_panels.size(), static_cast<int>(type));
+  LOG_INFO("LayoutManager", "Showing %zu default windows for editor type %d",
+           default_windows.size(), static_cast<int>(type));
 }
 
 yaze::Json BoolMapToJson(const std::unordered_map<std::string, bool>& map) {
@@ -54,6 +60,22 @@ void JsonToBoolMap(const yaze::Json& obj,
       (*map)[key] = value.get<bool>();
     }
   }
+}
+
+void JsonToWindowMap(const yaze::Json& entry,
+                     std::unordered_map<std::string, bool>* windows) {
+  if (!windows || !entry.is_object()) {
+    return;
+  }
+  if (entry.contains(kWindowsKey)) {
+    JsonToBoolMap(entry[kWindowsKey], windows);
+    return;
+  }
+  if (entry.contains(kLegacyPanelsKey)) {
+    JsonToBoolMap(entry[kLegacyPanelsKey], windows);
+    return;
+  }
+  windows->clear();
 }
 
 std::filesystem::path GetLayoutsFilePath(LayoutScope scope,
@@ -160,12 +182,12 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   // Clear existing layout for this dockspace
   ImGui::DockBuilderRemoveNode(dockspace_id);
   ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
-  
-  ImVec2 dockspace_size = ImVec2(1280, 720); // Safe default
+
+  ImVec2 dockspace_size = ImVec2(1280, 720);  // Safe default
   if (auto* viewport = ImGui::GetMainViewport()) {
     dockspace_size = viewport->WorkSize;
   }
-  
+
   const ImVec2 last_size = gui::DockSpaceRenderer::GetLastDockspaceSize();
   if (last_size.x > 0.0f && last_size.y > 0.0f) {
     dockspace_size = last_size;
@@ -175,8 +197,8 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   // Build layout based on editor type using generic builder
   BuildLayoutFromPreset(type, dockspace_id);
 
-  // Show default cards from LayoutPresets (single source of truth)
-  ShowDefaultPanelsForEditor(panel_manager_, type);
+  // Show default windows from LayoutPresets (single source of truth)
+  ShowDefaultWindowsForEditor(window_manager_, type);
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -218,7 +240,7 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
   BuildLayoutFromPreset(type, dockspace_id);
 
   // Show default cards from LayoutPresets (single source of truth)
-  ShowDefaultPanelsForEditor(panel_manager_, type);
+  ShowDefaultWindowsForEditor(window_manager_, type);
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
@@ -327,9 +349,32 @@ struct DockSplitNeeds {
   bool right_bottom = false;
 };
 
-DockSplitNeeds ComputeSplitNeeds(const PanelLayoutPreset& preset) {
+bool ShouldDockPanelInDefaultLayout(const PanelLayoutPreset& preset,
+                                    const std::string& panel_id) {
+  if (!preset.dock_only_default_visible_panels) {
+    return true;
+  }
+  return std::find(preset.default_visible_panels.begin(),
+                   preset.default_visible_panels.end(),
+                   panel_id) != preset.default_visible_panels.end();
+}
+
+std::vector<std::pair<std::string, DockPosition>> CollectDockedPanels(
+    const PanelLayoutPreset& preset) {
+  std::vector<std::pair<std::string, DockPosition>> docked_panels;
+  docked_panels.reserve(preset.panel_positions.size());
+  for (const auto& [panel_id, position] : preset.panel_positions) {
+    if (ShouldDockPanelInDefaultLayout(preset, panel_id)) {
+      docked_panels.emplace_back(panel_id, position);
+    }
+  }
+  return docked_panels;
+}
+
+DockSplitNeeds ComputeSplitNeeds(
+    const std::vector<std::pair<std::string, DockPosition>>& docked_panels) {
   DockSplitNeeds needs{};
-  for (const auto& [_, pos] : preset.panel_positions) {
+  for (const auto& [_, pos] : docked_panels) {
     switch (pos) {
       case DockPosition::Left:
         needs.left = true;
@@ -367,6 +412,61 @@ DockSplitNeeds ComputeSplitNeeds(const PanelLayoutPreset& preset) {
   return needs;
 }
 
+bool IsRightDockPosition(DockPosition pos) {
+  return pos == DockPosition::Right || pos == DockPosition::RightTop ||
+         pos == DockPosition::RightBottom;
+}
+
+bool IsLeftDockPosition(DockPosition pos) {
+  return pos == DockPosition::Left || pos == DockPosition::LeftTop ||
+         pos == DockPosition::LeftBottom;
+}
+
+float ResolvePreferredRegionWidth(
+    WorkspaceWindowManager* window_manager,
+    const std::vector<std::pair<std::string, DockPosition>>& docked_panels,
+    bool (*matches_region)(DockPosition)) {
+  if (!window_manager) {
+    return 0.0f;
+  }
+
+  float preferred_width = 0.0f;
+  for (const auto& [panel_id, position] : docked_panels) {
+    if (!matches_region(position)) {
+      continue;
+    }
+    if (WindowContent* panel = window_manager->GetWindowContent(panel_id)) {
+      preferred_width = std::max(preferred_width, panel->GetPreferredWidth());
+    }
+  }
+  return preferred_width;
+}
+
+void ApplyPreferredSplitWidths(
+    DockSplitConfig* cfg, const DockSplitNeeds& needs, float viewport_width,
+    WorkspaceWindowManager* window_manager,
+    const std::vector<std::pair<std::string, DockPosition>>& docked_panels) {
+  if (!cfg || !window_manager || viewport_width <= 0.0f) {
+    return;
+  }
+
+  if (needs.left) {
+    const float preferred_left = ResolvePreferredRegionWidth(
+        window_manager, docked_panels, IsLeftDockPosition);
+    if (preferred_left > 0.0f) {
+      cfg->left = std::clamp(preferred_left / viewport_width, 0.14f, 0.36f);
+    }
+  }
+
+  if (needs.right) {
+    const float preferred_right = ResolvePreferredRegionWidth(
+        window_manager, docked_panels, IsRightDockPosition);
+    if (preferred_right > 0.0f) {
+      cfg->right = std::clamp(preferred_right / viewport_width, 0.18f, 0.42f);
+    }
+  }
+}
+
 DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
                           const DockSplitConfig& cfg) {
   DockNodeIds ids{};
@@ -395,7 +495,7 @@ DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
     // If we only need one, the split still happens but we use the result accordingly
     ids.left_bottom = ImGui::DockBuilderSplitNode(
         ids.left, ImGuiDir_Down, cfg.vertical_split, nullptr, &ids.left_top);
-    
+
     // If one isn't needed, we technically don't have to split, but for a stable tree,
     // we do it and get_dock_id will map to the leaf.
   }
@@ -411,18 +511,21 @@ DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
 
 }  // namespace
 
-void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id) {
+void LayoutManager::BuildLayoutFromPreset(EditorType type,
+                                          ImGuiID dockspace_id) {
   auto preset = LayoutPresets::GetDefaultPreset(type);
 
-  if (!panel_manager_) {
+  if (!window_manager_) {
     LOG_WARN("LayoutManager",
-             "PanelManager not available, skipping dock layout for type %d",
+             "WorkspaceWindowManager not available, skipping dock layout for "
+             "type %d",
              static_cast<int>(type));
     return;
   }
 
   const size_t session_id =
-      panel_manager_ ? panel_manager_->GetActiveSessionId() : 0;
+      window_manager_ ? window_manager_->GetActiveSessionId() : 0;
+  const auto docked_panels = CollectDockedPanels(preset);
 
   // On compact/touch layouts, collapse all panels into center tabs instead of
   // splitting into left/right/bottom regions. This gives each panel full
@@ -449,8 +552,10 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
   DockSplitNeeds needs{};
   DockSplitConfig cfg{};
   if (!is_compact) {
-    needs = ComputeSplitNeeds(preset);
+    needs = ComputeSplitNeeds(docked_panels);
     cfg = DockSplitConfig::ForEditor(type);
+    ApplyPreferredSplitWidths(&cfg, needs, viewport_width, window_manager_,
+                              docked_panels);
   }
   // When compact, needs is all-false → BuildDockTree produces center-only.
   DockNodeIds ids = BuildDockTree(dockspace_id, needs, cfg);
@@ -473,8 +578,7 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
       case DockPosition::Top:
         return ids.top ? ids.top : ids.center;
       case DockPosition::LeftTop:
-        return ids.left_top ? ids.left_top
-                            : (ids.left ? ids.left : ids.center);
+        return ids.left_top ? ids.left_top : (ids.left ? ids.left : ids.center);
       case DockPosition::LeftBottom:
         return ids.left_bottom ? ids.left_bottom
                                : (ids.left ? ids.left : ids.center);
@@ -490,62 +594,97 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id)
     }
   };
 
-  // Iterate through positioned panels and dock them
-  for (const auto& [panel_id, position] : preset.panel_positions) {
-    const PanelDescriptor* desc =
-        panel_manager_
-            ? panel_manager_->GetPanelDescriptor(session_id, panel_id)
+  std::vector<ImGuiID> auto_hide_nodes;
+
+  // Iterate through positioned windows and dock them
+  for (const auto& [panel_id, position] : docked_panels) {
+    const WindowDescriptor* desc =
+        window_manager_
+            ? window_manager_->GetWindowDescriptor(session_id, panel_id)
             : nullptr;
     if (!desc) {
       LOG_WARN("LayoutManager",
-               "Preset references panel '%s' that is not registered (session "
+               "Preset references window '%s' that is not registered (session "
                "%zu)",
                panel_id.c_str(), session_id);
       continue;
     }
 
-    std::string window_title = panel_manager_->GetPanelWindowName(*desc);
+    std::string window_title = window_manager_->GetWorkspaceWindowName(*desc);
     if (window_title.empty()) {
       LOG_WARN("LayoutManager",
-               "Cannot dock panel '%s': missing window name (session %zu)",
+               "Cannot dock window '%s': missing window name (session %zu)",
                panel_id.c_str(), session_id);
       continue;
     }
 
-    ImGui::DockBuilderDockWindow(window_title.c_str(), get_dock_id(position));
+    const ImGuiID dock_id = get_dock_id(position);
+    ImGui::DockBuilderDockWindow(window_title.c_str(), dock_id);
+
+    if (WindowContent* panel = window_manager_->GetWindowContent(panel_id);
+        panel && panel->PreferAutoHideTabBar() &&
+        std::find(auto_hide_nodes.begin(), auto_hide_nodes.end(), dock_id) ==
+            auto_hide_nodes.end()) {
+      if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(dock_id)) {
+        node->LocalFlags |= ImGuiDockNodeFlags_AutoHideTabBar;
+        auto_hide_nodes.push_back(dock_id);
+      }
+    }
   }
 }
 
 // Deprecated individual build methods - redirected to generic or kept empty
-void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kOverworld, dockspace_id); }
-void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kDungeon, dockspace_id); }
-void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kGraphics, dockspace_id); }
-void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kPalette, dockspace_id); }
-void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kScreen, dockspace_id); }
-void LayoutManager::BuildMusicLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kMusic, dockspace_id); }
-void LayoutManager::BuildSpriteLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kSprite, dockspace_id); }
-void LayoutManager::BuildMessageLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kMessage, dockspace_id); }
-void LayoutManager::BuildAssemblyLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kAssembly, dockspace_id); }
-void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kSettings, dockspace_id); }
-void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) { BuildLayoutFromPreset(EditorType::kEmulator, dockspace_id); }
+void LayoutManager::BuildOverworldLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kOverworld, dockspace_id);
+}
+void LayoutManager::BuildDungeonLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kDungeon, dockspace_id);
+}
+void LayoutManager::BuildGraphicsLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kGraphics, dockspace_id);
+}
+void LayoutManager::BuildPaletteLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kPalette, dockspace_id);
+}
+void LayoutManager::BuildScreenLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kScreen, dockspace_id);
+}
+void LayoutManager::BuildMusicLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kMusic, dockspace_id);
+}
+void LayoutManager::BuildSpriteLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kSprite, dockspace_id);
+}
+void LayoutManager::BuildMessageLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kMessage, dockspace_id);
+}
+void LayoutManager::BuildAssemblyLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kAssembly, dockspace_id);
+}
+void LayoutManager::BuildSettingsLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kSettings, dockspace_id);
+}
+void LayoutManager::BuildEmulatorLayout(ImGuiID dockspace_id) {
+  BuildLayoutFromPreset(EditorType::kEmulator, dockspace_id);
+}
 
 void LayoutManager::SaveCurrentLayout(const std::string& name, bool persist) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     LOG_WARN("LayoutManager",
-             "Cannot save layout '%s': PanelManager not available",
+             "Cannot save layout '%s': WorkspaceWindowManager not available",
              name.c_str());
     return;
   }
 
   const LayoutScope scope = GetActiveScope();
 
-  // Serialize current panel visibility state
-  size_t session_id = panel_manager_->GetActiveSessionId();
-  auto visibility_state = panel_manager_->SerializeVisibilityState(session_id);
+  // Serialize current window visibility state
+  size_t session_id = window_manager_->GetActiveSessionId();
+  auto visibility_state = window_manager_->SerializeVisibilityState(session_id);
 
   // Store in saved_layouts_ for later persistence
   saved_layouts_[name] = visibility_state;
-  saved_pinned_layouts_[name] = panel_manager_->SerializePinnedState();
+  saved_pinned_layouts_[name] = window_manager_->SerializePinnedState();
   layout_scopes_[name] = scope;
 
   // Also save ImGui docking layout to memory
@@ -559,15 +698,15 @@ void LayoutManager::SaveCurrentLayout(const std::string& name, bool persist) {
     SaveLayoutsToDisk(scope);
   }
 
-  LOG_INFO("LayoutManager", "Saved layout '%s' with %zu panel states%s",
+  LOG_INFO("LayoutManager", "Saved layout '%s' with %zu window states%s",
            name.c_str(), visibility_state.size(),
            persist ? "" : " (session-only)");
 }
 
 void LayoutManager::LoadLayout(const std::string& name) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     LOG_WARN("LayoutManager",
-             "Cannot load layout '%s': PanelManager not available",
+             "Cannot load layout '%s': WorkspaceWindowManager not available",
              name.c_str());
     return;
   }
@@ -579,34 +718,35 @@ void LayoutManager::LoadLayout(const std::string& name) {
     return;
   }
 
-  // Restore panel visibility
-  size_t session_id = panel_manager_->GetActiveSessionId();
-  panel_manager_->RestoreVisibilityState(session_id, layout_it->second,
-                                         /*publish_events=*/true);
+  // Restore window visibility
+  size_t session_id = window_manager_->GetActiveSessionId();
+  window_manager_->RestoreVisibilityState(session_id, layout_it->second,
+                                          /*publish_events=*/true);
 
   auto pinned_it = saved_pinned_layouts_.find(name);
   if (pinned_it != saved_pinned_layouts_.end()) {
-    panel_manager_->RestorePinnedState(pinned_it->second);
+    window_manager_->RestorePinnedState(pinned_it->second);
   }
 
   // Restore ImGui docking layout if available
   auto imgui_it = saved_imgui_layouts_.find(name);
   if (imgui_it != saved_imgui_layouts_.end() && !imgui_it->second.empty()) {
     ImGui::LoadIniSettingsFromMemory(imgui_it->second.c_str(),
-                                      imgui_it->second.size());
+                                     imgui_it->second.size());
   }
 
   LOG_INFO("LayoutManager", "Loaded layout '%s'", name.c_str());
 }
 
 void LayoutManager::CaptureTemporarySessionLayout(size_t session_id) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     return;
   }
 
   temp_session_id_ = session_id;
-  temp_session_visibility_ = panel_manager_->SerializeVisibilityState(session_id);
-  temp_session_pinned_ = panel_manager_->SerializePinnedState();
+  temp_session_visibility_ =
+      window_manager_->SerializeVisibilityState(session_id);
+  temp_session_pinned_ = window_manager_->SerializePinnedState();
 
   size_t ini_size = 0;
   const char* ini_data = ImGui::SaveIniSettingsToMemory(&ini_size);
@@ -617,14 +757,15 @@ void LayoutManager::CaptureTemporarySessionLayout(size_t session_id) {
   }
 
   has_temp_session_layout_ = true;
-  LOG_INFO("LayoutManager",
-           "Captured temporary session layout for session %zu (%zu panel states)",
-           session_id, temp_session_visibility_.size());
+  LOG_INFO(
+      "LayoutManager",
+      "Captured temporary session layout for session %zu (%zu panel states)",
+      session_id, temp_session_visibility_.size());
 }
 
 bool LayoutManager::RestoreTemporarySessionLayout(size_t session_id,
                                                   bool clear_after_restore) {
-  if (!panel_manager_ || !has_temp_session_layout_) {
+  if (!window_manager_ || !has_temp_session_layout_) {
     return false;
   }
 
@@ -635,9 +776,9 @@ bool LayoutManager::RestoreTemporarySessionLayout(size_t session_id,
     return false;
   }
 
-  panel_manager_->RestoreVisibilityState(session_id, temp_session_visibility_,
-                                         /*publish_events=*/true);
-  panel_manager_->RestorePinnedState(temp_session_pinned_);
+  window_manager_->RestoreVisibilityState(session_id, temp_session_visibility_,
+                                          /*publish_events=*/true);
+  window_manager_->RestorePinnedState(temp_session_pinned_);
 
   if (!temp_session_imgui_layout_.empty()) {
     ImGui::LoadIniSettingsFromMemory(temp_session_imgui_layout_.c_str(),
@@ -715,9 +856,9 @@ bool LayoutManager::ApplyBuiltInProfile(const std::string& profile_id,
                                         size_t session_id,
                                         EditorType editor_type,
                                         LayoutProfile* out_profile) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     LOG_WARN("LayoutManager",
-             "Cannot apply profile '%s': PanelManager not available",
+             "Cannot apply profile '%s': WorkspaceWindowManager not available",
              profile_id.c_str());
     return false;
   }
@@ -751,9 +892,9 @@ bool LayoutManager::ApplyBuiltInProfile(const std::string& profile_id,
     return false;
   }
 
-  panel_manager_->HideAllPanelsInSession(session_id);
+  window_manager_->HideAllWindowsInSession(session_id);
   for (const auto& panel_id : preset.default_visible_panels) {
-    panel_manager_->ShowPanel(session_id, panel_id);
+    window_manager_->OpenWindow(session_id, panel_id);
   }
 
   RequestRebuild();
@@ -848,17 +989,15 @@ void LayoutManager::LoadLayoutsFromDiskInternal(LayoutScope scope, bool merge) {
         continue;
       }
 
-      std::unordered_map<std::string, bool> panels;
+      std::unordered_map<std::string, bool> windows;
       std::unordered_map<std::string, bool> pinned;
 
-      if (entry.contains("panels")) {
-        JsonToBoolMap(entry["panels"], &panels);
-      }
+      JsonToWindowMap(entry, &windows);
       if (entry.contains("pinned")) {
         JsonToBoolMap(entry["pinned"], &pinned);
       }
 
-      saved_layouts_[name] = std::move(panels);
+      saved_layouts_[name] = std::move(windows);
       saved_pinned_layouts_[name] = std::move(pinned);
       layout_scopes_[name] = scope;
 
@@ -884,8 +1023,8 @@ void LayoutManager::SaveLayoutsToDisk(LayoutScope scope) const {
     return;
   }
 
-  auto status = util::PlatformPaths::EnsureDirectoryExists(
-      layout_path.parent_path());
+  auto status =
+      util::PlatformPaths::EnsureDirectoryExists(layout_path.parent_path());
   if (!status.ok()) {
     LOG_WARN("LayoutManager", "Failed to create layout directory: %s",
              status.ToString().c_str());
@@ -894,17 +1033,17 @@ void LayoutManager::SaveLayoutsToDisk(LayoutScope scope) const {
 
   try {
     yaze::Json root;
-    root["version"] = 1;
+    root["version"] = 2;
     root["layouts"] = yaze::Json::object();
 
-    for (const auto& [name, panels] : saved_layouts_) {
+    for (const auto& [name, windows] : saved_layouts_) {
       auto scope_it = layout_scopes_.find(name);
       if (scope_it != layout_scopes_.end() && scope_it->second != scope) {
         continue;
       }
 
       yaze::Json entry;
-      entry["panels"] = BoolMapToJson(panels);
+      entry[kWindowsKey] = BoolMapToJson(windows);
 
       auto pinned_it = saved_pinned_layouts_.find(name);
       if (pinned_it != saved_pinned_layouts_.end()) {
@@ -955,12 +1094,12 @@ void LayoutManager::ClearInitializationFlags() {
 }
 
 std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     return "";
   }
 
-  const size_t session_id = panel_manager_->GetActiveSessionId();
-  return panel_manager_->GetPanelWindowName(session_id, card_id);
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  return window_manager_->GetWorkspaceWindowName(session_id, card_id);
 }
 
 }  // namespace editor

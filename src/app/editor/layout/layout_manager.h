@@ -12,7 +12,7 @@ namespace yaze {
 namespace editor {
 
 // Forward declaration
-class PanelManager;
+class WorkspaceWindowManager;
 
 /**
  * @enum LayoutType
@@ -37,19 +37,16 @@ enum class LayoutType {
  * @enum LayoutScope
  * @brief Storage scope for saved layouts
  */
-enum class LayoutScope {
-  kGlobal,
-  kProject
-};
+enum class LayoutScope { kGlobal, kProject };
 
 /**
  * @brief Built-in workflow-oriented layout profiles.
  */
 struct LayoutProfile {
-  std::string id;          // Stable id (e.g. "code", "debug")
-  std::string label;       // UI-facing label
-  std::string description; // Short profile summary
-  std::string preset_name; // Backing LayoutPresets name
+  std::string id;           // Stable id (e.g. "code", "debug")
+  std::string label;        // UI-facing label
+  std::string description;  // Short profile summary
+  std::string preset_name;  // Backing LayoutPresets name
   bool open_agent_chat = false;
 };
 
@@ -74,18 +71,18 @@ class LayoutManager {
   ~LayoutManager() = default;
 
   /**
-   * @brief Set the panel manager for window title lookups
-   * @param registry Pointer to the PanelManager
+   * @brief Set the window manager for window title lookups
+   * @param manager Pointer to the WorkspaceWindowManager
    */
-  void SetPanelManager(PanelManager* manager) {
-    panel_manager_ = manager;
+  void SetWindowManager(WorkspaceWindowManager* manager) {
+    window_manager_ = manager;
   }
 
   /**
-   * @brief Get the panel manager
-   * @return Pointer to the PanelManager
+   * @brief Get the window manager
+   * @return Pointer to the WorkspaceWindowManager
    */
-  PanelManager* panel_manager() const { return panel_manager_; }
+  WorkspaceWindowManager* window_manager() const { return window_manager_; }
 
   /**
    * @brief Initialize the default layout for a specific editor type
@@ -280,7 +277,7 @@ class LayoutManager {
   std::unordered_map<EditorType, bool> layouts_initialized_;
 
   // Panel manager for window title lookups
-  PanelManager* panel_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
 
   // Current layout type
   LayoutType current_layout_type_ = LayoutType::kDefault;
