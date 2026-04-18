@@ -514,7 +514,7 @@ void PanelWindow::DrawHeaderButtons() {
 
   // Skip drawing header buttons in content area - they interfere with docking
   // and take up vertical space. The pin state is still tracked and used by
-  // PanelManager for category filtering.
+  // WorkspaceWindowManager for category filtering.
 }
 
 void PanelWindow::UpdateWindowName() {

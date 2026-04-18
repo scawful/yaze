@@ -15,7 +15,7 @@ class Rom;
 
 namespace editor {
 
-class PanelManager;
+class WorkspaceWindowManager;
 class ShortcutManager;
 
 /**
@@ -52,9 +52,7 @@ class SettingsPanel : public Editor {
   absl::Status Find() override { return absl::OkStatus(); }
 
   void SetUserSettings(UserSettings* settings) { user_settings_ = settings; }
-  void SetPanelManager(PanelManager* registry) { panel_manager_ = registry; }
-  // Legacy alias during Panel→Panel rename.
-  void SetPanelRegistry(PanelManager* registry) { SetPanelManager(registry); }
+  void SetWindowManager(WorkspaceWindowManager* registry) { window_manager_ = registry; }
   void SetShortcutManager(ShortcutManager* manager) { shortcut_manager_ = manager; }
   void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
   void SetRom(Rom* rom) { rom_ = rom; }
@@ -82,7 +80,7 @@ class SettingsPanel : public Editor {
   void DrawParameterWidget(core::PatchParameter* param);
 
   UserSettings* user_settings_ = nullptr;
-  PanelManager* panel_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
   ShortcutManager* shortcut_manager_ = nullptr;
   StatusBar* status_bar_ = nullptr;
   Rom* rom_ = nullptr;

@@ -14,7 +14,7 @@ namespace editor {
 
 class EditorSet;
 class ToastManager;
-class PanelManager;
+class WorkspaceWindowManager;
 class LayoutManager;
 
 /**
@@ -32,9 +32,9 @@ class WorkspaceManager {
   explicit WorkspaceManager(ToastManager* toast_manager)
       : toast_manager_(toast_manager) {}
 
-  // Set panel manager for window visibility management
-  void set_panel_manager(PanelManager* manager) {
-    panel_manager_ = manager;
+  // Set window manager for window visibility management
+  void set_window_manager(WorkspaceWindowManager* manager) {
+    window_manager_ = manager;
   }
 
   void set_layout_manager(LayoutManager* manager) { layout_manager_ = manager; }
@@ -86,7 +86,7 @@ class WorkspaceManager {
 
  private:
   ToastManager* toast_manager_;
-  PanelManager* panel_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
   LayoutManager* layout_manager_ = nullptr;
   std::function<void(const std::string&)> apply_preset_callback_;
   std::deque<SessionInfo>* sessions_ = nullptr;

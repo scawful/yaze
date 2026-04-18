@@ -6,13 +6,13 @@ namespace yaze {
 namespace editor {
 
 LayoutOrchestrator::LayoutOrchestrator(LayoutManager* layout_manager,
-                                       PanelManager* panel_manager)
-    : layout_manager_(layout_manager), panel_manager_(panel_manager) {}
+                                       WorkspaceWindowManager* window_manager)
+    : layout_manager_(layout_manager), window_manager_(window_manager) {}
 
 void LayoutOrchestrator::Initialize(LayoutManager* layout_manager,
-                                    PanelManager* panel_manager) {
+                                    WorkspaceWindowManager* window_manager) {
   layout_manager_ = layout_manager;
-  panel_manager_ = panel_manager;
+  window_manager_ = window_manager;
 }
 
 void LayoutOrchestrator::ApplyPreset(EditorType type, size_t session_id) {
@@ -66,10 +66,10 @@ void LayoutOrchestrator::ResetToDefault(EditorType type, size_t session_id) {
 
 std::string LayoutOrchestrator::GetWindowTitle(const std::string& card_id,
                                                size_t session_id) const {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     return "";
   }
-  return panel_manager_->GetPanelWindowName(session_id, card_id);
+  return window_manager_->GetWorkspaceWindowName(session_id, card_id);
 }
 
 std::vector<std::string> LayoutOrchestrator::GetVisiblePanels(
@@ -82,24 +82,24 @@ std::vector<std::string> LayoutOrchestrator::GetVisiblePanels(
 void LayoutOrchestrator::ShowPresetPanels(const PanelLayoutPreset& preset,
                                           size_t session_id,
                                           EditorType editor_type) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     return;
   }
 
   for (const auto& panel_id : preset.default_visible_panels) {
-    panel_manager_->ShowPanel(session_id, panel_id);
+    window_manager_->OpenWindow(session_id, panel_id);
   }
 }
 
 void LayoutOrchestrator::HideOptionalPanels(EditorType type,
                                             size_t session_id) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     return;
   }
 
   auto preset = LayoutPresets::GetDefaultPreset(type);
   for (const auto& panel_id : preset.optional_panels) {
-    panel_manager_->HidePanel(session_id, panel_id);
+    window_manager_->CloseWindow(session_id, panel_id);
   }
 }
 
@@ -160,10 +160,10 @@ void LayoutOrchestrator::ApplyDockLayout(EditorType type) {
   layout_manager_->RequestRebuild();
 }
 
-std::string LayoutOrchestrator::GetPrefixedPanelId(const std::string& card_id,
+std::string LayoutOrchestrator::GetPrefixedWindowId(const std::string& card_id,
                                                    size_t session_id) const {
-  if (panel_manager_) {
-    return panel_manager_->MakePanelId(session_id, card_id);
+  if (window_manager_) {
+    return window_manager_->MakeWindowId(session_id, card_id);
   }
   if (session_id == 0) {
     return card_id;

@@ -7,14 +7,14 @@
 #include "app/editor/editor.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 
 namespace yaze {
 namespace editor {
 
 /**
  * @class LayoutOrchestrator
- * @brief Coordinates between LayoutManager, PanelManager, and LayoutPresets
+ * @brief Coordinates between LayoutManager, WorkspaceWindowManager, and LayoutPresets
  *
  * This class unifies the card and layout systems by:
  * 1. Using PanelInfo.window_title for DockBuilder operations
@@ -29,13 +29,13 @@ class LayoutOrchestrator {
  public:
   LayoutOrchestrator() = default;
   LayoutOrchestrator(LayoutManager* layout_manager,
-                     PanelManager* panel_manager);
+                     WorkspaceWindowManager* window_manager);
 
   /**
    * @brief Initialize with dependencies
    */
   void Initialize(LayoutManager* layout_manager,
-                  PanelManager* panel_manager);
+                  WorkspaceWindowManager* window_manager);
 
   /**
    * @brief Apply the default layout preset for an editor type
@@ -109,13 +109,13 @@ class LayoutOrchestrator {
   /**
    * @brief Get the card registry
    */
-  PanelManager* panel_manager() { return panel_manager_; }
+  WorkspaceWindowManager* window_manager() { return window_manager_; }
 
   /**
    * @brief Check if orchestrator is properly initialized
    */
   bool IsInitialized() const {
-    return layout_manager_ != nullptr && panel_manager_ != nullptr;
+    return layout_manager_ != nullptr && window_manager_ != nullptr;
   }
 
  private:
@@ -127,11 +127,11 @@ class LayoutOrchestrator {
   /**
    * @brief Get prefixed card ID for a session
    */
-  std::string GetPrefixedPanelId(const std::string& card_id,
+  std::string GetPrefixedWindowId(const std::string& card_id,
                                 size_t session_id) const;
 
   LayoutManager* layout_manager_ = nullptr;
-  PanelManager* panel_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
   bool rebuild_requested_ = false;
 };
 
@@ -139,4 +139,3 @@ class LayoutOrchestrator {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_LAYOUT_LAYOUT_ORCHESTRATOR_H_
-

@@ -10,12 +10,14 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
 // Project headers
 #include "app/editor/graphics/panels/graphics_editor_panels.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/menu/status_bar.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -48,9 +50,9 @@ using ImGui::InputText;
 using ImGui::SameLine;
 
 void GraphicsEditor::Initialize() {
-  if (!dependencies_.panel_manager)
+  if (!dependencies_.window_manager)
     return;
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
 
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
@@ -70,36 +72,36 @@ void GraphicsEditor::Initialize() {
   palette_controls_panel_->Initialize();
   link_sprite_panel_->Initialize();
 
-  // Register panels using EditorPanel system with callbacks
-  panel_manager->RegisterEditorPanel(
+  // Register panels using WindowContent system with callbacks
+  window_manager->RegisterWindowContent(
       std::make_unique<GraphicsSheetBrowserPanel>([this]() {
         if (sheet_browser_panel_) {
           status_ = sheet_browser_panel_->Update();
         }
       }));
 
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<GraphicsPixelEditorPanel>([this]() {
         if (pixel_editor_panel_) {
           status_ = pixel_editor_panel_->Update();
         }
       }));
 
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<GraphicsPaletteControlsPanel>([this]() {
         if (palette_controls_panel_) {
           status_ = palette_controls_panel_->Update();
         }
       }));
 
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<GraphicsLinkSpritePanel>([this]() {
         if (link_sprite_panel_) {
           status_ = link_sprite_panel_->Update();
         }
       }));
 
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<GraphicsGfxGroupPanel>([this]() {
         if (gfx_group_panel_) {
           status_ = gfx_group_panel_->Update();
@@ -107,7 +109,7 @@ void GraphicsEditor::Initialize() {
       }));
 
   // Paletteset editor panel (separated from GfxGroupEditor for better UX)
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<GraphicsPalettesetPanel>([this]() {
         if (paletteset_panel_) {
           status_ = paletteset_panel_->Update();
@@ -178,6 +180,31 @@ absl::Status GraphicsEditor::Load() {
   }
 
   return absl::OkStatus();
+}
+
+void GraphicsEditor::ContributeStatus(StatusBar* status_bar) {
+  if (!status_bar) return;
+
+  StatusBarSegmentOptions sheet_opts;
+  sheet_opts.tooltip = absl::StrFormat(
+      "Sheet %d (0x%02X) — use Command Palette to jump between sheets",
+      state_.current_sheet_id, state_.current_sheet_id);
+  status_bar->SetCustomSegment(
+      "Sheet", absl::StrFormat("0x%02X", state_.current_sheet_id),
+      std::move(sheet_opts));
+
+  if (!state_.selected_sheets.empty()) {
+    status_bar->SetSelection(static_cast<int>(state_.selected_sheets.size()));
+  }
+  if (state_.HasUnsavedChanges()) {
+    StatusBarSegmentOptions modified_opts;
+    modified_opts.tooltip = absl::StrFormat(
+        "%zu modified sheet%s pending save", state_.modified_sheets.size(),
+        state_.modified_sheets.size() == 1 ? "" : "s");
+    status_bar->SetCustomSegment(
+        "Modified", absl::StrFormat("%zu", state_.modified_sheets.size()),
+        std::move(modified_opts));
+  }
 }
 
 absl::Status GraphicsEditor::Save() {
@@ -313,7 +340,7 @@ absl::Status GraphicsEditor::Save() {
 }
 
 absl::Status GraphicsEditor::Update() {
-  // Panels are now drawn via PanelManager::DrawAllVisiblePanels()
+  // Panels are now drawn via WorkspaceWindowManager::DrawAllVisiblePanels()
   // This Update() only handles editor-level state and keyboard shortcuts
 
   // Handle editor-level keyboard shortcuts

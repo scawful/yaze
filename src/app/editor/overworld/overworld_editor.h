@@ -11,6 +11,7 @@
 #include "app/editor/overworld/canvas_navigation_manager.h"
 #include "app/editor/overworld/core/interaction_coordinator.h"
 #include "app/editor/overworld/debug_window_card.h"
+#include "app/editor/overworld/entity/entity_editing_target.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/map_properties.h"
@@ -177,9 +178,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int jump_to_tab() { return jump_to_tab_; }
   int jump_to_tab_ = -1;
 
-  /// @brief Helper to find the registered Entity Workbench component
-  OverworldEntityWorkbench* GetWorkbench();
-
   // ===========================================================================
   // ROM State
   // ===========================================================================
@@ -207,6 +205,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       overworld_.set_current_world(current_world_);
     }
   }
+  void SetCurrentMap(int map_id) { set_current_map(map_id); }
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
   int current_map_id() const { return current_map_; }
@@ -235,6 +234,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Notify that an entity has been modified, marking ROM as dirty
   void NotifyEntityModified(zelda3::GameEntity* entity);
+  void OpenEntityEditor(zelda3::GameEntity* entity);
 
   /// @brief Trigger a jump to a dungeon room
   void RequestJumpToRoom(int room_id) { jump_to_tab_ = room_id; }
@@ -302,6 +302,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Delete selected item and preserve nearest-item selection continuity.
   bool DeleteSelectedItem();
+  bool DeleteItemByIdentity(const zelda3::OverworldItem& item_identity);
 
   // ===========================================================================
   // Keyboard Shortcuts
@@ -461,6 +462,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void InitCanvasNavigationManager();
 
   // Canvas navigation (delegated to CanvasNavigationManager)
+  void DrawEntityPopups();
+  void OpenEntityContextMenu(zelda3::GameEntity* entity);
+  void DrawEntityContextMenu();
+  zelda3::GameEntity* ResolveEditingEntity();
   void HandleOverworldPan();
   void HandleOverworldZoom();
   void ZoomIn();
@@ -480,6 +485,8 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Ensure a specific map has its texture created
   void EnsureMapTexture(int map_index);
+  void PrimeWorldMaps(int world, bool process_texture_queue = false);
+  void SwitchToWorld(int world);
 
   // ===========================================================================
   // Canvas Navigation (delegated to CanvasNavigationManager)
@@ -671,6 +678,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   zelda3::GameEntity* current_entity_ = nullptr;
   zelda3::GameEntity* dragged_entity_ = nullptr;
   std::optional<zelda3::OverworldItem> selected_item_identity_;
+  std::optional<OverworldEntityEditingTarget> editing_target_;
 
   // Edit buffers for popups (session-specific)
   zelda3::OverworldEntrance edit_entrance_;

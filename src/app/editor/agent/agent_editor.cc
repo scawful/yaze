@@ -13,7 +13,7 @@
 // Centralized UI theme
 #include "app/gui/style/theme.h"
 
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gui/app/editor_layout.h"
 
 #include "absl/strings/ascii.h"
@@ -70,6 +70,8 @@ namespace yaze {
 namespace editor {
 
 namespace {
+
+constexpr char kDefaultOpenAiBaseUrl[] = "https://api.openai.com";
 
 std::optional<std::string> LoadKeychainValue(const std::string& key);
 
@@ -522,27 +524,27 @@ void AgentEditor::Initialize() {
   // Register cards with the card registry
   RegisterPanels();
 
-  // Register EditorPanel instances with PanelManager
-  if (dependencies_.panel_manager) {
-    auto* panel_manager = dependencies_.panel_manager;
+  // Register WindowContent instances with WorkspaceWindowManager
+  if (dependencies_.window_manager) {
+    auto* window_manager = dependencies_.window_manager;
 
     // Register all agent EditorPanels with callbacks
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<AgentConfigurationPanel>(
             [this]() { DrawConfigurationPanel(); }));
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<AgentStatusPanel>([this]() { DrawStatusPanel(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentPromptEditorPanel>(
+    window_manager->RegisterWindowContent(std::make_unique<AgentPromptEditorPanel>(
         [this]() { DrawPromptEditorPanel(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentBotProfilesPanel>(
+    window_manager->RegisterWindowContent(std::make_unique<AgentBotProfilesPanel>(
         [this]() { DrawBotProfilesPanel(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentBuilderPanel>(
+    window_manager->RegisterWindowContent(std::make_unique<AgentBuilderPanel>(
         [this]() { DrawAgentBuilderPanel(); }));
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<AgentChatPanel>(agent_chat_.get()));
 
     // Knowledge Base panel (callback set by AgentUiController)
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<AgentKnowledgeBasePanel>([this]() {
           if (knowledge_panel_callback_) {
             knowledge_panel_callback_();
@@ -553,33 +555,33 @@ void AgentEditor::Initialize() {
           }
         }));
 
-    panel_manager->RegisterEditorPanel(std::make_unique<AgentMesenDebugPanel>(
+    window_manager->RegisterWindowContent(std::make_unique<AgentMesenDebugPanel>(
         [this]() { DrawMesenDebugPanel(); }));
 
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<MesenScreenshotEditorPanel>(
             [this]() { DrawMesenScreenshotPanel(); }));
 
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<OracleStateLibraryEditorPanel>(
             [this]() { DrawOracleStatePanel(); }));
 
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<FeatureFlagEditorEditorPanel>(
             [this]() { DrawFeatureFlagPanel(); }));
 
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<ManifestEditorPanel>(
             [this]() { DrawManifestPanel(); }));
 
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<SramViewerEditorPanel>(
             [this]() { DrawSramViewerPanel(); }));
 
     if (agent_chat_) {
-      agent_chat_->SetPanelOpener([panel_manager](const std::string& panel_id) {
+      agent_chat_->SetPanelOpener([window_manager](const std::string& panel_id) {
         if (!panel_id.empty()) {
-          panel_manager->ShowPanel(panel_id);
+          window_manager->OpenWindow(panel_id);
         }
       });
     }
@@ -692,7 +694,7 @@ void AgentEditor::SyncProfileUiState() {
 }
 
 void AgentEditor::RegisterPanels() {
-  // Panel descriptors are now auto-created by RegisterEditorPanel() calls
+  // Panel descriptors are now auto-created by RegisterWindowContent() calls
   // in Initialize(). No need for duplicate RegisterPanel() calls here.
 }
 
@@ -797,6 +799,9 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
     profile_updated = true;
   }
 
+  const bool has_openai_endpoint_hint =
+      cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url) !=
+      kDefaultOpenAiBaseUrl;
   bool provider_is_default =
       current_profile_.provider == "mock" && current_profile_.host_id.empty();
 
@@ -810,6 +815,14 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
         current_config_.model = current_profile_.model;
       }
       profile_updated = true;
+    } else if (has_openai_endpoint_hint) {
+      current_profile_.provider = "openai";
+      current_config_.provider = "openai";
+      if (current_profile_.model.empty() && !env_openai_model.empty()) {
+        current_profile_.model = env_openai_model;
+        current_config_.model = current_profile_.model;
+      }
+      profile_updated = true;
     } else if (!current_profile_.anthropic_api_key.empty()) {
       current_profile_.provider = "anthropic";
       current_config_.provider = "anthropic";
@@ -820,8 +833,7 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
         current_config_.model = current_profile_.model;
       }
       profile_updated = true;
-    } else if (!current_profile_.openai_api_key.empty() ||
-               !env_openai_base.empty()) {
+    } else if (!current_profile_.openai_api_key.empty()) {
       current_profile_.provider = "openai";
       current_config_.provider = "openai";
       if (current_profile_.model.empty()) {

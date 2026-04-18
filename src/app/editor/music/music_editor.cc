@@ -18,7 +18,7 @@
 #include "app/editor/music/panels/music_playback_control_panel.h"
 #include "app/editor/music/panels/music_sample_editor_panel.h"
 #include "app/editor/music/panels/music_song_browser_panel.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -114,47 +114,47 @@ void MusicEditor::Initialize() {
              "No emulator available to inject into MusicPlayer!");
   }
 
-  if (!dependencies_.panel_manager)
+  if (!dependencies_.window_manager)
     return;
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
 
   // Register PanelDescriptors for menu/sidebar visibility
-  panel_manager->RegisterPanel({.card_id = "music.song_browser",
+  window_manager->RegisterPanel({.card_id = "music.song_browser",
                                 .display_name = "Song Browser",
                                 .window_title = " Song Browser",
                                 .icon = ICON_MD_LIBRARY_MUSIC,
                                 .category = "Music",
                                 .shortcut_hint = "Ctrl+Shift+B",
                                 .priority = 5});
-  panel_manager->RegisterPanel({.card_id = "music.tracker",
+  window_manager->RegisterPanel({.card_id = "music.tracker",
                                 .display_name = "Playback Control",
                                 .window_title = " Playback Control",
                                 .icon = ICON_MD_PLAY_CIRCLE,
                                 .category = "Music",
                                 .shortcut_hint = "Ctrl+Shift+M",
                                 .priority = 10});
-  panel_manager->RegisterPanel({.card_id = "music.piano_roll",
+  window_manager->RegisterPanel({.card_id = "music.piano_roll",
                                 .display_name = "Piano Roll",
                                 .window_title = " Piano Roll",
                                 .icon = ICON_MD_PIANO,
                                 .category = "Music",
                                 .shortcut_hint = "Ctrl+Shift+P",
                                 .priority = 15});
-  panel_manager->RegisterPanel({.card_id = "music.instrument_editor",
+  window_manager->RegisterPanel({.card_id = "music.instrument_editor",
                                 .display_name = "Instrument Editor",
                                 .window_title = " Instrument Editor",
                                 .icon = ICON_MD_SPEAKER,
                                 .category = "Music",
                                 .shortcut_hint = "Ctrl+Shift+I",
                                 .priority = 20});
-  panel_manager->RegisterPanel({.card_id = "music.sample_editor",
+  window_manager->RegisterPanel({.card_id = "music.sample_editor",
                                 .display_name = "Sample Editor",
                                 .window_title = " Sample Editor",
                                 .icon = ICON_MD_WAVES,
                                 .category = "Music",
                                 .shortcut_hint = "Ctrl+Shift+S",
                                 .priority = 25});
-  panel_manager->RegisterPanel({.card_id = "music.assembly",
+  window_manager->RegisterPanel({.card_id = "music.assembly",
                                 .display_name = "Assembly View",
                                 .window_title = " Music Assembly",
                                 .icon = ICON_MD_CODE,
@@ -162,15 +162,15 @@ void MusicEditor::Initialize() {
                                 .shortcut_hint = "Ctrl+Shift+A",
                                 .priority = 30});
   // ==========================================================================
-  // Phase 5: Create and register EditorPanel instances
+  // Phase 5: Create and register WindowContent instances
   // Note: Callbacks are set up on the view classes during Draw() since
-  // PanelManager takes ownership of the panels.
+  // WorkspaceWindowManager takes ownership of the panels.
   // ==========================================================================
 
   // Song Browser Panel - callbacks are set on song_browser_view_ directly
   auto song_browser = std::make_unique<MusicSongBrowserPanel>(
       &music_bank_, &current_song_index_, &song_browser_view_);
-  panel_manager->RegisterEditorPanel(std::move(song_browser));
+  window_manager->RegisterWindowContent(std::move(song_browser));
 
   // Playback Control Panel
   auto playback_control = std::make_unique<MusicPlaybackControlPanel>(
@@ -178,27 +178,27 @@ void MusicEditor::Initialize() {
   playback_control->SetOnOpenSong([this](int index) { OpenSong(index); });
   playback_control->SetOnOpenPianoRoll(
       [this](int index) { OpenSongPianoRoll(index); });
-  panel_manager->RegisterEditorPanel(std::move(playback_control));
+  window_manager->RegisterWindowContent(std::move(playback_control));
 
   // Piano Roll Panel
   auto piano_roll = std::make_unique<MusicPianoRollPanel>(
       &music_bank_, &current_song_index_, &current_segment_index_,
       &current_channel_index_, &piano_roll_view_, music_player_.get());
-  panel_manager->RegisterEditorPanel(std::move(piano_roll));
+  window_manager->RegisterWindowContent(std::move(piano_roll));
 
   // Instrument Editor Panel - callbacks set on instrument_editor_view_
   auto instrument_editor = std::make_unique<MusicInstrumentEditorPanel>(
       &music_bank_, &instrument_editor_view_);
-  panel_manager->RegisterEditorPanel(std::move(instrument_editor));
+  window_manager->RegisterWindowContent(std::move(instrument_editor));
 
   // Sample Editor Panel - callbacks set on sample_editor_view_
   auto sample_editor = std::make_unique<MusicSampleEditorPanel>(
       &music_bank_, &sample_editor_view_);
-  panel_manager->RegisterEditorPanel(std::move(sample_editor));
+  window_manager->RegisterWindowContent(std::move(sample_editor));
 
   // Assembly Panel
   auto assembly = std::make_unique<MusicAssemblyPanel>(&assembly_editor_);
-  panel_manager->RegisterEditorPanel(std::move(assembly));
+  window_manager->RegisterWindowContent(std::move(assembly));
 
   // Audio debug and help panels removed from the default panel roster.
 }
@@ -331,9 +331,9 @@ absl::Status MusicEditor::Update() {
   }
 #endif
 
-  if (!dependencies_.panel_manager)
+  if (!dependencies_.window_manager)
     return absl::OkStatus();
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
 
   // ==========================================================================
   // Phase 5 Complete: Static panels now drawn by DrawAllVisiblePanels()
@@ -342,14 +342,15 @@ absl::Status MusicEditor::Update() {
 
   // Auto-show Song Browser on first load
   bool* browser_visible =
-      panel_manager->GetVisibilityFlag("music.song_browser");
+      window_manager->GetWindowVisibilityFlag("music.song_browser");
   if (browser_visible && !song_browser_auto_shown_) {
     *browser_visible = true;
     song_browser_auto_shown_ = true;
   }
 
   // Auto-show Playback Control on first load
-  bool* playback_visible = panel_manager->GetVisibilityFlag("music.tracker");
+  bool* playback_visible =
+      window_manager->GetWindowVisibilityFlag("music.tracker");
   if (playback_visible && !tracker_auto_shown_) {
     *playback_visible = true;
     tracker_auto_shown_ = true;
@@ -357,7 +358,7 @@ absl::Status MusicEditor::Update() {
 
   // Auto-show Piano Roll on first load
   bool* piano_roll_visible =
-      panel_manager->GetVisibilityFlag("music.piano_roll");
+      window_manager->GetWindowVisibilityFlag("music.piano_roll");
   if (piano_roll_visible && !piano_roll_auto_shown_) {
     *piano_roll_visible = true;
     piano_roll_auto_shown_ = true;
@@ -365,25 +366,25 @@ absl::Status MusicEditor::Update() {
 
   // ==========================================================================
   // Dynamic Per-Song Windows (like dungeon room cards)
-  // TODO(Phase 6): Migrate to ResourcePanel with LRU limits
+  // TODO(Phase 6): Migrate to ResourceWindowContent with LRU limits
   // ==========================================================================
 
-  // Per-Song Tracker Windows - synced with PanelManager for Activity Bar
+  // Per-Song Tracker Windows - synced with WorkspaceWindowManager for Activity Bar
   for (int i = 0; i < active_songs_.Size; i++) {
     int song_index = active_songs_[i];
-    // Use base ID - PanelManager handles session prefixing
+    // Use base ID - WorkspaceWindowManager handles session prefixing
     std::string card_id = absl::StrFormat("music.song_%d", song_index);
 
     // Check if panel was hidden via Activity Bar
     bool panel_visible = true;
-    if (dependencies_.panel_manager) {
-      panel_visible = dependencies_.panel_manager->IsPanelVisible(card_id);
+    if (dependencies_.window_manager) {
+      panel_visible = dependencies_.window_manager->IsWindowOpen(card_id);
     }
 
     // If hidden via Activity Bar, close the song
     if (!panel_visible) {
-      if (dependencies_.panel_manager) {
-        dependencies_.panel_manager->UnregisterPanel(card_id);
+      if (dependencies_.window_manager) {
+        dependencies_.window_manager->UnregisterWindow(card_id);
       }
       song_cards_.erase(song_index);
       song_trackers_.erase(song_index);
@@ -393,11 +394,11 @@ absl::Status MusicEditor::Update() {
     }
 
     // Category filtering: only draw if Music is active OR panel is pinned
-    bool is_pinned = dependencies_.panel_manager &&
-                     dependencies_.panel_manager->IsPanelPinned(card_id);
+    bool is_pinned = dependencies_.window_manager &&
+                     dependencies_.window_manager->IsWindowPinned(card_id);
     std::string active_category =
-        dependencies_.panel_manager
-            ? dependencies_.panel_manager->GetActiveCategory()
+        dependencies_.window_manager
+            ? dependencies_.window_manager->GetActiveCategory()
             : "";
 
     if (active_category != "Music" && !is_pinned) {
@@ -408,7 +409,7 @@ absl::Status MusicEditor::Update() {
 
     bool open = true;
 
-    // Get song name for window title (icon is handled by EditorPanel)
+    // Get song name for window title (icon is handled by WindowContent)
     auto* song = music_bank_.GetSong(song_index);
     std::string song_name = song ? song->name : "Unknown";
     std::string card_title = absl::StrFormat(
@@ -439,9 +440,9 @@ absl::Status MusicEditor::Update() {
 
     // Handle close button
     if (!open) {
-      // Unregister from PanelManager
-      if (dependencies_.panel_manager) {
-        dependencies_.panel_manager->UnregisterPanel(card_id);
+      // Unregister from WorkspaceWindowManager
+      if (dependencies_.window_manager) {
+        dependencies_.window_manager->UnregisterWindow(card_id);
       }
       song_cards_.erase(song_index);
       song_trackers_.erase(song_index);
@@ -450,17 +451,17 @@ absl::Status MusicEditor::Update() {
     }
   }
 
-  // Per-song piano roll windows - synced with PanelManager for Activity Bar
+  // Per-song piano roll windows - synced with WorkspaceWindowManager for Activity Bar
   for (auto it = song_piano_rolls_.begin(); it != song_piano_rolls_.end();) {
     int song_index = it->first;
     auto& window = it->second;
     auto* song = music_bank_.GetSong(song_index);
-    // Use base ID - PanelManager handles session prefixing
+    // Use base ID - WorkspaceWindowManager handles session prefixing
     std::string card_id = absl::StrFormat("music.piano_roll_%d", song_index);
 
     if (!song || !window.card || !window.view) {
-      if (dependencies_.panel_manager) {
-        dependencies_.panel_manager->UnregisterPanel(card_id);
+      if (dependencies_.window_manager) {
+        dependencies_.window_manager->UnregisterPanel(card_id);
       }
       it = song_piano_rolls_.erase(it);
       continue;
@@ -468,14 +469,14 @@ absl::Status MusicEditor::Update() {
 
     // Check if panel was hidden via Activity Bar
     bool panel_visible = true;
-    if (dependencies_.panel_manager) {
-      panel_visible = dependencies_.panel_manager->IsPanelVisible(card_id);
+    if (dependencies_.window_manager) {
+      panel_visible = dependencies_.window_manager->IsWindowOpen(card_id);
     }
 
     // If hidden via Activity Bar, close the piano roll
     if (!panel_visible) {
-      if (dependencies_.panel_manager) {
-        dependencies_.panel_manager->UnregisterPanel(card_id);
+      if (dependencies_.window_manager) {
+        dependencies_.window_manager->UnregisterWindow(card_id);
       }
       delete window.visible_flag;
       it = song_piano_rolls_.erase(it);
@@ -483,11 +484,11 @@ absl::Status MusicEditor::Update() {
     }
 
     // Category filtering: only draw if Music is active OR panel is pinned
-    bool is_pinned = dependencies_.panel_manager &&
-                     dependencies_.panel_manager->IsPanelPinned(card_id);
+    bool is_pinned = dependencies_.window_manager &&
+                     dependencies_.window_manager->IsWindowPinned(card_id);
     std::string active_category =
-        dependencies_.panel_manager
-            ? dependencies_.panel_manager->GetActiveCategory()
+        dependencies_.window_manager
+            ? dependencies_.window_manager->GetActiveCategory()
             : "";
 
     if (active_category != "Music" && !is_pinned) {
@@ -530,9 +531,9 @@ absl::Status MusicEditor::Update() {
     window.card->End();
 
     if (!open) {
-      // Unregister from PanelManager
-      if (dependencies_.panel_manager) {
-        dependencies_.panel_manager->UnregisterPanel(card_id);
+      // Unregister from WorkspaceWindowManager
+      if (dependencies_.window_manager) {
+        dependencies_.window_manager->UnregisterPanel(card_id);
       }
       delete window.visible_flag;
       it = song_piano_rolls_.erase(it);
@@ -730,15 +731,15 @@ void MusicEditor::OpenSong(int song_index) {
   // Add new song to active list
   active_songs_.push_back(song_index);
 
-  // Register with PanelManager so it appears in Activity Bar
-  if (dependencies_.panel_manager) {
+  // Register with WorkspaceWindowManager so it appears in Activity Bar
+  if (dependencies_.window_manager) {
     auto* song = music_bank_.GetSong(song_index);
     std::string song_name =
         song ? song->name : absl::StrFormat("Song %02X", song_index);
     // Use base ID - RegisterPanel handles session prefixing
     std::string card_id = absl::StrFormat("music.song_%d", song_index);
 
-    dependencies_.panel_manager->RegisterPanel(
+    dependencies_.window_manager->RegisterPanel(
         {.card_id = card_id,
          .display_name = song_name,
          .window_title = ICON_MD_MUSIC_NOTE " " + song_name,
@@ -748,7 +749,7 @@ void MusicEditor::OpenSong(int song_index) {
          .visibility_flag = nullptr,
          .priority = 200 + song_index});
 
-    dependencies_.panel_manager->ShowPanel(card_id);
+    dependencies_.window_manager->OpenWindow(card_id);
 
     // NOT auto-pinned - user must explicitly pin to persist across editors
   }
@@ -796,12 +797,12 @@ void MusicEditor::OpenSongPianoRoll(int song_index) {
 
   song_piano_rolls_[song_index] = std::move(window);
 
-  // Register with PanelManager so it appears in Activity Bar
-  if (dependencies_.panel_manager) {
+  // Register with WorkspaceWindowManager so it appears in Activity Bar
+  if (dependencies_.window_manager) {
     // Use base ID - RegisterPanel handles session prefixing
     std::string card_id = absl::StrFormat("music.piano_roll_%d", song_index);
 
-    dependencies_.panel_manager->RegisterPanel(
+    dependencies_.window_manager->RegisterWindow(
         {.card_id = card_id,
          .display_name = song_name + " (Piano)",
          .window_title = ICON_MD_PIANO " " + song_name + " (Piano)",
@@ -811,7 +812,7 @@ void MusicEditor::OpenSongPianoRoll(int song_index) {
          .visibility_flag = nullptr,
          .priority = 250 + song_index});
 
-    dependencies_.panel_manager->ShowPanel(card_id);
+    dependencies_.window_manager->OpenWindow(card_id);
     // NOT auto-pinned - user must explicitly pin to persist across editors
   }
 }

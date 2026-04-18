@@ -26,7 +26,7 @@ ProposalDrawer::ProposalDrawer() {
 }
 
 void ProposalDrawer::DrawContent() {
-  // Draw content without window wrapper (for embedding in RightPanelManager)
+  // Draw content without window wrapper (for embedding in RightDrawerManager)
   if (needs_refresh_) {
     RefreshProposals();
     needs_refresh_ = false;

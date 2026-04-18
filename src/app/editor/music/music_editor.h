@@ -239,7 +239,7 @@ class MusicEditor : public Editor {
 
   std::unique_ptr<editor::music::MusicPlayer> music_player_;
 
-  // Note: EditorPanel instances are owned by PanelManager after registration
+  // Note: WindowContent instances are owned by WorkspaceWindowManager after registration
 };
 
 }  // namespace editor

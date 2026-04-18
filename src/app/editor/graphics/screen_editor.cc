@@ -7,7 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -26,11 +26,11 @@ namespace yaze {
 namespace editor {
 
 void ScreenEditor::Initialize() {
-  if (!dependencies_.panel_manager)
+  if (!dependencies_.window_manager)
     return;
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "screen.dungeon_maps",
        .display_name = "Dungeon Maps",
        .window_title = " Dungeon Map Editor",
@@ -40,7 +40,7 @@ void ScreenEditor::Initialize() {
        .priority = 10,
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "screen.inventory_menu",
        .display_name = "Inventory Menu",
        .window_title = " Inventory Menu",
@@ -50,7 +50,7 @@ void ScreenEditor::Initialize() {
        .priority = 20,
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "screen.overworld_map",
        .display_name = "Overworld Map",
        .window_title = " Overworld Map",
@@ -60,7 +60,7 @@ void ScreenEditor::Initialize() {
        .priority = 30,
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "screen.title_screen",
        .display_name = "Title Screen",
        .window_title = " Title Screen",
@@ -70,7 +70,7 @@ void ScreenEditor::Initialize() {
        .priority = 40,
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "screen.naming_screen",
        .display_name = "Naming Screen",
        .window_title = " Naming Screen",
@@ -81,20 +81,20 @@ void ScreenEditor::Initialize() {
        .enabled_condition = [this]() { return rom()->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  // Register EditorPanel implementations
-  panel_manager->RegisterEditorPanel(std::make_unique<DungeonMapsPanel>(
+  // Register WindowContent implementations
+  window_manager->RegisterWindowContent(std::make_unique<DungeonMapsPanel>(
       [this]() { DrawDungeonMapsEditor(); }));
-  panel_manager->RegisterEditorPanel(std::make_unique<InventoryMenuPanel>(
+  window_manager->RegisterWindowContent(std::make_unique<InventoryMenuPanel>(
       [this]() { DrawInventoryMenuEditor(); }));
-  panel_manager->RegisterEditorPanel(std::make_unique<OverworldMapScreenPanel>(
+  window_manager->RegisterWindowContent(std::make_unique<OverworldMapScreenPanel>(
       [this]() { DrawOverworldMapEditor(); }));
-  panel_manager->RegisterEditorPanel(std::make_unique<TitleScreenPanel>(
+  window_manager->RegisterWindowContent(std::make_unique<TitleScreenPanel>(
       [this]() { DrawTitleScreenEditor(); }));
-  panel_manager->RegisterEditorPanel(std::make_unique<NamingScreenPanel>(
+  window_manager->RegisterWindowContent(std::make_unique<NamingScreenPanel>(
       [this]() { DrawNamingScreenEditor(); }));
 
   // Show title screen by default
-  panel_manager->ShowPanel("screen.title_screen");
+  window_manager->OpenWindow("screen.title_screen");
 }
 
 absl::Status ScreenEditor::Load() {
@@ -173,8 +173,8 @@ absl::Status ScreenEditor::Save() {
 }
 
 absl::Status ScreenEditor::Update() {
-  // Panel drawing is handled centrally by PanelManager::DrawAllVisiblePanels()
-  // via the EditorPanel implementations registered in Initialize().
+  // Panel drawing is handled centrally by WorkspaceWindowManager::DrawAllVisiblePanels()
+  // via the WindowContent implementations registered in Initialize().
   // No local drawing needed here - this fixes duplicate panel rendering.
   return status_;
 }

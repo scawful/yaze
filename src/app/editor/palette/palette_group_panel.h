@@ -66,11 +66,11 @@ struct PaletteGroupMetadata {
  * - Modified state tracking with visual indicators
  * - Save/discard workflow
  * - Common toolbar and color picker UI
- * - PanelManager integration
+ * - WorkspaceWindowManager integration
  *
  * Derived classes implement specific grid layouts and palette access.
  */
-class PaletteGroupPanel : public EditorPanel {
+class PaletteGroupPanel : public WindowContent {
  public:
   /**
    * @brief Construct a new Palette Group Panel
@@ -98,7 +98,7 @@ class PaletteGroupPanel : public EditorPanel {
    */
   void Draw(bool* p_open) override;
 
-  // EditorPanel Implementation
+  // WindowContent Implementation
   std::string GetId() const override { return "palette." + group_name_; }
   std::string GetDisplayName() const override { return display_name_; }
   std::string GetIcon() const override { return ICON_MD_PALETTE; } // Default, override in derived
@@ -313,7 +313,7 @@ class OverworldMainPalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_LANDSCAPE; }
   int GetPriority() const override { return 20; }
 
@@ -339,7 +339,7 @@ class OverworldAnimatedPalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_WATER; }
   int GetPriority() const override { return 30; }
 
@@ -365,7 +365,7 @@ class DungeonMainPalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 15; }
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_CASTLE; }
   int GetPriority() const override { return 40; }
 
@@ -395,7 +395,7 @@ class SpritePalettePanel : public PaletteGroupPanel {
   int GetColorsPerRow() const override { return 15; }
   void DrawCustomPanels() override;  // Show VRAM info
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_PETS; }
   int GetPriority() const override { return 50; }
 
@@ -424,7 +424,7 @@ class SpritesAux1PalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_FILTER_1; }
   int GetPriority() const override { return 51; }
 
@@ -451,7 +451,7 @@ class SpritesAux2PalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_FILTER_2; }
   int GetPriority() const override { return 52; }
 
@@ -478,7 +478,7 @@ class SpritesAux3PalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 7; }
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_FILTER_3; }
   int GetPriority() const override { return 53; }
 
@@ -504,7 +504,7 @@ class EquipmentPalettePanel : public PaletteGroupPanel {
   void DrawPaletteGrid() override;
   int GetColorsPerRow() const override { return 15; }
 
-  // EditorPanel Overrides
+  // WindowContent Overrides
   std::string GetIcon() const override { return ICON_MD_SHIELD; }
   int GetPriority() const override { return 60; }
 

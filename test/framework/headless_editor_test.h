@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "framework/mock_renderer.h"
@@ -36,7 +36,7 @@ class HeadlessEditorTest : public ::testing::Test {
     renderer_ = std::make_unique<::testing::NiceMock<MockRenderer>>();
 
     // Initialize panel manager
-    panel_manager_ = std::make_unique<editor::PanelManager>();
+    window_manager_ = std::make_unique<editor::WorkspaceWindowManager>();
 
     // Initialize game data
     game_data_ = std::make_unique<zelda3::GameData>();
@@ -44,7 +44,7 @@ class HeadlessEditorTest : public ::testing::Test {
 
   void TearDown() override {
     // Cleanup
-    panel_manager_.reset();
+    window_manager_.reset();
     renderer_.reset();
     rom_.reset();
 
@@ -67,7 +67,7 @@ class HeadlessEditorTest : public ::testing::Test {
   }
 
   std::unique_ptr<MockRenderer> renderer_;
-  std::unique_ptr<editor::PanelManager> panel_manager_;
+  std::unique_ptr<editor::WorkspaceWindowManager> window_manager_;
   std::unique_ptr<zelda3::GameData> game_data_;
   std::unique_ptr<Rom> rom_;
 };

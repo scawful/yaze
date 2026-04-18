@@ -1,7 +1,9 @@
 #ifndef YAZE_APP_EDITOR_AGENT_AGENT_UI_CONTROLLER_H_
 #define YAZE_APP_EDITOR_AGENT_AGENT_UI_CONTROLLER_H_
 
+#include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -29,8 +31,8 @@ namespace editor {
 
 class ToastManager;
 class ProposalDrawer;
-class RightPanelManager;
-class PanelManager;
+class RightDrawerManager;
+class WorkspaceWindowManager;
 class UserSettings;
 
 // Forward declarations for when YAZE_BUILD_AGENT_UI is not defined
@@ -50,8 +52,8 @@ class AgentUiController {
  public:
   void Initialize(ToastManager* toast_manager,
                   ProposalDrawer* proposal_drawer,
-                  RightPanelManager* right_panel_manager,
-                  PanelManager* panel_manager,
+                  RightDrawerManager* right_drawer_manager,
+                  WorkspaceWindowManager* window_manager,
                   UserSettings* user_settings);
 
   void ApplyUserSettingsDefaults(bool force = false);
@@ -59,6 +61,8 @@ class AgentUiController {
   void SetRomContext(Rom* rom);
   void SetProjectContext(project::YazeProject* project);
   void SetAsarWrapperContext(core::AsarWrapper* asar_wrapper);
+  void SetAssemblySymbolTableContext(
+      const std::map<std::string, core::AsarSymbol>* table);
 
   absl::Status Update();
 
@@ -98,8 +102,8 @@ class AgentUiController {
   AgentUIContext agent_ui_context_;
   AgentConfigState last_synced_config_;
   std::unique_ptr<AsmFollowService> asm_follow_service_;
-  RightPanelManager* right_panel_manager_ = nullptr;
-  PanelManager* panel_manager_ = nullptr;
+  RightDrawerManager* right_drawer_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   UserSettings* user_settings_ = nullptr;
 
@@ -116,13 +120,15 @@ class AgentUiController {
 // =============================================================================
 #if !defined(YAZE_BUILD_AGENT_UI)
 inline void AgentUiController::Initialize(ToastManager*, ProposalDrawer*,
-                                          RightPanelManager*,
-                                          PanelManager*,
+                                          RightDrawerManager*,
+                                          WorkspaceWindowManager*,
                                           UserSettings*) {}
 inline void AgentUiController::ApplyUserSettingsDefaults(bool) {}
 inline void AgentUiController::SetRomContext(Rom*) {}
 inline void AgentUiController::SetProjectContext(project::YazeProject*) {}
 inline void AgentUiController::SetAsarWrapperContext(core::AsarWrapper*) {}
+inline void AgentUiController::SetAssemblySymbolTableContext(
+    const std::map<std::string, core::AsarSymbol>*) {}
 inline absl::Status AgentUiController::Update() { return absl::OkStatus(); }
 inline void AgentUiController::ShowAgent() {}
 inline void AgentUiController::ShowChatHistory() {}

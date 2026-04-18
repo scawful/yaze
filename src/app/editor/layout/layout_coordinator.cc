@@ -3,9 +3,9 @@
 #include <filesystem>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/menu/status_bar.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"
 #include "imgui/imgui.h"
@@ -18,11 +18,11 @@ namespace editor {
 
 void LayoutCoordinator::Initialize(const Dependencies& deps) {
   layout_manager_ = deps.layout_manager;
-  panel_manager_ = deps.panel_manager;
+  window_manager_ = deps.window_manager;
   ui_coordinator_ = deps.ui_coordinator;
   toast_manager_ = deps.toast_manager;
   status_bar_ = deps.status_bar;
-  right_panel_manager_ = deps.right_panel_manager;
+  right_drawer_manager_ = deps.right_drawer_manager;
 }
 
 // ==========================================================================
@@ -41,28 +41,28 @@ float LayoutCoordinator::GetLeftLayoutOffset() const {
   }
 
   // Check Activity Bar visibility
-  if (!panel_manager_ || !panel_manager_->IsSidebarVisible()) {
+  if (!window_manager_ || !window_manager_->IsSidebarVisible()) {
     return 0.0f;
   }
 
   // Base width = Activity Bar
-  float width = PanelManager::GetSidebarWidth();  // 48px
+  float width = WorkspaceWindowManager::GetSidebarWidth();  // 48px
 
   // Add Side Panel width if expanded
-  if (panel_manager_->IsPanelExpanded()) {
+  if (window_manager_->IsSidebarExpanded()) {
     float viewport_width = 0.0f;
     if (ImGui::GetCurrentContext()) {
       const ImGuiViewport* viewport = ImGui::GetMainViewport();
       viewport_width = viewport ? viewport->WorkSize.x : 0.0f;
     }
-    width += panel_manager_->GetActiveSidePanelWidth(viewport_width);
+    width += window_manager_->GetActiveSidePanelWidth(viewport_width);
   }
 
   return width;
 }
 
 float LayoutCoordinator::GetRightLayoutOffset() const {
-  return right_panel_manager_ ? right_panel_manager_->GetPanelWidth() : 0.0f;
+  return right_drawer_manager_ ? right_drawer_manager_->GetDrawerWidth() : 0.0f;
 }
 
 float LayoutCoordinator::GetBottomLayoutOffset() const {
@@ -114,7 +114,7 @@ void LayoutCoordinator::ResetWorkspaceLayout() {
 
 void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
                                           size_t session_id) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     return;
   }
 
@@ -148,11 +148,11 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
   }
 
   // Hide all panels first
-  panel_manager_->HideAll();
+  window_manager_->HideAll();
 
   // Show only the panels defined in the preset
   for (const auto& panel_id : preset.default_visible_panels) {
-    panel_manager_->ShowPanel(session_id, panel_id);
+    window_manager_->OpenWindow(session_id, panel_id);
   }
 
   // Request a dock rebuild so the preset positions are applied
@@ -170,7 +170,7 @@ void LayoutCoordinator::ApplyLayoutPreset(const std::string& preset_name,
 
 void LayoutCoordinator::ResetCurrentEditorLayout(EditorType editor_type,
                                                  size_t session_id) {
-  if (!panel_manager_) {
+  if (!window_manager_) {
     if (toast_manager_) {
       toast_manager_->Show("No active editor to reset", ToastType::kWarning);
     }
@@ -181,7 +181,7 @@ void LayoutCoordinator::ResetCurrentEditorLayout(EditorType editor_type,
   auto preset = LayoutPresets::GetDefaultPreset(editor_type);
 
   // Reset panels to defaults
-  panel_manager_->ResetToDefaults(session_id, editor_type);
+  window_manager_->ResetToDefaults(session_id, editor_type);
 
   // Rebuild dock layout for this editor on next frame
   if (layout_manager_) {

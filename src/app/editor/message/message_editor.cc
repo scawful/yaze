@@ -9,7 +9,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/message/message_id_resolver.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -66,23 +66,23 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   font_graphics_loaded_ = false;
-  // Register panels with PanelManager (dependency injection)
-  if (!dependencies_.panel_manager)
+  // Register panels with WorkspaceWindowManager (dependency injection)
+  if (!dependencies_.window_manager)
     return;
 
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
   const size_t session_id = dependencies_.session_id;
 
-  // Register EditorPanel implementations (they provide both metadata and drawing)
-  panel_manager->RegisterEditorPanel(
+  // Register WindowContent implementations (they provide both metadata and drawing)
+  window_manager->RegisterWindowContent(
       std::make_unique<MessageListPanel>([this]() { DrawMessageList(); }));
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<MessageEditorPanel>([this]() { DrawCurrentMessage(); }));
-  panel_manager->RegisterEditorPanel(std::make_unique<FontAtlasPanel>([this]() {
+  window_manager->RegisterWindowContent(std::make_unique<FontAtlasPanel>([this]() {
     DrawFontAtlas();
     DrawExpandedMessageSettings();
   }));
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<DictionaryPanel>([this]() {
         DrawTextCommands();
         DrawSpecialCharacters();
@@ -90,7 +90,7 @@ void MessageEditor::Initialize() {
       }));
 
   // Show message list by default
-  panel_manager->ShowPanel(session_id, "message.message_list");
+  window_manager->OpenWindow(session_id, "message.message_list");
 
   for (int i = 0; i < kWidthArraySize; i++) {
     message_preview_.width_array[i] = rom()->data()[kCharactersWidth + i];
@@ -161,11 +161,12 @@ bool MessageEditor::OpenMessageById(int display_id) {
     return false;
   }
 
-  if (dependencies_.panel_manager) {
+  if (dependencies_.window_manager) {
     const size_t session_id = dependencies_.session_id;
-    dependencies_.panel_manager->ShowPanel(session_id, "message.message_list");
-    dependencies_.panel_manager->ShowPanel(session_id,
-                                           "message.message_editor");
+    dependencies_.window_manager->OpenWindow(session_id,
+                                            "message.message_list");
+    dependencies_.window_manager->OpenWindow(session_id,
+                                            "message.message_editor");
   }
 
   if (!resolved->is_expanded) {
@@ -333,8 +334,8 @@ absl::Status MessageEditor::Load() {
 }
 
 absl::Status MessageEditor::Update() {
-  // Panel drawing is handled centrally by PanelManager::DrawAllVisiblePanels()
-  // via the EditorPanel implementations registered in Initialize().
+  // Panel drawing is handled centrally by WorkspaceWindowManager::DrawAllVisiblePanels()
+  // via the WindowContent implementations registered in Initialize().
   // No local drawing needed here.
   return absl::OkStatus();
 }

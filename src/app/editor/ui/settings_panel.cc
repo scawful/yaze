@@ -12,8 +12,8 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/panel_manager.h"
 #include "app/editor/system/shortcut_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gui/animation/animator.h"
 #include "app/gui/app/feature_flags_menu.h"
 #include "app/gui/core/icons.h"
@@ -38,7 +38,7 @@ void SettingsPanel::SetDependencies(const EditorDependencies& deps) {
   Editor::SetDependencies(deps);
   SetRom(deps.rom);
   SetUserSettings(deps.user_settings);
-  SetPanelManager(deps.panel_manager);
+  SetWindowManager(deps.window_manager);
   SetShortcutManager(deps.shortcut_manager);
   SetProject(deps.project);
   SetStatusBar(deps.status_bar);
@@ -1725,17 +1725,17 @@ void SettingsPanel::DrawEditorShortcuts() {
 }
 
 void SettingsPanel::DrawPanelShortcuts() {
-  if (!panel_manager_ || !user_settings_) {
+  if (!window_manager_ || !user_settings_) {
     ImGui::TextDisabled("Registry not available");
     return;
   }
 
   // Simplified shortcut editor for sidebar
-  auto categories = panel_manager_->GetAllCategories();
+  auto categories = window_manager_->GetAllCategories();
 
   bool has_match = false;
   for (const auto& category : categories) {
-    auto cards = panel_manager_->GetPanelsInCategory(0, category);
+    auto cards = window_manager_->GetWindowsInCategory(0, category);
     std::vector<decltype(cards)::value_type> filtered_cards;
     filtered_cards.reserve(cards.size());
     for (const auto& card : cards) {
@@ -1881,6 +1881,38 @@ void SettingsPanel::DrawPatchSettings() {
   // Action buttons
   if (ImGui::Button(ICON_MD_CHECK " Apply Patches to ROM")) {
     if (rom_ && rom_->is_loaded()) {
+#ifdef YAZE_WITH_Z3DK
+      if (project_) {
+        core::Z3dkAssembleOptions options;
+        const auto& z3dk = project_->z3dk_settings;
+        options.include_paths = z3dk.include_paths;
+        options.defines = z3dk.defines;
+        options.warn_unused_symbols = z3dk.warn_unused_symbols;
+        options.warn_branch_outside_bank = z3dk.warn_branch_outside_bank;
+        options.warn_unknown_width = z3dk.warn_unknown_width;
+        options.warn_org_collision = z3dk.warn_org_collision;
+        options.warn_unauthorized_hook = z3dk.warn_unauthorized_hook;
+        options.warn_stack_balance = z3dk.warn_stack_balance;
+        options.warn_hook_return = z3dk.warn_hook_return;
+        for (const auto& range : z3dk.prohibited_memory_ranges) {
+          options.prohibited_memory_ranges.push_back(
+              {.start = range.start, .end = range.end, .reason = range.reason});
+        }
+        if (!project_->code_folder.empty() &&
+            std::find(options.include_paths.begin(),
+                      options.include_paths.end(),
+                      project_->code_folder) == options.include_paths.end()) {
+          options.include_paths.push_back(project_->code_folder);
+        }
+        if (!z3dk.rom_path.empty()) {
+          options.hooks_rom_path = z3dk.rom_path;
+        }
+        if (!rom_->filename().empty()) {
+          options.hooks_rom_path = rom_->filename();
+        }
+        patch_manager_.SetZ3dkAssembleOptions(options);
+      }
+#endif
       auto status = patch_manager_.ApplyEnabledPatches(rom_);
       if (!status.ok()) {
         LOG_ERROR("Settings", "Failed to apply patches: %s", status.message());

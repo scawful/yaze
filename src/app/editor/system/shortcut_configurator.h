@@ -19,7 +19,7 @@ class UICoordinator;
 class WorkspaceManager;
 class PopupManager;
 class ToastManager;
-class PanelManager;
+class WorkspaceWindowManager;
 
 // Forward declaration
 class UserSettings;
@@ -35,7 +35,7 @@ struct ShortcutDependencies {
   WorkspaceManager* workspace_manager = nullptr;
   PopupManager* popup_manager = nullptr;
   ToastManager* toast_manager = nullptr;
-  PanelManager* panel_manager = nullptr;
+    WorkspaceWindowManager* window_manager = nullptr;
   UserSettings* user_settings = nullptr;
 };
 
@@ -51,7 +51,7 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
  * @param shortcut_manager The shortcut manager to register with
  *
  * This function reads panel shortcuts from UserSettings and registers them
- * with the shortcut manager. It falls back to PanelDescriptor.shortcut_hint if
+ * with the shortcut manager. It falls back to WindowDescriptor.shortcut_hint if
  * no custom shortcut is defined for a panel.
  */
 void ConfigurePanelShortcuts(const ShortcutDependencies& deps,

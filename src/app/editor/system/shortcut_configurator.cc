@@ -1,5 +1,7 @@
 #include "app/editor/system/shortcut_configurator.h"
 
+#include <algorithm>
+
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/code/assembly_editor.h"
@@ -9,13 +11,13 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/screen_editor.h"
 #include "app/editor/menu/menu_orchestrator.h"
-#include "app/editor/menu/right_panel_manager.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/message/message_editor.h"
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
@@ -25,10 +27,25 @@
 #include "app/editor/ui/ui_coordinator.h"
 #include "app/editor/ui/workspace_manager.h"
 #include "core/project.h"
+#include "imgui/imgui.h"
 
 namespace yaze::editor {
 
 namespace {
+
+// Matches Global Font Scale slider in settings_panel.cc (0.5–2.0).
+constexpr float kUiFontScaleStep = 0.05f;
+constexpr float kUiFontScaleMin = 0.5f;
+constexpr float kUiFontScaleMax = 2.0f;
+
+void AdjustUiFontScaleBy(EditorManager* editor_manager, float delta) {
+  if (!editor_manager || ImGui::GetIO().WantTextInput) {
+    return;
+  }
+  float s = editor_manager->user_settings().prefs().font_global_scale + delta;
+  editor_manager->SetFontGlobalScale(
+      std::clamp(s, kUiFontScaleMin, kUiFontScaleMax));
+}
 
 void RegisterIfValid(ShortcutManager* shortcut_manager, const std::string& name,
                      const std::vector<ImGuiKey>& keys,
@@ -124,14 +141,14 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   auto* editor_manager = deps.editor_manager;
   auto* ui_coordinator = deps.ui_coordinator;
   auto* popup_manager = deps.popup_manager;
-  auto* panel_manager = deps.panel_manager;
+  auto* window_manager = deps.window_manager;
 
   // Toggle activity bar (48px icon strip) visibility
   RegisterIfValid(
       shortcut_manager, "view.toggle_activity_bar", {ImGuiMod_Ctrl, ImGuiKey_B},
-      [panel_manager]() {
-        if (panel_manager) {
-          panel_manager->ToggleSidebarVisibility();
+      [window_manager]() {
+        if (window_manager) {
+          window_manager->ToggleSidebarVisibility();
         }
       },
       Shortcut::Scope::kGlobal);
@@ -140,10 +157,54 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(
       shortcut_manager, "view.toggle_side_panel",
       {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_E},
-      [panel_manager]() {
-        if (panel_manager) {
-          panel_manager->TogglePanelExpanded();
+      [window_manager]() {
+        if (window_manager) {
+          window_manager->ToggleSidebarExpanded();
         }
+      },
+      Shortcut::Scope::kGlobal);
+
+  // Interface / font scale (Ctrl+/- on Windows/Linux, Cmd+/- on macOS).
+  RegisterIfValid(
+      shortcut_manager, "ui.font_scale_increase",
+      {ImGuiMod_Ctrl, ImGuiKey_Equal},
+      [editor_manager]() {
+        AdjustUiFontScaleBy(editor_manager, kUiFontScaleStep);
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
+      shortcut_manager, "ui.font_scale_increase_keypad",
+      {ImGuiMod_Ctrl, ImGuiKey_KeypadAdd},
+      [editor_manager]() {
+        AdjustUiFontScaleBy(editor_manager, kUiFontScaleStep);
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
+      shortcut_manager, "ui.font_scale_decrease",
+      {ImGuiMod_Ctrl, ImGuiKey_Minus},
+      [editor_manager]() {
+        AdjustUiFontScaleBy(editor_manager, -kUiFontScaleStep);
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
+      shortcut_manager, "ui.font_scale_decrease_keypad",
+      {ImGuiMod_Ctrl, ImGuiKey_KeypadSubtract},
+      [editor_manager]() {
+        AdjustUiFontScaleBy(editor_manager, -kUiFontScaleStep);
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
+      shortcut_manager, "ui.font_scale_reset",
+      {ImGuiMod_Ctrl, ImGuiKey_0},
+      [editor_manager]() {
+        if (!editor_manager || ImGui::GetIO().WantTextInput) {
+          return;
+        }
+        editor_manager->SetFontGlobalScale(1.0f);
       },
       Shortcut::Scope::kGlobal);
 
@@ -490,7 +551,16 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_B},
       [ui_coordinator]() {
         if (ui_coordinator) {
-          ui_coordinator->ShowPanelBrowser();
+          ui_coordinator->ShowWindowBrowser();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+  RegisterIfValid(
+      shortcut_manager, "Window Browser",
+      {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_B},
+      [ui_coordinator]() {
+        if (ui_coordinator) {
+          ui_coordinator->ShowWindowBrowser();
         }
       },
       Shortcut::Scope::kGlobal);
@@ -499,7 +569,16 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_P},
       [ui_coordinator]() {
         if (ui_coordinator) {
-          ui_coordinator->ShowPanelBrowser();
+          ui_coordinator->ShowWindowBrowser();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+  RegisterIfValid(
+      shortcut_manager, "Window Browser (Alt)",
+      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_P},
+      [ui_coordinator]() {
+        if (ui_coordinator) {
+          ui_coordinator->ShowWindowBrowser();
         }
       },
       Shortcut::Scope::kGlobal);
@@ -511,8 +590,20 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         if (!editor_manager) {
           return;
         }
-        if (auto* right_panel = editor_manager->right_panel_manager()) {
-          right_panel->CycleToPreviousPanel();
+        if (auto* right_panel = editor_manager->right_drawer_manager()) {
+          right_panel->CycleToPreviousDrawer();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+  RegisterIfValid(
+      shortcut_manager, "View: Previous Right Drawer",
+      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_LeftBracket},
+      [editor_manager]() {
+        if (!editor_manager) {
+          return;
+        }
+        if (auto* right_drawer = editor_manager->right_drawer_manager()) {
+          right_drawer->CycleToPreviousDrawer();
         }
       },
       Shortcut::Scope::kGlobal);
@@ -524,34 +615,67 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         if (!editor_manager) {
           return;
         }
-        if (auto* right_panel = editor_manager->right_panel_manager()) {
-          right_panel->CycleToNextPanel();
+        if (auto* right_panel = editor_manager->right_drawer_manager()) {
+          right_panel->CycleToNextDrawer();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+  RegisterIfValid(
+      shortcut_manager, "View: Next Right Drawer",
+      {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_RightBracket},
+      [editor_manager]() {
+        if (!editor_manager) {
+          return;
+        }
+        if (auto* right_drawer = editor_manager->right_drawer_manager()) {
+          right_drawer->CycleToNextDrawer();
         }
       },
       Shortcut::Scope::kGlobal);
 
-  if (panel_manager) {
+  if (window_manager) {
     // Note: Using Ctrl+Alt for panel shortcuts to avoid conflicts with Save As
     // (Ctrl+Shift+S)
     RegisterIfValid(
         shortcut_manager, "Show Dungeon Panels",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
-        [panel_manager]() {
-          panel_manager->ShowAllPanelsInCategory(0, "Dungeon");
+        [window_manager]() {
+          window_manager->ShowAllWindowsInCategory(0, "Dungeon");
+        },
+        Shortcut::Scope::kEditor);
+    RegisterIfValid(
+        shortcut_manager, "Show Dungeon Windows",
+        {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
+        [window_manager]() {
+          window_manager->ShowAllWindowsInCategory(0, "Dungeon");
         },
         Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Graphics Panels",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_G},
-        [panel_manager]() {
-          panel_manager->ShowAllPanelsInCategory(0, "Graphics");
+        [window_manager]() {
+          window_manager->ShowAllWindowsInCategory(0, "Graphics");
+        },
+        Shortcut::Scope::kEditor);
+    RegisterIfValid(
+        shortcut_manager, "Show Graphics Windows",
+        {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_G},
+        [window_manager]() {
+          window_manager->ShowAllWindowsInCategory(0, "Graphics");
         },
         Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Screen Panels",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
-        [panel_manager]() {
-          panel_manager->ShowAllPanelsInCategory(0, "Screen");
+        [window_manager]() {
+          window_manager->ShowAllWindowsInCategory(0, "Screen");
+        },
+        Shortcut::Scope::kEditor);
+    RegisterIfValid(
+        shortcut_manager, "Show Screen Windows",
+        {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
+        [window_manager]() {
+          window_manager->ShowAllWindowsInCategory(0, "Screen");
         },
         Shortcut::Scope::kEditor);
   }
@@ -682,96 +806,150 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       });
 
   // ============================================================================
-  // Right Panel Toggle Commands (command palette only)
+  // Right Drawer / Panel Toggle Commands (command palette only)
   // ============================================================================
   if (editor_manager) {
-    using PanelType = RightPanelManager::PanelType;
-    auto* rpm = editor_manager->right_panel_manager();
-    if (rpm) {
-      struct PanelCmd {
+    using DrawerType = RightDrawerManager::DrawerType;
+    auto* right_drawer_manager = editor_manager->right_drawer_manager();
+    if (right_drawer_manager) {
+      struct DrawerCmd {
         const char* label;
-        PanelType type;
+        DrawerType type;
       };
-      PanelCmd panel_cmds[] = {
-          {"View: Toggle AI Agent Panel", PanelType::kAgentChat},
-          {"View: Toggle Proposals Panel", PanelType::kProposals},
-          {"View: Toggle Settings Panel", PanelType::kSettings},
-          {"View: Toggle Help Panel", PanelType::kHelp},
-          {"View: Toggle Notifications", PanelType::kNotifications},
-          {"View: Toggle Properties Panel", PanelType::kProperties},
-          {"View: Toggle Project Panel", PanelType::kProject},
+      DrawerCmd drawer_cmds[] = {
+          {"View: Toggle AI Agent Panel", DrawerType::kAgentChat},
+          {"View: Toggle AI Agent Drawer", DrawerType::kAgentChat},
+          {"View: Toggle Proposals Panel", DrawerType::kProposals},
+          {"View: Toggle Proposals Drawer", DrawerType::kProposals},
+          {"View: Toggle Settings Panel", DrawerType::kSettings},
+          {"View: Toggle Settings Drawer", DrawerType::kSettings},
+          {"View: Toggle Help Panel", DrawerType::kHelp},
+          {"View: Toggle Help Drawer", DrawerType::kHelp},
+          {"View: Toggle Notifications", DrawerType::kNotifications},
+          {"View: Toggle Notifications Drawer", DrawerType::kNotifications},
+          {"View: Toggle Properties Panel", DrawerType::kProperties},
+          {"View: Toggle Properties Drawer", DrawerType::kProperties},
+          {"View: Toggle Project Panel", DrawerType::kProject},
+          {"View: Toggle Project Drawer", DrawerType::kProject},
       };
-      for (const auto& cmd : panel_cmds) {
+      for (const auto& cmd : drawer_cmds) {
         shortcut_manager->RegisterCommand(
-            cmd.label,
-            [rpm, panel_type = cmd.type]() { rpm->TogglePanel(panel_type); });
+            cmd.label, [right_drawer_manager, drawer_type = cmd.type]() {
+              right_drawer_manager->ToggleDrawer(drawer_type);
+            });
       }
-      shortcut_manager->RegisterCommand("View: Previous Right Panel", [rpm]() {
-        rpm->CycleToPreviousPanel();
-      });
+      shortcut_manager->RegisterCommand("View: Previous Right Panel",
+                                        [right_drawer_manager]() {
+                                          right_drawer_manager->CycleToPreviousDrawer();
+                                        });
+      shortcut_manager->RegisterCommand("View: Previous Right Drawer",
+                                        [right_drawer_manager]() {
+                                          right_drawer_manager->CycleToPreviousDrawer();
+                                        });
       shortcut_manager->RegisterCommand("View: Next Right Panel",
-                                        [rpm]() { rpm->CycleToNextPanel(); });
+                                        [right_drawer_manager]() {
+                                          right_drawer_manager->CycleToNextDrawer();
+                                        });
+      shortcut_manager->RegisterCommand("View: Next Right Drawer",
+                                        [right_drawer_manager]() {
+                                          right_drawer_manager->CycleToNextDrawer();
+                                        });
     }
   }
 
   // ============================================================================
-  // Panel Visibility Toggle Commands (command palette only)
+  // Window + Panel Visibility Commands (command palette only)
   // ============================================================================
-  if (panel_manager) {
-    auto categories = panel_manager->GetAllCategories();
+  if (window_manager) {
+    auto categories = window_manager->GetAllCategories();
     int session_id = 0;  // Default session for command registration
 
+    shortcut_manager->RegisterCommand("View: Show Panel Browser",
+                                      [window_manager]() {
+                                        window_manager->TriggerShowWindowBrowser();
+                                      });
+    shortcut_manager->RegisterCommand("View: Show Window Browser",
+                                      [window_manager]() {
+                                        window_manager->TriggerShowWindowBrowser();
+                                      });
+
     for (const auto& category : categories) {
-      auto panels = panel_manager->GetPanelsInCategory(session_id, category);
+      auto windows = window_manager->GetWindowsInCategory(session_id, category);
+      for (const auto& window : windows) {
+        const std::string window_id = window.card_id;
+        const std::string display_name = window.display_name;
 
-      for (const auto& panel : panels) {
-        std::string panel_id = panel.card_id;
-        std::string display_name = panel.display_name;
-
-        // Register show command
         shortcut_manager->RegisterCommand(
             absl::StrFormat("View: Show %s", display_name),
-            [panel_manager, panel_id]() {
-              if (panel_manager) {
-                panel_manager->ShowPanel(0, panel_id);
+            [window_manager, window_id]() {
+              if (window_manager) {
+                window_manager->OpenWindow(0, window_id);
               }
             });
-
-        // Register hide command
         shortcut_manager->RegisterCommand(
             absl::StrFormat("View: Hide %s", display_name),
-            [panel_manager, panel_id]() {
-              if (panel_manager) {
-                panel_manager->HidePanel(0, panel_id);
+            [window_manager, window_id]() {
+              if (window_manager) {
+                window_manager->CloseWindow(0, window_id);
+              }
+            });
+        shortcut_manager->RegisterCommand(
+            absl::StrFormat("View: Toggle %s", display_name),
+            [window_manager, window_id]() {
+              if (window_manager) {
+                window_manager->ToggleWindow(0, window_id);
               }
             });
 
-        // Register toggle command
         shortcut_manager->RegisterCommand(
-            absl::StrFormat("View: Toggle %s", display_name),
-            [panel_manager, panel_id]() {
-              if (panel_manager) {
-                panel_manager->TogglePanel(0, panel_id);
+            absl::StrFormat("View: Open %s Window", display_name),
+            [window_manager, window_id]() {
+              if (window_manager) {
+                window_manager->OpenWindow(0, window_id);
+              }
+            });
+        shortcut_manager->RegisterCommand(
+            absl::StrFormat("View: Close %s Window", display_name),
+            [window_manager, window_id]() {
+              if (window_manager) {
+                window_manager->CloseWindow(0, window_id);
+              }
+            });
+        shortcut_manager->RegisterCommand(
+            absl::StrFormat("View: Toggle %s Window", display_name),
+            [window_manager, window_id]() {
+              if (window_manager) {
+                window_manager->ToggleWindow(0, window_id);
               }
             });
       }
-    }
 
-    // Category-level commands
-    for (const auto& category : categories) {
       shortcut_manager->RegisterCommand(
           absl::StrFormat("View: Show All %s Panels", category),
-          [panel_manager, category]() {
-            if (panel_manager) {
-              panel_manager->ShowAllPanelsInCategory(0, category);
+          [window_manager, category]() {
+            if (window_manager) {
+              window_manager->ShowAllWindowsInCategory(0, category);
             }
           });
-
       shortcut_manager->RegisterCommand(
           absl::StrFormat("View: Hide All %s Panels", category),
-          [panel_manager, category]() {
-            if (panel_manager) {
-              panel_manager->HideAllPanelsInCategory(0, category);
+          [window_manager, category]() {
+            if (window_manager) {
+              window_manager->HideAllWindowsInCategory(0, category);
+            }
+          });
+      shortcut_manager->RegisterCommand(
+          absl::StrFormat("View: Show All %s Windows", category),
+          [window_manager, category]() {
+            if (window_manager) {
+              window_manager->ShowAllWindowsInCategory(0, category);
+            }
+          });
+      shortcut_manager->RegisterCommand(
+          absl::StrFormat("View: Hide All %s Windows", category),
+          [window_manager, category]() {
+            if (window_manager) {
+              window_manager->HideAllWindowsInCategory(0, category);
             }
           });
     }
@@ -864,21 +1042,21 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
 
 void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
                              ShortcutManager* shortcut_manager) {
-  if (!shortcut_manager || !deps.panel_manager) {
+  if (!shortcut_manager || !deps.window_manager) {
     return;
   }
 
-  auto* panel_manager = deps.panel_manager;
+  auto* window_manager = deps.window_manager;
   auto* user_settings = deps.user_settings;
   int session_id = deps.session_coordinator
                        ? deps.session_coordinator->GetActiveSessionIndex()
                        : 0;
 
   // Get all categories and panels
-  auto categories = panel_manager->GetAllCategories();
+  auto categories = window_manager->GetAllCategories();
 
   for (const auto& category : categories) {
-    auto panels = panel_manager->GetPanelsInCategory(session_id, category);
+    auto panels = window_manager->GetWindowsInCategory(session_id, category);
 
     for (const auto& panel : panels) {
       std::string shortcut_string;
@@ -902,12 +1080,12 @@ void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
         if (!keys.empty()) {
           std::string panel_id_copy = panel.card_id;
           // Toggle panel visibility shortcut
-          if (panel.shortcut_scope == PanelDescriptor::ShortcutScope::kPanel) {
+          if (panel.shortcut_scope == WindowDescriptor::ShortcutScope::kPanel) {
             std::string toggle_id = "view.toggle." + panel.card_id;
             RegisterIfValid(shortcut_manager, toggle_id, keys,
-                            [panel_manager, panel_id_copy, session_id]() {
-                              panel_manager->TogglePanel(session_id,
-                                                         panel_id_copy);
+                            [window_manager, panel_id_copy, session_id]() {
+                              window_manager->ToggleWindow(session_id,
+                                                          panel_id_copy);
                             });
           }
         }

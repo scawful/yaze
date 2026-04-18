@@ -154,7 +154,7 @@ class PaletteEditor : public Editor {
   // Search filter for palette groups
   char search_buffer_[256] = "";
 
-  // Panel visibility flags (legacy; superseded by PanelManager visibility)
+  // Panel visibility flags (legacy; superseded by WorkspaceWindowManager visibility)
   bool show_control_panel_ = true;
   // Palette panel visibility flags
   bool show_ow_main_panel_ = false;
@@ -169,7 +169,7 @@ class PaletteEditor : public Editor {
   bool show_custom_palette_ = false;
 
   // Palette Panels (formerly Cards)
-  // We keep raw pointers to the panels which are owned by PanelManager
+  // We keep raw pointers to the panels which are owned by WorkspaceWindowManager
   OverworldMainPalettePanel* ow_main_panel_ = nullptr;
   OverworldAnimatedPalettePanel* ow_anim_panel_ = nullptr;
   DungeonMainPalettePanel* dungeon_main_panel_ = nullptr;

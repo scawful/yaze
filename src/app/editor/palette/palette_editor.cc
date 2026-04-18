@@ -6,7 +6,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_category.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
@@ -211,14 +211,14 @@ absl::Status DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 }
 
 void PaletteEditor::Initialize() {
-  // Register all panels with PanelManager (done once during
+  // Register all panels with WorkspaceWindowManager (done once during
   // initialization)
-  if (!dependencies_.panel_manager)
+  if (!dependencies_.window_manager)
     return;
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
   const size_t session_id = dependencies_.session_id;
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.control_panel",
        .display_name = "Palette Controls",
        .window_title = " Palette Controls",
@@ -230,7 +230,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.ow_main",
        .display_name = "Overworld Main",
        .window_title = " Overworld Main",
@@ -242,7 +242,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.ow_animated",
        .display_name = "Overworld Animated",
        .window_title = " Overworld Animated",
@@ -254,7 +254,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.dungeon_main",
        .display_name = "Dungeon Main",
        .window_title = " Dungeon Main",
@@ -266,7 +266,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.sprites",
        .display_name = "Global Sprite Palettes",
        .window_title = " SNES Palette",
@@ -278,7 +278,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.sprites_aux1",
        .display_name = "Sprites Aux 1",
        .window_title = " Sprites Aux 1",
@@ -290,7 +290,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.sprites_aux2",
        .display_name = "Sprites Aux 2",
        .window_title = " Sprites Aux 2",
@@ -302,7 +302,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.sprites_aux3",
        .display_name = "Sprites Aux 3",
        .window_title = " Sprites Aux 3",
@@ -314,7 +314,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.equipment",
        .display_name = "Equipment Palettes",
        .window_title = " Equipment Palettes",
@@ -326,7 +326,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.quick_access",
        .display_name = "Quick Access",
        .window_title = " Color Harmony",
@@ -338,7 +338,7 @@ void PaletteEditor::Initialize() {
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM first"});
 
-  panel_manager->RegisterPanel(
+  window_manager->RegisterPanel(
       {.card_id = "palette.custom",
        .display_name = "Custom Palette",
        .window_title = " Palette Editor",
@@ -351,14 +351,14 @@ void PaletteEditor::Initialize() {
        .disabled_tooltip = "Load a ROM first"});
 
   // Show control panel by default when Palette Editor is activated
-  panel_manager->ShowPanel(session_id, "palette.control_panel");
+  window_manager->OpenWindow(session_id, "palette.control_panel");
 }
 
 // ============================================================================
 // Helper Panel Classes
 // ============================================================================
 
-class PaletteControlPanel : public EditorPanel {
+class PaletteControlPanel : public WindowContent {
  public:
   explicit PaletteControlPanel(std::function<void()> draw_callback)
       : draw_callback_(std::move(draw_callback)) {}
@@ -381,7 +381,7 @@ class PaletteControlPanel : public EditorPanel {
   std::function<void()> draw_callback_;
 };
 
-class QuickAccessPalettePanel : public EditorPanel {
+class QuickAccessPalettePanel : public WindowContent {
  public:
   explicit QuickAccessPalettePanel(std::function<void()> draw_callback)
       : draw_callback_(std::move(draw_callback)) {}
@@ -404,7 +404,7 @@ class QuickAccessPalettePanel : public EditorPanel {
   std::function<void()> draw_callback_;
 };
 
-class CustomPalettePanel : public EditorPanel {
+class CustomPalettePanel : public WindowContent {
  public:
   explicit CustomPalettePanel(std::function<void()> draw_callback)
       : draw_callback_(std::move(draw_callback)) {}
@@ -454,59 +454,59 @@ absl::Status PaletteEditor::Load() {
   gfx_group_editor_.SetRom(rom_);
   gfx_group_editor_.SetGameData(game_data());
 
-  // Register EditorPanel instances with PanelManager
-  if (dependencies_.panel_manager) {
-    auto* panel_manager = dependencies_.panel_manager;
+  // Register WindowContent instances with WorkspaceWindowManager
+  if (dependencies_.window_manager) {
+    auto* window_manager = dependencies_.window_manager;
 
     // Create and register palette panels
-    // Note: PanelManager takes ownership via unique_ptr
+    // Note: WorkspaceWindowManager takes ownership via unique_ptr
 
     // Overworld Main
     auto ow_main =
         std::make_unique<OverworldMainPalettePanel>(rom_, game_data());
     ow_main_panel_ = ow_main.get();
-    panel_manager->RegisterEditorPanel(std::move(ow_main));
+    window_manager->RegisterWindowContent(std::move(ow_main));
 
     // Overworld Animated
     auto ow_anim =
         std::make_unique<OverworldAnimatedPalettePanel>(rom_, game_data());
     ow_anim_panel_ = ow_anim.get();
-    panel_manager->RegisterEditorPanel(std::move(ow_anim));
+    window_manager->RegisterWindowContent(std::move(ow_anim));
 
     // Dungeon Main
     auto dungeon_main =
         std::make_unique<DungeonMainPalettePanel>(rom_, game_data());
     dungeon_main_panel_ = dungeon_main.get();
-    panel_manager->RegisterEditorPanel(std::move(dungeon_main));
+    window_manager->RegisterWindowContent(std::move(dungeon_main));
 
     // Global Sprites
     auto sprite_global =
         std::make_unique<SpritePalettePanel>(rom_, game_data());
     sprite_global_panel_ = sprite_global.get();
-    panel_manager->RegisterEditorPanel(std::move(sprite_global));
+    window_manager->RegisterWindowContent(std::move(sprite_global));
 
     // Sprites Aux 1
     auto sprite_aux1 =
         std::make_unique<SpritesAux1PalettePanel>(rom_, game_data());
     sprite_aux1_panel_ = sprite_aux1.get();
-    panel_manager->RegisterEditorPanel(std::move(sprite_aux1));
+    window_manager->RegisterWindowContent(std::move(sprite_aux1));
 
     // Sprites Aux 2
     auto sprite_aux2 =
         std::make_unique<SpritesAux2PalettePanel>(rom_, game_data());
     sprite_aux2_panel_ = sprite_aux2.get();
-    panel_manager->RegisterEditorPanel(std::move(sprite_aux2));
+    window_manager->RegisterWindowContent(std::move(sprite_aux2));
 
     // Sprites Aux 3
     auto sprite_aux3 =
         std::make_unique<SpritesAux3PalettePanel>(rom_, game_data());
     sprite_aux3_panel_ = sprite_aux3.get();
-    panel_manager->RegisterEditorPanel(std::move(sprite_aux3));
+    window_manager->RegisterWindowContent(std::move(sprite_aux3));
 
     // Equipment
     auto equipment = std::make_unique<EquipmentPalettePanel>(rom_, game_data());
     equipment_panel_ = equipment.get();
-    panel_manager->RegisterEditorPanel(std::move(equipment));
+    window_manager->RegisterWindowContent(std::move(equipment));
 
     // Wire toast manager to all palette group panels
     auto* toast = dependencies_.toast_manager;
@@ -522,12 +522,12 @@ absl::Status PaletteEditor::Load() {
     }
 
     // Register utility panels with callbacks
-    panel_manager->RegisterEditorPanel(std::make_unique<PaletteControlPanel>(
+    window_manager->RegisterWindowContent(std::make_unique<PaletteControlPanel>(
         [this]() { DrawControlPanel(); }));
-    panel_manager->RegisterEditorPanel(
+    window_manager->RegisterWindowContent(
         std::make_unique<QuickAccessPalettePanel>(
             [this]() { DrawQuickAccessPanel(); }));
-    panel_manager->RegisterEditorPanel(std::make_unique<CustomPalettePanel>(
+    window_manager->RegisterWindowContent(std::make_unique<CustomPalettePanel>(
         [this]() { DrawCustomPalettePanel(); }));
   }
 
@@ -567,8 +567,8 @@ absl::Status PaletteEditor::Redo() {
 }
 
 absl::Status PaletteEditor::Update() {
-  // Panel drawing is handled centrally by PanelManager::DrawAllVisiblePanels()
-  // via the EditorPanel implementations registered in Load().
+  // Panel drawing is handled centrally by WorkspaceWindowManager::DrawAllVisiblePanels()
+  // via the WindowContent implementations registered in Load().
   // No local drawing needed here - this fixes duplicate panel rendering.
   return absl::OkStatus();
 }
@@ -903,7 +903,7 @@ absl::Status PaletteEditor::ResetColorToOriginal(
 // ============================================================================
 
 void PaletteEditor::DrawToolset() {
-  // Sidebar is drawn by PanelManager in EditorManager
+  // Sidebar is drawn by WorkspaceWindowManager in EditorManager
   // Panels registered in Initialize() appear in the sidebar automatically
 }
 
@@ -1233,57 +1233,57 @@ void PaletteEditor::DrawCustomPalettePanel() {
 
 void PaletteEditor::JumpToPalette(const std::string& group_name,
                                   int palette_index) {
-  if (!dependencies_.panel_manager) {
+  if (!dependencies_.window_manager) {
     return;
   }
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
   const size_t session_id = dependencies_.session_id;
 
   // Show and focus the appropriate card
   if (group_name == "ow_main") {
-    panel_manager->ShowPanel(session_id, "palette.ow_main");
+    window_manager->OpenWindow(session_id, "palette.ow_main");
     if (ow_main_panel_) {
       ow_main_panel_->Show();
       ow_main_panel_->SetSelectedPaletteIndex(palette_index);
     }
   } else if (group_name == "ow_animated") {
-    panel_manager->ShowPanel(session_id, "palette.ow_animated");
+    window_manager->OpenWindow(session_id, "palette.ow_animated");
     if (ow_anim_panel_) {
       ow_anim_panel_->Show();
       ow_anim_panel_->SetSelectedPaletteIndex(palette_index);
     }
   } else if (group_name == "dungeon_main") {
-    panel_manager->ShowPanel(session_id, "palette.dungeon_main");
+    window_manager->OpenWindow(session_id, "palette.dungeon_main");
     if (dungeon_main_panel_) {
       dungeon_main_panel_->Show();
       dungeon_main_panel_->SetSelectedPaletteIndex(palette_index);
     }
   } else if (group_name == "global_sprites") {
-    panel_manager->ShowPanel(session_id, "palette.sprites");
+    window_manager->OpenWindow(session_id, "palette.sprites");
     if (sprite_global_panel_) {
       sprite_global_panel_->Show();
       sprite_global_panel_->SetSelectedPaletteIndex(palette_index);
     }
   } else if (group_name == "sprites_aux1") {
-    panel_manager->ShowPanel(session_id, "palette.sprites_aux1");
+    window_manager->OpenWindow(session_id, "palette.sprites_aux1");
     if (sprite_aux1_panel_) {
       sprite_aux1_panel_->Show();
       sprite_aux1_panel_->SetSelectedPaletteIndex(palette_index);
     }
   } else if (group_name == "sprites_aux2") {
-    panel_manager->ShowPanel(session_id, "palette.sprites_aux2");
+    window_manager->OpenWindow(session_id, "palette.sprites_aux2");
     if (sprite_aux2_panel_) {
       sprite_aux2_panel_->Show();
       sprite_aux2_panel_->SetSelectedPaletteIndex(palette_index);
     }
   } else if (group_name == "sprites_aux3") {
-    panel_manager->ShowPanel(session_id, "palette.sprites_aux3");
+    window_manager->OpenWindow(session_id, "palette.sprites_aux3");
     if (sprite_aux3_panel_) {
       sprite_aux3_panel_->Show();
       sprite_aux3_panel_->SetSelectedPaletteIndex(palette_index);
     }
   } else if (group_name == "armors") {
-    panel_manager->ShowPanel(session_id, "palette.equipment");
+    window_manager->OpenWindow(session_id, "palette.equipment");
     if (equipment_panel_) {
       equipment_panel_->Show();
       equipment_panel_->SetSelectedPaletteIndex(palette_index);
@@ -1291,7 +1291,7 @@ void PaletteEditor::JumpToPalette(const std::string& group_name,
   }
 
   // Show control panel too for easy navigation
-  panel_manager->ShowPanel(session_id, "palette.control_panel");
+  window_manager->OpenWindow(session_id, "palette.control_panel");
 }
 
 // ============================================================================

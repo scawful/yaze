@@ -10,64 +10,64 @@ namespace yaze {
 namespace editor {
 
 /**
- * @enum PanelCategory
- * @brief Defines lifecycle behavior for editor panels
+ * @enum WindowLifecycle
+ * @brief Defines lifecycle behavior for editor windows
  *
  * Panels are categorized by how they behave when switching between editors:
  * - EditorBound: Hidden when switching away from parent editor (default)
  * - Persistent: Remains visible across all editor switches
  * - CrossEditor: User can "pin" to make persistent (opt-in by user)
  */
-enum class PanelCategory {
+enum class WindowLifecycle {
   EditorBound,  ///< Hidden when switching editors (default)
   Persistent,   ///< Always visible once shown
   CrossEditor   ///< User can pin to persist across editors
 };
 
 /**
- * @enum PanelContextScope
- * @brief Optional context binding for a panel's behavior within an editor
+ * @enum WindowContextScope
+ * @brief Optional context binding for a window's behavior within an editor
  *
- * This does not change panel IDs by itself. PanelManager can use it to apply
+ * This does not change panel IDs by itself. WorkspaceWindowManager can use it to apply
  * predictable default rules when a context becomes invalid (e.g. selection
  * cleared) to avoid "mystery panels".
  *
  * Most panels should remain kNone.
  */
-enum class PanelContextScope : uint8_t {
+enum class WindowContextScope : uint8_t {
   kNone = 0,
   kRoom,
   kSelection,
 };
 
 /**
- * @enum PanelScope
- * @brief Defines whether a panel is session-scoped or global
+ * @enum WindowScope
+ * @brief Defines whether a window is session-scoped or global
  *
  * Session-scoped panels are registered per session (with optional prefixing).
  * Global panels share a single descriptor across all sessions.
  */
-enum class PanelScope {
+enum class WindowScope {
   kSession,
   kGlobal
 };
 
 /**
- * @class EditorPanel
- * @brief Base interface for all logical panel components
+ * @class WindowContent
+ * @brief Base interface for all logical window content components
  *
- * EditorPanel represents a logical UI component that draws content within
+ * WindowContent represents a logical UI component that draws content within
  * a panel window. This is distinct from PanelWindow (the ImGui wrapper that
  * draws the window chrome/title bar).
  *
  * The separation allows:
- * - PanelManager to handle window creation/visibility centrally
+ * - WorkspaceWindowManager to handle window creation/visibility centrally
  * - Panel components to focus purely on content drawing
  * - Consistent window behavior across all editors
  *
  * @section Usage Example
  * ```cpp
- * class UsageStatisticsPanel : public EditorPanel {
+ * class UsageStatisticsPanel : public WindowContent {
  *  public:
  *   std::string GetId() const override { return "overworld.usage_stats"; }
  *   std::string GetDisplayName() const override { return "Usage Statistics"; }
@@ -76,7 +76,7 @@ enum class PanelScope {
  *
  *   void Draw(bool* p_open) override {
  *     // Draw your content here - no ImGui::Begin/End needed
- *     // PanelManager handles the window wrapper
+ *     // WorkspaceWindowManager handles the window wrapper
  *     DrawUsageGrid();
  *     DrawUsageStates();
  *   }
@@ -84,12 +84,12 @@ enum class PanelScope {
  * ```
  *
  * @see PanelWindow - The ImGui window wrapper (draws chrome)
- * @see PanelManager - Central registry that manages panel lifecycle
- * @see PanelDescriptor - Metadata struct for panel registration
+ * @see WorkspaceWindowManager - Central registry that manages panel lifecycle
+ * @see WindowDescriptor - Metadata struct for window registration
  */
-class EditorPanel {
+class WindowContent {
  public:
-  virtual ~EditorPanel() = default;
+  virtual ~WindowContent() = default;
 
   // ==========================================================================
   // Identity (Required)
@@ -132,7 +132,7 @@ class EditorPanel {
    * @brief Draw the panel content
    * @param p_open Pointer to visibility flag (nullptr if not closable)
    *
-   * Called by PanelManager when the panel is visible.
+   * Called by WorkspaceWindowManager when the panel is visible.
    * Do NOT call ImGui::Begin/End - the PanelWindow wrapper handles that.
    * Just draw your content directly.
    */
@@ -199,30 +199,30 @@ class EditorPanel {
   // ==========================================================================
 
   /**
-   * @brief Get the lifecycle category for this panel
-   * @return PanelCategory determining visibility behavior on editor switch
+   * @brief Get the lifecycle category for this window
+   * @return WindowLifecycle determining visibility behavior on editor switch
    *
    * Default is EditorBound (hidden when switching editors).
    */
-  virtual PanelCategory GetPanelCategory() const {
-    return PanelCategory::EditorBound;
+  virtual WindowLifecycle GetWindowLifecycle() const {
+    return WindowLifecycle::EditorBound;
   }
 
   /**
-   * @brief Optional context binding for this panel (room/selection/etc)
-   * @return PanelContextScope used by PanelManager policy (default: none)
+   * @brief Optional context binding for this window (room/selection/etc)
+   * @return WindowContextScope used by WorkspaceWindowManager policy (default: none)
    */
-  virtual PanelContextScope GetContextScope() const {
-    return PanelContextScope::kNone;
+  virtual WindowContextScope GetContextScope() const {
+    return WindowContextScope::kNone;
   }
 
   /**
-   * @brief Get the registration scope for this panel
-   * @return PanelScope indicating session or global scope
+   * @brief Get the registration scope for this window
+   * @return WindowScope indicating session or global scope
    *
    * Default is session-scoped.
    */
-  virtual PanelScope GetScope() const { return PanelScope::kSession; }
+  virtual WindowScope GetScope() const { return WindowScope::kSession; }
 
   /**
    * @brief Check if this panel is currently enabled
@@ -252,6 +252,28 @@ class EditorPanel {
   virtual int GetPriority() const { return 50; }
 
   /**
+   * @brief Optional workflow group for hack-centric actions.
+   * @return Non-empty group name to surface this panel in hack workflows.
+   */
+  virtual std::string GetWorkflowGroup() const { return ""; }
+
+  /**
+   * @brief Optional workflow label for menus/command palette.
+   * @return Action label to use when surfacing this panel via workflows.
+   */
+  virtual std::string GetWorkflowLabel() const { return GetDisplayName(); }
+
+  /**
+   * @brief Optional workflow description for menus/command palette.
+   */
+  virtual std::string GetWorkflowDescription() const { return ""; }
+
+  /**
+   * @brief Optional workflow ordering priority (lower sorts first).
+   */
+  virtual int GetWorkflowPriority() const { return GetPriority(); }
+
+  /**
    * @brief Get preferred width for this panel (optional)
    * @return Preferred width in pixels, or 0 to use default (250px)
    *
@@ -259,6 +281,16 @@ class EditorPanel {
    * selector with 8 tiles at 16px × 2.0 scale would return ~276px.
    */
   virtual float GetPreferredWidth() const { return 0.0f; }
+
+  /**
+   * @brief Whether the dock node hosting this panel should auto-hide its tab bar
+   * @return true to prefer ImGuiDockNodeFlags_AutoHideTabBar
+   *
+   * This is a node-level hint applied by LayoutManager during DockBuilder
+   * setup. It is best used for primary single-panel work areas where the tab
+   * bar should disappear until another panel is docked into the same node.
+   */
+  virtual bool PreferAutoHideTabBar() const { return false; }
 
   /**
    * @brief Whether this panel should be visible by default
@@ -291,14 +323,14 @@ class EditorPanel {
   virtual bool CascadeCloseChildren() const { return false; }
 
   // ==========================================================================
-  // Internal State (Managed by PanelManager)
+  // Internal State (Managed by WorkspaceWindowManager)
   // ==========================================================================
 
   /**
    * @brief Execute lazy initialization if needed, then call Draw()
    * @param p_open Pointer to visibility flag
    *
-   * Called by PanelManager. Handles OnFirstDraw() invocation automatically.
+   * Called by WorkspaceWindowManager. Handles OnFirstDraw() invocation automatically.
    */
   void DrawWithLazyInit(bool* p_open) {
     if (RequiresLazyInit() && !lazy_init_done_) {
@@ -380,7 +412,7 @@ class EditorPanel {
 };
 
 // Inline implementation (requires private member to be declared first)
-inline void EditorPanel::InvalidateLazyInit() { lazy_init_done_ = false; }
+inline void WindowContent::InvalidateLazyInit() { lazy_init_done_ = false; }
 
 }  // namespace editor
 }  // namespace yaze
