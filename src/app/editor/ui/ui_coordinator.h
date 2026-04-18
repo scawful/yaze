@@ -163,11 +163,11 @@ class UICoordinator {
   bool IsPanelSidebarVisible() const;
   bool IsImGuiDemoVisible() const { return show_imgui_demo_; }
   bool IsImGuiMetricsVisible() const { return show_imgui_metrics_; }
-  // Emulator visibility delegates to WorkspaceWindowManager (single source of truth)
+  // Emulator + Assembly visibility delegate to WorkspaceWindowManager (single
+  // source of truth). Assembly follows the same category-backed pattern as the
+  // emulator; there is no per-editor boolean that can drift.
   bool IsEmulatorVisible() const;
-  bool IsMemoryEditorVisible() const { return show_memory_editor_; }
-  bool IsAsmEditorVisible() const { return show_asm_editor_; }
-  bool IsPaletteEditorVisible() const { return show_palette_editor_; }
+  bool IsAsmEditorVisible() const;
   bool IsResourceLabelManagerVisible() const {
     return show_resource_label_manager_;
   }
@@ -201,11 +201,9 @@ class UICoordinator {
   void SetPanelSidebarVisible(bool visible);
   void SetImGuiDemoVisible(bool visible) { show_imgui_demo_ = visible; }
   void SetImGuiMetricsVisible(bool visible) { show_imgui_metrics_ = visible; }
-  // Emulator visibility delegates to WorkspaceWindowManager (single source of truth)
+  // Emulator + Assembly visibility delegate to WorkspaceWindowManager.
   void SetEmulatorVisible(bool visible);
-  void SetMemoryEditorVisible(bool visible) { show_memory_editor_ = visible; }
-  void SetAsmEditorVisible(bool visible) { show_asm_editor_ = visible; }
-  void SetPaletteEditorVisible(bool visible) { show_palette_editor_ = visible; }
+  void SetAsmEditorVisible(bool visible);
   void SetResourceLabelManagerVisible(bool visible) {
     show_resource_label_manager_ = visible;
   }
@@ -256,9 +254,9 @@ class UICoordinator {
   bool show_command_palette_ = false;
   // show_emulator_ removed - now managed by WorkspaceWindowManager
   // show_panel_sidebar_ removed - now managed by WorkspaceWindowManager
-  bool show_memory_editor_ = false;
-  bool show_asm_editor_ = false;
-  bool show_palette_editor_ = false;
+  // show_memory_editor_ / show_palette_editor_ removed - dead state, their
+  // editors register panels with WorkspaceWindowManager directly.
+  // show_asm_editor_ removed - now delegates via GetWindowsInCategory("Assembly")
   bool show_resource_label_manager_ = false;
   bool show_ai_agent_ = false;
   bool show_chat_history_ = false;
