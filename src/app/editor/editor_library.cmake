@@ -63,8 +63,11 @@ set(
   app/editor/music/song_browser_view.cc
   app/editor/music/tracker_view.cc
   app/editor/overworld/automation.cc
+  app/editor/overworld/core/interaction_coordinator.cc
   app/editor/overworld/debug_window_card.cc
   app/editor/overworld/entity.cc
+  app/editor/overworld/entity/entity_mutation_service.cc
+  app/editor/overworld/entity/entity_workbench.cc
   app/editor/overworld/entity_operations.cc
   app/editor/overworld/map_properties.cc
   app/editor/overworld/canvas_navigation_manager.cc
