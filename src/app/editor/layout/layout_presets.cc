@@ -233,16 +233,26 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
     case EditorType::kAssembly:
       preset.name = "Assembly Default";
-      preset.description = "Assembly editor with file browser";
+      preset.description =
+          "Assembly editor with browser, symbols, and disassembly";
       preset.default_visible_panels = {
           Panels::kAssemblyEditor,
+          Panels::kAssemblyFileBrowser,
+          Panels::kAssemblyDisassembly,
       };
       preset.panel_positions = {
           {Panels::kAssemblyEditor, DockPosition::Center},
           {Panels::kAssemblyFileBrowser, DockPosition::LeftTop},
+          {Panels::kAssemblySymbols, DockPosition::RightTop},
+          {Panels::kAssemblyDisassembly, DockPosition::RightBottom},
+          {Panels::kAssemblyBuildOutput, DockPosition::Bottom},
+          {Panels::kAssemblyToolbar, DockPosition::Top},
       };
       preset.optional_panels = {
-          Panels::kAssemblyFileBrowser,
+          Panels::kAssemblySymbols,
+          Panels::kAssemblyDisassembly,
+          Panels::kAssemblyBuildOutput,
+          Panels::kAssemblyToolbar,
       };
       break;
 

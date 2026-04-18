@@ -80,5 +80,37 @@ TEST(LayoutPresetsTest, WorkspaceAliasesMirrorWindowTerminology) {
       ContainsPanel(all_windows, LayoutPresets::Windows::kOverworldMapProperties));
 }
 
+TEST(LayoutPresetsTest, AssemblyDefaultIncludesSupportingToolWindows) {
+  auto preset = LayoutPresets::GetDefaultPreset(EditorType::kAssembly);
+
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kAssemblyEditor));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kAssemblyFileBrowser));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kAssemblyDisassembly));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kAssemblySymbols));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kAssemblyBuildOutput));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kAssemblyToolbar));
+
+  auto browser_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kAssemblyFileBrowser);
+  ASSERT_NE(browser_pos, preset.panel_positions.end());
+  EXPECT_EQ(browser_pos->second, DockPosition::LeftTop);
+
+  auto symbols_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kAssemblySymbols);
+  ASSERT_NE(symbols_pos, preset.panel_positions.end());
+  EXPECT_EQ(symbols_pos->second, DockPosition::RightTop);
+
+  auto disassembly_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kAssemblyDisassembly);
+  ASSERT_NE(disassembly_pos, preset.panel_positions.end());
+  EXPECT_EQ(disassembly_pos->second, DockPosition::RightBottom);
+}
+
 }  // namespace
 }  // namespace yaze::editor
