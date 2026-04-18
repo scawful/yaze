@@ -1785,7 +1785,11 @@ void DungeonEditorV2::SelectObject(int obj_id) {
 
 void DungeonEditorV2::SetAgentMode(bool enabled) {
   if (enabled && dependencies_.window_manager) {
-    OpenWindow(kRoomSelectorId);
+    if (IsWorkbenchWorkflowEnabled()) {
+      OpenWindow("dungeon.workbench");
+    } else {
+      OpenWindow(kRoomSelectorId);
+    }
     OpenWindow(kObjectToolsId);
     OpenWindow(kRoomGraphicsId);
     if (object_editor_panel_) {
