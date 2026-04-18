@@ -648,11 +648,53 @@ absl::Status DungeonEditorV2::Load() {
   }
 
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
+    auto apply_palette = [this](DungeonCanvasViewer* viewer) {
+      if (!viewer) {
+        return;
+      }
+      viewer->SetCurrentPaletteId(current_palette_id_);
+      viewer->SetCurrentPaletteGroup(current_palette_group_);
+    };
+
+    if (current_room_id_ >= 0 && current_room_id_ < (int)rooms_.size() &&
+        game_data()) {
+      auto& dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
+      if (current_palette_id_ >= 0 &&
+          current_palette_id_ < static_cast<int>(dungeon_main_pal_group.size())) {
+        current_palette_ = dungeon_main_pal_group[current_palette_id_];
+        if (auto pal_group =
+                gfx::CreatePaletteGroupFromLargePalette(current_palette_);
+            pal_group.ok()) {
+          current_palette_group_ = pal_group.value();
+          apply_palette(workbench_viewer_);
+          apply_palette(workbench_compare_viewer_);
+          if (!IsWorkbenchWorkflowEnabled()) {
+            if (auto* existing_viewer = room_viewers_.Get(current_room_id_)) {
+              apply_palette(existing_viewer->get());
+            }
+          }
+          if (object_editor_panel_) {
+            object_editor_panel_->SetCurrentPaletteGroup(current_palette_group_);
+          }
+          if (room_graphics_panel_) {
+            room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
+          }
+        }
+      }
+    }
+
+    bool rendered_current_room = false;
     for (int i = 0; i < active_rooms_.Size; i++) {
       int room_id = active_rooms_[i];
       if (room_id >= 0 && room_id < (int)rooms_.size()) {
         rooms_[room_id].RenderRoomGraphics();
+        rendered_current_room |= room_id == current_room_id_;
       }
+    }
+
+    if (!rendered_current_room && current_room_id_ >= 0 &&
+        current_room_id_ < static_cast<int>(rooms_.size())) {
+      rooms_[current_room_id_].RenderRoomGraphics();
     }
   });
 
