@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <functional>
+#include <initializer_list>
 #include <span>
 #include <string>
 
@@ -89,6 +90,23 @@ using TraceHookFn =
 // Optional trace hook for validation/testing (used by ObjectDrawer).
 void SetTraceHook(TraceHookFn hook, void* user_data, bool trace_only);
 void ClearTraceHook();
+
+inline uint16_t TileIdAt(const gfx::BackgroundBuffer& bg, int tile_x,
+                         int tile_y) {
+  return bg.GetTileAt(tile_x, tile_y) & 0x03FF;
+}
+
+inline bool ExistingTileMatchesAny(const gfx::BackgroundBuffer& bg, int tile_x,
+                                   int tile_y,
+                                   std::initializer_list<uint16_t> tile_ids) {
+  const uint16_t existing_tile_id = TileIdAt(bg, tile_x, tile_y);
+  for (const uint16_t tile_id : tile_ids) {
+    if (existing_tile_id == tile_id) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /**
  * @brief Check if tile position is within canvas bounds

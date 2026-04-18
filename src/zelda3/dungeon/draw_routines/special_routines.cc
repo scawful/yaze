@@ -1912,9 +1912,13 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
               return;
 
             int tile_y = ctx.object.y_;
-            // Corner
-            DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y,
-                                         ctx.tiles[0]);
+            // USDASM $01:8EC9-$01:8ED4 suppresses the leading corner when the
+            // current slot already contains the small vertical rail corner.
+            if (!DrawRoutineUtils::ExistingTileMatchesAny(
+                    ctx.target_bg, ctx.object.x_, tile_y, {0x00E3})) {
+              DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y,
+                                           ctx.tiles[0]);
+            }
             tile_y++;
             // Middle tiles
             for (int s = 0; s < count; s++) {
