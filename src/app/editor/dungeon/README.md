@@ -4,7 +4,7 @@ This directory contains the components for the **Dungeon Editor** (V2), a compre
 
 ## Architecture Overview
 
-The editor is built around `DungeonEditorV2`, which acts as a coordinator for various **Panels** and **Components**. Unlike the monolithic V1 editor, V2 uses a docking panel system managed by `PanelManager`.
+The editor is built around `DungeonEditorV2`, which acts as a coordinator for various **Panels** and **Components**. Unlike the monolithic V1 editor, V2 uses a docking panel system managed by `WorkspaceWindowManager`.
 
 ```mermaid
 graph TD
@@ -36,7 +36,7 @@ graph TD
 ## Key Components
 
 ### Core Editor
-*   **`dungeon_editor_v2.cc/h`**: The main entry point. Initializes the `PanelManager`, manages the `Rom` context, and instantiates the various panels. It maintains the list of active (open) rooms (`room_viewers_`).
+*   **`dungeon_editor_v2.cc/h`**: The main entry point. Initializes the `WorkspaceWindowManager`, manages the `Rom` context, and instantiates the various panels. It maintains the list of active (open) rooms (`room_viewers_`).
 *   **`dungeon_room_loader.cc/h`**: Handles I/O operations with the ROM. Responsible for parsing room headers, object lists, and calculating room sizes. Supports lazy loading.
 
 ### Rendering & Interaction
@@ -63,7 +63,7 @@ Located in `src/app/editor/dungeon/panels/`:
 
 *   **`zelda3/dungeon/`**: The core logic library. The editor relies heavily on `zelda3::Room`, `zelda3::RoomObject`, and `zelda3::DungeonEditorSystem` for data structures and business logic.
 *   **`app/gfx/`**: Used for rendering backends (`IRenderer`), texture management (`Arena`), and palette handling (`SnesPalette`).
-*   **`app/editor/system/panel_manager.h`**: The V2 editor relies on this system for layout and window management.
+*   **`app/editor/system/workspace_window_manager.h`**: The V2 editor relies on this system for layout and window management.
 
 ## Code Analysis & Areas for Improvement
 
@@ -91,6 +91,6 @@ There are multiple implementations for calculating the visual bounds of an objec
 ## Integration Guide
 
 To add a new panel to the Dungeon Editor:
-1.  Create a new class inheriting from `EditorPanel` in `src/app/editor/dungeon/panels/`.
+1.  Create a new class inheriting from `WindowContent` in `src/app/editor/dungeon/panels/`.
 2.  Implement `GetId()`, `GetDisplayName()`, and `Draw()`.
-3.  Register the panel in `DungeonEditorV2::Initialize` using `panel_manager->RegisterPanel` or `RegisterEditorPanel`.
+3.  Register the panel in `DungeonEditorV2::Initialize` using `window_manager->RegisterPanel` or `RegisterWindowContent`.
