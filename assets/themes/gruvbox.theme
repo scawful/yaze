@@ -1,0 +1,118 @@
+# Gruvbox Theme (Dark, Medium contrast)
+# Pavel Pertsev's warm-earthy palette. Spec: morhetz/gruvbox palette.yaml
+# bg0 / bg1 / fg / signature red/yellow/green/blue/purple/aqua/orange
+name=Gruvbox
+description=Gruvbox — warm earthy dark palette, retro terminal vibes
+author=YAZE Team (palette: Pavel Pertsev)
+version=1.0
+
+[colors]
+# Primary colors — warm earthy accents on bg0
+primary=215,153,33,255           # yellow (signature)
+secondary=104,157,106,255        # aqua
+accent=250,189,47,255            # bright yellow
+background=40,40,40,255          # bg0
+surface=60,56,54,255             # bg1
+
+# Status colors (bright variants for visibility)
+error=251,73,52,255              # red (bright)
+warning=250,189,47,255           # yellow (bright)
+success=184,187,38,255           # green (bright)
+info=131,165,152,255             # blue
+
+# Text colors
+text_primary=235,219,178,255     # fg
+text_secondary=189,174,147,255   # fg1
+text_disabled=146,131,116,255    # fg4
+
+# Window colors
+window_bg=29,32,33,240           # bg0_h (hard bg)
+child_bg=40,40,40,200
+popup_bg=50,48,47,250
+
+# Interactive elements
+button=80,73,69,255              # bg2
+button_hovered=131,165,152,220   # blue
+button_active=250,189,47,255     # bright yellow
+frame_bg=60,56,54,220
+frame_bg_hovered=80,73,69,240
+frame_bg_active=102,92,84,255    # bg3
+
+# Navigation
+header=80,73,69,255
+header_hovered=131,165,152,220
+header_active=215,153,33,255
+tab=50,48,47,255
+tab_hovered=80,73,69,255
+tab_active=215,153,33,200
+menu_bar_bg=50,48,47,255
+title_bg=60,56,54,255
+title_bg_active=80,73,69,255
+title_bg_collapsed=50,48,47,200
+
+# Borders and separators
+border=215,153,33,255            # yellow
+border_shadow=0,0,0,0
+separator=102,92,84,180
+separator_hovered=131,165,152,220
+separator_active=250,189,47,255
+
+# Scrollbars
+scrollbar_bg=40,40,40,180
+scrollbar_grab=102,92,84,200
+scrollbar_grab_hovered=131,165,152,230
+scrollbar_grab_active=215,153,33,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=250,189,47,153
+resize_grip_active=250,189,47,230
+
+# Controls
+check_mark=184,187,38,255        # bright green
+slider_grab=215,153,33,255
+slider_grab_active=250,189,47,255
+
+# Tables
+table_header_bg=80,73,69,255
+table_border_strong=102,92,84,255
+table_border_light=60,56,54,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,20
+
+# Links
+text_link=131,165,152,255        # blue
+
+# Navigation and special
+input_text_cursor=235,219,178,255
+nav_cursor=250,189,47,255
+nav_windowing_highlight=250,189,47,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=215,153,33,100
+drag_drop_target=254,128,25,200  # bright orange
+
+# Docking
+docking_preview=215,153,33,180
+docking_empty_bg=60,56,54,255
+
+# Tree lines
+tree_lines=102,92,84,153
+
+# Tab variations
+tab_dimmed=40,40,40,255
+tab_dimmed_selected=60,56,54,255
+tab_dimmed_selected_overline=250,189,47,255
+tab_selected_overline=250,189,47,255
+
+[style]
+window_rounding=4.0
+frame_rounding=3.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0

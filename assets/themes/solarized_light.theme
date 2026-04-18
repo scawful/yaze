@@ -1,0 +1,118 @@
+# Solarized Light Theme
+# Ethan Schoonover's Solarized Light — same palette as dark, inverted layout.
+# base3 (bg) / base2 (surface) / base00 (text) / yellow+blue accents
+name=Solarized Light
+description=Solarized Light — dark-on-light symmetric companion
+author=YAZE Team (palette: Ethan Schoonover)
+version=1.0
+
+[colors]
+# Primary colors — same accents, flipped value direction
+primary=38,139,210,255           # blue
+secondary=42,161,152,255         # cyan
+accent=181,137,0,255             # yellow
+background=253,246,227,255       # base3
+surface=238,232,213,255          # base2
+
+# Status colors (canonical Solarized semantics)
+error=220,50,47,255
+warning=181,137,0,255
+success=133,153,0,255
+info=38,139,210,255
+
+# Text colors (dark on light)
+text_primary=101,123,131,255     # base00
+text_secondary=88,110,117,255    # base01
+text_disabled=147,161,161,255    # base1
+
+# Window colors
+window_bg=253,246,227,250        # base3
+child_bg=238,232,213,220         # base2
+popup_bg=253,246,227,255
+
+# Interactive elements
+button=238,232,213,255           # base2
+button_hovered=42,161,152,160    # cyan tint
+button_active=38,139,210,200     # blue
+frame_bg=238,232,213,240
+frame_bg_hovered=221,215,194,240
+frame_bg_active=147,161,161,180
+
+# Navigation
+header=238,232,213,255
+header_hovered=221,215,194,255
+header_active=38,139,210,160
+tab=238,232,213,255
+tab_hovered=221,215,194,255
+tab_active=38,139,210,180
+menu_bar_bg=238,232,213,255
+title_bg=238,232,213,255
+title_bg_active=221,215,194,255
+title_bg_collapsed=238,232,213,200
+
+# Borders and separators
+border=38,139,210,255            # blue
+border_shadow=0,0,0,0
+separator=147,161,161,180
+separator_hovered=101,123,131,220
+separator_active=38,139,210,255
+
+# Scrollbars
+scrollbar_bg=238,232,213,180
+scrollbar_grab=147,161,161,200
+scrollbar_grab_hovered=101,123,131,230
+scrollbar_grab_active=38,139,210,255
+
+# Resize grips
+resize_grip=0,0,0,26
+resize_grip_hovered=38,139,210,153
+resize_grip_active=38,139,210,230
+
+# Controls
+check_mark=181,137,0,255
+slider_grab=38,139,210,255
+slider_grab_active=181,137,0,255
+
+# Tables
+table_header_bg=238,232,213,255
+table_border_strong=147,161,161,255
+table_border_light=221,215,194,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=0,0,0,15
+
+# Links
+text_link=38,139,210,255
+
+# Navigation and special
+input_text_cursor=101,123,131,255
+nav_cursor=181,137,0,255
+nav_windowing_highlight=38,139,210,200
+nav_windowing_dim_bg=0,0,0,64
+modal_window_dim_bg=0,0,0,80
+text_selected_bg=38,139,210,100
+drag_drop_target=181,137,0,200
+
+# Docking
+docking_preview=38,139,210,180
+docking_empty_bg=238,232,213,255
+
+# Tree lines
+tree_lines=147,161,161,153
+
+# Tab variations
+tab_dimmed=238,232,213,255
+tab_dimmed_selected=221,215,194,255
+tab_dimmed_selected_overline=181,137,0,255
+tab_selected_overline=181,137,0,255
+
+[style]
+window_rounding=4.0
+frame_rounding=3.0
+scrollbar_rounding=4.0
+grab_rounding=3.0
+tab_rounding=3.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=false
+animation_speed=1.0
