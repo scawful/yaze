@@ -13,7 +13,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/automation/widget_measurement.h"
 #include "app/gui/core/platform_keys.h"
@@ -72,90 +72,98 @@ EM_JS(void, SetupYazeControlApi, (), {
       return {error: "API not ready"};
     },
     
-    // Panel control (card naming kept for backward compatibility)
-    openPanel: function(cardId) {
-      if (Module.controlOpenPanel) {
-        try { return JSON.parse(Module.controlOpenPanel(cardId)); }
+    // Window control (panel naming kept as aliases for backward compatibility)
+    openWindow: function(cardId) {
+      if (Module.controlOpenWindow) {
+        try { return JSON.parse(Module.controlOpenWindow(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    openPanel: function(cardId) { return this.openWindow(cardId); },
     
-    closePanel: function(cardId) {
-      if (Module.controlClosePanel) {
-        try { return JSON.parse(Module.controlClosePanel(cardId)); }
+    closeWindow: function(cardId) {
+      if (Module.controlCloseWindow) {
+        try { return JSON.parse(Module.controlCloseWindow(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    closePanel: function(cardId) { return this.closeWindow(cardId); },
     
-    togglePanel: function(cardId) {
-      if (Module.controlTogglePanel) {
-        try { return JSON.parse(Module.controlTogglePanel(cardId)); }
+    toggleWindow: function(cardId) {
+      if (Module.controlToggleWindow) {
+        try { return JSON.parse(Module.controlToggleWindow(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    togglePanel: function(cardId) { return this.toggleWindow(cardId); },
 
-    getVisiblePanels: function() {
-      if (Module.controlGetVisiblePanels) {
-        try { return JSON.parse(Module.controlGetVisiblePanels()); }
+    getVisibleWindows: function() {
+      if (Module.controlGetVisibleWindows) {
+        try { return JSON.parse(Module.controlGetVisibleWindows()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    getVisiblePanels: function() { return this.getVisibleWindows(); },
 
-    getAvailablePanels: function() {
-      if (Module.controlGetAvailablePanels) {
-        try { return JSON.parse(Module.controlGetAvailablePanels()); }
+    getAvailableWindows: function() {
+      if (Module.controlGetAvailableWindows) {
+        try { return JSON.parse(Module.controlGetAvailableWindows()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    getAvailablePanels: function() { return this.getAvailableWindows(); },
 
-    getPanelsInCategory: function(category) {
-      if (Module.controlGetPanelsInCategory) {
-        try { return JSON.parse(Module.controlGetPanelsInCategory(category)); }
+    getWindowsInCategory: function(category) {
+      if (Module.controlGetWindowsInCategory) {
+        try { return JSON.parse(Module.controlGetWindowsInCategory(category)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    getPanelsInCategory: function(category) { return this.getWindowsInCategory(category); },
 
-    showAllPanels: function() {
-      if (Module.controlShowAllPanels) {
-        try { return JSON.parse(Module.controlShowAllPanels()); }
+    showAllWindows: function() {
+      if (Module.controlShowAllWindows) {
+        try { return JSON.parse(Module.controlShowAllWindows()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    showAllPanels: function() { return this.showAllWindows(); },
 
-    hideAllPanels: function() {
-      if (Module.controlHideAllPanels) {
-        try { return JSON.parse(Module.controlHideAllPanels()); }
+    hideAllWindows: function() {
+      if (Module.controlHideAllWindows) {
+        try { return JSON.parse(Module.controlHideAllWindows()); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
+    hideAllPanels: function() { return this.hideAllWindows(); },
 
     showAllPanelsInCategory: function(category) {
-      if (Module.controlShowAllPanelsInCategory) {
-        try { return JSON.parse(Module.controlShowAllPanelsInCategory(category)); }
+      if (Module.controlShowAllWindowsInCategory) {
+        try { return JSON.parse(Module.controlShowAllWindowsInCategory(category)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
 
     hideAllPanelsInCategory: function(category) {
-      if (Module.controlHideAllPanelsInCategory) {
-        try { return JSON.parse(Module.controlHideAllPanelsInCategory(category)); }
+      if (Module.controlHideAllWindowsInCategory) {
+        try { return JSON.parse(Module.controlHideAllWindowsInCategory(category)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
     },
 
     showOnlyPanel: function(cardId) {
-      if (Module.controlShowOnlyPanel) {
-        try { return JSON.parse(Module.controlShowOnlyPanel(cardId)); }
+      if (Module.controlShowOnlyWindow) {
+        try { return JSON.parse(Module.controlShowOnlyWindow(cardId)); }
         catch(e) { return {error: e.message}; }
       }
       return {error: "API not ready"};
@@ -558,11 +566,11 @@ void WasmControlApi::SetupJavaScriptBindings() {
 // Helper Methods
 // ============================================================================
 
-editor::PanelManager* WasmControlApi::GetPanelRegistry() {
+editor::WorkspaceWindowManager* WasmControlApi::GetWindowManager() {
   if (!IsReady() || !editor_manager_) {
     return nullptr;
   }
-  return &editor_manager_->card_registry();
+  return &editor_manager_->window_manager();
 }
 
 std::string WasmControlApi::EditorTypeToString(int type) {
@@ -644,10 +652,10 @@ std::string WasmControlApi::GetAvailableEditors() {
 }
 
 // ============================================================================
-// Panel Control Implementation
+// Window Control Implementation
 // ============================================================================
 
-std::string WasmControlApi::OpenPanel(const std::string& card_id) {
+std::string WasmControlApi::OpenWindow(const std::string& card_id) {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -656,28 +664,32 @@ std::string WasmControlApi::OpenPanel(const std::string& card_id) {
     return result.dump();
   }
   
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (registry) {
     // Use default session ID (0) for WASM single-session mode
     constexpr size_t session_id = 0;
-    bool found = registry->ShowPanel(session_id, card_id);
+    bool found = registry->OpenWindow(session_id, card_id);
     
     result["success"] = found;
     result["card_id"] = card_id;
     result["visible"] = true;
     if (!found) {
-      result["error"] = "Panel not found";
+      result["error"] = "Window not found";
     }
   } else {
     result["success"] = false;
-    result["error"] = "Panel registry not available";
+    result["error"] = "Window manager not available";
   }
   
-  LOG_INFO("WasmControlApi", "OpenPanel: %s", card_id.c_str());
+  LOG_INFO("WasmControlApi", "OpenWindow: %s", card_id.c_str());
   return result.dump();
 }
 
-std::string WasmControlApi::ClosePanel(const std::string& card_id) {
+std::string WasmControlApi::OpenPanel(const std::string& card_id) {
+  return OpenWindow(card_id);
+}
+
+std::string WasmControlApi::CloseWindow(const std::string& card_id) {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -686,27 +698,31 @@ std::string WasmControlApi::ClosePanel(const std::string& card_id) {
     return result.dump();
   }
   
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (registry) {
     constexpr size_t session_id = 0;
-    bool found = registry->HidePanel(session_id, card_id);
+    bool found = registry->CloseWindow(session_id, card_id);
     
     result["success"] = found;
     result["card_id"] = card_id;
     result["visible"] = false;
     if (!found) {
-      result["error"] = "Panel not found";
+      result["error"] = "Window not found";
     }
   } else {
     result["success"] = false;
-    result["error"] = "Panel registry not available";
+    result["error"] = "Window manager not available";
   }
   
-  LOG_INFO("WasmControlApi", "ClosePanel: %s", card_id.c_str());
+  LOG_INFO("WasmControlApi", "CloseWindow: %s", card_id.c_str());
   return result.dump();
 }
 
-std::string WasmControlApi::TogglePanel(const std::string& card_id) {
+std::string WasmControlApi::ClosePanel(const std::string& card_id) {
+  return CloseWindow(card_id);
+}
+
+std::string WasmControlApi::ToggleWindow(const std::string& card_id) {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -715,49 +731,53 @@ std::string WasmControlApi::TogglePanel(const std::string& card_id) {
     return result.dump();
   }
   
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (registry) {
     constexpr size_t session_id = 0;
-    bool found = registry->TogglePanel(session_id, card_id);
+    bool found = registry->ToggleWindow(session_id, card_id);
 
     result["success"] = found;
     result["card_id"] = card_id;
     if (!found) {
-      result["error"] = "Panel not found";
+      result["error"] = "Window not found";
     } else {
-      result["visible"] = registry->IsPanelVisible(session_id, card_id);
+      result["visible"] = registry->IsWindowOpen(session_id, card_id);
     }
   } else {
     result["success"] = false;
-    result["error"] = "Panel registry not available";
+    result["error"] = "Window manager not available";
   }
   
-  LOG_INFO("WasmControlApi", "TogglePanel: %s", card_id.c_str());
+  LOG_INFO("WasmControlApi", "ToggleWindow: %s", card_id.c_str());
   return result.dump();
 }
 
-std::string WasmControlApi::GetVisiblePanels() {
+std::string WasmControlApi::TogglePanel(const std::string& card_id) {
+  return ToggleWindow(card_id);
+}
+
+std::string WasmControlApi::GetVisibleWindows() {
   nlohmann::json result = nlohmann::json::array();
 
   if (!IsReady()) {
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (!registry) {
     return result.dump();
   }
 
   // Use default session ID (0) for WASM single-session mode
   constexpr size_t session_id = 0;
-  auto card_ids = registry->GetPanelsInSession(session_id);
+  auto card_ids = registry->GetWindowsInSession(session_id);
   for (const auto& card_id : card_ids) {
     // Extract base card ID (remove session prefix like "s0.")
     std::string base_id = card_id;
     if (base_id.size() > 3 && base_id[0] == 's' && base_id[2] == '.') {
       base_id = base_id.substr(3);
     }
-    if (registry->IsPanelVisible(session_id, base_id)) {
+    if (registry->IsWindowOpen(session_id, base_id)) {
       result.push_back(base_id);
     }
   }
@@ -765,24 +785,28 @@ std::string WasmControlApi::GetVisiblePanels() {
   return result.dump();
 }
 
-std::string WasmControlApi::GetAvailablePanels() {
+std::string WasmControlApi::GetVisiblePanels() {
+  return GetVisibleWindows();
+}
+
+std::string WasmControlApi::GetAvailableWindows() {
   nlohmann::json result = nlohmann::json::array();
 
   if (!IsReady()) {
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (!registry) {
     return result.dump();
   }
 
   // Use default session ID (0) for WASM single-session mode
   constexpr size_t session_id = 0;
-  auto categories = registry->GetAllCategories(session_id);
+  auto categories = registry->GetAllWindowCategories(session_id);
 
   for (const auto& category : categories) {
-    auto panels = registry->GetPanelsInCategory(session_id, category);
+    auto panels = registry->GetWindowsInCategory(session_id, category);
     for (const auto& panel : panels) {
       nlohmann::json card_json;
       card_json["id"] = panel.card_id;
@@ -791,7 +815,7 @@ std::string WasmControlApi::GetAvailablePanels() {
       card_json["icon"] = panel.icon;
       card_json["category"] = panel.category;
       card_json["priority"] = panel.priority;
-      card_json["visible"] = registry->IsPanelVisible(session_id, panel.card_id);
+      card_json["visible"] = registry->IsWindowOpen(session_id, panel.card_id);
       card_json["shortcut_hint"] = panel.shortcut_hint;
       if (panel.enabled_condition) {
         card_json["enabled"] = panel.enabled_condition();
@@ -805,21 +829,25 @@ std::string WasmControlApi::GetAvailablePanels() {
   return result.dump();
 }
 
-std::string WasmControlApi::GetPanelsInCategory(const std::string& category) {
+std::string WasmControlApi::GetAvailablePanels() {
+  return GetAvailableWindows();
+}
+
+std::string WasmControlApi::GetWindowsInCategory(const std::string& category) {
   nlohmann::json result = nlohmann::json::array();
 
   if (!IsReady()) {
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (!registry) {
     return result.dump();
   }
 
   // Use default session ID (0) for WASM single-session mode
   constexpr size_t session_id = 0;
-  auto panels = registry->GetPanelsInCategory(session_id, category);
+  auto panels = registry->GetWindowsInCategory(session_id, category);
 
   for (const auto& panel : panels) {
     nlohmann::json card_json;
@@ -829,14 +857,18 @@ std::string WasmControlApi::GetPanelsInCategory(const std::string& category) {
     card_json["icon"] = panel.icon;
     card_json["category"] = panel.category;
     card_json["priority"] = panel.priority;
-    card_json["visible"] = registry->IsPanelVisible(session_id, panel.card_id);
+    card_json["visible"] = registry->IsWindowOpen(session_id, panel.card_id);
     result.push_back(card_json);
   }
 
   return result.dump();
 }
 
-std::string WasmControlApi::ShowAllPanels() {
+std::string WasmControlApi::GetPanelsInCategory(const std::string& category) {
+  return GetWindowsInCategory(category);
+}
+
+std::string WasmControlApi::ShowAllWindows() {
   nlohmann::json result;
   
   if (!IsReady()) {
@@ -845,42 +877,50 @@ std::string WasmControlApi::ShowAllPanels() {
     return result.dump();
   }
   
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->ShowAllPanelsInSession(session_id);
+    registry->ShowAllWindowsInSession(session_id);
     result["success"] = true;
   } else {
     result["success"] = false;
-    result["error"] = "Panel registry not available";
+    result["error"] = "Window manager not available";
+  }
+
+  return result.dump();
+}
+
+std::string WasmControlApi::ShowAllPanels() {
+  return ShowAllWindows();
+}
+
+std::string WasmControlApi::HideAllWindows() {
+  nlohmann::json result;
+
+  if (!IsReady()) {
+    result["success"] = false;
+    result["error"] = "Control API not initialized";
+    return result.dump();
+  }
+
+  auto* registry = GetWindowManager();
+  if (registry) {
+    constexpr size_t session_id = 0;
+    registry->HideAllWindowsInSession(session_id);
+    result["success"] = true;
+  } else {
+    result["success"] = false;
+    result["error"] = "Window manager not available";
   }
 
   return result.dump();
 }
 
 std::string WasmControlApi::HideAllPanels() {
-  nlohmann::json result;
-
-  if (!IsReady()) {
-    result["success"] = false;
-    result["error"] = "Control API not initialized";
-    return result.dump();
-  }
-
-  auto* registry = GetPanelRegistry();
-  if (registry) {
-    constexpr size_t session_id = 0;
-    registry->HideAllPanelsInSession(session_id);
-    result["success"] = true;
-  } else {
-    result["success"] = false;
-    result["error"] = "Panel registry not available";
-  }
-
-  return result.dump();
+  return HideAllWindows();
 }
 
-std::string WasmControlApi::ShowAllPanelsInCategory(const std::string& category) {
+std::string WasmControlApi::ShowAllWindowsInCategory(const std::string& category) {
   nlohmann::json result;
 
   if (!IsReady()) {
@@ -889,10 +929,10 @@ std::string WasmControlApi::ShowAllPanelsInCategory(const std::string& category)
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->ShowAllPanelsInCategory(session_id, category);
+    registry->ShowAllWindowsInCategory(session_id, category);
     result["success"] = true;
     result["category"] = category;
   } else {
@@ -903,7 +943,7 @@ std::string WasmControlApi::ShowAllPanelsInCategory(const std::string& category)
   return result.dump();
 }
 
-std::string WasmControlApi::HideAllPanelsInCategory(const std::string& category) {
+std::string WasmControlApi::HideAllWindowsInCategory(const std::string& category) {
   nlohmann::json result;
 
   if (!IsReady()) {
@@ -912,10 +952,10 @@ std::string WasmControlApi::HideAllPanelsInCategory(const std::string& category)
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->HideAllPanelsInCategory(session_id, category);
+    registry->HideAllWindowsInCategory(session_id, category);
     result["success"] = true;
     result["category"] = category;
   } else {
@@ -926,7 +966,7 @@ std::string WasmControlApi::HideAllPanelsInCategory(const std::string& category)
   return result.dump();
 }
 
-std::string WasmControlApi::ShowOnlyPanel(const std::string& card_id) {
+std::string WasmControlApi::ShowOnlyWindow(const std::string& card_id) {
   nlohmann::json result;
 
   if (!IsReady()) {
@@ -935,10 +975,10 @@ std::string WasmControlApi::ShowOnlyPanel(const std::string& card_id) {
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (registry) {
     constexpr size_t session_id = 0;
-    registry->ShowOnlyPanel(session_id, card_id);
+    registry->ShowOnlyWindow(session_id, card_id);
     result["success"] = true;
     result["card_id"] = card_id;
   } else {
@@ -962,7 +1002,7 @@ std::string WasmControlApi::SetPanelLayout(const std::string& layout_name) {
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
   if (!registry) {
     result["success"] = false;
     result["error"] = "Panel registry not available";
@@ -973,26 +1013,26 @@ std::string WasmControlApi::SetPanelLayout(const std::string& layout_name) {
 
   // Apply built-in layout presets
   if (layout_name == "overworld_default") {
-    registry->HideAllPanelsInSession(session_id);
-    registry->ShowAllPanelsInCategory(session_id, "Overworld");
+    registry->HideAllWindowsInSession(session_id);
+    registry->ShowAllWindowsInCategory(session_id, "Overworld");
     registry->SetActiveCategory("Overworld");
   } else if (layout_name == "dungeon_default") {
-    registry->HideAllPanelsInSession(session_id);
-    registry->ShowAllPanelsInCategory(session_id, "Dungeon");
+    registry->HideAllWindowsInSession(session_id);
+    registry->ShowAllWindowsInCategory(session_id, "Dungeon");
     registry->SetActiveCategory("Dungeon");
   } else if (layout_name == "graphics_default") {
-    registry->HideAllPanelsInSession(session_id);
-    registry->ShowAllPanelsInCategory(session_id, "Graphics");
+    registry->HideAllWindowsInSession(session_id);
+    registry->ShowAllWindowsInCategory(session_id, "Graphics");
     registry->SetActiveCategory("Graphics");
   } else if (layout_name == "debug_default") {
-    registry->HideAllPanelsInSession(session_id);
-    registry->ShowAllPanelsInCategory(session_id, "Debug");
+    registry->HideAllWindowsInSession(session_id);
+    registry->ShowAllWindowsInCategory(session_id, "Debug");
     registry->SetActiveCategory("Debug");
   } else if (layout_name == "minimal") {
-    registry->HideAllPanelsInSession(session_id);
+    registry->HideAllWindowsInSession(session_id);
     // Minimal layout - just hide everything
   } else if (layout_name == "all_cards") {
-    registry->ShowAllPanelsInSession(session_id);
+    registry->ShowAllWindowsInSession(session_id);
   } else {
     // Try loading as a user-defined preset
     if (!registry->LoadPreset(layout_name)) {
@@ -1052,7 +1092,7 @@ std::string WasmControlApi::TriggerMenuAction(const std::string& action_path) {
     return result.dump();
   }
 
-  auto* registry = GetPanelRegistry();
+  auto* registry = GetWindowManager();
 
   // File menu actions
   if (action_path == "File.Save") {
@@ -1105,7 +1145,7 @@ std::string WasmControlApi::TriggerMenuAction(const std::string& action_path) {
     result["success"] = true;
   } else if (action_path == "View.ShowPanelBrowser") {
     if (registry) {
-      registry->TriggerShowPanelBrowser();
+      registry->TriggerShowWindowBrowser();
       result["success"] = true;
     } else {
       result["success"] = false;
@@ -2485,12 +2525,20 @@ EMSCRIPTEN_BINDINGS(wasm_control_api) {
   emscripten::function("controlSwitchEditor", &WasmControlApi::SwitchEditor);
   emscripten::function("controlGetCurrentEditor", &WasmControlApi::GetCurrentEditor);
   emscripten::function("controlGetAvailableEditors", &WasmControlApi::GetAvailableEditors);
+  emscripten::function("controlOpenWindow", &WasmControlApi::OpenWindow);
   emscripten::function("controlOpenPanel", &WasmControlApi::OpenPanel);
+  emscripten::function("controlCloseWindow", &WasmControlApi::CloseWindow);
   emscripten::function("controlClosePanel", &WasmControlApi::ClosePanel);
+  emscripten::function("controlToggleWindow", &WasmControlApi::ToggleWindow);
   emscripten::function("controlTogglePanel", &WasmControlApi::TogglePanel);
+  emscripten::function("controlGetVisibleWindows", &WasmControlApi::GetVisibleWindows);
   emscripten::function("controlGetVisiblePanels", &WasmControlApi::GetVisiblePanels);
+  emscripten::function("controlGetAvailableWindows", &WasmControlApi::GetAvailableWindows);
   emscripten::function("controlGetAvailablePanels", &WasmControlApi::GetAvailablePanels);
+  emscripten::function("controlGetWindowsInCategory", &WasmControlApi::GetWindowsInCategory);
   emscripten::function("controlGetPanelsInCategory", &WasmControlApi::GetPanelsInCategory);
+  emscripten::function("controlShowAllWindows", &WasmControlApi::ShowAllWindows);
+  emscripten::function("controlHideAllWindows", &WasmControlApi::HideAllWindows);
   emscripten::function("controlSetPanelLayout", &WasmControlApi::SetPanelLayout);
   emscripten::function("controlGetAvailableLayouts", &WasmControlApi::GetAvailableLayouts);
   emscripten::function("controlSaveCurrentLayout", &WasmControlApi::SaveCurrentLayout);

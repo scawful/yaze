@@ -7,8 +7,8 @@
 #include "app/editor/agent/agent_editor.h"
 #include "app/editor/agent/oracle_ram_panel.h"
 #include "app/editor/agent/agent_session.h"
-#include "app/editor/menu/right_panel_manager.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
@@ -20,26 +20,26 @@ namespace editor {
 
 void AgentUiController::Initialize(ToastManager* toast_manager,
                                    ProposalDrawer* proposal_drawer,
-                                   RightPanelManager* right_panel_manager,
-                                   PanelManager* panel_manager,
+                                   RightDrawerManager* right_drawer_manager,
+                                   WorkspaceWindowManager* window_manager,
                                    UserSettings* user_settings) {
   toast_manager_ = toast_manager;
-  right_panel_manager_ = right_panel_manager;
-  panel_manager_ = panel_manager;
+  right_drawer_manager_ = right_drawer_manager;
+  window_manager_ = window_manager;
   user_settings_ = user_settings;
 
   // Create initial agent session
   session_manager_.CreateSession("Agent 1");
 
   // Register OracleRamPanel
-  if (panel_manager) {
-    panel_manager->RegisterEditorPanel(std::make_unique<OracleRamPanel>());
+  if (window_manager) {
+    window_manager->RegisterWindowContent(std::make_unique<OracleRamPanel>());
   }
 
   // Provide minimal dependencies so panels register with the activity bar
-  if (panel_manager) {
+  if (window_manager) {
     EditorDependencies deps;
-    deps.panel_manager = panel_manager;
+    deps.window_manager = window_manager;
     deps.toast_manager = toast_manager;
     deps.user_settings = user_settings_;
     agent_editor_.SetDependencies(deps);
@@ -52,10 +52,10 @@ void AgentUiController::Initialize(ToastManager* toast_manager,
   agent_editor_.SetContext(&agent_ui_context_);
 
   // Wire agent/chat into the right sidebar experience
-  if (right_panel_manager_) {
-    right_panel_manager_->SetAgentChat(agent_editor_.GetAgentChat());
-    right_panel_manager_->SetProposalDrawer(proposal_drawer);
-    right_panel_manager_->SetToastManager(toast_manager);
+  if (right_drawer_manager_) {
+    right_drawer_manager_->SetAgentChat(agent_editor_.GetAgentChat());
+    right_drawer_manager_->SetProposalDrawer(proposal_drawer);
+    right_drawer_manager_->SetToastManager(toast_manager);
   }
 
   // Initialize knowledge service if available
@@ -140,8 +140,16 @@ void AgentUiController::SetAsarWrapperContext(core::AsarWrapper* asar_wrapper) {
   }
 }
 
+void AgentUiController::SetAssemblySymbolTableContext(
+    const std::map<std::string, core::AsarSymbol>* table) {
+  agent_ui_context_.SetAssemblySymbolTable(table);
+  if (AgentSession* session = session_manager_.GetActiveSession()) {
+    session->context.SetAssemblySymbolTable(table);
+  }
+}
+
 absl::Status AgentUiController::Update() {
-  // Update the AgentEditor (draws its cards via PanelManager)
+  // Update the AgentEditor (draws its cards via WorkspaceWindowManager)
   auto status = agent_editor_.Update();
 
   return status;
@@ -204,14 +212,14 @@ void AgentUiController::ShowAgent() {
 void AgentUiController::ShowChatHistory() {
   agent_editor_.set_active(true);
 
-  if (panel_manager_) {
-    const size_t session_id = panel_manager_->GetActiveSessionId();
-    panel_manager_->ShowPanel(session_id, "agent.chat");
-    panel_manager_->MarkPanelRecentlyUsed("agent.chat");
+  if (window_manager_) {
+    const size_t session_id = window_manager_->GetActiveSessionId();
+    window_manager_->OpenWindow(session_id, "agent.chat");
+    window_manager_->MarkWindowRecentlyUsed("agent.chat");
   }
 
-  if (right_panel_manager_) {
-    right_panel_manager_->OpenPanel(RightPanelManager::PanelType::kAgentChat);
+  if (right_drawer_manager_) {
+    right_drawer_manager_->OpenDrawer(RightDrawerManager::DrawerType::kAgentChat);
   }
 
   if (auto* chat = agent_editor_.GetAgentChat()) {

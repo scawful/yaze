@@ -9,17 +9,17 @@
 #include "app/editor/editor.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
 
 // Forward declarations
-class PanelManager;
+class WorkspaceWindowManager;
 class UICoordinator;
 class ToastManager;
 class StatusBar;
-class RightPanelManager;
 
 /**
  * @class LayoutCoordinator
@@ -40,14 +40,14 @@ class LayoutCoordinator {
    * @struct Dependencies
    * @brief All dependencies required by LayoutCoordinator
    */
-  struct Dependencies {
-    LayoutManager* layout_manager = nullptr;
-    PanelManager* panel_manager = nullptr;
-    UICoordinator* ui_coordinator = nullptr;
-    ToastManager* toast_manager = nullptr;
-    StatusBar* status_bar = nullptr;
-    RightPanelManager* right_panel_manager = nullptr;
-  };
+    struct Dependencies {
+      LayoutManager* layout_manager = nullptr;
+      WorkspaceWindowManager* window_manager = nullptr;
+      UICoordinator* ui_coordinator = nullptr;
+      ToastManager* toast_manager = nullptr;
+      StatusBar* status_bar = nullptr;
+      RightDrawerManager* right_drawer_manager = nullptr;
+    };
 
   LayoutCoordinator() = default;
   ~LayoutCoordinator() = default;
@@ -68,10 +68,10 @@ class LayoutCoordinator {
    */
   float GetLeftLayoutOffset() const;
 
-  /**
-   * @brief Get the right margin needed for panels
-   * @return Float representing pixel offset
-   */
+   /**
+    * @brief Get the right margin needed for drawers
+    * @return Float representing pixel offset
+    */
   float GetRightLayoutOffset() const;
 
   /**
@@ -166,11 +166,11 @@ class LayoutCoordinator {
  private:
   // Dependencies (injected)
   LayoutManager* layout_manager_ = nullptr;
-  PanelManager* panel_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
   UICoordinator* ui_coordinator_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   StatusBar* status_bar_ = nullptr;
-  RightPanelManager* right_panel_manager_ = nullptr;
+  RightDrawerManager* right_drawer_manager_ = nullptr;
 
   // Deferred action queue
   std::vector<std::function<void()>> deferred_actions_;

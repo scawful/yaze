@@ -84,7 +84,7 @@ constexpr const char* kColorPicker = "ColorPicker";
 constexpr const char* kCopyPopup = "CopyPopup";
 constexpr const char* kSaveError = "SaveError";
 constexpr const char* kConfirmDiscardAll = "ConfirmDiscardAll";
-constexpr const char* kPalettePanelManager = "PalettePanelManager";
+constexpr const char* kPaletteWindowManager = "PaletteWindowManager";
 
 // General popups
 constexpr const char* kColorEdit = "Color Edit";

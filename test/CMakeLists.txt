@@ -81,6 +81,10 @@ if(YAZE_BUILD_TESTS)
     if(TARGET yaze_cli_core)
       target_link_libraries(${suite_name} PRIVATE yaze_cli_core)
     endif()
+    if(YAZE_ENABLE_Z3DK AND YAZE_Z3DK_FOUND AND TARGET yaze::z3dk)
+      target_link_libraries(${suite_name} PRIVATE yaze::z3dk)
+      target_compile_definitions(${suite_name} PRIVATE YAZE_WITH_Z3DK=1)
+    endif()
 
     # Link ImGui Test Engine for GUI tests (always available when tests are built)
     if(is_gui_test AND TARGET ImGuiTestEngine)
@@ -158,12 +162,11 @@ if(YAZE_BUILD_TESTS)
 
   # --- Stable Test Suites (Valid Contracts) ---
   # Note: stable tests are split into unit + integration so you can run:
-  #   ctest --test-dir build_ai -L unit
-  #   ctest --test-dir build_ai -L integration
+  #   ctest --test-dir build/presets/mac-ai-fast -L unit
+  #   ctest --test-dir build/presets/mac-ai-fast -L integration
   # without running everything (still included in `-L stable`).
   set(STABLE_UNIT_TEST_SOURCES
     # Unit Tests
-    unit/core/asar_wrapper_test.cc
     unit/core/hex_test.cc
     unit/core/hack_manifest_test.cc
     unit/core/oracle_progression_test.cc
@@ -215,25 +218,36 @@ if(YAZE_BUILD_TESTS)
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/message/message_expanded_write_test.cc
     unit/editor/oracle_validation_view_model_test.cc
+    unit/editor/hack_workflow_backend_factory_test.cc
     unit/editor/rom_file_manager_test.cc
     unit/editor/project_manager_validator_test.cc
     unit/editor/panel_system_test.cc
-    unit/editor/panel_manager_policy_test.cc
-    unit/editor/right_panel_manager_test.cc
+    unit/editor/workspace_window_manager_policy_test.cc
+    unit/editor/background_command_task_test.cc
+    unit/editor/content_registry_workflow_history_test.cc
+    unit/editor/command_palette_workflow_test.cc
+    unit/editor/workflow_activity_widgets_test.cc
+    unit/editor/layout_manager_persistence_test.cc
+    unit/editor/right_drawer_manager_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_manager_test.cc
+    unit/editor/ui_coordinator_workflow_test.cc
+    unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
+    unit/editor/map_properties_context_menu_test.cc
     unit/editor/layout_presets_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
+    unit/editor/shortcut_configurator_test.cc
+    unit/editor/window_sidebar_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -247,7 +261,6 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_item_operations_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
-    unit/core/asar_compiler_test.cc
     unit/zelda3/overworld_test.cc
     unit/zelda3/overworld_regression_test.cc
     unit/zelda3/overworld_version_helper_test.cc
@@ -362,6 +375,48 @@ if(YAZE_BUILD_TESTS)
     message(STATUS "Skipping agent UI tests (YAZE_BUILD_AGENT_UI=OFF)")
   endif()
 
+  if(YAZE_ENABLE_ASAR)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/core/asar_wrapper_test.cc
+      unit/core/asar_compiler_test.cc
+    )
+  else()
+    message(STATUS "Skipping Asar-dependent tests (YAZE_ENABLE_ASAR=OFF)")
+  endif()
+
+  if(YAZE_ENABLE_Z3DK AND YAZE_Z3DK_FOUND)
+    list(APPEND STABLE_UNIT_TEST_SOURCES
+      unit/core/z3dk_smoke_test.cc
+      unit/core/z3dk_wrapper_test.cc
+      unit/core/z3dk_lint_test.cc
+    )
+    list(APPEND STABLE_INTEGRATION_TEST_SOURCES
+      integration/z3dk_patch_manager_integration_test.cc
+    )
+
+    # Regression: cmake/dependencies/z3dk.cmake must FATAL_ERROR when
+    # YAZE_ENABLE_Z3DK=ON and no z3dk source tree is reachable. If that
+    # guard gets weakened to a warning, mac-ai-z3dk builds would silently
+    # ship with no assembler backend. This test spawns a child cmake
+    # configure against a fixture project with Z3DK_SRC_DIR pointed at a
+    # non-existent path and asserts both non-zero exit and the expected
+    # error message.
+    # Use the legacy (positional) add_test form: it does not emit the
+    # Ninja Multi-Config if(CTEST_CONFIGURATION_TYPE ...) guard that the
+    # NAME form does. This test invokes a config-independent cmake -P
+    # script, so we want it to show up in `ctest --preset mac-ai-z3dk-unit`
+    # without needing -C Debug on every invocation.
+    add_test(Z3dkMissingCheckoutFailsFast
+      "${CMAKE_COMMAND}"
+      "-DYAZE_ROOT=${CMAKE_SOURCE_DIR}"
+      "-DFIXTURE_BIN_DIR=${CMAKE_BINARY_DIR}/_z3dk_missing_checkout_fixture"
+      -P "${CMAKE_SOURCE_DIR}/test/cmake/z3dk_missing_checkout_driver.cmake"
+    )
+    set_tests_properties(Z3dkMissingCheckoutFailsFast PROPERTIES
+      LABELS "stable;unit;cmake"
+    )
+  endif()
+
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_ENABLE_ROM_TESTS)
@@ -404,7 +459,6 @@ if(YAZE_BUILD_TESTS)
   # These suites are intentionally NOT labeled "stable" to avoid duplicate runs
   # when running `ctest -L stable`. Use `ctest -L quick` for fast feedback.
   set(QUICK_UNIT_CORE_TEST_SOURCES
-    unit/core/asar_wrapper_test.cc
     unit/core/hack_manifest_test.cc
     unit/core/oracle_progression_test.cc
     unit/core/oracle_progression_loader_test.cc
@@ -422,9 +476,14 @@ if(YAZE_BUILD_TESTS)
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/message/message_expanded_write_test.cc
     unit/editor/undo_manager_test.cc
+    unit/editor/background_command_task_test.cc
+    unit/editor/content_registry_workflow_history_test.cc
+    unit/editor/command_palette_workflow_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/editor_manager_test.cc
+    unit/editor/ui_coordinator_workflow_test.cc
+    unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_write_conflict_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
@@ -459,6 +518,11 @@ if(YAZE_BUILD_TESTS)
   set(QUICK_INTEGRATION_TEST_SOURCES
     integration/zelda3/dungeon_save_region_test.cc
   )
+  if(YAZE_ENABLE_ASAR)
+    list(APPEND QUICK_UNIT_CORE_TEST_SOURCES
+      unit/core/asar_wrapper_test.cc
+    )
+  endif()
   yaze_add_test_suite(yaze_test_quick_unit_core "quick;fast_unit;fast_unit_core" OFF ${QUICK_UNIT_CORE_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_quick_unit_editor "quick;fast_unit;fast_unit_editor" OFF ${QUICK_UNIT_EDITOR_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_quick_integration "quick;fast_integration" OFF ${QUICK_INTEGRATION_TEST_SOURCES})
@@ -543,6 +607,7 @@ if(YAZE_BUILD_TESTS)
     e2e/dungeon_canvas_interaction_test.cc
     e2e/dungeon_layer_rendering_test.cc
     e2e/editor_smoke_tests.cc
+    e2e/workflow_activity_widgets_test.cc
     # AI Multimodal Testing Framework
     e2e/ai_multimodal_test.cc
     e2e/emulator_stepping_test.cc
@@ -561,7 +626,7 @@ if(YAZE_BUILD_TESTS)
   # Add a single test entry to run the entire GUI suite headlessly
   add_test(
       NAME headless_gui_suite
-      COMMAND $<TARGET_FILE:yaze_test_gui> -nogui
+      COMMAND $<TARGET_FILE:yaze_test_gui> -nogui --fast WindowBrowser,WindowSidebarToggle,RightDrawer,WorkflowActivityWidgets
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   )
   set_tests_properties(headless_gui_suite PROPERTIES LABELS "headless_gui;experimental")

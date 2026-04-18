@@ -6,6 +6,7 @@
 #include <functional>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/debug/breakpoint_manager.h"
 #include "app/emu/debug/disassembly_viewer.h"
@@ -20,7 +21,7 @@ class IRenderer;
 }  // namespace gfx
 
 namespace editor {
-class PanelManager;
+class WorkspaceWindowManager;
 }  // namespace editor
 
 /**
@@ -46,9 +47,9 @@ class Emulator {
   void Run(Rom* rom);
   void Cleanup();
 
-  // Panel visibility managed by PanelManager (dependency injection)
-  void set_panel_manager(editor::PanelManager* manager) {
-    panel_manager_ = manager;
+  // Window visibility managed by WorkspaceWindowManager (dependency injection)
+  void set_window_manager(editor::WorkspaceWindowManager* manager) {
+    window_manager_ = manager;
   }
   void SetInputConfig(const input::InputConfig& config);
   void set_input_config_changed_callback(
@@ -63,6 +64,7 @@ class Emulator {
   // Headless mode for background audio (music editor)
   // Initializes SNES and audio without requiring visible emulator window
   bool EnsureInitialized(Rom* rom);
+  absl::Status ReloadRuntimeRom(const std::vector<uint8_t>& rom_data);
   // Runs emulator frame without UI rendering (for background audio)
   void RunFrameOnly();
   // Runs audio-focused frame: CPU+APU cycles without PPU rendering
@@ -250,7 +252,7 @@ class Emulator {
   bool audio_stream_active_ = false;
   bool audio_stream_env_checked_ = false;
 
-  // Panel visibility managed by EditorPanelManager - no member variables needed!
+  // Window visibility managed by WorkspaceWindowManager - no member variables needed!
 
   // Debugger infrastructure
   BreakpointManager breakpoint_manager_;
@@ -265,7 +267,7 @@ class Emulator {
   std::function<void(const input::InputConfig&)> input_config_changed_callback_;
 
   // Panel manager for card visibility (injected)
-  editor::PanelManager* panel_manager_ = nullptr;
+  editor::WorkspaceWindowManager* window_manager_ = nullptr;
 };
 
 }  // namespace emu

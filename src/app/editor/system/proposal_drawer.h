@@ -39,7 +39,7 @@ class ProposalDrawer {
   // Render the proposal drawer UI (creates own window)
   void Draw();
 
-  // Render just the content (for embedding in another window like RightPanelManager)
+  // Render just the content (for embedding in another window like RightDrawerManager)
   void DrawContent();
 
   // Show/hide the drawer

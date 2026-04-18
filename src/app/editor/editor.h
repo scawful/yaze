@@ -45,7 +45,7 @@ namespace editor {
 
 // Forward declarations
 class GlobalEditorContext;
-class PanelManager;
+class WorkspaceWindowManager;
 class ToastManager;
 class UserSettings;
 class StatusBar;
@@ -100,7 +100,7 @@ struct EditorContext {
  * EditorDependencies deps;
  * deps.rom = current_rom;
  * deps.game_data = game_data;
- * deps.panel_manager = &panel_manager_;
+ * deps.window_manager = &window_manager_;
  * deps.session_id = session_index;
  *
  * // Standard editor
@@ -141,7 +141,7 @@ struct CoreDependencies {
 
 // UI-layer dependencies: panel/popup/toast/shortcut managers.
 struct UIDependencies {
-  PanelManager* panel_manager = nullptr;
+  WorkspaceWindowManager* window_manager = nullptr;
   ToastManager* toast_manager = nullptr;
   UndoManager* undo_manager = nullptr;
   PopupManager* popup_manager = nullptr;
@@ -170,7 +170,7 @@ struct EditorDependencies {
   size_t session_id = 0;
 
   // --- UI-layer dependencies ---
-  PanelManager* panel_manager = nullptr;
+  WorkspaceWindowManager* window_manager = nullptr;
   ToastManager* toast_manager = nullptr;
   UndoManager* undo_manager = nullptr;
   PopupManager* popup_manager = nullptr;
@@ -189,7 +189,7 @@ struct EditorDependencies {
     return {rom, game_data, project, version_manager, global_context, session_id};
   }
   UIDependencies GetUIDeps() const {
-    return {panel_manager, toast_manager, undo_manager, popup_manager,
+    return {window_manager, toast_manager, undo_manager, popup_manager,
             shortcut_manager, shared_clipboard, user_settings, status_bar};
   }
 
@@ -280,6 +280,12 @@ class Editor {
 
   virtual absl::Status Clear() { return absl::OkStatus(); }
 
+  // Push editor-specific context into the shared status bar.
+  // Called each frame on the currently active editor by EditorManager.
+  // Default no-op; override to surface cursor/selection/zoom/mode/custom
+  // segments via StatusBar's Set* setters.
+  virtual void ContributeStatus(StatusBar* /*status_bar*/) {}
+
   EditorType type() const { return type_; }
 
   bool* active() { return &active_; }
@@ -315,7 +321,7 @@ class Editor {
   }
 
   // Helper method to create session-aware card IDs for multi-session support
-  std::string MakePanelId(const std::string& base_id) const {
+  std::string MakeWindowId(const std::string& base_id) const {
     if (dependencies_.session_id > 0) {
       return absl::StrFormat("s%zu.%s", dependencies_.session_id, base_id);
     }

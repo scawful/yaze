@@ -34,10 +34,10 @@
 namespace yaze {
 namespace editor {
 
-SessionCoordinator::SessionCoordinator(PanelManager* panel_manager,
+SessionCoordinator::SessionCoordinator(WorkspaceWindowManager* window_manager,
                                        ToastManager* toast_manager,
                                        UserSettings* user_settings)
-    : panel_manager_(panel_manager),
+    : window_manager_(window_manager),
       toast_manager_(toast_manager),
       user_settings_(user_settings) {}
 
@@ -155,8 +155,8 @@ void SessionCoordinator::CloseSession(size_t index) {
   }
 
   // Unregister cards for this session
-  if (panel_manager_) {
-    panel_manager_->UnregisterSession(index);
+  if (window_manager_) {
+    window_manager_->UnregisterSession(index);
   }
 
   // Notify observers before removal
@@ -188,8 +188,8 @@ void SessionCoordinator::SwitchToSession(size_t index) {
   size_t old_index = active_session_index_;
   active_session_index_ = index;
 
-  if (panel_manager_) {
-    panel_manager_->SetActiveSession(index);
+  if (window_manager_) {
+    window_manager_->SetActiveSession(index);
   }
 
   // Only notify if actually switching to a different session
@@ -581,26 +581,26 @@ void SessionCoordinator::UpdateSessionCount() {
 
 // Panel coordination across sessions
 void SessionCoordinator::ShowAllPanelsInActiveSession() {
-  if (panel_manager_) {
-    panel_manager_->ShowAllPanelsInSession(active_session_index_);
+  if (window_manager_) {
+    window_manager_->ShowAllWindowsInSession(active_session_index_);
   }
 }
 
 void SessionCoordinator::HideAllPanelsInActiveSession() {
-  if (panel_manager_) {
-    panel_manager_->HideAllPanelsInSession(active_session_index_);
+  if (window_manager_) {
+    window_manager_->HideAllWindowsInSession(active_session_index_);
   }
 }
 
 void SessionCoordinator::ShowPanelsInCategory(const std::string& category) {
-  if (panel_manager_) {
-    panel_manager_->ShowAllPanelsInCategory(active_session_index_, category);
+  if (window_manager_) {
+    window_manager_->ShowAllWindowsInCategory(active_session_index_, category);
   }
 }
 
 void SessionCoordinator::HidePanelsInCategory(const std::string& category) {
-  if (panel_manager_) {
-    panel_manager_->HideAllPanelsInCategory(active_session_index_, category);
+  if (window_manager_) {
+    window_manager_->HideAllWindowsInCategory(active_session_index_, category);
   }
 }
 
@@ -814,9 +814,9 @@ void SessionCoordinator::ClearAllSessions() {
     return;
 
   // Unregister all session cards
-  if (panel_manager_) {
+  if (window_manager_) {
     for (size_t i = 0; i < sessions_.size(); ++i) {
-      panel_manager_->UnregisterSession(i);
+      window_manager_->UnregisterSession(i);
     }
   }
 

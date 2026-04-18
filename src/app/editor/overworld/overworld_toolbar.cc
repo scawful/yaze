@@ -1,7 +1,7 @@
 #include "app/editor/overworld/overworld_toolbar.h"
 
 #include "app/editor/overworld/map_properties.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
@@ -16,15 +16,19 @@ using ImGui::TableNextColumn;
 void OverworldToolbar::Draw(int& current_world, int& current_map,
                             bool& current_map_lock, EditingMode& current_mode,
                             EntityEditMode& entity_edit_mode,
-                            PanelManager* panel_manager, bool has_selection,
+                            WorkspaceWindowManager* window_manager, bool has_selection,
                             bool scratch_has_data, Rom* rom,
                             zelda3::Overworld* overworld) {
-  if (!overworld || !overworld->is_loaded() || !panel_manager)
+  if (!overworld || !overworld->is_loaded() || !window_manager)
     return;
+
+  gui::StyleVarGuard toolbar_style_guard(
+      {{ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f)},
+       {ImGuiStyleVar_CellPadding, ImVec2(6.0f, 5.0f)}});
 
   // Simplified canvas toolbar - Navigation and Mode controls
   if (BeginTable("CanvasToolbar", 8,
-                 ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit,
+                 ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp,
                  ImVec2(0, 0), -1)) {
     ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed,
                             kTableColumnWorld);
@@ -36,15 +40,21 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                             kTableColumnLock);
     ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthFixed,
                             124.0f);  // Mouse/Brush/Fill
-    ImGui::TableSetupColumn(
-        "Entity",
-        ImGuiTableColumnFlags_WidthStretch);  // Entity status
-    ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthFixed, 356.0f);
-    ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+    ImGui::TableSetupColumn("Context", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Panels", ImGuiTableColumnFlags_WidthStretch);
+    ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 44.0f);
 
     TableNextColumn();
     ImGui::SetNextItemWidth(kComboWorldWidth);
-    ImGui::Combo("##world", &current_world, kWorldNames, 3);
+    int selected_world = current_world;
+    if (ImGui::Combo("##world", &selected_world, kWorldNames, 3)) {
+      current_world = selected_world;
+      if (on_world_changed) {
+        on_world_changed(selected_world);
+      } else {
+        current_map = selected_world * 0x40 + (current_map & 0x3F);
+      }
+    }
 
     TableNextColumn();
     ImGui::Text("%d (0x%02X)", current_map, current_map);
@@ -134,8 +144,13 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     }
 
     TableNextColumn();
-    // Entity Status or Version Badge
+    // Entity status / ROM version plus a small amount of high-value map info.
     const auto& theme = AgentUI::GetTheme();
+    const zelda3::OverworldMap* map = overworld->overworld_map(current_map);
+    const float context_width = ImGui::GetContentRegionAvail().x;
+    const bool show_map_summary = map != nullptr && context_width >= 188.0f;
+    const bool show_overlay_toggle = context_width >= 132.0f;
+
     if (entity_edit_mode != EntityEditMode::NONE) {
       const char* entity_icon = "";
       const char* entity_label = "";
@@ -198,10 +213,12 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
 
       ImGui::TextColored(version_color, ICON_MD_INFO " %s", version_label);
-      HOVER_HINT(
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
           "ROM version determines available overworld features.\n"
           "v2+: Custom BG colors, main palettes\n"
           "v3+: Wide/Tall maps, custom tile GFX, animated GFX");
+      }
 
       if (show_upgrade && on_upgrade_rom_version) {
         ImGui::SameLine();
@@ -214,75 +231,118 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
     }
 
+    if (show_map_summary) {
+      ImGui::TextDisabled("Parent %02X  Pal %02X  Msg %04X", map->parent(),
+                          map->area_palette(), map->message_id());
+    } else if (show_overlay_toggle && on_toggle_overlay_preview &&
+               is_overlay_preview_enabled) {
+      const bool overlay_preview_enabled = is_overlay_preview_enabled();
+      if (gui::ToolbarIconButton(
+              ICON_MD_VISIBILITY,
+              overlay_preview_enabled ? "Hide overlay preview"
+                                      : "Show overlay preview",
+              overlay_preview_enabled)) {
+        on_toggle_overlay_preview();
+      }
+    }
+
     TableNextColumn();
-    // Panel Toggle Controls - using PanelManager for visibility
+    // Panel Toggle Controls - using WorkspaceWindowManager for visibility
+    const size_t session_id = window_manager->GetActiveSessionId();
+    const float panel_width = ImGui::GetContentRegionAvail().x;
+    const bool compact_panel_controls = panel_width < 320.0f;
+    const auto toggle_window = [&](const char* panel_id) {
+      window_manager->ToggleWindow(session_id, panel_id);
+    };
+    const auto popup_toggle_item =
+        [&](const char* label, const char* panel_id, const char* shortcut = nullptr) {
+          const bool open = window_manager->IsWindowOpen(panel_id);
+          if (ImGui::MenuItem(label, shortcut, open)) {
+            toggle_window(panel_id);
+          }
+        };
     {
       gui::StyleVarGuard panel_spacing_guard(ImGuiStyleVar_ItemSpacing,
                                              ImVec2(4, 0));
 
-      // Tile16 Editor toggle (Ctrl+T)
-      if (gui::ToolbarIconButton(ICON_MD_EDIT, "Tile16 Editor (Ctrl+T)",
-                                 panel_manager->IsPanelVisible(
-                                     OverworldPanelIds::kTile16Editor))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kTile16Editor);
-      }
+      if (compact_panel_controls) {
+        if (gui::ToolbarIconButton(ICON_MD_APPS,
+                                   "Overworld Windows\nOpen panel toggle menu")) {
+          ImGui::OpenPopup("OverworldWindowsPopup");
+        }
 
-      ImGui::SameLine();
-      // Tile16 Selector toggle
-      if (gui::ToolbarIconButton(ICON_MD_GRID_ON, "Tile16 Selector",
-                                 panel_manager->IsPanelVisible(
-                                     OverworldPanelIds::kTile16Selector))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kTile16Selector);
-      }
+        if (ImGui::BeginPopup("OverworldWindowsPopup")) {
+          popup_toggle_item("Tile16 Editor", OverworldPanelIds::kTile16Editor,
+                            "Ctrl+T");
+          popup_toggle_item("Tile16 Selector", OverworldPanelIds::kTile16Selector);
+          popup_toggle_item("Tile8 Selector", OverworldPanelIds::kTile8Selector);
+          popup_toggle_item("Area Graphics", OverworldPanelIds::kAreaGraphics);
+          popup_toggle_item("GFX Groups", OverworldPanelIds::kGfxGroups);
+          popup_toggle_item("Usage Statistics", OverworldPanelIds::kUsageStats);
+          popup_toggle_item("Item List", OverworldPanelIds::kItemList,
+                            "Ctrl+Shift+I");
+          popup_toggle_item("Scratch Workspace",
+                            OverworldPanelIds::kScratchSpace);
+          ImGui::EndPopup();
+        }
+      } else {
+        // Tile16 Editor toggle (Ctrl+T)
+        if (gui::ToolbarIconButton(ICON_MD_EDIT, "Tile16 Editor (Ctrl+T)",
+                                   window_manager->IsWindowOpen(
+                                        OverworldPanelIds::kTile16Editor))) {
+          toggle_window(OverworldPanelIds::kTile16Editor);
+        }
 
-      ImGui::SameLine();
-      // Tile8 Selector toggle
-      if (gui::ToolbarIconButton(ICON_MD_GRID_VIEW, "Tile8 Selector",
-                                 panel_manager->IsPanelVisible(
-                                     OverworldPanelIds::kTile8Selector))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kTile8Selector);
-      }
+        ImGui::SameLine();
+        if (gui::ToolbarIconButton(ICON_MD_GRID_ON, "Tile16 Selector",
+                                   window_manager->IsWindowOpen(
+                                        OverworldPanelIds::kTile16Selector))) {
+          toggle_window(OverworldPanelIds::kTile16Selector);
+        }
 
-      ImGui::SameLine();
-      // Area Graphics toggle
-      if (gui::ToolbarIconButton(ICON_MD_IMAGE, "Area Graphics",
-                                 panel_manager->IsPanelVisible(
-                                     OverworldPanelIds::kAreaGraphics))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kAreaGraphics);
-      }
+        ImGui::SameLine();
+        if (gui::ToolbarIconButton(ICON_MD_GRID_VIEW, "Tile8 Selector",
+                                   window_manager->IsWindowOpen(
+                                        OverworldPanelIds::kTile8Selector))) {
+          toggle_window(OverworldPanelIds::kTile8Selector);
+        }
 
-      ImGui::SameLine();
-      // GFX Groups toggle
-      if (gui::ToolbarIconButton(
-              ICON_MD_LAYERS, "GFX Groups",
-              panel_manager->IsPanelVisible(OverworldPanelIds::kGfxGroups))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kGfxGroups);
-      }
+        ImGui::SameLine();
+        if (gui::ToolbarIconButton(ICON_MD_IMAGE, "Area Graphics",
+                                   window_manager->IsWindowOpen(
+                                        OverworldPanelIds::kAreaGraphics))) {
+          toggle_window(OverworldPanelIds::kAreaGraphics);
+        }
 
-      ImGui::SameLine();
-      // Usage Stats toggle
-      if (gui::ToolbarIconButton(
-              ICON_MD_ANALYTICS, "Usage Statistics",
-              panel_manager->IsPanelVisible(OverworldPanelIds::kUsageStats))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kUsageStats);
-      }
+        ImGui::SameLine();
+        if (gui::ToolbarIconButton(
+                ICON_MD_LAYERS, "GFX Groups",
+                window_manager->IsWindowOpen(OverworldPanelIds::kGfxGroups))) {
+          toggle_window(OverworldPanelIds::kGfxGroups);
+        }
 
-      ImGui::SameLine();
-      // Item list toggle
-      if (gui::ToolbarIconButton(
-              ICON_MD_LIST,
-              "Overworld Item List (Ctrl+Shift+I)\nFilter/select items and use "
-              "duplicate/nudge shortcuts",
-              panel_manager->IsPanelVisible(OverworldPanelIds::kItemList))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kItemList);
-      }
+        ImGui::SameLine();
+        if (gui::ToolbarIconButton(
+                ICON_MD_ANALYTICS, "Usage Statistics",
+                window_manager->IsWindowOpen(OverworldPanelIds::kUsageStats))) {
+          toggle_window(OverworldPanelIds::kUsageStats);
+        }
 
-      ImGui::SameLine();
-      // Scratch Space toggle
-      if (gui::ToolbarIconButton(ICON_MD_AUTO_FIX_HIGH, "Scratch Workspace",
-                                 panel_manager->IsPanelVisible(
-                                     OverworldPanelIds::kScratchSpace))) {
-        panel_manager->TogglePanel(0, OverworldPanelIds::kScratchSpace);
+        ImGui::SameLine();
+        if (gui::ToolbarIconButton(
+                ICON_MD_LIST,
+                "Overworld Item List (Ctrl+Shift+I)\nFilter/select items and use "
+                "duplicate/nudge shortcuts",
+                window_manager->IsWindowOpen(OverworldPanelIds::kItemList))) {
+          toggle_window(OverworldPanelIds::kItemList);
+        }
+
+        ImGui::SameLine();
+        if (gui::ToolbarIconButton(ICON_MD_AUTO_FIX_HIGH, "Scratch Workspace",
+                                   window_manager->IsWindowOpen(
+                                        OverworldPanelIds::kScratchSpace))) {
+          toggle_window(OverworldPanelIds::kScratchSpace);
+        }
       }
     }
 
@@ -290,8 +350,9 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     // Sidebar Toggle (Map Properties)
     if (gui::ToolbarIconButton(
             ICON_MD_TUNE, "Toggle Map Properties Sidebar",
-            panel_manager->IsPanelVisible(OverworldPanelIds::kMapProperties))) {
-      panel_manager->TogglePanel(0, OverworldPanelIds::kMapProperties);
+            window_manager->IsWindowOpen(OverworldPanelIds::kMapProperties))) {
+      window_manager->ToggleWindow(window_manager->GetActiveSessionId(),
+                                   OverworldPanelIds::kMapProperties);
     }
 
     ImGui::EndTable();

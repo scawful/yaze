@@ -13,7 +13,7 @@
 
 namespace yaze::editor {
 
-class PanelManager;
+class WorkspaceWindowManager;
 
 /// @brief Panel IDs for overworld editor panels
 struct OverworldPanelIds {
@@ -28,7 +28,7 @@ struct OverworldPanelIds {
   static constexpr const char* kScratchSpace = "overworld.scratch";
   static constexpr const char* kMapProperties = "overworld.properties";
   static constexpr const char* kV3Settings = "overworld.v3_settings";
-  static constexpr const char* kDebugWindow = "overworld.debug_window";
+  static constexpr const char* kDebugWindow = "overworld.debug";
 };
 
 class OverworldToolbar {
@@ -37,7 +37,7 @@ class OverworldToolbar {
 
   void Draw(int& current_world, int& current_map, bool& current_map_lock,
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
-            PanelManager* panel_manager, bool has_selection,
+            WorkspaceWindowManager* window_manager, bool has_selection,
             bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld);
 
   // Callback for when properties change
@@ -45,6 +45,9 @@ class OverworldToolbar {
   std::function<void()> on_refresh_graphics;
   std::function<void()> on_refresh_palette;
   std::function<void()> on_refresh_map;
+  std::function<void(int)> on_world_changed;
+  std::function<void()> on_toggle_overlay_preview;
+  std::function<bool()> is_overlay_preview_enabled;
 
   // Scratch space callbacks
   std::function<void()> on_save_to_scratch;

@@ -7,16 +7,16 @@
 #include "absl/status/status.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/editor.h"
+#include "app/editor/menu/right_drawer_manager.h"
 
 namespace yaze {
 namespace editor {
 
 // Forward declarations
 class EditorSet;
-class PanelManager;
+class WorkspaceWindowManager;
 class LayoutManager;
 class UICoordinator;
-class RightPanelManager;
 class ToastManager;
 
 /**
@@ -32,10 +32,10 @@ class ToastManager;
 class EditorActivator {
  public:
   struct Dependencies {
-    PanelManager* panel_manager = nullptr;
+    WorkspaceWindowManager* window_manager = nullptr;
     LayoutManager* layout_manager = nullptr;
     UICoordinator* ui_coordinator = nullptr;
-    RightPanelManager* right_panel_manager = nullptr;
+    RightDrawerManager* right_drawer_manager = nullptr;
     ToastManager* toast_manager = nullptr;
     EventBus* event_bus = nullptr;  // For navigation event subscriptions
     std::function<absl::Status(EditorType)> ensure_editor_assets_loaded;

@@ -16,9 +16,9 @@ namespace {
 // =============================================================================
 
 /**
- * @brief Mock panel for testing EditorPanel interface
+ * @brief Mock panel for testing WindowContent interface
  */
-class MockEditorPanel : public EditorPanel {
+class MockEditorPanel : public WindowContent {
  public:
   MockEditorPanel(const std::string& id, const std::string& name,
                   const std::string& icon, const std::string& category)
@@ -61,15 +61,15 @@ class MockPersistentPanel : public MockEditorPanel {
  public:
   using MockEditorPanel::MockEditorPanel;
 
-  PanelCategory GetPanelCategory() const override {
-    return PanelCategory::Persistent;
+  WindowLifecycle GetWindowLifecycle() const override {
+    return WindowLifecycle::Persistent;
   }
 };
 
 /**
- * @brief Mock resource panel for testing ResourcePanel interface
+ * @brief Mock resource panel for testing ResourceWindowContent interface
  */
-class MockResourcePanel : public ResourcePanel {
+class MockResourcePanel : public ResourceWindowContent {
  public:
   MockResourcePanel(int resource_id, const std::string& resource_type,
                     const std::string& category)
@@ -99,7 +99,7 @@ class MockResourcePanel : public ResourcePanel {
 };
 
 // =============================================================================
-// EditorPanel Interface Tests
+// WindowContent Interface Tests
 // =============================================================================
 
 class EditorPanelTest : public ::testing::Test {
@@ -121,7 +121,7 @@ TEST_F(EditorPanelTest, IdentityMethods) {
 
 TEST_F(EditorPanelTest, DefaultBehavior) {
   // Default category is EditorBound
-  EXPECT_EQ(panel_->GetPanelCategory(), PanelCategory::EditorBound);
+  EXPECT_EQ(panel_->GetWindowLifecycle(), WindowLifecycle::EditorBound);
 
   // Default enabled state is true
   EXPECT_TRUE(panel_->IsEnabled());
@@ -170,24 +170,24 @@ TEST_F(EditorPanelTest, RelationshipDefaults) {
 }
 
 // =============================================================================
-// PanelCategory Tests
+// WindowLifecycle Tests
 // =============================================================================
 
 TEST(PanelCategoryTest, PersistentPanel) {
   MockPersistentPanel panel("test.persistent", "Persistent Panel",
                             "ICON_MD_PUSH_PIN", "Test");
 
-  EXPECT_EQ(panel.GetPanelCategory(), PanelCategory::Persistent);
+  EXPECT_EQ(panel.GetWindowLifecycle(), WindowLifecycle::Persistent);
 }
 
 TEST(PanelCategoryTest, EditorBoundDefault) {
   MockEditorPanel panel("test.bound", "Bound Panel", "ICON_MD_LOCK", "Test");
 
-  EXPECT_EQ(panel.GetPanelCategory(), PanelCategory::EditorBound);
+  EXPECT_EQ(panel.GetWindowLifecycle(), WindowLifecycle::EditorBound);
 }
 
 // =============================================================================
-// ResourcePanel Tests
+// ResourceWindowContent Tests
 // =============================================================================
 
 class ResourcePanelTest : public ::testing::Test {
@@ -236,7 +236,7 @@ TEST_F(ResourcePanelTest, ResourceLifecycle) {
 
 TEST_F(ResourcePanelTest, AlwaysEditorBound) {
   // Resource panels are CrossEditor by default
-  EXPECT_EQ(panel_->GetPanelCategory(), PanelCategory::CrossEditor);
+  EXPECT_EQ(panel_->GetWindowLifecycle(), WindowLifecycle::CrossEditor);
 }
 
 TEST_F(ResourcePanelTest, AllowMultipleInstancesDefault) {
@@ -285,11 +285,11 @@ TEST(MultiplePanelTest, SameResourceDifferentSessions) {
 }
 
 // =============================================================================
-// Panel Collection Tests (for future PanelManager integration)
+// Panel Collection Tests (for future WorkspaceWindowManager integration)
 // =============================================================================
 
 TEST(PanelCollectionTest, PolymorphicStorage) {
-  std::vector<std::unique_ptr<EditorPanel>> panels;
+  std::vector<std::unique_ptr<WindowContent>> panels;
 
   panels.push_back(std::make_unique<MockEditorPanel>(
       "test.static", "Static Panel", "ICON_1", "Test"));

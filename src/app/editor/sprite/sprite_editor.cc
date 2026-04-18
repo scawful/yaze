@@ -9,7 +9,7 @@
 #include "app/editor/sprite/sprite_drawer.h"
 #include "app/editor/sprite/sprite_undo_actions.h"
 #include "app/editor/sprite/zsprite.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
@@ -57,13 +57,13 @@ int ParseIntOrDefault(const std::string& text, int fallback = 0) {
 }  // namespace
 
 void SpriteEditor::Initialize() {
-  if (!dependencies_.panel_manager)
+  if (!dependencies_.window_manager)
     return;
-  auto* panel_manager = dependencies_.panel_manager;
+  auto* window_manager = dependencies_.window_manager;
 
-  // Register EditorPanel implementations with callbacks
+  // Register WindowContent implementations with callbacks
   // EditorPanels provide both metadata (icon, name, priority) and drawing logic
-  panel_manager->RegisterEditorPanel(
+  window_manager->RegisterWindowContent(
       std::make_unique<VanillaSpriteEditorPanel>([this]() {
         if (rom_ && rom_->is_loaded()) {
           DrawVanillaSpriteEditor();
@@ -72,7 +72,7 @@ void SpriteEditor::Initialize() {
         }
       }));
 
-  panel_manager->RegisterEditorPanel(std::make_unique<CustomSpriteEditorPanel>(
+  window_manager->RegisterWindowContent(std::make_unique<CustomSpriteEditorPanel>(
       [this]() { DrawCustomSprites(); }));
 }
 
@@ -95,7 +95,7 @@ absl::Status SpriteEditor::Update() {
   // Handle editor-level shortcuts
   HandleEditorShortcuts();
 
-  // Panel drawing is handled by PanelManager via registered EditorPanels
+  // Panel drawing is handled by WorkspaceWindowManager via registered EditorPanels
   // Each panel's Draw() callback invokes the appropriate draw method
 
   // Commit any pending undo transaction at the end of the frame

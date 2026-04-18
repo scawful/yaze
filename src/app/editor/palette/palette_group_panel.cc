@@ -148,7 +148,7 @@ void PaletteGroupPanel::Draw(bool* p_open) {
   // No need for local snapshot management anymore
 
   // Main card window
-  // Note: Window management is handled by PanelManager/EditorPanel
+  // Note: Window management is handled by WorkspaceWindowManager/WindowContent
 
   DrawToolbar();
   ImGui::Separator();

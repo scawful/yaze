@@ -8,7 +8,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/core/event_bus.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/session_types.h"
 #include "rom/rom.h"
@@ -21,7 +21,7 @@ namespace editor {
 class ISessionConfigurator;
 class EditorRegistry;
 class EditorSet;
-class PanelManager;
+class WorkspaceWindowManager;
 }  // namespace editor
 }  // namespace yaze
 
@@ -45,7 +45,7 @@ class ToastManager;
  */
 class SessionCoordinator {
  public:
-  explicit SessionCoordinator(PanelManager* panel_manager,
+  explicit SessionCoordinator(WorkspaceWindowManager* window_manager,
                               ToastManager* toast_manager,
                               UserSettings* user_settings);
   ~SessionCoordinator() = default;
@@ -180,7 +180,7 @@ class SessionCoordinator {
   EditorRegistry* editor_registry_ = nullptr;
   EventBus* event_bus_ = nullptr;  // For publishing session lifecycle events
   std::vector<std::unique_ptr<RomSession>> sessions_;
-  PanelManager* panel_manager_;
+  WorkspaceWindowManager* window_manager_;
   ToastManager* toast_manager_;
   UserSettings* user_settings_;
 

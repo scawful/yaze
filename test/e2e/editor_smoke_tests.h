@@ -22,5 +22,6 @@ void E2ETest_SpriteEditorSmokeTest(ImGuiTestContext* ctx);
 void E2ETest_MessageEditorSmokeTest(ImGuiTestContext* ctx);
 void E2ETest_MusicEditorSmokeTest(ImGuiTestContext* ctx);
 void E2ETest_EmulatorSaveStatesSmokeTest(ImGuiTestContext* ctx);
+void E2ETest_AssemblyDisassemblyGraphJumpSmokeTest(ImGuiTestContext* ctx);
 
 #endif  // YAZE_TEST_E2E_EDITOR_SMOKE_TESTS_H_

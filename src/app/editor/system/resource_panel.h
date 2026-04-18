@@ -10,10 +10,10 @@ namespace yaze {
 namespace editor {
 
 /**
- * @class ResourcePanel
- * @brief Base class for panels that edit specific ROM resources
+ * @class ResourceWindowContent
+ * @brief Base class for windows that edit specific ROM resources
  *
- * A ResourcePanel represents a window for editing a specific piece of
+ * A ResourceWindowContent represents a window for editing a specific piece of
  * data within a ROM, such as a dungeon room, a song, or a graphics sheet.
  *
  * Key Features:
@@ -42,7 +42,7 @@ namespace editor {
  *
  * @section Example Implementation
  * ```cpp
- * class DungeonRoomPanel : public ResourcePanel {
+ * class DungeonRoomPanel : public ResourceWindowContent {
  *  public:
  *   DungeonRoomPanel(size_t session_id, int room_id, zelda3::Room* room)
  *       : room_id_(room_id), room_(room) {
@@ -65,12 +65,12 @@ namespace editor {
  * };
  * ```
  *
- * @see EditorPanel - Base interface for all panels
- * @see PanelManager - Manages resource panel lifecycle and limits
+ * @see WindowContent - Base interface for all windows
+ * @see WorkspaceWindowManager - Manages resource panel lifecycle and limits
  */
-class ResourcePanel : public EditorPanel {
+class ResourceWindowContent : public WindowContent {
  public:
-  virtual ~ResourcePanel() = default;
+  virtual ~ResourceWindowContent() = default;
 
   // ==========================================================================
   // Resource Identity (Required)
@@ -104,7 +104,7 @@ class ResourcePanel : public EditorPanel {
   }
 
   // ==========================================================================
-  // Panel Identity (from EditorPanel - auto-generated)
+   // Window Identity (from WindowContent - auto-generated)
   // ==========================================================================
 
   /**
@@ -123,12 +123,12 @@ class ResourcePanel : public EditorPanel {
   std::string GetDisplayName() const override { return GetResourceName(); }
 
   // ==========================================================================
-  // Behavior (from EditorPanel - resource-specific defaults)
+  // Behavior (from WindowContent - resource-specific defaults)
   // ==========================================================================
 
   /**
-   * @brief Resource panels use CrossEditor category for opt-in persistence
-   * @return PanelCategory::CrossEditor
+   * @brief Resource windows use CrossEditor lifecycle for opt-in persistence
+   * @return WindowLifecycle::CrossEditor
    *
    * Resource panels (rooms, songs, etc.) can be pinned to persist across
    * editor switches. By default, they're NOT pinned and will be hidden
@@ -142,8 +142,8 @@ class ResourcePanel : public EditorPanel {
    *
    * The drawing loops in each editor handle the category filtering.
    */
-  PanelCategory GetPanelCategory() const override {
-    return PanelCategory::CrossEditor;
+  WindowLifecycle GetWindowLifecycle() const override {
+    return WindowLifecycle::CrossEditor;
   }
 
   /**
@@ -191,7 +191,7 @@ class ResourcePanel : public EditorPanel {
    * Override to implement custom cleanup or warnings.
    */
   virtual void OnResourceDeleted() {
-    // Default: PanelManager will close this panel
+    // Default: WorkspaceWindowManager will close this panel
   }
 
  protected:

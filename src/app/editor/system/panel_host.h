@@ -10,16 +10,16 @@
 namespace yaze {
 namespace editor {
 
-class PanelManager;
-struct PanelDescriptor;
+class WorkspaceWindowManager;
+struct WindowDescriptor;
 
 /**
- * @brief Declarative registration contract for editor panels.
+ * @brief Declarative registration contract for editor windows.
  *
- * This decouples panel metadata from individual editor implementations and
+ * This decouples window metadata from individual editor implementations and
  * keeps visibility/layout concerns in a single host-facing API.
  */
-struct PanelDefinition {
+struct WindowDefinition {
   std::string id;
   std::string display_name;
   std::string icon;
@@ -29,52 +29,74 @@ struct PanelDefinition {
   int priority = 50;
   bool visible_by_default = false;
   bool* visibility_flag = nullptr;
-  PanelScope scope = PanelScope::kSession;
-  PanelCategory panel_category = PanelCategory::EditorBound;
-  PanelContextScope context_scope = PanelContextScope::kNone;
+  WindowScope scope = WindowScope::kSession;
+  WindowLifecycle window_lifecycle = WindowLifecycle::EditorBound;
+  WindowContextScope context_scope = WindowContextScope::kNone;
   std::vector<std::string> legacy_ids;
   std::function<void()> on_show;
   std::function<void()> on_hide;
 };
 
 /**
- * @brief Thin host API over PanelManager for declarative panel workflows.
+ * @brief Thin host API over WorkspaceWindowManager for declarative window workflows.
  */
-class PanelHost {
+class WindowHost {
  public:
-  explicit PanelHost(PanelManager* panel_manager = nullptr)
-      : panel_manager_(panel_manager) {}
+  explicit WindowHost(WorkspaceWindowManager* window_manager = nullptr)
+      : window_manager_(window_manager) {}
 
-  void SetPanelManager(PanelManager* panel_manager) {
-    panel_manager_ = panel_manager;
+  void SetWindowManager(WorkspaceWindowManager* window_manager) {
+    window_manager_ = window_manager;
   }
-  PanelManager* panel_manager() const { return panel_manager_; }
+  WorkspaceWindowManager* window_manager() const { return window_manager_; }
 
-  bool RegisterPanel(size_t session_id, const PanelDefinition& definition);
-  bool RegisterPanel(const PanelDefinition& definition);
+  bool RegisterPanel(size_t session_id, const WindowDefinition& definition);
+  bool RegisterPanel(const WindowDefinition& definition);
   bool RegisterPanels(size_t session_id,
-                      const std::vector<PanelDefinition>& definitions);
-  bool RegisterPanels(const std::vector<PanelDefinition>& definitions);
+                      const std::vector<WindowDefinition>& definitions);
+  bool RegisterPanels(const std::vector<WindowDefinition>& definitions);
+
+  bool RegisterWindow(size_t session_id, const WindowDefinition& definition) {
+    return RegisterPanel(session_id, definition);
+  }
+  bool RegisterWindow(const WindowDefinition& definition) {
+    return RegisterPanel(definition);
+  }
+  bool RegisterWindows(size_t session_id,
+                       const std::vector<WindowDefinition>& definitions) {
+    return RegisterPanels(session_id, definitions);
+  }
+  bool RegisterWindows(const std::vector<WindowDefinition>& definitions) {
+    return RegisterPanels(definitions);
+  }
 
   void RegisterPanelAlias(const std::string& legacy_id,
                           const std::string& canonical_id);
+  void RegisterWindowAlias(const std::string& legacy_id,
+                           const std::string& canonical_id) {
+    RegisterPanelAlias(legacy_id, canonical_id);
+  }
 
-  bool ShowPanel(size_t session_id, const std::string& panel_id);
-  bool HidePanel(size_t session_id, const std::string& panel_id);
-  bool TogglePanel(size_t session_id, const std::string& panel_id);
-  bool IsPanelVisible(size_t session_id, const std::string& panel_id) const;
+  bool OpenWindow(size_t session_id, const std::string& window_id);
+  bool CloseWindow(size_t session_id, const std::string& window_id);
+  bool ToggleWindow(size_t session_id, const std::string& window_id);
+  bool IsWindowOpen(size_t session_id, const std::string& window_id) const;
 
-  bool OpenAndFocus(size_t session_id, const std::string& panel_id) const;
+  bool OpenAndFocusWindow(size_t session_id,
+                          const std::string& window_id) const;
 
-  std::string ResolvePanelId(const std::string& panel_id) const;
-  std::string GetPanelWindowName(size_t session_id,
-                                 const std::string& panel_id) const;
+  std::string ResolveWindowId(const std::string& window_id) const;
+  std::string GetWorkspaceWindowName(size_t session_id,
+                                     const std::string& window_id) const;
 
  private:
-  static PanelDescriptor ToDescriptor(const PanelDefinition& definition);
+  static WindowDescriptor ToDescriptor(const WindowDefinition& definition);
 
-  PanelManager* panel_manager_ = nullptr;
+  WorkspaceWindowManager* window_manager_ = nullptr;
 };
+
+using PanelDefinition = WindowDefinition;
+using PanelHost = WindowHost;
 
 }  // namespace editor
 }  // namespace yaze

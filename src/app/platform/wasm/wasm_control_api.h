@@ -16,7 +16,7 @@ class Rom;
 
 namespace editor {
 class EditorManager;
-class PanelManager;
+class WorkspaceWindowManager;
 }  // namespace editor
 
 namespace app {
@@ -83,59 +83,67 @@ class WasmControlApi {
   static std::string GetAvailableEditors();
 
   // ============================================================================
-  // Panel Control
+  // Window Control
   // ============================================================================
 
   /**
-   * @brief Open/show a panel by ID
-   * @param card_id Panel identifier (e.g., "dungeon.room_selector")
+   * @brief Open/show a window by ID
+   * @param card_id Window identifier (e.g., "dungeon.room_selector")
    * @return JSON result with success/error
    */
+  static std::string OpenWindow(const std::string& card_id);
   static std::string OpenPanel(const std::string& card_id);
 
   /**
-   * @brief Close/hide a panel by ID
-   * @param card_id Panel identifier
+   * @brief Close/hide a window by ID
+   * @param card_id Window identifier
    * @return JSON result with success/error
    */
+  static std::string CloseWindow(const std::string& card_id);
   static std::string ClosePanel(const std::string& card_id);
 
   /**
-   * @brief Toggle a panel's visibility
-   * @param card_id Panel identifier
+   * @brief Toggle a window's visibility
+   * @param card_id Window identifier
    * @return JSON result with new visibility state
    */
+  static std::string ToggleWindow(const std::string& card_id);
   static std::string TogglePanel(const std::string& card_id);
 
   /**
-   * @brief Get list of currently visible panels
-   * @return JSON array of visible panel IDs
+   * @brief Get list of currently visible windows
+   * @return JSON array of visible window IDs
    */
+  static std::string GetVisibleWindows();
   static std::string GetVisiblePanels();
 
   /**
-   * @brief Get all available panels for current session
-   * @return JSON array of panel info objects
+   * @brief Get all available windows for current session
+   * @return JSON array of window info objects
    */
+  static std::string GetAvailableWindows();
   static std::string GetAvailablePanels();
 
   /**
-   * @brief Get panels for a specific category
+   * @brief Get windows for a specific category
    * @param category Category name (e.g., "Dungeon", "Overworld")
-   * @return JSON array of panel info objects
+   * @return JSON array of window info objects
    */
+  static std::string GetWindowsInCategory(const std::string& category);
   static std::string GetPanelsInCategory(const std::string& category);
 
   /**
-   * @brief Show all panels in the current session
+   * @brief Show all windows in the current session
    * @return JSON result with success/error
    */
+  static std::string ShowAllWindows();
   static std::string ShowAllPanels();
 
   /**
-   * @brief Hide all panels in the current session
+   * @brief Hide all windows in the current session
    * @return JSON result with success/error
    */
+  static std::string HideAllWindows();
   static std::string HideAllPanels();
 
   /**
@@ -143,21 +151,21 @@ class WasmControlApi {
    * @param category Category name
    * @return JSON result with success/error
    */
-  static std::string ShowAllPanelsInCategory(const std::string& category);
+  static std::string ShowAllWindowsInCategory(const std::string& category);
 
   /**
    * @brief Hide all panels in a specific category
    * @param category Category name
    * @return JSON result with success/error
    */
-  static std::string HideAllPanelsInCategory(const std::string& category);
+  static std::string HideAllWindowsInCategory(const std::string& category);
 
   /**
    * @brief Show only one panel, hiding all others in its category
    * @param card_id Panel identifier
    * @return JSON result with success/error
    */
-  static std::string ShowOnlyPanel(const std::string& card_id);
+  static std::string ShowOnlyWindow(const std::string& card_id);
 
   // ============================================================================
   // Layout Control
@@ -486,8 +494,8 @@ class WasmControlApi {
   static editor::EditorManager* editor_manager_;
   static bool initialized_;
 
-  // Helper to get card registry
-  static editor::PanelManager* GetPanelRegistry();
+  // Helper to get the workspace window manager
+  static editor::WorkspaceWindowManager* GetWindowManager();
 
   // Helper to convert EditorType to string
   static std::string EditorTypeToString(int type);
@@ -519,17 +527,33 @@ class WasmControlApi {
   static std::string SwitchEditor(const std::string&) { return "{}"; }
   static std::string GetCurrentEditor() { return "{}"; }
   static std::string GetAvailableEditors() { return "[]"; }
-  static std::string OpenPanel(const std::string&) { return "{}"; }
-  static std::string ClosePanel(const std::string&) { return "{}"; }
-  static std::string TogglePanel(const std::string&) { return "{}"; }
-  static std::string GetVisiblePanels() { return "[]"; }
-  static std::string GetAvailablePanels() { return "[]"; }
-  static std::string GetPanelsInCategory(const std::string&) { return "[]"; }
-  static std::string ShowAllPanels() { return "{}"; }
-  static std::string HideAllPanels() { return "{}"; }
-  static std::string ShowAllPanelsInCategory(const std::string&) { return "{}"; }
-  static std::string HideAllPanelsInCategory(const std::string&) { return "{}"; }
-  static std::string ShowOnlyPanel(const std::string&) { return "{}"; }
+  static std::string OpenWindow(const std::string&) { return "{}"; }
+  static std::string OpenPanel(const std::string& card_id) {
+    return OpenWindow(card_id);
+  }
+  static std::string CloseWindow(const std::string&) { return "{}"; }
+  static std::string ClosePanel(const std::string& card_id) {
+    return CloseWindow(card_id);
+  }
+  static std::string ToggleWindow(const std::string&) { return "{}"; }
+  static std::string TogglePanel(const std::string& card_id) {
+    return ToggleWindow(card_id);
+  }
+  static std::string GetVisibleWindows() { return "[]"; }
+  static std::string GetVisiblePanels() { return GetVisibleWindows(); }
+  static std::string GetAvailableWindows() { return "[]"; }
+  static std::string GetAvailablePanels() { return GetAvailableWindows(); }
+  static std::string GetWindowsInCategory(const std::string&) { return "[]"; }
+  static std::string GetPanelsInCategory(const std::string& category) {
+    return GetWindowsInCategory(category);
+  }
+  static std::string ShowAllWindows() { return "{}"; }
+  static std::string ShowAllPanels() { return ShowAllWindows(); }
+  static std::string HideAllWindows() { return "{}"; }
+  static std::string HideAllPanels() { return HideAllWindows(); }
+  static std::string ShowAllWindowsInCategory(const std::string&) { return "{}"; }
+  static std::string HideAllWindowsInCategory(const std::string&) { return "{}"; }
+  static std::string ShowOnlyWindow(const std::string&) { return "{}"; }
   static std::string SetPanelLayout(const std::string&) { return "{}"; }
   static std::string GetAvailableLayouts() { return "[]"; }
   static std::string SaveCurrentLayout(const std::string&) { return "{}"; }
