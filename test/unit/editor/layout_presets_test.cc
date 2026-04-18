@@ -12,17 +12,20 @@ bool ContainsPanel(const std::vector<std::string>& panels, const char* panel_id)
   return std::find(panels.begin(), panels.end(), panel_id) != panels.end();
 }
 
-TEST(LayoutPresetsTest, OverworldDefaultUsesBalancedPanelArrangement) {
+TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   auto preset = LayoutPresets::GetDefaultPreset(EditorType::kOverworld);
 
   EXPECT_TRUE(
       ContainsPanel(preset.default_visible_panels, LayoutPresets::Panels::kOverworldCanvas));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldTile16Selector));
-  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
-                            LayoutPresets::Panels::kOverworldTile16Editor));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kOverworldTile16Editor));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldMapProperties));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kOverworldItemList));
+  EXPECT_TRUE(preset.dock_only_default_visible_panels);
 
   auto canvas_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kOverworldCanvas);

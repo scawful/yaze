@@ -152,7 +152,7 @@ class UserSettings {
   // than persisted settings. Returns true when defaults were reset.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 4;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 6;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }
