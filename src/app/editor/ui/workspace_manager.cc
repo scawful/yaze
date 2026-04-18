@@ -5,7 +5,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -64,10 +64,10 @@ absl::Status WorkspaceManager::ResetWorkspaceLayout() {
     layout_manager_->ClearInitializationFlags();
 
     EditorType editor_type = EditorType::kSettings;
-    if (panel_manager_) {
+    if (window_manager_) {
       editor_type =
           EditorRegistry::GetEditorTypeFromCategory(
-              panel_manager_->GetActiveCategory());
+              window_manager_->GetActiveCategory());
     }
     layout_manager_->ResetToDefaultLayout(editor_type);
     layout_manager_->RequestRebuild();
@@ -207,8 +207,8 @@ void WorkspaceManager::LoadModderLayout() {
 }
 
 void WorkspaceManager::ShowAllWindows() {
-  if (panel_manager_) {
-    panel_manager_->ShowAll();
+  if (window_manager_) {
+    window_manager_->ShowAll();
   }
   if (toast_manager_) {
     toast_manager_->Show("All windows shown", ToastType::kInfo);
@@ -216,8 +216,8 @@ void WorkspaceManager::ShowAllWindows() {
 }
 
 void WorkspaceManager::HideAllWindows() {
-  if (panel_manager_) {
-    panel_manager_->HideAll();
+  if (window_manager_) {
+    window_manager_->HideAll();
   }
   if (toast_manager_) {
     toast_manager_->Show("All windows hidden", ToastType::kInfo);
