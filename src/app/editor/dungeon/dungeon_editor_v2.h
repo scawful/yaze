@@ -126,6 +126,7 @@ class DungeonEditorV2 : public Editor {
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
   int LoadedRoomCount() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
