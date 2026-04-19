@@ -29,7 +29,9 @@ for file in "${new_files[@]}"; do
   if [[ "$file" =~ ^src/app/editor/.*/panels/.*\.(cc|h)$ ]]; then
     failures+=("new panels/ file is disallowed: $file")
   fi
-  if [[ "$file" =~ _panel\.(cc|h)$ ]]; then
+  # WindowContent shells named *panel* under */ui/window/ are allowed (co-located
+  # with feature UI); legacy rule targets flat panels/ trees and ad-hoc *_panel.h.
+  if [[ "$file" =~ _panel\.(cc|h)$ && ! "$file" =~ /ui/window/ ]]; then
     failures+=("new *_panel file is disallowed: $file")
   fi
 done
