@@ -65,52 +65,13 @@ ObjectSelectorContent::ObjectSelectorContent(
   // Wire up double-click callback for static object editor
   object_selector_.SetObjectDoubleClickCallback(
       [this](int obj_id) { OpenStaticObjectEditor(obj_id); });
-
-  // Wire up selection change callback for property panel sync
-  SetupSelectionCallbacks();
-}
-
-void ObjectSelectorContent::SetupSelectionCallbacks() {
-  if (!canvas_viewer_ || selection_callbacks_setup_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  interaction.SetSelectionChangeCallback([this]() { OnSelectionChanged(); });
-
-  selection_callbacks_setup_ = true;
 }
 
 DungeonCanvasViewer* ObjectSelectorContent::ResolveCanvasViewer() {
   if (canvas_viewer_provider_) {
-    DungeonCanvasViewer* resolved = canvas_viewer_provider_();
-    if (resolved != canvas_viewer_) {
-      canvas_viewer_ = resolved;
-      selection_callbacks_setup_ = false;
-      SetupSelectionCallbacks();
-    }
+    canvas_viewer_ = canvas_viewer_provider_();
   }
   return canvas_viewer_;
-}
-
-void ObjectSelectorContent::OnSelectionChanged() {
-  auto* viewer = ResolveCanvasViewer();
-  if (!viewer)
-    return;
-
-  auto& interaction = viewer->object_interaction();
-  cached_selection_count_ = interaction.GetSelectionCount();
-
-  // Sync with backend editor if available
-  if (object_editor_) {
-    auto indices = interaction.GetSelectedObjectIndices();
-    // Clear backend selection first
-    (void)object_editor_->ClearSelection();
-
-    // Add each selected index to backend
-    for (size_t idx : indices) {
-      (void)object_editor_->AddToSelection(idx);
-    }
-  }
 }
 
 void ObjectSelectorContent::Draw(bool* p_open) {
@@ -193,23 +154,15 @@ void ObjectSelectorContent::Draw(bool* p_open) {
   DrawRoomValidationBar();
   DrawInteractionSummary();
 
-  const bool has_editor_content =
-      static_editor_open_ || cached_selection_count_ > 0 || has_preview_object_;
-
   float available_height = ImGui::GetContentRegionAvail().y;
-  float editor_reserve = 0.0f;
-  if (static_editor_open_) {
-    editor_reserve += 260.0f;
-  }
-  if (has_editor_content) {
-    editor_reserve += 230.0f;
-  }
-  float browser_height = std::max(220.0f, available_height - editor_reserve);
+  float browser_height =
+      std::max(220.0f, available_height - (static_editor_open_ ? 260.0f : 0.0f));
 
   gui::SectionHeader(ICON_MD_CATEGORY, "Object Selector", theme.text_info);
-  ImGui::TextColored(theme.text_secondary_gray,
-                     "Choose an object to place. Double-click an entry to "
-                     "inspect its draw routine.");
+  ImGui::TextColored(
+      theme.text_secondary_gray,
+      "Choose an object to place. Double-click an entry to inspect its draw "
+      "routine or open the tile editor.");
   ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
   DrawObjectSelector();
   ImGui::EndChild();
@@ -218,17 +171,6 @@ void ObjectSelectorContent::Draw(bool* p_open) {
     ImGui::Spacing();
     DrawStaticObjectEditor();
   }
-
-  if (has_editor_content) {
-    ImGui::Spacing();
-    DrawObjectEditorSection();
-  }
-
-  // Keyboard shortcut help popup
-  DrawKeyboardShortcutHelp();
-
-  // Handle keyboard shortcuts
-  HandleKeyboardShortcuts();
 }
 
 void ObjectSelectorContent::SelectObject(int obj_id) {
@@ -262,8 +204,7 @@ void ObjectSelectorContent::DrawInteractionSummary() {
   const auto& theme = AgentUI::GetTheme();
   auto* viewer = ResolveCanvasViewer();
   const size_t selection_count =
-      viewer ? viewer->object_interaction().GetSelectionCount()
-             : cached_selection_count_;
+      viewer ? viewer->object_interaction().GetSelectionCount() : 0;
 
   gui::SectionHeader(ICON_MD_TOUCH_APP, "Interaction", theme.text_info);
 
@@ -284,20 +225,28 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     }
   } else if (selection_count == 1) {
     ImGui::TextColored(theme.status_success,
-                       ICON_MD_CHECK_CIRCLE " Editing selected room object");
+                       ICON_MD_CHECK_CIRCLE " 1 room object selected");
+    if (open_object_editor_callback_) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Object Editor")) {
+        open_object_editor_callback_();
+      }
+    }
   } else if (selection_count > 1) {
     ImGui::TextColored(theme.status_success,
-                       ICON_MD_SELECT_ALL " Editing %zu selected objects",
+                       ICON_MD_SELECT_ALL " %zu room objects selected",
                        selection_count);
+    if (open_object_editor_callback_) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Object Editor")) {
+        open_object_editor_callback_();
+      }
+    }
   } else {
     ImGui::TextColored(theme.text_secondary_gray,
                        ICON_MD_MOUSE
-                       " Browse objects below to place them, or click room "
-                       "objects to edit them.");
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_HELP_OUTLINE " Shortcuts")) {
-      show_shortcut_help_ = true;
-    }
+                       " Browse objects below to place them. Click room "
+                       "objects to edit them in the Object Editor.");
   }
 
   if (!last_placement_error_.empty()) {
@@ -308,73 +257,6 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     } else {
       last_placement_error_.clear();
     }
-  }
-}
-
-void ObjectSelectorContent::DrawObjectEditorSection() {
-  const auto& theme = AgentUI::GetTheme();
-  gui::SectionHeader(ICON_MD_TUNE, "Object Editor", theme.text_info);
-  DrawSelectedObjectInfo();
-  if (object_editor_) {
-    object_editor_->DrawPropertyUI();
-  }
-}
-
-void ObjectSelectorContent::DrawSelectedObjectInfo() {
-  const auto& theme = AgentUI::GetTheme();
-  auto* viewer = ResolveCanvasViewer();
-
-  // Show selection state at top - with extra safety checks
-  if (viewer && viewer->HasRooms()) {
-    auto& interaction = viewer->object_interaction();
-    auto selected = interaction.GetSelectedObjectIndices();
-
-    if (!selected.empty()) {
-      if (selected.size() == 1) {
-        if (object_editor_) {
-          const auto& objects = object_editor_->GetObjects();
-          if (selected[0] < objects.size()) {
-            const auto& obj = objects[selected[0]];
-            const auto semantics = zelda3::GetObjectLayerSemantics(obj);
-            ImGui::TextColored(theme.status_success,
-                               ICON_MD_CHECK_CIRCLE
-                               " Selected object #%zu · 0x%03X %s",
-                               selected[0], obj.id_,
-                               zelda3::GetObjectName(obj.id_).c_str());
-            ImGui::TextColored(
-                theme.text_secondary_gray,
-                "Position (%d, %d)  Size 0x%02X  Layer %s  Draws %s",
-                obj.x_, obj.y_, obj.size_,
-                obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
-                : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                        : "BG3",
-                zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
-          }
-        } else {
-          ImGui::Text("1 object");
-        }
-      } else {
-        ImGui::TextColored(theme.status_success,
-                           ICON_MD_SELECT_ALL " %zu objects selected",
-                           selected.size());
-        ImGui::TextColored(theme.text_secondary_gray,
-                           "Use Shift-click to add and Ctrl-click to toggle "
-                           "objects in the selection.");
-      }
-      ImGui::Spacing();
-    }
-  }
-
-  if (has_preview_object_) {
-    const auto semantics = zelda3::GetObjectLayerSemantics(preview_object_);
-    ImGui::TextColored(theme.text_info, ICON_MD_CATEGORY " Placement Object");
-    ImGui::Text("0x%03X %s", preview_object_.id_,
-                zelda3::GetObjectName(preview_object_.id_).c_str());
-    ImGui::TextColored(theme.text_secondary_gray, "Layer %s  Draws %s",
-                preview_object_.layer_ == zelda3::RoomObject::BG1   ? "BG1"
-                : preview_object_.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                                    : "BG3",
-                zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
   }
 }
 
@@ -737,321 +619,12 @@ void ObjectSelectorContent::DrawRoomValidationBar() {
   ImGui::Separator();
 }
 
-// =============================================================================
-// Keyboard Shortcut Help
-// =============================================================================
-
-void ObjectSelectorContent::DrawKeyboardShortcutHelp() {
-  if (!show_shortcut_help_) {
-    return;
-  }
-
-  ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_Appearing);
-  if (ImGui::Begin("Keyboard Shortcuts##ObjEditor", &show_shortcut_help_,
-                   ImGuiWindowFlags_NoCollapse)) {
-    const auto& theme = AgentUI::GetTheme();
-
-    auto shortcut_row = [&](const char* keys, const char* desc) {
-      ImGui::TextColored(theme.status_warning, "%-18s", keys);
-      ImGui::SameLine();
-      ImGui::TextUnformatted(desc);
-    };
-
-    ImGui::TextColored(theme.status_success, ICON_MD_KEYBOARD " Selection");
-    ImGui::Separator();
-    shortcut_row("Ctrl+A", "Select all objects");
-    shortcut_row("Ctrl+Shift+A", "Deselect all");
-    shortcut_row("Tab / Shift+Tab", "Cycle selection");
-    shortcut_row("Escape", "Cancel placement / deselect");
-
-    ImGui::Spacing();
-    ImGui::TextColored(theme.status_success, ICON_MD_EDIT " Editing");
-    ImGui::Separator();
-    shortcut_row("Delete", "Remove selected");
-    shortcut_row("Ctrl+D", "Duplicate selected");
-    shortcut_row("Ctrl+C", "Copy selected");
-    shortcut_row("Ctrl+V", "Paste");
-    shortcut_row("Ctrl+Z", "Undo");
-    shortcut_row("Ctrl+Shift+Z", "Redo");
-
-    ImGui::Spacing();
-    ImGui::TextColored(theme.status_success, ICON_MD_OPEN_WITH " Movement");
-    ImGui::Separator();
-    shortcut_row("Arrow Keys", "Nudge selected (1px)");
-
-    ImGui::Spacing();
-    ImGui::TextColored(theme.status_success, ICON_MD_VISIBILITY " Display");
-    ImGui::Separator();
-    shortcut_row("G", "Toggle grid");
-    shortcut_row("I", "Toggle object ID labels");
-    shortcut_row("?", "Show this help");
-  }
-  ImGui::End();
-}
-
-// =============================================================================
-// Keyboard Shortcuts
-// =============================================================================
-
-void ObjectSelectorContent::HandleKeyboardShortcuts() {
-  if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
-    return;
-  }
-
-  const ImGuiIO& io = ImGui::GetIO();
-
-  // Ctrl+A: Select all objects
-  if (ImGui::IsKeyPressed(ImGuiKey_A) && io.KeyCtrl && !io.KeyShift) {
-    SelectAllObjects();
-  }
-
-  // Ctrl+Shift+A: Deselect all
-  if (ImGui::IsKeyPressed(ImGuiKey_A) && io.KeyCtrl && io.KeyShift) {
-    DeselectAllObjects();
-  }
-
-  // Delete: Remove selected objects
-  if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-    DeleteSelectedObjects();
-  }
-
-  // Ctrl+D: Duplicate selected objects
-  if (ImGui::IsKeyPressed(ImGuiKey_D) && io.KeyCtrl) {
-    DuplicateSelectedObjects();
-  }
-
-  // Ctrl+C: Copy selected objects
-  if (ImGui::IsKeyPressed(ImGuiKey_C) && io.KeyCtrl) {
-    CopySelectedObjects();
-  }
-
-  // Ctrl+V: Paste objects
-  if (ImGui::IsKeyPressed(ImGuiKey_V) && io.KeyCtrl) {
-    PasteObjects();
-  }
-
-  // Ctrl+Z: Undo
-  if (ImGui::IsKeyPressed(ImGuiKey_Z) && io.KeyCtrl && !io.KeyShift) {
-    if (object_editor_) {
-      object_editor_->Undo();
-    }
-  }
-
-  // Ctrl+Shift+Z or Ctrl+Y: Redo
-  if ((ImGui::IsKeyPressed(ImGuiKey_Z) && io.KeyCtrl && io.KeyShift) ||
-      (ImGui::IsKeyPressed(ImGuiKey_Y) && io.KeyCtrl)) {
-    if (object_editor_) {
-      object_editor_->Redo();
-    }
-  }
-
-  // G: Toggle grid
-  if (ImGui::IsKeyPressed(ImGuiKey_G) && !io.KeyCtrl) {
-    show_grid_ = !show_grid_;
-  }
-
-  // I: Toggle object ID labels
-  if (ImGui::IsKeyPressed(ImGuiKey_I) && !io.KeyCtrl) {
-    show_object_ids_ = !show_object_ids_;
-  }
-
-  // Arrow keys: Nudge selected objects
-  if (!io.KeyCtrl) {
-    int dx = 0, dy = 0;
-    if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow))
-      dx = -1;
-    if (ImGui::IsKeyPressed(ImGuiKey_RightArrow))
-      dx = 1;
-    if (ImGui::IsKeyPressed(ImGuiKey_UpArrow))
-      dy = -1;
-    if (ImGui::IsKeyPressed(ImGuiKey_DownArrow))
-      dy = 1;
-
-    if (dx != 0 || dy != 0) {
-      NudgeSelectedObjects(dx, dy);
-    }
-  }
-
-  // Tab: Cycle through objects
-  if (ImGui::IsKeyPressed(ImGuiKey_Tab) && !io.KeyCtrl) {
-    CycleObjectSelection(io.KeyShift ? -1 : 1);
-  }
-
-  // Escape: Cancel placement or deselect all
-  if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
-    if (has_preview_object_ && canvas_viewer_ &&
-        canvas_viewer_->object_interaction().IsObjectLoaded()) {
-      CancelPlacement();
-    } else {
-      DeselectAllObjects();
-    }
-  }
-
-  // ?: Toggle shortcut help (Shift+/ on US keyboards)
-  if (ImGui::IsKeyPressed(ImGuiKey_Slash) && io.KeyShift) {
-    show_shortcut_help_ = !show_shortcut_help_;
-  }
-}
-
 void ObjectSelectorContent::CancelPlacement() {
   has_preview_object_ = false;
   if (canvas_viewer_) {
     canvas_viewer_->ClearPreviewObject();
     canvas_viewer_->object_interaction().CancelPlacement();
   }
-}
-
-void ObjectSelectorContent::SelectAllObjects() {
-  if (!canvas_viewer_ || !object_editor_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& objects = object_editor_->GetObjects();
-  std::vector<size_t> all_indices;
-
-  for (size_t i = 0; i < objects.size(); ++i) {
-    all_indices.push_back(i);
-  }
-
-  interaction.SetSelectedObjects(all_indices);
-}
-
-void ObjectSelectorContent::DeselectAllObjects() {
-  if (!canvas_viewer_)
-    return;
-  canvas_viewer_->object_interaction().ClearSelection();
-}
-
-void ObjectSelectorContent::DeleteSelectedObjects() {
-  if (!object_editor_ || !canvas_viewer_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-
-  if (selected.empty())
-    return;
-
-  // Show confirmation for bulk delete (more than 5 objects)
-  if (selected.size() > 5) {
-    show_delete_confirmation_modal_ = true;
-    return;
-  }
-
-  PerformDelete();
-}
-
-void ObjectSelectorContent::PerformDelete() {
-  if (!object_editor_ || !canvas_viewer_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-
-  if (selected.empty())
-    return;
-
-  // Delete in reverse order to maintain indices
-  std::vector<size_t> sorted_indices(selected.begin(), selected.end());
-  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
-
-  for (size_t idx : sorted_indices) {
-    object_editor_->DeleteObject(idx);
-  }
-
-  interaction.ClearSelection();
-}
-
-void ObjectSelectorContent::DuplicateSelectedObjects() {
-  if (!object_editor_ || !canvas_viewer_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-
-  if (selected.empty())
-    return;
-
-  std::vector<size_t> new_indices;
-
-  for (size_t idx : selected) {
-    auto new_idx = object_editor_->DuplicateObject(idx, 1, 1);
-    if (new_idx.has_value()) {
-      new_indices.push_back(*new_idx);
-    }
-  }
-
-  interaction.SetSelectedObjects(new_indices);
-}
-
-void ObjectSelectorContent::CopySelectedObjects() {
-  if (!object_editor_ || !canvas_viewer_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-
-  if (selected.empty())
-    return;
-
-  object_editor_->CopySelectedObjects(selected);
-}
-
-void ObjectSelectorContent::PasteObjects() {
-  if (!object_editor_ || !canvas_viewer_)
-    return;
-
-  auto new_indices = object_editor_->PasteObjects();
-
-  if (!new_indices.empty()) {
-    canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
-  }
-}
-
-void ObjectSelectorContent::NudgeSelectedObjects(int dx, int dy) {
-  if (!object_editor_ || !canvas_viewer_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-
-  if (selected.empty())
-    return;
-
-  for (size_t idx : selected) {
-    object_editor_->MoveObject(idx, dx, dy);
-  }
-}
-
-void ObjectSelectorContent::CycleObjectSelection(int direction) {
-  if (!canvas_viewer_ || !object_editor_)
-    return;
-
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-  const auto& objects = object_editor_->GetObjects();
-
-  size_t total_objects = objects.size();
-  if (total_objects == 0)
-    return;
-
-  size_t current_idx = selected.empty() ? 0 : selected.front();
-  size_t next_idx = (current_idx + direction + total_objects) % total_objects;
-
-  interaction.SetSelectedObjects({next_idx});
-  ScrollToObject(next_idx);
-}
-
-void ObjectSelectorContent::ScrollToObject(size_t index) {
-  if (!canvas_viewer_ || !object_editor_)
-    return;
-
-  const auto& objects = object_editor_->GetObjects();
-  if (index >= objects.size())
-    return;
-
-  const auto& obj = objects[index];
-  canvas_viewer_->ScrollToTile(obj.x(), obj.y());
 }
 
 }  // namespace editor

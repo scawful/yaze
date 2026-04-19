@@ -14,7 +14,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
@@ -27,6 +27,7 @@
 #include "dungeon_undo_actions.h"
 #include "imgui/imgui.h"
 #include "inspectors/door_editor_content.h"
+#include "inspectors/object_editor_content.h"
 #include "selectors/object_selector_content.h"
 #include "workspace/room_graphics_content.h"
 #include "rom/rom.h"
@@ -100,8 +101,8 @@ class DungeonEditorV2 : public Editor {
     game_data_ = game_data;
     dependencies_.game_data = game_data;  // Also set base class dependency
     room_loader_.SetGameData(game_data);
-    if (object_editor_panel_) {
-      object_editor_panel_->SetGameData(game_data);
+    if (object_selector_panel_) {
+      object_selector_panel_->SetGameData(game_data);
     }
     if (dungeon_editor_system_) {
       dungeon_editor_system_->SetGameData(game_data);
@@ -191,7 +192,9 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kEntranceListId = "dungeon.entrance_list";
   static constexpr const char* kRoomMatrixId = "dungeon.room_matrix";
   static constexpr const char* kRoomGraphicsId = "dungeon.room_graphics";
-  static constexpr const char* kObjectToolsId = "dungeon.object_editor";
+  static constexpr const char* kObjectSelectorId = "dungeon.object_selector";
+  static constexpr const char* kObjectEditorId = "dungeon.object_editor";
+  static constexpr const char* kObjectToolsId = kObjectSelectorId;
   static constexpr const char* kDoorEditorId = "dungeon.door_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
 
@@ -204,8 +207,14 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomStore& rooms() { return rooms_; }
   const DungeonRoomStore& rooms() const { return rooms_; }
   gfx::IRenderer* renderer() const { return renderer_; }
+  ObjectSelectorContent* object_selector_panel() const {
+    return object_selector_panel_;
+  }
   ObjectSelectorContent* object_editor_panel() const {
-    return object_editor_panel_;
+    return object_selector_panel_;
+  }
+  ObjectEditorContent* object_editor_content() const {
+    return object_editor_content_;
   }
   DoorEditorContent* door_editor_panel() const { return door_editor_panel_; }
 
@@ -299,7 +308,8 @@ class DungeonEditorV2 : public Editor {
   gui::PaletteEditorWidget palette_editor_;
   // Panel pointers - these are owned by WorkspaceWindowManager when available.
   // Store pointers for direct access to panel methods.
-  ObjectSelectorContent* object_editor_panel_ = nullptr;
+  ObjectSelectorContent* object_selector_panel_ = nullptr;
+  ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
   RoomGraphicsContent* room_graphics_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
@@ -314,7 +324,8 @@ class DungeonEditorV2 : public Editor {
 
   // Fallback ownership for tests when WorkspaceWindowManager is not available.
   // In production, this remains nullptr and panels are owned by WorkspaceWindowManager.
-  std::unique_ptr<ObjectSelectorContent> owned_object_editor_panel_;
+  std::unique_ptr<ObjectSelectorContent> owned_object_selector_panel_;
+  std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;

@@ -23,19 +23,20 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
+#include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/editor/dungeon/inspectors/palette_editor_content.h"
-#include "app/editor/dungeon/panels/custom_collision_panel.h"
-#include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
-#include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
-#include "app/editor/dungeon/panels/dungeon_map_panel.h"
-#include "app/editor/dungeon/panels/dungeon_settings_panel.h"
-#include "app/editor/dungeon/panels/item_editor_panel.h"
-#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
-#include "app/editor/dungeon/panels/object_tile_editor_panel.h"
-#include "app/editor/dungeon/panels/overlay_manager_panel.h"
-#include "app/editor/dungeon/panels/room_tag_editor_panel.h"
-#include "app/editor/dungeon/panels/sprite_editor_panel.h"
-#include "app/editor/dungeon/panels/water_fill_panel.h"
+#include "app/editor/dungeon/ui/window/custom_collision_panel.h"
+#include "app/editor/dungeon/ui/window/dungeon_entrance_list_panel.h"
+#include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
+#include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
+#include "app/editor/dungeon/ui/window/dungeon_settings_panel.h"
+#include "app/editor/dungeon/ui/window/item_editor_panel.h"
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
+#include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
+#include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
+#include "app/editor/dungeon/ui/window/sprite_editor_panel.h"
+#include "app/editor/dungeon/ui/window/water_fill_panel.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "app/editor/dungeon/workspace/room_browser_content.h"
@@ -45,9 +46,9 @@
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/events/core_events.h"
 #include "app/editor/menu/status_bar.h"
-#include "app/editor/system/hack_manifest_save_validation.h"
-#include "app/editor/system/workspace_window_manager.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/emu/mesen/mesen_client_registry.h"
 #include "app/emu/mesen/mesen_socket_client.h"
 #include "app/emu/render/emulator_render_service.h"
@@ -153,8 +154,11 @@ DungeonEditorV2::~DungeonEditorV2() {
   // Clear viewer references in panels BEFORE room_viewers_ is destroyed.
   // Panels are owned by WorkspaceWindowManager and outlive this editor, so they need
   // to have their viewer pointers cleared to prevent dangling pointer access.
-  if (object_editor_panel_) {
-    object_editor_panel_->SetCanvasViewer(nullptr);
+  if (object_selector_panel_) {
+    object_selector_panel_->SetCanvasViewer(nullptr);
+  }
+  if (object_editor_content_) {
+    object_editor_content_->SetCanvasViewer(nullptr);
   }
   if (door_editor_panel_) {
     door_editor_panel_->SetCanvasViewer(nullptr);
@@ -205,7 +209,7 @@ void DungeonEditorV2::Initialize() {
 
   // Legacy panel IDs persisted in older layouts/settings.
   window_manager->RegisterPanelAlias("dungeon.object_tools",
-                                     "dungeon.object_editor");
+                                     kObjectSelectorId);
   window_manager->RegisterPanelAlias("dungeon.entrances",
                                      "dungeon.entrance_properties");
 
@@ -282,6 +286,30 @@ void DungeonEditorV2::Initialize() {
        .priority = 50,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to view room graphics"});
+
+  window_manager->RegisterPanel(
+      {.card_id = kObjectSelectorId,
+       .display_name = "Object Selector",
+       .window_title = " Object Selector",
+       .icon = ICON_MD_CATEGORY,
+       .category = "Dungeon",
+       .shortcut_hint = "",
+       .visibility_flag = nullptr,
+       .priority = 60,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM to browse dungeon objects"});
+
+  window_manager->RegisterPanel(
+      {.card_id = kObjectEditorId,
+       .display_name = "Object Editor",
+       .window_title = " Object Editor",
+       .icon = ICON_MD_TUNE,
+       .category = "Dungeon",
+       .shortcut_hint = "",
+       .visibility_flag = nullptr,
+       .priority = 61,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM to edit selected dungeon objects"});
 
   window_manager->RegisterPanel(
       {.card_id = kDoorEditorId,
@@ -494,10 +522,11 @@ absl::Status DungeonEditorV2::Load() {
   (void)dungeon_editor_system_->Initialize();
   dungeon_editor_system_->SetCurrentRoom(current_room_id_);
 
-  // Initialize unified object editor panel
-  // Note: Initially passing nullptr for viewer, will be set on selection
-  auto object_editor = std::make_unique<ObjectSelectorContent>(
+  // Initialize browse-only object selector and the dedicated object editor.
+  auto object_selector = std::make_unique<ObjectSelectorContent>(
       renderer_, rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
+  auto object_editor =
+      std::make_unique<ObjectEditorContent>(dungeon_editor_system_->GetObjectEditor());
 
   // Wire up object change callback to trigger room re-rendering
   dungeon_editor_system_->GetObjectEditor()->SetObjectChangedCallback(
@@ -508,11 +537,15 @@ absl::Status DungeonEditorV2::Load() {
       });
 
   // Set rooms and initial palette group for correct preview rendering
-  object_editor->SetRooms(&rooms_);
-  object_editor->SetCurrentPaletteGroup(current_palette_group_);
+  object_selector->SetRooms(&rooms_);
+  object_selector->SetCurrentPaletteGroup(current_palette_group_);
 
-  // Keep raw pointer for later access
-  object_editor_panel_ = object_editor.get();
+  object_selector->SetOpenObjectEditorCallback(
+      [this]() { OpenWindow(kObjectEditorId); });
+
+  // Keep raw pointers for later access
+  object_selector_panel_ = object_selector.get();
+  object_editor_content_ = object_editor.get();
 
   auto door_editor = std::make_unique<DoorEditorContent>();
   door_editor->SetRooms(&rooms_);
@@ -520,16 +553,16 @@ absl::Status DungeonEditorV2::Load() {
 
   // Propagate game_data to the object editor panel if available
   if (game_data()) {
-    object_editor_panel_->SetGameData(game_data());
+    object_selector_panel_->SetGameData(game_data());
   }
   if (dependencies_.project) {
-    object_editor_panel_->object_selector().SetCustomObjectsFolder(
+    object_selector_panel_->object_selector().SetCustomObjectsFolder(
         dependencies_.project->GetAbsolutePath(
             dependencies_.project->custom_objects_folder));
   }
 
   // Wire tile editor callback before transferring ownership
-  object_editor->set_tile_editor_callback([this](int16_t object_id) {
+  object_selector->set_tile_editor_callback([this](int16_t object_id) {
     if (object_tile_editor_panel_) {
       object_tile_editor_panel_->OpenForObject(object_id, current_room_id_,
                                                &rooms_);
@@ -540,6 +573,8 @@ absl::Status DungeonEditorV2::Load() {
   // Register the ObjectSelectorContent directly (it inherits from WindowContent)
   // Panel manager takes ownership
   if (dependencies_.window_manager) {
+    dependencies_.window_manager->RegisterWindowContent(
+        std::move(object_selector));
     dependencies_.window_manager->RegisterWindowContent(
         std::move(object_editor));
     dependencies_.window_manager->RegisterWindowContent(std::move(door_editor));
@@ -586,8 +621,8 @@ absl::Status DungeonEditorV2::Load() {
                   filename);
               (void)dependencies_.project->Save();
             }
-            if (object_editor_panel_) {
-              object_editor_panel_->object_selector().InvalidatePreviewCache();
+            if (object_selector_panel_) {
+              object_selector_panel_->object_selector().InvalidatePreviewCache();
             }
           });
 
@@ -597,11 +632,11 @@ absl::Status DungeonEditorV2::Load() {
     }
 
     // Wire tile editor panel and project references to the object selector
-    if (object_editor_panel_) {
-      object_editor_panel_->object_selector().SetTileEditorPanel(
+    if (object_selector_panel_) {
+      object_selector_panel_->object_selector().SetTileEditorPanel(
           object_tile_editor_panel_);
       if (dependencies_.project) {
-        object_editor_panel_->object_selector().SetProject(
+        object_selector_panel_->object_selector().SetProject(
             dependencies_.project);
       }
     }
@@ -666,7 +701,8 @@ absl::Status DungeonEditorV2::Load() {
       }
     }
   } else {
-    owned_object_editor_panel_ = std::move(object_editor);
+    owned_object_selector_panel_ = std::move(object_selector);
+    owned_object_editor_content_ = std::move(object_editor);
     owned_door_editor_panel_ = std::move(door_editor);
   }
 
@@ -697,8 +733,9 @@ absl::Status DungeonEditorV2::Load() {
               apply_palette(existing_viewer->get());
             }
           }
-          if (object_editor_panel_) {
-            object_editor_panel_->SetCurrentPaletteGroup(current_palette_group_);
+          if (object_selector_panel_) {
+            object_selector_panel_->SetCurrentPaletteGroup(
+                current_palette_group_);
           }
           if (room_graphics_panel_) {
             room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
@@ -1697,8 +1734,8 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
             if (result.ok()) {
               current_palette_group_ = result.value();
               viewer->SetCurrentPaletteGroup(current_palette_group_);
-              if (object_editor_panel_) {
-                object_editor_panel_->SetCurrentPaletteGroup(
+              if (object_selector_panel_) {
+                object_selector_panel_->SetCurrentPaletteGroup(
                     current_palette_group_);
               }
               // Sync palette to graphics panel for proper sheet coloring
@@ -1802,9 +1839,9 @@ void DungeonEditorV2::FocusRoom(int room_id) {
 }
 
 void DungeonEditorV2::SelectObject(int obj_id) {
-  if (object_editor_panel_) {
-    OpenWindow(kObjectToolsId);
-    object_editor_panel_->SelectObject(obj_id);
+  if (object_selector_panel_) {
+    OpenWindow(kObjectSelectorId);
+    object_selector_panel_->SelectObject(obj_id);
   }
 }
 
@@ -1815,10 +1852,11 @@ void DungeonEditorV2::SetAgentMode(bool enabled) {
     } else {
       OpenWindow(kRoomSelectorId);
     }
-    OpenWindow(kObjectToolsId);
+    OpenWindow(kObjectSelectorId);
+    OpenWindow(kObjectEditorId);
     OpenWindow(kRoomGraphicsId);
-    if (object_editor_panel_) {
-      object_editor_panel_->SetAgentOptimizedLayout(true);
+    if (object_selector_panel_) {
+      object_selector_panel_->SetAgentOptimizedLayout(true);
     }
   }
 }
@@ -1837,8 +1875,8 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
                           obj.id_, current_room_id_),
           ToastType::kError);
     }
-    if (object_editor_panel_) {
-      object_editor_panel_->SetPlacementError(absl::StrFormat(
+    if (object_selector_panel_) {
+      object_selector_panel_->SetPlacementError(absl::StrFormat(
           "Cannot place 0x%02X: invalid room %d", obj.id_, current_room_id_));
     }
     return;
@@ -2160,7 +2198,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
       SwapRoomInPanel(old_room, new_room);
     });
     viewer->SetShowObjectPanelCallback(
-        [this]() { OpenWindow(kObjectToolsId); });
+        [this]() { OpenWindow(kObjectSelectorId); });
     viewer->SetShowSpritePanelCallback(
         [this]() { OpenWindow("dungeon.sprite_editor"); });
     viewer->SetShowItemPanelCallback(
@@ -2301,7 +2339,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     });
 
     viewer->SetShowObjectPanelCallback(
-        [this]() { OpenWindow(kObjectToolsId); });
+        [this]() { OpenWindow(kObjectSelectorId); });
     viewer->SetShowSpritePanelCallback(
         [this]() { OpenWindow("dungeon.sprite_editor"); });
     viewer->SetShowItemPanelCallback(
@@ -2471,12 +2509,19 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
 
 void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
   // Update object editor card with current viewer
-  if (object_editor_panel_) {
-    object_editor_panel_->SetCanvasViewerProvider([this]() {
+  if (object_selector_panel_) {
+    object_selector_panel_->SetCanvasViewerProvider([this]() {
       return GetViewerForRoom(current_room_id_);
     });
-    object_editor_panel_->SetCurrentRoom(room_id);
-    object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+    object_selector_panel_->SetCurrentRoom(room_id);
+    object_selector_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+  if (object_editor_content_) {
+    object_editor_content_->SetCanvasViewerProvider([this]() {
+      return GetViewerForRoom(current_room_id_);
+    });
+    object_editor_content_->SetCurrentRoom(room_id);
+    object_editor_content_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
   if (door_editor_panel_) {
     door_editor_panel_->SetCanvasViewerProvider([this]() {
