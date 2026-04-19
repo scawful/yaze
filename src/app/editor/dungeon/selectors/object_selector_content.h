@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_OBJECT_EDITOR_PANEL_H_
-#define YAZE_APP_EDITOR_DUNGEON_PANELS_OBJECT_EDITOR_PANEL_H_
+#ifndef YAZE_APP_EDITOR_DUNGEON_SELECTORS_OBJECT_SELECTOR_CONTENT_H_
+#define YAZE_APP_EDITOR_DUNGEON_SELECTORS_OBJECT_SELECTOR_CONTENT_H_
 
 #include <memory>
 #include <string>
@@ -25,7 +25,7 @@ namespace yaze {
 namespace editor {
 
 /**
- * @class ObjectEditorPanel
+ * @class ObjectSelectorContent
  * @brief Unified panel for dungeon object selection, editing, and inspection
  *
  * This panel combines object selection, object property editing, and static
@@ -44,9 +44,9 @@ namespace editor {
  * @see WindowContent - Base interface
  * @see DungeonObjectSelector - Object browser component
  */
-class ObjectEditorPanel : public WindowContent {
+class ObjectSelectorContent : public WindowContent {
  public:
-  ObjectEditorPanel(
+  ObjectSelectorContent(
       gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
       std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr);
 
@@ -225,4 +225,4 @@ class ObjectEditorPanel : public WindowContent {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_OBJECT_EDITOR_PANEL_H_
+#endif  // YAZE_APP_EDITOR_DUNGEON_SELECTORS_OBJECT_SELECTOR_CONTENT_H_

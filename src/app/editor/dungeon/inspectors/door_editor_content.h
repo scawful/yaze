@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_DOOR_EDITOR_PANEL_H_
-#define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_DOOR_EDITOR_PANEL_H_
+#ifndef YAZE_APP_EDITOR_DUNGEON_INSPECTORS_DOOR_EDITOR_CONTENT_H_
+#define YAZE_APP_EDITOR_DUNGEON_INSPECTORS_DOOR_EDITOR_CONTENT_H_
 
 #include <functional>
 #include <string>
@@ -12,7 +12,7 @@
 
 namespace yaze::editor {
 
-class DungeonDoorEditorPanel : public WindowContent {
+class DoorEditorContent : public WindowContent {
  public:
   std::string GetId() const override { return "dungeon.door_editor"; }
   std::string GetDisplayName() const override { return "Door Editor"; }
@@ -45,4 +45,4 @@ class DungeonDoorEditorPanel : public WindowContent {
 
 }  // namespace yaze::editor
 
-#endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_DOOR_EDITOR_PANEL_H_
+#endif  // YAZE_APP_EDITOR_DUNGEON_INSPECTORS_DOOR_EDITOR_CONTENT_H_

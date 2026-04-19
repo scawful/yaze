@@ -1,4 +1,4 @@
-#include "app/editor/dungeon/panels/dungeon_door_editor_panel.h"
+#include "app/editor/dungeon/inspectors/door_editor_content.h"
 
 #include <algorithm>
 #include <array>
@@ -73,14 +73,14 @@ std::string ShortDoorTypeLabel(zelda3::DoorType type) {
 
 }  // namespace
 
-DungeonCanvasViewer* DungeonDoorEditorPanel::ResolveCanvasViewer() {
+DungeonCanvasViewer* DoorEditorContent::ResolveCanvasViewer() {
   if (canvas_viewer_provider_) {
     canvas_viewer_ = canvas_viewer_provider_();
   }
   return canvas_viewer_;
 }
 
-void DungeonDoorEditorPanel::CancelPlacement() {
+void DoorEditorContent::CancelPlacement() {
   door_placement_mode_ = false;
   if (ResolveCanvasViewer()) {
     canvas_viewer_->object_interaction().SetDoorPlacementMode(
@@ -88,11 +88,11 @@ void DungeonDoorEditorPanel::CancelPlacement() {
   }
 }
 
-void DungeonDoorEditorPanel::OnClose() {
+void DoorEditorContent::OnClose() {
   CancelPlacement();
 }
 
-void DungeonDoorEditorPanel::Draw(bool* p_open) {
+void DoorEditorContent::Draw(bool* p_open) {
   (void)p_open;
   ResolveCanvasViewer();
 

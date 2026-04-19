@@ -39,7 +39,7 @@ namespace editor {
  * - Room connection visualization
  * - Click to select
  *
- * @see DungeonRoomMatrixPanel - For full 296-room grid view
+ * @see RoomMatrixContent - For full 296-room grid view
  * @see WindowContent - Base interface
  */
 class DungeonMapPanel : public WindowContent {

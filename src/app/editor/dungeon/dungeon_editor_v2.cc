@@ -22,25 +22,25 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/inspectors/door_editor_content.h"
+#include "app/editor/dungeon/inspectors/palette_editor_content.h"
 #include "app/editor/dungeon/panels/custom_collision_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
-#include "app/editor/dungeon/panels/dungeon_door_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_map_panel.h"
-#include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
-#include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
-#include "app/editor/dungeon/panels/dungeon_room_matrix_panel.h"
-#include "app/editor/dungeon/panels/dungeon_room_selector_panel.h"
 #include "app/editor/dungeon/panels/dungeon_settings_panel.h"
-#include "app/editor/dungeon/panels/dungeon_workbench_panel.h"
 #include "app/editor/dungeon/panels/item_editor_panel.h"
 #include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
-#include "app/editor/dungeon/panels/object_editor_panel.h"
 #include "app/editor/dungeon/panels/object_tile_editor_panel.h"
 #include "app/editor/dungeon/panels/overlay_manager_panel.h"
 #include "app/editor/dungeon/panels/room_tag_editor_panel.h"
 #include "app/editor/dungeon/panels/sprite_editor_panel.h"
 #include "app/editor/dungeon/panels/water_fill_panel.h"
+#include "app/editor/dungeon/selectors/object_selector_content.h"
+#include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
+#include "app/editor/dungeon/workspace/room_browser_content.h"
+#include "app/editor/dungeon/workspace/room_graphics_content.h"
+#include "app/editor/dungeon/workspace/room_matrix_content.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/events/core_events.h"
@@ -346,7 +346,7 @@ void DungeonEditorV2::Initialize() {
 
   // Register WindowContent instances
   window_manager->RegisterWindowContent(
-      std::make_unique<DungeonRoomSelectorPanel>(
+      std::make_unique<RoomBrowserContent>(
           &room_selector_, [this](int room_id) { OnRoomSelected(room_id); }));
 
   window_manager->RegisterWindowContent(
@@ -355,7 +355,7 @@ void DungeonEditorV2::Initialize() {
           [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
 
   {
-    auto matrix_panel = std::make_unique<DungeonRoomMatrixPanel>(
+    auto matrix_panel = std::make_unique<RoomMatrixContent>(
         &current_room_id_, &active_rooms_,
         [this](int room_id) { OnRoomSelected(room_id); },
         [this](int old_room, int new_room) {
@@ -384,7 +384,7 @@ void DungeonEditorV2::Initialize() {
   }
 
   {
-    auto workbench = std::make_unique<DungeonWorkbenchPanel>(
+    auto workbench = std::make_unique<DungeonWorkbenchContent>(
         &room_selector_, &current_room_id_,
         [this](int room_id) { OnRoomSelected(room_id); },
         [this](int room_id, RoomSelectionIntent intent) {
@@ -432,7 +432,7 @@ void DungeonEditorV2::Initialize() {
       &entrances_, &current_entrance_id_,
       [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
 
-  // Note: DungeonRoomGraphicsPanel and DungeonPaletteEditorPanel are registered
+  // Note: RoomGraphicsContent and PaletteEditorContent are registered
   // in Load() after their dependencies (renderer_, palette_editor_) are initialized
 }
 
@@ -481,13 +481,13 @@ absl::Status DungeonEditorV2::Load() {
 
   // Register panels that depend on initialized state (renderer, palette_editor_)
   if (dependencies_.window_manager) {
-    auto graphics_panel = std::make_unique<DungeonRoomGraphicsPanel>(
+    auto graphics_panel = std::make_unique<RoomGraphicsContent>(
         &current_room_id_, &rooms_, renderer_);
     room_graphics_panel_ = graphics_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
         std::move(graphics_panel));
     dependencies_.window_manager->RegisterWindowContent(
-        std::make_unique<DungeonPaletteEditorPanel>(&palette_editor_));
+        std::make_unique<PaletteEditorContent>(&palette_editor_));
   }
 
   dungeon_editor_system_ = std::make_unique<zelda3::DungeonEditorSystem>(rom_);
@@ -496,7 +496,7 @@ absl::Status DungeonEditorV2::Load() {
 
   // Initialize unified object editor panel
   // Note: Initially passing nullptr for viewer, will be set on selection
-  auto object_editor = std::make_unique<ObjectEditorPanel>(
+  auto object_editor = std::make_unique<ObjectSelectorContent>(
       renderer_, rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
 
   // Wire up object change callback to trigger room re-rendering
@@ -514,7 +514,7 @@ absl::Status DungeonEditorV2::Load() {
   // Keep raw pointer for later access
   object_editor_panel_ = object_editor.get();
 
-  auto door_editor = std::make_unique<DungeonDoorEditorPanel>();
+  auto door_editor = std::make_unique<DoorEditorContent>();
   door_editor->SetRooms(&rooms_);
   door_editor_panel_ = door_editor.get();
 
@@ -537,7 +537,7 @@ absl::Status DungeonEditorV2::Load() {
     }
   });
 
-  // Register the ObjectEditorPanel directly (it inherits from WindowContent)
+  // Register the ObjectSelectorContent directly (it inherits from WindowContent)
   // Panel manager takes ownership
   if (dependencies_.window_manager) {
     dependencies_.window_manager->RegisterWindowContent(

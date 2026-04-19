@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_SELECTOR_PANEL_H_
-#define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_SELECTOR_PANEL_H_
+#ifndef YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_BROWSER_CONTENT_H_
+#define YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_BROWSER_CONTENT_H_
 
 #include <functional>
 #include <string>
@@ -12,7 +12,7 @@ namespace yaze {
 namespace editor {
 
 /**
- * @class DungeonRoomSelectorPanel
+ * @class RoomBrowserContent
  * @brief WindowContent for room list selection
  *
  * This panel provides room selection UI for the Dungeon Editor.
@@ -25,14 +25,14 @@ namespace editor {
  * @see DungeonRoomSelector - The underlying component
  * @see WindowContent - Base interface
  */
-class DungeonRoomSelectorPanel : public WindowContent {
+class RoomBrowserContent : public WindowContent {
  public:
   /**
    * @brief Construct a new panel wrapping a DungeonRoomSelector
    * @param selector The room selector component (must outlive this panel)
    * @param on_room_selected Callback when a room is selected (opens resource panel)
    */
-  explicit DungeonRoomSelectorPanel(
+  explicit RoomBrowserContent(
       DungeonRoomSelector* selector,
       std::function<void(int)> on_room_selected = nullptr)
       : selector_(selector), on_room_selected_(std::move(on_room_selected)) {
@@ -92,4 +92,4 @@ class DungeonRoomSelectorPanel : public WindowContent {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_SELECTOR_PANEL_H_
+#endif  // YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_BROWSER_CONTENT_H_

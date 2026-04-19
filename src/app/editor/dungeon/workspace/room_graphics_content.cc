@@ -1,4 +1,4 @@
-#include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
+#include "app/editor/dungeon/workspace/room_graphics_content.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -14,7 +14,7 @@
 namespace yaze {
 namespace editor {
 
-void DungeonRoomGraphicsPanel::RefreshSheetPreviews(const zelda3::Room& room) {
+void RoomGraphicsContent::RefreshSheetPreviews(const zelda3::Room& room) {
   const auto blocks = room.blocks();
   if (blocks.size() < sheet_previews_.size()) {
     preview_cache_valid_ = false;
@@ -82,7 +82,7 @@ void DungeonRoomGraphicsPanel::RefreshSheetPreviews(const zelda3::Room& room) {
   palette_dirty_ = false;
 }
 
-void DungeonRoomGraphicsPanel::Draw(bool* p_open) {
+void RoomGraphicsContent::Draw(bool* p_open) {
   (void)p_open;
   // Resolve the active dungeon editor lazily when this panel is hosted through
   // the workspace window system instead of the legacy direct constructor.
