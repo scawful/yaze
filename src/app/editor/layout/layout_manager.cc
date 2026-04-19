@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "app/editor/layout/layout_presets.h"
@@ -364,11 +365,49 @@ std::vector<std::pair<std::string, DockPosition>> CollectDockedPanels(
     const PanelLayoutPreset& preset) {
   std::vector<std::pair<std::string, DockPosition>> docked_panels;
   docked_panels.reserve(preset.panel_positions.size());
-  for (const auto& [panel_id, position] : preset.panel_positions) {
-    if (ShouldDockPanelInDefaultLayout(preset, panel_id)) {
-      docked_panels.emplace_back(panel_id, position);
+
+  std::unordered_set<std::string> seen_panels;
+  seen_panels.reserve(preset.panel_positions.size());
+
+  auto append_ordered = [&](const std::vector<std::string>& ordered_ids) {
+    for (const auto& panel_id : ordered_ids) {
+      if (seen_panels.contains(panel_id) ||
+          !ShouldDockPanelInDefaultLayout(preset, panel_id)) {
+        continue;
+      }
+      auto it = preset.panel_positions.find(panel_id);
+      if (it == preset.panel_positions.end()) {
+        continue;
+      }
+      docked_panels.emplace_back(it->first, it->second);
+      seen_panels.insert(panel_id);
     }
+  };
+
+  append_ordered(preset.default_visible_panels);
+  append_ordered(preset.optional_panels);
+
+  std::vector<std::pair<std::string, DockPosition>> remaining_panels;
+  remaining_panels.reserve(preset.panel_positions.size());
+  for (const auto& [panel_id, position] : preset.panel_positions) {
+    if (seen_panels.contains(panel_id) ||
+        !ShouldDockPanelInDefaultLayout(preset, panel_id)) {
+      continue;
+    }
+    remaining_panels.emplace_back(panel_id, position);
   }
+
+  std::sort(remaining_panels.begin(), remaining_panels.end(),
+            [](const auto& lhs, const auto& rhs) {
+              if (lhs.second != rhs.second) {
+                return static_cast<int>(lhs.second) <
+                       static_cast<int>(rhs.second);
+              }
+              return lhs.first < rhs.first;
+            });
+  docked_panels.insert(docked_panels.end(), remaining_panels.begin(),
+                       remaining_panels.end());
+
   return docked_panels;
 }
 

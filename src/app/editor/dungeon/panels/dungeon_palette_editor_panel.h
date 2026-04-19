@@ -34,6 +34,7 @@ class DungeonPaletteEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_PALETTE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 70; }
+  float GetPreferredWidth() const override { return 460.0f; }
 
   // ==========================================================================
   // WindowContent Drawing

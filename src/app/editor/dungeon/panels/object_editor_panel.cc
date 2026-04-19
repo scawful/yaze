@@ -206,12 +206,13 @@ void ObjectEditorPanel::Draw(bool* p_open) {
   // Object Browser - takes up available space
   float available_height = ImGui::GetContentRegionAvail().y;
   // Reserve space for status indicator at bottom
-  float reserved_height = 60.0f;
+  float reserved_height = 84.0f;
   // Reduce browser height when static editor is open to give it more space
   if (static_editor_open_) {
-    reserved_height += 200.0f;
+    reserved_height += 220.0f;
   }
-  float browser_height = std::max(150.0f, available_height - reserved_height);
+  float browser_height = std::max(static_editor_open_ ? 136.0f : 180.0f,
+                                  available_height - reserved_height);
 
   ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
   DrawObjectSelector();

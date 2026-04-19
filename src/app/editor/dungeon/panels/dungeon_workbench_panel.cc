@@ -222,8 +222,9 @@ bool DrawWorkbenchActionButton(const char* label, const ImVec2& size) {
   return ImGui::Button(label, size);
 }
 
-bool DrawWorkbenchSegment(const char* label, bool selected, float width) {
-  return ImGui::Selectable(label, selected, 0, ImVec2(width, 0.0f));
+bool DrawWorkbenchSegment(const char* label, bool selected, float width,
+                          float height) {
+  return ImGui::Selectable(label, selected, 0, ImVec2(width, height));
 }
 
 }  // namespace
@@ -287,10 +288,16 @@ void DungeonWorkbenchPanel::DrawSidebarPane(float width, float height,
 }
 
 void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size, bool compact) {
+  gui::StyleVarGuard frame_padding_guard(
+      ImGuiStyleVar_FramePadding,
+      ImVec2(ImGui::GetStyle().FramePadding.x,
+             std::max(5.0f, ImGui::GetStyle().FramePadding.y + 1.0f)));
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
              ImGui::GetStyle().ItemSpacing.y));
+  const float segment_height =
+      std::max(button_size, gui::LayoutHelpers::GetTouchSafeWidgetHeight());
 
   const bool can_open_overview = static_cast<bool>(show_panel_);
   const float collapse_w =
@@ -340,18 +347,20 @@ void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size, bool compact) {
     ImGui::SetTooltip("Collapse navigation pane");
   }
 
-  ImGui::Spacing();
-  DrawSidebarModeTabs(stack_mode_switch);
+  ImGui::Dummy(ImVec2(0.0f, 3.0f));
+  DrawSidebarModeTabs(stack_mode_switch, segment_height);
   ImGui::Separator();
 }
 
-void DungeonWorkbenchPanel::DrawSidebarModeTabs(bool stacked) {
+void DungeonWorkbenchPanel::DrawSidebarModeTabs(bool stacked,
+                                                float segment_height) {
   const float width = ImGui::GetContentRegionAvail().x;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float mode_width =
       stacked ? -1.0f : std::max(92.0f, (width - spacing) * 0.5f);
   if (DrawWorkbenchSegment(ICON_MD_LIST " Rooms",
-                           sidebar_mode_ == SidebarMode::Rooms, mode_width)) {
+                           sidebar_mode_ == SidebarMode::Rooms, mode_width,
+                           segment_height)) {
     sidebar_mode_ = SidebarMode::Rooms;
   }
   if (!stacked) {
@@ -359,7 +368,7 @@ void DungeonWorkbenchPanel::DrawSidebarModeTabs(bool stacked) {
   }
   if (DrawWorkbenchSegment(ICON_MD_DOOR_FRONT " Entrances",
                            sidebar_mode_ == SidebarMode::Entrances,
-                           mode_width)) {
+                           mode_width, segment_height)) {
     sidebar_mode_ = SidebarMode::Entrances;
   }
 }
@@ -401,7 +410,7 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   const float splitter_w = gui::UIConfig::kSplitterWidth;
   const float total_w = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const float min_sidebar_w =
-      std::max(gui::UIConfig::kContentMinWidthSidebar, 280.0f);
+      std::max(gui::UIConfig::kContentMinWidthSidebar, 320.0f);
   const float min_canvas_w = std::max(360.0f, min_sidebar_w + 80.0f);
   const ResponsiveWorkbenchLayout responsive = ResolveResponsiveWorkbenchLayout(
       total_w, min_canvas_w, min_sidebar_w, splitter_w,
@@ -435,8 +444,8 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
 
   const float btn = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
   const float total_h = std::max(ImGui::GetContentRegionAvail().y, 1.0f);
-  const float compact_left_w = std::max(136.0f, min_sidebar_w * 0.72f);
-  const float compact_right_w = std::max(200.0f, min_sidebar_w + 32.0f);
+  const float compact_left_w = std::max(176.0f, min_sidebar_w * 0.8f);
+  const float compact_right_w = std::max(232.0f, min_sidebar_w + 36.0f);
   const float active_left_min_w =
       responsive.compact_left ? compact_left_w : min_sidebar_w;
   const float active_right_min_w =
@@ -611,10 +620,16 @@ void DungeonWorkbenchPanel::DrawInspectorPane(float width, float height,
 
 void DungeonWorkbenchPanel::DrawInspectorHeader(float button_size,
                                                 bool compact) {
+  gui::StyleVarGuard frame_padding_guard(
+      ImGuiStyleVar_FramePadding,
+      ImVec2(ImGui::GetStyle().FramePadding.x,
+             std::max(5.0f, ImGui::GetStyle().FramePadding.y + 1.0f)));
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
              ImGui::GetStyle().ItemSpacing.y));
+  const float segment_height =
+      std::max(button_size, gui::LayoutHelpers::GetTouchSafeWidgetHeight());
   const float collapse_w =
       CalcWorkbenchIconButtonWidth(ICON_MD_CHEVRON_RIGHT, button_size);
 
@@ -633,8 +648,8 @@ void DungeonWorkbenchPanel::DrawInspectorHeader(float button_size,
     ImGui::SetTooltip("Collapse inspector");
   }
 
-  ImGui::Spacing();
-  DrawInspectorPrimarySelector();
+  ImGui::Dummy(ImVec2(0.0f, 3.0f));
+  DrawInspectorPrimarySelector(segment_height);
   ImGui::Separator();
 }
 
@@ -862,14 +877,15 @@ void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
   DrawInspectorShelf(viewer);
 }
 
-void DungeonWorkbenchPanel::DrawInspectorPrimarySelector() {
+void DungeonWorkbenchPanel::DrawInspectorPrimarySelector(
+    float segment_height) {
   const float width = ImGui::GetContentRegionAvail().x;
   const bool stack = width < 260.0f;
   const float button_width =
       stack ? -1.0f : (width - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
   if (DrawWorkbenchSegment(ICON_MD_CASTLE " Room",
                            inspector_focus_ == InspectorFocus::Room,
-                           button_width)) {
+                           button_width, segment_height)) {
     inspector_focus_ = InspectorFocus::Room;
   }
   if (!stack) {
@@ -877,7 +893,7 @@ void DungeonWorkbenchPanel::DrawInspectorPrimarySelector() {
   }
   if (DrawWorkbenchSegment(ICON_MD_SELECT_ALL " Selection",
                            inspector_focus_ == InspectorFocus::Selection,
-                           button_width)) {
+                           button_width, segment_height)) {
     inspector_focus_ = InspectorFocus::Selection;
   }
 }

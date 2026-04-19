@@ -65,6 +65,19 @@ TEST(LayoutPresetsTest, OverworldExpertPositionsMapPropertiesAndGraphicsEditor) 
   EXPECT_EQ(gfx_editor_pos->second, DockPosition::LeftBottom);
 }
 
+TEST(LayoutPresetsTest, DungeonWorkbenchDefaultHidesStandaloneRoomSelector) {
+  auto preset = LayoutPresets::GetDefaultPreset(EditorType::kDungeon);
+
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonRoomSelector));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kDungeonRoomSelector));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonRoomMatrix));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonObjectEditor));
+}
+
 TEST(LayoutPresetsTest, WorkspaceAliasesMirrorWindowTerminology) {
   WorkspaceLayoutPreset preset =
       LayoutPresets::GetDefaultWorkspacePreset(EditorType::kOverworld);

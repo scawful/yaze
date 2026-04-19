@@ -61,6 +61,7 @@ class ObjectEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 60; }
+  float GetPreferredWidth() const override { return 500.0f; }
 
   // ==========================================================================
   // WindowContent Drawing
