@@ -139,6 +139,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.SetRom(rom);
+    gfx_group_editor_.SetHostSurfaceHint(
+        "Overworld editor: Gfx Groups selections here are not synced with the "
+        "Graphics or Palette editors.");
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are
     // ready
   }
@@ -317,6 +320,12 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       tile_painting_->ActivateFillTool();
   }
   void CycleTileSelection(int delta);
+
+  /// Single entry point for changing the active Tile16 (painting + editor).
+  /// Uses `Tile16Editor::RequestTileSwitch` when graphics are ready so staged
+  /// edits get the unsaved dialog; defers until `Load()` completes otherwise.
+  void RequestTile16Selection(int tile_id);
+
   bool PickTile16FromHoveredCanvas() {
     return tile_painting_ && tile_painting_->PickTile16FromHoveredCanvas();
   }
@@ -582,6 +591,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   bool all_gfx_loaded_ = false;
   bool map_blockset_loaded_ = false;
+
+  /// Selection requested before overworld gfx/blockset init; applied in
+  /// `Load()` after `Tile16Editor::Initialize`.
+  std::optional<int> pending_tile16_selection_after_gfx_;
 
   // ===========================================================================
   // Canvas Interaction State

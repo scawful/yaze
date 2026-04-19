@@ -8,6 +8,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -226,7 +227,8 @@ class Tile16Editor : public gfx::GfxContext {
   /// @brief Commit pending changes to the blockset atlas
   absl::Status CommitChangesToBlockset();
 
-  /// @brief Full commit workflow: ROM + blockset + notify parent
+  /// @brief Single-tile commit: ROM + blockset + parent refresh callback.
+  /// Prefer `CommitAllChanges()` from the main UI; kept for integration tests.
   absl::Status CommitChangesToOverworld();
 
   /// @brief Discard current tile's changes (single tile)
@@ -399,6 +401,12 @@ class Tile16Editor : public gfx::GfxContext {
     on_changes_committed_ = callback;
   }
 
+  /// Optional: invoked after every successful `SetCurrentTile` (keeps overworld
+  /// paint selection aligned with the Tile16 editor, including dialog paths).
+  void set_on_current_tile_changed(std::function<void(int)> callback) {
+    on_current_tile_changed_ = std::move(callback);
+  }
+
   // Accessors for testing and external use
   int current_palette() const { return current_palette_; }
   void set_current_palette(int palette) {
@@ -550,6 +558,7 @@ class Tile16Editor : public gfx::GfxContext {
 
   // Callback to notify parent editor when changes are committed
   std::function<absl::Status()> on_changes_committed_;
+  std::function<void(int)> on_current_tile_changed_;
 
   // Instance variable to store current tile16 data for proper persistence
   gfx::Tile16 current_tile16_data_;

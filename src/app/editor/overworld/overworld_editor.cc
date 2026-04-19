@@ -322,6 +322,9 @@ void OverworldEditor::InitTilePaintingManager() {
   callbacks.scroll_blockset_to_current_tile = [this]() {
     this->ScrollBlocksetCanvasToCurrentTile();
   };
+  callbacks.request_tile16_selection = [this](int tile_id) {
+    this->RequestTile16Selection(tile_id);
+  };
 
   tile_painting_ = std::make_unique<TilePaintingManager>(deps, callbacks);
 }
@@ -419,6 +422,8 @@ absl::Status OverworldEditor::Load() {
   // CRITICAL FIX: Initialize tile16 editor with the correct overworld palette
   tile16_editor_.set_palette(palette_);
   tile16_editor_.SetRom(rom_);
+  tile16_editor_.set_on_current_tile_changed(
+      [this](int id) { current_tile16_ = id; });
 
   // Set up callback for when tile16 changes are committed
   tile16_editor_.set_on_changes_committed([this]() -> absl::Status {
@@ -468,6 +473,13 @@ absl::Status OverworldEditor::Load() {
   }
 
   all_gfx_loaded_ = true;
+
+  if (pending_tile16_selection_after_gfx_) {
+    const int pending = *pending_tile16_selection_after_gfx_;
+    pending_tile16_selection_after_gfx_.reset();
+    RequestTile16Selection(pending);
+  }
+
   return absl::OkStatus();
 }
 
@@ -1359,7 +1371,43 @@ void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
     canvas_nav_->ScrollBlocksetCanvasToCurrentTile();
 }
 
+void OverworldEditor::RequestTile16Selection(int tile_id) {
+  if (tile_id < 0 || tile_id >= zelda3::kNumTile16Individual) {
+    return;
+  }
+
+  if (!rom_ || !rom_->is_loaded() || !all_gfx_loaded_ ||
+      !map_blockset_loaded_) {
+    current_tile16_ = tile_id;
+    pending_tile16_selection_after_gfx_ = tile_id;
+    return;
+  }
+
+  pending_tile16_selection_after_gfx_.reset();
+
+  if (tile_id == tile16_editor_.current_tile16()) {
+    current_tile16_ = tile_id;
+    return;
+  }
+
+  const int from_tile = tile16_editor_.current_tile16();
+  const bool had_staged_on_current = tile16_editor_.is_tile_modified(from_tile);
+  if (had_staged_on_current && dependencies_.window_manager) {
+    const size_t session_id =
+        dependencies_.window_manager->GetActiveSessionId();
+    dependencies_.window_manager->OpenWindow(session_id,
+                                             OverworldPanelIds::kTile16Editor);
+    dependencies_.window_manager->MarkWindowRecentlyUsed(
+        OverworldPanelIds::kTile16Editor);
+  }
+
+  tile16_editor_.RequestTileSwitch(tile_id);
+  current_tile16_ = tile16_editor_.current_tile16();
+}
+
 absl::Status OverworldEditor::Clear() {
+  pending_tile16_selection_after_gfx_.reset();
+
   // Unregister palette listener
   if (palette_listener_id_ >= 0) {
     gfx::Arena::Get().UnregisterPaletteListener(palette_listener_id_);
@@ -1379,7 +1427,9 @@ void OverworldEditor::UpdateBlocksetSelectorState() {
 }
 
 void OverworldEditor::CycleTileSelection(int delta) {
-  current_tile16_ = std::max(0, current_tile16_ + delta);
+  const int next =
+      std::clamp(current_tile16_ + delta, 0, zelda3::kNumTile16Individual - 1);
+  RequestTile16Selection(next);
 }
 
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
