@@ -122,11 +122,15 @@ target_include_directories(
   yaze_proto_lib
   PUBLIC
     ${CMAKE_BINARY_DIR}/gens
+    ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}
     $<TARGET_PROPERTY:${_YAZE_GRPCPP_TARGET},INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(yaze_proto_lib PUBLIC ${YAZE_PROTOBUF_TARGETS})
 
-target_include_directories(yaze_grpc_support PUBLIC ${CMAKE_BINARY_DIR}/gens)
+target_include_directories(yaze_grpc_support PUBLIC
+  ${CMAKE_BINARY_DIR}/gens
+  ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}
+)
 
 if(TARGET yaze_emulator)
   target_link_libraries(yaze_emulator PUBLIC yaze_proto_lib)
