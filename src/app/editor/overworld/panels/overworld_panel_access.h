@@ -12,6 +12,11 @@ inline OverworldWindowContext CurrentOverworldWindowContext() {
   return CurrentTypedWindowContext<OverworldEditor>("Overworld");
 }
 
+inline OverworldEditor* CurrentOverworldEditor() {
+  auto ctx = CurrentOverworldWindowContext();
+  return ctx.editor;
+}
+
 }  // namespace yaze::editor
 
 #endif  // YAZE_APP_EDITOR_OVERWORLD_PANELS_OVERWORLD_PANEL_ACCESS_H

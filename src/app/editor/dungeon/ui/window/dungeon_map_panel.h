@@ -126,19 +126,19 @@ class DungeonMapPanel : public WindowContent {
   }
 
   /**
-   * @brief Load rooms and connections from a project area overview.
+   * @brief Load rooms and connections from a project registry dungeon entry.
    */
-  void LoadFromAreaOverview(const core::RegistryAreaOverview& area) {
+  void LoadFromDungeonEntry(const core::DungeonEntry& dungeon) {
     ClearRooms();
-    current_dungeon_name_ = area.name;
-    for (const auto& room : area.rooms) {
+    current_dungeon_name_ = dungeon.name;
+    for (const auto& room : dungeon.rooms) {
       dungeon_room_ids_.push_back(room.id);
       room_positions_[room.id] = ImVec2(static_cast<float>(room.grid_col),
                                         static_cast<float>(room.grid_row));
       room_types_[room.id] = room.type;
     }
-    stair_connections_ = area.stairs;
-    holewarp_connections_ = area.holewarps;
+    stair_connections_ = dungeon.stairs;
+    holewarp_connections_ = dungeon.holewarps;
   }
 
   // ==========================================================================
@@ -484,23 +484,22 @@ class DungeonMapPanel : public WindowContent {
    * @brief Selector using project registry area overviews.
    */
   void DrawRegistrySelector() {
-    const auto area_overviews =
-        hack_manifest_->project_registry().GetAreaOverviews();
+    const auto& dungeons = hack_manifest_->project_registry().dungeons;
 
     if (ImGui::BeginCombo("##DungeonRegistry", current_dungeon_name_.c_str())) {
-      for (size_t i = 0; i < area_overviews.size(); i++) {
-        const auto& area = area_overviews[i];
+      for (size_t i = 0; i < dungeons.size(); i++) {
+        const auto& dungeon = dungeons[i];
         char label[128];
-        if (!area.subtitle.empty()) {
-          snprintf(label, sizeof(label), "%s: %s (%s)", area.id.c_str(),
-                   area.name.c_str(), area.subtitle.c_str());
+        if (!dungeon.vanilla_name.empty()) {
+          snprintf(label, sizeof(label), "%s: %s (%s)", dungeon.id.c_str(),
+                   dungeon.name.c_str(), dungeon.vanilla_name.c_str());
         } else {
-          snprintf(label, sizeof(label), "%s: %s", area.id.c_str(),
-                   area.name.c_str());
+          snprintf(label, sizeof(label), "%s: %s", dungeon.id.c_str(),
+                   dungeon.name.c_str());
         }
-        bool selected = (current_dungeon_name_ == area.name);
+        bool selected = (current_dungeon_name_ == dungeon.name);
         if (ImGui::Selectable(label, selected)) {
-          LoadFromAreaOverview(area);
+          LoadFromDungeonEntry(dungeon);
           selected_preset_ = static_cast<int>(i);
         }
       }

@@ -3,8 +3,8 @@ set(
   app/editor/agent/agent_chat_history_codec.cc
   app/editor/code/assembly_editor.cc
   app/editor/code/diagnostics_panel.cc
-  app/editor/core/content_registry.cc
-  app/editor/core/undo_manager.cc
+  app/editor/registry/content_registry.cc
+  app/editor/registry/undo_manager.cc
   app/editor/hack/workflow/hack_workflow_backend_factory.cc
   app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
   app/editor/hack/workflow/project_workflow_output_panel.cc
@@ -42,7 +42,7 @@ set(
   app/editor/dungeon/ui/window/room_tag_editor_panel.cc
   app/editor/editor_manager.cc
   app/editor/session_types.cc
-  app/editor/system/default_editor_factories.cc
+  app/editor/system/session/default_editor_factories.cc
   app/editor/system/session/hack_manifest_save_validation.cc
   app/editor/graphics/ui/browser/sheet_browser_view.cc
   app/editor/graphics/ui/editing/pixel_editor_view.cc
@@ -103,17 +103,17 @@ set(
   app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc
   app/editor/menu/menu_orchestrator.cc
-  app/editor/ui/popup_manager.cc
-  app/editor/ui/about_panel.cc
-  app/editor/ui/dashboard_panel.cc
-  app/editor/ui/editor_selection_dialog.cc
+  app/editor/shell/feedback/popup_manager.cc
+  app/editor/shell/windows/about_panel.cc
+  app/editor/shell/windows/dashboard_panel.cc
+  app/editor/shell/dialogs/editor_selection_dialog.cc
   app/editor/menu/right_drawer_manager.cc
   app/editor/menu/status_bar.cc
   app/editor/menu/window_browser.cc
   app/editor/menu/window_sidebar.cc
-  app/editor/ui/settings_panel.cc
-  app/editor/ui/selection_properties_panel.cc
-  app/editor/ui/project_management_panel.cc
+  app/editor/shell/windows/settings_panel.cc
+  app/editor/shell/windows/selection_properties_panel.cc
+  app/editor/shell/windows/project_management_panel.cc
   app/editor/menu/menu_builder.cc
   app/editor/menu/activity_bar.cc
   app/editor/menu/activity_bar_actions_registry.cc
@@ -124,12 +124,12 @@ set(
   app/editor/oracle/panels/oracle_validation_view_model.cc
   app/editor/oracle/panels/oracle_validation_panel.cc
   app/editor/oracle/oracle_hack_workflow_backend.cc
-  app/editor/ui/new_project_dialog.cc
-  app/editor/ui/recent_projects_model.cc
-  app/editor/ui/rom_load_options_dialog.cc
-  app/editor/ui/ui_coordinator.cc
+  app/editor/shell/dialogs/new_project_dialog.cc
+  app/editor/shell/coordinator/recent_projects_model.cc
+  app/editor/shell/dialogs/rom_load_options_dialog.cc
+  app/editor/shell/coordinator/ui_coordinator.cc
   app/editor/shell/coordinator/welcome_screen.cc
-  app/editor/ui/workspace_manager.cc
+  app/editor/shell/coordinator/workspace_manager.cc
 
   yaze.cc
 )
@@ -141,14 +141,14 @@ set(
   app/editor/layout/layout_orchestrator.cc
   app/editor/layout/layout_presets.cc
   app/editor/layout/window_delegate.cc
-  app/editor/system/editor_activator.cc
-  app/editor/system/editor_registry.cc
-  app/editor/system/panel_host.cc
-  app/editor/system/workspace_window_manager.cc
-  app/editor/system/workspace_window_manager_state.cc
-  app/editor/system/workspace_window_manager_support.cc
-  app/editor/system/file_browser.cc
-  app/editor/system/proposal_drawer.cc
+  app/editor/system/workspace/editor_activator.cc
+  app/editor/system/workspace/editor_registry.cc
+  app/editor/system/workspace/panel_host.cc
+  app/editor/system/workspace/workspace_window_manager.cc
+  app/editor/system/workspace/workspace_window_manager_state.cc
+  app/editor/system/workspace/workspace_window_manager_support.cc
+  app/editor/system/workspace/file_browser.cc
+  app/editor/system/workspace/proposal_drawer.cc
 )
 
 set(
@@ -157,17 +157,17 @@ set(
   app/editor/system/session/project_manager.cc
   app/editor/system/session/rom_file_manager.cc
   app/editor/system/session/rom_lifecycle_manager.cc
-  app/editor/system/session_coordinator.cc
+  app/editor/system/session/session_coordinator.cc
   app/editor/system/session/user_settings.cc
 )
 
 set(
   YAZE_EDITOR_SYSTEM_SHORTCUTS_SRC
-  app/editor/system/command_manager.cc
-  app/editor/system/command_palette.cc
-  app/editor/system/command_palette_providers.cc
-  app/editor/system/shortcut_manager.cc
-  app/editor/system/shortcut_configurator.cc
+  app/editor/system/commands/command_manager.cc
+  app/editor/system/commands/command_palette.cc
+  app/editor/system/commands/command_palette_providers.cc
+  app/editor/system/commands/shortcut_manager.cc
+  app/editor/system/commands/shortcut_configurator.cc
 )
 
 #Editor system split targets(panels / session / shortcuts)

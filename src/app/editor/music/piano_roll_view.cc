@@ -109,11 +109,10 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
   {
     gui::StyleVarGuard toolbar_padding(ImGuiStyleVar_WindowPadding,
                                        ImVec2(8, 4));
-    if (ImGui::BeginChild(
-            "##PianoRollToolbar", ImVec2(0, kToolbarHeight),
-            ImGuiChildFlags_AlwaysUseWindowPadding,
-            ImGuiWindowFlags_NoScrollbar |
-                ImGuiWindowFlags_NoScrollWithMouse)) {
+    if (ImGui::BeginChild("##PianoRollToolbar", ImVec2(0, kToolbarHeight),
+                          ImGuiChildFlags_AlwaysUseWindowPadding,
+                          ImGuiWindowFlags_NoScrollbar |
+                              ImGuiWindowFlags_NoScrollWithMouse)) {
       DrawToolbar(song, bank);
     }
     ImGui::EndChild();
@@ -158,7 +157,7 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
       // --- Left Column: Channel List ---
       ImGui::TableSetColumnIndex(0);
       const ImGuiChildFlags channel_child_flags =
-          ImGuiChildFlags_Border | ImGuiChildFlags_AlwaysUseWindowPadding;
+          ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding;
       if (ImGui::BeginChild("PianoRollChannelList",
                             ImVec2(-FLT_MIN, layout_height),
                             channel_child_flags,
@@ -944,9 +943,10 @@ void PianoRollView::HandleMouseInput(MusicSong* song, int active_channel,
       updated.note.duration = std::max(1, new_duration);
     }
 
-    const bool changed = (updated.tick != drag_original_event_.tick) ||
-                         (updated.note.pitch != drag_original_event_.note.pitch) ||
-                         (updated.note.duration != drag_original_event_.note.duration);
+    const bool changed =
+        (updated.tick != drag_original_event_.tick) ||
+        (updated.note.pitch != drag_original_event_.note.pitch) ||
+        (updated.note.duration != drag_original_event_.note.duration);
     if (!changed) {
       return;
     }

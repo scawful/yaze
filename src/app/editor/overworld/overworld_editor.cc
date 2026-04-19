@@ -125,7 +125,8 @@ void OverworldEditor::Initialize() {
   renderer_ = dependencies_.renderer;
 
   gfx_group_editor_.SetHostSurfaceHint(
-      "Gfx Groups: selection syncs with the Graphics editor for this ROM session "
+      "Gfx Groups: selection syncs with the Graphics editor for this ROM "
+      "session "
       "(this surface uses its own preview canvases).");
 
   // Initialize MapRefreshCoordinator (must be before callbacks that use it)
@@ -362,17 +363,6 @@ void OverworldEditor::InitCanvasNavigationManager() {
   };
   callbacks.pick_tile16_from_hovered_canvas = [this]() -> bool {
     return this->PickTile16FromHoveredCanvas();
-  };
-  callbacks.open_map_properties_panel = [this]() {
-    if (dependencies_.window_manager) {
-      const size_t session_id =
-          dependencies_.window_manager->GetActiveSessionId();
-      dependencies_.window_manager->OpenWindow(
-          session_id, OverworldPanelIds::kMapProperties);
-      dependencies_.window_manager->MarkWindowRecentlyUsed(
-          OverworldPanelIds::kMapProperties);
-    }
-    show_map_properties_panel_ = true;
   };
   callbacks.is_entity_hovered = [this]() -> bool {
     return entity_renderer_ && entity_renderer_->hovered_entity() != nullptr;

@@ -7,13 +7,12 @@
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
-#include "app/editor/graphics/gfx_group_editor.h"
 #include "app/editor/palette/palette_group_panel.h"
 
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
-#include "rom/rom.h"
 #include "imgui/imgui.h"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace editor {
@@ -103,7 +102,6 @@ class PaletteEditor : public Editor {
   // Override to propagate game_data to embedded components
   void SetGameData(zelda3::GameData* game_data) override {
     Editor::SetGameData(game_data);
-    gfx_group_editor_.SetGameData(game_data);
   }
 
   /**
@@ -137,8 +135,6 @@ class PaletteEditor : public Editor {
 
   absl::Status status_;
   gfx::SnesColor current_color_;
-
-  GfxGroupEditor gfx_group_editor_;
 
   std::vector<gfx::SnesColor> custom_palette_;
   std::vector<gfx::SnesColor> recently_used_colors_;

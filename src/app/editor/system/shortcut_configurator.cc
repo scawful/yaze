@@ -17,11 +17,11 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
-#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/session/rom_file_manager.h"
-#include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/editor/system/session_coordinator.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"
@@ -198,8 +198,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       Shortcut::Scope::kGlobal);
 
   RegisterIfValid(
-      shortcut_manager, "ui.font_scale_reset",
-      {ImGuiMod_Ctrl, ImGuiKey_0},
+      shortcut_manager, "ui.font_scale_reset", {ImGuiMod_Ctrl, ImGuiKey_0},
       [editor_manager]() {
         if (!editor_manager || ImGui::GetIO().WantTextInput) {
           return;
@@ -446,29 +445,41 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
                 editor_set ? editor_set->GetDungeonEditor() : nullptr;
             if (!dungeon_editor)
               return;
-            auto* obj_panel = dungeon_editor->object_editor_panel();
-            if (!obj_panel)
-              return;
+            auto* object_selector = dungeon_editor->object_selector_panel();
+            auto* object_editor = dungeon_editor->object_editor_content();
 
             if (id == "dungeon.object.select_tool") {
               // Unified mode: cancel placement to switch to selection
-              obj_panel->CancelPlacement();
+              if (object_selector) {
+                object_selector->CancelPlacement();
+              }
             } else if (id == "dungeon.object.place_tool") {
               // Unified mode: handled by object selector click
               // No-op (mode is controlled by selecting an object)
             } else if (id == "dungeon.object.delete_tool") {
-              // Unified mode: delete selected objects
-              obj_panel->DeleteSelectedObjects();
+              if (object_editor) {
+                object_editor->DeleteSelectedObjects();
+              }
             } else if (id == "dungeon.object.next_object") {
-              obj_panel->CycleObjectSelection(1);
+              if (object_editor) {
+                object_editor->CycleObjectSelection(1);
+              }
             } else if (id == "dungeon.object.prev_object") {
-              obj_panel->CycleObjectSelection(-1);
+              if (object_editor) {
+                object_editor->CycleObjectSelection(-1);
+              }
             } else if (id == "dungeon.object.copy") {
-              obj_panel->CopySelectedObjects();
+              if (object_editor) {
+                object_editor->CopySelectedObjects();
+              }
             } else if (id == "dungeon.object.paste") {
-              obj_panel->PasteObjects();
+              if (object_editor) {
+                object_editor->PasteObjects();
+              }
             } else if (id == "dungeon.object.delete") {
-              obj_panel->DeleteSelectedObjects();
+              if (object_editor) {
+                object_editor->DeleteSelectedObjects();
+              }
             }
           },
           Shortcut::Scope::kEditor);
@@ -838,22 +849,22 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               right_drawer_manager->ToggleDrawer(drawer_type);
             });
       }
-      shortcut_manager->RegisterCommand("View: Previous Right Panel",
-                                        [right_drawer_manager]() {
-                                          right_drawer_manager->CycleToPreviousDrawer();
-                                        });
-      shortcut_manager->RegisterCommand("View: Previous Right Drawer",
-                                        [right_drawer_manager]() {
-                                          right_drawer_manager->CycleToPreviousDrawer();
-                                        });
-      shortcut_manager->RegisterCommand("View: Next Right Panel",
-                                        [right_drawer_manager]() {
-                                          right_drawer_manager->CycleToNextDrawer();
-                                        });
-      shortcut_manager->RegisterCommand("View: Next Right Drawer",
-                                        [right_drawer_manager]() {
-                                          right_drawer_manager->CycleToNextDrawer();
-                                        });
+      shortcut_manager->RegisterCommand(
+          "View: Previous Right Panel", [right_drawer_manager]() {
+            right_drawer_manager->CycleToPreviousDrawer();
+          });
+      shortcut_manager->RegisterCommand(
+          "View: Previous Right Drawer", [right_drawer_manager]() {
+            right_drawer_manager->CycleToPreviousDrawer();
+          });
+      shortcut_manager->RegisterCommand(
+          "View: Next Right Panel", [right_drawer_manager]() {
+            right_drawer_manager->CycleToNextDrawer();
+          });
+      shortcut_manager->RegisterCommand(
+          "View: Next Right Drawer", [right_drawer_manager]() {
+            right_drawer_manager->CycleToNextDrawer();
+          });
     }
   }
 
@@ -864,14 +875,12 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
     auto categories = window_manager->GetAllCategories();
     int session_id = 0;  // Default session for command registration
 
-    shortcut_manager->RegisterCommand("View: Show Panel Browser",
-                                      [window_manager]() {
-                                        window_manager->TriggerShowWindowBrowser();
-                                      });
-    shortcut_manager->RegisterCommand("View: Show Window Browser",
-                                      [window_manager]() {
-                                        window_manager->TriggerShowWindowBrowser();
-                                      });
+    shortcut_manager->RegisterCommand(
+        "View: Show Panel Browser",
+        [window_manager]() { window_manager->TriggerShowWindowBrowser(); });
+    shortcut_manager->RegisterCommand(
+        "View: Show Window Browser",
+        [window_manager]() { window_manager->TriggerShowWindowBrowser(); });
 
     for (const auto& category : categories) {
       auto windows = window_manager->GetWindowsInCategory(session_id, category);
@@ -1085,7 +1094,7 @@ void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
             RegisterIfValid(shortcut_manager, toggle_id, keys,
                             [window_manager, panel_id_copy, session_id]() {
                               window_manager->ToggleWindow(session_id,
-                                                          panel_id_copy);
+                                                           panel_id_copy);
                             });
           }
         }

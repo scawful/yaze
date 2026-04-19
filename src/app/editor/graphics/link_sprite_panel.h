@@ -63,6 +63,8 @@ class LinkSpritePanel : public WindowContent {
    */
   void Initialize();
 
+  void SetRom(Rom* rom) { rom_ = rom; }
+
   /**
    * @brief Draw the panel UI (WindowContent interface)
    */
