@@ -12,6 +12,8 @@ on:
       - 'Doxyfile'
       - 'scripts/build-wasm.sh'
       - 'scripts/agents/**'
+      - 'ext/imgui'
+      - '.github/workflows/web-build.yml'
 
 jobs:
   build-deploy:
@@ -56,7 +58,7 @@ jobs:
             NEEDS_BUILD=true
           fi
 
-          if echo "${CHANGED}" | grep -qE '\.(cc|cpp|h|hpp|c)$|CMakeLists\.txt|CMakePresets\.json|build-wasm\.sh'; then
+          if echo "${CHANGED}" | grep -qE '\.(cc|cpp|h|hpp|c)$|CMakeLists\.txt|CMakePresets\.json|build-wasm\.sh|^ext/imgui$'; then
             echo "C++ or build files changed - full WASM build required"
             NEEDS_BUILD=true
           fi
@@ -69,7 +71,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/CPM
-          key: cpm-wasm-${{ hashFiles('**/CMakeLists.txt') }}
+          key: cpm-wasm-${{ hashFiles('**/CMakeLists.txt', 'ext/imgui/imgui.h', 'ext/imgui/imgui.cpp') }}
           restore-keys: |
             cpm-wasm-
 
@@ -81,7 +83,7 @@ jobs:
             build-wasm/bin
             build-wasm/CMakeCache.txt
             build-wasm/CMakeFiles
-          key: wasm-build-${{ hashFiles('src/**/*.cc', 'src/**/*.h', 'CMakeLists.txt', 'CMakePresets.json') }}
+          key: wasm-build-${{ hashFiles('src/**/*.cc', 'src/**/*.h', 'CMakeLists.txt', 'CMakePresets.json', 'ext/imgui/imgui.h', 'ext/imgui/imgui.cpp', 'ext/imgui/imconfig.h') }}
           restore-keys: |
             wasm-build-
 
@@ -147,11 +149,11 @@ jobs:
           mkdir -p build-wasm/dist
 
           # Check if we have cached WASM files
-          if [ -f build-wasm/bin/yaze.wasm ]; then
-          else
+          if [ ! -f build-wasm/bin/yaze.wasm ] || [ ! -f build-wasm/bin/yaze.js ]; then
             echo "ERROR: No cached WASM build found. Triggering full build..."
             exit 1
           fi
+          echo "Cached wasm/js present; packaging web assets."
 
           bash scripts/package-wasm-assets.sh "$PWD" "$PWD/build-wasm/bin" "$PWD/build-wasm/dist"
           echo "Web assets updated!"

@@ -32,6 +32,7 @@ on:
       - 'scripts/agents/**'
       - 'AGENTS.md'
       - 'docs/internal/agents/**'
+      - 'ext/imgui'
   pull_request:
     branches: [ "master", "develop" ]
     paths:
@@ -49,6 +50,7 @@ on:
       - 'scripts/agents/**'
       - 'AGENTS.md'
       - 'docs/internal/agents/**'
+      - 'ext/imgui'
   workflow_dispatch:
     inputs:
       build_type:
