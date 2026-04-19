@@ -44,6 +44,9 @@ class PaletteEditorWidget {
   // Get/Set current editing palette
   int GetCurrentPaletteId() const { return current_palette_id_; }
   void SetCurrentPaletteId(int id) { current_palette_id_ = id; }
+  void SetDungeonRenderPaletteMode(bool enabled) {
+    dungeon_render_palette_mode_ = enabled;
+  }
 
   bool IsROMLoaded() const { return rom_ != nullptr; }
   int GetCurrentGroupIndex() const { return current_group_index_; }
@@ -58,6 +61,11 @@ class PaletteEditorWidget {
   // For embedded view
   void DrawPaletteSelector();
   void DrawColorPicker();
+  void DrawDungeonRenderPalette();
+  void DrawDungeonRenderColorPicker();
+  bool ResolveDungeonRenderSelection(gfx::SnesPalette** palette,
+                                     int* color_index,
+                                     std::string* source_label);
 
   zelda3::GameData* game_data_ = nullptr;
   Rom* rom_ = nullptr;  // Legacy, deprecated
@@ -82,6 +90,7 @@ class PaletteEditorWidget {
   // Color editing state
   int editing_color_index_ = -1;
   ImVec4 temp_color_ = ImVec4(0, 0, 0, 1);
+  bool dungeon_render_palette_mode_ = false;
 };
 
 }  // namespace gui

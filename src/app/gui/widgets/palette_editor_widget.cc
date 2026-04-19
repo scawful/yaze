@@ -50,17 +50,34 @@ void PaletteEditorWidget::Draw() {
   ImGui::Separator();
 
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
+  if (dungeon_pal_group.empty()) {
+    ImGui::TextDisabled("Dungeon palettes unavailable");
+    ImGui::EndGroup();
+    return;
+  }
+
+  current_palette_id_ =
+      std::clamp(current_palette_id_, 0,
+                 static_cast<int>(dungeon_pal_group.size()) - 1);
   if (current_palette_id_ >= 0 &&
       current_palette_id_ < (int)dungeon_pal_group.size()) {
     auto palette = dungeon_pal_group[current_palette_id_];
-    DrawPaletteGrid(palette, 15);
-    dungeon_pal_group[current_palette_id_] = palette;
+    if (dungeon_render_palette_mode_) {
+      DrawDungeonRenderPalette();
+    } else {
+      DrawPaletteGrid(palette, 15);
+      dungeon_pal_group[current_palette_id_] = palette;
+    }
   }
 
   ImGui::Separator();
 
   if (selected_color_index_ >= 0) {
-    DrawColorPicker();
+    if (dungeon_render_palette_mode_) {
+      DrawDungeonRenderColorPicker();
+    } else {
+      DrawColorPicker();
+    }
   } else {
     ImGui::TextDisabled("Select a color to edit");
   }
@@ -73,9 +90,16 @@ void PaletteEditorWidget::DrawPaletteSelector() {
     return;
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
+  if (num_palettes <= 0) {
+    ImGui::TextDisabled("No dungeon palettes");
+    return;
+  }
+
+  current_palette_id_ = std::clamp(current_palette_id_, 0, num_palettes - 1);
 
   ImGui::Text("Dungeon Palette:");
   ImGui::SameLine();
+  ImGui::SetNextItemWidth(std::min(180.0f, ImGui::GetContentRegionAvail().x));
 
   if (ImGui::BeginCombo(
           "##PaletteSelect",
@@ -98,11 +122,21 @@ void PaletteEditorWidget::DrawPaletteSelector() {
 void PaletteEditorWidget::DrawColorPicker() {
   if (!game_data_)
     return;
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
+  if (dungeon_pal_group.empty()) {
+    return;
+  }
+  current_palette_id_ = std::clamp(current_palette_id_, 0,
+                                   static_cast<int>(dungeon_pal_group.size()) - 1);
   ImGui::SeparatorText(
       absl::StrFormat("Edit Color %d", selected_color_index_).c_str());
 
-  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   auto palette = dungeon_pal_group[current_palette_id_];
+  if (selected_color_index_ < 0 ||
+      selected_color_index_ >= static_cast<int>(palette.size())) {
+    selected_color_index_ = -1;
+    return;
+  }
   auto original_color = palette[selected_color_index_];
 
   // Use standardized SnesColorEdit4 for consistency
@@ -135,6 +169,168 @@ void PaletteEditorWidget::DrawColorPicker() {
     // Also reset the actual palette color
     palette[selected_color_index_] = original_color;
     dungeon_pal_group[current_palette_id_] = palette;
+    if (on_palette_changed_) {
+      on_palette_changed_(current_palette_id_);
+    }
+  }
+}
+
+bool PaletteEditorWidget::ResolveDungeonRenderSelection(
+    gfx::SnesPalette** palette, int* color_index, std::string* source_label) {
+  if (!game_data_ || !palette || !color_index || selected_color_index_ < 0) {
+    return false;
+  }
+
+  const int display_index = selected_color_index_;
+  if (display_index < 32) {
+    if (game_data_->palette_groups.hud.empty()) {
+      return false;
+    }
+    *palette = game_data_->palette_groups.hud.mutable_palette(0);
+    *color_index = display_index;
+    if (source_label) {
+      *source_label = "HUD / floor-ceiling";
+    }
+    return true;
+  }
+
+  const int local_index = display_index - 32;
+  const int row = local_index / 16;
+  const int col = local_index % 16;
+  if (row < 0 || row >= 6 || col == 0) {
+    return false;
+  }
+
+  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
+  if (dungeon_pal_group.empty() || current_palette_id_ < 0 ||
+      current_palette_id_ >= static_cast<int>(dungeon_pal_group.size())) {
+    return false;
+  }
+
+  *palette = dungeon_pal_group.mutable_palette(current_palette_id_);
+  *color_index = row * 15 + (col - 1);
+  if (source_label) {
+    *source_label = absl::StrFormat("Dungeon row %d", row + 2);
+  }
+  return true;
+}
+
+void PaletteEditorWidget::DrawDungeonRenderPalette() {
+  ImGui::TextDisabled(
+      "Rows 0-1: HUD / floor / ceiling  |  Rows 2-7: Dungeon main");
+
+  gfx::SnesPalette* dungeon_palette = nullptr;
+  if (!game_data_->palette_groups.dungeon_main.empty() && current_palette_id_ >= 0 &&
+      current_palette_id_ <
+          static_cast<int>(game_data_->palette_groups.dungeon_main.size())) {
+    dungeon_palette =
+        game_data_->palette_groups.dungeon_main.mutable_palette(current_palette_id_);
+  }
+
+  gfx::SnesPalette* hud_palette = nullptr;
+  if (!game_data_->palette_groups.hud.empty()) {
+    hud_palette = game_data_->palette_groups.hud.mutable_palette(0);
+  }
+
+  for (int i = 0; i < 128; ++i) {
+    if (i % 16 != 0) {
+      ImGui::SameLine();
+    }
+
+    gfx::SnesColor color(0);
+    bool editable = false;
+    std::string tooltip_label = "Reserved / transparent";
+    int source_index = -1;
+
+    if (i < 32 && hud_palette && i < static_cast<int>(hud_palette->size())) {
+      color = (*hud_palette)[i];
+      editable = true;
+      tooltip_label = "HUD / floor-ceiling";
+      source_index = i;
+    } else if (i >= 32 && dungeon_palette) {
+      const int local_index = i - 32;
+      const int row = local_index / 16;
+      const int col = local_index % 16;
+      if (row < 6 && col > 0) {
+        source_index = row * 15 + (col - 1);
+        if (source_index < static_cast<int>(dungeon_palette->size())) {
+          color = (*dungeon_palette)[source_index];
+          editable = true;
+          tooltip_label = absl::StrFormat("Dungeon row %d", row + 2);
+        }
+      }
+    }
+
+    ImVec4 display_color = color.rgb();
+    ImGui::PushID(i);
+    if (!editable) {
+      ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
+    }
+    const bool clicked =
+        ImGui::ColorButton("##render_color", display_color,
+                           ImGuiColorEditFlags_NoTooltip, ImVec2(30, 30));
+    if (!editable) {
+      ImGui::PopStyleVar();
+    }
+
+    if (clicked && editable) {
+      editing_color_index_ = i;
+      selected_color_index_ = i;
+      temp_color_ = display_color;
+      editing_color_ = display_color;
+    }
+
+    if (ImGui::IsItemHovered()) {
+      if (editable) {
+        ImGui::SetTooltip("%s\nSlot %d\nSNES: 0x%04X\nRGB: (%d, %d, %d)",
+                          tooltip_label.c_str(), source_index, color.snes(),
+                          static_cast<int>(display_color.x * 255),
+                          static_cast<int>(display_color.y * 255),
+                          static_cast<int>(display_color.z * 255));
+      } else {
+        ImGui::SetTooltip("%s", tooltip_label.c_str());
+      }
+    }
+    ImGui::PopID();
+  }
+}
+
+void PaletteEditorWidget::DrawDungeonRenderColorPicker() {
+  gfx::SnesPalette* palette = nullptr;
+  int color_index = -1;
+  std::string source_label;
+  if (!ResolveDungeonRenderSelection(&palette, &color_index, &source_label) ||
+      !palette || color_index < 0 ||
+      color_index >= static_cast<int>(palette->size())) {
+    selected_color_index_ = -1;
+    editing_color_index_ = -1;
+    return;
+  }
+
+  ImGui::SeparatorText(
+      absl::StrFormat("%s Color %d", source_label, color_index).c_str());
+
+  auto original_color = (*palette)[color_index];
+  if (gui::SnesColorEdit4(
+          "Color", &(*palette)[color_index],
+          ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueWheel)) {
+    editing_color_ = gui::ConvertSnesColorToImVec4((*palette)[color_index]);
+    if (on_palette_changed_) {
+      on_palette_changed_(current_palette_id_);
+    }
+  }
+
+  ImGui::Text("RGB (0-255): (%d, %d, %d)",
+              static_cast<int>(editing_color_.x * 255),
+              static_cast<int>(editing_color_.y * 255),
+              static_cast<int>(editing_color_.z * 255));
+  ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
+
+  if (gui::ThemedButton("Reset to Original")) {
+    editing_color_ = ImVec4(original_color.rgb().x / 255.0f,
+                            original_color.rgb().y / 255.0f,
+                            original_color.rgb().z / 255.0f, 1.0f);
+    (*palette)[color_index] = original_color;
     if (on_palette_changed_) {
       on_palette_changed_(current_palette_id_);
     }

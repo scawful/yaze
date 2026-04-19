@@ -461,6 +461,7 @@ absl::Status DungeonEditorV2::Load() {
   }
 
   palette_editor_.Initialize(game_data());
+  palette_editor_.SetDungeonRenderPaletteMode(true);
 
   // Register panels that depend on initialized state (renderer, palette_editor_)
   if (dependencies_.window_manager) {
@@ -661,6 +662,7 @@ absl::Status DungeonEditorV2::Load() {
       auto& dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
       if (current_palette_id_ >= 0 &&
           current_palette_id_ < static_cast<int>(dungeon_main_pal_group.size())) {
+        current_palette_group_id_ = current_palette_id_;
         current_palette_ = dungeon_main_pal_group[current_palette_id_];
         if (auto pal_group =
                 gfx::CreatePaletteGroupFromLargePalette(current_palette_);
@@ -1655,7 +1657,8 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     }
 
     if (room.IsLoaded()) {
-      current_palette_id_ = room.palette();
+      current_palette_id_ = room.ResolveDungeonPaletteId();
+      current_palette_group_id_ = current_palette_id_;
       palette_editor_.SetCurrentPaletteId(current_palette_id_);
 
       // Update viewer and object editor palette
