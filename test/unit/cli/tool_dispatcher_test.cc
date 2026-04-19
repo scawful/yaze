@@ -90,6 +90,12 @@ ToolCall MakeToolCall(const std::string& name,
   return call;
 }
 
+TEST(ToolDispatcherUnitTest, RegistryInitializesBuiltinToolsOnDemand) {
+  EXPECT_TRUE(ToolRegistry::Get().GetToolDefinition("tools-list").has_value());
+  EXPECT_TRUE(
+      ToolRegistry::Get().GetToolDefinition("build-status").has_value());
+}
+
 TEST(ToolDispatcherUnitTest, SharedValidationRejectsMissingRequiredArgs) {
   ToolRegistry::Get().RegisterTool(
       {"test-required-arg",

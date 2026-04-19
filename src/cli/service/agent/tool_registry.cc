@@ -6,6 +6,7 @@
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
+#include "cli/service/agent/tool_registration.h"
 
 namespace yaze {
 namespace cli {
@@ -151,8 +152,12 @@ ToolDefinition NormalizeDefinition(ToolDefinition def) {
 
 ToolRegistry& ToolRegistry::Get() {
   static ToolRegistry instance;
-  EnsureBuiltinAgentToolsRegistered();
+  instance.EnsureInitialized();
   return instance;
+}
+
+void ToolRegistry::EnsureInitialized() {
+  std::call_once(init_once_, [this]() { RegisterBuiltinAgentTools(*this); });
 }
 
 void ToolRegistry::RegisterTool(const ToolDefinition& def,
