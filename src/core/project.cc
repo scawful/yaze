@@ -2835,6 +2835,8 @@ void RecentFilesManager::Load() {
       recent_files_.push_back(line);
     }
   }
+  BumpGeneration();
+  return;
 #else
   std::string filepath = GetFilePath();
   std::ifstream file(filepath);
@@ -2850,6 +2852,7 @@ void RecentFilesManager::Load() {
       recent_files_.push_back(line);
     }
   }
+  BumpGeneration();
 #endif
 }
 

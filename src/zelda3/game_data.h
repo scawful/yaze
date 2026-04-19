@@ -42,6 +42,7 @@ constexpr uint32_t kMaxGraphics = 0x0C3FFF;
 // kDungeonPalettePointerTable. The word there, divided by 180, is the palette.
 constexpr uint32_t kPalettesetIdsAddress = 0x75460;
 constexpr uint32_t kDungeonPalettePointerTable = 0xDEC4B;
+constexpr int kDungeonPaletteBytes = 180;
 
 // Link graphics location ($10:8000)
 constexpr uint32_t kLinkGfxOffset = 0x80000;
@@ -79,9 +80,10 @@ struct GameData {
   std::string title;
 
   // Graphics Resources
-  std::vector<uint8_t> graphics_buffer; // Legacy contiguous buffer
-  std::array<std::vector<uint8_t>, kNumGfxSheets> raw_gfx_sheets; // 8BPP indexed
-  std::array<gfx::Bitmap, kNumGfxSheets> gfx_bitmaps; // Renderable bitmaps
+  std::vector<uint8_t> graphics_buffer;  // Legacy contiguous buffer
+  std::array<std::vector<uint8_t>, kNumGfxSheets>
+      raw_gfx_sheets;                                  // 8BPP indexed
+  std::array<gfx::Bitmap, kNumGfxSheets> gfx_bitmaps;  // Renderable bitmaps
   std::array<gfx::Bitmap, kNumLinkSheets> link_graphics;
   gfx::Bitmap font_graphics;
 
@@ -103,7 +105,8 @@ struct GameData {
 
   void Clear() {
     graphics_buffer.clear();
-    for (auto& sheet : raw_gfx_sheets) sheet.clear();
+    for (auto& sheet : raw_gfx_sheets)
+      sheet.clear();
     // gfx_bitmaps don't need explicit clearing if reloaded
     palette_groups.clear();
   }
@@ -126,7 +129,8 @@ struct LoadOptions {
  * @param data The destination GameData structure
  * @param options Loading configuration
  */
-absl::Status LoadGameData(Rom& rom, GameData& data, const LoadOptions& options = {});
+absl::Status LoadGameData(Rom& rom, GameData& data,
+                          const LoadOptions& options = {});
 
 /**
  * @brief Saves modified game data back to the ROM.

@@ -444,12 +444,14 @@ class RecentFilesManager {
     if (recent_files_.size() > 20) {
       recent_files_.resize(20);
     }
+    BumpGeneration();
   }
 
   void RemoveFile(const std::string& file_path) {
     auto it = std::find(recent_files_.begin(), recent_files_.end(), file_path);
     if (it != recent_files_.end()) {
       recent_files_.erase(it);
+      BumpGeneration();
     }
   }
 
@@ -461,7 +463,13 @@ class RecentFilesManager {
     return recent_files_;
   }
 
-  void Clear() { recent_files_.clear(); }
+  void Clear() {
+    recent_files_.clear();
+    BumpGeneration();
+  }
+
+  /// Bumps when recent file list changes (add/remove/clear/load).
+  [[nodiscard]] std::uint64_t GetGeneration() const { return generation_; }
 
  private:
   RecentFilesManager() {
@@ -470,7 +478,10 @@ class RecentFilesManager {
 
   std::string GetFilePath() const;
 
+  void BumpGeneration() { ++generation_; }
+
   std::vector<std::string> recent_files_;
+  std::uint64_t generation_ = 0;
 };
 
 }  // namespace project
