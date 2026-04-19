@@ -1,3 +1,4 @@
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -9,7 +10,10 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
+#include "cli/service/agent/tool_dispatcher.h"
+#include "cli/service/ai/ai_config_utils.h"
 #include "util/platform_paths.h"
 
 #if defined(YAZE_WITH_JSON)
@@ -18,6 +22,19 @@
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+// TODO(B.2d): this helper is duplicated from the anonymous namespace in
+// agent_editor.cc. When the model-service slice lands, promote to a shared
+// internal header so both TUs reach the same implementation.
+template <size_t N>
+void CopyStringToBuffer(const std::string& src, char (&dest)[N]) {
+  std::strncpy(dest, src.c_str(), N - 1);
+  dest[N - 1] = '\0';
+}
+
+}  // namespace
 
 absl::Status AgentEditor::SaveBuilderBlueprint(
     const std::filesystem::path& path) {
@@ -391,6 +408,192 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
   (void)json_str;
   return absl::UnimplementedError("JSON support required");
 #endif
+}
+
+void AgentEditor::SyncConfigFromProfile() {
+  current_config_.provider = current_profile_.provider;
+  current_config_.model = current_profile_.model;
+  current_config_.ollama_host = current_profile_.ollama_host;
+  current_config_.gemini_api_key = current_profile_.gemini_api_key;
+  current_config_.anthropic_api_key = current_profile_.anthropic_api_key;
+  current_config_.openai_api_key = current_profile_.openai_api_key;
+  current_config_.openai_base_url =
+      cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url);
+  current_config_.verbose = current_profile_.verbose;
+  current_config_.show_reasoning = current_profile_.show_reasoning;
+  current_config_.max_tool_iterations = current_profile_.max_tool_iterations;
+  current_config_.max_retry_attempts = current_profile_.max_retry_attempts;
+  current_config_.temperature = current_profile_.temperature;
+  current_config_.top_p = current_profile_.top_p;
+  current_config_.max_output_tokens = current_profile_.max_output_tokens;
+  current_config_.stream_responses = current_profile_.stream_responses;
+}
+
+void AgentEditor::SyncContextFromProfile() {
+  if (!context_) {
+    return;
+  }
+
+  auto& ctx_config = context_->agent_config();
+  ctx_config.ai_provider =
+      current_profile_.provider.empty() ? "mock" : current_profile_.provider;
+  ctx_config.ai_model = current_profile_.model;
+  ctx_config.ollama_host = current_profile_.ollama_host.empty()
+                               ? "http://localhost:11434"
+                               : current_profile_.ollama_host;
+  ctx_config.gemini_api_key = current_profile_.gemini_api_key;
+  ctx_config.anthropic_api_key = current_profile_.anthropic_api_key;
+  ctx_config.openai_api_key = current_profile_.openai_api_key;
+  ctx_config.openai_base_url =
+      cli::NormalizeOpenAiBaseUrl(current_profile_.openai_base_url);
+  current_profile_.openai_base_url = ctx_config.openai_base_url;
+  ctx_config.host_id = current_profile_.host_id;
+  ctx_config.verbose = current_profile_.verbose;
+  ctx_config.show_reasoning = current_profile_.show_reasoning;
+  ctx_config.max_tool_iterations = current_profile_.max_tool_iterations;
+  ctx_config.max_retry_attempts = current_profile_.max_retry_attempts;
+  ctx_config.temperature = current_profile_.temperature;
+  ctx_config.top_p = current_profile_.top_p;
+  ctx_config.max_output_tokens = current_profile_.max_output_tokens;
+  ctx_config.stream_responses = current_profile_.stream_responses;
+
+  CopyStringToBuffer(ctx_config.ai_provider, ctx_config.provider_buffer);
+  CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
+  CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
+  CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
+  CopyStringToBuffer(ctx_config.anthropic_api_key,
+                     ctx_config.anthropic_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_base_url,
+                     ctx_config.openai_base_url_buffer);
+
+  SyncConfigFromProfile();
+
+  context_->NotifyChanged();
+}
+
+void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
+  if (!context_) {
+    return;
+  }
+
+  auto& ctx_config = context_->agent_config();
+  const std::string prev_provider = ctx_config.ai_provider;
+  const std::string prev_openai_base = ctx_config.openai_base_url;
+  const std::string prev_ollama_host = ctx_config.ollama_host;
+  ctx_config.ai_provider =
+      config.ai_provider.empty() ? "mock" : config.ai_provider;
+  ctx_config.ai_model = config.ai_model;
+  ctx_config.ollama_host = config.ollama_host.empty() ? "http://localhost:11434"
+                                                      : config.ollama_host;
+  ctx_config.gemini_api_key = config.gemini_api_key;
+  ctx_config.anthropic_api_key = config.anthropic_api_key;
+  ctx_config.openai_api_key = config.openai_api_key;
+  ctx_config.openai_base_url =
+      cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
+  ctx_config.host_id = config.host_id;
+  ctx_config.verbose = config.verbose;
+  ctx_config.show_reasoning = config.show_reasoning;
+  ctx_config.max_tool_iterations = config.max_tool_iterations;
+  ctx_config.max_retry_attempts = config.max_retry_attempts;
+  ctx_config.temperature = config.temperature;
+  ctx_config.top_p = config.top_p;
+  ctx_config.max_output_tokens = config.max_output_tokens;
+  ctx_config.stream_responses = config.stream_responses;
+  ctx_config.favorite_models = config.favorite_models;
+  ctx_config.model_chain = config.model_chain;
+  ctx_config.model_presets = config.model_presets;
+  ctx_config.chain_mode = config.chain_mode;
+  ctx_config.tool_config = config.tool_config;
+
+  if (prev_provider != ctx_config.ai_provider ||
+      prev_openai_base != ctx_config.openai_base_url ||
+      prev_ollama_host != ctx_config.ollama_host) {
+    auto& model_cache = context_->model_cache();
+    model_cache.available_models.clear();
+    model_cache.model_names.clear();
+    model_cache.last_refresh = absl::InfinitePast();
+    model_cache.auto_refresh_requested = false;
+    model_cache.last_provider = ctx_config.ai_provider;
+    model_cache.last_openai_base = ctx_config.openai_base_url;
+    model_cache.last_ollama_host = ctx_config.ollama_host;
+  }
+
+  CopyStringToBuffer(ctx_config.ai_provider, ctx_config.provider_buffer);
+  CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
+  CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
+  CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
+  CopyStringToBuffer(ctx_config.anthropic_api_key,
+                     ctx_config.anthropic_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
+  CopyStringToBuffer(ctx_config.openai_base_url,
+                     ctx_config.openai_base_url_buffer);
+
+  current_profile_.provider = ctx_config.ai_provider;
+  current_profile_.model = ctx_config.ai_model;
+  current_profile_.ollama_host = ctx_config.ollama_host;
+  current_profile_.gemini_api_key = ctx_config.gemini_api_key;
+  current_profile_.anthropic_api_key = ctx_config.anthropic_api_key;
+  current_profile_.openai_api_key = ctx_config.openai_api_key;
+  current_profile_.openai_base_url = ctx_config.openai_base_url;
+  current_profile_.host_id = ctx_config.host_id;
+  current_profile_.verbose = ctx_config.verbose;
+  current_profile_.show_reasoning = ctx_config.show_reasoning;
+  current_profile_.max_tool_iterations = ctx_config.max_tool_iterations;
+  current_profile_.max_retry_attempts = ctx_config.max_retry_attempts;
+  current_profile_.temperature = ctx_config.temperature;
+  current_profile_.top_p = ctx_config.top_p;
+  current_profile_.max_output_tokens = ctx_config.max_output_tokens;
+  current_profile_.stream_responses = ctx_config.stream_responses;
+  current_profile_.modified_at = absl::Now();
+
+  MarkProfileUiDirty();
+
+  current_config_.provider = ctx_config.ai_provider;
+  current_config_.model = ctx_config.ai_model;
+  current_config_.ollama_host = ctx_config.ollama_host;
+  current_config_.gemini_api_key = ctx_config.gemini_api_key;
+  current_config_.openai_api_key = ctx_config.openai_api_key;
+  current_config_.openai_base_url = ctx_config.openai_base_url;
+  current_config_.verbose = ctx_config.verbose;
+  current_config_.show_reasoning = ctx_config.show_reasoning;
+  current_config_.max_tool_iterations = ctx_config.max_tool_iterations;
+  current_config_.max_retry_attempts = ctx_config.max_retry_attempts;
+  current_config_.temperature = ctx_config.temperature;
+  current_config_.top_p = ctx_config.top_p;
+  current_config_.max_output_tokens = ctx_config.max_output_tokens;
+  current_config_.stream_responses = ctx_config.stream_responses;
+
+  ApplyConfig(current_config_);
+  context_->NotifyChanged();
+}
+
+void AgentEditor::ApplyToolPreferencesFromContext() {
+  if (!context_ || !agent_chat_) {
+    return;
+  }
+  auto* service = agent_chat_->GetAgentService();
+  if (!service) {
+    return;
+  }
+
+  const auto& tool_config = context_->agent_config().tool_config;
+  cli::agent::ToolDispatcher::ToolPreferences prefs;
+  prefs.resources = tool_config.resources;
+  prefs.dungeon = tool_config.dungeon;
+  prefs.overworld = tool_config.overworld;
+  prefs.messages = tool_config.messages;
+  prefs.dialogue = tool_config.dialogue;
+  prefs.gui = tool_config.gui;
+  prefs.music = tool_config.music;
+  prefs.sprite = tool_config.sprite;
+#ifdef YAZE_WITH_GRPC
+  prefs.emulator = tool_config.emulator;
+#else
+  prefs.emulator = false;
+#endif
+  prefs.memory_inspector = tool_config.memory_inspector;
+  service->SetToolPreferences(prefs);
 }
 
 }  // namespace editor
