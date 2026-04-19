@@ -31,7 +31,8 @@ struct ChatMessage;
  * @brief Configuration for browser-based AI service
  */
 struct BrowserAIConfig {
-  // Provider selector: kProviderGemini (default) or kProviderOpenAi.
+  // Provider selector: kProviderGemini by default; OpenAI-compatible browser
+  // providers preserve their ids (openai, lmstudio, halext, afs-bridge).
   std::string provider = kProviderGemini;
 
   // API keys (provider-specific)
@@ -50,15 +51,15 @@ struct BrowserAIConfig {
 
 /**
  * @class BrowserAIService
- * @brief Browser-based AI service implementation using Gemini API
+ * @brief Browser-based AI service for Gemini and OpenAI-compatible endpoints
  *
  * This class provides AI capabilities for the WASM web build using
  * the Gemini API through browser fetch. It implements the AIService
  * interface to provide consistent AI functionality across platforms.
  *
  * Features:
- * - Text generation using Gemini API
- * - Vision model support for image analysis
+ * - Text generation using Gemini or OpenAI-compatible chat APIs
+ * - Vision model support for image analysis (Gemini today)
  * - Secure API key management via sessionStorage
  * - CORS-compliant HTTP requests
  * - Proper error handling and timeout management
@@ -138,7 +139,7 @@ class BrowserAIService : public AIService {
   std::string GetOpenAIApiBase() const;
 
   /**
-   * @brief Build the Gemini API URL for the configured model
+   * @brief Build the provider API URL for the configured model/endpoint
    * @param endpoint API endpoint (e.g., "generateContent")
    * @return Complete API URL
    */
@@ -207,6 +208,7 @@ class BrowserAIService : public AIService {
 
   // Configuration
   BrowserAIConfig config_;
+  std::string base_system_instruction_;
 
   // HTTP client for API requests
   std::unique_ptr<net::IHttpClient> http_client_;
