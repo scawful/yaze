@@ -35,6 +35,7 @@ coverage, see the [Feature & Test Coverage Report](../reference/feature-coverage
 - **Startup/Memory Footprint**: Lazy session editors, deferred hidden asset loads, leaner room state, and trimmed eager bitmap allocation reduce startup and editor overhead.
 - **Release Hardening**: Version/changelog/release-notes preflight gating remains enforced in the release workflow.
 - **UI Module Migration RFC**: New editor UI work now targets feature-oriented `ui/<module>/...` folders and blocks new `_panel`/`panels` additions via editor guardrails.
+- **Editor folder map (contributors)**: Top-level editor sources use `registry/` (ContentRegistry, undo), `shell/` (global chrome: coordinator, dialogs, toast/popup, cross-editor windows), `system/{workspace,session,commands}/` (matches CMake `yaze_editor_system_*`), and `hack/oracle/` + `hack/oracle/ui/` for Oracle workflow. See the internal [Editor UI module pattern](../../internal/architecture/editor-ui-module-pattern.md) doc for the canonical table.
 
 ### Known Issues
 
@@ -47,10 +48,10 @@ coverage, see the [Feature & Test Coverage Report](../reference/feature-coverage
 yaze/
 ├── src/
 │   ├── app/            # Desktop app (editors, gfx, emu, UI)
+│   │   └── editor/     # registry/, shell/, system/*/, domain editors
 │   ├── zelda3/         # Domain data + ROM parsing (overworld, dungeon, music)
 │   ├── rom/            # Core ROM container, transactions, diagnostics
 │   ├── cli/            # z3ed CLI + agent tooling
-│   ├── lab/            # Sandbox targets (layout designer, UI experiments)
 │   ├── web/            # WASM UI + browser integration
 │   ├── core/           # Shared core utilities/patch logic
 │   └── util/           # Logging, file IO, helpers
@@ -91,14 +92,11 @@ flowchart TD
 - **Command tooling**: Command palette, shortcut manager, action registry.
 - **Theming**: Shared palette + semantic color tokens via AgentUI theme helpers.
 - **Agent UI**: Chat panels, tool execution, and multimodal test harnesses.
-- **Layout designer**: WYSIWYG layout tooling for panel arrangements.
-
 ## Density Reduction Opportunities
 
 - **Quarantine legacy ROM code**: `src/rom/rom_old.*` can move to a legacy target or be removed if unused.
-- **Make WIP editors optional**: Gate agent UI and music editor behind build flags; layout designer now ships via the lab target.
+- **Make WIP editors optional**: Gate agent UI and music editor behind build flags.
 - **Split editor system**: `yaze_editor_system_{panels,session,shortcuts}` targets now isolate editor system components.
-- **Isolate experimental UI**: Layout designer now lives under `src/lab/` and builds via `YAZE_BUILD_LAB` (default OFF).
 - **De-duplicate editor panels**: Consolidate shared panel patterns across dungeon/overworld/screen.
 - **Reduce build surface**: Make emulator and web UI optional in minimal builds.
 
@@ -111,7 +109,7 @@ These patterns, established during the Overworld Editor refactoring, should be a
 **Principle**: Decompose large, monolithic editor classes into smaller, single-responsibility modules.
 
 -   **Rendering**: All drawing logic should be extracted into dedicated `*Renderer` classes (e.g., `OverworldEntityRenderer`). The main editor class should delegate drawing calls, not implement them.
--   **UI Panels**: Complex UI panels should be managed by their own classes (e.g., `MapPropertiesSystem`), which then communicate with the parent editor via callbacks.
+-   **UI Composition**: New editor UI work should favor focused `WindowContent` surfaces and feature-oriented modules, not growth of `panels/` directories or new `*_panel` files.
 -   **Interaction**: Canvas interaction logic (mouse handling, editing modes) should be separated from the main editor class to simplify state management.
 
 **Benefit**: Smaller, focused modules are easier to test, debug, and maintain. The main editor class becomes a coordinator, which is a much cleaner architecture.
@@ -123,7 +121,19 @@ These patterns, established during the Overworld Editor refactoring, should be a
 -   **Implementation**: A parent editor provides its child components with callbacks (typically via a `SetCallbacks` method) during initialization. The child component invokes these callbacks to notify the parent of events or to request actions (like a refresh).
 -   **Example**: `MapPropertiesSystem` receives a `RefreshCallback` from `OverworldEditor`. When a property is changed in the UI, it calls the function, allowing the `OverworldEditor` to execute the refresh logic without the `MapPropertiesSystem` needing to know anything about the editor itself.
 
-### Pattern 3: Centralized Progressive Loading via `gfx::Arena`
+### Pattern 3: Service-First Refactors
+
+**Principle**: When untangling a large editor, extract destructive or domain-heavy
+logic before spending time on UI renaming.
+
+-   **Services First**: ROM patching, serialization, upgrade flows, and complex save policy should move into narrow services or systems.
+-   **Transitional Placement**: If the logic still depends on editor-only helpers, keep the new service in the editor layer until the boundary can move cleanly.
+-   **Parity First**: Shortcut handling, mode transitions, popup routing, and save flows are compatibility surfaces. Preserve them before cleanup.
+
+**Benefit**: This produces reviewable slices that remove real responsibility from
+the editor without turning a rename into a fake refactor.
+
+### Pattern 4: Centralized Progressive Loading via `gfx::Arena`
 
 **Principle**: All expensive asset loading operations must be performed asynchronously to prevent UI freezes. The `gfx::Arena` singleton provides a centralized, priority-based system for this.
 
@@ -193,7 +203,7 @@ To ensure a consistent and polished look and feel, all new UI components must ad
     - **Items**: Bright red
     - **Sprites**: Bright magenta
 
-## 4. Clang Tooling Configuration
+## 4. Static Analysis and Guardrails
 
 The repository ships curated `.clangd` and `.clang-tidy` files that mirror our
 Google-style C++23 guidelines while accommodating ROM hacking patterns.
@@ -214,6 +224,41 @@ Google-style C++23 guidelines while accommodating ROM hacking patterns.
   `build/compile_commands.json`.
 - Spot-check tooling with `clang-tidy path/to/file.cc -p build --quiet` or a
   batch run via presets before sending larger patches.
+
+Use the following workflow for code-quality checks:
+
+```bash
+# File-focused formatting + clang-tidy
+scripts/lint.sh check src/path/to/file.cc test/path/to/file_test.cc
+
+# Broader local quality pass (format, tidy, cppcheck)
+scripts/quality_check.sh
+
+# Architectural guardrails for editor refactors
+scripts/dev/editor-guardrails.sh <base-ref> <head-ref>
+```
+
+`scripts/dev/editor-guardrails.sh` complements clang tooling. It is intentionally
+heuristic and checks for architectural drift that normal static analysis will
+not catch, including:
+
+- new `panels/` or `*_panel` editor files
+- new concrete editor downcasts
+- suspicious editor-owned patching/mutation logic
+- undocumented `core::FeatureFlags` or `ABSL_FLAG` growth
+
+Pair static analysis with the narrowest build and test validation that exercises
+the changed surface:
+
+```bash
+cmake --build --preset mac-ai-fast --target yaze --parallel 8
+ctest --preset mac-ai-unit --output-on-failure -R "(Overworld|DungeonWorkbenchToolbarTest)"
+```
+
+For the internal migration rules behind these checks, see
+[editor-ui-module-pattern.md](../../internal/architecture/editor-ui-module-pattern.md)
+and
+[refactor-quality-guardrails.md](../../internal/architecture/refactor-quality-guardrails.md).
 
 ## 5. Debugging and Testing
 

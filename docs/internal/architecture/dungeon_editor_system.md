@@ -72,13 +72,12 @@ New subsystem for visual editing of the 8x8 tile composition of dungeon objects.
 **Architecture:**
 - **ObjectTileEditor** (`zelda3/dungeon/object_tile_editor.{h,cc}`) — Backend that captures tile layout via `ObjectDrawer` trace_only mode, renders preview bitmaps, and writes back to ROM or custom `.bin` files.
 - **ObjectTileLayout** — Editable model: vector of `Cell` structs (rel_x, rel_y, TileInfo, original_word, modified flag) built from `ObjectDrawer::TileTrace` entries.
-- **ObjectTileEditorPanel** (`app/editor/dungeon/panels/object_tile_editor_panel.{h,cc}`) — ImGui panel with two-column layout: interactive tile grid (4x scale) on the left, source tile8 atlas (2x scale) on the right, per-tile property editing (palette, flip, priority), and Apply/Revert/Close actions.
+- **ObjectTileEditorPanel** (`app/editor/dungeon/ui/window/object_tile_editor_panel.{h,cc}`) — ImGui panel with two-column layout: interactive tile grid (4x scale) on the left, source tile8 atlas (2x scale) on the right, per-tile property editing (palette, flip, priority), and Apply/Revert/Close actions.
 
 **Integration:**
-- Registered as EditorPanel in `DungeonEditorV2::Load()` via PanelManager.
-- Opened from ObjectEditorPanel's static object editor via "Edit Tiles" button.
-- Callback wired through `ObjectEditorPanel::set_tile_editor_callback()`.
-- Palette synced via `SyncPanelsToRoom()`.
+- Registered as `WindowContent` in `DungeonEditorV2::Load()` via `WorkspaceWindowManager`.
+- Opened from `DungeonObjectSelector` (static object editor) via "Edit Tiles"; `DungeonEditorV2` wires `SetTileEditorPanel()` on the selector.
+- Palette synced when the active room changes (`DungeonEditorV2` calls `ObjectTileEditorPanel::SetCurrentPaletteGroup`).
 
 **Write-back paths:**
 - Standard objects: patches ROM at `tile_data_address + i*2` with `TileInfoToWord()`.

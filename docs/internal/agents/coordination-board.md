@@ -7,6 +7,9 @@
 **STOP:** Before posting, verify your **Agent ID** in [personas.md](personas.md). Use only canonical IDs.
 **Guidelines:** Keep entries concise (<=5 lines). Archive completed work weekly. Target <=40 active entries.
 
+### 2026-04-19 (reference) – Canonical `src/app/editor` paths for cross-session work
+- NOTE: Prefer these in new docs, includes, and agent handoffs — `registry/` (ContentRegistry, undo, events), `shell/` (global chrome: coordinator, dialogs, feedback, windows), `system/{workspace,session,commands}/` (matches CMake `yaze_editor_system_*`), `hack/workflow/` + `hack/oracle/` + `hack/oracle/ui/` (Oracle-of-Secrets workflow UI), domain editors under `<domain>/ui/...`. Older entries below may still mention `core/`, top-level `ui/`, or `**/panels/`.
+
 ### 2026-02-24 ai-infra-architect – Universe Coordination System MVP
 - COMPLETE 2026-02-24 (ai-infra-architect): Local-first file-based task coordination replacing manual board editing. JSONL event log + materialized state.json. CLI: `universe-coord.sh` (init, task-add/claim/heartbeat/handoff/complete/cancel, task-generate-board, rebuild-state). Yaze wrapper: `scripts/agents/coord`. Board import: `import-coordination-board.sh` (dry-run tested, 25+ entries parsed). AGENTS.md updated with coordination commands. Spec: `docs/internal/agents/universe-coordination-spec.md`.
 - Files: `scripts/agents/{universe-coord.sh,coord,import-coordination-board.sh}`, `docs/internal/agents/universe-coordination-spec.md`, `AGENTS.md`.
@@ -23,7 +26,7 @@
 
 ### 2026-02-24 ai-infra-architect – UX Pass Validation Infra + Toast Dedup
 - COMPLETE 2026-02-24 (ai-infra-architect): (1) `scripts/dev/validate-next-pass.sh` — local validation gate (build, focused gtest, quick editor, oracle smoke). (2) Toast dedup: `ToastManager::Show` now suppresses identical message+type within 1s cooldown; 8 unit tests. (3) CI: existing run-tests summary already covers editor suite — no changes needed.
-- Files: `scripts/dev/validate-next-pass.sh`, `src/app/editor/ui/toast_manager.h`, `test/unit/editor/toast_dedup_test.cc`, `test/CMakeLists.txt`.
+- Files: `scripts/dev/validate-next-pass.sh`, `src/app/editor/shell/feedback/toast_manager.h`, `test/unit/editor/toast_dedup_test.cc`, `test/CMakeLists.txt`.
 
 ### 2026-02-24 zelda3-hacking-expert – Dungeon UX Validation Pass (QA Checklist)
 - COMPLETE 2026-02-24 (zelda3-hacking-expert): built manual QA checklist for door ghost preview (4 states), placement error toast (5 cases incl. dedup), room badge copy (3 cases), tile selector range filter (6 cases incl. error/clear). Identified 3 gaps as follow-ups (door ghost capacity coloring, toast min-TTL dedup guard, range filter hex label). Oracle structural ok=true (exit 0); strict-readiness ok=false/exit 1 (D4/D3 known gaps). No source files touched.
@@ -50,7 +53,7 @@
 
 ### 2026-02-23 imgui-frontend-engineer – Sprite/Door Placement Error Feedback
 - COMPLETE 2026-02-23 (imgui-frontend-engineer): wired sprite and door placement block reasons into `ObjectEditorPanel::Draw()` — mirrors existing tile-object hard-stop feedback. `SpriteInteractionHandler::PlaceSpriteAtPosition` (kSpriteLimit=64) and `DoorInteractionHandler::PlaceDoorAtSnappedPosition` (kDoorLimit=16, kInvalidPosition) already enforced limits; panel now surfaces timed error messages for all three handlers. Added `DoorInteractionHandlerTest::PlacementBlocksAtInvalidPosition` to fill the kInvalidPosition coverage gap.
-- Files: `src/app/editor/dungeon/panels/object_editor_panel.cc` (Draw — 3 handler checks), `test/unit/editor/sprite_door_handler_test.cc` (+1 test).
+- Files: `src/app/editor/dungeon/inspectors/object_editor_content.cc` (Draw — 3 handler checks), `test/unit/editor/sprite_door_handler_test.cc` (+1 test).
 - Validation: `cmake --build build_ai --target yaze_test_unit --parallel 8` (clean); `SpriteInteractionHandlerTest.*:DoorInteractionHandlerTest.*:TileObjectHandlerTest.*` 58/58 pass.
 
 ### 2026-02-23 imgui-frontend-engineer – Placement Guardrails + Tile16 Filter + Recent Rooms
@@ -105,11 +108,11 @@
 - Validation plan: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8` + targeted gtest filters + `scripts/pre-push.sh` dry run on both changed/unchanged paths.
 - Update 2026-02-15 (imgui-frontend-engineer): triaging deployed macOS crash in Dungeon Workbench toolbar (`ImGui::EndChild` recovery assert) and auditing dungeon water-object draw parity before commit/deploy follow-up.
 - Update 2026-02-15 (imgui-frontend-engineer): fixed the remaining toolbar assert by unwinding the frame-padding style guard before `EndToolbar`, rebalanced Welcome flow (left quick actions + scrollable release history, right recent ROM/project grid), removed dead Project Tools buttons, enriched recent card metadata/icons (ROM title+region, linked project ROM, size, last-opened), and added `DungeonWorkbenchToolbarTest.DrawBalancesStyleStacksBeforeToolbarTeardown`; validation: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8` and `ctest --test-dir build -R 'DungeonWorkbenchToolbarTest\\.DrawBalancesStyleStacksBeforeToolbarTeardown|ObjectDrawerRegistryReplayTest\\.DownwardsDecor4x2Spaced4UsesRowMajorTileOrder|ObjectDrawerMaskPropagationTest\\.Layer2WaterFloorMasksBG1Transparent|ObjectDrawerMaskPropagationTest\\.Layer2FloodWaterMasksBG1Transparent' --output-on-failure` (4/4 pass).
-- Update 2026-02-15 (imgui-frontend-engineer): landed toolbar teardown guard for recovery-edge crashes and draw parity fixes (`0x65/0x66` row-major routine-10 replay + `0xD8/0xDA` flood-water BG1 mask propagation), validated with `cmake --build --preset dev --target yaze_test_unit --parallel 8`, `yaze_test_unit --gtest_filter='ObjectDrawerRegistryReplayTest.DownwardsDecor4x2Spaced4UsesRowMajorTileOrder:ObjectDrawerMaskPropagationTest.Layer2FloodWaterMasksBG1Transparent:ObjectDrawerMaskPropagationTest.Layer2WaterFloorMasksBG1Transparent'` (3/3), and `yaze_test_unit --gtest_filter='EditorManagerTest.*:PanelManagerPolicyTest.*'` (6/6).
-- Update 2026-02-16 (imgui-frontend-engineer): confirmed user crash reports (`yaze-2026-02-15-172251/173046.ips`) were from pre-rebuild UUID `482d3966-2527-3bc7-8f45-bb594b9b25b8`; rebuilt/redeployed to `/Applications/yaze.app` (UUID `28B5E63D-8DB8-33D5-A103-D361CDB2D49F`) with hash parity, removed unused `LayoutHelpers::BeginToolbar/EndToolbar`, centralized dungeon overlay toggles via `dungeon_overlay_controls` (Workbench + Settings), and added `DungeonOverlayControlsTest`; validation: `cmake --build --preset mac-ai --target yaze yaze_test_unit --parallel 8`, `yaze_test_unit --gtest_filter='DungeonOverlayControlsTest.*:DungeonWorkbenchToolbarTest.*:EditorManagerTest.*:PanelManagerPolicyTest.*'` (10/10), `ctest --test-dir build_ai -R DungeonEditorV2IntegrationTest` (18 pass, 4 disabled).
+- Update 2026-02-15 (imgui-frontend-engineer): landed toolbar teardown guard for recovery-edge crashes and draw parity fixes (`0x65/0x66` row-major routine-10 replay + `0xD8/0xDA` flood-water BG1 mask propagation), validated with `cmake --build --preset dev --target yaze_test_unit --parallel 8`, `yaze_test_unit --gtest_filter='ObjectDrawerRegistryReplayTest.DownwardsDecor4x2Spaced4UsesRowMajorTileOrder:ObjectDrawerMaskPropagationTest.Layer2FloodWaterMasksBG1Transparent:ObjectDrawerMaskPropagationTest.Layer2WaterFloorMasksBG1Transparent'` (3/3), and `yaze_test_unit --gtest_filter='EditorManagerTest.*:WorkspaceWindowManagerPolicyTest.*'` (6/6).
+- Update 2026-02-16 (imgui-frontend-engineer): confirmed user crash reports (`yaze-2026-02-15-172251/173046.ips`) were from pre-rebuild UUID `482d3966-2527-3bc7-8f45-bb594b9b25b8`; rebuilt/redeployed to `/Applications/yaze.app` (UUID `28B5E63D-8DB8-33D5-A103-D361CDB2D49F`) with hash parity, removed unused `LayoutHelpers::BeginToolbar/EndToolbar`, centralized dungeon overlay toggles via `dungeon_overlay_controls` (Workbench + Settings), and added `DungeonOverlayControlsTest`; validation: `cmake --build --preset mac-ai --target yaze yaze_test_unit --parallel 8`, `yaze_test_unit --gtest_filter='DungeonOverlayControlsTest.*:DungeonWorkbenchToolbarTest.*:EditorManagerTest.*:WorkspaceWindowManagerPolicyTest.*'` (10/10), `ctest --test-dir build_ai -R DungeonEditorV2IntegrationTest` (18 pass, 4 disabled).
 - Update 2026-02-14 (imgui-frontend-engineer): fixed Oracle room-label resolution by rebinding `ResourceLabelProvider` on session/project transitions and before project asset load; added hex-key compatibility + unit coverage in `ResourceLabelsTest`.
 - Update 2026-02-14 (imgui-frontend-engineer): fixed project-file room-label fallback by merging ROM + manifest-registry + project labels (in precedence order) inside `RefreshResourceLabelProvider`, and simplified right-sidebar Agent UI to compact icon actions (removed verbose hero/tabs/quick-config controls).
-- Update 2026-02-14 (imgui-frontend-engineer): patched single-room navigation to fixed `ArrowButton` controls (East no longer clipped), restored menu-bar right-panel toggle alignment to `SmallButton` metrics, and reworked `Room Graphics` canvas sizing/background with explicit per-room blockset refresh; validated via targeted object builds (`right_panel_manager.cc.o`, `dungeon_canvas_viewer.cc.o`, `dungeon_room_graphics_panel.cc.o`).
+- Update 2026-02-14 (imgui-frontend-engineer): patched single-room navigation to fixed `ArrowButton` controls (East no longer clipped), restored menu-bar right-panel toggle alignment to `SmallButton` metrics, and reworked `Room Graphics` canvas sizing/background with explicit per-room blockset refresh; validated via targeted object builds (`right_drawer_manager.cc.o`, `dungeon_canvas_viewer.cc.o`, `room_graphics_content.cc.o`).
 - Update 2026-02-14 (imgui-frontend-engineer): mirrored the room-blockset refresh fix in `DungeonObjectSelector::DrawRoomGraphics`, rebuilt `yaze`, and re-synced `/Applications/yaze.app` (binary hash parity confirmed).
 - Update 2026-02-14 (imgui-frontend-engineer): removed menu-bar dead gap after compact right-toggle buttons by tightening toggle-region width reservation in `UICoordinator::DrawMenuBarExtras`.
 - Update 2026-02-14 (imgui-frontend-engineer): hardened Oracle label intake in `YazeProject::TryLoadHackManifest` with project-dir/manifest-dir fallbacks for registry loading when `code_folder` is stale; repaired local `Oracle-of-Secrets.yaze` file paths (`code_folder=.` + `hack_manifest_file=hack_manifest.json`) to restore project-specific room names.
@@ -123,7 +126,7 @@
 - Update 2026-02-14 (imgui-frontend-engineer): improved panel flow by adding left-sidebar category controls (visible count + Panel Browser + show/hide category), skipping duplicate pinned rows when the pinned section is expanded, adding a right-sidebar header panel switcher popup, and adding session/category bulk actions under the `Panels` menu; validation: `cmake --build --preset mac-ai --target yaze --parallel 8`; `ctest --test-dir build_ai -R yaze_test_quick_unit_editor` (116/116 pass); `ctest --test-dir build_ai -R DungeonEditorV2IntegrationTest` (16 pass, 4 disabled).
 - Update 2026-02-14 (imgui-frontend-engineer): fixed repeat pin-button regressions by enforcing unique ImGui IDs for row/table pin controls and session-scoped pin writes in Activity sidebar/browser; overhauled sidebar button ergonomics with labeled workflow/action buttons and added right-sidebar prev/next panel cycling controls; hardened workbench->panel mode crash path by queuing workflow switches for next-frame application in `DungeonEditorV2`. Validation: `cmake --build --preset mac-ai --target yaze --parallel 8`; `ctest --test-dir build_ai -R yaze_test_quick_unit_editor` (116/116 pass); `ctest --test-dir build_ai -R DungeonEditorV2IntegrationTest` (16 pass, 4 disabled).
 - Update 2026-02-14 (imgui-frontend-engineer): published agent handoff doc with crash context, changed files, validation output, and manual QA checklist for the next pass: `docs/internal/hand-off/HANDOFF_DUNGEON_PANEL_SIDEBAR_2026-02-14.md`.
-- Update 2026-02-14 (imgui-frontend-engineer): added right-sidebar keyboard cycling (`View: Previous Right Panel` / `View: Next Right Panel`, default `Ctrl+Alt+[` / `Ctrl+Alt+]`) plus `RightPanelManager` cycle API/unit coverage (`RightPanelManagerTest`, 3/3 pass); validation: `cmake --build --preset mac-ai --target yaze_test_unit yaze_test_quick_unit_editor --parallel 8` and `ctest --test-dir build_ai -R yaze_test_quick_unit_editor` (116/116 pass).
+- Update 2026-02-14 (imgui-frontend-engineer): added right-sidebar keyboard cycling (`View: Previous Right Panel` / `View: Next Right Panel`, default `Ctrl+Alt+[` / `Ctrl+Alt+]`) plus `RightDrawerManager` cycle API/unit coverage (`RightDrawerManagerTest`, 3/3 pass); validation: `cmake --build --preset mac-ai --target yaze_test_unit yaze_test_quick_unit_editor --parallel 8` and `ctest --test-dir build_ai -R yaze_test_quick_unit_editor` (116/116 pass).
 - Update 2026-02-14 (imgui-frontend-engineer): polished Dungeon sidebar button spacing/alignment for narrow widths by switching workflow and category action controls to responsive stacked/full-width layout when space is constrained (retaining horizontal layout on wider panels); validation: `cmake --build --preset mac-ai --target yaze yaze_test_quick_unit_editor --parallel 8` and `ctest --test-dir build_ai -R yaze_test_quick_unit_editor` (116/116 pass).
 - Update 2026-02-14 (imgui-frontend-engineer): follow-up spacing polish in `ActivityBar` now uses theme-aware compact gaps for search/workflow/action/pin rows, clamps narrow-width button sizing, and aligns panel row hit targets to pin-button height for cleaner density; validation: `cmake --build --preset mac-ai --target yaze --parallel 8` and `ctest --test-dir build_ai -R yaze_test_quick_unit_editor --output-on-failure` (116/116 pass).
 
@@ -169,20 +172,20 @@
 
 ### 2026-02-14 imgui-frontend-engineer – Motion Profile + Reduced Motion
 - COMPLETE 2026-02-14 (imgui-frontend-engineer): added user-setting-backed reduced-motion + switch motion profiles (`Snappy`/`Standard`/`Relaxed`) in `UserSettings`, `SettingsPanel`, and `EditorManager` startup wiring.
-- Refactor: `Animator` now has shared motion policy (`MotionProfile`, profile-aware easing/speed, reduced-motion override), consumed by `PanelManager` editor-category fades and `RightPanelManager` slide transitions.
-- Validation: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8`; `./build/bin/Debug/yaze_test_unit --gtest_filter="AnimatorTest.*:UserSettingsLayoutDefaultsTest.*:PanelManagerPolicyTest.*"` (10/10 pass).
+- Refactor: `Animator` now has shared motion policy (`MotionProfile`, profile-aware easing/speed, reduced-motion override), consumed by `WorkspaceWindowManager` editor-category fades and `RightDrawerManager` slide transitions.
+- Validation: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8`; `./build/bin/Debug/yaze_test_unit --gtest_filter="AnimatorTest.*:UserSettingsLayoutDefaultsTest.*:WorkspaceWindowManagerPolicyTest.*"` (10/10 pass).
 - Deploy: synced `build/bin/Debug/yaze.app` to `/Applications/yaze.app` via `rsync -a --delete`; verified app binary hash parity.
 
 ### 2026-02-14 imgui-frontend-engineer – Space-Switch Animation + Panel Host Cleanup
 - COMPLETE 2026-02-14 (imgui-frontend-engineer): fixed transition lifecycle safety in `Animator` (`ApplyPanelTransitionPre/Post` now balanced; added `ClearAllAnimations`) to prevent stale style/alpha state.
-- Added host-visibility hooks (`Controller` -> `EditorManager` -> `RightPanelManager`) to snap transient animations on focus/minimize/space-switch events and avoid ghosted panel frames.
+- Added host-visibility hooks (`Controller` -> `EditorManager` -> `RightDrawerManager`) to snap transient animations on focus/minimize/space-switch events and avoid ghosted panel frames.
 - UX polish: double-click reset + width tooltip for left sidebar, panel-browser splitter, and right sidebar splitter (VSCode-style resizing ergonomics).
-- Refactor: `PanelHost::RegisterPanels(...)` batch API and declarative `RegisterEmulatorPanels()` path; validation: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8` and `yaze_test_unit --gtest_filter="AnimatorTest.*:PanelManagerPolicyTest.*"` (5/5 pass).
+- Refactor: `PanelHost::RegisterPanels(...)` batch API and declarative `RegisterEmulatorPanels()` path; validation: `cmake --build --preset dev --target yaze yaze_test_unit --parallel 8` and `yaze_test_unit --gtest_filter="AnimatorTest.*:WorkspaceWindowManagerPolicyTest.*"` (5/5 pass).
 
 ### 2026-02-14 imgui-frontend-engineer – Welcome Screen + Sidebar State Polish
 - COMPLETE 2026-02-14 (imgui-frontend-engineer): restored Welcome release history entries for `0.5.6` and `0.5.5`, and moved theme quick-switch out of the top-right header into the Release History section.
 - Header cleanup: shortened the version line, switched subtitle/version text to semantic theme colors, softened the separator line, and fixed decorative triforce positioning to use title width.
-- Sidebar polish: menu-bar sidebar toggle icon now reads `PanelManager::IsSidebarVisible()` directly to prevent stale closed-icon display.
+- Sidebar polish: menu-bar sidebar toggle icon now reads `WorkspaceWindowManager::IsSidebarVisible()` directly to prevent stale closed-icon display.
 - Validation: `cmake --build --preset dev --target yaze --parallel 8`.
 
 ### 2026-02-14 backend-infra-engineer – 0.6.0 UI + z3ed TUI Removal
@@ -240,20 +243,20 @@
 ### 2026-02-13 imgui-frontend-engineer – Layout Defaults Override + Panel Sizing Refresh
 - COMPLETE 2026-02-13 (imgui-frontend-engineer): added revisioned panel-layout defaults migration (`UserSettings::ApplyPanelLayoutDefaultsRevision`) that force-overrides legacy persisted panel/layout state and triggers `ResetWorkspaceLayout` once.
 - Increased default panel ergonomics: wider left side panel, wider panel-browser category column/window defaults, relaxed right-panel min/max sizing, and updated DockBuilder split ratios for editor layouts.
-- Validation: `cmake --build --preset dev --parallel 8` + `./build/bin/Debug/yaze_test_unit --gtest_filter="UserSettingsLayoutDefaultsTest.*:PanelWindowTest.*:PanelManagerPolicyTest.*:EditorManagerTest.*:EditorManagerRomWritePolicyTest.*:EditorManagerOracleRomSafetyTest.*"`.
+- Validation: `cmake --build --preset dev --parallel 8` + `./build/bin/Debug/yaze_test_unit --gtest_filter="UserSettingsLayoutDefaultsTest.*:PanelWindowTest.*:WorkspaceWindowManagerPolicyTest.*:EditorManagerTest.*:EditorManagerRomWritePolicyTest.*:EditorManagerOracleRomSafetyTest.*"`.
 - Deploy: replaced `/Applications/yaze.app` with `build/bin/Debug/yaze.app` and verified `shasum` parity.
 
 ### 2026-02-13 imgui-frontend-engineer – Panel Browser Persistence + Agent Chat Focus
-- COMPLETE 2026-02-13 (imgui-frontend-engineer): persisted panel-browser category splitter width via `PanelManager` + `UserSettings`, and wired `ShowChatHistory()` to open/focus Agent Chat sidebar + mark panel MRU.
-- Scope: `activity_bar`, `panel_manager`, `editor_manager`, `agent_ui_controller`, and architecture docs.
-- Validation: `cmake --build --preset dev --parallel 8` and `./build/bin/Debug/yaze_test_unit --gtest_filter="PanelWindowTest.*:PanelManagerPolicyTest.*:EditorManagerTest.*:EditorManagerRomWritePolicyTest.*:EditorManagerOracleRomSafetyTest.*"` (11/11 pass).
+- COMPLETE 2026-02-13 (imgui-frontend-engineer): persisted panel-browser category splitter width via `WorkspaceWindowManager` + `UserSettings`, and wired `ShowChatHistory()` to open/focus Agent Chat sidebar + mark panel MRU.
+- Scope: `activity_bar`, `window_manager`, `editor_manager`, `agent_ui_controller`, and architecture docs.
+- Validation: `cmake --build --preset dev --parallel 8` and `./build/bin/Debug/yaze_test_unit --gtest_filter="PanelWindowTest.*:WorkspaceWindowManagerPolicyTest.*:EditorManagerTest.*:EditorManagerRomWritePolicyTest.*:EditorManagerOracleRomSafetyTest.*"` (11/11 pass).
 - Deploy: replaced `/Applications/yaze.app` with `build/bin/Debug/yaze.app` (old bundle moved to `/Applications/yaze.app.predeploy-20260213-121444`), verified `shasum` parity.
 
 ### 2026-02-13 imgui-frontend-engineer – Panel Identity + Resizable Sidebars
-- COMPLETE 2026-02-13 (imgui-frontend-engineer): unified panel identity around `PanelDescriptor::GetImGuiWindowName()` and routed docking/focus lookups through `PanelManager::GetPanelWindowName(...)` in layout and sidebar flows.
+- COMPLETE 2026-02-13 (imgui-frontend-engineer): unified panel identity around `WindowDescriptor::GetImGuiWindowName()` and routed docking/focus lookups through `WorkspaceWindowManager::GetPanelWindowName(...)` in layout and sidebar flows.
 - Added persisted, configurable widths for both sidebars (left activity side panel + right panel types), including drag splitters and settings serialization (`sidebar.panel_width`, `layouts.right_panel_widths`).
 - Reworked panel browser to VSCode-style split navigation with draggable category splitter and category-scoped show/hide controls; added agent quick actions to open chat/proposals right sidebars.
-- Validation: `cmake --build --preset dev --parallel 4`, `cmake --preset mac-test`, `cmake --build --preset mac-test --target yaze_test_unit --parallel 4`, and `ctest --preset fast -R 'PanelManagerPolicyTest|ObjectTileEditorTest' --output-on-failure` (5/5 pass).
+- Validation: `cmake --build --preset dev --parallel 4`, `cmake --preset mac-test`, `cmake --build --preset mac-test --target yaze_test_unit --parallel 4`, and `ctest --preset fast -R 'WorkspaceWindowManagerPolicyTest|ObjectTileEditorTest' --output-on-failure` (5/5 pass).
 - Deploy: copied `build/bin/RelWithDebInfo/yaze.app` to `/Applications/yaze.app` and verified binary hash match (`shasum` parity).
 
 ### 2026-02-13 imgui-frontend-engineer – Object/Message Editor Follow-up
@@ -276,7 +279,7 @@
 - Validation update: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` succeeded again at 2026-02-11 07:58 local after SwiftUI integration changes.
 - Validation update: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` succeeded again at 2026-02-11 08:05 local after compact iOS nav-FAB stabilization (`ui_coordinator.cc`: fixed-size touch target + anchored popup placement above button).
 - Validation update: `./scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"` succeeded again at 2026-02-11 08:19 local after Claude-pass reconciliation: iOS editor-state bridge now uses owned `std::string` snapshot values (no dangling `c_str()`), and compact-mode iOS layout switched to hysteresis-based thresholds in both `ui_coordinator` and `layout_manager` to reduce resize flicker/thrash.
-- Note: concurrent agent edits touched `controller.cc`, `activity_bar.cc`, and `right_panel_manager.cc` immediately after deploy; this pass includes merge-safe notes in AFS scratchpad.
+- Note: concurrent agent edits touched `controller.cc`, `activity_bar.cc`, and `right_drawer_manager.cc` immediately after deploy; this pass includes merge-safe notes in AFS scratchpad.
 
 ### 2026-02-11 CODEX – iOS Deploy Guardrail Fixes
 - COMPLETE 2026-02-11 (CODEX): fixed iOS follow-up regressions after `2aa18f22` by importing UIKit feedback symbols in `ios_platform_state.mm` and updating ImGui field rename in `ios_window_backend.mm` (`TabCloseButtonMinWidthUnselected`).
@@ -351,7 +354,7 @@
 - COMPLETE 2026-02-07 (ai-infra-architect): added ZScream-style Overworld "Fill Screen" tool (toolbar + `F`, brush toggle `B`), fixed overworld tile XY indexing + DW/SW local-map placement, made ROM saves more resilient (temp-write + rename + best-effort `fsync`), and polished UI UX (right panel slide animation, theme preview/density + smooth theme transitions, quick layout preset menu). Added parity doc `docs/internal/agents/overworld-ux-parity-matrix.md`; ran `ctest --test-dir build_agent -C RelWithDebInfo -L stable` (692 passed; disabled/skipped excluded).
 
 ### 2026-02-07 imgui-frontend-engineer – Dungeon Workbench + Panel Scopes
-- Update 2026-02-07 (imgui-frontend-engineer): shipped Workbench + Inspector (Steps 1-3) + started Step 5 by extending `PanelDescriptor` with explicit lifecycle/category fields and context scope, fixing editor-switch hiding for descriptor-only panels, and wiring `ShowPanel/HidePanel` to call `EditorPanel::OnOpen/OnClose`. Added unit coverage (`test/unit/editor/panel_manager_policy_test.cc`) and fixed macOS system gRPC configure by ensuring `OpenSSL::SSL` targets exist (`cmake/dependencies/grpc.cmake`). Ran `ctest --test-dir build_ai -C Debug -L stable` (100% pass).
+- Update 2026-02-07 (imgui-frontend-engineer): shipped Workbench + Inspector (Steps 1-3) + started Step 5 by extending `WindowDescriptor` with explicit lifecycle/category fields and context scope, fixing editor-switch hiding for descriptor-only panels, and wiring `ShowPanel/HidePanel` to call `WindowContent::OnOpen/OnClose`. Added unit coverage (`test/unit/editor/workspace_window_manager_policy_test.cc`) and fixed macOS system gRPC configure by ensuring `OpenSSL::SSL` targets exist (`cmake/dependencies/grpc.cmake`). Ran `ctest --test-dir build_ai -C Debug -L stable` (100% pass).
 - Update 2026-02-07 (imgui-frontend-engineer): implemented Step 6 Workbench MRU room tabs + split compare view; fixed room header button clipping (line height) and added read-only header mode for compare panes. Ran `ctest --test-dir build_ai -C Debug -R DungeonEditorV2IntegrationTest` (pass) and installed nightly `v0.5.6-gc495d083` (`/Users/scawful/Applications/Yaze Nightly.app`).
 - Update 2026-02-07 (imgui-frontend-engineer): refactored `DungeonWorkbenchPanel` into `.h/.cc` to reduce header bloat, and tweaked the MRU tab strip padding to avoid icon/button clipping. Ran `ctest --test-dir build_ai -C Debug -R DungeonEditorV2IntegrationTest` (pass) and installed nightly `v0.5.6-g8d838df0`.
 - Update 2026-02-07 (imgui-frontend-engineer): Workbench split-compare UX polish: state persisted per session (previous/split/compare), added “compare previous room” shortcut in MRU strip, and added compare picker (MRU + search). Ran `ctest --test-dir build_ai -C Debug -R DungeonEditorV2IntegrationTest` (pass) and installed nightly `v0.5.6-g2c954141`.
@@ -578,14 +581,14 @@
 
 ### 2026-01-23 imgui-frontend-engineer – Editor review sweep tracking
 - TASK: Create tracking + systematically review all editor surfaces with layout/panel validation.
-- SCOPE: src/app/editor/*, src/app/editor/ui/*, layout + panel persistence.
+- SCOPE: src/app/editor/*, src/app/editor/shell/*, layout + panel persistence.
 - STATUS: IN_PROGRESS
 - INITIATIVE_DOC: docs/internal/agents/initiative-editor-review-2026-01.md
 - NOTES: Local smoke build `mac-ai` completed (143s). Warnings only (SDL2 deprecations, asar sprintf, duplicate libs during link). Updated Tile16 palette slot expectations + BuildTool default build dir test; `yaze_test_stable` full run: 694 passed, 114 skipped (ROM missing), 0 failed. Screen editor: removed hardcoded error colors + boss outline now uses theme. Sprite editor: fixed tab add flags, safe stat parsing, selection reset, per-sprite save paths. Emulator: visibility now checks any emulator panel; added virtual controller to layout presets. Agent: synced profile UI buffers + host summary; LM Studio quick actions + OpenAI base normalization; knowledge panel in presets.
 
 ### 2026-01-22 imgui-frontend-engineer – ROM gRPC hardening + iOS UX + welcome screen refresh
 - TASK: Harden RomService RPCs (proposal routing, version-aware reads), continue iPad UI fixes, and modernize welcome screen.
-- SCOPE: src/app/service/rom_service_impl.cc, src/ios/*, src/app/platform/ios/*, src/app/gfx/backend/metal_renderer.mm, src/app/editor/ui/welcome_screen.*, src/app/editor/menu/menu_orchestrator.cc, src/app/controller.cc.
+- SCOPE: src/app/service/rom_service_impl.cc, src/ios/*, src/app/platform/ios/*, src/app/gfx/backend/metal_renderer.mm, src/app/editor/shell/coordinator/welcome_screen.*, src/app/editor/menu/menu_orchestrator.cc, src/app/controller.cc.
 - STATUS: IN_PROGRESS
 - NOTES: Added proposal routing + GameData-backed dungeon/overworld reads; welcome screen refresh (release history + project tools, AI button removed, responsive sizing); Agent Workspace menu entry; fixed black-screen regression (clear before ImGui). In progress: iOS overlay safe-area tweaks + mobile nav container polish; welcome/dashboard gating + resizing; Metal RGBA + streaming lock to fix iOS color. Updated activity bar icon visibility + selection highlight, template layout stacks on narrow screens, editor selection dialog resizes on iPad. Added iOS overlay menu (quick actions + compact mode) + bridge actions for project management/panel browser. Added iOS native menu + key commands (UICommand/Notification bridge), simplified top bar to centered capsule, moved actions into grid menu, and reduced touch resize sensitivity. Message editor: added font atlas fallback palette + safer font data load + lazy preview rebuild. Activity bar category selection now switches editors; fixed overworld area-graphics panel id. Tracking remaining issues: side-menu icon fade (verify), iOS color/touch/top-bar overlap. Now addressing welcome state input gating + AI settings (provider keys + model paths) + LM Studio model discovery.
 
@@ -609,9 +612,9 @@
 
 ### 2026-01-19 imgui-frontend-engineer – ContentRegistry panel scope + frame events
 - TASK: Add global/session panel scope, register registry panels per session, move deferred actions to GUI-safe frame event, and add coverage.
-- SCOPE: src/app/editor/system/panel_manager.*, src/app/editor/events/core_events.h, src/app/controller.cc, src/app/editor/editor_manager.cc, src/app/test/core_systems_test_suite.h, src/app/editor/core/content_registry.cc, src/app/editor/ui/about_panel.h.
+- SCOPE: src/app/editor/system/workspace/workspace_window_manager.*, src/app/editor/events/core_events.h, src/app/controller.cc, src/app/editor/editor_manager.cc, src/app/test/core_systems_test_suite.h, src/app/editor/registry/content_registry.cc, src/app/editor/shell/windows/about_panel.h.
 - STATUS: COMPLETE
-- NOTES: Added PanelScope + registry panel registration path; published FrameGuiBeginEvent after dockspace; added panel scope smoke test; avoid ContentRegistry factory lock while creating panels.
+- NOTES: Added WindowScope + registry panel registration path; published FrameGuiBeginEvent after dockspace; added panel scope smoke test; avoid ContentRegistry factory lock while creating panels.
 
 ### 2026-01-12 backend-infra-engineer – v0.5.0 release artifact cleanup
 - TASK: Clean up release artifacts (README, Windows DLL bloat, remove test helpers) and align docs/changelog for portable zip.
@@ -621,7 +624,7 @@
 
 ### 2026-01-12 imgui-frontend-engineer – v0.5.1 UX + .yaze consolidation
 - TASK: Improve user-facing error handling/tooltips/feature status across editors + settings/shortcuts/project mgmt UX; consolidate .yaze storage across desktop/CLI/wasm; standardize version update workflow.
-- SCOPE: src/app/editor/ui, src/app/editor/menu, src/app/platform, src/util/platform_paths.*, src/web, docs/public, scripts.
+- SCOPE: src/app/editor/shell, src/app/editor/menu, src/app/platform, src/util/platform_paths.*, src/web, docs/public, scripts.
 - STATUS: COMPLETE
 - NOTES: Added feature status + shortcut search UX, storage info panel, .yaze path consolidation for app/CLI/web, VERSION source-of-truth, and refreshed release/docs + coverage report.
 
@@ -664,7 +667,7 @@
 
 ### 2025-12-26 imgui-frontend-engineer – Mobile layout + nav pass
 - TASK: Improve iPad layout (responsive welcome cards + panel width clamps), add mobile nav switcher, tune iOS touch sizing, and track per-edge safe areas.
-- SCOPE: src/app/editor/ui/welcome_screen.*, src/app/editor/menu/right_panel_manager.cc, src/app/editor/menu/activity_bar.cc, src/app/editor/layout/layout_coordinator.cc, src/app/editor/ui/ui_coordinator.*, src/app/platform/ios/ios_window_backend.mm, src/app/platform/ios/ios_platform_state.*
+- SCOPE: src/app/editor/shell/coordinator/welcome_screen.*, src/app/editor/menu/right_drawer_manager.cc, src/app/editor/menu/activity_bar.cc, src/app/editor/layout/layout_coordinator.cc, src/app/editor/shell/coordinator/ui_coordinator.*, src/app/platform/ios/ios_window_backend.mm, src/app/platform/ios/ios_platform_state.*
 - STATUS: COMPLETE
 - NOTES: Compact layout uses floating nav button; right/side panels clamp to viewport; safe-area insets stored for per-edge use.
 
@@ -676,7 +679,7 @@
 
 ### 2025-12-25 imgui-frontend-engineer – Dashboard responsive layout pass
 - TASK: Rebuild dashboard/editor selection grid layout for responsive sizing + theme-based colors.
-- SCOPE: src/app/editor/ui/dashboard_panel.cc, src/app/editor/ui/editor_selection_dialog.cc
+- SCOPE: src/app/editor/shell/windows/dashboard_panel.cc, src/app/editor/shell/dialogs/editor_selection_dialog.cc
 - STATUS: COMPLETE
 - NOTES: z3ed CLI not available; tracking sub-steps locally.
 
@@ -719,7 +722,7 @@
 
 ### 2025-12-24 backend-infra-engineer – iOS file dialog async + bundle assets
 - TASK: Fix iOS file picker re-entrancy and ensure bundled assets are discoverable.
-- SCOPE: src/app/platform/file_dialog.*, src/app/editor/editor_manager.cc, src/app/editor/ui/ui_coordinator.cc, src/util/platform_paths.cc, src/ios/project.yml.
+- SCOPE: src/app/platform/file_dialog.*, src/app/editor/editor_manager.cc, src/app/editor/shell/coordinator/ui_coordinator.cc, src/util/platform_paths.cc, src/ios/project.yml.
 - STATUS: COMPLETE
 - NOTES: Added async open dialog API; iOS ROM/project flows now async; assets copied into bundle for fonts/themes; iOS config/docs paths use sandbox via YAZE_IOS guard (avoid /.yaze).
 
@@ -872,7 +875,7 @@
 
 ### 2025-11-30 CLAUDE_OPUS – Card→Panel Terminology Refactor (Continuation)
 - TASK: Complete remaining Card→Panel rename across codebase after multi-agent refactor
-- SCOPE: editor_manager.cc, layout_manager.cc, layout_orchestrator.cc/.h, popup_manager.cc, panel_manager.cc
+- SCOPE: editor_manager.cc, layout_manager.cc, layout_orchestrator.cc/.h, popup_manager.cc, workspace_window_manager.cc
 - STATUS: COMPLETE
 - NOTES: Fixed field renames (default_visible_cards→default_visible_panels, card_positions→panel_positions, optional_cards→optional_panels), method renames (GetDefaultCards→GetDefaultPanels, ShowPresetCards→ShowPresetPanels, GetVisibleCards→GetVisiblePanels, HideOptionalCards→HideOptionalPanels), and call sites. Build successful 510/510.
 
@@ -928,7 +931,7 @@
 
 ### 2025-11-26 ui-architect – Menu Bar & Right Panel UI/UX Overhaul
 - TASK: Fix menubar button styling, right panel header, add styling helpers
-- SCOPE: ui_coordinator.cc, right_panel_manager.cc, editor_manager.cc
+- SCOPE: shell/coordinator/ui_coordinator.cc, menu/right_drawer_manager.cc, editor_manager.cc
 - STATUS: PARTIAL (one issue remaining)
 - NOTES: Unified button styling, responsive menubar, enhanced panel header with Escape-to-close, styling helpers for panel content. Fixed placeholder sidebar width mismatch.
 - REMAINING: Right menu icons still shift when panel opens (dockspace resizes). See [handoff-menubar-panel-ui.md](handoff-menubar-panel-ui.md)
