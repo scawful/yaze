@@ -28,16 +28,17 @@ namespace editor {
 
 /**
  * @class ObjectEditorPanel
- * @brief Unified panel for dungeon object editing
+ * @brief Unified panel for dungeon object selection, editing, and inspection
  *
- * This panel combines object selection, emulator preview, and canvas
- * interaction into a single WindowContent component. It provides a complete
- * workflow for managing dungeon objects.
+ * This panel combines object selection, object property editing, and static
+ * object inspection into a single WindowContent component. It provides a
+ * focused workflow for browsing objects, placing them on the room canvas,
+ * and editing selected objects without a separate preview-only region.
  *
  * Features:
  * - Object browser with graphical previews
  * - Static object editor (opened via double-click)
- * - Emulator-based preview rendering
+ * - Inline placement previews via the canvas/object grid
  * - Object templates for common patterns
  * - Unified canvas context menu integration (Cut/Copy/Paste/Duplicate/Delete)
  * - Keyboard shortcuts for efficient editing
@@ -57,11 +58,11 @@ class ObjectEditorPanel : public WindowContent {
   // ==========================================================================
 
   std::string GetId() const override { return "dungeon.object_editor"; }
-  std::string GetDisplayName() const override { return "Object Editor"; }
+  std::string GetDisplayName() const override { return "Object Selector"; }
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 60; }
-  float GetPreferredWidth() const override { return 500.0f; }
+  float GetPreferredWidth() const override { return 560.0f; }
 
   // ==========================================================================
   // WindowContent Drawing
@@ -161,7 +162,8 @@ class ObjectEditorPanel : public WindowContent {
   // Drawing methods
   void DrawObjectSelector();
   void DrawDoorSection();
-  void DrawEmulatorPreview();
+  void DrawInteractionSummary();
+  void DrawObjectEditorSection();
   void DrawSelectedObjectInfo();
   void DrawStaticObjectEditor();
   void DrawRoomValidationBar();

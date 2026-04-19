@@ -523,16 +523,24 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   int total_objects =
       (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
-  // Preview toggle (disabled by default for performance)
-  ImGui::Checkbox(ICON_MD_IMAGE " Previews", &enable_object_previews_);
+  ImGui::TextDisabled("%d objects", total_objects);
+  ImGui::SameLine();
+  ImGui::Checkbox(ICON_MD_IMAGE " Tile thumbnails", &enable_object_previews_);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Enable to show actual object graphics.\n"
-        "Requires a room to be loaded.\n"
-        "May impact performance.");
+        "Show rendered object thumbnails in the selector.\n"
+        "Requires a room to be loaded and may cost some performance.");
   }
-  ImGui::SameLine();
-  ImGui::TextDisabled("(%d objects)", total_objects);
+
+  if (selected_object_id_ >= 0) {
+    ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Current: 0x%03X %s",
+                       selected_object_id_,
+                       zelda3::GetObjectName(selected_object_id_).c_str());
+  } else {
+    ImGui::TextColored(theme.text_secondary_gray,
+                       "Tip: click once to queue placement, double-click to "
+                       "inspect the draw routine.");
+  }
 
   // Search + category filter
   ImGui::SetNextItemWidth(-1.0f);
@@ -541,11 +549,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       object_search_buffer_, sizeof(object_search_buffer_));
   static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
                                         "Doors", "Decor", "Stairs"};
-  ImGui::SetNextItemWidth(160.0f);
+  ImGui::SetNextItemWidth(170.0f);
   ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                IM_ARRAYSIZE(kFilterLabels));
   ImGui::SameLine();
-  if (gui::ThemedButton(ICON_MD_CLEAR " Clear")) {
+  if (gui::ThemedButton(ICON_MD_CLEAR " Reset")) {
     object_search_buffer_[0] = '\0';
     object_type_filter_ = 0;
   }
@@ -802,6 +810,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
     EnsureCustomObjectsInitialized();
 
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
     // Custom Objects Section
     gui::StyleColorGuard custom_hdr_guard(
         {{ImGuiCol_Header,
@@ -812,6 +824,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                                                ImGuiTreeNodeFlags_DefaultOpen);
 
     if (custom_open) {
+      ImGui::TextColored(theme.text_secondary_gray,
+                         "Create, reload, and browse custom object variants "
+                         "separately from the vanilla selector.");
       // "+ New Custom Object" button
       if (tile_editor_panel_) {
         if (ImGui::SmallButton(ICON_MD_ADD " New Custom Object")) {
