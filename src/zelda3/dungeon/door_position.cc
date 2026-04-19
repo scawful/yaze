@@ -14,7 +14,7 @@ constexpr int TilemapOffsetToTileX(uint16_t offset) {
 }
 
 constexpr int TilemapOffsetToTileY(uint16_t offset) {
-  return static_cast<int>(offset / 0x80) - 4;
+  return static_cast<int>(offset / 0x80);
 }
 
 constexpr std::array<uint16_t, 12> kNorthDoorTilemapOffsets = {
@@ -65,15 +65,15 @@ const std::array<uint16_t, 12>& DoorTilemapOffsets(DoorDirection direction) {
 //   EastMiddle ($99C6): $07B4,$0FB4,$17B4,$07AE,$0FAE,$17AE (6 entries)
 //   EastWall ($99D2): $07F4,$0FF4,$17F4,$07EE,$0FEE,$17EE (6 entries)
 //
-// VRAM offset to room tile conversion:
-//   room_x = (offset % 0x80) / 2  (NO margin subtraction for editor bitmap)
-//   room_y = (offset / 0x80) - 4  (subtract 4-tile top margin for Y only)
-// Note: The 2-tile left margin should NOT be subtracted for the editor's
-// 64x64 tile bitmap, as the room content fills the entire bitmap.
+// VRAM offset to editor-room tile conversion:
+//   room_x = (offset % 0x80) / 2
+//   room_y = (offset / 0x80)
+// The editor's 64x64 room canvas already operates in room-space, so the
+// vertical margin from the VRAM tables must not be subtracted a second time.
 //
 // Room layout: 64x64 tiles divided into 4 quadrants (32x32 each)
-// X positions for N/S doors: 14, 30, 46 (left/center/right, +2 X offset from VRAM)
-// Y positions for E/W doors: 15, 31, 47 (distributed across 64 tiles, +4 Y offset from VRAM)
+// X positions for N/S doors: 14, 30, 46 (left/center/right)
+// Y positions for E/W doors: 15, 31, 47 (distributed across 64 tiles)
 [[maybe_unused]] constexpr int kDoorPosNorthAddr = 0x197E;
 [[maybe_unused]] constexpr int kDoorPosSouthAddr = 0x198A;
 [[maybe_unused]] constexpr int kDoorPosWestAddr = 0x1996;
@@ -89,9 +89,9 @@ std::vector<int> DoorPositionManager::GetSnapPositions(
     case DoorDirection::South:
       return {14, 30, 46};
     case DoorDirection::West:
-      return {11, 27, 43};
+      return {15, 31, 47};
     case DoorDirection::East:
-      return {11, 27, 43};
+      return {15, 31, 47};
   }
   return {};
 }
