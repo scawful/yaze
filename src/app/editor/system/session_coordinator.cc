@@ -25,7 +25,7 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "core/color.h"
 #include "editor/editor.h"
-#include "editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "editor/ui/toast_manager.h"
 #include "imgui/imgui.h"
 #include "util/log.h"

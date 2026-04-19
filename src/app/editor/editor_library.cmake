@@ -157,7 +157,7 @@ set(
   app/editor/system/rom_file_manager.cc
   app/editor/system/rom_lifecycle_manager.cc
   app/editor/system/session_coordinator.cc
-  app/editor/system/user_settings.cc
+  app/editor/system/session/user_settings.cc
 )
 
 set(

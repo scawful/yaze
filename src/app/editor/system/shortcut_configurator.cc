@@ -21,7 +21,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/editor/ui/ui_coordinator.h"

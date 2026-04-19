@@ -5,7 +5,7 @@
 
 #include "app/editor/editor.h"
 #include "app/editor/menu/status_bar.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "core/patch/patch_manager.h"
 #include "core/project.h"
 

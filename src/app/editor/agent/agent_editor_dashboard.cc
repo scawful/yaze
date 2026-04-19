@@ -20,7 +20,7 @@
 #include "app/editor/agent/panels/mesen_screenshot_panel.h"
 #include "app/editor/agent/panels/oracle_state_library_panel.h"
 #include "app/editor/agent/panels/sram_viewer_panel.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"

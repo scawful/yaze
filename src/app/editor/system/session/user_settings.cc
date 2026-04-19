@@ -1,4 +1,4 @@
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -1160,6 +1160,40 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
       dungeon_windows["dungeon.door_editor"] = true;
     }
     prefs_.panel_layout_defaults_revision = 9;
+    applied = true;
+  }
+
+  if (prefs_.panel_layout_defaults_revision < 10 && target_revision >= 10) {
+    auto graphics_it = prefs_.panel_visibility_state.find("Graphics");
+    if (graphics_it != prefs_.panel_visibility_state.end()) {
+      auto& graphics_windows = graphics_it->second;
+      graphics_windows["graphics.prototype_viewer"] = true;
+    }
+    prefs_.panel_layout_defaults_revision = 10;
+    applied = true;
+  }
+
+  if (prefs_.panel_layout_defaults_revision < 11 && target_revision >= 11) {
+    auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      const bool legacy_object_surface =
+          dungeon_windows.contains("dungeon.object_editor")
+              ? dungeon_windows["dungeon.object_editor"]
+              : true;
+      dungeon_windows["dungeon.object_selector"] = legacy_object_surface;
+    }
+    prefs_.panel_layout_defaults_revision = 11;
+    applied = true;
+  }
+
+  if (prefs_.panel_layout_defaults_revision < 12 && target_revision >= 12) {
+    auto graphics_it = prefs_.panel_visibility_state.find("Graphics");
+    if (graphics_it != prefs_.panel_visibility_state.end()) {
+      auto& graphics_windows = graphics_it->second;
+      graphics_windows["graphics.polyhedral"] = false;
+    }
+    prefs_.panel_layout_defaults_revision = 12;
     applied = true;
   }
 
