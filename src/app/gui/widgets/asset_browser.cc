@@ -69,7 +69,7 @@ void GfxSheetAssetBrowser::Draw(
       0.0f, LayoutOuterPadding +
                 LayoutLineCount * (LayoutItemSize.x + LayoutItemSpacing)));
   if (BeginChild("Assets", ImVec2(0.0f, -GetTextLineHeightWithSpacing()),
-                 ImGuiChildFlags_Border, ImGuiWindowFlags_NoMove)) {
+                 ImGuiChildFlags_Borders, ImGuiWindowFlags_NoMove)) {
     ImDrawList* draw_list = GetWindowDrawList();
 
     const float avail_width = GetContentRegionAvail().x;

@@ -10,8 +10,6 @@
 #include "cli/service/ai/service_factory.h"
 #include "rom/rom.h"
 
-namespace yaze::cli {
-
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
@@ -20,28 +18,30 @@ ABSL_DECLARE_FLAG(std::string, ollama_host);
 ABSL_DECLARE_FLAG(std::string, openai_base_url);
 ABSL_DECLARE_FLAG(std::string, rom);
 
+namespace yaze::cli {
+
 namespace {
 
-bool IsLikelyOracleRomPath(absl::string_view rom_path) {
+bool IsLikelyOracleRomPath(::absl::string_view rom_path) {
   if (rom_path.empty()) {
     return false;
   }
-  const std::string lowered = absl::AsciiStrToLower(std::string(rom_path));
-  return absl::StrContains(lowered, "oracle") ||
-         absl::StrContains(lowered, "oos");
+  const std::string lowered = ::absl::AsciiStrToLower(std::string(rom_path));
+  return ::absl::StrContains(lowered, "oracle") ||
+         ::absl::StrContains(lowered, "oos");
 }
 
 }  // namespace
 
 AIServiceConfig BuildAIServiceConfigFromFlags() {
   AIServiceConfig config;
-  config.provider = absl::GetFlag(FLAGS_ai_provider);
-  config.model = absl::GetFlag(FLAGS_ai_model);
-  config.gemini_api_key = absl::GetFlag(FLAGS_gemini_api_key);
-  config.anthropic_api_key = absl::GetFlag(FLAGS_anthropic_api_key);
-  config.ollama_host = absl::GetFlag(FLAGS_ollama_host);
-  config.openai_base_url = absl::GetFlag(FLAGS_openai_base_url);
-  config.rom_path_hint = absl::GetFlag(FLAGS_rom);
+  config.provider = ::absl::GetFlag(FLAGS_ai_provider);
+  config.model = ::absl::GetFlag(FLAGS_ai_model);
+  config.gemini_api_key = ::absl::GetFlag(FLAGS_gemini_api_key);
+  config.anthropic_api_key = ::absl::GetFlag(FLAGS_anthropic_api_key);
+  config.ollama_host = ::absl::GetFlag(FLAGS_ollama_host);
+  config.openai_base_url = ::absl::GetFlag(FLAGS_openai_base_url);
+  config.rom_path_hint = ::absl::GetFlag(FLAGS_rom);
   return config;
 }
 
@@ -71,9 +71,9 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig&) {
   return std::make_unique<MockAIService>();
 }
 
-absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
+::absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     const AIServiceConfig&) {
-  return absl::FailedPreconditionError(
+  return ::absl::FailedPreconditionError(
       "AI runtime features are disabled in this build");
 }
 

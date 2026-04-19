@@ -10,6 +10,7 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/events/core_events.h"
+#include "app/editor/system/editor_panel.h"
 #include "app/editor/system/panel_manager.h"
 #include "app/test/test_manager.h"
 #include "rom/rom.h"
@@ -69,8 +70,8 @@ class CoreSystemsTestSuite : public TestSuite {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    TestResult result = CreateResult("ContentRegistry_Context_SetRom",
-                                     start_time);
+    TestResult result =
+        CreateResult("ContentRegistry_Context_SetRom", start_time);
 
     try {
       // Save original state
@@ -83,7 +84,8 @@ class CoreSystemsTestSuite : public TestSuite {
       Rom* retrieved = editor::ContentRegistry::Context::rom();
       if (retrieved == &test_rom) {
         result.status = TestStatus::kPassed;
-        result.error_message = "ContentRegistry::Context::SetRom works correctly";
+        result.error_message =
+            "ContentRegistry::Context::SetRom works correctly";
       } else {
         result.status = TestStatus::kFailed;
         result.error_message = "ContentRegistry returned wrong ROM pointer";
@@ -109,8 +111,8 @@ class CoreSystemsTestSuite : public TestSuite {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    TestResult result = CreateResult("ContentRegistry_Context_Clear",
-                                     start_time);
+    TestResult result =
+        CreateResult("ContentRegistry_Context_Clear", start_time);
 
     try {
       // Save original state
@@ -124,10 +126,12 @@ class CoreSystemsTestSuite : public TestSuite {
       Rom* retrieved = editor::ContentRegistry::Context::rom();
       if (retrieved == nullptr) {
         result.status = TestStatus::kPassed;
-        result.error_message = "ContentRegistry::Context::Clear works correctly";
+        result.error_message =
+            "ContentRegistry::Context::Clear works correctly";
       } else {
         result.status = TestStatus::kFailed;
-        result.error_message = "ContentRegistry::Context::Clear did not reset ROM";
+        result.error_message =
+            "ContentRegistry::Context::Clear did not reset ROM";
       }
 
       // Restore original state
@@ -150,8 +154,8 @@ class CoreSystemsTestSuite : public TestSuite {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    TestResult result = CreateResult("ContentRegistry_Panel_Registration",
-                                     start_time);
+    TestResult result =
+        CreateResult("ContentRegistry_Panel_Registration", start_time);
 
     try {
       // Get current panel count
@@ -184,8 +188,8 @@ class CoreSystemsTestSuite : public TestSuite {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    TestResult result = CreateResult("ContentRegistry_Thread_Safety",
-                                     start_time);
+    TestResult result =
+        CreateResult("ContentRegistry_Thread_Safety", start_time);
 
     try {
       // Save original state
@@ -196,7 +200,8 @@ class CoreSystemsTestSuite : public TestSuite {
       bool all_reads_valid = true;
 
       for (int i = 0; i < 100; ++i) {
-        editor::ContentRegistry::Context::SetRom(i % 2 == 0 ? &test_rom1 : &test_rom2);
+        editor::ContentRegistry::Context::SetRom(i % 2 == 0 ? &test_rom1
+                                                            : &test_rom2);
         Rom* read = editor::ContentRegistry::Context::rom();
         if (read != &test_rom1 && read != &test_rom2) {
           all_reads_valid = false;
@@ -209,7 +214,8 @@ class CoreSystemsTestSuite : public TestSuite {
         result.error_message = "ContentRegistry handles rapid access patterns";
       } else {
         result.status = TestStatus::kFailed;
-        result.error_message = "ContentRegistry returned invalid pointer during rapid access";
+        result.error_message =
+            "ContentRegistry returned invalid pointer during rapid access";
       }
 
       // Restore original state
@@ -232,11 +238,11 @@ class CoreSystemsTestSuite : public TestSuite {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    TestResult result = CreateResult("PanelManager_Scope_Registration",
-                                     start_time);
+    TestResult result =
+        CreateResult("PanelManager_Scope_Registration", start_time);
 
     try {
-      class TestSessionPanel final : public editor::EditorPanel {
+      class TestSessionPanel final : public editor::WindowContent {
        public:
         std::string GetId() const override { return "test.session_panel"; }
         std::string GetDisplayName() const override { return "Test Session"; }
@@ -245,14 +251,14 @@ class CoreSystemsTestSuite : public TestSuite {
         void Draw(bool*) override {}
       };
 
-      class TestGlobalPanel final : public editor::EditorPanel {
+      class TestGlobalPanel final : public editor::WindowContent {
        public:
         std::string GetId() const override { return "test.global_panel"; }
         std::string GetDisplayName() const override { return "Test Global"; }
         std::string GetIcon() const override { return ""; }
         std::string GetEditorCategory() const override { return "Test"; }
-        editor::PanelScope GetScope() const override {
-          return editor::PanelScope::kGlobal;
+        editor::WindowScope GetScope() const override {
+          return editor::WindowScope::kGlobal;
         }
         void Draw(bool*) override {}
       };
@@ -333,7 +339,8 @@ class CoreSystemsTestSuite : public TestSuite {
       } else {
         result.status = TestStatus::kFailed;
         result.error_message = absl::StrFormat(
-            "EventBus failed: call_count=%d (expected 1), received=%d (expected 42)",
+            "EventBus failed: call_count=%d (expected 1), received=%d "
+            "(expected 42)",
             call_count, received_value);
       }
 
@@ -381,7 +388,8 @@ class CoreSystemsTestSuite : public TestSuite {
       } else {
         result.status = TestStatus::kFailed;
         result.error_message = absl::StrFormat(
-            "Unsubscribe failed: after_first=%d, after_second=%d (expected 1, 1)",
+            "Unsubscribe failed: after_first=%d, after_second=%d (expected 1, "
+            "1)",
             count_after_first, count_after_second);
       }
 
@@ -402,8 +410,8 @@ class CoreSystemsTestSuite : public TestSuite {
     }
 
     auto start_time = std::chrono::steady_clock::now();
-    TestResult result = CreateResult("EventBus_Multiple_Subscribers",
-                                     start_time);
+    TestResult result =
+        CreateResult("EventBus_Multiple_Subscribers", start_time);
 
     try {
       EventBus bus;
@@ -468,12 +476,12 @@ class CoreSystemsTestSuite : public TestSuite {
 
       if (rom_loaded_calls == 1 && session_closed_calls == 0) {
         result.status = TestStatus::kPassed;
-        result.error_message =
-            "EventBus correctly routes events by type";
+        result.error_message = "EventBus correctly routes events by type";
       } else {
         result.status = TestStatus::kFailed;
         result.error_message = absl::StrFormat(
-            "Type safety failed: rom_loaded=%d, session_closed=%d (expected 1, 0)",
+            "Type safety failed: rom_loaded=%d, session_closed=%d (expected 1, "
+            "0)",
             rom_loaded_calls, session_closed_calls);
       }
 
@@ -500,8 +508,10 @@ class CoreSystemsTestSuite : public TestSuite {
       // Test factory methods for all core event types
       auto rom_loaded = editor::RomLoadedEvent::Create(nullptr, "test.sfc", 1);
       auto rom_unloaded = editor::RomUnloadedEvent::Create(2);
-      auto rom_modified = editor::RomModifiedEvent::Create(nullptr, 3, 0x1000, 16);
-      auto session_switched = editor::SessionSwitchedEvent::Create(0, 1, nullptr);
+      auto rom_modified =
+          editor::RomModifiedEvent::Create(nullptr, 3, 0x1000, 16);
+      auto session_switched =
+          editor::SessionSwitchedEvent::Create(0, 1, nullptr);
       auto session_created = editor::SessionCreatedEvent::Create(4, nullptr);
       auto session_closed = editor::SessionClosedEvent::Create(5);
       auto editor_switched = editor::EditorSwitchedEvent::Create(1, nullptr);
@@ -527,11 +537,11 @@ class CoreSystemsTestSuite : public TestSuite {
 
       if (all_correct) {
         result.status = TestStatus::kPassed;
-        result.error_message =
-            "All core event factory methods work correctly";
+        result.error_message = "All core event factory methods work correctly";
       } else {
         result.status = TestStatus::kFailed;
-        result.error_message = "Some event factory methods returned wrong values";
+        result.error_message =
+            "Some event factory methods returned wrong values";
       }
 
     } catch (const std::exception& e) {
