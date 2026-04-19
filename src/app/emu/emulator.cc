@@ -255,6 +255,43 @@ bool Emulator::EnsureInitialized(Rom* rom) {
   return true;
 }
 
+absl::Status Emulator::ReloadRuntimeRom(const std::vector<uint8_t>& rom_data) {
+  if (rom_data.empty()) {
+    return absl::InvalidArgumentError("runtime ROM data is empty");
+  }
+
+  rom_data_ = rom_data;
+
+  // If the emulator window/runtime has not been initialized yet, keep the new
+  // ROM staged and let the normal lazy-init path consume it on first use.
+  if (!snes_initialized_) {
+    return absl::OkStatus();
+  }
+
+  snes_.Init(rom_data_);
+
+  const double frame_rate =
+      snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;
+  wanted_frames_ = 1.0 / frame_rate;
+  wanted_samples_ =
+      static_cast<int>(std::lround(kNativeSampleRate / frame_rate));
+
+  count_frequency = SDL_GetPerformanceFrequency();
+  last_count = SDL_GetPerformanceCounter();
+  time_adder = 0.0;
+  frame_count_ = 0;
+  fps_timer_ = 0.0;
+  current_fps_ = 0.0;
+  metric_history_head_ = 0;
+  metric_history_count_ = 0;
+
+  breakpoint_manager_.ClearAll();
+  disassembly_viewer_.Clear();
+
+  running_ = true;
+  return absl::OkStatus();
+}
+
 void Emulator::RunFrameOnly() {
   if (!snes_initialized_ || !running_) {
     return;
