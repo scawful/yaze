@@ -325,12 +325,12 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
 
-  EXPECT_TRUE(TileHasCoverage(bg1, 14, 0));
-  EXPECT_TRUE(TileHasCoverage(bg1, 17, 0));
-  EXPECT_TRUE(TileHasCoverage(bg1, 14, 3));
-  EXPECT_TRUE(TileHasCoverage(bg1, 17, 3));
-  EXPECT_FALSE(TileHasCoverage(bg1, 18, 0));
-  EXPECT_FALSE(TileHasCoverage(bg1, 14, 4));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 4));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 4));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 7));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 7));
+  EXPECT_FALSE(TileHasCoverage(bg1, 18, 4));
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 8));
   EXPECT_FALSE(TileHasCoverage(bg2, 14, 0));
 }
 
@@ -379,12 +379,12 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
 
-  EXPECT_TRUE(TileHasCoverage(bg1, 14, 0));
-  EXPECT_TRUE(TileHasCoverage(bg1, 17, 0));
-  EXPECT_TRUE(TileHasCoverage(bg1, 14, 3));
-  EXPECT_TRUE(TileHasCoverage(bg1, 17, 3));
-  EXPECT_FALSE(TileHasCoverage(bg1, 18, 0));
-  EXPECT_FALSE(TileHasCoverage(bg1, 14, 4));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 4));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 4));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 7));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 7));
+  EXPECT_FALSE(TileHasCoverage(bg1, 18, 4));
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 8));
   EXPECT_FALSE(TileHasCoverage(bg2, 14, 0));
 }
 
@@ -446,6 +446,96 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_TRUE(TileHasCoverage(bg1, 22, 34));
   EXPECT_FALSE(TileHasCoverage(bg1, 14, 0));
   EXPECT_FALSE(TileHasCoverage(bg2, 5, 23));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     NorthMiddleDoorsRenderBothSidesOfTheSeam) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorGfxNorthTableBase = 0x4D9E;
+  constexpr int kDoorGfxSouthTableBase = 0x4E06;
+  constexpr int kNorthObjectOffset = 0x0A00;
+  constexpr int kSouthObjectOffset = 0x0A20;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(dummy_rom, kDoorGfxNorthTableBase, kNorthObjectOffset);
+  WriteWord(dummy_rom, kDoorGfxSouthTableBase, kSouthObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kNorthObjectOffset,
+                           /*start_word=*/0x0800, /*word_count=*/12);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kSouthObjectOffset,
+                           /*start_word=*/0x0900, /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+  bg1.ClearCoverageBuffer();
+  bg2.ClearCoverageBuffer();
+
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::NormalDoor,
+      .direction = DoorDirection::North,
+      .position = 6,
+  };
+
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, nullptr);
+
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 36));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 38));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 39));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 39));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     WestMiddleDoorsRenderBothSidesOfTheSeam) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorGfxWestTableBase = 0x4E66;
+  constexpr int kDoorGfxEastTableBase = 0x4EC6;
+  constexpr int kWestObjectOffset = 0x0A40;
+  constexpr int kEastObjectOffset = 0x0A60;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(dummy_rom, kDoorGfxWestTableBase, kWestObjectOffset);
+  WriteWord(dummy_rom, kDoorGfxEastTableBase, kEastObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kWestObjectOffset,
+                           /*start_word=*/0x0A00, /*word_count=*/12);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kEastObjectOffset,
+                           /*start_word=*/0x0B00, /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+  bg1.ClearCoverageBuffer();
+  bg2.ClearCoverageBuffer();
+
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::NormalDoor,
+      .direction = DoorDirection::West,
+      .position = 6,
+  };
+
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, nullptr);
+
+  EXPECT_TRUE(TileHasCoverage(bg1, 34, 15));
+  EXPECT_TRUE(TileHasCoverage(bg1, 36, 18));
+  EXPECT_TRUE(TileHasCoverage(bg1, 37, 15));
+  EXPECT_TRUE(TileHasCoverage(bg1, 37, 18));
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

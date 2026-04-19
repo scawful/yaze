@@ -2205,6 +2205,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->SetCompactHeaderMode(true);
     viewer->SetRoomDetailsExpanded(false);
     viewer->SetHeaderVisible(false);
+    viewer->SetHeaderHiddenMetadataHudVisible(false);
     viewer->SetRooms(&rooms_);
     viewer->SetRenderer(renderer_);
     viewer->SetCurrentPaletteGroup(current_palette_group_);
@@ -2328,6 +2329,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer() {
     auto* viewer = workbench_compare_viewer_.get();
     viewer->SetCompactHeaderMode(true);
     viewer->SetRoomDetailsExpanded(false);
+    viewer->SetHeaderHiddenMetadataHudVisible(false);
     viewer->SetRooms(&rooms_);
     viewer->SetRenderer(renderer_);
     viewer->SetCurrentPaletteGroup(current_palette_group_);

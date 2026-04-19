@@ -301,13 +301,13 @@ void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size, bool compact) {
           : 0.0f;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float header_width = ImGui::GetContentRegionAvail().x;
-  const bool stack_mode_switch = header_width < 200.0f;
+  const bool stack_mode_switch = header_width < 240.0f;
   const float action_cluster_w =
       collapse_w + (can_open_overview ? (spacing + menu_w) : 0.0f);
 
   ImGui::AlignTextToFramePadding();
-  ImGui::TextDisabled("%s", compact ? ICON_MD_VIEW_SIDEBAR " Browse"
-                                    : ICON_MD_VIEW_SIDEBAR " Browser");
+  ImGui::TextDisabled("%s", compact ? ICON_MD_VIEW_SIDEBAR " Navigate"
+                                    : ICON_MD_VIEW_SIDEBAR " Navigation");
   ImGui::SameLine();
   ImGui::SetCursorPosX(std::max(
       ImGui::GetCursorPosX(),
@@ -337,7 +337,7 @@ void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size, bool compact) {
     layout_state_.show_left_sidebar = false;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Collapse navigation");
+    ImGui::SetTooltip("Collapse navigation pane");
   }
 
   ImGui::Spacing();
@@ -400,8 +400,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
       get_compare_viewer_ ? get_compare_viewer_() : nullptr;
   const float splitter_w = gui::UIConfig::kSplitterWidth;
   const float total_w = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
-  const float min_sidebar_w = gui::UIConfig::kContentMinWidthSidebar;
-  const float min_canvas_w = std::max(320.0f, min_sidebar_w + 120.0f);
+  const float min_sidebar_w =
+      std::max(gui::UIConfig::kContentMinWidthSidebar, 280.0f);
+  const float min_canvas_w = std::max(360.0f, min_sidebar_w + 80.0f);
   const ResponsiveWorkbenchLayout responsive = ResolveResponsiveWorkbenchLayout(
       total_w, min_canvas_w, min_sidebar_w, splitter_w,
       layout_state_.show_left_sidebar, layout_state_.show_right_inspector);
@@ -766,6 +767,11 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
 
   // Active pane (minimum height so canvas never collapses)
   ImGui::TableNextColumn();
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled(ICON_MD_CROP_FREE " Active  [%03X] %s",
+                      *current_room_id_,
+                      zelda3::GetRoomLabel(*current_room_id_).c_str());
+  ImGui::Separator();
   const bool split_active_open = gui::LayoutHelpers::BeginContentChild(
       "##SplitActive", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
   if (split_active_open) {
@@ -775,6 +781,11 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
 
   // Compare pane
   ImGui::TableNextColumn();
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS " Compare [%03X] %s",
+                      compare_room_id_,
+                      zelda3::GetRoomLabel(compare_room_id_).c_str());
+  ImGui::Separator();
   const bool split_compare_open = gui::LayoutHelpers::BeginContentChild(
       "##SplitCompare", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
   if (split_compare_open) {

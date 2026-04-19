@@ -25,7 +25,9 @@ namespace yaze::editor {
 namespace {
 
 constexpr float kInlineRoomNavMinToolbarWidth = 760.0f;
-constexpr float kTightCompareStackThreshold = 520.0f;
+constexpr float kCompactToolbarWidth = 1080.0f;
+constexpr float kUltraCompactToolbarWidth = 860.0f;
+constexpr float kTightCompareStackThreshold = 620.0f;
 
 class ScopedWorkbenchToolbar {
  public:
@@ -349,8 +351,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   bool request_panel_mode = false;
 
   const float toolbar_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
-  const bool compact_toolbar = toolbar_width < 960.0f;
-  const bool ultra_compact_toolbar = toolbar_width < 760.0f;
+  const bool compact_toolbar = toolbar_width < kCompactToolbarWidth;
+  const bool ultra_compact_toolbar = toolbar_width < kUltraCompactToolbarWidth;
   const float btn =
       ultra_compact_toolbar
           ? std::max(gui::LayoutHelpers::GetStandardWidgetHeight(),
@@ -423,10 +425,16 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       char title[192];
       snprintf(title, sizeof(title), "[%03X] %s", rid, room_label.c_str());
       ImGui::AlignTextToFramePadding();
+      const float title_width_cap =
+          ultra_compact_toolbar
+              ? 140.0f
+              : (compact_toolbar
+                     ? (*p.split_view_enabled ? 180.0f : 220.0f)
+                     : (*p.split_view_enabled ? 240.0f : 320.0f));
       const float title_width =
-          std::max(ImGui::GetContentRegionAvail().x, 80.0f);
+          std::clamp(ImGui::GetContentRegionAvail().x, 80.0f, title_width_cap);
       const std::string visible_title =
-          compact_toolbar ? TruncateToolbarLabel(title, title_width) : title;
+          TruncateToolbarLabel(title, title_width);
       ImGui::TextUnformatted(visible_title.c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", title);
