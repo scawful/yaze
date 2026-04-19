@@ -31,9 +31,14 @@ TEST(UserSettingsLayoutDefaultsTest, AppliesRevisionAndResetsPanelLayoutState) {
   EXPECT_TRUE(prefs.sidebar_active_category.empty());
 
   EXPECT_TRUE(prefs.panel_visibility_state.empty());
-  EXPECT_TRUE(prefs.pinned_panels.empty());
   EXPECT_TRUE(prefs.right_panel_widths.empty());
   EXPECT_TRUE(prefs.saved_layouts.empty());
+
+  // Revision-4 full-reset clears pinned_panels, but revision-7 seeds the two
+  // former-Persistent panels that have to stay always-visible by default.
+  EXPECT_EQ(prefs.pinned_panels.size(), 2U);
+  EXPECT_TRUE(prefs.pinned_panels.at("agent.oracle_ram"));
+  EXPECT_TRUE(prefs.pinned_panels.at("workflow.output"));
 }
 
 TEST(UserSettingsLayoutDefaultsTest, IgnoresOlderOrEqualRevisionRequests) {
@@ -149,19 +154,23 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_TRUE(prefs.pinned_panels.at("workflow.output"));
 }
 
-// An explicit user unpin from a previous session must not be clobbered by the
-// revision-7 auto-pin. try_emplace preserves whatever the user already chose.
-TEST(UserSettingsLayoutDefaultsTest, RevisionSevenRespectsExistingUnpinChoice) {
+// A pre-existing pinned=false entry for a former-Persistent panel was a silent
+// no-op under the old regime (the draw loop ignored pin state for Persistent),
+// so the revision-7 migration must OVERWRITE it — treating the stale value as
+// a user choice would make the upgrade visibly regress that panel's
+// always-visible behavior.
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionSevenOverwritesStaleUnpinFromPersistentEra) {
   UserSettings settings;
   auto& prefs = settings.prefs();
 
   prefs.panel_layout_defaults_revision = 6;
-  prefs.pinned_panels["agent.oracle_ram"] = false;  // user had unpinned it
-  prefs.pinned_panels["workflow.output"] = true;    // user already pinned it
+  prefs.pinned_panels["agent.oracle_ram"] = false;  // pre-migration no-op
+  prefs.pinned_panels["workflow.output"] = false;   // pre-migration no-op
 
   EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
       UserSettings::kLatestPanelLayoutDefaultsRevision));
-  EXPECT_FALSE(prefs.pinned_panels.at("agent.oracle_ram"));
+  EXPECT_TRUE(prefs.pinned_panels.at("agent.oracle_ram"));
   EXPECT_TRUE(prefs.pinned_panels.at("workflow.output"));
 }
 

@@ -1124,12 +1124,16 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
   }
 
   // Revision 7: WindowLifecycle::Persistent collapsed into CrossEditor.
-  // Auto-pin the two former-Persistent panels so existing users keep their
-  // always-visible behavior without manual intervention. A user who later
-  // unpins either gets a normal CrossEditor (category-gated) panel.
+  // Force-pin the two former-Persistent panels on upgrade so always-visible
+  // behavior carries through. We must overwrite an existing pinned=false
+  // entry here: under the old Persistent regime that value was a silent no-op
+  // (the draw loop ignored pin state for Persistent panels), so treating it
+  // as a "user choice" post-collapse would be a regression, not preservation.
+  // After the migration runs once, subsequent unpin actions ARE load-bearing
+  // and persist normally.
   if (prefs_.panel_layout_defaults_revision < 7 && target_revision >= 7) {
-    prefs_.pinned_panels.try_emplace("agent.oracle_ram", true);
-    prefs_.pinned_panels.try_emplace("workflow.output", true);
+    prefs_.pinned_panels["agent.oracle_ram"] = true;
+    prefs_.pinned_panels["workflow.output"] = true;
     prefs_.panel_layout_defaults_revision = 7;
     applied = true;
   }
