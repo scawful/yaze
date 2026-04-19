@@ -9,7 +9,7 @@ set(
   app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
   app/editor/hack/workflow/project_workflow_output_panel.cc
   app/editor/hack/workflow/workflow_activity_widgets.cc
-  app/editor/system/background_command_task.cc
+  app/editor/system/session/background_command_task.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
@@ -44,16 +44,17 @@ set(
   app/editor/session_types.cc
   app/editor/system/default_editor_factories.cc
   app/editor/system/hack_manifest_save_validation.cc
-  app/editor/graphics/browser/sheet_browser_view.cc
-  app/editor/graphics/editing/pixel_editor_view.cc
+  app/editor/graphics/ui/browser/sheet_browser_view.cc
+  app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/polyhedral_editor_panel.cc
-  app/editor/graphics/palette/palette_controls_view.cc
-  app/editor/graphics/palette/paletteset_editor_view.cc
-  app/editor/graphics/research/prototype_research_view.cc
+  app/editor/graphics/ui/palette/palette_controls_view.cc
+  app/editor/graphics/ui/palette/paletteset_editor_view.cc
+  app/editor/graphics/ui/research/prototype_research_view.cc
+  app/editor/graphics/ui/research/polyhedral_editor_view.cc
   app/editor/graphics/screen_editor.cc
-  app/editor/graphics/sprite/link_sprite_view.cc
+  app/editor/graphics/ui/sprite/link_sprite_view.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
@@ -127,7 +128,7 @@ set(
   app/editor/ui/recent_projects_model.cc
   app/editor/ui/rom_load_options_dialog.cc
   app/editor/ui/ui_coordinator.cc
-  app/editor/ui/welcome_screen.cc
+  app/editor/shell/coordinator/welcome_screen.cc
   app/editor/ui/workspace_manager.cc
 
   yaze.cc
