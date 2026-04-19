@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <vector>
@@ -71,38 +72,16 @@ class ToolRegistry {
 
  private:
   ToolRegistry() = default;
+  void EnsureInitialized();
 
   struct ToolEntry {
     ToolDefinition def;
     HandlerFactory factory;
   };
 
+  std::once_flag init_once_;
   std::map<std::string, ToolEntry> tools_;
 };
-
-// Forces the built-in tool registration translation unit to be linked and its
-// static registration constructors to run.
-void EnsureBuiltinAgentToolsRegistered();
-
-// Helper macro for static registration
-#define REGISTER_AGENT_TOOL(Name, Category, Desc, Usage, Examples, ReqRom, \
-                            ReqProject, HandlerClass)                      \
-  static struct ToolReg_##HandlerClass {                                   \
-    ToolReg_##HandlerClass() {                                             \
-      yaze::cli::agent::ToolRegistry::Get().RegisterTool(                  \
-          {Name,                                                           \
-           Category,                                                       \
-           Desc,                                                           \
-           Usage,                                                          \
-           Examples,                                                       \
-           ReqRom,                                                         \
-           ReqProject,                                                     \
-           yaze::cli::agent::ToolAccess::kReadOnly,                        \
-           {},                                                             \
-           {}},                                                            \
-          []() { return std::make_unique<HandlerClass>(); });              \
-    }                                                                      \
-  } tool_reg_##HandlerClass;
 
 }  // namespace agent
 }  // namespace cli
