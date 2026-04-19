@@ -1,14 +1,14 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_SELECTORS_OBJECT_SELECTOR_CONTENT_H_
 #define YAZE_APP_EDITOR_DUNGEON_SELECTORS_OBJECT_SELECTOR_CONTENT_H_
 
+#include <functional>
 #include <memory>
 #include <string>
-#include <unordered_map>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_object_selector.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
@@ -26,20 +26,18 @@ namespace editor {
 
 /**
  * @class ObjectSelectorContent
- * @brief Unified panel for dungeon object selection, editing, and inspection
+ * @brief Browse and place dungeon objects
  *
- * This panel combines object selection, object property editing, and static
- * object inspection into a single WindowContent component. It provides a
- * focused workflow for browsing objects, placing them on the room canvas,
- * and editing selected objects without a separate preview-only region.
+ * This content owns object browsing and placement. Selection editing lives in
+ * ObjectEditorContent so the selector can stay focused on choosing assets and
+ * initiating placement.
  *
  * Features:
  * - Object browser with graphical previews
  * - Static object editor (opened via double-click)
  * - Inline placement previews via the canvas/object grid
  * - Object templates for common patterns
- * - Unified canvas context menu integration (Cut/Copy/Paste/Duplicate/Delete)
- * - Keyboard shortcuts for efficient editing
+ * - Lightweight placement feedback
  *
  * @see WindowContent - Base interface
  * @see DungeonObjectSelector - Object browser component
@@ -54,7 +52,7 @@ class ObjectSelectorContent : public WindowContent {
   // WindowContent Identity
   // ==========================================================================
 
-  std::string GetId() const override { return "dungeon.object_editor"; }
+  std::string GetId() const override { return "dungeon.object_selector"; }
   std::string GetDisplayName() const override { return "Object Selector"; }
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
@@ -86,14 +84,7 @@ class ObjectSelectorContent : public WindowContent {
       std::function<DungeonCanvasViewer*()> provider) {
     canvas_viewer_provider_ = std::move(provider);
   }
-  void SetCanvasViewer(DungeonCanvasViewer* viewer) {
-    // Reset callback flag when viewer changes so we rewire to the new viewer
-    if (canvas_viewer_ != viewer) {
-      selection_callbacks_setup_ = false;
-    }
-    canvas_viewer_ = viewer;
-    SetupSelectionCallbacks();
-  }
+  void SetCanvasViewer(DungeonCanvasViewer* viewer) { canvas_viewer_ = viewer; }
 
   void SetContext(EditorContext ctx) {
     object_selector_.SetContext(ctx);
@@ -116,19 +107,17 @@ class ObjectSelectorContent : public WindowContent {
 
   void SelectObject(int obj_id);
   void SetAgentOptimizedLayout(bool enabled);
-  void SetupSelectionCallbacks();
 
   // Object operations
-  void CycleObjectSelection(int direction);
-  void SelectAllObjects();
-  void DeleteSelectedObjects();
-  void CopySelectedObjects();
-  void PasteObjects();
   void CancelPlacement();  // Cancel current object placement
 
   // Show a red error message near the object controls for ~2 seconds.
   // Called from DungeonEditorV2::HandleObjectPlaced on placement failure.
   void SetPlacementError(const std::string& message);
+
+  void SetOpenObjectEditorCallback(std::function<void()> callback) {
+    open_object_editor_callback_ = std::move(callback);
+  }
 
   // ==========================================================================
   // Static Object Editor (double-click to open)
@@ -146,26 +135,13 @@ class ObjectSelectorContent : public WindowContent {
   }
 
  private:
-  // Selection change handler
-  void OnSelectionChanged();
   DungeonCanvasViewer* ResolveCanvasViewer();
 
   // Drawing methods
   void DrawObjectSelector();
   void DrawInteractionSummary();
-  void DrawObjectEditorSection();
-  void DrawSelectedObjectInfo();
   void DrawStaticObjectEditor();
   void DrawRoomValidationBar();
-  void DrawKeyboardShortcutHelp();
-
-  // Keyboard shortcuts
-  void HandleKeyboardShortcuts();
-  void DeselectAllObjects();
-  void PerformDelete();
-  void DuplicateSelectedObjects();
-  void NudgeSelectedObjects(int dx, int dy);
-  void ScrollToObject(size_t index);
 
   // ==========================================================================
   // Member Variables
@@ -178,27 +154,13 @@ class ObjectSelectorContent : public WindowContent {
 
   // Components
   DungeonObjectSelector object_selector_;
-  // Object preview canvases (one per object type)
-  std::unordered_map<int, gui::Canvas> object_preview_canvases_;
-
   // UI state
-  int selected_tab_ = 0;
-  bool show_object_list_ = true;
-  bool show_interaction_controls_ = true;
-  bool show_grid_ = true;
-  bool show_object_ids_ = false;
-  bool show_template_creation_modal_ = false;
-  bool show_delete_confirmation_modal_ = false;
 
   // Selected object for placement
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool has_preview_object_ = false;
   gfx::IRenderer* renderer_;
   std::shared_ptr<zelda3::DungeonObjectEditor> object_editor_;
-
-  // Selection state cache (updated via callback)
-  size_t cached_selection_count_ = 0;
-  bool selection_callbacks_setup_ = false;
 
   // Static object editor state (opened via double-click)
   bool static_editor_open_ = false;
@@ -210,9 +172,6 @@ class ObjectSelectorContent : public WindowContent {
   gfx::BackgroundBuffer static_preview_buffer_{128, 128};
   bool static_preview_rendered_ = false;
 
-  // Shortcut help popup state
-  bool show_shortcut_help_ = false;
-
   // Placement error feedback: shown in red for kPlacementErrorDuration seconds.
   static constexpr double kPlacementErrorDuration = 2.0;
   std::string last_placement_error_;
@@ -220,6 +179,7 @@ class ObjectSelectorContent : public WindowContent {
 
   // Tile editor callback
   TileEditorCallback tile_editor_callback_;
+  std::function<void()> open_object_editor_callback_;
 };
 
 }  // namespace editor
