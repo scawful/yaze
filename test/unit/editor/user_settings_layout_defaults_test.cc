@@ -179,7 +179,7 @@ TEST(UserSettingsLayoutDefaultsTest,
   UserSettings settings;
   auto& prefs = settings.prefs();
 
-  prefs.panel_layout_defaults_revision = 8;
+  prefs.panel_layout_defaults_revision = 7;
   prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = false;
   prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"] = true;
   prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"] = false;
@@ -194,12 +194,14 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_EQ(prefs.panel_layout_defaults_revision,
             UserSettings::kLatestPanelLayoutDefaultsRevision);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
-  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.object_editor"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
-  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.palette_editor"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.palette_editor"]);
   EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.room_selector"]);
 }
 

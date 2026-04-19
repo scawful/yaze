@@ -3,10 +3,10 @@
 
 #include <functional>
 
+#include "app/editor/overworld/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
-#include "app/editor/overworld/ui_constants.h"
 
 // Forward declaration
 namespace yaze {
@@ -81,7 +81,7 @@ class MapPropertiesSystem {
 
   // Context menu integration
   void SetupCanvasContextMenu(gui::Canvas& canvas, int current_map,
-                              bool current_map_lock,
+                              bool& current_map_lock,
                               bool& show_map_properties_panel,
                               bool& show_custom_bg_color_editor,
                               bool& show_overlay_editor, int current_mode = 0);
