@@ -261,14 +261,8 @@ absl::Status Emulator::ReloadRuntimeRom(const std::vector<uint8_t>& rom_data) {
   }
 
   rom_data_ = rom_data;
-
-  // If the emulator window/runtime has not been initialized yet, keep the new
-  // ROM staged and let the normal lazy-init path consume it on first use.
-  if (!snes_initialized_) {
-    return absl::OkStatus();
-  }
-
   snes_.Init(rom_data_);
+  snes_initialized_ = true;
 
   const double frame_rate =
       snes_.memory().pal_timing() ? kPalFrameRate : kNtscFrameRate;

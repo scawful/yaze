@@ -403,7 +403,7 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 }
 
 void MapPropertiesSystem::SetupCanvasContextMenu(
-    gui::Canvas& canvas, int current_map, bool current_map_lock,
+    gui::Canvas& canvas, int current_map, bool& current_map_lock,
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
     bool& show_overlay_editor, int current_mode) {
   (void)current_map;  // Used for future context-sensitive menu items
