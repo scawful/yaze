@@ -241,6 +241,11 @@ absl::Status Tile16Editor::Update() {
     Separator();
 
     if (Button("Keep Staged & Continue", ImVec2(220, 0))) {
+      if (IsItemHovered()) {
+        SetTooltip(
+            "Switch to the requested tile now. Other tiles with staged edits "
+            "stay in the write queue until you use Write Pending or Discard.");
+      }
       if (pending_tile_switch_target_ >= 0) {
         auto status = SetCurrentTile(pending_tile_switch_target_);
         if (!status.ok()) {
@@ -353,6 +358,11 @@ absl::Status Tile16Editor::UpdateAsPanel() {
     Separator();
 
     if (Button("Keep Staged & Continue", ImVec2(220, 0))) {
+      if (IsItemHovered()) {
+        SetTooltip(
+            "Switch to the requested tile now. Other tiles with staged edits "
+            "stay in the write queue until you use Write Pending or Discard.");
+      }
       if (pending_tile_switch_target_ >= 0) {
         auto status = SetCurrentTile(pending_tile_switch_target_);
         if (!status.ok()) {
@@ -630,7 +640,8 @@ absl::Status Tile16Editor::UpdateBlocksetBitmap() {
 }
 
 absl::Status Tile16Editor::RegenerateTile16BitmapFromROM() {
-  // Get the current tile16 data from ROM
+  // Rebuild preview from `current_tile16_data_` (SetCurrentTile prefers pending
+  // maps over ROM). Name is historical.
   auto* tile_data = GetCurrentTile16Data();
   if (!tile_data) {
     return absl::FailedPreconditionError("Cannot access current tile16 data");
@@ -2011,6 +2022,10 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   }
 
   util::logf("SetCurrentTile: loaded tile %d successfully", tile_id);
+
+  if (on_current_tile_changed_) {
+    on_current_tile_changed_(current_tile16_);
+  }
   return absl::OkStatus();
 }
 
@@ -2677,11 +2692,11 @@ absl::Status Tile16Editor::CommitAllChanges() {
     }
   }
 
-  // Clear pending changes
+  // Clear pending changes before parent refresh (overworld reads committed ROM).
   pending_tile16_changes_.clear();
   pending_tile16_bitmaps_.clear();
 
-  // Refresh the blockset to show committed changes
+  // Local atlas hint; full rebuild is typically done in overworld callback.
   RETURN_IF_ERROR(RefreshTile16Blockset());
 
   // Notify parent editor to refresh overworld display

@@ -18,9 +18,8 @@
 
 namespace yaze::editor {
 
-TilePaintingManager::TilePaintingManager(
-    const TilePaintingDependencies& deps,
-    const TilePaintingCallbacks& callbacks)
+TilePaintingManager::TilePaintingManager(const TilePaintingDependencies& deps,
+                                         const TilePaintingCallbacks& callbacks)
     : deps_(deps), callbacks_(callbacks) {}
 
 // ---------------------------------------------------------------------------
@@ -56,12 +55,11 @@ void TilePaintingManager::DrawOverworldEdits() {
   // Validate tile16_blockset_ before calling GetTilemapData
   if (!deps_.tile16_blockset->atlas.is_active() ||
       deps_.tile16_blockset->atlas.vector().empty()) {
-    LOG_ERROR(
-        "TilePaintingManager",
-        "Error: tile16_blockset is not properly initialized (active: %s, "
-        "size: %zu)",
-        deps_.tile16_blockset->atlas.is_active() ? "true" : "false",
-        deps_.tile16_blockset->atlas.vector().size());
+    LOG_ERROR("TilePaintingManager",
+              "Error: tile16_blockset is not properly initialized (active: %s, "
+              "size: %zu)",
+              deps_.tile16_blockset->atlas.is_active() ? "true" : "false",
+              deps_.tile16_blockset->atlas.vector().size());
     return;  // Skip drawing if blockset is invalid
   }
 
@@ -199,7 +197,7 @@ void TilePaintingManager::CheckForOverworldEdits() {
       *deps_.current_tile16 >= 0 &&
       !deps_.ow_map_canvas->select_rect_active() &&
       deps_.ow_map_canvas->DrawTilemapPainter(*deps_.tile16_blockset,
-                                               *deps_.current_tile16)) {
+                                              *deps_.current_tile16)) {
     DrawOverworldEdits();
   }
 
@@ -437,9 +435,8 @@ void TilePaintingManager::CheckForSelectRectangle() {
 
   // Single tile case
   if (deps_.ow_map_canvas->selected_tile_pos().x != -1) {
-    *deps_.current_tile16 =
-        deps_.overworld->GetTileFromPosition(
-            deps_.ow_map_canvas->selected_tile_pos());
+    *deps_.current_tile16 = deps_.overworld->GetTileFromPosition(
+        deps_.ow_map_canvas->selected_tile_pos());
     deps_.ow_map_canvas->set_selected_tile_pos(ImVec2(-1, -1));
 
     // Scroll blockset canvas to show the selected tile
@@ -463,8 +460,8 @@ void TilePaintingManager::CheckForSelectRectangle() {
   }
   // Create a composite image of all the tile16s selected
   deps_.ow_map_canvas->DrawBitmapGroup(*deps_.selected_tile16_ids,
-                                        *deps_.tile16_blockset, 0x10,
-                                        deps_.ow_map_canvas->global_scale());
+                                       *deps_.tile16_blockset, 0x10,
+                                       deps_.ow_map_canvas->global_scale());
 }
 
 // ---------------------------------------------------------------------------
@@ -517,20 +514,25 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
   if (!map_tiles) {
     return false;
   }
-  const auto& world_tiles =
-      (*deps_.current_world == 0)   ? map_tiles->light_world
-      : (*deps_.current_world == 1) ? map_tiles->dark_world
-                                    : map_tiles->special_world;
+  const auto& world_tiles = (*deps_.current_world == 0) ? map_tiles->light_world
+                            : (*deps_.current_world == 1)
+                                ? map_tiles->dark_world
+                                : map_tiles->special_world;
   const int tile_id = world_tiles[world_tile_x][world_tile_y];
   if (tile_id < 0) {
     return false;
   }
 
-  *deps_.current_tile16 = tile_id;
-  auto set_tile_status = deps_.tile16_editor->SetCurrentTile(*deps_.current_tile16);
-  if (!set_tile_status.ok()) {
-    util::logf("Failed to sync Tile16 editor after eyedropper: %s",
-               set_tile_status.message().data());
+  if (callbacks_.request_tile16_selection) {
+    callbacks_.request_tile16_selection(tile_id);
+  } else {
+    *deps_.current_tile16 = tile_id;
+    auto set_tile_status =
+        deps_.tile16_editor->SetCurrentTile(*deps_.current_tile16);
+    if (!set_tile_status.ok()) {
+      util::logf("Failed to sync Tile16 editor after eyedropper: %s",
+                 set_tile_status.message().data());
+    }
   }
 
   callbacks_.scroll_blockset_to_current_tile();

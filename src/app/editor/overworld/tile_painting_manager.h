@@ -45,6 +45,8 @@ struct TilePaintingCallbacks {
   std::function<void()> refresh_overworld_map;
   std::function<void(int map_index)> refresh_overworld_map_on_demand;
   std::function<void()> scroll_blockset_to_current_tile;
+  /// When set, eyedropper routes here (guarded `RequestTileSwitch` path).
+  std::function<void(int tile_id)> request_tile16_selection;
 };
 
 /// @brief Manages tile painting, fill, selection, and eyedropper operations.

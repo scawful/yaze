@@ -226,7 +226,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     // Accept tile drops from the blockset selector onto the map canvas.
     gui::TileDragPayload tile_drop;
     if (gui::AcceptTileDrop(&tile_drop)) {
-      editor_->current_tile16_ = tile_drop.tile_id;
+      editor_->RequestTile16Selection(tile_drop.tile_id);
       if (editor_->current_mode != EditingMode::DRAW_TILE) {
         editor_->current_mode = EditingMode::DRAW_TILE;
         editor_->ow_map_canvas_.SetUsageMode(gui::CanvasUsage::kTilePainting);
@@ -359,12 +359,8 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
 
   // Tile ID search/jump bar
   if (editor_->blockset_selector_->DrawFilterBar()) {
-    editor_->current_tile16_ =
-        editor_->blockset_selector_->GetSelectedTileID();
-    auto status = editor_->tile16_editor_.SetCurrentTile(editor_->current_tile16_);
-    if (!status.ok()) {
-      util::logf("Failed to set tile16: %s", status.message().data());
-    }
+    editor_->RequestTile16Selection(
+        editor_->blockset_selector_->GetSelectedTileID());
   }
 
   gfx::Bitmap& atlas = editor_->tile16_blockset_.atlas;
@@ -372,13 +368,7 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   auto result = editor_->blockset_selector_->Render(atlas, atlas_ready);
 
   if (result.selection_changed) {
-    editor_->current_tile16_ = result.selected_tile;
-    // Set the current tile in the editor (original behavior)
-    auto status =
-        editor_->tile16_editor_.SetCurrentTile(editor_->current_tile16_);
-    if (!status.ok()) {
-      util::logf("Failed to set tile16: %s", status.message().data());
-    }
+    editor_->RequestTile16Selection(result.selected_tile);
     // Note: We do NOT auto-scroll here because it breaks user interaction.
     // The canvas should only scroll when explicitly requested (e.g., when
     // selecting a tile from the overworld canvas via
