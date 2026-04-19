@@ -10,6 +10,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/tool_schema_builder.h"
 #include "nlohmann/json.hpp"
 #include "util/platform_paths.h"
 
@@ -120,8 +121,10 @@ absl::Status PromptBuilder::LoadResourceCatalogue(
   // Gracefully degrade if JSON or yaml-cpp support not available
   (void)yaml_path;  // Suppress unused parameter warning
   std::cerr
-      << "⚠️  PromptBuilder requires JSON and yaml-cpp support for catalogue loading\n"
-      << "   Build with -DYAZE_WITH_JSON=ON (mac-ai preset already does) and install yaml-cpp\n"
+      << "⚠️  PromptBuilder requires JSON and yaml-cpp support for catalogue "
+         "loading\n"
+      << "   Build with -DYAZE_WITH_JSON=ON (mac-ai preset already does) and "
+         "install yaml-cpp\n"
       << "   AI features will use basic prompts without tool definitions\n";
   return absl::OkStatus();  // Don't fail, just skip catalogue loading
 #else
@@ -426,50 +429,7 @@ std::string PromptBuilder::BuildFunctionCallSchemas() const {
     return "[]";
   }
 
-  nlohmann::json tools_array = nlohmann::json::array();
-
-  for (const auto& spec : tool_specs_) {
-    nlohmann::json tool;
-    tool["type"] = "function";
-
-    nlohmann::json function;
-    function["name"] = spec.name;
-    function["description"] = spec.description;
-    if (!spec.usage_notes.empty()) {
-      function["description"] = spec.description + " " + spec.usage_notes;
-    }
-
-    nlohmann::json parameters;
-    parameters["type"] = "object";
-
-    nlohmann::json properties = nlohmann::json::object();
-    nlohmann::json required = nlohmann::json::array();
-
-    for (const auto& arg : spec.arguments) {
-      nlohmann::json arg_schema;
-      arg_schema["type"] = "string";  // All CLI args are strings
-      arg_schema["description"] = arg.description;
-      if (!arg.example.empty()) {
-        arg_schema["example"] = arg.example;
-      }
-      properties[arg.name] = arg_schema;
-
-      if (arg.required) {
-        required.push_back(arg.name);
-      }
-    }
-
-    parameters["properties"] = properties;
-    if (!required.empty()) {
-      parameters["required"] = required;
-    }
-
-    function["parameters"] = parameters;
-    tool["function"] = function;
-    tools_array.push_back(tool);
-  }
-
-  return tools_array.dump(2);
+  return ToolSchemaBuilder::BuildFunctionDeclarations(tool_specs_).dump(2);
 }
 
 std::string PromptBuilder::BuildFewShotExamplesSection() const {

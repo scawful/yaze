@@ -198,6 +198,7 @@ if(YAZE_BUILD_TESTS)
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
     unit/rom/write_fence_test.cc
+    unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/emu/input_backend_test.cc
     unit/gfx/snes_tile_test.cc
@@ -242,8 +243,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
     unit/editor/map_properties_context_menu_test.cc
-    unit/editor/layout_presets_test.cc
     unit/editor/dungeon_layout_defaults_test.cc
+    unit/editor/layout_presets_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
@@ -359,6 +360,7 @@ if(YAZE_BUILD_TESTS)
       unit/cli/ai_config_utils_test.cc
       unit/cli/ai_service_factory_test.cc
       unit/cli/model_registry_test.cc
+      unit/cli/tool_schema_builder_test.cc
       unit/cli/http_api_handlers_test.cc
       unit/cli/api_handlers_test.cc
       unit/cli/vision_action_refiner_test.cc
@@ -475,6 +477,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/project_bundle_path_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/write_fence_test.cc
+    unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/zelda3/resource_labels_test.cc
   )
@@ -501,10 +504,10 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
+    unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/project_manager_validator_test.cc
-    unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
     unit/editor/canvas_navigation_manager_test.cc

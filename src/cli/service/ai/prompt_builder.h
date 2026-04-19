@@ -20,10 +20,10 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "rom/rom.h"
 #include "cli/service/ai/common.h"
 #include "cli/service/resources/resource_context_builder.h"
 #include "nlohmann/json_fwd.hpp"
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {
@@ -97,8 +97,11 @@ class PromptBuilder {
   const std::map<std::string, std::string>& tile_reference() const {
     return tile_reference_;
   }
+  const std::vector<ToolSpecification>& tool_specs() const {
+    return tool_specs_;
+  }
 
-  // Generate OpenAI-compatible function call schemas (JSON format)
+  // Generate provider-neutral function declarations (JSON format)
   std::string BuildFunctionCallSchemas() const;
 
   // Set verbosity level (0=minimal, 1=standard, 2=verbose)

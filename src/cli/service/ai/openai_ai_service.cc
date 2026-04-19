@@ -8,21 +8,23 @@
 #include <string>
 #include <vector>
 
-#include "absl/strings/str_cat.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/tool_schema_builder.h"
 #include "util/platform_paths.h"
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
 
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
 #include "cli/service/ai/ios_urlsession_http_client.h"
 #define YAZE_AI_IOS_URLSESSION 1
 #endif
@@ -60,6 +62,26 @@ namespace yaze {
 namespace cli {
 
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
+
+namespace {
+
+absl::StatusOr<nlohmann::json> BuildOpenAIToolPayload(
+    const PromptBuilder& prompt_builder) {
+  nlohmann::json function_declarations =
+      ToolSchemaBuilder::BuildFunctionDeclarations(prompt_builder.tool_specs());
+  if (!function_declarations.empty()) {
+    return ToolSchemaBuilder::BuildOpenAITools(function_declarations);
+  }
+
+  auto fallback_or = ToolSchemaBuilder::LoadFunctionDeclarationsFromAsset();
+  if (!fallback_or.ok()) {
+    return fallback_or.status();
+  }
+
+  return ToolSchemaBuilder::BuildOpenAITools(*fallback_or);
+}
+
+}  // namespace
 
 OpenAIAIService::OpenAIAIService(const OpenAIConfig& config)
     : function_calling_enabled_(config.use_function_calling), config_(config) {
@@ -132,39 +154,6 @@ std::vector<std::string> OpenAIAIService::GetAvailableTools() const {
           "dungeon-list-sprites", "dungeon-describe-room",
           "overworld-find-tile",  "overworld-describe-map",
           "overworld-list-warps"};
-}
-
-std::string OpenAIAIService::BuildFunctionCallSchemas() {
-#ifndef YAZE_WITH_JSON
-  return "[]";
-#else
-  std::string schemas = prompt_builder_.BuildFunctionCallSchemas();
-  if (!schemas.empty() && schemas != "[]") {
-    return schemas;
-  }
-
-  auto schema_path_or =
-      util::PlatformPaths::FindAsset("agent/function_schemas.json");
-
-  if (!schema_path_or.ok()) {
-    return "[]";
-  }
-
-  std::ifstream file(schema_path_or->string());
-  if (!file.is_open()) {
-    return "[]";
-  }
-
-  try {
-    nlohmann::json schemas_json;
-    file >> schemas_json;
-    return schemas_json.dump();
-  } catch (const nlohmann::json::exception& e) {
-    std::cerr << "⚠️  Failed to parse function schemas JSON: " << e.what()
-              << std::endl;
-    return "[]";
-  }
-#endif
 }
 
 std::string OpenAIAIService::BuildSystemInstruction() {
@@ -250,12 +239,12 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
     response_str = resp_or->body;
 #else
     // Use curl to list models from the API
-    std::string auth_header = config_.api_key.empty()
-        ? ""
-        : "-H 'Authorization: Bearer " + config_.api_key + "' ";
-    std::string curl_cmd =
-        "curl -s -X GET '" + config_.base_url + "/v1/models' " +
-        auth_header + "2>&1";
+    std::string auth_header =
+        config_.api_key.empty()
+            ? ""
+            : "-H 'Authorization: Bearer " + config_.api_key + "' ";
+    std::string curl_cmd = "curl -s -X GET '" + config_.base_url +
+                           "/v1/models' " + auth_header + "2>&1";
 
 #ifdef _WIN32
     FILE* pipe = _popen(curl_cmd.c_str(), "r");
@@ -303,9 +292,10 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
       // Filter for chat models (gpt-4*, gpt-3.5-turbo*, o1*, chatgpt*)
       // For local servers (LM Studio), we accept all models.
       bool is_local = !absl::StrContains(config_.base_url, "api.openai.com");
-      
-      if (is_local || absl::StartsWith(id, "gpt-4") || absl::StartsWith(id, "gpt-3.5") ||
-          absl::StartsWith(id, "o1") || absl::StartsWith(id, "chatgpt")) {
+
+      if (is_local || absl::StartsWith(id, "gpt-4") ||
+          absl::StartsWith(id, "gpt-3.5") || absl::StartsWith(id, "o1") ||
+          absl::StartsWith(id, "chatgpt")) {
         ModelInfo info;
         info.name = id;
         info.display_name = id;
@@ -365,9 +355,8 @@ absl::Status OpenAIAIService::CheckAvailability() {
     auto resp_or = ios::UrlSessionHttpRequest(
         "GET", config_.base_url + "/v1/models", headers, "", 8000);
     if (!resp_or.ok()) {
-      return absl::UnavailableError(
-          absl::StrCat("❌ Cannot reach OpenAI API\n   ",
-                       resp_or.status().message()));
+      return absl::UnavailableError(absl::StrCat(
+          "❌ Cannot reach OpenAI API\n   ", resp_or.status().message()));
     }
     if (resp_or->status_code == 401) {
       return absl::PermissionDeniedError(
@@ -375,9 +364,9 @@ absl::Status OpenAIAIService::CheckAvailability() {
           "   Verify your key at: https://platform.openai.com/api-keys");
     }
     if (resp_or->status_code != 200) {
-      return absl::InternalError(absl::StrCat(
-          "❌ OpenAI API error: ", resp_or->status_code, "\n   ",
-          resp_or->body));
+      return absl::InternalError(
+          absl::StrCat("❌ OpenAI API error: ", resp_or->status_code, "\n   ",
+                       resp_or->body));
     }
 #else
     httplib::Client cli(config_.base_url);
@@ -474,26 +463,20 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
 
     // Add function calling tools if enabled
     if (function_calling_enabled_) {
-      try {
-        std::string schemas_str = BuildFunctionCallSchemas();
+      auto tools_or = BuildOpenAIToolPayload(prompt_builder_);
+      if (!tools_or.ok()) {
         if (config_.verbose) {
+          std::cerr << "[DEBUG] Function calling schemas unavailable: "
+                    << tools_or.status().message() << std::endl;
+        }
+      } else if (!tools_or->empty()) {
+        if (config_.verbose) {
+          std::string tools_str = tools_or->dump();
           std::cerr << "[DEBUG] Function calling schemas: "
-                    << schemas_str.substr(0, 200) << "..." << std::endl;
+                    << tools_str.substr(0, 200) << "..." << std::endl;
         }
 
-        nlohmann::json schemas = nlohmann::json::parse(schemas_str);
-
-        if (schemas.is_array() && !schemas.empty()) {
-          // Convert to OpenAI tools format
-          nlohmann::json tools = nlohmann::json::array();
-          for (const auto& schema : schemas) {
-            tools.push_back({{"type", "function"}, {"function", schema}});
-          }
-          request_body["tools"] = tools;
-        }
-      } catch (const nlohmann::json::exception& e) {
-        std::cerr << "⚠️  Failed to parse function schemas: " << e.what()
-                  << std::endl;
+        request_body["tools"] = *tools_or;
       }
     }
 
@@ -521,9 +504,9 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
           "   Verify your key at: https://platform.openai.com/api-keys");
     }
     if (resp_or->status_code != 200) {
-      return absl::InternalError(absl::StrCat(
-          "❌ OpenAI API error: ", resp_or->status_code, "\n   ",
-          resp_or->body));
+      return absl::InternalError(
+          absl::StrCat("❌ OpenAI API error: ", resp_or->status_code, "\n   ",
+                       resp_or->body));
     }
     response_str = resp_or->body;
 #else
@@ -534,15 +517,14 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     out.close();
 
     // Use curl to make the request
-    std::string auth_header = config_.api_key.empty()
-        ? ""
-        : "-H 'Authorization: Bearer " + config_.api_key + "' ";
-    std::string curl_cmd =
-        "curl -s -X POST '" + config_.base_url + "/v1/chat/completions' "
-        "-H 'Content-Type: application/json' " +
-        auth_header +
-        "-d @" +
-        temp_file + " 2>&1";
+    std::string auth_header =
+        config_.api_key.empty()
+            ? ""
+            : "-H 'Authorization: Bearer " + config_.api_key + "' ";
+    std::string curl_cmd = "curl -s -X POST '" + config_.base_url +
+                           "/v1/chat/completions' "
+                           "-H 'Content-Type: application/json' " +
+                           auth_header + "-d @" + temp_file + " 2>&1";
 
     if (config_.verbose) {
       std::cerr << "[DEBUG] Executing OpenAI API request..." << std::endl;
@@ -639,7 +621,8 @@ absl::StatusOr<AgentResponse> OpenAIAIService::ParseOpenAIResponse(
   if (response_json.contains("error")) {
     std::string error_msg =
         response_json["error"].value("message", "Unknown error");
-    return absl::InternalError(absl::StrCat("❌ OpenAI API error: ", error_msg));
+    return absl::InternalError(
+        absl::StrCat("❌ OpenAI API error: ", error_msg));
   }
 
   // Navigate OpenAI's response structure

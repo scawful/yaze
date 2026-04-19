@@ -145,6 +145,7 @@ if(YAZE_ENABLE_AI_RUNTIME)
     cli/service/ai/ollama_ai_service.cc
     cli/service/ai/local_gemini_cli_service.cc
     cli/service/ai/prompt_builder.cc
+    cli/service/ai/tool_schema_builder.cc
     cli/service/ai/service_factory.cc
   )
 else()
