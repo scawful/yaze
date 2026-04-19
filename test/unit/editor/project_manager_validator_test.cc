@@ -9,7 +9,7 @@
 //  - ROMs and arbitrary files are rejected
 //  - Empty paths and nonexistent paths are rejected
 
-#include "app/editor/system/project_manager.h"
+#include "app/editor/system/session/project_manager.h"
 
 #include <chrono>
 #include <filesystem>

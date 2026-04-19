@@ -12,7 +12,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/project_manager.h"
+#include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/workspace_window_manager.h"
