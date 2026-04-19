@@ -189,9 +189,18 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
         protobuf::libprotobuf
       )
 
-      # Ensure Abseil include directories are available
-      # Homebrew's abseil may not properly export include dirs
+      # Ensure Abseil include directories are available. On macOS, prefer the
+      # Homebrew formula include dir over generic /opt/homebrew/include so the
+      # compiler does not resolve an older /usr/local/include/absl first.
       get_target_property(_ABSL_BASE_INCLUDE absl::base INTERFACE_INCLUDE_DIRECTORIES)
+      if(APPLE AND YAZE_HOMEBREW_AVAILABLE)
+        yaze_homebrew_find_package(abseil RESULT_VAR _yaze_abseil_hb)
+        if(_yaze_abseil_hb AND
+           EXISTS "${_yaze_abseil_hb}/include/absl/base/config.h")
+          set(_ABSL_BASE_INCLUDE "${_yaze_abseil_hb}/include")
+          message(STATUS "  Preferring Homebrew Abseil include: ${_ABSL_BASE_INCLUDE}")
+        endif()
+      endif()
       yaze_grpc_add_absl_include_dirs(yaze_grpc_deps _ABSL_BASE_INCLUDE)
 
       # Create interface libraries for compatibility with CPM target names
@@ -273,10 +282,22 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
       set(_gRPC_PROTO_GENS_DIR ${CMAKE_BINARY_DIR}/gens CACHE INTERNAL "Protobuf generated files directory")
       file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/gens)
 
-      # Get protobuf include directory from package
+      # Get protobuf include directory from package. On macOS, prefer the
+      # Homebrew package prefix include dir over generic /opt/homebrew/include
+      # so clang does not resolve an older /usr/local/include protobuf first.
       get_target_property(_PROTOBUF_INCLUDE_DIRS protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
-      if(_PROTOBUF_INCLUDE_DIRS)
+      if(APPLE AND YAZE_HOMEBREW_AVAILABLE)
+        yaze_homebrew_find_package(protobuf RESULT_VAR _yaze_protobuf_hb)
+        if(_yaze_protobuf_hb AND
+           EXISTS "${_yaze_protobuf_hb}/include/google/protobuf/runtime_version.h")
+          set(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR "${_yaze_protobuf_hb}/include")
+          message(STATUS "  Preferring Homebrew protobuf include: ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}")
+        endif()
+      endif()
+      if(NOT _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR AND _PROTOBUF_INCLUDE_DIRS)
         list(GET _PROTOBUF_INCLUDE_DIRS 0 _gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
+      endif()
+      if(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR)
         set(_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR} CACHE INTERNAL "Protobuf include directory")
       endif()
 
