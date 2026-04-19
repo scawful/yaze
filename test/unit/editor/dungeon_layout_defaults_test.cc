@@ -32,6 +32,8 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonRoomMatrix));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonDoorEditor));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonPaletteEditor));
 
   EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
@@ -40,6 +42,10 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
                          LayoutPresets::Panels::kDungeonRoomGraphics));
   EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonRoomMatrix),
+            IndexOfPanel(preset.default_visible_panels,
+                         LayoutPresets::Panels::kDungeonDoorEditor));
+  EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
+                         LayoutPresets::Panels::kDungeonDoorEditor),
             IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonPaletteEditor));
 
@@ -57,6 +63,11 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
       preset.panel_positions.find(LayoutPresets::Panels::kDungeonRoomMatrix);
   ASSERT_NE(matrix_pos, preset.panel_positions.end());
   EXPECT_EQ(matrix_pos->second, DockPosition::RightBottom);
+
+  auto door_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kDungeonDoorEditor);
+  ASSERT_NE(door_pos, preset.panel_positions.end());
+  EXPECT_EQ(door_pos->second, DockPosition::RightBottom);
 
   auto palette_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kDungeonPaletteEditor);

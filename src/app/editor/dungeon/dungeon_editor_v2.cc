@@ -25,6 +25,7 @@
 #include "app/editor/dungeon/panels/custom_collision_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrance_list_panel.h"
 #include "app/editor/dungeon/panels/dungeon_entrances_panel.h"
+#include "app/editor/dungeon/panels/dungeon_door_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_map_panel.h"
 #include "app/editor/dungeon/panels/dungeon_palette_editor_panel.h"
 #include "app/editor/dungeon/panels/dungeon_room_graphics_panel.h"
@@ -155,6 +156,9 @@ DungeonEditorV2::~DungeonEditorV2() {
   if (object_editor_panel_) {
     object_editor_panel_->SetCanvasViewer(nullptr);
   }
+  if (door_editor_panel_) {
+    door_editor_panel_->SetCanvasViewer(nullptr);
+  }
   if (sprite_editor_panel_) {
     sprite_editor_panel_->SetCanvasViewer(nullptr);
   }
@@ -278,6 +282,18 @@ void DungeonEditorV2::Initialize() {
        .priority = 50,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
        .disabled_tooltip = "Load a ROM to view room graphics"});
+
+  window_manager->RegisterPanel(
+      {.card_id = kDoorEditorId,
+       .display_name = "Door Editor",
+       .window_title = " Door Editor",
+       .icon = ICON_MD_DOOR_FRONT,
+       .category = "Dungeon",
+       .shortcut_hint = "",
+       .visibility_flag = nullptr,
+       .priority = 69,
+       .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
+       .disabled_tooltip = "Load a ROM to edit dungeon doors"});
 
   window_manager->RegisterPanel(
       {.card_id = kPaletteEditorId,
@@ -498,6 +514,10 @@ absl::Status DungeonEditorV2::Load() {
   // Keep raw pointer for later access
   object_editor_panel_ = object_editor.get();
 
+  auto door_editor = std::make_unique<DungeonDoorEditorPanel>();
+  door_editor->SetRooms(&rooms_);
+  door_editor_panel_ = door_editor.get();
+
   // Propagate game_data to the object editor panel if available
   if (game_data()) {
     object_editor_panel_->SetGameData(game_data());
@@ -522,6 +542,7 @@ absl::Status DungeonEditorV2::Load() {
   if (dependencies_.window_manager) {
     dependencies_.window_manager->RegisterWindowContent(
         std::move(object_editor));
+    dependencies_.window_manager->RegisterWindowContent(std::move(door_editor));
 
     // Register sprite and item editor panels with canvas viewer = nullptr
     // They will get the viewer reference in OnRoomSelected when a room is selected
@@ -646,6 +667,7 @@ absl::Status DungeonEditorV2::Load() {
     }
   } else {
     owned_object_editor_panel_ = std::move(object_editor);
+    owned_door_editor_panel_ = std::move(door_editor);
   }
 
   palette_editor_.SetOnPaletteChanged([this](int /*palette_id*/) {
@@ -2455,6 +2477,13 @@ void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
     });
     object_editor_panel_->SetCurrentRoom(room_id);
     object_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
+  }
+  if (door_editor_panel_) {
+    door_editor_panel_->SetCanvasViewerProvider([this]() {
+      return GetViewerForRoom(current_room_id_);
+    });
+    door_editor_panel_->SetCurrentRoom(room_id);
+    door_editor_panel_->SetCanvasViewer(GetViewerForRoom(room_id));
   }
 
   // Update sprite and item editor panels with current viewer

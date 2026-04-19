@@ -13,9 +13,7 @@
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
-#include "app/gui/widgets/dungeon_object_emulator_preview.h"
 #include "rom/rom.h"
-#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -45,7 +43,6 @@ namespace editor {
  *
  * @see WindowContent - Base interface
  * @see DungeonObjectSelector - Object browser component
- * @see DungeonObjectEmulatorPreview - Preview component
  */
 class ObjectEditorPanel : public WindowContent {
  public:
@@ -77,10 +74,6 @@ class ObjectEditorPanel : public WindowContent {
   // ==========================================================================
 
   DungeonObjectSelector& object_selector() { return object_selector_; }
-  gui::DungeonObjectEmulatorPreview& emulator_preview() {
-    return emulator_preview_;
-  }
-
   // ==========================================================================
   // Context Management
   // ==========================================================================
@@ -104,13 +97,11 @@ class ObjectEditorPanel : public WindowContent {
 
   void SetContext(EditorContext ctx) {
     object_selector_.SetContext(ctx);
-    emulator_preview_.SetGameData(ctx.game_data);
     rom_ = ctx.rom;
   }
 
   void SetGameData(zelda3::GameData* game_data) {
     object_selector_.SetGameData(game_data);
-    emulator_preview_.SetGameData(game_data);
   }
 
   void SetRooms(DungeonRoomStore* rooms) { object_selector_.set_rooms(rooms); }
@@ -161,7 +152,6 @@ class ObjectEditorPanel : public WindowContent {
 
   // Drawing methods
   void DrawObjectSelector();
-  void DrawDoorSection();
   void DrawInteractionSummary();
   void DrawObjectEditorSection();
   void DrawSelectedObjectInfo();
@@ -188,14 +178,11 @@ class ObjectEditorPanel : public WindowContent {
 
   // Components
   DungeonObjectSelector object_selector_;
-  gui::DungeonObjectEmulatorPreview emulator_preview_;
-
   // Object preview canvases (one per object type)
   std::unordered_map<int, gui::Canvas> object_preview_canvases_;
 
   // UI state
   int selected_tab_ = 0;
-  bool show_emulator_preview_ = false;
   bool show_object_list_ = true;
   bool show_interaction_controls_ = true;
   bool show_grid_ = true;
@@ -222,10 +209,6 @@ class ObjectEditorPanel : public WindowContent {
   std::unique_ptr<zelda3::ObjectParser> object_parser_;
   gfx::BackgroundBuffer static_preview_buffer_{128, 128};
   bool static_preview_rendered_ = false;
-
-  // Door placement state
-  zelda3::DoorType selected_door_type_ = zelda3::DoorType::NormalDoor;
-  bool door_placement_mode_ = false;
 
   // Shortcut help popup state
   bool show_shortcut_help_ = false;
