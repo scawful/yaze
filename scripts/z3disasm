@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+Z3DK_ROOT="${Z3DK_ROOT:-${ROOT}/../z3dk}"
+
+if [[ -n "${Z3DISASM_BIN:-}" ]]; then
+  if [[ "${1:-}" == "--which" ]]; then
+    echo "${Z3DISASM_BIN}"
+    exit 0
+  fi
+  if [[ "${1:-}" == "--doctor" ]]; then
+    echo "z3disasm doctor"
+    echo "  source: Z3DISASM_BIN"
+    echo "  selected: ${Z3DISASM_BIN}"
+    exit 0
+  fi
+  exec "${Z3DISASM_BIN}" "$@"
+fi
+
+candidates=(
+  "${Z3DK_ROOT}/build/bin/z3disasm"
+  "${Z3DK_ROOT}/build/bin/Debug/z3disasm"
+  "${Z3DK_ROOT}/build/bin/RelWithDebInfo/z3disasm"
+  "${Z3DK_ROOT}/build/bin/Release/z3disasm"
+  "${Z3DK_ROOT}/build/Debug/z3disasm"
+  "${Z3DK_ROOT}/build/RelWithDebInfo/z3disasm"
+  "${Z3DK_ROOT}/build/Release/z3disasm"
+)
+
+_mtime() {
+  if stat -f %m "$1" >/dev/null 2>&1; then
+    stat -f %m "$1"
+  else
+    stat -c %Y "$1"
+  fi
+}
+
+_fmt_time() {
+  local epoch="$1"
+  if [[ "$epoch" -le 0 ]]; then
+    echo "-"
+    return
+  fi
+  if date -r "$epoch" "+%Y-%m-%d %H:%M:%S" >/dev/null 2>&1; then
+    date -r "$epoch" "+%Y-%m-%d %H:%M:%S"
+  else
+    date -d "@$epoch" "+%Y-%m-%d %H:%M:%S" 2>/dev/null || echo "$epoch"
+  fi
+}
+
+pick_newest() {
+  local best=""
+  local best_mtime="-1"
+  local candidate=""
+  local mtime=""
+
+  for candidate in "$@"; do
+    if [[ -x "${candidate}" ]]; then
+      mtime="$(_mtime "${candidate}" || echo 0)"
+      if [[ "${mtime}" -gt "${best_mtime}" ]]; then
+        best_mtime="${mtime}"
+        best="${candidate}"
+      fi
+    fi
+  done
+
+  echo "${best}"
+}
+
+bin="$(pick_newest "${candidates[@]}")"
+
+if [[ "${1:-}" == "--which" ]]; then
+  if [[ -n "${bin}" ]]; then
+    echo "${bin}"
+    exit 0
+  fi
+  exit 1
+fi
+
+if [[ "${1:-}" == "--doctor" ]]; then
+  echo "z3disasm doctor"
+  echo "  z3dk_root: ${Z3DK_ROOT}"
+  echo "  selected: ${bin:-<none>}"
+  echo ""
+  printf "%-2s %-5s %-19s %s\n" "" "state" "mtime" "path"
+  for candidate in "${candidates[@]}"; do
+    if [[ -x "${candidate}" ]]; then
+      local_mtime="$(_mtime "${candidate}" || echo 0)"
+      marker=""
+      if [[ "${candidate}" == "${bin}" ]]; then
+        marker="*"
+      fi
+      printf "%-2s %-5s %-19s %s\n" "${marker}" "exec" \
+        "$(_fmt_time "${local_mtime}")" "${candidate}"
+    else
+      printf "%-2s %-5s %-19s %s\n" "" "miss" "-" "${candidate}"
+    fi
+  done
+  exit 0
+fi
+
+if [[ -z "${bin}" ]]; then
+  cat >&2 <<'EOF'
+z3disasm binary not found.
+
+Common build:
+  cd ../z3dk
+  cmake --build build --target z3disasm
+
+Or set Z3DISASM_BIN=/path/to/z3disasm.
+EOF
+  exit 1
+fi
+
+exec "${bin}" "$@"

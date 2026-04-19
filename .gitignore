@@ -151,3 +151,7 @@ scripts/signing.env
 
 # Local QA evidence artifacts
 /QA/
+
+# Local agent scratch and ad-hoc packaging output
+.local/
+dist/
