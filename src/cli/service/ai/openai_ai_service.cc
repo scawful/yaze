@@ -67,18 +67,12 @@ namespace {
 
 absl::StatusOr<nlohmann::json> BuildOpenAIToolPayload(
     const PromptBuilder& prompt_builder) {
-  nlohmann::json function_declarations =
-      ToolSchemaBuilder::BuildFunctionDeclarations(prompt_builder.tool_specs());
-  if (!function_declarations.empty()) {
-    return ToolSchemaBuilder::BuildOpenAITools(function_declarations);
+  auto declarations_or =
+      ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder);
+  if (!declarations_or.ok()) {
+    return declarations_or.status();
   }
-
-  auto fallback_or = ToolSchemaBuilder::LoadFunctionDeclarationsFromAsset();
-  if (!fallback_or.ok()) {
-    return fallback_or.status();
-  }
-
-  return ToolSchemaBuilder::BuildOpenAITools(*fallback_or);
+  return ToolSchemaBuilder::BuildOpenAITools(*declarations_or);
 }
 
 }  // namespace

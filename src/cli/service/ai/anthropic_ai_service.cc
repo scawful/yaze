@@ -15,13 +15,15 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/tool_schema_builder.h"
 #include "util/platform_paths.h"
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
 
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
 #include "cli/service/ai/ios_urlsession_http_client.h"
 #define YAZE_AI_IOS_URLSESSION 1
 #endif
@@ -38,6 +40,20 @@ namespace yaze {
 namespace cli {
 
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
+
+namespace {
+
+absl::StatusOr<nlohmann::json> BuildAnthropicToolPayload(
+    const PromptBuilder& prompt_builder) {
+  auto declarations_or =
+      ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder);
+  if (!declarations_or.ok()) {
+    return declarations_or.status();
+  }
+  return ToolSchemaBuilder::BuildAnthropicTools(*declarations_or);
+}
+
+}  // namespace
 
 AnthropicAIService::AnthropicAIService(const AnthropicConfig& config)
     : function_calling_enabled_(config.use_function_calling), config_(config) {
@@ -100,39 +116,6 @@ std::vector<std::string> AnthropicAIService::GetAvailableTools() const {
           "dungeon-list-sprites", "dungeon-describe-room",
           "overworld-find-tile",  "overworld-describe-map",
           "overworld-list-warps"};
-}
-
-std::string AnthropicAIService::BuildFunctionCallSchemas() {
-#ifndef YAZE_WITH_JSON
-  return "[]";
-#else
-  std::string schemas = prompt_builder_.BuildFunctionCallSchemas();
-  if (!schemas.empty() && schemas != "[]") {
-    return schemas;
-  }
-
-  auto schema_path_or =
-      util::PlatformPaths::FindAsset("agent/function_schemas.json");
-
-  if (!schema_path_or.ok()) {
-    return "[]";
-  }
-
-  std::ifstream file(schema_path_or->string());
-  if (!file.is_open()) {
-    return "[]";
-  }
-
-  try {
-    nlohmann::json schemas_json;
-    file >> schemas_json;
-    return schemas_json.dump();
-  } catch (const nlohmann::json::exception& e) {
-    std::cerr << "⚠️  Failed to parse function schemas JSON: " << e.what()
-              << std::endl;
-    return "[]";
-  }
-#endif
 }
 
 std::string AnthropicAIService::BuildSystemInstruction() {
@@ -230,41 +213,20 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
 
     // Add function calling tools if enabled
     if (function_calling_enabled_) {
-      try {
-        std::string schemas_str = BuildFunctionCallSchemas();
+      auto tools_or = BuildAnthropicToolPayload(prompt_builder_);
+      if (!tools_or.ok()) {
         if (config_.verbose) {
+          std::cerr << "[DEBUG] Function calling schemas unavailable: "
+                    << tools_or.status().message() << std::endl;
+        }
+      } else if (!tools_or->empty()) {
+        if (config_.verbose) {
+          std::string tools_str = tools_or->dump();
           std::cerr << "[DEBUG] Function calling schemas: "
-                    << schemas_str.substr(0, 200) << "..." << std::endl;
+                    << tools_str.substr(0, 200) << "..." << std::endl;
         }
 
-        nlohmann::json schemas = nlohmann::json::parse(schemas_str);
-
-        if (schemas.is_array() && !schemas.empty()) {
-          // Convert OpenAI-style tools to Anthropic format
-          nlohmann::json tools = nlohmann::json::array();
-          for (const auto& schema : schemas) {
-            // Check if it's already in tool format or just the function schema
-            nlohmann::json tool_def;
-
-            // Handle both bare schema and wrapped "function" schema
-            nlohmann::json func_schema = schema;
-            if (schema.contains("function")) {
-              func_schema = schema["function"];
-            }
-
-            tool_def = {
-                {"name", func_schema.value("name", "")},
-                {"description", func_schema.value("description", "")},
-                {"input_schema",
-                 func_schema.value("parameters", nlohmann::json::object())}};
-
-            tools.push_back(tool_def);
-          }
-          request_body["tools"] = tools;
-        }
-      } catch (const nlohmann::json::exception& e) {
-        std::cerr << "⚠️  Failed to parse function schemas: " << e.what()
-                  << std::endl;
+        request_body["tools"] = *tools_or;
       }
     }
 
@@ -286,9 +248,8 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
       return resp_or.status();
     }
     if (resp_or->status_code != 200) {
-      return absl::InternalError(
-          absl::StrCat("Anthropic API error: ", resp_or->status_code, "\n",
-                       resp_or->body));
+      return absl::InternalError(absl::StrCat(
+          "Anthropic API error: ", resp_or->status_code, "\n", resp_or->body));
     }
     response_str = resp_or->body;
 #else

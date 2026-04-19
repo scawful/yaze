@@ -94,6 +94,35 @@ TEST(ToolSchemaBuilderTest,
 }
 
 TEST(ToolSchemaBuilderTest,
+     PromptBuilderSchemasRoundTripIntoGeminiAndAnthropicPayloads) {
+  PromptBuilder prompt_builder;
+  ASSERT_TRUE(prompt_builder.LoadResourceCatalogue("").ok());
+
+  auto declarations_or =
+      ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder);
+  ASSERT_TRUE(declarations_or.ok()) << declarations_or.status();
+  ASSERT_FALSE(declarations_or->empty());
+
+  const nlohmann::json gemini_tools =
+      ToolSchemaBuilder::BuildGeminiTools(*declarations_or);
+  ASSERT_TRUE(gemini_tools.is_array());
+  ASSERT_EQ(gemini_tools.size(), 1u);
+  ASSERT_TRUE(gemini_tools[0].contains("function_declarations"));
+  ASSERT_TRUE(gemini_tools[0]["function_declarations"].is_array());
+  EXPECT_EQ(gemini_tools[0]["function_declarations"][0]["name"],
+            (*declarations_or)[0]["name"]);
+
+  const nlohmann::json anthropic_tools =
+      ToolSchemaBuilder::BuildAnthropicTools(*declarations_or);
+  ASSERT_TRUE(anthropic_tools.is_array());
+  ASSERT_FALSE(anthropic_tools.empty());
+  EXPECT_TRUE(anthropic_tools[0].contains("name"));
+  EXPECT_TRUE(anthropic_tools[0].contains("description"));
+  EXPECT_TRUE(anthropic_tools[0].contains("input_schema"));
+  EXPECT_FALSE(anthropic_tools[0].contains("parameters"));
+}
+
+TEST(ToolSchemaBuilderTest,
      LoadFunctionDeclarationsFromAssetNormalizesGeminiStyleFallback) {
   auto declarations_or = ToolSchemaBuilder::LoadFunctionDeclarationsFromAsset();
   ASSERT_TRUE(declarations_or.ok()) << declarations_or.status();

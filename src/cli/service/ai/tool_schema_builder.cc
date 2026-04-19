@@ -78,6 +78,17 @@ nlohmann::json ToolSchemaBuilder::BuildFunctionDeclarations(
   return functions;
 }
 
+absl::StatusOr<nlohmann::json> ToolSchemaBuilder::ResolveFunctionDeclarations(
+    const PromptBuilder& prompt_builder) {
+  nlohmann::json function_declarations =
+      BuildFunctionDeclarations(prompt_builder.tool_specs());
+  if (!function_declarations.empty()) {
+    return function_declarations;
+  }
+
+  return LoadFunctionDeclarationsFromAsset();
+}
+
 absl::StatusOr<nlohmann::json> ToolSchemaBuilder::NormalizeFunctionDeclarations(
     const nlohmann::json& schema_json) {
   if (schema_json.is_object() &&
@@ -155,6 +166,28 @@ nlohmann::json ToolSchemaBuilder::BuildOpenAITools(
   nlohmann::json tools = nlohmann::json::array();
   for (const auto& function : function_declarations) {
     tools.push_back({{"type", "function"}, {"function", function}});
+  }
+  return tools;
+}
+
+nlohmann::json ToolSchemaBuilder::BuildGeminiTools(
+    const nlohmann::json& function_declarations) {
+  if (function_declarations.empty()) {
+    return nlohmann::json::array();
+  }
+
+  return nlohmann::json::array(
+      {{{"function_declarations", function_declarations}}});
+}
+
+nlohmann::json ToolSchemaBuilder::BuildAnthropicTools(
+    const nlohmann::json& function_declarations) {
+  nlohmann::json tools = nlohmann::json::array();
+  for (const auto& function : function_declarations) {
+    tools.push_back({{"name", function.value("name", "")},
+                     {"description", function.value("description", "")},
+                     {"input_schema",
+                      function.value("parameters", nlohmann::json::object())}});
   }
   return tools;
 }
