@@ -33,6 +33,56 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+std::string ShortDoorTypeLabel(zelda3::DoorType type) {
+  switch (type) {
+    case zelda3::DoorType::NormalDoor:
+      return "Normal";
+    case zelda3::DoorType::NormalDoorLower:
+      return "Lower";
+    case zelda3::DoorType::CaveExit:
+      return "Cave";
+    case zelda3::DoorType::DoubleSidedShutter:
+      return "2-Side";
+    case zelda3::DoorType::EyeWatchDoor:
+      return "Eye";
+    case zelda3::DoorType::SmallKeyDoor:
+      return "S-Key";
+    case zelda3::DoorType::BigKeyDoor:
+      return "B-Key";
+    case zelda3::DoorType::SmallKeyStairsUp:
+      return "Up";
+    case zelda3::DoorType::SmallKeyStairsDown:
+      return "Down";
+    case zelda3::DoorType::DashWall:
+      return "Dash";
+    case zelda3::DoorType::BombableDoor:
+      return "Bomb";
+    case zelda3::DoorType::ExplodingWall:
+      return "Blast";
+    case zelda3::DoorType::CurtainDoor:
+      return "Curtain";
+    case zelda3::DoorType::BottomSidedShutter:
+      return "Bottom";
+    case zelda3::DoorType::TopSidedShutter:
+      return "Top";
+    case zelda3::DoorType::FancyDungeonExit:
+      return "Exit";
+    case zelda3::DoorType::WaterfallDoor:
+      return "Water";
+    case zelda3::DoorType::ExitMarker:
+      return "Marker";
+    case zelda3::DoorType::LayerSwapMarker:
+      return "Layer";
+    case zelda3::DoorType::DungeonSwapMarker:
+      return "Swap";
+  }
+  return "Door";
+}
+
+}  // namespace
+
 ObjectEditorPanel::ObjectEditorPanel(
     gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
     std::shared_ptr<zelda3::DungeonObjectEditor> object_editor)
@@ -117,6 +167,7 @@ void ObjectEditorPanel::OnSelectionChanged() {
 }
 
 void ObjectEditorPanel::Draw(bool* p_open) {
+  (void)p_open;
   ResolveCanvasViewer();
 
   const auto& theme = AgentUI::GetTheme();
@@ -192,90 +243,39 @@ void ObjectEditorPanel::Draw(bool* p_open) {
     }
   }
 
-  // Room validation bar (object/sprite/door/chest counts)
   DrawRoomValidationBar();
+  DrawInteractionSummary();
+  DrawDoorSection();
 
-  // Door Section (Collapsible)
-  if (ImGui::CollapsingHeader(ICON_MD_DOOR_FRONT " Doors",
-                              ImGuiTreeNodeFlags_DefaultOpen)) {
-    DrawDoorSection();
-  }
+  const bool has_editor_content =
+      static_editor_open_ || cached_selection_count_ > 0 || has_preview_object_;
 
-  ImGui::Separator();
-
-  // Object Browser - takes up available space
   float available_height = ImGui::GetContentRegionAvail().y;
-  // Reserve space for status indicator at bottom
-  float reserved_height = 84.0f;
-  // Reduce browser height when static editor is open to give it more space
+  float editor_reserve = 0.0f;
   if (static_editor_open_) {
-    reserved_height += 220.0f;
+    editor_reserve += 260.0f;
   }
-  float browser_height = std::max(static_editor_open_ ? 136.0f : 180.0f,
-                                  available_height - reserved_height);
+  if (has_editor_content) {
+    editor_reserve += 230.0f;
+  }
+  float browser_height = std::max(220.0f, available_height - editor_reserve);
 
+  gui::SectionHeader(ICON_MD_CATEGORY, "Object Selector", theme.text_info);
+  ImGui::TextColored(theme.text_secondary_gray,
+                     "Choose an object to place. Double-click an entry to "
+                     "inspect its draw routine.");
   ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
   DrawObjectSelector();
   ImGui::EndChild();
 
-  ImGui::Separator();
-
-  // Static Object Editor (if open)
   if (static_editor_open_) {
+    ImGui::Spacing();
     DrawStaticObjectEditor();
-    ImGui::Separator();
   }
 
-  // Status indicator: show current interaction state
-  {
-    bool is_placing = has_preview_object_ && canvas_viewer_ &&
-                      canvas_viewer_->object_interaction().IsObjectLoaded();
-    if (!is_placing && has_preview_object_) {
-      has_preview_object_ = false;
-    }
-    if (is_placing) {
-      ImGui::TextColored(theme.status_warning,
-                         ICON_MD_ADD_CIRCLE " Placing: Object 0x%02X",
-                         preview_object_.id_);
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
-        CancelPlacement();
-      }
-    } else {
-      ImGui::TextColored(
-          theme.text_secondary_gray, ICON_MD_MOUSE
-          " Selection Mode - Click to select, drag to multi-select");
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_HELP_OUTLINE " ?")) {
-        show_shortcut_help_ = true;
-      }
-    }
-  }
-
-  // Placement error feedback (timed)
-  if (!last_placement_error_.empty()) {
-    double elapsed = ImGui::GetTime() - placement_error_time_;
-    if (elapsed < kPlacementErrorDuration) {
-      ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s",
-                         last_placement_error_.c_str());
-    } else {
-      last_placement_error_.clear();
-    }
-  }
-
-  // Current object info
-  DrawSelectedObjectInfo();
-
-  ImGui::Separator();
-
-  // Emulator Preview (Collapsible)
-  bool preview_open = ImGui::CollapsingHeader(ICON_MD_MONITOR " Preview");
-  show_emulator_preview_ = preview_open;
-
-  if (preview_open) {
-    ImGui::PushID("PreviewSection");
-    DrawEmulatorPreview();
-    ImGui::PopID();
+  if (has_editor_content) {
+    ImGui::Spacing();
+    DrawObjectEditorSection();
   }
 
   // Keyboard shortcut help popup
@@ -339,33 +339,40 @@ void ObjectEditorPanel::DrawDoorSection() {
       zelda3::DoorType::DungeonSwapMarker,
   }};
 
-  // Placement mode indicator
+  ImGui::Spacing();
+  gui::SectionHeader(ICON_MD_DOOR_FRONT, "Door Types", theme.text_info);
+  ImGui::TextColored(theme.text_secondary_gray,
+                     "Pick a door style, then click a wall in the room canvas "
+                     "to place it.");
+
   if (door_placement_mode_) {
-    ImGui::TextColored(
-        theme.status_warning,
-        ICON_MD_PLACE " Placing: %s - Click wall to place",
-        std::string(zelda3::GetDoorTypeName(selected_door_type_)).c_str());
-    if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
+    ImGui::TextColored(theme.status_warning, ICON_MD_PLACE " Active: %s",
+                       std::string(zelda3::GetDoorTypeName(selected_door_type_))
+                           .c_str());
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel Door")) {
       door_placement_mode_ = false;
       if (canvas_viewer_) {
         canvas_viewer_->object_interaction().SetDoorPlacementMode(
             false, zelda3::DoorType::NormalDoor);
       }
     }
-    ImGui::Separator();
   }
 
-  // Door type selector grid with preview thumbnails
-  ImGui::Text(ICON_MD_CATEGORY " Select Door Type:");
+  constexpr float kDoorCardHeight = 42.0f;
+  constexpr float kDoorCardSpacing = 6.0f;
+  constexpr float kMinDoorCardWidth = 84.0f;
+  const float panel_width = ImGui::GetContentRegionAvail().x;
+  const int items_per_row = std::max(
+      2, static_cast<int>((panel_width + kDoorCardSpacing) /
+                          (kMinDoorCardWidth + kDoorCardSpacing)));
+  const float card_width =
+      std::max(kMinDoorCardWidth,
+               (panel_width - (items_per_row - 1) * kDoorCardSpacing) /
+                   items_per_row);
 
-  constexpr float kPreviewSize = 32.0f;
-  constexpr int kItemsPerRow = 5;
-  float panel_width = ImGui::GetContentRegionAvail().x;
-  int items_per_row =
-      std::max(1, static_cast<int>(panel_width / (kPreviewSize + 8)));
-
-  ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, 80), true,
-                    ImGuiWindowFlags_HorizontalScrollbar);
+  ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, 118), true,
+                    ImGuiWindowFlags_AlwaysVerticalScrollbar);
 
   int col = 0;
   for (size_t i = 0; i < kDoorTypes.size(); ++i) {
@@ -403,9 +410,10 @@ void ObjectEditorPanel::DrawDoorSection() {
                   button_color.z + 0.2f, 1.0f)},
       });
 
-      // Draw button with door type abbreviation
-      std::string label = absl::StrFormat("%02X", type_val);
-      if (ImGui::Button(label.c_str(), ImVec2(kPreviewSize, kPreviewSize))) {
+      const std::string label =
+          absl::StrFormat("%02X\n%s", type_val,
+                          ShortDoorTypeLabel(door_type).c_str());
+      if (ImGui::Button(label.c_str(), ImVec2(card_width, kDoorCardHeight))) {
         selected_door_type_ = door_type;
         door_placement_mode_ = true;
         if (canvas_viewer_) {
@@ -449,9 +457,9 @@ void ObjectEditorPanel::DrawDoorSection() {
     const auto& doors = room.GetDoors();
 
     if (!doors.empty()) {
-      ImGui::Text(ICON_MD_LIST " Room Doors (%zu):", doors.size());
+      ImGui::Text(ICON_MD_LIST " Doors In Room (%zu):", doors.size());
 
-      ImGui::BeginChild("##DoorList", ImVec2(0, 80), true);
+      ImGui::BeginChild("##DoorList", ImVec2(0, 92), true);
       for (size_t i = 0; i < doors.size(); ++i) {
         const auto& door = doors[i];
         auto [tile_x, tile_y] = door.GetTileCoords();
@@ -482,20 +490,66 @@ void ObjectEditorPanel::DrawDoorSection() {
   }
 }
 
-void ObjectEditorPanel::DrawEmulatorPreview() {
+void ObjectEditorPanel::DrawInteractionSummary() {
   const auto& theme = AgentUI::GetTheme();
+  auto* viewer = ResolveCanvasViewer();
+  const size_t selection_count =
+      viewer ? viewer->object_interaction().GetSelectionCount()
+             : cached_selection_count_;
 
-  ImGui::TextColored(theme.text_secondary_gray,
-                     ICON_MD_INFO " Real-time object rendering preview");
-  gui::HelpMarker(
-      "Uses SNES emulation to render objects accurately.\n"
-      "May impact performance.");
+  gui::SectionHeader(ICON_MD_TOUCH_APP, "Interaction", theme.text_info);
 
-  ImGui::Separator();
+  bool is_placing = has_preview_object_ && canvas_viewer_ &&
+                    canvas_viewer_->object_interaction().IsObjectLoaded();
+  if (!is_placing && has_preview_object_) {
+    has_preview_object_ = false;
+  }
 
-  ImGui::BeginChild("##EmulatorPreviewRegion", ImVec2(0, 260), true);
-  emulator_preview_.Render();
-  ImGui::EndChild();
+  if (is_placing) {
+    ImGui::TextColored(theme.status_warning,
+                       ICON_MD_ADD_CIRCLE " Placement ready: 0x%03X %s",
+                       preview_object_.id_,
+                       zelda3::GetObjectName(preview_object_.id_).c_str());
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
+      CancelPlacement();
+    }
+  } else if (selection_count == 1) {
+    ImGui::TextColored(theme.status_success,
+                       ICON_MD_CHECK_CIRCLE " Editing selected room object");
+  } else if (selection_count > 1) {
+    ImGui::TextColored(theme.status_success,
+                       ICON_MD_SELECT_ALL " Editing %zu selected objects",
+                       selection_count);
+  } else {
+    ImGui::TextColored(theme.text_secondary_gray,
+                       ICON_MD_MOUSE
+                       " Browse objects below to place them, or click room "
+                       "objects to edit them.");
+    ImGui::SameLine();
+    if (ImGui::SmallButton(ICON_MD_HELP_OUTLINE " Shortcuts")) {
+      show_shortcut_help_ = true;
+    }
+  }
+
+  if (!last_placement_error_.empty()) {
+    double elapsed = ImGui::GetTime() - placement_error_time_;
+    if (elapsed < kPlacementErrorDuration) {
+      ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s",
+                         last_placement_error_.c_str());
+    } else {
+      last_placement_error_.clear();
+    }
+  }
+}
+
+void ObjectEditorPanel::DrawObjectEditorSection() {
+  const auto& theme = AgentUI::GetTheme();
+  gui::SectionHeader(ICON_MD_TUNE, "Object Editor", theme.text_info);
+  DrawSelectedObjectInfo();
+  if (object_editor_) {
+    object_editor_->DrawPropertyUI();
+  }
 }
 
 void ObjectEditorPanel::DrawSelectedObjectInfo() {
@@ -508,20 +562,20 @@ void ObjectEditorPanel::DrawSelectedObjectInfo() {
     auto selected = interaction.GetSelectedObjectIndices();
 
     if (!selected.empty()) {
-      ImGui::TextColored(theme.status_success,
-                         ICON_MD_CHECK_CIRCLE " Selected:");
-      ImGui::SameLine();
-
       if (selected.size() == 1) {
         if (object_editor_) {
           const auto& objects = object_editor_->GetObjects();
           if (selected[0] < objects.size()) {
             const auto& obj = objects[selected[0]];
             const auto semantics = zelda3::GetObjectLayerSemantics(obj);
-            ImGui::Text("Object #%zu (ID: 0x%02X)", selected[0], obj.id_);
+            ImGui::TextColored(theme.status_success,
+                               ICON_MD_CHECK_CIRCLE
+                               " Selected object #%zu · 0x%03X %s",
+                               selected[0], obj.id_,
+                               zelda3::GetObjectName(obj.id_).c_str());
             ImGui::TextColored(
                 theme.text_secondary_gray,
-                "  Position: (%d, %d)  Size: 0x%02X  Layer: %s  Draws: %s",
+                "Position (%d, %d)  Size 0x%02X  Layer %s  Draws %s",
                 obj.x_, obj.y_, obj.size_,
                 obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
                 : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
@@ -532,38 +586,27 @@ void ObjectEditorPanel::DrawSelectedObjectInfo() {
           ImGui::Text("1 object");
         }
       } else {
-        ImGui::Text("%zu objects", selected.size());
-        ImGui::SameLine();
+        ImGui::TextColored(theme.status_success,
+                           ICON_MD_SELECT_ALL " %zu objects selected",
+                           selected.size());
         ImGui::TextColored(theme.text_secondary_gray,
-                           "(Shift+click to add, Ctrl+click to toggle)");
+                           "Use Shift-click to add and Ctrl-click to toggle "
+                           "objects in the selection.");
       }
-      ImGui::Separator();
+      ImGui::Spacing();
     }
   }
 
-  ImGui::BeginGroup();
-
-  ImGui::TextColored(theme.text_info, ICON_MD_INFO " Current:");
-
   if (has_preview_object_) {
-    ImGui::SameLine();
     const auto semantics = zelda3::GetObjectLayerSemantics(preview_object_);
-    ImGui::Text("ID: 0x%02X", preview_object_.id_);
-    ImGui::SameLine();
-    ImGui::Text("Layer: %s  Draws: %s",
+    ImGui::TextColored(theme.text_info, ICON_MD_CATEGORY " Placement Object");
+    ImGui::Text("0x%03X %s", preview_object_.id_,
+                zelda3::GetObjectName(preview_object_.id_).c_str());
+    ImGui::TextColored(theme.text_secondary_gray, "Layer %s  Draws %s",
                 preview_object_.layer_ == zelda3::RoomObject::BG1   ? "BG1"
                 : preview_object_.layer_ == zelda3::RoomObject::BG2 ? "BG2"
                                                                     : "BG3",
                 zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
-  }
-
-  ImGui::EndGroup();
-
-  ImGui::Separator();
-
-  // Delegate property editing to the backend
-  if (object_editor_) {
-    object_editor_->DrawPropertyUI();
   }
 }
 
