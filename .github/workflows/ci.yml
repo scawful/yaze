@@ -523,7 +523,7 @@ jobs:
 
       - name: Build z3ed
         if: steps.rom-check.outputs.available == 'true'
-        run: cmake --build build --config RelWithDebInfo --target z3ed --parallel
+        run: cmake --build --preset ci-macos --config RelWithDebInfo --target z3ed --parallel
 
       - name: Create artifact directory
         if: steps.rom-check.outputs.available == 'true'

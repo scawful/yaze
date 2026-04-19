@@ -80,9 +80,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            build-wasm/bin
-            build-wasm/CMakeCache.txt
-            build-wasm/CMakeFiles
+            build/presets/wasm-ai/bin
+            build/presets/wasm-ai/CMakeCache.txt
+            build/presets/wasm-ai/CMakeFiles
           key: wasm-build-${{ hashFiles('src/**/*.cc', 'src/**/*.h', 'CMakeLists.txt', 'CMakePresets.json', 'ext/imgui/imgui.h', 'ext/imgui/imgui.cpp', 'ext/imgui/imconfig.h') }}
           restore-keys: |
             wasm-build-
@@ -91,7 +91,7 @@ jobs:
         if: steps.changes.outputs.needs_wasm_build == 'false'
         id: wasm_cache
         run: |
-          if [ -f build-wasm/bin/yaze.js ] && [ -f build-wasm/bin/yaze.wasm ]; then
+          if [ -f build/presets/wasm-ai/bin/yaze.js ] && [ -f build/presets/wasm-ai/bin/yaze.wasm ]; then
             echo "Cached WASM found."
             echo "has_cached_wasm=true" >> "${GITHUB_OUTPUT}"
           else
@@ -146,16 +146,16 @@ jobs:
         if: steps.changes.outputs.needs_wasm_build == 'false' && steps.wasm_cache.outputs.has_cached_wasm == 'true'
         run: |
           echo "Using cached WASM build, updating web assets only..."
-          mkdir -p build-wasm/dist
+          mkdir -p build/presets/wasm-ai/dist
 
           # Check if we have cached WASM files
-          if [ ! -f build-wasm/bin/yaze.wasm ] || [ ! -f build-wasm/bin/yaze.js ]; then
+          if [ ! -f build/presets/wasm-ai/bin/yaze.wasm ] || [ ! -f build/presets/wasm-ai/bin/yaze.js ]; then
             echo "ERROR: No cached WASM build found. Triggering full build..."
             exit 1
           fi
           echo "Cached wasm/js present; packaging web assets."
 
-          bash scripts/package-wasm-assets.sh "$PWD" "$PWD/build-wasm/bin" "$PWD/build-wasm/dist"
+          bash scripts/package-wasm-assets.sh "$PWD" "$PWD/build/presets/wasm-ai/bin" "$PWD/build/presets/wasm-ai/dist"
           echo "Web assets updated!"
 
       # --- Build Documentation ---
@@ -164,8 +164,8 @@ jobs:
           mkdir -p build/docs
           doxygen Doxyfile
           # Move docs into dist/docs
-          mkdir -p build-wasm/dist/docs
-          mv build/docs/html/* build-wasm/dist/docs/
+          mkdir -p build/presets/wasm-ai/dist/docs
+          mv build/docs/html/* build/presets/wasm-ai/dist/docs/
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -178,7 +178,7 @@ jobs:
           cd scripts/agents
           npm ci
           npx playwright install --with-deps chromium
-          python3 serve_static_with_coi.py --port 8000 --directory ../../build-wasm/dist &
+          python3 serve_static_with_coi.py --port 8000 --directory ../../build/presets/wasm-ai/dist &
           server_pid=$!
           trap "kill ${server_pid}" EXIT
           sleep 3
@@ -191,7 +191,7 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: build-wasm/dist/
+          path: build/presets/wasm-ai/dist/
 
       - name: Deploy to GitHub Pages
         id: deployment
