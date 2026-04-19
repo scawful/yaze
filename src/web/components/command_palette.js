@@ -12,20 +12,116 @@ var palette = {
     this.el = document.getElementById('command-palette');
     this.input = document.getElementById('palette-input');
     this.results = document.getElementById('palette-results');
-    this.items = Array.from(this.results.querySelectorAll('.palette-item'));
 
     this.input.addEventListener('input', () => this.filter());
     this.input.addEventListener('keydown', (e) => this.handleKey(e));
     this.el.addEventListener('click', (e) => {
       if (e.target === this.el) this.hide();
     });
-    this.items.forEach(item => {
-      item.addEventListener('click', () => this.execute(item.dataset.action));
+    this.results.addEventListener('click', (e) => {
+      var item = e.target.closest('.palette-item');
+      if (!item) return;
+      this.execute(item.dataset.action, item.dataset.arg || '');
     });
+    this.refreshItems();
+  },
+
+  refreshItems: function() {
+    this.items = Array.from(this.results.querySelectorAll('.palette-item'));
+  },
+
+  getFallbackEditors: function() {
+    return [
+      { name: 'Overworld' },
+      { name: 'Dungeon' },
+      { name: 'Graphics' },
+      { name: 'Palette' },
+      { name: 'Sprite' },
+      { name: 'Screen' },
+      { name: 'Assembly' },
+      { name: 'Music' },
+      { name: 'Message' },
+      { name: 'Hex' },
+      { name: 'Settings' }
+    ];
+  },
+
+  getAvailableEditors: function() {
+    if (typeof getAvailableEditorsForShell === 'function') {
+      return getAvailableEditorsForShell();
+    }
+
+    var control = window.yaze && window.yaze.control ? window.yaze.control : null;
+    if (control && typeof control.getAvailableEditors === 'function') {
+      try {
+        var editors = control.getAvailableEditors();
+        if (Array.isArray(editors) && editors.length > 0) {
+          return editors;
+        }
+      } catch (e) {
+        console.warn('Failed to query editors for palette:', e);
+      }
+    }
+
+    return this.getFallbackEditors();
+  },
+
+  getAvailableWindows: function() {
+    var control = window.yaze && window.yaze.control ? window.yaze.control : null;
+    if (control && typeof control.getAvailableWindows === 'function') {
+      try {
+        var windows = control.getAvailableWindows();
+        if (Array.isArray(windows)) {
+          return windows.filter(function(windowInfo) {
+            return windowInfo && windowInfo.id && windowInfo.display_name &&
+                   windowInfo.enabled !== false;
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to query windows for palette:', e);
+      }
+    }
+    return [];
+  },
+
+  removeDynamicItems: function() {
+    this.results.querySelectorAll('.palette-item[data-dynamic="true"]').forEach(function(item) {
+      item.remove();
+    });
+  },
+
+  appendDynamicItem: function(label, action, arg) {
+    var item = document.createElement('div');
+    item.className = 'palette-item';
+    item.dataset.dynamic = 'true';
+    item.dataset.action = action;
+    if (arg) {
+      item.dataset.arg = arg;
+    }
+    item.textContent = label;
+    this.results.appendChild(item);
+  },
+
+  refreshDynamicItems: function() {
+    this.removeDynamicItems();
+
+    this.getAvailableEditors().forEach((editor) => {
+      if (!editor || !editor.name) return;
+      this.appendDynamicItem('Editor: ' + editor.name, 'editor-switch', editor.name);
+    });
+
+    this.getAvailableWindows().forEach((windowInfo) => {
+      var prefix = windowInfo.visible ? 'Window: Focus ' : 'Window: Show ';
+      this.appendDynamicItem(prefix + windowInfo.display_name,
+          'window-open', windowInfo.id);
+    });
+
+    this.refreshItems();
   },
 
   show: function() {
     this.el.style.display = 'flex';
+    this.refreshDynamicItems();
     this.input.value = '';
     this.filter();
     this.input.focus();
@@ -72,7 +168,7 @@ var palette = {
     }
   },
 
-  execute: function(action) {
+  execute: function(action, arg) {
     this.hide();
     switch(action) {
       case 'open-rom': document.getElementById('rom-input').click(); break;
@@ -87,17 +183,6 @@ var palette = {
       case 'docs': window.open('./docs/', '_blank'); break;
       case 'about': showAbout(); break;
       case 'file-manager': fileManager.show(); break;
-      // Editor switching
-      case 'editor-overworld': switchToEditor('Overworld'); break;
-      case 'editor-dungeon': switchToEditor('Dungeon'); break;
-      case 'editor-graphics': switchToEditor('Graphics'); break;
-      case 'editor-palette': switchToEditor('Palette'); break;
-      case 'editor-sprite': switchToEditor('Sprite'); break;
-      case 'editor-screen': switchToEditor('Screen'); break;
-      case 'editor-assembly': switchToEditor('Assembly'); break;
-      case 'editor-music': switchToEditor('Music'); break;
-      case 'editor-message': switchToEditor('Message'); break;
-      case 'editor-hex': switchToEditor('Hex'); break;
       // Emulator
       case 'emulator-show': triggerEmulatorAction('show'); break;
       case 'emulator-run': triggerEmulatorAction('run'); break;
@@ -107,6 +192,16 @@ var palette = {
       case 'ai-app-state': aiTools.getAppState(); break;
       case 'ai-editor-state': aiTools.getEditorState(); break;
       case 'ai-api-ref': aiTools.dumpAPIReference(); break;
+      case 'editor-switch':
+        if (arg) switchToEditor(arg);
+        break;
+      case 'window-open':
+        if (window.yaze && window.yaze.control && typeof window.yaze.control.openWindow === 'function') {
+          window.yaze.control.openWindow(arg);
+        } else if (window.showYazeToast) {
+          window.showYazeToast('Window API not ready yet', 'warning');
+        }
+        break;
     }
   }
 };

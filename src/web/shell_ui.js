@@ -314,6 +314,121 @@ function closeAllDropdowns() {
   });
 }
 
+var yazeEditorFallbackOrder = [
+  'Overworld',
+  'Dungeon',
+  'Graphics',
+  'Palette',
+  'Sprite',
+  'Screen',
+  'Assembly',
+  'Music',
+  'Message',
+  'Text',
+  'Hex',
+  'Agent',
+  'Emulator',
+  'Settings'
+];
+
+var yazeEditorIconMap = {
+  'Overworld': 'map',
+  'Dungeon': 'door_open',
+  'Graphics': 'image',
+  'Palette': 'palette',
+  'Sprite': 'animation',
+  'Screen': 'grid_view',
+  'Assembly': 'code',
+  'Music': 'music_note',
+  'Message': 'chat',
+  'Text': 'text_fields',
+  'Hex': 'data_object',
+  'Agent': 'smart_toy',
+  'Emulator': 'sports_esports',
+  'Settings': 'settings'
+};
+
+function getYazeControlApi() {
+  return window.yaze && window.yaze.control ? window.yaze.control : null;
+}
+
+function getAvailableEditorsForShell() {
+  var control = getYazeControlApi();
+  if (control && typeof control.getAvailableEditors === 'function') {
+    try {
+      var editors = control.getAvailableEditors();
+      if (Array.isArray(editors) && editors.length > 0) {
+        return editors.filter(function(editor) {
+          return editor && typeof editor.name === 'string' && editor.name.length > 0;
+        });
+      }
+    } catch (e) {
+      console.warn('Failed to query editor catalog:', e);
+    }
+  }
+
+  return yazeEditorFallbackOrder.map(function(name) {
+    return { name: name };
+  });
+}
+
+function getEditorOrderIndex(name) {
+  var index = yazeEditorFallbackOrder.indexOf(name);
+  return index >= 0 ? index : yazeEditorFallbackOrder.length + 100;
+}
+
+function sortEditorsForShell(editors) {
+  return editors.slice().sort(function(a, b) {
+    var orderDiff = getEditorOrderIndex(a.name) - getEditorOrderIndex(b.name);
+    if (orderDiff !== 0) {
+      return orderDiff;
+    }
+    return a.name.localeCompare(b.name);
+  });
+}
+
+function getEditorIconName(editorName) {
+  return yazeEditorIconMap[editorName] || 'dashboard';
+}
+
+function renderEditorMenu() {
+  var menu = document.getElementById('editor-menu');
+  if (!menu) return;
+
+  var editors = sortEditorsForShell(getAvailableEditorsForShell());
+  var fragment = document.createDocumentFragment();
+  var header = document.createElement('div');
+  header.style.padding = '8px 12px';
+  header.style.fontSize = '10px';
+  header.style.textTransform = 'uppercase';
+  header.style.color = 'var(--text-muted)';
+  header.style.fontWeight = '600';
+  header.textContent = 'Editors';
+  fragment.appendChild(header);
+
+  editors.forEach(function(editor) {
+    var item = document.createElement('a');
+    item.href = '#';
+    item.className = 'editor-item';
+    item.dataset.editor = editor.name;
+
+    item.addEventListener('click', function(event) {
+      event.stopPropagation();
+      event.preventDefault();
+      switchToEditor(editor.name);
+    });
+
+    var icon = document.createElement('span');
+    icon.className = 'material-symbols-outlined';
+    icon.textContent = getEditorIconName(editor.name);
+    item.appendChild(icon);
+    item.appendChild(document.createTextNode(' ' + editor.name));
+    fragment.appendChild(item);
+  });
+
+  menu.replaceChildren(fragment);
+}
+
 // Editor menu toggle
 function toggleEditorMenu(e) {
   if (e) e.stopPropagation();
@@ -321,6 +436,7 @@ function toggleEditorMenu(e) {
   var wasOpen = menu.classList.contains('show');
   closeAllDropdowns();
   if (!wasOpen) {
+    renderEditorMenu();
     menu.classList.add('show');
     updateEditorMenuState();
   }
@@ -382,8 +498,9 @@ function updateCurrentEditorDisplay() {
   var nameEl = document.getElementById('current-editor-name');
   if (!nameEl) return;
 
-  if (window.yaze && window.yaze.control && window.yaze.control.getCurrentEditor) {
-    var editor = window.yaze.control.getCurrentEditor();
+  var control = getYazeControlApi();
+  if (control && control.getCurrentEditor) {
+    var editor = control.getCurrentEditor();
     if (editor && editor.name) {
       nameEl.textContent = editor.name;
     }
@@ -392,9 +509,10 @@ function updateCurrentEditorDisplay() {
 
 // Update editor menu to highlight current editor
 function updateEditorMenuState() {
-  if (!window.yaze || !window.yaze.control) return;
+  var control = getYazeControlApi();
+  if (!control) return;
 
-  var current = window.yaze.control.getCurrentEditor();
+  var current = control.getCurrentEditor();
   if (!current || !current.name) return;
 
   document.querySelectorAll('.editor-item').forEach(function(item) {
@@ -402,6 +520,26 @@ function updateEditorMenuState() {
     item.classList.toggle('active', isActive);
   });
 }
+
+(function initEditorMenuSync() {
+  renderEditorMenu();
+  updateCurrentEditorDisplay();
+
+  var attempts = 0;
+  var syncInterval = setInterval(function() {
+    attempts += 1;
+    var control = getYazeControlApi();
+    if (control && typeof control.getAvailableEditors === 'function') {
+      renderEditorMenu();
+      updateCurrentEditorDisplay();
+      clearInterval(syncInterval);
+      return;
+    }
+    if (attempts >= 20) {
+      clearInterval(syncInterval);
+    }
+  }, 500);
+})();
 
 // Trigger emulator action
 async function triggerEmulatorAction(action) {
