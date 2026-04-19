@@ -153,8 +153,10 @@
       if (normalized === 'google' || normalized === 'google-gemini') {
         return this.PROVIDERS.GEMINI;
       }
-      if (normalized === 'openai-compatible' || normalized === 'custom-openai' ||
-          normalized === 'afs-bridge') {
+      if (normalized === 'afs-bridge') {
+        return this.PROVIDERS.HALEXT;
+      }
+      if (normalized === 'openai-compatible' || normalized === 'custom-openai') {
         return this.PROVIDERS.OPENAI;
       }
       if (normalized === this.PROVIDERS.GEMINI ||
