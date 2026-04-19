@@ -3,11 +3,11 @@
 #include <memory>
 #include <string>
 
-#include "framework/headless_editor_test.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "framework/headless_editor_test.h"
+#include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
-#include "gtest/gtest.h"
 #include "test_utils.h"
 #include "zelda3/game_data.h"
 
@@ -35,14 +35,15 @@ class OverworldEditorTest : public HeadlessEditorTest {
     editor::EditorDependencies deps;
     deps.rom = rom_.get();
     deps.game_data = game_data_.get();
-    deps.panel_manager = panel_manager_.get();
+    deps.window_manager = window_manager_.get();
     deps.renderer = renderer_.get();
     deps.shared_clipboard = shared_clipboard_.get();
 
     // Create Editor
-    overworld_editor_ = std::make_unique<editor::OverworldEditor>(rom_.get(), deps);
+    overworld_editor_ =
+        std::make_unique<editor::OverworldEditor>(rom_.get(), deps);
     overworld_editor_->SetGameData(game_data_.get());
-    
+
     // Initialize and Load
     overworld_editor_->Initialize();
     ASSERT_TRUE(overworld_editor_->Load().ok());

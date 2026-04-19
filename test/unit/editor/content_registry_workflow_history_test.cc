@@ -1,6 +1,6 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "app/editor/dungeon/panels/dungeon_panel_access.h"
+#include "app/editor/dungeon/ui/window/dungeon_panel_access.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
 
@@ -22,7 +22,8 @@ TEST(ContentRegistryWorkflowHistoryTest, StoresNewestHistoryEntriesFirst) {
                   .detail = "first",
                   .state = ProjectWorkflowState::kSuccess},
        .output_log = "first log",
-       .timestamp = std::chrono::system_clock::now() - std::chrono::minutes(1)});
+       .timestamp =
+           std::chrono::system_clock::now() - std::chrono::minutes(1)});
   ContentRegistry::Context::AppendWorkflowHistory(
       {.kind = "Run",
        .status = {.visible = true,
