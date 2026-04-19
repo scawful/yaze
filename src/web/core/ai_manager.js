@@ -523,60 +523,379 @@
       }
     }
 
+    buildAgentDriverSystemPrompt() {
+      return [
+        'You are the YAZE browser AI driver.',
+        'Return only valid JSON with no markdown fences or commentary.',
+        'Schema:',
+        '{"text":"optional reply","tool_calls":[{"tool_name":"tool_name","args":{"arg":"value"}}]}',
+        'Use tool_calls when the next step should invoke a YAZE tool.',
+        'Use concise text when no tool call is needed.',
+        'Arguments must be valid JSON object values.',
+        'If both are useful, include both text and tool_calls.'
+      ].join('\n');
+    }
+
+    getHistoryMessageText(message) {
+      if (!message || typeof message !== 'object') return '';
+      if (typeof message.message === 'string' && message.message.trim()) {
+        return message.message.trim();
+      }
+      if (!Array.isArray(message.parts)) {
+        return '';
+      }
+      return message.parts
+        .map(part => {
+          if (typeof part === 'string') return part;
+          if (part && typeof part.text === 'string') return part.text;
+          return '';
+        })
+        .filter(Boolean)
+        .join('\n')
+        .trim();
+    }
+
+    buildOpenAiAgentMessages(history) {
+      const messages = [{
+        role: 'system',
+        content: this.buildAgentDriverSystemPrompt()
+      }];
+      history.forEach(message => {
+        const content = this.getHistoryMessageText(message);
+        if (!content) return;
+        messages.push({
+          role: message && message.role === 'user' ? 'user' : 'assistant',
+          content
+        });
+      });
+      return messages;
+    }
+
+    buildGeminiAgentContents(history) {
+      return history
+        .map(message => {
+          const text = this.getHistoryMessageText(message);
+          if (!text) return null;
+          return {
+            role: message && message.role === 'user' ? 'user' : 'model',
+            parts: [{ text }]
+          };
+        })
+        .filter(Boolean);
+    }
+
+    normalizeStructuredToolCall(call) {
+      if (!call || typeof call !== 'object') {
+        return null;
+      }
+
+      const name = call.tool_name || call.name || '';
+      if (!name || typeof name !== 'string') {
+        return null;
+      }
+
+      const normalizedArgs = {};
+      const args = call.args && typeof call.args === 'object' && !Array.isArray(call.args)
+        ? call.args
+        : {};
+      Object.entries(args).forEach(([key, value]) => {
+        if (value === undefined) {
+          return;
+        }
+        if (typeof value === 'string' || typeof value === 'number' ||
+            typeof value === 'boolean') {
+          normalizedArgs[key] = value;
+          return;
+        }
+        if (value === null) {
+          normalizedArgs[key] = null;
+          return;
+        }
+        try {
+          normalizedArgs[key] = JSON.stringify(value);
+        } catch (e) {
+          normalizedArgs[key] = String(value);
+        }
+      });
+
+      return {
+        name,
+        args: normalizedArgs
+      };
+    }
+
+    dedupeStructuredToolCalls(toolCalls) {
+      const seen = new Set();
+      const deduped = [];
+      (toolCalls || []).forEach(call => {
+        const normalized = this.normalizeStructuredToolCall(call);
+        if (!normalized) return;
+        const signature = `${normalized.name}:${JSON.stringify(normalized.args)}`;
+        if (seen.has(signature)) return;
+        seen.add(signature);
+        deduped.push(normalized);
+      });
+      return deduped;
+    }
+
+    normalizeStructuredAgentPayload(payload) {
+      const normalized = {
+        text: '',
+        tool_calls: []
+      };
+
+      if (!payload || typeof payload !== 'object') {
+        return normalized;
+      }
+
+      if (typeof payload.text === 'string') {
+        normalized.text = payload.text;
+      } else if (typeof payload.text_response === 'string') {
+        normalized.text = payload.text_response;
+      }
+
+      if (Array.isArray(payload.tool_calls)) {
+        normalized.tool_calls = this.dedupeStructuredToolCalls(payload.tool_calls);
+      }
+
+      return normalized;
+    }
+
+    tryParseStructuredAgentText(text) {
+      if (typeof text !== 'string') {
+        return null;
+      }
+
+      const trimmed = text.trim();
+      if (!trimmed) {
+        return null;
+      }
+
+      const candidates = [trimmed];
+      const fencedMatch = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+      if (fencedMatch && fencedMatch[1]) {
+        candidates.push(fencedMatch[1].trim());
+      }
+      const firstBrace = trimmed.indexOf('{');
+      const lastBrace = trimmed.lastIndexOf('}');
+      if (firstBrace >= 0 && lastBrace > firstBrace) {
+        candidates.push(trimmed.slice(firstBrace, lastBrace + 1));
+      }
+
+      for (const candidate of candidates) {
+        try {
+          const parsed = JSON.parse(candidate);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            return this.normalizeStructuredAgentPayload(parsed);
+          }
+        } catch (e) {
+          // Keep trying fallback candidates.
+        }
+      }
+
+      return null;
+    }
+
+    mergeStructuredToolCalls(...toolCallSets) {
+      const merged = [];
+      toolCallSets.forEach(toolCalls => {
+        if (Array.isArray(toolCalls)) {
+          merged.push(...toolCalls);
+        }
+      });
+      return this.dedupeStructuredToolCalls(merged);
+    }
+
+    extractOpenAiContentText(content) {
+      if (typeof content === 'string') {
+        return content;
+      }
+      if (!Array.isArray(content)) {
+        return '';
+      }
+      return content
+        .map(part => {
+          if (!part || typeof part !== 'object') return '';
+          if (typeof part.text === 'string') return part.text;
+          if (part.type === 'text' && typeof part.text === 'string') return part.text;
+          return '';
+        })
+        .filter(Boolean)
+        .join('\n');
+    }
+
+    async requestOpenAiStructuredAgentResponse(history, provider) {
+      const openaiKey = this.getStoredValue(this.STORAGE_KEY_OPENAI_KEY);
+      const baseUrl = this.normalizeOpenAiBaseUrl(this.config.openaiBaseUrl || '', provider);
+      if (!openaiKey && baseUrl === this.OPENAI_BASES.OPENAI) {
+        throw new Error('OpenAI API key missing. Set one or use a local OpenAI-compatible endpoint.');
+      }
+
+      const model = await this.resolveModel({
+        provider,
+        model: this.config.model,
+        openaiBaseUrl: baseUrl,
+        openaiApiKey: openaiKey
+      });
+      if (!model) {
+        throw new Error(`No model selected for ${this.getProviderDisplayName(provider)}. Refresh models or enter a model id.`);
+      }
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (openaiKey) {
+        headers.Authorization = `Bearer ${openaiKey}`;
+      }
+
+      const body = {
+        model,
+        messages: this.buildOpenAiAgentMessages(history),
+        max_tokens: Math.min(this.config.maxResponseLength || 4096, 4096),
+        temperature: 0.2
+      };
+      if (provider === this.PROVIDERS.OPENAI && baseUrl === this.OPENAI_BASES.OPENAI) {
+        body.response_format = { type: 'json_object' };
+      }
+
+      const response = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`OpenAI API Error (${response.status}): ${errText}`);
+      }
+
+      const json = await response.json();
+      const choice = json && Array.isArray(json.choices) ? json.choices[0] : null;
+      const message = choice && choice.message ? choice.message : {};
+      const textPayload = this.extractOpenAiContentText(message.content);
+      const parsedPayload = this.tryParseStructuredAgentText(textPayload);
+      const nativeToolCalls = Array.isArray(message.tool_calls)
+        ? message.tool_calls.map(call => {
+            const fn = call && call.function ? call.function : {};
+            let parsedArgs = {};
+            if (typeof fn.arguments === 'string' && fn.arguments.trim()) {
+              try {
+                parsedArgs = JSON.parse(fn.arguments);
+              } catch (e) {
+                parsedArgs = {};
+              }
+            }
+            return {
+              name: fn.name || '',
+              args: parsedArgs
+            };
+          })
+        : [];
+
+      return {
+        text: parsedPayload ? parsedPayload.text : textPayload,
+        tool_calls: this.mergeStructuredToolCalls(
+          nativeToolCalls,
+          parsedPayload ? parsedPayload.tool_calls : []
+        )
+      };
+    }
+
+    async requestGeminiStructuredAgentResponse(history) {
+      const credential = this.getCredential(this.PROVIDERS.GEMINI);
+      if (!credential) {
+        throw new Error('No credentials available. Please use /login or /apikey.');
+      }
+
+      const model = this.config.model || this.DEFAULT_MODELS.GEMINI || 'gemini-2.5-flash';
+      let url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+      const headers = { 'Content-Type': 'application/json' };
+      if (credential.type === 'key') {
+        url += `?key=${credential.value}`;
+      } else if (credential.type === 'Bearer') {
+        headers.Authorization = `Bearer ${credential.value}`;
+      }
+
+      const body = {
+        systemInstruction: {
+          parts: [{ text: this.buildAgentDriverSystemPrompt() }]
+        },
+        contents: this.buildGeminiAgentContents(history),
+        generationConfig: {
+          maxOutputTokens: this.config.maxResponseLength || 4096,
+          responseMimeType: 'application/json'
+        }
+      };
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Gemini API Error (${response.status}): ${errText}`);
+      }
+
+      const json = await response.json();
+      const candidate = json && Array.isArray(json.candidates) ? json.candidates[0] : null;
+      const parts = candidate && candidate.content && Array.isArray(candidate.content.parts)
+        ? candidate.content.parts
+        : [];
+      const textPayload = parts
+        .map(part => (part && typeof part.text === 'string') ? part.text : '')
+        .filter(Boolean)
+        .join('\n');
+      const parsedPayload = this.tryParseStructuredAgentText(textPayload);
+      const nativeToolCalls = parts
+        .filter(part => part && part.functionCall && typeof part.functionCall.name === 'string')
+        .map(part => ({
+          name: part.functionCall.name,
+          args: part.functionCall.args || {}
+        }));
+
+      return {
+        text: parsedPayload ? parsedPayload.text : textPayload,
+        tool_calls: this.mergeStructuredToolCalls(
+          nativeToolCalls,
+          parsedPayload ? parsedPayload.tool_calls : []
+        )
+      };
+    }
+
+    async generateStructuredAgentResponse(history) {
+      const provider = this.normalizeProvider(this.config.provider || this.PROVIDERS.GEMINI);
+      if (this.isOpenAiCompatibleProvider(provider)) {
+        return this.requestOpenAiStructuredAgentResponse(history, provider);
+      }
+      return this.requestGeminiStructuredAgentResponse(history);
+    }
+
+    sendExternalAiResponse(response) {
+      const payload = this.normalizeStructuredAgentPayload(response);
+      if (window.Module && window.Module.onExternalAiResponse) {
+        window.Module.onExternalAiResponse(JSON.stringify(payload));
+      } else {
+        console.warn('[AiManager] Module.onExternalAiResponse not available');
+      }
+    }
+
     /**
      * Process a request from the C++ Agent Service
      * @param {string} historyJson - JSON string of chat history
      */
     async processAgentRequest(historyJson) {
       console.log('[AiManager] Processing agent request from C++');
-      
+
       try {
         const history = JSON.parse(historyJson);
-        
-        // Construct prompt from history
-        // Simple concatenation for now
-        let fullPrompt = "";
-        
-        // System prompt injection (if needed)
-        // fullPrompt += "You are a helpful assistant...\n";
-        
-        for (const msg of history) {
-          const role = msg.role === 'user' ? 'User' : 'Model';
-          const text = msg.parts[0].text;
-          fullPrompt += `${role}: ${text}\n`;
-        }
-        fullPrompt += "Model:";
-        
-        // Call Gemini
-        const responseText = await this.generateContent(fullPrompt);
-        
-        // TODO: Real function calling parsing
-        // For now, we just return text. 
-        // To support tools, we'd need to parse structured output or use Gemini's function calling API.
-        
-        // Construct response object for C++
-        const response = {
-          text: responseText,
-          tool_calls: [] // No tools for now in this simple text-based pass
-        };
-        
-        // Send back to C++
-        if (window.Module && window.Module.onExternalAiResponse) {
-          window.Module.onExternalAiResponse(JSON.stringify(response));
-        } else {
-          console.warn('[AiManager] Module.onExternalAiResponse not available');
-        }
-        
+        const response = await this.generateStructuredAgentResponse(
+          Array.isArray(history) ? history : []
+        );
+        this.sendExternalAiResponse(response);
       } catch (e) {
         console.error('[AiManager] Agent request failed:', e);
-        // Send error back?
-        const errorResponse = {
+        this.sendExternalAiResponse({
           text: `Error: ${e.message}`,
           tool_calls: []
-        };
-        if (window.Module && window.Module.onExternalAiResponse) {
-          window.Module.onExternalAiResponse(JSON.stringify(errorResponse));
-        }
+        });
       }
     }
 
