@@ -17,10 +17,7 @@
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
 // object_renderer.h removed - using ObjectDrawer for production rendering
-#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
 #include "imgui/imgui.h"
-#include "zelda3/dungeon/dungeon_editor_system.h"
-#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/object_tile_editor.h"
 
@@ -34,12 +31,7 @@ class ObjectTileEditorPanel;
  */
 class DungeonObjectSelector {
  public:
-  explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
-
-  void DrawTileSelector();
-  void DrawObjectRenderer();
-  void DrawIntegratedEditingPanels();
-  void Draw();
+ explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
 
   // Unified context setter (preferred)
   void SetContext(EditorContext ctx) {
@@ -53,15 +45,6 @@ class DungeonObjectSelector {
   Rom* rom() const { return rom_; }
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
   zelda3::GameData* game_data() const { return game_data_; }
-
-  // Editor system access
-  void set_dungeon_editor_system(
-      std::unique_ptr<zelda3::DungeonEditorSystem>* system) {
-    dungeon_editor_system_ = system;
-  }
-  void set_object_editor(std::unique_ptr<zelda3::DungeonObjectEditor>* editor) {
-    object_editor_ = editor ? editor->get() : nullptr;
-  }
 
   // Room data access
   void set_rooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
@@ -84,11 +67,6 @@ class DungeonObjectSelector {
   void SetObjectSelectedCallback(
       std::function<void(const zelda3::RoomObject&)> callback) {
     object_selected_callback_ = callback;
-  }
-
-  void SetObjectPlacementCallback(
-      std::function<void(const zelda3::RoomObject&)> callback) {
-    object_placement_callback_ = callback;
   }
 
   void SetObjectDoubleClickCallback(std::function<void(int)> callback) {
@@ -121,27 +99,17 @@ class DungeonObjectSelector {
   int GetStaticEditorObjectId() const { return static_editor_object_id_; }
 
  private:
-  void DrawRoomGraphics();
   bool MatchesObjectFilter(int obj_id, int filter_type);
   bool MatchesObjectSearch(int obj_id, const std::string& name,
                            int subtype = -1) const;
   void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width,
                                  int& height);
-  void PlaceObjectAtPosition(int x, int y);
-  void DrawCompactObjectEditor();
-  void DrawCompactSpriteEditor();
-  void DrawCompactItemEditor();
-  void DrawCompactEntranceEditor();
-  void DrawCompactDoorEditor();
-  void DrawCompactChestEditor();
-  void DrawCompactPropertiesEditor();
   bool DrawObjectPreview(const zelda3::RoomObject& object, ImVec2 top_left,
                          float size);
   zelda3::RoomObject MakePreviewObject(int obj_id) const;
   void EnsureRegistryInitialized();
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
-  void RenderObjectPrimitive(const zelda3::RoomObject& object, int x, int y);
   void EnsureCustomObjectsInitialized();
   void DrawNewCustomObjectDialog();
 
@@ -158,14 +126,6 @@ class DungeonObjectSelector {
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
-  gui::Canvas room_gfx_canvas_{"##RoomGfxCanvas",
-                               ImVec2(0x100 + 1, 0x10 * 0x40 + 1)};
-  gui::Canvas object_canvas_;
-
-  // Editor systems
-  std::unique_ptr<zelda3::DungeonEditorSystem>* dungeon_editor_system_ =
-      nullptr;
-  zelda3::DungeonObjectEditor* object_editor_ = nullptr;
   std::string custom_objects_folder_;
   bool custom_objects_initialized_ = false;
 
@@ -187,58 +147,16 @@ class DungeonObjectSelector {
 
   // Callback for object selection
   std::function<void(const zelda3::RoomObject&)> object_selected_callback_;
-  std::function<void(const zelda3::RoomObject&)> object_placement_callback_;
   std::function<void(int)> object_double_click_callback_;
 
   // Object selection state
   int selected_object_id_ = -1;
   int static_editor_object_id_ = -1;  // Object currently open in static editor
 
-  // UI state for placement controls (previously static locals)
-  int place_x_ = 0;
-  int place_y_ = 0;
-
   // UI state for object browser filter
   int object_type_filter_ = 0;
   int object_subtype_tab_ = 0;  // 0=Type1, 1=Type2, 2=Type3
   char object_search_buffer_[64] = {0};
-
-  // UI state for compact sprite editor
-  int new_sprite_id_ = 0;
-  int new_sprite_x_ = 0;
-  int new_sprite_y_ = 0;
-
-  // UI state for compact item editor
-  int new_item_id_ = 0;
-  int new_item_x_ = 0;
-  int new_item_y_ = 0;
-
-  // UI state for compact entrance editor
-  int entrance_target_room_id_ = 0;
-  int entrance_source_x_ = 0;
-  int entrance_source_y_ = 0;
-  int entrance_target_x_ = 0;
-  int entrance_target_y_ = 0;
-
-  // UI state for compact door editor
-  int door_x_ = 0;
-  int door_y_ = 0;
-  int door_direction_ = 0;
-  int door_target_room_ = 0;
-
-  // UI state for compact chest editor
-  int chest_x_ = 0;
-  int chest_y_ = 0;
-  int chest_item_id_ = 0;
-  bool chest_big_ = false;
-
-  // UI state for room properties editor
-  char room_name_[128] = {0};
-  int dungeon_id_ = 0;
-  int floor_level_ = 0;
-  bool is_boss_room_ = false;
-  bool is_save_room_ = false;
-  int music_id_ = 0;
 
   // Registry initialization flag
   bool registry_initialized_ = false;
@@ -258,8 +176,6 @@ class DungeonObjectSelector {
 
   bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
                           gfx::BackgroundBuffer** out);
-
-  MinecartTrackEditorPanel minecart_track_editor_;
 };
 
 }  // namespace editor
