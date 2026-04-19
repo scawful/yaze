@@ -22,8 +22,10 @@ class PaletteControlsPanel : public WindowContent {
   explicit PaletteControlsPanel(GraphicsEditorState* state, Rom* rom,
                                 zelda3::GameData* game_data = nullptr)
       : state_(state), rom_(rom), game_data_(game_data) {}
-  
+
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+
+  void SetRom(Rom* rom) { rom_ = rom; }
 
   // ==========================================================================
   // WindowContent Identity

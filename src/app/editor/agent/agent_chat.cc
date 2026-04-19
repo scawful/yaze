@@ -59,8 +59,9 @@ absl::Time FileTimeToAbsl(std::filesystem::file_time_type value) {
   using FileClock = std::filesystem::file_time_type::clock;
   auto now_file = FileClock::now();
   auto now_sys = std::chrono::system_clock::now();
-  auto converted = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
-      value - now_file + now_sys);
+  auto converted =
+      std::chrono::time_point_cast<std::chrono::system_clock::duration>(
+          value - now_file + now_sys);
   return absl::FromChrono(converted);
 }
 
@@ -77,8 +78,9 @@ std::string TrimTitle(const std::string& text) {
   return trimmed;
 }
 
-std::string BuildConversationTitle(const std::filesystem::path& path,
-                                   const std::vector<cli::agent::ChatMessage>& history) {
+std::string BuildConversationTitle(
+    const std::filesystem::path& path,
+    const std::vector<cli::agent::ChatMessage>& history) {
   for (const auto& msg : history) {
     if (msg.sender == cli::agent::ChatMessage::Sender::kUser &&
         !msg.message.empty()) {
@@ -216,8 +218,8 @@ void AgentChat::RefreshConversationList(bool force) {
   for (const auto& path : candidates) {
     ConversationEntry entry;
     entry.path = path;
-    entry.is_active = (!active_history_path_.empty() &&
-                       path == active_history_path_);
+    entry.is_active =
+        (!active_history_path_.empty() && path == active_history_path_);
 
     auto snapshot_or = AgentChatHistoryCodec::Load(path);
     if (snapshot_or.ok()) {
@@ -229,7 +231,8 @@ void AgentChat::RefreshConversationList(bool force) {
       } else {
         std::error_code ec;
         if (std::filesystem::exists(path, ec)) {
-          entry.last_updated = FileTimeToAbsl(std::filesystem::last_write_time(path, ec));
+          entry.last_updated =
+              FileTimeToAbsl(std::filesystem::last_write_time(path, ec));
         }
       }
       if (entry.is_active && snapshot.history.empty()) {
@@ -286,14 +289,16 @@ void AgentChat::Draw(float available_height) {
   RenderToolbar(!wide_layout);
   ImGui::Separator();
 
-  float content_height =
-      available_height > 0 ? available_height : ImGui::GetContentRegionAvail().y;
+  float content_height = available_height > 0
+                             ? available_height
+                             : ImGui::GetContentRegionAvail().y;
 
   if (wide_layout) {
     const float sidebar_width =
         std::clamp(content_width * 0.28f, 220.0f, 320.0f);
-    if (ImGui::BeginChild("##ChatSidebar", ImVec2(sidebar_width, content_height),
-                          true, ImGuiWindowFlags_NoScrollbar)) {
+    if (ImGui::BeginChild("##ChatSidebar",
+                          ImVec2(sidebar_width, content_height), true,
+                          ImGuiWindowFlags_NoScrollbar)) {
       RenderConversationSidebar(content_height);
     }
     ImGui::EndChild();
@@ -345,8 +350,8 @@ void AgentChat::RenderToolbar(bool compact) {
   const bool history_available = AgentChatHistoryCodec::Available();
   ImGui::BeginDisabled(!history_available);
   if (ImGui::Button(ICON_MD_SAVE " Save")) {
-    const std::string filepath =
-        active_history_path_.empty() ? ResolveAgentChatHistoryPath()
+    const std::string filepath = active_history_path_.empty()
+                                     ? ResolveAgentChatHistoryPath()
                                      : active_history_path_.string();
     if (auto status = SaveHistory(filepath); !status.ok()) {
       if (toast_manager_) {
@@ -362,8 +367,8 @@ void AgentChat::RenderToolbar(bool compact) {
   ImGui::SameLine();
 
   if (ImGui::Button(ICON_MD_FOLDER_OPEN " Load")) {
-    const std::string filepath =
-        active_history_path_.empty() ? ResolveAgentChatHistoryPath()
+    const std::string filepath = active_history_path_.empty()
+                                     ? ResolveAgentChatHistoryPath()
                                      : active_history_path_.string();
     if (auto status = LoadHistory(filepath); !status.ok()) {
       if (toast_manager_) {
@@ -434,12 +439,12 @@ void AgentChat::RenderConversationSidebar(float height) {
         panel_opener_("agent.builder");
       }
     }
-    ImGui::TextDisabled("Provider: %s",
-                        config.ai_provider.empty() ? "mock"
-                                                   : config.ai_provider.c_str());
-    ImGui::TextDisabled("Model: %s",
-                        config.ai_model.empty() ? "not set"
-                                                : config.ai_model.c_str());
+    ImGui::TextDisabled("Provider: %s", config.ai_provider.empty()
+                                            ? "mock"
+                                            : config.ai_provider.c_str());
+    ImGui::TextDisabled("Model: %s", config.ai_model.empty()
+                                         ? "not set"
+                                         : config.ai_model.c_str());
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
@@ -469,17 +474,16 @@ void AgentChat::RenderConversationSidebar(float height) {
       int index = 0;
       for (const auto& entry : conversations_) {
         std::string title_lower = absl::AsciiStrToLower(entry.title);
-        if (!filter.empty() &&
-            title_lower.find(filter) == std::string::npos) {
+        if (!filter.empty() && title_lower.find(filter) == std::string::npos) {
           continue;
         }
 
         ImGui::PushID(index++);
-        gui::StyleColorGuard selectable_guard({
-            {ImGuiCol_Header,
-             entry.is_active ? theme.status_active : theme.panel_bg_darker},
-            {ImGuiCol_HeaderHovered, theme.panel_bg_color},
-            {ImGuiCol_HeaderActive, theme.status_active}});
+        gui::StyleColorGuard selectable_guard(
+            {{ImGuiCol_Header,
+              entry.is_active ? theme.status_active : theme.panel_bg_darker},
+             {ImGuiCol_HeaderHovered, theme.panel_bg_color},
+             {ImGuiCol_HeaderActive, theme.status_active}});
         if (ImGui::Selectable(entry.title.c_str(), entry.is_active,
                               ImGuiSelectableFlags_SpanAllColumns)) {
           SelectConversation(entry.path);
@@ -489,11 +493,10 @@ void AgentChat::RenderConversationSidebar(float height) {
                             entry.message_count == 1 ? "" : "s");
         if (entry.last_updated != absl::InfinitePast()) {
           ImGui::SameLine();
-          ImGui::TextDisabled("%s",
-                              absl::FormatTime("%b %d, %H:%M",
-                                               entry.last_updated,
-                                               absl::LocalTimeZone())
-                                  .c_str());
+          ImGui::TextDisabled(
+              "%s", absl::FormatTime("%b %d, %H:%M", entry.last_updated,
+                                     absl::LocalTimeZone())
+                        .c_str());
         }
         ImGui::Spacing();
         ImGui::Separator();
@@ -539,18 +542,15 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
   if (show_timestamps_) {
     std::string timestamp =
         absl::FormatTime("%H:%M:%S", msg.timestamp, absl::LocalTimeZone());
-    ImGui::TextColored(gui::GetDisabledColor(), "[%s]",
-                       timestamp.c_str());
+    ImGui::TextColored(gui::GetDisabledColor(), "[%s]", timestamp.c_str());
     ImGui::SameLine();
   }
 
   // Name/Icon
   if (is_user) {
-    ImGui::TextColored(gui::GetInfoColor(), "%s You",
-                       ICON_MD_PERSON);
+    ImGui::TextColored(gui::GetInfoColor(), "%s You", ICON_MD_PERSON);
   } else {
-    ImGui::TextColored(gui::GetSuccessColor(), "%s Agent",
-                       ICON_MD_SMART_TOY);
+    ImGui::TextColored(gui::GetSuccessColor(), "%s Agent", ICON_MD_SMART_TOY);
   }
 
   // Message Bubble
@@ -561,8 +561,10 @@ void AgentChat::RenderMessage(const cli::agent::ChatMessage& msg, int index) {
     gui::StyleVarGuard rounding_guard(ImGuiStyleVar_ChildRounding, 8.0f);
 
     std::string content_id = "msg_content_" + std::to_string(index);
-    if (ImGui::BeginChild(content_id.c_str(), ImVec2(wrap_width, 0), true,
-                          ImGuiWindowFlags_AlwaysUseWindowPadding)) {
+    if (ImGui::BeginChild(
+            content_id.c_str(), ImVec2(wrap_width, 0),
+            ImGuiChildFlags_Borders | ImGuiChildFlags_AlwaysUseWindowPadding,
+            0)) {
       // Check if we have table data to render
       if (!is_user && msg.table_data.has_value()) {
         RenderTableData(msg.table_data.value());
@@ -628,18 +630,17 @@ void AgentChat::RenderInputBox(float height) {
                                 ImGuiInputTextFlags_CtrlEnterForNewLine;
 
     float button_row_height = ImGui::GetFrameHeightWithSpacing();
-    float input_height =
-        std::max(48.0f,
-                 ImGui::GetContentRegionAvail().y - button_row_height - 6.0f);
+    float input_height = std::max(
+        48.0f, ImGui::GetContentRegionAvail().y - button_row_height - 6.0f);
 
     ImGui::PushItemWidth(-1);
     if (ImGui::IsWindowAppearing()) {
       ImGui::SetKeyboardFocusHere();
     }
 
-    bool submit = ImGui::InputTextMultiline(
-        "##Input", input_buffer_, sizeof(input_buffer_),
-        ImVec2(0, input_height), flags);
+    bool submit = ImGui::InputTextMultiline("##Input", input_buffer_,
+                                            sizeof(input_buffer_),
+                                            ImVec2(0, input_height), flags);
 
     bool clicked_send = false;
     {
@@ -688,10 +689,9 @@ void AgentChat::RenderProposalQuickActions(const cli::agent::ChatMessage& msg,
 void AgentChat::RenderCodeBlock(const std::string& code,
                                 const std::string& language, int msg_index) {
   const auto& theme = AgentUI::GetTheme();
-  gui::StyledChild code_child(
-      absl::StrCat("code_", msg_index).c_str(), ImVec2(0, 0),
-      {.bg = theme.code_bg_color}, true,
-      ImGuiWindowFlags_AlwaysAutoResize);
+  gui::StyledChild code_child(absl::StrCat("code_", msg_index).c_str(),
+                              ImVec2(0, 0), {.bg = theme.code_bg_color}, true,
+                              ImGuiWindowFlags_AlwaysAutoResize);
   if (code_child) {
     if (!language.empty()) {
       ImGui::TextDisabled("%s", language.c_str());

@@ -81,37 +81,42 @@ void DrawScaledSheet(gui::Canvas& canvas, gfx::Bitmap& sheet, int unique_id,
 }  // namespace
 
 absl::Status GfxGroupEditor::Update() {
+  if (!host_surface_hint_.empty()) {
+    ImGui::TextDisabled("%s", host_surface_hint_.c_str());
+    Separator();
+  }
+
   // Palette controls at top for all tabs
   DrawPaletteControls();
   Separator();
 
   if (gui::BeginThemedTabBar("##GfxGroupEditorTabs")) {
     if (BeginTabItem("Blocksets")) {
-      gui::InputHexByte("Selected Blockset", &selected_blockset_,
+      gui::InputHexByte("Selected Blockset", &Ws().selected_blockset,
                         static_cast<uint8_t>(0x24));
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          false, "blockset", "0x" + std::to_string(selected_blockset_),
-          "Blockset " + std::to_string(selected_blockset_));
+          false, "blockset", "0x" + std::to_string(Ws().selected_blockset),
+          "Blockset " + std::to_string(Ws().selected_blockset));
       DrawBlocksetViewer();
       EndTabItem();
     }
 
     if (BeginTabItem("Roomsets")) {
-      gui::InputHexByte("Selected Roomset", &selected_roomset_,
+      gui::InputHexByte("Selected Roomset", &Ws().selected_roomset,
                         static_cast<uint8_t>(81));
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          false, "roomset", "0x" + std::to_string(selected_roomset_),
-          "Roomset " + std::to_string(selected_roomset_));
+          false, "roomset", "0x" + std::to_string(Ws().selected_roomset),
+          "Roomset " + std::to_string(Ws().selected_roomset));
       DrawRoomsetViewer();
       EndTabItem();
     }
 
     if (BeginTabItem("Spritesets")) {
-      gui::InputHexByte("Selected Spriteset", &selected_spriteset_,
+      gui::InputHexByte("Selected Spriteset", &Ws().selected_spriteset,
                         static_cast<uint8_t>(143));
       rom()->resource_label()->SelectableLabelWithNameEdit(
-          false, "spriteset", "0x" + std::to_string(selected_spriteset_),
-          "Spriteset " + std::to_string(selected_spriteset_));
+          false, "spriteset", "0x" + std::to_string(Ws().selected_spriteset),
+          "Spriteset " + std::to_string(Ws().selected_spriteset));
       DrawSpritesetViewer();
       EndTabItem();
     }
@@ -129,6 +134,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
   }
 
   PushID("BlocksetViewer");
+  auto& ws = Ws();
 
   if (BeginTable("##BlocksetTable", sheet_only ? 1 : 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
@@ -150,7 +156,7 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
         SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
         gui::InputHexByte(
             ("Slot " + std::to_string(idx)).c_str(),
-            &game_data()->main_blockset_ids[selected_blockset_][idx]);
+            &game_data()->main_blockset_ids[ws.selected_blockset][idx]);
       }
       EndGroup();
     }
@@ -158,18 +164,18 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
     TableNextColumn();
     BeginGroup();
     for (int idx = 0; idx < 8; idx++) {
-      int sheet_id = game_data()->main_blockset_ids[selected_blockset_][idx];
+      int sheet_id = game_data()->main_blockset_ids[ws.selected_blockset][idx];
       auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
 
       // Apply current palette if selected
-      if (use_custom_palette_ && current_palette_) {
+      if (ws.use_custom_palette && current_palette_) {
         sheet.SetPalette(*current_palette_);
         gfx::Arena::Get().NotifySheetModified(sheet_id);
       }
 
       // Unique ID combining blockset, slot, and sheet
-      int unique_id = (selected_blockset_ << 16) | (idx << 8) | sheet_id;
-      DrawScaledSheet(blockset_canvases_[idx], sheet, unique_id, view_scale_);
+      int unique_id = (ws.selected_blockset << 16) | (idx << 8) | sheet_id;
+      DrawScaledSheet(blockset_canvases_[idx], sheet, unique_id, ws.view_scale);
     }
     EndGroup();
     EndTable();
@@ -185,6 +191,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
   }
 
   PushID("RoomsetViewer");
+  auto& ws = Ws();
   Text("Roomsets overwrite slots 4-7 of the main blockset");
 
   if (BeginTable("##RoomsTable", 3,
@@ -204,9 +211,9 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       for (int idx = 0; idx < 0x51; idx++) {
         PushID(idx);
         std::string roomset_label = absl::StrFormat("0x%02X", idx);
-        bool is_selected = (selected_roomset_ == idx);
+        bool is_selected = (ws.selected_roomset == static_cast<uint8_t>(idx));
         if (Selectable(roomset_label.c_str(), is_selected)) {
-          selected_roomset_ = idx;
+          ws.selected_roomset = static_cast<uint8_t>(idx);
         }
         PopID();
       }
@@ -221,7 +228,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
       gui::InputHexByte(
           ("Slot " + std::to_string(idx + 4)).c_str(),
-          &game_data()->room_blockset_ids[selected_roomset_][idx]);
+          &game_data()->room_blockset_ids[ws.selected_roomset][idx]);
     }
     EndGroup();
 
@@ -229,19 +236,19 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     TableNextColumn();
     BeginGroup();
     for (int idx = 0; idx < 4; idx++) {
-      int sheet_id = game_data()->room_blockset_ids[selected_roomset_][idx];
+      int sheet_id = game_data()->room_blockset_ids[ws.selected_roomset][idx];
       auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
 
       // Apply current palette if selected
-      if (use_custom_palette_ && current_palette_) {
+      if (ws.use_custom_palette && current_palette_) {
         sheet.SetPalette(*current_palette_);
         gfx::Arena::Get().NotifySheetModified(sheet_id);
       }
 
       // Unique ID combining roomset, slot, and sheet
       int unique_id =
-          (0x1000) | (selected_roomset_ << 8) | (idx << 4) | sheet_id;
-      DrawScaledSheet(roomset_canvases_[idx], sheet, unique_id, view_scale_);
+          (0x1000) | (ws.selected_roomset << 8) | (idx << 4) | sheet_id;
+      DrawScaledSheet(roomset_canvases_[idx], sheet, unique_id, ws.view_scale);
     }
     EndGroup();
     EndTable();
@@ -257,6 +264,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
   }
 
   PushID("SpritesetViewer");
+  auto& ws = Ws();
 
   if (BeginTable("##SpritesTable", sheet_only ? 1 : 2,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
@@ -278,7 +286,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
         SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
         gui::InputHexByte(
             ("Slot " + std::to_string(idx)).c_str(),
-            &game_data()->spriteset_ids[selected_spriteset_][idx]);
+            &game_data()->spriteset_ids[ws.selected_spriteset][idx]);
       }
       EndGroup();
     }
@@ -286,20 +294,21 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
     TableNextColumn();
     BeginGroup();
     for (int idx = 0; idx < 4; idx++) {
-      int sheet_offset = game_data()->spriteset_ids[selected_spriteset_][idx];
+      int sheet_offset = game_data()->spriteset_ids[ws.selected_spriteset][idx];
       int sheet_id = 115 + sheet_offset;
       auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
 
       // Apply current palette if selected
-      if (use_custom_palette_ && current_palette_) {
+      if (ws.use_custom_palette && current_palette_) {
         sheet.SetPalette(*current_palette_);
         gfx::Arena::Get().NotifySheetModified(sheet_id);
       }
 
       // Unique ID combining spriteset, slot, and sheet
       int unique_id =
-          (0x2000) | (selected_spriteset_ << 8) | (idx << 4) | sheet_offset;
-      DrawScaledSheet(spriteset_canvases_[idx], sheet, unique_id, view_scale_);
+          (0x2000) | (ws.selected_spriteset << 8) | (idx << 4) | sheet_offset;
+      DrawScaledSheet(spriteset_canvases_[idx], sheet, unique_id,
+                      ws.view_scale);
     }
     EndGroup();
     EndTable();
@@ -335,11 +344,13 @@ void GfxGroupEditor::DrawPaletteControls() {
     return;
   }
 
+  auto& ws = Ws();
+
   // View scale control
   Text(ICON_MD_ZOOM_IN " View");
   SameLine();
   SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
-  SliderFloat("##ViewScale", &view_scale_, 1.0f, 4.0f, "%.1fx");
+  SliderFloat("##ViewScale", &ws.view_scale, 1.0f, 4.0f, "%.1fx");
   SameLine();
 
   // Palette category selector
@@ -351,14 +362,14 @@ void GfxGroupEditor::DrawPaletteControls() {
   static constexpr int kNumPaletteCategories = 14;
   if (BeginCombo(
           "##PaletteCategory",
-          gfx::kPaletteCategoryNames[selected_palette_category_].data())) {
+          gfx::kPaletteCategoryNames[ws.selected_palette_category].data())) {
     for (int cat = 0; cat < kNumPaletteCategories; cat++) {
       auto category = static_cast<PaletteCategory>(cat);
-      bool is_selected = (selected_palette_category_ == category);
+      bool is_selected = (ws.selected_palette_category == category);
       if (Selectable(gfx::kPaletteCategoryNames[category].data(),
                      is_selected)) {
-        selected_palette_category_ = category;
-        selected_palette_index_ = 0;
+        ws.selected_palette_category = category;
+        ws.selected_palette_index = 0;
         UpdateCurrentPalette();
       }
       if (is_selected) {
@@ -370,12 +381,12 @@ void GfxGroupEditor::DrawPaletteControls() {
 
   SameLine();
   SetNextItemWidth(gui::LayoutHelpers::GetHexInputWidth());
-  if (gui::InputHexByte("##PaletteIndex", &selected_palette_index_)) {
+  if (gui::InputHexByte("##PaletteIndex", &ws.selected_palette_index)) {
     UpdateCurrentPalette();
   }
 
   SameLine();
-  ImGui::Checkbox("Apply", &use_custom_palette_);
+  ImGui::Checkbox("Apply", &ws.use_custom_palette);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip("Apply selected palette to sheet previews");
   }
@@ -393,55 +404,58 @@ void GfxGroupEditor::UpdateCurrentPalette() {
     return;
   }
 
+  const auto& ws = Ws();
   auto& groups = game_data()->palette_groups;
-  switch (selected_palette_category_) {
+  switch (ws.selected_palette_category) {
     case PaletteCategory::kSword:
-      current_palette_ = groups.swords.mutable_palette(selected_palette_index_);
+      current_palette_ =
+          groups.swords.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kShield:
       current_palette_ =
-          groups.shields.mutable_palette(selected_palette_index_);
+          groups.shields.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kClothes:
-      current_palette_ = groups.armors.mutable_palette(selected_palette_index_);
+      current_palette_ =
+          groups.armors.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kWorldColors:
       current_palette_ =
-          groups.overworld_main.mutable_palette(selected_palette_index_);
+          groups.overworld_main.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kAreaColors:
       current_palette_ =
-          groups.overworld_aux.mutable_palette(selected_palette_index_);
+          groups.overworld_aux.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kGlobalSprites:
       current_palette_ =
-          groups.global_sprites.mutable_palette(selected_palette_index_);
+          groups.global_sprites.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kSpritesAux1:
       current_palette_ =
-          groups.sprites_aux1.mutable_palette(selected_palette_index_);
+          groups.sprites_aux1.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kSpritesAux2:
       current_palette_ =
-          groups.sprites_aux2.mutable_palette(selected_palette_index_);
+          groups.sprites_aux2.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kSpritesAux3:
       current_palette_ =
-          groups.sprites_aux3.mutable_palette(selected_palette_index_);
+          groups.sprites_aux3.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kDungeons:
       current_palette_ =
-          groups.dungeon_main.mutable_palette(selected_palette_index_);
+          groups.dungeon_main.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kWorldMap:
     case PaletteCategory::kDungeonMap:
       current_palette_ =
-          groups.overworld_mini_map.mutable_palette(selected_palette_index_);
+          groups.overworld_mini_map.mutable_palette(ws.selected_palette_index);
       break;
     case PaletteCategory::kTriforce:
     case PaletteCategory::kCrystal:
       current_palette_ =
-          groups.object_3d.mutable_palette(selected_palette_index_);
+          groups.object_3d.mutable_palette(ws.selected_palette_index);
       break;
     default:
       current_palette_ = nullptr;

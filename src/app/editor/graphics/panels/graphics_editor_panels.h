@@ -134,8 +134,8 @@ class GraphicsPolyhedralPanel : public WindowContent {
   explicit GraphicsPolyhedralPanel(DrawCallback draw_callback)
       : draw_callback_(std::move(draw_callback)) {}
 
-  std::string GetId() const override { return "graphics.polyhedral_editor"; }
-  std::string GetDisplayName() const override { return "3D Objects"; }
+  std::string GetId() const override { return "graphics.polyhedral"; }
+  std::string GetDisplayName() const override { return "Polyhedral Editor"; }
   std::string GetIcon() const override { return ICON_MD_VIEW_IN_AR; }
   std::string GetEditorCategory() const override { return "Graphics"; }
   int GetPriority() const override { return 38; }
@@ -189,7 +189,7 @@ class GraphicsPrototypeViewerPanel : public WindowContent {
       : draw_callback_(std::move(draw_callback)) {}
 
   std::string GetId() const override { return "graphics.prototype_viewer"; }
-  std::string GetDisplayName() const override { return "Prototype Viewer"; }
+  std::string GetDisplayName() const override { return "Prototype Research"; }
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Graphics"; }
   int GetPriority() const override { return 50; }
@@ -236,4 +236,3 @@ class GraphicsPalettesetPanel : public WindowContent {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_GRAPHICS_PANELS_GRAPHICS_EDITOR_PANELS_H_
-

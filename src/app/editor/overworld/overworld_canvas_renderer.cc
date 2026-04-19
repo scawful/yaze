@@ -93,17 +93,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->ow_map_canvas_, editor_->current_map_,
         editor_->current_map_lock_, editor_->show_map_properties_panel_,
         editor_->show_custom_bg_color_editor_, editor_->show_overlay_editor_,
-        static_cast<int>(editor_->current_mode), [this]() {
-          if (editor_->dependencies_.window_manager) {
-            const size_t session_id =
-                editor_->dependencies_.window_manager->GetActiveSessionId();
-            editor_->dependencies_.window_manager->OpenWindow(
-                session_id, OverworldPanelIds::kMapProperties);
-            editor_->dependencies_.window_manager->MarkWindowRecentlyUsed(
-                OverworldPanelIds::kMapProperties);
-          }
-          editor_->show_map_properties_panel_ = true;
-        });
+        static_cast<int>(editor_->current_mode));
   }
 
   // Configure canvas frame options

@@ -2,7 +2,7 @@
 
 #include "app/editor/overworld/entity_operations.h"
 #include "app/editor/overworld/overworld_toolbar.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/core/popup_id.h"
 
@@ -76,47 +76,47 @@ void OverworldEditor::HandleEntityInsertion(const std::string& entity_type) {
   // Store for deferred processing outside context menu
   // This is needed because ImGui::OpenPopup() doesn't work correctly when
   // called from within another popup's callback (the context menu)
-  pending_entity_insert_type_ = entity_type;
-  pending_entity_insert_pos_ = ow_map_canvas_.hover_mouse_pos();
-  
+  pending_insert_type_ = entity_type;
+  pending_insert_pos_ = ow_map_canvas_.hover_mouse_pos();
+
   LOG_DEBUG("OverworldEditor",
             "HandleEntityInsertion: queued type='%s' at pos=(%.0f,%.0f)",
-            entity_type.c_str(), pending_entity_insert_pos_.x, 
-            pending_entity_insert_pos_.y);
+            entity_type.c_str(), pending_insert_pos_.x, pending_insert_pos_.y);
 }
 
 void OverworldEditor::ProcessPendingEntityInsertion() {
-  if (pending_entity_insert_type_.empty()) {
+  if (pending_insert_type_.empty()) {
     return;
   }
 
   if (!overworld_.is_loaded()) {
     LOG_ERROR("OverworldEditor", "Cannot insert entity: overworld not loaded");
-    pending_entity_insert_type_.clear();
+    pending_insert_type_.clear();
     return;
   }
 
-  const std::string& entity_type = pending_entity_insert_type_;
-  ImVec2 mouse_pos = pending_entity_insert_pos_;
+  const std::string& entity_type = pending_insert_type_;
+  ImVec2 mouse_pos = pending_insert_pos_;
 
-  LOG_DEBUG("OverworldEditor",
-            "ProcessPendingEntityInsertion: type='%s' at pos=(%.0f,%.0f) map=%d",
-            entity_type.c_str(), mouse_pos.x, mouse_pos.y, current_map_);
+  LOG_DEBUG(
+      "OverworldEditor",
+      "ProcessPendingEntityInsertion: type='%s' at pos=(%.0f,%.0f) map=%d",
+      entity_type.c_str(), mouse_pos.x, mouse_pos.y, current_map_);
 
   if (entity_type == "entrance") {
     auto result = InsertEntrance(&overworld_, mouse_pos, current_map_, false);
     if (result.ok()) {
-      current_entrance_ = **result;
-      current_entity_ = *result;
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kEntranceEditor)
-              .c_str());
+      auto* entrance = result.value();
+      edit_entrance_ = *entrance;
+      current_entity_ = entrance;
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kOverworld,
+                                        gui::PopupNames::kEntranceEditor)
+                           .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Entrance inserted successfully at map=%d",
                 current_map_);
     } else {
-      entity_insert_error_message_ = 
+      insert_error_ =
           "Cannot insert entrance: " + std::string(result.status().message());
       ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert entrance: %s",
@@ -126,17 +126,17 @@ void OverworldEditor::ProcessPendingEntityInsertion() {
   } else if (entity_type == "hole") {
     auto result = InsertEntrance(&overworld_, mouse_pos, current_map_, true);
     if (result.ok()) {
-      current_entrance_ = **result;
-      current_entity_ = *result;
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kEntranceEditor)
-              .c_str());
+      auto* entrance = result.value();
+      edit_entrance_ = *entrance;
+      current_entity_ = entrance;
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kOverworld,
+                                        gui::PopupNames::kEntranceEditor)
+                           .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Hole inserted successfully at map=%d",
                 current_map_);
     } else {
-      entity_insert_error_message_ = 
+      insert_error_ =
           "Cannot insert hole: " + std::string(result.status().message());
       ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert hole: %s",
@@ -146,17 +146,17 @@ void OverworldEditor::ProcessPendingEntityInsertion() {
   } else if (entity_type == "exit") {
     auto result = InsertExit(&overworld_, mouse_pos, current_map_);
     if (result.ok()) {
-      current_exit_ = **result;
-      current_entity_ = *result;
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kExitEditor)
-              .c_str());
+      auto* exit = result.value();
+      edit_exit_ = *exit;
+      current_entity_ = exit;
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kOverworld,
+                                        gui::PopupNames::kExitEditor)
+                           .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Exit inserted successfully at map=%d",
                 current_map_);
     } else {
-      entity_insert_error_message_ = 
+      insert_error_ =
           "Cannot insert exit: " + std::string(result.status().message());
       ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert exit: %s",
@@ -166,17 +166,16 @@ void OverworldEditor::ProcessPendingEntityInsertion() {
   } else if (entity_type == "item") {
     auto result = InsertItem(&overworld_, mouse_pos, current_map_, 0x00);
     if (result.ok()) {
-      current_item_ = **result;
-      current_entity_ = *result;
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kItemEditor)
-              .c_str());
+      auto* item = result.value();
+      SelectItemByIdentity(*item);
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kOverworld,
+                                        gui::PopupNames::kItemEditor)
+                           .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Item inserted successfully at map=%d",
                 current_map_);
     } else {
-      entity_insert_error_message_ = 
+      insert_error_ =
           "Cannot insert item: " + std::string(result.status().message());
       ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert item: %s",
@@ -187,17 +186,17 @@ void OverworldEditor::ProcessPendingEntityInsertion() {
     auto result =
         InsertSprite(&overworld_, mouse_pos, current_map_, game_state_, 0x00);
     if (result.ok()) {
-      current_sprite_ = **result;
-      current_entity_ = *result;
-      ImGui::OpenPopup(
-          gui::MakePopupId(gui::EditorNames::kOverworld,
-                           gui::PopupNames::kSpriteEditor)
-              .c_str());
+      auto* sprite = result.value();
+      edit_sprite_ = *sprite;
+      current_entity_ = sprite;
+      ImGui::OpenPopup(gui::MakePopupId(gui::EditorNames::kOverworld,
+                                        gui::PopupNames::kSpriteEditor)
+                           .c_str());
       rom_->set_dirty(true);
       LOG_DEBUG("OverworldEditor", "Sprite inserted successfully at map=%d",
                 current_map_);
     } else {
-      entity_insert_error_message_ = 
+      insert_error_ =
           "Cannot insert sprite: " + std::string(result.status().message());
       ImGui::OpenPopup("Entity Insert Error");
       LOG_ERROR("OverworldEditor", "Failed to insert sprite: %s",
@@ -209,22 +208,23 @@ void OverworldEditor::ProcessPendingEntityInsertion() {
   }
 
   // Clear the pending state after processing
-  pending_entity_insert_type_.clear();
+  pending_insert_type_.clear();
 }
 
 void OverworldEditor::HandleTile16Edit() {
   if (!overworld_.is_loaded() || !map_blockset_loaded_) {
-    LOG_ERROR("OverworldEditor", "Cannot edit tile16: overworld or blockset not loaded");
+    LOG_ERROR("OverworldEditor",
+              "Cannot edit tile16: overworld or blockset not loaded");
     return;
   }
 
   // Simply open the tile16 editor - don't try to switch tiles here
   // The tile16 editor will use its current tile, user can select a different one
-  if (dependencies_.panel_manager) {
-    dependencies_.panel_manager->ShowPanel(OverworldPanelIds::kTile16Editor);
+  if (dependencies_.window_manager) {
+    dependencies_.window_manager->OpenWindow(OverworldPanelIds::kTile16Editor);
   }
 }
 
-}  // namespace yaze::editor
+}  // namespace editor
 
-}
+}  // namespace yaze

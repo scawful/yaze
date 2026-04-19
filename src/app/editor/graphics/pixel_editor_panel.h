@@ -44,6 +44,8 @@ class PixelEditorPanel : public WindowContent {
    */
   void Initialize();
 
+  void SetRom(Rom* rom) { rom_ = rom; }
+
   /**
    * @brief Draw the pixel editor UI (WindowContent interface)
    */

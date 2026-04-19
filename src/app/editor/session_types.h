@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "app/editor/editor.h"
+#include "app/editor/graphics/gfx_group_workspace_state.h"
 #include "core/asar_wrapper.h"  // For AsarSymbol (backend-agnostic symbol shape)
 #include "core/features.h"
 #include "rom/rom.h"
@@ -113,6 +114,14 @@ class EditorSet {
   [[deprecated("Use GetEditorAs<MemoryEditor>(EditorType::kHex)")]]
   MemoryEditor* GetMemoryEditor() const;
 
+  /** Shared Gfx Groups UI state for this ROM session (Graphics + Overworld). */
+  GfxGroupWorkspaceState* gfx_group_workspace() {
+    return gfx_group_workspace_.get();
+  }
+  const GfxGroupWorkspaceState* gfx_group_workspace() const {
+    return gfx_group_workspace_.get();
+  }
+
   std::vector<Editor*> active_editors_;
 
  private:
@@ -132,6 +141,8 @@ class EditorSet {
   std::optional<EditorDependencies> dependencies_;
   mutable std::unordered_map<EditorType, std::unique_ptr<Editor>> editors_;
   std::unordered_map<EditorType, EditorFactory> editor_factories_;
+
+  std::unique_ptr<GfxGroupWorkspaceState> gfx_group_workspace_;
 };
 
 /**

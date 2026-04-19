@@ -450,10 +450,6 @@ absl::Status PaletteEditor::Load() {
     gfx::PaletteManager::Get().Initialize(rom_);
   }
 
-  // Also set up the embedded GfxGroupEditor
-  gfx_group_editor_.SetRom(rom_);
-  gfx_group_editor_.SetGameData(game_data());
-
   // Register WindowContent instances with WorkspaceWindowManager
   if (dependencies_.window_manager) {
     auto* window_manager = dependencies_.window_manager;

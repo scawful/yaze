@@ -139,9 +139,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   explicit OverworldEditor(Rom* rom) : rom_(rom) {
     type_ = EditorType::kOverworld;
     gfx_group_editor_.SetRom(rom);
-    gfx_group_editor_.SetHostSurfaceHint(
-        "Overworld editor: Gfx Groups selections here are not synced with the "
-        "Graphics or Palette editors.");
     // MapPropertiesSystem will be initialized after maps_bmp_ and canvas are
     // ready
   }
@@ -149,6 +146,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   explicit OverworldEditor(Rom* rom, const EditorDependencies& deps)
       : OverworldEditor(rom) {
     dependencies_ = deps;
+  }
+
+  void SetDependencies(const EditorDependencies& deps) override {
+    Editor::SetDependencies(deps);
+    gfx_group_editor_.SetWorkspaceState(deps.gfx_group_workspace);
   }
 
   void SetGameData(zelda3::GameData* game_data) override {
@@ -377,6 +379,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Access the Tile16 Editor for panel integration
   Tile16Editor& tile16_editor() { return tile16_editor_; }
+
+  /// @brief Resolve the entity workbench window content (may be null).
+  OverworldEntityWorkbench* GetWorkbench();
 
   /// @brief Draw the main overworld canvas
   void DrawOverworldCanvas() {
