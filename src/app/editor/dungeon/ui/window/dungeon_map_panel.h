@@ -12,7 +12,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "core/hack_manifest.h"

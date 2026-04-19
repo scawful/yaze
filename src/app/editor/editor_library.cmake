@@ -33,13 +33,13 @@ set(
   app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/interaction/interaction_mode.cc
   app/editor/dungeon/workspace/room_graphics_content.cc
-  app/editor/dungeon/panels/dungeon_settings_panel.cc
+  app/editor/dungeon/ui/window/dungeon_settings_panel.cc
   app/editor/dungeon/workspace/dungeon_workbench_content.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
   app/editor/dungeon/selectors/object_selector_content.cc
-  app/editor/dungeon/panels/object_tile_editor_panel.cc
-  app/editor/dungeon/panels/minecart_track_editor_panel.cc
-  app/editor/dungeon/panels/room_tag_editor_panel.cc
+  app/editor/dungeon/ui/window/object_tile_editor_panel.cc
+  app/editor/dungeon/ui/window/minecart_track_editor_panel.cc
+  app/editor/dungeon/ui/window/room_tag_editor_panel.cc
   app/editor/editor_manager.cc
   app/editor/session_types.cc
   app/editor/system/default_editor_factories.cc

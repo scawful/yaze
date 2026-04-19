@@ -10,7 +10,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"

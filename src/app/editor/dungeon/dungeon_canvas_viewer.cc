@@ -10,7 +10,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
-#include "app/editor/dungeon/panels/minecart_track_editor_panel.h"
+#include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/animation/animator.h"

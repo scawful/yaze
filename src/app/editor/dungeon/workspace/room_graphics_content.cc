@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
-#include "app/editor/dungeon/panels/dungeon_panel_access.h"
+#include "app/editor/dungeon/ui/window/dungeon_panel_access.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/platform/sdl_compat.h"

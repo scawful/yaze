@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
 #include "zelda3/dungeon/room.h"
