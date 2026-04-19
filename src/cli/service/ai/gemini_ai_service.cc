@@ -15,6 +15,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/tool_schema_builder.h"
 #include "util/platform_paths.h"
 
@@ -185,19 +186,19 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
     std::vector<ModelInfo> defaults = {
         {.name = "gemini-3.0-preview",
          .display_name = "Gemini 3.0 Preview",
-         .provider = "gemini",
+         .provider = kProviderGemini,
          .description = "Cutting-edge model, currently in preview"},
         {.name = "gemini-3.0-flash-preview",
          .display_name = "Gemini 3.0 Flash Preview",
-         .provider = "gemini",
+         .provider = kProviderGemini,
          .description = "Fastest preview model"},
         {.name = "gemini-2.5-pro",
          .display_name = "Gemini 2.5 Pro",
-         .provider = "gemini",
+         .provider = kProviderGemini,
          .description = "High intelligence for complex tasks"},
         {.name = "gemini-2.5-flash",
          .display_name = "Gemini 2.5 Flash",
-         .provider = "gemini",
+         .provider = kProviderGemini,
          .description = "Fastest multimodal model"}};
     return defaults;
   }
@@ -258,13 +259,13 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
       // Return defaults on error
       std::vector<ModelInfo> defaults = {{.name = "gemini-2.5-flash",
                                           .display_name = "Gemini 2.0 Flash",
-                                          .provider = "gemini"},
+                                          .provider = kProviderGemini},
                                          {.name = "gemini-1.5-flash",
                                           .display_name = "Gemini 1.5 Flash",
-                                          .provider = "gemini"},
+                                          .provider = kProviderGemini},
                                          {.name = "gemini-1.5-pro",
                                           .display_name = "Gemini 1.5 Pro",
-                                          .provider = "gemini"}};
+                                          .provider = kProviderGemini}};
       return defaults;
     }
 
@@ -281,7 +282,7 @@ absl::StatusOr<std::vector<ModelInfo>> GeminiAIService::ListAvailableModels() {
         ModelInfo info;
         info.name = name;
         info.display_name = m.value("displayName", name);
-        info.provider = "gemini";
+        info.provider = kProviderGemini;
         info.description = m.value("description", "");
         info.family = "gemini";
         info.is_local = false;
@@ -580,7 +581,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
       return parsed_or.status();
     }
     AgentResponse agent_response = std::move(parsed_or.value());
-    agent_response.provider = "gemini";
+    agent_response.provider = kProviderGemini;
     agent_response.model = config_.model;
     agent_response.latency_seconds =
         absl::ToDoubleSeconds(absl::Now() - request_start);

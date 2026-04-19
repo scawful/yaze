@@ -13,6 +13,7 @@
 #include "app/net/http_client.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/common.h"
+#include "cli/service/ai/provider_ids.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze {
@@ -30,11 +31,11 @@ struct ChatMessage;
  * @brief Configuration for browser-based AI service
  */
 struct BrowserAIConfig {
-  // Provider selector: "gemini" (default) or "openai"
-  std::string provider = "gemini";
+  // Provider selector: kProviderGemini (default) or kProviderOpenAi.
+  std::string provider = kProviderGemini;
 
   // API keys (provider-specific)
-  std::string api_key;  // Gemini/OpenAI API key
+  std::string api_key;                     // Gemini/OpenAI API key
   std::string model = "gemini-2.5-flash";  // Default to latest flash model
 
   // Optional custom endpoints (leave empty for defaults)
@@ -70,7 +71,7 @@ class BrowserAIService : public AIService {
    * @param http_client HTTP client for making API requests (ownership transferred)
    */
   explicit BrowserAIService(const BrowserAIConfig& config,
-                             std::unique_ptr<net::IHttpClient> http_client);
+                            std::unique_ptr<net::IHttpClient> http_client);
 
   /**
    * @brief Destructor
@@ -118,7 +119,7 @@ class BrowserAIService : public AIService {
    * @return AI response or error status
    */
   absl::StatusOr<AgentResponse> AnalyzeImage(const std::string& image_data,
-                                              const std::string& prompt);
+                                             const std::string& prompt);
 
   /**
    * @brief Check if the service is available
@@ -216,8 +217,7 @@ class BrowserAIService : public AIService {
   // Gemini API base URL
   static constexpr const char* kGeminiApiBaseUrl =
       "https://generativelanguage.googleapis.com/v1beta/models/";
-  static constexpr const char* kOpenAIApiBaseUrl =
-      "https://api.openai.com/v1";
+  static constexpr const char* kOpenAIApiBaseUrl = "https://api.openai.com/v1";
 
   // Mutex for thread safety
   mutable std::mutex mutex_;

@@ -16,6 +16,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/tool_schema_builder.h"
 #include "util/platform_paths.h"
 
@@ -169,19 +170,19 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
     std::vector<ModelInfo> defaults = {
         {.name = "gpt-4o",
          .display_name = "GPT-4o",
-         .provider = "openai",
+         .provider = kProviderOpenAi,
          .description = "Most capable GPT-4 model"},
         {.name = "gpt-4o-mini",
          .display_name = "GPT-4o Mini",
-         .provider = "openai",
+         .provider = kProviderOpenAi,
          .description = "Fast and cost-effective"},
         {.name = "gpt-4-turbo",
          .display_name = "GPT-4 Turbo",
-         .provider = "openai",
+         .provider = kProviderOpenAi,
          .description = "GPT-4 with larger context"},
         {.name = "gpt-3.5-turbo",
          .display_name = "GPT-3.5 Turbo",
-         .provider = "openai",
+         .provider = kProviderOpenAi,
          .description = "Fast and efficient"}};
     return defaults;
   }
@@ -205,14 +206,15 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
                   << resp_or.status().message() << std::endl;
       }
       // Return defaults on failure so the UI remains usable.
-      std::vector<ModelInfo> defaults = {
-          {.name = "gpt-4o-mini",
-           .display_name = "GPT-4o Mini",
-           .provider = "openai"},
-          {.name = "gpt-4o", .display_name = "GPT-4o", .provider = "openai"},
-          {.name = "gpt-3.5-turbo",
-           .display_name = "GPT-3.5 Turbo",
-           .provider = "openai"}};
+      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
+                                          .display_name = "GPT-4o Mini",
+                                          .provider = kProviderOpenAi},
+                                         {.name = "gpt-4o",
+                                          .display_name = "GPT-4o",
+                                          .provider = kProviderOpenAi},
+                                         {.name = "gpt-3.5-turbo",
+                                          .display_name = "GPT-3.5 Turbo",
+                                          .provider = kProviderOpenAi}};
       return defaults;
     }
     if (resp_or->status_code != 200) {
@@ -220,14 +222,15 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
         std::cerr << "[DEBUG] OpenAI /v1/models HTTP " << resp_or->status_code
                   << std::endl;
       }
-      std::vector<ModelInfo> defaults = {
-          {.name = "gpt-4o-mini",
-           .display_name = "GPT-4o Mini",
-           .provider = "openai"},
-          {.name = "gpt-4o", .display_name = "GPT-4o", .provider = "openai"},
-          {.name = "gpt-3.5-turbo",
-           .display_name = "GPT-3.5 Turbo",
-           .provider = "openai"}};
+      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
+                                          .display_name = "GPT-4o Mini",
+                                          .provider = kProviderOpenAi},
+                                         {.name = "gpt-4o",
+                                          .display_name = "GPT-4o",
+                                          .provider = kProviderOpenAi},
+                                         {.name = "gpt-3.5-turbo",
+                                          .display_name = "GPT-3.5 Turbo",
+                                          .provider = kProviderOpenAi}};
       return defaults;
     }
     response_str = resp_or->body;
@@ -268,14 +271,15 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
 
     if (!models_json.contains("data")) {
       // Return defaults on error
-      std::vector<ModelInfo> defaults = {
-          {.name = "gpt-4o-mini",
-           .display_name = "GPT-4o Mini",
-           .provider = "openai"},
-          {.name = "gpt-4o", .display_name = "GPT-4o", .provider = "openai"},
-          {.name = "gpt-3.5-turbo",
-           .display_name = "GPT-3.5 Turbo",
-           .provider = "openai"}};
+      std::vector<ModelInfo> defaults = {{.name = "gpt-4o-mini",
+                                          .display_name = "GPT-4o Mini",
+                                          .provider = kProviderOpenAi},
+                                         {.name = "gpt-4o",
+                                          .display_name = "GPT-4o",
+                                          .provider = kProviderOpenAi},
+                                         {.name = "gpt-3.5-turbo",
+                                          .display_name = "GPT-3.5 Turbo",
+                                          .provider = kProviderOpenAi}};
       return defaults;
     }
 
@@ -293,7 +297,7 @@ absl::StatusOr<std::vector<ModelInfo>> OpenAIAIService::ListAvailableModels() {
         ModelInfo info;
         info.name = id;
         info.display_name = id;
-        info.provider = "openai";
+        info.provider = kProviderOpenAi;
         info.family = is_local ? "local" : "gpt";
         info.is_local = is_local;
 
@@ -575,7 +579,7 @@ absl::StatusOr<AgentResponse> OpenAIAIService::GenerateResponse(
     }
 
     AgentResponse agent_response = std::move(parsed_or.value());
-    agent_response.provider = "openai";
+    agent_response.provider = kProviderOpenAi;
     agent_response.model = config_.model;
     agent_response.latency_seconds =
         absl::ToDoubleSeconds(absl::Now() - request_start);
