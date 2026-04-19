@@ -19,7 +19,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/ui/popup_manager.h"

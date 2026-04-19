@@ -23,7 +23,7 @@
 #include "app/editor/system/command_palette_providers.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/project_manager.h"
-#include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
