@@ -11,7 +11,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -70,6 +70,14 @@ bool IsLocalEndpoint(const std::string& base_url) {
          ContainsText(lower, "192.168.") || StartsWithText(lower, "10.") ||
          // LM Studio default port check just in case domain differs
          ContainsText(lower, ":1234");
+}
+
+bool IsHalextEndpoint(const std::string& base_url) {
+  if (base_url.empty()) {
+    return false;
+  }
+  const std::string lower = absl::AsciiStrToLower(base_url);
+  return ContainsText(lower, "halext.org");
 }
 
 }  // namespace
@@ -275,10 +283,13 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
           ImGui::CalcTextSize("OpenAI").x + compact_padding.x * 2.0f;
       float lm_button_width =
           ImGui::CalcTextSize("LM Studio").x + compact_padding.x * 2.0f;
+      float afs_button_width =
+          ImGui::CalcTextSize("AFS Bridge").x + compact_padding.x * 2.0f;
       float reset_button_width =
           ImGui::CalcTextSize("Reset").x + compact_padding.x * 2.0f;
       float total_buttons = openai_button_width + lm_button_width +
-                            reset_button_width + style.ItemSpacing.x * 2.0f;
+                            afs_button_width + reset_button_width +
+                            style.ItemSpacing.x * 3.0f;
       float base_available = ImGui::GetContentRegionAvail().x;
       bool base_stack = base_available < total_buttons + 160.0f;
       ImGui::SetNextItemWidth(base_stack ? -1
@@ -303,6 +314,10 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
         set_openai_base("http://localhost:1234");
       }
       ImGui::SameLine();
+      if (ImGui::SmallButton("AFS Bridge")) {
+        set_openai_base("https://halext.org");
+      }
+      ImGui::SameLine();
       if (ImGui::SmallButton("Reset")) {
         set_openai_base("https://api.openai.com");
       }
@@ -311,7 +326,10 @@ void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
     }
   }  // provider_var_guard scope
 
-  if (IsLocalEndpoint(config.openai_base_url)) {
+  if (IsHalextEndpoint(config.openai_base_url)) {
+    ImGui::TextColored(theme.command_text_color,
+                       ICON_MD_HUB " halext.org AFS bridge");
+  } else if (IsLocalEndpoint(config.openai_base_url)) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_COMPUTER " Local OpenAI-compatible server");
   } else {

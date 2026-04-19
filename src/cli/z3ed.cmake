@@ -17,6 +17,12 @@ endif()
 
 add_executable(z3ed ${Z3ED_BASE_SOURCES})
 
+if(APPLE)
+  set_target_properties(z3ed PROPERTIES
+    INSTALL_RPATH "@executable_path/../Frameworks"
+  )
+endif()
+
 target_compile_definitions(z3ed PRIVATE YAZE_ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets")
 
 # Copy agent assets for z3ed
@@ -34,6 +40,7 @@ target_include_directories(z3ed PUBLIC
 
 target_link_libraries(z3ed PRIVATE
     yaze_cli_core
+    ${ABSL_TARGETS}
 )
 
 if(YAZE_ENABLE_AGENT_CLI)
@@ -60,7 +67,7 @@ if(EMSCRIPTEN)
   message(STATUS "Configuring z3ed for WASM terminal mode")
   # Export the actual C functions from wasm_terminal_bridge.cc
   set_target_properties(z3ed PROPERTIES
-    LINK_FLAGS "-s EXPORTED_FUNCTIONS='[\"_main\",\"_Z3edProcessCommand\",\"_Z3edIsReady\",\"_Z3edGetCompletions\",\"_Z3edSetApiKey\",\"_Z3edLoadRomData\",\"_Z3edGetRomInfo\",\"_Z3edQueryResource\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\"]' -s MODULARIZE=1 -s EXPORT_NAME='Z3edTerminal' --bind"
+    LINK_FLAGS "-s EXPORTED_FUNCTIONS='[\"_main\",\"_Z3edProcessCommand\",\"_Z3edIsReady\",\"_Z3edGetCompletions\",\"_Z3edSetApiKey\",\"_Z3edConfigureAI\",\"_Z3edLoadRomData\",\"_Z3edGetRomInfo\",\"_Z3edQueryResource\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\"]' -s MODULARIZE=1 -s EXPORT_NAME='Z3edTerminal' --bind"
   )
   target_compile_definitions(z3ed PRIVATE YAZE_WASM_TERMINAL_MODE)
 endif()

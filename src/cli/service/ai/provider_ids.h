@@ -9,6 +9,8 @@ inline constexpr char kProviderOllama[] = "ollama";
 inline constexpr char kProviderGemini[] = "gemini";
 inline constexpr char kProviderAnthropic[] = "anthropic";
 inline constexpr char kProviderOpenAi[] = "openai";
+inline constexpr char kProviderHalext[] = "halext";
+inline constexpr char kProviderAfsBridge[] = "afs-bridge";
 inline constexpr char kProviderExternal[] = "external";
 
 inline constexpr char kProviderClaude[] = "claude";

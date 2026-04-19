@@ -272,6 +272,11 @@
     onModuleReady() {
       this.isModuleReady = true;
       console.log('[Terminal] Module ready, processing queued commands');
+      if (typeof window.syncWasmAiConfig === 'function') {
+        Promise.resolve(window.syncWasmAiConfig()).catch((error) => {
+          console.warn('[Terminal] Failed to sync AI config to WASM bridge:', error);
+        });
+      }
 
       // Process any queued commands (handles both old string format and new object format)
       const now = Date.now();
@@ -1030,11 +1035,38 @@
      * Show API key status on startup
      */
     showApiKeyStatus() {
-      const apiKey = sessionStorage.getItem(CONFIG.apiKeyStorageKey);
+      const apiKey = this.getApiKey();
       if (apiKey) {
         const masked = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
-        this.printInfo('Gemini API key configured: ' + masked);
+        this.printInfo(this.getProviderDisplayName() + ' credential configured: ' + masked);
       }
+    }
+
+    getActiveProvider() {
+      if (window.yaze && window.yaze.ai &&
+          typeof window.yaze.ai.getConfigSnapshot === 'function') {
+        return window.yaze.ai.getConfigSnapshot().provider || 'gemini';
+      }
+      return localStorage.getItem(storageKeys.AI_PROVIDER || 'yaze_ai_provider') || 'gemini';
+    }
+
+    getProviderDisplayName() {
+      const provider = this.getActiveProvider();
+      if (window.yaze && window.yaze.ai &&
+          typeof window.yaze.ai.getProviderDisplayName === 'function') {
+        return window.yaze.ai.getProviderDisplayName(provider);
+      }
+      return provider;
+    }
+
+    getActiveApiKeyStorageKey() {
+      const provider = this.getActiveProvider();
+      if (window.yaze && window.yaze.ai &&
+          typeof window.yaze.ai.isOpenAiCompatibleProvider === 'function' &&
+          window.yaze.ai.isOpenAiCompatibleProvider(provider)) {
+        return storageKeys.OPENAI_API_KEY || 'z3ed_openai_api_key';
+      }
+      return storageKeys.GEMINI_API_KEY || 'z3ed_gemini_api_key';
     }
 
     /**
@@ -1042,7 +1074,8 @@
      * @returns {string|null}
      */
     getApiKey() {
-      return sessionStorage.getItem(CONFIG.apiKeyStorageKey);
+      return sessionStorage.getItem(this.getActiveApiKeyStorageKey()) ||
+             localStorage.getItem(this.getActiveApiKeyStorageKey());
     }
 
     /**
@@ -1050,14 +1083,16 @@
      * @param {string} key
      */
     setApiKey(key) {
-      sessionStorage.setItem(CONFIG.apiKeyStorageKey, key);
+      sessionStorage.setItem(this.getActiveApiKeyStorageKey(), key);
     }
 
     /**
      * Clear the API key
      */
     clearApiKey() {
-      sessionStorage.removeItem(CONFIG.apiKeyStorageKey);
+      const storageKey = this.getActiveApiKeyStorageKey();
+      sessionStorage.removeItem(storageKey);
+      localStorage.removeItem(storageKey);
     }
   }
 
@@ -1076,11 +1111,11 @@
       'Built-in Commands:',
       '  /help              Show this help message',
       '  /clear             Clear the terminal output',
-      '  /apikey <key>      Set Gemini API key (stored in sessionStorage)',
-      '  /apikey clear      Clear the stored API key',
-      '  /apikey            Show current API key status',
-      '  Note: Browser AI uses Gemini; OpenAI/Anthropic/Ollama require',
-      '        AI_AGENT_ENDPOINT on the collaboration server',
+      '  /apikey <key>      Set the active provider credential',
+      '  /apikey clear      Clear the active provider credential',
+      '  /apikey            Show current provider credential status',
+      '  Open the AI setup dialog to switch between Gemini, OpenAI,',
+      '  LM Studio, and the halext AFS bridge.',
       '  /history           Show command history',
       '  /version           Show version information',
       '',
@@ -1120,16 +1155,20 @@
     if (args.length === 0) {
       // Show status
       const apiKey = this.getApiKey();
+      const providerLabel = this.getProviderDisplayName();
       if (apiKey) {
         const masked = apiKey.substring(0, 4) + '...' + apiKey.substring(apiKey.length - 4);
-        this.printInfo('Gemini API key: ' + masked);
+        this.printInfo(providerLabel + ' credential: ' + masked);
       } else {
-        this.printWarning('No Gemini API key configured.');
-        this.print('Use: /apikey <your-api-key>');
+        this.printWarning('No ' + providerLabel + ' credential configured.');
+        this.print('Use: /apikey <your-token>');
       }
     } else if (args[0].toLowerCase() === 'clear') {
       this.clearApiKey();
-      this.printSuccess('API key cleared.');
+      if (typeof window.syncWasmAiConfig === 'function') {
+        void window.syncWasmAiConfig();
+      }
+      this.printSuccess('Credential cleared.');
     } else {
       const key = args[0];
       if (key.length < 10) {
@@ -1138,14 +1177,15 @@
       }
       this.setApiKey(key);
       const masked = key.substring(0, 4) + '...' + key.substring(key.length - 4);
-      this.printSuccess('API key set: ' + masked);
+      this.printSuccess(this.getProviderDisplayName() + ' credential set: ' + masked);
 
       // Notify WASM if available
-      if (this.isModuleReady && typeof Module !== 'undefined' && typeof Module.ccall === 'function') {
+      if (typeof window.syncWasmAiConfig === 'function') {
+        void window.syncWasmAiConfig();
+      } else if (this.isModuleReady && typeof Module !== 'undefined' && typeof Module.ccall === 'function') {
         try {
           Module.ccall('Z3edSetApiKey', null, ['string'], [key]);
         } catch (error) {
-          // Function may not exist in this WASM build - log for debugging
           console.debug('[Z3edTerminal] Z3edSetApiKey not available:', error.message);
         }
       }

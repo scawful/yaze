@@ -11,27 +11,27 @@
 
 #include <algorithm>
 #include <cstring>
+#include <fstream>
 #include <memory>
 #include <set>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <fstream>
 
 #include <emscripten.h>
 #include <emscripten/bind.h>
 
 #include "absl/status/status.h"
-#include "absl/strings/str_split.h"
 #include "absl/strings/str_join.h"
-#include "rom/rom.h"
+#include "absl/strings/str_split.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/editor_manager.h"
 #include "app/net/wasm/emscripten_http_client.h"
 #include "app/platform/wasm/wasm_bootstrap.h"
-#include "cli/service/command_registry.h"
-#include "cli/service/ai/browser_ai_service.h"
 #include "cli/handlers/command_handlers.h"
-#include "app/editor/editor_manager.h"
-#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "cli/service/ai/browser_ai_service.h"
+#include "cli/service/command_registry.h"
+#include "rom/rom.h"
 
 namespace yaze::app {
 extern editor::EditorManager* GetGlobalEditorManager();
@@ -42,6 +42,9 @@ namespace {
 struct BridgeState {
   std::unique_ptr<yaze::cli::BrowserAIService> ai_service;
   std::string last_output;
+  std::string provider = yaze::cli::kProviderGemini;
+  std::string model = "gemini-2.5-flash";
+  std::string api_base;
   std::string api_key;
   bool initialized = false;
 
@@ -54,21 +57,42 @@ struct BridgeState {
   }
 
   void SetupAIService() {
-    if (!api_key.empty() && !ai_service) {
-      yaze::cli::BrowserAIConfig config;
-      config.api_key = api_key;
-      config.model = "gemini-2.0-flash-exp";
-      config.verbose = false;
-      auto http_client = std::make_unique<yaze::net::EmscriptenHttpClient>();
-      ai_service = std::make_unique<yaze::cli::BrowserAIService>(
-          config, std::move(http_client));
+    yaze::cli::BrowserAIConfig config;
+    config.provider = provider.empty() ? yaze::cli::kProviderGemini : provider;
+    config.api_key = api_key;
+    config.model = model;
+    config.api_base = api_base;
+    config.verbose = false;
+    auto http_client = std::make_unique<yaze::net::EmscriptenHttpClient>();
+    ai_service = std::make_unique<yaze::cli::BrowserAIService>(
+        config, std::move(http_client));
+    if (Rom* rom = GetActiveRom()) {
+      ai_service->SetRomContext(rom);
     }
+  }
+
+  void ConfigureAI(const char* provider_value, const char* model_value,
+                   const char* api_base_value, const char* api_key_value) {
+    if (provider_value) {
+      provider = provider_value;
+    }
+    if (model_value) {
+      model = model_value;
+    }
+    if (api_base_value) {
+      api_base = api_base_value;
+    }
+    if (api_key_value) {
+      api_key = api_key_value;
+    }
+    SetupAIService();
   }
 
   // Helper to get the REAL active ROM from the application controller
   yaze::Rom* GetActiveRom() {
     auto* manager = yaze::app::GetGlobalEditorManager();
-    if (manager) return manager->GetCurrentRom();
+    if (manager)
+      return manager->GetCurrentRom();
     return nullptr;
   }
 };
@@ -157,7 +181,13 @@ std::string ProcessCommandInternal(const std::string& command_str) {
   }
 
   // Handle AI commands if service is available
-  if (args[0] == "ai" && g_bridge.ai_service) {
+  if (args[0] == "ai") {
+    if (!g_bridge.ai_service) {
+      g_bridge.SetupAIService();
+    }
+    if (!g_bridge.ai_service) {
+      return "AI service unavailable";
+    }
     if (args.size() < 2) {
       return "AI command requires a prompt. Usage: ai <prompt>";
     }
@@ -178,7 +208,8 @@ std::string ProcessCommandInternal(const std::string& command_str) {
   // Handle editor commands
   if (args[0] == "editor") {
     auto* editor_manager = yaze::app::GetGlobalEditorManager();
-    if (!editor_manager) return "Error: Editor manager not available";
+    if (!editor_manager)
+      return "Error: Editor manager not available";
 
     if (args.size() > 2 && args[1] == "switch") {
       std::string target = args[2];
@@ -187,7 +218,8 @@ std::string ProcessCommandInternal(const std::string& command_str) {
         std::transform(name.begin(), name.end(), name.begin(), ::tolower);
         std::transform(target.begin(), target.end(), target.begin(), ::tolower);
         if (name == target) {
-          editor_manager->SwitchToEditor(static_cast<yaze::editor::EditorType>(i));
+          editor_manager->SwitchToEditor(
+              static_cast<yaze::editor::EditorType>(i));
           return "Switched to " + std::string(yaze::editor::kEditorNames[i]);
         }
       }
@@ -203,13 +235,15 @@ std::string ProcessCommandInternal(const std::string& command_str) {
       bool visible = (state == "show" || state == "on" || state == "true");
 
       auto* current_editor = editor_manager->GetCurrentEditor();
-      if (current_editor && current_editor->type() == yaze::editor::EditorType::kDungeon) {
+      if (current_editor &&
+          current_editor->type() == yaze::editor::EditorType::kDungeon) {
         // Panel visibility is now controlled via the Layout Designer
         // These legacy panel toggles are no longer directly accessible
         if (card_key == "object" || card_key == "objects" ||
             card_key == "room" || card_key == "selector" ||
             card_key == "graphics" || card_key == "debug") {
-          return "Panel visibility is now controlled via Layout Designer. Use 'editor layout' commands.";
+          return "Panel visibility is now controlled via Layout Designer. Use "
+                 "'editor layout' commands.";
         }
         return "Unknown card key for Dungeon Editor: " + card_key;
       }
@@ -226,21 +260,27 @@ std::string ProcessCommandInternal(const std::string& command_str) {
   // Handle dungeon commands
   if (args[0] == "dungeon") {
     auto* editor_manager = yaze::app::GetGlobalEditorManager();
-    if (!editor_manager) return "Error: Editor manager not available";
-    
+    if (!editor_manager)
+      return "Error: Editor manager not available";
+
     auto* current_editor = editor_manager->GetCurrentEditor();
-    if (!current_editor || current_editor->type() != yaze::editor::EditorType::kDungeon) {
+    if (!current_editor ||
+        current_editor->type() != yaze::editor::EditorType::kDungeon) {
       // Auto-switch if possible? Or just fail.
-      return "Error: Dungeon editor is not active. Use 'editor switch dungeon' first.";
+      return "Error: Dungeon editor is not active. Use 'editor switch dungeon' "
+             "first.";
     }
-    auto* dungeon_editor = static_cast<yaze::editor::DungeonEditorV2*>(current_editor);
+    auto* dungeon_editor =
+        static_cast<yaze::editor::DungeonEditorV2*>(current_editor);
 
     if (args.size() > 2 && args[1] == "room") {
       try {
         int room_id = std::stoi(args[2], nullptr, 16);
         dungeon_editor->FocusRoom(room_id);
         return "Focused room " + args[2];
-      } catch (...) { return "Invalid room ID (hex required)"; }
+      } catch (...) {
+        return "Invalid room ID (hex required)";
+      }
     }
 
     if (args.size() > 2 && args[1] == "select_object") {
@@ -248,7 +288,9 @@ std::string ProcessCommandInternal(const std::string& command_str) {
         int obj_id = std::stoi(args[2], nullptr, 16);
         dungeon_editor->SelectObject(obj_id);
         return "Selected object " + args[2];
-      } catch (...) { return "Invalid object ID (hex required)"; }
+      } catch (...) {
+        return "Invalid object ID (hex required)";
+      }
     }
 
     if (args.size() > 2 && args[1] == "agent_mode") {
@@ -264,7 +306,8 @@ std::string ProcessCommandInternal(const std::string& command_str) {
     std::vector<std::string> cmd_args(args.begin() + 1, args.end());
     // Use the REAL active ROM
     std::string cmd_output;
-    auto status = registry.Execute(args[0], cmd_args, g_bridge.GetActiveRom(), &cmd_output);
+    auto status = registry.Execute(args[0], cmd_args, g_bridge.GetActiveRom(),
+                                   &cmd_output);
     if (status.ok()) {
       return cmd_output.empty() ? "Command executed successfully" : cmd_output;
     } else {
@@ -284,7 +327,8 @@ std::vector<std::string> GetCompletionsInternal(const std::string& partial) {
   std::vector<std::string> cmd_parts(parts.begin(), parts.end());
 
   // If empty or single word, show top-level commands
-  if (cmd_parts.empty() || (cmd_parts.size() == 1 && !partial.empty() && partial.back() != ' ')) {
+  if (cmd_parts.empty() ||
+      (cmd_parts.size() == 1 && !partial.empty() && partial.back() != ' ')) {
     std::string prefix = cmd_parts.empty() ? "" : cmd_parts[0];
 
     // Get all available commands from registry
@@ -304,10 +348,10 @@ std::vector<std::string> GetCompletionsInternal(const std::string& partial) {
 
     // Add special/built-in commands
     std::vector<std::string> special = {
-      "help", "rom", "ai", "clear", "version", "hex", "palette", "sprite",
-      "music", "dialogue", "message", "resource", "dungeon", "overworld",
-      "gui", "emulator", "query", "analyze", "catalog"
-    };
+        "help",     "rom",      "ai",      "clear",     "version",
+        "hex",      "palette",  "sprite",  "music",     "dialogue",
+        "message",  "resource", "dungeon", "overworld", "gui",
+        "emulator", "query",    "analyze", "catalog"};
 
     for (const auto& cmd : special) {
       if (prefix.empty() || cmd.find(prefix) == 0) {
@@ -324,14 +368,15 @@ std::vector<std::string> GetCompletionsInternal(const std::string& partial) {
 
     if (command == "rom") {
       // ROM subcommands
-      std::vector<std::string> rom_cmds = {"load", "info", "save", "stats", "verify"};
+      std::vector<std::string> rom_cmds = {"load", "info", "save", "stats",
+                                           "verify"};
       std::string prefix = cmd_parts.size() > 1 ? cmd_parts[1] : "";
       for (const auto& subcmd : rom_cmds) {
         if (prefix.empty() || subcmd.find(prefix) == 0) {
           completions.push_back("rom " + subcmd);
         }
       }
-    } 
+    }
     // ... (other completions logic can be kept or expanded via registry in future)
   }
 
@@ -388,7 +433,8 @@ const char* Z3edGetCompletions(const char* partial) {
   std::ostringstream json;
   json << "[";
   for (size_t i = 0; i < completions.size(); ++i) {
-    if (i > 0) json << ",";
+    if (i > 0)
+      json << ",";
     json << "\"" << completions[i] << "\"";
   }
   json << "]";
@@ -403,10 +449,23 @@ const char* Z3edGetCompletions(const char* partial) {
  */
 EMSCRIPTEN_KEEPALIVE
 void Z3edSetApiKey(const char* api_key) {
-  if (api_key) {
-    g_bridge.api_key = std::string(api_key);
-    g_bridge.SetupAIService();
-  }
+  g_bridge.ConfigureAI(nullptr, nullptr, nullptr, api_key ? api_key : "");
+}
+
+/**
+ * Configure the browser AI bridge
+ * @param provider AI provider id (gemini/openai/lmstudio/halext)
+ * @param model Model name
+ * @param api_base Provider base URL for OpenAI-compatible endpoints
+ * @param api_key Provider API key or bearer token
+ */
+EMSCRIPTEN_KEEPALIVE
+void Z3edConfigureAI(const char* provider, const char* model,
+                     const char* api_base, const char* api_key) {
+  g_bridge.Initialize();
+  g_bridge.ConfigureAI(provider ? provider : yaze::cli::kProviderGemini,
+                       model ? model : "", api_base ? api_base : "",
+                       api_key ? api_key : "");
 }
 
 /**
@@ -438,15 +497,15 @@ int Z3edLoadRomData(const uint8_t* data, size_t size) {
   std::string temp_path = "/.yaze/roms/terminal_upload.sfc";
   std::ofstream file(temp_path, std::ios::binary);
   if (!file) {
-      z3ed_error_to_terminal("Failed to write to VFS");
-      return 0;
+    z3ed_error_to_terminal("Failed to write to VFS");
+    return 0;
   }
   file.write(reinterpret_cast<const char*>(data), size);
   file.close();
 
   // Trigger load via bootstrap (which calls Application::LoadRom)
   yaze::app::wasm::TriggerRomLoad(temp_path);
-  
+
   z3ed_print_to_terminal("ROM uploaded to VFS. Loading...");
   return 1;
 }
@@ -458,7 +517,7 @@ int Z3edLoadRomData(const uint8_t* data, size_t size) {
 EMSCRIPTEN_KEEPALIVE
 const char* Z3edGetRomInfo() {
   yaze::Rom* rom = g_bridge.GetActiveRom();
-  
+
   if (!rom || !rom->is_loaded()) {
     g_bridge.last_output = "{\"error\": \"No ROM loaded\"}";
     return g_bridge.last_output.c_str();
@@ -488,7 +547,7 @@ const char* Z3edQueryResource(const char* query) {
     g_bridge.last_output = "{\"error\": \"Invalid query\"}";
     return g_bridge.last_output.c_str();
   }
-  
+
   yaze::Rom* rom = g_bridge.GetActiveRom();
 
   if (!rom || !rom->is_loaded()) {
@@ -504,17 +563,18 @@ const char* Z3edQueryResource(const char* query) {
   if (registry.HasCommand(cmd_name)) {
     // Construct args: resource-search --query <query> --format json
     std::vector<std::string> cmd_args = {"--query", query, "--format", "json"};
-    
+
     std::string cmd_output;
     auto status = registry.Execute(cmd_name, cmd_args, rom, &cmd_output);
     if (status.ok()) {
-       // If output captured, return it directly
-       if (!cmd_output.empty()) {
-           // We might want to update last_output too as a side effect if the bridge uses it
-           g_bridge.last_output = cmd_output;
-           return g_bridge.last_output.c_str();
-       }
-       return "{\"status\":\"success\", \"message\":\"Query executed but no output returned.\"}";
+      // If output captured, return it directly
+      if (!cmd_output.empty()) {
+        // We might want to update last_output too as a side effect if the bridge uses it
+        g_bridge.last_output = cmd_output;
+        return g_bridge.last_output.c_str();
+      }
+      return "{\"status\":\"success\", \"message\":\"Query executed but no "
+             "output returned.\"}";
     }
   }
 
@@ -522,7 +582,7 @@ const char* Z3edQueryResource(const char* query) {
   return g_bridge.last_output.c_str();
 }
 
-}  // extern "C" 
+}  // extern "C"
 
 // Emscripten module initialization
 EMSCRIPTEN_BINDINGS(z3ed_terminal) {
@@ -531,6 +591,8 @@ EMSCRIPTEN_BINDINGS(z3ed_terminal) {
   emscripten::function("getCompletions", &Z3edGetCompletions,
                        emscripten::allow_raw_pointers());
   emscripten::function("setApiKey", &Z3edSetApiKey,
+                       emscripten::allow_raw_pointers());
+  emscripten::function("configureAI", &Z3edConfigureAI,
                        emscripten::allow_raw_pointers());
   emscripten::function("isReady", &Z3edIsReady);
   emscripten::function("getRomInfo", &Z3edGetRomInfo,

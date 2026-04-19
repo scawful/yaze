@@ -398,6 +398,8 @@
     TestUtils.assertFunction(ai, 'logout', 'logout function exists');
     TestUtils.assertFunction(ai, 'reloadConfigFromStorage', 'reloadConfigFromStorage function exists');
     TestUtils.assertFunction(ai, 'getConfigSnapshot', 'getConfigSnapshot function exists');
+    TestUtils.assertFunction(ai, 'listAvailableModels', 'listAvailableModels function exists');
+    TestUtils.assertFunction(ai, 'isOpenAiCompatibleProvider', 'isOpenAiCompatibleProvider function exists');
 
     if (typeof ai.reloadConfigFromStorage === 'function' &&
         typeof ai.getConfigSnapshot === 'function') {
@@ -414,6 +416,20 @@
       TestUtils.assertEqual(cfg.provider, 'openai', 'AI manager provider override');
       TestUtils.assertEqual(cfg.model, 'gpt-4o-mini', 'AI manager model override');
       TestUtils.assertEqual(cfg.openaiBaseUrl, 'http://localhost:1234/v1', 'AI manager base URL normalization');
+
+      localStorage.setItem('yaze_ai_provider', 'lmstudio');
+      localStorage.removeItem('yaze_openai_base_url');
+      ai.reloadConfigFromStorage();
+      const lmCfg = ai.getConfigSnapshot();
+      TestUtils.assertEqual(lmCfg.provider, 'lmstudio', 'AI manager LM Studio provider override');
+      TestUtils.assertEqual(lmCfg.openaiBaseUrl, 'http://localhost:1234/v1', 'AI manager LM Studio base default');
+
+      localStorage.setItem('yaze_ai_provider', 'halext');
+      localStorage.removeItem('yaze_openai_base_url');
+      ai.reloadConfigFromStorage();
+      const halextCfg = ai.getConfigSnapshot();
+      TestUtils.assertEqual(halextCfg.provider, 'halext', 'AI manager halext provider override');
+      TestUtils.assertEqual(halextCfg.openaiBaseUrl, 'https://halext.org/v1', 'AI manager halext base default');
 
       if (prevProvider) localStorage.setItem('yaze_ai_provider', prevProvider);
       else localStorage.removeItem('yaze_ai_provider');

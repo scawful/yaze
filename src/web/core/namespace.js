@@ -217,6 +217,28 @@
         COLLAB_SERVER_URL: 'collab-server-url'
       },
 
+      /** AI provider ids and endpoint presets */
+      ai: {
+        providers: {
+          AUTO: 'auto',
+          GEMINI: 'gemini',
+          OPENAI: 'openai',
+          LMSTUDIO: 'lmstudio',
+          HALEXT: 'halext'
+        },
+        endpoints: {
+          OPENAI: 'https://api.openai.com/v1',
+          LMSTUDIO: 'http://localhost:1234/v1',
+          HALEXT: 'https://halext.org/v1'
+        },
+        defaultModels: {
+          GEMINI: 'gemini-2.5-flash',
+          OPENAI: 'gpt-4o-mini',
+          LMSTUDIO: '',
+          HALEXT: ''
+        }
+      },
+
       /** CSS color variables (for JS-based styling) */
       colors: {
         ACCENT_CYAN: 'var(--accent-cyan, #4ecdc4)',

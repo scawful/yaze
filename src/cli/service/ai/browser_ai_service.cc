@@ -3,9 +3,11 @@
 #include "cli/service/ai/browser_ai_service.h"
 
 #include <emscripten.h>
+#include <iomanip>
 #include <sstream>
 
 #include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "cli/service/agent/conversational_agent_service.h"
@@ -75,6 +77,68 @@ std::string ConvertHistoryToGeminiFormat(
   return contents.dump();
 }
 
+bool IsOpenAiCompatibleProvider(const std::string& provider) {
+  return provider == kProviderOpenAi || provider == kProviderLmStudio ||
+         provider == kProviderLmStudioDashed ||
+         provider == kProviderCustomOpenAi ||
+         provider == kProviderOpenAiCompatible || provider == kProviderHalext ||
+         provider == kProviderAfsBridge;
+}
+
+std::string NormalizeBrowserProvider(std::string provider) {
+  provider = absl::AsciiStrToLower(provider);
+  if (provider.empty()) {
+    return kProviderGemini;
+  }
+  if (provider == kProviderGoogle || provider == kProviderGoogleGemini) {
+    return kProviderGemini;
+  }
+  if (IsOpenAiCompatibleProvider(provider)) {
+    return kProviderOpenAi;
+  }
+  return provider;
+}
+
+bool IsLikelyLocalApiBase(const std::string& base) {
+  const std::string lower = absl::AsciiStrToLower(base);
+  return absl::StrContains(lower, "localhost") ||
+         absl::StrContains(lower, "127.0.0.1") ||
+         absl::StrContains(lower, "0.0.0.0") || absl::StrContains(lower, "::1");
+}
+
+std::string InferModelFamily(const std::string& model_name) {
+  if (model_name.empty()) {
+    return {};
+  }
+  const size_t slash = model_name.find('/');
+  const size_t dash = model_name.find('-');
+  const size_t delimiter = std::min(slash, dash);
+  if (delimiter != std::string::npos) {
+    return model_name.substr(0, delimiter);
+  }
+  return model_name;
+}
+
+void AddCurrentModelFallback(std::vector<ModelInfo>* models,
+                             const std::string& provider,
+                             const std::string& model_name, bool is_local,
+                             const std::string& description) {
+  if (!models || model_name.empty()) {
+    return;
+  }
+  for (const auto& model : *models) {
+    if (model.name == model_name) {
+      return;
+    }
+  }
+  models->insert(models->begin(), {.name = model_name,
+                                   .display_name = model_name,
+                                   .provider = provider,
+                                   .description = description,
+                                   .family = InferModelFamily(model_name),
+                                   .is_local = is_local});
+}
+
 }  // namespace
 
 BrowserAIService::BrowserAIService(
@@ -82,10 +146,7 @@ BrowserAIService::BrowserAIService(
     std::unique_ptr<net::IHttpClient> http_client)
     : config_(config), http_client_(std::move(http_client)) {
   // Normalize provider name
-  config_.provider = absl::AsciiStrToLower(config_.provider);
-  if (config_.provider.empty()) {
-    config_.provider = kProviderGemini;
-  }
+  config_.provider = NormalizeBrowserProvider(config_.provider);
   // Set sensible defaults per provider
   if (config_.provider == kProviderOpenAi) {
     if (config_.model.empty())
@@ -274,31 +335,80 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
 
 absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
   std::lock_guard<std::mutex> lock(mutex_);
-  // For browser context, return curated lists for configured provider
   std::vector<ModelInfo> models;
 
   const std::string provider =
       config_.provider.empty() ? kProviderGemini : config_.provider;
 
   if (provider == kProviderOpenAi) {
-    models.push_back({.name = "gpt-4o-mini",
-                      .display_name = "GPT-4o Mini",
-                      .provider = kProviderOpenAi,
-                      .description = "Fast/cheap OpenAI model",
-                      .family = "gpt-4o",
-                      .is_local = false});
-    models.push_back({.name = "gpt-4o",
-                      .display_name = "GPT-4o",
-                      .provider = kProviderOpenAi,
-                      .description = "Balanced OpenAI flagship model",
-                      .family = "gpt-4o",
-                      .is_local = false});
-    models.push_back({.name = "gpt-4.1-mini",
-                      .display_name = "GPT-4.1 Mini",
-                      .provider = kProviderOpenAi,
-                      .description = "Lightweight 4.1 variant",
-                      .family = "gpt-4.1",
-                      .is_local = false});
+    const std::string base = GetOpenAIApiBase();
+    const bool is_local = IsLikelyLocalApiBase(base);
+    if (http_client_) {
+      net::Headers headers;
+      if (!config_.api_key.empty()) {
+        headers["Authorization"] = "Bearer " + config_.api_key;
+      }
+      auto response_or = http_client_->Get(base + "/models", headers);
+      if (response_or.ok() && response_or->IsSuccess()) {
+        auto json = nlohmann::json::parse(response_or->body, nullptr, false);
+        if (json.is_object() && json.contains("data") &&
+            json["data"].is_array()) {
+          for (const auto& entry : json["data"]) {
+            if (!entry.is_object() || !entry.contains("id") ||
+                !entry["id"].is_string()) {
+              continue;
+            }
+            const std::string id = entry["id"].get<std::string>();
+            std::string description =
+                is_local ? "Discovered from local OpenAI-compatible endpoint"
+                         : "Discovered from OpenAI-compatible endpoint";
+            if (entry.contains("owned_by") && entry["owned_by"].is_string()) {
+              const std::string owner = entry["owned_by"].get<std::string>();
+              description = absl::StrFormat("Owned by %s", owner);
+            }
+            models.push_back({.name = id,
+                              .display_name = id,
+                              .provider = kProviderOpenAi,
+                              .description = description,
+                              .family = InferModelFamily(id),
+                              .is_local = is_local});
+          }
+          if (!models.empty()) {
+            AddCurrentModelFallback(
+                &models, kProviderOpenAi, config_.model, is_local,
+                is_local ? "Configured local model"
+                         : "Configured OpenAI-compatible model");
+            return models;
+          }
+        }
+      }
+    }
+
+    if (!is_local || !config_.model.empty()) {
+      AddCurrentModelFallback(&models, kProviderOpenAi, config_.model, is_local,
+                              is_local ? "Configured local model"
+                                       : "Configured OpenAI-compatible model");
+    }
+    if (!is_local) {
+      models.push_back({.name = "gpt-4o-mini",
+                        .display_name = "GPT-4o Mini",
+                        .provider = kProviderOpenAi,
+                        .description = "Fast/cheap OpenAI model",
+                        .family = "gpt-4o",
+                        .is_local = false});
+      models.push_back({.name = "gpt-4o",
+                        .display_name = "GPT-4o",
+                        .provider = kProviderOpenAi,
+                        .description = "Balanced OpenAI flagship model",
+                        .family = "gpt-4o",
+                        .is_local = false});
+      models.push_back({.name = "gpt-4.1-mini",
+                        .display_name = "GPT-4.1 Mini",
+                        .provider = kProviderOpenAi,
+                        .description = "Lightweight 4.1 variant",
+                        .family = "gpt-4.1",
+                        .is_local = false});
+    }
   } else {
     models.push_back(
         {.name = "gemini-2.5-flash",
