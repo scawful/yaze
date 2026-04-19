@@ -245,6 +245,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/map_properties_context_menu_test.cc
     unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/layout_presets_test.cc
+    unit/editor/graphics_editor_window_ids_test.cc
+    unit/editor/gfx_group_workspace_state_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
