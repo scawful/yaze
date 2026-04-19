@@ -43,7 +43,7 @@ set(
   app/editor/editor_manager.cc
   app/editor/session_types.cc
   app/editor/system/default_editor_factories.cc
-  app/editor/system/hack_manifest_save_validation.cc
+  app/editor/system/session/hack_manifest_save_validation.cc
   app/editor/graphics/ui/browser/sheet_browser_view.cc
   app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/gfx_group_editor.cc
