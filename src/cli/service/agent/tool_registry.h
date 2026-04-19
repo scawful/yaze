@@ -10,13 +10,18 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "cli/service/ai/common.h" // For ToolCall
+#include "cli/service/ai/common.h"  // For ToolCall
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
 class Rom;
 namespace cli {
 namespace agent {
+
+enum class ToolAccess {
+  kReadOnly,
+  kMutating,
+};
 
 /**
  * @brief Metadata describing a tool for the LLM
@@ -28,7 +33,10 @@ struct ToolDefinition {
   std::string usage;
   std::vector<std::string> examples;
   bool requires_rom = false;
-  bool requires_project = false; // New: distinguish project vs ROM dependency
+  bool requires_project = false;  // New: distinguish project vs ROM dependency
+  ToolAccess access = ToolAccess::kReadOnly;
+  std::vector<std::string> required_args;
+  std::vector<std::string> flag_args;
 };
 
 /**
@@ -42,7 +50,8 @@ struct ToolDefinition {
 class ToolRegistry {
  public:
   // Factory function to create a handler instance
-  using HandlerFactory = std::function<std::unique_ptr<resources::CommandHandler>()>;
+  using HandlerFactory =
+      std::function<std::unique_ptr<resources::CommandHandler>()>;
 
   static ToolRegistry& Get();
 
@@ -51,8 +60,10 @@ class ToolRegistry {
 
   // Discovery
   std::vector<ToolDefinition> GetAllTools() const;
-  std::optional<ToolDefinition> GetToolDefinition(const std::string& name) const;
-  std::vector<ToolDefinition> GetToolsByCategory(const std::string& category) const;
+  std::optional<ToolDefinition> GetToolDefinition(
+      const std::string& name) const;
+  std::vector<ToolDefinition> GetToolsByCategory(
+      const std::string& category) const;
 
   // Execution
   absl::StatusOr<std::unique_ptr<resources::CommandHandler>> CreateHandler(
@@ -60,7 +71,7 @@ class ToolRegistry {
 
  private:
   ToolRegistry() = default;
-  
+
   struct ToolEntry {
     ToolDefinition def;
     HandlerFactory factory;
@@ -69,15 +80,28 @@ class ToolRegistry {
   std::map<std::string, ToolEntry> tools_;
 };
 
+// Forces the built-in tool registration translation unit to be linked and its
+// static registration constructors to run.
+void EnsureBuiltinAgentToolsRegistered();
+
 // Helper macro for static registration
-#define REGISTER_AGENT_TOOL(Name, Category, Desc, Usage, Examples, ReqRom, ReqProject, HandlerClass) \
-  static struct ToolReg_##HandlerClass { \
-    ToolReg_##HandlerClass() { \
-      yaze::cli::agent::ToolRegistry::Get().RegisterTool( \
-        {Name, Category, Desc, Usage, Examples, ReqRom, ReqProject}, \
-        []() { return std::make_unique<HandlerClass>(); } \
-      ); \
-    } \
+#define REGISTER_AGENT_TOOL(Name, Category, Desc, Usage, Examples, ReqRom, \
+                            ReqProject, HandlerClass)                      \
+  static struct ToolReg_##HandlerClass {                                   \
+    ToolReg_##HandlerClass() {                                             \
+      yaze::cli::agent::ToolRegistry::Get().RegisterTool(                  \
+          {Name,                                                           \
+           Category,                                                       \
+           Desc,                                                           \
+           Usage,                                                          \
+           Examples,                                                       \
+           ReqRom,                                                         \
+           ReqProject,                                                     \
+           yaze::cli::agent::ToolAccess::kReadOnly,                        \
+           {},                                                             \
+           {}},                                                            \
+          []() { return std::make_unique<HandlerClass>(); });              \
+    }                                                                      \
   } tool_reg_##HandlerClass;
 
 }  // namespace agent
