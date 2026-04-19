@@ -15,6 +15,7 @@
 #endif
 #include "cli/handlers/tools/gui_commands.h"
 #include "cli/handlers/tools/resource_commands.h"
+#include "cli/service/agent/tools/build_tool.h"
 #include "cli/service/agent/tools/code_gen_tool.h"
 #include "cli/service/agent/tools/filesystem_tool.h"
 #include "cli/service/agent/tools/memory_inspector_tool.h"
@@ -28,6 +29,8 @@ namespace agent {
 
 using namespace yaze::cli::handlers;
 using namespace yaze::cli::agent::tools;
+
+void EnsureBuiltinAgentToolsRegistered() {}
 
 // Placeholder classes for meta-tools (they're handled specially in the dispatcher)
 // We need unique classes to avoid REGISTER_AGENT_TOOL macro struct name collisions
@@ -277,6 +280,26 @@ REGISTER_AGENT_TOOL("filesystem-info", "filesystem", "Get file info",
                     "filesystem-info --path=<path>", {}, false, false,
                     FileSystemInfoTool)
 
+// Build commands
+REGISTER_AGENT_TOOL("build-configure", "build",
+                    "Configure the build system with a CMake preset",
+                    "build-configure --preset <preset> [--build-dir <dir>] "
+                    "[--verbose]",
+                    {}, false, false, BuildConfigureCommandHandler)
+REGISTER_AGENT_TOOL("build-compile", "build",
+                    "Build a specific target or all targets",
+                    "build-compile [--target <target>] [--config <config>] "
+                    "[--build-dir <dir>] [--verbose]",
+                    {}, false, false, BuildCompileCommandHandler)
+REGISTER_AGENT_TOOL("build-test", "build", "Run tests with optional filter",
+                    "build-test [--filter <pattern>] [--rom-path <path>] "
+                    "[--build-dir <dir>] [--verbose]",
+                    {}, false, false, BuildTestCommandHandler)
+REGISTER_AGENT_TOOL("build-status", "build",
+                    "Get current build operation status",
+                    "build-status [--build-dir <dir>]", {}, false, false,
+                    BuildStatusCommandHandler)
+
 // Memory inspector commands
 REGISTER_AGENT_TOOL("memory-analyze", "memory", "Analyze memory region",
                     "memory-analyze --address=<addr> --length=<len>", {}, true,
@@ -351,8 +374,9 @@ REGISTER_AGENT_TOOL("project-diff", "project", "Compare project states",
 REGISTER_AGENT_TOOL(
     "project-graph", "project",
     "Query project graph info (files, symbols, config)",
-    "project-graph --query=<info|files|symbols> [--path=<folder>]", {}, true,
-    true, ProjectGraphTool)
+    "project-graph --query=<info|files|symbols|lookup|writes|bank> "
+    "[--path=<folder>] [--symbol=<name>] [--address=<hex>] [--bank=<hex>]",
+    {}, true, true, ProjectGraphTool)
 
 #ifdef YAZE_WITH_GRPC
 REGISTER_AGENT_TOOL("emulator-step", "emulator", "Step emulator",

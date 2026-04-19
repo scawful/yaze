@@ -7,8 +7,13 @@
 #include <sstream>
 #include <string>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
+#ifdef YAZE_WITH_JSON
+#include "nlohmann/json.hpp"
+#endif
 #include "cli/service/agent/tool_registry.h"
 #include "cli/util/terminal_colors.h"
 
@@ -18,13 +23,37 @@ namespace agent {
 
 namespace {
 
+bool IsTruthyValue(const std::string& value) {
+  const std::string lower = absl::AsciiStrToLower(value);
+  return lower == "true" || lower == "1" || lower == "yes" || lower == "on";
+}
+
+bool IsFalsyValue(const std::string& value) {
+  const std::string lower = absl::AsciiStrToLower(value);
+  return lower == "false" || lower == "0" || lower == "no" || lower == "off";
+}
+
 // Convert tool call arguments map to command-line style vector
-std::vector<std::string> ConvertArgsToVector(
-    const std::map<std::string, std::string>& args) {
+absl::StatusOr<std::vector<std::string>> ConvertArgsToVector(
+    const ToolDefinition& def, const std::map<std::string, std::string>& args) {
   std::vector<std::string> result;
+  const absl::flat_hash_set<std::string> flag_args(def.flag_args.begin(),
+                                                   def.flag_args.end());
 
   for (const auto& [key, value] : args) {
-    // Convert to --key=value format
+    if (flag_args.contains(key)) {
+      if (value.empty() || IsTruthyValue(value)) {
+        result.push_back(absl::StrCat("--", key));
+        continue;
+      }
+      if (IsFalsyValue(value)) {
+        continue;
+      }
+      return absl::InvalidArgumentError(
+          absl::StrCat("Flag argument '--", key,
+                       "' must use a boolean value when called as a tool"));
+    }
+
     result.push_back(absl::StrCat("--", key, "=", value));
   }
 
@@ -47,24 +76,141 @@ std::vector<std::string> ConvertArgsToVector(
 
 bool ToolDispatcher::IsToolEnabled(const ToolDefinition& def) const {
   // Check preferences based on category
-  if (def.category == "resource") return preferences_.resources;
-  if (def.category == "dungeon") return preferences_.dungeon;
-  if (def.category == "overworld") return preferences_.overworld;
-  if (def.category == "message" || def.category == "dialogue") return preferences_.messages; // Merge for simplicity or split if needed
-  if (def.category == "gui") return preferences_.gui;
-  if (def.category == "music") return preferences_.music;
-  if (def.category == "sprite") return preferences_.sprite;
-  if (def.category == "emulator") return preferences_.emulator;
-  if (def.category == "filesystem") return preferences_.filesystem;
-  if (def.category == "build") return preferences_.build;
-  if (def.category == "memory") return preferences_.memory_inspector;
-  if (def.category == "meta") return preferences_.meta_tools;
-  if (def.category == "tools") return preferences_.test_helpers; // "tools" category in old mapping
-  if (def.category == "visual") return preferences_.visual_analysis;
-  if (def.category == "codegen") return preferences_.code_gen;
-  if (def.category == "project") return preferences_.project;
+  if (def.category == "resource")
+    return preferences_.resources;
+  if (def.category == "dungeon")
+    return preferences_.dungeon;
+  if (def.category == "overworld")
+    return preferences_.overworld;
+  if (def.category == "message" || def.category == "dialogue")
+    return preferences_.messages;  // Merge for simplicity or split if needed
+  if (def.category == "gui")
+    return preferences_.gui;
+  if (def.category == "music")
+    return preferences_.music;
+  if (def.category == "sprite")
+    return preferences_.sprite;
+  if (def.category == "emulator")
+    return preferences_.emulator;
+  if (def.category == "filesystem")
+    return preferences_.filesystem;
+  if (def.category == "build")
+    return preferences_.build;
+  if (def.category == "memory")
+    return preferences_.memory_inspector;
+  if (def.category == "meta")
+    return preferences_.meta_tools;
+  if (def.category == "tools")
+    return preferences_.test_helpers;  // "tools" category in old mapping
+  if (def.category == "visual")
+    return preferences_.visual_analysis;
+  if (def.category == "codegen")
+    return preferences_.code_gen;
+  if (def.category == "project")
+    return preferences_.project;
 
-  return true; // Default enable
+  return true;  // Default enable
+}
+
+absl::Status ToolDispatcher::ValidateCall(const ToolDefinition& def,
+                                          const ToolCall& call) const {
+  if (def.access == ToolAccess::kMutating &&
+      !preferences_.allow_mutating_tools) {
+    return absl::PermissionDeniedError(
+        absl::StrCat("Tool '", call.tool_name,
+                     "' performs a mutating action and is not authorized in "
+                     "the current agent configuration"));
+  }
+
+  std::vector<std::string> missing;
+  for (const auto& arg : def.required_args) {
+    if (!call.args.contains(arg)) {
+      missing.push_back("--" + arg);
+    }
+  }
+  if (!missing.empty()) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Tool '", call.tool_name,
+        "' is missing required arguments: ", absl::StrJoin(missing, ", ")));
+  }
+
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::string> ToolDispatcher::DispatchMetaTool(
+    const ToolCall& call) const {
+#ifdef YAZE_WITH_JSON
+  if (call.tool_name == "tools-list") {
+    nlohmann::json payload;
+    payload["tools"] = nlohmann::json::array();
+    for (const auto& info : GetAvailableTools()) {
+      payload["tools"].push_back(
+          {{"name", info.name},
+           {"category", info.category},
+           {"description", info.description},
+           {"usage", info.usage},
+           {"examples", info.examples},
+           {"requires_rom", info.requires_rom},
+           {"requires_project", info.requires_project},
+           {"requires_authorization", info.requires_authorization},
+           {"required_args", info.required_args},
+           {"flag_args", info.flag_args}});
+    }
+    payload["count"] = payload["tools"].size();
+    return payload.dump(2);
+  }
+
+  if (call.tool_name == "tools-describe") {
+    const auto it = call.args.find("name");
+    if (it == call.args.end()) {
+      return absl::InvalidArgumentError(
+          "Tool 'tools-describe' requires --name");
+    }
+    auto info = GetToolInfo(it->second);
+    if (!info.has_value()) {
+      return absl::NotFoundError(absl::StrCat("Tool not found: ", it->second));
+    }
+
+    nlohmann::json payload = {
+        {"name", info->name},
+        {"category", info->category},
+        {"description", info->description},
+        {"usage", info->usage},
+        {"examples", info->examples},
+        {"requires_rom", info->requires_rom},
+        {"requires_project", info->requires_project},
+        {"requires_authorization", info->requires_authorization},
+        {"required_args", info->required_args},
+        {"flag_args", info->flag_args}};
+    return payload.dump(2);
+  }
+
+  if (call.tool_name == "tools-search") {
+    const auto it = call.args.find("query");
+    if (it == call.args.end()) {
+      return absl::InvalidArgumentError("Tool 'tools-search' requires --query");
+    }
+
+    nlohmann::json payload;
+    payload["query"] = it->second;
+    payload["matches"] = nlohmann::json::array();
+    for (const auto& info : SearchTools(it->second)) {
+      payload["matches"].push_back(
+          {{"name", info.name},
+           {"category", info.category},
+           {"description", info.description},
+           {"usage", info.usage},
+           {"requires_rom", info.requires_rom},
+           {"requires_project", info.requires_project},
+           {"requires_authorization", info.requires_authorization}});
+    }
+    payload["count"] = payload["matches"].size();
+    return payload.dump(2);
+  }
+#endif
+
+  return absl::UnimplementedError(
+      absl::StrCat("Unhandled meta-tool: ", call.tool_name));
 }
 
 absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
@@ -80,6 +226,15 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
         "Tool '", call.tool_name, "' disabled by current agent configuration"));
   }
 
+  absl::Status validation_status = ValidateCall(tool_def, call);
+  if (!validation_status.ok()) {
+    return validation_status;
+  }
+
+  if (tool_def.category == "meta") {
+    return DispatchMetaTool(call);
+  }
+
   // Create handler from registry
   auto handler_or = ToolRegistry::Get().CreateHandler(call.tool_name);
   if (!handler_or.ok()) {
@@ -92,8 +247,22 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
   handler->SetProjectContext(project_context_);
   handler->SetAsarWrapper(asar_wrapper_);
 
+  // Prefer an explicit symbol-table pointer when set by the host.
+  // Otherwise fall back to the Asar wrapper's table (snapshotted into a
+  // member cache on each dispatch so the pointer stays valid across calls).
+  if (assembly_symbol_table_) {
+    handler->SetAssemblySymbolTable(assembly_symbol_table_);
+  } else if (asar_wrapper_) {
+    asar_symbols_cache_ = asar_wrapper_->GetSymbolTable();
+    handler->SetAssemblySymbolTable(&asar_symbols_cache_);
+  }
+
   // Convert arguments to command-line style
-  std::vector<std::string> args = ConvertArgsToVector(call.args);
+  auto args_or = ConvertArgsToVector(tool_def, call.args);
+  if (!args_or.ok()) {
+    return args_or.status();
+  }
+  std::vector<std::string> args = std::move(args_or).value();
 
   // Check if ROM context is required but not available
   if (tool_def.requires_rom && !rom_context_) {
@@ -130,13 +299,17 @@ absl::StatusOr<std::string> ToolDispatcher::Dispatch(const ToolCall& call) {
   return output;
 }
 
-std::vector<ToolDispatcher::ToolInfo> ToolDispatcher::GetAvailableTools() const {
+std::vector<ToolDispatcher::ToolInfo> ToolDispatcher::GetAvailableTools()
+    const {
   std::vector<ToolInfo> tools;
   auto all_defs = ToolRegistry::Get().GetAllTools();
 
   for (const auto& def : all_defs) {
     if (IsToolEnabled(def)) {
-      tools.push_back({def.name, def.category, def.description, def.usage, def.examples, def.requires_rom, def.requires_project});
+      tools.push_back({def.name, def.category, def.description, def.usage,
+                       def.examples, def.requires_rom, def.requires_project,
+                       def.access == ToolAccess::kMutating, def.required_args,
+                       def.flag_args});
     }
   }
   return tools;
@@ -146,7 +319,16 @@ std::optional<ToolDispatcher::ToolInfo> ToolDispatcher::GetToolInfo(
     const std::string& tool_name) const {
   auto def = ToolRegistry::Get().GetToolDefinition(tool_name);
   if (def) {
-    return ToolInfo{def->name, def->category, def->description, def->usage, def->examples, def->requires_rom, def->requires_project};
+    return ToolInfo{def->name,
+                    def->category,
+                    def->description,
+                    def->usage,
+                    def->examples,
+                    def->requires_rom,
+                    def->requires_project,
+                    def->access == ToolAccess::kMutating,
+                    def->required_args,
+                    def->flag_args};
   }
   return std::nullopt;
 }

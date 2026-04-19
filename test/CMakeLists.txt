@@ -360,6 +360,7 @@ if(YAZE_BUILD_TESTS)
       unit/cli/ai_config_utils_test.cc
       unit/cli/ai_service_factory_test.cc
       unit/cli/model_registry_test.cc
+      unit/cli/tool_dispatcher_test.cc
       unit/cli/tool_schema_builder_test.cc
       unit/cli/http_api_handlers_test.cc
       unit/cli/api_handlers_test.cc
