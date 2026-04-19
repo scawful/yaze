@@ -729,6 +729,172 @@ function hideAbout() {
 }
 
 // AI Setup Modal
+function getAiManager() {
+  return window.yaze && window.yaze.ai ? window.yaze.ai : null;
+}
+
+function setAiModelStatus(message, isError) {
+  const status = document.getElementById('ai-model-status');
+  if (!status) return;
+  status.textContent = message || '';
+  status.style.color = isError ? 'var(--status-error)' : 'var(--text-secondary)';
+}
+
+function getAiSetupValues() {
+  const modal = document.getElementById('ai-setup-modal');
+  const modalVisible = !!modal && modal.style.display === 'flex';
+  const ai = getAiManager();
+  const snapshot = ai && typeof ai.getConfigSnapshot === 'function'
+    ? ai.getConfigSnapshot()
+    : {
+        provider: localStorage.getItem('yaze_ai_provider') || 'gemini',
+        model: localStorage.getItem('yaze_ai_model') || '',
+        openaiBaseUrl: localStorage.getItem('yaze_openai_base_url') || ''
+      };
+  return {
+    provider: modalVisible
+      ? (document.getElementById('ai-provider').value || snapshot.provider || 'gemini').trim()
+      : (snapshot.provider || 'gemini'),
+    model: modalVisible
+      ? document.getElementById('ai-model').value.trim()
+      : (snapshot.model || ''),
+    openaiBaseUrl: modalVisible
+      ? document.getElementById('ai-openai-base').value.trim()
+      : (snapshot.openaiBaseUrl || ''),
+    openaiApiKey: modalVisible
+      ? document.getElementById('ai-openai-key').value.trim()
+      : (sessionStorage.getItem('z3ed_openai_api_key') ||
+         localStorage.getItem('z3ed_openai_api_key') || ''),
+    geminiApiKey: modalVisible
+      ? document.getElementById('ai-gemini-key').value.trim()
+      : (sessionStorage.getItem('z3ed_gemini_api_key') ||
+         localStorage.getItem('z3ed_gemini_api_key') || '')
+  };
+}
+
+function updateAiProviderFields(options) {
+  const ai = getAiManager();
+  const provider = (document.getElementById('ai-provider').value || 'gemini').trim();
+  const defaults = ai && typeof ai.getProviderDefaults === 'function'
+    ? ai.getProviderDefaults(provider)
+    : {
+        provider: provider,
+        openaiBaseUrl: provider === 'lmstudio' ? 'http://localhost:1234/v1' :
+                       provider === 'halext' ? 'https://halext.org/v1' :
+                       'https://api.openai.com/v1',
+        model: provider === 'gemini' ? 'gemini-2.5-flash' : '',
+        apiKeyLabel: provider === 'gemini' ? 'Gemini API key' : 'OpenAI / bridge token'
+      };
+  const openaiGroup = document.getElementById('ai-openai-base-group');
+  const openaiKeyGroup = document.getElementById('ai-openai-key-group');
+  const geminiKeyGroup = document.getElementById('ai-gemini-key-group');
+  const oauthGroup = document.getElementById('ai-oauth-group');
+  const openaiBase = document.getElementById('ai-openai-base');
+  const openaiKeyLabel = document.getElementById('ai-openai-key-label');
+  const modelInput = document.getElementById('ai-model');
+  const isOpenAiCompatible = ai && typeof ai.isOpenAiCompatibleProvider === 'function'
+    ? ai.isOpenAiCompatibleProvider(provider)
+    : provider !== 'gemini';
+
+  if (oauthGroup) oauthGroup.style.display = provider === 'gemini' ? '' : 'none';
+  if (geminiKeyGroup) geminiKeyGroup.style.display = provider === 'gemini' ? '' : 'none';
+  if (openaiGroup) openaiGroup.style.display = isOpenAiCompatible ? '' : 'none';
+  if (openaiKeyGroup) openaiKeyGroup.style.display = isOpenAiCompatible ? '' : 'none';
+
+  if (openaiBase) {
+    openaiBase.placeholder = defaults.openaiBaseUrl || 'https://api.openai.com/v1';
+    const shouldResetBase = options && options.resetBase;
+    const current = openaiBase.value.trim();
+    const lastSuggested = openaiBase.dataset.lastSuggested || '';
+    if (isOpenAiCompatible &&
+        (shouldResetBase || !current || current === lastSuggested)) {
+      openaiBase.value = defaults.openaiBaseUrl || '';
+    }
+    openaiBase.dataset.lastSuggested = defaults.openaiBaseUrl || '';
+  }
+
+  if (openaiKeyLabel) {
+    openaiKeyLabel.textContent = defaults.apiKeyLabel || 'OpenAI / bridge token';
+  }
+  if (modelInput) {
+    modelInput.placeholder = defaults.modelPlaceholder || defaults.model || 'Enter a model id';
+  }
+
+  setAiModelStatus('');
+  if (options && options.autoRefresh) {
+    refreshAiModels({ silent: true });
+  }
+}
+
+async function refreshAiModels(options) {
+  const ai = getAiManager();
+  const modelInput = document.getElementById('ai-model');
+  const datalist = document.getElementById('ai-model-options');
+  if (!ai || typeof ai.listAvailableModels !== 'function' || !modelInput || !datalist) {
+    setAiModelStatus('Model discovery unavailable', true);
+    return [];
+  }
+
+  const values = getAiSetupValues();
+  setAiModelStatus('Refreshing models...');
+
+  try {
+    const models = await ai.listAvailableModels(values);
+    datalist.innerHTML = '';
+    models.forEach(model => {
+      const option = document.createElement('option');
+      option.value = model.name || model.displayName || '';
+      option.label = model.displayName || model.name || '';
+      datalist.appendChild(option);
+    });
+    if (!modelInput.value.trim() && models.length > 0) {
+      modelInput.value = models[0].name || models[0].displayName || '';
+    }
+    if (!models.length) {
+      setAiModelStatus('No models returned');
+    } else {
+      setAiModelStatus(`Loaded ${models.length} model${models.length === 1 ? '' : 's'}`);
+    }
+    return models;
+  } catch (error) {
+    setAiModelStatus(error.message || 'Model discovery failed', true);
+    if (!(options && options.silent)) {
+      console.warn('AI model refresh failed:', error);
+    }
+    return [];
+  }
+}
+
+async function syncWasmAiConfig() {
+  if (typeof Module === 'undefined' || typeof Module.ccall !== 'function') {
+    return false;
+  }
+  const ai = getAiManager();
+  if (!ai || typeof ai.getWasmBridgeConfig !== 'function') {
+    return false;
+  }
+
+  const values = getAiSetupValues();
+  try {
+    const config = await ai.getWasmBridgeConfig(values);
+    Module.ccall(
+      'Z3edConfigureAI',
+      null,
+      ['string', 'string', 'string', 'string'],
+      [
+        config.provider || 'gemini',
+        config.model || '',
+        config.apiBase || '',
+        config.apiKey || ''
+      ]
+    );
+    return true;
+  } catch (error) {
+    console.warn('Failed to sync AI config to WASM bridge:', error);
+    return false;
+  }
+}
+
 function showAiSetup() {
   const modal = document.getElementById('ai-setup-modal');
   modal.style.display = 'flex';
@@ -765,6 +931,7 @@ function showAiSetup() {
                     localStorage.getItem('z3ed_gemini_api_key') || '';
   document.getElementById('ai-openai-key').value = openaiKey;
   document.getElementById('ai-gemini-key').value = geminiKey;
+  updateAiProviderFields({ autoRefresh: true });
 }
 
 function hideAiSetup() {
@@ -773,11 +940,12 @@ function hideAiSetup() {
 
 function saveAiConfig() {
   const clientId = document.getElementById('ai-client-id').value.trim();
-  const provider = document.getElementById('ai-provider').value.trim() || 'gemini';
-  const model = document.getElementById('ai-model').value.trim();
-  const openaiBase = document.getElementById('ai-openai-base').value.trim();
-  const openaiKey = document.getElementById('ai-openai-key').value.trim();
-  const geminiKey = document.getElementById('ai-gemini-key').value.trim();
+  const values = getAiSetupValues();
+  const provider = values.provider || 'gemini';
+  const model = values.model;
+  const openaiBase = values.openaiBaseUrl;
+  const openaiKey = values.openaiApiKey;
+  const geminiKey = values.geminiApiKey;
 
   if (provider === 'gemini' && !clientId) {
     alert('Please enter a Client ID for Gemini OAuth flow (or use an API key).');
@@ -827,8 +995,10 @@ function saveAiConfig() {
       window.yaze.ai.reloadConfigFromStorage();
     }
   }
+
+  void syncWasmAiConfig();
   
-  alert('Configuration saved.');
+  alert('AI configuration saved.');
   hideAiSetup();
 }
 

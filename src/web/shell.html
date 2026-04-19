@@ -616,11 +616,11 @@
         </div>
         <div class="settings-body">
           <p style="color: var(--text-secondary);">
-            YAZE supports using your own Google Gemini quota directly from the browser. 
-            This requires a Google Cloud Project with the Gemini API enabled.
+            YAZE can talk to Gemini directly in the browser or to OpenAI-compatible endpoints
+            such as OpenAI, LM Studio, and the halext.org AFS bridge.
           </p>
           
-          <div class="setting-section">
+          <div class="setting-section" id="ai-oauth-group">
             <h3 class="setting-section-title">Prerequisites</h3>
             <ol style="font-size: 12px; color: var(--text-secondary); margin-left: 20px; padding: 0;">
               <li>Create a project in <a href="https://console.cloud.google.com" target="_blank" style="color: var(--accent-primary);">Google Cloud Console</a>.</li>
@@ -642,24 +642,33 @@
             </div>
             <div class="setting-group">
               <label for="ai-provider">Provider</label>
-              <select id="ai-provider" style="width: 100%;">
+              <select id="ai-provider" style="width: 100%;" onchange="updateAiProviderFields({ resetBase: true, autoRefresh: true })">
                 <option value="gemini">Gemini (Browser)</option>
-                <option value="openai">OpenAI-Compatible (LMStudio/Local)</option>
+                <option value="openai">OpenAI</option>
+                <option value="lmstudio">LM Studio (Local)</option>
+                <option value="halext">halext.org AFS Bridge</option>
               </select>
             </div>
             <div class="setting-group">
               <label for="ai-model">Model</label>
-              <input type="text" id="ai-model" placeholder="e.g., gemini-2.5-flash or gpt-4o-mini" style="width: 100%;">
+              <input type="text" id="ai-model" list="ai-model-options" placeholder="e.g., gemini-2.5-flash or gpt-4o-mini" style="width: 100%;">
+              <datalist id="ai-model-options"></datalist>
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 8px;">
+                <button class="nav-btn" type="button" onclick="refreshAiModels()">
+                  <span class="material-symbols-outlined">refresh</span> Refresh Models
+                </button>
+                <span id="ai-model-status" style="font-size: 12px; color: var(--text-secondary);"></span>
+              </div>
             </div>
-            <div class="setting-group">
-              <label for="ai-openai-base">OpenAI Base URL</label>
+            <div class="setting-group" id="ai-openai-base-group">
+              <label for="ai-openai-base">OpenAI-Compatible Base URL</label>
               <input type="text" id="ai-openai-base" placeholder="http://localhost:1234/v1" style="width: 100%;">
             </div>
-            <div class="setting-group">
-              <label for="ai-openai-key">OpenAI API Key (optional for local)</label>
+            <div class="setting-group" id="ai-openai-key-group">
+              <label for="ai-openai-key" id="ai-openai-key-label">OpenAI / Bridge Token (optional for local)</label>
               <input type="password" id="ai-openai-key" placeholder="sk-..." style="width: 100%;">
             </div>
-            <div class="setting-group">
+            <div class="setting-group" id="ai-gemini-key-group">
               <label for="ai-gemini-key">Gemini API Key</label>
               <input type="password" id="ai-gemini-key" placeholder="AIza..." style="width: 100%;">
             </div>
@@ -668,7 +677,7 @@
           <div class="setting-section">
             <h3 class="setting-section-title">Usage</h3>
             <p style="font-size: 12px; color: var(--text-secondary);">
-              Once configured, open the Terminal and type <code>/login</code> to authenticate.
+              Use <code>/login</code> for Gemini OAuth. For LM Studio or halext, save a token and refresh the model list, then use the terminal or chat tools normally.
             </p>
           </div>
         </div>
@@ -771,6 +780,11 @@
 
         function showFailure(message) {
           console.error('[WASM] ' + message);
+          window.YAZE_WASM_BOOTSTRAP_FAILED = true;
+          window.YAZE_WASM_BOOTSTRAP_ERROR = message;
+          window.dispatchEvent(new CustomEvent('yaze:wasm-bootstrap-failed', {
+            detail: { message: message }
+          }));
           if (typeof showFatalError === 'function') {
             showFatalError('SharedArrayBuffer unavailable', message);
           } else if (statusEl) {
@@ -797,10 +811,18 @@
           });
 
           document.body.appendChild(clone);
+          window.YAZE_WASM_SCRIPT_INJECTED = true;
+          window.dispatchEvent(new Event('yaze:wasm-script-injected'));
           console.log('[WASM] yaze.js injection complete (SharedArrayBuffer ready)');
         }
 
         function tryLoad() {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get('force_coi_failure') === '1') {
+            showFailure('Forced COI failure for testing (force_coi_failure=1).');
+            return;
+          }
+
           const hasSAB = typeof SharedArrayBuffer !== 'undefined';
           const isolated = typeof crossOriginIsolated === 'undefined' ? true : crossOriginIsolated === true;
           const coiFailed = window.YAZE_COI_FAILED;

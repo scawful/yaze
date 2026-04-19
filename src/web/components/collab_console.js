@@ -197,23 +197,50 @@
         apiBase = apiBase || s.getItem('yaze_openai_base_url') || '';
       } catch (_) {}
     }
-    if (provider === 'openai') {
+    if (window.yaze && window.yaze.ai &&
+        typeof window.yaze.ai.getConfigSnapshot === 'function') {
+      const snapshot = window.yaze.ai.getConfigSnapshot();
+      provider = snapshot.provider || provider;
+      model = snapshot.model || model;
+      apiBase = snapshot.openaiBaseUrl || apiBase;
+      if (typeof window.yaze.ai.isOpenAiCompatibleProvider === 'function' &&
+          window.yaze.ai.isOpenAiCompatibleProvider(provider)) {
+        return {
+          provider: 'openai',
+          key: openaiKey,
+          model: model || '',
+          api_base: apiBase || 'https://api.openai.com/v1'
+        };
+      }
+      if (provider === 'gemini') {
+        return {
+          provider: 'gemini',
+          key: geminiKey,
+          model: model || 'gemini-2.5-flash'
+        };
+      }
+    }
+    if (provider === 'openai' || provider === 'lmstudio' || provider === 'halext') {
       return {
         provider: 'openai',
         key: openaiKey,
-        model: model || 'gpt-4o-mini',
-        api_base: apiBase || 'https://api.openai.com/v1'
+        model: model || '',
+        api_base: apiBase || (provider === 'lmstudio'
+          ? 'http://localhost:1234/v1'
+          : provider === 'halext'
+            ? 'https://halext.org/v1'
+            : 'https://api.openai.com/v1')
       };
     }
     if (provider === 'gemini') {
       return {
         provider: 'gemini',
         key: geminiKey,
-        model: model || 'gemini-1.5-flash'
+        model: model || 'gemini-2.5-flash'
       };
     }
     if (openaiKey) return { provider: 'openai', key: openaiKey, model: 'gpt-4o-mini', api_base: apiBase || 'https://api.openai.com/v1' };
-    if (geminiKey) return { provider: 'gemini', key: geminiKey, model: 'gemini-1.5-flash' };
+    if (geminiKey) return { provider: 'gemini', key: geminiKey, model: 'gemini-2.5-flash' };
     return null;
   }
 

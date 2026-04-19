@@ -17,6 +17,14 @@
     constructor() {
       this.config = window.YAZE_CONFIG ? window.YAZE_CONFIG.ai : {};
       this.authConfig = this.config.auth || {};
+      this.aiConstants = (window.yaze && window.yaze.core &&
+                          window.yaze.core.constants &&
+                          window.yaze.core.constants.ai)
+        ? window.yaze.core.constants.ai
+        : {};
+      this.providerIds = this.aiConstants.providers || {};
+      this.endpointDefaults = this.aiConstants.endpoints || {};
+      this.defaultModels = this.aiConstants.defaultModels || {};
       this.storageKeys = (window.yaze && window.yaze.core && window.yaze.core.constants)
         ? window.yaze.core.constants.storageKeys
         : {};
@@ -34,6 +42,24 @@
       this.STORAGE_KEY_PROVIDER = this.storageKeys.AI_PROVIDER || 'yaze_ai_provider';
       this.STORAGE_KEY_MODEL = this.storageKeys.AI_MODEL || 'yaze_ai_model';
       this.STORAGE_KEY_OPENAI_BASE = this.storageKeys.OPENAI_BASE_URL || 'yaze_openai_base_url';
+      this.PROVIDERS = {
+        AUTO: this.providerIds.AUTO || 'auto',
+        GEMINI: this.providerIds.GEMINI || 'gemini',
+        OPENAI: this.providerIds.OPENAI || 'openai',
+        LMSTUDIO: this.providerIds.LMSTUDIO || 'lmstudio',
+        HALEXT: this.providerIds.HALEXT || 'halext'
+      };
+      this.OPENAI_BASES = {
+        OPENAI: this.endpointDefaults.OPENAI || 'https://api.openai.com/v1',
+        LMSTUDIO: this.endpointDefaults.LMSTUDIO || 'http://localhost:1234/v1',
+        HALEXT: this.endpointDefaults.HALEXT || 'https://halext.org/v1'
+      };
+      this.DEFAULT_MODELS = {
+        GEMINI: this.defaultModels.GEMINI || 'gemini-2.5-flash',
+        OPENAI: this.defaultModels.OPENAI || 'gpt-4o-mini',
+        LMSTUDIO: this.defaultModels.LMSTUDIO || '',
+        HALEXT: this.defaultModels.HALEXT || ''
+      };
       
       this.tokens = this.loadTokens();
       this.deviceCodeData = null; // Temp storage for polling
@@ -83,9 +109,9 @@
     /**
      * Get the best available credential (Token > API Key)
      */
-    getCredential() {
-      const provider = this.config.provider || 'gemini';
-      if (provider === 'openai') {
+    getCredential(providerOverride) {
+      const provider = this.normalizeProvider(providerOverride || this.config.provider);
+      if (this.isOpenAiCompatibleProvider(provider)) {
         const openaiKey = this.getStoredValue(this.STORAGE_KEY_OPENAI_KEY);
         if (openaiKey) {
           return { type: 'Bearer', value: openaiKey };
@@ -120,8 +146,98 @@
       return value || '';
     }
 
-    normalizeOpenAiBaseUrl(base) {
-      const fallback = 'https://api.openai.com/v1';
+    normalizeProvider(provider) {
+      const normalized = (provider || '').toString().trim().toLowerCase();
+      if (!normalized) return this.PROVIDERS.GEMINI;
+      if (normalized === 'lm-studio') return this.PROVIDERS.LMSTUDIO;
+      if (normalized === 'google' || normalized === 'google-gemini') {
+        return this.PROVIDERS.GEMINI;
+      }
+      if (normalized === 'openai-compatible' || normalized === 'custom-openai' ||
+          normalized === 'afs-bridge') {
+        return this.PROVIDERS.OPENAI;
+      }
+      if (normalized === this.PROVIDERS.GEMINI ||
+          normalized === this.PROVIDERS.OPENAI ||
+          normalized === this.PROVIDERS.LMSTUDIO ||
+          normalized === this.PROVIDERS.HALEXT) {
+        return normalized;
+      }
+      return this.PROVIDERS.GEMINI;
+    }
+
+    isOpenAiCompatibleProvider(providerOverride) {
+      const provider = this.normalizeProvider(providerOverride || this.config.provider);
+      return provider === this.PROVIDERS.OPENAI ||
+             provider === this.PROVIDERS.LMSTUDIO ||
+             provider === this.PROVIDERS.HALEXT;
+    }
+
+    isLikelyLocalBaseUrl(baseUrl) {
+      const lower = (baseUrl || '').toLowerCase();
+      return lower.includes('localhost') || lower.includes('127.0.0.1') ||
+             lower.includes('0.0.0.0') || lower.includes('::1');
+    }
+
+    getProviderDisplayName(providerOverride) {
+      const provider = this.normalizeProvider(providerOverride || this.config.provider);
+      switch (provider) {
+        case this.PROVIDERS.OPENAI:
+          return 'OpenAI';
+        case this.PROVIDERS.LMSTUDIO:
+          return 'LM Studio';
+        case this.PROVIDERS.HALEXT:
+          return 'halext AFS bridge';
+        default:
+          return 'Gemini';
+      }
+    }
+
+    getProviderDefaults(providerOverride) {
+      const provider = this.normalizeProvider(providerOverride || this.config.provider);
+      if (provider === this.PROVIDERS.OPENAI) {
+        return {
+          provider,
+          openaiBaseUrl: this.OPENAI_BASES.OPENAI,
+          model: this.DEFAULT_MODELS.OPENAI,
+          requiresApiKey: true,
+          apiKeyLabel: 'OpenAI API key',
+          modelPlaceholder: this.DEFAULT_MODELS.OPENAI
+        };
+      }
+      if (provider === this.PROVIDERS.LMSTUDIO) {
+        return {
+          provider,
+          openaiBaseUrl: this.OPENAI_BASES.LMSTUDIO,
+          model: this.DEFAULT_MODELS.LMSTUDIO,
+          requiresApiKey: false,
+          apiKeyLabel: 'LM Studio token (optional)',
+          modelPlaceholder: 'Refresh models or enter a local model id'
+        };
+      }
+      if (provider === this.PROVIDERS.HALEXT) {
+        return {
+          provider,
+          openaiBaseUrl: this.OPENAI_BASES.HALEXT,
+          model: this.DEFAULT_MODELS.HALEXT,
+          requiresApiKey: true,
+          apiKeyLabel: 'halext bridge token',
+          modelPlaceholder: 'Refresh models from halext.org'
+        };
+      }
+      return {
+        provider: this.PROVIDERS.GEMINI,
+        openaiBaseUrl: this.OPENAI_BASES.OPENAI,
+        model: this.DEFAULT_MODELS.GEMINI,
+        requiresApiKey: true,
+        apiKeyLabel: 'Gemini API key',
+        modelPlaceholder: this.DEFAULT_MODELS.GEMINI
+      };
+    }
+
+    normalizeOpenAiBaseUrl(base, providerOverride) {
+      const defaults = this.getProviderDefaults(providerOverride || this.config.provider);
+      const fallback = defaults.openaiBaseUrl || this.OPENAI_BASES.OPENAI;
       if (!base) return fallback;
       let normalized = base.trim().replace(/\/+$/, '');
       if (!normalized.endsWith('/v1')) {
@@ -131,7 +247,7 @@
     }
 
     reloadConfigFromStorage() {
-      const provider = this.getStoredValue(this.STORAGE_KEY_PROVIDER);
+      const provider = this.normalizeProvider(this.getStoredValue(this.STORAGE_KEY_PROVIDER));
       const model = this.getStoredValue(this.STORAGE_KEY_MODEL);
       const openaiBase = this.getStoredValue(this.STORAGE_KEY_OPENAI_BASE);
 
@@ -140,21 +256,148 @@
       if (openaiBase) this.config.openaiBaseUrl = openaiBase;
 
       if (!this.config.provider) {
-        this.config.provider = 'gemini';
+        this.config.provider = this.PROVIDERS.GEMINI;
       }
+      if (this.isOpenAiCompatibleProvider(this.config.provider)) {
+        this.config.openaiBaseUrl = this.normalizeOpenAiBaseUrl(
+          this.config.openaiBaseUrl || openaiBase,
+          this.config.provider
+        );
+      }
+      const defaults = this.getProviderDefaults(this.config.provider);
       if (!this.config.model) {
-        this.config.model = this.config.provider === 'openai' ? 'gpt-4o-mini' : 'gemini-2.5-flash';
+        this.config.model = defaults.model || '';
       }
       if (!this.config.openaiBaseUrl) {
-        this.config.openaiBaseUrl = 'https://api.openai.com/v1';
+        this.config.openaiBaseUrl = defaults.openaiBaseUrl || this.OPENAI_BASES.OPENAI;
       }
     }
 
     getConfigSnapshot() {
+      const provider = this.normalizeProvider(this.config.provider || this.PROVIDERS.GEMINI);
+      const defaults = this.getProviderDefaults(provider);
       return {
-        provider: this.config.provider || 'gemini',
-        model: this.config.model || '',
-        openaiBaseUrl: this.normalizeOpenAiBaseUrl(this.config.openaiBaseUrl || ''),
+        provider,
+        model: this.config.model || defaults.model || '',
+        openaiBaseUrl: this.normalizeOpenAiBaseUrl(this.config.openaiBaseUrl || '', provider),
+      };
+    }
+
+    buildCuratedModels(providerOverride, currentModel) {
+      const provider = this.normalizeProvider(providerOverride || this.config.provider);
+      if (!this.isOpenAiCompatibleProvider(provider)) {
+        return [
+          { name: 'gemini-2.5-flash', displayName: 'Gemini 2.5 Flash', local: false },
+          { name: 'gemini-2.5-pro', displayName: 'Gemini 2.5 Pro', local: false },
+          { name: 'gemini-1.5-flash', displayName: 'Gemini 1.5 Flash', local: false }
+        ];
+      }
+
+      const models = [];
+      if (currentModel) {
+        models.push({ name: currentModel, displayName: currentModel, local: provider === this.PROVIDERS.LMSTUDIO });
+      }
+      if (provider === this.PROVIDERS.OPENAI) {
+        models.push(
+          { name: 'gpt-4o-mini', displayName: 'GPT-4o Mini', local: false },
+          { name: 'gpt-4o', displayName: 'GPT-4o', local: false },
+          { name: 'gpt-4.1-mini', displayName: 'GPT-4.1 Mini', local: false }
+        );
+      }
+      return models;
+    }
+
+    async listAvailableModels(overrides = {}) {
+      const provider = this.normalizeProvider(overrides.provider || this.config.provider);
+      const explicitModel = (overrides.model || '').trim();
+      if (!this.isOpenAiCompatibleProvider(provider)) {
+        return this.buildCuratedModels(provider, explicitModel || this.config.model);
+      }
+
+      const baseUrl = this.normalizeOpenAiBaseUrl(
+        overrides.openaiBaseUrl || this.config.openaiBaseUrl || '',
+        provider
+      );
+      const openaiKey = overrides.openaiApiKey !== undefined
+        ? overrides.openaiApiKey
+        : this.getStoredValue(this.STORAGE_KEY_OPENAI_KEY);
+      if (provider === this.PROVIDERS.OPENAI && !openaiKey &&
+          baseUrl === this.OPENAI_BASES.OPENAI) {
+        return this.buildCuratedModels(provider, explicitModel || this.config.model);
+      }
+
+      const headers = { 'Content-Type': 'application/json' };
+      if (openaiKey) {
+        headers.Authorization = `Bearer ${openaiKey}`;
+      }
+
+      const response = await fetch(`${baseUrl}/models`, {
+        method: 'GET',
+        headers
+      });
+      if (!response.ok) {
+        throw new Error(`Model discovery failed (${response.status})`);
+      }
+
+      const json = await response.json();
+      const items = Array.isArray(json && json.data) ? json.data : [];
+      const models = items
+        .filter(entry => entry && typeof entry.id === 'string' && entry.id)
+        .map(entry => ({
+          name: entry.id,
+          displayName: entry.id,
+          provider,
+          local: this.isLikelyLocalBaseUrl(baseUrl),
+          owner: typeof entry.owned_by === 'string' ? entry.owned_by : ''
+        }));
+      if (!models.length) {
+        return this.buildCuratedModels(provider, explicitModel || this.config.model);
+      }
+      return models;
+    }
+
+    async resolveModel(overrides = {}) {
+      const provider = this.normalizeProvider(overrides.provider || this.config.provider);
+      const explicitModel = (overrides.model || this.config.model || '').trim();
+      if (explicitModel) {
+        return explicitModel;
+      }
+      const defaults = this.getProviderDefaults(provider);
+      if (defaults.model) {
+        return defaults.model;
+      }
+      const models = await this.listAvailableModels(overrides);
+      if (models.length > 0) {
+        const resolved = models[0].name || '';
+        if (resolved) {
+          this.config.model = resolved;
+        }
+        return resolved;
+      }
+      return '';
+    }
+
+    async getWasmBridgeConfig(overrides = {}) {
+      const snapshot = this.getConfigSnapshot();
+      const provider = this.normalizeProvider(overrides.provider || snapshot.provider);
+      const openaiApiKey = overrides.openaiApiKey !== undefined
+        ? overrides.openaiApiKey
+        : this.getStoredValue(this.STORAGE_KEY_OPENAI_KEY);
+      const geminiApiKey = overrides.geminiApiKey !== undefined
+        ? overrides.geminiApiKey
+        : this.getStoredValue(this.STORAGE_KEY_API_KEY);
+      return {
+        provider,
+        model: await this.resolveModel({
+          provider,
+          model: overrides.model || snapshot.model,
+          openaiBaseUrl: overrides.openaiBaseUrl || snapshot.openaiBaseUrl,
+          openaiApiKey
+        }),
+        apiBase: this.isOpenAiCompatibleProvider(provider)
+          ? this.normalizeOpenAiBaseUrl(overrides.openaiBaseUrl || snapshot.openaiBaseUrl || '', provider)
+          : '',
+        apiKey: this.isOpenAiCompatibleProvider(provider) ? openaiApiKey : geminiApiKey
       };
     }
 
@@ -341,21 +584,30 @@
      * @returns {Promise<string>} The generated text
      */
     async generateContent(prompt) {
-      const provider = this.config.provider || 'gemini';
+      const provider = this.normalizeProvider(this.config.provider || this.PROVIDERS.GEMINI);
       const maxTokens = this.config.maxResponseLength || 4096;
 
-      if (provider === 'openai') {
+      if (this.isOpenAiCompatibleProvider(provider)) {
         const openaiKey = this.getStoredValue(this.STORAGE_KEY_OPENAI_KEY);
-        const baseUrl = this.normalizeOpenAiBaseUrl(this.config.openaiBaseUrl || '');
+        const baseUrl = this.normalizeOpenAiBaseUrl(this.config.openaiBaseUrl || '', provider);
         if (!openaiKey && baseUrl === 'https://api.openai.com/v1') {
           throw new Error('OpenAI API key missing. Set one or use a local OpenAI-compatible endpoint.');
+        }
+        const resolvedModel = await this.resolveModel({
+          provider,
+          model: this.config.model,
+          openaiBaseUrl: baseUrl,
+          openaiApiKey: openaiKey
+        });
+        if (!resolvedModel) {
+          throw new Error(`No model selected for ${this.getProviderDisplayName(provider)}. Refresh models or enter a model id.`);
         }
         const headers = { 'Content-Type': 'application/json' };
         if (openaiKey) {
           headers['Authorization'] = `Bearer ${openaiKey}`;
         }
         const body = {
-          model: this.config.model || 'gpt-4o-mini',
+          model: resolvedModel,
           messages: [
             { role: 'system', content: 'You are the YAZE web assistant. Keep replies concise and actionable.' },
             { role: 'user', content: prompt }
