@@ -2483,8 +2483,8 @@
 		E384E2D52C76C6C800147029 /* message_data.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = message_data.cc; sourceTree = "<group>"; };
 		E38985012C67CDDB00D4CF13 /* view_controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = view_controller.h; sourceTree = "<group>"; };
 		E38A97F12C6C4CE3005FB662 /* command_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = command_manager.h; sourceTree = "<group>"; };
-		E38A97F22C6C4CE3005FB662 /* extension_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = extension_manager.cc; sourceTree = "<group>"; };
-		E38A97F32C6C4CE3005FB662 /* extension_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = extension_manager.h; sourceTree = "<group>"; };
+		E38A97F22C6C4CE3005FB662 /* extension_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = session/extension_manager.cc; sourceTree = "<group>"; };
+		E38A97F32C6C4CE3005FB662 /* extension_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = session/extension_manager.h; sourceTree = "<group>"; };
 		E38A97F42C6C4CE3005FB662 /* settings_panel.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ../ui/settings_panel.cc; sourceTree = "<group>"; };
 		E38A97F52C6C4CE3005FB662 /* settings_panel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ../ui/settings_panel.h; sourceTree = "<group>"; };
 		E3A5CEE32CF61F1200259DE8 /* main.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cc; sourceTree = "<group>"; };
