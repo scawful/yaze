@@ -148,48 +148,12 @@ jobs:
 
           # Check if we have cached WASM files
           if [ -f build-wasm/bin/yaze.wasm ]; then
-            cp build-wasm/bin/yaze.html build-wasm/dist/index.html
-            cp build-wasm/bin/yaze.js build-wasm/dist/
-            cp build-wasm/bin/yaze.wasm build-wasm/dist/
-            cp build-wasm/bin/yaze.data build-wasm/dist/ 2>/dev/null || true
-            # CRITICAL: Copy pthread worker script for multi-threading
-            cp build-wasm/bin/yaze.worker.js build-wasm/dist/ 2>/dev/null || true
           else
             echo "ERROR: No cached WASM build found. Triggering full build..."
             exit 1
           fi
 
-          # Copy updated web assets (new directory structure)
-          # Root level files
-          cp src/web/app.js build-wasm/dist/
-          if [ -f src/web/shell_ui.js ]; then
-            cp src/web/shell_ui.js build-wasm/dist/
-          else
-            echo "WARNING: shell_ui.js not found!"
-          fi
-
-          # Copy subdirectories
-          cp -r src/web/styles build-wasm/dist/ 2>/dev/null || true
-          cp -r src/web/components build-wasm/dist/ 2>/dev/null || true
-          cp -r src/web/core build-wasm/dist/ 2>/dev/null || true
-          cp -r src/web/pwa build-wasm/dist/ 2>/dev/null || true
-          cp -r src/web/icons build-wasm/dist/ 2>/dev/null || true
-          cp -r src/web/debug build-wasm/dist/ 2>/dev/null || true
-
-          # CRITICAL: coi-serviceworker.js must be at root for proper service worker scope
-          if [ -f src/web/pwa/coi-serviceworker.js ]; then
-            cp src/web/pwa/coi-serviceworker.js build-wasm/dist/
-            echo "coi-serviceworker.js copied to root (required for SharedArrayBuffer)"
-          else
-            echo "WARNING: coi-serviceworker.js not found!"
-          fi
-
-          # Copy yaze icon
-          if [ -f assets/yaze.png ]; then
-            mkdir -p build-wasm/dist/assets
-            cp assets/yaze.png build-wasm/dist/assets/
-          fi
-
+          bash scripts/package-wasm-assets.sh "$PWD" "$PWD/build-wasm/bin" "$PWD/build-wasm/dist"
           echo "Web assets updated!"
 
       # --- Build Documentation ---
