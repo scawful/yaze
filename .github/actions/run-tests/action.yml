@@ -29,28 +29,31 @@ runs:
       if: inputs.test-type == 'stable' || inputs.test-type == 'all'
       shell: bash
       run: |
-        ctest --preset stable${CTEST_SUFFIX} \
+        ctest --test-dir "build/presets/${{ inputs.preset }}" \
+          --preset stable${CTEST_SUFFIX} \
           --output-on-failure \
           --timeout 300 \
-          --output-junit build/stable_test_results.xml
+          --output-junit "build/presets/${{ inputs.preset }}/stable_test_results.xml"
 
     - name: Run unit tests
       if: inputs.test-type == 'unit' || inputs.test-type == 'all'
       shell: bash
       run: |
-        ctest --preset unit${CTEST_SUFFIX} \
+        ctest --test-dir "build/presets/${{ inputs.preset }}" \
+          --preset unit${CTEST_SUFFIX} \
           --output-on-failure \
           --timeout 300 \
-          --output-junit build/unit_test_results.xml
+          --output-junit "build/presets/${{ inputs.preset }}/unit_test_results.xml"
 
     - name: Run integration tests
       if: inputs.test-type == 'integration' || inputs.test-type == 'all'
       shell: bash
       run: |
-        ctest --preset integration${CTEST_SUFFIX} \
+        ctest --test-dir "build/presets/${{ inputs.preset }}" \
+          --preset integration${CTEST_SUFFIX} \
           --output-on-failure \
           --timeout 300 \
-          --output-junit build/integration_test_results.xml
+          --output-junit "build/presets/${{ inputs.preset }}/integration_test_results.xml"
 
     - name: Summarize test results
       if: always()
@@ -59,7 +62,7 @@ runs:
         # Emit a compact timing/pass summary to the GitHub Actions job summary.
         # Fails gracefully if no XML results are present (e.g. skipped runs).
         echo "## Test Results (${{ inputs.platform }} / ${{ inputs.test-type }})" >> "$GITHUB_STEP_SUMMARY"
-        xml_files=$(ls build/*test_results.xml 2>/dev/null || true)
+        xml_files=$(ls "build/presets/${{ inputs.preset }}"/*test_results.xml 2>/dev/null || true)
         if [ -z "$xml_files" ]; then
           echo "_No XML test results found._" >> "$GITHUB_STEP_SUMMARY"
         else
@@ -76,6 +79,6 @@ runs:
       with:
         # Include platform in artifact name to prevent collision across matrix legs.
         name: test-results-${{ inputs.test-type }}-${{ inputs.platform }}
-        path: build/*test_results.xml
+        path: build/presets/${{ inputs.preset }}/*test_results.xml
         if-no-files-found: ignore
         retention-days: 7
