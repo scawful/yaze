@@ -1,4 +1,4 @@
-#include "app/editor/ui/welcome_screen.h"
+#include "app/editor/shell/coordinator/welcome_screen.h"
 
 #include <algorithm>
 #include <cmath>
@@ -8,7 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -1841,6 +1841,9 @@ void WelcomeScreen::DrawWhatsNew() {
        "Simplified workbench inspector/navigation + action-oriented selection"},
       {ICON_MD_MEMORY,
        "Lazy session editors + deferred asset loads trim startup footprint"},
+      {ICON_MD_ACCOUNT_TREE,
+       "Editor source map: registry/, shell/, system/*/, hack/oracle/ — easier "
+       "navigation for contributors"},
   };
   const ReleaseHighlight highlights_070[] = {
       {ICON_MD_TABLET, "iOS Remote Control with Bonjour LAN auto-discovery"},

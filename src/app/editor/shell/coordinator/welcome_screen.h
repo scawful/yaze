@@ -1,11 +1,11 @@
-#ifndef YAZE_APP_EDITOR_UI_WELCOME_SCREEN_H_
-#define YAZE_APP_EDITOR_UI_WELCOME_SCREEN_H_
+#ifndef YAZE_APP_EDITOR_SHELL_COORDINATOR_WELCOME_SCREEN_H_
+#define YAZE_APP_EDITOR_SHELL_COORDINATOR_WELCOME_SCREEN_H_
 
 #include <cstdint>
 #include <functional>
 #include <string>
 
-#include "app/editor/ui/recent_projects_model.h"
+#include "app/editor/shell/coordinator/recent_projects_model.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -244,4 +244,4 @@ class WelcomeScreen {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_UI_WELCOME_SCREEN_H_
+#endif  // YAZE_APP_EDITOR_SHELL_COORDINATOR_WELCOME_SCREEN_H_
