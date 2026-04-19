@@ -275,6 +275,12 @@ class DungeonCanvasViewer {
   // parent container provides its own metadata/controls).
   void SetHeaderVisible(bool visible) { header_visible_ = visible; }
   bool header_visible() const { return header_visible_; }
+  void SetHeaderHiddenMetadataHudVisible(bool visible) {
+    show_header_hidden_metadata_hud_ = visible;
+  }
+  bool show_header_hidden_metadata_hud() const {
+    return show_header_hidden_metadata_hud_;
+  }
 
   // Set and get the object render mode
   void SetObjectRenderMode(ObjectRenderMode mode) {
@@ -523,6 +529,7 @@ class DungeonCanvasViewer {
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;
   bool header_visible_ = true;
+  bool show_header_hidden_metadata_hud_ = true;
 
   bool track_direction_map_enabled_ = true;
   std::vector<uint16_t> track_tile_order_;

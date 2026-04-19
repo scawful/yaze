@@ -12,8 +12,23 @@
 #include "app/gui/plots/implot_support.h"
 #include "util/log.h"
 
+#include <string>
+#include <vector>
+
 namespace yaze {
 namespace gui {
+
+namespace {
+
+const char* RomPaletteGroupNameGetter(void* user_data, int idx) {
+  auto* names = static_cast<std::vector<std::string>*>(user_data);
+  if (!names || idx < 0 || idx >= static_cast<int>(names->size())) {
+    return nullptr;
+  }
+  return (*names)[idx].c_str();
+}
+
+}  // namespace
 
 // Merged implementation from PaletteWidget and PaletteEditorWidget
 
@@ -218,6 +233,7 @@ bool PaletteEditorWidget::ResolveDungeonRenderSelection(
 void PaletteEditorWidget::DrawDungeonRenderPalette() {
   ImGui::TextDisabled(
       "Rows 0-1: HUD / floor / ceiling  |  Rows 2-7: Dungeon main");
+  const float swatch_size = ComputeSwatchSize(/*columns=*/16, 14.0f, 28.0f);
 
   gfx::SnesPalette* dungeon_palette = nullptr;
   if (!game_data_->palette_groups.dungeon_main.empty() && current_palette_id_ >= 0 &&
@@ -268,7 +284,8 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     }
     const bool clicked =
         ImGui::ColorButton("##render_color", display_color,
-                           ImGuiColorEditFlags_NoTooltip, ImVec2(30, 30));
+                           ImGuiColorEditFlags_NoTooltip,
+                           ImVec2(swatch_size, swatch_size));
     if (!editable) {
       ImGui::PopStyleVar();
     }
@@ -293,6 +310,15 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     }
     ImGui::PopID();
   }
+}
+
+float PaletteEditorWidget::ComputeSwatchSize(int columns, float min_size,
+                                             float max_size) const {
+  const float available_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const float spacing =
+      std::max(ImGui::GetStyle().ItemSpacing.x, 2.0f) * (columns - 1);
+  const float raw = (available_width - spacing) / std::max(columns, 1);
+  return std::clamp(raw, min_size, max_size);
 }
 
 void PaletteEditorWidget::DrawDungeonRenderColorPicker() {
@@ -517,6 +543,8 @@ bool PaletteEditorWidget::RestorePaletteBackup(gfx::SnesPalette& palette) {
 
 // Unified grid drawing function
 void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
+  const float swatch_size =
+      ComputeSwatchSize(cols, /*min_size=*/16.0f, /*max_size=*/30.0f);
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
     if (i % cols != 0)
       ImGui::SameLine();
@@ -526,7 +554,8 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
 
     ImGui::PushID(i);
     if (ImGui::ColorButton("##color", display_color,
-                           ImGuiColorEditFlags_NoTooltip, ImVec2(30, 30))) {
+                           ImGuiColorEditFlags_NoTooltip,
+                           ImVec2(swatch_size, swatch_size))) {
       editing_color_index_ = i;
       selected_color_index_ = i;
       temp_color_ = display_color;
@@ -544,6 +573,9 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
       }
       if (ImGui::MenuItem("Reset to Black")) {
         palette[i] = gfx::SnesColor(0);
+        if (on_palette_changed_) {
+          on_palette_changed_(current_palette_id_);
+        }
       }
       ImGui::EndPopup();
     }
@@ -572,6 +604,12 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
               ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayRGB)) {
         auto new_snes_color = gfx::SnesColor(temp_color_);
         palette[editing_color_index_] = new_snes_color;
+        if (selected_color_index_ == editing_color_index_) {
+          editing_color_ = temp_color_;
+        }
+        if (on_palette_changed_) {
+          on_palette_changed_(current_palette_id_);
+        }
       }
       if (gui::PrimaryButton("Apply")) {
         editing_color_index_ = -1;
@@ -598,17 +636,10 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
   }
 
   ImGui::Text("Palette Group:");
-  if (ImGui::Combo(
-          "##PaletteGroup", &current_group_index_,
-          [](void* data, int idx, const char** out_text) -> bool {
-            auto* names = static_cast<std::vector<std::string>*>(data);
-            if (idx < 0 || idx >= static_cast<int>(names->size()))
-              return false;
-            *out_text = (*names)[idx].c_str();
-            return true;
-          },
-          &palette_group_names_,
-          static_cast<int>(palette_group_names_.size()))) {}
+  if (ImGui::Combo("##PaletteGroup", &current_group_index_,
+                   RomPaletteGroupNameGetter, &palette_group_names_,
+                   static_cast<int>(palette_group_names_.size()))) {
+  }
 
   ImGui::Text("Palette Index:");
   ImGui::SliderInt("##PaletteIndex", &current_palette_index_, 0, 7, "%d");

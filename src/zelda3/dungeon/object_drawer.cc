@@ -1447,6 +1447,78 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return std::pair<int, int>{static_cast<int>((offset % 0x80) / 2),
                                static_cast<int>(offset / 0x80) - 4};
   };
+  const int position_index = std::min<int>(door.position & 0x0F, 11);
+
+  auto resolve_render_type = [](DoorDirection render_direction,
+                                DoorType render_type) {
+    switch (render_type) {
+      case DoorType::BottomSidedShutter:
+        return (render_direction == DoorDirection::North ||
+                render_direction == DoorDirection::West)
+                   ? DoorType::DoubleSidedShutter
+                   : DoorType::NormalDoor;
+      case DoorType::TopSidedShutter:
+        return (render_direction == DoorDirection::North ||
+                render_direction == DoorDirection::West)
+                   ? DoorType::NormalDoor
+                   : DoorType::DoubleSidedShutter;
+      case DoorType::BottomShutterLower:
+        return (render_direction == DoorDirection::North ||
+                render_direction == DoorDirection::West)
+                   ? DoorType::DoubleSidedShutterLower
+                   : DoorType::NormalDoorOneSidedShutter;
+      case DoorType::TopShutterLower:
+        return (render_direction == DoorDirection::North ||
+                render_direction == DoorDirection::West)
+                   ? DoorType::NormalDoorOneSidedShutter
+                   : DoorType::DoubleSidedShutterLower;
+      default:
+        return render_type;
+    }
+  };
+
+  auto draw_table_door = [&](gfx::BackgroundBuffer& target,
+                             DoorDirection render_direction, int start_tile_x,
+                             int start_tile_y, DoorType render_type) -> bool {
+    int offset_table_addr = 0;
+    switch (render_direction) {
+      case DoorDirection::North:
+        offset_table_addr = kDoorGfxUp;
+        break;
+      case DoorDirection::South:
+        offset_table_addr = kDoorGfxDown;
+        break;
+      case DoorDirection::West:
+        offset_table_addr = kDoorGfxLeft;
+        break;
+      case DoorDirection::East:
+        offset_table_addr = kDoorGfxRight;
+        break;
+    }
+
+    const DoorType resolved_type =
+        resolve_render_type(render_direction, render_type);
+    const int render_type_value = static_cast<int>(resolved_type);
+    const int type_index = render_type_value / 2;
+    const int table_entry_addr = offset_table_addr + (type_index * 2);
+    if (table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
+      return false;
+    }
+
+    const uint16_t tile_offset =
+        rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
+    const int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
+    const auto dims = GetDoorDimensions(render_direction);
+    const int data_size = dims.width_tiles * dims.height_tiles * 2;
+    if (tile_data_addr < 0 ||
+        tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+      return false;
+    }
+
+    draw_from_object_data(target, start_tile_x, start_tile_y, dims.width_tiles,
+                          dims.height_tiles, tile_data_addr);
+    return true;
+  };
 
   // USDASM has special north-door branches that do not follow the generic 4x3
   // ranged-door path.
@@ -1573,52 +1645,23 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   // 2. Each table entry is a 16-bit offset into RoomDrawObjectData
   // 3. RoomDrawObjectData base is at PC 0x1B52 (SNES $00:9B52)
   // 4. Actual tile data = 0x1B52 + offset_from_table
-
-  // Select offset table based on direction
-  int offset_table_addr = 0;
-  switch (door.direction) {
-    case DoorDirection::North:
-      offset_table_addr = kDoorGfxUp;
-      break;  // 0x4D9E
-    case DoorDirection::South:
-      offset_table_addr = kDoorGfxDown;
-      break;  // 0x4E06
-    case DoorDirection::West:
-      offset_table_addr = kDoorGfxLeft;
-      break;  // 0x4E66
-    case DoorDirection::East:
-      offset_table_addr = kDoorGfxRight;
-      break;  // 0x4EC6
+  if ((door.direction == DoorDirection::North ||
+       door.direction == DoorDirection::West) &&
+      position_index >= 6 && door.type != DoorType::ExplicitRoomDoor) {
+    const DoorDirection counterpart_direction =
+        door.direction == DoorDirection::North ? DoorDirection::South
+                                               : DoorDirection::East;
+    const int counterpart_tile_x =
+        tile_x + (counterpart_direction == DoorDirection::East ? 1 : 0);
+    const int counterpart_tile_y =
+        tile_y + (counterpart_direction == DoorDirection::South ? 1 : 0);
+    (void)draw_table_door(bg1, counterpart_direction, counterpart_tile_x,
+                          counterpart_tile_y, door.type);
   }
 
-  // Calculate door type index (door types step by 2: 0x00, 0x02, 0x04, ...)
-  int type_value = static_cast<int>(door.type);
-  int type_index = type_value / 2;
-
-  // Read offset from table (each entry is 2 bytes)
-  int table_entry_addr = offset_table_addr + (type_index * 2);
-  if (table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
-    DrawDoorIndicator(bg1, tile_x, tile_y, door_width, door_height, door.type,
-                      door.direction);
-    return;
-  }
-
-  uint16_t tile_offset =
-      rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
-
-  // RoomDrawObjectData base address (PC offset)
-  int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
-
-  LOG_DEBUG(
-      "ObjectDrawer",
-      "DrawDoor: offset_table=0x%X type_idx=%d tile_offset=0x%X tile_addr=0x%X",
-      offset_table_addr, type_index, tile_offset, tile_data_addr);
-
-  // Validate address range (12 tiles * 2 bytes = 24 bytes)
-  int tiles_per_door = door_width * door_height;  // 12 tiles (4x3 or 3x4)
-  int data_size = tiles_per_door * 2;
-  if (tile_data_addr < 0 ||
-      tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+  const bool drew_current =
+      draw_table_door(bg1, door.direction, tile_x, tile_y, door.type);
+  if (!drew_current) {
     LOG_DEBUG("ObjectDrawer",
               "DrawDoor: INVALID ADDRESS - falling back to indicator");
     DrawDoorIndicator(bg1, tile_x, tile_y, door_width, door_height, door.type,
@@ -1626,21 +1669,11 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
-  // Read and render door tiles
-  // All directions use column-major tile order (matching ASM draw routines)
-  // The ROM stores tiles in column-major order for all door directions.
-  LOG_DEBUG("ObjectDrawer", "DrawDoor: Reading %d tiles from 0x%X",
-            tiles_per_door, tile_data_addr);
-  draw_from_object_data(bg1, tile_x, tile_y, door_width, door_height,
-                        tile_data_addr);
-
   LOG_DEBUG("ObjectDrawer",
-            "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d "
-            "offset_table=0x%X tile_offset=0x%X tile_addr=0x%X",
+            "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d",
             std::string(GetDoorTypeName(door.type)).c_str(),
             std::string(GetDoorDirectionName(door.direction)).c_str(),
-            door.position, tile_x, tile_y, door_width, door_height,
-            offset_table_addr, tile_offset, tile_data_addr);
+            door.position, tile_x, tile_y, door_width, door_height);
 }
 
 void ObjectDrawer::DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x,
@@ -2982,11 +3015,9 @@ void yaze::zelda3::ObjectDrawer::DrawMissingCustomObjectPlaceholder(
       const int dest_x = start_x + px;
       if (dest_x < 0 || dest_x >= width)
         continue;
-      const bool border =
-          (px == 0 || py == 0 || px == kPlaceholderSizePx - 1 ||
-           py == kPlaceholderSizePx - 1);
-      const bool diagonal =
-          (px == py) || (px + py == kPlaceholderSizePx - 1);
+      const bool border = (px == 0 || py == 0 || px == kPlaceholderSizePx - 1 ||
+                           py == kPlaceholderSizePx - 1);
+      const bool diagonal = (px == py) || (px + py == kPlaceholderSizePx - 1);
       const int dest_index = dest_y * width + dest_x;
       pixels[dest_index] = (border || diagonal) ? kAccentColor : kFillColor;
       if (dest_index < static_cast<int>(coverage.size()))

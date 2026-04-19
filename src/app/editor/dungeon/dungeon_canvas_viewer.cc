@@ -841,7 +841,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   // When the header is hidden (e.g. split/compare stitched views), draw a small
   // in-canvas label so the user always knows what they're looking at.
-  if (!header_visible_) {
+  if (!header_visible_ && show_header_hidden_metadata_hud_) {
     const auto& label = zelda3::GetRoomLabel(room_id);
     char text1[160];
     snprintf(text1, sizeof(text1), "[%03X] %s", room_id, label.c_str());

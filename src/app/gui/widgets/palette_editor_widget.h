@@ -53,10 +53,12 @@ class PaletteEditorWidget {
   void DrawROMPaletteSelector();
 
  private:
-  void DrawPaletteGrid(gfx::SnesPalette& palette, int cols = 15);
+ void DrawPaletteGrid(gfx::SnesPalette& palette, int cols = 15);
   void DrawColorEditControls(gfx::SnesColor& color, int color_index);
   void DrawPaletteAnalysis(const gfx::SnesPalette& palette);
   void LoadROMPalettes();
+  float ComputeSwatchSize(int columns, float min_size,
+                          float max_size) const;
 
   // For embedded view
   void DrawPaletteSelector();
