@@ -17,6 +17,7 @@
 #include "app/editor/editor.h"
 #include "app/gui/widgets/text_editor.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/provider_ids.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/editor/agent/automation_bridge.h"
 #endif
@@ -107,7 +108,7 @@ class AgentEditor : public Editor {
   struct BotProfile {
     std::string name = "Default Bot";
     std::string description;
-    std::string provider = "mock";
+    std::string provider = cli::kProviderMock;
     std::string host_id;
     std::string model;
     std::string ollama_host = "http://localhost:11434";
@@ -135,7 +136,7 @@ class AgentEditor : public Editor {
 
   // Legacy support
   struct AgentConfig {
-    std::string provider = "mock";
+    std::string provider = cli::kProviderMock;
     std::string model;
     std::string ollama_host = "http://localhost:11434";
     std::string gemini_api_key;

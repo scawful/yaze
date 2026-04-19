@@ -9,6 +9,7 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/provider_ids.h"
 
 namespace yaze {
 namespace cli {
@@ -91,8 +92,8 @@ std::string ExtractKeyword(const std::string& normalized_prompt) {
 absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
     const std::string& prompt) {
   AgentResponse response;
-  response.provider = "mock";
-  response.model = "mock";
+  response.provider = kProviderMock;
+  response.model = kProviderMock;
   response.parameters["mode"] = "scripted";
   response.parameters["temperature"] = "0.0";
   const std::string normalized = absl::AsciiStrToLower(prompt);
@@ -197,8 +198,8 @@ absl::StatusOr<AgentResponse> MockAIService::GenerateResponse(
          absl::StrContains(it->message, "\"id\"") ||
          absl::StrContains(it->message, "\n{"))) {
       AgentResponse response;
-      response.provider = "mock";
-      response.model = "mock";
+      response.provider = kProviderMock;
+      response.model = kProviderMock;
       response.parameters["mode"] = "scripted";
       response.parameters["temperature"] = "0.0";
       response.text_response = "Here's what I found:\n" + it->message +

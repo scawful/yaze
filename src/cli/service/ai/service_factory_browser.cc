@@ -8,6 +8,7 @@
 #include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/browser_ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 #include "rom/rom.h"
 
 namespace {
@@ -70,16 +71,16 @@ AgentPromptProfile DetectPromptProfile(const AIServiceConfig& config) {
 std::vector<AIServiceConfig> DiscoverModelRegistryConfigs(
     const AIServiceConfig& base_config) {
   AIServiceConfig config = base_config;
-  if (config.provider.empty() || config.provider == "auto") {
-    config.provider = "gemini";
+  if (config.provider.empty() || config.provider == kProviderAuto) {
+    config.provider = kProviderGemini;
   }
   return {config};
 }
 
 std::unique_ptr<AIService> CreateAIService() {
   AIServiceConfig config = BuildAIServiceConfigFromFlags();
-  if (config.provider.empty() || config.provider == "auto") {
-    config.provider = "gemini";
+  if (config.provider.empty() || config.provider == kProviderAuto) {
+    config.provider = kProviderGemini;
   }
   if (config.model.empty()) {
     config.model = "gemini-1.5-flash";
@@ -93,14 +94,14 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
 
   BrowserAIConfig browser_config;
   browser_config.provider =
-      config.provider.empty() ? "gemini" : config.provider;
+      config.provider.empty() ? kProviderGemini : config.provider;
   browser_config.model = config.model;
   if (browser_config.model.empty()) {
-    browser_config.model = (browser_config.provider == "openai")
+    browser_config.model = (browser_config.provider == kProviderOpenAi)
                                ? "gpt-4o-mini"
                                : "gemini-1.5-flash";
   }
-  if (browser_config.provider == "openai") {
+  if (browser_config.provider == kProviderOpenAi) {
     browser_config.api_key = config.openai_api_key;
     browser_config.api_base = NormalizeOpenAIApiBase(config.openai_base_url);
   } else {

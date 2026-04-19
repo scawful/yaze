@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
 #include "cli/service/ai/prompt_builder.h"
@@ -52,7 +53,7 @@ class GeminiAIService : public AIService {
   // List available models
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override;
 
-  std::string GetProviderName() const override { return "gemini"; }
+  std::string GetProviderName() const override { return kProviderGemini; }
 
   // Function calling support
   void EnableFunctionCalling(bool enable = true);
@@ -104,7 +105,7 @@ class GeminiAIService : public AIService {
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override {
     return absl::FailedPreconditionError("Gemini AI runtime is disabled");
   }
-  std::string GetProviderName() const override { return "gemini"; }
+  std::string GetProviderName() const override { return kProviderGemini; }
 };
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE

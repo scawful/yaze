@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
 #include "cli/service/ai/prompt_builder.h"
@@ -48,7 +49,7 @@ class AnthropicAIService : public AIService {
   // List available models from Anthropic API (simulated, as list endpoint is sparse)
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override;
 
-  std::string GetProviderName() const override { return "anthropic"; }
+  std::string GetProviderName() const override { return kProviderAnthropic; }
 
   // Function calling support
   void EnableFunctionCalling(bool enable = true);
@@ -89,7 +90,7 @@ class AnthropicAIService : public AIService {
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override {
     return absl::FailedPreconditionError("Anthropic AI runtime is disabled");
   }
-  std::string GetProviderName() const override { return "anthropic"; }
+  std::string GetProviderName() const override { return kProviderAnthropic; }
 };
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE

@@ -9,6 +9,7 @@
 #include "absl/strings/str_cat.h"
 #include "cli/service/ai/local_gemini_cli_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/service_factory.h"
 
 #ifdef YAZE_WITH_JSON
@@ -25,12 +26,12 @@ absl::StatusOr<std::shared_ptr<yaze::cli::AIService>> CreateDiscoveryService(
     const yaze::cli::AIServiceConfig& config) {
   const std::string provider = config.provider;
 
-  if (provider == "mock") {
+  if (provider == yaze::cli::kProviderMock) {
     return std::static_pointer_cast<yaze::cli::AIService>(
         std::make_shared<yaze::cli::MockAIService>());
   }
 
-  if (provider == "ollama") {
+  if (provider == yaze::cli::kProviderOllama) {
     yaze::cli::OllamaConfig ollama_config;
     ollama_config.base_url = config.ollama_host;
     if (!config.model.empty()) {
@@ -40,14 +41,15 @@ absl::StatusOr<std::shared_ptr<yaze::cli::AIService>> CreateDiscoveryService(
         std::make_shared<yaze::cli::OllamaAIService>(ollama_config));
   }
 
-  if (provider == "gemini-cli" || provider == "local-gemini") {
+  if (provider == yaze::cli::kProviderGeminiCli ||
+      provider == yaze::cli::kProviderLocalGemini) {
     return std::static_pointer_cast<yaze::cli::AIService>(
         std::make_shared<yaze::cli::LocalGeminiCliService>(
             config.model.empty() ? "gemini-2.5-flash" : config.model));
   }
 
 #ifdef YAZE_WITH_JSON
-  if (provider == "gemini") {
+  if (provider == yaze::cli::kProviderGemini) {
     yaze::cli::GeminiConfig gemini_config(config.gemini_api_key);
     if (!config.model.empty()) {
       gemini_config.model = config.model;
@@ -56,7 +58,7 @@ absl::StatusOr<std::shared_ptr<yaze::cli::AIService>> CreateDiscoveryService(
     return std::static_pointer_cast<yaze::cli::AIService>(
         std::make_shared<yaze::cli::GeminiAIService>(gemini_config));
   }
-  if (provider == "anthropic") {
+  if (provider == yaze::cli::kProviderAnthropic) {
     yaze::cli::AnthropicConfig anthropic_config(config.anthropic_api_key);
     if (!config.model.empty()) {
       anthropic_config.model = config.model;
@@ -65,7 +67,7 @@ absl::StatusOr<std::shared_ptr<yaze::cli::AIService>> CreateDiscoveryService(
     return std::static_pointer_cast<yaze::cli::AIService>(
         std::make_shared<yaze::cli::AnthropicAIService>(anthropic_config));
   }
-  if (provider == "openai") {
+  if (provider == yaze::cli::kProviderOpenAi) {
     yaze::cli::OpenAIConfig openai_config(config.openai_api_key);
     openai_config.base_url = config.openai_base_url;
     if (!config.model.empty()) {
