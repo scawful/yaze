@@ -35,6 +35,7 @@ set(
   app/editor/dungeon/panels/dungeon_room_graphics_panel.cc
   app/editor/dungeon/panels/dungeon_settings_panel.cc
   app/editor/dungeon/panels/dungeon_workbench_panel.cc
+  app/editor/dungeon/panels/dungeon_door_editor_panel.cc
   app/editor/dungeon/panels/object_editor_panel.cc
   app/editor/dungeon/panels/object_tile_editor_panel.cc
   app/editor/dungeon/panels/minecart_track_editor_panel.cc

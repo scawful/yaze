@@ -26,6 +26,7 @@
 #include "dungeon_room_store.h"
 #include "dungeon_undo_actions.h"
 #include "imgui/imgui.h"
+#include "panels/dungeon_door_editor_panel.h"
 #include "panels/dungeon_room_graphics_panel.h"
 #include "panels/object_editor_panel.h"
 #include "rom/rom.h"
@@ -191,6 +192,7 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kRoomMatrixId = "dungeon.room_matrix";
   static constexpr const char* kRoomGraphicsId = "dungeon.room_graphics";
   static constexpr const char* kObjectToolsId = "dungeon.object_editor";
+  static constexpr const char* kDoorEditorId = "dungeon.door_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
 
   // Public accessors for WASM API and automation
@@ -205,6 +207,7 @@ class DungeonEditorV2 : public Editor {
   ObjectEditorPanel* object_editor_panel() const {
     return object_editor_panel_;
   }
+  DungeonDoorEditorPanel* door_editor_panel() const { return door_editor_panel_; }
 
   /**
    * @brief Get the list of recently visited room IDs
@@ -297,6 +300,7 @@ class DungeonEditorV2 : public Editor {
   // Panel pointers - these are owned by WorkspaceWindowManager when available.
   // Store pointers for direct access to panel methods.
   ObjectEditorPanel* object_editor_panel_ = nullptr;
+  DungeonDoorEditorPanel* door_editor_panel_ = nullptr;
   DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
@@ -311,6 +315,7 @@ class DungeonEditorV2 : public Editor {
   // Fallback ownership for tests when WorkspaceWindowManager is not available.
   // In production, this remains nullptr and panels are owned by WorkspaceWindowManager.
   std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;
+  std::unique_ptr<DungeonDoorEditorPanel> owned_door_editor_panel_;
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 

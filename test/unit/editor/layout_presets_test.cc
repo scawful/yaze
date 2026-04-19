@@ -35,17 +35,27 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   auto selector_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kOverworldTile16Selector);
   ASSERT_NE(selector_pos, preset.panel_positions.end());
-  EXPECT_EQ(selector_pos->second, DockPosition::LeftTop);
+  EXPECT_EQ(selector_pos->second, DockPosition::RightTop);
 
   auto editor_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kOverworldTile16Editor);
   ASSERT_NE(editor_pos, preset.panel_positions.end());
   EXPECT_EQ(editor_pos->second, DockPosition::RightTop);
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kOverworldTile16Editor));
 
   auto properties_pos = preset.panel_positions.find(
       LayoutPresets::Panels::kOverworldMapProperties);
   ASSERT_NE(properties_pos, preset.panel_positions.end());
   EXPECT_EQ(properties_pos->second, DockPosition::RightBottom);
+
+  auto item_list_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kOverworldItemList);
+  ASSERT_NE(item_list_pos, preset.panel_positions.end());
+  EXPECT_EQ(item_list_pos->second, DockPosition::Bottom);
+
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kOverworldDebug));
 }
 
 TEST(LayoutPresetsTest, OverworldExpertPositionsMapPropertiesAndGraphicsEditor) {
@@ -63,6 +73,13 @@ TEST(LayoutPresetsTest, OverworldExpertPositionsMapPropertiesAndGraphicsEditor) 
       preset.panel_positions.find(LayoutPresets::Panels::kGraphicsSheetEditor);
   ASSERT_NE(gfx_editor_pos, preset.panel_positions.end());
   EXPECT_EQ(gfx_editor_pos->second, DockPosition::LeftBottom);
+
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kOverworldItemList));
+  auto debug_pos =
+      preset.panel_positions.find(LayoutPresets::Panels::kOverworldDebug);
+  ASSERT_NE(debug_pos, preset.panel_positions.end());
+  EXPECT_EQ(debug_pos->second, DockPosition::RightBottom);
 }
 
 TEST(LayoutPresetsTest, DungeonWorkbenchDefaultHidesStandaloneRoomSelector) {
@@ -76,6 +93,8 @@ TEST(LayoutPresetsTest, DungeonWorkbenchDefaultHidesStandaloneRoomSelector) {
                             LayoutPresets::Panels::kDungeonRoomMatrix));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonObjectEditor));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonDoorEditor));
 }
 
 TEST(LayoutPresetsTest, WorkspaceAliasesMirrorWindowTerminology) {

@@ -178,15 +178,20 @@ class LayoutPresets {
   struct Panels {
     // Overworld cards (overworld_editor.cc)
     static constexpr const char* kOverworldCanvas = "overworld.canvas";
-    static constexpr const char* kOverworldTile16Editor = "overworld.tile16_editor";
-    static constexpr const char* kOverworldTile16Selector = "overworld.tile16_selector";
-    static constexpr const char* kOverworldTile8Selector = "overworld.tile8_selector";
-    static constexpr const char* kOverworldAreaGraphics = "overworld.area_graphics";
+    static constexpr const char* kOverworldTile16Editor =
+        "overworld.tile16_editor";
+    static constexpr const char* kOverworldTile16Selector =
+        "overworld.tile16_selector";
+    static constexpr const char* kOverworldTile8Selector =
+        "overworld.tile8_selector";
+    static constexpr const char* kOverworldAreaGraphics =
+        "overworld.area_graphics";
     static constexpr const char* kOverworldScratch = "overworld.scratch";
     static constexpr const char* kOverworldGfxGroups = "overworld.gfx_groups";
     static constexpr const char* kOverworldUsageStats = "overworld.usage_stats";
     static constexpr const char* kOverworldItemList = "overworld.item_list";
-    static constexpr const char* kOverworldMapProperties = "overworld.properties";
+    static constexpr const char* kOverworldMapProperties =
+        "overworld.properties";
     static constexpr const char* kOverworldV3Settings = "overworld.v3_settings";
     static constexpr const char* kOverworldDebug = "overworld.debug";
 
@@ -199,15 +204,22 @@ class LayoutPresets {
         "dungeon.entrance_properties";
     static constexpr const char* kDungeonRoomGraphics = "dungeon.room_graphics";
     static constexpr const char* kDungeonObjectEditor = "dungeon.object_editor";
-    static constexpr const char* kDungeonPaletteEditor = "dungeon.palette_editor";
+    static constexpr const char* kDungeonDoorEditor = "dungeon.door_editor";
+    static constexpr const char* kDungeonPaletteEditor =
+        "dungeon.palette_editor";
 
     // Graphics cards (graphics_editor.cc)
     static constexpr const char* kGraphicsSheetEditor = "graphics.pixel_editor";
-    static constexpr const char* kGraphicsSheetBrowser = "graphics.sheet_browser_v2";
-    static constexpr const char* kGraphicsPlayerAnimations = "graphics.link_sprite_editor";
-    static constexpr const char* kGraphicsPaletteControls = "graphics.palette_controls";
-    static constexpr const char* kGraphicsGfxGroupEditor = "graphics.gfx_group_editor";
-    static constexpr const char* kGraphicsPalettesetEditor = "graphics.paletteset_editor";
+    static constexpr const char* kGraphicsSheetBrowser =
+        "graphics.sheet_browser_v2";
+    static constexpr const char* kGraphicsPlayerAnimations =
+        "graphics.link_sprite_editor";
+    static constexpr const char* kGraphicsPaletteControls =
+        "graphics.palette_controls";
+    static constexpr const char* kGraphicsGfxGroupEditor =
+        "graphics.gfx_group_editor";
+    static constexpr const char* kGraphicsPalettesetEditor =
+        "graphics.paletteset_editor";
 
     // Palette cards (palette_editor.cc)
     static constexpr const char* kPaletteControlPanel = "palette.control_panel";
@@ -235,9 +247,11 @@ class LayoutPresets {
 
     // Music cards (music_editor.cc)
     static constexpr const char* kMusicSongBrowser = "music.song_browser";
-    static constexpr const char* kMusicPlaybackControl = "music.tracker";  // Playback control panel
+    static constexpr const char* kMusicPlaybackControl =
+        "music.tracker";  // Playback control panel
     static constexpr const char* kMusicPianoRoll = "music.piano_roll";
-    static constexpr const char* kMusicInstrumentEditor = "music.instrument_editor";
+    static constexpr const char* kMusicInstrumentEditor =
+        "music.instrument_editor";
     static constexpr const char* kMusicSampleEditor = "music.sample_editor";
     static constexpr const char* kMusicAssembly = "music.assembly";
 
@@ -258,12 +272,14 @@ class LayoutPresets {
     // Emulator cards (editor_manager.cc)
     static constexpr const char* kEmulatorCpuDebugger = "emulator.cpu_debugger";
     static constexpr const char* kEmulatorPpuViewer = "emulator.ppu_viewer";
-    static constexpr const char* kEmulatorMemoryViewer = "emulator.memory_viewer";
+    static constexpr const char* kEmulatorMemoryViewer =
+        "emulator.memory_viewer";
     static constexpr const char* kEmulatorBreakpoints = "emulator.breakpoints";
     static constexpr const char* kEmulatorPerformance = "emulator.performance";
     static constexpr const char* kEmulatorAiAgent = "emulator.ai_agent";
     static constexpr const char* kEmulatorSaveStates = "emulator.save_states";
-    static constexpr const char* kEmulatorKeyboardConfig = "emulator.keyboard_config";
+    static constexpr const char* kEmulatorKeyboardConfig =
+        "emulator.keyboard_config";
     static constexpr const char* kEmulatorVirtualController =
         "emulator.virtual_controller";
     static constexpr const char* kEmulatorApuDebugger = "emulator.apu_debugger";

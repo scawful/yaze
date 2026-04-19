@@ -1153,6 +1153,16 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  if (prefs_.panel_layout_defaults_revision < 9 && target_revision >= 9) {
+    auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      dungeon_windows["dungeon.door_editor"] = true;
+    }
+    prefs_.panel_layout_defaults_revision = 9;
+    applied = true;
+  }
+
   return applied;
 }
 
