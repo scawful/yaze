@@ -75,10 +75,9 @@ TEST(MapPropertiesContextMenuTest, LockItemMutatesReferencedMapLockState) {
   bool show_custom_bg_color_editor = false;
   bool show_overlay_editor = false;
 
-  system.SetupCanvasContextMenu(canvas, 0x10, current_map_lock,
-                                show_map_properties_panel,
-                                show_custom_bg_color_editor,
-                                show_overlay_editor, 1);
+  system.SetupCanvasContextMenu(
+      canvas, 0x10, current_map_lock, show_map_properties_panel,
+      show_custom_bg_color_editor, show_overlay_editor, 1);
 
   auto* lock_item = FindMenuItem(canvas, "Lock to This Map");
   ASSERT_NE(lock_item, nullptr);
@@ -88,8 +87,7 @@ TEST(MapPropertiesContextMenuTest, LockItemMutatesReferencedMapLockState) {
   EXPECT_TRUE(current_map_lock);
 }
 
-TEST(MapPropertiesContextMenuTest,
-     AreaConfigurationUsesPanelCallbackInsteadOfLegacyBool) {
+TEST(MapPropertiesContextMenuTest, AreaConfigurationSetsPanelBool) {
   ScopedTempDir temp_dir(MakeTempDir("yaze_map_properties_panel"));
   const auto rom_path = temp_dir.path / "test.sfc";
   WriteRomFile(rom_path);
@@ -105,20 +103,17 @@ TEST(MapPropertiesContextMenuTest,
   bool show_map_properties_panel = false;
   bool show_custom_bg_color_editor = false;
   bool show_overlay_editor = false;
-  bool panel_open_requested = false;
 
   system.SetupCanvasContextMenu(
       canvas, 0x10, current_map_lock, show_map_properties_panel,
-      show_custom_bg_color_editor, show_overlay_editor, 1,
-      [&panel_open_requested]() { panel_open_requested = true; });
+      show_custom_bg_color_editor, show_overlay_editor, 1);
 
   auto* properties_item = FindMenuItem(canvas, "Area Configuration");
   ASSERT_NE(properties_item, nullptr);
   ASSERT_TRUE(properties_item->callback);
 
   properties_item->callback();
-  EXPECT_TRUE(panel_open_requested);
-  EXPECT_FALSE(show_map_properties_panel);
+  EXPECT_TRUE(show_map_properties_panel);
 }
 
 }  // namespace
