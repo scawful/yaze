@@ -1,14 +1,15 @@
 #ifndef YAZE_SRC_CLI_SERVICE_RESOURCES_COMMAND_HANDLER_H_
 #define YAZE_SRC_CLI_SERVICE_RESOURCES_COMMAND_HANDLER_H_
 
+#include <map>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "rom/rom.h"
 #include "cli/service/resources/command_context.h"
-#include "core/asar_wrapper.h" // For AsarWrapper
-#include "core/project.h"      // For YazeProject
+#include "core/asar_wrapper.h"  // For AsarWrapper
+#include "core/project.h"       // For YazeProject
+#include "rom/rom.h"
 
 namespace yaze {
 namespace cli {
@@ -103,24 +104,36 @@ class CommandHandler {
    * Override to return false if labels are not needed.
    */
   virtual bool RequiresLabels() const { return false; }
-  
+
   /**
    * @brief Set the YazeProject context.
    * Default implementation does nothing, override if tool needs project info.
    */
-  virtual void SetProjectContext(project::YazeProject* project) { project_ = project; }
-  
+  virtual void SetProjectContext(project::YazeProject* project) {
+    project_ = project;
+  }
+
   /**
    * @brief Set the AsarWrapper context.
    * Default implementation does nothing, override if tool needs Asar access.
    */
-  virtual void SetAsarWrapper(core::AsarWrapper* asar_wrapper) { asar_wrapper_ = asar_wrapper; }
+  virtual void SetAsarWrapper(core::AsarWrapper* asar_wrapper) {
+    asar_wrapper_ = asar_wrapper;
+  }
 
   /**
    * @brief Set the ROM context for tools that need ROM access.
    * Default implementation stores the ROM pointer for subclass use.
    */
   virtual void SetRomContext(Rom* rom) { rom_ = rom; }
+
+  /**
+   * @brief Optional Asar symbol table for assembly-aware tools.
+   */
+  virtual void SetAssemblySymbolTable(
+      const std::map<std::string, core::AsarSymbol>* table) {
+    assembly_symbol_table_ = table;
+  }
 
   /**
    * @brief Set the SymbolProvider context.
@@ -158,6 +171,8 @@ class CommandHandler {
   emu::debug::SymbolProvider* symbol_provider_ = nullptr;
   project::YazeProject* project_ = nullptr;
   core::AsarWrapper* asar_wrapper_ = nullptr;
+  const std::map<std::string, core::AsarSymbol>* assembly_symbol_table_ =
+      nullptr;
 };
 
 /**
@@ -180,17 +195,17 @@ class CommandHandler {
  * )
  * ```
  */
-#define DEFINE_COMMAND_HANDLER(name, usage_str, validate_body, execute_body)        \
-  class name##CommandHandler : public CommandHandler {                              \
-   public:                                                                         \
-    std::string GetName() const override { return #name; }                         \
-    std::string GetUsage() const override { return usage_str; }                    \
-   protected:                                                                      \
-    absl::Status ValidateArgs(const ArgumentParser& parser) override               \
-    validate_body                                                                  \
-    absl::Status Execute(Rom* rom, const ArgumentParser& parser,                   \
-                         OutputFormatter& formatter) override                     \
-    execute_body                                                                   \
+#define DEFINE_COMMAND_HANDLER(name, usage_str, validate_body, execute_body) \
+  class name##CommandHandler : public CommandHandler {                       \
+   public:                                                                   \
+    std::string GetName() const override { return #name; }                   \
+    std::string GetUsage() const override { return usage_str; }              \
+                                                                             \
+   protected:                                                                \
+    absl::Status ValidateArgs(const ArgumentParser& parser) override         \
+        validate_body absl::Status                                           \
+        Execute(Rom* rom, const ArgumentParser& parser,                      \
+                OutputFormatter& formatter) override execute_body            \
   };
 
 }  // namespace resources

@@ -724,10 +724,10 @@ void DrawDisplaySettings(ImGuiStyle* ref) {
       ImGui::SetNextWindowSizeConstraints(
           ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 10),
           ImVec2(FLT_MAX, FLT_MAX));
-      ImGui::BeginChild("##colors", ImVec2(0, 0), ImGuiChildFlags_Border,
+      ImGui::BeginChild("##colors", ImVec2(0, 0),
+                        ImGuiChildFlags_Borders | ImGuiChildFlags_NavFlattened,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                            ImGuiWindowFlags_AlwaysHorizontalScrollbar |
-                            ImGuiWindowFlags_NavFlattened);
+                            ImGuiWindowFlags_AlwaysHorizontalScrollbar);
       ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
       for (int i = 0; i < ImGuiCol_COUNT; i++) {
         const char* name = ImGui::GetStyleColorName(i);
@@ -1179,10 +1179,10 @@ void DrawDisplaySettingsForPopup(ImGuiStyle* ref) {
       ImGui::SetNextWindowSizeConstraints(
           ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() * 10),
           ImVec2(FLT_MAX, FLT_MAX));
-      ImGui::BeginChild("##colors", ImVec2(0, 0), ImGuiChildFlags_Border,
+      ImGui::BeginChild("##colors", ImVec2(0, 0),
+                        ImGuiChildFlags_Borders | ImGuiChildFlags_NavFlattened,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                            ImGuiWindowFlags_AlwaysHorizontalScrollbar |
-                            ImGuiWindowFlags_NavFlattened);
+                            ImGuiWindowFlags_AlwaysHorizontalScrollbar);
       ImGui::PushItemWidth(ImGui::GetFontSize() * -12);
       for (int i = 0; i < ImGuiCol_COUNT; i++) {
         const char* name = ImGui::GetStyleColorName(i);

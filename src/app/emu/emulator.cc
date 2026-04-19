@@ -6,7 +6,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/panel_manager.h"
+#include "app/editor/system/workspace_window_manager.h"
 #include "util/log.h"
 
 namespace yaze::core {
@@ -868,8 +868,8 @@ std::vector<float> Emulator::RomBankFreeBytes() const {
 
 void Emulator::RenderEmulatorInterface() {
   try {
-    if (!panel_manager_)
-      return;  // Panel registry must be injected
+    if (!window_manager_)
+      return;  // Workspace window manager must be injected
 
     static gui::PanelWindow cpu_card("CPU Debugger", ICON_MD_BUG_REPORT);
     static gui::PanelWindow ppu_card("PPU Viewer", ICON_MD_VIDEOGAME_ASSET);
@@ -892,7 +892,7 @@ void Emulator::RenderEmulatorInterface() {
     // button functionality This ensures each card window can be closed by the
     // user via the window close button
     bool* cpu_visible =
-        panel_manager_->GetVisibilityFlag("emulator.cpu_debugger");
+        window_manager_->GetWindowVisibilityFlag("emulator.cpu_debugger");
     if (cpu_visible && *cpu_visible) {
       if (cpu_card.Begin(cpu_visible)) {
         RenderModernCpuDebugger();
@@ -901,7 +901,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* ppu_visible =
-        panel_manager_->GetVisibilityFlag("emulator.ppu_viewer");
+        window_manager_->GetWindowVisibilityFlag("emulator.ppu_viewer");
     if (ppu_visible && *ppu_visible) {
       if (ppu_card.Begin(ppu_visible)) {
         RenderNavBar();
@@ -911,7 +911,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* memory_visible =
-        panel_manager_->GetVisibilityFlag("emulator.memory_viewer");
+        window_manager_->GetWindowVisibilityFlag("emulator.memory_viewer");
     if (memory_visible && *memory_visible) {
       if (memory_card.Begin(memory_visible)) {
         RenderMemoryViewer();
@@ -920,7 +920,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* breakpoints_visible =
-        panel_manager_->GetVisibilityFlag("emulator.breakpoints");
+        window_manager_->GetWindowVisibilityFlag("emulator.breakpoints");
     if (breakpoints_visible && *breakpoints_visible) {
       if (breakpoints_card.Begin(breakpoints_visible)) {
         RenderBreakpointList();
@@ -929,7 +929,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* performance_visible =
-        panel_manager_->GetVisibilityFlag("emulator.performance");
+        window_manager_->GetWindowVisibilityFlag("emulator.performance");
     if (performance_visible && *performance_visible) {
       if (performance_card.Begin(performance_visible)) {
         RenderPerformanceMonitor();
@@ -938,7 +938,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* ai_agent_visible =
-        panel_manager_->GetVisibilityFlag("emulator.ai_agent");
+        window_manager_->GetWindowVisibilityFlag("emulator.ai_agent");
     if (ai_agent_visible && *ai_agent_visible) {
       if (ai_card.Begin(ai_agent_visible)) {
         RenderAIAgentPanel();
@@ -947,7 +947,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* save_states_visible =
-        panel_manager_->GetVisibilityFlag("emulator.save_states");
+        window_manager_->GetWindowVisibilityFlag("emulator.save_states");
     if (save_states_visible && *save_states_visible) {
       if (save_states_card.Begin(save_states_visible)) {
         RenderSaveStates();
@@ -956,7 +956,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* keyboard_config_visible =
-        panel_manager_->GetVisibilityFlag("emulator.keyboard_config");
+        window_manager_->GetWindowVisibilityFlag("emulator.keyboard_config");
     if (keyboard_config_visible && *keyboard_config_visible) {
       if (keyboard_card.Begin(keyboard_config_visible)) {
         RenderKeyboardConfig();
@@ -968,7 +968,7 @@ void Emulator::RenderEmulatorInterface() {
                                             ICON_MD_SPORTS_ESPORTS);
     controller_card.SetDefaultSize(250, 450);
     bool* virtual_controller_visible =
-        panel_manager_->GetVisibilityFlag("emulator.virtual_controller");
+        window_manager_->GetWindowVisibilityFlag("emulator.virtual_controller");
     if (virtual_controller_visible && *virtual_controller_visible) {
       if (controller_card.Begin(virtual_controller_visible)) {
         ui::RenderVirtualController(this);
@@ -977,7 +977,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* apu_debugger_visible =
-        panel_manager_->GetVisibilityFlag("emulator.apu_debugger");
+        window_manager_->GetWindowVisibilityFlag("emulator.apu_debugger");
     if (apu_debugger_visible && *apu_debugger_visible) {
       if (apu_card.Begin(apu_debugger_visible)) {
         RenderApuDebugger();
@@ -986,7 +986,7 @@ void Emulator::RenderEmulatorInterface() {
     }
 
     bool* audio_mixer_visible =
-        panel_manager_->GetVisibilityFlag("emulator.audio_mixer");
+        window_manager_->GetWindowVisibilityFlag("emulator.audio_mixer");
     if (audio_mixer_visible && *audio_mixer_visible) {
       if (audio_card.Begin(audio_mixer_visible)) {
         RenderAudioMixer();

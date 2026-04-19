@@ -104,6 +104,8 @@ class ConversationalAgentService {
 
   // Provide the service with a ROM context for tool execution.
   void SetRomContext(Rom* rom);
+  void SetAssemblySymbolTable(
+      const std::map<std::string, core::AsarSymbol>* table);
 
   // Clear the current conversation history, preserving ROM/tool context.
   void ResetConversation();
