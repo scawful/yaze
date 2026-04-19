@@ -19,6 +19,9 @@ class ToolSchemaBuilder {
   static nlohmann::json BuildFunctionDeclarations(
       const std::vector<ToolSpecification>& tool_specs);
 
+  static absl::StatusOr<nlohmann::json> ResolveFunctionDeclarations(
+      const PromptBuilder& prompt_builder);
+
   static absl::StatusOr<nlohmann::json> ParseFunctionDeclarations(
       std::string_view schema_json);
 
@@ -26,6 +29,12 @@ class ToolSchemaBuilder {
       const std::string& relative_path = "agent/function_schemas.json");
 
   static nlohmann::json BuildOpenAITools(
+      const nlohmann::json& function_declarations);
+
+  static nlohmann::json BuildGeminiTools(
+      const nlohmann::json& function_declarations);
+
+  static nlohmann::json BuildAnthropicTools(
       const nlohmann::json& function_declarations);
 
  private:

@@ -19,7 +19,7 @@ struct AnthropicConfig {
   std::string api_key;
   std::string model = "claude-3-5-sonnet-20241022";  // Default to 3.5 Sonnet
   float temperature = 0.7f;
-  int max_output_tokens = 4096; // Anthropic supports larger output context
+  int max_output_tokens = 4096;  // Anthropic supports larger output context
   std::string system_instruction;
   bool use_function_calling = true;
   std::string prompt_version = "v3";
@@ -56,7 +56,6 @@ class AnthropicAIService : public AIService {
 
  private:
   std::string BuildSystemInstruction();
-  std::string BuildFunctionCallSchemas();
   absl::StatusOr<AgentResponse> ParseAnthropicResponse(
       const std::string& response_body);
 

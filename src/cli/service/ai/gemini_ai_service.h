@@ -64,7 +64,6 @@ class GeminiAIService : public AIService {
 
  private:
   std::string BuildSystemInstruction();
-  std::string BuildFunctionCallSchemas();
   absl::StatusOr<AgentResponse> ParseGeminiResponse(
       const std::string& response_body);
 

@@ -15,13 +15,15 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/tool_schema_builder.h"
 #include "util/platform_paths.h"
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
 
-#if defined(__APPLE__) && (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
+#if defined(__APPLE__) && \
+    (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)
 #include "cli/service/ai/ios_urlsession_http_client.h"
 #define YAZE_AI_IOS_URLSESSION 1
 #endif
@@ -57,6 +59,20 @@ static void InitializeOpenSSL() {
 
 namespace yaze {
 namespace cli {
+
+namespace {
+
+absl::StatusOr<nlohmann::json> BuildGeminiToolPayload(
+    const PromptBuilder& prompt_builder) {
+  auto declarations_or =
+      ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder);
+  if (!declarations_or.ok()) {
+    return declarations_or.status();
+  }
+  return ToolSchemaBuilder::BuildGeminiTools(*declarations_or);
+}
+
+}  // namespace
 
 GeminiAIService::GeminiAIService(const GeminiConfig& config)
     : function_calling_enabled_(config.use_function_calling), config_(config) {
@@ -148,49 +164,6 @@ std::vector<std::string> GeminiAIService::GetAvailableTools() const {
           "dungeon-list-sprites", "dungeon-describe-room",
           "overworld-find-tile",  "overworld-describe-map",
           "overworld-list-warps"};
-}
-
-std::string GeminiAIService::BuildFunctionCallSchemas() {
-#ifndef YAZE_WITH_JSON
-  return "{}";  // Empty object if JSON not available
-#else
-  // Use the prompt builder's schema generation which reads from
-  // prompt_catalogue.yaml
-  std::string schemas = prompt_builder_.BuildFunctionCallSchemas();
-  if (!schemas.empty() && schemas != "[]") {
-    return schemas;
-  }
-
-  // Fallback: Search for function_schemas.json using FindAsset
-  auto schema_path_or =
-      util::PlatformPaths::FindAsset("agent/function_schemas.json");
-
-  if (!schema_path_or.ok()) {
-    if (config_.verbose) {
-      std::cerr << "⚠️  Function schemas file not found: "
-                << schema_path_or.status().message() << std::endl;
-    }
-    return "[]";  // Return empty array as fallback
-  }
-
-  // Load and parse the JSON file
-  std::ifstream file(schema_path_or->string());
-  if (!file.is_open()) {
-    std::cerr << "⚠️  Failed to open function schemas file: "
-              << schema_path_or->string() << std::endl;
-    return "[]";
-  }
-
-  try {
-    nlohmann::json schemas_json;
-    file >> schemas_json;
-    return schemas_json.dump();
-  } catch (const nlohmann::json::exception& e) {
-    std::cerr << "⚠️  Failed to parse function schemas JSON: " << e.what()
-              << std::endl;
-    return "[]";
-  }
-#endif
 }
 
 std::string GeminiAIService::BuildSystemInstruction() {
@@ -501,33 +474,20 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
 
     // Add function calling tools if enabled
     if (function_calling_enabled_) {
-      try {
-        std::string schemas_str = BuildFunctionCallSchemas();
+      auto tools_or = BuildGeminiToolPayload(prompt_builder_);
+      if (!tools_or.ok()) {
         if (config_.verbose) {
+          std::cerr << "[DEBUG] Function calling schemas unavailable: "
+                    << tools_or.status().message() << std::endl;
+        }
+      } else if (!tools_or->empty()) {
+        if (config_.verbose) {
+          std::string tools_str = tools_or->dump();
           std::cerr << "[DEBUG] Function calling schemas: "
-                    << schemas_str.substr(0, 200) << "..." << std::endl;
+                    << tools_str.substr(0, 200) << "..." << std::endl;
         }
 
-        nlohmann::json schemas = nlohmann::json::parse(schemas_str);
-
-        // Build tools array - schemas might be an array of tools or a
-        // function_declarations object
-        if (schemas.is_array()) {
-          // If it's already an array of tools, use it directly
-          request_body["tools"] = {{{"function_declarations", schemas}}};
-        } else if (schemas.is_object() &&
-                   schemas.contains("function_declarations")) {
-          // If it's a wrapper object with function_declarations
-          request_body["tools"] = {
-              {{"function_declarations", schemas["function_declarations"]}}};
-        } else {
-          // Treat as single tool object
-          request_body["tools"] = {
-              {{"function_declarations", nlohmann::json::array({schemas})}}};
-        }
-      } catch (const nlohmann::json::exception& e) {
-        std::cerr << "⚠️  Failed to parse function schemas: " << e.what()
-                  << std::endl;
+        request_body["tools"] = *tools_or;
       }
     }
 
@@ -539,15 +499,14 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateResponse(
     std::map<std::string, std::string> headers;
     headers.emplace("Content-Type", "application/json");
     headers.emplace("x-goog-api-key", config_.api_key);
-    auto resp_or = ios::UrlSessionHttpRequest(
-        "POST", endpoint, headers, request_body.dump(), 60000);
+    auto resp_or = ios::UrlSessionHttpRequest("POST", endpoint, headers,
+                                              request_body.dump(), 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
     if (resp_or->status_code != 200) {
-      return absl::InternalError(
-          absl::StrCat("Gemini API error: ", resp_or->status_code, "\n",
-                       resp_or->body));
+      return absl::InternalError(absl::StrCat(
+          "Gemini API error: ", resp_or->status_code, "\n", resp_or->body));
     }
     response_str = resp_or->body;
 #else
@@ -934,15 +893,14 @@ absl::StatusOr<AgentResponse> GeminiAIService::GenerateMultimodalResponse(
     std::map<std::string, std::string> headers;
     headers.emplace("Content-Type", "application/json");
     headers.emplace("x-goog-api-key", config_.api_key);
-    auto resp_or = ios::UrlSessionHttpRequest(
-        "POST", endpoint, headers, request_body.dump(), 60000);
+    auto resp_or = ios::UrlSessionHttpRequest("POST", endpoint, headers,
+                                              request_body.dump(), 60000);
     if (!resp_or.ok()) {
       return resp_or.status();
     }
     if (resp_or->status_code != 200) {
-      return absl::InternalError(
-          absl::StrCat("Gemini API error: ", resp_or->status_code, "\n",
-                       resp_or->body));
+      return absl::InternalError(absl::StrCat(
+          "Gemini API error: ", resp_or->status_code, "\n", resp_or->body));
     }
     response_str = resp_or->body;
 #else
