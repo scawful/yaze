@@ -18,10 +18,10 @@ runs:
     - name: Cache build artifacts
       uses: actions/cache@v4
       with:
-        path: build
-        key: build-${{ inputs.platform }}-${{ github.sha }}
+        path: build/presets/${{ inputs.preset }}
+        key: build-${{ inputs.platform }}-${{ inputs.preset }}-${{ github.sha }}
         restore-keys: |
-          build-${{ inputs.platform }}-
+          build-${{ inputs.platform }}-${{ inputs.preset }}-
 
     - name: Configure project
       shell: bash
@@ -40,7 +40,7 @@ runs:
           CORES=2
         fi
         echo "Using $CORES parallel jobs"
-        cmake --build build --config "${{ inputs.build-type }}" --parallel "$CORES"
+        cmake --build --preset "${{ inputs.preset }}" --config "${{ inputs.build-type }}" --parallel "$CORES"
 
     - name: Build project (Windows)
       if: inputs.platform == 'windows'
@@ -48,11 +48,11 @@ runs:
       run: |
         $JOBS = ${env:CMAKE_BUILD_PARALLEL_LEVEL:-4}
         echo "Using $JOBS parallel jobs"
-        cmake --build build --config "${{ inputs.build-type }}" --parallel "$JOBS"
+        cmake --build --preset "${{ inputs.preset }}" --config "${{ inputs.build-type }}" --parallel "$JOBS"
 
     - name: Show build artifacts
       shell: bash
       run: |
-        echo "Build artifacts:"
-        find build -name "*.exe" -o -name "yaze" -o -name "*.app" | head -10
+        echo "Build artifacts in build/presets/${{ inputs.preset }}:"
+        find "build/presets/${{ inputs.preset }}" -name "*.exe" -o -name "yaze" -o -name "*.app" 2>/dev/null | head -10
 

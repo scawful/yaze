@@ -156,7 +156,7 @@ jobs:
         if: matrix.platform == 'linux' || matrix.platform == 'macos'
         shell: bash
         run: |
-          cd build
+          cd "build/presets/${{ matrix.preset }}"
           # Create a Python script to patch cmake_install.cmake
           python3 << 'EOF'
           import re
@@ -173,16 +173,18 @@ jobs:
 
       - name: Clean old packages before CPack
         shell: bash
+        env:
+          BUILD_DIR: build/presets/${{ matrix.preset }}
         run: |
           echo "Cleaning old package files to ensure fresh generation"
-          rm -rf build/packages build/_CPack_Packages
-          rm -f build/*.deb build/*.tar.gz build/*.dmg build/*.zip build/*.exe
-          mkdir -p build/packages
+          rm -rf "$BUILD_DIR/packages" "$BUILD_DIR/_CPack_Packages"
+          rm -f "$BUILD_DIR"/*.deb "$BUILD_DIR"/*.tar.gz "$BUILD_DIR"/*.dmg "$BUILD_DIR"/*.zip "$BUILD_DIR"/*.exe
+          mkdir -p "$BUILD_DIR/packages"
 
       - name: Package artifacts (Linux)
         if: matrix.platform == 'linux'
         run: |
-          cd build
+          cd "build/presets/${{ matrix.preset }}"
           cpack -G DEB
           cpack -G TGZ
           echo "=== Contents of packages directory ==="
@@ -200,16 +202,18 @@ jobs:
       - name: Validate Linux artifacts
         if: matrix.platform == 'linux'
         shell: bash
+        env:
+          BUILD_DIR: build/presets/${{ matrix.preset }}
         run: |
           shopt -s nullglob
-          deb_files=(build/packages/*.deb)
-          tgz_files=(build/packages/*.tar.gz)
+          deb_files=("$BUILD_DIR"/packages/*.deb)
+          tgz_files=("$BUILD_DIR"/packages/*.tar.gz)
           if [[ ${#deb_files[@]} -eq 0 ]]; then
-            echo "No DEB package produced in build/packages/"
+            echo "No DEB package produced in $BUILD_DIR/packages/"
             exit 1
           fi
           if [[ ${#tgz_files[@]} -eq 0 ]]; then
-            echo "No TGZ package produced in build/packages/"
+            echo "No TGZ package produced in $BUILD_DIR/packages/"
             exit 1
           fi
           python3 scripts/release/validate-archive.py "${deb_files[@]}" "${tgz_files[@]}"
@@ -218,8 +222,10 @@ jobs:
       - name: Package artifacts (macOS)
         if: matrix.platform == 'macos'
         shell: bash
+        env:
+          BUILD_DIR: build/presets/${{ matrix.preset }}
         run: |
-          app_bundle="$(find build/bin -maxdepth 3 -type d -name yaze.app | head -n 1)"
+          app_bundle="$(find "$BUILD_DIR/bin" -maxdepth 3 -type d -name yaze.app | head -n 1)"
           if [[ -n "${app_bundle}" ]]; then
             echo "Signing app bundle: ${app_bundle}"
             if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
@@ -229,9 +235,9 @@ jobs:
             fi
             codesign --verify --deep --strict "${app_bundle}"
           else
-            echo "No app bundle found under build/bin; skipping pre-package signing."
+            echo "No app bundle found under $BUILD_DIR/bin; skipping pre-package signing."
           fi
-          cd build
+          cd "$BUILD_DIR"
           cpack -G DragNDrop
           echo "=== Contents of packages directory ==="
           ls -la packages/ 2>/dev/null || echo "No packages directory"
@@ -241,26 +247,30 @@ jobs:
       - name: Create bundle DMG (macOS)
         if: matrix.platform == 'macos'
         shell: bash
+        env:
+          BUILD_DIR: build/presets/${{ matrix.preset }}
         run: |
           chmod +x ./scripts/create-macos-bundle.sh
           ./scripts/create-macos-bundle.sh ${{ needs.release-preflight.outputs.version_plain }} yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle || true
           if [ -f "yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle.dmg" ]; then
-            mkdir -p build/packages
-            mv yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle.dmg build/packages/
+            mkdir -p "$BUILD_DIR/packages"
+            mv yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle.dmg "$BUILD_DIR/packages/"
           fi
 
       - name: Validate macOS artifacts
         if: matrix.platform == 'macos'
         shell: bash
+        env:
+          BUILD_DIR: build/presets/${{ matrix.preset }}
         run: |
           chmod +x scripts/release/validate-dmg.sh
           echo "=== Checking for DMG files ==="
-          ls -la build/packages/ || echo "packages directory doesn't exist"
+          ls -la "$BUILD_DIR/packages/" || echo "packages directory doesn't exist"
 
           shopt -s nullglob
-          dmg_files=(build/packages/yaze-*-Darwin*.dmg build/packages/yaze-*-macos*.dmg)
+          dmg_files=("$BUILD_DIR"/packages/yaze-*-Darwin*.dmg "$BUILD_DIR"/packages/yaze-*-macos*.dmg)
           if [[ ${#dmg_files[@]} -eq 0 ]]; then
-            echo "No macOS DMG files found in build/packages/"
+            echo "No macOS DMG files found in $BUILD_DIR/packages/"
             exit 1
           fi
 
@@ -270,7 +280,7 @@ jobs:
             fi
           done
 
-          bundle_dmgs=(build/packages/yaze-*-bundle.dmg)
+          bundle_dmgs=("$BUILD_DIR"/packages/yaze-*-bundle.dmg)
           if [[ -e "${bundle_dmgs[0]}" ]]; then
             for dmg in "${bundle_dmgs[@]}"; do
               if [[ -f "$dmg" ]]; then
@@ -286,7 +296,7 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          cd build
+          cd "build/presets/${{ matrix.preset }}"
           # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
           $nl = [Environment]::NewLine
           $content = Get-Content cmake_install.cmake -Raw
@@ -298,7 +308,7 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          cd build
+          cd "build/presets/${{ matrix.preset }}"
           cpack
           Write-Host "=== Contents of packages directory ==="
           Get-ChildItem packages -ErrorAction SilentlyContinue
@@ -309,18 +319,19 @@ jobs:
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
-          $zips = Get-ChildItem -Path build/packages -Filter "*.zip" -ErrorAction SilentlyContinue
-          $exes = Get-ChildItem -Path build/packages -Filter "*.exe" -ErrorAction SilentlyContinue
+          $pkgDir = "build/presets/${{ matrix.preset }}/packages"
+          $zips = Get-ChildItem -Path $pkgDir -Filter "*.zip" -ErrorAction SilentlyContinue
+          $exes = Get-ChildItem -Path $pkgDir -Filter "*.exe" -ErrorAction SilentlyContinue
           if ($zips.Count -eq 0) {
-            Write-Host "No ZIP files found in build/packages/"
-            Write-Host "Contents of build/packages/:"
-            Get-ChildItem -Path build/packages -ErrorAction SilentlyContinue | Format-Table
+            Write-Host "No ZIP files found in $pkgDir/"
+            Write-Host "Contents of $pkgDir/:"
+            Get-ChildItem -Path $pkgDir -ErrorAction SilentlyContinue | Format-Table
             exit 1
           }
           if ($exes.Count -eq 0) {
-            Write-Host "No EXE files found in build/packages/"
-            Write-Host "Contents of build/packages/:"
-            Get-ChildItem -Path build/packages -ErrorAction SilentlyContinue | Format-Table
+            Write-Host "No EXE files found in $pkgDir/"
+            Write-Host "Contents of $pkgDir/:"
+            Get-ChildItem -Path $pkgDir -ErrorAction SilentlyContinue | Format-Table
             exit 1
           }
           foreach ($zip in $zips) {
@@ -333,11 +344,11 @@ jobs:
         with:
           name: yaze-${{ matrix.platform }}-${{ needs.release-preflight.outputs.version_tag }}
           path: |
-            build/packages/*.deb
-            build/packages/*.tar.gz
-            build/packages/*.dmg
-            build/packages/*.exe
-            build/packages/*.zip
+            build/presets/${{ matrix.preset }}/packages/*.deb
+            build/presets/${{ matrix.preset }}/packages/*.tar.gz
+            build/presets/${{ matrix.preset }}/packages/*.dmg
+            build/presets/${{ matrix.preset }}/packages/*.exe
+            build/presets/${{ matrix.preset }}/packages/*.zip
           if-no-files-found: warn
           retention-days: 30
 

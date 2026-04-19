@@ -59,7 +59,7 @@ jobs:
 
     - name: Build
       run: |
-        cmake --build build --config RelWithDebInfo --parallel $(nproc)
+        cmake --build --preset ci-linux --config RelWithDebInfo --parallel $(nproc)
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

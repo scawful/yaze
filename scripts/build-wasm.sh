@@ -44,17 +44,16 @@ done
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_ROOT="$DIR/.."
 
-# Set build directory and preset based on mode
+# Set preset based on mode. Build directory is derived from the preset's
+# binaryDir (${sourceDir}/build/presets/${presetName}).
 if [ "$BUILD_MODE" = "debug" ]; then
-    BUILD_DIR="$PROJECT_ROOT/build-wasm"
     CMAKE_PRESET="wasm-debug"
 elif [ "$BUILD_MODE" = "ai" ]; then
-    BUILD_DIR="$PROJECT_ROOT/build-wasm"
     CMAKE_PRESET="wasm-ai"
 else
-    BUILD_DIR="$PROJECT_ROOT/build-wasm"
     CMAKE_PRESET="wasm-release"
 fi
+BUILD_DIR="$PROJECT_ROOT/build/presets/$CMAKE_PRESET"
 
 # Check for emcmake
 if ! command -v emcmake &> /dev/null; then
@@ -64,7 +63,7 @@ if ! command -v emcmake &> /dev/null; then
 fi
 
 echo "=== Building YAZE for Web (WASM) - $BUILD_MODE mode ==="
-echo "Build directory: $BUILD_DIR (shared for debug/release/ai)"
+echo "Build directory: $BUILD_DIR (preset: $CMAKE_PRESET)"
 
 # Handle build directory based on flags
 if [ -d "$BUILD_DIR" ]; then
