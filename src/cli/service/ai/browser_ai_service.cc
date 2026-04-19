@@ -93,7 +93,11 @@ std::string NormalizeBrowserProvider(std::string provider) {
   if (provider == kProviderGoogle || provider == kProviderGoogleGemini) {
     return kProviderGemini;
   }
-  if (IsOpenAiCompatibleProvider(provider)) {
+  if (provider == kProviderLmStudioDashed) {
+    return kProviderLmStudio;
+  }
+  if (provider == kProviderCustomOpenAi ||
+      provider == kProviderOpenAiCompatible) {
     return kProviderOpenAi;
   }
   return provider;
@@ -144,18 +148,32 @@ void AddCurrentModelFallback(std::vector<ModelInfo>* models,
 BrowserAIService::BrowserAIService(
     const BrowserAIConfig& config,
     std::unique_ptr<net::IHttpClient> http_client)
-    : config_(config), http_client_(std::move(http_client)) {
+    : config_(config),
+      base_system_instruction_(config.system_instruction),
+      http_client_(std::move(http_client)) {
   // Normalize provider name
   config_.provider = NormalizeBrowserProvider(config_.provider);
   // Set sensible defaults per provider
   if (config_.provider == kProviderOpenAi) {
-    if (config_.model.empty())
+    if (config_.model.empty()) {
       config_.model = "gpt-4o-mini";
-    if (config_.api_base.empty())
+    }
+    if (config_.api_base.empty()) {
       config_.api_base = kOpenAIApiBaseUrl;
+    }
+  } else if (config_.provider == kProviderLmStudio) {
+    if (config_.api_base.empty()) {
+      config_.api_base = "http://localhost:1234/v1";
+    }
+  } else if (config_.provider == kProviderHalext ||
+             config_.provider == kProviderAfsBridge) {
+    if (config_.api_base.empty()) {
+      config_.api_base = "https://halext.org/v1";
+    }
   } else {
-    if (config_.model.empty())
+    if (config_.model.empty()) {
       config_.model = "gemini-2.5-flash";
+    }
   }
 
   if (!http_client_) {
@@ -175,13 +193,20 @@ BrowserAIService::BrowserAIService(
 void BrowserAIService::SetRomContext(Rom* rom) {
   std::lock_guard<std::mutex> lock(mutex_);
   rom_ = rom;
+  config_.system_instruction = base_system_instruction_;
   if (rom_ && rom_->is_loaded()) {
-    // Add ROM-specific context to system instruction
-    config_.system_instruction = absl::StrFormat(
-        "You are assisting with ROM hacking for The Legend of Zelda: A Link to "
-        "the Past. "
-        "The ROM file '%s' is currently loaded. %s",
-        rom_->filename(), config_.system_instruction);
+    const std::string rom_context = absl::StrFormat(
+        "The ROM file '%s' is currently loaded. Tailor advice to the active "
+        "project and loaded data.",
+        rom_->filename());
+    if (config_.system_instruction.empty()) {
+      config_.system_instruction =
+          "You are assisting with ROM hacking for a Zelda SNES project. " +
+          rom_context;
+    } else {
+      config_.system_instruction =
+          config_.system_instruction + "\n\n" + rom_context;
+    }
   }
 }
 
@@ -193,10 +218,10 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   }
 
   if (RequiresApiKey() && config_.api_key.empty()) {
-    if (config_.provider == kProviderOpenAi) {
+    if (IsOpenAiCompatibleProvider(config_.provider)) {
       return absl::InvalidArgumentError(
-          "OpenAI API key not set. Provide a key for https://api.openai.com, "
-          "or use a local OpenAI-compatible endpoint.");
+          "OpenAI-compatible API key not set. Provide a key for remote "
+          "endpoints, or use a local OpenAI-compatible server.");
     }
     return absl::InvalidArgumentError(
         "API key not set. Please provide a Gemini API key.");
@@ -209,7 +234,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
 
   // Build request body
   std::string request_body;
-  if (config_.provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
     url = config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
     url += "/chat/completions";
     request_body = BuildOpenAIRequestBody(prompt, nullptr);
@@ -220,7 +245,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   // Set headers
   net::Headers headers;
   headers["Content-Type"] = "application/json";
-  if (config_.provider == kProviderOpenAi && !config_.api_key.empty()) {
+  if (IsOpenAiCompatibleProvider(config_.provider) &&
+      !config_.api_key.empty()) {
     headers["Authorization"] = "Bearer " + config_.api_key;
   }
 
@@ -246,7 +272,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   }
 
   // Parse response
-  if (config_.provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
     return ParseOpenAIResponse(response.body);
   }
   return ParseGeminiResponse(response.body);
@@ -260,10 +286,10 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   }
 
   if (RequiresApiKey() && config_.api_key.empty()) {
-    if (config_.provider == kProviderOpenAi) {
+    if (IsOpenAiCompatibleProvider(config_.provider)) {
       return absl::InvalidArgumentError(
-          "OpenAI API key not set. Provide a key for https://api.openai.com, "
-          "or use a local OpenAI-compatible endpoint.");
+          "OpenAI-compatible API key not set. Provide a key for remote "
+          "endpoints, or use a local OpenAI-compatible server.");
     }
     return absl::InvalidArgumentError(
         "API key not set. Please provide a Gemini API key.");
@@ -280,7 +306,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   std::string url = BuildApiUrl("generateContent");
 
   std::string request_body;
-  if (config_.provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
     url = config_.api_base.empty() ? kOpenAIApiBaseUrl : config_.api_base;
     url += "/chat/completions";
     request_body = BuildOpenAIRequestBody("", &history);
@@ -306,7 +332,8 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   // Set headers
   net::Headers headers;
   headers["Content-Type"] = "application/json";
-  if (config_.provider == kProviderOpenAi && !config_.api_key.empty()) {
+  if (IsOpenAiCompatibleProvider(config_.provider) &&
+      !config_.api_key.empty()) {
     headers["Authorization"] = "Bearer " + config_.api_key;
   }
 
@@ -327,7 +354,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::GenerateResponse(
   }
 
   // Parse response
-  if (config_.provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
     return ParseOpenAIResponse(response.body);
   }
   return ParseGeminiResponse(response.body);
@@ -340,9 +367,11 @@ absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
   const std::string provider =
       config_.provider.empty() ? kProviderGemini : config_.provider;
 
-  if (provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(provider)) {
     const std::string base = GetOpenAIApiBase();
     const bool is_local = IsLikelyLocalApiBase(base);
+    const bool is_official_openai =
+        provider == kProviderOpenAi && base == kOpenAIApiBaseUrl;
     if (http_client_) {
       net::Headers headers;
       if (!config_.api_key.empty()) {
@@ -368,16 +397,16 @@ absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
             }
             models.push_back({.name = id,
                               .display_name = id,
-                              .provider = kProviderOpenAi,
+                              .provider = provider,
                               .description = description,
                               .family = InferModelFamily(id),
                               .is_local = is_local});
           }
           if (!models.empty()) {
-            AddCurrentModelFallback(
-                &models, kProviderOpenAi, config_.model, is_local,
-                is_local ? "Configured local model"
-                         : "Configured OpenAI-compatible model");
+            AddCurrentModelFallback(&models, provider, config_.model, is_local,
+                                    is_local
+                                        ? "Configured local model"
+                                        : "Configured OpenAI-compatible model");
             return models;
           }
         }
@@ -385,26 +414,26 @@ absl::StatusOr<std::vector<ModelInfo>> BrowserAIService::ListAvailableModels() {
     }
 
     if (!is_local || !config_.model.empty()) {
-      AddCurrentModelFallback(&models, kProviderOpenAi, config_.model, is_local,
+      AddCurrentModelFallback(&models, provider, config_.model, is_local,
                               is_local ? "Configured local model"
                                        : "Configured OpenAI-compatible model");
     }
-    if (!is_local) {
+    if (is_official_openai) {
       models.push_back({.name = "gpt-4o-mini",
                         .display_name = "GPT-4o Mini",
-                        .provider = kProviderOpenAi,
+                        .provider = provider,
                         .description = "Fast/cheap OpenAI model",
                         .family = "gpt-4o",
                         .is_local = false});
       models.push_back({.name = "gpt-4o",
                         .display_name = "GPT-4o",
-                        .provider = kProviderOpenAi,
+                        .provider = provider,
                         .description = "Balanced OpenAI flagship model",
                         .family = "gpt-4o",
                         .is_local = false});
       models.push_back({.name = "gpt-4.1-mini",
                         .display_name = "GPT-4.1 Mini",
-                        .provider = kProviderOpenAi,
+                        .provider = provider,
                         .description = "Lightweight 4.1 variant",
                         .family = "gpt-4.1",
                         .is_local = false});
@@ -451,9 +480,10 @@ absl::StatusOr<AgentResponse> BrowserAIService::AnalyzeImage(
     return absl::FailedPreconditionError("HTTP client not initialized");
   }
 
-  if (config_.provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
     return absl::UnimplementedError(
-        "Image analysis not yet supported for OpenAI in WASM build");
+        "Image analysis not yet supported for OpenAI-compatible providers in "
+        "the WASM build");
   }
 
   if (config_.api_key.empty()) {
@@ -526,7 +556,7 @@ absl::Status BrowserAIService::CheckAvailability() {
   net::Headers headers;
   std::string url;
 
-  if (config_.provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
     url = GetOpenAIApiBase();
     url += "/models";
     if (!config_.api_key.empty()) {
@@ -567,8 +597,8 @@ void BrowserAIService::UpdateApiKey(const std::string& api_key) {
 }
 
 bool BrowserAIService::RequiresApiKey() const {
-  if (config_.provider == kProviderOpenAi) {
-    return GetOpenAIApiBase() == kOpenAIApiBaseUrl;
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
+    return !IsLikelyLocalApiBase(GetOpenAIApiBase());
   }
   return true;
 }
@@ -583,7 +613,7 @@ std::string BrowserAIService::GetOpenAIApiBase() const {
 }
 
 std::string BrowserAIService::BuildApiUrl(const std::string& endpoint) const {
-  if (config_.provider == kProviderOpenAi) {
+  if (IsOpenAiCompatibleProvider(config_.provider)) {
     std::string base = GetOpenAIApiBase();
     return absl::StrFormat("%s/%s", base, endpoint);
   }
@@ -768,7 +798,7 @@ absl::StatusOr<AgentResponse> BrowserAIService::ParseOpenAIResponse(
 
     AgentResponse response;
     response.text_response = text;
-    response.provider = kProviderOpenAi;
+    response.provider = config_.provider;
     response.model = config_.model;
     return response;
   } catch (const nlohmann::json::exception& e) {
