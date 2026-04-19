@@ -66,6 +66,20 @@ class WelcomeScreen {
   }
 
   /**
+   * @brief Open the graphics editor focused on prototype research (no ROM).
+   */
+  void SetOpenPrototypeResearchCallback(std::function<void()> callback) {
+    open_prototype_research_callback_ = std::move(callback);
+  }
+
+  /**
+   * @brief Open the assembly editor for file/folder work (no ROM required).
+   */
+  void SetOpenAssemblyEditorNoRomCallback(std::function<void()> callback) {
+    open_assembly_editor_no_rom_callback_ = std::move(callback);
+  }
+
+  /**
    * @brief Set callback for opening the project file dialog
    */
   void SetOpenProjectDialogCallback(std::function<void()> callback) {
@@ -168,6 +182,8 @@ class WelcomeScreen {
   std::function<void(const std::string&)> open_project_callback_;
   std::function<void(const std::string&)> new_project_with_template_callback_;
   std::function<void()> open_agent_callback_;
+  std::function<void()> open_prototype_research_callback_;
+  std::function<void()> open_assembly_editor_no_rom_callback_;
   std::function<void()> open_project_dialog_callback_;
   std::function<void()> open_project_management_callback_;
   std::function<void()> open_project_file_editor_callback_;

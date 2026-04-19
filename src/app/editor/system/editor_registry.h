@@ -30,6 +30,11 @@ class EditorRegistry {
 
   // Editor type management (static methods for global access)
   static bool IsPanelBasedEditor(EditorType type);
+  /**
+   * Editors that can Initialize()/Update() on an active session before a ROM
+   * is loaded (e.g. Graphics prototype lab, Assembly folder editing).
+   */
+  static bool UpdateAllowedWithoutLoadedRom(EditorType type);
   static std::string GetEditorName(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);

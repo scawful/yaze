@@ -819,8 +819,11 @@ void WelcomeScreen::DrawFirstRunGuide() {
   numbered_step(
       3, ICON_MD_EDIT, "Open an editor",
       "Use the left sidebar to jump into the overworld, a dungeon, or "
-      "the graphics editor. Changes live in the editor until you save — "
-      "nothing touches the ROM until you click Save.");
+      "the graphics editor. Quick Actions below can open \"Prototype "
+      "Research\" "
+      "or the assembly editor without a ROM (CGX/SCR imports or asm files). "
+      "Changes live in the editor until you save — nothing touches the ROM "
+      "until you click Save.");
 
   ImGui::Separator();
   ImGui::Spacing();
@@ -851,7 +854,10 @@ void WelcomeScreen::DrawQuickActions() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        "Open a ROM or project, then create a project when you need metadata.");
+        "Open a ROM or project when you are ready to hack a cartridge — or "
+        "jump "
+        "into Prototype Research or the assembly editor first without any "
+        "ROM.");
   }
   const auto& entries = recent_projects_model_.entries();
   size_t rom_count = 0;
@@ -921,6 +927,38 @@ void WelcomeScreen::DrawQuickActions() {
   }
 
   ImGui::Spacing();
+
+  if (open_prototype_research_callback_) {
+    if (draw_action_button(ICON_MD_CONSTRUCTION, "Prototype Research (no ROM)",
+                           kMasterSwordBlue, true,
+                           open_prototype_research_callback_)) {
+      // Handled by callback
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          ICON_MD_INFO
+          " Opens the Graphics editor with the prototype import lab — CGX, "
+          "SCR, "
+          "COL, BIN, and clipboard tools work without loading a ROM.");
+    }
+    ImGui::Spacing();
+  }
+
+  if (open_assembly_editor_no_rom_callback_) {
+    if (draw_action_button(ICON_MD_CODE, "Assembly Editor (no ROM)",
+                           kTriforceGold, true,
+                           open_assembly_editor_no_rom_callback_)) {
+      // Handled by callback
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          ICON_MD_INFO
+          " Opens the Assembly editor — open a folder or files and work on asm "
+          "without loading a ROM. ROM-backed disassembly stays disabled until "
+          "you load a cart.");
+    }
+    ImGui::Spacing();
+  }
 
   const RecentProject* last_recent = nullptr;
   for (const auto& recent : recent_projects_model_.entries()) {

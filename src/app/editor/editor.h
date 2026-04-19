@@ -10,15 +10,15 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_manager.h"
-#include "app/editor/ui/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
+#include "app/editor/ui/popup_manager.h"
 
 // Forward declaration in yaze::core namespace
 namespace yaze {
 namespace core {
 class VersionManager;
 }
-}
+}  // namespace yaze
 
 namespace yaze {
 
@@ -44,6 +44,7 @@ struct GameData;
 namespace editor {
 
 // Forward declarations
+struct GfxGroupWorkspaceState;
 class GlobalEditorContext;
 class WorkspaceWindowManager;
 class ToastManager;
@@ -168,6 +169,8 @@ struct EditorDependencies {
   core::VersionManager* version_manager = nullptr;
   GlobalEditorContext* global_context = nullptr;
   size_t session_id = 0;
+  /** When set (EditorSet per ROM session), Gfx group selection UI is shared. */
+  GfxGroupWorkspaceState* gfx_group_workspace = nullptr;
 
   // --- UI-layer dependencies ---
   WorkspaceWindowManager* window_manager = nullptr;
@@ -186,10 +189,11 @@ struct EditorDependencies {
 
   // Extract sub-structs for passing to components that only need a subset.
   CoreDependencies GetCoreDeps() const {
-    return {rom, game_data, project, version_manager, global_context, session_id};
+    return {rom,       game_data, project, version_manager, global_context,
+            session_id};
   }
   UIDependencies GetUIDeps() const {
-    return {window_manager, toast_manager, undo_manager, popup_manager,
+    return {window_manager,   toast_manager,    undo_manager,  popup_manager,
             shortcut_manager, shared_clipboard, user_settings, status_bar};
   }
 
