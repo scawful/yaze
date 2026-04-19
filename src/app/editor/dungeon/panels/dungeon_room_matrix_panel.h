@@ -66,6 +66,7 @@ class DungeonRoomMatrixPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_GRID_VIEW; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 30; }
+  float GetPreferredWidth() const override { return 440.0f; }
 
   void SetRoomIntentCallback(
       std::function<void(int, RoomSelectionIntent)> callback) {

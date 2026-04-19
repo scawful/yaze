@@ -61,6 +61,7 @@ class DungeonRoomGraphicsPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_IMAGE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 50; }
+  float GetPreferredWidth() const override { return 440.0f; }
 
   // ==========================================================================
   // WindowContent Drawing

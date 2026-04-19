@@ -78,7 +78,7 @@ class DungeonWorkbenchPanel : public WindowContent {
   void DrawSidebarPane(float width, float height, float button_size,
                        bool compact);
   void DrawSidebarHeader(float button_size, bool compact);
-  void DrawSidebarModeTabs(bool stacked);
+  void DrawSidebarModeTabs(bool stacked, float segment_height);
   void DrawSidebarContent();
   void DrawCanvasPane(float width, float height,
                       DungeonCanvasViewer* primary_viewer,
@@ -88,7 +88,7 @@ class DungeonWorkbenchPanel : public WindowContent {
                          bool compact, DungeonCanvasViewer* viewer);
   void DrawInspectorHeader(float button_size, bool compact);
   void DrawInspector(DungeonCanvasViewer& viewer);
-  void DrawInspectorPrimarySelector();
+  void DrawInspectorPrimarySelector(float segment_height);
   void DrawInspectorCompactSummary(DungeonCanvasViewer& viewer);
   void DrawInspectorShelf(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);

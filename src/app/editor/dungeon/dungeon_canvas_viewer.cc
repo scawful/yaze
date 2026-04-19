@@ -2232,6 +2232,24 @@ void DungeonCanvasViewer::DrawCompactLayerToggles(int room_id) {
       as_button_color(gui::ConvertColorToImVec4(theme.selection_primary), 0.9f),
       "Toggle object bounds overlay",
       [&]() { show_object_bounds_ = !show_object_bounds_; });
+
+  ImGui::SameLine();
+  const bool pots_visible = entity_visibility_.show_pot_items;
+  draw_toggle(ICON_MD_INVENTORY_2 "##LayerTogglePots", pots_visible,
+              as_button_color(gui::ConvertColorToImVec4(theme.success), 0.9f),
+              "Toggle pot item markers", [&]() {
+                entity_visibility_.show_pot_items =
+                    !entity_visibility_.show_pot_items;
+              });
+
+  ImGui::SameLine();
+  draw_toggle(
+      ICON_MD_FILTER_CENTER_FOCUS "##LayerToggleCollision",
+      show_custom_collision_overlay_,
+      as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
+      "Toggle custom collision overlay", [&]() {
+        show_custom_collision_overlay_ = !show_custom_collision_overlay_;
+      });
 }
 
 void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& /*room*/,
