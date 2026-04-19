@@ -7,7 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_loader.h"
-#include "app/editor/system/resource_panel.h"
+#include "app/editor/system/workspace/resource_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"

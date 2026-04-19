@@ -1,4 +1,4 @@
-#include "app/editor/dungeon/panels/object_tile_editor_panel.h"
+#include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"

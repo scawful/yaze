@@ -25,7 +25,7 @@ struct MinecartTrack {
 
 }  // namespace yaze::editor
 
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 
 namespace yaze::editor {
 

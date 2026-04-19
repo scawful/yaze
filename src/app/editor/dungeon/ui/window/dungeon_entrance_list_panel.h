@@ -5,7 +5,7 @@
 #include <string>
 
 #include "app/editor/dungeon/dungeon_room_selector.h"
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 
 namespace yaze {

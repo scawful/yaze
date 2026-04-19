@@ -4,7 +4,7 @@
 #include <functional>
 #include <string>
 
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"

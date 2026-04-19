@@ -7,7 +7,7 @@
 #include <string>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
-#include "app/editor/system/editor_panel.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"

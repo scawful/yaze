@@ -54,10 +54,10 @@ graph TD
 
 ### UI Components (WindowContents)
 Located across role-based folders under `src/app/editor/dungeon/`:
-*   **`panels/dungeon_room_panel.h`**: Container for a `DungeonCanvasViewer` representing a single open room.
+*   **`ui/window/dungeon_room_panel.h`**: Container for a `DungeonCanvasViewer` representing a single open room.
 *   **`workspace/room_matrix_content.h`**: A visual 16x19 grid for quick room navigation.
 *   **`workspace/room_graphics_content.h`**: Displays the graphics blockset (tiles) used by the current room.
-*   **`panels/dungeon_entrances_panel.h`**: Editor for dungeon entrance properties (positions, camera triggers).
+*   **`ui/window/dungeon_entrances_panel.h`**: Editor for dungeon entrance properties (positions, camera triggers).
 
 ## Key Connections & Dependencies
 

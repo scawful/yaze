@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_PANEL_ACCESS_H
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_PANEL_ACCESS_H
 
-#include "app/editor/core/window_context.h"
+#include "app/editor/registry/window_context.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
 namespace yaze::editor {
