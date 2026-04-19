@@ -73,4 +73,48 @@ TEST(RoomGraphicsPaletteTest, CopyRoomGraphicsToBuffer_ShiftsRightPaletteBlocks)
   EXPECT_EQ(gfx[8 * 4096 + 2], 7);
 }
 
+TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteIncludesHudRows) {
+  gfx::SnesPalette hud_palette;
+  for (int i = 0; i < 32; ++i) {
+    hud_palette.AddColor(gfx::SnesColor(i, i + 1, i + 2));
+  }
+
+  gfx::SnesPalette dungeon_palette;
+  for (int i = 0; i < 90; ++i) {
+    dungeon_palette.AddColor(gfx::SnesColor(i + 32, i + 33, i + 34));
+  }
+
+  const auto colors =
+      BuildDungeonRenderPalette(dungeon_palette, &hud_palette);
+
+  ASSERT_EQ(colors.size(), 256u);
+
+  // HUD rows 0-1 occupy indices 0..31 directly.
+  EXPECT_EQ(colors[0].r, 0);
+  EXPECT_EQ(colors[0].g, 1);
+  EXPECT_EQ(colors[0].b, 2);
+  EXPECT_EQ(colors[16].r, 16);
+  EXPECT_EQ(colors[16].g, 17);
+  EXPECT_EQ(colors[16].b, 18);
+  EXPECT_EQ(colors[31].r, 31);
+  EXPECT_EQ(colors[31].g, 32);
+  EXPECT_EQ(colors[31].b, 33);
+
+  // Dungeon banks start at CGRAM row 2 col 1, so row-start slots remain empty.
+  EXPECT_EQ(colors[32].a, 0);
+  EXPECT_EQ(colors[33].r, 32);
+  EXPECT_EQ(colors[33].g, 33);
+  EXPECT_EQ(colors[33].b, 34);
+  EXPECT_EQ(colors[47].r, 46);
+  EXPECT_EQ(colors[47].g, 47);
+  EXPECT_EQ(colors[47].b, 48);
+  EXPECT_EQ(colors[48].a, 0);
+  EXPECT_EQ(colors[49].r, 47);
+  EXPECT_EQ(colors[49].g, 48);
+  EXPECT_EQ(colors[49].b, 49);
+
+  // Undrawn fill color remains transparent.
+  EXPECT_EQ(colors[255].a, 0);
+}
+
 }  // namespace yaze::zelda3::test

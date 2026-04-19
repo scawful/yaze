@@ -31,6 +31,15 @@ namespace zelda3 {
 class DungeonState;
 class RoomLayerManager;
 
+std::vector<SDL_Color> BuildDungeonRenderPalette(
+    const gfx::SnesPalette& dungeon_palette,
+    const gfx::SnesPalette* hud_palette = nullptr);
+
+void LoadDungeonRenderPaletteToCgram(std::span<uint16_t> cgram,
+                                     const gfx::SnesPalette& dungeon_palette,
+                                     const gfx::SnesPalette* hud_palette =
+                                         nullptr);
+
 // ROM addresses defined in dungeon_rom_addresses.h (use kPrefixed names)
 
 struct LayerMergeType {
