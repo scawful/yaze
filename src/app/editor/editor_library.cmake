@@ -32,11 +32,11 @@ set(
   app/editor/dungeon/interaction/tile_object_handler.cc
   app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/interaction/interaction_mode.cc
-  app/editor/dungeon/panels/dungeon_room_graphics_panel.cc
+  app/editor/dungeon/workspace/room_graphics_content.cc
   app/editor/dungeon/panels/dungeon_settings_panel.cc
-  app/editor/dungeon/panels/dungeon_workbench_panel.cc
-  app/editor/dungeon/panels/dungeon_door_editor_panel.cc
-  app/editor/dungeon/panels/object_editor_panel.cc
+  app/editor/dungeon/workspace/dungeon_workbench_content.cc
+  app/editor/dungeon/inspectors/door_editor_content.cc
+  app/editor/dungeon/selectors/object_selector_content.cc
   app/editor/dungeon/panels/object_tile_editor_panel.cc
   app/editor/dungeon/panels/minecart_track_editor_panel.cc
   app/editor/dungeon/panels/room_tag_editor_panel.cc
@@ -44,15 +44,16 @@ set(
   app/editor/session_types.cc
   app/editor/system/default_editor_factories.cc
   app/editor/system/hack_manifest_save_validation.cc
+  app/editor/graphics/browser/sheet_browser_view.cc
+  app/editor/graphics/editing/pixel_editor_view.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
-  app/editor/graphics/link_sprite_panel.cc
   app/editor/graphics/polyhedral_editor_panel.cc
-  app/editor/graphics/palette_controls_panel.cc
-  app/editor/graphics/paletteset_editor_panel.cc
-  app/editor/graphics/pixel_editor_panel.cc
+  app/editor/graphics/palette/palette_controls_view.cc
+  app/editor/graphics/palette/paletteset_editor_view.cc
+  app/editor/graphics/research/prototype_research_view.cc
   app/editor/graphics/screen_editor.cc
-  app/editor/graphics/sheet_browser_panel.cc
+  app/editor/graphics/sprite/link_sprite_view.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
@@ -80,17 +81,17 @@ set(
   app/editor/overworld/overworld_sidebar.cc
   app/editor/overworld/overworld_toolbar.cc
   app/editor/overworld/panels/area_graphics_panel.cc
-  app/editor/overworld/panels/tile16_selector_panel.cc
+  app/editor/overworld/ui/tiles/tile16_selector_view.cc
   app/editor/overworld/panels/map_properties_panel.cc
-  app/editor/overworld/panels/overworld_canvas_panel.cc
+  app/editor/overworld/ui/canvas/overworld_canvas_view.cc
   app/editor/overworld/panels/scratch_space_panel.cc
   app/editor/overworld/panels/usage_statistics_panel.cc
   app/editor/overworld/panels/overworld_item_list_panel.cc
-  app/editor/overworld/panels/tile8_selector_panel.cc
+  app/editor/overworld/ui/tiles/tile8_selector_view.cc
   app/editor/overworld/panels/debug_window_panel.cc
   app/editor/overworld/panels/gfx_groups_panel.cc
   app/editor/overworld/panels/v3_settings_panel.cc
-  app/editor/overworld/panels/tile16_editor_panel.cc
+  app/editor/overworld/ui/tiles/tile16_editor_view.cc
   app/editor/overworld/scratch_space.cc
   app/editor/overworld/tile16_editor.cc
   app/editor/overworld/tile_painting_manager.cc

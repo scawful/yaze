@@ -26,9 +26,9 @@
 #include "dungeon_room_store.h"
 #include "dungeon_undo_actions.h"
 #include "imgui/imgui.h"
-#include "panels/dungeon_door_editor_panel.h"
-#include "panels/dungeon_room_graphics_panel.h"
-#include "panels/object_editor_panel.h"
+#include "inspectors/door_editor_content.h"
+#include "selectors/object_selector_content.h"
+#include "workspace/room_graphics_content.h"
 #include "rom/rom.h"
 #include "util/lru_cache.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
@@ -204,10 +204,10 @@ class DungeonEditorV2 : public Editor {
   DungeonRoomStore& rooms() { return rooms_; }
   const DungeonRoomStore& rooms() const { return rooms_; }
   gfx::IRenderer* renderer() const { return renderer_; }
-  ObjectEditorPanel* object_editor_panel() const {
+  ObjectSelectorContent* object_editor_panel() const {
     return object_editor_panel_;
   }
-  DungeonDoorEditorPanel* door_editor_panel() const { return door_editor_panel_; }
+  DoorEditorContent* door_editor_panel() const { return door_editor_panel_; }
 
   /**
    * @brief Get the list of recently visited room IDs
@@ -279,7 +279,7 @@ class DungeonEditorV2 : public Editor {
   std::vector<int> pinned_rooms_;
 
   // Workbench panel pointer (owned by WorkspaceWindowManager, stored for notifications).
-  class DungeonWorkbenchPanel* workbench_panel_ = nullptr;
+  class DungeonWorkbenchContent* workbench_panel_ = nullptr;
 
   // Palette management
   gfx::SnesPalette current_palette_;
@@ -299,9 +299,9 @@ class DungeonEditorV2 : public Editor {
   gui::PaletteEditorWidget palette_editor_;
   // Panel pointers - these are owned by WorkspaceWindowManager when available.
   // Store pointers for direct access to panel methods.
-  ObjectEditorPanel* object_editor_panel_ = nullptr;
-  DungeonDoorEditorPanel* door_editor_panel_ = nullptr;
-  DungeonRoomGraphicsPanel* room_graphics_panel_ = nullptr;
+  ObjectSelectorContent* object_editor_panel_ = nullptr;
+  DoorEditorContent* door_editor_panel_ = nullptr;
+  RoomGraphicsContent* room_graphics_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
@@ -314,8 +314,8 @@ class DungeonEditorV2 : public Editor {
 
   // Fallback ownership for tests when WorkspaceWindowManager is not available.
   // In production, this remains nullptr and panels are owned by WorkspaceWindowManager.
-  std::unique_ptr<ObjectEditorPanel> owned_object_editor_panel_;
-  std::unique_ptr<DungeonDoorEditorPanel> owned_door_editor_panel_;
+  std::unique_ptr<ObjectSelectorContent> owned_object_editor_panel_;
+  std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 

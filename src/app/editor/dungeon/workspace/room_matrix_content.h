@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_MATRIX_PANEL_H_
-#define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_MATRIX_PANEL_H_
+#ifndef YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_MATRIX_CONTENT_H_
+#define YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_MATRIX_CONTENT_H_
 
 #include <array>
 #include <cctype>
@@ -25,7 +25,7 @@ namespace yaze {
 namespace editor {
 
 /**
- * @class DungeonRoomMatrixPanel
+ * @class RoomMatrixContent
  * @brief WindowContent for displaying a visual 16x19 grid of all dungeon rooms
  *
  * This panel provides a compact overview of all 296 dungeon rooms in a matrix
@@ -38,7 +38,7 @@ namespace editor {
  *
  * @see WindowContent - Base interface
  */
-class DungeonRoomMatrixPanel : public WindowContent {
+class RoomMatrixContent : public WindowContent {
  public:
   /**
    * @brief Construct a room matrix panel
@@ -47,10 +47,10 @@ class DungeonRoomMatrixPanel : public WindowContent {
    * @param on_room_selected Callback when a room is clicked
    * @param rooms Optional pointer to room array for palette-based coloring
    */
-  DungeonRoomMatrixPanel(int* current_room_id, ImVector<int>* active_rooms,
-                         std::function<void(int)> on_room_selected,
-                         std::function<void(int, int)> on_room_swap = nullptr,
-                         DungeonRoomStore* rooms = nullptr)
+  RoomMatrixContent(int* current_room_id, ImVector<int>* active_rooms,
+                    std::function<void(int)> on_room_selected,
+                    std::function<void(int, int)> on_room_swap = nullptr,
+                    DungeonRoomStore* rooms = nullptr)
       : current_room_id_(current_room_id),
         active_rooms_(active_rooms),
         rooms_(rooms),
@@ -590,4 +590,4 @@ class DungeonRoomMatrixPanel : public WindowContent {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_MATRIX_PANEL_H_
+#endif  // YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_MATRIX_CONTENT_H_

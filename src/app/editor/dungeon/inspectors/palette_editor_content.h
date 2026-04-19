@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_PALETTE_EDITOR_PANEL_H_
-#define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_PALETTE_EDITOR_PANEL_H_
+#ifndef YAZE_APP_EDITOR_DUNGEON_INSPECTORS_PALETTE_EDITOR_CONTENT_H_
+#define YAZE_APP_EDITOR_DUNGEON_INSPECTORS_PALETTE_EDITOR_CONTENT_H_
 
 #include <string>
 
@@ -11,7 +11,7 @@ namespace yaze {
 namespace editor {
 
 /**
- * @class DungeonPaletteEditorPanel
+ * @class PaletteEditorContent
  * @brief WindowContent wrapper for PaletteEditorWidget in dungeon context
  *
  * This panel provides palette editing specifically for dungeon rooms,
@@ -20,9 +20,9 @@ namespace editor {
  * @see PaletteEditorWidget - The underlying component
  * @see WindowContent - Base interface
  */
-class DungeonPaletteEditorPanel : public WindowContent {
+class PaletteEditorContent : public WindowContent {
  public:
-  explicit DungeonPaletteEditorPanel(gui::PaletteEditorWidget* palette_editor)
+  explicit PaletteEditorContent(gui::PaletteEditorWidget* palette_editor)
       : palette_editor_(palette_editor) {}
 
   // ==========================================================================
@@ -68,4 +68,4 @@ class DungeonPaletteEditorPanel : public WindowContent {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_PALETTE_EDITOR_PANEL_H_
+#endif  // YAZE_APP_EDITOR_DUNGEON_INSPECTORS_PALETTE_EDITOR_CONTENT_H_

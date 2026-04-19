@@ -1,5 +1,5 @@
 // Related header
-#include "object_editor_panel.h"
+#include "object_selector_content.h"
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
@@ -32,7 +32,7 @@
 namespace yaze {
 namespace editor {
 
-ObjectEditorPanel::ObjectEditorPanel(
+ObjectSelectorContent::ObjectSelectorContent(
     gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
     std::shared_ptr<zelda3::DungeonObjectEditor> object_editor)
     : renderer_(renderer),
@@ -70,7 +70,7 @@ ObjectEditorPanel::ObjectEditorPanel(
   SetupSelectionCallbacks();
 }
 
-void ObjectEditorPanel::SetupSelectionCallbacks() {
+void ObjectSelectorContent::SetupSelectionCallbacks() {
   if (!canvas_viewer_ || selection_callbacks_setup_)
     return;
 
@@ -80,7 +80,7 @@ void ObjectEditorPanel::SetupSelectionCallbacks() {
   selection_callbacks_setup_ = true;
 }
 
-DungeonCanvasViewer* ObjectEditorPanel::ResolveCanvasViewer() {
+DungeonCanvasViewer* ObjectSelectorContent::ResolveCanvasViewer() {
   if (canvas_viewer_provider_) {
     DungeonCanvasViewer* resolved = canvas_viewer_provider_();
     if (resolved != canvas_viewer_) {
@@ -92,7 +92,7 @@ DungeonCanvasViewer* ObjectEditorPanel::ResolveCanvasViewer() {
   return canvas_viewer_;
 }
 
-void ObjectEditorPanel::OnSelectionChanged() {
+void ObjectSelectorContent::OnSelectionChanged() {
   auto* viewer = ResolveCanvasViewer();
   if (!viewer)
     return;
@@ -113,7 +113,7 @@ void ObjectEditorPanel::OnSelectionChanged() {
   }
 }
 
-void ObjectEditorPanel::Draw(bool* p_open) {
+void ObjectSelectorContent::Draw(bool* p_open) {
   (void)p_open;
   ResolveCanvasViewer();
 
@@ -231,16 +231,16 @@ void ObjectEditorPanel::Draw(bool* p_open) {
   HandleKeyboardShortcuts();
 }
 
-void ObjectEditorPanel::SelectObject(int obj_id) {
+void ObjectSelectorContent::SelectObject(int obj_id) {
   object_selector_.SelectObject(obj_id);
 }
 
-void ObjectEditorPanel::SetAgentOptimizedLayout(bool enabled) {
+void ObjectSelectorContent::SetAgentOptimizedLayout(bool enabled) {
   // In agent mode, we might force tabs open or change layout
   (void)enabled;
 }
 
-void ObjectEditorPanel::SetPlacementError(const std::string& message) {
+void ObjectSelectorContent::SetPlacementError(const std::string& message) {
   // Avoid refreshing the timer for repeated identical errors; keeps the
   // message stable during rapid blocked clicks.
   if (message == last_placement_error_ && placement_error_time_ >= 0.0) {
@@ -253,12 +253,12 @@ void ObjectEditorPanel::SetPlacementError(const std::string& message) {
   placement_error_time_ = ImGui::GetTime();
 }
 
-void ObjectEditorPanel::DrawObjectSelector() {
+void ObjectSelectorContent::DrawObjectSelector() {
   // Delegate to the DungeonObjectSelector component
   object_selector_.DrawObjectAssetBrowser();
 }
 
-void ObjectEditorPanel::DrawInteractionSummary() {
+void ObjectSelectorContent::DrawInteractionSummary() {
   const auto& theme = AgentUI::GetTheme();
   auto* viewer = ResolveCanvasViewer();
   const size_t selection_count =
@@ -311,7 +311,7 @@ void ObjectEditorPanel::DrawInteractionSummary() {
   }
 }
 
-void ObjectEditorPanel::DrawObjectEditorSection() {
+void ObjectSelectorContent::DrawObjectEditorSection() {
   const auto& theme = AgentUI::GetTheme();
   gui::SectionHeader(ICON_MD_TUNE, "Object Editor", theme.text_info);
   DrawSelectedObjectInfo();
@@ -320,7 +320,7 @@ void ObjectEditorPanel::DrawObjectEditorSection() {
   }
 }
 
-void ObjectEditorPanel::DrawSelectedObjectInfo() {
+void ObjectSelectorContent::DrawSelectedObjectInfo() {
   const auto& theme = AgentUI::GetTheme();
   auto* viewer = ResolveCanvasViewer();
 
@@ -382,7 +382,7 @@ void ObjectEditorPanel::DrawSelectedObjectInfo() {
 // Static Object Editor (opened via double-click)
 // =============================================================================
 
-void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
+void ObjectSelectorContent::OpenStaticObjectEditor(int object_id) {
   static_editor_open_ = true;
   static_editor_object_id_ = object_id;
   static_preview_rendered_ = false;
@@ -481,7 +481,7 @@ void ObjectEditorPanel::OpenStaticObjectEditor(int object_id) {
   }
 }
 
-void ObjectEditorPanel::CloseStaticObjectEditor() {
+void ObjectSelectorContent::CloseStaticObjectEditor() {
   static_editor_open_ = false;
   static_editor_object_id_ = -1;
 
@@ -489,7 +489,7 @@ void ObjectEditorPanel::CloseStaticObjectEditor() {
   object_selector_.SetStaticEditorObjectId(-1);
 }
 
-void ObjectEditorPanel::DrawStaticObjectEditor() {
+void ObjectSelectorContent::DrawStaticObjectEditor() {
   const auto& theme = AgentUI::GetTheme();
 
   gui::StyleColorGuard header_colors({
@@ -648,7 +648,7 @@ void ObjectEditorPanel::DrawStaticObjectEditor() {
 // Room Validation Bar
 // =============================================================================
 
-void ObjectEditorPanel::DrawRoomValidationBar() {
+void ObjectSelectorContent::DrawRoomValidationBar() {
   auto* rooms = object_selector_.get_rooms();
   if (!rooms || current_room_id_ < 0 ||
       current_room_id_ >= zelda3::kNumberOfRooms) {
@@ -741,7 +741,7 @@ void ObjectEditorPanel::DrawRoomValidationBar() {
 // Keyboard Shortcut Help
 // =============================================================================
 
-void ObjectEditorPanel::DrawKeyboardShortcutHelp() {
+void ObjectSelectorContent::DrawKeyboardShortcutHelp() {
   if (!show_shortcut_help_) {
     return;
   }
@@ -793,7 +793,7 @@ void ObjectEditorPanel::DrawKeyboardShortcutHelp() {
 // Keyboard Shortcuts
 // =============================================================================
 
-void ObjectEditorPanel::HandleKeyboardShortcuts() {
+void ObjectSelectorContent::HandleKeyboardShortcuts() {
   if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
     return;
   }
@@ -893,7 +893,7 @@ void ObjectEditorPanel::HandleKeyboardShortcuts() {
   }
 }
 
-void ObjectEditorPanel::CancelPlacement() {
+void ObjectSelectorContent::CancelPlacement() {
   has_preview_object_ = false;
   if (canvas_viewer_) {
     canvas_viewer_->ClearPreviewObject();
@@ -901,7 +901,7 @@ void ObjectEditorPanel::CancelPlacement() {
   }
 }
 
-void ObjectEditorPanel::SelectAllObjects() {
+void ObjectSelectorContent::SelectAllObjects() {
   if (!canvas_viewer_ || !object_editor_)
     return;
 
@@ -916,13 +916,13 @@ void ObjectEditorPanel::SelectAllObjects() {
   interaction.SetSelectedObjects(all_indices);
 }
 
-void ObjectEditorPanel::DeselectAllObjects() {
+void ObjectSelectorContent::DeselectAllObjects() {
   if (!canvas_viewer_)
     return;
   canvas_viewer_->object_interaction().ClearSelection();
 }
 
-void ObjectEditorPanel::DeleteSelectedObjects() {
+void ObjectSelectorContent::DeleteSelectedObjects() {
   if (!object_editor_ || !canvas_viewer_)
     return;
 
@@ -941,7 +941,7 @@ void ObjectEditorPanel::DeleteSelectedObjects() {
   PerformDelete();
 }
 
-void ObjectEditorPanel::PerformDelete() {
+void ObjectSelectorContent::PerformDelete() {
   if (!object_editor_ || !canvas_viewer_)
     return;
 
@@ -962,7 +962,7 @@ void ObjectEditorPanel::PerformDelete() {
   interaction.ClearSelection();
 }
 
-void ObjectEditorPanel::DuplicateSelectedObjects() {
+void ObjectSelectorContent::DuplicateSelectedObjects() {
   if (!object_editor_ || !canvas_viewer_)
     return;
 
@@ -984,7 +984,7 @@ void ObjectEditorPanel::DuplicateSelectedObjects() {
   interaction.SetSelectedObjects(new_indices);
 }
 
-void ObjectEditorPanel::CopySelectedObjects() {
+void ObjectSelectorContent::CopySelectedObjects() {
   if (!object_editor_ || !canvas_viewer_)
     return;
 
@@ -997,7 +997,7 @@ void ObjectEditorPanel::CopySelectedObjects() {
   object_editor_->CopySelectedObjects(selected);
 }
 
-void ObjectEditorPanel::PasteObjects() {
+void ObjectSelectorContent::PasteObjects() {
   if (!object_editor_ || !canvas_viewer_)
     return;
 
@@ -1008,7 +1008,7 @@ void ObjectEditorPanel::PasteObjects() {
   }
 }
 
-void ObjectEditorPanel::NudgeSelectedObjects(int dx, int dy) {
+void ObjectSelectorContent::NudgeSelectedObjects(int dx, int dy) {
   if (!object_editor_ || !canvas_viewer_)
     return;
 
@@ -1023,7 +1023,7 @@ void ObjectEditorPanel::NudgeSelectedObjects(int dx, int dy) {
   }
 }
 
-void ObjectEditorPanel::CycleObjectSelection(int direction) {
+void ObjectSelectorContent::CycleObjectSelection(int direction) {
   if (!canvas_viewer_ || !object_editor_)
     return;
 
@@ -1042,7 +1042,7 @@ void ObjectEditorPanel::CycleObjectSelection(int direction) {
   ScrollToObject(next_idx);
 }
 
-void ObjectEditorPanel::ScrollToObject(size_t index) {
+void ObjectSelectorContent::ScrollToObject(size_t index) {
   if (!canvas_viewer_ || !object_editor_)
     return;
 

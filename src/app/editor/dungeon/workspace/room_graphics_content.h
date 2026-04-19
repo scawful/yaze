@@ -1,5 +1,5 @@
-#ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_GRAPHICS_PANEL_H_
-#define YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_GRAPHICS_PANEL_H_
+#ifndef YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_GRAPHICS_CONTENT_H_
+#define YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_GRAPHICS_CONTENT_H_
 
 #include <array>
 #include <string>
@@ -21,7 +21,7 @@ namespace editor {
 class DungeonEditorV2;
 
 /**
- * @class DungeonRoomGraphicsPanel
+ * @class RoomGraphicsContent
  * @brief WindowContent for displaying room graphics blocks
  *
  * This panel shows the graphics blocks used by the current room,
@@ -29,15 +29,15 @@ class DungeonEditorV2;
  *
  * @see WindowContent - Base interface
  */
-class DungeonRoomGraphicsPanel : public WindowContent {
+class RoomGraphicsContent : public WindowContent {
  public:
   // Default constructor for ContentRegistry self-registration
-  DungeonRoomGraphicsPanel()
+  RoomGraphicsContent()
       : room_gfx_canvas_("##RoomGfxCanvasPanel", ImVec2(256 + 1, 256 + 1)) {}
 
   // Legacy constructor for direct instantiation
-  DungeonRoomGraphicsPanel(int* current_room_id, DungeonRoomStore* rooms,
-                           gfx::IRenderer* renderer = nullptr)
+  RoomGraphicsContent(int* current_room_id, DungeonRoomStore* rooms,
+                      gfx::IRenderer* renderer = nullptr)
       : current_room_id_(current_room_id),
         rooms_(rooms),
         renderer_(renderer),
@@ -103,4 +103,4 @@ class DungeonRoomGraphicsPanel : public WindowContent {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ROOM_GRAPHICS_PANEL_H_
+#endif  // YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_GRAPHICS_CONTENT_H_

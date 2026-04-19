@@ -1,4 +1,4 @@
-#include "app/editor/dungeon/panels/dungeon_workbench_panel.h"
+#include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 
 #include <algorithm>
 #include <cctype>
@@ -229,7 +229,7 @@ bool DrawWorkbenchSegment(const char* label, bool selected, float width,
 
 }  // namespace
 
-DungeonWorkbenchPanel::DungeonWorkbenchPanel(
+DungeonWorkbenchContent::DungeonWorkbenchContent(
     DungeonRoomSelector* room_selector, int* current_room_id,
     std::function<void(int)> on_room_selected,
     std::function<void(int, RoomSelectionIntent)> on_room_selected_with_intent,
@@ -253,29 +253,29 @@ DungeonWorkbenchPanel::DungeonWorkbenchPanel(
       set_workflow_mode_(std::move(set_workflow_mode)),
       rom_(rom) {}
 
-std::string DungeonWorkbenchPanel::GetId() const {
+std::string DungeonWorkbenchContent::GetId() const {
   return "dungeon.workbench";
 }
-std::string DungeonWorkbenchPanel::GetDisplayName() const {
+std::string DungeonWorkbenchContent::GetDisplayName() const {
   return "Dungeon Workbench";
 }
-std::string DungeonWorkbenchPanel::GetIcon() const {
+std::string DungeonWorkbenchContent::GetIcon() const {
   return ICON_MD_WORKSPACES;
 }
-std::string DungeonWorkbenchPanel::GetEditorCategory() const {
+std::string DungeonWorkbenchContent::GetEditorCategory() const {
   return "Dungeon";
 }
-int DungeonWorkbenchPanel::GetPriority() const {
+int DungeonWorkbenchContent::GetPriority() const {
   return 10;
 }
 
-void DungeonWorkbenchPanel::SetRom(Rom* rom) {
+void DungeonWorkbenchContent::SetRom(Rom* rom) {
   rom_ = rom;
   room_dungeon_cache_.clear();
   room_dungeon_cache_built_ = false;
 }
 
-void DungeonWorkbenchPanel::DrawSidebarPane(float width, float height,
+void DungeonWorkbenchContent::DrawSidebarPane(float width, float height,
                                            float button_size, bool compact) {
   const bool sidebar_open =
       ImGui::BeginChild("##DungeonWorkbenchSidebar", ImVec2(width, height),
@@ -287,7 +287,8 @@ void DungeonWorkbenchPanel::DrawSidebarPane(float width, float height,
   ImGui::EndChild();
 }
 
-void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size, bool compact) {
+void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
+                                                bool compact) {
   gui::StyleVarGuard frame_padding_guard(
       ImGuiStyleVar_FramePadding,
       ImVec2(ImGui::GetStyle().FramePadding.x,
@@ -352,8 +353,8 @@ void DungeonWorkbenchPanel::DrawSidebarHeader(float button_size, bool compact) {
   ImGui::Separator();
 }
 
-void DungeonWorkbenchPanel::DrawSidebarModeTabs(bool stacked,
-                                                float segment_height) {
+void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
+                                                  float segment_height) {
   const float width = ImGui::GetContentRegionAvail().x;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float mode_width =
@@ -373,7 +374,7 @@ void DungeonWorkbenchPanel::DrawSidebarModeTabs(bool stacked,
   }
 }
 
-void DungeonWorkbenchPanel::DrawSidebarContent() {
+void DungeonWorkbenchContent::DrawSidebarContent() {
   if (!room_selector_) {
     ImGui::TextDisabled("Room navigation unavailable");
     return;
@@ -391,7 +392,7 @@ void DungeonWorkbenchPanel::DrawSidebarContent() {
   ImGui::PopID();
 }
 
-void DungeonWorkbenchPanel::Draw(bool* p_open) {
+void DungeonWorkbenchContent::Draw(bool* p_open) {
   (void)p_open;
   const auto& theme = AgentUI::GetTheme();
 
@@ -549,9 +550,9 @@ void DungeonWorkbenchPanel::Draw(bool* p_open) {
   }
 }
 
-void DungeonWorkbenchPanel::DrawCanvasPane(float width, float height,
-                                           DungeonCanvasViewer* primary_viewer,
-                                           bool left_sidebar_visible) {
+void DungeonWorkbenchContent::DrawCanvasPane(
+    float width, float height, DungeonCanvasViewer* primary_viewer,
+    bool left_sidebar_visible) {
   const bool canvas_open =
       ImGui::BeginChild("##DungeonWorkbenchCanvas", ImVec2(width, height),
                         false);
@@ -601,9 +602,10 @@ void DungeonWorkbenchPanel::DrawCanvasPane(float width, float height,
   ImGui::EndChild();
 }
 
-void DungeonWorkbenchPanel::DrawInspectorPane(float width, float height,
-                                              float button_size, bool compact,
-                                              DungeonCanvasViewer* viewer) {
+void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
+                                                float button_size,
+                                                bool compact,
+                                                DungeonCanvasViewer* viewer) {
   const bool inspector_open =
       ImGui::BeginChild("##DungeonWorkbenchInspector", ImVec2(width, height),
                         true);
@@ -618,8 +620,8 @@ void DungeonWorkbenchPanel::DrawInspectorPane(float width, float height,
   ImGui::EndChild();
 }
 
-void DungeonWorkbenchPanel::DrawInspectorHeader(float button_size,
-                                                bool compact) {
+void DungeonWorkbenchContent::DrawInspectorHeader(float button_size,
+                                                  bool compact) {
   gui::StyleVarGuard frame_padding_guard(
       ImGuiStyleVar_FramePadding,
       ImVec2(ImGui::GetStyle().FramePadding.x,
@@ -653,7 +655,7 @@ void DungeonWorkbenchPanel::DrawInspectorHeader(float button_size,
   ImGui::Separator();
 }
 
-void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
+void DungeonWorkbenchContent::DrawRecentRoomTabs() {
   if (!get_recent_rooms_ || !current_room_id_ || !on_room_selected_) {
     return;
   }
@@ -740,7 +742,8 @@ void DungeonWorkbenchPanel::DrawRecentRoomTabs() {
   }
 }
 
-void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
+void DungeonWorkbenchContent::DrawSplitView(
+    DungeonCanvasViewer& primary_viewer) {
   if (!current_room_id_ || !split_view_enabled_ || compare_room_id_ < 0) {
     if (split_view_enabled_) {
       split_view_enabled_ = false;
@@ -820,7 +823,7 @@ void DungeonWorkbenchPanel::DrawSplitView(DungeonCanvasViewer& primary_viewer) {
   ImGui::EndTable();
 }
 
-void DungeonWorkbenchPanel::BuildRoomDungeonCache() {
+void DungeonWorkbenchContent::BuildRoomDungeonCache() {
   room_dungeon_cache_.clear();
   room_dungeon_cache_built_ = true;  // Always set, even if ROM missing.
   if (!rom_ || !rom_->is_loaded())
@@ -869,7 +872,7 @@ void DungeonWorkbenchPanel::BuildRoomDungeonCache() {
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
+void DungeonWorkbenchContent::DrawInspector(DungeonCanvasViewer& viewer) {
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(6.0f, ImGui::GetStyle().ItemSpacing.x * 0.9f),
@@ -877,7 +880,7 @@ void DungeonWorkbenchPanel::DrawInspector(DungeonCanvasViewer& viewer) {
   DrawInspectorShelf(viewer);
 }
 
-void DungeonWorkbenchPanel::DrawInspectorPrimarySelector(
+void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
     float segment_height) {
   const float width = ImGui::GetContentRegionAvail().x;
   const bool stack = width < 260.0f;
@@ -898,7 +901,7 @@ void DungeonWorkbenchPanel::DrawInspectorPrimarySelector(
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspectorCompactSummary(
+void DungeonWorkbenchContent::DrawInspectorCompactSummary(
     DungeonCanvasViewer& viewer) {
   const int room_id =
       (viewer.current_room_id() >= 0) ? viewer.current_room_id()
@@ -954,7 +957,7 @@ void DungeonWorkbenchPanel::DrawInspectorCompactSummary(
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
+void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
   if (ImGui::GetContentRegionAvail().x < 240.0f) {
     DrawInspectorCompactSummary(viewer);
     return;
@@ -976,7 +979,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
+void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     DungeonCanvasViewer& viewer) {
   const auto& theme = AgentUI::GetTheme();
 
@@ -1158,7 +1161,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfRoom(
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
+void DungeonWorkbenchContent::DrawInspectorShelfSelection(
     DungeonCanvasViewer& viewer) {
   auto& interaction = viewer.object_interaction();
   const auto& theme = AgentUI::GetTheme();
@@ -1449,7 +1452,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfSelection(
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspectorShelfView(
+void DungeonWorkbenchContent::DrawInspectorShelfView(
     DungeonCanvasViewer& viewer) {
   DrawWorkbenchInspectorSectionHeader(ICON_MD_VISIBILITY " Overlay Toggles");
   bool val = viewer.show_grid();
@@ -1512,7 +1515,7 @@ void DungeonWorkbenchPanel::DrawInspectorShelfView(
   }
 }
 
-void DungeonWorkbenchPanel::DrawInspectorShelfTools(
+void DungeonWorkbenchContent::DrawInspectorShelfTools(
     DungeonCanvasViewer& /*viewer*/) {
   if (!show_panel_) {
     ImGui::TextDisabled("No panel launcher available");

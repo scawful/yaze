@@ -25,10 +25,10 @@ namespace editor {
  * @brief WindowContent for placing and managing dungeon sprites
  *
  * This panel provides sprite selection and placement functionality
- * for dungeon rooms, similar to ObjectEditorPanel.
+ * for dungeon rooms, similar to ObjectSelectorContent.
  *
  * @see WindowContent - Base interface
- * @see ObjectEditorPanel - Similar panel for tile objects
+ * @see ObjectSelectorContent - Similar selector content for tile objects
  */
 class SpriteEditorPanel : public WindowContent {
  public:

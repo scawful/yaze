@@ -24,10 +24,10 @@ namespace editor {
  * @brief WindowContent for placing and managing dungeon pot items
  *
  * This panel provides item selection and placement functionality
- * for dungeon rooms, similar to ObjectEditorPanel and SpriteEditorPanel.
+ * for dungeon rooms, similar to ObjectSelectorContent and SpriteEditorPanel.
  *
  * @see WindowContent - Base interface
- * @see ObjectEditorPanel - Similar panel for tile objects
+ * @see ObjectSelectorContent - Similar selector content for tile objects
  * @see SpriteEditorPanel - Similar panel for sprites
  */
 class ItemEditorPanel : public WindowContent {
