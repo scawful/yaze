@@ -223,6 +223,7 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/agent_chat.cc
     app/editor/agent/agent_collaboration_coordinator.cc
     app/editor/agent/agent_editor.cc
+    app/editor/agent/agent_editor_collaboration.cc
     app/editor/agent/agent_editor_profile.cc
     app/editor/agent/agent_proposals_panel.cc
     app/editor/agent/agent_session.cc
