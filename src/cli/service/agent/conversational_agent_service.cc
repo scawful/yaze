@@ -26,6 +26,7 @@
 #include "cli/service/agent/agent_pretraining.h"
 #endif
 #include "cli/service/agent/proposal_executor.h"
+#include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/service_factory.h"
 #include "cli/util/terminal_colors.h"
 #include "nlohmann/json.hpp"
@@ -304,7 +305,7 @@ ConversationalAgentService::ConversationalAgentService() {
   // Default to a lightweight mock provider to avoid slow network checks during
   // startup (especially on mac-ai builds). The real provider is created when
   // ConfigureProvider is called from the UI.
-  provider_config_.provider = "mock";
+  provider_config_.provider = kProviderMock;
   ai_service_ = std::make_unique<MockAIService>();
   tool_dispatcher_.SetToolPreferences(tool_preferences_);
 
@@ -329,7 +330,7 @@ ConversationalAgentService::ConversationalAgentService(
     : config_(config) {
   // Avoid auto-detecting providers (which can block on network) until the UI
   // applies an explicit configuration.
-  provider_config_.provider = "mock";
+  provider_config_.provider = kProviderMock;
   ai_service_ = std::make_unique<MockAIService>();
   tool_dispatcher_.SetToolPreferences(tool_preferences_);
 
@@ -486,7 +487,7 @@ void ConversationalAgentService::HandleExternalResponse(
       request.response = &agent_response;
       request.rom = rom_context_;
       request.sandbox_label = "agent-chat";
-      request.ai_provider = "external";
+      request.ai_provider = kProviderExternal;
 
       auto creation_or = CreateProposalFromAgentResponse(request);
       if (!creation_or.ok()) {
@@ -554,7 +555,7 @@ void ConversationalAgentService::HandleExternalResponse(
 
   // Metadata
   ChatMessage::ModelMetadata meta;
-  meta.provider = "external";
+  meta.provider = kProviderExternal;
   meta.model = "gemini";  // Could get this from JS
   meta.tool_names = executed_tools;
   chat_response.model_metadata = meta;
@@ -879,7 +880,7 @@ absl::Status ConversationalAgentService::ConfigureProvider(
     std::cerr << "Provider configuration failed: " << service_or.status()
               << " — falling back to mock" << std::endl;
     ai_service_ = std::make_unique<MockAIService>();
-    provider_config_.provider = "mock";
+    provider_config_.provider = kProviderMock;
     if (rom_context_) {
       ai_service_->SetRomContext(rom_context_);
     }

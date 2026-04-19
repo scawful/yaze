@@ -8,6 +8,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/provider_ids.h"
 
 #ifdef YAZE_WITH_JSON
 #include "httplib.h"
@@ -126,7 +127,7 @@ absl::StatusOr<std::vector<ModelInfo>> OllamaAIService::ListAvailableModels() {
     if (models_json.contains("models") && models_json["models"].is_array()) {
       for (const auto& model : models_json["models"]) {
         ModelInfo info;
-        info.provider = "ollama";
+        info.provider = kProviderOllama;
         info.is_local = true;
 
         if (model.contains("name") && model["name"].is_string()) {
@@ -249,7 +250,7 @@ absl::StatusOr<AgentResponse> OllamaAIService::GenerateResponse(
   request_body["options"] = options;
 
   AgentResponse agent_response;
-  agent_response.provider = "ollama";
+  agent_response.provider = kProviderOllama;
 
   try {
     httplib::Client cli(config_.base_url);

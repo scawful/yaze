@@ -15,6 +15,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
+#include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/tool_schema_builder.h"
 #include "util/platform_paths.h"
 
@@ -133,15 +134,15 @@ AnthropicAIService::ListAvailableModels() {
   std::vector<ModelInfo> defaults = {
       {.name = "claude-3-5-sonnet-20241022",
        .display_name = "Claude 3.5 Sonnet",
-       .provider = "anthropic",
+       .provider = kProviderAnthropic,
        .description = "Most intelligent model"},
       {.name = "claude-3-5-haiku-20241022",
        .display_name = "Claude 3.5 Haiku",
-       .provider = "anthropic",
+       .provider = kProviderAnthropic,
        .description = "Fastest and most cost-effective"},
       {.name = "claude-3-opus-20240229",
        .display_name = "Claude 3 Opus",
-       .provider = "anthropic",
+       .provider = kProviderAnthropic,
        .description = "Strong reasoning model"}};
   return defaults;
 }
@@ -325,7 +326,7 @@ absl::StatusOr<AgentResponse> AnthropicAIService::GenerateResponse(
     }
 
     AgentResponse agent_response = std::move(parsed_or.value());
-    agent_response.provider = "anthropic";
+    agent_response.provider = kProviderAnthropic;
     agent_response.model = config_.model;
     agent_response.latency_seconds =
         absl::ToDoubleSeconds(absl::Now() - request_start);
