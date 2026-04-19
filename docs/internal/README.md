@@ -1,6 +1,6 @@
 # YAZE Internal Documentation
 
-**Last Updated**: 2026-02-26
+**Last Updated**: 2026-04-19
 
 Internal documentation for architecture, AI agent coordination, and development planning.
 
@@ -42,6 +42,7 @@ Internal documentation for architecture, AI agent coordination, and development 
 | ROM Layer | [architecture/rom_architecture.md](architecture/rom_architecture.md) |
 | Platform Backends | [architecture/platform_backends.md](architecture/platform_backends.md) |
 | Undo/Redo | [architecture/undo_redo_system.md](architecture/undo_redo_system.md) |
+| Editor folder map (registry / shell / system) | [architecture/editor-ui-module-pattern.md](architecture/editor-ui-module-pattern.md) |
 
 ## Coordination
 
