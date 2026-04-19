@@ -34,7 +34,7 @@
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/session/rom_file_manager.h"
-#include "app/editor/system/rom_lifecycle_manager.h"
+#include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/window_host.h"

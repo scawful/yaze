@@ -1,4 +1,4 @@
-#include "app/editor/system/rom_lifecycle_manager.h"
+#include "app/editor/system/session/rom_lifecycle_manager.h"
 
 #include <algorithm>
 #include <cctype>
@@ -11,8 +11,8 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/system/session/rom_file_manager.h"
-#include "app/editor/ui/popup_manager.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/popup_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
