@@ -1,4 +1,4 @@
-#include "app/editor/system/background_command_task.h"
+#include "app/editor/system/session/background_command_task.h"
 
 #include <gtest/gtest.h>
 
@@ -79,7 +79,7 @@ TEST(BackgroundCommandTaskTest, CancelStopsRunningCommand) {
 #else  // !YAZE_BACKGROUND_COMMANDS_SUPPORTED
 
 #include <absl/status/status.h>
-#include "app/editor/system/background_command_task.h"
+#include "app/editor/system/session/background_command_task.h"
 
 namespace yaze::editor {
 namespace {

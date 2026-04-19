@@ -26,7 +26,7 @@
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/background_command_task.h"
+#include "app/editor/system/session/background_command_task.h"
 #include "app/editor/system/editor_activator.h"
 #include "app/editor/system/editor_manager_interfaces.h"
 #include "app/editor/system/editor_registry.h"

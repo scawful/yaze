@@ -9,7 +9,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/background_command_task.h"
+#include "app/editor/system/session/background_command_task.h"
 #include "app/gui/app/editor_layout.h"
 #include "app/gui/core/style.h"
 #include "app/gui/widgets/text_editor.h"
