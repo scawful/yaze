@@ -14,6 +14,7 @@
 #include "app/editor/graphics/palette_controls_panel.h"
 #include "app/editor/graphics/paletteset_editor_panel.h"
 #include "app/editor/graphics/pixel_editor_panel.h"
+#include "app/editor/graphics/polyhedral_editor_panel.h"
 #include "app/editor/graphics/sheet_browser_panel.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
@@ -65,6 +66,13 @@ class GraphicsEditor : public Editor {
     type_ = EditorType::kGraphics;
   }
 
+  void SetDependencies(const EditorDependencies& deps) override {
+    Editor::SetDependencies(deps);
+    if (gfx_group_panel_) {
+      gfx_group_panel_->SetWorkspaceState(deps.gfx_group_workspace);
+    }
+  }
+
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Save() override;
@@ -77,9 +85,29 @@ class GraphicsEditor : public Editor {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   void ContributeStatus(StatusBar* status_bar) override;
 
-  // Set the ROM pointer
-  void set_rom(Rom* rom) { rom_ = rom; }
-  
+  // Set the ROM pointer (propagates to panels that cache `Rom*`.)
+  void set_rom(Rom* rom) {
+    rom_ = rom;
+    if (pixel_editor_panel_) {
+      pixel_editor_panel_->SetRom(rom);
+    }
+    if (palette_controls_panel_) {
+      palette_controls_panel_->SetRom(rom);
+    }
+    if (link_sprite_panel_) {
+      link_sprite_panel_->SetRom(rom);
+    }
+    if (gfx_group_panel_) {
+      gfx_group_panel_->SetRom(rom);
+    }
+    if (paletteset_panel_) {
+      paletteset_panel_->SetRom(rom);
+    }
+    if (polyhedral_panel_) {
+      polyhedral_panel_->SetRom(rom);
+    }
+  }
+
   // Set the game data pointer
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
@@ -99,8 +127,7 @@ class GraphicsEditor : public Editor {
   void PrevSheet();
   void SelectSheet(uint16_t sheet_id);
   void HighlightTile(uint16_t sheet_id, uint16_t tile_index,
-                     const std::string& label = "",
-                     double duration_secs = 3.0);
+                     const std::string& label = "", double duration_secs = 3.0);
 
   // Get the ROM pointer
   Rom* rom() const { return rom_; }
@@ -117,6 +144,7 @@ class GraphicsEditor : public Editor {
   std::unique_ptr<LinkSpritePanel> link_sprite_panel_;
   std::unique_ptr<GfxGroupEditor> gfx_group_panel_;
   std::unique_ptr<PalettesetEditorPanel> paletteset_panel_;
+  std::unique_ptr<PolyhedralEditorPanel> polyhedral_panel_;
 
   // --- Prototype Viewer (Super Donkey / Dev Format Imports) ---
   void DrawPrototypeViewer();
@@ -183,6 +211,9 @@ class GraphicsEditor : public Editor {
   gui::Canvas import_canvas_;
   gui::Canvas scr_canvas_;
   gui::Canvas super_donkey_canvas_;
+
+  // Last prototype import error (shown inside the Prototype Research panel).
+  std::string prototype_import_feedback_;
 
   // Status tracking
   absl::Status status_;

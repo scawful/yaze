@@ -56,16 +56,26 @@ void GraphicsEditor::Initialize() {
 
   // Initialize panel components
   sheet_browser_panel_ = std::make_unique<SheetBrowserPanel>(&state_);
-  pixel_editor_panel_ = std::make_unique<PixelEditorPanel>(
-      &state_, rom_, &undo_manager_);
-  palette_controls_panel_ = std::make_unique<PaletteControlsPanel>(&state_, rom_);
+  pixel_editor_panel_ =
+      std::make_unique<PixelEditorPanel>(&state_, rom_, &undo_manager_);
+  palette_controls_panel_ =
+      std::make_unique<PaletteControlsPanel>(&state_, rom_);
   link_sprite_panel_ = std::make_unique<LinkSpritePanel>(&state_, rom_);
   gfx_group_panel_ = std::make_unique<GfxGroupEditor>();
+  gfx_group_panel_->SetWorkspaceState(dependencies_.gfx_group_workspace);
   gfx_group_panel_->SetRom(rom_);
   gfx_group_panel_->SetGameData(game_data_);
+  gfx_group_panel_->SetHostSurfaceHint(
+      "Gfx Groups: blockset/roomset/spriteset selection syncs with the "
+      "Overworld "
+      "editor for this ROM session (each surface has its own preview "
+      "canvases).");
   paletteset_panel_ = std::make_unique<PalettesetEditorPanel>();
   paletteset_panel_->SetRom(rom_);
   paletteset_panel_->SetGameData(game_data_);
+
+  polyhedral_panel_ = std::make_unique<PolyhedralEditorPanel>(rom_);
+  polyhedral_panel_->SetRom(rom_);
 
   sheet_browser_panel_->Initialize();
   pixel_editor_panel_->Initialize();
@@ -116,7 +126,17 @@ void GraphicsEditor::Initialize() {
         }
       }));
 
-  // Prototype viewer and polyhedral panels are not registered by default.
+  window_manager->RegisterWindowContent(
+      std::make_unique<GraphicsPrototypeViewerPanel>(
+          [this]() { DrawPrototypeViewer(); }));
+
+  window_manager->RegisterWindowContent(
+      std::make_unique<GraphicsPolyhedralPanel>([this]() {
+        if (polyhedral_panel_) {
+          bool open = true;
+          polyhedral_panel_->Draw(&open);
+        }
+      }));
 }
 
 absl::Status GraphicsEditor::Load() {
@@ -150,22 +170,24 @@ absl::Status GraphicsEditor::Load() {
           // Default palette assignment logic
           if (i <= 112) {
             // Overworld/Dungeon sheets - use Dungeon Main palette (Group 0, Index 0)
-             if (game_data() && game_data()->palette_groups.dungeon_main.size() > 0) {
-               sheets[i].SetPaletteWithTransparent(
-                   game_data()->palette_groups.dungeon_main.palette(0), 0);
-             }
+            if (game_data() &&
+                game_data()->palette_groups.dungeon_main.size() > 0) {
+              sheets[i].SetPaletteWithTransparent(
+                  game_data()->palette_groups.dungeon_main.palette(0), 0);
+            }
           } else if (i >= 113 && i <= 127) {
             // Sprite sheets - use Sprites Aux1 palette (Group 4, Index 0)
-             if (game_data() && game_data()->palette_groups.sprites_aux1.size() > 0) {
-               sheets[i].SetPaletteWithTransparent(
-                   game_data()->palette_groups.sprites_aux1.palette(0), 0);
-             }
+            if (game_data() &&
+                game_data()->palette_groups.sprites_aux1.size() > 0) {
+              sheets[i].SetPaletteWithTransparent(
+                  game_data()->palette_groups.sprites_aux1.palette(0), 0);
+            }
           } else {
-             // Menu/Aux sheets - use HUD palette if available, or fallback
-             if (game_data() && game_data()->palette_groups.hud.size() > 0) {
-               sheets[i].SetPaletteWithTransparent(
-                   game_data()->palette_groups.hud.palette(0), 0);
-             }
+            // Menu/Aux sheets - use HUD palette if available, or fallback
+            if (game_data() && game_data()->palette_groups.hud.size() > 0) {
+              sheets[i].SetPaletteWithTransparent(
+                  game_data()->palette_groups.hud.palette(0), 0);
+            }
           }
         }
 
@@ -183,7 +205,8 @@ absl::Status GraphicsEditor::Load() {
 }
 
 void GraphicsEditor::ContributeStatus(StatusBar* status_bar) {
-  if (!status_bar) return;
+  if (!status_bar)
+    return;
 
   StatusBarSegmentOptions sheet_opts;
   sheet_opts.tooltip = absl::StrFormat(
@@ -226,10 +249,12 @@ absl::Status GraphicsEditor::Save() {
   std::vector<uint16_t> skipped_sheets;
 
   for (uint16_t sheet_id : state_.modified_sheets) {
-    if (sheet_id >= zelda3::kNumGfxSheets) continue;
+    if (sheet_id >= zelda3::kNumGfxSheets)
+      continue;
 
     auto& sheet = sheets[sheet_id];
-    if (!sheet.is_active()) continue;
+    if (!sheet.is_active())
+      continue;
 
     // Determine BPP and compression based on sheet range
     int bpp = 3;  // Default 3BPP
@@ -250,10 +275,9 @@ absl::Status GraphicsEditor::Save() {
           gfx::kTilesheetWidth * gfx::kTilesheetHeight * 2;
       const size_t actual_size = sheet.vector().size();
       if (actual_size < expected_size) {
-        LOG_WARN(
-            "GraphicsEditor",
-            "Skipping 2BPP sheet %02X save (expected %zu bytes, got %zu)",
-            sheet_id, expected_size, actual_size);
+        LOG_WARN("GraphicsEditor",
+                 "Skipping 2BPP sheet %02X save (expected %zu bytes, got %zu)",
+                 sheet_id, expected_size, actual_size);
         skipped_sheets.push_back(sheet_id);
         continue;
       }
@@ -272,9 +296,9 @@ absl::Status GraphicsEditor::Save() {
     const uint32_t gfx_ptr3 = core::RomSettings::Get().GetAddressOr(
         core::RomAddressKey::kOverworldGfxPtr3,
         version_constants.kOverworldGfxPtr3);
-    uint32_t offset = zelda3::GetGraphicsAddress(
-        rom_->data(), static_cast<uint8_t>(sheet_id), gfx_ptr1, gfx_ptr2,
-        gfx_ptr3, rom_->size());
+    uint32_t offset =
+        zelda3::GetGraphicsAddress(rom_->data(), static_cast<uint8_t>(sheet_id),
+                                   gfx_ptr1, gfx_ptr2, gfx_ptr3, rom_->size());
 
     // Convert 8BPP bitmap data to SNES planar format
     auto snes_tile_data = gfx::IndexedToSnesSheet(sheet.vector(), bpp);
@@ -290,8 +314,7 @@ absl::Status GraphicsEditor::Save() {
       }
       base_data = std::move(*decomp_result);
     } else {
-      auto read_result =
-          rom_->ReadByteVector(offset, kDecompressedSheetSize);
+      auto read_result = rom_->ReadByteVector(offset, kDecompressedSheetSize);
       if (!read_result.ok()) {
         return read_result.status();
       }
@@ -301,8 +324,7 @@ absl::Status GraphicsEditor::Save() {
     if (base_data.size() < snes_tile_data.size()) {
       base_data.resize(snes_tile_data.size(), 0);
     }
-    std::copy(snes_tile_data.begin(), snes_tile_data.end(),
-              base_data.begin());
+    std::copy(snes_tile_data.begin(), snes_tile_data.end(), base_data.begin());
 
     std::vector<uint8_t> final_data;
     if (compressed) {
@@ -322,9 +344,9 @@ absl::Status GraphicsEditor::Save() {
       rom_->WriteByte(offset + i, final_data[i]);
     }
 
-    LOG_INFO("GraphicsEditor", "Saved sheet %02X (%zu bytes, %s) at offset %06X",
-             sheet_id, final_data.size(), compressed ? "compressed" : "raw",
-             offset);
+    LOG_INFO("GraphicsEditor",
+             "Saved sheet %02X (%zu bytes, %s) at offset %06X", sheet_id,
+             final_data.size(), compressed ? "compressed" : "raw", offset);
     saved_sheets.insert(sheet_id);
   }
 
@@ -412,6 +434,22 @@ void GraphicsEditor::HandleEditorShortcuts() {
 }
 
 void GraphicsEditor::DrawPrototypeViewer() {
+  if (!rom_ || !rom_->is_loaded()) {
+    ImGui::TextWrapped(
+        "No ROM loaded — CGX/SCR/COL/BIN and clipboard tools work without one. "
+        "Load a ROM when you want vanilla palette presets or to save graphics "
+        "back into a cartridge image.");
+    ImGui::Spacing();
+  }
+  if (!prototype_import_feedback_.empty()) {
+    ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "%s",
+                       prototype_import_feedback_.c_str());
+    if (ImGui::SmallButton("Dismiss##prototype_import_feedback")) {
+      prototype_import_feedback_.clear();
+    }
+    ImGui::Separator();
+  }
+
   if (open_memory_editor_) {
     ImGui::Begin("Memory Editor", &open_memory_editor_);
     status_ = DrawMemoryEditor();
@@ -495,6 +533,11 @@ absl::Status GraphicsEditor::DrawCgxImport() {
   if (ImGui::Button("Load CGX Data")) {
     status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                            decoded_cgx_, extra_cgx_data_);
+    if (!status_.ok()) {
+      prototype_import_feedback_ = absl::StrCat("[CGX] ", status_.message());
+      return absl::OkStatus();
+    }
+    prototype_import_feedback_.clear();
 
     cgx_bitmap_.Create(0x80, 0x200, 8, decoded_cgx_);
     if (col_file_) {
@@ -522,10 +565,20 @@ absl::Status GraphicsEditor::DrawScrImport() {
 
   if (ImGui::Button("Load Scr Data")) {
     status_ = gfx::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
+    if (!status_.ok()) {
+      prototype_import_feedback_ = absl::StrCat("[SCR] ", status_.message());
+      return absl::OkStatus();
+    }
 
     decoded_scr_data_.resize(0x100 * 0x100);
     status_ = gfx::DrawScrWithCgx(current_bpp_, scr_data_, decoded_scr_data_,
                                   decoded_cgx_);
+    if (!status_.ok()) {
+      prototype_import_feedback_ =
+          absl::StrCat("[SCR draw] ", status_.message());
+      return absl::OkStatus();
+    }
+    prototype_import_feedback_.clear();
 
     scr_bitmap_.Create(0x100, 0x100, 8, decoded_scr_data_);
     if (scr_loaded_) {
@@ -716,9 +769,9 @@ absl::Status GraphicsEditor::DrawMemoryEditor() {
 }
 
 absl::Status GraphicsEditor::DecompressImportData(int size) {
-  ASSIGN_OR_RETURN(import_data_, gfx::lc_lz2::DecompressV2(
-                                     temp_rom_.data(), current_offset_, size, 1,
-                                     temp_rom_.size()));
+  ASSIGN_OR_RETURN(import_data_,
+                   gfx::lc_lz2::DecompressV2(temp_rom_.data(), current_offset_,
+                                             size, 1, temp_rom_.size()));
 
   auto converted_sheet = gfx::SnesTo8bppSheet(import_data_, 3);
   bin_bitmap_.Create(gfx::kTilesheetWidth, 0x2000, gfx::kTilesheetDepth,
@@ -746,10 +799,9 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
   for (const auto& offset : kSuperDonkeyTiles) {
     int offset_value =
         std::stoi(offset, nullptr, 16);  // convert hex string to int
-    ASSIGN_OR_RETURN(
-        auto decompressed_data,
-        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000, 1,
-                                   temp_rom_.size()));
+    ASSIGN_OR_RETURN(auto decompressed_data,
+                     gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value,
+                                               0x1000, 1, temp_rom_.size()));
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
     gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);
@@ -775,10 +827,9 @@ absl::Status GraphicsEditor::DecompressSuperDonkey() {
   for (const auto& offset : kSuperDonkeySprites) {
     int offset_value =
         std::stoi(offset, nullptr, 16);  // convert hex string to int
-    ASSIGN_OR_RETURN(
-        auto decompressed_data,
-        gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value, 0x1000, 1,
-                                   temp_rom_.size()));
+    ASSIGN_OR_RETURN(auto decompressed_data,
+                     gfx::lc_lz2::DecompressV2(temp_rom_.data(), offset_value,
+                                               0x1000, 1, temp_rom_.size()));
     auto converted_sheet = gfx::SnesTo8bppSheet(decompressed_data, 3);
     gfx_sheets_[i] = gfx::Bitmap(gfx::kTilesheetWidth, gfx::kTilesheetHeight,
                                  gfx::kTilesheetDepth, converted_sheet);

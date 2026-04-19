@@ -20,6 +20,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/layout/window_delegate.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/shell/coordinator/welcome_screen.h"
 #include "app/editor/system/command_palette_providers.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/project_manager.h"
@@ -27,7 +28,6 @@
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/shell/coordinator/welcome_screen.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -207,6 +207,26 @@ UICoordinator::UICoordinator(
     }
     editor_manager_->ShowProjectFileEditor();
     SetStartupSurface(StartupSurface::kDashboard);
+  });
+
+  welcome_screen_->SetOpenPrototypeResearchCallback([this]() {
+    if (!editor_manager_) {
+      return;
+    }
+    editor_manager_->SwitchToEditor(EditorType::kGraphics, true);
+    window_manager_.OpenWindow("graphics.prototype_viewer");
+    SetWelcomeScreenVisible(false);
+    SetWelcomeScreenManuallyClosed(true);
+  });
+
+  welcome_screen_->SetOpenAssemblyEditorNoRomCallback([this]() {
+    if (!editor_manager_) {
+      return;
+    }
+    editor_manager_->SwitchToEditor(EditorType::kAssembly, true);
+    window_manager_.OpenWindow("assembly.code_editor");
+    SetWelcomeScreenVisible(false);
+    SetWelcomeScreenManuallyClosed(true);
   });
 }
 

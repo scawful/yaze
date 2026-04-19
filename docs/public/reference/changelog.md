@@ -1,8 +1,9 @@
 # Changelog
 
-## 0.7.1 (April 2026, pending tag)
+## 0.7.1 (April 19, 2026)
 
 ### Welcome Screen & Project Startup
+- Added **Quick Actions** to open **Prototype Research** (Graphics, `graphics.prototype_viewer`) or the **Assembly editor** (`assembly.code_editor`) **without loading a ROM**, plus session-loop support so those editors initialize and tick on an empty active session.
 - Added a guided New Project flow for startup/project creation.
 - Added async ROM metadata scanning for recent projects with safer first-scan behavior.
 - Added recent-project pin/rename/notes actions and a short undo window for removals.
@@ -26,6 +27,10 @@
 - Fixed the WASM build path for dungeon tile rows.
 - Added overworld map ID validation before ROM access.
 - Hardened Linux GUI smoke-run path handling.
+
+### Developer / codebase (no user-facing behavior change)
+- Reorganized `src/app/editor/` for clarity: `registry/` (ContentRegistry, undo, events), `shell/` (global UI chrome), `system/{workspace,session,commands}/` (matches CMake split), Oracle workflow UI under `hack/oracle/ui/`, domain editors under `*/ui/` with legacy dungeon/music/agent windows co-located under `*/ui/window/`.
+- Added `ContentRegistry::WindowContents` as an alias of `Panels` and `REGISTER_WINDOW_CONTENT` as a shim over `REGISTER_PANEL` for preferred naming.
 
 ### Deferred to 0.8.0
 - z3dk integration planning covers embedded assembly/lint/LSP workflows, shared Mesen2 plumbing, and `.mlb` export.
@@ -156,7 +161,7 @@
 
 ### Cleanup
 - Removed `SessionObserver` and observer pattern from `SessionCoordinator`.
-- Removed deprecated `PanelManager` callback setters (~79 lines).
+- Removed deprecated `WorkspaceWindowManager` callback setters (~79 lines).
 - Removed legacy editor navigation APIs (`JumpTo*`, `HideCurrentEditorPanels`).
 - Removed deprecated `SetMutationHook` alias.
 - Migrated sidebar/session actions to EventBus.

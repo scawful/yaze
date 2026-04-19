@@ -56,6 +56,26 @@ These are CI-enforced by `scripts/dev/editor-guardrails.sh`.
 - `src/app/editor/system/hack_manifest_save_validation.{h,cc}` demonstrates shared
   cross-editor save-policy extraction out of editor implementations.
 
+## Pre-ROM (“no cart”) editor session
+
+Users can open **Graphics → Prototype Research** and **Assembly → code editor**
+before a ROM is loaded (welcome **Quick Actions**, or the same `SwitchToEditor` +
+`OpenWindow` flow elsewhere).
+
+Implementation (desktop):
+
+| Piece | Role |
+|-------|------|
+| `EditorRegistry::UpdateAllowedWithoutLoadedRom` | Returns true for `kGraphics` and `kAssembly`; extend here if another editor is safe with no ROM. |
+| `EditorManager::EnsureEditorAssetsLoaded` | When the active session has no loaded ROM, still runs `InitializeEditorForType` for allowed types so `WindowContent` panels register; skips `Load()` / game data. |
+| `SessionCoordinator::UpdateSessions` | Processes **unloaded** sessions only for `active_session_index_`, and only runs `editor->Update()` for editors that pass `UpdateAllowedWithoutLoadedRom`. Overworld jump-to-tab → dungeon is gated on `rom_loaded`. |
+| `UICoordinator` ctor | Wires `WelcomeScreen::SetOpenPrototypeResearchCallback` / `SetOpenAssemblyEditorNoRomCallback` to `SwitchToEditor`, `OpenWindow` (`graphics.prototype_viewer`, `assembly.code_editor`), and hides the welcome shell. |
+| `GraphicsEditor::DrawPrototypeViewer` | Shows a short note when no ROM is loaded; import/clipboard paths still run. |
+
+`EditorManager::SetupWelcomeScreenCallbacks` also registers the same callbacks on
+`EditorManager::welcome_screen_` for parity; the **visible** welcome is owned by
+`UICoordinator`.
+
 ## Next migration targets
 
 - Start introducing `ui/` module folders for new dungeon and overworld UI additions.

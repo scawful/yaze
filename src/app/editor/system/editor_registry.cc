@@ -62,6 +62,16 @@ bool EditorRegistry::IsPanelBasedEditor(EditorType type) {
   return it != kPanelBasedEditors.end() && it->second;
 }
 
+bool EditorRegistry::UpdateAllowedWithoutLoadedRom(EditorType type) {
+  switch (type) {
+    case EditorType::kAssembly:
+    case EditorType::kGraphics:
+      return true;
+    default:
+      return false;
+  }
+}
+
 std::string EditorRegistry::GetEditorName(EditorType type) {
   auto it = kEditorNames.find(type);
   if (it != kEditorNames.end()) {

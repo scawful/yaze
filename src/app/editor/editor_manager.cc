@@ -1661,6 +1661,24 @@ void EditorManager::SetupWelcomeScreenCallbacks() {
 #endif
   });
 
+  welcome_screen_.SetOpenPrototypeResearchCallback([this]() {
+    SwitchToEditor(EditorType::kGraphics, true);
+    window_manager_.OpenWindow("graphics.prototype_viewer");
+    if (ui_coordinator_) {
+      ui_coordinator_->SetWelcomeScreenVisible(false);
+      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
+    }
+  });
+
+  welcome_screen_.SetOpenAssemblyEditorNoRomCallback([this]() {
+    SwitchToEditor(EditorType::kAssembly, true);
+    window_manager_.OpenWindow("assembly.code_editor");
+    if (ui_coordinator_) {
+      ui_coordinator_->SetWelcomeScreenVisible(false);
+      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
+    }
+  });
+
   welcome_screen_.SetOpenProjectDialogCallback([this]() {
     status_ = OpenProject();
     if (status_.ok() && ui_coordinator_) {
@@ -2311,7 +2329,26 @@ absl::Status EditorManager::EnsureEditorAssetsLoaded(EditorType type) {
   auto* session = session_coordinator_
                       ? session_coordinator_->GetActiveRomSession()
                       : nullptr;
-  if (!session || !session->rom.is_loaded()) {
+  if (!session) {
+    return absl::OkStatus();
+  }
+
+  if (!session->rom.is_loaded()) {
+    if (!EditorRegistry::UpdateAllowedWithoutLoadedRom(type)) {
+      return absl::OkStatus();
+    }
+    const size_t index = EditorTypeIndex(type);
+    if (index >= session->editor_initialized.size()) {
+      return absl::InvalidArgumentError("Invalid editor type");
+    }
+    if (EditorInitRequiresGameData(type)) {
+      return absl::OkStatus();
+    }
+    if (!session->editor_initialized[index]) {
+      RETURN_IF_ERROR(
+          InitializeEditorForType(type, &session->editors, &session->rom));
+      MarkEditorInitialized(session, type);
+    }
     return absl::OkStatus();
   }
 
@@ -4583,6 +4620,7 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.renderer = renderer_;
   deps.emulator = &emulator_;
   deps.custom_data = this;
+  deps.gfx_group_workspace = editor_set->gfx_group_workspace();
 
   editor_set->ApplyDependencies(deps);
 

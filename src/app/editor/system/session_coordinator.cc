@@ -18,6 +18,8 @@
 #include "app/editor/events/core_events.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
+#include "app/editor/system/editor_registry.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -25,7 +27,6 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "core/color.h"
 #include "editor/editor.h"
-#include "app/editor/system/session/user_settings.h"
 #include "editor/ui/toast_manager.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -616,15 +617,24 @@ void SessionCoordinator::UpdateSessions() {
 
   for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
     auto& session = sessions_[session_idx];
-    if (!session->rom.is_loaded())
-      continue;  // Skip sessions with invalid ROMs
+    const bool rom_loaded = session->rom.is_loaded();
+    // Skip empty sessions except the active one so pre-ROM tooling (e.g.
+    // Graphics prototype research, Assembly folder editing) can still tick.
+    if (!rom_loaded && session_idx != active_session_index_) {
+      continue;
+    }
 
     // Switch context
     SwitchToSession(session_idx);
 
     for (auto editor : session->editors.active_editors_) {
       if (*editor->active()) {
-        if (editor->type() == EditorType::kOverworld) {
+        if (!rom_loaded &&
+            !EditorRegistry::UpdateAllowedWithoutLoadedRom(editor->type())) {
+          continue;
+        }
+
+        if (rom_loaded && editor->type() == EditorType::kOverworld) {
           auto& overworld_editor = static_cast<OverworldEditor&>(*editor);
           if (overworld_editor.jump_to_tab() != -1) {
             // Set the dungeon editor to the jump to tab
