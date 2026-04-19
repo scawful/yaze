@@ -10,7 +10,7 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "core/hack_manifest.h"

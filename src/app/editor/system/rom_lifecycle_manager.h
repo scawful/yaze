@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/session/rom_file_manager.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"

@@ -155,7 +155,7 @@ set(
   YAZE_EDITOR_SYSTEM_SESSION_SRC
   app/editor/system/extension_manager.cc
   app/editor/system/session/project_manager.cc
-  app/editor/system/rom_file_manager.cc
+  app/editor/system/session/rom_file_manager.cc
   app/editor/system/rom_lifecycle_manager.cc
   app/editor/system/session_coordinator.cc
   app/editor/system/session/user_settings.cc

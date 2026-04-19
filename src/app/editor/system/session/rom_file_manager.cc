@@ -8,7 +8,7 @@
 #include <unordered_set>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/log.h"

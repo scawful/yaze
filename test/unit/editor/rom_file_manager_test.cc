@@ -1,4 +1,4 @@
-#include "app/editor/system/rom_file_manager.h"
+#include "app/editor/system/session/rom_file_manager.h"
 
 #include <chrono>
 #include <cstdint>
@@ -96,4 +96,3 @@ TEST(RomFileManagerTest, BackupCopiesOnDiskRomNotInMemoryBuffer) {
 }
 
 }  // namespace yaze::editor
-
