@@ -1,6 +1,7 @@
 #include "cli/service/agent/tool_registry.h"
 
 #include <algorithm>
+#include <string>
 #include <string_view>
 
 #include "absl/container/flat_hash_set.h"
@@ -28,7 +29,11 @@ std::string StripTokenDelimiters(std::string token) {
 
 std::vector<std::string> SplitUsageTokens(std::string_view usage) {
   std::vector<std::string> tokens;
-  for (std::string_view token : absl::StrSplit(usage, ' ', absl::SkipEmpty())) {
+  // Older Abseil (e.g. distro packages on Ubuntu 22.04 CI) does not accept
+  // absl::SkipEmpty with string_view + char overload; split an owned string.
+  const std::string usage_owned(usage);
+  for (absl::string_view token :
+       absl::StrSplit(usage_owned, ' ', absl::SkipEmpty())) {
     tokens.emplace_back(token);
   }
   return tokens;
