@@ -189,8 +189,12 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
 
   RETURN_IF_ERROR(EnsureRomLoaded(rom, "agent run --prompt \"<prompt>\""));
 
+  AIServiceConfig ai_config = BuildAIServiceConfigFromFlags();
+  ai_config.rom_context = &rom;
+  ai_config.rom_path_hint = rom.filename();
+
   // Get commands from the AI service
-  auto ai_service = CreateAIService();  // Use service factory
+  auto ai_service = CreateAIService(ai_config);
   auto response_or = ai_service->GenerateResponse(prompt);
   if (!response_or.ok()) {
     return response_or.status();
@@ -216,8 +220,9 @@ absl::Status HandleRunCommand(const std::vector<std::string>& arg_vec,
   const auto& metadata = proposal_result.metadata;
   std::filesystem::path proposal_dir = metadata.log_path.parent_path();
 
-  std::cout << "✅ Agent successfully planned and executed changes in a sandbox."
-            << std::endl;
+  std::cout
+      << "✅ Agent successfully planned and executed changes in a sandbox."
+      << std::endl;
   std::cout << "   Proposal ID: " << metadata.id << std::endl;
   std::cout << "   Sandbox ROM: " << metadata.sandbox_rom_path << std::endl;
   std::cout << "   Proposal dir: " << proposal_dir << std::endl;

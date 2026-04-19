@@ -34,12 +34,14 @@ class ModelRegistry {
   ModelRegistry(const ModelRegistry&) = delete;
   ModelRegistry& operator=(const ModelRegistry&) = delete;
 
+  void EnsureDiscoveredServicesLocked();
   void InvalidateCacheLocked();
 
   std::vector<std::shared_ptr<AIService>> services_;
   std::vector<ModelInfo> cached_models_;
   std::chrono::steady_clock::time_point cache_timestamp_{};
   bool cache_valid_ = false;
+  bool auto_discovery_attempted_ = false;
   std::mutex mutex_;
 };
 
