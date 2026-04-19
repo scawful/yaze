@@ -4,7 +4,7 @@
 #include <fstream>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "core/project.h"
 #include "util/macro.h"
 
