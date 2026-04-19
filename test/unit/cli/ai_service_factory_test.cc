@@ -9,6 +9,7 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
+#include "rom/rom.h"
 
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
@@ -16,9 +17,18 @@ ABSL_DECLARE_FLAG(std::string, gemini_api_key);
 ABSL_DECLARE_FLAG(std::string, anthropic_api_key);
 ABSL_DECLARE_FLAG(std::string, ollama_host);
 ABSL_DECLARE_FLAG(std::string, openai_base_url);
+ABSL_DECLARE_FLAG(std::string, rom);
 
 namespace yaze::cli {
 namespace {
+
+Rom BuildTestRom(std::string_view filename, size_t size_bytes) {
+  Rom rom;
+  std::vector<uint8_t> data(size_bytes, 0);
+  EXPECT_TRUE(rom.LoadFromData(data).ok());
+  rom.set_filename(filename);
+  return rom;
+}
 
 class ScopedEnvVar {
  public:
@@ -73,7 +83,8 @@ class ScopedFlagState {
         gemini_api_key_(absl::GetFlag(FLAGS_gemini_api_key)),
         anthropic_api_key_(absl::GetFlag(FLAGS_anthropic_api_key)),
         ollama_host_(absl::GetFlag(FLAGS_ollama_host)),
-        openai_base_url_(absl::GetFlag(FLAGS_openai_base_url)) {}
+        openai_base_url_(absl::GetFlag(FLAGS_openai_base_url)),
+        rom_(absl::GetFlag(FLAGS_rom)) {}
 
   ~ScopedFlagState() {
     absl::SetFlag(&FLAGS_ai_provider, ai_provider_);
@@ -82,6 +93,7 @@ class ScopedFlagState {
     absl::SetFlag(&FLAGS_anthropic_api_key, anthropic_api_key_);
     absl::SetFlag(&FLAGS_ollama_host, ollama_host_);
     absl::SetFlag(&FLAGS_openai_base_url, openai_base_url_);
+    absl::SetFlag(&FLAGS_rom, rom_);
   }
 
  private:
@@ -91,7 +103,32 @@ class ScopedFlagState {
   std::string anthropic_api_key_;
   std::string ollama_host_;
   std::string openai_base_url_;
+  std::string rom_;
 };
+
+TEST(AIServiceFactoryTest, BuildConfigReadsRomFlagIntoPathHint) {
+  ScopedFlagState flag_state;
+  absl::SetFlag(&FLAGS_rom, "roms/oos168.sfc");
+
+  const AIServiceConfig config = BuildAIServiceConfigFromFlags();
+
+  EXPECT_EQ(config.rom_path_hint, "roms/oos168.sfc");
+}
+
+TEST(AIServiceFactoryTest, DetectPromptProfileUsesOracleRomPathHint) {
+  AIServiceConfig config;
+  config.rom_path_hint = "roms/oos168.sfc";
+
+  EXPECT_EQ(DetectPromptProfile(config), AgentPromptProfile::kOracleOfSecrets);
+}
+
+TEST(AIServiceFactoryTest, DetectPromptProfileUsesOracleRomContextFilename) {
+  AIServiceConfig config;
+  Rom rom = BuildTestRom("roms/oracle-dev.sfc", 0x400000);
+  config.rom_context = &rom;
+
+  EXPECT_EQ(DetectPromptProfile(config), AgentPromptProfile::kOracleOfSecrets);
+}
 
 // These tests require AI runtime to be enabled (service_factory.cc vs stub)
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
@@ -243,6 +280,18 @@ TEST(AIServiceFactoryTest, AutoDetectsLocalOpenAIBase) {
   EXPECT_EQ(service->GetProviderName(), "openai");
 }
 
+TEST(AIServiceFactoryTest, AutoDetectsLocalOpenAIBaseBeforeAnthropicKey) {
+  AIServiceConfig config;
+  config.provider = "auto";
+  config.openai_base_url = "http://localhost:1234";
+  config.anthropic_api_key = "test-anthropic-key";
+
+  auto service = CreateAIService(config);
+
+  ASSERT_NE(service, nullptr);
+  EXPECT_EQ(service->GetProviderName(), "openai");
+}
+
 TEST(AIServiceFactoryTest, AutoDetectsOpenAIBaseFromEnv) {
   ScopedFlagState flag_state;
   absl::SetFlag(&FLAGS_ai_provider, "auto");
@@ -254,6 +303,29 @@ TEST(AIServiceFactoryTest, AutoDetectsOpenAIBaseFromEnv) {
 
   ScopedEnvVar clear_gemini("GEMINI_API_KEY", nullptr);
   ScopedEnvVar clear_anthropic("ANTHROPIC_API_KEY", nullptr);
+  ScopedEnvVar clear_openai_key("OPENAI_API_KEY", nullptr);
+  ScopedEnvVar clear_openai_api_base("OPENAI_API_BASE", nullptr);
+  ScopedEnvVar clear_ollama_host("OLLAMA_HOST", nullptr);
+  ScopedEnvVar clear_ollama_model("OLLAMA_MODEL", nullptr);
+  ScopedEnvVar openai_base("OPENAI_BASE_URL", "http://localhost:1234");
+
+  auto service = CreateAIService();
+
+  ASSERT_NE(service, nullptr);
+  EXPECT_EQ(service->GetProviderName(), "openai");
+}
+
+TEST(AIServiceFactoryTest, AutoDetectsOpenAIBaseFromEnvBeforeAnthropicKey) {
+  ScopedFlagState flag_state;
+  absl::SetFlag(&FLAGS_ai_provider, "auto");
+  absl::SetFlag(&FLAGS_ai_model, "");
+  absl::SetFlag(&FLAGS_openai_base_url, "https://api.openai.com");
+  absl::SetFlag(&FLAGS_ollama_host, "http://localhost:11434");
+  absl::SetFlag(&FLAGS_gemini_api_key, "");
+  absl::SetFlag(&FLAGS_anthropic_api_key, "");
+
+  ScopedEnvVar clear_gemini("GEMINI_API_KEY", nullptr);
+  ScopedEnvVar set_anthropic("ANTHROPIC_API_KEY", "test-anthropic-key");
   ScopedEnvVar clear_openai_key("OPENAI_API_KEY", nullptr);
   ScopedEnvVar clear_openai_api_base("OPENAI_API_BASE", nullptr);
   ScopedEnvVar clear_ollama_host("OLLAMA_HOST", nullptr);

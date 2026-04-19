@@ -358,6 +358,11 @@ void ConversationalAgentService::SetRomContext(Rom* rom) {
   }
 }
 
+void ConversationalAgentService::SetAssemblySymbolTable(
+    const std::map<std::string, core::AsarSymbol>* table) {
+  tool_dispatcher_.SetAssemblySymbolTable(table);
+}
+
 void ConversationalAgentService::ResetConversation() {
   history_.clear();
   metrics_ = InternalMetrics{};
@@ -859,7 +864,15 @@ absl::StatusOr<ChatMessage> ConversationalAgentService::SendMessage(
 
 absl::Status ConversationalAgentService::ConfigureProvider(
     const AIServiceConfig& config) {
-  auto service_or = CreateAIServiceStrict(config);
+  AIServiceConfig effective_config = config;
+  if (effective_config.rom_context == nullptr) {
+    effective_config.rom_context = rom_context_;
+  }
+  if (effective_config.rom_path_hint.empty() && rom_context_ != nullptr) {
+    effective_config.rom_path_hint = rom_context_->filename();
+  }
+
+  auto service_or = CreateAIServiceStrict(effective_config);
   if (!service_or.ok()) {
     // Keep the existing service running and fall back to mock so the UI stays
     // responsive.
@@ -874,7 +887,7 @@ absl::Status ConversationalAgentService::ConfigureProvider(
   }
 
   ai_service_ = std::move(service_or.value());
-  provider_config_ = config;
+  provider_config_ = effective_config;
   if (rom_context_) {
     ai_service_->SetRomContext(rom_context_);
   }
