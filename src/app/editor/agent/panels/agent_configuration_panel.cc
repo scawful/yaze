@@ -15,6 +15,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
+#include "cli/service/ai/provider_ids.h"
 #include "imgui/imgui.h"
 
 #if defined(__EMSCRIPTEN__)
@@ -63,10 +64,8 @@ bool IsLocalEndpoint(const std::string& base_url) {
   }
   std::string lower = absl::AsciiStrToLower(base_url);
   // Check for common local identifiers
-  return ContainsText(lower, "localhost") ||
-         ContainsText(lower, "127.0.0.1") ||
-         ContainsText(lower, "0.0.0.0") ||
-         ContainsText(lower, "::1") ||
+  return ContainsText(lower, "localhost") || ContainsText(lower, "127.0.0.1") ||
+         ContainsText(lower, "0.0.0.0") || ContainsText(lower, "::1") ||
          // LAN IPs (rudimentary check)
          ContainsText(lower, "192.168.") || StartsWithText(lower, "10.") ||
          // LM Studio default port check just in case domain differs
@@ -75,8 +74,7 @@ bool IsLocalEndpoint(const std::string& base_url) {
 
 }  // namespace
 
-void AgentConfigPanel::Draw(AgentUIContext* context,
-                            const Callbacks& callbacks,
+void AgentConfigPanel::Draw(AgentUIContext* context, const Callbacks& callbacks,
                             ToastManager* toast_manager) {
   const auto& theme = AgentUI::GetTheme();
 
@@ -114,12 +112,11 @@ void AgentConfigPanel::Draw(AgentUIContext* context,
       callbacks.update_config(context->agent_config());
     }
   }
-
 }
 
-void AgentConfigPanel::RenderModelConfigControls(
-    AgentUIContext* context, const Callbacks& callbacks,
-    ToastManager* toast_manager) {
+void AgentConfigPanel::RenderModelConfigControls(AgentUIContext* context,
+                                                 const Callbacks& callbacks,
+                                                 ToastManager* toast_manager) {
   const auto& theme = AgentUI::GetTheme();
   ImGuiStyle& style = ImGui::GetStyle();
   auto& config = context->agent_config();
@@ -164,9 +161,8 @@ void AgentConfigPanel::RenderModelConfigControls(
     if (active) {
       btn_guard.emplace(std::initializer_list<gui::StyleColorGuard::Entry>{
           {ImGuiCol_Button, color},
-          {ImGuiCol_ButtonHovered,
-           ImVec4(color.x * 1.15f, color.y * 1.15f, color.z * 1.15f,
-                  color.w)}});
+          {ImGuiCol_ButtonHovered, ImVec4(color.x * 1.15f, color.y * 1.15f,
+                                          color.z * 1.15f, color.w)}});
     }
     if (ImGui::Button(label, ImVec2(-FLT_MIN, 28))) {
       config.ai_provider = value;
@@ -176,143 +172,143 @@ void AgentConfigPanel::RenderModelConfigControls(
   };
 
   {
-  gui::StyleVarGuard provider_var_guard(
-      {{ImGuiStyleVar_FramePadding, compact_padding},
-       {ImGuiStyleVar_ItemSpacing, compact_spacing}});
-  if (ImGui::BeginTable("AgentProviderConfigTable", 2,
-                        ImGuiTableFlags_SizingFixedFit |
-                            ImGuiTableFlags_BordersInnerV)) {
-    ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
-                            label_width);
-    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+    gui::StyleVarGuard provider_var_guard(
+        {{ImGuiStyleVar_FramePadding, compact_padding},
+         {ImGuiStyleVar_ItemSpacing, compact_spacing}});
+    if (ImGui::BeginTable(
+            "AgentProviderConfigTable", 2,
+            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV)) {
+      ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
+                              label_width);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
-    ImGui::TableNextRow();
-    ImGui::TableSetColumnIndex(0);
-    ImGui::TextDisabled("Provider");
-    ImGui::TableSetColumnIndex(1);
-    float provider_width = ImGui::GetContentRegionAvail().x;
-    int provider_columns = provider_width > 560.0f ? 3
-                           : provider_width > 360.0f ? 2
-                                                     : 1;
-    if (ImGui::BeginTable("AgentProviderButtons", provider_columns,
-                          ImGuiTableFlags_SizingStretchSame)) {
-      provider_button(ICON_MD_SETTINGS " Mock", "mock", theme.provider_mock);
-      provider_button(ICON_MD_CLOUD " Ollama", "ollama", theme.provider_ollama);
-      provider_button(ICON_MD_SMART_TOY " Gemini", "gemini",
-                      theme.provider_gemini);
-      provider_button(ICON_MD_PSYCHOLOGY " Anthropic", "anthropic",
-                      theme.provider_openai);
-      provider_button(ICON_MD_AUTO_AWESOME " OpenAI", "openai",
-                      theme.provider_openai);
-      ImGui::EndTable();
-    }
-
-    ImGui::TableNextRow();
-    ImGui::TableSetColumnIndex(0);
-    ImGui::TextDisabled("Ollama Host");
-    ImGui::TableSetColumnIndex(1);
-    ImGui::SetNextItemWidth(-1);
-    if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
-                                 config.ollama_host_buffer,
-                                 IM_ARRAYSIZE(config.ollama_host_buffer))) {
-      config.ollama_host = config.ollama_host_buffer;
-    }
-
-    auto key_row = [&](const char* label, const char* hint, char* buffer,
-                       size_t buffer_len, std::string* target,
-                       const char* env_var, const char* input_id,
-                       const char* button_id) {
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
-      ImGui::TextDisabled("%s", label);
+      ImGui::TextDisabled("Provider");
       ImGui::TableSetColumnIndex(1);
-      float input_width =
-          ImGui::GetContentRegionAvail().x - env_button_width -
-          style.ItemSpacing.x;
-      bool stack = input_width < 140.0f;
-      ImGui::SetNextItemWidth(stack ? -1 : input_width);
-      if (ImGui::InputTextWithHint(input_id, hint, buffer, buffer_len,
-                                   ImGuiInputTextFlags_Password)) {
-        if (target) {
-          *target = buffer;
-        }
+      float provider_width = ImGui::GetContentRegionAvail().x;
+      int provider_columns = provider_width > 560.0f   ? 3
+                             : provider_width > 360.0f ? 2
+                                                       : 1;
+      if (ImGui::BeginTable("AgentProviderButtons", provider_columns,
+                            ImGuiTableFlags_SizingStretchSame)) {
+        provider_button(ICON_MD_SETTINGS " Mock", cli::kProviderMock,
+                        theme.provider_mock);
+        provider_button(ICON_MD_CLOUD " Ollama", cli::kProviderOllama,
+                        theme.provider_ollama);
+        provider_button(ICON_MD_SMART_TOY " Gemini", cli::kProviderGemini,
+                        theme.provider_gemini);
+        provider_button(ICON_MD_PSYCHOLOGY " Anthropic",
+                        cli::kProviderAnthropic, theme.provider_openai);
+        provider_button(ICON_MD_AUTO_AWESOME " OpenAI", cli::kProviderOpenAi,
+                        theme.provider_openai);
+        ImGui::EndTable();
       }
-      if (!stack) {
+
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      ImGui::TextDisabled("Ollama Host");
+      ImGui::TableSetColumnIndex(1);
+      ImGui::SetNextItemWidth(-1);
+      if (ImGui::InputTextWithHint("##ollama_host", "http://localhost:11434",
+                                   config.ollama_host_buffer,
+                                   IM_ARRAYSIZE(config.ollama_host_buffer))) {
+        config.ollama_host = config.ollama_host_buffer;
+      }
+
+      auto key_row = [&](const char* label, const char* hint, char* buffer,
+                         size_t buffer_len, std::string* target,
+                         const char* env_var, const char* input_id,
+                         const char* button_id) {
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex(0);
+        ImGui::TextDisabled("%s", label);
+        ImGui::TableSetColumnIndex(1);
+        float input_width = ImGui::GetContentRegionAvail().x -
+                            env_button_width - style.ItemSpacing.x;
+        bool stack = input_width < 140.0f;
+        ImGui::SetNextItemWidth(stack ? -1 : input_width);
+        if (ImGui::InputTextWithHint(input_id, hint, buffer, buffer_len,
+                                     ImGuiInputTextFlags_Password)) {
+          if (target) {
+            *target = buffer;
+          }
+        }
+        if (!stack) {
+          ImGui::SameLine();
+        }
+        if (ImGui::SmallButton(button_id)) {
+          const char* env_key = std::getenv(env_var);
+          if (env_key) {
+            std::snprintf(buffer, buffer_len, "%s", env_key);
+            if (target) {
+              *target = env_key;
+            }
+            if (toast_manager) {
+              toast_manager->Show(
+                  absl::StrFormat("Loaded %s from environment", env_var),
+                  ToastType::kInfo, 2.0f);
+            }
+          } else if (toast_manager) {
+            toast_manager->Show(absl::StrFormat("%s not set", env_var),
+                                ToastType::kWarning, 2.0f);
+          }
+        }
+      };
+
+      key_row("Gemini Key", "API key...", config.gemini_key_buffer,
+              IM_ARRAYSIZE(config.gemini_key_buffer), &config.gemini_api_key,
+              "GEMINI_API_KEY", "##gemini_key", ICON_MD_SYNC " Env##gemini");
+      key_row("Anthropic Key", "API key...", config.anthropic_key_buffer,
+              IM_ARRAYSIZE(config.anthropic_key_buffer),
+              &config.anthropic_api_key, "ANTHROPIC_API_KEY", "##anthropic_key",
+              ICON_MD_SYNC " Env##anthropic");
+      key_row("OpenAI Key", "API key...", config.openai_key_buffer,
+              IM_ARRAYSIZE(config.openai_key_buffer), &config.openai_api_key,
+              "OPENAI_API_KEY", "##openai_key", ICON_MD_SYNC " Env##openai");
+
+      ImGui::TableNextRow();
+      ImGui::TableSetColumnIndex(0);
+      ImGui::TextDisabled("OpenAI Base");
+      ImGui::TableSetColumnIndex(1);
+      float openai_button_width =
+          ImGui::CalcTextSize("OpenAI").x + compact_padding.x * 2.0f;
+      float lm_button_width =
+          ImGui::CalcTextSize("LM Studio").x + compact_padding.x * 2.0f;
+      float reset_button_width =
+          ImGui::CalcTextSize("Reset").x + compact_padding.x * 2.0f;
+      float total_buttons = openai_button_width + lm_button_width +
+                            reset_button_width + style.ItemSpacing.x * 2.0f;
+      float base_available = ImGui::GetContentRegionAvail().x;
+      bool base_stack = base_available < total_buttons + 160.0f;
+      ImGui::SetNextItemWidth(base_stack ? -1
+                                         : base_available - total_buttons -
+                                               style.ItemSpacing.x);
+      if (ImGui::InputTextWithHint(
+              "##openai_base", "http://localhost:1234",
+              config.openai_base_url_buffer,
+              IM_ARRAYSIZE(config.openai_base_url_buffer))) {
+        config.openai_base_url = config.openai_base_url_buffer;
+      }
+      if (base_stack) {
+        ImGui::Spacing();
+      } else {
         ImGui::SameLine();
       }
-      if (ImGui::SmallButton(button_id)) {
-        const char* env_key = std::getenv(env_var);
-        if (env_key) {
-          std::snprintf(buffer, buffer_len, "%s", env_key);
-          if (target) {
-            *target = env_key;
-          }
-          if (toast_manager) {
-            toast_manager->Show(
-                absl::StrFormat("Loaded %s from environment", env_var),
-                ToastType::kInfo, 2.0f);
-          }
-        } else if (toast_manager) {
-          toast_manager->Show(
-              absl::StrFormat("%s not set", env_var), ToastType::kWarning,
-              2.0f);
-        }
+      if (ImGui::SmallButton("OpenAI")) {
+        set_openai_base("https://api.openai.com");
       }
-    };
-
-    key_row("Gemini Key", "API key...", config.gemini_key_buffer,
-            IM_ARRAYSIZE(config.gemini_key_buffer), &config.gemini_api_key,
-            "GEMINI_API_KEY", "##gemini_key",
-            ICON_MD_SYNC " Env##gemini");
-    key_row("Anthropic Key", "API key...", config.anthropic_key_buffer,
-            IM_ARRAYSIZE(config.anthropic_key_buffer),
-            &config.anthropic_api_key, "ANTHROPIC_API_KEY", "##anthropic_key",
-            ICON_MD_SYNC " Env##anthropic");
-    key_row("OpenAI Key", "API key...", config.openai_key_buffer,
-            IM_ARRAYSIZE(config.openai_key_buffer), &config.openai_api_key,
-            "OPENAI_API_KEY", "##openai_key", ICON_MD_SYNC " Env##openai");
-
-    ImGui::TableNextRow();
-    ImGui::TableSetColumnIndex(0);
-    ImGui::TextDisabled("OpenAI Base");
-    ImGui::TableSetColumnIndex(1);
-    float openai_button_width =
-        ImGui::CalcTextSize("OpenAI").x + compact_padding.x * 2.0f;
-    float lm_button_width =
-        ImGui::CalcTextSize("LM Studio").x + compact_padding.x * 2.0f;
-    float reset_button_width =
-        ImGui::CalcTextSize("Reset").x + compact_padding.x * 2.0f;
-    float total_buttons =
-        openai_button_width + lm_button_width + reset_button_width +
-        style.ItemSpacing.x * 2.0f;
-    float base_available = ImGui::GetContentRegionAvail().x;
-    bool base_stack = base_available < total_buttons + 160.0f;
-    ImGui::SetNextItemWidth(
-        base_stack ? -1 : base_available - total_buttons - style.ItemSpacing.x);
-    if (ImGui::InputTextWithHint("##openai_base", "http://localhost:1234",
-                                 config.openai_base_url_buffer,
-                                 IM_ARRAYSIZE(config.openai_base_url_buffer))) {
-      config.openai_base_url = config.openai_base_url_buffer;
-    }
-    if (base_stack) {
-      ImGui::Spacing();
-    } else {
       ImGui::SameLine();
-    }
-    if (ImGui::SmallButton("OpenAI")) {
-      set_openai_base("https://api.openai.com");
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton("LM Studio")) {
-      set_openai_base("http://localhost:1234");
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton("Reset")) {
-      set_openai_base("https://api.openai.com");
-    }
+      if (ImGui::SmallButton("LM Studio")) {
+        set_openai_base("http://localhost:1234");
+      }
+      ImGui::SameLine();
+      if (ImGui::SmallButton("Reset")) {
+        set_openai_base("https://api.openai.com");
+      }
 
-    ImGui::EndTable();
-  }
+      ImGui::EndTable();
+    }
   }  // provider_var_guard scope
 
   if (IsLocalEndpoint(config.openai_base_url)) {
@@ -329,9 +325,9 @@ void AgentConfigPanel::RenderModelConfigControls(
     gui::StyleVarGuard model_var_guard(
         {{ImGuiStyleVar_FramePadding, compact_padding},
          {ImGuiStyleVar_ItemSpacing, compact_spacing}});
-    if (ImGui::BeginTable("AgentModelControls", 2,
-                          ImGuiTableFlags_SizingFixedFit |
-                              ImGuiTableFlags_BordersInnerV)) {
+    if (ImGui::BeginTable(
+            "AgentModelControls", 2,
+            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_BordersInnerV)) {
       ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
                               label_width);
       ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
@@ -405,8 +401,7 @@ void AgentConfigPanel::RenderModelConfigControls(
     }
   }
 
-  float list_height =
-      std::max(220.0f, ImGui::GetContentRegionAvail().y * 0.6f);
+  float list_height = std::max(220.0f, ImGui::GetContentRegionAvail().y * 0.6f);
   gui::StyleColorGuard model_list_bg(ImGuiCol_ChildBg, theme.panel_bg_darker);
   ImGui::BeginChild("UnifiedModelList", ImVec2(0, list_height), true);
   std::string filter = absl::AsciiStrToLower(model_cache.search_buffer);
@@ -458,13 +453,13 @@ void AgentConfigPanel::RenderModelConfigControls(
   }
 
   auto get_provider_color = [&theme](const std::string& provider) -> ImVec4 {
-    if (provider == "ollama")
+    if (provider == cli::kProviderOllama)
       return theme.provider_ollama;
-    if (provider == "gemini")
+    if (provider == cli::kProviderGemini)
       return theme.provider_gemini;
-    if (provider == "anthropic")
+    if (provider == cli::kProviderAnthropic)
       return theme.provider_openai;
-    if (provider == "openai")
+    if (provider == cli::kProviderOpenAi)
       return theme.provider_openai;
     return theme.provider_mock;
   };
@@ -500,9 +495,9 @@ void AgentConfigPanel::RenderModelConfigControls(
     float list_width = ImGui::GetContentRegionAvail().x;
     bool compact = list_width < 520.0f;
     int column_count = compact ? 3 : 5;
-    ImGuiTableFlags table_flags =
-        ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH |
-        ImGuiTableFlags_SizingStretchProp;
+    ImGuiTableFlags table_flags = ImGuiTableFlags_RowBg |
+                                  ImGuiTableFlags_BordersInnerH |
+                                  ImGuiTableFlags_SizingStretchProp;
     if (ImGui::BeginTable("ModelTable", column_count, table_flags)) {
       if (compact) {
         ImGui::TableSetupColumn("Provider", ImGuiTableColumnFlags_WidthFixed,
@@ -588,8 +583,7 @@ void AgentConfigPanel::RenderModelConfigControls(
 
           ImGui::TableSetColumnIndex(3);
           if (!row.quantization.empty()) {
-            ImGui::TextColored(theme.text_info, "%s",
-                               row.quantization.c_str());
+            ImGui::TextColored(theme.text_info, "%s", row.quantization.c_str());
             if (!row.family.empty()) {
               ImGui::SameLine();
             }
@@ -602,9 +596,9 @@ void AgentConfigPanel::RenderModelConfigControls(
             ImGui::SameLine();
             ImGui::TextColored(theme.status_success, ICON_MD_COMPUTER);
           }
-        } else if (ImGui::IsItemHovered() && (!size_label.empty() ||
-                                             !row.quantization.empty() ||
-                                             !row.family.empty())) {
+        } else if (ImGui::IsItemHovered() &&
+                   (!size_label.empty() || !row.quantization.empty() ||
+                    !row.family.empty())) {
           std::string meta;
           if (!size_label.empty()) {
             meta += size_label;
@@ -626,16 +620,14 @@ void AgentConfigPanel::RenderModelConfigControls(
 
         int action_column = compact ? 2 : 4;
         ImGui::TableSetColumnIndex(action_column);
-        gui::StyleVarGuard action_var(ImGuiStyleVar_FramePadding,
-                                      ImVec2(4, 1));
-        bool is_favorite =
-            std::find(config.favorite_models.begin(),
-                      config.favorite_models.end(),
-                      row.name) != config.favorite_models.end();
+        gui::StyleVarGuard action_var(ImGuiStyleVar_FramePadding, ImVec2(4, 1));
+        bool is_favorite = std::find(config.favorite_models.begin(),
+                                     config.favorite_models.end(),
+                                     row.name) != config.favorite_models.end();
         {
           gui::StyleColorGuard star_color(
-              ImGuiCol_Text, is_favorite ? theme.status_warning
-                                        : theme.text_secondary_color);
+              ImGuiCol_Text,
+              is_favorite ? theme.status_warning : theme.text_secondary_color);
           if (ImGui::SmallButton(is_favorite ? ICON_MD_STAR
                                              : ICON_MD_STAR_BORDER)) {
             if (is_favorite) {
@@ -665,17 +657,16 @@ void AgentConfigPanel::RenderModelConfigControls(
             preset.name = row.name;
             preset.model = row.name;
             preset.provider = row.provider;
-            if (row.provider == "ollama") {
+            if (row.provider == cli::kProviderOllama) {
               preset.host = config.ollama_host;
-            } else if (row.provider == "openai") {
+            } else if (row.provider == cli::kProviderOpenAi) {
               preset.host = config.openai_base_url;
             }
             preset.tags = {row.provider};
             preset.last_used = absl::Now();
             config.model_presets.push_back(std::move(preset));
             if (toast_manager) {
-              toast_manager->Show("Preset captured", ToastType::kSuccess,
-                                  2.0f);
+              toast_manager->Show("Preset captured", ToastType::kSuccess, 2.0f);
             }
           }
           if (ImGui::IsItemHovered()) {
@@ -698,7 +689,7 @@ void AgentConfigPanel::RenderModelConfigControls(
     ImGui::TextDisabled("Models not refreshed yet");
   }
 
-  if (config.ai_provider == "ollama") {
+  if (config.ai_provider == cli::kProviderOllama) {
     RenderChainModeControls(config);
   }
 
@@ -720,13 +711,13 @@ void AgentConfigPanel::RenderModelConfigControls(
 
       if (!provider_name.empty()) {
         ImVec4 badge_color = theme.provider_mock;
-        if (provider_name == "ollama")
+        if (provider_name == cli::kProviderOllama)
           badge_color = theme.provider_ollama;
-        else if (provider_name == "gemini")
+        else if (provider_name == cli::kProviderGemini)
           badge_color = theme.provider_gemini;
-        else if (provider_name == "anthropic")
+        else if (provider_name == cli::kProviderAnthropic)
           badge_color = theme.provider_openai;
-        else if (provider_name == "openai")
+        else if (provider_name == cli::kProviderOpenAi)
           badge_color = theme.provider_openai;
         {
           gui::StyleColorGuard fav_badge_color(ImGuiCol_Button, badge_color);
@@ -779,11 +770,10 @@ void AgentConfigPanel::RenderModelDeck(AgentUIContext* context,
     ImGui::TextDisabled("Capture a preset to swap models quickly.");
   }
 
-  float capture_width =
-      ImGui::CalcTextSize(ICON_MD_NOTE_ADD " Capture").x +
-      style.FramePadding.x * 2.0f;
-  float capture_input_width = ImGui::GetContentRegionAvail().x -
-                              capture_width - style.ItemSpacing.x;
+  float capture_width = ImGui::CalcTextSize(ICON_MD_NOTE_ADD " Capture").x +
+                        style.FramePadding.x * 2.0f;
+  float capture_input_width =
+      ImGui::GetContentRegionAvail().x - capture_width - style.ItemSpacing.x;
   if (capture_input_width > 120.0f) {
     ImGui::SetNextItemWidth(capture_input_width);
   }
@@ -800,9 +790,9 @@ void AgentConfigPanel::RenderModelDeck(AgentUIContext* context,
                       : config.ai_model;
     preset.model = config.ai_model;
     preset.provider = config.ai_provider;
-    if (config.ai_provider == "ollama") {
+    if (config.ai_provider == cli::kProviderOllama) {
       preset.host = config.ollama_host;
-    } else if (config.ai_provider == "openai") {
+    } else if (config.ai_provider == cli::kProviderOpenAi) {
       preset.host = config.openai_base_url;
     }
     preset.tags = {config.ai_provider};
@@ -814,16 +804,15 @@ void AgentConfigPanel::RenderModelDeck(AgentUIContext* context,
     }
   }
 
-  float deck_height =
-      std::max(90.0f, ImGui::GetContentRegionAvail().y * 0.32f);
+  float deck_height = std::max(90.0f, ImGui::GetContentRegionAvail().y * 0.32f);
   gui::StyledChild preset_child("PresetList", ImVec2(0, deck_height),
                                 {.bg = theme.panel_bg_darker}, true);
   if (config.model_presets.empty()) {
     ImGui::TextDisabled("No presets yet");
   } else {
-    ImGuiTableFlags table_flags =
-        ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerH |
-        ImGuiTableFlags_SizingStretchProp;
+    ImGuiTableFlags table_flags = ImGuiTableFlags_RowBg |
+                                  ImGuiTableFlags_BordersInnerH |
+                                  ImGuiTableFlags_SizingStretchProp;
     if (ImGui::BeginTable("PresetTable", 3, table_flags)) {
       ImGui::TableSetupColumn("Preset", ImGuiTableColumnFlags_WidthStretch);
       ImGui::TableSetupColumn("Host/Provider",
@@ -848,8 +837,8 @@ void AgentConfigPanel::RenderModelDeck(AgentUIContext* context,
         if (ImGui::IsItemHovered()) {
           std::string tooltip = absl::StrFormat("Model: %s", preset.model);
           if (!preset.tags.empty()) {
-            tooltip += absl::StrFormat("\nTags: %s",
-                                       absl::StrJoin(preset.tags, ", "));
+            tooltip +=
+                absl::StrFormat("\nTags: %s", absl::StrJoin(preset.tags, ", "));
           }
           if (preset.last_used != absl::InfinitePast()) {
             tooltip += absl::StrFormat("\nLast used %s",
@@ -899,8 +888,7 @@ void AgentConfigPanel::RenderModelDeck(AgentUIContext* context,
   }
 }
 
-void AgentConfigPanel::RenderParameterControls(
-    AgentConfigState& config) {
+void AgentConfigPanel::RenderParameterControls(AgentConfigState& config) {
   ImGui::SliderFloat("Temperature", &config.temperature, 0.0f, 1.5f);
   ImGui::SliderFloat("Top P", &config.top_p, 0.0f, 1.0f);
   ImGui::SliderInt("Max Output Tokens", &config.max_output_tokens, 256, 8192);
@@ -913,8 +901,8 @@ void AgentConfigPanel::RenderParameterControls(
   ImGui::Checkbox("Verbose logs", &config.verbose);
 }
 
-void AgentConfigPanel::RenderToolingControls(
-    AgentConfigState& config, const Callbacks& callbacks) {
+void AgentConfigPanel::RenderToolingControls(AgentConfigState& config,
+                                             const Callbacks& callbacks) {
   struct ToolToggleEntry {
     const char* label;
     bool* flag;
@@ -926,13 +914,13 @@ void AgentConfigPanel::RenderToolingControls(
       {"Dialogue", &config.tool_config.dialogue, "Dialogue list/search"},
       {"Messages", &config.tool_config.messages, "Message table + ROM text"},
       {"GUI Automation", &config.tool_config.gui, "GUI automation tools"},
-          {"Music", &config.tool_config.music, "Music info & tracks"},
-          {"Sprite", &config.tool_config.sprite, "Sprite palette/properties"},
-          {"Emulator", &config.tool_config.emulator, "Emulator controls"},
-          {"Memory", &config.tool_config.memory_inspector, "RAM inspection & watch"}};
-      
-  ImGui::TextDisabled(
-      "Expose tools in the agent sidebar and editor panels.");
+      {"Music", &config.tool_config.music, "Music info & tracks"},
+      {"Sprite", &config.tool_config.sprite, "Sprite palette/properties"},
+      {"Emulator", &config.tool_config.emulator, "Emulator controls"},
+      {"Memory", &config.tool_config.memory_inspector,
+       "RAM inspection & watch"}};
+
+  ImGui::TextDisabled("Expose tools in the agent sidebar and editor panels.");
   int columns = ImGui::GetContentRegionAvail().x > 360.0f ? 2 : 1;
   ImGuiTableFlags table_flags =
       ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_RowBg;
@@ -952,8 +940,7 @@ void AgentConfigPanel::RenderToolingControls(
   }
 }
 
-void AgentConfigPanel::RenderChainModeControls(
-    AgentConfigState& config) {
+void AgentConfigPanel::RenderChainModeControls(AgentConfigState& config) {
   ImGui::Spacing();
   ImGui::TextDisabled("Chain Mode (Experimental)");
 

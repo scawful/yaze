@@ -7,6 +7,7 @@
 
 #include "absl/status/statusor.h"
 #include "cli/service/ai/common.h"
+#include "cli/service/ai/provider_ids.h"
 
 namespace yaze {
 class Rom;
@@ -50,13 +51,13 @@ class MockAIService : public AIService {
   absl::StatusOr<AgentResponse> GenerateResponse(
       const std::vector<agent::ChatMessage>& history) override;
 
-  std::string GetProviderName() const override { return "mock"; }
+  std::string GetProviderName() const override { return kProviderMock; }
 
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override {
     std::vector<ModelInfo> models;
     models.push_back({.name = "mock-model",
                       .display_name = "Mock Model",
-                      .provider = "mock",
+                      .provider = kProviderMock,
                       .description = "A mock model for testing",
                       .is_local = true});
     return models;

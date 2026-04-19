@@ -7,6 +7,7 @@
 
 #include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 
 namespace yaze {
 class Rom;
@@ -22,7 +23,7 @@ struct AIServiceConfig {
   // "auto" (auto-detect configured provider), "gemini",
   // "anthropic", "openai", "ollama", or "mock".
   // Aliases: "claude" => anthropic, "chatgpt"/"lmstudio" => openai.
-  std::string provider = "auto";
+  std::string provider = kProviderAuto;
   // Provider-specific model name.
   std::string model;
   // For Gemini.

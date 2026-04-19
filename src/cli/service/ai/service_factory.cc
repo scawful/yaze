@@ -15,6 +15,7 @@
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/local_gemini_cli_service.h"
 #include "cli/service/ai/ollama_ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 #include "rom/rom.h"
 #include "util/platform_paths.h"
 
@@ -32,17 +33,23 @@ constexpr char kOraclePromptAsset[] = "agent/oracle_of_secrets_guide.txt";
 
 std::string NormalizeProviderAlias(std::string provider) {
   provider = absl::AsciiStrToLower(provider);
-  if (provider == "claude" || provider == "anthropic-claude" ||
-      provider == "sonnet" || provider == "opus") {
-    return "anthropic";
+  if (provider == yaze::cli::kProviderClaude ||
+      provider == yaze::cli::kProviderAnthropicClaude ||
+      provider == yaze::cli::kProviderSonnet ||
+      provider == yaze::cli::kProviderOpus) {
+    return yaze::cli::kProviderAnthropic;
   }
-  if (provider == "chatgpt" || provider == "gpt" || provider == "lmstudio" ||
-      provider == "lm-studio" || provider == "custom-openai" ||
-      provider == "openai-compatible") {
-    return "openai";
+  if (provider == yaze::cli::kProviderChatGpt ||
+      provider == yaze::cli::kProviderGpt ||
+      provider == yaze::cli::kProviderLmStudio ||
+      provider == yaze::cli::kProviderLmStudioDashed ||
+      provider == yaze::cli::kProviderCustomOpenAi ||
+      provider == yaze::cli::kProviderOpenAiCompatible) {
+    return yaze::cli::kProviderOpenAi;
   }
-  if (provider == "google" || provider == "google-gemini") {
-    return "gemini";
+  if (provider == yaze::cli::kProviderGoogle ||
+      provider == yaze::cli::kProviderGoogleGemini) {
+    return yaze::cli::kProviderGemini;
   }
   return provider;
 }
@@ -129,7 +136,7 @@ void ApplyEnvironmentFallbacks(yaze::cli::AIServiceConfig& config) {
 yaze::cli::AIServiceConfig NormalizeConfig(yaze::cli::AIServiceConfig config) {
   config.provider = NormalizeProviderAlias(std::move(config.provider));
   if (config.provider.empty()) {
-    config.provider = "auto";
+    config.provider = yaze::cli::kProviderAuto;
   }
   config.openai_base_url =
       yaze::cli::NormalizeOpenAiBaseUrl(config.openai_base_url);
@@ -210,23 +217,23 @@ std::vector<AIServiceConfig> DiscoverModelRegistryConfigs(
     configs.push_back(std::move(provider_config));
   };
 
-  if (effective_config.provider != "auto") {
+  if (effective_config.provider != kProviderAuto) {
     append_provider(effective_config.provider);
     return configs;
   }
 
   if (!effective_config.gemini_api_key.empty()) {
-    append_provider("gemini");
+    append_provider(kProviderGemini);
   }
   if (HasOpenAiEndpointHint(effective_config) ||
       !effective_config.openai_api_key.empty()) {
-    append_provider("openai");
+    append_provider(kProviderOpenAi);
   }
   if (!effective_config.anthropic_api_key.empty()) {
-    append_provider("anthropic");
+    append_provider(kProviderAnthropic);
   }
   if (HasOllamaHint(effective_config)) {
-    append_provider("ollama");
+    append_provider(kProviderOllama);
   }
   return configs;
 }
@@ -238,43 +245,43 @@ std::unique_ptr<AIService> CreateAIService() {
 std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
   AIServiceConfig effective_config = NormalizeConfig(config);
 
-  if (effective_config.provider == "auto") {
+  if (effective_config.provider == kProviderAuto) {
     if (!effective_config.gemini_api_key.empty()) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found Gemini API key, using Gemini\n";
-      effective_config.provider = "gemini";
+      effective_config.provider = kProviderGemini;
     } else if (HasOpenAiEndpointHint(effective_config)) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found OpenAI-compatible base URL, using OpenAI\n";
       if (effective_config.model.empty()) {
         std::cout << "   Tip: Set --ai_model for local servers\n";
       }
-      effective_config.provider = "openai";
+      effective_config.provider = kProviderOpenAi;
     } else if (!effective_config.anthropic_api_key.empty()) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found Anthropic API key, using Anthropic\n";
-      effective_config.provider = "anthropic";
+      effective_config.provider = kProviderAnthropic;
     } else if (!effective_config.openai_api_key.empty()) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found OpenAI API key, using OpenAI\n";
-      effective_config.provider = "openai";
+      effective_config.provider = kProviderOpenAi;
       if (effective_config.model.empty()) {
         effective_config.model = "gpt-4o-mini";
       }
     } else if (HasOllamaHint(effective_config)) {
       std::cout << "🤖 Auto-detecting AI provider...\n";
       std::cout << "   Found Ollama configuration, using Ollama\n";
-      effective_config.provider = "ollama";
+      effective_config.provider = kProviderOllama;
     } else {
       std::cout << "🤖 No AI provider configured, using MockAIService\n";
       std::cout
           << "   Tip: Set GEMINI_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY,"
              " OPENAI_BASE_URL, or OLLAMA_HOST/OLLAMA_MODEL\n";
-      effective_config.provider = "mock";
+      effective_config.provider = kProviderMock;
     }
   }
 
-  if (effective_config.provider != "mock") {
+  if (effective_config.provider != kProviderMock) {
     std::cout << "🤖 AI Provider: " << effective_config.provider << "\n";
   }
 
@@ -292,7 +299,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     const AIServiceConfig& config) {
   const AIServiceConfig effective_config = NormalizeConfig(config);
   const std::string provider = effective_config.provider;
-  if (provider.empty() || provider == "auto") {
+  if (provider.empty() || provider == kProviderAuto) {
     return absl::InvalidArgumentError(
         "CreateAIServiceStrict requires an explicit provider (not 'auto')");
   }
@@ -300,11 +307,11 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
   const std::string oracle_system_instruction =
       ResolveOracleSystemInstruction(effective_config);
 
-  if (provider == "mock") {
+  if (provider == kProviderMock) {
     return FinalizeService(std::make_unique<MockAIService>(), effective_config);
   }
 
-  if (provider == "ollama") {
+  if (provider == kProviderOllama) {
     OllamaConfig ollama_config;
     ollama_config.base_url = effective_config.ollama_host;
     if (!effective_config.model.empty()) {
@@ -319,7 +326,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
                            effective_config);
   }
 
-  if (provider == "gemini-cli" || provider == "local-gemini") {
+  if (provider == kProviderGeminiCli || provider == kProviderLocalGemini) {
     return FinalizeService(
         std::make_unique<LocalGeminiCliService>(effective_config.model.empty()
                                                     ? "gemini-2.5-flash"
@@ -328,7 +335,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
   }
 
 #ifdef YAZE_WITH_JSON
-  if (provider == "gemini") {
+  if (provider == kProviderGemini) {
     if (effective_config.gemini_api_key.empty()) {
       return absl::FailedPreconditionError(
           "Gemini API key not provided. Set --gemini_api_key or "
@@ -348,7 +355,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     return FinalizeService(std::make_unique<GeminiAIService>(gemini_config),
                            effective_config);
   }
-  if (provider == "anthropic") {
+  if (provider == kProviderAnthropic) {
     if (effective_config.anthropic_api_key.empty()) {
       return absl::FailedPreconditionError(
           "Anthropic API key not provided. Set --anthropic_api_key or "
@@ -369,7 +376,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
         std::make_unique<AnthropicAIService>(anthropic_config),
         effective_config);
   }
-  if (provider == "openai") {
+  if (provider == kProviderOpenAi) {
     const bool is_local_server =
         effective_config.openai_base_url != kDefaultOpenAiBaseUrl;
     if (effective_config.openai_api_key.empty() && !is_local_server) {
@@ -393,7 +400,7 @@ absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
                            effective_config);
   }
 #else
-  if (provider == "gemini" || provider == "anthropic") {
+  if (provider == kProviderGemini || provider == kProviderAnthropic) {
     return absl::FailedPreconditionError(
         "AI support not available: rebuild with YAZE_WITH_JSON=ON");
   }

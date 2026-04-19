@@ -7,6 +7,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
 #include "cli/service/ai/prompt_builder.h"
@@ -50,7 +51,7 @@ class OpenAIAIService : public AIService {
   // List available models from OpenAI API
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override;
 
-  std::string GetProviderName() const override { return "openai"; }
+  std::string GetProviderName() const override { return kProviderOpenAi; }
 
   // Function calling support
   void EnableFunctionCalling(bool enable = true);
@@ -91,7 +92,7 @@ class OpenAIAIService : public AIService {
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override {
     return absl::FailedPreconditionError("OpenAI AI runtime is disabled");
   }
-  std::string GetProviderName() const override { return "openai"; }
+  std::string GetProviderName() const override { return kProviderOpenAi; }
 };
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE

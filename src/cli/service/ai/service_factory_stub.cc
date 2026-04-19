@@ -6,6 +6,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "cli/service/ai/provider_ids.h"
 #include "cli/service/ai/service_factory.h"
 #include "rom/rom.h"
 
@@ -56,7 +57,7 @@ AgentPromptProfile DetectPromptProfile(const AIServiceConfig& config) {
 
 std::vector<AIServiceConfig> DiscoverModelRegistryConfigs(
     const AIServiceConfig& base_config) {
-  if (base_config.provider.empty() || base_config.provider == "auto") {
+  if (base_config.provider.empty() || base_config.provider == kProviderAuto) {
     return {};
   }
   return {base_config};

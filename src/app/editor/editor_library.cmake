@@ -167,7 +167,7 @@ set(
   app/editor/system/shortcut_configurator.cc
 )
 
-# Editor system split targets (panels/session/shortcuts)
+#Editor system split targets(panels / session / shortcuts)
 add_library(yaze_editor_system_panels STATIC ${YAZE_EDITOR_SYSTEM_PANELS_SRC})
 add_library(yaze_editor_system_session STATIC ${YAZE_EDITOR_SYSTEM_SESSION_SRC})
 add_library(yaze_editor_system_shortcuts STATIC ${YAZE_EDITOR_SYSTEM_SHORTCUTS_SRC})
@@ -225,6 +225,7 @@ if(YAZE_BUILD_AGENT_UI)
     app/editor/agent/agent_editor.cc
     app/editor/agent/agent_editor_collaboration.cc
     app/editor/agent/agent_editor_dashboard.cc
+    app/editor/agent/agent_editor_models.cc
     app/editor/agent/agent_editor_profile.cc
     app/editor/agent/agent_proposals_panel.cc
     app/editor/agent/agent_session.cc
@@ -248,9 +249,8 @@ if(YAZE_BUILD_AGENT_UI)
   )
 endif()
 
-# ==============================================================================
+# ============================================================================
 # Yaze Editor Library
-# ==============================================================================
 # This library contains all editor functionality:
 # - Editor manager and coordination
 # - Dungeon editor (room selector, object editor, renderer)
@@ -259,12 +259,11 @@ endif()
 # - Music editor
 # - Message editor
 # - Assembly editor
-# - Graphics/palette editors
+# - Graphics / palette editors
 # - System editors (settings, commands, extensions)
 # - Testing infrastructure
-#
 # Dependencies: yaze_app_core_lib, yaze_gfx, yaze_gui, yaze_zelda3, ImGui
-# ==============================================================================
+# ============================================================================
 
 add_library(yaze_editor STATIC ${YAZE_APP_EDITOR_SRC})
 
@@ -297,7 +296,7 @@ target_include_directories(yaze_editor PUBLIC
   ${PROJECT_BINARY_DIR}
 )
 
-# Link agent runtime only when agent UI panels are enabled
+# Link agent runtime only when agent UI panels are enabled.
 if(YAZE_BUILD_AGENT_UI AND NOT YAZE_MINIMAL_BUILD)
   if(TARGET yaze_agent)
     target_link_libraries(yaze_editor PUBLIC yaze_agent)
@@ -306,7 +305,7 @@ if(YAZE_BUILD_AGENT_UI AND NOT YAZE_MINIMAL_BUILD)
     message(WARNING "Agent UI requested but yaze_agent target not found")
   endif()
 
-  # MesenScreenshotPanel needs libpng for PNG decode
+  # MesenScreenshotPanel needs libpng for PNG decode.
   find_package(PNG QUIET)
   if(PNG_FOUND)
     target_link_libraries(yaze_editor PUBLIC PNG::PNG)
@@ -317,7 +316,7 @@ if(YAZE_BUILD_AGENT_UI AND NOT YAZE_MINIMAL_BUILD)
   endif()
 endif()
 
-# Note: yaze_test_support linking is deferred to test.cmake to ensure proper ordering
+# yaze_test_support linking is deferred to test.cmake to ensure proper ordering.
 
 if(YAZE_ENABLE_JSON)
   if(TARGET nlohmann_json::nlohmann_json)
@@ -328,26 +327,28 @@ if(YAZE_ENABLE_JSON)
   target_compile_definitions(yaze_editor PUBLIC YAZE_WITH_JSON)
 endif()
 
-# Link test infrastructure when tests are enabled
-# The test infrastructure is integrated into the editor for test automation
+# Link test infrastructure when tests are enabled.
+# The test infrastructure is integrated into the editor for test automation.
 if(YAZE_BUILD_TESTS)
   if(TARGET ImGuiTestEngine)
     target_link_libraries(yaze_editor PUBLIC ImGuiTestEngine)
     message(STATUS "✓ yaze_editor linked to ImGuiTestEngine")
   endif()
 
-  # NOTE: yaze_editor should NOT force-load yaze_test_support to avoid circular dependency.
-  # The chain yaze_editor -> force_load(yaze_test_support) -> yaze_editor causes SIGSEGV
+  # yaze_editor should not force-load yaze_test_support to avoid a circular
+  # dependency. The chain
+  # yaze_editor -> force_load(yaze_test_support) -> yaze_editor causes SIGSEGV
   # during static initialization.
   #
-  # Test executables should link yaze_test_support directly, which provides all needed
-  # symbols through its own dependencies (including yaze_editor via regular linking).
+  # Test executables should link yaze_test_support directly, which provides all
+  # needed symbols through its own dependencies, including yaze_editor via
+  # regular linking.
 endif()
 
-# Conditionally link gRPC if enabled
+#Conditionally link gRPC if enabled
 if(YAZE_WITH_GRPC)
   target_link_libraries(yaze_editor PUBLIC yaze_grpc_support)
-  # Add protobuf generated headers directory
+#Add protobuf generated headers directory
   target_include_directories(yaze_editor PUBLIC ${PROJECT_BINARY_DIR}/gens)
 endif()
 
@@ -357,7 +358,7 @@ set_target_properties(yaze_editor PROPERTIES
   LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
 )
 
-# Platform-specific compile definitions
+#Platform - specific compile definitions
 if(UNIX AND NOT APPLE)
   target_compile_definitions(yaze_editor PRIVATE linux stricmp=strcasecmp)
 elseif(YAZE_PLATFORM_MACOS)

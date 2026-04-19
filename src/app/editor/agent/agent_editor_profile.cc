@@ -1,4 +1,3 @@
-#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -12,8 +11,10 @@
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
+#include "app/editor/agent/agent_editor_internal.h"
 #include "cli/service/agent/tool_dispatcher.h"
 #include "cli/service/ai/ai_config_utils.h"
+#include "cli/service/ai/provider_ids.h"
 #include "util/platform_paths.h"
 
 #if defined(YAZE_WITH_JSON)
@@ -22,19 +23,6 @@
 
 namespace yaze {
 namespace editor {
-
-namespace {
-
-// TODO(B.2d): this helper is duplicated from the anonymous namespace in
-// agent_editor.cc. When the model-service slice lands, promote to a shared
-// internal header so both TUs reach the same implementation.
-template <size_t N>
-void CopyStringToBuffer(const std::string& src, char (&dest)[N]) {
-  std::strncpy(dest, src.c_str(), N - 1);
-  dest[N - 1] = '\0';
-}
-
-}  // namespace
 
 absl::Status AgentEditor::SaveBuilderBlueprint(
     const std::filesystem::path& path) {
@@ -356,7 +344,7 @@ absl::StatusOr<AgentEditor::BotProfile> AgentEditor::JsonToProfile(
     BotProfile profile;
     profile.name = json.value("name", "Unnamed Profile");
     profile.description = json.value("description", "");
-    profile.provider = json.value("provider", "mock");
+    profile.provider = json.value("provider", std::string(cli::kProviderMock));
     profile.host_id = json.value("host_id", "");
     profile.model = json.value("model", "");
     profile.ollama_host = json.value("ollama_host", "http://localhost:11434");
@@ -435,8 +423,9 @@ void AgentEditor::SyncContextFromProfile() {
   }
 
   auto& ctx_config = context_->agent_config();
-  ctx_config.ai_provider =
-      current_profile_.provider.empty() ? "mock" : current_profile_.provider;
+  ctx_config.ai_provider = current_profile_.provider.empty()
+                               ? cli::kProviderMock
+                               : current_profile_.provider;
   ctx_config.ai_model = current_profile_.model;
   ctx_config.ollama_host = current_profile_.ollama_host.empty()
                                ? "http://localhost:11434"
@@ -457,15 +446,19 @@ void AgentEditor::SyncContextFromProfile() {
   ctx_config.max_output_tokens = current_profile_.max_output_tokens;
   ctx_config.stream_responses = current_profile_.stream_responses;
 
-  CopyStringToBuffer(ctx_config.ai_provider, ctx_config.provider_buffer);
-  CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
-  CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
-  CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
-  CopyStringToBuffer(ctx_config.anthropic_api_key,
-                     ctx_config.anthropic_key_buffer);
-  CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
-  CopyStringToBuffer(ctx_config.openai_base_url,
-                     ctx_config.openai_base_url_buffer);
+  internal::CopyStringToBuffer(ctx_config.ai_provider,
+                               ctx_config.provider_buffer);
+  internal::CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
+  internal::CopyStringToBuffer(ctx_config.ollama_host,
+                               ctx_config.ollama_host_buffer);
+  internal::CopyStringToBuffer(ctx_config.gemini_api_key,
+                               ctx_config.gemini_key_buffer);
+  internal::CopyStringToBuffer(ctx_config.anthropic_api_key,
+                               ctx_config.anthropic_key_buffer);
+  internal::CopyStringToBuffer(ctx_config.openai_api_key,
+                               ctx_config.openai_key_buffer);
+  internal::CopyStringToBuffer(ctx_config.openai_base_url,
+                               ctx_config.openai_base_url_buffer);
 
   SyncConfigFromProfile();
 
@@ -482,7 +475,7 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
   const std::string prev_openai_base = ctx_config.openai_base_url;
   const std::string prev_ollama_host = ctx_config.ollama_host;
   ctx_config.ai_provider =
-      config.ai_provider.empty() ? "mock" : config.ai_provider;
+      config.ai_provider.empty() ? cli::kProviderMock : config.ai_provider;
   ctx_config.ai_model = config.ai_model;
   ctx_config.ollama_host = config.ollama_host.empty() ? "http://localhost:11434"
                                                       : config.ollama_host;
@@ -519,15 +512,19 @@ void AgentEditor::ApplyConfigFromContext(const AgentConfigState& config) {
     model_cache.last_ollama_host = ctx_config.ollama_host;
   }
 
-  CopyStringToBuffer(ctx_config.ai_provider, ctx_config.provider_buffer);
-  CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
-  CopyStringToBuffer(ctx_config.ollama_host, ctx_config.ollama_host_buffer);
-  CopyStringToBuffer(ctx_config.gemini_api_key, ctx_config.gemini_key_buffer);
-  CopyStringToBuffer(ctx_config.anthropic_api_key,
-                     ctx_config.anthropic_key_buffer);
-  CopyStringToBuffer(ctx_config.openai_api_key, ctx_config.openai_key_buffer);
-  CopyStringToBuffer(ctx_config.openai_base_url,
-                     ctx_config.openai_base_url_buffer);
+  internal::CopyStringToBuffer(ctx_config.ai_provider,
+                               ctx_config.provider_buffer);
+  internal::CopyStringToBuffer(ctx_config.ai_model, ctx_config.model_buffer);
+  internal::CopyStringToBuffer(ctx_config.ollama_host,
+                               ctx_config.ollama_host_buffer);
+  internal::CopyStringToBuffer(ctx_config.gemini_api_key,
+                               ctx_config.gemini_key_buffer);
+  internal::CopyStringToBuffer(ctx_config.anthropic_api_key,
+                               ctx_config.anthropic_key_buffer);
+  internal::CopyStringToBuffer(ctx_config.openai_api_key,
+                               ctx_config.openai_key_buffer);
+  internal::CopyStringToBuffer(ctx_config.openai_base_url,
+                               ctx_config.openai_base_url_buffer);
 
   current_profile_.provider = ctx_config.ai_provider;
   current_profile_.model = ctx_config.ai_model;

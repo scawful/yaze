@@ -9,6 +9,7 @@
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "cli/service/ai/ai_service.h"
+#include "cli/service/ai/provider_ids.h"
 
 #ifdef YAZE_AI_RUNTIME_AVAILABLE
 #include "cli/service/ai/prompt_builder.h"
@@ -64,7 +65,7 @@ class OllamaAIService : public AIService {
   // List available models on Ollama server
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override;
 
-  std::string GetProviderName() const override { return "ollama"; }
+  std::string GetProviderName() const override { return kProviderOllama; }
 
  private:
   OllamaConfig config_;
@@ -107,7 +108,7 @@ class OllamaAIService : public AIService {
   absl::StatusOr<std::vector<ModelInfo>> ListAvailableModels() override {
     return absl::FailedPreconditionError("Ollama AI runtime is disabled");
   }
-  std::string GetProviderName() const override { return "ollama"; }
+  std::string GetProviderName() const override { return kProviderOllama; }
 };
 
 #endif  // YAZE_AI_RUNTIME_AVAILABLE

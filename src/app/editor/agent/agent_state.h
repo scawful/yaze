@@ -12,9 +12,10 @@
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "cli/service/ai/common.h"
-#include "imgui/imgui.h"
-#include "core/project.h"
+#include "cli/service/ai/provider_ids.h"
 #include "core/asar_wrapper.h"
+#include "core/project.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 
@@ -159,12 +160,12 @@ struct ToolConfig {
   bool overworld = true;
   bool dialogue = true;
   bool messages = true;
-      bool gui = true;
-      bool music = true;
-      bool sprite = true;
-      bool emulator = true;
-      bool memory_inspector = true;
-    };
+  bool gui = true;
+  bool music = true;
+  bool sprite = true;
+  bool emulator = true;
+  bool memory_inspector = true;
+};
 /**
  * @brief Model chain mode for multi-model responses
  */
@@ -196,7 +197,7 @@ struct ModelCache {
  * @brief Agent configuration state
  */
 struct AgentConfigState {
-  std::string ai_provider = "mock";  // mock, ollama, gemini, anthropic, openai
+  std::string ai_provider = cli::kProviderMock;
   std::string ai_model;
   std::string ollama_host = "http://localhost:11434";
   std::string gemini_api_key;
@@ -436,7 +437,9 @@ class AgentUIContext {
   bool HasProject() const { return project_ != nullptr; }
 
   // Asar wrapper context
-  void SetAsarWrapper(core::AsarWrapper* asar_wrapper) { asar_wrapper_ = asar_wrapper; }
+  void SetAsarWrapper(core::AsarWrapper* asar_wrapper) {
+    asar_wrapper_ = asar_wrapper;
+  }
   core::AsarWrapper* GetAsarWrapper() const { return asar_wrapper_; }
   bool HasAsarWrapper() const { return asar_wrapper_ != nullptr; }
 
@@ -477,8 +480,8 @@ class AgentUIContext {
   ToolExecutionState tool_execution_state_;
 
   Rom* rom_ = nullptr;
-  project::YazeProject* project_ = nullptr; // Project context
-  core::AsarWrapper* asar_wrapper_ = nullptr; // AsarWrapper context
+  project::YazeProject* project_ = nullptr;    // Project context
+  core::AsarWrapper* asar_wrapper_ = nullptr;  // AsarWrapper context
   const std::map<std::string, core::AsarSymbol>* assembly_symbol_table_ =
       nullptr;  // Backend-agnostic symbol source (Asar or z3dk)
   std::vector<ChangeCallback> change_listeners_;

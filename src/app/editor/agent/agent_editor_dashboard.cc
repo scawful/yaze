@@ -11,6 +11,7 @@
 #include "absl/time/time.h"
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_editor.h"
+#include "app/editor/agent/agent_editor_internal.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/agent/panels/agent_configuration_panel.h"
 #include "app/editor/agent/panels/feature_flag_editor_panel.h"
@@ -28,140 +29,14 @@
 #include "app/platform/asset_loader.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/agent/tool_dispatcher.h"
-#include "cli/service/ai/ai_config_utils.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "implot.h"
 #include "rom/rom.h"
 
-#if defined(__APPLE__)
-#include <CoreFoundation/CoreFoundation.h>
-#include <Security/Security.h>
-#include <TargetConditionals.h>
-#endif
-
 namespace yaze {
 namespace editor {
 
-namespace {
-
-// TODO(B.2d): these three helpers are duplicated from the anonymous namespace
-// in agent_editor.cc. When the model-service slice (RefreshModelCache,
-// MaybeAutoDetectLocalProviders, ApplyUserSettingsDefaults + their helper
-// dependencies) is extracted in a follow-up commit, consolidate these into a
-// shared internal header so both TUs reach the same implementation.
-std::optional<std::string> LoadKeychainValue(const std::string& key) {
-#if defined(__APPLE__)
-  if (key.empty()) {
-    return std::nullopt;
-  }
-  CFStringRef key_ref = CFStringCreateWithCString(
-      kCFAllocatorDefault, key.c_str(), kCFStringEncodingUTF8);
-  const void* keys[] = {kSecClass, kSecAttrAccount, kSecReturnData,
-                        kSecMatchLimit};
-  const void* values[] = {kSecClassGenericPassword, key_ref, kCFBooleanTrue,
-                          kSecMatchLimitOne};
-  CFDictionaryRef query = CFDictionaryCreate(
-      kCFAllocatorDefault, keys, values,
-      static_cast<CFIndex>(sizeof(keys) / sizeof(keys[0])),
-      &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
-  CFTypeRef item = nullptr;
-  OSStatus status = SecItemCopyMatching(query, &item);
-  if (query) {
-    CFRelease(query);
-  }
-  if (key_ref) {
-    CFRelease(key_ref);
-  }
-  if (status == errSecItemNotFound) {
-    return std::nullopt;
-  }
-  if (status != errSecSuccess || !item) {
-    if (item) {
-      CFRelease(item);
-    }
-    return std::nullopt;
-  }
-  CFDataRef data_ref = static_cast<CFDataRef>(item);
-  const UInt8* data_ptr = CFDataGetBytePtr(data_ref);
-  CFIndex data_len = CFDataGetLength(data_ref);
-  std::string value(reinterpret_cast<const char*>(data_ptr),
-                    static_cast<size_t>(data_len));
-  CFRelease(item);
-  return value;
-#else
-  (void)key;
-  return std::nullopt;
-#endif
-}
-
-std::string ResolveHostApiKey(const UserSettings::Preferences* prefs,
-                              const UserSettings::Preferences::AiHost& host) {
-  if (!host.api_key.empty()) {
-    return host.api_key;
-  }
-  if (!host.credential_id.empty()) {
-    if (auto key = LoadKeychainValue(host.credential_id)) {
-      return *key;
-    }
-  }
-  if (!prefs) {
-    return {};
-  }
-  std::string api_type = host.api_type.empty() ? "openai" : host.api_type;
-  if (api_type == "lmstudio") {
-    api_type = "openai";
-  }
-  if (api_type == "openai") {
-    return prefs->openai_api_key;
-  }
-  if (api_type == "gemini") {
-    return prefs->gemini_api_key;
-  }
-  if (api_type == "anthropic") {
-    return prefs->anthropic_api_key;
-  }
-  return {};
-}
-
-void ApplyHostPresetToProfile(AgentEditor::BotProfile* profile,
-                              const UserSettings::Preferences::AiHost& host,
-                              const UserSettings::Preferences* prefs) {
-  if (!profile) {
-    return;
-  }
-  std::string api_key = ResolveHostApiKey(prefs, host);
-  profile->host_id = host.id;
-  std::string api_type = host.api_type;
-  if (api_type == "lmstudio") {
-    api_type = "openai";
-  }
-  if (api_type == "openai" || api_type == "ollama" || api_type == "gemini" ||
-      api_type == "anthropic") {
-    profile->provider = api_type;
-  }
-  if (profile->provider == "openai") {
-    if (!host.base_url.empty()) {
-      profile->openai_base_url = cli::NormalizeOpenAiBaseUrl(host.base_url);
-    }
-    if (!api_key.empty()) {
-      profile->openai_api_key = api_key;
-    }
-  } else if (profile->provider == "ollama") {
-    if (!host.base_url.empty()) {
-      profile->ollama_host = host.base_url;
-    }
-  } else if (profile->provider == "gemini") {
-    if (!api_key.empty()) {
-      profile->gemini_api_key = api_key;
-    }
-  } else if (profile->provider == "anthropic") {
-    if (!api_key.empty()) {
-      profile->anthropic_api_key = api_key;
-    }
-  }
-}
-
-}  // namespace
+namespace {}  // namespace
 
 void AgentEditor::DrawDashboard() {
   if (!active_) {
@@ -211,7 +86,8 @@ void AgentEditor::DrawConfigurationPanel() {
         for (size_t i = 0; i < hosts.size(); ++i) {
           const bool selected = (static_cast<int>(i) == active_index);
           if (ImGui::Selectable(hosts[i].label.c_str(), selected)) {
-            ApplyHostPresetToProfile(&current_profile_, hosts[i], &prefs);
+            internal::ApplyHostPresetToProfile(&current_profile_, hosts[i],
+                                               &prefs);
             MarkProfileUiDirty();
             SyncContextFromProfile();
           }
@@ -226,7 +102,7 @@ void AgentEditor::DrawConfigurationPanel() {
         ImGui::TextDisabled("Active host: %s", host.label.c_str());
         ImGui::TextDisabled("Endpoint: %s", host.base_url.c_str());
         ImGui::TextDisabled("API type: %s", host.api_type.empty()
-                                                ? "openai"
+                                                ? cli::kProviderOpenAi
                                                 : host.api_type.c_str());
       } else {
         ImGui::TextDisabled(
