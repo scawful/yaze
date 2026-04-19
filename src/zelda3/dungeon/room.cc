@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 #include <unordered_set>
 #include <vector>
 
@@ -34,7 +35,68 @@ bool RoomUsesTrackCornerAliases(const std::vector<RoomObject>& objects) {
                      [](const RoomObject& obj) { return obj.id_ == 0x31; });
 }
 
+template <typename WriteColor>
+void PopulateDungeonRenderPaletteRows(const gfx::SnesPalette& dungeon_palette,
+                                      const gfx::SnesPalette* hud_palette,
+                                      WriteColor write_color) {
+  if (hud_palette != nullptr) {
+    const size_t hud_count = std::min<size_t>(hud_palette->size(), 32);
+    for (size_t i = 0; i < hud_count; ++i) {
+      write_color(static_cast<int>(i), (*hud_palette)[i]);
+    }
+  }
+
+  constexpr int kColorsPerRomBank = 15;
+  constexpr int kIndicesPerSdlBank = 16;
+  constexpr int kNumRomBanks = 6;
+  constexpr int kDungeonBankStart = 2;
+  for (int rom_bank = 0; rom_bank < kNumRomBanks; ++rom_bank) {
+    const int sdl_bank = rom_bank + kDungeonBankStart;
+    for (int color = 0; color < kColorsPerRomBank; ++color) {
+      const size_t rom_index =
+          static_cast<size_t>(rom_bank * kColorsPerRomBank + color);
+      if (rom_index >= dungeon_palette.size()) {
+        return;
+      }
+      const int dst_index = sdl_bank * kIndicesPerSdlBank + color + 1;
+      write_color(dst_index, dungeon_palette[rom_index]);
+    }
+  }
+}
+
 }  // namespace
+
+std::vector<SDL_Color> BuildDungeonRenderPalette(
+    const gfx::SnesPalette& dungeon_palette,
+    const gfx::SnesPalette* hud_palette) {
+  std::vector<SDL_Color> colors(256, {0, 0, 0, 0});
+  PopulateDungeonRenderPaletteRows(
+      dungeon_palette, hud_palette,
+      [&](int dst_index, const gfx::SnesColor& color) {
+        if (dst_index < 0 || dst_index >= static_cast<int>(colors.size())) {
+          return;
+        }
+        const ImVec4 rgb = color.rgb();
+        colors[dst_index] = {static_cast<Uint8>(rgb.x),
+                             static_cast<Uint8>(rgb.y),
+                             static_cast<Uint8>(rgb.z), 255};
+      });
+  colors[255] = {0, 0, 0, 0};
+  return colors;
+}
+
+void LoadDungeonRenderPaletteToCgram(std::span<uint16_t> cgram,
+                                     const gfx::SnesPalette& dungeon_palette,
+                                     const gfx::SnesPalette* hud_palette) {
+  PopulateDungeonRenderPaletteRows(
+      dungeon_palette, hud_palette,
+      [&](int dst_index, const gfx::SnesColor& color) {
+        if (dst_index < 0 || dst_index >= static_cast<int>(cgram.size())) {
+          return;
+        }
+        cgram[dst_index] = color.snes();
+      });
+}
 
 // Define room effect names in a single translation unit to avoid SIOF
 const std::string RoomEffect[8] = {"Nothing",
@@ -811,57 +873,32 @@ void Room::RenderRoomGraphics() {
   PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
 
   if (bg1_palette.size() > 0) {
+    std::optional<gfx::SnesPalette> hud_palette_storage;
+    const gfx::SnesPalette* hud_palette = nullptr;
+    if (!game_data_->palette_groups.hud.empty()) {
+      hud_palette_storage = game_data_->palette_groups.hud.palette_ref(0);
+      hud_palette = &*hud_palette_storage;
+    }
+
     // Apply dungeon palette in a layout that mirrors SNES CGRAM directly.
     //
     // SNES CGRAM layout for dungeons:
-    //   Rows 0-1 : HUD palette (not loaded in the dungeon view)
+    //   Rows 0-1 : HUD palette
     //   Rows 2-7 : Dungeon main, 6 banks × 15 colors = 90 colors
     //              (`PaletteLoad_UnderworldSet` copies starting at color $21)
     //
     // SDL palette (256 indices) mirrors CGRAM rows 1:1:
     //   SDL indices [bank*16 .. bank*16+15] for bank = CGRAM row 0-7.
-    //   Slot 0 of each bank is transparent.
-    //   HUD bank 0-1 are left empty placeholders here; dungeon banks 2-7 are
-    //   filled from ROM data.
+    //   Slot 0 of each bank is still transparent to the tile renderer because
+    //   source pixel value 0 is skipped, but rows 0-1 must still be populated
+    //   with the HUD palette because vanilla floor and ceiling tilewords do use
+    //   palette rows 0 and 1.
     //
     // Drawing formula (see ObjectDrawer): final_color = pixel + (pal * 16).
     // Where pal is the 3-bit tile palette field (0-7) and pixel is 1-15.
-    auto set_dungeon_palette = [](gfx::Bitmap& bmp,
-                                  const gfx::SnesPalette& pal) {
-      std::vector<SDL_Color> colors(
-          256, {0, 0, 0, 0});  // Initialize all transparent
-
-      constexpr int kColorsPerRomBank = 15;
-      constexpr int kIndicesPerSdlBank = 16;
-      constexpr int kNumRomBanks = 6;
-      // Dungeon main banks occupy CGRAM rows 2-7, so first ROM bank lands at
-      // SDL bank 2. Tiles with palette field 0 or 1 fall into the HUD rows and
-      // render against transparent placeholders (intentional — dungeon view
-      // does not load HUD colors).
-      constexpr int kDungeonBankStart = 2;
-
-      for (int rom_bank = 0; rom_bank < kNumRomBanks; rom_bank++) {
-        const int sdl_bank = rom_bank + kDungeonBankStart;
-        for (int color = 0; color < kColorsPerRomBank; color++) {
-          size_t rom_index = rom_bank * kColorsPerRomBank + color;
-          if (rom_index >= pal.size())
-            break;
-
-          int sdl_index = sdl_bank * kIndicesPerSdlBank + color +
-                          1;  // +1 skips bank slot 0
-          ImVec4 rgb = pal[rom_index].rgb();
-          colors[sdl_index] = {
-              static_cast<Uint8>(rgb.x), static_cast<Uint8>(rgb.y),
-              static_cast<Uint8>(rgb.z),
-              255  // Opaque
-          };
-        }
-      }
-
-      // Index 255 is also transparent (fill color for undrawn areas)
-      colors[255] = {0, 0, 0, 0};
-
-      bmp.SetPalette(colors);
+    auto set_dungeon_palette = [&](gfx::Bitmap& bmp,
+                                   const gfx::SnesPalette& pal) {
+      bmp.SetPalette(BuildDungeonRenderPalette(pal, hud_palette));
       if (bmp.surface()) {
         // Set color key to 255 for proper alpha blending (undrawn areas)
         SDL_SetColorKey(bmp.surface(), SDL_TRUE, 255);

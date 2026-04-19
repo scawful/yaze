@@ -2,6 +2,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <optional>
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/emu/render/emulator_render_service.h"
@@ -404,11 +405,17 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
     palette_id = 0;
   }
 
-  // Load dungeon main palette (palettes 0-5, indices 0-89)
+  // Load dungeon palette rows into CGRAM with HUD rows 0-1 and dungeon rows
+  // 2-7, matching the software room renderer and vanilla CGRAM layout.
   auto base_palette = dungeon_main_pal_group[palette_id];
-  for (size_t i = 0; i < base_palette.size() && i < 90; ++i) {
-    ppu.cgram[i] = base_palette[i].snes();
+  std::optional<gfx::SnesPalette> hud_palette_storage;
+  const gfx::SnesPalette* hud_palette = nullptr;
+  if (!game_data_->palette_groups.hud.empty()) {
+    hud_palette_storage = game_data_->palette_groups.hud.palette_ref(0);
+    hud_palette = &*hud_palette_storage;
   }
+  zelda3::LoadDungeonRenderPaletteToCgram(ppu.cgram, base_palette,
+                                          hud_palette);
 
   // Load sprite auxiliary palettes (palettes 6-7, indices 90-119)
   // ROM $0D:D308 = Sprite aux palette group (SNES address, needs LoROM conversion)

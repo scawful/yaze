@@ -1,6 +1,7 @@
 #include "app/emu/render/emulator_render_service.h"
 
 #include <cstdio>
+#include <optional>
 
 #include "app/emu/render/save_state_manager.h"
 #include "app/emu/snes.h"
@@ -280,14 +281,20 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, room_id);
   room.SetGameData(game_data_);  // Ensure room has access to GameData
 
-  // Load palette into CGRAM (palettes 0-5, 90 colors)
+  // Load palette into CGRAM using the same row layout as vanilla:
+  // HUD rows 0-1, dungeon rows 2-7 starting at color $21.
   if (!game_data_) return;
   auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
   if (palette < dungeon_main_pal_group.size()) {
     auto base_palette = dungeon_main_pal_group[palette];
-    for (size_t i = 0; i < base_palette.size() && i < 90; ++i) {
-      ppu.cgram[i] = base_palette[i].snes();
+    std::optional<gfx::SnesPalette> hud_palette_storage;
+    const gfx::SnesPalette* hud_palette = nullptr;
+    if (!game_data_->palette_groups.hud.empty()) {
+      hud_palette_storage = game_data_->palette_groups.hud.palette_ref(0);
+      hud_palette = &*hud_palette_storage;
     }
+    zelda3::LoadDungeonRenderPaletteToCgram(ppu.cgram, base_palette,
+                                            hud_palette);
   }
 
   // Load sprite auxiliary palettes (palettes 6-7, indices 90-119)
@@ -335,9 +342,13 @@ void EmulatorRenderService::LoadPaletteIntoCgram(int palette_id) {
   if (palette_id >= 0 &&
       palette_id < static_cast<int>(dungeon_main_pal_group.size())) {
     auto palette = dungeon_main_pal_group[palette_id];
-    for (size_t i = 0; i < palette.size() && i < 90; ++i) {
-      ppu.cgram[i] = palette[i].snes();
+    std::optional<gfx::SnesPalette> hud_palette_storage;
+    const gfx::SnesPalette* hud_palette = nullptr;
+    if (!game_data_->palette_groups.hud.empty()) {
+      hud_palette_storage = game_data_->palette_groups.hud.palette_ref(0);
+      hud_palette = &*hud_palette_storage;
     }
+    zelda3::LoadDungeonRenderPaletteToCgram(ppu.cgram, palette, hud_palette);
   }
 }
 
