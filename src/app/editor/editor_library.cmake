@@ -36,6 +36,7 @@ set(
   app/editor/dungeon/ui/window/dungeon_settings_panel.cc
   app/editor/dungeon/workspace/dungeon_workbench_content.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
+  app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/selectors/object_selector_content.cc
   app/editor/dungeon/ui/window/object_tile_editor_panel.cc
   app/editor/dungeon/ui/window/minecart_track_editor_panel.cc
@@ -48,7 +49,12 @@ set(
   app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
+  app/editor/graphics/link_sprite_panel.cc
+  app/editor/graphics/palette_controls_panel.cc
+  app/editor/graphics/paletteset_editor_panel.cc
+  app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/polyhedral_editor_panel.cc
+  app/editor/graphics/sheet_browser_panel.cc
   app/editor/graphics/ui/palette/palette_controls_view.cc
   app/editor/graphics/ui/palette/paletteset_editor_view.cc
   app/editor/graphics/ui/research/prototype_research_view.cc
