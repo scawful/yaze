@@ -12,7 +12,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/menu/activity_bar_actions_registry.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"

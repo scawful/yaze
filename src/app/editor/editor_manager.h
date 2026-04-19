@@ -36,7 +36,7 @@
 #include "app/editor/system/rom_file_manager.h"
 #include "app/editor/system/rom_lifecycle_manager.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/window_host.h"
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/dashboard_panel.h"

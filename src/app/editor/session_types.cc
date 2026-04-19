@@ -15,7 +15,7 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/ui/settings_panel.h"
 
 namespace yaze::editor {
@@ -27,7 +27,8 @@ EditorSet::EditorSet(Rom* rom, zelda3::GameData* game_data,
       rom_(rom),
       game_data_(game_data),
       user_settings_(user_settings),
-      editor_registry_(editor_registry) {
+      editor_registry_(editor_registry),
+      gfx_group_workspace_(std::make_unique<GfxGroupWorkspaceState>()) {
   auto register_factory = [&](EditorType type, auto&& fallback) {
     editor_factories_[type] =
         [this, type,

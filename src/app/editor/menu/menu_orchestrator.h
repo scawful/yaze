@@ -9,7 +9,7 @@
 #include "app/editor/menu/menu_builder.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 
 namespace yaze {
 namespace editor {

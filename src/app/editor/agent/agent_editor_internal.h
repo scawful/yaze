@@ -6,7 +6,7 @@
 #include <string>
 
 #include "app/editor/agent/agent_editor.h"
-#include "app/editor/system/user_settings.h"
+#include "app/editor/system/session/user_settings.h"
 #include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/provider_ids.h"
 
