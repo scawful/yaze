@@ -1,10 +1,12 @@
 # Graphics System Architecture
 
-**Status**: Complete
-**Last Updated**: 2025-11-21
+**Status**: Active
+**Last Updated**: 2026-04-19
 **Related Code**: `src/app/gfx/`, `src/app/editor/graphics/`
 
-This document outlines the architecture of the Graphics System in YAZE, including resource management, compression pipelines, and rendering workflows.
+This document outlines the architecture of the graphics system in YAZE,
+including resource management, compression pipelines, rendering workflows, and
+the current graphics editor workspace structure.
 
 ## Overview
 
@@ -47,14 +49,99 @@ Represents a single graphics sheet or image optimized for SNES ROM editing.
 *   Use `WriteToPixel()` for single-pixel modifications
 *   Call `UpdateTexture()` to sync changes to GPU
 
-### 3. Graphics Editor (`src/app/editor/graphics/graphics_editor.cc`)
+### 3. Graphics Workspaces (`src/app/editor/graphics/`)
 
-The primary UI for viewing and modifying graphics.
+The graphics domain is split between two editors:
 
-*   **Sheet Editor**: Pixel-level editing of all 223 sheets
-*   **Palette Integration**: Fetches palette groups from the ROM (Overworld, Dungeon, Sprites) to render sheets correctly
-*   **Tools**: Pencil, Fill, Select, Zoom
-*   **Real-time Display**: Uses `Canvas` class for drawing interface
+*   `GraphicsEditor`: ROM sheet editing, palette tooling, Link sprite previews,
+    graphics-group inspection, prototype imports (CGX/SCR/COL/BIN/OBJ), and the
+    polyhedral mesh research tool
+*   `ScreenEditor`: title, naming, inventory, overworld-map, and dungeon-map
+    screen workflows
+
+**Shipping registration model:** `GraphicsEditor::Initialize()` registers
+`WindowContent` shells from [`graphics_editor_panels.h`](../../../src/app/editor/graphics/panels/graphics_editor_panels.h)
+that forward into `*_panel` / `GfxGroupEditor` / `PolyhedralEditorPanel`
+implementations. `ScreenEditor` registers its screen surfaces the same way.
+Parallel `graphics/ui/**` `*_view` sources exist for incremental migration; new
+work should follow [`editor-ui-module-pattern.md`](./editor-ui-module-pattern.md)
+and prefer [`graphics/ui/shared/graphics_window_context.h`](../../../src/app/editor/graphics/ui/shared/graphics_window_context.h)
+over ad-hoc `ContentRegistry` downcasts when a `GraphicsEditor` pointer is needed.
+
+#### Graphics UI module layout (migration + screen descriptors)
+
+```text
+src/app/editor/graphics/ui/
+  browser/sheet_browser_view.{h,cc}
+  editing/pixel_editor_view.{h,cc}
+  palette/palette_controls_view.{h,cc}
+  palette/paletteset_editor_view.{h,cc}
+  research/prototype_research_view.{h,cc}
+  research/polyhedral_editor_view.{h,cc}
+  screen/screen_editor_views.h
+  sprite/link_sprite_view.{h,cc}
+  shared/graphics_window_context.h
+```
+
+#### Current workspace responsibilities
+
+| Module | Primary role |
+|--------|--------------|
+| `browser/` | Sheet selection and navigation |
+| `editing/` | Pixel editing for in-ROM graphics sheets |
+| `palette/` | Palette controls and palette-set editing |
+| `research/` | Prototype asset decode (CGX/SCR/COL/BIN/OBJ, Super Donkey, etc.) **and** ROM polyhedral table editing (`PolyhedralEditorPanel` / `graphics.polyhedral`) |
+| `screen/` | `ScreenEditor` window descriptors and shortcuts |
+| `sprite/` | Link sprite preview and animation inspection |
+| `shared/` | Typed `GraphicsEditor` window context helper |
+
+`GfxGroupEditor` remains a top-level **widget** (not `WindowContent`) used by
+the graphics workspace (`GraphicsGfxGroupPanel`) and overworld surfaces. Each
+host keeps its **own** `GfxGroupEditor` object (separate `gui::Canvas` stacks), but
+**selection and preview-palette UI state** come from one
+[`GfxGroupWorkspaceState`](../../../src/app/editor/graphics/gfx_group_workspace_state.h)
+per [`EditorSet`](../../../src/app/editor/session_types.h) (injected via
+`EditorDependencies::gfx_group_workspace`). A short per-surface host hint remains
+at the top of each widget.
+
+#### Persistent workspace IDs
+
+Window IDs are part of the compatibility contract for saved layouts, shortcuts,
+and migration logic. Display names may change without changing IDs.
+
+| ID | Current display name | Notes |
+|----|----------------------|-------|
+| `graphics.sheet_browser_v2` | Sheet Browser | Primary sheet navigation view |
+| `graphics.link_sprite_editor` | Link Sprite Editor | Formerly player animations in older docs |
+| `graphics.gfx_group_editor` | Graphics Groups | Shared view reused outside the graphics editor |
+| `graphics.prototype_viewer` | Prototype Research | Display renamed, ID preserved for layout compatibility |
+| `graphics.polyhedral` | Polyhedral Editor | Optional research tool; registered with the graphics workspace |
+
+If one of these IDs changes, the change must be accompanied by:
+
+1. preset updates in `src/app/editor/layout/layout_presets.*`
+2. settings migration updates in **both** `src/app/editor/system/user_settings.cc`
+   and `src/app/editor/system/session/user_settings.cc` (keep revisions in sync),
+   bumping `UserSettings::kLatestPanelLayoutDefaultsRevision`
+3. any affected smoke or layout-default tests (including
+   `test/unit/editor/graphics_editor_window_ids_test.cc`)
+
+#### Prototype research workflow
+
+The docked **Prototype Research** surface (`graphics.prototype_viewer`) is backed
+by `GraphicsEditor::DrawPrototypeViewer()` today (parallel
+`PrototypeResearchView` exists under `graphics/ui/research/` for migration).
+
+*   Supports CGX, SCR, COL, BIN, OBJ, tilemap, clipboard, and Super Donkey
+    decode paths
+*   Treats SCR files as SNES tilemaps that need matching CGX and palette data
+    to reconstruct HUDs, menus, and other screen layouts
+*   Keeps raw source bytes separate from palette imports so the memory inspector
+    remains bound to the active source buffer
+*   Rebuilds the SCR preview when CGX data changes so screen research stays in
+    sync with the selected graphics source
+*   **Threading:** imports and decompress runs execute on the UI thread; very
+    large files can hitch the frame until a background job queue exists
 
 ### 4. IRenderer Interface (`src/app/gfx/backend/irenderer.h`)
 
@@ -141,7 +228,7 @@ YAZE uses the **LC-LZ2** algorithm (often called "Hyrule Magic" compression) for
 **Location**: ROM offset `0x080000`
 **Format**: Uncompressed 3BPP
 **Sheet Indices**: 115-126
-**Editor**: `GraphicsEditor` provides a "Player Animations" view
+**Editor**: `GraphicsEditor` provides the `Link Sprite Editor` view
 **Structure**: Sheets are assembled into poses using OAM (Object Attribute Memory) tables
 
 ## Canvas Interactions
@@ -169,6 +256,8 @@ The `Canvas` class (`src/app/gui/canvas/canvas.h`) is the primary rendering engi
 *   **Respect Palettes**: Remember that `Bitmap` data is just indices. Visual result depends on the associated `SnesPalette`
 *   **Sheet Modification**: When modifying a global graphics sheet, notify `Arena` via `NotifySheetModified()` to propagate changes to all editors
 *   **Deferred Loading**: Always use the texture queue system for heavy operations to prevent UI freezes
+*   **Preserve view IDs during UI refactors**: Renaming a card or window label is safe, but changing IDs requires layout preset, settings migration, and test updates
+*   **Keep new graphics UI in feature modules**: New domain UI should live under `src/app/editor/graphics/ui/<feature>/` using `*_view` files rather than new `*_panel` wrappers
 
 ## Future Improvements
 
