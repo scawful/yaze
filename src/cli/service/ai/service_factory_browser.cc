@@ -39,22 +39,22 @@ bool IsLikelyOracleRomPath(absl::string_view rom_path) {
 #include "app/net/wasm/emscripten_http_client.h"
 #endif
 
-namespace yaze {
-namespace cli {
-
 ABSL_DECLARE_FLAG(std::string, ai_provider);
 ABSL_DECLARE_FLAG(std::string, ai_model);
 ABSL_DECLARE_FLAG(std::string, gemini_api_key);
 ABSL_DECLARE_FLAG(std::string, openai_base_url);
 ABSL_DECLARE_FLAG(std::string, rom);
 
+namespace yaze {
+namespace cli {
+
 AIServiceConfig BuildAIServiceConfigFromFlags() {
   AIServiceConfig config;
-  config.provider = absl::GetFlag(FLAGS_ai_provider);
-  config.model = absl::GetFlag(FLAGS_ai_model);
-  config.gemini_api_key = absl::GetFlag(FLAGS_gemini_api_key);
-  config.openai_base_url = absl::GetFlag(FLAGS_openai_base_url);
-  config.rom_path_hint = absl::GetFlag(FLAGS_rom);
+  config.provider = ::absl::GetFlag(FLAGS_ai_provider);
+  config.model = ::absl::GetFlag(FLAGS_ai_model);
+  config.gemini_api_key = ::absl::GetFlag(FLAGS_gemini_api_key);
+  config.openai_base_url = ::absl::GetFlag(FLAGS_openai_base_url);
+  config.rom_path_hint = ::absl::GetFlag(FLAGS_rom);
   return config;
 }
 
@@ -120,7 +120,7 @@ std::unique_ptr<AIService> CreateAIService(const AIServiceConfig& config) {
                                             std::move(http_client));
 }
 
-absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
+::absl::StatusOr<std::unique_ptr<AIService>> CreateAIServiceStrict(
     const AIServiceConfig& config) {
   return CreateAIService(config);
 }

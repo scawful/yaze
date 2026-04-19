@@ -67,6 +67,12 @@
       "configurePreset": "wasm-release"
     },
     {
+      "displayName": "Web Assembly with AI",
+      "jobs": 8,
+      "name": "wasm-ai",
+      "configurePreset": "wasm-ai"
+    },
+    {
       "displayName": "WASM Crash Repro",
       "jobs": 8,
       "name": "wasm-crash-repro",

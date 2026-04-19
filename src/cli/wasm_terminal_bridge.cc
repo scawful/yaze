@@ -66,7 +66,7 @@ struct BridgeState {
     auto http_client = std::make_unique<yaze::net::EmscriptenHttpClient>();
     ai_service = std::make_unique<yaze::cli::BrowserAIService>(
         config, std::move(http_client));
-    if (Rom* rom = GetActiveRom()) {
+    if (yaze::Rom* rom = GetActiveRom()) {
       ai_service->SetRomContext(rom);
     }
   }
@@ -108,7 +108,7 @@ BrowserAIService* GetGlobalBrowserAIService() {
   return g_bridge.ai_service.get();
 }
 
-Rom* GetGlobalRom() {
+yaze::Rom* GetGlobalRom() {
   return g_bridge.GetActiveRom();
 }
 

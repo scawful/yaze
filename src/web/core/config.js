@@ -97,19 +97,23 @@
     },
 
     // AI service settings (for terminal AI commands)
-    // Connects to yaze-server's AI endpoint or direct Gemini API
+    // Supports Gemini plus OpenAI-compatible endpoints such as
+    // OpenAI, LM Studio, and the halext.org AFS bridge.
     ai: {
       // Enable AI features in terminal
       enabled: true,
 
-      // AI provider ("gemini" or "openai")
+      // AI provider ("gemini", "openai", "lmstudio", or "halext")
       provider: 'gemini',
 
       // AI model to use (gemini-2.5-flash, gemini-2.5-pro, etc.)
       model: 'gemini-2.5-flash',
 
-      // OpenAI-compatible base URL (used when provider = openai)
-      // Examples: https://api.openai.com/v1, http://localhost:1234/v1
+      // OpenAI-compatible base URL (used for openai/lmstudio/halext)
+      // Examples:
+      //   https://api.openai.com/v1
+      //   http://localhost:1234/v1
+      //   https://halext.org/v1
       openaiBaseUrl: 'https://api.openai.com/v1',
 
       // Server endpoint for AI queries (empty = use collaboration server)
@@ -191,6 +195,24 @@
     }
   }
 
+  // Deployment-level AI overrides via meta tags.
+  if (typeof document !== 'undefined') {
+    const aiProviderMeta = document.querySelector('meta[name="yaze-ai-provider"]');
+    if (aiProviderMeta && aiProviderMeta.content) {
+      finalConfig.ai.provider = aiProviderMeta.content;
+    }
+
+    const aiBaseMeta = document.querySelector('meta[name="yaze-openai-base-url"]');
+    if (aiBaseMeta && aiBaseMeta.content) {
+      finalConfig.ai.openaiBaseUrl = aiBaseMeta.content;
+    }
+
+    const aiEndpointMeta = document.querySelector('meta[name="yaze-ai-endpoint"]');
+    if (aiEndpointMeta && aiEndpointMeta.content) {
+      finalConfig.ai.endpoint = aiEndpointMeta.content;
+    }
+  }
+
   // If still unset and running on a halext.org host, default to the same host's
   // WebSocket endpoint under /ws so GH Pages (via yaze.halext.org) can talk to
   // the collab server without hosting the WASM bundle locally.
@@ -199,6 +221,24 @@
     if (host.endsWith('halext.org')) {
       const scheme = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
       finalConfig.collaboration.serverUrl = `${scheme}//${host}/ws`;
+    }
+  }
+
+  // halext-hosted deployments default to the AFS bridge unless the page
+  // or caller already selected another provider/base explicitly.
+  if (typeof window !== 'undefined' && window.location) {
+    const host = window.location.host || '';
+    const provider = (finalConfig.ai.provider || '').toLowerCase();
+    const base = finalConfig.ai.openaiBaseUrl || '';
+    const isDefaultProvider = !provider || provider === 'gemini';
+    const isDefaultBase = !base || base === 'https://api.openai.com/v1';
+    if (host.endsWith('halext.org')) {
+      if (isDefaultProvider) {
+        finalConfig.ai.provider = 'halext';
+      }
+      if (isDefaultBase) {
+        finalConfig.ai.openaiBaseUrl = 'https://halext.org/v1';
+      }
     }
   }
 
