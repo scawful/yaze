@@ -17,7 +17,8 @@ namespace cli {
 
 struct OpenAIConfig {
   std::string api_key;
-  std::string base_url = "https://api.openai.com";  // LMStudio: http://localhost:1234
+  std::string base_url =
+      "https://api.openai.com";       // LMStudio: http://localhost:1234
   std::string model = "gpt-4o-mini";  // Default to cost-effective model
   float temperature = 0.7f;
   int max_output_tokens = 2048;
@@ -57,7 +58,6 @@ class OpenAIAIService : public AIService {
 
  private:
   std::string BuildSystemInstruction();
-  std::string BuildFunctionCallSchemas();
   absl::StatusOr<AgentResponse> ParseOpenAIResponse(
       const std::string& response_body);
 
