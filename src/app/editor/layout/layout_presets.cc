@@ -66,7 +66,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
             {Panels::kDungeonEntranceList, DockPosition::RightBottom},
             {Panels::kDungeonEntrances, DockPosition::RightBottom},
             {Panels::kDungeonObjectEditor, DockPosition::RightTop},
-            {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
+            {Panels::kDungeonPaletteEditor, DockPosition::RightBottom},
         };
 
         preset.optional_panels = {
@@ -93,7 +93,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
             {Panels::kDungeonEntranceList, DockPosition::RightBottom},
             {Panels::kDungeonEntrances, DockPosition::RightBottom},
             {Panels::kDungeonObjectEditor, DockPosition::RightTop},
-            {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
+            {Panels::kDungeonPaletteEditor, DockPosition::RightBottom},
         };
         preset.optional_panels = {
             Panels::kDungeonObjectEditor,
@@ -548,20 +548,20 @@ PanelLayoutPreset LayoutPresets::GetDungeonMasterPreset() {
       Panels::kScreenDungeonMaps,
   };
   preset.panel_positions = {
-          {Panels::kDungeonRoomSelector, DockPosition::LeftTop},
-          {Panels::kDungeonRoomMatrix, DockPosition::LeftBottom},
-          {Panels::kDungeonEntranceList, DockPosition::RightBottom},
-          {Panels::kDungeonEntrances, DockPosition::RightBottom},
-          {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
-          {Panels::kDungeonObjectEditor, DockPosition::RightTop},
-          {Panels::kDungeonPaletteEditor, DockPosition::Bottom},
-          {Panels::kPaletteControlPanel, DockPosition::LeftTop},
-          {Panels::kPaletteDungeonMain, DockPosition::Bottom},
-          {Panels::kGraphicsSheetBrowser, DockPosition::RightBottom},
-          {Panels::kGraphicsSheetEditor, DockPosition::Center},
-          {Panels::kScreenDungeonMaps, DockPosition::Center},
-      };
-      return preset;
+      {Panels::kDungeonRoomSelector, DockPosition::LeftTop},
+      {Panels::kDungeonRoomMatrix, DockPosition::LeftBottom},
+      {Panels::kDungeonEntranceList, DockPosition::RightBottom},
+      {Panels::kDungeonEntrances, DockPosition::RightBottom},
+      {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
+      {Panels::kDungeonObjectEditor, DockPosition::RightTop},
+      {Panels::kDungeonPaletteEditor, DockPosition::RightBottom},
+      {Panels::kPaletteControlPanel, DockPosition::LeftTop},
+      {Panels::kPaletteDungeonMain, DockPosition::Bottom},
+      {Panels::kGraphicsSheetBrowser, DockPosition::RightBottom},
+      {Panels::kGraphicsSheetEditor, DockPosition::Center},
+      {Panels::kScreenDungeonMaps, DockPosition::Center},
+  };
+  return preset;
 }
 
 PanelLayoutPreset LayoutPresets::GetDungeonExpertPreset() {

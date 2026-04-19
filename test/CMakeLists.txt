@@ -243,6 +243,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/paint_util_test.cc
     unit/editor/map_properties_context_menu_test.cc
     unit/editor/layout_presets_test.cc
+    unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
@@ -503,6 +504,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/project_manager_validator_test.cc
+    unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
     unit/editor/canvas_navigation_manager_test.cc
