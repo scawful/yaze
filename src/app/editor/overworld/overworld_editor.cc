@@ -48,7 +48,7 @@
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
-#include "app/editor/system/hack_manifest_save_validation.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/toast_manager.h"
 #include "app/gfx/core/bitmap.h"
@@ -123,6 +123,10 @@ bool ItemSnapshotsEqual(const OverworldItemsSnapshot& lhs,
 void OverworldEditor::Initialize() {
   // Initialize renderer from dependencies
   renderer_ = dependencies_.renderer;
+
+  gfx_group_editor_.SetHostSurfaceHint(
+      "Gfx Groups: selection syncs with the Graphics editor for this ROM session "
+      "(this surface uses its own preview canvases).");
 
   // Initialize MapRefreshCoordinator (must be before callbacks that use it)
   InitMapRefreshCoordinator();

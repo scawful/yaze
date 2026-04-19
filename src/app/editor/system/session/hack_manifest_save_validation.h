@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 
