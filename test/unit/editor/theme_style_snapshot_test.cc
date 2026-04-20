@@ -21,6 +21,27 @@
 namespace yaze::gui {
 namespace {
 
+std::vector<std::string> ShippedFileThemeNames() {
+  return {"Breath of the Wild",
+          "Cyberpunk",
+          "Forest",
+          "Forest Light",
+          "Gruvbox",
+          "Majora's Moon",
+          "Midnight",
+          "Midnight Light",
+          "Nord",
+          "Ocean",
+          "Ocean Light",
+          "Solarized Dark",
+          "Solarized Light",
+          "Sunset",
+          "Tokyo Night",
+          "Twilight",
+          "Wind Waker",
+          "YAZE Tre"};
+}
+
 // Helper: Classic YAZE stores palette entries as 0-255 ints via RGBA(r,g,b,a).
 // Color::red/green/blue are floats in [0,1]. Compare with a tiny epsilon so
 // roundtrip (int → float → back) doesn't flake.
@@ -184,6 +205,47 @@ TEST_F(ThemeStyleSnapshotTest, SemanticHelpersReturnThemeTokens) {
   ExpectEqual(GetWarningColor(), theme.warning);
   ExpectEqual(GetErrorColor(), theme.error);
   ExpectEqual(GetInfoColor(), theme.info);
+}
+
+TEST_F(ThemeStyleSnapshotTest, FileThemesHydrateEnhancedSemanticDefaults) {
+  auto& mgr = ThemeManager::Get();
+
+  auto expect_hydrated = [](const Theme& theme, const char* name) {
+    auto not_missing = [name](const Color& c, const char* field) {
+      const bool all_zero =
+          c.red == 0.0f && c.green == 0.0f && c.blue == 0.0f && c.alpha == 0.0f;
+      const bool opaque_black =
+          c.red == 0.0f && c.green == 0.0f && c.blue == 0.0f && c.alpha == 1.0f;
+      EXPECT_FALSE(all_zero) << name << " missing " << field;
+      EXPECT_FALSE(opaque_black)
+          << name << " defaulted " << field << " to opaque black";
+    };
+
+    not_missing(theme.text_highlight, "text_highlight");
+    not_missing(theme.link_hover, "link_hover");
+    not_missing(theme.code_background, "code_background");
+    not_missing(theme.success_light, "success_light");
+    not_missing(theme.warning_light, "warning_light");
+    not_missing(theme.error_light, "error_light");
+    not_missing(theme.info_light, "info_light");
+    not_missing(theme.active_selection, "active_selection");
+    not_missing(theme.hover_highlight, "hover_highlight");
+    not_missing(theme.focus_border, "focus_border");
+    not_missing(theme.disabled_overlay, "disabled_overlay");
+    not_missing(theme.editor_background, "editor_background");
+    not_missing(theme.editor_grid, "editor_grid");
+    not_missing(theme.selection_primary, "selection_primary");
+    not_missing(theme.selection_secondary, "selection_secondary");
+    not_missing(theme.dungeon.object_door, "dungeon.object_door");
+    not_missing(theme.agent.panel_bg, "agent.panel_bg");
+    not_missing(theme.agent.code_background, "agent.code_background");
+  };
+
+  for (const auto& theme_name : ShippedFileThemeNames()) {
+    mgr.ApplyTheme(theme_name);
+    SCOPED_TRACE(theme_name);
+    expect_hydrated(mgr.GetCurrentTheme(), theme_name.c_str());
+  }
 }
 
 }  // namespace
