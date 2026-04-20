@@ -42,10 +42,23 @@ other_candidates=(
   "${ROOT}/build/bin/z3ed"
 )
 
+# Per-preset binaryDir layout (build/presets/<preset>/bin/...). Glob-expanded
+# so any preset name (ci-linux, ci-macos, ci-windows, release, mac-ai, etc.)
+# is picked up automatically.
+shopt -s nullglob
+preset_candidates=(
+  "${ROOT}/build/presets/"*/bin/Debug/z3ed
+  "${ROOT}/build/presets/"*/bin/RelWithDebInfo/z3ed
+  "${ROOT}/build/presets/"*/bin/Release/z3ed
+  "${ROOT}/build/presets/"*/bin/z3ed
+)
+shopt -u nullglob
+
 all_candidates=(
   "${ai_candidates[@]}"
   "${test_candidates[@]}"
   "${agent_candidates[@]}"
+  "${preset_candidates[@]}"
   "${other_candidates[@]}"
 )
 
@@ -99,6 +112,9 @@ resolve_bin() {
   fi
   if [[ -z "${bin}" ]]; then
     bin="$(pick_newest "${agent_candidates[@]}")"
+  fi
+  if [[ -z "${bin}" ]]; then
+    bin="$(pick_newest "${preset_candidates[@]}")"
   fi
   if [[ -z "${bin}" ]]; then
     bin="$(pick_newest "${other_candidates[@]}")"
