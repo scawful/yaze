@@ -123,6 +123,16 @@ TEST_F(ThemeStyleSnapshotTest, ApplyThemeByNameRestoresClassicYaze) {
   EXPECT_EQ(mgr.GetCurrentTheme().name, "Classic YAZE");
 }
 
+TEST_F(ThemeStyleSnapshotTest, MissingThemeFallsBackToClassicYaze) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("YAZE Tre");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "YAZE Tre");
+
+  mgr.ApplyTheme("Definitely Missing Theme");
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
+  EXPECT_EQ(mgr.GetCurrentTheme().name, "Classic YAZE");
+}
+
 TEST_F(ThemeStyleSnapshotTest, AvailableThemesExposeClassicYaze) {
   auto& mgr = ThemeManager::Get();
   const auto themes = mgr.GetAvailableThemes();

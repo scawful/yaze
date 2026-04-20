@@ -14,7 +14,8 @@ class WindowSidebar {
   explicit WindowSidebar(
       WorkspaceWindowManager& window_manager,
       std::function<bool()> is_dungeon_workbench_mode = {},
-      std::function<void(bool)> set_dungeon_workflow_mode = {});
+      std::function<void(bool)> set_dungeon_workflow_mode = {},
+      std::function<float()> get_bottom_reserved_height = {});
 
   static bool MatchesWindowSearch(const std::string& query,
                                   const std::string& display_name,
@@ -29,6 +30,7 @@ class WindowSidebar {
   WorkspaceWindowManager& window_manager_;
   std::function<bool()> is_dungeon_workbench_mode_;
   std::function<void(bool)> set_dungeon_workflow_mode_;
+  std::function<float()> get_bottom_reserved_height_;
   char sidebar_search_[256] = {};
 };
 

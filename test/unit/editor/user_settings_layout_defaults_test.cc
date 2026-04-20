@@ -207,4 +207,30 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.room_selector"]);
 }
 
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionFourteenRestoresClassicThemeAndClosesNoisyDungeonTools) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 13;
+  prefs.last_theme_name = "YAZE Tre";
+  prefs.panel_visibility_state["Dungeon"]["dungeon.object_tile_editor"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.settings"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.dungeon_map"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"] = true;
+  prefs.saved_layouts["custom"]["dungeon.settings"] = true;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision,
+            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_EQ(prefs.last_theme_name, "Classic YAZE");
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_tile_editor"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.settings"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.dungeon_map"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.settings"]);
+}
+
 }  // namespace yaze::editor

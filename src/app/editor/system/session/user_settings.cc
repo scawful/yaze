@@ -1214,6 +1214,23 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  if (prefs_.panel_layout_defaults_revision < 14 && target_revision >= 14) {
+    if (prefs_.last_theme_name == "YAZE Tre") {
+      prefs_.last_theme_name = "Classic YAZE";
+    }
+
+    auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      dungeon_windows["dungeon.object_tile_editor"] = false;
+      dungeon_windows["dungeon.settings"] = false;
+      dungeon_windows["dungeon.dungeon_map"] = false;
+    }
+
+    prefs_.panel_layout_defaults_revision = 14;
+    applied = true;
+  }
+
   return applied;
 }
 
