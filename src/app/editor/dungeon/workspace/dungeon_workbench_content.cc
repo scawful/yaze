@@ -146,15 +146,15 @@ ResponsiveWorkbenchLayout ResolveResponsiveWorkbenchLayout(
     return required;
   };
 
-  if (result.show_left &&
+  if (result.show_right &&
       total_width <
           required_width(result.show_left, result.show_right, false, false)) {
-    result.compact_left = true;
-  }
-  if (result.show_right &&
-      total_width < required_width(result.show_left, result.show_right,
-                                   result.compact_left, false)) {
     result.compact_right = true;
+  }
+  if (result.show_left &&
+      total_width < required_width(result.show_left, result.show_right, false,
+                                   result.compact_right)) {
+    result.compact_left = true;
   }
   if (result.show_right &&
       total_width < required_width(result.show_left, result.show_right,
@@ -294,13 +294,14 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
   gui::StyleVarGuard frame_padding_guard(
       ImGuiStyleVar_FramePadding,
       ImVec2(ImGui::GetStyle().FramePadding.x,
-             std::max(5.0f, ImGui::GetStyle().FramePadding.y + 1.0f)));
+             std::max(6.0f, ImGui::GetStyle().FramePadding.y + 2.0f)));
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
              ImGui::GetStyle().ItemSpacing.y));
   const float segment_height =
-      std::max(button_size, gui::LayoutHelpers::GetTouchSafeWidgetHeight());
+      std::max(button_size + 2.0f,
+               gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 2.0f);
 
   const bool can_open_overview = static_cast<bool>(show_panel_);
   const float collapse_w =
@@ -310,7 +311,7 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
                                          : 0.0f;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   const float header_width = ImGui::GetContentRegionAvail().x;
-  const bool stack_mode_switch = header_width < 240.0f;
+  const bool stack_mode_switch = header_width < 286.0f;
   const float action_cluster_w =
       collapse_w + (can_open_overview ? (spacing + menu_w) : 0.0f);
 
@@ -349,7 +350,7 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
     ImGui::SetTooltip("Collapse navigation pane");
   }
 
-  ImGui::Dummy(ImVec2(0.0f, 3.0f));
+  ImGui::Dummy(ImVec2(0.0f, 6.0f));
   DrawSidebarModeTabs(stack_mode_switch, segment_height);
   ImGui::Separator();
 }
@@ -412,7 +413,7 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
   const float splitter_w = gui::UIConfig::kSplitterWidth;
   const float total_w = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const float min_sidebar_w =
-      std::max(gui::UIConfig::kContentMinWidthSidebar, 320.0f);
+      std::max(gui::UIConfig::kContentMinWidthSidebar, 352.0f);
   const float min_canvas_w = std::max(360.0f, min_sidebar_w + 80.0f);
   const ResponsiveWorkbenchLayout responsive = ResolveResponsiveWorkbenchLayout(
       total_w, min_canvas_w, min_sidebar_w, splitter_w,
@@ -451,8 +452,8 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
 
   const float btn = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
   const float total_h = std::max(ImGui::GetContentRegionAvail().y, 1.0f);
-  const float compact_left_w = std::max(176.0f, min_sidebar_w * 0.8f);
-  const float compact_right_w = std::max(232.0f, min_sidebar_w + 36.0f);
+  const float compact_left_w = std::max(232.0f, min_sidebar_w * 0.78f);
+  const float compact_right_w = std::max(268.0f, min_sidebar_w + 28.0f);
   const float active_left_min_w =
       responsive.compact_left ? compact_left_w : min_sidebar_w;
   const float active_right_min_w =
@@ -623,13 +624,14 @@ void DungeonWorkbenchContent::DrawInspectorHeader(float button_size,
   gui::StyleVarGuard frame_padding_guard(
       ImGuiStyleVar_FramePadding,
       ImVec2(ImGui::GetStyle().FramePadding.x,
-             std::max(5.0f, ImGui::GetStyle().FramePadding.y + 1.0f)));
+             std::max(6.0f, ImGui::GetStyle().FramePadding.y + 2.0f)));
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
              ImGui::GetStyle().ItemSpacing.y));
   const float segment_height =
-      std::max(button_size, gui::LayoutHelpers::GetTouchSafeWidgetHeight());
+      std::max(button_size + 2.0f,
+               gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 2.0f);
   const float collapse_w =
       CalcWorkbenchIconButtonWidth(ICON_MD_CHEVRON_RIGHT, button_size);
 
@@ -648,7 +650,7 @@ void DungeonWorkbenchContent::DrawInspectorHeader(float button_size,
     ImGui::SetTooltip("Collapse inspector");
   }
 
-  ImGui::Dummy(ImVec2(0.0f, 3.0f));
+  ImGui::Dummy(ImVec2(0.0f, 6.0f));
   DrawInspectorPrimarySelector(segment_height);
   ImGui::Separator();
 }
@@ -880,9 +882,11 @@ void DungeonWorkbenchContent::DrawInspector(DungeonCanvasViewer& viewer) {
 void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
     float segment_height) {
   const float width = ImGui::GetContentRegionAvail().x;
-  const bool stack = width < 260.0f;
+  const bool stack = width < 300.0f;
   const float button_width =
-      stack ? -1.0f : (width - ImGui::GetStyle().ItemSpacing.x) * 0.5f;
+      stack
+          ? -1.0f
+          : std::max(112.0f, (width - ImGui::GetStyle().ItemSpacing.x) * 0.5f);
   if (DrawWorkbenchSegment(ICON_MD_CASTLE " Room",
                            inspector_focus_ == InspectorFocus::Room,
                            button_width, segment_height)) {
