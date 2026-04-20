@@ -418,6 +418,9 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
 
   auto status = tile_editor_->WriteBack(current_layout_);
   if (status.ok()) {
+    preview_dirty_ = true;
+    atlas_dirty_ = true;
+
     // Re-render room after applying changes
     if (rooms_ && current_room_id_ >= 0 &&
         current_room_id_ < static_cast<int>(rooms_->size())) {
