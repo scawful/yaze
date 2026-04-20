@@ -13,7 +13,7 @@
 #include "app/editor/palette/palette_editor.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/ui/settings_panel.h"
+#include "app/editor/shell/windows/settings_panel.h"
 #include "rom/rom.h"
 
 namespace yaze::editor {

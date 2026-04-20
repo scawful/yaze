@@ -9,7 +9,7 @@
 #include "absl/status/status.h"
 #include "app/editor/core/event_bus.h"
 #include "app/editor/system/workspace_window_manager.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/session_types.h"
 #include "rom/rom.h"
 #include "imgui/imgui.h"
