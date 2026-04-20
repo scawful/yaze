@@ -60,7 +60,7 @@ print_hot_methods() {
       }
     ' \
     | sort -t'|' -k3,3nr \
-    | head -n "$top_n"
+    | awk -F'|' -v limit="$top_n" 'NR <= limit { print }'
 }
 
 echo "# GUI Complexity Baseline"
@@ -71,9 +71,9 @@ echo "| --- | ---: | ---: | ---: | ---: |"
 
 declare -a METRIC_ROWS=(
   "src/app/editor/editor_manager.cc|EditorManager|src/app/editor/editor_manager.h|EditorManager"
-  "src/app/editor/ui/ui_coordinator.cc|UICoordinator|src/app/editor/ui/ui_coordinator.h|UICoordinator"
-  "src/app/editor/system/panel_manager.cc|PanelManager|src/app/editor/system/panel_manager.h|PanelManager"
-  "src/app/editor/menu/right_panel_manager.cc|RightPanelManager|src/app/editor/menu/right_panel_manager.h|RightPanelManager"
+  "src/app/editor/shell/coordinator/ui_coordinator.cc|UICoordinator|src/app/editor/shell/coordinator/ui_coordinator.h|UICoordinator"
+  "src/app/editor/system/workspace/workspace_window_manager.cc|WorkspaceWindowManager|src/app/editor/system/workspace/workspace_window_manager.h|WorkspaceWindowManager"
+  "src/app/editor/menu/right_drawer_manager.cc|RightDrawerManager|src/app/editor/menu/right_drawer_manager.h|RightDrawerManager"
   "src/app/editor/overworld/tile16_editor.cc|Tile16Editor||"
   "src/app/editor/overworld/overworld_editor.cc|OverworldEditor||"
   "src/app/service/imgui_test_harness_service.cc|ImGuiTestHarnessServiceImpl||"

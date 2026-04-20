@@ -555,16 +555,16 @@ EditorManager::SwitchToEditor(EditorType type)
 
 | Component             | Header                                      | Implementation                                 |
 |-----------------------|---------------------------------------------|-----------------------------------------------|
-| PanelManager          | `src/app/editor/system/panel_manager.h`     | `src/app/editor/system/panel_manager.cc`      |
+| WorkspaceWindowManager| `src/app/editor/system/workspace/workspace_window_manager.h`     | `src/app/editor/system/workspace/workspace_window_manager.cc`      |
 | LayoutManager         | `src/app/editor/layout/layout_manager.h`     | `src/app/editor/layout/layout_manager.cc`      |
 | LayoutOrchestrator    | `src/app/editor/layout/layout_orchestrator.h`| `src/app/editor/layout/layout_orchestrator.cc` |
 | LayoutCoordinator     | `src/app/editor/layout/layout_coordinator.h` | `src/app/editor/layout/layout_coordinator.cc`  |
 | LayoutPresets         | `src/app/editor/layout/layout_presets.h`     | `src/app/editor/layout/layout_presets.cc`      |
 | ActivityBar           | `src/app/editor/menu/activity_bar.h`         | `src/app/editor/menu/activity_bar.cc`          |
-| RightPanelManager     | `src/app/editor/menu/right_panel_manager.h`  | `src/app/editor/menu/right_panel_manager.cc`   |
-| UICoordinator         | `src/app/editor/ui/ui_coordinator.h`         | `src/app/editor/ui/ui_coordinator.cc`          |
+| RightDrawerManager    | `src/app/editor/menu/right_drawer_manager.h`  | `src/app/editor/menu/right_drawer_manager.cc`   |
+| UICoordinator         | `src/app/editor/shell/coordinator/ui_coordinator.h`         | `src/app/editor/shell/coordinator/ui_coordinator.cc`          |
 | EditorManager         | `src/app/editor/editor_manager.h`            | `src/app/editor/editor_manager.cc`             |
-| UserSettings          | `src/app/editor/system/user_settings.h`      | `src/app/editor/system/user_settings.cc`       |
+| UserSettings          | `src/app/editor/system/session/user_settings.h`      | `src/app/editor/system/session/user_settings.cc`       |
 | Core UI Actions       | `src/app/editor/events/core_events.h`        | (header-only events)                           |
 
 ---
