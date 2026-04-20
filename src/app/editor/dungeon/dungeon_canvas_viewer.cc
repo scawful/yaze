@@ -3,12 +3,16 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <utility>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
@@ -24,6 +28,9 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
+#ifdef YAZE_WITH_GRPC
+#include "app/service/screenshot_utils.h"
+#endif
 #include "dungeon_canvas_viewer.h"
 #include "dungeon_coordinates.h"
 #include "editor/dungeon/object_selection.h"
@@ -31,6 +38,7 @@
 #include "rom/rom.h"
 #include "util/log.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_dimensions.h"
@@ -52,7 +60,27 @@ constexpr int kRoomPropertyColumns = 2;
 
 enum class TrackDir : uint8_t { North, East, South, West };
 
+struct IssueCategoryOption {
+  const char* label;
+};
+
 using TrackDirectionMasks = yaze::editor::TrackDirectionMasks;
+
+constexpr std::array<IssueCategoryOption, 6> kIssueCategories = {{
+    {"Palette mismatch"},
+    {"Object draw mismatch"},
+    {"Door render mismatch"},
+    {"Entity mismatch"},
+    {"Overlay or collision mismatch"},
+    {"General room render mismatch"},
+}};
+
+constexpr int kPaletteIssueCategoryIndex = 0;
+constexpr int kObjectDrawIssueCategoryIndex = 1;
+constexpr int kDoorRenderIssueCategoryIndex = 2;
+constexpr int kEntityIssueCategoryIndex = 3;
+constexpr int kOverlayIssueCategoryIndex = 4;
+constexpr int kGeneralRenderIssueCategoryIndex = 5;
 
 const char* GetObjectStreamLabel(int layer_value) {
   switch (layer_value) {
@@ -74,6 +102,107 @@ const char* GetBlocksetGroupName(uint8_t blockset) {
   };
   constexpr size_t kCount = sizeof(kGroupNames) / sizeof(kGroupNames[0]);
   return blockset < kCount ? kGroupNames[blockset] : "Custom";
+}
+
+std::string BuildIssueTimestampSlug() {
+  return absl::FormatTime("%Y%m%d-%H%M%S", absl::Now(), absl::LocalTimeZone());
+}
+
+std::string BuildIssueTimestampDisplay() {
+  return absl::FormatTime("%Y-%m-%d %H:%M:%S %Z", absl::Now(),
+                          absl::LocalTimeZone());
+}
+
+std::string SanitizeFilenameComponent(std::string value) {
+  for (char& ch : value) {
+    const unsigned char uch = static_cast<unsigned char>(ch);
+    if ((uch >= 'a' && uch <= 'z') || (uch >= 'A' && uch <= 'Z') ||
+        (uch >= '0' && uch <= '9')) {
+      if (uch >= 'A' && uch <= 'Z') {
+        ch = static_cast<char>(uch - 'A' + 'a');
+      }
+      continue;
+    }
+    ch = '_';
+  }
+
+  std::string sanitized;
+  sanitized.reserve(value.size());
+  bool last_was_underscore = false;
+  for (char ch : value) {
+    if (ch == '_') {
+      if (!last_was_underscore) {
+        sanitized.push_back(ch);
+      }
+      last_was_underscore = true;
+      continue;
+    }
+    sanitized.push_back(ch);
+    last_was_underscore = false;
+  }
+  while (!sanitized.empty() && sanitized.front() == '_') {
+    sanitized.erase(sanitized.begin());
+  }
+  while (!sanitized.empty() && sanitized.back() == '_') {
+    sanitized.pop_back();
+  }
+  if (sanitized.empty()) {
+    sanitized = "issue";
+  }
+  return sanitized;
+}
+
+absl::StatusOr<std::filesystem::path> GetDungeonIssueReportsDirectory() {
+  auto base_dir_or =
+      util::PlatformPaths::GetAppDataSubdirectory("issue_reports");
+  if (!base_dir_or.ok()) {
+    return base_dir_or.status();
+  }
+  std::filesystem::path dungeon_dir = *base_dir_or / "dungeon";
+  auto status = util::PlatformPaths::EnsureDirectoryExists(dungeon_dir);
+  if (!status.ok()) {
+    return status;
+  }
+  return dungeon_dir;
+}
+
+absl::StatusOr<std::filesystem::path> GetDungeonIssueScreenshotsDirectory() {
+  auto reports_dir_or = GetDungeonIssueReportsDirectory();
+  if (!reports_dir_or.ok()) {
+    return reports_dir_or.status();
+  }
+  std::filesystem::path screenshots_dir = *reports_dir_or / "screenshots";
+  auto status = util::PlatformPaths::EnsureDirectoryExists(screenshots_dir);
+  if (!status.ok()) {
+    return status;
+  }
+  return screenshots_dir;
+}
+
+const char* GetIssueCategoryLabel(int index) {
+  if (index < 0 || index >= static_cast<int>(kIssueCategories.size())) {
+    return kIssueCategories.back().label;
+  }
+  return kIssueCategories[static_cast<size_t>(index)].label;
+}
+
+int GetDefaultSelectionIssueCategory(
+    const DungeonObjectInteraction& object_interaction) {
+  if (!object_interaction.GetSelectedObjectIndices().empty()) {
+    return kObjectDrawIssueCategoryIndex;
+  }
+  if (object_interaction.HasEntitySelection()) {
+    switch (object_interaction.GetSelectedEntity().type) {
+      case EntityType::Door:
+        return kDoorRenderIssueCategoryIndex;
+      case EntityType::Sprite:
+      case EntityType::Item:
+        return kEntityIssueCategoryIndex;
+      default:
+        break;
+    }
+  }
+  return kGeneralRenderIssueCategoryIndex;
 }
 
 }  // namespace
@@ -345,10 +474,19 @@ std::string DungeonCanvasViewer::BuildSelectionIssueReport(
 void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
                                                const std::string& summary,
                                                const std::string& kind_label,
-                                               const std::string& diagnostics) {
+                                               const std::string& diagnostics,
+                                               int room_id,
+                                               int default_category_index) {
   issue_report_popup_title_ = title;
   issue_report_popup_kind_ = kind_label;
   issue_report_popup_diagnostics_ = diagnostics;
+  issue_report_popup_room_id_ = room_id;
+  issue_report_category_index_ = std::clamp(
+      default_category_index, 0, static_cast<int>(kIssueCategories.size()) - 1);
+  issue_report_popup_screenshot_path_.clear();
+  issue_report_popup_last_log_path_.clear();
+  issue_report_popup_status_message_.clear();
+  issue_report_popup_status_is_error_ = false;
   std::snprintf(issue_report_summary_, sizeof(issue_report_summary_), "%s",
                 summary.c_str());
   issue_report_notes_[0] = '\0';
@@ -363,6 +501,22 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
         ImGui::Separator();
       }
 
+      const char* category_preview =
+          GetIssueCategoryLabel(issue_report_category_index_);
+      if (ImGui::BeginCombo("Category", category_preview)) {
+        for (size_t i = 0; i < kIssueCategories.size(); ++i) {
+          const bool selected =
+              issue_report_category_index_ == static_cast<int>(i);
+          if (ImGui::Selectable(kIssueCategories[i].label, selected)) {
+            issue_report_category_index_ = static_cast<int>(i);
+          }
+          if (selected) {
+            ImGui::SetItemDefaultFocus();
+          }
+        }
+        ImGui::EndCombo();
+      }
+
       ImGui::SetNextItemWidth(620.0f);
       ImGui::InputTextWithHint("Summary", "What looks wrong?",
                                issue_report_summary_,
@@ -370,6 +524,22 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
       ImGui::InputTextMultiline("Observed issue", issue_report_notes_,
                                 sizeof(issue_report_notes_),
                                 ImVec2(620.0f, 120.0f));
+
+      if (!issue_report_popup_screenshot_path_.empty()) {
+        ImGui::TextWrapped("Screenshot: %s",
+                           issue_report_popup_screenshot_path_.c_str());
+      }
+      if (!issue_report_popup_last_log_path_.empty()) {
+        ImGui::TextWrapped("Issue log: %s",
+                           issue_report_popup_last_log_path_.c_str());
+      }
+      if (!issue_report_popup_status_message_.empty()) {
+        const ImVec4 color = issue_report_popup_status_is_error_
+                                 ? ImVec4(0.92f, 0.32f, 0.32f, 1.0f)
+                                 : ImVec4(0.42f, 0.78f, 0.42f, 1.0f);
+        ImGui::TextColored(color, "%s",
+                           issue_report_popup_status_message_.c_str());
+      }
 
       if (ImGui::CollapsingHeader("Diagnostics",
                                   ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -379,6 +549,28 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
             ImGuiInputTextFlags_ReadOnly);
       }
 
+#ifdef YAZE_WITH_GRPC
+      const char* capture_label =
+          issue_report_popup_screenshot_path_.empty()
+              ? ICON_MD_ADD_A_PHOTO " Capture Screenshot"
+              : ICON_MD_PHOTO_CAMERA " Re-capture Screenshot";
+      if (ImGui::Button(capture_label)) {
+        const auto status = CaptureIssueReportScreenshot();
+        issue_report_popup_status_is_error_ = !status.ok();
+        issue_report_popup_status_message_ =
+            status.ok() ? "Captured room screenshot for report."
+                        : std::string(status.message());
+      }
+      ImGui::SameLine();
+#endif
+      if (ImGui::Button(ICON_MD_SAVE_AS " Save to Issue Log")) {
+        const auto status = AppendIssueReportToLog();
+        issue_report_popup_status_is_error_ = !status.ok();
+        issue_report_popup_status_message_ =
+            status.ok() ? "Appended issue to local dungeon issue log."
+                        : std::string(status.message());
+      }
+      ImGui::SameLine();
       if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy Report")) {
         std::string report = BuildIssueReportClipboardText();
         ImGui::SetClipboardText(report.c_str());
@@ -402,8 +594,14 @@ std::string DungeonCanvasViewer::BuildIssueReportClipboardText() const {
   if (!issue_report_popup_kind_.empty()) {
     report += issue_report_popup_kind_ + "\n";
   }
+  report += absl::StrFormat(
+      "Category: %s\n", GetIssueCategoryLabel(issue_report_category_index_));
   if (issue_report_summary_[0] != '\0') {
     report += absl::StrFormat("Summary: %s\n", issue_report_summary_);
+  }
+  if (!issue_report_popup_screenshot_path_.empty()) {
+    report += absl::StrFormat("Screenshot: %s\n",
+                              issue_report_popup_screenshot_path_);
   }
   if (issue_report_notes_[0] != '\0') {
     report += absl::StrFormat("\nObserved issue:\n%s\n", issue_report_notes_);
@@ -411,6 +609,97 @@ std::string DungeonCanvasViewer::BuildIssueReportClipboardText() const {
   report += "\nDiagnostics:\n";
   report += issue_report_popup_diagnostics_;
   return report;
+}
+
+absl::Status DungeonCanvasViewer::CaptureIssueReportScreenshot() {
+#ifdef YAZE_WITH_GRPC
+  if (!has_canvas_capture_region_ || canvas_capture_width_ <= 0 ||
+      canvas_capture_height_ <= 0) {
+    return absl::FailedPreconditionError(
+        "Room canvas region is not available for screenshot capture");
+  }
+
+  auto screenshots_dir_or = GetDungeonIssueScreenshotsDirectory();
+  if (!screenshots_dir_or.ok()) {
+    return screenshots_dir_or.status();
+  }
+
+  const std::string timestamp = BuildIssueTimestampSlug();
+  const std::string category_slug = SanitizeFilenameComponent(
+      GetIssueCategoryLabel(issue_report_category_index_));
+  const std::filesystem::path screenshot_path =
+      *screenshots_dir_or /
+      absl::StrFormat("room_%03x_%s_%s.bmp", issue_report_popup_room_id_,
+                      category_slug.c_str(), timestamp.c_str());
+
+  yaze::test::CaptureRegion region;
+  region.x = canvas_capture_x_;
+  region.y = canvas_capture_y_;
+  region.width = canvas_capture_width_;
+  region.height = canvas_capture_height_;
+
+  auto artifact_or = yaze::test::CaptureHarnessScreenshotRegion(
+      std::optional<yaze::test::CaptureRegion>(region),
+      screenshot_path.string(),
+      /*reveal_to_user=*/false);
+  if (!artifact_or.ok()) {
+    return artifact_or.status();
+  }
+
+  issue_report_popup_screenshot_path_ =
+      util::PlatformPaths::NormalizePathForDisplay(artifact_or->file_path);
+  return absl::OkStatus();
+#else
+  return absl::UnimplementedError(
+      "Screenshot capture is unavailable without YAZE_WITH_GRPC");
+#endif
+}
+
+absl::Status DungeonCanvasViewer::AppendIssueReportToLog() {
+  auto reports_dir_or = GetDungeonIssueReportsDirectory();
+  if (!reports_dir_or.ok()) {
+    return reports_dir_or.status();
+  }
+
+  const std::filesystem::path log_path = *reports_dir_or / "dungeon_issues.md";
+  std::ofstream out(log_path, std::ios::app);
+  if (!out) {
+    return absl::InternalError(
+        absl::StrFormat("Failed to open issue log: %s", log_path.string()));
+  }
+
+  const std::string heading = (issue_report_summary_[0] != '\0')
+                                  ? issue_report_summary_
+                                  : issue_report_popup_kind_;
+  out << "## " << BuildIssueTimestampDisplay() << " - " << heading << "\n";
+  out << "- Category: " << GetIssueCategoryLabel(issue_report_category_index_)
+      << "\n";
+  if (!issue_report_popup_kind_.empty()) {
+    out << "- Scope: " << issue_report_popup_kind_ << "\n";
+  }
+  if (issue_report_popup_room_id_ >= 0) {
+    out << "- Room: 0x" << absl::StrFormat("%03X", issue_report_popup_room_id_)
+        << "\n";
+  }
+  if (!issue_report_popup_screenshot_path_.empty()) {
+    out << "- Screenshot: " << issue_report_popup_screenshot_path_ << "\n";
+  }
+  out << "\n";
+  if (issue_report_notes_[0] != '\0') {
+    out << "### Observed Issue\n";
+    out << issue_report_notes_ << "\n\n";
+  }
+  out << "### Diagnostics\n";
+  out << "```text\n" << issue_report_popup_diagnostics_ << "\n```\n\n";
+  out.flush();
+  if (!out) {
+    return absl::InternalError(absl::StrFormat(
+        "Failed while writing issue log: %s", log_path.string()));
+  }
+
+  issue_report_popup_last_log_path_ =
+      util::PlatformPaths::NormalizePathForDisplay(log_path);
+  return absl::OkStatus();
 }
 
 void DungeonCanvasViewer::Draw(int room_id) {
@@ -823,7 +1112,20 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
               absl::StrFormat("Report Room 0x%03X Render Issue", room_id),
               absl::StrFormat("Room 0x%03X render mismatch", room_id),
               "Dungeon Render Issue Report",
-              BuildDrawIssueReport((*rooms_)[room_id], room_id));
+              BuildDrawIssueReport((*rooms_)[room_id], room_id), room_id,
+              kGeneralRenderIssueCategoryIndex);
+        }));
+    report_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Palette Issue...", ICON_MD_PALETTE, [this, room_id]() {
+          if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+            return;
+          }
+          OpenIssueReportPopup(
+              absl::StrFormat("Report Room 0x%03X Palette Issue", room_id),
+              absl::StrFormat("Room 0x%03X palette mismatch", room_id),
+              "Dungeon Palette Issue Report",
+              BuildDrawIssueReport((*rooms_)[room_id], room_id), room_id,
+              kPaletteIssueCategoryIndex);
         }));
     report_menu.subitems.push_back(gui::CanvasMenuItem(
         "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {
@@ -846,7 +1148,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                 absl::StrFormat("Room 0x%03X selection or entity mismatch",
                                 room_id),
                 "Dungeon Selection Issue Report",
-                BuildSelectionIssueReport((*rooms_)[room_id], room_id));
+                BuildSelectionIssueReport((*rooms_)[room_id], room_id), room_id,
+                GetDefaultSelectionIssueCategory(object_interaction_));
           }));
     }
     report_menu.separator_after = true;
@@ -1130,6 +1433,14 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
   // This replaces DrawBackground + DrawContextMenu with a unified frame
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
+  has_canvas_capture_region_ =
+      canvas_rt.canvas_sz.x > 1.0f && canvas_rt.canvas_sz.y > 1.0f;
+  if (has_canvas_capture_region_) {
+    canvas_capture_x_ = static_cast<int>(canvas_rt.canvas_p0.x);
+    canvas_capture_y_ = static_cast<int>(canvas_rt.canvas_p0.y);
+    canvas_capture_width_ = static_cast<int>(canvas_rt.canvas_sz.x);
+    canvas_capture_height_ = static_cast<int>(canvas_rt.canvas_sz.y);
+  }
 
   // Handle pending scroll request using the canvas's internal scrolling model.
   if (pending_scroll_target_.has_value()) {
