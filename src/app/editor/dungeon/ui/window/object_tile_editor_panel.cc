@@ -506,6 +506,9 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
     return;
   }
 
+  show_shared_confirm_ = false;
+  shared_object_count_ = 0;
+
   auto status = tile_editor_->WriteBack(current_layout_);
   if (status.ok()) {
     // Re-render room after applying changes
