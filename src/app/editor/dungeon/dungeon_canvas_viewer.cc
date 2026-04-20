@@ -343,22 +343,49 @@ std::string DungeonCanvasViewer::BuildSelectionIssueReport(
 }
 
 void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
-                                               const std::string& report_text) {
+                                               const std::string& summary,
+                                               const std::string& kind_label,
+                                               const std::string& diagnostics) {
   issue_report_popup_title_ = title;
-  issue_report_popup_text_ = report_text;
+  issue_report_popup_kind_ = kind_label;
+  issue_report_popup_diagnostics_ = diagnostics;
+  std::snprintf(issue_report_summary_, sizeof(issue_report_summary_), "%s",
+                summary.c_str());
+  issue_report_notes_[0] = '\0';
   canvas_.OpenPersistentPopup(issue_report_popup_id_, [this]() {
     if (ImGui::BeginPopupModal(issue_report_popup_id_.c_str(), nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       if (!issue_report_popup_title_.empty()) {
         ImGui::TextUnformatted(issue_report_popup_title_.c_str());
+        if (!issue_report_popup_kind_.empty()) {
+          ImGui::TextDisabled("%s", issue_report_popup_kind_.c_str());
+        }
         ImGui::Separator();
       }
-      ImGui::InputTextMultiline(
-          "##DungeonIssueReportBody", issue_report_popup_text_.data(),
-          issue_report_popup_text_.size() + 1, ImVec2(620.0f, 260.0f),
-          ImGuiInputTextFlags_ReadOnly);
+
+      ImGui::SetNextItemWidth(620.0f);
+      ImGui::InputTextWithHint("Summary", "What looks wrong?",
+                               issue_report_summary_,
+                               sizeof(issue_report_summary_));
+      ImGui::InputTextMultiline("Observed issue", issue_report_notes_,
+                                sizeof(issue_report_notes_),
+                                ImVec2(620.0f, 120.0f));
+
+      if (ImGui::CollapsingHeader("Diagnostics",
+                                  ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::InputTextMultiline(
+            "##DungeonIssueDiagnostics", issue_report_popup_diagnostics_.data(),
+            issue_report_popup_diagnostics_.size() + 1, ImVec2(620.0f, 180.0f),
+            ImGuiInputTextFlags_ReadOnly);
+      }
+
       if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy Report")) {
-        ImGui::SetClipboardText(issue_report_popup_text_.c_str());
+        std::string report = BuildIssueReportClipboardText();
+        ImGui::SetClipboardText(report.c_str());
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_MD_ASSIGNMENT " Copy Diagnostics")) {
+        ImGui::SetClipboardText(issue_report_popup_diagnostics_.c_str());
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_CLOSE " Close")) {
@@ -368,6 +395,22 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
       ImGui::EndPopup();
     }
   });
+}
+
+std::string DungeonCanvasViewer::BuildIssueReportClipboardText() const {
+  std::string report;
+  if (!issue_report_popup_kind_.empty()) {
+    report += issue_report_popup_kind_ + "\n";
+  }
+  if (issue_report_summary_[0] != '\0') {
+    report += absl::StrFormat("Summary: %s\n", issue_report_summary_);
+  }
+  if (issue_report_notes_[0] != '\0') {
+    report += absl::StrFormat("\nObserved issue:\n%s\n", issue_report_notes_);
+  }
+  report += "\nDiagnostics:\n";
+  report += issue_report_popup_diagnostics_;
+  return report;
 }
 
 void DungeonCanvasViewer::Draw(int room_id) {
@@ -769,24 +812,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     room_menu.subitems.back().separator_after = true;
 
     gui::CanvasMenuItem report_menu;
-    report_menu.label = "Report";
+    report_menu.label = "Report Issue";
     report_menu.icon = ICON_MD_BUG_REPORT;
     report_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Preview Draw Issue Report", ICON_MD_PREVIEW, [this, room_id]() {
+        "Room Render Issue...", ICON_MD_BUG_REPORT, [this, room_id]() {
           if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
             return;
           }
           OpenIssueReportPopup(
-              absl::StrFormat("Draw Issue Report for Room 0x%03X", room_id),
+              absl::StrFormat("Report Room 0x%03X Render Issue", room_id),
+              absl::StrFormat("Room 0x%03X render mismatch", room_id),
+              "Dungeon Render Issue Report",
               BuildDrawIssueReport((*rooms_)[room_id], room_id));
-        }));
-    report_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Copy Draw Issue Report", ICON_MD_CONTENT_COPY, [this, room_id]() {
-          if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
-            return;
-          }
-          ImGui::SetClipboardText(
-              BuildDrawIssueReport((*rooms_)[room_id], room_id).c_str());
         }));
     report_menu.subitems.push_back(gui::CanvasMenuItem(
         "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {
@@ -799,21 +836,17 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     if (object_interaction_.GetSelectionCount() > 0 ||
         object_interaction_.HasEntitySelection()) {
       report_menu.subitems.push_back(gui::CanvasMenuItem(
-          "Preview Selection Report", ICON_MD_FACT_CHECK, [this, room_id]() {
+          "Selection Issue...", ICON_MD_FACT_CHECK, [this, room_id]() {
             if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
               return;
             }
             OpenIssueReportPopup(
-                absl::StrFormat("Selection Report for Room 0x%03X", room_id),
+                absl::StrFormat("Report Selection Issue for Room 0x%03X",
+                                room_id),
+                absl::StrFormat("Room 0x%03X selection or entity mismatch",
+                                room_id),
+                "Dungeon Selection Issue Report",
                 BuildSelectionIssueReport((*rooms_)[room_id], room_id));
-          }));
-      report_menu.subitems.push_back(gui::CanvasMenuItem(
-          "Copy Selection Report", ICON_MD_CONTENT_COPY, [this, room_id]() {
-            if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
-              return;
-            }
-            ImGui::SetClipboardText(
-                BuildSelectionIssueReport((*rooms_)[room_id], room_id).c_str());
           }));
     }
     report_menu.separator_after = true;
