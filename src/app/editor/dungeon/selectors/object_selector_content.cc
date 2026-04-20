@@ -14,8 +14,6 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/gfx/backend/irenderer.h"
-#include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -24,27 +22,19 @@
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_validator.h"
-#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
-#include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace editor {
 
 ObjectSelectorContent::ObjectSelectorContent(
-    gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
+    Rom* rom, DungeonCanvasViewer* canvas_viewer,
     std::shared_ptr<zelda3::DungeonObjectEditor> object_editor)
-    : renderer_(renderer),
-      rom_(rom),
+    : rom_(rom),
       canvas_viewer_(canvas_viewer),
       object_selector_(rom),
       object_editor_(object_editor) {
-  // Initialize object parser for static editor info lookup
-  if (rom) {
-    object_parser_ = std::make_unique<zelda3::ObjectParser>(rom);
-  }
-
   // Wire up object selector callback
   object_selector_.SetObjectSelectedCallback(
       [this](const zelda3::RoomObject& obj) {
@@ -61,10 +51,6 @@ ObjectSelectorContent::ObjectSelectorContent(
           object_editor_->SetCurrentObjectType(obj.id_);
         }
       });
-
-  // Wire up double-click callback for static object editor
-  object_selector_.SetObjectDoubleClickCallback(
-      [this](int obj_id) { OpenStaticObjectEditor(obj_id); });
 }
 
 DungeonCanvasViewer* ObjectSelectorContent::ResolveCanvasViewer() {
@@ -155,22 +141,16 @@ void ObjectSelectorContent::Draw(bool* p_open) {
   DrawInteractionSummary();
 
   float available_height = ImGui::GetContentRegionAvail().y;
-  float browser_height =
-      std::max(220.0f, available_height - (static_editor_open_ ? 260.0f : 0.0f));
+  float browser_height = std::max(220.0f, available_height);
 
   gui::SectionHeader(ICON_MD_CATEGORY, "Object Selector", theme.text_info);
   ImGui::TextColored(
       theme.text_secondary_gray,
-      "Choose an object to place. Double-click an entry to inspect its draw "
-      "routine or open the tile editor.");
+      "Choose an object to queue placement in the room canvas. Use Object "
+      "Editor for selected room objects.");
   ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
   DrawObjectSelector();
   ImGui::EndChild();
-
-  if (static_editor_open_) {
-    ImGui::Spacing();
-    DrawStaticObjectEditor();
-  }
 }
 
 void ObjectSelectorContent::SelectObject(int obj_id) {
@@ -243,8 +223,7 @@ void ObjectSelectorContent::DrawInteractionSummary() {
       }
     }
   } else {
-    ImGui::TextColored(theme.text_secondary_gray,
-                       ICON_MD_MOUSE
+    ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MOUSE
                        " Browse objects below to place them. Click room "
                        "objects to edit them in the Object Editor.");
   }
@@ -256,272 +235,6 @@ void ObjectSelectorContent::DrawInteractionSummary() {
                          last_placement_error_.c_str());
     } else {
       last_placement_error_.clear();
-    }
-  }
-}
-
-// =============================================================================
-// Static Object Editor (opened via double-click)
-// =============================================================================
-
-void ObjectSelectorContent::OpenStaticObjectEditor(int object_id) {
-  static_editor_open_ = true;
-  static_editor_object_id_ = object_id;
-  static_preview_rendered_ = false;
-
-  // Sync with object selector for visual indicator
-  object_selector_.SetStaticEditorObjectId(object_id);
-
-  // Fetch draw routine info for this object
-  if (object_parser_) {
-    static_editor_draw_info_ = object_parser_->GetObjectDrawInfo(object_id);
-  }
-
-  // Render the object preview using ObjectDrawer
-  auto* rooms = object_selector_.get_rooms();
-  if (rom_ && rom_->is_loaded() && rooms && current_room_id_ >= 0 &&
-      current_room_id_ < static_cast<int>(rooms->size())) {
-    auto& room = (*rooms)[current_room_id_];
-
-    // Ensure room graphics are loaded
-    if (!room.IsLoaded()) {
-      room.LoadRoomGraphics(room.blockset());
-    }
-
-    // Clear preview buffer and initialize bitmap
-    static_preview_buffer_.ClearBuffer();
-    static_preview_buffer_.EnsureBitmapInitialized();
-
-    // Create a preview object at top-left of canvas (tile 2,2 = pixel 16,16)
-    // to fit within the 128x128 preview area with some margin
-    zelda3::RoomObject preview_obj(object_id, 2, 2, 0x12, 0);
-    preview_obj.SetRom(rom_);
-    preview_obj.EnsureTilesLoaded();
-
-    if (preview_obj.tiles().empty()) {
-      return;  // No tiles to draw
-    }
-
-    // Get room graphics data
-    const uint8_t* gfx_data = room.get_gfx_buffer().data();
-
-    // Apply palette to bitmap
-    auto& bitmap = static_preview_buffer_.bitmap();
-    gfx::PaletteGroup palette_group;
-    auto* game_data = object_selector_.game_data();
-    if (game_data && !game_data->palette_groups.dungeon_main.empty()) {
-      // Use the entire dungeon_main palette group
-      palette_group = game_data->palette_groups.dungeon_main;
-
-      std::vector<SDL_Color> colors(256);
-      size_t color_index = 0;
-      for (size_t pal_idx = 0;
-           pal_idx < palette_group.size() && color_index < 256; ++pal_idx) {
-        const auto& pal = palette_group[pal_idx];
-        for (size_t i = 0; i < pal.size() && color_index < 256; ++i) {
-          ImVec4 rgb = pal[i].rgb();
-          colors[color_index++] = {static_cast<Uint8>(rgb.x),
-                                   static_cast<Uint8>(rgb.y),
-                                   static_cast<Uint8>(rgb.z), 255};
-        }
-      }
-      colors[255] = {0, 0, 0, 0};  // Transparent
-      bitmap.SetPalette(colors);
-      if (bitmap.surface()) {
-        SDL_SetColorKey(bitmap.surface(), SDL_TRUE, 255);
-        SDL_SetSurfaceBlendMode(bitmap.surface(), SDL_BLENDMODE_BLEND);
-      }
-    }
-
-    // Create drawer with room's graphics data
-    zelda3::ObjectDrawer drawer(rom_, current_room_id_, gfx_data);
-    drawer.InitializeDrawRoutines();
-
-    auto status = drawer.DrawObject(preview_obj, static_preview_buffer_,
-                                    static_preview_buffer_, palette_group);
-    if (status.ok()) {
-      // Sync bitmap data to SDL surface
-      if (bitmap.modified() && bitmap.surface() &&
-          bitmap.mutable_data().size() > 0) {
-        SDL_LockSurface(bitmap.surface());
-        size_t surface_size = bitmap.surface()->h * bitmap.surface()->pitch;
-        size_t data_size = bitmap.mutable_data().size();
-        if (surface_size >= data_size) {
-          memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(),
-                 data_size);
-        }
-        SDL_UnlockSurface(bitmap.surface());
-      }
-
-      // Create texture
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &bitmap);
-      gfx::Arena::Get().ProcessTextureQueue(renderer_);
-
-      static_preview_rendered_ = bitmap.texture() != nullptr;
-    }
-  }
-}
-
-void ObjectSelectorContent::CloseStaticObjectEditor() {
-  static_editor_open_ = false;
-  static_editor_object_id_ = -1;
-
-  // Clear the visual indicator in object selector
-  object_selector_.SetStaticEditorObjectId(-1);
-}
-
-void ObjectSelectorContent::DrawStaticObjectEditor() {
-  const auto& theme = AgentUI::GetTheme();
-
-  gui::StyleColorGuard header_colors({
-      {ImGuiCol_Header, ImVec4(0.15f, 0.25f, 0.35f, 1.0f)},
-      {ImGuiCol_HeaderHovered, ImVec4(0.20f, 0.30f, 0.40f, 1.0f)},
-  });
-
-  bool header_open = ImGui::CollapsingHeader(
-      absl::StrFormat(ICON_MD_CONSTRUCTION " Object 0x%02X - %s",
-                      static_editor_object_id_,
-                      static_editor_draw_info_.routine_name.c_str())
-          .c_str(),
-      ImGuiTreeNodeFlags_DefaultOpen);
-
-  if (header_open) {
-    gui::StyleVarGuard frame_pad_guard(ImGuiStyleVar_FramePadding,
-                                       ImVec2(8, 6));
-
-    // Two-column layout: Info | Preview
-    if (ImGui::BeginTable("StaticEditorLayout", 2,
-                          ImGuiTableFlags_BordersInnerV)) {
-      ImGui::TableSetupColumn("Info", ImGuiTableColumnFlags_WidthFixed, 200);
-      ImGui::TableSetupColumn("Preview", ImGuiTableColumnFlags_WidthStretch);
-
-      ImGui::TableNextRow();
-
-      // Left column: Object information
-      ImGui::TableNextColumn();
-      {
-        // Object ID with hex/decimal display
-        ImGui::TextColored(theme.text_info, ICON_MD_TAG " Object ID");
-        ImGui::SameLine();
-        ImGui::Text("0x%02X (%d)", static_editor_object_id_,
-                    static_editor_object_id_);
-
-        ImGui::Spacing();
-
-        // Draw routine info
-        ImGui::TextColored(theme.text_info, ICON_MD_BRUSH " Draw Routine");
-        ImGui::Indent();
-        ImGui::Text("ID: %d", static_editor_draw_info_.draw_routine_id);
-        ImGui::Text("Name: %s", static_editor_draw_info_.routine_name.c_str());
-        ImGui::Unindent();
-
-        ImGui::Spacing();
-
-        // Tile and size info
-        ImGui::TextColored(theme.text_info, ICON_MD_GRID_VIEW " Tile Info");
-        ImGui::Indent();
-        ImGui::Text("Tile Count: %d", static_editor_draw_info_.tile_count);
-        ImGui::Text("Orientation: %s",
-                    static_editor_draw_info_.is_horizontal ? "Horizontal"
-                    : static_editor_draw_info_.is_vertical ? "Vertical"
-                                                           : "Both");
-        if (static_editor_draw_info_.both_layers) {
-          ImGui::TextColored(theme.status_warning, ICON_MD_LAYERS " Both BG");
-        }
-        ImGui::Unindent();
-
-        ImGui::Spacing();
-        ImGui::Separator();
-        ImGui::Spacing();
-
-        // Action buttons (vertical layout)
-        if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy ID", ImVec2(-1, 0))) {
-          ImGui::SetClipboardText(
-              absl::StrFormat("0x%02X", static_editor_object_id_).c_str());
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Copy object ID to clipboard");
-        }
-
-        if (ImGui::Button(ICON_MD_CODE " Export ASM", ImVec2(-1, 0))) {
-          const std::string asm_preview = absl::StrFormat(
-              "; Object 0x%02X (%s)\n"
-              "; Auto-generated preview stub\n"
-              "org $000000\n"
-              "dw $%02X ; object id\n"
-              "; draw_routine=%d tile_count=%d\n",
-              static_editor_object_id_, static_editor_draw_info_.routine_name,
-              static_editor_object_id_,
-              static_editor_draw_info_.draw_routine_id,
-              static_editor_draw_info_.tile_count);
-          ImGui::SetClipboardText(asm_preview.c_str());
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Copy ASM preview stub to clipboard");
-        }
-
-        if (ImGui::Button(ICON_MD_GRID_ON " Edit Tiles", ImVec2(-1, 0))) {
-          if (tile_editor_callback_) {
-            tile_editor_callback_(
-                static_cast<int16_t>(static_editor_object_id_));
-          }
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Open tile editor to rearrange 8x8 tiles");
-        }
-
-        ImGui::Spacing();
-
-        // Close button at bottom
-        if (gui::DangerButton(ICON_MD_CLOSE " Close", ImVec2(-1, 0))) {
-          CloseStaticObjectEditor();
-        }
-      }
-
-      // Right column: Preview canvas
-      ImGui::TableNextColumn();
-      {
-        ImGui::TextColored(theme.text_secondary_gray, "Preview:");
-
-        gui::PreviewPanelOpts preview_opts;
-        preview_opts.canvas_size = ImVec2(128, 128);
-        preview_opts.render_popups = false;
-        preview_opts.grid_step = 0.0f;
-        preview_opts.ensure_texture = true;
-
-        gui::CanvasFrameOptions frame_opts;
-        frame_opts.canvas_size = preview_opts.canvas_size;
-        frame_opts.draw_context_menu = false;
-        frame_opts.draw_grid = preview_opts.grid_step > 0.0f;
-        if (preview_opts.grid_step > 0.0f) {
-          frame_opts.grid_step = preview_opts.grid_step;
-        }
-        frame_opts.draw_overlay = true;
-        frame_opts.render_popups = preview_opts.render_popups;
-
-        auto rt = gui::BeginCanvas(static_preview_canvas_, frame_opts);
-
-        if (static_preview_rendered_) {
-          auto& bitmap = static_preview_buffer_.bitmap();
-          gui::RenderPreviewPanel(rt, bitmap, preview_opts);
-        } else {
-          gui::RenderPreviewPanel(rt, static_preview_buffer_.bitmap(),
-                                  preview_opts);
-          static_preview_canvas_.AddTextAt(
-              ImVec2(24, 56), "No preview available",
-              ImGui::GetColorU32(theme.text_secondary_gray));
-        }
-        gui::EndCanvas(static_preview_canvas_, rt, frame_opts);
-
-        // Usage hint
-        ImGui::Spacing();
-        ImGui::TextColored(theme.text_secondary_gray, ICON_MD_INFO
-                           " Double-click objects in browser\n"
-                           "to view their draw routine info.");
-      }
-
-      ImGui::EndTable();
     }
   }
 }

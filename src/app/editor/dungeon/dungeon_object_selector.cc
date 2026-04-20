@@ -190,9 +190,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                        selected_object_id_,
                        zelda3::GetObjectName(selected_object_id_).c_str());
   } else {
-    ImGui::TextColored(theme.text_secondary_gray,
-                       "Tip: click once to queue placement, double-click to "
-                       "inspect the draw routine.");
+    ImGui::TextColored(
+        theme.text_secondary_gray,
+        "Tip: click once to queue placement in the room canvas.");
   }
 
   // Search + category filter
@@ -268,9 +268,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         bool is_selected = (selected_object_id_ == obj_id);
         ImVec2 button_size(item_size, item_size);
 
-        if (ImGui::Selectable("", is_selected,
-                              ImGuiSelectableFlags_AllowDoubleClick,
-                              button_size)) {
+        if (ImGui::Selectable("", is_selected, 0, button_size)) {
           selected_object_id_ = obj_id;
 
           // Create and update preview object
@@ -288,13 +286,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           // Notify callbacks
           if (object_selected_callback_) {
             object_selected_callback_(preview_object_);
-          }
-
-          // Handle double-click to open static object editor
-          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            if (object_double_click_callback_) {
-              object_double_click_callback_(obj_id);
-            }
           }
         }
 
@@ -332,15 +323,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                              symbol.c_str());
         }
 
-        // Draw border with special highlight for static editor object
-        bool is_static_editor_obj = (obj_id == static_editor_object_id_);
+        // Draw selection border
         ImU32 border_color;
         float border_thickness;
 
-        if (is_static_editor_obj) {
-          border_color = IM_COL32(0, 200, 255, 255);
-          border_thickness = 3.0f;
-        } else if (is_selected) {
+        if (is_selected) {
           border_color = ImGui::GetColorU32(theme.dungeon_selection_primary);
           border_thickness = 3.0f;
         } else {
@@ -352,14 +339,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
             button_pos,
             ImVec2(button_pos.x + item_size, button_pos.y + item_size),
             border_color, 0.0f, 0, border_thickness);
-
-        // Static editor indicator icon
-        if (is_static_editor_obj) {
-          ImVec2 icon_pos(button_pos.x + item_size - 14, button_pos.y + 2);
-          draw_list->AddCircleFilled(ImVec2(icon_pos.x + 6, icon_pos.y + 6), 6,
-                                     IM_COL32(0, 200, 255, 200));
-          draw_list->AddText(icon_pos, IM_COL32(255, 255, 255, 255), "i");
-        }
 
         // Get object name for display
         // Truncate name for display
@@ -449,8 +428,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
             ImGui::Separator();
             ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
                                "Click to select for placement");
-            ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
-                               "Double-click to view details");
             ImGui::EndTooltip();
           }
         }
@@ -551,15 +528,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                               (preview_object_.size_ & 0x1F) == subtype);
           ImVec2 button_size(item_size, item_size);
 
-          if (ImGui::Selectable("", is_selected,
-                                ImGuiSelectableFlags_AllowDoubleClick,
-                                button_size)) {
+          if (ImGui::Selectable("", is_selected, 0, button_size)) {
             SelectObject(obj_id, subtype);
-
-            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-              if (object_double_click_callback_)
-                object_double_click_callback_(obj_id);
-            }
           }
 
           // Draw Preview
@@ -596,11 +566,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           }
 
           // Border
-          bool is_static_editor_obj = (obj_id == static_editor_object_id_ &&
-                                       static_editor_object_id_ != -1);
-          // Static editor doesn't track subtype currently, so highlighting all subtypes of 0x31 is correct
-          // if we are editing 0x31 generic. But maybe we only edit specific subtype?
-          // Static editor usually edits the code/logic common to ID.
           ImU32 border_color =
               is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
                           : ImGui::GetColorU32(theme.panel_bg_darker);

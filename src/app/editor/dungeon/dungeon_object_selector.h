@@ -31,7 +31,7 @@ class ObjectTileEditorPanel;
  */
 class DungeonObjectSelector {
  public:
- explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
+  explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
 
   // Unified context setter (preferred)
   void SetContext(EditorContext ctx) {
@@ -69,10 +69,6 @@ class DungeonObjectSelector {
     object_selected_callback_ = callback;
   }
 
-  void SetObjectDoubleClickCallback(std::function<void(int)> callback) {
-    object_double_click_callback_ = callback;
-  }
-
   // Get current preview object for placement
   const zelda3::RoomObject& GetPreviewObject() const { return preview_object_; }
   bool IsObjectLoaded() const { return object_loaded_; }
@@ -91,12 +87,6 @@ class DungeonObjectSelector {
 
   // Invalidate preview and layout caches (e.g., after new custom object added)
   void InvalidatePreviewCache();
-
-  // Static editor indicator (highlights which object is being viewed in detail)
-  void SetStaticEditorObjectId(int obj_id) {
-    static_editor_object_id_ = obj_id;
-  }
-  int GetStaticEditorObjectId() const { return static_editor_object_id_; }
 
  private:
   bool MatchesObjectFilter(int obj_id, int filter_type);
@@ -147,11 +137,9 @@ class DungeonObjectSelector {
 
   // Callback for object selection
   std::function<void(const zelda3::RoomObject&)> object_selected_callback_;
-  std::function<void(int)> object_double_click_callback_;
 
   // Object selection state
   int selected_object_id_ = -1;
-  int static_editor_object_id_ = -1;  // Object currently open in static editor
 
   // UI state for object browser filter
   int object_type_filter_ = 0;
