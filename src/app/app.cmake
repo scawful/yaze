@@ -29,7 +29,13 @@ set(YAZE_APP_EXECUTABLE_SRC
 )
 
 if(EMSCRIPTEN)
-  list(APPEND YAZE_APP_EXECUTABLE_SRC web/debug/yaze_debug_inspector.cc)
+  # TODO(0.7.2): web/debug/yaze_debug_inspector.cc still references the
+  # pre-reorg EditorManager surface (card_registry, PanelManager,
+  # right_panel_manager). It needs a sweep to the new names
+  # (right_drawer_manager, etc.) or to be deleted if the inspector is no
+  # longer in active use. Left out of the WASM source list for now so the
+  # WASM build can succeed; tracked separately.
+  # list(APPEND YAZE_APP_EXECUTABLE_SRC web/debug/yaze_debug_inspector.cc)
 endif()
 
 if (YAZE_PLATFORM_MACOS)
