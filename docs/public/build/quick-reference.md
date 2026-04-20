@@ -127,19 +127,17 @@ haven't changed, making repeated installs much faster.
 
 | Build Type | Default Directory |
 |------------|-------------------|
-| Native (desktop/CLI) | `build/` |
-| Native (AI presets) | `build_ai/` |
-| WASM | `build-wasm/` |
+| Any preset | `build/presets/<preset>/` |
 
 macOS and Windows presets use multi-config generators, so binaries live under
-`build_ai/bin/Debug` or `build_ai/bin/Release` (AI presets) and `build/bin/...`
-(non-AI presets). Linux uses single-config builds in `build/bin` or
-`build_ai/bin` depending on preset.
+`build/presets/<preset>/bin/Debug` or `build/presets/<preset>/bin/Release`.
+Linux and WASM single-config presets place binaries directly under
+`build/presets/<preset>/bin/`.
 
 If you need per-user or per-agent isolation, create a local
 `CMakeUserPresets.json` that points `binaryDir` to a custom path outside the
-repo. Avoid creating additional `build_*` folders beyond `build/` and
-`build_ai/` to keep the checkout small.
+repo. Avoid creating ad hoc in-repo `build_*` folders; keep builds under the
+default per-preset tree or move them fully out of the checkout.
 
 Example:
 ```bash
