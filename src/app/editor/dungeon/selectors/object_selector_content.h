@@ -118,7 +118,6 @@ class ObjectSelectorContent : public WindowContent {
   // Drawing methods
   void DrawObjectSelector();
   void DrawInteractionSummary();
-  void DrawRoomValidationBar();
 
   // ==========================================================================
   // Member Variables
