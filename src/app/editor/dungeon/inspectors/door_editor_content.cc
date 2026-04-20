@@ -120,15 +120,51 @@ void DoorEditorContent::Draw(bool* p_open) {
       zelda3::DoorType::DungeonSwapMarker,
   }};
 
+  if (ResolveCanvasViewer() &&
+      canvas_viewer_->object_interaction().HasEntitySelection()) {
+    const auto selected_entity =
+        canvas_viewer_->object_interaction().GetSelectedEntity();
+    if (selected_entity.type == EntityType::Door && rooms_ &&
+        current_room_id_ >= 0 && current_room_id_ < 296) {
+      const auto& room = (*rooms_)[current_room_id_];
+      const auto& doors = room.GetDoors();
+      if (selected_entity.index < doors.size()) {
+        const auto& door = doors[selected_entity.index];
+        const auto [tile_x, tile_y] = door.GetTileCoords();
+        const auto [pixel_x, pixel_y] = door.GetPixelCoords();
+        selected_door_type_ = door.type;
+
+        gui::SectionHeader(ICON_MD_SELECT_ALL, "Selected Door",
+                           theme.text_info);
+        ImGui::TextColored(
+            theme.text_primary, "%s",
+            std::string(zelda3::GetDoorTypeName(door.type)).c_str());
+        ImGui::TextDisabled(
+            "Direction: %s  Position: 0x%02X",
+            std::string(zelda3::GetDoorDirectionName(door.direction)).c_str(),
+            door.position);
+        ImGui::TextDisabled("Tile: (%d, %d)  Pixel: (%d, %d)", tile_x, tile_y,
+                            pixel_x, pixel_y);
+        if (ImGui::Button(ICON_MD_PLACE " Use Selected Door Style",
+                          ImVec2(-1, 0))) {
+          door_placement_mode_ = true;
+          canvas_viewer_->object_interaction().SetDoorPlacementMode(
+              true, selected_door_type_);
+        }
+        ImGui::Spacing();
+      }
+    }
+  }
+
   gui::SectionHeader(ICON_MD_DOOR_FRONT, "Door Styles", theme.text_info);
   ImGui::TextColored(theme.text_secondary_gray,
                      "Select a door style, then click a wall in the room "
                      "canvas to place it.");
 
   if (door_placement_mode_) {
-    ImGui::TextColored(theme.status_warning, ICON_MD_PLACE " Active: %s",
-                       std::string(zelda3::GetDoorTypeName(selected_door_type_))
-                           .c_str());
+    ImGui::TextColored(
+        theme.status_warning, ICON_MD_PLACE " Active: %s",
+        std::string(zelda3::GetDoorTypeName(selected_door_type_)).c_str());
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
       CancelPlacement();
@@ -139,13 +175,12 @@ void DoorEditorContent::Draw(bool* p_open) {
   constexpr float kDoorCardSpacing = 6.0f;
   constexpr float kMinDoorCardWidth = 92.0f;
   const float panel_width = ImGui::GetContentRegionAvail().x;
-  const int items_per_row = std::max(
-      2, static_cast<int>((panel_width + kDoorCardSpacing) /
-                          (kMinDoorCardWidth + kDoorCardSpacing)));
-  const float card_width =
-      std::max(kMinDoorCardWidth,
-               (panel_width - (items_per_row - 1) * kDoorCardSpacing) /
-                   items_per_row);
+  const int items_per_row =
+      std::max(2, static_cast<int>((panel_width + kDoorCardSpacing) /
+                                   (kMinDoorCardWidth + kDoorCardSpacing)));
+  const float card_width = std::max(
+      kMinDoorCardWidth,
+      (panel_width - (items_per_row - 1) * kDoorCardSpacing) / items_per_row);
 
   ImGui::BeginChild("##DoorTypeGrid", ImVec2(0, 150), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
@@ -174,9 +209,8 @@ void DoorEditorContent::Draw(bool* p_open) {
                 button_color.z + 0.2f, 1.0f)},
     });
 
-    const std::string label =
-        absl::StrFormat("%02X\n%s", type_val,
-                        ShortDoorTypeLabel(door_type).c_str());
+    const std::string label = absl::StrFormat(
+        "%02X\n%s", type_val, ShortDoorTypeLabel(door_type).c_str());
     if (ImGui::Button(label.c_str(), ImVec2(card_width, kDoorCardHeight))) {
       selected_door_type_ = door_type;
       door_placement_mode_ = true;

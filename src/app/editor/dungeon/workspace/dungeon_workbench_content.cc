@@ -1358,8 +1358,8 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
     switch (sel.type) {
       case EntityType::Door: {
-        entity_panel_id = "dungeon.entrance_properties";
-        entity_action_label = ICON_MD_TUNE " Entrance Panel";
+        entity_panel_id = "dungeon.door_editor";
+        entity_action_label = ICON_MD_DOOR_FRONT " Door Editor";
         const auto& doors = room.GetDoors();
         if (sel.index < doors.size()) {
           const auto& door = doors[sel.index];

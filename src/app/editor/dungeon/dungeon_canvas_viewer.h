@@ -229,6 +229,9 @@ class DungeonCanvasViewer {
   void SetShowRoomGraphicsCallback(std::function<void()> callback) {
     show_room_graphics_callback_ = std::move(callback);
   }
+  void SetShowDoorEditorCallback(std::function<void()> callback) {
+    show_door_editor_callback_ = std::move(callback);
+  }
   void SetShowDungeonSettingsCallback(std::function<void()> callback) {
     show_dungeon_settings_callback_ = std::move(callback);
   }
@@ -515,6 +518,7 @@ class DungeonCanvasViewer {
   std::function<void()> show_room_matrix_callback_;
   std::function<void()> show_entrance_list_callback_;
   std::function<void()> show_room_graphics_callback_;
+  std::function<void()> show_door_editor_callback_;
   std::function<void()> show_dungeon_settings_callback_;
   std::function<void(int)> save_room_callback_;
   std::function<void(int, const zelda3::RoomObject&)> edit_graphics_callback_;

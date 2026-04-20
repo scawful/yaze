@@ -852,6 +852,12 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
             show_room_graphics_callback_();
         }));
     open_menu.subitems.push_back(
+        gui::CanvasMenuItem("Door Editor", ICON_MD_DOOR_FRONT, [this]() {
+          if (show_door_editor_callback_) {
+            show_door_editor_callback_();
+          }
+        }));
+    open_menu.subitems.push_back(
         gui::CanvasMenuItem("Dungeon Settings", ICON_MD_SETTINGS, [this]() {
           if (show_dungeon_settings_callback_)
             show_dungeon_settings_callback_();
