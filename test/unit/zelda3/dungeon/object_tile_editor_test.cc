@@ -77,6 +77,42 @@ TEST(ObjectTileLayoutTest, FromTracesKnownTraces) {
   EXPECT_EQ(c11->tile_info.id_, 17);
 }
 
+TEST(ObjectTileLayoutTest, FromTracesDuplicateCellKeepsLastVisibleTile) {
+  std::vector<ObjectDrawer::TileTrace> traces;
+
+  ObjectDrawer::TileTrace first;
+  first.object_id = 0x12;
+  first.x_tile = 10;
+  first.y_tile = 10;
+  first.tile_id = 0x11;
+  first.flags = 0;
+  traces.push_back(first);
+
+  ObjectDrawer::TileTrace overwrite = first;
+  overwrite.tile_id = 0x22;
+  overwrite.flags = static_cast<uint8_t>(3 << 3);
+  traces.push_back(overwrite);
+
+  ObjectDrawer::TileTrace second_cell = first;
+  second_cell.x_tile = 11;
+  second_cell.tile_id = 0x33;
+  traces.push_back(second_cell);
+
+  auto layout = ObjectTileLayout::FromTraces(traces);
+
+  ASSERT_EQ(layout.cells.size(), 2u);
+  const auto* overwritten = layout.FindCell(0, 0);
+  ASSERT_NE(overwritten, nullptr);
+  EXPECT_EQ(overwritten->tile_info.id_, 0x22);
+  EXPECT_EQ(overwritten->tile_info.palette_, 3);
+  EXPECT_EQ(overwritten->write_index, 1);
+
+  const auto* neighbor = layout.FindCell(1, 0);
+  ASSERT_NE(neighbor, nullptr);
+  EXPECT_EQ(neighbor->tile_info.id_, 0x33);
+  EXPECT_EQ(neighbor->write_index, 2);
+}
+
 TEST(ObjectTileLayoutTest, FindCell) {
   ObjectTileLayout layout;
   ObjectTileLayout::Cell cell;
@@ -152,6 +188,33 @@ TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
   uint8_t high = rom.ReadByte(0x1001).value();
   uint16_t word = static_cast<uint16_t>(low | (high << 8));
 
+  EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
+}
+
+TEST(ObjectTileEditorTest, StandardObjectWriteBackUsesCellWriteIndex) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  ObjectTileLayout layout;
+  layout.tile_data_address = 0x1000;
+  layout.is_custom = false;
+
+  ObjectTileLayout::Cell cell;
+  cell.tile_info = gfx::TileInfo(0x234, 4, false, true, false);
+  cell.original_word = 0;
+  cell.write_index = 1;
+  cell.modified = true;
+  layout.cells.push_back(cell);
+
+  ASSERT_TRUE(editor.WriteBack(layout).ok());
+
+  EXPECT_EQ(rom.ReadByte(0x1000).value(), 0x00);
+  EXPECT_EQ(rom.ReadByte(0x1001).value(), 0x00);
+
+  uint8_t low = rom.ReadByte(0x1002).value();
+  uint8_t high = rom.ReadByte(0x1003).value();
+  uint16_t word = static_cast<uint16_t>(low | (high << 8));
   EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
 }
 

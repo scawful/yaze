@@ -29,10 +29,12 @@ struct ObjectTileLayout {
   int origin_tile_y = 0;
 
   struct Cell {
-    int rel_x = 0;           // 0-based tile X within bounding box
-    int rel_y = 0;           // 0-based tile Y within bounding box
-    gfx::TileInfo tile_info; // Decomposed SNES tilemap word
+    int rel_x = 0;            // 0-based tile X within bounding box
+    int rel_y = 0;            // 0-based tile Y within bounding box
+    gfx::TileInfo tile_info;  // Decomposed SNES tilemap word
     uint16_t original_word = 0;
+    // Original traced tile-data word index used for ROM write-back.
+    int write_index = -1;
     bool modified = false;
   };
 
@@ -48,8 +50,7 @@ struct ObjectTileLayout {
       const std::vector<ObjectDrawer::TileTrace>& traces);
 
   // Create an empty layout for new custom object creation
-  static ObjectTileLayout CreateEmpty(int width, int height,
-                                      int16_t object_id,
+  static ObjectTileLayout CreateEmpty(int width, int height, int16_t object_id,
                                       const std::string& filename);
 
   Cell* FindCell(int rel_x, int rel_y);
@@ -78,19 +79,19 @@ class ObjectTileEditor {
 
   // Capture: run object draw in trace_only mode, build editable layout
   absl::StatusOr<ObjectTileLayout> CaptureObjectLayout(
-      int16_t object_id, const Room& room,
-      const gfx::PaletteGroup& palette);
+      int16_t object_id, const Room& room, const gfx::PaletteGroup& palette);
 
   // Render: draw layout to preview bitmap using room's gfx buffer
-  absl::Status RenderLayoutToBitmap(
-      const ObjectTileLayout& layout, gfx::Bitmap& bitmap,
-      const uint8_t* room_gfx_buffer,
-      const gfx::PaletteGroup& palette);
+  absl::Status RenderLayoutToBitmap(const ObjectTileLayout& layout,
+                                    gfx::Bitmap& bitmap,
+                                    const uint8_t* room_gfx_buffer,
+                                    const gfx::PaletteGroup& palette);
 
   // Build tile8 atlas from room graphics buffer.
-  absl::Status BuildTile8Atlas(
-      gfx::Bitmap& atlas, const uint8_t* room_gfx_buffer,
-      const gfx::PaletteGroup& palette, int display_palette = 2);
+  absl::Status BuildTile8Atlas(gfx::Bitmap& atlas,
+                               const uint8_t* room_gfx_buffer,
+                               const gfx::PaletteGroup& palette,
+                               int display_palette = 2);
 
   // Write-back: standard objects patch ROM, custom objects write .bin
   absl::Status WriteBack(const ObjectTileLayout& layout);

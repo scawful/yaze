@@ -2,8 +2,9 @@
 
 #include <algorithm>
 #include <cstring>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <unordered_map>
 
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
@@ -22,7 +23,9 @@ namespace zelda3 {
 ObjectTileLayout ObjectTileLayout::FromTraces(
     const std::vector<ObjectDrawer::TileTrace>& traces) {
   ObjectTileLayout layout;
-  if (traces.empty()) return layout;
+  if (traces.empty()) {
+    return layout;
+  }
 
   layout.object_id = static_cast<int16_t>(traces[0].object_id);
 
@@ -43,8 +46,26 @@ ObjectTileLayout ObjectTileLayout::FromTraces(
   layout.bounds_width = max_x - min_x + 1;
   layout.bounds_height = max_y - min_y + 1;
 
-  layout.cells.reserve(traces.size());
-  for (const auto& t : traces) {
+  std::unordered_map<uint32_t, size_t> last_trace_by_cell;
+  last_trace_by_cell.reserve(traces.size());
+  for (size_t i = 0; i < traces.size(); ++i) {
+    const auto& t = traces[i];
+    const uint32_t cell_key =
+        (static_cast<uint32_t>(static_cast<uint16_t>(t.x_tile)) << 16) |
+        static_cast<uint16_t>(t.y_tile);
+    last_trace_by_cell[cell_key] = i;
+  }
+
+  std::vector<size_t> surviving_trace_indices;
+  surviving_trace_indices.reserve(last_trace_by_cell.size());
+  for (const auto& [_, trace_index] : last_trace_by_cell) {
+    surviving_trace_indices.push_back(trace_index);
+  }
+  std::sort(surviving_trace_indices.begin(), surviving_trace_indices.end());
+
+  layout.cells.reserve(surviving_trace_indices.size());
+  for (size_t trace_index : surviving_trace_indices) {
+    const auto& t = traces[trace_index];
     Cell cell;
     cell.rel_x = t.x_tile - min_x;
     cell.rel_y = t.y_tile - min_y;
@@ -54,8 +75,10 @@ ObjectTileLayout ObjectTileLayout::FromTraces(
     bool v_mirror = (t.flags & 0x2) != 0;
     bool priority = (t.flags & 0x4) != 0;
     uint8_t palette = (t.flags >> 3) & 0x7;
-    cell.tile_info = gfx::TileInfo(t.tile_id, palette, v_mirror, h_mirror, priority);
+    cell.tile_info =
+        gfx::TileInfo(t.tile_id, palette, v_mirror, h_mirror, priority);
     cell.original_word = gfx::TileInfoToWord(cell.tile_info);
+    cell.write_index = static_cast<int>(trace_index);
     cell.modified = false;
 
     layout.cells.push_back(cell);
@@ -65,8 +88,8 @@ ObjectTileLayout ObjectTileLayout::FromTraces(
 }
 
 ObjectTileLayout ObjectTileLayout::CreateEmpty(int width, int height,
-                                                int16_t object_id,
-                                                const std::string& filename) {
+                                               int16_t object_id,
+                                               const std::string& filename) {
   ObjectTileLayout layout;
   layout.object_id = object_id;
   layout.origin_tile_x = 0;
@@ -85,6 +108,7 @@ ObjectTileLayout ObjectTileLayout::CreateEmpty(int width, int height,
       cell.rel_y = y;
       cell.tile_info = gfx::TileInfo(0, 2, false, false, false);
       cell.original_word = gfx::TileInfoToWord(cell.tile_info);
+      cell.write_index = static_cast<int>(layout.cells.size());
       cell.modified = true;
       layout.cells.push_back(cell);
     }
@@ -95,22 +119,25 @@ ObjectTileLayout ObjectTileLayout::CreateEmpty(int width, int height,
 
 ObjectTileLayout::Cell* ObjectTileLayout::FindCell(int rel_x, int rel_y) {
   for (auto& cell : cells) {
-    if (cell.rel_x == rel_x && cell.rel_y == rel_y) return &cell;
+    if (cell.rel_x == rel_x && cell.rel_y == rel_y)
+      return &cell;
   }
   return nullptr;
 }
 
 const ObjectTileLayout::Cell* ObjectTileLayout::FindCell(int rel_x,
-                                                          int rel_y) const {
+                                                         int rel_y) const {
   for (const auto& cell : cells) {
-    if (cell.rel_x == rel_x && cell.rel_y == rel_y) return &cell;
+    if (cell.rel_x == rel_x && cell.rel_y == rel_y)
+      return &cell;
   }
   return nullptr;
 }
 
 bool ObjectTileLayout::HasModifications() const {
   for (const auto& cell : cells) {
-    if (cell.modified) return true;
+    if (cell.modified)
+      return true;
   }
   return false;
 }
@@ -131,8 +158,7 @@ void ObjectTileLayout::RevertAll() {
 ObjectTileEditor::ObjectTileEditor(Rom* rom) : rom_(rom) {}
 
 absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
-    int16_t object_id, const Room& room,
-    const gfx::PaletteGroup& palette) {
+    int16_t object_id, const Room& room, const gfx::PaletteGroup& palette) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -188,8 +214,7 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
 
 absl::Status ObjectTileEditor::RenderLayoutToBitmap(
     const ObjectTileLayout& layout, gfx::Bitmap& bitmap,
-    const uint8_t* room_gfx_buffer,
-    const gfx::PaletteGroup& palette) {
+    const uint8_t* room_gfx_buffer, const gfx::PaletteGroup& palette) {
   if (!room_gfx_buffer) {
     return absl::FailedPreconditionError("No room graphics buffer");
   }
@@ -223,15 +248,15 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
   return absl::OkStatus();
 }
 
-absl::Status ObjectTileEditor::BuildTile8Atlas(
-    gfx::Bitmap& atlas, const uint8_t* room_gfx_buffer,
-    const gfx::PaletteGroup& palette, int display_palette) {
+absl::Status ObjectTileEditor::BuildTile8Atlas(gfx::Bitmap& atlas,
+                                               const uint8_t* room_gfx_buffer,
+                                               const gfx::PaletteGroup& palette,
+                                               int display_palette) {
   if (!room_gfx_buffer) {
     return absl::FailedPreconditionError("No room graphics buffer");
   }
 
-  std::vector<uint8_t> pixel_data(
-      kAtlasWidthPx * kAtlasHeightPx, 0);
+  std::vector<uint8_t> pixel_data(kAtlasWidthPx * kAtlasHeightPx, 0);
   atlas.Create(kAtlasWidthPx, kAtlasHeightPx, 8, pixel_data);
 
   if (palette.size() > static_cast<size_t>(display_palette)) {
@@ -249,8 +274,8 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(
     int py = row * 8;
 
     gfx::TileInfo info(static_cast<uint16_t>(tile_id),
-                        static_cast<uint8_t>(display_palette),
-                        false, false, false);
+                       static_cast<uint8_t>(display_palette), false, false,
+                       false);
     drawer.DrawTileToBitmap(atlas, info, px, py, room_gfx_buffer);
   }
 
@@ -282,17 +307,15 @@ absl::Status ObjectTileEditor::WriteBack(const ObjectTileLayout& layout) {
     int prev_buffer_pos = 0;
     for (auto& [row_y, row_cells] : rows) {
       // Sort cells by rel_x
-      std::sort(row_cells.begin(), row_cells.end(),
-                [](const auto* a, const auto* b) {
-                  return a->rel_x < b->rel_x;
-                });
+      std::sort(
+          row_cells.begin(), row_cells.end(),
+          [](const auto* a, const auto* b) { return a->rel_x < b->rel_x; });
 
       int count = static_cast<int>(row_cells.size());
       int buffer_pos_for_row = row_y * kBufferStride + row_cells[0]->rel_x * 2;
-      int jump_offset =
-          (row_y == rows.rbegin()->first)
-              ? 0
-              : kBufferStride;  // Jump to next row
+      int jump_offset = (row_y == rows.rbegin()->first)
+                            ? 0
+                            : kBufferStride;  // Jump to next row
 
       // Header: low 5 bits = count, high byte = jump_offset
       uint16_t header = (count & 0x1F) | ((jump_offset & 0xFF) << 8);
@@ -337,9 +360,12 @@ absl::Status ObjectTileEditor::WriteBack(const ObjectTileLayout& layout) {
 
   for (size_t i = 0; i < layout.cells.size(); ++i) {
     const auto& cell = layout.cells[i];
-    if (!cell.modified) continue;
+    if (!cell.modified)
+      continue;
 
-    int addr = layout.tile_data_address + static_cast<int>(i) * 2;
+    const int write_index =
+        cell.write_index >= 0 ? cell.write_index : static_cast<int>(i);
+    int addr = layout.tile_data_address + write_index * 2;
     uint16_t word = gfx::TileInfoToWord(cell.tile_info);
 
     // Write 2 bytes (little-endian SNES tilemap word)
@@ -353,14 +379,16 @@ absl::Status ObjectTileEditor::WriteBack(const ObjectTileLayout& layout) {
 }
 
 int ObjectTileEditor::CountObjectsSharingTileData(int16_t object_id) const {
-  if (!rom_ || !rom_->is_loaded()) return 0;
+  if (!rom_ || !rom_->is_loaded())
+    return 0;
 
   // Create temporary object to get its tile_data_ptr_
   RoomObject test_obj(object_id, 0, 0, 0, 0);
   test_obj.SetRom(rom_);
   test_obj.EnsureTilesLoaded();
   int target_ptr = test_obj.tile_data_ptr_;
-  if (target_ptr < 0) return 0;
+  if (target_ptr < 0)
+    return 0;
 
   // Scan type 1 objects (0x00-0xFF) for shared pointers
   int count = 0;
