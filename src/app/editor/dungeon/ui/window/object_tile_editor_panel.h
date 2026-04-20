@@ -20,6 +20,8 @@
 namespace yaze {
 namespace editor {
 
+struct ObjectTileEditorPanelTestAccess;
+
 /**
  * @brief Panel for editing the tile8 composition of dungeon objects
  *
@@ -74,6 +76,7 @@ class ObjectTileEditorPanel : public WindowContent {
   void ApplyChanges(bool confirm_shared = true);
 
   // State
+  friend struct ObjectTileEditorPanelTestAccess;
   std::unique_ptr<zelda3::ObjectTileEditor> tile_editor_;
   zelda3::ObjectTileLayout current_layout_;
   int selected_cell_index_ = -1;
