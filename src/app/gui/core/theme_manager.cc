@@ -31,6 +31,119 @@ Color RGBA(int r, int g, int b, int a = 255) {
   return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 }
 
+Theme BuildClassicYazeTheme() {
+  Theme classic_theme;
+  classic_theme.name = "Classic YAZE";
+  classic_theme.description =
+      "Original YAZE theme (direct ColorsYaze() function)";
+  classic_theme.author = "YAZE Team";
+
+  classic_theme.primary = RGBA(92, 115, 92);
+  classic_theme.secondary = RGBA(71, 92, 71);
+  classic_theme.accent = RGBA(89, 119, 89);
+  classic_theme.background = RGBA(8, 8, 8);
+
+  classic_theme.text_primary = RGBA(230, 230, 230);
+  classic_theme.text_disabled = RGBA(153, 153, 153);
+  classic_theme.window_bg = RGBA(8, 8, 8, 217);
+  classic_theme.child_bg = RGBA(0, 0, 0, 0);
+  classic_theme.popup_bg = RGBA(28, 28, 36, 235);
+
+  classic_theme.button = RGBA(71, 92, 71);
+  classic_theme.button_hovered = RGBA(125, 146, 125);
+  classic_theme.button_active = RGBA(92, 115, 92);
+  classic_theme.header = RGBA(46, 66, 46);
+  classic_theme.header_hovered = RGBA(92, 115, 92);
+  classic_theme.header_active = RGBA(71, 92, 71);
+  classic_theme.menu_bar_bg = RGBA(46, 66, 46);
+  classic_theme.tab = RGBA(46, 66, 46);
+  classic_theme.tab_hovered = RGBA(71, 92, 71);
+  classic_theme.tab_active = RGBA(89, 119, 89);
+  classic_theme.tab_unfocused = RGBA(37, 52, 37);
+  classic_theme.tab_unfocused_active = RGBA(62, 83, 62);
+  classic_theme.title_bg = RGBA(71, 92, 71);
+  classic_theme.title_bg_active = RGBA(46, 66, 46);
+  classic_theme.title_bg_collapsed = RGBA(71, 92, 71);
+
+  classic_theme.surface = classic_theme.background;
+  classic_theme.error = RGBA(220, 50, 50);
+  classic_theme.warning = RGBA(255, 200, 50);
+  classic_theme.success = classic_theme.primary;
+  classic_theme.info = RGBA(70, 170, 255);
+  classic_theme.text_secondary = RGBA(200, 200, 200);
+  classic_theme.modal_bg = classic_theme.popup_bg;
+
+  classic_theme.border = RGBA(92, 115, 92);
+  classic_theme.border_shadow = RGBA(0, 0, 0, 0);
+  classic_theme.separator = RGBA(128, 128, 128, 153);
+  classic_theme.separator_hovered = RGBA(153, 153, 178);
+  classic_theme.separator_active = RGBA(178, 178, 230);
+
+  classic_theme.scrollbar_bg = RGBA(92, 115, 92, 153);
+  classic_theme.scrollbar_grab = RGBA(92, 115, 92, 76);
+  classic_theme.scrollbar_grab_hovered = RGBA(92, 115, 92, 102);
+  classic_theme.scrollbar_grab_active = RGBA(92, 115, 92, 153);
+
+  classic_theme.frame_bg = RGBA(46, 66, 46, 140);
+  classic_theme.frame_bg_hovered = RGBA(71, 92, 71, 170);
+  classic_theme.frame_bg_active = RGBA(92, 115, 92, 200);
+  classic_theme.resize_grip = RGBA(92, 115, 92, 80);
+  classic_theme.resize_grip_hovered = RGBA(125, 146, 125, 180);
+  classic_theme.resize_grip_active = RGBA(125, 146, 125, 255);
+  classic_theme.check_mark = RGBA(125, 255, 125, 255);
+  classic_theme.slider_grab = RGBA(92, 115, 92, 255);
+  classic_theme.slider_grab_active = RGBA(125, 146, 125, 255);
+  classic_theme.input_text_cursor = RGBA(255, 255, 255, 255);
+  classic_theme.nav_cursor = RGBA(125, 146, 125, 255);
+  classic_theme.nav_windowing_highlight = RGBA(92, 115, 92, 200);
+  classic_theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 150);
+  classic_theme.modal_window_dim_bg = RGBA(0, 0, 0, 128);
+  classic_theme.text_selected_bg = RGBA(92, 115, 92, 128);
+  classic_theme.drag_drop_target = RGBA(125, 146, 125, 200);
+  classic_theme.table_header_bg = RGBA(46, 66, 46);
+  classic_theme.table_border_strong = RGBA(71, 92, 71);
+  classic_theme.table_border_light = RGBA(66, 66, 71);
+  classic_theme.table_row_bg = RGBA(0, 0, 0, 0);
+  classic_theme.table_row_bg_alt = RGBA(255, 255, 255, 18);
+  classic_theme.text_link = classic_theme.accent;
+  classic_theme.plot_lines = RGBA(255, 255, 255);
+  classic_theme.plot_lines_hovered = RGBA(230, 178, 0);
+  classic_theme.plot_histogram = RGBA(230, 178, 0);
+  classic_theme.plot_histogram_hovered = RGBA(255, 153, 0);
+  classic_theme.docking_preview = RGBA(92, 115, 92, 180);
+  classic_theme.docking_empty_bg = RGBA(46, 66, 46, 255);
+  classic_theme.tree_lines = classic_theme.separator;
+  classic_theme.tab_dimmed = RGBA(37, 52, 37);
+  classic_theme.tab_dimmed_selected = RGBA(62, 83, 62);
+  classic_theme.tab_dimmed_selected_overline = classic_theme.accent;
+  classic_theme.tab_selected_overline = classic_theme.accent;
+
+  classic_theme.text_highlight = RGBA(255, 255, 150);
+  classic_theme.link_hover = RGBA(140, 220, 255);
+  classic_theme.code_background = RGBA(40, 60, 40);
+  classic_theme.success_light = RGBA(140, 195, 140);
+  classic_theme.warning_light = RGBA(255, 220, 100);
+  classic_theme.error_light = RGBA(255, 150, 150);
+  classic_theme.info_light = RGBA(150, 200, 255);
+
+  classic_theme.active_selection = classic_theme.accent;
+  classic_theme.hover_highlight = RGBA(92, 115, 92, 100);
+  classic_theme.focus_border = classic_theme.primary;
+  classic_theme.disabled_overlay = RGBA(50, 50, 50, 128);
+  classic_theme.editor_background = RGBA(30, 45, 30);
+  classic_theme.editor_grid = RGBA(80, 100, 80, 100);
+  classic_theme.editor_cursor = RGBA(255, 255, 255);
+  classic_theme.editor_selection = RGBA(110, 145, 110, 100);
+
+  classic_theme.window_rounding = 0.0f;
+  classic_theme.frame_rounding = 5.0f;
+  classic_theme.scrollbar_rounding = 5.0f;
+  classic_theme.tab_rounding = 0.0f;
+  classic_theme.enable_glow_effects = false;
+
+  return classic_theme;
+}
+
 // Theme Implementation
 void Theme::ApplyToImGui() const {
   ImGuiStyle* style = &ImGui::GetStyle();
@@ -528,14 +641,20 @@ absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
 }
 
 std::vector<std::string> ThemeManager::GetAvailableThemes() const {
-  std::vector<std::string> theme_names;
+  std::vector<std::string> theme_names = {"Classic YAZE"};
   for (const auto& [name, theme] : themes_) {
-    theme_names.push_back(name);
+    if (name != "Classic YAZE") {
+      theme_names.push_back(name);
+    }
   }
   return theme_names;
 }
 
 const Theme* ThemeManager::GetTheme(const std::string& name) const {
+  if (name == "Classic YAZE") {
+    static const Theme classic_theme = BuildClassicYazeTheme();
+    return &classic_theme;
+  }
   auto it = themes_.find(name);
   return (it != themes_.end()) ? &it->second : nullptr;
 }
@@ -742,11 +861,7 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
         if (IsPreviewActive()) {
           EndPreview();
         }
-        auto status = LoadTheme(name);  // Use LoadTheme instead of ApplyTheme
-                                        // to ensure correct tracking
-        if (!status.ok()) {
-          LOG_ERROR("Theme Manager", "Failed to load theme %s", name.c_str());
-        }
+        ApplyTheme(name);
       }
 
       // Check hover state for live preview
@@ -2040,179 +2155,7 @@ void ThemeManager::ApplyClassicYazeTheme() {
   // Apply the original ColorsYaze() function directly
   ColorsYaze();
   current_theme_name_ = "Classic YAZE";
-
-  // Create a complete Classic theme object that matches what ColorsYaze() sets
-  Theme classic_theme;
-  classic_theme.name = "Classic YAZE";
-  classic_theme.description =
-      "Original YAZE theme (direct ColorsYaze() function)";
-  classic_theme.author = "YAZE Team";
-
-  // Extract ALL the colors that ColorsYaze() sets (copy from
-  // CreateFallbackYazeClassic)
-  classic_theme.primary = RGBA(92, 115, 92);   // allttpLightGreen
-  classic_theme.secondary = RGBA(71, 92, 71);  // alttpMidGreen
-  classic_theme.accent = RGBA(89, 119, 89);    // TabActive
-  classic_theme.background =
-      RGBA(8, 8, 8);  // Very dark gray for better grid visibility
-
-  classic_theme.text_primary = RGBA(230, 230, 230);   // 0.90f, 0.90f, 0.90f
-  classic_theme.text_disabled = RGBA(153, 153, 153);  // 0.60f, 0.60f, 0.60f
-  classic_theme.window_bg =
-      RGBA(8, 8, 8, 217);                     // Very dark gray with same alpha
-  classic_theme.child_bg = RGBA(0, 0, 0, 0);  // Transparent
-  classic_theme.popup_bg = RGBA(28, 28, 36, 235);  // 0.11f, 0.11f, 0.14f, 0.92f
-
-  classic_theme.button = RGBA(71, 92, 71);             // alttpMidGreen
-  classic_theme.button_hovered = RGBA(125, 146, 125);  // allttpLightestGreen
-  classic_theme.button_active = RGBA(92, 115, 92);     // allttpLightGreen
-
-  classic_theme.header = RGBA(46, 66, 46);           // alttpDarkGreen
-  classic_theme.header_hovered = RGBA(92, 115, 92);  // allttpLightGreen
-  classic_theme.header_active = RGBA(71, 92, 71);    // alttpMidGreen
-
-  classic_theme.menu_bar_bg = RGBA(46, 66, 46);    // alttpDarkGreen
-  classic_theme.tab = RGBA(46, 66, 46);            // alttpDarkGreen
-  classic_theme.tab_hovered = RGBA(71, 92, 71);    // alttpMidGreen
-  classic_theme.tab_active = RGBA(89, 119, 89);    // TabActive
-  classic_theme.tab_unfocused = RGBA(37, 52, 37);  // Darker version of tab
-  classic_theme.tab_unfocused_active =
-      RGBA(62, 83, 62);  // Darker version of tab_active
-
-  // Complete all remaining ImGui colors from original ColorsYaze() function
-  classic_theme.title_bg = RGBA(71, 92, 71);            // alttpMidGreen
-  classic_theme.title_bg_active = RGBA(46, 66, 46);     // alttpDarkGreen
-  classic_theme.title_bg_collapsed = RGBA(71, 92, 71);  // alttpMidGreen
-
-  // Initialize missing fields that were added to the struct
-  classic_theme.surface = classic_theme.background;
-  classic_theme.error = RGBA(220, 50, 50);
-  classic_theme.warning = RGBA(255, 200, 50);
-  classic_theme.success = classic_theme.primary;
-  classic_theme.info = RGBA(70, 170, 255);
-  classic_theme.text_secondary = RGBA(200, 200, 200);
-  classic_theme.modal_bg = classic_theme.popup_bg;
-
-  // Borders and separators
-  classic_theme.border = RGBA(92, 115, 92);        // allttpLightGreen
-  classic_theme.border_shadow = RGBA(0, 0, 0, 0);  // Transparent
-  classic_theme.separator =
-      RGBA(128, 128, 128, 153);  // 0.50f, 0.50f, 0.50f, 0.60f
-  classic_theme.separator_hovered = RGBA(153, 153, 178);  // 0.60f, 0.60f, 0.70f
-  classic_theme.separator_active = RGBA(178, 178, 230);   // 0.70f, 0.70f, 0.90f
-
-  // Scrollbars
-  classic_theme.scrollbar_bg =
-      RGBA(92, 115, 92, 153);  // 0.36f, 0.45f, 0.36f, 0.60f
-  classic_theme.scrollbar_grab =
-      RGBA(92, 115, 92, 76);  // 0.36f, 0.45f, 0.36f, 0.30f
-  classic_theme.scrollbar_grab_hovered =
-      RGBA(92, 115, 92, 102);  // 0.36f, 0.45f, 0.36f, 0.40f
-  classic_theme.scrollbar_grab_active =
-      RGBA(92, 115, 92, 153);  // 0.36f, 0.45f, 0.36f, 0.60f
-
-  // ENHANCED: Frame colors for inputs/widgets
-  classic_theme.frame_bg =
-      RGBA(46, 66, 46, 140);  // Darker green with some transparency
-  classic_theme.frame_bg_hovered =
-      RGBA(71, 92, 71, 170);  // Mid green when hovered
-  classic_theme.frame_bg_active =
-      RGBA(92, 115, 92, 200);  // Light green when active
-
-  // FIXED: Resize grips with better visibility
-  classic_theme.resize_grip = RGBA(92, 115, 92, 80);  // Theme green, subtle
-  classic_theme.resize_grip_hovered =
-      RGBA(125, 146, 125, 180);  // Brighter when hovered
-  classic_theme.resize_grip_active =
-      RGBA(125, 146, 125, 255);  // Solid when active
-
-  // FIXED: Checkmark - bright green for high visibility!
-  classic_theme.check_mark =
-      RGBA(125, 255, 125, 255);  // Bright green (clearly visible)
-
-  // FIXED: Sliders with theme colors
-  classic_theme.slider_grab = RGBA(92, 115, 92, 255);  // Theme green (solid)
-  classic_theme.slider_grab_active =
-      RGBA(125, 146, 125, 255);  // Lighter when grabbed
-
-  // FIXED: Input cursor - white for maximum visibility
-  classic_theme.input_text_cursor =
-      RGBA(255, 255, 255, 255);  // White cursor (always visible)
-
-  // FIXED: Navigation with theme colors
-  classic_theme.nav_cursor =
-      RGBA(125, 146, 125, 255);  // Light green navigation
-  classic_theme.nav_windowing_highlight =
-      RGBA(92, 115, 92, 200);  // Theme green highlight
-  classic_theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 150);  // Darker overlay
-
-  // FIXED: Modals with better dimming
-  classic_theme.modal_window_dim_bg = RGBA(0, 0, 0, 128);  // 50% alpha
-
-  // FIXED: Text selection - visible and theme-appropriate!
-  classic_theme.text_selected_bg =
-      RGBA(92, 115, 92, 128);  // Theme green with 50% alpha (visible!)
-
-  // FIXED: Drag/drop target with high visibility
-  classic_theme.drag_drop_target = RGBA(125, 146, 125, 200);  // Bright green
-  classic_theme.table_header_bg = RGBA(46, 66, 46);
-  classic_theme.table_border_strong = RGBA(71, 92, 71);
-  classic_theme.table_border_light = RGBA(66, 66, 71);
-  classic_theme.table_row_bg = RGBA(0, 0, 0, 0);
-  classic_theme.table_row_bg_alt = RGBA(255, 255, 255, 18);
-  classic_theme.text_link = classic_theme.accent;
-  classic_theme.plot_lines = RGBA(255, 255, 255);
-  classic_theme.plot_lines_hovered = RGBA(230, 178, 0);
-  classic_theme.plot_histogram = RGBA(230, 178, 0);
-  classic_theme.plot_histogram_hovered = RGBA(255, 153, 0);
-  classic_theme.docking_preview = RGBA(92, 115, 92, 180);
-  classic_theme.docking_empty_bg = RGBA(46, 66, 46, 255);
-  classic_theme.tree_lines =
-      classic_theme.separator;  // Use separator color for tree lines
-
-  // Tab dimmed colors (for unfocused tabs)
-  classic_theme.tab_dimmed = RGBA(37, 52, 37);  // Darker version of tab
-  classic_theme.tab_dimmed_selected =
-      RGBA(62, 83, 62);  // Darker version of tab_active
-  classic_theme.tab_dimmed_selected_overline = classic_theme.accent;
-  classic_theme.tab_selected_overline = classic_theme.accent;
-
-  // Enhanced semantic colors for better theming
-  classic_theme.text_highlight =
-      RGBA(255, 255, 150);  // Light yellow for highlights
-  classic_theme.link_hover =
-      RGBA(140, 220, 255);  // Brighter blue for link hover
-  classic_theme.code_background =
-      RGBA(40, 60, 40);  // Slightly darker green for code
-  classic_theme.success_light = RGBA(140, 195, 140);  // Light green
-  classic_theme.warning_light = RGBA(255, 220, 100);  // Light yellow
-  classic_theme.error_light = RGBA(255, 150, 150);    // Light red
-  classic_theme.info_light = RGBA(150, 200, 255);     // Light blue
-
-  // UI state colors
-  classic_theme.active_selection =
-      classic_theme.accent;  // Use accent color for active selection
-  classic_theme.hover_highlight =
-      RGBA(92, 115, 92, 100);                          // Semi-transparent green
-  classic_theme.focus_border = classic_theme.primary;  // Use primary for focus
-  classic_theme.disabled_overlay = RGBA(50, 50, 50, 128);  // Gray overlay
-
-  // Editor-specific colors
-  classic_theme.editor_background = RGBA(30, 45, 30);  // Dark green background
-  classic_theme.editor_grid = RGBA(80, 100, 80, 100);  // Subtle grid lines
-  classic_theme.editor_cursor = RGBA(255, 255, 255);   // White cursor
-  classic_theme.editor_selection =
-      RGBA(110, 145, 110, 100);  // Semi-transparent selection
-
-  // Apply original style settings
-  classic_theme.window_rounding = 0.0f;
-  classic_theme.frame_rounding = 5.0f;
-  classic_theme.scrollbar_rounding = 5.0f;
-  classic_theme.tab_rounding = 0.0f;
-  classic_theme.enable_glow_effects = false;
-
-  // DON'T add Classic theme to themes map - keep it as a special case
-  // themes_["Classic YAZE"] = classic_theme; // REMOVED to prevent off-by-one
+  Theme classic_theme = BuildClassicYazeTheme();
   current_theme_ = classic_theme;
 
   // Mirror the bookkeeping that LoadTheme and ApplyTheme(const Theme&) do:
@@ -2233,9 +2176,7 @@ void ThemeManager::StartPreview(const std::string& theme_name) {
   // Don't start a new preview if already previewing
   if (preview_active_) {
     // If previewing a different theme, just switch to the new one
-    if (themes_.contains(theme_name)) {
-      ApplyTheme(themes_.at(theme_name));
-    }
+    ApplyTheme(theme_name);
     return;
   }
 
@@ -2245,9 +2186,7 @@ void ThemeManager::StartPreview(const std::string& theme_name) {
   preview_active_ = true;
 
   // Apply the preview theme
-  if (themes_.contains(theme_name)) {
-    ApplyTheme(themes_.at(theme_name));
-  }
+  ApplyTheme(theme_name);
 }
 
 void ThemeManager::EndPreview() {
@@ -2401,8 +2340,11 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         if (!available_themes.empty()) {
           ImGui::Separator();
           for (const auto& theme_name : available_themes) {
+            if (theme_name == "Classic YAZE") {
+              continue;
+            }
             if (ImGui::MenuItem(theme_name.c_str())) {
-              (void)LoadTheme(theme_name);
+              ApplyTheme(theme_name);
             }
           }
         }

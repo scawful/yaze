@@ -919,7 +919,7 @@ void SettingsPanel::DrawAppearanceSettings() {
         if (theme_manager.IsPreviewActive()) {
           theme_manager.EndPreview();
         }
-        theme_manager.LoadTheme(theme_name);
+        theme_manager.ApplyTheme(theme_name);
       }
 
       // Hover triggers live preview
