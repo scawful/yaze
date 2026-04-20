@@ -2670,15 +2670,16 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
       std::min(room_count, static_cast<int>(rom_chests.size()));
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
+    const bool room_loaded = room != nullptr && room->IsLoaded();
     const auto* chests = room != nullptr ? &room->GetChests() : nullptr;
-    if (chests == nullptr || chests->empty()) {
+    if (!room_loaded) {
       for (const auto& [id, big] : rom_chests[room_id]) {
         uint16_t word = room_id | (big ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
         bytes.push_back((word >> 8) & 0xFF);
         bytes.push_back(id);
       }
-    } else {
+    } else if (chests != nullptr) {
       for (const auto& c : *chests) {
         uint16_t word = room_id | (c.size ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
@@ -2726,6 +2727,9 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
     const auto* pot_items = room != nullptr ? &room->GetPotItems() : nullptr;
     int ptr_off = table_addr + (room_id * 2);
     uint16_t item_ptr = (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
+    if (item_ptr == 0) {
+      continue;
+    }
     int item_addr = SnesToPc(0x010000 | item_ptr);
     if (item_addr < 0 || item_addr + 2 >= static_cast<int>(rom_data.size())) {
       continue;

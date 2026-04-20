@@ -1,5 +1,6 @@
 #include "dungeon_editor_system.h"
 
+#include <algorithm>
 #include <chrono>
 
 #include "absl/strings/str_cat.h"
@@ -9,8 +10,39 @@
 namespace yaze {
 namespace zelda3 {
 
+namespace {
+
+absl::Status SaveSingleRoomState(Rom* rom, Room& room) {
+  RETURN_IF_ERROR(room.SaveObjects());
+  RETURN_IF_ERROR(room.SaveSprites());
+  RETURN_IF_ERROR(room.SaveRoomHeader());
+
+  const int room_limit = room.id() + 1;
+  auto room_lookup_const = [&room](int room_id) -> const Room* {
+    return room_id == room.id() ? &room : nullptr;
+  };
+  auto room_lookup_mut = [&room](int room_id) -> Room* {
+    return room_id == room.id() ? &room : nullptr;
+  };
+
+  RETURN_IF_ERROR(SaveAllTorches(rom, room_limit, room_lookup_const));
+  RETURN_IF_ERROR(SaveAllCollision(rom, room_limit, room_lookup_mut));
+  RETURN_IF_ERROR(SaveAllChests(rom, room_limit, room_lookup_const));
+  RETURN_IF_ERROR(SaveAllPotItems(rom, room_limit, room_lookup_const));
+  return absl::OkStatus();
+}
+
+}  // namespace
+
 DungeonEditorSystem::DungeonEditorSystem(Rom* rom, GameData* game_data)
     : rom_(rom), game_data_(game_data) {}
+
+DungeonEditorSystem::~DungeonEditorSystem() {
+  if (object_editor_) {
+    object_editor_.reset();
+  }
+  external_room_ = nullptr;
+}
 
 absl::Status DungeonEditorSystem::Initialize() {
   if (rom_ == nullptr) {
@@ -35,12 +67,44 @@ absl::Status DungeonEditorSystem::SaveDungeon() {
   if (!rom_)
     return absl::InvalidArgumentError("ROM is null");
 
-  for (int i = 0; i < kNumberOfRooms; ++i) {
-    auto status = SaveRoomData(i);
-    if (!status.ok()) {
-      return status;
+  std::vector<int> room_ids;
+  room_ids.reserve(rooms_.size() + 1);
+  if (external_room_ != nullptr) {
+    room_ids.push_back(external_room_->id());
+  }
+  for (const auto& [room_id, room] : rooms_) {
+    (void)room;
+    if (std::find(room_ids.begin(), room_ids.end(), room_id) ==
+        room_ids.end()) {
+      room_ids.push_back(room_id);
     }
   }
+
+  for (int room_id : room_ids) {
+    Room* room = GetManagedRoom(room_id);
+    if (room == nullptr) {
+      RETURN_IF_ERROR(LoadRoomData(room_id));
+      room = GetManagedRoom(room_id);
+    }
+    if (room == nullptr || !room->IsLoaded()) {
+      continue;
+    }
+    RETURN_IF_ERROR(room->SaveObjects());
+    RETURN_IF_ERROR(room->SaveSprites());
+    RETURN_IF_ERROR(room->SaveRoomHeader());
+  }
+
+  auto room_lookup_const = [this](int room_id) -> const Room* {
+    return GetManagedRoom(room_id);
+  };
+  auto room_lookup_mut = [this](int room_id) -> Room* {
+    return GetManagedRoom(room_id);
+  };
+
+  RETURN_IF_ERROR(SaveAllTorches(rom_, kNumberOfRooms, room_lookup_const));
+  RETURN_IF_ERROR(SaveAllCollision(rom_, kNumberOfRooms, room_lookup_mut));
+  RETURN_IF_ERROR(SaveAllChests(rom_, kNumberOfRooms, room_lookup_const));
+  RETURN_IF_ERROR(SaveAllPotItems(rom_, kNumberOfRooms, room_lookup_const));
 
   editor_state_.is_dirty = false;
   editor_state_.last_save_time = std::chrono::steady_clock::now();
@@ -62,7 +126,10 @@ absl::Status DungeonEditorSystem::SetCurrentRoom(int room_id) {
   }
 
   editor_state_.current_room_id = room_id;
-  return absl::OkStatus();
+  if (external_room_ == nullptr) {
+    RETURN_IF_ERROR(LoadRoomData(room_id));
+  }
+  return BindObjectEditorToCurrentRoom();
 }
 
 int DungeonEditorSystem::GetCurrentRoom() const {
@@ -80,6 +147,8 @@ absl::StatusOr<Room> DungeonEditorSystem::GetRoom(int room_id) {
 std::shared_ptr<DungeonObjectEditor> DungeonEditorSystem::GetObjectEditor() {
   if (!object_editor_) {
     object_editor_ = std::make_shared<DungeonObjectEditor>(rom_);
+    (void)object_editor_->InitializeEditor();
+    (void)BindObjectEditorToCurrentRoom();
   }
   return object_editor_;
 }
@@ -141,28 +210,78 @@ void DungeonEditorSystem::SetROM(Rom* rom) {
   rom_ = rom;
   if (object_editor_) {
     object_editor_->SetROM(rom);
+    (void)BindObjectEditorToCurrentRoom();
   }
 }
 
 void DungeonEditorSystem::SetExternalRoom(Room* room) {
+  external_room_ = room;
   if (object_editor_) {
-    object_editor_->SetExternalRoom(room);
+    (void)BindObjectEditorToCurrentRoom();
   }
+}
+
+absl::Status DungeonEditorSystem::BindObjectEditorToCurrentRoom() {
+  if (!object_editor_) {
+    return absl::OkStatus();
+  }
+  if (external_room_ != nullptr) {
+    object_editor_->SetExternalRoom(external_room_);
+    return absl::OkStatus();
+  }
+
+  auto* room = GetManagedRoom(editor_state_.current_room_id);
+  if (room == nullptr) {
+    RETURN_IF_ERROR(LoadRoomData(editor_state_.current_room_id));
+    room = GetManagedRoom(editor_state_.current_room_id);
+  }
+  if (room == nullptr) {
+    return absl::NotFoundError("Current room is not available");
+  }
+  object_editor_->SetExternalRoom(room);
+  return absl::OkStatus();
+}
+
+Room* DungeonEditorSystem::GetManagedRoom(int room_id) {
+  if (external_room_ != nullptr && external_room_->id() == room_id) {
+    return external_room_;
+  }
+  auto it = rooms_.find(room_id);
+  if (it == rooms_.end()) {
+    return nullptr;
+  }
+  return &it->second;
+}
+
+absl::Status DungeonEditorSystem::SaveManagedRoom(Room& room) {
+  return SaveSingleRoomState(rom_, room);
 }
 
 absl::Status DungeonEditorSystem::InitializeObjectEditor() {
   if (!object_editor_) {
     object_editor_ = std::make_shared<DungeonObjectEditor>(rom_);
   }
-  return object_editor_->InitializeEditor();
+  RETURN_IF_ERROR(object_editor_->InitializeEditor());
+  return BindObjectEditorToCurrentRoom();
 }
 
 absl::Status DungeonEditorSystem::LoadRoomData(int room_id) {
   if (!rom_)
     return absl::InvalidArgumentError("ROM is null");
 
-  // Room loading is handled by the Room class itself
-  // This method exists for consistency with the API
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+
+  if (external_room_ != nullptr && external_room_->id() == room_id) {
+    *external_room_ = LoadRoomFromRom(rom_, room_id);
+    return BindObjectEditorToCurrentRoom();
+  }
+
+  rooms_[room_id] = LoadRoomFromRom(rom_, room_id);
+  if (editor_state_.current_room_id == room_id) {
+    RETURN_IF_ERROR(BindObjectEditorToCurrentRoom());
+  }
   return absl::OkStatus();
 }
 
@@ -170,15 +289,23 @@ absl::Status DungeonEditorSystem::SaveRoomData(int room_id) {
   if (!rom_)
     return absl::InvalidArgumentError("ROM is null");
 
-  // Check if this is the currently edited room in the ObjectEditor
-  if (object_editor_ && object_editor_->GetRoom().id() == room_id) {
-    Room* room = object_editor_->GetMutableRoom();
-    if (room) {
-      return room->SaveObjects();
-    }
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return absl::InvalidArgumentError("Invalid room ID");
   }
 
-  return absl::OkStatus();
+  Room* room = GetManagedRoom(room_id);
+  if (room == nullptr) {
+    RETURN_IF_ERROR(LoadRoomData(room_id));
+    room = GetManagedRoom(room_id);
+  }
+  if (room == nullptr) {
+    return absl::NotFoundError("Room is not available");
+  }
+  if (!room->IsLoaded()) {
+    return absl::OkStatus();
+  }
+
+  return SaveManagedRoom(*room);
 }
 
 std::unique_ptr<DungeonEditorSystem> CreateDungeonEditorSystem(

@@ -40,7 +40,7 @@ class DungeonEditorSystem {
   };
 
   explicit DungeonEditorSystem(Rom* rom, GameData* game_data = nullptr);
-  ~DungeonEditorSystem() = default;
+  ~DungeonEditorSystem();
 
   void SetGameData(GameData* game_data) { game_data_ = game_data; }
 
@@ -80,6 +80,9 @@ class DungeonEditorSystem {
   void SetExternalRoom(Room* room);
 
  private:
+  absl::Status BindObjectEditorToCurrentRoom();
+  Room* GetManagedRoom(int room_id);
+  absl::Status SaveManagedRoom(Room& room);
   absl::Status InitializeObjectEditor();
   absl::Status LoadRoomData(int room_id);
   absl::Status SaveRoomData(int room_id);
@@ -87,6 +90,7 @@ class DungeonEditorSystem {
   Rom* rom_;
   GameData* game_data_ = nullptr;
   std::shared_ptr<DungeonObjectEditor> object_editor_;
+  Room* external_room_ = nullptr;
 
   EditorState editor_state_;
 
