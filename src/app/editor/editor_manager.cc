@@ -53,7 +53,7 @@
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/default_editor_factories.h"
+#include "app/editor/system/session/default_editor_factories.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/shortcut_configurator.h"

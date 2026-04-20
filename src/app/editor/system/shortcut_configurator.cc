@@ -20,7 +20,7 @@
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session/user_settings.h"
-#include "app/editor/system/session_coordinator.h"
+#include "app/editor/system/session/session_coordinator.h"
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
