@@ -3,7 +3,7 @@
 // Tests the non-ImGui state logic: dedup suppression, cooldown window,
 // history trimming. Does NOT require ImGui context (no Draw() calls).
 
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 
 #include <thread>
 

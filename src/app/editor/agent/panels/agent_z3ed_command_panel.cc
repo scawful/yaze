@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "absl/strings/str_join.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"

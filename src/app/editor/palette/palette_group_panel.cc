@@ -10,7 +10,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "app/gfx/types/snes_palette.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"

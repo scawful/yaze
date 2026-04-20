@@ -11,7 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_manager.h"
 #include "app/editor/system/shortcut_manager.h"
-#include "app/editor/ui/popup_manager.h"
+#include "app/editor/shell/feedback/popup_manager.h"
 
 // Forward declaration in yaze::core namespace
 namespace yaze {
