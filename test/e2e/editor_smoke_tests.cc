@@ -9,7 +9,7 @@
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/system/workspace_window_manager.h"
-#include "app/editor/ui/ui_coordinator.h"
+#include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/gui/core/icons.h"
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "test_utils.h"

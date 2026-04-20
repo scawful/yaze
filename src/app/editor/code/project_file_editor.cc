@@ -7,7 +7,7 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "core/project.h"

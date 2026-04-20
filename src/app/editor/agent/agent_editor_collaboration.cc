@@ -12,7 +12,7 @@
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/agent/agent_collaboration_coordinator.h"
 #include "app/editor/agent/agent_editor.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/service/screenshot_utils.h"
 #include "cli/service/agent/conversational_agent_service.h"
 

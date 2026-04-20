@@ -16,7 +16,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
-#include "app/editor/ui/settings_panel.h"
+#include "app/editor/shell/windows/settings_panel.h"
 
 namespace yaze::editor {
 

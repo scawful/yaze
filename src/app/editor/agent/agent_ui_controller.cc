@@ -11,7 +11,7 @@
 #include "app/editor/system/workspace_window_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/session/user_settings.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "rom/rom.h"
 #include "util/log.h"
 

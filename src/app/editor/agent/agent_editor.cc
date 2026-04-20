@@ -26,7 +26,7 @@
 #include "app/editor/agent/panels/oracle_state_library_panel.h"
 #include "app/editor/agent/panels/sram_viewer_panel.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"

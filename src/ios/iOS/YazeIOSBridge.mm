@@ -7,7 +7,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
 #include "app/editor/editor_manager.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "core/hack_manifest.h"
 #include "core/oracle_progression.h"

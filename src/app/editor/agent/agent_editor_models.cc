@@ -15,7 +15,7 @@
 #include "app/editor/agent/agent_editor_internal.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/session/user_settings.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/ai_config_utils.h"
 #include "cli/service/ai/provider_ids.h"
