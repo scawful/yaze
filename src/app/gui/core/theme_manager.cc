@@ -1096,6 +1096,15 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
                  std::max(0.0f, color.green - amount),
                  std::max(0.0f, color.blue - amount), color.alpha};
   };
+  auto darken_with_floor = [](const Color& color, float amount,
+                              float floor = 0.03f) {
+    return Color{std::max(floor, color.red - amount),
+                 std::max(floor, color.green - amount),
+                 std::max(floor, color.blue - amount), color.alpha};
+  };
+  auto is_effectively_transparent = [](const Color& color) {
+    return color.alpha <= 0.01f;
+  };
 
   // Borders and separators
   if (is_unset(theme.border)) {
@@ -1230,17 +1239,54 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
     theme.modal_bg = theme.popup_bg;
   }
 
+  // Enhanced semantic colors
+  if (needs_semantic_default(theme.text_highlight)) {
+    theme.text_highlight = with_alpha(theme.info, 0.25f);
+  }
+  if (needs_semantic_default(theme.link_hover)) {
+    theme.link_hover = lighten(theme.text_link, 0.12f);
+  }
+  if (needs_semantic_default(theme.code_background)) {
+    theme.code_background = darken_with_floor(theme.surface, 0.08f);
+  }
+  if (needs_semantic_default(theme.success_light)) {
+    theme.success_light = lighten(theme.success, 0.15f);
+  }
+  if (needs_semantic_default(theme.warning_light)) {
+    theme.warning_light = lighten(theme.warning, 0.12f);
+  }
+  if (needs_semantic_default(theme.error_light)) {
+    theme.error_light = lighten(theme.error, 0.18f);
+  }
+  if (needs_semantic_default(theme.info_light)) {
+    theme.info_light = lighten(theme.info, 0.12f);
+  }
+
+  // UI state colors
+  if (needs_semantic_default(theme.active_selection)) {
+    theme.active_selection = with_alpha(theme.selection_primary, 0.35f);
+  }
+  if (needs_semantic_default(theme.hover_highlight)) {
+    theme.hover_highlight = with_alpha(theme.selection_secondary, 0.2f);
+  }
+  if (needs_semantic_default(theme.focus_border)) {
+    theme.focus_border = theme.primary;
+  }
+  if (needs_semantic_default(theme.disabled_overlay)) {
+    theme.disabled_overlay = with_alpha(theme.background, 0.5f);
+  }
+
   // Editor-specific defaults
-  if (is_unset(theme.editor_background)) {
+  if (needs_semantic_default(theme.editor_background)) {
     theme.editor_background = theme.background;
   }
-  if (is_unset(theme.editor_grid)) {
+  if (needs_semantic_default(theme.editor_grid)) {
     theme.editor_grid = with_alpha(theme.text_secondary, 0.2f);
   }
-  if (is_unset(theme.editor_cursor)) {
+  if (needs_semantic_default(theme.editor_cursor)) {
     theme.editor_cursor = theme.text_primary;
   }
-  if (is_unset(theme.editor_selection)) {
+  if (needs_semantic_default(theme.editor_selection)) {
     theme.editor_selection = with_alpha(theme.primary, 0.3f);
   }
 
@@ -1392,13 +1438,17 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
     theme.agent.command_text = theme.error;
   }
   if (needs_semantic_default(theme.agent.code_background)) {
-    theme.agent.code_background = darken(theme.surface, 0.1f);
+    theme.agent.code_background = darken_with_floor(theme.surface, 0.1f);
   }
   if (needs_semantic_default(theme.agent.panel_bg)) {
-    theme.agent.panel_bg = theme.child_bg;
+    theme.agent.panel_bg = is_effectively_transparent(theme.child_bg)
+                               ? with_alpha(theme.surface, 0.95f)
+                               : theme.child_bg;
   }
   if (needs_semantic_default(theme.agent.panel_bg_darker)) {
-    theme.agent.panel_bg_darker = with_alpha(theme.surface, 0.2f);
+    theme.agent.panel_bg_darker = darken_with_floor(
+        with_alpha(theme.agent.panel_bg, theme.agent.panel_bg.alpha), 0.06f,
+        0.02f);
   }
   if (needs_semantic_default(theme.agent.panel_border)) {
     theme.agent.panel_border = theme.border;
