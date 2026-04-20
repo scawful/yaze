@@ -1023,6 +1023,36 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
         theme.tab_dimmed_selected_overline = color;
       else if (key == "tab_selected_overline")
         theme.tab_selected_overline = color;
+      else if (key == "text_highlight")
+        theme.text_highlight = color;
+      else if (key == "link_hover")
+        theme.link_hover = color;
+      else if (key == "code_background")
+        theme.code_background = color;
+      else if (key == "success_light")
+        theme.success_light = color;
+      else if (key == "warning_light")
+        theme.warning_light = color;
+      else if (key == "error_light")
+        theme.error_light = color;
+      else if (key == "info_light")
+        theme.info_light = color;
+      else if (key == "active_selection")
+        theme.active_selection = color;
+      else if (key == "hover_highlight")
+        theme.hover_highlight = color;
+      else if (key == "focus_border")
+        theme.focus_border = color;
+      else if (key == "disabled_overlay")
+        theme.disabled_overlay = color;
+      else if (key == "editor_background")
+        theme.editor_background = color;
+      else if (key == "editor_grid")
+        theme.editor_grid = color;
+      else if (key == "editor_cursor")
+        theme.editor_cursor = color;
+      else if (key == "editor_selection")
+        theme.editor_selection = color;
       else if (key == "docking_preview")
         theme.docking_preview = color;
       else if (key == "docking_empty_bg")
