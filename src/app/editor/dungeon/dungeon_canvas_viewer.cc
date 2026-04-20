@@ -67,6 +67,15 @@ const char* GetObjectStreamLabel(int layer_value) {
   }
 }
 
+const char* GetBlocksetGroupName(uint8_t blockset) {
+  static const char* kGroupNames[] = {
+      "HC/Sewers", "Eastern", "Desert", "Hera",   "A-Tower", "PoD", "Swamp",
+      "Skull",     "Thieves", "Ice",    "Misery", "Turtle",  "GT",
+  };
+  constexpr size_t kCount = sizeof(kGroupNames) / sizeof(kGroupNames[0]);
+  return blockset < kCount ? kGroupNames[blockset] : "Custom";
+}
+
 }  // namespace
 
 // Use shared GetObjectName() from zelda3/dungeon/room_object.h
@@ -144,6 +153,95 @@ void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
   }
 
   collision_overlay_cache_.clear();
+}
+
+std::string DungeonCanvasViewer::BuildRoomMetadataSummary(
+    const zelda3::Room& room, int room_id) const {
+  return absl::StrFormat(
+      "Room 0x%03X [%s] | B:%02X P:%02X L:%02X S:%02X | Group:%s | Floor:%d "
+      "Effect:%d Tag1:%d Tag2:%d",
+      room_id, zelda3::GetRoomLabel(room_id).c_str(), room.blockset(),
+      room.palette(), room.layout_id(), room.spriteset(),
+      GetBlocksetGroupName(room.blockset()), room.floor1(), room.effect(),
+      room.tag1(), room.tag2());
+}
+
+std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
+                                                      int room_id) const {
+  std::string report = "Dungeon Draw Issue Report\n";
+  report += BuildRoomMetadataSummary(room, room_id);
+  report += absl::StrFormat(
+      "\nResolved palette group: 0x%02X\nInteraction mode: %s\nView: BG1=%s "
+      "BG2=%s Grid=%s Bounds=%s Sprites=%s Pots=%s Collision=%s Camera=%s",
+      room.ResolveDungeonPaletteId(),
+      object_interaction_.mode_manager().GetModeName(),
+      IsBG1Visible(room_id) ? "on" : "off",
+      IsBG2Visible(room_id) ? "on" : "off", show_grid_ ? "on" : "off",
+      show_object_bounds_ ? "on" : "off",
+      entity_visibility_.show_sprites ? "on" : "off",
+      entity_visibility_.show_pot_items ? "on" : "off",
+      show_custom_collision_overlay_ ? "on" : "off",
+      show_camera_quadrant_overlay_ ? "on" : "off");
+
+  const auto selected = object_interaction_.GetSelectedObjectIndices();
+  if (!selected.empty()) {
+    report += absl::StrFormat("\nSelected objects: %zu", selected.size());
+    if (selected.size() == 1) {
+      const auto& objects = room.GetTileObjects();
+      const size_t index = selected.front();
+      if (index < objects.size()) {
+        const auto& obj = objects[index];
+        report += absl::StrFormat(
+            "\nObject: id=0x%03X name=%s pos=(%d,%d) size=0x%02X stream=%s",
+            obj.id_, GetObjectName(obj.id_).c_str(), obj.x_, obj.y_, obj.size_,
+            GetObjectStreamLabel(obj.GetLayerValue()));
+      }
+    }
+  }
+
+  if (object_interaction_.HasEntitySelection()) {
+    const auto selected_entity = object_interaction_.GetSelectedEntity();
+    switch (selected_entity.type) {
+      case EntityType::Door: {
+        const auto& doors = room.GetDoors();
+        if (selected_entity.index < doors.size()) {
+          const auto& door = doors[selected_entity.index];
+          report += absl::StrFormat(
+              "\nSelected entity: door type=%s dir=%s pos=%d",
+              std::string(zelda3::GetDoorTypeName(door.type)).c_str(),
+              std::string(zelda3::GetDoorDirectionName(door.direction)).c_str(),
+              static_cast<int>(door.position));
+        }
+        break;
+      }
+      case EntityType::Sprite: {
+        const auto& sprites = room.GetSprites();
+        if (selected_entity.index < sprites.size()) {
+          const auto& sprite = sprites[selected_entity.index];
+          report += absl::StrFormat(
+              "\nSelected entity: sprite id=0x%02X name=%s pos=(%d,%d) "
+              "layer=%d",
+              sprite.id(), zelda3::ResolveSpriteName(sprite.id()), sprite.x(),
+              sprite.y(), sprite.layer());
+        }
+        break;
+      }
+      case EntityType::Item: {
+        const auto& items = room.GetPotItems();
+        if (selected_entity.index < items.size()) {
+          const auto& item = items[selected_entity.index];
+          report +=
+              absl::StrFormat("\nSelected entity: pot item=0x%02X pos=(%d,%d)",
+                              item.item, item.GetPixelX(), item.GetPixelY());
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  return report;
 }
 
 void DungeonCanvasViewer::Draw(int room_id) {
@@ -539,6 +637,26 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           "Save Room", ICON_MD_SAVE,
           [this, room_id]() { save_room_callback_(room_id); }, "Ctrl+Shift+S"));
     }
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Re-render Room", ICON_MD_REFRESH,
+        [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
+    room_menu.subitems.back().separator_after = true;
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Copy Draw Issue Report", ICON_MD_BUG_REPORT, [this, room_id]() {
+          if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+            return;
+          }
+          ImGui::SetClipboardText(
+              BuildDrawIssueReport((*rooms_)[room_id], room_id).c_str());
+        }));
+    room_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {
+          if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+            return;
+          }
+          ImGui::SetClipboardText(
+              BuildRoomMetadataSummary((*rooms_)[room_id], room_id).c_str());
+        }));
     room_menu.subitems.push_back(
         gui::CanvasMenuItem("Copy Room ID", ICON_MD_CONTENT_COPY, [room_id]() {
           ImGui::SetClipboardText(absl::StrFormat("0x%03X", room_id).c_str());
@@ -546,35 +664,38 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     room_menu.subitems.push_back(gui::CanvasMenuItem(
         "Copy Room Name", ICON_MD_CONTENT_COPY,
         [room_label]() { ImGui::SetClipboardText(room_label.c_str()); }));
-    room_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Re-render Room", ICON_MD_REFRESH,
-        [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
+    room_menu.subitems.back().separator_after = true;
 
-    room_menu.subitems.push_back(
-        gui::CanvasMenuItem("Open Room List", ICON_MD_LIST, [this]() {
+    gui::CanvasMenuItem open_menu;
+    open_menu.label = "Open";
+    open_menu.icon = ICON_MD_OPEN_IN_NEW;
+    open_menu.subitems.push_back(
+        gui::CanvasMenuItem("Room List", ICON_MD_LIST, [this]() {
           if (show_room_list_callback_)
             show_room_list_callback_();
         }));
-    room_menu.subitems.push_back(
-        gui::CanvasMenuItem("Open Room Matrix", ICON_MD_GRID_VIEW, [this]() {
+    open_menu.subitems.push_back(
+        gui::CanvasMenuItem("Room Matrix", ICON_MD_GRID_VIEW, [this]() {
           if (show_room_matrix_callback_)
             show_room_matrix_callback_();
         }));
-    room_menu.subitems.push_back(
-        gui::CanvasMenuItem("Open Entrance List", ICON_MD_DOOR_FRONT, [this]() {
+    open_menu.subitems.push_back(
+        gui::CanvasMenuItem("Entrance List", ICON_MD_DOOR_FRONT, [this]() {
           if (show_entrance_list_callback_)
             show_entrance_list_callback_();
         }));
-    room_menu.subitems.push_back(
-        gui::CanvasMenuItem("Open Room Graphics", ICON_MD_IMAGE, [this]() {
+    open_menu.subitems.push_back(
+        gui::CanvasMenuItem("Room Graphics", ICON_MD_IMAGE, [this]() {
           if (show_room_graphics_callback_)
             show_room_graphics_callback_();
         }));
-    room_menu.subitems.push_back(
+    open_menu.subitems.push_back(
         gui::CanvasMenuItem("Dungeon Settings", ICON_MD_SETTINGS, [this]() {
           if (show_dungeon_settings_callback_)
             show_dungeon_settings_callback_();
         }));
+    open_menu.separator_after = true;
+    room_menu.subitems.push_back(open_menu);
 
     // Room layout template export (available when room is loaded)
     room_menu.subitems.push_back(gui::CanvasMenuItem(
@@ -2243,13 +2364,13 @@ void DungeonCanvasViewer::DrawCompactLayerToggles(int room_id) {
               });
 
   ImGui::SameLine();
-  draw_toggle(
-      ICON_MD_FILTER_CENTER_FOCUS "##LayerToggleCollision",
-      show_custom_collision_overlay_,
-      as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
-      "Toggle custom collision overlay", [&]() {
-        show_custom_collision_overlay_ = !show_custom_collision_overlay_;
-      });
+  draw_toggle(ICON_MD_FILTER_CENTER_FOCUS "##LayerToggleCollision",
+              show_custom_collision_overlay_,
+              as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
+              "Toggle custom collision overlay", [&]() {
+                show_custom_collision_overlay_ =
+                    !show_custom_collision_overlay_;
+              });
 }
 
 void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& /*room*/,

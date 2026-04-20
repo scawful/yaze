@@ -29,6 +29,15 @@ constexpr float kCompactToolbarWidth = 1080.0f;
 constexpr float kUltraCompactToolbarWidth = 860.0f;
 constexpr float kTightCompareStackThreshold = 620.0f;
 
+const char* GetBlocksetGroupName(uint8_t blockset) {
+  static const char* kGroupNames[] = {
+      "HC/Sewers", "Eastern", "Desert", "Hera",   "A-Tower", "PoD", "Swamp",
+      "Skull",     "Thieves", "Ice",    "Misery", "Turtle",  "GT",
+  };
+  constexpr size_t kCount = sizeof(kGroupNames) / sizeof(kGroupNames[0]);
+  return blockset < kCount ? kGroupNames[blockset] : "Custom";
+}
+
 class ScopedWorkbenchToolbar {
  public:
   explicit ScopedWorkbenchToolbar(const char* label) {
@@ -145,6 +154,37 @@ std::string TruncateToolbarLabel(const char* text, float max_width) {
     }
   }
   return "...";
+}
+
+void DrawRoomMetadataSummary(DungeonCanvasViewer* viewer, int room_id,
+                             bool compact_toolbar, bool split_view_enabled) {
+  if (!viewer || compact_toolbar || room_id < 0 || room_id >= 0x128 ||
+      !viewer->rooms()) {
+    return;
+  }
+
+  const auto& room = (*viewer->rooms())[room_id];
+  char metadata[80];
+  std::snprintf(metadata, sizeof(metadata), "B:%02X  P:%02X  L:%02X  S:%02X",
+                room.blockset(), room.palette(), room.layout_id(),
+                room.spriteset());
+
+  const float min_width = split_view_enabled ? 148.0f : 190.0f;
+  const float avail = ImGui::GetContentRegionAvail().x;
+  if (avail < min_width) {
+    return;
+  }
+
+  ImGui::SameLine();
+  ImGui::TextDisabled("%s", metadata);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Blockset %02X (%s)\nPalette %02X\nLayout %02X\nSpriteset %02X\n"
+        "Floor %d  Effect %d  Tag1 %d  Tag2 %d",
+        room.blockset(), GetBlocksetGroupName(room.blockset()), room.palette(),
+        room.layout_id(), room.spriteset(), room.floor1(), room.effect(),
+        room.tag1(), room.tag2());
+  }
 }
 
 bool IconToggleButton(const char* id, const char* icon_on, const char* icon_off,
@@ -428,9 +468,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       const float title_width_cap =
           ultra_compact_toolbar
               ? 140.0f
-              : (compact_toolbar
-                     ? (*p.split_view_enabled ? 180.0f : 220.0f)
-                     : (*p.split_view_enabled ? 240.0f : 320.0f));
+              : (compact_toolbar ? (*p.split_view_enabled ? 180.0f : 220.0f)
+                                 : (*p.split_view_enabled ? 240.0f : 320.0f));
       const float title_width =
           std::clamp(ImGui::GetContentRegionAvail().x, 80.0f, title_width_cap);
       const std::string visible_title =
@@ -439,6 +478,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", title);
       }
+      DrawRoomMetadataSummary(p.primary_viewer, rid, compact_toolbar,
+                              *p.split_view_enabled);
 
       // Middle cluster: compare controls.
       ImGui::TableNextColumn();
