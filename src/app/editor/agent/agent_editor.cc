@@ -10,7 +10,7 @@
 // Centralized UI theme
 #include "app/gui/style/theme.h"
 
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/app/editor_layout.h"
 
 #include "absl/strings/str_format.h"

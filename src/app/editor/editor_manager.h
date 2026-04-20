@@ -38,7 +38,7 @@
 #include "app/editor/system/session/session_coordinator.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/window_host.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
 #include "app/editor/shell/coordinator/welcome_screen.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"

@@ -5,7 +5,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"

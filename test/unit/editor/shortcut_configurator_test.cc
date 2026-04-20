@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "app/editor/editor_manager.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/system/shortcut_manager.h"
 #include "app/gfx/backend/null_renderer.h"

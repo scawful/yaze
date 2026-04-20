@@ -5,7 +5,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"

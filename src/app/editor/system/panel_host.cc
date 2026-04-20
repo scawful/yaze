@@ -1,6 +1,6 @@
 #include "app/editor/system/panel_host.h"
 
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
 
 namespace yaze {

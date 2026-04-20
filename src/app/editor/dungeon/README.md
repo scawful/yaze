@@ -63,7 +63,7 @@ Located across role-based folders under `src/app/editor/dungeon/`:
 
 *   **`zelda3/dungeon/`**: The core logic library. The editor relies heavily on `zelda3::Room`, `zelda3::RoomObject`, and `zelda3::DungeonEditorSystem` for data structures and business logic.
 *   **`app/gfx/`**: Used for rendering backends (`IRenderer`), texture management (`Arena`), and palette handling (`SnesPalette`).
-*   **`app/editor/system/workspace_window_manager.h`**: The V2 editor relies on this system for layout and window management.
+*   **`app/editor/system/workspace/workspace_window_manager.h`**: The V2 editor relies on this system for layout and window management.
 
 ## Code Analysis & Areas for Improvement
 

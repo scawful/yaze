@@ -1,7 +1,7 @@
 #include "app/editor/overworld/overworld_toolbar.h"
 
 #include "app/editor/overworld/map_properties.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
