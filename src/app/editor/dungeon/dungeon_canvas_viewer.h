@@ -455,8 +455,11 @@ class DungeonCanvasViewer {
   void OpenIssueReportPopup(const std::string& title,
                             const std::string& summary,
                             const std::string& kind_label,
-                            const std::string& diagnostics);
+                            const std::string& diagnostics, int room_id,
+                            int default_category_index);
   std::string BuildIssueReportClipboardText() const;
+  absl::Status CaptureIssueReportScreenshot();
+  absl::Status AppendIssueReportToLog();
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
@@ -608,9 +611,20 @@ class DungeonCanvasViewer {
   std::string issue_report_popup_title_;
   std::string issue_report_popup_kind_;
   std::string issue_report_popup_diagnostics_;
+  std::string issue_report_popup_screenshot_path_;
+  std::string issue_report_popup_last_log_path_;
+  std::string issue_report_popup_status_message_;
   std::string issue_report_popup_id_ = "##DungeonIssueReportPopup";
+  int issue_report_popup_room_id_ = -1;
+  int issue_report_category_index_ = 0;
+  bool issue_report_popup_status_is_error_ = false;
   char issue_report_summary_[256]{};
   char issue_report_notes_[2048]{};
+  bool has_canvas_capture_region_ = false;
+  int canvas_capture_x_ = 0;
+  int canvas_capture_y_ = 0;
+  int canvas_capture_width_ = 0;
+  int canvas_capture_height_ = 0;
 };
 
 }  // namespace editor
