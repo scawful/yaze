@@ -137,18 +137,12 @@ void ObjectSelectorContent::Draw(bool* p_open) {
     }
   }
 
-  DrawRoomValidationBar();
-  DrawInteractionSummary();
-
   float available_height = ImGui::GetContentRegionAvail().y;
-  float browser_height = std::max(220.0f, available_height);
+  float browser_height = std::max(240.0f, available_height);
 
   gui::SectionHeader(ICON_MD_CATEGORY, "Object Selector", theme.text_info);
-  ImGui::TextColored(
-      theme.text_secondary_gray,
-      "Choose an object to queue placement in the room canvas. Use Object "
-      "Editor for selected room objects.");
-  ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
+  DrawInteractionSummary();
+  ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), false);
   DrawObjectSelector();
   ImGui::EndChild();
 }
@@ -186,46 +180,148 @@ void ObjectSelectorContent::DrawInteractionSummary() {
   const size_t selection_count =
       viewer ? viewer->object_interaction().GetSelectionCount() : 0;
 
-  gui::SectionHeader(ICON_MD_TOUCH_APP, "Interaction", theme.text_info);
+  if (ImGui::BeginTable(
+          "##ObjectSelectorStatus", 2,
+          ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX)) {
+    ImGui::TableSetupColumn("Mode", ImGuiTableColumnFlags_WidthStretch, 1.35f);
+    ImGui::TableSetupColumn("Room", ImGuiTableColumnFlags_WidthStretch, 1.0f);
+    ImGui::TableNextRow();
 
-  bool is_placing = has_preview_object_ && canvas_viewer_ &&
-                    canvas_viewer_->object_interaction().IsObjectLoaded();
-  if (!is_placing && has_preview_object_) {
-    has_preview_object_ = false;
-  }
+    ImGui::TableNextColumn();
+    ImGui::TextColored(theme.text_info, ICON_MD_TOUCH_APP " Mode");
 
-  if (is_placing) {
-    ImGui::TextColored(theme.status_warning,
-                       ICON_MD_ADD_CIRCLE " Placement ready: 0x%03X %s",
-                       preview_object_.id_,
-                       zelda3::GetObjectName(preview_object_.id_).c_str());
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
-      CancelPlacement();
+    bool is_placing = has_preview_object_ && canvas_viewer_ &&
+                      canvas_viewer_->object_interaction().IsObjectLoaded();
+    if (!is_placing && has_preview_object_) {
+      has_preview_object_ = false;
     }
-  } else if (selection_count == 1) {
-    ImGui::TextColored(theme.status_success,
-                       ICON_MD_CHECK_CIRCLE " 1 room object selected");
-    if (open_object_editor_callback_) {
+
+    if (is_placing) {
+      ImGui::TextColored(theme.status_warning,
+                         ICON_MD_ADD_CIRCLE " Placement ready: 0x%03X %s",
+                         preview_object_.id_,
+                         zelda3::GetObjectName(preview_object_.id_).c_str());
       ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Object Editor")) {
-        open_object_editor_callback_();
+      if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
+        CancelPlacement();
       }
+    } else if (selection_count == 1) {
+      ImGui::TextColored(theme.status_success,
+                         ICON_MD_CHECK_CIRCLE " 1 room object selected");
+      if (open_object_editor_callback_) {
+        ImGui::SameLine();
+        if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Object Editor")) {
+          open_object_editor_callback_();
+        }
+      }
+    } else if (selection_count > 1) {
+      ImGui::TextColored(theme.status_success,
+                         ICON_MD_SELECT_ALL " %zu room objects selected",
+                         selection_count);
+      if (open_object_editor_callback_) {
+        ImGui::SameLine();
+        if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Object Editor")) {
+          open_object_editor_callback_();
+        }
+      }
+    } else {
+      ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MOUSE
+                         " Browse objects below to queue "
+                         "placement in the room canvas.");
     }
-  } else if (selection_count > 1) {
-    ImGui::TextColored(theme.status_success,
-                       ICON_MD_SELECT_ALL " %zu room objects selected",
-                       selection_count);
-    if (open_object_editor_callback_) {
+
+    ImGui::TableNextColumn();
+    ImGui::TextColored(theme.text_info, ICON_MD_RULE " Room");
+
+    auto* rooms = object_selector_.get_rooms();
+    if (rooms && current_room_id_ >= 0 &&
+        current_room_id_ < zelda3::kNumberOfRooms) {
+      const auto& room = (*rooms)[current_room_id_];
+      size_t object_count = room.GetTileObjects().size();
+      size_t sprite_count = room.GetSprites().size();
+      size_t door_count = room.GetDoors().size();
+      int chest_count = 0;
+      for (const auto& obj : room.GetTileObjects()) {
+        if (obj.id_ >= 0xF9 && obj.id_ <= 0xFD) {
+          chest_count++;
+        }
+      }
+
+      const int kMaxObjects = static_cast<int>(zelda3::kMaxTileObjects);
+      const int kMaxSprites = static_cast<int>(zelda3::kMaxTotalSprites);
+      const int kMaxDoors = static_cast<int>(zelda3::kMaxDoors);
+      const int kMaxChests = static_cast<int>(zelda3::kMaxChests);
+
+      auto usage_color = [&](size_t count, int max_val) -> ImVec4 {
+        float ratio = static_cast<float>(count) / static_cast<float>(max_val);
+        if (ratio >= 1.0f) {
+          return theme.status_error;
+        }
+        if (ratio >= 0.75f) {
+          return theme.status_warning;
+        }
+        return theme.text_secondary_gray;
+      };
+
+      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 2));
+      ImGui::TextColored(usage_color(object_count, kMaxObjects),
+                         ICON_MD_WIDGETS " %zu/%d", object_count, kMaxObjects);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Objects: %zu of %d maximum", object_count,
+                          kMaxObjects);
+      }
       ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Object Editor")) {
-        open_object_editor_callback_();
+      ImGui::TextColored(usage_color(sprite_count, kMaxSprites),
+                         ICON_MD_PEST_CONTROL " %zu/%d", sprite_count,
+                         kMaxSprites);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Sprites: %zu of %d maximum", sprite_count,
+                          kMaxSprites);
       }
+      ImGui::SameLine();
+      ImGui::TextColored(usage_color(door_count, kMaxDoors),
+                         ICON_MD_DOOR_FRONT " %zu/%d", door_count, kMaxDoors);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Doors: %zu of %d maximum", door_count, kMaxDoors);
+      }
+      ImGui::SameLine();
+      ImGui::TextColored(usage_color(chest_count, kMaxChests),
+                         ICON_MD_INVENTORY_2 " %d/%d", chest_count, kMaxChests);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Chests: %d of %d maximum", chest_count, kMaxChests);
+      }
+      ImGui::PopStyleVar();
+
+      zelda3::DungeonValidator validator;
+      auto result = validator.ValidateRoom(room);
+      if (!result.errors.empty() || !result.warnings.empty()) {
+        ImGui::TextColored(
+            result.errors.empty() ? theme.status_warning : theme.status_error,
+            "%s %zu issues",
+            result.errors.empty() ? ICON_MD_WARNING : ICON_MD_ERROR,
+            result.errors.size() + result.warnings.size());
+        if (ImGui::IsItemHovered()) {
+          ImGui::BeginTooltip();
+          for (const auto& err : result.errors) {
+            ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s",
+                               err.c_str());
+          }
+          for (const auto& warn : result.warnings) {
+            ImGui::TextColored(theme.status_warning, ICON_MD_WARNING " %s",
+                               warn.c_str());
+          }
+          ImGui::EndTooltip();
+        }
+      } else {
+        ImGui::TextColored(theme.status_success,
+                           ICON_MD_CHECK_CIRCLE " Room limits healthy");
+      }
+    } else {
+      ImGui::TextColored(theme.text_secondary_gray,
+                         ICON_MD_INFO " Room data unavailable");
     }
-  } else {
-    ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MOUSE
-                       " Browse objects below to place them. Click room "
-                       "objects to edit them in the Object Editor.");
+
+    ImGui::EndTable();
   }
 
   if (!last_placement_error_.empty()) {
@@ -235,97 +331,6 @@ void ObjectSelectorContent::DrawInteractionSummary() {
                          last_placement_error_.c_str());
     } else {
       last_placement_error_.clear();
-    }
-  }
-}
-
-// =============================================================================
-// Room Validation Bar
-// =============================================================================
-
-void ObjectSelectorContent::DrawRoomValidationBar() {
-  auto* rooms = object_selector_.get_rooms();
-  if (!rooms || current_room_id_ < 0 ||
-      current_room_id_ >= zelda3::kNumberOfRooms) {
-    return;
-  }
-
-  const auto& theme = AgentUI::GetTheme();
-  const auto& room = (*rooms)[current_room_id_];
-
-  // Gather counts
-  size_t object_count = room.GetTileObjects().size();
-  size_t sprite_count = room.GetSprites().size();
-  size_t door_count = room.GetDoors().size();
-
-  // Count chests (objects in 0xF9-0xFD range)
-  int chest_count = 0;
-  for (const auto& obj : room.GetTileObjects()) {
-    if (obj.id_ >= 0xF9 && obj.id_ <= 0xFD) {
-      chest_count++;
-    }
-  }
-
-  // Canonical limits shared across handlers/validator.
-  const int kMaxObjects = static_cast<int>(zelda3::kMaxTileObjects);
-  const int kMaxSprites = static_cast<int>(zelda3::kMaxTotalSprites);
-  const int kMaxDoors = static_cast<int>(zelda3::kMaxDoors);
-  const int kMaxChests = static_cast<int>(zelda3::kMaxChests);
-
-  // Helper to pick color based on usage ratio
-  auto usage_color = [&](size_t count, int max_val) -> ImVec4 {
-    float ratio = static_cast<float>(count) / static_cast<float>(max_val);
-    if (ratio >= 1.0f) {
-      return theme.status_error;
-    }
-    if (ratio >= 0.75f) {
-      return theme.status_warning;
-    }
-    return theme.text_secondary_gray;
-  };
-
-  // Compact inline counters
-  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(8, 2));
-
-  ImGui::TextColored(usage_color(object_count, kMaxObjects),
-                     ICON_MD_WIDGETS " %zu/%d", object_count, kMaxObjects);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Objects: %zu of %d maximum", object_count, kMaxObjects);
-  }
-
-  ImGui::SameLine();
-  ImGui::TextColored(usage_color(sprite_count, kMaxSprites),
-                     ICON_MD_PEST_CONTROL " %zu/%d", sprite_count, kMaxSprites);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Sprites: %zu of %d maximum", sprite_count, kMaxSprites);
-  }
-
-  ImGui::SameLine();
-  ImGui::TextColored(usage_color(door_count, kMaxDoors),
-                     ICON_MD_DOOR_FRONT " %zu/%d", door_count, kMaxDoors);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Doors: %zu of %d maximum", door_count, kMaxDoors);
-  }
-
-  ImGui::SameLine();
-  ImGui::TextColored(usage_color(chest_count, kMaxChests),
-                     ICON_MD_INVENTORY_2 " %d/%d", chest_count, kMaxChests);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Chests: %d of %d maximum", chest_count, kMaxChests);
-  }
-
-  ImGui::PopStyleVar();
-
-  // Run full validation and show warnings/errors inline
-  zelda3::DungeonValidator validator;
-  auto result = validator.ValidateRoom(room);
-  if (!result.errors.empty() || !result.warnings.empty()) {
-    for (const auto& err : result.errors) {
-      ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s", err.c_str());
-    }
-    for (const auto& warn : result.warnings) {
-      ImGui::TextColored(theme.status_warning, ICON_MD_WARNING " %s",
-                         warn.c_str());
     }
   }
 
