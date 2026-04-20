@@ -7,9 +7,9 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/system/command_palette.h"
-#include "app/editor/ui/new_project_dialog.h"
-#include "app/editor/ui/popup_manager.h"
 #include "app/editor/shell/coordinator/welcome_screen.h"
+#include "app/editor/shell/feedback/popup_manager.h"
+#include "app/editor/ui/new_project_dialog.h"
 #include "app/gui/core/icons.h"
 #include "app/startup_flags.h"
 
