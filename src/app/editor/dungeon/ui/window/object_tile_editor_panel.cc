@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -113,6 +114,19 @@ void ObjectTileEditorPanel::SelectFirstCellIfAvailable() {
 
   selected_cell_index_ = 0;
   SyncSourceSelectionFromSelectedCell();
+}
+
+int ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
+  if (current_layout_.is_custom || current_layout_.tile_data_address < 0 ||
+      current_object_id_ < 0 || rom_ == nullptr || !rom_->is_loaded()) {
+    return 0;
+  }
+
+  return tile_editor_->CountObjectsSharingTileData(current_object_id_);
+}
+
+bool ObjectTileEditorPanel::HasSharedTileDataConflict() const {
+  return GetSharedTileDataUsageCount() > 1;
 }
 
 bool ObjectTileEditorPanel::HasRenderableRoomContext() const {
@@ -485,15 +499,11 @@ void ObjectTileEditorPanel::DrawTileProperties() {
 
 void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
   // Check for shared tile data and ask for confirmation
-  if (confirm_shared && current_layout_.tile_data_address >= 0 &&
-      !current_layout_.is_custom) {
-    int shared_count =
-        tile_editor_->CountObjectsSharingTileData(current_object_id_);
-    if (shared_count > 1) {
-      shared_object_count_ = shared_count;
-      show_shared_confirm_ = true;
-      return;
-    }
+  const int shared_count = GetSharedTileDataUsageCount();
+  if (confirm_shared && shared_count > 1) {
+    shared_object_count_ = shared_count;
+    show_shared_confirm_ = true;
+    return;
   }
 
   auto status = tile_editor_->WriteBack(current_layout_);
@@ -542,14 +552,18 @@ void ObjectTileEditorPanel::DrawActionBar() {
   }
 
   // Shared tile data warning
-  if (current_layout_.tile_data_address >= 0 && !current_layout_.is_custom) {
-    int shared_count =
-        tile_editor_->CountObjectsSharingTileData(current_object_id_);
-    if (shared_count > 1) {
-      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f),
-                         ICON_MD_WARNING " Shared by %d objects", shared_count);
-      ImGui::SameLine();
+  const int shared_count = GetSharedTileDataUsageCount();
+  if (shared_count > 1) {
+    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
+                       ICON_MD_WARNING " Shared by %d objects", shared_count);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetItemTooltip(
+          "This object reuses tile data with %d objects.\nApplying changes "
+          "will update every object in that shared data group.",
+          shared_count);
     }
+    ImGui::SameLine();
   }
 
   // Apply button
