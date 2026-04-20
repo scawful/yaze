@@ -78,13 +78,21 @@ for reliable ROM hacking. ZScream is the stability benchmark.
   workbench and standalone panel mode via deferred safe-mode switching
 - ✅ Dungeon status bar now shows workflow badge (`Workbench`) in integrated mode
 - ✅ Standalone room windows now expose one-click `Workbench` return affordance
+- ✅ Focused persistence coverage now spans room headers, torches, custom
+  collision, chests, and pot items; `DungeonEditorSystem` now saves full
+  managed-room state without later-room global-save clobbering
+- ✅ Object tile editor preview/atlas state now refreshes on palette changes and
+  failed re-open attempts clear stale layout state; focused panel/backend tests
+  cover the reset path and palette-sensitive rendering
 - 🟡 **Object tile count fallback**: parser uses object-specific counts for known
   IDs but still falls back to 8 for uncataloged cases; continue ROM-trace audits
   for rare objects.
-- 🟡 Object preview rendering (stubbed)
+- 🟡 Object selector/browser preview quality still needs a broader parity pass
 - 🟡 12+ unknown dungeon object types need verification
 - 🟡 Visual discrepancies in specific objects (vertical rails, doors)
 - 🟡 Room object type identification incomplete
+- 🟡 Pits and blocks still save through legacy ROM-region preservation rather
+  than first-class editable room-state encoders
 - 🟡 ASM export (deferred)
 
 **Overworld Editor** (Beta)

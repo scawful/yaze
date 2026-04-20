@@ -1,10 +1,10 @@
-# Feature & Test Coverage Report (v0.7.1)
+# Feature & Test Coverage Report (v0.7.2 development)
 
 This report summarizes feature status and persistence behavior across the
 desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
 to current automated test coverage. Status levels follow the desktop rubric:
 Stable = reliable core workflows, Beta = usable but incomplete, WIP = core operations missing.
-As of the v0.7.1 release line, app data is consolidated under `~/.yaze` on
+As of the post-`v0.7.1` development line, app data is consolidated under `~/.yaze` on
 desktop/CLI and `/.yaze` in the web build (IDBFS), with legacy migrations from
 AppData/Library/XDG.
 
@@ -15,7 +15,7 @@ AppData/Library/XDG.
 | Project files (.yaze) | Stable | Project metadata stored in the .yaze file; recent project list and metadata cache persisted. |
 | ROM load/save | Stable | ROM loaded from disk; save writes ROM; timestamped backups when enabled. |
 | Overworld Editor | Beta | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. Tile16 palette inconsistencies, paste not tracked in undo, sprite workflow incomplete. |
-| Dungeon Editor | Beta | Room objects/tiles/palettes persist to ROM; shared undo/redo. ROM-backed parity coverage landed, but 12+ unknown object types, specific visual discrepancies, and object preview gaps remain. |
+| Dungeon Editor | Beta | Room objects, sprites, headers, torches, custom collision, chests, and pot items persist to ROM; shared undo/redo. Focused regression coverage exists for save-path writers, `DungeonEditorSystem`, and editor save-flag gating. Remaining gaps are 12+ unknown object types, specific visual discrepancies, selector/browser preview parity, and pits/blocks still using legacy blob-preservation saves. |
 | Palette Editor | Beta | Palette changes persist to ROM; JSON import/export not implemented. |
 | Graphics Editor | Beta | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
 | Sprite Editor | Beta | Sprite viewing/editing works with undo/redo; deeper workflow coverage is still limited. |
@@ -99,6 +99,7 @@ AppData/Library/XDG.
 - **Workspace layout**: Save/Load/Reset are TODOs (`workspace_manager.cc:18,26,34`)
 - **Platform backend**: Minimal factory tests only (`window_backend_test.cc` - 38 lines)
 - **Room object types**: 12+ unknown object types in `room_object.h` need verification
+- **Dungeon pits/blocks persistence**: Still preserved as legacy ROM blobs after pointer validation instead of encoded from explicit room-state models
 - **CRC32 calculation**: Stubbed with 0 in ASAR wrapper (`asar_wrapper.cc:330,501`)
 
 ## Coverage Plan (v0.7.x)
@@ -109,7 +110,7 @@ AppData/Library/XDG.
 4) [TODO] Add `.yaze` migration and path normalization tests (desktop + CLI).
 5) [TODO] Expand CLI command coverage for doctor and editor automation commands.
 6) [DONE] Promote WASM debug API checks into CI (automated browser run).
-7) [TODO] Add ROM-dependent tests for version-gated overworld saves and dungeon persistence.
+7) [TODO] Add ROM-dependent tests for version-gated overworld saves and broader dungeon persistence/integration flows beyond the focused synthetic-ROM coverage now in place.
 8) [TODO] Add web storage regression checks (IDBFS sync + file manager flows).
 
 ### Pending Test Additions
