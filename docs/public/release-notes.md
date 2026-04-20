@@ -1,5 +1,28 @@
 # Release Notes
 
+## v0.7.2 (in development)
+
+**Type:** Post-0.7.1 Build/CI Hardening + Tooling Reliability
+**Date:** TBD
+
+### 🧱 Build & CI Stabilization
+- Fixed the WASM/browser build after the 0.7.1 editor reorg by excluding the stale `yaze_debug_inspector.cc` path that still referenced removed `PanelManager`-era editor APIs.
+- Added `project_graph_tool.cc` back to the WASM AI source list so `ProjectGraphTool` links correctly in browser builds.
+- Skipped POSIX-shell-dependent project-action tests on Windows, keeping the Windows Core matrix green while a real cross-platform script-runner rewrite is deferred.
+
+### 🧰 CLI & Agent Tooling
+- Updated `scripts/z3ed` to resolve binaries under `build/presets/<preset>/bin/`, which restores `z3ed` discovery for CI presets and preset-specific local builds.
+
+### 📝 Release Metadata & Post-Tag Hygiene
+- Advanced trunk version metadata to `0.7.2` after the `v0.7.1` tag.
+- Aligned post-release docs metadata so future release notes and generated release bodies stay consistent.
+
+### Deferred Follow-Up
+- Refresh or remove the stale web debug inspector against the current post-reorg editor APIs.
+- Replace POSIX-shell-only project-action test scaffolding with a cross-platform test harness.
+
+---
+
 ## v0.7.1 (April 2026)
 
 **Type:** Packaging + Welcome Screen Overhaul + Dungeon Editor Parity/Polish
