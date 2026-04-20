@@ -65,6 +65,8 @@ class ObjectTileEditorPanel : public WindowContent {
   void ResetTransientState();
   std::string BuildWindowTitle() const;
   void SelectFirstCellIfAvailable();
+  int GetSharedTileDataUsageCount() const;
+  bool HasSharedTileDataConflict() const;
   bool HasRenderableRoomContext() const;
   void RefreshRenderedViewsFromCurrentRoom();
 

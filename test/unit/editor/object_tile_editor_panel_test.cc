@@ -162,6 +162,14 @@ struct ObjectTileEditorPanelTestAccess {
   static bool HasModifications(const ObjectTileEditorPanel& panel) {
     return panel.current_layout_.HasModifications();
   }
+
+  static int SharedTileDataUsageCount(const ObjectTileEditorPanel& panel) {
+    return panel.GetSharedTileDataUsageCount();
+  }
+
+  static bool HasSharedTileDataConflict(const ObjectTileEditorPanel& panel) {
+    return panel.HasSharedTileDataConflict();
+  }
 };
 
 namespace {
@@ -322,6 +330,42 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SharedTileDataUsageCountIgnoresCustomLayoutsEvenWithTileDataAddress) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "custom.bin");
+  layout.tile_data_address = 0x1234;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
+            0);
+  EXPECT_FALSE(
+      ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SharedTileDataUsageCountIgnoresStandardLayoutsWithoutTileDataAddress) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "custom.bin");
+  layout.is_custom = false;
+  layout.custom_filename.clear();
+  layout.tile_data_address = -1;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
+            0);
+  EXPECT_FALSE(
+      ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel));
 }
 
 TEST(ObjectTileEditorPanelTest, RenderWithoutRoomContextClearsStaleBitmaps) {
