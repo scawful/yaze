@@ -452,6 +452,13 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
           request_panel_mode = true;
         }
       }
+      if (p.open_room_matrix && !compact_toolbar) {
+        ImGui::SameLine();
+        if (SquareIconButton("##RoomMatrix", ICON_MD_GRID_VIEW, btn,
+                             "Open Room Matrix")) {
+          p.open_room_matrix();
+        }
+      }
       ImGui::SameLine();
 
       const int rid = *p.current_room_id;
