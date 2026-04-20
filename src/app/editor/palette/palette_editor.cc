@@ -6,7 +6,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_category.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"

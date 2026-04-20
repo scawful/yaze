@@ -4,7 +4,7 @@
 // Compatibility header: panel APIs were unified into WorkspaceWindowManager /
 // WindowDescriptor. New code should include workspace_window_manager.h directly.
 
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 
 namespace yaze {
 namespace editor {

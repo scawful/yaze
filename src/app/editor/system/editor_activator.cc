@@ -9,7 +9,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/animation/animator.h"

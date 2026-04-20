@@ -18,7 +18,7 @@
 #include "app/editor/music/panels/music_playback_control_panel.h"
 #include "app/editor/music/panels/music_sample_editor_panel.h"
 #include "app/editor/music/panels/music_song_browser_panel.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/audio/audio_backend.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_profiler.h"

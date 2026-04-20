@@ -57,7 +57,7 @@
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/shortcut_configurator.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"

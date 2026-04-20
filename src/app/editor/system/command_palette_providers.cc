@@ -4,7 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/system/session/user_settings.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 
 namespace yaze {
 namespace editor {

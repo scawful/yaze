@@ -15,7 +15,7 @@
 #include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"

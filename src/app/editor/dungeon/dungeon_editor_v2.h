@@ -14,7 +14,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"

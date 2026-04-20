@@ -24,7 +24,7 @@
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"

@@ -1,7 +1,7 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/system/command_palette.h"
 #include "app/editor/system/editor_panel.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 
 #include <gtest/gtest.h>
 

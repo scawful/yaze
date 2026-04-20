@@ -7,7 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"

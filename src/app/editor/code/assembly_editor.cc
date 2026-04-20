@@ -23,7 +23,7 @@
 #include "app/editor/code/diagnostics_panel.h"
 #include "app/editor/code/panels/assembly_editor_panels.h"
 #include "app/editor/editor_manager.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/emu/debug/disassembler.h"
 #include "app/emu/mesen/mesen_client_registry.h"

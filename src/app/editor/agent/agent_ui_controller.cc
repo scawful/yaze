@@ -8,7 +8,7 @@
 #include "app/editor/agent/oracle_ram_panel.h"
 #include "app/editor/agent/agent_session.h"
 #include "app/editor/menu/right_drawer_manager.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/system/proposal_drawer.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/shell/feedback/toast_manager.h"
