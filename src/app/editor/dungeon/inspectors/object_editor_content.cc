@@ -88,18 +88,50 @@ void ObjectEditorContent::Draw(bool* p_open) {
     DrawSelectedObjectInfo();
     object_editor_->DrawPropertyUI();
   } else if (viewer->object_interaction().HasEntitySelection()) {
-    ImGui::Spacing();
-    ImGui::TextDisabled(
-        "An entity is selected. Use the matching editor for entity-specific "
-        "properties.");
+    DrawEntityRedirectNotice();
   } else {
-    ImGui::Spacing();
-    ImGui::TextDisabled(
-        "Select one or more room objects to edit their properties here.");
+    DrawEmptyState();
   }
 
   DrawKeyboardShortcutHelp();
   HandleKeyboardShortcuts();
+}
+
+void ObjectEditorContent::DrawEmptyState() {
+  const auto& theme = AgentUI::GetTheme();
+
+  ImGui::Spacing();
+  gui::StyleColorGuard header_guard(
+      {{ImGuiCol_Header, theme.panel_bg_color},
+       {ImGuiCol_HeaderHovered, theme.panel_bg_darker}});
+  if (ImGui::CollapsingHeader(
+          "No object selected",
+          ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf)) {
+    ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MOUSE
+                       " Click a room object in the canvas to inspect and edit "
+                       "it here.");
+    ImGui::Spacing();
+    ImGui::TextColored(theme.text_secondary_gray, ICON_MD_OPEN_WITH
+                       " Use Shift-click and drag selection in the room to "
+                       "edit multiple objects together.");
+  }
+}
+
+void ObjectEditorContent::DrawEntityRedirectNotice() {
+  const auto& theme = AgentUI::GetTheme();
+
+  ImGui::Spacing();
+  gui::StyleColorGuard header_guard(
+      {{ImGuiCol_Header, theme.panel_bg_color},
+       {ImGuiCol_HeaderHovered, theme.panel_bg_darker}});
+  if (ImGui::CollapsingHeader(
+          "Object editor unavailable for current selection",
+          ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Leaf)) {
+    ImGui::TextColored(
+        theme.text_secondary_gray, ICON_MD_INFO
+        " A non-object entity is selected. Use the matching editor for "
+        "door, sprite, item, or room settings.");
+  }
 }
 
 void ObjectEditorContent::DrawSelectionSummary() {
@@ -114,8 +146,7 @@ void ObjectEditorContent::DrawSelectionSummary() {
 
   if (selection_count == 0) {
     ImGui::TextColored(theme.text_secondary_gray,
-                       ICON_MD_MOUSE
-                       " Click room objects to edit them here.");
+                       ICON_MD_TUNE " Object Inspector");
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_HELP_OUTLINE " Shortcuts")) {
       show_shortcut_help_ = true;
@@ -125,11 +156,15 @@ void ObjectEditorContent::DrawSelectionSummary() {
 
   if (selection_count == 1) {
     ImGui::TextColored(theme.status_success,
-                       ICON_MD_CHECK_CIRCLE " Editing selected room object");
+                       ICON_MD_CHECK_CIRCLE " Inspecting selected room object");
   } else {
     ImGui::TextColored(theme.status_success,
-                       ICON_MD_SELECT_ALL " Editing %zu selected objects",
+                       ICON_MD_SELECT_ALL " Inspecting %zu selected objects",
                        selection_count);
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_HELP_OUTLINE " Shortcuts")) {
+    show_shortcut_help_ = true;
   }
 }
 
@@ -140,36 +175,49 @@ void ObjectEditorContent::DrawSelectionActions() {
   }
 
   ImGui::Spacing();
-  if (ImGui::BeginTable("##ObjectEditorActions", 5,
-                        ImGuiTableFlags_SizingStretchSame |
-                            ImGuiTableFlags_NoPadOuterX)) {
-    ImGui::TableNextRow();
+  if (ImGui::BeginTable(
+          "##ObjectEditorActions", 3,
+          ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX)) {
+    ImGui::TableSetupColumn("Clipboard", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
+    ImGui::TableSetupColumn("Selection", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
+    ImGui::TableSetupColumn("Destructive", ImGuiTableColumnFlags_WidthStretch,
+                            0.9f);
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy", ImVec2(-1, 0))) {
-      CopySelectedObjects();
+    {
+      gui::SectionHeader(ICON_MD_CONTENT_COPY, "Clipboard",
+                         AgentUI::GetTheme().text_info);
+      if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy", ImVec2(-1, 0))) {
+        CopySelectedObjects();
+      }
+      if (ImGui::Button(ICON_MD_CONTENT_PASTE " Paste", ImVec2(-1, 0))) {
+        PasteObjects();
+      }
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_CONTENT_PASTE " Paste", ImVec2(-1, 0))) {
-      PasteObjects();
+    {
+      gui::SectionHeader(ICON_MD_SELECT_ALL, "Selection",
+                         AgentUI::GetTheme().text_info);
+      if (ImGui::Button(ICON_MD_FILTER_NONE " Duplicate", ImVec2(-1, 0))) {
+        DuplicateSelectedObjects();
+      }
+      if (ImGui::Button(ICON_MD_CLEAR " Clear", ImVec2(-1, 0))) {
+        DeselectAllObjects();
+      }
     }
 
     ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_FILTER_NONE " Duplicate", ImVec2(-1, 0))) {
-      DuplicateSelectedObjects();
-    }
-
-    ImGui::TableNextColumn();
-    if (ImGui::Button(ICON_MD_CLEAR " Clear", ImVec2(-1, 0))) {
-      DeselectAllObjects();
-    }
-
-    ImGui::TableNextColumn();
-    gui::StyleVarGuard align_guard(ImGuiStyleVar_ButtonTextAlign,
-                                   ImVec2(0.08f, 0.5f));
-    if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(-1, 0))) {
-      DeleteSelectedObjects();
+    {
+      gui::SectionHeader(ICON_MD_DELETE, "Destructive",
+                         AgentUI::GetTheme().text_info);
+      gui::StyleVarGuard align_guard(ImGuiStyleVar_ButtonTextAlign,
+                                     ImVec2(0.08f, 0.5f));
+      if (ImGui::Button(ICON_MD_DELETE " Delete", ImVec2(-1, 0))) {
+        DeleteSelectedObjects();
+      }
     }
 
     ImGui::EndTable();
@@ -196,30 +244,40 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
     if (selected[0] < objects.size()) {
       const auto& obj = objects[selected[0]];
       const auto semantics = zelda3::GetObjectLayerSemantics(obj);
-      ImGui::TextColored(theme.status_success,
-                         ICON_MD_CHECK_CIRCLE
-                         " Selected object #%zu · 0x%03X %s",
+      gui::SectionHeader(ICON_MD_INFO, "Selected Object", theme.text_info);
+      ImGui::TextColored(theme.status_success, "Object #%zu · 0x%03X %s",
                          selected[0], obj.id_,
                          zelda3::GetObjectName(obj.id_).c_str());
-      ImGui::TextColored(theme.text_secondary_gray,
-                         "Position (%d, %d)  Size 0x%02X  Layer %s  Draws %s",
-                         obj.x_, obj.y_, obj.size_,
-                         obj.layer_ == zelda3::RoomObject::BG1
-                             ? "BG1"
-                             : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                                      : "BG3",
-                         zelda3::EffectiveBgLayerLabel(
-                             semantics.effective_bg_layer));
+      if (ImGui::BeginTable("##SelectedObjectInfo", 2,
+                            ImGuiTableFlags_SizingStretchSame |
+                                ImGuiTableFlags_NoPadOuterX)) {
+        ImGui::TableNextColumn();
+        ImGui::TextColored(theme.text_secondary_gray, "Position");
+        ImGui::Text("(%d, %d)", obj.x_, obj.y_);
+        ImGui::TextColored(theme.text_secondary_gray, "Size");
+        ImGui::Text("0x%02X", obj.size_);
+
+        ImGui::TableNextColumn();
+        ImGui::TextColored(theme.text_secondary_gray, "Layer");
+        ImGui::Text("%s", obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
+                          : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
+                                                                  : "BG3");
+        ImGui::TextColored(theme.text_secondary_gray, "Draws");
+        ImGui::Text(
+            "%s", zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
+        ImGui::EndTable();
+      }
       ImGui::Spacing();
     }
     return;
   }
 
-  ImGui::TextColored(theme.status_success, ICON_MD_SELECT_ALL " %zu objects selected",
+  gui::SectionHeader(ICON_MD_SELECT_ALL, "Selection", theme.text_info);
+  ImGui::TextColored(theme.status_success, "%zu objects selected",
                      selected.size());
   ImGui::TextColored(theme.text_secondary_gray,
-                     "Use Ctrl+D to duplicate, Delete to remove, or Arrow Keys "
-                     "to nudge the selection.");
+                     "Bulk actions stay above. Use Arrow Keys to nudge the "
+                     "selection or open the room canvas to refine it.");
   ImGui::Spacing();
 }
 
@@ -229,8 +287,8 @@ void ObjectEditorContent::DrawKeyboardShortcutHelp() {
   }
 
   ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_Appearing);
-  if (ImGui::Begin("Keyboard Shortcuts##DungeonObjectEditor", &show_shortcut_help_,
-                   ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Keyboard Shortcuts##DungeonObjectEditor",
+                   &show_shortcut_help_, ImGuiWindowFlags_NoCollapse)) {
     const auto& theme = AgentUI::GetTheme();
     auto shortcut_row = [&](const char* keys, const char* desc) {
       ImGui::TextColored(theme.status_warning, "%-18s", keys);
