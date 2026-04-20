@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "rom/rom.h"
-#include "zelda3/dungeon/room.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -13,6 +15,16 @@ namespace test {
 
 class DungeonSaveTest : public ::testing::Test {
  protected:
+  static constexpr int kChestDataPc = 0x110000;
+  static constexpr int kPotRoom0Pc = 0x008000;
+  static constexpr int kPotRoom1Pc = 0x008020;
+  static constexpr int kPotRoom2Pc = 0x008040;
+  static constexpr int kPitDataPc = 0x112000;
+  static constexpr int kBlocksRegion1Pc = 0x113000;
+  static constexpr int kBlocksRegion2Pc = 0x113080;
+  static constexpr int kBlocksRegion3Pc = 0x113100;
+  static constexpr int kBlocksRegion4Pc = 0x113180;
+
   void SetUp() override {
     rom_ = std::make_unique<Rom>();
     // Create a minimal ROM for testing (2MB)
@@ -79,7 +91,7 @@ class DungeonSaveTest : public ::testing::Test {
     // Points to table in Bank 09. Let's put table at 0x48000 (09:8000)
     int ptr_loc = kRoomsSpritePointer;
     rom_->mutable_data()[ptr_loc] = 0x00;
-    rom_->mutable_data()[ptr_loc + 1] = 0x80; 
+    rom_->mutable_data()[ptr_loc + 1] = 0x80;
     // Bank is hardcoded to 0x09 in code, so we only write low 2 bytes.
 
     // 2. Setup Sprite Pointer Table at 0x48000 (09:8000)
@@ -101,6 +113,74 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[0x49000] = 0x00;
     // End of sprites (0xFF)
     rom_->mutable_data()[0x49001] = 0xFF;
+  }
+
+  void WriteLongPointer(int addr, uint32_t snes_addr) {
+    rom_->mutable_data()[addr + 0] = snes_addr & 0xFF;
+    rom_->mutable_data()[addr + 1] = (snes_addr >> 8) & 0xFF;
+    rom_->mutable_data()[addr + 2] = (snes_addr >> 16) & 0xFF;
+  }
+
+  void SetupChestTable() {
+    WriteLongPointer(kChestsDataPointer1, PcToSnes(kChestDataPc));
+    rom_->mutable_data()[kChestsLengthPointer] = 0x00;
+    rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
+    std::fill_n(rom_->mutable_data() + kChestDataPc, 0x100, 0x00);
+  }
+
+  void SeedChestEntry(int room_id, uint8_t chest_id, bool big) {
+    const uint16_t word = static_cast<uint16_t>(room_id) | (big ? 0x8000 : 0);
+    rom_->mutable_data()[kChestsLengthPointer] = 0x01;
+    rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
+    rom_->mutable_data()[kChestDataPc + 0] = word & 0xFF;
+    rom_->mutable_data()[kChestDataPc + 1] = (word >> 8) & 0xFF;
+    rom_->mutable_data()[kChestDataPc + 2] = chest_id;
+  }
+
+  void SetupPotItemTable() {
+    const uint16_t room0_ptr = static_cast<uint16_t>(PcToSnes(kPotRoom0Pc));
+    const uint16_t room1_ptr = static_cast<uint16_t>(PcToSnes(kPotRoom1Pc));
+    const uint16_t room2_ptr = static_cast<uint16_t>(PcToSnes(kPotRoom2Pc));
+
+    rom_->mutable_data()[kRoomItemsPointers + 0] = room0_ptr & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 1] = (room0_ptr >> 8) & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 2] = room1_ptr & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 3] = (room1_ptr >> 8) & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 4] = room2_ptr & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 5] = (room2_ptr >> 8) & 0xFF;
+
+    rom_->mutable_data()[kPotRoom0Pc + 0] = 0xFF;
+    rom_->mutable_data()[kPotRoom0Pc + 1] = 0xFF;
+    rom_->mutable_data()[kPotRoom1Pc + 0] = 0xFF;
+    rom_->mutable_data()[kPotRoom1Pc + 1] = 0xFF;
+    rom_->mutable_data()[kPotRoom2Pc + 0] = 0xFF;
+    rom_->mutable_data()[kPotRoom2Pc + 1] = 0xFF;
+  }
+
+  void SeedPotItemBytes(int pc_addr, std::initializer_list<uint8_t> bytes) {
+    std::copy(bytes.begin(), bytes.end(), rom_->mutable_data() + pc_addr);
+  }
+
+  void SetupPitRegion() {
+    WriteLongPointer(kPitPointer, PcToSnes(kPitDataPc));
+    rom_->mutable_data()[kPitCount] = 0x02;
+    rom_->mutable_data()[kPitDataPc + 0] = 0x34;
+    rom_->mutable_data()[kPitDataPc + 1] = 0x12;
+  }
+
+  void SetupBlockRegions() {
+    WriteLongPointer(kBlocksPointer1, PcToSnes(kBlocksRegion1Pc));
+    WriteLongPointer(kBlocksPointer2, PcToSnes(kBlocksRegion2Pc));
+    WriteLongPointer(kBlocksPointer3, PcToSnes(kBlocksRegion3Pc));
+    WriteLongPointer(kBlocksPointer4, PcToSnes(kBlocksRegion4Pc));
+
+    rom_->mutable_data()[kBlocksLength] = 0x04;
+    rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+    rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0xAA;
+    rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0xBB;
+    rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0xCC;
+    rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0xDD;
   }
 
   std::unique_ptr<Rom> rom_;
@@ -289,7 +369,8 @@ TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
 
   // word = ((x + y*64) << 1) with layer in bit 13 and lit in bit 15.
   EXPECT_EQ(rom_data[kTorchData + 2], 0x14);  // low byte
-  EXPECT_EQ(rom_data[kTorchData + 3], 0xAA);  // high byte: layer + lit + address bits
+  EXPECT_EQ(rom_data[kTorchData + 3],
+            0xAA);  // high byte: layer + lit + address bits
 
   EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
   EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
@@ -303,9 +384,9 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
       0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
       0xFF, 0xFF,  // terminator
   };
-  ASSERT_TRUE(rom_->WriteWord(kTorchesLengthPointer,
-                              static_cast<uint16_t>(blob.size()))
-                  .ok());
+  ASSERT_TRUE(
+      rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
+          .ok());
   ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
   rom_->ClearDirty();
 
@@ -318,6 +399,216 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   auto status = SaveAllTorches(rom_.get(), rooms);
   EXPECT_TRUE(status.ok()) << status.message();
   EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_WritesSingleSmallChest) {
+  SetupChestTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x01);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x42);
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_WritesBigChestWithHighBit) {
+  SetupChestTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x77, true});
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x01);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x80);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x77);
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_PreservesRomEntriesForUntouchedRooms) {
+  SetupChestTable();
+  SeedChestEntry(/*room_id=*/1, /*chest_id=*/0x99, /*big=*/false);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x02);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x42);
+
+  EXPECT_EQ(rom_->data()[kChestDataPc + 3], 0x01);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 4], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 5], 0x99);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllChests_LoadedRoomWithNoChestsClearsExistingRomEntries) {
+  SetupChestTable();
+  SeedChestEntry(/*room_id=*/0, /*chest_id=*/0x55, /*big=*/false);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x00);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_ReloadedRoomMatchesSerializedState) {
+  SetupChestTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].GetChests().push_back(chest_data{0x77, true});
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  Room reloaded_room(0, rom_.get());
+  reloaded_room.LoadChests();
+
+  ASSERT_EQ(reloaded_room.GetChests().size(), 2u);
+  EXPECT_EQ(reloaded_room.GetChests()[0].id, 0x42);
+  EXPECT_FALSE(reloaded_room.GetChests()[0].size);
+  EXPECT_EQ(reloaded_room.GetChests()[1].id, 0x77);
+  EXPECT_TRUE(reloaded_room.GetChests()[1].size);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWritesEntriesAndTerminator) {
+  SetupPotItemTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  PotItem item;
+  item.position = 0x1234;
+  item.item = 0x56;
+  rooms[0].GetPotItems().push_back(item);
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 3], 0xFF);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 4], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_ReloadedRoomMatchesSerializedState) {
+  SetupPotItemTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  PotItem first;
+  first.position = 0x1234;
+  first.item = 0x56;
+  rooms[0].GetPotItems().push_back(first);
+
+  PotItem second;
+  second.position = 0x5678;
+  second.item = 0x9A;
+  rooms[0].GetPotItems().push_back(second);
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  Room reloaded_room(0, rom_.get());
+  reloaded_room.LoadPotItems();
+
+  ASSERT_EQ(reloaded_room.GetPotItems().size(), 2u);
+  EXPECT_EQ(reloaded_room.GetPotItems()[0].position, 0x1234);
+  EXPECT_EQ(reloaded_room.GetPotItems()[0].item, 0x56);
+  EXPECT_EQ(reloaded_room.GetPotItems()[1].position, 0x5678);
+  EXPECT_EQ(reloaded_room.GetPotItems()[1].item, 0x9A);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_UnloadedRoomPreservesExistingRomData) {
+  SetupPotItemTable();
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 3], 0xFF);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 4], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWithNoItemsWritesTerminator) {
+  SetupPotItemTable();
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0xFF);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllCollision_DirtyRoomWithoutCustomRegionFails) {
+  std::vector<uint8_t> small_data(0x100000, 0);
+  rom_->LoadFromData(small_data);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetCollisionTile(1, 1, 0x2A);
+
+  auto status = SaveAllCollision(rom_.get(), absl::MakeSpan(rooms));
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPits_ValidRegionPreservesExistingBytes) {
+  SetupPitRegion();
+
+  const auto before0 = rom_->data()[kPitDataPc + 0];
+  const auto before1 = rom_->data()[kPitDataPc + 1];
+
+  auto status = SaveAllPits(rom_.get());
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPitDataPc + 0], before0);
+  EXPECT_EQ(rom_->data()[kPitDataPc + 1], before1);
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
+  SetupBlockRegions();
+
+  auto status = SaveAllBlocks(rom_.get());
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0xAA);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0xBB);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0xCC);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0xDD);
 }
 
 }  // namespace test
