@@ -39,11 +39,35 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.rooms_;
   }
 
+  static bool HasActivePreview(const ObjectTileEditorPanel& panel) {
+    return panel.object_preview_bmp_.is_active();
+  }
+
+  static bool HasActiveAtlas(const ObjectTileEditorPanel& panel) {
+    return panel.tile8_atlas_bmp_.is_active();
+  }
+
   static void SeedTransientState(ObjectTileEditorPanel& panel) {
     panel.selected_cell_index_ = 4;
     panel.selected_source_tile_ = 0x2A;
     panel.show_shared_confirm_ = true;
     panel.shared_object_count_ = 7;
+  }
+
+  static void SeedRenderedBitmaps(ObjectTileEditorPanel& panel) {
+    std::vector<uint8_t> pixels(64, 0);
+    panel.object_preview_bmp_.Create(/*width=*/8, /*height=*/8, /*depth=*/8,
+                                     pixels);
+    panel.tile8_atlas_bmp_.Create(/*width=*/8, /*height=*/8, /*depth=*/8,
+                                  pixels);
+  }
+
+  static void RenderObjectPreview(ObjectTileEditorPanel& panel) {
+    panel.RenderObjectPreview();
+  }
+
+  static void RenderTile8Atlas(ObjectTileEditorPanel& panel) {
+    panel.RenderTile8Atlas();
   }
 };
 
@@ -57,6 +81,9 @@ TEST(ObjectTileEditorPanelTest, OpenForObjectInvalidRoomClearsPreviousLayout) {
   panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
                          /*object_id=*/0x123, /*room_id=*/0, nullptr);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 
   DungeonRoomStore rooms(&rom);
   panel.OpenForObject(/*object_id=*/0x40, /*room_id=*/-1, &rooms);
@@ -64,6 +91,8 @@ TEST(ObjectTileEditorPanelTest, OpenForObjectInvalidRoomClearsPreviousLayout) {
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), -1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), -1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,
@@ -74,6 +103,9 @@ TEST(ObjectTileEditorPanelTest,
   panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
                          /*object_id=*/0x123, /*room_id=*/0, nullptr);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 
   DungeonRoomStore rooms(&rom);
   (void)rooms[0];
@@ -83,6 +115,8 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), -1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), -1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
 TEST(ObjectTileEditorPanelTest, CloseClearsTransientStateAndContext) {
@@ -94,6 +128,7 @@ TEST(ObjectTileEditorPanelTest, CloseClearsTransientStateAndContext) {
   panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
                          /*object_id=*/0x123, /*room_id=*/5, &rooms);
   ObjectTileEditorPanelTestAccess::SeedTransientState(panel);
+  ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
 
   panel.Close();
 
@@ -106,6 +141,8 @@ TEST(ObjectTileEditorPanelTest, CloseClearsTransientStateAndContext) {
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), -1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), -1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::Rooms(panel), nullptr);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
 TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
@@ -116,6 +153,7 @@ TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
   panel.OpenForNewObject(/*width=*/2, /*height=*/2, "first.bin",
                          /*object_id=*/0x123, /*room_id=*/0, nullptr);
   ObjectTileEditorPanelTestAccess::SeedTransientState(panel);
+  ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
 
   panel.OpenForNewObject(/*width=*/1, /*height=*/1, "second.bin",
                          /*object_id=*/0x124, /*room_id=*/1, nullptr);
@@ -128,6 +166,26 @@ TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x124);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+}
+
+TEST(ObjectTileEditorPanelTest, RenderWithoutRoomContextClearsStaleBitmaps) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "custom.bin",
+                         /*object_id=*/0x123, /*room_id=*/0, nullptr);
+  ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+
+  ObjectTileEditorPanelTestAccess::RenderObjectPreview(panel);
+  ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
 }  // namespace
