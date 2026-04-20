@@ -44,6 +44,8 @@ class ObjectEditorContent : public WindowContent {
   void OnSelectionChanged();
   DungeonCanvasViewer* ResolveCanvasViewer();
 
+  void DrawEmptyState();
+  void DrawEntityRedirectNotice();
   void DrawSelectionSummary();
   void DrawSelectionActions();
   void DrawSelectedObjectInfo();

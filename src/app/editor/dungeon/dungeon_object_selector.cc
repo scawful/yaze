@@ -176,42 +176,54 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   int total_objects =
       (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
-  ImGui::TextDisabled("%d objects", total_objects);
-  ImGui::SameLine();
-  ImGui::Checkbox(ICON_MD_IMAGE " Tile thumbnails", &enable_object_previews_);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "Show rendered object thumbnails in the selector.\n"
-        "Requires a room to be loaded and may cost some performance.");
-  }
+  if (ImGui::BeginTable(
+          "##ObjectSelectorToolbar", 2,
+          ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX)) {
+    ImGui::TableSetupColumn("Search", ImGuiTableColumnFlags_WidthStretch, 1.5f);
+    ImGui::TableSetupColumn("Options", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
+    ImGui::TableNextRow();
 
-  if (selected_object_id_ >= 0) {
-    ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Current: 0x%03X %s",
-                       selected_object_id_,
-                       zelda3::GetObjectName(selected_object_id_).c_str());
-  } else {
-    ImGui::TextColored(
-        theme.text_secondary_gray,
-        "Tip: click once to queue placement in the room canvas.");
-  }
+    ImGui::TableNextColumn();
+    ImGui::TextColored(theme.text_info, ICON_MD_SEARCH " Browse");
+    ImGui::SetNextItemWidth(-1.0f);
+    ImGui::InputTextWithHint(
+        "##ObjectSearch", ICON_MD_SEARCH " Filter by name or hex...",
+        object_search_buffer_, sizeof(object_search_buffer_));
+    static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
+                                          "Doors", "Decor", "Stairs"};
+    ImGui::SetNextItemWidth(170.0f);
+    ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
+                 IM_ARRAYSIZE(kFilterLabels));
+    ImGui::SameLine();
+    if (gui::ThemedButton(ICON_MD_CLEAR " Reset")) {
+      object_search_buffer_[0] = '\0';
+      object_type_filter_ = 0;
+    }
+    if (ImGui::IsItemHovered()) {
+      gui::ThemedTooltip("Clear search and category filter");
+    }
 
-  // Search + category filter
-  ImGui::SetNextItemWidth(-1.0f);
-  ImGui::InputTextWithHint(
-      "##ObjectSearch", ICON_MD_SEARCH " Filter by name or hex...",
-      object_search_buffer_, sizeof(object_search_buffer_));
-  static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
-                                        "Doors", "Decor", "Stairs"};
-  ImGui::SetNextItemWidth(170.0f);
-  ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
-               IM_ARRAYSIZE(kFilterLabels));
-  ImGui::SameLine();
-  if (gui::ThemedButton(ICON_MD_CLEAR " Reset")) {
-    object_search_buffer_[0] = '\0';
-    object_type_filter_ = 0;
-  }
-  if (ImGui::IsItemHovered()) {
-    gui::ThemedTooltip("Clear search and category filter");
+    ImGui::TableNextColumn();
+    ImGui::TextColored(theme.text_info, ICON_MD_CATEGORY " Placement");
+    ImGui::TextDisabled("%d vanilla objects", total_objects);
+    ImGui::Checkbox(ICON_MD_IMAGE " Tile thumbnails", &enable_object_previews_);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Show rendered object thumbnails in the selector.\n"
+          "Requires a room to be loaded and may cost some performance.");
+    }
+    if (selected_object_id_ >= 0) {
+      ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Queued: 0x%03X %s",
+                         selected_object_id_,
+                         zelda3::GetObjectName(selected_object_id_).c_str());
+    } else {
+      ImGui::TextColored(
+          theme.text_secondary_gray,
+          "Click an object below to queue placement in the room canvas.");
+    }
+
+    ImGui::EndTable();
   }
 
   // Create asset browser-style grid
@@ -450,48 +462,63 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           ImGui::ColorConvertU32ToFloat4(IM_COL32(100, 180, 120, 255))},
          {ImGuiCol_HeaderHovered,
           ImGui::ColorConvertU32ToFloat4(IM_COL32(130, 210, 150, 255))}});
-    bool custom_open = ImGui::CollapsingHeader("Custom Objects",
-                                               ImGuiTreeNodeFlags_DefaultOpen);
+    auto& obj_manager = zelda3::CustomObjectManager::Get();
+    const int custom_count =
+        obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
+    bool custom_open = ImGui::CollapsingHeader(
+        absl::StrFormat("Custom Objects (%d)", custom_count).c_str());
 
     if (custom_open) {
       ImGui::TextColored(theme.text_secondary_gray,
-                         "Create, reload, and browse custom object variants "
-                         "separately from the vanilla selector.");
-      // "+ New Custom Object" button
-      if (tile_editor_panel_) {
-        if (ImGui::SmallButton(ICON_MD_ADD " New Custom Object")) {
-          show_create_dialog_ = true;
-          // Auto-generate a default filename
-          snprintf(create_filename_, sizeof(create_filename_),
-                   "custom_%02x_%02d.bin", create_object_id_,
-                   zelda3::CustomObjectManager::Get().GetSubtypeCount(
-                       create_object_id_));
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Create a new custom object from scratch");
-        }
-      }
-
-      auto& obj_manager = zelda3::CustomObjectManager::Get();
+                         "Use the workshop below for custom object variants "
+                         "and tile-driven experiments.");
       const std::string custom_base_path = obj_manager.GetBasePath();
-      if (custom_base_path.empty()) {
-        ImGui::TextColored(theme.text_secondary_gray,
-                           "Custom objects folder: not configured");
-      } else {
-        ImGui::Text("Custom objects folder: %s", custom_base_path.c_str());
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s", custom_base_path.c_str());
+      if (ImGui::BeginTable("##CustomObjectToolbar", 2,
+                            ImGuiTableFlags_SizingStretchProp |
+                                ImGuiTableFlags_NoPadOuterX)) {
+        ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthStretch,
+                                1.5f);
+        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch,
+                                1.0f);
+        ImGui::TableNextRow();
+
+        ImGui::TableNextColumn();
+        if (custom_base_path.empty()) {
+          ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING
+                             " Custom objects folder is not configured for "
+                             "this project.");
+        } else {
+          ImGui::TextColored(theme.text_secondary_gray, ICON_MD_FOLDER " %s",
+                             custom_base_path.c_str());
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s", custom_base_path.c_str());
+          }
         }
-        ImGui::SameLine();
-        if (ImGui::SmallButton(ICON_MD_REFRESH " Reload")) {
+
+        ImGui::TableNextColumn();
+        if (tile_editor_panel_) {
+          if (ImGui::Button(ICON_MD_ADD " New Custom Object", ImVec2(-1, 0))) {
+            show_create_dialog_ = true;
+            snprintf(create_filename_, sizeof(create_filename_),
+                     "custom_%02x_%02d.bin", create_object_id_,
+                     zelda3::CustomObjectManager::Get().GetSubtypeCount(
+                         create_object_id_));
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Create a new custom object from scratch");
+          }
+        }
+        if (ImGui::Button(ICON_MD_REFRESH " Reload Workshop", ImVec2(-1, 0))) {
           obj_manager.ReloadAll();
           InvalidatePreviewCache();
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-              "Reload custom object binaries and refresh previews");
+              "Reload custom object binaries and refresh their previews");
         }
+        ImGui::EndTable();
       }
+
       ImGui::TextColored(theme.text_secondary_gray,
                          "Corner overrides: 0x100/0x101/0x102/0x103 use 0x31 "
                          "subtypes 02/04/03/05");
