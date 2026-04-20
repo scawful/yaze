@@ -28,7 +28,7 @@ graph TD
     Interaction -.-> System[DungeonEditorSystem]
 
     SelectorContent --> ObjSelector[DungeonObjectSelector]
-    SelectorContent --> EmuPreview[DungeonObjectEmulatorPreview]
+    EditorContent[ObjectEditorContent] --> Interaction
 
     Loader --> RomData[zelda3::Room]
 ```
@@ -49,8 +49,9 @@ graph TD
 *   **`object_selection.cc/h`**: A specialized class that holds the state of selected objects and implements selection logic (sets of indices, rectangle intersection). It is decoupled from the UI to allow for easier testing.
 
 ### Object Management
-*   **`dungeon_object_selector.cc/h`**: The UI component for browsing the object library. It includes the "Static Object Editor" (opened via double-click) to inspect object draw routines.
-*   **`selectors/object_selector_content.cc/h`**: A complex window content that aggregates `DungeonObjectSelector`, `DungeonObjectEmulatorPreview`, and template controls. It synchronizes with the currently active `DungeonCanvasViewer`.
+*   **`dungeon_object_selector.cc/h`**: The UI component for browsing the object library and choosing objects to place.
+*   **`selectors/object_selector_content.cc/h`**: The browse/place window content for dungeon objects. It keeps selection editing out of the selector and synchronizes placement with the active `DungeonCanvasViewer`.
+*   **`inspectors/object_editor_content.cc/h`**: The selected-object inspector for single-selection and multi-selection room object editing.
 
 ### UI Components (WindowContents)
 Located across role-based folders under `src/app/editor/dungeon/`:
@@ -85,8 +86,8 @@ There are multiple implementations for calculating the visual bounds of an objec
 *   This naming collision can be confusing. Renaming `DungeonObjectSelector` to `DungeonObjectLibrary` or `ObjectBrowser` might clarify intent.
 
 ### 4. Render Mode Confusion
-`DungeonCanvasViewer` supports an `ObjectRenderMode` (Manual, Emulator, Hybrid), but the `ObjectSelectorContent` also maintains its own `DungeonObjectEmulatorPreview`.
-**Recommendation**: Clarify if the main canvas should ever use emulator rendering (slow but accurate) or if that should remain exclusive to the preview panel.
+`DungeonCanvasViewer` supports an `ObjectRenderMode` (Manual, Emulator, Hybrid), while selector previews still rely on separate preview-generation paths.
+**Recommendation**: Keep placement browsing lightweight and drive parity investigations from the room canvas plus issue reports instead of reviving embedded preview/editor flows in the selector.
 
 ## Integration Guide
 

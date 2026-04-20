@@ -522,7 +522,7 @@ absl::Status DungeonEditorV2::Load() {
 
   // Initialize browse-only object selector and the dedicated object editor.
   auto object_selector = std::make_unique<ObjectSelectorContent>(
-      renderer_, rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
+      rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
   auto object_editor = std::make_unique<ObjectEditorContent>(
       dungeon_editor_system_->GetObjectEditor());
 
@@ -558,15 +558,6 @@ absl::Status DungeonEditorV2::Load() {
         dependencies_.project->GetAbsolutePath(
             dependencies_.project->custom_objects_folder));
   }
-
-  // Wire tile editor callback before transferring ownership
-  object_selector->set_tile_editor_callback([this](int16_t object_id) {
-    if (object_tile_editor_panel_) {
-      object_tile_editor_panel_->OpenForObject(object_id, current_room_id_,
-                                               &rooms_);
-      OpenWindow("dungeon.object_tile_editor");
-    }
-  });
 
   // Register the ObjectSelectorContent directly (it inherits from WindowContent)
   // Panel manager takes ownership
