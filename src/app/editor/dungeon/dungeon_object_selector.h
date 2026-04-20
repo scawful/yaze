@@ -101,10 +101,13 @@ class DungeonObjectSelector {
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
   void EnsureCustomObjectsInitialized();
+  void DrawCustomObjectWorkshopButton(int custom_count);
+  void DrawCustomObjectWorkshopPopup(float item_size, int columns);
   void DrawNewCustomObjectDialog();
 
   // Custom object creation dialog state
   bool show_create_dialog_ = false;
+  bool open_custom_workshop_popup_ = false;
   int create_width_ = 4;
   int create_height_ = 4;
   int create_object_id_ = 0x31;

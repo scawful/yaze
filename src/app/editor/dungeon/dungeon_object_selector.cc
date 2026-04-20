@@ -212,6 +212,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                        zelda3::GetObjectName(selected_object_id_).c_str());
   }
 
+  EnsureCustomObjectsInitialized();
+  auto& obj_manager = zelda3::CustomObjectManager::Get();
+  const int custom_count =
+      obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
+  ImGui::SameLine();
+  DrawCustomObjectWorkshopButton(custom_count);
+
   // Create asset browser-style grid
   const float item_size = 72.0f;
   const float item_spacing = 6.0f;
@@ -435,220 +442,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         current_column = (current_column + 1) % columns;
       }  // end object loop
     }  // end range loop
-
-    EnsureCustomObjectsInitialized();
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    // Custom Objects Section
-    auto& obj_manager = zelda3::CustomObjectManager::Get();
-    const int custom_count =
-        obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
-    bool custom_open =
-        ImGui::CollapsingHeader(absl::StrFormat(ICON_MD_PRECISION_MANUFACTURING
-                                                " Custom Object Workshop (%d)",
-                                                custom_count)
-                                    .c_str());
-
-    if (custom_open) {
-      const std::string custom_base_path = obj_manager.GetBasePath();
-      if (ImGui::BeginTable("##CustomObjectToolbar", 2,
-                            ImGuiTableFlags_SizingStretchProp |
-                                ImGuiTableFlags_NoPadOuterX)) {
-        ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthStretch,
-                                1.5f);
-        ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch,
-                                1.0f);
-        ImGui::TableNextRow();
-
-        ImGui::TableNextColumn();
-        if (custom_base_path.empty()) {
-          ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING
-                             " Custom object folder is not configured.");
-        } else {
-          ImGui::TextColored(theme.text_secondary_gray,
-                             ICON_MD_FOLDER " Workshop folder");
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("%s", custom_base_path.c_str());
-          }
-        }
-
-        ImGui::TableNextColumn();
-        if (tile_editor_panel_) {
-          if (ImGui::Button(ICON_MD_ADD " New Custom Object", ImVec2(-1, 0))) {
-            show_create_dialog_ = true;
-            snprintf(create_filename_, sizeof(create_filename_),
-                     "custom_%02x_%02d.bin", create_object_id_,
-                     zelda3::CustomObjectManager::Get().GetSubtypeCount(
-                         create_object_id_));
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Create a new custom object from scratch");
-          }
-        }
-        if (ImGui::Button(ICON_MD_REFRESH " Reload Workshop", ImVec2(-1, 0))) {
-          obj_manager.ReloadAll();
-          InvalidatePreviewCache();
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(
-              "Reload custom object binaries and refresh their previews");
-        }
-        ImGui::EndTable();
-      }
-
-      ImGui::TextColored(
-          theme.text_secondary_gray, ICON_MD_INFO
-          " Corner overrides map to 0x31 subtypes 02, 04, 03, and 05.");
-
-      DrawNewCustomObjectDialog();
-
-      int custom_col = 0;
-
-      // Initialize if needed (hacky lazy init if drawer hasn't done it yet)
-      // Ideally should be initialized by system.
-      // We'll skip init here and assume ObjectDrawer did it or will do it.
-      // But we need counts. If uninitialized, counts might be wrong?
-      // GetSubtypeCount checks static lists, so it's safe even if not fully init with paths.
-
-      for (int obj_id : {0x31, 0x32}) {
-        if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
-          continue;
-        }
-        int subtype_count = obj_manager.GetSubtypeCount(obj_id);
-        for (int subtype = 0; subtype < subtype_count; ++subtype) {
-          std::string base_name = zelda3::GetObjectName(obj_id);
-          std::string subtype_name =
-              absl::StrFormat("%s %02X", base_name.c_str(), subtype);
-          if (!MatchesObjectSearch(obj_id, subtype_name, subtype)) {
-            continue;
-          }
-
-          if (custom_col > 0)
-            ImGui::SameLine();
-
-          ImGui::PushID(obj_id * 1000 + subtype);
-
-          bool is_selected = (selected_object_id_ == obj_id &&
-                              (preview_object_.size_ & 0x1F) == subtype);
-          ImVec2 button_size(item_size, item_size);
-
-          if (ImGui::Selectable("", is_selected, 0, button_size)) {
-            SelectObject(obj_id, subtype);
-          }
-
-          // Draw Preview
-          ImVec2 button_pos = ImGui::GetItemRectMin();
-          ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-          bool rendered = false;
-          // Native preview requires loaded ROM and correct pathing, might fail if not init.
-          // But we can try constructing a temp object with correct subtype.
-          if (enable_object_previews_) {
-            auto temp_obj = MakePreviewObject(obj_id);
-            temp_obj.size_ = subtype;
-            rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
-          }
-
-          if (!rendered) {
-            // Fallback visuals
-            ImU32 obj_color = IM_COL32(100, 180, 120, 255);
-            ImU32 darker_color = IM_COL32(60, 100, 70, 255);
-
-            draw_list->AddRectFilledMultiColor(
-                button_pos,
-                ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-                darker_color, darker_color, obj_color, obj_color);
-
-            std::string symbol = (obj_id == 0x31) ? "Trk" : "Cus";
-            // Subtype
-            std::string sub_text = absl::StrFormat("%02X", subtype);
-            ImVec2 sub_size = ImGui::CalcTextSize(sub_text.c_str());
-            ImVec2 sub_pos(button_pos.x + (item_size - sub_size.x) / 2,
-                           button_pos.y + (item_size - sub_size.y) / 2);
-            draw_list->AddText(sub_pos, IM_COL32(255, 255, 255, 220),
-                               sub_text.c_str());
-          }
-
-          // Border
-          ImU32 border_color =
-              is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
-                          : ImGui::GetColorU32(theme.panel_bg_darker);
-          float border_thickness = is_selected ? 3.0f : 1.0f;
-          draw_list->AddRect(
-              button_pos,
-              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 0.0f, 0, border_thickness);
-
-          // Name/ID
-          std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
-          ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
-          ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                                 button_pos.y + item_size - id_size.y - 2);
-          draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
-                             id_text.c_str());
-
-          if (ImGui::IsItemHovered()) {
-            gui::StyleColorGuard tooltip_guard(
-                {{ImGuiCol_PopupBg, theme.panel_bg_color},
-                 {ImGuiCol_Border, theme.panel_border_color}});
-            if (ImGui::BeginTooltip()) {
-              const std::string filename =
-                  obj_manager.ResolveFilename(obj_id, subtype);
-              const bool has_base = !custom_base_path.empty();
-              std::filesystem::path full_path =
-                  has_base
-                      ? (std::filesystem::path(custom_base_path) / filename)
-                      : std::filesystem::path();
-              const bool file_exists = has_base && !filename.empty() &&
-                                       std::filesystem::exists(full_path);
-
-              ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
-                                 obj_id, subtype);
-              ImGui::Text("%s", subtype_name.c_str());
-              ImGui::Separator();
-              ImGui::Text("File: %s",
-                          filename.empty() ? "(unmapped)" : filename.c_str());
-              if (!has_base) {
-                ImGui::TextColored(theme.text_warning_yellow,
-                                   "Folder not configured in project");
-              } else if (file_exists) {
-                ImGui::TextColored(theme.status_success, "File found");
-              } else {
-                ImGui::TextColored(theme.status_error, "File missing: %s",
-                                   full_path.string().c_str());
-              }
-
-              if (obj_id == 0x31 && subtype >= 2 && subtype <= 5) {
-                const char* corner_id = "";
-                if (subtype == 2) {
-                  corner_id = "0x100 (TL)";
-                } else if (subtype == 3) {
-                  corner_id = "0x102 (TR)";
-                } else if (subtype == 4) {
-                  corner_id = "0x101 (BL)";
-                } else {
-                  corner_id = "0x103 (BR)";
-                }
-                ImGui::Separator();
-                ImGui::TextColored(theme.status_active,
-                                   "Also used by corner override %s",
-                                   corner_id);
-              }
-              ImGui::EndTooltip();
-            }
-          }
-
-          ImGui::PopID();
-          custom_col = (custom_col + 1) % columns;
-        }
-      }
-    }
   }
 
   ImGui::EndChild();
+  DrawCustomObjectWorkshopPopup(item_size, columns);
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
@@ -950,6 +747,234 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
 
     ImGui::EndPopup();
   }
+}
+
+void DungeonObjectSelector::DrawCustomObjectWorkshopButton(int custom_count) {
+  if (open_custom_workshop_popup_) {
+    ImGui::OpenPopup("Custom Object Workshop");
+    open_custom_workshop_popup_ = false;
+  }
+
+  if (ImGui::SmallButton(absl::StrFormat(ICON_MD_PRECISION_MANUFACTURING
+                                         " Workshop (%d)",
+                                         custom_count)
+                             .c_str())) {
+    ImGui::OpenPopup("Custom Object Workshop");
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Browse and create custom dungeon objects without cluttering the main "
+        "selector.");
+  }
+}
+
+void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size,
+                                                          int columns) {
+  const auto& theme = AgentUI::GetTheme();
+  auto& obj_manager = zelda3::CustomObjectManager::Get();
+  const std::string custom_base_path = obj_manager.GetBasePath();
+
+  DrawNewCustomObjectDialog();
+
+  ImGui::SetNextWindowSize(ImVec2(860.0f, 620.0f), ImGuiCond_FirstUseEver);
+  if (!ImGui::BeginPopupModal("Custom Object Workshop", nullptr,
+                              ImGuiWindowFlags_None)) {
+    return;
+  }
+
+  ImGui::TextColored(theme.text_info,
+                     ICON_MD_PRECISION_MANUFACTURING " Custom Object Workshop");
+  ImGui::TextColored(theme.text_secondary_gray,
+                     "Create and place custom dungeon objects without mixing "
+                     "them into the main selector grid.");
+  ImGui::Separator();
+
+  if (ImGui::BeginTable(
+          "##CustomObjectToolbar", 2,
+          ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX)) {
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthStretch, 1.5f);
+    ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
+    ImGui::TableNextRow();
+
+    ImGui::TableNextColumn();
+    if (custom_base_path.empty()) {
+      ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING
+                         " Custom object folder is not configured.");
+    } else {
+      ImGui::TextColored(theme.text_secondary_gray,
+                         ICON_MD_FOLDER " Workshop folder");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", custom_base_path.c_str());
+      }
+    }
+
+    ImGui::TableNextColumn();
+    if (tile_editor_panel_) {
+      if (ImGui::Button(ICON_MD_ADD " New Custom Object", ImVec2(-1, 0))) {
+        show_create_dialog_ = true;
+        std::snprintf(create_filename_, sizeof(create_filename_),
+                      "custom_%02x_%02d.bin", create_object_id_,
+                      zelda3::CustomObjectManager::Get().GetSubtypeCount(
+                          create_object_id_));
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Create a new custom object from scratch");
+      }
+    }
+    if (ImGui::Button(ICON_MD_REFRESH " Reload Workshop", ImVec2(-1, 0))) {
+      obj_manager.ReloadAll();
+      InvalidatePreviewCache();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Reload custom object binaries and refresh their previews");
+    }
+    ImGui::EndTable();
+  }
+
+  ImGui::TextColored(
+      theme.text_secondary_gray, ICON_MD_INFO
+      " Corner overrides map to 0x31 subtypes 02, 04, 03, and 05.");
+  ImGui::Spacing();
+
+  if (ImGui::BeginChild("##CustomObjectGrid",
+                        ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4.0f),
+                        false, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    int custom_col = 0;
+    for (int obj_id : {0x31, 0x32}) {
+      if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
+        continue;
+      }
+      int subtype_count = obj_manager.GetSubtypeCount(obj_id);
+      for (int subtype = 0; subtype < subtype_count; ++subtype) {
+        std::string base_name = zelda3::GetObjectName(obj_id);
+        std::string subtype_name =
+            absl::StrFormat("%s %02X", base_name.c_str(), subtype);
+        if (!MatchesObjectSearch(obj_id, subtype_name, subtype)) {
+          continue;
+        }
+
+        if (custom_col > 0) {
+          ImGui::SameLine();
+        }
+
+        ImGui::PushID(obj_id * 1000 + subtype);
+
+        bool is_selected = (selected_object_id_ == obj_id &&
+                            (preview_object_.size_ & 0x1F) == subtype);
+        ImVec2 button_size(item_size, item_size);
+
+        if (ImGui::Selectable("", is_selected, 0, button_size)) {
+          SelectObject(obj_id, subtype);
+          ImGui::CloseCurrentPopup();
+        }
+
+        ImVec2 button_pos = ImGui::GetItemRectMin();
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        bool rendered = false;
+        if (enable_object_previews_) {
+          auto temp_obj = MakePreviewObject(obj_id);
+          temp_obj.size_ = subtype;
+          rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
+        }
+
+        if (!rendered) {
+          ImU32 obj_color = IM_COL32(100, 180, 120, 255);
+          ImU32 darker_color = IM_COL32(60, 100, 70, 255);
+
+          draw_list->AddRectFilledMultiColor(
+              button_pos,
+              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+              darker_color, darker_color, obj_color, obj_color);
+
+          std::string sub_text = absl::StrFormat("%02X", subtype);
+          ImVec2 sub_size = ImGui::CalcTextSize(sub_text.c_str());
+          ImVec2 sub_pos(button_pos.x + (item_size - sub_size.x) / 2,
+                         button_pos.y + (item_size - sub_size.y) / 2);
+          draw_list->AddText(sub_pos, IM_COL32(255, 255, 255, 220),
+                             sub_text.c_str());
+        }
+
+        ImU32 border_color =
+            is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
+                        : ImGui::GetColorU32(theme.panel_bg_darker);
+        float border_thickness = is_selected ? 3.0f : 1.0f;
+        draw_list->AddRect(
+            button_pos,
+            ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+            border_color, 0.0f, 0, border_thickness);
+
+        std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
+        ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+        ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                               button_pos.y + item_size - id_size.y - 2);
+        draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                           id_text.c_str());
+
+        if (ImGui::IsItemHovered()) {
+          gui::StyleColorGuard tooltip_guard(
+              {{ImGuiCol_PopupBg, theme.panel_bg_color},
+               {ImGuiCol_Border, theme.panel_border_color}});
+          if (ImGui::BeginTooltip()) {
+            const std::string filename =
+                obj_manager.ResolveFilename(obj_id, subtype);
+            const bool has_base = !custom_base_path.empty();
+            std::filesystem::path full_path =
+                has_base ? (std::filesystem::path(custom_base_path) / filename)
+                         : std::filesystem::path();
+            const bool file_exists = has_base && !filename.empty() &&
+                                     std::filesystem::exists(full_path);
+
+            ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
+                               obj_id, subtype);
+            ImGui::Text("%s", subtype_name.c_str());
+            ImGui::Separator();
+            ImGui::Text("File: %s",
+                        filename.empty() ? "(unmapped)" : filename.c_str());
+            if (!has_base) {
+              ImGui::TextColored(theme.text_warning_yellow,
+                                 "Folder not configured in project");
+            } else if (file_exists) {
+              ImGui::TextColored(theme.status_success, "File found");
+            } else {
+              ImGui::TextColored(theme.status_error, "File missing: %s",
+                                 full_path.string().c_str());
+            }
+
+            if (obj_id == 0x31 && subtype >= 2 && subtype <= 5) {
+              const char* corner_id = "";
+              if (subtype == 2) {
+                corner_id = "0x100 (TL)";
+              } else if (subtype == 3) {
+                corner_id = "0x102 (TR)";
+              } else if (subtype == 4) {
+                corner_id = "0x101 (BL)";
+              } else {
+                corner_id = "0x103 (BR)";
+              }
+              ImGui::Separator();
+              ImGui::TextColored(theme.status_active,
+                                 "Also used by corner override %s", corner_id);
+            }
+            ImGui::EndTooltip();
+          }
+        }
+
+        ImGui::PopID();
+        custom_col = (custom_col + 1) % columns;
+      }
+    }
+  }
+  ImGui::EndChild();
+
+  ImGui::Separator();
+  if (ImGui::Button(ICON_MD_CLOSE " Close")) {
+    ImGui::CloseCurrentPopup();
+  }
+
+  ImGui::EndPopup();
 }
 
 }  // namespace yaze::editor
