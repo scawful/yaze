@@ -76,7 +76,11 @@ std::string ReadFile(const std::filesystem::path& path) {
                      std::istreambuf_iterator<char>());
 }
 
-TEST(EditorManagerProjectActionsTest, BuildCurrentProjectUsesProjectBuildScript) {
+TEST(EditorManagerProjectActionsTest,
+     BuildCurrentProjectUsesProjectBuildScript) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -94,11 +98,11 @@ TEST(EditorManagerProjectActionsTest, BuildCurrentProjectUsesProjectBuildScript)
     script << "#!/bin/sh\n";
     script << "printf 'project-build' > build.marker\n";
   }
-  std::filesystem::permissions(
-      script_path,
-      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read |
-          std::filesystem::perms::owner_write,
-      std::filesystem::perm_options::add);
+  std::filesystem::permissions(script_path,
+                               std::filesystem::perms::owner_exec |
+                                   std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::owner_write,
+                               std::filesystem::perm_options::add);
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
@@ -109,10 +113,14 @@ TEST(EditorManagerProjectActionsTest, BuildCurrentProjectUsesProjectBuildScript)
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_TRUE(std::filesystem::exists(marker_path));
   EXPECT_EQ(ReadFile(marker_path), "project-build");
+#endif  // _WIN32
 }
 
 TEST(EditorManagerProjectActionsTest,
      BuildCurrentProjectFallsBackToManifestBuildScript) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -130,18 +138,19 @@ TEST(EditorManagerProjectActionsTest,
     script << "#!/bin/sh\n";
     script << "printf 'manifest-build' > manifest.marker\n";
   }
-  std::filesystem::permissions(
-      script_path,
-      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read |
-          std::filesystem::perms::owner_write,
-      std::filesystem::perm_options::add);
+  std::filesystem::permissions(script_path,
+                               std::filesystem::perms::owner_exec |
+                                   std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::owner_write,
+                               std::filesystem::perm_options::add);
 
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
   project->name = "BuildManifestScript";
   project->filepath = project_path.string();
   project->build_script.clear();
-  ASSERT_TRUE(project->hack_manifest.LoadFromString(R"json(
+  ASSERT_TRUE(project->hack_manifest
+                  .LoadFromString(R"json(
 {
   "manifest_version": 2,
   "hack_name": "Generic Hack",
@@ -155,10 +164,14 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_OK(manager->BuildCurrentProject());
   ASSERT_TRUE(std::filesystem::exists(marker_path));
   EXPECT_EQ(ReadFile(marker_path), "manifest-build");
+#endif  // _WIN32
 }
 
 TEST(EditorManagerProjectActionsTest,
      RunCurrentProjectPrefersManifestPatchedRomAndReloadsEmulator) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -175,7 +188,8 @@ TEST(EditorManagerProjectActionsTest,
   project->name = "RunProjectOutput";
   project->filepath = project_path.string();
   project->build_target = "missing_output.sfc";
-  ASSERT_TRUE(project->hack_manifest.LoadFromString(R"json(
+  ASSERT_TRUE(project->hack_manifest
+                  .LoadFromString(R"json(
 {
   "manifest_version": 2,
   "hack_name": "Generic Hack",
@@ -196,10 +210,14 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_FALSE(history.empty());
   EXPECT_NE(history.front().message.find("patched_valid.sfc"),
             std::string::npos);
+#endif  // _WIN32
 }
 
 TEST(EditorManagerProjectActionsTest,
      WorkflowCallbacksTriggerBuildRunAndOpenOutputPanel) {
+#ifdef _WIN32
+  GTEST_SKIP() << "Test uses #!/bin/sh shebang + chmod exec, POSIX-only";
+#else
   ScopedImGuiContext imgui;
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
@@ -218,11 +236,11 @@ TEST(EditorManagerProjectActionsTest,
     script << "#!/bin/sh\n";
     script << "printf 'callback-build' > build.marker\n";
   }
-  std::filesystem::permissions(
-      script_path,
-      std::filesystem::perms::owner_exec | std::filesystem::perms::owner_read |
-          std::filesystem::perms::owner_write,
-      std::filesystem::perm_options::add);
+  std::filesystem::permissions(script_path,
+                               std::filesystem::perms::owner_exec |
+                                   std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::owner_write,
+                               std::filesystem::perm_options::add);
   WriteRomFile(valid_rom, "CALLBACK RUN ROM");
 
   auto* project = manager->GetCurrentProject();
@@ -230,7 +248,8 @@ TEST(EditorManagerProjectActionsTest,
   project->name = "WorkflowCallbacks";
   project->filepath = project_path.string();
   project->build_script = "./build_ok.sh";
-  ASSERT_TRUE(project->hack_manifest.LoadFromString(R"json(
+  ASSERT_TRUE(project->hack_manifest
+                  .LoadFromString(R"json(
 {
   "manifest_version": 2,
   "hack_name": "Generic Hack",
@@ -276,6 +295,7 @@ TEST(EditorManagerProjectActionsTest,
   EXPECT_TRUE(manager->emulator().running());
   ASSERT_FALSE(ContentRegistry::Context::workflow_history().empty());
   EXPECT_EQ(ContentRegistry::Context::workflow_history().front().kind, "Run");
+#endif  // _WIN32
 }
 
 }  // namespace
