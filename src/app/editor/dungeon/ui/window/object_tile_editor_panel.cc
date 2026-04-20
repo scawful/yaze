@@ -18,6 +18,8 @@ void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
+  is_new_object_ = false;
+  current_layout_ = {};
   selected_cell_index_ = -1;
   selected_source_tile_ = -1;
   preview_dirty_ = true;
