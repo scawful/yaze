@@ -447,6 +447,8 @@ class DungeonCanvasViewer {
   std::string BuildRoomMetadataSummary(const zelda3::Room& room,
                                        int room_id) const;
   std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id) const;
+  std::string BuildSelectionIssueReport(const zelda3::Room& room,
+                                        int room_id) const;
   void OpenIssueReportPopup(const std::string& title,
                             const std::string& report_text);
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);

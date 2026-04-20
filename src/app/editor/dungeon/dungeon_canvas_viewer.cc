@@ -244,6 +244,104 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
   return report;
 }
 
+std::string DungeonCanvasViewer::BuildSelectionIssueReport(
+    const zelda3::Room& room, int room_id) const {
+  std::string report = "Dungeon Selection Issue Report\n";
+  report += BuildRoomMetadataSummary(room, room_id);
+  report +=
+      absl::StrFormat("\nInteraction mode: %s\nResolved palette group: 0x%02X",
+                      object_interaction_.mode_manager().GetModeName(),
+                      room.ResolveDungeonPaletteId());
+
+  const auto selected_objects = object_interaction_.GetSelectedObjectIndices();
+  if (!selected_objects.empty()) {
+    report +=
+        absl::StrFormat("\nSelected objects: %zu", selected_objects.size());
+    const auto& objects = room.GetTileObjects();
+    const size_t preview_count = std::min<size_t>(selected_objects.size(), 4);
+    for (size_t i = 0; i < preview_count; ++i) {
+      const size_t index = selected_objects[i];
+      if (index >= objects.size()) {
+        continue;
+      }
+      const auto& obj = objects[index];
+      report += absl::StrFormat(
+          "\n- object[%zu] id=0x%03X name=%s pos=(%d,%d) size=0x%02X "
+          "stream=%s draw_layer=%d",
+          index, obj.id_, GetObjectName(obj.id_).c_str(), obj.x_, obj.y_,
+          obj.size_, GetObjectStreamLabel(obj.GetLayerValue()),
+          static_cast<int>(
+              zelda3::MapRoomObjectListIndexToDrawLayer(obj.GetLayerValue())));
+    }
+    if (selected_objects.size() > preview_count) {
+      report += absl::StrFormat("\n- ... %zu more object(s)",
+                                selected_objects.size() - preview_count);
+    }
+    return report;
+  }
+
+  if (object_interaction_.HasEntitySelection()) {
+    const auto selected_entity = object_interaction_.GetSelectedEntity();
+    switch (selected_entity.type) {
+      case EntityType::Door: {
+        const auto& doors = room.GetDoors();
+        if (selected_entity.index < doors.size()) {
+          const auto& door = doors[selected_entity.index];
+          report += absl::StrFormat(
+              "\nSelected door[%zu]:\n"
+              "- type=%s (0x%02X)\n"
+              "- direction=%s (%d)\n"
+              "- position=%d",
+              selected_entity.index,
+              std::string(zelda3::GetDoorTypeName(door.type)).c_str(),
+              static_cast<int>(door.type),
+              std::string(zelda3::GetDoorDirectionName(door.direction)).c_str(),
+              static_cast<int>(door.direction),
+              static_cast<int>(door.position));
+          return report;
+        }
+        break;
+      }
+      case EntityType::Sprite: {
+        const auto& sprites = room.GetSprites();
+        if (selected_entity.index < sprites.size()) {
+          const auto& sprite = sprites[selected_entity.index];
+          report += absl::StrFormat(
+              "\nSelected sprite[%zu]:\n"
+              "- id=0x%02X\n"
+              "- name=%s\n"
+              "- pos=(%d,%d)\n"
+              "- layer=%d",
+              selected_entity.index, sprite.id(),
+              zelda3::ResolveSpriteName(sprite.id()), sprite.x(), sprite.y(),
+              sprite.layer());
+          return report;
+        }
+        break;
+      }
+      case EntityType::Item: {
+        const auto& items = room.GetPotItems();
+        if (selected_entity.index < items.size()) {
+          const auto& item = items[selected_entity.index];
+          report += absl::StrFormat(
+              "\nSelected pot item[%zu]:\n"
+              "- item=0x%02X\n"
+              "- pixel_pos=(%d,%d)",
+              selected_entity.index, item.item, item.GetPixelX(),
+              item.GetPixelY());
+          return report;
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  report += "\nNo active object or entity selection.";
+  return report;
+}
+
 void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
                                                const std::string& report_text) {
   issue_report_popup_title_ = title;
@@ -698,6 +796,26 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           ImGui::SetClipboardText(
               BuildRoomMetadataSummary((*rooms_)[room_id], room_id).c_str());
         }));
+    if (object_interaction_.GetSelectionCount() > 0 ||
+        object_interaction_.HasEntitySelection()) {
+      report_menu.subitems.push_back(gui::CanvasMenuItem(
+          "Preview Selection Report", ICON_MD_FACT_CHECK, [this, room_id]() {
+            if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+              return;
+            }
+            OpenIssueReportPopup(
+                absl::StrFormat("Selection Report for Room 0x%03X", room_id),
+                BuildSelectionIssueReport((*rooms_)[room_id], room_id));
+          }));
+      report_menu.subitems.push_back(gui::CanvasMenuItem(
+          "Copy Selection Report", ICON_MD_CONTENT_COPY, [this, room_id]() {
+            if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+              return;
+            }
+            ImGui::SetClipboardText(
+                BuildSelectionIssueReport((*rooms_)[room_id], room_id).c_str());
+          }));
+    }
     report_menu.separator_after = true;
     room_menu.subitems.push_back(report_menu);
 
