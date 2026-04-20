@@ -199,6 +199,22 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
   }
 }
 
+void ObjectTileEditorPanel::SyncSourceSelectionFromSelectedCell() {
+  if (selected_cell_index_ < 0 ||
+      selected_cell_index_ >= static_cast<int>(current_layout_.cells.size())) {
+    return;
+  }
+
+  const auto& cell = current_layout_.cells[selected_cell_index_];
+  selected_source_tile_ = static_cast<int>(cell.tile_info.id_);
+
+  const int cell_palette = static_cast<int>(cell.tile_info.palette_);
+  if (source_palette_ != cell_palette) {
+    source_palette_ = cell_palette;
+    atlas_dirty_ = true;
+  }
+}
+
 void ObjectTileEditorPanel::DrawTileGrid() {
   if (preview_dirty_) {
     RenderObjectPreview();
@@ -263,6 +279,7 @@ void ObjectTileEditorPanel::DrawTileGrid() {
       if (current_layout_.cells[idx].rel_x == click_tile_x &&
           current_layout_.cells[idx].rel_y == click_tile_y) {
         selected_cell_index_ = idx;
+        SyncSourceSelectionFromSelectedCell();
         break;
       }
     }
@@ -394,6 +411,7 @@ void ObjectTileEditorPanel::DrawTileProperties() {
     cell.tile_info.id_ = static_cast<uint16_t>(tile_id & 0x3FF);
     cell.modified = true;
     preview_dirty_ = true;
+    SyncSourceSelectionFromSelectedCell();
   }
   ImGui::SameLine();
 
@@ -404,6 +422,7 @@ void ObjectTileEditorPanel::DrawTileProperties() {
     cell.tile_info.palette_ = static_cast<uint8_t>(pal);
     cell.modified = true;
     preview_dirty_ = true;
+    SyncSourceSelectionFromSelectedCell();
   }
   ImGui::SameLine();
 
@@ -508,6 +527,7 @@ void ObjectTileEditorPanel::DrawActionBar() {
   if (ImGui::Button(ICON_MD_UNDO " Revert")) {
     current_layout_.RevertAll();
     preview_dirty_ = true;
+    SyncSourceSelectionFromSelectedCell();
   }
   if (!has_mods)
     ImGui::EndDisabled();
@@ -546,15 +566,19 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
 
   if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false)) {
     selected_cell_index_ = find_neighbor(-1, 0);
+    SyncSourceSelectionFromSelectedCell();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, false)) {
     selected_cell_index_ = find_neighbor(1, 0);
+    SyncSourceSelectionFromSelectedCell();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
     selected_cell_index_ = find_neighbor(0, -1);
+    SyncSourceSelectionFromSelectedCell();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
     selected_cell_index_ = find_neighbor(0, 1);
+    SyncSourceSelectionFromSelectedCell();
   }
 
   // Number keys 0-7: set palette on selected cell
@@ -565,6 +589,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
         cell.tile_info.palette_ = static_cast<uint8_t>(key);
         cell.modified = true;
         preview_dirty_ = true;
+        SyncSourceSelectionFromSelectedCell();
       }
     }
 
@@ -603,6 +628,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
   if (ImGui::IsKeyPressed(ImGuiKey_Tab, false)) {
     if (cell_count > 0) {
       selected_cell_index_ = (selected_cell_index_ + 1) % cell_count;
+      SyncSourceSelectionFromSelectedCell();
     }
   }
 }

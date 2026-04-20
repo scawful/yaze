@@ -19,6 +19,14 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.selected_source_tile_;
   }
 
+  static int SourcePalette(const ObjectTileEditorPanel& panel) {
+    return panel.source_palette_;
+  }
+
+  static bool AtlasDirty(const ObjectTileEditorPanel& panel) {
+    return panel.atlas_dirty_;
+  }
+
   static bool ShowSharedConfirm(const ObjectTileEditorPanel& panel) {
     return panel.show_shared_confirm_;
   }
@@ -68,6 +76,28 @@ struct ObjectTileEditorPanelTestAccess {
 
   static void RenderTile8Atlas(ObjectTileEditorPanel& panel) {
     panel.RenderTile8Atlas();
+  }
+
+  static void SetLayout(ObjectTileEditorPanel& panel,
+                        zelda3::ObjectTileLayout layout) {
+    panel.current_layout_ = std::move(layout);
+  }
+
+  static void SetSelectedCellIndex(ObjectTileEditorPanel& panel, int index) {
+    panel.selected_cell_index_ = index;
+  }
+
+  static void SetSourcePalette(ObjectTileEditorPanel& panel, int palette) {
+    panel.source_palette_ = palette;
+  }
+
+  static void SetAtlasDirty(ObjectTileEditorPanel& panel, bool dirty) {
+    panel.atlas_dirty_ = dirty;
+  }
+
+  static void SyncSourceSelectionFromSelectedCell(
+      ObjectTileEditorPanel& panel) {
+    panel.SyncSourceSelectionFromSelectedCell();
   }
 };
 
@@ -186,6 +216,54 @@ TEST(ObjectTileEditorPanelTest, RenderWithoutRoomContextClearsStaleBitmaps) {
 
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SyncSourceSelectionFromSelectedCellUsesSelectedCellTileAndPalette) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/2, /*height=*/1, /*object_id=*/0x123, "custom.bin");
+  layout.cells[1].tile_info =
+      gfx::TileInfo(/*id=*/0x56, /*palette=*/5, false, false, false);
+  layout.cells[1].modified = true;
+
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 2);
+  ObjectTileEditorPanelTestAccess::SetAtlasDirty(panel, false);
+
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x56);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 5);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SyncSourceSelectionFromSelectedCellKeepsAtlasCleanWhenPaletteMatches) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, /*object_id=*/0x123, "custom.bin");
+  layout.cells[0].tile_info =
+      gfx::TileInfo(/*id=*/0x2A, /*palette=*/2, false, false, false);
+  layout.cells[0].modified = true;
+
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 0);
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 2);
+  ObjectTileEditorPanelTestAccess::SetAtlasDirty(panel, false);
+
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x2A);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
 }
 
 }  // namespace

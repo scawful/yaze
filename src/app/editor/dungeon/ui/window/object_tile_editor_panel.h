@@ -72,6 +72,7 @@ class ObjectTileEditorPanel : public WindowContent {
 
   void RenderObjectPreview();
   void RenderTile8Atlas();
+  void SyncSourceSelectionFromSelectedCell();
 
   // Apply: write back, re-render room, reset modified flags.
   // If confirm_shared is true and tile data is shared, opens confirmation modal
