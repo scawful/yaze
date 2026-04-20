@@ -16,6 +16,45 @@
 namespace yaze {
 namespace zelda3 {
 
+namespace {
+
+constexpr int kPaletteBankSize = 16;
+
+gfx::SnesPalette BuildPaddedPaletteBank(const gfx::SnesPalette& source) {
+  gfx::SnesPalette padded;
+  for (size_t i = 0; i < static_cast<size_t>(kPaletteBankSize); ++i) {
+    if (i < source.size()) {
+      padded.AddColor(source[i]);
+    } else {
+      padded.AddColor(gfx::SnesColor());
+    }
+  }
+  return padded;
+}
+
+gfx::SnesPalette BuildCombinedPaletteBanks(const gfx::PaletteGroup& palette) {
+  gfx::SnesPalette combined;
+  for (int i = 0; i < palette.size(); ++i) {
+    const auto padded = BuildPaddedPaletteBank(palette.palette_ref(i));
+    for (size_t color = 0; color < padded.size(); ++color) {
+      combined.AddColor(padded[color]);
+    }
+  }
+  return combined;
+}
+
+int ResolvePaletteIndex(const gfx::PaletteGroup& palette, int requested) {
+  if (palette.empty()) {
+    return 0;
+  }
+  if (requested >= 0 && requested < static_cast<int>(palette.size())) {
+    return requested;
+  }
+  return 0;
+}
+
+}  // namespace
+
 // =============================================================================
 // ObjectTileLayout
 // =============================================================================
@@ -229,11 +268,10 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
   std::vector<uint8_t> pixel_data(bmp_w * bmp_h, 0);
   bitmap.Create(bmp_w, bmp_h, 8, pixel_data);
 
-  // Apply palette from the room's palette group (use dungeon palette index 2)
-  if (palette.size() > 2) {
-    bitmap.SetPalette(palette[2]);
-  } else if (palette.size() > 0) {
-    bitmap.SetPalette(palette[0]);
+  // Preview rendering uses tile palette bank offsets (pal * 16), so the bitmap
+  // needs a combined banked palette rather than a single sub-palette.
+  if (!palette.empty()) {
+    bitmap.SetPalette(BuildCombinedPaletteBanks(palette));
   }
 
   // Use a temporary ObjectDrawer just for its DrawTileToBitmap utility
@@ -259,10 +297,10 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(gfx::Bitmap& atlas,
   std::vector<uint8_t> pixel_data(kAtlasWidthPx * kAtlasHeightPx, 0);
   atlas.Create(kAtlasWidthPx, kAtlasHeightPx, 8, pixel_data);
 
-  if (palette.size() > static_cast<size_t>(display_palette)) {
-    atlas.SetPalette(palette[display_palette]);
-  } else if (palette.size() > 0) {
-    atlas.SetPalette(palette[0]);
+  const int resolved_palette = ResolvePaletteIndex(palette, display_palette);
+  if (!palette.empty()) {
+    atlas.SetPalette(
+        BuildPaddedPaletteBank(palette.palette_ref(resolved_palette)));
   }
 
   ObjectDrawer drawer(rom_, 0, room_gfx_buffer);
@@ -273,9 +311,10 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(gfx::Bitmap& atlas,
     int px = col * 8;
     int py = row * 8;
 
-    gfx::TileInfo info(static_cast<uint16_t>(tile_id),
-                       static_cast<uint8_t>(display_palette), false, false,
-                       false);
+    // The atlas bitmap already contains the selected palette bank, so tiles
+    // should draw into palette row 0 inside that local 16-color palette.
+    gfx::TileInfo info(static_cast<uint16_t>(tile_id), /*palette=*/0, false,
+                       false, false);
     drawer.DrawTileToBitmap(atlas, info, px, py, room_gfx_buffer);
   }
 

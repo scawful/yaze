@@ -223,13 +223,26 @@ TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesThirdPaletteWhenAvailable) {
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditor editor(&rom);
-  auto layout = ObjectTileLayout::CreateEmpty(2, 1, /*object_id=*/0x40, "");
-  for (auto& cell : layout.cells) {
-    cell.modified = false;
-  }
+  ObjectTileLayout layout;
+  layout.bounds_width = 2;
+  layout.bounds_height = 1;
+
+  ObjectTileLayout::Cell left;
+  left.rel_x = 0;
+  left.rel_y = 0;
+  left.tile_info = gfx::TileInfo(/*id=*/0, /*palette=*/0, false, false, false);
+  layout.cells.push_back(left);
+
+  ObjectTileLayout::Cell right;
+  right.rel_x = 1;
+  right.rel_y = 0;
+  right.tile_info = gfx::TileInfo(/*id=*/1, /*palette=*/1, false, false, false);
+  layout.cells.push_back(right);
 
   const auto palette_group = MakeTestPaletteGroup();
   std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  gfx_buffer[0] = 1;
+  gfx_buffer[8] = 1;
   gfx::Bitmap bitmap;
 
   auto status = editor.RenderLayoutToBitmap(layout, bitmap, gfx_buffer.data(),
@@ -238,7 +251,15 @@ TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesThirdPaletteWhenAvailable) {
   EXPECT_TRUE(bitmap.is_active());
   EXPECT_EQ(bitmap.width(), 16);
   EXPECT_EQ(bitmap.height(), 8);
-  EXPECT_EQ(bitmap.palette(), palette_group.palette_ref(2));
+  EXPECT_EQ(bitmap.palette().size(), 48u);
+  EXPECT_EQ(bitmap.palette()[0].snes(), palette_group.palette_ref(0)[0].snes());
+  EXPECT_EQ(bitmap.palette()[1].snes(), palette_group.palette_ref(0)[1].snes());
+  EXPECT_EQ(bitmap.palette()[16].snes(),
+            palette_group.palette_ref(1)[0].snes());
+  EXPECT_EQ(bitmap.palette()[17].snes(),
+            palette_group.palette_ref(1)[1].snes());
+  EXPECT_EQ(bitmap.mutable_data()[0], 1);
+  EXPECT_EQ(bitmap.mutable_data()[8], 17);
 }
 
 TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
@@ -248,6 +269,7 @@ TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
   ObjectTileEditor editor(&rom);
   const auto palette_group = MakeTestPaletteGroup();
   std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  gfx_buffer[0] = 1;
   gfx::Bitmap atlas;
 
   auto status = editor.BuildTile8Atlas(atlas, gfx_buffer.data(), palette_group,
@@ -256,7 +278,28 @@ TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
   EXPECT_TRUE(atlas.is_active());
   EXPECT_EQ(atlas.width(), ObjectTileEditor::kAtlasWidthPx);
   EXPECT_EQ(atlas.height(), ObjectTileEditor::kAtlasHeightPx);
-  EXPECT_EQ(atlas.palette(), palette_group.palette_ref(1));
+  EXPECT_EQ(atlas.palette().size(), 16u);
+  EXPECT_EQ(atlas.palette()[0].snes(), palette_group.palette_ref(1)[0].snes());
+  EXPECT_EQ(atlas.palette()[1].snes(), palette_group.palette_ref(1)[1].snes());
+  EXPECT_EQ(atlas.mutable_data()[0], 1);
+}
+
+TEST(ObjectTileEditorTest,
+     BuildTile8AtlasFallsBackToFirstPaletteWhenRequestedPaletteMissing) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  const auto palette_group = MakeTestPaletteGroup();
+  std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  gfx::Bitmap atlas;
+
+  auto status = editor.BuildTile8Atlas(atlas, gfx_buffer.data(), palette_group,
+                                       /*display_palette=*/7);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(atlas.palette().size(), 16u);
+  EXPECT_EQ(atlas.palette()[0].snes(), palette_group.palette_ref(0)[0].snes());
+  EXPECT_EQ(atlas.palette()[1].snes(), palette_group.palette_ref(0)[1].snes());
 }
 
 TEST(ObjectTileEditorTest, CustomObjectRoundtrip) {
