@@ -297,14 +297,31 @@ TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
 
   EXPECT_TRUE(panel.IsOpen());
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), -1);
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), -1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x124);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     OpenForNewObjectSelectsFirstCellAndKeepsDefaultPaletteInSync) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "selected.bin",
+                         /*object_id=*/0x124, /*room_id=*/1, nullptr);
+
+  EXPECT_TRUE(panel.IsOpen());
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
 }
 
 TEST(ObjectTileEditorPanelTest, RenderWithoutRoomContextClearsStaleBitmaps) {

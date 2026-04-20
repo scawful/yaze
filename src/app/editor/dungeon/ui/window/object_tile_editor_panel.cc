@@ -48,6 +48,7 @@ void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
                                                      current_palette_group_);
   if (layout_or.ok()) {
     current_layout_ = std::move(layout_or.value());
+    SelectFirstCellIfAvailable();
   }
 }
 
@@ -64,6 +65,7 @@ void ObjectTileEditorPanel::OpenForNewObject(int width, int height,
 
   current_layout_ =
       zelda3::ObjectTileLayout::CreateEmpty(width, height, object_id, filename);
+  SelectFirstCellIfAvailable();
 }
 
 void ObjectTileEditorPanel::Close() {
@@ -100,6 +102,17 @@ std::string ObjectTileEditorPanel::BuildWindowTitle() const {
   return absl::StrFormat(ICON_MD_GRID_ON " Object 0x%03X - %s###ObjTileEditor",
                          current_object_id_,
                          zelda3::GetObjectName(current_object_id_).c_str());
+}
+
+void ObjectTileEditorPanel::SelectFirstCellIfAvailable() {
+  if (current_layout_.cells.empty()) {
+    selected_cell_index_ = -1;
+    selected_source_tile_ = -1;
+    return;
+  }
+
+  selected_cell_index_ = 0;
+  SyncSourceSelectionFromSelectedCell();
 }
 
 bool ObjectTileEditorPanel::HasRenderableRoomContext() const {
