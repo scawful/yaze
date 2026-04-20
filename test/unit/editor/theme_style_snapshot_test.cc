@@ -248,5 +248,52 @@ TEST_F(ThemeStyleSnapshotTest, FileThemesHydrateEnhancedSemanticDefaults) {
   }
 }
 
+TEST_F(ThemeStyleSnapshotTest,
+       ParseThemeFileLoadsEnhancedSemanticAndEditorFields) {
+  auto& mgr = ThemeManager::Get();
+  Theme theme = *mgr.GetTheme("YAZE Tre");
+  theme.name = "YAZE Tre Roundtrip Test";
+
+  theme.text_highlight = {0.11f, 0.22f, 0.33f, 0.44f};
+  theme.link_hover = {0.21f, 0.32f, 0.43f, 1.0f};
+  theme.code_background = {0.07f, 0.08f, 0.09f, 1.0f};
+  theme.success_light = {0.31f, 0.72f, 0.43f, 1.0f};
+  theme.active_selection = {0.91f, 0.61f, 0.21f, 0.51f};
+  theme.focus_border = {0.17f, 0.47f, 0.77f, 1.0f};
+  theme.editor_background = {0.09f, 0.14f, 0.19f, 1.0f};
+  theme.editor_grid = {0.23f, 0.28f, 0.33f, 0.39f};
+  theme.editor_cursor = {0.95f, 0.9f, 0.85f, 1.0f};
+  theme.editor_selection = {0.24f, 0.44f, 0.64f, 0.34f};
+
+  const auto temp_path =
+      std::filesystem::temp_directory_path() / "yaze_theme_roundtrip.theme";
+  ASSERT_TRUE(mgr.SaveThemeToFile(theme, temp_path.string()).ok());
+  ASSERT_TRUE(mgr.LoadThemeFromFile(temp_path.string()).ok());
+  const Theme* parsed = mgr.GetTheme(theme.name);
+  ASSERT_NE(parsed, nullptr);
+
+  auto expect_same = [](const Color& lhs, const Color& rhs) {
+    constexpr float kEps = 1.0f / 255.0f + 1e-5f;
+    EXPECT_NEAR(lhs.red, rhs.red, kEps);
+    EXPECT_NEAR(lhs.green, rhs.green, kEps);
+    EXPECT_NEAR(lhs.blue, rhs.blue, kEps);
+    EXPECT_NEAR(lhs.alpha, rhs.alpha, kEps);
+  };
+
+  expect_same(parsed->text_highlight, theme.text_highlight);
+  expect_same(parsed->link_hover, theme.link_hover);
+  expect_same(parsed->code_background, theme.code_background);
+  expect_same(parsed->success_light, theme.success_light);
+  expect_same(parsed->active_selection, theme.active_selection);
+  expect_same(parsed->focus_border, theme.focus_border);
+  expect_same(parsed->editor_background, theme.editor_background);
+  expect_same(parsed->editor_grid, theme.editor_grid);
+  expect_same(parsed->editor_cursor, theme.editor_cursor);
+  expect_same(parsed->editor_selection, theme.editor_selection);
+
+  std::error_code ec;
+  std::filesystem::remove(temp_path, ec);
+}
+
 }  // namespace
 }  // namespace yaze::gui
