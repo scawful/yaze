@@ -31,6 +31,10 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.atlas_dirty_;
   }
 
+  static bool PreviewDirty(const ObjectTileEditorPanel& panel) {
+    return panel.preview_dirty_;
+  }
+
   static bool ShowSharedConfirm(const ObjectTileEditorPanel& panel) {
     return panel.show_shared_confirm_;
   }
@@ -57,6 +61,32 @@ struct ObjectTileEditorPanelTestAccess {
 
   static bool HasActiveAtlas(const ObjectTileEditorPanel& panel) {
     return panel.tile8_atlas_bmp_.is_active();
+  }
+
+  static int PreviewWidth(const ObjectTileEditorPanel& panel) {
+    return panel.object_preview_bmp_.width();
+  }
+
+  static int PreviewHeight(const ObjectTileEditorPanel& panel) {
+    return panel.object_preview_bmp_.height();
+  }
+
+  static int AtlasWidth(const ObjectTileEditorPanel& panel) {
+    return panel.tile8_atlas_bmp_.width();
+  }
+
+  static int AtlasHeight(const ObjectTileEditorPanel& panel) {
+    return panel.tile8_atlas_bmp_.height();
+  }
+
+  static uint16_t PreviewPaletteColor(const ObjectTileEditorPanel& panel,
+                                      size_t index) {
+    return panel.object_preview_bmp_.palette()[index].snes();
+  }
+
+  static uint16_t AtlasPaletteColor(const ObjectTileEditorPanel& panel,
+                                    size_t index) {
+    return panel.tile8_atlas_bmp_.palette()[index].snes();
   }
 
   static void SeedTransientState(ObjectTileEditorPanel& panel) {
@@ -120,9 +150,42 @@ struct ObjectTileEditorPanelTestAccess {
     ASSERT_FALSE(panel.current_layout_.cells.empty());
     panel.current_layout_.cells[0].modified = true;
   }
+
+  static void SetFirstCellTileAndPalette(ObjectTileEditorPanel& panel,
+                                         uint16_t tile_id, uint8_t palette) {
+    ASSERT_FALSE(panel.current_layout_.cells.empty());
+    panel.current_layout_.cells[0].tile_info.id_ = tile_id;
+    panel.current_layout_.cells[0].tile_info.palette_ = palette;
+    panel.current_layout_.cells[0].modified = true;
+  }
+
+  static bool HasModifications(const ObjectTileEditorPanel& panel) {
+    return panel.current_layout_.HasModifications();
+  }
 };
 
 namespace {
+
+gfx::PaletteGroup MakeTestPaletteGroup(int base) {
+  gfx::PaletteGroup group("test");
+
+  gfx::SnesPalette pal0;
+  pal0.AddColor(gfx::SnesColor(base + 1, base + 2, base + 3));
+  pal0.AddColor(gfx::SnesColor(base + 4, base + 5, base + 6));
+  group.AddPalette(pal0);
+
+  gfx::SnesPalette pal1;
+  pal1.AddColor(gfx::SnesColor(base + 7, base + 8, base + 9));
+  pal1.AddColor(gfx::SnesColor(base + 10, base + 11, base + 12));
+  group.AddPalette(pal1);
+
+  gfx::SnesPalette pal2;
+  pal2.AddColor(gfx::SnesColor(base + 13, base + 14, base + 15));
+  pal2.AddColor(gfx::SnesColor(base + 16, base + 17, base + 18));
+  group.AddPalette(pal2);
+
+  return group;
+}
 
 std::filesystem::path MakeTempDir(const std::string& stem) {
   auto now = std::to_string(
@@ -358,6 +421,85 @@ TEST(ObjectTileEditorPanelTest, ApplyChangesForNewObjectFiresCallbackOnce) {
   ObjectTileEditorPanelTestAccess::MarkFirstCellModified(panel);
   ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
   EXPECT_EQ(callback_count, 1);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     ApplyChangesWithRoomContextRefreshesPreviewAndAtlasImmediately) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_apply_refresh"));
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonRoomStore rooms(&rom);
+  (void)rooms[0];
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  panel.SetCurrentPaletteGroup(MakeTestPaletteGroup(/*base=*/0));
+  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "apply_refresh.bin",
+                         /*object_id=*/0x31, /*room_id=*/0, &rooms);
+  ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x24, /*palette=*/2);
+
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewWidth(panel), 16);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewHeight(panel), 16);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasWidth(panel),
+            zelda3::ObjectTileEditor::kAtlasWidthPx);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasHeight(panel),
+            zelda3::ObjectTileEditor::kAtlasHeightPx);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     PaletteChangeAfterApplyRefreshesPreviewAndAtlasWithoutStalePaletteData) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_palette_refresh"));
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonRoomStore rooms(&rom);
+  (void)rooms[0];
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  const auto first_palette_group = MakeTestPaletteGroup(/*base=*/0);
+  const auto second_palette_group = MakeTestPaletteGroup(/*base=*/20);
+  panel.SetCurrentPaletteGroup(first_palette_group);
+  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "palette_refresh.bin",
+                         /*object_id=*/0x31, /*room_id=*/0, &rooms);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x18, /*palette=*/2);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewPaletteColor(panel, 0),
+            first_palette_group.palette_ref(0)[0].snes());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPaletteColor(panel, 0),
+            first_palette_group.palette_ref(2)[0].snes());
+
+  panel.SetCurrentPaletteGroup(second_palette_group);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+
+  ObjectTileEditorPanelTestAccess::RenderObjectPreview(panel);
+  ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewPaletteColor(panel, 0),
+            second_palette_group.palette_ref(0)[0].snes());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPaletteColor(panel, 0),
+            second_palette_group.palette_ref(2)[0].snes());
 }
 
 }  // namespace

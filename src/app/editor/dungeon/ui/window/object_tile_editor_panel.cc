@@ -102,6 +102,24 @@ std::string ObjectTileEditorPanel::BuildWindowTitle() const {
                          zelda3::GetObjectName(current_object_id_).c_str());
 }
 
+bool ObjectTileEditorPanel::HasRenderableRoomContext() const {
+  return rooms_ != nullptr && current_room_id_ >= 0 &&
+         current_room_id_ < static_cast<int>(rooms_->size()) &&
+         !current_layout_.cells.empty();
+}
+
+void ObjectTileEditorPanel::RefreshRenderedViewsFromCurrentRoom() {
+  preview_dirty_ = true;
+  atlas_dirty_ = true;
+
+  if (!HasRenderableRoomContext()) {
+    return;
+  }
+
+  RenderObjectPreview();
+  RenderTile8Atlas();
+}
+
 void ObjectTileEditorPanel::Draw(bool* p_open) {
   if (!is_open_ || current_layout_.cells.empty())
     return;
@@ -467,16 +485,13 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
 
   auto status = tile_editor_->WriteBack(current_layout_);
   if (status.ok()) {
-    preview_dirty_ = true;
-    atlas_dirty_ = true;
-
     // Re-render room after applying changes
-    if (rooms_ && current_room_id_ >= 0 &&
-        current_room_id_ < static_cast<int>(rooms_->size())) {
+    if (HasRenderableRoomContext()) {
       auto& room = (*rooms_)[current_room_id_];
       room.MarkObjectsDirty();
       room.RenderRoomGraphics();
     }
+
     // Update original words to match current state
     for (auto& cell : current_layout_.cells) {
       if (cell.modified) {
@@ -494,6 +509,8 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
       }
       is_new_object_ = false;
     }
+
+    RefreshRenderedViewsFromCurrentRoom();
   }
 }
 
