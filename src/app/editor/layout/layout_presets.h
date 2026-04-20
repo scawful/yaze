@@ -203,6 +203,8 @@ class LayoutPresets {
     static constexpr const char* kDungeonEntrances =
         "dungeon.entrance_properties";
     static constexpr const char* kDungeonRoomGraphics = "dungeon.room_graphics";
+    static constexpr const char* kDungeonObjectSelector =
+        "dungeon.object_selector";
     static constexpr const char* kDungeonObjectEditor = "dungeon.object_editor";
     static constexpr const char* kDungeonDoorEditor = "dungeon.door_editor";
     static constexpr const char* kDungeonPaletteEditor =
