@@ -83,21 +83,30 @@ void ObjectTileEditorPanel::SetCurrentPaletteGroup(
   atlas_dirty_ = true;
 }
 
+std::string ObjectTileEditorPanel::BuildWindowTitle() const {
+  if (is_new_object_) {
+    return absl::StrFormat(
+        ICON_MD_ADD_BOX " New Object (%dx%d) - %s###ObjTileEditor",
+        current_layout_.bounds_width, current_layout_.bounds_height,
+        current_layout_.custom_filename.c_str());
+  }
+
+  if (current_layout_.is_custom && !current_layout_.custom_filename.empty()) {
+    return absl::StrFormat(
+        ICON_MD_GRID_ON " Custom Object 0x%03X - %s###ObjTileEditor",
+        current_object_id_, current_layout_.custom_filename.c_str());
+  }
+
+  return absl::StrFormat(ICON_MD_GRID_ON " Object 0x%03X - %s###ObjTileEditor",
+                         current_object_id_,
+                         zelda3::GetObjectName(current_object_id_).c_str());
+}
+
 void ObjectTileEditorPanel::Draw(bool* p_open) {
   if (!is_open_ || current_layout_.cells.empty())
     return;
 
-  std::string title;
-  if (is_new_object_) {
-    title = absl::StrFormat(
-        ICON_MD_ADD_BOX " New Object (%dx%d) - %s###ObjTileEditor",
-        current_layout_.bounds_width, current_layout_.bounds_height,
-        current_layout_.custom_filename.c_str());
-  } else {
-    title = absl::StrFormat(
-        ICON_MD_GRID_ON " Object 0x%03X - %s###ObjTileEditor",
-        current_object_id_, zelda3::GetObjectName(current_object_id_).c_str());
-  }
+  const std::string title = BuildWindowTitle();
 
   ImGui::SetNextWindowSize(ImVec2(550, 500), ImGuiCond_FirstUseEver);
   if (!ImGui::Begin(title.c_str(), &is_open_)) {
@@ -476,10 +485,13 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
       }
     }
 
-    // Fire creation callback on first save of a new object
-    if (is_new_object_ && on_object_created_) {
-      on_object_created_(current_layout_.object_id,
-                         current_layout_.custom_filename);
+    // Successful first save should always exit new-object mode. If the caller
+    // wired a callback, notify it exactly once as part of that transition.
+    if (is_new_object_) {
+      if (on_object_created_) {
+        on_object_created_(current_layout_.object_id,
+                           current_layout_.custom_filename);
+      }
       is_new_object_ = false;
     }
   }
