@@ -16,6 +16,27 @@ namespace yaze {
 namespace zelda3 {
 namespace {
 
+gfx::PaletteGroup MakeTestPaletteGroup() {
+  gfx::PaletteGroup group("test");
+
+  gfx::SnesPalette pal0;
+  pal0.AddColor(gfx::SnesColor(1, 2, 3));
+  pal0.AddColor(gfx::SnesColor(4, 5, 6));
+  group.AddPalette(pal0);
+
+  gfx::SnesPalette pal1;
+  pal1.AddColor(gfx::SnesColor(7, 8, 9));
+  pal1.AddColor(gfx::SnesColor(10, 11, 12));
+  group.AddPalette(pal1);
+
+  gfx::SnesPalette pal2;
+  pal2.AddColor(gfx::SnesColor(13, 14, 15));
+  pal2.AddColor(gfx::SnesColor(16, 17, 18));
+  group.AddPalette(pal2);
+
+  return group;
+}
+
 TEST(ObjectTileLayoutTest, FromTracesEmptyInput) {
   std::vector<ObjectDrawer::TileTrace> traces;
   auto layout = ObjectTileLayout::FromTraces(traces);
@@ -88,6 +109,28 @@ TEST(ObjectTileLayoutTest, ModificationsAndRevert) {
   EXPECT_EQ(layout.cells[0].tile_info.id_, 0x100);
 }
 
+TEST(ObjectTileLayoutTest, CreateEmptyBuildsCustomModifiedGrid) {
+  auto layout =
+      ObjectTileLayout::CreateEmpty(2, 3, /*object_id=*/0x123, "custom.bin");
+
+  EXPECT_EQ(layout.object_id, 0x123);
+  EXPECT_EQ(layout.bounds_width, 2);
+  EXPECT_EQ(layout.bounds_height, 3);
+  EXPECT_TRUE(layout.is_custom);
+  EXPECT_EQ(layout.custom_filename, "custom.bin");
+  EXPECT_EQ(layout.tile_data_address, -1);
+  ASSERT_EQ(layout.cells.size(), 6u);
+
+  for (const auto& cell : layout.cells) {
+    EXPECT_TRUE(cell.modified);
+    EXPECT_EQ(cell.tile_info.palette_, 2);
+  }
+
+  ASSERT_NE(layout.FindCell(1, 2), nullptr);
+  EXPECT_EQ(layout.FindCell(1, 2)->rel_x, 1);
+  EXPECT_EQ(layout.FindCell(1, 2)->rel_y, 2);
+}
+
 TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -110,6 +153,47 @@ TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
   uint16_t word = static_cast<uint16_t>(low | (high << 8));
 
   EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
+}
+
+TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesThirdPaletteWhenAvailable) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  auto layout = ObjectTileLayout::CreateEmpty(2, 1, /*object_id=*/0x40, "");
+  for (auto& cell : layout.cells) {
+    cell.modified = false;
+  }
+
+  const auto palette_group = MakeTestPaletteGroup();
+  std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  gfx::Bitmap bitmap;
+
+  auto status = editor.RenderLayoutToBitmap(layout, bitmap, gfx_buffer.data(),
+                                            palette_group);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_TRUE(bitmap.is_active());
+  EXPECT_EQ(bitmap.width(), 16);
+  EXPECT_EQ(bitmap.height(), 8);
+  EXPECT_EQ(bitmap.palette(), palette_group.palette_ref(2));
+}
+
+TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  const auto palette_group = MakeTestPaletteGroup();
+  std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  gfx::Bitmap atlas;
+
+  auto status = editor.BuildTile8Atlas(atlas, gfx_buffer.data(), palette_group,
+                                       /*display_palette=*/1);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_TRUE(atlas.is_active());
+  EXPECT_EQ(atlas.width(), ObjectTileEditor::kAtlasWidthPx);
+  EXPECT_EQ(atlas.height(), ObjectTileEditor::kAtlasHeightPx);
+  EXPECT_EQ(atlas.palette(), palette_group.palette_ref(1));
 }
 
 TEST(ObjectTileEditorTest, CustomObjectRoundtrip) {

@@ -66,6 +66,8 @@ void ObjectTileEditorPanel::Close() {
 void ObjectTileEditorPanel::SetCurrentPaletteGroup(
     const gfx::PaletteGroup& group) {
   current_palette_group_ = group;
+  preview_dirty_ = true;
+  atlas_dirty_ = true;
 }
 
 void ObjectTileEditorPanel::Draw(bool* p_open) {
