@@ -3,7 +3,10 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.7.1 (April 2026, pending tag)
+## 0.7.2 (in development)
+- Development version. See `docs/internal/roadmap.md` for the current focus.
+
+## 0.7.1 (April 2026)
 - **Welcome Screen & Project Startup**:
   - Added a guided New Project flow, async ROM metadata scanning, and recent-project pin/rename/notes actions.
   - Surfaced welcome/startup actions through the command palette and added undo for recent-project removal.
