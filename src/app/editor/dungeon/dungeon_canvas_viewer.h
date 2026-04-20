@@ -447,6 +447,8 @@ class DungeonCanvasViewer {
   std::string BuildRoomMetadataSummary(const zelda3::Room& room,
                                        int room_id) const;
   std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id) const;
+  void OpenIssueReportPopup(const std::string& title,
+                            const std::string& report_text);
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
@@ -593,6 +595,10 @@ class DungeonCanvasViewer {
   int prev_palette_ = -1;
   int prev_layout_ = -1;
   int prev_spriteset_ = -1;
+
+  std::string issue_report_popup_title_;
+  std::string issue_report_popup_text_;
+  std::string issue_report_popup_id_ = "##DungeonIssueReportPopup";
 };
 
 }  // namespace editor

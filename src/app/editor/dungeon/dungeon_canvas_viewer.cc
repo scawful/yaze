@@ -244,6 +244,34 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
   return report;
 }
 
+void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
+                                               const std::string& report_text) {
+  issue_report_popup_title_ = title;
+  issue_report_popup_text_ = report_text;
+  canvas_.OpenPersistentPopup(issue_report_popup_id_, [this]() {
+    if (ImGui::BeginPopupModal(issue_report_popup_id_.c_str(), nullptr,
+                               ImGuiWindowFlags_AlwaysAutoResize)) {
+      if (!issue_report_popup_title_.empty()) {
+        ImGui::TextUnformatted(issue_report_popup_title_.c_str());
+        ImGui::Separator();
+      }
+      ImGui::InputTextMultiline(
+          "##DungeonIssueReportBody", issue_report_popup_text_.data(),
+          issue_report_popup_text_.size() + 1, ImVec2(620.0f, 260.0f),
+          ImGuiInputTextFlags_ReadOnly);
+      if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy Report")) {
+        ImGui::SetClipboardText(issue_report_popup_text_.c_str());
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_MD_CLOSE " Close")) {
+        canvas_.ClosePersistentPopup(issue_report_popup_id_);
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+  });
+}
+
 void DungeonCanvasViewer::Draw(int room_id) {
   DrawDungeonCanvas(room_id);
 }
@@ -641,15 +669,28 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         "Re-render Room", ICON_MD_REFRESH,
         [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R"));
     room_menu.subitems.back().separator_after = true;
-    room_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Copy Draw Issue Report", ICON_MD_BUG_REPORT, [this, room_id]() {
+
+    gui::CanvasMenuItem report_menu;
+    report_menu.label = "Report";
+    report_menu.icon = ICON_MD_BUG_REPORT;
+    report_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Preview Draw Issue Report", ICON_MD_PREVIEW, [this, room_id]() {
+          if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+            return;
+          }
+          OpenIssueReportPopup(
+              absl::StrFormat("Draw Issue Report for Room 0x%03X", room_id),
+              BuildDrawIssueReport((*rooms_)[room_id], room_id));
+        }));
+    report_menu.subitems.push_back(gui::CanvasMenuItem(
+        "Copy Draw Issue Report", ICON_MD_CONTENT_COPY, [this, room_id]() {
           if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
             return;
           }
           ImGui::SetClipboardText(
               BuildDrawIssueReport((*rooms_)[room_id], room_id).c_str());
         }));
-    room_menu.subitems.push_back(gui::CanvasMenuItem(
+    report_menu.subitems.push_back(gui::CanvasMenuItem(
         "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {
           if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
             return;
@@ -657,6 +698,9 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           ImGui::SetClipboardText(
               BuildRoomMetadataSummary((*rooms_)[room_id], room_id).c_str());
         }));
+    report_menu.separator_after = true;
+    room_menu.subitems.push_back(report_menu);
+
     room_menu.subitems.push_back(
         gui::CanvasMenuItem("Copy Room ID", ICON_MD_CONTENT_COPY, [room_id]() {
           ImGui::SetClipboardText(absl::StrFormat("0x%03X", room_id).c_str());
