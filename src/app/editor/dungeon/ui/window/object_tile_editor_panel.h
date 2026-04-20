@@ -64,6 +64,7 @@ class ObjectTileEditorPanel : public WindowContent {
   void ClearRenderedBitmaps();
   void ResetTransientState();
   std::string BuildWindowTitle() const;
+  void SelectFirstCellIfAvailable();
   bool HasRenderableRoomContext() const;
   void RefreshRenderedViewsFromCurrentRoom();
 
