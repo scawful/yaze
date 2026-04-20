@@ -5,6 +5,7 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -443,6 +444,9 @@ class DungeonCanvasViewer {
   void DrawRoomPropertyTable(zelda3::Room& room, int room_id);
   void DrawLayerControls(zelda3::Room& room, int room_id);
   void DrawCompactLayerToggles(int room_id);
+  std::string BuildRoomMetadataSummary(const zelda3::Room& room,
+                                       int room_id) const;
+  std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id) const;
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
