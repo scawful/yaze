@@ -61,6 +61,7 @@ class ObjectTileEditorPanel : public WindowContent {
   }
 
  private:
+  void ClearRenderedBitmaps();
   void ResetTransientState();
 
   void DrawTileGrid();

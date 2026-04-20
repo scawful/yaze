@@ -13,6 +13,11 @@ ObjectTileEditorPanel::ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom)
   tile_editor_ = std::make_unique<zelda3::ObjectTileEditor>(rom);
 }
 
+void ObjectTileEditorPanel::ClearRenderedBitmaps() {
+  object_preview_bmp_ = gfx::Bitmap();
+  tile8_atlas_bmp_ = gfx::Bitmap();
+}
+
 void ObjectTileEditorPanel::ResetTransientState() {
   selected_cell_index_ = -1;
   selected_source_tile_ = -1;
@@ -20,6 +25,7 @@ void ObjectTileEditorPanel::ResetTransientState() {
   atlas_dirty_ = true;
   show_shared_confirm_ = false;
   shared_object_count_ = 0;
+  ClearRenderedBitmaps();
 }
 
 void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
@@ -156,8 +162,11 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
 }
 
 void ObjectTileEditorPanel::RenderObjectPreview() {
-  if (!rooms_ || current_room_id_ < 0)
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    object_preview_bmp_ = gfx::Bitmap();
     return;
+  }
   auto& room = (*rooms_)[current_room_id_];
 
   auto status = tile_editor_->RenderLayoutToBitmap(
@@ -166,12 +175,17 @@ void ObjectTileEditorPanel::RenderObjectPreview() {
   if (status.ok()) {
     object_preview_bmp_.UpdateTexture();
     preview_dirty_ = false;
+  } else {
+    object_preview_bmp_ = gfx::Bitmap();
   }
 }
 
 void ObjectTileEditorPanel::RenderTile8Atlas() {
-  if (!rooms_ || current_room_id_ < 0)
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    tile8_atlas_bmp_ = gfx::Bitmap();
     return;
+  }
   auto& room = (*rooms_)[current_room_id_];
 
   auto status = tile_editor_->BuildTile8Atlas(
@@ -180,6 +194,8 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
   if (status.ok()) {
     tile8_atlas_bmp_.UpdateTexture();
     atlas_dirty_ = false;
+  } else {
+    tile8_atlas_bmp_ = gfx::Bitmap();
   }
 }
 
