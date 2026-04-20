@@ -175,7 +175,7 @@ TEST(UserSettingsLayoutDefaultsTest,
 }
 
 TEST(UserSettingsLayoutDefaultsTest,
-     RevisionNineAppliesDungeonWorkbenchDoorEditorWithoutFullReset) {
+     RevisionThirteenAppliesDungeonWorkbenchToolDefaultsWithoutFullReset) {
   UserSettings settings;
   auto& prefs = settings.prefs();
 
@@ -196,9 +196,11 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
   EXPECT_FALSE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.object_editor"]);
-  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
   EXPECT_TRUE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.palette_editor"]);
