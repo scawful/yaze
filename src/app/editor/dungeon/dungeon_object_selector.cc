@@ -176,54 +176,40 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   int total_objects =
       (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
-  if (ImGui::BeginTable(
-          "##ObjectSelectorToolbar", 2,
-          ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX)) {
-    ImGui::TableSetupColumn("Search", ImGuiTableColumnFlags_WidthStretch, 1.5f);
-    ImGui::TableSetupColumn("Options", ImGuiTableColumnFlags_WidthStretch,
-                            1.0f);
-    ImGui::TableNextRow();
+  ImGui::SetNextItemWidth(-1.0f);
+  ImGui::InputTextWithHint(
+      "##ObjectSearch", ICON_MD_SEARCH " Filter objects by name or hex...",
+      object_search_buffer_, sizeof(object_search_buffer_));
 
-    ImGui::TableNextColumn();
-    ImGui::TextColored(theme.text_info, ICON_MD_SEARCH " Browse");
-    ImGui::SetNextItemWidth(-1.0f);
-    ImGui::InputTextWithHint(
-        "##ObjectSearch", ICON_MD_SEARCH " Filter by name or hex...",
-        object_search_buffer_, sizeof(object_search_buffer_));
-    static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
-                                          "Doors", "Decor", "Stairs"};
-    ImGui::SetNextItemWidth(170.0f);
-    ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
-                 IM_ARRAYSIZE(kFilterLabels));
+  static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
+                                        "Doors", "Decor", "Stairs"};
+  ImGui::SetNextItemWidth(170.0f);
+  ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
+               IM_ARRAYSIZE(kFilterLabels));
+  ImGui::SameLine();
+  if (gui::ThemedButton(ICON_MD_CLEAR " Reset")) {
+    object_search_buffer_[0] = '\0';
+    object_type_filter_ = 0;
+  }
+  if (ImGui::IsItemHovered()) {
+    gui::ThemedTooltip("Clear search and category filter");
+  }
+  ImGui::SameLine();
+  ImGui::Checkbox(ICON_MD_IMAGE " Thumbnails", &enable_object_previews_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Show rendered object thumbnails in the selector.\n"
+        "Requires a room to be loaded and may cost some performance.");
+  }
+
+  ImGui::Spacing();
+  ImGui::TextColored(theme.text_secondary_gray, "%d vanilla objects",
+                     total_objects);
+  if (selected_object_id_ >= 0) {
     ImGui::SameLine();
-    if (gui::ThemedButton(ICON_MD_CLEAR " Reset")) {
-      object_search_buffer_[0] = '\0';
-      object_type_filter_ = 0;
-    }
-    if (ImGui::IsItemHovered()) {
-      gui::ThemedTooltip("Clear search and category filter");
-    }
-
-    ImGui::TableNextColumn();
-    ImGui::TextColored(theme.text_info, ICON_MD_CATEGORY " Placement");
-    ImGui::TextDisabled("%d vanilla objects", total_objects);
-    ImGui::Checkbox(ICON_MD_IMAGE " Tile thumbnails", &enable_object_previews_);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Show rendered object thumbnails in the selector.\n"
-          "Requires a room to be loaded and may cost some performance.");
-    }
-    if (selected_object_id_ >= 0) {
-      ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Queued: 0x%03X %s",
-                         selected_object_id_,
-                         zelda3::GetObjectName(selected_object_id_).c_str());
-    } else {
-      ImGui::TextColored(
-          theme.text_secondary_gray,
-          "Click an object below to queue placement in the room canvas.");
-    }
-
-    ImGui::EndTable();
+    ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Queued 0x%03X %s",
+                       selected_object_id_,
+                       zelda3::GetObjectName(selected_object_id_).c_str());
   }
 
   // Create asset browser-style grid
@@ -457,21 +443,16 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     ImGui::Spacing();
 
     // Custom Objects Section
-    gui::StyleColorGuard custom_hdr_guard(
-        {{ImGuiCol_Header,
-          ImGui::ColorConvertU32ToFloat4(IM_COL32(100, 180, 120, 255))},
-         {ImGuiCol_HeaderHovered,
-          ImGui::ColorConvertU32ToFloat4(IM_COL32(130, 210, 150, 255))}});
     auto& obj_manager = zelda3::CustomObjectManager::Get();
     const int custom_count =
         obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
-    bool custom_open = ImGui::CollapsingHeader(
-        absl::StrFormat("Custom Objects (%d)", custom_count).c_str());
+    bool custom_open =
+        ImGui::CollapsingHeader(absl::StrFormat(ICON_MD_PRECISION_MANUFACTURING
+                                                " Custom Object Workshop (%d)",
+                                                custom_count)
+                                    .c_str());
 
     if (custom_open) {
-      ImGui::TextColored(theme.text_secondary_gray,
-                         "Use the workshop below for custom object variants "
-                         "and tile-driven experiments.");
       const std::string custom_base_path = obj_manager.GetBasePath();
       if (ImGui::BeginTable("##CustomObjectToolbar", 2,
                             ImGuiTableFlags_SizingStretchProp |
@@ -485,11 +466,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         ImGui::TableNextColumn();
         if (custom_base_path.empty()) {
           ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING
-                             " Custom objects folder is not configured for "
-                             "this project.");
+                             " Custom object folder is not configured.");
         } else {
-          ImGui::TextColored(theme.text_secondary_gray, ICON_MD_FOLDER " %s",
-                             custom_base_path.c_str());
+          ImGui::TextColored(theme.text_secondary_gray,
+                             ICON_MD_FOLDER " Workshop folder");
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s", custom_base_path.c_str());
           }
@@ -519,9 +499,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         ImGui::EndTable();
       }
 
-      ImGui::TextColored(theme.text_secondary_gray,
-                         "Corner overrides: 0x100/0x101/0x102/0x103 use 0x31 "
-                         "subtypes 02/04/03/05");
+      ImGui::TextColored(
+          theme.text_secondary_gray, ICON_MD_INFO
+          " Corner overrides map to 0x31 subtypes 02, 04, 03, and 05.");
 
       DrawNewCustomObjectDialog();
 
