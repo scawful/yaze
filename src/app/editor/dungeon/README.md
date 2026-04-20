@@ -52,6 +52,7 @@ graph TD
 *   **`dungeon_object_selector.cc/h`**: The UI component for browsing the object library and choosing objects to place.
 *   **`selectors/object_selector_content.cc/h`**: The browse/place window content for dungeon objects. It keeps selection editing out of the selector and synchronizes placement with the active `DungeonCanvasViewer`.
 *   **`inspectors/object_editor_content.cc/h`**: The selected-object inspector for single-selection and multi-selection room object editing.
+*   **`ui/window/object_tile_editor_panel.{h,cc}`**: Visual 8x8 tile-composition editor for dungeon objects. It captures layouts through `zelda3::ObjectTileEditor`, keeps preview and atlas bitmaps in sync with the active palette, re-renders the room after apply, and is covered by focused panel/backend tests.
 
 ### UI Components (WindowContents)
 Located across role-based folders under `src/app/editor/dungeon/`:
@@ -63,6 +64,7 @@ Located across role-based folders under `src/app/editor/dungeon/`:
 ## Key Connections & Dependencies
 
 *   **`zelda3/dungeon/`**: The core logic library. The editor relies heavily on `zelda3::Room`, `zelda3::RoomObject`, and `zelda3::DungeonEditorSystem` for data structures and business logic.
+    *   `DungeonEditorSystem` now handles full-room persistence for objects, sprites, headers, torches, collision, chests, and pot items for managed or external rooms.
 *   **`app/gfx/`**: Used for rendering backends (`IRenderer`), texture management (`Arena`), and palette handling (`SnesPalette`).
 *   **`app/editor/system/workspace/workspace_window_manager.h`**: The V2 editor relies on this system for layout and window management.
 
