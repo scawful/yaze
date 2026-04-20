@@ -106,6 +106,7 @@ class ObjectTileEditorPanel : public WindowContent {
   // Shared tile data confirmation
   bool show_shared_confirm_ = false;
   int shared_object_count_ = 0;
+  int shared_tile_data_usage_override_ = -1;  // Test seam; production keeps -1.
 
   // New object creation state
   bool is_new_object_ = false;

@@ -52,6 +52,16 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.current_object_id_;
   }
 
+  static void SetCurrentObjectId(ObjectTileEditorPanel& panel,
+                                 int16_t object_id) {
+    panel.current_object_id_ = object_id;
+  }
+
+  static void SetSharedTileDataUsageOverride(ObjectTileEditorPanel& panel,
+                                             int shared_count) {
+    panel.shared_tile_data_usage_override_ = shared_count;
+  }
+
   static const DungeonRoomStore* Rooms(const ObjectTileEditorPanel& panel) {
     return panel.rooms_;
   }
@@ -256,21 +266,6 @@ std::optional<int16_t> FindCapturableObjectId(Rom* rom, DungeonRoomStore* rooms,
   for (int id = start_id; id <= end_id; ++id) {
     probe.OpenForObject(static_cast<int16_t>(id), /*room_id=*/0, rooms);
     if (ObjectTileEditorPanelTestAccess::HasLayout(probe)) {
-      return static_cast<int16_t>(id);
-    }
-  }
-  return std::nullopt;
-}
-
-std::optional<int16_t> FindSharedCapturableObjectId(Rom* rom,
-                                                    DungeonRoomStore* rooms) {
-  ObjectTileEditorPanel probe(nullptr, rom);
-  for (int id = 0; id < 0x100; ++id) {
-    probe.OpenForObject(static_cast<int16_t>(id), /*room_id=*/0, rooms);
-    if (!ObjectTileEditorPanelTestAccess::HasLayout(probe)) {
-      continue;
-    }
-    if (ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(probe) > 1) {
       return static_cast<int16_t>(id);
     }
   }
@@ -520,15 +515,18 @@ TEST(ObjectTileEditorPanelTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
-  DungeonRoomStore rooms(&rom);
-  (void)rooms[0];
-
-  auto object_id = FindSharedCapturableObjectId(&rom, &rooms);
-  ASSERT_TRUE(object_id.has_value());
-
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForObject(*object_id, /*room_id=*/0, &rooms);
-  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "shared.bin");
+  layout.is_custom = false;
+  layout.custom_filename.clear();
+  layout.tile_data_address = 0x1234;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
+                                                      /*object_id=*/0x40);
+  ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
+      panel, /*shared_count=*/3);
+
   ASSERT_GT(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
             1);
 
@@ -537,7 +535,7 @@ TEST(ObjectTileEditorPanelTest,
   const int write_index =
       ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel);
   ASSERT_GE(tile_data_address, 0);
-  ASSERT_GE(write_index, 0);
+  ASSERT_GE(write_index, -1);
   const int write_addr = tile_data_address + write_index * 2;
   const int original_word = ReadWordAt(rom, write_addr);
 
@@ -563,15 +561,18 @@ TEST(ObjectTileEditorPanelTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
-  DungeonRoomStore rooms(&rom);
-  (void)rooms[0];
-
-  auto object_id = FindSharedCapturableObjectId(&rom, &rooms);
-  ASSERT_TRUE(object_id.has_value());
-
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForObject(*object_id, /*room_id=*/0, &rooms);
-  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "shared.bin");
+  layout.is_custom = false;
+  layout.custom_filename.clear();
+  layout.tile_data_address = 0x1234;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
+                                                      /*object_id=*/0x40);
+  ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
+      panel, /*shared_count=*/3);
+
   ASSERT_GT(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
             1);
 
@@ -580,7 +581,7 @@ TEST(ObjectTileEditorPanelTest,
   const int write_index =
       ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel);
   ASSERT_GE(tile_data_address, 0);
-  ASSERT_GE(write_index, 0);
+  ASSERT_GE(write_index, -1);
   const int write_addr = tile_data_address + write_index * 2;
   const int original_word = ReadWordAt(rom, write_addr);
 

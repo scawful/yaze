@@ -117,6 +117,10 @@ void ObjectTileEditorPanel::SelectFirstCellIfAvailable() {
 }
 
 int ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
+  if (shared_tile_data_usage_override_ >= 0) {
+    return shared_tile_data_usage_override_;
+  }
+
   if (current_layout_.is_custom || current_layout_.tile_data_address < 0 ||
       current_object_id_ < 0 || rom_ == nullptr || !rom_->is_loaded()) {
     return 0;
