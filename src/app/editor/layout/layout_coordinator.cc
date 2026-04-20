@@ -5,9 +5,9 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/menu/status_bar.h"
-#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
@@ -66,7 +66,8 @@ float LayoutCoordinator::GetRightLayoutOffset() const {
 }
 
 float LayoutCoordinator::GetBottomLayoutOffset() const {
-  return status_bar_ ? status_bar_->GetHeight() : 0.0f;
+  return (status_bar_ && status_bar_->IsEnabled()) ? status_bar_->GetHeight()
+                                                   : 0.0f;
 }
 
 // ==========================================================================

@@ -62,10 +62,10 @@ class ActivityBar {
       size_t session_id, const std::string& active_category,
       const std::vector<std::string>& all_categories,
       const std::unordered_set<std::string>& active_editor_categories,
-      std::function<bool()> has_rom,
-      std::function<bool()> is_rom_dirty);
+      std::function<bool()> has_rom, std::function<bool()> is_rom_dirty);
   void DrawSidePanel(size_t session_id, const std::string& category,
                      std::function<bool()> has_rom);
+  float GetBottomReservedHeight() const;
 
   // Right-click context menu on a sidebar icon. Mutates user_settings_ if set.
   void DrawCategoryContextMenu(const std::string& category);

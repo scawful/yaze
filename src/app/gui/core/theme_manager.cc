@@ -670,11 +670,9 @@ void ThemeManager::ApplyTheme(const std::string& theme_name) {
 
   auto status = LoadTheme(theme_name);
   if (!status.ok()) {
-    // Fallback to YAZE Tre if theme not found
-    auto fallback_status = LoadTheme("YAZE Tre");
-    if (!fallback_status.ok()) {
-      LOG_ERROR("Theme Manager", "Failed to load fallback theme");
-    }
+    // Missing or stale saved themes should land on the stable built-in
+    // default, not the experimental file-backed theme.
+    ApplyClassicYazeTheme();
   }
 }
 

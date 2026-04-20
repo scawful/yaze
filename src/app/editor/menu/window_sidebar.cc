@@ -22,16 +22,16 @@ namespace editor {
 namespace {
 
 std::string LowercaseCopy(std::string value) {
-  std::transform(value.begin(), value.end(), value.begin(),
-                 [](unsigned char c) { return static_cast<char>(::tolower(c)); });
+  std::transform(
+      value.begin(), value.end(), value.begin(),
+      [](unsigned char c) { return static_cast<char>(::tolower(c)); });
   return value;
 }
 
 bool MatchesWindowSearch(const std::string& query,
                          const WindowDescriptor& window) {
-  return WindowSidebar::MatchesWindowSearch(query, window.display_name,
-                                            window.card_id,
-                                            window.shortcut_hint);
+  return WindowSidebar::MatchesWindowSearch(
+      query, window.display_name, window.card_id, window.shortcut_hint);
 }
 
 bool IsDungeonPanelModeWindow(const std::string& window_id) {
@@ -43,10 +43,12 @@ bool IsDungeonPanelModeWindow(const std::string& window_id) {
 WindowSidebar::WindowSidebar(
     WorkspaceWindowManager& window_manager,
     std::function<bool()> is_dungeon_workbench_mode,
-    std::function<void(bool)> set_dungeon_workflow_mode)
+    std::function<void(bool)> set_dungeon_workflow_mode,
+    std::function<float()> get_bottom_reserved_height)
     : window_manager_(window_manager),
       is_dungeon_workbench_mode_(std::move(is_dungeon_workbench_mode)),
-      set_dungeon_workflow_mode_(std::move(set_dungeon_workflow_mode)) {}
+      set_dungeon_workflow_mode_(std::move(set_dungeon_workflow_mode)),
+      get_bottom_reserved_height_(std::move(get_bottom_reserved_height)) {}
 
 bool WindowSidebar::MatchesWindowSearch(const std::string& query,
                                         const std::string& display_name,
@@ -78,8 +80,13 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
 
   const float top_inset = gui::LayoutHelpers::GetTopInset();
   const auto safe_area = gui::LayoutHelpers::GetSafeAreaInsets();
+  const float bottom_reserved =
+      get_bottom_reserved_height_
+          ? std::max(0.0f, get_bottom_reserved_height_())
+          : 0.0f;
   const float panel_height =
-      std::max(0.0f, viewport->WorkSize.y - top_inset - safe_area.bottom);
+      std::max(0.0f, viewport->WorkSize.y - top_inset - safe_area.bottom -
+                         bottom_reserved);
 
   gui::FixedPanel panel(
       "##SidePanel",
@@ -117,8 +124,8 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   const float compact_spacing = std::max(4.0f, standard_spacing * 0.75f);
   const float search_spacing = compact_spacing;
   const float search_width =
-      std::max(140.0f, ImGui::GetContentRegionAvail().x -
-                           search_button_size.x - search_spacing);
+      std::max(140.0f, ImGui::GetContentRegionAvail().x - search_button_size.x -
+                           search_spacing);
   ImGui::SetNextItemWidth(search_width);
   ImGui::InputTextWithHint("##SidebarSearch", ICON_MD_SEARCH " Filter...",
                            sidebar_search_, sizeof(sidebar_search_));
@@ -219,10 +226,9 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
                        (workflow_available_width - workflow_gap) * 0.5f);
     const float workflow_button_height =
         std::max(24.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
-    auto draw_workflow_button = [&](const char* id, const char* icon,
-                                    const char* label, bool active,
-                                    const char* tooltip,
-                                    const ImVec2& button_size) -> bool {
+    auto draw_workflow_button =
+        [&](const char* id, const char* icon, const char* label, bool active,
+            const char* tooltip, const ImVec2& button_size) -> bool {
       const ImVec4 active_bg = gui::GetPrimaryVec4();
       const ImVec4 inactive_bg = gui::GetSurfaceContainerHighVec4();
       const ImVec4 inactive_hover = gui::GetSurfaceContainerHighestVec4();
@@ -241,19 +247,21 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     const ImVec2 workflow_button_size(workflow_button_width,
                                       workflow_button_height);
 
-    if (draw_workflow_button("workflow_workbench", ICON_MD_WORKSPACES,
-                             "Workbench", dungeon_workbench_mode,
-                             "Workbench mode: integrated room browser + inspector",
-                             workflow_button_size)) {
+    if (draw_workflow_button(
+            "workflow_workbench", ICON_MD_WORKSPACES, "Workbench",
+            dungeon_workbench_mode,
+            "Workbench mode: integrated room browser + inspector",
+            workflow_button_size)) {
       switch_to_dungeon_workbench_mode();
     }
     if (!stack_workflow_buttons) {
       ImGui::SameLine(0.0f, workflow_gap);
     }
-    if (draw_workflow_button("workflow_windows", ICON_MD_VIEW_QUILT,
-                             "Windows", !dungeon_workbench_mode,
-                             "Window mode: standalone Room List + Room Matrix + room windows",
-                             workflow_button_size)) {
+    if (draw_workflow_button(
+            "workflow_windows", ICON_MD_VIEW_QUILT, "Windows",
+            !dungeon_workbench_mode,
+            "Window mode: standalone Room List + Room Matrix + room windows",
+            workflow_button_size)) {
       switch_to_dungeon_window_mode();
     }
     ImGui::Spacing();
@@ -362,8 +370,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   }
 
   const auto pinned_windows = window_manager_.GetPinnedWindows();
-  const ImVec4 disabled_text =
-      ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
+  const ImVec4 disabled_text = ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled);
   auto window_text_color = [&](bool visible) -> ImVec4 {
     if (disable_windows) {
       return disabled_text;
@@ -390,7 +397,8 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   if (sidebar_search_[0] == '\0' && !pinned_windows.empty()) {
     bool has_pinned_in_category = false;
     for (const auto& window_id : pinned_windows) {
-      const auto* window = window_manager_.GetWindowDescriptor(session_id, window_id);
+      const auto* window =
+          window_manager_.GetWindowDescriptor(session_id, window_id);
       if (window && window->category == category) {
         has_pinned_in_category = true;
         break;
@@ -399,11 +407,11 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
 
     if (has_pinned_in_category) {
       pinned_section_open = ImGui::CollapsingHeader(
-          ICON_MD_PUSH_PIN " Pinned Windows",
-          ImGuiTreeNodeFlags_DefaultOpen);
+          ICON_MD_PUSH_PIN " Pinned Windows", ImGuiTreeNodeFlags_DefaultOpen);
       if (pinned_section_open) {
         for (const auto& window_id : pinned_windows) {
-          const auto* window = window_manager_.GetWindowDescriptor(session_id, window_id);
+          const auto* window =
+              window_manager_.GetWindowDescriptor(session_id, window_id);
           if (!window || window->category != category) {
             continue;
           }
@@ -480,8 +488,8 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
       }
       ImGui::SameLine(0.0f, compact_spacing);
 
-      std::string label =
-          absl::StrFormat("%s  %s", window.icon.c_str(), window.display_name.c_str());
+      std::string label = absl::StrFormat("%s  %s", window.icon.c_str(),
+                                          window.display_name.c_str());
       ImGui::PushID((std::string("window_select_") + window.card_id).c_str());
       {
         gui::StyleColorGuard text_color(ImGuiCol_Text,
@@ -541,16 +549,15 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   if (handle_active) {
     const float new_width = panel_width + ImGui::GetIO().MouseDelta.x;
     window_manager_.SetActiveSidePanelWidth(new_width, viewport->WorkSize.x);
-    ImGui::SetTooltip("Width: %.0f px",
-                      window_manager_.GetActiveSidePanelWidth(viewport->WorkSize.x));
+    ImGui::SetTooltip("Width: %.0f px", window_manager_.GetActiveSidePanelWidth(
+                                            viewport->WorkSize.x));
   }
 
   ImVec4 handle_color = gui::GetOutlineVec4();
   handle_color.w = handle_active ? 0.95f : (handle_hovered ? 0.72f : 0.35f);
   ImGui::GetWindowDrawList()->AddLine(
       ImVec2(panel_pos.x + panel_width - 1.0f, panel_pos.y),
-      ImVec2(panel_pos.x + panel_width - 1.0f,
-             panel_pos.y + panel_draw_height),
+      ImVec2(panel_pos.x + panel_width - 1.0f, panel_pos.y + panel_draw_height),
       ImGui::GetColorU32(handle_color), handle_active ? 2.0f : 1.0f);
 }
 
