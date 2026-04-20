@@ -61,6 +61,8 @@ class ObjectTileEditorPanel : public WindowContent {
   }
 
  private:
+  void ResetTransientState();
+
   void DrawTileGrid();
   void DrawSourceSheet();
   void DrawTileProperties();

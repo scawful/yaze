@@ -13,6 +13,15 @@ ObjectTileEditorPanel::ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom)
   tile_editor_ = std::make_unique<zelda3::ObjectTileEditor>(rom);
 }
 
+void ObjectTileEditorPanel::ResetTransientState() {
+  selected_cell_index_ = -1;
+  selected_source_tile_ = -1;
+  preview_dirty_ = true;
+  atlas_dirty_ = true;
+  show_shared_confirm_ = false;
+  shared_object_count_ = 0;
+}
+
 void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
                                           DungeonRoomStore* rooms) {
   current_object_id_ = object_id;
@@ -20,10 +29,7 @@ void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
   rooms_ = rooms;
   is_new_object_ = false;
   current_layout_ = {};
-  selected_cell_index_ = -1;
-  selected_source_tile_ = -1;
-  preview_dirty_ = true;
-  atlas_dirty_ = true;
+  ResetTransientState();
   is_open_ = true;
 
   if (!rooms_ || current_room_id_ < 0 ||
@@ -46,10 +52,7 @@ void ObjectTileEditorPanel::OpenForNewObject(int width, int height,
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
-  selected_cell_index_ = -1;
-  selected_source_tile_ = -1;
-  preview_dirty_ = true;
-  atlas_dirty_ = true;
+  ResetTransientState();
   is_open_ = true;
   is_new_object_ = true;
 
@@ -61,8 +64,10 @@ void ObjectTileEditorPanel::Close() {
   is_open_ = false;
   is_new_object_ = false;
   current_layout_ = {};
-  selected_cell_index_ = -1;
-  selected_source_tile_ = -1;
+  current_room_id_ = -1;
+  current_object_id_ = -1;
+  rooms_ = nullptr;
+  ResetTransientState();
 }
 
 void ObjectTileEditorPanel::SetCurrentPaletteGroup(
