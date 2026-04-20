@@ -40,7 +40,7 @@ const char* GetBlocksetGroupName(uint8_t blockset) {
 
 class ScopedWorkbenchToolbar {
  public:
-  explicit ScopedWorkbenchToolbar(const char* label) {
+  explicit ScopedWorkbenchToolbar(const char* label, int row_count = 1) {
     context_ = ImGui::GetCurrentContext();
     if (context_ != nullptr) {
       style_stack_before_ = context_->StyleVarStack.Size;
@@ -56,11 +56,15 @@ class ScopedWorkbenchToolbar {
                                gui::LayoutHelpers::GetButtonPadding()));
 
     // Keep toolbar controls unclipped at higher DPI and on touch displays.
-    const float min_height =
+    const float base_height =
         (gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 6.0f) +
         (gui::LayoutHelpers::GetButtonPadding() * 2.0f) + 2.0f;
+    const float row_spacing = std::max(6.0f, ImGui::GetStyle().ItemSpacing.y);
+    const float row_count_f = static_cast<float>(std::max(row_count, 1));
+    const float min_height =
+        (base_height * row_count_f) + (row_spacing * (row_count_f - 1.0f));
     const float height =
-        std::max(gui::LayoutHelpers::GetToolbarHeight(), min_height);
+        std::max(gui::LayoutHelpers::GetToolbarHeight(), min_height + 2.0f);
     ImGui::BeginChild(
         label, ImVec2(0, height), true,
         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -385,14 +389,11 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     return false;
   }
 
-  // Keep this scope self-contained so toolbar teardown cannot pop unrelated
-  // ImGui stack entries if upstream layout state changes mid-frame.
-  ScopedWorkbenchToolbar toolbar_scope("##DungeonWorkbenchToolbar");
-  bool request_panel_mode = false;
-
   const float toolbar_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const bool compact_toolbar = toolbar_width < kCompactToolbarWidth;
   const bool ultra_compact_toolbar = toolbar_width < kUltraCompactToolbarWidth;
+  const bool tight_compare_toolbar =
+      ultra_compact_toolbar || toolbar_width < kTightCompareStackThreshold;
   const float btn =
       ultra_compact_toolbar
           ? std::max(gui::LayoutHelpers::GetStandardWidgetHeight(),
@@ -405,6 +406,14 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
                        gui::LayoutHelpers::GetTouchSafeWidgetHeight() + 2.0f,
                        gui::LayoutHelpers::GetStandardWidgetHeight() + 6.0f));
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const int toolbar_rows =
+      (*p.split_view_enabled && tight_compare_toolbar) ? 3 : 2;
+
+  // Keep this scope self-contained so toolbar teardown cannot pop unrelated
+  // ImGui stack entries if upstream layout state changes mid-frame.
+  ScopedWorkbenchToolbar toolbar_scope("##DungeonWorkbenchToolbar",
+                                       toolbar_rows);
+  bool request_panel_mode = false;
 
   {
     // Scope style-var overrides so they are unwound before the toolbar child
@@ -416,26 +425,32 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     gui::StyleVarGuard item_spacing_guard(
         ImGuiStyleVar_ItemSpacing, ImVec2(std::max(4.0f, spacing * 0.72f),
                                           ImGui::GetStyle().ItemSpacing.y));
+    constexpr ImGuiTableFlags kRowFlags = ImGuiTableFlags_NoBordersInBody |
+                                          ImGuiTableFlags_NoPadInnerX |
+                                          ImGuiTableFlags_NoPadOuterX;
 
-    constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_NoBordersInBody |
-                                       ImGuiTableFlags_NoPadInnerX |
-                                       ImGuiTableFlags_NoPadOuterX;
-    if (ImGui::BeginTable("##DungeonWorkbenchToolbarTable", 3, kFlags)) {
-      const float w_grid =
-          CalcIconToggleButtonWidth(ICON_MD_GRID_ON, ICON_MD_GRID_OFF, btn);
-      const float w_bounds = CalcIconButtonWidth(ICON_MD_CROP_SQUARE, btn);
-      const float w_coords = CalcIconButtonWidth(ICON_MD_MY_LOCATION, btn);
-      const float w_camera = CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
-      const float right_cluster_w =
-          w_grid + w_bounds + w_coords + w_camera + (spacing * 2.16f);
-      const float right_w = right_cluster_w + 6.0f;  // Avoid edge clipping.
-      ImGui::TableSetupColumn("Left", ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("Middle", ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("Right", ImGuiTableColumnFlags_WidthFixed,
-                              right_w);
+    const int rid = *p.current_room_id;
+    const bool show_inline_room_nav = ShouldShowInlineRoomNav(toolbar_width);
+    const auto room_label = zelda3::GetRoomLabel(rid);
+    char title[192];
+    snprintf(title, sizeof(title), "[%03X] %s", rid, room_label.c_str());
+
+    if (ImGui::BeginTable("##DungeonWorkbenchToolbarHeader", 2, kRowFlags)) {
+      float action_cluster_w = 0.0f;
+      if (p.set_workflow_mode) {
+        action_cluster_w += CalcIconButtonWidth(ICON_MD_VIEW_QUILT, btn);
+      }
+      if (p.open_room_matrix && !compact_toolbar) {
+        if (action_cluster_w > 0.0f) {
+          action_cluster_w += spacing;
+        }
+        action_cluster_w += CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
+      }
+      ImGui::TableSetupColumn("Primary", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed,
+                              action_cluster_w + 4.0f);
       ImGui::TableNextRow();
 
-      // Left cluster: sidebar toggles, nav, room label.
       ImGui::TableNextColumn();
       (void)IconToggleButton("RoomsToggle", ICON_MD_LIST, ICON_MD_LIST,
                              &p.layout->show_left_sidebar, btn,
@@ -444,41 +459,14 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       (void)IconToggleButton("InspectorToggle", ICON_MD_TUNE, ICON_MD_TUNE,
                              &p.layout->show_right_inspector, btn,
                              "Hide inspector", "Show inspector");
-      if (p.set_workflow_mode) {
+      if (show_inline_room_nav) {
         ImGui::SameLine();
-        if (SquareIconButton("##PanelMode", ICON_MD_VIEW_QUILT, btn,
-                             "Switch to standalone panel workflow "
-                             "(Ctrl+Shift+W)")) {
-          request_panel_mode = true;
-        }
-      }
-      if (p.open_room_matrix && !compact_toolbar) {
-        ImGui::SameLine();
-        if (SquareIconButton("##RoomMatrix", ICON_MD_GRID_VIEW, btn,
-                             "Open Room Matrix")) {
-          p.open_room_matrix();
-        }
+        DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
       }
       ImGui::SameLine();
-
-      const int rid = *p.current_room_id;
-      const bool show_inline_room_nav = ShouldShowInlineRoomNav(toolbar_width);
-      if (show_inline_room_nav) {
-        DungeonRoomNavWidget::Draw("Nav", rid, p.on_room_selected);
-        ImGui::SameLine();
-      }
-
-      const auto room_label = zelda3::GetRoomLabel(rid);
-      char title[192];
-      snprintf(title, sizeof(title), "[%03X] %s", rid, room_label.c_str());
       ImGui::AlignTextToFramePadding();
-      const float title_width_cap =
-          ultra_compact_toolbar
-              ? 140.0f
-              : (compact_toolbar ? (*p.split_view_enabled ? 180.0f : 220.0f)
-                                 : (*p.split_view_enabled ? 240.0f : 320.0f));
       const float title_width =
-          std::clamp(ImGui::GetContentRegionAvail().x, 80.0f, title_width_cap);
+          std::clamp(ImGui::GetContentRegionAvail().x, 128.0f, 420.0f);
       const std::string visible_title =
           TruncateToolbarLabel(title, title_width);
       ImGui::TextUnformatted(visible_title.c_str());
@@ -488,9 +476,45 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       DrawRoomMetadataSummary(p.primary_viewer, rid, compact_toolbar,
                               *p.split_view_enabled);
 
-      // Middle cluster: compare controls.
       ImGui::TableNextColumn();
-      ImGui::BeginGroup();
+      if (p.set_workflow_mode) {
+        if (SquareIconButton("##PanelMode", ICON_MD_VIEW_QUILT, btn,
+                             "Switch to standalone panel workflow "
+                             "(Ctrl+Shift+W)")) {
+          request_panel_mode = true;
+        }
+      }
+      if (p.open_room_matrix && !compact_toolbar) {
+        if (p.set_workflow_mode) {
+          ImGui::SameLine();
+        }
+        if (SquareIconButton("##RoomMatrix", ICON_MD_GRID_VIEW, btn,
+                             "Open Room Matrix")) {
+          p.open_room_matrix();
+        }
+      }
+      ImGui::EndTable();
+    }
+
+    ImGui::Dummy(ImVec2(0.0f, 6.0f));
+
+    if (ImGui::BeginTable("##DungeonWorkbenchToolbarControls", 2, kRowFlags)) {
+      const float view_popup_w = CalcIconButtonWidth(ICON_MD_VISIBILITY, btn);
+      const float w_grid =
+          CalcIconToggleButtonWidth(ICON_MD_GRID_ON, ICON_MD_GRID_OFF, btn);
+      const float w_bounds = CalcIconButtonWidth(ICON_MD_CROP_SQUARE, btn);
+      const float w_coords = CalcIconButtonWidth(ICON_MD_MY_LOCATION, btn);
+      const float w_camera = CalcIconButtonWidth(ICON_MD_GRID_VIEW, btn);
+      const float view_cluster_w =
+          compact_toolbar
+              ? view_popup_w
+              : w_grid + w_bounds + w_coords + w_camera + (spacing * 3.0f);
+      ImGui::TableSetupColumn("Compare", ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("View", ImGuiTableColumnFlags_WidthFixed,
+                              view_cluster_w + 4.0f);
+      ImGui::TableNextRow();
+
+      ImGui::TableNextColumn();
       if (!*p.split_view_enabled) {
         if (SquareIconButton("##EnableSplit", ICON_MD_COMPARE_ARROWS, btn,
                              "Enable split view (compare)")) {
@@ -502,24 +526,25 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
             *p.compare_room_id = def.room_id;
           }
         }
-      } else {
-        // Compare icon label.
-        ImGui::AlignTextToFramePadding();
-        ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS);
         ImGui::SameLine();
-
-        const float avail = ImGui::GetContentRegionAvail().x;
-        const bool stacked =
-            ultra_compact_toolbar || avail < kTightCompareStackThreshold;
-        if (stacked) {
-          ImGui::NewLine();
+        ImGui::TextDisabled("Compare another room");
+      } else {
+        if (!tight_compare_toolbar) {
+          ImGui::AlignTextToFramePadding();
+          ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS);
+          ImGui::SameLine();
         }
 
         DrawComparePicker(*p.current_room_id, p.compare_room_id,
                           p.get_recent_rooms, p.compare_search_buf,
                           p.compare_search_buf_size);
 
-        ImGui::SameLine();
+        if (tight_compare_toolbar) {
+          ImGui::Dummy(ImVec2(0.0f, 4.0f));
+        } else {
+          ImGui::SameLine();
+        }
+
         uint16_t cmp =
             static_cast<uint16_t>(std::clamp(*p.compare_room_id, 0, 0x127));
         if (auto res = gui::InputHexWordEx(
@@ -545,12 +570,10 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
         }
 
         ImGui::SameLine();
-        if (IconToggleButton("##SyncView", ICON_MD_LINK, ICON_MD_LINK_OFF,
-                             &p.layout->sync_split_view, btn,
-                             "Unsync compare view",
-                             "Sync compare view to active")) {
-          // toggle handled inside IconToggleButton
-        }
+        (void)IconToggleButton("##SyncView", ICON_MD_LINK, ICON_MD_LINK_OFF,
+                               &p.layout->sync_split_view, btn,
+                               "Unsync compare view",
+                               "Sync compare view to active");
 
         ImGui::SameLine();
         if (SquareIconButton("##CloseSplit", ICON_MD_CLOSE, btn,
@@ -558,74 +581,42 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
           *p.split_view_enabled = false;
         }
       }
-      ImGui::EndGroup();
 
-      // Right cluster: view toggles (grid/bounds/coords/camera).
       ImGui::TableNextColumn();
       if (p.primary_viewer) {
         if (compact_toolbar) {
-          const float popup_width =
-              CalcIconButtonWidth(ICON_MD_VISIBILITY, btn);
-          const float start_x =
-              ImGui::GetCursorPosX() +
-              std::max(0.0f, ImGui::GetContentRegionAvail().x - popup_width);
-          ImGui::SetCursorPosX(start_x);
           DrawViewOptionsPopup(p.primary_viewer, btn);
-          ImGui::EndTable();
-          return request_panel_mode;
-        }
-
-        const float avail = ImGui::GetContentRegionAvail().x;
-        const bool stack_right_cluster =
-            ultra_compact_toolbar || avail < right_cluster_w;
-        if (!stack_right_cluster) {
-          const float total_w = right_cluster_w;
-          const float start_x =
-              ImGui::GetCursorPosX() +
-              std::max(0.0f, ImGui::GetContentRegionAvail().x - total_w);
-          ImGui::SetCursorPosX(start_x);
-        }
-
-        bool v = p.primary_viewer->show_grid();
-        if (SquareIconButton("##GridToggle",
-                             v ? ICON_MD_GRID_ON : ICON_MD_GRID_OFF, btn,
-                             v ? "Hide grid" : "Show grid")) {
-          p.primary_viewer->set_show_grid(!v);
-        }
-        if (stack_right_cluster) {
-          ImGui::NewLine();
         } else {
+          bool v = p.primary_viewer->show_grid();
+          if (SquareIconButton("##GridToggle",
+                               v ? ICON_MD_GRID_ON : ICON_MD_GRID_OFF, btn,
+                               v ? "Hide grid" : "Show grid")) {
+            p.primary_viewer->set_show_grid(!v);
+          }
           ImGui::SameLine();
-        }
 
-        v = p.primary_viewer->show_object_bounds();
-        if (SquareIconButton("##BoundsToggle", ICON_MD_CROP_SQUARE, btn,
-                             v ? "Hide object bounds" : "Show object bounds")) {
-          p.primary_viewer->set_show_object_bounds(!v);
-        }
-        if (stack_right_cluster) {
+          v = p.primary_viewer->show_object_bounds();
+          if (SquareIconButton(
+                  "##BoundsToggle", ICON_MD_CROP_SQUARE, btn,
+                  v ? "Hide object bounds" : "Show object bounds")) {
+            p.primary_viewer->set_show_object_bounds(!v);
+          }
           ImGui::SameLine();
-        } else {
-          ImGui::SameLine();
-        }
 
-        v = p.primary_viewer->show_coordinate_overlay();
-        if (SquareIconButton(
-                "##CoordsToggle", ICON_MD_MY_LOCATION, btn,
-                v ? "Hide hover coordinates" : "Show hover coordinates")) {
-          p.primary_viewer->set_show_coordinate_overlay(!v);
-        }
-        if (stack_right_cluster) {
-          ImGui::NewLine();
-        } else {
+          v = p.primary_viewer->show_coordinate_overlay();
+          if (SquareIconButton(
+                  "##CoordsToggle", ICON_MD_MY_LOCATION, btn,
+                  v ? "Hide hover coordinates" : "Show hover coordinates")) {
+            p.primary_viewer->set_show_coordinate_overlay(!v);
+          }
           ImGui::SameLine();
-        }
 
-        v = p.primary_viewer->show_camera_quadrant_overlay();
-        if (SquareIconButton(
-                "##CameraToggle", ICON_MD_GRID_VIEW, btn,
-                v ? "Hide camera quadrants" : "Show camera quadrants")) {
-          p.primary_viewer->set_show_camera_quadrant_overlay(!v);
+          v = p.primary_viewer->show_camera_quadrant_overlay();
+          if (SquareIconButton(
+                  "##CameraToggle", ICON_MD_GRID_VIEW, btn,
+                  v ? "Hide camera quadrants" : "Show camera quadrants")) {
+            p.primary_viewer->set_show_camera_quadrant_overlay(!v);
+          }
         }
       }
 
