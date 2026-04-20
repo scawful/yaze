@@ -123,6 +123,31 @@ TEST_F(ThemeStyleSnapshotTest, ApplyThemeByNameRestoresClassicYaze) {
   EXPECT_EQ(mgr.GetCurrentTheme().name, "Classic YAZE");
 }
 
+TEST_F(ThemeStyleSnapshotTest, AvailableThemesExposeClassicYaze) {
+  auto& mgr = ThemeManager::Get();
+  const auto themes = mgr.GetAvailableThemes();
+
+  ASSERT_FALSE(themes.empty());
+  EXPECT_EQ(themes.front(), "Classic YAZE");
+
+  const Theme* classic = mgr.GetTheme("Classic YAZE");
+  ASSERT_NE(classic, nullptr);
+  EXPECT_EQ(classic->name, "Classic YAZE");
+}
+
+TEST_F(ThemeStyleSnapshotTest, PreviewClassicYazeThroughThemeListApi) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("YAZE Tre");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "YAZE Tre");
+
+  mgr.StartPreview("Classic YAZE");
+  EXPECT_TRUE(mgr.IsPreviewActive());
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
+
+  mgr.EndPreview();
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "YAZE Tre");
+}
+
 // Regression for the review follow-up on 07619173: the new
 // ApplyTheme("Classic YAZE") short-circuit routed directly to
 // ApplyClassicYazeTheme, but that helper skipped the transition reset and
