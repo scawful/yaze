@@ -1,8 +1,12 @@
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 
+#include <chrono>
+#include <filesystem>
+#include <string>
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/custom_object.h"
 
 namespace yaze::editor {
 
@@ -99,9 +103,49 @@ struct ObjectTileEditorPanelTestAccess {
       ObjectTileEditorPanel& panel) {
     panel.SyncSourceSelectionFromSelectedCell();
   }
+
+  static bool IsNewObject(const ObjectTileEditorPanel& panel) {
+    return panel.is_new_object_;
+  }
+
+  static void ApplyChanges(ObjectTileEditorPanel& panel) {
+    panel.ApplyChanges();
+  }
+
+  static std::string BuildWindowTitle(const ObjectTileEditorPanel& panel) {
+    return panel.BuildWindowTitle();
+  }
+
+  static void MarkFirstCellModified(ObjectTileEditorPanel& panel) {
+    ASSERT_FALSE(panel.current_layout_.cells.empty());
+    panel.current_layout_.cells[0].modified = true;
+  }
 };
 
 namespace {
+
+std::filesystem::path MakeTempDir(const std::string& stem) {
+  auto now = std::to_string(
+      std::chrono::steady_clock::now().time_since_epoch().count());
+  return std::filesystem::temp_directory_path() / (stem + "_" + now);
+}
+
+struct ScopedCustomObjectState {
+  explicit ScopedCustomObjectState(std::filesystem::path temp_dir)
+      : old_state(zelda3::CustomObjectManager::Get().SnapshotState()),
+        dir(std::move(temp_dir)) {
+    std::filesystem::create_directories(dir);
+    zelda3::CustomObjectManager::Get().Initialize(dir.string());
+  }
+
+  ~ScopedCustomObjectState() {
+    zelda3::CustomObjectManager::Get().RestoreState(old_state);
+    std::filesystem::remove_all(dir);
+  }
+
+  zelda3::CustomObjectManager::State old_state;
+  std::filesystem::path dir;
+};
 
 TEST(ObjectTileEditorPanelTest, OpenForObjectInvalidRoomClearsPreviousLayout) {
   Rom rom;
@@ -264,6 +308,56 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x2A);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     ApplyChangesWithoutCallbackLeavesNewObjectModeAndShowsCustomTitle) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_custom_save"));
+
+  Rom rom;
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "fresh_custom.bin",
+                         /*object_id=*/0x31, /*room_id=*/0, nullptr);
+
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
+  EXPECT_TRUE(std::filesystem::exists(custom_state.dir / "fresh_custom.bin"));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::BuildWindowTitle(panel).find(
+                "Custom Object 0x031 - fresh_custom.bin"),
+            std::string::npos);
+}
+
+TEST(ObjectTileEditorPanelTest, ApplyChangesForNewObjectFiresCallbackOnce) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_custom_callback"));
+
+  Rom rom;
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "callback_custom.bin",
+                         /*object_id=*/0x31, /*room_id=*/0, nullptr);
+
+  int callback_count = 0;
+  int callback_object_id = -1;
+  std::string callback_filename;
+  panel.SetObjectCreatedCallback(
+      [&](int object_id, const std::string& filename) {
+        ++callback_count;
+        callback_object_id = object_id;
+        callback_filename = filename;
+      });
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+  ASSERT_EQ(callback_count, 1);
+  EXPECT_EQ(callback_object_id, 0x31);
+  EXPECT_EQ(callback_filename, "callback_custom.bin");
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
+
+  ObjectTileEditorPanelTestAccess::MarkFirstCellModified(panel);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+  EXPECT_EQ(callback_count, 1);
 }
 
 }  // namespace
