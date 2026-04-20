@@ -1,32 +1,29 @@
 # Roadmap
 
-**Last Updated: April 17, 2026**
+**Last Updated: April 19, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ---
 
-## Current Focus (v0.7.1)
+## Current Focus (v0.7.2 development)
 
-0.7.1 packages the post-0.7.0 welcome-screen overhaul and the dungeon-editor
-parity/polish work that landed through April 2026. No new cross-cutting
-initiatives — this is a bundled cleanup release. See
-`docs/internal/plans/0.7.1-release-plan.md` for the full commit list and
-release checklist.
+`master` moved to 0.7.2 immediately after tagging `v0.7.1` on April 19, 2026.
+The current line is post-release stabilization and follow-through work while
+the next planned feature milestone remains 0.8.0. See
+`docs/internal/plans/0.7.1-release-plan.md` for the shipped 0.7.1 bundle and
+`docs/public/release-notes.md` for the published release summary.
 
-**0.7.1 themes:**
-- Welcome screen overhaul: guided New Project wizard, async ROM metadata
-  scan, recent-projects undo/pin, command-palette surface
-  (`docs/internal/plans/welcome-screen-initiative-2026-04.md`)
-- Dungeon editor parity: BG1/BG2 layout routing, pit masks, replay-geometry
-  selection bounds, ROM-backed parity tests, leaner workbench navigation,
-  lazy room materialization
-- Editor memory/startup footprint: lazy session editors, deferred hidden
-  full-mode asset loads, overworld eager bitmap trim, render-target texture
-  split
+**0.7.2 themes:**
+- Release/build follow-through: keep workflows, scripts, and docs aligned with
+  the per-preset `build/presets/<preset>` binary layout
+- Editor source-layout stabilization after the 0.7.1 reorg: retire legacy
+  headers, keep canonical `shell/`, `registry/`, and `system/*` paths aligned
+- Early 0.8.0 prep: z3dk toolchain integration planning (embedded assembler,
+  65816 LSP features, unified Mesen2 client, `.mlb` symbol export)
 
-**Next up (0.8.0):** z3dk toolchain integration (embedded assembler, 65816
-LSP features, unified Mesen2 client, `.mlb` symbol export). Proposal in
+**Latest shipped release:** `v0.7.1` (April 19, 2026).
+**Next planned feature milestone:** `0.8.0`, tracked in
 `docs/internal/plans/z3dk-integration-0.8.0.md`.
 
 ---
@@ -266,7 +263,7 @@ Mobile testing and review companion for desktop development.
 
 ## Release History
 
-### v0.7.1 (April 2026, pending tag)
+### v0.7.1 (April 2026)
 - Welcome screen overhaul: RecentProjectsModel extraction, sidecar metadata
   cache (path + size + mtime), async first-scan with cancellation-safe
   worker, pin/rename/notes, single-slot 8s undo toast, guided New Project

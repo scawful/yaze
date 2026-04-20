@@ -160,7 +160,17 @@ By default, all presets suppress compiler warnings with `-w` for a cleaner build
 
 ## Build Directories
 
-Most presets use `build/`. WASM presets use `build-wasm/`. Keep only these two build directories in the repo to avoid bloat. For isolated agent builds, point `binaryDir` to a path outside the repo via `CMakeUserPresets.json`.
+Presets now default to a per-preset layout under `build/presets/<preset>/`.
+Examples:
+
+- `build/presets/mac-ai-fast/`
+- `build/presets/release/`
+- `build/presets/wasm-ai/`
+
+This keeps configure/build/test artifacts aligned with the preset name and is
+the layout used by CI, release workflows, and helper scripts. For isolated
+agent builds, point `binaryDir` to a path outside the repo via
+`CMakeUserPresets.json`.
 
 ### Shared Dependency Caches
 

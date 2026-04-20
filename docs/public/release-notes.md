@@ -1,9 +1,9 @@
 # Release Notes
 
-## v0.7.1 (April 2026, pending tag)
+## v0.7.1 (April 2026)
 
 **Type:** Packaging + Welcome Screen Overhaul + Dungeon Editor Parity/Polish
-**Date:** 2026-04-17 (pending tag)
+**Date:** 2026-04-19
 
 ### Welcome Screen & Project Startup
 - Added a guided New Project flow with clearer startup/project creation affordances.
