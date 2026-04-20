@@ -1071,7 +1071,7 @@ void EditorManager::Update() {
 **Files Modified**:
 - `src/app/editor/editor_manager.cc` (lines 715-752) - Moved DrawAllUI() before early returns
 - `src/app/editor/ui/welcome_screen.{h,cc}` - Added ImGui state override
-- `src/app/editor/ui/ui_coordinator.cc` - Simplified welcome screen logic
+- `src/app/editor/shell/coordinator/ui_coordinator.cc` - Simplified welcome screen logic
 
 **Lesson Learned**:
 Always call UI drawing methods BEFORE early returns that check business logic state. UI components (especially welcome screens) need to work independently of application state.
