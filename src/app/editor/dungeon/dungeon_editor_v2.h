@@ -131,6 +131,9 @@ class DungeonEditorV2 : public Editor {
   void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
   int LoadedRoomCount() const;
+  int PendingRoomCount() const;
+  bool HasPendingRoomChanges() const;
+  bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
   // Collect PC write ranges for all dirty/loaded rooms (for write conflict
@@ -248,6 +251,9 @@ class DungeonEditorV2 : public Editor {
 
   // Sync all sub-panels to the current room configuration
   void SyncPanelsToRoom(int room_id);
+  uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
+  void ApplyEntranceRenderContext(int room_id);
+  void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);

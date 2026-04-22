@@ -419,17 +419,17 @@ void DungeonEditorV2::Initialize() {
         [this](int room_id) {
           auto status = SaveRoom(room_id);
           if (!status.ok()) {
-            LOG_ERROR("DungeonEditorV2", "Save Room failed: %s",
+            LOG_ERROR("DungeonEditorV2", "Apply Room failed: %s",
                       status.message().data());
             if (dependencies_.toast_manager) {
               dependencies_.toast_manager->Show(
-                  absl::StrFormat("Save Room failed: %s", status.message()),
+                  absl::StrFormat("Apply Room failed: %s", status.message()),
                   ToastType::kError);
             }
             return;
           }
           if (dependencies_.toast_manager) {
-            dependencies_.toast_manager->Show("Room saved",
+            dependencies_.toast_manager->Show("Applied room to ROM buffer",
                                               ToastType::kSuccess);
           }
         },
@@ -547,6 +547,20 @@ absl::Status DungeonEditorV2::Load() {
 
   auto door_editor = std::make_unique<DoorEditorContent>();
   door_editor->SetRooms(&rooms_);
+  door_editor->SetJumpToReciprocalDoorCallback(
+      [this](int neighbor_room_id, size_t door_index) {
+        if (neighbor_room_id < 0 ||
+            neighbor_room_id >= static_cast<int>(rooms_.size())) {
+          return;
+        }
+        OnRoomSelected(neighbor_room_id, true);
+        if (auto* viewer = GetViewerForRoom(neighbor_room_id)) {
+          viewer->object_interaction()
+              .entity_coordinator()
+              .door_handler()
+              .SelectDoor(door_index);
+        }
+      });
   door_editor_panel_ = door_editor.get();
 
   // Propagate game_data to the object editor panel if available
@@ -970,6 +984,15 @@ void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
                                  std::move(rooms_opts));
   }
 
+  if (room_id >= 0 && CurrentRoomHasPendingChanges()) {
+    StatusBarSegmentOptions current_room_opts;
+    current_room_opts.tooltip =
+        "This room has pending editor changes that are not yet applied to the "
+        "ROM buffer.";
+    status_bar->SetCustomSegment("RoomState", "Pending",
+                                 std::move(current_room_opts));
+  }
+
   StatusBarSegmentOptions mode_opts;
   mode_opts.tooltip = "Click to toggle Workbench / Standalone workflow";
   mode_opts.on_click = [this]() {
@@ -1147,7 +1170,7 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
     room_id = room.id();
 
     // Header range
-    if (flags.kSaveRoomHeaders) {
+    if (flags.kSaveRoomHeaders && room.header_dirty()) {
       if (zelda3::kRoomHeaderPointer + 2 < static_cast<int>(rom_data.size())) {
         int header_ptr_table =
             (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
@@ -1167,7 +1190,7 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
     }
 
     // Object range
-    if (flags.kSaveObjects) {
+    if (flags.kSaveObjects && room.object_stream_dirty()) {
       if (zelda3::kRoomObjectPointer + 2 < static_cast<int>(rom_data.size())) {
         int obj_ptr_table = (rom_data[zelda3::kRoomObjectPointer + 2] << 16) |
                             (rom_data[zelda3::kRoomObjectPointer + 1] << 8) |
@@ -1248,6 +1271,31 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
 
 int DungeonEditorV2::LoadedRoomCount() const {
   return rooms_.LoadedCount();
+}
+
+int DungeonEditorV2::PendingRoomCount() const {
+  int count = 0;
+  rooms_.ForEachMaterialized([&count](int, const zelda3::Room& room) {
+    if (room.HasUnsavedChanges()) {
+      ++count;
+    }
+  });
+  return count;
+}
+
+bool DungeonEditorV2::HasPendingRoomChanges() const {
+  return PendingRoomCount() > 0;
+}
+
+bool DungeonEditorV2::CurrentRoomHasPendingChanges() const {
+  if (current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_.size())) {
+    return false;
+  }
+  if (const auto* room = rooms_.GetIfMaterialized(current_room_id_)) {
+    return room->HasUnsavedChanges();
+  }
+  return false;
 }
 
 absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
@@ -1350,7 +1398,7 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
         "DungeonEditorV2", dependencies_.toast_manager));
   }
 
-  if (flags.kSaveObjects) {
+  if (flags.kSaveObjects && room.object_stream_dirty()) {
     auto status = room.SaveObjects();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room objects: %s",
@@ -1359,7 +1407,7 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
     }
   }
 
-  if (flags.kSaveSprites) {
+  if (flags.kSaveSprites && room.sprites_dirty()) {
     auto status = room.SaveSprites();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room sprites: %s",
@@ -1368,20 +1416,12 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
     }
   }
 
-  if (flags.kSaveRoomHeaders) {
+  if (flags.kSaveRoomHeaders && room.header_dirty()) {
     auto status = room.SaveRoomHeader();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room header: %s",
                 status.message().data());
       return status;
-    }
-  }
-
-  if (flags.kSaveObjects && dungeon_editor_system_) {
-    auto sys_status = dungeon_editor_system_->SaveRoom(room.id());
-    if (!sys_status.ok()) {
-      LOG_ERROR("DungeonEditorV2", "Failed to save room system data: %s",
-                sys_status.message().data());
     }
   }
 
@@ -1565,7 +1605,8 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     bool needs_render = false;
 
     if (room.blocks().empty()) {
-      room.LoadRoomGraphics(room.blockset());
+      ApplyEntranceRenderContext(room_id);
+      room.LoadRoomGraphics();
       needs_render = true;
     }
 
@@ -1711,12 +1752,14 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
     }
 
     if (room.IsLoaded()) {
+      ApplyEntranceRenderContext(room_id);
       current_palette_id_ = room.ResolveDungeonPaletteId();
       current_palette_group_id_ = current_palette_id_;
       palette_editor_.SetCurrentPaletteId(current_palette_id_);
 
       // Update viewer and object editor palette
       if (auto* viewer = GetViewerForRoom(room_id)) {
+        ConfigureViewerRenderContext(viewer, room_id);
         viewer->SetCurrentPaletteId(current_palette_id_);
 
         if (game_data()) {
@@ -1801,15 +1844,60 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
   if (entrance_id < 0 || entrance_id >= static_cast<int>(entrances_.size())) {
     return;
   }
+  current_entrance_id_ = entrance_id;
+  room_selector_.set_current_entrance_id(entrance_id);
   int room_id = entrances_[entrance_id].room_;
   OnRoomSelected(room_id);
+}
+
+uint8_t DungeonEditorV2::ResolveSelectedEntranceBlocksetForRoom(
+    int room_id) const {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return 0xFF;
+  }
+  if (current_entrance_id_ < 0 ||
+      current_entrance_id_ >= static_cast<int>(entrances_.size())) {
+    return 0xFF;
+  }
+  const auto& entrance = entrances_[current_entrance_id_];
+  if (entrance.room_ != room_id) {
+    return 0xFF;
+  }
+  return entrance.blockset_;
+}
+
+void DungeonEditorV2::ApplyEntranceRenderContext(int room_id) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return;
+  }
+  auto& room = rooms_[room_id];
+  if (!room.IsLoaded()) {
+    return;
+  }
+  room.SetRenderEntranceBlockset(
+      ResolveSelectedEntranceBlocksetForRoom(room_id));
+}
+
+void DungeonEditorV2::ConfigureViewerRenderContext(DungeonCanvasViewer* viewer,
+                                                   int room_id) {
+  if (viewer == nullptr) {
+    return;
+  }
+  const uint8_t entrance_blockset =
+      ResolveSelectedEntranceBlocksetForRoom(room_id);
+  if (entrance_blockset == 0xFF) {
+    viewer->ClearEntranceRenderContext();
+  } else {
+    viewer->SetEntranceRenderContext(current_entrance_id_, entrance_blockset);
+  }
 }
 
 void DungeonEditorV2::SaveAllRooms() {
   auto status = Save();
   if (status.ok()) {
     if (dependencies_.toast_manager) {
-      dependencies_.toast_manager->Show("All rooms saved", ToastType::kSuccess);
+      dependencies_.toast_manager->Show("Applied loaded rooms to ROM buffer",
+                                        ToastType::kSuccess);
     }
   } else {
     LOG_ERROR("DungeonEditorV2", "SaveAllRooms failed: %s",
@@ -1912,7 +2000,8 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   }
 
   auto& room = rooms_[room_id];
-  room.LoadRoomGraphics(room.blockset());
+  ApplyEntranceRenderContext(room_id);
+  room.LoadRoomGraphics();
 
   uint16_t sheet_id = 0;
   uint16_t tile_index = 0;
@@ -2089,6 +2178,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   if (auto* existing = room_viewers_.Get(room_id)) {
     // Viewer already exists - Get() already touched LRU
     auto* viewer_ptr = existing->get();
+    ConfigureViewerRenderContext(viewer_ptr, room_id);
+    ApplyEntranceRenderContext(room_id);
 
     // Update pinned state from manager
     if (dependencies_.window_manager) {
@@ -2119,6 +2210,8 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetCurrentPaletteGroup(current_palette_group_);
     viewer->SetCurrentPaletteId(current_palette_id_);
     viewer->SetGameData(game_data_);
+    ConfigureViewerRenderContext(viewer_ptr, room_id);
+    ApplyEntranceRenderContext(room_id);
 
     // These hooks must remain correct even when a room panel swaps rooms while
     // keeping the same viewer instance (to preserve canvas pan/zoom + UI
@@ -2218,17 +2311,18 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetSaveRoomCallback([this](int target_room_id) {
       auto status = SaveRoom(target_room_id);
       if (!status.ok()) {
-        LOG_ERROR("DungeonEditorV2", "Save Room failed: %s",
+        LOG_ERROR("DungeonEditorV2", "Apply Room failed: %s",
                   status.message().data());
         if (dependencies_.toast_manager) {
           dependencies_.toast_manager->Show(
-              absl::StrFormat("Save Room failed: %s", status.message()),
+              absl::StrFormat("Apply Room failed: %s", status.message()),
               ToastType::kError);
         }
         return;
       }
       if (dependencies_.toast_manager) {
-        dependencies_.toast_manager->Show("Room saved", ToastType::kSuccess);
+        dependencies_.toast_manager->Show("Applied room to ROM buffer",
+                                          ToastType::kSuccess);
       }
     });
 
@@ -2361,17 +2455,18 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->SetSaveRoomCallback([this](int target_room_id) {
       auto status = SaveRoom(target_room_id);
       if (!status.ok()) {
-        LOG_ERROR("DungeonEditorV2", "Save Room failed: %s",
+        LOG_ERROR("DungeonEditorV2", "Apply Room failed: %s",
                   status.message().data());
         if (dependencies_.toast_manager) {
           dependencies_.toast_manager->Show(
-              absl::StrFormat("Save Room failed: %s", status.message()),
+              absl::StrFormat("Apply Room failed: %s", status.message()),
               ToastType::kError);
         }
         return;
       }
       if (dependencies_.toast_manager) {
-        dependencies_.toast_manager->Show("Room saved", ToastType::kSuccess);
+        dependencies_.toast_manager->Show("Applied room to ROM buffer",
+                                          ToastType::kSuccess);
       }
     });
 
