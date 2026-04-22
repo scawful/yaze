@@ -19,8 +19,10 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/widgets/font_picker.h"
 #include "app/gui/widgets/property_inspector.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "app/platform/font_loader.h"
 #include "cli/service/ai/provider_ids.h"
 #include "core/patch/asm_patch.h"
 #include "core/patch/patch_manager.h"
@@ -1004,11 +1006,17 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
 
   ImGui::Spacing();
-  gui::DrawFontManager();
+  ImGui::Text("%s Font", ICON_MD_TEXT_FIELDS);
+  ImGui::Separator();
 
-  // Global font scale with persistence
   if (user_settings_) {
-    ImGui::Separator();
+    int font_index = user_settings_->prefs().font_family_index;
+    if (gui::FontPicker("##font_family", &font_index)) {
+      user_settings_->prefs().font_family_index = font_index;
+      ::yaze::SetActiveFontIndex(font_index);
+      user_settings_->Save();
+    }
+
     ImGui::Text("Global Font Scale");
     float scale = user_settings_->prefs().font_global_scale;
     if (ImGui::SliderFloat("##global_font_scale", &scale, 0.5f, 2.0f, "%.2f")) {

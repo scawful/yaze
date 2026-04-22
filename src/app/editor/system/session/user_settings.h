@@ -70,6 +70,9 @@ class UserSettings {
     // Theme (last applied theme persists across restart; empty = default)
     std::string last_theme_name;
 
+    // Font (index into ImGui::GetIO().Fonts->Fonts, typically 0..4)
+    int font_family_index = 0;
+
     // Editor Behavior
     bool backup_before_save = true;
     int default_editor = 0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics
