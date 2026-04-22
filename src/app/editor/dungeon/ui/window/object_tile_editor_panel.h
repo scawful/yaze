@@ -61,7 +61,16 @@ class ObjectTileEditorPanel : public WindowContent {
   }
 
  private:
+  enum class ActionStatusTone {
+    kNone,
+    kWarning,
+    kSuccess,
+    kError,
+  };
+
   void ClearRenderedBitmaps();
+  void ClearActionStatus();
+  void SetActionStatus(ActionStatusTone tone, std::string message);
   void ResetTransientState();
   std::string BuildWindowTitle() const;
   void SelectFirstCellIfAvailable();
@@ -107,6 +116,8 @@ class ObjectTileEditorPanel : public WindowContent {
   bool show_shared_confirm_ = false;
   int shared_object_count_ = 0;
   int shared_tile_data_usage_override_ = -1;  // Test seam; production keeps -1.
+  ActionStatusTone action_status_tone_ = ActionStatusTone::kNone;
+  std::string action_status_message_;
 
   // New object creation state
   bool is_new_object_ = false;
