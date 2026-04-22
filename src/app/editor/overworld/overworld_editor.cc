@@ -48,9 +48,9 @@
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
-#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/render/tilemap.h"
@@ -119,6 +119,23 @@ bool ItemSnapshotsEqual(const OverworldItemsSnapshot& lhs,
 }
 
 }  // namespace
+
+bool OverworldEditor::NormalizeMapSelection(int& current_world,
+                                            int& current_map) {
+  const int clamped_world = std::clamp(current_world, 0, 2);
+  int normalized_map = current_map;
+  if (normalized_map < 0 || normalized_map >= zelda3::kNumOverworldMaps) {
+    normalized_map =
+        std::min(clamped_world * 0x40, zelda3::kNumOverworldMaps - 1);
+  }
+
+  const int normalized_world = std::clamp(normalized_map / 0x40, 0, 2);
+  const bool changed =
+      normalized_world != current_world || normalized_map != current_map;
+  current_world = normalized_world;
+  current_map = normalized_map;
+  return changed;
+}
 
 void OverworldEditor::Initialize() {
   // Initialize renderer from dependencies
@@ -491,6 +508,8 @@ absl::Status OverworldEditor::Update() {
     return absl::OkStatus();
   }
 
+  NormalizeCurrentSelectionState();
+
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
 
@@ -619,6 +638,33 @@ absl::Status OverworldEditor::Update() {
   }
 
   return absl::OkStatus();
+}
+
+void OverworldEditor::DrawOverworldCanvas() {
+  NormalizeCurrentSelectionState();
+
+  if (canvas_renderer_) {
+    canvas_renderer_->DrawOverworldCanvas();
+  }
+}
+
+bool OverworldEditor::NormalizeCurrentSelectionState() {
+  if (!NormalizeMapSelection(current_world_, current_map_)) {
+    return false;
+  }
+
+  overworld_.set_current_world(current_world_);
+  overworld_.set_current_map(current_map_);
+  if (const auto* map = overworld_.overworld_map(current_map_)) {
+    current_parent_ = map->parent();
+  } else {
+    current_parent_ = current_map_;
+  }
+
+  LOG_WARN("OverworldEditor",
+           "Normalized stale overworld selection to world=%d map=%d",
+           current_world_, current_map_);
+  return true;
 }
 
 void OverworldEditor::HandleKeyboardShortcuts() {

@@ -34,6 +34,17 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
                         ImGuiWindowFlags_None)) {
     DrawMapSelection(current_world, current_map, current_map_lock);
 
+    if (overworld_->overworld_map(current_map) == nullptr) {
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Spacing();
+      ImGui::TextDisabled("Current map selection is invalid.");
+      ImGui::TextDisabled(
+          "Hover or jump to a valid overworld map to continue.");
+      ImGui::EndChild();
+      return;
+    }
+
     ImGui::Spacing();
     Separator();
     ImGui::Spacing();

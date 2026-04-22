@@ -198,6 +198,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   Rom* rom() const { return rom_; }
 
+  /// @brief Clamp a possibly stale world/map selection back into a valid
+  /// overworld range.
+  static bool NormalizeMapSelection(int& current_world, int& current_map);
+
   /// @brief Set the current map for editing (also updates world)
   void set_current_map(int map_id) {
     if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {
@@ -339,6 +343,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Drawing is delegated to OverworldCanvasRenderer.
 
   absl::Status DrawAreaGraphics() {
+    NormalizeCurrentSelectionState();
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawAreaGraphics();
@@ -349,6 +354,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     return canvas_renderer_->DrawTile16Selector();
   }
   void DrawMapProperties() {
+    NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawMapProperties();
   }
@@ -367,6 +373,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   absl::Status UpdateGfxGroupEditor();
   void DrawV3Settings() {
+    NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawV3Settings();
   }
@@ -384,10 +391,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   OverworldEntityWorkbench* GetWorkbench();
 
   /// @brief Draw the main overworld canvas
-  void DrawOverworldCanvas() {
-    if (canvas_renderer_)
-      canvas_renderer_->DrawOverworldCanvas();
-  }
+  void DrawOverworldCanvas();
 
  private:
   // ===========================================================================
@@ -397,6 +401,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Handle overworld keyboard shortcuts and edit-mode hotkeys
   void HandleKeyboardShortcuts();
+
+  /// @brief Clamp and synchronize stale map/world selection before panels draw.
+  bool NormalizeCurrentSelectionState();
 
   // ===========================================================================
   // Map Refresh System (delegated to MapRefreshCoordinator)
