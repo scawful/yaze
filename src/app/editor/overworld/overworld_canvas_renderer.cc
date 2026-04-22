@@ -48,10 +48,14 @@ OverworldCanvasRenderer::OverworldCanvasRenderer(OverworldEditor* editor)
 // =============================================================================
 
 void OverworldCanvasRenderer::DrawOverworldCanvas() {
+  if (!editor_) {
+    return;
+  }
+
   // Simplified map settings - compact row with popup panels for detailed
   // editing
-  if (editor_->rom_->is_loaded() && editor_->overworld_.is_loaded() &&
-      editor_->map_properties_system_) {
+  if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
+      editor_->overworld_.is_loaded() && editor_->map_properties_system_) {
     const EditingMode old_mode = editor_->current_mode;
     bool has_selection = editor_->ow_map_canvas_.select_rect_active() &&
                          !editor_->ow_map_canvas_.selected_tiles().empty();
@@ -86,8 +90,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       (!editor_->entity_renderer_ ||
        editor_->entity_renderer_->hovered_entity() == nullptr);
 
-  if (editor_->rom_->is_loaded() && editor_->overworld_.is_loaded() &&
-      editor_->map_properties_system_) {
+  if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
+      editor_->overworld_.is_loaded() && editor_->map_properties_system_) {
     editor_->ow_map_canvas_.ClearContextMenuItems();
     editor_->map_properties_system_->SetupCanvasContextMenu(
         editor_->ow_map_canvas_, editor_->current_map_,

@@ -273,6 +273,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/tile16_editor_shortcuts_test.cc
     unit/editor/tile8_source_interaction_test.cc
     unit/editor/overworld_item_operations_test.cc
+    unit/editor/overworld_editor_state_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/zelda3/overworld_test.cc
