@@ -540,6 +540,11 @@ void ThemeManager::CreateFallbackYazeClassic() {
   theme.tab_rounding = 0.0f;
   theme.enable_glow_effects = false;
 
+  // Hydrate semantic/interaction defaults so the fallback matches the
+  // file-backed theme when LoadThemeFromFile can't reach assets/themes/
+  // (e.g. test binaries whose working directory doesn't contain the bundle).
+  ApplySmartDefaults(theme);
+
   themes_["YAZE Tre"] = theme;
   current_theme_ = theme;
   current_theme_name_ = "YAZE Tre";
@@ -2154,6 +2159,10 @@ void ThemeManager::ApplyClassicYazeTheme() {
   ColorsYaze();
   current_theme_name_ = "Classic YAZE";
   Theme classic_theme = BuildClassicYazeTheme();
+  // Hydrate the same semantic/interaction/dungeon/agent defaults that file-
+  // loaded themes get via LoadThemeFromFile → ApplySmartDefaults, so Classic
+  // isn't missing fields (selection_primary, dungeon.object_door, agent.*).
+  ApplySmartDefaults(classic_theme);
   current_theme_ = classic_theme;
 
   // Mirror the bookkeeping that LoadTheme and ApplyTheme(const Theme&) do:
