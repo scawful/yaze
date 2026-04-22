@@ -287,7 +287,11 @@ void SessionCoordinator::DrawSessionSwitcher() {
 
     // Session tab
     if (ImGui::Selectable(GetSessionDisplayName(i).c_str(), is_active)) {
-      SwitchToSession(i);
+      if (editor_manager_) {
+        editor_manager_->RequestSwitchToSession(i);
+      } else {
+        SwitchToSession(i);
+      }
     }
 
     // Right-click context menu
@@ -393,7 +397,9 @@ void SessionCoordinator::DrawSessionManager() {
 
       // Status
       ImGui::TableNextColumn();
-      if (session->rom.is_loaded()) {
+      if (IsSessionModified(i)) {
+        ImGui::TextColored(gui::GetWarningColor(), "Modified");
+      } else if (session->rom.is_loaded()) {
         ImGui::TextColored(gui::GetSuccessColor(), "Loaded");
       } else {
         ImGui::TextColored(gui::GetWarningColor(), "Empty");
@@ -402,12 +408,20 @@ void SessionCoordinator::DrawSessionManager() {
       // Actions
       ImGui::TableNextColumn();
       if (!is_active && ImGui::SmallButton("Switch")) {
-        SwitchToSession(i);
+        if (editor_manager_) {
+          editor_manager_->RequestSwitchToSession(i);
+        } else {
+          SwitchToSession(i);
+        }
       }
 
       ImGui::SameLine();
       if (HasMultipleSessions() && ImGui::SmallButton("Close")) {
-        CloseSession(i);
+        if (editor_manager_) {
+          editor_manager_->RequestCloseSession(i);
+        } else {
+          CloseSession(i);
+        }
       }
 
       ImGui::PopID();
@@ -467,10 +481,17 @@ void SessionCoordinator::DrawSessionTabs() {
         tab_name += " ";
         tab_name += ICON_MD_CHECK_CIRCLE;
       }
+      if (IsSessionModified(i)) {
+        tab_name += "*";
+      }
 
       if (ImGui::BeginTabItem(tab_name.c_str())) {
         if (!is_active) {
-          SwitchToSession(i);
+          if (editor_manager_) {
+            editor_manager_->RequestSwitchToSession(i);
+          } else {
+            SwitchToSession(i);
+          }
         }
         ImGui::EndTabItem();
       }
@@ -937,10 +958,17 @@ void SessionCoordinator::DrawSessionTab(size_t index, bool is_active) {
     tab_name += " ";
     tab_name += ICON_MD_CHECK_CIRCLE;
   }
+  if (IsSessionModified(index)) {
+    tab_name += "*";
+  }
 
   if (ImGui::BeginTabItem(tab_name.c_str())) {
     if (!is_active) {
-      SwitchToSession(index);
+      if (editor_manager_) {
+        editor_manager_->RequestSwitchToSession(index);
+      } else {
+        SwitchToSession(index);
+      }
     }
     ImGui::EndTabItem();
   }
@@ -949,7 +977,11 @@ void SessionCoordinator::DrawSessionTab(size_t index, bool is_active) {
 void SessionCoordinator::DrawSessionContextMenu(size_t index) {
   if (ImGui::MenuItem(
           absl::StrFormat("%s Switch to Session", ICON_MD_TAB).c_str())) {
-    SwitchToSession(index);
+    if (editor_manager_) {
+      editor_manager_->RequestSwitchToSession(index);
+    } else {
+      SwitchToSession(index);
+    }
   }
 
   if (ImGui::MenuItem(absl::StrFormat("%s Rename", ICON_MD_EDIT).c_str())) {
@@ -970,7 +1002,11 @@ void SessionCoordinator::DrawSessionContextMenu(size_t index) {
   if (HasMultipleSessions() &&
       ImGui::MenuItem(
           absl::StrFormat("%s Close Session", ICON_MD_CLOSE).c_str())) {
-    CloseSession(index);
+    if (editor_manager_) {
+      editor_manager_->RequestCloseSession(index);
+    } else {
+      CloseSession(index);
+    }
   }
 }
 
@@ -1028,7 +1064,20 @@ bool SessionCoordinator::IsSessionClosed(size_t index) const {
 }
 
 bool SessionCoordinator::IsSessionModified(size_t index) const {
-  // TODO: Implement modification tracking
+  if (!IsValidSessionIndex(index)) {
+    return false;
+  }
+
+  const auto& session = sessions_[index];
+  if (session->rom.is_loaded() && session->rom.dirty()) {
+    return true;
+  }
+
+  if (auto* dungeon_editor =
+          session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)) {
+    return dungeon_editor->HasPendingRoomChanges();
+  }
+
   return false;
 }
 

@@ -26,13 +26,21 @@
 #include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/session/background_command_task.h"
+#include "app/editor/shell/coordinator/ui_coordinator.h"
+#include "app/editor/shell/coordinator/welcome_screen.h"
+#include "app/editor/shell/coordinator/workspace_manager.h"
+#include "app/editor/shell/feedback/popup_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/shell/windows/dashboard_panel.h"
+#include "app/editor/shell/windows/project_management_panel.h"
+#include "app/editor/shell/windows/selection_properties_panel.h"
 #include "app/editor/system/editor_activator.h"
 #include "app/editor/system/editor_manager_interfaces.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/proposal_drawer.h"
+#include "app/editor/system/session/background_command_task.h"
+#include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session/rom_lifecycle_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
@@ -40,14 +48,6 @@
 #include "app/editor/system/window_host.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/ui/rom_load_options_dialog.h"
-#include "app/editor/shell/coordinator/welcome_screen.h"
-#include "app/editor/shell/coordinator/ui_coordinator.h"
-#include "app/editor/shell/coordinator/workspace_manager.h"
-#include "app/editor/shell/feedback/popup_manager.h"
-#include "app/editor/shell/feedback/toast_manager.h"
-#include "app/editor/shell/windows/dashboard_panel.h"
-#include "app/editor/shell/windows/project_management_panel.h"
-#include "app/editor/shell/windows/selection_properties_panel.h"
 #include "app/emu/emulator.h"
 #include "app/startup_flags.h"
 #include "core/project.h"
@@ -145,6 +145,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   }
   StatusBar* status_bar() { return &status_bar_; }
   ToastManager* toast_manager() { return &toast_manager_; }
+  PopupManager* popup_manager() { return popup_manager_.get(); }
   WorkspaceWindowManager* GetWindowManager() { return &window_manager_; }
   WorkspaceWindowManager& window_manager() { return window_manager_; }
   const WorkspaceWindowManager& window_manager() const {
@@ -297,6 +298,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void CloseCurrentSession();
   void RemoveSession(size_t index);
   void SwitchToSession(size_t index);
+  void RequestSwitchToSession(size_t index) override { SwitchToSession(index); }
+  void RequestCloseSession(size_t index) override { RemoveSession(index); }
   size_t GetActiveSessionCount() const;
 
   // Workspace layout management
@@ -339,7 +342,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                                         size_t session_index) const;
   bool HasDuplicateSession(const std::string& filepath);
   void RenameSession(size_t index, const std::string& new_name);
-  void Quit() { quit_ = true; }
+  void Quit();
+
+  bool HasPendingUnsavedSessionAction() const;
+  std::string GetPendingUnsavedSessionActionPrompt() const;
+  std::string GetPendingUnsavedSessionActionSaveLabel() const;
+  std::string GetPendingUnsavedSessionActionContinueLabel() const;
+  void ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  void ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  void CancelPendingUnsavedSessionAction();
 
   // Deferred action queue - actions executed safely on next frame
   // Use this to avoid modifying ImGui state during menu/popup rendering
@@ -591,11 +602,41 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::StatusOr<std::string> ResolveProjectRunTarget() const;
   absl::Status CheckRomWritePolicy();
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
+  absl::Status LoadRomInternal();
+  absl::Status OpenRomOrProjectInternal(const std::string& filename);
+  absl::Status OpenProjectInternal();
+
+  struct PendingUnsavedSessionAction {
+    enum class Type {
+      kOpenRomDialog,
+      kOpenRomOrProjectPath,
+      kOpenProjectDialog,
+      kSwitchSession,
+      kCloseSession,
+      kQuit,
+    };
+
+    Type type = Type::kOpenRomDialog;
+    size_t source_session_index = SIZE_MAX;
+    size_t target_session_index = SIZE_MAX;
+    std::string path;
+  };
+
+  bool MaybeGuardPendingSessionAction(PendingUnsavedSessionAction action);
+  void ExecutePendingUnsavedSessionAction(
+      const PendingUnsavedSessionAction& action);
+  bool SessionHasPendingUnsavedWork(size_t session_index) const;
+  bool HasAnySessionPendingUnsavedWork() const;
+  int PendingDungeonRoomCountForSession(size_t session_index) const;
+  int ModifiedSessionCount() const;
+  std::string DescribePendingUnsavedWork(size_t session_index) const;
+  std::string DescribeAllPendingUnsavedWork() const;
 
   float autosave_timer_ = 0.0f;
   bool settings_dirty_ = false;
   float settings_dirty_timestamp_ = 0.0f;
   bool pending_layout_defaults_reset_ = false;
+  std::optional<PendingUnsavedSessionAction> pending_unsaved_session_action_;
 
   // ROM lifecycle state (hash, write policy, confirmation dialogs, backups)
   // Mutable because some const accessors delegate to it.
