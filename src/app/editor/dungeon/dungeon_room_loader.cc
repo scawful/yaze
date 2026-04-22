@@ -247,7 +247,7 @@ absl::Status DungeonRoomLoader::LoadAndRenderRoomGraphics(zelda3::Room& room) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  room.ReloadGraphics(room.blockset());
+  room.ReloadGraphics();
 
   return absl::OkStatus();
 }

@@ -23,6 +23,7 @@ set(
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/dungeon/ui/reporting/dungeon_issue_report_storage.cc
   app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
   app/editor/dungeon/widgets/dungeon_workbench_toolbar.cc
   app/editor/dungeon/widgets/dungeon_status_bar.cc
