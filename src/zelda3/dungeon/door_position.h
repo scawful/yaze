@@ -33,7 +33,7 @@ class DoorPositionManager {
   // Room dimensions in tiles (64x64 for standard rooms)
   static constexpr int kRoomWidthTiles = 64;
   static constexpr int kRoomHeightTiles = 64;
-  static constexpr int kTileSize = 8;  // Pixels per tile
+  static constexpr int kTileSize = 8;           // Pixels per tile
   static constexpr int kMaxDoorPositions = 32;  // 5-bit encoding = 32 positions
 
   // Wall detection thresholds (in tiles from edge)
@@ -58,7 +58,7 @@ class DoorPositionManager {
    * @return Encoded position byte for ROM storage (0-31)
    */
   static uint8_t SnapToNearestPosition(int canvas_x, int canvas_y,
-                                        DoorDirection direction);
+                                       DoorDirection direction);
 
   /**
    * @brief Convert encoded position to tile coordinates
@@ -68,7 +68,7 @@ class DoorPositionManager {
    * @return Pair of (tile_x, tile_y) coordinates
    */
   static std::pair<int, int> PositionToTileCoords(uint8_t position,
-                                                   DoorDirection direction);
+                                                  DoorDirection direction);
 
   /**
    * @brief Convert encoded position to pixel coordinates
@@ -78,7 +78,7 @@ class DoorPositionManager {
    * @return Pair of (pixel_x, pixel_y) coordinates
    */
   static std::pair<int, int> PositionToPixelCoords(uint8_t position,
-                                                    DoorDirection direction);
+                                                   DoorDirection direction);
 
   /**
    * @brief Get the wall edge coordinate for a direction
@@ -115,7 +115,7 @@ class DoorPositionManager {
    * @return true if near a wall edge
    */
   static bool DetectWallFromPosition(int canvas_x, int canvas_y,
-                                      DoorDirection& out_direction);
+                                     DoorDirection& out_direction);
 
   /**
    * @brief Detect wall with inner/outer section information
@@ -136,8 +136,8 @@ class DoorPositionManager {
    * @return true if near any wall or seam
    */
   static bool DetectWallSection(int canvas_x, int canvas_y,
-                                 DoorDirection& out_direction,
-                                 bool& out_is_inner);
+                                DoorDirection& out_direction,
+                                bool& out_is_inner);
 
   /**
    * @brief Get the starting position index for outer/inner section
@@ -146,7 +146,8 @@ class DoorPositionManager {
    * @param is_inner Whether at inner seam (vs outer wall)
    * @return Starting position index (0 or 6)
    */
-  static uint8_t GetSectionStartPosition(DoorDirection direction, bool is_inner);
+  static uint8_t GetSectionStartPosition(DoorDirection direction,
+                                         bool is_inner);
 
   /**
    * @brief Encode door data for ROM storage
@@ -157,8 +158,8 @@ class DoorPositionManager {
    * @return Pair of (byte1, byte2) for ROM storage
    */
   static std::pair<uint8_t, uint8_t> EncodeDoorBytes(uint8_t position,
-                                                      DoorType type,
-                                                      DoorDirection direction);
+                                                     DoorType type,
+                                                     DoorDirection direction);
 
   /**
    * @brief Get the bounding rectangle for a door
@@ -168,7 +169,16 @@ class DoorPositionManager {
    * @return Tuple of (x, y, width, height) in pixels
    */
   static std::tuple<int, int, int, int> GetDoorBounds(uint8_t position,
-                                                       DoorDirection direction);
+                                                      DoorDirection direction);
+
+  /**
+   * @brief Get the editor interaction bounds for a typed door.
+   *
+   * Uses the editor's type-aware footprint so selection/preview bounds match
+   * special north-door rendering better than the generic ranged-door size.
+   */
+  static std::tuple<int, int, int, int> GetDoorEditorBounds(
+      uint8_t position, DoorDirection direction, DoorType type);
 };
 
 }  // namespace zelda3

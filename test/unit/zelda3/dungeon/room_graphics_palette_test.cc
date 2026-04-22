@@ -4,9 +4,11 @@
 #include <memory>
 #include <vector>
 
+#include "app/gfx/core/bitmap.h"
 #include "rom/rom.h"
-#include "zelda3/game_data.h"
+#include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/game_data.h"
 
 namespace yaze::zelda3::test {
 
@@ -19,7 +21,8 @@ namespace yaze::zelda3::test {
 // In yaze we store sheets as 8BPP linear indices (one byte per pixel). To
 // mirror the runtime expansion, we apply the +8 shift when copying UW
 // background blocks 4-7 into the room's graphics buffer.
-TEST(RoomGraphicsPaletteTest, CopyRoomGraphicsToBuffer_ShiftsRightPaletteBlocks) {
+TEST(RoomGraphicsPaletteTest,
+     CopyRoomGraphicsToBuffer_ShiftsRightPaletteBlocks) {
   auto rom = std::make_unique<Rom>();
   std::vector<uint8_t> dummy_rom(0x200000, 0);
   rom->LoadFromData(dummy_rom);
@@ -84,8 +87,7 @@ TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteIncludesHudRows) {
     dungeon_palette.AddColor(gfx::SnesColor(i + 32, i + 33, i + 34));
   }
 
-  const auto colors =
-      BuildDungeonRenderPalette(dungeon_palette, &hud_palette);
+  const auto colors = BuildDungeonRenderPalette(dungeon_palette, &hud_palette);
 
   ASSERT_EQ(colors.size(), 256u);
 
@@ -115,6 +117,112 @@ TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteIncludesHudRows) {
 
   // Undrawn fill color remains transparent.
   EXPECT_EQ(colors[255].a, 0);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     PaletteDebuggerSamplesMappedDungeonRenderPalette) {
+  gfx::SnesPalette hud_palette;
+  for (int i = 0; i < 32; ++i) {
+    hud_palette.AddColor(gfx::SnesColor(i, i + 1, i + 2));
+  }
+
+  gfx::SnesPalette dungeon_palette;
+  for (int i = 0; i < 90; ++i) {
+    dungeon_palette.AddColor(gfx::SnesColor(i + 32, i + 33, i + 34));
+  }
+
+  const auto render_palette =
+      BuildDungeonRenderPalette(dungeon_palette, &hud_palette);
+
+  gfx::Bitmap bitmap;
+  bitmap.Create(/*width=*/1, /*height=*/1, /*depth=*/8,
+                std::vector<uint8_t>{33});
+  bitmap.SetPalette(render_palette);
+
+  auto& debugger = PaletteDebugger::Get();
+  debugger.Clear();
+  debugger.SetCurrentPalette(dungeon_palette);
+  debugger.SetCurrentRenderPalette(render_palette);
+  debugger.SetCurrentBitmap(&bitmap);
+
+  const auto comp = debugger.SamplePixelAt(0, 0);
+  EXPECT_EQ(comp.palette_index, 33);
+  EXPECT_EQ(comp.expected_r, 32);
+  EXPECT_EQ(comp.expected_g, 33);
+  EXPECT_EQ(comp.expected_b, 34);
+  EXPECT_EQ(comp.actual_r, 32);
+  EXPECT_EQ(comp.actual_g, 33);
+  EXPECT_EQ(comp.actual_b, 34);
+  EXPECT_TRUE(comp.matches);
+
+  debugger.Clear();
+}
+
+TEST(RoomGraphicsPaletteTest,
+     LoadRoomGraphicsWithoutEntranceOverrideUsesRoomHeaderBlockset) {
+  GameData game_data;
+  game_data.main_blockset_ids[3] = {10, 11, 12, 13, 14, 15, 16, 17};
+  game_data.room_blockset_ids[5][3] = 99;
+  game_data.spriteset_ids[64] = {1, 2, 3, 4};
+
+  Room room;
+  room.SetGameData(&game_data);
+  room.SetBlockset(3);
+  room.SetSpriteset(0);
+  room.SetRenderEntranceBlockset(0xFF);
+
+  room.LoadRoomGraphics();
+
+  const auto blocks = room.blocks();
+  EXPECT_EQ(blocks[0], 10);
+  EXPECT_EQ(blocks[5], 15);
+  EXPECT_EQ(blocks[6], 16);
+  EXPECT_EQ(blocks[7], 17);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     LoadRoomGraphicsUsesConfiguredEntranceBlocksetForSharedSheetOverride) {
+  GameData game_data;
+  game_data.main_blockset_ids[3] = {10, 11, 12, 13, 14, 15, 16, 17};
+  game_data.room_blockset_ids[5][3] = 99;
+  game_data.spriteset_ids[64] = {1, 2, 3, 4};
+
+  Room room;
+  room.SetGameData(&game_data);
+  room.SetBlockset(3);
+  room.SetSpriteset(0);
+  room.SetRenderEntranceBlockset(5);
+
+  room.LoadRoomGraphics();
+
+  const auto blocks = room.blocks();
+  EXPECT_EQ(blocks[0], 10);
+  EXPECT_EQ(blocks[5], 15);
+  EXPECT_EQ(blocks[6], 99);
+  EXPECT_EQ(blocks[7], 17);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     LoadRoomGraphicsExplicitOverrideBeatsStoredRenderContext) {
+  GameData game_data;
+  game_data.main_blockset_ids[3] = {10, 11, 12, 13, 14, 15, 16, 17};
+  game_data.room_blockset_ids[5][3] = 99;
+  game_data.room_blockset_ids[7][3] = 77;
+  game_data.spriteset_ids[64] = {1, 2, 3, 4};
+
+  Room room;
+  room.SetGameData(&game_data);
+  room.SetBlockset(3);
+  room.SetSpriteset(0);
+  room.SetRenderEntranceBlockset(5);
+
+  room.LoadRoomGraphics(static_cast<uint8_t>(7));
+
+  const auto blocks = room.blocks();
+  EXPECT_EQ(blocks[0], 10);
+  EXPECT_EQ(blocks[5], 15);
+  EXPECT_EQ(blocks[6], 77);
+  EXPECT_EQ(blocks[7], 17);
 }
 
 }  // namespace yaze::zelda3::test

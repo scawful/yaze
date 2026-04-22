@@ -16,6 +16,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -37,6 +38,7 @@ class FakeDungeonState : public DungeonState {
  public:
   int open_lock_room_id = -1;
   int water_face_active_room_id = -1;
+  bool dam_floodgate_open = false;
 
   bool IsChestOpen(int /*room_id*/, int /*chest_index*/) const override {
     return false;
@@ -52,6 +54,9 @@ class FakeDungeonState : public DungeonState {
   bool IsDoorSwitchActive(int /*room_id*/) const override { return false; }
   bool IsWaterFaceActive(int room_id) const override {
     return room_id == water_face_active_room_id;
+  }
+  bool IsDamFloodgateOpen(int /*room_id*/) const override {
+    return dam_floodgate_open;
   }
 
   bool IsWallMoved(int /*room_id*/) const override { return false; }
@@ -235,6 +240,8 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
   gfx::BackgroundBuffer bg2(512, 512);
   bg1.EnsureBitmapInitialized();
   bg2.EnsureBitmapInitialized();
+  ASSERT_TRUE(bg1.bitmap().is_active());
+  ASSERT_TRUE(bg2.bitmap().is_active());
   bg1.bitmap().Fill(255);
   bg2.bitmap().Fill(255);
 
@@ -349,10 +356,10 @@ TEST(ObjectDrawerRegistryReplayTest,
   dummy_rom[kDoorwayReplacementDoorGfxBase + kCurtainDoorType] =
       kOpenCurtainReplacementType;
   WriteWord(dummy_rom, kDoorGfxNorthTableBase + kCurtainDoorType, 0xFFFF);
-  WriteWord(dummy_rom,
-            kDoorGfxNorthTableBase + kOpenCurtainReplacementType,
+  WriteWord(dummy_rom, kDoorGfxNorthTableBase + kOpenCurtainReplacementType,
             kOpenCurtainObjectOffset);
-  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kOpenCurtainObjectOffset,
+  WriteDoorObjectDataWords(dummy_rom,
+                           /*object_offset=*/kOpenCurtainObjectOffset,
                            /*start_word=*/0x0500, /*word_count=*/16);
   rom.LoadFromData(dummy_rom);
 
@@ -402,11 +409,9 @@ TEST(ObjectDrawerRegistryReplayTest,
   Rom rom;
   std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
   WriteWord(dummy_rom, kExplodingWallTilemapPositionBase, 0x0D8A);
-  WriteWord(dummy_rom,
-            kDoorGfxSouthTableBase + kExplodingWallReplacementType,
+  WriteWord(dummy_rom, kDoorGfxSouthTableBase + kExplodingWallReplacementType,
             kSouthSegmentObjectOffset);
-  WriteWord(dummy_rom,
-            kDoorGfxNorthTableBase + kExplodingWallReplacementType,
+  WriteWord(dummy_rom, kDoorGfxNorthTableBase + kExplodingWallReplacementType,
             kNorthSegmentObjectOffset);
   WriteDoorObjectDataWords(dummy_rom,
                            /*object_offset=*/kSouthSegmentObjectOffset,
@@ -448,8 +453,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_FALSE(TileHasCoverage(bg2, 5, 23));
 }
 
-TEST(ObjectDrawerRegistryReplayTest,
-     NorthMiddleDoorsRenderBothSidesOfTheSeam) {
+TEST(ObjectDrawerRegistryReplayTest, NorthMiddleDoorsRenderBothSidesOfTheSeam) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   constexpr int kDoorGfxNorthTableBase = 0x4D9E;
@@ -493,8 +497,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_TRUE(TileHasCoverage(bg1, 17, 39));
 }
 
-TEST(ObjectDrawerRegistryReplayTest,
-     WestMiddleDoorsRenderBothSidesOfTheSeam) {
+TEST(ObjectDrawerRegistryReplayTest, WestMiddleDoorsRenderBothSidesOfTheSeam) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   constexpr int kDoorGfxWestTableBase = 0x4E66;
@@ -1739,6 +1742,39 @@ TEST(ObjectDrawerRegistryReplayTest, DrenchingWaterFaceDraws4x7RowMajor) {
   EXPECT_EQ(trace[27].tile_id, 227);
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     ArcheryGameTargetDoorDrawsTwoStacked3x3Sections) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FE0, /*x=*/8, /*y=*/9, /*size=*/0,
+      RoomObject::LayerType::BG1, MakeSequentialTiles(/*count=*/18));
+
+  const auto bg1_trace = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto expected_top =
+      MakeColumnMajorSnapshot(/*x=*/8, /*y=*/9, /*width=*/3, /*height=*/3,
+                              /*start_tile_id=*/0);
+  const auto expected_bottom =
+      MakeColumnMajorSnapshot(/*x=*/8, /*y=*/12, /*width=*/3, /*height=*/3,
+                              /*start_tile_id=*/9);
+
+  ASSERT_EQ(bg1_trace.size(), expected_top.size() + expected_bottom.size());
+  for (size_t i = 0; i < expected_top.size(); ++i) {
+    EXPECT_EQ(bg1_trace[i].x_tile, expected_top[i].x) << "top idx=" << i;
+    EXPECT_EQ(bg1_trace[i].y_tile, expected_top[i].y) << "top idx=" << i;
+    EXPECT_EQ(bg1_trace[i].tile_id, expected_top[i].tile_id) << "top idx=" << i;
+  }
+  for (size_t i = 0; i < expected_bottom.size(); ++i) {
+    const size_t trace_index = expected_top.size() + i;
+    EXPECT_EQ(bg1_trace[trace_index].x_tile, expected_bottom[i].x)
+        << "bottom idx=" << i;
+    EXPECT_EQ(bg1_trace[trace_index].y_tile, expected_bottom[i].y)
+        << "bottom idx=" << i;
+    EXPECT_EQ(bg1_trace[trace_index].tile_id, expected_bottom[i].tile_id)
+        << "bottom idx=" << i;
+  }
+}
+
 TEST(ObjectDrawerMaskPropagationTest, Layer2PitMaskMarksBG1Transparent) {
   ScopedCustomObjectsFlag disable_custom(false);
 
@@ -1944,6 +1980,385 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2FloodWaterMasksBG1Transparent) {
 
     EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255) << object_id;
     EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255) << object_id;
+  }
+}
+
+TEST(ObjectDrawerMaskPropagationTest,
+     Layer2OverlayUsesPerPixelMaskInsteadOfRectangularClear) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(0);
+  gfx[0] = 1;  // Only the tile's top-left pixel is opaque.
+
+  gfx::BackgroundBuffer obj_bg1(512, 512);
+  gfx::BackgroundBuffer obj_bg2(512, 512);
+  gfx::BackgroundBuffer layout_bg1(512, 512);
+  obj_bg1.EnsureBitmapInitialized();
+  obj_bg2.EnsureBitmapInitialized();
+  layout_bg1.EnsureBitmapInitialized();
+
+  obj_bg1.bitmap().Fill(10);
+  layout_bg1.bitmap().Fill(11);
+  obj_bg2.bitmap().Fill(255);
+  obj_bg1.ClearPriorityBuffer();
+  obj_bg2.ClearPriorityBuffer();
+  layout_bg1.ClearPriorityBuffer();
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+
+  RoomObject obj(0x0034, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  obj.tiles_.push_back(gfx::TileInfo(/*id=*/0, /*pal=*/2, false, false, false));
+
+  gfx::PaletteGroup palette_group;
+
+  const int base_x = (obj.x_ + 3) * 8;
+  const int base_y = obj.y_ * 8;
+  const int opaque_idx = base_y * obj_bg1.bitmap().width() + base_x;
+  const int transparent_idx = opaque_idx + 1;
+  ASSERT_LT(transparent_idx, static_cast<int>(obj_bg1.bitmap().size()));
+
+  ASSERT_TRUE(drawer
+                  .DrawObject(obj, obj_bg1, obj_bg2, palette_group,
+                              /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
+                  .ok());
+
+  EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 255);
+  EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 255);
+  EXPECT_EQ(obj_bg1.bitmap().data()[transparent_idx], 10);
+  EXPECT_EQ(layout_bg1.bitmap().data()[transparent_idx], 11);
+}
+
+TEST(ObjectDrawerMaskPropagationTest, Layer2SpiralStairsUsePerPixelMasking) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(0);
+  gfx[0] = 1;  // Only the tile's top-left pixel is opaque.
+
+  gfx::BackgroundBuffer obj_bg1(512, 512);
+  gfx::BackgroundBuffer obj_bg2(512, 512);
+  gfx::BackgroundBuffer layout_bg1(512, 512);
+  obj_bg1.EnsureBitmapInitialized();
+  obj_bg2.EnsureBitmapInitialized();
+  layout_bg1.EnsureBitmapInitialized();
+
+  obj_bg1.bitmap().Fill(10);
+  layout_bg1.bitmap().Fill(11);
+  obj_bg2.bitmap().Fill(255);
+  obj_bg1.ClearPriorityBuffer();
+  obj_bg2.ClearPriorityBuffer();
+  layout_bg1.ClearPriorityBuffer();
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+
+  RoomObject obj(0x013B, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 12; ++i) {
+    obj.tiles_.push_back(
+        gfx::TileInfo(/*id=*/0, /*pal=*/2, false, false, false));
+  }
+
+  gfx::PaletteGroup palette_group;
+
+  const int base_x = obj.x_ * 8;
+  const int base_y = obj.y_ * 8;
+  const int opaque_idx = base_y * obj_bg1.bitmap().width() + base_x;
+  const int transparent_idx = opaque_idx + 1;
+  ASSERT_LT(transparent_idx, static_cast<int>(obj_bg1.bitmap().size()));
+
+  ASSERT_TRUE(drawer
+                  .DrawObject(obj, obj_bg1, obj_bg2, palette_group,
+                              /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
+                  .ok());
+
+  EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 255);
+  EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 255);
+  EXPECT_EQ(obj_bg1.bitmap().data()[transparent_idx], 10);
+  EXPECT_EQ(layout_bg1.bitmap().data()[transparent_idx], 11);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     AutoStairsNorthMultiLayerDrawsToBothLayersColumnMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 4;
+  constexpr int kY = 6;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0130, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/16));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeColumnMajorSnapshot(kX, kY, 4, 4, 0);
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+  ExpectTraceMatchesSnapshot(bg2, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     AutoStairsMergedLayerKeepsTargetLayerAndColumnMajorOrder) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 7;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0132, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(/*count=*/16));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeColumnMajorSnapshot(kX, kY, 4, 4, 0);
+
+  EXPECT_TRUE(bg1.empty());
+  ExpectTraceMatchesSnapshot(bg2, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     SpiralStairsUpperAlwaysRenderOnBg1InColumnMajorOrder) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 3;
+  constexpr int kY = 5;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0139, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(/*count=*/12));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeColumnMajorSnapshot(kX, kY, 4, 3, 0);
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+  EXPECT_TRUE(bg2.empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     SpiralStairsLowerAlwaysRenderOnBg2InColumnMajorOrder) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 3;
+  constexpr int kY = 5;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x013B, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/12));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeColumnMajorSnapshot(kX, kY, 4, 3, 0);
+
+  EXPECT_TRUE(bg1.empty());
+  ExpectTraceMatchesSnapshot(bg2, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     StraightInterroomUpperAlwaysRendersOnBg1InColumnMajorOrder) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 6;
+  constexpr int kY = 4;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0F9E, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(/*count=*/16));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeColumnMajorSnapshot(kX, kY, 4, 4, 0);
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+  EXPECT_TRUE(bg2.empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     StraightInterroomNorthLowerRendersBodyOnBg2AndFrontEdgeOnBg1) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 6;
+  constexpr int kY = 4;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FA6, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/16));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected_bg2 = MakeColumnMajorSnapshot(kX, kY, 4, 4, 0);
+  const std::vector<SnapshotTileWrite> expected_bg1 = {
+      {kX + 0, kY + 0, 0},
+      {kX + 1, kY + 0, 4},
+      {kX + 2, kY + 0, 8},
+      {kX + 3, kY + 0, 12},
+  };
+
+  ExpectTraceMatchesSnapshot(bg2, expected_bg2);
+  ExpectTraceMatchesSnapshot(bg1, expected_bg1);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     StraightInterroomSouthLowerRendersBodyOnBg2AndFrontEdgeOnBg1) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 6;
+  constexpr int kY = 4;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FA8, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/16));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected_bg2 = MakeColumnMajorSnapshot(kX, kY, 4, 4, 0);
+  const std::vector<SnapshotTileWrite> expected_bg1 = {
+      {kX + 0, kY + 3, 3},
+      {kX + 1, kY + 3, 7},
+      {kX + 2, kY + 3, 11},
+      {kX + 3, kY + 3, 15},
+  };
+
+  ExpectTraceMatchesSnapshot(bg2, expected_bg2);
+  ExpectTraceMatchesSnapshot(bg1, expected_bg1);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     WaterHopStairsNorthUseSingleLayerRowMajor4x2Order) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 8;
+  constexpr int kY = 9;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0135, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(/*count=*/8));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeRowMajorSnapshot(kX, kY, 4, 2, 0);
+
+  EXPECT_TRUE(bg1.empty());
+  ExpectTraceMatchesSnapshot(bg2, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     WaterHopStairsSouthDrawToBothLayersInRowMajor4x2Order) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 8;
+  constexpr int kY = 9;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0136, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(/*count=*/8));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeRowMajorSnapshot(kX, kY, 4, 2, 0);
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+  ExpectTraceMatchesSnapshot(bg2, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     DamFloodGateUsesClosedTilesByDefaultInColumnMajor10x4Order) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 3;
+  constexpr int kY = 4;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0137, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/80));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  const auto expected = MakeColumnMajorSnapshot(kX, kY, 10, 4, 0);
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+  EXPECT_TRUE(bg2.empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     DamFloodGateUsesOpenTilesWhenStateIsActive) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  FakeDungeonState state;
+  state.dam_floodgate_open = true;
+
+  constexpr int kX = 3;
+  constexpr int kY = 4;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0137, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/80), &state);
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto expected = MakeColumnMajorSnapshot(kX, kY, 10, 4, 40);
+
+  ExpectTraceMatchesSnapshot(bg1, expected);
+}
+
+TEST(ObjectDrawerMaskPropagationTest,
+     DiagonalMaskBObjectsUsePerPixelBg1Masking) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(0);
+  gfx[0] = 1;  // Only the top-left pixel of each tile is opaque.
+
+  gfx::PaletteGroup palette_group;
+
+  for (const int object_id : {0x00A9, 0x00AA, 0x00AB, 0x00AC}) {
+    auto trace = ReplayObjectTrace(object_id, /*x=*/2, /*y=*/3, /*size=*/0,
+                                   RoomObject::LayerType::BG2,
+                                   MakeSequentialTiles(/*count=*/1));
+    const auto bg2_trace =
+        FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+    ASSERT_FALSE(bg2_trace.empty()) << object_id;
+
+    gfx::BackgroundBuffer obj_bg1(512, 512);
+    gfx::BackgroundBuffer obj_bg2(512, 512);
+    gfx::BackgroundBuffer layout_bg1(512, 512);
+    obj_bg1.EnsureBitmapInitialized();
+    obj_bg2.EnsureBitmapInitialized();
+    layout_bg1.EnsureBitmapInitialized();
+
+    obj_bg1.bitmap().Fill(10);
+    layout_bg1.bitmap().Fill(11);
+    obj_bg2.bitmap().Fill(255);
+    obj_bg1.ClearPriorityBuffer();
+    obj_bg2.ClearPriorityBuffer();
+    layout_bg1.ClearPriorityBuffer();
+
+    ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+
+    RoomObject obj(object_id, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
+    obj.tiles_loaded_ = true;
+    obj.tiles_ = MakeSequentialTiles(/*count=*/1);
+
+    ASSERT_TRUE(drawer
+                    .DrawObject(obj, obj_bg1, obj_bg2, palette_group,
+                                /*state=*/nullptr,
+                                /*layout_bg1=*/&layout_bg1)
+                    .ok())
+        << object_id;
+
+    const int opaque_x = bg2_trace.front().x_tile * 8;
+    const int opaque_y = bg2_trace.front().y_tile * 8;
+    const int opaque_idx = opaque_y * obj_bg1.bitmap().width() + opaque_x;
+    const int transparent_idx = opaque_idx + 1;
+
+    ASSERT_LT(transparent_idx, static_cast<int>(obj_bg1.bitmap().size()));
+    EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 255) << object_id;
+    EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 255) << object_id;
+    EXPECT_EQ(obj_bg1.bitmap().data()[transparent_idx], 10) << object_id;
+    EXPECT_EQ(layout_bg1.bitmap().data()[transparent_idx], 11) << object_id;
   }
 }
 

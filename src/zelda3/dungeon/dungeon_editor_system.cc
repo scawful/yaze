@@ -17,7 +17,11 @@ absl::Status SaveSingleRoomState(Rom* rom, Room& room) {
   RETURN_IF_ERROR(room.SaveSprites());
   RETURN_IF_ERROR(room.SaveRoomHeader());
 
-  const int room_limit = room.id() + 1;
+  // Room-indexed tables (torches, chests, pot items, custom collision) must
+  // preserve every other room's ROM data when saving a single room. Using the
+  // full dungeon range keeps the save behavior consistent with the editor-level
+  // save path and avoids truncating data for rooms after the edited one.
+  const int room_limit = kNumberOfRooms;
   auto room_lookup_const = [&room](int room_id) -> const Room* {
     return room_id == room.id() ? &room : nullptr;
   };

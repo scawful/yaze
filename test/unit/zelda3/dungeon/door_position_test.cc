@@ -87,5 +87,26 @@ TEST(DoorPositionManagerTest, SnapToNearestPositionUsesCorrectVerticalRows) {
       8);
 }
 
+TEST(DoorPositionManagerTest, EditorBoundsUseNorthCurtainDoorFootprint) {
+  const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+      /*position=*/0, DoorDirection::North, DoorType::CurtainDoor);
+
+  EXPECT_EQ(x, 14 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(y, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(height, 4 * DoorPositionManager::kTileSize);
+}
+
+TEST(DoorPositionManagerTest,
+     EditorBoundsKeepExplodingWallOnGenericAnchorSize) {
+  const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+      /*position=*/0, DoorDirection::North, DoorType::ExplodingWall);
+
+  EXPECT_EQ(x, 14 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(y, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(height, 3 * DoorPositionManager::kTileSize);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3

@@ -72,6 +72,61 @@ void Draw4x4ColumnMajor(const DrawContext& ctx, int x_offset, int y_offset,
                   ctx.object.y_ + y_offset, 4, 4, ctx.tiles, start_index);
 }
 
+void Draw4x4ColumnMajorTo(gfx::BackgroundBuffer& bg, const RoomObject& object,
+                          std::span<const gfx::TileInfo> tiles) {
+  DrawColumnMajor(bg, object.x_, object.y_, 4, 4, tiles);
+}
+
+bool IsAutoStairsDualLayer(int16_t object_id) {
+  return object_id == 0x0130 || object_id == 0x0131 || object_id == 0x0F9B ||
+         object_id == 0x0F9C;
+}
+
+bool IsStraightInterroomUpper(int16_t object_id) {
+  return object_id >= 0x0F9E && object_id <= 0x0FA1;
+}
+
+bool IsStraightInterroomLower(int16_t object_id) {
+  return object_id >= 0x0FA6 && object_id <= 0x0FA9;
+}
+
+bool IsSouthLowerStraightInterroomStairs(int16_t object_id) {
+  return object_id == 0x0FA8 || object_id == 0x0FA9;
+}
+
+void DrawWaterHopStairsA(const DrawContext& ctx) {
+  // ASM: RoomDraw_WaterHopStairs_A ($019B1E) falls through PortraitOfMario's
+  // single-pass Downwards4x2VariableSpacing path, which is a fixed 4x2
+  // ROW-MAJOR stamp on the active layer.
+  if (ctx.tiles.size() < 8)
+    return;
+
+  DrawRowMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 4, 2, ctx.tiles);
+}
+
+void DrawWaterHopStairsB(const DrawContext& ctx) {
+  // ASM: RoomDraw_WaterHopStairs_B ($01A3AE) writes the same 4x2 ROW-MAJOR
+  // footprint to both BG tilemaps. The outer draw framework handles the dual
+  // pass for routines marked draws_to_both_bgs.
+  DrawWaterHopStairsA(ctx);
+}
+
+void DrawDamFloodGate(const DrawContext& ctx) {
+  // ASM: RoomDraw_DamFloodGate ($019BF8) stamps a 10x4 column-major tile block
+  // from the closed tile span by default, and swaps to the alternate water-open
+  // tile span when the overworld event is active.
+  constexpr size_t kSpanTiles = 40;
+  const bool use_open_tiles = ctx.state != nullptr &&
+                              ctx.state->IsDamFloodgateOpen(ctx.room_id) &&
+                              ctx.tiles.size() >= kSpanTiles * 2;
+  const size_t start_index = use_open_tiles ? kSpanTiles : 0;
+  if (ctx.tiles.size() < start_index + kSpanTiles)
+    return;
+
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 10, 4, ctx.tiles,
+                  start_index);
+}
+
 }  // namespace
 
 void DrawChest(const DrawContext& ctx, int chest_index) {
@@ -293,11 +348,9 @@ void DrawSomariaLine(const DrawContext& ctx) {
 }
 
 void DrawWaterFace(const DrawContext& ctx) {
-  // Pattern: Water Face (Type 3 objects 0xF80-0xF82)
-  // Draws a 2x2 face in COLUMN-MAJOR order
-  // TODO: Implement state check from RoomDraw_EmptyWaterFace ($019D29)
-  // Checks Room ID ($AF), Room State ($7EF000), Door Flags ($0403) to switch
-  // graphic
+  // Legacy 2x2 helper used by older corner-family routines. The real subtype-3
+  // water-face objects are handled by DrawEmptyWaterFace /
+  // DrawSpittingWaterFace / DrawDrenchingWaterFace below.
   if (ctx.tiles.size() >= 4) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
                                  ctx.tiles[0]);  // col 0, row 0
@@ -935,21 +988,14 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
 
 void DrawInterRoomFatStairsUp(const DrawContext& ctx) {
   // ASM: RoomDraw_InterRoomFatStairsUp ($01A41B)
-  // Uses tile data at obj1088, draws 4x4 pattern
+  // Uses RoomDraw_4x4, which consumes a 4x4 tile block in COLUMN-MAJOR order.
   // In original game, registers position in $06B0 for transition handling
   // For editor display, we just draw the visual representation
 
   if (ctx.tiles.size() < 16)
     return;
 
-  // Draw 4x4 stair pattern
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      size_t tile_idx = static_cast<size_t>(y * 4 + x);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
-    }
-  }
+  Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
 }
 
 void DrawInterRoomFatStairsDownA(const DrawContext& ctx) {
@@ -967,49 +1013,59 @@ void DrawInterRoomFatStairsDownB(const DrawContext& ctx) {
 void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper) {
   // ASM: RoomDraw_SpiralStairsGoingUpUpper, etc.
   // Calls RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows = 12 tiles
-  // Tile order is COLUMN-MAJOR (down first, then right)
+  // Tile order is COLUMN-MAJOR (down first, then right).
+  // Upper variants render to BG1, lower variants render to BG2.
   (void)going_up;
-  (void)is_upper;
 
   if (ctx.tiles.size() < 12)
     return;
 
-  // Draw 4x3 pattern in COLUMN-MAJOR order (matching ASM)
-  int tid = 0;
-  for (int x = 0; x < 4; ++x) {
-    for (int y = 0; y < 3; ++y) {
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tid++]);
-    }
+  gfx::BackgroundBuffer* dest = &ctx.target_bg;
+  if (!is_upper && ctx.secondary_bg != nullptr) {
+    dest = ctx.secondary_bg;
   }
+
+  DrawColumnMajor(*dest, ctx.object.x_, ctx.object.y_, 4, 3, ctx.tiles);
 }
 
 void DrawAutoStairs(const DrawContext& ctx) {
   // ASM: RoomDraw_AutoStairs* routines
-  // Multi-layer or merged layer stair patterns
+  // The multi-layer variants stamp both BG tilemaps; merged/single-layer
+  // variants stay on the active target layer.
   if (ctx.tiles.size() < 16)
     return;
 
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      size_t tile_idx = static_cast<size_t>(y * 4 + x);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
-    }
+  Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
+
+  if (ctx.secondary_bg != nullptr && IsAutoStairsDualLayer(ctx.object.id_)) {
+    Draw4x4ColumnMajorTo(*ctx.secondary_bg, ctx.object, ctx.tiles);
   }
 }
 
 void DrawStraightInterRoomStairs(const DrawContext& ctx) {
   // ASM: RoomDraw_StraightInterroomStairs* routines
-  // North/South, Up/Down variants
+  // Upper variants render on BG1 only. Lower variants render the 4x4 block on
+  // BG2 and expose the front edge on BG1 as well.
   if (ctx.tiles.size() < 16)
     return;
 
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      size_t tile_idx = static_cast<size_t>(y * 4 + x);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
+  if (IsStraightInterroomUpper(ctx.object.id_) || ctx.secondary_bg == nullptr ||
+      !IsStraightInterroomLower(ctx.object.id_)) {
+    Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
+    return;
+  }
+
+  const bool south_lower = IsSouthLowerStraightInterroomStairs(ctx.object.id_);
+  size_t tile_index = 0;
+  for (int col = 0; col < 4; ++col) {
+    for (int row = 0; row < 4; ++row) {
+      const auto& tile = TileAtWrapped(ctx.tiles, tile_index++);
+      DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, ctx.object.x_ + col,
+                                   ctx.object.y_ + row, tile);
+      if ((!south_lower && row == 0) || (south_lower && row == 3)) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + col,
+                                     ctx.object.y_ + row, tile);
+      }
     }
   }
 }
@@ -1567,6 +1623,39 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 4,
       .base_height = 3,  // 4x3 pattern
       .min_tiles = 12,   // 4x3 block
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kWaterHopStairsA,  // 119
+      .name = "WaterHopStairsA",
+      .function = DrawWaterHopStairsA,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 2,
+      .min_tiles = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kWaterHopStairsB,  // 120
+      .name = "WaterHopStairsB",
+      .function = DrawWaterHopStairsB,
+      .draws_to_both_bgs = true,
+      .base_width = 4,
+      .base_height = 2,
+      .min_tiles = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kDamFloodGate,  // 121
+      .name = "DamFloodGate",
+      .function = DrawDamFloodGate,
+      .draws_to_both_bgs = false,
+      .base_width = 10,
+      .base_height = 4,
+      .min_tiles = 40,
       .category = DrawRoutineInfo::Category::Special,
   });
 

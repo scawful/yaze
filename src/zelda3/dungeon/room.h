@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <tuple>
 #include <utility>
@@ -35,10 +36,9 @@ std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
     const gfx::SnesPalette* hud_palette = nullptr);
 
-void LoadDungeonRenderPaletteToCgram(std::span<uint16_t> cgram,
-                                     const gfx::SnesPalette& dungeon_palette,
-                                     const gfx::SnesPalette* hud_palette =
-                                         nullptr);
+void LoadDungeonRenderPaletteToCgram(
+    std::span<uint16_t> cgram, const gfx::SnesPalette& dungeon_palette,
+    const gfx::SnesPalette* hud_palette = nullptr);
 
 // ROM addresses defined in dungeon_rom_addresses.h (use kPrefixed names)
 
@@ -56,6 +56,7 @@ struct LayerMergeType {
     Layer2Translucent = trans;
     Layer2Visible = see;
   }
+  bool operator==(const LayerMergeType&) const = default;
 };
 
 // LayerMergeType(id, name, Layer2Visible, Layer2OnTop, Layer2Translucent)
@@ -203,7 +204,8 @@ class Room {
   Room(const Room&) = delete;
   Room& operator=(const Room&) = delete;
 
-  void LoadRoomGraphics(uint8_t entrance_blockset = 0xFF);
+  void LoadRoomGraphics(
+      std::optional<uint8_t> entrance_blockset = std::nullopt);
   void CopyRoomGraphicsToBuffer();
   // LoadGraphicsSheetsIntoArena() removed - per-room graphics instead
   void RenderRoomGraphics();
@@ -221,16 +223,23 @@ class Room {
   void LoadBlocks();
   void LoadPits();
   void LoadLayoutTilesToBuffer();
-  void ReloadGraphics(uint8_t entrance_blockset = 0xFF);
-  void PrepareForRender(uint8_t entrance_blockset = 0xFF);
+  void ReloadGraphics(std::optional<uint8_t> entrance_blockset = std::nullopt);
+  void PrepareForRender(
+      std::optional<uint8_t> entrance_blockset = std::nullopt);
 
   // Public getters and manipulators for sprites
   const std::vector<zelda3::Sprite>& GetSprites() const { return sprites_; }
   std::vector<zelda3::Sprite>& GetSprites() { return sprites_; }
+  bool sprites_dirty() const { return save_dirty_state_.sprites; }
+  void MarkSpritesDirty() { save_dirty_state_.sprites = true; }
+  void ClearSpritesDirty() { save_dirty_state_.sprites = false; }
 
   // Public getters and manipulators for chests
   const std::vector<chest_data>& GetChests() const { return chests_in_room_; }
   std::vector<chest_data>& GetChests() { return chests_in_room_; }
+  bool chests_dirty() const { return save_dirty_state_.chests; }
+  void MarkChestsDirty() { save_dirty_state_.chests = true; }
+  void ClearChestsDirty() { save_dirty_state_.chests = false; }
 
   // Public getters and manipulators for stairs
   const std::vector<staircase>& GetStairs() const { return z3_staircases_; }
@@ -265,9 +274,20 @@ class Room {
       return GetDoorDimensions(direction);
     }
 
+    /// Get editor interaction dimensions in tiles
+    DoorDimensions GetEditorDimensions() const {
+      return GetEditorDoorDimensions(direction, type);
+    }
+
     /// Get bounding rectangle (x, y, width, height in pixels)
     std::tuple<int, int, int, int> GetBounds() const {
       return DoorPositionManager::GetDoorBounds(position, direction);
+    }
+
+    /// Get editor interaction bounds (x, y, width, height in pixels)
+    std::tuple<int, int, int, int> GetEditorBounds() const {
+      return DoorPositionManager::GetDoorEditorBounds(position, direction,
+                                                      type);
     }
 
     /// Get human-readable type name
@@ -310,19 +330,22 @@ class Room {
   void AddDoor(const Door& door) {
     doors_.push_back(door);
     objects_loaded_ = true;
-    MarkObjectsDirty();
+    MarkObjectStreamDirty();
   }
   void RemoveDoor(size_t index) {
     if (index < doors_.size()) {
       doors_.erase(doors_.begin() + index);
       objects_loaded_ = true;
-      MarkObjectsDirty();
+      MarkObjectStreamDirty();
     }
   }
 
   // Public getters for pot items (items hidden under pots/bushes)
   const std::vector<PotItem>& GetPotItems() const { return pot_items_; }
   std::vector<PotItem>& GetPotItems() { return pot_items_; }
+  bool pot_items_dirty() const { return save_dirty_state_.pot_items; }
+  void MarkPotItemsDirty() { save_dirty_state_.pot_items = true; }
+  void ClearPotItemsDirty() { save_dirty_state_.pot_items = false; }
 
   const RoomLayout& GetLayout() const { return layout_; }
 
@@ -336,12 +359,12 @@ class Room {
   void ClearTileObjects() {
     tile_objects_.clear();
     objects_loaded_ = true;
-    MarkObjectsDirty();
+    MarkObjectStreamDirty();
   }
   void AddTileObject(const RoomObject& object) {
     tile_objects_.push_back(object);
     objects_loaded_ = true;
-    MarkObjectsDirty();
+    MarkObjectStreamDirty();
   }
 
   // Enhanced object manipulation (Phase 3)
@@ -357,6 +380,12 @@ class Room {
     dirty_state_.textures = true;
     dirty_state_.composite = true;
   }
+  void MarkObjectStreamDirty() {
+    save_dirty_state_.object_stream = true;
+    MarkObjectsDirty();
+  }
+  bool object_stream_dirty() const { return save_dirty_state_.object_stream; }
+  void ClearObjectStreamDirty() { save_dirty_state_.object_stream = false; }
   void MarkGraphicsDirty() {
     dirty_state_.graphics = true;
     dirty_state_.textures = true;
@@ -371,7 +400,7 @@ class Room {
     if (index < tile_objects_.size()) {
       tile_objects_.erase(tile_objects_.begin() + index);
       objects_loaded_ = true;
-      MarkObjectsDirty();
+      MarkObjectStreamDirty();
     }
   }
   size_t GetTileObjectCount() const { return tile_objects_.size(); }
@@ -491,95 +520,245 @@ class Room {
   void ClearWaterFillDirty() { water_fill_dirty_ = false; }
   void MarkWaterFillDirty() { water_fill_dirty_ = true; }
 
+  bool header_dirty() const { return save_dirty_state_.header; }
+  void MarkHeaderDirty() { save_dirty_state_.header = true; }
+  void ClearHeaderDirty() { save_dirty_state_.header = false; }
+
+  bool HasUnsavedChanges() const {
+    return save_dirty_state_.header || save_dirty_state_.object_stream ||
+           save_dirty_state_.sprites || save_dirty_state_.chests ||
+           save_dirty_state_.pot_items || custom_collision_dirty_ ||
+           water_fill_dirty_;
+  }
+
+  void ClearSaveDirtyState() { save_dirty_state_ = {}; }
+
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {
     tile_objects_ = objects;
     objects_loaded_ = true;
-    MarkObjectsDirty();
+    MarkObjectStreamDirty();
   }
 
   // Public setters for LoadRoomFromRom function
-  void SetBg2(background2 bg2) { bg2_ = bg2; }
-  void SetCollision(CollisionKey collision) { collision_ = collision; }
-  void SetIsLight(bool is_light) { is_light_ = is_light; }
+  void SetBg2(background2 bg2) {
+    if (bg2_ != bg2) {
+      bg2_ = bg2;
+      MarkHeaderDirty();
+    }
+  }
+  void SetCollision(CollisionKey collision) {
+    if (collision_ != collision) {
+      collision_ = collision;
+      MarkHeaderDirty();
+    }
+  }
+  void SetIsLight(bool is_light) {
+    if (is_light_ != is_light) {
+      is_light_ = is_light;
+      MarkHeaderDirty();
+    }
+  }
   void SetPalette(uint8_t pal) {
     if (palette_ != pal) {
       palette_ = pal;
+      MarkHeaderDirty();
       MarkGraphicsDirty();
     }
   }
   void SetBlockset(uint8_t bs) {
     if (blockset_ != bs) {
       blockset_ = bs;
+      MarkHeaderDirty();
       MarkGraphicsDirty();
     }
   }
   void SetSpriteset(uint8_t ss) {
     if (spriteset_ != ss) {
       spriteset_ = ss;
+      MarkHeaderDirty();
+      MarkGraphicsDirty();
+    }
+  }
+  void SetRenderEntranceBlockset(uint8_t entrance_blockset) {
+    if (render_entrance_blockset_ != entrance_blockset) {
+      render_entrance_blockset_ = entrance_blockset;
       MarkGraphicsDirty();
     }
   }
   void SetEffect(EffectKey effect) {
     if (effect_ != effect) {
       effect_ = effect;
+      MarkHeaderDirty();
       MarkObjectsDirty();
     }
   }
   void SetTag1(TagKey tag1) {
     if (tag1_ != tag1) {
       tag1_ = tag1;
+      MarkHeaderDirty();
       MarkObjectsDirty();
     }
   }
   void SetTag2(TagKey tag2) {
     if (tag2_ != tag2) {
       tag2_ = tag2;
+      MarkHeaderDirty();
       MarkObjectsDirty();
     }
   }
   void SetStaircasePlane(int index, uint8_t plane) {
-    if (index >= 0 && index < 4)
+    if (index >= 0 && index < 4 && staircase_plane_[index] != plane) {
       staircase_plane_[index] = plane;
+      MarkHeaderDirty();
+    }
   }
-  void SetHolewarp(uint8_t hw) { holewarp_ = hw; }
+  void SetHolewarp(uint8_t hw) {
+    if (holewarp_ != hw) {
+      holewarp_ = hw;
+      MarkHeaderDirty();
+    }
+  }
   void SetStaircaseRoom(int index, uint8_t room) {
-    if (index >= 0 && index < 4)
+    if (index >= 0 && index < 4 && staircase_rooms_[index] != room) {
       staircase_rooms_[index] = room;
+      MarkHeaderDirty();
+    }
   }
   // SetFloor1/SetFloor2 removed - use set_floor1()/set_floor2() instead
   // (defined above)
-  void SetMessageId(uint16_t mid) { message_id_ = mid; }
+  void SetMessageId(uint16_t mid) {
+    if (message_id_ != mid) {
+      message_id_ = mid;
+      MarkHeaderDirty();
+    }
+  }
 
   // Getters for LoadRoomFromRom function
   bool IsLight() const { return is_light_; }
 
   // Additional setters for LoadRoomFromRom function
-  void SetMessageIdDirect(uint16_t mid) { message_id_ = mid; }
-  void SetLayer2Mode(uint8_t mode) { layer2_mode_ = mode; }
-  void SetLayerMerging(LayerMergeType merging) { layer_merging_ = merging; }
-  void SetIsDark(bool is_dark) { is_dark_ = is_dark; }
-  void SetBackgroundTileset(uint8_t tileset) { background_tileset_ = tileset; }
-  void SetSpriteTileset(uint8_t tileset) { sprite_tileset_ = tileset; }
-  void SetLayer2Behavior(uint8_t behavior) { layer2_behavior_ = behavior; }
-  void SetTag1Direct(TagKey tag1) { tag1_ = tag1; }
-  void SetTag2Direct(TagKey tag2) { tag2_ = tag2; }
-  void SetPitsTargetLayer(uint8_t layer) { pits_.target_layer = layer; }
-  void SetStair1TargetLayer(uint8_t layer) { stair1_.target_layer = layer; }
-  void SetStair2TargetLayer(uint8_t layer) { stair2_.target_layer = layer; }
-  void SetStair3TargetLayer(uint8_t layer) { stair3_.target_layer = layer; }
-  void SetStair4TargetLayer(uint8_t layer) { stair4_.target_layer = layer; }
-  void SetPitsTarget(uint8_t target) { pits_.target = target; }
-  void SetStair1Target(uint8_t target) { stair1_.target = target; }
-  void SetStair2Target(uint8_t target) { stair2_.target = target; }
-  void SetStair3Target(uint8_t target) { stair3_.target = target; }
-  void SetStair4Target(uint8_t target) { stair4_.target = target; }
+  void SetMessageIdDirect(uint16_t mid) {
+    if (message_id_ != mid) {
+      message_id_ = mid;
+      MarkHeaderDirty();
+    }
+  }
+  void SetLayer2Mode(uint8_t mode) {
+    if (layer2_mode_ != mode) {
+      layer2_mode_ = mode;
+      MarkHeaderDirty();
+    }
+  }
+  void SetLayerMerging(LayerMergeType merging) {
+    if (layer_merging_ != merging) {
+      layer_merging_ = merging;
+      MarkHeaderDirty();
+    }
+  }
+  void SetIsDark(bool is_dark) {
+    if (is_dark_ != is_dark) {
+      is_dark_ = is_dark;
+      MarkHeaderDirty();
+    }
+  }
+  void SetBackgroundTileset(uint8_t tileset) {
+    if (background_tileset_ != tileset) {
+      background_tileset_ = tileset;
+      MarkHeaderDirty();
+    }
+  }
+  void SetSpriteTileset(uint8_t tileset) {
+    if (sprite_tileset_ != tileset) {
+      sprite_tileset_ = tileset;
+      MarkHeaderDirty();
+    }
+  }
+  void SetLayer2Behavior(uint8_t behavior) {
+    if (layer2_behavior_ != behavior) {
+      layer2_behavior_ = behavior;
+      MarkHeaderDirty();
+    }
+  }
+  void SetTag1Direct(TagKey tag1) {
+    if (tag1_ != tag1) {
+      tag1_ = tag1;
+      MarkHeaderDirty();
+    }
+  }
+  void SetTag2Direct(TagKey tag2) {
+    if (tag2_ != tag2) {
+      tag2_ = tag2;
+      MarkHeaderDirty();
+    }
+  }
+  void SetPitsTargetLayer(uint8_t layer) {
+    if (pits_.target_layer != layer) {
+      pits_.target_layer = layer;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair1TargetLayer(uint8_t layer) {
+    if (stair1_.target_layer != layer) {
+      stair1_.target_layer = layer;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair2TargetLayer(uint8_t layer) {
+    if (stair2_.target_layer != layer) {
+      stair2_.target_layer = layer;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair3TargetLayer(uint8_t layer) {
+    if (stair3_.target_layer != layer) {
+      stair3_.target_layer = layer;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair4TargetLayer(uint8_t layer) {
+    if (stair4_.target_layer != layer) {
+      stair4_.target_layer = layer;
+      MarkHeaderDirty();
+    }
+  }
+  void SetPitsTarget(uint8_t target) {
+    if (pits_.target != target) {
+      pits_.target = target;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair1Target(uint8_t target) {
+    if (stair1_.target != target) {
+      stair1_.target = target;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair2Target(uint8_t target) {
+    if (stair2_.target != target) {
+      stair2_.target = target;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair3Target(uint8_t target) {
+    if (stair3_.target != target) {
+      stair3_.target = target;
+      MarkHeaderDirty();
+    }
+  }
+  void SetStair4Target(uint8_t target) {
+    if (stair4_.target != target) {
+      stair4_.target = target;
+      MarkHeaderDirty();
+    }
+  }
 
   // Loaded state
   bool IsLoaded() const { return is_loaded_; }
   void SetLoaded(bool loaded) { is_loaded_ = loaded; }
   bool AreObjectsLoaded() const { return objects_loaded_; }
   bool AreSpritesLoaded() const { return sprites_loaded_; }
+  bool AreChestsLoaded() const { return chests_loaded_; }
   bool ArePotItemsLoaded() const { return pot_items_loaded_; }
 
   // Read-only accessors for metadata
@@ -600,6 +779,7 @@ class Room {
 
   // Room header property accessors
   uint8_t blockset() const { return blockset_; }
+  uint8_t render_entrance_blockset() const { return render_entrance_blockset_; }
   uint8_t spriteset() const { return spriteset_; }
   uint8_t palette() const { return palette_; }
 
@@ -706,16 +886,26 @@ class Room {
     bool composite = true;
   };
 
+  struct SaveDirtyState {
+    bool header = false;
+    bool object_stream = false;
+    bool sprites = false;
+    bool chests = false;
+    bool pot_items = false;
+  };
+
   // Composite bitmap for merged layer output
   mutable gfx::Bitmap composite_bitmap_;
   mutable uint64_t composite_signature_ = 0;
   mutable bool has_composite_signature_ = false;
   DirtyState dirty_state_;
+  SaveDirtyState save_dirty_state_;
 
   bool is_light_;
   bool is_loaded_ = false;
   bool objects_loaded_ = false;
   bool sprites_loaded_ = false;
+  bool chests_loaded_ = false;
   bool pot_items_loaded_ = false;
   bool is_dark_;
   bool is_floor_ = true;
@@ -740,18 +930,19 @@ class Room {
 
   // Room header properties (formerly public)
   uint8_t blockset_ = 0;
+  uint8_t render_entrance_blockset_ = 0xFF;
   uint8_t spriteset_ = 0;
   uint8_t palette_ = 0;
   uint8_t layout_id_ = 0;
   uint8_t holewarp_ = 0;
   uint16_t message_id_ = 0;
 
-  uint8_t background_tileset_;
-  uint8_t sprite_tileset_;
-  uint8_t layer2_behavior_;
-  uint8_t floor1_graphics_;
-  uint8_t floor2_graphics_;
-  uint8_t layer2_mode_;
+  uint8_t background_tileset_ = 0;
+  uint8_t sprite_tileset_ = 0;
+  uint8_t layer2_behavior_ = 0;
+  uint8_t floor1_graphics_ = 0;
+  uint8_t floor2_graphics_ = 0;
+  uint8_t layer2_mode_ = 0;
 
   std::array<uint8_t, 16> blocks_;
   std::array<chest, 16> chest_list_;
@@ -765,18 +956,18 @@ class Room {
   std::vector<PotItem> pot_items_;
   RoomLayout layout_;
 
-  LayerMergeType layer_merging_;
-  CollisionKey collision_;
-  EffectKey effect_;
-  TagKey tag1_;
-  TagKey tag2_;
+  LayerMergeType layer_merging_ = LayerMerge00;
+  CollisionKey collision_ = One_Collision;
+  EffectKey effect_ = Effect_Nothing;
+  TagKey tag1_ = Nothing;
+  TagKey tag2_ = Nothing;
 
-  background2 bg2_;
-  destination pits_;
-  destination stair1_;
-  destination stair2_;
-  destination stair3_;
-  destination stair4_;
+  background2 bg2_{};
+  destination pits_{};
+  destination stair1_{};
+  destination stair2_{};
+  destination stair3_{};
+  destination stair4_{};
 
   CustomCollisionMap custom_collision_;
   bool custom_collision_dirty_ = false;

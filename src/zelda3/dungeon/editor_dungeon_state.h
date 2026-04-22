@@ -17,7 +17,8 @@ struct GameData;
  */
 class EditorDungeonState : public DungeonState {
  public:
-  EditorDungeonState(Rom* rom, GameData* game_data) : rom_(rom), game_data_(game_data) {}
+  EditorDungeonState(Rom* rom, GameData* game_data)
+      : rom_(rom), game_data_(game_data) {}
 
   // Chest State
   bool IsChestOpen(int room_id, int chest_index) const override {
@@ -25,9 +26,9 @@ class EditorDungeonState : public DungeonState {
     if (it != chest_states_.end()) {
       return it->second;
     }
-    return false; // Default closed
+    return false;  // Default closed
   }
-  
+
   void SetChestOpen(int room_id, int chest_index, bool open) {
     chest_states_[{room_id, chest_index}] = open;
   }
@@ -41,9 +42,9 @@ class EditorDungeonState : public DungeonState {
     if (it != door_states_.end()) {
       return it->second;
     }
-    return false; // Default closed
+    return false;  // Default closed
   }
-  
+
   void SetDoorOpen(int room_id, int door_index, bool open) {
     door_states_[{room_id, door_index}] = open;
   }
@@ -53,9 +54,9 @@ class EditorDungeonState : public DungeonState {
     if (it != door_switch_states_.end()) {
       return it->second;
     }
-    return false; // Default inactive
+    return false;  // Default inactive
   }
-  
+
   void SetDoorSwitchActive(int room_id, bool active) {
     door_switch_states_[room_id] = active;
   }
@@ -72,15 +73,27 @@ class EditorDungeonState : public DungeonState {
     water_face_active_states_[room_id] = active;
   }
 
+  bool IsDamFloodgateOpen(int room_id) const override {
+    auto it = dam_floodgate_open_states_.find(room_id);
+    if (it != dam_floodgate_open_states_.end()) {
+      return it->second;
+    }
+    return false;
+  }
+
+  void SetDamFloodgateOpen(int room_id, bool open) {
+    dam_floodgate_open_states_[room_id] = open;
+  }
+
   // Object State
   bool IsWallMoved(int room_id) const override {
     auto it = wall_moved_states_.find(room_id);
     if (it != wall_moved_states_.end()) {
       return it->second;
     }
-    return false; // Default not moved
+    return false;  // Default not moved
   }
-  
+
   void SetWallMoved(int room_id, bool moved) {
     wall_moved_states_[room_id] = moved;
   }
@@ -90,9 +103,9 @@ class EditorDungeonState : public DungeonState {
     if (it != floor_bombable_states_.end()) {
       return it->second;
     }
-    return false; // Default solid
+    return false;  // Default solid
   }
-  
+
   void SetFloorBombable(int room_id, bool bombed) {
     floor_bombable_states_[room_id] = bombed;
   }
@@ -102,9 +115,9 @@ class EditorDungeonState : public DungeonState {
     if (it != rupee_floor_states_.end()) {
       return it->second;
     }
-    return false; // Default hidden/inactive
+    return false;  // Default hidden/inactive
   }
-  
+
   void SetRupeeFloorActive(int room_id, bool active) {
     rupee_floor_states_[room_id] = active;
   }
@@ -120,10 +133,11 @@ class EditorDungeonState : public DungeonState {
     door_states_.clear();
     door_switch_states_.clear();
     water_face_active_states_.clear();
+    dam_floodgate_open_states_.clear();
     wall_moved_states_.clear();
     floor_bombable_states_.clear();
     rupee_floor_states_.clear();
-    crystal_switch_blue_ = true; // Default blue
+    crystal_switch_blue_ = true;  // Default blue
   }
 
  private:
@@ -133,15 +147,16 @@ class EditorDungeonState : public DungeonState {
   // State storage
   std::map<std::pair<int, int>, bool> chest_states_;
   bool big_chest_open_ = false;
-  
+
   std::map<std::pair<int, int>, bool> door_states_;
   std::map<int, bool> door_switch_states_;
   std::map<int, bool> water_face_active_states_;
-  
+  std::map<int, bool> dam_floodgate_open_states_;
+
   std::map<int, bool> wall_moved_states_;
   std::map<int, bool> floor_bombable_states_;
   std::map<int, bool> rupee_floor_states_;
-  
+
   bool crystal_switch_blue_ = true;
 };
 

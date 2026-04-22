@@ -53,9 +53,14 @@ int ExpectedSubtype2TileCount(int id) {
     return 12;
   }
   if (id == 0x11C || id == 0x124 || id == 0x125 || id == 0x129 ||
-      (id >= 0x12D && id <= 0x133) || (id >= 0x135 && id <= 0x137) ||
-      id == 0x13C || id == 0x13F) {
+      (id >= 0x12D && id <= 0x133) || id == 0x13C || id == 0x13F) {
     return 16;
+  }
+  if (id == 0x135 || id == 0x136) {
+    return 8;
+  }
+  if (id == 0x137) {
+    return 80;
   }
   if (id == 0x122 || id == 0x128) {
     return 20;
@@ -74,9 +79,12 @@ int ExpectedSubtype2TileCount(int id) {
 
 int ExpectedSubtype3TileCount(int id) {
   // Large special objects at the start of the Type 3 range
-  if (id == 0xF80) return 32;
-  if (id == 0xF81) return 20;
-  if (id == 0xF82) return 28;
+  if (id == 0xF80)
+    return 32;
+  if (id == 0xF81)
+    return 20;
+  if (id == 0xF82)
+    return 28;
   if (id == 0xFB1 || id == 0xFB2) {
     return 12;
   }
@@ -98,8 +106,7 @@ int ExpectedSubtype3TileCount(int id) {
   }
   if (id == 0xFAA || id == 0xFAD || id == 0xFAE ||
       (id >= 0xFB4 && id <= 0xFB9) || id == 0xFCB || id == 0xFCC ||
-      id == 0xFD4 || id == 0xFE2 || id == 0xFF4 || id == 0xFF6 ||
-      id == 0xFF7) {
+      id == 0xFD4 || id == 0xFE2 || id == 0xFF4 || id == 0xFF6 || id == 0xFF7) {
     return 16;
   }
   if (id == 0xFCD || id == 0xFDD) {
@@ -152,7 +159,8 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType1Objects) {
   for (int id = 0; id <= 0xF7; ++id) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
-    EXPECT_EQ(info->subtype, 1) << "ID 0x" << std::hex << id << " should be Type 1";
+    EXPECT_EQ(info->subtype, 1)
+        << "ID 0x" << std::hex << id << " should be Type 1";
   }
 }
 
@@ -163,7 +171,8 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType2Objects) {
   for (int id = 0x100; id <= 0x13F; ++id) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
-    EXPECT_EQ(info->subtype, 2) << "ID 0x" << std::hex << id << " should be Type 2";
+    EXPECT_EQ(info->subtype, 2)
+        << "ID 0x" << std::hex << id << " should be Type 2";
     int expected = ExpectedSubtype2TileCount(id);
     EXPECT_EQ(info->max_tile_count, expected)
         << "Type 2 tile count mismatch for ID 0x" << std::hex << id;
@@ -177,7 +186,8 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType3Objects) {
   for (int id = 0xF80; id <= 0xFFF; ++id) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
-    EXPECT_EQ(info->subtype, 3) << "ID 0x" << std::hex << id << " should be Type 3";
+    EXPECT_EQ(info->subtype, 3)
+        << "ID 0x" << std::hex << id << " should be Type 3";
     int expected = ExpectedSubtype3TileCount(id);
     EXPECT_EQ(info->max_tile_count, expected)
         << "Type 3 tile count mismatch for ID 0x" << std::hex << id;
@@ -219,13 +229,13 @@ TEST_F(ObjectDrawingComprehensiveTest, Type3IndexCalculation_BoundaryValues) {
     // Expected ptr = 0x84F0 + (index * 2)
     int expected_ptr = 0x84F0 + (tc.expected_index * 2);
     EXPECT_EQ(info->subtype_ptr, expected_ptr)
-        << "ID 0x" << std::hex << tc.object_id
-        << " expected ptr 0x" << expected_ptr
-        << " got 0x" << info->subtype_ptr;
+        << "ID 0x" << std::hex << tc.object_id << " expected ptr 0x"
+        << expected_ptr << " got 0x" << info->subtype_ptr;
   }
 }
 
-TEST_F(ObjectDrawingComprehensiveTest, Type3IndexCalculation_AllIndicesInRange) {
+TEST_F(ObjectDrawingComprehensiveTest,
+       Type3IndexCalculation_AllIndicesInRange) {
   ObjectParser parser(rom_.get());
 
   // Verify all Type 3 objects produce indices in valid range (0-127)
@@ -259,10 +269,10 @@ TEST_F(ObjectDrawingComprehensiveTest, Type2IndexCalculation_BoundaryValues) {
   };
 
   std::vector<TestCase> test_cases = {
-      {0x100, 0},    // First Type 2 object -> index 0
-      {0x101, 1},    // Second Type 2 object -> index 1
-      {0x10F, 15},   // Index 15
-      {0x13F, 63},   // Last Type 2 object -> index 63
+      {0x100, 0},   // First Type 2 object -> index 0
+      {0x101, 1},   // Second Type 2 object -> index 1
+      {0x10F, 15},  // Index 15
+      {0x13F, 63},  // Last Type 2 object -> index 63
   };
 
   for (const auto& tc : test_cases) {
@@ -274,9 +284,8 @@ TEST_F(ObjectDrawingComprehensiveTest, Type2IndexCalculation_BoundaryValues) {
     // Expected ptr = 0x83F0 + (index * 2)
     int expected_ptr = 0x83F0 + (tc.expected_index * 2);
     EXPECT_EQ(info->subtype_ptr, expected_ptr)
-        << "ID 0x" << std::hex << tc.object_id
-        << " expected ptr 0x" << expected_ptr
-        << " got 0x" << info->subtype_ptr;
+        << "ID 0x" << std::hex << tc.object_id << " expected ptr 0x"
+        << expected_ptr << " got 0x" << info->subtype_ptr;
   }
 }
 
@@ -294,11 +303,11 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_VerifyAllEntries) {
 
     int expected_count = kExpectedTileCounts[id];
     // Note: Tile count 0 in table means "default to 8"
-    if (expected_count == 0) expected_count = 8;
+    if (expected_count == 0)
+      expected_count = 8;
 
     EXPECT_EQ(info->max_tile_count, expected_count)
-        << "ID 0x" << std::hex << id
-        << " expected " << expected_count
+        << "ID 0x" << std::hex << id << " expected " << expected_count
         << " tiles, got " << info->max_tile_count;
   }
 }
@@ -342,7 +351,8 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
 // Remaining Phase 4 work will add more routines (simple variants, diagonal ceilings,
 // special/logic-dependent) bringing the total higher.
 
-TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_AllSubtype1ObjectsHaveRoutines) {
+TEST_F(ObjectDrawingComprehensiveTest,
+       DrawRoutineMapping_AllSubtype1ObjectsHaveRoutines) {
   ObjectDrawer drawer(rom_.get(), 0);
   const int max_routine_id = drawer.GetDrawRoutineCount() - 1;
 
@@ -376,13 +386,15 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_DiagonalWalls) {
   // BothBG Acute Diagonals (/)
   for (int id : {0x15, 0x18, 0x19, 0x1C, 0x1D, 0x20}) {
     EXPECT_EQ(drawer.GetDrawRoutineId(id), 17)
-        << "ID 0x" << std::hex << id << " should use routine 17 (DiagonalAcute_BothBG)";
+        << "ID 0x" << std::hex << id
+        << " should use routine 17 (DiagonalAcute_BothBG)";
   }
 
   // BothBG Grave Diagonals (\)
   for (int id : {0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F}) {
     EXPECT_EQ(drawer.GetDrawRoutineId(id), 18)
-        << "ID 0x" << std::hex << id << " should use routine 18 (DiagonalGrave_BothBG)";
+        << "ID 0x" << std::hex << id
+        << " should use routine 18 (DiagonalGrave_BothBG)";
   }
 }
 
@@ -398,14 +410,28 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_NothingRoutines) {
   // Objects that map to "Nothing" (routine 38) are invisible/logic objects
   // NOTE: Phase 4 removed some objects from this list as they now have proper routines
   std::vector<int> nothing_objects = {
-      0x31, 0x32,  // Custom/logic
-      0x54, 0x57, 0x58, 0x59, 0x5A,  // Logic objects
-      0x6E, 0x6F,  // End of vertical section
-      0x72, 0x7E,  // Logic objects
-      0xBE, 0xBF,  // Logic objects
+      0x31,
+      0x32,  // Custom/logic
+      0x54,
+      0x57,
+      0x58,
+      0x59,
+      0x5A,  // Logic objects
+      0x6E,
+      0x6F,  // End of vertical section
+      0x72,
+      0x7E,  // Logic objects
+      0xBE,
+      0xBF,  // Logic objects
       // 0xC4 removed - now maps to Draw4x4FloorOneIn4x4SuperSquare (routine 59)
-      0xCB, 0xCC, 0xCF, 0xD0,  // Logic objects (verify against ASM)
-      0xD3, 0xD4, 0xD5, 0xD6,  // Wall moved checks (logic-only, no tiles)
+      0xCB,
+      0xCC,
+      0xCF,
+      0xD0,  // Logic objects (verify against ASM)
+      0xD3,
+      0xD4,
+      0xD5,
+      0xD6,  // Wall moved checks (logic-only, no tiles)
   };
 
   for (int id : nothing_objects) {
@@ -428,19 +454,22 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_Type2Objects) {
   // 0x108-0x10F: 4x4 Corner BothBG
   for (int id = 0x108; id <= 0x10F; ++id) {
     EXPECT_EQ(drawer.GetDrawRoutineId(id), 35)
-        << "ID 0x" << std::hex << id << " should use routine 35 (4x4 Corner BothBG)";
+        << "ID 0x" << std::hex << id
+        << " should use routine 35 (4x4 Corner BothBG)";
   }
 
   // 0x110-0x113: Weird Corner Bottom
   for (int id = 0x110; id <= 0x113; ++id) {
     EXPECT_EQ(drawer.GetDrawRoutineId(id), 36)
-        << "ID 0x" << std::hex << id << " should use routine 36 (Weird Corner Bottom)";
+        << "ID 0x" << std::hex << id
+        << " should use routine 36 (Weird Corner Bottom)";
   }
 
   // 0x114-0x117: Weird Corner Top
   for (int id = 0x114; id <= 0x117; ++id) {
     EXPECT_EQ(drawer.GetDrawRoutineId(id), 37)
-        << "ID 0x" << std::hex << id << " should use routine 37 (Weird Corner Top)";
+        << "ID 0x" << std::hex << id
+        << " should use routine 37 (Weird Corner Top)";
   }
 }
 
@@ -527,7 +556,8 @@ TEST_F(ObjectDrawingComprehensiveTest, ObjectEncoding_Roundtrip) {
   // Type 1 object
   RoomObject obj1(0x05, 10, 20, 3, 0);
   auto bytes1 = obj1.EncodeObjectToBytes();
-  auto decoded1 = RoomObject::DecodeObjectFromBytes(bytes1.b1, bytes1.b2, bytes1.b3, 0);
+  auto decoded1 =
+      RoomObject::DecodeObjectFromBytes(bytes1.b1, bytes1.b2, bytes1.b3, 0);
   EXPECT_EQ(decoded1.id_, obj1.id_);
   EXPECT_EQ(decoded1.x_, obj1.x_);
   EXPECT_EQ(decoded1.y_, obj1.y_);
@@ -535,7 +565,8 @@ TEST_F(ObjectDrawingComprehensiveTest, ObjectEncoding_Roundtrip) {
   // Type 2 object
   RoomObject obj2(0x105, 15, 25, 0, 0);
   auto bytes2 = obj2.EncodeObjectToBytes();
-  auto decoded2 = RoomObject::DecodeObjectFromBytes(bytes2.b1, bytes2.b2, bytes2.b3, 0);
+  auto decoded2 =
+      RoomObject::DecodeObjectFromBytes(bytes2.b1, bytes2.b2, bytes2.b3, 0);
   EXPECT_EQ(decoded2.id_, obj2.id_);
 }
 
@@ -552,21 +583,21 @@ TEST_F(ObjectDrawingComprehensiveTest, AllBgsFlag_SetDuringDecoding) {
     RoomObject obj(id, 0, 0, 0, 0);
     // Create via decoding to trigger all_bgs logic
     auto decoded = RoomObject::DecodeObjectFromBytes(0x00, 0x00, id, 0);
-    EXPECT_TRUE(decoded.all_bgs_) << "ID 0x" << std::hex << id << " should have all_bgs set";
+    EXPECT_TRUE(decoded.all_bgs_)
+        << "ID 0x" << std::hex << id << " should have all_bgs set";
   }
 
   // Routine 9 objects (0x63-0x64)
   for (int id : {0x63, 0x64}) {
     auto decoded = RoomObject::DecodeObjectFromBytes(0x00, 0x00, id, 0);
-    EXPECT_TRUE(decoded.all_bgs_) << "ID 0x" << std::hex << id << " should have all_bgs set";
+    EXPECT_TRUE(decoded.all_bgs_)
+        << "ID 0x" << std::hex << id << " should have all_bgs set";
   }
 
   // Diagonal BothBG objects
   std::vector<int> bothbg_diagonals = {
-      0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19,
-      0x1C, 0x1D, 0x20, 0x0E, 0x0F, 0x12, 0x13, 0x16,
-      0x17, 0x1A, 0x1B, 0x1E, 0x1F
-  };
+      0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D, 0x20,
+      0x0E, 0x0F, 0x12, 0x13, 0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F};
   for (int id : bothbg_diagonals) {
     auto decoded = RoomObject::DecodeObjectFromBytes(0x00, 0x00, id, 0);
     EXPECT_TRUE(decoded.all_bgs_)
@@ -578,7 +609,8 @@ TEST_F(ObjectDrawingComprehensiveTest, AllBgsFlag_SetDuringDecoding) {
 // Dimension Calculation Tests
 // ============================================================================
 
-TEST_F(ObjectDrawingComprehensiveTest, DimensionCalculation_HorizontalPatterns) {
+TEST_F(ObjectDrawingComprehensiveTest,
+       DimensionCalculation_HorizontalPatterns) {
   ObjectDrawer drawer(rom_.get(), 0);
 
   // Test horizontal objects
@@ -589,7 +621,7 @@ TEST_F(ObjectDrawingComprehensiveTest, DimensionCalculation_HorizontalPatterns) 
 
   RoomObject obj00_size5(0x00, 0, 0, 5, 0);
   dims = drawer.CalculateObjectDimensions(obj00_size5);
-  EXPECT_EQ(dims.first, 80);   // 5 * 16 = 80 pixels wide
+  EXPECT_EQ(dims.first, 80);  // 5 * 16 = 80 pixels wide
   EXPECT_EQ(dims.second, 16);
 }
 
@@ -605,7 +637,7 @@ TEST_F(ObjectDrawingComprehensiveTest, DimensionCalculation_DiagonalPatterns) {
 
   RoomObject diagonal_size10(0x10, 0, 0, 10, 0);
   dims = drawer.CalculateObjectDimensions(diagonal_size10);
-  EXPECT_EQ(dims.first, 136);  // 17 * 8 = 136
+  EXPECT_EQ(dims.first, 136);   // 17 * 8 = 136
   EXPECT_EQ(dims.second, 168);  // (17 + 4) * 8 = 168
 }
 
@@ -665,10 +697,10 @@ TEST_F(ObjectDrawingComprehensiveTest, TransparencyHandling_Pixel0IsSkipped) {
   // Set up a test tile at ID 0 (row 0, col 0)
   // Tile spans bytes 0-7 in first row of the tile, then 128-135 for second row, etc.
   // Put some non-zero pixels to verify they get drawn
-  test_gfx[0] = 0;  // pixel (0,0) = transparent
-  test_gfx[1] = 1;  // pixel (1,0) = color index 0 (1-1=0)
-  test_gfx[2] = 2;  // pixel (2,0) = color index 1 (2-1=1)
-  test_gfx[128] = 3; // pixel (0,1) = color index 2 (3-1=2)
+  test_gfx[0] = 0;    // pixel (0,0) = transparent
+  test_gfx[1] = 1;    // pixel (1,0) = color index 0 (1-1=0)
+  test_gfx[2] = 2;    // pixel (2,0) = color index 1 (2-1=1)
+  test_gfx[128] = 3;  // pixel (0,1) = color index 2 (3-1=2)
 
   ObjectDrawer drawer(rom_.get(), 0, test_gfx.data());
 
@@ -687,7 +719,8 @@ TEST_F(ObjectDrawingComprehensiveTest, TransparencyHandling_Pixel0IsSkipped) {
 
   // Verify pixel (0,0) was NOT written (should still be 0xFF sentinel)
   const auto& data = bg.bitmap().vector();
-  EXPECT_EQ(data[0], 0xFF) << "Transparent pixel (0) should not overwrite bitmap";
+  EXPECT_EQ(data[0], 0xFF)
+      << "Transparent pixel (0) should not overwrite bitmap";
 
   // Verify pixel (1,0) WAS written with value pixel + palette_offset = 1
   EXPECT_EQ(data[1], 1) << "Non-transparent pixel should be written";
@@ -805,24 +838,24 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityAllRoutineIdsInBounds) {
     int rid = reg.GetRoutineIdForObject(id);
     if (rid >= 0) {
       EXPECT_LE(rid, max_routine)
-          << "Subtype 1 object 0x" << std::hex << id
-          << " routine " << rid << " exceeds max " << max_routine;
+          << "Subtype 1 object 0x" << std::hex << id << " routine " << rid
+          << " exceeds max " << max_routine;
     }
   }
   for (int id = 0x100; id <= 0x13F; ++id) {
     int rid = reg.GetRoutineIdForObject(id);
     if (rid >= 0) {
       EXPECT_LE(rid, max_routine)
-          << "Subtype 2 object 0x" << std::hex << id
-          << " routine " << rid << " exceeds max " << max_routine;
+          << "Subtype 2 object 0x" << std::hex << id << " routine " << rid
+          << " exceeds max " << max_routine;
     }
   }
   for (int id = 0xF80; id <= 0xFFF; ++id) {
     int rid = reg.GetRoutineIdForObject(id);
     if (rid >= 0) {
       EXPECT_LE(rid, max_routine)
-          << "Subtype 3 object 0x" << std::hex << id
-          << " routine " << rid << " exceeds max " << max_routine;
+          << "Subtype 3 object 0x" << std::hex << id << " routine " << rid
+          << " exceeds max " << max_routine;
     }
   }
 }
@@ -853,8 +886,8 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityPaletteOffsetBanks) {
     uint8_t pal = tc.pal & 0x07;
     const uint8_t offset = static_cast<uint8_t>(pal * 16);
     EXPECT_EQ(offset, tc.expected_offset)
-        << "Palette " << static_cast<int>(tc.pal)
-        << " should map to offset " << static_cast<int>(tc.expected_offset);
+        << "Palette " << static_cast<int>(tc.pal) << " should map to offset "
+        << static_cast<int>(tc.expected_offset);
   }
 }
 
@@ -862,26 +895,25 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityPitMaskObjectsIdentified) {
   // Verify all known pit/mask objects are correctly identified.
   // These objects mark BG1 as transparent to reveal BG2 underneath.
   std::vector<int> expected_pit_mask_ids = {
-      0xA4,                                          // Pit
+      0xA4,                                            // Pit
       0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA, 0xAB, 0xAC,  // Diagonal masks
-      0xC0,                                          // Large ceiling overlay
-      0xC2,                                          // Layer 2 pit mask (large)
-      0xC3,                                          // Layer 2 pit mask (medium)
-      0xC6,                                          // Layer 2 mask (large)
-      0xC8,                                          // Water floor overlay
-      0xD7,                                          // Layer 2 mask (medium)
-      0xD8,                                          // Flood water overlay
-      0xD9,                                          // Layer 2 swim mask
-      0xDA,                                          // Flood water overlay B
+      0xC0,                                            // Large ceiling overlay
+      0xC2,  // Layer 2 pit mask (large)
+      0xC3,  // Layer 2 pit mask (medium)
+      0xC6,  // Layer 2 mask (large)
+      0xC8,  // Water floor overlay
+      0xD7,  // Layer 2 mask (medium)
+      0xD8,  // Flood water overlay
+      0xD9,  // Layer 2 swim mask
+      0xDA,  // Flood water overlay B
   };
 
   // All pit/mask objects should have valid routine assignments
   auto& reg = DrawRoutineRegistry::Get();
   for (int id : expected_pit_mask_ids) {
     int rid = reg.GetRoutineIdForObject(id);
-    EXPECT_GE(rid, 0)
-        << "Pit/mask object 0x" << std::hex << id
-        << " must have a valid routine assignment";
+    EXPECT_GE(rid, 0) << "Pit/mask object 0x" << std::hex << id
+                      << " must have a valid routine assignment";
   }
 }
 
@@ -931,14 +963,14 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityWaterObjectsLayerCorrect) {
   // Water objects should have valid routines
   for (int id : {0xC8, 0xD8, 0xD9, 0xDA}) {
     int rid = reg.GetRoutineIdForObject(id);
-    EXPECT_GE(rid, 0)
-        << "Water object 0x" << std::hex << id << " must have routine";
+    EXPECT_GE(rid, 0) << "Water object 0x" << std::hex << id
+                      << " must have routine";
 
     // Water objects should NOT be BothBG (they only draw to their assigned layer)
     if (rid >= 0) {
       EXPECT_FALSE(reg.RoutineDrawsToBothBGs(rid))
-          << "Water object 0x" << std::hex << id
-          << " (routine " << rid << ") should not be BothBG";
+          << "Water object 0x" << std::hex << id << " (routine " << rid
+          << ") should not be BothBG";
     }
   }
 }
@@ -961,8 +993,7 @@ TEST_F(ObjectDrawingComprehensiveTest, ParitySubtype1TileCountsComplete) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
     EXPECT_GT(info->max_tile_count, 0)
-        << "Subtype 1 object 0x" << std::hex << id
-        << " has zero tile count";
+        << "Subtype 1 object 0x" << std::hex << id << " has zero tile count";
   }
 }
 
@@ -973,8 +1004,7 @@ TEST_F(ObjectDrawingComprehensiveTest, ParitySubtype2TileCountsComplete) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
     EXPECT_GT(info->max_tile_count, 0)
-        << "Subtype 2 object 0x" << std::hex << id
-        << " has zero tile count";
+        << "Subtype 2 object 0x" << std::hex << id << " has zero tile count";
   }
 }
 
@@ -985,8 +1015,7 @@ TEST_F(ObjectDrawingComprehensiveTest, ParitySubtype3TileCountsComplete) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
     EXPECT_GT(info->max_tile_count, 0)
-        << "Subtype 3 object 0x" << std::hex << id
-        << " has zero tile count";
+        << "Subtype 3 object 0x" << std::hex << id << " has zero tile count";
   }
 }
 

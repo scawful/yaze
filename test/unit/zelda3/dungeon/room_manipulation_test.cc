@@ -164,6 +164,30 @@ TEST_F(RoomManipulationTest, LayerOrganization) {
   EXPECT_FALSE(room_->FindObjectAt(10, 10, 1).ok());
 }
 
+TEST_F(RoomManipulationTest, TracksUnsavedStateBySaveDomain) {
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+
+  room_->SetPalette(0x2A);
+  EXPECT_TRUE(room_->header_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+
+  room_->ClearSaveDirtyState();
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 20, 3, 0)).ok());
+  EXPECT_TRUE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+
+  room_->ClearSaveDirtyState();
+  room_->MarkSpritesDirty();
+  room_->MarkChestsDirty();
+  room_->MarkPotItemsDirty();
+  EXPECT_TRUE(room_->sprites_dirty());
+  EXPECT_TRUE(room_->chests_dirty());
+  EXPECT_TRUE(room_->pot_items_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+}
+
 }  // namespace test
 }  // namespace zelda3
 }  // namespace yaze
