@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_CANVAS_VIEWER_H
 
 #include <array>
+#include <cstdint>
 #include <functional>
 #include <map>
 #include <optional>
@@ -29,6 +30,71 @@ namespace yaze {
 namespace editor {
 
 class MinecartTrackEditorPanel;
+class DungeonCanvasViewerTestPeer;
+
+enum class DungeonConnectedLinkType : uint8_t {
+  Door,
+  Staircase,
+  Holewarp,
+};
+
+struct DungeonConnectedRoomLink {
+  int from_room_id = -1;
+  int to_room_id = -1;
+  DungeonConnectedLinkType type = DungeonConnectedLinkType::Door;
+  zelda3::DoorDirection direction = zelda3::DoorDirection::North;
+};
+
+std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
+    int room_id, const zelda3::Room& room,
+    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door);
+
+// Returns the room id adjacent to `room_id` in the given direction, or -1 if
+// no such neighbor exists (out of the 16x16 room matrix).
+inline int NeighborRoomId(int room_id, zelda3::DoorDirection dir) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+    return -1;
+  }
+
+  constexpr int kCols = 16;
+  const int row = room_id / kCols;
+  const int col = room_id % kCols;
+
+  int candidate = -1;
+  switch (dir) {
+    case zelda3::DoorDirection::North:
+      candidate = row > 0 ? room_id - kCols : -1;
+      break;
+    case zelda3::DoorDirection::South:
+      candidate = room_id + kCols;
+      break;
+    case zelda3::DoorDirection::West:
+      candidate = col > 0 ? room_id - 1 : -1;
+      break;
+    case zelda3::DoorDirection::East:
+      candidate = col < kCols - 1 ? room_id + 1 : -1;
+      break;
+  }
+
+  return (candidate >= 0 && candidate < zelda3::kNumberOfRooms) ? candidate
+                                                                : -1;
+}
+
+// Returns the opposite cardinal direction (N<->S, E<->W).
+inline zelda3::DoorDirection OppositeDir(zelda3::DoorDirection dir) {
+  switch (dir) {
+    case zelda3::DoorDirection::North:
+      return zelda3::DoorDirection::South;
+    case zelda3::DoorDirection::South:
+      return zelda3::DoorDirection::North;
+    case zelda3::DoorDirection::West:
+      return zelda3::DoorDirection::East;
+    case zelda3::DoorDirection::East:
+      return zelda3::DoorDirection::West;
+  }
+
+  return zelda3::DoorDirection::North;
+}
 
 /**
  * @brief Handles the main dungeon canvas rendering and interaction
@@ -47,17 +113,31 @@ class DungeonCanvasViewer {
   }
 
   void DrawDungeonCanvas(int room_id);
+  std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
   void Draw(int room_id);
+
+  // Unscaled content size of the connected-room graph centered on
+  // `center_room_id`. Used by the workbench to reserve scroll space for the
+  // body child before DrawConnectedRoomMatrix runs, so the matrix doesn't need
+  // to open its own BeginChild scroll wrapper.
+  ImVec2 GetConnectedContentSize(int center_room_id);
+  // Clamped connected-canvas zoom scale that matches the one used by
+  // DrawConnectedRoomMatrix when it next runs.
+  float ConnectedCanvasScale() const;
 
   void SetContext(EditorContext ctx) {
     rom_ = ctx.rom;
     game_data_ = ctx.game_data;
     object_interaction_.SetRom(ctx.rom);
+    connected_graph_cache_start_room_id_ = -1;
+    connected_graph_cache_ = ConnectedRoomGraphData{};
   }
   EditorContext context() const { return {rom_, game_data_}; }
   void SetRom(Rom* rom) {
     rom_ = rom;
     object_interaction_.SetRom(rom);
+    connected_graph_cache_start_room_id_ = -1;
+    connected_graph_cache_ = ConnectedRoomGraphData{};
   }
   Rom* rom() const { return rom_; }
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
@@ -65,7 +145,11 @@ class DungeonCanvasViewer {
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
   // Room data access
-  void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
+  void SetRooms(DungeonRoomStore* rooms) {
+    rooms_ = rooms;
+    connected_graph_cache_start_room_id_ = -1;
+    connected_graph_cache_ = ConnectedRoomGraphData{};
+  }
   DungeonRoomStore* rooms() const { return rooms_; }
   bool HasRooms() const { return rooms_ != nullptr; }
 
@@ -89,6 +173,18 @@ class DungeonCanvasViewer {
   void SetCurrentPaletteId(uint64_t id) { current_palette_id_ = id; }
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
     current_palette_group_ = group;
+  }
+  void SetEntranceRenderContext(int entrance_id, uint8_t entrance_blockset) {
+    current_entrance_id_ = entrance_id;
+    current_entrance_blockset_ = entrance_blockset;
+  }
+  void ClearEntranceRenderContext() {
+    current_entrance_id_ = -1;
+    current_entrance_blockset_ = 0xFF;
+  }
+  int current_entrance_id() const { return current_entrance_id_; }
+  uint8_t current_entrance_blockset() const {
+    return current_entrance_blockset_;
   }
   void SetRoomNavigationCallback(std::function<void(int)> callback) {
     room_navigation_callback_ = std::move(callback);
@@ -438,7 +534,26 @@ class DungeonCanvasViewer {
   }
   bool ArePotItemsVisible() const { return entity_visibility_.show_pot_items; }
 
+  struct ConnectedRoomGraphData {
+    struct RoomPlacement {
+      int col = 0;
+      int row = 0;
+      bool placed = false;
+    };
+
+    std::array<bool, zelda3::kNumberOfRooms> room_mask{};
+    std::array<RoomPlacement, zelda3::kNumberOfRooms> room_positions{};
+    std::vector<DungeonConnectedRoomLink> links;
+    int room_count = 0;
+    int min_col = 0;
+    int max_col = 0;
+    int min_row = 0;
+    int max_row = 0;
+  };
+
  private:
+  friend class DungeonCanvasViewerTestPeer;
+
   void DisplayObjectInfo(const gui::CanvasRuntime& rt,
                          const zelda3::RoomObject& object, int canvas_x,
                          int canvas_y);
@@ -457,9 +572,20 @@ class DungeonCanvasViewer {
                             const std::string& kind_label,
                             const std::string& diagnostics, int room_id,
                             int default_category_index);
+  absl::Status PrepareIssueReportPopup(const std::string& title,
+                                       const std::string& summary,
+                                       const std::string& kind_label,
+                                       const std::string& diagnostics,
+                                       int room_id, int default_category_index);
   std::string BuildIssueReportClipboardText() const;
   absl::Status CaptureIssueReportScreenshot();
   absl::Status AppendIssueReportToLog();
+  absl::Status EnsureIssueReportPersisted();
+  void MarkIssueReportDirty();
+  void RefreshIssueReportOutputTargets();
+  void SetIssueReportPopupStatus(std::string message, bool is_error);
+  void DrawIssueReportStorageSummary() const;
+  void DrawIssueReportStatusMessage() const;
   void RenderSprites(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderPotItems(const gui::CanvasRuntime& rt, const zelda3::Room& room);
   void RenderEntityOverlay(const gui::CanvasRuntime& rt,
@@ -483,11 +609,17 @@ class DungeonCanvasViewer {
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
   absl::Status LoadAndRenderRoomGraphics(int room_id);
+  gfx::Bitmap* PrepareRoomCompositeBitmap(int room_id);
+  zelda3::Room* EnsureRoomLoadedForConnectedView(int room_id);
+  bool RoomHasNonExitDoorInDirection(int room_id, zelda3::DoorDirection dir);
+  ConnectedRoomGraphData BuildConnectedRoomGraph(int start_room_id);
   void DrawRoomBackgroundLayers(int room_id);  // Draw room buffers to canvas
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
   gui::Canvas canvas_{"##DungeonCanvas", ImVec2(0x200, 0x200)};
+  gui::Canvas connected_canvas_{"##DungeonConnectedCanvas",
+                                ImVec2(0x200, 0x200)};
   // ObjectRenderer removed - use ObjectDrawer for rendering (production system)
   DungeonObjectInteraction object_interaction_;
 
@@ -500,9 +632,24 @@ class DungeonCanvasViewer {
   // Room data
   DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = -1;
+  int current_entrance_id_ = -1;
+  uint8_t current_entrance_blockset_ = 0xFF;
   // Used by overworld editor for double-click entrance → open dungeon room
   ImVector<int> active_rooms_;
   int current_active_room_tab_ = 0;
+  int last_connected_matrix_room_id_ = -1;
+  bool connected_canvas_initialized_ = false;
+  bool show_connected_overview_ = false;
+  bool show_connected_current_room_preview_ = false;
+  // Last-frame visibility of the connected-mode side panel (overview /
+  // preview). Used to apply hysteresis when the viewport width crosses the
+  // panel's min-size threshold, so dragging the pane splitter past the
+  // threshold doesn't cause a sudden ~220 px horizontal snap.
+  bool connected_side_panel_visible_last_frame_ = false;
+  bool connected_controls_custom_position_ = false;
+  ImVec2 connected_controls_custom_position_value_ = ImVec2(0.0f, 0.0f);
+  int connected_graph_cache_start_room_id_ = -1;
+  ConnectedRoomGraphData connected_graph_cache_{};
 
   // Object interaction state
   bool object_interaction_enabled_ = true;
@@ -611,12 +758,15 @@ class DungeonCanvasViewer {
   std::string issue_report_popup_title_;
   std::string issue_report_popup_kind_;
   std::string issue_report_popup_diagnostics_;
+  std::string issue_report_popup_log_target_path_;
+  std::string issue_report_popup_screenshot_dir_;
   std::string issue_report_popup_screenshot_path_;
   std::string issue_report_popup_last_log_path_;
   std::string issue_report_popup_status_message_;
   std::string issue_report_popup_id_ = "##DungeonIssueReportPopup";
   int issue_report_popup_room_id_ = -1;
   int issue_report_category_index_ = 0;
+  bool issue_report_popup_persisted_ = false;
   bool issue_report_popup_status_is_error_ = false;
   char issue_report_summary_[256]{};
   char issue_report_notes_[2048]{};
