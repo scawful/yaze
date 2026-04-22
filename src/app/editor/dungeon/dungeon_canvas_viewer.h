@@ -278,6 +278,10 @@ class DungeonCanvasViewer {
 
   bool show_grid() const { return show_grid_; }
   void set_show_grid(bool show) { show_grid_ = show; }
+  int custom_grid_size() const { return custom_grid_size_; }
+  void set_custom_grid_size(int size) {
+    custom_grid_size_ = size > 0 ? size : 1;
+  }
   bool show_object_bounds() const { return show_object_bounds_; }
   void set_show_object_bounds(bool show) { show_object_bounds_ = show; }
   bool show_coordinate_overlay() const { return show_coordinate_overlay_; }
