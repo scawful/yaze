@@ -2373,8 +2373,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   frame_opts.draw_overlay = true;
   frame_opts.render_popups = true;
 
-  // Legacy configuration for context menu and interaction systems
-  canvas_.SetShowBuiltinContextMenu(false);  // Hide default canvas debug items
+  // Keep the shared canvas menu in sync with dungeon-local grid state so the
+  // generic View Controls menu can own zoom/grid commands.
+  auto canvas_config = canvas_.GetConfig();
+  canvas_config.enable_grid = show_grid_;
+  canvas_config.grid_step = static_cast<float>(custom_grid_size_);
+  canvas_.ApplyConfigSnapshot(canvas_config);
+  canvas_.SetShowBuiltinContextMenu(true);
 
   if (rooms_) {
     auto& room = (*rooms_)[room_id];
@@ -2866,28 +2871,6 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     gui::CanvasMenuItem overlays_menu;
     overlays_menu.label = "Overlays";
     overlays_menu.icon = ICON_MD_LAYERS;
-
-    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-        show_grid_ ? "Hide Grid" : "Show Grid",
-        show_grid_ ? ICON_MD_GRID_OFF : ICON_MD_GRID_ON,
-        [this]() { show_grid_ = !show_grid_; }, "G"));
-
-    gui::CanvasMenuItem grid_size_menu;
-    grid_size_menu.label = "Grid Size";
-    grid_size_menu.icon = ICON_MD_GRID_ON;
-    grid_size_menu.subitems.push_back(gui::CanvasMenuItem("8x8", [this]() {
-      custom_grid_size_ = 8;
-      show_grid_ = true;
-    }));
-    grid_size_menu.subitems.push_back(gui::CanvasMenuItem("16x16", [this]() {
-      custom_grid_size_ = 16;
-      show_grid_ = true;
-    }));
-    grid_size_menu.subitems.push_back(gui::CanvasMenuItem("32x32", [this]() {
-      custom_grid_size_ = 32;
-      show_grid_ = true;
-    }));
-    overlays_menu.subitems.push_back(grid_size_menu);
 
     overlays_menu.subitems.push_back(gui::CanvasMenuItem(
         show_coordinate_overlay_ ? "Hide Coordinates" : "Show Coordinates",
@@ -3672,6 +3655,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   // End canvas frame - this draws grid/overlay based on frame_opts
   gui::EndCanvas(canvas_, canvas_rt, frame_opts);
+
+  // Pull generic view-control changes back out of the shared canvas state so
+  // subsequent frames and dungeon-specific UI stay in sync.
+  show_grid_ = canvas_.GetConfig().enable_grid;
+  set_custom_grid_size(static_cast<int>(canvas_.GetConfig().grid_step));
 }
 
 void DungeonCanvasViewer::DisplayObjectInfo(const gui::CanvasRuntime& rt,
