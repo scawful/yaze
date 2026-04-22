@@ -19,6 +19,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/widgets/property_inspector.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "cli/service/ai/provider_ids.h"
 #include "core/patch/asm_patch.h"
@@ -540,28 +541,28 @@ void SettingsPanel::DrawProjectSettings() {
   }
 
   bool backup_on_save = project_->workspace_settings.backup_on_save;
-  if (ImGui::Checkbox("Backup Before Save", &backup_on_save)) {
+  if (gui::DrawProperty("Backup Before Save", &backup_on_save)) {
     project_->workspace_settings.backup_on_save = backup_on_save;
     project_->Save();
   }
 
   int retention = project_->workspace_settings.backup_retention_count;
-  if (ImGui::InputInt("Retention Count", &retention)) {
-    project_->workspace_settings.backup_retention_count =
-        std::max(0, retention);
+  if (gui::DrawProperty("Retention Count", &retention,
+                        {.min = 0, .max = 10000})) {
+    project_->workspace_settings.backup_retention_count = retention;
     project_->Save();
   }
 
   bool keep_daily = project_->workspace_settings.backup_keep_daily;
-  if (ImGui::Checkbox("Keep Daily Snapshots", &keep_daily)) {
+  if (gui::DrawProperty("Keep Daily Snapshots", &keep_daily)) {
     project_->workspace_settings.backup_keep_daily = keep_daily;
     project_->Save();
   }
 
   int keep_days = project_->workspace_settings.backup_keep_daily_days;
-  if (ImGui::InputInt("Keep Daily Days", &keep_days)) {
-    project_->workspace_settings.backup_keep_daily_days =
-        std::max(1, keep_days);
+  if (gui::DrawProperty("Keep Daily Days", &keep_days,
+                        {.min = 1, .max = 3650})) {
+    project_->workspace_settings.backup_keep_daily_days = keep_days;
     project_->Save();
   }
 
