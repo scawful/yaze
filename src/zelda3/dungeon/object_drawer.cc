@@ -9,6 +9,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/log.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/draw_routines/special_routines.h"
@@ -343,36 +344,24 @@ absl::Status ObjectDrawer::DrawObject(
   // remains only for true pit/ceiling mask families that intentionally clear an
   // area larger than their opaque tile pixels.
   if (use_rectangular_bg1_mask) {
-    int mask_tile_x = object.x_;
-    int mask_tile_y = object.y_;
-    int pixel_width = 0;
-    int pixel_height = 0;
+    // Route through DimensionService so the mask rect comes from the same
+    // source as selection bounds (ObjectGeometry if available, then
+    // ObjectDimensionTable, then the size-nibble fallback). Keeps the
+    // transparent cutout aligned with what the user sees in the editor.
+    ObjectDimensionTable::Get().LoadFromRom(rom_).IgnoreError();
+    const auto [mask_px_x, mask_px_y, pixel_width, pixel_height] =
+        DimensionService::Get().GetSelectionBoundsPixels(object);
 
-    auto& dimension_table = ObjectDimensionTable::Get();
-    if (dimension_table.IsLoaded() || dimension_table.LoadFromRom(rom_).ok()) {
-      const auto bounds =
-          dimension_table.GetSelectionBounds(object.id_, object.size_);
-      mask_tile_x += bounds.offset_x;
-      mask_tile_y += bounds.offset_y;
-      pixel_width = bounds.width * 8;
-      pixel_height = bounds.height * 8;
-    } else {
-      std::tie(pixel_width, pixel_height) = CalculateObjectDimensions(object);
-    }
-
-    // Log pit/mask transparency propagation
     LOG_DEBUG(
         "ObjectDrawer",
         "Pit mask 0x%03X at (%d,%d) -> marking %dx%d pixels transparent in BG1",
-        object.id_, mask_tile_x, mask_tile_y, pixel_width, pixel_height);
+        object.id_, mask_px_x / 8, mask_px_y / 8, pixel_width, pixel_height);
 
-    // Mark the object buffer BG1 as transparent
-    MarkBG1Transparent(bg1, mask_tile_x, mask_tile_y, pixel_width,
-                       pixel_height);
-    // Also mark the layout buffer (floor tiles) as transparent if provided
+    MarkBg1RectTransparent(bg1, mask_px_x, mask_px_y, pixel_width,
+                           pixel_height);
     if (layout_bg1 != nullptr) {
-      MarkBG1Transparent(*layout_bg1, mask_tile_x, mask_tile_y, pixel_width,
-                         pixel_height);
+      MarkBg1RectTransparent(*layout_bg1, mask_px_x, mask_px_y, pixel_width,
+                             pixel_height);
     }
   }
 
