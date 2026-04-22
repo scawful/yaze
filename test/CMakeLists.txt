@@ -216,6 +216,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/panel_window_test.cc
     unit/gui/animator_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/resize_handles_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/message/message_expanded_write_test.cc
@@ -527,6 +528,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/resize_handles_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
