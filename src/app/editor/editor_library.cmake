@@ -17,6 +17,7 @@ set(
   app/editor/dungeon/dungeon_canvas_debug.cc
   app/editor/dungeon/dungeon_canvas_issue_report.cc
   app/editor/dungeon/dungeon_canvas_overlays.cc
+  app/editor/dungeon/dungeon_canvas_room_chrome.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_rendering_helpers.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
