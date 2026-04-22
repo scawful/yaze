@@ -670,6 +670,13 @@ class DungeonCanvasViewer {
   // Draw semi-transparent overlay on BG2/Layer 1 objects when mask mode is active
   void DrawMaskHighlights(const gui::CanvasRuntime& rt,
                           const zelda3::Room& room);
+  void DrawPersistentDebugWindows(int room_id);
+  void DrawRoomDebugWindow(zelda3::Room& room, int room_id);
+  void DrawTextureDebugWindow(zelda3::Room& room, int room_id);
+  void DrawLayerInfoWindow(int room_id);
+  void DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt, zelda3::Room& room,
+                              int room_id);
+  void DrawCoordinateOverlayHud(int room_id);
 
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
