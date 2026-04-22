@@ -45,6 +45,55 @@ struct DungeonConnectedRoomLink {
   zelda3::DoorDirection direction = zelda3::DoorDirection::North;
 };
 
+enum class DungeonIssueCategory : int {
+  PaletteMismatch = 0,
+  ObjectDrawMismatch = 1,
+  DoorRenderMismatch = 2,
+  EntityMismatch = 3,
+  OverlayCollisionMismatch = 4,
+  GeneralRoomRenderMismatch = 5,
+};
+
+inline constexpr std::array<const char*, 6> kDungeonIssueCategoryLabels = {{
+    "Palette mismatch",
+    "Object draw mismatch",
+    "Door render mismatch",
+    "Entity mismatch",
+    "Overlay or collision mismatch",
+    "General room render mismatch",
+}};
+
+constexpr int ToIssueCategoryIndex(DungeonIssueCategory category) {
+  return static_cast<int>(category);
+}
+
+inline const char* GetIssueCategoryLabel(int index) {
+  if (index < 0 ||
+      index >= static_cast<int>(kDungeonIssueCategoryLabels.size())) {
+    return kDungeonIssueCategoryLabels.back();
+  }
+  return kDungeonIssueCategoryLabels[static_cast<size_t>(index)];
+}
+
+inline DungeonIssueCategory GetDefaultSelectionIssueCategory(
+    const DungeonObjectInteraction& object_interaction) {
+  if (!object_interaction.GetSelectedObjectIndices().empty()) {
+    return DungeonIssueCategory::ObjectDrawMismatch;
+  }
+  if (object_interaction.HasEntitySelection()) {
+    switch (object_interaction.GetSelectedEntity().type) {
+      case EntityType::Door:
+        return DungeonIssueCategory::DoorRenderMismatch;
+      case EntityType::Sprite:
+      case EntityType::Item:
+        return DungeonIssueCategory::EntityMismatch;
+      default:
+        break;
+    }
+  }
+  return DungeonIssueCategory::GeneralRoomRenderMismatch;
+}
+
 std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
     int room_id, const zelda3::Room& room,
     const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door);
@@ -566,6 +615,18 @@ class DungeonCanvasViewer {
   void DrawRoomPropertyTable(zelda3::Room& room, int room_id);
   void DrawLayerControls(zelda3::Room& room, int room_id);
   void DrawCompactLayerToggles(int room_id);
+  void PopulateCanvasContextMenu(int room_id);
+  void AddInteractionContextMenuItems(int room_id);
+  void AddLoadedRoomContextMenuItems(int room_id);
+  gui::CanvasMenuItem BuildInsertContextMenu();
+  std::optional<gui::CanvasMenuItem> BuildSelectionContextMenu(int room_id);
+  gui::CanvasMenuItem BuildRoomContextMenu(int room_id);
+  gui::CanvasMenuItem BuildReportContextMenu(int room_id);
+  std::optional<gui::CanvasMenuItem> BuildOpenContextMenu();
+  gui::CanvasMenuItem BuildCopyExportContextMenu(int room_id);
+  gui::CanvasMenuItem BuildLayerVisibilityContextMenu(int room_id);
+  gui::CanvasMenuItem BuildOverlayContextMenu();
+  gui::CanvasMenuItem BuildDebugContextMenu(int room_id);
   std::string BuildRoomMetadataSummary(const zelda3::Room& room,
                                        int room_id) const;
   std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id) const;

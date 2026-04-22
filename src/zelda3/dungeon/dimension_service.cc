@@ -8,6 +8,16 @@
 namespace yaze {
 namespace zelda3 {
 
+namespace {
+
+bool HasMeasuredGeometry(
+    const absl::StatusOr<GeometryBounds>& geometry_result) {
+  return geometry_result.ok() && geometry_result->width_tiles > 0 &&
+         geometry_result->height_tiles > 0;
+}
+
+}  // namespace
+
 DimensionService& DimensionService::Get() {
   static DimensionService instance;
   return instance;
@@ -17,7 +27,7 @@ DimensionService::DimensionResult DimensionService::GetDimensions(
     const RoomObject& obj) const {
   // Try ObjectGeometry first (exact buffer-replay).
   auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
-  if (geo_result.ok()) {
+  if (HasMeasuredGeometry(geo_result)) {
     const auto& bounds = *geo_result;
     return DimensionResult{
         .offset_x_tiles = bounds.min_x_tiles,
@@ -60,7 +70,7 @@ std::pair<int, int> DimensionService::GetPixelDimensions(
 std::tuple<int, int, int, int> DimensionService::GetHitTestBounds(
     const RoomObject& obj) const {
   auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
-  if (geo_result.ok()) {
+  if (HasMeasuredGeometry(geo_result)) {
     const auto selection = geo_result->GetSelectionBounds();
     return {obj.x_ + selection.x_tiles, obj.y_ + selection.y_tiles,
             selection.width_tiles, selection.height_tiles};
@@ -74,7 +84,7 @@ std::tuple<int, int, int, int> DimensionService::GetHitTestBounds(
 std::tuple<int, int, int, int> DimensionService::GetSelectionBoundsPixels(
     const RoomObject& obj) const {
   auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
-  if (geo_result.ok()) {
+  if (HasMeasuredGeometry(geo_result)) {
     const auto selection = geo_result->GetSelectionBounds();
     int x_px = (obj.x_ + selection.x_tiles) * 8;
     int y_px = (obj.y_ + selection.y_tiles) * 8;
