@@ -14,6 +14,7 @@ set(
   app/editor/code/project_file_editor.cc
   app/editor/dungeon/dungeon_canvas_context_menu.cc
   app/editor/dungeon/dungeon_canvas_issue_report.cc
+  app/editor/dungeon/dungeon_canvas_overlays.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_rendering_helpers.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
