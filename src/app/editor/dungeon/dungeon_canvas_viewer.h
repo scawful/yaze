@@ -677,6 +677,12 @@ class DungeonCanvasViewer {
   void DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt, zelda3::Room& room,
                               int room_id);
   void DrawCoordinateOverlayHud(int room_id);
+  bool ValidateRoomCanvasRequest(int room_id);
+  gui::CanvasFrameOptions BuildRoomCanvasFrameOptions() const;
+  void SyncCanvasConfigFromViewerState();
+  void SyncViewerStateFromCanvasConfig();
+  void RefreshActiveRoomCanvasState(zelda3::Room& room, int room_id);
+  zelda3::Room* PrepareActiveRoomForCanvasFrame(int room_id);
   void SyncCanvasCaptureRegion(const gui::CanvasRuntime& canvas_rt);
   void ConsumePendingCanvasScroll(const gui::CanvasRuntime& canvas_rt);
   void DrawHeaderHiddenMetadataHud(int room_id);
