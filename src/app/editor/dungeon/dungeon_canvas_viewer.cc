@@ -914,224 +914,22 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   // CRITICAL: Begin canvas frame using modern BeginCanvas/EndCanvas pattern
   // This replaces DrawBackground + DrawContextMenu with a unified frame
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
-  has_canvas_capture_region_ =
-      canvas_rt.canvas_sz.x > 1.0f && canvas_rt.canvas_sz.y > 1.0f;
-  if (has_canvas_capture_region_) {
-    canvas_capture_x_ = static_cast<int>(canvas_rt.canvas_p0.x);
-    canvas_capture_y_ = static_cast<int>(canvas_rt.canvas_p0.y);
-    canvas_capture_width_ = static_cast<int>(canvas_rt.canvas_sz.x);
-    canvas_capture_height_ = static_cast<int>(canvas_rt.canvas_sz.y);
-  }
-
-  // Handle pending scroll request using the canvas's internal scrolling model.
-  if (pending_scroll_target_.has_value()) {
-    const auto [target_x, target_y] = pending_scroll_target_.value();
-    float scale = canvas_.global_scale();
-    if (scale <= 0.0f) {
-      scale = 1.0f;
-    }
-
-    const float pixel_x =
-        static_cast<float>(target_x * kDungeonTileSize) * scale;
-    const float pixel_y =
-        static_cast<float>(target_y * kDungeonTileSize) * scale;
-    const ImVec2 view_size = canvas_rt.canvas_sz;
-    const ImVec2 content_size(static_cast<float>(kRoomPixelWidth) * scale,
-                              static_cast<float>(kRoomPixelHeight) * scale);
-
-    const ImVec2 desired_scroll((view_size.x * 0.5f) - pixel_x,
-                                (view_size.y * 0.5f) - pixel_y);
-    canvas_.set_scrolling(
-        gui::ClampScroll(desired_scroll, content_size, view_size));
-    canvas_rt.scrolling = canvas_.scrolling();
-
-    pending_scroll_target_.reset();
-  }
+  SyncCanvasCaptureRegion(canvas_rt);
+  ConsumePendingCanvasScroll(canvas_rt);
+  canvas_rt.scrolling = canvas_.scrolling();
 
   // Update touch handler for long-press gesture detection
   touch_handler_.ProcessForCanvas(canvas_rt.canvas_p0, canvas_rt.canvas_sz,
                                   canvas_rt.hovered);
   touch_handler_.Update();
 
-  // When the header is hidden (e.g. split/compare stitched views), draw a small
-  // in-canvas label so the user always knows what they're looking at.
-  if (!header_visible_ && show_header_hidden_metadata_hud_) {
-    const auto& label = zelda3::GetRoomLabel(room_id);
-    char text1[160];
-    snprintf(text1, sizeof(text1), "[%03X] %s", room_id, label.c_str());
-
-    char text2[96] = {};
-    bool show_meta = false;
-    if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size())) {
-      const auto& room = (*rooms_)[room_id];
-      if (!object_interaction_enabled_) {
-        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
-                 room.blockset(), room.palette(), room.layout_id(),
-                 room.spriteset());
-      } else {
-        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
-                 room.blockset(), room.palette(), room.layout_id(),
-                 room.spriteset());
-      }
-      show_meta = true;
-    } else if (!object_interaction_enabled_) {
-      snprintf(text2, sizeof(text2), "Read-only");
-      show_meta = true;
-    }
-
-    const float pad = 10.0f;
-    const ImVec2 hud_pos(canvas_.zero_point().x + pad,
-                         canvas_.zero_point().y + pad);
-    const ImVec2 hud_size(0, 0);  // Auto-resize
-
-    gui::DrawCanvasHUD("##MetadataHUD", hud_pos, hud_size, [&]() {
-      ImGui::TextUnformatted(text1);
-      if (show_meta) {
-        ImGui::TextDisabled("%s", text2);
-      }
-    });
-  }
+  DrawHeaderHiddenMetadataHud(room_id);
 
   DrawPersistentDebugWindows(room_id);
 
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
-
-    // Update object interaction context
-    object_interaction_.SetCurrentRoom(rooms_, room_id);
-
-    if (!room.AreObjectsLoaded()) {
-      room.LoadObjects();
-    }
-
-    if (!room.AreSpritesLoaded()) {
-      room.LoadSprites();
-    }
-
-    if (!room.ArePotItemsLoaded()) {
-      room.LoadPotItems();
-    }
-
-    auto& bg1_bitmap = room.bg1_buffer().bitmap();
-    bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
-
-    static int last_rendered_room = -1;
-    static bool has_rendered = false;
-    if (needs_render && (last_rendered_room != room_id || !has_rendered)) {
-      (void)LoadAndRenderRoomGraphics(room_id);
-      last_rendered_room = room_id;
-      has_rendered = true;
-    }
-
-    // CRITICAL: Process texture queue BEFORE drawing to ensure textures are
-    // ready This must happen before DrawRoomBackgroundLayers() attempts to draw
-    // bitmaps
-    if (rom_ && rom_->is_loaded()) {
-      gfx::Arena::Get().ProcessTextureQueue(renderer_);
-    }
-
-    // Draw the room's background layers to canvas
-    // This already includes objects rendered by ObjectDrawer in
-    // Room::RenderObjectsToBackground()
-    DrawRoomBackgroundLayers(room_id);
-
-    // Draw mask highlights when mask selection mode is active
-    // This helps visualize which objects are BG2 overlays
-    if (object_interaction_.IsMaskModeActive()) {
-      DrawMaskHighlights(canvas_rt, room);
-    }
-
-    // Render entity overlays (sprites, pot items) as colored squares with labels
-    // (Entities are not part of the background buffers)
-    RenderEntityOverlay(canvas_rt, room);
-
-    // Handle object interaction if enabled
-    if (object_interaction_enabled_) {
-      object_interaction_.HandleCanvasMouseInput();
-      object_interaction_.CheckForObjectSelection();
-      object_interaction_
-          .DrawSelectionHighlights();  // Draw object selection highlights
-      object_interaction_
-          .DrawEntitySelectionHighlights();  // Draw door/sprite/item selection
-      object_interaction_.DrawGhostPreview();  // Draw placement preview
-      // Context menu is handled by BeginCanvas via frame_opts.draw_context_menu
-
-      // --- DRAG SOURCES for selected objects/entities ---
-      // Emit drag source for the primary selected tile object
-      const auto selected = object_interaction_.GetSelectedObjectIndices();
-      if (selected.size() == 1) {
-        const auto& objects = room.GetTileObjects();
-        size_t idx = selected.front();
-        if (idx < objects.size()) {
-          const auto& obj = objects[idx];
-          gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj.id_),
-                                         room_id, obj.x_, obj.y_);
-        }
-      }
-
-      // Emit drag source for selected sprite entity
-      if (object_interaction_.HasEntitySelection()) {
-        const auto sel = object_interaction_.GetSelectedEntity();
-        if (sel.type == EntityType::Sprite) {
-          const auto& sprites = room.GetSprites();
-          if (sel.index < sprites.size()) {
-            const auto& sprite = sprites[sel.index];
-            gui::BeginSpriteDragSource(sprite.id(), room_id);
-          }
-        }
-      }
-
-      // Touch long-press context menu for entity interaction
-      HandleTouchLongPressContextMenu(canvas_rt, room);
-    }
-
-    // --- DROP TARGETS on canvas ---
-    // Accept room object drops (reposition from another room or palette)
-    gui::RoomObjectDragPayload obj_drop;
-    if (gui::AcceptRoomObjectDrop(&obj_drop)) {
-      // Convert canvas mouse position to room tile coordinates
-      auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
-          ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
-      if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
-        zelda3::RoomObject new_obj(static_cast<int16_t>(obj_drop.object_id),
-                                   static_cast<uint8_t>(tile_x),
-                                   static_cast<uint8_t>(tile_y), 0, 0);
-        const size_t before = room.GetTileObjects().size();
-        object_interaction_.entity_coordinator().tile_handler().PlaceObjectAt(
-            room_id, new_obj, tile_x, tile_y);
-        if (room.GetTileObjects().size() > before) {
-          object_interaction_.SetSelectedObjects({before});
-        }
-      }
-    }
-
-    // Accept sprite drops (reposition from another room or sprite list)
-    gui::SpriteDragPayload sprite_drop;
-    if (gui::AcceptSpriteDrop(&sprite_drop)) {
-      auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
-          ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
-      // Sprites use 16-pixel units, tiles are 8-pixel
-      int sprite_x = (tile_x * 8) / 16;
-      int sprite_y = (tile_y * 8) / 16;
-      if (sprite_x >= 0 && sprite_x < 32 && sprite_y >= 0 && sprite_y < 32) {
-        // Use 5-arg constructor: (id, x, y, subtype, layer)
-        zelda3::Sprite new_sprite(static_cast<uint8_t>(sprite_drop.sprite_id),
-                                  static_cast<uint8_t>(sprite_x),
-                                  static_cast<uint8_t>(sprite_y), 0, 0);
-        if (auto* ctx = object_interaction_.entity_coordinator()
-                            .sprite_handler()
-                            .context()) {
-          ctx->NotifyMutation(MutationDomain::kSprites);
-        }
-        room.GetSprites().push_back(new_sprite);
-        room.MarkSpritesDirty();
-        if (auto* ctx = object_interaction_.entity_coordinator()
-                            .sprite_handler()
-                            .context()) {
-          ctx->NotifyInvalidateCache(MutationDomain::kSprites);
-        }
-      }
-    }
+    DrawRoomCanvasContent(canvas_rt, room, room_id);
   }
 
   if (rooms_ && rom_->is_loaded()) {
