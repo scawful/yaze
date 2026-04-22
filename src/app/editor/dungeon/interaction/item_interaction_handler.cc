@@ -238,6 +238,7 @@ void ItemInteractionHandler::DeleteSelected() {
   ctx_->NotifyMutation(MutationDomain::kItems);
   pot_items.erase(pot_items.begin() +
                   static_cast<ptrdiff_t>(*selected_item_index_));
+  room->MarkPotItemsDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
 }
@@ -274,6 +275,7 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
 
   // Add item to room
   room->GetPotItems().push_back(new_item);
+  room->MarkPotItemsDirty();
 
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);
 }

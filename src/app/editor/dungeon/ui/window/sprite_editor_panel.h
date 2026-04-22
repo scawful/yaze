@@ -333,6 +333,7 @@ class SpriteEditorPanel : public WindowContent {
     if (ImGui::Combo("Subtype##SpriteSubtype", &subtype,
                      "0\0001\0002\0003\0004\0005\0006\0007\0")) {
       sprite.set_subtype(subtype);
+      room.MarkSpritesDirty();
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -346,6 +347,7 @@ class SpriteEditorPanel : public WindowContent {
     if (ImGui::Combo("Layer##SpriteLayer", &layer,
                      "Upper (0)\0Lower (1)\0Both (2)\0")) {
       sprite.set_layer(layer);
+      room.MarkSpritesDirty();
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -359,14 +361,17 @@ class SpriteEditorPanel : public WindowContent {
     ImGui::SameLine();
     if (ImGui::RadioButton("None##KeyNone", key_drop == 0)) {
       sprite.set_key_drop(0);
+      room.MarkSpritesDirty();
     }
     ImGui::SameLine();
     if (ImGui::RadioButton(ICON_MD_KEY " Small##KeySmall", key_drop == 1)) {
       sprite.set_key_drop(1);
+      room.MarkSpritesDirty();
     }
     ImGui::SameLine();
     if (ImGui::RadioButton(ICON_MD_VPN_KEY " Big##KeyBig", key_drop == 2)) {
       sprite.set_key_drop(2);
+      room.MarkSpritesDirty();
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Key dropped when sprite is defeated.");
@@ -378,6 +383,7 @@ class SpriteEditorPanel : public WindowContent {
       gui::StyleColorGuard del_guard(ImGuiCol_Button, theme.status_error);
       if (ImGui::Button(ICON_MD_DELETE " Delete Sprite")) {
         sprites.erase(sprites.begin() + selected_sprite_list_index_);
+        room.MarkSpritesDirty();
         selected_sprite_list_index_ = -1;
       }
     }
@@ -386,6 +392,7 @@ class SpriteEditorPanel : public WindowContent {
     if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate")) {
       zelda3::Sprite copy = sprite;
       sprites.push_back(copy);
+      room.MarkSpritesDirty();
     }
   }
 

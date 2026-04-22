@@ -108,8 +108,10 @@ void SpriteInteractionHandler::DrawGhostPreview() {
 
   auto* room = GetCurrentRoom();
   size_t current_sprite_count = room ? room->GetSprites().size() : 0;
-  const bool at_sprite_limit = (current_sprite_count >= zelda3::kMaxTotalSprites);
-  const bool near_sprite_limit = (current_sprite_count >= zelda3::kMaxTotalSprites * 9 / 10);
+  const bool at_sprite_limit =
+      (current_sprite_count >= zelda3::kMaxTotalSprites);
+  const bool near_sprite_limit =
+      (current_sprite_count >= zelda3::kMaxTotalSprites * 9 / 10);
 
   // Draw ghost rectangle for sprite preview
   ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
@@ -136,8 +138,8 @@ void SpriteInteractionHandler::DrawGhostPreview() {
 
   canvas->draw_list()->AddRectFilled(rect_min, rect_max,
                                      ImGui::GetColorU32(fill_color));
-  canvas->draw_list()->AddRect(rect_min, rect_max, ImGui::GetColorU32(outline_color),
-                               0.0f, 0, 2.0f);
+  canvas->draw_list()->AddRect(
+      rect_min, rect_max, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
 
   // Draw sprite ID label
   std::string label = absl::StrFormat("%02X", preview_sprite_id_);
@@ -147,10 +149,10 @@ void SpriteInteractionHandler::DrawGhostPreview() {
   // Capacity tooltip when at/near limit
   if ((at_sprite_limit || near_sprite_limit) &&
       ImGui::IsMouseHoveringRect(rect_min, rect_max)) {
-    ImGui::SetTooltip("Sprites: %zu/%zu%s", current_sprite_count, zelda3::kMaxTotalSprites,
+    ImGui::SetTooltip("Sprites: %zu/%zu%s", current_sprite_count,
+                      zelda3::kMaxTotalSprites,
                       at_sprite_limit ? "\nPlacement blocked" : "\nNear limit");
   }
-
 }
 
 void SpriteInteractionHandler::DrawSelectionHighlight() {
@@ -269,6 +271,7 @@ void SpriteInteractionHandler::DeleteSelected() {
   ctx_->NotifyMutation(MutationDomain::kSprites);
   sprites.erase(sprites.begin() +
                 static_cast<ptrdiff_t>(*selected_sprite_index_));
+  room->MarkSpritesDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ClearSelection();
 }
@@ -308,6 +311,7 @@ void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
 
   // Add sprite to room
   room->GetSprites().push_back(new_sprite);
+  room->MarkSpritesDirty();
   TriggerSuccessToast();
 
   ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
