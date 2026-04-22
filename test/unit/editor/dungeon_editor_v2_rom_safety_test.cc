@@ -40,9 +40,15 @@ void ConfigureMinimalDungeonSave() {
 }
 
 constexpr int kChestDataPc = 0x110000;
+constexpr int kRoom0ObjectPc = 0x100000;
+constexpr int kRoom1ObjectPc = 0x100100;
+constexpr int kRoom2ObjectPc = 0x100200;
 constexpr int kPotRoom0Pc = 0x008000;
 constexpr int kPotRoom1Pc = 0x008020;
 constexpr int kPotRoom2Pc = 0x008040;
+constexpr int kRoom0SpritePc = 0x049000;
+constexpr int kRoom1SpritePc = 0x049020;
+constexpr int kRoom2SpritePc = 0x049040;
 constexpr int kHeaderTablePc = 0x0F6000;
 constexpr int kRoom0HeaderPc = 0x114000;
 constexpr int kRoom1HeaderPc = 0x114020;
@@ -59,6 +65,45 @@ void SetupChestTable(Rom& rom) {
   rom.mutable_data()[zelda3::kChestsLengthPointer] = 0x00;
   rom.mutable_data()[zelda3::kChestsLengthPointer + 1] = 0x00;
   std::fill_n(rom.mutable_data() + kChestDataPc, 0x100, 0x00);
+}
+
+void WriteEmptyObjectStream(Rom& rom, int room_data_pc) {
+  rom.mutable_data()[room_data_pc + 0] = 0x00;
+  rom.mutable_data()[room_data_pc + 1] = 0x00;
+  const std::vector<uint8_t> empty = {
+      0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF,
+  };
+  ASSERT_TRUE(rom.WriteVector(room_data_pc + 2, empty).ok());
+}
+
+void SetupRoomObjectPointers(Rom& rom) {
+  WriteLongPointer(rom, zelda3::kRoomObjectPointer, PcToSnes(0x0F8000));
+
+  WriteLongPointer(rom, 0x0F8000 + 0, PcToSnes(kRoom0ObjectPc));
+  WriteLongPointer(rom, 0x0F8000 + 3, PcToSnes(kRoom1ObjectPc));
+  WriteLongPointer(rom, 0x0F8000 + 6, PcToSnes(kRoom2ObjectPc));
+
+  WriteEmptyObjectStream(rom, kRoom0ObjectPc);
+  WriteEmptyObjectStream(rom, kRoom1ObjectPc);
+  WriteEmptyObjectStream(rom, kRoom2ObjectPc);
+}
+
+void SetupSpritePointers(Rom& rom) {
+  const uint16_t room0_ptr = static_cast<uint16_t>(PcToSnes(kRoom0SpritePc));
+  const uint16_t room1_ptr = static_cast<uint16_t>(PcToSnes(kRoom1SpritePc));
+  const uint16_t room2_ptr = static_cast<uint16_t>(PcToSnes(kRoom2SpritePc));
+
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 0] = room0_ptr & 0xFF;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 1] = (room0_ptr >> 8) & 0xFF;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 2] = room1_ptr & 0xFF;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 3] = (room1_ptr >> 8) & 0xFF;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 4] = room2_ptr & 0xFF;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 5] = (room2_ptr >> 8) & 0xFF;
+
+  for (int sprite_pc : {kRoom0SpritePc, kRoom1SpritePc, kRoom2SpritePc}) {
+    rom.mutable_data()[sprite_pc + 0] = 0x00;
+    rom.mutable_data()[sprite_pc + 1] = 0xFF;
+  }
 }
 
 void SeedChestEntry(Rom& rom, int room_id, uint8_t chest_id, bool big) {
@@ -208,6 +253,7 @@ TEST(DungeonEditorV2RomSafetyTest, SaveWritesChestsWhenEnabled) {
   room.SetLoaded(true);
   room.GetChests().push_back(chest_data{0x42, false});
   room.GetChests().push_back(chest_data{0x77, true});
+  room.MarkChestsDirty();
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -273,6 +319,7 @@ TEST(DungeonEditorV2RomSafetyTest, SaveWritesPotItemsWhenEnabled) {
   first.position = 0x1234;
   first.item = 0x56;
   room.GetPotItems().push_back(first);
+  room.MarkPotItemsDirty();
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -310,6 +357,37 @@ TEST(DungeonEditorV2RomSafetyTest, SaveSkipsPotItemsWhenDisabled) {
   auto& d = core::FeatureFlags::get().dungeon;
   d.kSaveObjects = false;
   d.kSavePotItems = false;
+
+  auto status = editor->Save();
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  zelda3::Room reloaded_room(0, &rom);
+  reloaded_room.LoadPotItems();
+  ASSERT_EQ(reloaded_room.GetPotItems().size(), 1u);
+  EXPECT_EQ(reloaded_room.GetPotItems()[0].position, 0x1234);
+  EXPECT_EQ(reloaded_room.GetPotItems()[0].item, 0x56);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveSkipsPotItemsWhenDisabledForSelectedRoom) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupRoomObjectPointers(rom);
+  SetupSpritePointers(rom);
+  SetupHeaderPointers(rom);
+  SetupChestTable(rom);
+  SetupPotItemTable(rom);
+  SeedPotItemBytes(rom, kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.GetPotItems().push_back(zelda3::PotItem{0x5678, 0x9A});
+
+  editor->add_room(0);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
 
   auto status = editor->Save();
   ASSERT_TRUE(status.ok()) << status.message();
@@ -381,6 +459,57 @@ TEST(DungeonEditorV2RomSafetyTest, SaveSkipsRoomHeadersWhenDisabled) {
   EXPECT_EQ(reloaded_room.palette(), 0x03);
   EXPECT_EQ(reloaded_room.blockset(), 0x04);
   EXPECT_EQ(reloaded_room.message_id(), 0x1111);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     CollectWriteRangesSkipsCleanLoadedRoomsUntilDirty) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupRoomObjectPointers(rom);
+  SetupHeaderPointers(rom);
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->rooms()[0] = zelda3::LoadRoomFromRom(&rom, 0);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& d = core::FeatureFlags::get().dungeon;
+  d.kSaveObjects = true;
+  d.kSaveRoomHeaders = true;
+
+  EXPECT_TRUE(editor->CollectWriteRanges().empty());
+
+  editor->rooms()[0].SetPalette(0x2A);
+  EXPECT_FALSE(editor->CollectWriteRanges().empty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest, PendingRoomCountTracksRoomDirtyState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EXPECT_EQ(editor->PendingRoomCount(), 0);
+  EXPECT_FALSE(editor->HasPendingRoomChanges());
+
+  editor->rooms()[0].SetPalette(0x2A);
+  editor->rooms()[1].MarkPotItemsDirty();
+
+  EXPECT_EQ(editor->PendingRoomCount(), 2);
+  EXPECT_TRUE(editor->HasPendingRoomChanges());
+
+  editor->FocusRoom(0);
+  *editor->mutable_current_room_id() = 0;
+  EXPECT_TRUE(editor->CurrentRoomHasPendingChanges());
+
+  editor->rooms()[0].ClearSaveDirtyState();
+  editor->rooms()[0].ClearCustomCollisionDirty();
+  editor->rooms()[0].ClearWaterFillDirty();
+  editor->rooms()[1].ClearSaveDirtyState();
+  editor->rooms()[1].ClearCustomCollisionDirty();
+  editor->rooms()[1].ClearWaterFillDirty();
+
+  EXPECT_EQ(editor->PendingRoomCount(), 0);
+  EXPECT_FALSE(editor->HasPendingRoomChanges());
 }
 
 TEST(DungeonEditorV2RomSafetyTest,

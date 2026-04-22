@@ -20,6 +20,31 @@ class DungeonCanvasViewer;
 class DungeonRoomSelector;
 enum class RoomSelectionIntent;
 
+struct DungeonWorkbenchResponsiveLayout {
+  bool show_left = false;
+  bool show_right = false;
+  bool compact_left = false;
+  bool compact_right = false;
+};
+
+struct DungeonWorkbenchPaneLayout {
+  DungeonWorkbenchResponsiveLayout responsive{};
+  float left_width = 0.0f;
+  float center_width = 0.0f;
+  float right_width = 0.0f;
+  float min_left_width = 0.0f;
+  float min_right_width = 0.0f;
+};
+
+DungeonWorkbenchResponsiveLayout ResolveDungeonWorkbenchResponsiveLayout(
+    float total_width, float min_canvas_width, float min_sidebar_width,
+    float splitter_width, bool want_left, bool want_right);
+
+DungeonWorkbenchPaneLayout ResolveDungeonWorkbenchPaneLayout(
+    float total_width, float min_canvas_width, float min_sidebar_width,
+    float splitter_width, float stored_left_width, float stored_right_width,
+    bool want_left, bool want_right);
+
 // Single stable window for dungeon editing. This is step 2 in the Workbench plan.
 class DungeonWorkbenchContent : public WindowContent {
  public:
@@ -83,6 +108,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawCanvasPane(float width, float height,
                       DungeonCanvasViewer* primary_viewer,
                       bool left_sidebar_visible);
+  void DrawSelectionShelf(DungeonCanvasViewer& viewer);
   void DrawSplitView(DungeonCanvasViewer& primary_viewer);
   void DrawInspectorPane(float width, float height, float button_size,
                          bool compact, DungeonCanvasViewer* viewer);

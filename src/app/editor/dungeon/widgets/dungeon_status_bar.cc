@@ -24,9 +24,9 @@ float CalcStatusIconButtonWidth(const char* icon, float button_height) {
   const ImGuiStyle& style = ImGui::GetStyle();
   const float glyph_width = ImGui::CalcTextSize(icon).x;
   const float extra = std::max(2.0f, style.FramePadding.x);
-  return std::max(button_height,
-                  std::ceil(glyph_width + (style.FramePadding.x * 2.0f) +
-                            extra));
+  return std::max(
+      button_height,
+      std::ceil(glyph_width + (style.FramePadding.x * 2.0f) + extra));
 }
 
 }  // namespace
@@ -183,7 +183,9 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
       ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "%s",
                          right_text);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Room has unsaved changes");
+        ImGui::SetTooltip(
+            "Room has pending editor changes. Apply Room writes them to the "
+            "loaded ROM buffer.");
       }
     } else {
       ImGui::TextDisabled("%s", right_text);

@@ -110,7 +110,7 @@ void RoomGraphicsContent::Draw(bool* p_open) {
   auto& room = (*rooms_)[active_room_id];
   bool needs_render = false;
   if (room.blocks().empty()) {
-    room.LoadRoomGraphics(room.blockset());
+    room.LoadRoomGraphics();
     needs_render = true;
   }
   if (!room.AreObjectsLoaded()) {
@@ -122,7 +122,7 @@ void RoomGraphicsContent::Draw(bool* p_open) {
     room.RenderRoomGraphics();
   }
   // Keep room-sheet assignments in sync with the active room header.
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   RefreshSheetPreviews(room);
 
   if (renderer_ != nullptr) {
