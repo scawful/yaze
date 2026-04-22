@@ -13,6 +13,7 @@ set(
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
   app/editor/dungeon/dungeon_canvas_connected_view.cc
+  app/editor/dungeon/dungeon_canvas_connected_matrix.cc
   app/editor/dungeon/dungeon_canvas_context_menu.cc
   app/editor/dungeon/dungeon_canvas_debug.cc
   app/editor/dungeon/dungeon_canvas_issue_report.cc
