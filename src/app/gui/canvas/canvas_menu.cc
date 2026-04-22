@@ -12,8 +12,12 @@ void RenderMenuItem(
     return;
   }
 
+  const bool enabled = item.enabled_condition();
+  const bool checked =
+      item.checked_condition ? item.checked_condition() : false;
+
   // Apply disabled state if needed
-  if (!item.enabled_condition()) {
+  if (!enabled) {
     ImGui::BeginDisabled();
   }
 
@@ -31,14 +35,26 @@ void RenderMenuItem(
         item.color.w != 1.0f) {
       // Render with custom color
       ImGui::PushStyleColor(ImGuiCol_Text, item.color);
-      selected = ImGui::MenuItem(
-          display_label.c_str(),
-          item.shortcut.empty() ? nullptr : item.shortcut.c_str());
+      selected =
+          item.checked_condition
+              ? ImGui::MenuItem(
+                    display_label.c_str(),
+                    item.shortcut.empty() ? nullptr : item.shortcut.c_str(),
+                    checked)
+              : ImGui::MenuItem(
+                    display_label.c_str(),
+                    item.shortcut.empty() ? nullptr : item.shortcut.c_str());
       ImGui::PopStyleColor();
     } else {
-      selected = ImGui::MenuItem(
-          display_label.c_str(),
-          item.shortcut.empty() ? nullptr : item.shortcut.c_str());
+      selected =
+          item.checked_condition
+              ? ImGui::MenuItem(
+                    display_label.c_str(),
+                    item.shortcut.empty() ? nullptr : item.shortcut.c_str(),
+                    checked)
+              : ImGui::MenuItem(
+                    display_label.c_str(),
+                    item.shortcut.empty() ? nullptr : item.shortcut.c_str());
     }
 
     if (selected) {
@@ -65,7 +81,7 @@ void RenderMenuItem(
   }
 
   // Restore enabled state
-  if (!item.enabled_condition()) {
+  if (!enabled) {
     ImGui::EndDisabled();
   }
 
