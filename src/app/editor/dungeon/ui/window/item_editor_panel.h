@@ -264,6 +264,7 @@ class ItemEditorPanel : public WindowContent {
         auto& mutable_room = (*rooms_)[*current_room_id_];
         mutable_room.GetPotItems().erase(mutable_room.GetPotItems().begin() +
                                          static_cast<long>(i));
+        mutable_room.MarkPotItemsDirty();
       }
 
       ImGui::PopID();
