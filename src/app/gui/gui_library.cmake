@@ -66,6 +66,7 @@ set(GUI_WIDGETS_SRC
   app/gui/widgets/asset_browser.cc
   app/gui/widgets/dungeon_object_emulator_preview.cc
   app/gui/widgets/palette_editor_widget.cc
+  app/gui/widgets/property_inspector.cc
   app/gui/widgets/text_editor.cc
   app/gui/widgets/themed_widgets.cc
   app/gui/widgets/tile_selector_widget.cc
