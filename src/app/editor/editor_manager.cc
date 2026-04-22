@@ -71,6 +71,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/platform/font_loader.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/timing.h"
 #include "app/test/test_manager.h"
@@ -1520,6 +1521,12 @@ void EditorManager::InitializeServices() {
       });
 
   auto& prefs = user_settings_.prefs();
+
+  // Apply the persisted font selection (defaults to index 0 = Karla).
+  // Fonts were loaded by the window backend before EditorManager init, so
+  // ImGui::GetIO().Fonts->Fonts is fully populated here.
+  ::yaze::SetActiveFontIndex(prefs.font_family_index);
+
   prefs.switch_motion_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
   gui::GetAnimator().SetMotionPreferences(
       prefs.reduced_motion,

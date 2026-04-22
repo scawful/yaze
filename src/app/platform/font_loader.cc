@@ -145,6 +145,17 @@ absl::Status LoadPackageFonts() {
   return absl::OkStatus();
 }
 
+void SetActiveFontIndex(int index) {
+  ImGuiIO& io = ImGui::GetIO();
+  if (io.Fonts == nullptr || io.Fonts->Fonts.Size == 0) {
+    return;
+  }
+  if (index < 0 || index >= io.Fonts->Fonts.Size) {
+    index = 0;
+  }
+  io.FontDefault = io.Fonts->Fonts[index];
+}
+
 absl::Status ReloadPackageFont(const FontConfig& config) {
   ImGuiIO& imgui_io = ImGui::GetIO();
   std::string actual_font_path = SetFontPath(config.font_path);

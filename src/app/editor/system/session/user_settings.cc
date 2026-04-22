@@ -94,6 +94,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->switch_motion_profile = std::stoi(val);
     } else if (key == "last_theme_name") {
       prefs->last_theme_name = val;
+    } else if (key == "font_family_index") {
+      prefs->font_family_index = std::stoi(val);
     }
     // Editor Behavior
     else if (key == "backup_before_save") {
@@ -246,6 +248,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "reduced_motion=" << (prefs.reduced_motion ? 1 : 0) << "\n";
   ss << "switch_motion_profile=" << prefs.switch_motion_profile << "\n";
   ss << "last_theme_name=" << prefs.last_theme_name << "\n";
+  ss << "font_family_index=" << prefs.font_family_index << "\n";
 
   // Editor Behavior
   ss << "backup_before_save=" << (prefs.backup_before_save ? 1 : 0) << "\n";
@@ -616,6 +619,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         appearance.value("switch_motion_profile", prefs->switch_motion_profile);
     prefs->last_theme_name =
         appearance.value("last_theme_name", prefs->last_theme_name);
+    prefs->font_family_index =
+        appearance.value("font_family_index", prefs->font_family_index);
   }
 
   if (root.contains("editor")) {
@@ -860,6 +865,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"reduced_motion", prefs.reduced_motion},
       {"switch_motion_profile", prefs.switch_motion_profile},
       {"last_theme_name", prefs.last_theme_name},
+      {"font_family_index", prefs.font_family_index},
   };
 
   root["editor"] = {
