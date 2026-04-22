@@ -259,6 +259,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/shortcut_configurator_test.cc
     unit/editor/window_sidebar_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_workbench_content_test.cc
     unit/editor/dungeon_issue_report_storage_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
