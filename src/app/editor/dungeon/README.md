@@ -70,13 +70,17 @@ Located across role-based folders under `src/app/editor/dungeon/`:
 
 ## Code Analysis & Areas for Improvement
 
-### 1. Object Dimension Logic Redundancy
-There are multiple implementations for calculating the visual bounds of an object:
-*   `DungeonObjectInteraction::CalculateObjectBounds` (uses `ObjectDrawer` if available, falls back to naive logic)
-*   `DungeonObjectSelector::CalculateObjectDimensions` (naive logic)
-*   `ObjectSelection::GetObjectBounds` (uses `ObjectDimensionTable`)
+### 1. Object Dimension Logic — Centralized in `zelda3::DimensionService`
+All editor-side bound/dimension queries delegate to `zelda3::DimensionService::Get()`:
 
-**Recommendation**: Centralize all dimension calculation in `zelda3::ObjectDimensionTable` or a shared static utility in the editor namespace to ensure hit-testing matches rendering.
+| Caller | Accessor |
+|---|---|
+| `DungeonObjectInteraction::CalculateObjectBounds` | `GetPixelDimensions` |
+| `DungeonObjectSelector::CalculateObjectDimensions` | `GetPixelDimensions` (clamped to 256) |
+| `TileObjectHandler::CalculateObjectBounds` | `GetPixelDimensions` |
+| `ObjectSelection::GetObjectBounds` | `GetHitTestBounds` |
+
+`DimensionService` tries `ObjectGeometry` (exact buffer replay) first and falls back to `ObjectDimensionTable` (hardcoded estimates). Covered by `test/unit/zelda3/dungeon/dimension_service_test.cc` + `dimension_cross_validation_test.cc`. Do not reintroduce per-caller dimension switches — add coverage to the service instead.
 
 ### 2. Legacy Methods in Interaction
 `DungeonObjectInteraction` contains several methods marked as legacy or delegated to `ObjectSelection` (e.g., `SelectObjectsInRect`, `UpdateSelectedObjects`).
