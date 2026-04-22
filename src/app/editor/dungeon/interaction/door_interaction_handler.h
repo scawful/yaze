@@ -23,6 +23,11 @@ class DoorInteractionHandler : public BaseEntityHandler {
     kDoorLimit,
     kInvalidPosition,
   };
+  enum class GhostCapacityState {
+    kNormal = 0,
+    kNearLimit,
+    kAtLimit,
+  };
 
   // ========================================================================
   // BaseEntityHandler interface
@@ -111,6 +116,7 @@ class DoorInteractionHandler : public BaseEntityHandler {
   void clear_placement_blocked() {
     placement_block_reason_ = PlacementBlockReason::kNone;
   }
+  GhostCapacityState GetPlacementGhostCapacityState() const;
 
  private:
   // Placement state

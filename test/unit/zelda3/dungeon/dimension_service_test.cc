@@ -72,6 +72,24 @@ TEST(DimensionServiceTest,
   EXPECT_EQ(sel_h_px, hit_h * 8);
 }
 
+TEST(DimensionServiceTest, EmptyGeometryFallsBackToDimensionTableBounds) {
+  RoomObject obj(/*id=*/0xFF3, /*x=*/4, /*y=*/6, /*size=*/0);
+
+  auto [hit_x, hit_y, hit_w, hit_h] =
+      DimensionService::Get().GetHitTestBounds(obj);
+  auto [sel_x, sel_y, sel_w, sel_h] =
+      DimensionService::Get().GetSelectionBoundsPixels(obj);
+
+  EXPECT_GT(hit_w, 0);
+  EXPECT_GT(hit_h, 0);
+  EXPECT_GT(sel_w, 0);
+  EXPECT_GT(sel_h, 0);
+  EXPECT_EQ(sel_x, hit_x * 8);
+  EXPECT_EQ(sel_y, hit_y * 8);
+  EXPECT_EQ(sel_w, hit_w * 8);
+  EXPECT_EQ(sel_h, hit_h * 8);
+}
+
 TEST(DimensionServiceTest, UnmappedObjectStillReturnsSomething) {
   // Object 0xF8 is unmapped in ObjectGeometry
   RoomObject obj(/*id=*/0xF8, /*x=*/0, /*y=*/0, /*size=*/0);
@@ -116,6 +134,6 @@ INSTANTIATE_TEST_SUITE_P(
     // Mirrors ObjectDrawer::RequiresRectangularBg1Mask. Keep in sync when that
     // list changes — new masks should satisfy the same parity invariant.
     ::testing::Values(0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xC0, 0xC2, 0xC3, 0xC6,
-                      0xC8, 0xD8, 0xD9, 0xDA));
+                      0xC8, 0xD7, 0xD8, 0xD9, 0xDA, 0xFE6, 0xFF3));
 
 }  // namespace yaze::zelda3

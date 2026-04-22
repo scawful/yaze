@@ -12,6 +12,8 @@ set(
   app/editor/system/session/background_command_task.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
+  app/editor/dungeon/dungeon_canvas_context_menu.cc
+  app/editor/dungeon/dungeon_canvas_issue_report.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_rendering_helpers.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
@@ -349,7 +351,7 @@ if(YAZE_BUILD_TESTS)
   # dependency. The chain
   # yaze_editor -> force_load(yaze_test_support) -> yaze_editor causes SIGSEGV
   # during static initialization.
-  #
+#
   # Test executables should link yaze_test_support directly, which provides all
   # needed symbols through its own dependencies, including yaze_editor via
   # regular linking.

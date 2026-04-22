@@ -205,6 +205,27 @@ TEST_F(DoorInteractionHandlerTest, PlacementModeLifecycle) {
   EXPECT_FALSE(handler_.IsPlacementActive());
 }
 
+TEST_F(DoorInteractionHandlerTest, GhostCapacityStateIsNormalBelowLastSlot) {
+  AddDoors(14);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            DoorInteractionHandler::GhostCapacityState::kNormal);
+}
+
+TEST_F(DoorInteractionHandlerTest, GhostCapacityStateWarnsOnLastAvailableSlot) {
+  AddDoors(15);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            DoorInteractionHandler::GhostCapacityState::kNearLimit);
+}
+
+TEST_F(DoorInteractionHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
+  AddDoors(16);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            DoorInteractionHandler::GhostCapacityState::kAtLimit);
+}
+
 TEST_F(DoorInteractionHandlerTest, PlacementBlocksAtInvalidPosition) {
   // Clicking in the middle of the canvas (far from any wall) under the door
   // limit should set kInvalidPosition — not kDoorLimit.

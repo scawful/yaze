@@ -98,6 +98,19 @@ void DoorInteractionHandler::HandleRelease() {
   is_dragging_ = false;
 }
 
+DoorInteractionHandler::GhostCapacityState
+DoorInteractionHandler::GetPlacementGhostCapacityState() const {
+  auto* room = GetCurrentRoom();
+  const size_t current_door_count = room ? room->GetDoors().size() : 0;
+  if (current_door_count >= zelda3::kMaxDoors) {
+    return GhostCapacityState::kAtLimit;
+  }
+  if (current_door_count + 1 == zelda3::kMaxDoors) {
+    return GhostCapacityState::kNearLimit;
+  }
+  return GhostCapacityState::kNormal;
+}
+
 void DoorInteractionHandler::DrawGhostPreview() {
   if (!door_placement_mode_ || !HasValidContext())
     return;
@@ -150,17 +163,14 @@ void DoorInteractionHandler::DrawGhostPreview() {
 
   const auto& theme = AgentUI::GetTheme();
 
-  // Capacity-aware colors: normal / near-limit (>=14/16) / blocked (>=16/16).
-
+  const auto capacity_state = GetPlacementGhostCapacityState();
   auto* room = GetCurrentRoom();
-  size_t current_door_count = room ? room->GetDoors().size() : 0;
-  const bool at_door_limit = (current_door_count >= zelda3::kMaxDoors);
-  const bool near_door_limit = (current_door_count >= zelda3::kMaxDoors - 2);
+  const size_t current_door_count = room ? room->GetDoors().size() : 0;
 
   ImVec4 base_color = theme.dungeon_selection_primary;
-  if (at_door_limit) {
+  if (capacity_state == GhostCapacityState::kAtLimit) {
     base_color = theme.status_error;
-  } else if (near_door_limit) {
+  } else if (capacity_state == GhostCapacityState::kNearLimit) {
     base_color = theme.status_warning;
   }
 
@@ -183,10 +193,12 @@ void DoorInteractionHandler::DrawGhostPreview() {
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 200), label.c_str());
 
   // Capacity tooltip when at/near limit
-  if ((at_door_limit || near_door_limit) &&
+  if (capacity_state != GhostCapacityState::kNormal &&
       ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
     ImGui::SetTooltip("Doors: %zu/%zu%s", current_door_count, zelda3::kMaxDoors,
-                      at_door_limit ? "\nPlacement blocked" : "\nNear limit");
+                      capacity_state == GhostCapacityState::kAtLimit
+                          ? "\nPlacement blocked"
+                          : "\nLast available slot");
   }
 }
 
@@ -504,14 +516,6 @@ void DoorInteractionHandler::DrawSnapIndicators() {
   }
   auto dims = zelda3::GetEditorDoorDimensions(direction, indicator_type);
 
-  // Capacity-aware indicator colors: inherit the same thresholds used in
-  // DrawGhostPreview so dragging mirrors the placement ghost feedback.
-
-  auto* snap_room = GetCurrentRoom();
-  size_t door_count = snap_room ? snap_room->GetDoors().size() : 0;
-  const bool snap_at_limit = (door_count >= zelda3::kMaxDoors);
-  const bool snap_near_limit = (door_count >= zelda3::kMaxDoors - 2);
-
   // Draw indicators for 6 positions in this section
   for (uint8_t i = 0; i < 6; ++i) {
     uint8_t pos = start_pos + i;
@@ -526,24 +530,13 @@ void DoorInteractionHandler::DrawSnapIndicators() {
                     snap_start.y + dims.height_pixels() * scale);
 
     if (pos == nearest_snap) {
-      // Highlighted nearest snap position — capacity-aware color.
-      ImVec4 base;
-      if (snap_at_limit) {
-        base = theme.status_error;
-      } else if (snap_near_limit) {
-        base = theme.status_warning;
-      } else {
-        base = theme.dungeon_selection_primary;
-      }
-      ImVec4 highlight(base.x, base.y, base.z, 0.75f);
+      ImVec4 highlight(theme.dungeon_selection_primary.x,
+                       theme.dungeon_selection_primary.y,
+                       theme.dungeon_selection_primary.z, 0.75f);
       draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(highlight),
                          0.0f, 0, 2.5f);
     } else {
-      // Ghosted other positions — tint red when at limit.
-      ImVec4 ghost = snap_at_limit
-                         ? ImVec4(theme.status_error.x, theme.status_error.y,
-                                  theme.status_error.z, 0.20f)
-                         : ImVec4(1.0f, 1.0f, 1.0f, 0.25f);
+      ImVec4 ghost(1.0f, 1.0f, 1.0f, 0.25f);
       draw_list->AddRect(snap_start, snap_end, ImGui::GetColorU32(ghost), 0.0f,
                          0, 1.0f);
     }

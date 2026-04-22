@@ -81,9 +81,19 @@ Repeat 1a for each wall. Expected direction label in ghost: `North`, `South`, `E
 
 **Expected:** No ghost rectangle. `door_placement_mode_ = false` short-circuits `DrawGhostPreview`.
 
-**Caveats:**
-- Door ghost does NOT currently show a red/yellow capacity-warning state (no limit coloring). Door ghost always uses the theme primary color regardless of count. This is a known gap vs. sprite/tile-object ghosts which do change color at capacity.
-- Ghost is only visible when `canvas->IsMouseHovering()` returns true; hovering the panel chrome outside the canvas suppresses it.
+### 1f — Ghost warns on the last slot and blocks at cap
+
+**Click-path:**
+1. Open a room with `15/16` doors.
+2. Enter door placement mode and hover a valid wall position.
+3. Then repeat with a room at `16/16`.
+
+**Expected:**
+- At `15/16`, the ghost switches to the warning color and tooltip text ends with `Last available slot`.
+- At `16/16`, the ghost switches to the error color and tooltip text ends with `Placement blocked`.
+- Dragging an already-placed door still uses the normal snap-indicator colors, because moving an existing door does not consume a new slot.
+
+**Caveat:** Ghost is only visible when `canvas->IsMouseHovering()` returns true; hovering the panel chrome outside the canvas suppresses it.
 
 ---
 
