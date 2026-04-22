@@ -87,4 +87,35 @@ TEST(DimensionServiceTest, VerticalObjectHasTallDimensions) {
   EXPECT_GT(result.height_tiles, result.width_tiles);
 }
 
+// ObjectDrawer uses DimensionService::GetSelectionBoundsPixels to decide how
+// much of BG1 to mark transparent for pit/mask objects. The invariant these
+// tests pin: that call must return the same rectangle (in pixels) as
+// GetHitTestBounds (which drives the editor's selection outline), so the
+// transparent cutout always lines up with what the user selected.
+class MaskGeometryParityTest : public ::testing::TestWithParam<int> {};
+
+TEST_P(MaskGeometryParityTest, SelectionAndHitTestAgreeInPixels) {
+  const int id = GetParam();
+  RoomObject obj(id, /*x=*/4, /*y=*/6, /*size=*/0);
+
+  const auto [hit_x, hit_y, hit_w, hit_h] =
+      DimensionService::Get().GetHitTestBounds(obj);
+  const auto [sel_x, sel_y, sel_w, sel_h] =
+      DimensionService::Get().GetSelectionBoundsPixels(obj);
+
+  EXPECT_GT(sel_w, 0) << "mask 0x" << std::hex << id << " has zero width";
+  EXPECT_GT(sel_h, 0) << "mask 0x" << std::hex << id << " has zero height";
+  EXPECT_EQ(sel_x, hit_x * 8);
+  EXPECT_EQ(sel_y, hit_y * 8);
+  EXPECT_EQ(sel_w, hit_w * 8);
+  EXPECT_EQ(sel_h, hit_h * 8);
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    PitAndCeilingMasks, MaskGeometryParityTest,
+    // Mirrors ObjectDrawer::RequiresRectangularBg1Mask. Keep in sync when that
+    // list changes — new masks should satisfy the same parity invariant.
+    ::testing::Values(0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xC0, 0xC2, 0xC3, 0xC6,
+                      0xC8, 0xD8, 0xD9, 0xDA));
+
 }  // namespace yaze::zelda3
