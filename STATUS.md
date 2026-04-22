@@ -1,10 +1,13 @@
 # yaze Status
 
 ## Current Release
-- **Version**: v0.7.1 (April 2026, pending tag)
+- **Version**: v0.7.1 (April 19, 2026)
 - **Focus**: Packaging welcome-screen overhaul + dungeon-editor parity/polish
-  as a bundled cleanup release. z3dk toolchain integration scoped for 0.8.0.
+  as a bundled cleanup release while `master` continues on 0.7.2
+  stabilization. The `0.x` ladder after this is editor-first; `z3ed`, `z3dk`,
+  Oracle AI, and Oracle of Secrets support are planned as secondary trains.
 - **Plans**: `docs/internal/plans/0.7.1-release-plan.md`,
+  `docs/internal/plans/release-ladder-0x-2026.md`,
   `docs/internal/plans/z3dk-integration-0.8.0.md`
 
 ## 0.7.0 Completion Tracking

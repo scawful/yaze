@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.2 (In Development)
+
+### Dungeon Editor Follow-through
+- Made room navigation collapse into a compact 2x2 grid in tighter layouts instead of squeezing into a thin inline strip.
+- Stacked workbench and compare controls earlier, trimmed helper copy, and reduced toolbar chrome so more height stays with the room canvas.
+- Updated workbench pane compaction so the left-side chrome gives way before the inspector or center canvas.
+- Kept this as groundwork for a future optional connected-room overview mode rather than a replacement for focused single-room editing.
+
 ## 0.7.1 (April 19, 2026)
 
 ### Welcome Screen & Project Startup

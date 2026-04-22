@@ -15,7 +15,7 @@ AppData/Library/XDG.
 | Project files (.yaze) | Stable | Project metadata stored in the .yaze file; recent project list and metadata cache persisted. |
 | ROM load/save | Stable | ROM loaded from disk; save writes ROM; timestamped backups when enabled. |
 | Overworld Editor | Beta | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. Tile16 palette inconsistencies, paste not tracked in undo, sprite workflow incomplete. |
-| Dungeon Editor | Beta | Room objects, sprites, headers, torches, custom collision, chests, and pot items persist to ROM; shared undo/redo. Focused regression coverage exists for save-path writers, `DungeonEditorSystem`, and editor save-flag gating. Remaining gaps are 12+ unknown object types, specific visual discrepancies, selector/browser preview parity, and pits/blocks still using legacy blob-preservation saves. |
+| Dungeon Editor | Beta | Room objects, sprites, headers, torches, custom collision, chests, and pot items persist to ROM; shared undo/redo. Focused regression coverage exists for save-path writers, `DungeonEditorSystem`, and editor save-flag gating, and recent workbench/nav compaction protects visible room area better in constrained layouts. Remaining gaps are 12+ unknown object types, specific visual discrepancies, selector/browser preview parity, and pits/blocks still using legacy blob-preservation saves. Optional connected-room/grouped-room overview work remains exploratory rather than part of the current baseline editor path. |
 | Palette Editor | Beta | Palette changes persist to ROM; JSON import/export not implemented. |
 | Graphics Editor | Beta | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
 | Sprite Editor | Beta | Sprite viewing/editing works with undo/redo; deeper workflow coverage is still limited. |
@@ -100,6 +100,9 @@ AppData/Library/XDG.
 - **Platform backend**: Minimal factory tests only (`window_backend_test.cc` - 38 lines)
 - **Room object types**: 12+ unknown object types in `room_object.h` need verification
 - **Dungeon pits/blocks persistence**: Still preserved as legacy ROM blobs after pointer validation instead of encoded from explicit room-state models
+- **Dungeon room overview workspace**: optional connected-room / grouped-room
+  scrolling mode remains exploratory; editing still centers on one room at a
+  time
 - **CRC32 calculation**: Stubbed with 0 in ASAR wrapper (`asar_wrapper.cc:330,501`)
 
 ## Coverage Plan (v0.7.x)
