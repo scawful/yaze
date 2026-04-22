@@ -45,12 +45,16 @@ class DungeonSettingsPanel : public WindowContent {
       ImGui::Unindent();
     }
 
-    if (ImGui::CollapsingHeader(ICON_MD_SAVE " Save Control",
+    if (ImGui::CollapsingHeader(ICON_MD_SAVE " Apply Scope",
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
       ImGui::Indent();
       auto& flags = core::FeatureFlags::get().dungeon;
 
-      ImGui::Text("Data Types to Save:");
+      ImGui::TextWrapped(
+          "These toggles control what gets applied into the loaded ROM buffer. "
+          "Use File > Save ROM to write the ROM file to disk.");
+      ImGui::Separator();
+      ImGui::Text("Data Types to Apply:");
       ImGui::Checkbox("Room Objects", &flags.kSaveObjects);
       ImGui::Checkbox("Sprites", &flags.kSaveSprites);
       ImGui::Checkbox("Room Headers", &flags.kSaveRoomHeaders);
@@ -73,13 +77,13 @@ class DungeonSettingsPanel : public WindowContent {
       }
 
       ImGui::Separator();
-      if (ImGui::Button(ICON_MD_SAVE " Save Current Room")) {
+      if (ImGui::Button(ICON_MD_SAVE " Apply Current Room")) {
         if (save_room_callback_ && current_room_id_) {
           save_room_callback_(*current_room_id_);
         }
       }
       ImGui::SameLine();
-      if (ImGui::Button(ICON_MD_SAVE_ALT " Save All Rooms")) {
+      if (ImGui::Button(ICON_MD_SAVE_ALT " Apply Loaded Rooms")) {
         if (save_all_rooms_callback_) {
           save_all_rooms_callback_();
         }

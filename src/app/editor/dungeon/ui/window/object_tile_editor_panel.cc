@@ -19,6 +19,17 @@ void ObjectTileEditorPanel::ClearRenderedBitmaps() {
   tile8_atlas_bmp_ = gfx::Bitmap();
 }
 
+void ObjectTileEditorPanel::ClearActionStatus() {
+  action_status_tone_ = ActionStatusTone::kNone;
+  action_status_message_.clear();
+}
+
+void ObjectTileEditorPanel::SetActionStatus(ActionStatusTone tone,
+                                            std::string message) {
+  action_status_tone_ = tone;
+  action_status_message_ = std::move(message);
+}
+
 void ObjectTileEditorPanel::ResetTransientState() {
   selected_cell_index_ = -1;
   selected_source_tile_ = -1;
@@ -26,6 +37,8 @@ void ObjectTileEditorPanel::ResetTransientState() {
   atlas_dirty_ = true;
   show_shared_confirm_ = false;
   shared_object_count_ = 0;
+  shared_tile_data_usage_override_ = -1;
+  ClearActionStatus();
   ClearRenderedBitmaps();
 }
 
@@ -440,6 +453,7 @@ void ObjectTileEditorPanel::DrawSourceSheet() {
         cell.tile_info.palette_ = static_cast<uint8_t>(source_palette_);
         cell.modified = true;
         preview_dirty_ = true;
+        ClearActionStatus();
       }
     }
   }
@@ -469,6 +483,7 @@ void ObjectTileEditorPanel::DrawTileProperties() {
     cell.tile_info.id_ = static_cast<uint16_t>(tile_id & 0x3FF);
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
     SyncSourceSelectionFromSelectedCell();
   }
   ImGui::SameLine();
@@ -480,6 +495,7 @@ void ObjectTileEditorPanel::DrawTileProperties() {
     cell.tile_info.palette_ = static_cast<uint8_t>(pal);
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
     SyncSourceSelectionFromSelectedCell();
   }
   ImGui::SameLine();
@@ -488,16 +504,19 @@ void ObjectTileEditorPanel::DrawTileProperties() {
   if (ImGui::Checkbox("H", &cell.tile_info.horizontal_mirror_)) {
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
   }
   ImGui::SameLine();
   if (ImGui::Checkbox("V", &cell.tile_info.vertical_mirror_)) {
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
   }
   ImGui::SameLine();
   if (ImGui::Checkbox("Pri", &cell.tile_info.over_)) {
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
   }
 }
 
@@ -507,6 +526,11 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
   if (confirm_shared && shared_count > 1) {
     shared_object_count_ = shared_count;
     show_shared_confirm_ = true;
+    SetActionStatus(
+        ActionStatusTone::kWarning,
+        absl::StrFormat(ICON_MD_WARNING
+                        " Confirm shared apply: %d objects use this tile data.",
+                        shared_count));
     return;
   }
 
@@ -541,10 +565,26 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
     }
 
     RefreshRenderedViewsFromCurrentRoom();
+    if (shared_count > 1) {
+      SetActionStatus(
+          ActionStatusTone::kSuccess,
+          absl::StrFormat(
+              ICON_MD_CHECK_CIRCLE
+              " Applied changes to shared tile data used by %d objects.",
+              shared_count));
+    } else {
+      ClearActionStatus();
+    }
+    return;
   }
+
+  SetActionStatus(
+      ActionStatusTone::kError,
+      absl::StrFormat(ICON_MD_ERROR " Apply failed: %s", status.message()));
 }
 
 void ObjectTileEditorPanel::DrawActionBar() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   int modified_count = 0;
   for (const auto& cell : current_layout_.cells) {
     if (cell.modified)
@@ -561,7 +601,6 @@ void ObjectTileEditorPanel::DrawActionBar() {
   // Shared tile data warning
   const int shared_count = GetSharedTileDataUsageCount();
   if (shared_count > 1) {
-    const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
     ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
                        ICON_MD_WARNING " Shared by %d objects", shared_count);
     if (ImGui::IsItemHovered()) {
@@ -590,6 +629,7 @@ void ObjectTileEditorPanel::DrawActionBar() {
   if (ImGui::Button(ICON_MD_UNDO " Revert")) {
     current_layout_.RevertAll();
     preview_dirty_ = true;
+    ClearActionStatus();
     SyncSourceSelectionFromSelectedCell();
   }
   if (!has_mods)
@@ -599,6 +639,31 @@ void ObjectTileEditorPanel::DrawActionBar() {
 
   if (ImGui::Button(ICON_MD_CLOSE " Close")) {
     Close();
+  }
+
+  if (action_status_tone_ != ActionStatusTone::kNone &&
+      !action_status_message_.empty()) {
+    ImVec4 status_color = gui::ConvertColorToImVec4(theme.text_secondary);
+    switch (action_status_tone_) {
+      case ActionStatusTone::kWarning:
+        status_color = gui::ConvertColorToImVec4(theme.warning);
+        break;
+      case ActionStatusTone::kSuccess:
+        status_color = gui::ConvertColorToImVec4(theme.success);
+        break;
+      case ActionStatusTone::kError:
+        status_color = gui::ConvertColorToImVec4(theme.error);
+        break;
+      case ActionStatusTone::kNone:
+        break;
+    }
+
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, status_color);
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextUnformatted(action_status_message_.c_str());
+    ImGui::PopTextWrapPos();
+    ImGui::PopStyleColor();
   }
 }
 
@@ -652,6 +717,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
         cell.tile_info.palette_ = static_cast<uint8_t>(key);
         cell.modified = true;
         preview_dirty_ = true;
+        ClearActionStatus();
         SyncSourceSelectionFromSelectedCell();
       }
     }
@@ -661,6 +727,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
       cell.tile_info.horizontal_mirror_ = !cell.tile_info.horizontal_mirror_;
       cell.modified = true;
       preview_dirty_ = true;
+      ClearActionStatus();
     }
 
     // V: toggle vertical flip
@@ -668,6 +735,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
       cell.tile_info.vertical_mirror_ = !cell.tile_info.vertical_mirror_;
       cell.modified = true;
       preview_dirty_ = true;
+      ClearActionStatus();
     }
 
     // P: toggle priority
@@ -675,6 +743,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
       cell.tile_info.over_ = !cell.tile_info.over_;
       cell.modified = true;
       preview_dirty_ = true;
+      ClearActionStatus();
     }
   }
 

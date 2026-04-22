@@ -44,6 +44,30 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.shared_object_count_;
   }
 
+  static bool HasActionStatus(const ObjectTileEditorPanel& panel) {
+    return !panel.action_status_message_.empty();
+  }
+
+  static bool ActionStatusIsNone(const ObjectTileEditorPanel& panel) {
+    return panel.action_status_tone_ ==
+           ObjectTileEditorPanel::ActionStatusTone::kNone;
+  }
+
+  static bool ActionStatusIsWarning(const ObjectTileEditorPanel& panel) {
+    return panel.action_status_tone_ ==
+           ObjectTileEditorPanel::ActionStatusTone::kWarning;
+  }
+
+  static bool ActionStatusIsSuccess(const ObjectTileEditorPanel& panel) {
+    return panel.action_status_tone_ ==
+           ObjectTileEditorPanel::ActionStatusTone::kSuccess;
+  }
+
+  static const std::string& ActionStatusMessage(
+      const ObjectTileEditorPanel& panel) {
+    return panel.action_status_message_;
+  }
+
   static int CurrentRoomId(const ObjectTileEditorPanel& panel) {
     return panel.current_room_id_;
   }
@@ -60,6 +84,10 @@ struct ObjectTileEditorPanelTestAccess {
   static void SetSharedTileDataUsageOverride(ObjectTileEditorPanel& panel,
                                              int shared_count) {
     panel.shared_tile_data_usage_override_ = shared_count;
+  }
+
+  static int SharedTileDataUsageOverride(const ObjectTileEditorPanel& panel) {
+    return panel.shared_tile_data_usage_override_;
   }
 
   static const DungeonRoomStore* Rooms(const ObjectTileEditorPanel& panel) {
@@ -105,6 +133,10 @@ struct ObjectTileEditorPanelTestAccess {
     panel.selected_source_tile_ = 0x2A;
     panel.show_shared_confirm_ = true;
     panel.shared_object_count_ = 7;
+    panel.shared_tile_data_usage_override_ = 7;
+    panel.action_status_tone_ =
+        ObjectTileEditorPanel::ActionStatusTone::kWarning;
+    panel.action_status_message_ = "stale shared status";
   }
 
   static void SeedRenderedBitmaps(ObjectTileEditorPanel& panel) {
@@ -272,6 +304,20 @@ std::optional<int16_t> FindCapturableObjectId(Rom* rom, DungeonRoomStore* rooms,
   return std::nullopt;
 }
 
+void OpenInjectedSharedStandardObjectSession(ObjectTileEditorPanel& panel,
+                                             int16_t object_id) {
+  panel.OpenForObject(object_id, /*room_id=*/-1, nullptr);
+
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, object_id, "shared.bin");
+  layout.is_custom = false;
+  layout.custom_filename.clear();
+  layout.tile_data_address = 0x1234;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 0);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+}
+
 TEST(ObjectTileEditorPanelTest, OpenForObjectInvalidRoomClearsPreviousLayout) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -337,6 +383,10 @@ TEST(ObjectTileEditorPanelTest, CloseClearsTransientStateAndContext) {
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), -1);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageOverride(panel),
+            -1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsNone(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), -1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), -1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::Rooms(panel), nullptr);
@@ -363,6 +413,10 @@ TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageOverride(panel),
+            -1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsNone(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 1);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x124);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
@@ -552,6 +606,11 @@ TEST(ObjectTileEditorPanelTest,
 
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
   EXPECT_GT(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 1);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Confirm shared apply"),
+            std::string::npos);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
   EXPECT_EQ(ReadWordAt(rom, write_addr), original_word);
 }
@@ -606,6 +665,11 @@ TEST(ObjectTileEditorPanelTest,
 
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsSuccess(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Applied changes to shared tile data"),
+            std::string::npos);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
   EXPECT_NE(ReadWordAt(rom, write_addr), original_word);
   EXPECT_EQ(ReadWordAt(rom, write_addr),
@@ -614,6 +678,82 @@ TEST(ObjectTileEditorPanelTest,
                               original_cell.tile_info.horizontal_mirror_,
                               original_cell.tile_info.vertical_mirror_,
                               original_cell.tile_info.over_))));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SharedGuardedApplyCanWarnAgainAfterCloseAndReopen) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  OpenInjectedSharedStandardObjectSession(panel, /*object_id=*/0x40);
+  ASSERT_TRUE(panel.IsOpen());
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+
+  ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
+      panel, /*shared_count=*/3);
+  const auto first_layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  const int first_write_addr =
+      first_layout.tile_data_address +
+      ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel) * 2;
+  const int first_original_word = ReadWordAt(rom, first_write_addr);
+  const uint16_t first_tile_id =
+      ObjectTileEditorPanelTestAccess::FirstCellTileId(panel);
+  const uint8_t first_palette =
+      ObjectTileEditorPanelTestAccess::FirstCellPalette(panel);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, static_cast<uint16_t>(first_tile_id ^ 0x1),
+      static_cast<uint8_t>((first_palette + 1) & 0x7));
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel, /*confirm_shared=*/true);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_EQ(ReadWordAt(rom, first_write_addr), first_original_word);
+
+  panel.Close();
+
+  EXPECT_FALSE(panel.IsOpen());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageOverride(panel),
+            -1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
+
+  OpenInjectedSharedStandardObjectSession(panel, /*object_id=*/0x40);
+  ASSERT_TRUE(panel.IsOpen());
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel),
+            ObjectTileEditorPanelTestAccess::FirstCellTileId(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel),
+            ObjectTileEditorPanelTestAccess::FirstCellPalette(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageOverride(panel),
+            -1);
+
+  ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
+      panel, /*shared_count=*/3);
+  const auto reopened_layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  const int reopened_write_addr =
+      reopened_layout.tile_data_address +
+      ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel) * 2;
+  const int reopened_original_word = ReadWordAt(rom, reopened_write_addr);
+  const uint16_t reopened_tile_id =
+      ObjectTileEditorPanelTestAccess::FirstCellTileId(panel);
+  const uint8_t reopened_palette =
+      ObjectTileEditorPanelTestAccess::FirstCellPalette(panel);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, static_cast<uint16_t>(reopened_tile_id ^ 0x2),
+      static_cast<uint8_t>((reopened_palette + 2) & 0x7));
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel, /*confirm_shared=*/true);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_GT(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 1);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Confirm shared apply"),
+            std::string::npos);
+  EXPECT_EQ(ReadWordAt(rom, reopened_write_addr), reopened_original_word);
 }
 
 TEST(ObjectTileEditorPanelTest,
