@@ -236,6 +236,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_manager_test.cc
+    unit/editor/story_event_graph_navigation_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
@@ -489,6 +490,7 @@ if(YAZE_BUILD_TESTS)
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
+    unit/editor/story_event_graph_navigation_test.cc
     unit/editor/message/message_expanded_write_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/background_command_task_test.cc
