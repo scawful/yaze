@@ -221,6 +221,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
     int16_t object_id) {
+  constexpr int kDamFloodGateOpenTileOffset = 0x13E8;
+  constexpr int kDamFloodGateTileCount = 40;
+
   // Type 2 objects: 0x100-0x13F (64 objects only)
   int index = (object_id - 0x100) & 0x3F;
   int tile_ptr = kRoomObjectSubtype2 + (index * 2);
@@ -260,6 +263,22 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
       LOG_DEBUG("ObjectParser", "  First 2 tiles: $%04X(id=%d) $%04X(id=%d)",
                 tw0, tw0 & 0x3FF, tw1, tw1 & 0x3FF);
     }
+  }
+
+  if (object_id == 0x137) {
+    auto closed_tiles = ReadTileData(tile_data_ptr, kDamFloodGateTileCount);
+    if (!closed_tiles.ok()) {
+      return closed_tiles.status();
+    }
+    auto open_tiles =
+        ReadTileData(kRoomObjectTileAddress + kDamFloodGateOpenTileOffset,
+                     kDamFloodGateTileCount);
+    if (!open_tiles.ok()) {
+      return open_tiles.status();
+    }
+    closed_tiles->insert(closed_tiles->end(), open_tiles->begin(),
+                         open_tiles->end());
+    return closed_tiles;
   }
 
   return ReadTileData(tile_data_ptr, tile_count);
@@ -348,9 +367,16 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
   // 4x4 fixed patterns (stairs/altars/walls)
   if (object_id == 0x11C || object_id == 0x124 || object_id == 0x125 ||
       object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133) ||
-      (object_id >= 0x135 && object_id <= 0x137) || object_id == 0x13C ||
-      object_id == 0x13F) {
+      object_id == 0x13C || object_id == 0x13F) {
     return 16;
+  }
+  // Water hop stairs use a fixed 4x2 pattern.
+  if (object_id == 0x135 || object_id == 0x136) {
+    return 8;
+  }
+  // Dam floodgate preserves both closed and water-open 10x4 tile blocks.
+  if (object_id == 0x137) {
+    return 80;
   }
   // Beds (4x5)
   if (object_id == 0x122 || object_id == 0x128) {

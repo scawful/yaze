@@ -334,12 +334,16 @@ Room LoadRoomFromRom(Rom* rom, int room_id) {
   // blocks ($7EF940) and torches ($7EFB40). These "special" objects are not
   // part of the room object stream and must not be saved into it.
   room.LoadObjects();
+  room.LoadChests();
   room.LoadPotItems();
   room.LoadTorches();
   room.LoadBlocks();
   room.LoadPits();
 
   room.SetLoaded(true);
+  room.ClearSaveDirtyState();
+  room.ClearCustomCollisionDirty();
+  room.ClearWaterFillDirty();
   return room;
 }
 
@@ -507,6 +511,9 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   hpos++;
   room.SetStair4Target(rom->data()[hpos]);
 
+  room.ClearSaveDirtyState();
+  room.ClearCustomCollisionDirty();
+  room.ClearWaterFillDirty();
   // Note: We do NOT set is_loaded_ to true here, as this is just the header
   return room;
 }
@@ -544,7 +551,7 @@ int Room::ResolveDungeonPaletteId() const {
   return id;
 }
 
-void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
+void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   if (!game_data_) {
     LOG_DEBUG("Room", "GameData not set for room %d", room_id_);
     return;
@@ -552,17 +559,23 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
 
   const auto& room_gfx = game_data_->room_blockset_ids;
   const auto& sprite_gfx = game_data_->spriteset_ids;
+  const uint8_t effective_entrance_blockset =
+      entrance_blockset.value_or(render_entrance_blockset_);
 
-  LOG_DEBUG("Room", "Room %d: blockset=%d, spriteset=%d, palette=%d", room_id_,
-            blockset_, spriteset_, palette_);
+  LOG_DEBUG("Room",
+            "Room %d: blockset=%d, entrance_blockset=%d, spriteset=%d, "
+            "palette=%d",
+            room_id_, blockset_, effective_entrance_blockset, spriteset_,
+            palette_);
 
   for (int i = 0; i < 8; i++) {
     blocks_[i] = game_data_->main_blockset_ids[blockset_][i];
     // Block 6 can be overridden by entrance-specific room graphics (index 3)
     // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
     if (i == 6) {
-      if (entrance_blockset != 0xFF && room_gfx[entrance_blockset][3] != 0) {
-        blocks_[i] = room_gfx[entrance_blockset][3];
+      if (effective_entrance_blockset != 0xFF &&
+          room_gfx[effective_entrance_blockset][3] != 0) {
+        blocks_[i] = room_gfx[effective_entrance_blockset][3];
       }
     }
   }
@@ -601,8 +614,10 @@ void Room::EnsurePotItemsLoaded() {
   LoadPotItems();
 }
 
-void Room::ReloadGraphics(uint8_t entrance_blockset) {
-  (void)entrance_blockset;
+void Room::ReloadGraphics(std::optional<uint8_t> entrance_blockset) {
+  if (entrance_blockset.has_value()) {
+    SetRenderEntranceBlockset(*entrance_blockset);
+  }
   EnsureObjectsLoaded();
   MarkGraphicsDirty();
   MarkLayoutDirty();
@@ -610,8 +625,10 @@ void Room::ReloadGraphics(uint8_t entrance_blockset) {
   RenderRoomGraphics();
 }
 
-void Room::PrepareForRender(uint8_t entrance_blockset) {
-  (void)entrance_blockset;
+void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
+  if (entrance_blockset.has_value()) {
+    SetRenderEntranceBlockset(*entrance_blockset);
+  }
   EnsureObjectsLoaded();
 
   auto& bg1_bmp = bg1_buffer_.bitmap();
@@ -733,6 +750,7 @@ gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
     composite_signature_ = requested_signature;
     has_composite_signature_ = true;
   }
+  PaletteDebugger::Get().SetCurrentBitmap(&composite_bitmap_);
   return composite_bitmap_;
 }
 
@@ -791,7 +809,7 @@ void Room::RenderRoomGraphics() {
   if (dirty_state_.graphics) {
     // Ensure blocks_[] array is properly initialized before copying graphics
     // LoadRoomGraphics sets up which sheets go into which blocks
-    LoadRoomGraphics(blockset_);
+    LoadRoomGraphics();
     CopyRoomGraphicsToBuffer();
     dirty_state_.graphics = false;
   }
@@ -868,10 +886,6 @@ void Room::RenderRoomGraphics() {
               bg1_palette[0].rom_color().blue);
   }
 
-  // Store current palette and bitmap for pixel inspector debugging
-  PaletteDebugger::Get().SetCurrentPalette(bg1_palette);
-  PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
-
   if (bg1_palette.size() > 0) {
     std::optional<gfx::SnesPalette> hud_palette_storage;
     const gfx::SnesPalette* hud_palette = nullptr;
@@ -896,9 +910,16 @@ void Room::RenderRoomGraphics() {
     //
     // Drawing formula (see ObjectDrawer): final_color = pixel + (pal * 16).
     // Where pal is the 3-bit tile palette field (0-7) and pixel is 1-15.
-    auto set_dungeon_palette = [&](gfx::Bitmap& bmp,
-                                   const gfx::SnesPalette& pal) {
-      bmp.SetPalette(BuildDungeonRenderPalette(pal, hud_palette));
+    const auto render_palette =
+        BuildDungeonRenderPalette(bg1_palette, hud_palette);
+
+    // Store current palette state for pixel inspector / issue report debugging.
+    PaletteDebugger::Get().SetCurrentPalette(bg1_palette);
+    PaletteDebugger::Get().SetCurrentRenderPalette(render_palette);
+    PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
+
+    auto set_dungeon_palette = [&](gfx::Bitmap& bmp) {
+      bmp.SetPalette(render_palette);
       if (bmp.surface()) {
         // Set color key to 255 for proper alpha blending (undrawn areas)
         SDL_SetColorKey(bmp.surface(), SDL_TRUE, 255);
@@ -906,10 +927,10 @@ void Room::RenderRoomGraphics() {
       }
     };
 
-    set_dungeon_palette(bg1_bmp, bg1_palette);
-    set_dungeon_palette(bg2_bmp, bg1_palette);
-    set_dungeon_palette(object_bg1_buffer_.bitmap(), bg1_palette);
-    set_dungeon_palette(object_bg2_buffer_.bitmap(), bg1_palette);
+    set_dungeon_palette(bg1_bmp);
+    set_dungeon_palette(bg2_bmp);
+    set_dungeon_palette(object_bg1_buffer_.bitmap());
+    set_dungeon_palette(object_bg2_buffer_.bitmap());
 
     // DEBUG: Verify palette was applied to SDL surface
     auto* surface = bg1_bmp.surface();
@@ -1814,6 +1835,8 @@ absl::Status Room::SaveObjects() {
       rom_->WriteLong(kDoorPointers + (room_id_ * 3),
                       static_cast<uint32_t>(PcToSnes(door_pointer_pc))));
 
+  ClearObjectStreamDirty();
+
   return absl::OkStatus();
 }
 
@@ -1864,10 +1887,14 @@ absl::Status Room::SaveSprites() {
 
   auto encoded_bytes = EncodeSprites();
   if (static_cast<int>(encoded_bytes.size()) > available_payload_size) {
-    return RelocateSpriteData(rom_, room_id_, encoded_bytes);
+    RETURN_IF_ERROR(RelocateSpriteData(rom_, room_id_, encoded_bytes));
+    ClearSpritesDirty();
+    return absl::OkStatus();
   }
 
-  return rom_->WriteVector(payload_address, encoded_bytes);
+  RETURN_IF_ERROR(rom_->WriteVector(payload_address, encoded_bytes));
+  ClearSpritesDirty();
+  return absl::OkStatus();
 }
 
 absl::Status Room::SaveRoomHeader() {
@@ -1938,6 +1965,8 @@ absl::Status Room::SaveRoomHeader() {
   }
   RETURN_IF_ERROR(rom_->WriteWord(msg_addr, message_id_));
 
+  ClearHeaderDirty();
+
   return absl::OkStatus();
 }
 
@@ -1954,7 +1983,7 @@ absl::Status Room::AddObject(const RoomObject& object) {
   // Add to internal list
   tile_objects_.push_back(object);
   objects_loaded_ = true;
-  MarkObjectsDirty();
+  MarkObjectStreamDirty();
 
   return absl::OkStatus();
 }
@@ -1966,7 +1995,7 @@ absl::Status Room::RemoveObject(size_t index) {
 
   tile_objects_.erase(tile_objects_.begin() + index);
   objects_loaded_ = true;
-  MarkObjectsDirty();
+  MarkObjectStreamDirty();
 
   return absl::OkStatus();
 }
@@ -1982,7 +2011,7 @@ absl::Status Room::UpdateObject(size_t index, const RoomObject& object) {
 
   tile_objects_[index] = object;
   objects_loaded_ = true;
-  MarkObjectsDirty();
+  MarkObjectStreamDirty();
 
   return absl::OkStatus();
 }
@@ -2119,6 +2148,7 @@ void Room::LoadSprites() {
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
   chests_in_room_.clear();
+  chests_loaded_ = false;
   uint32_t cpos = SnesToPc((rom_data[kChestsDataPointer1 + 2] << 16) +
                            (rom_data[kChestsDataPointer1 + 1] << 8) +
                            (rom_data[kChestsDataPointer1]));
@@ -2139,6 +2169,7 @@ void Room::LoadChests() {
           chest_data{rom_data[cpos + (i * 3) + 2], big});
     }
   }
+  chests_loaded_ = true;
 }
 
 void Room::LoadDoors() {
@@ -2486,7 +2517,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
 
   if (!has_ptr_table) {
     for (int room_id = 0; room_id < room_count; ++room_id) {
-      Room* room = room_lookup(room_id);
+      const Room* room = room_lookup(room_id);
       if (room != nullptr && room->custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision region not present in this ROM");
@@ -2497,7 +2528,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
 
   if (!has_data_region) {
     for (int room_id = 0; room_id < room_count; ++room_id) {
-      Room* room = room_lookup(room_id);
+      const Room* room = room_lookup(room_id);
       if (room != nullptr && room->custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision data region not present in this ROM");
@@ -2521,7 +2552,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
 
   const int room_limit = std::min(room_count, kNumberOfRooms);
   for (int room_id = 0; room_id < room_limit; ++room_id) {
-    Room* room = room_lookup(room_id);
+    const Room* room = room_lookup(room_id);
     if (room == nullptr || !room->custom_collision_dirty()) {
       continue;
     }
@@ -2537,7 +2568,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
-      room->ClearCustomCollisionDirty();
+      const_cast<Room*>(room)->ClearCustomCollisionDirty();
       continue;
     }
 
@@ -2553,13 +2584,13 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
-      room->ClearCustomCollisionDirty();
+      const_cast<Room*>(room)->ClearCustomCollisionDirty();
       continue;
     }
 
     RETURN_IF_ERROR(
         WriteTrackCollision(rom, actual_room_id, room->custom_collision()));
-    room->ClearCustomCollisionDirty();
+    const_cast<Room*>(room)->ClearCustomCollisionDirty();
   }
 
   return absl::OkStatus();
@@ -2670,9 +2701,10 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
       std::min(room_count, static_cast<int>(rom_chests.size()));
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
-    const bool room_loaded = room != nullptr && room->IsLoaded();
+    const bool room_dirty = room != nullptr && room->chests_dirty();
+    const bool room_loaded = room != nullptr && room->AreChestsLoaded();
     const auto* chests = room != nullptr ? &room->GetChests() : nullptr;
-    if (!room_loaded) {
+    if (!room_dirty && !room_loaded) {
       for (const auto& [id, big] : rom_chests[room_id]) {
         uint16_t word = room_id | (big ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
@@ -2695,7 +2727,14 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
   }
   RETURN_IF_ERROR(rom->WriteWord(kChestsLengthPointer,
                                  static_cast<uint16_t>(bytes.size() / 3)));
-  return rom->WriteVector(cpos, bytes);
+  RETURN_IF_ERROR(rom->WriteVector(cpos, bytes));
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->chests_dirty()) {
+      const_cast<Room*>(room)->ClearChestsDirty();
+    }
+  }
+  return absl::OkStatus();
 }
 
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {
@@ -2723,7 +2762,8 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
   const int room_limit = std::min(room_count, kNumberOfRooms);
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
-    const bool room_loaded = room != nullptr && room->IsLoaded();
+    const bool room_dirty = room != nullptr && room->pot_items_dirty();
+    const bool room_loaded = room != nullptr && room->ArePotItemsLoaded();
     const auto* pot_items = room != nullptr ? &room->GetPotItems() : nullptr;
     int ptr_off = table_addr + (room_id * 2);
     uint16_t item_ptr = (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
@@ -2744,7 +2784,7 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
     if (max_len <= 0)
       continue;
     std::vector<uint8_t> bytes;
-    if (!room_loaded) {
+    if (!room_dirty && !room_loaded) {
       if (room_id < rom_pot_items.size()) {
         bytes = rom_pot_items[room_id];
       }
@@ -2764,6 +2804,12 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
       continue;
     }
     RETURN_IF_ERROR(rom->WriteVector(item_addr, bytes));
+  }
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->pot_items_dirty()) {
+      const_cast<Room*>(room)->ClearPotItemsDirty();
+    }
   }
   return absl::OkStatus();
 }

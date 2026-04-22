@@ -8,6 +8,7 @@
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_tile.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/dungeon_state.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -20,6 +21,44 @@ struct AnchorPos {
   int x = 0;
   int y = 0;
 };
+
+class MeasurementDungeonState final : public DungeonState {
+ public:
+  explicit MeasurementDungeonState(bool water_face_active)
+      : water_face_active_(water_face_active) {}
+
+  bool IsChestOpen(int /*room_id*/, int /*chest_index*/) const override {
+    return false;
+  }
+  bool IsBigChestOpen() const override { return false; }
+  bool IsDoorOpen(int /*room_id*/, int /*door_index*/) const override {
+    return false;
+  }
+  bool IsDoorSwitchActive(int /*room_id*/) const override { return false; }
+  bool IsWaterFaceActive(int /*room_id*/) const override {
+    return water_face_active_;
+  }
+  bool IsDamFloodgateOpen(int /*room_id*/) const override { return false; }
+  bool IsWallMoved(int /*room_id*/) const override { return false; }
+  bool IsFloorBombable(int /*room_id*/) const override { return false; }
+  bool IsRupeeFloorActive(int /*room_id*/) const override { return false; }
+  bool IsCrystalSwitchBlue() const override { return true; }
+
+ private:
+  bool water_face_active_ = false;
+};
+
+const DungeonState* SelectMeasurementState(const DrawRoutineInfo& routine) {
+  // Geometry drives selection and hit-testing, so routines with a stable
+  // stateful expansion should replay their largest footprint here.
+  static const MeasurementDungeonState kActiveWaterFaceState(
+      /*water_face_active=*/true);
+
+  if (routine.id == DrawRoutineIds::kEmptyWaterFace) {
+    return &kActiveWaterFaceState;
+  }
+  return nullptr;
+}
 
 std::vector<gfx::TileInfo> MakeDummyTiles() {
   std::vector<gfx::TileInfo> tiles;
@@ -66,6 +105,16 @@ AnchorPos ChooseAnchor(const DrawRoutineInfo& routine,
     if (mirror_y) {
       anchor.y = std::clamp(side - 1, 0, DrawContext::kMaxTilesY - 1);
     }
+    return anchor;
+  }
+
+  // Somaria line down-left (0xF86 / subtype-3 0x206) writes one tile per step
+  // while moving leftward. Give replay enough X headroom so the left extent is
+  // preserved instead of being clipped off at the canvas edge.
+  if (routine.id == DrawRoutineIds::kSomariaLine &&
+      (object.id_ & 0x0F) == 0x06) {
+    const int length = size_nibble + 1;
+    anchor.x = std::clamp(length - 1, 0, DrawContext::kMaxTilesX - 1);
     return anchor;
   }
 
@@ -138,7 +187,7 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
       .target_bg = bg,
       .object = adjusted,
       .tiles = std::span<const gfx::TileInfo>(kTiles.data(), kTiles.size()),
-      .state = nullptr,
+      .state = SelectMeasurementState(routine),
       .rom = nullptr,
       .room_id = 0,
       .room_gfx_buffer = nullptr,

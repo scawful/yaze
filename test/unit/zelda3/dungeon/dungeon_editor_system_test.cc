@@ -131,6 +131,19 @@ class DungeonEditorSystemTest : public ::testing::Test {
     }
   }
 
+  void SeedChestEntry(int room_id, uint8_t chest_id, bool big) {
+    const uint16_t word = static_cast<uint16_t>(room_id) | (big ? 0x8000 : 0);
+    rom_->mutable_data()[kChestsLengthPointer] = 0x01;
+    rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
+    rom_->mutable_data()[kChestDataPc + 0] = word & 0xFF;
+    rom_->mutable_data()[kChestDataPc + 1] = (word >> 8) & 0xFF;
+    rom_->mutable_data()[kChestDataPc + 2] = chest_id;
+  }
+
+  void SeedPotItemBytes(int pc_addr, std::initializer_list<uint8_t> bytes) {
+    std::copy(bytes.begin(), bytes.end(), rom_->mutable_data() + pc_addr);
+  }
+
   std::unique_ptr<Rom> rom_;
 };
 
@@ -187,6 +200,41 @@ TEST_F(DungeonEditorSystemTest, SaveRoomPersistsExternalRoomPotItemsAndHeader) {
   EXPECT_EQ(reloaded.GetPotItems()[0].item, 0x56);
   EXPECT_EQ(reloaded.palette(), 0x2A);
   EXPECT_EQ(reloaded.message_id(), 0x1357);
+}
+
+TEST_F(DungeonEditorSystemTest, SaveRoomPreservesOtherRoomIndexedData) {
+  DungeonEditorSystem system(rom_.get());
+  ASSERT_TRUE(system.Initialize().ok());
+
+  SeedChestEntry(/*room_id=*/1, /*chest_id=*/0x77, /*big=*/true);
+  SeedPotItemBytes(kPotRoom1Pc, {0x78, 0x56, 0x9A, 0xFF, 0xFF});
+
+  Room external_room = LoadRoomFromRom(rom_.get(), 0);
+  system.SetExternalRoom(&external_room);
+
+  external_room.GetChests().push_back(chest_data{0x21, false});
+  external_room.GetPotItems().push_back(PotItem{0x1234, 0x56});
+
+  ASSERT_TRUE(system.SaveRoom(0).ok());
+
+  Room room0 = LoadRoomFromRom(rom_.get(), 0);
+  ASSERT_EQ(room0.GetChests().size(), 1u);
+  EXPECT_EQ(room0.GetChests()[0].id, 0x21);
+  EXPECT_FALSE(room0.GetChests()[0].size);
+  ASSERT_EQ(room0.GetPotItems().size(), 1u);
+  EXPECT_EQ(room0.GetPotItems()[0].position, 0x1234);
+  EXPECT_EQ(room0.GetPotItems()[0].item, 0x56);
+
+  Room room1_chests_only(1, rom_.get());
+  room1_chests_only.LoadChests();
+  ASSERT_EQ(room1_chests_only.GetChests().size(), 1u);
+  EXPECT_EQ(room1_chests_only.GetChests()[0].id, 0x77);
+  EXPECT_TRUE(room1_chests_only.GetChests()[0].size);
+
+  Room room1 = LoadRoomFromRom(rom_.get(), 1);
+  ASSERT_EQ(room1.GetPotItems().size(), 1u);
+  EXPECT_EQ(room1.GetPotItems()[0].position, 0x5678);
+  EXPECT_EQ(room1.GetPotItems()[0].item, 0x9A);
 }
 
 TEST_F(DungeonEditorSystemTest, SaveDungeonPersistsAllCachedRooms) {

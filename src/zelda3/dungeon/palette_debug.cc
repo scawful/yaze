@@ -65,6 +65,9 @@ void PaletteDebugger::LogPaletteApplication(const std::string& location,
   PaletteDebugEvent event;
   event.location = location;
   event.palette_id = palette_id;
+  event.color_count = !current_render_palette_.empty()
+                          ? static_cast<int>(current_render_palette_.size())
+                          : static_cast<int>(current_palette_.size());
   event.level = success ? PaletteDebugLevel::INFO : PaletteDebugLevel::ERROR;
   event.timestamp_ms = GetCurrentTimeMs();
   event.sequence_number = sequence_counter_++;
@@ -168,6 +171,11 @@ void PaletteDebugger::SetCurrentPalette(const gfx::SnesPalette& palette) {
   current_palette_ = palette;
 }
 
+void PaletteDebugger::SetCurrentRenderPalette(
+    const std::vector<SDL_Color>& palette) {
+  current_render_palette_ = palette;
+}
+
 void PaletteDebugger::SetCurrentBitmap(gfx::Bitmap* bitmap) {
   current_bitmap_ = bitmap;
 }
@@ -207,8 +215,15 @@ ColorComparison PaletteDebugger::SamplePixelAt(int x, int y) const {
 
   comp.palette_index = data[idx];
 
-  // Get expected color from our stored palette
-  if (comp.palette_index < current_palette_.size()) {
+  // Get expected color from the mapped dungeon render palette if available.
+  // Dungeon surfaces use the SDL/CGRAM-aligned 256-entry palette, not the raw
+  // 90-color dungeon ROM palette indices directly.
+  if (comp.palette_index < current_render_palette_.size()) {
+    const auto& c = current_render_palette_[comp.palette_index];
+    comp.expected_r = c.r;
+    comp.expected_g = c.g;
+    comp.expected_b = c.b;
+  } else if (comp.palette_index < current_palette_.size()) {
     auto rgb = current_palette_[comp.palette_index].rgb();
     comp.expected_r = static_cast<uint8_t>(rgb.x);
     comp.expected_g = static_cast<uint8_t>(rgb.y);
@@ -341,6 +356,7 @@ std::string PaletteDebugger::ExportPaletteDataJSON() const {
   std::ostringstream json;
   json << "{";
   json << "\"size\":" << current_palette_.size() << ",";
+  json << "\"render_size\":" << current_render_palette_.size() << ",";
   json << "\"checksum\":" << ComputePaletteChecksum(current_palette_) << ",";
   json << "\"colors\":[";
 
@@ -350,6 +366,25 @@ std::string PaletteDebugger::ExportPaletteDataJSON() const {
          << ",\"g\":" << (int)rgb.y << ",\"b\":" << (int)rgb.z << "}";
     if (i < current_palette_.size() - 1)
       json << ",";
+  }
+
+  json << "],";
+  json << "\"render_colors\":[";
+
+  bool first_render = true;
+  for (size_t i = 0; i < current_render_palette_.size(); ++i) {
+    const auto& color = current_render_palette_[i];
+    if (color.a == 0) {
+      continue;
+    }
+    if (!first_render) {
+      json << ",";
+    }
+    json << "{\"index\":" << i << ",\"r\":" << static_cast<int>(color.r)
+         << ",\"g\":" << static_cast<int>(color.g)
+         << ",\"b\":" << static_cast<int>(color.b)
+         << ",\"a\":" << static_cast<int>(color.a) << "}";
+    first_render = false;
   }
 
   json << "]}";

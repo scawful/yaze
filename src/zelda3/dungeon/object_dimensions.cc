@@ -617,9 +617,14 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {1, 1, Dir::Vertical, 1, false};
   }
 
-  // 0x6C-0x6D: Downwards corners (+12 offset in draw routine, count = size + 10)
+  // 0x6C-0x6D: Downwards corners (+12 offset in draw routine).
+  // Canonical empty-canvas render:
+  // - 2 opening rows
+  // - (size + 10) body rows
+  // - 2 closing rows
+  // => total height = size + 14
   for (int id = 0x6C; id <= 0x6D; id++) {
-    dimensions_[id] = {2, 10, Dir::Vertical, 1, false};
+    dimensions_[id] = {2, 14, Dir::Vertical, 1, false};
   }
 
   // 0x6E-0x6F: Nothing
@@ -916,10 +921,11 @@ void ObjectDimensionTable::InitializeDefaults() {
   for (int id = 0x12D; id <= 0x133; id++) {
     dimensions_[id] = {4, 4, Dir::None, 0, false};
   }
-  // 0x135-0x137: Water hop stairs / flood gate (repeatable 4x4)
-  for (int id = 0x135; id <= 0x137; id++) {
-    dimensions_[id] = {4, 4, Dir::Horizontal, 4, false};
-  }
+  // 0x135-0x136: Water hop stairs (fixed 4x2)
+  dimensions_[0x135] = {4, 2, Dir::None, 0, false};
+  dimensions_[0x136] = {4, 2, Dir::None, 0, false};
+  // 0x137: Dam floodgate (fixed 10x4)
+  dimensions_[0x137] = {10, 4, Dir::None, 0, false};
   // 0x138-0x13B: Spiral stairs (fixed 4x3)
   for (int id = 0x138; id <= 0x13B; id++) {
     dimensions_[id] = {4, 3, Dir::None, 0, false};
@@ -942,10 +948,11 @@ void ObjectDimensionTable::InitializeDefaults() {
 
   // Override specific Type 3 objects with known sizes
   // Water face family:
-  // - Empty face defaults to 4x3 (state can extend to 4x5 at runtime)
+  // - Empty face can extend to 4x5 at runtime; use the larger stable
+  //   footprint so selection/hit-testing matches the active branch.
   // - Spitting face is 4x5
   // - Drenching face is 4x7
-  dimensions_[0xF80] = {4, 3, Dir::None, 0, false};
+  dimensions_[0xF80] = {4, 5, Dir::None, 0, false};
   dimensions_[0xF81] = {4, 5, Dir::None, 0, false};
   dimensions_[0xF82] = {4, 7, Dir::None, 0, false};
 

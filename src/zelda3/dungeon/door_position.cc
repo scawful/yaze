@@ -343,5 +343,13 @@ std::tuple<int, int, int, int> DoorPositionManager::GetDoorBounds(
   return {pixel_x, pixel_y, dims.width_pixels(), dims.height_pixels()};
 }
 
+std::tuple<int, int, int, int> DoorPositionManager::GetDoorEditorBounds(
+    uint8_t position, DoorDirection direction, DoorType type) {
+  auto [pixel_x, pixel_y] = PositionToPixelCoords(position, direction);
+  auto dims = GetEditorDoorDimensions(direction, type);
+
+  return {pixel_x, pixel_y, dims.width_pixels(), dims.height_pixels()};
+}
+
 }  // namespace zelda3
 }  // namespace yaze
