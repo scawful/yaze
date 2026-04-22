@@ -129,7 +129,8 @@ void ActivityBar::Render(
     size_t session_id, const std::string& active_category,
     const std::vector<std::string>& all_categories,
     const std::unordered_set<std::string>& active_editor_categories,
-    std::function<bool()> has_rom, std::function<bool()> is_rom_dirty) {
+    std::function<bool()> has_rom, std::function<bool()> is_rom_dirty,
+    std::function<int()> pending_dungeon_rooms) {
   if (!window_manager_.IsSidebarVisible())
     return;
 
@@ -141,9 +142,9 @@ void ActivityBar::Render(
     window_manager_.SetSidebarExpanded(false);
   }
 
-  DrawActivityBarStrip(session_id, active_category, all_categories,
-                       active_editor_categories, has_rom,
-                       std::move(is_rom_dirty));
+  DrawActivityBarStrip(
+      session_id, active_category, all_categories, active_editor_categories,
+      has_rom, std::move(is_rom_dirty), std::move(pending_dungeon_rooms));
 
   if (window_manager_.IsSidebarExpanded() && !dashboard_active) {
     DrawSidePanel(session_id, active_category, has_rom);
@@ -245,7 +246,8 @@ void ActivityBar::DrawActivityBarStrip(
     size_t session_id, const std::string& active_category,
     const std::vector<std::string>& all_categories,
     const std::unordered_set<std::string>& active_editor_categories,
-    std::function<bool()> has_rom, std::function<bool()> is_rom_dirty) {
+    std::function<bool()> has_rom, std::function<bool()> is_rom_dirty,
+    std::function<int()> pending_dungeon_rooms) {
 
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -431,6 +433,10 @@ void ActivityBar::DrawActivityBarStrip(
             ImGui::ColorConvertFloat4ToU32(pin_color));
       }
 
+      const int pending_rooms =
+          pending_dungeon_rooms ? pending_dungeon_rooms() : 0;
+      const bool dungeon_pending = cat == "Dungeon" && pending_rooms > 0;
+
       // Dirty-ROM dot badge on the currently selected category's icon.
       // We draw after the button so it paints on top.
       const bool rom_dirty = is_rom_dirty ? is_rom_dirty() : false;
@@ -441,6 +447,15 @@ void ActivityBar::DrawActivityBarStrip(
         ImVec4 dot_color = gui::ConvertColorToImVec4(theme.warning);
         ImGui::GetWindowDrawList()->AddCircleFilled(
             dot_center, 3.5f, ImGui::ColorConvertFloat4ToU32(dot_color));
+      }
+
+      if (category_enabled && dungeon_pending) {
+        ImVec2 last_min = ImGui::GetItemRectMin();
+        ImVec2 pending_center(last_min.x + 7.0f, last_min.y + 7.0f);
+        ImVec4 pending_color = gui::ConvertColorToImVec4(theme.warning);
+        ImGui::GetWindowDrawList()->AddCircleFilled(
+            pending_center, 3.0f,
+            ImGui::ColorConvertFloat4ToU32(pending_color));
       }
 
       // Tooltip with status information
@@ -468,6 +483,11 @@ void ActivityBar::DrawActivityBarStrip(
         if (is_selected && rom_dirty) {
           gui::ColoredText("ROM has unsaved changes",
                            gui::ConvertColorToImVec4(theme.warning));
+        }
+        if (dungeon_pending) {
+          gui::ColoredTextF(gui::ConvertColorToImVec4(theme.warning),
+                            "%d dungeon room%s pending apply", pending_rooms,
+                            pending_rooms == 1 ? "" : "s");
         }
         ImGui::EndTooltip();
       }

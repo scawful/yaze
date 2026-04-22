@@ -201,7 +201,8 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.object_editor"]);
   EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"]);
-  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
   EXPECT_TRUE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.palette_editor"]);
   EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.room_selector"]);
@@ -231,6 +232,25 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.dungeon_map"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
   EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.settings"]);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionFifteenPrefersObjectSelectorOverRoomGraphics) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 14;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"] = false;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"] = true;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision,
+            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
 }
 
 }  // namespace yaze::editor

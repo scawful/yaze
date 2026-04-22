@@ -102,29 +102,16 @@ void CanvasContextMenu::Render(
         ImGui::Separator();
       }
 
-      // PRIORITY 10: Bitmap/Palette operations
+      // Shared built-in canvas tools.
       if (bitmap) {
         RenderBitmapOperationsMenu(const_cast<gfx::Bitmap*>(bitmap));
         ImGui::Separator();
 
         RenderPaletteOperationsMenu(rom, const_cast<gfx::Bitmap*>(bitmap));
         ImGui::Separator();
-
-        RenderBppOperationsMenu(bitmap);
-        ImGui::Separator();
       }
 
-      // PRIORITY 20: Canvas properties
-      RenderCanvasPropertiesMenu(command_handler, current_config);
-      ImGui::Separator();
-
       RenderViewControlsMenu(command_handler, current_config);
-      ImGui::Separator();
-
-      RenderGridControlsMenu(command_handler, current_config);
-      ImGui::Separator();
-
-      RenderScalingControlsMenu(command_handler, current_config);
 
       // PRIORITY 30: Debug/Performance
       if (ImGui::GetIO().KeyCtrl) {  // Only show when Ctrl is held
@@ -149,19 +136,19 @@ bool CanvasContextMenu::ShouldShowContextMenu() const {
 
 void CanvasContextMenu::SetCanvasState(
     const ImVec2& canvas_size, const ImVec2& content_size, float global_scale,
-    float grid_step, bool enable_grid, bool /* enable_hex_labels */,
-    bool /* enable_custom_labels */, bool /* enable_context_menu */,
-    bool /* is_draggable */, bool /* auto_resize */, const ImVec2& scrolling) {
+    float grid_step, bool enable_grid, bool enable_hex_labels,
+    bool enable_custom_labels, bool enable_context_menu, bool is_draggable,
+    bool auto_resize, const ImVec2& scrolling) {
   canvas_size_ = canvas_size;
   content_size_ = content_size;
   global_scale_ = global_scale;
   grid_step_ = grid_step;
   enable_grid_ = enable_grid;
-  enable_hex_labels_ = false;     // Field not used anymore
-  enable_custom_labels_ = false;  // Field not used anymore
-  enable_context_menu_ = true;    // Field not used anymore
-  is_draggable_ = false;          // Field not used anymore
-  auto_resize_ = false;           // Field not used anymore
+  enable_hex_labels_ = enable_hex_labels;
+  enable_custom_labels_ = enable_custom_labels;
+  enable_context_menu_ = enable_context_menu;
+  is_draggable_ = is_draggable;
+  auto_resize_ = auto_resize;
   scrolling_ = scrolling;
 }
 
@@ -209,23 +196,43 @@ void CanvasContextMenu::RenderUsageSpecificMenu(
 void CanvasContextMenu::RenderViewControlsMenu(
     const std::function<void(Command, const CanvasConfig&)>& command_handler,
     CanvasConfig current_config) {
-  if (ImGui::BeginMenu("View Controls")) {
+  if (ImGui::BeginMenu(ICON_MD_VISIBILITY " View Controls")) {
     if (ImGui::MenuItem("Reset View", "Ctrl+R")) {
       Dispatch(command_handler, Command::kResetView, current_config);
     }
     if (ImGui::MenuItem("Zoom to Fit", "Ctrl+F")) {
       Dispatch(command_handler, Command::kZoomToFit, current_config);
     }
-    if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
-      CanvasConfig updated = current_config;
-      updated.global_scale *= 1.25F;
-      Dispatch(command_handler, Command::kSetScale, updated);
+    if (ImGui::BeginMenu(ICON_MD_ZOOM_IN " Zoom")) {
+      if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
+        CanvasConfig updated = current_config;
+        updated.global_scale *= 1.25F;
+        Dispatch(command_handler, Command::kSetScale, updated);
+      }
+      if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
+        CanvasConfig updated = current_config;
+        updated.global_scale *= 0.8F;
+        Dispatch(command_handler, Command::kSetScale, updated);
+      }
+
+      const struct ScaleOption {
+        const char* label;
+        float value;
+      } scale_options[] = {{"0.25x", 0.25F}, {"0.5x", 0.5F}, {"1x", 1.0F},
+                           {"2x", 2.0F},     {"4x", 4.0F},   {"8x", 8.0F}};
+
+      ImGui::Separator();
+      for (const auto& option : scale_options) {
+        const bool selected = current_config.global_scale == option.value;
+        if (ImGui::MenuItem(option.label, nullptr, selected)) {
+          CanvasConfig updated = current_config;
+          updated.global_scale = option.value;
+          Dispatch(command_handler, Command::kSetScale, updated);
+        }
+      }
+      ImGui::EndMenu();
     }
-    if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
-      CanvasConfig updated = current_config;
-      updated.global_scale *= 0.8F;
-      Dispatch(command_handler, Command::kSetScale, updated);
-    }
+
     ImGui::Separator();
     if (ImGui::MenuItem("Show Grid", nullptr, enable_grid_)) {
       CanvasConfig updated = current_config;
@@ -242,21 +249,33 @@ void CanvasContextMenu::RenderViewControlsMenu(
       updated.enable_custom_labels = !enable_custom_labels_;
       Dispatch(command_handler, Command::kToggleCustomLabels, updated);
     }
-    ImGui::EndMenu();
-  }
-}
 
-void CanvasContextMenu::RenderCanvasPropertiesMenu(
-    const std::function<void(Command, const CanvasConfig&)>& command_handler,
-    CanvasConfig current_config) {
-  if (ImGui::BeginMenu(ICON_MD_SETTINGS " Canvas Properties")) {
-    ImGui::Text("Canvas Size: %.0f x %.0f", canvas_size_.x, canvas_size_.y);
-    ImGui::Text("Content Size: %.0f x %.0f", content_size_.x, content_size_.y);
-    ImGui::Text("Global Scale: %.2f", global_scale_);
-    ImGui::Text("Grid Step: %.1f", grid_step_);
-    ImGui::Text("Mouse Position: %.0f x %.0f", 0.0F,
-                0.0F);  // Would need actual mouse pos
+    if (ImGui::BeginMenu(ICON_MD_GRID_ON " Grid")) {
+      const struct GridOption {
+        const char* label;
+        float value;
+      } grid_options[] = {
+          {"8x8", 8.0F}, {"16x16", 16.0F}, {"32x32", 32.0F}, {"64x64", 64.0F}};
 
+      for (const auto& option : grid_options) {
+        const bool selected = grid_step_ == option.value;
+        if (ImGui::MenuItem(option.label, nullptr, selected)) {
+          CanvasConfig updated = current_config;
+          updated.grid_step = option.value;
+          Dispatch(command_handler, Command::kSetGridStep, updated);
+        }
+      }
+      ImGui::EndMenu();
+    }
+
+    ImGui::Separator();
+    ImGui::TextDisabled("Canvas %.0f x %.0f", canvas_size_.x, canvas_size_.y);
+    ImGui::TextDisabled("Content %.0f x %.0f", content_size_.x,
+                        content_size_.y);
+    ImGui::TextDisabled("Scale %.2f", global_scale_);
+    ImGui::TextDisabled("Grid %.1f", grid_step_);
+
+    ImGui::Separator();
     if (ImGui::MenuItem("Advanced Properties...")) {
       CanvasConfig updated = current_config;
       updated.enable_grid = enable_grid_;
@@ -271,7 +290,6 @@ void CanvasContextMenu::RenderCanvasPropertiesMenu(
       updated.scrolling = scrolling_;
       Dispatch(command_handler, Command::kOpenAdvancedProperties, updated);
     }
-
     ImGui::EndMenu();
   }
 }
@@ -280,17 +298,16 @@ void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
   if (!bitmap)
     return;
 
-  if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap Properties")) {
-    ImGui::Text("Size: %d x %d", bitmap->width(), bitmap->height());
+  if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap")) {
+    ImGui::TextDisabled("Size %d x %d", bitmap->width(), bitmap->height());
     if (auto* surface = bitmap->surface()) {
-      ImGui::Text("Pitch: %d", surface->pitch);
-      ImGui::Text("BitsPerPixel: %d",
-                  platform::GetSurfaceBitsPerPixel(surface));
-      ImGui::Text("BytesPerPixel: %d",
-                  platform::GetSurfaceBytesPerPixel(surface));
+      ImGui::TextDisabled("Pitch %d", surface->pitch);
+      ImGui::TextDisabled("BPP %d / %d bytes",
+                          platform::GetSurfaceBitsPerPixel(surface),
+                          platform::GetSurfaceBytesPerPixel(surface));
     }
 
-    if (ImGui::BeginMenu("Format")) {
+    if (ImGui::BeginMenu("Pixel Format")) {
       if (ImGui::MenuItem("Indexed")) {
         bitmap->Reformat(gfx::BitmapFormat::kIndexed);
         // Queue texture update via Arena's deferred system
@@ -311,6 +328,20 @@ void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
       }
       ImGui::EndMenu();
     }
+
+    if (ImGui::BeginMenu("Format Tools")) {
+      if (ImGui::MenuItem("Format Analysis...")) {
+        // Open BPP analysis
+      }
+      if (ImGui::MenuItem("Convert Format...")) {
+        // Open BPP conversion dialog
+      }
+      if (ImGui::MenuItem("Format Comparison...")) {
+        // Open format comparison tool
+      }
+      ImGui::EndMenu();
+    }
+
     ImGui::EndMenu();
   }
 }
@@ -320,7 +351,7 @@ void CanvasContextMenu::RenderPaletteOperationsMenu(Rom* rom,
   if (!bitmap)
     return;
 
-  if (ImGui::BeginMenu(ICON_MD_PALETTE " Palette Operations")) {
+  if (ImGui::BeginMenu(ICON_MD_PALETTE " Palette")) {
     if (ImGui::MenuItem("Edit Palette...")) {
       palette_editor_->ShowPaletteEditor(*bitmap->mutable_palette(),
                                          "Palette Editor");
@@ -405,23 +436,6 @@ void CanvasContextMenu::DrawROMPaletteSelector() {
   palette_editor_->DrawROMPaletteSelector();
 }
 
-void CanvasContextMenu::RenderBppOperationsMenu(
-    const gfx::Bitmap* /* bitmap */) {
-  if (ImGui::BeginMenu(ICON_MD_SWAP_HORIZ " BPP Operations")) {
-    if (ImGui::MenuItem("Format Analysis...")) {
-      // Open BPP analysis
-    }
-    if (ImGui::MenuItem("Convert Format...")) {
-      // Open BPP conversion dialog
-    }
-    if (ImGui::MenuItem("Format Comparison...")) {
-      // Open format comparison tool
-    }
-
-    ImGui::EndMenu();
-  }
-}
-
 void CanvasContextMenu::RenderPerformanceMenu() {
   if (ImGui::BeginMenu(ICON_MD_TRENDING_UP " Performance")) {
     auto& profiler = gfx::PerformanceProfiler::Get();
@@ -436,51 +450,6 @@ void CanvasContextMenu::RenderPerformanceMenu() {
     }
     if (ImGui::MenuItem("Usage Report...")) {
       // Open usage report
-    }
-
-    ImGui::EndMenu();
-  }
-}
-
-void CanvasContextMenu::RenderGridControlsMenu(
-    const std::function<void(Command, const CanvasConfig&)>& command_handler,
-    CanvasConfig current_config) {
-  if (ImGui::BeginMenu(ICON_MD_GRID_ON " Grid Controls")) {
-    const struct GridOption {
-      const char* label;
-      float value;
-    } options[] = {
-        {"8x8", 8.0F}, {"16x16", 16.0F}, {"32x32", 32.0F}, {"64x64", 64.0F}};
-
-    for (const auto& option : options) {
-      bool selected = grid_step_ == option.value;
-      if (ImGui::MenuItem(option.label, nullptr, selected)) {
-        CanvasConfig updated = current_config;
-        updated.grid_step = option.value;
-        Dispatch(command_handler, Command::kSetGridStep, updated);
-      }
-    }
-
-    ImGui::EndMenu();
-  }
-}
-
-void CanvasContextMenu::RenderScalingControlsMenu(
-    const std::function<void(Command, const CanvasConfig&)>& command_handler,
-    CanvasConfig current_config) {
-  if (ImGui::BeginMenu(ICON_MD_ZOOM_IN " Scaling Controls")) {
-    const struct ScaleOption {
-      const char* label;
-      float value;
-    } options[] = {{"0.25x", 0.25F}, {"0.5x", 0.5F}, {"1x", 1.0F},
-                   {"2x", 2.0F},     {"4x", 4.0F},   {"8x", 8.0F}};
-
-    for (const auto& option : options) {
-      if (ImGui::MenuItem(option.label)) {
-        CanvasConfig updated = current_config;
-        updated.global_scale = option.value;
-        Dispatch(command_handler, Command::kSetScale, updated);
-      }
     }
 
     ImGui::EndMenu();
@@ -575,91 +544,9 @@ ImVec4 CanvasContextMenu::GetUsageModeColor(CanvasUsage usage) const {
 }
 
 void CanvasContextMenu::CreateDefaultMenuItems() {
-  // Phase 4: Create default menu items using unified CanvasMenuItem
-
-  // Tile Painting mode items
-  CanvasMenuItem tile_paint_item("Paint Tile", "paint", []() {
-    // Tile painting action
-  });
-  usage_specific_items_[CanvasUsage::kTilePainting].push_back(tile_paint_item);
-
-  // Tile Selecting mode items
-  CanvasMenuItem tile_select_item("Select Tile", "select", []() {
-    // Tile selection action
-  });
-  usage_specific_items_[CanvasUsage::kTileSelecting].push_back(
-      tile_select_item);
-
-  // Rectangle Selection mode items
-  CanvasMenuItem rect_select_item("Select Rectangle", "rect", []() {
-    // Rectangle selection action
-  });
-  usage_specific_items_[CanvasUsage::kSelectRectangle].push_back(
-      rect_select_item);
-
-  // Color Painting mode items
-  CanvasMenuItem color_paint_item("Paint Color", "color", []() {
-    // Color painting action
-  });
-  usage_specific_items_[CanvasUsage::kColorPainting].push_back(
-      color_paint_item);
-
-  // Bitmap Editing mode items
-  CanvasMenuItem bitmap_edit_item("Edit Bitmap", "edit", []() {
-    // Bitmap editing action
-  });
-  usage_specific_items_[CanvasUsage::kBitmapEditing].push_back(
-      bitmap_edit_item);
-
-  // Palette Editing mode items
-  CanvasMenuItem palette_edit_item("Edit Palette", "palette", []() {
-    // Palette editing action
-  });
-  usage_specific_items_[CanvasUsage::kPaletteEditing].push_back(
-      palette_edit_item);
-
-  // BPP Conversion mode items
-  CanvasMenuItem bpp_convert_item("Convert Format", "convert", []() {
-    // BPP conversion action
-  });
-  usage_specific_items_[CanvasUsage::kBppConversion].push_back(
-      bpp_convert_item);
-
-  // Performance Mode items
-  CanvasMenuItem perf_item("Performance Analysis", "perf", []() {
-    // Performance analysis action
-  });
-  usage_specific_items_[CanvasUsage::kPerformanceMode].push_back(perf_item);
-}
-
-CanvasContextMenu::CanvasMenuItem CanvasContextMenu::CreateViewMenuItem(
-    const std::string& label, const std::string& icon,
-    std::function<void()> callback) {
-  return CanvasMenuItem(label, icon, callback);
-}
-
-CanvasContextMenu::CanvasMenuItem CanvasContextMenu::CreateBitmapMenuItem(
-    const std::string& label, const std::string& icon,
-    std::function<void()> callback) {
-  return CanvasMenuItem(label, icon, callback);
-}
-
-CanvasContextMenu::CanvasMenuItem CanvasContextMenu::CreatePaletteMenuItem(
-    const std::string& label, const std::string& icon,
-    std::function<void()> callback) {
-  return CanvasMenuItem(label, icon, callback);
-}
-
-CanvasContextMenu::CanvasMenuItem CanvasContextMenu::CreateBppMenuItem(
-    const std::string& label, const std::string& icon,
-    std::function<void()> callback) {
-  return CanvasMenuItem(label, icon, callback);
-}
-
-CanvasContextMenu::CanvasMenuItem CanvasContextMenu::CreatePerformanceMenuItem(
-    const std::string& label, const std::string& icon,
-    std::function<void()> callback) {
-  return CanvasMenuItem(label, icon, callback);
+  // The shared canvas should not invent placeholder actions like "Paint Tile"
+  // or "Select Tile". Callers can inject real usage-specific items when a
+  // given editor has concrete actions to expose.
 }
 
 }  // namespace gui

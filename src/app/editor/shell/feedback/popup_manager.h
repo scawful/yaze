@@ -99,6 +99,8 @@ constexpr const char* kDungeonPotItemSaveConfirm =
     "Dungeon Pot Item Save Confirmation";
 constexpr const char* kRomWriteConfirm = "ROM Write Confirmation";
 constexpr const char* kWriteConflictWarning = "Write Conflict Warning";
+constexpr const char* kUnsavedSessionChanges =
+    "Unsaved Session Changes Confirmation";
 
 // Future expansion
 constexpr const char* kQuickExport = "Quick Export";
@@ -187,6 +189,7 @@ class PopupManager {
   void DrawRomBackupManagerPopup();
   void DrawRomWriteConfirmPopup();
   void DrawWriteConflictWarningPopup();
+  void DrawUnsavedSessionChangesPopup();
 
   EditorManager* editor_manager_;
   std::unordered_map<std::string, PopupParams> popups_;
