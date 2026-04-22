@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last Updated: April 19, 2026**
+**Last Updated: April 20, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
@@ -9,22 +9,29 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 ## Current Focus (v0.7.2 development)
 
 `master` moved to 0.7.2 immediately after tagging `v0.7.1` on April 19, 2026.
-The current line is post-release stabilization and follow-through work while
-the next planned feature milestone remains 0.8.0. See
-`docs/internal/plans/0.7.1-release-plan.md` for the shipped 0.7.1 bundle and
-`docs/public/release-notes.md` for the published release summary.
+The current line is post-release stabilization and follow-through work. The
+next several minors are planned around finishing the main ALTTP editors first,
+with `z3ed`, `z3dk`, Oracle AI, and Oracle of Secrets support tracked as
+secondary trains. See `docs/internal/plans/0.7.1-release-plan.md` for the
+shipped 0.7.1 bundle, `docs/public/release-notes.md` for the published release
+summary, and `docs/internal/plans/release-ladder-0x-2026.md` for the
+editor-first `0.x` sequencing.
 
 **0.7.2 themes:**
 - Release/build follow-through: keep workflows, scripts, and docs aligned with
   the per-preset `build/presets/<preset>` binary layout
 - Editor source-layout stabilization after the 0.7.1 reorg: retire legacy
   headers, keep canonical `shell/`, `registry/`, and `system/*` paths aligned
-- Early 0.8.0 prep: z3dk toolchain integration planning (embedded assembler,
-  65816 LSP features, unified Mesen2 client, `.mlb` symbol export)
+- Dungeon UX/save-path follow-through: keep room-nav/workbench layout
+  responsive, protect visible room area in constrained panes, and harden the
+  persistence handoff path that feeds the broader `0.8.0` dungeon milestone
+- Editor-first `0.8.0+` planning: keep the next minors anchored on core ALTTP
+  editor completion while scheduling `z3ed`, `z3dk`, Oracle AI, and OoS work
+  in bounded secondary slices
 
 **Latest shipped release:** `v0.7.1` (April 19, 2026).
 **Next planned feature milestone:** `0.8.0`, tracked in
-`docs/internal/plans/z3dk-integration-0.8.0.md`.
+`docs/internal/plans/release-ladder-0x-2026.md`.
 
 ---
 
@@ -78,6 +85,9 @@ for reliable ROM hacking. ZScream is the stability benchmark.
   workbench and standalone panel mode via deferred safe-mode switching
 - ✅ Dungeon status bar now shows workflow badge (`Workbench`) in integrated mode
 - ✅ Standalone room windows now expose one-click `Workbench` return affordance
+- ✅ Responsive dungeon workbench layout now collapses room navigation into a
+  compact grid in tighter widths, stacks toolbar sections earlier, trims helper
+  chrome, and protects the center canvas before squeezing the inspector
 - ✅ Focused persistence coverage now spans room headers, torches, custom
   collision, chests, and pot items; `DungeonEditorSystem` now saves full
   managed-room state without later-room global-save clobbering
@@ -93,6 +103,8 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - 🟡 Room object type identification incomplete
 - 🟡 Pits and blocks still save through legacy ROM-region preservation rather
   than first-class editable room-state encoders
+- 🟡 Optional connected-room overview / scrollable grouped-room workspace
+  remains exploratory; single-room editing remains the primary path
 - 🟡 ASM export (deferred)
 
 **Overworld Editor** (Beta)
@@ -256,6 +268,12 @@ Mobile testing and review companion for desktop development.
 
 ## Future (v0.8.0+)
 
+- **Editor-first release ladder**: `0.8.0` through `0.12.0` are planned
+  primarily around Dungeon, Overworld, secondary editor parity, Music/Memory,
+  and workspace/project lifecycle completion. For Dungeon, that includes
+  correctness, workbench/save-path UX, and optional spatial-context features
+  that do not replace focused single-room editing. See
+  `docs/internal/plans/release-ladder-0x-2026.md`.
 - **z3dk toolchain integration**: embedded `z3asm` assembler, 65816 LSP
   features (hover/diagnostics/go-to-def), unified Mesen2 socket client,
   `.mlb` symbol export. See `docs/internal/plans/z3dk-integration-0.8.0.md`.
