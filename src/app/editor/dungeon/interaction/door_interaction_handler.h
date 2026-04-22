@@ -40,7 +40,7 @@ class DoorInteractionHandler : public BaseEntityHandler {
   void DrawSelectionHighlight() override;
 
   std::optional<size_t> GetEntityAtPosition(int canvas_x,
-                                             int canvas_y) const override;
+                                            int canvas_y) const override;
 
   // ========================================================================
   // Door-specific methods
@@ -81,12 +81,25 @@ class DoorInteractionHandler : public BaseEntityHandler {
   /**
    * @brief Get selected door index
    */
-  std::optional<size_t> GetSelectedIndex() const { return selected_door_index_; }
+  std::optional<size_t> GetSelectedIndex() const {
+    return selected_door_index_;
+  }
 
   /**
    * @brief Delete selected door
    */
   void DeleteSelected();
+
+  /**
+   * @brief Change the type of a door in place, re-encoding ROM bytes.
+   *
+   * Preserves the door's position and direction. Routes through
+   * NotifyMutation(kDoors) so the editor captures an undo snapshot.
+   *
+   * @return true if the mutation was applied; false if the index is out of
+   *         range or the context is invalid.
+   */
+  bool MutateDoorType(size_t index, zelda3::DoorType new_type);
 
   /// True if the most recent PlaceDoorAtSnappedPosition was blocked.
   bool was_placement_blocked() const {

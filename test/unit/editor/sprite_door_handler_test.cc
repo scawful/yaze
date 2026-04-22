@@ -221,5 +221,77 @@ TEST_F(DoorInteractionHandlerTest, PlacementBlocksAtInvalidPosition) {
   EXPECT_EQ(rooms_[0].GetDoors().size(), 0u);
 }
 
+TEST_F(DoorInteractionHandlerTest,
+       MutateDoorTypeReencodesBytesAndFiresMutationCallbacks) {
+  zelda3::Room::Door door;
+  door.position = 0x08;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  rooms_[0].AddDoor(door);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  const bool changed =
+      handler_.MutateDoorType(0, zelda3::DoorType::CurtainDoor);
+  EXPECT_TRUE(changed);
+
+  const auto& updated = rooms_[0].GetDoors()[0];
+  EXPECT_EQ(updated.type, zelda3::DoorType::CurtainDoor);
+  EXPECT_EQ(updated.position, 0x08);
+  EXPECT_EQ(updated.direction, zelda3::DoorDirection::North);
+
+  zelda3::Room::Door expected;
+  expected.position = 0x08;
+  expected.type = zelda3::DoorType::CurtainDoor;
+  expected.direction = zelda3::DoorDirection::North;
+  const auto [expected_b1, expected_b2] = expected.EncodeBytes();
+  EXPECT_EQ(updated.byte1, expected_b1);
+  EXPECT_EQ(updated.byte2, expected_b2);
+
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+}
+
+TEST_F(DoorInteractionHandlerTest, MutateDoorTypeNoOpWhenTypeUnchanged) {
+  zelda3::Room::Door door;
+  door.position = 0x04;
+  door.type = zelda3::DoorType::SmallKeyDoor;
+  door.direction = zelda3::DoorDirection::East;
+  rooms_[0].AddDoor(door);
+
+  const int mutations_before = mutation_count_;
+
+  EXPECT_FALSE(handler_.MutateDoorType(0, zelda3::DoorType::SmallKeyDoor));
+  EXPECT_EQ(mutation_count_, mutations_before);
+}
+
+TEST_F(DoorInteractionHandlerTest, MutateDoorTypeRejectsOutOfRangeIndex) {
+  AddDoors(1);
+  EXPECT_FALSE(handler_.MutateDoorType(5, zelda3::DoorType::CurtainDoor));
+  EXPECT_EQ(rooms_[0].GetDoors()[0].type, zelda3::DoorType::NormalDoor);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       HitTestingUsesNorthCurtainDoorEditorFootprint) {
+  zelda3::Room::Door door;
+  door.position = 0;
+  door.type = zelda3::DoorType::CurtainDoor;
+  door.direction = zelda3::DoorDirection::North;
+  rooms_[0].AddDoor(door);
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_EQ(door_w, 32);
+  ASSERT_EQ(door_h, 32);
+
+  const float scale = canvas_->global_scale();
+  const int hit_x = static_cast<int>((door_x + (door_w / 2)) * scale);
+  const int hit_y = static_cast<int>((door_y + door_h - 4) * scale);
+  const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
+  ASSERT_TRUE(hit.has_value());
+  EXPECT_EQ(*hit, 0u);
+}
+
 }  // namespace
 }  // namespace yaze::editor
