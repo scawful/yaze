@@ -2417,30 +2417,19 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     auto selected = interaction.GetSelectedObjectIndices();
     const bool has_selection = !selected.empty();
     const bool single_selection = selected.size() == 1;
-    const bool group_selection = selected.size() > 1;
     const bool has_clipboard = interaction.HasClipboardData();
     const bool placing_object = interaction.IsObjectLoaded();
     const bool door_mode = interaction.IsDoorPlacementActive();
-    bool has_objects = false;
-    if (rooms_ && room_id >= 0 && room_id < 296) {
-      has_objects = !(*rooms_)[room_id].GetTileObjects().empty();
-    }
-
-    if (single_selection && rooms_) {
-      auto& room = (*rooms_)[room_id];
-      const auto& objects = room.GetTileObjects();
-      if (selected[0] < objects.size()) {
-        const auto& obj = objects[selected[0]];
-        std::string name = GetObjectName(obj.id_);
-        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(
-            absl::StrFormat("Object 0x%02X: %s", obj.id_, name.c_str())));
-      }
-    }
 
     auto enabled_if = [](bool enabled) {
       return [enabled]() {
         return enabled;
       };
+    };
+    auto add_if = [this](bool condition, gui::CanvasMenuItem item) {
+      if (condition) {
+        canvas_.AddContextMenuItem(item);
+      }
     };
 
     // Insert menu (parity with ZScream "Insert new <mode>")
@@ -2488,134 +2477,110 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
     canvas_.AddContextMenuItem(insert_menu);
 
-    gui::CanvasMenuItem cut_item(
-        "Cut", ICON_MD_CONTENT_CUT,
-        [&interaction]() {
-          interaction.HandleCopySelected();
-          interaction.HandleDeleteSelected();
-        },
-        "Ctrl+X");
-    cut_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(cut_item);
-
-    gui::CanvasMenuItem copy_item(
-        "Copy", ICON_MD_CONTENT_COPY,
-        [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
-    copy_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(copy_item);
-
-    gui::CanvasMenuItem paste_item(
-        "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
-    paste_item.enabled_condition = enabled_if(has_clipboard);
-    canvas_.AddContextMenuItem(paste_item);
-
-    gui::CanvasMenuItem duplicate_item(
-        "Duplicate", ICON_MD_CONTENT_PASTE,
-        [&interaction]() {
-          interaction.HandleCopySelected();
-          interaction.HandlePasteObjects();
-        },
-        "Ctrl+D");
-    duplicate_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(duplicate_item);
-
-    gui::CanvasMenuItem delete_item(
-        "Delete", ICON_MD_DELETE,
-        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
-    delete_item.enabled_condition = enabled_if(has_selection);
-    canvas_.AddContextMenuItem(delete_item);
-
-    gui::CanvasMenuItem delete_all_item(
-        "Delete All Objects", ICON_MD_DELETE_FOREVER,
-        [&interaction]() { interaction.HandleDeleteAllObjects(); });
-    delete_all_item.enabled_condition = enabled_if(has_objects);
-    canvas_.AddContextMenuItem(delete_all_item);
-
-    gui::CanvasMenuItem cancel_item(
-        "Cancel Placement", ICON_MD_CANCEL,
-        [&interaction]() { interaction.CancelPlacement(); }, "Esc");
-    cancel_item.enabled_condition = enabled_if(placing_object);
-    canvas_.AddContextMenuItem(cancel_item);
-
-    // Arrange submenu (object draw order)
-    gui::CanvasMenuItem arrange_menu;
-    arrange_menu.label = "Arrange";
-    arrange_menu.icon = ICON_MD_SWAP_VERT;
-    arrange_menu.enabled_condition = enabled_if(has_selection);
-
-    gui::CanvasMenuItem bring_front_item(
-        "Bring to Front", ICON_MD_FLIP_TO_FRONT,
-        [&interaction]() { interaction.SendSelectedToFront(); },
-        "Ctrl+Shift+]");
-    bring_front_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(bring_front_item);
-
-    gui::CanvasMenuItem send_back_item(
-        "Send to Back", ICON_MD_FLIP_TO_BACK,
-        [&interaction]() { interaction.SendSelectedToBack(); }, "Ctrl+Shift+[");
-    send_back_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(send_back_item);
-
-    gui::CanvasMenuItem bring_forward_item(
-        "Bring Forward", ICON_MD_ARROW_UPWARD,
-        [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
-    bring_forward_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(bring_forward_item);
-
-    gui::CanvasMenuItem send_backward_item(
-        "Send Backward", ICON_MD_ARROW_DOWNWARD,
-        [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
-    send_backward_item.enabled_condition = enabled_if(has_selection);
-    arrange_menu.subitems.push_back(send_backward_item);
-
-    canvas_.AddContextMenuItem(arrange_menu);
-
-    // Send to Layer submenu
-    gui::CanvasMenuItem layer_menu;
-    layer_menu.label = "Send to Layer";
-    layer_menu.icon = ICON_MD_LAYERS;
-    layer_menu.enabled_condition = enabled_if(has_selection);
-
-    gui::CanvasMenuItem layer1_item(
-        "Primary (main pass)", ICON_MD_LOOKS_ONE,
-        [&interaction]() { interaction.SendSelectedToLayer(0); }, "1");
-    layer1_item.enabled_condition = enabled_if(has_selection);
-    layer_menu.subitems.push_back(layer1_item);
-
-    gui::CanvasMenuItem layer2_item(
-        "BG2 overlay", ICON_MD_LOOKS_TWO,
-        [&interaction]() { interaction.SendSelectedToLayer(1); }, "2");
-    layer2_item.enabled_condition = enabled_if(has_selection);
-    layer_menu.subitems.push_back(layer2_item);
-
-    gui::CanvasMenuItem layer3_item(
-        "BG1 overlay", ICON_MD_LOOKS_3,
-        [&interaction]() { interaction.SendSelectedToLayer(2); }, "3");
-    layer3_item.enabled_condition = enabled_if(has_selection);
-    layer_menu.subitems.push_back(layer3_item);
-
-    canvas_.AddContextMenuItem(layer_menu);
-
+    bool can_edit_selected_graphics = false;
+    std::function<void()> edit_selected_graphics;
     if (single_selection && rooms_) {
       auto& room = (*rooms_)[room_id];
       const auto& objects = room.GetTileObjects();
       if (selected[0] < objects.size()) {
         const auto object = objects[selected[0]];
-        gui::CanvasMenuItem edit_graphics_item(
-            "Edit Graphics...", ICON_MD_IMAGE, [this, room_id, object]() {
-              if (edit_graphics_callback_) {
-                edit_graphics_callback_(room_id, object);
-              } else if (show_room_graphics_callback_) {
-                show_room_graphics_callback_();
-              }
-            });
-        edit_graphics_item.enabled_condition =
-            enabled_if(edit_graphics_callback_ != nullptr ||
-                       show_room_graphics_callback_ != nullptr);
-        canvas_.AddContextMenuItem(edit_graphics_item);
+        gui::CanvasMenuItem object_header =
+            gui::CanvasMenuItem::Disabled(absl::StrFormat(
+                "Object 0x%02X: %s", object.id_, GetObjectName(object.id_)));
+        object_header.separator_after = true;
+        canvas_.AddContextMenuItem(object_header);
+        can_edit_selected_graphics = edit_graphics_callback_ != nullptr ||
+                                     show_room_graphics_callback_ != nullptr;
+        edit_selected_graphics = [this, room_id, object]() {
+          if (edit_graphics_callback_) {
+            edit_graphics_callback_(room_id, object);
+          } else if (show_room_graphics_callback_) {
+            show_room_graphics_callback_();
+          }
+        };
       }
     }
+
+    gui::CanvasMenuItem selection_menu;
+    selection_menu.label = "Selection";
+    selection_menu.icon = ICON_MD_NEAR_ME;
+
+    if (has_selection) {
+      selection_menu.subitems.emplace_back(
+          "Cut", ICON_MD_CONTENT_CUT,
+          [&interaction]() {
+            interaction.HandleCopySelected();
+            interaction.HandleDeleteSelected();
+          },
+          "Ctrl+X");
+      selection_menu.subitems.emplace_back(
+          "Copy", ICON_MD_CONTENT_COPY,
+          [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
+      selection_menu.subitems.emplace_back(
+          "Duplicate", ICON_MD_CONTENT_PASTE,
+          [&interaction]() {
+            interaction.HandleCopySelected();
+            interaction.HandlePasteObjects();
+          },
+          "Ctrl+D");
+      selection_menu.subitems.emplace_back(
+          "Delete", ICON_MD_DELETE,
+          [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
+    }
+
+    if (has_clipboard) {
+      selection_menu.subitems.emplace_back(
+          "Paste", ICON_MD_CONTENT_PASTE,
+          [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
+    }
+
+    if (placing_object) {
+      selection_menu.subitems.emplace_back(
+          "Cancel Placement", ICON_MD_CANCEL,
+          [&interaction]() { interaction.CancelPlacement(); }, "Esc");
+    }
+
+    if (has_selection) {
+      gui::CanvasMenuItem arrange_menu;
+      arrange_menu.label = "Arrange";
+      arrange_menu.icon = ICON_MD_SWAP_VERT;
+      arrange_menu.subitems.emplace_back(
+          "Bring to Front", ICON_MD_FLIP_TO_FRONT,
+          [&interaction]() { interaction.SendSelectedToFront(); },
+          "Ctrl+Shift+]");
+      arrange_menu.subitems.emplace_back(
+          "Send to Back", ICON_MD_FLIP_TO_BACK,
+          [&interaction]() { interaction.SendSelectedToBack(); },
+          "Ctrl+Shift+[");
+      arrange_menu.subitems.emplace_back(
+          "Bring Forward", ICON_MD_ARROW_UPWARD,
+          [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
+      arrange_menu.subitems.emplace_back(
+          "Send Backward", ICON_MD_ARROW_DOWNWARD,
+          [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
+      selection_menu.subitems.push_back(std::move(arrange_menu));
+
+      gui::CanvasMenuItem layer_menu;
+      layer_menu.label = "Send to Layer";
+      layer_menu.icon = ICON_MD_LAYERS;
+      layer_menu.subitems.emplace_back(
+          "Primary (main pass)", ICON_MD_LOOKS_ONE,
+          [&interaction]() { interaction.SendSelectedToLayer(0); }, "1");
+      layer_menu.subitems.emplace_back(
+          "BG2 overlay", ICON_MD_LOOKS_TWO,
+          [&interaction]() { interaction.SendSelectedToLayer(1); }, "2");
+      layer_menu.subitems.emplace_back(
+          "BG1 overlay", ICON_MD_LOOKS_3,
+          [&interaction]() { interaction.SendSelectedToLayer(2); }, "3");
+      selection_menu.subitems.push_back(std::move(layer_menu));
+    }
+
+    if (can_edit_selected_graphics) {
+      selection_menu.subitems.emplace_back("Edit Graphics...", ICON_MD_IMAGE,
+                                           std::move(edit_selected_graphics));
+    }
+
+    add_if(!selection_menu.subitems.empty(), std::move(selection_menu));
 
     // === Entity Selection Actions (Doors, Sprites, Items) ===
     const auto& selected_entity = interaction.GetSelectedEntity();
@@ -2661,7 +2626,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       }
 
       if (!entity_info.empty()) {
-        canvas_.AddContextMenuItem(gui::CanvasMenuItem::Disabled(entity_info));
+        gui::CanvasMenuItem entity_header =
+            gui::CanvasMenuItem::Disabled(entity_info);
+        entity_header.separator_after = true;
+        canvas_.AddContextMenuItem(entity_header);
 
         // Delete entity action
         gui::CanvasMenuItem delete_entity_item(
@@ -2707,25 +2675,36 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   }
   if (rooms_ && rom_->is_loaded()) {
     auto& room = (*rooms_)[room_id];
+    const bool room_has_objects = !room.GetTileObjects().empty();
 
     const std::string room_label = zelda3::GetRoomLabel(room_id);
     gui::CanvasMenuItem room_header = gui::CanvasMenuItem::Disabled(
         absl::StrFormat("Room 0x%03X: %s", room_id, room_label.c_str()));
     room_header.separator_after = true;
     canvas_.AddContextMenuItem(room_header);
+    gui::CanvasMenuItem room_menu;
+    room_menu.label = "Room";
+    room_menu.icon = ICON_MD_HOME;
     if (save_room_callback_) {
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+      room_menu.subitems.emplace_back(
           "Apply Room to ROM", ICON_MD_SAVE,
-          [this, room_id]() { save_room_callback_(room_id); }, "Ctrl+Shift+S"));
+          [this, room_id]() { save_room_callback_(room_id); }, "Ctrl+Shift+S");
     }
-    gui::CanvasMenuItem rerender_room_item(
+    room_menu.subitems.emplace_back(
         "Re-render Room", ICON_MD_REFRESH,
         [&room]() { room.RenderRoomGraphics(); }, "Ctrl+R");
-    rerender_room_item.separator_after = true;
-    canvas_.AddContextMenuItem(rerender_room_item);
+    if (room_has_objects) {
+      room_menu.subitems.emplace_back(
+          "Delete All Objects", ICON_MD_DELETE_FOREVER,
+          [this]() { object_interaction_.HandleDeleteAllObjects(); });
+    }
+    canvas_.AddContextMenuItem(std::move(room_menu));
 
-    gui::CanvasMenuItem room_issue_item(
-        "Report Room Issue...", ICON_MD_BUG_REPORT, [this, room_id]() {
+    gui::CanvasMenuItem report_menu;
+    report_menu.label = "Report";
+    report_menu.icon = ICON_MD_BUG_REPORT;
+    report_menu.subitems.emplace_back(
+        "Render Issue...", ICON_MD_BUG_REPORT, [this, room_id]() {
           if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
             return;
           }
@@ -2736,10 +2715,8 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
               BuildDrawIssueReport((*rooms_)[room_id], room_id), room_id,
               kGeneralRenderIssueCategoryIndex);
         });
-    canvas_.AddContextMenuItem(room_issue_item);
-
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-        "Report Palette Issue...", ICON_MD_PALETTE, [this, room_id]() {
+    report_menu.subitems.emplace_back(
+        "Palette Issue...", ICON_MD_PALETTE, [this, room_id]() {
           if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
             return;
           }
@@ -2749,19 +2726,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
               "Dungeon Palette Issue Report",
               BuildDrawIssueReport((*rooms_)[room_id], room_id), room_id,
               kPaletteIssueCategoryIndex);
-        }));
-    gui::CanvasMenuItem copy_room_summary_item(
-        "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {
-          if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
-            return;
-          }
-          ImGui::SetClipboardText(
-              BuildRoomMetadataSummary((*rooms_)[room_id], room_id).c_str());
         });
     if (object_interaction_.GetSelectionCount() > 0 ||
         object_interaction_.HasEntitySelection()) {
-      canvas_.AddContextMenuItem(gui::CanvasMenuItem(
-          "Report Selection Issue...", ICON_MD_FACT_CHECK, [this, room_id]() {
+      report_menu.subitems.emplace_back(
+          "Selection Issue...", ICON_MD_FACT_CHECK, [this, room_id]() {
             if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
               return;
             }
@@ -2773,51 +2742,64 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
                 "Dungeon Selection Issue Report",
                 BuildSelectionIssueReport((*rooms_)[room_id], room_id), room_id,
                 GetDefaultSelectionIssueCategory(object_interaction_));
-          }));
+          });
     }
-    copy_room_summary_item.separator_after = true;
-    canvas_.AddContextMenuItem(copy_room_summary_item);
+    canvas_.AddContextMenuItem(std::move(report_menu));
 
+    gui::CanvasMenuItem open_menu;
+    open_menu.label = "Open";
+    open_menu.icon = ICON_MD_OPEN_IN_NEW;
     if (show_room_matrix_callback_) {
-      canvas_.AddContextMenuItem(
-          gui::CanvasMenuItem("Open Room Matrix", ICON_MD_GRID_VIEW,
-                              [this]() { show_room_matrix_callback_(); }));
+      open_menu.subitems.emplace_back(
+          "Room Matrix", ICON_MD_GRID_VIEW,
+          [this]() { show_room_matrix_callback_(); });
     }
     if (show_room_graphics_callback_) {
-      canvas_.AddContextMenuItem(
-          gui::CanvasMenuItem("Open Room Graphics", ICON_MD_IMAGE,
-                              [this]() { show_room_graphics_callback_(); }));
+      open_menu.subitems.emplace_back("Room Graphics", ICON_MD_IMAGE, [this]() {
+        show_room_graphics_callback_();
+      });
     }
     if (show_door_editor_callback_) {
-      canvas_.AddContextMenuItem(
-          gui::CanvasMenuItem("Open Door Editor", ICON_MD_DOOR_FRONT,
-                              [this]() { show_door_editor_callback_(); }));
+      open_menu.subitems.emplace_back(
+          "Door Editor", ICON_MD_DOOR_FRONT,
+          [this]() { show_door_editor_callback_(); });
     }
     if (show_entrance_list_callback_) {
-      canvas_.AddContextMenuItem(
-          gui::CanvasMenuItem("Open Entrance List", ICON_MD_LOGIN,
-                              [this]() { show_entrance_list_callback_(); }));
+      open_menu.subitems.emplace_back("Entrance List", ICON_MD_LOGIN, [this]() {
+        show_entrance_list_callback_();
+      });
+    }
+    if (!open_menu.subitems.empty()) {
+      canvas_.AddContextMenuItem(std::move(open_menu));
     }
 
-    gui::CanvasMenuItem copy_room_id_item(
+    gui::CanvasMenuItem copy_export_menu;
+    copy_export_menu.label = "Copy / Export";
+    copy_export_menu.icon = ICON_MD_CONTENT_COPY;
+    copy_export_menu.subitems.emplace_back(
+        "Copy Room Summary", ICON_MD_ASSIGNMENT, [this, room_id]() {
+          if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+            return;
+          }
+          ImGui::SetClipboardText(
+              BuildRoomMetadataSummary((*rooms_)[room_id], room_id).c_str());
+        });
+    copy_export_menu.subitems.emplace_back(
         "Copy Room ID", ICON_MD_CONTENT_COPY, [room_id]() {
           ImGui::SetClipboardText(absl::StrFormat("0x%03X", room_id).c_str());
         });
-    canvas_.AddContextMenuItem(copy_room_id_item);
-    gui::CanvasMenuItem copy_room_name_item(
+    copy_export_menu.subitems.emplace_back(
         "Copy Room Name", ICON_MD_CONTENT_COPY,
         [room_label]() { ImGui::SetClipboardText(room_label.c_str()); });
-    copy_room_name_item.separator_after = true;
-    canvas_.AddContextMenuItem(copy_room_name_item);
-
-    canvas_.AddContextMenuItem(gui::CanvasMenuItem(
+    copy_export_menu.subitems.emplace_back(
         "Export Layout Template...", ICON_MD_FILE_DOWNLOAD, [this, room_id]() {
           auto& r = (*rooms_)[room_id];
           auto result = zelda3::ExportRoomLayoutTemplate(r);
           if (result.ok()) {
             ImGui::SetClipboardText(result.value().c_str());
           }
-        }));
+        });
+    canvas_.AddContextMenuItem(std::move(copy_export_menu));
 
     // === Layers Menu (room content visibility only) ===
     gui::CanvasMenuItem layers_menu;
@@ -2825,45 +2807,64 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     layers_menu.icon = ICON_MD_VISIBILITY;
 
     // Layer visibility toggles
-    layers_menu.subitems.push_back(
-        gui::CanvasMenuItem("BG1 Layout", [this, room_id]() {
-          auto& mgr = GetRoomLayerManager(room_id);
-          mgr.SetLayerVisible(
-              zelda3::LayerType::BG1_Layout,
-              !mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout));
-        }));
-    layers_menu.subitems.push_back(
-        gui::CanvasMenuItem("BG1 Objects", [this, room_id]() {
-          auto& mgr = GetRoomLayerManager(room_id);
-          mgr.SetLayerVisible(
-              zelda3::LayerType::BG1_Objects,
-              !mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects));
-        }));
-    layers_menu.subitems.push_back(
-        gui::CanvasMenuItem("BG2 Layout", [this, room_id]() {
-          auto& mgr = GetRoomLayerManager(room_id);
-          mgr.SetLayerVisible(
-              zelda3::LayerType::BG2_Layout,
-              !mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout));
-        }));
-    layers_menu.subitems.push_back(
-        gui::CanvasMenuItem("BG2 Objects", [this, room_id]() {
-          auto& mgr = GetRoomLayerManager(room_id);
-          mgr.SetLayerVisible(
-              zelda3::LayerType::BG2_Objects,
-              !mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects));
-        }));
+    gui::CanvasMenuItem bg1_layout_item("BG1 Layout", [this, room_id]() {
+      auto& mgr = GetRoomLayerManager(room_id);
+      mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout,
+                          !mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout));
+    });
+    bg1_layout_item.checked_condition = [this, room_id]() {
+      return GetRoomLayerManager(room_id).IsLayerVisible(
+          zelda3::LayerType::BG1_Layout);
+    };
+    layers_menu.subitems.push_back(std::move(bg1_layout_item));
+    gui::CanvasMenuItem bg1_objects_item("BG1 Objects", [this, room_id]() {
+      auto& mgr = GetRoomLayerManager(room_id);
+      mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects,
+                          !mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects));
+    });
+    bg1_objects_item.checked_condition = [this, room_id]() {
+      return GetRoomLayerManager(room_id).IsLayerVisible(
+          zelda3::LayerType::BG1_Objects);
+    };
+    layers_menu.subitems.push_back(std::move(bg1_objects_item));
+    gui::CanvasMenuItem bg2_layout_item("BG2 Layout", [this, room_id]() {
+      auto& mgr = GetRoomLayerManager(room_id);
+      mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout,
+                          !mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout));
+    });
+    bg2_layout_item.checked_condition = [this, room_id]() {
+      return GetRoomLayerManager(room_id).IsLayerVisible(
+          zelda3::LayerType::BG2_Layout);
+    };
+    layers_menu.subitems.push_back(std::move(bg2_layout_item));
+    gui::CanvasMenuItem bg2_objects_item("BG2 Objects", [this, room_id]() {
+      auto& mgr = GetRoomLayerManager(room_id);
+      mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects,
+                          !mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects));
+    });
+    bg2_objects_item.checked_condition = [this, room_id]() {
+      return GetRoomLayerManager(room_id).IsLayerVisible(
+          zelda3::LayerType::BG2_Objects);
+    };
+    layers_menu.subitems.push_back(std::move(bg2_objects_item));
 
     // Entity/marker visibility
-    layers_menu.subitems.push_back(
-        gui::CanvasMenuItem("Sprites", ICON_MD_PERSON, [this]() {
-          entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
-        }));
-    layers_menu.subitems.push_back(
-        gui::CanvasMenuItem("Pot Items", ICON_MD_INVENTORY, [this]() {
-          entity_visibility_.show_pot_items =
-              !entity_visibility_.show_pot_items;
-        }));
+    gui::CanvasMenuItem sprites_item("Sprites", ICON_MD_PERSON, [this]() {
+      entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
+    });
+    sprites_item.checked_condition = [this]() {
+      return entity_visibility_.show_sprites;
+    };
+    layers_menu.subitems.push_back(std::move(sprites_item));
+    gui::CanvasMenuItem pot_items_item("Pot Items", ICON_MD_INVENTORY,
+                                       [this]() {
+                                         entity_visibility_.show_pot_items =
+                                             !entity_visibility_.show_pot_items;
+                                       });
+    pot_items_item.checked_condition = [this]() {
+      return entity_visibility_.show_pot_items;
+    };
+    layers_menu.subitems.push_back(std::move(pot_items_item));
 
     canvas_.AddContextMenuItem(layers_menu);
 
@@ -2872,61 +2873,79 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     overlays_menu.label = "Overlays";
     overlays_menu.icon = ICON_MD_LAYERS;
 
-    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-        show_coordinate_overlay_ ? "Hide Coordinates" : "Show Coordinates",
-        ICON_MD_MY_LOCATION,
-        [this]() { show_coordinate_overlay_ = !show_coordinate_overlay_; }));
+    gui::CanvasMenuItem coordinates_item(
+        "Coordinates", ICON_MD_MY_LOCATION,
+        [this]() { show_coordinate_overlay_ = !show_coordinate_overlay_; });
+    coordinates_item.checked_condition = [this]() {
+      return show_coordinate_overlay_;
+    };
+    overlays_menu.subitems.push_back(std::move(coordinates_item));
 
     gui::CanvasMenuItem minecart_toggle(
-        show_minecart_tracks_ ? "Hide Minecart Tracks" : "Show Minecart Tracks",
-        ICON_MD_TRAIN,
+        "Minecart Tracks", ICON_MD_TRAIN,
         [this]() { show_minecart_tracks_ = !show_minecart_tracks_; });
     minecart_toggle.enabled_condition = [this]() {
       return minecart_track_panel_ != nullptr;
     };
+    minecart_toggle.checked_condition = [this]() {
+      return show_minecart_tracks_;
+    };
     overlays_menu.subitems.push_back(minecart_toggle);
 
-    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-        show_custom_collision_overlay_ ? "Hide Custom Collision"
-                                       : "Show Custom Collision",
-        ICON_MD_GRID_ON, [this]() {
+    gui::CanvasMenuItem custom_collision_item(
+        "Custom Collision", ICON_MD_GRID_ON, [this]() {
           show_custom_collision_overlay_ = !show_custom_collision_overlay_;
-        }));
+        });
+    custom_collision_item.checked_condition = [this]() {
+      return show_custom_collision_overlay_;
+    };
+    overlays_menu.subitems.push_back(std::move(custom_collision_item));
 
-    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-        show_track_collision_overlay_ ? "Hide Track Collision"
-                                      : "Show Track Collision",
-        ICON_MD_LAYERS, [this]() {
+    gui::CanvasMenuItem track_collision_item(
+        "Track Collision", ICON_MD_LAYERS, [this]() {
           show_track_collision_overlay_ = !show_track_collision_overlay_;
-        }));
+        });
+    track_collision_item.checked_condition = [this]() {
+      return show_track_collision_overlay_;
+    };
+    overlays_menu.subitems.push_back(std::move(track_collision_item));
 
-    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-        show_camera_quadrant_overlay_ ? "Hide Camera Quadrants"
-                                      : "Show Camera Quadrants",
-        ICON_MD_GRID_VIEW, [this]() {
+    gui::CanvasMenuItem camera_quadrants_item(
+        "Camera Quadrants", ICON_MD_GRID_VIEW, [this]() {
           show_camera_quadrant_overlay_ = !show_camera_quadrant_overlay_;
-        }));
+        });
+    camera_quadrants_item.checked_condition = [this]() {
+      return show_camera_quadrant_overlay_;
+    };
+    overlays_menu.subitems.push_back(std::move(camera_quadrants_item));
 
-    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-        show_minecart_sprite_overlay_ ? "Hide Minecart Sprites"
-                                      : "Show Minecart Sprites",
-        ICON_MD_TRAIN, [this]() {
+    gui::CanvasMenuItem minecart_sprites_item(
+        "Minecart Sprites", ICON_MD_TRAIN, [this]() {
           show_minecart_sprite_overlay_ = !show_minecart_sprite_overlay_;
-        }));
+        });
+    minecart_sprites_item.checked_condition = [this]() {
+      return show_minecart_sprite_overlay_;
+    };
+    overlays_menu.subitems.push_back(std::move(minecart_sprites_item));
 
     if (show_track_collision_overlay_) {
-      overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-          show_track_collision_legend_ ? "Hide Collision Legend"
-                                       : "Show Collision Legend",
-          ICON_MD_INFO, [this]() {
+      gui::CanvasMenuItem collision_legend_item(
+          "Collision Legend", ICON_MD_INFO, [this]() {
             show_track_collision_legend_ = !show_track_collision_legend_;
-          }));
+          });
+      collision_legend_item.checked_condition = [this]() {
+        return show_track_collision_legend_;
+      };
+      overlays_menu.subitems.push_back(std::move(collision_legend_item));
     }
 
-    overlays_menu.subitems.push_back(gui::CanvasMenuItem(
-        show_object_bounds_ ? "Hide Object Bounds" : "Show Object Bounds",
-        ICON_MD_CROP_SQUARE,
-        [this]() { show_object_bounds_ = !show_object_bounds_; }));
+    gui::CanvasMenuItem object_bounds_item(
+        "Object Bounds", ICON_MD_CROP_SQUARE,
+        [this]() { show_object_bounds_ = !show_object_bounds_; });
+    object_bounds_item.checked_condition = [this]() {
+      return show_object_bounds_;
+    };
+    overlays_menu.subitems.push_back(std::move(object_bounds_item));
 
     canvas_.AddContextMenuItem(overlays_menu);
 
@@ -2936,12 +2955,18 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     debug_menu.icon = ICON_MD_BUG_REPORT;
 
     debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Show Room Info", ICON_MD_INFO,
+        "Room Info", ICON_MD_INFO,
         [this]() { show_room_debug_info_ = !show_room_debug_info_; }));
+    debug_menu.subitems.back().checked_condition = [this]() {
+      return show_room_debug_info_;
+    };
 
     debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Show Texture Debug", ICON_MD_IMAGE,
+        "Texture Debug", ICON_MD_IMAGE,
         [this]() { show_texture_debug_ = !show_texture_debug_; }));
+    debug_menu.subitems.back().checked_condition = [this]() {
+      return show_texture_debug_;
+    };
 
     // Object bounds type/layer filter (sub-menu)
     gui::CanvasMenuItem object_bounds_menu;
@@ -2953,16 +2978,25 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           object_outline_toggles_.show_type1_objects =
               !object_outline_toggles_.show_type1_objects;
         }));
+    object_bounds_menu.subitems.back().checked_condition = [this]() {
+      return object_outline_toggles_.show_type1_objects;
+    };
     object_bounds_menu.subitems.push_back(
         gui::CanvasMenuItem("Type 2 (0x100-0x1FF)", [this]() {
           object_outline_toggles_.show_type2_objects =
               !object_outline_toggles_.show_type2_objects;
         }));
+    object_bounds_menu.subitems.back().checked_condition = [this]() {
+      return object_outline_toggles_.show_type2_objects;
+    };
     object_bounds_menu.subitems.push_back(
         gui::CanvasMenuItem("Type 3 (0xF00-0xFFF)", [this]() {
           object_outline_toggles_.show_type3_objects =
               !object_outline_toggles_.show_type3_objects;
         }));
+    object_bounds_menu.subitems.back().checked_condition = [this]() {
+      return object_outline_toggles_.show_type3_objects;
+    };
 
     gui::CanvasMenuItem sep;
     sep.label = "---";
@@ -2976,22 +3010,34 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
           object_outline_toggles_.show_layer0_objects =
               !object_outline_toggles_.show_layer0_objects;
         }));
+    object_bounds_menu.subitems.back().checked_condition = [this]() {
+      return object_outline_toggles_.show_layer0_objects;
+    };
     object_bounds_menu.subitems.push_back(
         gui::CanvasMenuItem("BG2 overlay", [this]() {
           object_outline_toggles_.show_layer1_objects =
               !object_outline_toggles_.show_layer1_objects;
         }));
+    object_bounds_menu.subitems.back().checked_condition = [this]() {
+      return object_outline_toggles_.show_layer1_objects;
+    };
     object_bounds_menu.subitems.push_back(
         gui::CanvasMenuItem("BG1 overlay", [this]() {
           object_outline_toggles_.show_layer2_objects =
               !object_outline_toggles_.show_layer2_objects;
         }));
+    object_bounds_menu.subitems.back().checked_condition = [this]() {
+      return object_outline_toggles_.show_layer2_objects;
+    };
 
     debug_menu.subitems.push_back(object_bounds_menu);
 
     debug_menu.subitems.push_back(gui::CanvasMenuItem(
-        "Show Layer Info", ICON_MD_LAYERS,
+        "Layer Info", ICON_MD_LAYERS,
         [this]() { show_layer_info_ = !show_layer_info_; }));
+    debug_menu.subitems.back().checked_condition = [this]() {
+      return show_layer_info_;
+    };
 
     debug_menu.subitems.push_back(gui::CanvasMenuItem(
         "Force Reload", ICON_MD_REFRESH,

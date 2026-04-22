@@ -87,6 +87,9 @@ struct CanvasMenuItem {
     return true;
   };
 
+  // Optional checked state for toggle-like menu items.
+  std::function<bool()> checked_condition;
+
   // Nested submenu items
   std::vector<CanvasMenuItem> subitems;
 
