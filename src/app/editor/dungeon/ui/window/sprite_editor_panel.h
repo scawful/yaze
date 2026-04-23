@@ -81,6 +81,9 @@ class SpriteEditorPanel : public WindowContent {
       std::function<void(const zelda3::Sprite&)> callback) {
     sprite_placed_callback_ = std::move(callback);
   }
+  void SetOpenSelectionInspectorCallback(std::function<void()> callback) {
+    open_selection_inspector_callback_ = std::move(callback);
+  }
 
  private:
   void DrawPlacementControls() {
@@ -212,6 +215,15 @@ class SpriteEditorPanel : public WindowContent {
     const auto& theme = AgentUI::GetTheme();
     auto& room = (*rooms_)[*current_room_id_];
     auto& sprites = room.GetSprites();
+    int selected_sprite_list_index = -1;
+    if (canvas_viewer_ &&
+        canvas_viewer_->object_interaction().HasEntitySelection()) {
+      const auto selected_entity =
+          canvas_viewer_->object_interaction().GetSelectedEntity();
+      if (selected_entity.type == EntityType::Sprite) {
+        selected_sprite_list_index = static_cast<int>(selected_entity.index);
+      }
+    }
 
     // Sprite count with limit warning
     int sprite_count = static_cast<int>(sprites.size());
@@ -243,7 +255,7 @@ class SpriteEditorPanel : public WindowContent {
     ImGui::BeginChild("##SpriteList", ImVec2(0, list_height), true);
     for (size_t i = 0; i < sprites.size(); ++i) {
       const auto& sprite = sprites[i];
-      bool is_selected = (selected_sprite_list_index_ == static_cast<int>(i));
+      bool is_selected = (selected_sprite_list_index == static_cast<int>(i));
 
       ImGui::PushID(static_cast<int>(i));
 
@@ -264,7 +276,10 @@ class SpriteEditorPanel : public WindowContent {
       }
 
       if (ImGui::Selectable(label.c_str(), is_selected)) {
-        selected_sprite_list_index_ = static_cast<int>(i);
+        if (canvas_viewer_) {
+          canvas_viewer_->object_interaction().SelectEntity(EntityType::Sprite,
+                                                            i);
+        }
       }
 
       // Show position on same line
@@ -276,123 +291,14 @@ class SpriteEditorPanel : public WindowContent {
     }
     ImGui::EndChild();
 
-    // Sprite properties panel
-    DrawSpriteProperties();
-  }
-
-  void DrawSpriteProperties() {
-    const auto& theme = AgentUI::GetTheme();
-    auto& room = (*rooms_)[*current_room_id_];
-    auto& sprites = room.GetSprites();
-
-    if (selected_sprite_list_index_ < 0 ||
-        selected_sprite_list_index_ >= static_cast<int>(sprites.size())) {
-      ImGui::TextColored(theme.text_secondary_gray,
-                         ICON_MD_INFO " Select a sprite to edit properties");
-      return;
-    }
-
-    auto& sprite = sprites[selected_sprite_list_index_];
-
-    ImGui::Separator();
-    ImGui::Text(ICON_MD_EDIT " Sprite Properties");
-
-    // Overlord badge (read-only)
-    if (sprite.IsOverlord()) {
-      ImGui::SameLine();
-      ImGui::TextColored(theme.status_warning, ICON_MD_STAR " OVERLORD");
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "This is an Overlord sprite.\n"
-            "Overlords have separate limits (8 max).");
+    if (selected_sprite_list_index >= 0) {
+      ImGui::Spacing();
+      ImGui::TextColored(theme.text_secondary_gray, ICON_MD_TUNE
+                         " Sprite properties now live in Selection Inspector.");
+      if (open_selection_inspector_callback_ &&
+          ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Selection Inspector")) {
+        open_selection_inspector_callback_();
       }
-    }
-
-    // ID and Name (read-only)
-    ImGui::Text("ID: 0x%02X - %s", sprite.id(),
-                zelda3::ResolveSpriteName(sprite.id()));
-
-    // Position (editable)
-    int pos_x = sprite.x();
-    int pos_y = sprite.y();
-    ImGui::SetNextItemWidth(60);
-    if (ImGui::InputInt("X##SpriteX", &pos_x, 1, 8)) {
-      pos_x = std::clamp(pos_x, 0, 63);
-      // Note: Need setter in Sprite class
-    }
-    ImGui::SameLine();
-    ImGui::SetNextItemWidth(60);
-    if (ImGui::InputInt("Y##SpriteY", &pos_y, 1, 8)) {
-      pos_y = std::clamp(pos_y, 0, 63);
-      // Note: Need setter in Sprite class
-    }
-
-    // Subtype selector (0-7)
-    int subtype = sprite.subtype();
-    ImGui::SetNextItemWidth(80);
-    if (ImGui::Combo("Subtype##SpriteSubtype", &subtype,
-                     "0\0001\0002\0003\0004\0005\0006\0007\0")) {
-      sprite.set_subtype(subtype);
-      room.MarkSpritesDirty();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Controls sprite behavior variant.\n"
-          "Effect varies by sprite type.");
-    }
-
-    // Layer selector
-    int layer = sprite.layer();
-    ImGui::SetNextItemWidth(80);
-    if (ImGui::Combo("Layer##SpriteLayer", &layer,
-                     "Upper (0)\0Lower (1)\0Both (2)\0")) {
-      sprite.set_layer(layer);
-      room.MarkSpritesDirty();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Which layer the sprite appears on.\n"
-          "Upper = main floor, Lower = basement.");
-    }
-
-    // Key drop selector
-    int key_drop = sprite.key_drop();
-    ImGui::Text("Key Drop:");
-    ImGui::SameLine();
-    if (ImGui::RadioButton("None##KeyNone", key_drop == 0)) {
-      sprite.set_key_drop(0);
-      room.MarkSpritesDirty();
-    }
-    ImGui::SameLine();
-    if (ImGui::RadioButton(ICON_MD_KEY " Small##KeySmall", key_drop == 1)) {
-      sprite.set_key_drop(1);
-      room.MarkSpritesDirty();
-    }
-    ImGui::SameLine();
-    if (ImGui::RadioButton(ICON_MD_VPN_KEY " Big##KeyBig", key_drop == 2)) {
-      sprite.set_key_drop(2);
-      room.MarkSpritesDirty();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Key dropped when sprite is defeated.");
-    }
-
-    // Delete button
-    ImGui::Spacing();
-    {
-      gui::StyleColorGuard del_guard(ImGuiCol_Button, theme.status_error);
-      if (ImGui::Button(ICON_MD_DELETE " Delete Sprite")) {
-        sprites.erase(sprites.begin() + selected_sprite_list_index_);
-        room.MarkSpritesDirty();
-        selected_sprite_list_index_ = -1;
-      }
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate")) {
-      zelda3::Sprite copy = sprite;
-      sprites.push_back(copy);
-      room.MarkSpritesDirty();
     }
   }
 
@@ -474,12 +380,12 @@ class SpriteEditorPanel : public WindowContent {
 
   // Selection state
   int selected_sprite_id_ = 0;
-  int selected_sprite_list_index_ = -1;  // Selected sprite in room list
   int selected_category_ = 0;
   char search_filter_[64] = {0};
   bool placement_mode_ = false;
 
   std::function<void(const zelda3::Sprite&)> sprite_placed_callback_;
+  std::function<void()> open_selection_inspector_callback_;
 };
 
 }  // namespace editor

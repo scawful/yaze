@@ -185,6 +185,7 @@ class DungeonObjectInteraction {
     return selection_.GetSelectedIndices();
   }
   void SetSelectedObjects(const std::vector<size_t>& indices) {
+    entity_coordinator_.ClearEntitySelection();
     selection_.ClearSelection();
     for (size_t idx : indices) {
       selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);

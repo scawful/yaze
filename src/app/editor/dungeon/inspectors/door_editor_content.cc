@@ -161,116 +161,18 @@ void DoorEditorContent::Draw(bool* p_open) {
   }};
 
   if (ResolveCanvasViewer() &&
-      canvas_viewer_->object_interaction().HasEntitySelection()) {
-    const auto selected_entity =
-        canvas_viewer_->object_interaction().GetSelectedEntity();
-    if (selected_entity.type == EntityType::Door && rooms_ &&
-        current_room_id_ >= 0 && current_room_id_ < 296) {
-      const auto& room = (*rooms_)[current_room_id_];
-      const auto& doors = room.GetDoors();
-      if (selected_entity.index < doors.size()) {
-        const auto& door = doors[selected_entity.index];
-        const auto [tile_x, tile_y] = door.GetTileCoords();
-        const auto [pixel_x, pixel_y] = door.GetPixelCoords();
-        selected_door_type_ = door.type;
-
-        gui::SectionHeader(ICON_MD_SELECT_ALL, "Selected Door",
-                           theme.text_info);
-
-        // Door-type combo: swap in place via DoorInteractionHandler, which
-        // preserves the door's position/direction and re-encodes ROM bytes.
-        const std::string current_type_name(zelda3::GetDoorTypeName(door.type));
-        ImGui::SetNextItemWidth(-1);
-        if (ImGui::BeginCombo("##SelectedDoorType",
-                              current_type_name.c_str())) {
-          for (const auto door_type : kDoorTypes) {
-            const bool is_current = door.type == door_type;
-            const std::string entry_label = absl::StrFormat(
-                "%s  0x%02X  %s", DoorTypeIcon(door_type),
-                static_cast<int>(door_type),
-                std::string(zelda3::GetDoorTypeName(door_type)).c_str());
-            if (ImGui::Selectable(entry_label.c_str(), is_current) &&
-                !is_current) {
-              canvas_viewer_->object_interaction()
-                  .entity_coordinator()
-                  .door_handler()
-                  .MutateDoorType(selected_entity.index, door_type);
-            }
-            if (is_current) {
-              ImGui::SetItemDefaultFocus();
-            }
-          }
-          ImGui::EndCombo();
-        }
-
-        ImGui::TextDisabled(
-            "Direction: %s  Position: 0x%02X",
-            std::string(zelda3::GetDoorDirectionName(door.direction)).c_str(),
-            door.position);
-        ImGui::TextDisabled("Tile: (%d, %d)  Pixel: (%d, %d)", tile_x, tile_y,
-                            pixel_x, pixel_y);
-
-        // Jump-to-reciprocal navigation. Enabled when the neighbor room exists
-        // and contains a door on the opposite wall at the same position.
-        const int neighbor_id =
-            NeighborRoomId(current_room_id_, door.direction);
-        std::optional<size_t> reciprocal_index;
-        if (neighbor_id >= 0 && rooms_ && neighbor_id < 296) {
-          const auto opposite = OppositeDir(door.direction);
-          const auto& neighbor_doors = (*rooms_)[neighbor_id].GetDoors();
-          for (size_t i = 0; i < neighbor_doors.size(); ++i) {
-            const auto& nd = neighbor_doors[i];
-            if (nd.direction == opposite && nd.position == door.position) {
-              reciprocal_index = i;
-              break;
-            }
-          }
-          // Fallback: any door on the opposite wall (handles paired doors that
-          // weren't saved at matching positions).
-          if (!reciprocal_index) {
-            for (size_t i = 0; i < neighbor_doors.size(); ++i) {
-              if (neighbor_doors[i].direction == opposite) {
-                reciprocal_index = i;
-                break;
-              }
-            }
-          }
-        }
-
-        const bool jump_enabled =
-            reciprocal_index.has_value() &&
-            static_cast<bool>(on_jump_to_reciprocal_door_);
-        if (!jump_enabled)
-          ImGui::BeginDisabled();
-        if (ImGui::Button(ICON_MD_ARROW_FORWARD " Jump to Reciprocal",
-                          ImVec2(-1, 0))) {
-          if (jump_enabled) {
-            on_jump_to_reciprocal_door_(neighbor_id, *reciprocal_index);
-          }
-        }
-        if (!jump_enabled)
-          ImGui::EndDisabled();
-        if (ImGui::IsItemHovered()) {
-          if (neighbor_id < 0) {
-            ImGui::SetTooltip("No adjacent room in this direction.");
-          } else if (!reciprocal_index) {
-            ImGui::SetTooltip("Room 0x%03X has no door on the opposite wall.",
-                              neighbor_id);
-          } else {
-            ImGui::SetTooltip("Open room 0x%03X and select the paired door.",
-                              neighbor_id);
-          }
-        }
-
-        if (ImGui::Button(ICON_MD_PLACE " Use Selected Door Style",
-                          ImVec2(-1, 0))) {
-          door_placement_mode_ = true;
-          canvas_viewer_->object_interaction().SetDoorPlacementMode(
-              true, selected_door_type_);
-        }
-        ImGui::Spacing();
-      }
+      canvas_viewer_->object_interaction().HasEntitySelection() &&
+      canvas_viewer_->object_interaction().GetSelectedEntity().type ==
+          EntityType::Door) {
+    gui::SectionHeader(ICON_MD_SELECT_ALL, "Selected Door", theme.text_info);
+    ImGui::TextColored(theme.text_secondary_gray,
+                       "Door properties now live in Selection Inspector.");
+    if (open_selection_inspector_callback_ &&
+        ImGui::Button(ICON_MD_OPEN_IN_NEW " Open Selection Inspector",
+                      ImVec2(-1, 0))) {
+      open_selection_inspector_callback_();
     }
+    ImGui::Spacing();
   }
 
   gui::SectionHeader(ICON_MD_DOOR_FRONT, "Door Styles", theme.text_info);
@@ -378,6 +280,15 @@ void DoorEditorContent::Draw(bool* p_open) {
   }
 
   ImGui::BeginChild("##DoorList", ImVec2(0, 0), true);
+  int selected_door_index = -1;
+  if (ResolveCanvasViewer() &&
+      canvas_viewer_->object_interaction().HasEntitySelection()) {
+    const auto selected_entity =
+        canvas_viewer_->object_interaction().GetSelectedEntity();
+    if (selected_entity.type == EntityType::Door) {
+      selected_door_index = static_cast<int>(selected_entity.index);
+    }
+  }
   for (size_t i = 0; i < doors.size(); ++i) {
     const auto& door = doors[i];
     const auto [tile_x, tile_y] = door.GetTileCoords();
@@ -385,15 +296,16 @@ void DoorEditorContent::Draw(bool* p_open) {
     const std::string dir_name(zelda3::GetDoorDirectionName(door.direction));
 
     ImGui::PushID(static_cast<int>(i));
-    ImGui::Text("[%zu] %s", i, type_name.c_str());
+    const std::string row_label = absl::StrFormat("[%zu] %s", i, type_name);
+    if (ImGui::Selectable(row_label.c_str(),
+                          selected_door_index == static_cast<int>(i))) {
+      if (canvas_viewer_) {
+        canvas_viewer_->object_interaction().SelectEntity(EntityType::Door, i);
+      }
+    }
     ImGui::SameLine();
     ImGui::TextColored(theme.text_secondary_gray, "(%s @ %d,%d)",
                        dir_name.c_str(), tile_x, tile_y);
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_DELETE "##DeleteDoor")) {
-      auto& mutable_room = (*rooms_)[current_room_id_];
-      mutable_room.RemoveDoor(i);
-    }
     ImGui::PopID();
   }
   ImGui::EndChild();

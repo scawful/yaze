@@ -14,6 +14,7 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -174,8 +175,11 @@ void ObjectSelectorContent::DrawObjectSelector() {
 void ObjectSelectorContent::DrawInteractionSummary() {
   const auto& theme = AgentUI::GetTheme();
   auto* viewer = ResolveCanvasViewer();
-  const size_t selection_count =
-      viewer ? viewer->object_interaction().GetSelectionCount() : 0;
+  const auto snapshot = viewer != nullptr
+                            ? BuildDungeonSelectionSnapshot(
+                                  viewer->object_interaction(), viewer->rooms(),
+                                  viewer->current_room_id())
+                            : DungeonSelectionSnapshot{};
 
   ImGui::AlignTextToFramePadding();
   ImGui::TextColored(theme.text_info, ICON_MD_CATEGORY " Object Selector");
@@ -208,7 +212,7 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
       CancelPlacement();
     }
-  } else if (selection_count == 1) {
+  } else if (snapshot.kind == DungeonSelectionKind::ObjectSingle) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_CHECK_CIRCLE " 1 object selected");
     if (open_object_editor_callback_) {
@@ -217,10 +221,22 @@ void ObjectSelectorContent::DrawInteractionSummary() {
         open_object_editor_callback_();
       }
     }
-  } else if (selection_count > 1) {
+  } else if (snapshot.kind == DungeonSelectionKind::ObjectMulti) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_SELECT_ALL " %zu objects selected",
-                       selection_count);
+                       snapshot.count);
+    if (open_object_editor_callback_) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect")) {
+        open_object_editor_callback_();
+      }
+    }
+  } else if (snapshot.kind == DungeonSelectionKind::Door ||
+             snapshot.kind == DungeonSelectionKind::Sprite ||
+             snapshot.kind == DungeonSelectionKind::Item) {
+    ImGui::TextColored(theme.status_success,
+                       ICON_MD_MANAGE_SEARCH " 1 %s selected",
+                       GetDungeonSelectionKindLabel(snapshot.kind));
     if (open_object_editor_callback_) {
       ImGui::SameLine();
       if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect")) {
