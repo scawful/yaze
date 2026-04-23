@@ -12,63 +12,16 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 
 namespace yaze::editor {
 
 namespace {
 
-void DrawGhostCapacityBadge(ImDrawList* draw_list, const ImVec2& preview_start,
-                            const ImVec2& preview_end,
-                            zelda3::DoorDirection direction,
-                            const AgentUITheme& theme, size_t door_count,
-                            DoorInteractionHandler::GhostCapacityState state) {
-  if (state == DoorInteractionHandler::GhostCapacityState::kNormal) {
-    return;
-  }
-
-  const bool blocked =
-      state == DoorInteractionHandler::GhostCapacityState::kAtLimit;
-  const ImVec4 accent = blocked ? theme.status_error : theme.status_warning;
-  const char* status_text = blocked ? "ROOM FULL" : "LAST SLOT";
-  const std::string count_text =
-      absl::StrFormat("Doors %zu/%zu", door_count, zelda3::kMaxDoors);
-
-  const ImVec2 count_size = ImGui::CalcTextSize(count_text.c_str());
-  const ImVec2 status_size = ImGui::CalcTextSize(status_text);
-  const float width = std::max(count_size.x, status_size.x) + 14.0f;
-  const float height = count_size.y + status_size.y + 14.0f;
-  ImVec2 badge_min;
-  switch (direction) {
-    case zelda3::DoorDirection::North:
-      badge_min = ImVec2(preview_start.x, preview_end.y + 6.0f);
-      break;
-    case zelda3::DoorDirection::South:
-      badge_min = ImVec2(preview_start.x, preview_start.y - height - 6.0f);
-      break;
-    case zelda3::DoorDirection::West:
-      badge_min = ImVec2(preview_end.x + 6.0f, preview_start.y);
-      break;
-    case zelda3::DoorDirection::East:
-      badge_min = ImVec2(preview_start.x - width - 6.0f, preview_start.y);
-      break;
-  }
-  const ImVec2 resolved_badge_max(badge_min.x + width, badge_min.y + height);
-
-  draw_list->AddRectFilled(
-      badge_min, resolved_badge_max,
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.18f)), 5.0f);
-  draw_list->AddRect(
-      badge_min, resolved_badge_max,
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.92f)), 5.0f, 0,
-      2.0f);
-  draw_list->AddText(ImVec2(badge_min.x + 7.0f, badge_min.y + 4.0f),
-                     ImGui::GetColorU32(theme.text_primary),
-                     count_text.c_str());
-  draw_list->AddText(
-      ImVec2(badge_min.x + 7.0f, badge_min.y + 8.0f + count_size.y),
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 1.0f)),
-      status_text);
+PlacementCapacityState ToPlacementCapacityState(
+    DoorInteractionHandler::GhostCapacityState state) {
+  return static_cast<PlacementCapacityState>(state);
 }
 
 }  // namespace
@@ -163,13 +116,8 @@ DoorInteractionHandler::GhostCapacityState
 DoorInteractionHandler::GetPlacementGhostCapacityState() const {
   auto* room = GetCurrentRoom();
   const size_t current_door_count = room ? room->GetDoors().size() : 0;
-  if (current_door_count >= zelda3::kMaxDoors) {
-    return GhostCapacityState::kAtLimit;
-  }
-  if (current_door_count + 1 == zelda3::kMaxDoors) {
-    return GhostCapacityState::kNearLimit;
-  }
-  return GhostCapacityState::kNormal;
+  return static_cast<GhostCapacityState>(
+      GetPlacementCapacityState(current_door_count, zelda3::kMaxDoors));
 }
 
 void DoorInteractionHandler::DrawGhostPreview() {
@@ -225,15 +173,12 @@ void DoorInteractionHandler::DrawGhostPreview() {
   const auto& theme = AgentUI::GetTheme();
 
   const auto capacity_state = GetPlacementGhostCapacityState();
+  const auto placement_state = ToPlacementCapacityState(capacity_state);
   auto* room = GetCurrentRoom();
   const size_t current_door_count = room ? room->GetDoors().size() : 0;
 
-  ImVec4 base_color = theme.dungeon_selection_primary;
-  if (capacity_state == GhostCapacityState::kAtLimit) {
-    base_color = theme.status_error;
-  } else if (capacity_state == GhostCapacityState::kNearLimit) {
-    base_color = theme.status_warning;
-  }
+  const ImVec4 base_color = GetPlacementAccentColor(
+      theme, placement_state, theme.dungeon_selection_primary);
 
   // Draw semi-transparent filled rectangle
   ImVec4 fill_vec(base_color.x, base_color.y, base_color.z, 0.31f);
@@ -253,17 +198,43 @@ void DoorInteractionHandler::DrawGhostPreview() {
   ImVec2 text_pos(preview_start.x, preview_start.y - 16 * scale);
   draw_list->AddText(text_pos, IM_COL32(255, 255, 255, 200), label.c_str());
 
-  DrawGhostCapacityBadge(draw_list, preview_start, preview_end,
-                         detected_door_direction_, theme, current_door_count,
-                         capacity_state);
+  const std::string badge_text =
+      absl::StrFormat("Doors %zu/%zu", current_door_count, zelda3::kMaxDoors);
+  ImVec2 badge_min;
+  switch (detected_door_direction_) {
+    case zelda3::DoorDirection::North:
+      badge_min = ImVec2(preview_start.x, preview_end.y + 6.0f);
+      break;
+    case zelda3::DoorDirection::South: {
+      const ImVec2 badge_size = ImGui::CalcTextSize(badge_text.c_str());
+      const ImVec2 status_size = ImGui::CalcTextSize(
+          GetPlacementCapacityStatusText(placement_state).data());
+      const float badge_height = badge_size.y + status_size.y + 14.0f;
+      badge_min =
+          ImVec2(preview_start.x, preview_start.y - badge_height - 6.0f);
+      break;
+    }
+    case zelda3::DoorDirection::West:
+      badge_min = ImVec2(preview_end.x + 6.0f, preview_start.y);
+      break;
+    case zelda3::DoorDirection::East: {
+      const ImVec2 badge_size = ImGui::CalcTextSize(badge_text.c_str());
+      const ImVec2 status_size = ImGui::CalcTextSize(
+          GetPlacementCapacityStatusText(placement_state).data());
+      const float badge_width = std::max(badge_size.x, status_size.x) + 14.0f;
+      badge_min = ImVec2(preview_start.x - badge_width - 6.0f, preview_start.y);
+      break;
+    }
+  }
+  DrawPlacementCapacityBadge(draw_list, badge_min, theme, placement_state,
+                             badge_text);
 
   // Capacity tooltip when at/near limit
   if (capacity_state != GhostCapacityState::kNormal &&
       ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
-    ImGui::SetTooltip("Doors: %zu/%zu%s", current_door_count, zelda3::kMaxDoors,
-                      capacity_state == GhostCapacityState::kAtLimit
-                          ? "\nPlacement blocked"
-                          : "\nLast available slot");
+    ImGui::SetTooltip(
+        "Doors: %zu/%zu\n%s", current_door_count, zelda3::kMaxDoors,
+        GetPlacementCapacityTooltipSuffix(placement_state).data());
   }
 }
 
