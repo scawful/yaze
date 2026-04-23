@@ -156,6 +156,7 @@ set(
   app/editor/layout/layout_coordinator.cc
   app/editor/layout/layout_designer/dock_tree.cc
   app/editor/layout/layout_designer/dock_tree_json.cc
+  app/editor/layout/layout_designer/dock_tree_renderer.cc
   app/editor/layout/layout_manager.cc
   app/editor/layout/layout_orchestrator.cc
   app/editor/layout/layout_presets.cc

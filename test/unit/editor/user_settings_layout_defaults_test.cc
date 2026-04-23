@@ -34,11 +34,13 @@ TEST(UserSettingsLayoutDefaultsTest, AppliesRevisionAndResetsPanelLayoutState) {
   EXPECT_TRUE(prefs.right_panel_widths.empty());
   EXPECT_TRUE(prefs.saved_layouts.empty());
 
-  // Revision-4 full-reset clears pinned_panels, but revision-7 seeds the two
-  // former-Persistent panels that have to stay always-visible by default.
-  EXPECT_EQ(prefs.pinned_panels.size(), 2U);
+  // Revision-4 full-reset clears pinned_panels; revision-7 seeds the two
+  // former-Persistent panels; revision-17 adds the Layout Designer so
+  // "Show: Layout Designer" is drawable without requiring a category switch.
+  EXPECT_EQ(prefs.pinned_panels.size(), 3U);
   EXPECT_TRUE(prefs.pinned_panels.at("agent.oracle_ram"));
   EXPECT_TRUE(prefs.pinned_panels.at("workflow.output"));
+  EXPECT_TRUE(prefs.pinned_panels.at("layout.designer"));
 }
 
 TEST(UserSettingsLayoutDefaultsTest, IgnoresOlderOrEqualRevisionRequests) {
