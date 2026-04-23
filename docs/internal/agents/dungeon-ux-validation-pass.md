@@ -89,8 +89,8 @@ Repeat 1a for each wall. Expected direction label in ghost: `North`, `South`, `E
 3. Then repeat with a room at `16/16`.
 
 **Expected:**
-- At `15/16`, the ghost switches to the warning color and tooltip text ends with `Last available slot`.
-- At `16/16`, the ghost switches to the error color and tooltip text ends with `Placement blocked`.
+- At `15/16`, the ghost switches to the warning color, shows a visible `Doors 15/16` + `LAST SLOT` badge on the room-interior side of the preview, and the tooltip text ends with `Last available slot`.
+- At `16/16`, the ghost switches to the error color, shows a visible `Doors 16/16` + `ROOM FULL` badge, and the tooltip text ends with `Placement blocked`.
 - Dragging an already-placed door still uses the normal snap-indicator colors, because moving an existing door does not consume a new slot.
 
 **Caveat:** Ghost is only visible when `canvas->IsMouseHovering()` returns true; hovering the panel chrome outside the canvas suppresses it.
