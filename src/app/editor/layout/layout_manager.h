@@ -5,7 +5,10 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/editor.h"
+#include "app/editor/layout/layout_designer/dock_tree.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -282,6 +285,49 @@ class LayoutManager {
    * @return Window title or empty string if not found
    */
   std::string GetWindowTitle(const std::string& card_id) const;
+
+  // ==========================================================================
+  // DockTree integration (Layout Designer)
+  // ==========================================================================
+
+  /**
+   * @brief Apply a DockTree to the given dockspace.
+   *
+   * Removes and rebuilds `dockspace_id` from scratch, walking the tree
+   * and calling `DockBuilder{SplitNode,DockWindow,Finish}`. Does not
+   * touch panel visibility state.
+   *
+   * Panels in the tree whose `panel_id` is not registered against the
+   * bound WorkspaceWindowManager are skipped with a best-effort fallback
+   * that reconstructs the window title from the PanelEntry's cached
+   * icon + display_name + id.
+   *
+   * @param tree          Tree to apply. Must pass `Validate()`.
+   * @param dockspace_id  ImGui dockspace to rebuild.
+   * @return FailedPrecondition when no WorkspaceWindowManager is bound;
+   *         InvalidArgument when the tree fails validation; OK otherwise.
+   */
+  absl::Status ApplyDockTree(const layout_designer::DockTree& tree,
+                             ImGuiID dockspace_id);
+
+  /**
+   * @brief Capture the current docking state into a DockTree.
+   *
+   * Walks ImGui's internal dock node tree rooted at `dockspace_id` and
+   * samples splits + leaf windows. Unknown windows (those not registered
+   * against the bound WorkspaceWindowManager) are dropped. Split ratios
+   * are recovered from measured node sizes; X-axis splits always emit
+   * `SplitDirection::kLeft` and Y-axis splits emit `kUp` (direction is
+   * lossy, since a 0.4 right-placed split is visually identical to a
+   * 0.4 left-placed split).
+   *
+   * @param dockspace_id  ImGui dockspace to sample.
+   * @return FailedPrecondition when no WorkspaceWindowManager is bound;
+   *         NotFound when no node exists at `dockspace_id`; the captured
+   *         tree otherwise.
+   */
+  absl::StatusOr<layout_designer::DockTree> CaptureDockTree(
+      ImGuiID dockspace_id) const;
 
  private:
   // DockBuilder layout implementations for each editor type
