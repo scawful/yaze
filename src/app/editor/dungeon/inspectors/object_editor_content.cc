@@ -17,6 +17,8 @@ namespace yaze::editor {
 
 namespace {
 
+using InspectorStat = std::pair<const char*, std::string>;
+
 constexpr std::array<zelda3::DoorType, 20> kInspectorDoorTypes = {{
     zelda3::DoorType::NormalDoor,         zelda3::DoorType::NormalDoorLower,
     zelda3::DoorType::CaveExit,           zelda3::DoorType::DoubleSidedShutter,
@@ -92,6 +94,42 @@ bool MutateSelectedItem(DungeonCanvasViewer* viewer,
     ctx->NotifyEntityChanged();
   }
   return true;
+}
+
+void DrawInspectorSummaryGrid(const char* table_id,
+                              std::initializer_list<InspectorStat> stats) {
+  if (stats.size() == 0) {
+    return;
+  }
+
+  if (!ImGui::BeginTable(
+          table_id, 2,
+          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  for (const auto& [label, value] : stats) {
+    ImGui::TableNextColumn();
+    ImGui::BeginGroup();
+    ImGui::TextColored(theme.text_secondary_gray, "%s", label);
+    ImGui::TextWrapped("%s", value.c_str());
+    ImGui::EndGroup();
+  }
+  ImGui::EndTable();
+}
+
+const char* GetDeleteAllSelectedTypeLabel(DungeonSelectionKind kind) {
+  switch (kind) {
+    case DungeonSelectionKind::Door:
+      return ICON_MD_DELETE_SWEEP " Delete All Doors";
+    case DungeonSelectionKind::Sprite:
+      return ICON_MD_DELETE_SWEEP " Delete All Sprites";
+    case DungeonSelectionKind::Item:
+      return ICON_MD_DELETE_SWEEP " Delete All Items";
+    default:
+      return ICON_MD_DELETE_SWEEP " Delete All";
+  }
 }
 
 }  // namespace
@@ -295,15 +333,17 @@ void ObjectEditorContent::DrawSelectionActions() {
            {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedObjects(); }}});
     }
   } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-    draw_row(
-        {{ICON_MD_FILTER_NONE " Duplicate",
-          [this]() { DuplicateSelectedSprite(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedEntity(); }}});
+    draw_row({{ICON_MD_FILTER_NONE " Duplicate",
+               [this]() { DuplicateSelectedSprite(); }},
+              {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+              {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedEntity(); }},
+              {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
+               [this]() { DeleteAllSelectedTypeInRoom(); }}});
   } else {
-    draw_row(
-        {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedEntity(); }}});
+    draw_row({{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+              {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedEntity(); }},
+              {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
+               [this]() { DeleteAllSelectedTypeInRoom(); }}});
   }
 
   ImGui::Separator();
@@ -330,25 +370,15 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
       ImGui::TextColored(theme.status_success, "Object #%zu · 0x%03X %s",
                          selected[0], obj.id_,
                          zelda3::GetObjectName(obj.id_).c_str());
-      if (ImGui::BeginTable("##SelectedObjectInfo", 2,
-                            ImGuiTableFlags_SizingStretchSame |
-                                ImGuiTableFlags_NoPadOuterX)) {
-        ImGui::TableNextColumn();
-        ImGui::TextColored(theme.text_secondary_gray, "Position");
-        ImGui::Text("(%d, %d)", obj.x_, obj.y_);
-        ImGui::TextColored(theme.text_secondary_gray, "Size");
-        ImGui::Text("0x%02X", obj.size_);
-
-        ImGui::TableNextColumn();
-        ImGui::TextColored(theme.text_secondary_gray, "Layer");
-        ImGui::Text("%s", obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
-                          : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                                  : "BG3");
-        ImGui::TextColored(theme.text_secondary_gray, "Draws");
-        ImGui::Text(
-            "%s", zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
-        ImGui::EndTable();
-      }
+      DrawInspectorSummaryGrid(
+          "##SelectedObjectInfo",
+          {{"Position", absl::StrFormat("(%d, %d)", obj.x_, obj.y_)},
+           {"Layer", obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
+                     : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
+                                                             : "BG3"},
+           {"Size", absl::StrFormat("0x%02X", obj.size_)},
+           {"Draws",
+            zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer)}});
       ImGui::Spacing();
     }
     return;
@@ -356,9 +386,12 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
 
   ImGui::TextColored(theme.status_success, "%zu objects selected",
                      selected.size());
-  ImGui::TextColored(theme.text_secondary_gray,
-                     "Bulk actions stay above. Use Arrow Keys to nudge the "
-                     "selection or open the room canvas to refine it.");
+  DrawInspectorSummaryGrid(
+      "##SelectedObjectMultiInfo",
+      {{"Selection", absl::StrFormat("%zu objects", selected.size())},
+       {"Scope", "Bulk object actions and property edits"},
+       {"Movement", "Use Arrow Keys to nudge all selected objects"},
+       {"Refine", "Shift-click or drag in the room canvas"}});
   ImGui::Spacing();
 }
 
@@ -387,24 +420,12 @@ void ObjectEditorContent::DrawSelectedDoorInfo() {
 
   ImGui::TextColored(theme.status_success, "Door #%zu · %s", entity.index,
                      std::string(zelda3::GetDoorTypeName(door.type)).c_str());
-  if (ImGui::BeginTable(
-          "##SelectedDoorInfo", 2,
-          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
-    ImGui::TableNextColumn();
-    ImGui::TextColored(theme.text_secondary_gray, "Direction");
-    ImGui::Text(
-        "%s",
-        std::string(zelda3::GetDoorDirectionName(door.direction)).c_str());
-    ImGui::TextColored(theme.text_secondary_gray, "Tile");
-    ImGui::Text("(%d, %d)", tile_x, tile_y);
-
-    ImGui::TableNextColumn();
-    ImGui::TextColored(theme.text_secondary_gray, "Position");
-    ImGui::Text("0x%02X", door.position);
-    ImGui::TextColored(theme.text_secondary_gray, "Pixel");
-    ImGui::Text("(%d, %d)", pixel_x, pixel_y);
-    ImGui::EndTable();
-  }
+  DrawInspectorSummaryGrid(
+      "##SelectedDoorInfo",
+      {{"Direction", std::string(zelda3::GetDoorDirectionName(door.direction))},
+       {"Position", absl::StrFormat("0x%02X", door.position)},
+       {"Tile", absl::StrFormat("(%d, %d)", tile_x, tile_y)},
+       {"Pixel", absl::StrFormat("(%d, %d)", pixel_x, pixel_y)}});
 
   const std::string current_type_name(zelda3::GetDoorTypeName(door.type));
   ImGui::SetNextItemWidth(-1);
@@ -468,10 +489,8 @@ void ObjectEditorContent::DrawSelectedDoorInfo() {
   }
 
   ImGui::Spacing();
-  ImGui::TextColored(
-      theme.text_secondary_gray,
-      "Use the Door Editor panel to browse door styles and start new door "
-      "placement.");
+  ImGui::TextColored(theme.text_secondary_gray,
+                     "Browse and place additional doors from Door Editor.");
 }
 
 void ObjectEditorContent::DrawSelectedSpriteInfo() {
@@ -501,22 +520,15 @@ void ObjectEditorContent::DrawSelectedSpriteInfo() {
     ImGui::TextColored(theme.status_warning, ICON_MD_STAR " OVERLORD");
   }
 
-  if (ImGui::BeginTable(
-          "##SelectedSpriteInfo", 2,
-          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
-    ImGui::TableNextColumn();
-    ImGui::TextColored(theme.text_secondary_gray, "Position");
-    ImGui::Text("(%d, %d)", sprite.x(), sprite.y());
-    ImGui::TextColored(theme.text_secondary_gray, "Subtype");
-    ImGui::Text("%d", sprite.subtype());
-
-    ImGui::TableNextColumn();
-    ImGui::TextColored(theme.text_secondary_gray, "Layer");
-    ImGui::Text("%d", sprite.layer());
-    ImGui::TextColored(theme.text_secondary_gray, "Key Drop");
-    ImGui::Text("%d", sprite.key_drop());
-    ImGui::EndTable();
-  }
+  const char* key_drop_label = sprite.key_drop() == 1   ? "Small Key"
+                               : sprite.key_drop() == 2 ? "Big Key"
+                                                        : "None";
+  DrawInspectorSummaryGrid(
+      "##SelectedSpriteInfo",
+      {{"Position", absl::StrFormat("(%d, %d)", sprite.x(), sprite.y())},
+       {"Layer", absl::StrFormat("%d", sprite.layer())},
+       {"Subtype", absl::StrFormat("%d", sprite.subtype())},
+       {"Key Drop", key_drop_label}});
 
   int subtype = sprite.subtype();
   ImGui::SetNextItemWidth(120.0f);
@@ -561,10 +573,9 @@ void ObjectEditorContent::DrawSelectedSpriteInfo() {
   }
 
   ImGui::Spacing();
-  ImGui::TextColored(
-      theme.text_secondary_gray,
-      "Drag the selected sprite in the canvas to reposition it. Use the "
-      "Sprite Editor panel to browse and place additional sprites.");
+  ImGui::TextColored(theme.text_secondary_gray,
+                     "Drag in the canvas to reposition. Browse and place more "
+                     "sprites from Sprite Editor.");
 }
 
 void ObjectEditorContent::DrawSelectedItemInfo() {
@@ -599,8 +610,12 @@ void ObjectEditorContent::DrawSelectedItemInfo() {
       item.item < kPotItemNames.size() ? kPotItemNames[item.item] : "Unknown";
   ImGui::TextColored(theme.status_success, "Item #%zu · 0x%02X %s",
                      entity.index, item.item, item_name);
-  ImGui::TextColored(theme.text_secondary_gray, "Tile (%d, %d) · Raw 0x%04X",
-                     item.GetTileX(), item.GetTileY(), item.position);
+  DrawInspectorSummaryGrid(
+      "##SelectedItemInfo",
+      {{"Tile", absl::StrFormat("(%d, %d)", item.GetTileX(), item.GetTileY())},
+       {"Raw", absl::StrFormat("0x%04X", item.position)},
+       {"Kind", item_name},
+       {"Value", absl::StrFormat("0x%02X", item.item)}});
 
   int item_type = item.item;
   ImGui::SetNextItemWidth(-1);
@@ -624,10 +639,9 @@ void ObjectEditorContent::DrawSelectedItemInfo() {
   }
 
   ImGui::Spacing();
-  ImGui::TextColored(
-      theme.text_secondary_gray,
-      "Drag the selected item in the canvas to reposition it. Use the Item "
-      "Editor panel to browse and place additional pot contents.");
+  ImGui::TextColored(theme.text_secondary_gray,
+                     "Drag in the canvas to reposition. Browse and place more "
+                     "items from Item Editor.");
 }
 
 void ObjectEditorContent::DrawEmptyState() {
@@ -831,6 +845,28 @@ void ObjectEditorContent::DeleteSelectedEntity() {
   canvas_viewer_->object_interaction()
       .entity_coordinator()
       .DeleteSelectedEntity();
+}
+
+void ObjectEditorContent::DeleteAllSelectedTypeInRoom() {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer || !viewer->HasRooms()) {
+    return;
+  }
+
+  auto& coordinator = viewer->object_interaction().entity_coordinator();
+  switch (selection_snapshot_.kind) {
+    case DungeonSelectionKind::Door:
+      coordinator.door_handler().DeleteAll();
+      break;
+    case DungeonSelectionKind::Sprite:
+      coordinator.sprite_handler().DeleteAll();
+      break;
+    case DungeonSelectionKind::Item:
+      coordinator.item_handler().DeleteAll();
+      break;
+    default:
+      break;
+  }
 }
 
 void ObjectEditorContent::DuplicateSelectedSprite() {

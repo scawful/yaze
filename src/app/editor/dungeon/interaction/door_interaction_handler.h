@@ -94,6 +94,7 @@ class DoorInteractionHandler : public BaseEntityHandler {
    * @brief Delete selected door
    */
   void DeleteSelected();
+  void DeleteAll();
 
   /**
    * @brief Change the type of a door in place, re-encoding ROM bytes.

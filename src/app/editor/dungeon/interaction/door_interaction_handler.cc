@@ -416,6 +416,25 @@ void DoorInteractionHandler::DeleteSelected() {
   room->MarkObjectStreamDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ClearSelection();
+  ctx_->NotifyEntityChanged();
+}
+
+void DoorInteractionHandler::DeleteAll() {
+  if (!HasValidContext()) {
+    return;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room || room->GetDoors().empty()) {
+    return;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kDoors);
+  room->GetDoors().clear();
+  room->MarkObjectStreamDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
+  ClearSelection();
+  ctx_->NotifyEntityChanged();
 }
 
 bool DoorInteractionHandler::MutateDoorType(size_t index,

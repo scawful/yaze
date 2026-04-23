@@ -80,6 +80,7 @@ class SpriteInteractionHandler : public BaseEntityHandler {
    * @brief Delete selected sprite
    */
   void DeleteSelected();
+  void DeleteAll();
 
   /// True if the most recent PlaceSpriteAtPosition was blocked.
   bool was_placement_blocked() const {

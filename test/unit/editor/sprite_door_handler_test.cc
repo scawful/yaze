@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "app/editor/dungeon/interaction/item_interaction_handler.h"
 #include "app/editor/dungeon/interaction/sprite_interaction_handler.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
@@ -137,6 +138,22 @@ TEST_F(SpriteInteractionHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
 
   EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
             SpriteInteractionHandler::GhostCapacityState::kAtLimit);
+}
+
+TEST_F(SpriteInteractionHandlerTest,
+       DeleteAllClearsSpritesAndFiresMutationCallbacks) {
+  AddSprites(3);
+  handler_.SelectSprite(1);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  handler_.DeleteAll();
+
+  EXPECT_TRUE(rooms_[0].GetSprites().empty());
+  EXPECT_FALSE(handler_.HasSelection());
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
 }
 
 // ============================================================================
@@ -334,6 +351,79 @@ TEST_F(DoorInteractionHandlerTest,
   const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
   ASSERT_TRUE(hit.has_value());
   EXPECT_EQ(*hit, 0u);
+}
+
+TEST_F(DoorInteractionHandlerTest, DeleteAllClearsDoorsAndFiresCallbacks) {
+  AddDoors(3);
+  handler_.SelectDoor(1);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  handler_.DeleteAll();
+
+  EXPECT_TRUE(rooms_[0].GetDoors().empty());
+  EXPECT_FALSE(handler_.HasSelection());
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+}
+
+class ItemInteractionHandlerTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ImGui::CreateContext();
+    ImGui::GetIO().DisplaySize = ImVec2(1024, 768);
+
+    canvas_ = std::make_unique<gui::Canvas>("TestCanvas", ImVec2(512, 512),
+                                            gui::CanvasGridSize::k16x16);
+
+    ctx_.rooms = &rooms_;
+    ctx_.current_room_id = 0;
+    ctx_.canvas = canvas_.get();
+    ctx_.on_mutation = [this]() {
+      mutation_count_++;
+    };
+    ctx_.on_invalidate_cache = [this]() {
+      invalidate_count_++;
+    };
+
+    handler_.SetContext(&ctx_);
+  }
+
+  void TearDown() override {
+    canvas_.reset();
+    ImGui::DestroyContext();
+  }
+
+  void AddItems(int count) {
+    auto& items = rooms_[0].GetPotItems();
+    for (int i = 0; i < count; ++i) {
+      items.push_back(zelda3::PotItem{static_cast<uint16_t>(0x1000 + i),
+                                      static_cast<uint8_t>(i)});
+    }
+  }
+
+  std::unique_ptr<gui::Canvas> canvas_;
+  DungeonRoomStore rooms_;
+  InteractionContext ctx_;
+  ItemInteractionHandler handler_;
+  int mutation_count_ = 0;
+  int invalidate_count_ = 0;
+};
+
+TEST_F(ItemInteractionHandlerTest, DeleteAllClearsItemsAndFiresCallbacks) {
+  AddItems(4);
+  handler_.SelectItem(2);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  handler_.DeleteAll();
+
+  EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_FALSE(handler_.HasSelection());
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
 }
 
 }  // namespace
