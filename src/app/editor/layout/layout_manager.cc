@@ -1215,5 +1215,201 @@ std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
   return window_manager_->GetWorkspaceWindowName(session_id, card_id);
 }
 
+namespace {
+
+ImGuiDir SplitDirectionToImGuiDir(layout_designer::SplitDirection d) {
+  using SD = layout_designer::SplitDirection;
+  switch (d) {
+    case SD::kLeft:
+      return ImGuiDir_Left;
+    case SD::kRight:
+      return ImGuiDir_Right;
+    case SD::kUp:
+      return ImGuiDir_Up;
+    case SD::kDown:
+      return ImGuiDir_Down;
+  }
+  return ImGuiDir_Left;
+}
+
+std::string ResolveDockWindowTitle(const WorkspaceWindowManager* wm,
+                                   size_t session_id,
+                                   const layout_designer::PanelEntry& panel) {
+  if (wm) {
+    if (const auto* desc =
+            wm->GetWindowDescriptor(session_id, panel.panel_id)) {
+      return wm->GetWorkspaceWindowName(*desc);
+    }
+  }
+  // Fallback: reconstruct the ImGui window name using the same formula as
+  // WindowDescriptor::GetImGuiWindowName so layouts referencing panels
+  // that register late still find their windows when they come up.
+  std::string label;
+  if (!panel.icon.empty() && !panel.display_name.empty()) {
+    label = panel.icon + " " + panel.display_name;
+  } else if (!panel.display_name.empty()) {
+    label = panel.display_name;
+  } else if (!panel.icon.empty()) {
+    label = panel.icon;
+  }
+  if (panel.panel_id.empty()) {
+    return label;
+  }
+  return label.empty() ? panel.panel_id : (label + "##" + panel.panel_id);
+}
+
+void ApplyDockNodeRecursive(WorkspaceWindowManager* wm, size_t session_id,
+                            const layout_designer::DockNode& node,
+                            ImGuiID target_id) {
+  using NodeType = layout_designer::DockNode::Type;
+  if (node.type == NodeType::kLeaf) {
+    for (const auto& panel : node.panels) {
+      const std::string title = ResolveDockWindowTitle(wm, session_id, panel);
+      if (!title.empty()) {
+        ImGui::DockBuilderDockWindow(title.c_str(), target_id);
+      }
+    }
+    return;
+  }
+
+  // Split node.
+  const ImGuiDir dir = SplitDirectionToImGuiDir(node.split_direction);
+  const float ratio = std::clamp(node.split_ratio, 0.05f, 0.95f);
+  ImGuiID id_other = 0;
+  const ImGuiID id_at_dir =
+      ImGui::DockBuilderSplitNode(target_id, dir, ratio, nullptr, &id_other);
+  if (node.child_a) {
+    ApplyDockNodeRecursive(wm, session_id, *node.child_a, id_at_dir);
+  }
+  if (node.child_b) {
+    ApplyDockNodeRecursive(wm, session_id, *node.child_b, id_other);
+  }
+}
+
+struct PanelLookupEntry {
+  std::string panel_id;
+  std::string display_name;
+  std::string icon;
+};
+
+std::unique_ptr<layout_designer::DockNode> CaptureDockNodeRecursive(
+    const ImGuiDockNode* node,
+    const std::unordered_map<std::string, PanelLookupEntry>& by_window_name) {
+  if (!node) {
+    return layout_designer::DockNode::MakeLeaf({});
+  }
+
+  if (node->IsSplitNode()) {
+    auto child_a =
+        CaptureDockNodeRecursive(node->ChildNodes[0], by_window_name);
+    auto child_b =
+        CaptureDockNodeRecursive(node->ChildNodes[1], by_window_name);
+
+    const bool vertical = node->SplitAxis == ImGuiAxis_Y;
+    const layout_designer::SplitDirection dir =
+        vertical ? layout_designer::SplitDirection::kUp
+                 : layout_designer::SplitDirection::kLeft;
+
+    float ratio = 0.5f;
+    if (node->ChildNodes[0] && node->ChildNodes[1]) {
+      if (vertical && node->Size.y > 0.0f) {
+        ratio = node->ChildNodes[0]->Size.y / node->Size.y;
+      } else if (!vertical && node->Size.x > 0.0f) {
+        ratio = node->ChildNodes[0]->Size.x / node->Size.x;
+      }
+    }
+    ratio = std::clamp(ratio, 0.05f, 0.95f);
+    return layout_designer::DockNode::MakeSplit(dir, ratio, std::move(child_a),
+                                                std::move(child_b));
+  }
+
+  // Leaf.
+  std::vector<layout_designer::PanelEntry> panels;
+  panels.reserve(static_cast<size_t>(node->Windows.Size));
+  int selected_index = -1;
+  for (int i = 0; i < node->Windows.Size; ++i) {
+    const ImGuiWindow* w = node->Windows[i];
+    if (!w || !w->Name)
+      continue;
+    auto it = by_window_name.find(std::string(w->Name));
+    if (it == by_window_name.end())
+      continue;
+    if (node->SelectedTabId != 0 && w->ID == node->SelectedTabId) {
+      selected_index = static_cast<int>(panels.size());
+    }
+    panels.push_back(
+        {it->second.panel_id, it->second.display_name, it->second.icon});
+  }
+  auto leaf = layout_designer::DockNode::MakeLeaf(std::move(panels));
+  if (selected_index >= 0 &&
+      selected_index < static_cast<int>(leaf->panels.size())) {
+    leaf->active_tab_index = selected_index;
+  }
+  return leaf;
+}
+
+}  // namespace
+
+absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
+                                          ImGuiID dockspace_id) {
+  if (!window_manager_) {
+    return absl::FailedPreconditionError(
+        "LayoutManager::ApplyDockTree: WorkspaceWindowManager not bound");
+  }
+  std::string validation_error;
+  if (!tree.Validate(&validation_error)) {
+    return absl::InvalidArgumentError("LayoutManager::ApplyDockTree: " +
+                                      validation_error);
+  }
+
+  ImGui::DockBuilderRemoveNode(dockspace_id);
+  ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+
+  ImVec2 size(1280.0f, 720.0f);
+  if (const ImGuiViewport* vp = ImGui::GetMainViewport()) {
+    if (vp->WorkSize.x > 0.0f && vp->WorkSize.y > 0.0f) {
+      size = vp->WorkSize;
+    }
+  }
+  ImGui::DockBuilderSetNodeSize(dockspace_id, size);
+
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  ApplyDockNodeRecursive(window_manager_, session_id, *tree.root, dockspace_id);
+  ImGui::DockBuilderFinish(dockspace_id);
+
+  last_dockspace_id_ = dockspace_id;
+  return absl::OkStatus();
+}
+
+absl::StatusOr<layout_designer::DockTree> LayoutManager::CaptureDockTree(
+    ImGuiID dockspace_id) const {
+  if (!window_manager_) {
+    return absl::FailedPreconditionError(
+        "LayoutManager::CaptureDockTree: WorkspaceWindowManager not bound");
+  }
+  ImGuiDockNode* root_node = ImGui::DockBuilderGetNode(dockspace_id);
+  if (!root_node) {
+    return absl::NotFoundError(
+        "LayoutManager::CaptureDockTree: no dock node at given id");
+  }
+
+  std::unordered_map<std::string, PanelLookupEntry> by_window_name;
+  for (const auto& [panel_id, desc] :
+       window_manager_->GetAllWindowDescriptors()) {
+    const std::string title = window_manager_->GetWorkspaceWindowName(desc);
+    if (title.empty())
+      continue;
+    by_window_name.emplace(
+        title, PanelLookupEntry{panel_id, desc.display_name, desc.icon});
+  }
+
+  layout_designer::DockTree tree;
+  tree.root = CaptureDockNodeRecursive(root_node, by_window_name);
+  if (!tree.root) {
+    tree.root = layout_designer::DockNode::MakeLeaf({});
+  }
+  return tree;
+}
+
 }  // namespace editor
 }  // namespace yaze
