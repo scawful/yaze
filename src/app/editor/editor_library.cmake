@@ -120,6 +120,7 @@ set(
   app/editor/sprite/sprite_editor.cc
   app/editor/menu/menu_orchestrator.cc
   app/editor/shell/feedback/popup_manager.cc
+  app/editor/layout/layout_designer/layout_designer_panel.cc
   app/editor/shell/windows/about_panel.cc
   app/editor/shell/windows/dashboard_panel.cc
   app/editor/shell/dialogs/editor_selection_dialog.cc
