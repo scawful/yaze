@@ -1333,6 +1333,18 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  // Revision 17: default-pin the Layout Designer so "Show: Layout Designer"
+  // from the command palette is drawable from any editor context, not just
+  // when the active_category matches. Mirrors the rev-7 pattern for
+  // former-Persistent panels (agent.oracle_ram, workflow.output). A user
+  // who later unpins the panel keeps that choice — the block only runs
+  // once on upgrade.
+  if (prefs_.panel_layout_defaults_revision < 17 && target_revision >= 17) {
+    prefs_.pinned_panels["layout.designer"] = true;
+    prefs_.panel_layout_defaults_revision = 17;
+    applied = true;
+  }
+
   return applied;
 }
 

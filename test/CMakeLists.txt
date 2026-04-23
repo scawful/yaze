@@ -221,6 +221,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/icon_browser_test.cc
     unit/editor/layout/dock_tree_test.cc
     unit/editor/layout/dock_tree_json_test.cc
+    unit/editor/layout/dock_tree_renderer_test.cc
     unit/editor/layout/layout_manager_dock_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/editor/message/message_data_test.cc
@@ -541,6 +542,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/icon_browser_test.cc
     unit/editor/layout/dock_tree_test.cc
     unit/editor/layout/dock_tree_json_test.cc
+    unit/editor/layout/dock_tree_renderer_test.cc
     unit/editor/layout/layout_manager_dock_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/cli/dungeon_object_validate_test.cc
