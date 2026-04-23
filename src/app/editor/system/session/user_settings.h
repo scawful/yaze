@@ -159,6 +159,18 @@ class UserSettings {
     // Maps layout_name -> (panel_id -> visible)
     std::unordered_map<std::string, std::unordered_map<std::string, bool>>
         saved_layouts;
+
+    // Named DockTree layouts authored in the Layout Designer.
+    // Maps layout_name -> JSON-serialized DockTree (schema v1).
+    // Kept as opaque strings so UserSettings does not have to understand
+    // DockTree internals; the designer parses/re-serializes via
+    // layout_designer::DockTreeFromJson / DockTreeToJson.
+    std::unordered_map<std::string, std::string> named_layouts;
+
+    // Name of the last DockTree layout applied to the live dockspace.
+    // Empty string => nothing to auto-apply on startup. Mirrors the
+    // `last_theme_name` persistence pattern.
+    std::string last_applied_layout_name;
   };
 
   UserSettings();
@@ -170,7 +182,7 @@ class UserSettings {
   // than persisted settings. Returns true when defaults were reset.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 15;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 16;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }
