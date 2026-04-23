@@ -300,15 +300,16 @@ void DungeonEditorV2::Initialize() {
 
   window_manager->RegisterPanel(
       {.card_id = kObjectEditorId,
-       .display_name = "Object Editor",
-       .window_title = " Object Editor",
+       .display_name = "Selection Inspector",
+       .window_title = " Selection Inspector",
        .icon = ICON_MD_TUNE,
        .category = "Dungeon",
        .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 61,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
-       .disabled_tooltip = "Load a ROM to edit selected dungeon objects"});
+       .disabled_tooltip =
+           "Load a ROM to inspect the current dungeon selection"});
 
   window_manager->RegisterPanel(
       {.card_id = kDoorEditorId,
@@ -545,22 +546,27 @@ absl::Status DungeonEditorV2::Load() {
   object_selector_panel_ = object_selector.get();
   object_editor_content_ = object_editor.get();
 
+  auto jump_to_reciprocal_door = [this](int neighbor_room_id,
+                                        size_t door_index) {
+    if (neighbor_room_id < 0 ||
+        neighbor_room_id >= static_cast<int>(rooms_.size())) {
+      return;
+    }
+    OnRoomSelected(neighbor_room_id, true);
+    if (auto* viewer = GetViewerForRoom(neighbor_room_id)) {
+      viewer->object_interaction()
+          .entity_coordinator()
+          .door_handler()
+          .SelectDoor(door_index);
+    }
+  };
+  object_editor->SetJumpToReciprocalDoorCallback(jump_to_reciprocal_door);
+
   auto door_editor = std::make_unique<DoorEditorContent>();
   door_editor->SetRooms(&rooms_);
-  door_editor->SetJumpToReciprocalDoorCallback(
-      [this](int neighbor_room_id, size_t door_index) {
-        if (neighbor_room_id < 0 ||
-            neighbor_room_id >= static_cast<int>(rooms_.size())) {
-          return;
-        }
-        OnRoomSelected(neighbor_room_id, true);
-        if (auto* viewer = GetViewerForRoom(neighbor_room_id)) {
-          viewer->object_interaction()
-              .entity_coordinator()
-              .door_handler()
-              .SelectDoor(door_index);
-        }
-      });
+  door_editor->SetOpenSelectionInspectorCallback(
+      [this]() { OpenWindow(kObjectEditorId); });
+  door_editor->SetJumpToReciprocalDoorCallback(jump_to_reciprocal_door);
   door_editor_panel_ = door_editor.get();
 
   // Propagate game_data to the object editor panel if available
@@ -586,12 +592,16 @@ absl::Status DungeonEditorV2::Load() {
     // They will get the viewer reference in OnRoomSelected when a room is selected
     auto sprite_panel = std::make_unique<SpriteEditorPanel>(&current_room_id_,
                                                             &rooms_, nullptr);
+    sprite_panel->SetOpenSelectionInspectorCallback(
+        [this]() { OpenWindow(kObjectEditorId); });
     sprite_editor_panel_ = sprite_panel.get();
     dependencies_.window_manager->RegisterWindowContent(
         std::move(sprite_panel));
 
     auto item_panel =
         std::make_unique<ItemEditorPanel>(&current_room_id_, &rooms_, nullptr);
+    item_panel->SetOpenSelectionInspectorCallback(
+        [this]() { OpenWindow(kObjectEditorId); });
     item_editor_panel_ = item_panel.get();
     dependencies_.window_manager->RegisterWindowContent(std::move(item_panel));
 

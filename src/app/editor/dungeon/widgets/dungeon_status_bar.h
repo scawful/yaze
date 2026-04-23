@@ -20,6 +20,7 @@ struct DungeonStatusBarState {
   // Number of selected objects and which layer they're on
   int selection_count = 0;
   int selection_layer = -1;  // -1 = mixed/none
+  std::string selection_summary = "No selection";
 
   // Zoom level as a percentage (100 = 1x)
   int zoom_percent = 100;
