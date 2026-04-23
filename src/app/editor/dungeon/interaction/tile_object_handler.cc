@@ -3,16 +3,16 @@
 #include <cmath>
 #include <unordered_set>
 #include "absl/strings/str_format.h"
-#include "imgui/imgui.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
+#include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/resource/arena.h"
+#include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_limits.h"
-#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
-#include "app/editor/dungeon/object_selection.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 
 #include "app/editor/dungeon/dungeon_snapping.h"
 
@@ -22,17 +22,28 @@ namespace {
 constexpr size_t kMaxLayerBatchMutation = 128;
 }  // namespace
 
+TileObjectHandler::GhostCapacityState
+TileObjectHandler::GetPlacementGhostCapacityState() const {
+  if (!ctx_)
+    return GhostCapacityState::kNormal;
+  auto* room =
+      const_cast<TileObjectHandler*>(this)->GetRoom(ctx_->current_room_id);
+  const size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
+  return GetPlacementCapacityState(current_obj_count, zelda3::kMaxTileObjects);
+}
+
 zelda3::Room* TileObjectHandler::GetRoom(int room_id) {
-  if (!ctx_ || !ctx_->rooms) return nullptr;
-  if (room_id < 0 ||
-      room_id >= static_cast<int>(ctx_->rooms->size())) {
+  if (!ctx_ || !ctx_->rooms)
+    return nullptr;
+  if (room_id < 0 || room_id >= static_cast<int>(ctx_->rooms->size())) {
     return nullptr;
   }
   return &(*ctx_->rooms)[room_id];
 }
 
 void TileObjectHandler::NotifyChange(zelda3::Room* room) {
-  if (!room || !ctx_) return;
+  if (!room || !ctx_)
+    return;
   room->MarkObjectsDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kTileObjects);
 }
@@ -52,7 +63,8 @@ void TileObjectHandler::CancelPlacement() {
 }
 
 bool TileObjectHandler::HandleClick(int canvas_x, int canvas_y) {
-  if (!HasValidContext()) return false;
+  if (!HasValidContext())
+    return false;
 
   if (object_placement_mode_) {
     auto [room_x, room_y] = CanvasToRoom(canvas_x, canvas_y);
@@ -63,16 +75,19 @@ bool TileObjectHandler::HandleClick(int canvas_x, int canvas_y) {
   }
 
   // Handle selection (click)
-  if (!ctx_ || !ctx_->selection) return false;
+  if (!ctx_ || !ctx_->selection)
+    return false;
 
   auto hovered = GetEntityAtPosition(canvas_x, canvas_y);
-  if (!hovered.has_value()) return false;
+  if (!hovered.has_value())
+    return false;
 
   const ImGuiIO& io = ImGui::GetIO();
 
   // Alt-click is reserved for caller-specific behaviors (inspector/etc). Treat
   // it as a handled click over an object without changing selection.
-  if (io.KeyAlt) return true;
+  if (io.KeyAlt)
+    return true;
 
   ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
   if (io.KeyShift) {
@@ -96,20 +111,19 @@ void TileObjectHandler::InitDrag(const ImVec2& start_pos) {
 }
 
 void TileObjectHandler::BeginMarqueeSelection(const ImVec2& start_pos) {
-  if (!ctx_ || !ctx_->selection) return;
+  if (!ctx_ || !ctx_->selection)
+    return;
   ctx_->selection->BeginRectangleSelection(static_cast<int>(start_pos.x),
                                            static_cast<int>(start_pos.y));
 }
 
-void TileObjectHandler::HandleMarqueeSelection(const ImVec2& mouse_pos,
-                                               bool mouse_left_down,
-                                               bool mouse_left_released,
-                                               bool shift_down,
-                                               bool toggle_down,
-                                               bool alt_down,
-                                               bool draw_box) {
-  if (!ctx_ || !ctx_->selection) return;
-  if (!ctx_->selection->IsRectangleSelectionActive()) return;
+void TileObjectHandler::HandleMarqueeSelection(
+    const ImVec2& mouse_pos, bool mouse_left_down, bool mouse_left_released,
+    bool shift_down, bool toggle_down, bool alt_down, bool draw_box) {
+  if (!ctx_ || !ctx_->selection)
+    return;
+  if (!ctx_->selection->IsRectangleSelectionActive())
+    return;
 
   // Update + draw while the drag is in progress.
   if (mouse_left_down) {
@@ -139,7 +153,8 @@ void TileObjectHandler::HandleMarqueeSelection(const ImVec2& mouse_pos,
       return;
     }
 
-    ObjectSelection::SelectionMode mode = ObjectSelection::SelectionMode::Single;
+    ObjectSelection::SelectionMode mode =
+        ObjectSelection::SelectionMode::Single;
     if (shift_down) {
       mode = ObjectSelection::SelectionMode::Add;
     } else if (toggle_down) {
@@ -152,14 +167,15 @@ void TileObjectHandler::HandleMarqueeSelection(const ImVec2& mouse_pos,
 
 void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   (void)delta;
-  if (!is_dragging_ || !ctx_ || !ctx_->selection) return;
+  if (!is_dragging_ || !ctx_ || !ctx_->selection)
+    return;
 
   drag_current_ = snapping::SnapToTileGrid(current_pos);
   const bool alt_down = ImGui::GetIO().KeyAlt;
-  
+
   // Calculate total drag delta from start (snapped)
-  ImVec2 drag_delta = ImVec2(drag_current_.x - drag_start_.x,
-                             drag_current_.y - drag_start_.y);
+  ImVec2 drag_delta =
+      ImVec2(drag_current_.x - drag_start_.x, drag_current_.y - drag_start_.y);
   drag_delta = ApplyDragModifiers(drag_delta);
 
   const int tile_dx = static_cast<int>(drag_delta.x) / 8;
@@ -171,13 +187,13 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
       ctx_->NotifyMutation(MutationDomain::kTileObjects);
       drag_mutation_started_ = true;
     }
-    
+
     // Duplicate objects at current position (delta 0 initially)
-    auto new_indices = DuplicateObjects(
-        ctx_->current_room_id, ctx_->selection->GetSelectedIndices(),
-        /*delta_x=*/0, /*delta_y=*/0,
-        /*notify_mutation=*/false);
-        
+    auto new_indices = DuplicateObjects(ctx_->current_room_id,
+                                        ctx_->selection->GetSelectedIndices(),
+                                        /*delta_x=*/0, /*delta_y=*/0,
+                                        /*notify_mutation=*/false);
+
     // Update selection to the new clones
     ctx_->selection->ClearSelection();
     for (size_t idx : new_indices) {
@@ -195,11 +211,11 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
       ctx_->NotifyMutation(MutationDomain::kTileObjects);
       drag_mutation_started_ = true;
     }
-    
+
     MoveObjects(ctx_->current_room_id, ctx_->selection->GetSelectedIndices(),
                 inc_dx, inc_dy,
                 /*notify_mutation=*/false);
-                
+
     drag_last_dx_ = tile_dx;
     drag_last_dy_ = tile_dy;
   }
@@ -223,109 +239,134 @@ void TileObjectHandler::HandleRelease() {
 
 ImVec2 TileObjectHandler::ApplyDragModifiers(const ImVec2& delta) const {
   const ImGuiIO& io = ImGui::GetIO();
-  if (!io.KeyShift) return delta;
-  if (std::abs(delta.x) >= std::abs(delta.y)) return ImVec2(delta.x, 0.0f);
+  if (!io.KeyShift)
+    return delta;
+  if (std::abs(delta.x) >= std::abs(delta.y))
+    return ImVec2(delta.x, 0.0f);
   return ImVec2(0.0f, delta.y);
 }
 
-
 bool TileObjectHandler::HandleMouseWheel(float delta) {
-  if (!HasValidContext() || !ctx_ || !ctx_->selection || delta == 0.0f) return false;
-  
+  if (!HasValidContext() || !ctx_ || !ctx_->selection || delta == 0.0f)
+    return false;
+
   auto indices = ctx_->selection->GetSelectedIndices();
-  if (indices.empty()) return false;
-  
+  if (indices.empty())
+    return false;
+
   int resize_delta = (delta > 0.0f) ? 1 : -1;
   ResizeObjects(ctx_->current_room_id, indices, resize_delta);
   return true;
 }
 
 void TileObjectHandler::DrawGhostPreview() {
-  if (!object_placement_mode_ || preview_object_.id_ < 0 || !HasValidContext()) return;
+  if (!object_placement_mode_ || preview_object_.id_ < 0 || !HasValidContext())
+    return;
 
   const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = GetCanvasZeroPoint();
   ImVec2 mouse_pos = io.MousePos;
   float scale = GetCanvasScale();
 
-  ImVec2 canvas_mouse_pos = ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
-  auto [room_x, room_y] = CanvasToRoom(static_cast<int>(canvas_mouse_pos.x), static_cast<int>(canvas_mouse_pos.y));
+  ImVec2 canvas_mouse_pos =
+      ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+  auto [room_x, room_y] = CanvasToRoom(static_cast<int>(canvas_mouse_pos.x),
+                                       static_cast<int>(canvas_mouse_pos.y));
 
-  if (!IsWithinBounds(static_cast<int>(canvas_mouse_pos.x), static_cast<int>(canvas_mouse_pos.y))) return;
+  if (!IsWithinBounds(static_cast<int>(canvas_mouse_pos.x),
+                      static_cast<int>(canvas_mouse_pos.y)))
+    return;
 
   auto [snap_canvas_x, snap_canvas_y] = RoomToCanvas(room_x, room_y);
   auto [obj_width, obj_height] = CalculateObjectBounds(preview_object_);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale, canvas_pos.y + snap_canvas_y * scale);
-  ImVec2 preview_end(preview_start.x + obj_width * scale, preview_start.y + obj_height * scale);
+  ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale,
+                       canvas_pos.y + snap_canvas_y * scale);
+  ImVec2 preview_end(preview_start.x + obj_width * scale,
+                     preview_start.y + obj_height * scale);
 
   zelda3::Room* room = GetRoom(ctx_->current_room_id);
-  size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
-  const bool at_obj_limit = (current_obj_count >= zelda3::kMaxTileObjects);
-  const bool near_obj_limit = (current_obj_count >= zelda3::kMaxTileObjects * 9 / 10);
+  const size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
+  const auto capacity_state = GetPlacementGhostCapacityState();
 
   const auto& theme = AgentUI::GetTheme();
-  ImVec4 outline_color = theme.dungeon_selection_primary;
-  if (at_obj_limit) {
-    outline_color = theme.status_error;
-  } else if (near_obj_limit) {
-    outline_color = theme.status_warning;
-  }
+  const ImVec4 outline_color = GetPlacementAccentColor(
+      theme, capacity_state, theme.dungeon_selection_primary);
   bool drew_bitmap = false;
 
   if (ghost_preview_buffer_) {
     auto& bitmap = ghost_preview_buffer_->bitmap();
     if (bitmap.texture()) {
-      ImVec2 bitmap_end(preview_start.x + bitmap.width() * scale, preview_start.y + bitmap.height() * scale);
-      ImVec4 tint = at_obj_limit ? theme.status_error : theme.text_primary;
+      ImVec2 bitmap_end(preview_start.x + bitmap.width() * scale,
+                        preview_start.y + bitmap.height() * scale);
+      ImVec4 tint = capacity_state == GhostCapacityState::kNormal
+                        ? theme.text_primary
+                        : GetPlacementAccentColor(theme, capacity_state,
+                                                  theme.text_primary);
       tint.w = 0.70f;
-      draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), preview_start,
-                          bitmap_end, ImVec2(0, 0), ImVec2(1, 1),
+      draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
+                          preview_start, bitmap_end, ImVec2(0, 0), ImVec2(1, 1),
                           ImGui::GetColorU32(tint));
-      draw_list->AddRect(preview_start, bitmap_end, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
+      draw_list->AddRect(preview_start, bitmap_end,
+                         ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
       drew_bitmap = true;
     }
   }
 
   if (!drew_bitmap) {
-    draw_list->AddRectFilled(preview_start, preview_end,
-        ImGui::GetColorU32(ImVec4(outline_color.x, outline_color.y, outline_color.z, 0.25f)));
-    draw_list->AddRect(preview_start, preview_end, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
+    draw_list->AddRectFilled(
+        preview_start, preview_end,
+        ImGui::GetColorU32(
+            ImVec4(outline_color.x, outline_color.y, outline_color.z, 0.25f)));
+    draw_list->AddRect(preview_start, preview_end,
+                       ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
   }
 
   // ID label
   std::string id_text = absl::StrFormat("0x%02X", preview_object_.id_);
-  draw_list->AddText(ImVec2(preview_start.x + 2, preview_start.y + 1), ImGui::GetColorU32(theme.text_primary), id_text.c_str());
+  draw_list->AddText(ImVec2(preview_start.x + 2, preview_start.y + 1),
+                     ImGui::GetColorU32(theme.text_primary), id_text.c_str());
 
   // Capacity tooltip while hovering — proactive warning before user clicks.
-  if ((at_obj_limit || near_obj_limit) &&
+  if (capacity_state != GhostCapacityState::kNormal &&
       ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
-    ImGui::SetTooltip("Objects: %zu/%zu%s", current_obj_count, zelda3::kMaxTileObjects,
-                      at_obj_limit ? "\nPlacement blocked" : "\nNear limit");
+    ImGui::SetTooltip("Objects: %zu/%zu\n%s", current_obj_count,
+                      zelda3::kMaxTileObjects,
+                      GetPlacementCapacityTooltipSuffix(capacity_state).data());
   }
 
+  const std::string badge_text = absl::StrFormat(
+      "Objects %zu/%zu", current_obj_count, zelda3::kMaxTileObjects);
+  DrawPlacementCapacityBadge(draw_list,
+                             ImVec2(preview_start.x, preview_end.y + 6.0f),
+                             theme, capacity_state, badge_text);
 }
 
 void TileObjectHandler::DrawSelectionHighlight() {
-  if (!HasValidContext() || !ctx_->selection) return;
+  if (!HasValidContext() || !ctx_->selection)
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   // Use ObjectSelection's rendering (handles pulsing border, corner handles)
   ctx_->selection->DrawSelectionHighlights(
       ctx_->canvas, room->GetTileObjects(), [](const zelda3::RoomObject& obj) {
         auto result = zelda3::DimensionService::Get().GetDimensions(obj);
         return std::make_tuple(result.offset_x_tiles * 8,
-                               result.offset_y_tiles * 8,
-                               result.width_pixels(), result.height_pixels());
+                               result.offset_y_tiles * 8, result.width_pixels(),
+                               result.height_pixels());
       });
 }
 
-std::optional<size_t> TileObjectHandler::GetEntityAtPosition(int canvas_x, int canvas_y) const {
-  auto* room = const_cast<TileObjectHandler*>(this)->GetRoom(ctx_->current_room_id);
-  if (!room) return std::nullopt;
+std::optional<size_t> TileObjectHandler::GetEntityAtPosition(
+    int canvas_x, int canvas_y) const {
+  auto* room =
+      const_cast<TileObjectHandler*>(this)->GetRoom(ctx_->current_room_id);
+  if (!room)
+    return std::nullopt;
 
   const auto& objects = room->GetTileObjects();
   for (size_t i = objects.size(); i > 0; --i) {
@@ -333,19 +374,21 @@ std::optional<size_t> TileObjectHandler::GetEntityAtPosition(int canvas_x, int c
     const auto& object = objects[index];
 
     // Respect layer filter if available in context
-    if (ctx_ && ctx_->selection && !ctx_->selection->PassesLayerFilterForObject(object)) {
+    if (ctx_ && ctx_->selection &&
+        !ctx_->selection->PassesLayerFilterForObject(object)) {
       continue;
     }
 
-    auto [obj_tile_x, obj_tile_y, width_tiles, height_tiles] = zelda3::DimensionService::Get().GetHitTestBounds(object);
-    
+    auto [obj_tile_x, obj_tile_y, width_tiles, height_tiles] =
+        zelda3::DimensionService::Get().GetHitTestBounds(object);
+
     int obj_px = obj_tile_x * 8;
     int obj_py = obj_tile_y * 8;
     int w_px = width_tiles * 8;
     int h_px = height_tiles * 8;
 
-    if (canvas_x >= obj_px && canvas_x < obj_px + w_px &&
-        canvas_y >= obj_py && canvas_y < obj_py + h_px) {
+    if (canvas_x >= obj_px && canvas_x < obj_px + w_px && canvas_y >= obj_py &&
+        canvas_y < obj_py + h_px) {
       return index;
     }
   }
@@ -361,24 +404,32 @@ void TileObjectHandler::MoveObjects(int room_id,
                                     int delta_x, int delta_y,
                                     bool notify_mutation) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (notify_mutation && ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (notify_mutation && ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
     if (index < objects.size()) {
-      objects[index].x_ = std::clamp(static_cast<int>(objects[index].x_ + delta_x), 0, 63);
-      objects[index].y_ = std::clamp(static_cast<int>(objects[index].y_ + delta_y), 0, 63);
+      objects[index].x_ =
+          std::clamp(static_cast<int>(objects[index].x_ + delta_x), 0, 63);
+      objects[index].y_ =
+          std::clamp(static_cast<int>(objects[index].y_ + delta_y), 0, 63);
     }
   }
 
   NotifyChange(room);
 }
 
-void TileObjectHandler::UpdateObjectsId(int room_id, const std::vector<size_t>& indices, int16_t new_id) {
+void TileObjectHandler::UpdateObjectsId(int room_id,
+                                        const std::vector<size_t>& indices,
+                                        int16_t new_id) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
@@ -390,10 +441,14 @@ void TileObjectHandler::UpdateObjectsId(int room_id, const std::vector<size_t>& 
   NotifyChange(room);
 }
 
-void TileObjectHandler::UpdateObjectsSize(int room_id, const std::vector<size_t>& indices, uint8_t new_size) {
+void TileObjectHandler::UpdateObjectsSize(int room_id,
+                                          const std::vector<size_t>& indices,
+                                          uint8_t new_size) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
@@ -405,9 +460,12 @@ void TileObjectHandler::UpdateObjectsSize(int room_id, const std::vector<size_t>
   NotifyChange(room);
 }
 
-void TileObjectHandler::UpdateObjectsLayer(int room_id, const std::vector<size_t>& indices, int new_layer) {
+void TileObjectHandler::UpdateObjectsLayer(int room_id,
+                                           const std::vector<size_t>& indices,
+                                           int new_layer) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
+  if (!room || indices.empty())
+    return;
   if (new_layer < 0 || new_layer > 2) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer update with invalid target layer: %d", new_layer);
@@ -490,7 +548,8 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id, const std::vector<size_t
     return;
   }
 
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   NotifyChange(room);
 }
 
@@ -498,12 +557,14 @@ std::vector<size_t> TileObjectHandler::DuplicateObjects(
     int room_id, const std::vector<size_t>& indices, int delta_x, int delta_y,
     bool notify_mutation) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return {};
-  if (notify_mutation && ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return {};
+  if (notify_mutation && ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   std::vector<size_t> new_indices;
-  
+
   const size_t base_index = objects.size();
   for (size_t index : indices) {
     if (index < objects.size()) {
@@ -519,10 +580,13 @@ std::vector<size_t> TileObjectHandler::DuplicateObjects(
   return new_indices;
 }
 
-void TileObjectHandler::DeleteObjects(int room_id, std::vector<size_t> indices) {
+void TileObjectHandler::DeleteObjects(int room_id,
+                                      std::vector<size_t> indices) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   std::sort(indices.rbegin(), indices.rend());
   for (size_t index : indices) {
@@ -534,16 +598,21 @@ void TileObjectHandler::DeleteObjects(int room_id, std::vector<size_t> indices) 
 
 void TileObjectHandler::DeleteAllObjects(int room_id) {
   auto* room = GetRoom(room_id);
-  if (!room) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room)
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   room->ClearTileObjects();
   NotifyChange(room);
 }
 
-void TileObjectHandler::SendToFront(int room_id, const std::vector<size_t>& indices) {
+void TileObjectHandler::SendToFront(int room_id,
+                                    const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   std::vector<zelda3::RoomObject> selected, other;
@@ -560,10 +629,13 @@ void TileObjectHandler::SendToFront(int room_id, const std::vector<size_t>& indi
   NotifyChange(room);
 }
 
-void TileObjectHandler::SendToBack(int room_id, const std::vector<size_t>& indices) {
+void TileObjectHandler::SendToBack(int room_id,
+                                   const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   std::vector<zelda3::RoomObject> selected, other;
@@ -580,10 +652,13 @@ void TileObjectHandler::SendToBack(int room_id, const std::vector<size_t>& indic
   NotifyChange(room);
 }
 
-void TileObjectHandler::MoveForward(int room_id, const std::vector<size_t>& indices) {
+void TileObjectHandler::MoveForward(int room_id,
+                                    const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   auto sorted_indices = indices;
@@ -597,10 +672,13 @@ void TileObjectHandler::MoveForward(int room_id, const std::vector<size_t>& indi
   NotifyChange(room);
 }
 
-void TileObjectHandler::MoveBackward(int room_id, const std::vector<size_t>& indices) {
+void TileObjectHandler::MoveBackward(int room_id,
+                                     const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   auto& objects = room->GetTileObjects();
   auto sorted_indices = indices;
@@ -614,22 +692,29 @@ void TileObjectHandler::MoveBackward(int room_id, const std::vector<size_t>& ind
   NotifyChange(room);
 }
 
-void TileObjectHandler::ResizeObjects(int room_id, const std::vector<size_t>& indices, int delta) {
+void TileObjectHandler::ResizeObjects(int room_id,
+                                      const std::vector<size_t>& indices,
+                                      int delta) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || indices.empty())
+    return;
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
     if (index < objects.size()) {
-       int new_size = std::clamp(static_cast<int>(objects[index].size_) + delta, 0, 15);
-       objects[index].size_ = static_cast<uint8_t>(new_size);
-       objects[index].tiles_loaded_ = false;
+      int new_size =
+          std::clamp(static_cast<int>(objects[index].size_) + delta, 0, 15);
+      objects[index].size_ = static_cast<uint8_t>(new_size);
+      objects[index].tiles_loaded_ = false;
     }
   }
   NotifyChange(room);
 }
 
-bool TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x, int y) {
+bool TileObjectHandler::PlaceObjectAt(int room_id,
+                                      const zelda3::RoomObject& object, int x,
+                                      int y) {
   auto* room = GetRoom(room_id);
   if (!room) {
     placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
@@ -643,7 +728,8 @@ bool TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& obj
   }
 
   placement_block_reason_ = PlacementBlockReason::kNone;
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto new_obj = object;
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
@@ -653,7 +739,6 @@ bool TileObjectHandler::PlaceObjectAt(int room_id, const zelda3::RoomObject& obj
   return true;
 }
 
-
 void TileObjectHandler::SetPreviewObject(const zelda3::RoomObject& object) {
   preview_object_ = object;
   if (object_placement_mode_) {
@@ -662,22 +747,27 @@ void TileObjectHandler::SetPreviewObject(const zelda3::RoomObject& object) {
 }
 
 void TileObjectHandler::RenderGhostPreviewBitmap() {
-  if (!ctx_ || !ctx_->rom || !ctx_->rom->is_loaded()) return;
-  
+  if (!ctx_ || !ctx_->rom || !ctx_->rom->is_loaded())
+    return;
+
   auto* room = GetRoom(ctx_->current_room_id);
-  if (!room || !room->IsLoaded()) return;
+  if (!room || !room->IsLoaded())
+    return;
 
   auto [width, height] = CalculateObjectBounds(preview_object_);
   width = std::max(width, 16);
   height = std::max(height, 16);
 
-  ghost_preview_buffer_ = std::make_unique<gfx::BackgroundBuffer>(width, height);
+  ghost_preview_buffer_ =
+      std::make_unique<gfx::BackgroundBuffer>(width, height);
   const uint8_t* gfx_data = room->get_gfx_buffer().data();
 
   zelda3::ObjectDrawer drawer(ctx_->rom, ctx_->current_room_id, gfx_data);
   drawer.InitializeDrawRoutines();
 
-  auto status = drawer.DrawObject(preview_object_, *ghost_preview_buffer_, *ghost_preview_buffer_, ctx_->current_palette_group);
+  auto status =
+      drawer.DrawObject(preview_object_, *ghost_preview_buffer_,
+                        *ghost_preview_buffer_, ctx_->current_palette_group);
   if (!status.ok()) {
     ghost_preview_buffer_.reset();
     return;
@@ -685,8 +775,8 @@ void TileObjectHandler::RenderGhostPreviewBitmap() {
 
   auto& bitmap = ghost_preview_buffer_->bitmap();
   if (bitmap.size() > 0) {
-    gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
-                                          &bitmap);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &bitmap);
     gfx::Arena::Get().ProcessTextureQueue(nullptr);
   }
 }
@@ -703,11 +793,12 @@ std::pair<int, int> TileObjectHandler::CalculateObjectBounds(
 void TileObjectHandler::CopyObjectsToClipboard(
     int room_id, const std::vector<size_t>& indices) {
   auto* room = GetRoom(room_id);
-  if (!room || indices.empty()) return;
+  if (!room || indices.empty())
+    return;
 
   clipboard_.clear();
   const auto& objects = room->GetTileObjects();
-  
+
   for (size_t idx : indices) {
     if (idx < objects.size()) {
       clipboard_.push_back(objects[idx]);
@@ -715,11 +806,14 @@ void TileObjectHandler::CopyObjectsToClipboard(
   }
 }
 
-std::vector<size_t> TileObjectHandler::PasteFromClipboard(
-    int room_id, int offset_x, int offset_y) {
+std::vector<size_t> TileObjectHandler::PasteFromClipboard(int room_id,
+                                                          int offset_x,
+                                                          int offset_y) {
   auto* room = GetRoom(room_id);
-  if (!room || clipboard_.empty()) return {};
-  if (ctx_) ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  if (!room || clipboard_.empty())
+    return {};
+  if (ctx_)
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   std::vector<size_t> new_indices;
   size_t base_index = room->GetTileObjects().size();
@@ -736,14 +830,16 @@ std::vector<size_t> TileObjectHandler::PasteFromClipboard(
   return new_indices;
 }
 
-std::vector<size_t> TileObjectHandler::PasteFromClipboardAt(
-    int room_id, int target_x, int target_y) {
-  if (clipboard_.empty()) return {};
-  
+std::vector<size_t> TileObjectHandler::PasteFromClipboardAt(int room_id,
+                                                            int target_x,
+                                                            int target_y) {
+  if (clipboard_.empty())
+    return {};
+
   int offset_x = target_x - clipboard_[0].x_;
   int offset_y = target_y - clipboard_[0].y_;
-  
+
   return PasteFromClipboard(room_id, offset_x, offset_y);
 }
 
-} // namespace yaze::editor
+}  // namespace yaze::editor

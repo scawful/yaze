@@ -14,6 +14,7 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
@@ -251,7 +252,12 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     const int kMaxDoors = static_cast<int>(zelda3::kMaxDoors);
     const int kMaxChests = static_cast<int>(zelda3::kMaxChests);
 
-    auto usage_color = [&](size_t count, int max_val) -> ImVec4 {
+    auto usage_color = [&](size_t count, int max_val,
+                           bool exact_capacity_warning) -> ImVec4 {
+      if (exact_capacity_warning) {
+        return GetPlacementSummaryColor(theme, count, max_val,
+                                        theme.text_secondary_gray);
+      }
       float ratio = static_cast<float>(count) / static_cast<float>(max_val);
       if (ratio >= 1.0f) {
         return theme.status_error;
@@ -266,17 +272,17 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     auto result = validator.ValidateRoom(room);
 
     ImGui::Spacing();
-    ImGui::TextColored(usage_color(object_count, kMaxObjects),
+    ImGui::TextColored(usage_color(object_count, kMaxObjects, true),
                        ICON_MD_WIDGETS " %zu/%d", object_count, kMaxObjects);
     ImGui::SameLine();
-    ImGui::TextColored(usage_color(sprite_count, kMaxSprites),
+    ImGui::TextColored(usage_color(sprite_count, kMaxSprites, true),
                        ICON_MD_PEST_CONTROL " %zu/%d", sprite_count,
                        kMaxSprites);
     ImGui::SameLine();
-    ImGui::TextColored(usage_color(door_count, kMaxDoors),
+    ImGui::TextColored(usage_color(door_count, kMaxDoors, true),
                        ICON_MD_DOOR_FRONT " %zu/%d", door_count, kMaxDoors);
     ImGui::SameLine();
-    ImGui::TextColored(usage_color(chest_count, kMaxChests),
+    ImGui::TextColored(usage_color(chest_count, kMaxChests, false),
                        ICON_MD_INVENTORY_2 " %d/%d", chest_count, kMaxChests);
 
     if (!result.errors.empty() || !result.warnings.empty()) {

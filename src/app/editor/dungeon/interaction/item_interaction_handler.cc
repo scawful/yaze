@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 
 // Project headers
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 
 namespace yaze::editor {
@@ -115,17 +116,20 @@ void ItemInteractionHandler::DrawGhostPreview() {
                   canvas_pos.y + snapped_y * scale);
   ImVec2 rect_max(rect_min.x + 16 * scale, rect_min.y + 16 * scale);
 
-  // Semi-transparent yellow for items
-  ImU32 fill_color = IM_COL32(200, 200, 50, 100);
-  ImU32 outline_color = IM_COL32(255, 255, 50, 200);
+  const auto& theme = AgentUI::GetTheme();
+  ImVec4 fill_color = theme.dungeon_selection_primary;
+  fill_color.w = 0.35f;
+  ImVec4 outline_color = theme.dungeon_selection_primary;
+  outline_color.w = 0.85f;
 
-  canvas->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
-  canvas->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0,
-                               2.0f);
+  canvas->draw_list()->AddRectFilled(rect_min, rect_max,
+                                     ImGui::GetColorU32(fill_color));
+  canvas->draw_list()->AddRect(
+      rect_min, rect_max, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
 
   // Draw item ID label
   std::string label = absl::StrFormat("%02X", preview_item_id_);
-  canvas->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255),
+  canvas->draw_list()->AddText(rect_min, ImGui::GetColorU32(theme.text_primary),
                                label.c_str());
 }
 

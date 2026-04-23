@@ -15,6 +15,14 @@
 
 namespace yaze::editor {
 
+SpriteInteractionHandler::GhostCapacityState
+SpriteInteractionHandler::GetPlacementGhostCapacityState() const {
+  auto* room = GetCurrentRoom();
+  const size_t current_sprite_count = room ? room->GetSprites().size() : 0;
+  return GetPlacementCapacityState(current_sprite_count,
+                                   zelda3::kMaxTotalSprites);
+}
+
 void SpriteInteractionHandler::BeginPlacement() {
   sprite_placement_mode_ = true;
   ClearSelection();
@@ -107,11 +115,8 @@ void SpriteInteractionHandler::DrawGhostPreview() {
                   dungeon_coords::kSpriteTileSize;
 
   auto* room = GetCurrentRoom();
-  size_t current_sprite_count = room ? room->GetSprites().size() : 0;
-  const bool at_sprite_limit =
-      (current_sprite_count >= zelda3::kMaxTotalSprites);
-  const bool near_sprite_limit =
-      (current_sprite_count >= zelda3::kMaxTotalSprites * 9 / 10);
+  const size_t current_sprite_count = room ? room->GetSprites().size() : 0;
+  const auto capacity_state = GetPlacementGhostCapacityState();
 
   // Draw ghost rectangle for sprite preview
   ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
@@ -120,21 +125,12 @@ void SpriteInteractionHandler::DrawGhostPreview() {
                   rect_min.y + dungeon_coords::kSpriteTileSize * scale);
 
   const auto& theme = AgentUI::GetTheme();
-  ImVec4 fill_color = theme.status_success;
+  const ImVec4 base_color =
+      GetPlacementAccentColor(theme, capacity_state, theme.status_success);
+  ImVec4 fill_color = base_color;
   fill_color.w = 0.40f;
-  ImVec4 outline_color = theme.status_success;
+  ImVec4 outline_color = base_color;
   outline_color.w = 0.85f;
-  if (at_sprite_limit) {
-    fill_color = theme.status_error;
-    fill_color.w = 0.40f;
-    outline_color = theme.status_error;
-    outline_color.w = 0.85f;
-  } else if (near_sprite_limit) {
-    fill_color = theme.status_warning;
-    fill_color.w = 0.40f;
-    outline_color = theme.status_warning;
-    outline_color.w = 0.85f;
-  }
 
   canvas->draw_list()->AddRectFilled(rect_min, rect_max,
                                      ImGui::GetColorU32(fill_color));
@@ -147,12 +143,18 @@ void SpriteInteractionHandler::DrawGhostPreview() {
                                label.c_str());
 
   // Capacity tooltip when at/near limit
-  if ((at_sprite_limit || near_sprite_limit) &&
+  if (capacity_state != GhostCapacityState::kNormal &&
       ImGui::IsMouseHoveringRect(rect_min, rect_max)) {
-    ImGui::SetTooltip("Sprites: %zu/%zu%s", current_sprite_count,
+    ImGui::SetTooltip("Sprites: %zu/%zu\n%s", current_sprite_count,
                       zelda3::kMaxTotalSprites,
-                      at_sprite_limit ? "\nPlacement blocked" : "\nNear limit");
+                      GetPlacementCapacityTooltipSuffix(capacity_state).data());
   }
+
+  const std::string badge_text = absl::StrFormat(
+      "Sprites %zu/%zu", current_sprite_count, zelda3::kMaxTotalSprites);
+  DrawPlacementCapacityBadge(canvas->draw_list(),
+                             ImVec2(rect_min.x, rect_max.y + 6.0f), theme,
+                             capacity_state, badge_text);
 }
 
 void SpriteInteractionHandler::DrawSelectionHighlight() {

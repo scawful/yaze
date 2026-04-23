@@ -133,6 +133,42 @@ TEST_F(TileObjectHandlerTest, PlaceObjectBlocksAtRoomObjectLimit) {
             static_cast<size_t>(kMaxObjects));
 }
 
+TEST_F(TileObjectHandlerTest, GhostCapacityStateIsNormalBelowLastSlot) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(398);
+  for (int i = 0; i < 398; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x01));
+  }
+  AddTestObjects(objects);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            TileObjectHandler::GhostCapacityState::kNormal);
+}
+
+TEST_F(TileObjectHandlerTest, GhostCapacityStateWarnsOnLastAvailableSlot) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(399);
+  for (int i = 0; i < 399; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x01));
+  }
+  AddTestObjects(objects);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            TileObjectHandler::GhostCapacityState::kNearLimit);
+}
+
+TEST_F(TileObjectHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(400);
+  for (int i = 0; i < 400; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x01));
+  }
+  AddTestObjects(objects);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            TileObjectHandler::GhostCapacityState::kAtLimit);
+}
+
 // ============================================================================
 // Resize Tests
 // ============================================================================

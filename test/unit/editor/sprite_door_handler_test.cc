@@ -117,6 +117,28 @@ TEST_F(SpriteInteractionHandlerTest, PlacementModeLifecycle) {
   EXPECT_FALSE(handler_.IsPlacementActive());
 }
 
+TEST_F(SpriteInteractionHandlerTest, GhostCapacityStateIsNormalBelowLastSlot) {
+  AddSprites(62);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            SpriteInteractionHandler::GhostCapacityState::kNormal);
+}
+
+TEST_F(SpriteInteractionHandlerTest,
+       GhostCapacityStateWarnsOnLastAvailableSlot) {
+  AddSprites(63);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            SpriteInteractionHandler::GhostCapacityState::kNearLimit);
+}
+
+TEST_F(SpriteInteractionHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
+  AddSprites(64);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            SpriteInteractionHandler::GhostCapacityState::kAtLimit);
+}
+
 // ============================================================================
 // Door Interaction Handler Tests
 // ============================================================================
