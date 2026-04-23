@@ -276,6 +276,25 @@ void SpriteInteractionHandler::DeleteSelected() {
   room->MarkSpritesDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ClearSelection();
+  ctx_->NotifyEntityChanged();
+}
+
+void SpriteInteractionHandler::DeleteAll() {
+  if (!HasValidContext()) {
+    return;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room || room->GetSprites().empty()) {
+    return;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kSprites);
+  room->GetSprites().clear();
+  room->MarkSpritesDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
+  ClearSelection();
+  ctx_->NotifyEntityChanged();
 }
 
 void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,

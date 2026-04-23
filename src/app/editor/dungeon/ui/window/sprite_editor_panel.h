@@ -231,6 +231,12 @@ class SpriteEditorPanel : public WindowContent {
         sprite_count > 16 ? theme.text_error_red : theme.text_primary;
     ImGui::TextColored(count_color, ICON_MD_LIST " Room Sprites: %d/16",
                        sprite_count);
+    if (selected_sprite_list_index >= 0 && open_selection_inspector_callback_) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect Selected")) {
+        open_selection_inspector_callback_();
+      }
+    }
 
     if (sprite_count > 16) {
       ImGui::SameLine();
@@ -290,16 +296,6 @@ class SpriteEditorPanel : public WindowContent {
       ImGui::PopID();
     }
     ImGui::EndChild();
-
-    if (selected_sprite_list_index >= 0) {
-      ImGui::Spacing();
-      ImGui::TextColored(theme.text_secondary_gray, ICON_MD_TUNE
-                         " Sprite properties now live in Selection Inspector.");
-      if (open_selection_inspector_callback_ &&
-          ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Selection Inspector")) {
-        open_selection_inspector_callback_();
-      }
-    }
   }
 
   bool MatchesFilter(int sprite_id) {

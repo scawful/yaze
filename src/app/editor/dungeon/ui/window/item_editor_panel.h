@@ -247,6 +247,12 @@ class ItemEditorPanel : public WindowContent {
     }
 
     ImGui::Text(ICON_MD_LIST " Room Items (%zu):", items.size());
+    if (selected_item_index >= 0 && open_selection_inspector_callback_) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect Selected")) {
+        open_selection_inspector_callback_();
+      }
+    }
 
     if (items.empty()) {
       ImGui::TextColored(theme.text_secondary_gray,
@@ -282,16 +288,6 @@ class ItemEditorPanel : public WindowContent {
       ImGui::PopID();
     }
     ImGui::EndChild();
-
-    if (selected_item_index >= 0) {
-      ImGui::Spacing();
-      ImGui::TextColored(theme.text_secondary_gray, ICON_MD_TUNE
-                         " Item properties now live in Selection Inspector.");
-      if (open_selection_inspector_callback_ &&
-          ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Open Selection Inspector")) {
-        open_selection_inspector_callback_();
-      }
-    }
   }
 
   ImVec4 GetItemTypeColor(int item_id, const AgentUITheme& theme) {

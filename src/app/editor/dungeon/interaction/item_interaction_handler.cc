@@ -245,6 +245,25 @@ void ItemInteractionHandler::DeleteSelected() {
   room->MarkPotItemsDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
+  ctx_->NotifyEntityChanged();
+}
+
+void ItemInteractionHandler::DeleteAll() {
+  if (!HasValidContext()) {
+    return;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room || room->GetPotItems().empty()) {
+    return;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  room->GetPotItems().clear();
+  room->MarkPotItemsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+  ClearSelection();
+  ctx_->NotifyEntityChanged();
 }
 
 void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {

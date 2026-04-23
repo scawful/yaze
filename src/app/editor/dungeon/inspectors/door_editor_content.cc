@@ -165,11 +165,8 @@ void DoorEditorContent::Draw(bool* p_open) {
       canvas_viewer_->object_interaction().GetSelectedEntity().type ==
           EntityType::Door) {
     gui::SectionHeader(ICON_MD_SELECT_ALL, "Selected Door", theme.text_info);
-    ImGui::TextColored(theme.text_secondary_gray,
-                       "Door properties now live in Selection Inspector.");
     if (open_selection_inspector_callback_ &&
-        ImGui::Button(ICON_MD_OPEN_IN_NEW " Open Selection Inspector",
-                      ImVec2(-1, 0))) {
+        ImGui::Button(ICON_MD_OPEN_IN_NEW " Inspect Selected", ImVec2(-1, 0))) {
       open_selection_inspector_callback_();
     }
     ImGui::Spacing();

@@ -64,6 +64,7 @@ class ObjectEditorContent : public WindowContent {
   void DeselectAllObjects();
   void DuplicateSelectedObjects();
   void DeleteSelectedEntity();
+  void DeleteAllSelectedTypeInRoom();
   void DuplicateSelectedSprite();
   void NudgeSelectedObjects(int dx, int dy);
   void ScrollToObject(size_t index);
