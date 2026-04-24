@@ -91,6 +91,11 @@ class LayoutDesignerPanel : public WindowContent {
   void LoadNamedLayoutIntoTree(const std::string& name);
   void ApplyCurrentTreeToLiveDockspace();
 
+  // Save routing — if the tree still carries the seed "Untitled" name
+  // (or no name), open Save As so the user commits to a real name
+  // instead of blindly writing an "Untitled" entry.
+  void SaveOrSaveAs();
+
   DockTree tree_;
   const DockNode* selected_ = nullptr;
   ActiveDrag drag_;

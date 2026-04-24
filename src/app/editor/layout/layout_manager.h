@@ -311,6 +311,28 @@ class LayoutManager {
                              ImGuiID dockspace_id);
 
   /**
+   * @brief Record the ImGui ID of the main dockspace from its authoring
+   *        scope.
+   *
+   * ImGui IDs are salted by the current window's ID stack, so
+   * `ImGui::GetID("MainDockSpace")` only resolves to the live dockspace
+   * when called from inside the window that hosts it (see
+   * `controller.cc::Render`). Panels drawn in other windows (e.g. the
+   * Layout Designer, which lives in its own PanelWindow) would hash a
+   * different ID and end up driving an orphan dock node. The controller
+   * calls this setter every frame from the correct scope; consumers
+   * read via `GetMainDockspaceId()`.
+   */
+  void SetMainDockspaceId(ImGuiID id) { main_dockspace_id_ = id; }
+
+  /**
+   * @brief Get the cached main dockspace ID.
+   * @return The ID cached by `SetMainDockspaceId`, or 0 before the first
+   *         frame of the DockSpaceWindow has rendered.
+   */
+  ImGuiID GetMainDockspaceId() const { return main_dockspace_id_; }
+
+  /**
    * @brief Capture the current docking state into a DockTree.
    *
    * Walks ImGui's internal dock node tree rooted at `dockspace_id` and
@@ -363,6 +385,11 @@ class LayoutManager {
 
   // Last used dockspace ID (for rebuild operations)
   ImGuiID last_dockspace_id_ = 0;
+
+  // Main dockspace ID captured from the authoritative scope (see
+  // `SetMainDockspaceId`). 0 until the controller has rendered at least
+  // one DockSpaceWindow frame.
+  ImGuiID main_dockspace_id_ = 0;
 
   // Current editor type being displayed
   EditorType current_editor_type_ = EditorType::kUnknown;
