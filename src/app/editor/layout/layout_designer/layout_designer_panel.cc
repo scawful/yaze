@@ -1,10 +1,16 @@
 #include "app/editor/layout/layout_designer/layout_designer_panel.h"
 
+#include <utility>
+
 #include "app/editor/layout/layout_designer/dock_tree_hit_test.h"
 #include "app/editor/layout/layout_designer/dock_tree_renderer.h"
+#include "app/editor/layout/layout_designer/drop_zone_suggester.h"
 #include "app/editor/layout/layout_designer/panel_palette.h"
 #include "app/editor/layout/layout_designer/split_boundary_drag.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/editor/registry/panel_registration.h"
+#include "app/editor/system/workspace/editor_panel.h"
+#include "app/gui/core/drag_drop.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -84,6 +90,39 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
 
         const ImVec2 mouse = ImGui::GetIO().MousePos;
         const bool hovered = ImGui::IsItemHovered();
+
+        if (ImGui::BeginDragDropTarget()) {
+          const DockNode* leaf_const = HitTestNode(layout, mouse);
+          if (leaf_const != nullptr &&
+              leaf_const->type == DockNode::Type::kLeaf) {
+            const ImRect& leaf_rect = layout.node_rects.at(leaf_const);
+            const DropSuggestion suggestion = SuggestDrop(leaf_rect, mouse);
+            const ImRect preview =
+                ComputeDropPreviewRect(leaf_rect, suggestion);
+            if (preview.GetWidth() > 0.0f && preview.GetHeight() > 0.0f) {
+              ImGui::GetWindowDrawList()->AddRectFilled(
+                  preview.Min, preview.Max,
+                  ImGui::ColorConvertFloat4ToU32(
+                      ImVec4(0.25f, 0.55f, 0.95f, 0.25f)));
+            }
+            gui::PanelDragPayload payload;
+            if (gui::AcceptPanelDropWithinTarget(&payload)) {
+              PanelEntry new_panel;
+              new_panel.panel_id = payload.panel_id;
+              if (const WindowContent* registered =
+                      ContentRegistry::Panels::Get(new_panel.panel_id)) {
+                new_panel.display_name = registered->GetDisplayName();
+                new_panel.icon = registered->GetIcon();
+              }
+              DockNode* leaf_mut = const_cast<DockNode*>(leaf_const);
+              if (ApplyDropSuggestion(&tree_, leaf_mut, suggestion,
+                                      std::move(new_panel))) {
+                selected_ = leaf_mut;
+              }
+            }
+          }
+          ImGui::EndDragDropTarget();
+        }
 
         if (drag_.split_node != nullptr) {
           // Mid-drag: keep consuming mouse motion until release. Do not

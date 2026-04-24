@@ -8,6 +8,7 @@
 
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/system/workspace/editor_panel.h"
+#include "app/gui/core/drag_drop.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 
@@ -117,6 +118,7 @@ std::string DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
                           ImGuiSelectableFlags_AllowDoubleClick)) {
       clicked_id = entry.panel_id;
     }
+    gui::BeginPanelDragSource(entry.panel_id.c_str(), label.c_str());
     if (ImGui::IsItemHovered() && !entry.panel_id.empty()) {
       ImGui::SetTooltip("%s", entry.panel_id.c_str());
     }

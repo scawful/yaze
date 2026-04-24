@@ -158,6 +158,7 @@ set(
   app/editor/layout/layout_designer/dock_tree_hit_test.cc
   app/editor/layout/layout_designer/dock_tree_json.cc
   app/editor/layout/layout_designer/dock_tree_renderer.cc
+  app/editor/layout/layout_designer/drop_zone_suggester.cc
   app/editor/layout/layout_designer/panel_palette.cc
   app/editor/layout/layout_designer/split_boundary_drag.cc
   app/editor/layout/layout_manager.cc
