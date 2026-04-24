@@ -2,6 +2,7 @@
 
 #include "app/editor/layout/layout_designer/dock_tree_hit_test.h"
 #include "app/editor/layout/layout_designer/dock_tree_renderer.h"
+#include "app/editor/layout/layout_designer/panel_palette.h"
 #include "app/editor/layout/layout_designer/split_boundary_drag.h"
 #include "app/editor/registry/panel_registration.h"
 #include "imgui/imgui.h"
@@ -61,7 +62,11 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
     ImGui::TableSetColumnIndex(0);
     if (ImGui::BeginChild("layout_designer_palette", ImVec2(0, 0),
                           ImGuiChildFlags_None)) {
-      ImGui::TextUnformatted("Palette (Phase 6)");
+      // Exclude self so the designer can't be dropped inside its own
+      // canvas. Phase 6.2 will wire BeginPanelDragSource around each row;
+      // for now a click just selects (no-op from the panel's perspective).
+      const auto entries = CollectPaletteEntries(GetId());
+      DrawPanelPalette(entries, &palette_query_);
     }
     ImGui::EndChild();
 
