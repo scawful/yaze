@@ -102,6 +102,43 @@ TEST(TreeUndoStackTest, CapEvictsOldestOnOverflow) {
   EXPECT_FALSE(stack.CanUndo());
 }
 
+TEST(TreeUndoStackTest, PopLastPushRemovesOnlyLastUndoEntry) {
+  TreeUndoStack stack;
+  DockTree current = MakeTreeWith("a");
+  stack.Push(current);  // snapshot "a"
+  current = MakeTreeWith("b");
+  stack.Push(current);  // snapshot "b"
+  EXPECT_EQ(stack.UndoDepth(), 2u);
+
+  stack.PopLastPush();
+  EXPECT_EQ(stack.UndoDepth(), 1u);
+  EXPECT_FALSE(stack.CanRedo())
+      << "PopLastPush must not touch redo — that's what Undo() is for.";
+
+  // The surviving snapshot should be the oldest Push().
+  current = MakeTreeWith("current");
+  ASSERT_TRUE(stack.Undo(&current));
+  EXPECT_EQ(current.root->panels[0].panel_id, "a");
+}
+
+TEST(TreeUndoStackTest, PopLastPushDoesNotMutateCurrent) {
+  TreeUndoStack stack;
+  DockTree current = MakeTreeWith("snapshot");
+  stack.Push(current);
+  current = MakeTreeWith("live");
+
+  stack.PopLastPush();
+  EXPECT_EQ(current.root->panels[0].panel_id, "live")
+      << "PopLastPush must leave current untouched (no write-back).";
+  EXPECT_FALSE(stack.CanUndo());
+}
+
+TEST(TreeUndoStackTest, PopLastPushOnEmptyIsNoOp) {
+  TreeUndoStack stack;
+  stack.PopLastPush();  // must not crash or underflow.
+  EXPECT_FALSE(stack.CanUndo());
+}
+
 TEST(TreeUndoStackTest, ClearEmptiesBothStacks) {
   TreeUndoStack stack;
   DockTree current = MakeTreeWith("a");

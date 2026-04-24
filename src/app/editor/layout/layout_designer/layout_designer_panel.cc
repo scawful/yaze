@@ -174,9 +174,12 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
                       &tree_, leaf_mut, suggestion, std::move(new_panel))) {
                 selected_ = selected_leaf;
               } else {
-                // Applier refused (e.g. duplicate id); drop the speculative
-                // undo snapshot so the stack stays clean.
-                (void)undo_.Undo(&tree_);
+                // Applier refused (e.g. duplicate id). Discard the
+                // speculative push *without* polluting redo — `Undo()`
+                // would move the unchanged tree onto the redo stack and
+                // invalidate `selected_` (raw pointer into what becomes
+                // a stale Clone).
+                undo_.PopLastPush();
               }
             }
           }
@@ -246,40 +249,24 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
 }
 
 void LayoutDesignerPanel::DrawPropertiesColumn() {
-  // Helper: wraps ImGui::SliderFloat with PushUndo-on-activate so
-  // continuous drags produce exactly one undo snapshot.
-  auto slider_with_undo = [this](const char* label, float* value, float mn,
-                                 float mx) {
-    const float before = *value;
-    ImGui::SliderFloat(label, value, mn, mx, "%.2f");
-    if (ImGui::IsItemActivated()) {
+  // Snapshot on the first frame of any interactive ImGui item
+  // (slider, input-text, combo). Collapses a continuous drag or a
+  // keystroke burst into a single undo step.
+  auto snapshot_on_activation = [this]() {
+    if (ImGui::IsItemActivated())
       PushUndoSnapshot();
-      property_edit_in_progress_ = true;
-    }
-    if (!ImGui::IsItemActive() && property_edit_in_progress_) {
-      property_edit_in_progress_ = false;
-    }
-    return *value != before;
   };
 
   if (selected_ == nullptr) {
     ImGui::SeparatorText("Layout");
-    std::string name_buf = tree_.name;
-    if (ImGui::InputText("Name", &name_buf,
-                         ImGuiInputTextFlags_EnterReturnsTrue)) {
-      if (name_buf != tree_.name) {
-        PushUndoSnapshot();
-        tree_.name = std::move(name_buf);
-      }
-    }
-    std::string desc_buf = tree_.description;
-    if (ImGui::InputTextMultiline("Description", &desc_buf,
-                                  ImVec2(0.0f, 80.0f))) {
-      if (desc_buf != tree_.description) {
-        PushUndoSnapshot();
-        tree_.description = std::move(desc_buf);
-      }
-    }
+    // Bind the InputText buffer directly to the tree fields; imgui_stdlib
+    // keeps the std::string in sync per keystroke, and IsItemActivated
+    // fires once per focus-in so the undo step covers the whole edit.
+    ImGui::InputText("Name", &tree_.name);
+    snapshot_on_activation();
+    ImGui::InputTextMultiline("Description", &tree_.description,
+                              ImVec2(0.0f, 80.0f));
+    snapshot_on_activation();
     ImGui::TextDisabled("Select a cell in the canvas to edit it.");
     return;
   }
@@ -305,8 +292,9 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
       ImGui::EndCombo();
     }
 
-    (void)slider_with_undo("Ratio", &node->split_ratio, kMinSplitRatio,
-                           kMaxSplitRatio);
+    ImGui::SliderFloat("Ratio", &node->split_ratio, kMinSplitRatio,
+                       kMaxSplitRatio, "%.2f");
+    snapshot_on_activation();
     return;
   }
 
@@ -317,14 +305,14 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
     return;
   }
 
-  // Active-tab selector.
+  // Active-tab selector. Snapshot once on drag start; live-commit the
+  // value while the slider is active.
   const int panel_count = static_cast<int>(node->panels.size());
   int active = std::clamp(node->active_tab_index, 0, panel_count - 1);
-  if (ImGui::SliderInt("Active tab", &active, 0, panel_count - 1)) {
-    if (active != node->active_tab_index) {
-      PushUndoSnapshot();
-      node->active_tab_index = active;
-    }
+  ImGui::SliderInt("Active tab", &active, 0, panel_count - 1);
+  snapshot_on_activation();
+  if (active != node->active_tab_index) {
+    node->active_tab_index = active;
   }
 
   ImGui::Separator();
@@ -364,6 +352,11 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
     ImGui::SameLine();
     if (ImGui::SmallButton("Remove")) {
       PushUndoSnapshot();
+      // If the removed entry sits before the active tab, the active
+      // panel's index shifts down by one. std::clamp afterward handles
+      // the "removed the active tab" and "removed the last tab" cases.
+      if (i < node->active_tab_index)
+        --node->active_tab_index;
       node->panels.erase(node->panels.begin() + i);
       if (!node->panels.empty()) {
         node->active_tab_index =

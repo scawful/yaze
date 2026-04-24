@@ -35,6 +35,12 @@ class TreeUndoStack {
   bool Undo(DockTree* current);
   bool Redo(DockTree* current);
 
+  // Discard the most recent Push() without touching `*current` or the
+  // redo stack. Used by callers that speculatively snapshot before a
+  // mutation that then refuses (validation failure, etc.) so the stack
+  // stays clean without polluting redo history.
+  void PopLastPush();
+
   void Clear();
 
   std::size_t UndoDepth() const { return undo_.size(); }

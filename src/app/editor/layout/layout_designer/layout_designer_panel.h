@@ -63,9 +63,6 @@ class LayoutDesignerPanel : public WindowContent {
   ActiveDrag drag_;
   std::string palette_query_;
   TreeUndoStack undo_;
-  // True for the duration of a slider/drag-style property edit; gates
-  // PushUndo so we snapshot once at edit-start, not every frame.
-  bool property_edit_in_progress_ = false;
 };
 
 }  // namespace layout_designer
