@@ -46,7 +46,7 @@ ImRect ComputeDropPreviewRect(const ImRect& leaf_rect,
                               const DropSuggestion& suggestion);
 
 // Apply `suggestion` to `tree`, using `leaf` as the drop target. Returns
-// true on success; false (no mutation) when:
+// the leaf that now owns `panel`, or nullptr (no mutation) when:
 //   - tree or leaf is null,
 //   - suggestion is kNone,
 //   - leaf is not a kLeaf node (collapsed splits render like leaves but
@@ -55,8 +55,9 @@ ImRect ComputeDropPreviewRect(const ImRect& leaf_rect,
 //   - panel.panel_id is empty, or
 //   - panel.panel_id is already present elsewhere in the tree (DockTree
 //     invariant requires unique panel_ids).
-bool ApplyDropSuggestion(DockTree* tree, DockNode* leaf,
-                         const DropSuggestion& suggestion, PanelEntry panel);
+DockNode* ApplyDropSuggestion(DockTree* tree, DockNode* leaf,
+                              const DropSuggestion& suggestion,
+                              PanelEntry panel);
 
 }  // namespace layout_designer
 }  // namespace editor

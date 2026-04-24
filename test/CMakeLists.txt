@@ -226,6 +226,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/drop_zone_suggester_test.cc
     unit/editor/layout/layout_manager_dock_tree_test.cc
     unit/editor/layout/panel_palette_test.cc
+    unit/editor/layout/tree_undo_stack_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
@@ -550,6 +551,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/drop_zone_suggester_test.cc
     unit/editor/layout/layout_manager_dock_tree_test.cc
     unit/editor/layout/panel_palette_test.cc
+    unit/editor/layout/tree_undo_stack_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc

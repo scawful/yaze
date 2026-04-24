@@ -72,50 +72,51 @@ ImRect ComputeDropPreviewRect(const ImRect& leaf_rect,
   return ImRect(leaf_rect.Min, leaf_rect.Min);
 }
 
-bool ApplyDropSuggestion(DockTree* tree, DockNode* leaf,
-                         const DropSuggestion& suggestion, PanelEntry panel) {
+DockNode* ApplyDropSuggestion(DockTree* tree, DockNode* leaf,
+                              const DropSuggestion& suggestion,
+                              PanelEntry panel) {
   if (tree == nullptr || leaf == nullptr)
-    return false;
+    return nullptr;
   if (suggestion.kind == DropSuggestion::Kind::kNone)
-    return false;
+    return nullptr;
   if (leaf->type != DockNode::Type::kLeaf)
-    return false;
+    return nullptr;
   if (panel.panel_id.empty())
-    return false;
+    return nullptr;
   if (tree->root != nullptr &&
       tree->root->FindPanel(panel.panel_id) != nullptr) {
-    return false;
+    return nullptr;
   }
 
   switch (suggestion.kind) {
     case DropSuggestion::Kind::kNone:
-      return false;
+      return nullptr;
     case DropSuggestion::Kind::kTab:
       leaf->panels.push_back(std::move(panel));
       leaf->active_tab_index = static_cast<int>(leaf->panels.size()) - 1;
-      return true;
+      return leaf;
     case DropSuggestion::Kind::kSplitLeft:
       leaf->SplitInPlace(SplitDirection::kLeft, kDropSplitRatio,
                          DockNode::MakeLeaf({std::move(panel)}),
                          /*new_child_first=*/true);
-      return true;
+      return leaf->child_a.get();
     case DropSuggestion::Kind::kSplitRight:
       leaf->SplitInPlace(SplitDirection::kRight, 1.0f - kDropSplitRatio,
                          DockNode::MakeLeaf({std::move(panel)}),
                          /*new_child_first=*/false);
-      return true;
+      return leaf->child_b.get();
     case DropSuggestion::Kind::kSplitTop:
       leaf->SplitInPlace(SplitDirection::kUp, kDropSplitRatio,
                          DockNode::MakeLeaf({std::move(panel)}),
                          /*new_child_first=*/true);
-      return true;
+      return leaf->child_a.get();
     case DropSuggestion::Kind::kSplitBottom:
       leaf->SplitInPlace(SplitDirection::kDown, 1.0f - kDropSplitRatio,
                          DockNode::MakeLeaf({std::move(panel)}),
                          /*new_child_first=*/false);
-      return true;
+      return leaf->child_b.get();
   }
-  return false;
+  return nullptr;
 }
 
 }  // namespace layout_designer

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "app/editor/layout/layout_designer/dock_tree.h"
+#include "app/editor/layout/layout_designer/tree_undo_stack.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -48,10 +49,23 @@ class LayoutDesignerPanel : public WindowContent {
     ImRect start_rect{};
   };
 
+  // Undo/redo helpers. Callers push BEFORE mutating `tree_`; the
+  // stack clears on any new push so the redo branch follows the mutation
+  // that replaced it.
+  void PushUndoSnapshot();
+
+  // Properties column body — split into its own method to keep Draw()
+  // focused on layout/input routing.
+  void DrawPropertiesColumn();
+
   DockTree tree_;
   const DockNode* selected_ = nullptr;
   ActiveDrag drag_;
   std::string palette_query_;
+  TreeUndoStack undo_;
+  // True for the duration of a slider/drag-style property edit; gates
+  // PushUndo so we snapshot once at edit-start, not every frame.
+  bool property_edit_in_progress_ = false;
 };
 
 }  // namespace layout_designer
