@@ -1,5 +1,7 @@
 #include "app/editor/layout/layout_designer/layout_designer_panel.h"
 
+#include <algorithm>
+#include <string>
 #include <utility>
 
 #include "app/editor/layout/layout_designer/dock_tree_hit_test.h"
@@ -13,6 +15,7 @@
 #include "app/gui/core/drag_drop.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "imgui/misc/cpp/imgui_stdlib.h"
 
 namespace yaze {
 namespace editor {
@@ -32,17 +35,52 @@ bool IsSplitHorizontal(SplitDirection d) {
   return d == SplitDirection::kLeft || d == SplitDirection::kRight;
 }
 
+const char* SplitDirectionLabel(SplitDirection d) {
+  switch (d) {
+    case SplitDirection::kLeft:
+      return "Left";
+    case SplitDirection::kRight:
+      return "Right";
+    case SplitDirection::kUp:
+      return "Up";
+    case SplitDirection::kDown:
+      return "Down";
+  }
+  return "Left";
+}
+
 }  // namespace
 
 LayoutDesignerPanel::LayoutDesignerPanel() : tree_(MakeEmptyTree("Untitled")) {}
 
+void LayoutDesignerPanel::PushUndoSnapshot() {
+  undo_.Push(tree_);
+}
+
 void LayoutDesignerPanel::Draw(bool* p_open) {
   (void)p_open;  // Closing the window is handled by the workspace shell.
+
+  // Keyboard shortcuts: Ctrl/Cmd+Z (undo) and Ctrl/Cmd+Shift+Z (redo).
+  // Gated on focus so typing in palette/property text fields doesn't
+  // trip them.
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+    const ImGuiIO& io = ImGui::GetIO();
+    const bool chord = io.KeyCtrl || io.KeySuper;
+    if (chord && ImGui::IsKeyPressed(ImGuiKey_Z, /*repeat=*/false)) {
+      if (io.KeyShift) {
+        if (undo_.Redo(&tree_))
+          selected_ = nullptr;
+      } else {
+        if (undo_.Undo(&tree_))
+          selected_ = nullptr;
+      }
+    }
+  }
 
   // WindowContent::Draw contract: no ImGui::Begin/End and no BeginMenuBar
   // (the outer PanelWindow does not opt into ImGuiWindowFlags_MenuBar). A
   // disabled-button row stands in for the File menu until a menubar-capable
-  // host arrives in a later phase.
+  // host arrives in Phase 8.
   ImGui::TextUnformatted("File:");
   ImGui::SameLine();
   DrawDisabledAction("New");
@@ -52,6 +90,22 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
   DrawDisabledAction("Save");
   ImGui::SameLine();
   DrawDisabledAction("Save As...");
+  ImGui::SameLine();
+  ImGui::TextDisabled("|");
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!undo_.CanUndo());
+  if (ImGui::SmallButton("Undo")) {
+    if (undo_.Undo(&tree_))
+      selected_ = nullptr;
+  }
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!undo_.CanRedo());
+  if (ImGui::SmallButton("Redo")) {
+    if (undo_.Redo(&tree_))
+      selected_ = nullptr;
+  }
+  ImGui::EndDisabled();
   ImGui::Separator();
 
   constexpr ImGuiTableFlags kBodyFlags =
@@ -69,8 +123,7 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
     if (ImGui::BeginChild("layout_designer_palette", ImVec2(0, 0),
                           ImGuiChildFlags_None)) {
       // Exclude self so the designer can't be dropped inside its own
-      // canvas. Phase 6.2 will wire BeginPanelDragSource around each row;
-      // for now a click just selects (no-op from the panel's perspective).
+      // canvas.
       const auto entries = CollectPaletteEntries(GetId());
       DrawPanelPalette(entries, &palette_query_);
     }
@@ -115,9 +168,15 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
                 new_panel.icon = registered->GetIcon();
               }
               DockNode* leaf_mut = const_cast<DockNode*>(leaf_const);
-              if (ApplyDropSuggestion(&tree_, leaf_mut, suggestion,
-                                      std::move(new_panel))) {
-                selected_ = leaf_mut;
+              // Snapshot before mutation so this drop is reversible.
+              PushUndoSnapshot();
+              if (DockNode* selected_leaf = ApplyDropSuggestion(
+                      &tree_, leaf_mut, suggestion, std::move(new_panel))) {
+                selected_ = selected_leaf;
+              } else {
+                // Applier refused (e.g. duplicate id); drop the speculative
+                // undo snapshot so the stack stays clean.
+                (void)undo_.Undo(&tree_);
               }
             }
           }
@@ -151,6 +210,9 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
                                       ? ImGuiMouseCursor_ResizeEW
                                       : ImGuiMouseCursor_ResizeNS);
             if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+              // Snapshot before the first ratio edit so the whole drag
+              // collapses into a single undo step.
+              PushUndoSnapshot();
               drag_.split_node = const_cast<DockNode*>(boundary.split_node);
               drag_.start_ratio = drag_.split_node->split_ratio;
               drag_.start_mouse = mouse;
@@ -170,7 +232,7 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
     ImGui::TableSetColumnIndex(2);
     if (ImGui::BeginChild("layout_designer_properties", ImVec2(0, 0),
                           ImGuiChildFlags_None)) {
-      ImGui::TextUnformatted("Properties (Phase 7)");
+      DrawPropertiesColumn();
     }
     ImGui::EndChild();
 
@@ -178,8 +240,144 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
   }
 
   ImGui::Separator();
-  ImGui::Text("Editing: %s",
-              tree_.name.empty() ? "(unnamed)" : tree_.name.c_str());
+  ImGui::Text("Editing: %s | Undo: %zu / Redo: %zu",
+              tree_.name.empty() ? "(unnamed)" : tree_.name.c_str(),
+              undo_.UndoDepth(), undo_.RedoDepth());
+}
+
+void LayoutDesignerPanel::DrawPropertiesColumn() {
+  // Helper: wraps ImGui::SliderFloat with PushUndo-on-activate so
+  // continuous drags produce exactly one undo snapshot.
+  auto slider_with_undo = [this](const char* label, float* value, float mn,
+                                 float mx) {
+    const float before = *value;
+    ImGui::SliderFloat(label, value, mn, mx, "%.2f");
+    if (ImGui::IsItemActivated()) {
+      PushUndoSnapshot();
+      property_edit_in_progress_ = true;
+    }
+    if (!ImGui::IsItemActive() && property_edit_in_progress_) {
+      property_edit_in_progress_ = false;
+    }
+    return *value != before;
+  };
+
+  if (selected_ == nullptr) {
+    ImGui::SeparatorText("Layout");
+    std::string name_buf = tree_.name;
+    if (ImGui::InputText("Name", &name_buf,
+                         ImGuiInputTextFlags_EnterReturnsTrue)) {
+      if (name_buf != tree_.name) {
+        PushUndoSnapshot();
+        tree_.name = std::move(name_buf);
+      }
+    }
+    std::string desc_buf = tree_.description;
+    if (ImGui::InputTextMultiline("Description", &desc_buf,
+                                  ImVec2(0.0f, 80.0f))) {
+      if (desc_buf != tree_.description) {
+        PushUndoSnapshot();
+        tree_.description = std::move(desc_buf);
+      }
+    }
+    ImGui::TextDisabled("Select a cell in the canvas to edit it.");
+    return;
+  }
+
+  DockNode* node = const_cast<DockNode*>(selected_);
+  if (node->type == DockNode::Type::kSplit) {
+    ImGui::SeparatorText("Split");
+
+    const SplitDirection current_dir = node->split_direction;
+    if (ImGui::BeginCombo("Direction", SplitDirectionLabel(current_dir))) {
+      for (int i = 0; i < 4; ++i) {
+        const auto candidate = static_cast<SplitDirection>(i);
+        const bool is_selected = candidate == current_dir;
+        if (ImGui::Selectable(SplitDirectionLabel(candidate), is_selected)) {
+          if (candidate != current_dir) {
+            PushUndoSnapshot();
+            node->split_direction = candidate;
+          }
+        }
+        if (is_selected)
+          ImGui::SetItemDefaultFocus();
+      }
+      ImGui::EndCombo();
+    }
+
+    (void)slider_with_undo("Ratio", &node->split_ratio, kMinSplitRatio,
+                           kMaxSplitRatio);
+    return;
+  }
+
+  // Leaf properties.
+  ImGui::SeparatorText("Leaf");
+  if (node->panels.empty()) {
+    ImGui::TextDisabled("(no panels — drop from the palette)");
+    return;
+  }
+
+  // Active-tab selector.
+  const int panel_count = static_cast<int>(node->panels.size());
+  int active = std::clamp(node->active_tab_index, 0, panel_count - 1);
+  if (ImGui::SliderInt("Active tab", &active, 0, panel_count - 1)) {
+    if (active != node->active_tab_index) {
+      PushUndoSnapshot();
+      node->active_tab_index = active;
+    }
+  }
+
+  ImGui::Separator();
+  // Panel list with reorder + remove actions.
+  for (int i = 0; i < panel_count; ++i) {
+    ImGui::PushID(i);
+    const auto& entry = node->panels[i];
+    const std::string label = entry.icon.empty()
+                                  ? entry.display_name
+                                  : entry.icon + "  " + entry.display_name;
+    ImGui::TextUnformatted(label.c_str());
+    ImGui::SameLine();
+
+    ImGui::BeginDisabled(i == 0);
+    if (ImGui::SmallButton("Up")) {
+      PushUndoSnapshot();
+      std::swap(node->panels[i], node->panels[i - 1]);
+      if (node->active_tab_index == i)
+        --node->active_tab_index;
+      else if (node->active_tab_index == i - 1)
+        ++node->active_tab_index;
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    ImGui::BeginDisabled(i + 1 >= panel_count);
+    if (ImGui::SmallButton("Down")) {
+      PushUndoSnapshot();
+      std::swap(node->panels[i], node->panels[i + 1]);
+      if (node->active_tab_index == i)
+        ++node->active_tab_index;
+      else if (node->active_tab_index == i + 1)
+        --node->active_tab_index;
+    }
+    ImGui::EndDisabled();
+
+    ImGui::SameLine();
+    if (ImGui::SmallButton("Remove")) {
+      PushUndoSnapshot();
+      node->panels.erase(node->panels.begin() + i);
+      if (!node->panels.empty()) {
+        node->active_tab_index =
+            std::clamp(node->active_tab_index, 0,
+                       static_cast<int>(node->panels.size()) - 1);
+      } else {
+        node->active_tab_index = 0;
+      }
+      ImGui::PopID();
+      break;
+    }
+
+    ImGui::PopID();
+  }
 }
 
 REGISTER_PANEL(LayoutDesignerPanel);

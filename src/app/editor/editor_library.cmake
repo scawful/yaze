@@ -161,6 +161,7 @@ set(
   app/editor/layout/layout_designer/drop_zone_suggester.cc
   app/editor/layout/layout_designer/panel_palette.cc
   app/editor/layout/layout_designer/split_boundary_drag.cc
+  app/editor/layout/layout_designer/tree_undo_stack.cc
   app/editor/layout/layout_manager.cc
   app/editor/layout/layout_orchestrator.cc
   app/editor/layout/layout_presets.cc

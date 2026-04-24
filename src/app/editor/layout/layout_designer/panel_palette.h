@@ -28,15 +28,11 @@ std::vector<PanelPaletteEntry> CollectPaletteEntries(
     const std::string& exclude_panel_id = {});
 
 // Stateless widget. Draws a search box at top and a category-grouped list
-// of entries (each group is a collapsing header). Returns the panel_id of
-// the row the user clicked this frame, or empty string on no-click. The
-// caller owns `*query` (the search string); pass a persistent member.
-//
-// Phase 6.1 contract: click returns the id. Phase 6.2 adds a drag-source
-// around each row so dropping on the canvas authoring surface splits or
-// appends to the dock tree.
-std::string DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
-                             std::string* query);
+// of entries (each group is a collapsing header). Rows are explicit drag
+// sources for the layout canvas, not clickable commands. The caller owns
+// `*query` (the search string); pass a persistent member.
+void DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
+                      std::string* query);
 
 namespace panel_palette_internal {
 

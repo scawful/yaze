@@ -92,11 +92,14 @@ TEST(DropZoneSuggesterTest, ApplyKTabAppendsAndSelectsPanel) {
 
   DropSuggestion s;
   s.kind = DropSuggestion::Kind::kTab;
-  ASSERT_TRUE(ApplyDropSuggestion(&tree, leaf, s, MakePanel("dropped")));
+  DockNode* selected =
+      ApplyDropSuggestion(&tree, leaf, s, MakePanel("dropped"));
+  ASSERT_NE(selected, nullptr);
 
   ASSERT_EQ(leaf->panels.size(), 2u);
   EXPECT_EQ(leaf->panels[1].panel_id, "dropped");
   EXPECT_EQ(leaf->active_tab_index, 1);
+  EXPECT_EQ(selected, leaf);
 }
 
 TEST(DropZoneSuggesterTest, ApplyKSplitLeftSplitsLeafWithCorrectShape) {
@@ -106,7 +109,9 @@ TEST(DropZoneSuggesterTest, ApplyKSplitLeftSplitsLeafWithCorrectShape) {
 
   DropSuggestion s;
   s.kind = DropSuggestion::Kind::kSplitLeft;
-  ASSERT_TRUE(ApplyDropSuggestion(&tree, leaf, s, MakePanel("dropped")));
+  DockNode* selected =
+      ApplyDropSuggestion(&tree, leaf, s, MakePanel("dropped"));
+  ASSERT_NE(selected, nullptr);
 
   EXPECT_EQ(leaf->type, DockNode::Type::kSplit);
   EXPECT_EQ(leaf->split_direction, SplitDirection::kLeft);
@@ -121,6 +126,7 @@ TEST(DropZoneSuggesterTest, ApplyKSplitLeftSplitsLeafWithCorrectShape) {
   EXPECT_EQ(leaf->child_b->type, DockNode::Type::kLeaf);
   ASSERT_EQ(leaf->child_b->panels.size(), 1u);
   EXPECT_EQ(leaf->child_b->panels[0].panel_id, "existing");
+  EXPECT_EQ(selected, leaf->child_a.get());
 }
 
 TEST(DropZoneSuggesterTest, ApplyKSplitBottomPlacesDroppedPanelAtBottom) {
@@ -130,7 +136,8 @@ TEST(DropZoneSuggesterTest, ApplyKSplitBottomPlacesDroppedPanelAtBottom) {
 
   DropSuggestion s;
   s.kind = DropSuggestion::Kind::kSplitBottom;
-  ASSERT_TRUE(ApplyDropSuggestion(&tree, leaf, s, MakePanel("bottom")));
+  DockNode* selected = ApplyDropSuggestion(&tree, leaf, s, MakePanel("bottom"));
+  ASSERT_NE(selected, nullptr);
 
   EXPECT_EQ(leaf->type, DockNode::Type::kSplit);
   EXPECT_EQ(leaf->split_direction, SplitDirection::kDown);
@@ -141,6 +148,7 @@ TEST(DropZoneSuggesterTest, ApplyKSplitBottomPlacesDroppedPanelAtBottom) {
   ASSERT_TRUE(leaf->child_b);
   EXPECT_EQ(leaf->child_a->panels[0].panel_id, "existing");
   EXPECT_EQ(leaf->child_b->panels[0].panel_id, "bottom");
+  EXPECT_EQ(selected, leaf->child_b.get());
 }
 
 TEST(DropZoneSuggesterTest, ApplyRejectsDuplicatePanelId) {
@@ -150,7 +158,8 @@ TEST(DropZoneSuggesterTest, ApplyRejectsDuplicatePanelId) {
 
   DropSuggestion s;
   s.kind = DropSuggestion::Kind::kTab;
-  EXPECT_FALSE(ApplyDropSuggestion(&tree, leaf, s, MakePanel("already.here")));
+  EXPECT_EQ(ApplyDropSuggestion(&tree, leaf, s, MakePanel("already.here")),
+            nullptr);
   // Tree state unchanged.
   EXPECT_EQ(leaf->panels.size(), 1u);
 }
@@ -165,8 +174,8 @@ TEST(DropZoneSuggesterTest, ApplyRejectsNonLeafTarget) {
   DropSuggestion s;
   s.kind = DropSuggestion::Kind::kTab;
   // Dropping on the root (a split, not a leaf) is refused.
-  EXPECT_FALSE(
-      ApplyDropSuggestion(&tree, tree.root.get(), s, MakePanel("new")));
+  EXPECT_EQ(ApplyDropSuggestion(&tree, tree.root.get(), s, MakePanel("new")),
+            nullptr);
 }
 
 TEST(DropZoneSuggesterTest, ApplyPreservesValidateInvariants) {
@@ -176,7 +185,7 @@ TEST(DropZoneSuggesterTest, ApplyPreservesValidateInvariants) {
 
   DropSuggestion s;
   s.kind = DropSuggestion::Kind::kSplitRight;
-  ASSERT_TRUE(ApplyDropSuggestion(&tree, leaf, s, MakePanel("second")));
+  ASSERT_NE(ApplyDropSuggestion(&tree, leaf, s, MakePanel("second")), nullptr);
 
   std::string err;
   EXPECT_TRUE(tree.Validate(&err)) << "Validate error: " << err;

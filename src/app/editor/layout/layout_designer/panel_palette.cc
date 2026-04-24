@@ -72,15 +72,17 @@ std::vector<PanelPaletteEntry> CollectPaletteEntries(
   return out;
 }
 
-std::string DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
-                             std::string* query) {
-  std::string clicked_id;
+void DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
+                      std::string* query) {
   if (query != nullptr) {
     ImGui::SetNextItemWidth(-FLT_MIN);
     ImGui::InputTextWithHint("##layout_designer_palette_query", "Search panels",
                              query);
   }
   const std::string q = query != nullptr ? *query : std::string();
+
+  ImGui::TextDisabled("Drag panels onto the canvas to place them.");
+  ImGui::Separator();
 
   // Bucket filtered entries by category so collapsing headers group cleanly.
   std::string current_category;
@@ -114,20 +116,16 @@ std::string DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
     const std::string label = entry.icon.empty()
                                   ? entry.display_name
                                   : entry.icon + "  " + entry.display_name;
-    if (ImGui::Selectable(label.c_str(), /*selected=*/false,
-                          ImGuiSelectableFlags_AllowDoubleClick)) {
-      clicked_id = entry.panel_id;
-    }
+    ImGui::TextUnformatted(label.c_str());
     gui::BeginPanelDragSource(entry.panel_id.c_str(), label.c_str());
     if (ImGui::IsItemHovered() && !entry.panel_id.empty()) {
-      ImGui::SetTooltip("%s", entry.panel_id.c_str());
+      ImGui::SetTooltip("Drag onto the canvas to add this panel.\n%s",
+                        entry.panel_id.c_str());
     }
     ImGui::PopID();
     ++rendered_in_category;
   }
   close_current_category();
-
-  return clicked_id;
 }
 
 }  // namespace layout_designer
