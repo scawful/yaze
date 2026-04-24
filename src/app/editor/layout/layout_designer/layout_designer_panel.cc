@@ -1,6 +1,8 @@
 #include "app/editor/layout/layout_designer/layout_designer_panel.h"
 
+#include "app/editor/layout/layout_designer/dock_tree_hit_test.h"
 #include "app/editor/layout/layout_designer/dock_tree_renderer.h"
+#include "app/editor/layout/layout_designer/split_boundary_drag.h"
 #include "app/editor/registry/panel_registration.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -17,6 +19,10 @@ void DrawDisabledAction(const char* label) {
   ImGui::BeginDisabled();
   ImGui::SmallButton(label);
   ImGui::EndDisabled();
+}
+
+bool IsSplitHorizontal(SplitDirection d) {
+  return d == SplitDirection::kLeft || d == SplitDirection::kRight;
 }
 
 }  // namespace
@@ -68,11 +74,48 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
         const ImRect viewport(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x,
                                                  canvas_pos.y + canvas_size.y));
         const DockTreeLayout layout = ComputeLayout(tree_, viewport);
-        RenderDockTree(tree_, layout, /*selected=*/nullptr,
-                       ImGui::GetWindowDrawList());
-        // Reserve space so the child's content-size tracks the rendered
-        // tree; selection input (Phase 5) will consume this dummy.
+        RenderDockTree(tree_, layout, selected_, ImGui::GetWindowDrawList());
         ImGui::Dummy(canvas_size);
+
+        const ImVec2 mouse = ImGui::GetIO().MousePos;
+        const bool hovered = ImGui::IsItemHovered();
+
+        if (drag_.split_node != nullptr) {
+          // Mid-drag: keep consuming mouse motion until release. Do not
+          // gate on hovered — the mouse can leave the canvas bounds mid-
+          // drag and we still want to track it until mouse-up.
+          if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+            const bool horizontal =
+                IsSplitHorizontal(drag_.split_node->split_direction);
+            const float axis_delta = horizontal
+                                         ? (mouse.x - drag_.start_mouse.x)
+                                         : (mouse.y - drag_.start_mouse.y);
+            const float axis_size = horizontal ? drag_.start_rect.GetWidth()
+                                               : drag_.start_rect.GetHeight();
+            drag_.split_node->split_ratio = ComputeDraggedSplitRatio(
+                drag_.start_ratio, axis_delta, axis_size);
+            ImGui::SetMouseCursor(horizontal ? ImGuiMouseCursor_ResizeEW
+                                             : ImGuiMouseCursor_ResizeNS);
+          } else {
+            drag_ = ActiveDrag{};
+          }
+        } else if (hovered) {
+          const SplitBoundaryHit boundary =
+              HitTestSplitBoundary(tree_, layout, mouse);
+          if (boundary.split_node != nullptr) {
+            ImGui::SetMouseCursor(boundary.horizontal
+                                      ? ImGuiMouseCursor_ResizeEW
+                                      : ImGuiMouseCursor_ResizeNS);
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+              drag_.split_node = const_cast<DockNode*>(boundary.split_node);
+              drag_.start_ratio = drag_.split_node->split_ratio;
+              drag_.start_mouse = mouse;
+              drag_.start_rect = layout.node_rects.at(boundary.split_node);
+            }
+          } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+            selected_ = HitTestNode(layout, mouse);
+          }
+        }
       }
     }
     ImGui::EndChild();
