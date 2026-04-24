@@ -185,7 +185,12 @@ TEST(DockTreeJsonTest, MissingOptionalFieldsDefault) {
   ASSERT_TRUE(parsed.ok()) << parsed.status();
   EXPECT_EQ(parsed->name, "");
   EXPECT_EQ(parsed->description, "");
-  EXPECT_EQ(parsed->schema_version, 1u);
+  // The parser normalizes in-memory `schema_version` to the current
+  // value regardless of what was on disk — the in-memory tree always
+  // carries v2 semantics (every node has an id), so its
+  // `schema_version` reflects that. Tested end-to-end by the
+  // V1JsonNormalizesToCurrentSchema case below.
+  EXPECT_EQ(parsed->schema_version, 2u);
   ASSERT_NE(parsed->root, nullptr);
   EXPECT_EQ(parsed->root->type, DockNode::Type::kLeaf);
   EXPECT_TRUE(parsed->root->panels.empty());
@@ -284,6 +289,39 @@ TEST(DockTreeJsonTest, ParseTreatsExplicitInvalidIdAsMissing) {
   auto parsed = DockTreeFromJson(j);
   ASSERT_TRUE(parsed.ok()) << parsed.status();
   EXPECT_NE(parsed->root->id, kInvalidDockNodeId);
+}
+
+// --- Phase 8.5 review: schema upgrade-on-load ----------------------------
+
+TEST(DockTreeJsonTest, V1JsonNormalizesToCurrentSchema) {
+  // Loading a v1 file and re-saving it should produce a v2 file, not a
+  // self-contradictory document with a v1 header and ids in the body.
+  // Reviewer (2026-04-24) flagged this as a Medium correctness issue.
+  json v1 = {
+      {"schema_version", 1},
+      {"root", {{"type", "leaf"}, {"panels", json::array()}}},
+  };
+  auto parsed = DockTreeFromJson(v1);
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_EQ(parsed->schema_version, 2u)
+      << "Parser must normalize legacy schema to current so the next "
+         "DockTreeToJson emits a coherent v2 document.";
+
+  // Re-serialize and confirm the on-disk shape matches the in-memory
+  // version we just normalized to.
+  json out = DockTreeToJson(*parsed);
+  EXPECT_EQ(out.at("schema_version").get<std::uint64_t>(), 2u);
+}
+
+TEST(DockTreeJsonTest, ToJsonAlwaysEmitsCurrentSchemaVersion) {
+  // Even if a tree's in-memory `schema_version` field is somehow set to
+  // a stale value (e.g. raw construction in test code, or a future
+  // migration that hasn't bumped it yet), the writer must still emit
+  // the current schema. The writer is the authority on format.
+  DockTree t;
+  t.schema_version = 1ULL;  // simulate stale in-memory state
+  json out = DockTreeToJson(t);
+  EXPECT_EQ(out.at("schema_version").get<std::uint64_t>(), 2u);
 }
 
 }  // namespace

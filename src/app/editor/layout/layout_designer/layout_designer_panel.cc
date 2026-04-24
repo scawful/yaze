@@ -131,6 +131,17 @@ void LayoutDesignerPanel::LoadNamedLayoutIntoTree(const std::string& name) {
     status_is_error_ = true;
     return;
   }
+  // DockTreeFromJson does not Validate (per its documented contract).
+  // Apply the gate here so a malformed-on-disk layout (duplicate ids,
+  // out-of-range ratios, etc.) doesn't silently install — Phase 8.5
+  // selection-by-id depends on the structural invariants.
+  std::string validation_error;
+  if (!tree_or->Validate(&validation_error)) {
+    status_message_ =
+        absl::StrCat("Open failed: invalid layout (", validation_error, ").");
+    status_is_error_ = true;
+    return;
+  }
   // DockTreeFromJson preserves the name from the JSON body; fall back to
   // the lookup key if the body lacks one (legacy migrations).
   if (tree_or->name.empty()) {

@@ -15,6 +15,11 @@ namespace layout_designer {
 
 namespace {
 
+// The schema version this code emits and parses against. Bump in
+// lockstep with format-changing edits; legacy JSON without a schema
+// field is still accepted (treated as v1 → fresh ids on parse).
+constexpr std::uint64_t kCurrentDockTreeSchemaVersion = 2;
+
 const char* SplitDirectionToString(SplitDirection d) {
   switch (d) {
     case SplitDirection::kLeft:
@@ -164,7 +169,13 @@ absl::StatusOr<std::unique_ptr<DockNode>> NodeFromJson(
 
 nlohmann::json DockTreeToJson(const DockTree& tree) {
   nlohmann::json j;
-  j["schema_version"] = tree.schema_version;
+  // The writer is the authority on schema version: every saved file
+  // carries the current schema regardless of what `tree.schema_version`
+  // happens to hold. This keeps legacy v1 trees from re-saving as a
+  // self-contradictory document (v1 header, v2 body). The parser
+  // normalizes the in-memory representation to the same constant so
+  // round-trips are stable.
+  j["schema_version"] = kCurrentDockTreeSchemaVersion;
   j["name"] = tree.name;
   j["description"] = tree.description;
   j["root"] = tree.root ? NodeToJson(*tree.root)
@@ -176,10 +187,15 @@ absl::StatusOr<DockTree> DockTreeFromJson(const nlohmann::json& j) {
   if (!j.is_object()) {
     return absl::InvalidArgumentError("dock tree must be a JSON object");
   }
+  // Read the on-disk version for diagnostics / future migration logic
+  // hooks, but the in-memory tree always lands at the current schema
+  // because every node ends up with a real id (the parser allocates
+  // fresh ones for v1 input). Keeping `tree.schema_version` synced to
+  // the in-memory shape avoids the v1-header / v2-body class of bug.
+  (void)j.value("schema_version", 1ULL);
+
   DockTree tree;
-  // Default to v1 so legacy JSON written before the id field existed
-  // continues to parse cleanly. Newly-saved trees carry version 2.
-  tree.schema_version = j.value("schema_version", 1ULL);
+  tree.schema_version = kCurrentDockTreeSchemaVersion;
   tree.name = j.value("name", "");
   tree.description = j.value("description", "");
   if (j.contains("root")) {
