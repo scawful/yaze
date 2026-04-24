@@ -155,6 +155,9 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
               drag_.start_ratio = drag_.split_node->split_ratio;
               drag_.start_mouse = mouse;
               drag_.start_rect = layout.node_rects.at(boundary.split_node);
+              // Also surface the split as the current selection so the
+              // accent outline tracks the resize target.
+              selected_ = drag_.split_node;
             }
           } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
             selected_ = HitTestNode(layout, mouse);
