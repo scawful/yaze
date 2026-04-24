@@ -51,6 +51,7 @@ class LayoutDesignerPanel : public WindowContent {
   DockTree tree_;
   const DockNode* selected_ = nullptr;
   ActiveDrag drag_;
+  std::string palette_query_;
 };
 
 }  // namespace layout_designer
