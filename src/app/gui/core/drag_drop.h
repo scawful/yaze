@@ -2,6 +2,7 @@
 #define YAZE_APP_GUI_CORE_DRAG_DROP_H_
 
 #include <cstdint>
+#include <cstring>
 
 #include "imgui/imgui.h"
 
@@ -17,6 +18,7 @@ constexpr const char* kDragPayloadTile16 = "YAZE_TILE16";
 constexpr const char* kDragPayloadSprite = "YAZE_SPRITE";
 constexpr const char* kDragPayloadPalette = "YAZE_PALETTE";
 constexpr const char* kDragPayloadRoomObject = "YAZE_ROOM_OBJ";
+constexpr const char* kDragPayloadPanel = "YAZE_PANEL";
 
 // ============================================================================
 // Payload structs
@@ -43,6 +45,13 @@ struct RoomObjectDragPayload {
   int source_room_id;
   int x;
   int y;
+};
+
+// Drag payload for the Layout Designer. Panel IDs are bounded strings
+// ("dungeon.room_selector" style), so the payload stays POD-copyable
+// through ImGui's raw-memory drag-drop.
+struct PanelDragPayload {
+  char panel_id[128] = {};
 };
 
 // ============================================================================
@@ -92,6 +101,21 @@ inline bool BeginRoomObjectDragSource(uint16_t object_id, int room_id,
     ImGui::SetDragDropPayload(kDragPayloadRoomObject, &payload,
                               sizeof(payload));
     ImGui::Text("Object 0x%04X", object_id);
+    ImGui::EndDragDropSource();
+    return true;
+  }
+  return false;
+}
+
+inline bool BeginPanelDragSource(const char* panel_id,
+                                 const char* preview_label) {
+  if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
+    PanelDragPayload payload;
+    if (panel_id != nullptr) {
+      std::strncpy(payload.panel_id, panel_id, sizeof(payload.panel_id) - 1);
+    }
+    ImGui::SetDragDropPayload(kDragPayloadPanel, &payload, sizeof(payload));
+    ImGui::TextUnformatted(preview_label != nullptr ? preview_label : panel_id);
     ImGui::EndDragDropSource();
     return true;
   }
@@ -151,6 +175,19 @@ inline bool AcceptRoomObjectDrop(RoomObjectDragPayload* out) {
       return true;
     }
     ImGui::EndDragDropTarget();
+  }
+  return false;
+}
+
+// Accepts a panel drag payload assuming BeginDragDropTarget has already
+// been entered by the caller (so the target can draw drop-preview hints
+// before committing to accept). Returns true when the user releases over
+// the target with a YAZE_PANEL payload in flight.
+inline bool AcceptPanelDropWithinTarget(PanelDragPayload* out) {
+  if (const ImGuiPayload* payload =
+          ImGui::AcceptDragDropPayload(kDragPayloadPanel)) {
+    *out = *static_cast<const PanelDragPayload*>(payload->Data);
+    return true;
   }
   return false;
 }
