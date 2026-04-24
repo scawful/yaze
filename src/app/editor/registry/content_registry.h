@@ -24,6 +24,8 @@ namespace editor {
 class WindowContent;
 class Editor;
 class GlobalEditorContext;
+class LayoutManager;
+class UserSettings;
 struct EditorDependencies;
 
 namespace workflow {
@@ -138,6 +140,31 @@ void SetGameData(::yaze::zelda3::GameData* data);
    * Called when opening or switching projects.
    */
 void SetCurrentProject(::yaze::project::YazeProject* project);
+
+/**
+   * @brief Get the current UserSettings instance.
+   * @return Pointer to UserSettings owned by EditorManager, or nullptr
+   *         before initialization / in tests.
+   *
+   * Cross-editor panels (e.g. Layout Designer) need to read and write
+   * user-scoped preferences without a constructor-injection hook. The
+   * setter is called from EditorManager::Initialize; consumers should
+   * treat the returned pointer as nullable.
+   */
+UserSettings* user_settings();
+void SetUserSettings(UserSettings* settings);
+
+/**
+   * @brief Get the shared LayoutManager instance.
+   * @return Pointer to LayoutManager owned by EditorManager, or nullptr
+   *         before initialization / in tests.
+   *
+   * Cross-editor panels that drive the live dockspace (Layout Designer)
+   * use this to call ApplyDockTree / CaptureDockTree. Consumers should
+   * null-check before use.
+   */
+LayoutManager* layout_manager();
+void SetLayoutManager(LayoutManager* manager);
 
 workflow::HackWorkflowBackend* hack_workflow_backend();
 workflow::ValidationCapability* hack_validation_backend();
