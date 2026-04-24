@@ -35,6 +35,12 @@ bool TreeUndoStack::Redo(DockTree* current) {
   return true;
 }
 
+void TreeUndoStack::PopLastPush() {
+  if (undo_.empty())
+    return;
+  undo_.pop_back();
+}
+
 void TreeUndoStack::Clear() {
   undo_.clear();
   redo_.clear();
