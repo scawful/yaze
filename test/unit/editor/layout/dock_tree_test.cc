@@ -1,7 +1,9 @@
 #include "app/editor/layout/layout_designer/dock_tree.h"
 
+#include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -122,7 +124,7 @@ TEST(DockTreeTest, DefaultHasEmptyLeafRoot) {
   ASSERT_NE(t.root, nullptr);
   EXPECT_EQ(t.root->type, DockNode::Type::kLeaf);
   EXPECT_TRUE(t.root->panels.empty());
-  EXPECT_EQ(t.schema_version, 1u);
+  EXPECT_EQ(t.schema_version, 2u);
 }
 
 TEST(DockTreeTest, NamedConstructorStoresName) {
@@ -207,6 +209,132 @@ TEST(DockTreeValidateTest, DeeplyNestedTreeIsValid) {
           DockNode::MakeLeaf({MakePanel("d"), MakePanel("e")})));
   std::string err;
   EXPECT_TRUE(t.Validate(&err)) << err;
+}
+
+// --- Phase 8.5: stable DockNodeId tests ---------------------------------
+
+TEST(DockNodeIdTest, DefaultConstructedNodeHasInvalidId) {
+  // The free DockNode default ctor is the only path that produces an id
+  // == kInvalidDockNodeId. Factories always allocate a real one.
+  DockNode raw;
+  EXPECT_EQ(raw.id, kInvalidDockNodeId);
+}
+
+TEST(DockNodeIdTest, FactoriesAllocateUniqueNonZeroIds) {
+  auto a = DockNode::MakeLeaf({});
+  auto b = DockNode::MakeLeaf({});
+  auto split =
+      DockNode::MakeSplit(SplitDirection::kLeft, 0.5f, DockNode::MakeLeaf({}),
+                          DockNode::MakeLeaf({}));
+  EXPECT_NE(a->id, kInvalidDockNodeId);
+  EXPECT_NE(b->id, kInvalidDockNodeId);
+  EXPECT_NE(split->id, kInvalidDockNodeId);
+  EXPECT_NE(a->id, b->id);
+  EXPECT_NE(split->id, split->child_a->id);
+  EXPECT_NE(split->id, split->child_b->id);
+  EXPECT_NE(split->child_a->id, split->child_b->id);
+}
+
+TEST(DockNodeIdTest, CloneNodePreservesIdsThroughout) {
+  auto original = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f,
+                                      DockNode::MakeLeaf({MakePanel("a")}),
+                                      DockNode::MakeLeaf({MakePanel("b")}));
+  auto copy = original->Clone();
+  EXPECT_EQ(copy->id, original->id);
+  EXPECT_EQ(copy->child_a->id, original->child_a->id);
+  EXPECT_EQ(copy->child_b->id, original->child_b->id);
+}
+
+TEST(DockNodeIdTest, CloneTreePreservesAllIds) {
+  DockTree t("ids");
+  t.root = DockNode::MakeSplit(SplitDirection::kUp, 0.5f,
+                               DockNode::MakeLeaf({MakePanel("a")}),
+                               DockNode::MakeLeaf({MakePanel("b")}));
+  const DockNodeId root_id = t.root->id;
+  const DockNodeId a_id = t.root->child_a->id;
+  const DockNodeId b_id = t.root->child_b->id;
+  DockTree clone = t.Clone();
+  EXPECT_EQ(clone.root->id, root_id);
+  EXPECT_EQ(clone.root->child_a->id, a_id);
+  EXPECT_EQ(clone.root->child_b->id, b_id);
+}
+
+TEST(DockNodeIdTest, SplitInPlacePreservesParentIdAndAllocatesChildId) {
+  // Before split: leaf with id L. After split: split at id L (preserved)
+  // with child_a (or child_b, depending on new_child_first) being a fresh
+  // leaf carrying the saved panels — that fresh leaf must have a NEW id.
+  auto leaf = DockNode::MakeLeaf({MakePanel("orig")});
+  const DockNodeId leaf_id = leaf->id;
+  auto new_panel_leaf = DockNode::MakeLeaf({MakePanel("new")});
+  const DockNodeId new_panel_leaf_id = new_panel_leaf->id;
+
+  leaf->SplitInPlace(SplitDirection::kLeft, 0.5f, std::move(new_panel_leaf),
+                     /*new_child_first=*/true);
+  EXPECT_EQ(leaf->id, leaf_id) << "split node should retain the leaf's id";
+  EXPECT_EQ(leaf->type, DockNode::Type::kSplit);
+  ASSERT_NE(leaf->child_a, nullptr);
+  ASSERT_NE(leaf->child_b, nullptr);
+  EXPECT_EQ(leaf->child_a->id, new_panel_leaf_id)
+      << "first child should carry the new panel's pre-allocated id";
+  EXPECT_NE(leaf->child_b->id, kInvalidDockNodeId);
+  EXPECT_NE(leaf->child_b->id, leaf_id)
+      << "the moved-existing-leaf child should have a fresh id, not the "
+         "parent's";
+  EXPECT_NE(leaf->child_b->id, new_panel_leaf_id);
+}
+
+TEST(DockNodeIdTest, PromoteSingleChildAdoptsSurvivingChildId) {
+  auto split = DockNode::MakeSplit(SplitDirection::kLeft, 0.3f,
+                                   DockNode::MakeLeaf({MakePanel("surviving")}),
+                                   /*b=*/nullptr);
+  const DockNodeId surviving_id = split->child_a->id;
+  ASSERT_TRUE(split->PromoteSingleChild());
+  EXPECT_EQ(split->id, surviving_id)
+      << "promoted node should carry the surviving child's id so selection "
+         "by id follows the user's logical content";
+}
+
+TEST(DockTreeFindNodeTest, ReturnsNullForInvalidOrUnknownId) {
+  DockTree t;
+  EXPECT_EQ(t.FindNode(kInvalidDockNodeId), nullptr);
+  EXPECT_EQ(t.FindNode(/*not present=*/std::numeric_limits<DockNodeId>::max()),
+            nullptr);
+}
+
+TEST(DockTreeFindNodeTest, WalksTreeReturningMatchingNode) {
+  DockTree t;
+  auto a = DockNode::MakeLeaf({MakePanel("a")});
+  auto b = DockNode::MakeLeaf({MakePanel("b")});
+  const DockNodeId a_id = a->id;
+  const DockNodeId b_id = b->id;
+  t.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f, std::move(a),
+                               std::move(b));
+  EXPECT_NE(t.FindNode(t.root->id), nullptr);
+  EXPECT_EQ(t.FindNode(a_id)->panels[0].panel_id, "a");
+  EXPECT_EQ(t.FindNode(b_id)->panels[0].panel_id, "b");
+}
+
+TEST(DockTreeFindNodeTest, NonConstOverloadReturnsMutablePointer) {
+  DockTree t;
+  t.root = DockNode::MakeLeaf({MakePanel("only")});
+  const DockNodeId root_id = t.root->id;
+  DockNode* mutable_node = t.FindNode(root_id);
+  ASSERT_NE(mutable_node, nullptr);
+  // Compile-time: the result must be a mutable pointer.
+  mutable_node->active_tab_index = 0;
+  EXPECT_EQ(mutable_node, t.root.get());
+}
+
+TEST(DockNodeIdTest, ObserveDockNodeIdBumpsCounterPastObserved) {
+  // Pin a far-future id and verify the next allocation jumps past it.
+  // The exact pre-call value of the counter is irrelevant as long as
+  // post-observation, AllocateDockNodeId returns id > observed.
+  const DockNodeId observed = internal::AllocateDockNodeId() + 1000000ULL;
+  internal::ObserveDockNodeId(observed);
+  const DockNodeId next = internal::AllocateDockNodeId();
+  EXPECT_GT(next, observed)
+      << "ObserveDockNodeId must bump the counter so JSON-loaded ids never "
+         "collide with newly-allocated ones";
 }
 
 }  // namespace

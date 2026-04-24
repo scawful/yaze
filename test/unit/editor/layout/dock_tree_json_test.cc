@@ -28,7 +28,10 @@ TEST(DockTreeJsonTest, EmptyTreeRoundTrip) {
 
   EXPECT_EQ(parsed->name, "My Layout");
   EXPECT_EQ(parsed->description, "A description");
-  EXPECT_EQ(parsed->schema_version, 1u);
+  // Default-constructed DockTree carries schema_version 2 (Phase 8.5
+  // ids). The MissingOptionalFieldsDefault test below pins the legacy
+  // v1 fallback when the field is absent from the JSON body.
+  EXPECT_EQ(parsed->schema_version, 2u);
   ASSERT_NE(parsed->root, nullptr);
   EXPECT_EQ(parsed->root->type, DockNode::Type::kLeaf);
   EXPECT_TRUE(parsed->root->panels.empty());
@@ -195,6 +198,92 @@ TEST(DockTreeJsonTest, MissingRootUsesDefaultEmptyLeaf) {
   ASSERT_NE(parsed->root, nullptr);
   EXPECT_EQ(parsed->root->type, DockNode::Type::kLeaf);
   EXPECT_TRUE(parsed->root->panels.empty());
+}
+
+// --- Phase 8.5: schema v2 (DockNodeId) -----------------------------------
+
+TEST(DockTreeJsonTest, V2RoundTripPreservesNodeIds) {
+  // Build a multi-node tree, serialize, parse, verify ids match across
+  // every node. The whole point of v2 is selection-by-id surviving
+  // save/load — a regression here is a regression in that contract.
+  DockTree original("ids");
+  original.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.4f,
+                                      DockNode::MakeLeaf({MakePanel("a")}),
+                                      DockNode::MakeLeaf({MakePanel("b")}));
+  const DockNodeId root_id = original.root->id;
+  const DockNodeId a_id = original.root->child_a->id;
+  const DockNodeId b_id = original.root->child_b->id;
+
+  json j = DockTreeToJson(original);
+  auto parsed = DockTreeFromJson(j);
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  ASSERT_NE(parsed->root, nullptr);
+  EXPECT_EQ(parsed->root->id, root_id);
+  ASSERT_NE(parsed->root->child_a, nullptr);
+  EXPECT_EQ(parsed->root->child_a->id, a_id);
+  ASSERT_NE(parsed->root->child_b, nullptr);
+  EXPECT_EQ(parsed->root->child_b->id, b_id);
+}
+
+TEST(DockTreeJsonTest, V1LegacyJsonGetsFreshIds) {
+  // Older JSON predates the id field. The parser should not reject it;
+  // it should allocate new non-zero ids for every node so subsequent
+  // FindNode lookups work.
+  json j = {
+      {"schema_version", 1},
+      {"name", "legacy"},
+      {"root",
+       {{"type", "split"},
+        {"direction", "left"},
+        {"ratio", 0.5f},
+        {"child_a",
+         {{"type", "leaf"}, {"panels", json::array({{{"panel_id", "a"}}})}}},
+        {"child_b",
+         {{"type", "leaf"}, {"panels", json::array({{{"panel_id", "b"}}})}}}}},
+  };
+  auto parsed = DockTreeFromJson(j);
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  ASSERT_NE(parsed->root, nullptr);
+  EXPECT_NE(parsed->root->id, kInvalidDockNodeId);
+  ASSERT_NE(parsed->root->child_a, nullptr);
+  ASSERT_NE(parsed->root->child_b, nullptr);
+  EXPECT_NE(parsed->root->child_a->id, kInvalidDockNodeId);
+  EXPECT_NE(parsed->root->child_b->id, kInvalidDockNodeId);
+  EXPECT_NE(parsed->root->id, parsed->root->child_a->id);
+  EXPECT_NE(parsed->root->child_a->id, parsed->root->child_b->id);
+}
+
+TEST(DockTreeJsonTest, ParseBumpsCounterPastObservedIds) {
+  // Pin a far-future id in the JSON; subsequent allocations must skip
+  // it so the loaded tree's id and a freshly-made node never collide
+  // in the same session.
+  const DockNodeId far_id = internal::AllocateDockNodeId() + 5000000ULL;
+  json j = {
+      {"schema_version", 2},
+      {"root",
+       {{"type", "leaf"},
+        {"id", far_id},
+        {"panels", json::array({{{"panel_id", "x"}}})}}},
+  };
+  auto parsed = DockTreeFromJson(j);
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_EQ(parsed->root->id, far_id);
+  // Next allocation must be > far_id.
+  const DockNodeId next = internal::AllocateDockNodeId();
+  EXPECT_GT(next, far_id);
+}
+
+TEST(DockTreeJsonTest, ParseTreatsExplicitInvalidIdAsMissing) {
+  // id == 0 is the kInvalidDockNodeId sentinel. Forward-compat:
+  // silently allocate a fresh id rather than reject the document
+  // (treats id=0 the same as missing id, which is what legacy v1
+  // input does).
+  json j = {
+      {"root", {{"type", "leaf"}, {"id", 0}}},
+  };
+  auto parsed = DockTreeFromJson(j);
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_NE(parsed->root->id, kInvalidDockNodeId);
 }
 
 }  // namespace

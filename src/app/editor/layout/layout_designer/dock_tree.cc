@@ -1,5 +1,6 @@
 #include "app/editor/layout/layout_designer/dock_tree.h"
 
+#include <atomic>
 #include <string>
 #include <unordered_set>
 #include <utility>
@@ -9,8 +10,40 @@ namespace yaze {
 namespace editor {
 namespace layout_designer {
 
+namespace {
+
+// Process-wide monotonic counter for DockNodeId. Starts at 1 because 0 is
+// reserved as the kInvalidDockNodeId sentinel.
+std::atomic<DockNodeId> g_next_dock_node_id{1};
+
+}  // namespace
+
+namespace internal {
+
+DockNodeId AllocateDockNodeId() {
+  return g_next_dock_node_id.fetch_add(1, std::memory_order_relaxed);
+}
+
+void ObserveDockNodeId(DockNodeId id) {
+  if (id == kInvalidDockNodeId)
+    return;
+  // Bump the counter to id + 1 if we'd otherwise hand out a value <= id.
+  // Use compare-exchange-weak so concurrent observers race cleanly.
+  DockNodeId expected = g_next_dock_node_id.load(std::memory_order_relaxed);
+  while (expected <= id) {
+    if (g_next_dock_node_id.compare_exchange_weak(expected, id + 1,
+                                                  std::memory_order_relaxed)) {
+      return;
+    }
+    // compare_exchange_weak refreshes `expected` on failure; loop and retry.
+  }
+}
+
+}  // namespace internal
+
 std::unique_ptr<DockNode> DockNode::MakeLeaf(std::vector<PanelEntry> panels) {
   auto node = std::make_unique<DockNode>();
+  node->id = internal::AllocateDockNodeId();
   node->type = Type::kLeaf;
   node->panels = std::move(panels);
   node->active_tab_index = 0;
@@ -21,6 +54,7 @@ std::unique_ptr<DockNode> DockNode::MakeSplit(SplitDirection dir, float ratio,
                                               std::unique_ptr<DockNode> a,
                                               std::unique_ptr<DockNode> b) {
   auto node = std::make_unique<DockNode>();
+  node->id = internal::AllocateDockNodeId();
   node->type = Type::kSplit;
   node->split_direction = dir;
   node->split_ratio = ratio;
@@ -31,6 +65,10 @@ std::unique_ptr<DockNode> DockNode::MakeSplit(SplitDirection dir, float ratio,
 
 std::unique_ptr<DockNode> DockNode::Clone() const {
   auto copy = std::make_unique<DockNode>();
+  // Preserve id verbatim — Clone is the undo/redo and snapshot path, and
+  // selection-by-id only survives those operations if the cloned tree's
+  // node ids match the originals'.
+  copy->id = id;
   copy->type = type;
   copy->panels = panels;
   copy->active_tab_index = active_tab_index;
@@ -172,6 +210,35 @@ bool DockTree::Validate(std::string* error) const {
   }
   std::unordered_set<std::string> seen_ids;
   return ValidateNode(*root, &seen_ids, error);
+}
+
+namespace {
+
+const DockNode* FindNodeInSubtree(const DockNode* node, DockNodeId id) {
+  if (node == nullptr)
+    return nullptr;
+  if (node->id == id)
+    return node;
+  if (node->type == DockNode::Type::kSplit) {
+    if (const auto* hit = FindNodeInSubtree(node->child_a.get(), id))
+      return hit;
+    if (const auto* hit = FindNodeInSubtree(node->child_b.get(), id))
+      return hit;
+  }
+  return nullptr;
+}
+
+}  // namespace
+
+const DockNode* DockTree::FindNode(DockNodeId id) const {
+  if (id == kInvalidDockNodeId)
+    return nullptr;
+  return FindNodeInSubtree(root.get(), id);
+}
+
+DockNode* DockTree::FindNode(DockNodeId id) {
+  return const_cast<DockNode*>(
+      static_cast<const DockTree*>(this)->FindNode(id));
 }
 
 DockTree MakeEmptyTree(std::string name) {

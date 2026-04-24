@@ -39,33 +39,41 @@ class LayoutDesignerPanel : public WindowContent {
   void Draw(bool* p_open) override;
 
   // Replace the currently-edited tree wholesale. Any op that swaps `tree_`
-  // (New, Open, apply-from-elsewhere) MUST go through this helper — the
-  // raw `selected_` pointer references DockNodes inside the old tree and
-  // would dangle across a move. Same for `drag_.split_node`. Undo history
+  // (New, Open, apply-from-elsewhere) MUST go through this helper. Selection
+  // and active drag are stored by stable `DockNodeId` (Phase 8.5), so a
+  // wholesale swap technically *could* leave them set and FindNode would
+  // gracefully return nullptr — but the cleared semantics match user
+  // intent (a freshly-loaded layout shouldn't carry the previous one's
+  // cursor) and the empty-state branches in Draw are simpler. Undo history
   // is cleared because its snapshots reference the replaced tree's
   // identity (and mid-session undo across Load boundaries is confusing
   // UX — users can undo *within* a loaded layout, not across loads).
   void ReplaceTree(DockTree new_tree);
 
   // Test-only accessors. The live Draw path is the only production
-  // mutator of `selected_`/`drag_`; tests need to observe both to verify
+  // mutator of `selected_id_`/`drag_`; tests need to observe both to verify
   // the tree-swap invariant holds.
   const DockTree& tree_for_test() const { return tree_; }
-  const DockNode* selected_for_test() const { return selected_; }
-  bool has_active_drag_for_test() const { return drag_.split_node != nullptr; }
+  DockNodeId selected_id_for_test() const { return selected_id_; }
+  bool has_active_drag_for_test() const {
+    return drag_.split_id != kInvalidDockNodeId;
+  }
   const TreeUndoStack& undo_for_test() const { return undo_; }
   // Test-only setters so ReplaceTree's clear behavior can be exercised
   // without standing up an ImGui context. Production callers should rely
   // on Draw() to set selection/drag via mouse input.
-  void set_selected_for_test(const DockNode* n) { selected_ = n; }
-  void set_drag_node_for_test(DockNode* n) { drag_.split_node = n; }
+  void set_selected_id_for_test(DockNodeId id) { selected_id_ = id; }
+  void set_drag_id_for_test(DockNodeId id) { drag_.split_id = id; }
 
  private:
-  // Active drag state for split-boundary resize. `split_node` is nullptr
-  // between drags; while set, the panel is mid-drag and all other input
-  // is ignored until the mouse button releases.
+  // Active drag state for split-boundary resize. `split_id` is
+  // `kInvalidDockNodeId` between drags; while non-zero, the panel is
+  // mid-drag and all other input is ignored until the mouse button
+  // releases. The mid-drag writeback resolves the id back to a mutable
+  // `DockNode*` via `tree_.FindNode(...)` each frame so the drag survives
+  // any concurrent tree mutation that preserves the split node.
   struct ActiveDrag {
-    DockNode* split_node = nullptr;
+    DockNodeId split_id = kInvalidDockNodeId;
     float start_ratio = 0.0f;
     ImVec2 start_mouse{0.0f, 0.0f};
     ImRect start_rect{};
@@ -97,7 +105,11 @@ class LayoutDesignerPanel : public WindowContent {
   void SaveOrSaveAs();
 
   DockTree tree_;
-  const DockNode* selected_ = nullptr;
+  // Stable id of the currently-selected node, or `kInvalidDockNodeId`.
+  // Phase 8.5: replaced raw `const DockNode*` so undo/redo and other
+  // structure-preserving mutations stop dropping the user's cursor —
+  // selection now follows the logical node rather than its address.
+  DockNodeId selected_id_ = kInvalidDockNodeId;
   ActiveDrag drag_;
   std::string palette_query_;
   TreeUndoStack undo_;

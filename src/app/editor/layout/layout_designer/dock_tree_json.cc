@@ -66,6 +66,15 @@ absl::StatusOr<PanelEntry> PanelFromJson(const nlohmann::json& j) {
 
 nlohmann::json NodeToJson(const DockNode& node) {
   nlohmann::json j;
+  // Schema v2: every real node carries a `DockNodeId`. The default-
+  // constructed sentinel (kInvalidDockNodeId) doesn't survive serialization
+  // — that only happens for raw `DockNode{}` instances which the live tree
+  // never holds. Emit the id unconditionally for non-zero values so v2
+  // round-trips faithfully; v1-loaded trees that didn't carry ids will
+  // have been re-allocated at parse time and emit cleanly.
+  if (node.id != kInvalidDockNodeId) {
+    j["id"] = node.id;
+  }
   if (node.type == DockNode::Type::kLeaf) {
     j["type"] = "leaf";
     j["active_tab_index"] = node.active_tab_index;
@@ -84,6 +93,21 @@ nlohmann::json NodeToJson(const DockNode& node) {
   return j;
 }
 
+// Read the `id` field if present; otherwise allocate a fresh one. Either
+// way, the result is non-zero so live trees never carry the sentinel.
+DockNodeId ResolveNodeId(const nlohmann::json& j) {
+  if (j.contains("id") && j.at("id").is_number_unsigned()) {
+    const auto id = j.at("id").get<DockNodeId>();
+    if (id != kInvalidDockNodeId) {
+      // Bump the global counter so subsequent allocations don't collide
+      // with a future load of the same persisted tree.
+      internal::ObserveDockNodeId(id);
+      return id;
+    }
+  }
+  return internal::AllocateDockNodeId();
+}
+
 absl::StatusOr<std::unique_ptr<DockNode>> NodeFromJson(
     const nlohmann::json& j) {
   if (!j.is_object()) {
@@ -92,6 +116,7 @@ absl::StatusOr<std::unique_ptr<DockNode>> NodeFromJson(
   const std::string type = j.value("type", "");
   if (type == "leaf") {
     auto node = std::make_unique<DockNode>();
+    node->id = ResolveNodeId(j);
     node->type = DockNode::Type::kLeaf;
     node->active_tab_index = j.value("active_tab_index", 0);
     if (j.contains("panels")) {
@@ -110,6 +135,7 @@ absl::StatusOr<std::unique_ptr<DockNode>> NodeFromJson(
   }
   if (type == "split") {
     auto node = std::make_unique<DockNode>();
+    node->id = ResolveNodeId(j);
     node->type = DockNode::Type::kSplit;
     const std::string dir_str = j.value("direction", "left");
     auto dir = SplitDirectionFromString(dir_str);
@@ -151,6 +177,8 @@ absl::StatusOr<DockTree> DockTreeFromJson(const nlohmann::json& j) {
     return absl::InvalidArgumentError("dock tree must be a JSON object");
   }
   DockTree tree;
+  // Default to v1 so legacy JSON written before the id field existed
+  // continues to parse cleanly. Newly-saved trees carry version 2.
   tree.schema_version = j.value("schema_version", 1ULL);
   tree.name = j.value("name", "");
   tree.description = j.value("description", "");
@@ -160,7 +188,9 @@ absl::StatusOr<DockTree> DockTreeFromJson(const nlohmann::json& j) {
       return root.status();
     tree.root = std::move(*root);
   }
-  // If "root" is missing, the default-constructed empty leaf stays.
+  // If "root" is missing, the default-constructed empty leaf stays —
+  // its id was already allocated by `DockTree::DockTree()`'s call to
+  // `MakeLeaf({})`.
   return tree;
 }
 

@@ -10,6 +10,31 @@ namespace yaze {
 namespace editor {
 namespace layout_designer {
 
+// Stable per-node identity. Allocated at factory time from a process-wide
+// monotonic counter so ids are unique across all live DockTrees in a
+// session. Survives Clone, JSON round-trip, and structural mutations,
+// which is what lets the Layout Designer hold selection by id rather than
+// raw `DockNode*`.
+//
+// Reserve 0 as the "invalid / unset" sentinel — every real node has id
+// >= 1.
+using DockNodeId = std::uint64_t;
+inline constexpr DockNodeId kInvalidDockNodeId = 0;
+
+namespace internal {
+
+// Returns a fresh, never-before-used DockNodeId. Thread-safe.
+DockNodeId AllocateDockNodeId();
+
+// Bump the internal counter so subsequent AllocateDockNodeId() calls
+// return values strictly greater than `id`. Called by the JSON parser
+// for every parsed id so newly-allocated nodes don't collide with
+// loaded ones. No-op when `id` is kInvalidDockNodeId or already below
+// the current counter.
+void ObserveDockNodeId(DockNodeId id);
+
+}  // namespace internal
+
 // Dock split direction. Independent of ImGuiDir so the data model and its
 // JSON representation don't require imgui.h; LayoutManager converts at the
 // DockBuilder boundary.
@@ -35,6 +60,11 @@ struct PanelEntry {
 // split (direction + ratio + two children).
 struct DockNode {
   enum class Type : std::uint8_t { kLeaf, kSplit };
+
+  // Stable id, allocated at factory time. Default-constructed DockNodes
+  // (e.g. via `DockNode n;`) have id == kInvalidDockNodeId; the factories
+  // (`MakeLeaf` / `MakeSplit`) and `Clone()` set it to a real value.
+  DockNodeId id = kInvalidDockNodeId;
 
   Type type = Type::kLeaf;
 
@@ -78,7 +108,10 @@ struct DockNode {
 struct DockTree {
   std::string name;
   std::string description;
-  std::uint64_t schema_version = 1;
+  // schema_version 2 added stable per-node `DockNodeId`. v1 JSON (no
+  // ids) still parses — the loader allocates fresh ids for nodes that
+  // lack them.
+  std::uint64_t schema_version = 2;
   std::unique_ptr<DockNode> root;  // Always non-null after construction.
 
   DockTree();
@@ -97,6 +130,13 @@ struct DockTree {
   //     [0, panels.size())
   //   - every PanelEntry.panel_id is non-empty and unique across the tree
   bool Validate(std::string* error) const;
+
+  // Linear DFS lookup by stable id. Returns nullptr when `id` is
+  // kInvalidDockNodeId or not present in this tree. The non-const
+  // overload returns a mutable pointer for callers that need to write
+  // back (e.g. the split-boundary drag path on the active node).
+  const DockNode* FindNode(DockNodeId id) const;
+  DockNode* FindNode(DockNodeId id);
 };
 
 // Returns an empty single-leaf tree. Equivalent to `DockTree(name)` but
