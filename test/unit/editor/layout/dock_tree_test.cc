@@ -197,6 +197,35 @@ TEST(DockTreeValidateTest, ActiveTabOutOfRangeIsInvalid) {
   EXPECT_FALSE(t.Validate(&err));
 }
 
+// Phase 8.5 review (2026-04-24): selection/drag now resolve through
+// FindNode by stable id. A malformed file with duplicate or zero ids
+// would let those operations target an arbitrary node silently.
+// Validate rejects both shapes.
+
+TEST(DockTreeValidateTest, ZeroNodeIdIsInvalid) {
+  DockTree t;
+  // Bypass the factory so the leaf retains the default id (== 0).
+  t.root = std::make_unique<DockNode>();
+  t.root->type = DockNode::Type::kLeaf;
+  std::string err;
+  EXPECT_FALSE(t.Validate(&err));
+  EXPECT_NE(err.find("invalid id"), std::string::npos);
+}
+
+TEST(DockTreeValidateTest, DuplicateNodeIdIsInvalid) {
+  DockTree t;
+  // Build a normal split, then forcibly stamp a duplicate id onto
+  // child_b — this is the shape a malformed-on-disk file or a bug in a
+  // future tree-mutation path could produce.
+  t.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f,
+                               DockNode::MakeLeaf({MakePanel("a")}),
+                               DockNode::MakeLeaf({MakePanel("b")}));
+  t.root->child_b->id = t.root->child_a->id;
+  std::string err;
+  EXPECT_FALSE(t.Validate(&err));
+  EXPECT_NE(err.find("duplicate node id"), std::string::npos);
+}
+
 TEST(DockTreeValidateTest, DeeplyNestedTreeIsValid) {
   DockTree t;
   t.root = DockNode::MakeSplit(

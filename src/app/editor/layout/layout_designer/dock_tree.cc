@@ -154,8 +154,25 @@ DockTree DockTree::Clone() const {
 namespace {
 
 bool ValidateNode(const DockNode& node,
-                  std::unordered_set<std::string>* seen_ids,
+                  std::unordered_set<std::string>* seen_panel_ids,
+                  std::unordered_set<DockNodeId>* seen_node_ids,
                   std::string* error) {
+  // Phase 8.5: every real DockNode must carry a unique non-zero id.
+  // FindNode does a linear DFS and returns the first match; without
+  // these checks a malformed file (or a future bug) could make
+  // selection/drag/property edits silently resolve to an arbitrary
+  // node.
+  if (node.id == kInvalidDockNodeId) {
+    if (error)
+      *error = "node has invalid id (kInvalidDockNodeId)";
+    return false;
+  }
+  if (!seen_node_ids->insert(node.id).second) {
+    if (error)
+      *error = "duplicate node id: " + std::to_string(node.id);
+    return false;
+  }
+
   if (node.type == DockNode::Type::kLeaf) {
     const int n = static_cast<int>(node.panels.size());
     if (n == 0) {
@@ -175,7 +192,7 @@ bool ValidateNode(const DockNode& node,
           *error = "panel has empty panel_id";
         return false;
       }
-      auto inserted = seen_ids->insert(p.panel_id);
+      auto inserted = seen_panel_ids->insert(p.panel_id);
       if (!inserted.second) {
         if (error)
           *error = "panel id '" + p.panel_id + "' appears twice";
@@ -196,8 +213,8 @@ bool ValidateNode(const DockNode& node,
       *error = "split_ratio out of range [0.05, 0.95]";
     return false;
   }
-  return ValidateNode(*node.child_a, seen_ids, error) &&
-         ValidateNode(*node.child_b, seen_ids, error);
+  return ValidateNode(*node.child_a, seen_panel_ids, seen_node_ids, error) &&
+         ValidateNode(*node.child_b, seen_panel_ids, seen_node_ids, error);
 }
 
 }  // namespace
@@ -208,8 +225,9 @@ bool DockTree::Validate(std::string* error) const {
       *error = "tree has null root";
     return false;
   }
-  std::unordered_set<std::string> seen_ids;
-  return ValidateNode(*root, &seen_ids, error);
+  std::unordered_set<std::string> seen_panel_ids;
+  std::unordered_set<DockNodeId> seen_node_ids;
+  return ValidateNode(*root, &seen_panel_ids, &seen_node_ids, error);
 }
 
 namespace {
