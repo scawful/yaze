@@ -155,8 +155,10 @@ set(
   YAZE_EDITOR_SYSTEM_PANELS_SRC
   app/editor/layout/layout_coordinator.cc
   app/editor/layout/layout_designer/dock_tree.cc
+  app/editor/layout/layout_designer/dock_tree_hit_test.cc
   app/editor/layout/layout_designer/dock_tree_json.cc
   app/editor/layout/layout_designer/dock_tree_renderer.cc
+  app/editor/layout/layout_designer/split_boundary_drag.cc
   app/editor/layout/layout_manager.cc
   app/editor/layout/layout_orchestrator.cc
   app/editor/layout/layout_presets.cc

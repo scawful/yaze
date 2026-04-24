@@ -6,6 +6,8 @@
 #include "app/editor/layout/layout_designer/dock_tree.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace editor {
@@ -36,7 +38,19 @@ class LayoutDesignerPanel : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  // Active drag state for split-boundary resize. `split_node` is nullptr
+  // between drags; while set, the panel is mid-drag and all other input
+  // is ignored until the mouse button releases.
+  struct ActiveDrag {
+    DockNode* split_node = nullptr;
+    float start_ratio = 0.0f;
+    ImVec2 start_mouse{0.0f, 0.0f};
+    ImRect start_rect{};
+  };
+
   DockTree tree_;
+  const DockNode* selected_ = nullptr;
+  ActiveDrag drag_;
 };
 
 }  // namespace layout_designer
