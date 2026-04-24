@@ -148,6 +148,35 @@ TEST(DockTreeHitTestTest, ComputeDraggedSplitRatioHandlesZeroAxisSize) {
   EXPECT_FLOAT_EQ(ComputeDraggedSplitRatio(1.5f, 100.0f, 0.0f), kMaxSplitRatio);
 }
 
+TEST(DockTreeHitTestTest, HitTestSplitBoundaryShrinksToleranceForTinyCells) {
+  // Viewport 40 × 40 at kLeft @ 0.5 → each child is 20 × 40 (exactly
+  // kMinCellSize). Hand-build a layout where both children are 12 px so
+  // the per-side tolerance clamp (min_cell * 0.25 = 3 px) kicks in below
+  // the configured 4 px default.
+  auto a = MakeLeafFor("a");
+  auto b = MakeLeafFor("b");
+  const DockNode* a_ptr = a.get();
+  const DockNode* b_ptr = b.get();
+  DockTree tree("tiny");
+  tree.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f, std::move(a),
+                                  std::move(b));
+  DockTreeLayout layout;
+  layout.node_rects[tree.root.get()] = ImRect(0.0f, 0.0f, 24.0f, 40.0f);
+  layout.node_rects[a_ptr] = ImRect(0.0f, 0.0f, 12.0f, 40.0f);
+  layout.node_rects[b_ptr] = ImRect(12.0f, 0.0f, 24.0f, 40.0f);
+
+  // With default 4 px tolerance the gutter would nominally claim
+  // x = 8..16. The clamp should reduce effective band to x = 9..15.
+  EXPECT_EQ(HitTestSplitBoundary(tree, layout, ImVec2(12.0f, 20.0f)).split_node,
+            tree.root.get());
+  EXPECT_EQ(HitTestSplitBoundary(tree, layout, ImVec2(15.0f, 20.0f)).split_node,
+            tree.root.get());
+  // 3.5 px into cell a — outside the clamped band, but would hit at
+  // raw tolerance 4. Confirms the clamp is active.
+  EXPECT_EQ(HitTestSplitBoundary(tree, layout, ImVec2(8.5f, 20.0f)).split_node,
+            nullptr);
+}
+
 TEST(DockTreeHitTestTest, HitTestSplitBoundaryPrefersDeeperSplit) {
   //              root kLeft @ 0.5 (X-axis)
   //             /                 \

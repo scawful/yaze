@@ -46,10 +46,20 @@ SplitBoundaryHit HitTestSplitBoundary(const DockTree& tree,
 
     const ImRect& split_rect = split_it->second;
     const ImRect& a_rect = a_it->second;
+    const ImRect& b_rect = b_it->second;
     const bool horizontal = IsHorizontalSplit(node->split_direction);
+    // Clamp the gutter hit band by a fraction of the smaller adjacent cell
+    // along the split axis, so a tiny neighbor doesn't lose its selectable
+    // area to the gutter zone. At kMinCellSize (20 px) the effective band
+    // is still 4 px; only shrinks when cells drop below 16 px (possible
+    // for hand-built layouts or future kMinCellSize changes).
+    const float a_axis = horizontal ? a_rect.GetWidth() : a_rect.GetHeight();
+    const float b_axis = horizontal ? b_rect.GetWidth() : b_rect.GetHeight();
+    const float effective_tol =
+        std::min(tolerance, std::min(a_axis, b_axis) * 0.25f);
     if (horizontal) {
       const float gutter_x = a_rect.Max.x;
-      if (std::abs(mouse.x - gutter_x) <= tolerance &&
+      if (std::abs(mouse.x - gutter_x) <= effective_tol &&
           mouse.y >= split_rect.Min.y && mouse.y <= split_rect.Max.y) {
         result.split_node = node;
         result.horizontal = true;
@@ -57,7 +67,7 @@ SplitBoundaryHit HitTestSplitBoundary(const DockTree& tree,
       }
     } else {
       const float gutter_y = a_rect.Max.y;
-      if (std::abs(mouse.y - gutter_y) <= tolerance &&
+      if (std::abs(mouse.y - gutter_y) <= effective_tol &&
           mouse.x >= split_rect.Min.x && mouse.x <= split_rect.Max.x) {
         result.split_node = node;
         result.horizontal = false;
