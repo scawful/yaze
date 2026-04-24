@@ -659,6 +659,11 @@ void EditorManager::InitializeSubsystems() {
   ContentRegistry::Context::SetEventBus(
       &event_bus_);  // Global event bus access
 
+  // Expose UserSettings to cross-editor panels that don't get constructor
+  // injection (e.g. Layout Designer, which reads named_layouts). The
+  // LayoutManager setter happens below once the unique_ptr is constructed.
+  ContentRegistry::Context::SetUserSettings(&user_settings_);
+
   // STEP 3.5: Initialize RomLifecycleManager (depends on popup_manager_,
   // session_coordinator_, rom_file_manager_, toast_manager_)
   rom_lifecycle_.Initialize({
@@ -680,6 +685,9 @@ void EditorManager::InitializeSubsystems() {
   layout_manager_ = std::make_unique<LayoutManager>();
   layout_manager_->SetWindowManager(&window_manager_);
   layout_manager_->UseGlobalLayouts();
+  // Expose to cross-editor panels that drive the live dockspace (Layout
+  // Designer). Must land after the unique_ptr is constructed.
+  ContentRegistry::Context::SetLayoutManager(layout_manager_.get());
   workspace_manager_.set_layout_manager(layout_manager_.get());
   workspace_manager_.set_apply_preset_callback(
       [this](const std::string& preset_name) {

@@ -3,19 +3,27 @@
 #include <algorithm>
 #include <string>
 #include <utility>
+#include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "app/editor/layout/layout_designer/dock_tree_hit_test.h"
+#include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_designer/dock_tree_renderer.h"
 #include "app/editor/layout/layout_designer/drop_zone_suggester.h"
 #include "app/editor/layout/layout_designer/panel_palette.h"
 #include "app/editor/layout/layout_designer/split_boundary_drag.h"
+#include "app/editor/layout/layout_manager.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/registry/panel_registration.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/drag_drop.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "nlohmann/json.hpp"
 
 namespace yaze {
 namespace editor {
@@ -24,11 +32,13 @@ namespace {
 
 constexpr float kPaletteInitialWidth = 240.0f;
 constexpr float kPropertiesInitialWidth = 280.0f;
-
-void DrawDisabledAction(const char* label) {
-  ImGui::BeginDisabled();
-  ImGui::SmallButton(label);
-  ImGui::EndDisabled();
+constexpr const char* kOpenPopupId = "LayoutDesigner_OpenPopup";
+constexpr const char* kSaveAsPopupId = "LayoutDesigner_SaveAsPopup";
+// Default ImGui main dockspace id used throughout the editor (see
+// editor_activator.cc / layout_coordinator.cc). Panels that drive the
+// live dockspace all hash the same string.
+ImGuiID MainDockspaceId() {
+  return ImGui::GetID("MainDockSpace");
 }
 
 bool IsSplitHorizontal(SplitDirection d) {
@@ -57,39 +67,147 @@ void LayoutDesignerPanel::PushUndoSnapshot() {
   undo_.Push(tree_);
 }
 
-void LayoutDesignerPanel::Draw(bool* p_open) {
-  (void)p_open;  // Closing the window is handled by the workspace shell.
+void LayoutDesignerPanel::ReplaceTree(DockTree new_tree) {
+  tree_ = std::move(new_tree);
+  selected_ = nullptr;
+  drag_ = ActiveDrag{};
+  undo_.Clear();
+}
 
-  // Keyboard shortcuts: Ctrl/Cmd+Z (undo) and Ctrl/Cmd+Shift+Z (redo).
-  // Gated on focus so typing in palette/property text fields doesn't
-  // trip them.
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
-    const ImGuiIO& io = ImGui::GetIO();
-    const bool chord = io.KeyCtrl || io.KeySuper;
-    if (chord && ImGui::IsKeyPressed(ImGuiKey_Z, /*repeat=*/false)) {
-      if (io.KeyShift) {
-        if (undo_.Redo(&tree_))
-          selected_ = nullptr;
-      } else {
-        if (undo_.Undo(&tree_))
-          selected_ = nullptr;
-      }
-    }
+void LayoutDesignerPanel::SaveCurrentTreeToNamedLayouts() {
+  UserSettings* settings = ContentRegistry::Context::user_settings();
+  if (settings == nullptr) {
+    status_message_ = "Save failed: UserSettings not available.";
+    status_is_error_ = true;
+    return;
   }
+  if (tree_.name.empty()) {
+    status_message_ = "Save failed: tree has no name (use Save As…).";
+    status_is_error_ = true;
+    return;
+  }
+  // DockTreeToJson is infallible — any tree serializes. Validation is a
+  // separate concern; a partially-built tree is still persistable.
+  const nlohmann::json body = DockTreeToJson(tree_);
+  settings->prefs().named_layouts[tree_.name] = body.dump();
+  const absl::Status save_status = settings->Save();
+  if (save_status.ok()) {
+    status_message_ = absl::StrCat("Saved \"", tree_.name, "\".");
+    status_is_error_ = false;
+  } else {
+    status_message_ = absl::StrCat("Saved to memory, but disk write failed: ",
+                                   save_status.message());
+    status_is_error_ = true;
+  }
+}
 
-  // WindowContent::Draw contract: no ImGui::Begin/End and no BeginMenuBar
-  // (the outer PanelWindow does not opt into ImGuiWindowFlags_MenuBar). A
-  // disabled-button row stands in for the File menu until a menubar-capable
-  // host arrives in Phase 8.
+void LayoutDesignerPanel::LoadNamedLayoutIntoTree(const std::string& name) {
+  UserSettings* settings = ContentRegistry::Context::user_settings();
+  if (settings == nullptr) {
+    status_message_ = "Open failed: UserSettings not available.";
+    status_is_error_ = true;
+    return;
+  }
+  const auto it = settings->prefs().named_layouts.find(name);
+  if (it == settings->prefs().named_layouts.end()) {
+    status_message_ =
+        absl::StrCat("Open failed: no layout named \"", name, "\".");
+    status_is_error_ = true;
+    return;
+  }
+  nlohmann::json parsed;
+  try {
+    parsed = nlohmann::json::parse(it->second);
+  } catch (const nlohmann::json::parse_error& e) {
+    status_message_ =
+        absl::StrCat("Open failed: invalid JSON (", e.what(), ").");
+    status_is_error_ = true;
+    return;
+  }
+  auto tree_or = DockTreeFromJson(parsed);
+  if (!tree_or.ok()) {
+    status_message_ = absl::StrCat("Open failed: ", tree_or.status().message());
+    status_is_error_ = true;
+    return;
+  }
+  // DockTreeFromJson preserves the name from the JSON body; fall back to
+  // the lookup key if the body lacks one (legacy migrations).
+  if (tree_or->name.empty()) {
+    tree_or->name = name;
+  }
+  ReplaceTree(*std::move(tree_or));
+  status_message_ = absl::StrCat("Loaded \"", name, "\".");
+  status_is_error_ = false;
+}
+
+void LayoutDesignerPanel::ApplyCurrentTreeToLiveDockspace() {
+  LayoutManager* manager = ContentRegistry::Context::layout_manager();
+  UserSettings* settings = ContentRegistry::Context::user_settings();
+  if (manager == nullptr) {
+    status_message_ = "Apply failed: LayoutManager not available.";
+    status_is_error_ = true;
+    return;
+  }
+  const absl::Status apply_status =
+      manager->ApplyDockTree(tree_, MainDockspaceId());
+  if (!apply_status.ok()) {
+    status_message_ = absl::StrCat("Apply failed: ", apply_status.message());
+    status_is_error_ = true;
+    return;
+  }
+  // Persist the last-applied name so EditorManager can reapply on the
+  // next startup (hook lands in a follow-up commit; the field itself
+  // already exists in UserSettings).
+  if (settings != nullptr && !tree_.name.empty()) {
+    settings->prefs().last_applied_layout_name = tree_.name;
+    (void)settings->Save();  // best-effort; apply succeeded regardless.
+  }
+  status_message_ = absl::StrCat(
+      "Applied \"", tree_.name.empty() ? "(unnamed)" : tree_.name.c_str(),
+      "\" to main dockspace.");
+  status_is_error_ = false;
+}
+
+void LayoutDesignerPanel::DrawFileRow() {
+  UserSettings* settings = ContentRegistry::Context::user_settings();
+  LayoutManager* manager = ContentRegistry::Context::layout_manager();
+  const bool has_named_layouts =
+      settings != nullptr && !settings->prefs().named_layouts.empty();
+  const bool can_save = settings != nullptr && !tree_.name.empty();
+  const bool can_apply = manager != nullptr;
+
   ImGui::TextUnformatted("File:");
   ImGui::SameLine();
-  DrawDisabledAction("New");
+  if (ImGui::SmallButton("New")) {
+    ReplaceTree(MakeEmptyTree("Untitled"));
+    status_message_ = "New layout.";
+    status_is_error_ = false;
+  }
   ImGui::SameLine();
-  DrawDisabledAction("Open...");
+  ImGui::BeginDisabled(!has_named_layouts);
+  if (ImGui::SmallButton("Open...")) {
+    open_popup_requested_ = true;
+  }
+  ImGui::EndDisabled();
   ImGui::SameLine();
-  DrawDisabledAction("Save");
+  ImGui::BeginDisabled(!can_save);
+  if (ImGui::SmallButton("Save")) {
+    SaveCurrentTreeToNamedLayouts();
+  }
+  ImGui::EndDisabled();
   ImGui::SameLine();
-  DrawDisabledAction("Save As...");
+  ImGui::BeginDisabled(settings == nullptr);
+  if (ImGui::SmallButton("Save As...")) {
+    save_as_buffer_ = tree_.name.empty() ? "Untitled" : tree_.name;
+    save_as_popup_requested_ = true;
+  }
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  ImGui::BeginDisabled(!can_apply);
+  if (ImGui::SmallButton("Apply")) {
+    ApplyCurrentTreeToLiveDockspace();
+  }
+  ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::TextDisabled("|");
   ImGui::SameLine();
@@ -106,6 +224,120 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
       selected_ = nullptr;
   }
   ImGui::EndDisabled();
+}
+
+void LayoutDesignerPanel::DrawOpenPopup() {
+  if (!ImGui::BeginPopupModal(kOpenPopupId, nullptr,
+                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    return;
+  }
+  UserSettings* settings = ContentRegistry::Context::user_settings();
+  if (settings == nullptr) {
+    ImGui::TextUnformatted("UserSettings unavailable.");
+    if (ImGui::Button("Close"))
+      ImGui::CloseCurrentPopup();
+    ImGui::EndPopup();
+    return;
+  }
+  // Gather + sort so the list is stable across frames (named_layouts is
+  // an unordered_map).
+  std::vector<std::string> names;
+  names.reserve(settings->prefs().named_layouts.size());
+  for (const auto& entry : settings->prefs().named_layouts) {
+    names.push_back(entry.first);
+  }
+  std::sort(names.begin(), names.end());
+
+  ImGui::TextUnformatted("Choose a saved layout:");
+  ImGui::BeginChild("layout_designer_open_list", ImVec2(320.0f, 200.0f),
+                    ImGuiChildFlags_Borders);
+  for (const auto& name : names) {
+    const bool is_selected = (name == open_selection_);
+    if (ImGui::Selectable(name.c_str(), is_selected,
+                          ImGuiSelectableFlags_AllowDoubleClick)) {
+      open_selection_ = name;
+      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        LoadNamedLayoutIntoTree(open_selection_);
+        ImGui::CloseCurrentPopup();
+      }
+    }
+  }
+  ImGui::EndChild();
+
+  const bool can_open = !open_selection_.empty() &&
+                        settings->prefs().named_layouts.count(open_selection_);
+  ImGui::BeginDisabled(!can_open);
+  if (ImGui::Button("Open")) {
+    LoadNamedLayoutIntoTree(open_selection_);
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  if (ImGui::Button("Cancel"))
+    ImGui::CloseCurrentPopup();
+  ImGui::EndPopup();
+}
+
+void LayoutDesignerPanel::DrawSaveAsPopup() {
+  if (!ImGui::BeginPopupModal(kSaveAsPopupId, nullptr,
+                              ImGuiWindowFlags_AlwaysAutoResize)) {
+    return;
+  }
+  ImGui::TextUnformatted("Save layout as:");
+  ImGui::SetNextItemWidth(320.0f);
+  const bool submitted_via_enter =
+      ImGui::InputText("##layout_designer_save_as", &save_as_buffer_,
+                       ImGuiInputTextFlags_EnterReturnsTrue);
+  const bool name_empty =
+      save_as_buffer_.find_first_not_of(" \t") == std::string::npos;
+  ImGui::BeginDisabled(name_empty);
+  const bool save_clicked = ImGui::Button("Save");
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  if (ImGui::Button("Cancel")) {
+    ImGui::CloseCurrentPopup();
+  }
+  if ((save_clicked || submitted_via_enter) && !name_empty) {
+    tree_.name = save_as_buffer_;
+    SaveCurrentTreeToNamedLayouts();
+    ImGui::CloseCurrentPopup();
+  }
+  ImGui::EndPopup();
+}
+
+void LayoutDesignerPanel::Draw(bool* p_open) {
+  (void)p_open;  // Closing the window is handled by the workspace shell.
+
+  // Keyboard shortcuts: Ctrl/Cmd+Z (undo), Ctrl/Cmd+Shift+Z (redo),
+  // Ctrl/Cmd+S (save — or Save As if the tree has no name yet).
+  // Gated on focus so typing in palette/property text fields doesn't
+  // trip them.
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
+    const ImGuiIO& io = ImGui::GetIO();
+    const bool chord = io.KeyCtrl || io.KeySuper;
+    if (chord && ImGui::IsKeyPressed(ImGuiKey_Z, /*repeat=*/false)) {
+      if (io.KeyShift) {
+        if (undo_.Redo(&tree_))
+          selected_ = nullptr;
+      } else {
+        if (undo_.Undo(&tree_))
+          selected_ = nullptr;
+      }
+    }
+    if (chord && ImGui::IsKeyPressed(ImGuiKey_S, /*repeat=*/false)) {
+      if (tree_.name.empty() || tree_.name == "Untitled") {
+        save_as_buffer_ = tree_.name.empty() ? "Untitled" : tree_.name;
+        save_as_popup_requested_ = true;
+      } else {
+        SaveCurrentTreeToNamedLayouts();
+      }
+    }
+  }
+
+  // WindowContent::Draw contract: no ImGui::Begin/End and no BeginMenuBar
+  // (the outer PanelWindow does not opt into ImGuiWindowFlags_MenuBar). A
+  // button row stands in for the File menu.
+  DrawFileRow();
   ImGui::Separator();
 
   constexpr ImGuiTableFlags kBodyFlags =
@@ -242,10 +474,35 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
     ImGui::EndTable();
   }
 
+  // Popups are opened from the File row handlers, then drawn once each
+  // frame at panel scope so ImGui can size them against the panel's
+  // frame.
+  if (open_popup_requested_) {
+    ImGui::OpenPopup(kOpenPopupId);
+    open_popup_requested_ = false;
+  }
+  if (save_as_popup_requested_) {
+    ImGui::OpenPopup(kSaveAsPopupId);
+    save_as_popup_requested_ = false;
+  }
+  DrawOpenPopup();
+  DrawSaveAsPopup();
+
   ImGui::Separator();
   ImGui::Text("Editing: %s | Undo: %zu / Redo: %zu",
               tree_.name.empty() ? "(unnamed)" : tree_.name.c_str(),
               undo_.UndoDepth(), undo_.RedoDepth());
+  if (!status_message_.empty()) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("|");
+    ImGui::SameLine();
+    if (status_is_error_) {
+      ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1.0f), "%s",
+                         status_message_.c_str());
+    } else {
+      ImGui::TextUnformatted(status_message_.c_str());
+    }
+  }
 }
 
 void LayoutDesignerPanel::DrawPropertiesColumn() {
