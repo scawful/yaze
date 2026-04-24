@@ -13,6 +13,7 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/events/core_events.h"
+#include "app/editor/layout/layout_manager.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/gfx/resource/arena.h"
@@ -222,8 +223,17 @@ absl::Status Controller::OnLoad() {
   ImGui::Begin("DockSpaceWindow", nullptr, window_flags);
   ImGui::PopStyleVar(3);
 
-  // Create DockSpace with adjusted size
+  // Create DockSpace with adjusted size.
+  // NOTE: ImGui IDs are salted by the current window's ID stack, so this
+  // particular `GetID("MainDockSpace")` is only meaningful while
+  // DockSpaceWindow is the active Begin. Cache it on LayoutManager so
+  // cross-scope callers (e.g. the Layout Designer panel, which lives in
+  // its own PanelWindow) can apply docktrees against the real dockspace
+  // instead of a differently-salted hash.
   ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+  if (auto* mgr = editor::ContentRegistry::Context::layout_manager()) {
+    mgr->SetMainDockspaceId(dockspace_id);
+  }
   gui::DockSpaceRenderer::BeginEnhancedDockSpace(
       dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 

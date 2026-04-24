@@ -34,11 +34,12 @@ constexpr float kPaletteInitialWidth = 240.0f;
 constexpr float kPropertiesInitialWidth = 280.0f;
 constexpr const char* kOpenPopupId = "LayoutDesigner_OpenPopup";
 constexpr const char* kSaveAsPopupId = "LayoutDesigner_SaveAsPopup";
-// Default ImGui main dockspace id used throughout the editor (see
-// editor_activator.cc / layout_coordinator.cc). Panels that drive the
-// live dockspace all hash the same string.
-ImGuiID MainDockspaceId() {
-  return ImGui::GetID("MainDockSpace");
+constexpr const char* kUntitledName = "Untitled";
+
+// True when the tree has no name we should persist under — empty or the
+// seed "Untitled" both need to route through Save As.
+bool TreeNeedsName(const DockTree& tree) {
+  return tree.name.empty() || tree.name == kUntitledName;
 }
 
 bool IsSplitHorizontal(SplitDirection d) {
@@ -148,8 +149,19 @@ void LayoutDesignerPanel::ApplyCurrentTreeToLiveDockspace() {
     status_is_error_ = true;
     return;
   }
-  const absl::Status apply_status =
-      manager->ApplyDockTree(tree_, MainDockspaceId());
+  // ImGui IDs are scoped by the current window's ID stack. Calling
+  // `ImGui::GetID("MainDockSpace")` from inside this panel's window
+  // would hash to a different ID than the one the controller binds to
+  // the live dockspace. Read the value cached by the controller
+  // instead — it sets it every frame from inside DockSpaceWindow.
+  const ImGuiID dockspace_id = manager->GetMainDockspaceId();
+  if (dockspace_id == 0) {
+    status_message_ =
+        "Apply failed: main dockspace not yet created (try again next frame).";
+    status_is_error_ = true;
+    return;
+  }
+  const absl::Status apply_status = manager->ApplyDockTree(tree_, dockspace_id);
   if (!apply_status.ok()) {
     status_message_ = absl::StrCat("Apply failed: ", apply_status.message());
     status_is_error_ = true;
@@ -168,18 +180,33 @@ void LayoutDesignerPanel::ApplyCurrentTreeToLiveDockspace() {
   status_is_error_ = false;
 }
 
+void LayoutDesignerPanel::SaveOrSaveAs() {
+  // Treat the seed name "Untitled" as unnamed so the Save button and
+  // Ctrl/Cmd+S agree — otherwise clicking Save on a fresh tree would
+  // write a literal "Untitled" entry while the shortcut correctly
+  // routes to Save As.
+  if (TreeNeedsName(tree_)) {
+    save_as_buffer_ = tree_.name.empty() ? kUntitledName : tree_.name;
+    save_as_popup_requested_ = true;
+    return;
+  }
+  SaveCurrentTreeToNamedLayouts();
+}
+
 void LayoutDesignerPanel::DrawFileRow() {
   UserSettings* settings = ContentRegistry::Context::user_settings();
   LayoutManager* manager = ContentRegistry::Context::layout_manager();
   const bool has_named_layouts =
       settings != nullptr && !settings->prefs().named_layouts.empty();
-  const bool can_save = settings != nullptr && !tree_.name.empty();
+  // Save is always enabled when a settings backend is bound; the routing
+  // to Save As for unnamed trees happens in SaveOrSaveAs().
+  const bool can_save = settings != nullptr;
   const bool can_apply = manager != nullptr;
 
   ImGui::TextUnformatted("File:");
   ImGui::SameLine();
   if (ImGui::SmallButton("New")) {
-    ReplaceTree(MakeEmptyTree("Untitled"));
+    ReplaceTree(MakeEmptyTree(kUntitledName));
     status_message_ = "New layout.";
     status_is_error_ = false;
   }
@@ -192,13 +219,13 @@ void LayoutDesignerPanel::DrawFileRow() {
   ImGui::SameLine();
   ImGui::BeginDisabled(!can_save);
   if (ImGui::SmallButton("Save")) {
-    SaveCurrentTreeToNamedLayouts();
+    SaveOrSaveAs();
   }
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(settings == nullptr);
   if (ImGui::SmallButton("Save As...")) {
-    save_as_buffer_ = tree_.name.empty() ? "Untitled" : tree_.name;
+    save_as_buffer_ = tree_.name.empty() ? kUntitledName : tree_.name;
     save_as_popup_requested_ = true;
   }
   ImGui::EndDisabled();
@@ -325,12 +352,7 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
       }
     }
     if (chord && ImGui::IsKeyPressed(ImGuiKey_S, /*repeat=*/false)) {
-      if (tree_.name.empty() || tree_.name == "Untitled") {
-        save_as_buffer_ = tree_.name.empty() ? "Untitled" : tree_.name;
-        save_as_popup_requested_ = true;
-      } else {
-        SaveCurrentTreeToNamedLayouts();
-      }
+      SaveOrSaveAs();
     }
   }
 
