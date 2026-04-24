@@ -70,7 +70,7 @@ void LayoutDesignerPanel::PushUndoSnapshot() {
 
 void LayoutDesignerPanel::ReplaceTree(DockTree new_tree) {
   tree_ = std::move(new_tree);
-  selected_ = nullptr;
+  selected_id_ = kInvalidDockNodeId;
   drag_ = ActiveDrag{};
   undo_.Clear();
 }
@@ -240,15 +240,20 @@ void LayoutDesignerPanel::DrawFileRow() {
   ImGui::SameLine();
   ImGui::BeginDisabled(!undo_.CanUndo());
   if (ImGui::SmallButton("Undo")) {
-    if (undo_.Undo(&tree_))
-      selected_ = nullptr;
+    // Phase 8.5: selection is by stable id, so undo no longer needs to
+    // force-clear it. If the post-undo tree still contains the
+    // selected id, FindNode finds it and the cursor stays put;
+    // otherwise FindNode returns nullptr and Draw quietly renders no
+    // outline.
+    undo_.Undo(&tree_);
+    drag_ = ActiveDrag{};
   }
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(!undo_.CanRedo());
   if (ImGui::SmallButton("Redo")) {
-    if (undo_.Redo(&tree_))
-      selected_ = nullptr;
+    undo_.Redo(&tree_);
+    drag_ = ActiveDrag{};
   }
   ImGui::EndDisabled();
 }
@@ -343,13 +348,14 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
     const ImGuiIO& io = ImGui::GetIO();
     const bool chord = io.KeyCtrl || io.KeySuper;
     if (chord && ImGui::IsKeyPressed(ImGuiKey_Z, /*repeat=*/false)) {
+      // Selection is by stable id (Phase 8.5) — let it persist across
+      // undo/redo when the id still exists in the swapped-in tree.
       if (io.KeyShift) {
-        if (undo_.Redo(&tree_))
-          selected_ = nullptr;
+        undo_.Redo(&tree_);
       } else {
-        if (undo_.Undo(&tree_))
-          selected_ = nullptr;
+        undo_.Undo(&tree_);
       }
+      drag_ = ActiveDrag{};
     }
     if (chord && ImGui::IsKeyPressed(ImGuiKey_S, /*repeat=*/false)) {
       SaveOrSaveAs();
@@ -392,7 +398,13 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
         const ImRect viewport(canvas_pos, ImVec2(canvas_pos.x + canvas_size.x,
                                                  canvas_pos.y + canvas_size.y));
         const DockTreeLayout layout = ComputeLayout(tree_, viewport);
-        RenderDockTree(tree_, layout, selected_, ImGui::GetWindowDrawList());
+        // Resolve selection id → ptr for this frame's render. FindNode
+        // returns nullptr when the id no longer exists (e.g., the
+        // selected leaf was just consumed by a SplitInPlace mutation),
+        // and the renderer treats that as "no outline".
+        const DockNode* selected_node = tree_.FindNode(selected_id_);
+        RenderDockTree(tree_, layout, selected_node,
+                       ImGui::GetWindowDrawList());
         ImGui::Dummy(canvas_size);
 
         const ImVec2 mouse = ImGui::GetIO().MousePos;
@@ -426,13 +438,10 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
               PushUndoSnapshot();
               if (DockNode* selected_leaf = ApplyDropSuggestion(
                       &tree_, leaf_mut, suggestion, std::move(new_panel))) {
-                selected_ = selected_leaf;
+                selected_id_ = selected_leaf->id;
               } else {
-                // Applier refused (e.g. duplicate id). Discard the
-                // speculative push *without* polluting redo — `Undo()`
-                // would move the unchanged tree onto the redo stack and
-                // invalidate `selected_` (raw pointer into what becomes
-                // a stale Clone).
+                // Applier refused (e.g. duplicate panel_id). Discard the
+                // speculative push without polluting redo.
                 undo_.PopLastPush();
               }
             }
@@ -440,19 +449,22 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
           ImGui::EndDragDropTarget();
         }
 
-        if (drag_.split_node != nullptr) {
-          // Mid-drag: keep consuming mouse motion until release. Do not
-          // gate on hovered — the mouse can leave the canvas bounds mid-
-          // drag and we still want to track it until mouse-up.
-          if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+        if (drag_.split_id != kInvalidDockNodeId) {
+          // Mid-drag: resolve the split id back to a mutable pointer
+          // each frame. If the id is gone (tree was structurally
+          // edited under us), bail.
+          DockNode* drag_split_node = tree_.FindNode(drag_.split_id);
+          if (drag_split_node == nullptr) {
+            drag_ = ActiveDrag{};
+          } else if (ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
             const bool horizontal =
-                IsSplitHorizontal(drag_.split_node->split_direction);
+                IsSplitHorizontal(drag_split_node->split_direction);
             const float axis_delta = horizontal
                                          ? (mouse.x - drag_.start_mouse.x)
                                          : (mouse.y - drag_.start_mouse.y);
             const float axis_size = horizontal ? drag_.start_rect.GetWidth()
                                                : drag_.start_rect.GetHeight();
-            drag_.split_node->split_ratio = ComputeDraggedSplitRatio(
+            drag_split_node->split_ratio = ComputeDraggedSplitRatio(
                 drag_.start_ratio, axis_delta, axis_size);
             ImGui::SetMouseCursor(horizontal ? ImGuiMouseCursor_ResizeEW
                                              : ImGuiMouseCursor_ResizeNS);
@@ -470,16 +482,17 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
               // Snapshot before the first ratio edit so the whole drag
               // collapses into a single undo step.
               PushUndoSnapshot();
-              drag_.split_node = const_cast<DockNode*>(boundary.split_node);
-              drag_.start_ratio = drag_.split_node->split_ratio;
+              drag_.split_id = boundary.split_node->id;
+              drag_.start_ratio = boundary.split_node->split_ratio;
               drag_.start_mouse = mouse;
               drag_.start_rect = layout.node_rects.at(boundary.split_node);
               // Also surface the split as the current selection so the
               // accent outline tracks the resize target.
-              selected_ = drag_.split_node;
+              selected_id_ = drag_.split_id;
             }
           } else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-            selected_ = HitTestNode(layout, mouse);
+            const DockNode* hit = HitTestNode(layout, mouse);
+            selected_id_ = (hit != nullptr) ? hit->id : kInvalidDockNodeId;
           }
         }
       }
@@ -536,7 +549,11 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
       PushUndoSnapshot();
   };
 
-  if (selected_ == nullptr) {
+  // Resolve the selected id to a mutable pointer. FindNode returns
+  // nullptr when the id is invalid, was previously selected on a tree
+  // we've since replaced, or was consumed by a structural mutation.
+  DockNode* node = tree_.FindNode(selected_id_);
+  if (node == nullptr) {
     ImGui::SeparatorText("Layout");
     // Bind the InputText buffer directly to the tree fields; imgui_stdlib
     // keeps the std::string in sync per keystroke, and IsItemActivated
@@ -550,7 +567,6 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
     return;
   }
 
-  DockNode* node = const_cast<DockNode*>(selected_);
   if (node->type == DockNode::Type::kSplit) {
     ImGui::SeparatorText("Split");
 
