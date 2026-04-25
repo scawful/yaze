@@ -189,6 +189,102 @@ TEST_F(DungeonSaveRegionTest, SaveAllBlocksPreservesRegion) {
   }
 }
 
+// --- Blocks: room-aware encoder vanilla round-trip ---
+//
+// Materialize every room with `LoadBlocks` so the new encoder's
+// "owned by editor" path executes for all 99 vanilla entries, then
+// run the room-aware `SaveAllBlocks` overload with no in-memory
+// edits. The output must be byte-identical to the vanilla bytes.
+//
+// This test pins the load-order ordering invariant on real data: the
+// vanilla pushable-block table groups entries by authoring order
+// (interleaved across rooms), not by room_id. If
+// `RoomObject::block_load_order_` were dropped or mis-tracked, the
+// re-encoded buffer would reshuffle bytes (e.g., if blocks ended up
+// sorted by room_id) and one or more of the 396 byte assertions
+// would fail.
+
+TEST_F(DungeonSaveRegionTest,
+       SaveAllBlocksRoomAware_VanillaNoOpPreservesAllBytes) {
+  const auto& data = rom_->vector();
+  if (kBlocksLength + 1 >= static_cast<int>(data.size())) {
+    GTEST_SKIP() << "ROM too small for blocks region";
+  }
+
+  const int blocks_count_before =
+      (data[kBlocksLength + 1] << 8) | data[kBlocksLength];
+  ASSERT_GT(blocks_count_before, 0)
+      << "Vanilla ROM should have at least one pushable block";
+
+  // Capture each region's bytes from the dereferenced PC, mirroring
+  // the codec's region layout. We hold both the PC and the bytes so
+  // the post-save assertions can resolve the region's PC again
+  // (after-image; the four operand slots stay pinned by the encoder).
+  const int kRegionSize = 0x80;
+  const int ptrs[4] = {kBlocksPointer1, kBlocksPointer2, kBlocksPointer3,
+                       kBlocksPointer4};
+  std::vector<std::vector<uint8_t>> regions_before;
+  std::vector<int> region_pcs;
+  for (int r = 0; r < 4; ++r) {
+    if (ptrs[r] + 2 >= static_cast<int>(data.size()))
+      break;
+    const int snes =
+        (data[ptrs[r] + 2] << 16) | (data[ptrs[r] + 1] << 8) | data[ptrs[r]];
+    const int pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(snes)));
+    const int off = r * kRegionSize;
+    const int len = std::min(kRegionSize, blocks_count_before - off);
+    if (len <= 0)
+      break;
+    if (pc < 0 || pc + len > static_cast<int>(data.size()))
+      break;
+    region_pcs.push_back(pc);
+    regions_before.emplace_back(data.begin() + pc, data.begin() + pc + len);
+  }
+  ASSERT_FALSE(regions_before.empty())
+      << "Vanilla blocks data must be reachable through the four pointer "
+         "slots before the round-trip can be exercised.";
+
+  // Materialize every room and load its blocks so the encoder's
+  // "owned" path runs for all 99 vanilla entries. Same pattern as
+  // SaveAllTorchesPreservesRegionWhenRoomsUnmodified above; Room is
+  // a heavy type so heap-allocate the vector to avoid stack
+  // overflow on test direct-execution.
+  std::vector<Room> rooms;
+  rooms.reserve(kNumberOfRooms);
+  for (int i = 0; i < kNumberOfRooms; ++i) {
+    rooms.emplace_back(i, rom_.get());
+    rooms.back().LoadBlocks();
+  }
+
+  auto status = SaveAllBlocks(
+      rom_.get(), kNumberOfRooms, [&rooms](int rid) -> const Room* {
+        if (rid < 0 || rid >= static_cast<int>(rooms.size()))
+          return nullptr;
+        return &rooms[rid];
+      });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const auto& after = rom_->vector();
+  const int blocks_count_after =
+      (after[kBlocksLength + 1] << 8) | after[kBlocksLength];
+  EXPECT_EQ(blocks_count_after, blocks_count_before)
+      << "kBlocksLength immediate must not move on a no-op vanilla save.";
+
+  for (size_t r = 0; r < regions_before.size(); ++r) {
+    const int pc = region_pcs[r];
+    const int len = static_cast<int>(regions_before[r].size());
+    ASSERT_GE(static_cast<int>(after.size()), pc + len);
+    for (int i = 0; i < len; ++i) {
+      ASSERT_EQ(after[pc + i], regions_before[r][i])
+          << "Pushable-block byte mismatch in region " << r << " offset " << i
+          << " (entry " << ((r * kRegionSize + i) / 4) << ", byte " << (i % 4)
+          << "). load_order ordering must preserve vanilla authoring "
+             "order across all "
+          << (blocks_count_before / 4) << " entries.";
+    }
+  }
+}
+
 // --- Torches (length @ kTorchesLengthPointer, data @ kTorchData, max 0x120) ---
 
 TEST_F(DungeonSaveRegionTest,
