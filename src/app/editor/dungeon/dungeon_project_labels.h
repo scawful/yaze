@@ -68,6 +68,15 @@ inline std::string GetDungeonNameForRoom(const project::YazeProject* project,
   return dungeon ? FormatDungeonName(*dungeon) : std::string();
 }
 
+inline std::string GetRoomFloorLabel(const project::YazeProject* project,
+                                     int room_id) {
+  if (const core::DungeonRoom* room = FindDungeonRoom(project, room_id);
+      room && !room->floor.empty()) {
+    return room->floor;
+  }
+  return std::string();
+}
+
 inline std::string GetRoomLabel(const project::YazeProject* project,
                                 int room_id) {
   if (const core::DungeonRoom* room = FindDungeonRoom(project, room_id);

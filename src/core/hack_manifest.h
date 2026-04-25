@@ -129,7 +129,9 @@ struct WriteConflict {
 struct DungeonRoom {
   int id;
   std::string name;
+  std::string floor;  // "F1", "B1", etc. Optional project-map label.
   int grid_row, grid_col;
+  bool has_grid_position = false;
   std::string type;  // "entrance", "boss", "mini_boss", "connector", "normal"
   int palette, blockset, spriteset;
   uint8_t tag1, tag2;

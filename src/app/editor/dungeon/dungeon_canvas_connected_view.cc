@@ -7,11 +7,13 @@
 #include <functional>
 #include <limits>
 #include <map>
+#include <optional>
 #include <queue>
 #include <set>
 #include <string>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
@@ -445,32 +447,36 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
     return graph;
   }
 
-  graph.room_mask[static_cast<size_t>(start_room_id)] = true;
-  graph.room_positions[static_cast<size_t>(start_room_id)] = {0, 0, true};
-  graph.room_count = 1;
-  graph.min_col = graph.max_col = 0;
-  graph.min_row = graph.max_row = 0;
-
   // Project-aware scoping: when the project registry maps the start room to
   // a dungeon entry, restrict BFS to that dungeon's rooms by default.
   // Cross-blockset / cross-dungeon resolved links are still surfaced via
   // out_of_scope_links so the diagnostic remains visible without polluting
   // the visual matrix with rooms from other dungeons.
   std::set<int> scoped_room_ids;
+  std::map<int, const core::DungeonRoom*> scoped_rooms_by_id;
   if (const auto* dungeon =
           dungeon_project_labels::FindDungeonForRoom(project_, start_room_id)) {
     graph.dungeon_scope_active = true;
     for (const auto& dungeon_room : dungeon->rooms) {
+      if (dungeon_room.id < 0 || dungeon_room.id >= zelda3::kNumberOfRooms) {
+        continue;
+      }
       scoped_room_ids.insert(dungeon_room.id);
+      scoped_rooms_by_id[dungeon_room.id] = &dungeon_room;
+      graph.room_floor_labels[static_cast<size_t>(dungeon_room.id)] =
+          dungeon_room.floor;
+      if (!dungeon_room.floor.empty() &&
+          std::find(graph.floor_order.begin(), graph.floor_order.end(),
+                    dungeon_room.floor) == graph.floor_order.end()) {
+        graph.floor_order.push_back(dungeon_room.floor);
+      }
     }
   }
 
   std::map<std::pair<int, int>, int> occupied_slots;
-  occupied_slots[{0, 0}] = start_room_id;
   std::queue<int> to_visit;
   std::set<std::tuple<int, int, DungeonConnectedLinkType, int, int16_t>>
       seen_links;
-  to_visit.push(start_room_id);
 
   auto track_room_bounds = [&](int room_id) {
     const auto& placement = graph.room_positions[static_cast<size_t>(room_id)];
@@ -480,12 +486,65 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
     graph.max_row = std::max(graph.max_row, placement.row);
   };
 
+  auto registry_placement_for =
+      [&](int room_id) -> std::optional<std::pair<int, int>> {
+    const auto it = scoped_rooms_by_id.find(room_id);
+    if (it == scoped_rooms_by_id.end() || !it->second->has_grid_position) {
+      return std::nullopt;
+    }
+    return std::make_pair(it->second->grid_col, it->second->grid_row);
+  };
+
+  auto place_room = [&](int room_id, std::pair<int, int> desired_placement,
+                        bool connected_to_start) {
+    if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+      return;
+    }
+    const size_t index = static_cast<size_t>(room_id);
+    if (graph.room_mask[index]) {
+      if (connected_to_start &&
+          !graph.room_positions[index].connected_to_start) {
+        graph.room_positions[index].connected_to_start = true;
+        graph.unlinked_room_count = std::max(0, graph.unlinked_room_count - 1);
+      }
+      return;
+    }
+
+    std::pair<int, int> placement = desired_placement;
+    const auto occupied = occupied_slots.find(placement);
+    if (occupied != occupied_slots.end() && occupied->second != room_id) {
+      placement = FindConnectedTransportPlacement(
+          occupied_slots, desired_placement.first, desired_placement.second);
+    }
+
+    graph.room_mask[index] = true;
+    graph.room_positions[index] = {placement.first, placement.second, true,
+                                   connected_to_start};
+    occupied_slots[placement] = room_id;
+    ++graph.room_count;
+    if (!connected_to_start) {
+      ++graph.unlinked_room_count;
+    }
+    if (graph.room_count == 1) {
+      graph.min_col = graph.max_col = placement.first;
+      graph.min_row = graph.max_row = placement.second;
+    } else {
+      track_room_bounds(room_id);
+    }
+  };
+
   auto in_dungeon_scope = [&](int candidate_room_id) {
     if (!graph.dungeon_scope_active) {
       return true;
     }
     return scoped_room_ids.find(candidate_room_id) != scoped_room_ids.end();
   };
+
+  place_room(
+      start_room_id,
+      registry_placement_for(start_room_id).value_or(std::make_pair(0, 0)),
+      true);
+  to_visit.push(start_room_id);
 
   while (!to_visit.empty()) {
     const int room_id = to_visit.front();
@@ -535,25 +594,84 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
         const auto& source_placement =
             graph.room_positions[static_cast<size_t>(room_id)];
         const std::pair<int, int> placement =
-            (link.type == DungeonConnectedLinkType::Door)
-                ? FindConnectedDoorPlacement(
-                      occupied_slots, source_placement.col,
-                      source_placement.row, link.direction)
-                : FindConnectedTransportPlacement(occupied_slots,
-                                                  source_placement.col,
-                                                  source_placement.row);
-        graph.room_mask[static_cast<size_t>(link.to_room_id)] = true;
-        graph.room_positions[static_cast<size_t>(link.to_room_id)] = {
-            placement.first, placement.second, true};
-        occupied_slots[placement] = link.to_room_id;
-        ++graph.room_count;
-        track_room_bounds(link.to_room_id);
+            registry_placement_for(link.to_room_id)
+                .value_or((link.type == DungeonConnectedLinkType::Door)
+                              ? FindConnectedDoorPlacement(
+                                    occupied_slots, source_placement.col,
+                                    source_placement.row, link.direction)
+                              : FindConnectedTransportPlacement(
+                                    occupied_slots, source_placement.col,
+                                    source_placement.row));
+        place_room(link.to_room_id, placement, true);
         to_visit.push(link.to_room_id);
       }
     }
   }
 
+  // In project-scoped mode, connected view should show the whole dungeon group,
+  // not only the currently reachable component. Unlinked rooms are drawn in the
+  // same canvas with floor badges so bad headers/stairs are visible and fixable
+  // instead of hiding the rest of the floor.
+  if (graph.dungeon_scope_active) {
+    const auto start_placement =
+        graph.room_positions[static_cast<size_t>(start_room_id)];
+    for (int room_id : scoped_room_ids) {
+      if (graph.room_mask[static_cast<size_t>(room_id)]) {
+        continue;
+      }
+      const std::pair<int, int> placement =
+          registry_placement_for(room_id).value_or(
+              FindConnectedTransportPlacement(
+                  occupied_slots, start_placement.col, start_placement.row));
+      place_room(room_id, placement, false);
+    }
+  }
+
   return graph;
+}
+
+int DungeonCanvasViewer::ApplyConnectedStaircaseIssueAutoFixes(
+    int center_room_id) {
+  if (center_room_id < 0 || center_room_id >= zelda3::kNumberOfRooms) {
+    connected_action_status_message_ = "No current room for connected fixes.";
+    connected_action_status_is_error_ = true;
+    return 0;
+  }
+
+  if (connected_graph_cache_start_room_id_ != center_room_id) {
+    connected_graph_cache_ = BuildConnectedRoomGraph(center_room_id);
+    connected_graph_cache_start_room_id_ = center_room_id;
+  }
+
+  int fixed_count = 0;
+  for (const auto& issue : connected_graph_cache_.staircase_issues) {
+    if (issue.kind != DungeonStaircaseIssueKind::UnusedHeader ||
+        issue.slot_index < 0 || issue.slot_index >= 4 ||
+        issue.header_room_id <= 0) {
+      continue;
+    }
+    zelda3::Room* room = EnsureRoomLoadedForConnectedView(issue.from_room_id);
+    if (!room || room->staircase_room(issue.slot_index) !=
+                     static_cast<uint8_t>(issue.header_room_id)) {
+      continue;
+    }
+    room->SetStaircaseRoom(issue.slot_index, 0);
+    ++fixed_count;
+  }
+
+  if (fixed_count > 0) {
+    connected_action_status_message_ =
+        absl::StrFormat("Cleared %d stale staircase header slot%s.",
+                        fixed_count, fixed_count == 1 ? "" : "s");
+    connected_action_status_is_error_ = false;
+    connected_graph_cache_start_room_id_ = -1;
+    connected_graph_cache_ = ConnectedRoomGraphData{};
+  } else {
+    connected_action_status_message_ =
+        "No stale staircase header slots can be auto-cleared.";
+    connected_action_status_is_error_ = false;
+  }
+  return fixed_count;
 }
 
 }  // namespace yaze::editor

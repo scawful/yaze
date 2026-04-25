@@ -353,6 +353,52 @@ TEST(HackManifestTest, MirrorsDungeonRoomNamesIntoResourceLabels) {
   EXPECT_EQ(labels.at("room").at("38"), "Floodgate Switch");
 }
 
+TEST(HackManifestTest, ParsesDungeonRoomFloorAndGridPresence) {
+  namespace fs = std::filesystem;
+
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_registry_room_floor"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+
+  WriteTextFile(planning / "dungeons.json", R"json(
+{
+  "dungeons": [
+    {
+      "id": "D6",
+      "name": "Goron Mines",
+      "rooms": [
+        {
+          "id": "0x69",
+          "name": "B1 Side",
+          "floor": "B1",
+          "grid_row": 6,
+          "grid_col": 9
+        },
+        {
+          "id": "0x79",
+          "name": "Northeast Hall",
+          "floor": "F1"
+        }
+      ]
+    }
+  ]
+}
+)json");
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+
+  ASSERT_EQ(manifest.project_registry().dungeons.size(), 1u);
+  const auto& rooms = manifest.project_registry().dungeons[0].rooms;
+  ASSERT_EQ(rooms.size(), 2u);
+  EXPECT_EQ(rooms[0].id, 0x69);
+  EXPECT_EQ(rooms[0].floor, "B1");
+  EXPECT_TRUE(rooms[0].has_grid_position);
+  EXPECT_EQ(rooms[0].grid_row, 6);
+  EXPECT_EQ(rooms[0].grid_col, 9);
+  EXPECT_EQ(rooms[1].floor, "F1");
+  EXPECT_FALSE(rooms[1].has_grid_position);
+}
+
 TEST(HackManifestTest, FallsBackToLegacyRoomLabelsFromProjectRegistry) {
   namespace fs = std::filesystem;
 

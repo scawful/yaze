@@ -520,6 +520,9 @@ absl::Status HackManifest::LoadProjectRegistry(const std::string& code_folder) {
                 auto parsed = ParseHexAddress(id_str);
                 room.id = parsed.ok() ? static_cast<int>(*parsed) : 0;
                 room.name = rj.value("name", "");
+                room.floor = rj.value("floor", "");
+                room.has_grid_position =
+                    rj.contains("grid_row") && rj.contains("grid_col");
                 room.grid_row = rj.value("grid_row", 0);
                 room.grid_col = rj.value("grid_col", 0);
                 room.type = rj.value("type", "normal");
