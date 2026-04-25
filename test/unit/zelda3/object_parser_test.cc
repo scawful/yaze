@@ -259,6 +259,69 @@ TEST_F(ObjectParserTest,
   }
 }
 
+// 2026-04-25 audit follow-up: pin the registry mappings for the
+// subtype-2 / subtype-3 over-fetch clusters identified by
+// `zelda3-hacking-expert`. These IDs currently take the parser's
+// 8-tile fallback even though their bound routines read fewer tiles
+// (`Rightwards2x2_1to16` reads 4, `Rightwards1x1Solid_1to16_plus3`
+// reads 1, `RightwardsStatue2x3spaced2_1to16` reads 6, `DrawSingle2x2`
+// reads 4). The over-fetch is harmless — the routines reference fixed
+// indices below their span and ignore the trailing slots — so this
+// test does NOT mirror the parser's tile-count table; it pins the
+// audit's id→routine mapping at the registry level so a future
+// routing refactor can't silently invalidate the audit's premise.
+//
+// If/when the production tile-count fallback tightens, the parser's
+// existing `DetectsType2Objects` / `DetectsType3Objects` tests will
+// surface that change directly.
+TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+
+  // Subtype-2: routine 4 is `Rightwards2x2_1to16` (reads tiles[0..3]).
+  for (int id :
+       {0x118, 0x119, 0x11A, 0x11B, 0x11E, 0x127, 0x12A, 0x12B, 0x134}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 4");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 4);
+  }
+  // Subtype-2: routine 28 is `RightwardsStatue2x3spaced2_1to16`
+  // (reads tiles[0..5]).
+  for (int id : {0x11D, 0x121, 0x126}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 28");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 28);
+  }
+  // Subtype-2/3: routine 25 is `Rightwards1x1Solid_1to16_plus3`
+  // (reads tiles[0]).
+  for (int id : {0x11F, 0x120, 0xF96}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 25");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 25);
+  }
+  // Subtype-3: routine 110 is `DrawSingle2x2` (reads tiles[0..3]).
+  // Cluster scoped to IDs explicitly mapped in the registry; the
+  // initial audit listed a broader set, but registry diff showed the
+  // others fall through to a different default routine.
+  for (int id : {0xF90, 0xF91, 0xF93, 0xFAB, 0xFAC, 0xFAF, 0xFB0, 0xFC9, 0xFCA,
+                 0xFDE, 0xFDF, 0xFF5}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 110");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 110);
+  }
+  // Subtype-3: routine 39 is `DrawChest`. Audit initially proposed
+  // tightening the parser fallback to 4 here, but
+  // `special_routines.cc:157-167` shows the open-state branch reads
+  // tiles[4..7]; tightening to 4 would force `TileAtWrapped` to
+  // substitute closed-state bytes for open-chest previews. Pin the
+  // registry mapping so the routine attribution stays correct even
+  // if the parser fallback is later tightened to 8 with a comment.
+  for (int id : {0xF99, 0xF9A}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 39");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 39);
+  }
+}
+
 TEST_F(ObjectParserTest, InvalidObjectId) {
   auto result = parser_->ParseObject(-1);
   EXPECT_FALSE(result.ok());
