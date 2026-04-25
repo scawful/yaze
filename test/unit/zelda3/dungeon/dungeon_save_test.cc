@@ -611,6 +611,83 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0xDD);
 }
 
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_NoOpRoundTripPreservesPointedBytes) {
+  // Real encoder invariant #1 (test-first for the SaveAllBlocks
+  // follow-up). After Load → Save with no in-memory mutation, the
+  // bytes at the dereferenced data region must be byte-identical to
+  // the original — vanilla saves with no edits cannot reshuffle
+  // anything. Single block in single room: source-order preservation
+  // is trivial here, so this pins the simpler invariant first; a
+  // multi-room ordering test belongs to the real ROM round-trip
+  // follow-up.
+  SetupBlockRegions();
+  // Replace the fixture's sample 0xAA..0xDD with a real entry for
+  // room 0 at (px=10, py=20, layer=1) — the same shape used by
+  // LoadBlocks_ReadsFromDereferencedPointerRegion.
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;
+
+  const std::array<uint8_t, 4> before = {0x00, 0x00, 0x14, 0x4A};
+
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U)
+      << "Pre-save: LoadBlocks should have produced exactly one Block "
+         "tile object.";
+
+  auto status = SaveAllBlocks(rom_.get(), 1, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + i], before[i])
+        << "byte " << i
+        << " — no-op round trip must not mutate the pointed region.";
+  }
+  // Length immediate also stays at 4 (one entry × 4 bytes).
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x04);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_EditedBlockUpdatesRegion) {
+  // Real encoder invariant #2: an in-memory edit (here, moving the
+  // block from px=10 to px=30) writes back through the pointed
+  // region. The block stays at load_order=0 since it was loaded —
+  // the encoder must keep it in slot 0 and just rewrite its bytes.
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;  // px=10
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;  // py=20, layer=1
+
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+
+  // Mutate px to 30 in place. New encoded word:
+  //   word = (30 << 1) | (20 << 7) | (1 << 14)
+  //        = 60 | 2560 | 16384 = 19004 = 0x4A3C
+  // → b3 = 0x3C, b4 = 0x4A.
+  for (auto& obj : room_->GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Block) == ObjectOption::Block) {
+      obj.set_x(30);
+      break;
+    }
+  }
+
+  auto status = SaveAllBlocks(rom_.get(), 1, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0x00) << "room_id lo";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00) << "room_id hi";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x3C) << "word lo (px=30)";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A) << "word hi";
+}
+
 TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
   // Loader/saver invariant: `kBlocksPointer1..4` are 3-byte SNES
   // long-address operand slots embedded in the bank_02 LDA.l

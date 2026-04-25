@@ -1000,8 +1000,21 @@ absl::Status SaveAllTorches(Rom* rom, int room_count,
 // Preserve pit count, pointer, and data (read from ROM, write back). No edit support yet.
 absl::Status SaveAllPits(Rom* rom);
 
-// Preserve blocks length and the four block regions (read from ROM, write back). No edit support yet.
+// Preserve blocks length and the four block regions (read from ROM,
+// write back). No edit support; legacy callers without per-room state
+// keep this path. New callers should use the room-aware overload below.
 absl::Status SaveAllBlocks(Rom* rom);
+
+// Encode pushable blocks from the given rooms back into the four
+// pointer-dereferenced data regions. Blocks are sorted by their original
+// `block_load_order_` ascending (so vanilla no-op saves preserve byte
+// order); user-added blocks (load_order == -1) tail the buffer in
+// creation order. The total entry count is written to the
+// `kBlocksLength` immediate. Returns FailedPrecondition if the encoded
+// buffer would exceed the 128-entry vanilla cap (4 regions × 0x80 bytes
+// / 4 bytes per entry).
+absl::Status SaveAllBlocks(Rom* rom, int room_count,
+                           const std::function<const Room*(int)>& room_lookup);
 
 // Save custom collision maps for any rooms marked dirty.
 //

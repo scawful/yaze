@@ -4,6 +4,8 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
+#include <limits>
 #include <optional>
 #include <unordered_set>
 #include <vector>
@@ -2500,6 +2502,119 @@ absl::Status SaveAllBlocks(Rom* rom) {
   return absl::OkStatus();
 }
 
+absl::Status SaveAllBlocks(Rom* rom, int room_count,
+                           const std::function<const Room*(int)>& room_lookup) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  if (kBlocksLength + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Blocks length out of range");
+  }
+
+  // Collect every Block-tagged tile object across all rooms with its
+  // original vanilla load_order. Within each room, walk in
+  // tile_objects_ insertion order so newly-added blocks tail in
+  // creation order. Sort the final list by load_order ascending using
+  // a stable sort so user-added blocks (load_order == kNew) keep
+  // creation order at the tail.
+  struct BlockEntry {
+    int load_order;      // kBlockLoadOrderNew for user-added; otherwise the
+                         // original 0-based slot index in the global buffer.
+    int creation_index;  // monotonic per-room order; tiebreaker for kNew.
+    PushableBlockEntry encoded;
+  };
+  std::vector<BlockEntry> entries;
+  int next_creation_index = 0;
+  for (int rid = 0; rid < room_count; ++rid) {
+    const Room* room = room_lookup(rid);
+    if (room == nullptr)
+      continue;
+    for (const auto& obj : room->GetTileObjects()) {
+      if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
+        continue;
+      BlockEntry e;
+      e.load_order = obj.block_load_order();
+      e.creation_index = next_creation_index++;
+      e.encoded.room_id = static_cast<uint16_t>(rid);
+      e.encoded.px = obj.x();
+      e.encoded.py = obj.y();
+      e.encoded.layer = obj.GetLayerValue();
+      entries.push_back(e);
+    }
+  }
+  std::stable_sort(
+      entries.begin(), entries.end(),
+      [](const BlockEntry& a, const BlockEntry& b) {
+        // kBlockLoadOrderNew (-1) sorts naturally before
+        // every loaded entry, but we want user-added
+        // blocks at the *tail*, so flip them to a large
+        // sentinel for comparison purposes.
+        constexpr int kNewSentinel = std::numeric_limits<int>::max();
+        const int ka = (a.load_order == RoomObject::kBlockLoadOrderNew)
+                           ? kNewSentinel
+                           : a.load_order;
+        const int kb = (b.load_order == RoomObject::kBlockLoadOrderNew)
+                           ? kNewSentinel
+                           : b.load_order;
+        if (ka != kb)
+          return ka < kb;
+        return a.creation_index < b.creation_index;
+      });
+
+  // Capacity check against the vanilla 128-entry cap. The four
+  // pointer-dereferenced regions can hold 4 × 0x80 = 0x200 bytes total.
+  const int kRegionSize = 0x80;
+  const int kMaxEntries = (4 * kRegionSize) / 4;
+  if (static_cast<int>(entries.size()) > kMaxEntries) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Pushable-block table overflow: ", entries.size(),
+        " entries exceeds the vanilla cap of ", kMaxEntries,
+        " (expand layout requires repointing all 4 LDA.l operand slots; "
+        "out of scope for this encoder)."));
+  }
+
+  // Encode to a flat byte buffer.
+  const int total_bytes = static_cast<int>(entries.size()) * 4;
+  std::vector<uint8_t> buffer(total_bytes);
+  for (size_t i = 0; i < entries.size(); ++i) {
+    const PushableBlockBytes pb = EncodePushableBlockEntry(entries[i].encoded);
+    buffer[i * 4 + 0] = pb.b1;
+    buffer[i * 4 + 1] = pb.b2;
+    buffer[i * 4 + 2] = pb.b3;
+    buffer[i * 4 + 3] = pb.b4;
+  }
+
+  // Write each region by dereferencing its pointer slot, mirroring
+  // LoadBlocks's read path. We do not relocate the data — the four
+  // operand slots stay pointing at their existing SNES addresses.
+  const int kPointerSlots[4] = {kBlocksPointer1, kBlocksPointer2,
+                                kBlocksPointer3, kBlocksPointer4};
+  for (int r = 0; r < 4; ++r) {
+    const int slot = kPointerSlots[r];
+    if (slot + 2 >= static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks pointer out of range");
+    }
+    const int snes =
+        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
+    const int pc = SnesToPc(snes);
+    const int off = r * kRegionSize;
+    const int len = std::min(kRegionSize, total_bytes - off);
+    if (len <= 0)
+      break;
+    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks data region out of range");
+    }
+    std::vector<uint8_t> chunk(buffer.begin() + off,
+                               buffer.begin() + off + len);
+    RETURN_IF_ERROR(rom->WriteVector(pc, chunk));
+  }
+
+  RETURN_IF_ERROR(
+      rom->WriteWord(kBlocksLength, static_cast<uint16_t>(total_bytes)));
+  return absl::OkStatus();
+}
+
 template <typename RoomLookup>
 absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
                                   RoomLookup&& room_lookup) {
@@ -2899,6 +3014,11 @@ void Room::LoadBlocks() {
     RoomObject block_obj(0x0E00, entry.px, entry.py, 0, entry.layer);
     block_obj.SetRom(rom_);
     block_obj.set_options(ObjectOption::Block);
+    // Capture the entry's slot index in the global buffer so
+    // SaveAllBlocks can emit entries in vanilla authoring order
+    // (interleaved across rooms; sorting by room_id would reshuffle
+    // bytes and break byte equality on no-op saves).
+    block_obj.set_block_load_order(i / 4);
     tile_objects_.push_back(block_obj);
 
     LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", entry.px, entry.py,
