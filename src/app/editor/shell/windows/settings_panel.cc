@@ -11,7 +11,12 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/layout/layout_designer/dock_tree.h"
+#include "app/editor/layout/layout_designer/dock_tree_json.h"
+#include "app/editor/layout/layout_manager.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/animation/animator.h"
@@ -28,6 +33,7 @@
 #include "core/patch/patch_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/log.h"
@@ -294,6 +300,14 @@ void SettingsPanel::Draw() {
   if (ImGui::CollapsingHeader(ICON_MD_PALETTE " Appearance")) {
     ImGui::Indent();
     DrawAppearanceSettings();
+    ImGui::Unindent();
+    ImGui::Spacing();
+  }
+
+  if (ImGui::CollapsingHeader(ICON_MD_DASHBOARD_CUSTOMIZE
+                              " Workspace Layout")) {
+    ImGui::Indent();
+    DrawWorkspaceSettings();
     ImGui::Unindent();
     ImGui::Spacing();
   }
@@ -1043,6 +1057,163 @@ void SettingsPanel::DrawAppearanceSettings() {
     ImGui::SetTooltip(
         "Display ROM, session, cursor, and zoom info at bottom of window");
   }
+}
+
+void SettingsPanel::DrawWorkspaceSettings() {
+  if (!user_settings_) {
+    ImGui::TextDisabled("UserSettings unavailable.");
+    return;
+  }
+
+  auto& prefs = user_settings_->prefs();
+
+  ImGui::Text("%s Named Layouts", ICON_MD_DASHBOARD);
+  ImGui::Separator();
+
+  if (prefs.named_layouts.empty()) {
+    ImGui::TextDisabled(
+        "No saved layouts yet. Open the Layout Designer to capture one.");
+  } else {
+    // Sort the keys so the combo order is stable across frames
+    // (named_layouts is unordered_map).
+    std::vector<std::string> names;
+    names.reserve(prefs.named_layouts.size());
+    for (const auto& entry : prefs.named_layouts) {
+      names.push_back(entry.first);
+    }
+    std::sort(names.begin(), names.end());
+
+    const std::string& active = prefs.last_applied_layout_name;
+    const char* preview =
+        active.empty() ? "(select a layout…)" : active.c_str();
+
+    if (ImGui::BeginCombo("Active Layout", preview)) {
+      for (const auto& name : names) {
+        const bool is_selected = (name == active);
+        if (ImGui::Selectable(name.c_str(), is_selected)) {
+          // Mirrors the LayoutManager startup-reapply path in shape:
+          // lookup → parse → validate → ApplyDockTree. Inlined rather
+          // than shared because the call sites have different error
+          // surfacing — this one writes to a transient status string;
+          // startup writes to the log and a one-shot consumed flag.
+          ApplyNamedLayoutToDockspace(name);
+        }
+        if (is_selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    ImGui::SameLine();
+    ImGui::BeginDisabled(active.empty() ||
+                         prefs.named_layouts.count(active) == 0);
+    if (ImGui::SmallButton("Re-apply")) {
+      ApplyNamedLayoutToDockspace(active);
+    }
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Re-apply the active layout (useful after closing or rearranging "
+          "panels manually).");
+    }
+  }
+
+  ImGui::Spacing();
+  if (ImGui::Button(ICON_MD_DASHBOARD_CUSTOMIZE " Open Layout Designer")) {
+    if (window_manager_ != nullptr) {
+      window_manager_->OpenWindow("layout.designer");
+    } else {
+      workspace_status_message_ = "Designer unavailable: no window manager.";
+      workspace_status_is_error_ = true;
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Open the Layout Designer panel to author or capture a workspace "
+        "layout.");
+  }
+
+  if (!workspace_status_message_.empty()) {
+    ImGui::Spacing();
+    if (workspace_status_is_error_) {
+      ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1.0f), "%s",
+                         workspace_status_message_.c_str());
+    } else {
+      ImGui::TextDisabled("%s", workspace_status_message_.c_str());
+    }
+  }
+}
+
+void SettingsPanel::ApplyNamedLayoutToDockspace(const std::string& name) {
+  workspace_status_message_.clear();
+  workspace_status_is_error_ = false;
+  if (user_settings_ == nullptr) {
+    workspace_status_message_ = "Apply failed: UserSettings unavailable.";
+    workspace_status_is_error_ = true;
+    return;
+  }
+  auto& prefs = user_settings_->prefs();
+  const auto it = prefs.named_layouts.find(name);
+  if (it == prefs.named_layouts.end()) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: \"", name, "\" not found.");
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  nlohmann::json parsed;
+  try {
+    parsed = nlohmann::json::parse(it->second);
+  } catch (const nlohmann::json::parse_error& e) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: invalid JSON (", e.what(), ").");
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  auto tree_or = layout_designer::DockTreeFromJson(parsed);
+  if (!tree_or.ok()) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: ", tree_or.status().message());
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  std::string validation_error;
+  if (!tree_or->Validate(&validation_error)) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: invalid layout (", validation_error, ").");
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  LayoutManager* manager = ContentRegistry::Context::layout_manager();
+  if (manager == nullptr) {
+    workspace_status_message_ = "Apply failed: LayoutManager unavailable.";
+    workspace_status_is_error_ = true;
+    return;
+  }
+  const ImGuiID dockspace_id = manager->GetMainDockspaceId();
+  if (dockspace_id == 0) {
+    workspace_status_message_ = "Apply failed: main dockspace not yet created.";
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  const absl::Status apply_status =
+      manager->ApplyDockTree(*tree_or, dockspace_id);
+  if (!apply_status.ok()) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: ", apply_status.message());
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  prefs.last_applied_layout_name = name;
+  (void)user_settings_->Save();
+  workspace_status_message_ = absl::StrCat("Applied \"", name, "\".");
+  workspace_status_is_error_ = false;
 }
 
 void SettingsPanel::DrawEditorBehavior() {
