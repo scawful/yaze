@@ -15,9 +15,9 @@ inline const core::DungeonEntry* FindDungeonForRoom(
     size_t* dungeon_index = nullptr) {
   // Real Oracle .yaze projects can ship a project_registry (Docs/Dev/Planning/
   // dungeons.json) without an accompanying hack_manifest_v1.json — see
-  // ProjectPathsTest.RegistryWithoutHackManifestStillExposesData. The registry
-  // is the canonical source of room/dungeon names; the hack manifest is an
-  // independent, optional add-on. Don't gate registry lookups on it.
+  // ProjectPathsTest::OpenInjectsOracleDungeonRoomLabelsIntoProjectFile. The
+  // registry is the canonical source of room/dungeon names; the hack manifest
+  // is an independent, optional add-on. Don't gate registry lookups on it.
   if (!project || !project->project_opened() ||
       !project->hack_manifest.HasProjectRegistry()) {
     return nullptr;
