@@ -10,6 +10,7 @@
 #include "core/features.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -202,8 +203,17 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  // Create a temporary object at a known position for tracing
-  RoomObject obj(object_id, 2, 2, 0x12, 0);
+  // Resolve the canvas anchor through ObjectGeometry so routines that
+  // draw upward or leftward (acute diagonals 0x09-0x14 / 0x15-0x20,
+  // diagonal ceilings 0xA0-0xAC, somaria line down-left 0xF86) replay
+  // their full extent without clipping. Hardcoded (2, 2) previously
+  // dropped tile writes at negative tile coordinates because
+  // DrawRoutineUtils::WriteTile8 short-circuits via IsValidTilePosition
+  // before invoking the trace hook.
+  constexpr uint8_t kPreviewSizeByte = 0x12;
+  auto [anchor_x, anchor_y] =
+      ObjectGeometry::Get().ResolveAnchor(object_id, kPreviewSizeByte);
+  RoomObject obj(object_id, anchor_x, anchor_y, kPreviewSizeByte, 0);
   obj.SetRom(rom_);
   obj.EnsureTilesLoaded();
 

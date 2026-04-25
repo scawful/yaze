@@ -9,6 +9,7 @@
 #include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 
@@ -35,6 +36,60 @@ gfx::PaletteGroup MakeTestPaletteGroup() {
   group.AddPalette(pal2);
 
   return group;
+}
+
+// Pins ObjectTileEditor::CaptureObjectLayout against the canonical
+// ObjectGeometry bounds for routines that draw upward or leftward. The
+// preview pipeline previously anchored at hardcoded (2, 2); routines
+// like acute diagonals (0x09-0x14 / 0x15-0x20), diagonal ceilings
+// (0xA0-0xAC), and somaria line down-left (0xF86) wrote tiles at
+// negative tile coordinates, which DrawRoutineUtils::WriteTile8 drops
+// via IsValidTilePosition before the trace hook fires. The selector
+// preview, tooltip cell grid, and ObjectTileEditor panel all consume
+// CaptureObjectLayout output, so previews of those object families
+// were silently clipped (e.g. 0xA3 BottomRight diagonal ceiling
+// rendered at half its real extent).
+//
+// The fix routes CaptureObjectLayout's anchor through
+// ObjectGeometry::ResolveAnchor, which uses the same logic that
+// MeasureRoutine uses internally. This test pins parity in both
+// directions: a future regression that reverts the anchor or breaks
+// the dispatch will surface as a bounds mismatch here.
+TEST(ObjectTileEditorTest, CaptureLayoutBoundsMatchObjectGeometry) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette = MakeTestPaletteGroup();
+  ObjectTileEditor editor(&rom);
+
+  // Mix anchor-sensitive object families with one anchor-insensitive
+  // baseline to confirm the parity holds for both:
+  //   0x09: acute diagonal (Diagonal category, routine 5) -> upward.
+  //   0x12: diagonal grave BothBG (routine 6) -> downward, baseline.
+  //   0xA3: diagonal ceiling BottomRight (routine 78) -> up + left.
+  //   0xF86: somaria line down-left (kSomariaLine, id-bit 0x06) -> left.
+  //   0x33: 4x4 block rightward (routine 16) -> baseline, anchor (0,0).
+  for (int16_t object_id : {int16_t{0x09}, int16_t{0x12}, int16_t{0x33},
+                            int16_t{0xA3}, int16_t{0xF86}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+
+    // size_byte = 0x12 matches CaptureObjectLayout's hardcoded preview
+    // size. ObjectGeometry::MeasureByObjectId uses the same size_byte
+    // path internally, so the bounds it returns should equal what
+    // CaptureObjectLayout produces from the trace.
+    RoomObject geom_obj(object_id, 0, 0, 0x12, 0);
+    auto geom_or = ObjectGeometry::Get().MeasureByObjectId(geom_obj);
+    ASSERT_TRUE(geom_or.ok());
+
+    auto layout_or = editor.CaptureObjectLayout(object_id, room, palette);
+    ASSERT_TRUE(layout_or.ok());
+    EXPECT_EQ(layout_or->bounds_width, geom_or->width_tiles)
+        << "CaptureObjectLayout bounds width must match ObjectGeometry";
+    EXPECT_EQ(layout_or->bounds_height, geom_or->height_tiles)
+        << "CaptureObjectLayout bounds height must match ObjectGeometry";
+  }
 }
 
 TEST(ObjectTileLayoutTest, FromTracesEmptyInput) {
