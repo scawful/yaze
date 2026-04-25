@@ -401,12 +401,37 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   EXPECT_FALSE(rom_->dirty());
 }
 
+// Loaded/dirty contract for chest + pot save tests
+// -------------------------------------------------
+// `SaveAllChests` / `SaveAllPotItems` preserve header-only rooms by
+// design: a room is treated as "owned by the editor" only when
+// `AreChestsLoaded() == true` (set by `LoadChests`) OR
+// `chests_dirty() == true` (set by `MarkChestsDirty`). The same
+// pattern applies to pot items. `SetLoaded(true)` on its own only
+// flips `is_loaded_`; it does NOT cascade into the per-table loaded
+// flags, because the editor materializes those tables individually
+// via dedicated `Load*` calls.
+//
+// The fixture below skips `LoadChests`/`LoadPotItems` (those would
+// read vanilla bytes back into the in-memory vectors) and instead
+// mutates `GetChests()` / `GetPotItems()` directly to exercise the
+// writer. To make those mutations visible to the writer's
+// "owned-by-editor" gate, every test that edits a room's chest or
+// pot list must call `MarkChestsDirty()` / `MarkPotItemsDirty()`
+// afterwards. This mirrors the editor's actual flow: when a UI edit
+// changes a chest, the chest editor emits a dirty flip. Tests that
+// expect the loaded-but-empty path (e.g.
+// `LoadedRoomWithNoChestsClearsExistingRomEntries`) must also mark
+// dirty — that is the declaration of "I intend this room's empty
+// state to overwrite the vanilla bytes".
+
 TEST_F(DungeonSaveTest, SaveAllChests_WritesSingleSmallChest) {
   SetupChestTable();
 
   std::vector<Room> rooms(kNumberOfRooms);
   rooms[0].SetLoaded(true);
   rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].MarkChestsDirty();
 
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
@@ -424,6 +449,7 @@ TEST_F(DungeonSaveTest, SaveAllChests_WritesBigChestWithHighBit) {
   std::vector<Room> rooms(kNumberOfRooms);
   rooms[0].SetLoaded(true);
   rooms[0].GetChests().push_back(chest_data{0x77, true});
+  rooms[0].MarkChestsDirty();
 
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
@@ -442,6 +468,10 @@ TEST_F(DungeonSaveTest, SaveAllChests_PreservesRomEntriesForUntouchedRooms) {
   std::vector<Room> rooms(kNumberOfRooms);
   rooms[0].SetLoaded(true);
   rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].MarkChestsDirty();
+  // rooms[1] intentionally untouched — no SetLoaded, no MarkChestsDirty —
+  // so the writer must fall back to ParseRomChests for that room and
+  // preserve its `0x99` entry.
 
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
@@ -465,6 +495,10 @@ TEST_F(DungeonSaveTest,
 
   std::vector<Room> rooms(kNumberOfRooms);
   rooms[0].SetLoaded(true);
+  // No chests added in memory, but we mark dirty to declare
+  // "this room's empty state is intentional and should overwrite
+  // the vanilla 0x55 entry".
+  rooms[0].MarkChestsDirty();
 
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
@@ -480,6 +514,7 @@ TEST_F(DungeonSaveTest, SaveAllChests_ReloadedRoomMatchesSerializedState) {
   rooms[0].SetLoaded(true);
   rooms[0].GetChests().push_back(chest_data{0x42, false});
   rooms[0].GetChests().push_back(chest_data{0x77, true});
+  rooms[0].MarkChestsDirty();
 
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
@@ -504,6 +539,7 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWritesEntriesAndTerminator) {
   item.position = 0x1234;
   item.item = 0x56;
   rooms[0].GetPotItems().push_back(item);
+  rooms[0].MarkPotItemsDirty();
 
   auto status = SaveAllPotItems(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
@@ -530,6 +566,7 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_ReloadedRoomMatchesSerializedState) {
   second.position = 0x5678;
   second.item = 0x9A;
   rooms[0].GetPotItems().push_back(second);
+  rooms[0].MarkPotItemsDirty();
 
   auto status = SaveAllPotItems(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
@@ -566,6 +603,10 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWithNoItemsWritesTerminator) {
 
   std::vector<Room> rooms(kNumberOfRooms);
   rooms[0].SetLoaded(true);
+  // No pot items added in memory, but we mark dirty to declare
+  // "this room's empty state is intentional and should overwrite
+  // the seeded vanilla bytes with a fresh terminator".
+  rooms[0].MarkPotItemsDirty();
 
   auto status = SaveAllPotItems(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
