@@ -23,13 +23,16 @@ namespace yaze {
 namespace zelda3 {
 
 // Expected tile counts from kSubtype1TileLengths table in object_parser.cc
+// (kept in sync with the production table; 2026-04-25 audit corrected
+// 0x47/0x48 from 0 (fallback 8) to the real Waterfall47/48 routine
+// counts of 15/9).
 // clang-format off
 static constexpr uint8_t kExpectedTileCounts[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
      6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
-     3,  3,  3,  3,  3,  3,  3,  0,  0,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
@@ -330,8 +333,15 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
       {0xC1, 68, "Very large object"},
       {0xCD, 28, "Moving wall"},
       {0xCE, 28, "Moving wall variant"},
-      {0x47, 8, "Waterfall (default)"},  // Table has 0, defaults to 8
-      {0x48, 8, "Waterfall variant (default)"},
+      // Waterfall47 reads tiles[0..14] = 15 tiles
+      // (`DrawWaterfall47` in special_routines.cc); the prior entry of
+      // 8 was an under-fetch that left indices 8..14 reading past the
+      // parsed vector.
+      {0x47, 15, "Waterfall47 (1x5 left + middle + right column)"},
+      // Waterfall48 reads tiles[0..8] = 9 tiles
+      // (`DrawWaterfall48`); the prior fallback of 8 over-read by 1
+      // and missed the final column tile.
+      {0x48, 9, "Waterfall48 (1x3 left + middle + right column)"},
   };
 
   for (const auto& tc : test_cases) {

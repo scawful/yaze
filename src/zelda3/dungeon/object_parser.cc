@@ -14,16 +14,32 @@
 // - kRoomObjectSubtype3 = 0x84F0 (SNES $01:84F0)
 // - kRoomObjectTileAddress = 0x1B52 (SNES $00:9B52)
 
-// Subtype 1 tile count lookup table (from ZScream's DungeonObjectData.cs)
-// Each entry specifies how many tiles to read for that object ID (0x00-0xF7)
-// Index directly by (object_id & 0xFF) for subtype 1 objects
+// Subtype 1 tile count lookup table.
+//
+// Each entry specifies how many tiles the corresponding `RoomDraw_*`
+// routine reads from the per-object tile stream. Index directly by
+// `(object_id & 0xFF)` for subtype 1 objects.
+//
+// Audit history:
+// - Initial table sourced from ZScream's `DungeonObjectData.cs`.
+// - 2026-04-25 audit (zelda3-hacking-expert): IDs `0x47` and `0x48`
+//   stored as 0 (fallback to 8) but routine bodies in
+//   `special_routines.cc::DrawWaterfall47` and `DrawWaterfall48`
+//   deterministically read 15 and 9 tiles respectively (15-column
+//   and 9-column 1xN draws). 8 was an under-fetch — the routines
+//   read past the end of the parsed tile vector. Updated to the
+//   real counts.
+// - IDs `0xD3..0xD6` are routed to `DrawNothing` (logic-only;
+//   `CheckIfWallIsMoved` flag tests). Their tile-count entry is
+//   `0` (handled by the fallback) because the routine never
+//   consumes the tile vector. Left as-is with a comment note.
 // clang-format off
 static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
      6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
-     3,  3,  3,  3,  3,  3,  3,  0,  0,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
@@ -32,7 +48,7 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      1,  1,  1,  1, 24,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0xA0-0xAF
      1,  1, 16,  3,  3,  8,  8,  8,  4,  4, 16,  4,  4,  4,  1,  1,  // 0xB0-0xBF
      1, 68,  1,  1,  8,  8,  8,  8,  8,  8,  8,  1,  1, 28, 28,  1,  // 0xC0-0xCF
-     1,  8,  8,  0,  0,  0,  0,  1,  8,  8,  8,  8, 21, 16,  4,  8,  // 0xD0-0xDF
+     1,  8,  8,  0,  0,  0,  0,  1,  8,  8,  8,  8, 21, 16,  4,  8,  // 0xD0-0xDF (0xD3..0xD6: DrawNothing logic; tiles unused)
      8,  8,  8,  8,  8,  8,  8,  8,  8,  1,  1,  1,  1,  1,  1,  1,  // 0xE0-0xEF
      1,  1,  1,  1,  1,  1,  1,  1                                   // 0xF0-0xF7
 };
