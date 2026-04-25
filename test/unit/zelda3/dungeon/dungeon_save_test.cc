@@ -162,8 +162,12 @@ class DungeonSaveTest : public ::testing::Test {
   }
 
   void SetupPitRegion() {
+    // `kPitCount` is the LDX.w immediate (the maximum X offset, NOT a
+    // byte count). max_offset = 0x00 → single 2-byte entry at offset 0.
+    // See `RoomsWithPitDamage table format pins` in
+    // `test/integration/zelda3/dungeon_save_region_test.cc`.
     WriteLongPointer(kPitPointer, PcToSnes(kPitDataPc));
-    rom_->mutable_data()[kPitCount] = 0x02;
+    rom_->mutable_data()[kPitCount] = 0x00;
     rom_->mutable_data()[kPitDataPc + 0] = 0x34;
     rom_->mutable_data()[kPitDataPc + 1] = 0x12;
   }
