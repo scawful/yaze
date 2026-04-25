@@ -36,8 +36,8 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
                             LayoutPresets::Panels::kDungeonRoomGraphics));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonRoomMatrix));
-  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
-                             LayoutPresets::Panels::kDungeonDoorEditor));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonDoorEditor));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonPaletteEditor));
 
@@ -55,6 +55,10 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
                          LayoutPresets::Panels::kDungeonRoomMatrix));
   EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonRoomMatrix),
+            IndexOfPanel(preset.default_visible_panels,
+                         LayoutPresets::Panels::kDungeonDoorEditor));
+  EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
+                         LayoutPresets::Panels::kDungeonDoorEditor),
             IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonPaletteEditor));
 

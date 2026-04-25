@@ -1,6 +1,0 @@
-#ifndef YAZE_APP_EDITOR_UI_WORKSPACE_MANAGER_LEGACY_PATH_H_
-#define YAZE_APP_EDITOR_UI_WORKSPACE_MANAGER_LEGACY_PATH_H_
-
-#include "app/editor/shell/coordinator/workspace_manager.h"
-
-#endif  // YAZE_APP_EDITOR_UI_WORKSPACE_MANAGER_LEGACY_PATH_H_

@@ -1125,7 +1125,8 @@ void SettingsPanel::DrawWorkspaceSettings() {
     if (window_manager_ == nullptr) {
       workspace_status_message_ = "Designer unavailable: no window manager.";
       workspace_status_is_error_ = true;
-    } else if (!window_manager_->OpenWindow("layout.designer")) {
+    } else if (!window_manager_->IsWindowOpen("layout.designer") &&
+               !window_manager_->OpenWindow("layout.designer")) {
       // OpenWindow returns false when the panel id isn't registered in
       // the active session. Surface that — silently doing nothing on
       // a missing registration would hide a real bug (panel renamed,
@@ -1134,6 +1135,7 @@ void SettingsPanel::DrawWorkspaceSettings() {
           "Open failed: \"layout.designer\" panel is not registered.";
       workspace_status_is_error_ = true;
     } else {
+      window_manager_->SetWindowPinned("layout.designer", true);
       workspace_status_message_.clear();
       workspace_status_is_error_ = false;
     }

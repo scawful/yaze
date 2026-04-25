@@ -1,6 +1,0 @@
-#ifndef YAZE_APP_EDITOR_UI_RECENT_PROJECTS_MODEL_LEGACY_PATH_H_
-#define YAZE_APP_EDITOR_UI_RECENT_PROJECTS_MODEL_LEGACY_PATH_H_
-
-#include "app/editor/shell/coordinator/recent_projects_model.h"
-
-#endif  // YAZE_APP_EDITOR_UI_RECENT_PROJECTS_MODEL_LEGACY_PATH_H_
