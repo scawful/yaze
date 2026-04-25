@@ -2845,27 +2845,40 @@ void Room::LoadBlocks() {
                      }),
       tile_objects_.end());
 
-  // Load block data from multiple pointers
-  std::vector<uint8_t> blocks_data(blocks_count);
-
-  int pos1 = kBlocksPointer1;
-  int pos2 = kBlocksPointer2;
-  int pos3 = kBlocksPointer3;
-  int pos4 = kBlocksPointer4;
-
-  // Read block data from 4 different locations
-  for (int i = 0; i < 0x80 && i < blocks_count; i++) {
-    blocks_data[i] = rom_data[pos1 + i];
-
-    if (i + 0x80 < blocks_count) {
-      blocks_data[i + 0x80] = rom_data[pos2 + i];
+  // Load block data from the four data regions.
+  //
+  // `kBlocksPointer1..4` are 3-byte SNES long-address operand slots
+  // embedded in bank_02's LDA.l instructions (`$02:DAF9..$02:DB2E`),
+  // not inline data offsets. Each operand encodes
+  // `data_base + region_offset` where data_base is the SNES address
+  // of `SpecialUnderworldObjects_pushable_block` ($04:F1DE in vanilla)
+  // and region_offset is `r * 0x80`. The previous code read directly
+  // from the operand slots, so it was decoding the LDA.l opcode
+  // operand bytes as block data — silently corrupting every block on
+  // load. `SaveAllBlocks` has always dereferenced these correctly;
+  // load now matches.
+  const int kRegionSize = 0x80;
+  const int kPointerSlots[4] = {kBlocksPointer1, kBlocksPointer2,
+                                kBlocksPointer3, kBlocksPointer4};
+  std::vector<uint8_t> blocks_data(blocks_count, 0);
+  for (int r = 0; r < 4; ++r) {
+    const int slot = kPointerSlots[r];
+    if (slot + 2 >= static_cast<int>(rom_data.size())) {
+      LOG_DEBUG("Room", "LoadBlocks: pointer slot %d out of range", r);
+      return;
     }
-    if (i + 0x100 < blocks_count) {
-      blocks_data[i + 0x100] = rom_data[pos3 + i];
+    const int snes =
+        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
+    const int pc = SnesToPc(snes);
+    const int off = r * kRegionSize;
+    const int len = std::min(kRegionSize, blocks_count - off);
+    if (len <= 0)
+      break;
+    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
+      LOG_DEBUG("Room", "LoadBlocks: region %d data out of range", r);
+      return;
     }
-    if (i + 0x180 < blocks_count) {
-      blocks_data[i + 0x180] = rom_data[pos4 + i];
-    }
+    std::copy_n(rom_data.begin() + pc, len, blocks_data.begin() + off);
   }
 
   // Parse blocks for this room (4 bytes per block entry).
