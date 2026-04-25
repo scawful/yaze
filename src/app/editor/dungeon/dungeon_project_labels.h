@@ -13,8 +13,12 @@ namespace yaze::editor::dungeon_project_labels {
 inline const core::DungeonEntry* FindDungeonForRoom(
     const project::YazeProject* project, int room_id,
     size_t* dungeon_index = nullptr) {
+  // Real Oracle .yaze projects can ship a project_registry (Docs/Dev/Planning/
+  // dungeons.json) without an accompanying hack_manifest_v1.json — see
+  // ProjectPathsTest.RegistryWithoutHackManifestStillExposesData. The registry
+  // is the canonical source of room/dungeon names; the hack manifest is an
+  // independent, optional add-on. Don't gate registry lookups on it.
   if (!project || !project->project_opened() ||
-      !project->hack_manifest.loaded() ||
       !project->hack_manifest.HasProjectRegistry()) {
     return nullptr;
   }

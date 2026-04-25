@@ -159,10 +159,27 @@ std::pair<int, int> FindConnectedTransportPlacement(
   return best;
 }
 
-std::tuple<int, int, DungeonConnectedLinkType> MakeConnectedLinkKey(
-    const DungeonConnectedRoomLink& link) {
+// Dedup key for the connected-mode graph.
+//
+// Door / Holewarp links are undirected — emitting from either side produces
+// the same logical edge — so we order the room pair (minmax) and treat both
+// emissions as one. There can only be one of either type per room pair.
+//
+// Staircase links carry per-instance provenance (slot_index + object_id) and
+// are *directed*: a stair object lives in exactly one room and points to
+// another. Two stair objects in the same source room targeting the same
+// destination, or two reciprocal stairs (A->B at slot 0 + B->A at slot 1),
+// are distinct edges that must each be visible in the matrix. Including
+// from_room/slot_index/object_id in the key preserves them.
+std::tuple<int, int, DungeonConnectedLinkType, int, int16_t>
+MakeConnectedLinkKey(const DungeonConnectedRoomLink& link) {
+  if (link.type == DungeonConnectedLinkType::Staircase) {
+    return std::make_tuple(link.from_room_id, link.to_room_id, link.type,
+                           link.slot_index, link.object_id);
+  }
   const auto ordered_rooms = std::minmax(link.from_room_id, link.to_room_id);
-  return std::make_tuple(ordered_rooms.first, ordered_rooms.second, link.type);
+  return std::make_tuple(ordered_rooms.first, ordered_rooms.second, link.type,
+                         -1, static_cast<int16_t>(-1));
 }
 
 }  // namespace
@@ -208,6 +225,18 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
   //     (placed object would be a dead-end stair at runtime).
   //   - >4 placed objects → ExtraPlacedObject diagnostic per surplus object.
   //   - Header non-zero but no consuming object → UnusedHeader diagnostic.
+  //
+  // ASSUMPTION (load-bearing for diagnostics): the placement-order → header-
+  // slot-index mapping mirrors how the runtime walks Room_LoadDungeonState.
+  // ZScream's `Dungeon_LoadStaircaseRooms` and the usdasm dungeon-load path
+  // both consume `Object_Tile_Staircase*` writers in placement order and
+  // index `staircase_rooms[]` with an internal counter. If any custom
+  // sub-routine ever indexes the slot table by a parameter byte instead of
+  // placement order, this mapping will misreport which placed object
+  // collides with which header destination. Verify against the ROM with
+  // `staircase_room_position_select.asm` (usdasm bank-01) when adding
+  // ROM-backed parity tests; the synthetic AddObject fixtures here do not
+  // exercise the real load path.
   std::array<bool, 4> slot_consumed{false, false, false, false};
   std::array<int16_t, 4> slot_object_id{
       static_cast<int16_t>(-1), static_cast<int16_t>(-1),
@@ -439,7 +468,8 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
   std::map<std::pair<int, int>, int> occupied_slots;
   occupied_slots[{0, 0}] = start_room_id;
   std::queue<int> to_visit;
-  std::set<std::tuple<int, int, DungeonConnectedLinkType>> seen_links;
+  std::set<std::tuple<int, int, DungeonConnectedLinkType, int, int16_t>>
+      seen_links;
   to_visit.push(start_room_id);
 
   auto track_room_bounds = [&](int room_id) {

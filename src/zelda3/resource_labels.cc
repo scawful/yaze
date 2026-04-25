@@ -119,7 +119,11 @@ std::string LookupProjectLabel(const ResourceLabelProvider::LabelMap& labels,
 
 std::string LookupProjectRegistryRoomLabel(const core::HackManifest* manifest,
                                            int id) {
-  if (!manifest || !manifest->loaded() || !manifest->HasProjectRegistry()) {
+  // The project registry can be loaded independently of a hack manifest in
+  // real Oracle projects (see ProjectPathsTest::
+  // RegistryWithoutHackManifestStillExposesData). Don't gate registry
+  // lookups on manifest->loaded().
+  if (!manifest || !manifest->HasProjectRegistry()) {
     return "";
   }
 
