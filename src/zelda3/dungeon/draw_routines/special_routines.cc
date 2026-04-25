@@ -77,6 +77,15 @@ void Draw4x4ColumnMajorTo(gfx::BackgroundBuffer& bg, const RoomObject& object,
   DrawColumnMajor(bg, object.x_, object.y_, 4, 4, tiles);
 }
 
+void DrawMany32x32Block(gfx::BackgroundBuffer& bg, int base_x, int base_y,
+                        std::span<const gfx::TileInfo> tiles) {
+  // USDASM RoomDraw_A_Many32x32Blocks ($01:8A44) writes tiles 0..3 through
+  // row-0 tilemap pointers and tiles 4..7 through row-1 pointers, then repeats
+  // the same 4x2 stamp two tile rows lower.
+  DrawRowMajor(bg, base_x, base_y, /*w=*/4, /*h=*/2, tiles);
+  DrawRowMajor(bg, base_x, base_y + 2, /*w=*/4, /*h=*/2, tiles);
+}
+
 bool IsAutoStairsDualLayer(int16_t object_id) {
   return object_id == 0x0130 || object_id == 0x0131 || object_id == 0x0F9B ||
          object_id == 0x0F9C;
@@ -710,24 +719,7 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      // Tile order is COLUMN-MAJOR 4x2, matching RoomDraw_A_Many32x32Blocks:
-      // [col0 row0, col0 row1, col1 row0, col1 row1, ...].
-      for (int x = 0; x < 4; ++x) {
-        const auto& row0 = ctx.tiles[(x * 2) + 0];
-        const auto& row1 = ctx.tiles[(x * 2) + 1];
-
-        // Top half (rows 0-1)
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 0,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
-                                     row1);
-
-        // Bottom half (rows 2-3) repeats the same 4x2 pattern.
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
-                                     row1);
-      }
+      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
     }
   }
 }
@@ -749,19 +741,7 @@ void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      for (int x = 0; x < 4; ++x) {
-        const auto& row0 = ctx.tiles[(x * 2) + 0];
-        const auto& row1 = ctx.tiles[(x * 2) + 1];
-
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 0,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
-                                     row1);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
-                                     row1);
-      }
+      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
     }
   }
 }
@@ -782,19 +762,7 @@ void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      for (int x = 0; x < 4; ++x) {
-        const auto& row0 = ctx.tiles[(x * 2) + 0];
-        const auto& row1 = ctx.tiles[(x * 2) + 1];
-
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 0,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
-                                     row1);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
-                                     row1);
-      }
+      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
     }
   }
 }
