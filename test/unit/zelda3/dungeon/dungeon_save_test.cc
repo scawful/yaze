@@ -611,6 +611,46 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0xDD);
 }
 
+TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
+  // Loader/saver invariant: `kBlocksPointer1..4` are 3-byte SNES
+  // long-address operand slots embedded in the bank_02 LDA.l
+  // instructions that fan the pushable-block table into WRAM. The actual
+  // entry bytes live at the pointed-to region (`kBlocksRegion1Pc..` in
+  // this fixture's mock layout).
+  //
+  // `SaveAllBlocks` already dereferences each pointer slot and writes
+  // data at the SNES address it encodes. `LoadBlocks` previously read
+  // bytes directly out of the operand slots — i.e. it was decoding the
+  // LDA.l opcode operand bytes as block data and silently producing
+  // garbage. This test pins the dereference invariant.
+  SetupBlockRegions();
+
+  // Overwrite the fixture's sample 0xAA..0xDD seed with an encoded
+  // pushable-block entry for room_id=0 at (px=10, py=20, layer=1):
+  //   word = (px << 1) | (py << 7) | (layer << 14)
+  //        = 20 | 2560 | 16384 = 18964 = 0x4A14
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;  // room_id lo
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;  // room_id hi
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;  // word lo
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;  // word hi
+
+  room_->LoadBlocks();
+
+  int block_count = 0;
+  for (const auto& obj : room_->GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
+      continue;
+    ++block_count;
+    EXPECT_EQ(obj.x(), 10);
+    EXPECT_EQ(obj.y(), 20);
+    EXPECT_EQ(obj.GetLayerValue(), 1);
+  }
+  EXPECT_EQ(block_count, 1)
+      << "LoadBlocks must dereference kBlocksPointer1 as a 3-byte SNES "
+         "long-address operand and load block data from the pointed "
+         "region — not from the operand slot itself.";
+}
+
 }  // namespace test
 }  // namespace zelda3
 }  // namespace yaze
