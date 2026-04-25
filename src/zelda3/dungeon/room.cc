@@ -17,6 +17,7 @@
 #include "rom/snes.h"
 #include "rom/write_fence.h"
 #include "util/log.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -2867,39 +2868,28 @@ void Room::LoadBlocks() {
     }
   }
 
-  // Parse blocks for this room (4 bytes per block entry)
-  for (int i = 0; i < blocks_count; i += 4) {
-    if (i + 3 >= blocks_count)
-      break;
+  // Parse blocks for this room (4 bytes per block entry).
+  //
+  // Vanilla scan (bank_01.asm:1162) walks the flat 396-byte table linearly
+  // matching on room_id; there is no per-room 0xFFFF terminator. The
+  // previous "break on b3==0xFF && b4==0xFF after room_id match" guard was
+  // a phantom — it never fired in vanilla and would have prematurely
+  // truncated a room's block list if a future tombstone happened to share
+  // its room_id. Removed alongside the decoder fix.
+  for (int i = 0; i + 3 < blocks_count; i += 4) {
+    PushableBlockBytes bytes{blocks_data[i], blocks_data[i + 1],
+                             blocks_data[i + 2], blocks_data[i + 3]};
+    const PushableBlockEntry entry = DecodePushableBlockEntry(bytes);
+    if (entry.room_id != room_id_)
+      continue;
 
-    uint8_t b1 = blocks_data[i];
-    uint8_t b2 = blocks_data[i + 1];
-    uint8_t b3 = blocks_data[i + 2];
-    uint8_t b4 = blocks_data[i + 3];
+    RoomObject block_obj(0x0E00, entry.px, entry.py, 0, entry.layer);
+    block_obj.SetRom(rom_);
+    block_obj.set_options(ObjectOption::Block);
+    tile_objects_.push_back(block_obj);
 
-    // Check if this block belongs to our room
-    uint16_t block_room_id = (b2 << 8) | b1;
-    if (block_room_id == room_id_) {
-      // End marker for this room's blocks
-      if (b3 == 0xFF && b4 == 0xFF) {
-        break;
-      }
-
-      // Decode block position
-      int address = ((b4 & 0x1F) << 8 | b3) >> 1;
-      uint8_t px = address % 64;
-      uint8_t py = address >> 6;
-      uint8_t layer = (b4 & 0x20) >> 5;
-
-      // Create block object (ID 0x0E00)
-      RoomObject block_obj(0x0E00, px, py, 0, layer);
-      block_obj.SetRom(rom_);
-      block_obj.set_options(ObjectOption::Block);
-
-      tile_objects_.push_back(block_obj);
-
-      LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", px, py, layer);
-    }
+    LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", entry.px, entry.py,
+              entry.layer);
   }
 }
 
