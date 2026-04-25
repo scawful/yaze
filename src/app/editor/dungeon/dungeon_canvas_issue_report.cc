@@ -1,9 +1,16 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <filesystem>
+#include <limits>
+#include <set>
+#include <span>
 #include <string>
+#include <string_view>
+#include <tuple>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
@@ -21,6 +28,7 @@
 #include "util/platform_paths.h"
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room_object.h"
@@ -104,6 +112,131 @@ std::string BuildSelectedObjectSemanticsSummary(const zelda3::RoomObject& obj) {
           zelda3::MapRoomObjectListIndexToDrawLayer(obj.GetLayerValue())),
       zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer),
       semantics.routine_id, semantics.draws_to_both_bgs ? "yes" : "no");
+}
+
+const char* TraceLayerLabel(uint8_t layer) {
+  switch (static_cast<zelda3::RoomObject::LayerType>(layer)) {
+    case zelda3::RoomObject::LayerType::BG1:
+      return "BG1";
+    case zelda3::RoomObject::LayerType::BG2:
+      return "BG2";
+    case zelda3::RoomObject::LayerType::BG3:
+      return "BG3";
+  }
+  return "BG?";
+}
+
+std::string FormatObjectTileSample(std::span<const gfx::TileInfo> tiles,
+                                   size_t max_count, std::string_view prefix) {
+  std::string out = absl::StrFormat("%s count=%zu", std::string(prefix).c_str(),
+                                    tiles.size());
+  const size_t preview_count = std::min<size_t>(tiles.size(), max_count);
+  for (size_t i = 0; i < preview_count; ++i) {
+    const auto& tile = tiles[i];
+    out += absl::StrFormat(" [%zu]=0x%03X/p%d/pr%d/h%d/v%d", i, tile.id_,
+                           static_cast<int>(tile.palette_), tile.over_ ? 1 : 0,
+                           tile.horizontal_mirror_ ? 1 : 0,
+                           tile.vertical_mirror_ ? 1 : 0);
+  }
+  if (tiles.size() > preview_count) {
+    out += absl::StrFormat(" ... %zu more", tiles.size() - preview_count);
+  }
+  return out;
+}
+
+std::string BuildObjectTraceSummary(Rom* rom, int room_id,
+                                    const zelda3::RoomObject& obj,
+                                    const gfx::PaletteGroup& palette_group) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return "\nDrawer trace: unavailable (ROM not loaded)";
+  }
+
+  zelda3::ObjectDrawer drawer(rom, room_id, /*room_gfx_buffer=*/nullptr);
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  std::vector<zelda3::ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+  const auto status = drawer.DrawObject(obj, bg1, bg2, palette_group);
+  drawer.ClearTraceCollector();
+  if (!status.ok()) {
+    return absl::StrFormat("\nDrawer trace: unavailable (%s)",
+                           std::string(status.message()).c_str());
+  }
+
+  if (trace.empty()) {
+    return "\nDrawer trace: status=ok writes=0";
+  }
+
+  int min_x = std::numeric_limits<int>::max();
+  int min_y = std::numeric_limits<int>::max();
+  int max_x = std::numeric_limits<int>::min();
+  int max_y = std::numeric_limits<int>::min();
+  std::array<int, 3> layer_counts = {0, 0, 0};
+  std::set<std::tuple<int, int, uint8_t>> unique_cells;
+  for (const auto& write : trace) {
+    min_x = std::min<int>(min_x, write.x_tile);
+    min_y = std::min<int>(min_y, write.y_tile);
+    max_x = std::max<int>(max_x, write.x_tile);
+    max_y = std::max<int>(max_y, write.y_tile);
+    if (write.layer < layer_counts.size()) {
+      ++layer_counts[write.layer];
+    }
+    unique_cells.insert({write.x_tile, write.y_tile, write.layer});
+  }
+
+  std::string out = absl::StrFormat(
+      "\nDrawer trace: status=ok writes=%zu unique_cells=%zu "
+      "bounds_tiles=(%d,%d)..(%d,%d) layer_counts BG1=%d BG2=%d BG3=%d",
+      trace.size(), unique_cells.size(), min_x, min_y, max_x, max_y,
+      layer_counts[zelda3::RoomObject::LayerType::BG1],
+      layer_counts[zelda3::RoomObject::LayerType::BG2],
+      layer_counts[zelda3::RoomObject::LayerType::BG3]);
+
+  const size_t preview_count = std::min<size_t>(trace.size(), 12);
+  for (size_t i = 0; i < preview_count; ++i) {
+    const auto& write = trace[i];
+    const int palette = (write.flags >> 3) & 0x7;
+    out += absl::StrFormat(
+        "\n  write[%zu] %s tile=(%d,%d) id=0x%03X pal=%d pri=%d h=%d v=%d", i,
+        TraceLayerLabel(write.layer), write.x_tile, write.y_tile, write.tile_id,
+        palette, (write.flags & 0x4) ? 1 : 0, (write.flags & 0x1) ? 1 : 0,
+        (write.flags & 0x2) ? 1 : 0);
+  }
+  if (trace.size() > preview_count) {
+    out += absl::StrFormat("\n  ... %zu more write(s)",
+                           trace.size() - preview_count);
+  }
+  return out;
+}
+
+std::string BuildDoorIssueSummary(const zelda3::Room::Door& door, size_t index,
+                                  std::string_view label) {
+  const auto [tile_x, tile_y] = door.GetTileCoords();
+  const auto [pixel_x, pixel_y] = door.GetPixelCoords();
+  const auto dims = door.GetDimensions();
+  const auto editor_dims = door.GetEditorDimensions();
+  const auto [bounds_x, bounds_y, bounds_w, bounds_h] = door.GetBounds();
+  const auto [editor_x, editor_y, editor_w, editor_h] = door.GetEditorBounds();
+  const auto [encoded_b1, encoded_b2] = door.EncodeBytes();
+
+  return absl::StrFormat(
+      "\n%s[%zu]:\n"
+      "- type=%s (0x%02X)\n"
+      "- direction=%s (%d)\n"
+      "- position=%d\n"
+      "- tile_coords=(%d,%d) pixel_coords=(%d,%d)\n"
+      "- dims_tiles=(%d,%d) editor_dims_tiles=(%d,%d)\n"
+      "- bounds_px=(%d,%d,%d,%d) editor_bounds_px=(%d,%d,%d,%d)\n"
+      "- encoded=(0x%02X,0x%02X) original=(0x%02X,0x%02X)",
+      std::string(label).c_str(), index,
+      std::string(zelda3::GetDoorTypeName(door.type)).c_str(),
+      static_cast<int>(door.type),
+      std::string(zelda3::GetDoorDirectionName(door.direction)).c_str(),
+      static_cast<int>(door.direction), static_cast<int>(door.position), tile_x,
+      tile_y, pixel_x, pixel_y, dims.width_tiles, dims.height_tiles,
+      editor_dims.width_tiles, editor_dims.height_tiles, bounds_x, bounds_y,
+      bounds_w, bounds_h, editor_x, editor_y, editor_w, editor_h, encoded_b1,
+      encoded_b2, door.byte1, door.byte2);
 }
 
 std::string BuildRomDisplayName(const Rom& rom) {
@@ -248,19 +381,8 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
             GetObjectName(obj.id_).c_str(), obj.x_, obj.y_, obj.size_,
             BuildSelectedObjectSemanticsSummary(obj).c_str());
         if (auto tiles = obj.GetTiles(); tiles.ok()) {
-          const size_t preview_count = std::min<size_t>(tiles->size(), 8);
-          report += "\nObject tiles:";
-          for (size_t i = 0; i < preview_count; ++i) {
-            const auto& tile = (*tiles)[i];
-            report += absl::StrFormat(
-                " [%zu]=id:0x%03X pal:%d pri:%d h:%d v:%d", i, tile.id_,
-                static_cast<int>(tile.palette_), tile.over_ ? 1 : 0,
-                tile.horizontal_mirror_ ? 1 : 0, tile.vertical_mirror_ ? 1 : 0);
-          }
-          if (tiles->size() > preview_count) {
-            report +=
-                absl::StrFormat(" ... %zu more", tiles->size() - preview_count);
-          }
+          report += "\n";
+          report += FormatObjectTileSample(*tiles, 16, "Object tiles:");
         }
 
         auto [obj_w, obj_h] =
@@ -271,6 +393,12 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
         const int origin_y = obj.y_ * 8;
         const int center_x = origin_x + std::max(0, (obj_w / 2) - 1);
         const int center_y = origin_y + std::max(0, (obj_h / 2) - 1);
+        report += absl::StrFormat(
+            "\nObject geometry: dims_px=(%d,%d) origin_px=(%d,%d) "
+            "center_px=(%d,%d)",
+            obj_w, obj_h, origin_x, origin_y, center_x, center_y);
+        report +=
+            BuildObjectTraceSummary(rom_, room_id, obj, current_palette_group_);
 
         auto& palette_debugger = zelda3::PaletteDebugger::Get();
         auto append_sample = [&](const char* label, int sample_x,
@@ -303,11 +431,8 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
         const auto& doors = room.GetDoors();
         if (selected_entity.index < doors.size()) {
           const auto& door = doors[selected_entity.index];
-          report += absl::StrFormat(
-              "\nSelected entity: door type=%s dir=%s pos=%d",
-              std::string(zelda3::GetDoorTypeName(door.type)).c_str(),
-              std::string(zelda3::GetDoorDirectionName(door.direction)).c_str(),
-              static_cast<int>(door.position));
+          report += BuildDoorIssueSummary(door, selected_entity.index,
+                                          "Selected door");
         }
         break;
       }
@@ -379,20 +504,16 @@ std::string DungeonCanvasViewer::BuildSelectionIssueReport(
           "\n- object[%zu] id=0x%03X name=%s pos=(%d,%d) size=0x%02X %s", index,
           obj.id_, GetObjectName(obj.id_).c_str(), obj.x_, obj.y_, obj.size_,
           BuildSelectedObjectSemanticsSummary(obj).c_str());
+      auto [obj_w, obj_h] =
+          zelda3::DimensionService::Get().GetPixelDimensions(obj);
+      obj_w = std::max(obj_w, 8);
+      obj_h = std::max(obj_h, 8);
+      report +=
+          absl::StrFormat("\n  geometry: dims_px=(%d,%d) origin_px=(%d,%d)",
+                          obj_w, obj_h, obj.x_ * 8, obj.y_ * 8);
       if (auto tiles = obj.GetTiles(); tiles.ok() && !tiles->empty()) {
-        const size_t tile_preview_count = std::min<size_t>(tiles->size(), 6);
-        report += "\n  tiles:";
-        for (size_t tile_i = 0; tile_i < tile_preview_count; ++tile_i) {
-          const auto& tile = (*tiles)[tile_i];
-          report += absl::StrFormat(
-              " [%zu]=0x%03X/p%d/pr%d/h%d/v%d", tile_i, tile.id_,
-              static_cast<int>(tile.palette_), tile.over_ ? 1 : 0,
-              tile.horizontal_mirror_ ? 1 : 0, tile.vertical_mirror_ ? 1 : 0);
-        }
-        if (tiles->size() > tile_preview_count) {
-          report += absl::StrFormat(" ... %zu more",
-                                    tiles->size() - tile_preview_count);
-        }
+        report += "\n  ";
+        report += FormatObjectTileSample(*tiles, 10, "tiles:");
       }
     }
     if (selected_objects.size() > preview_count) {
@@ -409,17 +530,8 @@ std::string DungeonCanvasViewer::BuildSelectionIssueReport(
         const auto& doors = room.GetDoors();
         if (selected_entity.index < doors.size()) {
           const auto& door = doors[selected_entity.index];
-          report += absl::StrFormat(
-              "\nSelected door[%zu]:\n"
-              "- type=%s (0x%02X)\n"
-              "- direction=%s (%d)\n"
-              "- position=%d",
-              selected_entity.index,
-              std::string(zelda3::GetDoorTypeName(door.type)).c_str(),
-              static_cast<int>(door.type),
-              std::string(zelda3::GetDoorDirectionName(door.direction)).c_str(),
-              static_cast<int>(door.direction),
-              static_cast<int>(door.position));
+          report += BuildDoorIssueSummary(door, selected_entity.index,
+                                          "Selected door");
           return report;
         }
         break;
