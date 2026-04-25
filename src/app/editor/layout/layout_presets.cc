@@ -49,9 +49,10 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
       if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
         preset.default_visible_panels = {
-            Panels::kDungeonWorkbench,    Panels::kDungeonObjectSelector,
-            Panels::kDungeonRoomGraphics, Panels::kDungeonObjectEditor,
-            Panels::kDungeonRoomMatrix,   Panels::kDungeonPaletteEditor,
+            Panels::kDungeonWorkbench,     Panels::kDungeonObjectSelector,
+            Panels::kDungeonRoomGraphics,  Panels::kDungeonObjectEditor,
+            Panels::kDungeonRoomMatrix,    Panels::kDungeonDoorEditor,
+            Panels::kDungeonPaletteEditor,
         };
 
         // Place optional panels around the workbench so they dock predictably

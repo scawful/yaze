@@ -123,6 +123,7 @@ class MenuOrchestrator {
   void OnSaveWorkspaceLayout();
   void OnLoadWorkspaceLayout();
   void OnShowLayoutPresets();
+  void OnShowLayoutDesigner();
   void OnLoadDeveloperLayout();
   void OnLoadDesignerLayout();
   void OnLoadModderLayout();

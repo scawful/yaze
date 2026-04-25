@@ -17,11 +17,13 @@
 #include "app/gfx/util/bpp_format_manager.h"
 #include "app/gui/canvas/bpp_format_ui.h"
 #include "app/gui/canvas/canvas_context_menu.h"
+#include "app/gui/canvas/canvas_draw.h"
 #include "app/gui/canvas/canvas_geometry.h"
 #include "app/gui/canvas/canvas_interaction_handler.h"
 #include "app/gui/canvas/canvas_menu.h"
 #include "app/gui/canvas/canvas_modals.h"
 #include "app/gui/canvas/canvas_performance_integration.h"
+#include "app/gui/canvas/canvas_pipelines.h"
 #include "app/gui/canvas/canvas_popup.h"
 #include "app/gui/canvas/canvas_rendering.h"
 #include "app/gui/canvas/canvas_state.h"
@@ -556,9 +558,6 @@ class Canvas {
   bool custom_canvas_size_ = false;
   bool draggable_ = false;
 };
-
-#include "app/gui/canvas/canvas_draw.h"
-#include "app/gui/canvas/canvas_pipelines.h"
 
 struct CanvasMenuAction {
   std::string id;
