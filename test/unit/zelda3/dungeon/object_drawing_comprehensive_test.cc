@@ -333,14 +333,16 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
       {0xC1, 68, "Very large object"},
       {0xCD, 28, "Moving wall"},
       {0xCE, 28, "Moving wall variant"},
-      // Waterfall47 reads tiles[0..14] = 15 tiles
-      // (`DrawWaterfall47` in special_routines.cc); the prior entry of
-      // 8 was an under-fetch that left indices 8..14 reading past the
-      // parsed vector.
+      // Waterfall47 indexes tile slots 0..14 = 15 tiles
+      // (`DrawWaterfall47` in special_routines.cc). The prior 8-tile
+      // fallback caused the routine's `TileAtWrapped` lookup to wrap
+      // — e.g. tile index 12 with size=8 returns tile 4 — substituting
+      // wrong tiles for the middle/right columns rather than reading
+      // past the end of the vector.
       {0x47, 15, "Waterfall47 (1x5 left + middle + right column)"},
-      // Waterfall48 reads tiles[0..8] = 9 tiles
-      // (`DrawWaterfall48`); the prior fallback of 8 over-read by 1
-      // and missed the final column tile.
+      // Waterfall48 indexes tile slots 0..8 = 9 tiles
+      // (`DrawWaterfall48`). Prior 8-tile fallback wrapped index 8
+      // → tile 0, missing the final column's bottom tile.
       {0x48, 9, "Waterfall48 (1x3 left + middle + right column)"},
   };
 
