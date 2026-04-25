@@ -366,7 +366,15 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
-    integration/zelda3/dungeon_object_rom_validation_test.cc
+    # NOTE: dungeon_object_rom_validation_test.cc is intentionally NOT listed
+    # here. It is registered exclusively into yaze_test_rom_dependent below
+    # because every test in the file gates on TestRomManager::GetTestRomPath()
+    # in SetUp() and skips without a vanilla ROM. Linking it into
+    # yaze_test_integration as well caused two specific tests
+    # (DrawRoutineMapping_AllType1ObjectsHaveRoutines, ObjectDimensions_
+    # MatchesROMTileCount) to segfault/abort under that binary's static-init
+    # order while passing cleanly from yaze_test_rom_dependent. Single
+    # registration keeps the ROM-backed signal trustworthy.
     integration/zelda3/dungeon_room_render_parity_test.cc
     integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
