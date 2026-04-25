@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -124,6 +125,78 @@ ImU32 GetConnectedLinkColor(const AgentUITheme& theme,
                                        theme.transport_color.z, 0.82f));
   }
   return ImGui::GetColorU32(theme.selection_primary);
+}
+
+ImVec4 WithAlpha(ImVec4 color, float alpha) {
+  color.w = alpha;
+  return color;
+}
+
+ImVec4 GetConnectedFloorBaseColor(
+    const AgentUITheme& theme,
+    const DungeonCanvasViewer::ConnectedRoomGraphData& graph,
+    const std::string& floor_label) {
+  auto it = std::find(graph.floor_order.begin(), graph.floor_order.end(),
+                      floor_label);
+  const int floor_index =
+      it == graph.floor_order.end()
+          ? 0
+          : static_cast<int>(std::distance(graph.floor_order.begin(), it));
+  switch (floor_index % 6) {
+    case 0:
+      return theme.selection_primary;
+    case 1:
+      return theme.transport_color;
+    case 2:
+      return theme.status_success;
+    case 3:
+      return theme.dungeon_object_stairs;
+    case 4:
+      return theme.dungeon_object_door;
+    default:
+      return theme.selection_secondary;
+  }
+}
+
+ImU32 GetConnectedFloorColor(
+    const AgentUITheme& theme,
+    const DungeonCanvasViewer::ConnectedRoomGraphData& graph, int room_id,
+    float alpha) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+    return ImGui::GetColorU32(WithAlpha(theme.text_secondary_gray, alpha));
+  }
+  const std::string& floor_label =
+      graph.room_floor_labels[static_cast<size_t>(room_id)];
+  if (floor_label.empty()) {
+    return ImGui::GetColorU32(WithAlpha(theme.text_secondary_gray, alpha));
+  }
+  return ImGui::GetColorU32(
+      WithAlpha(GetConnectedFloorBaseColor(theme, graph, floor_label), alpha));
+}
+
+int CountConnectedRoomsOnFloor(
+    const DungeonCanvasViewer::ConnectedRoomGraphData& graph,
+    const std::string& floor_label) {
+  int count = 0;
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    if (!graph.room_mask[static_cast<size_t>(room_id)]) {
+      continue;
+    }
+    if (graph.room_floor_labels[static_cast<size_t>(room_id)] == floor_label) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+int CountAutoFixableStaircaseIssues(
+    const std::vector<DungeonStaircaseIssue>& issues) {
+  return static_cast<int>(std::count_if(
+      issues.begin(), issues.end(), [](const DungeonStaircaseIssue& issue) {
+        return issue.kind == DungeonStaircaseIssueKind::UnusedHeader &&
+               issue.slot_index >= 0 && issue.slot_index < 4 &&
+               issue.header_room_id > 0;
+      }));
 }
 
 void DrawConnectedLegendItem(const char* label, ImU32 color,
@@ -461,11 +534,16 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
       const bool is_center = room_id == center_room_id;
       const bool is_highlighted =
           room_id == actions.hovered_room_id || room_id == highlighted_room_id;
+      const bool is_unlinked = !placement.connected_to_start;
       const ImU32 fill =
           is_center ? ImGui::GetColorU32(theme.selection_primary)
           : is_highlighted
               ? ImGui::GetColorU32(gui::ConvertColorToImVec4(theme.warning))
-              : IM_COL32(110, 146, 126, 210);
+          : is_unlinked
+              ? ImGui::GetColorU32(
+                    WithAlpha(AgentUI::GetTheme().status_warning, 0.52f))
+              : GetConnectedFloorColor(AgentUI::GetTheme(), connected_graph,
+                                       room_id, 0.52f);
       const ImU32 outline = is_center || is_highlighted
                                 ? IM_COL32(255, 255, 255, 255)
                                 : IM_COL32(30, 38, 32, 220);
@@ -618,6 +696,38 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
           : 0;
   ImGui::TextDisabled("%d room%s", connected_room_count,
                       connected_room_count == 1 ? "" : "s");
+  if (connected_graph_cache_start_room_id_ == center_room_id &&
+      connected_graph_cache_.unlinked_room_count > 0) {
+    ImGui::SameLine(0.0f, 6.0f);
+    ImGui::TextColored(AgentUI::GetTheme().status_warning, "%d unlinked",
+                       connected_graph_cache_.unlinked_room_count);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Project rooms shown in this dungeon scope but not reachable from "
+          "the current room through resolved ROM doors, staircases, or "
+          "holewarps. They stay visible so broken connections are easier to "
+          "repair.");
+    }
+  }
+  if (connected_graph_cache_start_room_id_ == center_room_id &&
+      !connected_graph_cache_.floor_order.empty()) {
+    const auto& agent_theme = AgentUI::GetTheme();
+    for (const std::string& floor_label : connected_graph_cache_.floor_order) {
+      const int floor_count =
+          CountConnectedRoomsOnFloor(connected_graph_cache_, floor_label);
+      if (floor_count <= 0) {
+        continue;
+      }
+      ImGui::SameLine(0.0f, 6.0f);
+      ImGui::TextColored(GetConnectedFloorBaseColor(
+                             agent_theme, connected_graph_cache_, floor_label),
+                         "%s:%d", floor_label.c_str(), floor_count);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s rooms in this unified connected view",
+                          floor_label.c_str());
+      }
+    }
+  }
   const size_t issue_count =
       connected_graph_cache_start_room_id_ == center_room_id
           ? connected_graph_cache_.staircase_issues.size()
@@ -642,6 +752,23 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
       ImGui::SetTooltip("%s", tooltip.c_str());
     }
   }
+  const int auto_fixable_count =
+      connected_graph_cache_start_room_id_ == center_room_id
+          ? CountAutoFixableStaircaseIssues(
+                connected_graph_cache_.staircase_issues)
+          : 0;
+  if (auto_fixable_count > 0) {
+    ImGui::SameLine(0.0f, 6.0f);
+    if (ImGui::SmallButton(ICON_MD_CLEAR " Clear stale##ConnectedFixStale")) {
+      ApplyConnectedStaircaseIssueAutoFixes(center_room_id);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Clear stale non-zero staircase header slots that no placed "
+          "interroom-stair object consumes. This marks room headers dirty but "
+          "does not guess missing destinations or delete extra objects.");
+    }
+  }
   const size_t out_of_scope_count =
       connected_graph_cache_start_room_id_ == center_room_id
           ? connected_graph_cache_.out_of_scope_links.size()
@@ -664,6 +791,13 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
       }
       ImGui::SetTooltip("%s", tooltip.c_str());
     }
+  }
+  if (!connected_action_status_message_.empty()) {
+    ImGui::SameLine(0.0f, 6.0f);
+    ImGui::TextColored(connected_action_status_is_error_
+                           ? AgentUI::GetTheme().status_error
+                           : AgentUI::GetTheme().status_success,
+                       "%s", connected_action_status_message_.c_str());
   }
   ImGui::SameLine(0.0f, 8.0f);
   ImGui::TextDisabled("%.0f%%", ConnectedCanvasScale() * 100.0f);
@@ -1056,6 +1190,22 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                          placeholder_fill, 6.0f);
     }
 
+    if (!placement.connected_to_start) {
+      canvas_rt.draw_list->AddRectFilled(
+          screen_min, screen_max,
+          ImGui::GetColorU32(WithAlpha(theme.status_warning, 0.12f)), 6.0f);
+    }
+
+    const std::string& floor_label =
+        connected_graph.room_floor_labels[static_cast<size_t>(room_id)];
+    if (!floor_label.empty()) {
+      const float strip_width = std::clamp(6.0f * canvas_rt.scale, 3.0f, 8.0f);
+      canvas_rt.draw_list->AddRectFilled(
+          screen_min, ImVec2(screen_min.x + strip_width, screen_max.y),
+          GetConnectedFloorColor(theme, connected_graph, room_id, 0.82f), 6.0f,
+          ImDrawFlags_RoundCornersLeft);
+    }
+
     const bool hovered =
         mouse_in_map_viewport &&
         ImGui::IsMouseHoveringRect(screen_min, screen_max, false) &&
@@ -1074,9 +1224,16 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                  border_thickness);
 
     char room_label[192];
-    std::snprintf(
-        room_label, sizeof(room_label), "[%03X] %s", room_id,
-        dungeon_project_labels::GetRoomLabel(project_, room_id).c_str());
+    if (floor_label.empty()) {
+      std::snprintf(
+          room_label, sizeof(room_label), "[%03X] %s", room_id,
+          dungeon_project_labels::GetRoomLabel(project_, room_id).c_str());
+    } else {
+      std::snprintf(
+          room_label, sizeof(room_label), "[%03X] %s - %s", room_id,
+          floor_label.c_str(),
+          dungeon_project_labels::GetRoomLabel(project_, room_id).c_str());
+    }
     const ImVec2 label_size = ImGui::CalcTextSize(room_label);
     const ImVec2 label_min(screen_min.x + kConnectedRoomLabelPadding,
                            screen_min.y + kConnectedRoomLabelPadding);
@@ -1188,6 +1345,19 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
           "[%03X] %s", hovered_room_id,
           dungeon_project_labels::GetRoomLabel(project_, hovered_room_id)
               .c_str());
+      const auto& hovered_placement =
+          connected_graph.room_positions[static_cast<size_t>(hovered_room_id)];
+      const std::string& floor_label =
+          connected_graph
+              .room_floor_labels[static_cast<size_t>(hovered_room_id)];
+      if (!floor_label.empty()) {
+        absl::StrAppend(&tooltip, "\nFloor: ", floor_label);
+      }
+      if (!hovered_placement.connected_to_start) {
+        absl::StrAppend(
+            &tooltip,
+            "\nUnlinked: no resolved ROM path from the current room.");
+      }
       if (zelda3::Room* hovered_room =
               EnsureRoomLoadedForConnectedView(hovered_room_id)) {
         const auto diagnostics = CollectDungeonConnectedRoomLinkDiagnostics(

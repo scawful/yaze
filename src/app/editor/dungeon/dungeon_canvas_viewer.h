@@ -651,10 +651,13 @@ class DungeonCanvasViewer {
       int col = 0;
       int row = 0;
       bool placed = false;
+      bool connected_to_start = false;
     };
 
     std::array<bool, zelda3::kNumberOfRooms> room_mask{};
     std::array<RoomPlacement, zelda3::kNumberOfRooms> room_positions{};
+    std::array<std::string, zelda3::kNumberOfRooms> room_floor_labels{};
+    std::vector<std::string> floor_order;
     std::vector<DungeonConnectedRoomLink> links;
     // Staircase configuration anomalies aggregated across the whole
     // connected component. Order is "first-encountered during BFS".
@@ -668,6 +671,7 @@ class DungeonCanvasViewer {
     // True when BFS is restricted to a project-registry dungeon group.
     bool dungeon_scope_active = false;
     int room_count = 0;
+    int unlinked_room_count = 0;
     int min_col = 0;
     int max_col = 0;
     int min_row = 0;
@@ -768,6 +772,7 @@ class DungeonCanvasViewer {
   zelda3::Room* EnsureRoomLoadedForConnectedView(int room_id);
   bool RoomHasNonExitDoorInDirection(int room_id, zelda3::DoorDirection dir);
   ConnectedRoomGraphData BuildConnectedRoomGraph(int start_room_id);
+  int ApplyConnectedStaircaseIssueAutoFixes(int center_room_id);
   void DrawRoomBackgroundLayers(int room_id);  // Draw room buffers to canvas
 
   Rom* rom_ = nullptr;
@@ -808,6 +813,8 @@ class DungeonCanvasViewer {
   ImVec2 connected_controls_custom_position_value_ = ImVec2(0.0f, 0.0f);
   int connected_graph_cache_start_room_id_ = -1;
   ConnectedRoomGraphData connected_graph_cache_{};
+  std::string connected_action_status_message_;
+  bool connected_action_status_is_error_ = false;
 
   // Object interaction state
   bool object_interaction_enabled_ = true;

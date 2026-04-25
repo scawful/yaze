@@ -48,6 +48,11 @@ class DungeonCanvasViewerTestPeer {
       DungeonCanvasViewer& viewer, int start_room_id) {
     return viewer.BuildConnectedRoomGraph(start_room_id);
   }
+
+  static int ApplyConnectedStaircaseIssueAutoFixes(DungeonCanvasViewer& viewer,
+                                                   int start_room_id) {
+    return viewer.ApplyConnectedStaircaseIssueAutoFixes(start_room_id);
+  }
 };
 
 namespace {
@@ -770,6 +775,71 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
+     BuildConnectedRoomGraphIncludesUnlinkedScopedRoomsWithFloorLabels) {
+  const std::filesystem::path root = MakeProjectRegistryRoot(R"json({
+    "dungeons": [
+      {
+        "id": "D6",
+        "name": "Goron Mines",
+        "rooms": [
+          {"id": "0x10", "name": "F1 Start", "floor": "F1", "grid_row": 1, "grid_col": 1},
+          {"id": "0x11", "name": "F1 East", "floor": "F1", "grid_row": 1, "grid_col": 2},
+          {"id": "0x40", "name": "B1 Side", "floor": "B1", "grid_row": 4, "grid_col": 1}
+        ]
+      }
+    ]
+  })json");
+
+  project::YazeProject project;
+  ASSERT_TRUE(LoadOracleProject(&project, root).ok());
+
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.AddDoor(
+      MakeDoor(zelda3::DoorDirection::East, zelda3::DoorType::NormalDoor));
+  start.SetLoaded(true);
+
+  auto& neighbor_in_scope = rooms[0x11];
+  ClearRoomLinks(&neighbor_in_scope);
+  neighbor_in_scope.AddDoor(
+      MakeDoor(zelda3::DoorDirection::West, zelda3::DoorType::NormalDoor));
+  neighbor_in_scope.SetLoaded(true);
+
+  auto& unlinked_b1 = rooms[0x40];
+  ClearRoomLinks(&unlinked_b1);
+  unlinked_b1.SetLoaded(true);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+  viewer.SetProject(&project);
+
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+
+  EXPECT_TRUE(graph.dungeon_scope_active);
+  EXPECT_EQ(graph.room_count, 3);
+  EXPECT_EQ(graph.unlinked_room_count, 1);
+  EXPECT_TRUE(graph.room_mask[0x10]);
+  EXPECT_TRUE(graph.room_mask[0x11]);
+  EXPECT_TRUE(graph.room_mask[0x40]);
+  EXPECT_TRUE(graph.room_positions[0x10].connected_to_start);
+  EXPECT_TRUE(graph.room_positions[0x11].connected_to_start);
+  EXPECT_FALSE(graph.room_positions[0x40].connected_to_start);
+  EXPECT_EQ(graph.room_positions[0x40].col, 1);
+  EXPECT_EQ(graph.room_positions[0x40].row, 4);
+  EXPECT_EQ(graph.room_floor_labels[0x10], "F1");
+  EXPECT_EQ(graph.room_floor_labels[0x40], "B1");
+  EXPECT_EQ(graph.floor_order, (std::vector<std::string>{"F1", "B1"}));
+
+  std::filesystem::remove_all(root);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
      BuildConnectedRoomGraphFlagsCrossDungeonStairLinksAsOutOfScope) {
   const std::filesystem::path root = MakeProjectRegistryRoot(R"json({
     "dungeons": [
@@ -818,6 +888,51 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   EXPECT_EQ(graph.out_of_scope_links[0].object_id, 0x138);
 
   std::filesystem::remove_all(root);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
+     ApplyConnectedStaircaseIssueAutoFixesClearsOnlyUnusedHeaders) {
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.SetStaircaseRoom(0, 0x40);
+  start.SetStaircaseRoom(1, 0x41);
+  ASSERT_TRUE(start.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
+  start.ClearHeaderDirty();
+  start.SetLoaded(true);
+
+  auto& linked_target = rooms[0x40];
+  ClearRoomLinks(&linked_target);
+  linked_target.SetLoaded(true);
+
+  auto& stale_target = rooms[0x41];
+  ClearRoomLinks(&stale_target);
+  stale_target.SetLoaded(true);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+
+  const auto before =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+  ASSERT_EQ(before.staircase_issues.size(), 1u);
+  EXPECT_EQ(before.staircase_issues[0].kind,
+            DungeonStaircaseIssueKind::UnusedHeader);
+
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::ApplyConnectedStaircaseIssueAutoFixes(
+                viewer, 0x10),
+            1);
+  EXPECT_EQ(start.staircase_room(0), 0x40);
+  EXPECT_EQ(start.staircase_room(1), 0);
+  EXPECT_TRUE(start.header_dirty());
+
+  const auto after =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+  EXPECT_TRUE(after.staircase_issues.empty());
+  EXPECT_EQ(after.room_count, 2);
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
