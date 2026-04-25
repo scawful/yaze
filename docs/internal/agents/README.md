@@ -35,3 +35,9 @@ This directory is the index for yaze agent protocol and coordination.
 - Keep process docs short and linked from this index.
 - Archive stale plans/reports under `docs/internal/agents/archive/`.
 - Do not create duplicate protocol pages when an existing canonical page can be updated.
+- For code growth/sprawl prevention rules (DoD, header hygiene, budgets), see:
+  [doc-hygiene.md](doc-hygiene.md)
+
+## Active Domain Briefs
+- Dungeon editor next-slice briefing:
+  [dungeon-editor-claude-briefing-2026-04-25.md](dungeon-editor-claude-briefing-2026-04-25.md)
