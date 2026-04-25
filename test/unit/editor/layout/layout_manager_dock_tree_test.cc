@@ -351,27 +351,143 @@ TEST_F(LayoutManagerDockTreeTest, ApplyDockTreeOpensReferencedPanels) {
 }
 
 TEST_F(LayoutManagerDockTreeTest,
-       ApplyDockTreeMarksAllEditorLayoutsInitialized) {
-  // Pre-condition: nothing initialized yet.
+       ApplyDockTreeMarksOnlyCurrentEditorTypeInitialized) {
+  // Phase 8.2 review (2026-04-25): the previous "mark every type"
+  // approach blocked legitimate first-run preset init for OTHER
+  // editors. The narrow contract: when a custom layout is applied
+  // while the user is in editor X, only editor X's lazy-init is
+  // suppressed. Other editors (Assembly, Emulator, etc.) keep their
+  // first-run preset behavior.
+  layout_manager_.set_current_editor_type_for_test(EditorType::kDungeon);
   for (size_t i = 0; i < kEditorTypeCount; ++i) {
     ASSERT_FALSE(
-        layout_manager_.IsLayoutInitialized(static_cast<EditorType>(i)))
-        << "fixture invariant: editor type " << i
-        << " should start uninitialized";
+        layout_manager_.IsLayoutInitialized(static_cast<EditorType>(i)));
   }
 
   DockTree tree;
   tree.root = DockNode::MakeLeaf({MakePanel("a")});
   ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
 
+  EXPECT_TRUE(layout_manager_.IsLayoutInitialized(EditorType::kDungeon))
+      << "Apply must mark the current editor type initialized so the "
+         "lazy preset init path doesn't clobber the custom layout.";
+  EXPECT_FALSE(layout_manager_.IsLayoutInitialized(EditorType::kAssembly))
+      << "Apply must NOT mark unrelated editor types — Assembly should "
+         "still get its first-time preset on first activation.";
+  EXPECT_FALSE(layout_manager_.IsLayoutInitialized(EditorType::kEmulator));
+  EXPECT_FALSE(layout_manager_.IsLayoutInitialized(EditorType::kOverworld));
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       ApplyDockTreeWithUnknownCurrentEditorMarksNothing) {
+  // Default current_editor_type_ is kUnknown (no editor activated yet).
+  // Applying in this state should mark nothing — the startup-reapply
+  // path uses a separate one-shot flag for protection.
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a")});
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+
   for (size_t i = 0; i < kEditorTypeCount; ++i) {
-    EXPECT_TRUE(layout_manager_.IsLayoutInitialized(static_cast<EditorType>(i)))
-        << "ApplyDockTree must mark every editor type's layout initialized "
-           "so EditorActivator's lazy InitializeEditorLayout doesn't blow "
-           "away the custom layout on the first panel-based editor "
-           "activation. EditorType index = "
+    EXPECT_FALSE(
+        layout_manager_.IsLayoutInitialized(static_cast<EditorType>(i)))
+        << "Apply with current_editor_type_ == kUnknown must not mark "
+           "any editor type initialized; the startup-reapply one-shot "
+           "covers the pre-activation case. Type index = "
         << i;
   }
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       StartupReapplySetsOneShotProtectionFlagOnSuccess) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a")});
+  settings.prefs().last_applied_layout_name = "boot";
+  settings.prefs().named_layouts["boot"] =
+      layout_designer::DockTreeToJson(tree).dump();
+
+  ASSERT_FALSE(layout_manager_.startup_reapply_pending_protection_for_test());
+  ASSERT_TRUE(layout_manager_.MaybeReapplyStartupLayout(&settings).ok());
+  EXPECT_TRUE(layout_manager_.startup_reapply_pending_protection_for_test())
+      << "Successful startup-reapply must arm the one-shot protection so "
+         "the next InitializeEditorLayout call doesn't clobber the just-"
+         "installed custom layout.";
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       InitializeEditorLayoutConsumesStartupProtectionWithoutRebuild) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a")});
+  settings.prefs().last_applied_layout_name = "boot";
+  settings.prefs().named_layouts["boot"] =
+      layout_designer::DockTreeToJson(tree).dump();
+  ASSERT_TRUE(layout_manager_.MaybeReapplyStartupLayout(&settings).ok());
+  ASSERT_TRUE(layout_manager_.startup_reapply_pending_protection_for_test());
+
+  ImGuiDockNode* before = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(before, nullptr);
+  ASSERT_TRUE(before->IsLeafNode());
+
+  // First lazy init after startup reapply must consume the flag, mark
+  // the type initialized, and NOT rebuild the dockspace.
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  EXPECT_FALSE(layout_manager_.startup_reapply_pending_protection_for_test());
+  EXPECT_TRUE(layout_manager_.IsLayoutInitialized(EditorType::kDungeon));
+
+  ImGuiDockNode* after = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(after, nullptr);
+  EXPECT_TRUE(after->IsLeafNode())
+      << "Custom layout shape must survive the protected first lazy "
+         "init.";
+}
+
+TEST_F(LayoutManagerDockTreeTest, ApplyDockTreeClosesNonPinnedNonTreePanels) {
+  // Phase 8.2 review (2026-04-25): apply must hide panels that are NOT
+  // in the tree, otherwise the saved layout doesn't faithfully restore
+  // when it's a subset of the visible workspace. Pinned panels are
+  // exempt — they're force-pinned for cross-editor reachability and
+  // closing them silently would hide functionality the user didn't
+  // ask to lose.
+  bool visible_in_tree = false;
+  bool visible_extra = true;   // already open, not in tree
+  bool visible_pinned = true;  // already open, not in tree, but pinned
+  WindowDescriptor d_in{};
+  d_in.card_id = "in_tree";
+  d_in.display_name = "InTree";
+  d_in.icon = "ICON_MD_ACCOUNT_TREE";
+  d_in.category = "Test";
+  d_in.priority = 1;
+  d_in.visibility_flag = &visible_in_tree;
+  window_manager_.RegisterWindow(0, d_in);
+
+  WindowDescriptor d_extra = d_in;
+  d_extra.card_id = "extra";
+  d_extra.display_name = "Extra";
+  d_extra.visibility_flag = &visible_extra;
+  window_manager_.RegisterWindow(0, d_extra);
+
+  WindowDescriptor d_pinned = d_in;
+  d_pinned.card_id = "pinned";
+  d_pinned.display_name = "Pinned";
+  d_pinned.visibility_flag = &visible_pinned;
+  window_manager_.RegisterWindow(0, d_pinned);
+  window_manager_.SetWindowPinned(0, "pinned", true);
+
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("in_tree")});
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+
+  EXPECT_TRUE(visible_in_tree)
+      << "panel referenced in the tree must be open after apply";
+  EXPECT_FALSE(visible_extra)
+      << "panel that is neither in the tree nor pinned must be closed "
+         "after apply, so a subset layout doesn't leave ghosts";
+  EXPECT_TRUE(visible_pinned)
+      << "pinned panel survives apply — force-pinning is a deliberate "
+         "user/admin choice for cross-editor reachability";
 }
 
 TEST_F(LayoutManagerDockTreeTest, StartupReapplyIsIdempotent) {
