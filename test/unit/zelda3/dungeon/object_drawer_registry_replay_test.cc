@@ -657,7 +657,8 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_EQ(bg1.bitmap().data()[0], 42);
 }
 
-TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
+TEST(ObjectDrawerRegistryReplayTest,
+     SuperSquare4x4FloorUsesUsdasmRowMajorRows) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -666,8 +667,11 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
 
   ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
 
-  // Object 0xD9 maps to routine 58 (Draw4x4FloorIn4x4SuperSquare).
-  RoomObject obj(0x00D9, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
+  // Object 0xC8 maps to routine 58 (Draw4x4FloorIn4x4SuperSquare).
+  // USDASM RoomDraw_A_Many32x32Blocks writes RoomDrawObjectData offsets
+  // +0,+2,+4,+6 through row-0 tilemap pointers, then +8,+10,+12,+14
+  // through row-1 pointers; the second pass repeats those rows at y+2/y+3.
+  RoomObject obj(0x00C8, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
   for (int i = 0; i < 8; ++i) {
@@ -683,39 +687,24 @@ TEST(ObjectDrawerRegistryReplayTest, SuperSquare4x4FloorUsesColumnMajorTiles) {
   drawer.SetTraceCollector(&trace, /*trace_only=*/true);
 
   ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
-  ASSERT_EQ(trace.size(), 16u);
-
-  auto key = [](int x, int y) {
-    return (y << 8) | x;
-  };
-  std::unordered_map<int, uint16_t> by_pos;
-  by_pos.reserve(trace.size());
-
-  for (const auto& t : trace) {
-    by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
-  }
-  ASSERT_EQ(by_pos.size(), 16u);
-
-  // Tiles are column-major 4x2, and rows 2/3 repeat rows 0/1.
-  EXPECT_EQ(by_pos[key(10, 20)], 0);
-  EXPECT_EQ(by_pos[key(10, 21)], 1);
-  EXPECT_EQ(by_pos[key(10, 22)], 0);
-  EXPECT_EQ(by_pos[key(10, 23)], 1);
-
-  EXPECT_EQ(by_pos[key(11, 20)], 2);
-  EXPECT_EQ(by_pos[key(11, 21)], 3);
-  EXPECT_EQ(by_pos[key(11, 22)], 2);
-  EXPECT_EQ(by_pos[key(11, 23)], 3);
-
-  EXPECT_EQ(by_pos[key(12, 20)], 4);
-  EXPECT_EQ(by_pos[key(12, 21)], 5);
-  EXPECT_EQ(by_pos[key(12, 22)], 4);
-  EXPECT_EQ(by_pos[key(12, 23)], 5);
-
-  EXPECT_EQ(by_pos[key(13, 20)], 6);
-  EXPECT_EQ(by_pos[key(13, 21)], 7);
-  EXPECT_EQ(by_pos[key(13, 22)], 6);
-  EXPECT_EQ(by_pos[key(13, 23)], 7);
+  ExpectTraceMatchesSnapshot(trace, {
+                                        {10, 20, 0},
+                                        {11, 20, 1},
+                                        {12, 20, 2},
+                                        {13, 20, 3},
+                                        {10, 21, 4},
+                                        {11, 21, 5},
+                                        {12, 21, 6},
+                                        {13, 21, 7},
+                                        {10, 22, 0},
+                                        {11, 22, 1},
+                                        {12, 22, 2},
+                                        {13, 22, 3},
+                                        {10, 23, 4},
+                                        {11, 23, 5},
+                                        {12, 23, 6},
+                                        {13, 23, 7},
+                                    });
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
