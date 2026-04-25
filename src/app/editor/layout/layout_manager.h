@@ -295,8 +295,17 @@ class LayoutManager {
    * @brief Apply a DockTree to the given dockspace.
    *
    * Removes and rebuilds `dockspace_id` from scratch, walking the tree
-   * and calling `DockBuilder{SplitNode,DockWindow,Finish}`. Does not
-   * touch panel visibility state.
+   * and calling `DockBuilder{SplitNode,DockWindow,Finish}`.
+   *
+   * Side effects beyond DockBuilder, added in Phase 8 review (2026-04-24):
+   *   - Calls `WorkspaceWindowManager::OpenWindow(panel_id)` for every
+   *     panel referenced in the tree, so the user actually sees the
+   *     panels they docked rather than empty slots.
+   *   - Marks every `EditorType`'s layout as initialized so the lazy
+   *     `InitializeEditorLayout` path in EditorActivator doesn't blow
+   *     the custom layout away on the first panel-based editor
+   *     activation. The Layout Designer's apply is an explicit "this
+   *     is my workspace" — the per-editor preset must yield to it.
    *
    * Panels in the tree whose `panel_id` is not registered against the
    * bound WorkspaceWindowManager are skipped with a best-effort fallback
