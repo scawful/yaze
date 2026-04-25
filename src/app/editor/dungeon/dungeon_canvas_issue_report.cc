@@ -6,6 +6,7 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -184,7 +185,7 @@ std::string DungeonCanvasViewer::BuildRoomMetadataSummary(
                         entrance_blockset_text.c_str());
   }
 
-  return absl::StrFormat(
+  std::string summary = absl::StrFormat(
       "Room 0x%03X [%s] | B:%02X P:%02X->%02X L:%02X S:%02X | %s | Group:%s | "
       "Floor:%d Effect:%d Tag1:%d Tag2:%d\n%s\n%s",
       room_id, zelda3::GetRoomLabel(room_id).c_str(), room.blockset(),
@@ -193,6 +194,28 @@ std::string DungeonCanvasViewer::BuildRoomMetadataSummary(
       room.effect(), room.tag1(), room.tag2(),
       BuildReportSessionSummary(rom_, project_).c_str(),
       BuildEffectiveBlockListSummary(room).c_str());
+
+  // Connectivity diagnostics: enumerate doors/staircases/holewarp without
+  // reciprocity filtering so the report captures the room's actual link
+  // configuration. Staircase configuration issues (stale headers, missing
+  // destinations, extra placed objects beyond 4 slots) are listed
+  // separately so a reader can spot phantom or unreachable connections.
+  const auto link_diagnostics =
+      CollectDungeonConnectedRoomLinkDiagnostics(room_id, room, nullptr);
+  if (!link_diagnostics.links.empty() ||
+      !link_diagnostics.staircase_issues.empty()) {
+    summary += "\nConnectivity:";
+    for (const auto& link : link_diagnostics.links) {
+      summary += "\n  ";
+      summary += FormatDungeonConnectedLinkDescription(link);
+    }
+    for (const auto& issue : link_diagnostics.staircase_issues) {
+      summary += "\n  ";
+      summary += FormatDungeonStaircaseIssueDescription(issue);
+    }
+  }
+
+  return summary;
 }
 
 std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
