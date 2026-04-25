@@ -178,6 +178,33 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   EXPECT_EQ(info_waterfall48.tile_count, 9);
 }
 
+TEST_F(ObjectParserTest, TurtleRockPipesProvideTwentyFourTiles) {
+  // Routine-body proof (Waterfall47/48-tier under-fetch):
+  // - 0xFBA, 0xFBB -> kVerticalTurtleRockPipe (102):
+  //     special_routines.cc:430-437 stacks two 4x3 sections, reading
+  //     tiles[0..11] then tiles[12..23] -> 24 tiles.
+  // - 0xFBC, 0xFBD -> kHorizontalTurtleRockPipe (103):
+  //     special_routines.cc:439-441 calls DrawNx4(columns=6, start=0)
+  //     which reads a 6x4 column-major block -> 24 tiles.
+  // Before the GetSubtype3TileCount special case landed, the parser
+  // defaulted to 8 and TileAtWrapped substituted tiles[0..7] for
+  // indices 8..23, mis-tiling the pipe sections. Pin the count via
+  // both the ParseObject and GetObjectDrawInfo paths so neither
+  // surface can regress to the wrap-substitution failure mode.
+  for (int id : {0xFBA, 0xFBB, 0xFBC, 0xFBD}) {
+    SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex << id);
+
+    auto parsed = parser_->ParseObject(id);
+    ASSERT_TRUE(parsed.ok());
+    EXPECT_EQ(parsed.value().size(), 24u);
+    EXPECT_NE(parsed.value().size(), 8u);
+
+    auto info = parser_->GetObjectDrawInfo(id);
+    EXPECT_EQ(info.tile_count, 24);
+    EXPECT_NE(info.tile_count, 8);
+  }
+}
+
 TEST_F(ObjectParserTest, DrawInfoOrientationFollowsRoutineCategory) {
   auto horizontal = parser_->GetObjectDrawInfo(0x33);
   EXPECT_TRUE(horizontal.is_horizontal);
