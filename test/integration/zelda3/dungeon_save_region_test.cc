@@ -89,7 +89,17 @@ TEST_F(DungeonSaveRegionTest, SaveAllCollisionPreservesRegion) {
   EXPECT_THAT(data_after, ::testing::ContainerEq(data_before));
 }
 
-// --- Pits (count @ 0x394A6, pointer @ 0x394AB, data at pointer) ---
+// --- RoomsWithPitDamage (immediate @ 0x394A6, long operand @ 0x394AB, data at
+//     SnesToPc(operand)) ---
+//
+// `kPitCount` (legacy name) is the LDX.w immediate that bounds the
+// runtime CMP loop in `DetermineConsequencesOfFalling`
+// (bank_07.asm:4193). The loop starts with X = #$0070, compares
+// `RoomsWithPitDamage,X`, then `DEX : DEX : BPL` — so it checks
+// offsets 0x70, 0x6E, ..., 0x00 inclusive. That's
+// `(kPitCount / 2) + 1` entries — 57 in vanilla, NOT 56. The byte
+// length of the table is `kPitCount + 2` (max_offset + word size),
+// i.e., 114 bytes covering PC 0x0190C..0x0197D.
 
 TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
   const auto& data = rom_->vector();
@@ -98,8 +108,8 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
     GTEST_SKIP() << "ROM too small for pits region";
   }
 
-  int count_before = data[kPitCount];
-  int entries = count_before / 2;
+  int max_offset_before = data[kPitCount];
+  int data_len = max_offset_before + 2;  // covers offsets 0..max_offset
   std::vector<uint8_t> count_and_ptr_before(data.begin() + kPitCount,
                                             data.begin() + kPitCount + 1);
   count_and_ptr_before.insert(count_and_ptr_before.end(),
@@ -110,9 +120,8 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
                      (data[kPitPointer + 1] << 8) | data[kPitPointer];
   int pit_data_pc =
       static_cast<int>(SnesToPc(static_cast<uint32_t>(pit_ptr_snes)));
-  int data_len = entries * 2;
   std::vector<uint8_t> pit_data_before;
-  if (entries > 0 && pit_data_pc >= 0 &&
+  if (data_len > 0 && pit_data_pc >= 0 &&
       pit_data_pc + data_len <= static_cast<int>(data.size())) {
     pit_data_before.assign(data.begin() + pit_data_pc,
                            data.begin() + pit_data_pc + data_len);
@@ -122,7 +131,7 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
   ASSERT_TRUE(status.ok()) << status.message();
 
   const auto& after = rom_->vector();
-  EXPECT_EQ(after[kPitCount], count_before);
+  EXPECT_EQ(after[kPitCount], max_offset_before);
   EXPECT_EQ(after[kPitPointer], data[kPitPointer]);
   EXPECT_EQ(after[kPitPointer + 1], data[kPitPointer + 1]);
   EXPECT_EQ(after[kPitPointer + 2], data[kPitPointer + 2]);
@@ -137,15 +146,16 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
 
 // --- RoomsWithPitDamage table format pins (vanilla-ROM-dependent) ---
 //
-// The audit (zelda3-hacking-expert, 2026-04-25) found that the "pit
-// table" at `kPitCount` (0x394A6) / `kPitPointer` (0x394AB) is NOT a
-// pit-position list. It is the `RoomsWithPitDamage` set consumed by
+// The audit (zelda3-hacking-expert, 2026-04-25; reviewer follow-up
+// caught the off-by-one) found that the "pit table" at `kPitCount`
+// (0x394A6) / `kPitPointer` (0x394AB) is NOT a pit-position list. It
+// is the `RoomsWithPitDamage` set consumed by
 // `DetermineConsequencesOfFalling` at bank_07.asm:4193 — a membership
 // check that decides whether falling in a given room deals damage
 // (`UnderworldPitDoDamage`) versus transitioning Link to a different
-// floor via the per-room `pits_target_layer`. The table has 56 entries
-// in vanilla US v1.0, hardcoded since 1991, with NO editable surface
-// in yaze (no UI, no `Room::pit_does_damage_` field).
+// floor via the per-room `pits_target_layer`. The table has **57**
+// entries in vanilla US v1.0, hardcoded since 1991, with NO editable
+// surface in yaze (no UI, no `Room::pit_does_damage_` field).
 //
 // Critically, `kPitCount` and `kPitPointer` are not data fields. They
 // are immediate operands inside instructions:
@@ -155,6 +165,14 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
 //   PC 0x394AA = 0xDF  (CMP.l ,X opcode)
 //   PC 0x394AB..D     = 0x0C 0x99 0x00 (3-byte SNES long $00:990C)  ← kPitPointer
 //   SnesToPc($00990C) = 0x0190C  → `RoomsWithPitDamage` table base
+//
+// Off-by-one: the `#$0070` immediate is the **maximum X offset** the
+// runtime loop will test, NOT a byte count. The CMP loop runs:
+//   LDX.w #$0070 / CMP.l RoomsWithPitDamage,X / DEX / DEX / BPL
+// so X visits 0x70, 0x6E, ..., 0x00 inclusive. That's
+// `(kPitCount / 2) + 1` = 57 entries. Total table byte length is
+// `kPitCount + 2` = 114 bytes spanning PC 0x0190C..0x0197D. The final
+// entry at offset 0x70 (PC 0x0197C) is `0x0123`.
 //
 // Because there is no editable surface, `SaveAllPits` is intentionally
 // region-preservation forever — there's nothing to encode. These tests
@@ -167,21 +185,25 @@ namespace {
 
 // Vanilla US v1.0 RoomsWithPitDamage table — extracted directly from
 // `roms/alttp_vanilla.sfc` at PC 0x0190C (SnesToPc($00:990C)).
-// Authoring order, NOT sorted. The sequence is locked in for vanilla;
-// hacks that grow or reorder the table must deliberately update this
-// literal alongside the ROM edit. (The audit's transcription from
-// bank_00.asm:4234-4290 had typos beyond the first 6 entries, so this
-// literal is sourced from the actual ROM bytes via the dump in the
-// test commit message.)
-constexpr std::array<uint16_t, 56> kVanillaRoomsWithPitDamage = {
-    0x0072, 0x0082, 0x0040, 0x00C0, 0x0112, 0x0056, 0x0057, 0x0058,
-    0x0067, 0x0068, 0x0049, 0x0098, 0x00D1, 0x00C3, 0x00A3, 0x00A2,
-    0x0092, 0x00A0, 0x004E, 0x007F, 0x00AF, 0x00F0, 0x00F1, 0x00E6,
-    0x00E7, 0x00C6, 0x00C7, 0x00D6, 0x00B4, 0x00B5, 0x00C5, 0x0024,
-    0x00D5, 0x00C9, 0x002A, 0x001A, 0x004B, 0x00BC, 0x0044, 0x00FB,
-    0x007B, 0x007C, 0x008B, 0x008D, 0x009B, 0x009C, 0x009D, 0x00A5,
-    0x0095, 0x001C, 0x005C, 0x007D, 0x004C, 0x0096, 0x0120, 0x003C,
+// Authoring order, NOT sorted. 57 entries (offsets 0x00..0x70 inclusive).
+// The sequence is locked in for vanilla; hacks that grow or reorder
+// the table must deliberately update this literal alongside the ROM
+// edit.
+constexpr std::array<uint16_t, 57> kVanillaRoomsWithPitDamage = {
+    0x0072, 0x0082, 0x0040, 0x00C0, 0x0112, 0x0056, 0x0057, 0x0058, 0x0067,
+    0x0068, 0x0049, 0x0098, 0x00D1, 0x00C3, 0x00A3, 0x00A2, 0x0092, 0x00A0,
+    0x004E, 0x007F, 0x00AF, 0x00F0, 0x00F1, 0x00E6, 0x00E7, 0x00C6, 0x00C7,
+    0x00D6, 0x00B4, 0x00B5, 0x00C5, 0x0024, 0x00D5, 0x00C9, 0x002A, 0x001A,
+    0x004B, 0x00BC, 0x0044, 0x00FB, 0x007B, 0x007C, 0x008B, 0x008D, 0x009B,
+    0x009C, 0x009D, 0x00A5, 0x0095, 0x001C, 0x005C, 0x007D, 0x004C, 0x0096,
+    0x0120, 0x003C, 0x0123,
 };
+
+// Number of entries consumed by the runtime CMP loop, derived from
+// the LDX immediate: max_offset / 2 + 1.
+inline int PitTableEntryCount(uint8_t count_byte) {
+  return static_cast<int>(count_byte) / 2 + 1;
+}
 
 }  // namespace
 
@@ -192,7 +214,8 @@ TEST_F(DungeonSaveRegionTest, RoomsWithPitDamageVanillaShape) {
   }
   // LDX.w + immediate.
   EXPECT_EQ(data[kPitCount - 1], 0xA2) << "Expected LDX.w opcode at PC 0x394A5";
-  EXPECT_EQ(data[kPitCount], 0x70) << "Expected #$0070 low byte = 56*2";
+  EXPECT_EQ(data[kPitCount], 0x70)
+      << "Expected #$0070 low byte (max X offset = 56*2; entry count = 57)";
   EXPECT_EQ(data[kPitCount + 1], 0x00) << "Expected #$0070 high byte";
   // CMP.l ,X + 3-byte operand.
   EXPECT_EQ(data[kPitPointer - 1], 0xDF)
@@ -213,7 +236,7 @@ TEST_F(DungeonSaveRegionTest, RoomsWithPitDamageEntriesAreValidRoomIds) {
   const int snes = (data[kPitPointer + 2] << 16) |
                    (data[kPitPointer + 1] << 8) | data[kPitPointer];
   const int pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(snes)));
-  const int entry_count = data[kPitCount] / 2;
+  const int entry_count = PitTableEntryCount(data[kPitCount]);
   ASSERT_GE(static_cast<int>(data.size()), pc + entry_count * 2);
 
   for (int i = 0; i < entry_count; ++i) {
@@ -240,7 +263,7 @@ TEST_F(DungeonSaveRegionTest, RoomsWithPitDamageHasNoDuplicates) {
   const int snes = (data[kPitPointer + 2] << 16) |
                    (data[kPitPointer + 1] << 8) | data[kPitPointer];
   const int pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(snes)));
-  const int entry_count = data[kPitCount] / 2;
+  const int entry_count = PitTableEntryCount(data[kPitCount]);
   ASSERT_GE(static_cast<int>(data.size()), pc + entry_count * 2);
 
   std::set<uint16_t> seen;
@@ -252,22 +275,22 @@ TEST_F(DungeonSaveRegionTest, RoomsWithPitDamageHasNoDuplicates) {
         << room_id << ") duplicates an earlier entry.";
   }
   EXPECT_EQ(static_cast<int>(seen.size()), entry_count)
-      << "Total distinct entries should equal the count byte / 2.";
+      << "Total distinct entries should equal max_offset / 2 + 1.";
 }
 
 TEST_F(DungeonSaveRegionTest, RoomsWithPitDamageMatchesUsdasm) {
-  // Locks the exact 56-entry sequence against a transcription from
-  // bank_00.asm. If a hack grows this table (e.g., adds bottomless
-  // rooms in expansion content), this test must be deliberately
-  // updated alongside the table edit. Until then, the sequence is
-  // immutable.
+  // Locks the exact 57-entry sequence against the bytes at PC 0x0190C.
+  // If a hack grows this table (e.g., adds bottomless rooms in
+  // expansion content), this test must be deliberately updated
+  // alongside the table edit. Until then, the sequence is immutable.
   const auto& data = rom_->vector();
   if (kPitPointer + 2 >= static_cast<int>(data.size())) {
     GTEST_SKIP() << "ROM too small for pit table";
   }
-  ASSERT_EQ(data[kPitCount],
-            static_cast<uint8_t>(kVanillaRoomsWithPitDamage.size() * 2))
-      << "Vanilla pit count must be 56*2 = 0x70";
+  const int expected_max_offset =
+      (static_cast<int>(kVanillaRoomsWithPitDamage.size()) - 1) * 2;
+  ASSERT_EQ(data[kPitCount], static_cast<uint8_t>(expected_max_offset))
+      << "Vanilla LDX.w immediate must equal (entries - 1) * 2 = 0x70";
   const int snes = (data[kPitPointer + 2] << 16) |
                    (data[kPitPointer + 1] << 8) | data[kPitPointer];
   const int pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(snes)));
@@ -278,9 +301,8 @@ TEST_F(DungeonSaveRegionTest, RoomsWithPitDamageMatchesUsdasm) {
     const uint16_t room_id =
         static_cast<uint16_t>(data[pc + i * 2] | (data[pc + i * 2 + 1] << 8));
     EXPECT_EQ(room_id, kVanillaRoomsWithPitDamage[i])
-        << "RoomsWithPitDamage entry " << i
-        << " diverges from the "
-           "transcription in bank_00.asm:4234-4290.";
+        << "RoomsWithPitDamage entry " << i << " (offset 0x" << std::hex
+        << (i * 2) << ") diverges from the dump at PC 0x0190C.";
   }
 }
 

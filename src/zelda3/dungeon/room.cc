@@ -2433,6 +2433,15 @@ absl::Status SaveAllTorches(
   return SaveAllTorchesImpl(rom, room_count, room_lookup);
 }
 
+// Region preservation for `RoomsWithPitDamage` (the table consumed by
+// `DetermineConsequencesOfFalling` at bank_07.asm:4193). The legacy
+// symbol names `kPitCount` and `kPitPointer` are misnomers — see the
+// audit at `memory/project_dungeon_pit_audit.md`. The byte at
+// `kPitCount` is the LDX.w immediate (the **maximum X offset**, NOT a
+// byte count); the runtime CMP loop walks X from that offset down to
+// 0 in steps of 2, so the table holds `(kPitCount / 2) + 1` entries
+// occupying `kPitCount + 2` bytes. There is no editable yaze surface
+// for this table, so the encoder remains pure region preservation.
 absl::Status SaveAllPits(Rom* rom) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
@@ -2442,22 +2451,21 @@ absl::Status SaveAllPits(Rom* rom) {
       kPitPointer + 2 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Pit count/pointer out of range");
   }
-  int pit_count_byte = rom_data[kPitCount];
-  int pit_entries = pit_count_byte / 2;
-  if (pit_entries <= 0) {
-    return absl::OkStatus();
-  }
+  int max_offset = rom_data[kPitCount];
+  // Total bytes = max_offset + 2 (covers offsets 0..max_offset
+  // inclusive, with each entry being a 2-byte word). When max_offset
+  // is 0, there's still 1 word to preserve (the entry at offset 0).
+  int data_len = max_offset + 2;
   int pit_ptr_snes = (rom_data[kPitPointer + 2] << 16) |
                      (rom_data[kPitPointer + 1] << 8) | rom_data[kPitPointer];
   int pit_data_pc = SnesToPc(pit_ptr_snes);
-  int data_len = pit_entries * 2;
   if (pit_data_pc < 0 ||
       pit_data_pc + data_len > static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Pit data region out of range");
   }
   std::vector<uint8_t> data(rom_data.begin() + pit_data_pc,
                             rom_data.begin() + pit_data_pc + data_len);
-  RETURN_IF_ERROR(rom->WriteByte(kPitCount, pit_count_byte));
+  RETURN_IF_ERROR(rom->WriteByte(kPitCount, max_offset));
   RETURN_IF_ERROR(rom->WriteByte(kPitPointer, pit_ptr_snes & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(kPitPointer + 1, (pit_ptr_snes >> 8) & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(kPitPointer + 2, (pit_ptr_snes >> 16) & 0xFF));
@@ -3129,25 +3137,33 @@ void Room::LoadPotItems() {
 void Room::LoadPits() {
   auto rom_data = rom()->vector();
 
-  // Read pit count
-  int pit_entries = rom_data[kPitCount] / 2;
+  // The legacy symbol `kPitCount` is the LDX.w immediate at PC 0x394A6
+  // — the **maximum X offset** in the runtime CMP loop, not an entry
+  // count. Total entries = `(max_offset / 2) + 1`. This function does
+  // not actually consume the table contents (yaze has no editable
+  // surface for pit-damage gating); it just resolves the dereferenced
+  // address for diagnostic logging. See
+  // `test/integration/zelda3/dungeon_save_region_test.cc` for the
+  // format-pinning tests and `memory/project_dungeon_pit_audit.md`
+  // for the audit conclusion.
+  const int max_offset = rom_data[kPitCount];
+  const int pit_entries = max_offset / 2 + 1;
 
-  // Read pit pointer (long pointer)
-  int pit_ptr = (rom_data[kPitPointer + 2] << 16) |
-                (rom_data[kPitPointer + 1] << 8) | rom_data[kPitPointer];
-  int pit_data_addr = SnesToPc(pit_ptr);
+  const int pit_ptr = (rom_data[kPitPointer + 2] << 16) |
+                      (rom_data[kPitPointer + 1] << 8) | rom_data[kPitPointer];
 
-  LOG_DEBUG("Room", "LoadPits: room_id=%d, pit_entries=%d, pit_ptr=0x%06X",
+  LOG_DEBUG("Room",
+            "LoadPits: room_id=%d, RoomsWithPitDamage entries=%d, "
+            "table_snes=0x%06X",
             room_id_, pit_entries, pit_ptr);
 
-  // Pit data is stored as: room_id (2 bytes), target info (2 bytes)
-  // This data is already loaded in LoadRoomFromRom() into pits_ destination
-  // struct The pit destination (where you go when you fall) is set via
-  // SetPitsTarget()
-
-  // Pits are typically represented in the layout/collision data, not as objects
-  // The pits_ member already contains the target room and layer
-  LOG_DEBUG("Room", "Pit destination - target=%d, target_layer=%d",
+  // The per-room pit DESTINATION (where Link goes when falling through
+  // a non-damaging pit) is unrelated to the global RoomsWithPitDamage
+  // table read above. It lives in the room header and was loaded into
+  // `pits_` (target room + target_layer) by `LoadRoomFromRom`. The
+  // round-trip for that state goes through the room header save path,
+  // not `SaveAllPits`.
+  LOG_DEBUG("Room", "Per-room pit destination: target=%d, target_layer=%d",
             pits_.target, pits_.target_layer);
 }
 
