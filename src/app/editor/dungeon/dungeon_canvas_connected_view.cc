@@ -1,15 +1,20 @@
 #include "dungeon_canvas_viewer.h"
 
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <cstdio>
 #include <functional>
 #include <limits>
 #include <map>
 #include <queue>
 #include <set>
+#include <string>
 #include <tuple>
 #include <utility>
 
+#include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze::editor {
@@ -162,13 +167,15 @@ std::tuple<int, int, DungeonConnectedLinkType> MakeConnectedLinkKey(
 
 }  // namespace
 
-std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
+DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
     int room_id, const zelda3::Room& room,
     const std::function<bool(int, zelda3::DoorDirection)>&
         has_reciprocal_door) {
-  std::vector<DungeonConnectedRoomLink> links;
+  DungeonConnectedRoomLinkDiagnostics result;
 
-  for (const auto& door : room.GetDoors()) {
+  const auto& doors = room.GetDoors();
+  for (size_t door_index = 0; door_index < doors.size(); ++door_index) {
+    const auto& door = doors[door_index];
     if (IsExitDoorType(door.type)) {
       continue;
     }
@@ -182,39 +189,187 @@ std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
       continue;
     }
 
-    links.push_back(DungeonConnectedRoomLink{
-        room_id, neighbor, DungeonConnectedLinkType::Door, door.direction});
+    DungeonConnectedRoomLink link;
+    link.from_room_id = room_id;
+    link.to_room_id = neighbor;
+    link.type = DungeonConnectedLinkType::Door;
+    link.direction = door.direction;
+    link.door_index = static_cast<int>(door_index);
+    link.door_type = door.type;
+    result.links.push_back(link);
   }
 
-  int staircase_slot = 0;
+  // Walk placed header-backed staircase objects in placement order. The Nth
+  // such object consumes header slot N (room.staircase_room(N)). Mismatches
+  // are surfaced as diagnostic entries instead of being silently skipped:
+  //
+  //   - Slot consumed + valid header  → real Staircase link.
+  //   - Slot consumed + zero/invalid header → MissingDestination diagnostic
+  //     (placed object would be a dead-end stair at runtime).
+  //   - >4 placed objects → ExtraPlacedObject diagnostic per surplus object.
+  //   - Header non-zero but no consuming object → UnusedHeader diagnostic.
+  std::array<bool, 4> slot_consumed{false, false, false, false};
+  std::array<int16_t, 4> slot_object_id{
+      static_cast<int16_t>(-1), static_cast<int16_t>(-1),
+      static_cast<int16_t>(-1), static_cast<int16_t>(-1)};
+  int next_slot = 0;
   for (const auto& object : room.GetTileObjects()) {
     if (!IsHeaderBackedInterroomStaircaseObject(object.id_)) {
       continue;
     }
-
-    if (staircase_slot >= 4) {
-      break;
-    }
-
-    const int stair_room =
-        static_cast<int>(room.staircase_room(staircase_slot));
-    ++staircase_slot;
-    if (stair_room <= 0 || stair_room >= zelda3::kNumberOfRooms) {
+    if (next_slot >= 4) {
+      DungeonStaircaseIssue extra;
+      extra.from_room_id = room_id;
+      extra.kind = DungeonStaircaseIssueKind::ExtraPlacedObject;
+      extra.object_id = object.id_;
+      result.staircase_issues.push_back(extra);
       continue;
     }
-    links.push_back(DungeonConnectedRoomLink{
-        room_id, stair_room, DungeonConnectedLinkType::Staircase,
-        zelda3::DoorDirection::North});
+    slot_consumed[next_slot] = true;
+    slot_object_id[next_slot] = object.id_;
+    ++next_slot;
+  }
+
+  for (int slot = 0; slot < 4; ++slot) {
+    const int stair_room = static_cast<int>(room.staircase_room(slot));
+    const bool header_valid =
+        stair_room > 0 && stair_room < zelda3::kNumberOfRooms;
+    if (slot_consumed[slot]) {
+      if (header_valid) {
+        DungeonConnectedRoomLink link;
+        link.from_room_id = room_id;
+        link.to_room_id = stair_room;
+        link.type = DungeonConnectedLinkType::Staircase;
+        link.direction = zelda3::DoorDirection::North;
+        link.slot_index = slot;
+        link.object_id = slot_object_id[slot];
+        result.links.push_back(link);
+      } else {
+        DungeonStaircaseIssue issue;
+        issue.from_room_id = room_id;
+        issue.kind = DungeonStaircaseIssueKind::MissingDestination;
+        issue.slot_index = slot;
+        issue.header_room_id = stair_room;
+        issue.object_id = slot_object_id[slot];
+        result.staircase_issues.push_back(issue);
+      }
+    } else if (header_valid) {
+      DungeonStaircaseIssue issue;
+      issue.from_room_id = room_id;
+      issue.kind = DungeonStaircaseIssueKind::UnusedHeader;
+      issue.slot_index = slot;
+      issue.header_room_id = stair_room;
+      result.staircase_issues.push_back(issue);
+    }
   }
 
   const int holewarp_room = static_cast<int>(room.holewarp());
   if (holewarp_room > 0 && holewarp_room < zelda3::kNumberOfRooms) {
-    links.push_back(DungeonConnectedRoomLink{room_id, holewarp_room,
-                                             DungeonConnectedLinkType::Holewarp,
-                                             zelda3::DoorDirection::North});
+    DungeonConnectedRoomLink link;
+    link.from_room_id = room_id;
+    link.to_room_id = holewarp_room;
+    link.type = DungeonConnectedLinkType::Holewarp;
+    link.direction = zelda3::DoorDirection::North;
+    result.links.push_back(link);
   }
 
-  return links;
+  return result;
+}
+
+std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
+    int room_id, const zelda3::Room& room,
+    const std::function<bool(int, zelda3::DoorDirection)>&
+        has_reciprocal_door) {
+  return CollectDungeonConnectedRoomLinkDiagnostics(room_id, room,
+                                                    has_reciprocal_door)
+      .links;
+}
+
+namespace {
+
+const char* DoorDirectionLabel(zelda3::DoorDirection dir) {
+  switch (dir) {
+    case zelda3::DoorDirection::North:
+      return "North";
+    case zelda3::DoorDirection::South:
+      return "South";
+    case zelda3::DoorDirection::West:
+      return "West";
+    case zelda3::DoorDirection::East:
+      return "East";
+  }
+  return "?";
+}
+
+}  // namespace
+
+std::string FormatDungeonConnectedLinkDescription(
+    const DungeonConnectedRoomLink& link) {
+  switch (link.type) {
+    case DungeonConnectedLinkType::Door:
+      return absl::StrFormat("Door (%s, type 0x%02X) -> [%03X]",
+                             DoorDirectionLabel(link.direction),
+                             static_cast<unsigned>(link.door_type),
+                             static_cast<unsigned>(link.to_room_id));
+    case DungeonConnectedLinkType::Staircase: {
+      std::string object_str =
+          (link.object_id >= 0)
+              ? absl::StrFormat("0x%03X", static_cast<unsigned>(link.object_id))
+              : std::string("(unknown)");
+      const int slot_index = link.slot_index >= 0 ? link.slot_index : -1;
+      if (slot_index < 0) {
+        return absl::StrFormat("Staircase obj %s -> [%03X]", object_str,
+                               static_cast<unsigned>(link.to_room_id));
+      }
+      return absl::StrFormat("Staircase slot %d obj %s -> [%03X]", slot_index,
+                             object_str,
+                             static_cast<unsigned>(link.to_room_id));
+    }
+    case DungeonConnectedLinkType::Holewarp:
+      return absl::StrFormat("Holewarp -> [%03X]",
+                             static_cast<unsigned>(link.to_room_id));
+  }
+  return absl::StrFormat("Link -> [%03X]",
+                         static_cast<unsigned>(link.to_room_id));
+}
+
+std::string FormatDungeonStaircaseIssueDescription(
+    const DungeonStaircaseIssue& issue) {
+  switch (issue.kind) {
+    case DungeonStaircaseIssueKind::UnusedHeader:
+      return absl::StrFormat(
+          "Stale staircase slot %d -> [%03X] (no placed interroom-stair "
+          "object consumes this slot)",
+          issue.slot_index, static_cast<unsigned>(issue.header_room_id));
+    case DungeonStaircaseIssueKind::MissingDestination: {
+      const std::string object_str =
+          (issue.object_id >= 0)
+              ? absl::StrFormat("0x%03X",
+                                static_cast<unsigned>(issue.object_id))
+              : std::string("(unknown)");
+      const std::string header_str =
+          (issue.header_room_id == 0)
+              ? std::string("0 (unset)")
+              : absl::StrFormat("0x%03X (out of range)",
+                                static_cast<unsigned>(issue.header_room_id));
+      return absl::StrFormat(
+          "Missing staircase destination at slot %d (placed object %s, "
+          "header value %s)",
+          issue.slot_index, object_str, header_str);
+    }
+    case DungeonStaircaseIssueKind::ExtraPlacedObject: {
+      const std::string object_str =
+          (issue.object_id >= 0)
+              ? absl::StrFormat("0x%03X",
+                                static_cast<unsigned>(issue.object_id))
+              : std::string("(unknown)");
+      return absl::StrFormat(
+          "Extra staircase object %s beyond the 4 header slots (runtime "
+          "cannot reach this stair)",
+          object_str);
+    }
+  }
+  return std::string("Unknown staircase issue");
 }
 
 zelda3::Room* DungeonCanvasViewer::EnsureRoomLoadedForConnectedView(
@@ -267,6 +422,20 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
   graph.min_col = graph.max_col = 0;
   graph.min_row = graph.max_row = 0;
 
+  // Project-aware scoping: when the project registry maps the start room to
+  // a dungeon entry, restrict BFS to that dungeon's rooms by default.
+  // Cross-blockset / cross-dungeon resolved links are still surfaced via
+  // out_of_scope_links so the diagnostic remains visible without polluting
+  // the visual matrix with rooms from other dungeons.
+  std::set<int> scoped_room_ids;
+  if (const auto* dungeon =
+          dungeon_project_labels::FindDungeonForRoom(project_, start_room_id)) {
+    graph.dungeon_scope_active = true;
+    for (const auto& dungeon_room : dungeon->rooms) {
+      scoped_room_ids.insert(dungeon_room.id);
+    }
+  }
+
   std::map<std::pair<int, int>, int> occupied_slots;
   occupied_slots[{0, 0}] = start_room_id;
   std::queue<int> to_visit;
@@ -281,6 +450,13 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
     graph.max_row = std::max(graph.max_row, placement.row);
   };
 
+  auto in_dungeon_scope = [&](int candidate_room_id) {
+    if (!graph.dungeon_scope_active) {
+      return true;
+    }
+    return scoped_room_ids.find(candidate_room_id) != scoped_room_ids.end();
+  };
+
   while (!to_visit.empty()) {
     const int room_id = to_visit.front();
     to_visit.pop();
@@ -290,16 +466,33 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
       continue;
     }
 
-    const auto outgoing_links = CollectDungeonConnectedRoomLinks(
-        room_id, *room,
-        [this](int neighbor_room_id, zelda3::DoorDirection dir) {
-          return RoomHasNonExitDoorInDirection(neighbor_room_id, dir);
-        });
+    const auto outgoing_diagnostics =
+        CollectDungeonConnectedRoomLinkDiagnostics(
+            room_id, *room,
+            [this](int neighbor_room_id, zelda3::DoorDirection dir) {
+              return RoomHasNonExitDoorInDirection(neighbor_room_id, dir);
+            });
+    for (const auto& issue : outgoing_diagnostics.staircase_issues) {
+      graph.staircase_issues.push_back(issue);
+    }
+    const auto& outgoing_links = outgoing_diagnostics.links;
 
     for (const auto& link : outgoing_links) {
       if (link.to_room_id < 0 || link.to_room_id >= zelda3::kNumberOfRooms) {
         continue;
       }
+
+      // Out-of-scope link (target room is not in the current dungeon group):
+      // record as a diagnostic, do not recurse, do not add the target to the
+      // visual graph. We still de-dup against `seen_links` so a reciprocal
+      // edge from the other side won't double-list it later.
+      if (!in_dungeon_scope(link.to_room_id)) {
+        if (seen_links.insert(MakeConnectedLinkKey(link)).second) {
+          graph.out_of_scope_links.push_back(link);
+        }
+        continue;
+      }
+
       if (!EnsureRoomLoadedForConnectedView(link.to_room_id)) {
         continue;
       }

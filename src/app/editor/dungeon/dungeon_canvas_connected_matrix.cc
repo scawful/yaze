@@ -6,8 +6,11 @@
 #include <limits>
 #include <map>
 #include <optional>
+#include <string>
 #include <utility>
 
+#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/resource/arena.h"
@@ -615,6 +618,53 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
           : 0;
   ImGui::TextDisabled("%d room%s", connected_room_count,
                       connected_room_count == 1 ? "" : "s");
+  const size_t issue_count =
+      connected_graph_cache_start_room_id_ == center_room_id
+          ? connected_graph_cache_.staircase_issues.size()
+          : 0;
+  if (issue_count > 0) {
+    ImGui::SameLine(0.0f, 6.0f);
+    ImGui::TextColored(gui::ConvertColorToImVec4(
+                           gui::ThemeManager::Get().GetCurrentTheme().warning),
+                       "%zu issue%s", issue_count, issue_count == 1 ? "" : "s");
+    if (ImGui::IsItemHovered()) {
+      std::string tooltip(
+          "Staircase configuration anomalies in this connected component:\n"
+          "  Stale headers (no consuming object), missing destinations\n"
+          "  (placed object but header is 0/invalid), and extras (objects\n"
+          "  beyond the 4 header slots). Hover a room to localise.");
+      for (const auto& issue : connected_graph_cache_.staircase_issues) {
+        absl::StrAppend(
+            &tooltip,
+            absl::StrFormat("\n[%03X] %s", issue.from_room_id,
+                            FormatDungeonStaircaseIssueDescription(issue)));
+      }
+      ImGui::SetTooltip("%s", tooltip.c_str());
+    }
+  }
+  const size_t out_of_scope_count =
+      connected_graph_cache_start_room_id_ == center_room_id
+          ? connected_graph_cache_.out_of_scope_links.size()
+          : 0;
+  if (connected_graph_cache_.dungeon_scope_active && out_of_scope_count > 0) {
+    ImGui::SameLine(0.0f, 6.0f);
+    ImGui::TextColored(gui::ConvertColorToImVec4(
+                           gui::ThemeManager::Get().GetCurrentTheme().info),
+                       "%zu out-of-scope", out_of_scope_count);
+    if (ImGui::IsItemHovered()) {
+      std::string tooltip(
+          "Resolved links that leave the current dungeon group. Hidden from\n"
+          "the visual matrix to keep the view scoped to one dungeon, but\n"
+          "still surfaced here so you can see cross-dungeon connections.");
+      for (const auto& link : connected_graph_cache_.out_of_scope_links) {
+        absl::StrAppend(
+            &tooltip,
+            absl::StrFormat("\n[%03X] %s", link.from_room_id,
+                            FormatDungeonConnectedLinkDescription(link)));
+      }
+      ImGui::SetTooltip("%s", tooltip.c_str());
+    }
+  }
   ImGui::SameLine(0.0f, 8.0f);
   ImGui::TextDisabled("%.0f%%", ConnectedCanvasScale() * 100.0f);
   if (ImGui::IsItemHovered()) {
@@ -1134,10 +1184,34 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
   if (!control_actions.hovered && !overview_actions.hovered &&
       hovered_room_id >= 0) {
     if (rooms_ && hovered_room_id < static_cast<int>(rooms_->size())) {
-      ImGui::SetTooltip(
-          "[%03X] %s\nClick to open room view", hovered_room_id,
+      std::string tooltip = absl::StrFormat(
+          "[%03X] %s", hovered_room_id,
           dungeon_project_labels::GetRoomLabel(project_, hovered_room_id)
               .c_str());
+      if (zelda3::Room* hovered_room =
+              EnsureRoomLoadedForConnectedView(hovered_room_id)) {
+        const auto diagnostics = CollectDungeonConnectedRoomLinkDiagnostics(
+            hovered_room_id, *hovered_room,
+            [this](int neighbor_room_id, zelda3::DoorDirection dir) {
+              return RoomHasNonExitDoorInDirection(neighbor_room_id, dir);
+            });
+        if (!diagnostics.links.empty()) {
+          absl::StrAppend(&tooltip, "\nConnections:");
+          for (const auto& link : diagnostics.links) {
+            absl::StrAppend(&tooltip, "\n  ",
+                            FormatDungeonConnectedLinkDescription(link));
+          }
+        }
+        if (!diagnostics.staircase_issues.empty()) {
+          absl::StrAppend(&tooltip, "\nStaircase issues:");
+          for (const auto& issue : diagnostics.staircase_issues) {
+            absl::StrAppend(&tooltip, "\n  ",
+                            FormatDungeonStaircaseIssueDescription(issue));
+          }
+        }
+      }
+      absl::StrAppend(&tooltip, "\nClick to open room view");
+      ImGui::SetTooltip("%s", tooltip.c_str());
     }
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
       if (hovered_room_id != center_room_id) {

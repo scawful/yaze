@@ -43,6 +43,42 @@ struct DungeonConnectedRoomLink {
   int to_room_id = -1;
   DungeonConnectedLinkType type = DungeonConnectedLinkType::Door;
   zelda3::DoorDirection direction = zelda3::DoorDirection::North;
+  // Provenance fields populated by CollectDungeonConnectedRoomLinkDiagnostics
+  // for hover tooltips and issue reports. Defaults represent "not applicable".
+  int slot_index = -1;     // Staircase slot 0..3, -1 otherwise.
+  int16_t object_id = -1;  // Placed staircase tile-object id, -1 otherwise.
+  int door_index = -1;     // Index in room.GetDoors() for Door links.
+  zelda3::DoorType door_type = zelda3::DoorType::NormalDoor;
+};
+
+// Discriminator for staircase configuration anomalies surfaced through
+// CollectDungeonConnectedRoomLinkDiagnostics. Each kind explains a different
+// failure mode the runtime silently ignores.
+enum class DungeonStaircaseIssueKind : uint8_t {
+  // Header destination is non-zero but no placed interroom-stair object
+  // consumes that slot. Runtime never traverses the link.
+  UnusedHeader,
+  // Placed interroom-stair object exists but the matched header slot is 0
+  // (unset) or out of range — the runtime would jump to an invalid room.
+  MissingDestination,
+  // Placed interroom-stair object beyond the 4 header slots. The runtime
+  // can only consume four; extras can never be reached.
+  ExtraPlacedObject,
+};
+
+// Captures one anomaly found while resolving a room's staircase connectivity.
+// Field meaning depends on `kind`; defaults represent "not applicable".
+struct DungeonStaircaseIssue {
+  int from_room_id = -1;
+  DungeonStaircaseIssueKind kind = DungeonStaircaseIssueKind::UnusedHeader;
+  int slot_index = -1;      // 0..3 for UnusedHeader/MissingDestination.
+  int header_room_id = -1;  // Header destination value (raw, may be invalid).
+  int16_t object_id = -1;   // Placed object id (MissingDestination/Extra).
+};
+
+struct DungeonConnectedRoomLinkDiagnostics {
+  std::vector<DungeonConnectedRoomLink> links;
+  std::vector<DungeonStaircaseIssue> staircase_issues;
 };
 
 enum class DungeonIssueCategory : int {
@@ -97,6 +133,24 @@ inline DungeonIssueCategory GetDefaultSelectionIssueCategory(
 std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
     int room_id, const zelda3::Room& room,
     const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door);
+
+// Returns the same set of links as CollectDungeonConnectedRoomLinks plus any
+// stale staircase header slots — i.e. header destinations with no placed
+// interroom-stair object consuming them. Provenance fields on each returned
+// link are populated for tooltip/issue-report surfacing.
+DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
+    int room_id, const zelda3::Room& room,
+    const std::function<bool(int, zelda3::DoorDirection)>& has_reciprocal_door);
+
+// Renders a single connectivity link as a one-line human-readable description
+// for tooltips and issue reports. Caller decides separator/heading.
+std::string FormatDungeonConnectedLinkDescription(
+    const DungeonConnectedRoomLink& link);
+
+// Renders a staircase issue entry as a one-line warning for tooltips and
+// issue reports.
+std::string FormatDungeonStaircaseIssueDescription(
+    const DungeonStaircaseIssue& issue);
 
 // Returns the room id adjacent to `room_id` in the given direction, or -1 if
 // no such neighbor exists (out of the 16x16 room matrix).
@@ -602,6 +656,17 @@ class DungeonCanvasViewer {
     std::array<bool, zelda3::kNumberOfRooms> room_mask{};
     std::array<RoomPlacement, zelda3::kNumberOfRooms> room_positions{};
     std::vector<DungeonConnectedRoomLink> links;
+    // Staircase configuration anomalies aggregated across the whole
+    // connected component. Order is "first-encountered during BFS".
+    std::vector<DungeonStaircaseIssue> staircase_issues;
+    // Resolved links whose destination room falls outside the project's
+    // current dungeon registry scope (only populated when scoping is active).
+    // The runtime would still traverse these; the matrix omits the target
+    // rooms by default but surfaces the link as a diagnostic so the user can
+    // see "current dungeon connects out to room X via staircase".
+    std::vector<DungeonConnectedRoomLink> out_of_scope_links;
+    // True when BFS is restricted to a project-registry dungeon group.
+    bool dungeon_scope_active = false;
     int room_count = 0;
     int min_col = 0;
     int max_col = 0;
