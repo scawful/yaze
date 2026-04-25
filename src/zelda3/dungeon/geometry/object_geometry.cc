@@ -169,6 +169,22 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByRoutineId(
   return ApplySelectionBounds(*bounds, routine_id);
 }
 
+std::pair<int, int> ObjectGeometry::ResolveAnchor(int16_t object_id,
+                                                  uint8_t size_byte) const {
+  const int routine_id =
+      DrawRoutineRegistry::Get().GetRoutineIdForObject(object_id);
+  if (routine_id < 0) {
+    return {0, 0};
+  }
+  const DrawRoutineInfo* info = LookupRoutine(routine_id);
+  if (info == nullptr) {
+    return {0, 0};
+  }
+  RoomObject probe(object_id, 0, 0, size_byte, 0);
+  AnchorPos anchor = ChooseAnchor(*info, probe);
+  return {anchor.x, anchor.y};
+}
+
 absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
     const DrawRoutineInfo& routine, const RoomObject& object) const {
   // Anchor object so routines that move upward or leftward stay within bounds.
