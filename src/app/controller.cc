@@ -233,6 +233,14 @@ absl::Status Controller::OnLoad() {
   ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
   if (auto* mgr = editor::ContentRegistry::Context::layout_manager()) {
     mgr->SetMainDockspaceId(dockspace_id);
+    // Phase 8.2: one-shot startup reapply of the user's last applied
+    // named layout. Idempotent — fires once per session on the first
+    // frame the dockspace is bound and `last_applied_layout_name` is
+    // set. Errors are logged inside the manager; we deliberately ignore
+    // the return so a stale or removed layout doesn't block the editor
+    // from coming up.
+    (void)mgr->MaybeReapplyStartupLayout(
+        editor::ContentRegistry::Context::user_settings());
   }
   gui::DockSpaceRenderer::BeginEnhancedDockSpace(
       dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
