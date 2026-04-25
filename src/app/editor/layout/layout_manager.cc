@@ -1415,10 +1415,18 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   }
   const std::unordered_set<std::string> tree_id_set(panel_ids.begin(),
                                                     panel_ids.end());
-  for (const auto& id : panel_ids) {
-    window_manager_->OpenWindow(id);
-  }
   const size_t session_id = window_manager_->GetActiveSessionId();
+  for (const auto& id : panel_ids) {
+    // Phase 9 review (2026-04-25): skip already-open panels. Mirrors
+    // the close-pass guard below — OpenWindowImpl publishes
+    // WindowVisibilityChanged(true) and runs `on_show` regardless of
+    // prior state, so a no-op Re-apply (or a startup reapply where
+    // every panel is already visible) would otherwise dirty settings
+    // and fire a burst of redundant show events.
+    if (window_manager_->IsWindowOpen(session_id, id))
+      continue;
+    window_manager_->OpenWindow(session_id, id);
+  }
   for (const std::string& id :
        window_manager_->GetWindowsInSession(session_id)) {
     if (tree_id_set.count(id) > 0)
