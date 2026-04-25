@@ -312,6 +312,68 @@ TEST_F(LayoutManagerDockTreeTest, StartupReapplyAppliesAndConsumes) {
   EXPECT_EQ(root->SplitAxis, ImGuiAxis_X);
 }
 
+// ============================================================================
+// Phase 8 review (2026-04-24): ApplyDockTree opens panel visibility +
+// marks editor-type layouts initialized so the lazy-init path doesn't
+// clobber the just-applied custom layout.
+// ============================================================================
+
+TEST_F(LayoutManagerDockTreeTest, ApplyDockTreeOpensReferencedPanels) {
+  // Register two extra windows with private visibility flags (so the
+  // shared `always_true_` from the fixture doesn't mask the result).
+  bool visible_x = false;
+  bool visible_y = false;
+  WindowDescriptor desc_x{};
+  desc_x.card_id = "x";
+  desc_x.display_name = "X Display";
+  desc_x.icon = "ICON_MD_ACCOUNT_TREE";
+  desc_x.category = "Test";
+  desc_x.priority = 1;
+  desc_x.visibility_flag = &visible_x;
+  window_manager_.RegisterWindow(0, desc_x);
+
+  WindowDescriptor desc_y = desc_x;
+  desc_y.card_id = "y";
+  desc_y.display_name = "Y Display";
+  desc_y.visibility_flag = &visible_y;
+  window_manager_.RegisterWindow(0, desc_y);
+
+  DockTree tree;
+  tree.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f,
+                                  DockNode::MakeLeaf({MakePanel("x")}),
+                                  DockNode::MakeLeaf({MakePanel("y")}));
+
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  EXPECT_TRUE(visible_x)
+      << "ApplyDockTree must open every panel referenced in the tree so "
+         "users see what they docked rather than empty slots.";
+  EXPECT_TRUE(visible_y);
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       ApplyDockTreeMarksAllEditorLayoutsInitialized) {
+  // Pre-condition: nothing initialized yet.
+  for (size_t i = 0; i < kEditorTypeCount; ++i) {
+    ASSERT_FALSE(
+        layout_manager_.IsLayoutInitialized(static_cast<EditorType>(i)))
+        << "fixture invariant: editor type " << i
+        << " should start uninitialized";
+  }
+
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a")});
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+
+  for (size_t i = 0; i < kEditorTypeCount; ++i) {
+    EXPECT_TRUE(layout_manager_.IsLayoutInitialized(static_cast<EditorType>(i)))
+        << "ApplyDockTree must mark every editor type's layout initialized "
+           "so EditorActivator's lazy InitializeEditorLayout doesn't blow "
+           "away the custom layout on the first panel-based editor "
+           "activation. EditorType index = "
+        << i;
+  }
+}
+
 TEST_F(LayoutManagerDockTreeTest, StartupReapplyIsIdempotent) {
   layout_manager_.SetMainDockspaceId(kDockspaceId);
   UserSettings settings;

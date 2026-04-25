@@ -1351,6 +1351,22 @@ std::unique_ptr<layout_designer::DockNode> CaptureDockNodeRecursive(
   return leaf;
 }
 
+// Recursively walk a DockTree and append every leaf's panel_ids into
+// `out`. Used by ApplyDockTree to drive the visibility-open pass.
+void CollectPanelIdsInSubtree(const layout_designer::DockNode& node,
+                              std::vector<std::string>* out) {
+  if (node.type == layout_designer::DockNode::Type::kLeaf) {
+    for (const auto& p : node.panels) {
+      out->push_back(p.panel_id);
+    }
+    return;
+  }
+  if (node.child_a)
+    CollectPanelIdsInSubtree(*node.child_a, out);
+  if (node.child_b)
+    CollectPanelIdsInSubtree(*node.child_b, out);
+}
+
 }  // namespace
 
 absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
@@ -1363,6 +1379,20 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   if (!tree.Validate(&validation_error)) {
     return absl::InvalidArgumentError("LayoutManager::ApplyDockTree: " +
                                       validation_error);
+  }
+
+  // Phase 8 review (2026-04-24): open every panel referenced in the
+  // tree. Without this, applying a layout sets up dock slots but the
+  // panels themselves stay hidden — the user sees an empty layout and
+  // has to manually open each one. The drag-into-canvas action in the
+  // designer is an explicit "I want this panel here" — visibility
+  // should follow.
+  std::vector<std::string> panel_ids;
+  if (tree.root) {
+    CollectPanelIdsInSubtree(*tree.root, &panel_ids);
+  }
+  for (const auto& id : panel_ids) {
+    window_manager_->OpenWindow(id);
   }
 
   ImGui::DockBuilderRemoveNode(dockspace_id);
@@ -1381,6 +1411,18 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   ImGui::DockBuilderFinish(dockspace_id);
 
   last_dockspace_id_ = dockspace_id;
+
+  // Phase 8 review (2026-04-24): mark every editor-type layout as
+  // initialized so the lazy `InitializeEditorLayout` path in
+  // EditorActivator doesn't clobber the custom layout we just applied.
+  // The user said "this is my workspace topology" — that wins over the
+  // per-editor preset that would otherwise be lazily built on first
+  // editor activation. Without this, a startup-reapplied custom layout
+  // gets blown away the moment the user opens any panel-based editor.
+  for (size_t i = 0; i < kEditorTypeCount; ++i) {
+    MarkLayoutInitialized(static_cast<EditorType>(i));
+  }
+
   return absl::OkStatus();
 }
 
