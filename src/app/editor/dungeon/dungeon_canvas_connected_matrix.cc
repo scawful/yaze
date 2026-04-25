@@ -8,6 +8,7 @@
 #include <optional>
 #include <utility>
 
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
@@ -599,6 +600,75 @@ float DungeonCanvasViewer::ConnectedCanvasScale() const {
                     kConnectedCanvasMaxScale);
 }
 
+void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
+  if (center_room_id >= 0 && center_room_id < zelda3::kNumberOfRooms && rom_ &&
+      rom_->is_loaded() && rooms_) {
+    if (connected_graph_cache_start_room_id_ != center_room_id) {
+      connected_graph_cache_ = BuildConnectedRoomGraph(center_room_id);
+      connected_graph_cache_start_room_id_ = center_room_id;
+    }
+  }
+
+  const int connected_room_count =
+      connected_graph_cache_start_room_id_ == center_room_id
+          ? connected_graph_cache_.room_count
+          : 0;
+  ImGui::TextDisabled("%d room%s", connected_room_count,
+                      connected_room_count == 1 ? "" : "s");
+  ImGui::SameLine(0.0f, 8.0f);
+  ImGui::TextDisabled("%.0f%%", ConnectedCanvasScale() * 100.0f);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Connected zoom\nF fit\n0 reset\n+/- zoom");
+  }
+
+  ImGui::SameLine(0.0f, 6.0f);
+  if (ImGui::SmallButton(ICON_MD_FIT_SCREEN "##ConnectedFit")) {
+    connected_canvas_fit_requested_ = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Fit all connected rooms in view (F)");
+  }
+
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_RESTART_ALT "##ConnectedReset")) {
+    connected_canvas_reset_requested_ = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Reset zoom and recenter on current room (0)");
+  }
+
+  ImGui::SameLine();
+  ImGui::Checkbox("Mini##ConnectedMini", &show_connected_overview_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Show connected overview map\nClick a room on the overview to jump");
+  }
+
+  ImGui::SameLine();
+  ImGui::Checkbox("Room##ConnectedRoomPreview",
+                  &show_connected_current_room_preview_);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Show full-resolution preview of the current room");
+  }
+
+  const auto& agent_theme = AgentUI::GetTheme();
+  ImGui::SameLine(0.0f, 8.0f);
+  DrawConnectedLegendItem(
+      "Door",
+      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Door),
+      DungeonConnectedLinkType::Door);
+  ImGui::SameLine(0.0f, 8.0f);
+  DrawConnectedLegendItem(
+      "Stair",
+      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Staircase),
+      DungeonConnectedLinkType::Staircase);
+  ImGui::SameLine(0.0f, 8.0f);
+  DrawConnectedLegendItem(
+      "Warp",
+      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Holewarp),
+      DungeonConnectedLinkType::Holewarp);
+}
+
 std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     int center_room_id) {
   current_room_id_ = center_room_id;
@@ -793,6 +863,15 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     }
   }
 
+  if (connected_canvas_fit_requested_) {
+    apply_fit();
+    connected_canvas_fit_requested_ = false;
+  }
+  if (connected_canvas_reset_requested_) {
+    apply_reset();
+    connected_canvas_reset_requested_ = false;
+  }
+
   if (last_connected_matrix_room_id_ != center_room_id) {
     const ImVec2 target_scroll =
         center_room_scroll(canvas_rt.scale, center_room_id);
@@ -945,8 +1024,9 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                  border_thickness);
 
     char room_label[192];
-    std::snprintf(room_label, sizeof(room_label), "[%03X] %s", room_id,
-                  zelda3::GetRoomLabel(room_id).c_str());
+    std::snprintf(
+        room_label, sizeof(room_label), "[%03X] %s", room_id,
+        dungeon_project_labels::GetRoomLabel(project_, room_id).c_str());
     const ImVec2 label_size = ImGui::CalcTextSize(room_label);
     const ImVec2 label_min(screen_min.x + kConnectedRoomLabelPadding,
                            screen_min.y + kConnectedRoomLabelPadding);
@@ -989,38 +1069,40 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
                                    link_shadow, 12, 1.25f);
   }
 
-  const ImVec2 connected_controls_pos =
-      using_connected_side_panel ? side_panel_screen_min
-      : connected_controls_custom_position_
-          ? connected_controls_custom_position_value_
-          : ImVec2(viewport_screen_max.x - 12.0f,
-                   viewport_screen_min.y + 12.0f);
-  const ImVec2 connected_controls_pivot =
-      using_connected_side_panel || connected_controls_custom_position_
-          ? ImVec2(0.0f, 0.0f)
-          : ImVec2(1.0f, 0.0f);
-  const ConnectedCanvasControlActions control_actions =
-      DrawConnectedCanvasControls(
-          connected_controls_pos, connected_controls_pivot,
-          connected_canvas_.global_scale(), connected_room_count,
-          show_connected_overview_, show_connected_current_room_preview_);
-  if (!using_connected_side_panel &&
-      control_actions.moved_window_pos.has_value()) {
-    connected_controls_custom_position_ = true;
-    connected_controls_custom_position_value_ =
-        *control_actions.moved_window_pos;
-  }
-  if (control_actions.reset_position) {
-    connected_controls_custom_position_ = false;
-    connected_controls_custom_position_value_ = ImVec2(0.0f, 0.0f);
-  }
-  show_connected_overview_ = control_actions.show_overview;
-  show_connected_current_room_preview_ = control_actions.show_preview;
-  if (control_actions.fit) {
-    apply_fit();
-  }
-  if (control_actions.reset) {
-    apply_reset();
+  ConnectedCanvasControlActions control_actions;
+  if (!connected_controls_inline_) {
+    const ImVec2 connected_controls_pos =
+        using_connected_side_panel ? side_panel_screen_min
+        : connected_controls_custom_position_
+            ? connected_controls_custom_position_value_
+            : ImVec2(viewport_screen_max.x - 12.0f,
+                     viewport_screen_min.y + 12.0f);
+    const ImVec2 connected_controls_pivot =
+        using_connected_side_panel || connected_controls_custom_position_
+            ? ImVec2(0.0f, 0.0f)
+            : ImVec2(1.0f, 0.0f);
+    control_actions = DrawConnectedCanvasControls(
+        connected_controls_pos, connected_controls_pivot,
+        connected_canvas_.global_scale(), connected_room_count,
+        show_connected_overview_, show_connected_current_room_preview_);
+    if (!using_connected_side_panel &&
+        control_actions.moved_window_pos.has_value()) {
+      connected_controls_custom_position_ = true;
+      connected_controls_custom_position_value_ =
+          *control_actions.moved_window_pos;
+    }
+    if (control_actions.reset_position) {
+      connected_controls_custom_position_ = false;
+      connected_controls_custom_position_value_ = ImVec2(0.0f, 0.0f);
+    }
+    show_connected_overview_ = control_actions.show_overview;
+    show_connected_current_room_preview_ = control_actions.show_preview;
+    if (control_actions.fit) {
+      apply_fit();
+    }
+    if (control_actions.reset) {
+      apply_reset();
+    }
   }
 
   ConnectedCanvasOverviewActions overview_actions;
@@ -1052,8 +1134,10 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
   if (!control_actions.hovered && !overview_actions.hovered &&
       hovered_room_id >= 0) {
     if (rooms_ && hovered_room_id < static_cast<int>(rooms_->size())) {
-      ImGui::SetTooltip("[%03X] %s\nClick to open room view", hovered_room_id,
-                        zelda3::GetRoomLabel(hovered_room_id).c_str());
+      ImGui::SetTooltip(
+          "[%03X] %s\nClick to open room view", hovered_room_id,
+          dungeon_project_labels::GetRoomLabel(project_, hovered_room_id)
+              .c_str());
     }
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
       if (hovered_room_id != center_room_id) {
@@ -1082,8 +1166,10 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
       gui::DrawCanvasHUD(
           kConnectedCurrentRoomHudId, preview_pos, ImVec2(0, 0), [&]() {
             ImGui::Text("Current Room");
-            ImGui::TextDisabled("[%03X] %s", center_room_id,
-                                zelda3::GetRoomLabel(center_room_id).c_str());
+            ImGui::TextDisabled(
+                "[%03X] %s", center_room_id,
+                dungeon_project_labels::GetRoomLabel(project_, center_room_id)
+                    .c_str());
             ImGui::Image((ImTextureID)(intptr_t)current_room->texture(),
                          preview_size);
           });

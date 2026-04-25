@@ -117,6 +117,22 @@ std::string LookupProjectLabel(const ResourceLabelProvider::LabelMap& labels,
   return "";
 }
 
+std::string LookupProjectRegistryRoomLabel(const core::HackManifest* manifest,
+                                           int id) {
+  if (!manifest || !manifest->loaded() || !manifest->HasProjectRegistry()) {
+    return "";
+  }
+
+  for (const auto& dungeon : manifest->project_registry().dungeons) {
+    for (const auto& room : dungeon.rooms) {
+      if (room.id == id && !room.name.empty()) {
+        return room.name;
+      }
+    }
+  }
+  return "";
+}
+
 }  // namespace
 
 // ============================================================================
@@ -135,7 +151,19 @@ ResourceLabelProvider& GetResourceLabels() {
 std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
   std::string type_str = ResourceTypeToString(type);
 
-  // 1. Check project-specific labels first.
+  // 1. Room names in the project registry are canonical for Oracle project
+  // files. Prefer them over merged resource labels so stale legacy
+  // oracle_room_labels.json / manually imported labels cannot mask the current
+  // dungeons.json room names.
+  if (type == ResourceType::kRoom) {
+    if (std::string registry_label =
+            LookupProjectRegistryRoomLabel(hack_manifest_, id);
+        !registry_label.empty()) {
+      return registry_label;
+    }
+  }
+
+  // 2. Check project-specific labels.
   // Accept decimal keys and prefixed hex keys for compatibility with older
   // Oracle label bundles.
   if (project_labels_) {
@@ -148,7 +176,7 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
     }
   }
 
-  // 2. Check Hack Manifest for ASM-defined labels
+  // 3. Check Hack Manifest for ASM-defined labels
   if (hack_manifest_ && hack_manifest_->loaded()) {
     if (type == ResourceType::kRoomTag) {
       std::string manifest_label = hack_manifest_->GetRoomTagLabel(id);
@@ -159,7 +187,7 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
     // Future: Add message label lookup if we add GetMessageLabel to HackManifest
   }
 
-  // 3. For sprites, check Hyrule Magic names if preferred
+  // 4. For sprites, check Hyrule Magic names if preferred
   if (type == ResourceType::kSprite && prefer_hmagic_) {
     std::string hmagic = GetHMagicLabel(type, id);
     if (!hmagic.empty()) {
@@ -167,7 +195,7 @@ std::string ResourceLabelProvider::GetLabel(ResourceType type, int id) const {
     }
   }
 
-  // 4. Fall back to vanilla labels
+  // 5. Fall back to vanilla labels
   return GetVanillaLabel(type, id);
 }
 

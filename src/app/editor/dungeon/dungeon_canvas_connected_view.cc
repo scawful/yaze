@@ -10,6 +10,8 @@
 #include <tuple>
 #include <utility>
 
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+
 namespace yaze::editor {
 
 namespace {
@@ -25,6 +27,24 @@ bool IsExitDoorType(zelda3::DoorType type) {
     case zelda3::DoorType::BombableCaveExit:
     case zelda3::DoorType::WaterfallDoor:
     case zelda3::DoorType::ExitMarker:
+      return true;
+    default:
+      return false;
+  }
+}
+
+bool IsHeaderBackedInterroomStaircaseObject(int16_t object_id) {
+  const int routine_id =
+      zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(object_id);
+  switch (routine_id) {
+    case zelda3::DrawRoutineIds::kInterRoomFatStairsUp:
+    case zelda3::DrawRoutineIds::kInterRoomFatStairsDownA:
+    case zelda3::DrawRoutineIds::kInterRoomFatStairsDownB:
+    case zelda3::DrawRoutineIds::kStraightInterRoomStairs:
+    case zelda3::DrawRoutineIds::kSpiralStairsGoingUpUpper:
+    case zelda3::DrawRoutineIds::kSpiralStairsGoingDownUpper:
+    case zelda3::DrawRoutineIds::kSpiralStairsGoingUpLower:
+    case zelda3::DrawRoutineIds::kSpiralStairsGoingDownLower:
       return true;
     default:
       return false;
@@ -166,8 +186,19 @@ std::vector<DungeonConnectedRoomLink> CollectDungeonConnectedRoomLinks(
         room_id, neighbor, DungeonConnectedLinkType::Door, door.direction});
   }
 
-  for (int i = 0; i < 4; ++i) {
-    const int stair_room = static_cast<int>(room.staircase_room(i));
+  int staircase_slot = 0;
+  for (const auto& object : room.GetTileObjects()) {
+    if (!IsHeaderBackedInterroomStaircaseObject(object.id_)) {
+      continue;
+    }
+
+    if (staircase_slot >= 4) {
+      break;
+    }
+
+    const int stair_room =
+        static_cast<int>(room.staircase_room(staircase_slot));
+    ++staircase_slot;
     if (stair_room <= 0 || stair_room >= zelda3::kNumberOfRooms) {
       continue;
     }
@@ -230,7 +261,6 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
     return graph;
   }
 
-  const uint8_t start_blockset = start_room->blockset();
   graph.room_mask[static_cast<size_t>(start_room_id)] = true;
   graph.room_positions[static_cast<size_t>(start_room_id)] = {0, 0, true};
   graph.room_count = 1;
@@ -242,11 +272,6 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
   std::queue<int> to_visit;
   std::set<std::tuple<int, int, DungeonConnectedLinkType>> seen_links;
   to_visit.push(start_room_id);
-
-  auto room_matches_cluster = [&](int room_id) {
-    zelda3::Room* room = EnsureRoomLoadedForConnectedView(room_id);
-    return room != nullptr && room->blockset() == start_blockset;
-  };
 
   auto track_room_bounds = [&](int room_id) {
     const auto& placement = graph.room_positions[static_cast<size_t>(room_id)];
@@ -261,7 +286,7 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
     to_visit.pop();
 
     zelda3::Room* room = EnsureRoomLoadedForConnectedView(room_id);
-    if (!room || room->blockset() != start_blockset) {
+    if (!room) {
       continue;
     }
 
@@ -275,7 +300,7 @@ DungeonCanvasViewer::BuildConnectedRoomGraph(int start_room_id) {
       if (link.to_room_id < 0 || link.to_room_id >= zelda3::kNumberOfRooms) {
         continue;
       }
-      if (!room_matches_cluster(link.to_room_id)) {
+      if (!EnsureRoomLoadedForConnectedView(link.to_room_id)) {
         continue;
       }
 

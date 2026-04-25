@@ -33,6 +33,11 @@ class DungeonCanvasViewerTestPeer {
                                           int room_id) {
     return viewer.BuildDrawIssueReport(room, room_id);
   }
+
+  static DungeonCanvasViewer::ConnectedRoomGraphData BuildConnectedRoomGraph(
+      DungeonCanvasViewer& viewer, int start_room_id) {
+    return viewer.BuildConnectedRoomGraph(start_room_id);
+  }
 };
 
 namespace {
@@ -251,6 +256,7 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
       MakeDoor(zelda3::DoorDirection::East, zelda3::DoorType::CaveExit));
   room.SetStaircaseRoom(0, 0x28);
   room.SetHolewarp(0x6A);
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
 
   const auto links = CollectDungeonConnectedRoomLinks(
       0x44, room, [](int neighbor_room_id, zelda3::DoorDirection dir) {
@@ -274,7 +280,7 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
-     CollectDungeonConnectedRoomLinksSkipsExitDoorsAndZeroTransportTargets) {
+     CollectDungeonConnectedRoomLinksSkipsExitDoorsAndUnusedStairHeaders) {
   zelda3::Room room;
   ClearRoomLinks(&room);
   room.AddDoor(MakeDoor(zelda3::DoorDirection::East,
@@ -290,11 +296,86 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
         return neighbor_room_id == 0x30 && dir == zelda3::DoorDirection::North;
       });
 
-  ASSERT_EQ(links.size(), 2u);
+  ASSERT_EQ(links.size(), 1u);
   EXPECT_EQ(links[0].to_room_id, 0x30);
   EXPECT_EQ(links[0].type, DungeonConnectedLinkType::Door);
-  EXPECT_EQ(links[1].to_room_id, 0x17);
-  EXPECT_EQ(links[1].type, DungeonConnectedLinkType::Staircase);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
+     CollectDungeonConnectedRoomLinksUsesStraightInterroomStairObjects) {
+  zelda3::Room room;
+  ClearRoomLinks(&room);
+  room.SetStaircaseRoom(0, 0x17);
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0xF9E, 4, 5, 0, 0)).ok());
+
+  const auto links = CollectDungeonConnectedRoomLinks(0x20, room, nullptr);
+
+  ASSERT_EQ(links.size(), 1u);
+  EXPECT_EQ(links[0].from_room_id, 0x20);
+  EXPECT_EQ(links[0].to_room_id, 0x17);
+  EXPECT_EQ(links[0].type, DungeonConnectedLinkType::Staircase);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
+     BuildConnectedRoomGraphKeepsCrossBlocksetStaircaseTargets) {
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.SetBlockset(0x01);
+  start.SetStaircaseRoom(0, 0x40);
+  ASSERT_TRUE(start.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
+  start.SetLoaded(true);
+
+  auto& stair_target = rooms[0x40];
+  ClearRoomLinks(&stair_target);
+  stair_target.SetBlockset(0x02);
+  stair_target.SetLoaded(true);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+
+  EXPECT_EQ(graph.room_count, 2);
+  EXPECT_TRUE(graph.room_mask[0x10]);
+  EXPECT_TRUE(graph.room_mask[0x40]);
+  ASSERT_EQ(graph.links.size(), 1u);
+  EXPECT_EQ(graph.links[0].from_room_id, 0x10);
+  EXPECT_EQ(graph.links[0].to_room_id, 0x40);
+  EXPECT_EQ(graph.links[0].type, DungeonConnectedLinkType::Staircase);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
+     BuildConnectedRoomGraphIgnoresUnusedStaircaseHeaderTargets) {
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.SetStaircaseRoom(0, 0x40);
+  start.SetLoaded(true);
+
+  auto& stale_target = rooms[0x40];
+  ClearRoomLinks(&stale_target);
+  stale_target.SetLoaded(true);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+
+  EXPECT_EQ(graph.room_count, 1);
+  EXPECT_TRUE(graph.room_mask[0x10]);
+  EXPECT_FALSE(graph.room_mask[0x40]);
+  EXPECT_TRUE(graph.links.empty());
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,

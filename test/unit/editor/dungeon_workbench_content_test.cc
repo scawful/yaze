@@ -2,6 +2,14 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <string>
+
+#include "app/editor/dungeon/dungeon_project_labels.h"
+#include "core/project.h"
+
 namespace yaze::editor {
 namespace {
 
@@ -10,6 +18,13 @@ constexpr float kMinSidebarWidth = 320.0f;
 constexpr float kSplitterWidth = 8.0f;
 constexpr float kCompactLeftWidth = 230.4f;
 constexpr float kCompactRightWidth = 272.0f;
+
+std::filesystem::path MakeTempProjectRoot() {
+  return std::filesystem::temp_directory_path() /
+         ("yaze_dungeon_project_labels_" +
+          std::to_string(
+              std::chrono::steady_clock::now().time_since_epoch().count()));
+}
 
 TEST(DungeonWorkbenchContentLayoutTest,
      PrefersCompactingAndHidingLeftPaneBeforeRightPane) {
@@ -83,6 +98,67 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_NEAR(layout.left_width, kCompactLeftWidth, 0.001f);
   EXPECT_NEAR(layout.right_width, 333.6f, 0.001f);
   EXPECT_GE(layout.center_width, kMinCanvasWidth);
+}
+
+TEST(DungeonWorkbenchProjectLabelsTest,
+     UsesOracleRegistryDungeonAndRoomNamesWhenProjectIsOpen) {
+  const std::filesystem::path root = MakeTempProjectRoot();
+  const std::filesystem::path planning = root / "Docs" / "Dev" / "Planning";
+  ASSERT_TRUE(std::filesystem::create_directories(planning));
+  {
+    std::ofstream out(planning / "dungeons.json");
+    out << R"json({
+      "dungeons": [
+        {
+          "id": "D4",
+          "name": "Zora Temple",
+          "vanilla_name": "Thieves' Town",
+          "rooms": [
+            {
+              "id": "0x25",
+              "name": "Water Grate",
+              "grid_row": 1,
+              "grid_col": 2,
+              "type": "connector",
+              "palette": 1,
+              "blockset": 6,
+              "spriteset": 3,
+              "tag1": 0,
+              "tag2": 0
+            }
+          ]
+        }
+      ]
+    })json";
+  }
+
+  project::YazeProject project;
+  project.name = "Oracle of Secrets";
+  project.filepath = (root / "Oracle-of-Secrets.yaze").string();
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(R"json({
+                    "manifest_version": 1,
+                    "hack_name": "Oracle of Secrets"
+                  })json")
+                  .ok());
+  ASSERT_TRUE(project.hack_manifest.LoadProjectRegistry(root.string()).ok());
+
+  EXPECT_EQ(dungeon_project_labels::GetDungeonNameForRoom(&project, 0x25),
+            "D4 Zora Temple");
+  EXPECT_EQ(dungeon_project_labels::GetRoomLabel(&project, 0x25),
+            "Water Grate");
+
+  zelda3::ResourceLabelProvider::ProjectLabels stale_labels;
+  stale_labels["room"]["37"] = "Thieves' Town";
+  zelda3::GetResourceLabels().SetProjectLabels(&stale_labels);
+  zelda3::GetResourceLabels().SetHackManifest(&project.hack_manifest);
+  EXPECT_EQ(dungeon_project_labels::GetRoomLabel(&project, 0x25),
+            "Water Grate");
+  EXPECT_EQ(zelda3::GetRoomLabel(0x25), "Water Grate");
+  zelda3::GetResourceLabels().SetHackManifest(nullptr);
+  zelda3::GetResourceLabels().SetProjectLabels(nullptr);
+
+  std::filesystem::remove_all(root);
 }
 
 }  // namespace

@@ -184,9 +184,10 @@ struct ProjectRegistry {
   // - Keys are normalized to decimal strings for project::YazeProject::resource_labels.
   // - Input JSON may use either decimal ("57") or hex ("0x39") IDs.
   //
-  // Types: "room", "sprite", "item", "entrance", "overworld_map", "music"
-  std::unordered_map<std::string,
-                     std::unordered_map<std::string, std::string>>
+  // Types: "room", "sprite", "item", "entrance", "overworld_map", "music".
+  // Oracle `dungeons.json` room names are mirrored into "room" labels so the
+  // opened project file can serialize the current registry names.
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       all_resource_labels;
 
   // Backward-compat accessor for room labels only

@@ -14,6 +14,11 @@
 #include "zelda3/game_data.h"
 
 namespace yaze {
+
+namespace project {
+struct YazeProject;
+}  // namespace project
+
 namespace editor {
 
 /**
@@ -52,6 +57,7 @@ class DungeonRoomSelector {
   Rom* rom() const { return rom_; }
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
   zelda3::GameData* game_data() const { return game_data_; }
+  void SetProject(const project::YazeProject* project) { project_ = project; }
 
   // Room selection
   void set_current_room_id(uint16_t room_id) { current_room_id_ = room_id; }
@@ -103,6 +109,7 @@ class DungeonRoomSelector {
  private:
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
+  const project::YazeProject* project_ = nullptr;
   uint16_t current_room_id_ = 0;
   int current_entrance_id_ = 0;
   ImVector<int> active_rooms_;
