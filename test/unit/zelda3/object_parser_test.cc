@@ -103,7 +103,11 @@ TEST_F(ObjectParserTest, ParseSubtype2Object) {
 }
 
 TEST_F(ObjectParserTest, ParseSubtype3Object) {
-  auto result = parser_->ParseObject(0x201);
+  // 0xF83 is in the subtype-3 ID range (0xF80-0xFFF) and falls through
+  // GetSubtype3TileCount's special-case ladder to the default 8 tiles.
+  // (0x201 was previously used here, but DetermineSubtype routes anything
+  // < 0xF80 to subtype 2, so the old test exercised ParseSubtype2.)
+  auto result = parser_->ParseObject(0xF83);
   ASSERT_TRUE(result.ok());
 
   const auto& tiles = result.value();
