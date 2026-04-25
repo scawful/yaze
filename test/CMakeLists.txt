@@ -378,6 +378,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_room_render_parity_test.cc
     integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
+    integration/zelda3/dungeon_staircase_slot_parity_test.cc
     integration/zelda3/minecart_audit_integration_test.cc
     integration/zelda3/oracle_workflow_integration_test.cc
     integration/zelda3/oracle_smoke_check_integration_test.cc
