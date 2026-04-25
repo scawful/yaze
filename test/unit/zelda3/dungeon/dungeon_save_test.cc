@@ -612,6 +612,107 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
 }
 
 TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_PreservesUnmaterializedRoomBytes) {
+  // Migration safety invariant: when only some rooms are
+  // materialized, blocks for the other rooms (lookup returns null,
+  // OR returns a Room whose blocks weren't loaded) must keep their
+  // existing ROM bytes verbatim. The encoder cannot drop them just
+  // because no in-memory representation was supplied.
+  //
+  // Setup: two encoded entries in slot 0 (room 0, materialized) and
+  // slot 1 (room 5, NOT materialized). Save with a lookup that only
+  // returns room_ for id=0. Both slots must come out unchanged.
+  SetupBlockRegions();
+  // Slot 0: room 0, px=10, py=20, layer=1 (word 0x4A14).
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;
+  // Slot 1: room 5, px=15, py=25, layer=0.
+  //   word = (15 << 1) | (25 << 7) | (0 << 14) = 30 | 3200 = 0x0C9E
+  //   → b3 = 0x9E, b4 = 0x0C.
+  rom_->mutable_data()[kBlocksRegion1Pc + 4] = 0x05;
+  rom_->mutable_data()[kBlocksRegion1Pc + 5] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 6] = 0x9E;
+  rom_->mutable_data()[kBlocksRegion1Pc + 7] = 0x0C;
+  rom_->mutable_data()[kBlocksLength] = 0x08;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  const std::array<uint8_t, 8> before = {0x00, 0x00, 0x14, 0x4A,
+                                         0x05, 0x00, 0x9E, 0x0C};
+
+  // Materialize room 0 only. LoadBlocks scans the global buffer for
+  // matching room_id, so only slot 0 lands in tile_objects_. Room 5
+  // stays unloaded — its block bytes must survive the save.
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+  ASSERT_TRUE(room_->AreBlocksLoaded());
+
+  // Lookup hands out room_ for id 0; everything else is null
+  // (simulates an editor that only materialized room 0).
+  auto status = SaveAllBlocks(rom_.get(), 296, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  for (int i = 0; i < 8; ++i) {
+    EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + i], before[i])
+        << "byte " << i
+        << " — unmaterialized room 5's block bytes must survive a save "
+           "where only room 0 was materialized.";
+  }
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_EditedBlockPreservesUnmaterializedNeighbor) {
+  // Migration safety invariant #2: an edit to a materialized room's
+  // block writes through, AND an unmaterialized room's adjacent slot
+  // remains byte-identical. This is the test that pins the encoder
+  // boundary between "owned by editor, re-encode" and "owned by ROM,
+  // preserve verbatim".
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;  // px=10
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;
+  rom_->mutable_data()[kBlocksRegion1Pc + 4] = 0x05;
+  rom_->mutable_data()[kBlocksRegion1Pc + 5] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 6] = 0x9E;
+  rom_->mutable_data()[kBlocksRegion1Pc + 7] = 0x0C;
+  rom_->mutable_data()[kBlocksLength] = 0x08;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+
+  // Edit room 0's block: px 10 → 30. New word: (30<<1)|(20<<7)|(1<<14)
+  // = 0x4A3C → b3 = 0x3C, b4 = 0x4A.
+  for (auto& obj : room_->GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Block) == ObjectOption::Block) {
+      obj.set_x(30);
+      break;
+    }
+  }
+
+  auto status = SaveAllBlocks(rom_.get(), 296, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x3C) << "edited px=30";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 4], 0x05) << "room 5 preserved";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 5], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 6], 0x9E);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 7], 0x0C);
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+}
+
+TEST_F(DungeonSaveTest,
        SaveAllBlocks_RoomAware_NoOpRoundTripPreservesPointedBytes) {
   // Real encoder invariant #1 (test-first for the SaveAllBlocks
   // follow-up). After Load → Save with no in-memory mutation, the

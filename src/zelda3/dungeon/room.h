@@ -760,6 +760,12 @@ class Room {
   bool AreSpritesLoaded() const { return sprites_loaded_; }
   bool AreChestsLoaded() const { return chests_loaded_; }
   bool ArePotItemsLoaded() const { return pot_items_loaded_; }
+  // True once `LoadBlocks` has populated `tile_objects_` for this room.
+  // The `SaveAllBlocks` encoder uses this to distinguish header-only
+  // rooms (preserve their existing ROM block bytes) from rooms whose
+  // blocks have been fully materialized (encode from in-memory state,
+  // which may include edits/additions/deletions).
+  bool AreBlocksLoaded() const { return blocks_loaded_; }
 
   // Read-only accessors for metadata
   background2 bg2() const { return bg2_; }
@@ -907,6 +913,7 @@ class Room {
   bool sprites_loaded_ = false;
   bool chests_loaded_ = false;
   bool pot_items_loaded_ = false;
+  bool blocks_loaded_ = false;
   bool is_dark_;
   bool is_floor_ = true;
 
