@@ -169,6 +169,24 @@ std::string ResolveProfilePresetName(const std::string& profile_id,
 
 void LayoutManager::InitializeEditorLayout(EditorType type,
                                            ImGuiID dockspace_id) {
+  // Phase 8.2 review (2026-04-25): one-shot protection set by
+  // MaybeReapplyStartupLayout. The very first lazy preset init after a
+  // successful startup-reapply must NOT rebuild the dockspace —
+  // doing so would silently overwrite the user's saved layout on
+  // their first editor activation. Consume the flag, mark the type
+  // initialized so subsequent activations behave normally, and bail.
+  if (startup_reapply_pending_protection_) {
+    startup_reapply_pending_protection_ = false;
+    last_dockspace_id_ = dockspace_id;
+    current_editor_type_ = type;
+    MarkLayoutInitialized(type);
+    LOG_INFO("LayoutManager",
+             "Suppressed lazy preset init for editor type %d to preserve "
+             "startup-reapplied custom layout",
+             static_cast<int>(type));
+    return;
+  }
+
   // Don't reinitialize if already set up
   if (IsLayoutInitialized(type)) {
     LOG_INFO("LayoutManager",
@@ -1381,18 +1399,33 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
                                       validation_error);
   }
 
-  // Phase 8 review (2026-04-24): open every panel referenced in the
-  // tree. Without this, applying a layout sets up dock slots but the
-  // panels themselves stay hidden — the user sees an empty layout and
-  // has to manually open each one. The drag-into-canvas action in the
-  // designer is an explicit "I want this panel here" — visibility
-  // should follow.
+  // Visibility pass (Phase 8 review 2026-04-24, refined 2026-04-25):
+  //   - Open every panel referenced in the tree so users see what they
+  //     docked rather than empty slots.
+  //   - Close every non-pinned panel that is NOT in the tree, so a saved
+  //     subset doesn't leave previously-visible panels lingering as
+  //     floating ghosts after apply. Pinned panels are intentionally
+  //     persistent (rev-7 / rev-17 force-pinned panels like
+  //     `agent.oracle_ram`, `workflow.output`, `layout.designer`) and
+  //     must survive — closing them would silently hide cross-editor
+  //     functionality the user can't easily put back.
   std::vector<std::string> panel_ids;
   if (tree.root) {
     CollectPanelIdsInSubtree(*tree.root, &panel_ids);
   }
+  const std::unordered_set<std::string> tree_id_set(panel_ids.begin(),
+                                                    panel_ids.end());
   for (const auto& id : panel_ids) {
     window_manager_->OpenWindow(id);
+  }
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  for (const std::string& id :
+       window_manager_->GetWindowsInSession(session_id)) {
+    if (tree_id_set.count(id) > 0)
+      continue;
+    if (window_manager_->IsWindowPinned(session_id, id))
+      continue;
+    window_manager_->CloseWindow(id);
   }
 
   ImGui::DockBuilderRemoveNode(dockspace_id);
@@ -1406,21 +1439,22 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   }
   ImGui::DockBuilderSetNodeSize(dockspace_id, size);
 
-  const size_t session_id = window_manager_->GetActiveSessionId();
   ApplyDockNodeRecursive(window_manager_, session_id, *tree.root, dockspace_id);
   ImGui::DockBuilderFinish(dockspace_id);
 
   last_dockspace_id_ = dockspace_id;
 
-  // Phase 8 review (2026-04-24): mark every editor-type layout as
-  // initialized so the lazy `InitializeEditorLayout` path in
-  // EditorActivator doesn't clobber the custom layout we just applied.
-  // The user said "this is my workspace topology" — that wins over the
-  // per-editor preset that would otherwise be lazily built on first
-  // editor activation. Without this, a startup-reapplied custom layout
-  // gets blown away the moment the user opens any panel-based editor.
-  for (size_t i = 0; i < kEditorTypeCount; ++i) {
-    MarkLayoutInitialized(static_cast<EditorType>(i));
+  // Init-tracking pass (Phase 8.2 review 2026-04-25):
+  //   - Mark only the *current* editor type initialized. The previous
+  //     "mark all editor types" loop blocked legitimate first-run preset
+  //     init for OTHER editors, so switching from Dungeon to Assembly
+  //     after an apply silently inherited Dungeon's topology. Codex
+  //     called this out as High; this narrows the protection to "the
+  //     editor the user is currently in".
+  //   - Other editors keep their lazy first-run init: their preset
+  //     fires when the user activates them, exactly like before.
+  if (current_editor_type_ != EditorType::kUnknown) {
+    MarkLayoutInitialized(current_editor_type_);
   }
 
   return absl::OkStatus();
@@ -1493,7 +1527,16 @@ absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
   if (!apply_status.ok()) {
     util::logf("LayoutManager: startup layout '%s' ApplyDockTree failed: %s",
                name.c_str(), std::string(apply_status.message()).c_str());
+    return apply_status;
   }
+  // Phase 8.2 review (2026-04-25): protect the very next lazy preset
+  // init from clobbering the layout we just installed. At startup,
+  // `current_editor_type_` is `kUnknown` (no editor has been
+  // activated yet), so ApplyDockTree's per-editor mark is a no-op;
+  // this flag is the only guardrail covering the moments between
+  // "controller wires the dockspace" and "user activates first
+  // editor".
+  startup_reapply_pending_protection_ = true;
   return apply_status;
 }
 

@@ -354,6 +354,12 @@ class LayoutManager {
   bool startup_layout_consumed_for_test() const {
     return startup_layout_consumed_;
   }
+  bool startup_reapply_pending_protection_for_test() const {
+    return startup_reapply_pending_protection_;
+  }
+  void set_current_editor_type_for_test(EditorType type) {
+    current_editor_type_ = type;
+  }
 
   /**
    * @brief One-shot startup hook that re-applies the user's last
@@ -456,6 +462,16 @@ class LayoutManager {
   // (whether successfully or with a logged error). Guards the one-shot
   // semantics across the per-frame call cadence.
   bool startup_layout_consumed_ = false;
+
+  // Set by `MaybeReapplyStartupLayout` after a successful apply, then
+  // consumed by the very next `InitializeEditorLayout` call (any
+  // editor type). Phase 8.2 review (2026-04-25): without this flag the
+  // first editor activation post-startup would blow away the
+  // freshly-reapplied custom layout via lazy preset init. The flag is
+  // intentionally global-one-shot rather than per-editor because at
+  // startup we don't know which editor the user will activate first;
+  // the very first lazy init is always the dangerous one.
+  bool startup_reapply_pending_protection_ = false;
 
   // Current editor type being displayed
   EditorType current_editor_type_ = EditorType::kUnknown;
