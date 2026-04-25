@@ -36,6 +36,14 @@
 //   `CheckIfWallIsMoved` flag tests). Their tile-count entry is
 //   `0` (handled by the fallback) because the routine never
 //   consumes the tile vector. Left as-is with a comment note.
+// - 2026-04-25 ZScream parity diff: full byte-for-byte comparison
+//   against ZScream's `subtype1Lengths` (`DungeonObjectData.cs:184`)
+//   shows 246/248 entries identical. The only divergences are
+//   `0x47` (yaze=15, ZScream=0) and `0x48` (yaze=9, ZScream=0) —
+//   both intentional yaze corrections of ZScream's under-fetch.
+//   The pin lives in `object_parser_test.cc::Subtype1TileLengths`
+//   `MatchesZScreamReferenceExceptAtKnownDivergences` and detects
+//   future drift in either direction.
 // clang-format off
 static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F

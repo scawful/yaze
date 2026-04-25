@@ -178,6 +178,97 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   EXPECT_EQ(info_waterfall48.tile_count, 9);
 }
 
+// 2026-04-25 ZScream parity diff. ZScream's `subtype1Lengths` array
+// (`ZScreamDungeon/ZeldaFullEditor/Data/DungeonObjectData.cs:184`) is the
+// upstream provenance source for `kSubtype1TileLengths` in
+// `src/zelda3/dungeon/object_parser.cc`. A full byte-for-byte audit
+// confirmed 246/248 entries identical. Only `0x47` and `0x48`
+// (Waterfall47/Waterfall48) diverge: ZScream stores `0` and falls back to
+// 8 tiles at runtime (under-fetch — `TileAtWrapped` substitutes wrong
+// tiles for index >= 8); yaze ships the routine-body-proven counts
+// (`15` / `9`) per commits `e9938002` and `c12c3178`.
+//
+// This test pins the parity result so future drift on either side is
+// caught: a change in the production yaze table that contradicts ZScream
+// at a non-divergent ID will fail; a new yaze divergence not in
+// `kKnownDivergences` will fail; if ZScream fixes Waterfall47/48
+// upstream, the existing divergence assertions will fail and the
+// allowlist can be retired entry by entry.
+TEST_F(ObjectParserTest,
+       Subtype1TileLengthsMatchZScreamReferenceExceptKnownDivergences) {
+  // ZScream `subtype1Lengths` reference, copied verbatim from
+  // ZeldaFullEditor/Data/DungeonObjectData.cs:184-202.
+  // clang-format off
+  static constexpr uint8_t kZScreamSubtype1Lengths[0xF8] = {
+       4, 8, 8, 8, 8, 8, 8, 4, 4, 5, 5, 5, 5, 5, 5, 5,  // 0x00-0x0F
+       5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  // 0x10-0x1F
+       5, 9, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 6,  // 0x20-0x2F
+       6, 1, 1,16, 1, 1,16,16, 6, 8,12,12, 4, 8, 4, 3,  // 0x30-0x3F
+       3, 3, 3, 3, 3, 3, 3, 0, 0, 8, 8, 4, 9,16,16,16,  // 0x40-0x4F
+       1,18,18, 4, 1, 8, 8, 1, 1, 1, 1,18,18,15, 4, 3,  // 0x50-0x5F
+       4, 8, 8, 8, 8, 8, 8, 4, 4, 3, 1, 1, 6, 6, 1, 1,  // 0x60-0x6F
+      16, 1, 1,16,16, 8,16,16, 4, 1, 1, 4, 1, 4, 1, 8,  // 0x70-0x7F
+       8,12,12,12,12,18,18, 8,12, 4, 3, 3, 3, 1, 1, 6,  // 0x80-0x8F
+       8, 8, 4, 4,16, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x90-0x9F
+       1, 1, 1, 1,24, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0xA0-0xAF
+       1, 1,16, 3, 3, 8, 8, 8, 4, 4,16, 4, 4, 4, 1, 1,  // 0xB0-0xBF
+       1,68, 1, 1, 8, 8, 8, 8, 8, 8, 8, 1, 1,28,28, 1,  // 0xC0-0xCF
+       1, 8, 8, 0, 0, 0, 0, 1, 8, 8, 8, 8,21,16, 4, 8,  // 0xD0-0xDF
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 1, 1, 1, 1,  // 0xE0-0xEF
+       1, 1, 1, 1, 1, 1, 1, 1                            // 0xF0-0xF7
+  };
+  // clang-format on
+
+  struct Divergence {
+    int object_id;
+    int yaze_value;
+    const char* justification;
+  };
+  // Allowlist of known intentional yaze corrections of upstream ZScream
+  // under-fetches. Add entries only when the underlying routine body
+  // proves the count divergence; cite the routine source location.
+  static const Divergence kKnownDivergences[] = {
+      {0x47, 15,
+       "DrawWaterfall47 (special_routines.cc) reads tiles[0..14]; "
+       "ZScream's 0->8 fallback under-fetched and TileAtWrapped "
+       "substituted wrong tiles for index>=8 (commits e9938002/c12c3178)."},
+      {0x48, 9, "DrawWaterfall48 reads tiles[0..8]; same pattern as 0x47."},
+  };
+
+  auto find_divergence = [&](int id) -> const Divergence* {
+    for (const auto& d : kKnownDivergences) {
+      if (d.object_id == id)
+        return &d;
+    }
+    return nullptr;
+  };
+
+  for (int id = 0x00; id <= 0xF7; ++id) {
+    SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex << id);
+
+    auto subtype_info = parser_->GetObjectSubtype(id);
+    ASSERT_TRUE(subtype_info.ok());
+
+    if (const Divergence* d = find_divergence(id)) {
+      EXPECT_EQ(subtype_info->max_tile_count, d->yaze_value)
+          << "Known yaze divergence drift: " << d->justification;
+      // Sanity: the divergence row must actually differ from the ZScream
+      // reference, otherwise the entry is stale and should be removed.
+      const int zs_raw = kZScreamSubtype1Lengths[id];
+      const int zs_effective = (zs_raw > 0) ? zs_raw : 8;
+      EXPECT_NE(d->yaze_value, zs_effective)
+          << "Stale allowlist entry: ZScream now matches yaze at 0x" << std::hex
+          << id << " — drop the divergence row.";
+    } else {
+      const int zs_raw = kZScreamSubtype1Lengths[id];
+      const int zs_effective = (zs_raw > 0) ? zs_raw : 8;
+      EXPECT_EQ(subtype_info->max_tile_count, zs_effective)
+          << "Drift from ZScream parity. If intentional, add an entry "
+             "to kKnownDivergences with routine-body justification.";
+    }
+  }
+}
+
 TEST_F(ObjectParserTest, TurtleRockPipesProvideTwentyFourTiles) {
   // Routine-body proof (Waterfall47/48-tier under-fetch):
   // - 0xFBA, 0xFBB -> kVerticalTurtleRockPipe (102):
