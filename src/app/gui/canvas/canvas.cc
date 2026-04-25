@@ -27,82 +27,85 @@ Canvas::Canvas() : renderer_(nullptr) {
   InitializeDefaults();
 }
 
-// Legacy constructors (renderer is optional for backward compatibility)
-Canvas::Canvas(const std::string& id)
-    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
+Canvas::~Canvas() = default;
+
+Canvas::Canvas(const std::string& id) : Canvas() {
+  Init(id, ImVec2(0, 0));
 }
 
-Canvas::Canvas(const std::string& id, ImVec2 canvas_size)
-    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
-  config_.canvas_size = canvas_size;
-  config_.custom_canvas_size = true;
-  canvas_sz_ = canvas_size;
+Canvas::Canvas(const std::string& id, ImVec2 canvas_size) : Canvas() {
+  Init(id, canvas_size);
 }
 
 Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
                CanvasGridSize grid_size)
-    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
-  config_.canvas_size = canvas_size;
-  config_.custom_canvas_size = true;
+    : Canvas() {
+  Init(id, canvas_size);
   SetGridSize(grid_size);
-  canvas_sz_ = canvas_size;
 }
 
 Canvas::Canvas(const std::string& id, ImVec2 canvas_size,
                CanvasGridSize grid_size, float global_scale)
-    : renderer_(nullptr), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
-  config_.canvas_size = canvas_size;
-  config_.custom_canvas_size = true;
-  config_.global_scale = global_scale;
+    : Canvas() {
+  Init(id, canvas_size);
   SetGridSize(grid_size);
-  canvas_sz_ = canvas_size;
+  config_.global_scale = global_scale;
+  global_scale_ = global_scale;
 }
 
-// New constructors with renderer support (for migration to IRenderer pattern)
-Canvas::Canvas(gfx::IRenderer* renderer) : renderer_(renderer) {
-  InitializeDefaults();
+Canvas::Canvas(gfx::IRenderer* renderer) : Canvas() {
+  SetRenderer(renderer);
 }
 
-Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id)
-    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
+Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id) : Canvas() {
+  SetRenderer(renderer);
+  Init(id, ImVec2(0, 0));
 }
 
 Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
                ImVec2 canvas_size)
-    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
-  config_.canvas_size = canvas_size;
-  config_.custom_canvas_size = true;
-  canvas_sz_ = canvas_size;
+    : Canvas() {
+  SetRenderer(renderer);
+  Init(id, canvas_size);
 }
 
 Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
                ImVec2 canvas_size, CanvasGridSize grid_size)
-    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
-  config_.canvas_size = canvas_size;
-  config_.custom_canvas_size = true;
+    : Canvas() {
+  SetRenderer(renderer);
+  Init(id, canvas_size);
   SetGridSize(grid_size);
-  canvas_sz_ = canvas_size;
 }
 
 Canvas::Canvas(gfx::IRenderer* renderer, const std::string& id,
                ImVec2 canvas_size, CanvasGridSize grid_size, float global_scale)
-    : renderer_(renderer), canvas_id_(id), context_id_(id + "Context") {
-  InitializeDefaults();
-  config_.canvas_size = canvas_size;
-  config_.custom_canvas_size = true;
-  config_.global_scale = global_scale;
+    : Canvas() {
+  SetRenderer(renderer);
+  Init(id, canvas_size);
   SetGridSize(grid_size);
-  canvas_sz_ = canvas_size;
+  config_.global_scale = global_scale;
+  global_scale_ = global_scale;
 }
 
-Canvas::~Canvas() = default;
+void Canvas::SyncLegacyGeometryFromState() {
+  canvas_p0_ = state_.geometry.canvas_p0;
+  canvas_p1_ = state_.geometry.canvas_p1;
+  canvas_sz_ = state_.geometry.canvas_sz;
+  scrolling_ = state_.geometry.scrolling;
+}
+
+void Canvas::EnsurePerformanceIntegration() {
+  if (!config_.enable_metrics || !usage_tracker_) {
+    return;
+  }
+  if (performance_integration_) {
+    return;
+  }
+  performance_integration_ = std::make_shared<CanvasPerformanceIntegration>();
+  performance_integration_->Initialize(canvas_id_);
+  performance_integration_->SetUsageTracker(usage_tracker_);
+  performance_integration_->StartMonitoring();
+}
 
 void Canvas::Init(const CanvasConfig& config) {
   config_ = config;
@@ -268,12 +271,8 @@ void Canvas::InitializeEnhancedComponents() {
     usage_tracker_ = std::make_shared<CanvasUsageTracker>();
     usage_tracker_->Initialize(canvas_id_);
     usage_tracker_->StartSession();
-
-    // Initialize performance integration
-    performance_integration_ = std::make_shared<CanvasPerformanceIntegration>();
-    performance_integration_->Initialize(canvas_id_);
-    performance_integration_->SetUsageTracker(usage_tracker_);
-    performance_integration_->StartMonitoring();
+    // CanvasPerformanceIntegration is created lazily on first use
+    // (ShowPerformanceUI / RecordCanvasOperation) to avoid idle overhead.
   }
 }
 
@@ -292,6 +291,7 @@ void Canvas::RecordCanvasOperation(const std::string& operation_name,
   if (usage_tracker_) {
     usage_tracker_->RecordOperation(operation_name, time_ms);
   }
+  EnsurePerformanceIntegration();
   if (performance_integration_) {
     performance_integration_->RecordOperation(operation_name, time_ms,
                                               usage_mode());
@@ -299,6 +299,7 @@ void Canvas::RecordCanvasOperation(const std::string& operation_name,
 }
 
 void Canvas::ShowPerformanceUI() {
+  EnsurePerformanceIntegration();
   if (performance_integration_) {
     performance_integration_->RenderPerformanceUI();
   }
@@ -594,11 +595,7 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
   state_.geometry = CalculateCanvasGeometry(
       config_, canvas_size, GetCursorScreenPos(), GetContentRegionAvail());
 
-  // Sync legacy fields for backward compatibility
-  canvas_p0_ = state_.geometry.canvas_p0;
-  canvas_p1_ = state_.geometry.canvas_p1;
-  canvas_sz_ = state_.geometry.canvas_sz;
-  scrolling_ = state_.geometry.scrolling;
+  SyncLegacyGeometryFromState();
 
   // Update config if explicit size provided
   if (canvas_size.x != 0) {
@@ -649,17 +646,17 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
               state_.geometry, global_scale_, new_scale, io.MousePos);
           set_global_scale(new_scale);
           state_.geometry.scrolling = new_scroll;
-          scrolling_ = state_.geometry.scrolling;
+          SyncLegacyGeometryFromState();
           config_.scrolling = scrolling_;
         }
       } else {
         // Plain wheel: pan (two-finger pan on iOS).
         constexpr float kTouchWheelToPixels = 10.0f;
-        ApplyScrollDelta(
-            state_.geometry,
-            ImVec2(wheel_x * kTouchWheelToPixels, wheel_y * kTouchWheelToPixels));
-        scrolling_ = state_.geometry.scrolling;  // Sync legacy field
-        config_.scrolling = scrolling_;          // Sync config
+        ApplyScrollDelta(state_.geometry,
+                         ImVec2(wheel_x * kTouchWheelToPixels,
+                                wheel_y * kTouchWheelToPixels));
+        SyncLegacyGeometryFromState();
+        config_.scrolling = scrolling_;
       }
     }
   }
@@ -675,8 +672,8 @@ void Canvas::DrawBackground(ImVec2 canvas_size) {
         is_active &&
         IsMouseDragging(ImGuiMouseButton_Right, mouse_threshold_for_pan)) {
       ApplyScrollDelta(state_.geometry, io.MouseDelta);
-      scrolling_ = state_.geometry.scrolling;  // Sync legacy field
-      config_.scrolling = scrolling_;          // Sync config
+      SyncLegacyGeometryFromState();
+      config_.scrolling = scrolling_;
     }
   }
 }
@@ -767,43 +764,40 @@ void Canvas::DrawContextMenu() {
               config_.global_scale = updated_config.global_scale;
               global_scale_ = config_.global_scale;
               break;
-            case CanvasContextMenu::Command::kOpenAdvancedProperties:
-              {
-                auto& ext = EnsureExtensions();
-                ext.InitializeModals();
-                if (ext.modals) {
-                  CanvasConfig modal_config = updated_config;
-                  modal_config.on_config_changed =
-                      [this](const CanvasConfig& cfg) {
-                        ApplyConfigSnapshot(cfg);
-                      };
-                  modal_config.on_scale_changed =
-                      [this](const CanvasConfig& cfg) {
-                        ApplyScaleSnapshot(cfg);
-                      };
-                  ext.modals->ShowAdvancedProperties(canvas_id_, modal_config,
-                                                     bitmap_);
-                }
+            case CanvasContextMenu::Command::kOpenAdvancedProperties: {
+              auto& ext = EnsureExtensions();
+              ext.InitializeModals();
+              if (ext.modals) {
+                CanvasConfig modal_config = updated_config;
+                modal_config.on_config_changed =
+                    [this](const CanvasConfig& cfg) {
+                      ApplyConfigSnapshot(cfg);
+                    };
+                modal_config.on_scale_changed =
+                    [this](const CanvasConfig& cfg) {
+                      ApplyScaleSnapshot(cfg);
+                    };
+                ext.modals->ShowAdvancedProperties(canvas_id_, modal_config,
+                                                   bitmap_);
               }
-              break;
-            case CanvasContextMenu::Command::kOpenScalingControls:
-              {
-                auto& ext = EnsureExtensions();
-                ext.InitializeModals();
-                if (ext.modals) {
-                  CanvasConfig modal_config = updated_config;
-                  modal_config.on_config_changed =
-                      [this](const CanvasConfig& cfg) {
-                        ApplyConfigSnapshot(cfg);
-                      };
-                  modal_config.on_scale_changed =
-                      [this](const CanvasConfig& cfg) {
-                        ApplyScaleSnapshot(cfg);
-                      };
-                  ext.modals->ShowScalingControls(canvas_id_, modal_config, bitmap_);
-                }
+            } break;
+            case CanvasContextMenu::Command::kOpenScalingControls: {
+              auto& ext = EnsureExtensions();
+              ext.InitializeModals();
+              if (ext.modals) {
+                CanvasConfig modal_config = updated_config;
+                modal_config.on_config_changed =
+                    [this](const CanvasConfig& cfg) {
+                      ApplyConfigSnapshot(cfg);
+                    };
+                modal_config.on_scale_changed =
+                    [this](const CanvasConfig& cfg) {
+                      ApplyScaleSnapshot(cfg);
+                    };
+                ext.modals->ShowScalingControls(canvas_id_, modal_config,
+                                                bitmap_);
               }
-              break;
+            } break;
             default:
               break;
           }
@@ -1270,10 +1264,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
 
   // Calculate the start and end tiles in the grid
   // selected_points are now in world coordinates, so divide by tile_size only
-  int start_tile_x =
-      static_cast<int>(std::floor(rect_top_left.x / tile_size));
-  int start_tile_y =
-      static_cast<int>(std::floor(rect_top_left.y / tile_size));
+  int start_tile_x = static_cast<int>(std::floor(rect_top_left.x / tile_size));
+  int start_tile_y = static_cast<int>(std::floor(rect_top_left.y / tile_size));
   int end_tile_x =
       static_cast<int>(std::floor(rect_bottom_right.x / tile_size));
   int end_tile_y =
@@ -1401,11 +1393,12 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
   }
 
   // Now grid-align the clamped position (in screen coords)
-  auto new_start_pos_screen = AlignPosToGrid(clamped_mouse_pos, tile_size * effective_scale);
+  auto new_start_pos_screen =
+      AlignPosToGrid(clamped_mouse_pos, tile_size * effective_scale);
 
   // Convert to world coordinates for storage (selected_points_ stores world coords)
   ImVec2 new_start_pos_world(new_start_pos_screen.x / effective_scale,
-                              new_start_pos_screen.y / effective_scale);
+                             new_start_pos_screen.y / effective_scale);
 
   // Additional safety: clamp to overall map bounds (in world coordinates)
   new_start_pos_world.x =
@@ -1415,8 +1408,8 @@ void Canvas::DrawBitmapGroup(std::vector<int>& group, gfx::Tilemap& tilemap,
 
   selected_points_.clear();
   selected_points_.push_back(new_start_pos_world);
-  selected_points_.push_back(
-      ImVec2(new_start_pos_world.x + rect_width, new_start_pos_world.y + rect_height));
+  selected_points_.push_back(ImVec2(new_start_pos_world.x + rect_width,
+                                    new_start_pos_world.y + rect_height));
   select_rect_active_ = true;
 }
 
@@ -1563,248 +1556,6 @@ void Canvas::DrawLayeredElements() {
     ImGui::Dummy(ImVec2(75, 75));
     Text("After reordering, contents of channel 0 appears below channel 1.");
   }
-}
-
-void BeginCanvas(Canvas& canvas, ImVec2 child_size) {
-  gui::BeginPadding(1);
-
-  // Use improved canvas sizing for table integration
-  ImVec2 effective_size = child_size;
-  if (child_size.x == 0 && child_size.y == 0) {
-    // Auto-size based on canvas configuration
-    if (canvas.IsAutoResize()) {
-      effective_size = canvas.GetPreferredSize();
-    } else {
-      effective_size = canvas.GetCurrentSize();
-    }
-  }
-
-  // Use NoScrollbar by default - content should fit in the child window
-  // Scrolling is handled by the canvas's internal scrolling mechanism
-  ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
-                    ImGuiWindowFlags_NoScrollbar);
-  canvas.DrawBackground();
-  gui::EndPadding();
-  canvas.DrawContextMenu();
-}
-
-void EndCanvas(Canvas& canvas) {
-  canvas.DrawGrid();
-  canvas.DrawOverlay();
-  ImGui::EndChild();
-}
-
-CanvasRuntime BeginCanvas(gui::Canvas& canvas,
-                          const CanvasFrameOptions& options) {
-  gui::BeginPadding(1);
-
-  // Only wrap in child window if explicitly requested
-  if (options.use_child_window) {
-    // Calculate effective size
-    ImVec2 effective_size = options.canvas_size;
-    if (effective_size.x == 0 && effective_size.y == 0) {
-      if (canvas.IsAutoResize()) {
-        effective_size = canvas.GetPreferredSize();
-      } else {
-        effective_size = canvas.GetCurrentSize();
-      }
-    }
-
-    ImGuiWindowFlags child_flags = ImGuiWindowFlags_None;
-    if (options.show_scrollbar) {
-      child_flags |= ImGuiWindowFlags_AlwaysVerticalScrollbar;
-    }
-    ImGui::BeginChild(canvas.canvas_id().c_str(), effective_size, true,
-                      child_flags);
-  }
-
-  // Apply grid step from options if specified
-  if (options.grid_step.has_value()) {
-    canvas.SetCustomGridStep(options.grid_step.value());
-  }
-
-  canvas.DrawBackground(options.canvas_size);
-  gui::EndPadding();
-
-  if (options.draw_context_menu) {
-    canvas.DrawContextMenu();
-  }
-
-  // Build and return runtime
-  CanvasRuntime runtime;
-  runtime.draw_list = canvas.draw_list();
-  runtime.canvas_p0 = canvas.zero_point();
-  runtime.canvas_sz = canvas.canvas_size();
-  runtime.scrolling = canvas.scrolling();
-  runtime.hovered = canvas.IsMouseHovering();
-  runtime.grid_step = options.grid_step.value_or(canvas.GetGridStep());
-  runtime.scale = canvas.GetGlobalScale();
-  runtime.content_size = canvas.GetCurrentSize();
-
-  return runtime;
-}
-
-void EndCanvas(gui::Canvas& canvas, CanvasRuntime& /*runtime*/,
-               const CanvasFrameOptions& options) {
-  if (options.draw_grid) {
-    canvas.DrawGrid(options.grid_step.value_or(canvas.GetGridStep()));
-  }
-  if (options.draw_overlay) {
-    canvas.DrawOverlay();
-  }
-  if (options.render_popups) {
-    canvas.RenderPersistentPopups();
-  }
-  // Only end child if we started one
-  if (options.use_child_window) {
-    ImGui::EndChild();
-  }
-}
-
-// =============================================================================
-// Scroll and Zoom Helpers
-// =============================================================================
-
-ZoomToFitResult ComputeZoomToFit(ImVec2 content_px, ImVec2 canvas_px,
-                                 float padding_px) {
-  ZoomToFitResult result;
-  result.scale = 1.0f;
-  result.scroll = ImVec2(0, 0);
-
-  if (content_px.x <= 0 || content_px.y <= 0) {
-    return result;
-  }
-
-  // Calculate available space after padding
-  float available_x = canvas_px.x - padding_px * 2;
-  float available_y = canvas_px.y - padding_px * 2;
-
-  if (available_x <= 0 || available_y <= 0) {
-    return result;
-  }
-
-  // Compute scale to fit content in available space
-  float scale_x = available_x / content_px.x;
-  float scale_y = available_y / content_px.y;
-  result.scale = std::min(scale_x, scale_y);
-
-  // Center the content
-  float scaled_w = content_px.x * result.scale;
-  float scaled_h = content_px.y * result.scale;
-  result.scroll.x = (canvas_px.x - scaled_w) / 2.0f;
-  result.scroll.y = (canvas_px.y - scaled_h) / 2.0f;
-
-  return result;
-}
-
-ImVec2 ClampScroll(ImVec2 scroll, ImVec2 content_px, ImVec2 canvas_px) {
-  // Scrolling is typically negative (content moves left/up as you scroll)
-  // max_scroll is how far we can scroll before content edge leaves viewport
-  float max_scroll_x = std::max(0.0f, content_px.x - canvas_px.x);
-  float max_scroll_y = std::max(0.0f, content_px.y - canvas_px.y);
-
-  // Clamp scroll to valid range: [-max_scroll, 0]
-  // At scroll=0, content top-left is at viewport top-left
-  // At scroll=-max_scroll, content bottom-right is at viewport bottom-right
-  return ImVec2(
-      std::clamp(scroll.x, -max_scroll_x, 0.0f),
-      std::clamp(scroll.y, -max_scroll_y, 0.0f));
-}
-
-void GraphicsBinCanvasPipeline(int width, int height, int tile_size,
-                               int num_sheets_to_load, int canvas_id,
-                               bool is_loaded, gfx::BitmapTable& graphics_bin) {
-  gui::Canvas canvas;
-  if (ImGuiID child_id =
-          ImGui::GetID((ImTextureID)(intptr_t)(intptr_t)canvas_id);
-      ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-    canvas.DrawBackground(ImVec2(width + 1, num_sheets_to_load * height + 1));
-    canvas.DrawContextMenu();
-    if (is_loaded) {
-      for (const auto& [key, value] : graphics_bin) {
-        // Skip null bitmaps
-        if (!value || !value->texture()) {
-          continue;
-        }
-        int offset = height * (key + 1);
-        int top_left_y = canvas.zero_point().y + 2;
-        if (key >= 1) {
-          top_left_y = canvas.zero_point().y + height * key;
-        }
-        canvas.draw_list()->AddImage(
-            (ImTextureID)(intptr_t)value->texture(),
-            ImVec2(canvas.zero_point().x + 2, top_left_y),
-            ImVec2(canvas.zero_point().x + 0x100,
-                   canvas.zero_point().y + offset));
-      }
-    }
-    canvas.DrawTileSelector(tile_size);
-    canvas.DrawGrid(tile_size);
-    canvas.DrawOverlay();
-    // Phase 3: Render persistent popups (previously only available via End())
-    canvas.RenderPersistentPopups();
-  }
-  ImGui::EndChild();
-}
-
-void BitmapCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
-                          int height, int tile_size, bool is_loaded,
-                          bool scrollbar, int canvas_id) {
-  auto draw_canvas = [&](gui::Canvas& canvas, gfx::Bitmap& bitmap, int width,
-                         int height, int tile_size, bool is_loaded) {
-    canvas.DrawBackground(ImVec2(width + 1, height + 1));
-    canvas.DrawContextMenu();
-    canvas.DrawBitmap(bitmap, 2, is_loaded);
-    canvas.DrawTileSelector(tile_size);
-    canvas.DrawGrid(tile_size);
-    canvas.DrawOverlay();
-    // Phase 3: Render persistent popups (previously only available via End())
-    canvas.RenderPersistentPopups();
-  };
-
-  if (scrollbar) {
-    if (ImGuiID child_id =
-            ImGui::GetID((ImTextureID)(intptr_t)(intptr_t)canvas_id);
-        ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
-                          ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
-      draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
-    }
-    ImGui::EndChild();
-  } else {
-    draw_canvas(canvas, bitmap, width, height, tile_size, is_loaded);
-  }
-}
-
-void TableCanvasPipeline(gui::Canvas& canvas, gfx::Bitmap& bitmap,
-                         const std::string& label, bool auto_resize) {
-  // Configure canvas for table integration
-  canvas.SetAutoResize(auto_resize);
-
-  if (auto_resize && bitmap.is_active()) {
-    // Auto-calculate size based on bitmap content
-    ImVec2 content_size = ImVec2(bitmap.width(), bitmap.height());
-    ImVec2 preferred_size = CanvasUtils::CalculatePreferredCanvasSize(
-        content_size, canvas.GetGlobalScale());
-    canvas.SetCanvasSize(preferred_size);
-  }
-
-  // Begin table-aware canvas
-  if (canvas.BeginTableCanvas(label)) {
-    // Draw the canvas content
-    canvas.DrawBackground();
-    canvas.DrawContextMenu();
-
-    if (bitmap.is_active()) {
-      canvas.DrawBitmap(bitmap, 2, 2, canvas.GetGlobalScale());
-    }
-
-    canvas.DrawGrid();
-    canvas.DrawOverlay();
-    // Phase 3: Render persistent popups (previously only available via End())
-    canvas.RenderPersistentPopups();
-  }
-  canvas.EndTableCanvas();
 }
 
 void Canvas::ShowAdvancedCanvasProperties() {
@@ -2150,344 +1901,14 @@ CanvasAutomationAPI* Canvas::GetAutomationAPI() {
   return ext.automation_api.get();
 }
 
-// Stateless Canvas Helpers
-
-namespace {
-CanvasGeometry GetGeometryFromRuntime(const CanvasRuntime& rt) {
-  CanvasGeometry geom;
-  geom.canvas_p0 = rt.canvas_p0;
-  geom.canvas_sz = rt.canvas_sz;
-  geom.scrolling = rt.scrolling;
-  geom.scaled_size =
-      ImVec2(rt.canvas_sz.x * rt.scale, rt.canvas_sz.y * rt.scale);
-  geom.canvas_p1 = ImVec2(geom.canvas_p0.x + geom.canvas_sz.x,
-                          geom.canvas_p0.y + geom.canvas_sz.y);
-  return geom;
-}
-}  // namespace
-
-void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int border_offset,
-                float scale) {
-  if (!rt.draw_list) return;
-  CanvasGeometry geom = GetGeometryFromRuntime(rt);
-  RenderBitmapOnCanvas(rt.draw_list, geom, bitmap, border_offset, scale);
-}
-
-void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, int x_offset,
-                int y_offset, float scale, int alpha) {
-  if (!rt.draw_list) return;
-  CanvasGeometry geom = GetGeometryFromRuntime(rt);
-  RenderBitmapOnCanvas(rt.draw_list, geom, bitmap, x_offset, y_offset, scale,
-                       alpha);
-}
-
-void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap, ImVec2 dest_pos,
-                ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size) {
-  if (!rt.draw_list) return;
-  CanvasGeometry geom = GetGeometryFromRuntime(rt);
-  RenderBitmapOnCanvas(rt.draw_list, geom, bitmap, dest_pos, dest_size, src_pos,
-                       src_size);
-}
-
-void DrawBitmap(const CanvasRuntime& rt, gfx::Bitmap& bitmap,
-                const BitmapDrawOpts& opts) {
-  if (!rt.draw_list) return;
-
-  // Ensure texture if requested
-  if (opts.ensure_texture && !bitmap.texture() && bitmap.surface()) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bitmap);
-  }
-
-  // Determine which overload to use based on options
-  if (opts.dest_size.x > 0 && opts.dest_size.y > 0) {
-    ImVec2 src_size = opts.src_size;
-    if (src_size.x <= 0 || src_size.y <= 0) {
-      src_size = ImVec2(static_cast<float>(bitmap.width()),
-                        static_cast<float>(bitmap.height()));
-    }
-    DrawBitmap(rt, bitmap, opts.dest_pos, opts.dest_size, opts.src_pos,
-               src_size);
-  } else {
-    DrawBitmap(rt, bitmap, static_cast<int>(opts.dest_pos.x),
-               static_cast<int>(opts.dest_pos.y), opts.scale, opts.alpha);
-  }
-}
-
-void DrawBitmapPreview(const CanvasRuntime& rt, gfx::Bitmap& bitmap,
-                       const BitmapPreviewOptions& options) {
-  if (options.ensure_texture && !bitmap.texture() && bitmap.surface()) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bitmap);
-  }
-
-  if (options.dest_size.x > 0 && options.dest_size.y > 0) {
-    ImVec2 src_size = options.src_size;
-    if (src_size.x <= 0 || src_size.y <= 0) {
-      src_size = ImVec2(bitmap.width(), bitmap.height());
-    }
-    DrawBitmap(rt, bitmap, options.dest_pos, options.dest_size, options.src_pos,
-               src_size);
-  } else {
-    DrawBitmap(rt, bitmap, static_cast<int>(options.dest_pos.x),
-               static_cast<int>(options.dest_pos.y), options.scale,
-               options.alpha);
-  }
-}
-
-bool RenderPreviewPanel(const CanvasRuntime& rt, gfx::Bitmap& bmp,
-                        const PreviewPanelOpts& opts) {
-  if (!rt.draw_list) return false;
-
-  // Ensure texture if requested
-  if (opts.ensure_texture && !bmp.texture() && bmp.surface()) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bmp);
-  }
-
-  // Draw the bitmap using existing helpers
-  if (opts.dest_size.x > 0 && opts.dest_size.y > 0) {
-    DrawBitmap(rt, bmp, opts.dest_pos, opts.dest_size, ImVec2(0, 0),
-               ImVec2(static_cast<float>(bmp.width()),
-                      static_cast<float>(bmp.height())));
-  } else {
-    DrawBitmap(rt, bmp, static_cast<int>(opts.dest_pos.x),
-               static_cast<int>(opts.dest_pos.y), 1.0f, 255);
-  }
-  return true;
-}
-
-// ============================================================================
-// Stateless DrawRect/DrawText/DrawOutline Helpers
-// ============================================================================
-
-void DrawRect(const CanvasRuntime& rt, int x, int y, int w, int h,
-              ImVec4 color) {
-  if (!rt.draw_list) return;
-  CanvasUtils::DrawCanvasRect(rt.draw_list, rt.canvas_p0, rt.scrolling, x, y, w,
-                              h, color, rt.scale);
-}
-
-void DrawText(const CanvasRuntime& rt, const std::string& text, int x, int y) {
-  if (!rt.draw_list) return;
-  CanvasUtils::DrawCanvasText(rt.draw_list, rt.canvas_p0, rt.scrolling, text, x,
-                              y, rt.scale);
-}
-
-void DrawOutline(const CanvasRuntime& rt, int x, int y, int w, int h,
-                 ImU32 color) {
-  if (!rt.draw_list) return;
-  CanvasUtils::DrawCanvasOutline(rt.draw_list, rt.canvas_p0, rt.scrolling, x, y,
-                                 w, h, color);
-}
-
-// ============================================================================
-// Stateless Interaction Helpers
-// ============================================================================
-
-namespace {
-ImVec2 AlignPosToGridHelper(ImVec2 pos, float scale) {
-  return ImVec2(std::floor(pos.x / scale) * scale,
-                std::floor(pos.y / scale) * scale);
-}
-}  // namespace
-
-bool DrawTilemapPainter(const CanvasRuntime& rt, gfx::Tilemap& tilemap,
-                        int current_tile, ImVec2* out_drawn_pos) {
-  if (!rt.draw_list) return false;
-
-  const ImGuiIO& io = ImGui::GetIO();
-  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
-                      rt.canvas_p0.y + rt.scrolling.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-  // Safety check: ensure tilemap is properly initialized
-  if (!tilemap.atlas.is_active() || tilemap.tile_size.x <= 0) {
-    return false;
-  }
-
-  const float scaled_size = tilemap.tile_size.x * rt.scale;
-
-  if (!rt.hovered) {
-    return false;
-  }
-
-  ImVec2 paint_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
-
-  // Performance optimization: Draw preview tile directly from atlas texture
-  if (tilemap.atlas.is_active() && tilemap.atlas.texture()) {
-    int tiles_per_row = tilemap.atlas.width() / tilemap.tile_size.x;
-    if (tiles_per_row > 0) {
-      int tile_x = (current_tile % tiles_per_row) * tilemap.tile_size.x;
-      int tile_y = (current_tile / tiles_per_row) * tilemap.tile_size.y;
-
-      // Simple bounds check
-      if (tile_x >= 0 && tile_x < tilemap.atlas.width() && tile_y >= 0 &&
-          tile_y < tilemap.atlas.height()) {
-        ImVec2 uv0 =
-            ImVec2(static_cast<float>(tile_x) / tilemap.atlas.width(),
-                   static_cast<float>(tile_y) / tilemap.atlas.height());
-        ImVec2 uv1 = ImVec2(static_cast<float>(tile_x + tilemap.tile_size.x) /
-                                tilemap.atlas.width(),
-                            static_cast<float>(tile_y + tilemap.tile_size.y) /
-                                tilemap.atlas.height());
-
-        rt.draw_list->AddImage(
-            (ImTextureID)(intptr_t)tilemap.atlas.texture(),
-            ImVec2(origin.x + paint_pos.x, origin.y + paint_pos.y),
-            ImVec2(origin.x + paint_pos.x + scaled_size,
-                   origin.y + paint_pos.y + scaled_size),
-            uv0, uv1);
-      }
-    }
-  }
-
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
-      ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-    if (out_drawn_pos) *out_drawn_pos = paint_pos;
-    return true;
-  }
-
-  return false;
-}
-
-bool DrawTileSelector(const CanvasRuntime& rt, int size, int size_y,
-                      ImVec2* out_selected_pos) {
-  const ImGuiIO& io = ImGui::GetIO();
-  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
-                      rt.canvas_p0.y + rt.scrolling.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-
-  if (size_y == 0) {
-    size_y = size;
-  }
-
-  if (rt.hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    ImVec2 painter_pos = AlignPosToGridHelper(mouse_pos, static_cast<float>(size));
-    if (out_selected_pos) *out_selected_pos = painter_pos;
-  }
-
-  // Return true on double-click for "confirm selection" semantics
-  if (rt.hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-    return true;
-  }
-
-  return false;
-}
-
-void DrawSelectRect(const CanvasRuntime& rt, int current_map, int tile_size,
-                    float scale, CanvasSelection& selection) {
-  if (!rt.draw_list) return;
-
-  const ImGuiIO& io = ImGui::GetIO();
-  const ImVec2 origin(rt.canvas_p0.x + rt.scrolling.x,
-                      rt.canvas_p0.y + rt.scrolling.y);
-  const ImVec2 mouse_pos(io.MousePos.x - origin.x, io.MousePos.y - origin.y);
-  static ImVec2 drag_start_pos;
-  const float scaled_size = tile_size * scale;
-  static bool dragging = false;
-  constexpr int small_map_size = 0x200;
-  constexpr uint32_t kWhite = IM_COL32(255, 255, 255, 255);
-
-  if (!rt.hovered) {
-    return;
-  }
-
-  // Calculate superX and superY accounting for world offset
-  int superY, superX;
-  if (current_map < 0x40) {
-    superY = current_map / 8;
-    superX = current_map % 8;
-  } else if (current_map < 0x80) {
-    superY = (current_map - 0x40) / 8;
-    superX = (current_map - 0x40) % 8;
-  } else {
-    superY = (current_map - 0x80) / 8;
-    superX = (current_map - 0x80) % 8;
-  }
-
-  // Handle right click for single tile selection
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    ImVec2 painter_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
-    // Unscale to get world coordinates for tile calculation
-    int world_x = static_cast<int>(painter_pos.x / scale);
-    int world_y = static_cast<int>(painter_pos.y / scale);
-
-    auto tile16_x = (world_x % small_map_size) / (small_map_size / 0x20);
-    auto tile16_y = (world_y % small_map_size) / (small_map_size / 0x20);
-
-    int index_x = superX * 0x20 + tile16_x;
-    int index_y = superY * 0x20 + tile16_y;
-    selection.selected_tile_pos = ImVec2(static_cast<float>(index_x),
-                                         static_cast<float>(index_y));
-    selection.selected_points.clear();
-    selection.select_rect_active = false;
-
-    drag_start_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
-  }
-
-  // Calculate the rectangle's top-left and bottom-right corners
-  ImVec2 drag_end_pos = AlignPosToGridHelper(mouse_pos, scaled_size);
-  if (ImGui::IsMouseDragging(ImGuiMouseButton_Right)) {
-    auto start =
-        ImVec2(origin.x + drag_start_pos.x, origin.y + drag_start_pos.y);
-    // Use scaled_size for visual rectangle to match zoom level
-    auto end = ImVec2(origin.x + drag_end_pos.x + scaled_size,
-                      origin.y + drag_end_pos.y + scaled_size);
-    rt.draw_list->AddRect(start, end, kWhite);
-    dragging = true;
-  }
-
-  if (dragging && !ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
-    dragging = false;
-
-    constexpr int tile16_size = 16;
-    // Convert from scaled screen coords to world tile coords
-    int start_x = static_cast<int>(std::floor(drag_start_pos.x / scaled_size)) * tile16_size;
-    int start_y = static_cast<int>(std::floor(drag_start_pos.y / scaled_size)) * tile16_size;
-    int end_x = static_cast<int>(std::floor(drag_end_pos.x / scaled_size)) * tile16_size;
-    int end_y = static_cast<int>(std::floor(drag_end_pos.y / scaled_size)) * tile16_size;
-
-    if (start_x > end_x) std::swap(start_x, end_x);
-    if (start_y > end_y) std::swap(start_y, end_y);
-
-    selection.selected_tiles.clear();
-    selection.selected_tiles.reserve(
-        static_cast<size_t>(((end_x - start_x) / tile16_size + 1) *
-                            ((end_y - start_y) / tile16_size + 1)));
-
-    constexpr int tiles_per_local_map = small_map_size / 16;
-
-    for (int y = start_y; y <= end_y; y += tile16_size) {
-      for (int x = start_x; x <= end_x; x += tile16_size) {
-        int local_map_x = (x / small_map_size) % 8;
-        int local_map_y = (y / small_map_size) % 8;
-        int tile16_x = (x % small_map_size) / tile16_size;
-        int tile16_y = (y % small_map_size) / tile16_size;
-        int index_x = local_map_x * tiles_per_local_map + tile16_x;
-        int index_y = local_map_y * tiles_per_local_map + tile16_y;
-        selection.selected_tiles.emplace_back(static_cast<float>(index_x),
-                                              static_cast<float>(index_y));
-      }
-    }
-
-    // Store world coordinates (unscaled) so they work correctly at any zoom level
-    // Divide by scale to convert from screen coords to world coords
-    selection.selected_points.clear();
-    selection.selected_points.push_back(
-        ImVec2(drag_start_pos.x / scale, drag_start_pos.y / scale));
-    selection.selected_points.push_back(
-        ImVec2(drag_end_pos.x / scale, drag_end_pos.y / scale));
-    selection.select_rect_active = true;
-  }
-}
-
 // =============================================================================
 // Canvas::AddXxxAt Methods
 // =============================================================================
 
-void Canvas::AddImageAt(ImTextureID texture, ImVec2 local_top_left, ImVec2 size) {
-  if (draw_list_ == nullptr) return;
+void Canvas::AddImageAt(ImTextureID texture, ImVec2 local_top_left,
+                        ImVec2 size) {
+  if (draw_list_ == nullptr)
+    return;
   ImVec2 screen_pos(canvas_p0_.x + local_top_left.x * global_scale_,
                     canvas_p0_.y + local_top_left.y * global_scale_);
   ImVec2 screen_end(screen_pos.x + size.x * global_scale_,
@@ -2495,8 +1916,10 @@ void Canvas::AddImageAt(ImTextureID texture, ImVec2 local_top_left, ImVec2 size)
   draw_list_->AddImage(texture, screen_pos, screen_end);
 }
 
-void Canvas::AddRectFilledAt(ImVec2 local_top_left, ImVec2 size, uint32_t color) {
-  if (draw_list_ == nullptr) return;
+void Canvas::AddRectFilledAt(ImVec2 local_top_left, ImVec2 size,
+                             uint32_t color) {
+  if (draw_list_ == nullptr)
+    return;
   ImVec2 screen_pos(canvas_p0_.x + local_top_left.x * global_scale_,
                     canvas_p0_.y + local_top_left.y * global_scale_);
   ImVec2 screen_end(screen_pos.x + size.x * global_scale_,
@@ -2504,8 +1927,10 @@ void Canvas::AddRectFilledAt(ImVec2 local_top_left, ImVec2 size, uint32_t color)
   draw_list_->AddRectFilled(screen_pos, screen_end, color);
 }
 
-void Canvas::AddTextAt(ImVec2 local_pos, const std::string& text, uint32_t color) {
-  if (draw_list_ == nullptr) return;
+void Canvas::AddTextAt(ImVec2 local_pos, const std::string& text,
+                       uint32_t color) {
+  if (draw_list_ == nullptr)
+    return;
   ImVec2 screen_pos(canvas_p0_.x + local_pos.x * global_scale_,
                     canvas_p0_.y + local_pos.y * global_scale_);
   draw_list_->AddText(screen_pos, color, text.c_str());
