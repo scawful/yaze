@@ -1068,7 +1068,9 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSaveBlocks) {
-    auto status = zelda3::SaveAllBlocks(rom_);
+    auto status = zelda3::SaveAllBlocks(
+        rom_, static_cast<int>(rooms_.size()),
+        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); });
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save blocks: %s",
                 status.message().data());
@@ -1255,7 +1257,9 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     RETURN_IF_ERROR(zelda3::SaveAllPits(rom_));
   }
   if (flags.kSaveBlocks) {
-    RETURN_IF_ERROR(zelda3::SaveAllBlocks(rom_));
+    RETURN_IF_ERROR(zelda3::SaveAllBlocks(
+        rom_, static_cast<int>(rooms_.size()),
+        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); }));
   }
   if (flags.kSaveCollision) {
     RETURN_IF_ERROR(zelda3::SaveAllCollision(
