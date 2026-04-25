@@ -25,10 +25,13 @@
 // - 2026-04-25 audit (zelda3-hacking-expert): IDs `0x47` and `0x48`
 //   stored as 0 (fallback to 8) but routine bodies in
 //   `special_routines.cc::DrawWaterfall47` and `DrawWaterfall48`
-//   deterministically read 15 and 9 tiles respectively (15-column
-//   and 9-column 1xN draws). 8 was an under-fetch — the routines
-//   read past the end of the parsed tile vector. Updated to the
-//   real counts.
+//   deterministically index tile slots 0..14 and 0..8 respectively
+//   (three 1x5 / 1x3 columns). The under-fetched 8-tile vector is
+//   not a bounds bug — `TileAtWrapped` wraps `index % tiles.size()`
+//   — but the wrap quietly substitutes the wrong tile for the right
+//   column (e.g. Waterfall47 column 3 indexes tile 12, which wraps
+//   to tile 4 with size 8). Updated to the real counts so the wrap
+//   never fires for vanilla data.
 // - IDs `0xD3..0xD6` are routed to `DrawNothing` (logic-only;
 //   `CheckIfWallIsMoved` flag tests). Their tile-count entry is
 //   `0` (handled by the fallback) because the routine never

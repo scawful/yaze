@@ -1341,6 +1341,66 @@ TEST(ObjectDrawerRegistryReplayTest,
   }
 }
 
+TEST(ObjectDrawerRegistryReplayTest, Waterfall47UsesStartMiddleEndTileBlocks) {
+  // Mirrors the Waterfall48 test below. Vanilla `RoomDraw_Waterfall47`
+  // ($01:9466) draws three vertical 1x5 columns: the left column
+  // consumes tile slots 0..4, the middle column block (which repeats
+  // by `(size+1)*2`) consumes tile slots 5..9, and the right column
+  // consumes tile slots 10..14. With size=0 the middle block repeats
+  // twice, producing a 4-column-by-5-row trace = 20 tiles.
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject obj(0x0047, /*x=*/5, /*y=*/6, /*size=*/0, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 15; ++i) {
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(200 + i),
+                                       /*pal=*/2, false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ASSERT_EQ(trace.size(), 20u);  // 4 columns x 5 rows
+
+  auto key = [](int x, int y) {
+    return (y << 8) | x;
+  };
+  std::unordered_map<int, uint16_t> by_pos;
+  by_pos.reserve(trace.size());
+  for (const auto& t : trace) {
+    by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
+  }
+
+  // Left column (x=5): tiles 0..4
+  for (int row = 0; row < 5; ++row) {
+    EXPECT_EQ(by_pos[key(5, 6 + row)], 200 + row) << "left column row " << row;
+  }
+  // Middle columns (x=6, 7): tiles 5..9 each
+  for (int x = 6; x <= 7; ++x) {
+    for (int row = 0; row < 5; ++row) {
+      EXPECT_EQ(by_pos[key(x, 6 + row)], 200 + 5 + row)
+          << "middle column x=" << x << " row " << row;
+    }
+  }
+  // Right column (x=8): tiles 10..14
+  for (int row = 0; row < 5; ++row) {
+    EXPECT_EQ(by_pos[key(8, 6 + row)], 200 + 10 + row)
+        << "right column row " << row;
+  }
+}
+
 TEST(ObjectDrawerRegistryReplayTest, Waterfall48UsesStartMiddleEndTileBlocks) {
   ScopedCustomObjectsFlag disable_custom(false);
 
