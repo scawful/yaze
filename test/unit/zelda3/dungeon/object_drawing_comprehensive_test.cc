@@ -112,6 +112,11 @@ int ExpectedSubtype3TileCount(int id) {
       id == 0xFD4 || id == 0xFE2 || id == 0xFF4 || id == 0xFF6 || id == 0xFF7) {
     return 16;
   }
+  // Turtle Rock pipes: 24 tiles (matches GetSubtype3TileCount; routine
+  // bodies at special_routines.cc:430-441 read tiles[0..23]).
+  if (id >= 0xFBA && id <= 0xFBD) {
+    return 24;
+  }
   if (id == 0xFCD || id == 0xFDD) {
     return 18;
   }

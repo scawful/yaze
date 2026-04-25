@@ -470,6 +470,18 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
       object_id == 0xFF4 || object_id == 0xFF6 || object_id == 0xFF7) {
     return 16;
   }
+  // Turtle Rock pipes: 24 tiles (proven from routine bodies, not just
+  // dimensions table). DrawVerticalTurtleRockPipe (0xFBA, 0xFBB at
+  // special_routines.cc:430-437) draws two stacked 4x3 sections, reading
+  // tiles[0..11] then tiles[12..23]. DrawHorizontalTurtleRockPipe
+  // (0xFBC, 0xFBD at special_routines.cc:439-441) calls DrawNx4 with
+  // columns=6, which reads a 6x4 column-major block (tiles[0..23]).
+  // Without this case the parser fell through to the default 8 and
+  // TileAtWrapped substituted tiles[0..7] for indices 8..23 -- same
+  // failure mode Waterfall47/48 had before e9938002.
+  if (object_id >= 0xFBA && object_id <= 0xFBD) {
+    return 24;
+  }
   // Utility 6x3 (18 tiles)
   if (object_id == 0xFCD || object_id == 0xFDD) {
     return 18;
