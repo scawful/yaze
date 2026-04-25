@@ -5,6 +5,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/core/content_registry.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/events/core_events.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -45,7 +46,8 @@ void DungeonRoomSelector::RebuildRoomFilterCache() {
   filtered_room_indices_.reserve(zelda3::kNumberOfRooms);
 
   for (int i = 0; i < zelda3::kNumberOfRooms; ++i) {
-    std::string display_name = zelda3::GetRoomLabel(i);
+    std::string display_name =
+        dungeon_project_labels::GetRoomLabel(project_, i);
     if (room_filter_.PassFilter(display_name.c_str()) &&
         PassesEntityTypeFilter(i)) {
       filtered_room_indices_.push_back(i);
@@ -178,7 +180,8 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
     while (clipper.Step()) {
       for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
         int room_id = filtered_room_indices_[row];
-        std::string display_name = zelda3::GetRoomLabel(room_id);
+        std::string display_name =
+            dungeon_project_labels::GetRoomLabel(project_, room_id);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -538,16 +541,21 @@ void DungeonRoomSelector::DrawGroupedRoomList(
   // Build groups from filtered rooms
   // Group key = blockset (if rooms loaded), else "Unloaded"
   struct GroupInfo {
-    const char* name;
+    std::string name;
     std::vector<int> room_ids;
   };
   std::map<int, GroupInfo> groups;
 
   for (int room_id : filtered_room_indices_) {
     int key = 255;  // Unknown/unloaded
-    const char* group_name = "Unloaded";
+    std::string group_name = "Unloaded";
     if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size())) {
-      if (auto* loaded_room = rooms_->GetIfLoaded(room_id)) {
+      size_t dungeon_index = 0;
+      if (const auto* dungeon = dungeon_project_labels::FindDungeonForRoom(
+              project_, room_id, &dungeon_index)) {
+        key = -static_cast<int>(dungeon_index) - 1;
+        group_name = dungeon_project_labels::FormatDungeonName(*dungeon);
+      } else if (auto* loaded_room = rooms_->GetIfLoaded(room_id)) {
         key = loaded_room->blockset();
         group_name = GetBlocksetGroupName(static_cast<uint8_t>(key));
       }
@@ -562,8 +570,8 @@ void DungeonRoomSelector::DrawGroupedRoomList(
                         ImGuiWindowFlags_None)) {
     for (auto& [key, group] : groups) {
       char header[64];
-      snprintf(header, sizeof(header), "%s (%zu rooms)##grp%d", group.name,
-               group.room_ids.size(), key);
+      snprintf(header, sizeof(header), "%s (%zu rooms)##grp%d",
+               group.name.c_str(), group.room_ids.size(), key);
 
       // Auto-open the group that contains the currently selected room
       bool has_current =
@@ -575,7 +583,8 @@ void DungeonRoomSelector::DrawGroupedRoomList(
 
       if (ImGui::CollapsingHeader(header)) {
         for (int room_id : group.room_ids) {
-          std::string display_name = zelda3::GetRoomLabel(room_id);
+          std::string display_name =
+              dungeon_project_labels::GetRoomLabel(project_, room_id);
           char label[64];
           snprintf(label, sizeof(label), "%03X  %s##r%d", room_id,
                    display_name.c_str(), room_id);

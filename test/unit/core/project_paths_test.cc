@@ -213,4 +213,50 @@ output_folder=output
 #endif
 }
 
+TEST(ProjectPathsTest, OpenInjectsOracleDungeonRoomLabelsIntoProjectFile) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_oracle_labels"));
+
+  const auto planning = temp.path() / "Docs" / "Dev" / "Planning";
+  std::filesystem::create_directories(planning);
+  WriteTextFile(planning / "dungeons.json", R"json({
+    "dungeons": [
+      {
+        "id": "D4",
+        "name": "Zora Temple",
+        "rooms": [
+          {"id": "0x25", "name": "Water Grate"}
+        ]
+      }
+    ]
+  })json");
+
+  const auto project_file = temp.path() / "Oracle.yaze";
+  WriteTextFile(project_file,
+                R"(
+[project]
+name=Oracle of Secrets
+
+[files]
+code_folder=Core
+hack_manifest_file=hack_manifest.json
+
+[labels_room]
+37=Thieves' Town
+)");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(project_file.string()).ok());
+  EXPECT_FALSE(project.hack_manifest.loaded());
+  ASSERT_TRUE(project.hack_manifest.HasProjectRegistry());
+
+  ASSERT_TRUE(project.resource_labels.contains("room"));
+  EXPECT_EQ(project.resource_labels["room"]["37"], "Water Grate");
+
+  ASSERT_TRUE(project.Save().ok());
+  const auto saved = ReadTextFile(project_file);
+  EXPECT_NE(saved.find("[labels_room]"), std::string::npos);
+  EXPECT_NE(saved.find("37=Water Grate"), std::string::npos);
+  EXPECT_EQ(saved.find("37=Thieves' Town"), std::string::npos);
+}
+
 }  // namespace yaze::project

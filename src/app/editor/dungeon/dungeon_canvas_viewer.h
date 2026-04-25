@@ -163,6 +163,7 @@ class DungeonCanvasViewer {
 
   void DrawDungeonCanvas(int room_id);
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
+  void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
 
   // Unscaled content size of the connected-room graph centered on
@@ -173,6 +174,9 @@ class DungeonCanvasViewer {
   // Clamped connected-canvas zoom scale that matches the one used by
   // DrawConnectedRoomMatrix when it next runs.
   float ConnectedCanvasScale() const;
+  void SetConnectedControlsInline(bool inline_controls) {
+    connected_controls_inline_ = inline_controls;
+  }
 
   void SetContext(EditorContext ctx) {
     rom_ = ctx.rom;
@@ -399,6 +403,7 @@ class DungeonCanvasViewer {
     pin_callback_ = std::move(callback);
   }
   void SetProject(const project::YazeProject* project);
+  const project::YazeProject* project() const { return project_; }
 
   // Canvas access
   gui::Canvas& canvas() { return canvas_; }
@@ -726,6 +731,9 @@ class DungeonCanvasViewer {
   bool connected_canvas_initialized_ = false;
   bool show_connected_overview_ = false;
   bool show_connected_current_room_preview_ = false;
+  bool connected_controls_inline_ = false;
+  bool connected_canvas_fit_requested_ = false;
+  bool connected_canvas_reset_requested_ = false;
   // Last-frame visibility of the connected-mode side panel (overview /
   // preview). Used to apply hysteresis when the viewport width crosses the
   // panel's min-size threshold, so dragging the pane splitter past the

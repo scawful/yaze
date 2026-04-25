@@ -2,8 +2,14 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdint>
+#include <vector>
+
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_room_store.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "rom/rom.h"
 
 namespace yaze::editor {
 namespace {
@@ -168,6 +174,46 @@ TEST_F(DungeonWorkbenchToolbarTest, DrawDoesNotCreateNestedChildWindowChrome) {
   params.previous_room_id = &previous_room_id;
   params.split_view_enabled = &split_view_enabled;
   params.compare_room_id = &compare_room_id;
+  params.compare_search_buf = compare_search;
+  params.compare_search_buf_size = sizeof(compare_search);
+
+  EXPECT_FALSE(DungeonWorkbenchToolbar::Draw(params));
+  EXPECT_EQ(context->CurrentWindowStack.Size, window_stack_before);
+}
+
+TEST_F(DungeonWorkbenchToolbarTest,
+       DrawConnectedModeInlineControlsStayInToolbarWindow) {
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  ASSERT_NE(context, nullptr);
+
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0x010];
+  room.SetLoaded(true);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+
+  const int window_stack_before = context->CurrentWindowStack.Size;
+
+  DungeonWorkbenchLayoutState layout;
+  layout.show_connected_canvas_view = true;
+  int current_room_id = 0x010;
+  int previous_room_id = 0x00F;
+  bool split_view_enabled = false;
+  int compare_room_id = 0x011;
+  char compare_search[32] = {};
+
+  DungeonWorkbenchToolbarParams params;
+  params.layout = &layout;
+  params.current_room_id = &current_room_id;
+  params.previous_room_id = &previous_room_id;
+  params.split_view_enabled = &split_view_enabled;
+  params.compare_room_id = &compare_room_id;
+  params.primary_viewer = &viewer;
   params.compare_search_buf = compare_search;
   params.compare_search_buf_size = sizeof(compare_search);
 

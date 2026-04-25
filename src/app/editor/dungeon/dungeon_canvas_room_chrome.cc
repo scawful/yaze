@@ -5,6 +5,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/gui/animation/animator.h"
 #include "app/gui/core/icons.h"
@@ -143,13 +144,14 @@ void DungeonCanvasViewer::DrawRoomNavigation(int room_id) {
   const auto east =
       room_if_valid(NeighborRoomId(room_id, zelda3::DoorDirection::East));
 
-  auto make_tooltip = [](const std::optional<int>& target,
-                         const char* direction) -> std::string {
+  auto make_tooltip = [&](const std::optional<int>& target,
+                          const char* direction) -> std::string {
     if (!target.has_value()) {
       return "";
     }
-    return absl::StrFormat("%s: [%03X] %s", direction, *target,
-                           zelda3::GetRoomLabel(*target));
+    return absl::StrFormat(
+        "%s: [%03X] %s", direction, *target,
+        dungeon_project_labels::GetRoomLabel(project_, *target));
   };
 
   auto nav_button = [&](const char* id, ImGuiDir dir,

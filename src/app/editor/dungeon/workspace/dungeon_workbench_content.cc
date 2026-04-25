@@ -12,6 +12,7 @@
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/ui/window/shortcut_legend_panel.h"
 #include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
@@ -360,8 +361,8 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
       "Browse", nullptr, compact, action_cluster_w, [&]() {
         if (can_open_overview) {
           if (workbench::DrawHeaderIconAction("SidebarQuickActions",
-                                              ICON_MD_MORE_HORIZ, button_size,
-                                              "Open room review tools")) {
+                                              ICON_MD_FACT_CHECK, button_size,
+                                              "Open room review tools", true)) {
             ImGui::OpenPopup("##WorkbenchSidebarQuickActions");
           }
           if (ImGui::BeginPopup("##WorkbenchSidebarQuickActions")) {
@@ -789,13 +790,16 @@ void DungeonWorkbenchContent::DrawRecentRoomTabs() {
   gui::StyleVarGuard pad_guard(
       ImGuiStyleVar_FramePadding,
       ImVec2(frame_pad.x + extra_x, frame_pad.y + extra_y));
+  const project::YazeProject* label_project =
+      get_viewer_ && get_viewer_() ? get_viewer_()->project() : nullptr;
 
   if (gui::BeginThemedTabBar("##DungeonRecentRooms", kFlags)) {
     for (int room_id : recent_ids) {
       bool open = true;
       const ImGuiTabItemFlags tab_flags =
           (room_id == *current_room_id_) ? ImGuiTabItemFlags_SetSelected : 0;
-      const auto room_name = zelda3::GetRoomLabel(room_id);
+      const auto room_name =
+          dungeon_project_labels::GetRoomLabel(label_project, room_id);
       const bool room_dirty =
           rooms != nullptr && rooms->GetIfMaterialized(room_id) != nullptr &&
           rooms->GetIfMaterialized(room_id)->HasUnsavedChanges();
@@ -814,7 +818,8 @@ void DungeonWorkbenchContent::DrawRecentRoomTabs() {
       }
 
       if (ImGui::IsItemHovered()) {
-        const auto label = zelda3::GetRoomLabel(room_id);
+        const auto label =
+            dungeon_project_labels::GetRoomLabel(label_project, room_id);
         ImGui::SetTooltip("[%03X] %s%s", room_id, label.c_str(),
                           room_dirty ? "\nPending room changes" : "");
       }
@@ -898,8 +903,11 @@ void DungeonWorkbenchContent::DrawSplitView(
   // Active pane (minimum height so canvas never collapses)
   ImGui::TableNextColumn();
   ImGui::AlignTextToFramePadding();
-  ImGui::TextDisabled(ICON_MD_CROP_FREE " Active  [%03X] %s", *current_room_id_,
-                      zelda3::GetRoomLabel(*current_room_id_).c_str());
+  const project::YazeProject* active_project = primary_viewer.project();
+  ImGui::TextDisabled(
+      ICON_MD_CROP_FREE " Active  [%03X] %s", *current_room_id_,
+      dungeon_project_labels::GetRoomLabel(active_project, *current_room_id_)
+          .c_str());
   ImGui::Separator();
   const bool split_active_open = gui::LayoutHelpers::BeginContentChild(
       "##SplitActive", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
@@ -911,9 +919,14 @@ void DungeonWorkbenchContent::DrawSplitView(
   // Compare pane
   ImGui::TableNextColumn();
   ImGui::AlignTextToFramePadding();
-  ImGui::TextDisabled(ICON_MD_COMPARE_ARROWS " Compare [%03X] %s",
-                      compare_room_id_,
-                      zelda3::GetRoomLabel(compare_room_id_).c_str());
+  const project::YazeProject* compare_project =
+      get_compare_viewer_ && get_compare_viewer_()
+          ? get_compare_viewer_()->project()
+          : active_project;
+  ImGui::TextDisabled(
+      ICON_MD_COMPARE_ARROWS " Compare [%03X] %s", compare_room_id_,
+      dungeon_project_labels::GetRoomLabel(compare_project, compare_room_id_)
+          .c_str());
   ImGui::Separator();
   const bool split_compare_open = gui::LayoutHelpers::BeginContentChild(
       "##SplitCompare", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
@@ -1030,7 +1043,9 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
 
   ImGui::TextDisabled(ICON_MD_SUMMARIZE " Summary");
   if (room_id >= 0) {
-    ImGui::Text("[%03X] %s", room_id, zelda3::GetRoomLabel(room_id).c_str());
+    ImGui::Text("[%03X] %s", room_id,
+                dungeon_project_labels::GetRoomLabel(viewer.project(), room_id)
+                    .c_str());
   } else {
     ImGui::TextDisabled("No room selected");
   }
@@ -1109,7 +1124,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   }
 
   const std::string room_label =
-      (room_id >= 0) ? zelda3::GetRoomLabel(room_id) : std::string("None");
+      (room_id >= 0)
+          ? dungeon_project_labels::GetRoomLabel(viewer.project(), room_id)
+          : std::string("None");
 
   // Room badge: hex ID + copy button (only for valid room IDs).
   DrawWorkbenchInspectorSectionHeader(ICON_MD_CASTLE " Room Summary");
@@ -1147,8 +1164,12 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     BuildRoomDungeonCache();
   }
   if (room_id >= 0) {
-    const char* group_name = nullptr;
-    {
+    std::string project_group_name =
+        dungeon_project_labels::GetDungeonNameForRoom(viewer.project(),
+                                                      room_id);
+    const char* group_name =
+        project_group_name.empty() ? nullptr : project_group_name.c_str();
+    if (!group_name) {
       auto cache_it = room_dungeon_cache_.find(room_id);
       if (cache_it != room_dungeon_cache_.end() && !cache_it->second.empty()) {
         group_name = cache_it->second.c_str();

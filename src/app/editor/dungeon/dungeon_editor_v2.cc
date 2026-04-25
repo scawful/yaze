@@ -186,6 +186,7 @@ void DungeonEditorV2::Initialize() {
   if (dependencies_.renderer) {
     renderer_ = dependencies_.renderer;
   }
+  room_selector_.SetProject(dependencies_.project);
   const bool rom_changed = dependencies_.rom && dependencies_.rom != rom_;
   if (rom_changed) {
     SetRom(dependencies_.rom);

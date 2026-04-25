@@ -1643,11 +1643,9 @@ void YazeProject::TryLoadHackManifest() {
     }
   }
 
-  if (!hack_manifest.loaded()) {
-    return;
+  if (hack_manifest.loaded()) {
+    zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
   }
-
-  zelda3::GetResourceLabels().SetHackManifest(&hack_manifest);
 
   auto try_load_registry = [&](const std::filesystem::path& base) -> bool {
     if (base.empty()) {
@@ -1686,6 +1684,9 @@ void YazeProject::TryLoadHackManifest() {
   }
 
   if (!registry_loaded) {
+    if (!hack_manifest.loaded()) {
+      return;
+    }
     LOG_WARN("Project",
              "Hack manifest loaded but project registry was not found "
              "(code_folder='%s', manifest='%s')",

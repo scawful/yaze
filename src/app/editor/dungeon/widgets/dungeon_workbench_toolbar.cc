@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/widgets/dungeon_room_nav_widget.h"
@@ -40,12 +41,13 @@ constexpr char kToolbarPopupIdCompareMenu[] = "##WorkbenchCompareMenu";
 constexpr char kToolbarStartCompareLabel[] = ICON_MD_COMPARE_ARROWS;
 constexpr char kToolbarViewOptionsLabel[] = ICON_MD_VISIBILITY;
 constexpr char kToolbarModeConnectedLabel[] = "Connected";
+constexpr char kToolbarRoomReviewLabel[] = ICON_MD_FACT_CHECK;
 constexpr char kToolbarRoomSearchHint[] = "Type to filter rooms...";
 constexpr char kToolbarComparePickerTooltip[] = "Pick a room to compare";
 constexpr char kToolbarCompareRoomIdTooltip[] = "Compare room ID";
 constexpr char kToolbarPanelWorkflowTooltip[] =
     "Switch to standalone panel workflow (Ctrl+Shift+W)";
-constexpr char kToolbarRoomMatrixTooltip[] = "Open Room Matrix";
+constexpr char kToolbarRoomMatrixTooltip[] = "Open room review tools";
 constexpr char kToolbarNoCompareHistoryMessage[] =
     "Visit another room to seed compare history.";
 constexpr char kToolbarNoCompareHistoryTooltip[] =
@@ -192,7 +194,8 @@ bool DrawToolbarActionButton(const char* id, const char* label,
 void DrawComparePicker(
     int current_room_id, int* compare_room_id,
     const std::function<const std::deque<int>&()>& get_recent_rooms,
-    char* search_buf, size_t search_buf_size) {
+    char* search_buf, size_t search_buf_size,
+    const project::YazeProject* project) {
   if (!compare_room_id || *compare_room_id < 0) {
     return;
   }
@@ -200,7 +203,8 @@ void DrawComparePicker(
   const char* filter = can_search ? search_buf : "";
 
   char preview[128];
-  const auto label = zelda3::GetRoomLabel(*compare_room_id);
+  const auto label =
+      dungeon_project_labels::GetRoomLabel(project, *compare_room_id);
   snprintf(preview, sizeof(preview), "[%03X] %s", *compare_room_id,
            label.c_str());
 
@@ -241,7 +245,8 @@ void DrawComparePicker(
           continue;
         }
         char item[128];
-        const auto rid_label = zelda3::GetRoomLabel(rid);
+        const auto rid_label =
+            dungeon_project_labels::GetRoomLabel(project, rid);
         snprintf(item, sizeof(item), "[%03X] %s", rid, rid_label.c_str());
         const bool is_selected = (rid == *compare_room_id);
         if (ImGui::Selectable(item, is_selected)) {
@@ -267,7 +272,7 @@ void DrawComparePicker(
       if (rid == current_room_id) {
         continue;
       }
-      const auto rid_label = zelda3::GetRoomLabel(rid);
+      const auto rid_label = dungeon_project_labels::GetRoomLabel(project, rid);
       char hex_buf[8];
       snprintf(hex_buf, sizeof(hex_buf), "%03X", rid);
       if (!icontains(rid_label, filter) && !icontains(hex_buf, filter)) {
@@ -283,7 +288,8 @@ void DrawComparePicker(
     while (clipper.Step()) {
       for (int idx = clipper.DisplayStart; idx < clipper.DisplayEnd; ++idx) {
         const int rid = filtered_rooms[idx];
-        const auto rid_label = zelda3::GetRoomLabel(rid);
+        const auto rid_label =
+            dungeon_project_labels::GetRoomLabel(project, rid);
         char item[128];
         snprintf(item, sizeof(item), "[%03X] %s", rid, rid_label.c_str());
         const bool is_selected = (rid == *compare_room_id);
@@ -344,7 +350,8 @@ void DrawCompareMenu(const DungeonWorkbenchToolbarParams& p,
   } else {
     ImGui::TextDisabled("Compare Room");
     DrawComparePicker(*p.current_room_id, p.compare_room_id, p.get_recent_rooms,
-                      p.compare_search_buf, p.compare_search_buf_size);
+                      p.compare_search_buf, p.compare_search_buf_size,
+                      p.primary_viewer ? p.primary_viewer->project() : nullptr);
     if (layout.width >= kInlineCompareRoomIdToolbarWidth) {
       uint16_t cmp = static_cast<uint16_t>(
           std::clamp(*p.compare_room_id, 0, kDungeonRoomCount - 1));
@@ -416,8 +423,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   }
   if (p.open_room_matrix) {
     right_actions_width +=
-        kToolbarActionGap +
-        workbench::CalcIconButtonWidth(ICON_MD_GRID_VIEW, layout.button_size);
+        kToolbarActionGap + workbench::CalcIconButtonWidth(
+                                kToolbarRoomReviewLabel, layout.button_size);
   }
 
   (void)IconToggleButton("RoomsToggle", ICON_MD_LIST, ICON_MD_LIST,
@@ -434,6 +441,16 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
 
   ImGui::SameLine(0.0f, kToolbarActionGap);
   DrawCanvasModeSelector(p.layout, layout);
+
+  if (p.primary_viewer) {
+    p.primary_viewer->SetConnectedControlsInline(
+        p.layout->show_connected_canvas_view);
+  }
+  if (p.layout->show_connected_canvas_view && p.primary_viewer &&
+      p.current_room_id) {
+    ImGui::SameLine(0.0f, kToolbarActionGap);
+    p.primary_viewer->DrawConnectedToolbarControls(*p.current_room_id);
+  }
 
   ImGui::SameLine(0.0f, kToolbarActionGap);
   DrawCompareMenu(p, layout);
@@ -453,7 +470,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   }
   if (p.open_room_matrix) {
     ImGui::SameLine(0.0f, kToolbarActionGap);
-    if (workbench::DrawHeaderIconAction("RoomMatrix", ICON_MD_GRID_VIEW,
+    if (workbench::DrawHeaderIconAction("RoomMatrix", kToolbarRoomReviewLabel,
                                         layout.button_size,
                                         kToolbarRoomMatrixTooltip)) {
       p.open_room_matrix();
