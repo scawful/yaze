@@ -444,6 +444,97 @@ TEST_F(LayoutManagerDockTreeTest,
          "init.";
 }
 
+TEST_F(LayoutManagerDockTreeTest,
+       ApplyDockTreeArmsProtectionWhenCurrentEditorIsUnknown) {
+  // Phase 8.2 review 3 (2026-04-25): manual apply from a no-editor
+  // context (e.g. dashboard / settings shell pre-activation) was
+  // unprotected — current_editor_type_ defaults to kUnknown, so
+  // ApplyDockTree had nothing to mark, and the startup-protection
+  // one-shot was only set by MaybeReapplyStartupLayout. The fix:
+  // arm the flag in ApplyDockTree itself when current is kUnknown.
+  ASSERT_FALSE(layout_manager_.startup_reapply_pending_protection_for_test());
+  // Default current_editor_type_ is kUnknown — no setter call here.
+
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a")});
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  EXPECT_TRUE(layout_manager_.startup_reapply_pending_protection_for_test())
+      << "Apply with current_editor_type_ == kUnknown must arm the "
+         "one-shot flag — otherwise the next InitializeEditorLayout "
+         "would clobber the just-installed custom layout (the same bug "
+         "the original Phase 8.2 fix tried to close).";
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       ApplyDockTreeDoesNotArmProtectionWhenCurrentEditorIsKnown) {
+  // The flip-side: when an editor is active, the per-editor mark is
+  // sufficient and the one-shot flag stays clear. Arming it would
+  // mean the next OTHER-editor activation gets suppressed, which is
+  // exactly what review round 2 narrowed away from.
+  layout_manager_.set_current_editor_type_for_test(EditorType::kDungeon);
+
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a")});
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+  EXPECT_FALSE(layout_manager_.startup_reapply_pending_protection_for_test())
+      << "Apply with a known current editor must NOT arm the one-shot "
+         "flag; the per-editor mark is the right scope for that case.";
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       ApplyDockTreeSkipsClosingAlreadyClosedNonTreePanels) {
+  // Phase 8.2 review 3 (2026-04-25): the close pass blindly called
+  // CloseWindow on every non-tree, non-pinned panel, which fires
+  // on_hide + WindowVisibilityChanged even on already-closed panels.
+  // This test pins the no-spurious-events behavior by counting
+  // on_hide invocations.
+  bool visible_in_tree = false;
+  bool visible_already_hidden = false;  // already closed
+  bool visible_already_open = true;     // already open, will be closed
+  int already_hidden_hide_calls = 0;
+  int already_open_hide_calls = 0;
+
+  WindowDescriptor d_in{};
+  d_in.card_id = "in_tree";
+  d_in.display_name = "InTree";
+  d_in.icon = "ICON_MD_ACCOUNT_TREE";
+  d_in.category = "Test";
+  d_in.priority = 1;
+  d_in.visibility_flag = &visible_in_tree;
+  window_manager_.RegisterWindow(0, d_in);
+
+  WindowDescriptor d_hidden = d_in;
+  d_hidden.card_id = "already_hidden";
+  d_hidden.display_name = "Hidden";
+  d_hidden.visibility_flag = &visible_already_hidden;
+  d_hidden.on_hide = [&]() {
+    ++already_hidden_hide_calls;
+  };
+  window_manager_.RegisterWindow(0, d_hidden);
+
+  WindowDescriptor d_open = d_in;
+  d_open.card_id = "already_open";
+  d_open.display_name = "Open";
+  d_open.visibility_flag = &visible_already_open;
+  d_open.on_hide = [&]() {
+    ++already_open_hide_calls;
+  };
+  window_manager_.RegisterWindow(0, d_open);
+
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("in_tree")});
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+
+  EXPECT_EQ(already_hidden_hide_calls, 0)
+      << "Apply must not fire on_hide on a panel that was already "
+         "closed — those are spurious events.";
+  EXPECT_EQ(already_open_hide_calls, 1)
+      << "Apply must close panels that were open and aren't in the "
+         "tree (and aren't pinned).";
+  EXPECT_FALSE(visible_already_open)
+      << "already-open non-tree panel should be closed";
+}
+
 TEST_F(LayoutManagerDockTreeTest, ApplyDockTreeClosesNonPinnedNonTreePanels) {
   // Phase 8.2 review (2026-04-25): apply must hide panels that are NOT
   // in the tree, otherwise the saved layout doesn't faithfully restore
