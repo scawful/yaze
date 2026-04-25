@@ -361,7 +361,7 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
       "Browse", nullptr, compact, action_cluster_w, [&]() {
         if (can_open_overview) {
           if (workbench::DrawHeaderIconAction("SidebarQuickActions",
-                                              ICON_MD_FACT_CHECK, button_size,
+                                              ICON_MD_MORE_HORIZ, button_size,
                                               "Open room review tools", true)) {
             ImGui::OpenPopup("##WorkbenchSidebarQuickActions");
           }
