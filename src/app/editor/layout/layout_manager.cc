@@ -1425,6 +1425,13 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
       continue;
     if (window_manager_->IsWindowPinned(session_id, id))
       continue;
+    // Phase 8.2 review 3 (2026-04-25): skip already-closed panels.
+    // CloseWindowImpl fires on_hide and publishes
+    // WindowVisibilityChanged(false) regardless of prior state, so
+    // blindly closing every non-tree panel produces a burst of
+    // redundant hide events for unrelated already-hidden windows.
+    if (!window_manager_->IsWindowOpen(session_id, id))
+      continue;
     window_manager_->CloseWindow(id);
   }
 
@@ -1444,17 +1451,21 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
 
   last_dockspace_id_ = dockspace_id;
 
-  // Init-tracking pass (Phase 8.2 review 2026-04-25):
-  //   - Mark only the *current* editor type initialized. The previous
-  //     "mark all editor types" loop blocked legitimate first-run preset
-  //     init for OTHER editors, so switching from Dungeon to Assembly
-  //     after an apply silently inherited Dungeon's topology. Codex
-  //     called this out as High; this narrows the protection to "the
-  //     editor the user is currently in".
-  //   - Other editors keep their lazy first-run init: their preset
-  //     fires when the user activates them, exactly like before.
+  // Init-tracking pass (Phase 8.2 review 2026-04-25; refined 8.2 review 3):
+  //   - When the user is in an editor (current_editor_type_ != kUnknown),
+  //     mark only that editor type initialized. Other editors keep their
+  //     lazy first-run init — their preset fires on activation as before.
+  //   - When no editor is active yet (kUnknown — startup-reapply OR
+  //     manual apply from the dashboard/settings shell BEFORE any editor
+  //     activation), the per-editor mark wouldn't protect anything, so
+  //     arm the one-shot `startup_reapply_pending_protection_` flag that
+  //     the next InitializeEditorLayout call consumes. Round-3 Codex
+  //     noted that without this branch, applying from a no-editor
+  //     context still left the original clobber bug intact.
   if (current_editor_type_ != EditorType::kUnknown) {
     MarkLayoutInitialized(current_editor_type_);
+  } else {
+    startup_reapply_pending_protection_ = true;
   }
 
   return absl::OkStatus();
@@ -1527,16 +1538,11 @@ absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
   if (!apply_status.ok()) {
     util::logf("LayoutManager: startup layout '%s' ApplyDockTree failed: %s",
                name.c_str(), std::string(apply_status.message()).c_str());
-    return apply_status;
   }
-  // Phase 8.2 review (2026-04-25): protect the very next lazy preset
-  // init from clobbering the layout we just installed. At startup,
-  // `current_editor_type_` is `kUnknown` (no editor has been
-  // activated yet), so ApplyDockTree's per-editor mark is a no-op;
-  // this flag is the only guardrail covering the moments between
-  // "controller wires the dockspace" and "user activates first
-  // editor".
-  startup_reapply_pending_protection_ = true;
+  // ApplyDockTree itself arms `startup_reapply_pending_protection_`
+  // because `current_editor_type_` is still `kUnknown` at this point
+  // in the boot — no need to set it again here. Same arming covers
+  // dashboard-time manual apply, which round-3 Codex flagged.
   return apply_status;
 }
 
