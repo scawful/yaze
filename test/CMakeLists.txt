@@ -308,6 +308,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
+    unit/zelda3/dungeon/dungeon_block_codec_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/custom_object_test.cc
@@ -568,6 +569,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
+    unit/zelda3/dungeon/dungeon_block_codec_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/object_layer_semantics_test.cc
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc
