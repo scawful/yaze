@@ -41,7 +41,7 @@ constexpr char kToolbarPopupIdCompareMenu[] = "##WorkbenchCompareMenu";
 constexpr char kToolbarStartCompareLabel[] = ICON_MD_COMPARE_ARROWS;
 constexpr char kToolbarViewOptionsLabel[] = ICON_MD_VISIBILITY;
 constexpr char kToolbarModeConnectedLabel[] = "Connected";
-constexpr char kToolbarRoomReviewLabel[] = ICON_MD_FACT_CHECK;
+constexpr char kToolbarRoomReviewLabel[] = ICON_MD_GRID_VIEW " Review";
 constexpr char kToolbarRoomSearchHint[] = "Type to filter rooms...";
 constexpr char kToolbarComparePickerTooltip[] = "Pick a room to compare";
 constexpr char kToolbarCompareRoomIdTooltip[] = "Compare room ID";
@@ -470,9 +470,11 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   }
   if (p.open_room_matrix) {
     ImGui::SameLine(0.0f, kToolbarActionGap);
-    if (workbench::DrawHeaderIconAction("RoomMatrix", kToolbarRoomReviewLabel,
-                                        layout.button_size,
-                                        kToolbarRoomMatrixTooltip)) {
+    const float review_button_width = workbench::CalcIconButtonWidth(
+        kToolbarRoomReviewLabel, layout.button_size);
+    if (DrawToolbarActionButton("RoomMatrix", kToolbarRoomReviewLabel,
+                                ImVec2(review_button_width, layout.button_size),
+                                kToolbarRoomMatrixTooltip)) {
       p.open_room_matrix();
     }
   }
