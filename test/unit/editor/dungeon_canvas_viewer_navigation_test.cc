@@ -1,11 +1,13 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "app/editor/dungeon/ui_constants.h"
 #include "core/project.h"
@@ -772,6 +774,132 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   EXPECT_FALSE(graph.dungeon_scope_active);
   EXPECT_EQ(graph.room_count, 2);
   EXPECT_TRUE(graph.out_of_scope_links.empty());
+}
+
+TEST(
+    DungeonCanvasViewerConnectedGraphTest,
+    BuildConnectedRoomGraphPreservesDistinctStaircaseInstancesBetweenRoomPair) {
+  // Two staircase objects in the same source room targeting the same
+  // destination must each survive graph dedup with their own slot_index
+  // / object_id provenance. Earlier the dedup keyed only on the
+  // (minmax pair, type) tuple and silently collapsed both instances into
+  // a single visible edge, hiding which slot was misconfigured.
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.SetStaircaseRoom(0, 0x40);
+  start.SetStaircaseRoom(1, 0x40);
+  ASSERT_TRUE(start.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
+  ASSERT_TRUE(start.AddObject(zelda3::RoomObject(0x139, 6, 5, 0, 0)).ok());
+  start.SetLoaded(true);
+
+  auto& target = rooms[0x40];
+  ClearRoomLinks(&target);
+  target.SetLoaded(true);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+
+  EXPECT_EQ(graph.room_count, 2);
+  ASSERT_EQ(graph.links.size(), 2u)
+      << "Both staircase instances must be preserved in the graph; dedup "
+         "should not collapse provenance-distinct edges";
+  std::vector<int> seen_slots;
+  std::vector<int16_t> seen_objects;
+  for (const auto& link : graph.links) {
+    EXPECT_EQ(link.type, DungeonConnectedLinkType::Staircase);
+    EXPECT_EQ(link.from_room_id, 0x10);
+    EXPECT_EQ(link.to_room_id, 0x40);
+    seen_slots.push_back(link.slot_index);
+    seen_objects.push_back(link.object_id);
+  }
+  std::sort(seen_slots.begin(), seen_slots.end());
+  std::sort(seen_objects.begin(), seen_objects.end());
+  EXPECT_EQ(seen_slots, (std::vector<int>{0, 1}));
+  EXPECT_EQ(seen_objects, (std::vector<int16_t>{0x138, 0x139}));
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
+     BuildConnectedRoomGraphScopesViaProjectOpenWithoutHackManifest) {
+  // Real Oracle .yaze projects ship a project_registry without a
+  // hack_manifest_v1.json (mirrors ProjectPathsTest::
+  // OpenInjectsOracleDungeonRoomLabelsIntoProjectFile). Connected-mode
+  // scoping must work via YazeProject::Open() in that configuration —
+  // earlier code gated registry lookups on hack_manifest.loaded() and
+  // silently fell back to full transitive BFS for the real Oracle path.
+  const std::filesystem::path root =
+      std::filesystem::temp_directory_path() /
+      ("yaze_connected_scope_real_open_" +
+       std::to_string(
+           std::chrono::steady_clock::now().time_since_epoch().count()));
+  const std::filesystem::path planning = root / "Docs" / "Dev" / "Planning";
+  std::filesystem::create_directories(planning);
+  std::ofstream(planning / "dungeons.json") << R"json({
+    "dungeons": [
+      {
+        "id": "D1",
+        "name": "Real Dungeon",
+        "rooms": [
+          {"id": "0x10", "name": "Start"},
+          {"id": "0x11", "name": "Adjacent"}
+        ]
+      }
+    ]
+  })json";
+
+  const std::filesystem::path project_file = root / "Real.yaze";
+  std::ofstream(project_file) << R"([project]
+name=Real Oracle Project
+
+[files]
+code_folder=Core
+hack_manifest_file=hack_manifest.json
+)";
+
+  project::YazeProject project;
+  ASSERT_TRUE(project.Open(project_file.string()).ok());
+  ASSERT_FALSE(project.hack_manifest.loaded());
+  ASSERT_TRUE(project.hack_manifest.HasProjectRegistry());
+
+  std::vector<uint8_t> rom_data(0x8000, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  start.AddDoor(
+      MakeDoor(zelda3::DoorDirection::East, zelda3::DoorType::NormalDoor));
+  start.SetLoaded(true);
+
+  auto& adjacent = rooms[0x11];
+  ClearRoomLinks(&adjacent);
+  adjacent.AddDoor(
+      MakeDoor(zelda3::DoorDirection::West, zelda3::DoorType::NormalDoor));
+  adjacent.SetLoaded(true);
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+  viewer.SetProject(&project);
+
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+
+  EXPECT_TRUE(graph.dungeon_scope_active)
+      << "Scoping must activate from the project_registry alone, even when "
+         "hack_manifest.loaded() is false";
+  EXPECT_EQ(graph.room_count, 2);
+  EXPECT_TRUE(graph.room_mask[0x10]);
+  EXPECT_TRUE(graph.room_mask[0x11]);
+
+  std::filesystem::remove_all(root);
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
