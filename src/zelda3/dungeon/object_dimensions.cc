@@ -609,8 +609,11 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {2, 2, Dir::Vertical, 2, false};
   }
 
-  // 0x69: Downwards edge +3 (height = size + 3)
-  dimensions_[0x69] = {1, 3, Dir::Vertical, 1, false};
+  // 0x69: Downwards edge +3 (height = size + 4, matching horizontal 0x22).
+  // ASM RoomDraw_DownwardsHasEdge1x1_1to16_plus3 ($01:8EC3) uses A=2 in
+  // GetSize_1to16_timesA so middle count = size + 2; total span = corner +
+  // (size+2) middles + end = size + 4 tiles.
+  dimensions_[0x69] = {1, 4, Dir::Vertical, 1, false};
 
   // 0x6A-0x6B: Downwards edge
   for (int id = 0x6A; id <= 0x6B; id++) {

@@ -2457,9 +2457,12 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     }
 
     case 12:  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
+      // ASM ($01:8EC3) uses GetSize_1to16_timesA with A=2, giving
+      // count = size + 2 middle tiles. Total span (corner + middles + end) =
+      // size + 4 tiles, matching the horizontal counterpart 0x22 (case 21).
       size = size & 0x0F;
       width = 8;
-      height = (size + 3) * 8;
+      height = (size + 4) * 8;
       break;
     case 13:  // RoomDraw_DownwardsEdge1x1_1to16
       size = size & 0x0F;

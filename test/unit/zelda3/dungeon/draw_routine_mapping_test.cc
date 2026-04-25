@@ -119,11 +119,9 @@ TEST_F(DrawRoutineMappingTest,
 
   const std::vector<Case> cases = {
       {DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus3,
-       RoomObject(0x22, 5, 7, 0, 0),
-       8},
+       RoomObject(0x22, 5, 7, 0, 0), 8},
       {DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus23,
-       RoomObject(0x5F, 5, 7, 0, 0),
-       27},
+       RoomObject(0x5F, 5, 7, 0, 0), 27},
   };
 
   for (const auto& tc : cases) {
@@ -198,13 +196,16 @@ TEST_F(DrawRoutineMappingTest,
     int end_y;
   };
 
+  // ASM RoomDraw_DownwardsHasEdge1x1_1to16 ($01:8EC6) calls
+  // GetSize_1to16_timesA, so middle count = composite_size + A. _plus3 sets
+  // A=2 (count = size + 2) and _plus23 sets A=21 (count = size + 21). With
+  // size=0 + corner suppression the rendered span is corner_y + (count) middle
+  // rows + 1 end row, so end_y = object.y + count + 1.
   const std::vector<Case> cases = {
       {DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus3,
-       RoomObject(0x69, 13, 3, 0, 0),
-       5},
+       RoomObject(0x69, 13, 3, 0, 0), 6},
       {DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23,
-       RoomObject(0x8A, 13, 3, 0, 0),
-       25},
+       RoomObject(0x8A, 13, 3, 0, 0), 25},
   };
 
   for (const auto& tc : cases) {
@@ -236,6 +237,119 @@ TEST_F(DrawRoutineMappingTest,
   }
 }
 
+// Pins horizontal/vertical _plus3 parity. Both rail routines branch through
+// RoomDraw_GetSize_1to16_timesA with A=2 (RoomDraw_RightwardsHasEdge1x1_1to16
+// at $01:8EF0 and RoomDraw_DownwardsHasEdge1x1_1to16 at $01:8EC3), so the
+// middle-tile count formula is identical (count = composite_size + 2). Total
+// rendered length is 1 corner + count middles + 1 end = size + 4 tiles.
+TEST_F(DrawRoutineMappingTest,
+       HorizontalAndVerticalPlus3RailsRenderEqualLengthSpans) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const DrawRoutineInfo* h_info =
+      reg.GetRoutineInfo(DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus3);
+  const DrawRoutineInfo* v_info =
+      reg.GetRoutineInfo(DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus3);
+  ASSERT_NE(h_info, nullptr);
+  ASSERT_NE(v_info, nullptr);
+
+  // Use distinct, non-corner tile IDs so the corner-suppression path stays
+  // off and every emit position writes a tile we can identify.
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0200, 0), MakeTile(0x0201, 1), MakeTile(0x0202, 2)};
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{5}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    constexpr int kAnchorX = 4;
+    constexpr int kAnchorY = 6;
+    const int expected_count = static_cast<int>(size) + 2;
+    const int expected_total = expected_count + 2;  // corner + middles + end
+
+    auto run_routine = [&](const DrawRoutineInfo& info,
+                           const RoomObject& object) {
+      gfx::BackgroundBuffer bg;
+      DrawContext ctx{bg,
+                      object,
+                      std::span<const gfx::TileInfo>(tiles),
+                      /*state=*/nullptr,
+                      rom_.get(),
+                      /*room_id=*/0,
+                      /*room_gfx_buffer=*/nullptr,
+                      /*secondary_bg=*/nullptr};
+      info.function(ctx);
+      return CollectNonZeroTiles(bg);
+    };
+
+    const RoomObject horizontal(0x22, kAnchorX, kAnchorY, size, 0);
+    const auto h_points = run_routine(*h_info, horizontal);
+    EXPECT_EQ(static_cast<int>(h_points.size()), expected_total)
+        << "horizontal _plus3 footprint";
+    for (int i = 0; i < expected_total; ++i) {
+      const int x = kAnchorX + i;
+      EXPECT_TRUE(ContainsPoint(h_points, x, kAnchorY))
+          << "horizontal expects tile at (" << x << "," << kAnchorY << ")";
+    }
+
+    const RoomObject vertical(0x69, kAnchorX, kAnchorY, size, 0);
+    const auto v_points = run_routine(*v_info, vertical);
+    EXPECT_EQ(static_cast<int>(v_points.size()), expected_total)
+        << "vertical _plus3 footprint";
+    for (int i = 0; i < expected_total; ++i) {
+      const int y = kAnchorY + i;
+      EXPECT_TRUE(ContainsPoint(v_points, kAnchorX, y))
+          << "vertical expects tile at (" << kAnchorX << "," << y << ")";
+    }
+
+    EXPECT_EQ(h_points.size(), v_points.size())
+        << "horizontal/vertical _plus3 spans must match length";
+  }
+}
+
+// Re-asserts the middle tile is the *same slot* (tile[1]) at every interior
+// position for the vertical _plus3 rail. This guards against a regression
+// where the routine could accidentally consume more tile slots (e.g. by
+// indexing tiles[1+s]) and re-introduce the asymmetry that 2025-12-07
+// "Issue 1: Vertical rails may not be updated to match horizontal rails"
+// flagged.
+TEST_F(DrawRoutineMappingTest,
+       DownwardsRailPlus3RepeatsMiddleTileAtEveryInteriorRow) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const DrawRoutineInfo* info =
+      reg.GetRoutineInfo(DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus3);
+  ASSERT_NE(info, nullptr);
+
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0200, 0), MakeTile(0x0201, 1), MakeTile(0x0202, 2)};
+  constexpr int kAnchorX = 11;
+  constexpr int kAnchorY = 4;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{3}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+    const int middle_count = static_cast<int>(size) + 2;
+    gfx::BackgroundBuffer bg;
+    const RoomObject vertical(0x69, kAnchorX, kAnchorY, size, 0);
+    DrawContext ctx{bg,
+                    vertical,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX, kAnchorY), tiles[0].id_);
+    for (int s = 0; s < middle_count; ++s) {
+      EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX, kAnchorY + 1 + s),
+                tiles[1].id_)
+          << "middle row offset=" << s;
+    }
+    EXPECT_EQ(
+        DrawRoutineUtils::TileIdAt(bg, kAnchorX, kAnchorY + 1 + middle_count),
+        tiles[2].id_);
+  }
+}
+
 TEST_F(DrawRoutineMappingTest,
        DownwardsCornerVariantsSkipOpeningCapWhenCornerAlreadyExists) {
   auto& reg = DrawRoutineRegistry::Get();
@@ -258,25 +372,9 @@ TEST_F(DrawRoutineMappingTest,
 
   const std::vector<Case> cases = {
       {DrawRoutineIds::kDownwardsLeftCorners2x1_1to16_plus12,
-       RoomObject(0x6C, 6, 8, 0, 0),
-       18,
-       8,
-       18,
-       8,
-       19,
-       8,
-       18,
-       18},
+       RoomObject(0x6C, 6, 8, 0, 0), 18, 8, 18, 8, 19, 8, 18, 18},
       {DrawRoutineIds::kDownwardsRightCorners2x1_1to16_plus12,
-       RoomObject(0x6D, 6, 8, 0, 0),
-       19,
-       8,
-       19,
-       8,
-       18,
-       8,
-       19,
-       19},
+       RoomObject(0x6D, 6, 8, 0, 0), 19, 8, 19, 8, 18, 8, 19, 19},
   };
 
   for (const auto& tc : cases) {
@@ -300,12 +398,15 @@ TEST_F(DrawRoutineMappingTest,
                     /*secondary_bg=*/nullptr};
     info->function(ctx);
 
-    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.body_x, tc.body_y), tiles[3].id_);
-    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.fill_x, tc.fill_y), tiles[0].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.body_x, tc.body_y),
+              tiles[3].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.fill_x, tc.fill_y),
+              tiles[0].id_);
     EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.end_top_x, tc.object.y_ + 10),
               tiles[4].id_);
-    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, tc.end_bottom_x, tc.object.y_ + 11),
-              tiles[5].id_);
+    EXPECT_EQ(
+        DrawRoutineUtils::TileIdAt(bg, tc.end_bottom_x, tc.object.y_ + 11),
+        tiles[5].id_);
   }
 }
 
