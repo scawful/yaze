@@ -110,11 +110,12 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
 
   int max_offset_before = data[kPitCount];
   int data_len = max_offset_before + 2;  // covers offsets 0..max_offset
-  std::vector<uint8_t> count_and_ptr_before(data.begin() + kPitCount,
-                                            data.begin() + kPitCount + 1);
-  count_and_ptr_before.insert(count_and_ptr_before.end(),
-                              data.begin() + kPitPointer,
-                              data.begin() + kPitPointer + 3);
+  // `data` aliases the same internal vector that `Rom::WriteByte` mutates,
+  // so reading `data[kPitPointer + i]` after the save reflects the
+  // post-save state. Capture the operand bytes BEFORE save so the
+  // post-save assertions actually compare to the pre-save snapshot.
+  const std::array<uint8_t, 3> pit_ptr_before = {
+      data[kPitPointer], data[kPitPointer + 1], data[kPitPointer + 2]};
 
   int pit_ptr_snes = (data[kPitPointer + 2] << 16) |
                      (data[kPitPointer + 1] << 8) | data[kPitPointer];
@@ -132,9 +133,9 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
 
   const auto& after = rom_->vector();
   EXPECT_EQ(after[kPitCount], max_offset_before);
-  EXPECT_EQ(after[kPitPointer], data[kPitPointer]);
-  EXPECT_EQ(after[kPitPointer + 1], data[kPitPointer + 1]);
-  EXPECT_EQ(after[kPitPointer + 2], data[kPitPointer + 2]);
+  EXPECT_EQ(after[kPitPointer], pit_ptr_before[0]);
+  EXPECT_EQ(after[kPitPointer + 1], pit_ptr_before[1]);
+  EXPECT_EQ(after[kPitPointer + 2], pit_ptr_before[2]);
   if (!pit_data_before.empty()) {
     ASSERT_GE(static_cast<int>(after.size()), pit_data_pc + data_len);
     for (int i = 0; i < data_len; ++i) {
