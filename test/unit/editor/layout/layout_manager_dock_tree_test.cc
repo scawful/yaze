@@ -535,6 +535,59 @@ TEST_F(LayoutManagerDockTreeTest,
       << "already-open non-tree panel should be closed";
 }
 
+TEST_F(LayoutManagerDockTreeTest,
+       ApplyDockTreeSkipsOpeningAlreadyOpenInTreePanels) {
+  // Phase 9 review (2026-04-25): the open pass blindly called
+  // OpenWindow on every in-tree panel, which fires on_show +
+  // WindowVisibilityChanged even on already-open panels — think: a
+  // no-op Re-apply of the active layout from the Settings combo. This
+  // test pins the no-spurious-events behavior by counting on_show
+  // invocations across an already-open panel and an already-hidden
+  // panel that both end up in the tree.
+  bool visible_already_open = true;
+  bool visible_already_hidden = false;
+  int already_open_show_calls = 0;
+  int already_hidden_show_calls = 0;
+
+  WindowDescriptor d_open{};
+  d_open.card_id = "already_open";
+  d_open.display_name = "Open";
+  d_open.icon = "ICON_MD_ACCOUNT_TREE";
+  d_open.category = "Test";
+  d_open.priority = 1;
+  d_open.visibility_flag = &visible_already_open;
+  d_open.on_show = [&]() {
+    ++already_open_show_calls;
+  };
+  window_manager_.RegisterWindow(0, d_open);
+
+  WindowDescriptor d_hidden = d_open;
+  d_hidden.card_id = "already_hidden";
+  d_hidden.display_name = "Hidden";
+  d_hidden.visibility_flag = &visible_already_hidden;
+  d_hidden.on_show = [&]() {
+    ++already_hidden_show_calls;
+  };
+  window_manager_.RegisterWindow(0, d_hidden);
+
+  DockTree tree;
+  tree.root =
+      DockNode::MakeSplit(SplitDirection::kLeft, 0.5f,
+                          DockNode::MakeLeaf({MakePanel("already_open")}),
+                          DockNode::MakeLeaf({MakePanel("already_hidden")}));
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(tree, kDockspaceId).ok());
+
+  EXPECT_EQ(already_open_show_calls, 0)
+      << "Apply must not fire on_show on a panel that was already open — "
+         "those are spurious events that dirty settings on a Re-apply.";
+  EXPECT_EQ(already_hidden_show_calls, 1)
+      << "Apply must open in-tree panels that were hidden.";
+  EXPECT_TRUE(visible_already_hidden)
+      << "previously-hidden in-tree panel should be opened";
+  EXPECT_TRUE(visible_already_open)
+      << "already-open in-tree panel should remain open";
+}
+
 TEST_F(LayoutManagerDockTreeTest, ApplyDockTreeClosesNonPinnedNonTreePanels) {
   // Phase 8.2 review (2026-04-25): apply must hide panels that are NOT
   // in the tree, otherwise the saved layout doesn't faithfully restore

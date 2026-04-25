@@ -24,6 +24,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/font_picker.h"
 #include "app/gui/widgets/property_inspector.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -1121,11 +1122,20 @@ void SettingsPanel::DrawWorkspaceSettings() {
 
   ImGui::Spacing();
   if (ImGui::Button(ICON_MD_DASHBOARD_CUSTOMIZE " Open Layout Designer")) {
-    if (window_manager_ != nullptr) {
-      window_manager_->OpenWindow("layout.designer");
-    } else {
+    if (window_manager_ == nullptr) {
       workspace_status_message_ = "Designer unavailable: no window manager.";
       workspace_status_is_error_ = true;
+    } else if (!window_manager_->OpenWindow("layout.designer")) {
+      // OpenWindow returns false when the panel id isn't registered in
+      // the active session. Surface that — silently doing nothing on
+      // a missing registration would hide a real bug (panel renamed,
+      // force-load archive misconfigured, etc.).
+      workspace_status_message_ =
+          "Open failed: \"layout.designer\" panel is not registered.";
+      workspace_status_is_error_ = true;
+    } else {
+      workspace_status_message_.clear();
+      workspace_status_is_error_ = false;
     }
   }
   if (ImGui::IsItemHovered()) {
@@ -1137,7 +1147,7 @@ void SettingsPanel::DrawWorkspaceSettings() {
   if (!workspace_status_message_.empty()) {
     ImGui::Spacing();
     if (workspace_status_is_error_) {
-      ImGui::TextColored(ImVec4(0.95f, 0.45f, 0.35f, 1.0f), "%s",
+      ImGui::TextColored(gui::GetErrorColor(), "%s",
                          workspace_status_message_.c_str());
     } else {
       ImGui::TextDisabled("%s", workspace_status_message_.c_str());
