@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/ui_constants.h"
+#include "app/gfx/types/snes_tile.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -35,6 +36,12 @@ class DungeonCanvasViewerTestPeer {
                                           const zelda3::Room& room,
                                           int room_id) {
     return viewer.BuildDrawIssueReport(room, room_id);
+  }
+
+  static std::string BuildSelectionIssueReport(
+      const DungeonCanvasViewer& viewer, const zelda3::Room& room,
+      int room_id) {
+    return viewer.BuildSelectionIssueReport(room, room_id);
   }
 
   static DungeonCanvasViewer::ConnectedRoomGraphData BuildConnectedRoomGraph(
@@ -93,6 +100,17 @@ zelda3::Room::Door MakeDoor(zelda3::DoorDirection direction,
   door.byte1 = 0;
   door.byte2 = static_cast<uint8_t>(type);
   return door;
+}
+
+std::vector<gfx::TileInfo> MakeObjectTiles(int count) {
+  std::vector<gfx::TileInfo> tiles;
+  tiles.reserve(count);
+  for (int i = 0; i < count; ++i) {
+    tiles.emplace_back(static_cast<uint16_t>(0x120 + i),
+                       static_cast<uint8_t>(i % 8), false, (i % 2) == 0,
+                       (i % 3) == 0);
+  }
+  return tiles;
 }
 
 void ClearRoomLinks(zelda3::Room* room) {
@@ -245,6 +263,61 @@ TEST(DungeonCanvasViewerNavigationTest,
   EXPECT_EQ(report.find("colors=1828354192"), std::string::npos);
 
   zelda3::PaletteDebugger::Get().Clear();
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     DrawIssueReportIncludesObjectTraceFootprint) {
+  zelda3::PaletteDebugger::Get().Clear();
+
+  std::vector<uint8_t> rom_data(1024 * 1024, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonCanvasViewer viewer(&rom);
+  zelda3::Room room;
+  zelda3::RoomObject obj(/*id=*/0xC8, /*x=*/4, /*y=*/5, /*size=*/0x11,
+                         /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_ = MakeObjectTiles(8);
+  room.GetTileObjects().push_back(obj);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
+
+  EXPECT_NE(report.find("Object tiles: count=8"), std::string::npos);
+  EXPECT_NE(report.find("Object geometry: dims_px="), std::string::npos);
+  EXPECT_NE(report.find("Drawer trace: status=ok"), std::string::npos);
+  EXPECT_NE(report.find("bounds_tiles="), std::string::npos);
+  EXPECT_NE(report.find("layer_counts BG1="), std::string::npos);
+  EXPECT_NE(report.find("write[0] BG1 tile="), std::string::npos);
+
+  zelda3::PaletteDebugger::Get().Clear();
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     SelectionIssueReportIncludesDoorGeometryAndEncoding) {
+  DungeonCanvasViewer viewer;
+  zelda3::Room room;
+  auto door =
+      MakeDoor(zelda3::DoorDirection::South, zelda3::DoorType::NormalDoor);
+  door.position = 6;
+  door.byte1 = 0x18;
+  door.byte2 = 0x00;
+  room.AddDoor(door);
+  viewer.object_interaction().SelectEntity(EntityType::Door, 0);
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildSelectionIssueReport(viewer, room,
+                                                             0x72);
+
+  EXPECT_NE(report.find("Selected door[0]:"), std::string::npos);
+  EXPECT_NE(report.find("- tile_coords=("), std::string::npos);
+  EXPECT_NE(report.find("- dims_tiles=(4,3) editor_dims_tiles=(4,3)"),
+            std::string::npos);
+  EXPECT_NE(report.find("- bounds_px=("), std::string::npos);
+  EXPECT_NE(report.find("- encoded=(0x"), std::string::npos);
+  EXPECT_NE(report.find("original=(0x18,0x00)"), std::string::npos);
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
