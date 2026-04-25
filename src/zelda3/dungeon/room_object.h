@@ -145,6 +145,18 @@ class RoomObject {
   auto options() const { return options_; }
   void set_options(ObjectOption options) { options_ = options; }
 
+  // For `ObjectOption::Block` objects only. Holds the original 0-based
+  // index of the corresponding 4-byte entry in the global pushable-block
+  // table at `SpecialUnderworldObjects_pushable_block` ($04:F1DE) at load
+  // time. Used by the `SaveAllBlocks` encoder to emit entries in the
+  // vanilla authoring order (which is interleaved across rooms; sorting
+  // by room_id would reshuffle bytes and break byte equality on no-op
+  // saves). User-added blocks have load_order == kBlockLoadOrderNew and
+  // are appended at the end in creation-order. Ignored for non-block
+  // objects.
+  int block_load_order() const { return block_load_order_; }
+  void set_block_load_order(int order) { block_load_order_ = order; }
+
   bool all_bgs_ = false;
   bool lit_ = false;
 
@@ -186,6 +198,13 @@ class RoomObject {
   // passing to ObjectDrawer.
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
+
+  // Sentinel for blocks that were not loaded from ROM (user-added in the
+  // editor). `SaveAllBlocks` keeps these at the tail of the encoded
+  // buffer in creation order so they don't get sorted in front of the
+  // vanilla entries.
+  static constexpr int kBlockLoadOrderNew = -1;
+  int block_load_order_ = kBlockLoadOrderNew;
 
   Rom* rom_;
 
