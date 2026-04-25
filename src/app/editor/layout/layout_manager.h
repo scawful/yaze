@@ -16,6 +16,7 @@ namespace editor {
 
 // Forward declaration
 class WorkspaceWindowManager;
+class UserSettings;
 
 /**
  * @enum LayoutType
@@ -333,6 +334,57 @@ class LayoutManager {
   ImGuiID GetMainDockspaceId() const { return main_dockspace_id_; }
 
   /**
+   * @brief Test-only: reset the one-shot startup-reapply guard so a
+   *        single test fixture can drive `MaybeReapplyStartupLayout`
+   *        through multiple scenarios without standing up a fresh
+   *        manager each time.
+   */
+  void reset_startup_layout_consumed_for_test() {
+    startup_layout_consumed_ = false;
+  }
+  bool startup_layout_consumed_for_test() const {
+    return startup_layout_consumed_;
+  }
+
+  /**
+   * @brief One-shot startup hook that re-applies the user's last
+   *        applied named layout, if any.
+   *
+   * Drives idempotently from `UserSettings::last_applied_layout_name`
+   * + `named_layouts`. The first frame this is called with a valid
+   * `main_dockspace_id_` (i.e. after the controller has rendered at
+   * least one DockSpaceWindow), the matching layout is parsed,
+   * validated, and applied to the live dockspace; subsequent calls
+   * are no-ops.
+   *
+   * Failure modes are absorbed (logged, internally consumed) rather
+   * than propagated, because there is no useful caller-side recovery
+   * for "the layout the user picked yesterday no longer parses": the
+   * editor falls through to whatever default layout the workspace
+   * shell already built. The Status return is for observability and
+   * tests.
+   *
+   * Skipped paths (return OK, leave the consumed flag clear so the
+   * caller can retry next frame):
+   *   - `main_dockspace_id_ == 0` (dockspace not bound yet).
+   *
+   * Skipped paths (return OK, set consumed):
+   *   - `settings == nullptr`.
+   *   - `last_applied_layout_name` is empty.
+   *
+   * Failure paths (return error status, set consumed):
+   *   - The named layout is missing from `named_layouts`.
+   *   - Its body fails to parse / validate.
+   *   - `ApplyDockTree` returns non-OK.
+   *
+   * @param settings  UserSettings to read `named_layouts` and
+   *                  `last_applied_layout_name` from. May be null.
+   * @return OK on legitimate skip or successful apply; the underlying
+   *         error otherwise.
+   */
+  absl::Status MaybeReapplyStartupLayout(UserSettings* settings);
+
+  /**
    * @brief Capture the current docking state into a DockTree.
    *
    * Walks ImGui's internal dock node tree rooted at `dockspace_id` and
@@ -390,6 +442,11 @@ class LayoutManager {
   // `SetMainDockspaceId`). 0 until the controller has rendered at least
   // one DockSpaceWindow frame.
   ImGuiID main_dockspace_id_ = 0;
+
+  // True after `MaybeReapplyStartupLayout` has fired for this session
+  // (whether successfully or with a logged error). Guards the one-shot
+  // semantics across the per-frame call cadence.
+  bool startup_layout_consumed_ = false;
 
   // Current editor type being displayed
   EditorType current_editor_type_ = EditorType::kUnknown;

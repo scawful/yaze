@@ -7,7 +7,10 @@
 #include <unordered_set>
 #include <utility>
 
+#include "absl/strings/str_cat.h"
+#include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/background_renderer.h"
 #include "imgui/imgui.h"
@@ -1379,6 +1382,77 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
 
   last_dockspace_id_ = dockspace_id;
   return absl::OkStatus();
+}
+
+absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
+  if (startup_layout_consumed_) {
+    return absl::OkStatus();
+  }
+  if (settings == nullptr) {
+    startup_layout_consumed_ = true;
+    return absl::OkStatus();
+  }
+
+  const std::string& name = settings->prefs().last_applied_layout_name;
+  if (name.empty()) {
+    // Nothing to reapply. Mark consumed so we stop checking each frame.
+    startup_layout_consumed_ = true;
+    return absl::OkStatus();
+  }
+
+  if (main_dockspace_id_ == 0) {
+    // The controller hasn't bound the main dockspace yet — try again
+    // next frame. Leave the flag clear.
+    return absl::OkStatus();
+  }
+
+  const auto& named_layouts = settings->prefs().named_layouts;
+  const auto it = named_layouts.find(name);
+  if (it == named_layouts.end()) {
+    startup_layout_consumed_ = true;
+    util::logf(
+        "LayoutManager: startup layout '%s' missing from "
+        "named_layouts; falling through to default.",
+        name.c_str());
+    return absl::NotFoundError(absl::StrCat("startup layout \"", name,
+                                            "\" not found in named_layouts"));
+  }
+
+  nlohmann::json parsed;
+  try {
+    parsed = nlohmann::json::parse(it->second);
+  } catch (const nlohmann::json::parse_error& e) {
+    startup_layout_consumed_ = true;
+    util::logf("LayoutManager: startup layout '%s' JSON parse error: %s",
+               name.c_str(), e.what());
+    return absl::InvalidArgumentError(
+        absl::StrCat("startup layout \"", name, "\" parse error: ", e.what()));
+  }
+
+  auto tree_or = layout_designer::DockTreeFromJson(parsed);
+  if (!tree_or.ok()) {
+    startup_layout_consumed_ = true;
+    util::logf("LayoutManager: startup layout '%s' failed to parse: %s",
+               name.c_str(), std::string(tree_or.status().message()).c_str());
+    return tree_or.status();
+  }
+
+  std::string validation_error;
+  if (!tree_or->Validate(&validation_error)) {
+    startup_layout_consumed_ = true;
+    util::logf("LayoutManager: startup layout '%s' failed validation: %s",
+               name.c_str(), validation_error.c_str());
+    return absl::InvalidArgumentError(absl::StrCat(
+        "startup layout \"", name, "\" validation failed: ", validation_error));
+  }
+
+  absl::Status apply_status = ApplyDockTree(*tree_or, main_dockspace_id_);
+  startup_layout_consumed_ = true;
+  if (!apply_status.ok()) {
+    util::logf("LayoutManager: startup layout '%s' ApplyDockTree failed: %s",
+               name.c_str(), std::string(apply_status.message()).c_str());
+  }
+  return apply_status;
 }
 
 absl::StatusOr<layout_designer::DockTree> LayoutManager::CaptureDockTree(

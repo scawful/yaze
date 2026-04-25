@@ -4,10 +4,13 @@
 #include <vector>
 
 #include "app/editor/layout/layout_designer/dock_tree.h"
+#include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_manager.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "nlohmann/json.hpp"
 
 namespace yaze::editor {
 namespace {
@@ -206,6 +209,128 @@ TEST_F(LayoutManagerDockTreeTest, ApplyDropsInvalidTreeWithMissingChild) {
 
   auto status = layout_manager_.ApplyDockTree(tree, kDockspaceId);
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+}
+
+// ============================================================================
+// Phase 8.2: MaybeReapplyStartupLayout
+// ============================================================================
+//
+// Drives `last_applied_layout_name` + `named_layouts` from UserSettings on
+// the first frame the main dockspace is bound. Idempotent — every subsequent
+// call (per-frame from the controller) is a no-op.
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyNoopWhenSettingsNull) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  EXPECT_FALSE(layout_manager_.startup_layout_consumed_for_test());
+  auto status = layout_manager_.MaybeReapplyStartupLayout(nullptr);
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(layout_manager_.startup_layout_consumed_for_test());
+}
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyNoopWhenLastAppliedEmpty) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  // last_applied_layout_name is empty by default.
+  auto status = layout_manager_.MaybeReapplyStartupLayout(&settings);
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(layout_manager_.startup_layout_consumed_for_test());
+}
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyDeferredWhenDockspaceNotBound) {
+  // main_dockspace_id_ defaults to 0; the hook should leave the consumed
+  // flag clear so the next frame can retry once the controller binds it.
+  UserSettings settings;
+  settings.prefs().last_applied_layout_name = "some_layout";
+  auto status = layout_manager_.MaybeReapplyStartupLayout(&settings);
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(layout_manager_.startup_layout_consumed_for_test())
+      << "MaybeReapplyStartupLayout must not consume itself before the "
+         "main dockspace id is bound — the controller calls it per-frame.";
+}
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyNotFoundWhenNameMissing) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  settings.prefs().last_applied_layout_name = "no_such_layout";
+  // named_layouts is empty.
+  auto status = layout_manager_.MaybeReapplyStartupLayout(&settings);
+  EXPECT_EQ(status.code(), absl::StatusCode::kNotFound);
+  EXPECT_TRUE(layout_manager_.startup_layout_consumed_for_test());
+}
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyParseErrorOnMalformedJson) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  settings.prefs().last_applied_layout_name = "bad";
+  settings.prefs().named_layouts["bad"] = "{not valid json";
+  auto status = layout_manager_.MaybeReapplyStartupLayout(&settings);
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_TRUE(layout_manager_.startup_layout_consumed_for_test());
+}
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyValidationErrorOnDuplicateIds) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  // Build a tree with a duplicate id forcibly stamped, serialize, and
+  // hand it back to the manager. Without the Validate gate this would
+  // silently install — the gate must reject it.
+  DockTree malformed;
+  malformed.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.5f,
+                                       DockNode::MakeLeaf({MakePanel("a")}),
+                                       DockNode::MakeLeaf({MakePanel("b")}));
+  malformed.root->child_b->id = malformed.root->child_a->id;  // collide
+
+  settings.prefs().last_applied_layout_name = "dup";
+  settings.prefs().named_layouts["dup"] =
+      layout_designer::DockTreeToJson(malformed).dump();
+  auto status = layout_manager_.MaybeReapplyStartupLayout(&settings);
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_TRUE(layout_manager_.startup_layout_consumed_for_test());
+}
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyAppliesAndConsumes) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  // Build a real, validating left-split tree and persist it as JSON.
+  DockTree tree;
+  tree.root = DockNode::MakeSplit(SplitDirection::kLeft, 0.3f,
+                                  DockNode::MakeLeaf({MakePanel("a")}),
+                                  DockNode::MakeLeaf({MakePanel("b")}));
+  settings.prefs().last_applied_layout_name = "my_layout";
+  settings.prefs().named_layouts["my_layout"] =
+      layout_designer::DockTreeToJson(tree).dump();
+
+  auto status = layout_manager_.MaybeReapplyStartupLayout(&settings);
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(layout_manager_.startup_layout_consumed_for_test());
+
+  // Side-effect check: the dockspace was actually rebuilt as a horizontal
+  // split, matching the tree.
+  ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(root, nullptr);
+  ASSERT_TRUE(root->IsSplitNode());
+  EXPECT_EQ(root->SplitAxis, ImGuiAxis_X);
+}
+
+TEST_F(LayoutManagerDockTreeTest, StartupReapplyIsIdempotent) {
+  layout_manager_.SetMainDockspaceId(kDockspaceId);
+  UserSettings settings;
+  DockTree tree;
+  tree.root = DockNode::MakeLeaf({MakePanel("a")});
+  settings.prefs().last_applied_layout_name = "once";
+  settings.prefs().named_layouts["once"] =
+      layout_designer::DockTreeToJson(tree).dump();
+
+  ASSERT_TRUE(layout_manager_.MaybeReapplyStartupLayout(&settings).ok());
+  ASSERT_TRUE(layout_manager_.startup_layout_consumed_for_test());
+
+  // Mutate the named layout AFTER first apply. A second call must
+  // ignore the mutation entirely — the consumed flag short-circuits.
+  settings.prefs().named_layouts["once"] = "{not valid json";
+  auto status = layout_manager_.MaybeReapplyStartupLayout(&settings);
+  EXPECT_TRUE(status.ok())
+      << "Idempotent guard must short-circuit before any JSON parse, even "
+         "when the persisted layout has been corrupted post-apply.";
 }
 
 }  // namespace
