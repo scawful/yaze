@@ -121,7 +121,7 @@ std::string LookupProjectRegistryRoomLabel(const core::HackManifest* manifest,
                                            int id) {
   // The project registry can be loaded independently of a hack manifest in
   // real Oracle projects (see ProjectPathsTest::
-  // RegistryWithoutHackManifestStillExposesData). Don't gate registry
+  // OpenInjectsOracleDungeonRoomLabelsIntoProjectFile). Don't gate registry
   // lookups on manifest->loaded().
   if (!manifest || !manifest->HasProjectRegistry()) {
     return "";
