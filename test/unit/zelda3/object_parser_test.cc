@@ -163,9 +163,15 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   auto info_subtype3 = parser_->GetObjectDrawInfo(0xFB1);
   EXPECT_EQ(info_subtype3.tile_count, 12);
 
-  // kSubtype1TileLengths has a 0 entry for 0x47; parser defaults that to 8.
-  auto info_subtype1_default = parser_->GetObjectDrawInfo(0x47);
-  EXPECT_EQ(info_subtype1_default.tile_count, 8);
+  // 2026-04-25 audit: kSubtype1TileLengths previously stored 0 for
+  // 0x47/0x48 and the parser defaulted to 8. The actual `Waterfall47`
+  // routine reads 15 tiles and `Waterfall48` reads 9; the table now
+  // carries those explicit counts so the parser's tile vector matches
+  // what the routine consumes.
+  auto info_waterfall47 = parser_->GetObjectDrawInfo(0x47);
+  EXPECT_EQ(info_waterfall47.tile_count, 15);
+  auto info_waterfall48 = parser_->GetObjectDrawInfo(0x48);
+  EXPECT_EQ(info_waterfall48.tile_count, 9);
 }
 
 TEST_F(ObjectParserTest, DrawInfoOrientationFollowsRoutineCategory) {
