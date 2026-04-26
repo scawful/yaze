@@ -45,6 +45,8 @@ set(
   app/editor/dungeon/workspace/room_graphics_content.cc
   app/editor/dungeon/ui/window/dungeon_settings_panel.cc
   app/editor/dungeon/workspace/dungeon_workbench_content.cc
+  app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.cc
+  app/editor/dungeon/workspace/dungeon_workbench_layout.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
   app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/selectors/object_selector_content.cc

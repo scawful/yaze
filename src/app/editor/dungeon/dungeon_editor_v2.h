@@ -254,6 +254,7 @@ class DungeonEditorV2 : public Editor {
   uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
+  void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);

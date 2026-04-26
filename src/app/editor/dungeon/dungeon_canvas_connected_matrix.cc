@@ -300,6 +300,79 @@ struct ConnectedCanvasControlActions {
   std::optional<ImVec2> moved_window_pos;
 };
 
+struct ConnectedControlsCompactActions {
+  bool fit = false;
+  bool reset = false;
+};
+
+void DrawConnectedControlsLegend() {
+  const auto& agent_theme = AgentUI::GetTheme();
+  DrawConnectedLegendItem(
+      "Door",
+      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Door),
+      DungeonConnectedLinkType::Door);
+  ImGui::SameLine(0.0f, 8.0f);
+  DrawConnectedLegendItem(
+      "Stair",
+      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Staircase),
+      DungeonConnectedLinkType::Staircase);
+  ImGui::SameLine(0.0f, 8.0f);
+  DrawConnectedLegendItem(
+      "Warp",
+      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Holewarp),
+      DungeonConnectedLinkType::Holewarp);
+}
+
+ConnectedControlsCompactActions DrawConnectedControlsCompact(
+    float scale, int connected_room_count, bool* show_overview,
+    bool* show_preview) {
+  ConnectedControlsCompactActions actions;
+  ImGui::TextDisabled("%d room%s", connected_room_count,
+                      connected_room_count == 1 ? "" : "s");
+  ImGui::SameLine(0.0f, 8.0f);
+  ImGui::TextDisabled("%.0f%%", scale * 100.0f);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Connected zoom\nF fit\n0 reset\n+/- zoom");
+  }
+
+  ImGui::SameLine(0.0f, 6.0f);
+  if (ImGui::SmallButton(ICON_MD_FIT_SCREEN "##ConnectedFit")) {
+    actions.fit = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Fit all connected rooms in view (F)");
+  }
+
+  ImGui::SameLine();
+  if (ImGui::SmallButton(ICON_MD_RESTART_ALT "##ConnectedReset")) {
+    actions.reset = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Reset zoom and recenter on current room (0)");
+  }
+
+  if (show_overview) {
+    ImGui::SameLine();
+    ImGui::Checkbox("Mini##ConnectedMini", show_overview);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Show connected overview map\nClick a room on the overview to jump");
+    }
+  }
+
+  if (show_preview) {
+    ImGui::SameLine();
+    ImGui::Checkbox("Room##ConnectedRoomPreview", show_preview);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Show full-resolution preview of the current room");
+    }
+  }
+
+  ImGui::SameLine(0.0f, 8.0f);
+  DrawConnectedControlsLegend();
+  return actions;
+}
+
 struct ConnectedCanvasOverviewActions {
   bool hovered = false;
   std::optional<ImVec2> target_scroll;
@@ -314,7 +387,6 @@ ConnectedCanvasControlActions DrawConnectedCanvasControls(
   actions.show_overview = show_overview;
   actions.show_preview = show_preview;
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-  const auto& agent_theme = AgentUI::GetTheme();
 
   ImGui::SetNextWindowPos(pos, ImGuiCond_Always, pivot);
   ImGui::SetNextWindowBgAlpha(0.84f);
@@ -352,55 +424,11 @@ ConnectedCanvasControlActions DrawConnectedCanvasControls(
       actions.moved_window_pos = new_pos;
     }
     ImGui::SameLine(0.0f, 6.0f);
-    ImGui::TextDisabled("%d room%s", connected_room_count,
-                        connected_room_count == 1 ? "" : "s");
-    ImGui::SameLine(0.0f, 8.0f);
-    ImGui::TextDisabled("%.0f%%", scale * 100.0f);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Connected zoom\nF fit\n0 reset\n+/- zoom");
-    }
-    ImGui::SameLine(0.0f, 6.0f);
-    if (ImGui::SmallButton("Fit")) {
-      actions.fit = true;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Fit all connected rooms in view (F)");
-    }
-    ImGui::SameLine();
-    if (ImGui::SmallButton("Reset")) {
-      actions.reset = true;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Reset zoom and recenter on current room (0)");
-    }
-    ImGui::SameLine();
-    ImGui::Checkbox("Mini", &actions.show_overview);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Show connected overview map\nClick a room on the overview to jump");
-    }
-    ImGui::SameLine();
-    ImGui::Checkbox("Room", &actions.show_preview);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Show full-resolution preview of the current room alongside the "
-          "matrix");
-    }
-
-    DrawConnectedLegendItem(
-        "Door",
-        GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Door),
-        DungeonConnectedLinkType::Door);
-    ImGui::SameLine(0.0f, 8.0f);
-    DrawConnectedLegendItem(
-        "Stair",
-        GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Staircase),
-        DungeonConnectedLinkType::Staircase);
-    ImGui::SameLine(0.0f, 8.0f);
-    DrawConnectedLegendItem(
-        "Warp",
-        GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Holewarp),
-        DungeonConnectedLinkType::Holewarp);
+    const auto compact_actions = DrawConnectedControlsCompact(
+        scale, connected_room_count, &actions.show_overview,
+        &actions.show_preview);
+    actions.fit = compact_actions.fit;
+    actions.reset = compact_actions.reset;
   }
   ImGui::End();
 
@@ -800,57 +828,15 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
                        "%s", connected_action_status_message_.c_str());
   }
   ImGui::SameLine(0.0f, 8.0f);
-  ImGui::TextDisabled("%.0f%%", ConnectedCanvasScale() * 100.0f);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Connected zoom\nF fit\n0 reset\n+/- zoom");
-  }
-
-  ImGui::SameLine(0.0f, 6.0f);
-  if (ImGui::SmallButton(ICON_MD_FIT_SCREEN "##ConnectedFit")) {
+  const auto compact_actions = DrawConnectedControlsCompact(
+      ConnectedCanvasScale(), connected_room_count, &show_connected_overview_,
+      &show_connected_current_room_preview_);
+  if (compact_actions.fit) {
     connected_canvas_fit_requested_ = true;
   }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Fit all connected rooms in view (F)");
-  }
-
-  ImGui::SameLine();
-  if (ImGui::SmallButton(ICON_MD_RESTART_ALT "##ConnectedReset")) {
+  if (compact_actions.reset) {
     connected_canvas_reset_requested_ = true;
   }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Reset zoom and recenter on current room (0)");
-  }
-
-  ImGui::SameLine();
-  ImGui::Checkbox("Mini##ConnectedMini", &show_connected_overview_);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "Show connected overview map\nClick a room on the overview to jump");
-  }
-
-  ImGui::SameLine();
-  ImGui::Checkbox("Room##ConnectedRoomPreview",
-                  &show_connected_current_room_preview_);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Show full-resolution preview of the current room");
-  }
-
-  const auto& agent_theme = AgentUI::GetTheme();
-  ImGui::SameLine(0.0f, 8.0f);
-  DrawConnectedLegendItem(
-      "Door",
-      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Door),
-      DungeonConnectedLinkType::Door);
-  ImGui::SameLine(0.0f, 8.0f);
-  DrawConnectedLegendItem(
-      "Stair",
-      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Staircase),
-      DungeonConnectedLinkType::Staircase);
-  ImGui::SameLine(0.0f, 8.0f);
-  DrawConnectedLegendItem(
-      "Warp",
-      GetConnectedLinkColor(agent_theme, DungeonConnectedLinkType::Holewarp),
-      DungeonConnectedLinkType::Holewarp);
 }
 
 std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(

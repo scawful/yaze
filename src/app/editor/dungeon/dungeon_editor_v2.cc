@@ -2175,6 +2175,56 @@ void DungeonEditorV2::RemoveViewerFromLru(int room_id) {
   (void)room_id;
 }
 
+void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
+  if (!viewer) {
+    return;
+  }
+
+  viewer->SetShowObjectPanelCallback(
+      [this]() { OpenWindow(kObjectSelectorId); });
+  viewer->SetShowSpritePanelCallback(
+      [this]() { OpenWindow("dungeon.sprite_editor"); });
+  viewer->SetShowItemPanelCallback(
+      [this]() { OpenWindow("dungeon.item_editor"); });
+  viewer->SetShowRoomListCallback([this]() {
+    OpenWindow(IsWorkbenchWorkflowEnabled() ? "dungeon.workbench"
+                                            : DungeonEditorV2::kRoomSelectorId);
+  });
+  viewer->SetShowRoomMatrixCallback([this]() { OpenWindow(kRoomMatrixId); });
+  viewer->SetShowEntranceListCallback(
+      [this]() { OpenWindow(kEntranceListId); });
+  viewer->SetShowRoomGraphicsCallback(
+      [this]() { OpenWindow(kRoomGraphicsId); });
+  viewer->SetShowDoorEditorCallback(
+      [this]() { OpenWindow("dungeon.door_editor"); });
+  viewer->SetShowDungeonSettingsCallback(
+      [this]() { OpenWindow("dungeon.settings"); });
+  viewer->SetEditGraphicsCallback(
+      [this](int target_room_id, const zelda3::RoomObject& object) {
+        OpenGraphicsEditorForObject(target_room_id, object);
+      });
+  viewer->SetSaveRoomCallback([this](int target_room_id) {
+    auto status = SaveRoom(target_room_id);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Apply Room failed: %s",
+                status.message().data());
+      if (dependencies_.toast_manager) {
+        dependencies_.toast_manager->Show(
+            absl::StrFormat("Apply Room failed: %s", status.message()),
+            ToastType::kError);
+      }
+      return;
+    }
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show("Applied room to ROM buffer",
+                                        ToastType::kSuccess);
+    }
+  });
+
+  viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
+  viewer->SetProject(dependencies_.project);
+}
+
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   if (IsWorkbenchWorkflowEnabled()) {
     (void)room_id;
@@ -2300,48 +2350,9 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     viewer->SetRoomSwapCallback([this](int old_room, int new_room) {
       SwapRoomInPanel(old_room, new_room);
     });
-    viewer->SetShowObjectPanelCallback(
-        [this]() { OpenWindow(kObjectSelectorId); });
-    viewer->SetShowSpritePanelCallback(
-        [this]() { OpenWindow("dungeon.sprite_editor"); });
-    viewer->SetShowItemPanelCallback(
-        [this]() { OpenWindow("dungeon.item_editor"); });
-    viewer->SetShowRoomListCallback([this]() {
-      OpenWindow(IsWorkbenchWorkflowEnabled() ? "dungeon.workbench"
-                                              : kRoomSelectorId);
-    });
-    viewer->SetShowRoomMatrixCallback([this]() { OpenWindow(kRoomMatrixId); });
-    viewer->SetShowEntranceListCallback(
-        [this]() { OpenWindow(kEntranceListId); });
-    viewer->SetShowRoomGraphicsCallback(
-        [this]() { OpenWindow(kRoomGraphicsId); });
-    viewer->SetShowDoorEditorCallback(
-        [this]() { OpenWindow("dungeon.door_editor"); });
-    viewer->SetShowDungeonSettingsCallback(
-        [this]() { OpenWindow("dungeon.settings"); });
-    viewer->SetEditGraphicsCallback(
-        [this](int target_room_id, const zelda3::RoomObject& object) {
-          OpenGraphicsEditorForObject(target_room_id, object);
-        });
-    viewer->SetSaveRoomCallback([this](int target_room_id) {
-      auto status = SaveRoom(target_room_id);
-      if (!status.ok()) {
-        LOG_ERROR("DungeonEditorV2", "Apply Room failed: %s",
-                  status.message().data());
-        if (dependencies_.toast_manager) {
-          dependencies_.toast_manager->Show(
-              absl::StrFormat("Apply Room failed: %s", status.message()),
-              ToastType::kError);
-        }
-        return;
-      }
-      if (dependencies_.toast_manager) {
-        dependencies_.toast_manager->Show("Applied room to ROM buffer",
-                                          ToastType::kSuccess);
-      }
-    });
+    WireViewerPanelCallbacks(viewer.get());
 
-    // Wire up pinning for room panels
+    // Wire up pinning for room panels.
     if (dependencies_.window_manager) {
       std::string card_id = absl::StrFormat("dungeon.room_%d", room_id);
       viewer->SetPinned(dependencies_.window_manager->IsWindowPinned(card_id));
@@ -2355,9 +2366,6 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
         }
       });
     }
-
-    viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
-    viewer->SetProject(dependencies_.project);
 
     auto* stored = room_viewers_.Insert(room_id, std::move(viewer));
     return stored->get();
@@ -2444,49 +2452,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
       OnRoomSelected(target_room, /*request_focus=*/false);
     });
 
-    viewer->SetShowObjectPanelCallback(
-        [this]() { OpenWindow(kObjectSelectorId); });
-    viewer->SetShowSpritePanelCallback(
-        [this]() { OpenWindow("dungeon.sprite_editor"); });
-    viewer->SetShowItemPanelCallback(
-        [this]() { OpenWindow("dungeon.item_editor"); });
-    viewer->SetShowRoomListCallback([this]() {
-      OpenWindow(IsWorkbenchWorkflowEnabled() ? "dungeon.workbench"
-                                              : kRoomSelectorId);
-    });
-    viewer->SetShowRoomMatrixCallback([this]() { OpenWindow(kRoomMatrixId); });
-    viewer->SetShowEntranceListCallback(
-        [this]() { OpenWindow(kEntranceListId); });
-    viewer->SetShowRoomGraphicsCallback(
-        [this]() { OpenWindow(kRoomGraphicsId); });
-    viewer->SetShowDoorEditorCallback(
-        [this]() { OpenWindow("dungeon.door_editor"); });
-    viewer->SetShowDungeonSettingsCallback(
-        [this]() { OpenWindow("dungeon.settings"); });
-    viewer->SetEditGraphicsCallback(
-        [this](int target_room_id, const zelda3::RoomObject& object) {
-          OpenGraphicsEditorForObject(target_room_id, object);
-        });
-    viewer->SetSaveRoomCallback([this](int target_room_id) {
-      auto status = SaveRoom(target_room_id);
-      if (!status.ok()) {
-        LOG_ERROR("DungeonEditorV2", "Apply Room failed: %s",
-                  status.message().data());
-        if (dependencies_.toast_manager) {
-          dependencies_.toast_manager->Show(
-              absl::StrFormat("Apply Room failed: %s", status.message()),
-              ToastType::kError);
-        }
-        return;
-      }
-      if (dependencies_.toast_manager) {
-        dependencies_.toast_manager->Show("Applied room to ROM buffer",
-                                          ToastType::kSuccess);
-      }
-    });
-
-    viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
-    viewer->SetProject(dependencies_.project);
+    WireViewerPanelCallbacks(viewer);
   }
 
   return workbench_viewer_.get();
