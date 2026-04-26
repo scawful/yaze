@@ -255,4 +255,32 @@ TEST(UserSettingsLayoutDefaultsTest,
       prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
 }
 
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionEighteenPrunesTransientDungeonRoomPanels) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 17;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.room_98"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.room_165"] = true;
+  prefs.pinned_panels["dungeon.room_98"] = true;
+  prefs.pinned_panels["layout.designer"] = true;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision,
+            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_EQ(prefs.panel_visibility_state["Dungeon"].count("dungeon.room_98"),
+            0U);
+  EXPECT_EQ(prefs.panel_visibility_state["Dungeon"].count("dungeon.room_165"),
+            0U);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
+  EXPECT_EQ(prefs.pinned_panels.count("dungeon.room_98"), 0U);
+  EXPECT_TRUE(prefs.pinned_panels["layout.designer"]);
+}
+
 }  // namespace yaze::editor

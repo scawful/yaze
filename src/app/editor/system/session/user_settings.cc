@@ -35,6 +35,31 @@ absl::Status EnsureParentDirectory(const std::filesystem::path& path) {
   return util::PlatformPaths::EnsureDirectoryExists(parent);
 }
 
+bool IsTransientPanelVisibilityId(const std::string& panel_id) {
+  constexpr char kRoomPanelPrefix[] = "dungeon.room_";
+  constexpr size_t kRoomPanelPrefixLength = 13;
+  if (panel_id.rfind(kRoomPanelPrefix, 0) != 0 ||
+      panel_id.size() <= kRoomPanelPrefixLength) {
+    return false;
+  }
+  return std::all_of(panel_id.begin() + kRoomPanelPrefixLength, panel_id.end(),
+                     [](char ch) { return ch >= '0' && ch <= '9'; });
+}
+
+void EraseTransientPanelVisibility(
+    std::unordered_map<std::string, bool>* panel_state) {
+  if (!panel_state) {
+    return;
+  }
+  for (auto it = panel_state->begin(); it != panel_state->end();) {
+    if (IsTransientPanelVisibilityId(it->first)) {
+      it = panel_state->erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
 absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
                                     UserSettings::Preferences* prefs) {
   if (!prefs) {
@@ -1342,6 +1367,27 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
   if (prefs_.panel_layout_defaults_revision < 17 && target_revision >= 17) {
     prefs_.pinned_panels["layout.designer"] = true;
     prefs_.panel_layout_defaults_revision = 17;
+    applied = true;
+  }
+
+  // Revision 18: stop carrying standalone dungeon room windows across app
+  // launches. Workbench mode is now the default dungeon workflow; stale
+  // `dungeon.room_*` visibility entries can resurrect dozens of room panels
+  // and make the UI look broken immediately after switching to Dungeon.
+  if (prefs_.panel_layout_defaults_revision < 18 && target_revision >= 18) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      EraseTransientPanelVisibility(&dungeon_it->second);
+    }
+    for (auto it = prefs_.pinned_panels.begin();
+         it != prefs_.pinned_panels.end();) {
+      if (IsTransientPanelVisibilityId(it->first)) {
+        it = prefs_.pinned_panels.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    prefs_.panel_layout_defaults_revision = 18;
     applied = true;
   }
 

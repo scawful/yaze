@@ -58,6 +58,17 @@ The yaze editor uses a modular card-based architecture inspired by VSCode's work
    apply one-time resets that override persisted sidebar widths, panel browser
    splitter width, panel visibility/pinning, right panel widths, and stale
    docking positions (`ResetWorkspaceLayout`) when layout baselines change.
+11. **Transient room panels are not restored:** numeric standalone dungeon room
+   panel IDs (`dungeon.room_<digits>`) are treated as session-only. Revision 18
+   removes those visibility/pin entries from saved settings, and
+   `WorkspaceWindowManager` skips them when serializing/restoring visibility.
+   Named dungeon panels such as `dungeon.room_selector` and
+   `dungeon.room_matrix` are not transient and continue to persist normally.
+12. **WindowContent registration is replaceable:** editor-owned
+   `WindowContent` instances may capture session or project state. When a
+   content ID is registered again after a project/session reload, the manager
+   closes and replaces the old instance instead of preserving stale draw
+   callbacks.
 
 ## System Components
 
@@ -501,6 +512,13 @@ void DungeonEditor::Initialize(EditorDependencies& deps) {
 5. **Provide visibility_flag** - Points to bool member variable
 6. **Include enabled_condition** - For ROM-dependent cards
 7. **Set priority** - Lower = higher in menus
+8. **Keep content IDs stable and reload-safe** - Re-registering a
+   `WindowContent` ID must be idempotent. If the content captures editor,
+   session, ROM, or project pointers, a later registration should replace the
+   previous content instance so visible panels draw against the current owner.
+9. **Do not persist dynamic room IDs** - Numeric `dungeon.room_<id>` panels are
+   compatibility/transient views. Persist workbench-level panels and selectors
+   instead.
 
 ---
 

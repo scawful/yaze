@@ -456,6 +456,39 @@ TEST_F(InteractionCoordinatorTest, GroupDragMovesMixedEntitySelection) {
   EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 96);
 }
 
+TEST_F(InteractionCoordinatorTest, GroupDragBatchesEntityNotifications) {
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  rooms_[0].GetPotItems().push_back(item);
+  coordinator_.SelectEntitiesInRect({0, 0, 512, 512}, /*additive=*/false,
+                                    /*toggle=*/false);
+  ASSERT_EQ(coordinator_.GetSelectedEntities().size(), 2u);
+
+  const int initial_mutations = mutation_count_;
+  const int initial_invalidations = invalidation_count_;
+  const int initial_entity_changes = entity_changed_count_;
+
+  coordinator_.BeginSelectionDrag(ImVec2(80.0f, 80.0f));
+  coordinator_.HandleDrag(ImVec2(96.0f, 96.0f), ImVec2(16.0f, 16.0f));
+  coordinator_.HandleDrag(ImVec2(112.0f, 112.0f), ImVec2(16.0f, 16.0f));
+
+  EXPECT_EQ(mutation_count_ - initial_mutations, 2);
+  EXPECT_EQ(invalidation_count_, initial_invalidations);
+  EXPECT_EQ(entity_changed_count_, initial_entity_changes);
+
+  coordinator_.HandleRelease();
+
+  EXPECT_EQ(invalidation_count_ - initial_invalidations, 2);
+  EXPECT_EQ(entity_changed_count_ - initial_entity_changes, 1);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 7);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 7);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 96);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 112);
+}
+
 // ============================================================================
 // Mode Changing Clears Old Placement
 // ============================================================================

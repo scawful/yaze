@@ -147,6 +147,20 @@ bool HasAnyOverride(const core::RomAddressOverrides& overrides,
   return false;
 }
 
+bool IsTransientPanelVisibilityId(absl::string_view panel_id) {
+  constexpr absl::string_view kRoomPanelPrefix = "dungeon.room_";
+  if (!absl::StartsWith(panel_id, kRoomPanelPrefix) ||
+      panel_id.size() <= kRoomPanelPrefix.size()) {
+    return false;
+  }
+  for (char ch : panel_id.substr(kRoomPanelPrefix.size())) {
+    if (ch < '0' || ch > '9') {
+      return false;
+    }
+  }
+  return true;
+}
+
 std::string LastNonEmptyLine(const std::string& text) {
   std::vector<std::string> lines = absl::StrSplit(text, '\n');
   for (auto it = lines.rbegin(); it != lines.rend(); ++it) {
@@ -1000,6 +1014,9 @@ void EditorManager::SubscribeToEvents() {
       [this](const PanelVisibilityChangedEvent& e) {
         if (e.category.empty() ||
             e.category == WorkspaceWindowManager::kDashboardCategory) {
+          return;
+        }
+        if (IsTransientPanelVisibilityId(e.base_panel_id)) {
           return;
         }
         auto& prefs = user_settings_.prefs();

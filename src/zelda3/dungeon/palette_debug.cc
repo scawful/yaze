@@ -17,6 +17,31 @@ uint64_t GetCurrentTimeMs() {
              std::chrono::steady_clock::now().time_since_epoch())
       .count();
 }
+
+bool ShouldLogPaletteInfo() {
+#ifdef YAZE_PALETTE_DEBUG_VERBOSE
+  return true;
+#else
+  return false;
+#endif
+}
+
+void LogPaletteDebugEvent(const yaze::zelda3::PaletteDebugEvent& event) {
+  if (event.level == yaze::zelda3::PaletteDebugLevel::ERROR) {
+    LOG_ERROR("PaletteDebug", "%s: %s", event.location.c_str(),
+              event.message.c_str());
+    return;
+  }
+  if (event.level == yaze::zelda3::PaletteDebugLevel::WARNING) {
+    LOG_WARN("PaletteDebug", "%s: %s", event.location.c_str(),
+             event.message.c_str());
+    return;
+  }
+  if (ShouldLogPaletteInfo()) {
+    LOG_DEBUG("PaletteDebug", "%s: %s", event.location.c_str(),
+              event.message.c_str());
+  }
+}
 }  // namespace
 
 namespace yaze::zelda3 {
@@ -56,7 +81,7 @@ void PaletteDebugger::LogPaletteLoad(const std::string& location,
                                   palette_id, event.color_count, sample_str);
 
   AddEvent(event);
-  LOG_INFO("PaletteDebug", "%s", event.message);
+  LogPaletteDebugEvent(event);
 }
 
 void PaletteDebugger::LogPaletteApplication(const std::string& location,
@@ -77,11 +102,7 @@ void PaletteDebugger::LogPaletteApplication(const std::string& location,
                                 reason);
 
   AddEvent(event);
-  if (success) {
-    LOG_INFO("PaletteDebug", "%s", event.message);
-  } else {
-    LOG_ERROR("PaletteDebug", "%s", event.message);
-  }
+  LogPaletteDebugEvent(event);
 }
 
 void PaletteDebugger::LogTextureCreation(const std::string& location,
@@ -101,9 +122,7 @@ void PaletteDebugger::LogTextureCreation(const std::string& location,
             "colors!";
 
   AddEvent(event);
-  if (!has_palette) {
-    LOG_WARN("PaletteDebug", "%s", event.message);
-  }
+  LogPaletteDebugEvent(event);
 }
 
 void PaletteDebugger::LogSurfaceState(const std::string& location,
@@ -117,7 +136,7 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
     event.level = PaletteDebugLevel::ERROR;
     event.message = "Surface is NULL!";
     AddEvent(event);
-    LOG_ERROR("PaletteDebug", "%s", event.message);
+    LogPaletteDebugEvent(event);
     return;
   }
 
@@ -126,7 +145,7 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
     event.level = PaletteDebugLevel::ERROR;
     event.message = "Surface format is unknown!";
     AddEvent(event);
-    LOG_ERROR("PaletteDebug", "%s", event.message);
+    LogPaletteDebugEvent(event);
     return;
   }
 
@@ -164,7 +183,7 @@ void PaletteDebugger::LogSurfaceState(const std::string& location,
   }
 
   AddEvent(event);
-  LOG_INFO("PaletteDebug", "%s: %s", location, event.message);
+  LogPaletteDebugEvent(event);
 }
 
 void PaletteDebugger::SetCurrentPalette(const gfx::SnesPalette& palette) {
