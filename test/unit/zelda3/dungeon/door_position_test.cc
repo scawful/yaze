@@ -50,6 +50,23 @@ TEST(DoorPositionManagerTest, PositionToTileCoordsMatchesUsdasmTables) {
   }
 }
 
+TEST(DoorPositionManagerTest, SouthRenderBoundsStartBelowUsdasmAnchor) {
+  // The ROM table anchor is load-bearing for encoding/door routing, but
+  // RoomDraw_OneSidedShutters_South writes through row pointers y+1..y+3.
+  EXPECT_EQ(DoorPositionManager::PositionToTileCoords(6, DoorDirection::South),
+            (std::pair<int, int>{14, 58}));
+  EXPECT_EQ(
+      DoorPositionManager::PositionToRenderTileCoords(6, DoorDirection::South),
+      (std::pair<int, int>{14, 59}));
+
+  const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+      /*position=*/6, DoorDirection::South, DoorType::NormalDoor);
+  EXPECT_EQ(x, 14 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(y, 59 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(height, 3 * DoorPositionManager::kTileSize);
+}
+
 TEST(DoorPositionManagerTest, VerticalSnapPositionsMatchUsdasmRows) {
   EXPECT_EQ(DoorPositionManager::GetSnapPositions(DoorDirection::West),
             (std::vector<int>{15, 31, 47}));

@@ -597,8 +597,9 @@ void DrawRightwards4x2_1to16(const DrawContext& ctx) {
 }
 
 void DrawRightwardsDecor4x2spaced8_1to16(const DrawContext& ctx) {
-  // Pattern: Draws 1x8 column tiles with 12-tile horizontal spacing
-  // (objects 0x55-0x56 wall torches).
+  // USDASM RoomDraw_RightwardsDecor4x2spaced8_1to16 ($01:96F9)
+  // jumps into RoomDraw_Downwards4x2VariableSpacing with A=0x0018:
+  // each step writes one 4x2 stamp, then advances 12 tiles right.
   const int size = ctx.object.size_ & 0x0F;
   const int count = size + 1;  // GetSize_1to16
 
@@ -608,10 +609,23 @@ void DrawRightwardsDecor4x2spaced8_1to16(const DrawContext& ctx) {
 
   for (int s = 0; s < count; ++s) {
     const int base_x = ctx.object.x_ + (s * 12);
-    for (int row = 0; row < 8; ++row) {
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, ctx.object.y_ + row,
-                                   ctx.tiles[row]);
-    }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0, ctx.object.y_,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, ctx.object.y_,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 3, ctx.object.y_,
+                                 ctx.tiles[3]);
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0, ctx.object.y_ + 1,
+                                 ctx.tiles[4]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_ + 1,
+                                 ctx.tiles[5]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, ctx.object.y_ + 1,
+                                 ctx.tiles[6]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 3, ctx.object.y_ + 1,
+                                 ctx.tiles[7]);
   }
 }
 

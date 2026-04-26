@@ -563,13 +563,13 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x53: Floor 2x2 - GetSize_1to16
   dimensions_[0x53] = {2, 2, Dir::Horizontal, 2, false};
 
-  // 0x54-0x5A: Mostly unused, but 0x55-0x56 are wall torches (1x8 column)
+  // 0x54-0x5A: Mostly unused, but 0x55-0x56 are wall torches.
   for (int id = 0x54; id <= 0x5A; id++) {
     dimensions_[id] = {1, 1, Dir::None, 0, false};
   }
-  // 0x55-0x56: Decor 1x8 spaced 12
+  // 0x55-0x56: Decor 4x2 spaced 12
   for (int id = 0x55; id <= 0x56; id++) {
-    dimensions_[id] = {1, 8, Dir::Horizontal, 12, false};
+    dimensions_[id] = {4, 2, Dir::Horizontal, 12, false};
   }
 
   // 0x5B-0x5C: Cannon Hole 4x3 (same as 0x51-0x52)
