@@ -532,7 +532,7 @@ TEST_F(DungeonObjectRomValidationTest, Room_GraphicsBufferCopy) {
   zelda3::Room room(0, rom_.get(), &game_data);
 
   // Load room graphics
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
 
   // Copy graphics to room buffer
   room.CopyRoomGraphicsToBuffer();
@@ -579,7 +579,7 @@ TEST_F(DungeonObjectRomValidationTest, Room_LayoutLoading) {
   zelda3::Room room(0, rom_.get(), &game_data);
 
   // Load room graphics
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   room.CopyRoomGraphicsToBuffer();
 
   // Check that layout_ is set up

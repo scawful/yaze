@@ -39,6 +39,27 @@ bool RoomUsesTrackCornerAliases(const std::vector<RoomObject>& objects) {
                      [](const RoomObject& obj) { return obj.id_ == 0x31; });
 }
 
+uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
+  return static_cast<uint8_t>((byte0 >> 5) & 0x07);
+}
+
+bool IsDarkRoomHeaderByte(uint8_t byte0) {
+  return (byte0 & 0x01) != 0;
+}
+
+const LayerMergeType& LayerMergeFromHeaderByte(uint8_t byte0) {
+  return kLayerMergeTypeList[IsDarkRoomHeaderByte(byte0)
+                                 ? 8
+                                 : Layer2ModeFromHeaderByte(byte0)];
+}
+
+background2 Background2FromHeaderByte(uint8_t byte0) {
+  if (IsDarkRoomHeaderByte(byte0)) {
+    return background2::DarkRoom;
+  }
+  return static_cast<background2>(Layer2ModeFromHeaderByte(byte0));
+}
+
 template <typename WriteColor>
 void PopulateDungeonRenderPaletteRows(const gfx::SnesPalette& dungeon_palette,
                                       const gfx::SnesPalette* hud_palette,
@@ -394,13 +415,13 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
     return room;
   }
 
-  room.SetBg2((background2)((rom->data()[header_location] >> 5) & 0x07));
-  room.SetCollision((CollisionKey)((rom->data()[header_location] >> 2) & 0x07));
-  room.SetIsLight(((rom->data()[header_location]) & 0x01) == 1);
-
-  if (room.IsLight()) {
-    room.SetBg2(background2::DarkRoom);
-  }
+  const uint8_t header_byte0 = rom->data()[header_location];
+  room.SetLayer2Mode(Layer2ModeFromHeaderByte(header_byte0));
+  room.SetLayerMerging(LayerMergeFromHeaderByte(header_byte0));
+  room.SetBg2(Background2FromHeaderByte(header_byte0));
+  room.SetCollision((CollisionKey)((header_byte0 >> 2) & 0x07));
+  room.SetIsLight(IsDarkRoomHeaderByte(header_byte0));
+  room.SetIsDark(IsDarkRoomHeaderByte(header_byte0));
 
   // USDASM grounding (bank_01.asm LoadRoomHeader, e.g. $01:B61B):
   // The room header stores an 8-bit "palette set ID" (0-71 in vanilla), which
@@ -470,10 +491,9 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
 
   uint8_t b = rom->data()[hpos];
 
-  room.SetLayer2Mode((b >> 5));
-  room.SetLayerMerging(kLayerMergeTypeList[(b & 0x0C) >> 2]);
-
-  room.SetIsDark((b & 0x01) == 0x01);
+  room.SetLayer2Mode(Layer2ModeFromHeaderByte(b));
+  room.SetLayerMerging(LayerMergeFromHeaderByte(b));
+  room.SetIsDark(IsDarkRoomHeaderByte(b));
   hpos++;
   // Skip palette byte here - already set by SetPalette() from the primary
   // header table above (line ~329). The old SetPaletteDirect wrote to a
@@ -563,34 +583,64 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
 
   const auto& room_gfx = game_data_->room_blockset_ids;
   const auto& sprite_gfx = game_data_->spriteset_ids;
-  const uint8_t effective_entrance_blockset =
+  const uint8_t requested_main_blockset =
       entrance_blockset.value_or(render_entrance_blockset_);
+  uint8_t main_blockset = 0;
+  if (requested_main_blockset != 0xFF &&
+      requested_main_blockset < game_data_->main_blockset_ids.size()) {
+    main_blockset = requested_main_blockset;
+  } else if (blockset_ < game_data_->main_blockset_ids.size()) {
+    main_blockset = blockset_;
+  } else {
+    LOG_WARN("Room",
+             "Room %d: invalid main fallback blockset %d; using main group 0",
+             room_id_, blockset_);
+  }
+  if (requested_main_blockset != 0xFF &&
+      requested_main_blockset >= game_data_->main_blockset_ids.size()) {
+    LOG_WARN("Room",
+             "Room %d: entrance main blockset %d out of range; using %d",
+             room_id_, requested_main_blockset, main_blockset);
+  }
+  resolved_main_blockset_ = main_blockset;
 
   LOG_DEBUG("Room",
-            "Room %d: blockset=%d, entrance_blockset=%d, spriteset=%d, "
+            "Room %d: room_blockset=%d, main_blockset=%d, spriteset=%d, "
             "palette=%d",
-            room_id_, blockset_, effective_entrance_blockset, spriteset_,
-            palette_);
+            room_id_, blockset_, main_blockset, spriteset_, palette_);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = game_data_->main_blockset_ids[blockset_][i];
-    // Block 6 can be overridden by entrance-specific room graphics (index 3)
-    // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
-    if (i == 6) {
-      if (effective_entrance_blockset != 0xFF &&
-          room_gfx[effective_entrance_blockset][3] != 0) {
-        blocks_[i] = room_gfx[effective_entrance_blockset][3];
+    blocks_[i] = game_data_->main_blockset_ids[main_blockset][i];
+    if (i >= 3 && i <= 6 && blockset_ < room_gfx.size()) {
+      const uint8_t room_sheet = room_gfx[blockset_][i - 3];
+      if (room_sheet != 0) {
+        blocks_[i] = room_sheet;
       }
     }
+  }
+  if (blockset_ >= room_gfx.size()) {
+    LOG_WARN("Room", "Room %d: room blockset %d out of range; skipped $0AA2",
+             room_id_, blockset_);
   }
 
   blocks_[8] = 115 + 0;  // Static Sprites Blocksets (fairy,pot,ect...)
   blocks_[9] = 115 + 10;
   blocks_[10] = 115 + 6;
   blocks_[11] = 115 + 7;
-  for (int i = 0; i < 4; i++) {
-    blocks_[12 + i] = (uint8_t)(sprite_gfx[spriteset_ + 64][i] + 115);
-  }  // 12-16 sprites
+  const size_t sprite_gfx_index = static_cast<size_t>(spriteset_) + 64;
+  if (sprite_gfx_index < sprite_gfx.size()) {
+    for (int i = 0; i < 4; i++) {
+      blocks_[12 + i] =
+          static_cast<uint8_t>(sprite_gfx[sprite_gfx_index][i] + 115);
+    }
+  } else {
+    LOG_WARN("Room",
+             "Room %d: spriteset %d out of range; clearing sprite sheets",
+             room_id_, spriteset_);
+    for (int i = 0; i < 4; i++) {
+      blocks_[12 + i] = 0;
+    }
+  }  // 12-15 sprites
 
   LOG_DEBUG("Room", "Sheet IDs BG[0-7]: %d %d %d %d %d %d %d %d", blocks_[0],
             blocks_[1], blocks_[2], blocks_[3], blocks_[4], blocks_[5],
@@ -682,15 +732,20 @@ void Room::CopyRoomGraphicsToBuffer() {
   //   (pixel values 1-7 become 9-15; 0 remains 0/transparent).
   //
   // For background graphics sets, the game selects Left/Right based on the
-  // "graphics group" ($0AA1, our Room::blockset) and the slot index ($0F).
+  // active main graphics group ($0AA1) and the slot index ($0F).
   // For UW groups (< $20), slots 4-7 use Right; for OW groups (>= $20), the
   // Right slots are {2,3,4,7}. We mirror this by shifting non-zero pixels by
   // +8 when copying those background blocks into current_gfx16_.
+  const uint8_t active_main_blockset =
+      resolved_main_blockset_ != 0xFF
+          ? resolved_main_blockset_
+          : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
+                                               : blockset_);
   auto is_right_palette_background_slot = [&](int slot) -> bool {
     if (slot < 0 || slot >= 8) {
       return false;
     }
-    if (blockset_ < 0x20) {
+    if (active_main_blockset < 0x20) {
       return slot >= 4;
     }
     return (slot == 2 || slot == 3 || slot == 4 || slot == 7);
@@ -1936,10 +1991,18 @@ absl::Status Room::SaveRoomHeader() {
     return absl::OutOfRangeError("Room header location out of range");
   }
 
-  // Build 14-byte header to match LoadRoomHeaderFromRom layout
-  uint8_t byte0 = (static_cast<uint8_t>(bg2()) << 5) |
-                  (static_cast<uint8_t>(collision()) << 2) |
-                  (IsLight() ? 1 : 0);
+  // Build 14-byte header to match LoadRoomHeaderFromRom layout. The high
+  // three bits are the BG2/layer mode; bit 0 is the dark-room flag. DarkRoom
+  // is an editor enum value, not a raw high-bit value.
+  uint8_t layer2_mode_for_save = layer2_mode_ & 0x07;
+  if (bg2() != background2::DarkRoom) {
+    layer2_mode_for_save = static_cast<uint8_t>(bg2()) & 0x07;
+  }
+  const bool dark_room =
+      IsLight() || is_dark_ || bg2() == background2::DarkRoom;
+  uint8_t byte0 = static_cast<uint8_t>(
+      (layer2_mode_for_save << 5) |
+      ((static_cast<uint8_t>(collision()) & 0x07) << 2) | (dark_room ? 1 : 0));
   // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
   uint8_t byte1 = palette_;
   uint8_t byte7 = (staircase_plane(0) << 2) | (staircase_plane(1) << 4) |
