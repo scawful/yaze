@@ -36,6 +36,7 @@
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
 #include "app/editor/dungeon/ui/window/sprite_editor_panel.h"
 #include "app/editor/dungeon/ui/window/water_fill_panel.h"
+#include "app/editor/dungeon/widgets/dungeon_status_bar.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "app/editor/dungeon/workspace/room_browser_content.h"
 #include "app/editor/dungeon/workspace/room_graphics_content.h"
@@ -57,6 +58,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/ui_config.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "rom/snes.h"
@@ -1687,9 +1689,38 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
 
   ImGui::Separator();
 
-  // Use per-room viewer
+  // Use per-room viewer; reserve a bottom strip for the shared dungeon
+  // status bar so this Windows-mode standalone window mirrors the Workbench
+  // canvas pane's affordances.
   if (auto* viewer = GetViewerForRoom(room_id)) {
-    viewer->DrawDungeonCanvas(room_id);
+    const float status_bar_reserved =
+        std::max(ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f,
+                 gui::UIConfig::kStatusBarHeight) +
+        ImGui::GetStyle().ItemSpacing.y;
+    if (ImGui::BeginChild("##StandaloneRoomBody",
+                          ImVec2(0.0f, -status_bar_reserved), false)) {
+      viewer->DrawDungeonCanvas(room_id);
+    }
+    ImGui::EndChild();
+
+    bool room_dirty = false;
+    if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
+      room_dirty = rooms_[room_id].HasUnsavedChanges();
+    }
+    auto status = DungeonStatusBar::BuildState(*viewer, /*tool_mode=*/"Select",
+                                               room_dirty);
+    status.workflow_mode = "Standalone";
+    status.workflow_primary = false;
+    status.can_undo = undo_manager_.CanUndo();
+    status.can_redo = undo_manager_.CanRedo();
+    status.undo_depth = static_cast<int>(undo_manager_.UndoStackSize());
+    status.on_undo = [this]() {
+      Undo().IgnoreError();
+    };
+    status.on_redo = [this]() {
+      Redo().IgnoreError();
+    };
+    DungeonStatusBar::Draw(status);
   }
 }
 
