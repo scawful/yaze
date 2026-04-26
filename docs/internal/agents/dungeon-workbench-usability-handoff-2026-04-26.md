@@ -60,6 +60,25 @@ Implemented but not committed:
       tools only. `FocusSelectionInspector` / `FocusRoomInspector` are still
       called from `dungeon_editor_v2.cc` and the canvas selection shelf, so
       no dead code was introduced.
+  - **Polish pass #2 (2026-04-26 follow-up 3):** five focused edits in
+    `dungeon_workbench_content.cc` to compress remaining visual scatter:
+    - **Room badge** — dropped the redundant `(%d)` decimal label that sat
+      between the hex `InputHexWordEx` and the copy button. Hex value is
+      already on screen and the dungeon-group line carries `[%03X]`.
+    - **Section naming parity** — `DrawInspectorShelfRoom`'s `Quick Tools`
+      section renamed to `Tools` so the full and compact summaries use the
+      same label for the same target (`InspectorMode::Tools`).
+    - **Room Actions tightened** — `Local Room Tools` subhead and the 2-col
+      Graphics+Dungeon-Map table are gone. Graphics is one click away on the
+      Tools strip; only `Dungeon Map` remains as a popup-launching action
+      under Room Actions, and the Apply explainer is one line.
+    - **Connected Graph** — removed the inline `Tip: …` `TextDisabled` line
+      under the checkbox; the on-hover tooltip carries the same content with
+      the staircase-header note appended.
+    - **Layer Compositing** — replaced loose `BG1 / BG2` band labels and four
+      stacked combos with a 4-row 2-col `BeginTable` (label cell + stretch
+      combo cell). Combo IDs keep their `##WorkbenchBlend…` suffixes so ImGui
+      state survives. Reset button stays as a footer below the table.
 
 - `src/app/editor/dungeon/dungeon_editor_v2.cc`
   - Workbench-mode callbacks now open the right-inspector tool drawer instead of
