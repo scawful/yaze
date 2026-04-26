@@ -194,6 +194,12 @@ class InteractionCoordinator {
   ImVec2 entity_group_drag_current_{0.0f, 0.0f};
   int entity_group_drag_last_dx_ = 0;
   int entity_group_drag_last_dy_ = 0;
+  bool entity_group_drag_doors_mutation_started_ = false;
+  bool entity_group_drag_sprites_mutation_started_ = false;
+  bool entity_group_drag_items_mutation_started_ = false;
+  bool entity_group_drag_doors_changed_ = false;
+  bool entity_group_drag_sprites_changed_ = false;
+  bool entity_group_drag_items_changed_ = false;
 
   /**
    * @brief Get active handler based on current mode
@@ -204,6 +210,10 @@ class InteractionCoordinator {
   bool UpdateEntitySelection(SelectedEntity entity, bool additive, bool toggle);
   bool IsSelectionHitSelected(SelectedEntity entity) const;
   bool HasGroupDragSelection() const;
+  bool NudgeSelectedEntities(int delta_x, int delta_y,
+                             bool defer_drag_notifications);
+  void ResetEntityGroupDragState();
+  void FinishEntityGroupDrag();
   void HandleEntityGroupDrag(ImVec2 current_pos);
   bool SameCycleTarget(int canvas_x, int canvas_y,
                        const std::vector<SelectedEntity>& hits) const;

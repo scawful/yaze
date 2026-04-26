@@ -427,9 +427,44 @@ void InteractionCoordinator::HandleRelease() {
   sprite_handler_.HandleRelease();
   item_handler_.HandleRelease();
   tile_handler_.HandleRelease();
+  FinishEntityGroupDrag();
+}
+
+void InteractionCoordinator::ResetEntityGroupDragState() {
   entity_group_drag_active_ = false;
   entity_group_drag_last_dx_ = 0;
   entity_group_drag_last_dy_ = 0;
+  entity_group_drag_doors_mutation_started_ = false;
+  entity_group_drag_sprites_mutation_started_ = false;
+  entity_group_drag_items_mutation_started_ = false;
+  entity_group_drag_doors_changed_ = false;
+  entity_group_drag_sprites_changed_ = false;
+  entity_group_drag_items_changed_ = false;
+}
+
+void InteractionCoordinator::FinishEntityGroupDrag() {
+  if (!entity_group_drag_active_) {
+    ResetEntityGroupDragState();
+    return;
+  }
+
+  if (ctx_) {
+    if (entity_group_drag_doors_changed_) {
+      ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
+    }
+    if (entity_group_drag_sprites_changed_) {
+      ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
+    }
+    if (entity_group_drag_items_changed_) {
+      ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+    }
+    if (entity_group_drag_doors_changed_ ||
+        entity_group_drag_sprites_changed_ ||
+        entity_group_drag_items_changed_) {
+      ctx_->NotifyEntityChanged();
+    }
+  }
+  ResetEntityGroupDragState();
 }
 
 void InteractionCoordinator::DrawGhostPreviews() {
@@ -509,136 +544,170 @@ bool InteractionCoordinator::HasEntitySelection() const {
          sprite_handler_.HasSelection() || item_handler_.HasSelection();
 }
 
-bool InteractionCoordinator::NudgeSelected(int delta_x, int delta_y) {
-  if (!selected_entities_.empty()) {
-    auto* room = ctx_ ? ctx_->GetCurrentRoom() : nullptr;
-    if (!room) {
-      return false;
+bool InteractionCoordinator::NudgeSelectedEntities(
+    int delta_x, int delta_y, bool defer_drag_notifications) {
+  auto* room = ctx_ ? ctx_->GetCurrentRoom() : nullptr;
+  if (!room) {
+    return false;
+  }
+
+  bool doors_changed = false;
+  bool sprites_changed = false;
+  bool items_changed = false;
+  bool door_mutation_notified = false;
+  bool sprite_mutation_notified = false;
+  bool item_mutation_notified = false;
+
+  auto notify_once = [&](MutationDomain domain, bool& immediate_flag,
+                         bool& drag_flag) {
+    if (!ctx_) {
+      return;
     }
-
-    bool doors_changed = false;
-    bool sprites_changed = false;
-    bool items_changed = false;
-    bool door_mutation_notified = false;
-    bool sprite_mutation_notified = false;
-    bool item_mutation_notified = false;
-
-    auto notify_once = [&](MutationDomain domain, bool& flag) {
-      if (!flag && ctx_) {
+    if (defer_drag_notifications) {
+      if (!drag_flag) {
         ctx_->NotifyMutation(domain);
-        flag = true;
+        drag_flag = true;
       }
-    };
+      return;
+    }
+    if (!immediate_flag) {
+      ctx_->NotifyMutation(domain);
+      immediate_flag = true;
+    }
+  };
 
-    for (const auto entity : selected_entities_) {
-      switch (entity.type) {
-        case EntityType::Door: {
-          auto& doors = room->GetDoors();
-          if (entity.index >= doors.size()) {
-            break;
-          }
-          auto& door = doors[entity.index];
-          int position_delta = 0;
-          switch (door.direction) {
-            case zelda3::DoorDirection::North:
-            case zelda3::DoorDirection::South:
-              position_delta = delta_x;
-              break;
-            case zelda3::DoorDirection::West:
-            case zelda3::DoorDirection::East:
-              position_delta = delta_y;
-              break;
-          }
-          if (position_delta == 0) {
-            break;
-          }
-          const int next_position =
-              std::clamp(static_cast<int>(door.position) + position_delta, 0,
-                         zelda3::DoorPositionManager::kMaxDoorPositions - 1);
-          if (next_position == door.position ||
-              !zelda3::DoorPositionManager::IsValidPosition(
-                  static_cast<uint8_t>(next_position), door.direction)) {
-            break;
-          }
-          notify_once(MutationDomain::kDoors, door_mutation_notified);
-          door.position = static_cast<uint8_t>(next_position);
-          auto [b1, b2] = door.EncodeBytes();
-          door.byte1 = b1;
-          door.byte2 = b2;
-          doors_changed = true;
+  for (const auto entity : selected_entities_) {
+    switch (entity.type) {
+      case EntityType::Door: {
+        auto& doors = room->GetDoors();
+        if (entity.index >= doors.size()) {
           break;
         }
-        case EntityType::Sprite: {
-          auto& sprites = room->GetSprites();
-          if (entity.index >= sprites.size()) {
+        auto& door = doors[entity.index];
+        int position_delta = 0;
+        switch (door.direction) {
+          case zelda3::DoorDirection::North:
+          case zelda3::DoorDirection::South:
+            position_delta = delta_x;
             break;
-          }
-          auto& sprite = sprites[entity.index];
-          const int next_x = std::clamp(static_cast<int>(sprite.x()) + delta_x,
-                                        0, dungeon_coords::kSpriteGridMax);
-          const int next_y = std::clamp(static_cast<int>(sprite.y()) + delta_y,
-                                        0, dungeon_coords::kSpriteGridMax);
-          if (next_x == sprite.x() && next_y == sprite.y()) {
+          case zelda3::DoorDirection::West:
+          case zelda3::DoorDirection::East:
+            position_delta = delta_y;
             break;
-          }
-          notify_once(MutationDomain::kSprites, sprite_mutation_notified);
-          sprite.set_x(next_x);
-          sprite.set_y(next_y);
-          sprites_changed = true;
+        }
+        if (position_delta == 0) {
           break;
         }
-        case EntityType::Item: {
-          auto& items = room->GetPotItems();
-          if (entity.index >= items.size()) {
-            break;
-          }
-          auto& item = items[entity.index];
-          constexpr int kRoomPixelMax = 511;
-          constexpr int kItemHorizontalNudgePixels = 8;
-          constexpr int kItemVerticalNudgePixels = 16;
-          const int next_pixel_x = std::clamp(
-              item.GetPixelX() + delta_x * kItemHorizontalNudgePixels, 0,
-              kRoomPixelMax);
-          const int next_pixel_y =
-              std::clamp(item.GetPixelY() + delta_y * kItemVerticalNudgePixels,
-                         0, kRoomPixelMax);
-          const int encoded_x = std::clamp(next_pixel_x / 4, 0, 255);
-          const int encoded_y = std::clamp(next_pixel_y / 16, 0, 255);
-          const uint16_t next_position =
-              static_cast<uint16_t>((encoded_y << 8) | encoded_x);
-          if (next_position == item.position) {
-            break;
-          }
-          notify_once(MutationDomain::kItems, item_mutation_notified);
-          item.position = next_position;
-          items_changed = true;
+        const int next_position =
+            std::clamp(static_cast<int>(door.position) + position_delta, 0,
+                       zelda3::DoorPositionManager::kMaxDoorPositions - 1);
+        if (next_position == door.position ||
+            !zelda3::DoorPositionManager::IsValidPosition(
+                static_cast<uint8_t>(next_position), door.direction)) {
           break;
         }
-        case EntityType::Object:
-        case EntityType::None:
-        default:
-          break;
+        notify_once(MutationDomain::kDoors, door_mutation_notified,
+                    entity_group_drag_doors_mutation_started_);
+        door.position = static_cast<uint8_t>(next_position);
+        auto [b1, b2] = door.EncodeBytes();
+        door.byte1 = b1;
+        door.byte2 = b2;
+        doors_changed = true;
+        break;
       }
+      case EntityType::Sprite: {
+        auto& sprites = room->GetSprites();
+        if (entity.index >= sprites.size()) {
+          break;
+        }
+        auto& sprite = sprites[entity.index];
+        const int next_x = std::clamp(static_cast<int>(sprite.x()) + delta_x, 0,
+                                      dungeon_coords::kSpriteGridMax);
+        const int next_y = std::clamp(static_cast<int>(sprite.y()) + delta_y, 0,
+                                      dungeon_coords::kSpriteGridMax);
+        if (next_x == sprite.x() && next_y == sprite.y()) {
+          break;
+        }
+        notify_once(MutationDomain::kSprites, sprite_mutation_notified,
+                    entity_group_drag_sprites_mutation_started_);
+        sprite.set_x(next_x);
+        sprite.set_y(next_y);
+        sprites_changed = true;
+        break;
+      }
+      case EntityType::Item: {
+        auto& items = room->GetPotItems();
+        if (entity.index >= items.size()) {
+          break;
+        }
+        auto& item = items[entity.index];
+        constexpr int kRoomPixelMax = 511;
+        constexpr int kItemHorizontalNudgePixels = 8;
+        constexpr int kItemVerticalNudgePixels = 16;
+        const int next_pixel_x =
+            std::clamp(item.GetPixelX() + delta_x * kItemHorizontalNudgePixels,
+                       0, kRoomPixelMax);
+        const int next_pixel_y =
+            std::clamp(item.GetPixelY() + delta_y * kItemVerticalNudgePixels, 0,
+                       kRoomPixelMax);
+        const int encoded_x = std::clamp(next_pixel_x / 4, 0, 255);
+        const int encoded_y = std::clamp(next_pixel_y / 16, 0, 255);
+        const uint16_t next_position =
+            static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+        if (next_position == item.position) {
+          break;
+        }
+        notify_once(MutationDomain::kItems, item_mutation_notified,
+                    entity_group_drag_items_mutation_started_);
+        item.position = next_position;
+        items_changed = true;
+        break;
+      }
+      case EntityType::Object:
+      case EntityType::None:
+      default:
+        break;
     }
+  }
 
-    if (!doors_changed && !sprites_changed && !items_changed) {
-      return false;
-    }
+  if (!doors_changed && !sprites_changed && !items_changed) {
+    return false;
+  }
 
-    if (doors_changed) {
-      room->MarkObjectsDirty();
+  if (doors_changed) {
+    room->MarkObjectsDirty();
+    if (defer_drag_notifications) {
+      entity_group_drag_doors_changed_ = true;
+    } else {
       ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
     }
-    if (sprites_changed) {
-      room->MarkSpritesDirty();
+  }
+  if (sprites_changed) {
+    room->MarkSpritesDirty();
+    if (defer_drag_notifications) {
+      entity_group_drag_sprites_changed_ = true;
+    } else {
       ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
     }
-    if (items_changed) {
-      room->MarkPotItemsDirty();
+  }
+  if (items_changed) {
+    room->MarkPotItemsDirty();
+    if (defer_drag_notifications) {
+      entity_group_drag_items_changed_ = true;
+    } else {
       ctx_->NotifyInvalidateCache(MutationDomain::kItems);
     }
+  }
+  if (!defer_drag_notifications) {
     ctx_->NotifyEntityChanged();
-    return true;
+  }
+  return true;
+}
+
+bool InteractionCoordinator::NudgeSelected(int delta_x, int delta_y) {
+  if (!selected_entities_.empty()) {
+    return NudgeSelectedEntities(delta_x, delta_y,
+                                 /*defer_drag_notifications=*/false);
   }
 
   if (door_handler_.HasSelection()) {
@@ -657,11 +726,16 @@ bool InteractionCoordinator::NudgeSelected(int delta_x, int delta_y) {
 }
 
 void InteractionCoordinator::ClearAllEntitySelections() {
+  if (entity_group_drag_active_) {
+    FinishEntityGroupDrag();
+  }
   selected_entities_.clear();
   door_handler_.ClearSelection();
   sprite_handler_.ClearSelection();
   item_handler_.ClearSelection();
-  entity_group_drag_active_ = false;
+  if (!entity_group_drag_active_) {
+    ResetEntityGroupDragState();
+  }
 }
 
 void InteractionCoordinator::DeleteSelectedEntity() {
@@ -900,9 +974,7 @@ bool InteractionCoordinator::HasGroupDragSelection() const {
 
 void InteractionCoordinator::BeginSelectionDrag(ImVec2 start_pos) {
   if (!HasGroupDragSelection()) {
-    entity_group_drag_active_ = false;
-    entity_group_drag_last_dx_ = 0;
-    entity_group_drag_last_dy_ = 0;
+    ResetEntityGroupDragState();
     return;
   }
 
@@ -911,6 +983,12 @@ void InteractionCoordinator::BeginSelectionDrag(ImVec2 start_pos) {
   entity_group_drag_current_ = entity_group_drag_start_;
   entity_group_drag_last_dx_ = 0;
   entity_group_drag_last_dy_ = 0;
+  entity_group_drag_doors_mutation_started_ = false;
+  entity_group_drag_sprites_mutation_started_ = false;
+  entity_group_drag_items_mutation_started_ = false;
+  entity_group_drag_doors_changed_ = false;
+  entity_group_drag_sprites_changed_ = false;
+  entity_group_drag_items_changed_ = false;
 }
 
 void InteractionCoordinator::HandleEntityGroupDrag(ImVec2 current_pos) {
@@ -932,7 +1010,8 @@ void InteractionCoordinator::HandleEntityGroupDrag(ImVec2 current_pos) {
     return;
   }
 
-  if (NudgeSelected(inc_dx, inc_dy)) {
+  if (NudgeSelectedEntities(inc_dx, inc_dy,
+                            /*defer_drag_notifications=*/true)) {
     entity_group_drag_last_dx_ = drag_dx;
     entity_group_drag_last_dy_ = drag_dy;
   }
