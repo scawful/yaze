@@ -364,7 +364,11 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
     return nullptr;
   }
 
-  auto& room = (*rooms_)[room_id];
+  auto* room_ptr = rooms_->TryEnsureRoom(room_id);
+  if (!room_ptr) {
+    return nullptr;
+  }
+  auto& room = *room_ptr;
   auto& bg1_bitmap = room.bg1_buffer().bitmap();
   if (!bg1_bitmap.is_active() || bg1_bitmap.width() == 0) {
     (void)LoadAndRenderRoomGraphics(room_id);

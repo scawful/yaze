@@ -102,17 +102,18 @@ void DungeonCanvasViewer::DrawHeaderHiddenMetadataHud(int room_id) {
   char text2[96] = {};
   bool show_meta = false;
   if (rooms_ && room_id >= 0 && room_id < static_cast<int>(rooms_->size())) {
-    const auto& room = (*rooms_)[room_id];
-    if (!object_interaction_enabled_) {
-      snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
-               room.blockset(), room.palette(), room.layout_id(),
-               room.spriteset());
-    } else {
-      snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
-               room.blockset(), room.palette(), room.layout_id(),
-               room.spriteset());
+    if (const auto* room = rooms_->TryEnsureRoom(room_id)) {
+      if (!object_interaction_enabled_) {
+        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X  RO",
+                 room->blockset(), room->palette(), room->layout_id(),
+                 room->spriteset());
+      } else {
+        snprintf(text2, sizeof(text2), "B:%02X P:%02X L:%02X S:%02X",
+                 room->blockset(), room->palette(), room->layout_id(),
+                 room->spriteset());
+      }
+      show_meta = true;
     }
-    show_meta = true;
   } else if (!object_interaction_enabled_) {
     snprintf(text2, sizeof(text2), "Read-only");
     show_meta = true;

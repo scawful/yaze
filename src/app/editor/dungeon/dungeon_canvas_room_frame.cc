@@ -76,7 +76,11 @@ zelda3::Room* DungeonCanvasViewer::PrepareActiveRoomForCanvasFrame(
     return nullptr;
   }
 
-  auto& room = (*rooms_)[room_id];
+  auto* room_ptr = rooms_->TryEnsureRoom(room_id);
+  if (!room_ptr) {
+    return nullptr;
+  }
+  auto& room = *room_ptr;
   RefreshActiveRoomCanvasState(room, room_id);
   return &room;
 }
