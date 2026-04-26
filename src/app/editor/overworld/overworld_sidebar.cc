@@ -1,5 +1,7 @@
 #include "app/editor/overworld/overworld_sidebar.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/core/icons.h"
@@ -33,6 +35,7 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
   // Use a child window for the sidebar to allow scrolling
   if (ImGui::BeginChild("OverworldSidebar", ImVec2(0, 0), false,
                         ImGuiWindowFlags_None)) {
+    ImGui::PushID("OverworldSidebar");
     DrawMapSelection(current_world, current_map, current_map_lock);
 
     if (overworld_->overworld_map(current_map) == nullptr) {
@@ -42,6 +45,7 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
       ImGui::TextDisabled("Current map selection is invalid.");
       ImGui::TextDisabled(
           "Hover or jump to a valid overworld map to continue.");
+      ImGui::PopID();
       ImGui::EndChild();
       return;
     }
@@ -68,6 +72,7 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     if (ImGui::CollapsingHeader("Music")) {
       DrawMusicTab(current_map);
     }
+    ImGui::PopID();
   }
   ImGui::EndChild();
 }
@@ -153,20 +158,10 @@ void OverworldSidebar::DrawMusicTab(int current_map) {
 
 void OverworldSidebar::DrawMapSelection(int& current_world, int& current_map,
                                         bool& current_map_lock) {
-  ImGui::Text(ICON_MD_MAP " Map Selection");
+  ImGui::Text(ICON_MD_MAP " Current Map");
 
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::Combo("##world", &current_world, kWorldNames, 3)) {
-    int local_map = current_map & 0x3F;
-    const int world_start = current_world * 0x40;
-    const int maps_remaining = zelda3::kNumOverworldMaps - world_start;
-    if (maps_remaining > 0) {
-      if (local_map >= maps_remaining) {
-        local_map = maps_remaining - 1;
-      }
-      current_map = world_start + local_map;
-    }
-  }
+  const int clamped_world = std::clamp(current_world, 0, 2);
+  ImGui::TextDisabled("World: %s", kWorldNames[clamped_world]);
 
   ImGui::BeginGroup();
   ImGui::Text("ID: %02X", current_map);
@@ -189,7 +184,9 @@ void OverworldSidebar::DrawGraphicsSettings(int current_map, int game_state) {
                             ->mutable_area_graphics(),
                         kHexByteInputWidth)) {
     map_properties_system_->RefreshMapProperties();
-    overworld_->mutable_overworld_map(current_map)->LoadAreaGraphics();
+    auto* map = overworld_->mutable_overworld_map(current_map);
+    map->set_game_state(std::clamp(game_state, 0, 2));
+    map->LoadAreaGraphics();
     map_properties_system_->RefreshSiblingMapGraphics(current_map);
     map_properties_system_->RefreshTile16Blockset();
     map_properties_system_->RefreshOverworldMap();

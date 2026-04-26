@@ -354,18 +354,6 @@ std::vector<std::string> ValidateRomAddressOverrides(
   return warnings;
 }
 
-std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name) {
-  const std::string lower = absl::AsciiStrToLower(std::string(name));
-  for (int i = 0; i < static_cast<int>(EditorType::kSettings) + 1; ++i) {
-    const std::string candidate = absl::AsciiStrToLower(
-        EditorRegistry::GetEditorName(static_cast<EditorType>(i)));
-    if (candidate == lower) {
-      return static_cast<EditorType>(i);
-    }
-  }
-  return std::nullopt;
-}
-
 std::string StripSessionPrefix(absl::string_view panel_id) {
   if (panel_id.size() > 2 && panel_id[0] == 's' &&
       absl::ascii_isdigit(panel_id[1])) {
@@ -453,6 +441,23 @@ void SeedOracleProjectInRecents() {
 }
 
 }  // namespace
+
+std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name) {
+  std::string normalized = std::string(name);
+  absl::StripAsciiWhitespace(&normalized);
+  const std::string lower = absl::AsciiStrToLower(normalized);
+  for (int i = 0; i < static_cast<int>(EditorType::kSettings) + 1; ++i) {
+    const auto type = static_cast<EditorType>(i);
+    const std::string name_candidate =
+        absl::AsciiStrToLower(EditorRegistry::GetEditorName(type));
+    const std::string category_candidate =
+        absl::AsciiStrToLower(EditorRegistry::GetEditorCategory(type));
+    if (name_candidate == lower || category_candidate == lower) {
+      return type;
+    }
+  }
+  return std::nullopt;
+}
 
 // Static registry of editors that use the card-based layout system
 // These editors register their cards with WorkspaceWindowManager and manage their

@@ -28,11 +28,12 @@ class MapPropertiesSystem {
   explicit MapPropertiesSystem(
       zelda3::Overworld* overworld, Rom* rom,
       std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr,
-      gui::Canvas* canvas = nullptr)
+      gui::Canvas* canvas = nullptr, int* game_state = nullptr)
       : overworld_(overworld),
         rom_(rom),
         maps_bmp_(maps_bmp),
-        canvas_(canvas) {}
+        canvas_(canvas),
+        game_state_(game_state) {}
 
   // Set callbacks for refresh operations
   void SetRefreshCallbacks(
@@ -121,10 +122,17 @@ class MapPropertiesSystem {
   void DrawTileGraphicsTab(int current_map);
   void DrawMusicTab(int current_map);
 
+  int CurrentGameState() const;
+  int CurrentGameState(int fallback) const;
+  void SetCurrentGameState(int game_state);
+  void PrepareMapForGraphicsRefresh(int map_index);
+
   zelda3::Overworld* overworld_;
   Rom* rom_;
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp_;
   gui::Canvas* canvas_;
+  int* game_state_;
+  int local_game_state_ = 0;
 
   // Callbacks for refresh operations
   RefreshCallback refresh_map_properties_;

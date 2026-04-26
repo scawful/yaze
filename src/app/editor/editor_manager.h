@@ -7,10 +7,12 @@
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/string_view.h"
 #include "app/editor/agent/agent_ui_controller.h"
 #include "app/editor/code/project_file_editor.h"
 #include "app/editor/core/content_registry.h"
@@ -76,6 +78,8 @@ namespace yaze {
 struct AppConfig;
 
 namespace editor {
+
+std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name);
 
 /**
  * @class EditorManager

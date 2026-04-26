@@ -149,6 +149,16 @@ TEST(OverworldCompatibilityHelpersTest, LegacyParentTablesUseLocalMapIds) {
   EXPECT_EQ(LegacyParentTableValueForMap(0x43), 0x03);
 }
 
+TEST(OverworldCompatibilityHelpersTest,
+     LegacyScreenSizeTablesKeepLightAndDarkSeparate) {
+  EXPECT_TRUE(CanPersistLegacyScreenSize(0x00));
+  EXPECT_TRUE(CanPersistLegacyScreenSize(0x7F));
+  EXPECT_FALSE(CanPersistLegacyScreenSize(0x80));
+
+  EXPECT_EQ(LegacyScreenSizeTableIndexForMap(0x03), 0x03);
+  EXPECT_EQ(LegacyScreenSizeTableIndexForMap(0x43), 0x43);
+}
+
 TEST(OverworldMapCompatibilityTest, ConstructorLoadsParentBeforeAreaInfo) {
   Rom rom;
   InitOverworldTestRom(rom, 0xFF);
@@ -160,6 +170,33 @@ TEST(OverworldMapCompatibilityTest, ConstructorLoadsParentBeforeAreaInfo) {
 
   EXPECT_EQ(map.parent(), 0x43);
   EXPECT_EQ(map.area_graphics(), 0x55);
+}
+
+TEST(OverworldMapCompatibilityTest, LegacyDarkWorldReadsDarkScreenSizeEntry) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0xFF);
+  rom[kOverworldMapParentId + 0x04] = 0x04;
+  rom[kOverworldScreenSize + 0x04] = 0x01;
+  rom[kOverworldScreenSize + 0x44] = 0x00;
+
+  OverworldMap map(0x44, &rom);
+
+  EXPECT_EQ(map.parent(), 0x44);
+  EXPECT_EQ(map.area_size(), AreaSizeEnum::LargeArea);
+  EXPECT_TRUE(map.is_large_map());
+}
+
+TEST(OverworldMapCompatibilityTest,
+     LegacySpecialWorldReadsSpecialSpriteTables) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0xFF);
+  rom[kOverworldSpecialSpriteGFXGroup + 0x03] = 0x12;
+  rom[kOverworldSpecialSpritePalette + 0x03] = 0x05;
+
+  OverworldMap map(0x83, &rom);
+
+  EXPECT_EQ(map.sprite_graphics(0), 0x12);
+  EXPECT_EQ(map.sprite_palette(0), 0x05);
 }
 
 TEST(OverworldMapCompatibilityTest, V2ReadsExpandedMessageButLegacySize) {

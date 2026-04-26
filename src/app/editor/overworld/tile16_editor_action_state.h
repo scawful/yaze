@@ -9,15 +9,17 @@ struct Tile16ActionControlState {
   bool can_discard_all = false;
   bool can_discard_current = false;
   bool can_undo = false;
+  bool can_redo = false;
 };
 
 inline Tile16ActionControlState ComputeTile16ActionControlState(
-    bool has_pending, bool current_tile_pending, bool can_undo) {
+    bool has_pending, bool current_tile_pending, bool can_undo, bool can_redo) {
   Tile16ActionControlState state;
   state.can_write_pending = has_pending;
   state.can_discard_all = has_pending;
   state.can_discard_current = current_tile_pending;
   state.can_undo = can_undo;
+  state.can_redo = can_redo;
   return state;
 }
 

@@ -325,6 +325,25 @@ TEST_F(Tile16EditorSyntheticFixture,
 }
 
 TEST_F(Tile16EditorSyntheticFixture,
+       SetCurrentTileRendersFromMetadataNotStaleBlocksetAtlas) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->MarkCurrentTileModified();
+
+  const gfx::Bitmap* bmp = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(bmp, nullptr);
+  ASSERT_TRUE(bmp->is_active());
+  ASSERT_GE(bmp->size(), 256u);
+
+  // The fixture's blockset atlas is deliberately all zeroes. Tile 0 in ROM is
+  // defined from tile8 IDs 0..3 with palette row 1, so these pixels must come
+  // from metadata + tile8 graphics, not from the stale atlas.
+  EXPECT_EQ(bmp->GetPixel(0, 0), 0x10);
+  EXPECT_EQ(bmp->GetPixel(8, 0), 0x18);
+  EXPECT_EQ(bmp->GetPixel(0, 8), 0x10);
+  EXPECT_EQ(bmp->GetPixel(8, 8), 0x18);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
        DiscardCurrentTileKeepsOtherPendingTilesWithoutExternalRomFixture) {
   ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
   editor_->MarkCurrentTileModified();

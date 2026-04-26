@@ -72,6 +72,22 @@ TEST_F(EditorManagerTest, PublicAPISurface) {
   // editor_manager_->DrawMainMenuBar();
 }
 
+TEST(EditorManagerStartupFlagsTest, ParsesCategoryAliasAndFullEditorName) {
+  auto alias = ParseEditorTypeFromString("Overworld");
+  ASSERT_TRUE(alias.has_value());
+  EXPECT_EQ(*alias, EditorType::kOverworld);
+
+  auto full_name = ParseEditorTypeFromString("Overworld Editor");
+  ASSERT_TRUE(full_name.has_value());
+  EXPECT_EQ(*full_name, EditorType::kOverworld);
+
+  auto trimmed_lower = ParseEditorTypeFromString("  overworld editor  ");
+  ASSERT_TRUE(trimmed_lower.has_value());
+  EXPECT_EQ(*trimmed_lower, EditorType::kOverworld);
+
+  EXPECT_FALSE(ParseEditorTypeFromString("No Such Editor").has_value());
+}
+
 }  // namespace
 }  // namespace editor
 }  // namespace yaze

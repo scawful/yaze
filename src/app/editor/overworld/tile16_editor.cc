@@ -825,6 +825,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   DrawEditorHeader(show_debug_info);
   DrawEditorHeaderToggles(&show_debug_info, &show_advanced_controls);
   DrawStagedStateBar(has_pending, current_tile_pending, pending_count);
+  RETURN_IF_ERROR(
+      DrawBottomActionRail(has_pending, current_tile_pending, pending_count));
 
   ImGui::Separator();
 
@@ -1402,9 +1404,6 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     EndTable();
   }
 
-  RETURN_IF_ERROR(
-      DrawBottomActionRail(has_pending, current_tile_pending, pending_count));
-
   // Draw palette settings and canvas popups
   DrawPaletteSettings();
 
@@ -1532,7 +1531,7 @@ void Tile16Editor::DrawStagedStateBar(bool has_pending,
                           static_cast<long>(seconds_since_write));
     }
     ImGui::TextDisabled(
-        "Action rail at bottom: Write Pending / Discard / Undo");
+        "Pending edits stay local until Write Pending commits them.");
   }
   ImGui::EndChild();
 }
@@ -1822,68 +1821,101 @@ absl::Status Tile16Editor::DrawBottomActionRail(bool has_pending,
                                                 bool current_tile_pending,
                                                 int pending_count) {
   const Tile16ActionControlState action_state = ComputeTile16ActionControlState(
-      has_pending, current_tile_pending, undo_manager_.CanUndo());
+      has_pending, current_tile_pending, undo_manager_.CanUndo(),
+      undo_manager_.CanRedo());
+
+  const float outer_avail = ImGui::GetContentRegionAvail().x;
+  const int action_count = 5;
+  const int columns =
+      outer_avail >= 620.0f ? 5 : (outer_avail >= 360.0f ? 2 : 1);
+  const int rows = (action_count + columns - 1) / columns;
+  const float rail_height = 30.0f + rows * ImGui::GetFrameHeightWithSpacing() +
+                            ImGui::GetStyle().WindowPadding.y * 2.0f;
 
   gui::StyleColorGuard rail_bg(
       {{ImGuiCol_ChildBg, ImVec4(0.10f, 0.13f, 0.16f, 0.85f)}});
   if (ImGui::BeginChild(
-          "##Tile16BottomActionRail", ImVec2(0, 64), true,
+          "##Tile16ActionRail", ImVec2(0, rail_height), true,
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
     ImGui::TextDisabled("Queue: %d tile%s staged", pending_count,
                         pending_count == 1 ? "" : "s");
     ImGui::SameLine();
     ImGui::TextDisabled("| Mode: %s", EditModeLabel(edit_mode_));
 
-    const float spacing = ImGui::GetStyle().ItemSpacing.x;
-    const float avail = ImGui::GetContentRegionAvail().x;
-    const float button_width =
-        std::max(110.0f, (avail - spacing * 3.0f) / 4.0f);
+    if (ImGui::BeginTable("##Tile16ActionRailButtons", columns,
+                          ImGuiTableFlags_SizingStretchProp)) {
+      int action_index = 0;
+      auto next_action_cell = [&]() {
+        if (action_index % columns == 0) {
+          ImGui::TableNextRow();
+        }
+        ImGui::TableNextColumn();
+        ++action_index;
+      };
 
-    if (!action_state.can_write_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (gui::SuccessButton("Write Pending", ImVec2(button_width, 0))) {
-      RETURN_IF_ERROR(CommitAllChanges());
-    }
-    if (!action_state.can_write_pending) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Write all %d pending tile16 edits to ROM",
-                        pending_count);
-    }
+      next_action_cell();
+      if (!action_state.can_write_pending) {
+        ImGui::BeginDisabled();
+      }
+      if (gui::SuccessButton("Write Pending",
+                             ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        RETURN_IF_ERROR(CommitAllChanges());
+      }
+      if (!action_state.can_write_pending) {
+        ImGui::EndDisabled();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Write all %d pending tile16 edits to ROM",
+                          pending_count);
+      }
 
-    ImGui::SameLine();
-    if (!action_state.can_discard_current) {
-      ImGui::BeginDisabled();
-    }
-    if (ImGui::Button("Discard Current", ImVec2(button_width, 0))) {
-      DiscardCurrentTileChanges();
-    }
-    if (!action_state.can_discard_current) {
-      ImGui::EndDisabled();
-    }
+      next_action_cell();
+      if (!action_state.can_discard_current) {
+        ImGui::BeginDisabled();
+      }
+      if (ImGui::Button("Discard Current",
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        DiscardCurrentTileChanges();
+      }
+      if (!action_state.can_discard_current) {
+        ImGui::EndDisabled();
+      }
 
-    ImGui::SameLine();
-    if (!action_state.can_write_pending) {
-      ImGui::BeginDisabled();
-    }
-    if (gui::DangerButton("Discard All", ImVec2(button_width, 0))) {
-      DiscardAllChanges();
-    }
-    if (!action_state.can_write_pending) {
-      ImGui::EndDisabled();
-    }
+      next_action_cell();
+      if (!action_state.can_discard_all) {
+        ImGui::BeginDisabled();
+      }
+      if (gui::DangerButton("Discard All",
+                            ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        DiscardAllChanges();
+      }
+      if (!action_state.can_discard_all) {
+        ImGui::EndDisabled();
+      }
 
-    ImGui::SameLine();
-    if (!action_state.can_undo) {
-      ImGui::BeginDisabled();
-    }
-    if (ImGui::Button("Undo", ImVec2(button_width, 0))) {
-      RETURN_IF_ERROR(Undo());
-    }
-    if (!action_state.can_undo) {
-      ImGui::EndDisabled();
+      next_action_cell();
+      if (!action_state.can_undo) {
+        ImGui::BeginDisabled();
+      }
+      if (ImGui::Button("Undo", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        RETURN_IF_ERROR(Undo());
+      }
+      if (!action_state.can_undo) {
+        ImGui::EndDisabled();
+      }
+
+      next_action_cell();
+      if (!action_state.can_redo) {
+        ImGui::BeginDisabled();
+      }
+      if (ImGui::Button("Redo", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        RETURN_IF_ERROR(Redo());
+      }
+      if (!action_state.can_redo) {
+        ImGui::EndDisabled();
+      }
+
+      ImGui::EndTable();
     }
   }
   ImGui::EndChild();
@@ -1989,31 +2021,19 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   }
   SyncTilesInfoArray(&current_tile16_data_);
 
-  bool bitmap_loaded = false;
-
   auto pending_bitmap_it = pending_tile16_bitmaps_.find(current_tile16_);
-  if (pending_bitmap_it != pending_tile16_bitmaps_.end() &&
-      pending_bitmap_it->second.is_active()) {
+  const bool loaded_pending_bitmap =
+      pending_bitmap_it != pending_tile16_bitmaps_.end() &&
+      pending_bitmap_it->second.is_active();
+  if (loaded_pending_bitmap) {
     current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8,
                                pending_bitmap_it->second.vector());
     current_tile16_bmp_.SetPalette(pending_bitmap_it->second.palette());
-    bitmap_loaded = true;
   } else {
-    auto tile_data = gfx::GetTilemapData(*tile16_blockset_, tile_id);
-    if (!tile_data.empty()) {
-      for (auto& pixel : tile_data) {
-        if (auto_normalize_pixels_) {
-          pixel &= palette_normalization_mask_;
-        }
-      }
-      current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8, tile_data);
-      bitmap_loaded = true;
-    }
+    RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
   }
 
-  if (!bitmap_loaded) {
-    RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
-  } else {
+  if (loaded_pending_bitmap) {
     ApplyPaletteToCurrentTile16Bitmap();
     if (current_tile16_bmp_.is_active() && current_tile16_bmp_.surface()) {
       gfx::Arena::Get().QueueTextureCommand(
@@ -2632,6 +2652,9 @@ absl::Status Tile16Editor::CommitChangesToBlockset() {
 }
 
 absl::Status Tile16Editor::CommitChangesToOverworld() {
+  std::vector<Tile16Commit> commits;
+  commits.push_back({current_tile16_, current_tile16_data_});
+
   // Step 1: Update ROM data with current tile16 changes
   RETURN_IF_ERROR(UpdateROMTile16Data());
 
@@ -2644,7 +2667,7 @@ absl::Status Tile16Editor::CommitChangesToOverworld() {
   // Step 4: Notify the parent editor (overworld editor) to regenerate its
   // blockset
   if (on_changes_committed_) {
-    RETURN_IF_ERROR(on_changes_committed_());
+    RETURN_IF_ERROR(on_changes_committed_(commits));
   }
 
   pending_tile16_changes_.erase(current_tile16_);
@@ -2679,6 +2702,8 @@ absl::Status Tile16Editor::CommitAllChanges() {
   }
 
   const int written_count = static_cast<int>(pending_tile16_changes_.size());
+  std::vector<Tile16Commit> commits;
+  commits.reserve(pending_tile16_changes_.size());
   util::logf("Committing %zu pending tile16 changes to ROM",
              pending_tile16_changes_.size());
 
@@ -2690,6 +2715,7 @@ absl::Status Tile16Editor::CommitAllChanges() {
                  status.message().data());
       return status;
     }
+    commits.push_back({tile_id, tile_data});
   }
 
   // Clear pending changes before parent refresh (overworld reads committed ROM).
@@ -2701,7 +2727,7 @@ absl::Status Tile16Editor::CommitAllChanges() {
 
   // Notify parent editor to refresh overworld display
   if (on_changes_committed_) {
-    RETURN_IF_ERROR(on_changes_committed_());
+    RETURN_IF_ERROR(on_changes_committed_(commits));
   }
 
   rom_->set_dirty(true);

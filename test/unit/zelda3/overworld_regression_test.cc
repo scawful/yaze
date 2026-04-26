@@ -62,6 +62,26 @@ class OverworldRegressionTest : public ::testing::Test {
 
   std::unique_ptr<Rom> rom_;
   std::unique_ptr<Overworld> overworld_;
+
+  void PopulateOverworldMaps() {
+    auto& maps =
+        const_cast<std::vector<OverworldMap>&>(overworld_->overworld_maps());
+    maps.clear();
+    maps.reserve(kNumOverworldMaps);
+    for (int i = 0; i < kNumOverworldMaps; ++i) {
+      maps.emplace_back(i, rom_.get());
+    }
+  }
+
+  gfx::Tile16 SolidPaletteTile16(uint8_t palette) {
+    gfx::TileInfo info(0, palette, false, false, false);
+    return gfx::Tile16(info, info, info, info);
+  }
+
+  std::vector<gfx::Tile16> SolidPaletteTestTiles16() {
+    return {SolidPaletteTile16(0), SolidPaletteTile16(1),
+            SolidPaletteTile16(2)};
+  }
 };
 
 TEST_F(OverworldRegressionTest, VanillaRomUsesFetchLargeMaps) {
@@ -322,6 +342,89 @@ TEST_F(OverworldRegressionTest, SupportsAreaEnum_VersionMatrix) {
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
   EXPECT_TRUE(OverworldVersionHelper::SupportsAreaEnum(
       OverworldVersionHelper::GetVersion(*rom_)));
+}
+
+TEST_F(OverworldRegressionTest,
+       SaveMapProperties_DarkWorldDoesNotOverwriteLightWorldSpriteTables) {
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;
+  PopulateOverworldMaps();
+
+  auto* light_map = overworld_->mutable_overworld_map(0x04);
+  auto* dark_map = overworld_->mutable_overworld_map(0x44);
+  ASSERT_NE(light_map, nullptr);
+  ASSERT_NE(dark_map, nullptr);
+
+  light_map->set_sprite_graphics(1, 0x21);
+  light_map->set_sprite_graphics(2, 0x22);
+  light_map->set_sprite_palette(2, 0x07);
+  dark_map->set_sprite_graphics(0, 0x5A);
+  dark_map->set_sprite_palette(0, 0x0A);
+  (*rom_)[kOverworldSpritePaletteIds + 192 + 0x44] = 0xEE;
+
+  ASSERT_TRUE(overworld_->SaveMapProperties().ok());
+
+  EXPECT_EQ((*rom_)[kOverworldSpriteset + 0x40 + 0x04], 0x21);
+  EXPECT_EQ((*rom_)[kOverworldSpriteset + 0x80 + 0x04], 0x22);
+  EXPECT_EQ((*rom_)[kOverworldSpriteset + 0x80 + 0x44], 0x5A);
+  EXPECT_EQ((*rom_)[kOverworldSpritePaletteIds + 0x80 + 0x04], 0x07);
+  EXPECT_EQ((*rom_)[kOverworldSpritePaletteIds + 0x80 + 0x44], 0x0A);
+  EXPECT_EQ((*rom_)[kOverworldSpritePaletteIds + 192 + 0x44], 0xEE);
+}
+
+TEST_F(OverworldRegressionTest,
+       SaveMapProperties_V3PersistsSpecialWorldToExpandedTables) {
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  PopulateOverworldMaps();
+
+  auto* special_map = overworld_->mutable_overworld_map(0x81);
+  ASSERT_NE(special_map, nullptr);
+  special_map->set_area_graphics(0x66);
+  special_map->set_area_palette(0x77);
+  special_map->set_sprite_graphics(0, 0x12);
+  special_map->set_sprite_palette(0, 0x05);
+  (*rom_)[kOverworldSpecialSpriteGFXGroup + 0x01] = 0xE1;
+  (*rom_)[kOverworldSpecialSpritePalette + 0x01] = 0xE2;
+
+  ASSERT_TRUE(overworld_->SaveMapProperties().ok());
+
+  EXPECT_EQ((*rom_)[kAreaGfxIdPtr + 0x81], 0x66);
+  EXPECT_EQ((*rom_)[kOverworldPalettesScreenToSetNew + 0x81], 0x77);
+  EXPECT_EQ((*rom_)[kOverworldSpecialSpriteGfxGroupExpandedTemp + 0x01], 0x12);
+  EXPECT_EQ((*rom_)[kOverworldSpecialSpritePaletteExpandedTemp + 0x01], 0x05);
+  EXPECT_EQ((*rom_)[kOverworldSpecialSpriteGFXGroup + 0x01], 0xE1);
+  EXPECT_EQ((*rom_)[kOverworldSpecialSpritePalette + 0x01], 0xE2);
+}
+
+TEST_F(OverworldRegressionTest,
+       BuildBitmapDerivesDarkWorldCoordinatesFromMapId) {
+  OverworldMap map(kDarkWorldMapIdStart, rom_.get());
+  auto tiles16 = SolidPaletteTestTiles16();
+  OverworldBlockset dark_world(0x200, std::vector<uint16_t>(0x200, 0));
+  dark_world[0][0] = 1;
+
+  ASSERT_TRUE(map.BuildTileset().ok());
+  ASSERT_TRUE(
+      map.BuildTiles16Gfx(tiles16, static_cast<int>(tiles16.size())).ok());
+  ASSERT_TRUE(map.BuildBitmap(dark_world).ok());
+
+  ASSERT_FALSE(map.bitmap_data().empty());
+  EXPECT_EQ(map.bitmap_data()[0], 0x10);
+}
+
+TEST_F(OverworldRegressionTest,
+       BuildBitmapDerivesSpecialWorldCoordinatesFromMapId) {
+  OverworldMap map(kSpecialWorldMapIdStart, rom_.get());
+  auto tiles16 = SolidPaletteTestTiles16();
+  OverworldBlockset special_world(0x200, std::vector<uint16_t>(0x200, 0));
+  special_world[0][0] = 2;
+
+  ASSERT_TRUE(map.BuildTileset().ok());
+  ASSERT_TRUE(
+      map.BuildTiles16Gfx(tiles16, static_cast<int>(tiles16.size())).ok());
+  ASSERT_TRUE(map.BuildBitmap(special_world).ok());
+
+  ASSERT_FALSE(map.bitmap_data().empty());
+  EXPECT_EQ(map.bitmap_data()[0], 0x20);
 }
 
 // =============================================================================
