@@ -281,6 +281,38 @@ std::optional<PaletteSamplePoint> ChooseObjectTracePaletteSample(
   return std::nullopt;
 }
 
+std::string BuildObjectTraceBoundsSummary(
+    std::span<const zelda3::ObjectDrawer::TileTrace> trace, int selection_x_px,
+    int selection_y_px, int selection_w_px, int selection_h_px) {
+  if (trace.empty()) {
+    return "trace: writes=0";
+  }
+
+  int min_x = std::numeric_limits<int>::max();
+  int min_y = std::numeric_limits<int>::max();
+  int max_x = std::numeric_limits<int>::min();
+  int max_y = std::numeric_limits<int>::min();
+  std::set<std::tuple<int, int, uint8_t>> unique_cells;
+  for (const auto& write : trace) {
+    min_x = std::min<int>(min_x, write.x_tile);
+    min_y = std::min<int>(min_y, write.y_tile);
+    max_x = std::max<int>(max_x, write.x_tile);
+    max_y = std::max<int>(max_y, write.y_tile);
+    unique_cells.insert({write.x_tile, write.y_tile, write.layer});
+  }
+
+  const int trace_x_px = min_x * 8;
+  const int trace_y_px = min_y * 8;
+  const int trace_w_px = (max_x - min_x + 1) * 8;
+  const int trace_h_px = (max_y - min_y + 1) * 8;
+  return absl::StrFormat(
+      "trace: writes=%zu unique_cells=%zu bounds_px=(%d,%d,%d,%d) "
+      "delta_vs_selection_px=(%+d,%+d,%+d,%+d)",
+      trace.size(), unique_cells.size(), trace_x_px, trace_y_px, trace_w_px,
+      trace_h_px, trace_x_px - selection_x_px, trace_y_px - selection_y_px,
+      trace_w_px - selection_w_px, trace_h_px - selection_h_px);
+}
+
 std::string BuildDoorIssueSummary(const zelda3::Room::Door& door, size_t index,
                                   std::string_view label) {
   const auto [tile_x, tile_y] = door.GetTileCoords();
@@ -457,18 +489,19 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
           report += FormatObjectTileSample(*tiles, 16, "Object tiles:");
         }
 
-        auto [obj_w, obj_h] =
-            zelda3::DimensionService::Get().GetPixelDimensions(obj);
-        obj_w = std::max(obj_w, 8);
-        obj_h = std::max(obj_h, 8);
+        auto [bounds_x, bounds_y, bounds_w, bounds_h] =
+            zelda3::DimensionService::Get().GetSelectionBoundsPixels(obj);
+        bounds_w = std::max(bounds_w, 8);
+        bounds_h = std::max(bounds_h, 8);
         const int origin_x = obj.x_ * 8;
         const int origin_y = obj.y_ * 8;
-        const int center_x = origin_x + std::max(0, (obj_w / 2) - 1);
-        const int center_y = origin_y + std::max(0, (obj_h / 2) - 1);
+        const int center_x = bounds_x + std::max(0, (bounds_w / 2) - 1);
+        const int center_y = bounds_y + std::max(0, (bounds_h / 2) - 1);
         report += absl::StrFormat(
-            "\nObject geometry: dims_px=(%d,%d) origin_px=(%d,%d) "
-            "center_px=(%d,%d)",
-            obj_w, obj_h, origin_x, origin_y, center_x, center_y);
+            "\nObject geometry: selection_bounds_px=(%d,%d,%d,%d) "
+            "object_origin_px=(%d,%d) center_px=(%d,%d)",
+            bounds_x, bounds_y, bounds_w, bounds_h, origin_x, origin_y,
+            center_x, center_y);
         const auto trace_report =
             BuildObjectTraceReport(rom_, room_id, obj, current_palette_group_);
         report += trace_report.summary;
@@ -495,9 +528,9 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
                 trace_report.writes, palette_debugger)) {
           append_sample(trace_sample->label, trace_sample->x, trace_sample->y);
         } else {
-          append_sample("geometry-origin", origin_x, origin_y);
-          if (center_x != origin_x || center_y != origin_y) {
-            append_sample("geometry-center", center_x, center_y);
+          append_sample("selection-origin", bounds_x, bounds_y);
+          if (center_x != bounds_x || center_y != bounds_y) {
+            append_sample("selection-center", center_x, center_y);
           }
         }
       }
@@ -584,17 +617,23 @@ std::string DungeonCanvasViewer::BuildSelectionIssueReport(
           "\n- object[%zu] id=0x%03X name=%s pos=(%d,%d) size=0x%02X %s", index,
           obj.id_, GetObjectName(obj.id_).c_str(), obj.x_, obj.y_, obj.size_,
           BuildSelectedObjectSemanticsSummary(obj).c_str());
-      auto [obj_w, obj_h] =
-          zelda3::DimensionService::Get().GetPixelDimensions(obj);
-      obj_w = std::max(obj_w, 8);
-      obj_h = std::max(obj_h, 8);
-      report +=
-          absl::StrFormat("\n  geometry: dims_px=(%d,%d) origin_px=(%d,%d)",
-                          obj_w, obj_h, obj.x_ * 8, obj.y_ * 8);
+      auto [bounds_x, bounds_y, bounds_w, bounds_h] =
+          zelda3::DimensionService::Get().GetSelectionBoundsPixels(obj);
+      bounds_w = std::max(bounds_w, 8);
+      bounds_h = std::max(bounds_h, 8);
+      report += absl::StrFormat(
+          "\n  geometry: selection_bounds_px=(%d,%d,%d,%d) "
+          "object_origin_px=(%d,%d)",
+          bounds_x, bounds_y, bounds_w, bounds_h, obj.x_ * 8, obj.y_ * 8);
       if (auto tiles = obj.GetTiles(); tiles.ok() && !tiles->empty()) {
         report += "\n  ";
         report += FormatObjectTileSample(*tiles, 10, "tiles:");
       }
+      const auto trace_report =
+          BuildObjectTraceReport(rom_, room_id, obj, current_palette_group_);
+      report += "\n  ";
+      report += BuildObjectTraceBoundsSummary(trace_report.writes, bounds_x,
+                                              bounds_y, bounds_w, bounds_h);
     }
     if (selected_objects.size() > preview_count) {
       report += absl::StrFormat("\n- ... %zu more object(s)",

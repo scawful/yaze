@@ -292,7 +292,8 @@ TEST(DungeonCanvasViewerNavigationTest,
       DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
 
   EXPECT_NE(report.find("Object tiles: count=8"), std::string::npos);
-  EXPECT_NE(report.find("Object geometry: dims_px="), std::string::npos);
+  EXPECT_NE(report.find("Object geometry: selection_bounds_px="),
+            std::string::npos);
   EXPECT_NE(report.find("Drawer trace: status=ok"), std::string::npos);
   EXPECT_NE(report.find("bounds_tiles="), std::string::npos);
   EXPECT_NE(report.find("layer_counts BG1="), std::string::npos);
@@ -341,10 +342,38 @@ TEST(DungeonCanvasViewerNavigationTest,
   EXPECT_NE(report.find("Palette sample object-trace[0] tile=(4,5) pal=0 "
                         "(36,44): idx=1"),
             std::string::npos);
-  EXPECT_EQ(report.find("Palette sample geometry-origin"), std::string::npos);
+  EXPECT_EQ(report.find("Palette sample selection-origin"), std::string::npos);
   EXPECT_EQ(report.find("(32,40): idx=113"), std::string::npos);
 
   palette_debugger.Clear();
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     SelectionIssueReportIncludesTraceSelectionDelta) {
+  std::vector<uint8_t> rom_data(1024 * 1024, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonCanvasViewer viewer(&rom);
+  zelda3::Room room;
+  zelda3::RoomObject obj(/*id=*/0x71, /*x=*/29, /*y=*/14, /*size=*/0x04,
+                         /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_ = MakeObjectTiles(1);
+  room.GetTileObjects().push_back(obj);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildSelectionIssueReport(viewer, room,
+                                                             0x59);
+
+  EXPECT_NE(report.find("geometry: selection_bounds_px=(232,136,8,64) "
+                        "object_origin_px=(232,112)"),
+            std::string::npos);
+  EXPECT_NE(report.find("trace: writes=8 unique_cells=8 "
+                        "bounds_px=(232,136,8,64) "
+                        "delta_vs_selection_px=(+0,+0,+0,+0)"),
+            std::string::npos);
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
