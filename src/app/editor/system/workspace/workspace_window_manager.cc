@@ -865,10 +865,13 @@ void WorkspaceWindowManager::DrawAllVisiblePanels() {
       window.SetPosition(gui::PanelWindow::Position::Center);
     }
 
-    // Use preferred width from WindowContent if specified
+    // Use preferred size from WindowContent if specified.
     float preferred_width = panel->GetPreferredWidth();
-    if (preferred_width > 0.0f) {
-      window.SetDefaultSize(preferred_width, 0);  // 0 height = auto
+    float preferred_height = panel->GetPreferredHeight();
+    if (preferred_width > 0.0f || preferred_height > 0.0f) {
+      window.SetDefaultSize(
+          preferred_width > 0.0f ? preferred_width : 400.0f,
+          preferred_height > 0.0f ? preferred_height : 300.0f);
     }
 
     // Enable pin functionality for cross-editor persistence

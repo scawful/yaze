@@ -1497,6 +1497,11 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
 
   if (tile_id == tile16_editor_.current_tile16()) {
     current_tile16_ = tile_id;
+    auto status = tile16_editor_.SetCurrentTile(tile_id);
+    if (!status.ok()) {
+      LOG_WARN("OverworldEditor", "Failed to refresh selected Tile16 %d: %s",
+               tile_id, status.message().data());
+    }
     return;
   }
 

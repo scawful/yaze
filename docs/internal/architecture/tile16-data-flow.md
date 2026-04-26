@@ -38,6 +38,17 @@ changes keep parity with ZScream/Hyrule Magic behavior.
      row/high-nibble offsets.
    - Fallback path (normalization mode) keeps sub-palette behavior.
 
+### Display Palette Contract
+
+- The active overworld map palette is the display source of truth for the
+  Tile8 source sheet, selected Tile8 hover preview, selected Tile16 preview,
+  Tile16 selector/blockset atlas, and overworld map presentation.
+- `MapRefreshCoordinator` pushes the current map palette into `Tile16Editor`
+  through `set_palette()` whenever map palette or Tile16 blockset state
+  changes.
+- Tile8 source sheets may shrink their display scale to fit available editor
+  width, but palette application must not change with scale.
+
 4. Local staging + atlas preview sync
    - Edits flow through `DrawToCurrentTile16`
      ([tile16_editor.cc:723](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:723)).
