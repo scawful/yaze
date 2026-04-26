@@ -359,6 +359,33 @@ TEST_F(OutputFormatterTest, GeneratesValidJson) {
   EXPECT_THAT(output, ::testing::HasSubstr("\"item2\""));
 }
 
+TEST_F(OutputFormatterTest, GeneratesValidJsonArrayOfObjects) {
+  auto formatter_or = OutputFormatter::FromString("json");
+  ASSERT_TRUE(formatter_or.ok());
+  auto formatter = std::move(formatter_or.value());
+
+  formatter.BeginObject("Root");
+  formatter.BeginArray("items");
+  formatter.BeginObject("item");
+  formatter.AddField("name", "first");
+  formatter.BeginArray("children");
+  formatter.AddArrayItem("leaf");
+  formatter.EndArray();
+  formatter.EndObject();
+  formatter.BeginObject("item");
+  formatter.AddField("name", "second");
+  formatter.EndObject();
+  formatter.EndArray();
+  formatter.EndObject();
+
+  const std::string output = formatter.GetOutput();
+  EXPECT_THAT(output, ::testing::HasSubstr("\"items\": ["));
+  EXPECT_THAT(output, ::testing::HasSubstr("\"children\": ["));
+  EXPECT_THAT(output, ::testing::HasSubstr("\"leaf\""));
+  EXPECT_THAT(output, ::testing::Not(::testing::HasSubstr("\"item\": {")));
+  EXPECT_THAT(output, ::testing::HasSubstr("},\n    {"));
+}
+
 TEST_F(OutputFormatterTest, GeneratesValidText) {
   auto formatter_or = OutputFormatter::FromString("text");
   ASSERT_TRUE(formatter_or.ok());
