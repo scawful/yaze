@@ -140,8 +140,10 @@ void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
   }
 
   if (ImGui::BeginPopup(kToolbarPopupIdViewOptions)) {
+    // Canvas overlays — generic, common, expected on by default.
+    ImGui::TextDisabled("Canvas");
     bool v = viewer->show_grid();
-    if (ImGui::Checkbox("Grid", &v)) {
+    if (ImGui::Checkbox("Grid (8x8)", &v)) {
       viewer->set_show_grid(v);
     }
     v = viewer->show_object_bounds();
@@ -155,6 +157,45 @@ void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
     v = viewer->show_camera_quadrant_overlay();
     if (ImGui::Checkbox("Camera Quadrants", &v)) {
       viewer->set_show_camera_quadrant_overlay(v);
+    }
+
+    // Authoring overlays — specialized, infrequent. Grouped together so the
+    // common four don't get visually drowned by Oracle/track-specific ones.
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::TextDisabled("Authoring");
+    v = viewer->show_track_collision_overlay();
+    if (ImGui::Checkbox("Track Collision", &v)) {
+      viewer->set_show_track_collision_overlay(v);
+    }
+    v = viewer->show_custom_collision_overlay();
+    if (ImGui::Checkbox("Custom Collision", &v)) {
+      viewer->set_show_custom_collision_overlay(v);
+    }
+    v = viewer->show_water_fill_overlay();
+    if (ImGui::Checkbox("Water Fill (Oracle)", &v)) {
+      viewer->set_show_water_fill_overlay(v);
+    }
+    v = viewer->show_minecart_sprite_overlay();
+    if (ImGui::Checkbox("Minecart Pathing", &v)) {
+      viewer->set_show_minecart_sprite_overlay(v);
+    }
+    v = viewer->show_track_gap_overlay();
+    if (ImGui::Checkbox("Track Gaps", &v)) {
+      viewer->set_show_track_gap_overlay(v);
+    }
+    v = viewer->show_track_route_overlay();
+    if (ImGui::Checkbox("Track Routes", &v)) {
+      viewer->set_show_track_route_overlay(v);
+    }
+    v = viewer->show_custom_objects_overlay();
+    if (ImGui::Checkbox("Custom Objects (Oracle)", &v)) {
+      viewer->set_show_custom_objects_overlay(v);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Highlight custom-draw objects (IDs 0x31/0x32)\n"
+          "with a cyan overlay showing position and subtype.");
     }
     ImGui::EndPopup();
   }
@@ -439,6 +480,27 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   ImGui::SameLine(0.0f, kToolbarActionGap);
   DungeonRoomNavWidget::Draw("WorkbenchNav", *p.current_room_id,
                              p.on_room_selected);
+
+  // Room actions promoted from the inspector — Apply Room and Dungeon Map
+  // are the two high-frequency room-context actions; they belong on the
+  // canvas toolbar so users don't open a sidebar collapsible to reach them.
+  if (p.on_save_room && *p.current_room_id >= 0) {
+    ImGui::SameLine(0.0f, kToolbarActionGap);
+    if (workbench::DrawHeaderIconAction(
+            "ApplyRoomToolbar", ICON_MD_SAVE, layout.button_size,
+            "Apply this room into the loaded ROM buffer "
+            "(File > Save ROM persists to disk)")) {
+      p.on_save_room(*p.current_room_id);
+    }
+  }
+  if (p.on_request_dungeon_map) {
+    ImGui::SameLine(0.0f, kToolbarActionGap);
+    if (workbench::DrawHeaderIconAction("DungeonMapToolbar", ICON_MD_MAP,
+                                        layout.button_size,
+                                        "Open the Dungeon Map popup")) {
+      p.on_request_dungeon_map();
+    }
+  }
 
   ImGui::SameLine(0.0f, kToolbarActionGap);
   DrawCanvasModeSelector(p.layout, layout);

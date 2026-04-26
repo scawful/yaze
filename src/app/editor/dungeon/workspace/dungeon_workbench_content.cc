@@ -560,6 +560,10 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     params.open_room_matrix = [this]() {
       ShowConnectedGraph();
     };
+    params.on_save_room = on_save_room_;
+    params.on_request_dungeon_map = [this]() {
+      RequestDungeonMapPopup();
+    };
     params.compare_search_buf = compare_search_buf_;
     params.compare_search_buf_size = sizeof(compare_search_buf_);
     const bool request_panel_workflow = DungeonWorkbenchToolbar::Draw(params);
@@ -1781,23 +1785,11 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
     ImGui::TextDisabled("Nothing selected");
   }
 
-  if (room_id >= 0) {
-    ImGui::Dummy(ImVec2(0.0f, 2.0f));
-    if (on_save_room_ &&
-        workbench::DrawActionButton(ICON_MD_SAVE " Apply Room to ROM",
-                                    ImVec2(-1, 0))) {
-      on_save_room_(room_id);
-    }
-  }
-
-  ImGui::Dummy(ImVec2(0.0f, 2.0f));
-  if (workbench::BeginInspectorSection(ICON_MD_VISIBILITY " View", true)) {
-    DrawInspectorShelfView(viewer);
-  }
-
-  if (workbench::BeginInspectorSection(ICON_MD_BUILD " Tools", false)) {
-    DrawInspectorShelfTools(viewer);
-  }
+  // Apply Room, View overlays, and Tools quick-grid all live elsewhere now:
+  // Apply Room is on the canvas toolbar, the overlay checkboxes live in the
+  // toolbar's View Options popup, and Tools have their own inspector primary
+  // mode (the segmented selector at the inspector header). Compact summary
+  // stays focused on what's selected.
 }
 
 void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
@@ -1831,35 +1823,11 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
       return;
   }
 
-  ImGui::Dummy(ImVec2(0.0f, 2.0f));
-  if (workbench::BeginInspectorSection(ICON_MD_VIEW_QUILT " Stitched Rooms",
-                                       true)) {
-    bool stitched = layout_state_.show_connected_canvas_view;
-    if (ImGui::Checkbox("Show stitched rooms", &stitched)) {
-      layout_state_.show_connected_canvas_view = stitched;
-      if (stitched) {
-        split_view_enabled_ = false;  // keep the canvas surface single-mode
-      }
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Renders the current room and its neighbors (doors, staircases, "
-          "holewarps) as one continuous canvas.\n"
-          "Hover rooms to see diagnostics; use Fit/Reset and Mini/Room "
-          "controls in the top toolbar.\n"
-          "Staircase header issues and out-of-scope links surface in the "
-          "stitched-rooms toolbar while this is active.");
-    }
-  }
-
-  ImGui::Dummy(ImVec2(0.0f, 2.0f));
-  if (workbench::BeginInspectorSection(ICON_MD_VISIBILITY " View Options",
-                                       true)) {
-    DrawInspectorShelfView(viewer);
-  }
-  if (workbench::BeginInspectorSection(ICON_MD_BUILD " Tools", false)) {
-    DrawInspectorShelfTools(viewer);
-  }
+  // Stitched Rooms, View Options, and Tools collapsibles intentionally
+  // removed: the canvas toolbar exposes the Stitched Rooms toggle directly,
+  // the View Options popup off the toolbar's eye icon owns all 11 overlay
+  // checkboxes, and the inspector primary segmented selector at the header
+  // already routes between Room / Selection / Tools modes.
 }
 
 void DungeonWorkbenchContent::DrawInspectorShelfRoom(
@@ -1968,24 +1936,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     ImGui::TextDisabled("%s", room_label.c_str());
   }
 
-  // Quick actions. Graphics lives in the Tools strip; the only standalone
-  // shortcut here is Dungeon Map because it opens a popup, not a drawer tool.
-  workbench::DrawInspectorSectionHeader(ICON_MD_SAVE " Room Actions");
-  ImGui::PushTextWrapPos(0.0f);
-  ImGui::TextDisabled(
-      "Apply writes to the loaded ROM buffer; File > Save ROM persists to "
-      "disk.");
-  ImGui::PopTextWrapPos();
-  if (on_save_room_ && room_id >= 0) {
-    if (workbench::DrawActionButton(ICON_MD_SAVE " Apply Room to ROM",
-                                    ImVec2(-1, 0))) {
-      on_save_room_(room_id);
-    }
-  }
-  if (workbench::DrawActionButton(ICON_MD_MAP " Dungeon Map", ImVec2(-1, 0))) {
-    RequestDungeonMapPopup();
-  }
-
+  // Apply Room and Dungeon Map have moved to the canvas toolbar (Save and
+  // Map icons). Apply Scope and Layer Compositing remain here as
+  // collapsibles since they're rarely-touched per-room batch settings.
   if (workbench::BeginInspectorSection(ICON_MD_SAVE_ALT " Apply Scope",
                                        false)) {
     DrawApplyScopeControls(room_id);
@@ -2539,75 +2492,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       }
       default:
         break;
-    }
-  }
-}
-
-void DungeonWorkbenchContent::DrawInspectorShelfView(
-    DungeonCanvasViewer& viewer) {
-  // Canvas overlays — generic, common, always visible.
-  bool val = viewer.show_grid();
-  if (ImGui::Checkbox("Grid (8x8)", &val))
-    viewer.set_show_grid(val);
-
-  val = viewer.show_object_bounds();
-  if (ImGui::Checkbox("Object Bounds", &val)) {
-    viewer.set_show_object_bounds(val);
-  }
-
-  val = viewer.show_coordinate_overlay();
-  if (ImGui::Checkbox("Hover Coordinates", &val)) {
-    viewer.set_show_coordinate_overlay(val);
-  }
-
-  val = viewer.show_camera_quadrant_overlay();
-  if (ImGui::Checkbox("Camera Quadrants", &val)) {
-    viewer.set_show_camera_quadrant_overlay(val);
-  }
-
-  // Authoring overlays — specialized; collapsed by default to reduce inspector
-  // clutter for users who don't author tracks, water, or Oracle custom data.
-  ImGui::Dummy(ImVec2(0.0f, 2.0f));
-  if (workbench::BeginInspectorSection(ICON_MD_BUILD " Authoring overlays",
-                                       false)) {
-    val = viewer.show_track_collision_overlay();
-    if (ImGui::Checkbox("Track Collision", &val)) {
-      viewer.set_show_track_collision_overlay(val);
-    }
-
-    val = viewer.show_custom_collision_overlay();
-    if (ImGui::Checkbox("Custom Collision", &val)) {
-      viewer.set_show_custom_collision_overlay(val);
-    }
-
-    val = viewer.show_water_fill_overlay();
-    if (ImGui::Checkbox("Water Fill (Oracle)", &val)) {
-      viewer.set_show_water_fill_overlay(val);
-    }
-
-    val = viewer.show_minecart_sprite_overlay();
-    if (ImGui::Checkbox("Minecart Pathing", &val)) {
-      viewer.set_show_minecart_sprite_overlay(val);
-    }
-
-    val = viewer.show_track_gap_overlay();
-    if (ImGui::Checkbox("Track Gaps", &val)) {
-      viewer.set_show_track_gap_overlay(val);
-    }
-
-    val = viewer.show_track_route_overlay();
-    if (ImGui::Checkbox("Track Routes", &val)) {
-      viewer.set_show_track_route_overlay(val);
-    }
-
-    val = viewer.show_custom_objects_overlay();
-    if (ImGui::Checkbox("Custom Objects (Oracle)", &val)) {
-      viewer.set_show_custom_objects_overlay(val);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Highlight custom-draw objects (IDs 0x31/0x32)\n"
-          "with a cyan overlay showing position and subtype.");
     }
   }
 }

@@ -27,6 +27,8 @@ struct DungeonWorkbenchToolbarParams {
   std::function<const std::deque<int>&()> get_recent_rooms;
   std::function<void(bool)> set_workflow_mode;
   std::function<void()> open_room_matrix;
+  std::function<void(int)> on_save_room;
+  std::function<void()> on_request_dungeon_map;
 
   char* compare_search_buf = nullptr;
   size_t compare_search_buf_size = 0;
