@@ -489,6 +489,7 @@ class Tile16Editor : public gfx::GfxContext {
   bool show_palette_preview_ = true;
   int tile8_stamp_size_ = 1;  // ZScream parity: 1x, 2x, 4x tile8 stamping.
   bool highlight_tile8_usage_ = false;
+  float tile8_source_display_scale_ = 4.0f;
 
   zelda3::Tile8UsageIndex tile8_usage_cache_;
   bool tile8_usage_cache_dirty_ = true;
@@ -612,6 +613,13 @@ class Tile16Editor : public gfx::GfxContext {
   void DrawEditorHeaderToggles(bool* show_debug_info,
                                bool* show_advanced_controls);
 
+  // Draw the compact action/status row for staged Tile16 edits.
+  absl::Status DrawCompactActionStatusRow(bool has_pending,
+                                          bool current_tile_pending,
+                                          int pending_count,
+                                          bool* show_debug_info,
+                                          bool* show_advanced_controls);
+
   // Draw the sticky staged-state strip (pending/commit/discard controls).
   void DrawStagedStateBar(bool has_pending, bool current_tile_pending,
                           int pending_count);
@@ -620,8 +628,9 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
 
   // Draw the Tile8 source column and handle source selection interaction.
-  absl::Status DrawTile8SourcePanel();
-  absl::Status HandleTile8SourceSelection(bool right_clicked);
+  absl::Status DrawTile8SourcePanel(float preferred_height = 0.0f);
+  absl::Status HandleTile8SourceSelection(bool right_clicked,
+                                          float display_scale);
 
   // Draw primary local edit controls in the right action column.
   absl::Status DrawPrimaryActionControls();

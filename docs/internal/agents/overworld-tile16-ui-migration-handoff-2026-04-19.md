@@ -4,8 +4,8 @@ Status: IN_PROGRESS (not release-ready; follow-up required)
 Owner: `imgui-frontend-engineer`  
 Created: 2026-04-19  
 Last Reviewed: 2026-04-26
-Next Review: after action-rail/discard UX fix and adversarial edit-flow coverage
-Universe Task: unavailable in snapshot; follow up after `scripts/agents/coord` is healthy again
+Next Review: after Tile16 usability/layout recovery and adversarial edit-flow coverage
+Universe Task: `task_20260426T160255Z_14316`
 
 ## Summary
 
@@ -16,9 +16,12 @@ then finished the active overworld `WindowContent` migration away from
 Automated close-out on 2026-04-26 covers ROM-backed Tile16 selection,
 staged-change guarding, and commit refresh. The opt-in visible GUI smoke pass
 now covers basic rendering, palette switching, and staged live-preview feedback.
-Do not treat that as product readiness. The remaining work is action-rail UX,
-adversarial edit-flow coverage, large-service extraction, and coordination
-snapshot repair.
+Do not treat that as product readiness. Follow-up user testing still found
+large gaps in the editing surface: the Tile16 Editor is too busy, first-use
+window sizing is too small, the table layout resizes poorly, graphics sheet
+areas clip instead of adapting, Tile8 source palettes do not reliably reflect
+the active area colors, and the selected Tile16 preview can fail to match the
+tile the user opened.
 
 Follow-up on 2026-04-26 found one concrete basic rendering bug in the selected
 Tile16 preview: `SetCurrentTile()` could load pixels from the blockset atlas
@@ -42,6 +45,9 @@ across all of these gates:
   profiles, including expanded Tile16/Tile32 ROMs.
 - Usability review of the editing surface for discoverability, destructive action
   clarity, keyboard shortcuts, and stale pending-state visibility.
+- A focused layout recovery pass that simplifies the queue/dirty state, keeps
+  the Tile8 source and Tile16 blockset visible at the default launched size,
+  and verifies the preview ID matches the selected/opened Tile16.
 - Service-boundary cleanup so `OverworldEditor` is not the sole owner of too much
   Tile16, map refresh, ROM mutation, and UI state coordination.
 
@@ -190,20 +196,33 @@ Observed results:
 
 ## Follow-Up Required
 
-1. Fix and re-smoke the bottom action rail so `Write Pending`, `Discard Current`,
-   `Discard All`, and `Undo` are visible and operable at the default launched
-   Tile16 layout, with clear feedback after each action.
-2. Add adversarial Tile16 edit-flow coverage for pending queues, discard paths,
+1. Replace the busy three-column editor surface with a simpler, resizable
+   Tile16 workbench. The default Tile16 Editor window must open large enough
+   for normal use and must not require resizing before the Tile8 source,
+   selected Tile16 preview, and write/discard controls are visible.
+2. Simplify the top queue/dirty tracking into one compact action/status row.
+   `Write Pending`, `Discard Current`, `Discard All`, `Undo`, and `Redo` must
+   be visible and operable at the default launched Tile16 layout, with clear
+   feedback after each action.
+3. Make the Tile8 source sheet adapt to available width instead of clipping:
+   shrink display scale when necessary, keep vertical scrolling, and avoid
+   normal horizontal scrolling.
+4. Apply active overworld area palettes consistently to the Tile8 source,
+   selected Tile8 preview, Tile16 preview, and blockset/atlas surfaces.
+5. Fix selected Tile16 preview synchronization so context menu opens, selector
+   double-clicks, keyboard navigation, and eyedropper/sample paths all route
+   through one guarded selection path before the editor opens.
+6. Add adversarial Tile16 edit-flow coverage for pending queues, discard paths,
    undo/redo interaction, and all selection entry points.
-3. Add save/reload coverage for committed Tile16 edits on the intended ROM
+7. Add save/reload coverage for committed Tile16 edits on the intended ROM
    profiles, including expanded Tile16/Tile32 ROMs.
-4. Revisit the remaining large-service extraction in `OverworldEditor` and its
+8. Revisit the remaining large-service extraction in `OverworldEditor` and its
    coordinators. The directory migration is done for active surfaces, but the
    editor is still too state-heavy.
-5. Fix the startup editor flag/parser mismatch so `--editor=Overworld Editor`
+9. Fix the startup editor flag/parser mismatch so `--editor=Overworld Editor`
    or a documented category alias opens Overworld without an unknown-editor
    warning.
-6. Regenerate `docs/internal/agents/coordination-board.generated.md` once
+10. Regenerate `docs/internal/agents/coordination-board.generated.md` once
    `scripts/agents/coord` / `universe-coord.sh` is healthy again. Current local
    coordination calls appear wedged, so this handoff is the human-readable
    record for now.

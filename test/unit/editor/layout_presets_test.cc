@@ -1,4 +1,5 @@
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/overworld/ui/tiles/tile16_editor_view.h"
 
 #include <algorithm>
 #include <vector>
@@ -57,6 +58,15 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
 
   EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kOverworldDebug));
+}
+
+TEST(LayoutPresetsTest, Tile16EditorHasUsableFirstUseSizeButIsOptional) {
+  Tile16EditorView view;
+
+  EXPECT_EQ(view.GetId(), LayoutPresets::Panels::kOverworldTile16Editor);
+  EXPECT_GE(view.GetPreferredWidth(), 900.0f);
+  EXPECT_GE(view.GetPreferredHeight(), 700.0f);
+  EXPECT_FALSE(view.IsVisibleByDefault());
 }
 
 TEST(LayoutPresetsTest,

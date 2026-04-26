@@ -1,5 +1,6 @@
 #include "tile16_editor.h"
 
+#include <algorithm>
 #include <array>
 #include <memory>
 
@@ -822,25 +823,33 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   const bool current_tile_pending = is_tile_modified(current_tile16_);
   const int pending_count = pending_changes_count();
 
-  DrawEditorHeader(show_debug_info);
-  DrawEditorHeaderToggles(&show_debug_info, &show_advanced_controls);
-  DrawStagedStateBar(has_pending, current_tile_pending, pending_count);
-  RETURN_IF_ERROR(
-      DrawBottomActionRail(has_pending, current_tile_pending, pending_count));
+  RETURN_IF_ERROR(DrawCompactActionStatusRow(has_pending, current_tile_pending,
+                                             pending_count, &show_debug_info,
+                                             &show_advanced_controls));
 
   ImGui::Separator();
 
-  // REFACTORED: Improved 3-column layout with better space utilization
-  if (ImGui::BeginTable("##Tile16EditLayout", 3,
+  const float layout_width = ImGui::GetContentRegionAvail().x;
+  const bool compact_layout = layout_width < 760.0f;
+  const int layout_columns = compact_layout ? 1 : 3;
+
+  // Responsive workbench layout. Wide windows keep source/blockset/edit rail
+  // side-by-side; narrow docks stack rows instead of clipping the Tile8 sheet.
+  if (ImGui::BeginTable("##Tile16EditLayout", layout_columns,
                         ImGuiTableFlags_Resizable |
                             ImGuiTableFlags_BordersInnerV |
                             ImGuiTableFlags_SizingStretchProp)) {
-    ImGui::TableSetupColumn("Tile16 Blockset",
-                            ImGuiTableColumnFlags_WidthStretch, 0.35f);
-    ImGui::TableSetupColumn("Tile8 Source", ImGuiTableColumnFlags_WidthStretch,
-                            0.35f);
-    ImGui::TableSetupColumn("Editor & Controls",
-                            ImGuiTableColumnFlags_WidthStretch, 0.30f);
+    if (compact_layout) {
+      ImGui::TableSetupColumn("Tile16 Workbench",
+                              ImGuiTableColumnFlags_WidthStretch, 1.0f);
+    } else {
+      ImGui::TableSetupColumn("Tile16 Blockset",
+                              ImGuiTableColumnFlags_WidthStretch, 0.32f);
+      ImGui::TableSetupColumn("Tile8 Source",
+                              ImGuiTableColumnFlags_WidthStretch, 0.43f);
+      ImGui::TableSetupColumn("Editor", ImGuiTableColumnFlags_WidthStretch,
+                              0.25f);
+    }
 
     ImGui::TableHeadersRow();
     ImGui::TableNextRow();
@@ -983,8 +992,13 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     }  // nav_spacing_guard scope
 
     // Blockset canvas with scrolling
-    if (BeginChild("##BlocksetScrollable",
-                   ImVec2(0, ImGui::GetContentRegionAvail().y), true,
+    const float blockset_height =
+        compact_layout
+            ? std::min(
+                  260.0f,
+                  std::max(180.0f, ImGui::GetContentRegionAvail().y * 0.34f))
+            : ImGui::GetContentRegionAvail().y;
+    if (BeginChild("##BlocksetScrollable", ImVec2(0, blockset_height), true,
                    ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
       // Handle scroll-to-current request
       if (scroll_to_current_) {
@@ -1047,7 +1061,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     // ========== COLUMN 2: Tile8 Source ==========
     ImGui::TableNextColumn();
     ImGui::BeginGroup();
-    RETURN_IF_ERROR(DrawTile8SourcePanel());
+    RETURN_IF_ERROR(DrawTile8SourcePanel(compact_layout ? 280.0f : 0.0f));
     ImGui::EndGroup();
 
     // ========== COLUMN 3: Tile16 Editor + Controls ==========
@@ -1536,6 +1550,136 @@ void Tile16Editor::DrawStagedStateBar(bool has_pending,
   ImGui::EndChild();
 }
 
+absl::Status Tile16Editor::DrawCompactActionStatusRow(
+    bool has_pending, bool current_tile_pending, int pending_count,
+    bool* show_debug_info, bool* show_advanced_controls) {
+  const Tile16ActionControlState action_state = ComputeTile16ActionControlState(
+      has_pending, current_tile_pending, undo_manager_.CanUndo(),
+      undo_manager_.CanRedo());
+  const float available_width = ImGui::GetContentRegionAvail().x;
+  const int columns =
+      available_width >= 760.0f ? 7 : (available_width >= 460.0f ? 4 : 2);
+  const int action_count = 7;
+  const int rows = (action_count + columns - 1) / columns;
+  const float row_height = ImGui::GetTextLineHeightWithSpacing() +
+                           rows * ImGui::GetFrameHeightWithSpacing() +
+                           ImGui::GetStyle().WindowPadding.y * 2.0f;
+  absl::Status action_status = absl::OkStatus();
+
+  if (ImGui::BeginChild(
+          "##Tile16CompactStatus", ImVec2(0, row_height), true,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
+    ImGui::Text("Tile16 %02X", current_tile16_);
+    ImGui::SameLine();
+    ImGui::TextDisabled(current_tile_pending ? "Dirty" : "Clean");
+    ImGui::SameLine();
+    ImGui::TextDisabled("| %d pending", pending_count);
+    ImGui::SameLine();
+    ImGui::TextDisabled("| %s", EditModeLabel(edit_mode_));
+    if (has_rom_write_history_) {
+      const auto seconds_since_write =
+          std::chrono::duration_cast<std::chrono::seconds>(
+              std::chrono::steady_clock::now() - last_rom_write_time_)
+              .count();
+      ImGui::SameLine();
+      ImGui::TextDisabled("| Last write: %d tile%s, %lds ago",
+                          last_rom_write_count_,
+                          last_rom_write_count_ == 1 ? "" : "s",
+                          static_cast<long>(seconds_since_write));
+    }
+
+    if (ImGui::BeginTable("##Tile16CompactActions", columns,
+                          ImGuiTableFlags_SizingStretchProp)) {
+      int action_index = 0;
+      auto next_action_cell = [&]() {
+        if (action_index % columns == 0) {
+          ImGui::TableNextRow();
+        }
+        ImGui::TableNextColumn();
+        ++action_index;
+      };
+
+      next_action_cell();
+      if (!action_state.can_write_pending) {
+        ImGui::BeginDisabled();
+      }
+      if (gui::SuccessButton("Write",
+                             ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        action_status = CommitAllChanges();
+      }
+      if (!action_state.can_write_pending) {
+        ImGui::EndDisabled();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Write all %d pending Tile16 edits to ROM",
+                          pending_count);
+      }
+
+      next_action_cell();
+      if (!action_state.can_discard_current) {
+        ImGui::BeginDisabled();
+      }
+      if (ImGui::Button("Discard Current",
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        DiscardCurrentTileChanges();
+      }
+      if (!action_state.can_discard_current) {
+        ImGui::EndDisabled();
+      }
+
+      next_action_cell();
+      if (!action_state.can_discard_all) {
+        ImGui::BeginDisabled();
+      }
+      if (gui::DangerButton("Discard All",
+                            ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        DiscardAllChanges();
+      }
+      if (!action_state.can_discard_all) {
+        ImGui::EndDisabled();
+      }
+
+      next_action_cell();
+      if (!action_state.can_undo) {
+        ImGui::BeginDisabled();
+      }
+      if (ImGui::Button("Undo", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        action_status = Undo();
+      }
+      if (!action_state.can_undo) {
+        ImGui::EndDisabled();
+      }
+
+      next_action_cell();
+      if (!action_state.can_redo) {
+        ImGui::BeginDisabled();
+      }
+      if (ImGui::Button("Redo", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        action_status = Redo();
+      }
+      if (!action_state.can_redo) {
+        ImGui::EndDisabled();
+      }
+
+      next_action_cell();
+      if (ImGui::Button(*show_advanced_controls ? "Advanced On" : "Advanced",
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        *show_advanced_controls = !*show_advanced_controls;
+      }
+
+      next_action_cell();
+      if (ImGui::Button(*show_debug_info ? "Debug On" : "Debug",
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+        *show_debug_info = !*show_debug_info;
+      }
+
+      ImGui::EndTable();
+    }
+  }
+  ImGui::EndChild();
+  return action_status;
+}
+
 absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
     bool show_debug_info) {
   // Palette selector - this is the paint brush palette for new placements.
@@ -1733,16 +1877,26 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
   return absl::OkStatus();
 }
 
-absl::Status Tile16Editor::DrawTile8SourcePanel() {
-  ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.9f, 1.0f), "Tile8 Source");
+absl::Status Tile16Editor::DrawTile8SourcePanel(float preferred_height) {
+  ImGui::Text("Tile8 Source");
 
   tile8_source_canvas_.set_draggable(false);
+  if (current_gfx_bmp_ != nullptr && current_gfx_bmp_->is_active()) {
+    tile8_source_display_scale_ = ComputeTile8SourceDisplayScale(
+        ImGui::GetContentRegionAvail().x, current_gfx_bmp_->width());
+    tile8_source_canvas_.SetCanvasSize(
+        ImVec2(current_gfx_bmp_->width() * tile8_source_display_scale_,
+               current_gfx_bmp_->height() * tile8_source_display_scale_));
+    ImGui::SameLine();
+    ImGui::TextDisabled("%.1fx", tile8_source_display_scale_);
+  }
 
-  if (BeginChild("##Tile8SourceScrollable", ImVec2(0, 0), true,
+  if (BeginChild("##Tile8SourceScrollable", ImVec2(0, preferred_height), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     gui::CanvasFrameOptions tile8_frame_opts;
     tile8_frame_opts.draw_grid = true;
-    tile8_frame_opts.grid_step = 32.0f;  // Tile8 grid (8px * 4 scale)
+    tile8_frame_opts.grid_step =
+        8.0f * tile8_source_display_scale_;  // Tile8 grid
     tile8_frame_opts.draw_context_menu = true;
     tile8_frame_opts.draw_overlay = true;
     tile8_frame_opts.render_popups = true;
@@ -1750,7 +1904,7 @@ absl::Status Tile16Editor::DrawTile8SourcePanel() {
 
     auto tile8_rt = gui::BeginCanvas(tile8_source_canvas_, tile8_frame_opts);
 
-    tile8_source_canvas_.DrawTileSelector(32.0F);
+    tile8_source_canvas_.DrawTileSelector(8.0F * tile8_source_display_scale_);
 
     const bool left_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
     const bool right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);
@@ -1762,12 +1916,13 @@ absl::Status Tile16Editor::DrawTile8SourcePanel() {
         (edit_mode_ == Tile16EditMode::kUsageProbe) || temporary_usage;
 
     if (left_clicked || right_clicked) {
-      RETURN_IF_ERROR(HandleTile8SourceSelection(right_clicked));
+      RETURN_IF_ERROR(HandleTile8SourceSelection(right_clicked,
+                                                 tile8_source_display_scale_));
     }
 
     if (current_gfx_bmp_ != nullptr) {
       tile8_source_canvas_.DrawBitmap(*current_gfx_bmp_, 2, 2,
-                                      kTile8DisplayScale);
+                                      tile8_source_display_scale_);
     }
 
     gui::EndCanvas(tile8_source_canvas_, tile8_rt, tile8_frame_opts);
@@ -1777,7 +1932,8 @@ absl::Status Tile16Editor::DrawTile8SourcePanel() {
   return absl::OkStatus();
 }
 
-absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked) {
+absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked,
+                                                      float display_scale) {
   const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = tile8_source_canvas_.zero_point();
   ImVec2 mouse_pos =
@@ -1785,7 +1941,7 @@ absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked) {
 
   const int new_tile8 = ComputeTile8IndexFromCanvasMouse(
       mouse_pos.x, mouse_pos.y, current_gfx_bmp_->width(),
-      static_cast<int>(current_gfx_individual_.size()), kTile8DisplayScale);
+      static_cast<int>(current_gfx_individual_.size()), display_scale);
   if (new_tile8 < 0 || new_tile8 == current_tile8_) {
     return absl::OkStatus();
   }
@@ -1985,8 +2141,8 @@ absl::Status Tile16Editor::LoadTile8() {
 
   // Ensure canvas scroll size matches the full tilesheet at preview scale
   tile8_source_canvas_.SetCanvasSize(
-      ImVec2(current_gfx_bmp_->width() * kTile8DisplayScale,
-             current_gfx_bmp_->height() * kTile8DisplayScale));
+      ImVec2(current_gfx_bmp_->width() * tile8_source_display_scale_,
+             current_gfx_bmp_->height() * tile8_source_display_scale_));
 
   util::logf("Loaded %zu individual tile8 graphics",
              current_gfx_individual_.size());

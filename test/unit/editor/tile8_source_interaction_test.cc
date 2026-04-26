@@ -45,5 +45,22 @@ TEST(Tile8SourceInteractionTest, OutOfRangeOrInvalidInputsReturnNegativeOne) {
             -1);
 }
 
+TEST(Tile8SourceInteractionTest, ComputesResponsiveDisplayScale) {
+  EXPECT_FLOAT_EQ(ComputeTile8SourceDisplayScale(
+                      /*available_width_px=*/560.0f,
+                      /*source_bitmap_width_px=*/128),
+                  4.0f);
+
+  const float narrow_scale = ComputeTile8SourceDisplayScale(
+      /*available_width_px=*/344.0f, /*source_bitmap_width_px=*/128);
+  EXPECT_GT(narrow_scale, 2.4f);
+  EXPECT_LT(narrow_scale, 2.6f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourceDisplayScale(
+                      /*available_width_px=*/80.0f,
+                      /*source_bitmap_width_px=*/128),
+                  1.5f);
+}
+
 }  // namespace
 }  // namespace yaze::editor
