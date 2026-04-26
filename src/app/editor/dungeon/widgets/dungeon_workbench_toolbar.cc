@@ -455,6 +455,10 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(3.0f, layout.spacing * 0.55f),
              std::max(2.0f, ImGui::GetStyle().ItemSpacing.y - 2.0f)));
+  // ── Width budget ──────────────────────────────────────────────────
+  // Compute right-cluster total (View Options + optional Panel Mode + Room
+  // Matrix) so we know how much horizontal space the right side will claim,
+  // then decide which optional left-cluster items fit in what's left.
   const float right_icon_width =
       workbench::CalcIconButtonWidth(ICON_MD_VISIBILITY, layout.button_size);
   float right_actions_width = right_icon_width;
@@ -463,12 +467,73 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
         kToolbarActionGap +
         workbench::CalcIconButtonWidth(ICON_MD_VIEW_QUILT, layout.button_size);
   }
-  if (p.open_room_matrix) {
-    right_actions_width +=
-        kToolbarActionGap + workbench::CalcIconButtonWidth(
-                                kToolbarRoomReviewLabel, layout.button_size);
+  bool show_room_matrix = p.open_room_matrix != nullptr;
+  const float room_matrix_chunk =
+      kToolbarActionGap + workbench::CalcIconButtonWidth(
+                              kToolbarRoomReviewLabel, layout.button_size);
+  if (show_room_matrix) {
+    right_actions_width += room_matrix_chunk;
   }
 
+  // Left-cluster widths. The essentials (sidebar/inspector toggles, NESW nav,
+  // Stitched Rooms toggle) are always shown — NESW is muscle memory and the
+  // toggles are how users restore hidden panes. Apply Room, Dungeon Map, and
+  // Compare are demoted to optional and dropped low-priority-first when the
+  // toolbar narrows.
+  const float toggle_w = layout.button_size;
+  // NESW arrow widget renders 4 ImGui::ArrowButtons (each ~GetFrameHeight wide
+  // ≈ button_size after the StyleVarGuard above) with default item-spacing
+  // gaps between them. Slight overestimate is safer than under here.
+  const float nav_w = kToolbarActionGap + 4.0f * layout.button_size +
+                      3.0f * ImGui::GetStyle().ItemSpacing.x;
+  const float stitched_w =
+      kToolbarActionGap + workbench::CalcIconButtonWidth(
+                              kToolbarModeConnectedLabel, layout.button_size);
+  const float essential_left =
+      toggle_w + kToolbarActionGap + toggle_w + nav_w + stitched_w;
+
+  const float apply_room_chunk =
+      kToolbarActionGap +
+      workbench::CalcIconButtonWidth(ICON_MD_SAVE, layout.button_size);
+  const float dungeon_map_chunk =
+      kToolbarActionGap +
+      workbench::CalcIconButtonWidth(ICON_MD_MAP, layout.button_size);
+  const float compare_chunk = kToolbarActionGap + kCompactCompareButtonWidth;
+
+  constexpr float kSafetyMargin = 8.0f;
+  float remaining_for_optional =
+      layout.width - essential_left - right_actions_width - kSafetyMargin;
+
+  auto try_show = [&](float chunk_w) -> bool {
+    if (remaining_for_optional >= chunk_w) {
+      remaining_for_optional -= chunk_w;
+      return true;
+    }
+    return false;
+  };
+
+  // Compare > Apply Room > Dungeon Map > Room Matrix in priority because
+  // Compare is the only multi-room workflow entry point on this toolbar.
+  const bool show_compare = try_show(compare_chunk);
+  const bool show_apply_room =
+      p.on_save_room && *p.current_room_id >= 0 && try_show(apply_room_chunk);
+  const bool show_dungeon_map =
+      p.on_request_dungeon_map && try_show(dungeon_map_chunk);
+  if (show_room_matrix && remaining_for_optional < 0.0f) {
+    show_room_matrix = false;
+    right_actions_width -= room_matrix_chunk;
+  }
+
+  // Connected toolbar controls: render as a floating canvas overlay (the
+  // viewer's built-in fallback) instead of inline. Inline rendering races
+  // against the right cluster because the controls are variable-width and
+  // only present when stitched mode is active. Overlay mode anchors them to
+  // the canvas viewport corner where they belong.
+  if (p.primary_viewer) {
+    p.primary_viewer->SetConnectedControlsInline(false);
+  }
+
+  // ── Render row ───────────────────────────────────────────────────
   (void)IconToggleButton("RoomsToggle", ICON_MD_LIST, ICON_MD_LIST,
                          &p.layout->show_left_sidebar, layout.button_size,
                          "Hide room browser", "Show room browser");
@@ -481,10 +546,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   DungeonRoomNavWidget::Draw("WorkbenchNav", *p.current_room_id,
                              p.on_room_selected);
 
-  // Room actions promoted from the inspector — Apply Room and Dungeon Map
-  // are the two high-frequency room-context actions; they belong on the
-  // canvas toolbar so users don't open a sidebar collapsible to reach them.
-  if (p.on_save_room && *p.current_room_id >= 0) {
+  if (show_apply_room) {
     ImGui::SameLine(0.0f, kToolbarActionGap);
     if (workbench::DrawHeaderIconAction(
             "ApplyRoomToolbar", ICON_MD_SAVE, layout.button_size,
@@ -493,7 +555,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       p.on_save_room(*p.current_room_id);
     }
   }
-  if (p.on_request_dungeon_map) {
+  if (show_dungeon_map) {
     ImGui::SameLine(0.0f, kToolbarActionGap);
     if (workbench::DrawHeaderIconAction("DungeonMapToolbar", ICON_MD_MAP,
                                         layout.button_size,
@@ -505,18 +567,10 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   ImGui::SameLine(0.0f, kToolbarActionGap);
   DrawCanvasModeSelector(p.layout, layout);
 
-  if (p.primary_viewer) {
-    p.primary_viewer->SetConnectedControlsInline(
-        p.layout->show_connected_canvas_view);
-  }
-  if (p.layout->show_connected_canvas_view && p.primary_viewer &&
-      p.current_room_id) {
+  if (show_compare) {
     ImGui::SameLine(0.0f, kToolbarActionGap);
-    p.primary_viewer->DrawConnectedToolbarControls(*p.current_room_id);
+    DrawCompareMenu(p, layout);
   }
-
-  ImGui::SameLine(0.0f, kToolbarActionGap);
-  DrawCompareMenu(p, layout);
 
   const float right_start =
       std::max(ImGui::GetCursorPosX() + kToolbarActionGap,
@@ -531,7 +585,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       request_panel_mode = true;
     }
   }
-  if (p.open_room_matrix) {
+  if (show_room_matrix) {
     ImGui::SameLine(0.0f, kToolbarActionGap);
     const float review_button_width = workbench::CalcIconButtonWidth(
         kToolbarRoomReviewLabel, layout.button_size);
