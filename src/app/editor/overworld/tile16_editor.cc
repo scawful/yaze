@@ -1118,26 +1118,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         }
 
         if (display_palette && !display_palette->empty()) {
-          if (auto_normalize_pixels_) {
-            // Calculate palette slot for the selected tile8
-            int sheet_index = GetSheetIndexForTile8(current_tile8_);
-            int palette_slot =
-                GetActualPaletteSlot(current_palette_, sheet_index);
-
-            // SNES palette offset fix: pixel value N maps to sub-palette color N
-            // Color 0 is handled by SetPaletteWithTransparent (transparent)
-            // Colors 1-15 need to come from palette[slot+1] through palette[slot+15]
-            if (palette_slot >= 0 && static_cast<size_t>(palette_slot + 16) <=
-                                         display_palette->size()) {
-              tile8_preview_bmp_.SetPaletteWithTransparent(
-                  *display_palette, static_cast<size_t>(palette_slot + 1), 15);
-            } else {
-              tile8_preview_bmp_.SetPaletteWithTransparent(*display_palette, 1,
-                                                           15);
-            }
-          } else {
-            tile8_preview_bmp_.SetPalette(*display_palette);
-          }
+          tile8_preview_bmp_.SetPalette(CreateRemappedPaletteForViewing(
+              *display_palette, current_palette_));
         }
 
         // Apply flips if needed
@@ -3156,6 +3138,11 @@ int Tile16Editor::GetPaletteBaseForSheet(int sheet_index) const {
 
 gfx::SnesPalette Tile16Editor::CreateRemappedPaletteForViewing(
     const gfx::SnesPalette& source, int target_row) const {
+  return CreateRemappedPaletteForTile8(source, target_row, current_tile8_);
+}
+
+gfx::SnesPalette Tile16Editor::CreateRemappedPaletteForTile8(
+    const gfx::SnesPalette& source, int target_row, int tile8_id) const {
   // Create a remapped 256-color palette where all pixel values (0-255)
   // are mapped to the target palette row based on their low nibble.
   //
@@ -3171,9 +3158,9 @@ gfx::SnesPalette Tile16Editor::CreateRemappedPaletteForViewing(
 
   // Map palette buttons to actual CGRAM rows based on the current sheet.
   int sheet_index = 0;
-  if (current_tile8_ >= 0 &&
-      current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
-    sheet_index = GetSheetIndexForTile8(current_tile8_);
+  if (tile8_id >= 0 &&
+      tile8_id < static_cast<int>(current_gfx_individual_.size())) {
+    sheet_index = GetSheetIndexForTile8(tile8_id);
   }
   const int base_row = GetPaletteBaseForSheet(sheet_index);
   const int actual_target_row = std::clamp(base_row + target_row, 0, 15);
@@ -3184,8 +3171,9 @@ gfx::SnesPalette Tile16Editor::CreateRemappedPaletteForViewing(
 
     // Make color 0 of each row transparent
     if (low_nibble == 0) {
-      // Use transparent color (alpha = 0)
-      remapped.AddColor(gfx::SnesColor(0));
+      gfx::SnesColor transparent_color(0);
+      transparent_color.set_transparent(true);
+      remapped.AddColor(transparent_color);
     } else if (target_index < static_cast<int>(source.size())) {
       remapped.AddColor(source[target_index]);
     } else {
@@ -3298,8 +3286,16 @@ absl::Status Tile16Editor::UpdateTile8Palette(int tile8_id) {
   const int palette_slot =
       GetActualPaletteSlot(static_cast<int>(current_palette_), sheet_index);
 
+  if (HasCurrentGfxBitmap()) {
+    current_gfx_bmp_->SetPalette(CreateRemappedPaletteForTile8(
+        *display_palette, current_palette_, tile8_id));
+    current_gfx_bmp_->set_modified(true);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE, current_gfx_bmp_);
+  }
+
   util::logf("Updated tile8 %d with palette slot %d (palette size: %zu colors)",
-             tile8_id, current_palette_, display_palette->size());
+             tile8_id, palette_slot, display_palette->size());
 
   return absl::OkStatus();
 }
@@ -3325,20 +3321,15 @@ absl::Status Tile16Editor::RefreshAllPalettes() {
   util::logf("Using resolved display palette with %zu colors",
              display_palette->size());
 
-  // The source bitmap (current_gfx_bmp_) contains 8bpp indexed pixel data.
-  // If palette offsets are preserved, apply the full CGRAM palette. Otherwise,
-  // remap the palette to the user-selected row.
+  // The source bitmap (current_gfx_bmp_) contains 8bpp indexed pixel data with
+  // palette rows already encoded in the high nibble. Remap the display palette
+  // so every source index shows the currently selected brush row while the
+  // underlying pixel data remains untouched.
   if (HasCurrentGfxBitmap()) {
-    if (auto_normalize_pixels_) {
-      gfx::SnesPalette remapped_palette =
-          CreateRemappedPaletteForViewing(*display_palette, current_palette_);
-      current_gfx_bmp_->SetPalette(remapped_palette);
-      util::logf("Applied remapped palette (button %d) to source bitmap",
-                 current_palette_);
-    } else {
-      current_gfx_bmp_->SetPalette(*display_palette);
-      util::logf("Applied full CGRAM palette to source bitmap");
-    }
+    gfx::SnesPalette remapped_palette =
+        CreateRemappedPaletteForViewing(*display_palette, current_palette_);
+    current_gfx_bmp_->SetPalette(remapped_palette);
+    util::logf("Applied brush palette %d to source bitmap", current_palette_);
 
     current_gfx_bmp_->set_modified(true);
     // Queue texture update via Arena's deferred system

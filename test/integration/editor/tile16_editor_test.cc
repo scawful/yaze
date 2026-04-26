@@ -344,6 +344,48 @@ TEST_F(Tile16EditorSyntheticFixture,
 }
 
 TEST_F(Tile16EditorSyntheticFixture,
+       RefreshAllPalettesRecolorsTile8SourceToBrushPalette) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_current_palette(5);
+
+  ASSERT_TRUE(editor_->RefreshAllPalettes().ok());
+
+  const gfx::SnesPalette& displayed_palette = current_gfx_bmp_->palette();
+  ASSERT_GE(displayed_palette.size(), 256u);
+
+  const int palette_slot = editor_->GetActualPaletteSlot(
+      editor_->current_palette(),
+      editor_->GetSheetIndexForTile8(editor_->current_tile8()));
+  ASSERT_LT(palette_slot + 15, static_cast<int>(palette_.size()));
+
+  EXPECT_TRUE(displayed_palette[0x10].is_transparent());
+  EXPECT_EQ(displayed_palette[0x11].snes(), palette_[palette_slot + 1].snes());
+  EXPECT_EQ(displayed_palette[0x1F].snes(), palette_[palette_slot + 15].snes());
+  EXPECT_EQ(displayed_palette[0x91].snes(), palette_[palette_slot + 1].snes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture, HeldTile8PreviewUsesSelectedBrushPalette) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_current_palette(6);
+
+  RunPanelFrame();
+
+  const gfx::Bitmap& preview = editor_->Tile8PreviewBitmapForTesting();
+  ASSERT_TRUE(preview.is_active());
+  const gfx::SnesPalette& displayed_palette = preview.palette();
+  ASSERT_GE(displayed_palette.size(), 256u);
+
+  const int palette_slot = editor_->GetActualPaletteSlot(
+      editor_->current_palette(),
+      editor_->GetSheetIndexForTile8(editor_->current_tile8()));
+  ASSERT_LT(palette_slot + 15, static_cast<int>(palette_.size()));
+
+  EXPECT_TRUE(displayed_palette[0x10].is_transparent());
+  EXPECT_EQ(displayed_palette[0x11].snes(), palette_[palette_slot + 1].snes());
+  EXPECT_EQ(displayed_palette[0x1F].snes(), palette_[palette_slot + 15].snes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
        DiscardCurrentTileKeepsOtherPendingTilesWithoutExternalRomFixture) {
   ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
   editor_->MarkCurrentTileModified();
