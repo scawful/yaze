@@ -196,7 +196,6 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kRoomMatrixId = "dungeon.room_matrix";
   static constexpr const char* kRoomGraphicsId = "dungeon.room_graphics";
   static constexpr const char* kObjectSelectorId = "dungeon.object_selector";
-  static constexpr const char* kObjectEditorId = "dungeon.object_editor";
   static constexpr const char* kObjectToolsId = kObjectSelectorId;
   static constexpr const char* kDoorEditorId = "dungeon.door_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
@@ -326,11 +325,10 @@ class DungeonEditorV2 : public Editor {
   class CustomCollisionPanel* custom_collision_panel_ = nullptr;
   class WaterFillPanel* water_fill_panel_ = nullptr;
   ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
-  class DungeonSettingsPanel* dungeon_settings_panel_ = nullptr;
   OverlayManagerPanel* overlay_manager_panel_ = nullptr;
 
-  // Fallback ownership for tests when WorkspaceWindowManager is not available.
-  // In production, this remains nullptr and panels are owned by WorkspaceWindowManager.
+  // Object editor is retained as the non-window backend for inspector actions.
+  // Other owned_* fields are fallbacks for tests without WorkspaceWindowManager.
   std::unique_ptr<ObjectSelectorContent> owned_object_selector_panel_;
   std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;

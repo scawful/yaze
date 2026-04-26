@@ -2,6 +2,8 @@
 
 #include <algorithm>
 #include <array>
+#include <functional>
+#include <initializer_list>
 #include <string>
 #include <vector>
 
@@ -18,6 +20,12 @@ namespace yaze::editor {
 namespace {
 
 using InspectorStat = std::pair<const char*, std::string>;
+
+struct InspectorAction {
+  const char* label = "";
+  std::function<void()> action;
+  bool enabled = true;
+};
 
 constexpr std::array<zelda3::DoorType, 20> kInspectorDoorTypes = {{
     zelda3::DoorType::NormalDoor,         zelda3::DoorType::NormalDoorLower,
@@ -117,6 +125,46 @@ void DrawInspectorSummaryGrid(const char* table_id,
     ImGui::EndGroup();
   }
   ImGui::EndTable();
+}
+
+void DrawWrappedInspectorActions(
+    std::initializer_list<InspectorAction> actions) {
+  if (actions.size() == 0) {
+    return;
+  }
+
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float spacing = style.ItemSpacing.x;
+  const float content_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const float line_right =
+      ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+  bool first = true;
+
+  for (const InspectorAction& action : actions) {
+    const float desired_width = ImGui::CalcTextSize(action.label).x +
+                                style.FramePadding.x * 2.0f + 10.0f;
+    const float button_width =
+        std::min(std::max(84.0f, desired_width), content_width);
+
+    if (!first) {
+      const float next_x = ImGui::GetItemRectMax().x + spacing + button_width;
+      if (next_x <= line_right) {
+        ImGui::SameLine(0.0f, spacing);
+      }
+    }
+    first = false;
+
+    if (!action.enabled) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button(action.label, ImVec2(button_width, 0.0f)) &&
+        action.enabled && action.action) {
+      action.action();
+    }
+    if (!action.enabled) {
+      ImGui::EndDisabled();
+    }
+  }
 }
 
 const char* GetDeleteAllSelectedTypeLabel(DungeonSelectionKind kind) {
@@ -302,51 +350,20 @@ void ObjectEditorContent::DrawSelectionActions() {
   }
 
   ImGui::Spacing();
-  const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float available_width = ImGui::GetContentRegionAvail().x;
-  const bool narrow = available_width < 420.0f;
-
-  auto draw_row =
-      [&](std::initializer_list<std::pair<const char*, std::function<void()>>>
-              buttons) {
-        const float row_width = ImGui::GetContentRegionAvail().x;
-        const int count = static_cast<int>(buttons.size());
-        const float button_width = std::max(
-            88.0f, (row_width - spacing * static_cast<float>(count - 1)) /
-                       static_cast<float>(count));
-        int index = 0;
-        for (const auto& [label, action] : buttons) {
-          if (ImGui::Button(label, ImVec2(button_width, 0))) {
-            action();
-          }
-          ++index;
-          if (index < count) {
-            ImGui::SameLine();
-          }
-        }
-      };
+  const bool can_copy_selection = selection_snapshot_.object_count > 0 ||
+                                  selection_snapshot_.sprite_count > 0 ||
+                                  selection_snapshot_.item_count > 0;
 
   if (selection_snapshot_.HasObjectSelection()) {
-    if (narrow) {
-      draw_row(
-          {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
-           {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-           {ICON_MD_FILTER_NONE " Duplicate",
-            [this]() { DuplicateSelectedObjects(); }}});
-      draw_row(
-          {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-           {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedObjects(); }}});
-    } else {
-      draw_row(
-          {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
-           {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-           {ICON_MD_FILTER_NONE " Duplicate",
-            [this]() { DuplicateSelectedObjects(); }},
-           {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-           {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedObjects(); }}});
-    }
+    DrawWrappedInspectorActions(
+        {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
+         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
+         {ICON_MD_FILTER_NONE " Duplicate",
+          [this]() { DuplicateSelectedObjects(); }},
+         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
   } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-    draw_row(
+    DrawWrappedInspectorActions(
         {{ICON_MD_FILTER_NONE " Duplicate",
           [this]() { DuplicateSelectedSprite(); }},
          {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
@@ -355,11 +372,14 @@ void ObjectEditorContent::DrawSelectionActions() {
           [this]() { DeleteAllSelectedTypeInRoom(); }}});
   } else if (selection_snapshot_.kind == DungeonSelectionKind::EntityMulti ||
              selection_snapshot_.kind == DungeonSelectionKind::Mixed) {
-    draw_row(
-        {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+    DrawWrappedInspectorActions(
+        {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); },
+          can_copy_selection},
+         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
+         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
          {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
   } else {
-    draw_row(
+    DrawWrappedInspectorActions(
         {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
          {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
          {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
@@ -731,9 +751,7 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
     DeselectAllObjects();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-    if (selection_snapshot_.HasObjectSelection()) {
-      DeleteSelectedObjects();
-    } else if (selection_snapshot_.HasSelection()) {
+    if (selection_snapshot_.HasSelection()) {
       DeleteCurrentSelection();
     }
   }
@@ -745,14 +763,12 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
     }
   }
   if (ImGui::IsKeyPressed(ImGuiKey_C) && io.KeyCtrl) {
-    if (selection_snapshot_.HasObjectSelection()) {
+    if (selection_snapshot_.HasSelection()) {
       CopySelectedObjects();
     }
   }
   if (ImGui::IsKeyPressed(ImGuiKey_V) && io.KeyCtrl) {
-    if (selection_snapshot_.HasObjectSelection()) {
-      PasteObjects();
-    }
+    PasteObjects();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_Z) && io.KeyCtrl && !io.KeyShift) {
     object_editor_->Undo();
@@ -796,11 +812,12 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
 }
 
 void ObjectEditorContent::SelectAllObjects() {
-  if (!canvas_viewer_ || !object_editor_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer || !object_editor_) {
     return;
   }
 
-  auto& interaction = canvas_viewer_->object_interaction();
+  auto& interaction = viewer->object_interaction();
   const auto& objects = object_editor_->GetObjects();
   std::vector<size_t> all_indices;
   all_indices.reserve(objects.size());
@@ -811,38 +828,30 @@ void ObjectEditorContent::SelectAllObjects() {
 }
 
 void ObjectEditorContent::DeselectAllObjects() {
-  if (!canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer) {
     return;
   }
-  canvas_viewer_->object_interaction().ClearSelection();
-  canvas_viewer_->object_interaction().ClearEntitySelection();
+  viewer->object_interaction().ClearSelection();
+  viewer->object_interaction().ClearEntitySelection();
 }
 
 void ObjectEditorContent::DeleteSelectedObjects() {
-  if (!object_editor_ || !canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer) {
     return;
   }
 
-  auto& interaction = canvas_viewer_->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-  if (selected.empty()) {
-    return;
-  }
-
-  std::vector<size_t> sorted_indices(selected.begin(), selected.end());
-  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
-  for (size_t idx : sorted_indices) {
-    object_editor_->DeleteObject(idx);
-  }
-  interaction.ClearSelection();
+  viewer->object_interaction().HandleDeleteSelected();
 }
 
 void ObjectEditorContent::DuplicateSelectedObjects() {
-  if (!object_editor_ || !canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!object_editor_ || !viewer) {
     return;
   }
 
-  auto& interaction = canvas_viewer_->object_interaction();
+  auto& interaction = viewer->object_interaction();
   const auto& selected = interaction.GetSelectedObjectIndices();
   if (selected.empty()) {
     return;
@@ -859,19 +868,19 @@ void ObjectEditorContent::DuplicateSelectedObjects() {
 }
 
 void ObjectEditorContent::DeleteSelectedEntity() {
-  if (!canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer) {
     return;
   }
-  canvas_viewer_->object_interaction()
-      .entity_coordinator()
-      .DeleteSelectedEntity();
+  viewer->object_interaction().entity_coordinator().DeleteSelectedEntity();
 }
 
 void ObjectEditorContent::DeleteCurrentSelection() {
-  if (!canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer) {
     return;
   }
-  canvas_viewer_->object_interaction().HandleDeleteSelected();
+  viewer->object_interaction().HandleDeleteSelected();
 }
 
 void ObjectEditorContent::DeleteAllSelectedTypeInRoom() {
@@ -928,38 +937,38 @@ void ObjectEditorContent::DuplicateSelectedSprite() {
 }
 
 void ObjectEditorContent::CopySelectedObjects() {
-  if (!object_editor_ || !canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer) {
     return;
   }
-  object_editor_->CopySelectedObjects(
-      canvas_viewer_->object_interaction().GetSelectedObjectIndices());
+  viewer->object_interaction().HandleCopySelected();
 }
 
 void ObjectEditorContent::PasteObjects() {
-  if (!object_editor_ || !canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer) {
     return;
   }
 
-  auto new_indices = object_editor_->PasteObjects();
-  if (!new_indices.empty()) {
-    canvas_viewer_->object_interaction().SetSelectedObjects(new_indices);
-  }
+  viewer->object_interaction().HandlePasteObjects();
 }
 
 void ObjectEditorContent::NudgeCurrentSelection(int dx, int dy) {
-  if (!canvas_viewer_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer) {
     return;
   }
 
-  canvas_viewer_->object_interaction().NudgeSelected(dx, dy);
+  viewer->object_interaction().NudgeSelected(dx, dy);
 }
 
 void ObjectEditorContent::CycleObjectSelection(int direction) {
-  if (!canvas_viewer_ || !object_editor_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer || !object_editor_) {
     return;
   }
 
-  auto& interaction = canvas_viewer_->object_interaction();
+  auto& interaction = viewer->object_interaction();
   const auto& selected = interaction.GetSelectedObjectIndices();
   const auto& objects = object_editor_->GetObjects();
   const size_t total_objects = objects.size();
@@ -975,7 +984,8 @@ void ObjectEditorContent::CycleObjectSelection(int direction) {
 }
 
 void ObjectEditorContent::ScrollToObject(size_t index) {
-  if (!canvas_viewer_ || !object_editor_) {
+  auto* viewer = ResolveCanvasViewer();
+  if (!viewer || !object_editor_) {
     return;
   }
 
@@ -985,7 +995,7 @@ void ObjectEditorContent::ScrollToObject(size_t index) {
   }
 
   const auto& obj = objects[index];
-  canvas_viewer_->ScrollToTile(obj.x(), obj.y());
+  viewer->ScrollToTile(obj.x(), obj.y());
 }
 
 }  // namespace yaze::editor

@@ -806,7 +806,7 @@ class DungeonCanvasViewer {
   bool RoomHasNonExitDoorInDirection(int room_id, zelda3::DoorDirection dir);
   ConnectedRoomGraphData BuildConnectedRoomGraph(int start_room_id);
   int ApplyConnectedStaircaseIssueAutoFixes(int center_room_id);
-  void DrawRoomBackgroundLayers(int room_id);  // Draw room buffers to canvas
+  bool DrawRoomBackgroundLayers(int room_id);  // Draw room buffers to canvas
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;

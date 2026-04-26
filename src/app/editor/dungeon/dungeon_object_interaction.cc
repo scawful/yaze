@@ -821,8 +821,23 @@ void DungeonObjectInteraction::HandlePasteObjects() {
   auto [paste_x, paste_y] =
       CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
                               static_cast<int>(canvas_mouse_pos.y));
-  const int paste_pixel_x = paste_x * dungeon_coords::kTileSize;
-  const int paste_pixel_y = paste_y * dungeon_coords::kTileSize;
+  int paste_pixel_x = paste_x * dungeon_coords::kTileSize;
+  int paste_pixel_y = paste_y * dungeon_coords::kTileSize;
+
+  if (!IsWithinCanvasBounds(static_cast<int>(canvas_mouse_pos.x),
+                            static_cast<int>(canvas_mouse_pos.y), 0)) {
+    const int fallback_delta = entity_clipboard_.sprites.empty()
+                                   ? dungeon_coords::kTileSize
+                                   : dungeon_coords::kSpriteTileSize;
+    paste_pixel_x =
+        std::clamp(entity_clipboard_.origin_pixel_x + fallback_delta, 0,
+                   dungeon_coords::kRoomPixelWidth - dungeon_coords::kTileSize);
+    paste_pixel_y = std::clamp(
+        entity_clipboard_.origin_pixel_y + fallback_delta, 0,
+        dungeon_coords::kRoomPixelHeight - dungeon_coords::kTileSize);
+    paste_x = paste_pixel_x / dungeon_coords::kTileSize;
+    paste_y = paste_pixel_y / dungeon_coords::kTileSize;
+  }
 
   std::vector<size_t> new_indices;
   if (handler.HasClipboardData()) {

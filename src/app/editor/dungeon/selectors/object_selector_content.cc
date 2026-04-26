@@ -3,7 +3,10 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
+#include <initializer_list>
 #include <memory>
+#include <string>
 #include <vector>
 
 // Third-party library headers
@@ -27,6 +30,56 @@
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+struct UsageChip {
+  const char* icon = "";
+  std::string value;
+  ImVec4 color;
+};
+
+void DrawInlineInspectButton(const std::function<void()>& callback) {
+  if (!callback) {
+    return;
+  }
+
+  const char* label = ICON_MD_OPEN_IN_NEW " Inspect";
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float button_width =
+      ImGui::CalcTextSize(label).x + style.FramePadding.x * 2.0f;
+  const float next_x =
+      ImGui::GetItemRectMax().x + style.ItemSpacing.x + button_width;
+  const float line_right =
+      ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+  if (next_x <= line_right) {
+    ImGui::SameLine();
+  }
+  if (ImGui::SmallButton(label)) {
+    callback();
+  }
+}
+
+void DrawUsageChips(std::initializer_list<UsageChip> chips) {
+  if (chips.size() == 0) {
+    return;
+  }
+
+  const int columns = ImGui::GetContentRegionAvail().x < 330.0f ? 2 : 4;
+  constexpr ImGuiTableFlags kFlags =
+      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
+  if (!ImGui::BeginTable("##ObjectSelectorUsageChips", columns, kFlags)) {
+    return;
+  }
+
+  for (const UsageChip& chip : chips) {
+    ImGui::TableNextColumn();
+    ImGui::TextColored(chip.color, "%s %s", chip.icon, chip.value.c_str());
+  }
+  ImGui::EndTable();
+}
+
+}  // namespace
 
 ObjectSelectorContent::ObjectSelectorContent(
     Rom* rom, DungeonCanvasViewer* canvas_viewer,
@@ -214,51 +267,40 @@ void ObjectSelectorContent::DrawInteractionSummary() {
                        ICON_MD_ADD_CIRCLE " Queued 0x%03X %s",
                        preview_object_.id_,
                        zelda3::GetObjectName(preview_object_.id_).c_str());
-    ImGui::SameLine();
-    if (ImGui::SmallButton(ICON_MD_CANCEL " Cancel")) {
+    const char* cancel_label = ICON_MD_CANCEL " Cancel";
+    const float cancel_width = ImGui::CalcTextSize(cancel_label).x +
+                               ImGui::GetStyle().FramePadding.x * 2.0f;
+    const float next_x = ImGui::GetItemRectMax().x +
+                         ImGui::GetStyle().ItemSpacing.x + cancel_width;
+    const float line_right =
+        ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
+    if (next_x <= line_right) {
+      ImGui::SameLine();
+    }
+    if (ImGui::SmallButton(cancel_label)) {
       CancelPlacement();
     }
   } else if (snapshot.kind == DungeonSelectionKind::ObjectSingle) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_CHECK_CIRCLE " 1 object selected");
-    if (open_object_editor_callback_) {
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect")) {
-        open_object_editor_callback_();
-      }
-    }
+    DrawInlineInspectButton(open_object_editor_callback_);
   } else if (snapshot.kind == DungeonSelectionKind::ObjectMulti) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_SELECT_ALL " %zu objects selected",
                        snapshot.count);
-    if (open_object_editor_callback_) {
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect")) {
-        open_object_editor_callback_();
-      }
-    }
+    DrawInlineInspectButton(open_object_editor_callback_);
   } else if (snapshot.kind == DungeonSelectionKind::Door ||
              snapshot.kind == DungeonSelectionKind::Sprite ||
              snapshot.kind == DungeonSelectionKind::Item) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_MANAGE_SEARCH " 1 %s selected",
                        GetDungeonSelectionKindLabel(snapshot.kind));
-    if (open_object_editor_callback_) {
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect")) {
-        open_object_editor_callback_();
-      }
-    }
+    DrawInlineInspectButton(open_object_editor_callback_);
   } else if (snapshot.kind == DungeonSelectionKind::EntityMulti ||
              snapshot.kind == DungeonSelectionKind::Mixed) {
     ImGui::TextColored(theme.status_success, ICON_MD_SELECT_ALL " %s",
                        GetDungeonSelectionSummaryText(snapshot).c_str());
-    if (open_object_editor_callback_) {
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect")) {
-        open_object_editor_callback_();
-      }
-    }
+    DrawInlineInspectButton(open_object_editor_callback_);
   } else {
     ImGui::TextColored(
         theme.text_secondary_gray, ICON_MD_MOUSE
@@ -304,21 +346,19 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     auto result = validator.ValidateRoom(room);
 
     ImGui::Spacing();
-    ImGui::TextColored(usage_color(object_count, kMaxObjects, true),
-                       ICON_MD_WIDGETS " %zu/%d", object_count, kMaxObjects);
-    ImGui::SameLine();
-    ImGui::TextColored(usage_color(sprite_count, kMaxSprites, true),
-                       ICON_MD_PEST_CONTROL " %zu/%d", sprite_count,
-                       kMaxSprites);
-    ImGui::SameLine();
-    ImGui::TextColored(usage_color(door_count, kMaxDoors, true),
-                       ICON_MD_DOOR_FRONT " %zu/%d", door_count, kMaxDoors);
-    ImGui::SameLine();
-    ImGui::TextColored(usage_color(chest_count, kMaxChests, false),
-                       ICON_MD_INVENTORY_2 " %d/%d", chest_count, kMaxChests);
+    DrawUsageChips(
+        {{ICON_MD_WIDGETS, absl::StrFormat("%zu/%d", object_count, kMaxObjects),
+          usage_color(object_count, kMaxObjects, true)},
+         {ICON_MD_PEST_CONTROL,
+          absl::StrFormat("%zu/%d", sprite_count, kMaxSprites),
+          usage_color(sprite_count, kMaxSprites, true)},
+         {ICON_MD_DOOR_FRONT, absl::StrFormat("%zu/%d", door_count, kMaxDoors),
+          usage_color(door_count, kMaxDoors, true)},
+         {ICON_MD_INVENTORY_2,
+          absl::StrFormat("%d/%d", chest_count, kMaxChests),
+          usage_color(chest_count, kMaxChests, false)}});
 
     if (!result.errors.empty() || !result.warnings.empty()) {
-      ImGui::SameLine();
       ImGui::TextColored(
           result.errors.empty() ? theme.status_warning : theme.status_error,
           "%s %zu issue%s",

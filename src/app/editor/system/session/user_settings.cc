@@ -60,6 +60,86 @@ void EraseTransientPanelVisibility(
   }
 }
 
+bool IsEmbeddedDungeonUtilityPanelId(const std::string& panel_id) {
+  return panel_id == "dungeon.object_editor" ||
+         panel_id == "dungeon.settings" || panel_id == "dungeon.dungeon_map";
+}
+
+void EraseEmbeddedDungeonUtilityPanelVisibility(
+    std::unordered_map<std::string, bool>* panel_state) {
+  if (!panel_state) {
+    return;
+  }
+  for (auto it = panel_state->begin(); it != panel_state->end();) {
+    if (IsEmbeddedDungeonUtilityPanelId(it->first)) {
+      it = panel_state->erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+bool PruneEmbeddedDungeonUtilityPanelsFromDockTreeJson(std::string* json_body) {
+  if (!json_body || json_body->empty()) {
+    return false;
+  }
+  auto parsed = nlohmann::json::parse(*json_body, nullptr, false);
+  if (parsed.is_discarded() || !parsed.is_object() ||
+      !parsed.contains("root")) {
+    return false;
+  }
+
+  bool changed = false;
+  auto prune_node = [&changed](auto&& self, nlohmann::json& node) -> void {
+    if (!node.is_object()) {
+      return;
+    }
+    const std::string type = node.contains("type") && node["type"].is_string()
+                                 ? node["type"].get<std::string>()
+                                 : "";
+    if (type == "leaf" && node.contains("panels") &&
+        node["panels"].is_array()) {
+      auto& panels = node["panels"];
+      for (auto it = panels.begin(); it != panels.end();) {
+        const bool erase = it->is_object() && it->contains("panel_id") &&
+                           (*it)["panel_id"].is_string() &&
+                           IsEmbeddedDungeonUtilityPanelId(
+                               (*it)["panel_id"].get<std::string>());
+        if (erase) {
+          it = panels.erase(it);
+          changed = true;
+        } else {
+          ++it;
+        }
+      }
+      const int max_active =
+          panels.empty() ? 0 : static_cast<int>(panels.size()) - 1;
+      const int active_tab_index =
+          node.contains("active_tab_index") &&
+                  node["active_tab_index"].is_number_integer()
+              ? node["active_tab_index"].get<int>()
+              : 0;
+      const int clamped_active = std::clamp(active_tab_index, 0, max_active);
+      if (active_tab_index != clamped_active) {
+        node["active_tab_index"] = clamped_active;
+        changed = true;
+      }
+    }
+    if (node.contains("child_a")) {
+      self(self, node["child_a"]);
+    }
+    if (node.contains("child_b")) {
+      self(self, node["child_b"]);
+    }
+  };
+  prune_node(prune_node, parsed["root"]);
+
+  if (changed) {
+    *json_body = parsed.dump();
+  }
+  return changed;
+}
+
 absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
                                     UserSettings::Preferences* prefs) {
   if (!prefs) {
@@ -1388,6 +1468,36 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
       }
     }
     prefs_.panel_layout_defaults_revision = 18;
+    applied = true;
+  }
+
+  // Revision 19: Selection Inspector, Dungeon Settings, and Dungeon Map are no
+  // longer high-level dungeon panels. Their controls live in the Workbench
+  // inspector or its transient map popup, so stale persisted panel IDs should
+  // not resurrect empty/missing windows.
+  if (prefs_.panel_layout_defaults_revision < 19 && target_revision >= 19) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      dungeon_it->second["dungeon.workbench"] = true;
+      EraseEmbeddedDungeonUtilityPanelVisibility(&dungeon_it->second);
+    }
+    for (auto it = prefs_.pinned_panels.begin();
+         it != prefs_.pinned_panels.end();) {
+      if (IsEmbeddedDungeonUtilityPanelId(it->first)) {
+        it = prefs_.pinned_panels.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    for (auto& [layout_name, panel_state] : prefs_.saved_layouts) {
+      (void)layout_name;
+      EraseEmbeddedDungeonUtilityPanelVisibility(&panel_state);
+    }
+    for (auto& [layout_name, json_body] : prefs_.named_layouts) {
+      (void)layout_name;
+      (void)PruneEmbeddedDungeonUtilityPanelsFromDockTreeJson(&json_body);
+    }
+    prefs_.panel_layout_defaults_revision = 19;
     applied = true;
   }
 
