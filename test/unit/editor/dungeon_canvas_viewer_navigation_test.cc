@@ -349,6 +349,20 @@ TEST(DungeonCanvasViewerNavigationTest,
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
+     DrawIssueReportFlagsStaleObjectSelection) {
+  DungeonCanvasViewer viewer;
+  zelda3::Room room;
+  viewer.object_interaction().SetSelectedObjects({7});
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x5A);
+
+  EXPECT_NE(report.find("Selected objects: 1"), std::string::npos);
+  EXPECT_NE(report.find("Selected object index 7 is stale"), std::string::npos);
+  EXPECT_NE(report.find("room currently has 0 object(s)"), std::string::npos);
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
      SelectionIssueReportIncludesTraceSelectionDelta) {
   std::vector<uint8_t> rom_data(1024 * 1024, 0);
   Rom rom;
@@ -374,6 +388,21 @@ TEST(DungeonCanvasViewerNavigationTest,
                         "bounds_px=(232,136,8,64) "
                         "delta_vs_selection_px=(+0,+0,+0,+0)"),
             std::string::npos);
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     SelectionIssueReportFlagsStaleObjectSelection) {
+  DungeonCanvasViewer viewer;
+  zelda3::Room room;
+  viewer.object_interaction().SetSelectedObjects({11});
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildSelectionIssueReport(viewer, room,
+                                                             0x5B);
+
+  EXPECT_NE(report.find("Selected objects: 1"), std::string::npos);
+  EXPECT_NE(report.find("- object[11] unavailable"), std::string::npos);
+  EXPECT_NE(report.find("room currently has 0 object(s)"), std::string::npos);
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
