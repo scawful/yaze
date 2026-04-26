@@ -38,6 +38,17 @@ TEST(OverworldEditorStateTest,
   EXPECT_EQ(current_map, 0x80);
 }
 
+TEST(OverworldEditorStateTest,
+     NormalizeMapSelectionClampsSpecialTailToLoadedSpecialMap) {
+  int current_world = 2;
+  int current_map = 0xBF;
+
+  EXPECT_TRUE(
+      OverworldEditor::NormalizeMapSelection(current_world, current_map));
+  EXPECT_EQ(current_world, 2);
+  EXPECT_EQ(current_map, 0x80);
+}
+
 TEST(OverworldEditorStateTest, NormalizeMapSelectionRealignsWorldToValidMap) {
   int current_world = 0;
   int current_map = 0x81;

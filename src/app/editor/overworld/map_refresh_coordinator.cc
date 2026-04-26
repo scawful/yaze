@@ -17,6 +17,29 @@
 
 namespace yaze::editor {
 
+namespace {
+
+int WorldForMapIndex(int map_index) {
+  if (map_index >= zelda3::kSpecialWorldMapIdStart) {
+    return 2;
+  }
+  if (map_index >= zelda3::kDarkWorldMapIdStart) {
+    return 1;
+  }
+  return 0;
+}
+
+zelda3::OverworldBlockset& MapTilesForMapIndex(zelda3::Overworld* overworld,
+                                               int map_index) {
+  return overworld->GetMapTiles(WorldForMapIndex(map_index));
+}
+
+bool IsMapInCurrentWorld(int map_index, int current_world) {
+  return WorldForMapIndex(map_index) == current_world;
+}
+
+}  // namespace
+
 void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
   if (map_id < 0) {
     // Invalidate all maps - clear both editor cache and Overworld's tileset
@@ -40,7 +63,7 @@ void MapRefreshCoordinator::RefreshChildMap(int map_index) {
           *ctx_.overworld->mutable_tiles16(), ctx_.overworld->tiles16().size());
   PRINT_IF_ERROR(*ctx_.status);
   *ctx_.status = ctx_.overworld->mutable_overworld_map(map_index)->BuildBitmap(
-      ctx_.overworld->GetMapTiles(*ctx_.current_world));
+      MapTilesForMapIndex(ctx_.overworld, map_index));
   (*ctx_.maps_bmp)[map_index].set_data(
       ctx_.overworld->mutable_overworld_map(map_index)->bitmap_data());
   (*ctx_.maps_bmp)[map_index].set_modified(true);
@@ -66,7 +89,7 @@ void MapRefreshCoordinator::RefreshOverworldMapOnDemand(int map_index) {
 
   // Check if the map is actually visible or being edited
   bool is_current_map = (map_index == *ctx_.current_map);
-  bool is_current_world = (map_index / 0x40 == *ctx_.current_world);
+  bool is_current_world = IsMapInCurrentWorld(map_index, *ctx_.current_world);
 
   // For non-current maps in non-current worlds, defer the refresh
   if (!is_current_map && !is_current_world) {
@@ -116,7 +139,7 @@ void MapRefreshCoordinator::RefreshChildMapOnDemand(int map_index) {
     }
 
     // Rebuild bitmap
-    status = map->BuildBitmap(ctx_.overworld->GetMapTiles(*ctx_.current_world));
+    status = map->BuildBitmap(MapTilesForMapIndex(ctx_.overworld, map_index));
     if (!status.ok()) {
       LOG_ERROR("MapRefreshCoordinator",
                 "Failed to build bitmap for map %d: %s", map_index,
@@ -250,7 +273,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
 
     // Check visibility - only immediately refresh visible maps
     bool is_current_map = (sibling == *ctx_.current_map);
-    bool is_current_world = (sibling / 0x40 == *ctx_.current_world);
+    bool is_current_world = IsMapInCurrentWorld(sibling, *ctx_.current_world);
 
     // Always mark sibling as needing refresh to ensure consistency
     (*ctx_.maps_bmp)[sibling].set_modified(true);
@@ -293,7 +316,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
       }
 
       status = sibling_map->BuildBitmap(
-          ctx_.overworld->GetMapTiles(*ctx_.current_world));
+          MapTilesForMapIndex(ctx_.overworld, sibling));
       if (!status.ok()) {
         LOG_ERROR("MapRefreshCoordinator",
                   "Failed to build bitmap for sibling %d: %s", sibling,
@@ -331,7 +354,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
     return absl::FailedPreconditionError("Current overworld map not loaded");
   }
   RETURN_IF_ERROR(current_map->LoadPalette());
-  const auto current_map_palette = ctx_.overworld->current_area_palette();
+  const auto current_map_palette = current_map->current_palette();
   *ctx_.palette = current_map_palette;
   // Keep tile16 editor in sync with the currently active overworld palette
   ctx_.tile16_editor->set_palette(current_map_palette);
@@ -476,7 +499,7 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
   }
 
   for (int sibling : siblings) {
-    if (sibling >= 0 && sibling < 0xA0) {
+    if (sibling >= 0 && sibling < zelda3::kNumOverworldMaps) {
       // Skip self unless include_self is true
       if (sibling == map_index && !include_self) {
         continue;
@@ -580,15 +603,19 @@ void MapRefreshCoordinator::RefreshMapProperties() {
 
 absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   LOG_DEBUG("MapRefreshCoordinator", "RefreshTile16Blockset called");
-  if (*ctx_.current_blockset ==
-      ctx_.overworld->overworld_map(*ctx_.current_map)->area_graphics()) {
-    return absl::OkStatus();
+  if (!ctx_.overworld->overworld_map(*ctx_.current_map)) {
+    return absl::FailedPreconditionError("Current overworld map not loaded");
   }
-  *ctx_.current_blockset =
-      ctx_.overworld->overworld_map(*ctx_.current_map)->area_graphics();
+  RETURN_IF_ERROR(ctx_.overworld->EnsureMapBuilt(*ctx_.current_map));
+  auto* current_map = ctx_.overworld->mutable_overworld_map(*ctx_.current_map);
+  if (!current_map) {
+    return absl::FailedPreconditionError("Current overworld map not loaded");
+  }
+  // Area graphics ids are reused across worlds; refresh even when the id
+  // matches so DW/SW base sheets and palettes do not inherit LW state.
+  *ctx_.current_blockset = current_map->area_graphics();
 
-  ctx_.overworld->set_current_map(*ctx_.current_map);
-  *ctx_.palette = ctx_.overworld->current_area_palette();
+  *ctx_.palette = current_map->current_palette();
   ctx_.tile16_editor->set_palette(*ctx_.palette);
   if (ctx_.current_gfx_bmp->is_active()) {
     ctx_.current_gfx_bmp->SetPalette(*ctx_.palette);
@@ -597,7 +624,7 @@ absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
         gfx::Arena::TextureCommandType::UPDATE, ctx_.current_gfx_bmp);
   }
 
-  const auto& tile16_data = ctx_.overworld->tile16_blockset_data();
+  const auto& tile16_data = current_map->current_tile16_blockset();
 
   gfx::UpdateTilemap(ctx_.renderer, *ctx_.tile16_blockset, tile16_data);
   ctx_.tile16_blockset->atlas.SetPalette(*ctx_.palette);

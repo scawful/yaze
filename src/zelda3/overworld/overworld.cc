@@ -41,8 +41,10 @@ absl::Status Overworld::Load(Rom* rom) {
   }
   rom_ = rom;
 
+  const auto profile = DetectOverworldRomProfile(*rom_);
   // Cache ROM version to avoid repeated detection (called 160+ times otherwise)
-  cached_version_ = OverworldVersionHelper::GetVersion(*rom_);
+  cached_version_ = profile.version;
+  expanded_entrances_ = profile.has_expanded_entrances;
 
   // Phase 1: Tile Assembly (can be parallelized)
   {
@@ -322,6 +324,11 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
     return absl::FailedPreconditionError(
         "Wide and Tall areas require ZSCustomOverworld v3+");
   }
+  if (!OverworldVersionHelper::SupportsAreaEnum(cached_version_) &&
+      !CanPersistLegacyMultiAreaMap(parent_index)) {
+    return absl::FailedPreconditionError(
+        "Special World multi-area changes require ZSCustomOverworld v3+");
+  }
 
   LOG_DEBUG("Overworld",
             "ConfigureMultiAreaMap: parent=%d, current_size=%d, new_size=%d, "
@@ -352,50 +359,63 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
       break;
   }
 
-  // Reset all old siblings to SmallArea first (clean slate)
+  // Validate the NEW sibling set before mutating so invalid edge maps do not
+  // partially reset the old area.
+  std::vector<int> new_siblings;
+  switch (size) {
+    case AreaSizeEnum::SmallArea:
+      new_siblings = {parent_index};
+      break;
+    case AreaSizeEnum::LargeArea:
+      new_siblings = {parent_index, parent_index + 1, parent_index + 8,
+                      parent_index + 9};
+      break;
+    case AreaSizeEnum::WideArea:
+      new_siblings = {parent_index, parent_index + 1};
+      break;
+    case AreaSizeEnum::TallArea:
+      new_siblings = {parent_index, parent_index + 8};
+      break;
+  }
+  for (int sibling : new_siblings) {
+    if (sibling < 0 || sibling >= kNumOverworldMaps ||
+        !IsSameOverworldWorld(parent_index, sibling)) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Area size crosses an overworld boundary: parent=%d "
+                          "sibling=%d",
+                          parent_index, sibling));
+    }
+  }
+
+  // Reset all old siblings to SmallArea first (clean slate).
   for (int old_sibling : old_siblings) {
     if (old_sibling >= 0 && old_sibling < kNumOverworldMaps) {
       overworld_maps_[old_sibling].SetAsSmallMap(old_sibling);
     }
   }
 
-  // Now configure NEW siblings based on requested size
-  std::vector<int> new_siblings;
-
+  // Now configure NEW siblings based on requested size.
   switch (size) {
     case AreaSizeEnum::SmallArea:
-      // Just configure this single map as small
       overworld_maps_[parent_index].SetParent(parent_index);
       overworld_maps_[parent_index].SetAreaSize(AreaSizeEnum::SmallArea);
-      new_siblings = {parent_index};
       break;
 
     case AreaSizeEnum::LargeArea:
-      new_siblings = {parent_index, parent_index + 1, parent_index + 8,
-                      parent_index + 9};
       for (size_t i = 0; i < new_siblings.size(); ++i) {
-        int sibling = new_siblings[i];
-        if (sibling < 0 || sibling >= kNumOverworldMaps)
-          continue;
-        overworld_maps_[sibling].SetAsLargeMap(parent_index, i);
+        overworld_maps_[new_siblings[i]].SetAsLargeMap(parent_index, i);
       }
       break;
 
     case AreaSizeEnum::WideArea:
-      new_siblings = {parent_index, parent_index + 1};
       for (int sibling : new_siblings) {
-        if (sibling < 0 || sibling >= kNumOverworldMaps)
-          continue;
         overworld_maps_[sibling].SetParent(parent_index);
         overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::WideArea);
       }
       break;
 
     case AreaSizeEnum::TallArea:
-      new_siblings = {parent_index, parent_index + 8};
       for (int sibling : new_siblings) {
-        if (sibling < 0 || sibling >= kNumOverworldMaps)
-          continue;
         overworld_maps_[sibling].SetParent(parent_index);
         overworld_maps_[sibling].SetAreaSize(AreaSizeEnum::TallArea);
       }
@@ -424,28 +444,22 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
           kOverworldScreenSize + sibling,
           static_cast<uint8_t>(overworld_maps_[sibling].area_size())));
     }
-  } else if (OverworldVersionHelper::SupportsExpandedSpace(cached_version_)) {
-    // v1/v2: Update basic parent table
-    for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps)
-        continue;
-
-      RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentId + sibling,
-                                       overworld_maps_[sibling].parent()));
-      RETURN_IF_ERROR(rom()->WriteByte(
-          kOverworldScreenSize + (sibling & 0x3F),
-          static_cast<uint8_t>(overworld_maps_[sibling].area_size())));
-    }
   } else {
-    // Vanilla: Update parent and screen size tables
+    // Vanilla/v1/v2: the parent and size tables are 64-entry legacy tables
+    // shared by Light World and Dark World. Store local indices only; writing
+    // full map ids would run into adjacent ROM data and cannot persist Special
+    // World layout changes.
     for (int sibling : all_affected) {
-      if (sibling < 0 || sibling >= kNumOverworldMaps)
+      if (!CanPersistLegacyMultiAreaMap(sibling)) {
         continue;
+      }
 
-      RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapParentId + sibling,
-                                       overworld_maps_[sibling].parent()));
+      const int table_index = LegacyParentTableIndexForMap(sibling);
       RETURN_IF_ERROR(rom()->WriteByte(
-          kOverworldScreenSize + (sibling & 0x3F),
+          kOverworldMapParentId + table_index,
+          LegacyParentTableValueForMap(overworld_maps_[sibling].parent())));
+      RETURN_IF_ERROR(rom()->WriteByte(
+          kOverworldScreenSize + table_index,
           (overworld_maps_[sibling].area_size() == AreaSizeEnum::LargeArea)
               ? 0x00
               : 0x01));
@@ -484,10 +498,10 @@ absl::Status Overworld::AssembleMap32Tiles() {
   // Check if expanded tile32 data is actually present in ROM
   // The flag position should contain 0x04 for vanilla, something else for
   // expanded
-  uint8_t expanded_flag = rom()->data()[kMap32ExpandedFlagPos];
+  const auto profile = DetectOverworldRomProfile(*rom());
+  uint8_t expanded_flag = ReadRomByteOr(*rom(), kMap32ExpandedFlagPos, 0x04);
   util::logf("Expanded tile32 flag: %d", expanded_flag);
-  if (expanded_flag != 0x04 ||
-      OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
+  if (profile.has_expanded_tile32) {
     // ROM has expanded tile32 data - use expanded addresses
     map32address[0] = version_constants().kMap32TileTL;
     map32address[1] = GetMap32TileTRExpanded();
@@ -541,10 +555,10 @@ absl::Status Overworld::AssembleMap16Tiles() {
   // Check if expanded tile16 data is actually present in ROM
   // The flag position should contain 0x0F for vanilla, something else for
   // expanded
-  uint8_t expanded_flag = rom()->data()[kMap16ExpandedFlagPos];
+  const auto profile = DetectOverworldRomProfile(*rom());
+  uint8_t expanded_flag = ReadRomByteOr(*rom(), kMap16ExpandedFlagPos, 0x0F);
   util::logf("Expanded tile16 flag: %d", expanded_flag);
-  if (rom()->data()[kMap16ExpandedFlagPos] == 0x0F ||
-      OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
+  if (profile.has_expanded_tile16) {
     // ROM has expanded tile16 data - use expanded addresses
     tpos = GetMap16TilesExpanded();
     num_tile16 = NumberOfMap16Ex;

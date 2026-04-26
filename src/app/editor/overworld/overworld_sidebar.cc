@@ -6,6 +6,7 @@
 #include "app/gui/core/input.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
+#include "zelda3/common.h"
 #include "zelda3/overworld/overworld_map.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -155,7 +156,17 @@ void OverworldSidebar::DrawMapSelection(int& current_world, int& current_map,
   ImGui::Text(ICON_MD_MAP " Map Selection");
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  ImGui::Combo("##world", &current_world, kWorldNames, 3);
+  if (ImGui::Combo("##world", &current_world, kWorldNames, 3)) {
+    int local_map = current_map & 0x3F;
+    const int world_start = current_world * 0x40;
+    const int maps_remaining = zelda3::kNumOverworldMaps - world_start;
+    if (maps_remaining > 0) {
+      if (local_map >= maps_remaining) {
+        local_map = maps_remaining - 1;
+      }
+      current_map = world_start + local_map;
+    }
+  }
 
   ImGui::BeginGroup();
   ImGui::Text("ID: %02X", current_map);

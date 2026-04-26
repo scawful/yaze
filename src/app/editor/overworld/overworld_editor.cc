@@ -655,9 +655,7 @@ void OverworldEditor::DrawOverworldCanvas() {
 }
 
 bool OverworldEditor::NormalizeCurrentSelectionState() {
-  if (!NormalizeMapSelection(current_world_, current_map_)) {
-    return false;
-  }
+  const bool changed = NormalizeMapSelection(current_world_, current_map_);
 
   overworld_.set_current_world(current_world_);
   overworld_.set_current_map(current_map_);
@@ -667,10 +665,12 @@ bool OverworldEditor::NormalizeCurrentSelectionState() {
     current_parent_ = current_map_;
   }
 
-  LOG_WARN("OverworldEditor",
-           "Normalized stale overworld selection to world=%d map=%d",
-           current_world_, current_map_);
-  return true;
+  if (changed) {
+    LOG_WARN("OverworldEditor",
+             "Normalized stale overworld selection to world=%d map=%d",
+             current_world_, current_map_);
+  }
+  return changed;
 }
 
 void OverworldEditor::HandleKeyboardShortcuts() {
@@ -1361,14 +1361,17 @@ void OverworldEditor::EnsureMapTexture(int map_index) {
   }
 
   auto& bitmap = maps_bmp_[map_index];
+  const auto* map = overworld_.overworld_map(map_index);
+  if (!map) {
+    return;
+  }
 
   // If bitmap doesn't exist yet (non-essential map), create it now
   if (!bitmap.is_active()) {
-    overworld_.set_current_map(map_index);
-    const auto& palette = overworld_.current_area_palette();
+    const auto& palette = map->current_palette();
     try {
       bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
-                    overworld_.current_map_bitmap_data());
+                    map->bitmap_data());
       bitmap.SetPalette(palette);
     } catch (const std::bad_alloc& e) {
       LOG_ERROR("OverworldEditor", "Error allocating bitmap for map %d: %s",
