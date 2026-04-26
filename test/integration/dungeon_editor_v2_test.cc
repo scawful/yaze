@@ -1,5 +1,6 @@
 #include "integration/dungeon_editor_v2_test.h"
 
+#include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "core/features.h"
 
 namespace yaze {
@@ -136,6 +137,43 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
 }
 
+TEST_F(DungeonEditorV2IntegrationTest, WorkbenchModeClosesLocalToolWindows) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  auto load_status = dungeon_editor_v2_->Load();
+  ASSERT_TRUE(load_status.ok()) << load_status.message();
+  const size_t session_id = window_manager_->GetActiveSessionId();
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
+  ASSERT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+
+  const char* local_tools[] = {
+      editor::DungeonEditorV2::kObjectSelectorId,
+      editor::DungeonEditorV2::kDoorEditorId,
+      "dungeon.sprite_editor",
+      "dungeon.item_editor",
+      editor::DungeonEditorV2::kPaletteEditorId,
+      editor::DungeonEditorV2::kRoomGraphicsId,
+      "dungeon.room_tags",
+      "dungeon.custom_collision",
+      "dungeon.water_fill",
+  };
+
+  for (const char* tool_id : local_tools) {
+    window_manager_->OpenWindow(session_id, tool_id);
+    ASSERT_TRUE(window_manager_->IsWindowOpen(session_id, tool_id)) << tool_id;
+  }
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(true, /*show_toast=*/false);
+
+  EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+  for (const char* tool_id : local_tools) {
+    EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, tool_id)) << tool_id;
+  }
+}
+
 TEST_F(DungeonEditorV2IntegrationTest,
        ToggleWorkbenchWorkflowModeDefersFlipUntilUpdate) {
   DungeonFeatureFlagsGuard guard;
@@ -177,10 +215,16 @@ TEST_F(DungeonEditorV2IntegrationTest,
   EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
   EXPECT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomSelectorId));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
+  EXPECT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kObjectToolsId));
-  EXPECT_TRUE(window_manager_->IsWindowOpen(
+  EXPECT_FALSE(window_manager_->IsWindowOpen(
       session_id, editor::DungeonEditorV2::kRoomGraphicsId));
+
+  auto* workbench = dynamic_cast<editor::DungeonWorkbenchContent*>(
+      window_manager_->GetWindowContent("dungeon.workbench"));
+  ASSERT_NE(workbench, nullptr);
+  EXPECT_TRUE(workbench->IsToolDrawerActiveForTesting());
+  EXPECT_STREQ(workbench->GetActiveToolIdForTesting(), "object_selector");
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
