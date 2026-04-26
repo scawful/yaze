@@ -2918,14 +2918,28 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
     }
 
-    // Special platform routines (79-82)
-    case 79:        // ClosedChestPlatform
+    case 79: {  // ClosedChestPlatform
+      int size_x = (size >> 2) & 0x03;
+      int size_y = size & 0x03;
+      width = (size_x * 2 + 14) * 8;
+      height = (size_y * 2 + 8) * 8;
+      break;
+    }
+
+    // Special platform routines (80-82)
     case 80:        // MovingWallWest
     case 81:        // MovingWallEast
-    case 82:        // OpenChestPlatform
       width = 64;   // 8 tiles wide
       height = 64;  // 8 tiles tall
       break;
+
+    case 82: {  // OpenChestPlatform
+      int size_x = (size >> 2) & 0x03;
+      int size_y = size & 0x03;
+      width = (size_x * 2 + 10) * 8;
+      height = (size_y * 2 + 7) * 8;
+      break;
+    }
 
     // Stair routines - different sizes for different types
 

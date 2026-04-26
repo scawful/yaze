@@ -136,6 +136,66 @@ void DrawDamFloodGate(const DrawContext& ctx) {
                   start_index);
 }
 
+void WritePlatformTile(const DrawContext& ctx, int dx, int dy, size_t index) {
+  if (index >= ctx.tiles.size())
+    return;
+
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + dx,
+                               ctx.object.y_ + dy, ctx.tiles[index]);
+}
+
+void DrawPlatform1x3Rightwards(const DrawContext& ctx, int dx, int dy,
+                               size_t start_index, int columns) {
+  for (int x = 0; x < columns; ++x) {
+    for (int y = 0; y < 3; ++y) {
+      WritePlatformTile(ctx, dx + x, dy + y, start_index + x * 3 + y);
+    }
+  }
+}
+
+void DrawPlatform2x2(const DrawContext& ctx, int dx, int dy,
+                     size_t start_index) {
+  WritePlatformTile(ctx, dx + 0, dy + 0, start_index + 0);
+  WritePlatformTile(ctx, dx + 0, dy + 1, start_index + 1);
+  WritePlatformTile(ctx, dx + 1, dy + 0, start_index + 2);
+  WritePlatformTile(ctx, dx + 1, dy + 1, start_index + 3);
+}
+
+void DrawPlatform3x2(const DrawContext& ctx, int dx, int dy,
+                     size_t start_index) {
+  WritePlatformTile(ctx, dx + 0, dy + 0, start_index + 0);
+  WritePlatformTile(ctx, dx + 1, dy + 0, start_index + 1);
+  WritePlatformTile(ctx, dx + 2, dy + 0, start_index + 2);
+  WritePlatformTile(ctx, dx + 0, dy + 1, start_index + 3);
+  WritePlatformTile(ctx, dx + 1, dy + 1, start_index + 4);
+  WritePlatformTile(ctx, dx + 2, dy + 1, start_index + 5);
+}
+
+void DrawOpenChestPlatformSegment(const DrawContext& ctx, int dy,
+                                  size_t start_index, int fill_width) {
+  WritePlatformTile(ctx, /*dx=*/0, dy, start_index + 0);
+
+  for (int i = 0; i < fill_width; ++i) {
+    WritePlatformTile(ctx, /*dx=*/1 + i, dy, start_index + 3);
+  }
+
+  const int left_cap_x = 1 + fill_width;
+  WritePlatformTile(ctx, left_cap_x, dy, start_index + 6);
+
+  for (int i = 0; i < 4; ++i) {
+    WritePlatformTile(ctx, left_cap_x + 1 + i, dy, start_index + 9);
+  }
+
+  const int right_cap_x = left_cap_x + 5;
+  WritePlatformTile(ctx, right_cap_x, dy, start_index + 12);
+
+  for (int i = 0; i < fill_width; ++i) {
+    WritePlatformTile(ctx, right_cap_x + 1 + i, dy, start_index + 15);
+  }
+
+  WritePlatformTile(ctx, right_cap_x + 1 + fill_width, dy, start_index + 18);
+}
+
 }  // namespace
 
 void DrawChest(const DrawContext& ctx, int chest_index) {
@@ -1271,39 +1331,76 @@ void DrawDrenchingWaterFace(const DrawContext& ctx) {
 
 void DrawClosedChestPlatform(const DrawContext& ctx) {
   // ASM: RoomDraw_ClosedChestPlatform ($018CC7)
-  // Complex structure: horizontal wall top, vertical walls sides
+  // Size fields are subtype-1 packed 2-bit values: $B2=size_x, $B4=size_y.
+  // The routine expands them to width_blocks=size_x+4 and
+  // height_blocks=size_y+1 before drawing top, center, bottom, and the center
+  // 2x2 overlay.
 
-  int size_x = (ctx.object.size_ & 0x0F) + 4;  // Width is size + 4
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
-
-  if (ctx.tiles.size() < 16)
+  if (ctx.tiles.size() < 68)
     return;
 
-  // Draw top horizontal wall with corners
-  for (int x = 0; x < size_x; ++x) {
-    // Top row
-    size_t tile_idx = (x == 0) ? 0 : ((x == size_x - 1) ? 2 : 1);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                 ctx.object.y_, ctx.tiles[tile_idx]);
+  const int size_x = (ctx.object.size_ >> 2) & 0x03;
+  const int size_y = ctx.object.size_ & 0x03;
+  const int width_blocks = size_x + 4;
+  const int height_blocks = size_y + 1;
+
+  // Top 3 rows: left cap, repeated 2-column middle, right cap.
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/0, /*dy=*/0, /*start_index=*/0,
+                            /*columns=*/3);
+  for (int x = 0; x < width_blocks; ++x) {
+    DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + x * 2, /*dy=*/0,
+                              /*start_index=*/9, /*columns=*/2);
+  }
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + width_blocks * 2, /*dy=*/0,
+                            /*start_index=*/15, /*columns=*/3);
+
+  // Center rows: left wall, repeated 2x2 carpet, right wall.
+  for (int y = 0; y < height_blocks; ++y) {
+    const int dy = 3 + y * 2;
+    DrawPlatform3x2(ctx, /*dx=*/0, dy, /*start_index=*/24);
+    for (int x = 0; x < width_blocks; ++x) {
+      DrawPlatform2x2(ctx, /*dx=*/3 + x * 2, dy, /*start_index=*/30);
+    }
+    DrawPlatform3x2(ctx, /*dx=*/3 + width_blocks * 2, dy,
+                    /*start_index=*/34);
   }
 
-  // Draw vertical walls on sides
-  for (int y = 1; y < size_y + 1; ++y) {
-    // Left wall
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                 ctx.object.y_ + y, ctx.tiles[3]);
-    // Right wall
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + size_x - 1,
-                                 ctx.object.y_ + y, ctx.tiles[4]);
+  // Bottom 3 rows.
+  const int bottom_y = 3 + height_blocks * 2;
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/0, bottom_y, /*start_index=*/40,
+                            /*columns=*/3);
+  for (int x = 0; x < width_blocks; ++x) {
+    DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + x * 2, bottom_y,
+                              /*start_index=*/49, /*columns=*/2);
   }
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + width_blocks * 2, bottom_y,
+                            /*start_index=*/55, /*columns=*/3);
 
-  // Draw bottom horizontal wall with corners
-  int bottom_y = ctx.object.y_ + size_y + 1;
-  for (int x = 0; x < size_x; ++x) {
-    size_t tile_idx = (x == 0) ? 5 : ((x == size_x - 1) ? 7 : 6);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x, bottom_y,
-                                 ctx.tiles[tile_idx]);
+  // Center 2x2 overlay, matching the final SrcPtr(0x590) draw in the native
+  // C++ port and ZScream's tile indices 64,66/65,67.
+  DrawPlatform2x2(ctx, /*dx=*/width_blocks + 2,
+                  /*dy=*/bottom_y - (height_blocks + 1),
+                  /*start_index=*/64);
+}
+
+void DrawOpenChestPlatform(const DrawContext& ctx) {
+  // ASM: RoomDraw_OpenChestPlatform ($019733). The helper draws one row of a
+  // 10+2*size_x tile platform, repeated (2*size_y+5) times, then two closing
+  // rows from src+1/src+2.
+  if (ctx.tiles.size() < 21)
+    return;
+
+  const int size_x = (ctx.object.size_ >> 2) & 0x03;
+  const int size_y = ctx.object.size_ & 0x03;
+  const int fill_width = size_x + 1;
+  const int body_rows = size_y * 2 + 5;
+
+  for (int row = 0; row < body_rows; ++row) {
+    DrawOpenChestPlatformSegment(ctx, row, /*start_index=*/0, fill_width);
   }
+  DrawOpenChestPlatformSegment(ctx, body_rows, /*start_index=*/1, fill_width);
+  DrawOpenChestPlatformSegment(ctx, body_rows + 1, /*start_index=*/2,
+                               fill_width);
 }
 
 void DrawChestPlatformHorizontalWall(const DrawContext& ctx) {
@@ -1931,24 +2028,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kOpenChestPlatform,  // 82
       .name = "OpenChestPlatform",
-      .function =
-          [](const DrawContext& ctx) {
-            // Open chest platform - draws multi-segment pattern
-            // Size: width = (size & 0x0F) + 1, segments = ((size >> 4) & 0x0F) * 2 + 5
-            int width = (ctx.object.size_ & 0x0F) + 1;
-            int segments = ((ctx.object.size_ >> 4) & 0x0F) * 2 + 5;
-            // For geometry purposes, just set reasonable bounds
-            for (int s = 0; s < segments && s < 8; ++s) {
-              for (int x = 0; x < width && x < 8; ++x) {
-                if (ctx.tiles.size() > 0) {
-                  size_t idx = (s * width + x) % ctx.tiles.size();
-                  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                               ctx.object.y_ + s,
-                                               ctx.tiles[idx]);
-                }
-              }
-            }
-          },
+      .function = DrawOpenChestPlatform,
       .draws_to_both_bgs = false,
       .base_width = 0,   // Variable
       .base_height = 0,  // Variable

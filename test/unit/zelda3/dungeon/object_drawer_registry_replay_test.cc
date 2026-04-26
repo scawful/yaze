@@ -159,6 +159,49 @@ void ExpectTraceMatchesSnapshot(
   }
 }
 
+void ExpectTraceBounds(const std::vector<ObjectDrawer::TileTrace>& trace,
+                       int min_x, int min_y, int max_x, int max_y) {
+  ASSERT_FALSE(trace.empty());
+  int observed_min_x = trace.front().x_tile;
+  int observed_min_y = trace.front().y_tile;
+  int observed_max_x = trace.front().x_tile;
+  int observed_max_y = trace.front().y_tile;
+  for (const auto& tile : trace) {
+    observed_min_x = std::min(observed_min_x, static_cast<int>(tile.x_tile));
+    observed_min_y = std::min(observed_min_y, static_cast<int>(tile.y_tile));
+    observed_max_x = std::max(observed_max_x, static_cast<int>(tile.x_tile));
+    observed_max_y = std::max(observed_max_y, static_cast<int>(tile.y_tile));
+  }
+  EXPECT_EQ(observed_min_x, min_x);
+  EXPECT_EQ(observed_min_y, min_y);
+  EXPECT_EQ(observed_max_x, max_x);
+  EXPECT_EQ(observed_max_y, max_y);
+}
+
+bool TraceHasWriteAt(const std::vector<ObjectDrawer::TileTrace>& trace, int x,
+                     int y) {
+  for (const auto& tile : trace) {
+    if (tile.x_tile == x && tile.y_tile == y) {
+      return true;
+    }
+  }
+  return false;
+}
+
+uint16_t LastTileIdAt(const std::vector<ObjectDrawer::TileTrace>& trace, int x,
+                      int y) {
+  bool found = false;
+  uint16_t tile_id = 0;
+  for (const auto& tile : trace) {
+    if (tile.x_tile == x && tile.y_tile == y) {
+      tile_id = tile.tile_id;
+      found = true;
+    }
+  }
+  EXPECT_TRUE(found) << "No trace write at (" << x << ", " << y << ")";
+  return tile_id;
+}
+
 std::vector<uint8_t> MakeSingleTileCustomObjectBinary(int rel_x, int rel_y,
                                                       uint16_t tile_word) {
   std::vector<uint8_t> data;
@@ -2635,6 +2678,98 @@ TEST(ObjectDrawerRegistryReplayTest,
   };
 
   ExpectTraceMatchesSnapshot(bg1, expected);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     RightwardsDecor4x3Spaced4UsesEightTileStride) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 7;
+  constexpr uint8_t kSize = 2;  // count = size + 1 = 3 stamps.
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FF9, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/12));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  ASSERT_EQ(bg1.size(), 36u);
+  ExpectTraceBounds(bg1, kX, kY, kX + 19, kY + 2);
+
+  // usdasm RoomDraw_RightwardsDecor4x3spaced4_1to16 ($01:9387)
+  // draws a 4x3 stamp, then ADC #$0008 after RoomDraw_1x3N_rightwards.
+  // The helper already advanced by four tile columns, so the next stamp starts
+  // eight tile columns after the previous one.
+  EXPECT_TRUE(TraceHasWriteAt(bg1, kX + 0, kY));
+  EXPECT_TRUE(TraceHasWriteAt(bg1, kX + 8, kY));
+  EXPECT_TRUE(TraceHasWriteAt(bg1, kX + 16, kY));
+  EXPECT_FALSE(TraceHasWriteAt(bg1, kX + 6, kY));
+  EXPECT_FALSE(TraceHasWriteAt(bg1, kX + 12, kY));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     OpenChestPlatformUsesTwoBitSizeFieldsAndFullSegmentHelper) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 4;
+  constexpr int kY = 6;
+  constexpr uint8_t kSize = 0x05;  // size_x=1, size_y=1.
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x00DC, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/21));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  // Width = 2*size_x + 10, height = 2*size_y + 7.
+  ASSERT_EQ(bg1.size(), 108u);
+  ExpectTraceBounds(bg1, kX, kY, kX + 11, kY + 8);
+
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 0, kY + 0), 0);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 1, kY + 0), 3);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 2, kY + 0), 3);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 3, kY + 0), 6);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 4, kY + 0), 9);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 7, kY + 0), 9);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 8, kY + 0), 12);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 9, kY + 0), 15);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 10, kY + 0), 15);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 11, kY + 0), 18);
+
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 0, kY + 7), 1);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 11, kY + 7), 19);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 0, kY + 8), 2);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 11, kY + 8), 20);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ClosedChestPlatformUsesTwoBitSizeFieldsAndCenterOverlay) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 2;
+  constexpr int kY = 4;
+  constexpr uint8_t kSize = 0x03;  // size_x=0, size_y=3.
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x00C1, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/68));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  // Width = 2*size_x + 14, height = 2*size_y + 8.
+  ExpectTraceBounds(bg1, kX, kY, kX + 13, kY + 13);
+
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 0, kY + 0), 0);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 2, kY + 2), 8);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 11, kY + 0), 15);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 13, kY + 2), 23);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 0, kY + 11), 40);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 13, kY + 13), 63);
+
+  // The center 2x2 is drawn after the repeated center carpet and must
+  // overwrite those positions with tiles 64..67.
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 6, kY + 6), 64);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 7, kY + 6), 66);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 6, kY + 7), 65);
+  EXPECT_EQ(LastTileIdAt(bg1, kX + 7, kY + 7), 67);
 }
 
 TEST(ObjectDrawerRegistryReplayTest, DownwardsBarUsesUsdasmTopThenBodyRows) {
