@@ -12,6 +12,7 @@
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 
+#include "app/editor/dungeon/dungeon_snapping.h"
 #include "app/gui/core/agent_theme.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
@@ -201,6 +202,7 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
 
   const auto entity = hits.front();
   const bool additive = io.KeyShift || io.KeyCtrl || io.KeySuper;
+  const bool hit_already_selected = IsSelectionHitSelected(entity);
 
   // Cross-selection rules:
   // 1. Plain clicks select one stack participant and clear the other family.
@@ -209,6 +211,12 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
   //    Yaze's overlap cycle affordance available without stealing Alt.
 
   if (entity.type == EntityType::Object) {
+    const bool has_multi_object_selection =
+        ctx_ && ctx_->selection && ctx_->selection->GetSelectionCount() > 1;
+    if (!additive && hit_already_selected &&
+        (has_multi_object_selection || HasGroupDragSelection())) {
+      return true;
+    }
     if (!additive) {
       ClearAllEntitySelections();
       if (ctx_ && ctx_->selection) {
@@ -221,6 +229,10 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
   const bool toggle = io.KeyCtrl || io.KeySuper;
   if (additive) {
     return UpdateEntitySelection(entity, io.KeyShift, toggle);
+  }
+
+  if (hit_already_selected && HasGroupDragSelection()) {
+    return true;
   }
 
   // Plain entity clicks preserve the existing handler drag affordance.
@@ -256,12 +268,6 @@ void InteractionCoordinator::SelectEntity(EntityType type, size_t index) {
 
   ClearAllEntitySelections();
 
-  // Entity selection takes exclusive priority over tile object selection for
-  // direct programmatic selection from inspectors/lists.
-  if (ctx_ && ctx_->selection) {
-    ctx_->selection->ClearSelection();
-  }
-
   selected_entities_.push_back(SelectedEntity{type, index});
 
   switch (type) {
@@ -278,6 +284,49 @@ void InteractionCoordinator::SelectEntity(EntityType type, size_t index) {
     case EntityType::None:
     default:
       break;
+  }
+}
+
+void InteractionCoordinator::SetSelectedEntities(
+    std::vector<SelectedEntity> entities) {
+  door_handler_.ClearSelection();
+  sprite_handler_.ClearSelection();
+  item_handler_.ClearSelection();
+  selected_entities_.clear();
+
+  for (const auto entity : entities) {
+    if (entity.type != EntityType::Door && entity.type != EntityType::Sprite &&
+        entity.type != EntityType::Item) {
+      continue;
+    }
+    if (std::find(selected_entities_.begin(), selected_entities_.end(),
+                  entity) == selected_entities_.end()) {
+      selected_entities_.push_back(entity);
+    }
+  }
+
+  if (selected_entities_.size() == 1) {
+    const SelectedEntity selected = selected_entities_.front();
+    switch (selected.type) {
+      case EntityType::Door:
+        door_handler_.SelectDoor(selected.index);
+        break;
+      case EntityType::Sprite:
+        sprite_handler_.SelectSprite(selected.index);
+        break;
+      case EntityType::Item:
+        item_handler_.SelectItem(selected.index);
+        break;
+      case EntityType::Object:
+      case EntityType::None:
+      default:
+        break;
+    }
+    return;
+  }
+
+  if (ctx_) {
+    ctx_->NotifyEntityChanged();
   }
 }
 
@@ -354,13 +403,15 @@ SelectedEntity InteractionCoordinator::GetSelectedEntity() const {
 
 void InteractionCoordinator::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   // Forward drag to handlers that have active selections
-  if (door_handler_.HasSelection()) {
+  if (entity_group_drag_active_) {
+    HandleEntityGroupDrag(current_pos);
+  } else if (door_handler_.HasSelection()) {
     door_handler_.HandleDrag(current_pos, delta);
   }
-  if (sprite_handler_.HasSelection()) {
+  if (!entity_group_drag_active_ && sprite_handler_.HasSelection()) {
     sprite_handler_.HandleDrag(current_pos, delta);
   }
-  if (item_handler_.HasSelection()) {
+  if (!entity_group_drag_active_ && item_handler_.HasSelection()) {
     item_handler_.HandleDrag(current_pos, delta);
   }
 
@@ -376,6 +427,9 @@ void InteractionCoordinator::HandleRelease() {
   sprite_handler_.HandleRelease();
   item_handler_.HandleRelease();
   tile_handler_.HandleRelease();
+  entity_group_drag_active_ = false;
+  entity_group_drag_last_dx_ = 0;
+  entity_group_drag_last_dy_ = 0;
 }
 
 void InteractionCoordinator::DrawGhostPreviews() {
@@ -607,6 +661,7 @@ void InteractionCoordinator::ClearAllEntitySelections() {
   door_handler_.ClearSelection();
   sprite_handler_.ClearSelection();
   item_handler_.ClearSelection();
+  entity_group_drag_active_ = false;
 }
 
 void InteractionCoordinator::DeleteSelectedEntity() {
@@ -823,6 +878,64 @@ bool InteractionCoordinator::UpdateEntitySelection(SelectedEntity entity,
   }
 
   return true;
+}
+
+bool InteractionCoordinator::IsSelectionHitSelected(
+    SelectedEntity entity) const {
+  if (entity.type == EntityType::Object) {
+    return ctx_ && ctx_->selection &&
+           ctx_->selection->IsObjectSelected(entity.index);
+  }
+  return std::find(selected_entities_.begin(), selected_entities_.end(),
+                   entity) != selected_entities_.end() ||
+         GetSelectedEntity() == entity;
+}
+
+bool InteractionCoordinator::HasGroupDragSelection() const {
+  const bool has_object_selection =
+      ctx_ && ctx_->selection && ctx_->selection->HasSelection();
+  return !selected_entities_.empty() &&
+         (selected_entities_.size() > 1 || has_object_selection);
+}
+
+void InteractionCoordinator::BeginSelectionDrag(ImVec2 start_pos) {
+  if (!HasGroupDragSelection()) {
+    entity_group_drag_active_ = false;
+    entity_group_drag_last_dx_ = 0;
+    entity_group_drag_last_dy_ = 0;
+    return;
+  }
+
+  entity_group_drag_active_ = true;
+  entity_group_drag_start_ = snapping::SnapToTileGrid(start_pos);
+  entity_group_drag_current_ = entity_group_drag_start_;
+  entity_group_drag_last_dx_ = 0;
+  entity_group_drag_last_dy_ = 0;
+}
+
+void InteractionCoordinator::HandleEntityGroupDrag(ImVec2 current_pos) {
+  if (!entity_group_drag_active_) {
+    return;
+  }
+
+  entity_group_drag_current_ = snapping::SnapToTileGrid(current_pos);
+  const ImVec2 drag_delta(
+      entity_group_drag_current_.x - entity_group_drag_start_.x,
+      entity_group_drag_current_.y - entity_group_drag_start_.y);
+
+  constexpr int kEntityDragStepPixels = dungeon_coords::kSpriteTileSize;
+  const int drag_dx = static_cast<int>(drag_delta.x) / kEntityDragStepPixels;
+  const int drag_dy = static_cast<int>(drag_delta.y) / kEntityDragStepPixels;
+  const int inc_dx = drag_dx - entity_group_drag_last_dx_;
+  const int inc_dy = drag_dy - entity_group_drag_last_dy_;
+  if (inc_dx == 0 && inc_dy == 0) {
+    return;
+  }
+
+  if (NudgeSelected(inc_dx, inc_dy)) {
+    entity_group_drag_last_dx_ = drag_dx;
+    entity_group_drag_last_dy_ = drag_dy;
+  }
 }
 
 void InteractionCoordinator::SelectEntitiesInRect(

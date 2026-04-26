@@ -127,6 +127,9 @@ const char* GetDeleteAllSelectedTypeLabel(DungeonSelectionKind kind) {
       return ICON_MD_DELETE_SWEEP " Delete All Sprites";
     case DungeonSelectionKind::Item:
       return ICON_MD_DELETE_SWEEP " Delete All Items";
+    case DungeonSelectionKind::EntityMulti:
+    case DungeonSelectionKind::Mixed:
+      return ICON_MD_DELETE_SWEEP " Delete All";
     default:
       return ICON_MD_DELETE_SWEEP " Delete All";
   }
@@ -236,6 +239,10 @@ void ObjectEditorContent::Draw(bool* p_open) {
     DrawSelectedSpriteInfo();
   } else if (selection_snapshot_.kind == DungeonSelectionKind::Item) {
     DrawSelectedItemInfo();
+  } else if (selection_snapshot_.kind == DungeonSelectionKind::EntityMulti ||
+             selection_snapshot_.kind == DungeonSelectionKind::Mixed) {
+    ImGui::TextDisabled(
+        "%s", GetDungeonSelectionSummaryText(selection_snapshot_).c_str());
   } else {
     DrawEmptyState();
   }
@@ -273,6 +280,12 @@ void ObjectEditorContent::DrawSelectionSummary() {
     case DungeonSelectionKind::Item:
       ImGui::TextColored(theme.status_success,
                          ICON_MD_INVENTORY " Inspecting selected item");
+      break;
+    case DungeonSelectionKind::EntityMulti:
+    case DungeonSelectionKind::Mixed:
+      ImGui::TextColored(
+          theme.status_success, ICON_MD_SELECT_ALL " %s",
+          GetDungeonSelectionSummaryText(selection_snapshot_).c_str());
       break;
     case DungeonSelectionKind::None:
     default:
@@ -333,17 +346,24 @@ void ObjectEditorContent::DrawSelectionActions() {
            {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedObjects(); }}});
     }
   } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-    draw_row({{ICON_MD_FILTER_NONE " Duplicate",
-               [this]() { DuplicateSelectedSprite(); }},
-              {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-              {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedEntity(); }},
-              {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-               [this]() { DeleteAllSelectedTypeInRoom(); }}});
+    draw_row(
+        {{ICON_MD_FILTER_NONE " Duplicate",
+          [this]() { DuplicateSelectedSprite(); }},
+         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
+         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
+          [this]() { DeleteAllSelectedTypeInRoom(); }}});
+  } else if (selection_snapshot_.kind == DungeonSelectionKind::EntityMulti ||
+             selection_snapshot_.kind == DungeonSelectionKind::Mixed) {
+    draw_row(
+        {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
   } else {
-    draw_row({{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-              {ICON_MD_DELETE " Delete", [this]() { DeleteSelectedEntity(); }},
-              {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-               [this]() { DeleteAllSelectedTypeInRoom(); }}});
+    draw_row(
+        {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
+         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
+          [this]() { DeleteAllSelectedTypeInRoom(); }}});
   }
 
   ImGui::Separator();
@@ -713,8 +733,8 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
   if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
     if (selection_snapshot_.HasObjectSelection()) {
       DeleteSelectedObjects();
-    } else if (selection_snapshot_.HasEntitySelection()) {
-      DeleteSelectedEntity();
+    } else if (selection_snapshot_.HasSelection()) {
+      DeleteCurrentSelection();
     }
   }
   if (ImGui::IsKeyPressed(ImGuiKey_D) && io.KeyCtrl) {
@@ -757,8 +777,8 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
     if (ImGui::IsKeyPressed(ImGuiKey_DownArrow)) {
       dy = 1;
     }
-    if ((dx != 0 || dy != 0) && selection_snapshot_.HasObjectSelection()) {
-      NudgeSelectedObjects(dx, dy);
+    if ((dx != 0 || dy != 0) && selection_snapshot_.HasSelection()) {
+      NudgeCurrentSelection(dx, dy);
     }
   }
 
@@ -847,6 +867,13 @@ void ObjectEditorContent::DeleteSelectedEntity() {
       .DeleteSelectedEntity();
 }
 
+void ObjectEditorContent::DeleteCurrentSelection() {
+  if (!canvas_viewer_) {
+    return;
+  }
+  canvas_viewer_->object_interaction().HandleDeleteSelected();
+}
+
 void ObjectEditorContent::DeleteAllSelectedTypeInRoom() {
   auto* viewer = ResolveCanvasViewer();
   if (!viewer || !viewer->HasRooms()) {
@@ -919,20 +946,12 @@ void ObjectEditorContent::PasteObjects() {
   }
 }
 
-void ObjectEditorContent::NudgeSelectedObjects(int dx, int dy) {
-  if (!object_editor_ || !canvas_viewer_) {
+void ObjectEditorContent::NudgeCurrentSelection(int dx, int dy) {
+  if (!canvas_viewer_) {
     return;
   }
 
-  const auto& selected =
-      canvas_viewer_->object_interaction().GetSelectedObjectIndices();
-  if (selected.empty()) {
-    return;
-  }
-
-  for (size_t idx : selected) {
-    object_editor_->MoveObject(idx, dx, dy);
-  }
+  canvas_viewer_->object_interaction().NudgeSelected(dx, dy);
 }
 
 void ObjectEditorContent::CycleObjectSelection(int direction) {

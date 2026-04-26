@@ -84,6 +84,43 @@ TEST_F(DungeonSelectionSnapshotTest, EntitySelectionsMapToInspectorKinds) {
   EXPECT_EQ(GetDungeonSelectionSummaryText(snapshot), "Item");
 }
 
+TEST_F(DungeonSelectionSnapshotTest, EntityMultiSelectionReportsCounts) {
+  interaction_.entity_coordinator().SelectEntitiesInRect(
+      {0, 0, 512, 512}, /*additive=*/false, /*toggle=*/false);
+
+  const auto snapshot = BuildDungeonSelectionSnapshot(interaction_, &rooms_, 0);
+
+  EXPECT_EQ(snapshot.kind, DungeonSelectionKind::EntityMulti);
+  EXPECT_EQ(snapshot.count, 3u);
+  EXPECT_EQ(snapshot.object_count, 0u);
+  EXPECT_EQ(snapshot.door_count, 1u);
+  EXPECT_EQ(snapshot.sprite_count, 1u);
+  EXPECT_EQ(snapshot.item_count, 1u);
+  EXPECT_TRUE(snapshot.HasEntitySelection());
+  EXPECT_FALSE(snapshot.HasObjectSelection());
+  EXPECT_EQ(GetDungeonSelectionSummaryText(snapshot),
+            "3 selected: 1 door, 1 sprite, 1 item");
+}
+
+TEST_F(DungeonSelectionSnapshotTest, MixedSelectionReportsObjectsAndEntities) {
+  interaction_.SetSelectedObjects({0});
+  interaction_.entity_coordinator().SelectEntitiesInRect(
+      {0, 0, 512, 512}, /*additive=*/true, /*toggle=*/false);
+
+  const auto snapshot = BuildDungeonSelectionSnapshot(interaction_, &rooms_, 0);
+
+  EXPECT_EQ(snapshot.kind, DungeonSelectionKind::Mixed);
+  EXPECT_EQ(snapshot.count, 4u);
+  EXPECT_EQ(snapshot.object_count, 1u);
+  EXPECT_EQ(snapshot.door_count, 1u);
+  EXPECT_EQ(snapshot.sprite_count, 1u);
+  EXPECT_EQ(snapshot.item_count, 1u);
+  EXPECT_TRUE(snapshot.HasEntitySelection());
+  EXPECT_FALSE(snapshot.HasObjectSelection());
+  EXPECT_EQ(GetDungeonSelectionSummaryText(snapshot),
+            "4 selected: 1 obj, 1 door, 1 sprite, 1 item");
+}
+
 TEST_F(DungeonSelectionSnapshotTest,
        SelectingObjectsClearsAnyExistingEntitySelection) {
   interaction_.SelectEntity(EntityType::Sprite, 0);

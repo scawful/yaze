@@ -393,6 +393,69 @@ TEST_F(InteractionCoordinatorTest, DeleteSelectedEntityDeletesMixedSelection) {
   EXPECT_FALSE(coordinator_.HasEntitySelection());
 }
 
+TEST_F(InteractionCoordinatorTest,
+       PlainClickOnSelectedObjectPreservesMixedSelection) {
+  rooms_[0].AddTileObject(zelda3::RoomObject{0x01, 20, 20, 0x12, 0});
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  selection_.SelectObject(0, ObjectSelection::SelectionMode::Add);
+  coordinator_.SetSelectedEntities({SelectedEntity{EntityType::Sprite, 0}});
+
+  ImGui::GetIO().KeyShift = false;
+  ImGui::GetIO().KeyCtrl = false;
+  ImGui::GetIO().KeySuper = false;
+  ImGui::GetIO().KeyAlt = false;
+
+  ASSERT_TRUE(coordinator_.HandleClick(20 * 8, 20 * 8));
+
+  EXPECT_TRUE(selection_.IsObjectSelected(0));
+  ASSERT_EQ(coordinator_.GetSelectedEntities().size(), 1u);
+  EXPECT_EQ(coordinator_.GetSelectedEntities()[0].type, EntityType::Sprite);
+  EXPECT_EQ(coordinator_.GetSelectedEntities()[0].index, 0u);
+}
+
+TEST_F(InteractionCoordinatorTest,
+       PlainClickOnSelectedEntityPreservesMixedSelection) {
+  rooms_[0].AddTileObject(zelda3::RoomObject{0x01, 20, 20, 0x12, 0});
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  selection_.SelectObject(0, ObjectSelection::SelectionMode::Add);
+  coordinator_.SetSelectedEntities({SelectedEntity{EntityType::Sprite, 0}});
+
+  ImGui::GetIO().KeyShift = false;
+  ImGui::GetIO().KeyCtrl = false;
+  ImGui::GetIO().KeySuper = false;
+  ImGui::GetIO().KeyAlt = false;
+
+  ASSERT_TRUE(coordinator_.HandleClick(5 * 16, 5 * 16));
+
+  EXPECT_TRUE(selection_.IsObjectSelected(0));
+  ASSERT_EQ(coordinator_.GetSelectedEntities().size(), 1u);
+  EXPECT_EQ(coordinator_.GetSelectedEntities()[0].type, EntityType::Sprite);
+  EXPECT_EQ(coordinator_.GetSelectedEntities()[0].index, 0u);
+}
+
+TEST_F(InteractionCoordinatorTest, GroupDragMovesMixedEntitySelection) {
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  rooms_[0].GetPotItems().push_back(item);
+  coordinator_.SelectEntitiesInRect({0, 0, 512, 512}, /*additive=*/false,
+                                    /*toggle=*/false);
+  ASSERT_EQ(coordinator_.GetSelectedEntities().size(), 2u);
+
+  coordinator_.BeginSelectionDrag(ImVec2(80.0f, 80.0f));
+  coordinator_.HandleDrag(ImVec2(96.0f, 96.0f), ImVec2(16.0f, 16.0f));
+  coordinator_.HandleRelease();
+
+  EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 6);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 6);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 88);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 96);
+}
+
 // ============================================================================
 // Mode Changing Clears Old Placement
 // ============================================================================
