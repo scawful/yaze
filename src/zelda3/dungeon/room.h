@@ -569,6 +569,7 @@ class Room {
   void SetBlockset(uint8_t bs) {
     if (blockset_ != bs) {
       blockset_ = bs;
+      resolved_main_blockset_ = 0xFF;
       MarkHeaderDirty();
       MarkGraphicsDirty();
     }
@@ -583,6 +584,7 @@ class Room {
   void SetRenderEntranceBlockset(uint8_t entrance_blockset) {
     if (render_entrance_blockset_ != entrance_blockset) {
       render_entrance_blockset_ = entrance_blockset;
+      resolved_main_blockset_ = 0xFF;
       MarkGraphicsDirty();
     }
   }
@@ -907,14 +909,14 @@ class Room {
   DirtyState dirty_state_;
   SaveDirtyState save_dirty_state_;
 
-  bool is_light_;
+  bool is_light_ = false;
   bool is_loaded_ = false;
   bool objects_loaded_ = false;
   bool sprites_loaded_ = false;
   bool chests_loaded_ = false;
   bool pot_items_loaded_ = false;
   bool blocks_loaded_ = false;
-  bool is_dark_;
+  bool is_dark_ = false;
   bool is_floor_ = true;
 
   // Performance optimization: Cache room properties to avoid unnecessary
@@ -938,6 +940,7 @@ class Room {
   // Room header properties (formerly public)
   uint8_t blockset_ = 0;
   uint8_t render_entrance_blockset_ = 0xFF;
+  uint8_t resolved_main_blockset_ = 0xFF;
   uint8_t spriteset_ = 0;
   uint8_t palette_ = 0;
   uint8_t layout_id_ = 0;

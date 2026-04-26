@@ -432,7 +432,7 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   // 4. Load graphics into VRAM
   // Graphics buffer contains 8BPP linear data, but VRAM needs 4BPP planar
-  default_room.LoadRoomGraphics(default_room.blockset());
+  default_room.LoadRoomGraphics();
   default_room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = default_room.get_gfx_buffer();
 
@@ -830,7 +830,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   }
 
   // Load room graphics
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = room.get_gfx_buffer();
 

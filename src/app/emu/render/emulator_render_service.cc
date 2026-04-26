@@ -124,7 +124,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObject(
 
   // Inject room context
   InjectRoomContext(req.room_id,
-                    req.use_room_defaults ? room.blockset() : req.blockset,
+                    req.use_room_defaults ? 0xFF : req.blockset,
                     req.use_room_defaults ? room.palette() : req.palette);
 
   // Clear tilemap buffers
@@ -177,8 +177,11 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
   room.SetGameData(game_data_);  // Ensure room has access to GameData
 
   // Load room graphics
-  uint8_t blockset = req.use_room_defaults ? room.blockset() : req.blockset;
-  room.LoadRoomGraphics(blockset);
+  if (req.use_room_defaults) {
+    room.LoadRoomGraphics();
+  } else {
+    room.LoadRoomGraphics(req.blockset);
+  }
   room.CopyRoomGraphicsToBuffer();
 
   // Get palette group and specific palette for color conversion
@@ -308,7 +311,11 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
   }
 
   // Load graphics into VRAM
-  room.LoadRoomGraphics(blockset);
+  if (blockset == 0xFF) {
+    room.LoadRoomGraphics();
+  } else {
+    room.LoadRoomGraphics(blockset);
+  }
   room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = room.get_gfx_buffer();
 

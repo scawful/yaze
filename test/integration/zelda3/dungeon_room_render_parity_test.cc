@@ -38,7 +38,7 @@ struct RoomRenderFingerprint {
 RoomRenderFingerprint CaptureRoomFingerprint(Rom* rom, GameData* game_data,
                                              int room_id) {
   Room room(room_id, rom, game_data);
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   room.LoadObjects();
   room.CopyRoomGraphicsToBuffer();
   room.RenderRoomGraphics();

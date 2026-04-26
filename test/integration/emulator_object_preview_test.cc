@@ -338,7 +338,7 @@ TEST_F(EmulatorObjectPreviewTest, RoomGraphicsCanBeLoaded) {
   zelda3::Room room = zelda3::LoadRoomFromRom(rom(), 0);
 
   // Load graphics
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   room.CopyRoomGraphicsToBuffer();
 
   const auto& gfx_buffer = room.get_gfx_buffer();
@@ -359,7 +359,7 @@ TEST_F(EmulatorObjectPreviewTest, RoomGraphicsCanBeLoaded) {
 TEST_F(EmulatorObjectPreviewTest, GraphicsConversionProducesValidData) {
   // Load room graphics
   zelda3::Room room = zelda3::LoadRoomFromRom(rom(), 0);
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   room.CopyRoomGraphicsToBuffer();
 
   const auto& gfx_buffer = room.get_gfx_buffer();
