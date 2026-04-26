@@ -58,9 +58,10 @@ class ObjectDrawer {
     DoorDirection direction;
     uint8_t position;
 
-    // Helper to get position coordinates using DoorPositionManager
+    // Helper to get visible render coordinates using DoorPositionManager.
     std::pair<int, int> GetTileCoords() const {
-      return DoorPositionManager::PositionToTileCoords(position, direction);
+      return DoorPositionManager::PositionToRenderTileCoords(position,
+                                                             direction);
     }
 
     // Helper to get door dimensions

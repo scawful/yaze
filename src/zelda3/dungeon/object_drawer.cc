@@ -2662,13 +2662,13 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
     }
 
-    case 41:  // Rightwards Decor 1x8 spaced 12 (wall torches 0x55-0x56)
+    case 41:  // Rightwards Decor 4x2 spaced 12 (wall torches 0x55-0x56)
     {
-      // ASM: 1 column x 8 rows with 12-tile horizontal spacing
+      // ASM: 4 columns x 2 rows with 12-tile horizontal spacing.
       size = size & 0x0F;
       int count = size + 1;
-      width = ((count - 1) * 12 + 1) * 8;  // 1 tile wide per block
-      height = 64;                         // 8 tiles tall
+      width = ((count - 1) * 12 + 4) * 8;
+      height = 16;
       break;
     }
 

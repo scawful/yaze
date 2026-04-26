@@ -167,6 +167,7 @@ TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
       {0x0FE9, 0x00, 3, 4},   // SolidWallDecor3x4
       {0x0FE0, 0x00, 3, 6},   // ArcheryGameTargetDoor
       {0x0FF8, 0x00, 8, 8},   // GanonTriforceFloorDecor
+      {0x0055, 0x01, 16, 2},  // Wall torches: 4x2 stamps, 12-tile stride
       {0x0047, 0x00, 4, 5},   // Waterfall47 size=0
       {0x0048, 0x00, 4, 3},   // Waterfall48 size=0
   };

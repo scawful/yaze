@@ -540,6 +540,46 @@ TEST(ObjectDrawerRegistryReplayTest, NorthMiddleDoorsRenderBothSidesOfTheSeam) {
   EXPECT_TRUE(TileHasCoverage(bg1, 17, 39));
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     SouthDoorsRenderOneTileBelowUsdasmTableAnchor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorGfxSouthTableBase = 0x4E06;
+  constexpr int kSouthObjectOffset = 0x0A30;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(dummy_rom, kDoorGfxSouthTableBase, kSouthObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kSouthObjectOffset,
+                           /*start_word=*/0x0980, /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  bg1.bitmap().Fill(255);
+  bg2.bitmap().Fill(255);
+  bg1.ClearCoverageBuffer();
+  bg2.ClearCoverageBuffer();
+
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::NormalDoor,
+      .direction = DoorDirection::South,
+      .position = 6,
+  };
+
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, nullptr);
+
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 58));
+  EXPECT_TRUE(TileHasCoverage(bg1, 14, 59));
+  EXPECT_TRUE(TileHasCoverage(bg1, 17, 61));
+  EXPECT_FALSE(TileHasCoverage(bg1, 14, 62));
+}
+
 TEST(ObjectDrawerRegistryReplayTest, WestMiddleDoorsRenderBothSidesOfTheSeam) {
   ScopedCustomObjectsFlag disable_custom(false);
 
@@ -582,6 +622,53 @@ TEST(ObjectDrawerRegistryReplayTest, WestMiddleDoorsRenderBothSidesOfTheSeam) {
   EXPECT_TRUE(TileHasCoverage(bg1, 36, 18));
   EXPECT_TRUE(TileHasCoverage(bg1, 37, 15));
   EXPECT_TRUE(TileHasCoverage(bg1, 37, 18));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     WallTorchesUseUsdasmFourByTwoStampAndTwelveTileStride) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+
+  // Object 0x55 maps to RoomDraw_RightwardsDecor4x2spaced8_1to16.
+  RoomObject obj(0x0055, /*x=*/10, /*y=*/20, /*size=*/1, /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_.clear();
+  for (int i = 0; i < 8; ++i) {
+    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                       false, false, false));
+  }
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  ExpectTraceMatchesSnapshot(trace, {
+                                        {10, 20, 0},
+                                        {11, 20, 1},
+                                        {12, 20, 2},
+                                        {13, 20, 3},
+                                        {10, 21, 4},
+                                        {11, 21, 5},
+                                        {12, 21, 6},
+                                        {13, 21, 7},
+                                        {22, 20, 0},
+                                        {23, 20, 1},
+                                        {24, 20, 2},
+                                        {25, 20, 3},
+                                        {22, 21, 4},
+                                        {23, 21, 5},
+                                        {24, 21, 6},
+                                        {25, 21, 7},
+                                    });
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

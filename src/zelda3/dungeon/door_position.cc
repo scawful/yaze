@@ -155,9 +155,26 @@ std::pair<int, int> DoorPositionManager::PositionToTileCoords(
   return {TilemapOffsetToTileX(offset), TilemapOffsetToTileY(offset)};
 }
 
+std::pair<int, int> DoorPositionManager::PositionToRenderTileCoords(
+    uint8_t position, DoorDirection direction) {
+  auto [tile_x, tile_y] = PositionToTileCoords(position, direction);
+  if (direction == DoorDirection::South) {
+    // USDASM RoomDraw_OneSidedShutters_South ($01:AABB) writes through
+    // $CB/$D7/$DA, i.e. rows y+1..y+3 from DoorTilemapPositions_South*.
+    ++tile_y;
+  }
+  return {tile_x, tile_y};
+}
+
 std::pair<int, int> DoorPositionManager::PositionToPixelCoords(
     uint8_t position, DoorDirection direction) {
   auto [tile_x, tile_y] = PositionToTileCoords(position, direction);
+  return {tile_x * kTileSize, tile_y * kTileSize};
+}
+
+std::pair<int, int> DoorPositionManager::PositionToRenderPixelCoords(
+    uint8_t position, DoorDirection direction) {
+  auto [tile_x, tile_y] = PositionToRenderTileCoords(position, direction);
   return {tile_x * kTileSize, tile_y * kTileSize};
 }
 
@@ -337,7 +354,7 @@ std::pair<uint8_t, uint8_t> DoorPositionManager::EncodeDoorBytes(
 
 std::tuple<int, int, int, int> DoorPositionManager::GetDoorBounds(
     uint8_t position, DoorDirection direction) {
-  auto [pixel_x, pixel_y] = PositionToPixelCoords(position, direction);
+  auto [pixel_x, pixel_y] = PositionToRenderPixelCoords(position, direction);
   auto dims = GetDoorDimensions(direction);
 
   return {pixel_x, pixel_y, dims.width_pixels(), dims.height_pixels()};
@@ -345,7 +362,7 @@ std::tuple<int, int, int, int> DoorPositionManager::GetDoorBounds(
 
 std::tuple<int, int, int, int> DoorPositionManager::GetDoorEditorBounds(
     uint8_t position, DoorDirection direction, DoorType type) {
-  auto [pixel_x, pixel_y] = PositionToPixelCoords(position, direction);
+  auto [pixel_x, pixel_y] = PositionToRenderPixelCoords(position, direction);
   auto dims = GetEditorDoorDimensions(direction, type);
 
   return {pixel_x, pixel_y, dims.width_pixels(), dims.height_pixels()};

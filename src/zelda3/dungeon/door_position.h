@@ -71,6 +71,16 @@ class DoorPositionManager {
                                                   DoorDirection direction);
 
   /**
+   * @brief Convert encoded position to the top-left tile of the visible door.
+   *
+   * PositionToTileCoords returns the exact USDASM tilemap-table anchor. South
+   * ranged doors write through row pointers one row below that anchor, so their
+   * visible editor footprint starts at y+1.
+   */
+  static std::pair<int, int> PositionToRenderTileCoords(
+      uint8_t position, DoorDirection direction);
+
+  /**
    * @brief Convert encoded position to pixel coordinates
    *
    * @param position Encoded position byte from ROM (0-31)
@@ -79,6 +89,12 @@ class DoorPositionManager {
    */
   static std::pair<int, int> PositionToPixelCoords(uint8_t position,
                                                    DoorDirection direction);
+
+  /**
+   * @brief Convert encoded position to visible render pixel coordinates
+   */
+  static std::pair<int, int> PositionToRenderPixelCoords(
+      uint8_t position, DoorDirection direction);
 
   /**
    * @brief Get the wall edge coordinate for a direction
