@@ -410,7 +410,11 @@ zelda3::Room* DungeonCanvasViewer::EnsureRoomLoadedForConnectedView(
     return nullptr;
   }
 
-  auto& room = (*rooms_)[room_id];
+  auto* room_ptr = rooms_->TryEnsureRoom(room_id);
+  if (!room_ptr) {
+    return nullptr;
+  }
+  auto& room = *room_ptr;
   room.SetRom(rom_);
   room.SetGameData(game_data_);
   if (!room.IsLoaded()) {

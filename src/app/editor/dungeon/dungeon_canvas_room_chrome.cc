@@ -56,7 +56,12 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
     return absl::FailedPreconditionError("Room data not available");
   }
 
-  auto& room = (*rooms_)[room_id];
+  auto* room_ptr = rooms_->TryEnsureRoom(room_id);
+  if (!room_ptr) {
+    LOG_DEBUG("[LoadAndRender]", "ERROR: Room data unavailable");
+    return absl::InvalidArgumentError("Invalid room ID");
+  }
+  auto& room = *room_ptr;
   LOG_DEBUG("[LoadAndRender]", "Got room reference");
 
   if (!game_data_) {

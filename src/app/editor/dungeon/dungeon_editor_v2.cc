@@ -2329,6 +2329,32 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
   }
 }
 
+void DungeonEditorV2::RefreshWorkbenchViewerRuntimeContext(
+    DungeonCanvasViewer* viewer, int room_id) {
+  if (!viewer) {
+    return;
+  }
+
+  if (viewer->rom() != rom_) {
+    viewer->SetRom(rom_);
+  }
+  if (viewer->rooms() != &rooms_) {
+    viewer->SetRooms(&rooms_);
+  }
+  if (viewer->game_data() != game_data_) {
+    viewer->SetGameData(game_data_);
+  }
+  viewer->SetRenderer(renderer_);
+  viewer->SetCurrentPaletteGroup(current_palette_group_);
+  viewer->SetCurrentPaletteId(current_palette_id_);
+  ConfigureViewerRenderContext(viewer, room_id);
+  viewer->SetEditorSystem(dungeon_editor_system_.get());
+  viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
+  if (viewer->project() != dependencies_.project) {
+    viewer->SetProject(dependencies_.project);
+  }
+}
+
 DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
   if (!workbench_viewer_) {
     workbench_viewer_ = std::make_unique<DungeonCanvasViewer>(rom_);
@@ -2412,7 +2438,9 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     WireViewerPanelCallbacks(viewer);
   }
 
-  return workbench_viewer_.get();
+  auto* viewer = workbench_viewer_.get();
+  RefreshWorkbenchViewerRuntimeContext(viewer, current_room_id_);
+  return viewer;
 }
 
 DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer() {
@@ -2444,7 +2472,12 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchCompareViewer() {
     viewer->SetProject(dependencies_.project);
   }
 
-  return workbench_compare_viewer_.get();
+  auto* viewer = workbench_compare_viewer_.get();
+  RefreshWorkbenchViewerRuntimeContext(viewer, current_room_id_);
+  viewer->SetObjectInteractionEnabled(false);
+  viewer->SetHeaderReadOnly(true);
+  viewer->SetHeaderVisible(false);
+  return viewer;
 }
 
 absl::Status DungeonEditorV2::Undo() {

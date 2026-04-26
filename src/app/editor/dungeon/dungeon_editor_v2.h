@@ -115,6 +115,12 @@ class DungeonEditorV2 : public Editor {
           if (viewer)
             viewer->SetGameData(game_data);
         });
+    if (workbench_viewer_) {
+      workbench_viewer_->SetGameData(game_data);
+    }
+    if (workbench_compare_viewer_) {
+      workbench_compare_viewer_->SetGameData(game_data);
+    }
   }
 
   // Editor interface
@@ -143,17 +149,21 @@ class DungeonEditorV2 : public Editor {
 
   // ROM management
   void SetRom(Rom* rom) {
+    const bool rom_changed = rom_ != rom;
     rom_ = rom;
     room_loader_ = DungeonRoomLoader(rom);
+    room_loader_.SetGameData(game_data_);
     room_selector_.SetRom(rom);
 
     // Propagate ROM to all rooms
-    if (rom) {
-      rooms_.SetRom(rom);
-    }
-
+    rooms_.SetRom(rom);
     // Reset viewers on ROM change
-    room_viewers_.Clear();
+    if (rom_changed) {
+      rooms_.Clear();
+      room_viewers_.Clear();
+      workbench_viewer_.reset();
+      workbench_compare_viewer_.reset();
+    }
   }
   Rom* rom() const { return rom_; }
 
@@ -270,6 +280,8 @@ class DungeonEditorV2 : public Editor {
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
   DungeonCanvasViewer* GetWorkbenchViewer();
   DungeonCanvasViewer* GetWorkbenchCompareViewer();
+  void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
+                                            int room_id);
   void TouchViewerLru(int room_id);
   void RemoveViewerFromLru(int room_id);
 
