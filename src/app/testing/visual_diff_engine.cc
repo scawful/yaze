@@ -1,4 +1,4 @@
-#include "app/test/visual_diff_engine.h"
+#include "app/testing/visual_diff_engine.h"
 
 #include <algorithm>
 #include <cmath>

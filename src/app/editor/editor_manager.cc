@@ -74,7 +74,7 @@
 #include "app/platform/font_loader.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/timing.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -116,17 +116,17 @@
 
 // Conditional test headers
 #ifdef YAZE_ENABLE_TESTING
-#include "app/test/core_systems_test_suite.h"
-#include "app/test/e2e_test_suite.h"
-#include "app/test/integrated_test_suite.h"
-#include "app/test/rom_dependent_test_suite.h"
-#include "app/test/zscustomoverworld_test_suite.h"
+#include "app/testing/core_systems_test_suite.h"
+#include "app/testing/e2e_test_suite.h"
+#include "app/testing/integrated_test_suite.h"
+#include "app/testing/rom_dependent_test_suite.h"
+#include "app/testing/zscustomoverworld_test_suite.h"
 #endif
 #ifdef YAZE_ENABLE_GTEST
-#include "app/test/unit_test_suite.h"
+#include "app/testing/unit_test_suite.h"
 #endif
 #ifdef YAZE_WITH_GRPC
-#include "app/test/z3ed_test_suite.h"
+#include "app/testing/z3ed_test_suite.h"
 #endif
 
 // Conditional agent UI headers

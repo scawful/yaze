@@ -26,7 +26,7 @@
 #include "app/emu/mesen/mesen_emulator_adapter.h"
 #include "app/service/canvas_automation_service.h"
 #include "app/service/unified_grpc_server.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #endif
 
 #ifdef __EMSCRIPTEN__

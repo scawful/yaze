@@ -1,7 +1,7 @@
 #include "e2e/ai_multimodal_test.h"
 
-#include "app/test/ai_vision_verifier.h"
-#include "app/test/screenshot_assertion.h"
+#include "app/testing/ai_vision_verifier.h"
+#include "app/testing/screenshot_assertion.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "test_utils.h"

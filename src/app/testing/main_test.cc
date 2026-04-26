@@ -1,6 +1,6 @@
-#include "app/test/agent_tools_test.h"
-#include "app/test/test_manager.h"
-#include "app/test/z3ed_test_suite.h"
+#include "app/testing/agent_tools_test.h"
+#include "app/testing/test_manager.h"
+#include "app/testing/z3ed_test_suite.h"
 #include "util/log.h"
 
 #include "absl/flags/parse.h"
@@ -8,9 +8,9 @@
 #include "imgui.h"
 
 #if YAZE_ENABLE_EXPERIMENTAL_APP_TEST_SUITES
-#include "app/test/dungeon_editor_test_suite.h"
-#include "app/test/graphics_editor_test_suite.h"
-#include "app/test/overworld_editor_test_suite.h"
+#include "app/testing/dungeon_editor_test_suite.h"
+#include "app/testing/graphics_editor_test_suite.h"
+#include "app/testing/overworld_editor_test_suite.h"
 #endif
 
 int main(int argc, char** argv) {

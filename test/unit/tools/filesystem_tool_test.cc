@@ -77,7 +77,7 @@ class FileSystemToolTest : public ::testing::Test {
   void SetUp() override {
     // Create test directories and files
     test_dir_ =
-        MakeUniqueTestDir(FindProjectRoot() / "test_temp", "yaze_fs_tool_test");
+        MakeUniqueTestDir(FindProjectRoot() / ".local" / "test_temp", "yaze_fs_tool_test");
     std::filesystem::create_directories(test_dir_ / "subdir");
 
     // Create test files

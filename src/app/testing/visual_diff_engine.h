@@ -7,7 +7,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/test/screenshot_assertion.h"
+#include "app/testing/screenshot_assertion.h"
 
 namespace yaze {
 namespace test {

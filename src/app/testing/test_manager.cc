@@ -1,4 +1,4 @@
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -37,8 +37,8 @@ class EditorManager;
 }  // namespace yaze
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-#include "app/test/dungeon_ui_tests.h"
-#include "app/test/overworld_ui_tests.h"
+#include "app/testing/dungeon_ui_tests.h"
+#include "app/testing/overworld_ui_tests.h"
 #if __has_include("imgui_test_engine/imgui_te_engine.h")
 #include "imgui_test_engine/imgui_te_engine.h"
 #elif __has_include("imgui_te_engine.h")

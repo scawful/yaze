@@ -25,7 +25,7 @@
 #include "app/service/screenshot_utils.h"
 #include "imgui/imgui.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #endif
 #if defined(__APPLE__) && \
     (TARGET_OS_IPHONE == 1 || TARGET_IPHONE_SIMULATOR == 1)

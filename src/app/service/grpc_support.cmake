@@ -23,8 +23,8 @@ set(
   app/service/visual_service_impl.cc
 
   # Test infrastructure
-  app/test/test_recorder.cc
-  app/test/test_script_parser.cc
+  app/testing/test_recorder.cc
+  app/testing/test_script_parser.cc
 )
 
 add_library(yaze_grpc_support STATIC ${YAZE_GRPC_SOURCES})

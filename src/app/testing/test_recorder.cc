@@ -1,4 +1,4 @@
-#include "app/test/test_recorder.h"
+#include "app/testing/test_recorder.h"
 
 #include <utility>
 
@@ -7,8 +7,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
-#include "app/test/test_manager.h"
-#include "app/test/test_script_parser.h"
+#include "app/testing/test_manager.h"
+#include "app/testing/test_script_parser.h"
 #include "util/macro.h"
 
 namespace yaze {

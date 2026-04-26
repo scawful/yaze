@@ -7,7 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "rom/rom.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 
 namespace yaze {
 namespace test {
