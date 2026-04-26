@@ -20,6 +20,9 @@ namespace yaze::editor {
 
 namespace {
 
+constexpr double kCycleHudHoldSeconds = 1.25;
+constexpr size_t kCycleHudMaxLabelChars = 54;
+
 bool Intersects(int ax, int ay, int aw, int ah, int bx, int by, int bw,
                 int bh) {
   return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
@@ -73,6 +76,19 @@ ImVec4 EntitySelectionColor(const AgentUITheme& theme, EntityType type) {
     default:
       return theme.accent_color;
   }
+}
+
+bool IsCycleModifierHeld(const ImGuiIO& io) {
+  return io.KeyAlt && (io.KeyCtrl || io.KeySuper);
+}
+
+std::string TruncateCycleHudLabel(std::string label) {
+  if (label.size() <= kCycleHudMaxLabelChars) {
+    return label;
+  }
+  label.resize(kCycleHudMaxLabelChars - 3);
+  label += "...";
+  return label;
 }
 
 }  // namespace
@@ -150,7 +166,7 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
   }
 
   const ImGuiIO& io = ImGui::GetIO();
-  const bool cycle_modifier = io.KeyAlt && (io.KeyCtrl || io.KeySuper);
+  const bool cycle_modifier = IsCycleModifierHeld(io);
   if (io.KeyAlt && !cycle_modifier) {
     const bool had_entity_selection = HasEntitySelection();
     const bool had_object_selection =
@@ -899,7 +915,74 @@ bool InteractionCoordinator::SameCycleTarget(
   return true;
 }
 
+std::optional<size_t> InteractionCoordinator::FindSelectedCycleIndex(
+    const std::vector<SelectedEntity>& hits) const {
+  for (size_t i = 0; i < hits.size(); ++i) {
+    const SelectedEntity hit = hits[i];
+    if (hit.type == EntityType::Object) {
+      if (ctx_ && ctx_->selection &&
+          ctx_->selection->IsObjectSelected(hit.index)) {
+        return i;
+      }
+      continue;
+    }
+
+    if (std::find(selected_entities_.begin(), selected_entities_.end(), hit) !=
+        selected_entities_.end()) {
+      return i;
+    }
+
+    const SelectedEntity selected = GetSelectedEntity();
+    if (selected == hit) {
+      return i;
+    }
+  }
+
+  return std::nullopt;
+}
+
+void InteractionCoordinator::UpdateSelectionCycleHudPreview() {
+  if (!ctx_ || !ctx_->canvas || !ctx_->canvas->IsMouseHovering()) {
+    return;
+  }
+
+  const ImGuiIO& io = ImGui::GetIO();
+  if (!IsCycleModifierHeld(io)) {
+    return;
+  }
+
+  const ImVec2 canvas_pos = ctx_->canvas->zero_point();
+  const int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
+  const int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  const auto hits = GetEntitiesAtPosition(canvas_x, canvas_y);
+  if (hits.size() < 2) {
+    cycle_last_hits_.clear();
+    cycle_next_index_ = 0;
+    cycle_hud_start_time_ = -1.0;
+    return;
+  }
+
+  if (!SameCycleTarget(canvas_x, canvas_y, hits)) {
+    cycle_next_index_ = 0;
+  }
+
+  cycle_last_x_ = canvas_x;
+  cycle_last_y_ = canvas_y;
+  cycle_hud_screen_pos_ = io.MousePos;
+  cycle_hud_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
+  cycle_last_hits_ = hits;
+  if (const auto selected_index = FindSelectedCycleIndex(hits)) {
+    cycle_active_index_ = *selected_index;
+  } else {
+    cycle_active_index_ = cycle_next_index_ % hits.size();
+  }
+}
+
 void InteractionCoordinator::DrawSelectionCycleHud() {
+  if (ImGui::GetCurrentContext()) {
+    UpdateSelectionCycleHudPreview();
+  }
+
   if (!ImGui::GetCurrentContext() || cycle_last_hits_.size() < 2 ||
       cycle_hud_start_time_ < 0.0) {
     return;
@@ -907,8 +990,7 @@ void InteractionCoordinator::DrawSelectionCycleHud() {
 
   const double elapsed = ImGui::GetTime() - cycle_hud_start_time_;
   const ImGuiIO& io = ImGui::GetIO();
-  constexpr double kCycleHudHoldSeconds = 1.25;
-  const bool cycle_modifier_held = io.KeyAlt && (io.KeyCtrl || io.KeySuper);
+  const bool cycle_modifier_held = IsCycleModifierHeld(io);
   if (!cycle_modifier_held && elapsed > kCycleHudHoldSeconds) {
     return;
   }
@@ -927,6 +1009,8 @@ void InteractionCoordinator::DrawSelectionCycleHud() {
   text.w *= alpha;
   ImVec4 secondary = theme.text_secondary_color;
   secondary.w *= alpha;
+  ImVec4 active = theme.accent_color;
+  active.w *= alpha;
 
   ImGui::SetNextWindowPos(
       ImVec2(cycle_hud_screen_pos_.x + 14.0f, cycle_hud_screen_pos_.y + 14.0f),
@@ -945,7 +1029,11 @@ void InteractionCoordinator::DrawSelectionCycleHud() {
     ImGui::TextColored(secondary, "Cycle");
     for (size_t i = 0; i < cycle_last_hits_.size(); ++i) {
       const char* marker = (i == cycle_active_index_) ? "[X]" : "[ ]";
-      ImGui::Text("%s %s", marker, DescribeEntity(cycle_last_hits_[i]).c_str());
+      ImGui::TextColored(i == cycle_active_index_ ? active : secondary, "%s",
+                         marker);
+      ImGui::SameLine(0.0f, 5.0f);
+      ImGui::TextUnformatted(
+          DescribeCycleHudEntity(cycle_last_hits_[i]).c_str());
     }
   }
   ImGui::End();
@@ -1034,6 +1122,11 @@ std::string InteractionCoordinator::DescribeEntity(
     default:
       return "None";
   }
+}
+
+std::string InteractionCoordinator::DescribeCycleHudEntity(
+    SelectedEntity entity) const {
+  return TruncateCycleHudLabel(DescribeEntity(entity));
 }
 
 }  // namespace yaze::editor

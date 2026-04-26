@@ -197,9 +197,13 @@ class InteractionCoordinator {
   bool UpdateEntitySelection(SelectedEntity entity, bool additive, bool toggle);
   bool SameCycleTarget(int canvas_x, int canvas_y,
                        const std::vector<SelectedEntity>& hits) const;
+  void UpdateSelectionCycleHudPreview();
+  std::optional<size_t> FindSelectedCycleIndex(
+      const std::vector<SelectedEntity>& hits) const;
   void DrawSelectionCycleHud();
   void DrawMultiEntitySelectionHighlights();
   std::string DescribeEntity(SelectedEntity entity) const;
+  std::string DescribeCycleHudEntity(SelectedEntity entity) const;
 };
 
 }  // namespace editor

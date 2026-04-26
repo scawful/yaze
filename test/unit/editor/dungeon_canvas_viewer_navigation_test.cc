@@ -75,6 +75,28 @@ class DungeonCanvasViewerTestPeer {
   static double ChangePingStartTime(const DungeonCanvasViewer& viewer) {
     return viewer.change_ping_start_time_;
   }
+
+  static std::vector<std::string> InteractionContextMenuLabels(
+      DungeonCanvasViewer& viewer, int room_id) {
+    viewer.canvas_.ClearContextMenuItems();
+    viewer.AddInteractionContextMenuItems(room_id);
+    std::vector<std::string> labels;
+    for (const auto& section : viewer.canvas_.editor_menu().sections) {
+      for (const auto& item : section.items) {
+        labels.push_back(item.label);
+      }
+    }
+    return labels;
+  }
+
+  static std::vector<std::string> SelectionContextMenuLabels(
+      DungeonCanvasViewer& viewer, int room_id) {
+    std::vector<std::string> labels;
+    for (const auto& item : viewer.BuildSelectionContextMenuItems(room_id)) {
+      labels.push_back(item.label);
+    }
+    return labels;
+  }
 };
 
 namespace {
@@ -110,6 +132,28 @@ std::filesystem::path MakeTempHomeRoot() {
              "yaze_dungeon_canvas_viewer_test_" +
              std::to_string(
                  std::chrono::steady_clock::now().time_since_epoch().count()));
+}
+
+struct ScopedImGuiContext {
+  ImGuiContext* context = nullptr;
+
+  ScopedImGuiContext() {
+    context = ImGui::CreateContext();
+    ImGui::GetIO().DisplaySize = ImVec2(1024, 768);
+  }
+
+  ~ScopedImGuiContext() {
+    if (context != nullptr) {
+      ImGui::DestroyContext(context);
+    }
+  }
+};
+
+size_t FindLabelIndex(const std::vector<std::string>& labels,
+                      const std::string& label) {
+  const auto it = std::find(labels.begin(), labels.end(), label);
+  return it == labels.end() ? labels.size()
+                            : static_cast<size_t>(it - labels.begin());
 }
 
 std::string ReadFile(const std::filesystem::path& path) {
@@ -219,6 +263,57 @@ TEST(DungeonCanvasViewerNavigationTest, ScrollToTileStoresPendingTarget) {
   ASSERT_TRUE(viewer.GetPendingScrollTarget().has_value());
   EXPECT_EQ(viewer.GetPendingScrollTarget()->first, 12);
   EXPECT_EQ(viewer.GetPendingScrollTarget()->second, 34);
+}
+
+TEST(DungeonCanvasViewerContextMenuTest, DirectActionsPrecedeInsertSubmenu) {
+  ScopedImGuiContext imgui;
+  DungeonCanvasViewer viewer;
+  viewer.SetShowObjectPanelCallback([]() {});
+  viewer.SetShowSpritePanelCallback([]() {});
+  viewer.SetShowItemPanelCallback([]() {});
+
+  const auto labels =
+      DungeonCanvasViewerTestPeer::InteractionContextMenuLabels(viewer, 0);
+
+  ASSERT_GE(labels.size(), 4u);
+  EXPECT_EQ(labels[0], "Paste");
+  EXPECT_EQ(labels[1], "Delete");
+  EXPECT_EQ(labels[2], "Delete All");
+  EXPECT_EQ(labels[3], "Insert");
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     SelectedObjectUsesDirectZAndLayerLabels) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects().push_back(
+      zelda3::RoomObject{0x01, 10, 10, 0x00, 0});
+
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  const auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+
+  const size_t bring_front = FindLabelIndex(labels, "Bring to Front");
+  const size_t send_back = FindLabelIndex(labels, "Send to Back");
+  const size_t z_order = FindLabelIndex(labels, "Z Order");
+  const size_t layer_1 = FindLabelIndex(labels, "Layer 1");
+  const size_t layer_3 = FindLabelIndex(labels, "Layer 3");
+
+  ASSERT_LT(bring_front, labels.size());
+  ASSERT_LT(send_back, labels.size());
+  ASSERT_LT(z_order, labels.size());
+  ASSERT_LT(layer_1, labels.size());
+  ASSERT_LT(layer_3, labels.size());
+  EXPECT_LT(bring_front, z_order);
+  EXPECT_LT(send_back, z_order);
+  EXPECT_LT(z_order, layer_1);
+  EXPECT_LT(layer_1, layer_3);
+  EXPECT_EQ(FindLabelIndex(labels, "Increase Z"), labels.size());
+  EXPECT_EQ(FindLabelIndex(labels, "Send to Layer 1"), labels.size());
 }
 
 TEST(DungeonCanvasViewerPingTest, TriggerCanvasPingRectClampsToCanvasBounds) {

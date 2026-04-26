@@ -1154,7 +1154,37 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   // Room badge: hex ID + copy button (only for valid room IDs).
   workbench::DrawInspectorSectionHeader(ICON_MD_CASTLE " Room Summary");
   if (room_id >= 0) {
-    ImGui::Text("Room: 0x%03X (%d)", room_id, room_id);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted("Room");
+    ImGui::SameLine();
+    uint16_t requested_room_id = static_cast<uint16_t>(room_id);
+    ImGui::SetNextItemWidth(74.0f);
+    const bool can_jump_room = static_cast<bool>(on_room_selected_);
+    if (!can_jump_room) {
+      ImGui::BeginDisabled();
+    }
+    if (auto res = gui::InputHexWordEx("##WorkbenchRoomId", &requested_room_id,
+                                       74.0f, true);
+        res.ShouldApply()) {
+      const int target_room_id = std::clamp(static_cast<int>(requested_room_id),
+                                            0, zelda3::kNumberOfRooms - 1);
+      if (target_room_id != room_id && on_room_selected_) {
+        if (current_room_id_) {
+          *current_room_id_ = target_room_id;
+        }
+        on_room_selected_(target_room_id);
+      }
+    }
+    if (!can_jump_room) {
+      ImGui::EndDisabled();
+    }
+    if (ImGui::IsItemHovered()) {
+      const int preview_room_id = std::clamp(
+          static_cast<int>(requested_room_id), 0, zelda3::kNumberOfRooms - 1);
+      ImGui::SetTooltip("Open room 0x%03X", preview_room_id);
+    }
+    ImGui::SameLine();
+    ImGui::TextDisabled("(%d)", room_id);
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CONTENT_COPY "##CopyRoomId")) {
       char buf[16];
@@ -1318,38 +1348,38 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     };
 
     if (ImGui::BeginTable("##WorkbenchRoomHeader", 4, kHeaderFlags)) {
-      ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 44.0f);
       ImGui::TableSetupColumn("V1", ImGuiTableColumnFlags_WidthFixed, 66.0f);
-      ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 44.0f);
       ImGui::TableSetupColumn("V2", ImGuiTableColumnFlags_WidthStretch);
 
       ImGui::TableNextRow();
-      draw_byte_field("Layout", "##RoomHeaderLayout", layout_val, 0x07,
+      draw_byte_field("Lay", "##RoomHeaderLayout", layout_val, 0x07,
                       "Layout (0-7)", [&](uint8_t value) {
                         room.SetLayoutId(value);
                         room.MarkLayoutDirty();
                         render_room_graphics();
                       });
-      draw_byte_field("Blockset", "##RoomHeaderBlockset", blockset_val, 0x51,
+      draw_byte_field("Blk", "##RoomHeaderBlockset", blockset_val, 0x51,
                       "Blockset (0-51)", [&](uint8_t value) {
                         room.SetBlockset(value);
                         render_room_graphics();
                       });
 
       ImGui::TableNextRow();
-      draw_byte_field("Floor1", "##RoomHeaderFloor1", floor1_val, 0x0F,
+      draw_byte_field("F1", "##RoomHeaderFloor1", floor1_val, 0x0F,
                       "BG1 floor graphics (0-F)", [&](uint8_t value) {
                         room.set_floor1(value);
                         render_room_graphics();
                       });
-      draw_byte_field("Floor2", "##RoomHeaderFloor2", floor2_val, 0x0F,
+      draw_byte_field("F2", "##RoomHeaderFloor2", floor2_val, 0x0F,
                       "BG2 floor graphics (0-F)", [&](uint8_t value) {
                         room.set_floor2(value);
                         render_room_graphics();
                       });
 
       ImGui::TableNextRow();
-      draw_byte_field("Palette", "##RoomHeaderPalette", palette_val, 0x47,
+      draw_byte_field("Pal", "##RoomHeaderPalette", palette_val, 0x47,
                       "Palette set (0-47)", [&](uint8_t value) {
                         room.SetPalette(value);
                         render_room_graphics();
@@ -1357,14 +1387,14 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
                           on_room_selected_(room_id);
                         }
                       });
-      draw_byte_field("SpriteSet", "##RoomHeaderSpriteset", spriteset_val, 0x8F,
+      draw_byte_field("Spr", "##RoomHeaderSpriteset", spriteset_val, 0x8F,
                       "Sprite graphics set (0-8F)", [&](uint8_t value) {
                         room.SetSpriteset(value);
                         render_room_graphics();
                       });
 
       ImGui::TableNextRow();
-      draw_word_field("Message", "##RoomHeaderMessage", message_val, 0x0FFF,
+      draw_word_field("Msg", "##RoomHeaderMessage", message_val, 0x0FFF,
                       "Dungeon message ID (0-FFF)",
                       [&](uint16_t value) { room.SetMessageId(value); });
       draw_byte_field("BG2", "##RoomHeaderBg2", bg2_val, 0x08,
@@ -1377,14 +1407,14 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       ImGui::TableNextRow();
       const char* effect_name =
           effect_val < 8 ? zelda3::RoomEffect[effect_val].c_str() : "Unknown";
-      draw_byte_field("Effect", "##RoomHeaderEffect", effect_val, 0x07,
+      draw_byte_field("FX", "##RoomHeaderEffect", effect_val, 0x07,
                       std::string("Effect: ") + effect_name,
                       [&](uint8_t value) {
                         room.SetEffect(static_cast<zelda3::EffectKey>(value));
                         render_room_graphics();
                       });
       draw_byte_field(
-          "Collision", "##RoomHeaderCollision", collision_val, 0x04,
+          "Coll", "##RoomHeaderCollision", collision_val, 0x04,
           std::string("Collision: ") + GetCollisionName(collision_val),
           [&](uint8_t value) {
             room.SetCollision(static_cast<zelda3::CollisionKey>(value));
@@ -1410,50 +1440,46 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     ImGui::Dummy(ImVec2(0.0f, 2.0f));
     workbench::DrawInspectorSectionHeader(ICON_MD_ALT_ROUTE " Destinations");
     if (ImGui::BeginTable("##WorkbenchRoomDestinations", 4, kHeaderFlags)) {
-      ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 44.0f);
       ImGui::TableSetupColumn("V1", ImGuiTableColumnFlags_WidthFixed, 66.0f);
-      ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 44.0f);
       ImGui::TableSetupColumn("V2", ImGuiTableColumnFlags_WidthStretch);
 
       ImGui::TableNextRow();
       draw_byte_field("Pit", "##RoomHeaderPit", room.holewarp(), 0xFF,
                       "Pit/holewarp destination room",
                       [&](uint8_t value) { room.SetHolewarp(value); });
-      draw_byte_field("Stair1", "##RoomHeaderStair1", room.staircase_room(0),
-                      0xFF, "Stair destination slot 1",
+      draw_byte_field("St1", "##RoomHeaderStair1", room.staircase_room(0), 0xFF,
+                      "Stair destination slot 1",
                       [&](uint8_t value) { room.SetStaircaseRoom(0, value); });
 
       ImGui::TableNextRow();
-      draw_byte_field("Stair2", "##RoomHeaderStair2", room.staircase_room(1),
-                      0xFF, "Stair destination slot 2",
+      draw_byte_field("St2", "##RoomHeaderStair2", room.staircase_room(1), 0xFF,
+                      "Stair destination slot 2",
                       [&](uint8_t value) { room.SetStaircaseRoom(1, value); });
-      draw_byte_field("Stair3", "##RoomHeaderStair3", room.staircase_room(2),
-                      0xFF, "Stair destination slot 3",
+      draw_byte_field("St3", "##RoomHeaderStair3", room.staircase_room(2), 0xFF,
+                      "Stair destination slot 3",
                       [&](uint8_t value) { room.SetStaircaseRoom(2, value); });
 
       ImGui::TableNextRow();
-      draw_byte_field("Stair4", "##RoomHeaderStair4", room.staircase_room(3),
-                      0xFF, "Stair destination slot 4",
+      draw_byte_field("St4", "##RoomHeaderStair4", room.staircase_room(3), 0xFF,
+                      "Stair destination slot 4",
                       [&](uint8_t value) { room.SetStaircaseRoom(3, value); });
-      draw_byte_field("S1 Plane", "##RoomHeaderStairPlane1",
-                      room.staircase_plane(0), 0x03,
-                      "Stair 1 target layer/plane (0-3)",
+      draw_byte_field("P1", "##RoomHeaderStairPlane1", room.staircase_plane(0),
+                      0x03, "Stair 1 target layer/plane (0-3)",
                       [&](uint8_t value) { room.SetStaircasePlane(0, value); });
 
       ImGui::TableNextRow();
-      draw_byte_field("S2 Plane", "##RoomHeaderStairPlane2",
-                      room.staircase_plane(1), 0x03,
-                      "Stair 2 target layer/plane (0-3)",
+      draw_byte_field("P2", "##RoomHeaderStairPlane2", room.staircase_plane(1),
+                      0x03, "Stair 2 target layer/plane (0-3)",
                       [&](uint8_t value) { room.SetStaircasePlane(1, value); });
-      draw_byte_field("S3 Plane", "##RoomHeaderStairPlane3",
-                      room.staircase_plane(2), 0x03,
-                      "Stair 3 target layer/plane (0-3)",
+      draw_byte_field("P3", "##RoomHeaderStairPlane3", room.staircase_plane(2),
+                      0x03, "Stair 3 target layer/plane (0-3)",
                       [&](uint8_t value) { room.SetStaircasePlane(2, value); });
 
       ImGui::TableNextRow();
-      draw_byte_field("S4 Plane", "##RoomHeaderStairPlane4",
-                      room.staircase_plane(3), 0x03,
-                      "Stair 4 target layer/plane (0-3)",
+      draw_byte_field("P4", "##RoomHeaderStairPlane4", room.staircase_plane(3),
+                      0x03, "Stair 4 target layer/plane (0-3)",
                       [&](uint8_t value) { room.SetStaircasePlane(3, value); });
       ImGui::TableNextColumn();
       ImGui::TableNextColumn();
