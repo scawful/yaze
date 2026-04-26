@@ -1,5 +1,7 @@
 #include "app/editor/system/session/user_settings.h"
 
+#include <string>
+
 #include "gtest/gtest.h"
 
 namespace yaze::editor {
@@ -201,7 +203,9 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_TRUE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
-  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.object_editor"]);
+  EXPECT_EQ(
+      prefs.panel_visibility_state["Dungeon"].count("dungeon.object_editor"),
+      0U);
   EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"]);
   EXPECT_FALSE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
@@ -230,10 +234,12 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_EQ(prefs.last_theme_name, "Classic YAZE");
   EXPECT_FALSE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.object_tile_editor"]);
-  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.settings"]);
-  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.dungeon_map"]);
+  EXPECT_EQ(prefs.panel_visibility_state["Dungeon"].count("dungeon.settings"),
+            0U);
+  EXPECT_EQ(
+      prefs.panel_visibility_state["Dungeon"].count("dungeon.dungeon_map"), 0U);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
-  EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.settings"]);
+  EXPECT_EQ(prefs.saved_layouts["custom"].count("dungeon.settings"), 0U);
 }
 
 TEST(UserSettingsLayoutDefaultsTest,
@@ -281,6 +287,56 @@ TEST(UserSettingsLayoutDefaultsTest,
       prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
   EXPECT_EQ(prefs.pinned_panels.count("dungeon.room_98"), 0U);
   EXPECT_TRUE(prefs.pinned_panels["layout.designer"]);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionNineteenEmbedsDungeonUtilityPanelsInWorkbench) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 18;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = false;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.object_editor"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.settings"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.dungeon_map"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"] = true;
+  prefs.pinned_panels["dungeon.object_editor"] = true;
+  prefs.pinned_panels["dungeon.settings"] = true;
+  prefs.pinned_panels["dungeon.room_matrix"] = true;
+  prefs.saved_layouts["custom"]["dungeon.object_editor"] = true;
+  prefs.saved_layouts["custom"]["dungeon.dungeon_map"] = true;
+  prefs.saved_layouts["custom"]["dungeon.room_matrix"] = true;
+  prefs.named_layouts["custom"] =
+      R"({"schema_version":2,"name":"custom","root":{"id":1,"type":"leaf","active_tab_index":2,"panels":[{"panel_id":"dungeon.object_editor"},{"panel_id":"dungeon.room_matrix"},{"panel_id":"dungeon.dungeon_map"}]}})";
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision,
+            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
+  EXPECT_EQ(
+      prefs.panel_visibility_state["Dungeon"].count("dungeon.object_editor"),
+      0U);
+  EXPECT_EQ(prefs.panel_visibility_state["Dungeon"].count("dungeon.settings"),
+            0U);
+  EXPECT_EQ(
+      prefs.panel_visibility_state["Dungeon"].count("dungeon.dungeon_map"), 0U);
+  EXPECT_EQ(prefs.pinned_panels.count("dungeon.object_editor"), 0U);
+  EXPECT_EQ(prefs.pinned_panels.count("dungeon.settings"), 0U);
+  EXPECT_TRUE(prefs.pinned_panels["dungeon.room_matrix"]);
+  EXPECT_EQ(prefs.saved_layouts["custom"].count("dungeon.object_editor"), 0U);
+  EXPECT_EQ(prefs.saved_layouts["custom"].count("dungeon.dungeon_map"), 0U);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.room_matrix"]);
+  EXPECT_EQ(prefs.named_layouts["custom"].find("dungeon.object_editor"),
+            std::string::npos);
+  EXPECT_EQ(prefs.named_layouts["custom"].find("dungeon.dungeon_map"),
+            std::string::npos);
+  EXPECT_NE(prefs.named_layouts["custom"].find("dungeon.room_matrix"),
+            std::string::npos);
+  EXPECT_NE(prefs.named_layouts["custom"].find("\"active_tab_index\":0"),
+            std::string::npos);
 }
 
 }  // namespace yaze::editor

@@ -257,6 +257,21 @@ TEST_F(InteractionDelegationTest,
   EXPECT_EQ(interaction_.entity_coordinator().GetSelectedEntities().size(), 2u);
 }
 
+TEST_F(InteractionDelegationTest, PasteFromInspectorFallsBackToVisibleOffset) {
+  interaction_.SetSelectedObjects({0});
+  interaction_.HandleCopySelected();
+  ASSERT_TRUE(interaction_.HasClipboardData());
+
+  ImGui::GetIO().MousePos = ImVec2(-300.0f, -300.0f);
+  interaction_.HandlePasteObjects();
+
+  const auto& objects = CurrentRoom().GetTileObjects();
+  ASSERT_EQ(objects.size(), 4u);
+  EXPECT_EQ(objects[3].id_, 0x55);
+  EXPECT_EQ(objects[3].x_, 11);
+  EXPECT_EQ(objects[3].y_, 11);
+}
+
 // =============================================================================
 // Z-Order Integration Tests
 // =============================================================================

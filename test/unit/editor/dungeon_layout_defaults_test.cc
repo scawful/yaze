@@ -30,8 +30,8 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
                              LayoutPresets::Panels::kDungeonRoomSelector));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonObjectSelector));
-  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
-                            LayoutPresets::Panels::kDungeonObjectEditor));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonObjectEditor));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonRoomGraphics));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
@@ -48,10 +48,6 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
   EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonRoomGraphics),
             IndexOfPanel(preset.default_visible_panels,
-                         LayoutPresets::Panels::kDungeonObjectEditor));
-  EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
-                         LayoutPresets::Panels::kDungeonObjectEditor),
-            IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonRoomMatrix));
   EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonRoomMatrix),
@@ -67,10 +63,9 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
   ASSERT_NE(selector_pos, preset.panel_positions.end());
   EXPECT_EQ(selector_pos->second, DockPosition::RightTop);
 
-  auto object_pos =
-      preset.panel_positions.find(LayoutPresets::Panels::kDungeonObjectEditor);
-  ASSERT_NE(object_pos, preset.panel_positions.end());
-  EXPECT_EQ(object_pos->second, DockPosition::RightBottom);
+  EXPECT_EQ(
+      preset.panel_positions.count(LayoutPresets::Panels::kDungeonObjectEditor),
+      0U);
 
   auto graphics_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kDungeonRoomGraphics);

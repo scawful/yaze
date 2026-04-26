@@ -1,13 +1,51 @@
 #include "dungeon_canvas_viewer.h"
 
+#include <algorithm>
 #include <cstdio>
 
 #include "app/gfx/resource/arena.h"
+#include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
+
+namespace {
+
+ImVec4 WithAlpha(ImVec4 color, float alpha) {
+  color.w = alpha;
+  return color;
+}
+
+void DrawRoomRenderFallback(const gui::CanvasRuntime& canvas_rt) {
+  if (!canvas_rt.draw_list) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  const float scale = std::max(canvas_rt.scale, 0.01f);
+  const ImVec2 room_min(canvas_rt.canvas_p0.x + canvas_rt.scrolling.x,
+                        canvas_rt.canvas_p0.y + canvas_rt.scrolling.y);
+  const ImVec2 room_max(room_min.x + (512.0f * scale),
+                        room_min.y + (512.0f * scale));
+  const ImVec2 canvas_max(canvas_rt.canvas_p0.x + canvas_rt.canvas_sz.x,
+                          canvas_rt.canvas_p0.y + canvas_rt.canvas_sz.y);
+
+  canvas_rt.draw_list->PushClipRect(canvas_rt.canvas_p0, canvas_max, true);
+  canvas_rt.draw_list->AddRectFilled(
+      room_min, room_max,
+      ImGui::GetColorU32(WithAlpha(theme.editor_background, 0.92f)));
+  canvas_rt.draw_list->AddRect(room_min, room_max,
+                               ImGui::GetColorU32(theme.panel_border_color),
+                               0.0f, 0, 1.5f);
+  canvas_rt.draw_list->AddText(ImVec2(room_min.x + 12.0f, room_min.y + 12.0f),
+                               ImGui::GetColorU32(theme.text_secondary_gray),
+                               "Room image pending");
+  canvas_rt.draw_list->PopClipRect();
+}
+
+}  // namespace
 
 void DungeonCanvasViewer::SyncCanvasCaptureRegion(
     const gui::CanvasRuntime& canvas_rt) {
@@ -175,7 +213,10 @@ void DungeonCanvasViewer::DrawRoomCanvasContent(
     const gui::CanvasRuntime& canvas_rt, zelda3::Room& room, int room_id) {
   PrepareRoomStateForCanvas(room, room_id);
 
-  DrawRoomBackgroundLayers(room_id);
+  const bool drew_background = DrawRoomBackgroundLayers(room_id);
+  if (!drew_background) {
+    DrawRoomRenderFallback(canvas_rt);
+  }
 
   if (object_interaction_.IsMaskModeActive()) {
     DrawMaskHighlights(canvas_rt, room);

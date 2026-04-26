@@ -392,16 +392,28 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
   return &composite;
 }
 
-void DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
+bool DungeonCanvasViewer::DrawRoomBackgroundLayers(int room_id) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms || !rooms_) {
-    return;
+    return false;
   }
 
   const float scale = canvas_.global_scale();
-  if (gfx::Bitmap* composite = PrepareRoomCompositeBitmap(room_id);
-      composite && composite->texture()) {
-    canvas_.DrawBitmap(*composite, 0, 0, scale, 255);
+  gfx::Bitmap* composite = PrepareRoomCompositeBitmap(room_id);
+  if (!composite) {
+    return false;
   }
+
+  // Single-room canvas rendering prepares the composite after the normal room
+  // state upload pass. Flush here too so workbench mode can draw the freshly
+  // queued room texture in the same frame.
+  gfx::Arena::Get().ProcessTextureQueue(renderer_);
+
+  if (composite->texture()) {
+    canvas_.DrawBitmap(*composite, 0, 0, scale, 255);
+    return true;
+  }
+
+  return false;
 }
 
 void DungeonCanvasViewer::DrawMaskHighlights(const gui::CanvasRuntime& rt,

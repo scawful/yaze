@@ -14,6 +14,8 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/dungeon_selection_snapshot.h"
+#include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui/window/shortcut_legend_panel.h"
 #include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/widgets/dungeon_status_bar.h"
@@ -26,10 +28,13 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_config.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "core/features.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/room_entrance.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
@@ -254,6 +259,7 @@ DungeonWorkbenchContent::DungeonWorkbenchContent(
     std::function<void(int)> on_room_selected,
     std::function<void(int, RoomSelectionIntent)> on_room_selected_with_intent,
     std::function<void(int)> on_save_room,
+    std::function<void()> on_save_all_rooms,
     std::function<DungeonCanvasViewer*()> get_viewer,
     std::function<DungeonCanvasViewer*()> get_compare_viewer,
     std::function<const std::deque<int>&()> get_recent_rooms,
@@ -265,6 +271,7 @@ DungeonWorkbenchContent::DungeonWorkbenchContent(
       on_room_selected_(std::move(on_room_selected)),
       on_room_selected_with_intent_(std::move(on_room_selected_with_intent)),
       on_save_room_(std::move(on_save_room)),
+      on_save_all_rooms_(std::move(on_save_all_rooms)),
       get_viewer_(std::move(get_viewer)),
       get_compare_viewer_(std::move(get_compare_viewer)),
       get_recent_rooms_(std::move(get_recent_rooms)),
@@ -272,6 +279,8 @@ DungeonWorkbenchContent::DungeonWorkbenchContent(
       show_panel_(std::move(show_panel)),
       set_workflow_mode_(std::move(set_workflow_mode)),
       rom_(rom) {}
+
+DungeonWorkbenchContent::~DungeonWorkbenchContent() = default;
 
 std::string DungeonWorkbenchContent::GetId() const {
   return "dungeon.workbench";
@@ -293,6 +302,20 @@ void DungeonWorkbenchContent::SetRom(Rom* rom) {
   rom_ = rom;
   room_dungeon_cache_.clear();
   room_dungeon_cache_built_ = false;
+}
+
+void DungeonWorkbenchContent::FocusRoomInspector() {
+  layout_state_.show_right_inspector = true;
+  inspector_focus_ = InspectorFocus::Room;
+}
+
+void DungeonWorkbenchContent::FocusSelectionInspector() {
+  layout_state_.show_right_inspector = true;
+  inspector_focus_ = InspectorFocus::Selection;
+}
+
+void DungeonWorkbenchContent::RequestDungeonMapPopup() {
+  open_dungeon_map_popup_ = true;
 }
 
 void DungeonWorkbenchContent::DrawSidebarPane(float width, float height,
@@ -334,7 +357,7 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
               show_panel_("dungeon.room_matrix");
             }
             if (ImGui::MenuItem(ICON_MD_MAP " Dungeon Map")) {
-              show_panel_("dungeon.dungeon_map");
+              RequestDungeonMapPopup();
             }
             ImGui::EndPopup();
           }
@@ -504,6 +527,9 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     DrawInspectorPane(right_w, total_h, btn,
                       pane_layout.responsive.compact_right, primary_viewer);
   }
+  if (primary_viewer) {
+    DrawDungeonMapPopup(*primary_viewer);
+  }
 }
 
 void DungeonWorkbenchContent::DrawCanvasPane(
@@ -605,6 +631,8 @@ void DungeonWorkbenchContent::DrawCanvasPane(
 
 void DungeonWorkbenchContent::DrawSelectionShelf(DungeonCanvasViewer& viewer) {
   auto& interaction = viewer.object_interaction();
+  const DungeonSelectionSnapshot snapshot = BuildDungeonSelectionSnapshot(
+      interaction, viewer.rooms(), viewer.current_room_id());
   const size_t object_count = interaction.GetSelectionCount();
   const bool has_entity = interaction.HasEntitySelection();
   if (object_count == 0 && !has_entity) {
@@ -650,17 +678,14 @@ void DungeonWorkbenchContent::DrawSelectionShelf(DungeonCanvasViewer& viewer) {
     }
   };
 
-  if (object_count > 0) {
-    draw_action(ICON_MD_DELETE " Delete", true,
-                [&]() { viewer.DeleteSelectedObjects(); });
-    draw_action(ICON_MD_CLEAR " Clear", true,
-                [&]() { interaction.ClearSelection(); });
-    draw_action(ICON_MD_TUNE " Open Editor", static_cast<bool>(show_panel_),
-                [&]() { show_panel_("dungeon.object_editor"); });
-  } else if (has_entity) {
-    const SelectedEntity selection = interaction.GetSelectedEntity();
-    const char* panel_id = nullptr;
-    const char* panel_label = nullptr;
+  ImGui::TextColored(AgentUI::GetTheme().text_secondary_gray,
+                     ICON_MD_SELECT_ALL " %s",
+                     GetDungeonSelectionSummaryText(snapshot).c_str());
+
+  const SelectedEntity selection = interaction.GetSelectedEntity();
+  const char* panel_id = nullptr;
+  const char* panel_label = nullptr;
+  if (object_count == 0 && has_entity) {
     switch (selection.type) {
       case EntityType::Door:
         panel_id = "dungeon.door_editor";
@@ -677,15 +702,26 @@ void DungeonWorkbenchContent::DrawSelectionShelf(DungeonCanvasViewer& viewer) {
       default:
         break;
     }
+  }
 
-    draw_action(ICON_MD_DELETE " Delete Entity", true, [&]() {
-      interaction.entity_coordinator().DeleteSelectedEntity();
-      interaction.ClearEntitySelection();
-    });
-    if (panel_label != nullptr) {
-      draw_action(panel_label, show_panel_ && panel_id != nullptr,
-                  [&]() { show_panel_(panel_id); });
-    }
+  const bool can_copy_selection = snapshot.object_count > 0 ||
+                                  snapshot.sprite_count > 0 ||
+                                  snapshot.item_count > 0;
+  draw_action(ICON_MD_CONTENT_COPY " Copy", can_copy_selection,
+              [&]() { interaction.HandleCopySelected(); });
+  draw_action(ICON_MD_CONTENT_PASTE " Paste", interaction.HasClipboardData(),
+              [&]() { interaction.HandlePasteObjects(); });
+  draw_action(ICON_MD_DELETE " Delete", true,
+              [&]() { interaction.HandleDeleteSelected(); });
+  draw_action(ICON_MD_CLEAR " Clear", true, [&]() {
+    interaction.ClearSelection();
+    interaction.ClearEntitySelection();
+  });
+  draw_action(ICON_MD_TUNE " Inspector", true,
+              [&]() { FocusSelectionInspector(); });
+  if (panel_label != nullptr) {
+    draw_action(panel_label, show_panel_ && panel_id != nullptr,
+                [&]() { show_panel_(panel_id); });
   }
 
   ImGui::Dummy(ImVec2(0.0f, 2.0f));
@@ -699,7 +735,7 @@ void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
   if (inspector_open) {
     DrawInspectorHeader(button_size, compact);
     if (viewer) {
-      DrawInspector(*viewer);
+      DrawInspector(*viewer, compact);
     } else {
       ImGui::TextDisabled("No active viewer");
     }
@@ -964,12 +1000,210 @@ void DungeonWorkbenchContent::BuildRoomDungeonCache() {
   }
 }
 
-void DungeonWorkbenchContent::DrawInspector(DungeonCanvasViewer& viewer) {
+void DungeonWorkbenchContent::DrawInspector(DungeonCanvasViewer& viewer,
+                                            bool compact) {
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
       ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
              std::max(4.0f, ImGui::GetStyle().ItemSpacing.y * 0.7f)));
-  DrawInspectorShelf(viewer);
+  DrawInspectorShelf(viewer, compact);
+}
+
+void DungeonWorkbenchContent::SetAllSaveFlags(bool value) {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = value;
+  flags.kSaveSprites = value;
+  flags.kSaveRoomHeaders = value;
+  flags.kSaveChests = value;
+  flags.kSavePotItems = value;
+  flags.kSavePalettes = value;
+  flags.kSaveCollision = value;
+  flags.kSaveWaterFillZones = value;
+  flags.kSaveBlocks = value;
+  flags.kSaveTorches = value;
+  flags.kSavePits = value;
+}
+
+void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  bool use_workbench = flags.kUseWorkbench;
+  if (ImGui::Checkbox("Single-window Workbench", &use_workbench)) {
+    flags.kUseWorkbench = use_workbench;
+    if (set_workflow_mode_) {
+      set_workflow_mode_(use_workbench);
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Keep Dungeon editing in the integrated Workbench instead of separate "
+        "high-level room panels.");
+  }
+
+  ImGui::Separator();
+  ImGui::TextDisabled("Data written by Apply Room / Apply Loaded Rooms");
+  constexpr ImGuiTableFlags kFlags =
+      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
+  if (ImGui::BeginTable("##WorkbenchApplyScopeFlags", 2, kFlags)) {
+    auto draw_checkbox = [](const char* label, bool* value) {
+      ImGui::TableNextColumn();
+      ImGui::Checkbox(label, value);
+    };
+    ImGui::TableNextRow();
+    draw_checkbox("Room Objects", &flags.kSaveObjects);
+    draw_checkbox("Sprites", &flags.kSaveSprites);
+    ImGui::TableNextRow();
+    draw_checkbox("Room Headers", &flags.kSaveRoomHeaders);
+    draw_checkbox("Chests", &flags.kSaveChests);
+    ImGui::TableNextRow();
+    draw_checkbox("Pot Items", &flags.kSavePotItems);
+    draw_checkbox("Palettes", &flags.kSavePalettes);
+    ImGui::TableNextRow();
+    draw_checkbox("Collision Maps", &flags.kSaveCollision);
+    draw_checkbox("Water Fill", &flags.kSaveWaterFillZones);
+    ImGui::TableNextRow();
+    draw_checkbox("Blocks", &flags.kSaveBlocks);
+    draw_checkbox("Torches", &flags.kSaveTorches);
+    ImGui::TableNextRow();
+    draw_checkbox("Pits", &flags.kSavePits);
+    ImGui::TableNextColumn();
+    ImGui::EndTable();
+  }
+
+  if (ImGui::SmallButton("Select All##WorkbenchApplyScope")) {
+    SetAllSaveFlags(true);
+  }
+  ImGui::SameLine();
+  if (ImGui::SmallButton("Select None##WorkbenchApplyScope")) {
+    SetAllSaveFlags(false);
+  }
+
+  ImGui::Separator();
+  if (on_save_room_ && room_id >= 0 &&
+      workbench::DrawActionButton(ICON_MD_SAVE " Apply Current Room",
+                                  ImVec2(-1, 0))) {
+    on_save_room_(room_id);
+  }
+  if (on_save_all_rooms_ &&
+      workbench::DrawActionButton(ICON_MD_SAVE_ALT " Apply Loaded Rooms",
+                                  ImVec2(-1, 0))) {
+    on_save_all_rooms_();
+  }
+}
+
+void DungeonWorkbenchContent::DrawLayerCompositingControls(
+    DungeonCanvasViewer& viewer, int room_id) {
+  if (room_id < 0) {
+    ImGui::TextDisabled("No active room");
+    return;
+  }
+
+  auto& layer_manager = viewer.GetRoomLayerManager(room_id);
+  auto draw_blend_combo = [&](const char* label, zelda3::LayerType layer_type) {
+    zelda3::LayerBlendMode current_mode =
+        layer_manager.GetLayerBlendMode(layer_type);
+    const char* current_name =
+        zelda3::RoomLayerManager::GetBlendModeName(current_mode);
+
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::BeginCombo(label, current_name)) {
+      for (int mode_int = 0; mode_int <= 4; ++mode_int) {
+        const auto mode = static_cast<zelda3::LayerBlendMode>(mode_int);
+        const char* mode_name =
+            zelda3::RoomLayerManager::GetBlendModeName(mode);
+        const bool selected = current_mode == mode;
+        if (ImGui::Selectable(mode_name, selected)) {
+          layer_manager.SetLayerBlendMode(layer_type, mode);
+        }
+        if (selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+  };
+
+  ImGui::TextDisabled("BG1");
+  draw_blend_combo("Layout##WorkbenchBlendBG1Layout",
+                   zelda3::LayerType::BG1_Layout);
+  draw_blend_combo("Objects##WorkbenchBlendBG1Objects",
+                   zelda3::LayerType::BG1_Objects);
+
+  ImGui::Spacing();
+  ImGui::TextDisabled("BG2");
+  draw_blend_combo("Layout##WorkbenchBlendBG2Layout",
+                   zelda3::LayerType::BG2_Layout);
+  draw_blend_combo("Objects##WorkbenchBlendBG2Objects",
+                   zelda3::LayerType::BG2_Objects);
+
+  if (workbench::DrawActionButton(ICON_MD_REFRESH " Reset Layer Blend",
+                                  ImVec2(-1, 0))) {
+    layer_manager.SetLayerBlendMode(zelda3::LayerType::BG1_Layout,
+                                    zelda3::LayerBlendMode::Normal);
+    layer_manager.SetLayerBlendMode(zelda3::LayerType::BG1_Objects,
+                                    zelda3::LayerBlendMode::Normal);
+    layer_manager.SetLayerBlendMode(zelda3::LayerType::BG2_Layout,
+                                    zelda3::LayerBlendMode::Normal);
+    layer_manager.SetLayerBlendMode(zelda3::LayerType::BG2_Objects,
+                                    zelda3::LayerBlendMode::Normal);
+  }
+}
+
+DungeonMapPanel* DungeonWorkbenchContent::GetEmbeddedDungeonMap(
+    DungeonCanvasViewer& viewer) {
+  if (!room_selector_ || !current_room_id_) {
+    return nullptr;
+  }
+  if (!embedded_dungeon_map_) {
+    embedded_dungeon_map_ = std::make_unique<DungeonMapPanel>(
+        current_room_id_, &room_selector_->mutable_active_rooms(),
+        on_room_selected_, viewer.rooms());
+    embedded_dungeon_map_->SetRoomIntentCallback(on_room_selected_with_intent_);
+    if (*current_room_id_ >= 0) {
+      embedded_dungeon_map_->AddRoom(*current_room_id_);
+    }
+  }
+  embedded_dungeon_map_->SetRooms(viewer.rooms());
+  if (const auto* project = viewer.project()) {
+    embedded_dungeon_map_->SetHackManifest(&project->hack_manifest);
+  } else {
+    embedded_dungeon_map_->SetHackManifest(nullptr);
+  }
+  return embedded_dungeon_map_.get();
+}
+
+void DungeonWorkbenchContent::DrawDungeonMapPopup(DungeonCanvasViewer& viewer) {
+  constexpr const char* kPopupId = "Dungeon Map##WorkbenchDungeonMapPopup";
+  if (open_dungeon_map_popup_) {
+    ImGui::SetNextWindowSize(ImVec2(660.0f, 520.0f), ImGuiCond_Appearing);
+    ImGui::OpenPopup(kPopupId);
+    open_dungeon_map_popup_ = false;
+  }
+
+  bool popup_open = true;
+  if (ImGui::BeginPopupModal(kPopupId, &popup_open,
+                             ImGuiWindowFlags_NoSavedSettings)) {
+    if (!popup_open) {
+      ImGui::CloseCurrentPopup();
+      ImGui::EndPopup();
+      return;
+    }
+    if (auto* map = GetEmbeddedDungeonMap(viewer)) {
+      const ImVec2 map_size =
+          ImVec2(std::max(360.0f, ImGui::GetContentRegionAvail().x),
+                 std::max(260.0f, ImGui::GetContentRegionAvail().y - 34.0f));
+      if (ImGui::BeginChild("##WorkbenchDungeonMapBody", map_size, false)) {
+        map->Draw(nullptr);
+      }
+      ImGui::EndChild();
+    } else {
+      ImGui::TextDisabled("Dungeon map unavailable");
+    }
+
+    if (workbench::DrawActionButton(ICON_MD_CLOSE " Close", ImVec2(-1, 0))) {
+      ImGui::CloseCurrentPopup();
+    }
+    ImGui::EndPopup();
+  }
 }
 
 void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
@@ -1060,7 +1294,8 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
   }
 }
 
-void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
+void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
+                                                 bool compact) {
   const auto& interaction = viewer.object_interaction();
   const bool has_selection =
       interaction.GetSelectionCount() > 0 || interaction.HasEntitySelection();
@@ -1069,7 +1304,10 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
   }
   inspector_selection_was_active_ = has_selection;
 
-  if (ImGui::GetContentRegionAvail().x < 240.0f) {
+  // Use the resolved pane layout instead of GetContentRegionAvail().x. The
+  // latter changes when a vertical scrollbar appears, which can make the
+  // inspector alternate between full and compact content every frame.
+  if (compact) {
     DrawInspectorCompactSummary(viewer);
     return;
   }
@@ -1271,12 +1509,22 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
         show_panel_("dungeon.room_graphics");
       }
       ImGui::TableNextColumn();
-      if (workbench::DrawActionButton(ICON_MD_SETTINGS " Settings",
+      if (workbench::DrawActionButton(ICON_MD_MAP " Dungeon Map",
                                       ImVec2(-1, 0))) {
-        show_panel_("dungeon.settings");
+        RequestDungeonMapPopup();
       }
       ImGui::EndTable();
     }
+  }
+
+  if (workbench::BeginInspectorSection(ICON_MD_SAVE_ALT " Apply Scope",
+                                       false)) {
+    DrawApplyScopeControls(room_id);
+  }
+
+  if (workbench::BeginInspectorSection(ICON_MD_LAYERS " Layer Compositing",
+                                       false)) {
+    DrawLayerCompositingControls(viewer, room_id);
   }
 
   // ZScream-style compact room header: keep the raw ROM fields together so
@@ -1910,9 +2158,8 @@ void DungeonWorkbenchContent::DrawInspectorShelfTools(
     show_panel_("dungeon.object_selector");
   }
   ImGui::TableNextColumn();
-  if (workbench::DrawActionButton(ICON_MD_TUNE " Object Editor",
-                                  ImVec2(-1, 0))) {
-    show_panel_("dungeon.object_editor");
+  if (workbench::DrawActionButton(ICON_MD_TUNE " Selection", ImVec2(-1, 0))) {
+    FocusSelectionInspector();
   }
 
   ImGui::TableNextRow();
@@ -1927,9 +2174,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfTools(
 
   ImGui::TableNextRow();
   ImGui::TableNextColumn();
-  if (workbench::DrawActionButton(ICON_MD_SETTINGS " Settings",
+  if (workbench::DrawActionButton(ICON_MD_SETTINGS " Room Details",
                                   ImVec2(-1, 0))) {
-    show_panel_("dungeon.settings");
+    FocusRoomInspector();
   }
   ImGui::TableNextColumn();
   ImGui::Dummy(ImVec2(0.0f, 0.0f));
@@ -1947,7 +2194,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfTools(
     ImGui::TableNextColumn();
     if (workbench::DrawActionButton(ICON_MD_MAP " Dungeon Map",
                                     ImVec2(-1, 0))) {
-      show_panel_("dungeon.dungeon_map");
+      RequestDungeonMapPopup();
     }
 
     ImGui::TableNextRow();

@@ -177,8 +177,10 @@ class DungeonMapPanel : public WindowContent {
     canvas_height = std::max(canvas_height, 200.0f);
 
     ImVec2 available = ImGui::GetContentRegionAvail();
-    ImVec2 canvas_size(std::min(available.x, canvas_width),
-                       std::min(available.y - 40, canvas_height));
+    const float available_width = std::max(160.0f, available.x);
+    const float available_height = std::max(160.0f, available.y - 40.0f);
+    ImVec2 canvas_size(std::min(available_width, canvas_width),
+                       std::min(available_height, canvas_height));
 
     // Begin canvas area
     ImVec2 canvas_pos = ImGui::GetCursorScreenPos();
