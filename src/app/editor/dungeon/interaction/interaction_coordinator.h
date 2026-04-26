@@ -96,6 +96,7 @@ class InteractionCoordinator {
   bool HandleMouseWheel(float delta);
 
   void SelectEntity(EntityType type, size_t index);
+  void SetSelectedEntities(std::vector<SelectedEntity> entities);
   void ClearEntitySelection();
   bool HasEntitySelection() const;
   bool NudgeSelected(int delta_x, int delta_y);
@@ -105,6 +106,7 @@ class InteractionCoordinator {
   }
   void SelectEntitiesInRect(const std::tuple<int, int, int, int>& bounds,
                             bool additive, bool toggle);
+  void BeginSelectionDrag(ImVec2 start_pos);
 
   // Doors/sprites/items only (tile objects are handled by ObjectSelection).
   std::optional<SelectedEntity> GetEntityAtPosition(int canvas_x,
@@ -187,6 +189,11 @@ class InteractionCoordinator {
   ImVec2 cycle_hud_screen_pos_{0.0f, 0.0f};
   double cycle_hud_start_time_ = -1.0;
   std::vector<SelectedEntity> cycle_last_hits_;
+  bool entity_group_drag_active_ = false;
+  ImVec2 entity_group_drag_start_{0.0f, 0.0f};
+  ImVec2 entity_group_drag_current_{0.0f, 0.0f};
+  int entity_group_drag_last_dx_ = 0;
+  int entity_group_drag_last_dy_ = 0;
 
   /**
    * @brief Get active handler based on current mode
@@ -195,6 +202,9 @@ class InteractionCoordinator {
   BaseEntityHandler* GetActiveHandler();
   bool ApplySelection(SelectedEntity entity);
   bool UpdateEntitySelection(SelectedEntity entity, bool additive, bool toggle);
+  bool IsSelectionHitSelected(SelectedEntity entity) const;
+  bool HasGroupDragSelection() const;
+  void HandleEntityGroupDrag(ImVec2 current_pos);
   bool SameCycleTarget(int canvas_x, int canvas_y,
                        const std::vector<SelectedEntity>& hits) const;
   void UpdateSelectionCycleHudPreview();

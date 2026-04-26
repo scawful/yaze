@@ -64,9 +64,10 @@ class ObjectEditorContent : public WindowContent {
   void DeselectAllObjects();
   void DuplicateSelectedObjects();
   void DeleteSelectedEntity();
+  void DeleteCurrentSelection();
   void DeleteAllSelectedTypeInRoom();
   void DuplicateSelectedSprite();
-  void NudgeSelectedObjects(int dx, int dy);
+  void NudgeCurrentSelection(int dx, int dy);
   void ScrollToObject(size_t index);
 
   DungeonCanvasViewer* canvas_viewer_ = nullptr;

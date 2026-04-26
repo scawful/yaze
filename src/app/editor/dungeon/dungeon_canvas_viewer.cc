@@ -235,8 +235,12 @@ void DungeonCanvasViewer::DrawChangePingOverlay(
       rects.push_back(ChangePingRect{x, y, std::max(w, 8), std::max(h, 8)});
     }
 
-    if (object_interaction_.HasEntitySelection()) {
-      const SelectedEntity entity = object_interaction_.GetSelectedEntity();
+    auto selected_entities =
+        object_interaction_.entity_coordinator().GetSelectedEntities();
+    if (selected_entities.empty() && object_interaction_.HasEntitySelection()) {
+      selected_entities.push_back(object_interaction_.GetSelectedEntity());
+    }
+    for (const SelectedEntity entity : selected_entities) {
       switch (entity.type) {
         case EntityType::Door: {
           const auto& doors = room.GetDoors();

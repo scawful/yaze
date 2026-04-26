@@ -249,6 +249,16 @@ void ObjectSelectorContent::DrawInteractionSummary() {
         open_object_editor_callback_();
       }
     }
+  } else if (snapshot.kind == DungeonSelectionKind::EntityMulti ||
+             snapshot.kind == DungeonSelectionKind::Mixed) {
+    ImGui::TextColored(theme.status_success, ICON_MD_SELECT_ALL " %s",
+                       GetDungeonSelectionSummaryText(snapshot).c_str());
+    if (open_object_editor_callback_) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect")) {
+        open_object_editor_callback_();
+      }
+    }
   } else {
     ImGui::TextColored(
         theme.text_secondary_gray, ICON_MD_MOUSE

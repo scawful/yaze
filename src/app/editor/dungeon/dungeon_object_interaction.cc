@@ -21,6 +21,20 @@
 
 namespace yaze::editor {
 
+namespace {
+
+constexpr int kRoomPixelMax = 511;
+
+uint16_t EncodePotItemPosition(int pixel_x, int pixel_y) {
+  const int clamped_x = std::clamp(pixel_x, 0, kRoomPixelMax);
+  const int clamped_y = std::clamp(pixel_y, 0, kRoomPixelMax);
+  const int encoded_x = std::clamp(clamped_x / 4, 0, 255);
+  const int encoded_y = std::clamp(clamped_y / 16, 0, 255);
+  return static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+}
+
+}  // namespace
+
 void DungeonObjectInteraction::HandleCanvasMouseInput() {
   const ImGuiIO& io = ImGui::GetIO();
   const bool hovered = canvas_->IsMouseHovering();
@@ -98,8 +112,11 @@ void DungeonObjectInteraction::HandleLeftClick(const ImVec2& canvas_mouse_pos) {
 
   // Try to handle click via entity coordinator (handles placement, entity selection, and object selection)
   if (entity_coordinator_.HandleClick(canvas_x, canvas_y)) {
-    // If an object selection just started, transition to dragging mode if applicable
-    if (selection_.HasSelection() && !HasEntitySelection()) {
+    // If a selected room element was clicked, prime drag state. Plain clicks on
+    // selected mixed members preserve the whole selection; movement begins only
+    // if the mouse actually drags.
+    if (!entity_coordinator_.IsPlacementActive() &&
+        (selection_.HasSelection() || HasEntitySelection())) {
       HandleObjectSelectionStart(canvas_mouse_pos);
     }
     return;
@@ -231,10 +248,18 @@ void DungeonObjectInteraction::UpdateWaterFillPainting(
 
 void DungeonObjectInteraction::HandleObjectSelectionStart(
     const ImVec2& canvas_mouse_pos) {
-  ClearEntitySelection();
-  if (selection_.HasSelection()) {
-    mode_manager_.SetMode(InteractionMode::DraggingObjects);
+  const bool has_object_selection = selection_.HasSelection();
+  const bool has_entity_selection = HasEntitySelection();
+  if (!has_object_selection && !has_entity_selection) {
+    return;
+  }
+
+  mode_manager_.SetMode(InteractionMode::DraggingObjects);
+  if (has_object_selection) {
     entity_coordinator_.tile_handler().InitDrag(canvas_mouse_pos);
+  }
+  if (has_entity_selection) {
+    entity_coordinator_.BeginSelectionDrag(canvas_mouse_pos);
   }
 }
 
@@ -326,17 +351,27 @@ bool DungeonObjectInteraction::HandleKeyboardNudge() {
     return false;
   }
 
+  return NudgeSelected(delta_x, delta_y);
+}
+
+bool DungeonObjectInteraction::NudgeSelected(int delta_x, int delta_y) {
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    return false;
+  }
+
+  bool handled = false;
   if (selection_.HasSelection()) {
     entity_coordinator_.tile_handler().MoveObjects(
         current_room_id_, selection_.GetSelectedIndices(), delta_x, delta_y);
-    return true;
+    handled = true;
   }
 
   if (entity_coordinator_.HasEntitySelection()) {
-    return entity_coordinator_.NudgeSelected(delta_x, delta_y);
+    handled = entity_coordinator_.NudgeSelected(delta_x, delta_y) || handled;
   }
 
-  return false;
+  return handled;
 }
 
 void DungeonObjectInteraction::CheckForObjectSelection() {
@@ -613,31 +648,196 @@ void DungeonObjectInteraction::HandleDeleteAllObjects() {
 }
 
 void DungeonObjectInteraction::HandleCopySelected() {
-  entity_coordinator_.tile_handler().CopyObjectsToClipboard(
-      current_room_id_, selection_.GetSelectedIndices());
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    return;
+  }
+
+  const auto selected_objects = selection_.GetSelectedIndices();
+  const bool has_object_selection = !selected_objects.empty();
+  const bool has_entity_selection = entity_coordinator_.HasEntitySelection();
+  if (!has_object_selection && !has_entity_selection) {
+    return;
+  }
+
+  entity_clipboard_.Clear();
+  bool clipboard_origin_set = false;
+
+  if (has_object_selection) {
+    entity_coordinator_.tile_handler().CopyObjectsToClipboard(current_room_id_,
+                                                              selected_objects);
+    const auto& objects = (*rooms_)[current_room_id_].GetTileObjects();
+    for (size_t index : selected_objects) {
+      if (index >= objects.size()) {
+        continue;
+      }
+      entity_clipboard_.origin_tile_x = objects[index].x_;
+      entity_clipboard_.origin_tile_y = objects[index].y_;
+      entity_clipboard_.origin_pixel_x =
+          entity_clipboard_.origin_tile_x * dungeon_coords::kTileSize;
+      entity_clipboard_.origin_pixel_y =
+          entity_clipboard_.origin_tile_y * dungeon_coords::kTileSize;
+      clipboard_origin_set = true;
+      break;
+    }
+  } else {
+    entity_coordinator_.tile_handler().ClearClipboard();
+  }
+
+  CopySelectedEntitiesToClipboard(clipboard_origin_set);
+}
+
+void DungeonObjectInteraction::CopySelectedEntitiesToClipboard(
+    bool clipboard_origin_set) {
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    return;
+  }
+
+  const auto& room = (*rooms_)[current_room_id_];
+  auto selected_entities = entity_coordinator_.GetSelectedEntities();
+  if (selected_entities.empty() && entity_coordinator_.HasEntitySelection()) {
+    const SelectedEntity selected = entity_coordinator_.GetSelectedEntity();
+    if (selected.type != EntityType::None) {
+      selected_entities.push_back(selected);
+    }
+  }
+
+  for (const auto entity : selected_entities) {
+    switch (entity.type) {
+      case EntityType::Sprite: {
+        const auto& sprites = room.GetSprites();
+        if (entity.index >= sprites.size()) {
+          break;
+        }
+        const auto& sprite = sprites[entity.index];
+        if (!clipboard_origin_set && !entity_clipboard_.HasData()) {
+          entity_clipboard_.origin_pixel_x =
+              sprite.x() * dungeon_coords::kSpriteTileSize;
+          entity_clipboard_.origin_pixel_y =
+              sprite.y() * dungeon_coords::kSpriteTileSize;
+          entity_clipboard_.origin_tile_x =
+              entity_clipboard_.origin_pixel_x / dungeon_coords::kTileSize;
+          entity_clipboard_.origin_tile_y =
+              entity_clipboard_.origin_pixel_y / dungeon_coords::kTileSize;
+        }
+        entity_clipboard_.sprites.push_back(sprite);
+        break;
+      }
+      case EntityType::Item: {
+        const auto& items = room.GetPotItems();
+        if (entity.index >= items.size()) {
+          break;
+        }
+        const auto& item = items[entity.index];
+        if (!clipboard_origin_set && !entity_clipboard_.HasData()) {
+          entity_clipboard_.origin_pixel_x = item.GetPixelX();
+          entity_clipboard_.origin_pixel_y = item.GetPixelY();
+          entity_clipboard_.origin_tile_x =
+              entity_clipboard_.origin_pixel_x / dungeon_coords::kTileSize;
+          entity_clipboard_.origin_tile_y =
+              entity_clipboard_.origin_pixel_y / dungeon_coords::kTileSize;
+        }
+        entity_clipboard_.items.push_back(item);
+        break;
+      }
+      case EntityType::Door:
+      case EntityType::Object:
+      case EntityType::None:
+      default:
+        break;
+    }
+  }
+}
+
+std::vector<SelectedEntity> DungeonObjectInteraction::PasteEntityClipboardAt(
+    int target_pixel_x, int target_pixel_y) {
+  std::vector<SelectedEntity> pasted_entities;
+  if (!entity_clipboard_.HasData() || !rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    return pasted_entities;
+  }
+
+  auto& room = (*rooms_)[current_room_id_];
+  const int delta_pixel_x = target_pixel_x - entity_clipboard_.origin_pixel_x;
+  const int delta_pixel_y = target_pixel_y - entity_clipboard_.origin_pixel_y;
+
+  if (!entity_clipboard_.sprites.empty()) {
+    interaction_context_.NotifyMutation(MutationDomain::kSprites);
+    auto& sprites = room.GetSprites();
+    for (auto sprite : entity_clipboard_.sprites) {
+      const int next_x = std::clamp(
+          (sprite.x() * dungeon_coords::kSpriteTileSize + delta_pixel_x) /
+              dungeon_coords::kSpriteTileSize,
+          0, dungeon_coords::kSpriteGridMax);
+      const int next_y = std::clamp(
+          (sprite.y() * dungeon_coords::kSpriteTileSize + delta_pixel_y) /
+              dungeon_coords::kSpriteTileSize,
+          0, dungeon_coords::kSpriteGridMax);
+      sprite.set_x(next_x);
+      sprite.set_y(next_y);
+      sprites.push_back(sprite);
+      pasted_entities.push_back(
+          SelectedEntity{EntityType::Sprite, sprites.size() - 1});
+    }
+    room.MarkSpritesDirty();
+    interaction_context_.NotifyInvalidateCache(MutationDomain::kSprites);
+  }
+
+  if (!entity_clipboard_.items.empty()) {
+    interaction_context_.NotifyMutation(MutationDomain::kItems);
+    auto& items = room.GetPotItems();
+    for (auto item : entity_clipboard_.items) {
+      item.position = EncodePotItemPosition(item.GetPixelX() + delta_pixel_x,
+                                            item.GetPixelY() + delta_pixel_y);
+      items.push_back(item);
+      pasted_entities.push_back(
+          SelectedEntity{EntityType::Item, items.size() - 1});
+    }
+    room.MarkPotItemsDirty();
+    interaction_context_.NotifyInvalidateCache(MutationDomain::kItems);
+  }
+
+  if (!pasted_entities.empty()) {
+    interaction_context_.NotifyEntityChanged();
+  }
+  return pasted_entities;
 }
 
 void DungeonObjectInteraction::HandlePasteObjects() {
-  auto& handler = entity_coordinator_.tile_handler();
-  if (!handler.HasClipboardData())
+  if (!HasClipboardData()) {
     return;
+  }
 
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    return;
+  }
+
+  auto& handler = entity_coordinator_.tile_handler();
   const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_mouse_pos = ImVec2(io.MousePos.x - canvas_->zero_point().x,
                                    io.MousePos.y - canvas_->zero_point().y);
   auto [paste_x, paste_y] =
       CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
                               static_cast<int>(canvas_mouse_pos.y));
+  const int paste_pixel_x = paste_x * dungeon_coords::kTileSize;
+  const int paste_pixel_y = paste_y * dungeon_coords::kTileSize;
 
-  auto new_indices =
-      handler.PasteFromClipboardAt(current_room_id_, paste_x, paste_y);
+  std::vector<size_t> new_indices;
+  if (handler.HasClipboardData()) {
+    new_indices = handler.PasteFromClipboard(
+        current_room_id_, paste_x - entity_clipboard_.origin_tile_x,
+        paste_y - entity_clipboard_.origin_tile_y);
+  }
+  auto new_entities = PasteEntityClipboardAt(paste_pixel_x, paste_pixel_y);
 
-  // Select the newly pasted objects
-  if (!new_indices.empty()) {
+  if (!new_indices.empty() || !new_entities.empty()) {
     selection_.ClearSelection();
     for (size_t idx : new_indices) {
       selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
     }
+    entity_coordinator_.SetSelectedEntities(std::move(new_entities));
   }
 }
 
@@ -792,6 +992,7 @@ void DungeonObjectInteraction::SetItemPlacementMode(bool enabled,
 // ============================================================================
 
 void DungeonObjectInteraction::SelectEntity(EntityType type, size_t index) {
+  selection_.ClearSelection();
   entity_coordinator_.SelectEntity(type, index);
 }
 

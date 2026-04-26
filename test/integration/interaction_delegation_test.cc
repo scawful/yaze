@@ -16,8 +16,10 @@
 #include "app/editor/dungeon/interaction/tile_object_handler.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gui/canvas/canvas.h"
+#include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze {
 namespace editor {
@@ -27,6 +29,12 @@ namespace {
 class InteractionDelegationTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    if (ImGui::GetCurrentContext() == nullptr) {
+      owns_imgui_context_ = true;
+      ImGui::CreateContext();
+    }
+    ImGui::GetIO().DisplaySize = ImVec2(1024, 768);
+
     // Initialize room with test objects
     auto& room = rooms_[0];
     room.AddTileObject(
@@ -44,8 +52,16 @@ class InteractionDelegationTest : public ::testing::Test {
     invalidate_count_ = 0;
   }
 
+  void TearDown() override {
+    if (owns_imgui_context_) {
+      ImGui::DestroyContext();
+      owns_imgui_context_ = false;
+    }
+  }
+
   zelda3::Room& CurrentRoom() { return rooms_[0]; }
 
+  bool owns_imgui_context_ = false;
   DungeonRoomStore rooms_;
   gui::Canvas canvas_{"TestCanvas", ImVec2(512, 512)};
   DungeonObjectInteraction interaction_{&canvas_};
@@ -178,6 +194,69 @@ TEST_F(InteractionDelegationTest, DuplicateObjectsReturnsNewIndices) {
   EXPECT_EQ(objects[new_idx].y_, 12);     // Original was at 10, offset by 2
 }
 
+TEST_F(InteractionDelegationTest,
+       NudgeSelectedMovesMixedObjectEntitySelection) {
+  CurrentRoom().GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  interaction_.SetSelectedObjects({0});
+  interaction_.entity_coordinator().SelectEntitiesInRect(
+      {0, 0, 128, 128}, /*additive=*/true, /*toggle=*/false);
+  ASSERT_EQ(interaction_.GetSelectedObjectIndices().size(), 1u);
+  ASSERT_EQ(interaction_.entity_coordinator().GetSelectedEntities().size(), 1u);
+
+  auto& objects = CurrentRoom().GetTileObjects();
+  const int original_object_x = objects[0].x_;
+  const int original_object_y = objects[0].y_;
+
+  ASSERT_TRUE(interaction_.NudgeSelected(1, 1));
+
+  EXPECT_EQ(objects[0].x_, original_object_x + 1);
+  EXPECT_EQ(objects[0].y_, original_object_y + 1);
+  EXPECT_EQ(CurrentRoom().GetSprites()[0].x(), 6);
+  EXPECT_EQ(CurrentRoom().GetSprites()[0].y(), 6);
+}
+
+TEST_F(InteractionDelegationTest,
+       CopyPastePreservesMixedObjectSpriteItemShape) {
+  CurrentRoom().GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  CurrentRoom().GetPotItems().push_back(item);
+
+  interaction_.SetSelectedObjects({0});
+  interaction_.entity_coordinator().SelectEntitiesInRect(
+      {0, 0, 128, 128}, /*additive=*/true, /*toggle=*/false);
+
+  interaction_.HandleCopySelected();
+  ASSERT_TRUE(interaction_.HasClipboardData());
+
+  ImGui::GetIO().MousePos = ImVec2(96.0f, 96.0f);
+  interaction_.HandlePasteObjects();
+
+  const auto& objects = CurrentRoom().GetTileObjects();
+  ASSERT_EQ(objects.size(), 4u);
+  EXPECT_EQ(objects[3].id_, 0x55);
+  EXPECT_EQ(objects[3].x_, 12);
+  EXPECT_EQ(objects[3].y_, 12);
+
+  const auto& sprites = CurrentRoom().GetSprites();
+  ASSERT_EQ(sprites.size(), 2u);
+  EXPECT_EQ(sprites[1].id(), 0x12);
+  EXPECT_EQ(sprites[1].x(), 6);
+  EXPECT_EQ(sprites[1].y(), 6);
+
+  const auto& items = CurrentRoom().GetPotItems();
+  ASSERT_EQ(items.size(), 2u);
+  EXPECT_EQ(items[1].item, 0x04);
+  EXPECT_EQ(items[1].GetPixelX(), 96);
+  EXPECT_EQ(items[1].GetPixelY(), 96);
+
+  EXPECT_EQ(interaction_.GetSelectedObjectIndices().size(), 1u);
+  EXPECT_EQ(interaction_.entity_coordinator().GetSelectedEntities().size(), 2u);
+}
+
 // =============================================================================
 // Z-Order Integration Tests
 // =============================================================================
@@ -234,11 +313,15 @@ TEST_F(InteractionDelegationTest, UpdateObjectSizeInvalidatesCache) {
 
 TEST_F(InteractionDelegationTest, UpdateObjectLayerChangesLayer) {
   auto& tile_handler = interaction_.entity_coordinator().tile_handler();
-
-  tile_handler.UpdateObjectsLayer(0, {0}, 1);
+  CurrentRoom().AddTileObject(zelda3::RoomObject{0x21, 24, 24, 0x00, 0});
 
   auto& objects = CurrentRoom().GetTileObjects();
-  EXPECT_EQ(objects[0].layer_, zelda3::RoomObject::LayerType::BG2);
+  const size_t movable_index = objects.size() - 1;
+  ASSERT_FALSE(objects[movable_index].all_bgs_);
+
+  tile_handler.UpdateObjectsLayer(0, {movable_index}, 1);
+
+  EXPECT_EQ(objects[movable_index].layer_, zelda3::RoomObject::LayerType::BG2);
 }
 
 TEST_F(InteractionDelegationTest, UpdateObjectLayerSkipsBothBgObjects) {
