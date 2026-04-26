@@ -23,8 +23,8 @@ TEST(SidebarSortTest, IdentityWhenNoPrefs) {
 TEST(SidebarSortTest, HiddenCategoriesAreFilteredOut) {
   Vec input = {"Overworld", "Dungeon", "Graphics"};
   Set hidden = {"Dungeon"};
-  auto out = ActivityBar::SortCategories(input, /*order=*/{}, /*pinned=*/{},
-                                         hidden);
+  auto out =
+      ActivityBar::SortCategories(input, /*order=*/{}, /*pinned=*/{}, hidden);
   EXPECT_EQ(out, Vec({"Overworld", "Graphics"}));
 }
 
@@ -95,6 +95,44 @@ TEST(SidebarSortTest, OrderEntriesNotInInputAreIgnored) {
   auto out = ActivityBar::SortCategories(input, order, /*pinned=*/{},
                                          /*hidden=*/{});
   EXPECT_EQ(out, Vec({"Dungeon", "Overworld"}));
+}
+
+TEST(SidebarSortTest, DungeonWorkbenchLocalToolsAreRecognized) {
+  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.object_selector"));
+  EXPECT_TRUE(
+      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.door_editor"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.sprite_editor"));
+  EXPECT_TRUE(
+      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.item_editor"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.palette_editor"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.room_graphics"));
+  EXPECT_TRUE(
+      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.room_tags"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.custom_collision"));
+  EXPECT_TRUE(
+      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.water_fill"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.minecart_tracks"));
+}
+
+TEST(SidebarSortTest, DungeonWorkbenchKeepsNavigationWindowsVisible) {
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.workbench"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.room_selector"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.room_matrix"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.entrance_list"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.entrance_properties"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
+      "dungeon.object_tile_editor"));
 }
 
 }  // namespace

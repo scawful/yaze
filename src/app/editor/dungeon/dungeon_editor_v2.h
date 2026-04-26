@@ -41,10 +41,13 @@
 namespace yaze {
 namespace editor {
 
+class CustomCollisionPanel;
 class MinecartTrackEditorPanel;
 class ObjectTileEditorPanel;
 class OverlayManagerPanel;
+class PaletteEditorContent;
 class RoomTagEditorPanel;
+class WaterFillPanel;
 
 /**
  * @brief DungeonEditorV2 - Simplified dungeon editor using component delegation
@@ -87,13 +90,7 @@ class RoomTagEditorPanel;
  */
 class DungeonEditorV2 : public Editor {
  public:
-  explicit DungeonEditorV2(Rom* rom = nullptr)
-      : rom_(rom), room_loader_(rom), room_selector_(rom), rooms_(rom) {
-    type_ = EditorType::kDungeon;
-    if (rom) {
-      dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
-    }
-  }
+  explicit DungeonEditorV2(Rom* rom = nullptr);
 
   ~DungeonEditorV2() override;
 
@@ -324,12 +321,15 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<DungeonCanvasViewer> workbench_compare_viewer_;
 
   gui::PaletteEditorWidget palette_editor_;
-  // Panel pointers - these are owned by WorkspaceWindowManager when available.
-  // Store pointers for direct access to panel methods.
+  // Panel pointers. WorkspaceWindowManager owns these when available; fallback
+  // unique_ptrs keep non-workspace tests and direct embedding paths alive.
+  // Workbench mode embeds room-local utilities in the inspector drawer and
+  // closes/hides their standalone window entries.
   ObjectSelectorContent* object_selector_panel_ = nullptr;
   ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
   RoomGraphicsContent* room_graphics_panel_ = nullptr;
+  PaletteEditorContent* palette_editor_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
@@ -344,6 +344,10 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<ObjectSelectorContent> owned_object_selector_panel_;
   std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
+  std::unique_ptr<RoomTagEditorPanel> owned_room_tag_editor_panel_;
+  std::unique_ptr<CustomCollisionPanel> owned_custom_collision_panel_;
+  std::unique_ptr<WaterFillPanel> owned_water_fill_panel_;
+  std::unique_ptr<MinecartTrackEditorPanel> owned_minecart_track_editor_panel_;
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 

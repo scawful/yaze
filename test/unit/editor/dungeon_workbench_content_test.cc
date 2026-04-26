@@ -3,6 +3,7 @@
 #include <gtest/gtest.h>
 
 #include <chrono>
+#include <deque>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -24,6 +25,16 @@ std::filesystem::path MakeTempProjectRoot() {
          ("yaze_dungeon_project_labels_" +
           std::to_string(
               std::chrono::steady_clock::now().time_since_epoch().count()));
+}
+
+DungeonWorkbenchContent MakeWorkbenchForToolStateTests(
+    int& current_room_id, const std::deque<int>& recent_rooms) {
+  return DungeonWorkbenchContent(
+      nullptr, &current_room_id, [](int) {}, [](int, RoomSelectionIntent) {},
+      [](int) {}, []() {}, []() -> DungeonCanvasViewer* { return nullptr; },
+      []() -> DungeonCanvasViewer* { return nullptr; },
+      [&recent_rooms]() -> const std::deque<int>& { return recent_rooms; },
+      [](int) {}, [](bool) {});
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
@@ -98,6 +109,81 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_NEAR(layout.left_width, kCompactLeftWidth, 0.001f);
   EXPECT_NEAR(layout.right_width, 333.6f, 0.001f);
   EXPECT_GE(layout.center_width, kMinCanvasWidth);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsSwitchInspectorToDrawer) {
+  int current_room_id = 0x011;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "room");
+
+  content.OpenDoorTool();
+  EXPECT_TRUE(content.IsToolDrawerActiveForTesting());
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools");
+  EXPECT_STREQ(content.GetActiveToolIdForTesting(), "door");
+
+  content.OpenPaletteTool();
+  EXPECT_TRUE(content.IsToolDrawerActiveForTesting());
+  EXPECT_STREQ(content.GetActiveToolIdForTesting(), "palette");
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolStripCyclesAllToolsWithoutLeavingDrawer) {
+  // The compact tool-strip in the inspector calls Open*Tool() rapidly as users
+  // hop between tools. Switching active tools must not bounce the inspector
+  // back to Room mode, and re-opening the same tool must remain a no-op on
+  // mode (no toggle-off).
+  int current_room_id = 0x011;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+
+  struct Step {
+    void (DungeonWorkbenchContent::*open)();
+    const char* expected_id;
+  };
+  const Step steps[] = {
+      {&DungeonWorkbenchContent::OpenObjectSelectorTool, "object_selector"},
+      {&DungeonWorkbenchContent::OpenDoorTool, "door"},
+      {&DungeonWorkbenchContent::OpenSpriteTool, "sprite"},
+      {&DungeonWorkbenchContent::OpenItemTool, "item"},
+      {&DungeonWorkbenchContent::OpenPaletteTool, "palette"},
+      {&DungeonWorkbenchContent::OpenRoomGraphicsTool, "room_graphics"},
+      {&DungeonWorkbenchContent::OpenRoomTagsTool, "room_tags"},
+      {&DungeonWorkbenchContent::OpenCustomCollisionTool, "custom_collision"},
+      {&DungeonWorkbenchContent::OpenWaterFillTool, "water_fill"},
+      {&DungeonWorkbenchContent::OpenMinecartTool, "minecart"},
+  };
+
+  for (const auto& step : steps) {
+    (content.*step.open)();
+    EXPECT_TRUE(content.IsToolDrawerActiveForTesting()) << step.expected_id;
+    EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools")
+        << step.expected_id;
+    EXPECT_STREQ(content.GetActiveToolIdForTesting(), step.expected_id);
+  }
+
+  // Re-opening the active tool must keep the drawer open on the same tool;
+  // strip taps are deliberately idempotent so users can confirm a selection
+  // without toggling the body off.
+  content.OpenMinecartTool();
+  EXPECT_TRUE(content.IsToolDrawerActiveForTesting());
+  EXPECT_STREQ(content.GetActiveToolIdForTesting(), "minecart");
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolDrawerSelectionSurvivesRoomChanges) {
+  int current_room_id = 0x011;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+
+  content.OpenCustomCollisionTool();
+  current_room_id = 0x012;
+  content.NotifyRoomChanged(0x011);
+
+  EXPECT_TRUE(content.IsToolDrawerActiveForTesting());
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools");
+  EXPECT_STREQ(content.GetActiveToolIdForTesting(), "custom_collision");
 }
 
 TEST(DungeonWorkbenchProjectLabelsTest,

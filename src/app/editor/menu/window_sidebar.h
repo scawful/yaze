@@ -22,6 +22,7 @@ class WindowSidebar {
                                   const std::string& window_id,
                                   const std::string& shortcut_hint);
   static bool IsDungeonWindowModeTarget(const std::string& window_id);
+  static bool IsDungeonWorkbenchLocalToolWindow(const std::string& window_id);
 
   void Draw(size_t session_id, const std::string& category,
             std::function<bool()> has_rom);

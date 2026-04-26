@@ -98,6 +98,10 @@ Stabilize dungeon workspace UI state
 After that, continue the ZS parity/editor grammar work in a separate commit.
 Keep visible GUI checks opt-in.
 
+Follow-up usability handoff:
+`docs/internal/agents/dungeon-workbench-usability-handoff-2026-04-26.md`
+captures the subsequent Workbench tool-drawer/window-filtering pass.
+
 ## Useful Commands
 
 Quiet status and review:

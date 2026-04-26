@@ -1,6 +1,9 @@
 # Dungeon Editor Guide
 
-The Dungeon Editor provides a multi-panel workspace for editing Zelda 3 dungeon rooms. Each room has isolated graphics, objects, and palette data, allowing you to work on multiple rooms simultaneously.
+The Dungeon Editor provides a Workbench-first workspace for editing Zelda 3
+dungeon rooms. The default flow keeps room navigation, the canvas, selection
+inspection, and local edit tools in one stable window so common edits do not
+require chasing separate floating panels.
 
 ---
 
@@ -10,7 +13,8 @@ The Dungeon Editor provides a multi-panel workspace for editing Zelda 3 dungeon 
 
 - **512x512 canvas** per room with pan, zoom, grid, and collision overlays
 - **Layer visualization** with BG1/BG2 toggles and colored object outlines
-- **Modular panels** for rooms, objects, palettes, and entrances
+- **Dungeon Workbench** with room browser, canvas, inspector, and local tool drawer
+- **Window workflow fallback** for users who still want standalone panels
 - **Undo/Redo** shared across all panels
 - **Overworld integration** - double-click entrances to open linked rooms
 
@@ -47,21 +51,47 @@ Changes to tiles, palettes, or objects invalidate only the affected room's cache
 ### Opening Rooms
 
 1. Launch YAZE with a ROM: `./scripts/yaze zelda3.sfc`
-2. Select a room from **Room Matrix** or **Rooms List** panel
-3. Open multiple rooms in separate panels for comparison
+2. Select **Dungeon**.
+3. Use the **Dungeon Workbench** room browser, recent-room tabs, or connected
+   graph to navigate rooms.
+4. Use split view or recent-room tabs for comparison instead of opening many
+   separate room windows.
+
+### Workbench Inspector
+
+The right inspector has three primary modes:
+
+| Mode | Purpose |
+|------|---------|
+| **Room** | Current room summary, room actions, header fields, apply scope, layer/compositing controls |
+| **Selection** | Focused object/entity properties, copy/delete/clear actions, and entity-specific tools |
+| **Tools** | Workbench-local edit tools embedded in the inspector drawer |
+
+The **Tools** drawer includes Object Selector, Door tools, Sprite tools, Item
+tools, Palette, Room Graphics, Room Tags, Custom Collision, Water Fill, and
+Minecart tools. A compact 2x5 icon strip at the top of the drawer lets you hop
+between tools in one click; the active tool is highlighted with the accent
+color and hovering each icon shows a tooltip with the full tool name. Returning
+to the room metadata view is one click on the inspector's primary segmented
+selector. The drawer body fills the remaining inspector height so embedded
+tools render as primary content rather than cramped popups. These standalone
+tool windows are closed on Workbench entry and hidden from the Window
+Browser/sidebar while Workbench mode is active so the editor stays focused on
+the main room canvas.
 
 ### Available Panels
 
 | Panel | Purpose |
 |-------|---------|
-| **Room Graphics** | Main canvas with BG toggles and grid options |
-| **Object Editor** | Edit objects by type, layer, and coordinates |
-| **Object Tile Editor** | Visual 8x8 tile composition editor for objects |
-| **Palette Editor** | Adjust room palettes with live preview |
+| **Dungeon Workbench** | Default single-window dungeon editing surface |
+| **Room List / Room Matrix** | Navigation/review surfaces; also available inside the Workbench flow |
 | **Entrances List** | Navigate between overworld entrances and rooms |
-| **Room Matrix** | Visual dungeon room grid for quick navigation |
+| **Object Tile Editor** | Standalone 8x8 tile composition editor for object asset authoring |
+| **Window Browser** | Manage standalone windows when using Window workflow |
 
-Panels can be docked, detached, or saved as workspace presets.
+Workbench-local edit tools are intentionally not advertised as high-level
+Dungeon windows in Workbench mode. Switch to **Window** workflow from the
+sidebar if you need the older standalone-panel layout.
 
 ### Canvas Controls
 
@@ -73,6 +103,7 @@ Panels can be docked, detached, or saved as workspace presets.
 | Pan canvas | Hold Space + drag |
 | Zoom | Mouse wheel or trackpad pinch |
 | Context menu | Right-click |
+| Cycle overlapping selections | Alt + click |
 
 Enable **Object Labels** from the toolbar to display layer-colored labels.
 
@@ -90,10 +121,10 @@ Enable **Object Labels** from the toolbar to display layer-colored labels.
 
 | Issue | Solution |
 |-------|----------|
-| Objects on wrong layer | Check BG toggles in Room Graphics and layer filter in Object Editor |
-| Palette not saving | Ensure Palette Editor writes values before switching rooms |
-| Door alignment issues | Right-click door markers to verify leads-to IDs |
-| Sluggish performance | Close unused room panels to release textures |
+| Objects on wrong layer | Check BG toggles in the Workbench toolbar and the layer field in **Selection** or **Inspector → Tools** |
+| Palette not saving | Open **Inspector → Tools → Palette** and ensure the palette edit is applied before switching rooms |
+| Door alignment issues | Use clickable door-pair badges or **Inspector → Tools → Doors** to verify linked room IDs |
+| Sluggish performance | Prefer Workbench mode and close unused standalone room windows |
 
 ---
 
@@ -101,14 +132,17 @@ Enable **Object Labels** from the toolbar to display layer-colored labels.
 
 ```bash
 # Open specific room for testing
-./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0"
+./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --room=0 \
+  --open_panels=dungeon.workbench
 
-# Compare multiple rooms
-./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --open_panels="Room 0,Room 1,Room 105"
+# Open Workbench directly with startup shells hidden
+./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon --room=16 \
+  --open_panels=dungeon.workbench \
+  --startup_welcome=hide --startup_dashboard=hide
 
-# Full workspace with all tools
+# Legacy full window workflow with standalone panels
 ./scripts/yaze --rom_file=zelda3.sfc --editor=Dungeon \
-  --open_panels="Rooms List,Room Matrix,Object Editor,Palette Editor"
+  --open_panels="dungeon.room_selector,dungeon.room_matrix,dungeon.object_selector,dungeon.palette_editor"
 ```
 
 ---

@@ -1,10 +1,10 @@
 # Dungeon UX Validation Pass — Manual QA Checklist
 
-_Agent: `zelda3-hacking-expert` | Updated: 2026-02-24_
+_Agent: `zelda3-hacking-expert` | Updated: 2026-04-26_
 
 This document records the manual verification checklist for the four UX features
 landed in the Feb 23–24 imgui-frontend-engineer session. Execute with a loaded ROM
-and the `mac-ai` build (`./build_ai/bin/Debug/yaze`). Each section lists the exact
+and the `mac-ai` preset build (`./build/presets/mac-ai/bin/Debug/yaze.app/Contents/MacOS/yaze`). Each section lists the exact
 click-path, expected on-screen result, and the relevant source constant so testers
 can correlate source truth with observed behaviour.
 
@@ -14,11 +14,11 @@ can correlate source truth with observed behaviour.
 
 ```bash
 # Structural check — must exit 0 and print ok:true
-./build_ai/bin/Debug/z3ed oracle-smoke-check \
+./build/presets/mac-ai/bin/Debug/z3ed oracle-smoke-check \
   --rom roms/oos168.sfc --min-d6-track-rooms=4 --format=json
 
 # Strict-readiness check — expected exit 1, D4/D3 ok:false (known authoring gap)
-./build_ai/bin/Debug/z3ed oracle-smoke-check \
+./build/presets/mac-ai/bin/Debug/z3ed oracle-smoke-check \
   --rom roms/oos168.sfc --min-d6-track-rooms=4 --strict-readiness --format=json \
   || true   # non-zero is expected; only D4/D3 gaps present
 ```
@@ -165,7 +165,8 @@ Repeat 1a for each wall. Expected direction label in ghost: `North`, `South`, `E
 
 ## 3. Room Badge Copy Behaviour
 
-**Source:** `DungeonWorkbenchPanel::DrawInspectorShelfRoom()` — `dungeon_workbench_panel.cc:530`
+**Source:** `DungeonWorkbenchContent::DrawInspectorShelfRoom()` —
+`src/app/editor/dungeon/workspace/dungeon_workbench_content.cc`
 
 ### 3a — Room ID displayed in hex + decimal
 
@@ -284,25 +285,98 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
 
 ---
 
+## 5. Workbench Tool Drawer and Window Filtering
+
+**Source:**
+- `DungeonWorkbenchContent::DrawInspectorToolDrawer()`
+- `DungeonWorkbenchContent::Open*Tool()`
+- `WindowSidebar::IsDungeonWorkbenchLocalToolWindow()`
+- `WindowBrowser::Draw()`
+
+### 5a — Local tool requests open the right inspector drawer
+
+**Click-path:**
+1. Launch YAZE with a ROM and open Dungeon Workbench:
+   `--editor=Dungeon --room=16 --open_panels=dungeon.workbench`.
+2. In the Workbench right inspector, click **Tools**.
+3. From the 2x5 icon strip at the top of the drawer, click each of the ten
+   tool icons in order: **Object Selector**, **Doors**, **Sprites**, **Items**,
+   **Palette**, **Room Graphics**, **Room Tags**, **Custom Collision**,
+   **Water Fill**, and **Minecart**.
+
+**Expected:**
+- The selected tool renders inside the right inspector, not in a separate modal
+  or top-level Dungeon window.
+- The icon for the active tool is highlighted (accent color) in the strip; only
+  one icon is highlighted at a time.
+- Hovering each icon shows a tooltip with the tool's full name.
+- The active tool's body fills the inspector height beneath the strip and the
+  active tool's title (no developer-doc subtitle, no in-drawer back button).
+- Returning to room metadata is one click on the inspector primary segmented
+  selector ("Room") at the top of the inspector, not a separate button inside
+  the drawer.
+- The active tool remains selected after navigating to another room.
+- Selecting an object/entity on the canvas may focus Selection, but it should
+  not steal focus away from the Tools drawer while the drawer is active.
+
+### 5b — Dungeon Map and Connected Graph keep their special homes
+
+**Click-path:**
+1. From the Workbench tool/review controls, click **Dungeon Map**.
+2. Close it, then click **Matrix** / **Connected Graph**.
+
+**Expected:**
+- Dungeon Map opens as a bounded popup.
+- Connected Graph switches the canvas mode; it is not embedded as a drawer tool.
+
+### 5c — Window Browser/sidebar close and hide Workbench-local tools
+
+**Click-path:**
+1. Ensure Workbench workflow is active.
+2. Open the Dungeon sidebar and Window Browser.
+3. Search for local tool windows such as `dungeon.object_selector`,
+   `dungeon.door_editor`, `dungeon.palette_editor`, `dungeon.room_tags`,
+   `dungeon.custom_collision`, and `dungeon.water_fill`.
+
+**Expected:**
+- Any visible standalone copies of these local tools are closed when entering
+  Workbench mode.
+- These local tools are hidden from the Browser/sidebar in Workbench mode.
+- Workbench, Room List, Room Matrix, Entrances, and Object Tile Editor remain
+  visible/discoverable.
+- Switching to Window workflow restores standalone tool discoverability.
+
+**Focused automated coverage:**
+
+```bash
+./build/presets/mac-ai/bin/Debug/yaze_test_quick_unit_editor \
+  --gtest_filter='DungeonWorkbenchToolbar*.*:DungeonWorkbenchContentLayoutTest.*:SidebarSortTest.*'
+```
+
+Expected result: all tests pass, including drawer-state persistence and local
+tool-window classification.
+
+---
+
 ## Full QA Run Commands
 
 ```bash
 # 1. Build
-cmake --build build_ai --target yaze_test_unit z3ed --parallel 8
+cmake --build --preset mac-ai --target yaze_test_quick_unit_editor z3ed --parallel 8
 
-# 2. Targeted unit tests (all UX-related suites)
-./build_ai/bin/Debug/yaze_test_unit \
-  --gtest_filter="TileSelectorWidgetTest.*:DoorInteractionHandlerTest.*:SpriteInteractionHandlerTest.*:TileObjectHandlerTest.*"
+# 2. Targeted unit tests (original UX suites plus Workbench drawer/window filtering)
+./build/presets/mac-ai/bin/Debug/yaze_test_quick_unit_editor \
+  --gtest_filter="TileSelectorWidgetTest.*:DoorInteractionHandlerTest.*:SpriteInteractionHandlerTest.*:TileObjectHandlerTest.*:DungeonWorkbenchToolbar*.*:DungeonWorkbenchContentLayoutTest.*:SidebarSortTest.*"
 
 # 3. Quick editor suite
-ctest --test-dir build_ai -R yaze_test_quick_unit_editor --output-on-failure
+ctest --test-dir build/presets/mac-ai -R yaze_test_quick_unit_editor --output-on-failure
 
 # 4. Oracle structural smoke (expected exit 0)
-./build_ai/bin/Debug/z3ed oracle-smoke-check \
+./build/presets/mac-ai/bin/Debug/z3ed oracle-smoke-check \
   --rom roms/oos168.sfc --min-d6-track-rooms=4 --format=json
 
 # 5. Oracle strict-readiness (expected exit 1 — D4/D3 gap is known)
-./build_ai/bin/Debug/z3ed oracle-smoke-check \
+./build/presets/mac-ai/bin/Debug/z3ed oracle-smoke-check \
   --rom roms/oos168.sfc --min-d6-track-rooms=4 --strict-readiness --format=json || true
 ```
 
@@ -324,5 +398,5 @@ ctest --test-dir build_ai -R yaze_test_quick_unit_editor --output-on-failure
 ## Follow-up Items
 
 1. **Range filter out-of-range feedback** — ✅ **RESOLVED** (Feb 24). Added `filter_out_of_range_` flag to `TileSelectorWidget`. `DrawFilterBar` now detects when `SetRangeFilter` returns without activating (both values exceed `total_tiles_`) and shows inline red `"Out of range (max: 0x%03X)"` text. `ClearRangeFilter` resets the flag. 2 new tests: `RangeFilterBothOutOfBoundsDoesNotActivate` and `RangeFilterMinInRangeMaxOutClamps` — 20/20 pass.
-2. **Room badge invalid-ID hardening test** — ✅ **RESOLVED BY INSPECTION** (Feb 24). `DrawInspectorShelfRoom` at `dungeon_workbench_panel.cc:565` already guards `if (room_id >= 0)` — badge and copy button are not rendered for negative IDs. Behavior verified by code inspection; no additional test infrastructure was needed.
+2. **Room badge invalid-ID hardening test** — ✅ **RESOLVED BY INSPECTION** (Feb 24). `DrawInspectorShelfRoom` in `src/app/editor/dungeon/workspace/dungeon_workbench_content.cc` guards `if (room_id >= 0)` — badge and copy button are not rendered for negative IDs. Behavior verified by code inspection; no additional test infrastructure was needed.
 3. **Success toast rate limiting** — ✅ **RESOLVED** (Feb 24, `ai-infra-architect`). `ToastManager::Show` now suppresses identical message+type within a 1-second cooldown window. 8 unit tests in `test/unit/editor/toast_dedup_test.cc`.

@@ -3,8 +3,8 @@
 Status: ACTIVE
 Owner: imgui-frontend-engineer
 Created: 2026-02-07
-Last Reviewed: 2026-02-07
-Next Review: 2026-02-14
+Last Reviewed: 2026-04-26
+Next Review: 2026-05-03
 
 ## Summary
 - Lead agent/persona: imgui-frontend-engineer
@@ -14,14 +14,33 @@ Next Review: 2026-02-14
   - A single default “Dungeon Workbench” layout is usable without manual docking.
   - Room navigation never moves/respawns windows unintentionally.
   - Inspector-driven UI reduces vertical chrome vs. always-on properties.
+  - Workbench-local edit tools live in the Workbench inspector drawer, not as
+    competing top-level Dungeon windows.
   - PanelManager supports explicit panel scopes so defaults and persistence are predictable.
   - A command palette makes navigation/panel actions discoverable and fast.
+
+## Status Update — 2026-04-26
+
+The Workbench now has a right-inspector `Tools` mode/drawer. Object Selector,
+Door, Sprite, Item, Palette, Room Graphics, Room Tags, Custom Collision, Water
+Fill, and Minecart tools route there when Workbench mode is active. Dungeon Map
+remains a popup and Connected Graph remains a canvas mode.
+
+Workbench-local tool windows are closed when entering Workbench mode and hidden
+from the Window Browser/sidebar while Workbench mode is active, so users are not
+invited back into the scattered multi-window workflow by default.
+Navigation/review surfaces remain discoverable there: Workbench, Room List,
+Room Matrix, Entrances, and Object Tile Editor.
+
+Canonical handoff for this slice:
+`docs/internal/agents/dungeon-workbench-usability-handoff-2026-04-26.md`.
 
 ## Scope
 - In scope:
   - (1) Room header polish (pin placement + compact controls) and immediate layout fixes.
   - (2) “Room Workbench”: one stable window that hosts the room canvas + supporting panes.
   - (3) Context-sensitive Inspector replacing tall always-on controls.
+  - (4) Workbench-local tool drawer replacing local utility popups/windows.
   - (5) Panel scopes + better default rules for visibility/pinning/persistence.
   - (6) Room tabs: MRU ordering, split view, and predictable focus.
   - (7) Command palette for room navigation + panel actions.
@@ -58,6 +77,8 @@ Next Review: 2026-02-14
   - Release notes / changelog entry once Workbench is on by default.
 - Internal docs/templates to update:
   - This initiative file
+  - `docs/internal/agents/dungeon-workbench-usability-handoff-2026-04-26.md`
+  - `docs/internal/architecture/editor-ui-module-pattern.md`
   - Universe task notes/history
 - Coordination tracking:
   - `scripts/agents/coord` (optional snapshot: `docs/internal/agents/coordination-board.generated.md`)
@@ -68,7 +89,8 @@ Next Review: 2026-02-14
 ## Timeline / Checkpoints
 - Milestone 1 (Step 1): Fix clipping/cutoff + preserve panel/viewer state when navigating.
 - Milestone 2 (Step 2): Ship “Dungeon Workbench” behind a feature flag with a default layout preset.
-- Milestone 3 (Step 3): Add Context Inspector (selection-driven UI) and migrate tall always-on controls into it.
+- Milestone 3 (Step 3): Add Context Inspector (selection-driven UI) and migrate tall always-on controls into it. **In progress; Room/Selection/Tools modes exist.**
+- Milestone 3b (Step 4): Fold local edit tools into the Workbench right drawer. **Implemented 2026-04-26; needs manual visual polish pass.**
 - Milestone 4 (Step 5): Introduce Panel Scopes (opt-in) and migrate Dungeon to scoped behavior.
 - Milestone 5 (Step 6): MRU room tabs + split view inside Workbench.
 - Milestone 6 (Step 7): Command palette for room navigation + panel actions.
@@ -90,7 +112,7 @@ Next Review: 2026-02-14
 - Ensure the nav strip never clips at higher DPI by using frame-height-based sizing rather than fixed widths.
 
 ### Step 2: Room Workbench (Single Stable Window)
-- Add a new `DungeonWorkbenchPanel` that owns a dedicated dockspace:
+- Add/maintain `DungeonWorkbenchContent` as the stable Workbench window:
   - Center: room canvas
   - Right: Inspector (Step 3)
   - Bottom (optional): log/diagnostics
@@ -105,6 +127,15 @@ Next Review: 2026-02-14
   - Object selected: show object properties and placement/mode tools.
   - Sprite/item selected: show entity properties.
 - Keep high-frequency actions reachable from the canvas (context menu + command palette), but move low-frequency settings out of the header.
+
+### Step 4: Workbench-Local Tool Drawer
+- Route local editing tools into a right-inspector `Tools` mode instead of
+  opening another high-level panel.
+- Close drawer-owned standalone tool windows on Workbench entry and hide their
+  entries from Window Browser/sidebar while Workbench mode is active.
+- Keep standalone windows available when users switch back to Window workflow.
+- Keep Object Tile Editor standalone unless Object Selector invokes it directly
+  as an asset-authoring subflow.
 
 ### Step 5: Panel Scopes
 - Extend PanelManager policy to support:
@@ -131,5 +162,7 @@ Next Review: 2026-02-14
 ## Exit Criteria (for “Workbench GA”)
 - Workbench layout is default for new users (fresh settings file).
 - No known “layout lost” issues when navigating rooms or switching editors.
+- Workbench-local tools no longer appear as primary Dungeon windows in Workbench
+  mode.
 - At least one stable e2e test covers: open dungeon, open room, navigate rooms, verify panel/window persistence.
 - User can revert to legacy layout mode via a setting.

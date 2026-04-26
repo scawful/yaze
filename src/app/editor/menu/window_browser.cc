@@ -3,9 +3,11 @@
 #include <algorithm>
 #include <cctype>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/menu/window_sidebar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
@@ -19,8 +21,9 @@ namespace editor {
 namespace {
 
 std::string LowercaseCopy(std::string value) {
-  std::transform(value.begin(), value.end(), value.begin(),
-                 [](unsigned char c) { return static_cast<char>(::tolower(c)); });
+  std::transform(
+      value.begin(), value.end(), value.begin(),
+      [](unsigned char c) { return static_cast<char>(::tolower(c)); });
   return value;
 }
 
@@ -40,8 +43,10 @@ bool MatchesWindowSearch(const std::string& query,
 
 }  // namespace
 
-WindowBrowser::WindowBrowser(WorkspaceWindowManager& window_manager)
-    : window_manager_(window_manager) {}
+WindowBrowser::WindowBrowser(WorkspaceWindowManager& window_manager,
+                             std::function<bool()> is_dungeon_workbench_mode)
+    : window_manager_(window_manager),
+      is_dungeon_workbench_mode_(std::move(is_dungeon_workbench_mode)) {}
 
 void WindowBrowser::Draw(size_t session_id, bool* p_open) {
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -74,6 +79,12 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
     }
 
     const auto all_windows = window_manager_.GetWindowsInSession(session_id);
+    const bool dungeon_workbench_mode =
+        is_dungeon_workbench_mode_ && is_dungeon_workbench_mode_();
+    auto should_hide_window = [&](const WindowDescriptor& window) {
+      return dungeon_workbench_mode && window.category == "Dungeon" &&
+             WindowSidebar::IsDungeonWorkbenchLocalToolWindow(window.card_id);
+    };
     auto count_windows = [&](const std::string& category,
                              bool visible_only) -> int {
       int count = 0;
@@ -86,6 +97,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
         if (category != "All" && window->category != category) {
           continue;
         }
+        if (should_hide_window(*window)) {
+          continue;
+        }
         const bool visible =
             window->visibility_flag && *window->visibility_flag;
         if (!visible_only || visible) {
@@ -93,6 +107,27 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
         }
       }
       return count;
+    };
+    auto set_filtered_windows_visible = [&](const std::string& category,
+                                            bool visible) {
+      for (const auto& window_id : all_windows) {
+        const auto* window =
+            window_manager_.GetWindowDescriptor(session_id, window_id);
+        if (!window) {
+          continue;
+        }
+        if (category != "All" && window->category != category) {
+          continue;
+        }
+        if (should_hide_window(*window)) {
+          continue;
+        }
+        if (visible) {
+          window_manager_.OpenWindow(session_id, window->card_id);
+        } else {
+          window_manager_.CloseWindow(session_id, window->card_id);
+        }
+      }
     };
 
     ImGui::SetNextItemWidth(
@@ -108,19 +143,19 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
     ImGui::SameLine();
     if (category_filter_ == "All") {
       if (ImGui::Button(ICON_MD_VISIBILITY " Show All")) {
-        window_manager_.ShowAllWindowsInSession(session_id);
+        set_filtered_windows_visible("All", true);
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_VISIBILITY_OFF " Hide All")) {
-        window_manager_.HideAllWindowsInSession(session_id);
+        set_filtered_windows_visible("All", false);
       }
     } else {
       if (ImGui::Button(ICON_MD_VISIBILITY " Show Category")) {
-        window_manager_.ShowAllWindowsInCategory(session_id, category_filter_);
+        set_filtered_windows_visible(category_filter_, true);
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_VISIBILITY_OFF " Hide Category")) {
-        window_manager_.HideAllWindowsInCategory(session_id, category_filter_);
+        set_filtered_windows_visible(category_filter_, false);
       }
     }
 
@@ -137,9 +172,10 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
                           ImVec2(category_sidebar_width, content_height),
                           true)) {
       const int visible_total = count_windows("All", true);
+      const int filtered_total = count_windows("All", false);
       std::string all_label =
           absl::StrFormat("%s All Windows (%d/%d)", ICON_MD_DASHBOARD,
-                          visible_total, static_cast<int>(all_windows.size()));
+                          visible_total, filtered_total);
       if (ImGui::Selectable(all_label.c_str(), category_filter_ == "All")) {
         category_filter_ = "All";
       }
@@ -151,10 +187,11 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           continue;
         }
         const int visible_in_category = count_windows(category, true);
-        const std::string icon = WorkspaceWindowManager::GetCategoryIcon(category);
-        std::string label = absl::StrFormat(
-            "%s %s (%d/%d)", icon.c_str(), category.c_str(),
-            visible_in_category, category_total);
+        const std::string icon =
+            WorkspaceWindowManager::GetCategoryIcon(category);
+        std::string label =
+            absl::StrFormat("%s %s (%d/%d)", icon.c_str(), category.c_str(),
+                            visible_in_category, category_total);
         if (ImGui::Selectable(label.c_str(), category_filter_ == category)) {
           category_filter_ = category;
         }
@@ -216,12 +253,11 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
                                 110);
         ImGui::TableHeadersRow();
 
-        auto windows = (category_filter_ == "All")
-                           ? all_windows
-                           : std::vector<std::string>{};
+        auto windows = (category_filter_ == "All") ? all_windows
+                                                   : std::vector<std::string>{};
         if (category_filter_ != "All") {
-          auto category_windows =
-              window_manager_.GetWindowsInCategory(session_id, category_filter_);
+          auto category_windows = window_manager_.GetWindowsInCategory(
+              session_id, category_filter_);
           windows.reserve(category_windows.size());
           for (const auto& window : category_windows) {
             windows.push_back(window.card_id);
@@ -234,6 +270,9 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           if (!window) {
             continue;
           }
+          if (should_hide_window(*window)) {
+            continue;
+          }
 
           if (!MatchesWindowSearch(search_filter_, *window)) {
             continue;
@@ -244,15 +283,16 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           ImGui::TableNextColumn();
           if (window->visibility_flag) {
             bool visible = *window->visibility_flag;
-            if (ImGui::Checkbox(absl::StrFormat("##vis_%s", window->card_id)
-                                    .c_str(),
-                                &visible)) {
+            if (ImGui::Checkbox(
+                    absl::StrFormat("##vis_%s", window->card_id).c_str(),
+                    &visible)) {
               window_manager_.ToggleWindow(session_id, window->card_id);
             }
           }
 
           ImGui::TableNextColumn();
-          const bool is_pinned = window_manager_.IsWindowPinned(window->card_id);
+          const bool is_pinned =
+              window_manager_.IsWindowPinned(window->card_id);
           const ImVec4 pin_color =
               is_pinned ? gui::GetPrimaryVec4() : gui::GetTextDisabledVec4();
           const float pin_side =
@@ -265,7 +305,7 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
                   is_pinned ? "Unpin window" : "Pin window", is_pinned,
                   pin_color, "window_browser", window->card_id.c_str())) {
             window_manager_.SetWindowPinned(session_id, window->card_id,
-                                           !is_pinned);
+                                            !is_pinned);
           }
           ImGui::PopID();
 

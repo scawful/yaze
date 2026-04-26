@@ -551,6 +551,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
+    unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
     unit/editor/project_manager_validator_test.cc
     unit/editor/tile_painting_manager_test.cc

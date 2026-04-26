@@ -20,6 +20,10 @@ namespace yaze::editor {
 class DungeonCanvasViewer;
 class DungeonMapPanel;
 class DungeonRoomSelector;
+class CustomCollisionPanel;
+class MinecartTrackEditorPanel;
+class RoomTagEditorPanel;
+class WaterFillPanel;
 enum class RoomSelectionIntent;
 
 struct DungeonWorkbenchResponsiveLayout {
@@ -61,7 +65,6 @@ class DungeonWorkbenchContent : public WindowContent {
       std::function<DungeonCanvasViewer*()> get_compare_viewer,
       std::function<const std::deque<int>&()> get_recent_rooms,
       std::function<void(int)> forget_recent_room,
-      std::function<void(const std::string&)> show_panel,
       std::function<void(bool)> set_workflow_mode, Rom* rom = nullptr);
   ~DungeonWorkbenchContent() override;
 
@@ -72,9 +75,37 @@ class DungeonWorkbenchContent : public WindowContent {
   int GetPriority() const override;
 
   void SetRom(Rom* rom);
+  void SetEmbeddedToolPanels(RoomTagEditorPanel* room_tags,
+                             CustomCollisionPanel* custom_collision,
+                             WaterFillPanel* water_fill,
+                             MinecartTrackEditorPanel* minecart_tracks);
+  void SetEmbeddedEditorPanels(WindowContent* object_selector,
+                               WindowContent* door_editor,
+                               WindowContent* sprite_editor,
+                               WindowContent* item_editor,
+                               WindowContent* room_graphics,
+                               WindowContent* palette_editor);
   void FocusRoomInspector();
   void FocusSelectionInspector();
+  void FocusEntranceBrowser();
+  void ShowConnectedGraph();
   void RequestDungeonMapPopup();
+  void OpenObjectSelectorTool();
+  void OpenDoorTool();
+  void OpenSpriteTool();
+  void OpenItemTool();
+  void OpenRoomGraphicsTool();
+  void OpenPaletteTool();
+  void OpenRoomTagsTool();
+  void OpenCustomCollisionTool();
+  void OpenWaterFillTool();
+  void OpenMinecartTool();
+
+  // Lightweight state probes for unit tests; production rendering remains
+  // driven by the Workbench inspector.
+  bool IsToolDrawerActiveForTesting() const;
+  const char* GetInspectorModeIdForTesting() const;
+  const char* GetActiveToolIdForTesting() const;
 
   /// Called by the editor when the current room changes.
   void NotifyRoomChanged(int previous_room_id) {
@@ -106,6 +137,20 @@ class DungeonWorkbenchContent : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  enum class WorkbenchTool : uint8_t {
+    None,
+    RoomTags,
+    CustomCollision,
+    WaterFill,
+    MinecartTracks,
+    ObjectSelector,
+    DoorEditor,
+    SpriteEditor,
+    ItemEditor,
+    RoomGraphics,
+    Palette,
+  };
+
   void DrawRecentRoomTabs();
   void DrawSidebarPane(float width, float height, float button_size,
                        bool compact);
@@ -128,6 +173,16 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfView(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfTools(DungeonCanvasViewer& viewer);
+  void DrawInspectorToolDrawer(DungeonCanvasViewer& viewer);
+  void DrawWorkbenchTool(DungeonCanvasViewer& viewer, WorkbenchTool tool);
+  void DrawInspectorToolStrip();
+  void OpenTool(WorkbenchTool tool);
+  bool IsWorkbenchToolAvailable(WorkbenchTool tool) const;
+  const char* GetWorkbenchToolId(WorkbenchTool tool) const;
+  const char* GetWorkbenchToolTitle(WorkbenchTool tool) const;
+  const char* GetWorkbenchToolIcon(WorkbenchTool tool) const;
+  const char* GetWorkbenchToolShortLabel(WorkbenchTool tool) const;
+  const char* GetWorkbenchToolUnavailableMessage(WorkbenchTool tool) const;
   void DrawApplyScopeControls(int room_id);
   void DrawLayerCompositingControls(DungeonCanvasViewer& viewer, int room_id);
   void DrawDungeonMapPopup(DungeonCanvasViewer& viewer);
@@ -154,15 +209,15 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<DungeonCanvasViewer*()> get_compare_viewer_;
   std::function<const std::deque<int>&()> get_recent_rooms_;
   std::function<void(int)> forget_recent_room_;
-  std::function<void(const std::string&)> show_panel_;
   std::function<void(bool)> set_workflow_mode_;
   Rom* rom_ = nullptr;
 
   enum class SidebarMode : uint8_t { Rooms, Entrances };
   SidebarMode sidebar_mode_ = SidebarMode::Rooms;
-  enum class InspectorFocus : uint8_t { Room, Selection };
-  InspectorFocus inspector_focus_ = InspectorFocus::Room;
+  enum class InspectorMode : uint8_t { Room, Selection, Tools };
+  InspectorMode inspector_mode_ = InspectorMode::Room;
   bool inspector_selection_was_active_ = false;
+  WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
 
   char compare_search_buf_[64] = {};
 
@@ -186,6 +241,16 @@ class DungeonWorkbenchContent : public WindowContent {
   bool show_shortcut_legend_ = false;
   bool open_dungeon_map_popup_ = false;
   std::unique_ptr<DungeonMapPanel> embedded_dungeon_map_;
+  RoomTagEditorPanel* room_tag_panel_ = nullptr;
+  CustomCollisionPanel* custom_collision_panel_ = nullptr;
+  WaterFillPanel* water_fill_panel_ = nullptr;
+  MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
+  WindowContent* object_selector_content_ = nullptr;
+  WindowContent* door_editor_content_ = nullptr;
+  WindowContent* sprite_editor_content_ = nullptr;
+  WindowContent* item_editor_content_ = nullptr;
+  WindowContent* room_graphics_content_ = nullptr;
+  WindowContent* palette_editor_content_ = nullptr;
 };
 
 }  // namespace yaze::editor
