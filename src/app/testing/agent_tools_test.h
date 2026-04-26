@@ -2,7 +2,7 @@
 #define YAZE_APP_TEST_AGENT_TOOLS_TEST_H_
 
 #include <filesystem>
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #include "app/editor/agent/agent_chat_history_codec.h"
 #include "app/editor/agent/agent_state.h"
 #include "cli/service/agent/tool_dispatcher.h"

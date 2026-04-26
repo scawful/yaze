@@ -1,4 +1,5 @@
 // C API implementation - no heavy GUI/editor dependencies
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -8,6 +9,9 @@
 #include "rom/rom.h"
 #include "yaze.h"
 #include "yaze_config.h"
+#include "yaze_core.h"
+#include "yaze_errors.h"
+#include "zelda.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -34,8 +38,6 @@ void yaze_library_shutdown() {
 
   // Cleanup subsystems
   g_library_initialized = false;
-
-  return;
 }
 
 const char* yaze_status_to_string(yaze_status status) {

@@ -2,7 +2,7 @@
 #include "e2e/imgui_test_engine_demo.h"
 
 #include "app/controller.h"
-#include "app/test/screenshot_assertion.h"
+#include "app/testing/screenshot_assertion.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h" // Added include for ImGuiTestEngine

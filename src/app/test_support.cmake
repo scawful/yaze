@@ -1,23 +1,25 @@
 # ==============================================================================
-# Yaze Test Support Library
+# Yaze Test Support Library (build-system module)
 # ==============================================================================
-# This library contains the core test manager and infrastructure for running
-# tests within the application.
+# This file lives under src/ so src/CMakeLists.txt can include it without
+# reaching out-of-tree. The actual test harness sources live under app/testing/.
 #
-# It is intended to be linked by test executables, not by the main
-# application itself.
-#
-# Dependencies: All major yaze libraries.
+# Public include layout stays unchanged: headers remain co-located with sources.
 # ==============================================================================
 
+include_guard(GLOBAL)
+
 set(YAZE_TEST_SOURCES
-  app/test/test_manager.cc
-  app/test/dungeon_ui_tests.cc
-  app/test/overworld_ui_tests.cc
-  app/test/z3ed_test_suite.cc
-  app/test/agent_tools_test.cc
-  app/test/ai_vision_verifier.cc
-  app/test/screenshot_assertion.cc
+  app/testing/test_manager.cc
+  app/testing/test_recorder.cc
+  app/testing/test_script_parser.cc
+  app/testing/screenshot_assertion.cc
+  app/testing/visual_diff_engine.cc
+  app/testing/dungeon_ui_tests.cc
+  app/testing/overworld_ui_tests.cc
+  app/testing/z3ed_test_suite.cc
+  app/testing/agent_tools_test.cc
+  app/testing/ai_vision_verifier.cc
 )
 
 set(YAZE_ENABLE_VISUAL_DIFF_ENGINE ON)
@@ -34,10 +36,8 @@ else()
 endif()
 
 if(NOT YAZE_ENABLE_VISUAL_DIFF_ENGINE)
-  list(REMOVE_ITEM YAZE_TEST_SOURCES app/test/visual_diff_engine.cc)
+  list(REMOVE_ITEM YAZE_TEST_SOURCES app/testing/visual_diff_engine.cc)
 endif()
-
-# gRPC test harness services are now in yaze_grpc_support library
 
 add_library(yaze_test_support STATIC ${YAZE_TEST_SOURCES})
 
@@ -81,24 +81,13 @@ endif()
 # Add gRPC dependencies if test harness is enabled
 if(YAZE_WITH_GRPC)
   target_compile_definitions(yaze_test_support PRIVATE YAZE_WITH_JSON)
-  
-  # Link to consolidated gRPC support library
   target_link_libraries(yaze_test_support PUBLIC yaze_grpc_support)
-  
   message(STATUS "  - gRPC test harness service enabled in yaze_test_support")
 endif()
 
 # Link agent library if available (for z3ed test suites)
-# yaze_agent contains all the CLI service code (tile16_proposal_generator, gui_automation_client, etc.)
 if(TARGET yaze_agent)
-  # Use normal linking to avoid circular dependencies
-  # The previous force_load/whole-archive approach created a circular dependency:
-  # yaze_test_support -> force_load(yaze_agent) -> yaze_test_support
-  # This caused SIGSEGV during static initialization.
-  # If specific agent symbols are not being pulled in, they should be explicitly
-  # referenced in the test code or restructured into a separate test library.
   target_link_libraries(yaze_test_support PUBLIC yaze_agent)
-  
   if(YAZE_WITH_GRPC)
     message(STATUS "✓ z3ed test suites enabled with gRPC support")
   else()
@@ -109,8 +98,3 @@ else()
 endif()
 
 message(STATUS "✓ yaze_test_support library configured")
-
-# Note: yaze_editor needs yaze_test_support for TestManager, but we can't link it here
-# because this happens BEFORE yaze and yaze_emu are configured.
-# Instead, each executable (yaze, yaze_emu) must explicitly link yaze_test_support
-# in their respective .cmake files (app.cmake, emu.cmake).

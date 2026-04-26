@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "app/gfx/arena.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 
 #ifdef YAZE_ENABLE_GTEST
 #include <gtest/gtest.h>

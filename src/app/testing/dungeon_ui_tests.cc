@@ -1,4 +1,4 @@
-#include "app/test/dungeon_ui_tests.h"
+#include "app/testing/dungeon_ui_tests.h"
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 

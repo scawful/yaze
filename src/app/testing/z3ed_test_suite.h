@@ -2,7 +2,7 @@
 #define YAZE_APP_TEST_Z3ED_TEST_SUITE_H
 
 #include "absl/status/status.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #include "imgui.h"
 
 #ifdef YAZE_WITH_GRPC

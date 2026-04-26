@@ -13,7 +13,7 @@
 #include "app/emu/debug/watchpoint_manager.h"
 #include "app/emu/snes.h"
 #include "app/gui/core/icons.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #include "util/log.h"
 
 namespace yaze {

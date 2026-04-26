@@ -1,4 +1,4 @@
-#include "app/test/screenshot_assertion.h"
+#include "app/testing/screenshot_assertion.h"
 
 #include <cmath>
 #include <filesystem>

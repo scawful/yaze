@@ -1,4 +1,4 @@
-#include "app/test/z3ed_test_suite.h"
+#include "app/testing/z3ed_test_suite.h"
 
 #include "absl/strings/str_format.h"
 #include "util/log.h"

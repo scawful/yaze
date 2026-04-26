@@ -12,7 +12,7 @@
 #include "app/editor/events/core_events.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/editor/system/panel_manager.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #include "rom/rom.h"
 
 namespace yaze {

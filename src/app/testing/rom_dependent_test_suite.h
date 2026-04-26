@@ -9,7 +9,7 @@
 #include "app/gui/core/icons.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
