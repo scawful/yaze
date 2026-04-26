@@ -204,6 +204,29 @@ TEST_F(ObjectDimensionTableTest, ChestObjectsHaveFixedSize) {
 }
 
 TEST_F(ObjectDimensionTableTest,
+       ReportedPlatformAndDecorObjectsUseUsdasmFootprints) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  // RoomDraw_RightwardsDecor4x3spaced4_1to16 advances to the next 4x3 stamp
+  // every eight tile columns. Object 0xFF9 appeared in an editor issue report
+  // with the old six-tile stride.
+  auto [decor_w, decor_h] = table.GetDimensions(0xFF9, 2);
+  EXPECT_EQ(decor_w, 20);
+  EXPECT_EQ(decor_h, 3);
+
+  // Chest platforms use subtype-1's packed 2-bit size fields:
+  // size_x=(size>>2)&3, size_y=size&3.
+  auto [closed_w, closed_h] = table.GetDimensions(0xC1, 0x03);
+  EXPECT_EQ(closed_w, 14);
+  EXPECT_EQ(closed_h, 14);
+
+  auto [open_w, open_h] = table.GetDimensions(0xDC, 0x05);
+  EXPECT_EQ(open_w, 12);
+  EXPECT_EQ(open_h, 9);
+}
+
+TEST_F(ObjectDimensionTableTest,
        FocusedScopeSelectionBoundsMatchObjectGeometry) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());

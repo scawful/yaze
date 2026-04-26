@@ -487,6 +487,10 @@ void DrawRightwardsPillar2x4spaced4_1to16(const DrawContext& ctx) {
 void DrawRightwardsDecor4x3spaced4_1to16(const DrawContext& ctx) {
   // Pattern: 4x3 decoration with spacing (objects 0x3A-0x3B)
   // 4 columns × 3 rows = 12 tiles in COLUMN-MAJOR order
+  // usdasm RoomDraw_RightwardsDecor4x3spaced4_1to16 ($01:9387) draws the
+  // 4-column stamp, then ADC #$0008 after RoomDraw_1x3N_rightwards. The
+  // helper already advanced over the 4-column stamp, so start-to-start stride
+  // is 8 tile columns.
   int size = ctx.object.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -498,7 +502,7 @@ void DrawRightwardsDecor4x3spaced4_1to16(const DrawContext& ctx) {
       for (int x = 0; x < 4; ++x) {
         for (int y = 0; y < 3; ++y) {
           DrawRoutineUtils::WriteTile8(ctx.target_bg,
-                                       ctx.object.x_ + (s * 6) + x,
+                                       ctx.object.x_ + (s * 8) + x,
                                        ctx.object.y_ + y, ctx.tiles[x * 3 + y]);
         }
       }
