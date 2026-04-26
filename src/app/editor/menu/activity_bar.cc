@@ -42,7 +42,7 @@ ActivityBar::ActivityBar(WorkspaceWindowManager& window_manager,
                          std::function<bool()> is_dungeon_workbench_mode,
                          std::function<void(bool)> set_dungeon_workflow_mode)
     : window_manager_(window_manager),
-      window_browser_(window_manager),
+      window_browser_(window_manager, is_dungeon_workbench_mode),
       window_sidebar_(window_manager, std::move(is_dungeon_workbench_mode),
                       std::move(set_dungeon_workflow_mode),
                       [this]() { return GetBottomReservedHeight(); }),

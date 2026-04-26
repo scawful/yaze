@@ -90,6 +90,42 @@ These are now treated as code smells in editor UX work:
 - Limit nesting for common actions like reporting, opening related tools, and copy
   helpers.
 
+## Workbench-local tools vs. top-level windows
+
+When an editor has a stable Workbench surface, local edit tools should be drawn
+inside that Workbench before adding or preserving another high-level panel.
+
+Preferred hierarchy:
+
+1. **Canvas/toolbar** for high-frequency spatial actions.
+2. **Inspector modes/drawers** for local tools that edit the current room,
+   selection, palette, tags, collision, or other nearby state.
+3. **Popups** for bounded review surfaces that should not persist as primary
+   windows (for example, a dungeon map).
+4. **Standalone windows** only for workflow-level navigation or asset-authoring
+   surfaces that must exist outside the active Workbench.
+
+Dungeon Workbench examples:
+
+| Surface | Expected home in Workbench mode |
+|---|---|
+| Object Selector, Door, Sprite, Item tools | Inspector `Tools` drawer |
+| Palette, Room Graphics, Room Tags | Inspector `Tools` drawer |
+| Custom Collision, Water Fill, Minecart | Inspector `Tools` drawer |
+| Dungeon Map | Popup |
+| Connected Graph | Canvas mode |
+| Object Tile Editor | Standalone asset-authoring window |
+
+If a tool is embedded in a Workbench drawer, close any visible standalone copy
+when entering Workbench mode and hide its standalone panel entry from Window
+Browser/sidebar while Workbench mode is active. Keep the standalone path
+available in the explicit Window workflow so advanced users can opt into the old
+multi-window model.
+
+Avoid dual implementations. Do not keep both a modal popup path and a drawer path
+for the same local tool unless the temporary duplicate is tracked by a handoff
+with deletion criteria.
+
 ### Refactor triggers
 
 A UI surface should be considered for layout refactor when any of these appear:
