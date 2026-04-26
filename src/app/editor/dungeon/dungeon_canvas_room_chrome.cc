@@ -224,6 +224,7 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
     show_room_details_ = !show_room_details_;
   }
   ImGui::SameLine();
+  DrawRecentRoomBreadcrumbs(room_id);
 
   auto hex_input = [&](const char* label, const char* icon, uint8_t* val,
                        uint8_t max, const char* tooltip) {
@@ -297,6 +298,42 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   if (show_room_details_) {
     ImGui::TextDisabled("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d",
                         room.floor1(), room.effect(), room.tag1(), room.tag2());
+  }
+}
+
+void DungeonCanvasViewer::DrawRecentRoomBreadcrumbs(int room_id) {
+  if (!CanNavigateRooms() || recently_visited_rooms_.size() <= 1) {
+    return;
+  }
+
+  ImGui::PushID("RecentRooms");
+  ImGui::TextDisabled(ICON_MD_HISTORY);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Recently visited rooms");
+  }
+
+  int rendered = 0;
+  for (int recent_room : recently_visited_rooms_) {
+    if (recent_room == room_id) {
+      continue;
+    }
+    ImGui::SameLine(0, 3);
+    const std::string button_label =
+        absl::StrFormat("%03X##RecentRoom%d", recent_room, rendered);
+    if (ImGui::SmallButton(button_label.c_str())) {
+      NavigateToRoom(recent_room);
+      TriggerChangePing();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "[%03X] %s", recent_room,
+          dungeon_project_labels::GetRoomLabel(project_, recent_room).c_str());
+    }
+    ++rendered;
+  }
+  ImGui::PopID();
+  if (rendered > 0) {
+    ImGui::SameLine();
   }
 }
 

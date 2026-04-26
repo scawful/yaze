@@ -73,6 +73,7 @@ class ItemInteractionHandler : public BaseEntityHandler {
    */
   void DeleteSelected();
   void DeleteAll();
+  bool NudgeSelected(int delta_pixel_x, int delta_pixel_y);
 
  private:
   // Placement state

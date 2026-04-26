@@ -12,6 +12,7 @@ namespace {
 
 constexpr double kChangePingDurationSeconds = 0.85;
 constexpr int kDungeonCanvasPixelSize = 512;
+constexpr size_t kRecentRoomLimit = 5;
 
 bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
                            const zelda3::RoomObject& rhs) {
@@ -21,6 +22,21 @@ bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
 
 }  // namespace
 
+void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+    return;
+  }
+
+  recently_visited_rooms_.erase(
+      std::remove(recently_visited_rooms_.begin(),
+                  recently_visited_rooms_.end(), room_id),
+      recently_visited_rooms_.end());
+  recently_visited_rooms_.insert(recently_visited_rooms_.begin(), room_id);
+  if (recently_visited_rooms_.size() > kRecentRoomLimit) {
+    recently_visited_rooms_.resize(kRecentRoomLimit);
+  }
+}
+
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
   project_ = project;
   ApplyTrackCollisionConfig();
@@ -28,6 +44,19 @@ void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
 
 void DungeonCanvasViewer::TriggerChangePing() {
   change_ping_rects_.clear();
+  change_ping_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
+}
+
+void DungeonCanvasViewer::TriggerCanvasPingRect(int pixel_x, int pixel_y,
+                                                int pixel_w, int pixel_h) {
+  change_ping_rects_.clear();
+  const int x = std::clamp(pixel_x, 0, kDungeonCanvasPixelSize - 1);
+  const int y = std::clamp(pixel_y, 0, kDungeonCanvasPixelSize - 1);
+  const int w =
+      std::clamp(pixel_w, 1, std::max(1, kDungeonCanvasPixelSize - x));
+  const int h =
+      std::clamp(pixel_h, 1, std::max(1, kDungeonCanvasPixelSize - y));
+  change_ping_rects_.push_back(ChangePingRect{x, y, w, h});
   change_ping_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
 }
 
@@ -139,6 +168,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (!ValidateRoomCanvasRequest(room_id)) {
     return;
   }
+  RecordVisitedRoom(room_id);
 
   ImGui::BeginGroup();
   const auto frame_opts = BuildRoomCanvasFrameOptions();

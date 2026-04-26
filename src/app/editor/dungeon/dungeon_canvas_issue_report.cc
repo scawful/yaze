@@ -63,11 +63,11 @@ constexpr char kIssueReportRecaptureButtonLabel[] =
 const char* GetObjectStreamLabel(int layer_value) {
   switch (layer_value) {
     case 0:
-      return "Primary";
+      return "Layer 1 (Primary)";
     case 1:
-      return "BG2 overlay";
+      return "Layer 2 (BG2 overlay)";
     case 2:
-      return "BG1 overlay";
+      return "Layer 3 (BG1 overlay)";
     default:
       return "Unknown";
   }

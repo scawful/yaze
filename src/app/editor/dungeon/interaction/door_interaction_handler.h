@@ -98,6 +98,7 @@ class DoorInteractionHandler : public BaseEntityHandler {
    */
   void DeleteSelected();
   void DeleteAll();
+  bool NudgeSelected(int delta_x, int delta_y);
 
   /**
    * @brief Change the type of a door in place, re-encoding ROM bytes.

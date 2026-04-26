@@ -299,6 +299,39 @@ void SpriteInteractionHandler::DeleteAll() {
   ctx_->NotifyEntityChanged();
 }
 
+bool SpriteInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
+  if (!selected_sprite_index_.has_value() || !HasValidContext()) {
+    return false;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room) {
+    return false;
+  }
+
+  auto& sprites = room->GetSprites();
+  if (*selected_sprite_index_ >= sprites.size()) {
+    return false;
+  }
+
+  auto& sprite = sprites[*selected_sprite_index_];
+  const int next_x = std::clamp(static_cast<int>(sprite.x()) + delta_x, 0,
+                                dungeon_coords::kSpriteGridMax);
+  const int next_y = std::clamp(static_cast<int>(sprite.y()) + delta_y, 0,
+                                dungeon_coords::kSpriteGridMax);
+  if (next_x == sprite.x() && next_y == sprite.y()) {
+    return false;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kSprites);
+  sprite.set_x(next_x);
+  sprite.set_y(next_y);
+  room->MarkSpritesDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
+  ctx_->NotifyEntityChanged();
+  return true;
+}
+
 void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
                                                      int canvas_y) {
   if (!HasValidContext()) {

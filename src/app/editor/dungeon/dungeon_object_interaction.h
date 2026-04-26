@@ -316,6 +316,7 @@ class DungeonObjectInteraction {
   void HandleObjectSelectionStart(const ImVec2& canvas_mouse_pos);
   void HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos);
   void HandleMouseRelease();
+  bool HandleKeyboardNudge();
 
   // Preview object state (used by ModeState but kept here for ghost bitmap)
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};

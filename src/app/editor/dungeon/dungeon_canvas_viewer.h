@@ -219,6 +219,9 @@ class DungeonCanvasViewer {
           NavigateToRoom(target_room);
           if (target_tile_x >= 0 && target_tile_y >= 0) {
             ScrollToTile(target_tile_x, target_tile_y);
+            TriggerCanvasPingRect(target_tile_x * 8, target_tile_y * 8, 24, 24);
+          } else {
+            TriggerChangePing();
           }
           if (target_door_index.has_value()) {
             object_interaction_.SelectEntity(EntityType::Door,
@@ -232,6 +235,8 @@ class DungeonCanvasViewer {
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
   void TriggerChangePing();
+  void TriggerCanvasPingRect(int pixel_x, int pixel_y, int pixel_w,
+                             int pixel_h);
   void TriggerObjectChangePing(
       const std::vector<zelda3::RoomObject>& previous_objects,
       const std::vector<zelda3::RoomObject>& next_objects);
@@ -710,13 +715,14 @@ class DungeonCanvasViewer {
   void DrawRoomHeader(zelda3::Room& room, int room_id);
   void DrawRoomNavigation(int room_id);
   void DrawRoomPropertyTable(zelda3::Room& room, int room_id);
+  void DrawRecentRoomBreadcrumbs(int room_id);
   void DrawLayerControls(zelda3::Room& room, int room_id);
   void DrawCompactLayerToggles(int room_id);
   void PopulateCanvasContextMenu(int room_id);
   void AddInteractionContextMenuItems(int room_id);
   void AddLoadedRoomContextMenuItems(int room_id);
   gui::CanvasMenuItem BuildInsertContextMenu();
-  std::optional<gui::CanvasMenuItem> BuildSelectionContextMenu(int room_id);
+  std::vector<gui::CanvasMenuItem> BuildSelectionContextMenuItems(int room_id);
   gui::CanvasMenuItem BuildRoomContextMenu(int room_id);
   gui::CanvasMenuItem BuildReportContextMenu(int room_id);
   std::optional<gui::CanvasMenuItem> BuildOpenContextMenu();
@@ -789,6 +795,7 @@ class DungeonCanvasViewer {
   void HandleRoomCanvasDropTargets(zelda3::Room& room, int room_id);
   void DrawChangePingOverlay(const gui::CanvasRuntime& canvas_rt,
                              const zelda3::Room& room);
+  void RecordVisitedRoom(int room_id);
 
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
@@ -817,6 +824,7 @@ class DungeonCanvasViewer {
   // Room data
   DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = -1;
+  std::vector<int> recently_visited_rooms_;
   int current_entrance_id_ = -1;
   uint8_t current_entrance_blockset_ = 0xFF;
   // Used by overworld editor for double-click entrance → open dungeon room

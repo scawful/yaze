@@ -268,6 +268,44 @@ void ItemInteractionHandler::DeleteAll() {
   ctx_->NotifyEntityChanged();
 }
 
+bool ItemInteractionHandler::NudgeSelected(int delta_pixel_x,
+                                           int delta_pixel_y) {
+  if (!selected_item_index_.has_value() || !HasValidContext()) {
+    return false;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room) {
+    return false;
+  }
+
+  auto& pot_items = room->GetPotItems();
+  if (*selected_item_index_ >= pot_items.size()) {
+    return false;
+  }
+
+  auto& pot_item = pot_items[*selected_item_index_];
+  constexpr int kRoomPixelMax = 511;
+  const int next_pixel_x =
+      std::clamp(pot_item.GetPixelX() + delta_pixel_x, 0, kRoomPixelMax);
+  const int next_pixel_y =
+      std::clamp(pot_item.GetPixelY() + delta_pixel_y, 0, kRoomPixelMax);
+  const int encoded_x = std::clamp(next_pixel_x / 4, 0, 255);
+  const int encoded_y = std::clamp(next_pixel_y / 16, 0, 255);
+  const uint16_t next_position =
+      static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+  if (next_position == pot_item.position) {
+    return false;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  pot_item.position = next_position;
+  room->MarkPotItemsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+  ctx_->NotifyEntityChanged();
+  return true;
+}
+
 void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   if (!HasValidContext())
     return;

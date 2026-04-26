@@ -537,6 +537,58 @@ void DoorInteractionHandler::DeleteAll() {
   ctx_->NotifyEntityChanged();
 }
 
+bool DoorInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
+  if (!selected_door_index_.has_value() || !HasValidContext()) {
+    return false;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room) {
+    return false;
+  }
+
+  auto& doors = room->GetDoors();
+  if (*selected_door_index_ >= doors.size()) {
+    return false;
+  }
+
+  auto& door = doors[*selected_door_index_];
+  int position_delta = 0;
+  switch (door.direction) {
+    case zelda3::DoorDirection::North:
+    case zelda3::DoorDirection::South:
+      position_delta = delta_x;
+      break;
+    case zelda3::DoorDirection::West:
+    case zelda3::DoorDirection::East:
+      position_delta = delta_y;
+      break;
+  }
+
+  if (position_delta == 0) {
+    return false;
+  }
+
+  const int next_position =
+      std::clamp(static_cast<int>(door.position) + position_delta, 0,
+                 zelda3::DoorPositionManager::kMaxDoorPositions - 1);
+  if (next_position == door.position ||
+      !zelda3::DoorPositionManager::IsValidPosition(
+          static_cast<uint8_t>(next_position), door.direction)) {
+    return false;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kDoors);
+  door.position = static_cast<uint8_t>(next_position);
+  auto [b1, b2] = door.EncodeBytes();
+  door.byte1 = b1;
+  door.byte2 = b2;
+  room->MarkObjectsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
+  ctx_->NotifyEntityChanged();
+  return true;
+}
+
 bool DoorInteractionHandler::MutateDoorType(size_t index,
                                             zelda3::DoorType new_type) {
   if (!HasValidContext())
