@@ -97,42 +97,47 @@ TEST(SidebarSortTest, OrderEntriesNotInInputAreIgnored) {
   EXPECT_EQ(out, Vec({"Dungeon", "Overworld"}));
 }
 
-TEST(SidebarSortTest, DungeonWorkbenchLocalToolsAreRecognized) {
-  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.object_selector"));
+// Mode-parity contract: Dungeon Workbench mode no longer hides per-tool
+// standalone windows from the sidebar / Window Browser. The Workbench drawer
+// still embeds the same tools, but users can keep a standalone copy open
+// alongside it. The previous `IsDungeonWorkbenchLocalToolWindow` policy was
+// removed in the 2026-04-26 polish pass; only navigation-mode handling
+// (room selector / room matrix / per-room windows) remains as a workflow
+// switch concern.
+//
+// `IsDungeonWindowModeTarget` matches `dungeon.room_*` by prefix because
+// per-room windows use ids like `dungeon.room_42`. That prefix-match also
+// catches `dungeon.room_graphics` and `dungeon.room_tags`, which is fine: the
+// per-room close loop now only runs in `SetWorkbenchWorkflowMode`, where it is
+// scoped to the explicit workflow toggle and skips pinned windows.
+TEST(SidebarSortTest, DungeonWindowModeTargetsCoverRoomPrefixedWindows) {
   EXPECT_TRUE(
-      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.door_editor"));
-  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.sprite_editor"));
-  EXPECT_TRUE(
-      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.item_editor"));
-  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.palette_editor"));
-  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.room_graphics"));
-  EXPECT_TRUE(
-      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.room_tags"));
-  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.custom_collision"));
-  EXPECT_TRUE(
-      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.water_fill"));
-  EXPECT_TRUE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.minecart_tracks"));
-}
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_selector"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_matrix"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_42"));
 
-TEST(SidebarSortTest, DungeonWorkbenchKeepsNavigationWindowsVisible) {
+  // Non-room ids never match — including the standalone tool windows that
+  // previously lived under `IsDungeonWorkbenchLocalToolWindow`.
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.workbench"));
   EXPECT_FALSE(
-      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.workbench"));
-  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.room_selector"));
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.object_selector"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.door_editor"));
   EXPECT_FALSE(
-      WindowSidebar::IsDungeonWorkbenchLocalToolWindow("dungeon.room_matrix"));
-  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.entrance_list"));
-  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.entrance_properties"));
-  EXPECT_FALSE(WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-      "dungeon.object_tile_editor"));
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.sprite_editor"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.item_editor"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.palette_editor"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.custom_collision"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.water_fill"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.minecart_tracks"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.entrance_list"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.entrance_properties"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.object_tile_editor"));
 }
 
 }  // namespace

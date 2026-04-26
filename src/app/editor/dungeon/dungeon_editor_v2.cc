@@ -46,6 +46,7 @@
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/mesen/mesen_client_registry.h"
 #include "app/emu/mesen/mesen_socket_client.h"
@@ -144,18 +145,6 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
       [](int, zelda3::Room& room) { room.ClearWaterFillDirty(); });
 
   return absl::OkStatus();
-}
-
-bool IsDungeonWorkbenchLocalToolWindowId(const std::string& card_id) {
-  return card_id == "dungeon.object_selector" ||
-         card_id == "dungeon.door_editor" ||
-         card_id == "dungeon.sprite_editor" ||
-         card_id == "dungeon.item_editor" ||
-         card_id == "dungeon.palette_editor" ||
-         card_id == "dungeon.room_graphics" || card_id == "dungeon.room_tags" ||
-         card_id == "dungeon.custom_collision" ||
-         card_id == "dungeon.water_fill" ||
-         card_id == "dungeon.minecart_tracks";
 }
 
 }  // namespace
@@ -416,6 +405,13 @@ void DungeonEditorV2::Initialize() {
         [this]() { return undo_manager_.GetUndoDescription(); },
         [this]() { return undo_manager_.GetRedoDescription(); },
         [this]() { return static_cast<int>(undo_manager_.UndoStackSize()); });
+    workbench_panel_->SetOnInspectorSideChanged([this](bool on_left) {
+      if (dependencies_.user_settings) {
+        dependencies_.user_settings->SetDungeonInspectorSide(on_left ? "left"
+                                                                     : "right");
+        dependencies_.user_settings->Save().IgnoreError();
+      }
+    });
     window_manager->RegisterWindowContent(std::move(workbench));
   }
 
@@ -827,6 +823,13 @@ absl::Status DungeonEditorV2::Load() {
 
 absl::Status DungeonEditorV2::Update() {
   ProcessPendingWorkflowMode();
+
+  // Mirror the workbench inspector to the LEFT when user_settings says so.
+  // Persisted across sessions via UserSettings::dungeon_inspector_side.
+  if (workbench_panel_ && dependencies_.user_settings) {
+    workbench_panel_->SetInspectorOnLeft(
+        dependencies_.user_settings->GetDungeonInspectorSide() == "left");
+  }
 
   const auto& theme = AgentUI::GetTheme();
   if (room_window_class_.ClassId == 0) {
@@ -1445,17 +1448,16 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
   if (enabled) {
     window_manager->OpenWindow(session_id, "dungeon.workbench");
 
-    // Close local tools even if pinned: Workbench hosts them in the inspector
-    // drawer, and leaving the standalone copy visible creates two edit surfaces
-    // for the same room state.
+    // Workbench-local tool windows (Object/Door/Sprite/Item Selector, Palette,
+    // Room Graphics/Tags, Custom Collision, Water Fill, Minecart) are NOT
+    // auto-closed on Workbench entry. The Workbench drawer embeds the same
+    // tools, but users may also keep a standalone window open if they prefer
+    // a multi-window layout. Only navigation windows (room selector/matrix
+    // and per-room windows) are collapsed when entering Workbench mode.
     for (const auto& descriptor :
          window_manager->GetWindowsInCategory(session_id, "Dungeon")) {
       const std::string& card_id = descriptor.card_id;
       if (card_id == "dungeon.workbench") {
-        continue;
-      }
-      if (IsDungeonWorkbenchLocalToolWindowId(card_id)) {
-        window_manager->CloseWindow(session_id, card_id);
         continue;
       }
       if (window_manager->IsWindowPinned(session_id, card_id)) {

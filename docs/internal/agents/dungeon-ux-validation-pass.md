@@ -290,7 +290,7 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
 **Source:**
 - `DungeonWorkbenchContent::DrawInspectorToolDrawer()`
 - `DungeonWorkbenchContent::Open*Tool()`
-- `WindowSidebar::IsDungeonWorkbenchLocalToolWindow()`
+- `WindowSidebar::IsDungeonWindowModeTarget()` (room-prefixed nav windows)
 - `WindowBrowser::Draw()`
 
 ### 5a — Local tool requests open the right inspector drawer
@@ -329,7 +329,12 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
 - Dungeon Map opens as a bounded popup.
 - Connected Graph switches the canvas mode; it is not embedded as a drawer tool.
 
-### 5c — Window Browser/sidebar close and hide Workbench-local tools
+### 5c — Window Browser/sidebar list Workbench-local tools in either mode
+
+> Updated 2026-04-26 (polish pass #3 — mode-parity relaxation): the previous
+> hide/auto-close policy was removed. Tool windows now appear in the sidebar
+> and Window Browser in both Workbench and Windows workflow modes, and entering
+> Workbench mode no longer closes their standalone copies.
 
 **Click-path:**
 1. Ensure Workbench workflow is active.
@@ -339,12 +344,16 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
    `dungeon.custom_collision`, and `dungeon.water_fill`.
 
 **Expected:**
-- Any visible standalone copies of these local tools are closed when entering
-  Workbench mode.
-- These local tools are hidden from the Browser/sidebar in Workbench mode.
-- Workbench, Room List, Room Matrix, Entrances, and Object Tile Editor remain
-  visible/discoverable.
-- Switching to Window workflow restores standalone tool discoverability.
+- These local tool windows are visible in both the sidebar and the Window
+  Browser regardless of workflow mode.
+- Toggling **Workbench / Windows** in the Dungeon sidebar workflow strip never
+  auto-closes a standalone tool window. Only the room-mode navigation windows
+  (`dungeon.room_selector`, `dungeon.room_matrix`, and per-room `dungeon.room_*`
+  windows) are collapsed when entering Workbench mode, and pinned room windows
+  are preserved.
+- Opening a tool from the sidebar while the Workbench drawer also has the same
+  tool active yields two edit surfaces for the same room state — by design.
+- Switching to Window workflow restores the room-mode windows.
 
 **Focused automated coverage:**
 
@@ -353,8 +362,8 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
   --gtest_filter='DungeonWorkbenchToolbar*.*:DungeonWorkbenchContentLayoutTest.*:SidebarSortTest.*'
 ```
 
-Expected result: all tests pass, including drawer-state persistence and local
-tool-window classification.
+Expected result: all tests pass, including drawer-state persistence and the
+mode-parity contract pinned by `SidebarSortTest.DungeonWindowModeTargets…`.
 
 ---
 

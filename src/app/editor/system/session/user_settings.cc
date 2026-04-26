@@ -283,6 +283,9 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->panel_layout_defaults_revision = std::stoi(val);
     } else if (key == "sidebar_active_category") {
       prefs->sidebar_active_category = val;
+    } else if (key == "dungeon_inspector_side") {
+      prefs->dungeon_inspector_side =
+          (val == "left") ? std::string("left") : std::string("right");
     }
     // Status Bar
     else if (key == "show_status_bar") {
@@ -413,6 +416,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "panel_layout_defaults_revision="
      << prefs.panel_layout_defaults_revision << "\n";
   ss << "sidebar_active_category=" << prefs.sidebar_active_category << "\n";
+  ss << "dungeon_inspector_side=" << prefs.dungeon_inspector_side << "\n";
 
   // Status Bar
   ss << "show_status_bar=" << (prefs.show_status_bar ? 1 : 0) << "\n";
@@ -761,6 +765,11 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     prefs->backup_before_save =
         e.value("backup_before_save", prefs->backup_before_save);
     prefs->default_editor = e.value("default_editor", prefs->default_editor);
+    {
+      std::string side =
+          e.value("dungeon_inspector_side", prefs->dungeon_inspector_side);
+      prefs->dungeon_inspector_side = (side == "left") ? "left" : "right";
+    }
   }
 
   if (root.contains("performance")) {
@@ -1020,6 +1029,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
   root["editor"] = {
       {"backup_before_save", prefs.backup_before_save},
       {"default_editor", prefs.default_editor},
+      {"dungeon_inspector_side", prefs.dungeon_inspector_side},
   };
 
   root["performance"] = {
@@ -1513,7 +1523,59 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  // Revision 21: Layout C (ZScream-style) defaults for the Dungeon editor.
+  // Open the three left-stack selectors (Object/Sprite/Item) plus the Room
+  // Browser/Entrances surface (`dungeon.room_selector`) and Room Matrix in
+  // addition to the workbench so a first-run / migrated user lands on a
+  // ZScream-shaped layout. The actual L/R placement is decided by the
+  // workbench window itself (it inspects `dungeon_inspector_side` at draw
+  // time) and by ImGui's docking — no `left_panel_widths` map exists, and
+  // adding one is out of scope for this slice. The inspector-pane width hint
+  // is seeded into `right_panel_widths` for the workbench window so users see
+  // a sensibly-sized inspector before they drag.
+  if (prefs_.panel_layout_defaults_revision < 21 && target_revision >= 21) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      dungeon_windows["dungeon.workbench"] = true;
+      dungeon_windows["dungeon.object_selector"] = true;
+      dungeon_windows["dungeon.sprite_editor"] = true;
+      dungeon_windows["dungeon.item_editor"] = true;
+      dungeon_windows["dungeon.room_selector"] = true;
+      dungeon_windows["dungeon.room_matrix"] = true;
+    }
+
+    // Default Layout C placement is selectors-left / inspector-right. Only
+    // seed the value when the user has not already chosen one (empty string
+    // from a pre-rev-21 settings file) so a future preference flip isn't
+    // clobbered by the migration.
+    if (prefs_.dungeon_inspector_side.empty()) {
+      prefs_.dungeon_inspector_side = "right";
+    }
+
+    // Seed sensible widths for the workbench inspector pane. These are hints;
+    // the user's drag persists through `right_panel_widths` once they adjust.
+    if (!prefs_.right_panel_widths.contains("dungeon.workbench")) {
+      prefs_.right_panel_widths["dungeon.workbench"] = 320.0f;
+    }
+
+    prefs_.panel_layout_defaults_revision = 21;
+    applied = true;
+  }
+
   return applied;
+}
+
+std::string UserSettings::GetDungeonInspectorSide() const {
+  const std::string& side = prefs_.dungeon_inspector_side;
+  if (side == "left") {
+    return "left";
+  }
+  return "right";
+}
+
+void UserSettings::SetDungeonInspectorSide(std::string side) {
+  prefs_.dungeon_inspector_side = (side == "left") ? "left" : "right";
 }
 
 absl::Status UserSettings::Save() {

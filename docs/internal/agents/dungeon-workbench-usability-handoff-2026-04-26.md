@@ -60,6 +60,80 @@ Implemented but not committed:
       tools only. `FocusSelectionInspector` / `FocusRoomInspector` are still
       called from `dungeon_editor_v2.cc` and the canvas selection shelf, so
       no dead code was introduced.
+  - **Polish pass #4 — UI/UX overhaul (2026-04-26 follow-up 5):** larger
+    user-driven slice covering top bar, inspector clutter, sidebar tabs,
+    selector clipping, default layout (revision 21), and a Layout C mirror
+    toggle:
+    - **Stitched Rooms rename**: the toolbar `Connected` text button is now
+      icon-only (`ICON_MD_VIEW_QUILT`); the inspector section header,
+      sidebar Quick Actions menu item, and on-hover tooltips all read
+      "Stitched Rooms" — accurate to what the canvas actually renders
+      (current room + adjacent rooms stitched into one continuous canvas).
+    - **Top bar declutter**: `kToolbarRoomReviewLabel` dropped " Review"
+      text; the room-matrix button is now icon-only. NESW arrow widget
+      preserved per user request (standard muscle memory).
+    - **Inspector overlay grouping**: `DrawInspectorShelfView`'s flat list
+      of 11 overlay checkboxes is split into Canvas overlays (4, always
+      visible: Grid, Object Bounds, Hover Coordinates, Camera Quadrants)
+      and an `Authoring overlays` collapsible (7, default closed: Track
+      Collision, Custom Collision, Water Fill, Minecart Pathing, Track
+      Gaps, Track Routes, Custom Objects). Inner "Overlay Toggles"
+      header dropped (parent section header is enough).
+    - **Navigate tab buttons**: `DrawSidebarModeTabs` swapped its full-
+      width text ToggleButton segments for icon-only square ToggleButtons
+      (`ICON_MD_VIEW_LIST` / `ICON_MD_DOOR_FRONT`) with hover tooltips.
+      Cluster width drops from ~170px to ~70px.
+    - **Object Selector clipping fix**: `dungeon_object_selector.cc`
+      `BeginChild("##ObjectGrid", …)` adds `ImGuiWindowFlags_HorizontalScrollbar`
+      and clamps `item_size` to `min(requested, max(32, available - 16))`.
+      `##CustomObjectGrid` in the popup gets the same horizontal-scrollbar
+      flag for symmetry. Authored by parallel agent.
+    - **Mode-parity follow-through**: subagent B's relaxation (above)
+      means the new selectors / palette / room graphics are accessible in
+      both Workbench and Window modes simultaneously.
+    - **Layout C default (revision 21)**: `kLatestPanelLayoutDefaultsRevision`
+      bumped 20→21. Revision 21 seeds default-on visibility for
+      `dungeon.object_selector`, `dungeon.sprite_editor`,
+      `dungeon.item_editor`, `dungeon.room_matrix`, and re-opens
+      `dungeon.room_selector` (was off in rev 13). Adds a 320px width hint
+      for the workbench in `right_panel_widths`. Adds new
+      `Preferences::dungeon_inspector_side` (default `"right"`) +
+      `UserSettings::GetDungeonInspectorSide()` /
+      `SetDungeonInspectorSide()` API + JSON/INI persistence. 4 new tests
+      in `user_settings_layout_defaults_test.cc`.
+    - **Mirror toggle wiring**: `DungeonWorkbenchContent` gets
+      `SetInspectorOnLeft(bool)` + `SetOnInspectorSideChanged(callback)`.
+      `Draw()` adds a mirror-mode branch that swaps the L/R pane render
+      order while preserving width-state semantics (right_width remains
+      the inspector's, left_width remains the sidebar's, splitter drags
+      still affect the correct pane). The inspector header gets a
+      `ICON_MD_SWAP_HORIZ` button next to the collapse chevron; clicking
+      it toggles `inspector_on_left_` and persists the choice through
+      `UserSettings`. The collapse chevron now flips
+      (`ICON_MD_CHEVRON_RIGHT` ↔ `ICON_MD_CHEVRON_LEFT`) to match which
+      side the inspector exits to. `DungeonEditorV2::Update()` reads
+      `GetDungeonInspectorSide()` each frame and calls
+      `workbench_panel_->SetInspectorOnLeft(...)`.
+  - **Polish pass #3 — mode-parity relaxation (2026-04-26 follow-up 4):**
+    the `IsDungeonWorkbenchLocalToolWindow()` policy added in commit
+    `46e40fb5` was deleted along with every callsite. Workbench mode no
+    longer hides Object/Door/Sprite/Item Selector, Palette, Room Graphics,
+    Room Tags, Custom Collision, Water Fill, or Minecart panels from the
+    sidebar / Window Browser, and `SetWorkbenchWorkflowMode(true)` no
+    longer auto-closes their standalone windows on entry. Users can now
+    have both the Workbench drawer's embedded copy and a standalone
+    window open if they prefer that layout. The Tools strip in the
+    Workbench inspector is unchanged. Affected files:
+    `src/app/editor/menu/window_sidebar.{h,cc}`,
+    `src/app/editor/menu/window_browser.{h,cc}` (the
+    `is_dungeon_workbench_mode` callback was the only consumer of that
+    constructor parameter and is dropped),
+    `src/app/editor/menu/activity_bar.cc`,
+    `src/app/editor/dungeon/dungeon_editor_v2.cc`,
+    `test/unit/editor/sidebar_sort_test.cc` (two old tests renamed +
+    rewritten to assert the relaxation: `DungeonWorkbenchLocalTools…` /
+    `DungeonWorkbenchKeepsNavigationWindowsVisible` are gone, replaced by
+    `DungeonWindowModeTargetsCoverRoomPrefixedWindows`).
   - **Polish pass #2 (2026-04-26 follow-up 3):** five focused edits in
     `dungeon_workbench_content.cc` to compress remaining visual scatter:
     - **Room badge** — dropped the redundant `(%d)` decimal label that sat

@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/menu/window_sidebar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
@@ -43,10 +42,8 @@ bool MatchesWindowSearch(const std::string& query,
 
 }  // namespace
 
-WindowBrowser::WindowBrowser(WorkspaceWindowManager& window_manager,
-                             std::function<bool()> is_dungeon_workbench_mode)
-    : window_manager_(window_manager),
-      is_dungeon_workbench_mode_(std::move(is_dungeon_workbench_mode)) {}
+WindowBrowser::WindowBrowser(WorkspaceWindowManager& window_manager)
+    : window_manager_(window_manager) {}
 
 void WindowBrowser::Draw(size_t session_id, bool* p_open) {
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -79,12 +76,6 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
     }
 
     const auto all_windows = window_manager_.GetWindowsInSession(session_id);
-    const bool dungeon_workbench_mode =
-        is_dungeon_workbench_mode_ && is_dungeon_workbench_mode_();
-    auto should_hide_window = [&](const WindowDescriptor& window) {
-      return dungeon_workbench_mode && window.category == "Dungeon" &&
-             WindowSidebar::IsDungeonWorkbenchLocalToolWindow(window.card_id);
-    };
     auto count_windows = [&](const std::string& category,
                              bool visible_only) -> int {
       int count = 0;
@@ -95,9 +86,6 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           continue;
         }
         if (category != "All" && window->category != category) {
-          continue;
-        }
-        if (should_hide_window(*window)) {
           continue;
         }
         const bool visible =
@@ -117,9 +105,6 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           continue;
         }
         if (category != "All" && window->category != category) {
-          continue;
-        }
-        if (should_hide_window(*window)) {
           continue;
         }
         if (visible) {
@@ -268,9 +253,6 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           const auto* window =
               window_manager_.GetWindowDescriptor(session_id, window_id);
           if (!window) {
-            continue;
-          }
-          if (should_hide_window(*window)) {
             continue;
           }
 

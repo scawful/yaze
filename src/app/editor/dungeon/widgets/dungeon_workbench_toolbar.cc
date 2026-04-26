@@ -40,8 +40,8 @@ constexpr char kToolbarPopupIdCompareSearchList[] = "##CompareSearchList";
 constexpr char kToolbarPopupIdCompareMenu[] = "##WorkbenchCompareMenu";
 constexpr char kToolbarStartCompareLabel[] = ICON_MD_COMPARE_ARROWS;
 constexpr char kToolbarViewOptionsLabel[] = ICON_MD_VISIBILITY;
-constexpr char kToolbarModeConnectedLabel[] = "Connected";
-constexpr char kToolbarRoomReviewLabel[] = ICON_MD_GRID_VIEW " Review";
+constexpr char kToolbarModeConnectedLabel[] = ICON_MD_VIEW_QUILT;
+constexpr char kToolbarRoomReviewLabel[] = ICON_MD_GRID_VIEW;
 constexpr char kToolbarRoomSearchHint[] = "Type to filter rooms...";
 constexpr char kToolbarComparePickerTooltip[] = "Pick a room to compare";
 constexpr char kToolbarCompareRoomIdTooltip[] = "Compare room ID";
@@ -172,8 +172,9 @@ void DrawCanvasModeSelector(DungeonWorkbenchLayoutState* layout,
   if (DrawToolbarActionButton("CanvasModeConnected", kToolbarModeConnectedLabel,
                               ImVec2(connected_width, mode_height),
                               layout->show_connected_canvas_view
-                                  ? "Return to room editing canvas"
-                                  : "Browse rooms through the connection graph",
+                                  ? "Return to single-room canvas"
+                                  : "Stitched Rooms: browse the current room "
+                                    "and its neighbors as one canvas",
                               layout->show_connected_canvas_view)) {
     layout->show_connected_canvas_view = !layout->show_connected_canvas_view;
   }

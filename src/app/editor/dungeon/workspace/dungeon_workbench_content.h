@@ -101,6 +101,18 @@ class DungeonWorkbenchContent : public WindowContent {
   void OpenWaterFillTool();
   void OpenMinecartTool();
 
+  // Mirror toggle: when true, the inspector renders on the LEFT and the
+  // sidebar renders on the RIGHT (ZScream-style). Width semantics are
+  // preserved (layout_state_.right_width is still the inspector's width),
+  // so splitter drags still affect the correct pane regardless of side.
+  void SetInspectorOnLeft(bool on_left) { inspector_on_left_ = on_left; }
+  bool IsInspectorOnLeft() const { return inspector_on_left_; }
+  // Wired by the editor to persist the user's mirror choice in UserSettings.
+  // Called when the in-inspector swap-side button is clicked.
+  void SetOnInspectorSideChanged(std::function<void(bool)> cb) {
+    on_inspector_side_changed_ = std::move(cb);
+  }
+
   // Lightweight state probes for unit tests; production rendering remains
   // driven by the Workbench inspector.
   bool IsToolDrawerActiveForTesting() const;
@@ -199,6 +211,7 @@ class DungeonWorkbenchContent : public WindowContent {
   // Workbench-owned UI state (was in DungeonEditorV2, moved here Phase 6.2).
   int previous_room_id_ = -1;
   bool split_view_enabled_ = false;
+  bool inspector_on_left_ = false;
   int compare_room_id_ = -1;
   DungeonWorkbenchLayoutState layout_state_{};
   std::function<void(int)> on_room_selected_;
@@ -210,6 +223,7 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<const std::deque<int>&()> get_recent_rooms_;
   std::function<void(int)> forget_recent_room_;
   std::function<void(bool)> set_workflow_mode_;
+  std::function<void(bool)> on_inspector_side_changed_;
   Rom* rom_ = nullptr;
 
   enum class SidebarMode : uint8_t { Rooms, Entrances };
