@@ -155,11 +155,11 @@ void DungeonCanvasViewer::DrawRoomDebugWindow(zelda3::Room& room, int room_id) {
       ImGui::Checkbox("Type 2", &object_outline_toggles_.show_type2_objects);
       ImGui::Checkbox("Type 3", &object_outline_toggles_.show_type3_objects);
       ImGui::Text("By Layer:");
-      ImGui::Checkbox("Primary (main pass)",
+      ImGui::Checkbox("Layer 1 (Primary)",
                       &object_outline_toggles_.show_layer0_objects);
-      ImGui::Checkbox("BG2 overlay",
+      ImGui::Checkbox("Layer 2 (BG2 overlay)",
                       &object_outline_toggles_.show_layer1_objects);
-      ImGui::Checkbox("BG1 overlay",
+      ImGui::Checkbox("Layer 3 (BG1 overlay)",
                       &object_outline_toggles_.show_layer2_objects);
     }
   }

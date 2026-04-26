@@ -36,6 +36,12 @@ class InteractionCoordinatorTest : public ::testing::Test {
     ctx_.on_selection_changed = [this]() {
       selection_changed_count_++;
     };
+    ctx_.on_mutation = [this]() {
+      mutation_count_++;
+    };
+    ctx_.on_invalidate_cache = [this]() {
+      invalidation_count_++;
+    };
 
     coordinator_.SetContext(&ctx_);
   }
@@ -52,6 +58,8 @@ class InteractionCoordinatorTest : public ::testing::Test {
   InteractionCoordinator coordinator_;
   int entity_changed_count_ = 0;
   int selection_changed_count_ = 0;
+  int mutation_count_ = 0;
+  int invalidation_count_ = 0;
 };
 
 // ============================================================================
@@ -224,6 +232,59 @@ TEST_F(InteractionCoordinatorTest, AltClickCyclesOverlappingEntities) {
   EXPECT_EQ(coordinator_.GetSelectedEntity().index, 0u);
 
   ImGui::GetIO().KeyAlt = false;
+}
+
+TEST_F(InteractionCoordinatorTest, NudgeSelectedSpriteMovesAndInvalidates) {
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+
+  coordinator_.SelectEntity(EntityType::Sprite, 0);
+  const int initial_mutations = mutation_count_;
+  const int initial_invalidations = invalidation_count_;
+
+  ASSERT_TRUE(coordinator_.NudgeSelected(1, -1));
+  const auto& sprite = rooms_[0].GetSprites()[0];
+  EXPECT_EQ(sprite.x(), 6);
+  EXPECT_EQ(sprite.y(), 4);
+  EXPECT_GT(mutation_count_, initial_mutations);
+  EXPECT_GT(invalidation_count_, initial_invalidations);
+  EXPECT_TRUE(rooms_[0].sprites_dirty());
+}
+
+TEST_F(InteractionCoordinatorTest, NudgeSelectedItemUsesEncodableGrid) {
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  rooms_[0].GetPotItems().push_back(item);
+
+  coordinator_.SelectEntity(EntityType::Item, 0);
+
+  ASSERT_TRUE(coordinator_.NudgeSelected(1, 1));
+  const auto& moved = rooms_[0].GetPotItems()[0];
+  EXPECT_EQ(moved.GetPixelX(), 88);
+  EXPECT_EQ(moved.GetPixelY(), 96);
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+}
+
+TEST_F(InteractionCoordinatorTest, NudgeSelectedDoorMovesAlongDoorAxisOnly) {
+  zelda3::Room::Door door;
+  door.position = 1;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].GetDoors().push_back(door);
+
+  coordinator_.SelectEntity(EntityType::Door, 0);
+
+  EXPECT_FALSE(coordinator_.NudgeSelected(0, 1));
+  ASSERT_TRUE(coordinator_.NudgeSelected(1, 0));
+  const auto& moved = rooms_[0].GetDoors()[0];
+  EXPECT_EQ(moved.position, 2);
+  const auto [expected_b1, expected_b2] = moved.EncodeBytes();
+  EXPECT_EQ(moved.byte1, expected_b1);
+  EXPECT_EQ(moved.byte2, expected_b2);
 }
 
 // ============================================================================

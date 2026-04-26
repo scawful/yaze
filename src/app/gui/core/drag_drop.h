@@ -45,6 +45,7 @@ struct RoomObjectDragPayload {
   int source_room_id;
   int x;
   int y;
+  uint8_t size;
 };
 
 // Drag payload for the Layout Designer. Panel IDs are bounded strings
@@ -95,9 +96,9 @@ inline bool BeginPaletteDragSource(int group_idx, int palette_idx,
 }
 
 inline bool BeginRoomObjectDragSource(uint16_t object_id, int room_id,
-                                      int pos_x, int pos_y) {
+                                      int pos_x, int pos_y, uint8_t size = 0) {
   if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
-    RoomObjectDragPayload payload{object_id, room_id, pos_x, pos_y};
+    RoomObjectDragPayload payload{object_id, room_id, pos_x, pos_y, size};
     ImGui::SetDragDropPayload(kDragPayloadRoomObject, &payload,
                               sizeof(payload));
     ImGui::Text("Object 0x%04X", object_id);

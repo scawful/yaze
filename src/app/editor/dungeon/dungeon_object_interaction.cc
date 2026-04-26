@@ -54,6 +54,9 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
       return;
     }
     HandleLayerKeyboardShortcuts();
+    if (HandleKeyboardNudge()) {
+      return;
+    }
   }
 
   ImVec2 mouse_pos = io.MousePos;
@@ -283,6 +286,56 @@ void DungeonObjectInteraction::HandleMouseRelease() {
   entity_coordinator_.HandleRelease();
   // Marquee selection finalization is handled by TileObjectHandler via
   // CheckForObjectSelection().
+}
+
+bool DungeonObjectInteraction::HandleKeyboardNudge() {
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    return false;
+  }
+
+  const ImGuiIO& io = ImGui::GetIO();
+  if (ImGui::IsAnyItemActive() || io.KeyCtrl || io.KeySuper || io.KeyAlt ||
+      ImGui::IsMouseDown(ImGuiMouseButton_Left) ||
+      entity_coordinator_.IsPlacementActive()) {
+    return false;
+  }
+
+  const auto mode = mode_manager_.GetMode();
+  if (mode == InteractionMode::DraggingObjects ||
+      mode == InteractionMode::PaintCollision ||
+      mode == InteractionMode::PaintWaterFill) {
+    return false;
+  }
+
+  int delta_x = 0;
+  int delta_y = 0;
+  if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, true)) {
+    delta_x = -1;
+  } else if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, true)) {
+    delta_x = 1;
+  }
+  if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, true)) {
+    delta_y = -1;
+  } else if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, true)) {
+    delta_y = 1;
+  }
+
+  if (delta_x == 0 && delta_y == 0) {
+    return false;
+  }
+
+  if (selection_.HasSelection()) {
+    entity_coordinator_.tile_handler().MoveObjects(
+        current_room_id_, selection_.GetSelectedIndices(), delta_x, delta_y);
+    return true;
+  }
+
+  if (entity_coordinator_.HasEntitySelection()) {
+    return entity_coordinator_.NudgeSelected(delta_x, delta_y);
+  }
+
+  return false;
 }
 
 void DungeonObjectInteraction::CheckForObjectSelection() {

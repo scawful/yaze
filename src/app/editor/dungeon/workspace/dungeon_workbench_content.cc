@@ -52,14 +52,29 @@ const char* GetObjectCategory(int object_id) {
 const char* GetObjectStreamName(int layer_value) {
   switch (layer_value) {
     case 0:
-      return "Primary (main pass)";
+      return "Layer 1 (Primary)";
     case 1:
-      return "BG2 overlay";
+      return "Layer 2 (BG2 overlay)";
     case 2:
-      return "BG1 overlay";
+      return "Layer 3 (BG1 overlay)";
     default:
       return "Unknown";
   }
+}
+
+const char* GetBg2ModeName(int value) {
+  static constexpr const char* kNames[] = {
+      "Off",      "Parallax", "Dark",        "On top",   "Translucent",
+      "Addition", "Normal",   "Transparent", "Dark room"};
+  constexpr int kNameCount = sizeof(kNames) / sizeof(kNames[0]);
+  return (value >= 0 && value < kNameCount) ? kNames[value] : "Unknown";
+}
+
+const char* GetCollisionName(int value) {
+  static constexpr const char* kNames[] = {"One", "Both", "Both + Scroll",
+                                           "Moving Floor", "Moving Water"};
+  constexpr int kNameCount = sizeof(kNames) / sizeof(kNames[0]);
+  return (value >= 0 && value < kNameCount) ? kNames[value] : "Unknown";
 }
 
 // Pot item names for the inspector
@@ -1234,88 +1249,219 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     }
   }
 
-  // Core room properties (moved from canvas header).
-  workbench::DrawInspectorSectionHeader(ICON_MD_TUNE " Room Properties");
+  // ZScream-style compact room header: keep the raw ROM fields together so
+  // experienced dungeon authors can scan and edit them without panel hopping.
+  workbench::DrawInspectorSectionHeader(ICON_MD_TUNE " Room Header");
   if (auto* rooms = viewer.rooms();
       rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[room_id];
 
-    uint8_t blockset_val = room.blockset();
-    uint8_t palette_val = room.palette();
     uint8_t layout_val = room.layout_id();
+    uint8_t blockset_val = room.blockset();
+    uint8_t floor1_val = room.floor1();
+    uint8_t floor2_val = room.floor2();
+    uint8_t palette_val = room.palette();
     uint8_t spriteset_val = room.spriteset();
+    uint16_t message_val = room.message_id();
+    uint8_t bg2_val = static_cast<uint8_t>(room.bg2());
+    uint8_t effect_val = static_cast<uint8_t>(room.effect());
+    uint8_t collision_val = static_cast<uint8_t>(room.collision());
+    uint8_t tag1_val = static_cast<uint8_t>(room.tag1());
+    uint8_t tag2_val = static_cast<uint8_t>(room.tag2());
 
-    constexpr float kHexW = 92.0f;
+    auto render_room_graphics = [&]() {
+      if (room.rom() && room.rom()->is_loaded()) {
+        room.RenderRoomGraphics();
+      }
+    };
 
-    constexpr ImGuiTableFlags kPropsFlags = ImGuiTableFlags_BordersInnerV |
-                                            ImGuiTableFlags_RowBg |
-                                            ImGuiTableFlags_NoPadOuterX;
-    if (ImGui::BeginTable("##WorkbenchRoomProps", 2, kPropsFlags)) {
-      ImGui::TableSetupColumn("Prop", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-      ImGui::TableSetupColumn("Val", ImGuiTableColumnFlags_WidthStretch);
+    constexpr float kHexW = 54.0f;
+    constexpr ImGuiTableFlags kHeaderFlags = ImGuiTableFlags_BordersInnerV |
+                                             ImGuiTableFlags_RowBg |
+                                             ImGuiTableFlags_NoPadOuterX;
+    auto draw_label = [](const char* label) {
+      ImGui::AlignTextToFramePadding();
+      ImGui::TextUnformatted(label);
+    };
+    auto draw_byte_field = [&](const char* label, const char* id, uint8_t value,
+                               uint8_t max_value, const std::string& tooltip,
+                               auto apply) {
+      ImGui::TableNextColumn();
+      draw_label(label);
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(kHexW);
+      uint8_t edit_value = value;
+      if (auto res =
+              gui::InputHexByteEx(id, &edit_value, max_value, kHexW, true);
+          res.ShouldApply()) {
+        apply(edit_value);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", tooltip.c_str());
+      }
+    };
+    auto draw_word_field = [&](const char* label, const char* id,
+                               uint16_t value, uint16_t max_value,
+                               const std::string& tooltip, auto apply) {
+      ImGui::TableNextColumn();
+      draw_label(label);
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(kHexW + 12.0f);
+      uint16_t edit_value = value;
+      if (auto res = gui::InputHexWordEx(id, &edit_value, kHexW + 12.0f, true);
+          res.ShouldApply()) {
+        apply(std::min<uint16_t>(edit_value, max_value));
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", tooltip.c_str());
+      }
+    };
 
-      gui::LayoutHelpers::PropertyRow("Blockset", [&]() {
-        if (auto res = gui::InputHexByteEx("##Blockset", &blockset_val, 81,
-                                           kHexW, true);
-            res.ShouldApply()) {
-          room.SetBlockset(blockset_val);
-          if (room.rom() && room.rom()->is_loaded()) {
-            room.RenderRoomGraphics();
-          }
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Blockset (0-51)");
-        }
-      });
-      gui::LayoutHelpers::PropertyRow("Palette", [&]() {
-        if (auto res =
-                gui::InputHexByteEx("##Palette", &palette_val, 71, kHexW, true);
-            res.ShouldApply()) {
-          room.SetPalette(palette_val);
-          if (room.rom() && room.rom()->is_loaded()) {
-            room.RenderRoomGraphics();
-          }
-          // Re-run editor sync so palette group + dependent panels update.
-          if (on_room_selected_) {
-            on_room_selected_(room_id);
-          }
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Palette (0-47)");
-        }
-      });
-      gui::LayoutHelpers::PropertyRow("Layout", [&]() {
-        if (auto res =
-                gui::InputHexByteEx("##Layout", &layout_val, 7, kHexW, true);
-            res.ShouldApply()) {
-          room.SetLayoutId(layout_val);
-          room.MarkLayoutDirty();
-          if (room.rom() && room.rom()->is_loaded()) {
-            room.RenderRoomGraphics();
-          }
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Layout (0-7)");
-        }
-      });
-      gui::LayoutHelpers::PropertyRow("Spriteset", [&]() {
-        if (auto res = gui::InputHexByteEx("##Spriteset", &spriteset_val, 143,
-                                           kHexW, true);
-            res.ShouldApply()) {
-          room.SetSpriteset(spriteset_val);
-          if (room.rom() && room.rom()->is_loaded()) {
-            room.RenderRoomGraphics();
-          }
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Spriteset (0-8F)");
-        }
-      });
+    if (ImGui::BeginTable("##WorkbenchRoomHeader", 4, kHeaderFlags)) {
+      ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("V1", ImGuiTableColumnFlags_WidthFixed, 66.0f);
+      ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("V2", ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableNextRow();
+      draw_byte_field("Layout", "##RoomHeaderLayout", layout_val, 0x07,
+                      "Layout (0-7)", [&](uint8_t value) {
+                        room.SetLayoutId(value);
+                        room.MarkLayoutDirty();
+                        render_room_graphics();
+                      });
+      draw_byte_field("Blockset", "##RoomHeaderBlockset", blockset_val, 0x51,
+                      "Blockset (0-51)", [&](uint8_t value) {
+                        room.SetBlockset(value);
+                        render_room_graphics();
+                      });
+
+      ImGui::TableNextRow();
+      draw_byte_field("Floor1", "##RoomHeaderFloor1", floor1_val, 0x0F,
+                      "BG1 floor graphics (0-F)", [&](uint8_t value) {
+                        room.set_floor1(value);
+                        render_room_graphics();
+                      });
+      draw_byte_field("Floor2", "##RoomHeaderFloor2", floor2_val, 0x0F,
+                      "BG2 floor graphics (0-F)", [&](uint8_t value) {
+                        room.set_floor2(value);
+                        render_room_graphics();
+                      });
+
+      ImGui::TableNextRow();
+      draw_byte_field("Palette", "##RoomHeaderPalette", palette_val, 0x47,
+                      "Palette set (0-47)", [&](uint8_t value) {
+                        room.SetPalette(value);
+                        render_room_graphics();
+                        if (on_room_selected_) {
+                          on_room_selected_(room_id);
+                        }
+                      });
+      draw_byte_field("SpriteSet", "##RoomHeaderSpriteset", spriteset_val, 0x8F,
+                      "Sprite graphics set (0-8F)", [&](uint8_t value) {
+                        room.SetSpriteset(value);
+                        render_room_graphics();
+                      });
+
+      ImGui::TableNextRow();
+      draw_word_field("Message", "##RoomHeaderMessage", message_val, 0x0FFF,
+                      "Dungeon message ID (0-FFF)",
+                      [&](uint16_t value) { room.SetMessageId(value); });
+      draw_byte_field("BG2", "##RoomHeaderBg2", bg2_val, 0x08,
+                      std::string("BG2 mode: ") + GetBg2ModeName(bg2_val),
+                      [&](uint8_t value) {
+                        room.SetBg2(static_cast<background2>(value));
+                        render_room_graphics();
+                      });
+
+      ImGui::TableNextRow();
+      const char* effect_name =
+          effect_val < 8 ? zelda3::RoomEffect[effect_val].c_str() : "Unknown";
+      draw_byte_field("Effect", "##RoomHeaderEffect", effect_val, 0x07,
+                      std::string("Effect: ") + effect_name,
+                      [&](uint8_t value) {
+                        room.SetEffect(static_cast<zelda3::EffectKey>(value));
+                        render_room_graphics();
+                      });
+      draw_byte_field(
+          "Collision", "##RoomHeaderCollision", collision_val, 0x04,
+          std::string("Collision: ") + GetCollisionName(collision_val),
+          [&](uint8_t value) {
+            room.SetCollision(static_cast<zelda3::CollisionKey>(value));
+          });
+
+      ImGui::TableNextRow();
+      draw_byte_field("Tag1", "##RoomHeaderTag1", tag1_val, 0x40,
+                      std::string("Tag1: ") + zelda3::GetRoomTagLabel(tag1_val),
+                      [&](uint8_t value) {
+                        room.SetTag1(static_cast<zelda3::TagKey>(value));
+                        render_room_graphics();
+                      });
+      draw_byte_field("Tag2", "##RoomHeaderTag2", tag2_val, 0x40,
+                      std::string("Tag2: ") + zelda3::GetRoomTagLabel(tag2_val),
+                      [&](uint8_t value) {
+                        room.SetTag2(static_cast<zelda3::TagKey>(value));
+                        render_room_graphics();
+                      });
+
+      ImGui::EndTable();
+    }
+
+    ImGui::Dummy(ImVec2(0.0f, 2.0f));
+    workbench::DrawInspectorSectionHeader(ICON_MD_ALT_ROUTE " Destinations");
+    if (ImGui::BeginTable("##WorkbenchRoomDestinations", 4, kHeaderFlags)) {
+      ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("V1", ImGuiTableColumnFlags_WidthFixed, 66.0f);
+      ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 58.0f);
+      ImGui::TableSetupColumn("V2", ImGuiTableColumnFlags_WidthStretch);
+
+      ImGui::TableNextRow();
+      draw_byte_field("Pit", "##RoomHeaderPit", room.holewarp(), 0xFF,
+                      "Pit/holewarp destination room",
+                      [&](uint8_t value) { room.SetHolewarp(value); });
+      draw_byte_field("Stair1", "##RoomHeaderStair1", room.staircase_room(0),
+                      0xFF, "Stair destination slot 1",
+                      [&](uint8_t value) { room.SetStaircaseRoom(0, value); });
+
+      ImGui::TableNextRow();
+      draw_byte_field("Stair2", "##RoomHeaderStair2", room.staircase_room(1),
+                      0xFF, "Stair destination slot 2",
+                      [&](uint8_t value) { room.SetStaircaseRoom(1, value); });
+      draw_byte_field("Stair3", "##RoomHeaderStair3", room.staircase_room(2),
+                      0xFF, "Stair destination slot 3",
+                      [&](uint8_t value) { room.SetStaircaseRoom(2, value); });
+
+      ImGui::TableNextRow();
+      draw_byte_field("Stair4", "##RoomHeaderStair4", room.staircase_room(3),
+                      0xFF, "Stair destination slot 4",
+                      [&](uint8_t value) { room.SetStaircaseRoom(3, value); });
+      draw_byte_field("S1 Plane", "##RoomHeaderStairPlane1",
+                      room.staircase_plane(0), 0x03,
+                      "Stair 1 target layer/plane (0-3)",
+                      [&](uint8_t value) { room.SetStaircasePlane(0, value); });
+
+      ImGui::TableNextRow();
+      draw_byte_field("S2 Plane", "##RoomHeaderStairPlane2",
+                      room.staircase_plane(1), 0x03,
+                      "Stair 2 target layer/plane (0-3)",
+                      [&](uint8_t value) { room.SetStaircasePlane(1, value); });
+      draw_byte_field("S3 Plane", "##RoomHeaderStairPlane3",
+                      room.staircase_plane(2), 0x03,
+                      "Stair 3 target layer/plane (0-3)",
+                      [&](uint8_t value) { room.SetStaircasePlane(2, value); });
+
+      ImGui::TableNextRow();
+      draw_byte_field("S4 Plane", "##RoomHeaderStairPlane4",
+                      room.staircase_plane(3), 0x03,
+                      "Stair 4 target layer/plane (0-3)",
+                      [&](uint8_t value) { room.SetStaircasePlane(3, value); });
+      ImGui::TableNextColumn();
+      ImGui::TableNextColumn();
 
       ImGui::EndTable();
     }
   } else {
-    ImGui::TextDisabled("Room properties unavailable");
+    ImGui::TextDisabled("Room header unavailable");
   }
 
   workbench::DrawInspectorSectionHeader(ICON_MD_BUILD " Editing Status");
@@ -1551,11 +1697,13 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
             }
           });
 
-          // Stream / layer routing
-          gui::LayoutHelpers::PropertyRow("Stream", [&]() {
+          // ZScream names this as Layer 1/2/3; the tooltip keeps the ROM stream
+          // mapping visible without making the control harder to scan.
+          gui::LayoutHelpers::PropertyRow("Layer", [&]() {
             int layer = static_cast<int>(obj.GetLayerValue());
-            const char* layer_names[] = {"Primary (main pass)", "BG2 overlay",
-                                         "BG1 overlay"};
+            const char* layer_names[] = {"Layer 1 (Primary)",
+                                         "Layer 2 (BG2 overlay)",
+                                         "Layer 3 (BG1 overlay)"};
             ImGui::SetNextItemWidth(-1);
             if (ImGui::Combo("##SelObjLayer", &layer, layer_names,
                              IM_ARRAYSIZE(layer_names))) {
@@ -1564,7 +1712,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
                   idx, static_cast<zelda3::RoomObject::LayerType>(layer));
             }
           });
-          gui::LayoutHelpers::PropertyRow("Route", [&]() {
+          gui::LayoutHelpers::PropertyRow("Z/Route", [&]() {
             ImGui::TextDisabled("%s", GetObjectStreamName(obj.GetLayerValue()));
           });
 

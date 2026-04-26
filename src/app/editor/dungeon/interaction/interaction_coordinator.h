@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_COORDINATOR_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_COORDINATOR_H_
 
+#include <string>
 #include <vector>
 
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
@@ -96,6 +97,7 @@ class InteractionCoordinator {
   void SelectEntity(EntityType type, size_t index);
   void ClearEntitySelection();
   bool HasEntitySelection() const;
+  bool NudgeSelected(int delta_x, int delta_y);
   void CancelPlacement();
 
   // Doors/sprites/items only (tile objects are handled by ObjectSelection).
@@ -174,6 +176,9 @@ class InteractionCoordinator {
   int cycle_last_x_ = -1;
   int cycle_last_y_ = -1;
   size_t cycle_next_index_ = 0;
+  size_t cycle_active_index_ = 0;
+  ImVec2 cycle_hud_screen_pos_{0.0f, 0.0f};
+  double cycle_hud_start_time_ = -1.0;
   std::vector<SelectedEntity> cycle_last_hits_;
 
   /**
@@ -184,6 +189,8 @@ class InteractionCoordinator {
   bool ApplySelection(SelectedEntity entity);
   bool SameCycleTarget(int canvas_x, int canvas_y,
                        const std::vector<SelectedEntity>& hits) const;
+  void DrawSelectionCycleHud();
+  std::string DescribeEntity(SelectedEntity entity) const;
 };
 
 }  // namespace editor

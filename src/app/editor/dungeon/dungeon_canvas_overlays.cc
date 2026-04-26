@@ -19,11 +19,11 @@ namespace {
 const char* GetObjectStreamLabel(int layer_value) {
   switch (layer_value) {
     case 0:
-      return "Primary";
+      return "L1 Primary";
     case 1:
-      return "BG2 overlay";
+      return "L2 BG2";
     case 2:
-      return "BG1 overlay";
+      return "L3 BG1";
     default:
       return "Unknown";
   }

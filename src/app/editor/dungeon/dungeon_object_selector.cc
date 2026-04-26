@@ -17,6 +17,7 @@
 // Project headers
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/gui/core/agent_theme.h"
+#include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
@@ -368,6 +369,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
             object_selected_callback_(preview_object_);
           }
         }
+        gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
+                                       current_room_id_, 0, 0, 0x12);
 
         // Draw object preview on the button; fall back to styled placeholder
         ImVec2 button_pos = ImGui::GetItemRectMin();
@@ -948,6 +951,9 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
           SelectObject(obj_id, subtype);
           ImGui::CloseCurrentPopup();
         }
+        gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
+                                       current_room_id_, 0, 0,
+                                       static_cast<uint8_t>(subtype & 0x1F));
 
         ImVec2 button_pos = ImGui::GetItemRectMin();
         ImDrawList* draw_list = ImGui::GetWindowDrawList();

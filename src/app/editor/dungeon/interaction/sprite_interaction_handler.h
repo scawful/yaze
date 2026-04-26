@@ -81,6 +81,7 @@ class SpriteInteractionHandler : public BaseEntityHandler {
    */
   void DeleteSelected();
   void DeleteAll();
+  bool NudgeSelected(int delta_x, int delta_y);
 
   /// True if the most recent PlaceSpriteAtPosition was blocked.
   bool was_placement_blocked() const {

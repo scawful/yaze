@@ -1,10 +1,16 @@
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
 #include "app/editor/dungeon/object_selection.h"
 
+#include <algorithm>
 #include <cstdlib>
 
 // Third-party library headers
+#include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
+
+#include "app/gui/core/agent_theme.h"
+#include "zelda3/dungeon/room_object.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
 
@@ -85,10 +91,14 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
     if (!SameCycleTarget(canvas_x, canvas_y, hits)) {
       cycle_next_index_ = 0;
     }
-    const SelectedEntity selected = hits[cycle_next_index_ % hits.size()];
+    const size_t selected_index = cycle_next_index_ % hits.size();
+    const SelectedEntity selected = hits[selected_index];
     cycle_next_index_ = (cycle_next_index_ + 1) % hits.size();
     cycle_last_x_ = canvas_x;
     cycle_last_y_ = canvas_y;
+    cycle_active_index_ = selected_index;
+    cycle_hud_screen_pos_ = io.MousePos;
+    cycle_hud_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
     cycle_last_hits_ = hits;
     return ApplySelection(selected);
   }
@@ -274,6 +284,7 @@ void InteractionCoordinator::DrawSelectionHighlights() {
   if (door_handler_.IsPlacementActive() || door_handler_.HasSelection()) {
     door_handler_.DrawSnapIndicators();
   }
+  DrawSelectionCycleHud();
 }
 
 void InteractionCoordinator::DrawPostPlacementOverlays() {
@@ -308,6 +319,22 @@ bool InteractionCoordinator::TrySelectEntityAtCursor(int canvas_x,
 bool InteractionCoordinator::HasEntitySelection() const {
   return door_handler_.HasSelection() || sprite_handler_.HasSelection() ||
          item_handler_.HasSelection();
+}
+
+bool InteractionCoordinator::NudgeSelected(int delta_x, int delta_y) {
+  if (door_handler_.HasSelection()) {
+    return door_handler_.NudgeSelected(delta_x, delta_y);
+  }
+  if (sprite_handler_.HasSelection()) {
+    return sprite_handler_.NudgeSelected(delta_x, delta_y);
+  }
+  if (item_handler_.HasSelection()) {
+    constexpr int kItemHorizontalNudgePixels = 8;
+    constexpr int kItemVerticalNudgePixels = 16;
+    return item_handler_.NudgeSelected(delta_x * kItemHorizontalNudgePixels,
+                                       delta_y * kItemVerticalNudgePixels);
+  }
+  return false;
 }
 
 void InteractionCoordinator::ClearAllEntitySelections() {
@@ -403,6 +430,98 @@ bool InteractionCoordinator::SameCycleTarget(
     }
   }
   return true;
+}
+
+void InteractionCoordinator::DrawSelectionCycleHud() {
+  if (!ImGui::GetCurrentContext() || cycle_last_hits_.size() < 2 ||
+      cycle_hud_start_time_ < 0.0) {
+    return;
+  }
+
+  const double elapsed = ImGui::GetTime() - cycle_hud_start_time_;
+  const ImGuiIO& io = ImGui::GetIO();
+  constexpr double kCycleHudHoldSeconds = 1.25;
+  if (!io.KeyAlt && elapsed > kCycleHudHoldSeconds) {
+    return;
+  }
+
+  const float alpha =
+      io.KeyAlt
+          ? 1.0f
+          : std::max(0.0f,
+                     1.0f - static_cast<float>(elapsed / kCycleHudHoldSeconds));
+  const auto& theme = AgentUI::GetTheme();
+  ImVec4 bg = theme.panel_bg_darker;
+  bg.w *= 0.92f * alpha;
+  ImVec4 border = theme.panel_border_color;
+  border.w *= alpha;
+  ImVec4 text = theme.text_primary;
+  text.w *= alpha;
+  ImVec4 secondary = theme.text_secondary_color;
+  secondary.w *= alpha;
+
+  ImGui::SetNextWindowPos(
+      ImVec2(cycle_hud_screen_pos_.x + 14.0f, cycle_hud_screen_pos_.y + 14.0f),
+      ImGuiCond_Always);
+  ImGui::SetNextWindowBgAlpha(bg.w);
+  ImGui::PushStyleColor(ImGuiCol_WindowBg, bg);
+  ImGui::PushStyleColor(ImGuiCol_Border, border);
+  ImGui::PushStyleColor(ImGuiCol_Text, text);
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8.0f, 6.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 4.0f);
+  constexpr ImGuiWindowFlags kFlags =
+      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings |
+      ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav |
+      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoInputs;
+  if (ImGui::Begin("##DungeonSelectionCycleHud", nullptr, kFlags)) {
+    ImGui::TextColored(secondary, "Cycle");
+    for (size_t i = 0; i < cycle_last_hits_.size(); ++i) {
+      const char* marker = (i == cycle_active_index_) ? "[X]" : "[ ]";
+      ImGui::Text("%s %s", marker, DescribeEntity(cycle_last_hits_[i]).c_str());
+    }
+  }
+  ImGui::End();
+  ImGui::PopStyleVar(2);
+  ImGui::PopStyleColor(3);
+}
+
+std::string InteractionCoordinator::DescribeEntity(
+    SelectedEntity entity) const {
+  const zelda3::Room* room = ctx_ ? ctx_->GetCurrentRoomConst() : nullptr;
+  switch (entity.type) {
+    case EntityType::Door: {
+      if (room && entity.index < room->GetDoors().size()) {
+        const auto& door = room->GetDoors()[entity.index];
+        const std::string direction_name(
+            zelda3::GetDoorDirectionName(door.direction));
+        return absl::StrFormat("Door (%s)", direction_name);
+      }
+      return "Door";
+    }
+    case EntityType::Sprite:
+      if (room && entity.index < room->GetSprites().size()) {
+        const auto& sprite = room->GetSprites()[entity.index];
+        return absl::StrFormat("Sprite (0x%02X - %s)", sprite.id(),
+                               zelda3::ResolveSpriteName(sprite.id()));
+      }
+      return "Sprite";
+    case EntityType::Item:
+      if (room && entity.index < room->GetPotItems().size()) {
+        const auto& item = room->GetPotItems()[entity.index];
+        return absl::StrFormat("Item (0x%02X)", item.item);
+      }
+      return "Item";
+    case EntityType::Object:
+      if (room && entity.index < room->GetTileObjects().size()) {
+        const auto& object = room->GetTileObjects()[entity.index];
+        return absl::StrFormat("Object (0x%03X - %s)", object.id_,
+                               zelda3::GetObjectName(object.id_));
+      }
+      return "Object";
+    case EntityType::None:
+    default:
+      return "None";
+  }
 }
 
 }  // namespace yaze::editor
