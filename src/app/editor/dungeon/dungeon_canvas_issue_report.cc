@@ -533,6 +533,12 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
             append_sample("selection-center", center_x, center_y);
           }
         }
+      } else {
+        report += absl::StrFormat(
+            "\nSelected object index %zu is stale; room currently has %zu "
+            "object(s). Reselect the object and report again if this issue "
+            "still reproduces.",
+            index, objects.size());
       }
     }
   }
@@ -610,6 +616,10 @@ std::string DungeonCanvasViewer::BuildSelectionIssueReport(
     for (size_t i = 0; i < preview_count; ++i) {
       const size_t index = selected_objects[i];
       if (index >= objects.size()) {
+        report += absl::StrFormat(
+            "\n- object[%zu] unavailable; room currently has %zu object(s) "
+            "(selection is stale)",
+            index, objects.size());
         continue;
       }
       const auto& obj = objects[index];
