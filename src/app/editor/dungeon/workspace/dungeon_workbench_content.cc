@@ -460,11 +460,13 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
   }
   if (show_left) {
     ImGui::SameLine(0.0f, 0.0f);
-    DrawDungeonWorkbenchVerticalSplitter(
-        "##DungeonWorkbenchLeftSplitter", total_h, &layout_state_.left_width,
-        pane_layout.min_left_width,
-        total_w - right_w - min_canvas_w - (show_right ? splitter_w : 0.0f),
-        false);
+    if (DrawDungeonWorkbenchVerticalSplitter(
+            "##DungeonWorkbenchLeftSplitter", total_h,
+            &layout_state_.left_width, pane_layout.min_left_width,
+            total_w - right_w - min_canvas_w - (show_right ? splitter_w : 0.0f),
+            false)) {
+      layout_state_.show_left_sidebar = false;
+    }
   }
 
   if (show_left) {
@@ -474,11 +476,13 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
 
   if (show_right) {
     ImGui::SameLine(0.0f, 0.0f);
-    DrawDungeonWorkbenchVerticalSplitter(
-        "##DungeonWorkbenchRightSplitter", total_h, &layout_state_.right_width,
-        pane_layout.min_right_width,
-        total_w - left_w - min_canvas_w - (show_left ? splitter_w : 0.0f),
-        true);
+    if (DrawDungeonWorkbenchVerticalSplitter(
+            "##DungeonWorkbenchRightSplitter", total_h,
+            &layout_state_.right_width, pane_layout.min_right_width,
+            total_w - left_w - min_canvas_w - (show_left ? splitter_w : 0.0f),
+            true)) {
+      layout_state_.show_right_inspector = false;
+    }
     ImGui::SameLine(0.0f, 0.0f);
   }
   if (show_right) {
@@ -1042,6 +1046,11 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
 }
 
 void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
+  const auto& interaction = viewer.object_interaction();
+  if (interaction.GetSelectionCount() > 0 || interaction.HasEntitySelection()) {
+    inspector_focus_ = InspectorFocus::Selection;
+  }
+
   if (ImGui::GetContentRegionAvail().x < 240.0f) {
     DrawInspectorCompactSummary(viewer);
     return;

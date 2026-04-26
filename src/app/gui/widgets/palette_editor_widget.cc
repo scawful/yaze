@@ -8,10 +8,11 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/gui/widgets/themed_widgets.h"
 #include "app/gui/plots/implot_support.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "util/log.h"
 
+#include <cstring>
 #include <string>
 #include <vector>
 
@@ -26,6 +27,48 @@ const char* RomPaletteGroupNameGetter(void* user_data, int idx) {
     return nullptr;
   }
   return (*names)[idx].c_str();
+}
+
+void DrawColorDropTargetOutline(ImVec2 min, ImVec2 max) {
+  const auto& theme = ThemeManager::Get().GetCurrentTheme();
+  ImGui::GetForegroundDrawList()->AddRect(
+      min, max, ImGui::GetColorU32(ConvertColorToImVec4(theme.accent)), 0.0f, 0,
+      2.0f);
+}
+
+bool AcceptImGuiColorDrop(gfx::SnesColor* color, ImVec2 min, ImVec2 max) {
+  if (!color || !ImGui::BeginDragDropTarget()) {
+    return false;
+  }
+
+  bool changed = false;
+  constexpr ImGuiDragDropFlags kFlags =
+      ImGuiDragDropFlags_AcceptBeforeDelivery |
+      ImGuiDragDropFlags_AcceptNoDrawDefaultRect |
+      ImGuiDragDropFlags_AcceptNoPreviewTooltip;
+  auto accept = [&](const char* type, size_t components) {
+    if (changed) {
+      return;
+    }
+    if (const ImGuiPayload* payload =
+            ImGui::AcceptDragDropPayload(type, kFlags)) {
+      DrawColorDropTargetOutline(min, max);
+      if (payload->IsDelivery()) {
+        ImVec4 dropped(0, 0, 0, 1);
+        std::memcpy(&dropped.x, payload->Data, sizeof(float) * components);
+        if (components == 3) {
+          dropped.w = 1.0f;
+        }
+        *color = gfx::SnesColor(dropped);
+        changed = true;
+      }
+    }
+  };
+
+  accept(IMGUI_PAYLOAD_TYPE_COLOR_3F, 3);
+  accept(IMGUI_PAYLOAD_TYPE_COLOR_4F, 4);
+  ImGui::EndDragDropTarget();
+  return changed;
 }
 
 }  // namespace
@@ -71,9 +114,8 @@ void PaletteEditorWidget::Draw() {
     return;
   }
 
-  current_palette_id_ =
-      std::clamp(current_palette_id_, 0,
-                 static_cast<int>(dungeon_pal_group.size()) - 1);
+  current_palette_id_ = std::clamp(
+      current_palette_id_, 0, static_cast<int>(dungeon_pal_group.size()) - 1);
   if (current_palette_id_ >= 0 &&
       current_palette_id_ < (int)dungeon_pal_group.size()) {
     auto palette = dungeon_pal_group[current_palette_id_];
@@ -141,8 +183,8 @@ void PaletteEditorWidget::DrawColorPicker() {
   if (dungeon_pal_group.empty()) {
     return;
   }
-  current_palette_id_ = std::clamp(current_palette_id_, 0,
-                                   static_cast<int>(dungeon_pal_group.size()) - 1);
+  current_palette_id_ = std::clamp(
+      current_palette_id_, 0, static_cast<int>(dungeon_pal_group.size()) - 1);
   ImGui::SeparatorText(
       absl::StrFormat("Edit Color %d", selected_color_index_).c_str());
 
@@ -236,11 +278,12 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
   const float swatch_size = ComputeSwatchSize(/*columns=*/16, 14.0f, 28.0f);
 
   gfx::SnesPalette* dungeon_palette = nullptr;
-  if (!game_data_->palette_groups.dungeon_main.empty() && current_palette_id_ >= 0 &&
+  if (!game_data_->palette_groups.dungeon_main.empty() &&
+      current_palette_id_ >= 0 &&
       current_palette_id_ <
           static_cast<int>(game_data_->palette_groups.dungeon_main.size())) {
-    dungeon_palette =
-        game_data_->palette_groups.dungeon_main.mutable_palette(current_palette_id_);
+    dungeon_palette = game_data_->palette_groups.dungeon_main.mutable_palette(
+        current_palette_id_);
   }
 
   gfx::SnesPalette* hud_palette = nullptr;
@@ -254,12 +297,14 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     }
 
     gfx::SnesColor color(0);
+    gfx::SnesColor* source_color = nullptr;
     bool editable = false;
     std::string tooltip_label = "Reserved / transparent";
     int source_index = -1;
 
     if (i < 32 && hud_palette && i < static_cast<int>(hud_palette->size())) {
       color = (*hud_palette)[i];
+      source_color = &(*hud_palette)[i];
       editable = true;
       tooltip_label = "HUD / floor-ceiling";
       source_index = i;
@@ -271,6 +316,7 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
         source_index = row * 15 + (col - 1);
         if (source_index < static_cast<int>(dungeon_palette->size())) {
           color = (*dungeon_palette)[source_index];
+          source_color = &(*dungeon_palette)[source_index];
           editable = true;
           tooltip_label = absl::StrFormat("Dungeon row %d", row + 2);
         }
@@ -282,19 +328,33 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     if (!editable) {
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
     }
-    const bool clicked =
-        ImGui::ColorButton("##render_color", display_color,
-                           ImGuiColorEditFlags_NoTooltip,
-                           ImVec2(swatch_size, swatch_size));
+    const bool clicked = ImGui::ColorButton("##render_color", display_color,
+                                            ImGuiColorEditFlags_NoTooltip,
+                                            ImVec2(swatch_size, swatch_size));
+    const ImVec2 swatch_min = ImGui::GetItemRectMin();
+    const ImVec2 swatch_max = ImGui::GetItemRectMax();
+    const bool double_clicked =
+        editable && ImGui::IsItemHovered() &&
+        ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
     if (!editable) {
       ImGui::PopStyleVar();
     }
 
-    if (clicked && editable) {
+    if ((clicked || double_clicked) && editable) {
       editing_color_index_ = i;
       selected_color_index_ = i;
       temp_color_ = display_color;
       editing_color_ = display_color;
+    }
+    if (editable &&
+        AcceptImGuiColorDrop(source_color, swatch_min, swatch_max)) {
+      selected_color_index_ = i;
+      editing_color_index_ = i;
+      temp_color_ = source_color->rgb();
+      editing_color_ = temp_color_;
+      if (on_palette_changed_) {
+        on_palette_changed_(current_palette_id_);
+      }
     }
 
     if (ImGui::IsItemHovered()) {
@@ -314,7 +374,8 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
 
 float PaletteEditorWidget::ComputeSwatchSize(int columns, float min_size,
                                              float max_size) const {
-  const float available_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const float available_width =
+      std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const float spacing =
       std::max(ImGui::GetStyle().ItemSpacing.x, 2.0f) * (columns - 1);
   const float raw = (available_width - spacing) / std::max(columns, 1);
@@ -353,9 +414,9 @@ void PaletteEditorWidget::DrawDungeonRenderColorPicker() {
   ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
 
   if (gui::ThemedButton("Reset to Original")) {
-    editing_color_ = ImVec4(original_color.rgb().x / 255.0f,
-                            original_color.rgb().y / 255.0f,
-                            original_color.rgb().z / 255.0f, 1.0f);
+    editing_color_ =
+        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
+               original_color.rgb().z / 255.0f, 1.0f);
     (*palette)[color_index] = original_color;
     if (on_palette_changed_) {
       on_palette_changed_(current_palette_id_);
@@ -382,7 +443,8 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
     if (ImGui::CollapsingHeader("ROM Palette Manager") && rom_) {
       DrawROMPaletteSelector();
 
-      if (gui::PrimaryButton("Apply ROM Palette") && !rom_palette_groups_.empty()) {
+      if (gui::PrimaryButton("Apply ROM Palette") &&
+          !rom_palette_groups_.empty()) {
         if (current_group_index_ <
             static_cast<int>(rom_palette_groups_.size())) {
           palette = rom_palette_groups_[current_group_index_];
@@ -553,13 +615,28 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
     ImVec4 display_color = color.rgb();
 
     ImGui::PushID(i);
-    if (ImGui::ColorButton("##color", display_color,
-                           ImGuiColorEditFlags_NoTooltip,
-                           ImVec2(swatch_size, swatch_size))) {
+    const bool clicked = ImGui::ColorButton("##color", display_color,
+                                            ImGuiColorEditFlags_NoTooltip,
+                                            ImVec2(swatch_size, swatch_size));
+    const ImVec2 swatch_min = ImGui::GetItemRectMin();
+    const ImVec2 swatch_max = ImGui::GetItemRectMax();
+    const bool double_clicked =
+        ImGui::IsItemHovered() &&
+        ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+    if (clicked || double_clicked) {
       editing_color_index_ = i;
       selected_color_index_ = i;
       temp_color_ = display_color;
       editing_color_ = display_color;
+    }
+    if (AcceptImGuiColorDrop(&palette[i], swatch_min, swatch_max)) {
+      selected_color_index_ = i;
+      editing_color_index_ = i;
+      temp_color_ = palette[i].rgb();
+      editing_color_ = temp_color_;
+      if (on_palette_changed_) {
+        on_palette_changed_(current_palette_id_);
+      }
     }
 
     if (ImGui::BeginPopupContextItem()) {
@@ -638,8 +715,7 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
   ImGui::Text("Palette Group:");
   if (ImGui::Combo("##PaletteGroup", &current_group_index_,
                    RomPaletteGroupNameGetter, &palette_group_names_,
-                   static_cast<int>(palette_group_names_.size()))) {
-  }
+                   static_cast<int>(palette_group_names_.size()))) {}
 
   ImGui::Text("Palette Index:");
   ImGui::SliderInt("##PaletteIndex", &current_palette_index_, 0, 7, "%d");

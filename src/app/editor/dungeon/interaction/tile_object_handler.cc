@@ -263,13 +263,16 @@ void TileObjectHandler::DrawGhostPreview() {
   if (!object_placement_mode_ || preview_object_.id_ < 0 || !HasValidContext())
     return;
 
-  const ImGuiIO& io = ImGui::GetIO();
+  const auto pointer_screen_pos = GetPointerScreenPosition();
+  if (!pointer_screen_pos.has_value()) {
+    return;
+  }
+
   ImVec2 canvas_pos = GetCanvasZeroPoint();
-  ImVec2 mouse_pos = io.MousePos;
   float scale = GetCanvasScale();
 
-  ImVec2 canvas_mouse_pos =
-      ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
+  ImVec2 canvas_mouse_pos = ImVec2(pointer_screen_pos->x - canvas_pos.x,
+                                   pointer_screen_pos->y - canvas_pos.y);
   auto [room_x, room_y] = CanvasToRoom(static_cast<int>(canvas_mouse_pos.x),
                                        static_cast<int>(canvas_mouse_pos.y));
 

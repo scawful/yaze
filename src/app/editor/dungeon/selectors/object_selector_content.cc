@@ -16,6 +16,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
@@ -29,11 +30,13 @@ namespace editor {
 
 ObjectSelectorContent::ObjectSelectorContent(
     Rom* rom, DungeonCanvasViewer* canvas_viewer,
-    std::shared_ptr<zelda3::DungeonObjectEditor> object_editor)
+    std::shared_ptr<zelda3::DungeonObjectEditor> object_editor,
+    ToastManager* toast_manager)
     : rom_(rom),
       canvas_viewer_(canvas_viewer),
       object_selector_(rom),
-      object_editor_(object_editor) {
+      object_editor_(object_editor),
+      toast_manager_(toast_manager) {
   // Wire up object selector callback
   object_selector_.SetObjectSelectedCallback(
       [this](const zelda3::RoomObject& obj) {
@@ -165,6 +168,9 @@ void ObjectSelectorContent::SetPlacementError(const std::string& message) {
   }
   last_placement_error_ = message;
   placement_error_time_ = ImGui::GetTime();
+  if (toast_manager_) {
+    toast_manager_->Show(message, ToastType::kError, 4.0f);
+  }
 }
 
 void ObjectSelectorContent::DrawObjectSelector() {
@@ -186,11 +192,11 @@ void ObjectSelectorContent::DrawInteractionSummary() {
 
   if (!last_placement_error_.empty()) {
     double elapsed = ImGui::GetTime() - placement_error_time_;
-    if (elapsed < kPlacementErrorDuration) {
+    if (!toast_manager_ && elapsed < kPlacementErrorDuration) {
       ImGui::SameLine();
       ImGui::TextColored(theme.status_error, ICON_MD_WARNING " %s",
                          last_placement_error_.c_str());
-    } else {
+    } else if (elapsed >= kPlacementErrorDuration) {
       last_placement_error_.clear();
     }
   }

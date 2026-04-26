@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_DOOR_INTERACTION_HANDLER_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_DOOR_INTERACTION_HANDLER_H_
 
+#include <string>
+
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/door_types.h"
@@ -40,6 +42,7 @@ class DoorInteractionHandler : public BaseEntityHandler {
   bool HandleClick(int canvas_x, int canvas_y) override;
   void HandleDrag(ImVec2 current_pos, ImVec2 delta) override;
   void HandleRelease() override;
+  bool HandleOverlayClick(int canvas_x, int canvas_y);
 
   void DrawGhostPreview() override;
   void DrawSelectionHighlight() override;
@@ -120,6 +123,17 @@ class DoorInteractionHandler : public BaseEntityHandler {
   GhostCapacityState GetPlacementGhostCapacityState() const;
 
  private:
+  struct PairBadgeOverlay {
+    std::string label;
+    ImVec2 screen_pos;
+    ImVec2 screen_size;
+    ImU32 color = 0;
+    int target_room_id = -1;
+    std::optional<size_t> target_door_index;
+    int target_tile_x = -1;
+    int target_tile_y = -1;
+  };
+
   // Placement state
   bool door_placement_mode_ = false;
   PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
@@ -142,6 +156,11 @@ class DoorInteractionHandler : public BaseEntityHandler {
    * @brief Update snapped position based on cursor
    */
   bool UpdateSnappedPosition(int canvas_x, int canvas_y);
+
+  std::optional<PairBadgeOverlay> BuildPairBadgeOverlay(
+      const zelda3::Room::Door& door, ImVec2 door_pos, ImVec2 door_size,
+      float scale) const;
+  void NavigateToPairBadge(const PairBadgeOverlay& badge) const;
 };
 
 }  // namespace editor

@@ -213,6 +213,18 @@ class DungeonCanvasViewer {
   explicit DungeonCanvasViewer(Rom* rom = nullptr)
       : rom_(rom), object_interaction_(&canvas_) {
     object_interaction_.SetRom(rom);
+    object_interaction_.SetDoorPairNavigationCallback(
+        [this](int target_room, std::optional<size_t> target_door_index,
+               int target_tile_x, int target_tile_y) {
+          NavigateToRoom(target_room);
+          if (target_tile_x >= 0 && target_tile_y >= 0) {
+            ScrollToTile(target_tile_x, target_tile_y);
+          }
+          if (target_door_index.has_value()) {
+            object_interaction_.SelectEntity(EntityType::Door,
+                                             *target_door_index);
+          }
+        });
   }
 
   void DrawDungeonCanvas(int room_id);

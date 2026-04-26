@@ -287,6 +287,11 @@ class DungeonObjectInteraction {
     interaction_context_.on_entity_changed = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);
   }
+  void SetDoorPairNavigationCallback(
+      std::function<void(int, std::optional<size_t>, int, int)> callback) {
+    interaction_context_.on_door_pair_navigation = std::move(callback);
+    entity_coordinator_.SetContext(&interaction_context_);
+  }
 
  private:
   gui::Canvas* canvas_;

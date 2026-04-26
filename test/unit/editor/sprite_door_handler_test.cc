@@ -8,6 +8,7 @@
 
 #include <gtest/gtest.h>
 #include <array>
+#include <optional>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 namespace yaze::editor {
@@ -351,6 +352,51 @@ TEST_F(DoorInteractionHandlerTest,
   const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
   ASSERT_TRUE(hit.has_value());
   EXPECT_EQ(*hit, 0u);
+}
+
+TEST_F(DoorInteractionHandlerTest, PairBadgeClickNavigatesToNeighborDoor) {
+  ctx_.current_room_id = 0;
+
+  zelda3::Room::Door door;
+  door.position = 0;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::East;
+  rooms_[0].AddDoor(door);
+
+  zelda3::Room::Door neighbor_door;
+  neighbor_door.position = door.position;
+  neighbor_door.type = zelda3::DoorType::NormalDoor;
+  neighbor_door.direction = zelda3::DoorDirection::West;
+  rooms_[1].AddDoor(neighbor_door);
+
+  int target_room = -1;
+  std::optional<size_t> target_door;
+  int target_tile_x = -1;
+  int target_tile_y = -1;
+  ctx_.on_door_pair_navigation = [&](int room_id,
+                                     std::optional<size_t> door_index,
+                                     int tile_x, int tile_y) {
+    target_room = room_id;
+    target_door = door_index;
+    target_tile_x = tile_x;
+    target_tile_y = tile_y;
+  };
+  handler_.SetContext(&ctx_);
+  handler_.SelectDoor(0);
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  const int badge_x = door_x + door_w + 8;
+  const int badge_y = door_y + door_h / 2;
+
+  ASSERT_TRUE(handler_.HandleOverlayClick(badge_x, badge_y));
+  EXPECT_EQ(target_room, 1);
+  ASSERT_TRUE(target_door.has_value());
+  EXPECT_EQ(*target_door, 0u);
+  const auto [expected_tile_x, expected_tile_y] =
+      rooms_[1].GetDoors()[0].GetTileCoords();
+  EXPECT_EQ(target_tile_x, expected_tile_x);
+  EXPECT_EQ(target_tile_y, expected_tile_y);
 }
 
 TEST_F(DoorInteractionHandlerTest, DeleteAllClearsDoorsAndFiresCallbacks) {

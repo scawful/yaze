@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_COORDINATOR_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_COORDINATOR_H_
 
+#include <vector>
+
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/item_interaction_handler.h"
@@ -29,9 +31,7 @@ class InteractionCoordinator {
     PlaceItem     // Item placement mode
   };
 
-  InteractionCoordinator()
-      : current_mode_(Mode::Select),
-        ctx_(nullptr) {}
+  InteractionCoordinator() : current_mode_(Mode::Select), ctx_(nullptr) {}
 
   /**
    * @brief Set the shared interaction context
@@ -101,6 +101,8 @@ class InteractionCoordinator {
   // Doors/sprites/items only (tile objects are handled by ObjectSelection).
   std::optional<SelectedEntity> GetEntityAtPosition(int canvas_x,
                                                     int canvas_y) const;
+  std::vector<SelectedEntity> GetEntitiesAtPosition(int canvas_x,
+                                                    int canvas_y) const;
 
   // Current selection (doors/sprites/items only). Returns {None,0} if none.
   SelectedEntity GetSelectedEntity() const;
@@ -169,12 +171,19 @@ class InteractionCoordinator {
   SpriteInteractionHandler sprite_handler_;
   ItemInteractionHandler item_handler_;
   TileObjectHandler tile_handler_;
+  int cycle_last_x_ = -1;
+  int cycle_last_y_ = -1;
+  size_t cycle_next_index_ = 0;
+  std::vector<SelectedEntity> cycle_last_hits_;
 
   /**
    * @brief Get active handler based on current mode
    * @return Pointer to active handler, or nullptr if in Select mode
    */
   BaseEntityHandler* GetActiveHandler();
+  bool ApplySelection(SelectedEntity entity);
+  bool SameCycleTarget(int canvas_x, int canvas_y,
+                       const std::vector<SelectedEntity>& hits) const;
 };
 
 }  // namespace editor

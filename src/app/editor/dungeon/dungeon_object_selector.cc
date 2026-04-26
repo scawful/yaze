@@ -19,6 +19,7 @@
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
@@ -30,6 +31,22 @@
 #include "zelda3/dungeon/room_object.h"  // For GetObjectName()
 
 namespace yaze::editor {
+
+namespace {
+
+float GetObjectGridItemSize(int density) {
+  switch (density) {
+    case 0:
+      return 56.0f;
+    case 2:
+      return 88.0f;
+    case 1:
+    default:
+      return 72.0f;
+  }
+}
+
+}  // namespace
 
 ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   const auto& theme = AgentUI::GetTheme();
@@ -176,6 +193,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   int total_objects =
       (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
+  EnsureCustomObjectsInitialized();
+  auto& obj_manager = zelda3::CustomObjectManager::Get();
+  const int custom_count =
+      obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
+
   ImGui::SetNextItemWidth(-1.0f);
   ImGui::InputTextWithHint(
       "##ObjectSearch", ICON_MD_SEARCH " Filter objects by name or hex...",
@@ -183,18 +205,35 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
   static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
                                         "Doors", "Decor", "Stairs"};
-  ImGui::SetNextItemWidth(170.0f);
+  const float controls_width = ImGui::GetContentRegionAvail().x;
+  const float controls_spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float filter_width = std::min(170.0f, controls_width);
+  float current_control_line_width = filter_width;
+  auto place_next_filter_control = [&](float next_width) {
+    if (current_control_line_width + controls_spacing + next_width <=
+        controls_width) {
+      ImGui::SameLine();
+      current_control_line_width += controls_spacing + next_width;
+    } else {
+      current_control_line_width = next_width;
+    }
+  };
+
+  ImGui::SetNextItemWidth(filter_width);
   ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                IM_ARRAYSIZE(kFilterLabels));
-  ImGui::SameLine();
-  if (gui::ThemedButton(ICON_MD_CLEAR " Reset")) {
+
+  place_next_filter_control(gui::IconSize::Small().x);
+  if (gui::ThemedIconButton(ICON_MD_CLEAR, "Clear search and category filter",
+                            gui::IconSize::Small())) {
     object_search_buffer_[0] = '\0';
     object_type_filter_ = 0;
   }
-  if (ImGui::IsItemHovered()) {
-    gui::ThemedTooltip("Clear search and category filter");
-  }
-  ImGui::SameLine();
+
+  const float thumbnails_width =
+      ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x +
+      ImGui::CalcTextSize(ICON_MD_IMAGE " Thumbnails").x;
+  place_next_filter_control(thumbnails_width);
   ImGui::Checkbox(ICON_MD_IMAGE " Thumbnails", &enable_object_previews_);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
@@ -202,25 +241,61 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         "Requires a room to be loaded and may cost some performance.");
   }
 
+  const char* density_labels[] = {"Small", "Medium", "Large"};
+  const char* density_short_labels[] = {"S", "M", "L"};
+  const float density_avail = ImGui::GetContentRegionAvail().x;
+  const float density_label_width = ImGui::CalcTextSize("Grid").x;
+  const float density_spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float preferred_density_segment_width = 68.0f;
+  const bool stack_density =
+      density_avail < density_label_width + density_spacing +
+                          preferred_density_segment_width * 3.0f +
+                          density_spacing * 2.0f;
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextDisabled("Grid");
+  if (!stack_density) {
+    ImGui::SameLine(0.0f, density_spacing);
+  }
+  const float density_segment_width =
+      stack_density ? std::max(28.0f, (ImGui::GetContentRegionAvail().x -
+                                       density_spacing * 2.0f) /
+                                          3.0f)
+                    : preferred_density_segment_width;
+  for (int density = 0; density < 3; ++density) {
+    if (density > 0) {
+      ImGui::SameLine(0.0f, density_spacing);
+    }
+    const char* label = density_segment_width < 60.0f
+                            ? density_short_labels[density]
+                            : density_labels[density];
+    if (gui::ToggleButton(label, object_grid_density_ == density,
+                          ImVec2(density_segment_width, 0.0f))) {
+      object_grid_density_ = density;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s grid", density_labels[density]);
+    }
+  }
+
   ImGui::Spacing();
   ImGui::TextColored(theme.text_secondary_gray, "%d vanilla objects",
                      total_objects);
   if (selected_object_id_ >= 0) {
-    ImGui::SameLine();
+    if (ImGui::GetContentRegionAvail().x > 220.0f) {
+      ImGui::SameLine();
+    }
     ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Queued 0x%03X %s",
                        selected_object_id_,
                        zelda3::GetObjectName(selected_object_id_).c_str());
   }
 
-  EnsureCustomObjectsInitialized();
-  auto& obj_manager = zelda3::CustomObjectManager::Get();
-  const int custom_count =
-      obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
-  ImGui::SameLine();
+  if (ImGui::GetContentRegionAvail().x > 180.0f) {
+    ImGui::SameLine();
+  }
   DrawCustomObjectWorkshopButton(custom_count);
 
   // Create asset browser-style grid
-  const float item_size = 72.0f;
+  const float item_size = GetObjectGridItemSize(object_grid_density_);
   const float item_spacing = 6.0f;
   const int columns = std::max(
       1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /
@@ -348,9 +423,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         // Get object name for display
         // Truncate name for display
         std::string display_name = full_name;
-        const size_t kMaxDisplayChars = 12;
-        if (display_name.length() > kMaxDisplayChars) {
-          display_name = display_name.substr(0, kMaxDisplayChars - 2) + "..";
+        const size_t max_display_chars =
+            std::max<size_t>(7, static_cast<size_t>(item_size / 6.0f));
+        if (display_name.length() > max_display_chars) {
+          display_name = display_name.substr(0, max_display_chars - 2) + "..";
         }
 
         // Draw object name (smaller, above ID)
@@ -445,7 +521,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   }
 
   ImGui::EndChild();
-  DrawCustomObjectWorkshopPopup(item_size, columns);
+  DrawCustomObjectWorkshopPopup(item_size);
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
@@ -768,8 +844,7 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopButton(int custom_count) {
   }
 }
 
-void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size,
-                                                          int columns) {
+void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
   const auto& theme = AgentUI::GetTheme();
   auto& obj_manager = zelda3::CustomObjectManager::Get();
   const std::string custom_base_path = obj_manager.GetBasePath();
@@ -841,6 +916,10 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size,
   if (ImGui::BeginChild("##CustomObjectGrid",
                         ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4.0f),
                         false, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+    const float item_spacing = 6.0f;
+    const int columns = std::max(
+        1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /
+                            (item_size + item_spacing)));
     int custom_col = 0;
     for (int obj_id : {0x31, 0x32}) {
       if (!MatchesObjectFilter(obj_id, object_type_filter_)) {

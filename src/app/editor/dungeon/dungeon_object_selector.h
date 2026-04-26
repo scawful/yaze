@@ -102,7 +102,7 @@ class DungeonObjectSelector {
   std::string GetObjectTypeSymbol(int object_id);
   void EnsureCustomObjectsInitialized();
   void DrawCustomObjectWorkshopButton(int custom_count);
-  void DrawCustomObjectWorkshopPopup(float item_size, int columns);
+  void DrawCustomObjectWorkshopPopup(float item_size);
   void DrawNewCustomObjectDialog();
 
   // Custom object creation dialog state
@@ -146,7 +146,8 @@ class DungeonObjectSelector {
 
   // UI state for object browser filter
   int object_type_filter_ = 0;
-  int object_subtype_tab_ = 0;  // 0=Type1, 1=Type2, 2=Type3
+  int object_subtype_tab_ = 0;   // 0=Type1, 1=Type2, 2=Type3
+  int object_grid_density_ = 1;  // 0=Small, 1=Medium, 2=Large
   char object_search_buffer_[64] = {0};
 
   // Registry initialization flag

@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <functional>
+#include <optional>
 
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -96,6 +97,13 @@ struct InteractionContext {
 
   // Called when entity (door/sprite/item) changes
   std::function<void()> on_entity_changed;
+
+  // Called when an interactive door-pair badge requests navigation to the
+  // adjacent room. The optional door index is in the target room.
+  std::function<void(int target_room_id,
+                     std::optional<size_t> target_door_index, int target_tile_x,
+                     int target_tile_y)>
+      on_door_pair_navigation;
 
   // Last mutation/invalidation domain (best-effort). Set by Notify* helpers so
   // the editor can route undo capture and expensive rerenders appropriately.

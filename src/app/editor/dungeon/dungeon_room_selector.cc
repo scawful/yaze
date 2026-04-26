@@ -578,7 +578,10 @@ void DungeonRoomSelector::DrawGroupedRoomList(
           std::find(group.room_ids.begin(), group.room_ids.end(),
                     static_cast<int>(current_room_id_)) != group.room_ids.end();
       if (has_current) {
-        ImGui::SetNextItemOpen(true, ImGuiCond_Once);
+        ImGui::SetNextItemOpen(
+            true, pending_scroll_room_id_ == static_cast<int>(current_room_id_)
+                      ? ImGuiCond_Always
+                      : ImGuiCond_Once);
       }
 
       if (ImGui::CollapsingHeader(header)) {
@@ -589,7 +592,8 @@ void DungeonRoomSelector::DrawGroupedRoomList(
           snprintf(label, sizeof(label), "%03X  %s##r%d", room_id,
                    display_name.c_str(), room_id);
 
-          if (ImGui::Selectable(label, current_room_id_ == room_id,
+          const bool is_current = current_room_id_ == room_id;
+          if (ImGui::Selectable(label, is_current,
                                 ImGuiSelectableFlags_AllowDoubleClick)) {
             current_room_id_ = room_id;
 
@@ -612,6 +616,10 @@ void DungeonRoomSelector::DrawGroupedRoomList(
                 room_selected_callback_(room_id);
               }
             }
+          }
+          if (is_current && pending_scroll_room_id_ == room_id) {
+            ImGui::SetScrollHereY(0.5f);
+            pending_scroll_room_id_ = -1;
           }
 
           // Tooltip with thumbnail
