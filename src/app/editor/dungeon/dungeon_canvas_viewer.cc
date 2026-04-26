@@ -88,6 +88,11 @@ void DungeonCanvasViewer::TriggerObjectChangePing(
     }
   }
 
+  if (change_ping_rects_.empty()) {
+    change_ping_start_time_ = -1.0;
+    return;
+  }
+
   change_ping_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
 }
 

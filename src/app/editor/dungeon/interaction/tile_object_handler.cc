@@ -1,6 +1,8 @@
 #include "tile_object_handler.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
+#include <iterator>
 #include <unordered_set>
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -20,6 +22,117 @@ namespace yaze::editor {
 
 namespace {
 constexpr size_t kMaxLayerBatchMutation = 128;
+
+struct LayerOrderEntry {
+  zelda3::RoomObject object;
+  bool selected = false;
+};
+
+int LayerBucketIndex(const zelda3::RoomObject& object) {
+  return std::clamp(static_cast<int>(object.GetLayerValue()), 0, 2);
+}
+
+std::unordered_set<size_t> MakeValidIndexSet(const std::vector<size_t>& indices,
+                                             size_t object_count) {
+  std::unordered_set<size_t> index_set;
+  for (size_t index : indices) {
+    if (index < object_count) {
+      index_set.insert(index);
+    }
+  }
+  return index_set;
+}
+
+std::array<std::vector<LayerOrderEntry>, 3> BuildLayerBuckets(
+    const std::vector<zelda3::RoomObject>& objects,
+    const std::unordered_set<size_t>& selected_indices) {
+  std::array<std::vector<LayerOrderEntry>, 3> buckets;
+  for (size_t i = 0; i < objects.size(); ++i) {
+    buckets[LayerBucketIndex(objects[i])].push_back(
+        LayerOrderEntry{objects[i], selected_indices.count(i) > 0});
+  }
+  return buckets;
+}
+
+void RestoreObjectSelection(
+    ObjectSelection* selection,
+    const std::vector<size_t>& selected_indices_after_reorder) {
+  if (!selection) {
+    return;
+  }
+  selection->ClearSelection();
+  for (size_t index : selected_indices_after_reorder) {
+    selection->SelectObject(index, ObjectSelection::SelectionMode::Add);
+  }
+}
+
+void FlattenLayerBuckets(std::vector<zelda3::RoomObject>& objects,
+                         std::array<std::vector<LayerOrderEntry>, 3>& buckets,
+                         ObjectSelection* selection) {
+  std::vector<zelda3::RoomObject> reordered;
+  std::vector<size_t> selected_indices_after_reorder;
+  reordered.reserve(objects.size());
+  for (auto& bucket : buckets) {
+    for (auto& entry : bucket) {
+      if (entry.selected) {
+        selected_indices_after_reorder.push_back(reordered.size());
+      }
+      reordered.push_back(std::move(entry.object));
+    }
+  }
+  objects = std::move(reordered);
+  RestoreObjectSelection(selection, selected_indices_after_reorder);
+}
+
+struct GuideRect {
+  int left = 0;
+  int top = 0;
+  int right = 0;
+  int bottom = 0;
+  int center_x = 0;
+  int center_y = 0;
+};
+
+GuideRect GetGuideRect(const zelda3::RoomObject& object) {
+  auto [x, y, width, height] =
+      zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
+  return GuideRect{x, y, x + width, y + height, x + width / 2, y + height / 2};
+}
+
+bool AddUniqueGuide(std::vector<int>& guides, int value) {
+  constexpr int kDuplicateTolerancePx = 2;
+  if (std::any_of(guides.begin(), guides.end(), [&](int guide) {
+        return std::abs(guide - value) <= kDuplicateTolerancePx;
+      })) {
+    return false;
+  }
+  guides.push_back(value);
+  return true;
+}
+
+void DrawDashedLine(ImDrawList* draw_list, ImVec2 start, ImVec2 end,
+                    ImU32 color, float thickness) {
+  constexpr float kDash = 6.0f;
+  constexpr float kGap = 4.0f;
+  const bool vertical = std::abs(start.x - end.x) < 0.5f;
+  const float total =
+      vertical ? std::abs(end.y - start.y) : std::abs(end.x - start.x);
+  for (float offset = 0.0f; offset < total; offset += kDash + kGap) {
+    const float segment_end = std::min(offset + kDash, total);
+    if (vertical) {
+      const float y0 = start.y + offset;
+      const float y1 = start.y + segment_end;
+      draw_list->AddLine(ImVec2(start.x, y0), ImVec2(start.x, y1), color,
+                         thickness);
+    } else {
+      const float x0 = start.x + offset;
+      const float x1 = start.x + segment_end;
+      draw_list->AddLine(ImVec2(x0, start.y), ImVec2(x1, start.y), color,
+                         thickness);
+    }
+  }
+}
+
 }  // namespace
 
 TileObjectHandler::GhostCapacityState
@@ -120,6 +233,8 @@ void TileObjectHandler::BeginMarqueeSelection(const ImVec2& start_pos) {
 void TileObjectHandler::HandleMarqueeSelection(
     const ImVec2& mouse_pos, bool mouse_left_down, bool mouse_left_released,
     bool shift_down, bool toggle_down, bool alt_down, bool draw_box) {
+  (void)shift_down;
+  (void)toggle_down;
   if (!ctx_ || !ctx_->selection)
     return;
   if (!ctx_->selection->IsRectangleSelectionActive())
@@ -153,15 +268,8 @@ void TileObjectHandler::HandleMarqueeSelection(
       return;
     }
 
-    ObjectSelection::SelectionMode mode =
-        ObjectSelection::SelectionMode::Single;
-    if (shift_down) {
-      mode = ObjectSelection::SelectionMode::Add;
-    } else if (toggle_down) {
-      mode = ObjectSelection::SelectionMode::Toggle;
-    }
-
-    ctx_->selection->EndRectangleSelection(room->GetTileObjects(), mode);
+    ctx_->selection->EndRectangleSelection(
+        room->GetTileObjects(), ObjectSelection::SelectionMode::Single);
   }
 }
 
@@ -171,7 +279,6 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
     return;
 
   drag_current_ = snapping::SnapToTileGrid(current_pos);
-  const bool alt_down = ImGui::GetIO().KeyAlt;
 
   // Calculate total drag delta from start (snapped)
   ImVec2 drag_delta =
@@ -180,27 +287,6 @@ void TileObjectHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
 
   const int tile_dx = static_cast<int>(drag_delta.x) / 8;
   const int tile_dy = static_cast<int>(drag_delta.y) / 8;
-
-  // Option-drag (Alt) duplicates once
-  if (alt_down && !drag_has_duplicated_) {
-    if (!drag_mutation_started_) {
-      ctx_->NotifyMutation(MutationDomain::kTileObjects);
-      drag_mutation_started_ = true;
-    }
-
-    // Duplicate objects at current position (delta 0 initially)
-    auto new_indices = DuplicateObjects(ctx_->current_room_id,
-                                        ctx_->selection->GetSelectedIndices(),
-                                        /*delta_x=*/0, /*delta_y=*/0,
-                                        /*notify_mutation=*/false);
-
-    // Update selection to the new clones
-    ctx_->selection->ClearSelection();
-    for (size_t idx : new_indices) {
-      ctx_->selection->SelectObject(idx, ObjectSelection::SelectionMode::Add);
-    }
-    drag_has_duplicated_ = true;
-  }
 
   // Calculate incremental move
   const int inc_dx = tile_dx - drag_last_dx_;
@@ -238,12 +324,7 @@ void TileObjectHandler::HandleRelease() {
 }
 
 ImVec2 TileObjectHandler::ApplyDragModifiers(const ImVec2& delta) const {
-  const ImGuiIO& io = ImGui::GetIO();
-  if (!io.KeyShift)
-    return delta;
-  if (std::abs(delta.x) >= std::abs(delta.y))
-    return ImVec2(delta.x, 0.0f);
-  return ImVec2(0.0f, delta.y);
+  return delta;
 }
 
 bool TileObjectHandler::HandleMouseWheel(float delta) {
@@ -362,6 +443,10 @@ void TileObjectHandler::DrawSelectionHighlight() {
                                result.offset_y_tiles * 8, result.width_pixels(),
                                result.height_pixels());
       });
+
+  if (is_dragging_) {
+    DrawSmartGuides(room->GetTileObjects());
+  }
 }
 
 std::optional<size_t> TileObjectHandler::GetEntityAtPosition(
@@ -396,6 +481,95 @@ std::optional<size_t> TileObjectHandler::GetEntityAtPosition(
     }
   }
   return std::nullopt;
+}
+
+void TileObjectHandler::DrawSmartGuides(
+    const std::vector<zelda3::RoomObject>& objects) const {
+  if (!ctx_ || !ctx_->canvas || !ctx_->selection ||
+      !ctx_->selection->HasSelection()) {
+    return;
+  }
+
+  const auto selected = ctx_->selection->GetSelectedIndices();
+  if (selected.empty()) {
+    return;
+  }
+
+  constexpr int kAlignmentTolerancePx = 2;
+  constexpr size_t kMaxGuidesPerAxis = 8;
+  std::vector<int> vertical_guides;
+  std::vector<int> horizontal_guides;
+
+  for (size_t selected_index : selected) {
+    if (selected_index >= objects.size()) {
+      continue;
+    }
+    const GuideRect selected_rect = GetGuideRect(objects[selected_index]);
+    const std::array<int, 3> selected_x = {
+        selected_rect.left, selected_rect.center_x, selected_rect.right};
+    const std::array<int, 3> selected_y = {
+        selected_rect.top, selected_rect.center_y, selected_rect.bottom};
+
+    for (size_t other_index = 0; other_index < objects.size(); ++other_index) {
+      if (ctx_->selection->IsObjectSelected(other_index)) {
+        continue;
+      }
+      const GuideRect other_rect = GetGuideRect(objects[other_index]);
+      const std::array<int, 3> other_x = {other_rect.left, other_rect.center_x,
+                                          other_rect.right};
+      const std::array<int, 3> other_y = {other_rect.top, other_rect.center_y,
+                                          other_rect.bottom};
+
+      for (int sx : selected_x) {
+        for (int ox : other_x) {
+          if (std::abs(sx - ox) <= kAlignmentTolerancePx) {
+            AddUniqueGuide(vertical_guides, ox);
+          }
+        }
+      }
+      for (int sy : selected_y) {
+        for (int oy : other_y) {
+          if (std::abs(sy - oy) <= kAlignmentTolerancePx) {
+            AddUniqueGuide(horizontal_guides, oy);
+          }
+        }
+      }
+      if (vertical_guides.size() >= kMaxGuidesPerAxis &&
+          horizontal_guides.size() >= kMaxGuidesPerAxis) {
+        break;
+      }
+    }
+  }
+
+  if (vertical_guides.empty() && horizontal_guides.empty()) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  ImVec4 guide_color = theme.accent_color;
+  guide_color.w = 0.78f;
+  const ImU32 color = ImGui::GetColorU32(guide_color);
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  const ImVec2 canvas_pos = ctx_->canvas->zero_point();
+  const float scale = ctx_->canvas->global_scale();
+  const float width = dungeon_coords::kRoomPixelWidth * scale;
+  const float height = dungeon_coords::kRoomPixelHeight * scale;
+
+  const size_t vertical_count =
+      std::min(vertical_guides.size(), kMaxGuidesPerAxis);
+  for (size_t i = 0; i < vertical_count; ++i) {
+    const float x = canvas_pos.x + vertical_guides[i] * scale;
+    DrawDashedLine(draw_list, ImVec2(x, canvas_pos.y),
+                   ImVec2(x, canvas_pos.y + height), color, 1.2f);
+  }
+
+  const size_t horizontal_count =
+      std::min(horizontal_guides.size(), kMaxGuidesPerAxis);
+  for (size_t i = 0; i < horizontal_count; ++i) {
+    const float y = canvas_pos.y + horizontal_guides[i] * scale;
+    DrawDashedLine(draw_list, ImVec2(canvas_pos.x, y),
+                   ImVec2(canvas_pos.x + width, y), color, 1.2f);
+  }
 }
 
 // ========================================================================
@@ -533,26 +707,46 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id,
     return;
   }
 
+  const std::unordered_set<size_t> selected_set(deduped_indices.begin(),
+                                                deduped_indices.end());
+  std::array<std::vector<LayerOrderEntry>, 3> buckets;
+  std::vector<LayerOrderEntry> moved_to_target_layer;
   bool changed = false;
-  for (size_t index : deduped_indices) {
-    auto& object = objects[index];
+  for (size_t index = 0; index < objects.size(); ++index) {
+    auto object = objects[index];
+    const bool selected = selected_set.count(index) > 0;
+    if (!selected) {
+      buckets[LayerBucketIndex(object)].push_back(
+          LayerOrderEntry{std::move(object), false});
+      continue;
+    }
     const auto semantics = zelda3::GetObjectLayerSemantics(object);
     if (semantics.draws_to_both_bgs &&
         target_layer != zelda3::RoomObject::LayerType::BG1) {
+      buckets[LayerBucketIndex(object)].push_back(
+          LayerOrderEntry{std::move(object), true});
       continue;
     }
     if (object.layer_ == target_layer) {
+      buckets[LayerBucketIndex(object)].push_back(
+          LayerOrderEntry{std::move(object), true});
       continue;
     }
     object.layer_ = target_layer;
+    moved_to_target_layer.push_back(LayerOrderEntry{std::move(object), true});
     changed = true;
   }
   if (!changed) {
     return;
   }
 
+  for (auto& entry : moved_to_target_layer) {
+    buckets[new_layer].push_back(std::move(entry));
+  }
+
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
   NotifyChange(room);
 }
 
@@ -614,21 +808,31 @@ void TileObjectHandler::SendToFront(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
+  auto& objects = room->GetTileObjects();
+  auto selected_set = MakeValidIndexSet(indices, objects.size());
+  if (selected_set.empty()) {
+    return;
+  }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
-  auto& objects = room->GetTileObjects();
-  std::vector<zelda3::RoomObject> selected, other;
-
-  for (size_t i = 0; i < objects.size(); ++i) {
-    if (std::find(indices.begin(), indices.end(), i) != indices.end())
-      selected.push_back(objects[i]);
-    else
-      other.push_back(objects[i]);
+  auto buckets = BuildLayerBuckets(objects, selected_set);
+  for (auto& bucket : buckets) {
+    std::vector<LayerOrderEntry> other;
+    std::vector<LayerOrderEntry> selected;
+    other.reserve(bucket.size());
+    selected.reserve(bucket.size());
+    for (auto& entry : bucket) {
+      if (entry.selected) {
+        selected.push_back(std::move(entry));
+      } else {
+        other.push_back(std::move(entry));
+      }
+    }
+    bucket = std::move(other);
+    bucket.insert(bucket.end(), std::make_move_iterator(selected.begin()),
+                  std::make_move_iterator(selected.end()));
   }
-
-  objects = std::move(other);
-  objects.insert(objects.end(), selected.begin(), selected.end());
+  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
   NotifyChange(room);
 }
 
@@ -637,21 +841,31 @@ void TileObjectHandler::SendToBack(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
+  auto& objects = room->GetTileObjects();
+  auto selected_set = MakeValidIndexSet(indices, objects.size());
+  if (selected_set.empty()) {
+    return;
+  }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
-  auto& objects = room->GetTileObjects();
-  std::vector<zelda3::RoomObject> selected, other;
-
-  for (size_t i = 0; i < objects.size(); ++i) {
-    if (std::find(indices.begin(), indices.end(), i) != indices.end())
-      selected.push_back(objects[i]);
-    else
-      other.push_back(objects[i]);
+  auto buckets = BuildLayerBuckets(objects, selected_set);
+  for (auto& bucket : buckets) {
+    std::vector<LayerOrderEntry> selected;
+    std::vector<LayerOrderEntry> other;
+    selected.reserve(bucket.size());
+    other.reserve(bucket.size());
+    for (auto& entry : bucket) {
+      if (entry.selected) {
+        selected.push_back(std::move(entry));
+      } else {
+        other.push_back(std::move(entry));
+      }
+    }
+    bucket = std::move(selected);
+    bucket.insert(bucket.end(), std::make_move_iterator(other.begin()),
+                  std::make_move_iterator(other.end()));
   }
-
-  objects = std::move(selected);
-  objects.insert(objects.end(), other.begin(), other.end());
+  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
   NotifyChange(room);
 }
 
@@ -660,18 +874,26 @@ void TileObjectHandler::MoveForward(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
+  auto& objects = room->GetTileObjects();
+  auto selected_set = MakeValidIndexSet(indices, objects.size());
+  if (selected_set.empty()) {
+    return;
+  }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
-  auto& objects = room->GetTileObjects();
-  auto sorted_indices = indices;
-  std::sort(sorted_indices.rbegin(), sorted_indices.rend());
-
-  for (size_t idx : sorted_indices) {
-    if (idx < objects.size() - 1) {
-      std::swap(objects[idx], objects[idx + 1]);
+  auto buckets = BuildLayerBuckets(objects, selected_set);
+  for (auto& bucket : buckets) {
+    if (bucket.size() < 2) {
+      continue;
+    }
+    for (size_t i = bucket.size() - 1; i > 0; --i) {
+      const size_t previous = i - 1;
+      if (bucket[previous].selected && !bucket[i].selected) {
+        std::swap(bucket[previous], bucket[i]);
+      }
     }
   }
+  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
   NotifyChange(room);
 }
 
@@ -680,18 +902,26 @@ void TileObjectHandler::MoveBackward(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
+  auto& objects = room->GetTileObjects();
+  auto selected_set = MakeValidIndexSet(indices, objects.size());
+  if (selected_set.empty()) {
+    return;
+  }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
-  auto& objects = room->GetTileObjects();
-  auto sorted_indices = indices;
-  std::sort(sorted_indices.begin(), sorted_indices.end());
-
-  for (size_t idx : sorted_indices) {
-    if (idx > 0) {
-      std::swap(objects[idx], objects[idx - 1]);
+  auto buckets = BuildLayerBuckets(objects, selected_set);
+  for (auto& bucket : buckets) {
+    if (bucket.size() < 2) {
+      continue;
+    }
+    for (size_t i = 1; i < bucket.size(); ++i) {
+      const size_t previous = i - 1;
+      if (bucket[i].selected && !bucket[previous].selected) {
+        std::swap(bucket[i], bucket[previous]);
+      }
     }
   }
+  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
   NotifyChange(room);
 }
 

@@ -535,6 +535,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawScratchSpacePattern();
   void DrawScratchSpaceSelection();
   void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id);
+  absl::Status LoadScratchPad();
+  absl::Status SaveScratchPad() const;
+  absl::Status FlushScratchPadIfDirty();
+  absl::Status RebuildScratchBitmapFromTileData();
+  void MarkScratchSpaceDirty();
 
   // ===========================================================================
   // Undo/Redo System
@@ -658,6 +663,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     bool select_rect_active = false;
   };
   ScratchSpace scratch_space_;
+  bool scratch_space_dirty_ = false;
 
   // ===========================================================================
   // Core Data References

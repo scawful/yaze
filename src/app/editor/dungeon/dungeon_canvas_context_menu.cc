@@ -96,6 +96,30 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildInsertContextMenu() {
   return insert_menu;
 }
 
+std::optional<zelda3::RoomObject>
+DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
+  if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+    return std::nullopt;
+  }
+
+  const ImGuiIO& io = ImGui::GetIO();
+  const ImVec2 canvas_pos = canvas_.zero_point();
+  const int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
+  const int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  const auto hovered_index = object_interaction_.entity_coordinator()
+                                 .tile_handler()
+                                 .GetEntityAtPosition(canvas_x, canvas_y);
+  if (!hovered_index.has_value()) {
+    return std::nullopt;
+  }
+
+  const auto& objects = (*rooms_)[room_id].GetTileObjects();
+  if (*hovered_index >= objects.size()) {
+    return std::nullopt;
+  }
+  return objects[*hovered_index];
+}
+
 std::vector<gui::CanvasMenuItem>
 DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
   auto& interaction = object_interaction_;
@@ -163,6 +187,16 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
         [&interaction, layer]() { interaction.SendSelectedToLayer(layer); },
         shortcut);
   };
+
+  const auto context_sample_object = GetObjectUnderContextCursor(room_id);
+  std::optional<size_t> sample_item_index;
+  if (context_sample_object.has_value()) {
+    sample_item_index = items.size();
+    items.emplace_back("Sample Object", ICON_MD_COLORIZE,
+                       [this, object = *context_sample_object]() {
+                         SetPreviewObject(object);
+                       });
+  }
 
   if (has_selection) {
     items.emplace_back(
@@ -239,84 +273,11 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
                        std::move(edit_selected_graphics));
   }
 
-  const auto selected_entity = interaction.GetSelectedEntity();
   const bool has_entity_selection = interaction.HasEntitySelection();
-  bool can_delete_selected_entity = false;
-  std::function<void()> delete_selected_entity;
-
-  if (has_entity_selection && rooms_) {
-    auto& room = (*rooms_)[room_id];
-    switch (selected_entity.type) {
-      case EntityType::Door: {
-        const auto& doors = room.GetDoors();
-        if (selected_entity.index < doors.size()) {
-          can_delete_selected_entity = true;
-        }
-        break;
-      }
-      case EntityType::Sprite: {
-        const auto& sprites = room.GetSprites();
-        if (selected_entity.index < sprites.size()) {
-          can_delete_selected_entity = true;
-        }
-        break;
-      }
-      case EntityType::Item: {
-        const auto& items = room.GetPotItems();
-        if (selected_entity.index < items.size()) {
-          can_delete_selected_entity = true;
-        }
-        break;
-      }
-      default:
-        break;
-    }
-
-    if (can_delete_selected_entity) {
-      delete_selected_entity = [this, room_id, selected_entity]() {
-        if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
-          return;
-        }
-        auto& room = (*rooms_)[room_id];
-        switch (selected_entity.type) {
-          case EntityType::Door: {
-            auto& doors = room.GetDoors();
-            if (selected_entity.index < doors.size()) {
-              doors.erase(doors.begin() +
-                          static_cast<long>(selected_entity.index));
-              room.MarkObjectStreamDirty();
-            }
-            break;
-          }
-          case EntityType::Sprite: {
-            auto& sprites = room.GetSprites();
-            if (selected_entity.index < sprites.size()) {
-              sprites.erase(sprites.begin() +
-                            static_cast<long>(selected_entity.index));
-              room.MarkSpritesDirty();
-            }
-            break;
-          }
-          case EntityType::Item: {
-            auto& items = room.GetPotItems();
-            if (selected_entity.index < items.size()) {
-              items.erase(items.begin() +
-                          static_cast<long>(selected_entity.index));
-              room.MarkPotItemsDirty();
-            }
-            break;
-          }
-          default:
-            break;
-        }
-        object_interaction_.ClearEntitySelection();
-      };
-    }
-  }
-
-  if (can_delete_selected_entity) {
-    items.emplace_back("Delete", ICON_MD_DELETE,
-                       std::move(delete_selected_entity), "Del");
+  if (has_entity_selection && !has_selection) {
+    items.emplace_back(
+        "Delete", ICON_MD_DELETE,
+        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
   }
 
   if (!has_selection && !has_entity_selection) {
@@ -337,6 +298,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
       items.back().separator_after = true;
     }
     items.push_back(std::move(cancel_item));
+  }
+
+  if (sample_item_index.has_value() && items.size() > *sample_item_index + 1) {
+    items[*sample_item_index].separator_after = true;
   }
 
   if (!items.empty()) {

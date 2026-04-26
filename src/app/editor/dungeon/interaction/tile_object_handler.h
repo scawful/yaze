@@ -190,6 +190,7 @@ class TileObjectHandler : public BaseEntityHandler {
   bool drag_mutation_started_ = false;
 
   ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
+  void DrawSmartGuides(const std::vector<zelda3::RoomObject>& objects) const;
 
   zelda3::Room* GetRoom(int room_id);
   void NotifyChange(zelda3::Room* room);

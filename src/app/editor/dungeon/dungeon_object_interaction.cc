@@ -242,18 +242,19 @@ void DungeonObjectInteraction::HandleEmptySpaceClick(
     const ImVec2& canvas_mouse_pos) {
   const ImGuiIO& io = ImGui::GetIO();
   const bool additive = io.KeyShift || io.KeyCtrl || io.KeySuper;
+  const bool had_selection =
+      selection_.HasSelection() || entity_coordinator_.HasEntitySelection();
 
-  // Tile-object marquee selection is exclusive of door/sprite/item selection.
-  ClearEntitySelection();
-
-  // Clear existing object selection unless modifier held (Shift/Ctrl/Cmd).
+  // ZScream treats an empty click against an existing selection as a clear
+  // action. Rectangle selection starts from a clean canvas gesture.
   if (!additive) {
+    ClearEntitySelection();
     selection_.ClearSelection();
   }
 
-  // Always start a marquee selection drag on empty space; click-release without
-  // dragging behaves like a normal "clear selection" click.
-  entity_coordinator_.tile_handler().BeginMarqueeSelection(canvas_mouse_pos);
+  if (!had_selection) {
+    entity_coordinator_.tile_handler().BeginMarqueeSelection(canvas_mouse_pos);
+  }
 }
 
 void DungeonObjectInteraction::HandleMouseRelease() {
@@ -344,11 +345,25 @@ void DungeonObjectInteraction::CheckForObjectSelection() {
   const ImVec2 canvas_pos = canvas_->zero_point();
   const ImVec2 mouse_pos =
       ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+  const bool mouse_left_released =
+      ImGui::IsMouseReleased(ImGuiMouseButton_Left);
+
+  if (mouse_left_released && selection_.IsRectangleSelectionActive()) {
+    selection_.UpdateRectangleSelection(static_cast<int>(mouse_pos.x),
+                                        static_cast<int>(mouse_pos.y));
+    constexpr int kMinRectPixels = 6;
+    if (!io.KeyAlt && selection_.IsRectangleLargeEnough(kMinRectPixels)) {
+      entity_coordinator_.SelectEntitiesInRect(
+          selection_.GetRectangleSelectionBounds(),
+          /*additive=*/false,
+          /*toggle=*/false);
+    }
+  }
 
   entity_coordinator_.tile_handler().HandleMarqueeSelection(
       mouse_pos,
       /*mouse_left_down=*/ImGui::IsMouseDown(ImGuiMouseButton_Left),
-      /*mouse_left_released=*/ImGui::IsMouseReleased(ImGuiMouseButton_Left),
+      /*mouse_left_released=*/mouse_left_released,
       /*shift_down=*/io.KeyShift,
       /*toggle_down=*/io.KeyCtrl || io.KeySuper,
       /*alt_down=*/io.KeyAlt);
