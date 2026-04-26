@@ -148,7 +148,7 @@ class DungeonWorkbenchContent : public WindowContent {
   enum class SidebarMode : uint8_t { Rooms, Entrances };
   SidebarMode sidebar_mode_ = SidebarMode::Rooms;
   enum class InspectorFocus : uint8_t { Room, Selection };
-  InspectorFocus inspector_focus_ = InspectorFocus::Selection;
+  InspectorFocus inspector_focus_ = InspectorFocus::Room;
 
   char compare_search_buf_[64] = {};
 

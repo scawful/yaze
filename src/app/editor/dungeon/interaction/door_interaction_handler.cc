@@ -112,6 +112,48 @@ void DoorInteractionHandler::HandleRelease() {
   is_dragging_ = false;
 }
 
+bool DoorInteractionHandler::HandleOverlayClick(int canvas_x, int canvas_y) {
+  if (!selected_door_index_.has_value() || !HasValidContext() || is_dragging_) {
+    return false;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room) {
+    return false;
+  }
+
+  const auto& doors = room->GetDoors();
+  if (*selected_door_index_ >= doors.size()) {
+    return false;
+  }
+
+  const auto& door = doors[*selected_door_index_];
+  const auto [tile_x, tile_y] = door.GetTileCoords();
+  const auto dims = door.GetEditorDimensions();
+  const ImVec2 canvas_pos = GetCanvasZeroPoint();
+  const float scale = GetCanvasScale();
+  const ImVec2 door_pos(canvas_pos.x + tile_x * 8 * scale,
+                        canvas_pos.y + tile_y * 8 * scale);
+  const ImVec2 door_size(dims.width_tiles * 8 * scale,
+                         dims.height_tiles * 8 * scale);
+  const auto badge = BuildPairBadgeOverlay(door, door_pos, door_size, scale);
+  if (!badge.has_value() || badge->target_room_id < 0) {
+    return false;
+  }
+
+  const ImVec2 screen_pos(canvas_pos.x + canvas_x, canvas_pos.y + canvas_y);
+  const ImVec2 badge_max(badge->screen_pos.x + badge->screen_size.x,
+                         badge->screen_pos.y + badge->screen_size.y);
+  if (screen_pos.x < badge->screen_pos.x ||
+      screen_pos.y < badge->screen_pos.y || screen_pos.x > badge_max.x ||
+      screen_pos.y > badge_max.y) {
+    return false;
+  }
+
+  NavigateToPairBadge(*badge);
+  return true;
+}
+
 DoorInteractionHandler::GhostCapacityState
 DoorInteractionHandler::GetPlacementGhostCapacityState() const {
   auto* room = GetCurrentRoom();
@@ -125,26 +167,25 @@ void DoorInteractionHandler::DrawGhostPreview() {
     return;
 
   auto* canvas = ctx_->canvas;
-  if (!canvas->IsMouseHovering())
+  const auto pointer_screen_pos = GetPointerScreenPosition();
+  if (!pointer_screen_pos.has_value())
     return;
 
-  const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = canvas->zero_point();
-  int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
-  int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  int canvas_x = static_cast<int>(pointer_screen_pos->x - canvas_pos.x);
+  int canvas_y = static_cast<int>(pointer_screen_pos->y - canvas_pos.y);
 
   // Try to update snapped position
   if (!UpdateSnappedPosition(canvas_x, canvas_y)) {
     // Placement guidance: make invalid hover state explicit instead of showing
     // no preview.
-    if (canvas->IsMouseHovering()) {
-      const auto& theme = AgentUI::GetTheme();
-      ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      ImVec2 hint_pos(io.MousePos.x + 14.0f, io.MousePos.y + 10.0f);
-      draw_list->AddText(hint_pos, ImGui::GetColorU32(theme.status_warning),
-                         "Move cursor near a wall to place door");
-      ImGui::SetTooltip("Door placement requires a wall-adjacent position.");
-    }
+    const auto& theme = AgentUI::GetTheme();
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec2 hint_pos(pointer_screen_pos->x + 14.0f,
+                    pointer_screen_pos->y + 10.0f);
+    draw_list->AddText(hint_pos, ImGui::GetColorU32(theme.status_warning),
+                       "Move cursor near a wall to place door");
+    ImGui::SetTooltip("Door placement requires a wall-adjacent position.");
     return;  // Not near a wall
   }
 
@@ -295,69 +336,122 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
   draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f,
                      0, 2.0f);
 
-  // Draw label + reciprocal-door cue (D3). Badge hangs off the wall-facing
-  // edge of the selection box so the cue visually points at the neighbor room.
-  std::string pair_badge;
-  ImU32 pair_color = IM_COL32(255, 255, 255, 220);
-  if (!is_dragging_ && ctx_ && ctx_->rooms) {
-    const int neighbor = NeighborRoomId(ctx_->current_room_id, door.direction);
-    if (neighbor < 0) {
-      pair_badge = "edge";
-      pair_color = IM_COL32(170, 170, 170, 220);
-    } else {
-      const auto opposite = OppositeDir(door.direction);
-      const auto& neighbor_doors = (*ctx_->rooms)[neighbor].GetDoors();
-      bool exact_pair = false;
-      bool any_on_opposite = false;
-      for (const auto& nd : neighbor_doors) {
-        if (nd.direction == opposite) {
-          any_on_opposite = true;
-          if (nd.position == door.position) {
-            exact_pair = true;
-            break;
-          }
-        }
-      }
-      if (exact_pair) {
-        pair_badge = absl::StrFormat("pair 0x%03X", neighbor);
-        pair_color = IM_COL32(120, 220, 150, 235);  // green
-      } else if (any_on_opposite) {
-        pair_badge = absl::StrFormat("~0x%03X", neighbor);
-        pair_color = IM_COL32(255, 200, 90, 235);  // amber — approximate pair
-      } else {
-        pair_badge = absl::StrFormat("no pair 0x%03X", neighbor);
-        pair_color = IM_COL32(255, 130, 90, 235);  // red-orange
-      }
-    }
-  }
-
   ImVec2 label_pos(pos.x, pos.y - 14 * scale);
   draw_list->AddText(label_pos, IM_COL32(255, 255, 255, 220), "Door");
 
-  if (!pair_badge.empty()) {
-    // Anchor the badge on the wall-facing side so it cues the neighbor room.
-    ImVec2 badge_pos;
-    switch (door.direction) {
-      case zelda3::DoorDirection::North:
-        badge_pos = ImVec2(pos.x + 40.0f, pos.y - 14 * scale);
-        break;
-      case zelda3::DoorDirection::South:
-        badge_pos = ImVec2(pos.x, pos.y + size.y + 2.0f);
-        break;
-      case zelda3::DoorDirection::West:
-        badge_pos = ImVec2(pos.x - 88.0f, pos.y + size.y * 0.5f - 7.0f);
-        break;
-      case zelda3::DoorDirection::East:
-        badge_pos = ImVec2(pos.x + size.x + 6.0f, pos.y + size.y * 0.5f - 7.0f);
-        break;
+  if (auto badge = BuildPairBadgeOverlay(door, pos, size, scale)) {
+    const ImVec2 badge_max(badge->screen_pos.x + badge->screen_size.x,
+                           badge->screen_pos.y + badge->screen_size.y);
+    const bool interactive =
+        badge->target_room_id >= 0 && ctx_ && ctx_->on_door_pair_navigation;
+    const bool hovered =
+        interactive && ImGui::IsMouseHoveringRect(badge->screen_pos, badge_max);
+
+    draw_list->AddText(badge->screen_pos, badge->color, badge->label.c_str());
+    if (hovered) {
+      const auto& theme = AgentUI::GetTheme();
+      const ImU32 hover_color = ImGui::GetColorU32(theme.accent_color);
+      draw_list->AddLine(ImVec2(badge->screen_pos.x, badge_max.y + 1.0f),
+                         ImVec2(badge_max.x, badge_max.y + 1.0f), hover_color,
+                         1.0f);
+      ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+      ImGui::SetTooltip("Open room 0x%03X", badge->target_room_id);
     }
-    draw_list->AddText(badge_pos, pair_color, pair_badge.c_str());
   }
 
   // Draw snap indicators when dragging
   if (is_dragging_) {
     DrawSnapIndicators();
   }
+}
+
+std::optional<DoorInteractionHandler::PairBadgeOverlay>
+DoorInteractionHandler::BuildPairBadgeOverlay(const zelda3::Room::Door& door,
+                                              ImVec2 door_pos, ImVec2 door_size,
+                                              float scale) const {
+  if (is_dragging_ || !ctx_ || !ctx_->rooms) {
+    return std::nullopt;
+  }
+
+  PairBadgeOverlay badge;
+  const int neighbor = NeighborRoomId(ctx_->current_room_id, door.direction);
+  if (neighbor < 0) {
+    badge.label = "edge";
+    badge.color = IM_COL32(170, 170, 170, 220);
+  } else {
+    badge.target_room_id = neighbor;
+    const auto opposite = OppositeDir(door.direction);
+    const auto& neighbor_doors = (*ctx_->rooms)[neighbor].GetDoors();
+    bool any_on_opposite = false;
+    for (size_t i = 0; i < neighbor_doors.size(); ++i) {
+      const auto& nd = neighbor_doors[i];
+      if (nd.direction != opposite) {
+        continue;
+      }
+
+      any_on_opposite = true;
+      if (!badge.target_door_index.has_value()) {
+        badge.target_door_index = i;
+      }
+      if (nd.position == door.position) {
+        badge.target_door_index = i;
+        break;
+      }
+    }
+
+    if (badge.target_door_index.has_value()) {
+      const auto& target_door = neighbor_doors[*badge.target_door_index];
+      const auto [target_tile_x, target_tile_y] = target_door.GetTileCoords();
+      badge.target_tile_x = target_tile_x;
+      badge.target_tile_y = target_tile_y;
+    } else {
+      const auto [target_tile_x, target_tile_y] =
+          zelda3::DoorPositionManager::PositionToTileCoords(door.position,
+                                                            opposite);
+      badge.target_tile_x = target_tile_x;
+      badge.target_tile_y = target_tile_y;
+    }
+
+    if (badge.target_door_index.has_value() &&
+        neighbor_doors[*badge.target_door_index].position == door.position) {
+      badge.label = absl::StrFormat("pair 0x%03X", neighbor);
+      badge.color = IM_COL32(120, 220, 150, 235);  // green
+    } else if (any_on_opposite) {
+      badge.label = absl::StrFormat("~0x%03X", neighbor);
+      badge.color = IM_COL32(255, 200, 90, 235);  // amber
+    } else {
+      badge.label = absl::StrFormat("no pair 0x%03X", neighbor);
+      badge.color = IM_COL32(255, 130, 90, 235);  // red-orange
+    }
+  }
+
+  switch (door.direction) {
+    case zelda3::DoorDirection::North:
+      badge.screen_pos = ImVec2(door_pos.x + 40.0f, door_pos.y - 14 * scale);
+      break;
+    case zelda3::DoorDirection::South:
+      badge.screen_pos = ImVec2(door_pos.x, door_pos.y + door_size.y + 2.0f);
+      break;
+    case zelda3::DoorDirection::West:
+      badge.screen_pos =
+          ImVec2(door_pos.x - 88.0f, door_pos.y + door_size.y * 0.5f - 7.0f);
+      break;
+    case zelda3::DoorDirection::East:
+      badge.screen_pos = ImVec2(door_pos.x + door_size.x + 6.0f,
+                                door_pos.y + door_size.y * 0.5f - 7.0f);
+      break;
+  }
+  badge.screen_size = ImGui::CalcTextSize(badge.label.c_str());
+  return badge;
+}
+
+void DoorInteractionHandler::NavigateToPairBadge(
+    const PairBadgeOverlay& badge) const {
+  if (!ctx_ || !ctx_->on_door_pair_navigation || badge.target_room_id < 0) {
+    return;
+  }
+  ctx_->on_door_pair_navigation(badge.target_room_id, badge.target_door_index,
+                                badge.target_tile_x, badge.target_tile_y);
 }
 
 std::optional<size_t> DoorInteractionHandler::GetEntityAtPosition(

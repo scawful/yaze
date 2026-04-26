@@ -20,6 +20,8 @@
 namespace yaze {
 namespace editor {
 
+class ToastManager;
+
 /**
  * @class ObjectSelectorContent
  * @brief Browse and place dungeon objects
@@ -40,7 +42,8 @@ class ObjectSelectorContent : public WindowContent {
  public:
   ObjectSelectorContent(
       Rom* rom, DungeonCanvasViewer* canvas_viewer,
-      std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr);
+      std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr,
+      ToastManager* toast_manager = nullptr);
 
   // ==========================================================================
   // WindowContent Identity
@@ -104,7 +107,11 @@ class ObjectSelectorContent : public WindowContent {
   // Object operations
   void CancelPlacement();  // Cancel current object placement
 
-  // Show a red error message near the object controls for ~2 seconds.
+  void SetToastManager(ToastManager* toast_manager) {
+    toast_manager_ = toast_manager;
+  }
+
+  // Show placement blockers through the shared toast surface when available.
   // Called from DungeonEditorV2::HandleObjectPlaced on placement failure.
   void SetPlacementError(const std::string& message);
 
@@ -136,8 +143,9 @@ class ObjectSelectorContent : public WindowContent {
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool has_preview_object_ = false;
   std::shared_ptr<zelda3::DungeonObjectEditor> object_editor_;
+  ToastManager* toast_manager_ = nullptr;
 
-  // Placement error feedback: shown in red for kPlacementErrorDuration seconds.
+  // Placement error feedback: toast-backed, with inline fallback for tests.
   static constexpr double kPlacementErrorDuration = 2.0;
   std::string last_placement_error_;
   double placement_error_time_ = -1.0;  // ImGui::GetTime() when error was set

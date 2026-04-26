@@ -2,10 +2,14 @@
 
 #include <gtest/gtest.h>
 #include <array>
+#include <memory>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "app/editor/dungeon/object_selection.h"
+#include "app/gui/canvas/canvas.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
 namespace {
@@ -14,11 +18,18 @@ namespace {
 class InteractionCoordinatorTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    ImGui::CreateContext();
+    ImGui::GetIO().DisplaySize = ImVec2(1024, 768);
+    canvas_ = std::make_unique<gui::Canvas>("TestCanvas", ImVec2(512, 512),
+                                            gui::CanvasGridSize::k16x16);
+
     // Rooms use default constructor - no ROM needed for basic tests
 
     // Set up context
+    ctx_.canvas = canvas_.get();
     ctx_.rooms = &rooms_;
     ctx_.current_room_id = 0;
+    ctx_.selection = &selection_;
     ctx_.on_entity_changed = [this]() {
       entity_changed_count_++;
     };
@@ -29,7 +40,14 @@ class InteractionCoordinatorTest : public ::testing::Test {
     coordinator_.SetContext(&ctx_);
   }
 
+  void TearDown() override {
+    canvas_.reset();
+    ImGui::DestroyContext();
+  }
+
+  std::unique_ptr<gui::Canvas> canvas_;
   DungeonRoomStore rooms_;
+  ObjectSelection selection_;
   InteractionContext ctx_;
   InteractionCoordinator coordinator_;
   int entity_changed_count_ = 0;
@@ -184,6 +202,28 @@ TEST_F(InteractionCoordinatorTest, GetEntityAtPositionReturnsNulloptOnEmpty) {
 
   // No entities in empty room
   EXPECT_FALSE(result.has_value());
+}
+
+TEST_F(InteractionCoordinatorTest, AltClickCyclesOverlappingEntities) {
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  rooms_[0].GetPotItems().push_back(item);
+
+  ImGui::GetIO().KeyAlt = true;
+
+  ASSERT_TRUE(coordinator_.HandleClick(80, 80));
+  EXPECT_EQ(coordinator_.GetSelectedEntity().type, EntityType::Sprite);
+  EXPECT_EQ(coordinator_.GetSelectedEntity().index, 0u);
+  EXPECT_FALSE(selection_.HasSelection());
+
+  ASSERT_TRUE(coordinator_.HandleClick(80, 80));
+  EXPECT_EQ(coordinator_.GetSelectedEntity().type, EntityType::Item);
+  EXPECT_EQ(coordinator_.GetSelectedEntity().index, 0u);
+
+  ImGui::GetIO().KeyAlt = false;
 }
 
 // ============================================================================

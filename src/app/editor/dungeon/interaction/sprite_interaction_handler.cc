@@ -97,16 +97,18 @@ void SpriteInteractionHandler::DrawGhostPreview() {
     return;
 
   auto* canvas = ctx_->canvas;
-  if (!canvas->IsMouseHovering())
+  const auto pointer_screen_pos = GetPointerScreenPosition();
+  if (!pointer_screen_pos.has_value())
     return;
 
-  const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = canvas->zero_point();
   float scale = GetCanvasScale();
 
   // Convert to room coordinates (sprites use 16-pixel grid)
-  int canvas_x = static_cast<int>((io.MousePos.x - canvas_pos.x) / scale);
-  int canvas_y = static_cast<int>((io.MousePos.y - canvas_pos.y) / scale);
+  int canvas_x =
+      static_cast<int>((pointer_screen_pos->x - canvas_pos.x) / scale);
+  int canvas_y =
+      static_cast<int>((pointer_screen_pos->y - canvas_pos.y) / scale);
 
   // Snap to 16-pixel grid
   int snapped_x = (canvas_x / dungeon_coords::kSpriteTileSize) *

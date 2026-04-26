@@ -60,7 +60,12 @@ class DungeonRoomSelector {
   void SetProject(const project::YazeProject* project) { project_ = project; }
 
   // Room selection
-  void set_current_room_id(uint16_t room_id) { current_room_id_ = room_id; }
+  void set_current_room_id(uint16_t room_id) {
+    if (current_room_id_ != room_id) {
+      pending_scroll_room_id_ = room_id;
+    }
+    current_room_id_ = room_id;
+  }
   int current_room_id() const { return current_room_id_; }
 
   void set_active_rooms(const ImVector<int>& rooms) { active_rooms_ = rooms; }
@@ -111,6 +116,7 @@ class DungeonRoomSelector {
   zelda3::GameData* game_data_ = nullptr;
   const project::YazeProject* project_ = nullptr;
   uint16_t current_room_id_ = 0;
+  int pending_scroll_room_id_ = -1;
   int current_entrance_id_ = 0;
   ImVector<int> active_rooms_;
 

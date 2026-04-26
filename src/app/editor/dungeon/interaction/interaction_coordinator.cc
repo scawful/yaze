@@ -1,6 +1,8 @@
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
 #include "app/editor/dungeon/object_selection.h"
 
+#include <cstdlib>
+
 // Third-party library headers
 #include "imgui/imgui.h"
 
@@ -50,8 +52,7 @@ void InteractionCoordinator::CancelCurrentMode() {
 bool InteractionCoordinator::IsPlacementActive() const {
   return door_handler_.IsPlacementActive() ||
          sprite_handler_.IsPlacementActive() ||
-         item_handler_.IsPlacementActive() ||
-         tile_handler_.IsPlacementActive();
+         item_handler_.IsPlacementActive() || tile_handler_.IsPlacementActive();
 }
 
 bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
@@ -69,13 +70,30 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
     return tile_handler_.HandleClick(canvas_x, canvas_y);
   }
 
+  if (door_handler_.HandleOverlayClick(canvas_x, canvas_y)) {
+    return true;
+  }
+
   // In select mode, only handle the click if the cursor is over an entity or object.
-  const auto entity = GetEntityAtPosition(canvas_x, canvas_y);
-  if (!entity.has_value()) {
+  const auto hits = GetEntitiesAtPosition(canvas_x, canvas_y);
+  if (hits.empty()) {
     return false;
   }
 
   const ImGuiIO& io = ImGui::GetIO();
+  if (io.KeyAlt) {
+    if (!SameCycleTarget(canvas_x, canvas_y, hits)) {
+      cycle_next_index_ = 0;
+    }
+    const SelectedEntity selected = hits[cycle_next_index_ % hits.size()];
+    cycle_next_index_ = (cycle_next_index_ + 1) % hits.size();
+    cycle_last_x_ = canvas_x;
+    cycle_last_y_ = canvas_y;
+    cycle_last_hits_ = hits;
+    return ApplySelection(selected);
+  }
+
+  const auto entity = hits.front();
   const bool additive = io.KeyShift || io.KeyCtrl || io.KeySuper;
 
   // Cross-selection rules:
@@ -83,7 +101,7 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
   // 2. Entities are exclusive to Tile Objects.
   // 3. Tile Objects support multi-selection.
 
-  if (entity->type == EntityType::Object) {
+  if (entity.type == EntityType::Object) {
     // If selecting an object, always clear entities.
     ClearAllEntitySelections();
     // If not additive, also clear existing object selection.
@@ -98,7 +116,7 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
       ctx_->selection->ClearSelection();
     }
 
-    switch (entity->type) {
+    switch (entity.type) {
       case EntityType::Door:
         return door_handler_.HandleClick(canvas_x, canvas_y);
       case EntityType::Sprite:
@@ -112,11 +130,15 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
 }
 
 bool InteractionCoordinator::HandleMouseWheel(float delta) {
-  if (door_handler_.IsPlacementActive()) return door_handler_.HandleMouseWheel(delta);
-  if (sprite_handler_.IsPlacementActive()) return sprite_handler_.HandleMouseWheel(delta);
-  if (item_handler_.IsPlacementActive()) return item_handler_.HandleMouseWheel(delta);
-  if (tile_handler_.IsPlacementActive()) return tile_handler_.HandleMouseWheel(delta);
-  
+  if (door_handler_.IsPlacementActive())
+    return door_handler_.HandleMouseWheel(delta);
+  if (sprite_handler_.IsPlacementActive())
+    return sprite_handler_.HandleMouseWheel(delta);
+  if (item_handler_.IsPlacementActive())
+    return item_handler_.HandleMouseWheel(delta);
+  if (tile_handler_.IsPlacementActive())
+    return tile_handler_.HandleMouseWheel(delta);
+
   return tile_handler_.HandleMouseWheel(delta);
 }
 
@@ -162,15 +184,29 @@ void InteractionCoordinator::CancelPlacement() {
 
 std::optional<SelectedEntity> InteractionCoordinator::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
-  if (auto door = door_handler_.GetEntityAtPosition(canvas_x, canvas_y))
-    return SelectedEntity{EntityType::Door, *door};
-  if (auto sprite = sprite_handler_.GetEntityAtPosition(canvas_x, canvas_y))
-    return SelectedEntity{EntityType::Sprite, *sprite};
-  if (auto item = item_handler_.GetEntityAtPosition(canvas_x, canvas_y))
-    return SelectedEntity{EntityType::Item, *item};
-  if (auto object = tile_handler_.GetEntityAtPosition(canvas_x, canvas_y))
-    return SelectedEntity{EntityType::Object, *object};
-  return std::nullopt;
+  const auto hits = GetEntitiesAtPosition(canvas_x, canvas_y);
+  if (hits.empty()) {
+    return std::nullopt;
+  }
+  return hits.front();
+}
+
+std::vector<SelectedEntity> InteractionCoordinator::GetEntitiesAtPosition(
+    int canvas_x, int canvas_y) const {
+  std::vector<SelectedEntity> hits;
+  if (auto door = door_handler_.GetEntityAtPosition(canvas_x, canvas_y)) {
+    hits.push_back(SelectedEntity{EntityType::Door, *door});
+  }
+  if (auto sprite = sprite_handler_.GetEntityAtPosition(canvas_x, canvas_y)) {
+    hits.push_back(SelectedEntity{EntityType::Sprite, *sprite});
+  }
+  if (auto item = item_handler_.GetEntityAtPosition(canvas_x, canvas_y)) {
+    hits.push_back(SelectedEntity{EntityType::Item, *item});
+  }
+  if (auto object = tile_handler_.GetEntityAtPosition(canvas_x, canvas_y)) {
+    hits.push_back(SelectedEntity{EntityType::Object, *object});
+  }
+  return hits;
 }
 
 SelectedEntity InteractionCoordinator::GetSelectedEntity() const {
@@ -197,9 +233,10 @@ void InteractionCoordinator::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   if (item_handler_.HasSelection()) {
     item_handler_.HandleDrag(current_pos, delta);
   }
-  
+
   // Tile objects (managed by ObjectSelection)
-  if (tile_handler_.IsPlacementActive() || (ctx_ && ctx_->selection && ctx_->selection->HasSelection())) {
+  if (tile_handler_.IsPlacementActive() ||
+      (ctx_ && ctx_->selection && ctx_->selection->HasSelection())) {
     tile_handler_.HandleDrag(current_pos, delta);
   }
 }
@@ -249,7 +286,7 @@ void InteractionCoordinator::DrawPostPlacementOverlays() {
 }
 
 bool InteractionCoordinator::TrySelectEntityAtCursor(int canvas_x,
-                                                      int canvas_y) {
+                                                     int canvas_y) {
   // Clear all selections first
   ClearAllEntitySelections();
 
@@ -315,6 +352,57 @@ BaseEntityHandler* InteractionCoordinator::GetActiveHandler() {
     default:
       return nullptr;
   }
+}
+
+bool InteractionCoordinator::ApplySelection(SelectedEntity entity) {
+  ClearAllEntitySelections();
+
+  if (entity.type == EntityType::Object) {
+    if (!ctx_ || !ctx_->selection) {
+      return false;
+    }
+    ctx_->selection->ClearSelection();
+    ctx_->selection->SelectObject(entity.index,
+                                  ObjectSelection::SelectionMode::Single);
+    return true;
+  }
+
+  if (ctx_ && ctx_->selection) {
+    ctx_->selection->ClearSelection();
+  }
+
+  switch (entity.type) {
+    case EntityType::Door:
+      door_handler_.SelectDoor(entity.index);
+      return true;
+    case EntityType::Sprite:
+      sprite_handler_.SelectSprite(entity.index);
+      return true;
+    case EntityType::Item:
+      item_handler_.SelectItem(entity.index);
+      return true;
+    case EntityType::Object:
+    case EntityType::None:
+    default:
+      return false;
+  }
+}
+
+bool InteractionCoordinator::SameCycleTarget(
+    int canvas_x, int canvas_y, const std::vector<SelectedEntity>& hits) const {
+  constexpr int kSameSpotTolerancePx = 3;
+  if (std::abs(canvas_x - cycle_last_x_) > kSameSpotTolerancePx ||
+      std::abs(canvas_y - cycle_last_y_) > kSameSpotTolerancePx ||
+      hits.size() != cycle_last_hits_.size()) {
+    return false;
+  }
+
+  for (size_t i = 0; i < hits.size(); ++i) {
+    if (!(hits[i] == cycle_last_hits_[i])) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace yaze::editor

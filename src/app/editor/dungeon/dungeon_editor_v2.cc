@@ -524,7 +524,8 @@ absl::Status DungeonEditorV2::Load() {
 
   // Initialize browse-only object selector and the dedicated object editor.
   auto object_selector = std::make_unique<ObjectSelectorContent>(
-      rom_, nullptr, dungeon_editor_system_->GetObjectEditor());
+      rom_, nullptr, dungeon_editor_system_->GetObjectEditor(),
+      dependencies_.toast_manager);
   auto object_editor = std::make_unique<ObjectEditorContent>(
       dungeon_editor_system_->GetObjectEditor());
 
@@ -1967,15 +1968,12 @@ void DungeonEditorV2::HandleObjectPlaced(const zelda3::RoomObject& obj) {
   if (!IsValidRoomId(current_room_id_)) {
     LOG_ERROR("DungeonEditorV2", "Cannot place object: Invalid room ID %d",
               current_room_id_);
-    if (dependencies_.toast_manager) {
-      dependencies_.toast_manager->Show(
-          absl::StrFormat("Object 0x%02X: no room selected (invalid room %d)",
-                          obj.id_, current_room_id_),
-          ToastType::kError);
-    }
+    const std::string message = absl::StrFormat(
+        "Cannot place 0x%02X: invalid room %d", obj.id_, current_room_id_);
     if (object_selector_panel_) {
-      object_selector_panel_->SetPlacementError(absl::StrFormat(
-          "Cannot place 0x%02X: invalid room %d", obj.id_, current_room_id_));
+      object_selector_panel_->SetPlacementError(message);
+    } else if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(message, ToastType::kError);
     }
     return;
   }
@@ -2501,7 +2499,15 @@ absl::Status DungeonEditorV2::Undo() {
   if (pending_water_fill_undo_.room_id >= 0) {
     FinalizeWaterFillUndoAction(pending_water_fill_undo_.room_id);
   }
-  return undo_manager_.Undo();
+  const std::string description = undo_manager_.GetUndoDescription();
+  auto status = undo_manager_.Undo();
+  if (status.ok() && dependencies_.toast_manager) {
+    dependencies_.toast_manager->Show(
+        description.empty() ? "Undid last dungeon edit"
+                            : absl::StrFormat("Undid: %s", description),
+        ToastType::kInfo, 2.0f);
+  }
+  return status;
 }
 
 absl::Status DungeonEditorV2::Redo() {
@@ -2515,7 +2521,15 @@ absl::Status DungeonEditorV2::Redo() {
   if (pending_water_fill_undo_.room_id >= 0) {
     FinalizeWaterFillUndoAction(pending_water_fill_undo_.room_id);
   }
-  return undo_manager_.Redo();
+  const std::string description = undo_manager_.GetRedoDescription();
+  auto status = undo_manager_.Redo();
+  if (status.ok() && dependencies_.toast_manager) {
+    dependencies_.toast_manager->Show(
+        description.empty() ? "Redid last dungeon edit"
+                            : absl::StrFormat("Redid: %s", description),
+        ToastType::kInfo, 2.0f);
+  }
+  return status;
 }
 
 absl::Status DungeonEditorV2::Cut() {
