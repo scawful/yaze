@@ -1,5 +1,7 @@
 #include "app/editor/overworld/map_properties.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/overworld/ui_constants.h"
@@ -28,6 +30,33 @@ using ImGui::Text;
 
 // Using centralized UI constants
 
+int MapPropertiesSystem::CurrentGameState() const {
+  return CurrentGameState(local_game_state_);
+}
+
+int MapPropertiesSystem::CurrentGameState(int fallback) const {
+  return std::clamp(game_state_ ? *game_state_ : fallback, 0, 2);
+}
+
+void MapPropertiesSystem::SetCurrentGameState(int game_state) {
+  const int clamped_state = std::clamp(game_state, 0, 2);
+  local_game_state_ = clamped_state;
+  if (game_state_) {
+    *game_state_ = clamped_state;
+  }
+}
+
+void MapPropertiesSystem::PrepareMapForGraphicsRefresh(int map_index) {
+  if (!overworld_ || map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  auto* map = overworld_->mutable_overworld_map(map_index);
+  if (!map) {
+    return;
+  }
+  map->set_game_state(CurrentGameState(map->game_state()));
+}
+
 void MapPropertiesSystem::DrawCanvasToolbar(
     int& current_world, int& current_map, bool& current_map_lock,
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
@@ -39,7 +68,7 @@ void MapPropertiesSystem::DrawCanvasToolbar(
   (void)show_overlay_preview;         // Reserved
 
   // Simplified canvas toolbar - Navigation and Mode controls
-  if (BeginTable("CanvasToolbar", 7,
+  if (BeginTable("MapPropertiesCanvasToolbar", 7,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingFixedFit,
                  ImVec2(0, 0), -1)) {
     ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed,
@@ -57,8 +86,8 @@ void MapPropertiesSystem::DrawCanvasToolbar(
     ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 40.0f);
 
     TableNextColumn();
-    ImGui::SetNextItemWidth(kComboWorldWidth);
-    ImGui::Combo("##world", &current_world, kWorldNames, 3);
+    const int clamped_world = std::clamp(current_world, 0, 2);
+    ImGui::TextDisabled("%s", kWorldNames[clamped_world]);
 
     TableNextColumn();
     ImGui::Text("%d (0x%02X)", current_map, current_map);
@@ -546,6 +575,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
 
 // Private method implementations
 void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
+  const int current_game_state = CurrentGameState(game_state);
   if (ImGui::BeginPopup(gui::MakePopupId(gui::EditorNames::kOverworld,
                                          gui::PopupNames::kGraphicsPopup)
                             .c_str())) {
@@ -574,6 +604,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
 
       // 2. Force immediate refresh of current map
       (*maps_bmp_)[current_map].set_modified(true);
+      PrepareMapForGraphicsRefresh(current_map);
       overworld_->mutable_overworld_map(current_map)->LoadAreaGraphics();
 
       // 3. Refresh siblings immediately
@@ -589,10 +620,10 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
 
     // Sprite Graphics
     if (gui::InputHexByte(absl::StrFormat(ICON_MD_PETS " Sprite GFX (%s)",
-                                          kGameStateNames[game_state])
+                                          kGameStateNames[current_game_state])
                               .c_str(),
                           overworld_->mutable_overworld_map(current_map)
-                              ->mutable_sprite_graphics(game_state),
+                              ->mutable_sprite_graphics(current_game_state),
                           kHexByteInputWidth)) {
       ForceRefreshGraphics(current_map);
       RefreshMapProperties();
@@ -656,6 +687,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
 
 void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
                                             bool& show_custom_bg_color_editor) {
+  const int current_game_state = CurrentGameState(game_state);
   if (ImGui::BeginPopup(gui::MakePopupId(gui::EditorNames::kOverworld,
                                          gui::PopupNames::kPalettesPopup)
                             .c_str())) {
@@ -699,10 +731,10 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
 
     // Sprite Palette
     if (gui::InputHexByte(absl::StrFormat(ICON_MD_COLORIZE " Sprite Pal (%s)",
-                                          kGameStateNames[game_state])
+                                          kGameStateNames[current_game_state])
                               .c_str(),
                           overworld_->mutable_overworld_map(current_map)
-                              ->mutable_sprite_palette(game_state),
+                              ->mutable_sprite_palette(current_game_state),
                           kHexByteInputWidth)) {
       RefreshMapProperties();
       RefreshOverworldMap();
@@ -761,7 +793,11 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
       ImGui::Text(ICON_MD_GAMEPAD " Game State");
       TableNextColumn();
       ImGui::SetNextItemWidth(kComboGameStateWidth);
-      if (ImGui::Combo("##GameState", &game_state, kGameStateNames, 3)) {
+      int current_game_state = CurrentGameState(game_state);
+      if (ImGui::Combo("##GameState", &current_game_state, kGameStateNames,
+                       3)) {
+        game_state = current_game_state;
+        SetCurrentGameState(current_game_state);
         RefreshMapProperties();
         RefreshOverworldMap();
       }
@@ -855,6 +891,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
       // CORRECT ORDER: Properties first, then graphics reload
       RefreshMapProperties();
       (*maps_bmp_)[current_map].set_modified(true);
+      PrepareMapForGraphicsRefresh(current_map);
       overworld_->mutable_overworld_map(current_map)->LoadAreaGraphics();
       RefreshSiblingMapGraphics(current_map);
       RefreshTile16Blockset();
@@ -972,9 +1009,10 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
     TableNextColumn();
     ImGui::Text(ICON_MD_GAMEPAD " Game State");
     TableNextColumn();
-    static int game_state = 0;
+    int game_state = CurrentGameState();
     ImGui::SetNextItemWidth(120.f);
     if (ImGui::Combo("##GameState", &game_state, kGameStateNames, 3)) {
+      SetCurrentGameState(game_state);
       RefreshMapProperties();
       RefreshOverworldMap();
     }
@@ -1173,6 +1211,7 @@ void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
                               overworld_->mutable_overworld_map(current_map)
                                   ->mutable_custom_tileset(i),
                               kInputFieldSize)) {
+          PrepareMapForGraphicsRefresh(current_map);
           overworld_->mutable_overworld_map(current_map)->LoadAreaGraphics();
           ForceRefreshGraphics(current_map);
           RefreshSiblingMapGraphics(current_map);
@@ -1362,6 +1401,7 @@ void MapPropertiesSystem::RefreshSiblingMapGraphics(int map_index,
       (*maps_bmp_)[sibling].set_modified(true);
 
       // Load graphics from ROM
+      PrepareMapForGraphicsRefresh(sibling);
       overworld_->mutable_overworld_map(sibling)->LoadAreaGraphics();
 
       // CRITICAL FIX: Force immediate refresh on the sibling

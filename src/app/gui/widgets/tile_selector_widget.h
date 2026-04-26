@@ -34,6 +34,7 @@ class TileSelectorWidget {
   struct RenderResult {
     bool tile_clicked = false;
     bool tile_double_clicked = false;
+    bool tile_right_clicked = false;
     bool selection_changed = false;
     bool tile_dragging = false;
     int selected_tile = -1;

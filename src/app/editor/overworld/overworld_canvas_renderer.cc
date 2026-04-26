@@ -343,6 +343,34 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
 
   editor_->UpdateBlocksetSelectorState();
+  editor_->blockset_canvas_.ClearContextMenuItems();
+
+  auto open_tile16_editor = [this](int tile_id) {
+    editor_->RequestTile16Selection(tile_id);
+    if (editor_->dependencies_.window_manager) {
+      const size_t session_id =
+          editor_->dependencies_.window_manager->GetActiveSessionId();
+      editor_->dependencies_.window_manager->OpenWindow(
+          session_id, OverworldPanelIds::kTile16Editor);
+      editor_->dependencies_.window_manager->MarkWindowRecentlyUsed(
+          OverworldPanelIds::kTile16Editor);
+    }
+  };
+
+  gui::CanvasMenuItem edit_tile_item;
+  edit_tile_item.label = ICON_MD_GRID_VIEW " Edit Tile16";
+  edit_tile_item.shortcut = "Double-click";
+  edit_tile_item.enabled_condition = [this]() {
+    return editor_->blockset_selector_ &&
+           editor_->blockset_selector_->GetSelectedTileID() >= 0;
+  };
+  edit_tile_item.callback = [this, open_tile16_editor]() {
+    if (!editor_->blockset_selector_) {
+      return;
+    }
+    open_tile16_editor(editor_->blockset_selector_->GetSelectedTileID());
+  };
+  editor_->blockset_canvas_.AddContextMenuItem(edit_tile_item);
 
   gui::BeginPadding(3);
   ImGui::BeginGroup();
@@ -371,10 +399,7 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
 
   if (result.tile_double_clicked) {
-    if (editor_->dependencies_.window_manager) {
-      editor_->dependencies_.window_manager->OpenWindow(
-          OverworldPanelIds::kTile16Editor);
-    }
+    open_tile16_editor(result.selected_tile);
   }
 
   ImGui::EndChild();
@@ -529,11 +554,10 @@ void OverworldCanvasRenderer::DrawMapProperties() {
   // Area Configuration panel
   static bool show_custom_bg_color_editor = false;
   static bool show_overlay_editor = false;
-  static int game_state = 0;  // 0=Beginning, 1=Zelda Saved, 2=Master Sword
 
   if (editor_->sidebar_) {
     editor_->sidebar_->Draw(editor_->current_world_, editor_->current_map_,
-                            editor_->current_map_lock_, game_state,
+                            editor_->current_map_lock_, editor_->game_state_,
                             show_custom_bg_color_editor, show_overlay_editor);
   }
 

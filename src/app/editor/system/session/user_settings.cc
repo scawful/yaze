@@ -1501,6 +1501,18 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  // Revision 20: keep the Overworld editor selector-first on startup. Earlier
+  // migrations hid Tile16 Editor from defaults, but persisted visibility state
+  // from affected sessions can still reopen it before the user asks for it.
+  if (prefs_.panel_layout_defaults_revision < 20 && target_revision >= 20) {
+    if (auto overworld_it = prefs_.panel_visibility_state.find("Overworld");
+        overworld_it != prefs_.panel_visibility_state.end()) {
+      overworld_it->second["overworld.tile16_editor"] = false;
+    }
+    prefs_.panel_layout_defaults_revision = 20;
+    applied = true;
+  }
+
   return applied;
 }
 

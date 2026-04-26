@@ -339,4 +339,40 @@ TEST(UserSettingsLayoutDefaultsTest,
             std::string::npos);
 }
 
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyHidesStaleOverworldTile16EditorVisibilityOnly) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 19;
+  prefs.panel_visibility_state["Overworld"]["overworld.canvas"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.tile16_selector"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.properties"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"] = true;
+  prefs.panel_visibility_state["Overworld"]["overworld.area_graphics"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = true;
+  prefs.saved_layouts["custom"]["overworld.tile16_editor"] = true;
+  prefs.named_layouts["custom"] =
+      R"({"schema_version":2,"name":"custom","root":{"id":1,"type":"leaf","active_tab_index":0,"panels":[{"panel_id":"overworld.tile16_editor"}]}})";
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+
+  EXPECT_EQ(prefs.panel_layout_defaults_revision,
+            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_TRUE(prefs.panel_visibility_state["Overworld"]["overworld.canvas"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Overworld"]["overworld.tile16_selector"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Overworld"]["overworld.properties"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Overworld"]["overworld.tile16_editor"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Overworld"]["overworld.area_graphics"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["overworld.tile16_editor"]);
+  EXPECT_NE(prefs.named_layouts["custom"].find("overworld.tile16_editor"),
+            std::string::npos);
+}
+
 }  // namespace yaze::editor

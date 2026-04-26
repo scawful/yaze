@@ -326,12 +326,20 @@ inline bool CanPersistLegacyMultiAreaMap(int map_index) {
   return map_index >= 0 && map_index < kSpecialWorldMapIdStart;
 }
 
+inline bool CanPersistLegacyScreenSize(int map_index) {
+  return map_index >= 0 && map_index < kSpecialWorldMapIdStart;
+}
+
 inline int LegacyParentTableIndexForMap(int map_index) {
   return map_index & 0x3F;
 }
 
 inline uint8_t LegacyParentTableValueForMap(int parent_index) {
   return static_cast<uint8_t>(parent_index & 0x3F);
+}
+
+inline int LegacyScreenSizeTableIndexForMap(int map_index) {
+  return map_index;
 }
 
 /**

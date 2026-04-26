@@ -3,6 +3,17 @@
 namespace yaze {
 namespace test {
 
+namespace {
+
+void ExpectTile16Equals(const gfx::Tile16& lhs, const gfx::Tile16& rhs) {
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile0_), gfx::TileInfoToWord(rhs.tile0_));
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile1_), gfx::TileInfoToWord(rhs.tile1_));
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile2_), gfx::TileInfoToWord(rhs.tile2_));
+  EXPECT_EQ(gfx::TileInfoToWord(lhs.tile3_), gfx::TileInfoToWord(rhs.tile3_));
+}
+
+}  // namespace
+
 TEST_F(OverworldEditorTest, LoadAndSave) {
   // Verify initial state
   EXPECT_TRUE(overworld_editor_->IsRomLoaded());
@@ -54,6 +65,71 @@ TEST_F(OverworldEditorTest, ClipboardRoundTripSingleTile) {
   EXPECT_EQ(shared_clipboard_->overworld_tile16_ids[0], 42);
   EXPECT_EQ(shared_clipboard_->overworld_width, 1);
   EXPECT_EQ(shared_clipboard_->overworld_height, 1);
+}
+
+TEST_F(OverworldEditorTest, RequestTile16SelectionUpdatesEditorSelection) {
+  constexpr int kTile = 15;
+
+  overworld_editor_->RequestTile16Selection(kTile);
+
+  EXPECT_EQ(overworld_editor_->tile16_editor().current_tile16(), kTile);
+}
+
+TEST_F(OverworldEditorTest,
+       RequestTile16SelectionWithStagedCurrentTileOpensEditorGuard) {
+  constexpr int kFromTile = 15;
+  constexpr int kTargetTile = 16;
+  auto& tile16_editor = overworld_editor_->tile16_editor();
+
+  ASSERT_TRUE(tile16_editor.SetCurrentTile(kFromTile).ok());
+  ASSERT_TRUE(
+      tile16_editor
+          .ApplyPaletteToQuadrant(
+              /*quadrant=*/0,
+              static_cast<uint8_t>((tile16_editor.current_palette() + 1) % 8))
+          .ok());
+  ASSERT_TRUE(tile16_editor.is_tile_modified(kFromTile));
+  window_manager_->RegisterWindow(window_manager_->GetActiveSessionId(),
+                                  editor::OverworldPanelIds::kTile16Editor,
+                                  "Tile16 Editor", "", "Overworld");
+
+  overworld_editor_->RequestTile16Selection(kTargetTile);
+
+  EXPECT_EQ(tile16_editor.current_tile16(), kFromTile);
+  EXPECT_EQ(tile16_editor.pending_changes_count(), 1);
+  ASSERT_NE(window_manager_, nullptr);
+  EXPECT_TRUE(
+      window_manager_->IsWindowOpen(window_manager_->GetActiveSessionId(),
+                                    editor::OverworldPanelIds::kTile16Editor));
+}
+
+TEST_F(OverworldEditorTest, CommitTile16ChangesRefreshesOverworldState) {
+  constexpr int kTile = 21;
+  auto& tile16_editor = overworld_editor_->tile16_editor();
+
+  const auto original = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(original.ok());
+  ASSERT_TRUE(tile16_editor.SetCurrentTile(kTile).ok());
+  const uint8_t target_palette =
+      static_cast<uint8_t>((original->tile0_.palette_ + 1) % 8);
+
+  ASSERT_TRUE(tile16_editor.ApplyPaletteToAll(target_palette).ok());
+  ASSERT_TRUE(tile16_editor.is_tile_modified(kTile));
+  ASSERT_TRUE(tile16_editor.CommitAllChanges().ok());
+
+  const auto committed = rom_->ReadTile16(kTile, zelda3::kTile16Ptr);
+  ASSERT_TRUE(committed.ok());
+  EXPECT_FALSE(*committed == *original);
+  ASSERT_GT(overworld_editor_->overworld().tiles16().size(),
+            static_cast<size_t>(kTile));
+  ExpectTile16Equals(overworld_editor_->overworld().tiles16()[kTile],
+                     *committed);
+
+  const auto* map = overworld_editor_->overworld().overworld_map(
+      overworld_editor_->current_map_id());
+  ASSERT_NE(map, nullptr);
+  EXPECT_EQ(overworld_editor_->tile16_blockset().atlas.palette(),
+            map->current_palette());
 }
 
 TEST_F(OverworldEditorTest,

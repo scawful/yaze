@@ -1,6 +1,8 @@
 // Related header
 #include "app/editor/overworld/map_refresh_coordinator.h"
 
+#include <algorithm>
+
 #include "absl/status/status.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/core/bitmap.h"
@@ -38,6 +40,18 @@ bool IsMapInCurrentWorld(int map_index, int current_world) {
   return WorldForMapIndex(map_index) == current_world;
 }
 
+int CurrentGameState(const MapRefreshContext& ctx) {
+  return ctx.game_state ? std::clamp(*ctx.game_state, 0, 2) : 0;
+}
+
+void PrepareMapForRefresh(const MapRefreshContext& ctx,
+                          zelda3::OverworldMap* map) {
+  if (!map) {
+    return;
+  }
+  map->set_game_state(CurrentGameState(ctx));
+}
+
 }  // namespace
 
 void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
@@ -54,18 +68,20 @@ void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
 }
 
 void MapRefreshCoordinator::RefreshChildMap(int map_index) {
-  ctx_.overworld->mutable_overworld_map(map_index)->LoadAreaGraphics();
-  *ctx_.status =
-      ctx_.overworld->mutable_overworld_map(map_index)->BuildTileset();
+  auto* map = ctx_.overworld->mutable_overworld_map(map_index);
+  if (!map) {
+    return;
+  }
+  PrepareMapForRefresh(ctx_, map);
+  map->LoadAreaGraphics();
+  *ctx_.status = map->BuildTileset();
+  PRINT_IF_ERROR(*ctx_.status);
+  *ctx_.status = map->BuildTiles16Gfx(*ctx_.overworld->mutable_tiles16(),
+                                      ctx_.overworld->tiles16().size());
   PRINT_IF_ERROR(*ctx_.status);
   *ctx_.status =
-      ctx_.overworld->mutable_overworld_map(map_index)->BuildTiles16Gfx(
-          *ctx_.overworld->mutable_tiles16(), ctx_.overworld->tiles16().size());
-  PRINT_IF_ERROR(*ctx_.status);
-  *ctx_.status = ctx_.overworld->mutable_overworld_map(map_index)->BuildBitmap(
-      MapTilesForMapIndex(ctx_.overworld, map_index));
-  (*ctx_.maps_bmp)[map_index].set_data(
-      ctx_.overworld->mutable_overworld_map(map_index)->bitmap_data());
+      map->BuildBitmap(MapTilesForMapIndex(ctx_.overworld, map_index));
+  (*ctx_.maps_bmp)[map_index].set_data(map->bitmap_data());
   (*ctx_.maps_bmp)[map_index].set_modified(true);
   PRINT_IF_ERROR(*ctx_.status);
 }
@@ -117,6 +133,7 @@ void MapRefreshCoordinator::RefreshChildMapOnDemand(int map_index) {
 
   if (needs_graphics_rebuild) {
     // Only rebuild what's actually changed
+    PrepareMapForRefresh(ctx_, map);
     map->LoadAreaGraphics();
 
     // Rebuild tileset only if graphics changed
@@ -288,6 +305,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
       if (!sibling_map)
         continue;
 
+      PrepareMapForRefresh(ctx_, sibling_map);
       sibling_map->LoadAreaGraphics();
 
       auto status = sibling_map->BuildTileset();
@@ -353,6 +371,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
   if (!current_map) {
     return absl::FailedPreconditionError("Current overworld map not loaded");
   }
+  PrepareMapForRefresh(ctx_, current_map);
   RETURN_IF_ERROR(current_map->LoadPalette());
   const auto current_map_palette = current_map->current_palette();
   *ctx_.palette = current_map_palette;
@@ -410,6 +429,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
         if (!sibling_map) {
           continue;
         }
+        PrepareMapForRefresh(ctx_, sibling_map);
         RETURN_IF_ERROR(sibling_map->LoadPalette());
         (*ctx_.maps_bmp)[sibling_index].SetPalette(
             sibling_map->current_palette());
@@ -431,6 +451,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
         if (!sibling_map) {
           continue;
         }
+        PrepareMapForRefresh(ctx_, sibling_map);
         RETURN_IF_ERROR(sibling_map->LoadPalette());
 
         // SAFETY: Only set palette if bitmap has a valid surface
@@ -509,7 +530,12 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
       (*ctx_.maps_bmp)[sibling].set_modified(true);
 
       // Load graphics from ROM
-      ctx_.overworld->mutable_overworld_map(sibling)->LoadAreaGraphics();
+      auto* sibling_map = ctx_.overworld->mutable_overworld_map(sibling);
+      if (!sibling_map) {
+        continue;
+      }
+      PrepareMapForRefresh(ctx_, sibling_map);
+      sibling_map->LoadAreaGraphics();
 
       // CRITICAL FIX: Bypass visibility check - force immediate refresh
       // Call RefreshChildMapOnDemand() directly instead of
@@ -559,6 +585,7 @@ void MapRefreshCoordinator::RefreshMapProperties() {
       }
 
       // Copy properties from parent map to all siblings
+      const int game_state = CurrentGameState(ctx_);
       for (int sibling_index : sibling_maps) {
         if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
           continue;
@@ -566,13 +593,14 @@ void MapRefreshCoordinator::RefreshMapProperties() {
         auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
         map.set_area_graphics(current_ow_map.area_graphics());
         map.set_area_palette(current_ow_map.area_palette());
-        map.set_sprite_graphics(
-            *ctx_.game_state, current_ow_map.sprite_graphics(*ctx_.game_state));
-        map.set_sprite_palette(*ctx_.game_state,
-                               current_ow_map.sprite_palette(*ctx_.game_state));
+        map.set_sprite_graphics(game_state,
+                                current_ow_map.sprite_graphics(game_state));
+        map.set_sprite_palette(game_state,
+                               current_ow_map.sprite_palette(game_state));
         map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
+        PrepareMapForRefresh(ctx_, &map);
         map.LoadAreaGraphics();
       }
     }
@@ -580,6 +608,7 @@ void MapRefreshCoordinator::RefreshMapProperties() {
     // Legacy logic for vanilla and v2 ROMs
     if (current_ow_map.is_large_map()) {
       // We need to copy the properties from the parent map to the children
+      const int game_state = CurrentGameState(ctx_);
       for (int i = 1; i < 4; i++) {
         int sibling_index = current_ow_map.parent() + i;
         if (i >= 2) {
@@ -588,13 +617,14 @@ void MapRefreshCoordinator::RefreshMapProperties() {
         auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
         map.set_area_graphics(current_ow_map.area_graphics());
         map.set_area_palette(current_ow_map.area_palette());
-        map.set_sprite_graphics(
-            *ctx_.game_state, current_ow_map.sprite_graphics(*ctx_.game_state));
-        map.set_sprite_palette(*ctx_.game_state,
-                               current_ow_map.sprite_palette(*ctx_.game_state));
+        map.set_sprite_graphics(game_state,
+                                current_ow_map.sprite_graphics(game_state));
+        map.set_sprite_palette(game_state,
+                               current_ow_map.sprite_palette(game_state));
         map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
+        PrepareMapForRefresh(ctx_, &map);
         map.LoadAreaGraphics();
       }
     }

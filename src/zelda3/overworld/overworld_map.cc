@@ -169,8 +169,11 @@ void OverworldMap::LoadAreaInfo() {
     }
   } else {
     if (index_ < 0x80) {
-      // For LW and DW, check the screen size byte
-      uint8_t size_byte = (*rom_)[kOverworldScreenSize + (index_ & 0x3F)];
+      // For LW and DW, check the world-specific screen size byte. The legacy
+      // parent table is shared/local, but screen-size data has separate
+      // Light/Dark entries.
+      uint8_t size_byte = (*rom_)[kOverworldScreenSize +
+                                  LegacyScreenSizeTableIndexForMap(index_)];
       switch (size_byte) {
         case 0:
           area_size_ = AreaSizeEnum::LargeArea;
@@ -272,18 +275,18 @@ void OverworldMap::LoadAreaInfo() {
                                    parent_ - kSpecialWorldMapIdStart];
     } else {
       // For v2/vanilla, use original sprite tables
-      sprite_graphics_[0] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+      sprite_graphics_[0] = (*rom_)[kOverworldSpecialSpriteGFXGroup + parent_ -
                                     kSpecialWorldMapIdStart];
-      sprite_graphics_[1] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+      sprite_graphics_[1] = (*rom_)[kOverworldSpecialSpriteGFXGroup + parent_ -
                                     kSpecialWorldMapIdStart];
-      sprite_graphics_[2] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+      sprite_graphics_[2] = (*rom_)[kOverworldSpecialSpriteGFXGroup + parent_ -
                                     kSpecialWorldMapIdStart];
 
-      sprite_palette_[0] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+      sprite_palette_[0] = (*rom_)[kOverworldSpecialSpritePalette + parent_ -
                                    kSpecialWorldMapIdStart];
-      sprite_palette_[1] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+      sprite_palette_[1] = (*rom_)[kOverworldSpecialSpritePalette + parent_ -
                                    kSpecialWorldMapIdStart];
-      sprite_palette_[2] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+      sprite_palette_[2] = (*rom_)[kOverworldSpecialSpritePalette + parent_ -
                                    kSpecialWorldMapIdStart];
     }
 
@@ -1304,13 +1307,28 @@ absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
     bitmap_data_.push_back(0x00);
   }
 
-  int superY = ((index_ - (world_ * 0x40)) / 0x08);
-  int superX = index_ - (world_ * 0x40) - (superY * 0x08);
+  // BuildBitmap is used by both full map builds and editor refresh paths.
+  // Refresh paths can run after LRU eviction reset runtime fields, so derive
+  // the world/local coordinate from the stable map id instead of trusting
+  // world_ to still be populated.
+  world_ = WorldForOverworldMap(index_);
+  const int local_index = index_ - (world_ * kNumMapsPerWorld);
+  if (local_index < 0) {
+    return absl::InvalidArgumentError("Invalid overworld map index");
+  }
+
+  int superY = local_index / 0x08;
+  int superX = local_index - (superY * 0x08);
 
   for (int y = 0; y < 0x20; y++) {
     for (int x = 0; x < 0x20; x++) {
       auto xt = x + (superX * 0x20);
       auto yt = y + (superY * 0x20);
+      if (xt < 0 || yt < 0 || xt >= static_cast<int>(world_blockset.size()) ||
+          yt >= static_cast<int>(world_blockset[xt].size())) {
+        return absl::InvalidArgumentError(
+            "Overworld blockset is too small for map bitmap build");
+      }
       gfx::CopyTile8bpp16((x * 0x10), (y * 0x10), world_blockset[xt][yt],
                           bitmap_data_, current_blockset_);
     }

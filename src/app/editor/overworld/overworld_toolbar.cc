@@ -31,9 +31,10 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   gui::StyleVarGuard toolbar_style_guard(
       {{ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f)},
        {ImGuiStyleVar_CellPadding, ImVec2(6.0f, 5.0f)}});
+  ImGui::PushID("OverworldToolbar");
 
   // Simplified canvas toolbar - Navigation and Mode controls
-  if (BeginTable("CanvasToolbar", 8,
+  if (BeginTable("OverworldCanvasToolbar", 8,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_SizingStretchProp,
                  ImVec2(0, 0), -1)) {
     ImGui::TableSetupColumn("World", ImGuiTableColumnFlags_WidthFixed,
@@ -53,11 +54,11 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     TableNextColumn();
     ImGui::SetNextItemWidth(kComboWorldWidth);
     int selected_world = current_world;
-    if (ImGui::Combo("##world", &selected_world, kWorldNames, 3)) {
-      current_world = selected_world;
+    if (ImGui::Combo("##WorldSelector", &selected_world, kWorldNames, 3)) {
       if (on_world_changed) {
         on_world_changed(selected_world);
       } else {
+        current_world = selected_world;
         int local_map = current_map & 0x3F;
         const int world_start = selected_world * 0x40;
         const int maps_remaining = zelda3::kNumOverworldMaps - world_start;
@@ -83,7 +84,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
       // v3+ ROM: Show all 4 area size options
-      if (ImGui::Combo("##AreaSize", &current_area_size, kAreaSizeNames, 4)) {
+      if (ImGui::Combo("##ToolbarAreaSize", &current_area_size, kAreaSizeNames,
+                       4)) {
         auto status = overworld->ConfigureMultiAreaMap(
             current_map, static_cast<zelda3::AreaSizeEnum>(current_area_size));
         if (status.ok()) {
@@ -100,7 +102,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                              ? current_area_size
                              : 0;
 
-      if (ImGui::Combo("##AreaSize", &limited_size, limited_names, 2)) {
+      if (ImGui::Combo("##ToolbarAreaSize", &limited_size, limited_names, 2)) {
         // limited_size is 0 (Small) or 1 (Large)
         auto size = (limited_size == 1) ? zelda3::AreaSizeEnum::LargeArea
                                         : zelda3::AreaSizeEnum::SmallArea;
@@ -160,10 +162,40 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     // Entity status / ROM version plus a small amount of high-value map info.
     const auto& theme = AgentUI::GetTheme();
     const float context_width = ImGui::GetContentRegionAvail().x;
-    const bool show_map_summary = context_width >= 188.0f;
+    const bool show_entity_context = entity_edit_mode != EntityEditMode::NONE;
     const bool show_overlay_toggle = context_width >= 132.0f;
 
-    if (entity_edit_mode != EntityEditMode::NONE) {
+    const char* version_label = "Vanilla OW";
+    ImVec4 version_color = theme.status_inactive;
+    bool show_upgrade = false;
+
+    switch (rom_version) {
+      case zelda3::OverworldVersion::kVanilla:
+        version_label = "Vanilla OW";
+        version_color = theme.text_warning_yellow;
+        show_upgrade = true;
+        break;
+      case zelda3::OverworldVersion::kZSCustomV1:
+        version_label = "ZS OW v1";
+        version_color = theme.status_active;
+        break;
+      case zelda3::OverworldVersion::kZSCustomV2:
+        version_label = "ZS OW v2";
+        version_color = theme.status_active;
+        break;
+      case zelda3::OverworldVersion::kZSCustomV3:
+        version_label = "ZS OW v3";
+        version_color = theme.status_success;
+        break;
+      default:
+        break;
+    }
+    const float map_summary_min_width =
+        show_upgrade ? 400.0f : (show_entity_context ? 340.0f : 280.0f);
+    const bool show_map_summary = context_width >= map_summary_min_width;
+
+    bool wrote_metadata_item = false;
+    if (show_entity_context) {
       const char* entity_icon = "";
       const char* entity_label = "";
       switch (entity_edit_mode) {
@@ -196,59 +228,44 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
       ImGui::TextColored(theme.selection_secondary, "%s %s", entity_icon,
                          entity_label);
-    } else {
-      // Show ROM version badge when no entity mode is active
-      const char* version_label = "Vanilla";
-      ImVec4 version_color = theme.status_inactive;
-      bool show_upgrade = false;
+      wrote_metadata_item = true;
+    }
 
-      switch (rom_version) {
-        case zelda3::OverworldVersion::kVanilla:
-          version_label = "Vanilla";
-          version_color = theme.text_warning_yellow;
-          show_upgrade = true;
-          break;
-        case zelda3::OverworldVersion::kZSCustomV1:
-          version_label = "ZSC v1";
-          version_color = theme.status_active;
-          break;
-        case zelda3::OverworldVersion::kZSCustomV2:
-          version_label = "ZSC v2";
-          version_color = theme.status_active;
-          break;
-        case zelda3::OverworldVersion::kZSCustomV3:
-          version_label = "ZSC v3";
-          version_color = theme.status_success;
-          break;
-        default:
-          break;
-      }
-
-      ImGui::TextColored(version_color, ICON_MD_INFO " %s", version_label);
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            "ROM version determines available overworld features.\n"
-            "v2+: Custom BG colors, main palettes\n"
-            "v3+: Wide/Tall maps, custom tile GFX, animated GFX");
-      }
-
-      if (show_upgrade && on_upgrade_rom_version) {
-        ImGui::SameLine();
-        if (gui::PrimaryButton(ICON_MD_UPGRADE " Upgrade")) {
-          on_upgrade_rom_version(3);  // Upgrade to v3
-        }
-        HOVER_HINT(
-            "Upgrade ROM to ZSCustomOverworld v3\n"
-            "Enables all advanced features");
-      }
+    if (wrote_metadata_item) {
+      ImGui::SameLine();
+    }
+    ImGui::TextColored(version_color, ICON_MD_INFO " %s", version_label);
+    wrote_metadata_item = true;
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "ROM version determines available overworld features.\n"
+          "v2+: Custom BG colors, main palettes\n"
+          "v3+: Wide/Tall maps, custom tile GFX, animated GFX");
     }
 
     if (show_map_summary) {
+      ImGui::SameLine();
       ImGui::TextDisabled("Parent %02X  Pal %02X  Msg %04X", map->parent(),
                           map->area_palette(), map->message_id());
-    } else if (show_overlay_toggle && on_toggle_overlay_preview &&
-               is_overlay_preview_enabled) {
+      wrote_metadata_item = true;
+    }
+
+    if (show_upgrade && on_upgrade_rom_version) {
+      if (wrote_metadata_item) {
+        ImGui::SameLine();
+      }
+      if (gui::PrimaryButton(ICON_MD_UPGRADE " Upgrade")) {
+        on_upgrade_rom_version(3);  // Upgrade to v3
+      }
+      HOVER_HINT(
+          "Upgrade ROM to ZSCustomOverworld v3\n"
+          "Enables all advanced features");
+    } else if (!show_map_summary && show_overlay_toggle &&
+               on_toggle_overlay_preview && is_overlay_preview_enabled) {
       const bool overlay_preview_enabled = is_overlay_preview_enabled();
+      if (wrote_metadata_item) {
+        ImGui::SameLine();
+      }
       if (gui::ToolbarIconButton(ICON_MD_VISIBILITY,
                                  overlay_preview_enabled
                                      ? "Hide overlay preview"
@@ -372,6 +389,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     ImGui::EndTable();
   }
+  ImGui::PopID();
 }
 
 }  // namespace yaze::editor

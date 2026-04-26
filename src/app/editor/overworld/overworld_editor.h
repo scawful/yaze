@@ -16,6 +16,7 @@
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/map_refresh_coordinator.h"
+#include "app/editor/overworld/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_canvas_renderer.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
@@ -147,6 +148,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       : OverworldEditor(rom) {
     dependencies_ = deps;
   }
+  ~OverworldEditor() override;
 
   void SetDependencies(const EditorDependencies& deps) override {
     Editor::SetDependencies(deps);
@@ -386,6 +388,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Access the Tile16 Editor for panel integration
   Tile16Editor& tile16_editor() { return tile16_editor_; }
+  const Tile16Editor& tile16_editor() const { return tile16_editor_; }
+
+  /// @brief Read-only access for integration tests that verify refresh output.
+  const gfx::Tilemap& tile16_blockset() const { return tile16_blockset_; }
 
   /// @brief Resolve the entity workbench window content (may be null).
   OverworldEntityWorkbench* GetWorkbench();
@@ -411,6 +417,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Initialize the map refresh coordinator (called during Initialize)
   void InitMapRefreshCoordinator();
+  void InitMapTextureCoordinator();
   void InitInteractionCoordinator();
 
   // Convenience delegation methods for internal use
@@ -642,6 +649,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::unique_ptr<EntityMutationService> entity_mutation_service_;
   std::unique_ptr<OverworldInteractionCoordinator> interaction_coordinator_;
   std::unique_ptr<MapRefreshCoordinator> map_refresh_;
+  std::unique_ptr<OverworldMapTextureCoordinator> map_texture_;
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
   std::unique_ptr<OverworldSidebar> sidebar_;
   std::unique_ptr<OverworldEntityRenderer> entity_renderer_;

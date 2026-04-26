@@ -68,6 +68,11 @@ struct Tile16ScratchData {
   bool has_data = false;
 };
 
+struct Tile16Commit {
+  int tile_id = -1;
+  gfx::Tile16 tile_data;
+};
+
 // ============================================================================
 // Tile16 Editor
 // ============================================================================
@@ -397,7 +402,8 @@ class Tile16Editor : public gfx::GfxContext {
   }
 
   // Callback for when changes are committed to notify parent editor
-  void set_on_changes_committed(std::function<absl::Status()> callback) {
+  void set_on_changes_committed(
+      std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
     on_changes_committed_ = callback;
   }
 
@@ -557,7 +563,8 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status status_;
 
   // Callback to notify parent editor when changes are committed
-  std::function<absl::Status()> on_changes_committed_;
+  std::function<absl::Status(const std::vector<Tile16Commit>&)>
+      on_changes_committed_;
   std::function<void(int)> on_current_tile_changed_;
 
   // Instance variable to store current tile16 data for proper persistence

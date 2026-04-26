@@ -454,15 +454,18 @@ absl::Status Overworld::ConfigureMultiAreaMap(int parent_index,
         continue;
       }
 
-      const int table_index = LegacyParentTableIndexForMap(sibling);
+      const int parent_table_index = LegacyParentTableIndexForMap(sibling);
       RETURN_IF_ERROR(rom()->WriteByte(
-          kOverworldMapParentId + table_index,
+          kOverworldMapParentId + parent_table_index,
           LegacyParentTableValueForMap(overworld_maps_[sibling].parent())));
-      RETURN_IF_ERROR(rom()->WriteByte(
-          kOverworldScreenSize + table_index,
-          (overworld_maps_[sibling].area_size() == AreaSizeEnum::LargeArea)
-              ? 0x00
-              : 0x01));
+      if (CanPersistLegacyScreenSize(sibling)) {
+        const int screen_size_index = LegacyScreenSizeTableIndexForMap(sibling);
+        RETURN_IF_ERROR(rom()->WriteByte(
+            kOverworldScreenSize + screen_size_index,
+            (overworld_maps_[sibling].area_size() == AreaSizeEnum::LargeArea)
+                ? 0x00
+                : 0x01));
+      }
     }
   }
 
@@ -1819,6 +1822,31 @@ absl::Status Overworld::SaveLargeMaps() {
 
       checked_map.emplace_back(i);
     }
+  }
+
+  // The legacy parent and transition tables are 64-entry local tables, but the
+  // screen-size bytes are stored per Light/Dark world. The original loop above
+  // mirrors Light World sizes into Dark World while calculating transitions;
+  // correct those world-specific bytes from the actual map objects before
+  // returning so a Light/Special edit cannot silently clobber Dark World sizes.
+  const auto legacy_size_byte = [this](int map_index) -> uint8_t {
+    return overworld_maps_[map_index].is_large_map() ? 0x00 : 0x01;
+  };
+  const auto legacy_loading_size_byte = [this](int map_index) -> uint8_t {
+    return overworld_maps_[map_index].is_large_map() ? 0x04 : 0x02;
+  };
+
+  for (int map_index = 0; map_index < kSpecialWorldMapIdStart; ++map_index) {
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldScreenSize + map_index,
+                                     legacy_size_byte(map_index)));
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldScreenSizeForLoading + map_index,
+                                     legacy_loading_size_byte(map_index)));
+  }
+
+  for (int map_index = kSpecialWorldMapIdStart; map_index < kNumOverworldMaps;
+       ++map_index) {
+    RETURN_IF_ERROR(rom()->WriteByte(kOverworldScreenSizeForLoading + map_index,
+                                     legacy_loading_size_byte(map_index)));
   }
 
   constexpr int OverworldScreenTileMapChangeMask = 0x1262C;
@@ -3243,11 +3271,20 @@ absl::Status Overworld::SaveAreaSpecificBGColors() {
 
 absl::Status Overworld::SaveMapProperties() {
   util::logf("Saving Map Properties");
+  const auto version = OverworldVersionHelper::GetVersion(*rom_);
+  const bool use_zscustom_palette_table =
+      OverworldVersionHelper::SupportsCustomBGColors(version);
+  const bool use_zscustom_special_tables =
+      OverworldVersionHelper::SupportsAreaEnum(version);
+  const int palette_table = use_zscustom_palette_table
+                                ? kOverworldPalettesScreenToSetNew
+                                : kOverworldMapPaletteIds;
+
   for (int i = 0; i < kDarkWorldMapIdStart; i++) {
     RETURN_IF_ERROR(rom()->WriteByte(kAreaGfxIdPtr + i,
                                      overworld_maps_[i].area_graphics()));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapPaletteIds + i,
-                                     overworld_maps_[i].area_palette()));
+    RETURN_IF_ERROR(
+        rom()->WriteByte(palette_table + i, overworld_maps_[i].area_palette()));
     RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + i,
                                      overworld_maps_[i].sprite_graphics(0)));
     RETURN_IF_ERROR(
@@ -3269,24 +3306,39 @@ absl::Status Overworld::SaveMapProperties() {
   for (int i = kDarkWorldMapIdStart; i < kSpecialWorldMapIdStart; i++) {
     RETURN_IF_ERROR(rom()->WriteByte(kAreaGfxIdPtr + i,
                                      overworld_maps_[i].area_graphics()));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpriteset + i,
-                                     overworld_maps_[i].sprite_graphics(0)));
-    RETURN_IF_ERROR(
-        rom()->WriteByte(kOverworldSpriteset + kDarkWorldMapIdStart + i,
-                         overworld_maps_[i].sprite_graphics(1)));
     RETURN_IF_ERROR(
         rom()->WriteByte(kOverworldSpriteset + kSpecialWorldMapIdStart + i,
-                         overworld_maps_[i].sprite_graphics(2)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldMapPaletteIds + i,
-                                     overworld_maps_[i].area_palette()));
+                         overworld_maps_[i].sprite_graphics(0)));
     RETURN_IF_ERROR(
-        rom()->WriteByte(kOverworldSpritePaletteIds + kDarkWorldMapIdStart + i,
-                         overworld_maps_[i].sprite_palette(0)));
+        rom()->WriteByte(palette_table + i, overworld_maps_[i].area_palette()));
     RETURN_IF_ERROR(rom()->WriteByte(
         kOverworldSpritePaletteIds + kSpecialWorldMapIdStart + i,
-        overworld_maps_[i].sprite_palette(1)));
-    RETURN_IF_ERROR(rom()->WriteByte(kOverworldSpritePaletteIds + 192 + i,
-                                     overworld_maps_[i].sprite_palette(2)));
+        overworld_maps_[i].sprite_palette(0)));
+  }
+
+  for (int i = kSpecialWorldMapIdStart; i < kSpecialWorldMapIdStart + 0x20;
+       i++) {
+    if (use_zscustom_special_tables) {
+      RETURN_IF_ERROR(rom()->WriteByte(kAreaGfxIdPtr + i,
+                                       overworld_maps_[i].area_graphics()));
+    }
+    if (use_zscustom_palette_table) {
+      RETURN_IF_ERROR(rom()->WriteByte(palette_table + i,
+                                       overworld_maps_[i].area_palette()));
+    }
+
+    const int local_index = i - kSpecialWorldMapIdStart;
+    const int sprite_gfx_table =
+        use_zscustom_special_tables
+            ? kOverworldSpecialSpriteGfxGroupExpandedTemp
+            : kOverworldSpecialSpriteGFXGroup;
+    const int sprite_palette_table =
+        use_zscustom_special_tables ? kOverworldSpecialSpritePaletteExpandedTemp
+                                    : kOverworldSpecialSpritePalette;
+    RETURN_IF_ERROR(rom()->WriteByte(sprite_gfx_table + local_index,
+                                     overworld_maps_[i].sprite_graphics(0)));
+    RETURN_IF_ERROR(rom()->WriteByte(sprite_palette_table + local_index,
+                                     overworld_maps_[i].sprite_palette(0)));
   }
 
   return absl::OkStatus();

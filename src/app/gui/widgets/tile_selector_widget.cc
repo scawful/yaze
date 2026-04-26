@@ -10,14 +10,12 @@ namespace yaze::gui {
 namespace {
 
 std::string_view TrimAsciiWhitespace(std::string_view s) {
-  while (!s.empty() &&
-         (s.front() == ' ' || s.front() == '\t' || s.front() == '\n' ||
-          s.front() == '\r')) {
+  while (!s.empty() && (s.front() == ' ' || s.front() == '\t' ||
+                        s.front() == '\n' || s.front() == '\r')) {
     s.remove_prefix(1);
   }
-  while (!s.empty() &&
-         (s.back() == ' ' || s.back() == '\t' || s.back() == '\n' ||
-          s.back() == '\r')) {
+  while (!s.empty() && (s.back() == ' ' || s.back() == '\t' ||
+                        s.back() == '\n' || s.back() == '\r')) {
     s.remove_suffix(1);
   }
   return s;
@@ -36,8 +34,7 @@ bool ParseTileIdText(std::string_view input, int* out_value) {
   }
 
   bool decimal_mode = false;
-  if (trimmed.size() >= 2 &&
-      (trimmed[0] == 'd' || trimmed[0] == 'D') &&
+  if (trimmed.size() >= 2 && (trimmed[0] == 'd' || trimmed[0] == 'D') &&
       trimmed[1] == ':') {
     decimal_mode = true;
     trimmed.remove_prefix(2);
@@ -152,7 +149,6 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
   }
 
   canvas_->DrawBackground();
-  canvas_->DrawContextMenu();
 
   if (atlas_ready && atlas.is_active()) {
     canvas_->DrawBitmap(atlas, static_cast<int>(config_.draw_offset.x),
@@ -200,6 +196,7 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
     DrawHighlight(tile_display_size);
   }
 
+  canvas_->DrawContextMenu();
   canvas_->DrawGrid();
   canvas_->DrawOverlay();
 
@@ -217,12 +214,14 @@ TileSelectorWidget::RenderResult TileSelectorWidget::HandleInteraction(
   const bool clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
   const bool double_clicked =
       ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left);
+  const bool right_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
 
-  if (clicked || double_clicked) {
+  if (clicked || double_clicked || right_clicked) {
     const int hovered_tile = ResolveTileAtCursor(tile_display_size);
     if (IsValidTileId(hovered_tile) && IsInFilterRange(hovered_tile)) {
       result.tile_clicked = clicked;
       result.tile_double_clicked = double_clicked;
+      result.tile_right_clicked = right_clicked;
       if (hovered_tile != selected_tile_id_) {
         selected_tile_id_ = hovered_tile;
         result.selection_changed = true;
@@ -233,8 +232,8 @@ TileSelectorWidget::RenderResult TileSelectorWidget::HandleInteraction(
 
   // Emit drag source for the selected tile when dragging is enabled
   if (config_.enable_drag && IsValidTileId(selected_tile_id_)) {
-    result.tile_dragging = BeginTileDragSource(selected_tile_id_,
-                                               config_.drag_source_map_id);
+    result.tile_dragging =
+        BeginTileDragSource(selected_tile_id_, config_.drag_source_map_id);
   }
 
   return result;
@@ -329,19 +328,20 @@ TileSelectorWidget::JumpToTileResult TileSelectorWidget::JumpToTileFromInput(
 bool TileSelectorWidget::DrawFilterBar() {
   bool jumped = false;
   const int max_tile_id = GetMaxTileId();
-  const float available_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const float available_width =
+      std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const bool compact_layout = available_width < 420.0f;
   const float jump_input_width =
       compact_layout ? std::clamp(available_width * 0.28f, 56.0f, 88.0f)
                      : 64.0f;
   const float range_input_width =
-      compact_layout ? std::clamp((available_width - 110.0f) * 0.5f, 56.0f, 88.0f)
-                     : 64.0f;
+      compact_layout
+          ? std::clamp((available_width - 110.0f) * 0.5f, 56.0f, 88.0f)
+          : 64.0f;
 
   constexpr ImGuiInputTextFlags kHexFlags =
       ImGuiInputTextFlags_CharsHexadecimal |
-      ImGuiInputTextFlags_EnterReturnsTrue |
-      ImGuiInputTextFlags_AutoSelectAll;
+      ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
 
   ImGui::PushID(widget_id_.c_str());
 
@@ -497,9 +497,12 @@ bool TileSelectorWidget::DrawFilterBar() {
 }
 
 void TileSelectorWidget::SetRangeFilter(int min_id, int max_id) {
-  if (min_id < 0) min_id = 0;
-  if (max_id >= total_tiles_) max_id = total_tiles_ - 1;
-  if (min_id > max_id) return;
+  if (min_id < 0)
+    min_id = 0;
+  if (max_id >= total_tiles_)
+    max_id = total_tiles_ - 1;
+  if (min_id > max_id)
+    return;
 
   filter_range_active_ = true;
   filter_range_min_ = min_id;
@@ -520,7 +523,8 @@ bool TileSelectorWidget::IsValidTileId(int tile_id) const {
 }
 
 bool TileSelectorWidget::IsInFilterRange(int tile_id) const {
-  if (!filter_range_active_) return true;
+  if (!filter_range_active_)
+    return true;
   return tile_id >= filter_range_min_ && tile_id <= filter_range_max_;
 }
 

@@ -4,7 +4,6 @@
 
 #include "absl/status/status.h"
 #include "app/gfx/resource/arena.h"
-#include "core/features.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -36,6 +35,14 @@ ImVec2 ClampScrollPosition(ImVec2 scroll, ImVec2 content_size,
   float clamped_y = std::clamp(scroll.y, -max_scroll_y, 0.0f);
 
   return ImVec2(clamped_x, clamped_y);
+}
+
+int AllocatedRowsForWorld(int world) {
+  const int clamped_world = std::clamp(world, 0, 2);
+  const int world_start = clamped_world * 0x40;
+  const int maps_available =
+      std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40);
+  return (maps_available + 7) / 8;
 }
 
 }  // namespace
@@ -75,10 +82,9 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     return absl::OkStatus();
   }
 
-  const bool allow_special_tail =
-      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
-  if (!allow_special_tail && *ctx_.current_world == 2 && map_y >= 4) {
-    // Special world is only 4 rows high unless expansion is enabled
+  if (map_y >= AllocatedRowsForWorld(*ctx_.current_world)) {
+    // The Special World only has rows backed by loaded map storage. Do not let
+    // the experimental tail-expansion flag point selection at missing maps.
     return absl::OkStatus();
   }
 
@@ -88,6 +94,10 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     hovered_map += 0x40;
   } else if (*ctx_.current_world == 2) {
     hovered_map += 0x80;
+  }
+  if (hovered_map < 0 || hovered_map >= zelda3::kNumOverworldMaps ||
+      ctx_.overworld->overworld_map(hovered_map) == nullptr) {
+    return absl::OkStatus();
   }
 
   // Only update current_map if not locked
@@ -234,8 +244,7 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     // Ensure tile16 blockset is fully updated before rendering
     if (ctx_.tile16_blockset->atlas.is_active()) {
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::UPDATE,
-          &ctx_.tile16_blockset->atlas);
+          gfx::Arena::TextureCommandType::UPDATE, &ctx_.tile16_blockset->atlas);
     }
 
     // Update map texture with the traditional direct update approach
@@ -267,8 +276,7 @@ void CanvasNavigationManager::HandleMapInteraction() {
   // Paint-mode eyedropper: right-click samples tile16 under cursor.
   if ((*ctx_.current_mode == EditingMode::DRAW_TILE ||
        *ctx_.current_mode == EditingMode::FILL_TILE) &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
-      ImGui::IsItemHovered()) {
+      ImGui::IsMouseClicked(ImGuiMouseButton_Right) && ImGui::IsItemHovered()) {
     (void)callbacks_.pick_tile16_from_hovered_canvas();
     return;
   }
@@ -325,8 +333,8 @@ void CanvasNavigationManager::HandleOverworldPan() {
   } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) &&
              *ctx_.current_mode == EditingMode::MOUSE) {
     // In mouse mode, left-click pans unless hovering over an entity
-    bool over_entity = callbacks_.is_entity_hovered &&
-                       callbacks_.is_entity_hovered();
+    bool over_entity =
+        callbacks_.is_entity_hovered && callbacks_.is_entity_hovered();
     // Also don't pan if we're currently dragging an entity
     if (!over_entity && !*ctx_.is_dragging_entity) {
       should_pan = true;
@@ -390,7 +398,8 @@ void CanvasNavigationManager::ResetOverworldView() {
 void CanvasNavigationManager::CenterOverworldView() {
   // Center the view on the current map
   float scale = ctx_.ow_map_canvas->global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
 
   // Calculate map position within the world
   int map_in_world = *ctx_.current_map % 0x40;

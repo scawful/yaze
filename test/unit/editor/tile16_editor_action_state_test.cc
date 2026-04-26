@@ -9,12 +9,14 @@ TEST(Tile16EditorActionStateTest, NoPendingNoUndoDisablesStagedActions) {
   const auto state = ComputeTile16ActionControlState(
       /*has_pending=*/false,
       /*current_tile_pending=*/false,
-      /*can_undo=*/false);
+      /*can_undo=*/false,
+      /*can_redo=*/false);
 
   EXPECT_FALSE(state.can_write_pending);
   EXPECT_FALSE(state.can_discard_all);
   EXPECT_FALSE(state.can_discard_current);
   EXPECT_FALSE(state.can_undo);
+  EXPECT_FALSE(state.can_redo);
 }
 
 TEST(Tile16EditorActionStateTest,
@@ -22,12 +24,14 @@ TEST(Tile16EditorActionStateTest,
   const auto state = ComputeTile16ActionControlState(
       /*has_pending=*/true,
       /*current_tile_pending=*/false,
-      /*can_undo=*/true);
+      /*can_undo=*/true,
+      /*can_redo=*/false);
 
   EXPECT_TRUE(state.can_write_pending);
   EXPECT_TRUE(state.can_discard_all);
   EXPECT_FALSE(state.can_discard_current);
   EXPECT_TRUE(state.can_undo);
+  EXPECT_FALSE(state.can_redo);
 }
 
 TEST(Tile16EditorActionStateTest,
@@ -35,24 +39,28 @@ TEST(Tile16EditorActionStateTest,
   const auto state = ComputeTile16ActionControlState(
       /*has_pending=*/false,
       /*current_tile_pending=*/true,
-      /*can_undo=*/true);
+      /*can_undo=*/true,
+      /*can_redo=*/false);
 
   EXPECT_FALSE(state.can_write_pending);
   EXPECT_FALSE(state.can_discard_all);
   EXPECT_TRUE(state.can_discard_current);
   EXPECT_TRUE(state.can_undo);
+  EXPECT_FALSE(state.can_redo);
 }
 
 TEST(Tile16EditorActionStateTest, FullPendingStateEnablesAllRelevantActions) {
   const auto state = ComputeTile16ActionControlState(
       /*has_pending=*/true,
       /*current_tile_pending=*/true,
-      /*can_undo=*/false);
+      /*can_undo=*/false,
+      /*can_redo=*/true);
 
   EXPECT_TRUE(state.can_write_pending);
   EXPECT_TRUE(state.can_discard_all);
   EXPECT_TRUE(state.can_discard_current);
   EXPECT_FALSE(state.can_undo);
+  EXPECT_TRUE(state.can_redo);
 }
 
 }  // namespace

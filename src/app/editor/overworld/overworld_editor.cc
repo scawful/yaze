@@ -16,7 +16,6 @@
 #include <filesystem>
 #include <iostream>
 #include <memory>
-#include <new>
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -36,6 +35,7 @@
 #include "app/editor/overworld/entity.h"
 #include "app/editor/overworld/entity_operations.h"
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
@@ -120,6 +120,25 @@ bool ItemSnapshotsEqual(const OverworldItemsSnapshot& lhs,
 
 }  // namespace
 
+OverworldEditor::~OverworldEditor() {
+  if (palette_listener_id_ >= 0) {
+    gfx::Arena::Get().UnregisterPaletteListener(palette_listener_id_);
+    palette_listener_id_ = -1;
+  }
+
+  ow_map_canvas_.ClearContextMenuItems();
+  current_gfx_canvas_.ClearContextMenuItems();
+  blockset_canvas_.ClearContextMenuItems();
+  graphics_bin_canvas_.ClearContextMenuItems();
+  properties_canvas_.ClearContextMenuItems();
+  scratch_canvas_.ClearContextMenuItems();
+
+  // These store callbacks and raw pointers into the editor. Release them while
+  // all editor-owned state is still alive rather than during member teardown.
+  sidebar_.reset();
+  map_properties_system_.reset();
+}
+
 bool OverworldEditor::NormalizeMapSelection(int& current_world,
                                             int& current_map) {
   const int clamped_world = std::clamp(current_world, 0, 2);
@@ -146,6 +165,8 @@ void OverworldEditor::Initialize() {
       "session "
       "(this surface uses its own preview canvases).");
 
+  InitMapTextureCoordinator();
+
   // Initialize MapRefreshCoordinator (must be before callbacks that use it)
   InitMapRefreshCoordinator();
 
@@ -168,7 +189,7 @@ void OverworldEditor::Initialize() {
   debug_window_card_ = std::make_unique<DebugWindowCard>();
 
   map_properties_system_ = std::make_unique<MapPropertiesSystem>(
-      &overworld_, rom_, &maps_bmp_, &ow_map_canvas_);
+      &overworld_, rom_, &maps_bmp_, &ow_map_canvas_, &game_state_);
 
   // Set up refresh callbacks for MapPropertiesSystem
   map_properties_system_->SetRefreshCallbacks(
@@ -188,6 +209,9 @@ void OverworldEditor::Initialize() {
 
   // Initialize Toolbar
   toolbar_ = std::make_unique<OverworldToolbar>();
+  toolbar_->on_world_changed = [this](int world) {
+    SwitchToWorld(world);
+  };
   toolbar_->on_refresh_graphics = [this]() {
     // Invalidate cached graphics for the current map area to force re-render
     // with potentially new palette/graphics settings
@@ -437,17 +461,26 @@ absl::Status OverworldEditor::Load() {
       [this](int id) { current_tile16_ = id; });
 
   // Set up callback for when tile16 changes are committed
-  tile16_editor_.set_on_changes_committed([this]() -> absl::Status {
-    // Regenerate the overworld editor's tile16 blockset
-    RETURN_IF_ERROR(RefreshTile16Blockset());
+  tile16_editor_.set_on_changes_committed(
+      [this](const std::vector<Tile16Commit>& commits) -> absl::Status {
+        auto* tiles16 = overworld_.mutable_tiles16();
+        for (const auto& commit : commits) {
+          if (commit.tile_id >= 0 &&
+              commit.tile_id < static_cast<int>(tiles16->size())) {
+            (*tiles16)[commit.tile_id] = commit.tile_data;
+          }
+        }
 
-    // Force refresh of the current overworld map to show changes
-    RefreshOverworldMap();
+        // Regenerate the overworld editor's tile16 blockset
+        RETURN_IF_ERROR(RefreshTile16Blockset());
 
-    LOG_DEBUG("OverworldEditor",
-              "Overworld editor refreshed after Tile16 changes");
-    return absl::OkStatus();
-  });
+        // Force refresh of the current overworld map to show changes
+        RefreshOverworldMap();
+
+        LOG_DEBUG("OverworldEditor",
+                  "Overworld editor refreshed after Tile16 changes");
+        return absl::OkStatus();
+      });
 
   // Set up entity insertion callback for MapPropertiesSystem
   if (map_properties_system_) {
@@ -671,6 +704,39 @@ bool OverworldEditor::NormalizeCurrentSelectionState() {
              current_world_, current_map_);
   }
   return changed;
+}
+
+void OverworldEditor::PrimeWorldMaps(int world, bool process_texture_queue) {
+  if (map_texture_)
+    map_texture_->PrimeWorldMaps(world, process_texture_queue);
+}
+
+void OverworldEditor::SwitchToWorld(int world) {
+  FinalizePaintOperation();
+
+  const int clamped_world = std::clamp(world, 0, 2);
+  const int local_map = current_map_ & 0x3F;
+  const int world_start = clamped_world * 0x40;
+  const int maps_remaining = zelda3::kNumOverworldMaps - world_start;
+  if (maps_remaining <= 0) {
+    return;
+  }
+
+  current_world_ = clamped_world;
+  current_map_ = world_start + std::min(local_map, maps_remaining - 1);
+  NormalizeCurrentSelectionState();
+
+  status_ = overworld_.EnsureMapBuilt(current_map_);
+  if (!status_.ok()) {
+    PRINT_IF_ERROR(status_);
+    return;
+  }
+
+  EnsureMapTexture(current_map_);
+  ForceRefreshGraphics(current_map_);
+  RefreshOverworldMapOnDemand(current_map_);
+  PRINT_IF_ERROR(RefreshTile16Blockset());
+  PrimeWorldMaps(current_world_);
 }
 
 void OverworldEditor::HandleKeyboardShortcuts() {
@@ -1109,9 +1175,18 @@ absl::Status OverworldEditor::Save() {
   }
 
   if (saving_maps) {
+    const auto profile = zelda3::DetectOverworldRomProfile(*rom_);
     RETURN_IF_ERROR(overworld_.CreateTile32Tilemap());
-    RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
-    RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
+    if (profile.has_expanded_tile32) {
+      RETURN_IF_ERROR(overworld_.SaveMap32Expanded());
+    } else {
+      RETURN_IF_ERROR(overworld_.SaveMap32Tiles());
+    }
+    if (profile.has_expanded_tile16) {
+      RETURN_IF_ERROR(overworld_.SaveMap16Expanded());
+    } else {
+      RETURN_IF_ERROR(overworld_.SaveMap16Tiles());
+    }
     RETURN_IF_ERROR(overworld_.SaveOverworldMaps());
   }
   if (core::FeatureFlags::get().overworld.kSaveOverworldEntrances) {
@@ -1272,8 +1347,8 @@ absl::Status OverworldEditor::LoadGraphics() {
 
   // Phase 2: reset map bitmaps and leave them fully on-demand.
   // The canvas/navigation path will materialize only the visible/current maps.
-  for (auto& bitmap : maps_bmp_) {
-    bitmap = gfx::Bitmap();
+  if (map_texture_) {
+    map_texture_->ResetMapBitmaps();
   }
 
   if (core::FeatureFlags::get().overworld.kDrawOverworldSprites) {
@@ -1310,81 +1385,26 @@ absl::Status OverworldEditor::LoadSpriteGraphics() {
 }
 
 void OverworldEditor::ProcessDeferredTextures() {
-  // Process queued texture commands via Arena's deferred system
-  if (renderer_) {
-    gfx::Arena::Get().ProcessTextureQueue(renderer_);
-  }
-
-  // Also process deferred map refreshes for modified maps
-  int refresh_count = 0;
-  const int max_refreshes_per_frame = 2;
-
-  auto try_refresh_map = [&](int map_index) {
-    if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
-      return;
-    }
-    if (refresh_count >= max_refreshes_per_frame) {
-      return;
-    }
-    if (maps_bmp_[map_index].modified() && maps_bmp_[map_index].is_active()) {
-      RefreshOverworldMapOnDemand(map_index);
-      ++refresh_count;
-    }
-  };
-
-  // Highest priority: current map.
-  try_refresh_map(current_map_);
-
-  // Then refresh maps in the active world only, avoiding a full-map scan each frame.
-  const int world_start = current_world_ * 0x40;
-  const int world_end = std::min(world_start + 0x40, zelda3::kNumOverworldMaps);
-  for (int i = world_start;
-       i < world_end && refresh_count < max_refreshes_per_frame; ++i) {
-    if (i == current_map_) {
-      continue;
-    }
-    try_refresh_map(i);
-  }
+  if (map_texture_)
+    map_texture_->ProcessDeferredTextures();
 }
 
 void OverworldEditor::EnsureMapTexture(int map_index) {
-  if (map_index < 0 || map_index >= zelda3::kNumOverworldMaps) {
-    return;
-  }
+  if (map_texture_)
+    map_texture_->EnsureMapTexture(map_index);
+}
 
-  // Ensure the map is built first (on-demand loading)
-  auto status = overworld_.EnsureMapBuilt(map_index);
-  if (!status.ok()) {
-    LOG_ERROR("OverworldEditor", "Failed to build map %d: %s", map_index,
-              status.message());
-    return;
-  }
-
-  auto& bitmap = maps_bmp_[map_index];
-  const auto* map = overworld_.overworld_map(map_index);
-  if (!map) {
-    return;
-  }
-
-  // If bitmap doesn't exist yet (non-essential map), create it now
-  if (!bitmap.is_active()) {
-    const auto& palette = map->current_palette();
-    try {
-      bitmap.Create(kOverworldMapSize, kOverworldMapSize, 0x80,
-                    map->bitmap_data());
-      bitmap.SetPalette(palette);
-    } catch (const std::bad_alloc& e) {
-      LOG_ERROR("OverworldEditor", "Error allocating bitmap for map %d: %s",
-                map_index, e.what());
-      return;
-    }
-  }
-
-  if (!bitmap.texture() && bitmap.is_active()) {
-    // Queue texture creation for this map
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bitmap);
-  }
+void OverworldEditor::InitMapTextureCoordinator() {
+  MapTextureContext ctx;
+  ctx.overworld = &overworld_;
+  ctx.maps_bmp = &maps_bmp_;
+  ctx.renderer = renderer_;
+  ctx.current_world = &current_world_;
+  ctx.current_map = &current_map_;
+  ctx.refresh_map_on_demand = [this](int map_index) {
+    this->RefreshOverworldMapOnDemand(map_index);
+  };
+  map_texture_ = std::make_unique<OverworldMapTextureCoordinator>(ctx);
 }
 
 void OverworldEditor::InitMapRefreshCoordinator() {

@@ -11,6 +11,7 @@
 #include "rom/rom.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::editor {
 namespace {
@@ -69,6 +70,20 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
 
   MapRefreshContext ctx_{};
   std::unique_ptr<MapRefreshCoordinator> coordinator_;
+
+  void PopulateSingleMapForRefresh(int map_index) {
+    auto& maps = const_cast<std::vector<zelda3::OverworldMap>&>(
+        overworld_->overworld_maps());
+    maps.clear();
+    for (int i = 0; i <= map_index; ++i) {
+      maps.emplace_back(i, &rom_);
+    }
+
+    auto* tiles = overworld_->mutable_map_tiles();
+    tiles->light_world.assign(0x200, std::vector<uint16_t>(0x200, 0));
+    tiles->dark_world.assign(0x200, std::vector<uint16_t>(0x200, 0));
+    tiles->special_world.assign(0x200, std::vector<uint16_t>(0x200, 0));
+  }
 };
 
 // ===========================================================================
@@ -210,6 +225,36 @@ TEST_F(MapRefreshCoordinatorTest,
   const absl::Status status = coordinator_->RefreshMapPalette();
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+}
+
+TEST_F(MapRefreshCoordinatorTest,
+       RefreshChildMapOnDemandRestoresCurrentGameStateBeforeGraphicsLoad) {
+  std::vector<uint8_t> rom_data(0x200000, 0x00);
+  rom_data[zelda3::OverworldCustomASMHasBeenApplied] = 0xFF;
+  for (int i = 0; i < 64; ++i) {
+    rom_data[zelda3::kOverworldMapParentId + i] = static_cast<uint8_t>(i);
+  }
+
+  const auto version_constants =
+      zelda3::kVersionConstantsMap.at(zelda3_version::US);
+  rom_data[version_constants.kSpriteBlocksetPointer + (1 * 4)] = 0x10;
+  rom_data[version_constants.kSpriteBlocksetPointer + (2 * 4)] = 0x20;
+  rom_.LoadFromData(rom_data);
+
+  PopulateSingleMapForRefresh(0);
+  auto* map = overworld_->mutable_overworld_map(0);
+  ASSERT_NE(map, nullptr);
+  map->set_sprite_graphics(0, 1);
+  map->set_sprite_graphics(2, 2);
+  map->Destroy();
+
+  game_state_ = 2;
+  maps_bmp_[0].set_modified(true);
+
+  coordinator_->RefreshChildMapOnDemand(0);
+
+  EXPECT_EQ(map->game_state(), 2);
+  EXPECT_EQ(map->static_graphics(12), 0x20 + 0x73);
 }
 
 // ===========================================================================
