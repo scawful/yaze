@@ -1188,14 +1188,15 @@ void DungeonWorkbenchContent::DrawLayerCompositingControls(
   }
 
   auto& layer_manager = viewer.GetRoomLayerManager(room_id);
-  auto draw_blend_combo = [&](const char* label, zelda3::LayerType layer_type) {
+  auto draw_blend_combo = [&](const char* combo_id,
+                              zelda3::LayerType layer_type) {
     zelda3::LayerBlendMode current_mode =
         layer_manager.GetLayerBlendMode(layer_type);
     const char* current_name =
         zelda3::RoomLayerManager::GetBlendModeName(current_mode);
 
     ImGui::SetNextItemWidth(-1);
-    if (ImGui::BeginCombo(label, current_name)) {
+    if (ImGui::BeginCombo(combo_id, current_name)) {
       for (int mode_int = 0; mode_int <= 4; ++mode_int) {
         const auto mode = static_cast<zelda3::LayerBlendMode>(mode_int);
         const char* mode_name =
@@ -1212,18 +1213,37 @@ void DungeonWorkbenchContent::DrawLayerCompositingControls(
     }
   };
 
-  ImGui::TextDisabled("BG1");
-  draw_blend_combo("Layout##WorkbenchBlendBG1Layout",
-                   zelda3::LayerType::BG1_Layout);
-  draw_blend_combo("Objects##WorkbenchBlendBG1Objects",
-                   zelda3::LayerType::BG1_Objects);
+  struct BlendRow {
+    const char* label;
+    const char* combo_id;
+    zelda3::LayerType layer_type;
+  };
+  static constexpr BlendRow kBlendRows[] = {
+      {"BG1 Layout", "##WorkbenchBlendBG1Layout",
+       zelda3::LayerType::BG1_Layout},
+      {"BG1 Objects", "##WorkbenchBlendBG1Objects",
+       zelda3::LayerType::BG1_Objects},
+      {"BG2 Layout", "##WorkbenchBlendBG2Layout",
+       zelda3::LayerType::BG2_Layout},
+      {"BG2 Objects", "##WorkbenchBlendBG2Objects",
+       zelda3::LayerType::BG2_Objects},
+  };
 
-  ImGui::Spacing();
-  ImGui::TextDisabled("BG2");
-  draw_blend_combo("Layout##WorkbenchBlendBG2Layout",
-                   zelda3::LayerType::BG2_Layout);
-  draw_blend_combo("Objects##WorkbenchBlendBG2Objects",
-                   zelda3::LayerType::BG2_Objects);
+  constexpr ImGuiTableFlags kBlendTableFlags =
+      ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX;
+  if (ImGui::BeginTable("##WorkbenchLayerBlend", 2, kBlendTableFlags)) {
+    ImGui::TableSetupColumn("##label", ImGuiTableColumnFlags_WidthFixed, 92.0f);
+    ImGui::TableSetupColumn("##combo", ImGuiTableColumnFlags_WidthStretch);
+    for (const auto& row : kBlendRows) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
+      ImGui::TextUnformatted(row.label);
+      ImGui::TableNextColumn();
+      draw_blend_combo(row.combo_id, row.layer_type);
+    }
+    ImGui::EndTable();
+  }
 
   if (workbench::DrawActionButton(ICON_MD_REFRESH " Reset Layer Blend",
                                   ImVec2(-1, 0))) {
@@ -1769,11 +1789,10 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
       ImGui::SetTooltip(
           "Browse resolved room connections (doors, staircases, holewarps).\n"
           "Hover rooms to see diagnostics; use Fit/Reset and Mini/Room "
-          "controls in the top toolbar.");
+          "controls in the top toolbar.\n"
+          "Staircase header issues and out-of-scope links surface in the "
+          "connected toolbar while this is active.");
     }
-    ImGui::TextDisabled(
-        "Tip: staircase header issues and out-of-scope links surface in the "
-        "connected toolbar when Connected mode is active.");
   }
 
   ImGui::Dummy(ImVec2(0.0f, 2.0f));
@@ -1781,7 +1800,7 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
                                        true)) {
     DrawInspectorShelfView(viewer);
   }
-  if (workbench::BeginInspectorSection(ICON_MD_BUILD " Quick Tools", false)) {
+  if (workbench::BeginInspectorSection(ICON_MD_BUILD " Tools", false)) {
     DrawInspectorShelfTools(viewer);
   }
 }
@@ -1832,8 +1851,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
           static_cast<int>(requested_room_id), 0, zelda3::kNumberOfRooms - 1);
       ImGui::SetTooltip("Open room 0x%03X", preview_room_id);
     }
-    ImGui::SameLine();
-    ImGui::TextDisabled("(%d)", room_id);
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CONTENT_COPY "##CopyRoomId")) {
       char buf[16];
@@ -1894,12 +1911,13 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     ImGui::TextDisabled("%s", room_label.c_str());
   }
 
-  // Quick actions.
+  // Quick actions. Graphics lives in the Tools strip; the only standalone
+  // shortcut here is Dungeon Map because it opens a popup, not a drawer tool.
   workbench::DrawInspectorSectionHeader(ICON_MD_SAVE " Room Actions");
   ImGui::PushTextWrapPos(0.0f);
   ImGui::TextDisabled(
-      "Apply Room writes this room into the loaded ROM buffer. File > Save ROM "
-      "writes the ROM file to disk.");
+      "Apply writes to the loaded ROM buffer; File > Save ROM persists to "
+      "disk.");
   ImGui::PopTextWrapPos();
   if (on_save_room_ && room_id >= 0) {
     if (workbench::DrawActionButton(ICON_MD_SAVE " Apply Room to ROM",
@@ -1907,22 +1925,8 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       on_save_room_(room_id);
     }
   }
-
-  ImGui::TextDisabled(ICON_MD_CONSTRUCTION " Local Room Tools");
-  constexpr ImGuiTableFlags kPanelFlags =
-      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
-  if (ImGui::BeginTable("##WorkbenchRoomPanels", 2, kPanelFlags)) {
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    if (workbench::DrawActionButton(ICON_MD_IMAGE " Graphics", ImVec2(-1, 0))) {
-      OpenRoomGraphicsTool();
-    }
-    ImGui::TableNextColumn();
-    if (workbench::DrawActionButton(ICON_MD_MAP " Dungeon Map",
-                                    ImVec2(-1, 0))) {
-      RequestDungeonMapPopup();
-    }
-    ImGui::EndTable();
+  if (workbench::DrawActionButton(ICON_MD_MAP " Dungeon Map", ImVec2(-1, 0))) {
+    RequestDungeonMapPopup();
   }
 
   if (workbench::BeginInspectorSection(ICON_MD_SAVE_ALT " Apply Scope",
