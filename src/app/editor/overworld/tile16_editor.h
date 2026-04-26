@@ -418,6 +418,9 @@ class Tile16Editor : public gfx::GfxContext {
   void set_current_palette(int palette) {
     current_palette_ = static_cast<uint8_t>(std::clamp(palette, 0, 7));
   }
+  const gfx::Bitmap& Tile8PreviewBitmapForTesting() const {
+    return tile8_preview_bmp_;
+  }
   int current_tile16() const { return current_tile16_; }
   int current_tile8() const { return current_tile8_; }
   int active_quadrant() const { return active_quadrant_; }
@@ -437,6 +440,10 @@ class Tile16Editor : public gfx::GfxContext {
   bool x_flip = false;
   bool y_flip = false;
   bool priority_tile = false;
+
+  gfx::SnesPalette CreateRemappedPaletteForTile8(const gfx::SnesPalette& source,
+                                                 int target_row,
+                                                 int tile8_id) const;
 
   int tile_size;
   int current_tile16_ = 0;
