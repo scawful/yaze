@@ -24,10 +24,12 @@ void DungeonCanvasViewer::AddInteractionContextMenuItems(int room_id) {
     return;
   }
 
-  canvas_.AddContextMenuItem(BuildInsertContextMenu());
   for (auto& item : BuildSelectionContextMenuItems(room_id)) {
     canvas_.AddContextMenuItem(std::move(item));
   }
+  auto insert_menu = BuildInsertContextMenu();
+  insert_menu.separator_after = true;
+  canvas_.AddContextMenuItem(insert_menu);
 }
 
 void DungeonCanvasViewer::AddLoadedRoomContextMenuItems(int room_id) {
@@ -214,46 +216,28 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
         "Delete", ICON_MD_DELETE,
         [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
 
-    if (single_selection) {
-      gui::CanvasMenuItem increase_z;
-      increase_z.label = "Increase Z";
-      increase_z.icon = ICON_MD_ARROW_UPWARD;
-      increase_z.subitems.emplace_back(
-          "Send to Front", ICON_MD_FLIP_TO_FRONT,
-          [&interaction]() { interaction.SendSelectedToFront(); },
-          "Ctrl+Shift+]");
-      increase_z.subitems.emplace_back(
-          "Increase Z by 1", ICON_MD_ARROW_UPWARD,
-          [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
-      items.push_back(std::move(increase_z));
+    items.emplace_back(
+        "Bring to Front", ICON_MD_FLIP_TO_FRONT,
+        [&interaction]() { interaction.SendSelectedToFront(); },
+        "Ctrl+Shift+]");
+    items.emplace_back(
+        "Send to Back", ICON_MD_FLIP_TO_BACK,
+        [&interaction]() { interaction.SendSelectedToBack(); }, "Ctrl+Shift+[");
 
-      gui::CanvasMenuItem decrease_z;
-      decrease_z.label = "Decrease Z";
-      decrease_z.icon = ICON_MD_ARROW_DOWNWARD;
-      decrease_z.subitems.emplace_back(
-          "Send to Back", ICON_MD_FLIP_TO_BACK,
-          [&interaction]() { interaction.SendSelectedToBack(); },
-          "Ctrl+Shift+[");
-      decrease_z.subitems.emplace_back(
-          "Decrease Z by 1", ICON_MD_ARROW_DOWNWARD,
-          [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
-      items.push_back(std::move(decrease_z));
-    } else if (group_selection) {
-      items.emplace_back(
-          "Send to Front", ICON_MD_FLIP_TO_FRONT,
-          [&interaction]() { interaction.SendSelectedToFront(); },
-          "Ctrl+Shift+]");
-      items.emplace_back(
-          "Send to Back", ICON_MD_FLIP_TO_BACK,
-          [&interaction]() { interaction.SendSelectedToBack(); },
-          "Ctrl+Shift+[");
-      items.push_back(
-          disabled_item("Save As New Layout...", ICON_MD_SAVE_AS, nullptr));
-    }
+    gui::CanvasMenuItem z_order;
+    z_order.label = "Z Order";
+    z_order.icon = ICON_MD_LAYERS;
+    z_order.subitems.emplace_back(
+        "Bring Forward", ICON_MD_ARROW_UPWARD,
+        [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
+    z_order.subitems.emplace_back(
+        "Send Backward", ICON_MD_ARROW_DOWNWARD,
+        [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
+    items.push_back(std::move(z_order));
 
-    items.push_back(layer_item("Send to Layer 1", 0, "1"));
-    items.push_back(layer_item("Send to Layer 2", 1, "2"));
-    items.push_back(layer_item("Send to Layer 3", 2, "3"));
+    items.push_back(layer_item("Layer 1", 0, "1"));
+    items.push_back(layer_item("Layer 2", 1, "2"));
+    items.push_back(layer_item("Layer 3", 2, "3"));
 
     gui::CanvasMenuItem yaze_more;
     yaze_more.label = "More";
@@ -265,6 +249,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
           interaction.HandlePasteObjects();
         },
         "Ctrl+D");
+    if (group_selection) {
+      yaze_more.subitems.push_back(
+          disabled_item("Save As New Layout...", ICON_MD_SAVE_AS, nullptr));
+    }
     items.push_back(std::move(yaze_more));
   }
 
