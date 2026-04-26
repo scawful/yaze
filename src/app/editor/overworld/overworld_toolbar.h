@@ -11,6 +11,10 @@
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
+namespace yaze::project {
+struct YazeProject;
+}  // namespace yaze::project
+
 namespace yaze::editor {
 
 class WorkspaceWindowManager;
@@ -38,7 +42,8 @@ class OverworldToolbar {
   void Draw(int& current_world, int& current_map, bool& current_map_lock,
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
             WorkspaceWindowManager* window_manager, bool has_selection,
-            bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld);
+            bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld,
+            project::YazeProject* project, int game_state);
 
   // Callback for when properties change
   std::function<void()> on_property_changed;

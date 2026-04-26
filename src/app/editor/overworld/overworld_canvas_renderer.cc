@@ -68,7 +68,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->current_world_, editor_->current_map_,
         editor_->current_map_lock_, editor_->current_mode,
         editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
-        has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_);
+        has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_,
+        editor_->dependencies_.project, editor_->game_state_);
     editor_->NormalizeCurrentSelectionState();
 
     // Toolbar toggles don't currently update canvas usage mode.
@@ -94,11 +95,14 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
       editor_->overworld_.is_loaded() && editor_->map_properties_system_) {
     editor_->ow_map_canvas_.ClearContextMenuItems();
+    const int context_map = editor_->hovered_map_ >= 0 ? editor_->hovered_map_
+                                                       : editor_->current_map_;
     editor_->map_properties_system_->SetupCanvasContextMenu(
-        editor_->ow_map_canvas_, editor_->current_map_,
-        editor_->current_map_lock_, editor_->show_map_properties_panel_,
+        editor_->ow_map_canvas_, context_map, editor_->current_map_lock_,
+        editor_->show_map_properties_panel_,
         editor_->show_custom_bg_color_editor_, editor_->show_overlay_editor_,
-        static_cast<int>(editor_->current_mode));
+        static_cast<int>(editor_->current_mode),
+        editor_->dependencies_.project);
   }
 
   // Configure canvas frame options
@@ -126,12 +130,6 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // Handle pan via ImGui scrolling (instead of canvas internal scroll)
   editor_->HandleOverworldPan();
   editor_->HandleOverworldZoom();
-
-  // Tile painting mode - handle tile edits and right-click tile picking
-  if (editor_->current_mode == EditingMode::DRAW_TILE ||
-      editor_->current_mode == EditingMode::FILL_TILE) {
-    editor_->HandleMapInteraction();
-  }
 
   if (editor_->overworld_.is_loaded()) {
     // Draw the 64 overworld map bitmaps
@@ -162,6 +160,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     // Use canvas runtime hover state for map detection
     if (canvas_rt.hovered) {
       editor_->status_ = editor_->CheckForCurrentMap();
+      editor_->HandleMapInteraction();
     }
 
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---

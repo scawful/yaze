@@ -198,6 +198,10 @@ void OverworldEditor::Initialize() {
       [this]() -> absl::Status { return this->RefreshMapPalette(); },
       [this]() -> absl::Status { return this->RefreshTile16Blockset(); },
       [this](int map_index) { this->ForceRefreshGraphics(map_index); });
+  map_properties_system_->SetMapSelectionCallback(
+      [this](int map_index, bool respect_pin) {
+        this->SelectMapForEditing(map_index, respect_pin);
+      });
 
   // Initialize OverworldSidebar
   sidebar_ = std::make_unique<OverworldSidebar>(&overworld_, rom_,
@@ -384,6 +388,7 @@ void OverworldEditor::InitCanvasNavigationManager() {
   ctx.current_world = &current_world_;
   ctx.current_parent = &current_parent_;
   ctx.current_tile16 = &current_tile16_;
+  ctx.hovered_map = &hovered_map_;
   ctx.current_mode = &current_mode;
   ctx.current_map_lock = &current_map_lock_;
   ctx.is_dragging_entity = &is_dragging_entity_;
@@ -401,6 +406,9 @@ void OverworldEditor::InitCanvasNavigationManager() {
   };
   callbacks.ensure_map_texture = [this](int map_index) {
     this->EnsureMapTexture(map_index);
+  };
+  callbacks.select_map_for_editing = [this](int map_index, bool respect_pin) {
+    this->SelectMapForEditing(map_index, respect_pin);
   };
   callbacks.pick_tile16_from_hovered_canvas = [this]() -> bool {
     return this->PickTile16FromHoveredCanvas();
@@ -706,6 +714,38 @@ bool OverworldEditor::NormalizeCurrentSelectionState() {
   return changed;
 }
 
+void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
+  if (respect_pin && current_map_lock_) {
+    return;
+  }
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  const auto* map = overworld_.overworld_map(map_id);
+  if (!map) {
+    return;
+  }
+
+  FinalizePaintOperation();
+  current_map_ = map_id;
+  current_world_ = std::clamp(map_id / 0x40, 0, 2);
+  current_parent_ = map->parent();
+  overworld_.set_current_map(current_map_);
+  overworld_.set_current_world(current_world_);
+
+  status_ = overworld_.EnsureMapBuilt(current_map_);
+  if (!status_.ok()) {
+    PRINT_IF_ERROR(status_);
+    return;
+  }
+
+  EnsureMapTexture(current_map_);
+  if (all_gfx_loaded_) {
+    PRINT_IF_ERROR(RefreshTile16Blockset());
+    RefreshMapProperties();
+  }
+}
+
 void OverworldEditor::PrimeWorldMaps(int world, bool process_texture_queue) {
   if (map_texture_)
     map_texture_->PrimeWorldMaps(world, process_texture_queue);
@@ -722,8 +762,9 @@ void OverworldEditor::SwitchToWorld(int world) {
     return;
   }
 
-  current_world_ = clamped_world;
-  current_map_ = world_start + std::min(local_map, maps_remaining - 1);
+  hovered_map_ = -1;
+  SelectMapForEditing(world_start + std::min(local_map, maps_remaining - 1),
+                      false);
   NormalizeCurrentSelectionState();
 
   status_ = overworld_.EnsureMapBuilt(current_map_);

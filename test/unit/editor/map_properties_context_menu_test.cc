@@ -74,17 +74,25 @@ TEST(MapPropertiesContextMenuTest, LockItemMutatesReferencedMapLockState) {
   bool show_map_properties_panel = false;
   bool show_custom_bg_color_editor = false;
   bool show_overlay_editor = false;
+  int selected_map = -1;
+  bool respected_pin = true;
+  system.SetMapSelectionCallback([&](int map_id, bool respect_pin) {
+    selected_map = map_id;
+    respected_pin = respect_pin;
+  });
 
   system.SetupCanvasContextMenu(
       canvas, 0x10, current_map_lock, show_map_properties_panel,
       show_custom_bg_color_editor, show_overlay_editor, 1);
 
-  auto* lock_item = FindMenuItem(canvas, "Lock to This Map");
+  auto* lock_item = FindMenuItem(canvas, "Pin This Map");
   ASSERT_NE(lock_item, nullptr);
   ASSERT_TRUE(lock_item->callback);
 
   lock_item->callback();
   EXPECT_TRUE(current_map_lock);
+  EXPECT_EQ(selected_map, 0x10);
+  EXPECT_FALSE(respected_pin);
 }
 
 TEST(MapPropertiesContextMenuTest, AreaConfigurationSetsPanelBool) {
