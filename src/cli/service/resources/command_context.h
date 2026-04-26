@@ -217,14 +217,21 @@ class OutputFormatter {
   bool IsText() const { return format_ == Format::kText; }
 
  private:
+  struct JsonContext {
+    enum class Type { kObject, kArray };
+    Type type;
+    bool first = true;
+    int item_count = 0;
+  };
+
   Format format_;
   std::string buffer_;
   int indent_level_ = 0;
-  bool first_field_ = true;
-  bool in_array_ = false;
-  int array_item_count_ = 0;
+  std::vector<JsonContext> json_stack_;
 
   void AddIndent();
+  void AddJsonValueSeparator();
+  void AddJsonFieldPrefix(const std::string& key);
   std::string EscapeJson(const std::string& str) const;
 };
 

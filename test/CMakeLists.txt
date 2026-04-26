@@ -461,6 +461,12 @@ if(YAZE_BUILD_TESTS)
     )
   endif()
 
+  if(YAZE_ENABLE_GRPC)
+    list(APPEND STABLE_INTEGRATION_TEST_SOURCES
+      integration/grpc_server_smoke_test.cc
+    )
+  endif()
+
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_ENABLE_ROM_TESTS)
