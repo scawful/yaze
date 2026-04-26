@@ -38,13 +38,6 @@ bool IsDungeonPanelModeWindow(const std::string& window_id) {
   return WindowSidebar::IsDungeonWindowModeTarget(window_id);
 }
 
-bool IsHiddenDungeonWorkbenchTool(const std::string& category,
-                                  const std::string& window_id,
-                                  bool dungeon_workbench_mode) {
-  return dungeon_workbench_mode && category == "Dungeon" &&
-         WindowSidebar::IsDungeonWorkbenchLocalToolWindow(window_id);
-}
-
 }  // namespace
 
 WindowSidebar::WindowSidebar(
@@ -75,20 +68,6 @@ bool WindowSidebar::IsDungeonWindowModeTarget(const std::string& window_id) {
   const bool is_room_window = window_id.rfind("dungeon.room_", 0) == 0;
   return window_id == "dungeon.room_selector" ||
          window_id == "dungeon.room_matrix" || is_room_window;
-}
-
-bool WindowSidebar::IsDungeonWorkbenchLocalToolWindow(
-    const std::string& window_id) {
-  return window_id == "dungeon.object_selector" ||
-         window_id == "dungeon.door_editor" ||
-         window_id == "dungeon.sprite_editor" ||
-         window_id == "dungeon.item_editor" ||
-         window_id == "dungeon.palette_editor" ||
-         window_id == "dungeon.room_graphics" ||
-         window_id == "dungeon.room_tags" ||
-         window_id == "dungeon.custom_collision" ||
-         window_id == "dungeon.water_fill" ||
-         window_id == "dungeon.minecart_tracks";
 }
 
 void WindowSidebar::Draw(size_t session_id, const std::string& category,
@@ -186,14 +165,14 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
       return true;
     }
     window_manager_.OpenWindow(session_id, "dungeon.workbench");
+    // Workbench-local tool windows (Object/Door/Sprite/Item Selector, Palette,
+    // Room Graphics/Tags, Custom Collision, Water Fill, Minecart) are NOT
+    // auto-closed here. Users can keep a standalone copy open alongside the
+    // Workbench drawer's embedded copy if they prefer that layout.
     for (const auto& descriptor :
          window_manager_.GetWindowsInCategory(session_id, "Dungeon")) {
       const std::string& window_id = descriptor.card_id;
       if (window_id == "dungeon.workbench") {
-        continue;
-      }
-      if (WindowSidebar::IsDungeonWorkbenchLocalToolWindow(window_id)) {
-        window_manager_.CloseWindow(session_id, window_id);
         continue;
       }
       if (window_manager_.IsWindowPinned(session_id, window_id)) {
@@ -304,10 +283,6 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   int visible_windows_in_category = 0;
   int total_windows_in_category = 0;
   for (const auto& category_window : category_windows) {
-    if (IsHiddenDungeonWorkbenchTool(category, category_window.card_id,
-                                     dungeon_workbench_mode)) {
-      continue;
-    }
     ++total_windows_in_category;
     if (category_window.visibility_flag && *category_window.visibility_flag) {
       ++visible_windows_in_category;
@@ -430,9 +405,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     for (const auto& window_id : pinned_windows) {
       const auto* window =
           window_manager_.GetWindowDescriptor(session_id, window_id);
-      if (window && window->category == category &&
-          !IsHiddenDungeonWorkbenchTool(category, window->card_id,
-                                        dungeon_workbench_mode)) {
+      if (window && window->category == category) {
         has_pinned_in_category = true;
         break;
       }
@@ -446,10 +419,6 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
           const auto* window =
               window_manager_.GetWindowDescriptor(session_id, window_id);
           if (!window || window->category != category) {
-            continue;
-          }
-          if (IsHiddenDungeonWorkbenchTool(category, window->card_id,
-                                           dungeon_workbench_mode)) {
             continue;
           }
 
@@ -507,10 +476,6 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
       "##WindowContent", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList));
   if (window_content_open) {
     for (const auto& window : windows) {
-      if (IsHiddenDungeonWorkbenchTool(category, window.card_id,
-                                       dungeon_workbench_mode)) {
-        continue;
-      }
       if (!MatchesWindowSearch(sidebar_search_, window.display_name,
                                window.card_id, window.shortcut_hint)) {
         continue;

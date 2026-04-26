@@ -296,16 +296,30 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   DrawCustomObjectWorkshopButton(custom_count);
 
   // Create asset browser-style grid
-  const float item_size = GetObjectGridItemSize(object_grid_density_);
   const float item_spacing = 6.0f;
-  const int columns = std::max(
-      1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /
-                          (item_size + item_spacing)));
+  // Defensive clamp: when the inspector drawer narrows below the user's chosen
+  // density, scale the cell down so at least one item is fully visible per row
+  // before the horizontal scrollbar engages. The 16px margin accounts for the
+  // child window's vertical scrollbar plus a small buffer for the cell border.
+  constexpr float kRightMargin = 16.0f;
+  constexpr float kMinItemSize = 32.0f;
+  const float available_width = ImGui::GetContentRegionAvail().x;
+  const float requested_item_size = GetObjectGridItemSize(object_grid_density_);
+  const float item_size =
+      std::min(requested_item_size,
+               std::max(kMinItemSize, available_width - kRightMargin));
+  const int columns =
+      std::max(1, static_cast<int>((available_width - item_spacing) /
+                                   (item_size + item_spacing)));
 
-  // Scrollable child region for grid - use all available space
+  // Scrollable child region for grid - use all available space.
+  // Horizontal scrollbar guards against silent right-edge clipping when a row
+  // overruns due to per-frame column recalculation; the Item/Sprite selectors
+  // use the same flag combination.
   float child_height = ImGui::GetContentRegionAvail().y;
   if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                            ImGuiWindowFlags_HorizontalScrollbar)) {
 
     // Iterate through all object ranges
     for (const auto& range : ranges) {
@@ -918,7 +932,9 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
 
   if (ImGui::BeginChild("##CustomObjectGrid",
                         ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4.0f),
-                        false, ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+                        false,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                            ImGuiWindowFlags_HorizontalScrollbar)) {
     const float item_spacing = 6.0f;
     const int columns = std::max(
         1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /

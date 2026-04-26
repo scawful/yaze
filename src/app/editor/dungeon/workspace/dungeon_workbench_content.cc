@@ -446,7 +446,7 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
             ImGui::OpenPopup("##WorkbenchSidebarQuickActions");
           }
           if (ImGui::BeginPopup("##WorkbenchSidebarQuickActions")) {
-            if (ImGui::MenuItem(ICON_MD_GRID_VIEW " Connected Graph")) {
+            if (ImGui::MenuItem(ICON_MD_VIEW_QUILT " Stitched Rooms")) {
               ShowConnectedGraph();
             }
             if (ImGui::MenuItem(ICON_MD_MAP " Dungeon Map")) {
@@ -470,29 +470,27 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
 
 void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
                                                   float segment_height) {
+  // Compact icon-only segmented selector. Each button is square (size = height)
+  // so the cluster takes ~70px instead of stretching to ~170px with labels.
+  // Tooltips carry the full label.
+  (void)stacked;
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float rooms_width =
-      workbench::CalcIconButtonWidth("Rooms", segment_height);
-  const float entrances_width =
-      workbench::CalcIconButtonWidth("Entrances", segment_height);
-  const bool stack = stacked || ImGui::GetContentRegionAvail().x <
-                                    (rooms_width + entrances_width + spacing);
+  const ImVec2 button_size(segment_height, segment_height);
 
-  const ImVec2 rooms_size(
-      stack ? ImGui::GetContentRegionAvail().x : rooms_width, segment_height);
-  if (gui::ToggleButton("Rooms", sidebar_mode_ == SidebarMode::Rooms,
-                        rooms_size)) {
+  if (gui::ToggleButton(ICON_MD_VIEW_LIST "##NavRooms",
+                        sidebar_mode_ == SidebarMode::Rooms, button_size)) {
     sidebar_mode_ = SidebarMode::Rooms;
   }
-  if (!stack) {
-    ImGui::SameLine(0.0f, spacing);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Rooms");
   }
-  const ImVec2 entrances_size(
-      stack ? ImGui::GetContentRegionAvail().x : entrances_width,
-      segment_height);
-  if (gui::ToggleButton("Entrances", sidebar_mode_ == SidebarMode::Entrances,
-                        entrances_size)) {
+  ImGui::SameLine(0.0f, spacing);
+  if (gui::ToggleButton(ICON_MD_DOOR_FRONT "##NavEntrances",
+                        sidebar_mode_ == SidebarMode::Entrances, button_size)) {
     sidebar_mode_ = SidebarMode::Entrances;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Entrances");
   }
 }
 
@@ -584,39 +582,77 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     layout_state_.right_width = right_w;
   }
 
-  if (show_left) {
-    DrawSidebarPane(left_w, total_h, btn, pane_layout.responsive.compact_left);
-  }
-  if (show_left) {
-    ImGui::SameLine(0.0f, 0.0f);
-    if (DrawDungeonWorkbenchVerticalSplitter(
-            "##DungeonWorkbenchLeftSplitter", total_h,
-            &layout_state_.left_width, pane_layout.min_left_width,
-            total_w - right_w - min_canvas_w - (show_right ? splitter_w : 0.0f),
-            false)) {
-      layout_state_.show_left_sidebar = false;
+  // Mirror toggle: when inspector_on_left_, swap render order so the inspector
+  // visually sits on the left of the canvas (ZScream-style). Width state is
+  // preserved (right_width is always the inspector's, left_width always the
+  // sidebar's) so splitter drags still affect the correct pane regardless of
+  // which side it's on.
+  if (inspector_on_left_) {
+    if (show_right) {
+      DrawInspectorPane(right_w, total_h, btn,
+                        pane_layout.responsive.compact_right, primary_viewer);
+      ImGui::SameLine(0.0f, 0.0f);
+      if (DrawDungeonWorkbenchVerticalSplitter(
+              "##DungeonWorkbenchLeftSplitter", total_h,
+              &layout_state_.right_width, pane_layout.min_right_width,
+              total_w - left_w - min_canvas_w - (show_left ? splitter_w : 0.0f),
+              false)) {
+        layout_state_.show_right_inspector = false;
+      }
+      ImGui::SameLine(0.0f, 0.0f);
     }
-  }
-
-  if (show_left) {
-    ImGui::SameLine(0.0f, 0.0f);
-  }
-  DrawCanvasPane(center_w, total_h, primary_viewer, show_left);
-
-  if (show_right) {
-    ImGui::SameLine(0.0f, 0.0f);
-    if (DrawDungeonWorkbenchVerticalSplitter(
-            "##DungeonWorkbenchRightSplitter", total_h,
-            &layout_state_.right_width, pane_layout.min_right_width,
-            total_w - left_w - min_canvas_w - (show_left ? splitter_w : 0.0f),
-            true)) {
-      layout_state_.show_right_inspector = false;
+    DrawCanvasPane(center_w, total_h, primary_viewer, show_left);
+    if (show_left) {
+      ImGui::SameLine(0.0f, 0.0f);
+      if (DrawDungeonWorkbenchVerticalSplitter(
+              "##DungeonWorkbenchRightSplitter", total_h,
+              &layout_state_.left_width, pane_layout.min_left_width,
+              total_w - right_w - min_canvas_w -
+                  (show_right ? splitter_w : 0.0f),
+              true)) {
+        layout_state_.show_left_sidebar = false;
+      }
+      ImGui::SameLine(0.0f, 0.0f);
+      DrawSidebarPane(left_w, total_h, btn,
+                      pane_layout.responsive.compact_left);
     }
-    ImGui::SameLine(0.0f, 0.0f);
-  }
-  if (show_right) {
-    DrawInspectorPane(right_w, total_h, btn,
-                      pane_layout.responsive.compact_right, primary_viewer);
+  } else {
+    if (show_left) {
+      DrawSidebarPane(left_w, total_h, btn,
+                      pane_layout.responsive.compact_left);
+    }
+    if (show_left) {
+      ImGui::SameLine(0.0f, 0.0f);
+      if (DrawDungeonWorkbenchVerticalSplitter(
+              "##DungeonWorkbenchLeftSplitter", total_h,
+              &layout_state_.left_width, pane_layout.min_left_width,
+              total_w - right_w - min_canvas_w -
+                  (show_right ? splitter_w : 0.0f),
+              false)) {
+        layout_state_.show_left_sidebar = false;
+      }
+    }
+
+    if (show_left) {
+      ImGui::SameLine(0.0f, 0.0f);
+    }
+    DrawCanvasPane(center_w, total_h, primary_viewer, show_left);
+
+    if (show_right) {
+      ImGui::SameLine(0.0f, 0.0f);
+      if (DrawDungeonWorkbenchVerticalSplitter(
+              "##DungeonWorkbenchRightSplitter", total_h,
+              &layout_state_.right_width, pane_layout.min_right_width,
+              total_w - left_w - min_canvas_w - (show_left ? splitter_w : 0.0f),
+              true)) {
+        layout_state_.show_right_inspector = false;
+      }
+      ImGui::SameLine(0.0f, 0.0f);
+    }
+    if (show_right) {
+      DrawInspectorPane(right_w, total_h, btn,
+                        pane_layout.responsive.compact_right, primary_viewer);
+    }
   }
   if (primary_viewer) {
     DrawDungeonMapPopup(*primary_viewer);
@@ -835,14 +871,34 @@ void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
 
 void DungeonWorkbenchContent::DrawInspectorHeader(float button_size,
                                                   bool compact) {
+  // Chevron flips with mirror state so the collapse arrow always points
+  // toward the inspector's exit edge (off-right when on right, off-left when
+  // on left).
+  const char* collapse_icon =
+      inspector_on_left_ ? ICON_MD_CHEVRON_LEFT : ICON_MD_CHEVRON_RIGHT;
   const float collapse_w =
-      workbench::CalcIconButtonWidth(ICON_MD_CHEVRON_RIGHT, button_size);
+      workbench::CalcIconButtonWidth(collapse_icon, button_size);
+  const float swap_w =
+      workbench::CalcIconButtonWidth(ICON_MD_SWAP_HORIZ, button_size);
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float action_cluster_w = swap_w + spacing + collapse_w;
 
   workbench::DrawPaneHeader(
       "##DungeonWorkbenchInspectorHeader", ICON_MD_TUNE, "Inspect", "Inspect",
-      nullptr, compact, collapse_w, [&]() {
-        if (workbench::DrawHeaderIconAction("CollapseInspector",
-                                            ICON_MD_CHEVRON_RIGHT, button_size,
+      nullptr, compact, action_cluster_w, [&]() {
+        if (workbench::DrawHeaderIconAction(
+                "SwapInspectorSide", ICON_MD_SWAP_HORIZ, button_size,
+                inspector_on_left_ ? "Move inspector to the right side"
+                                   : "Move inspector to the left side "
+                                     "(ZScream layout)")) {
+          inspector_on_left_ = !inspector_on_left_;
+          if (on_inspector_side_changed_) {
+            on_inspector_side_changed_(inspector_on_left_);
+          }
+        }
+        ImGui::SameLine(0.0f, spacing);
+        if (workbench::DrawHeaderIconAction("CollapseInspector", collapse_icon,
+                                            button_size,
                                             "Collapse inspector")) {
           layout_state_.show_right_inspector = false;
         }
@@ -1776,22 +1832,23 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
   }
 
   ImGui::Dummy(ImVec2(0.0f, 2.0f));
-  if (workbench::BeginInspectorSection(ICON_MD_DEVICE_HUB " Connected Graph",
+  if (workbench::BeginInspectorSection(ICON_MD_VIEW_QUILT " Stitched Rooms",
                                        true)) {
-    bool connected = layout_state_.show_connected_canvas_view;
-    if (ImGui::Checkbox("Connected map mode", &connected)) {
-      layout_state_.show_connected_canvas_view = connected;
-      if (connected) {
+    bool stitched = layout_state_.show_connected_canvas_view;
+    if (ImGui::Checkbox("Show stitched rooms", &stitched)) {
+      layout_state_.show_connected_canvas_view = stitched;
+      if (stitched) {
         split_view_enabled_ = false;  // keep the canvas surface single-mode
       }
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Browse resolved room connections (doors, staircases, holewarps).\n"
+          "Renders the current room and its neighbors (doors, staircases, "
+          "holewarps) as one continuous canvas.\n"
           "Hover rooms to see diagnostics; use Fit/Reset and Mini/Room "
           "controls in the top toolbar.\n"
           "Staircase header issues and out-of-scope links surface in the "
-          "connected toolbar while this is active.");
+          "stitched-rooms toolbar while this is active.");
     }
   }
 
@@ -2488,7 +2545,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
 void DungeonWorkbenchContent::DrawInspectorShelfView(
     DungeonCanvasViewer& viewer) {
-  workbench::DrawInspectorSectionHeader(ICON_MD_VISIBILITY " Overlay Toggles");
+  // Canvas overlays — generic, common, always visible.
   bool val = viewer.show_grid();
   if (ImGui::Checkbox("Grid (8x8)", &val))
     viewer.set_show_grid(val);
@@ -2508,44 +2565,50 @@ void DungeonWorkbenchContent::DrawInspectorShelfView(
     viewer.set_show_camera_quadrant_overlay(val);
   }
 
-  val = viewer.show_track_collision_overlay();
-  if (ImGui::Checkbox("Track Collision", &val)) {
-    viewer.set_show_track_collision_overlay(val);
-  }
+  // Authoring overlays — specialized; collapsed by default to reduce inspector
+  // clutter for users who don't author tracks, water, or Oracle custom data.
+  ImGui::Dummy(ImVec2(0.0f, 2.0f));
+  if (workbench::BeginInspectorSection(ICON_MD_BUILD " Authoring overlays",
+                                       false)) {
+    val = viewer.show_track_collision_overlay();
+    if (ImGui::Checkbox("Track Collision", &val)) {
+      viewer.set_show_track_collision_overlay(val);
+    }
 
-  val = viewer.show_custom_collision_overlay();
-  if (ImGui::Checkbox("Custom Collision", &val)) {
-    viewer.set_show_custom_collision_overlay(val);
-  }
+    val = viewer.show_custom_collision_overlay();
+    if (ImGui::Checkbox("Custom Collision", &val)) {
+      viewer.set_show_custom_collision_overlay(val);
+    }
 
-  val = viewer.show_water_fill_overlay();
-  if (ImGui::Checkbox("Water Fill (Oracle)", &val)) {
-    viewer.set_show_water_fill_overlay(val);
-  }
+    val = viewer.show_water_fill_overlay();
+    if (ImGui::Checkbox("Water Fill (Oracle)", &val)) {
+      viewer.set_show_water_fill_overlay(val);
+    }
 
-  val = viewer.show_minecart_sprite_overlay();
-  if (ImGui::Checkbox("Minecart Pathing", &val)) {
-    viewer.set_show_minecart_sprite_overlay(val);
-  }
+    val = viewer.show_minecart_sprite_overlay();
+    if (ImGui::Checkbox("Minecart Pathing", &val)) {
+      viewer.set_show_minecart_sprite_overlay(val);
+    }
 
-  val = viewer.show_track_gap_overlay();
-  if (ImGui::Checkbox("Track Gaps", &val)) {
-    viewer.set_show_track_gap_overlay(val);
-  }
+    val = viewer.show_track_gap_overlay();
+    if (ImGui::Checkbox("Track Gaps", &val)) {
+      viewer.set_show_track_gap_overlay(val);
+    }
 
-  val = viewer.show_track_route_overlay();
-  if (ImGui::Checkbox("Track Routes", &val)) {
-    viewer.set_show_track_route_overlay(val);
-  }
+    val = viewer.show_track_route_overlay();
+    if (ImGui::Checkbox("Track Routes", &val)) {
+      viewer.set_show_track_route_overlay(val);
+    }
 
-  val = viewer.show_custom_objects_overlay();
-  if (ImGui::Checkbox("Custom Objects (Oracle)", &val)) {
-    viewer.set_show_custom_objects_overlay(val);
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "Highlight custom-draw objects (IDs 0x31/0x32)\n"
-        "with a cyan overlay showing position and subtype.");
+    val = viewer.show_custom_objects_overlay();
+    if (ImGui::Checkbox("Custom Objects (Oracle)", &val)) {
+      viewer.set_show_custom_objects_overlay(val);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Highlight custom-draw objects (IDs 0x31/0x32)\n"
+          "with a cyan overlay showing position and subtype.");
+    }
   }
 }
 

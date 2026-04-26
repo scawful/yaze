@@ -1,10 +1,27 @@
 #include "app/editor/system/session/user_settings.h"
 
+#include <cstdio>
+#include <filesystem>
 #include <string>
 
 #include "gtest/gtest.h"
 
 namespace yaze::editor {
+
+namespace {
+
+// Returns a unique temp settings file path for round-trip tests. Caller is
+// responsible for removing the file when done (or before re-using the slot).
+std::string MakeTempSettingsPath(const char* tag) {
+  auto dir = std::filesystem::temp_directory_path();
+  auto path = dir / (std::string("yaze_user_settings_test_") + tag + "_" +
+                     std::to_string(::getpid()) + ".json");
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  return path.string();
+}
+
+}  // namespace
 
 TEST(UserSettingsLayoutDefaultsTest, AppliesRevisionAndResetsPanelLayoutState) {
   UserSettings settings;
@@ -33,8 +50,13 @@ TEST(UserSettingsLayoutDefaultsTest, AppliesRevisionAndResetsPanelLayoutState) {
   EXPECT_TRUE(prefs.sidebar_active_category.empty());
 
   EXPECT_TRUE(prefs.panel_visibility_state.empty());
-  EXPECT_TRUE(prefs.right_panel_widths.empty());
   EXPECT_TRUE(prefs.saved_layouts.empty());
+
+  // Revision-4 full-reset clears `right_panel_widths`; revision-21 seeds a
+  // hint for the dungeon workbench inspector pane so first-run users see a
+  // reasonably-sized inspector before they drag.
+  EXPECT_EQ(prefs.right_panel_widths.size(), 1U);
+  EXPECT_FLOAT_EQ(prefs.right_panel_widths.at("dungeon.workbench"), 320.0f);
 
   // Revision-4 full-reset clears pinned_panels; revision-7 seeds the two
   // former-Persistent panels; revision-17 adds the Layout Designer so
@@ -198,8 +220,10 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_EQ(prefs.panel_layout_defaults_revision,
             UserSettings::kLatestPanelLayoutDefaultsRevision);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
-  EXPECT_FALSE(
-      prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
+  // Rev-13 closes `dungeon.room_selector`; Rev-21 (Layout C) re-opens it as
+  // part of the ZScream-style left-stack so a first-run user lands on the
+  // browser/entrances surface without hunting through a menu.
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
   EXPECT_TRUE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
@@ -338,6 +362,107 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_NE(prefs.named_layouts["custom"].find("\"active_tab_index\":0"),
             std::string::npos);
 }
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyOneSeedsLayoutCDungeonDefaultsAndInspectorSide) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 20;
+  // Pre-existing dungeon visibility entries (rev 19 baseline). The Layout C
+  // migration must open the three left-stack selectors plus the room browser
+  // and matrix without clobbering the workbench.
+  prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"] = false;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"] = false;
+  // Pre-existing inspector_side: empty (user hasn't chosen). The migration
+  // should fill in the "right" default. (Reset because UserSettings's default
+  // ctor leaves it as "right" — this is the only knob we need to set.)
+  prefs.dungeon_inspector_side.clear();
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision,
+            UserSettings::kLatestPanelLayoutDefaultsRevision);
+
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  EXPECT_TRUE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.sprite_editor"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.item_editor"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+
+  EXPECT_EQ(prefs.dungeon_inspector_side, "right");
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "right");
+
+  ASSERT_TRUE(prefs.right_panel_widths.contains("dungeon.workbench"));
+  EXPECT_FLOAT_EQ(prefs.right_panel_widths["dungeon.workbench"], 320.0f);
+}
+
+// Layout C migration must NOT overwrite a user's prior inspector-side choice
+// (e.g., somebody who flipped it to "left" via a future picker before
+// upgrading should keep that value).
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyOnePreservesUserInspectorSideChoice) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 20;
+  prefs.dungeon_inspector_side = "left";
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_EQ(prefs.dungeon_inspector_side, "left");
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
+}
+
+// Default ctor seeds "right". Setter normalizes unrecognized values back to
+// "right" so callers can switch on the result without a sentinel.
+TEST(UserSettingsLayoutDefaultsTest,
+     DungeonInspectorSideDefaultsAndNormalizes) {
+  UserSettings settings;
+  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "right");
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "right");
+
+  settings.SetDungeonInspectorSide("left");
+  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "left");
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
+
+  settings.SetDungeonInspectorSide("garbage");
+  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "right");
+  EXPECT_EQ(settings.GetDungeonInspectorSide(), "right");
+
+  settings.SetDungeonInspectorSide("right");
+  EXPECT_EQ(settings.prefs().dungeon_inspector_side, "right");
+}
+
+#ifdef YAZE_WITH_JSON
+// Round-trip: writing a settings file with inspector_side="left" and
+// re-loading must preserve the choice.
+TEST(UserSettingsLayoutDefaultsTest,
+     DungeonInspectorSideRoundTripsThroughSaveAndLoad) {
+  std::string path = MakeTempSettingsPath("inspector_side");
+
+  {
+    UserSettings settings;
+    settings.SetSettingsFilePathForTesting(path);
+    settings.SetDungeonInspectorSide("left");
+    ASSERT_TRUE(settings.Save().ok());
+  }
+
+  {
+    UserSettings settings;
+    settings.SetSettingsFilePathForTesting(path);
+    ASSERT_TRUE(settings.Load().ok());
+    EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
+    EXPECT_EQ(settings.prefs().dungeon_inspector_side, "left");
+  }
+
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+}
+#endif  // YAZE_WITH_JSON
 
 TEST(UserSettingsLayoutDefaultsTest,
      RevisionTwentyHidesStaleOverworldTile16EditorVisibilityOnly) {
