@@ -1,10 +1,65 @@
 #include "dungeon_canvas_viewer.h"
 
+#include <algorithm>
+#include <vector>
+
+#include "app/gui/core/agent_theme.h"
+#include "zelda3/dungeon/dimension_service.h"
+
 namespace yaze::editor {
+
+namespace {
+
+constexpr double kChangePingDurationSeconds = 0.85;
+constexpr int kDungeonCanvasPixelSize = 512;
+
+bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
+                           const zelda3::RoomObject& rhs) {
+  return lhs.id_ == rhs.id_ && lhs.x() == rhs.x() && lhs.y() == rhs.y() &&
+         lhs.size() == rhs.size() && lhs.GetLayerValue() == rhs.GetLayerValue();
+}
+
+}  // namespace
 
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
   project_ = project;
   ApplyTrackCollisionConfig();
+}
+
+void DungeonCanvasViewer::TriggerChangePing() {
+  change_ping_rects_.clear();
+  change_ping_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
+}
+
+void DungeonCanvasViewer::TriggerObjectChangePing(
+    const std::vector<zelda3::RoomObject>& previous_objects,
+    const std::vector<zelda3::RoomObject>& next_objects) {
+  change_ping_rects_.clear();
+
+  auto append_object_rect = [this](const zelda3::RoomObject& object) {
+    const auto [x, y, w, h] =
+        zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
+    change_ping_rects_.push_back(
+        ChangePingRect{x, y, std::max(w, 8), std::max(h, 8)});
+  };
+
+  const size_t count = std::max(previous_objects.size(), next_objects.size());
+  for (size_t i = 0; i < count; ++i) {
+    const bool has_previous = i < previous_objects.size();
+    const bool has_next = i < next_objects.size();
+    if (has_previous && has_next &&
+        HasSameObjectIdentity(previous_objects[i], next_objects[i])) {
+      continue;
+    }
+    if (has_previous) {
+      append_object_rect(previous_objects[i]);
+    }
+    if (has_next) {
+      append_object_rect(next_objects[i]);
+    }
+  }
+
+  change_ping_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;
 }
 
 void DungeonCanvasViewer::ApplyTrackCollisionConfig() {
@@ -109,12 +164,136 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   if (active_room != nullptr) {
     DrawRoomCanvasContent(canvas_rt, *active_room, room_id);
     DrawRoomCanvasOverlays(canvas_rt, *active_room, room_id);
+    DrawChangePingOverlay(canvas_rt, *active_room);
   }
 
   DrawCoordinateOverlayHud(room_id);
 
   gui::EndCanvas(canvas_, canvas_rt, frame_opts);
   SyncViewerStateFromCanvasConfig();
+}
+
+void DungeonCanvasViewer::DrawChangePingOverlay(
+    const gui::CanvasRuntime& canvas_rt, const zelda3::Room& room) {
+  if (!canvas_rt.draw_list || change_ping_start_time_ < 0.0 ||
+      !ImGui::GetCurrentContext()) {
+    return;
+  }
+
+  const double elapsed = ImGui::GetTime() - change_ping_start_time_;
+  if (elapsed >= kChangePingDurationSeconds) {
+    change_ping_start_time_ = -1.0;
+    change_ping_rects_.clear();
+    return;
+  }
+
+  std::vector<ChangePingRect> rects = change_ping_rects_;
+  if (rects.empty()) {
+    const auto& objects = room.GetTileObjects();
+    for (size_t index : object_interaction_.GetSelectedObjectIndices()) {
+      if (index >= objects.size()) {
+        continue;
+      }
+      const auto [x, y, w, h] =
+          zelda3::DimensionService::Get().GetSelectionBoundsPixels(
+              objects[index]);
+      rects.push_back(ChangePingRect{x, y, std::max(w, 8), std::max(h, 8)});
+    }
+
+    if (object_interaction_.HasEntitySelection()) {
+      const SelectedEntity entity = object_interaction_.GetSelectedEntity();
+      switch (entity.type) {
+        case EntityType::Door: {
+          const auto& doors = room.GetDoors();
+          if (entity.index < doors.size()) {
+            const auto [x, y, w, h] = doors[entity.index].GetEditorBounds();
+            rects.push_back(
+                ChangePingRect{x, y, std::max(w, 8), std::max(h, 8)});
+          }
+          break;
+        }
+        case EntityType::Sprite: {
+          const auto& sprites = room.GetSprites();
+          if (entity.index < sprites.size()) {
+            rects.push_back(ChangePingRect{sprites[entity.index].x() * 16,
+                                           sprites[entity.index].y() * 16, 16,
+                                           16});
+          }
+          break;
+        }
+        case EntityType::Item: {
+          const auto& pot_items = room.GetPotItems();
+          if (entity.index < pot_items.size()) {
+            rects.push_back(ChangePingRect{pot_items[entity.index].GetPixelX(),
+                                           pot_items[entity.index].GetPixelY(),
+                                           16, 16});
+          }
+          break;
+        }
+        case EntityType::Object:
+        case EntityType::None:
+          break;
+      }
+    }
+  }
+
+  if (rects.empty()) {
+    rects.push_back(
+        ChangePingRect{0, 0, kDungeonCanvasPixelSize, kDungeonCanvasPixelSize});
+  }
+
+  const float progress =
+      static_cast<float>(elapsed / kChangePingDurationSeconds);
+  const float remaining = std::clamp(1.0f - progress, 0.0f, 1.0f);
+  const float expand = 4.0f + 12.0f * progress;
+  const auto& theme = AgentUI::GetTheme();
+  ImVec4 fill = theme.dungeon_selection_pulsing;
+  fill.w = 0.18f * remaining;
+  ImVec4 border = theme.dungeon_selection_primary;
+  border.w = 0.95f * remaining;
+  const ImU32 fill_color = ImGui::GetColorU32(fill);
+  const ImU32 border_color = ImGui::GetColorU32(border);
+
+  const ImVec2 viewport_min = canvas_rt.canvas_p0;
+  const ImVec2 viewport_max(canvas_rt.canvas_p0.x + canvas_rt.canvas_sz.x,
+                            canvas_rt.canvas_p0.y + canvas_rt.canvas_sz.y);
+
+  for (const ChangePingRect& rect : rects) {
+    const ImVec2 min(canvas_rt.canvas_p0.x + canvas_rt.scrolling.x +
+                         static_cast<float>(rect.x) * canvas_rt.scale - expand,
+                     canvas_rt.canvas_p0.y + canvas_rt.scrolling.y +
+                         static_cast<float>(rect.y) * canvas_rt.scale - expand);
+    const ImVec2 max(
+        min.x + static_cast<float>(rect.w) * canvas_rt.scale + expand * 2.0f,
+        min.y + static_cast<float>(rect.h) * canvas_rt.scale + expand * 2.0f);
+
+    const bool visible = max.x >= viewport_min.x && min.x <= viewport_max.x &&
+                         max.y >= viewport_min.y && min.y <= viewport_max.y;
+    if (visible) {
+      canvas_rt.draw_list->AddRectFilled(min, max, fill_color, 2.0f);
+      canvas_rt.draw_list->AddRect(min, max, border_color, 2.0f, 0,
+                                   2.0f + 2.0f * remaining);
+      continue;
+    }
+
+    const ImVec2 center(
+        canvas_rt.canvas_p0.x + canvas_rt.scrolling.x +
+            (static_cast<float>(rect.x) + static_cast<float>(rect.w) * 0.5f) *
+                canvas_rt.scale,
+        canvas_rt.canvas_p0.y + canvas_rt.scrolling.y +
+            (static_cast<float>(rect.y) + static_cast<float>(rect.h) * 0.5f) *
+                canvas_rt.scale);
+    const float marker_min_x = viewport_min.x + 8.0f;
+    const float marker_min_y = viewport_min.y + 8.0f;
+    const float marker_max_x = std::max(marker_min_x, viewport_max.x - 8.0f);
+    const float marker_max_y = std::max(marker_min_y, viewport_max.y - 8.0f);
+    const ImVec2 clamped(std::clamp(center.x, marker_min_x, marker_max_x),
+                         std::clamp(center.y, marker_min_y, marker_max_y));
+    canvas_rt.draw_list->AddCircleFilled(clamped, 5.0f + 4.0f * remaining,
+                                         fill_color);
+    canvas_rt.draw_list->AddCircle(clamped, 7.0f + 6.0f * remaining,
+                                   border_color, 18, 2.0f);
+  }
 }
 
 }  // namespace yaze::editor

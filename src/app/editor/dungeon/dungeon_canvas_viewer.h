@@ -231,6 +231,10 @@ class DungeonCanvasViewer {
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
+  void TriggerChangePing();
+  void TriggerObjectChangePing(
+      const std::vector<zelda3::RoomObject>& previous_objects,
+      const std::vector<zelda3::RoomObject>& next_objects);
 
   // Unscaled content size of the connected-room graph centered on
   // `center_room_id`. Used by the workbench to reserve scroll space for the
@@ -693,6 +697,13 @@ class DungeonCanvasViewer {
  private:
   friend class DungeonCanvasViewerTestPeer;
 
+  struct ChangePingRect {
+    int x = 0;
+    int y = 0;
+    int w = 0;
+    int h = 0;
+  };
+
   void DisplayObjectInfo(const gui::CanvasRuntime& rt,
                          const zelda3::RoomObject& object, int canvas_x,
                          int canvas_y);
@@ -776,6 +787,8 @@ class DungeonCanvasViewer {
   void DrawRoomCanvasContent(const gui::CanvasRuntime& canvas_rt,
                              zelda3::Room& room, int room_id);
   void HandleRoomCanvasDropTargets(zelda3::Room& room, int room_id);
+  void DrawChangePingOverlay(const gui::CanvasRuntime& canvas_rt,
+                             const zelda3::Room& room);
 
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
@@ -952,6 +965,8 @@ class DungeonCanvasViewer {
   int canvas_capture_y_ = 0;
   int canvas_capture_width_ = 0;
   int canvas_capture_height_ = 0;
+  std::vector<ChangePingRect> change_ping_rects_;
+  double change_ping_start_time_ = -1.0;
 };
 
 }  // namespace editor

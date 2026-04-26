@@ -24,6 +24,12 @@ PlacementCapacityState ToPlacementCapacityState(
   return static_cast<PlacementCapacityState>(state);
 }
 
+ImVec2 EstimateBadgeTextSize(const std::string& label) {
+  // Overlay hit-testing can run from headless interaction tests before ImGui has
+  // baked a font atlas. Keep the clickable region independent of font state.
+  return ImVec2(std::max(1.0f, static_cast<float>(label.size()) * 7.0f), 14.0f);
+}
+
 }  // namespace
 
 void DoorInteractionHandler::BeginPlacement() {
@@ -441,7 +447,7 @@ DoorInteractionHandler::BuildPairBadgeOverlay(const zelda3::Room::Door& door,
                                 door_pos.y + door_size.y * 0.5f - 7.0f);
       break;
   }
-  badge.screen_size = ImGui::CalcTextSize(badge.label.c_str());
+  badge.screen_size = EstimateBadgeTextSize(badge.label);
   return badge;
 }
 
