@@ -18,6 +18,13 @@
 
 namespace yaze::editor {
 
+struct PingRectSnapshot {
+  int x = 0;
+  int y = 0;
+  int w = 0;
+  int h = 0;
+};
+
 class DungeonCanvasViewerTestPeer {
  public:
   static absl::Status PrepareIssueReportPopup(
@@ -53,6 +60,20 @@ class DungeonCanvasViewerTestPeer {
   static int ApplyConnectedStaircaseIssueAutoFixes(DungeonCanvasViewer& viewer,
                                                    int start_room_id) {
     return viewer.ApplyConnectedStaircaseIssueAutoFixes(start_room_id);
+  }
+
+  static size_t ChangePingRectCount(const DungeonCanvasViewer& viewer) {
+    return viewer.change_ping_rects_.size();
+  }
+
+  static PingRectSnapshot ChangePingRectAt(const DungeonCanvasViewer& viewer,
+                                           size_t index) {
+    const auto& rect = viewer.change_ping_rects_.at(index);
+    return PingRectSnapshot{rect.x, rect.y, rect.w, rect.h};
+  }
+
+  static double ChangePingStartTime(const DungeonCanvasViewer& viewer) {
+    return viewer.change_ping_start_time_;
   }
 };
 
@@ -198,6 +219,61 @@ TEST(DungeonCanvasViewerNavigationTest, ScrollToTileStoresPendingTarget) {
   ASSERT_TRUE(viewer.GetPendingScrollTarget().has_value());
   EXPECT_EQ(viewer.GetPendingScrollTarget()->first, 12);
   EXPECT_EQ(viewer.GetPendingScrollTarget()->second, 34);
+}
+
+TEST(DungeonCanvasViewerPingTest, TriggerCanvasPingRectClampsToCanvasBounds) {
+  DungeonCanvasViewer viewer;
+
+  viewer.TriggerCanvasPingRect(510, -8, 64, 0);
+
+  ASSERT_EQ(DungeonCanvasViewerTestPeer::ChangePingRectCount(viewer), 1u);
+  const PingRectSnapshot rect =
+      DungeonCanvasViewerTestPeer::ChangePingRectAt(viewer, 0);
+  EXPECT_EQ(rect.x, 510);
+  EXPECT_EQ(rect.y, 0);
+  EXPECT_EQ(rect.w, 2);
+  EXPECT_EQ(rect.h, 1);
+  EXPECT_GE(DungeonCanvasViewerTestPeer::ChangePingStartTime(viewer), 0.0);
+}
+
+TEST(DungeonCanvasViewerPingTest,
+     TriggerObjectChangePingIgnoresUnchangedSnapshots) {
+  DungeonCanvasViewer viewer;
+  const std::vector<zelda3::RoomObject> objects = {
+      zelda3::RoomObject{0x01, 2, 3, 0x00, 0},
+      zelda3::RoomObject{0x02, 4, 5, 0x00, 0},
+  };
+
+  viewer.TriggerObjectChangePing(objects, objects);
+
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::ChangePingRectCount(viewer), 0u);
+  EXPECT_LT(DungeonCanvasViewerTestPeer::ChangePingStartTime(viewer), 0.0);
+}
+
+TEST(DungeonCanvasViewerPingTest,
+     TriggerObjectChangePingCapturesPreviousAndNextChangedBounds) {
+  DungeonCanvasViewer viewer;
+  const std::vector<zelda3::RoomObject> before = {
+      zelda3::RoomObject{0x01, 2, 3, 0x00, 0},
+      zelda3::RoomObject{0x02, 4, 5, 0x00, 0},
+  };
+  const std::vector<zelda3::RoomObject> after = {
+      zelda3::RoomObject{0x01, 2, 3, 0x00, 0},
+      zelda3::RoomObject{0x02, 6, 5, 0x00, 0},
+  };
+
+  viewer.TriggerObjectChangePing(before, after);
+
+  ASSERT_EQ(DungeonCanvasViewerTestPeer::ChangePingRectCount(viewer), 2u);
+  const PingRectSnapshot before_rect =
+      DungeonCanvasViewerTestPeer::ChangePingRectAt(viewer, 0);
+  const PingRectSnapshot after_rect =
+      DungeonCanvasViewerTestPeer::ChangePingRectAt(viewer, 1);
+  EXPECT_GE(before_rect.w, 8);
+  EXPECT_GE(before_rect.h, 8);
+  EXPECT_GE(after_rect.w, 8);
+  EXPECT_GE(after_rect.h, 8);
+  EXPECT_GE(DungeonCanvasViewerTestPeer::ChangePingStartTime(viewer), 0.0);
 }
 
 TEST(DungeonCanvasViewerNavigationTest, EntranceRenderContextRoundTrips) {

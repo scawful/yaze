@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_COORDINATOR_H_
 
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
@@ -99,6 +100,11 @@ class InteractionCoordinator {
   bool HasEntitySelection() const;
   bool NudgeSelected(int delta_x, int delta_y);
   void CancelPlacement();
+  const std::vector<SelectedEntity>& GetSelectedEntities() const {
+    return selected_entities_;
+  }
+  void SelectEntitiesInRect(const std::tuple<int, int, int, int>& bounds,
+                            bool additive, bool toggle);
 
   // Doors/sprites/items only (tile objects are handled by ObjectSelection).
   std::optional<SelectedEntity> GetEntityAtPosition(int canvas_x,
@@ -173,6 +179,7 @@ class InteractionCoordinator {
   SpriteInteractionHandler sprite_handler_;
   ItemInteractionHandler item_handler_;
   TileObjectHandler tile_handler_;
+  std::vector<SelectedEntity> selected_entities_;
   int cycle_last_x_ = -1;
   int cycle_last_y_ = -1;
   size_t cycle_next_index_ = 0;
@@ -187,9 +194,11 @@ class InteractionCoordinator {
    */
   BaseEntityHandler* GetActiveHandler();
   bool ApplySelection(SelectedEntity entity);
+  bool UpdateEntitySelection(SelectedEntity entity, bool additive, bool toggle);
   bool SameCycleTarget(int canvas_x, int canvas_y,
                        const std::vector<SelectedEntity>& hits) const;
   void DrawSelectionCycleHud();
+  void DrawMultiEntitySelectionHighlights();
   std::string DescribeEntity(SelectedEntity entity) const;
 };
 

@@ -485,6 +485,12 @@ absl::Status OverworldEditor::Load() {
 
   all_gfx_loaded_ = true;
 
+  auto scratch_status = LoadScratchPad();
+  if (!scratch_status.ok()) {
+    LOG_WARN("OverworldEditor", "Failed to load scratch pad: %s",
+             std::string(scratch_status.message()).c_str());
+  }
+
   if (pending_tile16_selection_after_gfx_) {
     const int pending = *pending_tile16_selection_after_gfx_;
     pending_tile16_selection_after_gfx_.reset();

@@ -1,6 +1,7 @@
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
 #include <memory>
 
@@ -8,6 +9,7 @@
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gui/canvas/canvas.h"
+#include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -61,6 +63,13 @@ class InteractionCoordinatorTest : public ::testing::Test {
   int mutation_count_ = 0;
   int invalidation_count_ = 0;
 };
+
+size_t CountSelectedType(const std::vector<SelectedEntity>& entities,
+                         EntityType type) {
+  return static_cast<size_t>(std::count_if(
+      entities.begin(), entities.end(),
+      [type](SelectedEntity entity) { return entity.type == type; }));
+}
 
 // ============================================================================
 // Mode Transition Tests
@@ -212,7 +221,22 @@ TEST_F(InteractionCoordinatorTest, GetEntityAtPositionReturnsNulloptOnEmpty) {
   EXPECT_FALSE(result.has_value());
 }
 
-TEST_F(InteractionCoordinatorTest, AltClickCyclesOverlappingEntities) {
+TEST_F(InteractionCoordinatorTest, AltClickClearsSelectionOverEntity) {
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  coordinator_.SelectEntity(EntityType::Sprite, 0);
+  ASSERT_TRUE(coordinator_.HasEntitySelection());
+
+  ImGui::GetIO().KeyAlt = true;
+
+  ASSERT_TRUE(coordinator_.HandleClick(80, 80));
+  EXPECT_FALSE(coordinator_.HasEntitySelection());
+  EXPECT_FALSE(selection_.HasSelection());
+
+  ImGui::GetIO().KeyAlt = false;
+}
+
+TEST_F(InteractionCoordinatorTest, CtrlAltClickCyclesOverlappingEntities) {
   rooms_[0].GetSprites().push_back(
       zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
   zelda3::PotItem item;
@@ -221,6 +245,7 @@ TEST_F(InteractionCoordinatorTest, AltClickCyclesOverlappingEntities) {
   rooms_[0].GetPotItems().push_back(item);
 
   ImGui::GetIO().KeyAlt = true;
+  ImGui::GetIO().KeyCtrl = true;
 
   ASSERT_TRUE(coordinator_.HandleClick(80, 80));
   EXPECT_EQ(coordinator_.GetSelectedEntity().type, EntityType::Sprite);
@@ -232,6 +257,7 @@ TEST_F(InteractionCoordinatorTest, AltClickCyclesOverlappingEntities) {
   EXPECT_EQ(coordinator_.GetSelectedEntity().index, 0u);
 
   ImGui::GetIO().KeyAlt = false;
+  ImGui::GetIO().KeyCtrl = false;
 }
 
 TEST_F(InteractionCoordinatorTest, NudgeSelectedSpriteMovesAndInvalidates) {
@@ -285,6 +311,86 @@ TEST_F(InteractionCoordinatorTest, NudgeSelectedDoorMovesAlongDoorAxisOnly) {
   const auto [expected_b1, expected_b2] = moved.EncodeBytes();
   EXPECT_EQ(moved.byte1, expected_b1);
   EXPECT_EQ(moved.byte2, expected_b2);
+}
+
+TEST_F(InteractionCoordinatorTest, SelectEntitiesInRectCapturesMixedEntities) {
+  zelda3::Room::Door door;
+  door.position = 1;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].GetDoors().push_back(door);
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  rooms_[0].GetPotItems().push_back(item);
+
+  coordinator_.SelectEntitiesInRect({0, 0, 512, 512}, /*additive=*/false,
+                                    /*toggle=*/false);
+
+  const auto& selected = coordinator_.GetSelectedEntities();
+  EXPECT_EQ(selected.size(), 3u);
+  EXPECT_EQ(CountSelectedType(selected, EntityType::Door), 1u);
+  EXPECT_EQ(CountSelectedType(selected, EntityType::Sprite), 1u);
+  EXPECT_EQ(CountSelectedType(selected, EntityType::Item), 1u);
+  EXPECT_TRUE(coordinator_.HasEntitySelection());
+}
+
+TEST_F(InteractionCoordinatorTest, NudgeSelectedMovesMixedEntitySelection) {
+  zelda3::Room::Door door;
+  door.position = 1;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].GetDoors().push_back(door);
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  rooms_[0].GetPotItems().push_back(item);
+  coordinator_.SelectEntitiesInRect({0, 0, 512, 512}, /*additive=*/false,
+                                    /*toggle=*/false);
+
+  ASSERT_TRUE(coordinator_.NudgeSelected(1, 1));
+
+  EXPECT_EQ(rooms_[0].GetDoors()[0].position, 2);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 6);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 6);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 88);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 96);
+  EXPECT_GT(invalidation_count_, 0);
+  EXPECT_TRUE(rooms_[0].sprites_dirty());
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+}
+
+TEST_F(InteractionCoordinatorTest, DeleteSelectedEntityDeletesMixedSelection) {
+  zelda3::Room::Door door;
+  door.position = 1;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  rooms_[0].GetDoors().push_back(door);
+  rooms_[0].GetSprites().push_back(
+      zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
+  zelda3::PotItem item;
+  item.position = static_cast<uint16_t>((5 << 8) | 20);
+  item.item = 0x04;
+  rooms_[0].GetPotItems().push_back(item);
+  coordinator_.SelectEntitiesInRect({0, 0, 512, 512}, /*additive=*/false,
+                                    /*toggle=*/false);
+
+  coordinator_.DeleteSelectedEntity();
+
+  EXPECT_TRUE(rooms_[0].GetDoors().empty());
+  EXPECT_TRUE(rooms_[0].GetSprites().empty());
+  EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_FALSE(coordinator_.HasEntitySelection());
 }
 
 // ============================================================================
