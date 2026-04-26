@@ -412,7 +412,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable tests against the mac-ai build"
     },
@@ -430,7 +430,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable unit tests against the mac-ai build"
     },
@@ -448,7 +448,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable unit tests against the mac-ai-z3dk build (includes Z3dkSmoke)"
     },
@@ -466,7 +466,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable integration tests against the mac-ai build"
     },
@@ -484,7 +484,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick labeled suites against the mac-ai build"
     },
@@ -502,7 +502,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick unit suite against the mac-ai build"
     },
@@ -520,7 +520,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick core unit suite against the mac-ai build"
     },
@@ -538,7 +538,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick editor unit suite against the mac-ai build"
     },
@@ -556,7 +556,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick integration suite against the mac-ai build"
     },
@@ -607,7 +607,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Quick iteration test preset with optimized build"
     },

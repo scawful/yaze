@@ -19,6 +19,12 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace yaze {
 namespace cli {
 namespace agent {
@@ -35,8 +41,18 @@ using ::testing::SizeIs;
 class BuildToolTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    const auto* test_info =
+        ::testing::UnitTest::GetInstance()->current_test_info();
+    const std::string test_name = test_info ? test_info->name() : "unknown";
+#ifdef _WIN32
+    const int pid = _getpid();
+#else
+    const int pid = static_cast<int>(getpid());
+#endif
     // Create a temporary test directory
-    test_dir_ = std::filesystem::temp_directory_path() / "yaze_build_tool_test";
+    test_dir_ =
+        std::filesystem::temp_directory_path() /
+        ("yaze_build_tool_test_" + std::to_string(pid) + "_" + test_name);
     std::filesystem::create_directories(test_dir_);
 
     // Create a minimal CMakePresets.json for testing

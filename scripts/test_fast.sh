@@ -28,7 +28,7 @@ esac
 PRESET="${YAZE_PRESET:-$DEFAULT_PRESET}"
 BUILD_DIR="${YAZE_BUILD_DIR:-$ROOT_DIR/build_ai}"
 CONFIG="${YAZE_CONFIG:-Debug}"
-JOBS="${YAZE_JOBS:-8}"
+JOBS="${YAZE_JOBS:-4}"
 
 UNIT_REGEX_DEFAULT="^(HackManifestTest|ResourceLabelsTest|OracleProgressionStateTest|AsarWrapperTest|AsarCompilerReproTest|WaterFillZoneTest)\\."
 INTEGRATION_REGEX_DEFAULT="^DungeonSaveRegionTest\\."
@@ -150,7 +150,7 @@ Options:
   --preset <name>          CMake preset (default: ${DEFAULT_PRESET}).
   --build-dir <path>       Build directory (default: build_ai).
   --config <cfg>           Multi-config build config (Debug/RelWithDebInfo/Release). Default: Debug.
-  --jobs <n>               Parallel build/test jobs (default: 8).
+  --jobs <n>               Parallel build/test jobs (default: 4).
   --filter <regex>         Extra ctest -R filter. In fast mode, overrides the
                            unit/integration regex subsets.
   --unit-regex <regex>     Unit test-name regex passed to ctest -R.
