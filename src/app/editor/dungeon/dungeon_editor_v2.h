@@ -363,6 +363,7 @@ class DungeonEditorV2 : public Editor {
   };
   PendingUndo pending_undo_;
   bool has_pending_undo_ = false;
+  bool undo_restore_triggered_ping_ = false;
 
   struct PendingCollisionUndo {
     int room_id = -1;

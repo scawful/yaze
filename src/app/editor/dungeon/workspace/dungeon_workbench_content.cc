@@ -1047,9 +1047,12 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
 
 void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer) {
   const auto& interaction = viewer.object_interaction();
-  if (interaction.GetSelectionCount() > 0 || interaction.HasEntitySelection()) {
+  const bool has_selection =
+      interaction.GetSelectionCount() > 0 || interaction.HasEntitySelection();
+  if (has_selection && !inspector_selection_was_active_) {
     inspector_focus_ = InspectorFocus::Selection;
   }
+  inspector_selection_was_active_ = has_selection;
 
   if (ImGui::GetContentRegionAvail().x < 240.0f) {
     DrawInspectorCompactSummary(viewer);

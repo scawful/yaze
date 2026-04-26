@@ -2500,13 +2500,22 @@ absl::Status DungeonEditorV2::Undo() {
     FinalizeWaterFillUndoAction(pending_water_fill_undo_.room_id);
   }
   const std::string description = undo_manager_.GetUndoDescription();
+  undo_restore_triggered_ping_ = false;
   auto status = undo_manager_.Undo();
-  if (status.ok() && dependencies_.toast_manager) {
-    dependencies_.toast_manager->Show(
-        description.empty() ? "Undid last dungeon edit"
-                            : absl::StrFormat("Undid: %s", description),
-        ToastType::kInfo, 2.0f);
+  if (status.ok()) {
+    if (!undo_restore_triggered_ping_) {
+      if (auto* viewer = GetViewerForRoom(current_room_id_)) {
+        viewer->TriggerChangePing();
+      }
+    }
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          description.empty() ? "Undid last dungeon edit"
+                              : absl::StrFormat("Undid: %s", description),
+          ToastType::kInfo, 2.0f);
+    }
   }
+  undo_restore_triggered_ping_ = false;
   return status;
 }
 
@@ -2522,13 +2531,22 @@ absl::Status DungeonEditorV2::Redo() {
     FinalizeWaterFillUndoAction(pending_water_fill_undo_.room_id);
   }
   const std::string description = undo_manager_.GetRedoDescription();
+  undo_restore_triggered_ping_ = false;
   auto status = undo_manager_.Redo();
-  if (status.ok() && dependencies_.toast_manager) {
-    dependencies_.toast_manager->Show(
-        description.empty() ? "Redid last dungeon edit"
-                            : absl::StrFormat("Redid: %s", description),
-        ToastType::kInfo, 2.0f);
+  if (status.ok()) {
+    if (!undo_restore_triggered_ping_) {
+      if (auto* viewer = GetViewerForRoom(current_room_id_)) {
+        viewer->TriggerChangePing();
+      }
+    }
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          description.empty() ? "Redid last dungeon edit"
+                              : absl::StrFormat("Redid: %s", description),
+          ToastType::kInfo, 2.0f);
+    }
   }
+  undo_restore_triggered_ping_ = false;
   return status;
 }
 
@@ -2738,8 +2756,13 @@ void DungeonEditorV2::RestoreRoomObjects(
     return;
 
   auto& room = rooms_[room_id];
+  const auto previous_objects = room.GetTileObjects();
   room.SetTileObjects(objects);
   room.RenderRoomGraphics();
+  if (auto* viewer = GetViewerForRoom(room_id)) {
+    viewer->TriggerObjectChangePing(previous_objects, objects);
+    undo_restore_triggered_ping_ = true;
+  }
 }
 
 void DungeonEditorV2::BeginCollisionUndoSnapshot(int room_id) {
