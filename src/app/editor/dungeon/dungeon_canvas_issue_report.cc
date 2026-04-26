@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <limits>
+#include <optional>
 #include <set>
 #include <span>
 #include <string>
@@ -144,11 +145,16 @@ std::string FormatObjectTileSample(std::span<const gfx::TileInfo> tiles,
   return out;
 }
 
-std::string BuildObjectTraceSummary(Rom* rom, int room_id,
-                                    const zelda3::RoomObject& obj,
-                                    const gfx::PaletteGroup& palette_group) {
+struct ObjectTraceReport {
+  std::string summary;
+  std::vector<zelda3::ObjectDrawer::TileTrace> writes;
+};
+
+ObjectTraceReport BuildObjectTraceReport(
+    Rom* rom, int room_id, const zelda3::RoomObject& obj,
+    const gfx::PaletteGroup& palette_group) {
   if (rom == nullptr || !rom->is_loaded()) {
-    return "\nDrawer trace: unavailable (ROM not loaded)";
+    return {.summary = "\nDrawer trace: unavailable (ROM not loaded)"};
   }
 
   zelda3::ObjectDrawer drawer(rom, room_id, /*room_gfx_buffer=*/nullptr);
@@ -159,12 +165,12 @@ std::string BuildObjectTraceSummary(Rom* rom, int room_id,
   const auto status = drawer.DrawObject(obj, bg1, bg2, palette_group);
   drawer.ClearTraceCollector();
   if (!status.ok()) {
-    return absl::StrFormat("\nDrawer trace: unavailable (%s)",
-                           std::string(status.message()).c_str());
+    return {.summary = absl::StrFormat("\nDrawer trace: unavailable (%s)",
+                                       std::string(status.message()).c_str())};
   }
 
   if (trace.empty()) {
-    return "\nDrawer trace: status=ok writes=0";
+    return {.summary = "\nDrawer trace: status=ok writes=0"};
   }
 
   int min_x = std::numeric_limits<int>::max();
@@ -206,7 +212,73 @@ std::string BuildObjectTraceSummary(Rom* rom, int room_id,
     out += absl::StrFormat("\n  ... %zu more write(s)",
                            trace.size() - preview_count);
   }
-  return out;
+  return {.summary = std::move(out), .writes = std::move(trace)};
+}
+
+struct PaletteSamplePoint {
+  std::string label;
+  int x = 0;
+  int y = 0;
+};
+
+bool PaletteIndexMatchesTracePalette(uint8_t palette_index,
+                                     uint8_t trace_flags) {
+  if ((palette_index & 0x0F) == 0) {
+    return false;
+  }
+  const uint8_t trace_palette = static_cast<uint8_t>((trace_flags >> 3) & 0x7);
+  return static_cast<uint8_t>((palette_index >> 4) & 0x7) == trace_palette;
+}
+
+std::optional<PaletteSamplePoint> ChooseObjectTracePaletteSample(
+    std::span<const zelda3::ObjectDrawer::TileTrace> trace,
+    const zelda3::PaletteDebugger& palette_debugger) {
+  constexpr std::array<std::pair<int, int>, 6> kPreferredOffsets = {
+      std::pair{4, 4}, std::pair{3, 3}, std::pair{0, 0},
+      std::pair{7, 7}, std::pair{0, 7}, std::pair{7, 0},
+  };
+
+  for (size_t i = 0; i < trace.size(); ++i) {
+    const auto& write = trace[i];
+    const int tile_origin_x = write.x_tile * 8;
+    const int tile_origin_y = write.y_tile * 8;
+    const auto label = absl::StrFormat(
+        "object-trace[%zu] tile=(%d,%d) pal=%d", i, write.x_tile, write.y_tile,
+        static_cast<int>((write.flags >> 3) & 0x7));
+
+    for (const auto& [dx, dy] : kPreferredOffsets) {
+      const int sample_x = tile_origin_x + dx;
+      const int sample_y = tile_origin_y + dy;
+      const auto comp = palette_debugger.SamplePixelAt(sample_x, sample_y);
+      if (PaletteIndexMatchesTracePalette(comp.palette_index, write.flags)) {
+        return PaletteSamplePoint{.label = label, .x = sample_x, .y = sample_y};
+      }
+    }
+
+    for (int dy = 0; dy < 8; ++dy) {
+      for (int dx = 0; dx < 8; ++dx) {
+        const int sample_x = tile_origin_x + dx;
+        const int sample_y = tile_origin_y + dy;
+        const auto comp = palette_debugger.SamplePixelAt(sample_x, sample_y);
+        if (PaletteIndexMatchesTracePalette(comp.palette_index, write.flags)) {
+          return PaletteSamplePoint{
+              .label = label, .x = sample_x, .y = sample_y};
+        }
+      }
+    }
+  }
+
+  if (!trace.empty()) {
+    const auto& write = trace.front();
+    return PaletteSamplePoint{
+        .label = absl::StrFormat("object-trace[0] tile=(%d,%d) pal=%d fallback",
+                                 write.x_tile, write.y_tile,
+                                 static_cast<int>((write.flags >> 3) & 0x7)),
+        .x = write.x_tile * 8 + 4,
+        .y = write.y_tile * 8 + 4};
+  }
+
+  return std::nullopt;
 }
 
 std::string BuildDoorIssueSummary(const zelda3::Room::Door& door, size_t index,
@@ -397,18 +469,21 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
             "\nObject geometry: dims_px=(%d,%d) origin_px=(%d,%d) "
             "center_px=(%d,%d)",
             obj_w, obj_h, origin_x, origin_y, center_x, center_y);
-        report +=
-            BuildObjectTraceSummary(rom_, room_id, obj, current_palette_group_);
+        const auto trace_report =
+            BuildObjectTraceReport(rom_, room_id, obj, current_palette_group_);
+        report += trace_report.summary;
 
         auto& palette_debugger = zelda3::PaletteDebugger::Get();
-        auto append_sample = [&](const char* label, int sample_x,
+        auto append_sample = [&](std::string_view label, int sample_x,
                                  int sample_y) {
           const auto comp = palette_debugger.SamplePixelAt(sample_x, sample_y);
           palette_debugger.AddComparison(comp);
+          const std::string label_text(label);
           report += absl::StrFormat(
               "\nPalette sample %s (%d,%d): idx=%d expected=(%d,%d,%d) "
               "actual=(%d,%d,%d) match=%s",
-              label, sample_x, sample_y, static_cast<int>(comp.palette_index),
+              label_text.c_str(), sample_x, sample_y,
+              static_cast<int>(comp.palette_index),
               static_cast<int>(comp.expected_r),
               static_cast<int>(comp.expected_g),
               static_cast<int>(comp.expected_b),
@@ -416,9 +491,14 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
               static_cast<int>(comp.actual_b), comp.matches ? "yes" : "no");
         };
 
-        append_sample("origin", origin_x, origin_y);
-        if (center_x != origin_x || center_y != origin_y) {
-          append_sample("center", center_x, center_y);
+        if (auto trace_sample = ChooseObjectTracePaletteSample(
+                trace_report.writes, palette_debugger)) {
+          append_sample(trace_sample->label, trace_sample->x, trace_sample->y);
+        } else {
+          append_sample("geometry-origin", origin_x, origin_y);
+          if (center_x != origin_x || center_y != origin_y) {
+            append_sample("geometry-center", center_x, center_y);
+          }
         }
       }
     }

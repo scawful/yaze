@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/ui_constants.h"
+#include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
@@ -298,6 +299,52 @@ TEST(DungeonCanvasViewerNavigationTest,
   EXPECT_NE(report.find("write[0] BG1 tile="), std::string::npos);
 
   zelda3::PaletteDebugger::Get().Clear();
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     DrawIssueReportSamplesPaletteFromObjectTraceFootprint) {
+  auto& palette_debugger = zelda3::PaletteDebugger::Get();
+  palette_debugger.Clear();
+
+  std::vector<uint8_t> rom_data(1024 * 1024, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonCanvasViewer viewer(&rom);
+  zelda3::Room room;
+  zelda3::RoomObject obj(/*id=*/0xC8, /*x=*/4, /*y=*/5, /*size=*/0x11,
+                         /*layer=*/0);
+  obj.tiles_loaded_ = true;
+  obj.tiles_ = MakeObjectTiles(8);
+  room.GetTileObjects().push_back(obj);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  std::vector<uint8_t> pixels(512 * 512, 0);
+  pixels[(5 * 8) * 512 + (4 * 8)] = 0x71;
+  pixels[(5 * 8 + 4) * 512 + (4 * 8 + 4)] = 0x01;
+
+  gfx::Bitmap bitmap;
+  bitmap.Create(/*width=*/512, /*height=*/512, /*depth=*/8, pixels);
+  std::vector<SDL_Color> render_palette(256);
+  for (int i = 0; i < 256; ++i) {
+    render_palette[i] =
+        SDL_Color{static_cast<uint8_t>(i), static_cast<uint8_t>(255 - i),
+                  static_cast<uint8_t>(i / 2), 255};
+  }
+  bitmap.SetPalette(render_palette);
+  palette_debugger.SetCurrentRenderPalette(render_palette);
+  palette_debugger.SetCurrentBitmap(&bitmap);
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
+
+  EXPECT_NE(report.find("Palette sample object-trace[0] tile=(4,5) pal=0 "
+                        "(36,44): idx=1"),
+            std::string::npos);
+  EXPECT_EQ(report.find("Palette sample geometry-origin"), std::string::npos);
+  EXPECT_EQ(report.find("(32,40): idx=113"), std::string::npos);
+
+  palette_debugger.Clear();
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
