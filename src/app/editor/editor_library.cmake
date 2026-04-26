@@ -93,6 +93,7 @@ set(
   app/editor/overworld/canvas_navigation_manager.cc
   app/editor/overworld/map_refresh_coordinator.cc
   app/editor/overworld/map_texture_coordinator.cc
+  app/editor/overworld/overworld_map_metadata.cc
   app/editor/overworld/overworld_canvas_renderer.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc

@@ -1,11 +1,18 @@
 #include "app/editor/overworld/overworld_toolbar.h"
 
+#include <algorithm>
+#include <array>
+#include <cstring>
+#include <string>
+
 #include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/overworld_map_metadata.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "core/project.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
@@ -19,7 +26,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                             EntityEditMode& entity_edit_mode,
                             WorkspaceWindowManager* window_manager,
                             bool has_selection, bool scratch_has_data, Rom* rom,
-                            zelda3::Overworld* overworld) {
+                            zelda3::Overworld* overworld,
+                            project::YazeProject* project, int game_state) {
   if (!overworld || !overworld->is_loaded() || !window_manager || !rom)
     return;
 
@@ -27,6 +35,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   if (!map) {
     return;
   }
+  const auto metadata = BuildOverworldMapMetadata(*overworld, rom, project,
+                                                  current_map, game_state);
 
   gui::StyleVarGuard toolbar_style_guard(
       {{ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f)},
@@ -52,27 +62,41 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     ImGui::TableSetupColumn("Sidebar", ImGuiTableColumnFlags_WidthFixed, 44.0f);
 
     TableNextColumn();
-    ImGui::SetNextItemWidth(kComboWorldWidth);
-    int selected_world = current_world;
-    if (ImGui::Combo("##WorldSelector", &selected_world, kWorldNames, 3)) {
-      if (on_world_changed) {
-        on_world_changed(selected_world);
-      } else {
-        current_world = selected_world;
-        int local_map = current_map & 0x3F;
-        const int world_start = selected_world * 0x40;
-        const int maps_remaining = zelda3::kNumOverworldMaps - world_start;
-        if (maps_remaining > 0) {
-          if (local_map >= maps_remaining) {
-            local_map = maps_remaining - 1;
+    const char* world_buttons[] = {"LW", "DW", "SW"};
+    ImGui::PushID("WorldButtons");
+    for (int world_index = 0; world_index < 3; ++world_index) {
+      if (world_index > 0) {
+        ImGui::SameLine(0, 2);
+      }
+      if (gui::ToggleButton(world_buttons[world_index],
+                            current_world == world_index,
+                            ImVec2(30.0f, 0.0f))) {
+        if (on_world_changed) {
+          on_world_changed(world_index);
+        } else {
+          current_world = world_index;
+          int local_map = current_map & 0x3F;
+          const int world_start = world_index * 0x40;
+          const int maps_remaining = zelda3::kNumOverworldMaps - world_start;
+          if (maps_remaining > 0) {
+            if (local_map >= maps_remaining) {
+              local_map = maps_remaining - 1;
+            }
+            current_map = world_start + local_map;
           }
-          current_map = world_start + local_map;
         }
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", kWorldNames[world_index]);
+      }
     }
+    ImGui::PopID();
 
     TableNextColumn();
-    ImGui::Text("%d (0x%02X)", current_map, current_map);
+    ImGui::TextUnformatted(metadata.map_id_label.c_str());
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", metadata.map_title.c_str());
+    }
 
     TableNextColumn();
     // Use centralized version detection
@@ -124,7 +148,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     TableNextColumn();
     if (gui::ToolbarIconButton(
             current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
-            current_map_lock ? "Unlock Map" : "Lock Map")) {
+            current_map_lock ? "Unpin Map" : "Pin Map")) {
       current_map_lock = !current_map_lock;
     }
 
@@ -159,32 +183,27 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     }
 
     TableNextColumn();
-    // Entity status / ROM version plus a small amount of high-value map info.
+    // Entity status / ROM version plus high-value selected-map metadata.
     const auto& theme = AgentUI::GetTheme();
     const float context_width = ImGui::GetContentRegionAvail().x;
     const bool show_entity_context = entity_edit_mode != EntityEditMode::NONE;
     const bool show_overlay_toggle = context_width >= 132.0f;
 
-    const char* version_label = "Vanilla OW";
     ImVec4 version_color = theme.status_inactive;
     bool show_upgrade = false;
 
     switch (rom_version) {
       case zelda3::OverworldVersion::kVanilla:
-        version_label = "Vanilla OW";
         version_color = theme.text_warning_yellow;
         show_upgrade = true;
         break;
       case zelda3::OverworldVersion::kZSCustomV1:
-        version_label = "ZS OW v1";
         version_color = theme.status_active;
         break;
       case zelda3::OverworldVersion::kZSCustomV2:
-        version_label = "ZS OW v2";
         version_color = theme.status_active;
         break;
       case zelda3::OverworldVersion::kZSCustomV3:
-        version_label = "ZS OW v3";
         version_color = theme.status_success;
         break;
       default:
@@ -234,7 +253,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     if (wrote_metadata_item) {
       ImGui::SameLine();
     }
-    ImGui::TextColored(version_color, ICON_MD_INFO " %s", version_label);
+    ImGui::TextColored(version_color, ICON_MD_INFO " %s",
+                       metadata.version_label.c_str());
     wrote_metadata_item = true;
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
@@ -245,9 +265,69 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
     if (show_map_summary) {
       ImGui::SameLine();
-      ImGui::TextDisabled("Parent %02X  Pal %02X  Msg %04X", map->parent(),
-                          map->area_palette(), map->message_id());
+      ImGui::TextDisabled("%s | %s | %s | %s", metadata.map_name.c_str(),
+                          metadata.area_gfx_label.c_str(),
+                          metadata.area_palette_label.c_str(),
+                          metadata.message_label.c_str());
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s\n%s\n%s\n%s\n%s\n%s", metadata.map_title.c_str(),
+                          metadata.area_size_label.c_str(),
+                          metadata.parent_label.c_str(),
+                          metadata.sprite_gfx_label.c_str(),
+                          metadata.sprite_palette_label.c_str(),
+                          metadata.music_label.c_str());
+      }
       wrote_metadata_item = true;
+
+      ImGui::SameLine();
+      static std::array<char, 128> rename_label_buffer{};
+      static int rename_map_id = -1;
+      static std::string rename_error;
+      ImGui::BeginDisabled(project == nullptr);
+      if (gui::ToolbarIconButton(
+              ICON_MD_EDIT, project ? "Rename selected map label in project"
+                                    : "Open a project to rename map labels")) {
+        rename_map_id = current_map;
+        rename_error.clear();
+        std::strncpy(rename_label_buffer.data(), metadata.map_name.c_str(),
+                     rename_label_buffer.size() - 1);
+        rename_label_buffer[rename_label_buffer.size() - 1] = '\0';
+        ImGui::OpenPopup("RenameOverworldMapLabel");
+      }
+      ImGui::EndDisabled();
+
+      if (ImGui::BeginPopup("RenameOverworldMapLabel")) {
+        ImGui::Text("%s Map Label", ICON_MD_LABEL);
+        ImGui::TextDisabled("Map 0x%02X", rename_map_id);
+        ImGui::SetNextItemWidth(260.0f);
+        ImGui::InputText("##OverworldMapLabel", rename_label_buffer.data(),
+                         rename_label_buffer.size());
+        if (ImGui::Button(ICON_MD_CHECK " Apply")) {
+          auto status = RenameProjectResourceLabel(project, "overworld_map",
+                                                   rename_map_id,
+                                                   rename_label_buffer.data());
+          if (status.ok()) {
+            ImGui::CloseCurrentPopup();
+          } else {
+            rename_error = std::string(status.message());
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
+          auto status = RenameProjectResourceLabel(project, "overworld_map",
+                                                   rename_map_id, "");
+          if (status.ok()) {
+            rename_label_buffer[0] = '\0';
+            ImGui::CloseCurrentPopup();
+          } else {
+            rename_error = std::string(status.message());
+          }
+        }
+        if (!rename_error.empty()) {
+          ImGui::TextWrapped("%s", rename_error.c_str());
+        }
+        ImGui::EndPopup();
+      }
     }
 
     if (show_upgrade && on_upgrade_rom_version) {

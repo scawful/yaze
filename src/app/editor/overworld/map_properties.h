@@ -10,6 +10,9 @@
 
 // Forward declaration
 namespace yaze {
+namespace project {
+struct YazeProject;
+}
 namespace editor {
 class OverworldEditor;
 }
@@ -60,6 +63,10 @@ class MapPropertiesSystem {
     edit_tile16_callback_ = std::move(callback);
   }
 
+  void SetMapSelectionCallback(std::function<void(int, bool)> callback) {
+    map_selection_callback_ = std::move(callback);
+  }
+
   // Main interface methods
   void DrawCanvasToolbar(int& current_world, int& current_map,
                          bool& current_map_lock,
@@ -85,7 +92,8 @@ class MapPropertiesSystem {
                               bool& current_map_lock,
                               bool& show_map_properties_panel,
                               bool& show_custom_bg_color_editor,
-                              bool& show_overlay_editor, int current_mode = 0);
+                              bool& show_overlay_editor, int current_mode = 0,
+                              project::YazeProject* project = nullptr);
 
   // Utility methods - now call the callbacks
   void RefreshMapProperties();
@@ -146,6 +154,9 @@ class MapPropertiesSystem {
 
   // Callback for tile16 editing from context menu
   std::function<void()> edit_tile16_callback_;
+
+  // Callback for explicit map selection/pinning from the context menu.
+  std::function<void(int, bool)> map_selection_callback_;
 
   // Using centralized UI constants from ui_constants.h
 };

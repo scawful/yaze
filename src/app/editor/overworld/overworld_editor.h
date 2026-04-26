@@ -212,15 +212,22 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       current_map_ = map_id;
       current_world_ =
           map_id / 0x40;  // Calculate which world the map belongs to
+      if (const auto* map = overworld_.overworld_map(current_map_)) {
+        current_parent_ = map->parent();
+      } else {
+        current_parent_ = current_map_;
+      }
       overworld_.set_current_map(current_map_);
       overworld_.set_current_world(current_world_);
     }
   }
   void SetCurrentMap(int map_id) { set_current_map(map_id); }
+  void SelectMapForEditing(int map_id, bool respect_pin = true);
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
   int current_map_id() const { return current_map_; }
   int current_world_id() const { return current_world_; }
+  int hovered_map_id() const { return hovered_map_; }
 
   // ===========================================================================
   // Graphics Loading
@@ -600,6 +607,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int current_world_ = 0;   // 0=Light, 1=Dark, 2=Special
   int current_map_ = 0;     // Current map index (0-159)
   int current_parent_ = 0;  // Parent map for multi-area
+  int hovered_map_ = -1;    // Last map under the cursor, preview only
   int current_blockset_ = 0;
   int game_state_ = 1;      // 0=Beginning, 1=Pendants, 2=Crystals
   int current_tile16_ = 0;  // Selected tile16 for painting

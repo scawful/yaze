@@ -1,9 +1,12 @@
 #include "app/editor/overworld/map_properties.h"
 
 #include <algorithm>
+#include <array>
+#include <cstring>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/overworld_map_metadata.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/canvas/canvas.h"
@@ -434,10 +437,108 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 void MapPropertiesSystem::SetupCanvasContextMenu(
     gui::Canvas& canvas, int current_map, bool& current_map_lock,
     bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
-    bool& show_overlay_editor, int current_mode) {
-  (void)current_map;  // Used for future context-sensitive menu items
+    bool& show_overlay_editor, int current_mode,
+    project::YazeProject* project) {
   // Clear any existing context menu items
   canvas.ClearContextMenuItems();
+
+  if (overworld_ && overworld_->is_loaded() && current_map >= 0 &&
+      current_map < zelda3::kNumOverworldMaps &&
+      overworld_->overworld_map(current_map) != nullptr) {
+    const auto metadata = BuildOverworldMapMetadata(
+        *overworld_, rom_, project, current_map, CurrentGameState());
+
+    gui::CanvasMenuItem header_item =
+        gui::CanvasMenuItem::Disabled(ICON_MD_MAP " " + metadata.map_title);
+    header_item.separator_after = true;
+    canvas.AddContextMenuItem(header_item);
+
+    gui::CanvasMenuItem metadata_menu;
+    metadata_menu.label = ICON_MD_INFO " Map Metadata";
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.version_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.area_size_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.parent_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.area_gfx_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.area_palette_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.sprite_gfx_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.sprite_palette_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.music_label));
+    metadata_menu.subitems.push_back(
+        gui::CanvasMenuItem::Disabled(metadata.message_label));
+    canvas.AddContextMenuItem(metadata_menu);
+
+    if (project) {
+      const std::string popup_id =
+          absl::StrFormat("RenameOverworldMapLabelContext%02X", current_map);
+      gui::CanvasMenuItem rename_item = gui::CanvasMenuItem::WithPopup(
+          ICON_MD_EDIT " Rename Map Label", popup_id,
+          [project, current_map, initial_label = metadata.map_name,
+           popup_id]() {
+            static std::array<char, 128> label_buffer{};
+            static int active_map = -1;
+            static std::string error_message;
+            if (active_map != current_map) {
+              active_map = current_map;
+              error_message.clear();
+              std::strncpy(label_buffer.data(), initial_label.c_str(),
+                           label_buffer.size() - 1);
+              label_buffer[label_buffer.size() - 1] = '\0';
+            }
+
+            if (ImGui::BeginPopup(popup_id.c_str())) {
+              ImGui::Text("%s Map Label", ICON_MD_LABEL);
+              ImGui::TextDisabled("Map 0x%02X", current_map);
+              ImGui::SetNextItemWidth(260.0f);
+              ImGui::InputText("##OverworldContextMapLabel",
+                               label_buffer.data(), label_buffer.size());
+
+              if (ImGui::Button(ICON_MD_CHECK " Apply")) {
+                auto status = RenameProjectResourceLabel(
+                    project, "overworld_map", current_map, label_buffer.data());
+                if (status.ok()) {
+                  active_map = -1;
+                  ImGui::CloseCurrentPopup();
+                } else {
+                  error_message = std::string(status.message());
+                }
+              }
+              ImGui::SameLine();
+              if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
+                auto status = RenameProjectResourceLabel(
+                    project, "overworld_map", current_map, "");
+                if (status.ok()) {
+                  active_map = -1;
+                  ImGui::CloseCurrentPopup();
+                } else {
+                  error_message = std::string(status.message());
+                }
+              }
+              if (!error_message.empty()) {
+                ImGui::TextWrapped("%s", error_message.c_str());
+              }
+              ImGui::EndPopup();
+            }
+          });
+      canvas.AddContextMenuItem(rename_item);
+    }
+  }
+
+  gui::CanvasMenuItem select_item;
+  select_item.label = ICON_MD_CHECK " Select This Map";
+  select_item.callback = [this, current_map]() {
+    if (map_selection_callback_) {
+      map_selection_callback_(current_map, false);
+    }
+  };
+  canvas.AddContextMenuItem(select_item);
 
   // Add entity insertion submenu (only in MOUSE mode)
   if (current_mode == 0 && entity_insert_callback_) {  // 0 = EditingMode::MOUSE
@@ -511,9 +612,17 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
 
   // Add overworld-specific context menu items
   gui::CanvasMenuItem lock_item;
-  lock_item.label = current_map_lock ? "Unlock Map" : "Lock to This Map";
-  lock_item.callback = [&current_map_lock]() {
-    current_map_lock = !current_map_lock;
+  lock_item.label = current_map_lock ? ICON_MD_LOCK_OPEN " Unpin Map"
+                                     : ICON_MD_PUSH_PIN " Pin This Map";
+  lock_item.callback = [this, current_map, &current_map_lock]() {
+    if (current_map_lock) {
+      current_map_lock = false;
+      return;
+    }
+    if (map_selection_callback_) {
+      map_selection_callback_(current_map, false);
+    }
+    current_map_lock = true;
   };
   canvas.AddContextMenuItem(lock_item);
 
