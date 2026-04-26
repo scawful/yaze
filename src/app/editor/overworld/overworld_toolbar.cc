@@ -6,6 +6,7 @@
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "zelda3/common.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::editor {
@@ -57,7 +58,15 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       if (on_world_changed) {
         on_world_changed(selected_world);
       } else {
-        current_map = selected_world * 0x40 + (current_map & 0x3F);
+        int local_map = current_map & 0x3F;
+        const int world_start = selected_world * 0x40;
+        const int maps_remaining = zelda3::kNumOverworldMaps - world_start;
+        if (maps_remaining > 0) {
+          if (local_map >= maps_remaining) {
+            local_map = maps_remaining - 1;
+          }
+          current_map = world_start + local_map;
+        }
       }
     }
 

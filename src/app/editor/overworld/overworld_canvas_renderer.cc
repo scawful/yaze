@@ -69,6 +69,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->current_map_lock_, editor_->current_mode,
         editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
         has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_);
+    editor_->NormalizeCurrentSelectionState();
 
     // Toolbar toggles don't currently update canvas usage mode.
     if (old_mode != editor_->current_mode) {
@@ -419,11 +420,19 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   if (editor_->overworld_.is_loaded()) {
     // Always ensure current map graphics are loaded
     if (!editor_->current_graphics_set_.contains(editor_->current_map_)) {
-      editor_->overworld_.set_current_map(editor_->current_map_);
-      editor_->palette_ = editor_->overworld_.current_area_palette();
+      auto status = editor_->overworld_.EnsureMapBuilt(editor_->current_map_);
+      if (!status.ok()) {
+        return status;
+      }
+      const auto* map =
+          editor_->overworld_.overworld_map(editor_->current_map_);
+      if (!map) {
+        return absl::FailedPreconditionError(
+            "Current overworld map not loaded");
+      }
+      editor_->palette_ = map->current_palette();
       auto bmp = std::make_unique<gfx::Bitmap>();
-      bmp->Create(0x80, kOverworldMapSize, 0x08,
-                  editor_->overworld_.current_graphics());
+      bmp->Create(0x80, kOverworldMapSize, 0x08, map->current_graphics());
       bmp->SetPalette(editor_->palette_);
       editor_->current_graphics_set_[editor_->current_map_] = std::move(bmp);
       gfx::Arena::Get().QueueTextureCommand(
