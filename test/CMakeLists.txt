@@ -574,6 +574,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/tree_undo_stack_test.cc
     unit/editor/layout/layout_designer_panel_replace_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
+    unit/editor/user_settings_layout_defaults_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc

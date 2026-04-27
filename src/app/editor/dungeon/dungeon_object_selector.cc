@@ -199,85 +199,62 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   const int custom_count =
       obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
 
+  // Row 1: search input — full-width since this is the most-used control.
   ImGui::SetNextItemWidth(-1.0f);
   ImGui::InputTextWithHint(
       "##ObjectSearch", ICON_MD_SEARCH " Filter objects by name or hex...",
       object_search_buffer_, sizeof(object_search_buffer_));
 
+  // Row 2: category filter + clear + display popover. Display options
+  // (thumbnails toggle, grid density) are rare-use preferences hidden behind
+  // an ICON_MD_TUNE popover so the chrome stays one row instead of three.
   static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
                                         "Doors", "Decor", "Stairs"};
   const float controls_width = ImGui::GetContentRegionAvail().x;
-  const float controls_spacing = ImGui::GetStyle().ItemSpacing.x;
   const float filter_width = std::min(170.0f, controls_width);
-  float current_control_line_width = filter_width;
-  auto place_next_filter_control = [&](float next_width) {
-    if (current_control_line_width + controls_spacing + next_width <=
-        controls_width) {
-      ImGui::SameLine();
-      current_control_line_width += controls_spacing + next_width;
-    } else {
-      current_control_line_width = next_width;
-    }
-  };
-
   ImGui::SetNextItemWidth(filter_width);
   ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                IM_ARRAYSIZE(kFilterLabels));
-
-  place_next_filter_control(gui::IconSize::Small().x);
+  ImGui::SameLine();
   if (gui::ThemedIconButton(ICON_MD_CLEAR, "Clear search and category filter",
                             gui::IconSize::Small())) {
     object_search_buffer_[0] = '\0';
     object_type_filter_ = 0;
   }
-
-  const float thumbnails_width =
-      ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x +
-      ImGui::CalcTextSize(ICON_MD_IMAGE " Thumbnails").x;
-  place_next_filter_control(thumbnails_width);
-  ImGui::Checkbox(ICON_MD_IMAGE " Thumbnails", &enable_object_previews_);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "Show rendered object thumbnails in the selector.\n"
-        "Requires a room to be loaded and may cost some performance.");
+  ImGui::SameLine();
+  if (gui::ThemedIconButton(ICON_MD_TUNE, "Display options",
+                            gui::IconSize::Small())) {
+    ImGui::OpenPopup("##ObjectSelectorDisplayPopup");
   }
-
-  const char* density_labels[] = {"Small", "Medium", "Large"};
-  const char* density_short_labels[] = {"S", "M", "L"};
-  const float density_avail = ImGui::GetContentRegionAvail().x;
-  const float density_label_width = ImGui::CalcTextSize("Grid").x;
-  const float density_spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float preferred_density_segment_width = 68.0f;
-  const bool stack_density =
-      density_avail < density_label_width + density_spacing +
-                          preferred_density_segment_width * 3.0f +
-                          density_spacing * 2.0f;
-  ImGui::AlignTextToFramePadding();
-  ImGui::TextDisabled("Grid");
-  if (!stack_density) {
-    ImGui::SameLine(0.0f, density_spacing);
-  }
-  const float density_segment_width =
-      stack_density ? std::max(28.0f, (ImGui::GetContentRegionAvail().x -
-                                       density_spacing * 2.0f) /
-                                          3.0f)
-                    : preferred_density_segment_width;
-  for (int density = 0; density < 3; ++density) {
-    if (density > 0) {
-      ImGui::SameLine(0.0f, density_spacing);
-    }
-    const char* label = density_segment_width < 60.0f
-                            ? density_short_labels[density]
-                            : density_labels[density];
-    if (gui::ToggleButton(label, object_grid_density_ == density,
-                          ImVec2(density_segment_width, 0.0f))) {
-      object_grid_density_ = density;
-    }
+  if (ImGui::BeginPopup("##ObjectSelectorDisplayPopup")) {
+    ImGui::TextDisabled("Display");
+    ImGui::Checkbox(ICON_MD_IMAGE " Thumbnails", &enable_object_previews_);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s grid", density_labels[density]);
+      ImGui::SetTooltip(
+          "Show rendered object thumbnails in the selector.\n"
+          "Requires a room to be loaded and may cost some performance.");
     }
+    ImGui::Spacing();
+    ImGui::TextDisabled("Grid density");
+    static constexpr const char* kDensityLabels[] = {"Small", "Medium",
+                                                     "Large"};
+    constexpr float kDensitySegmentWidth = 84.0f;
+    const float density_spacing = ImGui::GetStyle().ItemSpacing.x;
+    for (int density = 0; density < 3; ++density) {
+      if (density > 0) {
+        ImGui::SameLine(0.0f, density_spacing);
+      }
+      if (gui::ToggleButton(kDensityLabels[density],
+                            object_grid_density_ == density,
+                            ImVec2(kDensitySegmentWidth, 0.0f))) {
+        object_grid_density_ = density;
+      }
+    }
+    ImGui::EndPopup();
   }
 
+  // Row 3: status row — count + selection chip + Custom Workshop entry.
+  // Inlines on wider drawers, wraps on narrow.
   ImGui::Spacing();
   ImGui::TextColored(theme.text_secondary_gray, "%d vanilla objects",
                      total_objects);
@@ -289,7 +266,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                        selected_object_id_,
                        zelda3::GetObjectName(selected_object_id_).c_str());
   }
-
   if (ImGui::GetContentRegionAvail().x > 180.0f) {
     ImGui::SameLine();
   }

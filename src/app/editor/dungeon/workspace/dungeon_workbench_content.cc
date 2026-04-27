@@ -721,7 +721,8 @@ void DungeonWorkbenchContent::DrawCanvasPane(
       }
       ImGui::EndChild();
 
-      const char* tool_mode = get_tool_mode_ ? get_tool_mode_() : "Select";
+      const char* tool_mode =
+          primary_viewer->object_interaction().mode_manager().GetModeName();
       bool room_dirty = false;
       if (auto* rooms = primary_viewer->rooms();
           rooms && current_room_id_ && *current_room_id_ >= 0) {
