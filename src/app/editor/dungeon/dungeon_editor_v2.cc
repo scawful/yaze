@@ -1707,8 +1707,9 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
       room_dirty = rooms_[room_id].HasUnsavedChanges();
     }
-    auto status = DungeonStatusBar::BuildState(*viewer, /*tool_mode=*/"Select",
-                                               room_dirty);
+    const char* tool_mode =
+        viewer->object_interaction().mode_manager().GetModeName();
+    auto status = DungeonStatusBar::BuildState(*viewer, tool_mode, room_dirty);
     status.workflow_mode = "Standalone";
     status.workflow_primary = false;
     status.can_undo = undo_manager_.CanUndo();

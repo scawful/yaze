@@ -141,11 +141,6 @@ class DungeonWorkbenchContent : public WindowContent {
     undo_depth_ = std::move(undo_depth);
   }
 
-  // Wire tool mode name provider (e.g., from DungeonToolset::GetToolModeName).
-  void SetToolModeProvider(std::function<const char*()> provider) {
-    get_tool_mode_ = std::move(provider);
-  }
-
   void Draw(bool* p_open) override;
 
  private:
@@ -246,9 +241,6 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<std::string()> undo_desc_;
   std::function<std::string()> redo_desc_;
   std::function<int()> undo_depth_;
-
-  // Tool mode name provider (set via SetToolModeProvider).
-  std::function<const char*()> get_tool_mode_;
 
   // Shortcut legend toggle.
   bool show_shortcut_legend_ = false;
