@@ -33,7 +33,12 @@ constexpr int kDungeonRoomCount = 0x128;
 constexpr float kDenseToolbarButtonWidth = 84.0f;
 constexpr float kMaxComparePickerWidth = 420.0f;
 constexpr float kCompareSearchListHeight = 220.0f;
-constexpr float kToolbarActionGap = 4.0f;
+// Within-cluster gap: tighter for buttons that share a purpose (pane toggles,
+// room write actions, right-cluster trio).
+constexpr float kToolbarActionGap = 6.0f;
+// Between-cluster gap: clear breathing room at conceptual boundaries
+// (toggles → nav, room actions → canvas modes, canvas modes → compare).
+constexpr float kToolbarClusterGap = 12.0f;
 
 constexpr char kToolbarPopupIdViewOptions[] = "##WorkbenchViewOptions";
 constexpr char kToolbarPopupIdCompareSearchList[] = "##CompareSearchList";
@@ -484,11 +489,13 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   // NESW arrow widget renders 4 ImGui::ArrowButtons (each ~GetFrameHeight wide
   // ≈ button_size after the StyleVarGuard above) with default item-spacing
   // gaps between them. Slight overestimate is safer than under here.
-  const float nav_w = kToolbarActionGap + 4.0f * layout.button_size +
+  // Cluster gap leads NESW (toggles → nav boundary).
+  const float nav_w = kToolbarClusterGap + 4.0f * layout.button_size +
                       3.0f * ImGui::GetStyle().ItemSpacing.x;
+  // Cluster gap leads Connected mode (room actions → canvas modes boundary).
   const float stitched_w =
-      kToolbarActionGap + workbench::CalcIconButtonWidth(
-                              kToolbarModeConnectedLabel, layout.button_size);
+      kToolbarClusterGap + workbench::CalcIconButtonWidth(
+                               kToolbarModeConnectedLabel, layout.button_size);
   const float essential_left =
       toggle_w + kToolbarActionGap + toggle_w + nav_w + stitched_w;
 
@@ -498,7 +505,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   const float dungeon_map_chunk =
       kToolbarActionGap +
       workbench::CalcIconButtonWidth(ICON_MD_MAP, layout.button_size);
-  const float compare_chunk = kToolbarActionGap + kCompactCompareButtonWidth;
+  // Cluster gap leads Compare (canvas modes → compare boundary).
+  const float compare_chunk = kToolbarClusterGap + kCompactCompareButtonWidth;
 
   constexpr float kSafetyMargin = 8.0f;
   float remaining_for_optional =
@@ -542,7 +550,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
                          &p.layout->show_right_inspector, layout.button_size,
                          "Hide inspector", "Show inspector");
 
-  ImGui::SameLine(0.0f, kToolbarActionGap);
+  ImGui::SameLine(0.0f, kToolbarClusterGap);
   DungeonRoomNavWidget::Draw("WorkbenchNav", *p.current_room_id,
                              p.on_room_selected);
 
@@ -564,11 +572,11 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
     }
   }
 
-  ImGui::SameLine(0.0f, kToolbarActionGap);
+  ImGui::SameLine(0.0f, kToolbarClusterGap);
   DrawCanvasModeSelector(p.layout, layout);
 
   if (show_compare) {
-    ImGui::SameLine(0.0f, kToolbarActionGap);
+    ImGui::SameLine(0.0f, kToolbarClusterGap);
     DrawCompareMenu(p, layout);
   }
 
