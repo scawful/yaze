@@ -59,25 +59,25 @@ void InteractionModeManager::CancelCurrentMode() {
 const char* InteractionModeManager::GetModeName() const {
   switch (current_mode_) {
     case InteractionMode::Select:
-      return "Select";
+      return tool_mode_names::kSelect;
     case InteractionMode::PlaceObject:
-      return "Place Object";
+      return tool_mode_names::kObjects;
     case InteractionMode::PlaceDoor:
-      return "Place Door";
+      return tool_mode_names::kDoors;
     case InteractionMode::PlaceSprite:
-      return "Place Sprite";
+      return tool_mode_names::kSprites;
     case InteractionMode::PlaceItem:
-      return "Place Item";
+      return tool_mode_names::kItems;
     case InteractionMode::DraggingObjects:
-      return "Dragging Objects";
+      return tool_mode_names::kDragObjects;
     case InteractionMode::DraggingEntity:
-      return "Dragging Entity";
+      return tool_mode_names::kDragEntity;
     case InteractionMode::RectangleSelect:
-      return "Rectangle Select";
+      return tool_mode_names::kRectangle;
     case InteractionMode::PaintCollision:
-      return "Paint Collision";
+      return tool_mode_names::kCollision;
     case InteractionMode::PaintWaterFill:
-      return "Paint Water Fill";
+      return tool_mode_names::kWaterFill;
     default:
       return "Unknown";
   }

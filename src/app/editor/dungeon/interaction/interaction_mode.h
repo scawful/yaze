@@ -39,6 +39,24 @@ enum class InteractionMode {
   PaintWaterFill,   // Painting water fill zones (Oracle of Secrets)
 };
 
+// Brief, user-facing tool mode display names. Single source of truth shared
+// between InteractionModeManager::GetModeName and DungeonToolset's tooltip
+// strings so the status bar, toolbar, and toolset stay in sync.
+namespace tool_mode_names {
+inline constexpr const char* kSelect = "Select";
+inline constexpr const char* kObjects = "Objects";
+inline constexpr const char* kSprites = "Sprites";
+inline constexpr const char* kItems = "Items";
+inline constexpr const char* kDoors = "Doors";
+inline constexpr const char* kChests = "Chests";
+inline constexpr const char* kEntrances = "Entrances";
+inline constexpr const char* kDragObjects = "Drag Objects";
+inline constexpr const char* kDragEntity = "Drag Entity";
+inline constexpr const char* kRectangle = "Rectangle";
+inline constexpr const char* kCollision = "Collision";
+inline constexpr const char* kWaterFill = "Water Fill";
+}  // namespace tool_mode_names
+
 /**
  * @brief Mode-specific state data
  *
