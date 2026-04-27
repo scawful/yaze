@@ -732,8 +732,9 @@ void DungeonWorkbenchContent::DrawCanvasPane(
       }
       auto status =
           DungeonStatusBar::BuildState(*primary_viewer, tool_mode, room_dirty);
-      status.workflow_mode =
-          layout_state_.show_connected_canvas_view ? "Connected" : "Workbench";
+      status.workflow_mode = layout_state_.show_connected_canvas_view
+                                 ? workflow_mode_names::kConnected
+                                 : workflow_mode_names::kWorkbench;
       status.workflow_primary = true;
       if (can_undo_)
         status.can_undo = can_undo_();

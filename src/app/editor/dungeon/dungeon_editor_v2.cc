@@ -994,9 +994,10 @@ void DungeonEditorV2::ContributeStatus(StatusBar* status_bar) {
   mode_opts.on_click = [this]() {
     ToggleWorkbenchWorkflowMode(true);
   };
-  status_bar->SetEditorMode(
-      IsWorkbenchWorkflowEnabled() ? "Workbench" : "Standalone",
-      std::move(mode_opts));
+  status_bar->SetEditorMode(IsWorkbenchWorkflowEnabled()
+                                ? workflow_mode_names::kWorkbench
+                                : workflow_mode_names::kStandalone,
+                            std::move(mode_opts));
 }
 
 absl::Status DungeonEditorV2::Save() {
@@ -1710,7 +1711,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     const char* tool_mode =
         viewer->object_interaction().mode_manager().GetModeName();
     auto status = DungeonStatusBar::BuildState(*viewer, tool_mode, room_dirty);
-    status.workflow_mode = "Standalone";
+    status.workflow_mode = workflow_mode_names::kStandalone;
     status.workflow_primary = false;
     status.can_undo = undo_manager_.CanUndo();
     status.can_redo = undo_manager_.CanRedo();
