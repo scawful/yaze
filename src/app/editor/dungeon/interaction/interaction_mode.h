@@ -57,6 +57,16 @@ inline constexpr const char* kCollision = "Collision";
 inline constexpr const char* kWaterFill = "Water Fill";
 }  // namespace tool_mode_names
 
+// Brief, user-facing workflow mode display names. Single source of truth
+// for the dungeon status bar, the global yaze status bar mode segment, and
+// any callsite that toggles between the integrated Workbench, the legacy
+// Standalone per-window flow, or the Connected canvas view.
+namespace workflow_mode_names {
+inline constexpr const char* kWorkbench = "Workbench";
+inline constexpr const char* kStandalone = "Standalone";
+inline constexpr const char* kConnected = "Connected";
+}  // namespace workflow_mode_names
+
 /**
  * @brief Mode-specific state data
  *
