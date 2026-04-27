@@ -86,8 +86,9 @@ void ScreenEditor::Initialize() {
       [this]() { DrawDungeonMapsEditor(); }));
   window_manager->RegisterWindowContent(std::make_unique<InventoryMenuPanel>(
       [this]() { DrawInventoryMenuEditor(); }));
-  window_manager->RegisterWindowContent(std::make_unique<OverworldMapScreenPanel>(
-      [this]() { DrawOverworldMapEditor(); }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<OverworldMapScreenPanel>(
+          [this]() { DrawOverworldMapEditor(); }));
   window_manager->RegisterWindowContent(std::make_unique<TitleScreenPanel>(
       [this]() { DrawTitleScreenEditor(); }));
   window_manager->RegisterWindowContent(std::make_unique<NamingScreenPanel>(
@@ -360,6 +361,9 @@ void ScreenEditor::DrawDungeonMapScreen(int i) {
   auto& current_dungeon = dungeon_maps_[selected_dungeon];
 
   floor_number = i;
+  // The dungeon-map-screen canvas is a tile picker: read-only display of
+  // dungeon room placements with click-to-select for tile16 assignment.
+  screen_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
   screen_canvas_.DrawBackground(ImVec2(325, 325));
   screen_canvas_.DrawTileSelector(64.f);
 
@@ -567,6 +571,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
       tilesheet_opts.grid_step = 32.0f;
       tilesheet_opts.render_popups = true;
 
+      tilesheet_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
       auto tilesheet_rt = gui::BeginCanvas(tilesheet_canvas_, tilesheet_opts);
 
       // Interactive tile16 selector with grid snapping
@@ -614,6 +619,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
       current_tile_opts.grid_step = 16.0f;
       current_tile_opts.render_popups = true;
 
+      current_tile_canvas_.GetConfig().role = gui::CanvasRole::kPreviewOnly;
       auto current_tile_rt =
           gui::BeginCanvas(current_tile_canvas_, current_tile_opts);
 
@@ -773,6 +779,7 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     DrawDungeonMapsRoomGfx();
 
     ImGui::TableNextColumn();
+    tilemap_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
     tilemap_canvas_.DrawBackground();
     tilemap_canvas_.DrawContextMenu();
     if (tilemap_canvas_.DrawTileSelector(16.f)) {
@@ -902,12 +909,20 @@ void ScreenEditor::DrawTitleScreenEditor() {
 }
 
 void ScreenEditor::DrawTitleScreenCompositeCanvas() {
+  // The title-screen view stacks BG1 + BG2 into one composite bitmap; the
+  // canvas is read-only relative to that output (painting goes to the BG1
+  // tilemap, which then re-renders the composite). Marking both ends lets
+  // tools tell composite outputs apart from editable scratchpads without
+  // consulting caller convention.
+  title_bg1_canvas_.GetConfig().role = gui::CanvasRole::kCompositeOutput;
   title_bg1_canvas_.DrawBackground();
   title_bg1_canvas_.DrawContextMenu();
 
   // Draw composite tilemap (BG1+BG2 stacked with transparency)
   auto& composite_bitmap = title_screen_.composite_bitmap();
   if (composite_bitmap.is_active()) {
+    composite_bitmap.metadata().purpose =
+        gfx::Bitmap::BitmapPurpose::kCompositeOutput;
     title_bg1_canvas_.DrawBitmap(composite_bitmap, 0, 0, 2.0f, 255);
   }
 
@@ -1002,6 +1017,7 @@ void ScreenEditor::DrawTitleScreenBG1Canvas() {
 }
 
 void ScreenEditor::DrawTitleScreenBG2Canvas() {
+  title_bg2_canvas_.GetConfig().role = gui::CanvasRole::kEditableScratchpad;
   title_bg2_canvas_.DrawBackground();
   title_bg2_canvas_.DrawContextMenu();
 
@@ -1047,6 +1063,7 @@ void ScreenEditor::DrawTitleScreenBG2Canvas() {
 }
 
 void ScreenEditor::DrawTitleScreenBlocksetSelector() {
+  title_blockset_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
   title_blockset_canvas_.DrawBackground();
   title_blockset_canvas_.DrawContextMenu();
 
@@ -1182,6 +1199,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
 
     // Column 1: Map Canvas
     ImGui::TableNextColumn();
+    ow_map_canvas_.GetConfig().role = gui::CanvasRole::kPreviewOnly;
     ow_map_canvas_.DrawBackground();
     ow_map_canvas_.DrawContextMenu();
 
@@ -1224,6 +1242,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
 
     // Column 2: Tileset Selector
     ImGui::TableNextColumn();
+    ow_tileset_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
     ow_tileset_canvas_.DrawBackground();
     ow_tileset_canvas_.DrawContextMenu();
 

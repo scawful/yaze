@@ -6,10 +6,11 @@
 
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gui/canvas/canvas_types.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
+#include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
-#include "imgui/imgui.h"
 
 namespace yaze {
 namespace gui {
@@ -45,6 +46,11 @@ struct CanvasConfig {
 
   // Usage tracking
   CanvasUsage usage_mode = CanvasUsage::kUnknown;
+
+  // What this canvas is for. Sibling of CanvasMode (which describes the
+  // current input behavior: paint vs. select). Editors set this once at
+  // Init time; Canvas widgets read it but do not gate behavior on it.
+  CanvasRole role = CanvasRole::kEditableScratchpad;
 
   // Callbacks for configuration changes (used by modals)
   std::function<void(const CanvasConfig&)> on_config_changed;
@@ -126,7 +132,8 @@ int GetTileIdFromPosition(ImVec2 mouse_pos, float tile_size, float scale,
                           int tiles_per_row);
 
 // Palette management utilities
-bool LoadROMPaletteGroups(zelda3::GameData* game_data, CanvasPaletteManager& palette_manager);
+bool LoadROMPaletteGroups(zelda3::GameData* game_data,
+                          CanvasPaletteManager& palette_manager);
 bool ApplyPaletteGroup(gfx::IRenderer* renderer, gfx::Bitmap* bitmap,
                        CanvasPaletteManager& palette_manager, int group_index,
                        int palette_index);

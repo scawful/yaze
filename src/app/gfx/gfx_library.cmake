@@ -49,6 +49,7 @@ endmacro()
 
 # build_cleaner:auto-maintain
 set(GFX_TYPES_SRC
+  app/gfx/types/sheet_role_palette_table.cc
   app/gfx/types/snes_color.cc
   app/gfx/types/snes_palette.cc
   app/gfx/types/snes_tile.cc

@@ -7,6 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/sprite/sprite_drawer.h"
+#include "app/editor/sprite/sprite_editor_internal.h"
 #include "app/editor/sprite/sprite_undo_actions.h"
 #include "app/editor/sprite/zsprite.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -72,8 +73,9 @@ void SpriteEditor::Initialize() {
         }
       }));
 
-  window_manager->RegisterWindowContent(std::make_unique<CustomSpriteEditorPanel>(
-      [this]() { DrawCustomSprites(); }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<CustomSpriteEditorPanel>(
+          [this]() { DrawCustomSprites(); }));
 }
 
 absl::Status SpriteEditor::Load() {
@@ -1114,11 +1116,11 @@ void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
     LoadSpritePalettes();
   }
 
-  // Initialize vanilla preview bitmap if needed
-  if (!vanilla_preview_bitmap_.is_active()) {
-    vanilla_preview_bitmap_.Create(128, 128, 8, sprite_gfx_buffer_);
-    vanilla_preview_bitmap_.Reformat(8);
-  }
+  // Initialize vanilla preview bitmap if needed. The helper also queues a
+  // CREATE texture command so canvas_rendering doesn't silently skip the
+  // draw, and stamps the bitmap as kCompositeOutput.
+  internal::EnsureSpritePreviewBitmapReady(vanilla_preview_bitmap_, 128, 128, 8,
+                                           sprite_gfx_buffer_);
 
   if (!sprite_drawer_.IsReady() || !vanilla_preview_needs_update_) {
     return;
@@ -1166,6 +1168,11 @@ void SpriteEditor::RenderVanillaSprite(const zelda3::SpriteOamLayout& layout) {
     vanilla_preview_bitmap_.SetPalette(combined_palette);
   }
 
+  // Surface pixels and palette were just mutated above; queue an UPDATE so
+  // the GPU texture reflects the new state on the next frame. Without this,
+  // the texture stays frozen at first-CREATE state forever.
+  vanilla_preview_bitmap_.UpdateTexture();
+
   vanilla_preview_needs_update_ = false;
 }
 
@@ -1192,11 +1199,16 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
     LoadSpritePalettes();
   }
 
-  // Initialize preview bitmap if needed
-  if (!sprite_preview_bitmap_.is_active()) {
-    sprite_preview_bitmap_.Create(256, 256, 8, sprite_gfx_buffer_);
-    sprite_preview_bitmap_.Reformat(8);
-  }
+  // The sprite_canvas_ displays a post-render composite (pixels come from
+  // SpriteDrawer, not direct user paint). Declaring the role lets future
+  // canvas surfaces (cursor hints, context-menu items) default appropriately.
+  sprite_canvas_.GetConfig().role = gui::CanvasRole::kCompositeOutput;
+
+  // Initialize preview bitmap if needed. The helper also queues a CREATE
+  // texture command so canvas_rendering doesn't silently skip the draw, and
+  // stamps the bitmap as kCompositeOutput.
+  internal::EnsureSpritePreviewBitmapReady(sprite_preview_bitmap_, 256, 256, 8,
+                                           sprite_gfx_buffer_);
 
   // Only render if drawer is ready
   if (sprite_drawer_.IsReady() && preview_needs_update_) {
@@ -1223,6 +1235,10 @@ void SpriteEditor::RenderZSpriteFrame(int frame_index) {
       }
       sprite_preview_bitmap_.SetPalette(combined_palette);
     }
+
+    // Surface pixels and palette were just mutated above; queue an UPDATE so
+    // the GPU texture reflects the new frame on the next paint.
+    sprite_preview_bitmap_.UpdateTexture();
 
     // Mark as updated
     preview_needs_update_ = false;
