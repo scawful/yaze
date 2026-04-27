@@ -2,7 +2,12 @@
 #define YAZE_APP_EDITOR_OVERWORLD_MAP_PROPERTIES_H
 
 #include <functional>
+#include <string>
+#include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "app/editor/overworld/overworld_property_edit.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
@@ -15,7 +20,8 @@ struct YazeProject;
 }
 namespace editor {
 class OverworldEditor;
-}
+struct SharedClipboard;
+}  // namespace editor
 }  // namespace yaze
 
 namespace yaze {
@@ -27,6 +33,12 @@ class MapPropertiesSystem {
   using RefreshCallback = std::function<void()>;
   using RefreshPaletteCallback = std::function<absl::Status()>;
   using ForceRefreshGraphicsCallback = std::function<void(int)>;
+  using PropertyEditCallback =
+      std::function<absl::Status(const OverworldPropertyEdit&)>;
+  using PropertyEditBatchCallback = std::function<absl::Status(
+      const std::vector<OverworldPropertyEdit>&, const std::string&)>;
+  using ResourceLabelEditCallback =
+      std::function<absl::Status(const std::string&, int, const std::string&)>;
 
   explicit MapPropertiesSystem(
       zelda3::Overworld* overworld, Rom* rom,
@@ -67,6 +79,18 @@ class MapPropertiesSystem {
     map_selection_callback_ = std::move(callback);
   }
 
+  void SetPropertyEditCallback(PropertyEditCallback callback) {
+    property_edit_callback_ = std::move(callback);
+  }
+
+  void SetPropertyEditBatchCallback(PropertyEditBatchCallback callback) {
+    property_edit_batch_callback_ = std::move(callback);
+  }
+
+  void SetResourceLabelEditCallback(ResourceLabelEditCallback callback) {
+    resource_label_edit_callback_ = std::move(callback);
+  }
+
   // Main interface methods
   void DrawCanvasToolbar(int& current_world, int& current_map,
                          bool& current_map_lock,
@@ -93,7 +117,18 @@ class MapPropertiesSystem {
                               bool& show_map_properties_panel,
                               bool& show_custom_bg_color_editor,
                               bool& show_overlay_editor, int current_mode = 0,
-                              project::YazeProject* project = nullptr);
+                              project::YazeProject* project = nullptr,
+                              SharedClipboard* shared_clipboard = nullptr);
+
+  absl::Status ApplyPropertyEdit(const OverworldPropertyEdit& edit);
+  absl::Status ApplyPropertyEdits(
+      const std::vector<OverworldPropertyEdit>& edits,
+      const std::string& description = {});
+  absl::Status ApplyPropertyEditDirect(const OverworldPropertyEdit& edit);
+  absl::Status CheckPropertyEditSupported(
+      const OverworldPropertyEdit& edit) const;
+  absl::StatusOr<int> ReadPropertyValue(
+      const OverworldPropertyEdit& edit) const;
 
   // Utility methods - now call the callbacks
   void RefreshMapProperties();
@@ -157,6 +192,9 @@ class MapPropertiesSystem {
 
   // Callback for explicit map selection/pinning from the context menu.
   std::function<void(int, bool)> map_selection_callback_;
+  PropertyEditCallback property_edit_callback_;
+  PropertyEditBatchCallback property_edit_batch_callback_;
+  ResourceLabelEditCallback resource_label_edit_callback_;
 
   // Using centralized UI constants from ui_constants.h
 };

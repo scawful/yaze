@@ -101,8 +101,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->ow_map_canvas_, context_map, editor_->current_map_lock_,
         editor_->show_map_properties_panel_,
         editor_->show_custom_bg_color_editor_, editor_->show_overlay_editor_,
-        static_cast<int>(editor_->current_mode),
-        editor_->dependencies_.project);
+        static_cast<int>(editor_->current_mode), editor_->dependencies_.project,
+        editor_->dependencies_.shared_clipboard);
   }
 
   // Configure canvas frame options

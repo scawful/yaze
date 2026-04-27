@@ -293,6 +293,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_item_operations_test.cc
     unit/editor/overworld_editor_state_test.cc
     unit/editor/overworld_map_metadata_test.cc
+    unit/editor/overworld_property_edit_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/zelda3/overworld_test.cc
@@ -524,8 +525,8 @@ if(YAZE_BUILD_TESTS)
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
-    unit/zelda3/resource_labels_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
+    unit/zelda3/resource_labels_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -564,9 +565,10 @@ if(YAZE_BUILD_TESTS)
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/editor/overworld_map_metadata_test.cc
-    unit/gui/property_inspector_test.cc
+    unit/editor/overworld_property_edit_test.cc
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/sprite_editor_preview_test.cc
+    unit/gui/property_inspector_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc

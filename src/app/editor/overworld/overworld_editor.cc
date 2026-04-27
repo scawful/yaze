@@ -37,6 +37,7 @@
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
+#include "app/editor/overworld/overworld_map_metadata.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
@@ -202,6 +203,19 @@ void OverworldEditor::Initialize() {
       [this](int map_index, bool respect_pin) {
         this->SelectMapForEditing(map_index, respect_pin);
       });
+  map_properties_system_->SetPropertyEditCallback(
+      [this](const OverworldPropertyEdit& edit) {
+        return this->ApplyOverworldPropertyEdit(edit);
+      });
+  map_properties_system_->SetPropertyEditBatchCallback(
+      [this](const std::vector<OverworldPropertyEdit>& edits,
+             const std::string& description) {
+        return this->ApplyOverworldPropertyEdits(edits, description);
+      });
+  map_properties_system_->SetResourceLabelEditCallback(
+      [this](const std::string& type, int id, const std::string& label) {
+        return this->RenameProjectResourceLabelWithUndo(type, id, label);
+      });
 
   // Initialize OverworldSidebar
   sidebar_ = std::make_unique<OverworldSidebar>(&overworld_, rom_,
@@ -234,6 +248,13 @@ void OverworldEditor::Initialize() {
   };
   toolbar_->on_upgrade_rom_version = [this](int) {
     ImGui::OpenPopup("UpgradeROMVersion");
+  };
+  toolbar_->on_apply_property_edit = [this](const OverworldPropertyEdit& edit) {
+    return this->ApplyOverworldPropertyEdit(edit);
+  };
+  toolbar_->on_rename_resource_label = [this](const std::string& type, int id,
+                                              const std::string& label) {
+    return this->RenameProjectResourceLabelWithUndo(type, id, label);
   };
 
   // Initialize OverworldCanvasRenderer for canvas and panel drawing
@@ -1310,6 +1331,152 @@ void OverworldEditor::FinalizePaintOperation() {
   undo_manager_.Push(std::move(action));
 
   current_paint_operation_.reset();
+}
+
+absl::Status OverworldEditor::ApplyOverworldPropertyEdit(
+    const OverworldPropertyEdit& edit, bool record_undo) {
+  if (!map_properties_system_) {
+    return absl::FailedPreconditionError("MapPropertiesSystem not initialized");
+  }
+
+  if (!record_undo) {
+    return map_properties_system_->ApplyPropertyEditDirect(edit);
+  }
+
+  FinalizePaintOperation();
+  ASSIGN_OR_RETURN(const int before_value,
+                   map_properties_system_->ReadPropertyValue(edit));
+
+  OverworldPropertyEdit before = edit;
+  before.value = before_value;
+  RETURN_IF_ERROR(map_properties_system_->ApplyPropertyEditDirect(edit));
+
+  ASSIGN_OR_RETURN(const int after_value,
+                   map_properties_system_->ReadPropertyValue(edit));
+  if (after_value == before_value) {
+    return absl::OkStatus();
+  }
+
+  OverworldPropertyEdit after = edit;
+  after.value = after_value;
+  undo_manager_.Push(std::make_unique<OverworldMapPropertyEditAction>(
+      before, after,
+      [this](const OverworldPropertyEdit& replay) {
+        return this->ApplyOverworldPropertyEdit(replay, false);
+      },
+      DescribeOverworldPropertyEdit(after)));
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::ApplyOverworldPropertyEdits(
+    const std::vector<OverworldPropertyEdit>& edits,
+    const std::string& description, bool record_undo) {
+  if (!map_properties_system_) {
+    return absl::FailedPreconditionError("MapPropertiesSystem not initialized");
+  }
+  if (edits.empty()) {
+    return absl::OkStatus();
+  }
+
+  if (!record_undo) {
+    for (const auto& edit : edits) {
+      RETURN_IF_ERROR(map_properties_system_->ApplyPropertyEditDirect(edit));
+    }
+    return absl::OkStatus();
+  }
+
+  FinalizePaintOperation();
+
+  std::vector<OverworldPropertyEdit> before_edits;
+  std::vector<OverworldPropertyEdit> after_edits;
+  before_edits.reserve(edits.size());
+  after_edits.reserve(edits.size());
+
+  for (const auto& edit : edits) {
+    if (!map_properties_system_->CheckPropertyEditSupported(edit).ok()) {
+      continue;
+    }
+
+    auto before_value = map_properties_system_->ReadPropertyValue(edit);
+    if (!before_value.ok()) {
+      for (auto it = before_edits.rbegin(); it != before_edits.rend(); ++it) {
+        (void)map_properties_system_->ApplyPropertyEditDirect(*it);
+      }
+      return before_value.status();
+    }
+
+    OverworldPropertyEdit before = edit;
+    before.value = *before_value;
+    const absl::Status apply_status =
+        map_properties_system_->ApplyPropertyEditDirect(edit);
+    if (!apply_status.ok()) {
+      for (auto it = before_edits.rbegin(); it != before_edits.rend(); ++it) {
+        (void)map_properties_system_->ApplyPropertyEditDirect(*it);
+      }
+      return apply_status;
+    }
+
+    auto after_value = map_properties_system_->ReadPropertyValue(edit);
+    if (!after_value.ok()) {
+      (void)map_properties_system_->ApplyPropertyEditDirect(before);
+      for (auto it = before_edits.rbegin(); it != before_edits.rend(); ++it) {
+        (void)map_properties_system_->ApplyPropertyEditDirect(*it);
+      }
+      return after_value.status();
+    }
+    if (*after_value == *before_value) {
+      continue;
+    }
+
+    OverworldPropertyEdit after = edit;
+    after.value = *after_value;
+    before_edits.push_back(std::move(before));
+    after_edits.push_back(std::move(after));
+  }
+
+  if (after_edits.empty()) {
+    return absl::OkStatus();
+  }
+
+  const std::string action_description =
+      description.empty()
+          ? absl::StrFormat("Edit %d overworld map properties",
+                            static_cast<int>(after_edits.size()))
+          : description;
+  undo_manager_.Push(std::make_unique<OverworldMapPropertyBatchEditAction>(
+      before_edits, after_edits,
+      [this](const OverworldPropertyEdit& replay) {
+        return this->ApplyOverworldPropertyEdit(replay, false);
+      },
+      action_description));
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::RenameProjectResourceLabelWithUndo(
+    const std::string& type, int id, const std::string& label) {
+  if (!dependencies_.project) {
+    return absl::FailedPreconditionError("No project is open");
+  }
+
+  FinalizePaintOperation();
+  const std::string before =
+      GetProjectResourceLabel(dependencies_.project, type, id);
+  RETURN_IF_ERROR(
+      RenameProjectResourceLabel(dependencies_.project, type, id, label));
+  const std::string after =
+      GetProjectResourceLabel(dependencies_.project, type, id);
+  if (after == before) {
+    return absl::OkStatus();
+  }
+
+  undo_manager_.Push(std::make_unique<OverworldProjectLabelEditAction>(
+      before, after,
+      [this, type, id](const std::string& value) {
+        return RenameProjectResourceLabel(dependencies_.project, type, id,
+                                          value);
+      },
+      absl::StrFormat("Rename %s 0x%02X", type, id)));
+  return absl::OkStatus();
 }
 
 absl::Status OverworldEditor::Undo() {

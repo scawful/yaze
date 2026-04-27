@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 
+#include "absl/status/status.h"
+#include "app/editor/overworld/overworld_property_edit.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
@@ -53,6 +55,10 @@ class OverworldToolbar {
   std::function<void(int)> on_world_changed;
   std::function<void()> on_toggle_overlay_preview;
   std::function<bool()> is_overlay_preview_enabled;
+  std::function<absl::Status(const OverworldPropertyEdit&)>
+      on_apply_property_edit;
+  std::function<absl::Status(const std::string&, int, const std::string&)>
+      on_rename_resource_label;
 
   // Scratch space callbacks
   std::function<void()> on_save_to_scratch;

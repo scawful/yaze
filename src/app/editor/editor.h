@@ -10,8 +10,9 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_manager.h"
-#include "app/editor/system/shortcut_manager.h"
+#include "app/editor/overworld/overworld_property_edit.h"
 #include "app/editor/shell/feedback/popup_manager.h"
+#include "app/editor/system/shortcut_manager.h"
 
 // Forward declaration in yaze::core namespace
 namespace yaze {
@@ -118,12 +119,16 @@ struct SharedClipboard {
   std::vector<int> overworld_tile16_ids;
   int overworld_width = 0;
   int overworld_height = 0;
+  bool has_overworld_map_metadata = false;
+  OverworldMapMetadataClipboard overworld_map_metadata;
 
   void Clear() {
     has_overworld_tile16 = false;
     overworld_tile16_ids.clear();
     overworld_width = 0;
     overworld_height = 0;
+    has_overworld_map_metadata = false;
+    overworld_map_metadata = {};
   }
 };
 

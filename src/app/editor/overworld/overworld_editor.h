@@ -576,6 +576,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RestoreItemUndoSnapshot(const OverworldItemsSnapshot& snapshot);
   void PushItemUndoAction(OverworldItemsSnapshot before,
                           std::string description);
+  absl::Status ApplyOverworldPropertyEdit(const OverworldPropertyEdit& edit,
+                                          bool record_undo = true);
+  absl::Status ApplyOverworldPropertyEdits(
+      const std::vector<OverworldPropertyEdit>& edits,
+      const std::string& description, bool record_undo = true);
+  absl::Status RenameProjectResourceLabelWithUndo(const std::string& type,
+                                                  int id,
+                                                  const std::string& label);
 
   // ===========================================================================
   // Editing Mode State
