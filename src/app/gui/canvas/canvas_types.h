@@ -14,6 +14,20 @@ enum class CanvasType { kTile, kBlock, kMap };
 enum class CanvasMode { kPaint, kSelect };
 enum class CanvasGridSize { k8x8, k16x16, k32x32, k64x64 };
 
+// Describes the role this canvas plays: what it's for, distinct from
+// CanvasMode which describes the input behavior the user is currently
+// performing. A canvas can have CanvasMode::kSelect while being either a
+// kSelectionSource (picker) or a kEditableScratchpad (rect-select-then-edit).
+//
+// Editors set this once at Init/Begin time. Canvas reads it for cursor and
+// hover-hint defaults; it does not gate operations.
+enum class CanvasRole : uint8_t {
+  kPreviewOnly,         // Read-only display (gfx-group sheet thumbnail).
+  kSelectionSource,     // Read-only tile/region picker source.
+  kEditableScratchpad,  // User-editable target (default).
+  kCompositeOutput,     // Post-render composite output.
+};
+
 struct CanvasRuntime {
   ImDrawList* draw_list = nullptr;
   ImVec2 canvas_p0 = ImVec2(0, 0);

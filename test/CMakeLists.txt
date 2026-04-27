@@ -206,6 +206,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/snes_palette_test.cc
     unit/gfx/usdasm_palette_loading_test.cc
     unit/gfx/bpp_conversion_test.cc
+    unit/gfx/sheet_role_palette_table_test.cc
     unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
@@ -246,6 +247,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/right_drawer_manager_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
+    unit/editor/sprite_editor_preview_test.cc
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
@@ -264,6 +266,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout_presets_test.cc
     unit/editor/graphics_editor_window_ids_test.cc
     unit/editor/gfx_group_workspace_state_test.cc
+    unit/editor/gfx_group_editor_render_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
@@ -522,6 +525,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/zelda3/resource_labels_test.cc
+    unit/gfx/sheet_role_palette_table_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -561,6 +565,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/map_refresh_coordinator_test.cc
     unit/editor/overworld_map_metadata_test.cc
     unit/gui/property_inspector_test.cc
+    unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/sprite_editor_preview_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
