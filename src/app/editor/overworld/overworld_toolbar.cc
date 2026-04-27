@@ -9,6 +9,7 @@
 #include "app/editor/overworld/overworld_map_metadata.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/agent_theme.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -37,6 +38,14 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   }
   const auto metadata = BuildOverworldMapMetadata(*overworld, rom, project,
                                                   current_map, game_state);
+  const auto apply_property_edit =
+      [this](const OverworldPropertyEdit& edit) -> absl::Status {
+    if (!on_apply_property_edit) {
+      return absl::FailedPreconditionError(
+          "Overworld property edit callback is not configured");
+    }
+    return on_apply_property_edit(edit);
+  };
 
   gui::StyleVarGuard toolbar_style_guard(
       {{ImGuiStyleVar_FramePadding, ImVec2(6.0f, 5.0f)},
@@ -110,9 +119,15 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       // v3+ ROM: Show all 4 area size options
       if (ImGui::Combo("##ToolbarAreaSize", &current_area_size, kAreaSizeNames,
                        4)) {
-        auto status = overworld->ConfigureMultiAreaMap(
-            current_map, static_cast<zelda3::AreaSizeEnum>(current_area_size));
-        if (status.ok()) {
+        auto status =
+            on_apply_property_edit
+                ? on_apply_property_edit({current_map,
+                                          OverworldPropertyField::kAreaSize, 0,
+                                          current_area_size})
+                : overworld->ConfigureMultiAreaMap(
+                      current_map,
+                      static_cast<zelda3::AreaSizeEnum>(current_area_size));
+        if (status.ok() && !on_apply_property_edit) {
           if (on_refresh_graphics)
             on_refresh_graphics();
           if (on_refresh_map)
@@ -130,8 +145,12 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         // limited_size is 0 (Small) or 1 (Large)
         auto size = (limited_size == 1) ? zelda3::AreaSizeEnum::LargeArea
                                         : zelda3::AreaSizeEnum::SmallArea;
-        auto status = overworld->ConfigureMultiAreaMap(current_map, size);
-        if (status.ok()) {
+        auto status = on_apply_property_edit
+                          ? on_apply_property_edit(
+                                {current_map, OverworldPropertyField::kAreaSize,
+                                 0, static_cast<int>(size)})
+                          : overworld->ConfigureMultiAreaMap(current_map, size);
+        if (status.ok() && !on_apply_property_edit) {
           if (on_refresh_graphics)
             on_refresh_graphics();
           if (on_refresh_map)
@@ -303,9 +322,13 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         ImGui::InputText("##OverworldMapLabel", rename_label_buffer.data(),
                          rename_label_buffer.size());
         if (ImGui::Button(ICON_MD_CHECK " Apply")) {
-          auto status = RenameProjectResourceLabel(project, "overworld_map",
-                                                   rename_map_id,
-                                                   rename_label_buffer.data());
+          auto status =
+              on_rename_resource_label
+                  ? on_rename_resource_label("overworld_map", rename_map_id,
+                                             rename_label_buffer.data())
+                  : RenameProjectResourceLabel(project, "overworld_map",
+                                               rename_map_id,
+                                               rename_label_buffer.data());
           if (status.ok()) {
             ImGui::CloseCurrentPopup();
           } else {
@@ -314,8 +337,11 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
-          auto status = RenameProjectResourceLabel(project, "overworld_map",
-                                                   rename_map_id, "");
+          auto status =
+              on_rename_resource_label
+                  ? on_rename_resource_label("overworld_map", rename_map_id, "")
+                  : RenameProjectResourceLabel(project, "overworld_map",
+                                               rename_map_id, "");
           if (status.ok()) {
             rename_label_buffer[0] = '\0';
             ImGui::CloseCurrentPopup();
@@ -325,6 +351,135 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         }
         if (!rename_error.empty()) {
           ImGui::TextWrapped("%s", rename_error.c_str());
+        }
+        ImGui::EndPopup();
+      }
+
+      ImGui::SameLine();
+      if (gui::ToolbarIconButton(
+              ICON_MD_TUNE,
+              "Edit selected map metadata\nGraphics, palettes, message, and "
+              "music")) {
+        ImGui::OpenPopup("OverworldToolbarMetadataEditor");
+      }
+      if (ImGui::BeginPopup("OverworldToolbarMetadataEditor")) {
+        static std::string metadata_error;
+        const auto apply_toolbar_edit = [&](const OverworldPropertyEdit& edit) {
+          const auto status = apply_property_edit(edit);
+          if (status.ok()) {
+            metadata_error.clear();
+          } else {
+            metadata_error = std::string(status.message());
+          }
+        };
+
+        ImGui::Text("%s Map 0x%02X Metadata", ICON_MD_TUNE, current_map);
+        ImGui::Separator();
+
+        if (ImGui::BeginTable("ToolbarMetadataEditor", 2,
+                              ImGuiTableFlags_SizingFixedFit)) {
+          ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
+                                  142.0f);
+          ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthFixed,
+                                  108.0f);
+
+          TableNextColumn();
+          ImGui::TextUnformatted("Area GFX");
+          TableNextColumn();
+          uint8_t area_gfx = map->area_graphics();
+          if (gui::InputHexByte("##ToolbarMetaAreaGfx", &area_gfx, 96.0f)) {
+            apply_toolbar_edit({current_map,
+                                OverworldPropertyField::kAreaGraphics, 0,
+                                area_gfx});
+          }
+
+          TableNextColumn();
+          ImGui::TextUnformatted("Area Palette");
+          TableNextColumn();
+          uint8_t area_palette = map->area_palette();
+          if (gui::InputHexByte("##ToolbarMetaAreaPalette", &area_palette,
+                                96.0f)) {
+            apply_toolbar_edit({current_map,
+                                OverworldPropertyField::kAreaPalette, 0,
+                                area_palette});
+          }
+
+          if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(
+                  rom_version)) {
+            TableNextColumn();
+            ImGui::TextUnformatted("Main Palette");
+            TableNextColumn();
+            uint8_t main_palette = map->main_palette();
+            if (gui::InputHexByte("##ToolbarMetaMainPalette", &main_palette,
+                                  96.0f)) {
+              apply_toolbar_edit({current_map,
+                                  OverworldPropertyField::kMainPalette, 0,
+                                  main_palette});
+            }
+          }
+
+          TableNextColumn();
+          ImGui::TextUnformatted("Sprite GFX");
+          TableNextColumn();
+          uint8_t sprite_gfx = map->sprite_graphics(game_state);
+          if (gui::InputHexByte("##ToolbarMetaSpriteGfx", &sprite_gfx, 96.0f)) {
+            apply_toolbar_edit({current_map,
+                                OverworldPropertyField::kSpriteGraphics,
+                                game_state, sprite_gfx});
+          }
+
+          TableNextColumn();
+          ImGui::TextUnformatted("Sprite Palette");
+          TableNextColumn();
+          uint8_t sprite_palette = map->sprite_palette(game_state);
+          if (gui::InputHexByte("##ToolbarMetaSpritePalette", &sprite_palette,
+                                96.0f)) {
+            apply_toolbar_edit({current_map,
+                                OverworldPropertyField::kSpritePalette,
+                                game_state, sprite_palette});
+          }
+
+          if (zelda3::OverworldVersionHelper::SupportsAnimatedGFX(
+                  rom_version)) {
+            TableNextColumn();
+            ImGui::TextUnformatted("Animated GFX");
+            TableNextColumn();
+            uint8_t animated_gfx = map->animated_gfx();
+            if (gui::InputHexByte("##ToolbarMetaAnimatedGfx", &animated_gfx,
+                                  96.0f)) {
+              apply_toolbar_edit({current_map,
+                                  OverworldPropertyField::kAnimatedGraphics, 0,
+                                  animated_gfx});
+            }
+          }
+
+          TableNextColumn();
+          ImGui::TextUnformatted("Message");
+          TableNextColumn();
+          uint16_t message_id = map->message_id();
+          if (gui::InputHexWord("##ToolbarMetaMessage", &message_id, 96.0f)) {
+            apply_toolbar_edit({current_map, OverworldPropertyField::kMessageId,
+                                0, message_id});
+          }
+
+          for (int i = 0; i < 4; ++i) {
+            TableNextColumn();
+            ImGui::Text("Music %d", i);
+            TableNextColumn();
+            uint8_t music = map->area_music(i);
+            const std::string id = absl::StrFormat("##ToolbarMetaMusic%d", i);
+            if (gui::InputHexByte(id.c_str(), &music, 96.0f)) {
+              apply_toolbar_edit(
+                  {current_map, OverworldPropertyField::kMusic, i, music});
+            }
+          }
+
+          ImGui::EndTable();
+        }
+
+        if (!metadata_error.empty()) {
+          ImGui::Separator();
+          ImGui::TextWrapped("%s", metadata_error.c_str());
         }
         ImGui::EndPopup();
       }

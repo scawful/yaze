@@ -13,6 +13,8 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
+#include "app/editor/overworld/overworld_property_edit.h"
+#include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
 
@@ -223,6 +225,148 @@ class OverworldItemsEditAction : public UndoAction {
   OverworldItemsSnapshot before_;
   OverworldItemsSnapshot after_;
   RestoreFn restore_;
+  std::string description_;
+};
+
+class OverworldMapPropertyEditAction : public UndoAction {
+ public:
+  using ApplyFn = std::function<absl::Status(const OverworldPropertyEdit&)>;
+
+  OverworldMapPropertyEditAction(OverworldPropertyEdit before,
+                                 OverworldPropertyEdit after, ApplyFn apply,
+                                 std::string description)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        apply_(std::move(apply)),
+        description_(std::move(description)) {}
+
+  absl::Status Undo() override {
+    if (!apply_) {
+      return absl::InternalError(
+          "OverworldMapPropertyEditAction: no apply callback");
+    }
+    return apply_(before_);
+  }
+
+  absl::Status Redo() override {
+    if (!apply_) {
+      return absl::InternalError(
+          "OverworldMapPropertyEditAction: no apply callback");
+    }
+    return apply_(after_);
+  }
+
+  std::string Description() const override { return description_; }
+
+  size_t MemoryUsage() const override {
+    return sizeof(*this) + before_.description.size() +
+           after_.description.size() + description_.size();
+  }
+
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
+
+ private:
+  OverworldPropertyEdit before_;
+  OverworldPropertyEdit after_;
+  ApplyFn apply_;
+  std::string description_;
+};
+
+class OverworldMapPropertyBatchEditAction : public UndoAction {
+ public:
+  using ApplyFn = std::function<absl::Status(const OverworldPropertyEdit&)>;
+
+  OverworldMapPropertyBatchEditAction(std::vector<OverworldPropertyEdit> before,
+                                      std::vector<OverworldPropertyEdit> after,
+                                      ApplyFn apply, std::string description)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        apply_(std::move(apply)),
+        description_(std::move(description)) {}
+
+  absl::Status Undo() override {
+    if (!apply_) {
+      return absl::InternalError(
+          "OverworldMapPropertyBatchEditAction: no apply callback");
+    }
+    for (auto it = before_.rbegin(); it != before_.rend(); ++it) {
+      RETURN_IF_ERROR(apply_(*it));
+    }
+    return absl::OkStatus();
+  }
+
+  absl::Status Redo() override {
+    if (!apply_) {
+      return absl::InternalError(
+          "OverworldMapPropertyBatchEditAction: no apply callback");
+    }
+    for (const auto& edit : after_) {
+      RETURN_IF_ERROR(apply_(edit));
+    }
+    return absl::OkStatus();
+  }
+
+  std::string Description() const override { return description_; }
+
+  size_t MemoryUsage() const override {
+    size_t total = sizeof(*this) + description_.size();
+    for (const auto& edit : before_) {
+      total += sizeof(edit) + edit.description.size();
+    }
+    for (const auto& edit : after_) {
+      total += sizeof(edit) + edit.description.size();
+    }
+    return total;
+  }
+
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
+
+ private:
+  std::vector<OverworldPropertyEdit> before_;
+  std::vector<OverworldPropertyEdit> after_;
+  ApplyFn apply_;
+  std::string description_;
+};
+
+class OverworldProjectLabelEditAction : public UndoAction {
+ public:
+  using ApplyFn = std::function<absl::Status(const std::string&)>;
+
+  OverworldProjectLabelEditAction(std::string before, std::string after,
+                                  ApplyFn apply, std::string description)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        apply_(std::move(apply)),
+        description_(std::move(description)) {}
+
+  absl::Status Undo() override {
+    if (!apply_) {
+      return absl::InternalError(
+          "OverworldProjectLabelEditAction: no apply callback");
+    }
+    return apply_(before_);
+  }
+
+  absl::Status Redo() override {
+    if (!apply_) {
+      return absl::InternalError(
+          "OverworldProjectLabelEditAction: no apply callback");
+    }
+    return apply_(after_);
+  }
+
+  std::string Description() const override { return description_; }
+
+  size_t MemoryUsage() const override {
+    return sizeof(*this) + before_.size() + after_.size() + description_.size();
+  }
+
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
+
+ private:
+  std::string before_;
+  std::string after_;
+  ApplyFn apply_;
   std::string description_;
 };
 
