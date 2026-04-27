@@ -199,7 +199,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   const int custom_count =
       obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
 
-  // Row 1: search input — full-width since this is the most-used control.
+  // Row 1: search input, full-width since this is the most-used control.
   ImGui::SetNextItemWidth(-1.0f);
   ImGui::InputTextWithHint(
       "##ObjectSearch", ICON_MD_SEARCH " Filter objects by name or hex...",
@@ -253,7 +253,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     ImGui::EndPopup();
   }
 
-  // Row 3: status row — count + selection chip + Custom Workshop entry.
+  // Row 3: status row, count + selection chip + Custom Workshop entry.
   // Inlines on wider drawers, wraps on narrow.
   ImGui::Spacing();
   ImGui::TextColored(theme.text_secondary_gray, "%d vanilla objects",

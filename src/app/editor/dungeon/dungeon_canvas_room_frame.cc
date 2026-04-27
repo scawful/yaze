@@ -41,6 +41,11 @@ void DungeonCanvasViewer::SyncCanvasConfigFromViewerState() {
   auto canvas_config = canvas_.GetConfig();
   canvas_config.enable_grid = show_grid_;
   canvas_config.grid_step = static_cast<float>(custom_grid_size_);
+  // Main dungeon canvas is an editable scratchpad: users paint tiles into
+  // the room and manipulate object/sprite/door entities directly. Declaring
+  // the role lets future canvas surfaces default appropriately without each
+  // editor re-encoding the policy.
+  canvas_config.role = gui::CanvasRole::kEditableScratchpad;
   canvas_.ApplyConfigSnapshot(canvas_config);
   canvas_.SetShowBuiltinContextMenu(true);
 }
