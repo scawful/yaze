@@ -857,6 +857,11 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
 
   if (!connected_canvas_initialized_) {
     connected_canvas_.set_global_scale(kConnectedCanvasDefaultScale);
+    // The connected-room matrix is a read-only graph view of neighbor rooms;
+    // editing happens in the main canvas only. Declaring kPreviewOnly lets
+    // future canvas surfaces (cursors, context-menu defaults) skip
+    // edit-affordances on this surface without each call site repeating it.
+    connected_canvas_.GetConfig().role = gui::CanvasRole::kPreviewOnly;
     connected_canvas_initialized_ = true;
   }
   connected_canvas_.set_global_scale(
