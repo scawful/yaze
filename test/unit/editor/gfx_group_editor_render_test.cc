@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <vector>
 
+#include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "gtest/gtest.h"
@@ -78,6 +79,78 @@ TEST_F(GfxGroupEditorRenderTest, InactiveButSurfacedSheetGetsActivated) {
 
   EXPECT_TRUE(sheet.is_active());
   EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+}
+
+// EnsureCompositeBitmapTextureQueued mirrors EnsureSheetTextureQueued but
+// stamps purpose=kCompositeOutput and additionally honors modified() to queue
+// UPDATE for re-rendered composites. These tests pin the truth table that
+// fixes the A3/A4 first-frame composite race; if the helper changes shape,
+// these tests force the consumer to be re-validated.
+constexpr int kCompositeWidth = 256;
+constexpr int kCompositeHeight = 256;
+
+gfx::Bitmap MakeCompositeBitmap() {
+  gfx::Bitmap bmp;
+  std::vector<uint8_t> pixels(kCompositeWidth * kCompositeHeight, 0);
+  bmp.Create(kCompositeWidth, kCompositeHeight, 8, pixels);
+  return bmp;
+}
+
+TEST_F(GfxGroupEditorRenderTest, EnsureCompositeBitmapEmptyIsNoOp) {
+  gfx::Bitmap empty;  // No surface (TitleScreen::Create hasn't run yet).
+
+  internal::EnsureCompositeBitmapTextureQueued(empty);
+
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 0u);
+  EXPECT_FALSE(empty.is_active());
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       EnsureCompositeBitmapQueuesCreateOnFirstSight) {
+  gfx::Bitmap composite = MakeCompositeBitmap();
+  ASSERT_NE(composite.surface(), nullptr);
+  ASSERT_EQ(composite.texture(), nullptr);
+
+  internal::EnsureCompositeBitmapTextureQueued(composite);
+
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u)
+      << "First call on a textureless composite must queue exactly one CREATE";
+  EXPECT_TRUE(composite.is_active());
+  EXPECT_EQ(composite.metadata().purpose,
+            gfx::Bitmap::BitmapPurpose::kCompositeOutput)
+      << "Composites must be stamped as kCompositeOutput so canvas_rendering's "
+         "diagnostic log identifies them as composite outputs (room renderer, "
+         "title screen layer composite) rather than editable scratchpads.";
+  EXPECT_FALSE(composite.modified())
+      << "Helper clears modified after queueing CREATE so the next frame's "
+         "modified() check doesn't re-queue UPDATE for the same pixels.";
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       EnsureCompositeBitmapInactiveButSurfacedGetsActivated) {
+  gfx::Bitmap composite = MakeCompositeBitmap();
+  composite.set_active(false);
+  ASSERT_NE(composite.surface(), nullptr);
+
+  internal::EnsureCompositeBitmapTextureQueued(composite);
+
+  EXPECT_TRUE(composite.is_active());
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       EnsureCompositeBitmapPinsPurposeWithoutQueueingTwice) {
+  // Repeated calls before the queue drains keep queueing CREATE (the Arena's
+  // CREATE branch is idempotent on duplicates), but each call still stamps
+  // purpose. This is the slice-1 contract; slice-7 inherits it.
+  gfx::Bitmap composite = MakeCompositeBitmap();
+
+  internal::EnsureCompositeBitmapTextureQueued(composite);
+  internal::EnsureCompositeBitmapTextureQueued(composite);
+
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 2u);
+  EXPECT_EQ(composite.metadata().purpose,
+            gfx::Bitmap::BitmapPurpose::kCompositeOutput);
 }
 
 }  // namespace

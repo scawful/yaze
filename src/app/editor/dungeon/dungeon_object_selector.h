@@ -55,8 +55,16 @@ class DungeonObjectSelector {
   void set_current_palette_group_id(uint64_t id) {
     current_palette_group_id_ = id;
   }
+  // Replace the active palette group used by preview rendering. The preview
+  // cache is keyed on (object_id, subtype, room.blockset(), room.palette()),
+  // none of which capture the *contents* of the palette group: switching
+  // dungeons between two palette banks that happen to use the same numeric
+  // slot value will keep cache hits valid by key but stale by color. Since
+  // the cache rebuilds in well under a frame, we conservatively invalidate
+  // on every palette-group swap rather than fingerprint the group.
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group) {
     current_palette_group_ = palette_group;
+    InvalidatePreviewCache();
   }
   void SetCurrentPaletteId(uint64_t palette_id) {
     current_palette_id_ = palette_id;
@@ -87,6 +95,13 @@ class DungeonObjectSelector {
 
   // Invalidate preview and layout caches (e.g., after new custom object added)
   void InvalidatePreviewCache();
+
+  // Test-only inspection. Increments every time InvalidatePreviewCache runs
+  // so unit tests can pin behavioral contracts (e.g. SetCurrentPaletteGroup
+  // must invalidate) without needing a full rendering pipeline.
+  std::size_t preview_cache_invalidations_for_testing() const {
+    return preview_cache_invalidations_;
+  }
 
  private:
   bool MatchesObjectFilter(int obj_id, int filter_type);
@@ -165,6 +180,10 @@ class DungeonObjectSelector {
   int cached_preview_room_id_ = -1;
 
   std::map<uint32_t, zelda3::ObjectTileLayout> layout_cache_;
+
+  // Bumped by InvalidatePreviewCache() to give tests a way to assert the
+  // cache invalidation contract without poking at the cache directly.
+  std::size_t preview_cache_invalidations_ = 0;
 
   bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
                           gfx::BackgroundBuffer** out);

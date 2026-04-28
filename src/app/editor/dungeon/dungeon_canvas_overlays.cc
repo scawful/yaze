@@ -3,6 +3,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
@@ -383,16 +384,12 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
     return nullptr;
   }
 
-  if (!composite.texture()) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &composite);
-    composite.set_modified(false);
-  } else if (composite.modified()) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &composite);
-    composite.set_modified(false);
-  }
-
+  // Closes the A3 first-frame race for the dungeon room composite, mirroring
+  // the title-screen path (A4). The helper queues CREATE on first sight,
+  // queues UPDATE when RoomLayerManager::CompositeToOutput marked the bitmap
+  // modified, and stamps metadata().purpose so canvas_rendering's diagnostic
+  // log can identify the bitmap.
+  internal::EnsureCompositeBitmapTextureQueued(composite);
   return &composite;
 }
 

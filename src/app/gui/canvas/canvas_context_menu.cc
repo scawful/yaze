@@ -102,8 +102,13 @@ void CanvasContextMenu::Render(
         ImGui::Separator();
       }
 
-      // Shared built-in canvas tools.
-      if (bitmap) {
+      // Shared built-in canvas tools. Bitmap and palette mutation entries
+      // ("Pixel Format", "Edit Palette") would corrupt the underlying data
+      // for read-only roles (kPreviewOnly, kSelectionSource) whose bitmap
+      // is a shared view (gfx-group sheets, sprite atlas thumbnails). Gate
+      // them on the canvas role; view controls below stay unconditional so
+      // read-only canvases keep pan/zoom/reset.
+      if (bitmap && RoleAllowsBitmapMutation(current_config.role)) {
         RenderBitmapOperationsMenu(const_cast<gfx::Bitmap*>(bitmap));
         ImGui::Separator();
 

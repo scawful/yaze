@@ -28,6 +28,17 @@ enum class CanvasRole : uint8_t {
   kCompositeOutput,     // Post-render composite output.
 };
 
+// True when the canvas's underlying bitmap is owned by the editor and may be
+// mutated through it. False for kPreviewOnly/kSelectionSource canvases whose
+// bitmap is a shared view (gfx-group sheets, sprite atlas thumbnails) where
+// destructive operations like Reformat/SetPalette would corrupt every other
+// view of the same data. The context menu uses this to suppress
+// "Pixel Format" and "Edit Palette" entries on read-only canvases.
+constexpr bool RoleAllowsBitmapMutation(CanvasRole role) {
+  return role == CanvasRole::kEditableScratchpad ||
+         role == CanvasRole::kCompositeOutput;
+}
+
 struct CanvasRuntime {
   ImDrawList* draw_list = nullptr;
   ImVec2 canvas_p0 = ImVec2(0, 0);

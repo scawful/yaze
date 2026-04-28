@@ -178,6 +178,7 @@ void SheetBrowserView::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
   frame_opts.render_popups = preview_opts.render_popups;
 
   {
+    thumbnail_canvas_.GetConfig().role = gui::CanvasRole::kPreviewOnly;
     auto rt = gui::BeginCanvas(thumbnail_canvas_, frame_opts);
     gui::DrawBitmapPreview(rt, bitmap, preview_opts);
 

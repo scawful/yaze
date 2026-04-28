@@ -7,6 +7,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/graphics/screen_editor_internal.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -918,11 +919,15 @@ void ScreenEditor::DrawTitleScreenCompositeCanvas() {
   title_bg1_canvas_.DrawBackground();
   title_bg1_canvas_.DrawContextMenu();
 
-  // Draw composite tilemap (BG1+BG2 stacked with transparency)
+  // Draw composite tilemap (BG1+BG2 stacked with transparency).
+  // EnsureCompositeBitmapTextureQueued closes the A4 first-frame race: the
+  // composite has its CREATE queued during TitleScreen::Create(), but if the
+  // canvas draw runs before ProcessTextureQueue, texture() is still null and
+  // canvas_rendering's silent guard would drop the draw. The helper also
+  // pins metadata().purpose so the diagnostic log can name the bitmap.
   auto& composite_bitmap = title_screen_.composite_bitmap();
+  internal::EnsureCompositeBitmapTextureQueued(composite_bitmap);
   if (composite_bitmap.is_active()) {
-    composite_bitmap.metadata().purpose =
-        gfx::Bitmap::BitmapPurpose::kCompositeOutput;
     title_bg1_canvas_.DrawBitmap(composite_bitmap, 0, 0, 2.0f, 255);
   }
 
