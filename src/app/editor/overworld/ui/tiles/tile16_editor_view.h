@@ -27,8 +27,8 @@ class Tile16EditorView : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_EDIT; }
   std::string GetEditorCategory() const override { return "Overworld"; }
   int GetPriority() const override { return 15; }  // After selector (10)
-  float GetPreferredWidth() const override { return 960.0f; }
-  float GetPreferredHeight() const override { return 720.0f; }
+  float GetPreferredWidth() const override { return 1180.0f; }
+  float GetPreferredHeight() const override { return 760.0f; }
 
   void Draw(bool* p_open) override;
 };
