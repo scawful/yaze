@@ -772,14 +772,17 @@ void DungeonWorkbenchContent::DrawSelectionShelf(DungeonCanvasViewer& viewer) {
     return;
   }
 
+  // Gentle compaction only; the start_action lambda's per-button SameLine
+  // already controls inter-button spacing within a row, so don't shrink
+  // ItemSpacing.x below the theme default here.
   gui::StyleVarGuard frame_padding_guard(
       ImGuiStyleVar_FramePadding,
       ImVec2(std::max(4.0f, ImGui::GetStyle().FramePadding.x),
-             std::max(2.0f, ImGui::GetStyle().FramePadding.y - 1.0f)));
+             std::max(3.0f, ImGui::GetStyle().FramePadding.y - 1.0f)));
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
-      ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.7f),
-             std::max(2.0f, ImGui::GetStyle().ItemSpacing.y * 0.55f)));
+      ImVec2(std::max(ImGui::GetStyle().ItemSpacing.x, 4.0f),
+             std::max(3.0f, ImGui::GetStyle().ItemSpacing.y - 1.0f)));
 
   const float spacing = ImGui::GetStyle().ItemSpacing.x;
   bool first_button = true;
