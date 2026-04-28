@@ -107,14 +107,18 @@ inline void DrawPaneHeader(const char* table_id, const char* icon,
                            const char* subtitle, bool compact,
                            float action_width,
                            const std::function<void()>& draw_actions) {
+  // Pane header rows use action-cluster SameLine(0, spacing) calls for the
+  // right column; the table itself owns title-vs-actions layout. So the
+  // header guard only needs gentle vertical breathing room — don't shrink
+  // ItemSpacing.x below the theme default.
   gui::StyleVarGuard frame_padding_guard(
       ImGuiStyleVar_FramePadding,
       ImVec2(std::max(4.0f, ImGui::GetStyle().FramePadding.x),
              std::max(3.0f, ImGui::GetStyle().FramePadding.y)));
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
-      ImVec2(std::max(3.0f, ImGui::GetStyle().ItemSpacing.x * 0.65f),
-             std::max(2.0f, ImGui::GetStyle().ItemSpacing.y * 0.7f)));
+      ImVec2(std::max(ImGui::GetStyle().ItemSpacing.x, 4.0f),
+             std::max(3.0f, ImGui::GetStyle().ItemSpacing.y - 1.0f)));
 
   constexpr ImGuiTableFlags kPaneHeaderTableFlags =
       ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoPadInnerX |
