@@ -58,12 +58,16 @@ absl::Status MemoryEditor::Update() {
 }
 
 void MemoryEditor::DrawToolbar() {
-  // Modern compact toolbar with icon-only buttons
+  // Gentle compaction only; preserve theme ItemSpacing.x for SameLine() gaps.
   {
-    const float pad = gui::LayoutHelpers::GetButtonPadding();
+    const ImGuiStyle& style = ImGui::GetStyle();
     gui::StyleVarGuard toolbar_vars(
-        {{ImGuiStyleVar_FramePadding, ImVec2(pad, pad * 0.67f)},
-         {ImGuiStyleVar_ItemSpacing, ImVec2(pad * 0.67f, pad * 0.67f)}});
+        {{ImGuiStyleVar_FramePadding,
+          ImVec2(std::max(4.0f, style.FramePadding.x),
+                 std::max(3.0f, style.FramePadding.y - 1.0f))},
+         {ImGuiStyleVar_ItemSpacing,
+          ImVec2(std::max(4.0f, style.ItemSpacing.x),
+                 std::max(3.0f, style.ItemSpacing.y - 1.0f))}});
 
     if (ImGui::Button(ICON_MD_LOCATION_SEARCHING " Jump")) {
       ImGui::OpenPopup("JumpToAddress");
@@ -94,8 +98,8 @@ void MemoryEditor::DrawToolbar() {
 
     // Show current address
     if (current_address_ != 0) {
-      ImGui::TextColored(gui::GetInfoColor(),
-                         ICON_MD_LOCATION_ON " 0x%06X", current_address_);
+      ImGui::TextColored(gui::GetInfoColor(), ICON_MD_LOCATION_ON " 0x%06X",
+                         current_address_);
     }
   }
 
@@ -246,8 +250,7 @@ void MemoryEditor::DrawBookmarksPopup() {
           }
 
           ImGui::TableNextColumn();
-          ImGui::TextColored(gui::GetInfoColor(), "0x%06X",
-                             bm.address);
+          ImGui::TextColored(gui::GetInfoColor(), "0x%06X", bm.address);
 
           ImGui::TableNextColumn();
           ImGui::TextDisabled("%s", bm.description.c_str());
