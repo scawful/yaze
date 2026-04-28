@@ -40,4 +40,6 @@ This directory is the index for yaze agent protocol and coordination.
 
 ## Active Domain Briefs
 - Dungeon editor next-slice briefing:
-  [dungeon-editor-claude-briefing-2026-04-25.md](dungeon-editor-claude-briefing-2026-04-25.md)
+  [0.7.2-dungeon-handoff-2026-04-25.md](0.7.2-dungeon-handoff-2026-04-25.md)
+- Overworld editor metadata UX handoff:
+  [overworld-editor-metadata-ux-handoff-2026-04-27.md](overworld-editor-metadata-ux-handoff-2026-04-27.md)

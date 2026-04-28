@@ -3,6 +3,7 @@
 
 #include <array>
 #include <string>
+#include <vector>
 
 namespace yaze::editor {
 
@@ -23,6 +24,13 @@ enum class OverworldPropertyField {
   kSubscreenOverlay,
 };
 
+enum class OverworldMapMetadataClipboardScope {
+  kAll,
+  kGraphics,
+  kPalettes,
+  kMusicMessages,
+};
+
 struct OverworldPropertyEdit {
   int map_id = 0;
   OverworldPropertyField field = OverworldPropertyField::kAreaGraphics;
@@ -33,6 +41,8 @@ struct OverworldPropertyEdit {
 
 struct OverworldMapMetadataClipboard {
   bool valid = false;
+  OverworldMapMetadataClipboardScope scope =
+      OverworldMapMetadataClipboardScope::kAll;
   int source_map_id = 0;
   int area_size = 0;
   int area_graphics = 0;
@@ -51,7 +61,15 @@ struct OverworldMapMetadataClipboard {
 };
 
 const char* OverworldPropertyFieldName(OverworldPropertyField field);
+const char* OverworldMapMetadataClipboardScopeName(
+    OverworldMapMetadataClipboardScope scope);
 std::string DescribeOverworldPropertyEdit(const OverworldPropertyEdit& edit);
+bool CanPasteOverworldMapMetadata(
+    const OverworldMapMetadataClipboard& clipboard,
+    OverworldMapMetadataClipboardScope requested_scope);
+std::vector<OverworldPropertyEdit> BuildOverworldMetadataPasteEdits(
+    int target_map_id, const OverworldMapMetadataClipboard& clipboard,
+    OverworldMapMetadataClipboardScope requested_scope);
 
 }  // namespace yaze::editor
 

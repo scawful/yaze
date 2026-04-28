@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <string>
@@ -40,6 +41,23 @@ class OverworldPropertyEditTest : public ::testing::Test {
   std::unique_ptr<Rom> rom_;
   std::unique_ptr<zelda3::Overworld> overworld_;
 };
+
+int CountEditsForField(const std::vector<OverworldPropertyEdit>& edits,
+                       OverworldPropertyField field) {
+  return static_cast<int>(std::count_if(
+      edits.begin(), edits.end(), [field](const OverworldPropertyEdit& edit) {
+        return edit.field == field;
+      }));
+}
+
+bool HasEdit(const std::vector<OverworldPropertyEdit>& edits,
+             OverworldPropertyField field, int index, int value) {
+  return std::any_of(edits.begin(), edits.end(),
+                     [field, index, value](const OverworldPropertyEdit& edit) {
+                       return edit.field == field && edit.index == index &&
+                              edit.value == value;
+                     });
+}
 
 TEST_F(OverworldPropertyEditTest, MessageEditTargetsParentMap) {
   auto& maps = const_cast<std::vector<zelda3::OverworldMap>&>(
@@ -122,6 +140,85 @@ TEST_F(OverworldPropertyEditTest,
 
   EXPECT_EQ(map->area_graphics(), 0x33);
   EXPECT_EQ(map->main_palette(), 0x20);
+}
+
+TEST(OverworldMetadataPasteEditTest, ScopedPalettePasteOnlyBuildsPaletteEdits) {
+  OverworldMapMetadataClipboard clipboard;
+  clipboard.valid = true;
+  clipboard.scope = OverworldMapMetadataClipboardScope::kPalettes;
+  clipboard.area_palette = 0x12;
+  clipboard.main_palette = 0x34;
+  clipboard.area_specific_bg_color = 0x4567;
+  clipboard.sprite_palette = {0x20, 0x21, 0x22};
+  clipboard.area_graphics = 0x55;
+  clipboard.message_id = 0x1234;
+
+  EXPECT_TRUE(CanPasteOverworldMapMetadata(
+      clipboard, OverworldMapMetadataClipboardScope::kPalettes));
+  EXPECT_FALSE(CanPasteOverworldMapMetadata(
+      clipboard, OverworldMapMetadataClipboardScope::kGraphics));
+  EXPECT_TRUE(
+      BuildOverworldMetadataPasteEdits(
+          0x08, clipboard, OverworldMapMetadataClipboardScope::kGraphics)
+          .empty());
+
+  const auto edits = BuildOverworldMetadataPasteEdits(
+      0x08, clipboard, OverworldMapMetadataClipboardScope::kPalettes);
+
+  EXPECT_EQ(edits.size(), 6u);
+  EXPECT_TRUE(HasEdit(edits, OverworldPropertyField::kAreaPalette, 0, 0x12));
+  EXPECT_TRUE(HasEdit(edits, OverworldPropertyField::kMainPalette, 0, 0x34));
+  EXPECT_TRUE(
+      HasEdit(edits, OverworldPropertyField::kAreaSpecificBgColor, 0, 0x4567));
+  EXPECT_TRUE(HasEdit(edits, OverworldPropertyField::kSpritePalette, 2, 0x22));
+  EXPECT_EQ(CountEditsForField(edits, OverworldPropertyField::kAreaGraphics),
+            0);
+  EXPECT_EQ(CountEditsForField(edits, OverworldPropertyField::kMessageId), 0);
+}
+
+TEST(OverworldMetadataPasteEditTest, FullClipboardCanPasteScopedMetadata) {
+  OverworldMapMetadataClipboard clipboard;
+  clipboard.valid = true;
+  clipboard.scope = OverworldMapMetadataClipboardScope::kAll;
+  clipboard.area_size = static_cast<int>(zelda3::AreaSizeEnum::LargeArea);
+  clipboard.area_graphics = 0x11;
+  clipboard.animated_graphics = 0x12;
+  clipboard.custom_tilesets[7] = 0x37;
+  clipboard.sprite_graphics = {0x24, 0x25, 0x26};
+  clipboard.message_id = 0x0203;
+  clipboard.music = {0x04, 0x05, 0x06, 0x07};
+
+  EXPECT_TRUE(CanPasteOverworldMapMetadata(
+      clipboard, OverworldMapMetadataClipboardScope::kGraphics));
+  EXPECT_TRUE(CanPasteOverworldMapMetadata(
+      clipboard, OverworldMapMetadataClipboardScope::kMusicMessages));
+
+  const auto graphics_edits = BuildOverworldMetadataPasteEdits(
+      0x09, clipboard, OverworldMapMetadataClipboardScope::kGraphics);
+  EXPECT_EQ(graphics_edits.size(), 13u);
+  EXPECT_TRUE(
+      HasEdit(graphics_edits, OverworldPropertyField::kAreaGraphics, 0, 0x11));
+  EXPECT_TRUE(HasEdit(graphics_edits, OverworldPropertyField::kAnimatedGraphics,
+                      0, 0x12));
+  EXPECT_TRUE(HasEdit(graphics_edits, OverworldPropertyField::kSpriteGraphics,
+                      2, 0x26));
+  EXPECT_TRUE(
+      HasEdit(graphics_edits, OverworldPropertyField::kCustomTileset, 7, 0x37));
+  EXPECT_EQ(
+      CountEditsForField(graphics_edits, OverworldPropertyField::kAreaSize), 0);
+  EXPECT_EQ(
+      CountEditsForField(graphics_edits, OverworldPropertyField::kMessageId),
+      0);
+
+  const auto music_edits = BuildOverworldMetadataPasteEdits(
+      0x09, clipboard, OverworldMapMetadataClipboardScope::kMusicMessages);
+  EXPECT_EQ(music_edits.size(), 5u);
+  EXPECT_TRUE(
+      HasEdit(music_edits, OverworldPropertyField::kMessageId, 0, 0x0203));
+  EXPECT_TRUE(HasEdit(music_edits, OverworldPropertyField::kMusic, 3, 0x07));
+  EXPECT_EQ(
+      CountEditsForField(music_edits, OverworldPropertyField::kAreaGraphics),
+      0);
 }
 
 TEST(OverworldPropertyBatchEditActionTest, UndoRedoRestoresBatchAsOneAction) {
