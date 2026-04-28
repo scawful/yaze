@@ -3,11 +3,27 @@
 #include <gtest/gtest.h>
 
 #include "core/project.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
 namespace {
 
-TEST(OverworldMapMetadataTest, ProjectMapLabelOverridesDefaultName) {
+// RenameProjectResourceLabel calls YazeProject::InitializeResourceLabelProvider,
+// which stores &project.resource_labels in the global ResourceLabelProvider.
+// The stack-local YazeProject in these tests dies at end-of-scope, leaving a
+// dangling pointer that crashes any later test that calls GetLabel() (e.g. via
+// Sprite construction). TearDown clears the singleton even on assertion
+// failure.
+class OverworldMapMetadataTest : public ::testing::Test {
+ protected:
+  void TearDown() override {
+    auto& provider = zelda3::GetResourceLabels();
+    provider.SetProjectLabels(nullptr);
+    provider.SetHackManifest(nullptr);
+  }
+};
+
+TEST_F(OverworldMapMetadataTest, ProjectMapLabelOverridesDefaultName) {
   project::YazeProject project;
   project.resource_labels["overworld_map"]["2"] = "Custom Meadow";
 
@@ -19,7 +35,8 @@ TEST(OverworldMapMetadataTest, ProjectMapLabelOverridesDefaultName) {
   EXPECT_NE(metadata.map_title.find("Custom Meadow"), std::string::npos);
 }
 
-TEST(OverworldMapMetadataTest, RenameResourceLabelNormalizesAndClearsAliases) {
+TEST_F(OverworldMapMetadataTest,
+       RenameResourceLabelNormalizesAndClearsAliases) {
   project::YazeProject project;
   project.resource_labels["overworld_map"]["0x02"] = "Hex Meadow";
   project.resource_labels["overworld_map"]["2"] = "Old Meadow";
