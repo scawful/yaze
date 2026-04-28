@@ -187,52 +187,6 @@ OverworldMapMetadataClipboard CaptureMapMetadataClipboard(
   return clipboard;
 }
 
-std::vector<OverworldPropertyEdit> BuildMetadataPasteEdits(
-    int target_map_id, const OverworldMapMetadataClipboard& clipboard) {
-  std::vector<OverworldPropertyEdit> edits;
-  if (!clipboard.valid) {
-    return edits;
-  }
-
-  edits.push_back({target_map_id, OverworldPropertyField::kAreaSize, 0,
-                   clipboard.area_size});
-  edits.push_back({target_map_id, OverworldPropertyField::kAreaGraphics, 0,
-                   clipboard.area_graphics});
-  edits.push_back({target_map_id, OverworldPropertyField::kAreaPalette, 0,
-                   clipboard.area_palette});
-  edits.push_back({target_map_id, OverworldPropertyField::kMainPalette, 0,
-                   clipboard.main_palette});
-  edits.push_back({target_map_id, OverworldPropertyField::kAnimatedGraphics, 0,
-                   clipboard.animated_graphics});
-  edits.push_back({target_map_id, OverworldPropertyField::kMessageId, 0,
-                   clipboard.message_id});
-  edits.push_back({target_map_id, OverworldPropertyField::kSubscreenOverlay, 0,
-                   clipboard.subscreen_overlay});
-  edits.push_back({target_map_id, OverworldPropertyField::kAreaSpecificBgColor,
-                   0, clipboard.area_specific_bg_color});
-  edits.push_back({target_map_id, OverworldPropertyField::kMosaic, 0,
-                   clipboard.mosaic ? 1 : 0});
-  for (int i = 0; i < 4; ++i) {
-    edits.push_back({target_map_id, OverworldPropertyField::kMosaicExpanded, i,
-                     clipboard.mosaic_expanded[i] ? 1 : 0});
-  }
-  for (int i = 0; i < 3; ++i) {
-    edits.push_back({target_map_id, OverworldPropertyField::kSpriteGraphics, i,
-                     clipboard.sprite_graphics[i]});
-    edits.push_back({target_map_id, OverworldPropertyField::kSpritePalette, i,
-                     clipboard.sprite_palette[i]});
-  }
-  for (int i = 0; i < 4; ++i) {
-    edits.push_back(
-        {target_map_id, OverworldPropertyField::kMusic, i, clipboard.music[i]});
-  }
-  for (int i = 0; i < 8; ++i) {
-    edits.push_back({target_map_id, OverworldPropertyField::kCustomTileset, i,
-                     clipboard.custom_tilesets[i]});
-  }
-  return edits;
-}
-
 }  // namespace
 
 int MapPropertiesSystem::CurrentGameState() const {
@@ -658,46 +612,109 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
     canvas.AddContextMenuItem(metadata_menu);
 
     if (const auto* current_map_ptr = overworld_->overworld_map(current_map);
-        current_map_ptr && IsValidMapId(current_map_ptr->parent()) &&
-        current_map_ptr->parent() != current_map) {
-      gui::CanvasMenuItem select_parent_item;
-      select_parent_item.label =
-          absl::StrFormat(ICON_MD_ACCOUNT_TREE " Select Parent Map 0x%02X",
-                          current_map_ptr->parent());
-      select_parent_item.callback = [this, parent = current_map_ptr->parent()] {
-        if (map_selection_callback_) {
-          map_selection_callback_(parent, false);
+        current_map_ptr) {
+      const int parent = IsValidMapId(current_map_ptr->parent())
+                             ? current_map_ptr->parent()
+                             : current_map;
+      gui::CanvasMenuItem related_maps_menu;
+      related_maps_menu.label = ICON_MD_ACCOUNT_TREE " Related Maps";
+
+      if (parent != current_map) {
+        gui::CanvasMenuItem select_parent_item;
+        select_parent_item.label =
+            absl::StrFormat("Select Parent Map 0x%02X", parent);
+        select_parent_item.callback = [this, parent]() {
+          if (map_selection_callback_) {
+            map_selection_callback_(parent, false);
+          }
+        };
+        related_maps_menu.subitems.push_back(select_parent_item);
+      }
+
+      for (int map_id = 0; map_id < zelda3::kNumOverworldMaps; ++map_id) {
+        if (map_id == current_map ||
+            (map_id == parent && parent != current_map)) {
+          continue;
         }
-      };
-      canvas.AddContextMenuItem(select_parent_item);
+        const auto* sibling = overworld_->overworld_map(map_id);
+        if (!sibling || sibling->parent() != parent) {
+          continue;
+        }
+
+        gui::CanvasMenuItem sibling_item;
+        sibling_item.label =
+            map_id == parent
+                ? absl::StrFormat("Select Parent Map 0x%02X", map_id)
+                : absl::StrFormat("Select Sibling Map 0x%02X", map_id);
+        sibling_item.callback = [this, map_id]() {
+          if (map_selection_callback_) {
+            map_selection_callback_(map_id, false);
+          }
+        };
+        related_maps_menu.subitems.push_back(sibling_item);
+      }
+
+      if (!related_maps_menu.subitems.empty()) {
+        canvas.AddContextMenuItem(related_maps_menu);
+      }
     }
 
     if (shared_clipboard) {
-      gui::CanvasMenuItem copy_metadata_item;
-      copy_metadata_item.label = ICON_MD_CONTENT_COPY " Copy Map Metadata";
-      copy_metadata_item.callback = [this, current_map, shared_clipboard]() {
-        shared_clipboard->overworld_map_metadata =
-            CaptureMapMetadataClipboard(*overworld_, current_map);
-        shared_clipboard->has_overworld_map_metadata =
-            shared_clipboard->overworld_map_metadata.valid;
-      };
-      canvas.AddContextMenuItem(copy_metadata_item);
+      gui::CanvasMenuItem metadata_actions_menu;
+      metadata_actions_menu.label =
+          ICON_MD_CONTENT_COPY " Copy / Paste Metadata";
 
-      gui::CanvasMenuItem paste_metadata_item;
-      paste_metadata_item.label = ICON_MD_CONTENT_PASTE " Paste Map Metadata";
-      paste_metadata_item.enabled_condition = [shared_clipboard]() {
-        return shared_clipboard->has_overworld_map_metadata &&
-               shared_clipboard->overworld_map_metadata.valid;
+      auto add_metadata_actions = [&](OverworldMapMetadataClipboardScope scope,
+                                      const char* copy_label,
+                                      const char* paste_label) {
+        gui::CanvasMenuItem copy_item;
+        copy_item.label = copy_label;
+        copy_item.callback = [this, current_map, shared_clipboard, scope]() {
+          shared_clipboard->overworld_map_metadata =
+              CaptureMapMetadataClipboard(*overworld_, current_map);
+          shared_clipboard->overworld_map_metadata.scope = scope;
+          shared_clipboard->has_overworld_map_metadata =
+              shared_clipboard->overworld_map_metadata.valid;
+        };
+        metadata_actions_menu.subitems.push_back(copy_item);
+
+        gui::CanvasMenuItem paste_item;
+        paste_item.label = paste_label;
+        paste_item.enabled_condition = [shared_clipboard, scope]() {
+          return shared_clipboard->has_overworld_map_metadata &&
+                 CanPasteOverworldMapMetadata(
+                     shared_clipboard->overworld_map_metadata, scope);
+        };
+        paste_item.callback = [this, current_map, shared_clipboard, scope]() {
+          const auto edits = BuildOverworldMetadataPasteEdits(
+              current_map, shared_clipboard->overworld_map_metadata, scope);
+          (void)ApplyPropertyEdits(
+              edits,
+              absl::StrFormat(
+                  "Paste %s from 0x%02X",
+                  OverworldMapMetadataClipboardScopeName(scope),
+                  shared_clipboard->overworld_map_metadata.source_map_id));
+        };
+        paste_item.separator_after =
+            scope != OverworldMapMetadataClipboardScope::kMusicMessages;
+        metadata_actions_menu.subitems.push_back(paste_item);
       };
-      paste_metadata_item.callback = [this, current_map, shared_clipboard]() {
-        const auto edits = BuildMetadataPasteEdits(
-            current_map, shared_clipboard->overworld_map_metadata);
-        (void)ApplyPropertyEdits(
-            edits, absl::StrFormat(
-                       "Paste map metadata from 0x%02X",
-                       shared_clipboard->overworld_map_metadata.source_map_id));
-      };
-      canvas.AddContextMenuItem(paste_metadata_item);
+
+      add_metadata_actions(OverworldMapMetadataClipboardScope::kAll,
+                           ICON_MD_CONTENT_COPY " Copy Map Metadata",
+                           ICON_MD_CONTENT_PASTE " Paste Map Metadata");
+      add_metadata_actions(OverworldMapMetadataClipboardScope::kGraphics,
+                           ICON_MD_IMAGE " Copy Graphics Metadata",
+                           ICON_MD_CONTENT_PASTE " Paste Graphics Metadata");
+      add_metadata_actions(OverworldMapMetadataClipboardScope::kPalettes,
+                           ICON_MD_PALETTE " Copy Palette Metadata",
+                           ICON_MD_CONTENT_PASTE " Paste Palette Metadata");
+      add_metadata_actions(OverworldMapMetadataClipboardScope::kMusicMessages,
+                           ICON_MD_MUSIC_NOTE " Copy Music/Message Metadata",
+                           ICON_MD_CONTENT_PASTE
+                           " Paste Music/Message Metadata");
+
+      canvas.AddContextMenuItem(metadata_actions_menu);
     }
 
     if (project) {

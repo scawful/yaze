@@ -1,7 +1,7 @@
 # Overworld Editor Architecture
 
-**Status**: Draft
-**Last Updated**: 2025-11-21
+**Status**: Active
+**Last Updated**: 2026-04-28
 **Related Code**: `src/app/editor/overworld/`, `src/zelda3/overworld/`
 
 This document outlines the architecture of the Overworld Editor in YAZE.
@@ -19,6 +19,7 @@ The Overworld Editor allows users to view and modify the game's overworld maps, 
 | **OverworldMap** | `src/zelda3/overworld/` | Data model for a single overworld screen (Area). Manages its own graphics, properties, and ZSCustomOverworld data. |
 | **OverworldEntityRenderer** | `src/app/editor/overworld/` | Helper class to render entities (sprites, entrances, etc.) onto the canvas. |
 | **MapPropertiesSystem** | `src/app/editor/overworld/` | UI component for editing map-specific properties (music, palette, etc.). |
+| **OverworldToolbar** | `src/app/editor/overworld/` | Top-row world/map metadata workflow, including common ZScream-style metadata edits. |
 | **Tile16Editor** | `src/app/editor/overworld/` | Sub-editor for modifying the 16x16 tile definitions. |
 
 ## Interaction Flow
@@ -37,7 +38,46 @@ The Overworld Editor allows users to view and modify the game's overworld maps, 
 3.  **Editing**:
     *   **Tile Painting**: User selects a tile from the `Tile16Selector` (or scratch pad) and clicks on the map. `OverworldEditor` updates the `Overworld` data model (`SetTile`).
     *   **Entity Manipulation**: User can drag/drop entities. `OverworldEditor` updates the corresponding data structures in `Overworld`.
-    *   **Properties**: Changes in the `MapPropertiesSystem` update the `OverworldMap` state and trigger a re-render.
+    *   **Properties**: Toolbar, map properties, sidebar, and context-menu changes route through `MapPropertiesSystem` property edit APIs. `OverworldEditor` wraps these edits to finalize pending paint operations and push undo actions.
+
+## Metadata Editing Path
+
+Overworld metadata edits use a shared payload:
+
+- `OverworldPropertyEdit` identifies the target map, field, state/slot index,
+  and value.
+- `OverworldMapMetadataClipboard` stores a copyable map-metadata payload for
+  context-menu workflows, including scoped copy/paste for all metadata,
+  graphics-only metadata, palette-only metadata, and music/message metadata.
+
+`MapPropertiesSystem` owns direct property mutation and validation:
+
+- `ApplyPropertyEdit()` dispatches to the editor-level callback when undo
+  tracking is available.
+- `ApplyPropertyEdits()` applies a batch of property edits, used by metadata
+  paste.
+- `ApplyPropertyEditDirect()` mutates the `OverworldMap`, refreshes affected
+  graphics/palette/canvas state, and writes stable direct ROM table fields when
+  needed.
+- `ReadPropertyValue()` reads the effective before/after value for undo.
+
+`OverworldEditor` owns undo integration:
+
+- `ApplyOverworldPropertyEdit()` records a single
+  `OverworldMapPropertyEditAction`.
+- `ApplyOverworldPropertyEdits()` records one
+  `OverworldMapPropertyBatchEditAction` for multi-field operations such as
+  context-menu metadata paste.
+
+Canvas context-menu metadata paste skips fields unsupported by the loaded ROM
+version instead of aborting after partially applying earlier fields. Full-map
+metadata copies can paste either the full payload or a scoped subset; scoped
+copies only enable the matching scoped paste action so a palette copy cannot
+accidentally overwrite graphics, music, or messages.
+
+The canvas context menu also exposes related-map navigation for multi-area
+maps. Parent and sibling map entries select the clicked map's effective area
+without requiring mouse travel through the side properties area.
 
 ## Coordinate Systems
 
@@ -54,6 +94,25 @@ ALttP combines smaller maps into larger scrolling areas (e.g., 2x2).
 *   **Parent Map**: The top-left map typically holds the main properties.
 *   **Child Maps**: The other 3 maps inherit properties from the parent but contain their own tile data.
 *   **ZSCustomOverworld**: Introduces more flexible map sizing (Wide, Tall, Large). The `Overworld` class handles the logic for configuring these (`ConfigureMultiAreaMap`).
+
+Property edits that belong to the area rather than an individual child screen
+resolve through the effective parent map. This keeps child-map edits from
+silently writing duplicate metadata that the game will not use.
+
+## Vanilla vs. ZSCustomOverworld Paths
+
+The editor uses `OverworldVersionHelper` for feature gates:
+
+- Vanilla supports small and large area sizes plus vanilla metadata fields.
+- ZSCustomOverworld v1+ enables expanded-space fields such as custom tile
+  graphics.
+- ZSCustomOverworld v2+ enables main palette, area-specific background color,
+  and directional mosaic fields.
+- ZSCustomOverworld v3+ enables Wide/Tall area sizes and animated graphics.
+
+Unsupported fields fail closed for direct single-field edits. Batch metadata
+paste filters unsupported fields so a vanilla or older custom ROM can still
+receive the compatible subset of copied metadata.
 
 ## Deferred Loading
 
