@@ -1032,6 +1032,22 @@ void EditorManager::SubscribeToEvents() {
 }
 
 EditorManager::~EditorManager() {
+  // ContentRegistry::Context holds non-owning pointers into our members
+  // (event_bus_, editor_context_, user_settings_, layout_manager_, callbacks).
+  // Clear them before our members destruct so widgets that read the singleton
+  // (e.g. Canvas::set_global_scale via Context::event_bus()) don't see
+  // dangling pointers in tests that instantiate multiple EditorManagers.
+  // Clear() resets fallback state but intentionally keeps global_context for
+  // session-close semantics, so null it explicitly here.
+  ContentRegistry::Context::Clear();
+  ContentRegistry::Context::SetGlobalContext(nullptr);
+
+  // GetResourceLabels() is a process-wide singleton. RefreshResourceLabelProvider
+  // hands it a pointer to current_project_.hack_manifest, which dangles after
+  // we destruct. Clear before our members go out of scope.
+  zelda3::GetResourceLabels().SetHackManifest(nullptr);
+  zelda3::GetResourceLabels().SetProjectLabels(nullptr);
+
   // ThemeManager is a singleton that outlives us. Clear the theme-changed
   // callback so it stops calling back into a destroyed EditorManager via the
   // captured `this` pointer. Matters for unit tests that construct and destroy

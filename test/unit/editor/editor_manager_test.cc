@@ -2,10 +2,12 @@
 #include <gtest/gtest.h>
 
 #include "app/editor/editor_manager.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/platform/null_window_backend.h"
 #include "imgui/imgui.h"
+#include "zelda3/resource_labels.h"
 
 namespace yaze {
 namespace editor {
@@ -70,6 +72,29 @@ TEST_F(EditorManagerTest, PublicAPISurface) {
   // We can't easily test DrawMainMenuBar without a full ImGui setup,
   // but we can verify it compiles.
   // editor_manager_->DrawMainMenuBar();
+}
+
+// Regression: ~EditorManager must clear the static singletons that hold
+// non-owning pointers into its members. Without this, a subsequent test that
+// reads e.g. ContentRegistry::Context::event_bus() (via Canvas::set_global_scale)
+// or zelda3::GetResourceLabels() (via Sprite::Sprite -> ResolveSpriteName)
+// dereferences freed memory.
+TEST(EditorManagerLifecycleTest, DestructorClearsSingletonPointers) {
+  ImGuiContext* ctx = ImGui::CreateContext();
+  ImGui::SetCurrentContext(ctx);
+  unsigned char* pixels;
+  int width = 0;
+  int height = 0;
+  ImGui::GetIO().Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+  {
+    EditorManager manager;
+    EXPECT_NE(ContentRegistry::Context::event_bus(), nullptr);
+  }
+  EXPECT_EQ(ContentRegistry::Context::event_bus(), nullptr);
+  EXPECT_EQ(zelda3::GetResourceLabels().GetAllProjectLabels(), nullptr);
+
+  ImGui::DestroyContext(ctx);
 }
 
 TEST(EditorManagerStartupFlagsTest, ParsesCategoryAliasAndFullEditorName) {
