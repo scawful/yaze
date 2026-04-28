@@ -225,6 +225,7 @@ void LinkSpriteView::DrawPreviewCanvas() {
     frame_opts.draw_grid = true;
     frame_opts.grid_step = grid_step;
 
+    preview_canvas_.GetConfig().role = gui::CanvasRole::kPreviewOnly;
     auto rt = gui::BeginCanvas(preview_canvas_, frame_opts);
 
     auto& sheet = link_sheets_[selected_sheet_];

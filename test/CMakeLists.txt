@@ -211,6 +211,7 @@ if(YAZE_BUILD_TESTS)
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
+    unit/gui/canvas_context_menu_role_test.cc
     unit/gui/canvas_coordinate_sync_test.cc
     unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
@@ -267,6 +268,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/graphics_editor_window_ids_test.cc
     unit/editor/gfx_group_workspace_state_test.cc
     unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
@@ -283,6 +285,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
+    unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/object_tile_editor_panel_test.cc
     unit/editor/toast_dedup_test.cc
@@ -526,6 +529,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
+    unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
@@ -556,6 +560,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
@@ -567,6 +572,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/overworld_map_metadata_test.cc
     unit/editor/overworld_property_edit_test.cc
     unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/sprite_editor_preview_test.cc
     unit/gui/property_inspector_test.cc
     unit/gui/resize_handles_test.cc

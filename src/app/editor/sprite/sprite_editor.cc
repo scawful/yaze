@@ -318,6 +318,7 @@ void SpriteEditor::DrawCurrentSheets() {
       preview_needs_update_ = true;
     }
 
+    graphics_sheet_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
     graphics_sheet_canvas_.DrawBackground();
     graphics_sheet_canvas_.DrawContextMenu();
     graphics_sheet_canvas_.DrawTileSelector(32);

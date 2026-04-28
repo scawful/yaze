@@ -5,6 +5,7 @@
 #include <string_view>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/graphics/palette_controls_panel_internal.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/core/icons.h"
@@ -18,61 +19,11 @@ namespace yaze {
 namespace editor {
 
 using gfx::kPaletteGroupAddressesKeys;
+using internal::GetPaletteRowCount;
+using internal::GetPaletteRowLayout;
+using internal::PaletteRowLayout;
 
 namespace {
-struct PaletteRowLayout {
-  int colors_per_row;
-  bool has_explicit_transparent;
-};
-
-PaletteRowLayout GetPaletteRowLayout(std::string_view group_name,
-                                     size_t palette_size) {
-  if (group_name == "ow_main" || group_name == "ow_aux" ||
-      group_name == "ow_animated" || group_name == "sprites_aux1" ||
-      group_name == "sprites_aux2" || group_name == "sprites_aux3") {
-    return {7, false};
-  }
-  if (group_name == "global_sprites" || group_name == "armors" ||
-      group_name == "dungeon_main") {
-    return {15, false};
-  }
-  if (group_name == "hud" || group_name == "ow_mini_map") {
-    return {16, true};
-  }
-  if (group_name == "swords") {
-    return {3, false};
-  }
-  if (group_name == "shields") {
-    return {4, false};
-  }
-  if (group_name == "grass") {
-    return {3, false};
-  }
-  if (group_name == "3d_object") {
-    return {8, false};
-  }
-
-  if (palette_size % 16 == 0) {
-    return {16, true};
-  }
-  if (palette_size % 15 == 0) {
-    return {15, false};
-  }
-  if (palette_size % 7 == 0) {
-    return {7, false};
-  }
-
-  int fallback = palette_size > 0 ? static_cast<int>(palette_size) : 1;
-  return {fallback, false};
-}
-
-int GetPaletteRowCount(size_t palette_size, int colors_per_row) {
-  if (colors_per_row <= 0) {
-    return 1;
-  }
-  return static_cast<int>((palette_size + colors_per_row - 1) / colors_per_row);
-}
-
 bool ComputePaletteSlice(std::string_view group_name,
                          const gfx::SnesPalette& palette, int row_index,
                          size_t& out_offset, int& out_length) {

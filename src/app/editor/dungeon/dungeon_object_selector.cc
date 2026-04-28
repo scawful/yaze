@@ -621,6 +621,7 @@ zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
 void DungeonObjectSelector::InvalidatePreviewCache() {
   preview_cache_.clear();
   layout_cache_.clear();
+  ++preview_cache_invalidations_;
 }
 
 bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,

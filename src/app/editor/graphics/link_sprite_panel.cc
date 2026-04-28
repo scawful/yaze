@@ -29,8 +29,7 @@ void LinkSpritePanel::Draw(bool* p_open) {
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
     auto status = LoadLinkSheets();
     if (!status.ok()) {
-      ImGui::TextColored(gui::GetErrorColor(),
-                         "Failed to load Link sheets: %s",
+      ImGui::TextColored(gui::GetErrorColor(), "Failed to load Link sheets: %s",
                          status.message().data());
       return;
     }
@@ -65,8 +64,7 @@ absl::Status LinkSpritePanel::Update() {
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
     auto status = LoadLinkSheets();
     if (!status.ok()) {
-      ImGui::TextColored(gui::GetErrorColor(),
-                         "Failed to load Link sheets: %s",
+      ImGui::TextColored(gui::GetErrorColor(), "Failed to load Link sheets: %s",
                          status.message().data());
       return status;
     }
@@ -121,8 +119,7 @@ void LinkSpritePanel::DrawToolbar() {
   // Unsaved changes indicator
   if (has_unsaved_changes_) {
     ImGui::SameLine();
-    ImGui::TextColored(gui::GetWarningColor(),
-                       ICON_MD_EDIT " [Unsaved]");
+    ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT " [Unsaved]");
   }
 }
 
@@ -228,6 +225,7 @@ void LinkSpritePanel::DrawPreviewCanvas() {
     frame_opts.draw_grid = true;
     frame_opts.grid_step = grid_step;
 
+    preview_canvas_.GetConfig().role = gui::CanvasRole::kPreviewOnly;
     auto rt = gui::BeginCanvas(preview_canvas_, frame_opts);
 
     auto& sheet = link_sheets_[selected_sheet_];
