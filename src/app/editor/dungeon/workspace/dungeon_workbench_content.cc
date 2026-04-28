@@ -1157,10 +1157,13 @@ void DungeonWorkbenchContent::BuildRoomDungeonCache() {
 
 void DungeonWorkbenchContent::DrawInspector(DungeonCanvasViewer& viewer,
                                             bool compact) {
+  // Gentle compaction only; inspector sections own their own internal
+  // spacing (collapsing-header headers, action buttons), so let the theme
+  // defaults shape inter-section breathing room here.
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
-      ImVec2(std::max(4.0f, ImGui::GetStyle().ItemSpacing.x * 0.75f),
-             std::max(4.0f, ImGui::GetStyle().ItemSpacing.y * 0.7f)));
+      ImVec2(std::max(ImGui::GetStyle().ItemSpacing.x, 4.0f),
+             std::max(4.0f, ImGui::GetStyle().ItemSpacing.y - 1.0f)));
   DrawInspectorShelf(viewer, compact);
 }
 
