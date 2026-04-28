@@ -422,6 +422,9 @@ class Tile16Editor : public gfx::GfxContext {
     return tile8_preview_bmp_;
   }
   int current_tile16() const { return current_tile16_; }
+  int selected_tile16_for_testing() const {
+    return blockset_selector_.GetSelectedTileID();
+  }
   int current_tile8() const { return current_tile8_; }
   int active_quadrant() const { return active_quadrant_; }
   void set_active_quadrant(int quadrant) {

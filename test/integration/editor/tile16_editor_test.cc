@@ -343,6 +343,16 @@ TEST_F(Tile16EditorSyntheticFixture,
   EXPECT_EQ(bmp->GetPixel(8, 8), 0x18);
 }
 
+TEST_F(Tile16EditorSyntheticFixture, SetCurrentTileSyncsBlocksetSelection) {
+  ASSERT_TRUE(editor_->SetCurrentTile(7).ok());
+  EXPECT_EQ(editor_->current_tile16(), 7);
+  EXPECT_EQ(editor_->selected_tile16_for_testing(), 7);
+
+  ASSERT_TRUE(editor_->SetCurrentTile(42).ok());
+  EXPECT_EQ(editor_->current_tile16(), 42);
+  EXPECT_EQ(editor_->selected_tile16_for_testing(), 42);
+}
+
 TEST_F(Tile16EditorSyntheticFixture,
        RefreshAllPalettesRecolorsTile8SourceToBrushPalette) {
   ASSERT_TRUE(editor_->SetCurrentTile(0).ok());

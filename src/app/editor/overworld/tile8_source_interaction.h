@@ -59,6 +59,38 @@ inline float ComputeTile8SourceDisplayScale(float available_width_px,
                     min_scale, max_scale);
 }
 
+inline float ComputeTile8SourcePanelHeight(float available_height_px,
+                                           int source_bitmap_height_px,
+                                           float display_scale,
+                                           float preferred_height_px = 0.0f,
+                                           float min_height_px = 220.0f,
+                                           float max_height_px = 520.0f) {
+  if (min_height_px <= 0.0f) {
+    min_height_px = 1.0f;
+  }
+  max_height_px = std::max(min_height_px, max_height_px);
+
+  constexpr float kVerticalChromeAllowance = 18.0f;
+  const float sheet_height =
+      source_bitmap_height_px > 0 && display_scale > 0.0f
+          ? (static_cast<float>(source_bitmap_height_px) * display_scale) +
+                kVerticalChromeAllowance
+          : max_height_px;
+
+  float target_height =
+      preferred_height_px > 0.0f ? preferred_height_px : sheet_height;
+  target_height = std::clamp(target_height, min_height_px, max_height_px);
+
+  if (available_height_px <= 0.0f) {
+    return target_height;
+  }
+
+  const float clamped_max_height =
+      std::min(max_height_px, std::max(1.0f, available_height_px));
+  const float clamped_min_height = std::min(min_height_px, clamped_max_height);
+  return std::clamp(target_height, clamped_min_height, clamped_max_height);
+}
+
 }  // namespace editor
 }  // namespace yaze
 

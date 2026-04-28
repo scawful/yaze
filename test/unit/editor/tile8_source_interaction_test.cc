@@ -62,5 +62,33 @@ TEST(Tile8SourceInteractionTest, ComputesResponsiveDisplayScale) {
                   1.5f);
 }
 
+TEST(Tile8SourceInteractionTest, ComputesResizableSourcePanelHeight) {
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/720.0f,
+                      /*source_bitmap_height_px=*/512,
+                      /*display_scale=*/2.0f),
+                  520.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/260.0f,
+                      /*source_bitmap_height_px=*/512,
+                      /*display_scale=*/2.0f,
+                      /*preferred_height_px=*/320.0f),
+                  260.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/120.0f,
+                      /*source_bitmap_height_px=*/512,
+                      /*display_scale=*/2.0f,
+                      /*preferred_height_px=*/320.0f),
+                  120.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/0.0f,
+                      /*source_bitmap_height_px=*/0,
+                      /*display_scale=*/0.0f),
+                  520.0f);
+}
+
 }  // namespace
 }  // namespace yaze::editor
