@@ -452,14 +452,16 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       ResolveToolbarLayout(std::max(ImGui::GetContentRegionAvail().x, 1.0f));
   bool request_panel_mode = false;
 
+  // Gentle compaction only; kToolbarActionGap/ClusterGap own inter-button
+  // spacing, so don't shrink ItemSpacing.x below the theme default here.
   const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
   gui::StyleVarGuard frame_pad_guard(
       ImGuiStyleVar_FramePadding, ImVec2(std::max(4.0f, frame_pad.x - 1.0f),
-                                         std::max(2.0f, frame_pad.y - 2.0f)));
+                                         std::max(3.0f, frame_pad.y - 1.0f)));
   gui::StyleVarGuard item_spacing_guard(
       ImGuiStyleVar_ItemSpacing,
-      ImVec2(std::max(3.0f, layout.spacing * 0.55f),
-             std::max(2.0f, ImGui::GetStyle().ItemSpacing.y - 2.0f)));
+      ImVec2(std::max(layout.spacing, 4.0f),
+             std::max(3.0f, ImGui::GetStyle().ItemSpacing.y - 1.0f)));
   // ── Width budget ──────────────────────────────────────────────────
   // Compute right-cluster total (View Options + optional Panel Mode + Room
   // Matrix) so we know how much horizontal space the right side will claim,
