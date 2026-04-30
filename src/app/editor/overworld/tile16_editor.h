@@ -174,6 +174,8 @@ class Tile16Editor : public gfx::GfxContext {
                                    const gfx::Bitmap* source_tile = nullptr);
   absl::Status HandleTile16CanvasClick(const ImVec2& tile_position,
                                        bool left_click, bool right_click);
+  static ImVec2 Tile16PreviewDisplayPixelToTilePosition(
+      const ImVec2& display_position);
 
   absl::Status UpdateTile16Edit();
 
@@ -497,6 +499,8 @@ class Tile16Editor : public gfx::GfxContext {
   bool grid_snap_enabled_ = true;
   bool show_tile_info_ = true;
   bool show_palette_preview_ = true;
+  bool show_tile_grid_ = true;
+  bool show_tile_collision_ids_ = false;
   int tile8_stamp_size_ = 1;  // ZScream parity: 1x, 2x, 4x tile8 stamping.
   bool highlight_tile8_usage_ = false;
   float tile8_source_display_scale_ = 4.0f;
@@ -618,21 +622,12 @@ class Tile16Editor : public gfx::GfxContext {
   // tile position. Consolidates the repeated 16x16 copy loops.
   void CopyTile16ToAtlas(int tile_id);
 
-  // Draw the top header row and mode toggle buttons for the editor.
-  void DrawEditorHeader(bool show_debug_info);
-  void DrawEditorHeaderToggles(bool* show_debug_info,
-                               bool* show_advanced_controls);
-
   // Draw the compact action/status row for staged Tile16 edits.
   absl::Status DrawCompactActionStatusRow(bool has_pending,
                                           bool current_tile_pending,
                                           int pending_count,
                                           bool* show_debug_info,
                                           bool* show_advanced_controls);
-
-  // Draw the sticky staged-state strip (pending/commit/discard controls).
-  void DrawStagedStateBar(bool has_pending, bool current_tile_pending,
-                          int pending_count);
 
   // Draw brush palette controls and tile palette metadata controls.
   absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
@@ -644,10 +639,6 @@ class Tile16Editor : public gfx::GfxContext {
 
   // Draw primary local edit controls in the right action column.
   absl::Status DrawPrimaryActionControls();
-
-  // Draw sticky action rail pinned to the bottom of the editor.
-  absl::Status DrawBottomActionRail(bool has_pending, bool current_tile_pending,
-                                    int pending_count);
 };
 
 }  // namespace editor
