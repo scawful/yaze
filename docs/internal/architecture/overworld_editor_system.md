@@ -1,7 +1,7 @@
 # Overworld Editor Architecture
 
 **Status**: Active
-**Last Updated**: 2026-04-28
+**Last Updated**: 2026-04-29
 **Related Code**: `src/app/editor/overworld/`, `src/zelda3/overworld/`
 
 This document outlines the architecture of the Overworld Editor in YAZE.
@@ -49,6 +49,9 @@ Overworld metadata edits use a shared payload:
 - `OverworldMapMetadataClipboard` stores a copyable map-metadata payload for
   context-menu workflows, including scoped copy/paste for all metadata,
   graphics-only metadata, palette-only metadata, and music/message metadata.
+- `DescribeOverworldMapMetadataClipboard()` gives both the toolbar and canvas
+  context menu the same user-facing description of the copied scope and source
+  map.
 
 `MapPropertiesSystem` owns direct property mutation and validation:
 
@@ -78,6 +81,12 @@ accidentally overwrite graphics, music, or messages.
 The canvas context menu also exposes related-map navigation for multi-area
 maps. Parent and sibling map entries select the clicked map's effective area
 without requiring mouse travel through the side properties area.
+
+The toolbar mirrors ZScream-style top-row metadata editing while also showing
+the current scoped metadata clipboard when one exists. The metadata popup
+includes project-label rows for referenced graphics, palette, message, and
+music IDs so Oracle projects can name hack-specific resources directly from the
+map context instead of opening the global label manager.
 
 ## Coordinate Systems
 

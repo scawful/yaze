@@ -69,7 +69,8 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->current_map_lock_, editor_->current_mode,
         editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
         has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_,
-        editor_->dependencies_.project, editor_->game_state_);
+        editor_->dependencies_.project, editor_->game_state_,
+        editor_->dependencies_.shared_clipboard);
     editor_->NormalizeCurrentSelectionState();
 
     // Toolbar toggles don't currently update canvas usage mode.

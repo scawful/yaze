@@ -110,14 +110,25 @@ std::string MusicLabelForState(const zelda3::OverworldMap& map,
                                int game_state) {
   const int clamped_state = std::clamp(game_state, 0, 2);
   const int music_id = map.area_music(clamped_state);
-  std::string label = zelda3::GetResourceLabels().GetLabel(
-      zelda3::ResourceType::kMusic, music_id);
   if (std::string project_label =
           GetProjectResourceLabel(project, "overworld_music", music_id);
       !project_label.empty()) {
-    label = project_label;
+    return LabelWithId("Music", music_id, project_label);
   }
+  std::string label = zelda3::GetResourceLabels().GetLabel(
+      zelda3::ResourceType::kMusic, music_id);
   return LabelWithId("Music", music_id, label);
+}
+
+std::string ProjectOrProviderLabel(const project::YazeProject* project,
+                                   const std::string& project_type,
+                                   zelda3::ResourceType provider_type, int id) {
+  if (std::string project_label =
+          GetProjectResourceLabel(project, project_type, id);
+      !project_label.empty()) {
+    return project_label;
+  }
+  return zelda3::GetResourceLabels().GetLabel(provider_type, id);
 }
 
 }  // namespace
@@ -196,8 +207,9 @@ OverworldMapMetadata BuildOverworldMapMetadata(
 
   metadata.area_gfx_label =
       LabelWithId("Area GFX", map->area_graphics(),
-                  zelda3::GetResourceLabels().GetLabel(
-                      zelda3::ResourceType::kGraphics, map->area_graphics()));
+                  ProjectOrProviderLabel(project, "graphics",
+                                         zelda3::ResourceType::kGraphics,
+                                         map->area_graphics()));
 
   metadata.area_palette_label =
       LabelWithId("Area Pal", map->area_palette(),
@@ -209,10 +221,11 @@ OverworldMapMetadata BuildOverworldMapMetadata(
                   GetProjectResourceLabel(project, "overworld_main_palette",
                                           map->main_palette()));
 
-  metadata.sprite_gfx_label = LabelWithId(
-      "Sprite GFX", map->sprite_graphics(0),
-      zelda3::GetResourceLabels().GetLabel(zelda3::ResourceType::kGraphics,
-                                           map->sprite_graphics(0)));
+  metadata.sprite_gfx_label =
+      LabelWithId("Sprite GFX", map->sprite_graphics(0),
+                  ProjectOrProviderLabel(project, "graphics",
+                                         zelda3::ResourceType::kGraphics,
+                                         map->sprite_graphics(0)));
 
   metadata.sprite_palette_label =
       LabelWithId("Sprite Pal", map->sprite_palette(0),
@@ -221,8 +234,9 @@ OverworldMapMetadata BuildOverworldMapMetadata(
 
   metadata.animated_gfx_label =
       LabelWithId("Anim GFX", map->animated_gfx(),
-                  zelda3::GetResourceLabels().GetLabel(
-                      zelda3::ResourceType::kGraphics, map->animated_gfx()));
+                  ProjectOrProviderLabel(project, "graphics",
+                                         zelda3::ResourceType::kGraphics,
+                                         map->animated_gfx()));
 
   metadata.message_label = LabelWithId(
       "Msg", map->message_id(),

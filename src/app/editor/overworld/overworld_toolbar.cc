@@ -5,6 +5,8 @@
 #include <cstring>
 #include <string>
 
+#include "absl/strings/str_format.h"
+#include "app/editor/editor.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/overworld_map_metadata.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -22,13 +24,30 @@ namespace yaze::editor {
 using ImGui::BeginTable;
 using ImGui::TableNextColumn;
 
+namespace {
+
+struct ToolbarResourceLabelTarget {
+  std::string title;
+  std::string type;
+  int id = 0;
+  int hex_width = 2;
+};
+
+std::string FormatResourceId(int id, int width) {
+  return width <= 2 ? absl::StrFormat("0x%02X", id)
+                    : absl::StrFormat("0x%04X", id);
+}
+
+}  // namespace
+
 void OverworldToolbar::Draw(int& current_world, int& current_map,
                             bool& current_map_lock, EditingMode& current_mode,
                             EntityEditMode& entity_edit_mode,
                             WorkspaceWindowManager* window_manager,
                             bool has_selection, bool scratch_has_data, Rom* rom,
                             zelda3::Overworld* overworld,
-                            project::YazeProject* project, int game_state) {
+                            project::YazeProject* project, int game_state,
+                            SharedClipboard* shared_clipboard) {
   if (!overworld || !overworld->is_loaded() || !window_manager || !rom)
     return;
 
@@ -207,6 +226,9 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     const float context_width = ImGui::GetContentRegionAvail().x;
     const bool show_entity_context = entity_edit_mode != EntityEditMode::NONE;
     const bool show_overlay_toggle = context_width >= 132.0f;
+    const bool has_metadata_clipboard =
+        shared_clipboard && shared_clipboard->has_overworld_map_metadata &&
+        shared_clipboard->overworld_map_metadata.valid;
 
     ImVec4 version_color = theme.status_inactive;
     bool show_upgrade = false;
@@ -280,6 +302,21 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           "ROM version determines available overworld features.\n"
           "v2+: Custom BG colors, main palettes\n"
           "v3+: Wide/Tall maps, custom tile GFX, animated GFX");
+    }
+
+    if (has_metadata_clipboard && context_width >= 440.0f) {
+      ImGui::SameLine();
+      ImGui::TextColored(theme.text_secondary_gray, ICON_MD_CONTENT_PASTE " %s",
+                         OverworldMapMetadataClipboardScopeName(
+                             shared_clipboard->overworld_map_metadata.scope));
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            "%s\nPaste from the canvas context menu onto the hovered map.",
+            DescribeOverworldMapMetadataClipboard(
+                shared_clipboard->overworld_map_metadata)
+                .c_str());
+      }
+      wrote_metadata_item = true;
     }
 
     if (show_map_summary) {
@@ -364,12 +401,46 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
       if (ImGui::BeginPopup("OverworldToolbarMetadataEditor")) {
         static std::string metadata_error;
+        static std::array<char, 128> resource_label_buffer{};
+        static std::string resource_label_type;
+        static std::string resource_label_title;
+        static std::string resource_label_error;
+        static int resource_label_id = -1;
+        static int resource_label_hex_width = 2;
         const auto apply_toolbar_edit = [&](const OverworldPropertyEdit& edit) {
           const auto status = apply_property_edit(edit);
           if (status.ok()) {
             metadata_error.clear();
           } else {
             metadata_error = std::string(status.message());
+          }
+        };
+        const auto begin_resource_label_edit =
+            [&](const ToolbarResourceLabelTarget& target) {
+              resource_label_title = target.title;
+              resource_label_type = target.type;
+              resource_label_id = target.id;
+              resource_label_hex_width = target.hex_width;
+              resource_label_error.clear();
+              const std::string current_label =
+                  GetProjectResourceLabel(project, target.type, target.id);
+              std::strncpy(resource_label_buffer.data(), current_label.c_str(),
+                           resource_label_buffer.size() - 1);
+              resource_label_buffer[resource_label_buffer.size() - 1] = '\0';
+              ImGui::OpenPopup("OverworldMetadataResourceLabel");
+            };
+        auto apply_resource_label = [&](const std::string& label) {
+          auto status =
+              on_rename_resource_label
+                  ? on_rename_resource_label(resource_label_type,
+                                             resource_label_id, label)
+                  : RenameProjectResourceLabel(project, resource_label_type,
+                                               resource_label_id, label);
+          if (status.ok()) {
+            resource_label_error.clear();
+            ImGui::CloseCurrentPopup();
+          } else {
+            resource_label_error = std::string(status.message());
           }
         };
 
@@ -475,6 +546,102 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           }
 
           ImGui::EndTable();
+        }
+
+        ImGui::Separator();
+        ImGui::Text("%s Project Labels", ICON_MD_LABEL);
+        ImGui::BeginDisabled(project == nullptr);
+        if (ImGui::BeginTable(
+                "ToolbarMetadataProjectLabels", 4,
+                ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg)) {
+          ImGui::TableSetupColumn("Resource", ImGuiTableColumnFlags_WidthFixed,
+                                  112.0f);
+          ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed,
+                                  62.0f);
+          ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed,
+                                  160.0f);
+          ImGui::TableSetupColumn("Edit", ImGuiTableColumnFlags_WidthFixed,
+                                  36.0f);
+
+          auto draw_label_row = [&](const ToolbarResourceLabelTarget& target) {
+            TableNextColumn();
+            ImGui::TextUnformatted(target.title.c_str());
+            TableNextColumn();
+            ImGui::TextDisabled(
+                "%s", FormatResourceId(target.id, target.hex_width).c_str());
+            TableNextColumn();
+            const std::string project_label =
+                GetProjectResourceLabel(project, target.type, target.id);
+            if (project_label.empty()) {
+              ImGui::TextDisabled("default");
+            } else {
+              ImGui::TextUnformatted(project_label.c_str());
+            }
+            TableNextColumn();
+            const std::string row_id =
+                absl::StrFormat("Label%s%d", target.type, target.id);
+            ImGui::PushID(row_id.c_str());
+            if (ImGui::SmallButton(ICON_MD_EDIT)) {
+              begin_resource_label_edit(target);
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip(
+                  "Rename %s %s in the open project", target.title.c_str(),
+                  FormatResourceId(target.id, target.hex_width).c_str());
+            }
+            ImGui::PopID();
+          };
+
+          draw_label_row({"Area GFX", "graphics", map->area_graphics()});
+          draw_label_row({absl::StrFormat("Sprite GFX %d", game_state),
+                          "graphics", map->sprite_graphics(game_state)});
+          if (zelda3::OverworldVersionHelper::SupportsAnimatedGFX(
+                  rom_version)) {
+            draw_label_row({"Animated GFX", "graphics", map->animated_gfx()});
+          }
+          draw_label_row(
+              {"Area Palette", "overworld_area_palette", map->area_palette()});
+          if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(
+                  rom_version)) {
+            draw_label_row({"Main Palette", "overworld_main_palette",
+                            map->main_palette()});
+          }
+          draw_label_row({"Sprite Palette", "overworld_sprite_palette",
+                          map->sprite_palette(game_state)});
+          draw_label_row(
+              {"Message", "message", map->message_id(), /*hex_width=*/4});
+          for (int i = 0; i < 4; ++i) {
+            draw_label_row({absl::StrFormat("Music %d", i), "overworld_music",
+                            map->area_music(i)});
+          }
+
+          ImGui::EndTable();
+        }
+        ImGui::EndDisabled();
+        if (!project) {
+          ImGui::TextDisabled("Open a project to store metadata labels.");
+        }
+
+        if (ImGui::BeginPopup("OverworldMetadataResourceLabel")) {
+          ImGui::Text("%s %s", ICON_MD_LABEL, resource_label_title.c_str());
+          ImGui::TextDisabled("%s", FormatResourceId(resource_label_id,
+                                                     resource_label_hex_width)
+                                        .c_str());
+          ImGui::SetNextItemWidth(260.0f);
+          ImGui::InputText("##OverworldMetadataResourceLabelInput",
+                           resource_label_buffer.data(),
+                           resource_label_buffer.size());
+          if (ImGui::Button(ICON_MD_CHECK " Apply")) {
+            apply_resource_label(resource_label_buffer.data());
+          }
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
+            apply_resource_label("");
+          }
+          if (!resource_label_error.empty()) {
+            ImGui::TextWrapped("%s", resource_label_error.c_str());
+          }
+          ImGui::EndPopup();
         }
 
         if (!metadata_error.empty()) {

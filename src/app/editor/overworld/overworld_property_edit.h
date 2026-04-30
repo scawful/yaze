@@ -63,6 +63,8 @@ struct OverworldMapMetadataClipboard {
 const char* OverworldPropertyFieldName(OverworldPropertyField field);
 const char* OverworldMapMetadataClipboardScopeName(
     OverworldMapMetadataClipboardScope scope);
+std::string DescribeOverworldMapMetadataClipboard(
+    const OverworldMapMetadataClipboard& clipboard);
 std::string DescribeOverworldPropertyEdit(const OverworldPropertyEdit& edit);
 bool CanPasteOverworldMapMetadata(
     const OverworldMapMetadataClipboard& clipboard,
