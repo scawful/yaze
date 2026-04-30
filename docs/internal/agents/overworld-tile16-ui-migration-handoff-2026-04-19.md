@@ -169,10 +169,14 @@ Observed results:
 
 - Visible launch reached the overworld surface with `Overworld Canvas`,
   `Tile16 Editor`, `Tile16 Selector`, and `Map Properties` open.
-- Launch caveat: even with `--editor=Overworld Editor`, startup logs still
-  reported `Unknown editor specified via flag: Overworld`. The surface reached
-  Overworld because the requested panel visibility was restored, so the startup
-  editor parser still needs cleanup.
+- Launch caveat from the original smoke: even with
+  `--editor=Overworld Editor`, startup logs reported
+  `Unknown editor specified via flag: Overworld`. The surface reached Overworld
+  because the requested panel visibility was restored. Current code has since
+  fixed the parser path (`bed6ff7a9`) and pins it with
+  `EditorManagerStartupFlagsTest.ParsesCategoryAliasAndFullEditorName`; keep a
+  visible rerun in the next Tile16 GUI pass, but do not treat this as an active
+  parser implementation bug.
 - Initial screenshot showed the overworld map, selected Tile16 preview, Tile16
   blockset preview, and Tile8 source all visible and nonblank.
 - Startup logs showed the selected Tile16 preview regenerated from ROM data:
@@ -219,10 +223,11 @@ Observed results:
 8. Revisit the remaining large-service extraction in `OverworldEditor` and its
    coordinators. The directory migration is done for active surfaces, but the
    editor is still too state-heavy.
-9. Fix the startup editor flag/parser mismatch so `--editor=Overworld Editor`
-   or a documented category alias opens Overworld without an unknown-editor
-   warning.
-10. Regenerate `docs/internal/agents/coordination-board.generated.md` once
-   `scripts/agents/coord` / `universe-coord.sh` is healthy again. Current local
-   coordination calls appear wedged, so this handoff is the human-readable
-   record for now.
+9. Rerun visible startup smoke for `--editor=Overworld Editor` during the next
+   Tile16 GUI pass. The parser mismatch itself is fixed in current code
+   (`bed6ff7a9`) and covered by
+   `EditorManagerStartupFlagsTest.ParsesCategoryAliasAndFullEditorName`.
+10. Keep the generated coordination snapshot current when new Tile16 tasks land.
+   The snapshot was refreshed on 2026-04-29 with
+   `scripts/agents/coord task-generate-board --out docs/internal/agents/coordination-board.generated.md`,
+   and `scripts/agents/test-universe-coord.sh` now passes locally.

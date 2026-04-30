@@ -59,7 +59,12 @@ TEST(Tile8SourceInteractionTest, ComputesResponsiveDisplayScale) {
   EXPECT_FLOAT_EQ(ComputeTile8SourceDisplayScale(
                       /*available_width_px=*/80.0f,
                       /*source_bitmap_width_px=*/128),
-                  1.5f);
+                  56.0f / 128.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourceDisplayScale(
+                      /*available_width_px=*/32.0f,
+                      /*source_bitmap_width_px=*/128),
+                  0.35f);
 }
 
 TEST(Tile8SourceInteractionTest, ComputesResizableSourcePanelHeight) {

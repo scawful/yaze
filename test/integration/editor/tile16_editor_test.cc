@@ -123,19 +123,20 @@ class Tile16EditorSyntheticFixture : public ::testing::Test {
     }
   }
 
-  void RunPanelFrame(std::function<void(ImGuiIO&)> inject_events = nullptr) {
+  void RunPanelFrame(std::function<void(ImGuiIO&)> inject_events = nullptr,
+                     ImVec2 host_size = ImVec2(960.0f, 720.0f)) {
     ImGui::SetCurrentContext(imgui_context_);
     ImGuiIO& io = ImGui::GetIO();
     if (inject_events) {
       inject_events(io);
     }
 
-    io.DisplaySize = ImVec2(1280, 720);
+    io.DisplaySize = host_size;
     io.DeltaTime = 1.0f / 60.0f;
 
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(960, 720));
+    ImGui::SetNextWindowSize(host_size);
     ImGui::SetNextWindowFocus();
     ImGui::Begin("##Tile16SyntheticHost", nullptr,
                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
@@ -396,6 +397,18 @@ TEST_F(Tile16EditorSyntheticFixture, HeldTile8PreviewUsesSelectedBrushPalette) {
 }
 
 TEST_F(Tile16EditorSyntheticFixture,
+       NarrowPanelFrameRendersResponsiveWorkbench) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  ASSERT_TRUE(editor_->ApplyPaletteToQuadrant(0, 3).ok());
+
+  EXPECT_NO_FATAL_FAILURE(
+      RunPanelFrame(/*inject_events=*/nullptr, ImVec2(320.0f, 640.0f)));
+
+  EXPECT_TRUE(editor_->is_tile_modified(0));
+  EXPECT_EQ(editor_->pending_changes_count(), 1);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
        DiscardCurrentTileKeepsOtherPendingTilesWithoutExternalRomFixture) {
   ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
   editor_->MarkCurrentTileModified();
@@ -438,6 +451,47 @@ TEST_F(Tile16EditorSyntheticFixture, CanvasClickPaintModeStagesTileMutation) {
   EXPECT_TRUE(editor_->is_tile_modified(0));
   EXPECT_EQ(editor_->pending_changes_count(), 1);
   EXPECT_EQ(editor_->active_quadrant(), 0);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       PreviewDisplayClickPaintsTargetQuadrantWithBrushPalette) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kPaint);
+  editor_->set_current_palette(6);
+
+  const ImVec2 top_right_center =
+      Tile16Editor::Tile16PreviewDisplayPixelToTilePosition(
+          ImVec2(48.0f, 16.0f));
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(top_right_center, true, false).ok());
+
+  EXPECT_TRUE(editor_->is_tile_modified(0));
+  EXPECT_EQ(editor_->active_quadrant(), 1);
+
+  const gfx::Tile16* tile_data = editor_->GetCurrentTile16Data();
+  ASSERT_NE(tile_data, nullptr);
+  EXPECT_EQ(tile_data->tile1_.id_, editor_->current_tile8());
+  EXPECT_EQ(tile_data->tile1_.palette_, 6);
+
+  const gfx::Bitmap* bmp = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(bmp, nullptr);
+  ASSERT_TRUE(bmp->is_active());
+  ASSERT_GE(bmp->size(), 256u);
+
+  bool found_visible_pixel = false;
+  for (int y = 0; y < 8; ++y) {
+    for (int x = 8; x < 16; ++x) {
+      const uint8_t pixel = bmp->data()[y * 16 + x];
+      if (pixel == 0) {
+        continue;
+      }
+      found_visible_pixel = true;
+      EXPECT_EQ((pixel & 0xF0) >> 4, 6)
+          << "top-right preview pixel (" << x << "," << y
+          << ") used the wrong palette row";
+    }
+  }
+  EXPECT_TRUE(found_visible_pixel);
 }
 
 TEST_F(Tile16EditorSyntheticFixture,
