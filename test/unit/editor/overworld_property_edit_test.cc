@@ -221,6 +221,19 @@ TEST(OverworldMetadataPasteEditTest, FullClipboardCanPasteScopedMetadata) {
       0);
 }
 
+TEST(OverworldMetadataPasteEditTest, ClipboardDescriptionIncludesScopeAndMap) {
+  OverworldMapMetadataClipboard clipboard;
+  EXPECT_EQ(DescribeOverworldMapMetadataClipboard(clipboard),
+            "No map metadata");
+
+  clipboard.valid = true;
+  clipboard.scope = OverworldMapMetadataClipboardScope::kGraphics;
+  clipboard.source_map_id = 0x42;
+
+  EXPECT_EQ(DescribeOverworldMapMetadataClipboard(clipboard),
+            "graphics metadata from map 0x42");
+}
+
 TEST(OverworldPropertyBatchEditActionTest, UndoRedoRestoresBatchAsOneAction) {
   std::array<int, 3> values = {0x10, 0x20, 0x30};
   auto apply = [&values](const OverworldPropertyEdit& edit) -> absl::Status {

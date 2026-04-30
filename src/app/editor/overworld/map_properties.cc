@@ -663,6 +663,13 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       gui::CanvasMenuItem metadata_actions_menu;
       metadata_actions_menu.label =
           ICON_MD_CONTENT_COPY " Copy / Paste Metadata";
+      if (shared_clipboard->has_overworld_map_metadata &&
+          shared_clipboard->overworld_map_metadata.valid) {
+        metadata_actions_menu.subitems.push_back(gui::CanvasMenuItem::Disabled(
+            ICON_MD_CONTENT_PASTE " " +
+            DescribeOverworldMapMetadataClipboard(
+                shared_clipboard->overworld_map_metadata)));
+      }
 
       auto add_metadata_actions = [&](OverworldMapMetadataClipboardScope scope,
                                       const char* copy_label,

@@ -7,6 +7,7 @@ Related coordination tasks:
 - `task_20260427T135554Z_17281`
 - `task_20260427T142410Z_22821`
 - `task_20260428T053849Z_3809`
+- `task_20260429T162947Z_18804`
 
 ## Scope Completed
 
@@ -38,6 +39,19 @@ Implemented pieces:
 - Added related-map context-menu navigation for parent and sibling maps.
 - Added scoped paste builders so partial clipboard copies cannot enable
   unrelated paste actions.
+
+2026-04-29 continuation:
+- Toolbar context now shows the active map-metadata clipboard scope and source
+  map when a scoped metadata copy exists.
+- Canvas `Copy / Paste Metadata` submenu now includes a disabled clipboard
+  summary row, so users can tell whether the clipboard holds full, graphics,
+  palette, or music/message metadata before choosing paste.
+- Toolbar metadata popup now includes project-label rows for the current map's
+  referenced graphics, palette, message, and music IDs. Labels are saved through
+  the existing project resource-label edit path and undo action.
+- `BuildOverworldMapMetadata()` now reads project graphics labels directly from
+  the open project as well as through the global provider, making toolbar and
+  context-menu display deterministic during tests and project reloads.
 
 ## Behavior Notes
 
@@ -130,6 +144,49 @@ stat -f '%Sm %N' /Applications/yaze.app/Contents/MacOS/yaze
 Focused overworld test result: 31 tests passed.
 Deployed app binary timestamp: `Apr 28 01:46:58 2026`.
 
+2026-04-29 continuation validation:
+
+```bash
+clang-format -i \
+  src/app/editor/overworld/overworld_property_edit.h \
+  src/app/editor/overworld/overworld_property_edit.cc \
+  src/app/editor/overworld/overworld_map_metadata.cc \
+  src/app/editor/overworld/overworld_toolbar.h \
+  src/app/editor/overworld/overworld_toolbar.cc \
+  src/app/editor/overworld/overworld_canvas_renderer.cc \
+  src/app/editor/overworld/map_properties.cc \
+  test/unit/editor/overworld_property_edit_test.cc \
+  test/unit/editor/overworld_map_metadata_test.cc
+
+cmake --build --preset mac-ai --target yaze_test_unit -j8
+
+build/presets/mac-ai/bin/Debug/yaze_test_unit \
+  --gtest_filter='OverworldMapMetadataTest.*:OverworldPropertyEditTest.*:OverworldMetadataPasteEditTest.*:OverworldPropertyBatchEditActionTest.*:MapPropertiesContextMenuTest.*:OverworldEditorStateTest.*:CanvasNavigationManagerTest.*:OverworldRegressionTest.SaveMapProperties_DarkWorldDoesNotOverwriteLightWorldSpriteTables:OverworldRegressionTest.SaveMapProperties_V3PersistsSpecialWorldToExpandedTables'
+
+git diff --check -- \
+  src/app/editor/overworld/overworld_property_edit.h \
+  src/app/editor/overworld/overworld_property_edit.cc \
+  src/app/editor/overworld/overworld_map_metadata.cc \
+  src/app/editor/overworld/overworld_toolbar.h \
+  src/app/editor/overworld/overworld_toolbar.cc \
+  src/app/editor/overworld/overworld_canvas_renderer.cc \
+  src/app/editor/overworld/map_properties.cc \
+  test/unit/editor/overworld_property_edit_test.cc \
+  test/unit/editor/overworld_map_metadata_test.cc \
+  docs/internal/architecture/overworld_editor_system.md \
+  docs/internal/agents/overworld-editor-metadata-ux-handoff-2026-04-27.md
+
+cmake --build --preset mac-ai --target yaze -j8
+
+mkdir -p /Applications/yaze.app
+rsync -a --delete build/presets/mac-ai/bin/Debug/yaze.app/ /Applications/yaze.app/
+test -x /Applications/yaze.app/Contents/MacOS/yaze
+stat -f '%Sm %N' /Applications/yaze.app/Contents/MacOS/yaze
+```
+
+Focused overworld test result: 33 tests passed.
+Deployed app binary timestamp: `Apr 29 12:39:13 2026`.
+
 Known caveats:
 - Full `git diff --check` still reports pre-existing trailing whitespace in
   `src/app/gfx/core/bitmap.h` from another dirty worktree lane. The scoped
@@ -146,13 +203,13 @@ Known caveats:
    - Copy/paste metadata from the canvas context menu.
    - Undo/redo after metadata paste.
    - Confirm Dark World and Special World rendering remains stable after edits.
-2. Add editable project labels for referenced metadata:
-   - GFX groups.
-   - Palette IDs.
-   - Music IDs.
-   - Message IDs.
+2. Add editable project labels for remaining referenced metadata:
    - Overlay IDs.
+   - Custom tileset slots.
+   - Possibly separate area-vs-sprite graphics presentation if Oracle projects
+     need different names for the same graphics ID.
 3. After live validation, demote duplicate side properties controls that are
    now better handled from the toolbar or context menu.
-4. Consider a small clipboard-scope indicator in the toolbar/context menu if
-   users need clearer feedback after copying a scoped metadata subset.
+4. Add a live UI smoke note against `/Applications/yaze.app` once an Oracle ROM
+   smoke confirms toolbar labels and the clipboard indicator do not crowd the
+   ZScream-style top row.

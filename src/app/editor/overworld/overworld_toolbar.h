@@ -20,6 +20,7 @@ struct YazeProject;
 namespace yaze::editor {
 
 class WorkspaceWindowManager;
+struct SharedClipboard;
 
 /// @brief Panel IDs for overworld editor panels
 struct OverworldPanelIds {
@@ -45,7 +46,8 @@ class OverworldToolbar {
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
             WorkspaceWindowManager* window_manager, bool has_selection,
             bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld,
-            project::YazeProject* project, int game_state);
+            project::YazeProject* project, int game_state,
+            SharedClipboard* shared_clipboard = nullptr);
 
   // Callback for when properties change
   std::function<void()> on_property_changed;

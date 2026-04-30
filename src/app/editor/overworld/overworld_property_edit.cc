@@ -53,6 +53,17 @@ const char* OverworldMapMetadataClipboardScopeName(
   return "map metadata";
 }
 
+std::string DescribeOverworldMapMetadataClipboard(
+    const OverworldMapMetadataClipboard& clipboard) {
+  if (!clipboard.valid) {
+    return "No map metadata";
+  }
+  return absl::StrFormat(
+      "%s from map 0x%02X",
+      OverworldMapMetadataClipboardScopeName(clipboard.scope),
+      clipboard.source_map_id);
+}
+
 std::string DescribeOverworldPropertyEdit(const OverworldPropertyEdit& edit) {
   if (!edit.description.empty()) {
     return edit.description;
