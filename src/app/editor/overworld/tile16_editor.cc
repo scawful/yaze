@@ -1901,8 +1901,12 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   jump_to_tile_id_ = tile_id;  // Sync input field with current tile
   blockset_selector_.SetSelectedTile(tile_id);
 
-  // Load editable tile16 metadata from pending state first, then ROM.
+  // Load editable tile16 metadata from pending state first, then ROM. The
+  // bitmap cache is derived data and must be rebuilt from the current Tile8
+  // source so map/graphics refreshes cannot resurrect stale preview pixels.
   auto pending_it = pending_tile16_changes_.find(current_tile16_);
+  const bool loaded_pending_metadata =
+      pending_it != pending_tile16_changes_.end();
   if (pending_it != pending_tile16_changes_.end()) {
     current_tile16_data_ = pending_it->second;
   } else {
@@ -1911,24 +1915,10 @@ absl::Status Tile16Editor::SetCurrentTile(int tile_id) {
   }
   SyncTilesInfoArray(&current_tile16_data_);
 
-  auto pending_bitmap_it = pending_tile16_bitmaps_.find(current_tile16_);
-  const bool loaded_pending_bitmap =
-      pending_bitmap_it != pending_tile16_bitmaps_.end() &&
-      pending_bitmap_it->second.is_active();
-  if (loaded_pending_bitmap) {
-    current_tile16_bmp_.Create(kTile16Size, kTile16Size, 8,
-                               pending_bitmap_it->second.vector());
-    current_tile16_bmp_.SetPalette(pending_bitmap_it->second.palette());
-  } else {
-    RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
-  }
+  RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
 
-  if (loaded_pending_bitmap) {
-    ApplyPaletteToCurrentTile16Bitmap();
-    if (current_tile16_bmp_.is_active() && current_tile16_bmp_.surface()) {
-      gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::CREATE, &current_tile16_bmp_);
-    }
+  if (loaded_pending_metadata) {
+    pending_tile16_bitmaps_[current_tile16_] = current_tile16_bmp_;
   }
 
   util::logf("SetCurrentTile: loaded tile %d successfully", tile_id);
