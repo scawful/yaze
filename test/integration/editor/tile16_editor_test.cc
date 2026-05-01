@@ -344,6 +344,30 @@ TEST_F(Tile16EditorSyntheticFixture,
   EXPECT_EQ(bmp->GetPixel(8, 8), 0x18);
 }
 
+TEST_F(Tile16EditorSyntheticFixture,
+       SetCurrentTileRegeneratesPendingBitmapFromCurrentTile8Source) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->MarkCurrentTileModified();
+
+  const gfx::Bitmap* initial_pending = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(initial_pending, nullptr);
+  ASSERT_TRUE(initial_pending->is_active());
+  ASSERT_GE(initial_pending->size(), 256u);
+  ASSERT_EQ(initial_pending->data()[0], 0x10);
+
+  std::vector<uint8_t> changed_source(128 * 32, 0x05);
+  current_gfx_bmp_->set_data(changed_source);
+  ASSERT_TRUE(editor_->LoadTile8().ok());
+
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+
+  const gfx::Bitmap* refreshed_pending = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(refreshed_pending, nullptr);
+  ASSERT_TRUE(refreshed_pending->is_active());
+  ASSERT_GE(refreshed_pending->size(), 256u);
+  EXPECT_EQ(refreshed_pending->data()[0], 0x15);
+}
+
 TEST_F(Tile16EditorSyntheticFixture, SetCurrentTileSyncsBlocksetSelection) {
   ASSERT_TRUE(editor_->SetCurrentTile(7).ok());
   EXPECT_EQ(editor_->current_tile16(), 7);
