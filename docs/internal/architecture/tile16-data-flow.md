@@ -47,9 +47,15 @@ changes keep parity with ZScream/Hyrule Magic behavior.
   and `OverworldMap::BuildTiles16Gfx`. Tile8 source graphics keep their low
   nibble, so the Tile8 source sheet and held Tile8 preview remap to the
   selected direct row instead of adding a graphics-sheet palette base.
+- `current_gfx_bmp` is an indexed 8bpp display bitmap over the decoded
+  overworld graphics buffer. Do not use `0x40` as its bitmap depth; `0x40` is
+  the byte count of one 8x8 8bpp tile payload, not the surface bpp.
 - `MapRefreshCoordinator` pushes the current map palette into `Tile16Editor`
   through `set_palette()` whenever map palette or Tile16 blockset state
-  changes.
+  changes. `Tile16Editor::set_palette()` owns remapping `current_gfx_bmp` to the
+  active brush row; refresh callers must not immediately replace that bitmap
+  palette with the raw area palette, or the Tile8 source sheet can diverge from
+  the held Tile8 preview and painted Tile16 pixels.
 - Tile8 source sheets may shrink their display scale to fit available editor
   width, but palette application must not change with scale.
 
@@ -84,8 +90,11 @@ changes keep parity with ZScream/Hyrule Magic behavior.
 
 - Renderer transform parity:
   - `Tile16RendererTest.RendersQuadrantsWithPaletteRowEncoding`
+  - `Tile16RendererTest.MatchesOverworldMapBuildTiles16GfxForPaletteRowsAndFlips`
   - `Tile16EditorIntegrationTest.RegenerateEncodesPerQuadrantPaletteInPixels`
 - Palette application behavior:
+  - `Tile16EditorSyntheticFixture.RefreshAllPalettesRecolorsTile8SourceToBrushPalette`
+  - `Tile16EditorSyntheticFixture.HeldTile8PreviewPaletteMatchesPaintedTile16Pixels`
   - `Tile16EditorIntegrationTest.ApplyPaletteUsesFullPaletteWhenRowsEncoded`
   - `Tile16EditorIntegrationTest.NormalizedPixelsUseFallbackSubPalettePath`
 - Palette metadata propagation:

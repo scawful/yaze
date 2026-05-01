@@ -375,16 +375,11 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
   RETURN_IF_ERROR(current_map->LoadPalette());
   const auto current_map_palette = current_map->current_palette();
   *ctx_.palette = current_map_palette;
-  // Keep tile16 editor in sync with the currently active overworld palette
+  // Keep tile16 editor in sync with the currently active overworld palette.
+  // Tile16Editor::set_palette owns remapping current_gfx_bmp to the selected
+  // brush row for the Tile8 source view, so do not overwrite it with the raw
+  // area palette here.
   ctx_.tile16_editor->set_palette(current_map_palette);
-  // Ensure source graphics bitmap uses the refreshed palette so tile8 selector
-  // isn't blank.
-  if (ctx_.current_gfx_bmp->is_active()) {
-    ctx_.current_gfx_bmp->SetPalette(*ctx_.palette);
-    ctx_.current_gfx_bmp->set_modified(true);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, ctx_.current_gfx_bmp);
-  }
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*ctx_.rom);
@@ -646,13 +641,10 @@ absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   *ctx_.current_blockset = current_map->area_graphics();
 
   *ctx_.palette = current_map->current_palette();
+  // Tile16Editor::set_palette refreshes the Tile8 source bitmap with the
+  // selected brush palette. Keeping that remap intact makes the source sheet,
+  // held Tile8 preview, and painted Tile16 pixels agree after blockset refresh.
   ctx_.tile16_editor->set_palette(*ctx_.palette);
-  if (ctx_.current_gfx_bmp->is_active()) {
-    ctx_.current_gfx_bmp->SetPalette(*ctx_.palette);
-    ctx_.current_gfx_bmp->set_modified(true);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, ctx_.current_gfx_bmp);
-  }
 
   const auto& tile16_data = current_map->current_tile16_blockset();
 

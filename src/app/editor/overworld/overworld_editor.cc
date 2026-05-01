@@ -1516,7 +1516,7 @@ absl::Status OverworldEditor::LoadGraphics() {
   // This avoids blocking the main thread with GPU texture creation
   {
     gfx::ScopedTimer gfx_timer("CreateBitmapWithoutTexture_Graphics");
-    current_gfx_bmp_.Create(0x80, kOverworldMapSize, 0x40,
+    current_gfx_bmp_.Create(0x80, kOverworldMapSize, 0x08,
                             overworld_.current_graphics());
     current_gfx_bmp_.SetPalette(palette_);
     gfx::Arena::Get().QueueTextureCommand(

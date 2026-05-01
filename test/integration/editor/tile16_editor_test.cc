@@ -239,7 +239,7 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
     // Create graphics bitmap
     current_gfx_bmp_ = std::make_unique<gfx::Bitmap>();
-    current_gfx_bmp_->Create(0x80, 512, 0x40, overworld_->current_graphics());
+    current_gfx_bmp_->Create(0x80, 512, 0x08, overworld_->current_graphics());
     current_gfx_bmp_->SetPalette(palette);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, current_gfx_bmp_.get());
@@ -373,6 +373,10 @@ TEST_F(Tile16EditorSyntheticFixture,
   EXPECT_EQ(displayed_palette[0x11].snes(), palette_[palette_slot + 1].snes());
   EXPECT_EQ(displayed_palette[0x1F].snes(), palette_[palette_slot + 15].snes());
   EXPECT_EQ(displayed_palette[0x91].snes(), palette_[palette_slot + 1].snes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture, Tile8SourceBitmapUsesIndexed8BppDepth) {
+  EXPECT_EQ(current_gfx_bmp_->depth(), 8);
 }
 
 TEST_F(Tile16EditorSyntheticFixture, HeldTile8PreviewUsesSelectedBrushPalette) {
