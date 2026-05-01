@@ -1,5 +1,7 @@
 #include "integration/overworld_editor_test.h"
 
+#include <vector>
+
 namespace yaze {
 namespace test {
 
@@ -130,6 +132,42 @@ TEST_F(OverworldEditorTest, CommitTile16ChangesRefreshesOverworldState) {
   ASSERT_NE(map, nullptr);
   EXPECT_EQ(overworld_editor_->tile16_blockset().atlas.palette(),
             map->current_palette());
+}
+
+TEST_F(OverworldEditorTest,
+       RefreshTile16BlocksetSyncsTile8SourceGraphicsToCurrentMap) {
+  ASSERT_TRUE(overworld_editor_->overworld().EnsureMapBuilt(0).ok());
+  const auto* initial_map = overworld_editor_->overworld().overworld_map(0);
+  ASSERT_NE(initial_map, nullptr);
+  const std::vector<uint8_t> initial_graphics = initial_map->current_graphics();
+  ASSERT_FALSE(initial_graphics.empty());
+
+  int target_map = -1;
+  for (int map_id = 1; map_id < zelda3::kNumOverworldMaps; ++map_id) {
+    auto status = overworld_editor_->overworld().EnsureMapBuilt(map_id);
+    if (!status.ok()) {
+      continue;
+    }
+
+    const auto* candidate =
+        overworld_editor_->overworld().overworld_map(map_id);
+    if (candidate && !candidate->current_graphics().empty() &&
+        candidate->current_graphics() != initial_graphics) {
+      target_map = map_id;
+      break;
+    }
+  }
+  ASSERT_NE(target_map, -1)
+      << "Test ROM did not expose a map with distinct source graphics";
+
+  overworld_editor_->SelectMapForEditing(target_map);
+  ASSERT_EQ(overworld_editor_->current_map_id(), target_map);
+
+  const auto* target = overworld_editor_->overworld().overworld_map(target_map);
+  ASSERT_NE(target, nullptr);
+  EXPECT_EQ(overworld_editor_->current_gfx_bmp_for_testing().depth(), 8);
+  EXPECT_EQ(overworld_editor_->current_gfx_bmp_for_testing().vector(),
+            target->current_graphics());
 }
 
 TEST_F(OverworldEditorTest,

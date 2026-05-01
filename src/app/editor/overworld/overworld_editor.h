@@ -399,6 +399,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Read-only access for integration tests that verify refresh output.
   const gfx::Tilemap& tile16_blockset() const { return tile16_blockset_; }
+  const gfx::Bitmap& current_gfx_bmp_for_testing() const {
+    return current_gfx_bmp_;
+  }
 
   /// @brief Resolve the entity workbench window content (may be null).
   OverworldEntityWorkbench* GetWorkbench();

@@ -52,6 +52,46 @@ void PrepareMapForRefresh(const MapRefreshContext& ctx,
   map->set_game_state(CurrentGameState(ctx));
 }
 
+void SyncCurrentGraphicsBitmapForTile16Editor(const MapRefreshContext& ctx,
+                                              const zelda3::OverworldMap& map) {
+  if (!ctx.current_gfx_bmp) {
+    return;
+  }
+
+  const auto& current_graphics = map.current_graphics();
+  if (current_graphics.empty()) {
+    return;
+  }
+
+  constexpr int kCurrentGfxBitmapWidth = 0x80;
+  if (current_graphics.size() % kCurrentGfxBitmapWidth != 0) {
+    LOG_WARN("MapRefreshCoordinator",
+             "Current graphics size %zu is not divisible by bitmap width %d",
+             current_graphics.size(), kCurrentGfxBitmapWidth);
+    return;
+  }
+
+  const int bitmap_height =
+      static_cast<int>(current_graphics.size() / kCurrentGfxBitmapWidth);
+  const bool recreate_bitmap =
+      !ctx.current_gfx_bmp->is_active() ||
+      ctx.current_gfx_bmp->width() != kCurrentGfxBitmapWidth ||
+      ctx.current_gfx_bmp->height() != bitmap_height ||
+      ctx.current_gfx_bmp->depth() != 0x08;
+
+  if (recreate_bitmap) {
+    ctx.current_gfx_bmp->Create(kCurrentGfxBitmapWidth, bitmap_height, 0x08,
+                                current_graphics);
+  } else {
+    ctx.current_gfx_bmp->set_data(current_graphics);
+  }
+
+  const auto command = ctx.current_gfx_bmp->texture()
+                           ? gfx::Arena::TextureCommandType::UPDATE
+                           : gfx::Arena::TextureCommandType::CREATE;
+  gfx::Arena::Get().QueueTextureCommand(command, ctx.current_gfx_bmp);
+}
+
 }  // namespace
 
 void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
@@ -641,6 +681,10 @@ absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   *ctx_.current_blockset = current_map->area_graphics();
 
   *ctx_.palette = current_map->current_palette();
+  // The Tile16 editor rebuilds selected-tile previews from current_gfx_bmp.
+  // Keep that source data aligned with the current map before set_palette()
+  // reloads Tile8s and remaps the sheet to the selected brush row.
+  SyncCurrentGraphicsBitmapForTile16Editor(ctx_, *current_map);
   // Tile16Editor::set_palette refreshes the Tile8 source bitmap with the
   // selected brush palette. Keeping that remap intact makes the source sheet,
   // held Tile8 preview, and painted Tile16 pixels agree after blockset refresh.
