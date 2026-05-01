@@ -50,6 +50,10 @@ changes keep parity with ZScream/Hyrule Magic behavior.
 - `current_gfx_bmp` is an indexed 8bpp display bitmap over the decoded
   overworld graphics buffer. Do not use `0x40` as its bitmap depth; `0x40` is
   the byte count of one 8x8 8bpp tile payload, not the surface bpp.
+- Tile16 blockset refresh must update `current_gfx_bmp` from the current
+  `OverworldMap::current_graphics()` before reloading Tile8s. The Tile16 atlas
+  and selected-tile preview must be built from the same map graphics buffer, or
+  switching maps can leave the editor preview using stale Tile8 source pixels.
 - `MapRefreshCoordinator` pushes the current map palette into `Tile16Editor`
   through `set_palette()` whenever map palette or Tile16 blockset state
   changes. `Tile16Editor::set_palette()` owns remapping `current_gfx_bmp` to the
@@ -92,6 +96,8 @@ changes keep parity with ZScream/Hyrule Magic behavior.
   - `Tile16RendererTest.RendersQuadrantsWithPaletteRowEncoding`
   - `Tile16RendererTest.MatchesOverworldMapBuildTiles16GfxForPaletteRowsAndFlips`
   - `Tile16EditorIntegrationTest.RegenerateEncodesPerQuadrantPaletteInPixels`
+- Map refresh/source graphics binding:
+  - `OverworldEditorTest.RefreshTile16BlocksetSyncsTile8SourceGraphicsToCurrentMap`
 - Palette application behavior:
   - `Tile16EditorSyntheticFixture.RefreshAllPalettesRecolorsTile8SourceToBrushPalette`
   - `Tile16EditorSyntheticFixture.HeldTile8PreviewPaletteMatchesPaintedTile16Pixels`
