@@ -1191,38 +1191,12 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         ImGui::Image((ImTextureID)(intptr_t)tile8_texture, ImVec2(24, 24));
       }
 
-      // Show encoded palette row indicator
-      // This shows which palette row the tile is encoded to use in the ROM
-      int sheet_idx = GetSheetIndexForTile8(current_tile8_);
-      int encoded_row = -1;
-
-      // Determine encoded row based on sheet and ProcessGraphicsBuffer behavior
-      // Sheets 0, 3, 4, 5 have 0x88 added (row 8-9)
-      // Other sheets have raw values (row 0)
-      switch (sheet_idx) {
-        case 0:
-        case 3:
-        case 4:
-        case 5:
-          encoded_row = 8;  // 0x88 offset = row 8
-          break;
-        default:
-          encoded_row = 0;  // Raw values = row 0
-          break;
-      }
-
-      // Visual indicator showing sheet and encoded row
+      const int sheet_idx = GetSheetIndexForTile8(current_tile8_);
       ImGui::SameLine();
-      ImGui::TextDisabled("S%d", sheet_idx);
+      ImGui::TextDisabled("G%d", sheet_idx);
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("Sheet: %d", sheet_idx);
-        ImGui::Text("Encoded Palette Row: %d", encoded_row);
-        ImGui::Separator();
-        ImGui::TextWrapped(
-            "Graphics sheets have different palette encodings:\n"
-            "- Sheets 0,3,4,5: Row 8 (offset 0x88)\n"
-            "- Sheets 1,2,6,7: Row 0 (raw)");
+        ImGui::Text("Graphics chunk: %d", sheet_idx);
         ImGui::EndTooltip();
       }
     }
@@ -1325,13 +1299,12 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       if (ImGui::CollapsingHeader("Palette Map",
                                   ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BeginChild("##PaletteMappingScroll", ImVec2(0, 120), true);
-        if (ImGui::BeginTable("##PalMap", 3,
+        if (ImGui::BeginTable("##PalMap", 2,
                               ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                                   ImGuiTableFlags_SizingFixedFit)) {
           ImGui::TableSetupColumn("Btn", ImGuiTableColumnFlags_WidthFixed, 30);
-          ImGui::TableSetupColumn("S0,3-4", ImGuiTableColumnFlags_WidthFixed,
-                                  50);
-          ImGui::TableSetupColumn("S1-2", ImGuiTableColumnFlags_WidthFixed, 50);
+          ImGui::TableSetupColumn("CGRAM", ImGuiTableColumnFlags_WidthFixed,
+                                  70);
           ImGui::TableHeadersRow();
 
           for (int i = 0; i < 8; ++i) {
@@ -1339,9 +1312,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
             ImGui::TableNextColumn();
             ImGui::Text("%d", i);
             ImGui::TableNextColumn();
-            ImGui::Text("%d", GetActualPaletteSlot(i, 0));
-            ImGui::TableNextColumn();
-            ImGui::Text("%d", GetActualPaletteSlot(i, 1));
+            ImGui::Text("0x%02X", GetActualPaletteSlot(i, 0));
           }
           ImGui::EndTable();
         }
@@ -1605,11 +1576,8 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         if (show_debug_info) {
-          ImGui::Text("Palette %d -> Slots:", i);
-          ImGui::Text("  S0,3,4: %d", GetActualPaletteSlot(i, 0));
-          ImGui::Text("  S1,2: %d", GetActualPaletteSlot(i, 1));
-          ImGui::Text("  S5,6: %d", GetActualPaletteSlot(i, 5));
-          ImGui::Text("  S7: %d", GetActualPaletteSlot(i, 7));
+          ImGui::Text("Palette %d -> CGRAM 0x%02X", i,
+                      GetActualPaletteSlot(i, 0));
         } else {
           ImGui::Text("Brush Palette %d", i);
           ImGui::TextDisabled("Applied to new tile8 placements");
@@ -2818,106 +2786,30 @@ absl::Status Tile16Editor::PickTile8FromTile16(const ImVec2& position) {
   return absl::OkStatus();
 }
 
-// Get the appropriate palette slot for current graphics sheet
-int Tile16Editor::GetPaletteSlotForSheet(int sheet_index) const {
-  // Based on ProcessGraphicsBuffer logic and overworld palette coordination:
-  // Sheets 0,3-6: Use AUX palettes (slots 10-15 in 256-color palette)
-  // Sheets 1-2: Use MAIN palette (slots 2-6 in 256-color palette)
-  // Sheet 7: Use ANIMATED palette (slot 7 in 256-color palette)
-
-  switch (sheet_index) {
-    case 0:
-      return 10;  // Main blockset -> AUX1 palette region
-    case 1:
-      return 2;  // Main graphics -> MAIN palette region
-    case 2:
-      return 3;  // Main graphics -> MAIN palette region
-    case 3:
-      return 11;  // Area graphics -> AUX1 palette region
-    case 4:
-      return 12;  // Area graphics -> AUX1 palette region
-    case 5:
-      return 13;  // Area graphics -> AUX2 palette region
-    case 6:
-      return 14;  // Area graphics -> AUX2 palette region
-    case 7:
-      return 7;  // Animated tiles -> ANIMATED palette region
-    default:
-      return static_cast<int>(
-          current_palette_);  // Use current selection for other sheets
-  }
-}
-
-// NEW: Get the actual palette slot for a given palette button and sheet index
-// This uses row-based addressing to match the overworld's approach:
-// The 256-color palette is organized as 16 rows of 16 colors each.
-// Palette buttons 0-7 map to CGRAM rows starting at the sheet's base row,
-// skipping HUD rows for overworld visuals.
+// Get the actual CGRAM palette slot for a Tile16 palette button.
+// ZScream and the authoritative OverworldMap::BuildTiles16Gfx path encode
+// Tile16 colors as `(pixel & 0x0F) + (tile.palette * 0x10)`. The graphics
+// sheet contributes the low nibble, including the left/right half of each
+// palette row; it does not offset the tile palette row itself.
 int Tile16Editor::GetActualPaletteSlot(int palette_button,
                                        int sheet_index) const {
+  (void)sheet_index;
   const int clamped_button = std::clamp(palette_button, 0, 7);
-  const int base_row = GetPaletteBaseForSheet(sheet_index);
-  const int actual_row = std::clamp(base_row + clamped_button, 0, 15);
-
-  // Palette buttons map to CGRAM rows starting from the sheet base.
-  return actual_row * 16;
+  return clamped_button * 16;
 }
 
-// NEW: Get the sheet index for a given tile8 ID
+// Get the graphics chunk that contains a tile8 ID.
 int Tile16Editor::GetSheetIndexForTile8(int tile8_id) const {
-  // Determine which graphics sheet a tile8 belongs to based on its position
-  // This is based on the 256-tile per sheet organization
+  // Overworld current_gfx is packed into 0x1000-byte graphics chunks. In the
+  // editor's 128px-wide 8bpp bitmap view, each chunk is 64 Tile8 entries.
+  constexpr int kTile8sPerGraphicsChunk = 64;
+  int sheet_index = tile8_id / kTile8sPerGraphicsChunk;
 
-  constexpr int kTilesPerSheet = 256;  // 16x16 tiles per sheet
-  int sheet_index = tile8_id / kTilesPerSheet;
-
-  // Clamp to valid sheet range (0-7)
-  return std::min(7, std::max(0, sheet_index));
+  return std::min(15, std::max(0, sheet_index));
 }
 
-// NEW: Get the actual palette slot for the current tile16 being edited
 int Tile16Editor::GetActualPaletteSlotForCurrentTile16() const {
-  // For the current tile16, we need to determine which sheet the tile8s belong
-  // to and use the most appropriate palette region
-
-  if (current_tile8_ >= 0 &&
-      current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
-    int sheet_index = GetSheetIndexForTile8(current_tile8_);
-    return GetActualPaletteSlot(current_palette_, sheet_index);
-  }
-
-  // Default to sheet 0 (main blockset) if no tile8 selected
   return GetActualPaletteSlot(current_palette_, 0);
-}
-
-int Tile16Editor::GetPaletteBaseForSheet(int sheet_index) const {
-  // Based on overworld palette structure and how ProcessGraphicsBuffer assigns
-  // colors: The 256-color palette is organized as 16 rows of 16 colors each.
-  // Different graphics sheets map to different palette regions:
-  //
-  // Row 0: Transparent/system colors
-  // Row 1: HUD colors (palette index 0x10-0x1F)
-  // Rows 2-4: MAIN/AUX1 palette region for main graphics
-  // Rows 5-7: AUX2 palette region for area-specific graphics
-  // Row 7: ANIMATED palette for animated tiles
-  //
-  // The palette_button (0-7) selects within the region.
-  switch (sheet_index) {
-    case 0:      // Main blockset
-    case 3:      // Area graphics set 1
-    case 4:      // Area graphics set 2
-      return 2;  // AUX1 palette region starts at row 2
-    case 5:      // Area graphics set 3
-    case 6:      // Area graphics set 4
-      return 5;  // AUX2 palette region starts at row 5
-    case 1:      // Main graphics
-    case 2:      // Main graphics
-      return 2;  // MAIN palette region starts at row 2
-    case 7:      // Animated tiles
-      return 7;  // ANIMATED palette region at row 7
-    default:
-      return 2;  // Default to MAIN region
-  }
 }
 
 gfx::SnesPalette Tile16Editor::CreateRemappedPaletteForViewing(
@@ -2931,23 +2823,16 @@ gfx::SnesPalette Tile16Editor::CreateRemappedPaletteForTile8(
   // are mapped to the target palette row based on their low nibble.
   //
   // This allows the source bitmap (which has pre-encoded palette offsets)
-  // to be viewed with the user-selected palette row.
+  // to be viewed with the same Tile16 palette row that painting will encode.
   //
   // For each palette index i:
   //   - Extract the color index: low_nibble = i & 0x0F
-  //   - Map to target row: (base_row + target_row) * 16 + low_nibble
+  //   - Map to target row: target_row * 16 + low_nibble
   //   - Copy the color from source palette at that position
 
   gfx::SnesPalette remapped;
-
-  // Map palette buttons to actual CGRAM rows based on the current sheet.
-  int sheet_index = 0;
-  if (tile8_id >= 0 &&
-      tile8_id < static_cast<int>(current_gfx_individual_.size())) {
-    sheet_index = GetSheetIndexForTile8(tile8_id);
-  }
-  const int base_row = GetPaletteBaseForSheet(sheet_index);
-  const int actual_target_row = std::clamp(base_row + target_row, 0, 15);
+  (void)tile8_id;
+  const int actual_target_row = std::clamp(target_row, 0, 7);
 
   for (int i = 0; i < 256; ++i) {
     int low_nibble = i & 0x0F;

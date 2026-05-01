@@ -397,6 +397,34 @@ TEST_F(Tile16EditorSyntheticFixture, HeldTile8PreviewUsesSelectedBrushPalette) {
 }
 
 TEST_F(Tile16EditorSyntheticFixture,
+       HeldTile8PreviewPaletteMatchesPaintedTile16Pixels) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kPaint);
+  editor_->set_current_palette(6);
+
+  RunPanelFrame();
+
+  const gfx::Bitmap& preview = editor_->Tile8PreviewBitmapForTesting();
+  ASSERT_TRUE(preview.is_active());
+  const uint8_t source_pixel = preview.data()[1 * 8 + 1];
+  ASSERT_EQ(source_pixel & 0x0F, 2);
+  ASSERT_GE(preview.palette().size(), 256u);
+  EXPECT_EQ(preview.palette()[source_pixel].snes(), palette_[0x62].snes());
+
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(ImVec2(9.0f, 1.0f), true, false).ok());
+
+  const gfx::Bitmap* bmp = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(bmp, nullptr);
+  ASSERT_TRUE(bmp->is_active());
+
+  const uint8_t painted_pixel = bmp->data()[1 * 16 + 9];
+  EXPECT_EQ(painted_pixel, 0x62);
+  EXPECT_EQ(bmp->palette()[painted_pixel].snes(),
+            preview.palette()[source_pixel].snes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
        NarrowPanelFrameRendersResponsiveWorkbench) {
   ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
   ASSERT_TRUE(editor_->ApplyPaletteToQuadrant(0, 3).ok());
@@ -834,61 +862,55 @@ TEST_F(Tile16EditorIntegrationTest, FlipHorizontalPersistsQuadrantMapping) {
 #endif
 }
 
-// Palette slot calculation tests - these don't require ROM data
-// Row-based addressing: (base_row + button) * 16, where base_row depends on
-// the sheet group (main/aux/animated) and skips HUD rows 0-1.
+// Palette slot calculation tests - these don't require ROM data.
+// ZScream parity: Tile16 palette buttons are direct CGRAM rows. Sheet pixels
+// provide the low nibble/right-half offset, not a row base.
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux1Sheets) {
-  // Row-based: button 0 -> row 2 (32), button 1 -> row 3 (48), etc.
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 0), 32);   // Row 2
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 0), 48);   // Row 3
-  EXPECT_EQ(editor_->GetActualPaletteSlot(2, 0), 64);   // Row 4
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 0), 144);  // Row 9
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 0), 0);    // Row 0
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 0), 16);   // Row 1
+  EXPECT_EQ(editor_->GetActualPaletteSlot(2, 0), 32);   // Row 2
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 0), 112);  // Row 7
 
-  // Sheet 3 also uses row-based (same values)
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 3), 32);
-  EXPECT_EQ(editor_->GetActualPaletteSlot(4, 3), 96);  // Row 6
+  // Sheet index is accepted for diagnostics but does not shift Tile16 metadata.
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 3), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(4, 3), 64);  // Row 4
 
-  // Sheet 4 also uses row-based
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 4), 32);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 4), 0);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_MainSheets) {
-  // Row-based addressing is consistent across all sheets
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 1), 32);   // Row 2
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 1), 48);   // Row 3
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 1), 144);  // Row 9
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 1), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 1), 16);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 1), 112);
 
-  // Sheet 2 uses same row-based values
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 2), 32);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 2), 0);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux2Sheets) {
-  // AUX2 sheets use base row 5
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 5), 80);   // Row 5
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 5), 96);   // Row 6
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 5), 192);  // Row 12
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 5), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 5), 16);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 5), 112);
 
-  // Sheet 6 uses same values (AUX2)
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 6), 80);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 6), 0);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_AnimatedSheet) {
-  // Animated sheet uses base row 7
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 7), 112);  // Row 7
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 7), 128);  // Row 8
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 7), 224);  // Row 14
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 7), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 7), 16);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 7), 112);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetSheetIndexForTile8_BoundsCheck) {
-  // 256 tiles per sheet
+  // 64 Tile8 entries per 0x1000-byte overworld graphics chunk in the editor
+  // bitmap layout.
   EXPECT_EQ(editor_->GetSheetIndexForTile8(0), 0);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(255), 0);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(256), 1);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(511), 1);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(512), 2);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(1792), 7);  // 7 * 256 = 1792
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(2047), 7);  // Max clamped to 7
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(3000), 7);  // Beyond max still 7
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(63), 0);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(64), 1);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(127), 1);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(128), 2);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(448), 7);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(960), 15);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(9999), 15);
 }
 
 TEST_F(Tile16EditorIntegrationTest, PaletteAccessors) {

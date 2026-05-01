@@ -103,19 +103,13 @@ struct Tile16Commit {
 // PALETTE COORDINATION:
 // ---------------------
 // The overworld uses a 256-color palette organized as 16 rows of 16 colors.
-// Different graphics sheets map to different palette regions:
-//
-//   Sheet Index | Palette Region | Purpose
-//   ------------|----------------|------------------------
-//   0, 3, 4     | AUX1 (row 10+) | Main blockset graphics
-//   1, 2        | MAIN (row 2+)  | Main area graphics
-//   5, 6        | AUX2 (row 10+) | Secondary blockset
-//   7           | ANIMATED       | Animated tiles
+// Tile16 metadata stores a 3-bit palette row (0-7), matching ZScream and the
+// SNES tilemap word. Graphics sheet pixels contribute the low nibble, including
+// whether the source uses the left or right half of the selected row.
 //
 // Key palette methods:
-//   - GetPaletteSlotForSheet(): Get base palette slot for a sheet
-//   - GetActualPaletteSlot(): Combine palette button + sheet to get final slot
-//   - GetActualPaletteSlotForCurrentTile16(): Get slot for current editing tile
+//   - GetActualPaletteSlot(): Convert palette button 0-7 to row * 16
+//   - GetActualPaletteSlotForCurrentTile16(): Get current brush row slot
 //   - ApplyPaletteToCurrentTile16Bitmap(): Apply correct colors to preview
 //
 // INTEGRATION WITH OVERWORLD:
@@ -291,18 +285,18 @@ class Tile16Editor : public gfx::GfxContext {
   // Palette Coordination System
   // ===========================================================================
   // The overworld uses a 256-color palette organized as 16 rows of 16 colors.
-  // Different graphics sheets map to different palette regions based on how
-  // the SNES PPU organizes tile graphics.
+  // Tile16 palette buttons map directly to CGRAM rows 0-7. Source graphics
+  // keep their low nibble, so pixels from either half of a row still render
+  // against the same palette row the Tile16 metadata will save.
   //
   // Palette Structure (256 colors = 16 rows × 16 colors):
   //   Row 0:     Transparent/system colors
   //   Row 1:     HUD colors (0x10-0x1F)
-  //   Rows 2-6:  MAIN/BG palettes for main graphics (sheets 1-2)
-  //   Rows 7:    ANIMATED palette (sheet 7)
-  //   Rows 10+:  AUX palettes for blockset graphics (sheets 0, 3-6)
+  //   Rows 2-6:  MAIN/BG palettes
+  //   Row 7:     ANIMATED palette
+  //   Rows 8-15: Sprite/auxiliary palette halves
   //
-  // The palette button (0-7) selects which of the 8 available sub-palettes
-  // to use, and the sheet index determines the base offset.
+  // The palette button (0-7) selects the saved Tile16 palette row directly.
 
   /// @brief Update palette for a specific tile8
   absl::Status UpdateTile8Palette(int tile8_id);
@@ -313,39 +307,27 @@ class Tile16Editor : public gfx::GfxContext {
   /// @brief Draw palette settings UI
   void DrawPaletteSettings();
 
-  /// @brief Get base palette slot for a graphics sheet
-  /// @param sheet_index Graphics sheet index (0-7)
-  /// @return Base palette offset (e.g., 10 for AUX, 2 for MAIN)
-  int GetPaletteSlotForSheet(int sheet_index) const;
-
-  /// @brief Calculate actual palette slot from button + sheet
+  /// @brief Calculate actual palette slot from button
   /// @param palette_button User-selected palette (0-7)
-  /// @param sheet_index Graphics sheet the tile8 belongs to
+  /// @param sheet_index Graphics sheet the tile8 belongs to (diagnostic only)
   /// @return Final palette slot index in 256-color palette
   ///
-  /// This is the core palette mapping function. It combines:
-  ///   - palette_button: Which of 8 sub-palettes user selected
-  ///   - sheet_index: Which graphics sheet contains the tile8
-  /// To produce the actual 256-color palette index.
+  /// This mirrors the Tile16 metadata render path:
+  ///   (pixel & 0x0F) + (palette_button * 0x10).
   int GetActualPaletteSlot(int palette_button, int sheet_index) const;
-
-  /// @brief Get palette base row for a graphics sheet
-  /// @param sheet_index Graphics sheet index (0-7)
-  /// @return Base row index in the 16-row palette structure
-  int GetPaletteBaseForSheet(int sheet_index) const;
 
   /// @brief Determine which graphics sheet contains a tile8
   /// @param tile8_id Tile8 ID from the graphics buffer
-  /// @return Sheet index (0-7) based on tile position
+  /// @return Graphics chunk index (0-15) based on tile position
   int GetSheetIndexForTile8(int tile8_id) const;
 
   /// @brief Get the palette slot for the current tile being edited
-  /// @return Palette slot based on current_tile8_ and current_palette_
+  /// @return Palette slot based on current_palette_
   int GetActualPaletteSlotForCurrentTile16() const;
 
   /// @brief Create a remapped palette for viewing with user-selected palette
   /// @param source Full 256-color palette
-  /// @param target_row User-selected palette row (0-7 maps to the sheet base)
+  /// @param target_row User-selected Tile16 palette row (0-7)
   /// @return Remapped 256-color palette where all pixels map to target row
   gfx::SnesPalette CreateRemappedPaletteForViewing(
       const gfx::SnesPalette& source, int target_row) const;
