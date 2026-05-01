@@ -318,6 +318,9 @@ struct OverworldFlags {
      (`button * 16`)
    - Verify `ApplyPaletteToCurrentTile16Bitmap()` is called after palette changes
    - Ensure `set_palette()` callback from overworld editor is working
+   - Ensure map refresh paths do not overwrite the Tile8 source bitmap with the
+     raw area palette after `Tile16Editor::set_palette()` remaps it to the
+     selected brush row
 
 2. **Changes Not Appearing:**
    - Check `has_pending_changes()` returns true after editing
