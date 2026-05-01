@@ -122,25 +122,24 @@ void DiscardAllChanges();
 
 **Palette Coordination (Critical for Color Fixes):**
 
-The overworld uses a 256-color palette organized as 16 rows of 16 colors. Different graphics sheets map to different palette regions:
-
-| Sheet Index | Palette Region | Purpose |
-|-------------|----------------|---------|
-| 0, 3, 4 | AUX1 (rows 10-15) | Main blockset graphics |
-| 1, 2 | MAIN (rows 2-6) | Main area graphics |
-| 5, 6 | AUX2 (rows 10-15) | Secondary blockset |
-| 7 | ANIMATED (row 7) | Animated tiles |
+The overworld uses a 256-color palette organized as 16 rows of 16 colors.
+Tile16 metadata stores the selected palette button as a direct row value
+(`0-7`), matching ZScream and the runtime `OverworldMap::BuildTiles16Gfx`
+path. The source graphics provide only the low nibble, so Tile8 source and
+held-preview recoloring must map every source pixel to
+`(selected_row * 16) + (pixel & 0x0F)` without adding a graphics-sheet base
+row.
 
 Key palette methods in `tile16_editor.cc`:
 ```cpp
-// Get palette slot for a graphics sheet
-int GetPaletteSlotForSheet(int sheet_index) const;
-
-// Get actual palette row for palette button + sheet combination
+// Get actual CGRAM row for a palette button; sheet_index is diagnostic only
 int GetActualPaletteSlot(int palette_button, int sheet_index) const;
 
-// Get the palette slot for the current tile being edited
+// Get the direct palette slot for the current Tile16 brush
 int GetActualPaletteSlotForCurrentTile16() const;
+
+// Determine which 0x1000-byte graphics chunk contains a tile8
+int GetSheetIndexForTile8(int tile8_id) const;
 ```
 
 ### 2. ZScustom Overworld Features
@@ -315,7 +314,8 @@ struct OverworldFlags {
 ### Testing Tile16 Editing
 
 1. **Palette Colors Wrong:**
-   - Check `GetPaletteSlotForSheet()` for correct sheet-to-palette mapping
+   - Check `GetActualPaletteSlot()` maps palette buttons directly to CGRAM rows
+     (`button * 16`)
    - Verify `ApplyPaletteToCurrentTile16Bitmap()` is called after palette changes
    - Ensure `set_palette()` callback from overworld editor is working
 
@@ -438,4 +438,3 @@ Paint operations within 500ms are batched together to avoid creating too many un
 
 - [Composite Layer System](../../../docs/internal/agents/composite-layer-system.md) - Graphics layer architecture
 - [ZScream Wiki](https://github.com/Zarby89/ZScreamDungeon/wiki) - Reference for ZScream compatibility
-

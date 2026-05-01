@@ -43,6 +43,10 @@ changes keep parity with ZScream/Hyrule Magic behavior.
 - The active overworld map palette is the display source of truth for the
   Tile8 source sheet, selected Tile8 hover preview, selected Tile16 preview,
   Tile16 selector/blockset atlas, and overworld map presentation.
+- Tile16 palette buttons map directly to CGRAM rows `0-7`, matching ZScream
+  and `OverworldMap::BuildTiles16Gfx`. Tile8 source graphics keep their low
+  nibble, so the Tile8 source sheet and held Tile8 preview remap to the
+  selected direct row instead of adding a graphics-sheet palette base.
 - `MapRefreshCoordinator` pushes the current map palette into `Tile16Editor`
   through `set_palette()` whenever map palette or Tile16 blockset state
   changes.
