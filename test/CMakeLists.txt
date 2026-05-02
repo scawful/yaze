@@ -307,6 +307,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/tile16_renderer_test.cc
     unit/zelda3/tile16_usage_index_test.cc
     unit/zelda3/resource_labels_test.cc
+    unit/zelda3/sprite_render_preview_test.cc
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
@@ -531,6 +532,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/sheet_role_palette_table_test.cc
     unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
+    unit/zelda3/sprite_render_preview_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc

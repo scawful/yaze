@@ -66,6 +66,15 @@ TEST(DungeonObjectSelectorPaletteTest, InitialInvalidationCountIsZero) {
   EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 0u);
 }
 
+TEST(DungeonObjectSelectorPaletteTest, ObjectPreviewsDefaultOn) {
+  // ZScream/Hyrule Magic muscle memory expects the selector to show visual
+  // object previews first. The renderer now culls off-screen grid entries, so
+  // the safer default is to render thumbnails and fall back per item when room
+  // graphics are unavailable.
+  DungeonObjectSelector selector;
+  EXPECT_TRUE(selector.object_previews_enabled_for_testing());
+}
+
 }  // namespace
 }  // namespace editor
 }  // namespace yaze
