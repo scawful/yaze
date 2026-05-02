@@ -88,21 +88,24 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ Responsive dungeon workbench layout now collapses room navigation into a
   compact grid in tighter widths, stacks toolbar sections earlier, trims helper
   chrome, and protects the center canvas before squeezing the inspector
-- ✅ Focused persistence coverage now spans room headers, torches, custom
-  collision, chests, and pot items; `DungeonEditorSystem` now saves full
-  managed-room state without later-room global-save clobbering
+- ✅ Focused persistence coverage now spans room headers, torches, pushable
+  blocks, custom collision, chests, pot items, and dungeon entrances;
+  `DungeonEditorSystem` now saves full managed-room state without later-room
+  global-save clobbering
 - ✅ Object tile editor preview/atlas state now refreshes on palette changes and
   failed re-open attempts clear stale layout state; focused panel/backend tests
   cover the reset path and palette-sensitive rendering
+- ✅ Object selector/browser thumbnails are default-on, cull off-screen grid
+  entries, and disclose rendered-vs-fallback preview state in tooltips
 - 🟡 **Object tile count fallback**: parser uses object-specific counts for known
   IDs but still falls back to 8 for uncataloged cases; continue ROM-trace audits
   for rare objects.
-- 🟡 Object selector/browser preview quality still needs a broader parity pass
 - 🟡 12+ unknown dungeon object types need verification
 - 🟡 Visual discrepancies in specific objects (vertical rails, doors)
 - 🟡 Room object type identification incomplete
-- 🟡 Pits and blocks still save through legacy ROM-region preservation rather
-  than first-class editable room-state encoders
+- 🟡 The global pit-damage table still saves through protected ROM-region
+  preservation. Pushable blocks are room-aware now, but still need a deliberate
+  repointing/expansion design before exceeding the vanilla table cap.
 - 🟡 Optional connected-room overview / scrollable grouped-room workspace
   remains exploratory; single-room editing remains the primary path
 - 🟡 ASM export (deferred)

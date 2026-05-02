@@ -74,10 +74,15 @@ between tools in one click; the active tool is highlighted with the accent
 color and hovering each icon shows a tooltip with the full tool name. Returning
 to the room metadata view is one click on the inspector's primary segmented
 selector. The drawer body fills the remaining inspector height so embedded
-tools render as primary content rather than cramped popups. These standalone
-tool windows are closed on Workbench entry and hidden from the Window
-Browser/sidebar while Workbench mode is active so the editor stays focused on
-the main room canvas.
+tools render as primary content rather than cramped popups. Standalone copies
+of these tools remain available in the Window Browser/sidebar while Workbench
+mode is active; entering Workbench mode only collapses navigation windows and
+per-room windows by default.
+
+The Object Selector renders room-context thumbnails by default when room
+graphics are available. Entries that cannot render a tile layout fall back to a
+typed symbol, and the hover tooltip shows whether the visible preview is a
+rendered layout or a fallback.
 
 ### Available Panels
 
@@ -89,9 +94,9 @@ the main room canvas.
 | **Object Tile Editor** | Standalone 8x8 tile composition editor for object asset authoring |
 | **Window Browser** | Manage standalone windows when using Window workflow |
 
-Workbench-local edit tools are intentionally not advertised as high-level
-Dungeon windows in Workbench mode. Switch to **Window** workflow from the
-sidebar if you need the older standalone-panel layout.
+Workbench-local edit tools are available both inside the Workbench drawer and as
+standalone windows. Switch to **Window** workflow from the sidebar when you want
+the older navigation-first panel layout.
 
 ### Canvas Controls
 
@@ -109,7 +114,8 @@ Enable **Object Labels** from the toolbar to display layer-colored labels.
 
 ### Saving
 
-- **File > Save ROM** persists dungeon data in this order: dungeon maps (when **Save Dungeon Maps** is enabled), then per-room **objects**, **sprites**, **room headers** (14-byte header + message IDs), **door pointers** (with `0xF0 0xFF` marker), then **palettes**, **torches**, **pits**, **blocks**, **chests**, and **pot items**. No need to save from the Dungeon Editor separately for ROM file writes.
+- **File > Save ROM** persists dungeon data in this order: dungeon maps (when **Save Dungeon Maps** is enabled), then per-room **objects**, **sprites**, **room headers** (14-byte header + message IDs), **door pointers** (with `0xF0 0xFF` marker), then **palettes**, **torches**, **pits**, **blocks**, **chests**, **pot items**, and dirty **entrance/spawn-point metadata**. No need to save from the Dungeon Editor separately for ROM file writes.
+- Oversized dirty pot-item edits now fail the save and stay dirty instead of silently preserving stale ROM bytes.
 - **Undo/Redo**: `Cmd/Ctrl+Z` and `Cmd/Ctrl+Shift+Z`
 - Changes are tracked across all panels
 - Keep backups enabled in `File > Options > Experiment Flags`

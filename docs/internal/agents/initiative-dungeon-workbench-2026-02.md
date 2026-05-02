@@ -131,9 +131,9 @@ Canonical handoff for this slice:
 ### Step 4: Workbench-Local Tool Drawer
 - Route local editing tools into a right-inspector `Tools` mode instead of
   opening another high-level panel.
-- Close drawer-owned standalone tool windows on Workbench entry and hide their
-  entries from Window Browser/sidebar while Workbench mode is active.
-- Keep standalone windows available when users switch back to Window workflow.
+- Keep the drawer as the default path, but allow standalone copies to remain
+  open and discoverable for users who intentionally prefer a multi-window
+  layout.
 - Keep Object Tile Editor standalone unless Object Selector invokes it directly
   as an asset-authoring subflow.
 

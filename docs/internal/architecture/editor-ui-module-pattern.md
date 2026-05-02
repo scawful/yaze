@@ -116,11 +116,11 @@ Dungeon Workbench examples:
 | Connected Graph | Canvas mode |
 | Object Tile Editor | Standalone asset-authoring window |
 
-If a tool is embedded in a Workbench drawer, close any visible standalone copy
-when entering Workbench mode and hide its standalone panel entry from Window
-Browser/sidebar while Workbench mode is active. Keep the standalone path
-available in the explicit Window workflow so advanced users can opt into the old
-multi-window model.
+If a tool is embedded in a Workbench drawer, keep the drawer as the primary
+default path, but do not force-close an already visible standalone copy when
+entering Workbench mode. Keep standalone panel entries discoverable for users
+who intentionally prefer a multi-window layout; Workbench entry should only
+collapse navigation windows and per-room windows by default.
 
 Avoid dual implementations. Do not keep both a modal popup path and a drawer path
 for the same local tool unless the temporary duplicate is tracked by a handoff

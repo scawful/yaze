@@ -59,10 +59,10 @@ if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
 4. **Save**
    - **Save ROM** (EditorManager::SaveRom) calls `GetDungeonEditor()->Save()`, so File > Save ROM persists dungeon objects, sprites, door pointers, room headers (14-byte header + message IDs), palettes, and the supported room-scoped tables in addition to dungeon maps (when `kSaveDungeonMaps` is on).
    - `DungeonEditorV2::Save` saves palettes via `PaletteManager`, then writes per-room data according to the dungeon save flags. Current focused ROM-safety coverage exists for room headers, chests, and pot items in `DungeonEditorV2RomSafetyTest`.
-   - `DungeonEditorSystem::SaveRoom()` / `SaveDungeon()` now persist full managed-room state for objects, sprites, room headers, torches, custom collision, chests, and pot items. `SaveDungeon()` first writes room-local streams for every loaded room, then runs the global aggregators once across the managed-room set so later rooms do not clobber earlier chest/pot/collision writes.
+   - `DungeonEditorSystem::SaveRoom()` / `SaveDungeon()` now persist full managed-room state for objects, sprites, room headers, torches, pushable blocks, custom collision, chests, pot items, and dungeon entrances. `SaveDungeon()` first writes room-local streams for every loaded room, then runs the global aggregators once across the managed-room set so later rooms do not clobber earlier chest/pot/collision writes.
    - `Room::EncodeObjects()` emits the door marker `0xF0 0xFF` and the door list (per ZScreamDungeon); `Room::SaveObjects()` writes the door pointer table at `kDoorPointers` so the pointer points to the first byte after the marker.  
    - **Dungeon layout vs ZScream**: yaze writes room object data in-place at each room’s existing object pointer. ZScreamDungeon repacks room data into five fixed sections (DungeonSection1–5). So `validate-yaze --feature=dungeon` may report byte differences in object layout regions even when object and door content are equivalent; semantic comparison or “in-place” documentation applies.  
-   - Pits and blocks still use legacy pointer-region preservation paths in `room.cc`; they are not yet true room-state roundtrip writers.
+   - The pit-damage table still uses a protected pointer-region preservation path in `room.cc`; pushable blocks use the room-aware encoder and keep unmaterialized rooms byte-identical.
 
 ## Recent Additions
 
@@ -119,7 +119,7 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 
 ## Current Limitations / Gaps
 
-- **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), palettes, torches, custom collision, chests, and pot items are written back and have focused regression coverage. Pits and blocks still preserve existing ROM blobs rather than round-tripping from editable room-state models.
+- **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), palettes, torches, pushable blocks, custom collision, chests, pot items, and dungeon entrances are written back and have focused regression coverage. The pit-damage table remains a protected preservation path because yaze does not expose a dedicated editor for that global table.
 - **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, and reopen/reset behavior are implemented. Remaining gaps are the "new custom object" flow, deeper editor/integration coverage, and any future preview-quality polish after the selector/browser churn settles.
 - **Tests**: Focused unit coverage now exists for `ObjectTileLayout`, standard/custom object tile writeback, palette-sensitive preview generation, panel reset behavior, `DungeonEditorSystem`, `DungeonSaveTest`, and `DungeonEditorV2RomSafetyTest`. Broader integration/E2E coverage for ROM-write workflows is still lighter than the unit surface.
 
@@ -130,8 +130,9 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
    - Add broader editor/integration coverage around apply/reload/save flows.
    - Revisit selector/browser preview quality after the current object-selector refactor settles.
 2. **Save Pipeline Follow-up**:
-   - Decide whether pits and blocks should remain legacy passthrough writers or become true room-state roundtrip save paths.
-   - Add broader integration coverage for door/chest/pot/collision/entrance write flows beyond the current unit and ROM-safety tests.
+   - Decide whether the global pit-damage table needs an editing surface or should remain protected passthrough data.
+   - Treat pushable-block table repointing/expansion as a separate ROM-layout feature; the current encoder intentionally stays within the vanilla four-region cap.
+   - Add broader integration coverage for door/chest/pot/collision/entrance/write flows beyond the current unit and ROM-safety tests.
 3. **Test Coverage**: Add integration tests that:
    - Place/delete objects and verify `Room::EncodeObjects` output changes in ROM.
    - Add doors/chests/entrances and assert persistence across full editor save/reload flows.
