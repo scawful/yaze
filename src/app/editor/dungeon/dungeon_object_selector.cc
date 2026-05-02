@@ -47,6 +47,62 @@ float GetObjectGridItemSize(int density) {
   }
 }
 
+ImU32 ThemeColor(const ImVec4& color) {
+  return ImGui::ColorConvertFloat4ToU32(color);
+}
+
+ImVec4 WithAlpha(ImVec4 color, float alpha) {
+  color.w = alpha;
+  return color;
+}
+
+ImVec4 Dimmed(ImVec4 color, float factor) {
+  color.x *= factor;
+  color.y *= factor;
+  color.z *= factor;
+  return color;
+}
+
+ImU32 GetObjectRangeHeaderColor(int start_id) {
+  const auto& theme = AgentUI::GetTheme();
+  if (start_id >= 0xF80) {
+    return ThemeColor(theme.music_zone_color);
+  }
+  if (start_id >= 0x100) {
+    return ThemeColor(theme.selection_secondary);
+  }
+  return ThemeColor(theme.dungeon_object_wall);
+}
+
+ImU32 GetObjectRangeHeaderHoverColor(int start_id) {
+  const auto& theme = AgentUI::GetTheme();
+  if (start_id >= 0xF80) {
+    return ThemeColor(WithAlpha(theme.music_zone_color, 1.0f));
+  }
+  if (start_id >= 0x100) {
+    return ThemeColor(WithAlpha(theme.selection_secondary, 1.0f));
+  }
+  return ThemeColor(WithAlpha(theme.dungeon_object_wall, 1.0f));
+}
+
+void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
+                             float item_size, const ImVec4& accent_color,
+                             const char* label) {
+  const auto& theme = AgentUI::GetTheme();
+  const ImU32 accent = ThemeColor(accent_color);
+  const ImU32 dimmed = ThemeColor(Dimmed(accent_color, 0.55f));
+
+  draw_list->AddRectFilledMultiColor(
+      top_left, ImVec2(top_left.x + item_size, top_left.y + item_size), dimmed,
+      dimmed, accent, accent);
+
+  ImVec2 label_size = ImGui::CalcTextSize(label);
+  ImVec2 label_pos(top_left.x + (item_size - label_size.x) / 2,
+                   top_left.y + (item_size - label_size.y) / 2 - 10);
+  draw_list->AddText(label_pos,
+                     ThemeColor(WithAlpha(theme.text_primary, 0.82f)), label);
+}
+
 }  // namespace
 
 ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
@@ -69,16 +125,16 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   // Type 2 objects (0x100-0x141) - Torches, blocks, switches
   if (object_id >= 0x100 && object_id < 0x200) {
     if (object_id >= 0x100 && object_id <= 0x10F) {
-      return IM_COL32(255, 150, 50, 255);  // Orange for torches
+      return ImGui::GetColorU32(theme.status_warning);  // Torches
     } else if (object_id >= 0x110 && object_id <= 0x11F) {
-      return IM_COL32(150, 150, 200, 255);  // Blue-gray for blocks
+      return ImGui::GetColorU32(theme.dungeon_object_default);  // Blocks
     } else if (object_id >= 0x120 && object_id <= 0x12F) {
       return ImGui::ColorConvertFloat4ToU32(
           theme.status_success);  // Green for switches
     } else if (object_id >= 0x130 && object_id <= 0x13F) {
       return ImGui::GetColorU32(theme.selection_primary);  // Yellow for stairs
     } else {
-      return IM_COL32(180, 180, 180, 255);  // Gray for other Type 2
+      return ImGui::GetColorU32(theme.text_secondary_gray);  // Other Type 2
     }
   }
 
@@ -98,7 +154,7 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     return ImGui::GetColorU32(
         theme.dungeon_object_decoration);  // Dim gray for decorations
   } else if (object_id >= 0x00 && object_id <= 0x0F) {
-    return IM_COL32(120, 120, 180, 255);  // Blue-gray for corners
+    return ImGui::GetColorU32(theme.dungeon_selection_secondary);  // Corners
   } else {
     return ImGui::GetColorU32(theme.dungeon_object_default);  // Default gray
   }
@@ -182,12 +238,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     int start;
     int end;
     const char* label;
-    ImU32 header_color;
   };
   static const ObjectRange ranges[] = {
-      {0x00, 0xFF, "Type 1", IM_COL32(80, 120, 180, 255)},
-      {0x100, 0x141, "Type 2", IM_COL32(120, 80, 180, 255)},
-      {0xF80, 0xFFF, "Type 3", IM_COL32(180, 120, 80, 255)},
+      {0x00, 0xFF, "Type 1"},
+      {0x100, 0x141, "Type 2"},
+      {0xF80, 0xFFF, "Type 3"},
   };
 
   // Total object count
@@ -300,14 +355,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     // Iterate through all object ranges
     for (const auto& range : ranges) {
       // Section header for each type
+      const ImU32 header_color = GetObjectRangeHeaderColor(range.start);
+      const ImU32 header_hover_color =
+          GetObjectRangeHeaderHoverColor(range.start);
       gui::StyleColorGuard section_guard(
-          {{ImGuiCol_Header,
-            ImGui::ColorConvertU32ToFloat4(range.header_color)},
+          {{ImGuiCol_Header, ImGui::ColorConvertU32ToFloat4(header_color)},
            {ImGuiCol_HeaderHovered,
-            ImGui::ColorConvertU32ToFloat4(
-                IM_COL32((range.header_color & 0xFF) + 30,
-                         ((range.header_color >> 8) & 0xFF) + 30,
-                         ((range.header_color >> 16) & 0xFF) + 30, 255))}});
+            ImGui::ColorConvertU32ToFloat4(header_hover_color)}});
       bool section_open = ImGui::CollapsingHeader(
           absl::StrFormat("%s (0x%03X-0x%03X)", range.label, range.start,
                           range.end)
@@ -359,41 +413,27 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
             object_selected_callback_(preview_object_);
           }
         }
+        const bool item_visible = ImGui::IsItemVisible();
+        ImVec2 button_pos = ImGui::GetItemRectMin();
         gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
                                        current_room_id_, 0, 0, 0x12);
-
         // Draw object preview on the button; fall back to styled placeholder
-        ImVec2 button_pos = ImGui::GetItemRectMin();
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
         // Only attempt graphical preview if enabled (performance optimization)
         bool rendered = false;
-        if (enable_object_previews_) {
+        if (item_visible && enable_object_previews_) {
           rendered = DrawObjectPreview(MakePreviewObject(obj_id), button_pos,
                                        item_size);
         }
 
-        if (!rendered) {
+        if (item_visible && !rendered) {
           // Draw a styled fallback with gradient background
-          ImU32 obj_color = GetObjectTypeColor(obj_id);
-          ImU32 darker_color = IM_COL32((obj_color & 0xFF) * 0.6f,
-                                        ((obj_color >> 8) & 0xFF) * 0.6f,
-                                        ((obj_color >> 16) & 0xFF) * 0.6f, 255);
-
-          // Gradient background
-          draw_list->AddRectFilledMultiColor(
-              button_pos,
-              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              darker_color, darker_color, obj_color, obj_color);
-
-          // Draw object type symbol in center
           std::string symbol = GetObjectTypeSymbol(obj_id);
-          ImVec2 symbol_size = ImGui::CalcTextSize(symbol.c_str());
-          ImVec2 symbol_pos(
-              button_pos.x + (item_size - symbol_size.x) / 2,
-              button_pos.y + (item_size - symbol_size.y) / 2 - 10);
-          draw_list->AddText(symbol_pos, IM_COL32(255, 255, 255, 180),
-                             symbol.c_str());
+          DrawFallbackPreviewTile(
+              draw_list, button_pos, item_size,
+              ImGui::ColorConvertU32ToFloat4(GetObjectTypeColor(obj_id)),
+              symbol.c_str());
         }
 
         // Draw selection border
@@ -408,10 +448,12 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           border_thickness = 1.0f;
         }
 
-        draw_list->AddRect(
-            button_pos,
-            ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-            border_color, 0.0f, 0, border_thickness);
+        if (item_visible) {
+          draw_list->AddRect(
+              button_pos,
+              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+              border_color, 0.0f, 0, border_thickness);
+        }
 
         // Get object name for display
         // Truncate name for display
@@ -422,21 +464,23 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           display_name = display_name.substr(0, max_display_chars - 2) + "..";
         }
 
-        // Draw object name (smaller, above ID)
-        ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
-        ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
-                                 button_pos.y + item_size - 26);
-        draw_list->AddText(name_pos,
-                           ImGui::GetColorU32(theme.text_secondary_gray),
-                           display_name.c_str());
+        if (item_visible) {
+          // Draw object name (smaller, above ID)
+          ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
+          ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
+                                   button_pos.y + item_size - 26);
+          draw_list->AddText(name_pos,
+                             ImGui::GetColorU32(theme.text_secondary_gray),
+                             display_name.c_str());
 
-        // Draw object ID at bottom (hex format)
-        std::string id_text = absl::StrFormat("%03X", obj_id);
-        ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
-        ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                               button_pos.y + item_size - id_size.y - 2);
-        draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
-                           id_text.c_str());
+          // Draw object ID at bottom (hex format)
+          std::string id_text = absl::StrFormat("%03X", obj_id);
+          ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+          ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                                 button_pos.y + item_size - id_size.y - 2);
+          draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                             id_text.c_str());
+        }
 
         // Enhanced tooltip
         if (ImGui::IsItemHovered()) {
@@ -451,6 +495,12 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
             int subtype = zelda3::GetObjectSubtype(obj_id);
             ImGui::TextColored(theme.text_secondary_gray, "Subtype %d",
                                subtype);
+            ImGui::TextColored(
+                rendered ? theme.status_success : theme.status_warning,
+                "Preview: %s",
+                rendered ? "rendered tile layout"
+                         : (enable_object_previews_ ? "fallback symbol"
+                                                    : "thumbnails off"));
             ImGui::Separator();
 
             uint32_t layout_key = (static_cast<uint32_t>(obj_id) << 16) |
@@ -491,16 +541,17 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                 ImVec2 p1(grid_start.x + cell.rel_x * cell_size,
                           grid_start.y + cell.rel_y * cell_size);
                 ImVec2 p2(p1.x + cell_size, p1.y + cell_size);
-                tooltip_draw_list->AddRectFilled(p1, p2,
-                                                 IM_COL32(200, 200, 200, 255));
-                tooltip_draw_list->AddRect(p1, p2, IM_COL32(50, 50, 50, 255));
+                tooltip_draw_list->AddRectFilled(
+                    p1, p2, ThemeColor(theme.dungeon_grid_cell_highlight));
+                tooltip_draw_list->AddRect(
+                    p1, p2, ThemeColor(theme.panel_border_color));
               }
               ImGui::Dummy(ImVec2(layout.bounds_width * cell_size,
                                   layout.bounds_height * cell_size));
             }
 
             ImGui::Separator();
-            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+            ImGui::TextColored(theme.text_secondary_gray,
                                "Click to select for placement");
             ImGui::EndTooltip();
           }
@@ -737,6 +788,7 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
 }
 
 void DungeonObjectSelector::DrawNewCustomObjectDialog() {
+  const auto& theme = AgentUI::GetTheme();
   if (show_create_dialog_) {
     ImGui::OpenPopup("New Custom Object");
     show_create_dialog_ = false;
@@ -793,8 +845,7 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
     }
 
     if (!error_msg.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s",
-                         error_msg.c_str());
+      ImGui::TextColored(theme.status_error, "%s", error_msg.c_str());
     }
 
     ImGui::Separator();
@@ -944,52 +995,43 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
           SelectObject(obj_id, subtype);
           ImGui::CloseCurrentPopup();
         }
+        const bool item_visible = ImGui::IsItemVisible();
+        ImVec2 button_pos = ImGui::GetItemRectMin();
         gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
                                        current_room_id_, 0, 0,
                                        static_cast<uint8_t>(subtype & 0x1F));
-
-        ImVec2 button_pos = ImGui::GetItemRectMin();
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
         bool rendered = false;
-        if (enable_object_previews_) {
+        if (item_visible && enable_object_previews_) {
           auto temp_obj = MakePreviewObject(obj_id);
           temp_obj.size_ = subtype;
           rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
         }
 
-        if (!rendered) {
-          ImU32 obj_color = IM_COL32(100, 180, 120, 255);
-          ImU32 darker_color = IM_COL32(60, 100, 70, 255);
-
-          draw_list->AddRectFilledMultiColor(
-              button_pos,
-              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              darker_color, darker_color, obj_color, obj_color);
-
+        if (item_visible && !rendered) {
           std::string sub_text = absl::StrFormat("%02X", subtype);
-          ImVec2 sub_size = ImGui::CalcTextSize(sub_text.c_str());
-          ImVec2 sub_pos(button_pos.x + (item_size - sub_size.x) / 2,
-                         button_pos.y + (item_size - sub_size.y) / 2);
-          draw_list->AddText(sub_pos, IM_COL32(255, 255, 255, 220),
-                             sub_text.c_str());
+          DrawFallbackPreviewTile(draw_list, button_pos, item_size,
+                                  theme.status_success, sub_text.c_str());
         }
 
         ImU32 border_color =
             is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
                         : ImGui::GetColorU32(theme.panel_bg_darker);
         float border_thickness = is_selected ? 3.0f : 1.0f;
-        draw_list->AddRect(
-            button_pos,
-            ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-            border_color, 0.0f, 0, border_thickness);
+        if (item_visible) {
+          draw_list->AddRect(
+              button_pos,
+              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+              border_color, 0.0f, 0, border_thickness);
 
-        std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
-        ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
-        ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                               button_pos.y + item_size - id_size.y - 2);
-        draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
-                           id_text.c_str());
+          std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
+          ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+          ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                                 button_pos.y + item_size - id_size.y - 2);
+          draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                             id_text.c_str());
+        }
 
         if (ImGui::IsItemHovered()) {
           gui::StyleColorGuard tooltip_guard(
@@ -1008,6 +1050,12 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
             ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
                                obj_id, subtype);
             ImGui::Text("%s", subtype_name.c_str());
+            ImGui::TextColored(
+                rendered ? theme.status_success : theme.status_warning,
+                "Preview: %s",
+                rendered ? "rendered custom layout"
+                         : (enable_object_previews_ ? "fallback subtype"
+                                                    : "thumbnails off"));
             ImGui::Separator();
             ImGui::Text("File: %s",
                         filename.empty() ? "(unmapped)" : filename.c_str());

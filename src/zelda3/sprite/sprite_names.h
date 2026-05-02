@@ -1,6 +1,6 @@
 #pragma once
 namespace yaze::zelda3 {
-constexpr const char* kSpriteNames[] = {
+const char* const kSpriteNames[] = {
     "Raven",
     "Vulture",
     "02",
@@ -286,5 +286,5 @@ constexpr const char* kSpriteNames[] = {
     "BombDrop",
     "11B",
 };
-constexpr size_t kSpriteNameCount = sizeof(kSpriteNames)/sizeof(kSpriteNames[0]);
+const size_t kSpriteNameCount = sizeof(kSpriteNames) / sizeof(kSpriteNames[0]);
 }  // namespace yaze::zelda3

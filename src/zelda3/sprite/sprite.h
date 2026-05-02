@@ -3,7 +3,9 @@
 
 #include "app/platform/sdl_compat.h"
 
+#include <cstddef>
 #include <cstdint>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -83,6 +85,8 @@ class Sprite : public GameEntity {
   }
 
   void Draw();
+  void RenderPreviewGraphics(std::span<const uint8_t> graphics);
+  void ClearPreviewGraphics();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
                       bool mirror_x = false, bool mirror_y = false,
                       int sizex = 2, int sizey = 2);
@@ -147,6 +151,8 @@ class Sprite : public GameEntity {
   std::string name_;
   std::vector<uint8_t> preview_gfx_;
   std::vector<uint8_t> current_gfx_;
+  const uint8_t* external_gfx_ = nullptr;
+  size_t external_gfx_size_ = 0;
 
   SDL_Rect bounding_box_;
 };

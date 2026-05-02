@@ -102,6 +102,9 @@ class DungeonObjectSelector {
   std::size_t preview_cache_invalidations_for_testing() const {
     return preview_cache_invalidations_;
   }
+  bool object_previews_enabled_for_testing() const {
+    return enable_object_previews_;
+  }
 
  private:
   bool MatchesObjectFilter(int obj_id, int filter_type);
@@ -169,7 +172,7 @@ class DungeonObjectSelector {
   bool registry_initialized_ = false;
 
   // Performance: enable/disable graphical preview rendering
-  bool enable_object_previews_ = false;
+  bool enable_object_previews_ = true;
 
   // Preview cache for object selector grid
   // Key: object_id (or object_id+subtype for custom objects)
