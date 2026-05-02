@@ -288,7 +288,7 @@ class DungeonEditorV2 : public Editor {
   Rom* rom_;
   zelda3::GameData* game_data_ = nullptr;
   DungeonRoomStore rooms_;
-  std::array<zelda3::RoomEntrance, 0x8C> entrances_;
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> entrances_;
 
   // Current selection state
   int current_entrance_id_ = 0;

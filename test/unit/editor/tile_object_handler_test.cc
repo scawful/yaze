@@ -96,6 +96,34 @@ TEST_F(TileObjectHandlerTest, PlaceObjectAtValidPosition) {
   EXPECT_EQ(last_invalidation_domain_, MutationDomain::kTileObjects);
 }
 
+TEST_F(TileObjectHandlerTest, MoveObjectMarksObjectStreamDirty) {
+  auto obj = CreateTestObject(10, 10);
+  rooms_[0].AddTileObject(obj);
+  rooms_[0].ClearSaveDirtyState();
+
+  handler_.MoveObjects(0, {0}, 2, 3);
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 1);
+  EXPECT_EQ(objects[0].x_, 12);
+  EXPECT_EQ(objects[0].y_, 13);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_TRUE(rooms_[0].HasUnsavedChanges());
+}
+
+TEST_F(TileObjectHandlerTest, MoveTorchMarksTorchDirtyOnly) {
+  auto torch = CreateTestObject(10, 10, 0x00, 0x150);
+  torch.set_options(zelda3::ObjectOption::Torch);
+  rooms_[0].AddTileObject(torch);
+  rooms_[0].ClearSaveDirtyState();
+
+  handler_.MoveObjects(0, {0}, 1, 0);
+
+  EXPECT_TRUE(rooms_[0].torches_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_TRUE(rooms_[0].HasUnsavedChanges());
+}
+
 TEST_F(TileObjectHandlerTest, PlaceObjectClampsToRoomBounds) {
   auto obj = CreateTestObject(0, 0, 0x00, 0x01);
 

@@ -347,6 +347,13 @@ class Room {
   void MarkPotItemsDirty() { save_dirty_state_.pot_items = true; }
   void ClearPotItemsDirty() { save_dirty_state_.pot_items = false; }
 
+  bool torches_dirty() const { return save_dirty_state_.torches; }
+  void MarkTorchesDirty() { save_dirty_state_.torches = true; }
+  void ClearTorchesDirty() { save_dirty_state_.torches = false; }
+  bool blocks_dirty() const { return save_dirty_state_.blocks; }
+  void MarkBlocksDirty() { save_dirty_state_.blocks = true; }
+  void ClearBlocksDirty() { save_dirty_state_.blocks = false; }
+
   const RoomLayout& GetLayout() const { return layout_; }
 
   // Public getters and manipulators for tile objects
@@ -357,14 +364,15 @@ class Room {
 
   // Methods for modifying tile objects
   void ClearTileObjects() {
+    MarkTileObjectDomainsDirtyForSnapshot(tile_objects_);
     tile_objects_.clear();
     objects_loaded_ = true;
-    MarkObjectStreamDirty();
+    MarkObjectsDirty();
   }
   void AddTileObject(const RoomObject& object) {
     tile_objects_.push_back(object);
     objects_loaded_ = true;
-    MarkObjectStreamDirty();
+    MarkSaveDirtyForTileObject(object);
   }
 
   // Enhanced object manipulation (Phase 3)
@@ -384,6 +392,30 @@ class Room {
     save_dirty_state_.object_stream = true;
     MarkObjectsDirty();
   }
+  void MarkSaveDirtyForTileObject(const RoomObject& object) {
+    bool is_special_table_object = false;
+    if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+      save_dirty_state_.torches = true;
+      is_special_table_object = true;
+    }
+    if ((object.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+      save_dirty_state_.blocks = true;
+      is_special_table_object = true;
+    }
+    if (!is_special_table_object) {
+      save_dirty_state_.object_stream = true;
+    }
+    MarkObjectsDirty();
+  }
+  void MarkTileObjectDomainsDirtyForSnapshot(
+      const std::vector<RoomObject>& objects) {
+    for (const auto& object : objects) {
+      MarkSaveDirtyForTileObject(object);
+    }
+  }
+  void MarkTileObjectCollectionDirty() {
+    MarkTileObjectDomainsDirtyForSnapshot(tile_objects_);
+  }
   bool object_stream_dirty() const { return save_dirty_state_.object_stream; }
   void ClearObjectStreamDirty() { save_dirty_state_.object_stream = false; }
   void MarkGraphicsDirty() {
@@ -398,9 +430,10 @@ class Room {
   }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
+      MarkSaveDirtyForTileObject(tile_objects_[index]);
       tile_objects_.erase(tile_objects_.begin() + index);
       objects_loaded_ = true;
-      MarkObjectStreamDirty();
+      MarkObjectsDirty();
     }
   }
   size_t GetTileObjectCount() const { return tile_objects_.size(); }
@@ -527,7 +560,8 @@ class Room {
   bool HasUnsavedChanges() const {
     return save_dirty_state_.header || save_dirty_state_.object_stream ||
            save_dirty_state_.sprites || save_dirty_state_.chests ||
-           save_dirty_state_.pot_items || custom_collision_dirty_ ||
+           save_dirty_state_.pot_items || save_dirty_state_.torches ||
+           save_dirty_state_.blocks || custom_collision_dirty_ ||
            water_fill_dirty_;
   }
 
@@ -535,9 +569,11 @@ class Room {
 
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {
+    MarkTileObjectDomainsDirtyForSnapshot(tile_objects_);
     tile_objects_ = objects;
     objects_loaded_ = true;
-    MarkObjectStreamDirty();
+    MarkTileObjectDomainsDirtyForSnapshot(tile_objects_);
+    MarkObjectsDirty();
   }
 
   // Public setters for LoadRoomFromRom function
@@ -762,6 +798,7 @@ class Room {
   bool AreSpritesLoaded() const { return sprites_loaded_; }
   bool AreChestsLoaded() const { return chests_loaded_; }
   bool ArePotItemsLoaded() const { return pot_items_loaded_; }
+  bool AreTorchesLoaded() const { return torches_loaded_; }
   // True once `LoadBlocks` has populated `tile_objects_` for this room.
   // The `SaveAllBlocks` encoder uses this to distinguish header-only
   // rooms (preserve their existing ROM block bytes) from rooms whose
@@ -900,6 +937,8 @@ class Room {
     bool sprites = false;
     bool chests = false;
     bool pot_items = false;
+    bool torches = false;
+    bool blocks = false;
   };
 
   // Composite bitmap for merged layer output
@@ -915,6 +954,7 @@ class Room {
   bool sprites_loaded_ = false;
   bool chests_loaded_ = false;
   bool pot_items_loaded_ = false;
+  bool torches_loaded_ = false;
   bool blocks_loaded_ = false;
   bool is_dark_ = false;
   bool is_floor_ = true;

@@ -80,7 +80,8 @@ class DungeonRoomSelector {
 
   // Room data access
   void set_rooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
-  void set_entrances(std::array<zelda3::RoomEntrance, 0x8C>* entrances) {
+  void set_entrances(std::array<zelda3::RoomEntrance,
+                                zelda3::kNumDungeonEntranceSlots>* entrances) {
     entrances_ = entrances;
   }
 
@@ -121,7 +122,8 @@ class DungeonRoomSelector {
   ImVector<int> active_rooms_;
 
   DungeonRoomStore* rooms_ = nullptr;
-  std::array<zelda3::RoomEntrance, 0x8C>* entrances_ = nullptr;
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>*
+      entrances_ = nullptr;
 
   // Callback for room selection events (single-click / default)
   std::function<void(int)> room_selected_callback_;
