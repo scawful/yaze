@@ -2,6 +2,7 @@
 #include "dungeon_editor_v2.h"
 
 // C system headers
+#include <cctype>
 #include <cstdio>
 
 // C++ standard library headers
@@ -147,6 +148,16 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
       [](int, zelda3::Room& room) { room.ClearWaterFillDirty(); });
 
   return absl::OkStatus();
+}
+
+bool IsTransientDungeonRoomWindowId(const std::string& card_id) {
+  constexpr const char* kPrefix = "dungeon.room_";
+  constexpr size_t kPrefixLength = 13;
+  if (card_id.rfind(kPrefix, 0) != 0 || card_id.size() <= kPrefixLength) {
+    return false;
+  }
+  return std::all_of(card_id.begin() + kPrefixLength, card_id.end(),
+                     [](unsigned char ch) { return std::isdigit(ch) != 0; });
 }
 
 }  // namespace
@@ -1480,7 +1491,7 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
       if (window_manager->IsWindowPinned(session_id, card_id)) {
         continue;
       }
-      const bool is_room_window = card_id.rfind("dungeon.room_", 0) == 0;
+      const bool is_room_window = IsTransientDungeonRoomWindowId(card_id);
       if (card_id == kRoomSelectorId || card_id == kRoomMatrixId ||
           is_room_window) {
         window_manager->CloseWindow(session_id, card_id);

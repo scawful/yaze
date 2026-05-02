@@ -137,7 +137,7 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
 }
 
-TEST_F(DungeonEditorV2IntegrationTest, WorkbenchModeClosesLocalToolWindows) {
+TEST_F(DungeonEditorV2IntegrationTest, WorkbenchModeKeepsLocalToolWindowsOpen) {
   DungeonFeatureFlagsGuard guard;
   core::FeatureFlags::get().dungeon.kUseWorkbench = true;
 
@@ -170,7 +170,7 @@ TEST_F(DungeonEditorV2IntegrationTest, WorkbenchModeClosesLocalToolWindows) {
 
   EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
   for (const char* tool_id : local_tools) {
-    EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, tool_id)) << tool_id;
+    EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, tool_id)) << tool_id;
   }
 }
 
