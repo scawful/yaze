@@ -586,6 +586,8 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (feature_flags.dungeon.kSaveChests ? "true" : "false") << "\n";
   file << "save_dungeon_pot_items="
        << (feature_flags.dungeon.kSavePotItems ? "true" : "false") << "\n";
+  file << "save_dungeon_entrances="
+       << (feature_flags.dungeon.kSaveEntrances ? "true" : "false") << "\n";
   file << "save_dungeon_palettes="
        << (feature_flags.dungeon.kSavePalettes ? "true" : "false") << "\n";
   file << "save_graphics_sheet="
@@ -898,6 +900,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.dungeon.kSaveChests = ParseBool(value);
       else if (key == "save_dungeon_pot_items")
         feature_flags.dungeon.kSavePotItems = ParseBool(value);
+      else if (key == "save_dungeon_entrances")
+        feature_flags.dungeon.kSaveEntrances = ParseBool(value);
       else if (key == "save_dungeon_palettes")
         feature_flags.dungeon.kSavePalettes = ParseBool(value);
       else if (key == "save_graphics_sheet")
@@ -1725,6 +1729,7 @@ void YazeProject::InitializeDefaults() {
   feature_flags.dungeon.kSaveCollision = true;
   feature_flags.dungeon.kSaveChests = true;
   feature_flags.dungeon.kSavePotItems = true;
+  feature_flags.dungeon.kSaveEntrances = true;
   feature_flags.dungeon.kSavePalettes = true;
   feature_flags.kSaveGraphicsSheet = true;
   // REMOVED: kLogInstructions (deprecated)
@@ -2463,6 +2468,9 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         if (flags.contains("kSaveDungeonPotItems"))
           feature_flags.dungeon.kSavePotItems =
               flags["kSaveDungeonPotItems"].get<bool>();
+        if (flags.contains("kSaveDungeonEntrances"))
+          feature_flags.dungeon.kSaveEntrances =
+              flags["kSaveDungeonEntrances"].get<bool>();
         if (flags.contains("kSaveDungeonPalettes"))
           feature_flags.dungeon.kSavePalettes =
               flags["kSaveDungeonPalettes"].get<bool>();
@@ -2697,6 +2705,8 @@ absl::Status YazeProject::SaveToJsonFormat() {
       feature_flags.dungeon.kSaveChests;
   proj["feature_flags"]["kSaveDungeonPotItems"] =
       feature_flags.dungeon.kSavePotItems;
+  proj["feature_flags"]["kSaveDungeonEntrances"] =
+      feature_flags.dungeon.kSaveEntrances;
   proj["feature_flags"]["kSaveDungeonPalettes"] =
       feature_flags.dungeon.kSavePalettes;
   proj["feature_flags"]["kSaveGraphicsSheet"] =

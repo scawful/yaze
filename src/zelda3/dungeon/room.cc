@@ -2050,7 +2050,7 @@ absl::Status Room::AddObject(const RoomObject& object) {
   // Add to internal list
   tile_objects_.push_back(object);
   objects_loaded_ = true;
-  MarkObjectStreamDirty();
+  MarkSaveDirtyForTileObject(object);
 
   return absl::OkStatus();
 }
@@ -2060,9 +2060,10 @@ absl::Status Room::RemoveObject(size_t index) {
     return absl::OutOfRangeError("Object index out of range");
   }
 
+  MarkSaveDirtyForTileObject(tile_objects_[index]);
   tile_objects_.erase(tile_objects_.begin() + index);
   objects_loaded_ = true;
-  MarkObjectStreamDirty();
+  MarkObjectsDirty();
 
   return absl::OkStatus();
 }
@@ -2076,9 +2077,10 @@ absl::Status Room::UpdateObject(size_t index, const RoomObject& object) {
     return absl::InvalidArgumentError("Invalid object parameters");
   }
 
+  MarkSaveDirtyForTileObject(tile_objects_[index]);
   tile_objects_[index] = object;
   objects_loaded_ = true;
-  MarkObjectStreamDirty();
+  MarkSaveDirtyForTileObject(object);
 
   return absl::OkStatus();
 }
@@ -2340,16 +2342,22 @@ void Room::LoadTorches() {
       }
     }
   }
+  torches_loaded_ = true;
 }
 
 namespace {
 
 constexpr int kTorchesMaxSize = 0x120;  // ZScream Constants.TorchesMaxSize
 
-// Parse current ROM torch blob into per-room segments for preserve-merge.
-std::vector<std::vector<uint8_t>> ParseRomTorchSegments(
+struct TorchSegment {
+  uint16_t room_id = 0;
+  std::vector<uint8_t> bytes;
+};
+
+// Parse current ROM torch blob in authoring order for preserve-merge.
+std::vector<TorchSegment> ParseRomTorchSegments(
     const std::vector<uint8_t>& rom_data, int bytes_count) {
-  std::vector<std::vector<uint8_t>> segments(kNumberOfRooms);
+  std::vector<TorchSegment> segments;
   int i = 0;
   while (i + 1 < bytes_count && i < kTorchesMaxSize) {
     uint8_t b1 = rom_data[kTorchData + i];
@@ -2363,28 +2371,54 @@ std::vector<std::vector<uint8_t>> ParseRomTorchSegments(
       i += 2;
       continue;
     }
-    std::vector<uint8_t> seg;
-    seg.push_back(b1);
-    seg.push_back(b2);
+    TorchSegment seg;
+    seg.room_id = room_id;
+    seg.bytes.push_back(b1);
+    seg.bytes.push_back(b2);
     i += 2;
     while (i + 1 < bytes_count && i < kTorchesMaxSize) {
       b1 = rom_data[kTorchData + i];
       b2 = rom_data[kTorchData + i + 1];
       if (b1 == 0xFF && b2 == 0xFF) {
-        seg.push_back(0xFF);
-        seg.push_back(0xFF);
+        seg.bytes.push_back(0xFF);
+        seg.bytes.push_back(0xFF);
         i += 2;
         break;
       }
-      seg.push_back(b1);
-      seg.push_back(b2);
+      seg.bytes.push_back(b1);
+      seg.bytes.push_back(b2);
       i += 2;
     }
-    if (room_id < segments.size()) {
-      segments[room_id] = std::move(seg);
-    }
+    segments.push_back(std::move(seg));
   }
   return segments;
+}
+
+std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
+  std::vector<uint8_t> bytes;
+  for (const auto& obj : room.GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Torch) == ObjectOption::Nothing) {
+      continue;
+    }
+    if (bytes.empty()) {
+      bytes.push_back(room_id & 0xFF);
+      bytes.push_back((room_id >> 8) & 0xFF);
+    }
+    int address = obj.x() + (obj.y() * 64);
+    int word = address << 1;
+    uint8_t b1 = word & 0xFF;
+    uint8_t b2 = ((word >> 8) & 0x1F) | ((obj.GetLayerValue() & 1) << 5);
+    if (obj.lit_) {
+      b2 |= 0x80;
+    }
+    bytes.push_back(b1);
+    bytes.push_back(b2);
+  }
+  if (!bytes.empty()) {
+    bytes.push_back(0xFF);
+    bytes.push_back(0xFF);
+  }
+  return bytes;
 }
 
 }  // namespace
@@ -2396,26 +2430,6 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
-  bool any_torch_objects = false;
-  for (int room_id = 0; room_id < room_count; ++room_id) {
-    const Room* room = room_lookup(room_id);
-    if (room == nullptr) {
-      continue;
-    }
-    for (const auto& obj : room->GetTileObjects()) {
-      if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-        any_torch_objects = true;
-        break;
-      }
-    }
-    if (any_torch_objects) {
-      break;
-    }
-  }
-  if (!any_torch_objects) {
-    return absl::OkStatus();
-  }
-
   const auto& rom_data = rom->vector();
   int existing_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
                        rom_data[kTorchesLengthPointer];
@@ -2425,42 +2439,48 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
   auto rom_segments = ParseRomTorchSegments(rom_data, existing_count);
 
   std::vector<uint8_t> bytes;
-  const int room_limit =
-      std::min(room_count, static_cast<int>(rom_segments.size()));
+  const int room_limit = std::min(room_count, kNumberOfRooms);
+  std::vector<bool> owned_rooms(room_limit, false);
+  std::vector<bool> seen_original_room(room_limit, false);
+  std::vector<bool> emitted_owned_room(room_limit, false);
+  std::vector<std::vector<uint8_t>> replacements(room_limit);
+  bool any_owned_room = false;
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
-    bool has_torch_objects = false;
-    if (room != nullptr) {
-      for (const auto& obj : room->GetTileObjects()) {
-        if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-          has_torch_objects = true;
-          break;
+    const bool room_owned =
+        room != nullptr && (room->AreTorchesLoaded() || room->torches_dirty());
+    if (!room_owned) {
+      continue;
+    }
+    owned_rooms[room_id] = true;
+    any_owned_room = true;
+    replacements[room_id] = EncodeTorchSegmentForRoom(room_id, *room);
+  }
+
+  if (!any_owned_room) {
+    return absl::OkStatus();
+  }
+
+  for (const auto& segment : rom_segments) {
+    if (segment.room_id < room_limit) {
+      seen_original_room[segment.room_id] = true;
+      if (owned_rooms[segment.room_id]) {
+        if (!emitted_owned_room[segment.room_id]) {
+          bytes.insert(bytes.end(), replacements[segment.room_id].begin(),
+                       replacements[segment.room_id].end());
+          emitted_owned_room[segment.room_id] = true;
         }
+        continue;
       }
     }
-    if (has_torch_objects) {
-      bytes.push_back(room_id & 0xFF);
-      bytes.push_back((room_id >> 8) & 0xFF);
-      for (const auto& obj : room->GetTileObjects()) {
-        if ((obj.options() & ObjectOption::Torch) == ObjectOption::Nothing) {
-          continue;
-        }
-        int address = obj.x() + (obj.y() * 64);
-        int word = address << 1;
-        uint8_t b1 = word & 0xFF;
-        uint8_t b2 = ((word >> 8) & 0x1F) | ((obj.GetLayerValue() & 1) << 5);
-        if (obj.lit_) {
-          b2 |= 0x80;
-        }
-        bytes.push_back(b1);
-        bytes.push_back(b2);
-      }
-      bytes.push_back(0xFF);
-      bytes.push_back(0xFF);
-    } else if (!rom_segments[room_id].empty()) {
-      for (uint8_t b : rom_segments[room_id]) {
-        bytes.push_back(b);
-      }
+    bytes.insert(bytes.end(), segment.bytes.begin(), segment.bytes.end());
+  }
+
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (owned_rooms[room_id] && !seen_original_room[room_id] &&
+        !replacements[room_id].empty()) {
+      bytes.insert(bytes.end(), replacements[room_id].begin(),
+                   replacements[room_id].end());
     }
   }
 
@@ -2477,12 +2497,25 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
       kTorchData + static_cast<int>(bytes.size()) <=
           static_cast<int>(rom_data.size()) &&
       std::equal(bytes.begin(), bytes.end(), rom_data.begin() + kTorchData)) {
+    for (int room_id = 0; room_id < room_limit; ++room_id) {
+      if (const Room* room = room_lookup(room_id);
+          room != nullptr && room->torches_dirty()) {
+        const_cast<Room*>(room)->ClearTorchesDirty();
+      }
+    }
     return absl::OkStatus();
   }
 
   RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
                                  static_cast<uint16_t>(bytes.size())));
-  return rom->WriteVector(kTorchData, bytes);
+  RETURN_IF_ERROR(rom->WriteVector(kTorchData, bytes));
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->torches_dirty()) {
+      const_cast<Room*>(room)->ClearTorchesDirty();
+    }
+  }
+  return absl::OkStatus();
 }
 
 absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
@@ -2731,6 +2764,12 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
 
   RETURN_IF_ERROR(
       rom->WriteWord(kBlocksLength, static_cast<uint16_t>(total_bytes)));
+  for (int room_id = 0; room_id < room_count; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->blocks_dirty()) {
+      const_cast<Room*>(room)->ClearBlocksDirty();
+    }
+  }
   return absl::OkStatus();
 }
 
@@ -3036,6 +3075,11 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
       bytes.push_back(0xFF);
     }
     if (static_cast<int>(bytes.size()) > max_len) {
+      if (room_dirty) {
+        return absl::OutOfRangeError(absl::StrFormat(
+            "Room %d pot item data too large! Size: %d, Available: %d", room_id,
+            bytes.size(), max_len));
+      }
       continue;
     }
     RETURN_IF_ERROR(rom->WriteVector(item_addr, bytes));

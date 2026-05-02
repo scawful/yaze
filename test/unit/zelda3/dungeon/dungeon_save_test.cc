@@ -2,12 +2,14 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -402,7 +404,49 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
 
   auto status = SaveAllTorches(rom_.get(), rooms);
   EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rooms[1].torches_dirty());
   EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllTorches_LoadedRoomCanDeleteLastTorch) {
+  std::vector<uint8_t> blob = {
+      0x01, 0x00,  // room_id = 1
+      0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
+      0xFF, 0xFF,  // terminator
+      0x02, 0x00,  // room_id = 2
+      0x0A, 0x03,  // torch word (x=5,y=6,layer=0,lit=0)
+      0xFF, 0xFF,  // terminator
+  };
+  ASSERT_TRUE(
+      rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
+          .ok());
+  ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
+
+  Room room(1, rom_.get());
+  room.LoadTorches();
+  ASSERT_TRUE(room.AreTorchesLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  room.RemoveTileObject(0);
+  ASSERT_TRUE(room.torches_dirty());
+
+  auto status = SaveAllTorches(rom_.get(), kNumberOfRooms,
+                               [&room](int room_id) -> const Room* {
+                                 return room_id == 1 ? &room : nullptr;
+                               });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const auto& rom_data = rom_->vector();
+  const uint16_t torch_len =
+      static_cast<uint16_t>(rom_data[kTorchesLengthPointer]) |
+      (static_cast<uint16_t>(rom_data[kTorchesLengthPointer + 1]) << 8);
+  EXPECT_EQ(torch_len, 6u);
+  EXPECT_EQ(rom_data[kTorchData + 0], 0x02);
+  EXPECT_EQ(rom_data[kTorchData + 1], 0x00);
+  EXPECT_EQ(rom_data[kTorchData + 2], 0x0A);
+  EXPECT_EQ(rom_data[kTorchData + 3], 0x03);
+  EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
+  EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
+  EXPECT_FALSE(room.torches_dirty());
 }
 
 // Loaded/dirty contract for chest + pot save tests
@@ -619,6 +663,97 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWithNoItemsWritesTerminator) {
   EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0xFF);
 }
 
+TEST_F(DungeonSaveTest, SaveAllPotItems_DirtyRoomTooLargeFailsAndStaysDirty) {
+  SetupPotItemTable();
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  for (int i = 0; i < 11; ++i) {
+    PotItem item;
+    item.position = static_cast<uint16_t>(0x1200 + i);
+    item.item = static_cast<uint8_t>(0x40 + i);
+    rooms[0].GetPotItems().push_back(item);
+  }
+  rooms[0].MarkPotItemsDirty();
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(std::string(status.message()).find("pot item data too large"),
+            std::string::npos);
+  EXPECT_TRUE(rooms[0].pot_items_dirty());
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+}
+
+TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtyRegularEntrance) {
+  std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  auto& entrance = entrances[kNumDungeonSpawnPoints + 3];
+  entrance.room_ = 0x0123;
+  entrance.x_position_ = 0x0456;
+  entrance.y_position_ = 0x0789;
+  entrance.camera_x_ = 0x0102;
+  entrance.camera_y_ = 0x0304;
+  entrance.camera_trigger_x_ = 0x0506;
+  entrance.camera_trigger_y_ = 0x0708;
+  entrance.exit_ = 0x0009;
+  entrance.blockset_ = 0x0A;
+  entrance.music_ = 0x0B;
+  entrance.dungeon_id_ = 0x0C;
+  entrance.door_ = 0x0D;
+  entrance.floor_ = 0x0E;
+  entrance.ladder_bg_ = 0x0F;
+  entrance.scrolling_ = 0x10;
+  entrance.scroll_quadrant_ = 0x11;
+  entrance.camera_boundary_qn_ = 0x12;
+  entrance.camera_boundary_fn_ = 0x13;
+  entrance.camera_boundary_qs_ = 0x14;
+  entrance.camera_boundary_fs_ = 0x15;
+  entrance.camera_boundary_qw_ = 0x16;
+  entrance.camera_boundary_fw_ = 0x17;
+  entrance.camera_boundary_qe_ = 0x18;
+  entrance.camera_boundary_fe_ = 0x19;
+  entrance.MarkDirty();
+
+  auto status = SaveAllDungeonEntrances(rom_.get(), entrances);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const int entrance_id = 3;
+  EXPECT_EQ(rom_->data()[kEntranceRoom + entrance_id * 2], 0x23);
+  EXPECT_EQ(rom_->data()[kEntranceRoom + entrance_id * 2 + 1], 0x01);
+  EXPECT_EQ(rom_->data()[kEntranceXPosition + entrance_id * 2], 0x56);
+  EXPECT_EQ(rom_->data()[kEntranceYPosition + entrance_id * 2], 0x89);
+  EXPECT_EQ(rom_->data()[kEntranceBlockset + entrance_id], 0x0A);
+  EXPECT_EQ(rom_->data()[kEntranceMusic + entrance_id], 0x0B);
+  EXPECT_EQ(rom_->data()[kEntranceScrollEdge + entrance_id * 8], 0x12);
+  EXPECT_EQ(rom_->data()[kEntranceScrollEdge + entrance_id * 8 + 7], 0x19);
+  EXPECT_FALSE(entrance.dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtySpawnPoint) {
+  std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  auto& entrance = entrances[2];
+  entrance.room_ = 0x0034;
+  entrance.x_position_ = 0x0456;
+  entrance.y_position_ = 0x0789;
+  entrance.blockset_ = 0x0A;
+  entrance.camera_boundary_fe_ = 0x19;
+  entrance.MarkDirty();
+
+  auto status = SaveAllDungeonEntrances(rom_.get(), entrances);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  constexpr int kSpawnId = 2;
+  EXPECT_EQ(rom_->data()[kStartingEntranceroom + kSpawnId * 2], 0x34);
+  EXPECT_EQ(rom_->data()[kStartingEntranceXPosition + kSpawnId * 2], 0x56);
+  EXPECT_EQ(rom_->data()[kStartingEntranceYPosition + kSpawnId * 2], 0x89);
+  EXPECT_EQ(rom_->data()[kStartingEntranceBlockset + kSpawnId], 0x0A);
+  EXPECT_EQ(rom_->data()[kStartingEntranceScrollEdge + kSpawnId * 8 + 7], 0x19);
+  EXPECT_FALSE(entrance.dirty());
+}
+
 TEST_F(DungeonSaveTest, SaveAllCollision_DirtyRoomWithoutCustomRegionFails) {
   std::vector<uint8_t> small_data(0x100000, 0);
   rom_->LoadFromData(small_data);
@@ -832,6 +967,34 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_EditedBlockUpdatesRegion) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00) << "room_id hi";
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x3C) << "word lo (px=30)";
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A) << "word hi";
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_ClearsBlockDirtyAfterWrite) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+
+  RoomObject block(0x0E00, 10, 20, 0, 1);
+  block.set_options(ObjectOption::Block);
+  room.AddTileObject(block);
+  ASSERT_TRUE(room.blocks_dirty());
+
+  auto status = SaveAllBlocks(rom_.get(), 1, [&room](int rid) -> const Room* {
+    return rid == 0 ? &room : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x04);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x14);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A);
+  EXPECT_FALSE(room.blocks_dirty());
 }
 
 TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {

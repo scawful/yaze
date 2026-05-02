@@ -42,7 +42,8 @@ class DungeonRoomLoader {
   absl::Status LoadRoom(int room_id, zelda3::Room& room);
   absl::Status LoadAllRooms(DungeonRoomStore& rooms);
   absl::Status LoadRoomEntrances(
-      std::array<zelda3::RoomEntrance, 0x8C>& entrances);
+      std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>&
+          entrances);
 
   // Room size management
   void LoadDungeonRoomSize();

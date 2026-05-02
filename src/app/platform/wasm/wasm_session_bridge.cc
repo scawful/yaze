@@ -464,6 +464,7 @@ std::string WasmSessionBridge::GetFeatureFlags() {
   result["overworld"]["save_properties"] = flags.overworld.kSaveOverworldProperties;
   result["overworld"]["load_custom"] = flags.overworld.kLoadCustomOverworld;
   result["overworld"]["apply_zscustom_asm"] = flags.overworld.kApplyZSCustomOverworldASM;
+  result["dungeon"]["save_entrances"] = flags.dungeon.kSaveEntrances;
   
   return result.dump();
 }
@@ -504,6 +505,8 @@ std::string WasmSessionBridge::SetFeatureFlag(const std::string& flag_name, bool
     flags.overworld.kLoadCustomOverworld = value;
   } else if (flag_name == "overworld.apply_zscustom_asm") {
     flags.overworld.kApplyZSCustomOverworldASM = value;
+  } else if (flag_name == "dungeon.save_entrances") {
+    flags.dungeon.kSaveEntrances = value;
   } else {
     found = false;
   }
@@ -540,6 +543,7 @@ std::string WasmSessionBridge::GetAvailableFlags() {
   result.push_back("overworld.save_properties");
   result.push_back("overworld.load_custom");
   result.push_back("overworld.apply_zscustom_asm");
+  result.push_back("dungeon.save_entrances");
   
   return result.dump();
 }
@@ -678,4 +682,3 @@ EMSCRIPTEN_BINDINGS(wasm_session_bridge) {
 }  // namespace yaze
 
 #endif  // __EMSCRIPTEN__
-

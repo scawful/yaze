@@ -277,9 +277,9 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
 }
 
 void DungeonRoomSelector::RebuildEntranceFilterCache() {
-  constexpr int kNumSpawnPoints = 7;
-  constexpr int kNumEntrances = 133;
-  constexpr int kTotalEntries = 140;
+  constexpr int kNumSpawnPoints = zelda3::kNumDungeonSpawnPoints;
+  constexpr int kNumEntrances = zelda3::kNumRegularDungeonEntrances;
+  constexpr int kTotalEntries = zelda3::kNumDungeonEntranceSlots;
 
   filtered_entrance_indices_.clear();
   filtered_entrance_indices_.reserve(kTotalEntries);
@@ -332,7 +332,12 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
   }
 
   if (show_properties) {
-    auto current_entrance = (*entrances_)[current_entrance_id_];
+    if (current_entrance_id_ < 0 ||
+        current_entrance_id_ >= static_cast<int>(entrances_->size())) {
+      current_entrance_id_ = 0;
+    }
+    auto& current_entrance = (*entrances_)[current_entrance_id_];
+    bool changed = false;
 
     // Keep the full property editor in the standalone entrance panel.
     if (ImGui::BeginTable("EntranceProps", 4, ImGuiTableFlags_Borders)) {
@@ -344,25 +349,27 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      gui::InputHexWord("Entr ID", &current_entrance.entrance_id_);
-      gui::InputHexWord("Room ID", &current_entrance.room_);
-      gui::InputHexByte("Dungeon", &current_entrance.dungeon_id_);
-      gui::InputHexByte("Music", &current_entrance.music_);
+      ImGui::Text("Entr ID: %04X", current_entrance.entrance_id_);
+      changed |= gui::InputHexWord("Room ID", &current_entrance.room_);
+      changed |= gui::InputHexByte("Dungeon", &current_entrance.dungeon_id_);
+      changed |= gui::InputHexByte("Music", &current_entrance.music_);
 
       ImGui::TableNextColumn();
-      gui::InputHexWord("Player X", &current_entrance.x_position_);
-      gui::InputHexWord("Player Y", &current_entrance.y_position_);
-      gui::InputHexByte("Blockset", &current_entrance.blockset_);
-      gui::InputHexByte("Floor", &current_entrance.floor_);
+      changed |= gui::InputHexWord("Player X", &current_entrance.x_position_);
+      changed |= gui::InputHexWord("Player Y", &current_entrance.y_position_);
+      changed |= gui::InputHexByte("Blockset", &current_entrance.blockset_);
+      changed |= gui::InputHexByte("Floor", &current_entrance.floor_);
 
       ImGui::TableNextColumn();
-      gui::InputHexWord("Cam Trg X", &current_entrance.camera_trigger_x_);
-      gui::InputHexWord("Cam Trg Y", &current_entrance.camera_trigger_y_);
-      gui::InputHexWord("Exit", &current_entrance.exit_);
+      changed |=
+          gui::InputHexWord("Cam Trg X", &current_entrance.camera_trigger_x_);
+      changed |=
+          gui::InputHexWord("Cam Trg Y", &current_entrance.camera_trigger_y_);
+      changed |= gui::InputHexWord("Exit", &current_entrance.exit_);
 
       ImGui::TableNextColumn();
-      gui::InputHexWord("Scroll X", &current_entrance.camera_x_);
-      gui::InputHexWord("Scroll Y", &current_entrance.camera_y_);
+      changed |= gui::InputHexWord("Scroll X", &current_entrance.camera_x_);
+      changed |= gui::InputHexWord("Scroll Y", &current_entrance.camera_y_);
 
       ImGui::EndTable();
     }
@@ -372,23 +379,34 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
       ImGui::Text("                North   East    South   West");
       ImGui::Text("Quadrant      ");
       SameLine();
-      gui::InputHexByte("##QN", &current_entrance.camera_boundary_qn_, 40.f);
+      changed |= gui::InputHexByte("##QN",
+                                   &current_entrance.camera_boundary_qn_, 40.f);
       SameLine();
-      gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 40.f);
+      changed |= gui::InputHexByte("##QE",
+                                   &current_entrance.camera_boundary_qe_, 40.f);
       SameLine();
-      gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 40.f);
+      changed |= gui::InputHexByte("##QS",
+                                   &current_entrance.camera_boundary_qs_, 40.f);
       SameLine();
-      gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 40.f);
+      changed |= gui::InputHexByte("##QW",
+                                   &current_entrance.camera_boundary_qw_, 40.f);
 
       ImGui::Text("Full Room     ");
       SameLine();
-      gui::InputHexByte("##FN", &current_entrance.camera_boundary_fn_, 40.f);
+      changed |= gui::InputHexByte("##FN",
+                                   &current_entrance.camera_boundary_fn_, 40.f);
       SameLine();
-      gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 40.f);
+      changed |= gui::InputHexByte("##FE",
+                                   &current_entrance.camera_boundary_fe_, 40.f);
       SameLine();
-      gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 40.f);
+      changed |= gui::InputHexByte("##FS",
+                                   &current_entrance.camera_boundary_fs_, 40.f);
       SameLine();
-      gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 40.f);
+      changed |= gui::InputHexByte("##FW",
+                                   &current_entrance.camera_boundary_fw_, 40.f);
+    }
+    if (changed) {
+      current_entrance.MarkDirty();
     }
     ImGui::Separator();
   }
@@ -403,7 +421,7 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
     RebuildEntranceFilterCache();
   }
 
-  constexpr int kNumSpawnPoints = 7;
+  constexpr int kNumSpawnPoints = zelda3::kNumDungeonSpawnPoints;
 
   if (ImGui::BeginTable("EntranceList", 3,
                         ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders |

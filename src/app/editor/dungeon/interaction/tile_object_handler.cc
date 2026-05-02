@@ -157,7 +157,7 @@ zelda3::Room* TileObjectHandler::GetRoom(int room_id) {
 void TileObjectHandler::NotifyChange(zelda3::Room* room) {
   if (!room || !ctx_)
     return;
-  room->MarkObjectsDirty();
+  room->MarkTileObjectCollectionDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kTileObjects);
 }
 

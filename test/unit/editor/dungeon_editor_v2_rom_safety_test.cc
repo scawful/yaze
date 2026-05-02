@@ -36,6 +36,7 @@ void ConfigureMinimalDungeonSave() {
   d.kSaveWaterFillZones = false;
   d.kSaveChests = false;
   d.kSavePotItems = false;
+  d.kSaveEntrances = false;
   d.kSavePalettes = false;
 }
 

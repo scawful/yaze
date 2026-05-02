@@ -456,6 +456,8 @@ absl::Status DungeonEditorV2::Load() {
       [this](int room_id, RoomSelectionIntent intent) {
         OnRoomSelected(room_id, intent);
       });
+  room_selector_.SetEntranceSelectedCallback(
+      [this](int entrance_id) { OnEntranceSelected(entrance_id); });
 
   // Canvas viewers are lazily created in GetViewerForRoom
 
@@ -1107,6 +1109,15 @@ absl::Status DungeonEditorV2::Save() {
     }
   }
 
+  if (flags.kSaveEntrances) {
+    auto status = zelda3::SaveAllDungeonEntrances(rom_, entrances_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save dungeon entrances: %s",
+                status.message().data());
+      return status;
+    }
+  }
+
   return absl::OkStatus();
 }
 
@@ -1265,6 +1276,9 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     RETURN_IF_ERROR(zelda3::SaveAllPotItems(
         rom_, static_cast<int>(rooms_.size()),
         [this](int room_id) { return rooms_.GetIfMaterialized(room_id); }));
+  }
+  if (flags.kSaveEntrances) {
+    RETURN_IF_ERROR(zelda3::SaveAllDungeonEntrances(rom_, entrances_));
   }
 
   return absl::OkStatus();
