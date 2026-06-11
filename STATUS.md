@@ -28,6 +28,13 @@
   - Dungeon usage tracker visualization (DONE)
 - P2 (deferred to 0.8.0): scratch persistence, eyedropper tool, project-file flow, SPC/MML import, graphics clipboard
 
+## 0.7.2 Validation Snapshot (June 11, 2026)
+- `ctest --preset mac-ai-unit` → **2326/2326 passed**
+- `ctest --preset mac-ai-integration` → **254/254 passed**
+- Flake watch: `DungeonIssueReportStorageTest` (2 tests) failed once under
+  heavy system load (parallel builds running); passed on all re-runs,
+  serial and `-j4`.
+
 ## 0.7.0 Validation Snapshot (historical)
 - `ctest --preset mac-ai-unit --output-on-failure` → **1622/1622 passed**
 - `ctest --preset mac-ai-integration --output-on-failure` → **237/237 passed**
