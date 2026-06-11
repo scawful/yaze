@@ -2,8 +2,27 @@
 
 ## v0.7.2 (in development)
 
-**Type:** Post-0.7.1 Build/CI Hardening + Tooling Reliability
+**Type:** Post-0.7.1 Dungeon RC + Build/CI Hardening
 **Date:** TBD
+
+### 🏰 Dungeon RC Stabilization
+- Rendered dungeon object and sprite previews by default so selector browsing
+  starts from visual room-context feedback instead of fallback symbols.
+- Kept Workbench-local dungeon tools available alongside standalone windows,
+  making mixed Workbench/Window editing safer during longer dungeon sessions.
+- Persisted entrance and special-object save domains through the dungeon save
+  path so `Save ROM` covers the room state needed by real editing workflows.
+- Hardened door placement to reject positions outside the ALTTP/USDASM
+  12-entry door tables instead of accepting clamped-but-invalid slots.
+- Canonicalized room-object names and resource-label export from
+  `room_object.h`, including newly named logic-only and rare decor objects.
+- Preserved zero-tile `DrawNothing` logic objects as no-payload cases while
+  keeping the conservative fallback for uncataloged drawable objects.
+
+### 🌎 Overworld Follow-through
+- Added a right-click Tile16 sampling action to the overworld canvas context
+  menu, covering the common eyedropper workflow without opening the Tile16
+  editor first.
 
 ### 🧱 Build & CI Stabilization
 - Fixed the WASM/browser build after the 0.7.1 editor reorg by excluding the stale `yaze_debug_inspector.cc` path that still referenced removed `PanelManager`-era editor APIs.
@@ -18,6 +37,8 @@
 - Aligned post-release docs metadata so future release notes and generated release bodies stay consistent.
 
 ### Deferred Follow-Up
+- Complete the 0.8.0 dungeon milestone: remaining rare-object parity, pit/block
+  first-class encoders, and deeper BG1/BG2 overlay-stream validation.
 - Refresh or remove the stale web debug inspector against the current post-reorg editor APIs.
 - Replace POSIX-shell-only project-action test scaffolding with a cross-platform test harness.
 
