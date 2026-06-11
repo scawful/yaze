@@ -855,7 +855,17 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
 
     canvas.AddContextMenuItem(entity_menu);
 
-    // Add "Edit Tile16" option in MOUSE mode
+    if (sample_tile16_callback_) {
+      gui::CanvasMenuItem tile16_sample_item;
+      tile16_sample_item.label = ICON_MD_COLORIZE " Sample Tile16";
+      tile16_sample_item.callback = [this]() {
+        if (sample_tile16_callback_) {
+          (void)sample_tile16_callback_();
+        }
+      };
+      canvas.AddContextMenuItem(tile16_sample_item);
+    }
+
     if (edit_tile16_callback_) {
       gui::CanvasMenuItem tile16_edit_item;
       tile16_edit_item.label = ICON_MD_GRID_VIEW " Edit Tile16";

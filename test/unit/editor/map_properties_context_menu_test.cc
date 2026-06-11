@@ -124,5 +124,40 @@ TEST(MapPropertiesContextMenuTest, AreaConfigurationSetsPanelBool) {
   EXPECT_TRUE(show_map_properties_panel);
 }
 
+TEST(MapPropertiesContextMenuTest, SampleTile16ContextItemInvokesCallback) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_map_properties_sample_tile16"));
+  const auto rom_path = temp_dir.path / "test.sfc";
+  WriteRomFile(rom_path);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(rom_path.string()).ok());
+
+  gui::Canvas canvas;
+  canvas.Init("map_properties_sample_tile16_canvas", ImVec2(512.0f, 512.0f));
+
+  MapPropertiesSystem system(nullptr, &rom);
+  bool current_map_lock = false;
+  bool show_map_properties_panel = false;
+  bool show_custom_bg_color_editor = false;
+  bool show_overlay_editor = false;
+  bool sampled_tile16 = false;
+  system.SetEntityCallbacks([](const std::string&) {});
+  system.SetTile16SampleCallback([&]() {
+    sampled_tile16 = true;
+    return true;
+  });
+
+  system.SetupCanvasContextMenu(
+      canvas, 0x10, current_map_lock, show_map_properties_panel,
+      show_custom_bg_color_editor, show_overlay_editor, 0);
+
+  auto* sample_item = FindMenuItem(canvas, "Sample Tile16");
+  ASSERT_NE(sample_item, nullptr);
+  ASSERT_TRUE(sample_item->callback);
+
+  sample_item->callback();
+  EXPECT_TRUE(sampled_tile16);
+}
+
 }  // namespace
 }  // namespace yaze::editor

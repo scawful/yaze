@@ -75,6 +75,10 @@ class MapPropertiesSystem {
     edit_tile16_callback_ = std::move(callback);
   }
 
+  void SetTile16SampleCallback(std::function<bool()> callback) {
+    sample_tile16_callback_ = std::move(callback);
+  }
+
   void SetMapSelectionCallback(std::function<void(int, bool)> callback) {
     map_selection_callback_ = std::move(callback);
   }
@@ -189,6 +193,7 @@ class MapPropertiesSystem {
 
   // Callback for tile16 editing from context menu
   std::function<void()> edit_tile16_callback_;
+  std::function<bool()> sample_tile16_callback_;
 
   // Callback for explicit map selection/pinning from the context menu.
   std::function<void(int, bool)> map_selection_callback_;

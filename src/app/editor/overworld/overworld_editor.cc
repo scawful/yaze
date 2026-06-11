@@ -519,6 +519,8 @@ absl::Status OverworldEditor::Load() {
         });
 
     // Set up tile16 edit callback for context menu in MOUSE mode
+    map_properties_system_->SetTile16SampleCallback(
+        [this]() { return PickTile16FromHoveredCanvas(); });
     map_properties_system_->SetTile16EditCallback(
         [this]() { HandleTile16Edit(); });
   }
