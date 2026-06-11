@@ -98,11 +98,14 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - ✅ Object selector/browser thumbnails are default-on, cull off-screen grid
   entries, and disclose rendered-vs-fallback preview state in tooltips
 - 🟡 **Object tile count fallback**: parser uses object-specific counts for known
-  IDs but still falls back to 8 for uncataloged cases; continue ROM-trace audits
-  for rare objects.
-- 🟡 12+ unknown dungeon object types need verification
-- 🟡 Visual discrepancies in specific objects (vertical rails, doors)
-- 🟡 Room object type identification incomplete
+  IDs, including explicit zero-tile `DrawNothing` logic objects, but still falls
+  back to 8 for uncataloged cases; continue ROM-trace audits for rare objects.
+- 🟡 Remaining dungeon object naming now concentrates on gameplay-specific labels;
+  routine-backed room object labels and resource export are canonicalized through
+  `room_object.h`.
+- 🟡 Visual parity audits continue for rare object routines; door placement now
+  rejects invalid positions outside the USDASM 12-entry tables before they can
+  render as clamped valid doors.
 - 🟡 The global pit-damage table still saves through protected ROM-region
   preservation. Pushable blocks are room-aware now, but still need a deliberate
   repointing/expansion design before exceeding the vanilla table cap.
@@ -125,21 +128,25 @@ for reliable ROM hacking. ZScream is the stability benchmark.
   to keep inspector/edit iteration continuous
 - ✅ Tile16 UX parity polish landed (explicit `Paint/Pick/Usage` modes + sticky
   action rail)
+- ✅ Overworld canvas context menu now exposes direct Tile16 sampling in MOUSE
+  mode, matching the right-click/eyedropper workflow without opening the Tile16
+  editor.
 - ✅ Overworld item workflow iteration UX landed (filterable item list panel +
   duplicate/nudge shortcuts)
 - ✅ Overworld item batch undo coverage added (multi-delete and nudge
   sequences with undo/redo integration tests)
 - 🟡 Export file dialog not implemented
 - 🟡 **Persistent scratch pad**: ZScream saves `ScratchPad.dat`; yaze scratch is session-only
-- 🟡 **Eyedropper tool**: no dedicated tool/shortcut (ZScream has right-click sampling)
+- 🟡 **Eyedropper tool**: context-menu Tile16 sampling landed; dedicated
+  shortcut/tool parity remains open.
 
 **ZScream Parity Targets**
 
 | Feature | ZScream | yaze | Priority |
 |---------|---------|------|----------|
-| Object-specific tile counts | ✅ Per-object (4-242) | ❌ Hardcoded 8 | High |
+| Object-specific tile counts | ✅ Per-object (4-242) | 🟡 Known IDs cataloged; rare fallback audits remain | High |
 | Persistent scratch pad | ✅ `ScratchPad.dat` | ❌ Session-only | Medium |
-| Eyedropper tool | ✅ Right-click sampling | ❌ Missing | Medium |
+| Eyedropper tool | ✅ Right-click sampling | 🟡 Overworld context-menu Tile16 sampling landed; broaden editor parity next | Medium |
 | ZScream project import | ✅ Native format | ❌ Not parsed | Low |
 | Selection UX (marquee, context menus) | ✅ Mature | 🟡 Functional, needs validation | Medium |
 | Room header editing | ✅ 14-byte headers | ✅ Parity | — |

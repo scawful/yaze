@@ -7,6 +7,20 @@
 - Stacked workbench and compare controls earlier, trimmed helper copy, and reduced toolbar chrome so more height stays with the room canvas.
 - Updated workbench pane compaction so the left-side chrome gives way before the inspector or center canvas.
 - Kept this as groundwork for a future optional connected-room overview mode rather than a replacement for focused single-room editing.
+- Rendered object and sprite selector previews by default and kept workbench
+  local tools available when standalone windows are open.
+- Persisted entrance and special-object dungeon save domains through the main
+  save path.
+- Rejected door positions outside ALTTP's 12-entry USDASM door-position
+  tables, with unit coverage for all directions.
+- Treated `DrawNothing` wall-moved check objects as explicit zero-tile
+  payloads instead of forcing an 8-tile fallback.
+- Sourced room-object labels from the canonical dungeon object tables and
+  exported type-specific and unified room-object resource labels.
+
+### Overworld Follow-through
+- Added a canvas context-menu Tile16 sampling action for the ZScream-style
+  right-click eyedropper workflow.
 
 ## 0.7.1 (April 19, 2026)
 
