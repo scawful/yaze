@@ -53,7 +53,8 @@ TEST(DungeonIssueReportStorageTest,
      ResolvePathsCreatesExpectedDungeonIssueDirectories) {
   const std::filesystem::path temp_home = MakeTempHomeRoot();
   ASSERT_TRUE(std::filesystem::create_directories(temp_home));
-  ScopedEnvVar scoped_home("HOME", temp_home.string());
+  ScopedEnvVar scoped_app_data("YAZE_APP_DATA_DIR",
+                               (temp_home / ".yaze").string());
 
   const auto paths_or = ResolveDungeonIssueReportPaths();
   ASSERT_TRUE(paths_or.ok()) << paths_or.status();
@@ -73,7 +74,8 @@ TEST(DungeonIssueReportStorageTest,
      BuildScreenshotPathUsesDungeonReportDirectoryAndSanitizedCategory) {
   const std::filesystem::path temp_home = MakeTempHomeRoot();
   ASSERT_TRUE(std::filesystem::create_directories(temp_home));
-  ScopedEnvVar scoped_home("HOME", temp_home.string());
+  ScopedEnvVar scoped_app_data("YAZE_APP_DATA_DIR",
+                               (temp_home / ".yaze").string());
 
   const auto path_or = BuildDungeonIssueScreenshotPath(
       0x25, "General room render mismatch", "20260420-120000");
@@ -90,7 +92,8 @@ TEST(DungeonIssueReportStorageTest,
      AppendIssueLogEntryCreatesExpectedMarkdownLogFile) {
   const std::filesystem::path temp_home = MakeTempHomeRoot();
   ASSERT_TRUE(std::filesystem::create_directories(temp_home));
-  ScopedEnvVar scoped_home("HOME", temp_home.string());
+  ScopedEnvVar scoped_app_data("YAZE_APP_DATA_DIR",
+                               (temp_home / ".yaze").string());
 
   DungeonIssueLogEntry entry;
   entry.timestamp_display = "2026-04-20 12:34:56 UTC";
@@ -134,7 +137,8 @@ TEST(DungeonIssueReportStorageTest,
      AppendIssueLogEntryAppendsWithoutOverwritingExistingReports) {
   const std::filesystem::path temp_home = MakeTempHomeRoot();
   ASSERT_TRUE(std::filesystem::create_directories(temp_home));
-  ScopedEnvVar scoped_home("HOME", temp_home.string());
+  ScopedEnvVar scoped_app_data("YAZE_APP_DATA_DIR",
+                               (temp_home / ".yaze").string());
 
   DungeonIssueLogEntry first;
   first.timestamp_display = "2026-04-21 01:00:00 UTC";
