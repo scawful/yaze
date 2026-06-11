@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last Updated: April 20, 2026**
+**Last Updated: June 11, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 

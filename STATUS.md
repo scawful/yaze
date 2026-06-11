@@ -1,12 +1,14 @@
 # yaze Status
 
 ## Current Release
-- **Version**: v0.7.1 (April 19, 2026)
-- **Focus**: Packaging welcome-screen overhaul + dungeon-editor parity/polish
-  as a bundled cleanup release while `master` continues on 0.7.2
-  stabilization. The `0.x` ladder after this is editor-first; `z3ed`, `z3dk`,
-  Oracle AI, and Oracle of Secrets support are planned as secondary trains.
-- **Plans**: `docs/internal/plans/0.7.1-release-plan.md`,
+- **Version**: v0.7.2 (release-candidate prep; latest tagged release is
+  v0.7.1 from April 19, 2026)
+- **Focus**: Post-0.7.1 dungeon RC stabilization: default previews, save-domain
+  persistence, door/object guardrails, room-object labels, and release/build
+  follow-through. The `0.x` ladder after this remains editor-first; `z3ed`,
+  `z3dk`, Oracle AI, and Oracle of Secrets support are planned as bounded
+  secondary trains.
+- **Plans**: `docs/internal/roadmap.md`,
   `docs/internal/plans/release-ladder-0x-2026.md`,
   `docs/internal/plans/z3dk-integration-0.8.0.md`
 
@@ -32,9 +34,9 @@
 - `ctest --preset mac-ai-unit --output-on-failure --tests-regex "(ObjectDrawerRegistryReplayTest|ObjectTileEditorTest|CustomObjectManagerTest|ObjectParserTest|Tile16EditorActionStateTest|OverworldItemOperationsTest)"` → **68/68 passed**
 
 ## Recent Commits
-- `4b62b14e feat: implement P0 features for 0.7.0 release`
-- `ae07276b docs(roadmap): update 0.7.0 completion status and tile16 backlog`
-- `97160983 docs(0.7.0): mark screen undo complete across trackers`
+- `42137074 dungeon: harden object labels and door bounds`
+- `535c6675 overworld: expose tile16 sampling from canvas menu`
+- `4f2ea6b4 docs: refresh dungeon persistence and preview status`
 
 ## Legacy 0.7.0 Stretch Follow-ups
 - `task_20260303T212605Z_32450` — Tile16 quadrant strip/hotkeys parity tests
@@ -48,5 +50,5 @@
 ## Tracking
 - Coordination board snapshot: `docs/internal/agents/coordination-board.generated.md`
 - Canonical roadmap: `docs/internal/roadmap.md`
-- Current release plan: `docs/internal/plans/0.7.1-release-plan.md`
+- Current release plan: `docs/internal/plans/release-ladder-0x-2026.md`
 - 0.7.0 completion plan: `docs/internal/plans/0.7.0-feature-completion.md`
