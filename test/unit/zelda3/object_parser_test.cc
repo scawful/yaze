@@ -233,6 +233,10 @@ TEST_F(ObjectParserTest,
        "ZScream's 0->8 fallback under-fetched and TileAtWrapped "
        "substituted wrong tiles for index>=8 (commits e9938002/c12c3178)."},
       {0x48, 9, "DrawWaterfall48 reads tiles[0..8]; same pattern as 0x47."},
+      {0xD3, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
+      {0xD4, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
+      {0xD5, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
+      {0xD6, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
   };
 
   auto find_divergence = [&](int id) -> const Divergence* {

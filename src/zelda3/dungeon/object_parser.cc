@@ -1,6 +1,5 @@
 #include "object_parser.h"
 
-#include <algorithm>
 #include <cstring>
 
 #include "absl/strings/str_format.h"
@@ -33,9 +32,9 @@
 //   to tile 4 with size 8). Updated to the real counts so the wrap
 //   never fires for vanilla data.
 // - IDs `0xD3..0xD6` are routed to `DrawNothing` (logic-only;
-//   `CheckIfWallIsMoved` flag tests). Their tile-count entry is
-//   `0` (handled by the fallback) because the routine never
-//   consumes the tile vector. Left as-is with a comment note.
+//   `CheckIfWallIsMoved` flag tests). Their tile-count entry is `0`
+//   because those routines have no tile payload. Other uncataloged zero
+//   entries still use the conservative 8-tile fallback.
 // - 2026-04-25 ZScream parity diff: full byte-for-byte comparison
 //   against ZScream's `subtype1Lengths` (`DungeonObjectData.cs:184`)
 //   shows 246/248 entries identical. The only divergences are
@@ -65,12 +64,23 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
 };
 // clang-format on
 
-// Helper function to get tile count for Subtype 1 objects
+static inline bool IsSubtype1LogicOnlyZeroTileObject(int object_id) {
+  int index = object_id & 0xFF;
+  return index >= 0xD3 && index <= 0xD6;
+}
+
+// Helper function to get tile count for Subtype 1 objects.
 static inline int GetSubtype1TileCount(int object_id) {
   int index = object_id & 0xFF;
   if (index < 0xF8) {
     int count = kSubtype1TileLengths[index];
-    return (count > 0) ? count : 8;  // Default to 8 if table has 0
+    if (count > 0) {
+      return count;
+    }
+    if (IsSubtype1LogicOnlyZeroTileObject(index)) {
+      return 0;
+    }
+    return 8;  // Default to 8 if an uncataloged table entry has 0.
   }
   return 8;  // Default for IDs >= 0xF8
 }
@@ -338,6 +348,13 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
   // Each tile is stored as a 16-bit word (2 bytes), not 8 bytes!
   // ZScream: tiles.Add(new Tile(ROM.DATA[pos + ((i * 2))], ROM.DATA[pos + ((i *
   // 2)) + 1]));
+  if (tile_count < 0) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid tile count: %d", tile_count));
+  }
+  if (tile_count == 0) {
+    return std::vector<gfx::TileInfo>{};
+  }
   if (address < 0 || address + (tile_count * 2) >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile data address out of range: %#06x", address));
@@ -560,7 +577,7 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
   // Keep draw-info tile counts sourced from subtype tables (ROM-facing data),
   // while routine selection comes from DrawRoutineRegistry (renderer-facing
   // canonical mapping).
-  info.tile_count = std::max(1, ResolveTileCountForObject(object_id));
+  info.tile_count = ResolveTileCountForObject(object_id);
   const bool is_vertical_band = (object_id >= 0x60 && object_id <= 0x6F);
   info.is_horizontal = !is_vertical_band;
   info.is_vertical = is_vertical_band;

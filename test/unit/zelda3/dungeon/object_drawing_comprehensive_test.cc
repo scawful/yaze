@@ -48,6 +48,10 @@ static constexpr uint8_t kExpectedTileCounts[0xF8] = {
 // clang-format on
 
 namespace {
+bool IsLogicOnlySubtype1Object(int id) {
+  return id >= 0xD3 && id <= 0xD6;
+}
+
 int ExpectedSubtype2TileCount(int id) {
   if (id >= 0x100 && id <= 0x10F) {
     return 16;
@@ -310,8 +314,9 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_VerifyAllEntries) {
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
 
     int expected_count = kExpectedTileCounts[id];
-    // Note: Tile count 0 in table means "default to 8"
-    if (expected_count == 0)
+    // Note: Tile count 0 usually means "default to 8"; 0xD3..0xD6
+    // are known DrawNothing logic objects and intentionally carry no tiles.
+    if (expected_count == 0 && !IsLogicOnlySubtype1Object(id))
       expected_count = 8;
 
     EXPECT_EQ(info->max_tile_count, expected_count)
@@ -338,6 +343,10 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
       {0xC1, 68, "Very large object"},
       {0xCD, 28, "Moving wall"},
       {0xCE, 28, "Moving wall variant"},
+      {0xD3, 0, "Wall moved check"},
+      {0xD4, 0, "Wall moved check variant"},
+      {0xD5, 0, "Wall moved check variant"},
+      {0xD6, 0, "Wall moved check variant"},
       // Waterfall47 indexes tile slots 0..14 = 15 tiles
       // (`DrawWaterfall47` in special_routines.cc). The prior 8-tile
       // fallback caused the routine's `TileAtWrapped` lookup to wrap
@@ -356,6 +365,27 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
     ASSERT_TRUE(info.ok()) << "Failed for " << tc.description;
     EXPECT_EQ(info->max_tile_count, tc.expected_tiles)
         << tc.description << " (0x" << std::hex << tc.object_id << ")";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest,
+       TileCountLookupTable_LogicOnlyObjectsUseZeroTiles) {
+  ObjectParser parser(rom_.get());
+  ObjectDrawer drawer(rom_.get(), 0);
+
+  for (int id = 0xD3; id <= 0xD6; ++id) {
+    auto info = parser.GetObjectSubtype(id);
+    ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
+    EXPECT_EQ(info->max_tile_count, 0)
+        << "ID 0x" << std::hex << id
+        << " should not consume an unused tile payload";
+    EXPECT_EQ(drawer.GetDrawRoutineId(id), DrawRoutineIds::kNothing)
+        << "ID 0x" << std::hex << id << " should be DrawNothing";
+
+    auto parsed = parser.ParseObject(static_cast<int16_t>(id));
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_TRUE(parsed->empty())
+        << "ID 0x" << std::hex << id << " should load no tiles";
   }
 }
 
@@ -1002,15 +1032,21 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityType3WaterFaceRoutines) {
 }
 
 TEST_F(ObjectDrawingComprehensiveTest, ParitySubtype1TileCountsComplete) {
-  // Every subtype 1 object must have a non-zero tile count.
-  // Objects with tile count 0 in the lookup table default to 8.
+  // Every drawable subtype 1 object must have a non-zero tile count. The
+  // DrawNothing wall-moved checks intentionally have no tile payload.
   ObjectParser parser(rom_.get());
 
   for (int id = 0x00; id <= 0xF7; ++id) {
     auto info = parser.GetObjectSubtype(id);
     ASSERT_TRUE(info.ok()) << "Failed for ID 0x" << std::hex << id;
-    EXPECT_GT(info->max_tile_count, 0)
-        << "Subtype 1 object 0x" << std::hex << id << " has zero tile count";
+    if (IsLogicOnlySubtype1Object(id)) {
+      EXPECT_EQ(info->max_tile_count, 0)
+          << "Logic-only subtype 1 object 0x" << std::hex << id
+          << " should have zero tile count";
+    } else {
+      EXPECT_GT(info->max_tile_count, 0)
+          << "Subtype 1 object 0x" << std::hex << id << " has zero tile count";
+    }
   }
 }
 

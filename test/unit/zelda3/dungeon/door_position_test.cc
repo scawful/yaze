@@ -104,6 +104,32 @@ TEST(DoorPositionManagerTest, SnapToNearestPositionUsesCorrectVerticalRows) {
       8);
 }
 
+TEST(DoorPositionManagerTest, ValidPositionsAreLimitedToUsdasmDoorTables) {
+  for (uint8_t pos = 0; pos < 12; ++pos) {
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::North))
+        << "north pos=" << static_cast<int>(pos);
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::South))
+        << "south pos=" << static_cast<int>(pos);
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::West))
+        << "west pos=" << static_cast<int>(pos);
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::East))
+        << "east pos=" << static_cast<int>(pos);
+  }
+
+  for (uint8_t pos : {uint8_t{12}, uint8_t{15}, uint8_t{31}}) {
+    EXPECT_FALSE(
+        DoorPositionManager::IsValidPosition(pos, DoorDirection::North))
+        << "north pos=" << static_cast<int>(pos);
+    EXPECT_FALSE(
+        DoorPositionManager::IsValidPosition(pos, DoorDirection::South))
+        << "south pos=" << static_cast<int>(pos);
+    EXPECT_FALSE(DoorPositionManager::IsValidPosition(pos, DoorDirection::West))
+        << "west pos=" << static_cast<int>(pos);
+    EXPECT_FALSE(DoorPositionManager::IsValidPosition(pos, DoorDirection::East))
+        << "east pos=" << static_cast<int>(pos);
+  }
+}
+
 TEST(DoorPositionManagerTest, EditorBoundsUseNorthCurtainDoorFootprint) {
   const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
       /*position=*/0, DoorDirection::North, DoorType::CurtainDoor);
