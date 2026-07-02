@@ -260,6 +260,49 @@ cmake --preset lin-dbg \
   -DCMAKE_CXX_COMPILER=g++-13
 ```
 
+### Shared Library Not Found at Runtime (`libprotobuf.so.NN`, `libgrpc++.so.NN`)
+
+**Error** (when launching `yaze` or `z3ed`, not while building):
+```
+error while loading shared libraries: libprotobuf.so.23: cannot open shared object file: No such file or directory
+```
+
+**Cause**: The binary was built against the distribution's **system** protobuf/gRPC
+libraries — i.e. configured with `-DYAZE_PREFER_SYSTEM_GRPC=ON` (or
+`-DYAZE_USE_SYSTEM_DEPS=ON`, or a system-gRPC preset such as `lin-ai` / `ci-linux`).
+protobuf has no stable ABI and bumps its SONAME every release: `libprotobuf.so.23`
+is protobuf 3.12 (shipped by Ubuntu 20.04/22.04), while Debian 13 ships a much newer
+protobuf under a *different* SONAME. Moving such a binary to another distribution —
+for example building on Ubuntu 22.04 and running on Debian 13 — fails because the old
+SONAME no longer exists. Debian 13 *has* protobuf; it just isn't `.so.23`.
+
+**Solution (recommended)** — rebuild with the bundled, statically-linked protobuf so
+the binary carries no system protobuf/gRPC dependency. This is exactly how the official
+release binaries are built, which is why they are portable across distributions:
+```bash
+# Default from-source path (protobuf built and linked statically):
+cmake --preset lin-ai -DYAZE_PREFER_SYSTEM_GRPC=OFF -DYAZE_USE_SYSTEM_DEPS=OFF
+cmake --build --preset lin-ai
+```
+`-DYAZE_PREFER_SYSTEM_GRPC=OFF` is the default, so simply *not* opting into system
+gRPC is enough; only presets like `lin-ai` turn it on.
+
+**Alternative** — disable gRPC entirely. This removes the protobuf dependency
+completely and drops only GUI automation / remote ROM access / emulator-debug
+services (core ROM editing and the emulator are unaffected):
+```bash
+cmake --preset lin-rel   # gRPC is already OFF in this preset — smallest, fully portable
+cmake --build --preset lin-rel
+```
+
+**Quick check** — inspect a built binary's shared-library dependencies:
+```bash
+ldd ./build/presets/<preset>/bin/yaze | grep -E 'protobuf|grpc|absl'
+```
+Any `libprotobuf` / `libgrpc` / `libabsl` line means the binary depends on the system
+stack and is **not** portable to other distributions. A statically-linked build prints
+nothing.
+
 ---
 
 ## Common Build Errors
