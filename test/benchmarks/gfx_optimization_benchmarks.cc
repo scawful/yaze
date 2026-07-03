@@ -431,7 +431,11 @@ TEST_F(GraphicsOptimizationBenchmarks, AtlasRenderingPerformance2) {
   atlas_renderer.Initialize(&renderer_, 512);
 
   // Create test tiles
+  // Reserve up front: CreateTexture() enqueues a pointer to each Bitmap in the
+  // Arena texture queue, so a reallocation here would free bitmaps still
+  // referenced by the queue (heap-use-after-free when draining).
   std::vector<Bitmap> test_tiles;
+  test_tiles.reserve(kNumTiles);
   std::vector<int> atlas_ids;
 
   for (int i = 0; i < kNumTiles; ++i) {
