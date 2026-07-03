@@ -82,7 +82,7 @@ class GraphicsEditorTestSuite : public TestSuite {
 
             editor::GraphicsEditor editor(test_rom);
             editor.SetGameData(&game_data);
-            
+
             // Initialize and Load
             editor.Initialize();
             RETURN_IF_ERROR(editor.Load());
@@ -90,26 +90,26 @@ class GraphicsEditorTestSuite : public TestSuite {
             // Test Sheet 0 (Link's graphics usually)
             uint16_t sheet_id = 0;
             editor.SelectSheet(sheet_id);
-            
+
             // Directly modify a pixel in GameData to simulate editing
             // and then verify we can "save" it.
             // In a real GUI edit, the PixelEditorPanel would handle this.
             if (game_data.gfx_bitmaps.empty()) {
-                 return absl::InternalError("No graphics sheets loaded");
+              return absl::InternalError("No graphics sheets loaded");
             }
-            
+
             auto& sheet = game_data.gfx_bitmaps[sheet_id];
             uint8_t original_pixel = sheet.GetPixel(0, 0);
             uint8_t new_pixel = (original_pixel + 1) % 16;
-            
+
             sheet.SetPixel(0, 0, new_pixel);
-            
+
             if (sheet.GetPixel(0, 0) != new_pixel) {
-                return absl::InternalError("Failed to set pixel in bitmap");
+              return absl::InternalError("Failed to set pixel in bitmap");
             }
 
             // Verify saving (this would write back to ROM or internal buffers)
-            // RETURN_IF_ERROR(editor.Save()); 
+            // RETURN_IF_ERROR(editor.Save());
 
             return absl::OkStatus();
           });
@@ -157,18 +157,19 @@ class GraphicsEditorTestSuite : public TestSuite {
 
             // Test modifying a palette color
             if (game_data.palette_groups.dungeons.empty()) {
-                return absl::InternalError("No dungeon palettes loaded");
+              return absl::InternalError("No dungeon palettes loaded");
             }
-            
+
             auto& palette = game_data.palette_groups.dungeons[0];
             SDL_Color original_color = palette.GetColor(0);
-            SDL_Color new_color = {255, 0, 0, 255}; // Bright Red
-            
+            SDL_Color new_color = {255, 0, 0, 255};  // Bright Red
+
             palette.SetColor(0, new_color);
-            
+
             SDL_Color actual_color = palette.GetColor(0);
-            if (actual_color.r != 255 || actual_color.g != 0 || actual_color.b != 0) {
-                return absl::InternalError("Palette color update failed");
+            if (actual_color.r != 255 || actual_color.g != 0 ||
+                actual_color.b != 0) {
+              return absl::InternalError("Palette color update failed");
             }
 
             return absl::OkStatus();
@@ -201,4 +202,4 @@ class GraphicsEditorTestSuite : public TestSuite {
 }  // namespace test
 }  // namespace yaze
 
-#endif // YAZE_APP_TEST_GRAPHICS_EDITOR_TEST_SUITE_H
+#endif  // YAZE_APP_TEST_GRAPHICS_EDITOR_TEST_SUITE_H

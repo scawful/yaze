@@ -355,35 +355,71 @@ void ObjectEditorContent::DrawSelectionActions() {
                                   selection_snapshot_.item_count > 0;
 
   if (selection_snapshot_.HasObjectSelection()) {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
-         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-         {ICON_MD_FILTER_NONE " Duplicate",
-          [this]() { DuplicateSelectedObjects(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
+    DrawWrappedInspectorActions({{ICON_MD_CONTENT_COPY " Copy",
+                                  [this]() {
+                                    CopySelectedObjects();
+                                  }},
+                                 {ICON_MD_CONTENT_PASTE " Paste",
+                                  [this]() {
+                                    PasteObjects();
+                                  }},
+                                 {ICON_MD_FILTER_NONE " Duplicate",
+                                  [this]() {
+                                    DuplicateSelectedObjects();
+                                  }},
+                                 {ICON_MD_CLEAR " Clear",
+                                  [this]() {
+                                    DeselectAllObjects();
+                                  }},
+                                 {ICON_MD_DELETE " Delete", [this]() {
+                                    DeleteCurrentSelection();
+                                  }}});
   } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
     DrawWrappedInspectorActions(
         {{ICON_MD_FILTER_NONE " Duplicate",
-          [this]() { DuplicateSelectedSprite(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
-         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-          [this]() { DeleteAllSelectedTypeInRoom(); }}});
+          [this]() {
+            DuplicateSelectedSprite();
+          }},
+         {ICON_MD_CLEAR " Clear",
+          [this]() {
+            DeselectAllObjects();
+          }},
+         {ICON_MD_DELETE " Delete",
+          [this]() {
+            DeleteCurrentSelection();
+          }},
+         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind), [this]() {
+            DeleteAllSelectedTypeInRoom();
+          }}});
   } else if (selection_snapshot_.kind == DungeonSelectionKind::EntityMulti ||
              selection_snapshot_.kind == DungeonSelectionKind::Mixed) {
     DrawWrappedInspectorActions(
         {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); },
           can_copy_selection},
-         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
+         {ICON_MD_CONTENT_PASTE " Paste",
+          [this]() {
+            PasteObjects();
+          }},
+         {ICON_MD_CLEAR " Clear",
+          [this]() {
+            DeselectAllObjects();
+          }},
+         {ICON_MD_DELETE " Delete", [this]() {
+            DeleteCurrentSelection();
+          }}});
   } else {
     DrawWrappedInspectorActions(
-        {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
-         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-          [this]() { DeleteAllSelectedTypeInRoom(); }}});
+        {{ICON_MD_CLEAR " Clear",
+          [this]() {
+            DeselectAllObjects();
+          }},
+         {ICON_MD_DELETE " Delete",
+          [this]() {
+            DeleteCurrentSelection();
+          }},
+         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind), [this]() {
+            DeleteAllSelectedTypeInRoom();
+          }}});
   }
 
   ImGui::Separator();

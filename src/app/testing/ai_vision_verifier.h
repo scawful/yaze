@@ -73,7 +73,8 @@ struct VisionVerifierConfig {
  * Allows integration with different rendering backends (SDL, OpenGL, etc.)
  */
 using ScreenshotCaptureCallback =
-    std::function<absl::StatusOr<std::vector<uint8_t>>(int* width, int* height)>;
+    std::function<absl::StatusOr<std::vector<uint8_t>>(int* width,
+                                                       int* height)>;
 
 /**
  * @class AIVisionVerifier
@@ -234,7 +235,8 @@ class AIVisionVerifier {
 
   VisionVerifierConfig config_;
   ScreenshotCaptureCallback screenshot_callback_;
-  cli::AIService* ai_service_ = nullptr;  // Optional AI service for real API calls
+  cli::AIService* ai_service_ =
+      nullptr;  // Optional AI service for real API calls
   std::vector<uint8_t> last_screenshot_data_;
   int last_width_ = 0;
   int last_height_ = 0;

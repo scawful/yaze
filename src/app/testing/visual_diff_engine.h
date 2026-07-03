@@ -79,9 +79,9 @@ struct VisualDiffConfig {
 
   // Comparison algorithm
   enum class Algorithm {
-    kPixelExact,       // Exact pixel comparison
-    kSSIM,             // Structural Similarity Index
-    kPerceptualHash,   // pHash for similarity
+    kPixelExact,      // Exact pixel comparison
+    kSSIM,            // Structural Similarity Index
+    kPerceptualHash,  // pHash for similarity
   };
   Algorithm algorithm = Algorithm::kPixelExact;
 

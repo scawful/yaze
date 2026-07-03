@@ -291,9 +291,8 @@ void Application::LoadRom(const std::string& path) {
 #endif
 
 #ifdef __EMSCRIPTEN__
-    EM_ASM(
-        { console.log("ROM loaded successfully: " + UTF8ToString($0)); },
-        path.c_str());
+    EM_ASM({ console.log("ROM loaded successfully: " + UTF8ToString($0)); },
+           path.c_str());
 #endif
   }
 }

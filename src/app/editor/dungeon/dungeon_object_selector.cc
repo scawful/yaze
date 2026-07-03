@@ -561,7 +561,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
         current_column = (current_column + 1) % columns;
       }  // end object loop
-    }  // end range loop
+    }    // end range loop
   }
 
   ImGui::EndChild();

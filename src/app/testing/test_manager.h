@@ -209,7 +209,9 @@ class TestManager {
 
   // UI Testing (ImGui Test Engine integration)
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-  ImGuiTestEngine* GetUITestEngine() { return ui_test_engine_; }
+  ImGuiTestEngine* GetUITestEngine() {
+    return ui_test_engine_;
+  }
   void InitializeUITesting();
   void OnPostSwap();
   void StopUITesting();  // Stop test engine while ImGui context is valid
@@ -217,7 +219,9 @@ class TestManager {
                                    // destroyed
   void ShutdownUITesting();  // Complete shutdown (calls both Stop and Destroy)
 #else
-  void* GetUITestEngine() { return nullptr; }
+  void* GetUITestEngine() {
+    return nullptr;
+  }
   void InitializeUITesting() {}
   void OnPostSwap() {}
   void StopUITesting() {}
@@ -226,9 +230,15 @@ class TestManager {
 #endif
 
   // Status queries
-  bool IsTestRunning() const { return is_running_; }
-  const std::string& GetCurrentTestName() const { return current_test_name_; }
-  float GetProgress() const { return progress_; }
+  bool IsTestRunning() const {
+    return is_running_;
+  }
+  const std::string& GetCurrentTestName() const {
+    return current_test_name_;
+  }
+  float GetProgress() const {
+    return progress_;
+  }
 
   // UI Interface
   void DrawTestDashboard(bool* show_dashboard = nullptr);
@@ -242,7 +252,9 @@ class TestManager {
     }
     current_rom_ = rom;
   }
-  Rom* GetCurrentRom() const { return current_rom_; }
+  Rom* GetCurrentRom() const {
+    return current_rom_;
+  }
   void RefreshCurrentRom();  // Refresh ROM pointer from editor manager
   // Remove EditorManager dependency to avoid circular includes
 

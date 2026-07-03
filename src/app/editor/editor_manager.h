@@ -158,8 +158,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   [[deprecated("Use window_host() instead.")]] PanelHost* panel_host() {
     return window_host_.get();
   }
-  [[deprecated("Use window_host() instead.")]]
-  const PanelHost* panel_host() const {
+  [[deprecated("Use window_host() instead.")]] const PanelHost* panel_host()
+      const {
     return window_host_.get();
   }
   WindowHost* window_host() { return window_host_.get(); }
@@ -387,20 +387,32 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   }
 
 #ifdef YAZE_ENABLE_TESTING
-  void ShowTestDashboard() { show_test_dashboard_ = true; }
+  void ShowTestDashboard() {
+    show_test_dashboard_ = true;
+  }
 #endif
 
 #ifdef YAZE_BUILD_AGENT_UI
   void ShowAIAgent();
   void ShowChatHistory();
-  AgentEditor* GetAgentEditor() { return agent_ui_.GetAgentEditor(); }
-  AgentUiController* GetAgentUiController() { return &agent_ui_; }
+  AgentEditor* GetAgentEditor() {
+    return agent_ui_.GetAgentEditor();
+  }
+  AgentUiController* GetAgentUiController() {
+    return &agent_ui_;
+  }
 #else
-  AgentEditor* GetAgentEditor() { return nullptr; }
-  AgentUiController* GetAgentUiController() { return nullptr; }
+  AgentEditor* GetAgentEditor() {
+    return nullptr;
+  }
+  AgentUiController* GetAgentUiController() {
+    return nullptr;
+  }
 #endif
 #ifdef YAZE_BUILD_AGENT_UI
-  void ShowProposalDrawer() { proposal_drawer_.Show(); }
+  void ShowProposalDrawer() {
+    proposal_drawer_.Show();
+  }
 #endif
 
   // ROM and Project operations (public for MenuOrchestrator)
@@ -433,11 +445,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // Project management
   absl::Status LoadProjectWithRom();
-  project::YazeProject* GetCurrentProject() { return &current_project_; }
+  project::YazeProject* GetCurrentProject() {
+    return &current_project_;
+  }
   const project::YazeProject* GetCurrentProject() const {
     return &current_project_;
   }
-  core::VersionManager* GetVersionManager() { return version_manager_.get(); }
+  core::VersionManager* GetVersionManager() {
+    return version_manager_.get();
+  }
 
   // Show project management panel in right sidebar
   void ShowProjectManagement();

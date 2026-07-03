@@ -33,13 +33,13 @@ struct ScreenRegion {
  */
 struct ComparisonResult {
   bool passed = false;
-  float similarity = 0.0f;        // 0.0 to 1.0 (1.0 = identical)
+  float similarity = 0.0f;             // 0.0 to 1.0 (1.0 = identical)
   float difference_percentage = 0.0f;  // Percentage of pixels that differ
   int total_pixels = 0;
   int differing_pixels = 0;
 
   // Difference visualization
-  std::string diff_image_path;  // Path to generated diff image
+  std::string diff_image_path;                  // Path to generated diff image
   std::vector<ScreenRegion> differing_regions;  // Clusters of differences
 
   // Performance
@@ -65,9 +65,9 @@ struct ComparisonConfig {
 
   // Comparison algorithm
   enum class Algorithm {
-    kPixelExact,       // Exact pixel match (with color threshold)
-    kPerceptualHash,   // Perceptual hashing (more tolerant)
-    kStructuralSim,    // SSIM-like structural comparison
+    kPixelExact,      // Exact pixel match (with color threshold)
+    kPerceptualHash,  // Perceptual hashing (more tolerant)
+    kStructuralSim,   // SSIM-like structural comparison
   };
   Algorithm algorithm = Algorithm::kPixelExact;
 };
@@ -128,8 +128,7 @@ class ScreenshotAssertion {
   const ComparisonConfig& GetConfig() const { return config_; }
 
   // Screenshot capture
-  using CaptureCallback =
-      std::function<absl::StatusOr<Screenshot>()>;
+  using CaptureCallback = std::function<absl::StatusOr<Screenshot>()>;
   void SetCaptureCallback(CaptureCallback callback) {
     capture_callback_ = std::move(callback);
   }
@@ -152,8 +151,7 @@ class ScreenshotAssertion {
    * @brief Assert a specific region matches reference.
    */
   absl::StatusOr<ComparisonResult> AssertRegionMatches(
-      const std::string& reference_path,
-      const ScreenRegion& region);
+      const std::string& reference_path, const ScreenRegion& region);
 
   /**
    * @brief Assert screen has changed since baseline.
@@ -212,10 +210,9 @@ class ScreenshotAssertion {
   /**
    * @brief Generate a visual diff image.
    */
-  absl::StatusOr<std::string> GenerateDiffImage(
-      const Screenshot& actual,
-      const Screenshot& expected,
-      const std::string& output_path);
+  absl::StatusOr<std::string> GenerateDiffImage(const Screenshot& actual,
+                                                const Screenshot& expected,
+                                                const std::string& output_path);
 
   // --- Pixel-Level Assertions ---
 
@@ -228,24 +225,22 @@ class ScreenshotAssertion {
    * @param b Expected blue (0-255)
    * @param tolerance Per-channel tolerance
    */
-  absl::StatusOr<bool> AssertPixelColor(
-      int x, int y, uint8_t r, uint8_t g, uint8_t b, int tolerance = 10);
+  absl::StatusOr<bool> AssertPixelColor(int x, int y, uint8_t r, uint8_t g,
+                                        uint8_t b, int tolerance = 10);
 
   /**
    * @brief Assert region contains a specific color.
    */
   absl::StatusOr<bool> AssertRegionContainsColor(
-      const ScreenRegion& region,
-      uint8_t r, uint8_t g, uint8_t b,
+      const ScreenRegion& region, uint8_t r, uint8_t g, uint8_t b,
       float min_coverage = 0.1f);  // At least 10% of pixels
 
   /**
    * @brief Assert region does NOT contain a specific color.
    */
-  absl::StatusOr<bool> AssertRegionExcludesColor(
-      const ScreenRegion& region,
-      uint8_t r, uint8_t g, uint8_t b,
-      int tolerance = 10);
+  absl::StatusOr<bool> AssertRegionExcludesColor(const ScreenRegion& region,
+                                                 uint8_t r, uint8_t g,
+                                                 uint8_t b, int tolerance = 10);
 
   // --- Convenience Methods ---
 
@@ -280,13 +275,11 @@ class ScreenshotAssertion {
                                      const Screenshot& expected);
 
   // Helper methods
-  bool ColorsMatch(uint8_t r1, uint8_t g1, uint8_t b1,
-                   uint8_t r2, uint8_t g2, uint8_t b2,
-                   int threshold) const;
-  std::vector<ScreenRegion> FindDifferingRegions(
-      const Screenshot& actual,
-      const Screenshot& expected,
-      int threshold);
+  bool ColorsMatch(uint8_t r1, uint8_t g1, uint8_t b1, uint8_t r2, uint8_t g2,
+                   uint8_t b2, int threshold) const;
+  std::vector<ScreenRegion> FindDifferingRegions(const Screenshot& actual,
+                                                 const Screenshot& expected,
+                                                 int threshold);
 };
 
 // --- Test Macros ---
@@ -299,14 +292,15 @@ class ScreenshotAssertion {
  *   YAZE_ASSERT_SCREENSHOT_MATCHES(assertion, "expected.png");
  * @endcode
  */
-#define YAZE_ASSERT_SCREENSHOT_MATCHES(assertion, reference_path)   \
-  do {                                                              \
+#define YAZE_ASSERT_SCREENSHOT_MATCHES(assertion, reference_path)     \
+  do {                                                                \
     auto result = (assertion).AssertMatchesReference(reference_path); \
-    ASSERT_TRUE(result.ok()) << result.status().message();          \
-    EXPECT_TRUE(result->passed)                                     \
-        << "Screenshot mismatch: " << result->difference_percentage \
-        << "% different, expected <" << (1.0f - (assertion).GetConfig().tolerance) * 100 \
-        << "%\nDiff image: " << result->diff_image_path;            \
+    ASSERT_TRUE(result.ok()) << result.status().message();            \
+    EXPECT_TRUE(result->passed)                                       \
+        << "Screenshot mismatch: " << result->difference_percentage   \
+        << "% different, expected <"                                  \
+        << (1.0f - (assertion).GetConfig().tolerance) * 100           \
+        << "%\nDiff image: " << result->diff_image_path;              \
   } while (0)
 
 /**

@@ -11,8 +11,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -65,9 +65,8 @@ std::string CurrentTestName() {
 std::filesystem::path MakeUniqueTestDir(const std::filesystem::path& base_dir,
                                         const std::string& prefix) {
   const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-  const auto name =
-      prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
-      std::to_string(now);
+  const auto name = prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
+                    std::to_string(now);
   return base_dir / name;
 }
 
@@ -76,8 +75,8 @@ class FileSystemToolTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Create test directories and files
-    test_dir_ =
-        MakeUniqueTestDir(FindProjectRoot() / ".local" / "test_temp", "yaze_fs_tool_test");
+    test_dir_ = MakeUniqueTestDir(FindProjectRoot() / ".local" / "test_temp",
+                                  "yaze_fs_tool_test");
     std::filesystem::create_directories(test_dir_ / "subdir");
 
     // Create test files
@@ -115,10 +114,8 @@ class FileSystemToolTest : public ::testing::Test {
 TEST_F(FileSystemToolTest, ListDirectoryWorks) {
   FileSystemListTool tool;
 
-  std::vector<std::string> args = {
-      "--path=" + test_dir_.string(),
-      "--format=json"
-  };
+  std::vector<std::string> args = {"--path=" + test_dir_.string(),
+                                   "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -127,11 +124,8 @@ TEST_F(FileSystemToolTest, ListDirectoryWorks) {
 TEST_F(FileSystemToolTest, ListDirectoryRecursiveWorks) {
   FileSystemListTool tool;
 
-  std::vector<std::string> args = {
-      "--path=" + test_dir_.string(),
-      "--recursive=true",
-      "--format=json"
-  };
+  std::vector<std::string> args = {"--path=" + test_dir_.string(),
+                                   "--recursive=true", "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -140,10 +134,8 @@ TEST_F(FileSystemToolTest, ListDirectoryRecursiveWorks) {
 TEST_F(FileSystemToolTest, ListDirectoryTextFormat) {
   FileSystemListTool tool;
 
-  std::vector<std::string> args = {
-      "--path=" + test_dir_.string(),
-      "--format=text"
-  };
+  std::vector<std::string> args = {"--path=" + test_dir_.string(),
+                                   "--format=text"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -153,9 +145,7 @@ TEST_F(FileSystemToolTest, ListNonExistentDirectoryFails) {
   FileSystemListTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "nonexistent").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "nonexistent").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_FALSE(status.ok());
@@ -179,9 +169,7 @@ TEST_F(FileSystemToolTest, ReadFileWorks) {
   FileSystemReadTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "test.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "test.txt").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -191,10 +179,8 @@ TEST_F(FileSystemToolTest, ReadFileWithLinesLimitWorks) {
   FileSystemReadTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "multiline.txt").string(),
-      "--lines=5",
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "multiline.txt").string(), "--lines=5",
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -204,11 +190,8 @@ TEST_F(FileSystemToolTest, ReadFileWithOffsetWorks) {
   FileSystemReadTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "multiline.txt").string(),
-      "--offset=10",
-      "--lines=5",
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "multiline.txt").string(), "--offset=10",
+      "--lines=5", "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -218,9 +201,7 @@ TEST_F(FileSystemToolTest, ReadEmptyFileWorks) {
   FileSystemReadTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "empty.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "empty.txt").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -230,9 +211,7 @@ TEST_F(FileSystemToolTest, ReadNonExistentFileFails) {
   FileSystemReadTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "nonexistent.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "nonexistent.txt").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_FALSE(status.ok());
@@ -256,9 +235,7 @@ TEST_F(FileSystemToolTest, FileExistsWorks) {
   FileSystemExistsTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "test.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "test.txt").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -268,9 +245,7 @@ TEST_F(FileSystemToolTest, FileExistsForNonExistentFile) {
   FileSystemExistsTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "nonexistent.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "nonexistent.txt").string(), "--format=json"};
 
   // This should succeed but report that the file doesn't exist
   absl::Status status = tool.Run(args, nullptr);
@@ -280,10 +255,8 @@ TEST_F(FileSystemToolTest, FileExistsForNonExistentFile) {
 TEST_F(FileSystemToolTest, DirectoryExistsWorks) {
   FileSystemExistsTool tool;
 
-  std::vector<std::string> args = {
-      "--path=" + test_dir_.string(),
-      "--format=json"
-  };
+  std::vector<std::string> args = {"--path=" + test_dir_.string(),
+                                   "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -302,9 +275,7 @@ TEST_F(FileSystemToolTest, GetFileInfoWorks) {
   FileSystemInfoTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "test.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "test.txt").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -313,10 +284,8 @@ TEST_F(FileSystemToolTest, GetFileInfoWorks) {
 TEST_F(FileSystemToolTest, GetDirectoryInfoWorks) {
   FileSystemInfoTool tool;
 
-  std::vector<std::string> args = {
-      "--path=" + test_dir_.string(),
-      "--format=json"
-  };
+  std::vector<std::string> args = {"--path=" + test_dir_.string(),
+                                   "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -327,8 +296,7 @@ TEST_F(FileSystemToolTest, GetInfoForNestedFile) {
 
   std::vector<std::string> args = {
       "--path=" + (test_dir_ / "subdir" / "nested.txt").string(),
-      "--format=json"
-  };
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -338,9 +306,7 @@ TEST_F(FileSystemToolTest, GetInfoForNonExistentPath) {
   FileSystemInfoTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "nonexistent.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "nonexistent.txt").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_FALSE(status.ok());
@@ -360,14 +326,14 @@ TEST_F(FileSystemToolTest, PathTraversalBlocked) {
 
   std::vector<std::string> args = {
       "--path=../../../etc",  // Try to escape project directory
-      "--format=json"
-  };
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_FALSE(status.ok());
   EXPECT_TRUE(absl::IsInvalidArgument(status) ||
               absl::IsPermissionDenied(status))
-      << "Expected InvalidArgument or PermissionDenied, got: " << status.message();
+      << "Expected InvalidArgument or PermissionDenied, got: "
+      << status.message();
 }
 
 TEST_F(FileSystemToolTest, ReadBinaryFileBlocked) {
@@ -380,9 +346,7 @@ TEST_F(FileSystemToolTest, ReadBinaryFileBlocked) {
   binary_file.close();
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "binary.exe").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "binary.exe").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_FALSE(status.ok());
@@ -395,14 +359,14 @@ TEST_F(FileSystemToolTest, AbsolutePathTraversalBlocked) {
 
   std::vector<std::string> args = {
       "--path=/etc/passwd",  // Try to access system file
-      "--format=json"
-  };
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_FALSE(status.ok());
   EXPECT_TRUE(absl::IsPermissionDenied(status) ||
               absl::IsInvalidArgument(status))
-      << "Expected security error for system path access, got: " << status.message();
+      << "Expected security error for system path access, got: "
+      << status.message();
 }
 
 TEST_F(FileSystemToolTest, DotDotInPathBlocked) {
@@ -410,9 +374,9 @@ TEST_F(FileSystemToolTest, DotDotInPathBlocked) {
 
   // Try to read a file using path traversal within the test dir
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "subdir" / ".." / ".." / "etc" / "passwd").string(),
-      "--format=json"
-  };
+      "--path=" +
+          (test_dir_ / "subdir" / ".." / ".." / "etc" / "passwd").string(),
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   // This should either fail validation or fail to find the file
@@ -434,10 +398,8 @@ TEST_F(FileSystemToolTest, ListEmptyDirectory) {
   auto empty_dir = test_dir_ / "empty_dir";
   std::filesystem::create_directories(empty_dir);
 
-  std::vector<std::string> args = {
-      "--path=" + empty_dir.string(),
-      "--format=json"
-  };
+  std::vector<std::string> args = {"--path=" + empty_dir.string(),
+                                   "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -447,9 +409,7 @@ TEST_F(FileSystemToolTest, ReadFileWithSpecialCharacters) {
   FileSystemReadTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "special_chars.txt").string(),
-      "--format=json"
-  };
+      "--path=" + (test_dir_ / "special_chars.txt").string(), "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -461,8 +421,7 @@ TEST_F(FileSystemToolTest, LargeLineCountParameter) {
   std::vector<std::string> args = {
       "--path=" + (test_dir_ / "multiline.txt").string(),
       "--lines=999999",  // Very large, should be clamped or handled gracefully
-      "--format=json"
-  };
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -474,8 +433,7 @@ TEST_F(FileSystemToolTest, ZeroLineCountParameter) {
   std::vector<std::string> args = {
       "--path=" + (test_dir_ / "multiline.txt").string(),
       "--lines=0",  // Zero lines requested
-      "--format=json"
-  };
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   // This should either return empty content or use a default value
@@ -488,8 +446,7 @@ TEST_F(FileSystemToolTest, NegativeOffsetParameter) {
   std::vector<std::string> args = {
       "--path=" + (test_dir_ / "multiline.txt").string(),
       "--offset=-5",  // Negative offset
-      "--format=json"
-  };
+      "--format=json"};
 
   absl::Status status = tool.Run(args, nullptr);
   // Should handle gracefully - either fail or treat as 0
@@ -503,9 +460,7 @@ TEST_F(FileSystemToolTest, ReadTextFormat) {
   FileSystemReadTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "test.txt").string(),
-      "--format=text"
-  };
+      "--path=" + (test_dir_ / "test.txt").string(), "--format=text"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -515,9 +470,7 @@ TEST_F(FileSystemToolTest, InfoTextFormat) {
   FileSystemInfoTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "test.txt").string(),
-      "--format=text"
-  };
+      "--path=" + (test_dir_ / "test.txt").string(), "--format=text"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();
@@ -527,9 +480,7 @@ TEST_F(FileSystemToolTest, ExistsTextFormat) {
   FileSystemExistsTool tool;
 
   std::vector<std::string> args = {
-      "--path=" + (test_dir_ / "test.txt").string(),
-      "--format=text"
-  };
+      "--path=" + (test_dir_ / "test.txt").string(), "--format=text"};
 
   absl::Status status = tool.Run(args, nullptr);
   EXPECT_TRUE(status.ok()) << status.message();

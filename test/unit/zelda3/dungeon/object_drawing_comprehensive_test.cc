@@ -459,10 +459,7 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_NothingRoutines) {
   std::vector<int> nothing_objects = {
       0x31,
       0x32,  // Custom/logic
-      0x54,
-      0x57,
-      0x58,
-      0x59,
+      0x54, 0x57, 0x58, 0x59,
       0x5A,  // Logic objects
       0x6E,
       0x6F,  // End of vertical section
@@ -471,13 +468,9 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_NothingRoutines) {
       0xBE,
       0xBF,  // Logic objects
       // 0xC4 removed - now maps to Draw4x4FloorOneIn4x4SuperSquare (routine 59)
-      0xCB,
-      0xCC,
-      0xCF,
+      0xCB, 0xCC, 0xCF,
       0xD0,  // Logic objects (verify against ASM)
-      0xD3,
-      0xD4,
-      0xD5,
+      0xD3, 0xD4, 0xD5,
       0xD6,  // Wall moved checks (logic-only, no tiles)
   };
 

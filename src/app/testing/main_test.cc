@@ -23,8 +23,8 @@ int main(int argc, char** argv) {
   io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
   // Configure minimal logging
-  yaze::util::LogManager::instance().configure(
-      yaze::util::LogLevel::INFO, "", {"Test", "Error"});
+  yaze::util::LogManager::instance().configure(yaze::util::LogLevel::INFO, "",
+                                               {"Test", "Error"});
 
   LOG_INFO("Test", "Registering test suites...");
   yaze::test::RegisterZ3edTestSuites();
@@ -57,9 +57,8 @@ int main(int argc, char** argv) {
       LOG_ERROR("Test", "--- FAILED TESTS ---");
       for (const auto& result : results.individual_results) {
         if (result.status == yaze::test::TestStatus::kFailed) {
-          LOG_ERROR("Test", "[FAILED] %s::%s - %s",
-                    result.suite_name.c_str(), result.name.c_str(),
-                    result.error_message.c_str());
+          LOG_ERROR("Test", "[FAILED] %s::%s - %s", result.suite_name.c_str(),
+                    result.name.c_str(), result.error_message.c_str());
         }
       }
       LOG_ERROR("Test", "--------------------");

@@ -1022,7 +1022,8 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+      .Item(
+          "About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
 }
 
 // Menu state management

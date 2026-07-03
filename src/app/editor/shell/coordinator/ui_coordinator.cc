@@ -20,14 +20,14 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/layout/window_delegate.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/shell/coordinator/welcome_screen.h"
+#include "app/editor/shell/feedback/popup_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/command_palette_providers.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/system/session/session_coordinator.h"
-#include "app/editor/shell/coordinator/welcome_screen.h"
-#include "app/editor/shell/feedback/popup_manager.h"
-#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -124,33 +124,34 @@ UICoordinator::UICoordinator(
         new_project_dialog_.Open(template_name);
       });
 
-  new_project_dialog_.SetCreateCallback(
-      [this](const std::string& template_name, const std::string& rom_path,
-             const std::string& project_name) {
-        if (!editor_manager_)
-          return;
-        auto status = editor_manager_->CreateNewProject(template_name);
-        if (!status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Failed to create project: %s", status.message()),
-              ToastType::kError);
-          return;
-        }
-        // Project shell is in place; now open the user's ROM. OpenRomOrProject
-        // handles both ROM and project files, and emits its own toasts on failure.
-        auto rom_status = editor_manager_->OpenRomOrProject(rom_path);
-        if (!rom_status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Project created but ROM failed to load: %s",
-                              rom_status.message()),
-              ToastType::kWarning);
-          return;
-        }
-        toast_manager_.Show(absl::StrFormat("Created project \"%s\" from %s",
-                                            project_name, template_name),
-                            ToastType::kSuccess);
-        SetStartupSurface(StartupSurface::kDashboard);
-      });
+  new_project_dialog_.SetCreateCallback([this](
+                                            const std::string& template_name,
+                                            const std::string& rom_path,
+                                            const std::string& project_name) {
+    if (!editor_manager_)
+      return;
+    auto status = editor_manager_->CreateNewProject(template_name);
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to create project: %s", status.message()),
+          ToastType::kError);
+      return;
+    }
+    // Project shell is in place; now open the user's ROM. OpenRomOrProject
+    // handles both ROM and project files, and emits its own toasts on failure.
+    auto rom_status = editor_manager_->OpenRomOrProject(rom_path);
+    if (!rom_status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Project created but ROM failed to load: %s",
+                          rom_status.message()),
+          ToastType::kWarning);
+      return;
+    }
+    toast_manager_.Show(absl::StrFormat("Created project \"%s\" from %s",
+                                        project_name, template_name),
+                        ToastType::kSuccess);
+    SetStartupSurface(StartupSurface::kDashboard);
+  });
 
   welcome_screen_->SetOpenProjectCallback([this](const std::string& filepath) {
     if (editor_manager_) {
@@ -1720,7 +1721,9 @@ void UICoordinator::RefreshWorkflowActions() {
          .description = "Execute one instruction without entering subroutines",
          .shortcut = "F10",
          .priority = 20,
-         .callback = [emu_backend]() { emu_backend->StepOver(); }});
+         .callback = [emu_backend]() {
+           emu_backend->StepOver();
+         }});
     ContentRegistry::WorkflowActions::Register(
         {.id = "workflow.mesen.step_out",
          .group = "Live Debugging",
@@ -1728,7 +1731,9 @@ void UICoordinator::RefreshWorkflowActions() {
          .description = "Run until return from the current subroutine",
          .shortcut = "Shift+F11",
          .priority = 30,
-         .callback = [emu_backend]() { emu_backend->StepOut(); }});
+         .callback = [emu_backend]() {
+           emu_backend->StepOut();
+         }});
     ContentRegistry::WorkflowActions::Register(
         {.id = "workflow.mesen.overlay_on",
          .group = "Live Debugging",

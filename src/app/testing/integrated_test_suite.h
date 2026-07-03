@@ -8,8 +8,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/arena.h"
-#include "rom/rom.h"
 #include "app/testing/test_manager.h"
+#include "rom/rom.h"
 
 #ifdef YAZE_ENABLE_GTEST
 #include <gtest/gtest.h>
