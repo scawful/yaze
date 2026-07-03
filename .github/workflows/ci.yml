@@ -343,7 +343,9 @@ jobs:
         echo "base=$base" >> "$GITHUB_OUTPUT"
         echo "head=$head" >> "$GITHUB_OUTPUT"
 
-        files=$(git diff --name-only "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
+        # --diff-filter=ACMRT excludes Deleted/renamed-away files: passing paths
+        # that no longer exist to clang-format makes it exit 123 ("No such file").
+        files=$(git diff --name-only --diff-filter=ACMRT "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
         {
           echo "files<<EOF"
           echo "$files"
