@@ -65,7 +65,9 @@ jobs:
         run: |
           echo "=== Emscripten Configuration ==="
           emcc --version
-          emcmake --version
+          # emcmake has no --version flag; exercise the wrapper via cmake instead
+          # (`emcmake --version` treats --version as the build command and exits 1).
+          emcmake cmake --version
           echo "=== Node.js Version ==="
           node --version
           echo "=== Environment ==="
