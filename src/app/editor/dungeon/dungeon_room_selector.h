@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>

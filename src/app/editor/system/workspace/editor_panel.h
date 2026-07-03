@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_EDITOR_PANEL_H_
 
 #include <any>
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <unordered_map>

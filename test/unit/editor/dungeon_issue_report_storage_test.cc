@@ -19,18 +19,31 @@ class ScopedEnvVar {
       had_original_ = true;
       original_value_ = existing;
     }
-    setenv(name_.c_str(), value.c_str(), 1);
+    SetEnv(name_.c_str(), value.c_str());
   }
 
   ~ScopedEnvVar() {
     if (had_original_) {
-      setenv(name_.c_str(), original_value_.c_str(), 1);
+      SetEnv(name_.c_str(), original_value_.c_str());
     } else {
+#ifdef _WIN32
+      _putenv_s(name_.c_str(), "");
+#else
       unsetenv(name_.c_str());
+#endif
     }
   }
 
  private:
+  // setenv/unsetenv are POSIX-only; use _putenv_s on Windows (clang-cl/MSVC).
+  static void SetEnv(const char* name, const char* value) {
+#ifdef _WIN32
+    _putenv_s(name, value);
+#else
+    setenv(name, value, 1);
+#endif
+  }
+
   std::string name_;
   std::string original_value_;
   bool had_original_ = false;
