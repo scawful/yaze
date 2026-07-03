@@ -1679,8 +1679,14 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
     const uint16_t tilemap_offset =
         rom_data[tilemap_entry_addr] | (rom_data[tilemap_entry_addr + 1] << 8);
-    const auto [explosion_tile_x, explosion_tile_y] =
+    // NOTE: structured bindings cannot be captured by lambdas on clang<16 /
+    // gcc<8 (C++17), which breaks the ci-linux (gcc-12), Windows (clang-cl) and
+    // Memory Sanitizer (clang-14) builds. Use plain locals so the lambda below
+    // can reference them portably.
+    const std::pair<int, int> explosion_tile =
         tilemap_offset_to_tile_coords(tilemap_offset);
+    const int explosion_tile_x = explosion_tile.first;
+    const int explosion_tile_y = explosion_tile.second;
 
     auto draw_exploding_wall_segment = [&](int table_entry_addr,
                                            int segment_tile_y) -> bool {
