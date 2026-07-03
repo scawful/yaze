@@ -358,7 +358,11 @@ TEST(LC_LZ2_CompressionTest, CompressionLongIntraCopy) {
 // Tests for HandleDirectCopy
 
 TEST(HandleDirectCopyTest, NotDirectCopyWithAccumulatedBytes) {
-  CompressionContext context({0x01, 0x02, 0x03}, 0, 3);
+  // src_pos must be >= comp_accumulator: the accumulated bytes are data at
+  // [src_pos - comp_accumulator, src_pos). Starting at src_pos=2 with 2
+  // accumulated bytes references data[0..2); src_pos=0 would read before the
+  // buffer (heap-buffer-overflow under ASan).
+  CompressionContext context({0x01, 0x02, 0x03}, 2, 3);
   context.cmd_with_max = kCommandByteFill;
   context.comp_accumulator = 2;
   HandleDirectCopy(context);

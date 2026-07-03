@@ -91,9 +91,10 @@ jobs:
 
       - name: Verify build output
         run: |
-          BUILD_DIR="build-wasm-debug"
+          # build-wasm.sh derives the build dir from the preset's binaryDir.
+          BUILD_DIR="build/presets/wasm-debug"
           if [ "${{ github.event.inputs.debug_build }}" == "false" ]; then
-            BUILD_DIR="build-wasm"
+            BUILD_DIR="build/presets/wasm-release"
           fi
 
           echo "=== Build Output Verification ==="
