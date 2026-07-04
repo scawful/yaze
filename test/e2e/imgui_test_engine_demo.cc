@@ -5,7 +5,7 @@
 #include "app/testing/screenshot_assertion.h"
 #include "imgui.h"
 #include "imgui_test_engine/imgui_te_context.h"
-#include "imgui_test_engine/imgui_te_engine.h" // Added include for ImGuiTestEngine
+#include "imgui_test_engine/imgui_te_engine.h"  // Added include for ImGuiTestEngine
 #include "test_utils.h"
 
 namespace yaze {
@@ -229,7 +229,8 @@ void E2ETest_ImGuiTimingDemo(ImGuiTestContext* ctx) {
   ctx->SetRef("Yaze");
 
   // Test speed affects how long Yield() waits
-  ctx->LogInfo("Current test speed: %d", ImGuiTestEngine_GetIO(ctx->Engine).ConfigRunSpeed);
+  ctx->LogInfo("Current test speed: %d",
+               ImGuiTestEngine_GetIO(ctx->Engine).ConfigRunSpeed);
 
   // Open an editor that has loading time
   ctx->MenuClick("View/Dungeon Editor");

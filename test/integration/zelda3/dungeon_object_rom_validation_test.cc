@@ -621,5 +621,29 @@ TEST_F(DungeonObjectRomValidationTest, Room_LayoutLoading) {
   }
 }
 
+TEST_F(DungeonObjectRomValidationTest, Subtype3PrisonCellParserMatchesRom) {
+  zelda3::ObjectParser parser(rom_.get());
+  for (int id : {0xF8D, 0xF97}) {
+    SCOPED_TRACE(id);
+    auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
+    ASSERT_TRUE(parsed_or.ok());
+    EXPECT_EQ(parsed_or->size(), 8u);
+  }
+}
+
+TEST_F(DungeonObjectRomValidationTest, Subtype3BigKeyLockParserMatchesRom) {
+  zelda3::ObjectParser parser(rom_.get());
+  auto parsed_or = parser.ParseObject(static_cast<int16_t>(0xF98));
+  ASSERT_TRUE(parsed_or.ok());
+  EXPECT_EQ(parsed_or->size(), 8u);
+}
+
+TEST_F(DungeonObjectRomValidationTest, Subtype3BombableFloorParserMatchesRom) {
+  zelda3::ObjectParser parser(rom_.get());
+  auto parsed_or = parser.ParseObject(static_cast<int16_t>(0xFC7));
+  ASSERT_TRUE(parsed_or.ok());
+  EXPECT_EQ(parsed_or->size(), 8u);
+}
+
 }  // namespace test
 }  // namespace yaze

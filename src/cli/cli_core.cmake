@@ -14,6 +14,7 @@ set(YAZE_CLI_CORE_SOURCES
   cli/service/command_registry.cc
   cli/service/resources/command_context.cc
   cli/service/resources/command_handler.cc
+  cli/service/agent/tools/project_graph_tool.cc
   cli/service/resources/resource_catalog.cc
   cli/service/resources/resource_context_builder.cc
   cli/handlers/mesen_handlers.cc

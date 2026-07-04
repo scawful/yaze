@@ -24,6 +24,7 @@
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/palette_debug.h"
+#include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -908,13 +909,11 @@ void Room::RenderRoomGraphics() {
   }
 
   // STEP 3: Draw layout objects ON TOP of floor
-  // Layout objects (walls, corners) are drawn after floor so they appear over it
-  // NOTE: SNES uses a four-pass pipeline (layout, main, BG2 overlay, BG1
-  // overlay) per bank_01.asm. We currently emit one layout pass + one object
-  // list. RoomLayerManager handles BG2 translucency and room effects, and
-  // DrawRoutineRegistry routes BothBG objects correctly, but splitting into
-  // four distinct streams would fix edge cases with overlay ordering.
-  // See docs/internal/agents/dungeon-object-rendering-spec.md.
+  // Layout objects (walls, corners) are drawn after floor so they appear over it.
+  // USDASM order (bank_01.asm LoadAndBuildRoom): floors, layout, primary object
+  // stream, BG2 overlay stream (post-0xFFFF), BG1 overlay stream, then blocks/
+  // torches. `RenderObjectsToBackground` runs three object-stream passes; layout
+  // is emitted here before object buffers. See dungeon-object-rendering-spec.md.
   if (was_layout_dirty || need_floor_draw) {
     LoadLayoutTilesToBuffer();
     dirty_state_.layout = false;
@@ -2529,16 +2528,17 @@ absl::Status SaveAllTorches(
   return SaveAllTorchesImpl(rom, room_count, room_lookup);
 }
 
-// Region preservation for `RoomsWithPitDamage` (the table consumed by
-// `DetermineConsequencesOfFalling` at bank_07.asm:4193). The legacy
-// symbol names `kPitCount` and `kPitPointer` are misnomers — see the
-// audit at `memory/project_dungeon_pit_audit.md`. The byte at
-// `kPitCount` is the LDX.w immediate (the **maximum X offset**, NOT a
-// byte count); the runtime CMP loop walks X from that offset down to
-// 0 in steps of 2, so the table holds `(kPitCount / 2) + 1` entries
-// occupying `kPitCount + 2` bytes. There is no editable yaze surface
-// for this table, so the encoder remains pure region preservation.
+// Region preservation for `RoomsWithPitDamage` when no edited table is supplied.
+// When `pit_damage_table` is non-null and dirty, encode the in-memory membership
+// list through `PitDamageTable::SaveToRom` instead of blind preservation.
 absl::Status SaveAllPits(Rom* rom) {
+  return SaveAllPits(rom, nullptr);
+}
+
+absl::Status SaveAllPits(Rom* rom, const PitDamageTable* pit_damage_table) {
+  if (pit_damage_table != nullptr && pit_damage_table->dirty()) {
+    return pit_damage_table->SaveToRom(rom);
+  }
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }

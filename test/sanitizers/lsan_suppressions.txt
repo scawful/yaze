@@ -1,0 +1,15 @@
+# LeakSanitizer suppressions for the "Memory Sanitizer" CI job (ASan + LSan).
+#
+# Scope: third-party leaks only. Each entry must reference an external
+# dependency we cannot fix from this repository. Do NOT add YAZE code here -
+# fix the leak instead.
+#
+# asar: the vendored SNES assembler (ext/asar) accumulates global state during
+# assembly (label tables, split buffers, file reads). Its statically linked
+# build exposes no asar_close() to release that state (see the note in
+# src/core/asar_wrapper.cc::Shutdown), so any patch/validate/symbol call leaks
+# by design. Scope the suppression to the wrapper methods that drive asar so we
+# still catch genuine leaks elsewhere.
+leak:yaze::core::AsarWrapper::ApplyPatchWithLibrary
+leak:yaze::core::AsarWrapper::ValidateAssembly
+leak:yaze::core::AsarWrapper::ExtractSymbolsFromLastOperation

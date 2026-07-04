@@ -3,6 +3,7 @@
 
 // POD and option structs for the canvas subsystem.
 
+#include <cstdint>
 #include <optional>
 
 #include "imgui/imgui.h"

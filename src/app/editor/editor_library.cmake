@@ -25,6 +25,8 @@ set(
   app/editor/dungeon/dungeon_rendering_helpers.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
   app/editor/dungeon/dungeon_editor_v2.cc
+  app/editor/dungeon/dungeon_editor_v2_persistence.cc
+  app/editor/dungeon/dungeon_editor_v2_undo.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
   app/editor/dungeon/object_selection.cc
@@ -304,6 +306,7 @@ target_link_libraries(yaze_editor PUBLIC
   yaze_editor_system_session
   yaze_editor_system_shortcuts
   yaze_app_core_lib
+  yaze_cli_core
   yaze_rom
   yaze_gfx
   yaze_gui

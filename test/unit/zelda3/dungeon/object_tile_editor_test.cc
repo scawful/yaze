@@ -323,7 +323,9 @@ TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
 
   ObjectTileEditor editor(&rom);
   const auto palette_group = MakeTestPaletteGroup();
-  std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  // BuildTile8Atlas renders all 1024 tiles (kAtlasTileCount), which indexes the
+  // full 0x10000-byte SNES graphics sheet; a smaller buffer overruns.
+  std::vector<uint8_t> gfx_buffer(0x10000, 0x00);
   gfx_buffer[0] = 1;
   gfx::Bitmap atlas;
 
@@ -346,7 +348,8 @@ TEST(ObjectTileEditorTest,
 
   ObjectTileEditor editor(&rom);
   const auto palette_group = MakeTestPaletteGroup();
-  std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  // Full-atlas render needs the complete 0x10000-byte graphics sheet.
+  std::vector<uint8_t> gfx_buffer(0x10000, 0x00);
   gfx::Bitmap atlas;
 
   auto status = editor.BuildTile8Atlas(atlas, gfx_buffer.data(), palette_group,

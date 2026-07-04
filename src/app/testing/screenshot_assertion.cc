@@ -129,14 +129,13 @@ absl::StatusOr<Screenshot> ScreenshotAssertion::GetBaseline(
     const std::string& name) const {
   auto it = baselines_.find(name);
   if (it == baselines_.end()) {
-    return absl::NotFoundError(
-        absl::StrCat("Baseline not found: ", name));
+    return absl::NotFoundError(absl::StrCat("Baseline not found: ", name));
   }
   return it->second;
 }
 
 ComparisonResult ScreenshotAssertion::Compare(const Screenshot& actual,
-                                               const Screenshot& expected) {
+                                              const Screenshot& expected) {
   return CompareRegion(actual, expected, ScreenRegion::FullScreen());
 }
 
@@ -211,14 +210,15 @@ ComparisonResult ScreenshotAssertion::ComparePixelExact(
       // Check if in ignore region
       bool ignored = false;
       for (const auto& ignore : config_.ignore_regions) {
-        if (x >= ignore.x && x < ignore.x + ignore.width &&
-            y >= ignore.y && y < ignore.y + ignore.height) {
+        if (x >= ignore.x && x < ignore.x + ignore.width && y >= ignore.y &&
+            y < ignore.y + ignore.height) {
           ignored = true;
           break;
         }
       }
 
-      if (ignored) continue;
+      if (ignored)
+        continue;
 
       total_pixels++;
 
@@ -296,9 +296,10 @@ absl::StatusOr<std::string> ScreenshotAssertion::GenerateDiffImage(
 
         if (match) {
           // Matching pixels: dimmed grayscale
-          uint8_t gray = static_cast<uint8_t>(
-              (actual.data[actual_idx] + actual.data[actual_idx + 1] +
-               actual.data[actual_idx + 2]) / 3 * 0.3);
+          uint8_t gray = static_cast<uint8_t>((actual.data[actual_idx] +
+                                               actual.data[actual_idx + 1] +
+                                               actual.data[actual_idx + 2]) /
+                                              3 * 0.3);
           diff.data[diff_idx] = gray;
           diff.data[diff_idx + 1] = gray;
           diff.data[diff_idx + 2] = gray;
@@ -322,8 +323,10 @@ absl::StatusOr<std::string> ScreenshotAssertion::GenerateDiffImage(
   return output_path;
 }
 
-absl::StatusOr<bool> ScreenshotAssertion::AssertPixelColor(
-    int x, int y, uint8_t r, uint8_t g, uint8_t b, int tolerance) {
+absl::StatusOr<bool> ScreenshotAssertion::AssertPixelColor(int x, int y,
+                                                           uint8_t r, uint8_t g,
+                                                           uint8_t b,
+                                                           int tolerance) {
   auto screenshot = CaptureScreen();
   if (!screenshot.ok()) {
     return screenshot.status();
@@ -386,7 +389,7 @@ absl::StatusOr<Screenshot> ScreenshotAssertion::CaptureScreen() {
 }
 
 absl::Status ScreenshotAssertion::SaveScreenshot(const Screenshot& screenshot,
-                                                  const std::string& path) {
+                                                 const std::string& path) {
   // Create directory if needed
   std::filesystem::path filepath(path);
   std::filesystem::create_directories(filepath.parent_path());
@@ -405,8 +408,8 @@ absl::Status ScreenshotAssertion::SaveScreenshot(const Screenshot& screenshot,
   file.write(reinterpret_cast<const char*>(screenshot.data.data()),
              screenshot.data.size());
 
-  LOG_DEBUG("ScreenshotAssertion", "Screenshot saved: %s (%dx%d)",
-            path.c_str(), screenshot.width, screenshot.height);
+  LOG_DEBUG("ScreenshotAssertion", "Screenshot saved: %s (%dx%d)", path.c_str(),
+            screenshot.width, screenshot.height);
 
   return absl::OkStatus();
 }
@@ -432,8 +435,8 @@ absl::StatusOr<Screenshot> ScreenshotAssertion::LoadScreenshot(
 }
 
 bool ScreenshotAssertion::ColorsMatch(uint8_t r1, uint8_t g1, uint8_t b1,
-                                       uint8_t r2, uint8_t g2, uint8_t b2,
-                                       int threshold) const {
+                                      uint8_t r2, uint8_t g2, uint8_t b2,
+                                      int threshold) const {
   return std::abs(r1 - r2) <= threshold && std::abs(g1 - g2) <= threshold &&
          std::abs(b1 - b2) <= threshold;
 }

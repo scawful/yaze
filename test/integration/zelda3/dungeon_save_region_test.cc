@@ -155,8 +155,9 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
 // check that decides whether falling in a given room deals damage
 // (`UnderworldPitDoDamage`) versus transitioning Link to a different
 // floor via the per-room `pits_target_layer`. The table has **57**
-// entries in vanilla US v1.0, hardcoded since 1991, with NO editable
-// surface in yaze (no UI, no `Room::pit_does_damage_` field).
+// entries in vanilla US v1.0, hardcoded since 1991. yaze now has a
+// fixed-capacity table encoder, but still no room-editor UI toggle or
+// `Room::pit_does_damage_` field.
 //
 // Critically, `kPitCount` and `kPitPointer` are not data fields. They
 // are immediate operands inside instructions:
@@ -175,12 +176,11 @@ TEST_F(DungeonSaveRegionTest, SaveAllPitsPreservesRegion) {
 // `kPitCount + 2` = 114 bytes spanning PC 0x0190C..0x0197D. The final
 // entry at offset 0x70 (PC 0x0197C) is `0x0123`.
 //
-// Because there is no editable surface, `SaveAllPits` is intentionally
-// region-preservation forever — there's nothing to encode. These tests
-// pin the format invariants discovered by the audit so future changes
-// (new hacks, an asar patch that grows the table) deliberately flip
-// these assertions instead of silently corrupting the surrounding
-// instructions.
+// The legacy no-argument `SaveAllPits` path is intentional
+// region-preservation. Edited membership should go through `PitDamageTable`;
+// these tests pin the format invariants discovered by the audit so future
+// changes (new hacks, an asar patch that grows the table) deliberately flip
+// these assertions instead of silently corrupting the surrounding instructions.
 
 namespace {
 

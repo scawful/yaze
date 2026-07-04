@@ -96,14 +96,13 @@ void E2ETest_ScreenshotAssertion(ImGuiTestContext* ctx) {
   asserter.SetConfig(config);
 
   // Register capture callback
-  asserter.SetCaptureCallback(
-      []() -> absl::StatusOr<Screenshot> {
-        Screenshot shot;
-        shot.width = 1280;
-        shot.height = 720;
-        shot.data.resize(shot.width * shot.height * 4, 128);
-        return shot;
-      });
+  asserter.SetCaptureCallback([]() -> absl::StatusOr<Screenshot> {
+    Screenshot shot;
+    shot.width = 1280;
+    shot.height = 720;
+    shot.data.resize(shot.width * shot.height * 4, 128);
+    return shot;
+  });
 
   // Test 1: Capture baseline
   auto baseline_status = asserter.CaptureBaseline("graphics_editor_initial");
@@ -128,9 +127,8 @@ void E2ETest_ScreenshotAssertion(ImGuiTestContext* ctx) {
 
   // Test 4: Color presence verification
   auto color_result = asserter.AssertRegionContainsColor(
-      tile_region,
-      0, 128, 0,  // Green (typical grass tile color)
-      0.1f);      // At least 10% coverage
+      tile_region, 0, 128, 0,  // Green (typical grass tile color)
+      0.1f);                   // At least 10% coverage
 
   if (color_result.ok()) {
     IM_CHECK(*color_result);  // Green should be present in tile graphics

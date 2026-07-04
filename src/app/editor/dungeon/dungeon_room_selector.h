@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
@@ -89,8 +90,8 @@ class DungeonRoomSelector {
   void SetRoomSelectedCallback(std::function<void(int)> callback) {
     room_selected_callback_ = std::move(callback);
   }
-  [[deprecated("Use SetRoomSelectedCallback() instead")]]
-  void set_room_selected_callback(std::function<void(int)> callback) {
+  [[deprecated("Use SetRoomSelectedCallback() instead")]] void
+  set_room_selected_callback(std::function<void(int)> callback) {
     SetRoomSelectedCallback(std::move(callback));
   }
 
@@ -104,8 +105,8 @@ class DungeonRoomSelector {
   void SetEntranceSelectedCallback(std::function<void(int)> callback) {
     entrance_selected_callback_ = std::move(callback);
   }
-  [[deprecated("Use SetEntranceSelectedCallback() instead")]]
-  void set_entrance_selected_callback(std::function<void(int)> callback) {
+  [[deprecated("Use SetEntranceSelectedCallback() instead")]] void
+  set_entrance_selected_callback(std::function<void(int)> callback) {
     SetEntranceSelectedCallback(std::move(callback));
   }
 

@@ -319,7 +319,7 @@ jobs:
     - name: Install Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-format-14 clang-tidy-14 cppcheck
+        sudo apt-get install -y clang-format-14 clang-tidy-14 cppcheck ripgrep
 
     - name: Collect changed files
       id: changed
@@ -343,7 +343,9 @@ jobs:
         echo "base=$base" >> "$GITHUB_OUTPUT"
         echo "head=$head" >> "$GITHUB_OUTPUT"
 
-        files=$(git diff --name-only "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
+        # --diff-filter=ACMRT excludes Deleted/renamed-away files: passing paths
+        # that no longer exist to clang-format makes it exit 123 ("No such file").
+        files=$(git diff --name-only --diff-filter=ACMRT "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
         {
           echo "files<<EOF"
           echo "$files"
@@ -427,7 +429,12 @@ jobs:
       working-directory: build
       env:
         ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
-      run: ctest --output-on-failure
+        LSAN_OPTIONS: suppressions=${{ github.workspace }}/test/sanitizers/lsan_suppressions.txt
+      # Exclude the nightly-only labels (see the header of this file). In
+      # particular, performance benchmarks assert hard timing ceilings that are
+      # meaningless under ASan instrumentation; they run in nightly.yml instead.
+      # Correctness suites (stable/unit/integration/quick) still run under ASan.
+      run: ctest --output-on-failure --label-exclude "benchmark|gui|experimental|rom_dependent"
 
   z3ed-agent-test:
     name: "z3ed Agent"

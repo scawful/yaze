@@ -158,8 +158,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   [[deprecated("Use window_host() instead.")]] PanelHost* panel_host() {
     return window_host_.get();
   }
-  [[deprecated("Use window_host() instead.")]]
-  const PanelHost* panel_host() const {
+  [[deprecated("Use window_host() instead.")]] const PanelHost* panel_host()
+      const {
     return window_host_.get();
   }
   WindowHost* window_host() { return window_host_.get(); }

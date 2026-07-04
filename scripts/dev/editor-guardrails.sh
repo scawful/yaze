@@ -35,6 +35,7 @@ panel_allowed_prefixes=(
   "src/app/editor/hack/workflow/"
   "src/app/editor/system/workspace/"
   "src/app/editor/code/"
+  "src/app/editor/layout/layout_designer/"
 )
 
 for file in "${new_files[@]}"; do

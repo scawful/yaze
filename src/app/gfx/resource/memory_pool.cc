@@ -35,6 +35,17 @@ MemoryPool::MemoryPool()
 
 MemoryPool::~MemoryPool() {
   Clear();
+  // Clear() only resets block usage flags; the backing storage for each pool
+  // is owned here and must be released to avoid leaking the pre-allocated
+  // blocks (flagged by AddressSanitizer/LeakSanitizer at process exit).
+  for (auto* pool :
+       {&small_blocks_, &medium_blocks_, &large_blocks_, &huge_blocks_}) {
+    for (auto& block : *pool) {
+      std::free(block.data);
+      block.data = nullptr;
+    }
+    pool->clear();
+  }
 }
 
 void* MemoryPool::Allocate(size_t size) {
@@ -75,6 +86,11 @@ void MemoryPool::Deallocate(void* ptr) {
   if (block) {
     block->in_use = false;
     total_used_bytes_ -= block->size;
+  } else {
+    // System-allocated fallback (see Allocate): the map only tracked the
+    // pointer, so the backing storage must be released here to avoid leaking
+    // every overflow allocation.
+    std::free(ptr);
   }
 
   allocated_blocks_.erase(it);

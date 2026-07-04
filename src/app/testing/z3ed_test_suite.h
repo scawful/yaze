@@ -151,8 +151,8 @@ class Z3edAIAgentTestSuite : public TestSuite {
           "overworld set-tile --map 0 --x 10 --y 20 --tile 0x02E",
           "overworld set-area --map 0 --x 10 --y 20 --width 5 --height 3 "
           "--tile 0x02E"};
-          // "overworld replace-tile --map 0 --old-tile 0x02E --new-tile 0x030"};
-          // Skipped: replace-tile requires ROM to be loaded
+      // "overworld replace-tile --map 0 --old-tile 0x02E --new-tile 0x030"};
+      // Skipped: replace-tile requires ROM to be loaded
 
       int passed = 0;
       int failed = 0;
@@ -170,8 +170,10 @@ class Z3edAIAgentTestSuite : public TestSuite {
           passed++;
         } else {
           failed++;
-          if (!failure_details.empty()) failure_details += "; ";
-          failure_details += absl::StrFormat("Command '%s' failed: %s", cmd, proposal_or.status().message());
+          if (!failure_details.empty())
+            failure_details += "; ";
+          failure_details += absl::StrFormat("Command '%s' failed: %s", cmd,
+                                             proposal_or.status().message());
         }
       }
 
@@ -182,7 +184,8 @@ class Z3edAIAgentTestSuite : public TestSuite {
       } else {
         result.status = TestStatus::kFailed;
         result.error_message =
-            absl::StrFormat("%d commands passed, %d failed. Details: %s", passed, failed, failure_details.c_str());
+            absl::StrFormat("%d commands passed, %d failed. Details: %s",
+                            passed, failed, failure_details.c_str());
       }
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;
@@ -268,11 +271,13 @@ class GUIAutomationTestSuite : public TestSuite {
         // Skip instead of fail if harness server is not running
         result.status = TestStatus::kSkipped;
         result.error_message =
-            "Connection failed (harness likely not running): " + std::string(status.message());
+            "Connection failed (harness likely not running): " +
+            std::string(status.message());
       }
     } catch (const std::exception& e) {
       result.status = TestStatus::kSkipped;
-      result.error_message = "Connection test skipped: " + std::string(e.what());
+      result.error_message =
+          "Connection test skipped: " + std::string(e.what());
     }
 
     auto end_time = std::chrono::steady_clock::now();
