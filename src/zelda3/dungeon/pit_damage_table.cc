@@ -1,6 +1,7 @@
 #include "zelda3/dungeon/pit_damage_table.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "absl/strings/str_format.h"
 #include "rom/snes.h"
@@ -75,6 +76,21 @@ absl::Status PitDamageTable::SaveToRom(Rom* rom) const {
         "PitDamageTable entry count %zu does not match ROM table capacity %d",
         room_ids_.size(), expected_entries));
   }
+  std::vector<bool> seen(kNumberOfRooms, false);
+  for (size_t index = 0; index < room_ids_.size(); ++index) {
+    const uint16_t room_id = room_ids_[index];
+    if (room_id >= kNumberOfRooms) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "PitDamageTable room 0x%03X at index %zu is outside the dungeon "
+          "room range",
+          room_id, index));
+    }
+    if (seen[room_id]) {
+      return absl::AlreadyExistsError(absl::StrFormat(
+          "PitDamageTable room 0x%03X appears more than once", room_id));
+    }
+    seen[room_id] = true;
+  }
 
   const int pit_ptr_snes = (rom_data[kPitPointer + 2] << 16) |
                            (rom_data[kPitPointer + 1] << 8) |
@@ -102,6 +118,34 @@ bool PitDamageTable::Contains(uint16_t room_id) const {
 void PitDamageTable::SetRoomIds(std::vector<uint16_t> room_ids) {
   room_ids_ = std::move(room_ids);
   dirty_ = true;
+}
+
+absl::Status PitDamageTable::ReplaceRoomId(uint16_t old_room_id,
+                                           uint16_t new_room_id) {
+  if (new_room_id >= kNumberOfRooms) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Replacement room 0x%03X is outside the dungeon room range",
+        new_room_id));
+  }
+
+  auto old_it = std::find(room_ids_.begin(), room_ids_.end(), old_room_id);
+  if (old_it == room_ids_.end()) {
+    return absl::NotFoundError(absl::StrFormat(
+        "Room 0x%03X is not in RoomsWithPitDamage", old_room_id));
+  }
+
+  if (old_room_id == new_room_id) {
+    return absl::OkStatus();
+  }
+
+  if (Contains(new_room_id)) {
+    return absl::AlreadyExistsError(absl::StrFormat(
+        "Room 0x%03X is already in RoomsWithPitDamage", new_room_id));
+  }
+
+  *old_it = new_room_id;
+  dirty_ = true;
+  return absl::OkStatus();
 }
 
 }  // namespace zelda3

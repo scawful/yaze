@@ -2535,9 +2535,11 @@ absl::Status SaveAllPits(Rom* rom) {
   return SaveAllPits(rom, nullptr);
 }
 
-absl::Status SaveAllPits(Rom* rom, const PitDamageTable* pit_damage_table) {
+absl::Status SaveAllPits(Rom* rom, PitDamageTable* pit_damage_table) {
   if (pit_damage_table != nullptr && pit_damage_table->dirty()) {
-    return pit_damage_table->SaveToRom(rom);
+    RETURN_IF_ERROR(pit_damage_table->SaveToRom(rom));
+    pit_damage_table->ClearDirty();
+    return absl::OkStatus();
   }
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");

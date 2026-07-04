@@ -10,6 +10,7 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Tests: grow a fixture ROM beyond vanilla capacity; assert pointer/count operands, data bytes, and nearby regions.
 
 2. **Pit-damage membership editor UI**
+   - Status: inspector controls implemented for fixed-capacity room replacement; dedicated UI/view-model automation is still a follow-up.
    - Problem: `PitDamageTable` can encode fixed-capacity `RoomsWithPitDamage`, but no panel toggles membership.
    - Done when: the dungeon editor exposes room membership, marks the table dirty, saves via `SaveAllPits(rom, table)`, and reloads the edited membership.
    - Tests: view-model/unit test for toggling; ROM-backed save/reload test; no-op save stays byte-identical.
@@ -30,6 +31,7 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Done when: tests compare decoded object metadata against the ROM object table row or fixture bytes, not only `parsed.size()`.
 
 6. **PitDamageTable validation policy**
+   - Status: saves now reject duplicate and out-of-range room ids with explicit tests.
    - Problem: fixed-capacity saves reject count mismatch, but do not validate duplicate room ids or out-of-range ids.
    - Done when: either duplicates/out-of-range ids are deliberately allowed and documented, or rejected with explicit tests.
 
