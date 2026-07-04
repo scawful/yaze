@@ -197,7 +197,9 @@ the dominant product risk:
 - plugin architecture
 - enhanced memory tooling beyond search
 - broader documentation overhaul
-- larger AI/editor convergence work
+- larger AI/editor convergence work, including AI-assisted map generation after
+  the manual Overworld/Dungeon editors and validators are safe enough to review
+  generated output (`docs/internal/plans/ai-map-generation-roadmap-2026-07-03.md`)
 
 ## Secondary Train Placement
 

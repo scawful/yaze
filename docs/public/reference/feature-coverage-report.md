@@ -20,7 +20,7 @@ AppData/Library/XDG.
 | Graphics Editor | Beta | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
 | Sprite Editor | Beta | Sprite viewing/editing works with undo/redo; deeper workflow coverage is still limited. |
 | Message Editor | Stable | Text edits persist to ROM. |
-| Screen Editor | WIP | Dungeon-map undo/redo is implemented; cut/copy/paste/find remain incomplete. |
+| Screen Editor | WIP | Dungeon-map undo/redo is implemented; pause-menu world-map editing is present but needs stronger UX/test coverage; cut/copy/paste/find remain incomplete. |
 | Memory Editor | WIP | Hex viewing works; search unimplemented. |
 | Assembly/Asar | Beta | Patches apply to ROM; project file editor is incomplete. |
 | Emulator | Beta | Runtime-only; save-state format exists but UI is not fully wired. |

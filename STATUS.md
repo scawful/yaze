@@ -3,14 +3,13 @@
 ## Current Release
 - **Version**: v0.7.2 (release-candidate prep; latest tagged release is
   v0.7.1 from April 19, 2026)
-- **Focus**: Post-0.7.1 dungeon RC stabilization: default previews, save-domain
-  persistence, door/object guardrails, room-object labels, and release/build
-  follow-through. The `0.x` ladder after this remains editor-first; `z3ed`,
-  `z3dk`, Oracle AI, and Oracle of Secrets support are planned as bounded
-  secondary trains.
-- **Plans**: `docs/internal/roadmap.md`,
-  `docs/internal/plans/release-ladder-0x-2026.md`,
-  `docs/internal/plans/z3dk-integration-0.8.0.md`
+- **Focus**: Post-0.7.1 dungeon RC stabilization plus 0.8.0 room-render
+  regression fixtures, pit-damage table encoder, and dungeon compositing tests.
+- **Next milestone**: `0.8.0` dungeon completion — see
+  `docs/internal/plans/release-ladder-0x-2026.md` and
+  `docs/internal/plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md`.
+- **Beta-feedback backlog**:
+  `docs/internal/plans/yaze-beta-feedback-backlog-2026-07-01.md`.
 
 ## 0.7.0 Completion Tracking
 - See `docs/internal/plans/0.7.0-feature-completion.md` for full task breakdown

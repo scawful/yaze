@@ -30,7 +30,7 @@ An honest assessment of yaze's current capabilities compared to Hyrule Magic and
 | Multi-room tab view | Yes | Yes | Yes |
 | Adjacent room navigation (Ctrl+arrows) | Yes | No | No |
 | Room save to ROM | Yes | Yes | Yes |
-| Room-state persistence coverage | Focused regression coverage (headers, torches, pushable blocks, custom collision, chests, pot items, dungeon entrances/spawn points; oversized pot-item saves fail loudly) | Mature | Mature |
+| Room-state persistence coverage | Focused regression coverage (headers, torches, fixed-capacity pit-damage table, pushable blocks, custom collision, chests, pot items, dungeon entrances/spawn points; oversized pot-item saves fail loudly) | Mature | Mature |
 | Sprite graphics rendering (actual tiles) | Partial (static vanilla tile preview + fallback boxes) | Yes | Yes |
 | Object tile preview in ghost | Yes (rendered bitmap) | No | No |
 | Object selector/browser previews | Yes (default-on rendered room-context thumbnails + fallback symbols) | Yes | Yes |
@@ -77,7 +77,7 @@ An honest assessment of yaze's current capabilities compared to Hyrule Magic and
 | Message/text editor | Yes (import/export/encode/decode) | Yes | Limited |
 | Music editor | Yes (SPC playback, track editing) | No | No |
 | Sprite editor (data/properties) | Yes | Yes | Yes |
-| Screen editor (title/file select) | Basic | Yes | Yes |
+| Screen editor (title/file select / pause-menu world map) | Basic | Yes | Yes |
 | Palette editor (standalone) | Yes | Yes | Yes |
 | Assembly editor (integrated) | Yes | No | No |
 | Hex editor (integrated) | Yes | No | No |
@@ -138,9 +138,9 @@ Purpose-built validation for the Oracle romhack:
 
 2. **GFX sheet editing depth** — ZScream and Hyrule Magic allow individual 8x8 tile editing, GFX import/export, and animated tile preview. yaze's graphics editor is primarily a viewer.
 
-3. **Dungeon persistence model gaps** — The global pit-damage table still relies on protected ROM blob preservation, and pushable blocks do not yet repoint/expand beyond the vanilla table capacity.
+3. **Dungeon persistence model gaps** — The global pit-damage table has a fixed-capacity encoder but no room-editor UI toggle yet, and pushable blocks do not yet repoint/expand beyond the vanilla table capacity.
 
-4. **Screen editors** — Title screen and file select screen editors are basic compared to competitors.
+4. **Screen editors** — Title screen, file select, and pause-menu world-map editors are basic compared to competitors and need clearer UX/test coverage.
 
 5. **GFX import/export** — No way to import/export graphics sheets or individual tiles.
 
