@@ -15,6 +15,10 @@ namespace yaze {
 class Rom;
 }  // namespace yaze
 
+namespace yaze::zelda3 {
+class PitDamageTable;
+}  // namespace yaze::zelda3
+
 namespace yaze::editor {
 
 class DungeonCanvasViewer;
@@ -85,6 +89,10 @@ class DungeonWorkbenchContent : public WindowContent {
                                WindowContent* item_editor,
                                WindowContent* room_graphics,
                                WindowContent* palette_editor);
+  void SetPitDamageTableProvider(
+      std::function<zelda3::PitDamageTable*()> provider) {
+    get_pit_damage_table_ = std::move(provider);
+  }
   void FocusRoomInspector();
   void FocusSelectionInspector();
   void FocusEntranceBrowser();
@@ -190,6 +198,7 @@ class DungeonWorkbenchContent : public WindowContent {
   const char* GetWorkbenchToolShortLabel(WorkbenchTool tool) const;
   const char* GetWorkbenchToolUnavailableMessage(WorkbenchTool tool) const;
   void DrawApplyScopeControls(int room_id);
+  void DrawPitDamageControls(int room_id);
   void DrawLayerCompositingControls(DungeonCanvasViewer& viewer, int room_id);
   void DrawDungeonMapPopup(DungeonCanvasViewer& viewer);
   DungeonMapPanel* GetEmbeddedDungeonMap(DungeonCanvasViewer& viewer);
@@ -218,6 +227,7 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void(int)> forget_recent_room_;
   std::function<void(bool)> set_workflow_mode_;
   std::function<void(bool)> on_inspector_side_changed_;
+  std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
   Rom* rom_ = nullptr;
 
   enum class SidebarMode : uint8_t { Rooms, Entrances };
@@ -245,6 +255,10 @@ class DungeonWorkbenchContent : public WindowContent {
   // Shortcut legend toggle.
   bool show_shortcut_legend_ = false;
   bool open_dungeon_map_popup_ = false;
+  uint16_t pit_damage_replacement_room_id_ = 0;
+  uint16_t pit_damage_victim_room_id_ = 0;
+  std::string pit_damage_status_message_;
+  bool pit_damage_status_error_ = false;
   std::unique_ptr<DungeonMapPanel> embedded_dungeon_map_;
   RoomTagEditorPanel* room_tag_panel_ = nullptr;
   CustomCollisionPanel* custom_collision_panel_ = nullptr;

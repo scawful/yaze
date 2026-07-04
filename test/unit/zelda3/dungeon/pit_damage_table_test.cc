@@ -83,6 +83,73 @@ TEST_F(PitDamageTableTest, DirtySaveAllPitsWritesEditedMembership) {
   EXPECT_EQ(reloaded.room_ids(), edited);
 }
 
+TEST_F(PitDamageTableTest, ReplaceRoomIdPreservesCapacityAndReloadsMembership) {
+  PitDamageTable table;
+  ASSERT_TRUE(PitDamageTable::LoadFromRom(&rom_, &table).ok());
+  const size_t original_size = table.room_ids().size();
+  ASSERT_TRUE(table.Contains(0x0072));
+  ASSERT_FALSE(table.Contains(0x0001));
+
+  ASSERT_TRUE(table.ReplaceRoomId(0x0072, 0x0001).ok());
+  EXPECT_TRUE(table.dirty());
+  EXPECT_EQ(table.room_ids().size(), original_size);
+  EXPECT_FALSE(table.Contains(0x0072));
+  EXPECT_TRUE(table.Contains(0x0001));
+
+  ASSERT_TRUE(SaveAllPits(&rom_, &table).ok());
+  EXPECT_FALSE(table.dirty());
+
+  PitDamageTable reloaded;
+  ASSERT_TRUE(PitDamageTable::LoadFromRom(&rom_, &reloaded).ok());
+  EXPECT_EQ(reloaded.room_ids().size(), original_size);
+  EXPECT_FALSE(reloaded.Contains(0x0072));
+  EXPECT_TRUE(reloaded.Contains(0x0001));
+}
+
+TEST_F(PitDamageTableTest, ReplaceRoomIdRejectsDuplicateMembership) {
+  PitDamageTable table;
+  ASSERT_TRUE(PitDamageTable::LoadFromRom(&rom_, &table).ok());
+
+  auto status = table.ReplaceRoomId(0x0072, 0x0082);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists);
+}
+
+TEST_F(PitDamageTableTest, ReplaceRoomIdRejectsOutOfRangeMembership) {
+  PitDamageTable table;
+  ASSERT_TRUE(PitDamageTable::LoadFromRom(&rom_, &table).ok());
+
+  auto status = table.ReplaceRoomId(0x0072, 0x0128);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST_F(PitDamageTableTest, SaveRejectsDuplicateRoomIds) {
+  PitDamageTable table;
+  ASSERT_TRUE(PitDamageTable::LoadFromRom(&rom_, &table).ok());
+  auto edited = table.room_ids();
+  ASSERT_GE(edited.size(), 2u);
+  edited[1] = edited[0];
+  table.SetRoomIds(edited);
+
+  auto status = SaveAllPits(&rom_, &table);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists);
+}
+
+TEST_F(PitDamageTableTest, SaveRejectsOutOfRangeRoomIds) {
+  PitDamageTable table;
+  ASSERT_TRUE(PitDamageTable::LoadFromRom(&rom_, &table).ok());
+  auto edited = table.room_ids();
+  ASSERT_FALSE(edited.empty());
+  edited[0] = 0x0128;
+  table.SetRoomIds(edited);
+
+  auto status = SaveAllPits(&rom_, &table);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+}
+
 TEST_F(PitDamageTableTest, SaveRejectsWrongCapacityWithoutRepointing) {
   PitDamageTable table;
   ASSERT_TRUE(PitDamageTable::LoadFromRom(&rom_, &table).ok());

@@ -353,6 +353,9 @@ void DungeonEditorV2::Initialize() {
         dependencies_.user_settings->Save().IgnoreError();
       }
     });
+    workbench_panel_->SetPitDamageTableProvider([this]() {
+      return game_data_ ? &game_data_->pit_damage_table : nullptr;
+    });
     window_manager->RegisterWindowContent(std::move(workbench));
   }
 

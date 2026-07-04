@@ -21,7 +21,9 @@ class PitDamageTable {
   const std::vector<uint16_t>& room_ids() const { return room_ids_; }
   bool Contains(uint16_t room_id) const;
   void SetRoomIds(std::vector<uint16_t> room_ids);
+  absl::Status ReplaceRoomId(uint16_t old_room_id, uint16_t new_room_id);
   void MarkDirty() { dirty_ = true; }
+  void ClearDirty() { dirty_ = false; }
   bool dirty() const { return dirty_; }
 
  private:

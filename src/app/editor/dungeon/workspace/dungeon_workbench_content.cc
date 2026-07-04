@@ -7,9 +7,11 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <optional>
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
@@ -37,6 +39,8 @@
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
@@ -117,6 +121,29 @@ float GetCompactSidebarWidth(bool right_sidebar, float min_sidebar_width) {
                     : kCompactLeftSidebarMinWidth,
       min_sidebar_width * (right_sidebar ? kCompactRightSidebarScale
                                          : kCompactLeftSidebarScale));
+}
+
+std::optional<uint16_t> FirstPitDamageMember(
+    const zelda3::PitDamageTable& table) {
+  for (uint16_t room_id : table.room_ids()) {
+    if (room_id < zelda3::kNumberOfRooms) {
+      return room_id;
+    }
+  }
+  return std::nullopt;
+}
+
+std::optional<uint16_t> FirstNonPitDamageRoom(
+    const zelda3::PitDamageTable& table, uint16_t fallback) {
+  if (fallback < zelda3::kNumberOfRooms && !table.Contains(fallback)) {
+    return fallback;
+  }
+  for (uint16_t room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    if (!table.Contains(room_id)) {
+      return room_id;
+    }
+  }
+  return std::nullopt;
 }
 
 }  // namespace
@@ -1248,6 +1275,118 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
   }
 }
 
+void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
+  const auto& theme = AgentUI::GetTheme();
+  zelda3::PitDamageTable* table =
+      get_pit_damage_table_ ? get_pit_damage_table_() : nullptr;
+  if (!table) {
+    ImGui::TextDisabled(
+        "Pit damage table is unavailable until ROM data loads.");
+    return;
+  }
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+    ImGui::TextDisabled("No valid room selected.");
+    return;
+  }
+
+  const uint16_t current_room = static_cast<uint16_t>(room_id);
+  const bool room_deals_damage = table->Contains(current_room);
+  ImGui::TextColored(
+      room_deals_damage ? theme.status_warning : theme.text_secondary_gray,
+      "%s Room 0x%03X %s pit damage",
+      room_deals_damage ? ICON_MD_WARNING : ICON_MD_INFO, room_id,
+      room_deals_damage ? "deals" : "does not deal");
+  ImGui::TextWrapped(
+      "RoomsWithPitDamage is fixed-capacity in vanilla. Editing replaces one "
+      "listed room with another instead of growing or shrinking the table.");
+
+  if (table->dirty()) {
+    ImGui::TextColored(theme.status_warning,
+                       ICON_MD_EDIT " Pending pit table change");
+  }
+
+  auto show_status = [&]() {
+    if (pit_damage_status_message_.empty()) {
+      return;
+    }
+    ImGui::TextColored(
+        pit_damage_status_error_ ? theme.status_error : theme.status_success,
+        "%s %s",
+        pit_damage_status_error_ ? ICON_MD_WARNING : ICON_MD_CHECK_CIRCLE,
+        pit_damage_status_message_.c_str());
+  };
+
+  ImGui::Separator();
+  if (room_deals_damage) {
+    auto suggested_replacement =
+        FirstNonPitDamageRoom(*table, pit_damage_replacement_room_id_);
+    if (suggested_replacement.has_value() &&
+        (pit_damage_replacement_room_id_ >= zelda3::kNumberOfRooms ||
+         table->Contains(pit_damage_replacement_room_id_))) {
+      pit_damage_replacement_room_id_ = *suggested_replacement;
+    }
+
+    ImGui::TextDisabled("Remove current room by replacing it with:");
+    ImGui::SetNextItemWidth(88.0f);
+    auto edit_value = pit_damage_replacement_room_id_;
+    if (auto res = gui::InputHexWordEx("##PitDamageReplacementRoom",
+                                       &edit_value, 88.0f, true);
+        res.ShouldApply()) {
+      pit_damage_replacement_room_id_ =
+          std::min<uint16_t>(edit_value, zelda3::kNumberOfRooms - 1);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Replacement room must not already be in the table.");
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Replace current##PitDamageReplaceCurrent")) {
+      auto status =
+          table->ReplaceRoomId(current_room, pit_damage_replacement_room_id_);
+      pit_damage_status_error_ = !status.ok();
+      pit_damage_status_message_ =
+          status.ok()
+              ? absl::StrFormat("Room 0x%03X removed; slot now 0x%03X",
+                                current_room, pit_damage_replacement_room_id_)
+              : std::string(status.message());
+    }
+  } else {
+    auto suggested_victim = FirstPitDamageMember(*table);
+    if (suggested_victim.has_value() &&
+        !table->Contains(pit_damage_victim_room_id_)) {
+      pit_damage_victim_room_id_ = *suggested_victim;
+    }
+
+    ImGui::TextDisabled("Add current room by replacing listed room:");
+    ImGui::SetNextItemWidth(88.0f);
+    auto edit_value = pit_damage_victim_room_id_;
+    if (auto res = gui::InputHexWordEx("##PitDamageVictimRoom", &edit_value,
+                                       88.0f, true);
+        res.ShouldApply()) {
+      pit_damage_victim_room_id_ =
+          std::min<uint16_t>(edit_value, zelda3::kNumberOfRooms - 1);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("This room will stop dealing pit damage.");
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Add current##PitDamageAddCurrent")) {
+      auto status =
+          table->ReplaceRoomId(pit_damage_victim_room_id_, current_room);
+      pit_damage_status_error_ = !status.ok();
+      pit_damage_status_message_ =
+          status.ok()
+              ? absl::StrFormat("Room 0x%03X added; replaced 0x%03X",
+                                current_room, pit_damage_victim_room_id_)
+              : std::string(status.message());
+    }
+  }
+
+  show_status();
+  ImGui::TextDisabled(
+      "Apply Current Room / Apply Loaded Rooms writes this via "
+      "SaveAllPits when the Pits scope is enabled.");
+}
+
 void DungeonWorkbenchContent::DrawLayerCompositingControls(
     DungeonCanvasViewer& viewer, int room_id) {
   if (room_id < 0) {
@@ -1950,6 +2089,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   if (workbench::BeginInspectorSection(ICON_MD_SAVE_ALT " Apply Scope",
                                        false)) {
     DrawApplyScopeControls(room_id);
+  }
+
+  if (workbench::BeginInspectorSection(ICON_MD_WARNING " Pit Damage", false)) {
+    DrawPitDamageControls(room_id);
   }
 
   if (workbench::BeginInspectorSection(ICON_MD_LAYERS " Layer Compositing",
