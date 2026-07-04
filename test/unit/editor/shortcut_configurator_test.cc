@@ -3,9 +3,9 @@
 #include <memory>
 
 #include "app/editor/editor_manager.h"
-#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/system/shortcut_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "imgui/imgui.h"
 
@@ -89,7 +89,8 @@ TEST_F(ShortcutConfiguratorTest, RegistersWindowBrowserAndDrawerAliases) {
   EXPECT_NE(shortcuts.FindShortcut("View: Show Window Browser"), nullptr);
 }
 
-TEST_F(ShortcutConfiguratorTest, RegistersWindowCommandsAndExecutesDrawerAlias) {
+TEST_F(ShortcutConfiguratorTest,
+       RegistersWindowCommandsAndExecutesDrawerAlias) {
   ShortcutManager shortcuts = ConfigureShortcuts();
 
   const Shortcut* open_demo_window =

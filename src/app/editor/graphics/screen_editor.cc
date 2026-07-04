@@ -1129,12 +1129,19 @@ void ScreenEditor::DrawOverworldMapEditor() {
     return;
   }
 
-  // Toolbar with mode controls
-  if (ImGui::Button(ICON_MD_DRAW)) {
+  // Toolbar with mode controls. Keep this explicit: beta users confused this
+  // panel with the main Overworld Editor, but it edits the pause-menu world map
+  // art.
+  if (ImGui::Button("Paint Mode")) {
     current_mode_ = EditingMode::DRAW;
   }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Paint the pause-menu world map: choose an 8x8 tile in Tileset, then "
+        "click Map Canvas.");
+  }
   ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_SAVE)) {
+  if (ImGui::Button("Save World Map")) {
     status_ = ow_map_screen_.Save(rom());
     if (status_.ok()) {
       ImGui::OpenPopup("OWSaveSuccess");
@@ -1177,6 +1184,14 @@ void ScreenEditor::DrawOverworldMapEditor() {
 
   ImGui::SameLine();
   ImGui::Text("Selected Tile: %d", selected_ow_tile_);
+
+  ImGui::TextWrapped(
+      "This edits the pause-menu world map art, not the 160 playable "
+      "overworld areas. For area-map painting, entrances, exits, items, and "
+      "sprites, use Overworld Editor. Paint flow here: pick an 8x8 tile from "
+      "Tileset, then click Map Canvas; use Light/Dark World to choose the "
+      "target map.");
+  ImGui::Separator();
 
   // Custom map error/success popups
   if (ImGui::BeginPopup("CustomMapLoadError")) {

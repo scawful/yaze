@@ -28,7 +28,7 @@ namespace {
 // This is a copy of the function in dungeon_object_emulator_preview.cc for testing
 std::vector<uint8_t> ConvertLinear8bppToPlanar4bpp(
     const std::vector<uint8_t>& linear_data) {
-  size_t num_tiles = linear_data.size() / 64;  // 64 bytes per 8x8 tile
+  size_t num_tiles = linear_data.size() / 64;        // 64 bytes per 8x8 tile
   std::vector<uint8_t> planar_data(num_tiles * 32);  // 32 bytes per tile
 
   for (size_t tile = 0; tile < num_tiles; ++tile) {
@@ -40,7 +40,7 @@ std::vector<uint8_t> ConvertLinear8bppToPlanar4bpp(
 
       for (int col = 0; col < 8; ++col) {
         uint8_t pixel = src[row * 8 + col] & 0x0F;  // Low 4 bits only
-        int bit = 7 - col;  // MSB first
+        int bit = 7 - col;                          // MSB first
 
         bp0 |= ((pixel >> 0) & 1) << bit;
         bp1 |= ((pixel >> 1) & 1) << bit;
@@ -184,10 +184,14 @@ TEST_F(BppConversionTest, GradientTileConversion) {
   bool has_nonzero_bp3 = false;
 
   for (int row = 0; row < 8; ++row) {
-    if (result[row * 2] != 0) has_nonzero_bp0 = true;
-    if (result[row * 2 + 1] != 0) has_nonzero_bp1 = true;
-    if (result[16 + row * 2] != 0) has_nonzero_bp2 = true;
-    if (result[16 + row * 2 + 1] != 0) has_nonzero_bp3 = true;
+    if (result[row * 2] != 0)
+      has_nonzero_bp0 = true;
+    if (result[row * 2 + 1] != 0)
+      has_nonzero_bp1 = true;
+    if (result[16 + row * 2] != 0)
+      has_nonzero_bp2 = true;
+    if (result[16 + row * 2 + 1] != 0)
+      has_nonzero_bp3 = true;
   }
 
   EXPECT_TRUE(has_nonzero_bp0) << "Gradient should have non-zero bp0";
@@ -349,11 +353,13 @@ TEST_F(EmulatorObjectPreviewTest, RoomGraphicsCanBeLoaded) {
   // Count non-zero bytes
   int nonzero_count = 0;
   for (uint8_t byte : gfx_buffer) {
-    if (byte != 0) nonzero_count++;
+    if (byte != 0)
+      nonzero_count++;
   }
 
   EXPECT_GT(nonzero_count, 0) << "Graphics buffer should have non-zero data";
-  printf("[TEST] Graphics buffer: %d non-zero bytes out of 65536\n", nonzero_count);
+  printf("[TEST] Graphics buffer: %d non-zero bytes out of 65536\n",
+         nonzero_count);
 }
 
 TEST_F(EmulatorObjectPreviewTest, GraphicsConversionProducesValidData) {
@@ -369,12 +375,14 @@ TEST_F(EmulatorObjectPreviewTest, GraphicsConversionProducesValidData) {
   auto planar_data = ConvertLinear8bppToPlanar4bpp(linear_data);
 
   // Verify conversion
-  EXPECT_EQ(planar_data.size(), 32768u) << "4BPP should be half the size of 8BPP";
+  EXPECT_EQ(planar_data.size(), 32768u)
+      << "4BPP should be half the size of 8BPP";
 
   // Count non-zero bytes in converted data
   int nonzero_count = 0;
   for (uint8_t byte : planar_data) {
-    if (byte != 0) nonzero_count++;
+    if (byte != 0)
+      nonzero_count++;
   }
 
   EXPECT_GT(nonzero_count, 0) << "Converted data should have non-zero bytes";
@@ -386,15 +394,18 @@ TEST_F(EmulatorObjectPreviewTest, GraphicsConversionProducesValidData) {
 // Enabled now that we can inject save states!
 TEST_F(EmulatorObjectPreviewTest, HandlerExecutionRequiresGameState) {
   // Initialize SaveStateManager
-  auto state_manager = std::make_unique<emu::render::SaveStateManager>(snes_.get(), rom());
+  auto state_manager =
+      std::make_unique<emu::render::SaveStateManager>(snes_.get(), rom());
   state_manager->SetStateDirectory("/tmp/yaze_test_states");
-  
+
   // Load the Sanctuary state (room 0x0012) which we generated in SaveStateGenerationTest
   // This provides the necessary game state (tables, pointers, etc.)
   printf("[TEST] Loading state for room 0x0012...\n");
-  auto status = state_manager->LoadState(emu::render::StateType::kRoomLoaded, 0x0012);
+  auto status =
+      state_manager->LoadState(emu::render::StateType::kRoomLoaded, 0x0012);
   if (!status.ok()) {
-    printf("[TEST] Failed to load state: %s. Skipping test.\n", status.message().data());
+    printf("[TEST] Failed to load state: %s. Skipping test.\n",
+           status.message().data());
     return;
   }
   printf("[TEST] State loaded successfully.\n");
@@ -406,55 +417,55 @@ TEST_F(EmulatorObjectPreviewTest, HandlerExecutionRequiresGameState) {
   // We don't need full SetupCpuForHandler because LoadState sets up the CPU
   // But we do need to set PC to the handler and setup the stack for return
   auto& cpu = snes_->cpu();
-  
+
   // Keep the loaded state but override PC to our handler
   cpu.PC = handler;
-  
+
   // Setup return address at $01:8000 (RTL)
   // Note: We must be careful not to corrupt the stack from the save state
   // But for this test, we just want to see if it runs without crashing and writes to WRAM
-  
+
   // Write RTL at return address
   printf("[TEST] Writing RTL to $01:8000...\n");
-  snes_->Write(0x018000, 0x6B); 
-  
+  snes_->Write(0x018000, 0x6B);
+
   // Push return address (0x018000)
   printf("[TEST] Pushing return address to SP=$%04X...\n", cpu.SP());
   uint16_t sp = cpu.SP();
   // Stack is always in Bank 0 ($00:01xx)
-  snes_->Write(0x000000 | sp--, 0x01);      // Bank
-  snes_->Write(0x000000 | sp--, 0x80);      // High
-  snes_->Write(0x000000 | sp--, 0x00);      // Low
+  snes_->Write(0x000000 | sp--, 0x01);  // Bank
+  snes_->Write(0x000000 | sp--, 0x80);  // High
+  snes_->Write(0x000000 | sp--, 0x00);  // Low
   cpu.SetSP(sp);
 
   // Setup X/Y for the handler (data offset and tilemap pos)
   // Object 0x00 is usually simple, but let's give it valid params
-  cpu.X = 0x0000; // Data offset (dummy)
-  cpu.Y = 0x0000; // Tilemap position (top-left)
+  cpu.X = 0x0000;  // Data offset (dummy)
+  cpu.Y = 0x0000;  // Tilemap position (top-left)
 
   printf("[TEST] Starting execution at $%02X:%04X...\n", cpu.PB, cpu.PC);
 
   // Execute some opcodes
   int opcodes = 0;
-  int max_opcodes = 5000; // Increased for safety
+  int max_opcodes = 5000;  // Increased for safety
   while (opcodes < max_opcodes) {
     if (cpu.PB == 0x01 && cpu.PC == 0x8000) {
       printf("[TEST] Handler returned successfully at opcode %d\n", opcodes);
       break;
     }
-    
+
     // Trace execution
     uint32_t addr = (cpu.PB << 16) | cpu.PC;
     uint8_t opcode = snes_->Read(addr);
-    printf("[%4d] $%02X:%04X: %02X (A=$%04X X=$%04X Y=$%04X SP=$%04X)\n", 
+    printf("[%4d] $%02X:%04X: %02X (A=$%04X X=$%04X Y=$%04X SP=$%04X)\n",
            opcodes, cpu.PB, cpu.PC, opcode, cpu.A, cpu.X, cpu.Y, cpu.SP());
 
     cpu.RunOpcode();
     opcodes++;
   }
 
-  printf("[TEST] Executed %d opcodes, final PC=$%02X:%04X\n",
-         opcodes, cpu.PB, cpu.PC);
+  printf("[TEST] Executed %d opcodes, final PC=$%02X:%04X\n", opcodes, cpu.PB,
+         cpu.PC);
 
   // Check if anything was written to WRAM tilemap
   // The handler for object 0x00 should write something
@@ -554,8 +565,10 @@ TEST_F(EmulatorStateInjectionTest, ApuOutPortsReadByCpu) {
   uint8_t val0 = snes_->Read(0x002140);
   uint8_t val1 = snes_->Read(0x002141);
 
-  printf("[TEST] APU read: $2140=$%02X (expected $AA), $2141=$%02X (expected $BB)\n",
-         val0, val1);
+  printf(
+      "[TEST] APU read: $2140=$%02X (expected $AA), $2141=$%02X (expected "
+      "$BB)\n",
+      val0, val1);
 
   // These may NOT equal $AA/$BB due to CatchUpApu() running the APU
   // Document current behavior rather than asserting
@@ -575,8 +588,8 @@ TEST_F(EmulatorStateInjectionTest, HandlerTableReadWithLoRom) {
   EXPECT_EQ(handler_table_pc, 0x8200u);
 
   if (handler_table_pc + 1 < rom()->size()) {
-    uint16_t handler = rom_data[handler_table_pc] |
-                       (rom_data[handler_table_pc + 1] << 8);
+    uint16_t handler =
+        rom_data[handler_table_pc] | (rom_data[handler_table_pc + 1] << 8);
     printf("[TEST] Object 0x00 handler (from PC $%04X): $%04X\n",
            handler_table_pc, handler);
 
@@ -599,8 +612,8 @@ TEST_F(EmulatorStateInjectionTest, DataOffsetTableReadWithLoRom) {
   EXPECT_EQ(data_table_pc, 0x8000u);
 
   if (data_table_pc + 1 < rom()->size()) {
-    uint16_t data_offset = rom_data[data_table_pc] |
-                           (rom_data[data_table_pc + 1] << 8);
+    uint16_t data_offset =
+        rom_data[data_table_pc] | (rom_data[data_table_pc + 1] << 8);
     printf("[TEST] Object 0x00 data offset (from PC $%04X): $%04X\n",
            data_table_pc, data_offset);
 
@@ -616,8 +629,8 @@ TEST_F(EmulatorStateInjectionTest, TilemapPointerSetup) {
   // Setup tilemap pointers in zero page
   constexpr uint32_t kBG1TilemapBase = 0x7E2000;
   constexpr uint32_t kRowStride = 0x80;
-  constexpr uint8_t kPointerAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB,
-                                        0xCE, 0xD1, 0xD4, 0xD7, 0xDA, 0xDD};
+  constexpr uint8_t kPointerAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB, 0xCE,
+                                       0xD1, 0xD4, 0xD7, 0xDA, 0xDD};
 
   for (int i = 0; i < 11; ++i) {
     uint32_t wram_addr = kBG1TilemapBase + (i * kRowStride);
@@ -673,11 +686,14 @@ TEST_F(EmulatorStateInjectionTest, SpriteAuxPaletteLoading) {
     // At least some colors should be non-zero
     int nonzero = 0;
     for (uint16_t c : colors) {
-      if (c != 0) nonzero++;
+      if (c != 0)
+        nonzero++;
     }
-    EXPECT_GT(nonzero, 0) << "Sprite aux palette should have some non-zero colors";
+    EXPECT_GT(nonzero, 0)
+        << "Sprite aux palette should have some non-zero colors";
   } else {
-    printf("[TEST] WARNING: Sprite aux palette address $%X out of bounds\n", palette_pc);
+    printf("[TEST] WARNING: Sprite aux palette address $%X out of bounds\n",
+           palette_pc);
   }
 }
 
@@ -693,9 +709,9 @@ TEST_F(EmulatorStateInjectionTest, CpuStateSetup) {
   cpu.SetSP(0x01FF);
   cpu.status = 0x30;
   cpu.E = 0;
-  cpu.X = 0x03D8;  // Sample data offset
-  cpu.Y = 0x0820;  // Sample tilemap position
-  cpu.PC = 0x8B89; // Sample handler address
+  cpu.X = 0x03D8;   // Sample data offset
+  cpu.Y = 0x0820;   // Sample tilemap position
+  cpu.PC = 0x8B89;  // Sample handler address
 
   EXPECT_EQ(cpu.PB, 0x01);
   EXPECT_EQ(cpu.DB, 0x7E);
@@ -717,7 +733,8 @@ TEST_F(EmulatorStateInjectionTest, StpTrapSetup) {
 
   // Verify write to WRAM succeeds
   uint8_t opcode = snes_->Read(wram_trap_addr);
-  EXPECT_EQ(opcode, 0xDB) << "STP opcode should be written to WRAM trap address";
+  EXPECT_EQ(opcode, 0xDB)
+      << "STP opcode should be written to WRAM trap address";
 
   // Document the ROM write limitation
   const uint32_t rom_trap_addr = 0x01FF00;
@@ -764,9 +781,10 @@ class HandlerExecutionTraceTest : public TestRomManager::BoundRomTest {
   void TraceExecution(int num_opcodes) {
     auto& cpu = snes_->cpu();
 
-    printf("\n[TRACE] Starting execution trace from $%02X:%04X\n", cpu.PB, cpu.PC);
-    printf("        X=$%04X Y=$%04X A=$%04X SP=$%04X\n",
-           cpu.X, cpu.Y, cpu.A, cpu.SP());
+    printf("\n[TRACE] Starting execution trace from $%02X:%04X\n", cpu.PB,
+           cpu.PC);
+    printf("        X=$%04X Y=$%04X A=$%04X SP=$%04X\n", cpu.X, cpu.Y, cpu.A,
+           cpu.SP());
 
     for (int i = 0; i < num_opcodes; ++i) {
       uint32_t addr = (cpu.PB << 16) | cpu.PC;
@@ -777,8 +795,8 @@ class HandlerExecutionTraceTest : public TestRomManager::BoundRomTest {
       // Execute
       cpu.RunOpcode();
 
-      printf(" -> $%02X:%04X (A=$%04X X=$%04X Y=$%04X)\n",
-             cpu.PB, cpu.PC, cpu.A, cpu.X, cpu.Y);
+      printf(" -> $%02X:%04X (A=$%04X X=$%04X Y=$%04X)\n", cpu.PB, cpu.PC,
+             cpu.A, cpu.X, cpu.Y);
 
       // Check for STP
       if (opcode == 0xDB) {
@@ -803,15 +821,15 @@ TEST_F(HandlerExecutionTraceTest, TraceObject00Handler) {
 
   // Get handler address
   uint32_t handler_table_pc = SnesToPc(0x018200);
-  uint16_t handler = rom_data[handler_table_pc] |
-                     (rom_data[handler_table_pc + 1] << 8);
+  uint16_t handler =
+      rom_data[handler_table_pc] | (rom_data[handler_table_pc + 1] << 8);
 
   printf("[TEST] Object 0x00 handler: $%04X\n", handler);
 
   // Get data offset
   uint32_t data_table_pc = SnesToPc(0x018000);
-  uint16_t data_offset = rom_data[data_table_pc] |
-                         (rom_data[data_table_pc + 1] << 8);
+  uint16_t data_offset =
+      rom_data[data_table_pc] | (rom_data[data_table_pc + 1] << 8);
 
   printf("[TEST] Object 0x00 data offset: $%04X\n", data_offset);
 
@@ -826,8 +844,8 @@ TEST_F(HandlerExecutionTraceTest, TraceObject00Handler) {
 
   // Setup tilemap pointers
   constexpr uint32_t kBG1TilemapBase = 0x7E2000;
-  constexpr uint8_t kPointerAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB,
-                                        0xCE, 0xD1, 0xD4, 0xD7, 0xDA, 0xDD};
+  constexpr uint8_t kPointerAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB, 0xCE,
+                                       0xD1, 0xD4, 0xD7, 0xDA, 0xDD};
   for (int i = 0; i < 11; ++i) {
     uint32_t wram_addr = kBG1TilemapBase + (i * 0x80);
     snes_->Write(0x7E0000 | kPointerAddrs[i], wram_addr & 0xFF);

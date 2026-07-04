@@ -120,47 +120,47 @@ void MusicEditor::Initialize() {
 
   // Register PanelDescriptors for menu/sidebar visibility
   window_manager->RegisterPanel({.card_id = "music.song_browser",
-                                .display_name = "Song Browser",
-                                .window_title = " Song Browser",
-                                .icon = ICON_MD_LIBRARY_MUSIC,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+B",
-                                .priority = 5});
+                                 .display_name = "Song Browser",
+                                 .window_title = " Song Browser",
+                                 .icon = ICON_MD_LIBRARY_MUSIC,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+B",
+                                 .priority = 5});
   window_manager->RegisterPanel({.card_id = "music.tracker",
-                                .display_name = "Playback Control",
-                                .window_title = " Playback Control",
-                                .icon = ICON_MD_PLAY_CIRCLE,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+M",
-                                .priority = 10});
+                                 .display_name = "Playback Control",
+                                 .window_title = " Playback Control",
+                                 .icon = ICON_MD_PLAY_CIRCLE,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+M",
+                                 .priority = 10});
   window_manager->RegisterPanel({.card_id = "music.piano_roll",
-                                .display_name = "Piano Roll",
-                                .window_title = " Piano Roll",
-                                .icon = ICON_MD_PIANO,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+P",
-                                .priority = 15});
+                                 .display_name = "Piano Roll",
+                                 .window_title = " Piano Roll",
+                                 .icon = ICON_MD_PIANO,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+P",
+                                 .priority = 15});
   window_manager->RegisterPanel({.card_id = "music.instrument_editor",
-                                .display_name = "Instrument Editor",
-                                .window_title = " Instrument Editor",
-                                .icon = ICON_MD_SPEAKER,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+I",
-                                .priority = 20});
+                                 .display_name = "Instrument Editor",
+                                 .window_title = " Instrument Editor",
+                                 .icon = ICON_MD_SPEAKER,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+I",
+                                 .priority = 20});
   window_manager->RegisterPanel({.card_id = "music.sample_editor",
-                                .display_name = "Sample Editor",
-                                .window_title = " Sample Editor",
-                                .icon = ICON_MD_WAVES,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+S",
-                                .priority = 25});
+                                 .display_name = "Sample Editor",
+                                 .window_title = " Sample Editor",
+                                 .icon = ICON_MD_WAVES,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+S",
+                                 .priority = 25});
   window_manager->RegisterPanel({.card_id = "music.assembly",
-                                .display_name = "Assembly View",
-                                .window_title = " Music Assembly",
-                                .icon = ICON_MD_CODE,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+A",
-                                .priority = 30});
+                                 .display_name = "Assembly View",
+                                 .window_title = " Music Assembly",
+                                 .icon = ICON_MD_CODE,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+A",
+                                 .priority = 30});
   // ==========================================================================
   // Phase 5: Create and register WindowContent instances
   // Note: Callbacks are set up on the view classes during Draw() since
@@ -693,8 +693,7 @@ void MusicEditor::FinalizePendingUndo() {
 
   // Push the action with before/after snapshots
   undo_manager_.Push(std::make_unique<MusicSongEditAction>(
-      pending_undo_song_index_,
-      std::move(*pending_undo_before_),
+      pending_undo_song_index_, std::move(*pending_undo_before_),
       *song,  // "after" = current state
       &music_bank_));
 
@@ -841,16 +840,14 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
   if (is_playing_this_song && !is_paused_this_song) {
     auto sc = gui::GetSuccessButtonColors();
     gui::StyleColorGuard btn_guard(
-        {{ImGuiCol_Button, sc.button},
-         {ImGuiCol_ButtonHovered, sc.hovered}});
+        {{ImGuiCol_Button, sc.button}, {ImGuiCol_ButtonHovered, sc.hovered}});
     if (ImGui::Button(ICON_MD_PAUSE " Pause")) {
       music_player_->Pause();
     }
   } else if (is_paused_this_song) {
     auto wc = gui::GetWarningButtonColors();
     gui::StyleColorGuard btn_guard(
-        {{ImGuiCol_Button, wc.button},
-         {ImGuiCol_ButtonHovered, wc.hovered}});
+        {{ImGuiCol_Button, wc.button}, {ImGuiCol_ButtonHovered, wc.hovered}});
     if (ImGui::Button(ICON_MD_PLAY_ARROW " Resume")) {
       music_player_->Resume();
     }
@@ -960,8 +957,7 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
 
   if (song->modified) {
     ImGui::SameLine();
-    ImGui::TextColored(gui::GetWarningColor(),
-                       ICON_MD_EDIT " Modified");
+    ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT " Modified");
   }
 
   // Segment count
@@ -1009,8 +1005,7 @@ void MusicEditor::DrawPlaybackControl() {
     ImGui::TextDisabled("| %zu segments", song->segments.size());
     if (song->modified) {
       ImGui::SameLine();
-      ImGui::TextColored(gui::GetWarningColor(),
-                         ICON_MD_EDIT " Modified");
+      ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT " Modified");
     }
   }
 

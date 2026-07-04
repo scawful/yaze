@@ -109,18 +109,34 @@ class ScopedEnvVar {
       had_original_ = true;
       original_value_ = existing;
     }
-    setenv(name_.c_str(), value.c_str(), 1);
+    SetEnv(value);
   }
 
   ~ScopedEnvVar() {
     if (had_original_) {
-      setenv(name_.c_str(), original_value_.c_str(), 1);
+      SetEnv(original_value_);
     } else {
-      unsetenv(name_.c_str());
+      UnsetEnv();
     }
   }
 
  private:
+  void SetEnv(const std::string& value) {
+#if defined(_WIN32)
+    _putenv_s(name_.c_str(), value.c_str());
+#else
+    setenv(name_.c_str(), value.c_str(), 1);
+#endif
+  }
+
+  void UnsetEnv() {
+#if defined(_WIN32)
+    _putenv_s(name_.c_str(), "");
+#else
+    unsetenv(name_.c_str());
+#endif
+  }
+
   std::string name_;
   std::string original_value_;
   bool had_original_ = false;

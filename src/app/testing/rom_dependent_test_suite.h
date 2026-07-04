@@ -7,9 +7,9 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gui/core/icons.h"
+#include "app/testing/test_manager.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
-#include "app/testing/test_manager.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {
@@ -288,9 +288,8 @@ class RomDependentTestSuite : public TestSuite {
               loaded_sheets, sheets.size());
         } else {
           result.status = TestStatus::kFailed;
-          result.error_message =
-              "Graphics extraction failed: " +
-              std::string(load_status.message());
+          result.error_message = "Graphics extraction failed: " +
+                                 std::string(load_status.message());
         }
       } catch (const std::exception& e) {
         result.status = TestStatus::kFailed;
@@ -424,9 +423,10 @@ class RomDependentTestSuite : public TestSuite {
       // Load game data for palette access
       zelda3::GameData game_data;
       auto load_status = zelda3::LoadGameData(*rom, game_data);
-      
+
       // Verify ROM and palette data
-      if (load_status.ok() && game_data.palette_groups.overworld_main.size() > 0) {
+      if (load_status.ok() &&
+          game_data.palette_groups.overworld_main.size() > 0) {
         // Test Tile16 editor functionality with real ROM data
         editor::Tile16Editor tile16_editor(rom, nullptr);
 
@@ -441,7 +441,8 @@ class RomDependentTestSuite : public TestSuite {
 
         // Set realistic palettes
         if (game_data.palette_groups.overworld_main.size() > 0) {
-          test_blockset_bmp.SetPalette(game_data.palette_groups.overworld_main[0]);
+          test_blockset_bmp.SetPalette(
+              game_data.palette_groups.overworld_main[0]);
           test_gfx_bmp.SetPalette(game_data.palette_groups.overworld_main[0]);
         }
 
@@ -471,7 +472,8 @@ class RomDependentTestSuite : public TestSuite {
         }
       } else {
         result.status = TestStatus::kSkipped;
-        result.error_message = "ROM palette data not available or failed to load game data";
+        result.error_message =
+            "ROM palette data not available or failed to load game data";
       }
     } catch (const std::exception& e) {
       result.status = TestStatus::kFailed;

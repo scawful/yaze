@@ -1047,8 +1047,10 @@ absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms);
 absl::Status SaveAllTorches(Rom* rom, int room_count,
                             const std::function<const Room*(int)>& room_lookup);
 
-// Preserve pit count, pointer, and data (read from ROM, write back). No edit support yet.
+// Preserve pit count/pointer and table bytes, or encode an explicitly supplied
+// dirty RoomsWithPitDamage table through the overload below.
 absl::Status SaveAllPits(Rom* rom);
+absl::Status SaveAllPits(Rom* rom, const PitDamageTable* pit_damage_table);
 
 // Preserve blocks length and the four block regions (read from ROM,
 // write back). No edit support; legacy callers without per-room state

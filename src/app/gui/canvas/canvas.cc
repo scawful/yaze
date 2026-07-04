@@ -27,7 +27,17 @@ Canvas::Canvas() : renderer_(nullptr) {
   InitializeDefaults();
 }
 
-Canvas::~Canvas() = default;
+Canvas::~Canvas() {
+  // The outer ImVector never runs its elements' destructors, so each nested
+  // ImVector<std::string>'s backing array leaks when labels_ is destroyed.
+  // clear() releases that array (flagged by AddressSanitizer/LeakSanitizer
+  // otherwise). Do NOT destroy the individual std::strings: labels are copied
+  // in via ImVector::operator= (a shallow memcpy), so their internal pointers
+  // are not independently owned and destroying them would be a bad free.
+  for (auto& label_group : labels_) {
+    label_group.clear();
+  }
+}
 
 Canvas::Canvas(const std::string& id) : Canvas() {
   Init(id, ImVec2(0, 0));

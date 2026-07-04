@@ -24,19 +24,20 @@ if(EMSCRIPTEN)
     # Core Agent Service (Critical for WASM Agent API)
     cli/service/agent/conversational_agent_service.cc
     cli/service/agent/tool_dispatcher.cc
+    cli/service/agent/tool_registration.cc
     cli/service/agent/tool_registry.cc
     cli/service/agent/learned_knowledge_service.cc
     cli/service/agent/agent_pretraining.cc
     cli/service/agent/proposal_executor.cc
 
-    # Additional tools required by ToolDispatcher (and, for ProjectGraphTool,
-    # directly referenced by app/editor/code/assembly_editor.cc).
+    # Additional tools required by ToolDispatcher. ProjectGraphTool lives in
+    # yaze_cli_core because app/editor/code/assembly_editor.cc references it
+    # directly.
     cli/service/agent/tools/filesystem_tool.cc
     cli/service/agent/tools/memory_inspector_tool.cc
     cli/service/agent/tools/visual_analysis_tool.cc
     cli/service/agent/tools/code_gen_tool.cc
     cli/service/agent/tools/project_tool.cc
-    cli/service/agent/tools/project_graph_tool.cc
     cli/service/agent/tools/build_tool.cc
     cli/service/agent/tools/rom_diff_tool.cc
     cli/service/agent/tools/validation_tool.cc
@@ -107,7 +108,6 @@ set(YAZE_AGENT_CORE_SOURCES
   cli/service/agent/tools/code_gen_tool.cc
   cli/service/agent/tools/filesystem_tool.cc
   cli/service/agent/tools/memory_inspector_tool.cc
-  cli/service/agent/tools/project_graph_tool.cc
   cli/service/agent/tools/project_tool.cc
   cli/service/agent/tools/rom_diff_tool.cc
   cli/service/agent/tools/validation_tool.cc

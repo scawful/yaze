@@ -404,16 +404,23 @@ void DungeonCanvasViewer::DrawCoordinateOverlayHud(int room_id) {
     return;
   }
 
-  auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
-      ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
+  // Plain locals (not structured bindings): the DrawCanvasHUD lambda below
+  // captures these, which is ill-formed on clang<16 / gcc<8 (C++17).
+  const std::pair<int, int> tile_coords =
+      DungeonRenderingHelpers::ScreenToRoomCoordinates(
+          ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
+  const int tile_x = tile_coords.first;
+  const int tile_y = tile_coords.second;
   if (tile_x < 0 || tile_x >= 64 || tile_y < 0 || tile_y >= 64) {
     return;
   }
 
   const int canvas_x = tile_x * 8;
   const int canvas_y = tile_y * 8;
-  auto [camera_x, camera_y] =
+  const std::pair<uint16_t, uint16_t> camera_coords =
       dungeon_coords::TileToCameraCoords(room_id, tile_x, tile_y);
+  const uint16_t camera_x = camera_coords.first;
+  const uint16_t camera_y = camera_coords.second;
   const int sprite_x = canvas_x / dungeon_coords::kSpriteTileSize;
   const int sprite_y = canvas_y / dungeon_coords::kSpriteTileSize;
 

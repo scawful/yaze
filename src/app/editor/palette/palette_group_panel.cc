@@ -1,7 +1,7 @@
 #include "palette_group_panel.h"
 
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <string>
 #include <vector>
 
@@ -9,8 +9,8 @@
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
-#include "app/gfx/types/snes_palette.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
@@ -39,8 +39,8 @@ absl::StatusOr<uint16_t> ParseSnesHexToken(std::string token) {
 
   if (token[0] == '$') {
     token.erase(0, 1);
-  } else if (token.size() > 2 && (token.rfind("0x", 0) == 0 ||
-                                  token.rfind("0X", 0) == 0)) {
+  } else if (token.size() > 2 &&
+             (token.rfind("0x", 0) == 0 || token.rfind("0X", 0) == 0)) {
     token.erase(0, 2);
   }
 
@@ -81,7 +81,8 @@ absl::StatusOr<std::vector<uint16_t>> ParseClipboardColors(
   std::vector<uint16_t> colors;
   for (const auto& raw_token : absl::StrSplit(
            clipboard, absl::ByAnyChar(", \n\r\t"), absl::SkipEmpty())) {
-    const std::string token = std::string(absl::StripAsciiWhitespace(raw_token));
+    const std::string token =
+        std::string(absl::StripAsciiWhitespace(raw_token));
     if (token.empty()) {
       continue;
     }
@@ -203,10 +204,9 @@ void PaletteGroupPanel::DrawToolbar() {
     auto status = SaveToRom();
     if (!status.ok()) {
       if (toast_manager_) {
-        toast_manager_->Show(
-            absl::StrFormat("Failed to save %s: %s", display_name_,
-                            status.message()),
-            ToastType::kError);
+        toast_manager_->Show(absl::StrFormat("Failed to save %s: %s",
+                                             display_name_, status.message()),
+                             ToastType::kError);
       }
     }
   }
@@ -257,8 +257,7 @@ void PaletteGroupPanel::DrawToolbar() {
     Undo();
   }
   ImGui::EndDisabled();
-  if (!can_undo &&
-      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+  if (!can_undo && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
     ImGui::SetTooltip("Nothing to undo");
   }
 
@@ -269,8 +268,7 @@ void PaletteGroupPanel::DrawToolbar() {
     Redo();
   }
   ImGui::EndDisabled();
-  if (!can_redo &&
-      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+  if (!can_redo && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
     ImGui::SetTooltip("Nothing to redo");
   }
 
@@ -754,8 +752,7 @@ absl::Status PaletteGroupPanel::ImportFromJson(const std::string& json) {
   std::vector<PaletteImport> imports;
   for (const auto& palette_json : root["palettes"]) {
     if (!palette_json.is_object()) {
-      return absl::InvalidArgumentError(
-          "Palette entry must be a JSON object");
+      return absl::InvalidArgumentError("Palette entry must be a JSON object");
     }
 
     if (!palette_json.contains("index") ||
@@ -791,8 +788,7 @@ absl::Status PaletteGroupPanel::ImportFromJson(const std::string& json) {
     if (colors.size() != palette.size()) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "Palette %d expects %d colors but received %d", palette_index,
-          static_cast<int>(palette.size()),
-          static_cast<int>(colors.size())));
+          static_cast<int>(palette.size()), static_cast<int>(colors.size())));
     }
 
     imports.push_back({palette_index, std::move(colors)});
@@ -865,16 +861,15 @@ absl::Status PaletteGroupPanel::ImportFromClipboard() {
   if (colors.size() != palette->size()) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Clipboard contains %d colors but palette expects %d",
-        static_cast<int>(colors.size()),
-        static_cast<int>(palette->size())));
+        static_cast<int>(colors.size()), static_cast<int>(palette->size())));
   }
 
   auto& manager = gfx::PaletteManager::Get();
   manager.BeginBatch();
   for (size_t color_index = 0; color_index < colors.size(); color_index++) {
-    auto status = manager.SetColor(
-        group_name_, selected_palette_, static_cast<int>(color_index),
-        gfx::SnesColor(colors[color_index]));
+    auto status = manager.SetColor(group_name_, selected_palette_,
+                                   static_cast<int>(color_index),
+                                   gfx::SnesColor(colors[color_index]));
     if (!status.ok()) {
       manager.EndBatch();
       return status;
@@ -916,7 +911,8 @@ PaletteGroupMetadata OverworldMainPalettePanel::InitializeMetadata() {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("Overworld Main %02d", i);
-    pal.description = "BG main palette set (35 colors = 5x7, transparent slots are implicit)";
+    pal.description =
+        "BG main palette set (35 colors = 5x7, transparent slots are implicit)";
     pal.rom_address = gfx::kOverworldPaletteMain + (i * (35 * 2));
     pal.vram_address = 0;
     pal.usage_notes =
@@ -993,7 +989,8 @@ PaletteGroupMetadata OverworldAnimatedPalettePanel::InitializeMetadata() {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("OW Anim %02d", i);
-    pal.description = "Animated overlay palette (7 colors, transparent slot is implicit)";
+    pal.description =
+        "Animated overlay palette (7 colors, transparent slot is implicit)";
     pal.rom_address = gfx::kOverworldPaletteAnimated + (i * (7 * 2));
     pal.vram_address = 0;
     pal.usage_notes =
@@ -1080,7 +1077,8 @@ PaletteGroupMetadata DungeonMainPalettePanel::InitializeMetadata() {
     pal.rom_address = gfx::kDungeonMainPalettes + (i * (90 * 2));
     pal.vram_address = 0;
     pal.usage_notes =
-        "90 colors = 6 CGRAM banks x 15 colors (transparent slot per bank is implicit).";
+        "90 colors = 6 CGRAM banks x 15 colors (transparent slot per bank is "
+        "implicit).";
     metadata.palettes.push_back(pal);
   }
 
@@ -1141,8 +1139,9 @@ PaletteGroupMetadata SpritePalettePanel::InitializeMetadata() {
   PaletteGroupMetadata metadata;
   metadata.group_name = "global_sprites";
   metadata.display_name = "Global Sprite Palettes";
-  metadata.colors_per_palette = 60;  // 4 sprite banks x 15 colors (transparent is implicit)
-  metadata.colors_per_row = 15;      // Display as 4 rows of 15 to match ROM layout
+  metadata.colors_per_palette =
+      60;  // 4 sprite banks x 15 colors (transparent is implicit)
+  metadata.colors_per_row = 15;  // Display as 4 rows of 15 to match ROM layout
 
   // 2 palette sets: Light World and Dark World
   const char* sprite_names[] = {"Global Sprites (Light World)",
@@ -1153,7 +1152,8 @@ PaletteGroupMetadata SpritePalettePanel::InitializeMetadata() {
     pal.palette_id = i;
     pal.name = sprite_names[i];
     pal.description =
-        "60 colors = 4 sprite banks x 15 colors (transparent slots are implicit)";
+        "60 colors = 4 sprite banks x 15 colors (transparent slots are "
+        "implicit)";
     pal.rom_address =
         (i == 0) ? gfx::kGlobalSpritesLW : gfx::kGlobalSpritePalettesDW;
     pal.vram_address = 0;  // Palettes reside in PPU CGRAM (not VRAM)
@@ -1211,7 +1211,8 @@ void SpritePalettePanel::DrawCustomPanels() {
   SectionHeader("CGRAM Placement");
   ImGui::TextWrapped(
       "Global sprite palettes are stored in ROM as 4 banks of 15 colors "
-      "(transparent is implicit) and loaded to PPU CGRAM rows 9-12, cols 1-15.");
+      "(transparent is implicit) and loaded to PPU CGRAM rows 9-12, cols "
+      "1-15.");
   ImGui::TextDisabled("Note: Palettes live in CGRAM, not VRAM.");
 }
 
@@ -1242,7 +1243,8 @@ PaletteGroupMetadata EquipmentPalettePanel::InitializeMetadata() {
     pal.rom_address = gfx::kArmorPalettes + (i * (15 * 2));
     pal.vram_address = 0;
     pal.usage_notes =
-        "15 colors per set (transparent slot is implicit when loaded into CGRAM).";
+        "15 colors per set (transparent slot is implicit when loaded into "
+        "CGRAM).";
     metadata.palettes.push_back(pal);
   }
 
@@ -1311,11 +1313,13 @@ PaletteGroupMetadata SpritesAux1PalettePanel::InitializeMetadata() {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("Sprites Aux1 %02d", i);
-    pal.description = "Auxiliary sprite palette (7 colors, transparent is implicit)";
+    pal.description =
+        "Auxiliary sprite palette (7 colors, transparent is implicit)";
     pal.rom_address = 0xDD39E + (i * 14);  // 7 colors * 2 bytes
     pal.vram_address = 0;
     pal.usage_notes =
-        "Loaded into CGRAM with an implicit transparent slot at index 0 of the bank.";
+        "Loaded into CGRAM with an implicit transparent slot at index 0 of the "
+        "bank.";
     metadata.palettes.push_back(pal);
   }
 
@@ -1384,11 +1388,13 @@ PaletteGroupMetadata SpritesAux2PalettePanel::InitializeMetadata() {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("Sprites Aux2 %02d", i);
-    pal.description = "Auxiliary sprite palette (7 colors, transparent is implicit)";
+    pal.description =
+        "Auxiliary sprite palette (7 colors, transparent is implicit)";
     pal.rom_address = 0xDD446 + (i * 14);  // 7 colors * 2 bytes
     pal.vram_address = 0;
     pal.usage_notes =
-        "Loaded into CGRAM with an implicit transparent slot at index 0 of the bank.";
+        "Loaded into CGRAM with an implicit transparent slot at index 0 of the "
+        "bank.";
     metadata.palettes.push_back(pal);
   }
 
@@ -1457,11 +1463,13 @@ PaletteGroupMetadata SpritesAux3PalettePanel::InitializeMetadata() {
     PaletteMetadata pal;
     pal.palette_id = i;
     pal.name = absl::StrFormat("Sprites Aux3 %02d", i);
-    pal.description = "Auxiliary sprite palette (7 colors, transparent is implicit)";
+    pal.description =
+        "Auxiliary sprite palette (7 colors, transparent is implicit)";
     pal.rom_address = 0xDD4E0 + (i * 14);  // 7 colors * 2 bytes
     pal.vram_address = 0;
     pal.usage_notes =
-        "Loaded into CGRAM with an implicit transparent slot at index 0 of the bank.";
+        "Loaded into CGRAM with an implicit transparent slot at index 0 of the "
+        "bank.";
     metadata.palettes.push_back(pal);
   }
 

@@ -26,8 +26,7 @@ struct PngReadContext {
 };
 
 void PngReadCallback(png_structp png_ptr, png_bytep data, png_size_t length) {
-  PngReadContext* ctx =
-      static_cast<PngReadContext*>(png_get_io_ptr(png_ptr));
+  PngReadContext* ctx = static_cast<PngReadContext*>(png_get_io_ptr(png_ptr));
   if (ctx->offset + length > ctx->size) {
     png_error(png_ptr, "Read past end of PNG data");
     return;
@@ -41,8 +40,7 @@ struct PngWriteContext {
 };
 
 void PngWriteCallback(png_structp png_ptr, png_bytep data, png_size_t length) {
-  PngWriteContext* ctx =
-      static_cast<PngWriteContext*>(png_get_io_ptr(png_ptr));
+  PngWriteContext* ctx = static_cast<PngWriteContext*>(png_get_io_ptr(png_ptr));
   ctx->output->insert(ctx->output->end(), data, data + length);
 }
 
@@ -79,7 +77,8 @@ std::string VisualDiffResult::Format() const {
     for (const auto& region : significant_regions) {
       ss << "    - (" << region.x << ", " << region.y << ") " << region.width
          << "x" << region.height << " ("
-         << absl::StrFormat("%.1f%%", region.local_diff_pct * 100) << " diff)\n";
+         << absl::StrFormat("%.1f%%", region.local_diff_pct * 100)
+         << " diff)\n";
     }
   }
 
@@ -111,7 +110,8 @@ std::string VisualDiffResult::ToJson() const {
   ss << "  \"significant_regions\": [";
 
   for (size_t i = 0; i < significant_regions.size(); ++i) {
-    if (i > 0) ss << ", ";
+    if (i > 0)
+      ss << ", ";
     const auto& r = significant_regions[i];
     ss << "{\"x\": " << r.x << ", \"y\": " << r.y << ", \"width\": " << r.width
        << ", \"height\": " << r.height << ", \"diff_pct\": " << r.local_diff_pct
@@ -217,9 +217,9 @@ VisualDiffResult VisualDiffEngine::CompareImpl(const Screenshot& a,
     return result;
   }
   if (a.width != b.width || a.height != b.height) {
-    result.error_message = absl::StrFormat(
-        "Image dimensions don't match: %dx%d vs %dx%d", a.width, a.height,
-        b.width, b.height);
+    result.error_message =
+        absl::StrFormat("Image dimensions don't match: %dx%d vs %dx%d", a.width,
+                        a.height, b.width, b.height);
     return result;
   }
 
@@ -284,9 +284,8 @@ VisualDiffResult VisualDiffEngine::CompareImpl(const Screenshot& a,
   return result;
 }
 
-VisualDiffResult VisualDiffEngine::ComparePixelExact(const Screenshot& a,
-                                                     const Screenshot& b,
-                                                     const ScreenRegion& region) {
+VisualDiffResult VisualDiffEngine::ComparePixelExact(
+    const Screenshot& a, const Screenshot& b, const ScreenRegion& region) {
   VisualDiffResult result;
   result.width = a.width;
   result.height = a.height;
@@ -294,8 +293,10 @@ VisualDiffResult VisualDiffEngine::ComparePixelExact(const Screenshot& a,
   // Calculate comparison region
   int x1 = region.x;
   int y1 = region.y;
-  int x2 = region.IsFullScreen() ? a.width : std::min(region.x + region.width, a.width);
-  int y2 = region.IsFullScreen() ? a.height : std::min(region.y + region.height, a.height);
+  int x2 = region.IsFullScreen() ? a.width
+                                 : std::min(region.x + region.width, a.width);
+  int y2 = region.IsFullScreen() ? a.height
+                                 : std::min(region.y + region.height, a.height);
 
   int total = 0;
   int differing = 0;
@@ -311,7 +312,8 @@ VisualDiffResult VisualDiffEngine::ComparePixelExact(const Screenshot& a,
           break;
         }
       }
-      if (ignore) continue;
+      if (ignore)
+        continue;
 
       total++;
       size_t idx = a.GetPixelIndex(x, y);
@@ -327,8 +329,10 @@ VisualDiffResult VisualDiffEngine::ComparePixelExact(const Screenshot& a,
   result.total_pixels = total;
   result.differing_pixels = differing;
   result.identical = (differing == 0);
-  result.similarity = total > 0 ? 1.0f - (static_cast<float>(differing) / total) : 1.0f;
-  result.difference_pct = total > 0 ? (static_cast<float>(differing) / total) : 0.0f;
+  result.similarity =
+      total > 0 ? 1.0f - (static_cast<float>(differing) / total) : 1.0f;
+  result.difference_pct =
+      total > 0 ? (static_cast<float>(differing) / total) : 0.0f;
 
   return result;
 }
@@ -348,7 +352,8 @@ VisualDiffResult VisualDiffEngine::CompareSSIM(const Screenshot& a,
   return result;
 }
 
-float VisualDiffEngine::CalculateSSIM(const Screenshot& a, const Screenshot& b) {
+float VisualDiffEngine::CalculateSSIM(const Screenshot& a,
+                                      const Screenshot& b) {
   return CalculateRegionSSIM(a, b, ScreenRegion::FullScreen());
 }
 
@@ -360,8 +365,10 @@ float VisualDiffEngine::CalculateRegionSSIM(const Screenshot& a,
 
   int x1 = region.x;
   int y1 = region.y;
-  int x2 = region.IsFullScreen() ? a.width : std::min(region.x + region.width, a.width);
-  int y2 = region.IsFullScreen() ? a.height : std::min(region.y + region.height, a.height);
+  int x2 = region.IsFullScreen() ? a.width
+                                 : std::min(region.x + region.width, a.width);
+  int y2 = region.IsFullScreen() ? a.height
+                                 : std::min(region.y + region.height, a.height);
 
   double sum_a = 0, sum_b = 0;
   double sum_aa = 0, sum_bb = 0, sum_ab = 0;
@@ -386,7 +393,8 @@ float VisualDiffEngine::CalculateRegionSSIM(const Screenshot& a,
     }
   }
 
-  if (count == 0) return 1.0f;
+  if (count == 0)
+    return 1.0f;
 
   double mean_a = sum_a / count;
   double mean_b = sum_b / count;
@@ -455,8 +463,8 @@ std::vector<uint8_t> VisualDiffEngine::GenerateRedHighlightDiff(
   return encoded.ok() ? *encoded : std::vector<uint8_t>();
 }
 
-std::vector<uint8_t> VisualDiffEngine::GenerateHeatmapDiff(const Screenshot& a,
-                                                          const Screenshot& b) {
+std::vector<uint8_t> VisualDiffEngine::GenerateHeatmapDiff(
+    const Screenshot& a, const Screenshot& b) {
   Screenshot diff;
   diff.width = a.width;
   diff.height = a.height;
@@ -544,8 +552,9 @@ std::vector<uint8_t> VisualDiffEngine::GenerateSideBySideDiff(
   return encoded.ok() ? *encoded : std::vector<uint8_t>();
 }
 
-std::vector<VisualDiffResult::DiffRegion> VisualDiffEngine::FindSignificantRegions(
-    const Screenshot& a, const Screenshot& b, int threshold) {
+std::vector<VisualDiffResult::DiffRegion>
+VisualDiffEngine::FindSignificantRegions(const Screenshot& a,
+                                         const Screenshot& b, int threshold) {
   std::vector<VisualDiffResult::DiffRegion> regions;
 
   // Simple approach: find bounding boxes of contiguous diff regions
@@ -593,7 +602,8 @@ std::vector<VisualDiffResult::DiffRegion> VisualDiffEngine::FindSignificantRegio
 
 void VisualDiffEngine::MergeNearbyRegions(
     std::vector<VisualDiffResult::DiffRegion>& regions) {
-  if (regions.size() < 2) return;
+  if (regions.size() < 2)
+    return;
 
   // Simple merge: combine overlapping or adjacent regions
   bool merged = true;
@@ -628,7 +638,8 @@ void VisualDiffEngine::MergeNearbyRegions(
           break;
         }
       }
-      if (merged) break;
+      if (merged)
+        break;
     }
   }
 }
@@ -667,9 +678,9 @@ absl::StatusOr<Screenshot> VisualDiffEngine::DecodePng(
   }
 
   // Check PNG signature
-  if (png_sig_cmp(reinterpret_cast<png_bytep>(
-                      const_cast<uint8_t*>(png_data.data())),
-                  0, 8) != 0) {
+  if (png_sig_cmp(
+          reinterpret_cast<png_bytep>(const_cast<uint8_t*>(png_data.data())), 0,
+          8) != 0) {
     return absl::InvalidArgumentError("Invalid PNG signature");
   }
 
@@ -701,8 +712,10 @@ absl::StatusOr<Screenshot> VisualDiffEngine::DecodePng(
   png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
   // Convert to RGBA
-  if (bit_depth == 16) png_set_strip_16(png_ptr);
-  if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png_ptr);
+  if (bit_depth == 16)
+    png_set_strip_16(png_ptr);
+  if (color_type == PNG_COLOR_TYPE_PALETTE)
+    png_set_palette_to_rgb(png_ptr);
   if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
     png_set_expand_gray_1_2_4_to_8(png_ptr);
   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
@@ -768,8 +781,8 @@ absl::StatusOr<std::vector<uint8_t>> VisualDiffEngine::EncodePng(
 
   std::vector<png_bytep> row_pointers(screenshot.height);
   for (int y = 0; y < screenshot.height; ++y) {
-    row_pointers[y] =
-        const_cast<png_bytep>(screenshot.data.data() + y * screenshot.width * 4);
+    row_pointers[y] = const_cast<png_bytep>(screenshot.data.data() +
+                                            y * screenshot.width * 4);
   }
 
   png_write_image(png_ptr, row_pointers.data());

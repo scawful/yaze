@@ -323,6 +323,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/custom_object_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
+    unit/zelda3/dungeon/pit_damage_table_test.cc
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
@@ -385,6 +386,7 @@ if(YAZE_BUILD_TESTS)
     # order while passing cleanly from yaze_test_rom_dependent. Single
     # registration keeps the ROM-backed signal trustworthy.
     integration/zelda3/dungeon_room_render_parity_test.cc
+    integration/zelda3/dungeon_room_regression_fixtures_test.cc
     integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
     integration/zelda3/dungeon_staircase_slot_parity_test.cc

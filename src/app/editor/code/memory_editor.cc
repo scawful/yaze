@@ -162,13 +162,11 @@ void MemoryEditor::DrawSearchPopup() {
     ImGui::Spacing();
 
     ImGui::SetNextItemWidth(300);
-    if (ImGui::InputText("##search_pattern", search_pattern_,
-                         IM_ARRAYSIZE(search_pattern_),
-                         ImGuiInputTextFlags_EnterReturnsTrue)) {
-      // TODO: Implement search
-      ImGui::CloseCurrentPopup();
-    }
+    ImGui::InputText("##search_pattern", search_pattern_,
+                     IM_ARRAYSIZE(search_pattern_),
+                     ImGuiInputTextFlags_EnterReturnsTrue);
     ImGui::TextDisabled("Use ?? for wildcard (e.g. FF 00 ?? 12)");
+    ImGui::TextDisabled("Search is not implemented yet.");
     ImGui::Spacing();
 
     // Quick preset patterns
@@ -189,10 +187,9 @@ void MemoryEditor::DrawSearchPopup() {
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button(ICON_MD_SEARCH " Search", ImVec2(120, 0))) {
-      // TODO: Implement search using hex-search handler
-      ImGui::CloseCurrentPopup();
-    }
+    ImGui::BeginDisabled();
+    ImGui::Button(ICON_MD_SEARCH " Search", ImVec2(120, 0));
+    ImGui::EndDisabled();
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CANCEL " Cancel", ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();

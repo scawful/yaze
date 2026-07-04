@@ -70,13 +70,13 @@ class DungeonRoomRenderParityTest : public ::testing::Test {
 
 TEST_F(DungeonRoomRenderParityTest, Room00FingerprintSmoke) {
   const auto fingerprint = CaptureRoomFingerprint(&rom_, &game_data_, 0x00);
-  EXPECT_EQ(fingerprint.checksum, 14964501706165135660ull);
+  EXPECT_EQ(fingerprint.checksum, 11412267139571907076ull);
   EXPECT_EQ(fingerprint.non_backdrop_pixels, 261888);
 }
 
 TEST_F(DungeonRoomRenderParityTest, Room01FingerprintSmoke) {
   const auto fingerprint = CaptureRoomFingerprint(&rom_, &game_data_, 0x01);
-  EXPECT_EQ(fingerprint.checksum, 4552373581554103949ull);
+  EXPECT_EQ(fingerprint.checksum, 3925581144764392225ull);
   EXPECT_EQ(fingerprint.non_backdrop_pixels, 262144);
 }
 

@@ -6,6 +6,11 @@
 #include <memory>
 #include <string>
 
+// Must precede any gRPC header: neutralizes the Windows SendMessage/ERROR
+// macros (from windows.h) that otherwise clobber gRPC method names such as
+// grpc::internal::CallOpSet::SendMessage under clang-cl/MSVC.
+#include "util/grpc_win_compat.h"
+
 #include <grpcpp/grpcpp.h>
 
 #include "app/service/unified_grpc_server.h"
