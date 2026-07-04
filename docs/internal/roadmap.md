@@ -106,9 +106,11 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - 🟡 Visual parity audits continue for rare object routines; door placement now
   rejects invalid positions outside the USDASM 12-entry tables before they can
   render as clamped valid doors.
-- 🟡 The global pit-damage table still saves through protected ROM-region
-  preservation. Pushable blocks are room-aware now, but still need a deliberate
-  repointing/expansion design before exceeding the vanilla table cap.
+- 🟡 ROM-backed room render regression fixtures guard five vanilla rooms
+  (`test/integration/zelda3/dungeon_room_regression_fixtures_test.cc`).
+- 🟡 `PitDamageTable` loads/saves the global RoomsWithPitDamage membership
+  table when dirty; UI toggles remain future work.
+- 🟡 Pushable blocks do not yet repoint/expand beyond the vanilla table cap.
 - 🟡 Optional connected-room overview / scrollable grouped-room workspace
   remains exploratory; single-room editing remains the primary path
 - 🟡 ASM export (deferred)
