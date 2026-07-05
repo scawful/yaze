@@ -150,8 +150,15 @@ void Emulator::Initialize(gfx::IRenderer* renderer,
     config.format = audio::SampleFormat::INT16;
 
     if (!audio_backend_->Initialize(config)) {
-      LOG_ERROR("Emulator", "Failed to initialize audio backend");
-    } else {
+      LOG_WARN("Emulator",
+               "Failed to initialize audio backend; falling back to Null");
+      audio_backend_ = audio::AudioBackendFactory::Create(
+          audio::AudioBackendFactory::BackendType::NULL_BACKEND);
+      if (!audio_backend_->Initialize(config)) {
+        LOG_ERROR("Emulator", "Failed to initialize Null audio backend");
+      }
+    }
+    if (audio_backend_->IsInitialized()) {
       LOG_INFO("Emulator", "Audio backend initialized: %s",
                audio_backend_->GetBackendName().c_str());
       audio_stream_config_dirty_ = true;
