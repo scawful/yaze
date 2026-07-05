@@ -1,4 +1,5 @@
 #include "app/editor/menu/activity_bar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -31,7 +32,8 @@ namespace {
 constexpr const char* kSidebarDragPayload = "YAZE_SIDEBAR_CAT";
 
 void PersistSettings(UserSettings* settings) {
-  if (!settings) return;
+  if (!settings)
+    return;
   (void)settings->Save();
 }
 }  // namespace
@@ -58,7 +60,8 @@ std::vector<std::string> ActivityBar::SortCategories(
   std::unordered_set<std::string> visible_set;
   visible_set.reserve(input.size());
   for (const auto& c : input) {
-    if (hidden.count(c)) continue;
+    if (hidden.count(c))
+      continue;
     visible.push_back(c);
     visible_set.insert(c);
   }
@@ -81,21 +84,26 @@ std::vector<std::string> ActivityBar::SortCategories(
 
   if (order.empty()) {
     for (const auto& c : visible) {
-      if (pinned_visible_set.count(c)) continue;
+      if (pinned_visible_set.count(c))
+        continue;
       ordered.push_back(c);
     }
   } else {
     std::unordered_set<std::string> ordered_set;
     for (const auto& c : order) {
-      if (!visible_set.count(c)) continue;
-      if (pinned_visible_set.count(c)) continue;
+      if (!visible_set.count(c))
+        continue;
+      if (pinned_visible_set.count(c))
+        continue;
       ordered.push_back(c);
       ordered_set.insert(c);
     }
     std::unordered_set<std::string> order_set(order.begin(), order.end());
     for (const auto& c : visible) {
-      if (pinned_visible_set.count(c)) continue;
-      if (order_set.count(c)) continue;
+      if (pinned_visible_set.count(c))
+        continue;
+      if (order_set.count(c))
+        continue;
       newcomers.push_back(c);
     }
     std::sort(newcomers.begin(), newcomers.end());
@@ -135,12 +143,14 @@ void ActivityBar::Render(
 }
 
 void ActivityBar::DrawCategoryContextMenu(const std::string& category) {
-  if (!user_settings_) return;
+  if (!user_settings_)
+    return;
 
   // ImGui generates a stable popup id from the last item by default, but we
   // pass an explicit id so the popup survives ImGui::PushID changes.
   std::string popup_id = absl::StrFormat("##SidebarCtx_%s", category);
-  if (!ImGui::BeginPopupContextItem(popup_id.c_str())) return;
+  if (!ImGui::BeginPopupContextItem(popup_id.c_str()))
+    return;
 
   auto& prefs = user_settings_->prefs();
   const bool is_pinned = prefs.sidebar_pinned.count(category) > 0;
@@ -167,11 +177,11 @@ void ActivityBar::DrawCategoryContextMenu(const std::string& category) {
   }
 
   ImGui::Separator();
-  if (ImGui::MenuItem("Reset Sidebar Order")) {
+  if (ImGui::MenuItem(tr("Reset Sidebar Order"))) {
     prefs.sidebar_order.clear();
     PersistSettings(user_settings_);
   }
-  if (ImGui::MenuItem("Show All Categories")) {
+  if (ImGui::MenuItem(tr("Show All Categories"))) {
     prefs.sidebar_hidden.clear();
     PersistSettings(user_settings_);
   }
@@ -180,15 +190,16 @@ void ActivityBar::DrawCategoryContextMenu(const std::string& category) {
 }
 
 void ActivityBar::HandleReorderDragAndDrop(const std::string& category) {
-  if (!user_settings_) return;
+  if (!user_settings_)
+    return;
   auto& prefs = user_settings_->prefs();
 
   // Pinned items participate in pin grouping but not in drag-reorder — the
   // pin block's order is driven by the registry's canonical order.
   const bool is_pinned = prefs.sidebar_pinned.count(category) > 0;
 
-  if (!is_pinned && ImGui::BeginDragDropSource(
-                        ImGuiDragDropFlags_SourceAllowNullID)) {
+  if (!is_pinned &&
+      ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
     ImGui::SetDragDropPayload(kSidebarDragPayload, category.data(),
                               category.size());
     ImGui::TextUnformatted(category.c_str());
@@ -279,7 +290,8 @@ void ActivityBar::DrawActivityBarStrip(
     std::vector<std::string> filtered_input;
     filtered_input.reserve(all_categories.size());
     for (const auto& cat : all_categories) {
-      if (cat == WorkspaceWindowManager::kDashboardCategory) continue;
+      if (cat == WorkspaceWindowManager::kDashboardCategory)
+        continue;
       filtered_input.push_back(cat);
     }
 
@@ -370,9 +382,8 @@ void ActivityBar::DrawActivityBarStrip(
       }
 
       // Pinned badge — small tick in the top-left corner.
-      bool is_pinned =
-          user_settings_ &&
-          user_settings_->prefs().sidebar_pinned.count(cat) > 0;
+      bool is_pinned = user_settings_ &&
+                       user_settings_->prefs().sidebar_pinned.count(cat) > 0;
 
       // Always pass category color so inactive icons remain visible
       ImVec4 icon_color = cat_color;
@@ -430,9 +441,9 @@ void ActivityBar::DrawActivityBarStrip(
           gui::ColoredText("Open ROM required",
                            gui::ConvertColorToImVec4(theme.warning));
         } else if (has_active_editor) {
-          gui::ColoredText(is_selected ? "Active editor"
-                                       : "Editor open (click to focus)",
-                           gui::ConvertColorToImVec4(theme.success));
+          gui::ColoredText(
+              is_selected ? "Active editor" : "Editor open (click to focus)",
+              gui::ConvertColorToImVec4(theme.success));
         } else {
           gui::ColoredText("Click to view windows",
                            gui::GetTextSecondaryVec4());
@@ -474,11 +485,12 @@ void ActivityBar::DrawActivityBarStrip(
         bool enabled = !action.enabled_fn || action.enabled_fn();
         if (ImGui::MenuItem(label.c_str(), /*shortcut=*/nullptr,
                             /*selected=*/false, enabled)) {
-          if (action.on_invoke) action.on_invoke();
+          if (action.on_invoke)
+            action.on_invoke();
         }
       });
     } else {
-      ImGui::TextDisabled("No actions available");
+      ImGui::TextDisabled(tr("No actions available"));
     }
     ImGui::EndPopup();
   }

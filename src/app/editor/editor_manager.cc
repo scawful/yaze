@@ -89,6 +89,7 @@
 #include "rom/rom_diff.h"
 #include "startup_flags.h"
 #include "util/file_util.h"
+#include "util/i18n/language_manager.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "util/rom_hash.h"
@@ -1521,7 +1522,21 @@ void EditorManager::InitializeServices() {
         settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
       });
 
+  // Same decoupling for the UI language: LanguageManager (util layer) holds
+  // only a std::function; persistence stays here in the editor layer and rides
+  // the debounced-save path.
+  i18n::LanguageManager::Get().SetOnLanguageChangedCallback(
+      [this](const std::string& locale) {
+        user_settings_.prefs().language_locale = locale;
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      });
+
   auto& prefs = user_settings_.prefs();
+
+  // Restore the persisted language before the first frame draws so a non-English
+  // locale renders correctly from the start.
+  i18n::LanguageManager::Get().SetLanguage(prefs.language_locale);
   prefs.switch_motion_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
   gui::GetAnimator().SetMotionPreferences(
       prefs.reduced_motion,

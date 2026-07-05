@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/inspectors/object_editor_content.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <vector>
@@ -77,7 +78,7 @@ void ObjectEditorContent::Draw(bool* p_open) {
   gui::SectionHeader(ICON_MD_TUNE, "Object Editor", theme.text_info);
 
   if (!viewer || !object_editor_) {
-    ImGui::TextDisabled("Object editor unavailable");
+    ImGui::TextDisabled(tr("Object editor unavailable"));
     return;
   }
 
@@ -90,12 +91,12 @@ void ObjectEditorContent::Draw(bool* p_open) {
   } else if (viewer->object_interaction().HasEntitySelection()) {
     ImGui::Spacing();
     ImGui::TextDisabled(
-        "An entity is selected. Use the matching editor for entity-specific "
-        "properties.");
+        tr("An entity is selected. Use the matching editor for entity-specific "
+           "properties."));
   } else {
     ImGui::Spacing();
     ImGui::TextDisabled(
-        "Select one or more room objects to edit their properties here.");
+        tr("Select one or more room objects to edit their properties here."));
   }
 
   DrawKeyboardShortcutHelp();
@@ -114,8 +115,7 @@ void ObjectEditorContent::DrawSelectionSummary() {
 
   if (selection_count == 0) {
     ImGui::TextColored(theme.text_secondary_gray,
-                       ICON_MD_MOUSE
-                       " Click room objects to edit them here.");
+                       ICON_MD_MOUSE " Click room objects to edit them here.");
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_HELP_OUTLINE " Shortcuts")) {
       show_shortcut_help_ = true;
@@ -140,9 +140,9 @@ void ObjectEditorContent::DrawSelectionActions() {
   }
 
   ImGui::Spacing();
-  if (ImGui::BeginTable("##ObjectEditorActions", 5,
-                        ImGuiTableFlags_SizingStretchSame |
-                            ImGuiTableFlags_NoPadOuterX)) {
+  if (ImGui::BeginTable(
+          "##ObjectEditorActions", 5,
+          ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX)) {
     ImGui::TableNextRow();
 
     ImGui::TableNextColumn();
@@ -196,30 +196,30 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
     if (selected[0] < objects.size()) {
       const auto& obj = objects[selected[0]];
       const auto semantics = zelda3::GetObjectLayerSemantics(obj);
-      ImGui::TextColored(theme.status_success,
-                         ICON_MD_CHECK_CIRCLE
-                         " Selected object #%zu · 0x%03X %s",
-                         selected[0], obj.id_,
-                         zelda3::GetObjectName(obj.id_).c_str());
-      ImGui::TextColored(theme.text_secondary_gray,
-                         "Position (%d, %d)  Size 0x%02X  Layer %s  Draws %s",
-                         obj.x_, obj.y_, obj.size_,
-                         obj.layer_ == zelda3::RoomObject::BG1
-                             ? "BG1"
-                             : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                                      : "BG3",
-                         zelda3::EffectiveBgLayerLabel(
-                             semantics.effective_bg_layer));
+      ImGui::TextColored(
+          theme.status_success,
+          ICON_MD_CHECK_CIRCLE " Selected object #%zu · 0x%03X %s", selected[0],
+          obj.id_, zelda3::GetObjectName(obj.id_).c_str());
+      ImGui::TextColored(
+          theme.text_secondary_gray,
+          tr("Position (%d, %d)  Size 0x%02X  Layer %s  Draws %s"), obj.x_,
+          obj.y_, obj.size_,
+          obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
+          : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
+                                                  : "BG3",
+          zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer));
       ImGui::Spacing();
     }
     return;
   }
 
-  ImGui::TextColored(theme.status_success, ICON_MD_SELECT_ALL " %zu objects selected",
+  ImGui::TextColored(theme.status_success,
+                     ICON_MD_SELECT_ALL " %zu objects selected",
                      selected.size());
-  ImGui::TextColored(theme.text_secondary_gray,
-                     "Use Ctrl+D to duplicate, Delete to remove, or Arrow Keys "
-                     "to nudge the selection.");
+  ImGui::TextColored(
+      theme.text_secondary_gray,
+      tr("Use Ctrl+D to duplicate, Delete to remove, or Arrow Keys "
+         "to nudge the selection."));
   ImGui::Spacing();
 }
 
@@ -229,8 +229,8 @@ void ObjectEditorContent::DrawKeyboardShortcutHelp() {
   }
 
   ImGui::SetNextWindowSize(ImVec2(340, 0), ImGuiCond_Appearing);
-  if (ImGui::Begin("Keyboard Shortcuts##DungeonObjectEditor", &show_shortcut_help_,
-                   ImGuiWindowFlags_NoCollapse)) {
+  if (ImGui::Begin("Keyboard Shortcuts##DungeonObjectEditor",
+                   &show_shortcut_help_, ImGuiWindowFlags_NoCollapse)) {
     const auto& theme = AgentUI::GetTheme();
     auto shortcut_row = [&](const char* keys, const char* desc) {
       ImGui::TextColored(theme.status_warning, "%-18s", keys);

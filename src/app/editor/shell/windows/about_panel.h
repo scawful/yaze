@@ -4,6 +4,7 @@
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
+#include "util/i18n/tr.h"
 #include "yaze_config.h"
 
 namespace yaze::editor {
@@ -17,13 +18,13 @@ class AboutPanel : public WindowContent {
   WindowScope GetScope() const override { return WindowScope::kGlobal; }
 
   void Draw(bool* p_open) override {
-    ImGui::Text("Yaze - Yet Another Zelda Editor");
+    ImGui::Text(tr("Yaze - Yet Another Zelda Editor"));
     ImGui::Separator();
-    ImGui::Text("Version: %d.%d.%d", YAZE_VERSION_MAJOR, YAZE_VERSION_MINOR,
+    ImGui::Text(tr("Version: %d.%d.%d"), YAZE_VERSION_MAJOR, YAZE_VERSION_MINOR,
                 YAZE_VERSION_PATCH);
-    ImGui::Text("Architecture: Unified Panel System");
+    ImGui::Text(tr("Architecture: Unified Panel System"));
 
-    if (ImGui::Button("Close")) {
+    if (ImGui::Button(tr("Close"))) {
       if (p_open)
         *p_open = false;
     }

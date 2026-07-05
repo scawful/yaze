@@ -1,4 +1,5 @@
 #include "app/editor/system/proposal_drawer.h"
+#include "util/i18n/tr.h"
 
 #include <filesystem>
 #include <fstream>
@@ -115,11 +116,11 @@ void ProposalDrawer::Draw() {
 
   if (ImGui::BeginPopupModal("Confirm Action", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Are you sure you want to %s this proposal?",
+    ImGui::Text(tr("Are you sure you want to %s this proposal?"),
                 confirm_action_.c_str());
     ImGui::Separator();
 
-    if (ImGui::Button("Yes", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Yes"), ImVec2(120, 0))) {
       if (confirm_action_ == "accept") {
         AcceptProposal(confirm_proposal_id_);
       } else if (confirm_action_ == "reject") {
@@ -131,7 +132,7 @@ void ProposalDrawer::Draw() {
       RefreshProposals();
     }
     ImGui::SameLine();
-    if (ImGui::Button("No", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("No"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -149,20 +150,20 @@ void ProposalDrawer::Draw() {
     ImGui::TextColored(gui::GetWarningColor(),
                        ICON_MD_WARNING " Policy Override Required");
     ImGui::Separator();
-    ImGui::TextWrapped("This proposal has policy warnings.");
-    ImGui::TextWrapped("Do you want to override and accept anyway?");
+    ImGui::TextWrapped(tr("This proposal has policy warnings."));
+    ImGui::TextWrapped(tr("Do you want to override and accept anyway?"));
     ImGui::Spacing();
     ImGui::TextColored(gui::GetWarningColor(),
-                       "Note: This action will be logged.");
+                       tr("Note: This action will be logged."));
     ImGui::Separator();
 
-    if (ImGui::Button("Override and Accept", ImVec2(150, 0))) {
+    if (ImGui::Button(tr("Override and Accept"), ImVec2(150, 0))) {
       confirm_action_ = "accept";
       show_confirm_dialog_ = true;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(150, 0))) {
+    if (ImGui::Button(tr("Cancel"), ImVec2(150, 0))) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -172,8 +173,8 @@ void ProposalDrawer::Draw() {
 
 void ProposalDrawer::DrawProposalList() {
   if (proposals_.empty()) {
-    ImGui::TextWrapped("No proposals found.");
-    ImGui::TextWrapped("Run CLI command: z3ed agent run --prompt \"...\"");
+    ImGui::TextWrapped(tr("No proposals found."));
+    ImGui::TextWrapped(tr("Run CLI command: z3ed agent run --prompt \"...\""));
     return;
   }
 
@@ -202,10 +203,12 @@ void ProposalDrawer::DrawProposalList() {
       ImGui::TableSetColumnIndex(1);
       switch (proposal.status) {
         case cli::ProposalRegistry::ProposalStatus::kPending:
-          ImGui::TextColored(gui::GetWarningColor(), ICON_MD_HOURGLASS_TOP " Pending");
+          ImGui::TextColored(gui::GetWarningColor(),
+                             ICON_MD_HOURGLASS_TOP " Pending");
           break;
         case cli::ProposalRegistry::ProposalStatus::kAccepted:
-          ImGui::TextColored(gui::GetSuccessColor(), ICON_MD_CHECK_CIRCLE " Accepted");
+          ImGui::TextColored(gui::GetSuccessColor(),
+                             ICON_MD_CHECK_CIRCLE " Accepted");
           break;
         case cli::ProposalRegistry::ProposalStatus::kRejected:
           ImGui::TextColored(gui::GetErrorColor(), ICON_MD_CANCEL " Rejected");
@@ -232,22 +235,22 @@ void ProposalDrawer::DrawProposalDetail() {
   const auto& p = *selected_proposal_;
 
   // Metadata section
-  if (ImGui::CollapsingHeader("Metadata", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Text("ID: %s", p.id.c_str());
-    ImGui::Text("Sandbox: %s", p.sandbox_id.c_str());
-    ImGui::Text("Created: %s", absl::FormatTime(p.created_at).c_str());
+  if (ImGui::CollapsingHeader(tr("Metadata"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::Text(tr("ID: %s"), p.id.c_str());
+    ImGui::Text(tr("Sandbox: %s"), p.sandbox_id.c_str());
+    ImGui::Text(tr("Created: %s"), absl::FormatTime(p.created_at).c_str());
     if (p.reviewed_at.has_value()) {
-      ImGui::Text("Reviewed: %s", absl::FormatTime(*p.reviewed_at).c_str());
+      ImGui::Text(tr("Reviewed: %s"), absl::FormatTime(*p.reviewed_at).c_str());
     }
-    ImGui::Text("Commands: %d", p.commands_executed);
-    ImGui::Text("Bytes Changed: %d", p.bytes_changed);
+    ImGui::Text(tr("Commands: %d"), p.commands_executed);
+    ImGui::Text(tr("Bytes Changed: %d"), p.bytes_changed);
     ImGui::Separator();
-    ImGui::TextWrapped("Prompt: %s", p.prompt.c_str());
-    ImGui::TextWrapped("Description: %s", p.description.c_str());
+    ImGui::TextWrapped(tr("Prompt: %s"), p.prompt.c_str());
+    ImGui::TextWrapped(tr("Description: %s"), p.description.c_str());
   }
 
   // Diff section
-  if (ImGui::CollapsingHeader("Diff", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Diff"), ImGuiTreeNodeFlags_DefaultOpen)) {
     if (diff_content_.empty() && std::filesystem::exists(p.diff_path)) {
       std::ifstream diff_file(p.diff_path);
       if (diff_file.is_open()) {
@@ -263,12 +266,12 @@ void ProposalDrawer::DrawProposalDetail() {
       ImGui::TextUnformatted(diff_content_.c_str());
       ImGui::EndChild();
     } else {
-      ImGui::TextWrapped("No diff available");
+      ImGui::TextWrapped(tr("No diff available"));
     }
   }
 
   // Log section
-  if (ImGui::CollapsingHeader("Execution Log")) {
+  if (ImGui::CollapsingHeader(tr("Execution Log"))) {
     if (log_content_.empty() && std::filesystem::exists(p.log_path)) {
       std::ifstream log_file(p.log_path);
       if (log_file.is_open()) {
@@ -293,7 +296,7 @@ void ProposalDrawer::DrawProposalDetail() {
       ImGui::TextUnformatted(log_content_.c_str());
       ImGui::EndChild();
     } else {
-      ImGui::TextWrapped("No log available");
+      ImGui::TextWrapped(tr("No log available"));
     }
   }
 
@@ -312,7 +315,7 @@ void ProposalDrawer::DrawStatusFilter() {
   int current_filter = static_cast<int>(status_filter_);
 
   ImGui::SetNextItemWidth(120.0f);
-  if (ImGui::Combo("Filter", &current_filter, filter_labels, 4)) {
+  if (ImGui::Combo(tr("Filter"), &current_filter, filter_labels, 4)) {
     status_filter_ = static_cast<StatusFilter>(current_filter);
     RefreshProposals();
   }
@@ -330,7 +333,7 @@ void ProposalDrawer::DrawPolicyStatus() {
     return;
   }
 
-  if (ImGui::CollapsingHeader("Policy Status",
+  if (ImGui::CollapsingHeader(tr("Policy Status"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     auto& policy_eval = cli::PolicyEvaluator::GetInstance();
 
@@ -338,7 +341,7 @@ void ProposalDrawer::DrawPolicyStatus() {
       ImGui::TextColored(gui::GetDisabledColor(),
                          ICON_MD_INFO " No policies configured");
       ImGui::TextWrapped(
-          "Create .yaze/policies/agent.yaml to enable policy evaluation");
+          tr("Create .yaze/policies/agent.yaml to enable policy evaluation"));
       return;
     }
 
@@ -388,8 +391,7 @@ void ProposalDrawer::DrawPolicyStatus() {
 
     // Show warnings
     if (!result.warnings.empty()) {
-      ImGui::TextColored(gui::GetWarningColor(),
-                         ICON_MD_WARNING " Warnings:");
+      ImGui::TextColored(gui::GetWarningColor(), ICON_MD_WARNING " Warnings:");
       for (const auto& violation : result.warnings) {
         ImGui::Bullet();
         ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(),
@@ -406,8 +408,7 @@ void ProposalDrawer::DrawPolicyStatus() {
 
     // Show info messages
     if (!result.info.empty()) {
-      ImGui::TextColored(gui::GetInfoColor(),
-                         ICON_MD_INFO " Information:");
+      ImGui::TextColored(gui::GetInfoColor(), ICON_MD_INFO " Information:");
       for (const auto& violation : result.info) {
         ImGui::Bullet();
         ImGui::TextWrapped("%s: %s", violation.policy_name.c_str(),
@@ -465,7 +466,7 @@ void ProposalDrawer::DrawActionButtons() {
     if (!can_accept) {
       ImGui::EndDisabled();
       ImGui::SameLine();
-      ImGui::TextColored(gui::GetErrorColor(), "(Blocked by policy)");
+      ImGui::TextColored(gui::GetErrorColor(), tr("(Blocked by policy)"));
     }
 
     // Reject button (only for pending proposals)

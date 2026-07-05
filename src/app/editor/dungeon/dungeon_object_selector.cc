@@ -1,6 +1,7 @@
 // Related header
 #include "dungeon_object_selector.h"
 #include "absl/strings/str_format.h"
+#include "util/i18n/tr.h"
 
 // C system headers
 #include <cstring>
@@ -176,13 +177,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   int total_objects =
       (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
-  ImGui::TextDisabled("%d objects", total_objects);
+  ImGui::TextDisabled(tr("%d objects"), total_objects);
   ImGui::SameLine();
   ImGui::Checkbox(ICON_MD_IMAGE " Tile thumbnails", &enable_object_previews_);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Show rendered object thumbnails in the selector.\n"
-        "Requires a room to be loaded and may cost some performance.");
+        tr("Show rendered object thumbnails in the selector.\n"
+           "Requires a room to be loaded and may cost some performance."));
   }
 
   if (selected_object_id_ >= 0) {
@@ -191,8 +192,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                        zelda3::GetObjectName(selected_object_id_).c_str());
   } else {
     ImGui::TextColored(theme.text_secondary_gray,
-                       "Tip: click once to queue placement, double-click to "
-                       "inspect the draw routine.");
+                       tr("Tip: click once to queue placement, double-click to "
+                          "inspect the draw routine."));
   }
 
   // Search + category filter
@@ -392,11 +393,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                {ImGuiCol_Border, theme.panel_border_color}});
 
           if (ImGui::BeginTooltip()) {
-            ImGui::TextColored(theme.selection_primary, "Object 0x%03X",
+            ImGui::TextColored(theme.selection_primary, tr("Object 0x%03X"),
                                obj_id);
             ImGui::Text("%s", full_name.c_str());
             int subtype = zelda3::GetObjectSubtype(obj_id);
-            ImGui::TextColored(theme.text_secondary_gray, "Subtype %d",
+            ImGui::TextColored(theme.text_secondary_gray, tr("Subtype %d"),
                                subtype);
             ImGui::Separator();
 
@@ -418,7 +419,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
             if (layout_cache_.count(layout_key)) {
               const auto& layout = layout_cache_[layout_key];
-              ImGui::TextColored(theme.status_success, "Tiles: %zu",
+              ImGui::TextColored(theme.status_success, tr("Tiles: %zu"),
                                  layout.cells.size());
 
               if (can_capture_layout) {
@@ -426,11 +427,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                 zelda3::ObjectDrawer drawer(rom_, current_room_id_,
                                             room_ref.get_gfx_buffer().data());
                 int rid = drawer.GetDrawRoutineId(obj_id);
-                ImGui::TextColored(theme.status_active, "Draw Routine: %d",
+                ImGui::TextColored(theme.status_active, tr("Draw Routine: %d"),
                                    rid);
               }
 
-              ImGui::Text("Layout:");
+              ImGui::Text(tr("Layout:"));
               ImDrawList* tooltip_draw_list = ImGui::GetWindowDrawList();
               ImVec2 grid_start = ImGui::GetCursorScreenPos();
               float cell_size = 4.0f;
@@ -448,9 +449,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
             ImGui::Separator();
             ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
-                               "Click to select for placement");
+                               tr("Click to select for placement"));
             ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
-                               "Double-click to view details");
+                               tr("Double-click to view details"));
             ImGui::EndTooltip();
           }
         }
@@ -459,7 +460,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
         current_column = (current_column + 1) % columns;
       }  // end object loop
-    }  // end range loop
+    }    // end range loop
 
     EnsureCustomObjectsInitialized();
 
@@ -473,13 +474,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           ImGui::ColorConvertU32ToFloat4(IM_COL32(100, 180, 120, 255))},
          {ImGuiCol_HeaderHovered,
           ImGui::ColorConvertU32ToFloat4(IM_COL32(130, 210, 150, 255))}});
-    bool custom_open = ImGui::CollapsingHeader("Custom Objects",
+    bool custom_open = ImGui::CollapsingHeader(tr("Custom Objects"),
                                                ImGuiTreeNodeFlags_DefaultOpen);
 
     if (custom_open) {
       ImGui::TextColored(theme.text_secondary_gray,
-                         "Create, reload, and browse custom object variants "
-                         "separately from the vanilla selector.");
+                         tr("Create, reload, and browse custom object variants "
+                            "separately from the vanilla selector."));
       // "+ New Custom Object" button
       if (tile_editor_panel_) {
         if (ImGui::SmallButton(ICON_MD_ADD " New Custom Object")) {
@@ -491,7 +492,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                        create_object_id_));
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Create a new custom object from scratch");
+          ImGui::SetTooltip(tr("Create a new custom object from scratch"));
         }
       }
 
@@ -499,9 +500,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       const std::string custom_base_path = obj_manager.GetBasePath();
       if (custom_base_path.empty()) {
         ImGui::TextColored(theme.text_secondary_gray,
-                           "Custom objects folder: not configured");
+                           tr("Custom objects folder: not configured"));
       } else {
-        ImGui::Text("Custom objects folder: %s", custom_base_path.c_str());
+        ImGui::Text(tr("Custom objects folder: %s"), custom_base_path.c_str());
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s", custom_base_path.c_str());
         }
@@ -512,12 +513,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-              "Reload custom object binaries and refresh previews");
+              tr("Reload custom object binaries and refresh previews"));
         }
       }
-      ImGui::TextColored(theme.text_secondary_gray,
-                         "Corner overrides: 0x100/0x101/0x102/0x103 use 0x31 "
-                         "subtypes 02/04/03/05");
+      ImGui::TextColored(
+          theme.text_secondary_gray,
+          tr("Corner overrides: 0x100/0x101/0x102/0x103 use 0x31 "
+             "subtypes 02/04/03/05"));
 
       DrawNewCustomObjectDialog();
 
@@ -633,19 +635,19 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               const bool file_exists = has_base && !filename.empty() &&
                                        std::filesystem::exists(full_path);
 
-              ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
-                                 obj_id, subtype);
+              ImGui::TextColored(theme.selection_primary,
+                                 tr("Custom 0x%02X:%02X"), obj_id, subtype);
               ImGui::Text("%s", subtype_name.c_str());
               ImGui::Separator();
-              ImGui::Text("File: %s",
+              ImGui::Text(tr("File: %s"),
                           filename.empty() ? "(unmapped)" : filename.c_str());
               if (!has_base) {
                 ImGui::TextColored(theme.text_warning_yellow,
-                                   "Folder not configured in project");
+                                   tr("Folder not configured in project"));
               } else if (file_exists) {
-                ImGui::TextColored(theme.status_success, "File found");
+                ImGui::TextColored(theme.status_success, tr("File found"));
               } else {
-                ImGui::TextColored(theme.status_error, "File missing: %s",
+                ImGui::TextColored(theme.status_error, tr("File missing: %s"),
                                    full_path.string().c_str());
               }
 
@@ -662,7 +664,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                 }
                 ImGui::Separator();
                 ImGui::TextColored(theme.status_active,
-                                   "Also used by corner override %s",
+                                   tr("Also used by corner override %s"),
                                    corner_id);
               }
               ImGui::EndTooltip();
@@ -905,17 +907,17 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
 
   if (ImGui::BeginPopupModal("New Custom Object", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Create a new custom dungeon object");
+    ImGui::Text(tr("Create a new custom dungeon object"));
     ImGui::Separator();
 
     // Dimensions
-    ImGui::SliderInt("Width (tiles)", &create_width_, 1, 32);
-    ImGui::SliderInt("Height (tiles)", &create_height_, 1, 32);
+    ImGui::SliderInt(tr("Width (tiles)"), &create_width_, 1, 32);
+    ImGui::SliderInt(tr("Height (tiles)"), &create_height_, 1, 32);
 
     // Object group
     const char* group_labels[] = {"0x31 - Track/Custom", "0x32 - Misc"};
     int group_index = (create_object_id_ == 0x32) ? 1 : 0;
-    if (ImGui::Combo("Object Group", &group_index, group_labels,
+    if (ImGui::Combo(tr("Object Group"), &group_index, group_labels,
                      IM_ARRAYSIZE(group_labels))) {
       create_object_id_ = (group_index == 1) ? 0x32 : 0x31;
       // Regenerate filename when group changes
@@ -926,7 +928,8 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
     }
 
     // Filename
-    ImGui::InputText("Filename", create_filename_, sizeof(create_filename_));
+    ImGui::InputText(tr("Filename"), create_filename_,
+                     sizeof(create_filename_));
 
     // Validation
     bool valid = true;
@@ -962,7 +965,7 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
 
     if (!valid)
       ImGui::BeginDisabled();
-    if (ImGui::Button("Create", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Create"), ImVec2(120, 0))) {
       tile_editor_panel_->OpenForNewObject(
           create_width_, create_height_, create_filename_,
           static_cast<int16_t>(create_object_id_), current_room_id_, rooms_);
@@ -972,7 +975,7 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
       ImGui::EndDisabled();
 
     ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
 

@@ -1,4 +1,5 @@
 #include "app/editor/code/memory_editor.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
@@ -20,7 +21,7 @@ absl::Status MemoryEditor::Update() {
   ImGui::Separator();
 
   ImGui::Begin("Hex Editor", &active_);
-  if (ImGui::Button("Compare Rom")) {
+  if (ImGui::Button(tr("Compare Rom"))) {
     auto file_name = util::FileDialogWrapper::ShowOpenFileDialog();
     PRINT_IF_ERROR(comparison_rom_.LoadFromFile(file_name));
     show_compare_rom_ = true;
@@ -69,7 +70,7 @@ void MemoryEditor::DrawToolbar() {
       ImGui::OpenPopup("JumpToAddress");
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Jump to specific address");
+      ImGui::SetTooltip(tr("Jump to specific address"));
     }
 
     ImGui::SameLine();
@@ -77,7 +78,7 @@ void MemoryEditor::DrawToolbar() {
       ImGui::OpenPopup("SearchPattern");
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Search for hex pattern");
+      ImGui::SetTooltip(tr("Search for hex pattern"));
     }
 
     ImGui::SameLine();
@@ -85,7 +86,7 @@ void MemoryEditor::DrawToolbar() {
       ImGui::OpenPopup("Bookmarks");
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Manage address bookmarks");
+      ImGui::SetTooltip(tr("Manage address bookmarks"));
     }
 
     ImGui::SameLine();
@@ -94,8 +95,8 @@ void MemoryEditor::DrawToolbar() {
 
     // Show current address
     if (current_address_ != 0) {
-      ImGui::TextColored(gui::GetInfoColor(),
-                         ICON_MD_LOCATION_ON " 0x%06X", current_address_);
+      ImGui::TextColored(gui::GetInfoColor(), ICON_MD_LOCATION_ON " 0x%06X",
+                         current_address_);
     }
   }
 
@@ -127,7 +128,7 @@ void MemoryEditor::DrawJumpToAddressPopup() {
         ImGui::CloseCurrentPopup();
       }
     }
-    ImGui::TextDisabled("Format: 0x1C800 or 1C800");
+    ImGui::TextDisabled(tr("Format: 0x1C800 or 1C800"));
 
     ImGui::Spacing();
     ImGui::Separator();
@@ -164,20 +165,20 @@ void MemoryEditor::DrawSearchPopup() {
       // TODO: Implement search
       ImGui::CloseCurrentPopup();
     }
-    ImGui::TextDisabled("Use ?? for wildcard (e.g. FF 00 ?? 12)");
+    ImGui::TextDisabled(tr("Use ?? for wildcard (e.g. FF 00 ?? 12)"));
     ImGui::Spacing();
 
     // Quick preset patterns
     ImGui::Text(ICON_MD_LIST " Quick Patterns:");
-    if (ImGui::SmallButton("LDA")) {
+    if (ImGui::SmallButton(tr("LDA"))) {
       snprintf(search_pattern_, sizeof(search_pattern_), "A9 ??");
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("STA")) {
+    if (ImGui::SmallButton(tr("STA"))) {
       snprintf(search_pattern_, sizeof(search_pattern_), "8D ?? ??");
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("JSR")) {
+    if (ImGui::SmallButton(tr("JSR"))) {
       snprintf(search_pattern_, sizeof(search_pattern_), "20 ?? ??");
     }
 
@@ -246,8 +247,7 @@ void MemoryEditor::DrawBookmarksPopup() {
           }
 
           ImGui::TableNextColumn();
-          ImGui::TextColored(gui::GetInfoColor(), "0x%06X",
-                             bm.address);
+          ImGui::TextColored(gui::GetInfoColor(), tr("0x%06X"), bm.address);
 
           ImGui::TableNextColumn();
           ImGui::TextDisabled("%s", bm.description.c_str());

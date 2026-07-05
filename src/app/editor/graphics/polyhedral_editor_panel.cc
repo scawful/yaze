@@ -1,4 +1,5 @@
 #include "app/editor/graphics/polyhedral_editor_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -170,7 +171,7 @@ absl::Status PolyhedralEditorPanel::WriteShape(const PolyShape& shape) {
 void PolyhedralEditorPanel::Draw(bool* p_open) {
   // WindowContent interface - delegate to existing Update() logic
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextUnformatted("Load a ROM to edit 3D objects.");
+    ImGui::TextUnformatted(tr("Load a ROM to edit 3D objects."));
     return;
   }
 
@@ -178,23 +179,24 @@ void PolyhedralEditorPanel::Draw(bool* p_open) {
     auto status = LoadShapes();
     if (!status.ok()) {
       ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
-                         "Failed to load shapes: %s", status.message().data());
+                         tr("Failed to load shapes: %s"),
+                         status.message().data());
       return;
     }
   }
 
   gui::plotting::EnsureImPlotContext();
 
-  ImGui::Text("ALTTP polyhedral data @ $09:%04X (PC $%05X), %u bytes",
+  ImGui::Text(tr("ALTTP polyhedral data @ $09:%04X (PC $%05X), %u bytes"),
               static_cast<uint16_t>(kPolyTableSnes & 0xFFFF), TablePc(),
               kPolyRegionSize);
   ImGui::TextUnformatted(
-      "Shapes: 0 = Crystal, 1 = Triforce (IDs used by POLYSHAPE)");
+      tr("Shapes: 0 = Crystal, 1 = Triforce (IDs used by POLYSHAPE)"));
 
   // Shape selector
   if (!shapes_.empty()) {
     ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth());
-    if (ImGui::BeginCombo("Shape", shapes_[selected_shape_].name.c_str())) {
+    if (ImGui::BeginCombo(tr("Shape"), shapes_[selected_shape_].name.c_str())) {
       for (size_t i = 0; i < shapes_.size(); ++i) {
         bool selected = static_cast<int>(i) == selected_shape_;
         if (ImGui::Selectable(shapes_[i].name.c_str(), selected)) {
@@ -209,8 +211,8 @@ void PolyhedralEditorPanel::Draw(bool* p_open) {
   if (ImGui::Button(ICON_MD_REFRESH " Reload from ROM")) {
     auto status = LoadShapes();
     if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Reload failed: %s",
-                         status.message().data());
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         tr("Reload failed: %s"), status.message().data());
     }
   }
   ImGui::SameLine();
@@ -218,14 +220,14 @@ void PolyhedralEditorPanel::Draw(bool* p_open) {
   if (ImGui::Button(ICON_MD_SAVE " Save 3D objects")) {
     auto status = SaveShapes();
     if (!status.ok()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Save failed: %s",
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), tr("Save failed: %s"),
                          status.message().data());
     }
   }
   ImGui::EndDisabled();
 
   if (shapes_.empty()) {
-    ImGui::TextUnformatted("No polyhedral shapes found.");
+    ImGui::TextUnformatted(tr("No polyhedral shapes found."));
     return;
   }
 
@@ -235,7 +237,7 @@ void PolyhedralEditorPanel::Draw(bool* p_open) {
 
 absl::Status PolyhedralEditorPanel::Update() {
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextUnformatted("Load a ROM to edit 3D objects.");
+    ImGui::TextUnformatted(tr("Load a ROM to edit 3D objects."));
     return absl::OkStatus();
   }
 
@@ -245,16 +247,16 @@ absl::Status PolyhedralEditorPanel::Update() {
 
   gui::plotting::EnsureImPlotContext();
 
-  ImGui::Text("ALTTP polyhedral data @ $09:%04X (PC $%05X), %u bytes",
+  ImGui::Text(tr("ALTTP polyhedral data @ $09:%04X (PC $%05X), %u bytes"),
               static_cast<uint16_t>(kPolyTableSnes & 0xFFFF), TablePc(),
               kPolyRegionSize);
   ImGui::TextUnformatted(
-      "Shapes: 0 = Crystal, 1 = Triforce (IDs used by POLYSHAPE)");
+      tr("Shapes: 0 = Crystal, 1 = Triforce (IDs used by POLYSHAPE)"));
 
   // Shape selector
   if (!shapes_.empty()) {
     ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth());
-    if (ImGui::BeginCombo("Shape", shapes_[selected_shape_].name.c_str())) {
+    if (ImGui::BeginCombo(tr("Shape"), shapes_[selected_shape_].name.c_str())) {
       for (size_t i = 0; i < shapes_.size(); ++i) {
         bool selected = static_cast<int>(i) == selected_shape_;
         if (ImGui::Selectable(shapes_[i].name.c_str(), selected)) {
@@ -277,7 +279,7 @@ absl::Status PolyhedralEditorPanel::Update() {
   ImGui::EndDisabled();
 
   if (shapes_.empty()) {
-    ImGui::TextUnformatted("No polyhedral shapes found.");
+    ImGui::TextUnformatted(tr("No polyhedral shapes found."));
     return absl::OkStatus();
   }
 
@@ -287,10 +289,11 @@ absl::Status PolyhedralEditorPanel::Update() {
 }
 
 void PolyhedralEditorPanel::DrawShapeEditor(PolyShape& shape) {
-  ImGui::Text("Vertices: %u  Faces: %u", shape.vertex_count, shape.face_count);
-  ImGui::Text("Vertex data @ $09:%04X (PC $%05X)", shape.vertex_ptr,
+  ImGui::Text(tr("Vertices: %u  Faces: %u"), shape.vertex_count,
+              shape.face_count);
+  ImGui::Text(tr("Vertex data @ $09:%04X (PC $%05X)"), shape.vertex_ptr,
               ToPc(shape.vertex_ptr));
-  ImGui::Text("Face data   @ $09:%04X (PC $%05X)", shape.face_ptr,
+  ImGui::Text(tr("Face data   @ $09:%04X (PC $%05X)"), shape.face_ptr,
               ToPc(shape.face_ptr));
 
   ImGui::Spacing();
@@ -317,7 +320,7 @@ void PolyhedralEditorPanel::DrawShapeEditor(PolyShape& shape) {
 
 void PolyhedralEditorPanel::DrawVertexList(PolyShape& shape) {
   if (shape.vertices.empty()) {
-    ImGui::TextUnformatted("No vertices");
+    ImGui::TextUnformatted(tr("No vertices"));
     return;
   }
 
@@ -330,8 +333,7 @@ void PolyhedralEditorPanel::DrawVertexList(PolyShape& shape) {
     }
 
     ImGui::SameLine();
-    ImGui::SetNextItemWidth(
-        gui::LayoutHelpers::GetStandardInputWidth() * 1.2f);
+    ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth() * 1.2f);
     int coords[3] = {shape.vertices[i].x, shape.vertices[i].y,
                      shape.vertices[i].z};
     if (ImGui::InputInt3("##coords", coords)) {
@@ -346,32 +348,32 @@ void PolyhedralEditorPanel::DrawVertexList(PolyShape& shape) {
 
 void PolyhedralEditorPanel::DrawFaceList(PolyShape& shape) {
   if (shape.faces.empty()) {
-    ImGui::TextUnformatted("No faces");
+    ImGui::TextUnformatted(tr("No faces"));
     return;
   }
 
-  ImGui::TextUnformatted("Faces (vertex indices + shade)");
+  ImGui::TextUnformatted(tr("Faces (vertex indices + shade)"));
   for (size_t i = 0; i < shape.faces.size(); ++i) {
     ImGui::PushID(static_cast<int>(i));
-    ImGui::Text("Face %zu", i);
+    ImGui::Text(tr("Face %zu"), i);
     ImGui::SameLine();
     int shade = shape.faces[i].shade;
     ImGui::SetNextItemWidth(gui::LayoutHelpers::GetCompactInputWidth());
-    if (ImGui::InputInt("Shade##face", &shade, 0, 0)) {
+    if (ImGui::InputInt(tr("Shade##face"), &shade, 0, 0)) {
       shape.faces[i].shade = static_cast<uint8_t>(Clamp(shade, 0, 0xFF));
       dirty_ = true;
     }
 
     ImGui::SameLine();
-    ImGui::TextUnformatted("Vertices:");
+    ImGui::TextUnformatted(tr("Vertices:"));
     const int max_idx = shape.vertices.empty()
                             ? 0
                             : static_cast<int>(shape.vertices.size() - 1);
     for (size_t v = 0; v < shape.faces[i].vertex_indices.size(); ++v) {
       ImGui::SameLine();
       int idx = shape.faces[i].vertex_indices[v];
-      ImGui::SetNextItemWidth(
-          gui::LayoutHelpers::GetCompactInputWidth() * 0.75f);
+      ImGui::SetNextItemWidth(gui::LayoutHelpers::GetCompactInputWidth() *
+                              0.75f);
       if (ImGui::InputInt(absl::StrFormat("##v%zu", v).c_str(), &idx, 0, 0)) {
         idx = Clamp(idx, 0, max_idx);
         shape.faces[i].vertex_indices[v] = static_cast<uint8_t>(idx);
@@ -458,18 +460,18 @@ void PolyhedralEditorPanel::DrawPreview(PolyShape& shape) {
   static float rot_z = 0.0f;
   static float zoom = 1.0f;
 
-  ImGui::TextUnformatted("Preview (orthographic)");
+  ImGui::TextUnformatted(tr("Preview (orthographic)"));
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
-  ImGui::SliderFloat("Rot X", &rot_x, -3.14f, 3.14f, "%.2f");
+  ImGui::SliderFloat(tr("Rot X"), &rot_x, -3.14f, 3.14f, "%.2f");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
-  ImGui::SliderFloat("Rot Y", &rot_y, -3.14f, 3.14f, "%.2f");
+  ImGui::SliderFloat(tr("Rot Y"), &rot_y, -3.14f, 3.14f, "%.2f");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
-  ImGui::SliderFloat("Rot Z", &rot_z, -3.14f, 3.14f, "%.2f");
+  ImGui::SliderFloat(tr("Rot Z"), &rot_z, -3.14f, 3.14f, "%.2f");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
-  ImGui::SliderFloat("Zoom", &zoom, 0.5f, 3.0f, "%.2f");
+  ImGui::SliderFloat(tr("Zoom"), &zoom, 0.5f, 3.0f, "%.2f");
 
   // Precompute rotated vertices
   struct RotV {

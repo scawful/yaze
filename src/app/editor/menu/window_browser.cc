@@ -1,4 +1,5 @@
 #include "app/editor/menu/window_browser.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -19,8 +20,9 @@ namespace editor {
 namespace {
 
 std::string LowercaseCopy(std::string value) {
-  std::transform(value.begin(), value.end(), value.begin(),
-                 [](unsigned char c) { return static_cast<char>(::tolower(c)); });
+  std::transform(
+      value.begin(), value.end(), value.begin(),
+      [](unsigned char c) { return static_cast<char>(::tolower(c)); });
   return value;
 }
 
@@ -151,10 +153,11 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           continue;
         }
         const int visible_in_category = count_windows(category, true);
-        const std::string icon = WorkspaceWindowManager::GetCategoryIcon(category);
-        std::string label = absl::StrFormat(
-            "%s %s (%d/%d)", icon.c_str(), category.c_str(),
-            visible_in_category, category_total);
+        const std::string icon =
+            WorkspaceWindowManager::GetCategoryIcon(category);
+        std::string label =
+            absl::StrFormat("%s %s (%d/%d)", icon.c_str(), category.c_str(),
+                            visible_in_category, category_total);
         if (ImGui::Selectable(label.c_str(), category_filter_ == category)) {
           category_filter_ = category;
         }
@@ -186,7 +189,7 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           std::clamp(category_sidebar_width + ImGui::GetIO().MouseDelta.x,
                      220.0f, max_sidebar_width);
       window_manager_.SetWindowBrowserCategoryWidth(category_sidebar_width);
-      ImGui::SetTooltip("Width: %.0f px", category_sidebar_width);
+      ImGui::SetTooltip(tr("Width: %.0f px"), category_sidebar_width);
     }
 
     ImVec4 splitter_color = gui::GetOutlineVec4();
@@ -216,12 +219,11 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
                                 110);
         ImGui::TableHeadersRow();
 
-        auto windows = (category_filter_ == "All")
-                           ? all_windows
-                           : std::vector<std::string>{};
+        auto windows = (category_filter_ == "All") ? all_windows
+                                                   : std::vector<std::string>{};
         if (category_filter_ != "All") {
-          auto category_windows =
-              window_manager_.GetWindowsInCategory(session_id, category_filter_);
+          auto category_windows = window_manager_.GetWindowsInCategory(
+              session_id, category_filter_);
           windows.reserve(category_windows.size());
           for (const auto& window : category_windows) {
             windows.push_back(window.card_id);
@@ -244,15 +246,16 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           ImGui::TableNextColumn();
           if (window->visibility_flag) {
             bool visible = *window->visibility_flag;
-            if (ImGui::Checkbox(absl::StrFormat("##vis_%s", window->card_id)
-                                    .c_str(),
-                                &visible)) {
+            if (ImGui::Checkbox(
+                    absl::StrFormat("##vis_%s", window->card_id).c_str(),
+                    &visible)) {
               window_manager_.ToggleWindow(session_id, window->card_id);
             }
           }
 
           ImGui::TableNextColumn();
-          const bool is_pinned = window_manager_.IsWindowPinned(window->card_id);
+          const bool is_pinned =
+              window_manager_.IsWindowPinned(window->card_id);
           const ImVec4 pin_color =
               is_pinned ? gui::GetPrimaryVec4() : gui::GetTextDisabledVec4();
           const float pin_side =
@@ -265,7 +268,7 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
                   is_pinned ? "Unpin window" : "Pin window", is_pinned,
                   pin_color, "window_browser", window->card_id.c_str())) {
             window_manager_.SetWindowPinned(session_id, window->card_id,
-                                           !is_pinned);
+                                            !is_pinned);
           }
           ImGui::PopID();
 

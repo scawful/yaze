@@ -1,4 +1,5 @@
 #include "app/editor/shell/coordinator/ui_coordinator.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -20,6 +21,7 @@
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/layout/window_delegate.h"
 #include "app/editor/menu/right_drawer_manager.h"
+#include "app/editor/shell/coordinator/welcome_screen.h"
 #include "app/editor/system/command_palette_providers.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/project_manager.h"
@@ -27,7 +29,6 @@
 #include "app/editor/system/session_coordinator.h"
 #include "app/editor/ui/popup_manager.h"
 #include "app/editor/ui/toast_manager.h"
-#include "app/editor/shell/coordinator/welcome_screen.h"
 #include "app/gui/core/background_renderer.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -124,33 +125,34 @@ UICoordinator::UICoordinator(
         new_project_dialog_.Open(template_name);
       });
 
-  new_project_dialog_.SetCreateCallback(
-      [this](const std::string& template_name, const std::string& rom_path,
-             const std::string& project_name) {
-        if (!editor_manager_)
-          return;
-        auto status = editor_manager_->CreateNewProject(template_name);
-        if (!status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Failed to create project: %s", status.message()),
-              ToastType::kError);
-          return;
-        }
-        // Project shell is in place; now open the user's ROM. OpenRomOrProject
-        // handles both ROM and project files, and emits its own toasts on failure.
-        auto rom_status = editor_manager_->OpenRomOrProject(rom_path);
-        if (!rom_status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Project created but ROM failed to load: %s",
-                              rom_status.message()),
-              ToastType::kWarning);
-          return;
-        }
-        toast_manager_.Show(absl::StrFormat("Created project \"%s\" from %s",
-                                            project_name, template_name),
-                            ToastType::kSuccess);
-        SetStartupSurface(StartupSurface::kDashboard);
-      });
+  new_project_dialog_.SetCreateCallback([this](
+                                            const std::string& template_name,
+                                            const std::string& rom_path,
+                                            const std::string& project_name) {
+    if (!editor_manager_)
+      return;
+    auto status = editor_manager_->CreateNewProject(template_name);
+    if (!status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to create project: %s", status.message()),
+          ToastType::kError);
+      return;
+    }
+    // Project shell is in place; now open the user's ROM. OpenRomOrProject
+    // handles both ROM and project files, and emits its own toasts on failure.
+    auto rom_status = editor_manager_->OpenRomOrProject(rom_path);
+    if (!rom_status.ok()) {
+      toast_manager_.Show(
+          absl::StrFormat("Project created but ROM failed to load: %s",
+                          rom_status.message()),
+          ToastType::kWarning);
+      return;
+    }
+    toast_manager_.Show(absl::StrFormat("Created project \"%s\" from %s",
+                                        project_name, template_name),
+                        ToastType::kSuccess);
+    SetStartupSurface(StartupSurface::kDashboard);
+  });
 
   welcome_screen_->SetOpenProjectCallback([this](const std::string& filepath) {
     if (editor_manager_) {
@@ -522,7 +524,7 @@ void UICoordinator::DrawMenuBarExtras() {
     gui::ColoredText(ICON_MD_FIBER_MANUAL_RECORD,
                      gui::ConvertColorToImVec4(theme.warning));
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Unsaved changes: %s",
+      ImGui::SetTooltip(tr("Unsaved changes: %s"),
                         current_rom->short_name().c_str());
     }
     ImGui::SameLine();
@@ -590,7 +592,7 @@ void UICoordinator::DrawMenuBarRestoreButton() {
     }
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Show menu bar (Alt)");
+      ImGui::SetTooltip(tr("Show menu bar (Alt)"));
     }
   }
   ImGui::End();
@@ -645,7 +647,7 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
                        gui::GetTextSecondaryVec4());
     }
 
-    ImGui::TextDisabled("Click to open Notifications panel");
+    ImGui::TextDisabled(tr("Click to open Notifications panel"));
 
     // Show hidden status items if any
     if (!show_dirty && has_dirty_rom) {
@@ -694,7 +696,7 @@ void UICoordinator::DrawSessionButton() {
     std::string tooltip = current_rom && current_rom->is_loaded()
                               ? current_rom->short_name()
                               : "No ROM loaded";
-    ImGui::SetTooltip("%s\n%zu sessions open (Ctrl+Tab)", tooltip.c_str(),
+    ImGui::SetTooltip(tr("%s\n%zu sessions open (Ctrl+Tab)"), tooltip.c_str(),
                       session_coordinator_.GetActiveSessionCount());
   }
 
@@ -939,8 +941,8 @@ void UICoordinator::DrawWorkspacePresetDialogs() {
     ImGui::Begin("Save Workspace Preset", &show_save_workspace_preset_,
                  ImGuiWindowFlags_AlwaysAutoResize);
     static char preset_name[128] = "";
-    ImGui::InputText("Name", preset_name, IM_ARRAYSIZE(preset_name));
-    if (ImGui::Button("Save", gui::kDefaultModalSize)) {
+    ImGui::InputText(tr("Name"), preset_name, IM_ARRAYSIZE(preset_name));
+    if (ImGui::Button(tr("Save"), gui::kDefaultModalSize)) {
       if (strlen(preset_name) > 0) {
         editor_manager_->SaveWorkspacePreset(preset_name);
         toast_manager_.Show("Preset saved", editor::ToastType::kSuccess);
@@ -949,7 +951,7 @@ void UICoordinator::DrawWorkspacePresetDialogs() {
       }
     }
     ImGui::SameLine();
-    if (ImGui::Button("Cancel", gui::kDefaultModalSize)) {
+    if (ImGui::Button(tr("Cancel"), gui::kDefaultModalSize)) {
       show_save_workspace_preset_ = false;
       preset_name[0] = '\0';
     }
@@ -972,7 +974,7 @@ void UICoordinator::DrawWorkspacePresetDialogs() {
         }
       }
       if (workspace_manager->workspace_presets().empty())
-        ImGui::Text("No presets found");
+        ImGui::Text(tr("No presets found"));
     }
     ImGui::End();
   }
@@ -1236,7 +1238,7 @@ void UICoordinator::DrawCommandPalette() {
       if (BeginTabItem(absl::StrFormat("%s Recent", ICON_MD_HISTORY).c_str())) {
         auto recent = command_palette_.GetRecentCommands(10);
         if (recent.empty()) {
-          Text("No recent commands yet.");
+          Text(tr("No recent commands yet."));
         } else {
           for (const auto& entry : recent) {
             if (Selectable(entry.name.c_str())) {
@@ -1254,7 +1256,7 @@ void UICoordinator::DrawCommandPalette() {
       if (BeginTabItem(absl::StrFormat("%s Frequent", ICON_MD_STAR).c_str())) {
         auto frequent = command_palette_.GetFrequentCommands(10);
         if (frequent.empty()) {
-          Text("No frequently used commands yet.");
+          Text(tr("No frequently used commands yet."));
         } else {
           for (const auto& entry : frequent) {
             if (Selectable(absl::StrFormat("%s (%d uses)", entry.name,
@@ -1276,7 +1278,7 @@ void UICoordinator::DrawCommandPalette() {
 
     // Status bar with tips
     Separator();
-    Text("%s %zu commands | Score: fuzzy match", ICON_MD_INFO,
+    Text(tr("%s %zu commands | Score: fuzzy match"), ICON_MD_INFO,
          scored_commands.size());
     SameLine();
     gui::ColoredText("| ↑↓=Navigate | Enter=Execute | Esc=Close",
@@ -1720,7 +1722,9 @@ void UICoordinator::RefreshWorkflowActions() {
          .description = "Execute one instruction without entering subroutines",
          .shortcut = "F10",
          .priority = 20,
-         .callback = [emu_backend]() { emu_backend->StepOver(); }});
+         .callback = [emu_backend]() {
+           emu_backend->StepOver();
+         }});
     ContentRegistry::WorkflowActions::Register(
         {.id = "workflow.mesen.step_out",
          .group = "Live Debugging",
@@ -1728,7 +1732,9 @@ void UICoordinator::RefreshWorkflowActions() {
          .description = "Run until return from the current subroutine",
          .shortcut = "Shift+F11",
          .priority = 30,
-         .callback = [emu_backend]() { emu_backend->StepOut(); }});
+         .callback = [emu_backend]() {
+           emu_backend->StepOut();
+         }});
     ContentRegistry::WorkflowActions::Register(
         {.id = "workflow.mesen.overlay_on",
          .group = "Live Debugging",
@@ -1819,18 +1825,18 @@ void UICoordinator::DrawGlobalSearch() {
             ImGui::TableNextColumn();
             std::string ext = util::GetFileExtension(file);
             if (ext == "sfc" || ext == "smc") {
-              ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), "%s ROM",
+              ImGui::TextColored(ImVec4(0.2f, 0.8f, 0.2f, 1.0f), tr("%s ROM"),
                                  ICON_MD_VIDEOGAME_ASSET);
             } else if (ext == "yaze") {
-              ImGui::TextColored(ImVec4(0.2f, 0.6f, 0.8f, 1.0f), "%s Project",
-                                 ICON_MD_FOLDER);
+              ImGui::TextColored(ImVec4(0.2f, 0.6f, 0.8f, 1.0f),
+                                 tr("%s Project"), ICON_MD_FOLDER);
             } else {
-              ImGui::Text("%s File", ICON_MD_DESCRIPTION);
+              ImGui::Text(tr("%s File"), ICON_MD_DESCRIPTION);
             }
 
             ImGui::TableNextColumn();
             ImGui::PushID(file.c_str());
-            if (ImGui::Button("Open")) {
+            if (ImGui::Button(tr("Open"))) {
               auto status = editor_manager_->OpenRomOrProject(file);
               if (!status.ok()) {
                 toast_manager_.Show(
@@ -1898,7 +1904,7 @@ void UICoordinator::DrawGlobalSearch() {
       if (session_coordinator_.GetActiveSessionCount() > 1) {
         if (ImGui::BeginTabItem(
                 absl::StrFormat("%s Sessions", ICON_MD_TAB).c_str())) {
-          ImGui::Text("Search and switch between active sessions:");
+          ImGui::Text(tr("Search and switch between active sessions:"));
 
           for (size_t i = 0; i < session_coordinator_.GetTotalSessionCount();
                ++i) {
@@ -1938,7 +1944,7 @@ void UICoordinator::DrawGlobalSearch() {
 
     // Status bar
     ImGui::Separator();
-    ImGui::Text("%s Global search across all YAZE data", ICON_MD_INFO);
+    ImGui::Text(tr("%s Global search across all YAZE data"), ICON_MD_INFO);
   }
   ImGui::End();
 

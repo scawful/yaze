@@ -70,6 +70,9 @@ class UserSettings {
     // Theme (last applied theme persists across restart; empty = default)
     std::string last_theme_name;
 
+    // UI language (locale code, e.g. "en"/"fr"; matches assets/i18n/<code>.json)
+    std::string language_locale = "en";
+
     // Editor Behavior
     bool backup_before_save = true;
     int default_editor = 0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics

@@ -7,6 +7,7 @@
 #include "absl/strings/str_split.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/i18n/tr.h"
 
 #include <filesystem>
 #include <iostream>
@@ -39,8 +40,8 @@ std::string FormatHexList(const std::vector<uint16_t>& values) {
 
 std::vector<uint16_t> ParseHexList(const std::string& input) {
   std::vector<uint16_t> out;
-  for (absl::string_view token_view : absl::StrSplit(
-           input, absl::ByAnyChar(", \n\t"), absl::SkipEmpty())) {
+  for (absl::string_view token_view :
+       absl::StrSplit(input, absl::ByAnyChar(", \n\t"), absl::SkipEmpty())) {
     if (token_view.empty()) {
       continue;
     }
@@ -114,29 +115,27 @@ void MinecartTrackEditorPanel::DrawOverlaySettings() {
     return;
   }
 
-  ImGui::TextDisabled("Empty list = defaults. Use hex (0xB0) or decimal.");
+  ImGui::TextDisabled(tr("Empty list = defaults. Use hex (0xB0) or decimal."));
   ImGui::TextDisabled(
-      "Defaults: Track 0xB0-0xBE | Stop 0xB7-0xBA | Switch 0xD0-0xD3 | "
-      "Track Obj 0x31 | Cart Sprite 0xA3");
+      tr("Defaults: Track 0xB0-0xBE | Stop 0xB7-0xBA | Switch 0xD0-0xD3 | "
+         "Track Obj 0x31 | Cart Sprite 0xA3"));
 
   bool changed = false;
-  changed |= UpdateOverlayList("Track Tiles",
-                               overlay_track_tiles_input_,
+  changed |= UpdateOverlayList("Track Tiles", overlay_track_tiles_input_,
                                project_->dungeon_overlay.track_tiles);
-  changed |= UpdateOverlayList("Stop Tiles",
-                               overlay_track_stop_tiles_input_,
+  changed |= UpdateOverlayList("Stop Tiles", overlay_track_stop_tiles_input_,
                                project_->dungeon_overlay.track_stop_tiles);
-  changed |= UpdateOverlayList("Switch Tiles",
-                               overlay_track_switch_tiles_input_,
-                               project_->dungeon_overlay.track_switch_tiles);
-  changed |= UpdateOverlayList("Track Object IDs",
-                               overlay_track_object_ids_input_,
-                               project_->dungeon_overlay.track_object_ids);
+  changed |=
+      UpdateOverlayList("Switch Tiles", overlay_track_switch_tiles_input_,
+                        project_->dungeon_overlay.track_switch_tiles);
+  changed |=
+      UpdateOverlayList("Track Object IDs", overlay_track_object_ids_input_,
+                        project_->dungeon_overlay.track_object_ids);
   changed |= UpdateOverlayList("Minecart Sprite IDs",
                                overlay_minecart_sprite_ids_input_,
                                project_->dungeon_overlay.minecart_sprite_ids);
 
-  if (ImGui::Button("Reset Overlay Defaults")) {
+  if (ImGui::Button(tr("Reset Overlay Defaults"))) {
     project_->dungeon_overlay.track_tiles.clear();
     project_->dungeon_overlay.track_stop_tiles.clear();
     project_->dungeon_overlay.track_switch_tiles.clear();
@@ -152,7 +151,7 @@ void MinecartTrackEditorPanel::DrawOverlaySettings() {
   }
 
   if (changed) {
-    ImGui::TextDisabled("Remember to save the project to persist changes.");
+    ImGui::TextDisabled(tr("Remember to save the project to persist changes."));
   }
 }
 
@@ -347,7 +346,7 @@ void MinecartTrackEditorPanel::RebuildAuditCache() {
 
 void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (project_root_.empty()) {
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), "Project root not set.");
+    ImGui::TextColored(ImVec4(1, 0, 0, 1), tr("Project root not set."));
     return;
   }
 
@@ -359,7 +358,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
     RebuildAuditCache();
   }
 
-  ImGui::Text("Minecart Track Editor");
+  ImGui::Text(tr("Minecart Track Editor"));
   if (ImGui::Button(ICON_MD_SAVE " Save Tracks")) {
     SaveTracks();
   }
@@ -405,11 +404,11 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   ImGui::Separator();
 
   // Coordinate format help
-  ImGui::TextDisabled(
+  ImGui::TextDisabled(tr(
       "Camera coordinates use $1XXX format (base $1000 + room offset + local "
-      "position)");
-  ImGui::TextDisabled(
-      "Hover over dungeon canvas to see coordinates, or click 'Pick' button.");
+      "position)"));
+  ImGui::TextDisabled(tr(
+      "Hover over dungeon canvas to see coordinates, or click 'Pick' button."));
   ImGui::Separator();
 
   if (ImGui::BeginTable("TracksTable", 7,
@@ -483,8 +482,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       {
         std::optional<gui::StyleColorGuard> pick_guard;
         if (is_picking_this) {
-          pick_guard.emplace(ImGuiCol_Button,
-                             ImVec4(0.8f, 0.6f, 0.0f, 1.0f));
+          pick_guard.emplace(ImGuiCol_Button, ImVec4(0.8f, 0.6f, 0.0f, 1.0f));
         }
         if (ImGui::SmallButton(ICON_MD_MY_LOCATION)) {
           if (is_picking_this) {
@@ -509,7 +507,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         }
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Navigate to room $%04X", track.room_id);
+        ImGui::SetTooltip(tr("Navigate to room $%04X"), track.room_id);
       }
       ImGui::PopID();
 
@@ -531,21 +529,21 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         ImGui::BeginTooltip();
         if (missing_start) {
           ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
-                             "Used in rooms but still default");
+                             tr("Used in rooms but still default"));
         } else if (is_default) {
-          ImGui::Text("Default filler slot");
+          ImGui::Text(tr("Default filler slot"));
         } else if (used_in_rooms) {
-          ImGui::Text("Used in rooms");
+          ImGui::Text(tr("Used in rooms"));
         } else {
-          ImGui::Text("No usage detected");
+          ImGui::Text(tr("No usage detected"));
         }
 
         auto rooms_it = track_usage_rooms_.find(track.id);
         if (rooms_it != track_usage_rooms_.end()) {
           ImGui::Separator();
-          ImGui::Text("Rooms:");
+          ImGui::Text(tr("Rooms:"));
           for (int room_id : rooms_it->second) {
-            ImGui::BulletText("0x%03X", room_id);
+            ImGui::BulletText(tr("0x%03X"), room_id);
           }
         }
         ImGui::EndTooltip();
@@ -577,12 +575,12 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   }
 
   ImGui::Separator();
-  ImGui::Text("Usage Summary: used %d/%d, default %d, missing starts %d",
+  ImGui::Text(tr("Usage Summary: used %d/%d, default %d, missing starts %d"),
               used_count, kTrackSlotCount, default_count, missing_start_count);
 
   if (!room_audit_.empty()) {
     ImGui::Separator();
-    ImGui::Text("Rooms with track objects:");
+    ImGui::Text(tr("Rooms with track objects:"));
 
     // "Generate All" button: batch-generate collision for all rooms that have
     // rail objects but no collision data yet.
@@ -596,10 +594,10 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       }
 
       if (rooms_needing_collision > 0) {
-        if (ImGui::Button(
-                absl::StrFormat(ICON_MD_AUTO_FIX_HIGH
-                                " Generate All (%d rooms)",
-                                rooms_needing_collision).c_str())) {
+        if (ImGui::Button(absl::StrFormat(ICON_MD_AUTO_FIX_HIGH
+                                          " Generate All (%d rooms)",
+                                          rooms_needing_collision)
+                              .c_str())) {
           int generated_rooms = 0;
           int total_tiles = 0;
           bool had_error = false;
@@ -614,9 +612,9 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
             auto gen_result =
                 zelda3::GenerateTrackCollision(&target_room, opts);
             if (!gen_result.ok()) {
-              status_message_ = absl::StrFormat(
-                  "Generate failed for room 0x%03X: %s", rid,
-                  gen_result.status().message());
+              status_message_ =
+                  absl::StrFormat("Generate failed for room 0x%03X: %s", rid,
+                                  gen_result.status().message());
               show_success_ = false;
               had_error = true;
               break;
@@ -625,9 +623,9 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
             auto write_status = zelda3::WriteTrackCollision(
                 rom_, rid, gen_result->collision_map);
             if (!write_status.ok()) {
-              status_message_ = absl::StrFormat(
-                  "Write failed for room 0x%03X: %s", rid,
-                  write_status.message());
+              status_message_ =
+                  absl::StrFormat("Write failed for room 0x%03X: %s", rid,
+                                  write_status.message());
               show_success_ = false;
               had_error = true;
               break;
@@ -647,8 +645,8 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-              "Generate collision for all %d rooms with rail objects "
-              "but no collision data",
+              tr("Generate collision for all %d rooms with rail objects "
+                 "but no collision data"),
               rooms_needing_collision);
         }
       }
@@ -666,9 +664,9 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
                            ICON_MD_ERROR " Room 0x%03X (no collision)",
                            room_id);
       } else if (!audit.has_minecart_on_stop) {
-        ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
-                           ICON_MD_WARNING_AMBER " Room 0x%03X (no cart on stop)",
-                           room_id);
+        ImGui::TextColored(
+            ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+            ICON_MD_WARNING_AMBER " Room 0x%03X (no cart on stop)", room_id);
       } else {
         ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, 1.0f),
                            ICON_MD_CHECK_CIRCLE " Room 0x%03X", room_id);
@@ -682,43 +680,42 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         }
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Navigate to room 0x%03X", room_id);
+        ImGui::SetTooltip(tr("Navigate to room 0x%03X"), room_id);
       }
 
       // Generate Collision button (only if rom available and no collision yet)
       if (rom_ && rooms_ && !audit.has_track_collision) {
         ImGui::SameLine();
         if (ImGui::SmallButton(
-                absl::StrFormat(ICON_MD_AUTO_FIX_HIGH " Generate##%d",
-                                room_id).c_str())) {
+                absl::StrFormat(ICON_MD_AUTO_FIX_HIGH " Generate##%d", room_id)
+                    .c_str())) {
           auto& target_room = (*rooms_)[room_id];
           zelda3::GeneratorOptions opts;
-          auto gen_result =
-              zelda3::GenerateTrackCollision(&target_room, opts);
+          auto gen_result = zelda3::GenerateTrackCollision(&target_room, opts);
           if (gen_result.ok()) {
             auto write_status = zelda3::WriteTrackCollision(
                 rom_, room_id, gen_result->collision_map);
             if (write_status.ok()) {
               status_message_ = absl::StrFormat(
                   "Room 0x%03X: Generated %d tiles (%d stops, %d corners)",
-                  room_id, gen_result->tiles_generated,
-                  gen_result->stop_count, gen_result->corner_count);
+                  room_id, gen_result->tiles_generated, gen_result->stop_count,
+                  gen_result->corner_count);
               show_success_ = true;
               audit_dirty_ = true;
             } else {
-              status_message_ = absl::StrFormat(
-                  "Write failed: %s", write_status.message());
+              status_message_ =
+                  absl::StrFormat("Write failed: %s", write_status.message());
               show_success_ = false;
             }
           } else {
-            status_message_ = absl::StrFormat(
-                "Generate failed: %s", gen_result.status().message());
+            status_message_ = absl::StrFormat("Generate failed: %s",
+                                              gen_result.status().message());
             show_success_ = false;
           }
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(
-              "Auto-generate collision tiles from rail objects in this room");
+          ImGui::SetTooltip(tr(
+              "Auto-generate collision tiles from rail objects in this room"));
         }
       }
 

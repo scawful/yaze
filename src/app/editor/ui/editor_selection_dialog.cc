@@ -1,4 +1,5 @@
 #include "app/editor/ui/editor_selection_dialog.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -212,8 +213,7 @@ bool EditorSelectionDialog::Show(bool* p_open) {
   ImGui::SetNextWindowSize(ImVec2(target_width, target_height),
                            ImGuiCond_Appearing);
   ImGui::SetNextWindowSizeConstraints(
-      ImVec2(420.0f, 360.0f),
-      ImVec2(view_size.x * 0.98f, view_size.y * 0.95f));
+      ImVec2(420.0f, 360.0f), ImVec2(view_size.x * 0.98f, view_size.y * 0.95f));
 
   if (ImGui::Begin("Editor Selection", window_open,
                    ImGuiWindowFlags_NoCollapse)) {
@@ -236,8 +236,7 @@ bool EditorSelectionDialog::Show(bool* p_open) {
     const float scale = GetEditorSelectScale();
     const float compact_scale =
         ImGui::GetContentRegionAvail().x < 620.0f ? 0.85f : 1.0f;
-    const float min_width =
-        kEditorSelectCardBaseWidth * scale * compact_scale;
+    const float min_width = kEditorSelectCardBaseWidth * scale * compact_scale;
     const float max_width = kEditorSelectCardBaseWidth *
                             kEditorSelectCardWidthMaxFactor * scale *
                             compact_scale;
@@ -314,8 +313,8 @@ void EditorSelectionDialog::DrawWelcomeHeader() {
   ImGui::PopFont();
 
   ImGui::TextColored(text_secondary,
-                     "Choose an editor to begin working on your ROM. "
-                     "You can open multiple editors simultaneously.");
+                     tr("Choose an editor to begin working on your ROM. "
+                        "You can open multiple editors simultaneously."));
 }
 
 void EditorSelectionDialog::DrawQuickAccessButtons() {
@@ -339,9 +338,9 @@ void EditorSelectionDialog::DrawQuickAccessButtons() {
     layout.item_height = height;
     layout.spacing = spacing;
   } else {
-    layout = ComputeGridLayout(
-        avail_width, min_width, max_width, height, height, min_width,
-        height / std::max(min_width, 1.0f), spacing);
+    layout = ComputeGridLayout(avail_width, min_width, max_width, height,
+                               height, min_width,
+                               height / std::max(min_width, 1.0f), spacing);
   }
 
   int column = 0;

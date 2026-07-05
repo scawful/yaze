@@ -1,4 +1,5 @@
 #include "sprite_editor.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cerrno>
@@ -68,12 +69,13 @@ void SpriteEditor::Initialize() {
         if (rom_ && rom_->is_loaded()) {
           DrawVanillaSpriteEditor();
         } else {
-          ImGui::TextDisabled("Load a ROM to view vanilla sprites");
+          ImGui::TextDisabled(tr("Load a ROM to view vanilla sprites"));
         }
       }));
 
-  window_manager->RegisterWindowContent(std::make_unique<CustomSpriteEditorPanel>(
-      [this]() { DrawCustomSprites(); }));
+  window_manager->RegisterWindowContent(
+      std::make_unique<CustomSpriteEditorPanel>(
+          [this]() { DrawCustomSprites(); }));
 }
 
 absl::Status SpriteEditor::Load() {
@@ -239,8 +241,8 @@ void SpriteEditor::DrawSpriteCanvas() {
 
         // Show sprite info
         ImGui::SetCursorPos(ImVec2(10, 10));
-        Text("Sprite: %s (0x%02X)", layout->name, layout->sprite_id);
-        Text("Tiles: %zu", layout->tiles.size());
+        Text(tr("Sprite: %s (0x%02X)"), layout->name, layout->sprite_id);
+        Text(tr("Tiles: %zu"), layout->tiles.size());
       }
     }
 
@@ -355,10 +357,10 @@ void SpriteEditor::DrawSpritesList() {
 }
 
 void SpriteEditor::DrawAnimationFrames() {
-  if (ImGui::Button("Add Frame")) {
+  if (ImGui::Button(tr("Add Frame"))) {
     // Add a new frame
   }
-  if (ImGui::Button("Remove Frame")) {
+  if (ImGui::Button(tr("Remove Frame"))) {
     // Remove the current frame
   }
 }
@@ -430,7 +432,7 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   Separator();
 
   // Sprite list
-  Text("Loaded Sprites:");
+  Text(tr("Loaded Sprites:"));
   if (ImGui::BeginChild("SpriteList", ImVec2(0, 100), true)) {
     for (size_t i = 0; i < custom_sprites_.size(); i++) {
       std::string label = custom_sprites_[i].sprName.empty()
@@ -457,22 +459,22 @@ void SpriteEditor::DrawCustomSpritesMetadata() {
   if (current_custom_sprite_index_ >= 0 &&
       current_custom_sprite_index_ < (int)custom_sprites_.size()) {
     if (gui::BeginThemedTabBar("SpriteDataTabs")) {
-      if (ImGui::BeginTabItem("Properties")) {
+      if (ImGui::BeginTabItem(tr("Properties"))) {
         DrawSpritePropertiesPanel();
         ImGui::EndTabItem();
       }
-      if (ImGui::BeginTabItem("Animations")) {
+      if (ImGui::BeginTabItem(tr("Animations"))) {
         DrawAnimationPanel();
         ImGui::EndTabItem();
       }
-      if (ImGui::BeginTabItem("Routines")) {
+      if (ImGui::BeginTabItem(tr("Routines"))) {
         DrawUserRoutinesPanel();
         ImGui::EndTabItem();
       }
       gui::EndThemedTabBar();
     }
   } else {
-    Text("No sprite selected");
+    Text(tr("No sprite selected"));
   }
 }
 
@@ -548,12 +550,12 @@ void SpriteEditor::DrawSpritePropertiesPanel() {
   auto& sprite = custom_sprites_[current_custom_sprite_index_];
 
   // Basic info
-  Text("Sprite Info");
+  Text(tr("Sprite Info"));
   Separator();
 
   static char name_buf[256];
   CopyStringToBuffer(sprite.sprName, name_buf);
-  if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
+  if (ImGui::InputText(tr("Name"), name_buf, sizeof(name_buf))) {
     sprite.sprName = name_buf;
     sprite.property_sprname.Text = name_buf;
     MarkSpriteMutated();
@@ -561,7 +563,7 @@ void SpriteEditor::DrawSpritePropertiesPanel() {
 
   static char id_buf[32];
   CopyStringToBuffer(sprite.property_sprid.Text, id_buf);
-  if (ImGui::InputText("Sprite ID", id_buf, sizeof(id_buf))) {
+  if (ImGui::InputText(tr("Sprite ID"), id_buf, sizeof(id_buf))) {
     sprite.property_sprid.Text = id_buf;
     MarkSpriteMutated();
   }
@@ -576,41 +578,41 @@ void SpriteEditor::DrawSpritePropertiesPanel() {
 void SpriteEditor::DrawStatProperties() {
   auto& sprite = custom_sprites_[current_custom_sprite_index_];
 
-  Text("Stats");
+  Text(tr("Stats"));
 
   // Use InputInt for numeric values
   int prize = ParseIntOrDefault(sprite.property_prize.Text);
-  if (ImGui::InputInt("Prize", &prize)) {
+  if (ImGui::InputInt(tr("Prize"), &prize)) {
     sprite.property_prize.Text = std::to_string(std::clamp(prize, 0, 255));
     MarkSpriteMutated();
   }
 
   int palette = ParseIntOrDefault(sprite.property_palette.Text);
-  if (ImGui::InputInt("Palette", &palette)) {
+  if (ImGui::InputInt(tr("Palette"), &palette)) {
     sprite.property_palette.Text = std::to_string(std::clamp(palette, 0, 7));
     MarkSpriteMutated();
   }
 
   int oamnbr = ParseIntOrDefault(sprite.property_oamnbr.Text);
-  if (ImGui::InputInt("OAM Count", &oamnbr)) {
+  if (ImGui::InputInt(tr("OAM Count"), &oamnbr)) {
     sprite.property_oamnbr.Text = std::to_string(std::clamp(oamnbr, 0, 255));
     MarkSpriteMutated();
   }
 
   int hitbox = ParseIntOrDefault(sprite.property_hitbox.Text);
-  if (ImGui::InputInt("Hitbox", &hitbox)) {
+  if (ImGui::InputInt(tr("Hitbox"), &hitbox)) {
     sprite.property_hitbox.Text = std::to_string(std::clamp(hitbox, 0, 255));
     MarkSpriteMutated();
   }
 
   int health = ParseIntOrDefault(sprite.property_health.Text);
-  if (ImGui::InputInt("Health", &health)) {
+  if (ImGui::InputInt(tr("Health"), &health)) {
     sprite.property_health.Text = std::to_string(std::clamp(health, 0, 255));
     MarkSpriteMutated();
   }
 
   int damage = ParseIntOrDefault(sprite.property_damage.Text);
-  if (ImGui::InputInt("Damage", &damage)) {
+  if (ImGui::InputInt(tr("Damage"), &damage)) {
     sprite.property_damage.Text = std::to_string(std::clamp(damage, 0, 255));
     MarkSpriteMutated();
   }
@@ -619,59 +621,65 @@ void SpriteEditor::DrawStatProperties() {
 void SpriteEditor::DrawBooleanProperties() {
   auto& sprite = custom_sprites_[current_custom_sprite_index_];
 
-  Text("Behavior Flags");
+  Text(tr("Behavior Flags"));
 
   // Two columns for boolean properties
   if (ImGui::BeginTable("BoolProps", 2, ImGuiTableFlags_None)) {
     // Column 1
     ImGui::TableNextColumn();
-    if (ImGui::Checkbox("Blockable", &sprite.property_blockable.IsChecked))
+    if (ImGui::Checkbox(tr("Blockable"), &sprite.property_blockable.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Can Fall", &sprite.property_canfall.IsChecked))
+    if (ImGui::Checkbox(tr("Can Fall"), &sprite.property_canfall.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Collision Layer",
+    if (ImGui::Checkbox(tr("Collision Layer"),
                         &sprite.property_collisionlayer.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Custom Death", &sprite.property_customdeath.IsChecked))
+    if (ImGui::Checkbox(tr("Custom Death"),
+                        &sprite.property_customdeath.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Damage Sound", &sprite.property_damagesound.IsChecked))
+    if (ImGui::Checkbox(tr("Damage Sound"),
+                        &sprite.property_damagesound.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Deflect Arrows",
+    if (ImGui::Checkbox(tr("Deflect Arrows"),
                         &sprite.property_deflectarrows.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Deflect Projectiles",
+    if (ImGui::Checkbox(tr("Deflect Projectiles"),
                         &sprite.property_deflectprojectiles.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Fast", &sprite.property_fast.IsChecked))
+    if (ImGui::Checkbox(tr("Fast"), &sprite.property_fast.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Harmless", &sprite.property_harmless.IsChecked))
+    if (ImGui::Checkbox(tr("Harmless"), &sprite.property_harmless.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Impervious", &sprite.property_impervious.IsChecked))
+    if (ImGui::Checkbox(tr("Impervious"),
+                        &sprite.property_impervious.IsChecked))
       MarkSpriteMutated();
 
     // Column 2
     ImGui::TableNextColumn();
-    if (ImGui::Checkbox("Impervious Arrow",
+    if (ImGui::Checkbox(tr("Impervious Arrow"),
                         &sprite.property_imperviousarrow.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Impervious Melee",
+    if (ImGui::Checkbox(tr("Impervious Melee"),
                         &sprite.property_imperviousmelee.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Interaction", &sprite.property_interaction.IsChecked))
+    if (ImGui::Checkbox(tr("Interaction"),
+                        &sprite.property_interaction.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Is Boss", &sprite.property_isboss.IsChecked))
+    if (ImGui::Checkbox(tr("Is Boss"), &sprite.property_isboss.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Persist", &sprite.property_persist.IsChecked))
+    if (ImGui::Checkbox(tr("Persist"), &sprite.property_persist.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Shadow", &sprite.property_shadow.IsChecked))
+    if (ImGui::Checkbox(tr("Shadow"), &sprite.property_shadow.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Small Shadow", &sprite.property_smallshadow.IsChecked))
+    if (ImGui::Checkbox(tr("Small Shadow"),
+                        &sprite.property_smallshadow.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Stasis", &sprite.property_statis.IsChecked))
+    if (ImGui::Checkbox(tr("Stasis"), &sprite.property_statis.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Statue", &sprite.property_statue.IsChecked))
+    if (ImGui::Checkbox(tr("Statue"), &sprite.property_statue.IsChecked))
       MarkSpriteMutated();
-    if (ImGui::Checkbox("Water Sprite", &sprite.property_watersprite.IsChecked))
+    if (ImGui::Checkbox(tr("Water Sprite"),
+                        &sprite.property_watersprite.IsChecked))
       MarkSpriteMutated();
 
     ImGui::EndTable();
@@ -711,12 +719,13 @@ void SpriteEditor::DrawAnimationPanel() {
   }
   HOVER_HINT("Next Frame");
   ImGui::SameLine();
-  Text("Frame: %d / %d", current_frame_, (int)sprite.editor.Frames.size() - 1);
+  Text(tr("Frame: %d / %d"), current_frame_,
+       (int)sprite.editor.Frames.size() - 1);
 
   Separator();
 
   // Animation list
-  Text("Animations");
+  Text(tr("Animations"));
   if (ImGui::Button(ICON_MD_ADD " Add Animation")) {
     int frame_count = static_cast<int>(sprite.editor.Frames.size());
     sprite.animations.emplace_back(0, frame_count > 0 ? frame_count - 1 : 0, 1,
@@ -744,11 +753,11 @@ void SpriteEditor::DrawAnimationPanel() {
     auto& anim = sprite.animations[current_animation_index_];
 
     Separator();
-    Text("Animation Properties");
+    Text(tr("Animation Properties"));
 
     static char anim_name[128];
     CopyStringToBuffer(anim.frame_name, anim_name);
-    if (ImGui::InputText("Name##Anim", anim_name, sizeof(anim_name))) {
+    if (ImGui::InputText(tr("Name##Anim"), anim_name, sizeof(anim_name))) {
       anim.frame_name = anim_name;
       MarkSpriteMutated();
     }
@@ -757,22 +766,22 @@ void SpriteEditor::DrawAnimationPanel() {
     int end = anim.frame_end;
     int speed = anim.frame_speed;
 
-    if (ImGui::SliderInt("Start Frame", &start, 0,
+    if (ImGui::SliderInt(tr("Start Frame"), &start, 0,
                          std::max(0, (int)sprite.editor.Frames.size() - 1))) {
       anim.frame_start = static_cast<uint8_t>(start);
       MarkSpriteMutated();
     }
-    if (ImGui::SliderInt("End Frame", &end, 0,
+    if (ImGui::SliderInt(tr("End Frame"), &end, 0,
                          std::max(0, (int)sprite.editor.Frames.size() - 1))) {
       anim.frame_end = static_cast<uint8_t>(end);
       MarkSpriteMutated();
     }
-    if (ImGui::SliderInt("Speed", &speed, 1, 16)) {
+    if (ImGui::SliderInt(tr("Speed"), &speed, 1, 16)) {
       anim.frame_speed = static_cast<uint8_t>(speed);
       MarkSpriteMutated();
     }
 
-    if (ImGui::Button("Delete Animation") && sprite.animations.size() > 1) {
+    if (ImGui::Button(tr("Delete Animation")) && sprite.animations.size() > 1) {
       sprite.animations.erase(sprite.animations.begin() +
                               current_animation_index_);
       current_animation_index_ =
@@ -789,7 +798,7 @@ void SpriteEditor::DrawAnimationPanel() {
 void SpriteEditor::DrawFrameEditor() {
   auto& sprite = custom_sprites_[current_custom_sprite_index_];
 
-  Text("Frames");
+  Text(tr("Frames"));
   if (ImGui::Button(ICON_MD_ADD " Add Frame")) {
     sprite.editor.Frames.emplace_back();
     MarkSpriteMutated();
@@ -829,7 +838,7 @@ void SpriteEditor::DrawFrameEditor() {
     auto& frame = sprite.editor.Frames[current_frame_];
 
     Separator();
-    Text("Tiles in Frame %d", current_frame_);
+    Text(tr("Tiles in Frame %d"), current_frame_);
 
     if (ImGui::Button(ICON_MD_ADD " Add Tile")) {
       frame.Tiles.emplace_back();
@@ -855,47 +864,47 @@ void SpriteEditor::DrawFrameEditor() {
       auto& tile = frame.Tiles[selected_tile_index_];
 
       int tile_id = tile.id;
-      if (ImGui::InputInt("Tile ID", &tile_id)) {
+      if (ImGui::InputInt(tr("Tile ID"), &tile_id)) {
         tile.id = static_cast<uint16_t>(std::clamp(tile_id, 0, 511));
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
 
       int x = tile.x, y = tile.y;
-      if (ImGui::InputInt("X", &x)) {
+      if (ImGui::InputInt(tr("X"), &x)) {
         tile.x = static_cast<uint8_t>(std::clamp(x, 0, 251));
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
-      if (ImGui::InputInt("Y", &y)) {
+      if (ImGui::InputInt(tr("Y"), &y)) {
         tile.y = static_cast<uint8_t>(std::clamp(y, 0, 219));
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
 
       int pal = tile.palette;
-      if (ImGui::SliderInt("Palette##Tile", &pal, 0, 7)) {
+      if (ImGui::SliderInt(tr("Palette##Tile"), &pal, 0, 7)) {
         tile.palette = static_cast<uint8_t>(pal);
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
 
-      if (ImGui::Checkbox("16x16", &tile.size)) {
+      if (ImGui::Checkbox(tr("16x16"), &tile.size)) {
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
       ImGui::SameLine();
-      if (ImGui::Checkbox("Flip X", &tile.mirror_x)) {
+      if (ImGui::Checkbox(tr("Flip X"), &tile.mirror_x)) {
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
       ImGui::SameLine();
-      if (ImGui::Checkbox("Flip Y", &tile.mirror_y)) {
+      if (ImGui::Checkbox(tr("Flip Y"), &tile.mirror_y)) {
         MarkSpriteMutated();
         preview_needs_update_ = true;
       }
 
-      if (ImGui::Button("Delete Tile")) {
+      if (ImGui::Button(tr("Delete Tile"))) {
         frame.Tiles.erase(frame.Tiles.begin() + selected_tile_index_);
         selected_tile_index_ = -1;
         MarkSpriteMutated();
@@ -966,12 +975,13 @@ void SpriteEditor::DrawUserRoutinesPanel() {
 
     static char routine_name[128];
     CopyStringToBuffer(routine.name, routine_name);
-    if (ImGui::InputText("Routine Name", routine_name, sizeof(routine_name))) {
+    if (ImGui::InputText(tr("Routine Name"), routine_name,
+                         sizeof(routine_name))) {
       routine.name = routine_name;
       MarkSpriteMutated();
     }
 
-    Text("ASM Code:");
+    Text(tr("ASM Code:"));
 
     // Multiline text input for code
     static char code_buffer[16384];
@@ -982,7 +992,7 @@ void SpriteEditor::DrawUserRoutinesPanel() {
       MarkSpriteMutated();
     }
 
-    if (ImGui::Button("Delete Routine")) {
+    if (ImGui::Button(tr("Delete Routine"))) {
       sprite.userRoutines.erase(sprite.userRoutines.begin() +
                                 selected_routine_index_);
       selected_routine_index_ = -1;
@@ -1275,7 +1285,7 @@ void SpriteEditor::DrawZSpriteOnCanvas() {
     if (current_custom_sprite_index_ >= 0) {
       auto& sprite = custom_sprites_[current_custom_sprite_index_];
       ImGui::SetCursorPos(ImVec2(10, 10));
-      Text("Frame: %d | Tiles: %d", current_frame_,
+      Text(tr("Frame: %d | Tiles: %d"), current_frame_,
            current_frame_ < (int)sprite.editor.Frames.size()
                ? (int)sprite.editor.Frames[current_frame_].Tiles.size()
                : 0);

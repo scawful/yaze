@@ -1,4 +1,5 @@
 #include "app/editor/graphics/ui/palette/palette_controls_view.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <string>
@@ -115,7 +116,7 @@ void PaletteControlsView::Initialize() {
 void PaletteControlsView::Draw(bool* p_open) {
   // WindowContent interface - delegate to existing Update() logic
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextDisabled("Load a ROM to manage palettes");
+    ImGui::TextDisabled(tr("Load a ROM to manage palettes"));
     return;
   }
 
@@ -130,7 +131,7 @@ void PaletteControlsView::Draw(bool* p_open) {
 
 absl::Status PaletteControlsView::Update() {
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextDisabled("Load a ROM to manage palettes");
+    ImGui::TextDisabled(tr("Load a ROM to manage palettes"));
     return absl::OkStatus();
   }
 
@@ -195,7 +196,7 @@ void PaletteControlsView::DrawPaletteGroupSelector() {
 
   // Palette group combo
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetComboWidth());
-  if (ImGui::Combo("Group",
+  if (ImGui::Combo(tr("Group"),
                    reinterpret_cast<int*>(&state_->palette_group_index),
                    kPaletteGroupAddressesKeys,
                    IM_ARRAYSIZE(kPaletteGroupAddressesKeys))) {
@@ -205,7 +206,7 @@ void PaletteControlsView::DrawPaletteGroupSelector() {
   // Palette index within group
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth() * 0.75f);
   int palette_idx = static_cast<int>(state_->palette_index);
-  if (ImGui::InputInt("Palette", &palette_idx)) {
+  if (ImGui::InputInt(tr("Palette"), &palette_idx)) {
     state_->palette_index = static_cast<uint64_t>(std::max(0, palette_idx));
     state_->refresh_graphics = true;
   }
@@ -214,7 +215,7 @@ void PaletteControlsView::DrawPaletteGroupSelector() {
   // Sub-palette index (for multi-row palettes)
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetStandardInputWidth() * 0.75f);
   int sub_idx = static_cast<int>(state_->sub_palette_index);
-  if (ImGui::InputInt("Sub-Palette", &sub_idx)) {
+  if (ImGui::InputInt(tr("Sub-Palette"), &sub_idx)) {
     state_->sub_palette_index = static_cast<uint64_t>(std::max(0, sub_idx));
     state_->refresh_graphics = true;
   }
@@ -230,13 +231,13 @@ void PaletteControlsView::DrawPaletteDisplay() {
   auto palette_group_result = game_data_->palette_groups.get_group(
       kPaletteGroupAddressesKeys[state_->palette_group_index]);
   if (!palette_group_result) {
-    ImGui::TextDisabled("Invalid palette group");
+    ImGui::TextDisabled(tr("Invalid palette group"));
     return;
   }
 
   auto palette_group = *palette_group_result;
   if (state_->palette_index >= palette_group.size()) {
-    ImGui::TextDisabled("Invalid palette index");
+    ImGui::TextDisabled(tr("Invalid palette index"));
     return;
   }
 
@@ -289,9 +290,9 @@ void PaletteControlsView::DrawPaletteDisplay() {
 
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("Index: %d (Row %d, Col %d)", idx, row, col);
-        ImGui::Text("SNES: $%04X", color.snes());
-        ImGui::Text("RGB: %d, %d, %d", static_cast<int>(color.rgb().x),
+        ImGui::Text(tr("Index: %d (Row %d, Col %d)"), idx, row, col);
+        ImGui::Text(tr("SNES: $%04X"), color.snes());
+        ImGui::Text(tr("RGB: %d, %d, %d"), static_cast<int>(color.rgb().x),
                     static_cast<int>(color.rgb().y),
                     static_cast<int>(color.rgb().z));
         ImGui::EndTooltip();
@@ -300,7 +301,7 @@ void PaletteControlsView::DrawPaletteDisplay() {
   }
 
   // Row selection buttons
-  ImGui::Text("Sub-palette Row:");
+  ImGui::Text(tr("Sub-palette Row:"));
   for (int i = 0; i < std::min(8, num_rows); i++) {
     if (i > 0)
       ImGui::SameLine();
@@ -329,7 +330,7 @@ void PaletteControlsView::DrawApplyButtons() {
   }
   ImGui::EndDisabled();
   if (no_sheets && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip("Open a graphics sheet first");
+    ImGui::SetTooltip(tr("Open a graphics sheet first"));
   } else {
     HOVER_HINT("Apply palette to the currently selected sheet");
   }

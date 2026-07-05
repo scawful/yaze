@@ -1,4 +1,5 @@
 #include "color.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 
@@ -48,7 +49,7 @@ IMGUI_API bool SnesColorButton(absl::string_view id, gfx::SnesColor& color,
   // Add the SNES color representation to the tooltip
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    ImGui::Text("SNES: $%04X", color.snes());
+    ImGui::Text(tr("SNES: $%04X"), color.snes());
     ImGui::EndTooltip();
   }
   return pressed;
@@ -158,17 +159,17 @@ IMGUI_API absl::Status InlinePaletteEditor(gfx::SnesPalette& palette,
 
     // Context menu
     if (ImGui::BeginPopupContextItem()) {
-      if (ImGui::MenuItem("Copy as SNES")) {
+      if (ImGui::MenuItem(tr("Copy as SNES"))) {
         std::string clipboard = absl::StrFormat("$%04X", palette[n].snes());
         ImGui::SetClipboardText(clipboard.c_str());
       }
-      if (ImGui::MenuItem("Copy as RGB")) {
+      if (ImGui::MenuItem(tr("Copy as RGB"))) {
         auto rgb = palette[n].rgb();
         std::string clipboard =
             absl::StrFormat("(%d,%d,%d)", (int)rgb.x, (int)rgb.y, (int)rgb.z);
         ImGui::SetClipboardText(clipboard.c_str());
       }
-      if (ImGui::MenuItem("Copy as Hex")) {
+      if (ImGui::MenuItem(tr("Copy as Hex"))) {
         auto rgb = palette[n].rgb();
         std::string clipboard = absl::StrFormat("#%02X%02X%02X", (int)rgb.x,
                                                 (int)rgb.y, (int)rgb.z);
@@ -243,8 +244,9 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
 
   // Generate a default palette. The palette will persist and can be edited.
   static ImVec4 saved_palette[32] = {};
-  const int max_colors = std::min<int>(
-      static_cast<int>(palette.size()), static_cast<int>(IM_ARRAYSIZE(saved_palette)));
+  const int max_colors =
+      std::min<int>(static_cast<int>(palette.size()),
+                    static_cast<int>(IM_ARRAYSIZE(saved_palette)));
   if (loaded) {
     for (int n = 0; n < max_colors; n++) {
       auto color = palette[n];
@@ -256,9 +258,9 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   }
 
   static ImVec4 backup_color;
-  ImGui::Text("Current ==>");
+  ImGui::Text(tr("Current ==>"));
   ImGui::SameLine();
-  ImGui::Text("Previous");
+  ImGui::Text(tr("Previous"));
 
   ImGui::ColorButton(
       "##current", color,
@@ -274,7 +276,7 @@ IMGUI_API bool DisplayPalette(gfx::SnesPalette& palette, bool loaded) {
   ImGui::Separator();
 
   ImGui::BeginGroup();  // Lock X position
-  ImGui::Text("Palette");
+  ImGui::Text(tr("Palette"));
   for (int n = 0; n < max_colors; n++) {
     ImGui::PushID(n);
     if ((n % 4) != 0)
@@ -316,7 +318,7 @@ void SelectablePalettePipeline(uint64_t& palette_id, bool& refresh_graphics,
       ImGui::BeginChild(child_id, ImGui::GetContentRegionAvail(), true,
                         ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     ImGui::BeginGroup();  // Lock X position
-    ImGui::Text("Palette");
+    ImGui::Text(tr("Palette"));
     for (int n = 0; n < palette.size(); n++) {
       ImGui::PushID(n);
       if ((n % palette_row_size) != 0)
@@ -399,17 +401,17 @@ absl::Status DisplayEditablePalette(gfx::SnesPalette& palette,
     }
 
     if (ImGui::BeginPopupContextItem()) {
-      if (ImGui::MenuItem("Edit Color")) {
+      if (ImGui::MenuItem(tr("Edit Color"))) {
         // Open color picker for this color
         ImGui::OpenPopup(("Edit Color##" + std::to_string(n)).c_str());
       }
 
-      if (ImGui::MenuItem("Copy as SNES Value")) {
+      if (ImGui::MenuItem(tr("Copy as SNES Value"))) {
         std::string clipboard = absl::StrFormat("$%04X", palette[n].snes());
         ImGui::SetClipboardText(clipboard.c_str());
       }
 
-      if (ImGui::MenuItem("Copy as RGB")) {
+      if (ImGui::MenuItem(tr("Copy as RGB"))) {
         auto rgb = palette[n].rgb();
         // rgb is already in 0-255 range, no need to multiply
         std::string clipboard =
@@ -417,7 +419,7 @@ absl::Status DisplayEditablePalette(gfx::SnesPalette& palette,
         ImGui::SetClipboardText(clipboard.c_str());
       }
 
-      if (ImGui::MenuItem("Copy as Hex")) {
+      if (ImGui::MenuItem(tr("Copy as Hex"))) {
         auto rgb = palette[n].rgb();
         // rgb is already in 0-255 range, no need to multiply
         std::string clipboard = absl::StrFormat("#%02X%02X%02X", (int)rgb.x,
@@ -482,12 +484,12 @@ IMGUI_API bool PaletteColorButton(const char* id, const gfx::SnesColor& color,
   // Tooltip with color info
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    ImGui::Text("SNES: $%04X", color.snes());
+    ImGui::Text(tr("SNES: $%04X"), color.snes());
     auto rgb = color.rgb();
-    ImGui::Text("RGB: (%d, %d, %d)", static_cast<int>(rgb.x),
+    ImGui::Text(tr("RGB: (%d, %d, %d)"), static_cast<int>(rgb.x),
                 static_cast<int>(rgb.y), static_cast<int>(rgb.z));
     if (is_modified) {
-      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "Modified");
+      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), tr("Modified"));
     }
     ImGui::EndTooltip();
   }

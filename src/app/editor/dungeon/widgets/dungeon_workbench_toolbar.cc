@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/widgets/dungeon_workbench_toolbar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -202,19 +203,19 @@ void DrawViewOptionsPopup(DungeonCanvasViewer* viewer, float btn_size) {
 
   if (ImGui::BeginPopup("##WorkbenchViewOptions")) {
     bool v = viewer->show_grid();
-    if (ImGui::Checkbox("Grid", &v)) {
+    if (ImGui::Checkbox(tr("Grid"), &v)) {
       viewer->set_show_grid(v);
     }
     v = viewer->show_object_bounds();
-    if (ImGui::Checkbox("Object Bounds", &v)) {
+    if (ImGui::Checkbox(tr("Object Bounds"), &v)) {
       viewer->set_show_object_bounds(v);
     }
     v = viewer->show_coordinate_overlay();
-    if (ImGui::Checkbox("Hover Coordinates", &v)) {
+    if (ImGui::Checkbox(tr("Hover Coordinates"), &v)) {
       viewer->set_show_coordinate_overlay(v);
     }
     v = viewer->show_camera_quadrant_overlay();
-    if (ImGui::Checkbox("Camera Quadrants", &v)) {
+    if (ImGui::Checkbox(tr("Camera Quadrants"), &v)) {
       viewer->set_show_camera_quadrant_overlay(v);
     }
     ImGui::EndPopup();
@@ -289,7 +290,7 @@ void DrawComparePicker(
       ImGui::InputTextWithHint("##CompareSearch", "Type to filter rooms...",
                                search_buf, search_buf_size);
     } else {
-      ImGui::TextDisabled("Search unavailable");
+      ImGui::TextDisabled(tr("Search unavailable"));
     }
 
     ImGui::Spacing();
@@ -328,7 +329,7 @@ void DrawComparePicker(
     ImGui::EndCombo();
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Pick a room to compare");
+    ImGui::SetTooltip(tr("Pick a room to compare"));
   }
 }
 
@@ -341,7 +342,7 @@ bool DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(float toolbar_width) {
 bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   if (!p.layout || !p.current_room_id || !p.split_view_enabled ||
       !p.compare_room_id) {
-    ImGui::TextDisabled("Workbench toolbar not wired");
+    ImGui::TextDisabled(tr("Workbench toolbar not wired"));
     return false;
   }
 
@@ -428,9 +429,8 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
       const float title_width_cap =
           ultra_compact_toolbar
               ? 140.0f
-              : (compact_toolbar
-                     ? (*p.split_view_enabled ? 180.0f : 220.0f)
-                     : (*p.split_view_enabled ? 240.0f : 320.0f));
+              : (compact_toolbar ? (*p.split_view_enabled ? 180.0f : 220.0f)
+                                 : (*p.split_view_enabled ? 240.0f : 320.0f));
       const float title_width =
           std::clamp(ImGui::GetContentRegionAvail().x, 80.0f, title_width_cap);
       const std::string visible_title =
@@ -480,7 +480,7 @@ bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
           *p.compare_room_id = std::clamp<int>(cmp, 0, 0x127);
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Compare room ID");
+          ImGui::SetTooltip(tr("Compare room ID"));
         }
 
         ImGui::SameLine();

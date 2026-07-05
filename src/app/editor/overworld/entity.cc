@@ -1,4 +1,5 @@
 #include "app/editor/overworld/entity.h"
+#include "util/i18n/tr.h"
 
 #include <fstream>
 #include <string>
@@ -126,7 +127,7 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
       // Reset state if needed
     }
 
-    ImGui::Text("Entrance ID: %d", entrance.entrance_id_);
+    ImGui::Text(tr("Entrance ID: %d"), entrance.entrance_id_);
     ImGui::Separator();
 
     gui::InputHexWord("Map ID", &entrance.map_id_);
@@ -135,22 +136,22 @@ bool DrawOverworldEntrancePopup(zelda3::OverworldEntrance& entrance) {
     gui::InputHex("X Position", &entrance.x_);
     gui::InputHex("Y Position", &entrance.y_);
 
-    ImGui::Checkbox("Is Hole", &entrance.is_hole_);
+    ImGui::Checkbox(tr("Is Hole"), &entrance.is_hole_);
 
     ImGui::Separator();
 
-    if (Button("Save")) {
+    if (Button(tr("Save"))) {
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (Button("Delete")) {
+    if (Button(tr("Delete"))) {
       entrance.deleted = true;
       set_done = true;
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (Button("Cancel")) {
+    if (Button(tr("Cancel"))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -173,7 +174,7 @@ void DrawExitInserterPopup() {
       y_pos = 0;
     }
 
-    ImGui::Text("Insert New Exit");
+    ImGui::Text(tr("Insert New Exit"));
     ImGui::Separator();
 
     gui::InputHex("Exit ID", &exit_id);
@@ -181,14 +182,14 @@ void DrawExitInserterPopup() {
     gui::InputHex("X Position", &x_pos);
     gui::InputHex("Y Position", &y_pos);
 
-    if (Button("Create Exit")) {
+    if (Button(tr("Create Exit"))) {
       // This would need to be connected to the overworld editor to actually
       // create the exit
       ImGui::CloseCurrentPopup();
     }
 
     SameLine();
-    if (Button("Cancel")) {
+    if (Button(tr("Cancel"))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -262,7 +263,7 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
     gui::InputHex("Entity ID", &exit.entity_id_, 4);
     gui::InputHexWord("Map", &exit.map_id_);
     SameLine();
-    Checkbox("Automatic", &exit.is_automatic_);
+    Checkbox(tr("Automatic"), &exit.is_automatic_);
 
     gui::InputHex("X Positon", &exit.x_);
     SameLine();
@@ -278,25 +279,25 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
 
     ImGui::Separator();
 
-    Checkbox("Show properties", &show_properties);
+    Checkbox(tr("Show properties"), &show_properties);
     if (show_properties) {
-      Text("Deleted? %s", exit.deleted_ ? "true" : "false");
-      Text("Hole? %s", exit.is_hole_ ? "true" : "false");
-      Text("Auto-calc scroll/camera? %s",
+      Text(tr("Deleted? %s"), exit.deleted_ ? "true" : "false");
+      Text(tr("Hole? %s"), exit.is_hole_ ? "true" : "false");
+      Text(tr("Auto-calc scroll/camera? %s"),
            exit.is_automatic_ ? "true" : "false");
-      Text("Map ID: 0x%02X", exit.map_id_);
-      Text("Game coords: (%d, %d)", exit.game_x_, exit.game_y_);
+      Text(tr("Map ID: 0x%02X"), exit.map_id_);
+      Text(tr("Game coords: (%d, %d)"), exit.game_x_, exit.game_y_);
     }
 
     gui::TextWithSeparators("Advanced Door/Exit Controls");
 
-    if (ImGui::RadioButton("None", &doorType, 0))
+    if (ImGui::RadioButton(tr("None"), &doorType, 0))
       exit.door_type_1_ = doorType;
     SameLine();
-    if (ImGui::RadioButton("Wooden", &doorType, 1))
+    if (ImGui::RadioButton(tr("Wooden"), &doorType, 1))
       exit.door_type_1_ = doorType;
     SameLine();
-    if (ImGui::RadioButton("Bombable", &doorType, 2))
+    if (ImGui::RadioButton(tr("Bombable"), &doorType, 2))
       exit.door_type_1_ = doorType;
 
     // If door type is not None, input positions
@@ -305,13 +306,13 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
       gui::InputHex("Door Y pos", &yPos);
     }
 
-    if (ImGui::RadioButton("None##Fancy", &fancyDoorType, 0))
+    if (ImGui::RadioButton(tr("None##Fancy"), &fancyDoorType, 0))
       exit.door_type_2_ = fancyDoorType;
     SameLine();
-    if (ImGui::RadioButton("Sanctuary", &fancyDoorType, 1))
+    if (ImGui::RadioButton(tr("Sanctuary"), &fancyDoorType, 1))
       exit.door_type_2_ = fancyDoorType;
     SameLine();
-    if (ImGui::RadioButton("Palace", &fancyDoorType, 2))
+    if (ImGui::RadioButton(tr("Palace"), &fancyDoorType, 2))
       exit.door_type_2_ = fancyDoorType;
 
     // If fancy door type is not None, input positions
@@ -322,7 +323,7 @@ bool DrawExitEditorPopup(zelda3::OverworldExit& exit) {
       gui::InputHex("Fancy Door Y pos", &yPos);
     }
 
-    Checkbox("Special exit", &special_exit);
+    Checkbox(tr("Special exit"), &special_exit);
     if (special_exit) {
       gui::InputHex("Center X", &centerX);
 
@@ -373,7 +374,7 @@ void DrawItemInsertPopup() {
   // Contents of the Context Menu
   if (ImGui::BeginPopup("Item Inserter")) {
     static size_t new_item_id = 0;
-    Text("Add Item");
+    Text(tr("Add Item"));
     BeginChild("ScrollRegion", ImVec2(150, 150), true,
                ImGuiWindowFlags_AlwaysVerticalScrollbar);
     for (size_t i = 0; i < zelda3::kSecretItemNames.size(); i++) {
@@ -498,7 +499,7 @@ void DrawSpriteInserterPopup() {
       y_pos = 0;
     }
 
-    ImGui::Text("Add New Sprite");
+    ImGui::Text(tr("Add New Sprite"));
     ImGui::Separator();
 
     BeginChild("ScrollRegion", ImVec2(250, 200), true,
@@ -508,11 +509,11 @@ void DrawSpriteInserterPopup() {
     EndChild();
 
     ImGui::Separator();
-    ImGui::Text("Position:");
+    ImGui::Text(tr("Position:"));
     gui::InputHex("X Position", &x_pos);
     gui::InputHex("Y Position", &y_pos);
 
-    if (Button("Add Sprite")) {
+    if (Button(tr("Add Sprite"))) {
       // This would need to be connected to the overworld editor to actually
       // create the sprite
       new_sprite_id = 0;
@@ -522,7 +523,7 @@ void DrawSpriteInserterPopup() {
     }
     SameLine();
 
-    if (Button("Cancel")) {
+    if (Button(tr("Cancel"))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -601,13 +602,13 @@ bool DrawDiggableTilesEditorPopup(
 
     // Stats header
     int diggable_count = diggable_tiles->GetDiggableCount();
-    Text("Diggable Tiles: %d / 512", diggable_count);
+    Text(tr("Diggable Tiles: %d / 512"), diggable_count);
     ImGui::Separator();
 
     // Filter
     filter.Draw("Filter by Tile ID", 200);
     SameLine();
-    if (Button("Clear Filter")) {
+    if (Button(tr("Clear Filter"))) {
       filter.Clear();
     }
 
@@ -649,7 +650,7 @@ bool DrawDiggableTilesEditorPopup(
       dig_color.reset();
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Tile $%03X - %s", tile_id,
+        ImGui::SetTooltip(tr("Tile $%03X - %s"), tile_id,
                           would_be_diggable ? "Auto-detected as diggable"
                                             : "Manually configured");
       }
@@ -680,9 +681,9 @@ bool DrawDiggableTilesEditorPopup(
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Set diggable status based on tile types.\n"
-          "A tile is diggable if all 4 component tiles\n"
-          "have type 0x48 or 0x4A (diggable ground).");
+          tr("Set diggable status based on tile types.\n"
+             "A tile is diggable if all 4 component tiles\n"
+             "have type 0x48 or 0x4A (diggable ground)."));
     }
 
     SameLine();
@@ -691,8 +692,8 @@ bool DrawDiggableTilesEditorPopup(
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Reset to vanilla diggable tiles:\n$034, $035, $071, "
-          "$0DA, $0E1, $0E2, $0F8, $10D, $10E, $10F");
+          tr("Reset to vanilla diggable tiles:\n$034, $035, $071, "
+             "$0DA, $0E1, $0E2, $0F8, $10D, $10E, $10F"));
     }
 
     SameLine();
@@ -703,15 +704,15 @@ bool DrawDiggableTilesEditorPopup(
     ImGui::Separator();
 
     // Patch export section
-    if (ImGui::CollapsingHeader("ASM Patch Export")) {
+    if (ImGui::CollapsingHeader(tr("ASM Patch Export"))) {
       ImGui::Indent();
 
-      Text("Patch Mode:");
-      ImGui::RadioButton("Vanilla", &patch_mode, 0);
+      Text(tr("Patch Mode:"));
+      ImGui::RadioButton(tr("Vanilla"), &patch_mode, 0);
       SameLine();
-      ImGui::RadioButton("ZS Compatible", &patch_mode, 1);
+      ImGui::RadioButton(tr("ZS Compatible"), &patch_mode, 1);
       SameLine();
-      ImGui::RadioButton("Custom", &patch_mode, 2);
+      ImGui::RadioButton(tr("Custom"), &patch_mode, 2);
 
       patch_config.use_zs_compatible_mode = (patch_mode == 1);
 

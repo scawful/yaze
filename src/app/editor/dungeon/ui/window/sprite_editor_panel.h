@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -54,13 +55,13 @@ class SpriteEditorPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!current_room_id_ || !rooms_) {
-      ImGui::TextDisabled("No room data available");
+      ImGui::TextDisabled(tr("No room data available"));
       return;
     }
 
     if (*current_room_id_ < 0 ||
         *current_room_id_ >= static_cast<int>(rooms_->size())) {
-      ImGui::TextDisabled("No room selected");
+      ImGui::TextDisabled(tr("No room selected"));
       return;
     }
 
@@ -182,8 +183,9 @@ class SpriteEditorPanel : public WindowContent {
 
       if (ImGui::IsItemHovered()) {
         const char* category = GetSpriteCategoryName(i);
-        ImGui::SetTooltip("%s (0x%02X)\n[%s]\nClick to select for placement",
-                          zelda3::ResolveSpriteName(i), i, category);
+        ImGui::SetTooltip(
+            tr("%s (0x%02X)\n[%s]\nClick to select for placement"),
+            zelda3::ResolveSpriteName(i), i, category);
       }
 
       // Selection highlight using theme color
@@ -225,8 +227,8 @@ class SpriteEditorPanel : public WindowContent {
       ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING);
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Room exceeds sprite limit (16 max)!\n"
-            "This may cause game crashes.");
+            tr("Room exceeds sprite limit (16 max)!\n"
+               "This may cause game crashes."));
       }
     }
 
@@ -269,8 +271,8 @@ class SpriteEditorPanel : public WindowContent {
 
       // Show position on same line
       ImGui::SameLine(ImGui::GetContentRegionAvail().x - 80);
-      ImGui::TextColored(theme.text_secondary_gray, "(%d,%d) L%d", sprite.x(),
-                         sprite.y(), sprite.layer());
+      ImGui::TextColored(theme.text_secondary_gray, tr("(%d,%d) L%d"),
+                         sprite.x(), sprite.y(), sprite.layer());
 
       ImGui::PopID();
     }
@@ -303,26 +305,26 @@ class SpriteEditorPanel : public WindowContent {
       ImGui::TextColored(theme.status_warning, ICON_MD_STAR " OVERLORD");
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "This is an Overlord sprite.\n"
-            "Overlords have separate limits (8 max).");
+            tr("This is an Overlord sprite.\n"
+               "Overlords have separate limits (8 max)."));
       }
     }
 
     // ID and Name (read-only)
-    ImGui::Text("ID: 0x%02X - %s", sprite.id(),
+    ImGui::Text(tr("ID: 0x%02X - %s"), sprite.id(),
                 zelda3::ResolveSpriteName(sprite.id()));
 
     // Position (editable)
     int pos_x = sprite.x();
     int pos_y = sprite.y();
     ImGui::SetNextItemWidth(60);
-    if (ImGui::InputInt("X##SpriteX", &pos_x, 1, 8)) {
+    if (ImGui::InputInt(tr("X##SpriteX"), &pos_x, 1, 8)) {
       pos_x = std::clamp(pos_x, 0, 63);
       // Note: Need setter in Sprite class
     }
     ImGui::SameLine();
     ImGui::SetNextItemWidth(60);
-    if (ImGui::InputInt("Y##SpriteY", &pos_y, 1, 8)) {
+    if (ImGui::InputInt(tr("Y##SpriteY"), &pos_y, 1, 8)) {
       pos_y = std::clamp(pos_y, 0, 63);
       // Note: Need setter in Sprite class
     }
@@ -330,34 +332,34 @@ class SpriteEditorPanel : public WindowContent {
     // Subtype selector (0-7)
     int subtype = sprite.subtype();
     ImGui::SetNextItemWidth(80);
-    if (ImGui::Combo("Subtype##SpriteSubtype", &subtype,
+    if (ImGui::Combo(tr("Subtype##SpriteSubtype"), &subtype,
                      "0\0001\0002\0003\0004\0005\0006\0007\0")) {
       sprite.set_subtype(subtype);
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Controls sprite behavior variant.\n"
-          "Effect varies by sprite type.");
+          tr("Controls sprite behavior variant.\n"
+             "Effect varies by sprite type."));
     }
 
     // Layer selector
     int layer = sprite.layer();
     ImGui::SetNextItemWidth(80);
-    if (ImGui::Combo("Layer##SpriteLayer", &layer,
+    if (ImGui::Combo(tr("Layer##SpriteLayer"), &layer,
                      "Upper (0)\0Lower (1)\0Both (2)\0")) {
       sprite.set_layer(layer);
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Which layer the sprite appears on.\n"
-          "Upper = main floor, Lower = basement.");
+          tr("Which layer the sprite appears on.\n"
+             "Upper = main floor, Lower = basement."));
     }
 
     // Key drop selector
     int key_drop = sprite.key_drop();
-    ImGui::Text("Key Drop:");
+    ImGui::Text(tr("Key Drop:"));
     ImGui::SameLine();
-    if (ImGui::RadioButton("None##KeyNone", key_drop == 0)) {
+    if (ImGui::RadioButton(tr("None##KeyNone"), key_drop == 0)) {
       sprite.set_key_drop(0);
     }
     ImGui::SameLine();
@@ -369,7 +371,7 @@ class SpriteEditorPanel : public WindowContent {
       sprite.set_key_drop(2);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Key dropped when sprite is defeated.");
+      ImGui::SetTooltip(tr("Key dropped when sprite is defeated."));
     }
 
     // Delete button

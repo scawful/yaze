@@ -1,4 +1,5 @@
 #include "app/editor/overworld/overworld_sidebar.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/ui_constants.h"
@@ -39,21 +40,22 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     ImGui::Spacing();
 
     // Use CollapsingHeader layout for better visibility and configurability
-    if (ImGui::CollapsingHeader("General Settings",
+    if (ImGui::CollapsingHeader(tr("General Settings"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
       DrawBasicPropertiesTab(current_map, game_state,
                              show_custom_bg_color_editor, show_overlay_editor);
     }
 
-    if (ImGui::CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::CollapsingHeader(tr("Graphics"),
+                                ImGuiTreeNodeFlags_DefaultOpen)) {
       DrawGraphicsTab(current_map, game_state);
     }
 
-    if (ImGui::CollapsingHeader("Sprites")) {
+    if (ImGui::CollapsingHeader(tr("Sprites"))) {
       DrawSpritePropertiesTab(current_map, game_state);
     }
 
-    if (ImGui::CollapsingHeader("Music")) {
+    if (ImGui::CollapsingHeader(tr("Music"))) {
       DrawMusicTab(current_map);
     }
   }
@@ -147,7 +149,7 @@ void OverworldSidebar::DrawMapSelection(int& current_world, int& current_map,
   ImGui::Combo("##world", &current_world, kWorldNames, 3);
 
   ImGui::BeginGroup();
-  ImGui::Text("ID: %02X", current_map);
+  ImGui::Text(tr("ID: %02X"), current_map);
   ImGui::SameLine();
   if (ImGui::Button(current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN)) {
     current_map_lock = !current_map_lock;
@@ -215,7 +217,7 @@ void OverworldSidebar::DrawGraphicsSettings(int current_map, int game_state) {
             map_properties_system_->RefreshOverworldMap();
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
+            ImGui::SetTooltip(tr("Custom graphics sheet %d (0x00-0xFF)"), i);
           }
         }
         ImGui::EndTable();
@@ -366,7 +368,7 @@ void OverworldSidebar::DrawConfiguration(int current_map, int& game_state,
     }
   } else {
     if (ImGui::Checkbox(
-            "Mosaic Effect",
+            tr("Mosaic Effect"),
             overworld_->mutable_overworld_map(current_map)->mutable_mosaic())) {
       map_properties_system_->RefreshMapProperties();
       map_properties_system_->RefreshOverworldMap();

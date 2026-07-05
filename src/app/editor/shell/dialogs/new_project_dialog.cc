@@ -1,4 +1,5 @@
 #include "app/editor/shell/dialogs/new_project_dialog.h"
+#include "util/i18n/tr.h"
 
 #include <cstdio>
 #include <cstring>
@@ -110,15 +111,15 @@ bool NewProjectDialog::Draw() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        "Pick a template, point at the ROM it should build on, and give the "
-        "project a name. The project file will be saved in your configured "
-        "projects folder.");
+        tr("Pick a template, point at the ROM it should build on, and give the "
+           "project a name. The project file will be saved in your configured "
+           "projects folder."));
   }
   ImGui::Separator();
   ImGui::Spacing();
 
   // --- Template picker ------------------------------------------------------
-  ImGui::TextUnformatted("Template");
+  ImGui::TextUnformatted(tr("Template"));
   const char* combo_preview = kTemplates[selected_template_].name;
   ImGui::SetNextItemWidth(-1);
   if (ImGui::BeginCombo("##template_combo", combo_preview)) {
@@ -140,18 +141,18 @@ bool NewProjectDialog::Draw() {
   const TemplateDescriptor& tmpl = kTemplates[selected_template_];
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-    ImGui::TextWrapped("%s Use when: %s", ICON_MD_LIGHTBULB, tmpl.use_when);
-    ImGui::TextWrapped("%s Effect: %s", ICON_MD_EDIT, tmpl.what_changes);
+    ImGui::TextWrapped(tr("%s Use when: %s"), ICON_MD_LIGHTBULB, tmpl.use_when);
+    ImGui::TextWrapped(tr("%s Effect: %s"), ICON_MD_EDIT, tmpl.what_changes);
     const char* skill_tag = tmpl.skill_level == 1   ? "Beginner"
                             : tmpl.skill_level == 2 ? "Intermediate"
                                                     : "Advanced";
-    ImGui::TextWrapped("%s Skill: %s", ICON_MD_INFO, skill_tag);
+    ImGui::TextWrapped(tr("%s Skill: %s"), ICON_MD_INFO, skill_tag);
   }
 
   ImGui::Spacing();
 
   // --- ROM picker -----------------------------------------------------------
-  ImGui::TextUnformatted("Source ROM");
+  ImGui::TextUnformatted(tr("Source ROM"));
   const float browse_width = ImGui::CalcTextSize(" Browse…").x +
                              ImGui::CalcTextSize(ICON_MD_FOLDER_OPEN).x +
                              ImGui::GetStyle().FramePadding.x * 2.0f + 8.0f;
@@ -171,15 +172,15 @@ bool NewProjectDialog::Draw() {
   ImGui::Spacing();
 
   // --- Project name ---------------------------------------------------------
-  ImGui::TextUnformatted("Project name");
+  ImGui::TextUnformatted(tr("Project name"));
   ImGui::SetNextItemWidth(-1);
   ImGui::InputText("##project_name", project_name_buffer_,
                    sizeof(project_name_buffer_));
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "Used as the project display name and to derive the project filename. "
-        "Spaces are replaced with underscores.");
+        "Spaces are replaced with underscores."));
   }
 
   ImGui::Spacing();

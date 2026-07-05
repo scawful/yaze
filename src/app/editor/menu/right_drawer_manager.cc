@@ -1,4 +1,5 @@
 #include "app/editor/menu/right_drawer_manager.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -1043,7 +1044,7 @@ void RightDrawerManager::Draw() {
         const float new_width = GetConfiguredPanelWidth(active_panel_) -
                                 ImGui::GetIO().MouseDelta.x;
         SetDrawerWidth(active_panel_, new_width);
-        ImGui::SetTooltip("Width: %.0f px",
+        ImGui::SetTooltip(tr("Width: %.0f px"),
                           GetConfiguredPanelWidth(active_panel_));
       }
 
@@ -1447,7 +1448,7 @@ bool RightDrawerManager::DrawAgentQuickActions() {
     return false;
   }
 
-  ImGui::TextColored(accent, "%s Editor Actions", ICON_MD_BOLT);
+  ImGui::TextColored(accent, tr("%s Editor Actions"), ICON_MD_BOLT);
   gui::ColoredText("Send a context-aware prompt to the agent.",
                    gui::GetTextSecondaryVec4());
 
@@ -1689,7 +1690,7 @@ void RightDrawerManager::DrawEditorSpecificShortcuts() {
       {
         gui::StyleColorGuard text_color(ImGuiCol_Text,
                                         gui::GetTextSecondaryVec4());
-        ImGui::TextWrapped("Select an editor to see specific shortcuts.");
+        ImGui::TextWrapped(tr("Select an editor to see specific shortcuts."));
       }
       ImGui::Unindent(8.0f);
       break;
@@ -1702,86 +1703,88 @@ void RightDrawerManager::DrawEditorSpecificHelp() {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
-      ImGui::TextWrapped("Paint tiles by selecting from Tile16 Selector");
+      ImGui::TextWrapped(tr("Paint tiles by selecting from Tile16 Selector"));
       ImGui::Bullet();
       ImGui::TextWrapped(
-          "Switch between Light World, Dark World, and Special Areas");
+          tr("Switch between Light World, Dark World, and Special Areas"));
       ImGui::Bullet();
       ImGui::TextWrapped(
-          "Use Entity Mode to place entrances, exits, items, and sprites");
+          tr("Use Entity Mode to place entrances, exits, items, and sprites"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Right-click on the map to pick a tile for painting");
+      ImGui::TextWrapped(
+          tr("Right-click on the map to pick a tile for painting"));
     } break;
 
     case EditorType::kDungeon: {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
-      ImGui::TextWrapped("Select rooms from the Room Selector or Room Matrix");
+      ImGui::TextWrapped(
+          tr("Select rooms from the Room Selector or Room Matrix"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Place objects using the Object Editor panel");
+      ImGui::TextWrapped(tr("Place objects using the Object Editor panel"));
       ImGui::Bullet();
       ImGui::TextWrapped(
-          "Edit room headers for palette, GFX, and floor settings");
+          tr("Edit room headers for palette, GFX, and floor settings"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Multiple rooms can be opened in separate tabs");
+      ImGui::TextWrapped(tr("Multiple rooms can be opened in separate tabs"));
     } break;
 
     case EditorType::kGraphics: {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
-      ImGui::TextWrapped("Browse graphics sheets using the Sheet Browser");
+      ImGui::TextWrapped(tr("Browse graphics sheets using the Sheet Browser"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Edit pixels directly with the Pixel Editor");
+      ImGui::TextWrapped(tr("Edit pixels directly with the Pixel Editor"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Choose palettes from Palette Controls");
+      ImGui::TextWrapped(tr("Choose palettes from Palette Controls"));
       ImGui::Bullet();
-      ImGui::TextWrapped("View 3D objects like rupees and crystals");
+      ImGui::TextWrapped(tr("View 3D objects like rupees and crystals"));
     } break;
 
     case EditorType::kPalette: {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
-      ImGui::TextWrapped("Edit overworld, dungeon, and sprite palettes");
+      ImGui::TextWrapped(tr("Edit overworld, dungeon, and sprite palettes"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Use Quick Access for color harmony tools");
+      ImGui::TextWrapped(tr("Use Quick Access for color harmony tools"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Changes update in real-time across all editors");
+      ImGui::TextWrapped(tr("Changes update in real-time across all editors"));
     } break;
 
     case EditorType::kMusic: {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
-      ImGui::TextWrapped("Browse songs in the Song Browser");
+      ImGui::TextWrapped(tr("Browse songs in the Song Browser"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Use the tracker for playback control");
+      ImGui::TextWrapped(tr("Use the tracker for playback control"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Edit instruments and BRR samples");
+      ImGui::TextWrapped(tr("Edit instruments and BRR samples"));
     } break;
 
     case EditorType::kMessage: {
       gui::StyleColorGuard text_color(ImGuiCol_Text,
                                       ImGui::GetStyleColorVec4(ImGuiCol_Text));
       ImGui::Bullet();
-      ImGui::TextWrapped("Edit all in-game dialog messages");
+      ImGui::TextWrapped(tr("Edit all in-game dialog messages"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Preview text rendering with the font atlas");
+      ImGui::TextWrapped(tr("Preview text rendering with the font atlas"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Manage the compression dictionary");
+      ImGui::TextWrapped(tr("Manage the compression dictionary"));
     } break;
 
     default:
       ImGui::Bullet();
-      ImGui::TextWrapped("Open a ROM file via File > Open ROM");
+      ImGui::TextWrapped(tr("Open a ROM file via File > Open ROM"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Select an editor from the sidebar");
+      ImGui::TextWrapped(tr("Select an editor from the sidebar"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Use panels to access tools and settings");
+      ImGui::TextWrapped(tr("Use panels to access tools and settings"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Save your work via File > Save ROM");
+      ImGui::TextWrapped(tr("Save your work via File > Save ROM"));
       break;
   }
 }
@@ -1846,8 +1849,8 @@ void RightDrawerManager::DrawAboutSection() {
 
   DrawPanelLabel("Credits");
   ImGui::Spacing();
-  ImGui::Text("Written by: scawful");
-  ImGui::Text("Special Thanks: Zarby89, JaredBrian");
+  ImGui::Text(tr("Written by: scawful"));
+  ImGui::Text(tr("Special Thanks: Zarby89, JaredBrian"));
 
   DrawPanelDivider();
 
@@ -1925,8 +1928,9 @@ void RightDrawerManager::DrawNotificationsPanel() {
       }
       if (workflow_history.size() > preview_entries.size()) {
         ImGui::Spacing();
-        ImGui::TextDisabled("+%zu more entries available in Workflow Output",
-                            workflow_history.size() - preview_entries.size());
+        ImGui::TextDisabled(
+            tr("+%zu more entries available in Workflow Output"),
+            workflow_history.size() - preview_entries.size());
         if (workflow_callbacks.show_output) {
           if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW
                                  " View Full History##workflow_view_full")) {
@@ -2111,23 +2115,23 @@ void RightDrawerManager::DrawProjectPanel() {
     // Placeholder for project features
     if (BeginPanelSection("Quick Start", ICON_MD_ROCKET_LAUNCH, true)) {
       ImGui::Bullet();
-      ImGui::TextWrapped("Create a new project via File > New Project");
+      ImGui::TextWrapped(tr("Create a new project via File > New Project"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Open existing .yaze project files");
+      ImGui::TextWrapped(tr("Open existing .yaze project files"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Projects track ROM versions and settings");
+      ImGui::TextWrapped(tr("Projects track ROM versions and settings"));
       EndPanelSection();
     }
 
     if (BeginPanelSection("Features", ICON_MD_CHECKLIST, false)) {
       ImGui::Bullet();
-      ImGui::TextWrapped("Version snapshots with Git integration");
+      ImGui::TextWrapped(tr("Version snapshots with Git integration"));
       ImGui::Bullet();
-      ImGui::TextWrapped("ROM backup and restore");
+      ImGui::TextWrapped(tr("ROM backup and restore"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Project-specific settings");
+      ImGui::TextWrapped(tr("Project-specific settings"));
       ImGui::Bullet();
-      ImGui::TextWrapped("Assembly code folder integration");
+      ImGui::TextWrapped(tr("Assembly code folder integration"));
       EndPanelSection();
     }
   }
@@ -2195,7 +2199,7 @@ void RightDrawerManager::DrawToolOutputPanel() {
                                tool_output_actions_);
   }
 
-  if (ImGui::CollapsingHeader("Raw Output",
+  if (ImGui::CollapsingHeader(tr("Raw Output"),
                               has_json ? 0 : ImGuiTreeNodeFlags_DefaultOpen)) {
     if (ImGui::BeginChild("##tool_output_result", ImVec2(0.0f, 220.0f), true)) {
       ImGui::TextUnformatted(tool_output_content_.c_str());

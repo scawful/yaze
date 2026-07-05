@@ -1,4 +1,5 @@
 #include "app/editor/shell/windows/dashboard_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -233,8 +234,8 @@ void DashboardPanel::DrawWelcomeHeader() {
   ImGui::PopFont();
 
   ImGui::TextColored(text_secondary,
-                     "Choose an editor to begin working on your ROM. "
-                     "You can open multiple editors simultaneously.");
+                     tr("Choose an editor to begin working on your ROM. "
+                        "You can open multiple editors simultaneously."));
 }
 
 void DashboardPanel::DrawRecentEditors() {
@@ -316,7 +317,7 @@ void DashboardPanel::DrawRecentEditors() {
 
       if (ImGui::IsItemHovered()) {
         if (!enabled) {
-          ImGui::SetTooltip("Load a ROM to open %s", it->name.c_str());
+          ImGui::SetTooltip(tr("Load a ROM to open %s"), it->name.c_str());
         } else {
           ImGui::SetTooltip("%s", it->description.c_str());
         }
@@ -547,7 +548,7 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     ImGui::Separator();
     ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + tooltip_width - 20.0f);
     if (!enabled) {
-      ImGui::TextWrapped("Load a ROM to open this editor.");
+      ImGui::TextWrapped(tr("Load a ROM to open this editor."));
     } else {
       ImGui::TextWrapped("%s", info.description.c_str());
     }

@@ -6,6 +6,7 @@
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/features.h"
+#include "util/i18n/tr.h"
 
 namespace yaze::editor {
 
@@ -35,12 +36,12 @@ class DungeonSettingsPanel : public WindowContent {
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
       ImGui::Indent();
       auto& flags = core::FeatureFlags::get().dungeon;
-      ImGui::Checkbox("Use Dungeon Workbench (single window)",
+      ImGui::Checkbox(tr("Use Dungeon Workbench (single window)"),
                       &flags.kUseWorkbench);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
+        ImGui::SetTooltip(tr(
             "When enabled, the dungeon editor uses a single stable Workbench "
-            "window instead of opening one panel per room.");
+            "window instead of opening one panel per room."));
       }
       ImGui::Unindent();
     }
@@ -50,25 +51,26 @@ class DungeonSettingsPanel : public WindowContent {
       ImGui::Indent();
       auto& flags = core::FeatureFlags::get().dungeon;
 
-      ImGui::Text("Data Types to Save:");
-      ImGui::Checkbox("Room Objects", &flags.kSaveObjects);
-      ImGui::Checkbox("Sprites", &flags.kSaveSprites);
-      ImGui::Checkbox("Room Headers", &flags.kSaveRoomHeaders);
-      ImGui::Checkbox("Chests", &flags.kSaveChests);
-      ImGui::Checkbox("Pot Items", &flags.kSavePotItems);
-      ImGui::Checkbox("Palettes", &flags.kSavePalettes);
-      ImGui::Checkbox("Collision Maps", &flags.kSaveCollision);
-      ImGui::Checkbox("Water Fill Zones (Oracle)", &flags.kSaveWaterFillZones);
-      ImGui::Checkbox("Blocks (Pushable/etc)", &flags.kSaveBlocks);
-      ImGui::Checkbox("Torches", &flags.kSaveTorches);
-      ImGui::Checkbox("Pits", &flags.kSavePits);
+      ImGui::Text(tr("Data Types to Save:"));
+      ImGui::Checkbox(tr("Room Objects"), &flags.kSaveObjects);
+      ImGui::Checkbox(tr("Sprites"), &flags.kSaveSprites);
+      ImGui::Checkbox(tr("Room Headers"), &flags.kSaveRoomHeaders);
+      ImGui::Checkbox(tr("Chests"), &flags.kSaveChests);
+      ImGui::Checkbox(tr("Pot Items"), &flags.kSavePotItems);
+      ImGui::Checkbox(tr("Palettes"), &flags.kSavePalettes);
+      ImGui::Checkbox(tr("Collision Maps"), &flags.kSaveCollision);
+      ImGui::Checkbox(tr("Water Fill Zones (Oracle)"),
+                      &flags.kSaveWaterFillZones);
+      ImGui::Checkbox(tr("Blocks (Pushable/etc)"), &flags.kSaveBlocks);
+      ImGui::Checkbox(tr("Torches"), &flags.kSaveTorches);
+      ImGui::Checkbox(tr("Pits"), &flags.kSavePits);
 
       ImGui::Separator();
-      if (ImGui::Button("Select All")) {
+      if (ImGui::Button(tr("Select All"))) {
         SetAllSaveFlags(true);
       }
       ImGui::SameLine();
-      if (ImGui::Button("Select None")) {
+      if (ImGui::Button(tr("Select None"))) {
         SetAllSaveFlags(false);
       }
 
@@ -99,7 +101,7 @@ class DungeonSettingsPanel : public WindowContent {
           }
         }
       } else {
-        ImGui::TextDisabled("No active room viewer");
+        ImGui::TextDisabled(tr("No active room viewer"));
       }
       ImGui::Unindent();
     }
@@ -111,7 +113,7 @@ class DungeonSettingsPanel : public WindowContent {
           *current_room_id_ < 0x128) {
         DrawLayerCompositingControls(*current_room_id_);
       } else {
-        ImGui::TextDisabled("No active room");
+        ImGui::TextDisabled(tr("No active room"));
       }
       ImGui::Unindent();
     }

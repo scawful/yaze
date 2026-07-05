@@ -1,4 +1,5 @@
 #include "app/editor/music/tracker_view.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <vector>
@@ -123,7 +124,7 @@ constexpr CommandOption kCommandOptions[] = {
 
 void TrackerView::Draw(MusicSong* song, const MusicBank* bank) {
   if (!song) {
-    ImGui::TextDisabled("No song loaded");
+    ImGui::TextDisabled(tr("No song loaded"));
     return;
   }
 
@@ -145,16 +146,16 @@ void TrackerView::Draw(MusicSong* song, const MusicBank* bank) {
 void TrackerView::DrawToolbar(MusicSong* song) {
   ImGui::Text("%s", song->name.empty() ? "Untitled" : song->name.c_str());
   ImGui::SameLine();
-  ImGui::TextDisabled("(%d ticks)", song->GetTotalDuration());
+  ImGui::TextDisabled(tr("(%d ticks)"), song->GetTotalDuration());
 
   ImGui::SameLine();
-  ImGui::Text("| Bank: %s", song->bank == 0
-                                ? "Overworld"
-                                : (song->bank == 1 ? "Dungeon" : "Credits"));
+  ImGui::Text(tr("| Bank: %s"),
+              song->bank == 0 ? "Overworld"
+                              : (song->bank == 1 ? "Dungeon" : "Credits"));
 
   ImGui::SameLine();
   ImGui::PushItemWidth(100);
-  if (ImGui::DragInt("Ticks/Row", &ticks_per_row_, 1, 1, 96)) {
+  if (ImGui::DragInt(tr("Ticks/Row"), &ticks_per_row_, 1, 1, 96)) {
     if (ticks_per_row_ < 1)
       ticks_per_row_ = 1;
   }
@@ -299,7 +300,7 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
         ImGui::TextColored(ImColor(GetColorNote()), "%s",
                            event.note.GetNoteName().c_str());
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Note: %s\nDuration: %d\nVelocity: %d",
+          ImGui::SetTooltip(tr("Note: %s\nDuration: %d\nVelocity: %d"),
                             event.note.GetNoteName().c_str(),
                             event.note.duration, event.note.velocity);
         }
@@ -343,7 +344,7 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
 
         ImGui::TextColored(ImColor(color), "%s", label.c_str());
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s\nOpcode: %02X\nParams: %02X %02X %02X",
+          ImGui::SetTooltip(tr("%s\nOpcode: %02X\nParams: %02X %02X %02X"),
                             tooltip.c_str(), event.command.opcode,
                             event.command.params[0], event.command.params[1],
                             event.command.params[2]);
@@ -352,11 +353,11 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
       }
 
       case TrackEvent::Type::SubroutineCall:
-        ImGui::TextColored(ImColor(GetColorSubroutine()), "CALL");
+        ImGui::TextColored(ImColor(GetColorSubroutine()), tr("CALL"));
         break;
 
       case TrackEvent::Type::End:
-        ImGui::TextDisabled("END");
+        ImGui::TextDisabled(tr("END"));
         break;
     }
   }
@@ -386,7 +387,7 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
 
   if (ImGui::BeginPopup(popup_id.c_str())) {
     if (!has_event) {
-      ImGui::TextDisabled("Empty");
+      ImGui::TextDisabled(tr("Empty"));
       ImGui::EndPopup();
       return;
     }
@@ -409,8 +410,8 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
       int idx = edit_pitch - kNoteMinPitch;
       idx = std::clamp(idx, 0, static_cast<int>(note_labels.size()) - 1);
 
-      ImGui::Text("Edit Note");
-      if (ImGui::BeginCombo("Pitch", note_labels[idx].c_str())) {
+      ImGui::Text(tr("Edit Note"));
+      if (ImGui::BeginCombo(tr("Pitch"), note_labels[idx].c_str())) {
         for (int i = 0; i < static_cast<int>(note_labels.size()); ++i) {
           bool sel = (i == idx);
           if (ImGui::Selectable(note_labels[i].c_str(), sel)) {
@@ -423,11 +424,11 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
         ImGui::EndCombo();
       }
 
-      if (ImGui::SliderInt("Duration", &edit_duration, 1, 0xFF)) {
+      if (ImGui::SliderInt(tr("Duration"), &edit_duration, 1, 0xFF)) {
         edit_duration = std::clamp(edit_duration, 1, 0xFF);
       }
 
-      if (ImGui::Button("Apply")) {
+      if (ImGui::Button(tr("Apply"))) {
         if (on_edit_) {
           on_edit_();
         }
@@ -443,8 +444,9 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
           break;
         }
       }
-      ImGui::Text("Edit Command");
-      if (ImGui::BeginCombo("Opcode", kCommandOptions[current_cmd_idx].name)) {
+      ImGui::Text(tr("Edit Command"));
+      if (ImGui::BeginCombo(tr("Opcode"),
+                            kCommandOptions[current_cmd_idx].name)) {
         for (size_t i = 0; i < IM_ARRAYSIZE(kCommandOptions); ++i) {
           bool sel = (static_cast<int>(i) == current_cmd_idx);
           if (ImGui::Selectable(kCommandOptions[i].name, sel)) {
@@ -468,7 +470,7 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
         std::string preview =
             inst ? absl::StrFormat("%02X: %s", p0, inst->name.c_str())
                  : absl::StrFormat("%02X", p0);
-        if (ImGui::BeginCombo("Instrument", preview.c_str())) {
+        if (ImGui::BeginCombo(tr("Instrument"), preview.c_str())) {
           for (size_t i = 0; i < bank->GetInstrumentCount(); ++i) {
             const auto* item = bank->GetInstrument(i);
             bool is_selected = (static_cast<int>(i) == p0);
@@ -483,16 +485,16 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
           ImGui::EndCombo();
         }
       } else {
-        ImGui::InputInt("Param 0 (hex)", &p0, 1, 4,
+        ImGui::InputInt(tr("Param 0 (hex)"), &p0, 1, 4,
                         ImGuiInputTextFlags_CharsHexadecimal);
       }
 
-      ImGui::InputInt("Param 1 (hex)", &p1, 1, 4,
+      ImGui::InputInt(tr("Param 1 (hex)"), &p1, 1, 4,
                       ImGuiInputTextFlags_CharsHexadecimal);
-      ImGui::InputInt("Param 2 (hex)", &p2, 1, 4,
+      ImGui::InputInt(tr("Param 2 (hex)"), &p2, 1, 4,
                       ImGuiInputTextFlags_CharsHexadecimal);
 
-      if (ImGui::Button("Apply")) {
+      if (ImGui::Button(tr("Apply"))) {
         if (on_edit_) {
           on_edit_();
         }
@@ -505,7 +507,7 @@ void TrackerView::DrawEventCell(MusicTrack& track, int event_index,
       ImGui::SameLine();
       ImGui::TextDisabled("%s", DescribeCommand(event.command.opcode).c_str());
     } else {
-      ImGui::TextDisabled("Unsupported edit type");
+      ImGui::TextDisabled(tr("Unsupported edit type"));
     }
 
     ImGui::EndPopup();
