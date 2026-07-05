@@ -1,6 +1,7 @@
 #include "app/editor/menu/menu_builder.h"
 
 #include "absl/strings/str_cat.h"
+#include "util/i18n/tr.h"
 
 namespace yaze {
 namespace editor {
@@ -117,7 +118,8 @@ MenuBuilder& MenuBuilder::DisabledItem(const char* label, const char* icon) {
   return *this;
 }
 
-MenuBuilder& MenuBuilder::CustomMenu(const char* label, Callback draw_callback) {
+MenuBuilder& MenuBuilder::CustomMenu(const char* label,
+                                     Callback draw_callback) {
   Menu menu;
   menu.label = label;
   menu.custom_draw = draw_callback;
@@ -130,7 +132,7 @@ MenuBuilder& MenuBuilder::CustomMenu(const char* label, Callback draw_callback) 
 void MenuBuilder::Draw() {
   for (const auto& menu : menus_) {
     // Don't add icons to top-level menus as they get cut off
-    std::string menu_label = menu.label;
+    std::string menu_label = tr(menu.label.c_str());
 
     if (menu.is_custom) {
       // Custom menu with callback for dynamic content
@@ -164,9 +166,10 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
 
     case MenuItem::Type::kDisabled: {
       if (skip_depth_ == 0) {
-        std::string label = item.icon.empty()
-                                ? item.label
-                                : absl::StrCat(item.icon, " ", item.label);
+        std::string label =
+            item.icon.empty()
+                ? std::string(tr(item.label.c_str()))
+                : absl::StrCat(item.icon, " ", tr(item.label.c_str()));
         ImGui::BeginDisabled();
         ImGui::MenuItem(label.c_str(), nullptr, false, false);
         ImGui::EndDisabled();
@@ -182,9 +185,10 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
         break;
       }
 
-      std::string label = item.icon.empty()
-                              ? item.label
-                              : absl::StrCat(item.icon, " ", item.label);
+      std::string label =
+          item.icon.empty()
+              ? std::string(tr(item.label.c_str()))
+              : absl::StrCat(item.icon, " ", tr(item.label.c_str()));
 
       bool enabled = !item.enabled || item.enabled();
       bool opened = false;
@@ -228,9 +232,10 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
         break;  // Skip items in closed submenus
       }
 
-      std::string label = item.icon.empty()
-                              ? item.label
-                              : absl::StrCat(item.icon, " ", item.label);
+      std::string label =
+          item.icon.empty()
+              ? std::string(tr(item.label.c_str()))
+              : absl::StrCat(item.icon, " ", tr(item.label.c_str()));
 
       bool enabled = !item.enabled || item.enabled();
       bool checked = item.checked && item.checked();

@@ -1,4 +1,5 @@
 #include "canvas_context_menu.h"
+#include "util/i18n/tr.h"
 
 #include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -197,7 +198,7 @@ void CanvasContextMenu::RenderUsageSpecificMenu(
   std::string usage_name = GetUsageModeName(current_usage_);
   ImVec4 usage_color = GetUsageModeColor(current_usage_);
 
-  ImGui::TextColored(usage_color, "%s %s Mode", ICON_MD_COLOR_LENS,
+  ImGui::TextColored(usage_color, tr("%s %s Mode"), ICON_MD_COLOR_LENS,
                      usage_name.c_str());
   ImGui::Separator();
 
@@ -209,35 +210,36 @@ void CanvasContextMenu::RenderUsageSpecificMenu(
 void CanvasContextMenu::RenderViewControlsMenu(
     const std::function<void(Command, const CanvasConfig&)>& command_handler,
     CanvasConfig current_config) {
-  if (ImGui::BeginMenu("View Controls")) {
-    if (ImGui::MenuItem("Reset View", "Ctrl+R")) {
+  if (ImGui::BeginMenu(tr("View Controls"))) {
+    if (ImGui::MenuItem(tr("Reset View"), "Ctrl+R")) {
       Dispatch(command_handler, Command::kResetView, current_config);
     }
-    if (ImGui::MenuItem("Zoom to Fit", "Ctrl+F")) {
+    if (ImGui::MenuItem(tr("Zoom to Fit"), "Ctrl+F")) {
       Dispatch(command_handler, Command::kZoomToFit, current_config);
     }
-    if (ImGui::MenuItem("Zoom In", "Ctrl++")) {
+    if (ImGui::MenuItem(tr("Zoom In"), "Ctrl++")) {
       CanvasConfig updated = current_config;
       updated.global_scale *= 1.25F;
       Dispatch(command_handler, Command::kSetScale, updated);
     }
-    if (ImGui::MenuItem("Zoom Out", "Ctrl+-")) {
+    if (ImGui::MenuItem(tr("Zoom Out"), "Ctrl+-")) {
       CanvasConfig updated = current_config;
       updated.global_scale *= 0.8F;
       Dispatch(command_handler, Command::kSetScale, updated);
     }
     ImGui::Separator();
-    if (ImGui::MenuItem("Show Grid", nullptr, enable_grid_)) {
+    if (ImGui::MenuItem(tr("Show Grid"), nullptr, enable_grid_)) {
       CanvasConfig updated = current_config;
       updated.enable_grid = !enable_grid_;
       Dispatch(command_handler, Command::kToggleGrid, updated);
     }
-    if (ImGui::MenuItem("Show Hex Labels", nullptr, enable_hex_labels_)) {
+    if (ImGui::MenuItem(tr("Show Hex Labels"), nullptr, enable_hex_labels_)) {
       CanvasConfig updated = current_config;
       updated.enable_hex_labels = !enable_hex_labels_;
       Dispatch(command_handler, Command::kToggleHexLabels, updated);
     }
-    if (ImGui::MenuItem("Show Custom Labels", nullptr, enable_custom_labels_)) {
+    if (ImGui::MenuItem(tr("Show Custom Labels"), nullptr,
+                        enable_custom_labels_)) {
       CanvasConfig updated = current_config;
       updated.enable_custom_labels = !enable_custom_labels_;
       Dispatch(command_handler, Command::kToggleCustomLabels, updated);
@@ -250,14 +252,15 @@ void CanvasContextMenu::RenderCanvasPropertiesMenu(
     const std::function<void(Command, const CanvasConfig&)>& command_handler,
     CanvasConfig current_config) {
   if (ImGui::BeginMenu(ICON_MD_SETTINGS " Canvas Properties")) {
-    ImGui::Text("Canvas Size: %.0f x %.0f", canvas_size_.x, canvas_size_.y);
-    ImGui::Text("Content Size: %.0f x %.0f", content_size_.x, content_size_.y);
-    ImGui::Text("Global Scale: %.2f", global_scale_);
-    ImGui::Text("Grid Step: %.1f", grid_step_);
-    ImGui::Text("Mouse Position: %.0f x %.0f", 0.0F,
+    ImGui::Text(tr("Canvas Size: %.0f x %.0f"), canvas_size_.x, canvas_size_.y);
+    ImGui::Text(tr("Content Size: %.0f x %.0f"), content_size_.x,
+                content_size_.y);
+    ImGui::Text(tr("Global Scale: %.2f"), global_scale_);
+    ImGui::Text(tr("Grid Step: %.1f"), grid_step_);
+    ImGui::Text(tr("Mouse Position: %.0f x %.0f"), 0.0F,
                 0.0F);  // Would need actual mouse pos
 
-    if (ImGui::MenuItem("Advanced Properties...")) {
+    if (ImGui::MenuItem(tr("Advanced Properties..."))) {
       CanvasConfig updated = current_config;
       updated.enable_grid = enable_grid_;
       updated.enable_hex_labels = enable_hex_labels_;
@@ -281,29 +284,29 @@ void CanvasContextMenu::RenderBitmapOperationsMenu(gfx::Bitmap* bitmap) {
     return;
 
   if (ImGui::BeginMenu(ICON_MD_IMAGE " Bitmap Properties")) {
-    ImGui::Text("Size: %d x %d", bitmap->width(), bitmap->height());
+    ImGui::Text(tr("Size: %d x %d"), bitmap->width(), bitmap->height());
     if (auto* surface = bitmap->surface()) {
-      ImGui::Text("Pitch: %d", surface->pitch);
-      ImGui::Text("BitsPerPixel: %d",
+      ImGui::Text(tr("Pitch: %d"), surface->pitch);
+      ImGui::Text(tr("BitsPerPixel: %d"),
                   platform::GetSurfaceBitsPerPixel(surface));
-      ImGui::Text("BytesPerPixel: %d",
+      ImGui::Text(tr("BytesPerPixel: %d"),
                   platform::GetSurfaceBytesPerPixel(surface));
     }
 
-    if (ImGui::BeginMenu("Format")) {
-      if (ImGui::MenuItem("Indexed")) {
+    if (ImGui::BeginMenu(tr("Format"))) {
+      if (ImGui::MenuItem(tr("Indexed"))) {
         bitmap->Reformat(gfx::BitmapFormat::kIndexed);
         // Queue texture update via Arena's deferred system
         gfx::Arena::Get().QueueTextureCommand(
             gfx::Arena::TextureCommandType::UPDATE, bitmap);
       }
-      if (ImGui::MenuItem("4BPP")) {
+      if (ImGui::MenuItem(tr("4BPP"))) {
         bitmap->Reformat(gfx::BitmapFormat::k4bpp);
         // Queue texture update via Arena's deferred system
         gfx::Arena::Get().QueueTextureCommand(
             gfx::Arena::TextureCommandType::UPDATE, bitmap);
       }
-      if (ImGui::MenuItem("8BPP")) {
+      if (ImGui::MenuItem(tr("8BPP"))) {
         bitmap->Reformat(gfx::BitmapFormat::k8bpp);
         // Queue texture update via Arena's deferred system
         gfx::Arena::Get().QueueTextureCommand(
@@ -321,34 +324,34 @@ void CanvasContextMenu::RenderPaletteOperationsMenu(Rom* rom,
     return;
 
   if (ImGui::BeginMenu(ICON_MD_PALETTE " Palette Operations")) {
-    if (ImGui::MenuItem("Edit Palette...")) {
+    if (ImGui::MenuItem(tr("Edit Palette..."))) {
       palette_editor_->ShowPaletteEditor(*bitmap->mutable_palette(),
                                          "Palette Editor");
     }
-    if (ImGui::MenuItem("Color Analysis...")) {
+    if (ImGui::MenuItem(tr("Color Analysis..."))) {
       palette_editor_->ShowColorAnalysis(*bitmap, "Color Analysis");
     }
 
-    if (rom && ImGui::BeginMenu("ROM Palette Selection")) {
+    if (rom && ImGui::BeginMenu(tr("ROM Palette Selection"))) {
       palette_editor_->Initialize(rom);
 
       // Render palette selector inline
-      ImGui::Text("Group:");
+      ImGui::Text(tr("Group:"));
       ImGui::SameLine();
       ImGui::InputScalar("##group", ImGuiDataType_U64,
                          &edit_palette_group_name_index_);
-      ImGui::Text("Palette:");
+      ImGui::Text(tr("Palette:"));
       ImGui::SameLine();
       ImGui::InputScalar("##palette", ImGuiDataType_U64, &edit_palette_index_);
 
-      if (ImGui::Button("Apply to Canvas")) {
+      if (ImGui::Button(tr("Apply to Canvas"))) {
         palette_editor_->ApplyROMPalette(bitmap, edit_palette_group_name_index_,
                                          edit_palette_index_);
       }
       ImGui::EndMenu();
     }
 
-    if (ImGui::BeginMenu("View Palette")) {
+    if (ImGui::BeginMenu(tr("View Palette"))) {
       DisplayEditablePalette(*bitmap->mutable_palette(), "Palette", true, 8);
       ImGui::EndMenu();
     }
@@ -357,36 +360,36 @@ void CanvasContextMenu::RenderPaletteOperationsMenu(Rom* rom,
 
     // Palette Help submenu
     if (ImGui::BeginMenu(ICON_MD_HELP " Palette Help")) {
-      ImGui::TextColored(ImVec4(0.7F, 0.9F, 1.0F, 1.0F), "Bitmap Metadata");
+      ImGui::TextColored(ImVec4(0.7F, 0.9F, 1.0F, 1.0F), tr("Bitmap Metadata"));
       ImGui::Separator();
 
       const auto& meta = bitmap->metadata();
-      ImGui::Text("Source BPP: %d", meta.source_bpp);
-      ImGui::Text("Palette Format: %s",
+      ImGui::Text(tr("Source BPP: %d"), meta.source_bpp);
+      ImGui::Text(tr("Palette Format: %s"),
                   meta.palette_format == 0 ? "Full" : "Sub-palette");
-      ImGui::Text("Source Type: %s", meta.source_type.c_str());
-      ImGui::Text("Expected Colors: %d", meta.palette_colors);
-      ImGui::Text("Actual Palette Size: %zu", bitmap->palette().size());
+      ImGui::Text(tr("Source Type: %s"), meta.source_type.c_str());
+      ImGui::Text(tr("Expected Colors: %d"), meta.palette_colors);
+      ImGui::Text(tr("Actual Palette Size: %zu"), bitmap->palette().size());
 
       ImGui::Separator();
       ImGui::TextColored(ImVec4(1.0F, 0.9F, 0.6F, 1.0F),
-                         "Palette Application Method");
+                         tr("Palette Application Method"));
       if (meta.palette_format == 0) {
         ImGui::TextWrapped(
-            "Full palette (SetPalette) - all colors applied directly");
+            tr("Full palette (SetPalette) - all colors applied directly"));
       } else {
-        ImGui::TextWrapped(
+        ImGui::TextWrapped(tr(
             "Sub-palette (SetPaletteWithTransparent) - color 0 is transparent, "
-            "1-7 from palette");
+            "1-7 from palette"));
       }
 
       ImGui::Separator();
-      ImGui::TextColored(ImVec4(0.6F, 1.0F, 0.6F, 1.0F), "Documentation");
-      if (ImGui::MenuItem("Palette System Architecture")) {
+      ImGui::TextColored(ImVec4(0.6F, 1.0F, 0.6F, 1.0F), tr("Documentation"));
+      if (ImGui::MenuItem(tr("Palette System Architecture"))) {
         ImGui::SetClipboardText("yaze/docs/palette-system-architecture.md");
         // TODO: Open file in system viewer
       }
-      if (ImGui::MenuItem("User Palette Guide")) {
+      if (ImGui::MenuItem(tr("User Palette Guide"))) {
         ImGui::SetClipboardText("yaze/docs/user-palette-guide.md");
         // TODO: Open file in system viewer
       }
@@ -408,13 +411,13 @@ void CanvasContextMenu::DrawROMPaletteSelector() {
 void CanvasContextMenu::RenderBppOperationsMenu(
     const gfx::Bitmap* /* bitmap */) {
   if (ImGui::BeginMenu(ICON_MD_SWAP_HORIZ " BPP Operations")) {
-    if (ImGui::MenuItem("Format Analysis...")) {
+    if (ImGui::MenuItem(tr("Format Analysis..."))) {
       // Open BPP analysis
     }
-    if (ImGui::MenuItem("Convert Format...")) {
+    if (ImGui::MenuItem(tr("Convert Format..."))) {
       // Open BPP conversion dialog
     }
-    if (ImGui::MenuItem("Format Comparison...")) {
+    if (ImGui::MenuItem(tr("Format Comparison..."))) {
       // Open format comparison tool
     }
 
@@ -428,13 +431,13 @@ void CanvasContextMenu::RenderPerformanceMenu() {
     auto canvas_stats = profiler.GetStats("canvas_operations");
     auto draw_stats = profiler.GetStats("canvas_draw");
 
-    ImGui::Text("Canvas Operations: %zu", canvas_stats.sample_count);
-    ImGui::Text("Average Time: %.2f ms", draw_stats.avg_time_us / 1000.0);
+    ImGui::Text(tr("Canvas Operations: %zu"), canvas_stats.sample_count);
+    ImGui::Text(tr("Average Time: %.2f ms"), draw_stats.avg_time_us / 1000.0);
 
-    if (ImGui::MenuItem("Performance Dashboard...")) {
+    if (ImGui::MenuItem(tr("Performance Dashboard..."))) {
       gfx::PerformanceDashboard::Get().SetVisible(true);
     }
-    if (ImGui::MenuItem("Usage Report...")) {
+    if (ImGui::MenuItem(tr("Usage Report..."))) {
       // Open usage report
     }
 

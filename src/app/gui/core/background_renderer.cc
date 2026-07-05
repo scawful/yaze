@@ -1,4 +1,5 @@
 #include "app/gui/core/background_renderer.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -273,37 +274,39 @@ void BackgroundRenderer::UpdateForTheme(const Color& primary_color,
 }
 
 void BackgroundRenderer::DrawSettingsUI() {
-  if (ImGui::CollapsingHeader("Background Grid Settings")) {
+  if (ImGui::CollapsingHeader(tr("Background Grid Settings"))) {
     ImGui::Indent();
 
-    ImGui::SliderFloat("Grid Size", &grid_settings_.grid_size, 8.0f, 128.0f,
+    ImGui::SliderFloat(tr("Grid Size"), &grid_settings_.grid_size, 8.0f, 128.0f,
                        "%.0f px");
-    ImGui::SliderFloat("Line Thickness", &grid_settings_.line_thickness, 0.5f,
-                       3.0f, "%.1f px");
-    ImGui::SliderFloat("Opacity", &grid_settings_.opacity, 0.01f, 0.3f, "%.3f");
-    ImGui::SliderFloat("Fade Distance", &grid_settings_.fade_distance, 50.0f,
-                       500.0f, "%.0f px");
+    ImGui::SliderFloat(tr("Line Thickness"), &grid_settings_.line_thickness,
+                       0.5f, 3.0f, "%.1f px");
+    ImGui::SliderFloat(tr("Opacity"), &grid_settings_.opacity, 0.01f, 0.3f,
+                       "%.3f");
+    ImGui::SliderFloat(tr("Fade Distance"), &grid_settings_.fade_distance,
+                       50.0f, 500.0f, "%.0f px");
 
     ImGui::Separator();
-    ImGui::Text("Visual Effects:");
-    ImGui::Checkbox("Enable Animation", &grid_settings_.enable_animation);
+    ImGui::Text(tr("Visual Effects:"));
+    ImGui::Checkbox(tr("Enable Animation"), &grid_settings_.enable_animation);
     ImGui::SameLine();
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Makes the grid move slowly across the screen");
+      ImGui::SetTooltip(tr("Makes the grid move slowly across the screen"));
     }
 
-    ImGui::Checkbox("Color Breathing", &grid_settings_.enable_breathing);
+    ImGui::Checkbox(tr("Color Breathing"), &grid_settings_.enable_breathing);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Grid color pulses with a breathing effect");
+      ImGui::SetTooltip(tr("Grid color pulses with a breathing effect"));
     }
 
-    ImGui::Checkbox("Radial Fade", &grid_settings_.radial_fade);
-    ImGui::Checkbox("Use Dots Instead of Lines", &grid_settings_.enable_dots);
+    ImGui::Checkbox(tr("Radial Fade"), &grid_settings_.radial_fade);
+    ImGui::Checkbox(tr("Use Dots Instead of Lines"),
+                    &grid_settings_.enable_dots);
 
     // Animation settings (only show if animation is enabled)
     if (grid_settings_.enable_animation) {
       ImGui::Indent();
-      ImGui::SliderFloat("Animation Speed", &grid_settings_.animation_speed,
+      ImGui::SliderFloat(tr("Animation Speed"), &grid_settings_.animation_speed,
                          0.1f, 3.0f, "%.1fx");
       ImGui::Unindent();
     }
@@ -311,22 +314,22 @@ void BackgroundRenderer::DrawSettingsUI() {
     // Breathing settings (only show if breathing is enabled)
     if (grid_settings_.enable_breathing) {
       ImGui::Indent();
-      ImGui::SliderFloat("Breathing Speed", &grid_settings_.breathing_speed,
+      ImGui::SliderFloat(tr("Breathing Speed"), &grid_settings_.breathing_speed,
                          0.5f, 3.0f, "%.1fx");
-      ImGui::SliderFloat("Breathing Intensity",
+      ImGui::SliderFloat(tr("Breathing Intensity"),
                          &grid_settings_.breathing_intensity, 0.1f, 0.8f,
                          "%.1f");
       ImGui::Unindent();
     }
 
     if (grid_settings_.enable_dots) {
-      ImGui::SliderFloat("Dot Size", &grid_settings_.dot_size, 1.0f, 8.0f,
+      ImGui::SliderFloat(tr("Dot Size"), &grid_settings_.dot_size, 1.0f, 8.0f,
                          "%.1f px");
     }
 
     // Preview
     ImGui::Spacing();
-    ImGui::Text("Preview:");
+    ImGui::Text(tr("Preview:"));
     ImVec2 preview_size(200, 100);
     ImVec2 preview_pos = ImGui::GetCursorScreenPos();
 

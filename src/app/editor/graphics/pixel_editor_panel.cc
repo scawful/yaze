@@ -1,4 +1,5 @@
 #include "app/editor/graphics/pixel_editor_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -171,7 +172,8 @@ void PixelEditorPanel::DrawViewControls() {
 
 void PixelEditorPanel::DrawCanvas() {
   if (state_->open_sheets.empty()) {
-    ImGui::TextDisabled("No sheet selected. Select a sheet from the browser.");
+    ImGui::TextDisabled(
+        tr("No sheet selected. Select a sheet from the browser."));
     return;
   }
 
@@ -197,7 +199,7 @@ void PixelEditorPanel::DrawCanvas() {
             state_->current_sheet_id);
 
         if (!sheet.is_active()) {
-          ImGui::TextDisabled("Sheet %02X is not active", sheet_id);
+          ImGui::TextDisabled(tr("Sheet %02X is not active"), sheet_id);
           ImGui::EndTabItem();
           continue;
         }
@@ -383,12 +385,12 @@ void PixelEditorPanel::DrawPixelInfoTooltip(const gfx::Bitmap& sheet) {
   auto palette = sheet.palette();
 
   ImGui::BeginTooltip();
-  ImGui::Text("Pos: %d, %d", cursor_x_, cursor_y_);
-  ImGui::Text("Tile: %d, %d", cursor_x_ / 8, cursor_y_ / 8);
-  ImGui::Text("Index: %d", color_index);
+  ImGui::Text(tr("Pos: %d, %d"), cursor_x_, cursor_y_);
+  ImGui::Text(tr("Tile: %d, %d"), cursor_x_ / 8, cursor_y_ / 8);
+  ImGui::Text(tr("Index: %d"), color_index);
 
   if (color_index < palette.size()) {
-    ImGui::Text("SNES: $%04X", palette[color_index].snes());
+    ImGui::Text(tr("SNES: $%04X"), palette[color_index].snes());
     ImVec4 color(palette[color_index].rgb().x / 255.0f,
                  palette[color_index].rgb().y / 255.0f,
                  palette[color_index].rgb().z / 255.0f, 1.0f);
@@ -396,7 +398,7 @@ void PixelEditorPanel::DrawPixelInfoTooltip(const gfx::Bitmap& sheet) {
                        ImVec2(24, 24));
     if (color_index == 0) {
       ImGui::SameLine();
-      ImGui::TextDisabled("(Transparent)");
+      ImGui::TextDisabled(tr("(Transparent)"));
     }
   }
   ImGui::EndTooltip();
@@ -443,7 +445,7 @@ void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
 
   if (ImGui::IsMouseHoveringRect(min, max)) {
     ImGui::BeginTooltip();
-    ImGui::Text("Focus tile: %d (sheet %02X)", tile_index,
+    ImGui::Text(tr("Focus tile: %d (sheet %02X)"), tile_index,
                 state_->tile_highlight.sheet_id);
     if (!state_->tile_highlight.label.empty()) {
       ImGui::Text("%s", state_->tile_highlight.label.c_str());
@@ -453,10 +455,10 @@ void PixelEditorPanel::DrawTileHighlight(const gfx::Bitmap& sheet) {
 }
 
 void PixelEditorPanel::DrawColorPicker() {
-  ImGui::Text("Colors");
+  ImGui::Text(tr("Colors"));
 
   if (state_->open_sheets.empty()) {
-    ImGui::TextDisabled("No sheet");
+    ImGui::TextDisabled(tr("No sheet"));
     return;
   }
 
@@ -499,13 +501,13 @@ void PixelEditorPanel::DrawColorPicker() {
 
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::Text("Index: %d", i);
-      ImGui::Text("SNES: $%04X", palette[i].snes());
-      ImGui::Text("RGB: %d, %d, %d", static_cast<int>(palette[i].rgb().x),
+      ImGui::Text(tr("Index: %d"), i);
+      ImGui::Text(tr("SNES: $%04X"), palette[i].snes());
+      ImGui::Text(tr("RGB: %d, %d, %d"), static_cast<int>(palette[i].rgb().x),
                   static_cast<int>(palette[i].rgb().y),
                   static_cast<int>(palette[i].rgb().z));
       if (i == 0) {
-        ImGui::Text("(Transparent)");
+        ImGui::Text(tr("(Transparent)"));
       }
       ImGui::EndTooltip();
     }
@@ -514,18 +516,18 @@ void PixelEditorPanel::DrawColorPicker() {
   ImGui::Separator();
 
   // Current color preview
-  ImGui::Text("Current:");
+  ImGui::Text(tr("Current:"));
   ImGui::ColorButton("##CurrentColor", state_->current_color,
                      ImGuiColorEditFlags_NoTooltip, ImVec2(40, 40));
   ImGui::SameLine();
-  ImGui::Text("Index: %d", state_->current_color_index);
+  ImGui::Text(tr("Index: %d"), state_->current_color_index);
 }
 
 void PixelEditorPanel::DrawMiniMap() {
-  ImGui::Text("Navigator");
+  ImGui::Text(tr("Navigator"));
 
   if (state_->open_sheets.empty()) {
-    ImGui::TextDisabled("No sheet");
+    ImGui::TextDisabled(tr("No sheet"));
     return;
   }
 
@@ -560,36 +562,36 @@ void PixelEditorPanel::DrawStatusBar() {
 
   // Cursor position
   if (cursor_in_canvas_) {
-    ImGui::Text("Pos: %d, %d", cursor_x_, cursor_y_);
+    ImGui::Text(tr("Pos: %d, %d"), cursor_x_, cursor_y_);
     ImGui::SameLine();
 
     // Tile coordinates
     int tile_x = cursor_x_ / 8;
     int tile_y = cursor_y_ / 8;
-    ImGui::Text("Tile: %d, %d", tile_x, tile_y);
+    ImGui::Text(tr("Tile: %d, %d"), tile_x, tile_y);
     ImGui::SameLine();
   }
 
   // Sheet info
-  ImGui::Text("Sheet: %02X", state_->current_sheet_id);
+  ImGui::Text(tr("Sheet: %02X"), state_->current_sheet_id);
   ImGui::SameLine();
 
   if (state_->tile_highlight.active &&
       state_->tile_highlight.sheet_id == state_->current_sheet_id) {
-    ImGui::TextColored(gui::GetWarningColor(), "Focus: %d",
+    ImGui::TextColored(gui::GetWarningColor(), tr("Focus: %d"),
                        state_->tile_highlight.tile_index);
     ImGui::SameLine();
   }
 
   // Modified indicator
   if (state_->modified_sheets.count(state_->current_sheet_id) > 0) {
-    ImGui::TextColored(gui::GetModifiedColor(), "(Modified)");
+    ImGui::TextColored(gui::GetModifiedColor(), tr("(Modified)"));
   }
 
   // Zoom level
   ImGui::SameLine();
   ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 80);
-  ImGui::Text("Zoom: %.0fx", state_->zoom_level);
+  ImGui::Text(tr("Zoom: %.0fx"), state_->zoom_level);
 }
 
 void PixelEditorPanel::HandleCanvasInput() {

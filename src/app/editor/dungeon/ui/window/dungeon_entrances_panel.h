@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
@@ -26,10 +27,9 @@ namespace editor {
  */
 class DungeonEntrancesPanel : public WindowContent {
  public:
-  DungeonEntrancesPanel(
-      std::array<zelda3::RoomEntrance, 0x8C>* entrances,
-      int* current_entrance_id,
-      std::function<void(int)> on_entrance_selected)
+  DungeonEntrancesPanel(std::array<zelda3::RoomEntrance, 0x8C>* entrances,
+                        int* current_entrance_id,
+                        std::function<void(int)> on_entrance_selected)
       : entrances_(entrances),
         current_entrance_id_(current_entrance_id),
         on_entrance_selected_(std::move(on_entrance_selected)) {}
@@ -49,7 +49,8 @@ class DungeonEntrancesPanel : public WindowContent {
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!entrances_ || !current_entrance_id_) return;
+    if (!entrances_ || !current_entrance_id_)
+      return;
 
     auto& current_entrance = (*entrances_)[*current_entrance_id_];
 
@@ -85,27 +86,33 @@ class DungeonEntrancesPanel : public WindowContent {
                       50.f, true);
 
     ImGui::Separator();
-    ImGui::Text("Camera Boundaries");
+    ImGui::Text(tr("Camera Boundaries"));
     ImGui::Separator();
-    ImGui::Text("\t\t\t\t\tNorth         East         South         West");
+    ImGui::Text(tr("\t\t\t\t\tNorth         East         South         West"));
 
     gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f,
                       true);
     ImGui::SameLine();
-    gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 50.f, true);
+    gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 50.f,
+                      true);
     ImGui::SameLine();
-    gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 50.f, true);
+    gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 50.f,
+                      true);
     ImGui::SameLine();
-    gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 50.f, true);
+    gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 50.f,
+                      true);
 
     gui::InputHexByte("Full room", &current_entrance.camera_boundary_fn_, 50.f,
                       true);
     ImGui::SameLine();
-    gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 50.f, true);
+    gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 50.f,
+                      true);
     ImGui::SameLine();
-    gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 50.f, true);
+    gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 50.f,
+                      true);
     ImGui::SameLine();
-    gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 50.f, true);
+    gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 50.f,
+                      true);
 
     ImGui::Separator();
 

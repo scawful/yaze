@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "app/editor/music/sample_editor_view.h"
 #include "app/editor/system/workspace/editor_panel.h"
@@ -40,7 +41,7 @@ class MusicSampleEditorPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!music_bank_ || !sample_view_) {
-      ImGui::TextDisabled("Music bank not loaded");
+      ImGui::TextDisabled(tr("Music bank not loaded"));
       return;
     }
 

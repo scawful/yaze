@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -62,19 +63,19 @@ class WaterFillPanel : public WindowContent {
                          " WaterFill reserved region missing (use an "
                          "expanded-collision Oracle ROM)");
       ImGui::TextDisabled(
-          "Expected ROM >= 0x%X bytes (WaterFill end). Current ROM is %zu "
-          "bytes.",
+          tr("Expected ROM >= 0x%X bytes (WaterFill end). Current ROM is %zu "
+             "bytes."),
           zelda3::kWaterFillTableEnd, rom_size);
       ImGui::Separator();
     }
 
     bool show_overlay = viewer_->show_water_fill_overlay();
-    if (ImGui::Checkbox("Show Water Fill Overlay", &show_overlay)) {
+    if (ImGui::Checkbox(tr("Show Water Fill Overlay"), &show_overlay)) {
       viewer_->set_show_water_fill_overlay(show_overlay);
     }
 
     ImGui::Separator();
-    ImGui::TextUnformatted("Authoring");
+    ImGui::TextUnformatted(tr("Authoring"));
 
     util::FileDialogOptions json_options;
     json_options.filters.push_back({"Water Fill Zones", "json"});
@@ -172,9 +173,9 @@ class WaterFillPanel : public WindowContent {
                          last_io_status_.c_str());
     }
 
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "Import/export uses a room-indexed JSON format. Normalize masks before "
-        "saving to avoid duplicate SRAM bits.");
+        "saving to avoid duplicate SRAM bits."));
 
     ImGui::Separator();
     if (!room_id_valid) {
@@ -189,23 +190,24 @@ class WaterFillPanel : public WindowContent {
       }
 
       if (!interaction_) {
-        ImGui::TextDisabled("Painting requires an active interaction context.");
+        ImGui::TextDisabled(
+            tr("Painting requires an active interaction context."));
       } else {
         // Brush controls are shared across paint modes.
         auto& state = interaction_->mode_manager().GetModeState();
         int brush_radius = std::clamp(state.paint_brush_radius, 0, 8);
-        if (ImGui::SliderInt("Brush Radius", &brush_radius, 0, 8)) {
+        if (ImGui::SliderInt(tr("Brush Radius"), &brush_radius, 0, 8)) {
           state.paint_brush_radius = brush_radius;
         }
         ImGui::SameLine();
-        ImGui::TextDisabled("%dx%d", (brush_radius * 2) + 1,
+        ImGui::TextDisabled(tr("%dx%d"), (brush_radius * 2) + 1,
                             (brush_radius * 2) + 1);
 
         bool is_painting = (interaction_->mode_manager().GetMode() ==
                             InteractionMode::PaintWaterFill);
         const bool can_paint = reserved_region_present && room_loaded;
         ImGui::BeginDisabled(!can_paint);
-        if (ImGui::Checkbox("Paint Mode", &is_painting)) {
+        if (ImGui::Checkbox(tr("Paint Mode"), &is_painting)) {
           if (is_painting) {
             interaction_->mode_manager().SetMode(
                 InteractionMode::PaintWaterFill);
@@ -218,13 +220,13 @@ class WaterFillPanel : public WindowContent {
 
         if (is_painting) {
           ImGui::TextColored(theme.text_warning_yellow,
-                             "Left-drag paints; Alt-drag erases");
+                             tr("Left-drag paints; Alt-drag erases"));
         }
       }
 
       const int tile_count = room.WaterFillTileCount();
       ImGui::Separator();
-      ImGui::Text("Zone Tiles: %d", tile_count);
+      ImGui::Text(tr("Zone Tiles: %d"), tile_count);
       if (tile_count > 255) {
         ImGui::TextColored(theme.status_error,
                            ICON_MD_ERROR " Too many tiles (max 255 per room)");
@@ -244,7 +246,7 @@ class WaterFillPanel : public WindowContent {
               " No PullSwitch (0x04) / PushSwitch (0x21) sprite found");
         }
       } else {
-        ImGui::TextDisabled("Sprite checks require the room to be loaded.");
+        ImGui::TextDisabled(tr("Sprite checks require the room to be loaded."));
       }
 
       ImGui::Separator();
@@ -252,7 +254,7 @@ class WaterFillPanel : public WindowContent {
       std::string preview =
           (mask == 0) ? "Auto (0x00)" : absl::StrFormat("0x%02X", mask);
       ImGui::BeginDisabled(!reserved_region_present);
-      if (ImGui::BeginCombo("SRAM Bit Mask ($7EF411)", preview.c_str())) {
+      if (ImGui::BeginCombo(tr("SRAM Bit Mask ($7EF411)"), preview.c_str())) {
         auto option = [&](const char* label, uint8_t val) {
           const bool selected = (mask == val);
           if (ImGui::Selectable(label, selected)) {
@@ -275,20 +277,20 @@ class WaterFillPanel : public WindowContent {
       }
 
       ImGui::Separator();
-      if (ImGui::Button("Clear Water Fill Zone")) {
+      if (ImGui::Button(tr("Clear Water Fill Zone"))) {
         room.ClearWaterFillZone();
       }
       ImGui::EndDisabled();
 
       ImGui::TextWrapped(
-          "Water fill zones are serialized as compact tile offset lists. "
-          "Keep zones under 255 tiles per room.");
+          tr("Water fill zones are serialized as compact tile offset lists. "
+             "Keep zones under 255 tiles per room."));
     }
 
     // Overview: show all rooms that currently have zone data, plus global
     // constraints (max 8 rooms / unique SRAM masks).
     ImGui::Separator();
-    if (ImGui::CollapsingHeader("Zone Overview",
+    if (ImGui::CollapsingHeader(tr("Zone Overview"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
       struct ZoneRow {
         int room_id = 0;
@@ -332,7 +334,7 @@ class WaterFillPanel : public WindowContent {
         }
       }
 
-      ImGui::Text("Rooms with zones: %zu / 8", rows.size());
+      ImGui::Text(tr("Rooms with zones: %zu / 8"), rows.size());
       if (rows.size() > 8) {
         ImGui::TextColored(theme.status_error,
                            ICON_MD_ERROR " Too many rooms with zones (max 8)");
@@ -375,9 +377,9 @@ class WaterFillPanel : public WindowContent {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           if (is_current) {
-            ImGui::TextColored(theme.text_info, "0x%02X", row.room_id);
+            ImGui::TextColored(theme.text_info, tr("0x%02X"), row.room_id);
           } else {
-            ImGui::Text("0x%02X", row.room_id);
+            ImGui::Text(tr("0x%02X"), row.room_id);
           }
 
           ImGui::TableNextColumn();
@@ -385,9 +387,9 @@ class WaterFillPanel : public WindowContent {
 
           ImGui::TableNextColumn();
           if (row.mask == 0) {
-            ImGui::TextDisabled("Auto");
+            ImGui::TextDisabled(tr("Auto"));
           } else {
-            ImGui::Text("0x%02X", row.mask);
+            ImGui::Text(tr("0x%02X"), row.mask);
           }
 
           ImGui::TableNextColumn();
@@ -403,7 +405,7 @@ class WaterFillPanel : public WindowContent {
           ImGui::TableNextColumn();
           if (viewer_->CanNavigateRooms()) {
             ImGui::PushID(row.room_id);
-            if (ImGui::SmallButton("Open")) {
+            if (ImGui::SmallButton(tr("Open"))) {
               viewer_->NavigateToRoom(row.room_id);
             }
             ImGui::PopID();

@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include "util/i18n/tr.h"
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -154,12 +155,12 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   current_room_id_ = room_id;
   // Validate room_id and ROM
   if (room_id < 0 || room_id >= 0x128) {
-    ImGui::Text("Invalid room ID: %d", room_id);
+    ImGui::Text(tr("Invalid room ID: %d"), room_id);
     return;
   }
 
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::Text("ROM not loaded");
+    ImGui::Text(tr("ROM not loaded"));
     return;
   }
 
@@ -887,43 +888,43 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SetNextWindowSize(ImVec2(300, 0), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Room Debug Info", &show_room_debug_info_,
                      ImGuiWindowFlags_NoCollapse)) {
-      ImGui::Text("Room: 0x%03X (%d)", room_id, room_id);
+      ImGui::Text(tr("Room: 0x%03X (%d)"), room_id, room_id);
       ImGui::Separator();
-      ImGui::Text("Graphics");
-      ImGui::Text("  Blockset: 0x%02X", room.blockset());
-      ImGui::Text("  Palette: 0x%02X", room.palette());
-      ImGui::Text("  Layout: 0x%02X", room.layout_id());
-      ImGui::Text("  Spriteset: 0x%02X", room.spriteset());
+      ImGui::Text(tr("Graphics"));
+      ImGui::Text(tr("  Blockset: 0x%02X"), room.blockset());
+      ImGui::Text(tr("  Palette: 0x%02X"), room.palette());
+      ImGui::Text(tr("  Layout: 0x%02X"), room.layout_id());
+      ImGui::Text(tr("  Spriteset: 0x%02X"), room.spriteset());
       ImGui::Separator();
-      ImGui::Text("Content");
-      ImGui::Text("  Objects: %zu", room.GetTileObjects().size());
-      ImGui::Text("  Sprites: %zu", room.GetSprites().size());
+      ImGui::Text(tr("Content"));
+      ImGui::Text(tr("  Objects: %zu"), room.GetTileObjects().size());
+      ImGui::Text(tr("  Sprites: %zu"), room.GetSprites().size());
       ImGui::Separator();
-      ImGui::Text("Buffers");
+      ImGui::Text(tr("Buffers"));
       auto& bg1 = room.bg1_buffer().bitmap();
       auto& bg2 = room.bg2_buffer().bitmap();
-      ImGui::Text("  BG1: %dx%d %s", bg1.width(), bg1.height(),
+      ImGui::Text(tr("  BG1: %dx%d %s"), bg1.width(), bg1.height(),
                   bg1.texture() ? "(has texture)" : "(NO TEXTURE)");
-      ImGui::Text("  BG2: %dx%d %s", bg2.width(), bg2.height(),
+      ImGui::Text(tr("  BG2: %dx%d %s"), bg2.width(), bg2.height(),
                   bg2.texture() ? "(has texture)" : "(NO TEXTURE)");
       ImGui::Separator();
-      ImGui::Text("Layers (4-way)");
+      ImGui::Text(tr("Layers (4-way)"));
       auto& layer_mgr = GetRoomLayerManager(room_id);
       bool bg1l = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Layout);
       bool bg1o = layer_mgr.IsLayerVisible(zelda3::LayerType::BG1_Objects);
       bool bg2l = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Layout);
       bool bg2o = layer_mgr.IsLayerVisible(zelda3::LayerType::BG2_Objects);
-      if (ImGui::Checkbox("BG1 Layout", &bg1l))
+      if (ImGui::Checkbox(tr("BG1 Layout"), &bg1l))
         layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Layout, bg1l);
-      if (ImGui::Checkbox("BG1 Objects", &bg1o))
+      if (ImGui::Checkbox(tr("BG1 Objects"), &bg1o))
         layer_mgr.SetLayerVisible(zelda3::LayerType::BG1_Objects, bg1o);
-      if (ImGui::Checkbox("BG2 Layout", &bg2l))
+      if (ImGui::Checkbox(tr("BG2 Layout"), &bg2l))
         layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Layout, bg2l);
-      if (ImGui::Checkbox("BG2 Objects", &bg2o))
+      if (ImGui::Checkbox(tr("BG2 Objects"), &bg2o))
         layer_mgr.SetLayerVisible(zelda3::LayerType::BG2_Objects, bg2o);
       int blend = static_cast<int>(
           layer_mgr.GetLayerBlendMode(zelda3::LayerType::BG2_Layout));
-      if (ImGui::SliderInt("BG2 Blend", &blend, 0, 4)) {
+      if (ImGui::SliderInt(tr("BG2 Blend"), &blend, 0, 4)) {
         layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Layout,
                                     static_cast<zelda3::LayerBlendMode>(blend));
         layer_mgr.SetLayerBlendMode(zelda3::LayerType::BG2_Objects,
@@ -931,28 +932,31 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       }
 
       ImGui::Separator();
-      ImGui::Text("Layout Override");
+      ImGui::Text(tr("Layout Override"));
       static bool enable_override = false;
-      ImGui::Checkbox("Enable Override", &enable_override);
+      ImGui::Checkbox(tr("Enable Override"), &enable_override);
       if (enable_override) {
-        ImGui::SliderInt("Layout ID", &layout_override_, 0, 7);
+        ImGui::SliderInt(tr("Layout ID"), &layout_override_, 0, 7);
       } else {
         layout_override_ = -1;  // Disable override
       }
 
       if (show_object_bounds_) {
         ImGui::Separator();
-        ImGui::Text("Object Outline Filters");
-        ImGui::Text("By Type:");
-        ImGui::Checkbox("Type 1", &object_outline_toggles_.show_type1_objects);
-        ImGui::Checkbox("Type 2", &object_outline_toggles_.show_type2_objects);
-        ImGui::Checkbox("Type 3", &object_outline_toggles_.show_type3_objects);
-        ImGui::Text("By Layer:");
-        ImGui::Checkbox("Primary (main pass)",
+        ImGui::Text(tr("Object Outline Filters"));
+        ImGui::Text(tr("By Type:"));
+        ImGui::Checkbox(tr("Type 1"),
+                        &object_outline_toggles_.show_type1_objects);
+        ImGui::Checkbox(tr("Type 2"),
+                        &object_outline_toggles_.show_type2_objects);
+        ImGui::Checkbox(tr("Type 3"),
+                        &object_outline_toggles_.show_type3_objects);
+        ImGui::Text(tr("By Layer:"));
+        ImGui::Checkbox(tr("Primary (main pass)"),
                         &object_outline_toggles_.show_layer0_objects);
-        ImGui::Checkbox("BG2 overlay",
+        ImGui::Checkbox(tr("BG2 overlay"),
                         &object_outline_toggles_.show_layer1_objects);
-        ImGui::Checkbox("BG1 overlay",
+        ImGui::Checkbox(tr("BG1 overlay"),
                         &object_outline_toggles_.show_layer2_objects);
       }
     }
@@ -989,26 +993,26 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
         gfx::Arena::Get().ProcessTextureQueue(renderer_);
       }
 
-      ImGui::Text("BG1 Bitmap");
-      ImGui::Text("  Size: %dx%d", bg1.width(), bg1.height());
-      ImGui::Text("  Active: %s", bg1.is_active() ? "YES" : "NO");
-      ImGui::Text("  Texture: 0x%p", bg1.texture());
-      ImGui::Text("  Modified: %s", bg1.modified() ? "YES" : "NO");
+      ImGui::Text(tr("BG1 Bitmap"));
+      ImGui::Text(tr("  Size: %dx%d"), bg1.width(), bg1.height());
+      ImGui::Text(tr("  Active: %s"), bg1.is_active() ? "YES" : "NO");
+      ImGui::Text(tr("  Texture: 0x%p"), bg1.texture());
+      ImGui::Text(tr("  Modified: %s"), bg1.modified() ? "YES" : "NO");
 
       if (bg1.texture()) {
-        ImGui::Text("  Preview:");
+        ImGui::Text(tr("  Preview:"));
         ImGui::Image((ImTextureID)(intptr_t)bg1.texture(), ImVec2(128, 128));
       }
 
       ImGui::Separator();
-      ImGui::Text("BG2 Bitmap");
-      ImGui::Text("  Size: %dx%d", bg2.width(), bg2.height());
-      ImGui::Text("  Active: %s", bg2.is_active() ? "YES" : "NO");
-      ImGui::Text("  Texture: 0x%p", bg2.texture());
-      ImGui::Text("  Modified: %s", bg2.modified() ? "YES" : "NO");
+      ImGui::Text(tr("BG2 Bitmap"));
+      ImGui::Text(tr("  Size: %dx%d"), bg2.width(), bg2.height());
+      ImGui::Text(tr("  Active: %s"), bg2.is_active() ? "YES" : "NO");
+      ImGui::Text(tr("  Texture: 0x%p"), bg2.texture());
+      ImGui::Text(tr("  Modified: %s"), bg2.modified() ? "YES" : "NO");
 
       if (bg2.texture()) {
-        ImGui::Text("  Preview:");
+        ImGui::Text(tr("  Preview:"));
         ImGui::Image((ImTextureID)(intptr_t)bg2.texture(), ImVec2(128, 128));
       }
     }
@@ -1022,11 +1026,12 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
     ImGui::SetNextWindowSize(ImVec2(220, 0), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Layer Info", &show_layer_info_,
                      ImGuiWindowFlags_NoCollapse)) {
-      ImGui::Text("Canvas Scale: %.2f", canvas_.global_scale());
-      ImGui::Text("Canvas Size: %.0fx%.0f", canvas_.width(), canvas_.height());
+      ImGui::Text(tr("Canvas Scale: %.2f"), canvas_.global_scale());
+      ImGui::Text(tr("Canvas Size: %.0fx%.0f"), canvas_.width(),
+                  canvas_.height());
       auto& layer_mgr = GetRoomLayerManager(room_id);
       ImGui::Separator();
-      ImGui::Text("Layer Visibility (4-way):");
+      ImGui::Text(tr("Layer Visibility (4-way):"));
 
       // Display each layer with visibility and blend mode
       for (int i = 0; i < 4; ++i) {
@@ -1040,13 +1045,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       }
 
       ImGui::Separator();
-      ImGui::Text("Draw Order:");
+      ImGui::Text(tr("Draw Order:"));
       auto draw_order = layer_mgr.GetDrawOrder();
       for (int i = 0; i < 4; ++i) {
         ImGui::Text("  %d: %s", i + 1,
                     zelda3::RoomLayerManager::GetLayerName(draw_order[i]));
       }
-      ImGui::Text("BG2 On Top: %s", layer_mgr.IsBG2OnTop() ? "YES" : "NO");
+      ImGui::Text(tr("BG2 On Top: %s"), layer_mgr.IsBG2OnTop() ? "YES" : "NO");
     }
     ImGui::End();
   }
@@ -1377,10 +1382,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       ImVec2 overlay_pos = ImVec2(mouse_pos.x + 15, mouse_pos.y + 15);
 
       gui::DrawCanvasHUD("##CoordHUD", overlay_pos, ImVec2(0, 0), [&]() {
-        ImGui::Text("Tile: (%d, %d)", tile_x, tile_y);
-        ImGui::Text("Pixel: (%d, %d)", canvas_x, canvas_y);
-        ImGui::Text("Camera: ($%04X, $%04X)", camera_x, camera_y);
-        ImGui::Text("Sprite: (%d, %d)", sprite_x, sprite_y);
+        ImGui::Text(tr("Tile: (%d, %d)"), tile_x, tile_y);
+        ImGui::Text(tr("Pixel: (%d, %d)"), canvas_x, canvas_y);
+        ImGui::Text(tr("Camera: ($%04X, $%04X)"), camera_x, camera_y);
+        ImGui::Text(tr("Sprite: (%d, %d)"), sprite_x, sprite_y);
       });
     }
   }
@@ -1650,17 +1655,17 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
         const auto& sprites = room.GetSprites();
         if (sel.index < sprites.size()) {
           std::string label = zelda3::GetSpriteLabel(sprites[sel.index].id());
-          ImGui::TextDisabled("Sprite: %02X %s", sprites[sel.index].id(),
+          ImGui::TextDisabled(tr("Sprite: %02X %s"), sprites[sel.index].id(),
                               label.c_str());
           ImGui::Separator();
         }
-        if (ImGui::MenuItem("Delete Sprite")) {
+        if (ImGui::MenuItem(tr("Delete Sprite"))) {
           object_interaction_.entity_coordinator().DeleteSelectedEntity();
         }
       } else if (sel.type == EntityType::Item) {
-        ImGui::TextDisabled("Pot Item");
+        ImGui::TextDisabled(tr("Pot Item"));
         ImGui::Separator();
-        if (ImGui::MenuItem("Delete Item")) {
+        if (ImGui::MenuItem(tr("Delete Item"))) {
           object_interaction_.entity_coordinator().DeleteSelectedEntity();
         }
       }
@@ -1670,26 +1675,26 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
         const auto& objects = room.GetTileObjects();
         if (indices[0] < objects.size()) {
           std::string name = GetObjectName(objects[indices[0]].id_);
-          ImGui::TextDisabled("Object: %03X %s", objects[indices[0]].id_,
+          ImGui::TextDisabled(tr("Object: %03X %s"), objects[indices[0]].id_,
                               name.c_str());
           ImGui::Separator();
         }
       } else {
-        ImGui::TextDisabled("%zu objects selected",
+        ImGui::TextDisabled(tr("%zu objects selected"),
                             object_interaction_.GetSelectionCount());
         ImGui::Separator();
       }
-      if (ImGui::MenuItem("Delete")) {
+      if (ImGui::MenuItem(tr("Delete"))) {
         object_interaction_.HandleDeleteSelected();
       }
-      if (ImGui::MenuItem("Copy")) {
+      if (ImGui::MenuItem(tr("Copy"))) {
         object_interaction_.HandleCopySelected();
       }
       ImGui::Separator();
-      if (ImGui::MenuItem("Send to Front")) {
+      if (ImGui::MenuItem(tr("Send to Front"))) {
         object_interaction_.SendSelectedToFront();
       }
-      if (ImGui::MenuItem("Send to Back")) {
+      if (ImGui::MenuItem(tr("Send to Back"))) {
         object_interaction_.SendSelectedToBack();
       }
     }
@@ -2139,7 +2144,7 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
 
   if (show_room_details_) {
     // Show extended properties
-    ImGui::TextDisabled("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d",
+    ImGui::TextDisabled(tr("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d"),
                         room.floor1(), room.effect(), room.tag1(), room.tag2());
   }
 }
@@ -2243,13 +2248,13 @@ void DungeonCanvasViewer::DrawCompactLayerToggles(int room_id) {
               });
 
   ImGui::SameLine();
-  draw_toggle(
-      ICON_MD_FILTER_CENTER_FOCUS "##LayerToggleCollision",
-      show_custom_collision_overlay_,
-      as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
-      "Toggle custom collision overlay", [&]() {
-        show_custom_collision_overlay_ = !show_custom_collision_overlay_;
-      });
+  draw_toggle(ICON_MD_FILTER_CENTER_FOCUS "##LayerToggleCollision",
+              show_custom_collision_overlay_,
+              as_button_color(gui::ConvertColorToImVec4(theme.warning), 0.9f),
+              "Toggle custom collision overlay", [&]() {
+                show_custom_collision_overlay_ =
+                    !show_custom_collision_overlay_;
+              });
 }
 
 void DungeonCanvasViewer::DrawLayerControls(zelda3::Room& /*room*/,

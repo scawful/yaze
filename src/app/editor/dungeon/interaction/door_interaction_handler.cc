@@ -1,5 +1,6 @@
 // Related header
 #include "door_interaction_handler.h"
+#include "util/i18n/tr.h"
 
 // Third-party library headers
 #include "imgui/imgui.h"
@@ -22,7 +23,8 @@ void DoorInteractionHandler::CancelPlacement() {
 }
 
 bool DoorInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
-  if (!HasValidContext()) return false;
+  if (!HasValidContext())
+    return false;
 
   if (door_placement_mode_) {
     PlaceDoorAtSnappedPosition(canvas_x, canvas_y);
@@ -34,8 +36,8 @@ bool DoorInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
   if (door_index.has_value()) {
     SelectDoor(*door_index);
     is_dragging_ = true;
-    drag_start_pos_ = ImVec2(static_cast<float>(canvas_x),
-                              static_cast<float>(canvas_y));
+    drag_start_pos_ =
+        ImVec2(static_cast<float>(canvas_x), static_cast<float>(canvas_y));
     drag_current_pos_ = drag_start_pos_;
     return true;
   }
@@ -45,7 +47,8 @@ bool DoorInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
 }
 
 void DoorInteractionHandler::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
-  if (!is_dragging_ || !selected_door_index_.has_value()) return;
+  if (!is_dragging_ || !selected_door_index_.has_value())
+    return;
 
   drag_current_pos_ = current_pos;
 }
@@ -68,7 +71,7 @@ void DoorInteractionHandler::HandleRelease() {
   // Detect wall from final position
   zelda3::DoorDirection direction;
   if (zelda3::DoorPositionManager::DetectWallFromPosition(drag_x, drag_y,
-                                                           direction)) {
+                                                          direction)) {
     uint8_t position = zelda3::DoorPositionManager::SnapToNearestPosition(
         drag_x, drag_y, direction);
 
@@ -95,10 +98,12 @@ void DoorInteractionHandler::HandleRelease() {
 }
 
 void DoorInteractionHandler::DrawGhostPreview() {
-  if (!door_placement_mode_ || !HasValidContext()) return;
+  if (!door_placement_mode_ || !HasValidContext())
+    return;
 
   auto* canvas = ctx_->canvas;
-  if (!canvas->IsMouseHovering()) return;
+  if (!canvas->IsMouseHovering())
+    return;
 
   const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = canvas->zero_point();
@@ -115,7 +120,8 @@ void DoorInteractionHandler::DrawGhostPreview() {
       ImVec2 hint_pos(io.MousePos.x + 14.0f, io.MousePos.y + 10.0f);
       draw_list->AddText(hint_pos, ImGui::GetColorU32(theme.status_warning),
                          "Move cursor near a wall to place door");
-      ImGui::SetTooltip("Door placement requires a wall-adjacent position.");
+      ImGui::SetTooltip(
+          tr("Door placement requires a wall-adjacent position."));
     }
     return;  // Not near a wall
   }
@@ -144,7 +150,7 @@ void DoorInteractionHandler::DrawGhostPreview() {
   const auto& theme = AgentUI::GetTheme();
 
   // Capacity-aware colors: normal / near-limit (>=14/16) / blocked (>=16/16).
-  
+
   auto* room = GetCurrentRoom();
   size_t current_door_count = room ? room->GetDoors().size() : 0;
   const bool at_door_limit = (current_door_count >= zelda3::kMaxDoors);
@@ -178,20 +184,23 @@ void DoorInteractionHandler::DrawGhostPreview() {
   // Capacity tooltip when at/near limit
   if ((at_door_limit || near_door_limit) &&
       ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
-    ImGui::SetTooltip("Doors: %zu/%zu%s", current_door_count, zelda3::kMaxDoors,
+    ImGui::SetTooltip(tr("Doors: %zu/%zu%s"), current_door_count,
+                      zelda3::kMaxDoors,
                       at_door_limit ? "\nPlacement blocked" : "\nNear limit");
   }
-
 }
 
 void DoorInteractionHandler::DrawSelectionHighlight() {
-  if (!selected_door_index_.has_value() || !HasValidContext()) return;
+  if (!selected_door_index_.has_value() || !HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   const auto& doors = room->GetDoors();
-  if (*selected_door_index_ >= doors.size()) return;
+  if (*selected_door_index_ >= doors.size())
+    return;
 
   const auto& door = doors[*selected_door_index_];
   auto [tile_x, tile_y] = door.GetTileCoords();
@@ -205,9 +214,9 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
     zelda3::DoorDirection dir;
     bool is_inner = false;
     if (zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, dir,
-                                                        is_inner)) {
-      uint8_t snap_pos =
-          zelda3::DoorPositionManager::SnapToNearestPosition(drag_x, drag_y, dir);
+                                                       is_inner)) {
+      uint8_t snap_pos = zelda3::DoorPositionManager::SnapToNearestPosition(
+          drag_x, drag_y, dir);
       auto [snap_x, snap_y] =
           zelda3::DoorPositionManager::PositionToTileCoords(snap_pos, dir);
       tile_x = snap_x;
@@ -230,10 +239,11 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
   float alpha = 0.5f + 0.3f * sinf(pulse);
 
   ImU32 color = IM_COL32(255, 165, 0, 180);  // Orange
-  ImU32 fill_color = (color & 0x00FFFFFF) | (static_cast<ImU32>(alpha * 100) << 24);
+  ImU32 fill_color =
+      (color & 0x00FFFFFF) | (static_cast<ImU32>(alpha * 100) << 24);
 
   draw_list->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + size.y),
-                            fill_color);
+                           fill_color);
   draw_list->AddRect(pos, ImVec2(pos.x + size.x, pos.y + size.y), color, 0.0f,
                      0, 2.0f);
 
@@ -249,10 +259,12 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
 
 std::optional<size_t> DoorInteractionHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
-  if (!HasValidContext()) return std::nullopt;
+  if (!HasValidContext())
+    return std::nullopt;
 
   auto* room = ctx_->GetCurrentRoomConst();
-  if (!room) return std::nullopt;
+  if (!room)
+    return std::nullopt;
 
   // Convert screen coordinates to room coordinates
   float scale = GetCanvasScale();
@@ -291,13 +303,16 @@ void DoorInteractionHandler::ClearSelection() {
 }
 
 void DoorInteractionHandler::DeleteSelected() {
-  if (!selected_door_index_.has_value() || !HasValidContext()) return;
+  if (!selected_door_index_.has_value() || !HasValidContext())
+    return;
 
   auto* room = GetCurrentRoom();
-  if (!room) return;
+  if (!room)
+    return;
 
   auto& doors = room->GetDoors();
-  if (*selected_door_index_ >= doors.size()) return;
+  if (*selected_door_index_ >= doors.size())
+    return;
 
   ctx_->NotifyMutation(MutationDomain::kDoors);
   doors.erase(doors.begin() + static_cast<ptrdiff_t>(*selected_door_index_));
@@ -307,7 +322,7 @@ void DoorInteractionHandler::DeleteSelected() {
 }
 
 void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
-                                                         int canvas_y) {
+                                                        int canvas_y) {
   if (!HasValidContext()) {
     placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
     return;
@@ -320,7 +335,7 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
   }
 
   // Enforce door limit at placement time (matches DungeonValidator::zelda3::kMaxDoors)
-  
+
   if (room->GetDoors().size() >= zelda3::kMaxDoors) {
     placement_block_reason_ = PlacementBlockReason::kDoorLimit;
     return;
@@ -329,14 +344,14 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
   // Detect wall from position
   zelda3::DoorDirection direction;
   if (!zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y,
-                                                            direction)) {
+                                                           direction)) {
     placement_block_reason_ = PlacementBlockReason::kInvalidPosition;
     return;
   }
 
   // Snap to nearest valid position
-  uint8_t position =
-      zelda3::DoorPositionManager::SnapToNearestPosition(canvas_x, canvas_y, direction);
+  uint8_t position = zelda3::DoorPositionManager::SnapToNearestPosition(
+      canvas_x, canvas_y, direction);
 
   // Validate position
   if (!zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
@@ -369,18 +384,19 @@ void DoorInteractionHandler::PlaceDoorAtSnappedPosition(int canvas_x,
 bool DoorInteractionHandler::UpdateSnappedPosition(int canvas_x, int canvas_y) {
   zelda3::DoorDirection direction;
   if (!zelda3::DoorPositionManager::DetectWallFromPosition(canvas_x, canvas_y,
-                                                            direction)) {
+                                                           direction)) {
     return false;
   }
 
   detected_door_direction_ = direction;
-  snapped_door_position_ =
-      zelda3::DoorPositionManager::SnapToNearestPosition(canvas_x, canvas_y, direction);
+  snapped_door_position_ = zelda3::DoorPositionManager::SnapToNearestPosition(
+      canvas_x, canvas_y, direction);
   return true;
 }
 
 void DoorInteractionHandler::DrawSnapIndicators() {
-  if (!is_dragging_ || !HasValidContext()) return;
+  if (!is_dragging_ || !HasValidContext())
+    return;
 
   int drag_x = static_cast<int>(drag_current_pos_.x);
   int drag_y = static_cast<int>(drag_current_pos_.y);
@@ -388,14 +404,14 @@ void DoorInteractionHandler::DrawSnapIndicators() {
   zelda3::DoorDirection direction;
   bool is_inner = false;
   if (!zelda3::DoorPositionManager::DetectWallSection(drag_x, drag_y, direction,
-                                                       is_inner)) {
+                                                      is_inner)) {
     return;
   }
 
   uint8_t start_pos =
       zelda3::DoorPositionManager::GetSectionStartPosition(direction, is_inner);
-  uint8_t nearest_snap =
-      zelda3::DoorPositionManager::SnapToNearestPosition(drag_x, drag_y, direction);
+  uint8_t nearest_snap = zelda3::DoorPositionManager::SnapToNearestPosition(
+      drag_x, drag_y, direction);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   ImVec2 canvas_pos = GetCanvasZeroPoint();
@@ -405,7 +421,7 @@ void DoorInteractionHandler::DrawSnapIndicators() {
 
   // Capacity-aware indicator colors: inherit the same thresholds used in
   // DrawGhostPreview so dragging mirrors the placement ghost feedback.
-  
+
   auto* snap_room = GetCurrentRoom();
   size_t door_count = snap_room ? snap_room->GetDoors().size() : 0;
   const bool snap_at_limit = (door_count >= zelda3::kMaxDoors);

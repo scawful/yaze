@@ -1,4 +1,5 @@
 #include "app/editor/hack/oracle/ui/menu_inspector_panel.h"
+#include "util/i18n/tr.h"
 
 #include <filesystem>
 
@@ -72,13 +73,13 @@ bool OracleMenuInspectorPanel::MatchesFilter(const std::string& value,
 }
 
 void OracleMenuInspectorPanel::DrawToolbar() {
-  ImGui::InputText("Project Root", &project_path_);
+  ImGui::InputText(tr("Project Root"), &project_path_);
   ImGui::SameLine();
-  if (ImGui::Button("Auto Detect")) {
+  if (ImGui::Button(tr("Auto Detect"))) {
     project_path_ = DetermineInitialProjectPath();
   }
   ImGui::SameLine();
-  if (ImGui::Button("Refresh")) {
+  if (ImGui::Button(tr("Refresh"))) {
     RefreshRegistry();
   }
 }
@@ -88,7 +89,7 @@ void OracleMenuInspectorPanel::DrawSummary() const {
     return;
   }
   ImGui::TextDisabled(
-      "ASM: %zu  Bins: %zu  Draw: %zu  Components: %zu  Warnings: %zu",
+      tr("ASM: %zu  Bins: %zu  Draw: %zu  Components: %zu  Warnings: %zu"),
       registry_.asm_files.size(), registry_.bins.size(),
       registry_.draw_routines.size(), registry_.components.size(),
       registry_.warnings.size());
@@ -96,7 +97,7 @@ void OracleMenuInspectorPanel::DrawSummary() const {
 
 void OracleMenuInspectorPanel::DrawBinsTab() {
   const auto& theme = AgentUI::GetTheme();
-  ImGui::Checkbox("Missing bins only", &bins_missing_only_);
+  ImGui::Checkbox(tr("Missing bins only"), &bins_missing_only_);
 
   if (ImGui::BeginTable("oracle_menu_bins_table", 6,
                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
@@ -138,7 +139,7 @@ void OracleMenuInspectorPanel::DrawBinsTab() {
 }
 
 void OracleMenuInspectorPanel::DrawDrawRoutinesTab() {
-  ImGui::InputText("Filter", &draw_filter_);
+  ImGui::InputText(tr("Filter"), &draw_filter_);
 
   if (ImGui::BeginTable("oracle_menu_draw_table", 5,
                         ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
@@ -174,7 +175,7 @@ void OracleMenuInspectorPanel::DrawDrawRoutinesTab() {
 }
 
 void OracleMenuInspectorPanel::DrawComponentsTab() {
-  ImGui::InputText("Table Filter", &component_table_filter_);
+  ImGui::InputText(tr("Table Filter"), &component_table_filter_);
 
   filtered_components_.clear();
   filtered_components_.reserve(registry_.components.size());
@@ -239,22 +240,22 @@ void OracleMenuInspectorPanel::DrawComponentsTab() {
   if (selected_component_list_index_ < 0 ||
       selected_component_list_index_ >=
           static_cast<int>(filtered_components_.size())) {
-    ImGui::TextDisabled("Select a component row to preview/apply edits.");
+    ImGui::TextDisabled(tr("Select a component row to preview/apply edits."));
     ImGui::EndChild();
     return;
   }
 
   const auto* component = filtered_components_[selected_component_list_index_];
-  ImGui::Text("Table: %s", component->table_label.c_str());
-  ImGui::Text("Index: %d", component->index);
-  ImGui::Text("ASM: %s:%d", component->asm_path.c_str(), component->line);
+  ImGui::Text(tr("Table: %s"), component->table_label.c_str());
+  ImGui::Text(tr("Index: %d"), component->index);
+  ImGui::Text(tr("ASM: %s:%d"), component->asm_path.c_str(), component->line);
   if (!component->note.empty()) {
-    ImGui::TextDisabled("Note: %s", component->note.c_str());
+    ImGui::TextDisabled(tr("Note: %s"), component->note.c_str());
   }
   ImGui::Separator();
 
-  ImGui::InputInt("Row", &edit_row_);
-  ImGui::InputInt("Col", &edit_col_);
+  ImGui::InputInt(tr("Row"), &edit_row_);
+  ImGui::InputInt(tr("Col"), &edit_col_);
   if (edit_row_ < 0) {
     edit_row_ = 0;
   }
@@ -262,7 +263,7 @@ void OracleMenuInspectorPanel::DrawComponentsTab() {
     edit_col_ = 0;
   }
 
-  if (ImGui::Button("Preview")) {
+  if (ImGui::Button(tr("Preview"))) {
     auto edit_or = core::SetOracleMenuComponentOffset(
         registry_.project_root, component->asm_path, component->table_label,
         component->index, edit_row_, edit_col_, false);
@@ -277,7 +278,7 @@ void OracleMenuInspectorPanel::DrawComponentsTab() {
     }
   }
   ImGui::SameLine();
-  if (ImGui::Button("Apply")) {
+  if (ImGui::Button(tr("Apply"))) {
     auto edit_or = core::SetOracleMenuComponentOffset(
         registry_.project_root, component->asm_path, component->table_label,
         component->index, edit_row_, edit_col_, true);
@@ -312,26 +313,26 @@ void OracleMenuInspectorPanel::Draw(bool* /*p_open*/) {
   DrawSummary();
 
   if (!has_registry_) {
-    ImGui::TextDisabled("No menu registry data loaded.");
+    ImGui::TextDisabled(tr("No menu registry data loaded."));
     return;
   }
 
   if (gui::BeginThemedTabBar("oracle_menu_tabs")) {
-    if (ImGui::BeginTabItem("Bins")) {
+    if (ImGui::BeginTabItem(tr("Bins"))) {
       DrawBinsTab();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Draw Routines")) {
+    if (ImGui::BeginTabItem(tr("Draw Routines"))) {
       DrawDrawRoutinesTab();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Components")) {
+    if (ImGui::BeginTabItem(tr("Components"))) {
       DrawComponentsTab();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Warnings")) {
+    if (ImGui::BeginTabItem(tr("Warnings"))) {
       if (registry_.warnings.empty()) {
-        ImGui::TextDisabled("No warnings.");
+        ImGui::TextDisabled(tr("No warnings."));
       } else {
         for (const auto& warning : registry_.warnings) {
           ImGui::BulletText("%s", warning.c_str());

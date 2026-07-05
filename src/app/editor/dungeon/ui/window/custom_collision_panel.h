@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -62,16 +63,16 @@ class CustomCollisionPanel : public WindowContent {
                          " Custom collision table missing (use an "
                          "expanded-collision Oracle ROM)");
       ImGui::TextDisabled(
-          "Expected ROM >= 0x%X bytes (custom collision pointer table end). "
-          "Current ROM is %zu bytes.",
+          tr("Expected ROM >= 0x%X bytes (custom collision pointer table end). "
+             "Current ROM is %zu bytes."),
           ptr_table_end, rom_size);
       ImGui::Separator();
     } else if (!collision_data_region_present) {
       ImGui::TextColored(theme.status_error, ICON_MD_ERROR
                          " Custom collision data region missing/truncated");
       ImGui::TextDisabled(
-          "Expected ROM >= 0x%X bytes (custom collision data soft end). "
-          "Current ROM is %zu bytes.",
+          tr("Expected ROM >= 0x%X bytes (custom collision data soft end). "
+             "Current ROM is %zu bytes."),
           zelda3::kCustomCollisionDataSoftEnd, rom_size);
       ImGui::Separator();
     }
@@ -96,7 +97,7 @@ class CustomCollisionPanel : public WindowContent {
 
     ImGui::Separator();
 
-    ImGui::TextUnformatted("Authoring");
+    ImGui::TextUnformatted(tr("Authoring"));
 
     util::FileDialogOptions json_options;
     json_options.filters.push_back({"Custom Collision", "json"});
@@ -180,19 +181,20 @@ class CustomCollisionPanel : public WindowContent {
       }
 
       bool show_overlay = viewer_->show_custom_collision_overlay();
-      if (ImGui::Checkbox("Show Collision Overlay", &show_overlay)) {
+      if (ImGui::Checkbox(tr("Show Collision Overlay"), &show_overlay)) {
         viewer_->set_show_custom_collision_overlay(show_overlay);
       }
 
       if (!interaction_) {
-        ImGui::TextDisabled("Painting requires an active interaction context.");
+        ImGui::TextDisabled(
+            tr("Painting requires an active interaction context."));
         return;
       }
 
       bool is_painting = (interaction_->mode_manager().GetMode() ==
                           InteractionMode::PaintCollision);
       ImGui::BeginDisabled(!collision_save_supported);
-      if (ImGui::Checkbox("Paint Mode", &is_painting)) {
+      if (ImGui::Checkbox(tr("Paint Mode"), &is_painting)) {
         if (is_painting) {
           interaction_->mode_manager().SetMode(InteractionMode::PaintCollision);
         } else {
@@ -203,22 +205,22 @@ class CustomCollisionPanel : public WindowContent {
 
       if (is_painting) {
         ImGui::TextColored(theme.text_warning_yellow,
-                           "Click/Drag on canvas to paint");
+                           tr("Click/Drag on canvas to paint"));
 
         auto& state = interaction_->mode_manager().GetModeState();
         int current_val = state.paint_collision_value;
 
         int brush_radius = std::clamp(state.paint_brush_radius, 0, 8);
-        if (ImGui::SliderInt("Brush Radius", &brush_radius, 0, 8)) {
+        if (ImGui::SliderInt(tr("Brush Radius"), &brush_radius, 0, 8)) {
           state.paint_brush_radius = brush_radius;
         }
         ImGui::SameLine();
-        ImGui::TextDisabled("%dx%d", (brush_radius * 2) + 1,
+        ImGui::TextDisabled(tr("%dx%d"), (brush_radius * 2) + 1,
                             (brush_radius * 2) + 1);
 
         const auto& tile_types = zelda3::Zelda3Labels::GetTileTypeNames();
 
-        if (ImGui::BeginCombo("Collision Type",
+        if (ImGui::BeginCombo(tr("Collision Type"),
                               absl::StrFormat("%02X: %s", current_val,
                                               (current_val < tile_types.size()
                                                    ? tile_types[current_val]
@@ -236,7 +238,7 @@ class CustomCollisionPanel : public WindowContent {
         }
 
         ImGui::Separator();
-        ImGui::Text("Quick Select:");
+        ImGui::Text(tr("Quick Select:"));
         auto quick_button = [&](const char* label, uint8_t val) {
           if (ImGui::Button(label)) {
             state.paint_collision_value = val;
@@ -256,7 +258,7 @@ class CustomCollisionPanel : public WindowContent {
 
       ImGui::Separator();
       ImGui::BeginDisabled(!collision_save_supported);
-      if (ImGui::Button("Clear All Custom Collision")) {
+      if (ImGui::Button(tr("Clear All Custom Collision"))) {
         room.custom_collision().tiles.fill(0);
         // Clearing should remove the override (room falls back to vanilla).
         room.custom_collision().has_data = false;
@@ -265,10 +267,10 @@ class CustomCollisionPanel : public WindowContent {
       }
       ImGui::EndDisabled();
     } else {
-      ImGui::TextWrapped(
+      ImGui::TextWrapped(tr(
           "Custom collision allows you to override the physics of individual "
           "8x8 tiles in the room. This is useful for creating water, pits, or "
-          "other effects that don't match the background tiles.");
+          "other effects that don't match the background tiles."));
     }
   }
 

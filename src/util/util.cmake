@@ -20,6 +20,8 @@ set(YAZE_UTIL_SRC
   util/file_util.cc
   util/rom_hash.cc
   util/hyrule_magic.cc  # Byte order utilities (moved from zelda3)
+  util/i18n/translator.cc       # Runtime string translation (tr)
+  util/i18n/language_manager.cc # Locale catalogs + active-language state
 )
 
 add_library(yaze_util STATIC ${YAZE_UTIL_SRC})

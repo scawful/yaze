@@ -10,10 +10,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/core/content_registry.h"
-#include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/events/core_events.h"
+#include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/system/editor_panel.h"
 #include "app/emu/mesen/mesen_client_registry.h"
 #include "app/gui/core/icons.h"
@@ -55,12 +56,14 @@ class StoryEventGraphPanel : public WindowContent {
   std::string GetEditorCategory() const override { return "Agent"; }
   std::string GetWorkflowGroup() const override { return "Planning"; }
   std::string GetWorkflowDescription() const override {
-    return "Inspect narrative and progression dependencies for the active project";
+    return "Inspect narrative and progression dependencies for the active "
+           "project";
   }
   bool IsEnabled() const override {
     auto* project = ContentRegistry::Context::current_project();
     auto* backend = GetPlanningBackend();
-    return project != nullptr && project->project_opened() && backend != nullptr;
+    return project != nullptr && project->project_opened() &&
+           backend != nullptr;
   }
   std::string GetDisabledTooltip() const override {
     return "Story graph data is not available for the active hack project";
@@ -87,9 +90,9 @@ class StoryEventGraphPanel : public WindowContent {
     }
 
     if (!manifest_ || !manifest_->HasProjectRegistry()) {
-      ImGui::TextDisabled("No hack project loaded");
+      ImGui::TextDisabled(tr("No hack project loaded"));
       ImGui::TextDisabled(
-          "Open a project with a hack manifest to view story events.");
+          tr("Open a project with a hack manifest to view story events."));
       return;
     }
 
@@ -99,39 +102,40 @@ class StoryEventGraphPanel : public WindowContent {
 
     const auto* graph = GetStoryGraph();
     if (graph == nullptr || !graph->loaded()) {
-      ImGui::TextDisabled("No story events data available");
+      ImGui::TextDisabled(tr("No story events data available"));
       return;
     }
 
     // Controls row
-    if (ImGui::Button("Reset View")) {
+    if (ImGui::Button(tr("Reset View"))) {
       scroll_x_ = 0;
       scroll_y_ = 0;
       zoom_ = 1.0f;
     }
     ImGui::SameLine();
-    ImGui::SliderFloat("Zoom", &zoom_, 0.3f, 2.0f, "%.1f");
+    ImGui::SliderFloat(tr("Zoom"), &zoom_, 0.3f, 2.0f, "%.1f");
     ImGui::SameLine();
-    ImGui::Text("Nodes: %zu  Edges: %zu", graph->nodes().size(),
+    ImGui::Text(tr("Nodes: %zu  Edges: %zu"), graph->nodes().size(),
                 graph->edges().size());
     ImGui::SameLine();
-    const auto prog_opt = GetProgressionBackend()
-                              ? GetProgressionBackend()->GetProgressionState(*manifest_)
-                              : manifest_->oracle_progression_state();
+    const auto prog_opt =
+        GetProgressionBackend()
+            ? GetProgressionBackend()->GetProgressionState(*manifest_)
+            : manifest_->oracle_progression_state();
     if (prog_opt.has_value()) {
-      ImGui::TextDisabled("Crystals: %d  State: %s",
+      ImGui::TextDisabled(tr("Crystals: %d  State: %s"),
                           prog_opt->GetCrystalCount(),
                           prog_opt->GetGameStateName().c_str());
     } else {
-      ImGui::TextDisabled("No SRAM loaded");
+      ImGui::TextDisabled(tr("No SRAM loaded"));
     }
 
     ImGui::SameLine();
-    if (ImGui::SmallButton("Import .srm...")) {
+    if (ImGui::SmallButton(tr("Import .srm..."))) {
       ImportOracleSramFromFileDialog();
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("Clear SRAM")) {
+    if (ImGui::SmallButton(tr("Clear SRAM"))) {
       ClearOracleSramState();
     }
     ImGui::SameLine();
@@ -139,14 +143,14 @@ class StoryEventGraphPanel : public WindowContent {
     if (!loaded_srm_path_.empty()) {
       const std::filesystem::path p(loaded_srm_path_);
       ImGui::SameLine();
-      ImGui::TextDisabled("SRM: %s", p.filename().string().c_str());
+      ImGui::TextDisabled(tr("SRM: %s"), p.filename().string().c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", loaded_srm_path_.c_str());
       }
     }
 
     if (!last_srm_error_.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "SRM error: %s",
+      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), tr("SRM error: %s"),
                          last_srm_error_.c_str());
     }
 
@@ -165,11 +169,12 @@ class StoryEventGraphPanel : public WindowContent {
     float sidebar_width = selected_node_.empty() ? 0.0f : 250.0f;
     canvas_size.x -= sidebar_width;
 
-    if (canvas_size.x < 100 || canvas_size.y < 100) return;
+    if (canvas_size.x < 100 || canvas_size.y < 100)
+      return;
 
-    ImGui::InvisibleButton("story_canvas", canvas_size,
-                           ImGuiButtonFlags_MouseButtonLeft |
-                               ImGuiButtonFlags_MouseButtonRight);
+    ImGui::InvisibleButton(
+        "story_canvas", canvas_size,
+        ImGuiButtonFlags_MouseButtonLeft | ImGuiButtonFlags_MouseButtonRight);
 
     bool is_hovered = ImGui::IsItemHovered();
     bool is_active = ImGui::IsItemActive();
@@ -186,18 +191,20 @@ class StoryEventGraphPanel : public WindowContent {
       float wheel = ImGui::GetIO().MouseWheel;
       if (wheel != 0.0f) {
         zoom_ *= (wheel > 0) ? 1.1f : 0.9f;
-        if (zoom_ < 0.3f) zoom_ = 0.3f;
-        if (zoom_ > 2.0f) zoom_ = 2.0f;
+        if (zoom_ < 0.3f)
+          zoom_ = 0.3f;
+        if (zoom_ > 2.0f)
+          zoom_ = 2.0f;
       }
     }
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     // Clip to canvas
-    draw_list->PushClipRect(canvas_pos,
-                            ImVec2(canvas_pos.x + canvas_size.x,
-                                   canvas_pos.y + canvas_size.y),
-                            true);
+    draw_list->PushClipRect(
+        canvas_pos,
+        ImVec2(canvas_pos.x + canvas_size.x, canvas_pos.y + canvas_size.y),
+        true);
 
     // Center offset
     float cx = canvas_pos.x + canvas_size.x * 0.5f + scroll_x_;
@@ -207,9 +214,11 @@ class StoryEventGraphPanel : public WindowContent {
     for (const auto& edge : graph->edges()) {
       const auto* from_node = graph->GetNode(edge.from);
       const auto* to_node = graph->GetNode(edge.to);
-      if (!from_node || !to_node) continue;
+      if (!from_node || !to_node)
+        continue;
       if (hide_non_matching_) {
-        if (!IsNodeVisible(edge.from) || !IsNodeVisible(edge.to)) continue;
+        if (!IsNodeVisible(edge.from) || !IsNodeVisible(edge.to))
+          continue;
       }
 
       ImVec2 p1(cx + from_node->pos_x * zoom_ + kNodeWidth * zoom_ * 0.5f,
@@ -223,7 +232,7 @@ class StoryEventGraphPanel : public WindowContent {
       ImVec2 cp2(p2.x - ctrl_dx, p2.y);
 
       draw_list->AddBezierCubic(p1, cp1, cp2, p2, IM_COL32(150, 150, 150, 180),
-                                 1.5f * zoom_);
+                                1.5f * zoom_);
 
       // Arrow head
       ImVec2 dir(p2.x - cp2.x, p2.y - cp2.y);
@@ -260,14 +269,16 @@ class StoryEventGraphPanel : public WindowContent {
       // Color by status
       ImU32 fill_color = GetStatusColor(node.status);
       const bool selected = (node.id == selected_node_);
-      const bool query_match = (HasNonEmptyQuery() && IsNodeQueryMatch(node.id));
-      ImU32 border_color = selected ? IM_COL32(255, 255, 100, 255)
-                                    : (query_match ? IM_COL32(220, 220, 220, 255)
-                                                   : IM_COL32(60, 60, 60, 255));
+      const bool query_match =
+          (HasNonEmptyQuery() && IsNodeQueryMatch(node.id));
+      ImU32 border_color = selected
+                               ? IM_COL32(255, 255, 100, 255)
+                               : (query_match ? IM_COL32(220, 220, 220, 255)
+                                              : IM_COL32(60, 60, 60, 255));
 
       draw_list->AddRectFilled(node_min, node_max, fill_color, 8.0f * zoom_);
-      draw_list->AddRect(node_min, node_max, border_color, 8.0f * zoom_,
-                         0, 2.0f * zoom_);
+      draw_list->AddRect(node_min, node_max, border_color, 8.0f * zoom_, 0,
+                         2.0f * zoom_);
 
       // Node text
       float font_size = 11.0f * zoom_;
@@ -275,8 +286,7 @@ class StoryEventGraphPanel : public WindowContent {
         // ID label
         draw_list->AddText(nullptr, font_size,
                            ImVec2(nx + 6 * zoom_, ny + 4 * zoom_),
-                           IM_COL32(200, 200, 200, 255),
-                           node.id.c_str());
+                           IM_COL32(200, 200, 200, 255), node.id.c_str());
         // Name (truncated)
         std::string display_name = node.name;
         if (display_name.length() > 25) {
@@ -284,8 +294,7 @@ class StoryEventGraphPanel : public WindowContent {
         }
         draw_list->AddText(nullptr, font_size,
                            ImVec2(nx + 6 * zoom_, ny + 18 * zoom_),
-                           IM_COL32(255, 255, 255, 255),
-                           display_name.c_str());
+                           IM_COL32(255, 255, 255, 255), display_name.c_str());
       }
 
       // Click detection
@@ -328,7 +337,8 @@ class StoryEventGraphPanel : public WindowContent {
 
   void DrawNodeDetail(const core::StoryEventGraph& graph) {
     const auto* node = graph.GetNode(selected_node_);
-    if (!node) return;
+    if (!node)
+      return;
 
     ImGui::BeginChild("node_detail", ImVec2(240, 0), ImGuiChildFlags_Borders);
 
@@ -337,7 +347,7 @@ class StoryEventGraphPanel : public WindowContent {
     ImGui::Separator();
 
     if (!node->flags.empty()) {
-      ImGui::Text("Flags:");
+      ImGui::Text(tr("Flags:"));
       for (const auto& flag : node->flags) {
         if (!flag.value.empty()) {
           ImGui::BulletText("%s = %s", flag.name.c_str(), flag.value.c_str());
@@ -349,7 +359,7 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->locations.empty()) {
       ImGui::Spacing();
-      ImGui::Text("Locations:");
+      ImGui::Text(tr("Locations:"));
       for (size_t i = 0; i < node->locations.size(); ++i) {
         const auto& loc = node->locations[i];
         ImGui::PushID(static_cast<int>(i));
@@ -358,23 +368,24 @@ class StoryEventGraphPanel : public WindowContent {
 
         if (auto room_id = ParseIntLoose(loc.room_id)) {
           ImGui::SameLine();
-          if (ImGui::SmallButton("Room")) {
+          if (ImGui::SmallButton(tr("Room"))) {
             PublishJumpToRoom(*room_id);
           }
         }
         if (auto map_id = ParseIntLoose(loc.overworld_id)) {
           ImGui::SameLine();
-          if (ImGui::SmallButton("Map")) {
+          if (ImGui::SmallButton(tr("Map"))) {
             PublishJumpToMap(*map_id);
           }
         }
 
         if (!loc.room_id.empty() || !loc.overworld_id.empty() ||
             !loc.entrance_id.empty()) {
-          ImGui::TextDisabled("room=%s  map=%s  entrance=%s",
-                              loc.room_id.empty() ? "-" : loc.room_id.c_str(),
-                              loc.overworld_id.empty() ? "-" : loc.overworld_id.c_str(),
-                              loc.entrance_id.empty() ? "-" : loc.entrance_id.c_str());
+          ImGui::TextDisabled(
+              tr("room=%s  map=%s  entrance=%s"),
+              loc.room_id.empty() ? "-" : loc.room_id.c_str(),
+              loc.overworld_id.empty() ? "-" : loc.overworld_id.c_str(),
+              loc.entrance_id.empty() ? "-" : loc.entrance_id.c_str());
         }
 
         ImGui::PopID();
@@ -383,20 +394,20 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->text_ids.empty()) {
       ImGui::Spacing();
-      ImGui::Text("Text IDs:");
+      ImGui::Text(tr("Text IDs:"));
       for (size_t i = 0; i < node->text_ids.size(); ++i) {
         const auto& tid = node->text_ids[i];
         ImGui::PushID(static_cast<int>(i));
 
         ImGui::BulletText("%s", tid.c_str());
         ImGui::SameLine();
-        if (ImGui::SmallButton("Open")) {
+        if (ImGui::SmallButton(tr("Open"))) {
           if (auto msg_id = ParseIntLoose(tid)) {
             PublishJumpToMessage(*msg_id);
           }
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Copy")) {
+        if (ImGui::SmallButton(tr("Copy"))) {
           ImGui::SetClipboardText(tid.c_str());
         }
 
@@ -406,17 +417,17 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->scripts.empty()) {
       ImGui::Spacing();
-      ImGui::Text("Scripts:");
+      ImGui::Text(tr("Scripts:"));
       for (size_t i = 0; i < node->scripts.size(); ++i) {
         const auto& script = node->scripts[i];
         ImGui::PushID(static_cast<int>(i));
         ImGui::BulletText("%s", script.c_str());
         ImGui::SameLine();
-        if (ImGui::SmallButton("Open")) {
+        if (ImGui::SmallButton(tr("Open"))) {
           PublishJumpToAssemblySymbol(script);
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Copy")) {
+        if (ImGui::SmallButton(tr("Copy"))) {
           ImGui::SetClipboardText(script.c_str());
         }
         ImGui::PopID();
@@ -425,7 +436,7 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->notes.empty()) {
       ImGui::Spacing();
-      ImGui::TextWrapped("Notes: %s", node->notes.c_str());
+      ImGui::TextWrapped(tr("Notes: %s"), node->notes.c_str());
     }
 
     ImGui::EndChild();
@@ -434,14 +445,16 @@ class StoryEventGraphPanel : public WindowContent {
   static std::optional<int> ParseIntLoose(const std::string& input) {
     // Trim whitespace.
     size_t start = input.find_first_not_of(" \t\r\n");
-    if (start == std::string::npos) return std::nullopt;
+    if (start == std::string::npos)
+      return std::nullopt;
     size_t end = input.find_last_not_of(" \t\r\n");
     std::string trimmed = input.substr(start, end - start + 1);
 
     try {
       size_t idx = 0;
       int value = std::stoi(trimmed, &idx, /*base=*/0);
-      if (idx != trimmed.size()) return std::nullopt;
+      if (idx != trimmed.size())
+        return std::nullopt;
       return value;
     } catch (...) {
       return std::nullopt;
@@ -473,11 +486,14 @@ class StoryEventGraphPanel : public WindowContent {
   }
 
   uint64_t ComputeProgressionFingerprint() const {
-    if (!manifest_) return 0;
-    const auto prog_opt = GetProgressionBackend()
-                              ? GetProgressionBackend()->GetProgressionState(*manifest_)
-                              : manifest_->oracle_progression_state();
-    if (!prog_opt.has_value()) return 0;
+    if (!manifest_)
+      return 0;
+    const auto prog_opt =
+        GetProgressionBackend()
+            ? GetProgressionBackend()->GetProgressionState(*manifest_)
+            : manifest_->oracle_progression_state();
+    if (!prog_opt.has_value())
+      return 0;
 
     const auto& s = *prog_opt;
     return static_cast<uint64_t>(s.crystal_bitfield) |
@@ -491,7 +507,7 @@ class StoryEventGraphPanel : public WindowContent {
   void DrawFilterControls(const core::StoryEventGraph& graph) {
     (void)graph;
 
-    ImGui::Text("Filter");
+    ImGui::Text(tr("Filter"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(260.0f);
     if (ImGui::InputTextWithHint("##story_graph_filter",
@@ -500,7 +516,7 @@ class StoryEventGraphPanel : public WindowContent {
       filter_dirty_ = true;
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("Clear")) {
+    if (ImGui::SmallButton(tr("Clear"))) {
       if (!filter_query_.empty()) {
         filter_query_.clear();
         filter_dirty_ = true;
@@ -508,20 +524,20 @@ class StoryEventGraphPanel : public WindowContent {
     }
 
     ImGui::SameLine();
-    if (ImGui::Checkbox("Hide non-matching", &hide_non_matching_)) {
+    if (ImGui::Checkbox(tr("Hide non-matching"), &hide_non_matching_)) {
       // Hiding doesn't change matches, but it can invalidate selection.
       filter_dirty_ = true;
     }
 
     ImGui::SameLine();
     bool toggles_changed = false;
-    toggles_changed |= ImGui::Checkbox("Completed", &show_completed_);
+    toggles_changed |= ImGui::Checkbox(tr("Completed"), &show_completed_);
     ImGui::SameLine();
-    toggles_changed |= ImGui::Checkbox("Available", &show_available_);
+    toggles_changed |= ImGui::Checkbox(tr("Available"), &show_available_);
     ImGui::SameLine();
-    toggles_changed |= ImGui::Checkbox("Locked", &show_locked_);
+    toggles_changed |= ImGui::Checkbox(tr("Locked"), &show_locked_);
     ImGui::SameLine();
-    toggles_changed |= ImGui::Checkbox("Blocked", &show_blocked_);
+    toggles_changed |= ImGui::Checkbox(tr("Blocked"), &show_blocked_);
     if (toggles_changed) {
       filter_dirty_ = true;
     }
@@ -530,10 +546,14 @@ class StoryEventGraphPanel : public WindowContent {
   static uint8_t StatusMask(bool completed, bool available, bool locked,
                             bool blocked) {
     uint8_t mask = 0;
-    if (completed) mask |= 1u << 0;
-    if (available) mask |= 1u << 1;
-    if (locked) mask |= 1u << 2;
-    if (blocked) mask |= 1u << 3;
+    if (completed)
+      mask |= 1u << 0;
+    if (available)
+      mask |= 1u << 1;
+    if (locked)
+      mask |= 1u << 2;
+    if (blocked)
+      mask |= 1u << 3;
     return mask;
   }
 
@@ -550,14 +570,14 @@ class StoryEventGraphPanel : public WindowContent {
   }
 
   void UpdateFilterCache(const core::StoryEventGraph& graph) {
-    const uint8_t status_mask =
-        StatusMask(show_completed_, show_available_, show_locked_, show_blocked_);
+    const uint8_t status_mask = StatusMask(show_completed_, show_available_,
+                                           show_locked_, show_blocked_);
     const uint64_t progress_fp = ComputeProgressionFingerprint();
 
     const size_t node_count = graph.nodes().size();
     if (!filter_dirty_ && node_count == last_node_count_ &&
-        filter_query_ == last_filter_query_ && status_mask == last_status_mask_ &&
-        progress_fp == last_progress_fp_) {
+        filter_query_ == last_filter_query_ &&
+        status_mask == last_status_mask_ && progress_fp == last_progress_fp_) {
       return;
     }
 
@@ -580,7 +600,8 @@ class StoryEventGraphPanel : public WindowContent {
     node_visible_by_id_.reserve(node_count);
 
     for (const auto& node : graph.nodes()) {
-      const bool query_match = core::StoryEventNodeMatchesQuery(node, filter.query);
+      const bool query_match =
+          core::StoryEventNodeMatchesQuery(node, filter.query);
       const bool visible =
           query_match && core::StoryNodeStatusAllowed(node.status, filter);
       node_query_match_by_id_[node.id] = query_match;
@@ -596,7 +617,8 @@ class StoryEventGraphPanel : public WindowContent {
   }
 
   void ImportOracleSramFromFileDialog() {
-    if (!manifest_) return;
+    if (!manifest_)
+      return;
 
     util::FileDialogOptions options;
     options.filters = {
@@ -610,10 +632,10 @@ class StoryEventGraphPanel : public WindowContent {
       return;
     }
 
-    auto state_or = GetProgressionBackend()
-                        ? GetProgressionBackend()->LoadProgressionStateFromFile(
-                              file_path)
-                        : core::LoadOracleProgressionFromSrmFile(file_path);
+    auto state_or =
+        GetProgressionBackend()
+            ? GetProgressionBackend()->LoadProgressionStateFromFile(file_path)
+            : core::LoadOracleProgressionFromSrmFile(file_path);
     if (!state_or.ok()) {
       last_srm_error_ = std::string(state_or.status().message());
       return;
@@ -632,7 +654,8 @@ class StoryEventGraphPanel : public WindowContent {
   }
 
   void ClearOracleSramState() {
-    if (!manifest_) return;
+    if (!manifest_)
+      return;
     if (auto* backend = GetProgressionBackend()) {
       backend->ClearProgressionState(*manifest_);
     } else {
@@ -645,33 +668,34 @@ class StoryEventGraphPanel : public WindowContent {
 
   void DrawLiveSyncControls() {
     const bool connected = live_client_ && live_client_->IsConnected();
-    if (ImGui::SmallButton("Sync Mesen")) {
+    if (ImGui::SmallButton(tr("Sync Mesen"))) {
       live_refresh_pending_.store(false);
       RefreshStateFromLiveSram();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Read Oracle SRAM directly from connected Mesen2");
+      ImGui::SetTooltip(tr("Read Oracle SRAM directly from connected Mesen2"));
     }
 
     ImGui::SameLine();
-    ImGui::Checkbox("Live", &live_sync_enabled_);
+    ImGui::Checkbox(tr("Live"), &live_sync_enabled_);
     if (live_sync_enabled_) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(70.0f);
-      ImGui::SliderFloat("##StoryGraphLiveInterval", &live_refresh_interval_seconds_,
-                         0.05f, 0.5f, "%.2fs");
+      ImGui::SliderFloat("##StoryGraphLiveInterval",
+                         &live_refresh_interval_seconds_, 0.05f, 0.5f, "%.2fs");
     }
 
     ImGui::SameLine();
     if (connected) {
-      ImGui::TextDisabled("Mesen: connected");
+      ImGui::TextDisabled(tr("Mesen: connected"));
     } else {
-      ImGui::TextDisabled("Mesen: disconnected");
+      ImGui::TextDisabled(tr("Mesen: disconnected"));
     }
 
     if (!live_sync_error_.empty()) {
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f), "Live sync error");
+      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f),
+                         tr("Live sync error"));
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", live_sync_error_.c_str());
       }
@@ -704,8 +728,8 @@ class StoryEventGraphPanel : public WindowContent {
     }
 
     if (live_listener_id_ == 0) {
-      live_listener_id_ =
-          live_client_->AddEventListener([this](const emu::mesen::MesenEvent& event) {
+      live_listener_id_ = live_client_->AddEventListener(
+          [this](const emu::mesen::MesenEvent& event) {
             if (event.type == "frame_complete" ||
                 event.type == "breakpoint_hit" || event.type == "all") {
               live_refresh_pending_.store(true);

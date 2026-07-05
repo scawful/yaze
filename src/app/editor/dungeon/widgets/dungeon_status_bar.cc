@@ -1,4 +1,5 @@
 #include "dungeon_status_bar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -24,9 +25,9 @@ float CalcStatusIconButtonWidth(const char* icon, float button_height) {
   const ImGuiStyle& style = ImGui::GetStyle();
   const float glyph_width = ImGui::CalcTextSize(icon).x;
   const float extra = std::max(2.0f, style.FramePadding.x);
-  return std::max(button_height,
-                  std::ceil(glyph_width + (style.FramePadding.x * 2.0f) +
-                            extra));
+  return std::max(
+      button_height,
+      std::ceil(glyph_width + (style.FramePadding.x * 2.0f) + extra));
 }
 
 }  // namespace
@@ -126,13 +127,13 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
     ImGui::TextDisabled(ICON_MD_SELECT_ALL);
     ImGui::SameLine(0, 4);
     if (state.selection_layer >= 0) {
-      ImGui::Text("%d obj, L%d", state.selection_count,
+      ImGui::Text(tr("%d obj, L%d"), state.selection_count,
                   state.selection_layer + 1);
     } else {
-      ImGui::Text("%d obj", state.selection_count);
+      ImGui::Text(tr("%d obj"), state.selection_count);
     }
   } else {
-    ImGui::TextDisabled("No selection");
+    ImGui::TextDisabled(tr("No selection"));
   }
   ImGui::SameLine(0, spacing * 2);
 
@@ -183,7 +184,7 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
       ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "%s",
                          right_text);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Room has unsaved changes");
+        ImGui::SetTooltip(tr("Room has unsaved changes"));
       }
     } else {
       ImGui::TextDisabled("%s", right_text);

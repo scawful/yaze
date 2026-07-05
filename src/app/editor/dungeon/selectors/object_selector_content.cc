@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
+#include "util/i18n/tr.h"
 
 // Third-party library headers
 #include "absl/strings/str_format.h"
@@ -155,14 +156,14 @@ void ObjectSelectorContent::Draw(bool* p_open) {
   DrawInteractionSummary();
 
   float available_height = ImGui::GetContentRegionAvail().y;
-  float browser_height =
-      std::max(220.0f, available_height - (static_editor_open_ ? 260.0f : 0.0f));
+  float browser_height = std::max(
+      220.0f, available_height - (static_editor_open_ ? 260.0f : 0.0f));
 
   gui::SectionHeader(ICON_MD_CATEGORY, "Object Selector", theme.text_info);
   ImGui::TextColored(
       theme.text_secondary_gray,
-      "Choose an object to place. Double-click an entry to inspect its draw "
-      "routine or open the tile editor.");
+      tr("Choose an object to place. Double-click an entry to inspect its draw "
+         "routine or open the tile editor."));
   ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), true);
   DrawObjectSelector();
   ImGui::EndChild();
@@ -243,8 +244,7 @@ void ObjectSelectorContent::DrawInteractionSummary() {
       }
     }
   } else {
-    ImGui::TextColored(theme.text_secondary_gray,
-                       ICON_MD_MOUSE
+    ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MOUSE
                        " Browse objects below to place them. Click room "
                        "objects to edit them in the Object Editor.");
   }
@@ -404,7 +404,7 @@ void ObjectSelectorContent::DrawStaticObjectEditor() {
         // Object ID with hex/decimal display
         ImGui::TextColored(theme.text_info, ICON_MD_TAG " Object ID");
         ImGui::SameLine();
-        ImGui::Text("0x%02X (%d)", static_editor_object_id_,
+        ImGui::Text(tr("0x%02X (%d)"), static_editor_object_id_,
                     static_editor_object_id_);
 
         ImGui::Spacing();
@@ -412,8 +412,9 @@ void ObjectSelectorContent::DrawStaticObjectEditor() {
         // Draw routine info
         ImGui::TextColored(theme.text_info, ICON_MD_BRUSH " Draw Routine");
         ImGui::Indent();
-        ImGui::Text("ID: %d", static_editor_draw_info_.draw_routine_id);
-        ImGui::Text("Name: %s", static_editor_draw_info_.routine_name.c_str());
+        ImGui::Text(tr("ID: %d"), static_editor_draw_info_.draw_routine_id);
+        ImGui::Text(tr("Name: %s"),
+                    static_editor_draw_info_.routine_name.c_str());
         ImGui::Unindent();
 
         ImGui::Spacing();
@@ -421,8 +422,8 @@ void ObjectSelectorContent::DrawStaticObjectEditor() {
         // Tile and size info
         ImGui::TextColored(theme.text_info, ICON_MD_GRID_VIEW " Tile Info");
         ImGui::Indent();
-        ImGui::Text("Tile Count: %d", static_editor_draw_info_.tile_count);
-        ImGui::Text("Orientation: %s",
+        ImGui::Text(tr("Tile Count: %d"), static_editor_draw_info_.tile_count);
+        ImGui::Text(tr("Orientation: %s"),
                     static_editor_draw_info_.is_horizontal ? "Horizontal"
                     : static_editor_draw_info_.is_vertical ? "Vertical"
                                                            : "Both");
@@ -441,7 +442,7 @@ void ObjectSelectorContent::DrawStaticObjectEditor() {
               absl::StrFormat("0x%02X", static_editor_object_id_).c_str());
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Copy object ID to clipboard");
+          ImGui::SetTooltip(tr("Copy object ID to clipboard"));
         }
 
         if (ImGui::Button(ICON_MD_CODE " Export ASM", ImVec2(-1, 0))) {
@@ -458,7 +459,7 @@ void ObjectSelectorContent::DrawStaticObjectEditor() {
           ImGui::SetClipboardText(asm_preview.c_str());
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Copy ASM preview stub to clipboard");
+          ImGui::SetTooltip(tr("Copy ASM preview stub to clipboard"));
         }
 
         if (ImGui::Button(ICON_MD_GRID_ON " Edit Tiles", ImVec2(-1, 0))) {
@@ -468,7 +469,7 @@ void ObjectSelectorContent::DrawStaticObjectEditor() {
           }
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Open tile editor to rearrange 8x8 tiles");
+          ImGui::SetTooltip(tr("Open tile editor to rearrange 8x8 tiles"));
         }
 
         ImGui::Spacing();
@@ -482,7 +483,7 @@ void ObjectSelectorContent::DrawStaticObjectEditor() {
       // Right column: Preview canvas
       ImGui::TableNextColumn();
       {
-        ImGui::TextColored(theme.text_secondary_gray, "Preview:");
+        ImGui::TextColored(theme.text_secondary_gray, tr("Preview:"));
 
         gui::PreviewPanelOpts preview_opts;
         preview_opts.canvas_size = ImVec2(128, 128);
@@ -577,28 +578,30 @@ void ObjectSelectorContent::DrawRoomValidationBar() {
   ImGui::TextColored(usage_color(object_count, kMaxObjects),
                      ICON_MD_WIDGETS " %zu/%d", object_count, kMaxObjects);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Objects: %zu of %d maximum", object_count, kMaxObjects);
+    ImGui::SetTooltip(tr("Objects: %zu of %d maximum"), object_count,
+                      kMaxObjects);
   }
 
   ImGui::SameLine();
   ImGui::TextColored(usage_color(sprite_count, kMaxSprites),
                      ICON_MD_PEST_CONTROL " %zu/%d", sprite_count, kMaxSprites);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Sprites: %zu of %d maximum", sprite_count, kMaxSprites);
+    ImGui::SetTooltip(tr("Sprites: %zu of %d maximum"), sprite_count,
+                      kMaxSprites);
   }
 
   ImGui::SameLine();
   ImGui::TextColored(usage_color(door_count, kMaxDoors),
                      ICON_MD_DOOR_FRONT " %zu/%d", door_count, kMaxDoors);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Doors: %zu of %d maximum", door_count, kMaxDoors);
+    ImGui::SetTooltip(tr("Doors: %zu of %d maximum"), door_count, kMaxDoors);
   }
 
   ImGui::SameLine();
   ImGui::TextColored(usage_color(chest_count, kMaxChests),
                      ICON_MD_INVENTORY_2 " %d/%d", chest_count, kMaxChests);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Chests: %d of %d maximum", chest_count, kMaxChests);
+    ImGui::SetTooltip(tr("Chests: %d of %d maximum"), chest_count, kMaxChests);
   }
 
   ImGui::PopStyleVar();

@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
@@ -411,10 +412,10 @@ class DungeonMapPanel : public WindowContent {
                     zelda3::GetRoomLabel(room_id).c_str());
         if (rooms_) {
           if (auto* loaded_room = rooms_->GetIfLoaded(room_id)) {
-            ImGui::TextDisabled("Palette: %d", loaded_room->palette());
+            ImGui::TextDisabled(tr("Palette: %d"), loaded_room->palette());
           }
         }
-        ImGui::TextDisabled("Click to select");
+        ImGui::TextDisabled(tr("Click to select"));
         ImGui::EndTooltip();
       }
     }
@@ -423,7 +424,7 @@ class DungeonMapPanel : public WindowContent {
     ImGui::Dummy(canvas_size);
 
     // Status bar
-    ImGui::TextDisabled("%zu rooms in view", dungeon_room_ids_.size());
+    ImGui::TextDisabled(tr("%zu rooms in view"), dungeon_room_ids_.size());
   }
 
  private:
@@ -466,7 +467,7 @@ class DungeonMapPanel : public WindowContent {
       }
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Add currently selected room to the map");
+      ImGui::SetTooltip(tr("Add currently selected room to the map"));
     }
 
     ImGui::SameLine();

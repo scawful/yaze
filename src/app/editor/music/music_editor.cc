@@ -1,4 +1,5 @@
 #include "music_editor.h"
+#include "util/i18n/tr.h"
 
 #include "app/editor/music/music_undo_actions.h"
 
@@ -120,47 +121,47 @@ void MusicEditor::Initialize() {
 
   // Register PanelDescriptors for menu/sidebar visibility
   window_manager->RegisterPanel({.card_id = "music.song_browser",
-                                .display_name = "Song Browser",
-                                .window_title = " Song Browser",
-                                .icon = ICON_MD_LIBRARY_MUSIC,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+B",
-                                .priority = 5});
+                                 .display_name = "Song Browser",
+                                 .window_title = " Song Browser",
+                                 .icon = ICON_MD_LIBRARY_MUSIC,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+B",
+                                 .priority = 5});
   window_manager->RegisterPanel({.card_id = "music.tracker",
-                                .display_name = "Playback Control",
-                                .window_title = " Playback Control",
-                                .icon = ICON_MD_PLAY_CIRCLE,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+M",
-                                .priority = 10});
+                                 .display_name = "Playback Control",
+                                 .window_title = " Playback Control",
+                                 .icon = ICON_MD_PLAY_CIRCLE,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+M",
+                                 .priority = 10});
   window_manager->RegisterPanel({.card_id = "music.piano_roll",
-                                .display_name = "Piano Roll",
-                                .window_title = " Piano Roll",
-                                .icon = ICON_MD_PIANO,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+P",
-                                .priority = 15});
+                                 .display_name = "Piano Roll",
+                                 .window_title = " Piano Roll",
+                                 .icon = ICON_MD_PIANO,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+P",
+                                 .priority = 15});
   window_manager->RegisterPanel({.card_id = "music.instrument_editor",
-                                .display_name = "Instrument Editor",
-                                .window_title = " Instrument Editor",
-                                .icon = ICON_MD_SPEAKER,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+I",
-                                .priority = 20});
+                                 .display_name = "Instrument Editor",
+                                 .window_title = " Instrument Editor",
+                                 .icon = ICON_MD_SPEAKER,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+I",
+                                 .priority = 20});
   window_manager->RegisterPanel({.card_id = "music.sample_editor",
-                                .display_name = "Sample Editor",
-                                .window_title = " Sample Editor",
-                                .icon = ICON_MD_WAVES,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+S",
-                                .priority = 25});
+                                 .display_name = "Sample Editor",
+                                 .window_title = " Sample Editor",
+                                 .icon = ICON_MD_WAVES,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+S",
+                                 .priority = 25});
   window_manager->RegisterPanel({.card_id = "music.assembly",
-                                .display_name = "Assembly View",
-                                .window_title = " Music Assembly",
-                                .icon = ICON_MD_CODE,
-                                .category = "Music",
-                                .shortcut_hint = "Ctrl+Shift+A",
-                                .priority = 30});
+                                 .display_name = "Assembly View",
+                                 .window_title = " Music Assembly",
+                                 .icon = ICON_MD_CODE,
+                                 .category = "Music",
+                                 .shortcut_hint = "Ctrl+Shift+A",
+                                 .priority = 30});
   // ==========================================================================
   // Phase 5: Create and register WindowContent instances
   // Note: Callbacks are set up on the view classes during Draw() since
@@ -693,8 +694,7 @@ void MusicEditor::FinalizePendingUndo() {
 
   // Push the action with before/after snapshots
   undo_manager_.Push(std::make_unique<MusicSongEditAction>(
-      pending_undo_song_index_,
-      std::move(*pending_undo_before_),
+      pending_undo_song_index_, std::move(*pending_undo_before_),
       *song,  // "after" = current state
       &music_bank_));
 
@@ -820,7 +820,7 @@ void MusicEditor::OpenSongPianoRoll(int song_index) {
 void MusicEditor::DrawSongTrackerWindow(int song_index) {
   auto* song = music_bank_.GetSong(song_index);
   if (!song) {
-    ImGui::TextDisabled("Song not loaded");
+    ImGui::TextDisabled(tr("Song not loaded"));
     return;
   }
 
@@ -841,16 +841,14 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
   if (is_playing_this_song && !is_paused_this_song) {
     auto sc = gui::GetSuccessButtonColors();
     gui::StyleColorGuard btn_guard(
-        {{ImGuiCol_Button, sc.button},
-         {ImGuiCol_ButtonHovered, sc.hovered}});
+        {{ImGuiCol_Button, sc.button}, {ImGuiCol_ButtonHovered, sc.hovered}});
     if (ImGui::Button(ICON_MD_PAUSE " Pause")) {
       music_player_->Pause();
     }
   } else if (is_paused_this_song) {
     auto wc = gui::GetWarningButtonColors();
     gui::StyleColorGuard btn_guard(
-        {{ImGuiCol_Button, wc.button},
-         {ImGuiCol_ButtonHovered, wc.hovered}});
+        {{ImGuiCol_Button, wc.button}, {ImGuiCol_ButtonHovered, wc.hovered}});
     if (ImGui::Button(ICON_MD_PLAY_ARROW " Resume")) {
       music_player_->Resume();
     }
@@ -865,12 +863,12 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
     music_player_->Stop();
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Stop playback");
+    ImGui::SetTooltip(tr("Stop playback"));
 
   if (!can_play) {
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("Audio not ready - initialize music player first");
+      ImGui::SetTooltip(tr("Audio not ready - initialize music player first"));
     }
   }
 
@@ -899,11 +897,11 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
   if (is_playing_this_song && !is_paused_this_song) {
     ImGui::TextColored(gui::GetSuccessColor(), ICON_MD_GRAPHIC_EQ);
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Playing");
+      ImGui::SetTooltip(tr("Playing"));
   } else if (is_paused_this_song) {
     ImGui::TextColored(gui::GetWarningColor(), ICON_MD_PAUSE_CIRCLE);
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Paused");
+      ImGui::SetTooltip(tr("Paused"));
   }
 
   // Right side controls
@@ -921,14 +919,14 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
     }
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Playback speed (0.25x - 2.0x) - use mouse wheel");
+    ImGui::SetTooltip(tr("Playback speed (0.25x - 2.0x) - use mouse wheel"));
 
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_PIANO)) {
     OpenSongPianoRoll(song_index);
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Open Piano Roll view");
+    ImGui::SetTooltip(tr("Open Piano Roll view"));
 
   // === Row 2: Song Info ===
   const char* bank_name = nullptr;
@@ -960,13 +958,12 @@ void MusicEditor::DrawSongTrackerWindow(int song_index) {
 
   if (song->modified) {
     ImGui::SameLine();
-    ImGui::TextColored(gui::GetWarningColor(),
-                       ICON_MD_EDIT " Modified");
+    ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT " Modified");
   }
 
   // Segment count
   ImGui::SameLine(right_offset);
-  ImGui::TextColored(gui::GetDisabledColor(), "%zu segments",
+  ImGui::TextColored(gui::GetDisabledColor(), tr("%zu segments"),
                      song->segments.size());
 
   ImGui::Separator();
@@ -999,18 +996,17 @@ void MusicEditor::DrawPlaybackControl() {
                              : editor::music::PlaybackState{};
 
   if (song) {
-    ImGui::Text("Selected Song:");
+    ImGui::Text(tr("Selected Song:"));
     ImGui::SameLine();
     ImGui::TextColored(gui::GetInfoColor(), "[%02X] %s",
                        current_song_index_ + 1, song->name.c_str());
 
     // Song details
     ImGui::SameLine();
-    ImGui::TextDisabled("| %zu segments", song->segments.size());
+    ImGui::TextDisabled(tr("| %zu segments"), song->segments.size());
     if (song->modified) {
       ImGui::SameLine();
-      ImGui::TextColored(gui::GetWarningColor(),
-                         ICON_MD_EDIT " Modified");
+      ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT " Modified");
     }
   }
 
@@ -1052,10 +1048,10 @@ void MusicEditor::DrawPlaybackControl() {
     }
 
     // Segment info
-    ImGui::Text("Segment: %d | Tick: %u", state.current_segment_index + 1,
+    ImGui::Text(tr("Segment: %d | Tick: %u"), state.current_segment_index + 1,
                 state.current_tick);
     ImGui::SameLine();
-    ImGui::TextDisabled("| %.1f ticks/sec | %.2fx speed",
+    ImGui::TextDisabled(tr("| %.1f ticks/sec | %.2fx speed"),
                         state.ticks_per_second, state.playback_speed);
   }
 
@@ -1072,23 +1068,23 @@ void MusicEditor::DrawPlaybackControl() {
     OpenSong(current_song_index_);
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Open song in dedicated tracker window");
+    ImGui::SetTooltip(tr("Open song in dedicated tracker window"));
 
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_PIANO " Open Piano Roll")) {
     OpenSongPianoRoll(current_song_index_);
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Open piano roll view for this song");
+    ImGui::SetTooltip(tr("Open piano roll view for this song"));
 
   // Help section (collapsed by default)
   if (ImGui::CollapsingHeader(ICON_MD_KEYBOARD " Keyboard Shortcuts")) {
-    ImGui::BulletText("Space: Play/Pause toggle");
-    ImGui::BulletText("Escape: Stop playback");
-    ImGui::BulletText("+/-: Increase/decrease speed");
-    ImGui::BulletText("Arrow keys: Navigate in tracker/piano roll");
-    ImGui::BulletText("Z,S,X,D,C,V,G,B,H,N,J,M: Piano keyboard (C to B)");
-    ImGui::BulletText("Ctrl+Wheel: Zoom (Piano Roll)");
+    ImGui::BulletText(tr("Space: Play/Pause toggle"));
+    ImGui::BulletText(tr("Escape: Stop playback"));
+    ImGui::BulletText(tr("+/-: Increase/decrease speed"));
+    ImGui::BulletText(tr("Arrow keys: Navigate in tracker/piano roll"));
+    ImGui::BulletText(tr("Z,S,X,D,C,V,G,B,H,N,J,M: Piano keyboard (C to B)"));
+    ImGui::BulletText(tr("Ctrl+Wheel: Zoom (Piano Roll)"));
   }
 }
 
@@ -1165,26 +1161,26 @@ void MusicEditor::DrawToolset() {
     if (ImGui::Button(ICON_MD_PAUSE "##Pause"))
       music_player_->Pause();
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Pause (Space)");
+      ImGui::SetTooltip(tr("Pause (Space)"));
   } else if (state.is_paused) {
     gui::StyleColorGuard btn_guard(ImGuiCol_Button,
                                    gui::GetWarningButtonColors().button);
     if (ImGui::Button(ICON_MD_PLAY_ARROW "##Resume"))
       music_player_->Resume();
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Resume (Space)");
+      ImGui::SetTooltip(tr("Resume (Space)"));
   } else {
     if (ImGui::Button(ICON_MD_PLAY_ARROW "##Play"))
       music_player_->PlaySong(current_song_index_);
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Play (Space)");
+      ImGui::SetTooltip(tr("Play (Space)"));
   }
 
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_STOP "##Stop"))
     music_player_->Stop();
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Stop (Escape)");
+    ImGui::SetTooltip(tr("Stop (Escape)"));
 
   if (!can_play)
     ImGui::EndDisabled();
@@ -1210,7 +1206,7 @@ void MusicEditor::DrawToolset() {
       ImGui::TextColored(gui::GetWarningColor(), ICON_MD_EDIT);
     }
   } else {
-    ImGui::TextDisabled("No song selected");
+    ImGui::TextDisabled(tr("No song selected"));
   }
 
   // Time display (when playing)
@@ -1239,7 +1235,7 @@ void MusicEditor::DrawToolset() {
     }
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Playback speed (+/- keys)");
+    ImGui::SetTooltip(tr("Playback speed (+/- keys)"));
 
   ImGui::SameLine();
   ImGui::Text(ICON_MD_VOLUME_UP);
@@ -1250,7 +1246,7 @@ void MusicEditor::DrawToolset() {
       music_player_->SetVolume(current_volume / 100.0f);
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Volume");
+    ImGui::SetTooltip(tr("Volume"));
 
   ImGui::SameLine();
   const bool rom_loaded = rom_ && rom_->is_loaded();
@@ -1265,7 +1261,7 @@ void MusicEditor::DrawToolset() {
     ImGui::EndDisabled();
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Reload from ROM");
+    ImGui::SetTooltip(tr("Reload from ROM"));
 
   // Interpolation Control
   ImGui::SameLine();
@@ -1280,7 +1276,7 @@ void MusicEditor::DrawToolset() {
     }
     if (ImGui::IsItemHovered())
       ImGui::SetTooltip(
-          "Audio interpolation quality\nGaussian = authentic SNES sound");
+          tr("Audio interpolation quality\nGaussian = authentic SNES sound"));
   }
 
   ImGui::Separator();
@@ -1306,7 +1302,7 @@ void MusicEditor::DrawToolset() {
     if (audio_emu && audio_emu->is_snes_initialized()) {
       auto& dsp = audio_emu->snes().apu().dsp();
 
-      ImGui::Text("Scope");
+      ImGui::Text(tr("Scope"));
 
       // Oscilloscope
       const int16_t* buffer = dsp.GetSampleBuffer();
@@ -1382,18 +1378,18 @@ void MusicEditor::DrawToolset() {
         ImGui::ProgressBar(level, ImVec2(-1, 60), "");
 
         // Info
-        ImGui::Text("Vol: %d %d", ch.volumeL, ch.volumeR);
-        ImGui::Text("Pitch: %04X", ch.pitch);
+        ImGui::Text(tr("Vol: %d %d"), ch.volumeL, ch.volumeR);
+        ImGui::Text(tr("Pitch: %04X"), ch.pitch);
 
         // Key On Indicator
         if (ch.keyOn) {
           ImGui::TextColored(gui::ConvertColorToImVec4(theme.success),
-                             "KEY ON");
+                             tr("KEY ON"));
         } else {
           ImGui::TextDisabled("---");
         }
       } else {
-        ImGui::TextDisabled("Offline");
+        ImGui::TextDisabled(tr("Offline"));
       }
     }
 
@@ -1412,14 +1408,15 @@ void MusicEditor::DrawToolset() {
         bool resampling = audio_backend->IsAudioStreamEnabled();
 
         // Compact status line
-        ImGui::Text("Backend: %s @ %dHz | Queue: %u frames",
+        ImGui::Text(tr("Backend: %s @ %dHz | Queue: %u frames"),
                     audio_backend->GetBackendName().c_str(), config.sample_rate,
                     status.queued_frames);
 
         // Resampling indicator with warning if disabled
         if (resampling) {
           ImGui::TextColored(gui::GetSuccessColor(),
-                             "Resampling: 32040 -> %d Hz", config.sample_rate);
+                             tr("Resampling: 32040 -> %d Hz"),
+                             config.sample_rate);
         } else {
           ImGui::TextColored(gui::GetErrorColor(), ICON_MD_WARNING
                              " Resampling DISABLED - 1.5x speed bug!");
@@ -1430,31 +1427,31 @@ void MusicEditor::DrawToolset() {
                              ICON_MD_WARNING " Buffer underrun");
         }
 
-        ImGui::TextDisabled("Open Audio Debug panel for full diagnostics");
+        ImGui::TextDisabled(tr("Open Audio Debug panel for full diagnostics"));
       }
     } else {
-      ImGui::TextDisabled("Play a song to see audio status");
+      ImGui::TextDisabled(tr("Play a song to see audio status"));
     }
   }
 }
 
 void MusicEditor::DrawChannelOverview() {
   if (!music_player_) {
-    ImGui::TextDisabled("Music player not initialized");
+    ImGui::TextDisabled(tr("Music player not initialized"));
     return;
   }
 
   // Check if audio emulator is initialized (created on first play)
   auto* audio_emu = music_player_->emulator();
   if (!audio_emu || !audio_emu->is_snes_initialized()) {
-    ImGui::TextDisabled("Play a song to see channel activity");
+    ImGui::TextDisabled(tr("Play a song to see channel activity"));
     return;
   }
 
   // Check available space to avoid ImGui table assertion
   ImVec2 avail = ImGui::GetContentRegionAvail();
   if (avail.y < 50.0f) {
-    ImGui::TextDisabled("(Channel view - expand for details)");
+    ImGui::TextDisabled(tr("(Channel view - expand for details)"));
     return;
   }
 
@@ -1472,7 +1469,7 @@ void MusicEditor::DrawChannelOverview() {
     ImGui::TableNextRow();
 
     ImGui::TableSetColumnIndex(0);
-    ImGui::Text("DSP Live");
+    ImGui::Text(tr("DSP Live"));
 
     for (int ch = 0; ch < 8; ++ch) {
       ImGui::TableSetColumnIndex(ch + 1);
@@ -1480,9 +1477,9 @@ void MusicEditor::DrawChannelOverview() {
 
       // Visual indicator for Key On
       if (state.key_on) {
-        ImGui::TextColored(gui::GetSuccessColor(), "ON");
+        ImGui::TextColored(gui::GetSuccessColor(), tr("ON"));
       } else {
-        ImGui::TextDisabled("OFF");
+        ImGui::TextDisabled(tr("OFF"));
       }
 
       // Volume bars
@@ -1492,8 +1489,8 @@ void MusicEditor::DrawChannelOverview() {
       ImGui::ProgressBar(vol_r, ImVec2(-1, 6.0f), "");
 
       // Info
-      ImGui::Text("S: %02X", state.sample_index);
-      ImGui::Text("P: %04X", state.pitch);
+      ImGui::Text(tr("S: %02X"), state.sample_index);
+      ImGui::Text(tr("P: %04X"), state.pitch);
 
       // ADSR State
       const char* adsr_str = "???";
@@ -1658,15 +1655,16 @@ void MusicEditor::DrawAsmPopups() {
 
   if (ImGui::BeginPopupModal("Export Song ASM", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::TextWrapped("Copy the generated ASM below or tweak before saving.");
+    ImGui::TextWrapped(
+        tr("Copy the generated ASM below or tweak before saving."));
     ImGui::InputTextMultiline("##AsmExportText", &asm_buffer_, ImVec2(520, 260),
                               ImGuiInputTextFlags_AllowTabInput);
 
-    if (ImGui::Button("Copy to Clipboard")) {
+    if (ImGui::Button(tr("Copy to Clipboard"))) {
       ImGui::SetClipboardText(asm_buffer_.c_str());
     }
     ImGui::SameLine();
-    if (ImGui::Button("Close")) {
+    if (ImGui::Button(tr("Close"))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -1678,11 +1676,11 @@ void MusicEditor::DrawAsmPopups() {
     int song_slot =
         (asm_import_target_index_ >= 0) ? asm_import_target_index_ + 1 : -1;
     if (song_slot > 0) {
-      ImGui::Text("Target Song: [%02X]", song_slot);
+      ImGui::Text(tr("Target Song: [%02X]"), song_slot);
     } else {
-      ImGui::TextDisabled("Select a song to import into");
+      ImGui::TextDisabled(tr("Select a song to import into"));
     }
-    ImGui::TextWrapped("Paste Oracle of Secrets-compatible ASM here.");
+    ImGui::TextWrapped(tr("Paste Oracle of Secrets-compatible ASM here."));
 
     ImGui::InputTextMultiline("##AsmImportText", &asm_buffer_, ImVec2(520, 260),
                               ImGuiInputTextFlags_AllowTabInput);
@@ -1697,7 +1695,7 @@ void MusicEditor::DrawAsmPopups() {
     if (!can_import) {
       ImGui::BeginDisabled();
     }
-    if (ImGui::Button("Import")) {
+    if (ImGui::Button(tr("Import"))) {
       if (ImportAsmBufferToSong(asm_import_target_index_)) {
         show_asm_import_popup_ = false;
         asm_import_target_index_ = -1;
@@ -1709,7 +1707,7 @@ void MusicEditor::DrawAsmPopups() {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Cancel")) {
+    if (ImGui::Button(tr("Cancel"))) {
       asm_import_error_.clear();
       show_asm_import_popup_ = false;
       asm_import_target_index_ = -1;

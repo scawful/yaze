@@ -1,4 +1,5 @@
 #include "app/editor/menu/status_bar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 
@@ -423,13 +424,14 @@ void StatusBar::DrawAgentSegment() {
 
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    ImGui::Text("%s Agent", ICON_MD_SMART_TOY);
-    ImGui::TextDisabled("Provider: %s", agent_provider_.empty()
-                                            ? "mock"
-                                            : agent_provider_.c_str());
-    ImGui::TextDisabled(
-        "Model: %s", agent_model_.empty() ? "not set" : agent_model_.c_str());
-    ImGui::TextDisabled("Toggle chat panel");
+    ImGui::Text(tr("%s Agent"), ICON_MD_SMART_TOY);
+    ImGui::TextDisabled(tr("Provider: %s"), agent_provider_.empty()
+                                                ? "mock"
+                                                : agent_provider_.c_str());
+    ImGui::TextDisabled(tr("Model: %s"), agent_model_.empty()
+                                             ? "not set"
+                                             : agent_model_.c_str());
+    ImGui::TextDisabled(tr("Toggle chat panel"));
     ImGui::EndTooltip();
   }
 }
@@ -474,7 +476,7 @@ void StatusBar::DrawRomSegment() {
                        gui::ConvertColorToImVec4(theme.warning));
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Unsaved changes");
+        ImGui::SetTooltip(tr("Unsaved changes"));
       }
     }
   } else {
@@ -488,7 +490,8 @@ void StatusBar::DrawSessionSegment() {
                     session_id_ + 1, total_sessions_);
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Session %zu of %zu", session_id_ + 1, total_sessions_);
+    ImGui::SetTooltip(tr("Session %zu of %zu"), session_id_ + 1,
+                      total_sessions_);
   }
 }
 
@@ -503,10 +506,10 @@ void StatusBar::DrawSelectionSegment() {
                                        gui::GetTextSecondaryVec4());
 
   if (selection_width_ > 0 && selection_height_ > 0) {
-    ImGui::Text("%s %d (%dx%d)", ICON_MD_SELECT_ALL, selection_count_,
+    ImGui::Text(tr("%s %d (%dx%d)"), ICON_MD_SELECT_ALL, selection_count_,
                 selection_width_, selection_height_);
   } else if (selection_count_ > 0) {
-    ImGui::Text("%s %d selected", ICON_MD_SELECT_ALL, selection_count_);
+    ImGui::Text(tr("%s %d selected"), ICON_MD_SELECT_ALL, selection_count_);
   }
 }
 
@@ -519,7 +522,7 @@ void StatusBar::DrawZoomSegment() {
   // readout so existing behavior is preserved.
   if (zoom_options_.tooltip.empty() && !zoom_options_.on_click) {
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Zoom: %d%%", zoom_percent);
+      ImGui::SetTooltip(tr("Zoom: %d%%"), zoom_percent);
     }
   } else {
     ApplySegmentInteraction(zoom_options_);

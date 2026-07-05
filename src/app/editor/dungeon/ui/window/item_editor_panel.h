@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -54,13 +55,13 @@ class ItemEditorPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!current_room_id_ || !rooms_) {
-      ImGui::TextDisabled("No room data available");
+      ImGui::TextDisabled(tr("No room data available"));
       return;
     }
 
     if (*current_room_id_ < 0 ||
         *current_room_id_ >= static_cast<int>(rooms_->size())) {
-      ImGui::TextDisabled("No room selected");
+      ImGui::TextDisabled(tr("No room selected"));
       return;
     }
 
@@ -203,7 +204,7 @@ class ItemEditorPanel : public WindowContent {
       }
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s (0x%02X)\nClick to select for placement",
+        ImGui::SetTooltip(tr("%s (0x%02X)\nClick to select for placement"),
                           kPotItemNames[i], static_cast<int>(i));
       }
 
@@ -254,7 +255,7 @@ class ItemEditorPanel : public WindowContent {
       const char* item_name =
           (item.item < kPotItemCount) ? kPotItemNames[item.item] : "Unknown";
 
-      ImGui::Text("[%zu] %s (0x%02X)", i, item_name, item.item);
+      ImGui::Text(tr("[%zu] %s (0x%02X)"), i, item_name, item.item);
       ImGui::SameLine();
       ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)",
                          item.GetTileX(), item.GetTileY());

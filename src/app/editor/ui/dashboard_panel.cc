@@ -1,4 +1,5 @@
 #include "app/editor/ui/dashboard_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -8,7 +9,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/system/editor_manager_interfaces.h"
-#include "rom/rom.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
@@ -18,6 +18,7 @@
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "rom/rom.h"
 #include "util/file_util.h"
 
 namespace yaze {
@@ -138,7 +139,8 @@ ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
 }  // namespace
 
 DashboardPanel::DashboardPanel(IEditorSwitcher* editor_switcher)
-    : editor_switcher_(editor_switcher), window_("Dashboard", ICON_MD_DASHBOARD) {
+    : editor_switcher_(editor_switcher),
+      window_("Dashboard", ICON_MD_DASHBOARD) {
   window_.SetSaveSettings(false);
   window_.SetDefaultSize(950, 650);
   window_.SetPosition(gui::PanelWindow::Position::Center);
@@ -194,8 +196,7 @@ void DashboardPanel::Draw() {
   ImGui::SetNextWindowSize(ImVec2(target_width, target_height),
                            ImGuiCond_Appearing);
   ImGui::SetNextWindowSizeConstraints(
-      ImVec2(420.0f, 360.0f),
-      ImVec2(view_size.x * 0.98f, view_size.y * 0.95f));
+      ImVec2(420.0f, 360.0f), ImVec2(view_size.x * 0.98f, view_size.y * 0.95f));
 
   has_rom_ = editor_switcher_ && editor_switcher_->GetCurrentRom() &&
              editor_switcher_->GetCurrentRom()->is_loaded();
@@ -233,8 +234,8 @@ void DashboardPanel::DrawWelcomeHeader() {
   ImGui::PopFont();
 
   ImGui::TextColored(text_secondary,
-                     "Choose an editor to begin working on your ROM. "
-                     "You can open multiple editors simultaneously.");
+                     tr("Choose an editor to begin working on your ROM. "
+                        "You can open multiple editors simultaneously."));
 }
 
 void DashboardPanel::DrawRecentEditors() {
@@ -292,8 +293,7 @@ void DashboardPanel::DrawRecentEditors() {
       const ImVec4 base_color = GetEditorAccentColor(it->type, theme);
       gui::StyleColorGuard btn_guard(
           {{ImGuiCol_Button, ScaleColor(base_color, 0.5f, 0.7f * alpha)},
-           {ImGuiCol_ButtonHovered,
-            ScaleColor(base_color, 0.7f, 0.9f * alpha)},
+           {ImGuiCol_ButtonHovered, ScaleColor(base_color, 0.7f, 0.9f * alpha)},
            {ImGuiCol_ButtonActive, WithAlpha(base_color, 1.0f * alpha)}});
 
       ImVec2 button_size(
@@ -317,7 +317,7 @@ void DashboardPanel::DrawRecentEditors() {
 
       if (ImGui::IsItemHovered()) {
         if (!enabled) {
-          ImGui::SetTooltip("Load a ROM to open %s", it->name.c_str());
+          ImGui::SetTooltip(tr("Load a ROM to open %s"), it->name.c_str());
         } else {
           ImGui::SetTooltip("%s", it->description.c_str());
         }
@@ -335,19 +335,17 @@ void DashboardPanel::DrawEditorGrid() {
   const float avail_width = ImGui::GetContentRegionAvail().x;
   const float scale = ImGui::GetFontSize() / 16.0f;
   const float compact_scale = avail_width < 620.0f ? 0.85f : 1.0f;
-  const float min_width =
-      kDashboardCardBaseWidth * kDashboardCardMinWidthFactor * scale *
-      compact_scale;
-  const float max_width =
-      kDashboardCardBaseWidth * kDashboardCardWidthMaxFactor * scale *
-      compact_scale;
+  const float min_width = kDashboardCardBaseWidth *
+                          kDashboardCardMinWidthFactor * scale * compact_scale;
+  const float max_width = kDashboardCardBaseWidth *
+                          kDashboardCardWidthMaxFactor * scale * compact_scale;
   const float min_height =
-      std::max(kDashboardCardBaseHeight * kDashboardCardMinHeightFactor * scale *
-                   compact_scale,
+      std::max(kDashboardCardBaseHeight * kDashboardCardMinHeightFactor *
+                   scale * compact_scale,
                ImGui::GetFrameHeight() * 3.2f);
-  const float max_height =
-      kDashboardCardBaseHeight * kDashboardCardHeightMaxFactor * scale *
-      compact_scale;
+  const float max_height = kDashboardCardBaseHeight *
+                           kDashboardCardHeightMaxFactor * scale *
+                           compact_scale;
   const float aspect_ratio =
       kDashboardCardBaseHeight / std::max(kDashboardCardBaseWidth, 1.0f);
   const float spacing = style.ItemSpacing.x;
@@ -429,12 +427,11 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
       color_top, color_bottom, color_bottom);
 
   // Colored border
-  ImU32 border_color = is_recent
-                           ? ImGui::GetColorU32(
-                                 WithAlpha(base_color, 1.0f * disabled_alpha))
-                           : ImGui::GetColorU32(
-                                 ScaleColor(base_color, 0.6f,
-                                            0.7f * disabled_alpha));
+  ImU32 border_color =
+      is_recent
+          ? ImGui::GetColorU32(WithAlpha(base_color, 1.0f * disabled_alpha))
+          : ImGui::GetColorU32(
+                ScaleColor(base_color, 0.6f, 0.7f * disabled_alpha));
   const float rounding = std::max(style.FrameRounding, card_size.y * 0.05f);
   const float border_thickness =
       is_recent ? std::max(2.0f, style.FrameBorderSize + 1.0f)
@@ -514,10 +511,9 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
   const ImVec2 name_pos(name_x, title_y);
   const ImVec4 name_clip(name_min_x, cursor_pos.y + padding_y, name_max_x,
                          footer_y);
-  draw_list->AddText(
-      text_font, text_font_size, name_pos,
-      ImGui::GetColorU32(WithAlpha(base_color, disabled_alpha)),
-      info.name.c_str(), nullptr, 0.0f, &name_clip);
+  draw_list->AddText(text_font, text_font_size, name_pos,
+                     ImGui::GetColorU32(WithAlpha(base_color, disabled_alpha)),
+                     info.name.c_str(), nullptr, 0.0f, &name_clip);
 
   // Draw shortcut hint if available
   if (!info.shortcut.empty()) {
@@ -532,9 +528,8 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
 
   // Hover glow effect
   if (is_hovered) {
-    ImU32 glow_color =
-        ImGui::GetColorU32(ScaleColor(base_color, 1.0f,
-                                      enabled ? 0.18f : 0.08f));
+    ImU32 glow_color = ImGui::GetColorU32(
+        ScaleColor(base_color, 1.0f, enabled ? 0.18f : 0.08f));
     draw_list->AddRectFilled(
         cursor_pos,
         ImVec2(cursor_pos.x + card_size.x, cursor_pos.y + card_size.y),
@@ -553,7 +548,7 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     ImGui::Separator();
     ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + tooltip_width - 20.0f);
     if (!enabled) {
-      ImGui::TextWrapped("Load a ROM to open this editor.");
+      ImGui::TextWrapped(tr("Load a ROM to open this editor."));
     } else {
       ImGui::TextWrapped("%s", info.description.c_str());
     }

@@ -1,4 +1,5 @@
 #include "app/gui/widgets/tile_selector_widget.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -10,14 +11,12 @@ namespace yaze::gui {
 namespace {
 
 std::string_view TrimAsciiWhitespace(std::string_view s) {
-  while (!s.empty() &&
-         (s.front() == ' ' || s.front() == '\t' || s.front() == '\n' ||
-          s.front() == '\r')) {
+  while (!s.empty() && (s.front() == ' ' || s.front() == '\t' ||
+                        s.front() == '\n' || s.front() == '\r')) {
     s.remove_prefix(1);
   }
-  while (!s.empty() &&
-         (s.back() == ' ' || s.back() == '\t' || s.back() == '\n' ||
-          s.back() == '\r')) {
+  while (!s.empty() && (s.back() == ' ' || s.back() == '\t' ||
+                        s.back() == '\n' || s.back() == '\r')) {
     s.remove_suffix(1);
   }
   return s;
@@ -36,8 +35,7 @@ bool ParseTileIdText(std::string_view input, int* out_value) {
   }
 
   bool decimal_mode = false;
-  if (trimmed.size() >= 2 &&
-      (trimmed[0] == 'd' || trimmed[0] == 'D') &&
+  if (trimmed.size() >= 2 && (trimmed[0] == 'd' || trimmed[0] == 'D') &&
       trimmed[1] == ':') {
     decimal_mode = true;
     trimmed.remove_prefix(2);
@@ -166,7 +164,7 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
       int hovered_tile = ResolveTileAtCursor(tile_display_size);
       if (IsValidTileId(hovered_tile)) {
         ImGui::BeginTooltip();
-        ImGui::Text("Tile %d (0x%03X)", hovered_tile, hovered_tile);
+        ImGui::Text(tr("Tile %d (0x%03X)"), hovered_tile, hovered_tile);
 
         // Extract and draw a zoomed preview of the hovered tile
         int tile_col = hovered_tile % config_.tiles_per_row;
@@ -233,8 +231,8 @@ TileSelectorWidget::RenderResult TileSelectorWidget::HandleInteraction(
 
   // Emit drag source for the selected tile when dragging is enabled
   if (config_.enable_drag && IsValidTileId(selected_tile_id_)) {
-    result.tile_dragging = BeginTileDragSource(selected_tile_id_,
-                                               config_.drag_source_map_id);
+    result.tile_dragging =
+        BeginTileDragSource(selected_tile_id_, config_.drag_source_map_id);
   }
 
   return result;
@@ -329,25 +327,26 @@ TileSelectorWidget::JumpToTileResult TileSelectorWidget::JumpToTileFromInput(
 bool TileSelectorWidget::DrawFilterBar() {
   bool jumped = false;
   const int max_tile_id = GetMaxTileId();
-  const float available_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const float available_width =
+      std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const bool compact_layout = available_width < 420.0f;
   const float jump_input_width =
       compact_layout ? std::clamp(available_width * 0.28f, 56.0f, 88.0f)
                      : 64.0f;
   const float range_input_width =
-      compact_layout ? std::clamp((available_width - 110.0f) * 0.5f, 56.0f, 88.0f)
-                     : 64.0f;
+      compact_layout
+          ? std::clamp((available_width - 110.0f) * 0.5f, 56.0f, 88.0f)
+          : 64.0f;
 
   constexpr ImGuiInputTextFlags kHexFlags =
       ImGuiInputTextFlags_CharsHexadecimal |
-      ImGuiInputTextFlags_EnterReturnsTrue |
-      ImGuiInputTextFlags_AutoSelectAll;
+      ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll;
 
   ImGui::PushID(widget_id_.c_str());
 
   // Jump-to-ID input
   ImGui::AlignTextToFramePadding();
-  ImGui::TextUnformatted("Go:");
+  ImGui::TextUnformatted(tr("Go:"));
   ImGui::SameLine();
 
   ImGui::SetNextItemWidth(jump_input_width);
@@ -364,24 +363,24 @@ bool TileSelectorWidget::DrawFilterBar() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Enter tile ID and press Enter:\n"
-        "hex: 1A or 0x1A\n"
-        "decimal: d:26");
+        tr("Enter tile ID and press Enter:\n"
+           "hex: 1A or 0x1A\n"
+           "decimal: d:26"));
   }
 
   ImGui::SameLine();
-  ImGui::TextDisabled("/ 0x%03X", max_tile_id);
+  ImGui::TextDisabled(tr("/ 0x%03X"), max_tile_id);
 
   if (compact_layout) {
     ImGui::NewLine();
   } else {
     if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
       ImGui::SameLine(0, 8.0f);
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Invalid hex ID");
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), tr("Invalid hex ID"));
     } else if (last_jump_result_ == JumpToTileResult::kOutOfRange) {
       ImGui::SameLine(0, 8.0f);
       ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                         "Out of range (max: 0x%03X)", max_tile_id);
+                         tr("Out of range (max: 0x%03X)"), max_tile_id);
     }
   }
 
@@ -389,7 +388,7 @@ bool TileSelectorWidget::DrawFilterBar() {
   if (!compact_layout) {
     ImGui::SameLine(0, 12.0f);
   }
-  ImGui::TextUnformatted("Range:");
+  ImGui::TextUnformatted(tr("Range:"));
   ImGui::SameLine();
 
   bool range_changed = false;
@@ -400,9 +399,9 @@ bool TileSelectorWidget::DrawFilterBar() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Min tile ID. Press Enter to apply.\n"
-        "hex: 1A or 0x1A\n"
-        "decimal: d:26");
+        tr("Min tile ID. Press Enter to apply.\n"
+           "hex: 1A or 0x1A\n"
+           "decimal: d:26"));
   }
   ImGui::SameLine();
   ImGui::TextUnformatted("-");
@@ -414,16 +413,16 @@ bool TileSelectorWidget::DrawFilterBar() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Max tile ID. Press Enter to apply.\n"
-        "hex: 1A or 0x1A\n"
-        "decimal: d:26");
+        tr("Max tile ID. Press Enter to apply.\n"
+           "hex: 1A or 0x1A\n"
+           "decimal: d:26"));
   }
   if (!compact_layout) {
     ImGui::SameLine();
-    ImGui::TextDisabled("(hex, d:dec)");
+    ImGui::TextDisabled(tr("(hex, d:dec)"));
   } else {
     ImGui::NewLine();
-    ImGui::TextDisabled("hex or d:dec");
+    ImGui::TextDisabled(tr("hex or d:dec"));
   }
 
   if (range_changed) {
@@ -458,14 +457,14 @@ bool TileSelectorWidget::DrawFilterBar() {
     if (!compact_layout) {
       ImGui::SameLine();
     }
-    if (ImGui::SmallButton("X##ClearRange")) {
+    if (ImGui::SmallButton(tr("X##ClearRange"))) {
       ClearRangeFilter();
       filter_min_buf_[0] = '\0';
       filter_max_buf_[0] = '\0';
       filter_range_error_ = false;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Clear range filter");
+      ImGui::SetTooltip(tr("Clear range filter"));
     }
   }
 
@@ -474,20 +473,21 @@ bool TileSelectorWidget::DrawFilterBar() {
     if (!compact_layout) {
       ImGui::SameLine(0, 8.0f);
     }
-    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Min must be <= Max");
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                       tr("Min must be <= Max"));
   } else if (filter_out_of_range_) {
     if (!compact_layout) {
       ImGui::SameLine(0, 8.0f);
     }
     ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                       "Out of range (max: 0x%03X)", GetMaxTileId());
+                       tr("Out of range (max: 0x%03X)"), GetMaxTileId());
   } else if (filter_range_active_) {
     int range_count = filter_range_max_ - filter_range_min_ + 1;
     if (range_count <= 0) {
       if (!compact_layout) {
         ImGui::SameLine(0, 8.0f);
       }
-      ImGui::TextDisabled("(no tiles in range)");
+      ImGui::TextDisabled(tr("(no tiles in range)"));
     }
   }
 
@@ -497,9 +497,12 @@ bool TileSelectorWidget::DrawFilterBar() {
 }
 
 void TileSelectorWidget::SetRangeFilter(int min_id, int max_id) {
-  if (min_id < 0) min_id = 0;
-  if (max_id >= total_tiles_) max_id = total_tiles_ - 1;
-  if (min_id > max_id) return;
+  if (min_id < 0)
+    min_id = 0;
+  if (max_id >= total_tiles_)
+    max_id = total_tiles_ - 1;
+  if (min_id > max_id)
+    return;
 
   filter_range_active_ = true;
   filter_range_min_ = min_id;
@@ -520,7 +523,8 @@ bool TileSelectorWidget::IsValidTileId(int tile_id) const {
 }
 
 bool TileSelectorWidget::IsInFilterRange(int tile_id) const {
-  if (!filter_range_active_) return true;
+  if (!filter_range_active_)
+    return true;
   return tile_id >= filter_range_min_ && tile_id <= filter_range_max_;
 }
 

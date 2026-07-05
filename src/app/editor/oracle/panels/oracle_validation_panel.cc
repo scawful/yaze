@@ -1,4 +1,5 @@
 #include "app/editor/oracle/panels/oracle_validation_panel.h"
+#include "util/i18n/tr.h"
 
 #include <chrono>
 #include <fstream>
@@ -31,11 +32,11 @@ const char* CheckStr(bool flag) {
 
 void DrawCheckBadge(const std::string& state) {
   if (state == "ran") {
-    ImGui::TextColored(kGreen, "[ran]");
+    ImGui::TextColored(kGreen, tr("[ran]"));
     return;
   }
   if (state == "skipped") {
-    ImGui::TextColored(kGrey, "[skipped]");
+    ImGui::TextColored(kGrey, tr("[skipped]"));
     return;
   }
   ImGui::TextColored(kYellow, "[%s]", state.c_str());
@@ -86,7 +87,7 @@ void DrawZ3dkArtifactSummary() {
     return;
   }
 
-  if (!ImGui::CollapsingHeader("z3dk Artifacts",
+  if (!ImGui::CollapsingHeader(tr("z3dk Artifacts"),
                                ImGuiTreeNodeFlags_DefaultOpen)) {
     return;
   }
@@ -99,7 +100,7 @@ void DrawZ3dkArtifactSummary() {
         lint.contains("warnings") && lint["warnings"].is_array()
             ? static_cast<int>(lint["warnings"].size())
             : 0;
-    ImGui::Text("Lint diagnostics: %d error(s), %d warning(s)", errors,
+    ImGui::Text(tr("Lint diagnostics: %d error(s), %d warning(s)"), errors,
                 warnings);
   }
   if (has_annotations) {
@@ -107,13 +108,13 @@ void DrawZ3dkArtifactSummary() {
                               annotations["annotations"].is_array()
                           ? static_cast<int>(annotations["annotations"].size())
                           : 0;
-    ImGui::Text("Annotations: %d", count);
+    ImGui::Text(tr("Annotations: %d"), count);
   }
   if (has_hooks) {
     const int count = hooks.contains("hooks") && hooks["hooks"].is_array()
                           ? static_cast<int>(hooks["hooks"].size())
                           : 0;
-    ImGui::Text("Hook/write blocks: %d", count);
+    ImGui::Text(tr("Hook/write blocks: %d"), count);
   }
 }
 }  // namespace
@@ -258,31 +259,31 @@ void OracleValidationPanel::LaunchRun(oracle_validation::RunMode mode) {
 }
 
 void OracleValidationPanel::DrawOptions() {
-  ImGui::SeparatorText("Options");
+  ImGui::SeparatorText(tr("Options"));
 
   ImGui::SetNextItemWidth(320.0f);
-  ImGui::InputText("ROM Path", &rom_path_);
+  ImGui::InputText(tr("ROM Path"), &rom_path_);
   ImGui::SameLine();
-  if (ImGui::SmallButton("From ROM")) {
+  if (ImGui::SmallButton(tr("From ROM"))) {
     rom_path_ = DefaultRomPath();
   }
 
   ImGui::SetNextItemWidth(80.0f);
-  ImGui::InputInt("Min D6 track rooms", &min_d6_track_rooms_);
+  ImGui::InputInt(tr("Min D6 track rooms"), &min_d6_track_rooms_);
   if (min_d6_track_rooms_ < 0) {
     min_d6_track_rooms_ = 0;
   }
 
-  ImGui::SeparatorText("Preflight options");
+  ImGui::SeparatorText(tr("Preflight options"));
   ImGui::SetNextItemWidth(200.0f);
-  ImGui::InputText("Required rooms", &required_collision_rooms_);
+  ImGui::InputText(tr("Required rooms"), &required_collision_rooms_);
   ImGui::SameLine();
-  ImGui::TextDisabled("(e.g. 0x25,0x27)");
+  ImGui::TextDisabled(tr("(e.g. 0x25,0x27)"));
 
-  ImGui::Checkbox("Write report file", &write_report_);
+  ImGui::Checkbox(tr("Write report file"), &write_report_);
   if (write_report_) {
     ImGui::SetNextItemWidth(280.0f);
-    ImGui::InputText("Report path", &report_path_);
+    ImGui::InputText(tr("Report path"), &report_path_);
   }
 }
 
@@ -297,15 +298,15 @@ void OracleValidationPanel::DrawActionButtons() {
     ImGui::BeginDisabled();
   }
 
-  if (ImGui::Button("Run Structural Smoke")) {
+  if (ImGui::Button(tr("Run Structural Smoke"))) {
     LaunchRun(oracle_validation::RunMode::kStructural);
   }
   ImGui::SameLine();
-  if (ImGui::Button("Run Strict Readiness")) {
+  if (ImGui::Button(tr("Run Strict Readiness"))) {
     LaunchRun(oracle_validation::RunMode::kStrictReadiness);
   }
   ImGui::SameLine();
-  if (ImGui::Button("Run Oracle Preflight")) {
+  if (ImGui::Button(tr("Run Oracle Preflight"))) {
     LaunchRun(oracle_validation::RunMode::kPreflight);
   }
 
@@ -317,13 +318,13 @@ void OracleValidationPanel::DrawActionButtons() {
   if (rom_missing) {
     ImGui::EndDisabled();
     ImGui::SameLine();
-    ImGui::TextColored(kRed, "Load a ROM first");
+    ImGui::TextColored(kRed, tr("Load a ROM first"));
   }
 }
 
 void OracleValidationPanel::DrawResults() {
   if (!last_result_.has_value()) {
-    ImGui::TextDisabled("No results yet. Run a check above.");
+    ImGui::TextDisabled(tr("No results yet. Run a check above."));
     return;
   }
   const auto& result = *last_result_;
@@ -348,14 +349,14 @@ void OracleValidationPanel::DrawResults() {
   ImGui::InputText("##cli_cmd", const_cast<char*>(result.cli_command.c_str()),
                    result.cli_command.size() + 1, ImGuiInputTextFlags_ReadOnly);
   ImGui::SameLine();
-  if (ImGui::SmallButton("Copy")) {
+  if (ImGui::SmallButton(tr("Copy"))) {
     ImGui::SetClipboardText(result.cli_command.c_str());
   }
 
   if (!result.error_message.empty()) {
     ImGui::TextColored(kRed, ICON_MD_ERROR " %s", result.error_message.c_str());
     ImGui::TextDisabled(
-        "Hint: check that the ROM is loaded and the command is available.");
+        tr("Hint: check that the ROM is loaded and the command is available."));
     DrawRawOutput(result);
     return;
   }
@@ -378,30 +379,32 @@ void OracleValidationPanel::DrawResults() {
 
 void OracleValidationPanel::DrawSmokeCards(
     const oracle_validation::SmokeResult& smoke) {
-  if (ImGui::CollapsingHeader("D4 Zora Temple",
+  if (ImGui::CollapsingHeader(tr("D4 Zora Temple"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextColored(BoolColor(smoke.d4.structural_ok), "  Structural  %s",
+    ImGui::TextColored(BoolColor(smoke.d4.structural_ok),
+                       tr("  Structural  %s"),
                        CheckStr(smoke.d4.structural_ok));
-    ImGui::Text("  Required rooms check:");
+    ImGui::Text(tr("  Required rooms check:"));
     ImGui::SameLine();
     DrawCheckBadge(smoke.d4.required_rooms_check);
     DrawOptionalBool("  Rooms 0x25/0x27 have collision:",
                      smoke.d4.required_rooms_ok);
   }
 
-  if (ImGui::CollapsingHeader("D6 Goron Mines",
+  if (ImGui::CollapsingHeader(tr("D6 Goron Mines"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::TextColored(
-        BoolColor(smoke.d6.meets_min_track_rooms), "  Track rooms  %d / %d  %s",
-        smoke.d6.track_rooms_found, smoke.d6.min_track_rooms,
+        BoolColor(smoke.d6.meets_min_track_rooms),
+        tr("  Track rooms  %d / %d  %s"), smoke.d6.track_rooms_found,
+        smoke.d6.min_track_rooms,
         smoke.d6.meets_min_track_rooms ? "(ok)" : "(below threshold)");
-    ImGui::TextColored(BoolColor(smoke.d6.ok), "  Audit command  %s",
+    ImGui::TextColored(BoolColor(smoke.d6.ok), tr("  Audit command  %s"),
                        CheckStr(smoke.d6.ok));
   }
 
-  if (ImGui::CollapsingHeader("D3 Kalyxo Castle",
+  if (ImGui::CollapsingHeader(tr("D3 Kalyxo Castle"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Text("  Readiness check:");
+    ImGui::Text(tr("  Readiness check:"));
     ImGui::SameLine();
     DrawCheckBadge(smoke.d3.readiness_check);
     DrawOptionalBool("  Room 0x32 has collision:", smoke.d3.ok);
@@ -410,21 +413,22 @@ void OracleValidationPanel::DrawSmokeCards(
 
 void OracleValidationPanel::DrawPreflightCards(
     const oracle_validation::PreflightResult& preflight) {
-  if (ImGui::CollapsingHeader("Water Fill", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Water Fill"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::TextColored(BoolColor(preflight.water_fill_region_ok),
-                       "  Region present  %s",
+                       tr("  Region present  %s"),
                        CheckStr(preflight.water_fill_region_ok));
     ImGui::TextColored(BoolColor(preflight.water_fill_table_ok),
-                       "  Table valid  %s",
+                       tr("  Table valid  %s"),
                        CheckStr(preflight.water_fill_table_ok));
   }
 
-  if (ImGui::CollapsingHeader("Custom Collision",
+  if (ImGui::CollapsingHeader(tr("Custom Collision"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::TextColored(BoolColor(preflight.custom_collision_maps_ok),
-                       "  Maps valid  %s",
+                       tr("  Maps valid  %s"),
                        CheckStr(preflight.custom_collision_maps_ok));
-    ImGui::Text("  Required rooms check:");
+    ImGui::Text(tr("  Required rooms check:"));
     ImGui::SameLine();
     DrawCheckBadge(preflight.required_rooms_check);
     DrawOptionalBool("  Required rooms have data:",
@@ -440,7 +444,7 @@ void OracleValidationPanel::DrawPreflightCards(
                            err.message.c_str());
         if (err.room_id.has_value()) {
           ImGui::SameLine();
-          ImGui::TextColored(kGrey, " room %s", err.room_id->c_str());
+          ImGui::TextColored(kGrey, tr(" room %s"), err.room_id->c_str());
         }
       }
     }
@@ -449,7 +453,7 @@ void OracleValidationPanel::DrawPreflightCards(
 
 void OracleValidationPanel::DrawRawOutput(
     const oracle_validation::OracleRunResult& result) {
-  if (ImGui::CollapsingHeader("Raw Output (diagnostics)")) {
+  if (ImGui::CollapsingHeader(tr("Raw Output (diagnostics)"))) {
     ImGui::InputTextMultiline(
         "##raw", const_cast<char*>(result.raw_output.c_str()),
         result.raw_output.size() + 1, ImVec2(-1.0f, 120.0f),

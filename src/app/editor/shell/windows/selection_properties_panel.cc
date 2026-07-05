@@ -1,4 +1,5 @@
 #include "app/editor/shell/windows/selection_properties_panel.h"
+#include "util/i18n/tr.h"
 
 #include <cstdio>
 
@@ -112,9 +113,9 @@ void SelectionPropertiesPanel::Draw() {
   ImGui::Spacing();
   ImGui::Separator();
   ImGui::Spacing();
-  ImGui::Checkbox("Show Advanced", &show_advanced_);
+  ImGui::Checkbox(tr("Show Advanced"), &show_advanced_);
   ImGui::SameLine();
-  ImGui::Checkbox("Raw Data", &show_raw_data_);
+  ImGui::Checkbox(tr("Raw Data"), &show_raw_data_);
 }
 
 void SelectionPropertiesPanel::DrawNoSelection() {
@@ -125,17 +126,17 @@ void SelectionPropertiesPanel::DrawNoSelection() {
 
   ImGui::Spacing();
   ImGui::TextWrapped(
-      "Click on an object in the editor to view and edit its properties.");
+      tr("Click on an object in the editor to view and edit its properties."));
 
   ImGui::Spacing();
   ImGui::Separator();
   ImGui::Spacing();
 
   // Show quick reference for what can be selected
-  ImGui::TextDisabled("Selectable Items:");
-  ImGui::BulletText("Dungeon: Rooms, Objects, Sprites");
-  ImGui::BulletText("Overworld: Maps, Tiles, Entities");
-  ImGui::BulletText("Graphics: Sheets, Palettes");
+  ImGui::TextDisabled(tr("Selectable Items:"));
+  ImGui::BulletText(tr("Dungeon: Rooms, Objects, Sprites"));
+  ImGui::BulletText(tr("Overworld: Maps, Tiles, Entities"));
+  ImGui::BulletText(tr("Graphics: Sheets, Palettes"));
 }
 
 void SelectionPropertiesPanel::DrawPropertyHeader(const char* icon,
@@ -156,19 +157,19 @@ void SelectionPropertiesPanel::DrawSelectionSummary() {
   gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Selection", ICON_MD_INFO);
   ImGui::Separator();
 
-  ImGui::Text("Type: %s", GetSelectionTypeName(selection_.type));
+  ImGui::Text(tr("Type: %s"), GetSelectionTypeName(selection_.type));
   if (!selection_.display_name.empty()) {
-    ImGui::Text("Name: %s", selection_.display_name.c_str());
+    ImGui::Text(tr("Name: %s"), selection_.display_name.c_str());
   }
   if (selection_.id >= 0) {
-    ImGui::Text("ID: %d (0x%X)", selection_.id, selection_.id);
+    ImGui::Text(tr("ID: %d (0x%X)"), selection_.id, selection_.id);
   }
   if (selection_.secondary_id >= 0) {
-    ImGui::Text("Secondary: %d (0x%X)", selection_.secondary_id,
+    ImGui::Text(tr("Secondary: %d (0x%X)"), selection_.secondary_id,
                 selection_.secondary_id);
   }
   if (selection_.read_only) {
-    ImGui::TextDisabled("Read Only");
+    ImGui::TextDisabled(tr("Read Only"));
   }
 
   ImGui::Spacing();
@@ -204,7 +205,7 @@ void SelectionPropertiesPanel::DrawSelectionSummary() {
 
   if (show_raw_data_) {
     ImGui::Spacing();
-    ImGui::TextDisabled("Data Ptr: %p", selection_.data);
+    ImGui::TextDisabled(tr("Data Ptr: %p"), selection_.data);
   }
 }
 
@@ -217,7 +218,7 @@ void SelectionPropertiesPanel::DrawAgentActions() {
   ImGui::Separator();
   ImGui::Spacing();
 
-  ImGui::TextDisabled("%s Agent Actions", ICON_MD_SMART_TOY);
+  ImGui::TextDisabled(tr("%s Agent Actions"), ICON_MD_SMART_TOY);
   bool no_selection = (selection_.type == SelectionType::kNone);
   ImGui::BeginDisabled(no_selection);
   if (gui::ThemedButton("Explain")) {
@@ -234,7 +235,7 @@ void SelectionPropertiesPanel::DrawAgentActions() {
   ImGui::EndDisabled();
   if (no_selection &&
       ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip("Select an object first to use agent actions");
+    ImGui::SetTooltip(tr("Select an object first to use agent actions"));
   }
 }
 
@@ -284,7 +285,7 @@ bool SelectionPropertiesPanel::DrawPositionEditor(const char* label, int* x,
   ImGui::Text("%s", label);
   ImGui::PushItemWidth(80);
 
-  ImGui::Text("X:");
+  ImGui::Text(tr("X:"));
   ImGui::SameLine();
   if (ImGui::InputInt("##X", x, 1, 8)) {
     *x = std::clamp(*x, min_val, max_val);
@@ -292,7 +293,7 @@ bool SelectionPropertiesPanel::DrawPositionEditor(const char* label, int* x,
   }
 
   ImGui::SameLine();
-  ImGui::Text("Y:");
+  ImGui::Text(tr("Y:"));
   ImGui::SameLine();
   if (ImGui::InputInt("##Y", y, 1, 8)) {
     *y = std::clamp(*y, min_val, max_val);
@@ -313,7 +314,7 @@ bool SelectionPropertiesPanel::DrawSizeEditor(const char* label, int* width,
   ImGui::Text("%s", label);
   ImGui::PushItemWidth(80);
 
-  ImGui::Text("W:");
+  ImGui::Text(tr("W:"));
   ImGui::SameLine();
   if (ImGui::InputInt("##W", width, 1, 8)) {
     *width = std::max(1, *width);
@@ -321,7 +322,7 @@ bool SelectionPropertiesPanel::DrawSizeEditor(const char* label, int* width,
   }
 
   ImGui::SameLine();
-  ImGui::Text("H:");
+  ImGui::Text(tr("H:"));
   ImGui::SameLine();
   if (ImGui::InputInt("##H", height, 1, 8)) {
     *height = std::max(1, *height);
@@ -435,18 +436,18 @@ void SelectionPropertiesPanel::DrawDungeonRoomProperties() {
   DrawPropertyHeader(ICON_MD_GRID_VIEW, "Dungeon Room");
 
   if (!selection_.data) {
-    ImGui::TextDisabled("No room data available.");
+    ImGui::TextDisabled(tr("No room data available."));
     return;
   }
 
   auto* room = static_cast<zelda3::Room*>(selection_.data);
 
-  if (ImGui::CollapsingHeader("Identity", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Identity"), ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawReadOnlyHex("Room ID", selection_.id, 4);
     DrawReadOnlyText("Name", selection_.display_name.c_str());
   }
 
-  if (ImGui::CollapsingHeader("Graphics & Layout",
+  if (ImGui::CollapsingHeader(tr("Graphics & Layout"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     uint8_t blockset = room->blockset();
     if (DrawByteProperty("Blockset", &blockset,
@@ -470,7 +471,7 @@ void SelectionPropertiesPanel::DrawDungeonRoomProperties() {
   }
 
   if (show_advanced_ &&
-      ImGui::CollapsingHeader("Advanced Settings",
+      ImGui::CollapsingHeader(tr("Advanced Settings"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
 
     // Room Tags with manifest integration
@@ -504,7 +505,7 @@ void SelectionPropertiesPanel::DrawDungeonRoomProperties() {
     for (const auto& s : effects)
       effect_ptrs.push_back(s.c_str());
 
-    if (ImGui::Combo("Effect", &effect, effect_ptrs.data(),
+    if (ImGui::Combo(tr("Effect"), &effect, effect_ptrs.data(),
                      static_cast<int>(effect_ptrs.size()))) {
       room->SetEffect(static_cast<zelda3::EffectKey>(effect));
       NotifyChange();
@@ -515,7 +516,8 @@ void SelectionPropertiesPanel::DrawDungeonRoomProperties() {
 void SelectionPropertiesPanel::DrawDungeonObjectProperties() {
   DrawPropertyHeader(ICON_MD_CATEGORY, "Dungeon Object");
 
-  if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Transform"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     // Placeholder for actual object data
     int x = 0, y = 0;
     if (DrawPositionEditor("Position", &x, &y, 0, 63)) {
@@ -528,183 +530,193 @@ void SelectionPropertiesPanel::DrawDungeonObjectProperties() {
     }
   }
 
-  if (ImGui::CollapsingHeader("Object Type", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Object ID: --");
-    ImGui::TextDisabled("Subtype: --");
-    ImGui::TextDisabled("Layer: --");
+  if (ImGui::CollapsingHeader(tr("Object Type"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Object ID: --"));
+    ImGui::TextDisabled(tr("Subtype: --"));
+    ImGui::TextDisabled(tr("Layer: --"));
   }
 
   if (show_raw_data_ &&
-      ImGui::CollapsingHeader("Raw Data", ImGuiTreeNodeFlags_None)) {
-    ImGui::TextDisabled("Byte 1: 0x00");
-    ImGui::TextDisabled("Byte 2: 0x00");
-    ImGui::TextDisabled("Byte 3: 0x00");
+      ImGui::CollapsingHeader(tr("Raw Data"), ImGuiTreeNodeFlags_None)) {
+    ImGui::TextDisabled(tr("Byte 1: 0x00"));
+    ImGui::TextDisabled(tr("Byte 2: 0x00"));
+    ImGui::TextDisabled(tr("Byte 3: 0x00"));
   }
 }
 
 void SelectionPropertiesPanel::DrawDungeonSpriteProperties() {
   DrawPropertyHeader(ICON_MD_PEST_CONTROL, "Dungeon Sprite");
 
-  if (ImGui::CollapsingHeader("Position", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Position"), ImGuiTreeNodeFlags_DefaultOpen)) {
     int x = 0, y = 0;
     if (DrawPositionEditor("Position", &x, &y, 0, 255)) {
       NotifyChange();
     }
   }
 
-  if (ImGui::CollapsingHeader("Sprite Data", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Sprite ID: --");
-    ImGui::TextDisabled("Subtype: --");
-    ImGui::TextDisabled("Overlord: No");
+  if (ImGui::CollapsingHeader(tr("Sprite Data"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Sprite ID: --"));
+    ImGui::TextDisabled(tr("Subtype: --"));
+    ImGui::TextDisabled(tr("Overlord: No"));
   }
 }
 
 void SelectionPropertiesPanel::DrawDungeonEntranceProperties() {
   DrawPropertyHeader(ICON_MD_DOOR_FRONT, "Dungeon Entrance");
 
-  if (ImGui::CollapsingHeader("Target", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Target Room: --");
-    ImGui::TextDisabled("Entry Position: --");
+  if (ImGui::CollapsingHeader(tr("Target"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Target Room: --"));
+    ImGui::TextDisabled(tr("Entry Position: --"));
   }
 
-  if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Door Type: --");
-    ImGui::TextDisabled("Direction: --");
+  if (ImGui::CollapsingHeader(tr("Properties"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Door Type: --"));
+    ImGui::TextDisabled(tr("Direction: --"));
   }
 }
 
 void SelectionPropertiesPanel::DrawOverworldMapProperties() {
   DrawPropertyHeader(ICON_MD_MAP, "Overworld Map");
 
-  if (ImGui::CollapsingHeader("Identity", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Identity"), ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawReadOnlyHex("Map ID", selection_.id, 2);
     DrawReadOnlyText("Area", selection_.display_name.c_str());
   }
 
-  if (ImGui::CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("GFX Set: --");
-    ImGui::TextDisabled("Palette: --");
-    ImGui::TextDisabled("Sprite GFX: --");
-    ImGui::TextDisabled("Sprite Palette: --");
+  if (ImGui::CollapsingHeader(tr("Graphics"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("GFX Set: --"));
+    ImGui::TextDisabled(tr("Palette: --"));
+    ImGui::TextDisabled(tr("Sprite GFX: --"));
+    ImGui::TextDisabled(tr("Sprite Palette: --"));
   }
 
-  if (ImGui::CollapsingHeader("Properties", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Large Map: No");
-    ImGui::TextDisabled("Area Size: 1x1");
-    ImGui::TextDisabled("Parent ID: --");
+  if (ImGui::CollapsingHeader(tr("Properties"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Large Map: No"));
+    ImGui::TextDisabled(tr("Area Size: 1x1"));
+    ImGui::TextDisabled(tr("Parent ID: --"));
   }
 }
 
 void SelectionPropertiesPanel::DrawOverworldTileProperties() {
   DrawPropertyHeader(ICON_MD_GRID_ON, "Overworld Tile");
 
-  if (ImGui::CollapsingHeader("Tile Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Tile Info"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawReadOnlyHex("Tile16 ID", selection_.id, 4);
-    ImGui::TextDisabled("Position: --");
+    ImGui::TextDisabled(tr("Position: --"));
   }
 
   if (show_advanced_ &&
-      ImGui::CollapsingHeader("Tile16 Data", ImGuiTreeNodeFlags_None)) {
-    ImGui::TextDisabled("TL: 0x0000");
-    ImGui::TextDisabled("TR: 0x0000");
-    ImGui::TextDisabled("BL: 0x0000");
-    ImGui::TextDisabled("BR: 0x0000");
+      ImGui::CollapsingHeader(tr("Tile16 Data"), ImGuiTreeNodeFlags_None)) {
+    ImGui::TextDisabled(tr("TL: 0x0000"));
+    ImGui::TextDisabled(tr("TR: 0x0000"));
+    ImGui::TextDisabled(tr("BL: 0x0000"));
+    ImGui::TextDisabled(tr("BR: 0x0000"));
   }
 }
 
 void SelectionPropertiesPanel::DrawOverworldSpriteProperties() {
   DrawPropertyHeader(ICON_MD_PEST_CONTROL, "Overworld Sprite");
 
-  if (ImGui::CollapsingHeader("Position", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Position"), ImGuiTreeNodeFlags_DefaultOpen)) {
     int x = 0, y = 0;
     if (DrawPositionEditor("Position", &x, &y, 0, 8191)) {
       NotifyChange();
     }
   }
 
-  if (ImGui::CollapsingHeader("Sprite", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Sprite ID: --");
-    ImGui::TextDisabled("Map ID: --");
+  if (ImGui::CollapsingHeader(tr("Sprite"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Sprite ID: --"));
+    ImGui::TextDisabled(tr("Map ID: --"));
   }
 }
 
 void SelectionPropertiesPanel::DrawOverworldEntranceProperties() {
   DrawPropertyHeader(ICON_MD_DOOR_FRONT, "Overworld Entrance");
 
-  if (ImGui::CollapsingHeader("Position", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Position"), ImGuiTreeNodeFlags_DefaultOpen)) {
     int x = 0, y = 0;
     if (DrawPositionEditor("Position", &x, &y)) {
       NotifyChange();
     }
   }
 
-  if (ImGui::CollapsingHeader("Target", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Entrance ID: --");
-    ImGui::TextDisabled("Target Room: --");
+  if (ImGui::CollapsingHeader(tr("Target"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Entrance ID: --"));
+    ImGui::TextDisabled(tr("Target Room: --"));
   }
 }
 
 void SelectionPropertiesPanel::DrawOverworldExitProperties() {
   DrawPropertyHeader(ICON_MD_EXIT_TO_APP, "Overworld Exit");
 
-  if (ImGui::CollapsingHeader("Exit Point", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Exit ID: --");
+  if (ImGui::CollapsingHeader(tr("Exit Point"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Exit ID: --"));
     int x = 0, y = 0;
     if (DrawPositionEditor("Position", &x, &y)) {
       NotifyChange();
     }
   }
 
-  if (ImGui::CollapsingHeader("Target Map", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Room ID: --");
-    ImGui::TextDisabled("Target Map: --");
+  if (ImGui::CollapsingHeader(tr("Target Map"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Room ID: --"));
+    ImGui::TextDisabled(tr("Target Map: --"));
   }
 }
 
 void SelectionPropertiesPanel::DrawOverworldItemProperties() {
   DrawPropertyHeader(ICON_MD_STAR, "Overworld Item");
 
-  if (ImGui::CollapsingHeader("Position", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Position"), ImGuiTreeNodeFlags_DefaultOpen)) {
     int x = 0, y = 0;
     if (DrawPositionEditor("Position", &x, &y)) {
       NotifyChange();
     }
   }
 
-  if (ImGui::CollapsingHeader("Item Data", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled("Item ID: --");
-    ImGui::TextDisabled("Map ID: --");
+  if (ImGui::CollapsingHeader(tr("Item Data"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
+    ImGui::TextDisabled(tr("Item ID: --"));
+    ImGui::TextDisabled(tr("Map ID: --"));
   }
 }
 
 void SelectionPropertiesPanel::DrawGraphicsSheetProperties() {
   DrawPropertyHeader(ICON_MD_IMAGE, "Graphics Sheet");
 
-  if (ImGui::CollapsingHeader("Sheet Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Sheet Info"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawReadOnlyHex("Sheet ID", selection_.id, 2);
-    ImGui::TextDisabled("Size: 128x32");
-    ImGui::TextDisabled("BPP: 4");
+    ImGui::TextDisabled(tr("Size: 128x32"));
+    ImGui::TextDisabled(tr("BPP: 4"));
   }
 
   if (show_advanced_ &&
-      ImGui::CollapsingHeader("ROM Location", ImGuiTreeNodeFlags_None)) {
-    ImGui::TextDisabled("Address: --");
-    ImGui::TextDisabled("Compressed: Yes");
-    ImGui::TextDisabled("Original Size: --");
+      ImGui::CollapsingHeader(tr("ROM Location"), ImGuiTreeNodeFlags_None)) {
+    ImGui::TextDisabled(tr("Address: --"));
+    ImGui::TextDisabled(tr("Compressed: Yes"));
+    ImGui::TextDisabled(tr("Original Size: --"));
   }
 }
 
 void SelectionPropertiesPanel::DrawPaletteProperties() {
   DrawPropertyHeader(ICON_MD_PALETTE, "Palette");
 
-  if (ImGui::CollapsingHeader("Palette Info", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Palette Info"),
+                              ImGuiTreeNodeFlags_DefaultOpen)) {
     DrawReadOnlyHex("Palette ID", selection_.id, 2);
-    ImGui::TextDisabled("Colors: 16");
+    ImGui::TextDisabled(tr("Colors: 16"));
   }
 
-  if (ImGui::CollapsingHeader("Colors", ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (ImGui::CollapsingHeader(tr("Colors"), ImGuiTreeNodeFlags_DefaultOpen)) {
     // Would show color swatches in actual implementation
-    ImGui::TextDisabled("Color editing not yet implemented");
+    ImGui::TextDisabled(tr("Color editing not yet implemented"));
   }
 }
 

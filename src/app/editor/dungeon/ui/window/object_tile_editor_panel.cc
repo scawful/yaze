@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
@@ -128,16 +129,16 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
   }
   if (ImGui::BeginPopupModal("Shared Tile Data", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("This tile data is shared by %d objects.",
+    ImGui::Text(tr("This tile data is shared by %d objects."),
                 shared_object_count_);
-    ImGui::Text("Changes will affect all of them.");
+    ImGui::Text(tr("Changes will affect all of them."));
     ImGui::Spacing();
-    if (ImGui::Button("Apply Anyway", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Apply Anyway"), ImVec2(120, 0))) {
       ApplyChanges(/*confirm_shared=*/false);
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -179,7 +180,7 @@ void ObjectTileEditorPanel::DrawTileGrid() {
     RenderObjectPreview();
   }
 
-  ImGui::Text("Object Tiles (%dx%d)", current_layout_.bounds_width,
+  ImGui::Text(tr("Object Tiles (%dx%d)"), current_layout_.bounds_width,
               current_layout_.bounds_height);
 
   constexpr float kScale = 4.0f;
@@ -249,7 +250,7 @@ void ObjectTileEditorPanel::DrawTileGrid() {
     if (cell.modified)
       ++modified_count;
   }
-  ImGui::Text("%zu tiles, %d modified", current_layout_.cells.size(),
+  ImGui::Text(tr("%zu tiles, %d modified"), current_layout_.cells.size(),
               modified_count);
 }
 
@@ -258,7 +259,7 @@ void ObjectTileEditorPanel::DrawSourceSheet() {
     RenderTile8Atlas();
   }
 
-  ImGui::Text("Source Tiles (Palette %d)", source_palette_);
+  ImGui::Text(tr("Source Tiles (Palette %d)"), source_palette_);
 
   // Palette selector
   ImGui::SameLine();
@@ -347,25 +348,25 @@ void ObjectTileEditorPanel::DrawSourceSheet() {
   ImGui::EndChild();
 
   if (selected_source_tile_ >= 0) {
-    ImGui::Text("Tile: 0x%03X", selected_source_tile_);
+    ImGui::Text(tr("Tile: 0x%03X"), selected_source_tile_);
   }
 }
 
 void ObjectTileEditorPanel::DrawTileProperties() {
   if (selected_cell_index_ < 0 ||
       selected_cell_index_ >= static_cast<int>(current_layout_.cells.size())) {
-    ImGui::TextDisabled("Select a tile cell to edit properties");
+    ImGui::TextDisabled(tr("Select a tile cell to edit properties"));
     return;
   }
 
   auto& cell = current_layout_.cells[selected_cell_index_];
-  ImGui::Text("Cell (%d, %d)", cell.rel_x, cell.rel_y);
+  ImGui::Text(tr("Cell (%d, %d)"), cell.rel_x, cell.rel_y);
   ImGui::SameLine();
 
   // Tile ID
   int tile_id = cell.tile_info.id_;
   ImGui::SetNextItemWidth(80);
-  if (ImGui::InputInt("ID", &tile_id, 1, 16)) {
+  if (ImGui::InputInt(tr("ID"), &tile_id, 1, 16)) {
     cell.tile_info.id_ = static_cast<uint16_t>(tile_id & 0x3FF);
     cell.modified = true;
     preview_dirty_ = true;
@@ -375,7 +376,7 @@ void ObjectTileEditorPanel::DrawTileProperties() {
   // Palette
   int pal = cell.tile_info.palette_;
   ImGui::SetNextItemWidth(60);
-  if (ImGui::SliderInt("Pal", &pal, 0, 7)) {
+  if (ImGui::SliderInt(tr("Pal"), &pal, 0, 7)) {
     cell.tile_info.palette_ = static_cast<uint8_t>(pal);
     cell.modified = true;
     preview_dirty_ = true;
@@ -383,17 +384,17 @@ void ObjectTileEditorPanel::DrawTileProperties() {
   ImGui::SameLine();
 
   // Flip flags
-  if (ImGui::Checkbox("H", &cell.tile_info.horizontal_mirror_)) {
+  if (ImGui::Checkbox(tr("H"), &cell.tile_info.horizontal_mirror_)) {
     cell.modified = true;
     preview_dirty_ = true;
   }
   ImGui::SameLine();
-  if (ImGui::Checkbox("V", &cell.tile_info.vertical_mirror_)) {
+  if (ImGui::Checkbox(tr("V"), &cell.tile_info.vertical_mirror_)) {
     cell.modified = true;
     preview_dirty_ = true;
   }
   ImGui::SameLine();
-  if (ImGui::Checkbox("Pri", &cell.tile_info.over_)) {
+  if (ImGui::Checkbox(tr("Pri"), &cell.tile_info.over_)) {
     cell.modified = true;
     preview_dirty_ = true;
   }
@@ -448,7 +449,7 @@ void ObjectTileEditorPanel::DrawActionBar() {
   bool has_mods = modified_count > 0;
 
   if (has_mods) {
-    ImGui::Text("%d tile(s) modified", modified_count);
+    ImGui::Text(tr("%d tile(s) modified"), modified_count);
     ImGui::SameLine();
   }
 

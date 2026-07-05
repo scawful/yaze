@@ -24,6 +24,7 @@
 #include "rom/rom.h"
 #include "util/bps.h"
 #include "util/file_util.h"
+#include "util/i18n/language_manager.h"
 #include "zelda3/overworld/overworld_map.h"
 
 // Platform-aware shortcut macros for menu display
@@ -858,12 +859,14 @@ void MenuOrchestrator::AddSidebarSubmenu() {
     return;
   }
 
-  auto persist = [this]() { (void)user_settings_->Save(); };
+  auto persist = [this]() {
+    (void)user_settings_->Save();
+  };
   auto& prefs = user_settings_->prefs();
 
-  if (ImGui::MenuItem(absl::StrFormat("%s Reset Order", ICON_MD_RESTART_ALT)
-                          .c_str(),
-                      nullptr, false, !prefs.sidebar_order.empty())) {
+  if (ImGui::MenuItem(
+          absl::StrFormat("%s Reset Order", ICON_MD_RESTART_ALT).c_str(),
+          nullptr, false, !prefs.sidebar_order.empty())) {
     prefs.sidebar_order.clear();
     persist();
   }
@@ -886,9 +889,12 @@ void MenuOrchestrator::AddSidebarSubmenu() {
   std::vector<std::string> pinned_list;
   std::vector<std::string> hidden_list;
   for (const auto& cat : categories) {
-    if (cat == WorkspaceWindowManager::kDashboardCategory) continue;
-    if (prefs.sidebar_pinned.count(cat)) pinned_list.push_back(cat);
-    if (prefs.sidebar_hidden.count(cat)) hidden_list.push_back(cat);
+    if (cat == WorkspaceWindowManager::kDashboardCategory)
+      continue;
+    if (prefs.sidebar_pinned.count(cat))
+      pinned_list.push_back(cat);
+    if (prefs.sidebar_hidden.count(cat))
+      hidden_list.push_back(cat);
   }
 
   if (ImGui::BeginMenu(
@@ -898,8 +904,8 @@ void MenuOrchestrator::AddSidebarSubmenu() {
     } else {
       for (const auto& cat : pinned_list) {
         ImGui::PushID(cat.c_str());
-        if (ImGui::MenuItem(absl::StrFormat("%s Unpin %s", ICON_MD_CLOSE, cat)
-                                .c_str())) {
+        if (ImGui::MenuItem(
+                absl::StrFormat("%s Unpin %s", ICON_MD_CLOSE, cat).c_str())) {
           prefs.sidebar_pinned.erase(cat);
           persist();
         }
@@ -917,7 +923,8 @@ void MenuOrchestrator::AddSidebarSubmenu() {
       for (const auto& cat : hidden_list) {
         ImGui::PushID(cat.c_str());
         if (ImGui::MenuItem(
-                absl::StrFormat("%s Show %s", ICON_MD_VISIBILITY, cat).c_str())) {
+                absl::StrFormat("%s Show %s", ICON_MD_VISIBILITY, cat)
+                    .c_str())) {
           prefs.sidebar_hidden.erase(cat);
           persist();
         }
@@ -931,13 +938,13 @@ void MenuOrchestrator::AddSidebarSubmenu() {
 
   // Per-category toggles (pin/hide) for all categories. Keeps the menu
   // discoverable even for users who haven't right-clicked the rail.
-  if (ImGui::BeginMenu(
-          absl::StrFormat("%s Customize", ICON_MD_TUNE).c_str())) {
+  if (ImGui::BeginMenu(absl::StrFormat("%s Customize", ICON_MD_TUNE).c_str())) {
     if (categories.empty()) {
       ImGui::TextDisabled("No categories available");
     } else {
       for (const auto& cat : categories) {
-        if (cat == WorkspaceWindowManager::kDashboardCategory) continue;
+        if (cat == WorkspaceWindowManager::kDashboardCategory)
+          continue;
         ImGui::PushID(cat.c_str());
         const bool pinned = prefs.sidebar_pinned.count(cat) > 0;
         const bool hidden = prefs.sidebar_hidden.count(cat) > 0;
@@ -997,7 +1004,26 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+      .Item(
+          "About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+
+  // Language selector: lists auto-discovered locales (assets/i18n/*.json) and
+  // check-marks the active one. tr() at the menu_builder render site
+  // re-resolves every label the frame after SetLanguage(), so switching is
+  // instant with no explicit menu refresh.
+  menu_builder_.Separator();
+  menu_builder_.BeginSubMenu("Language", ICON_MD_LANGUAGE);
+  for (const std::string& locale :
+       i18n::LanguageManager::Get().GetAvailableLocales()) {
+    menu_builder_.Item(
+        locale.c_str(), nullptr,
+        [locale]() { i18n::LanguageManager::Get().SetLanguage(locale); },
+        nullptr, nullptr,
+        [locale]() {
+          return i18n::LanguageManager::Get().GetCurrentLocale() == locale;
+        });
+  }
+  menu_builder_.EndMenu();
 }
 
 // Menu state management

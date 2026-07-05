@@ -1,4 +1,5 @@
 #include "command_manager.h"
+#include "util/i18n/tr.h"
 
 #include <fstream>
 
@@ -116,11 +117,11 @@ void CommandManager::ShowWhichKeyHierarchical() {
 
     // Show breadcrumb navigation
     if (!current_prefix_.empty()) {
-      ImGui::TextColored(gui::GetInfoColor(), "Space > %s",
+      ImGui::TextColored(gui::GetInfoColor(), tr("Space > %s"),
                          current_prefix_.c_str());
       ImGui::Separator();
     } else {
-      ImGui::TextColored(gui::GetInfoColor(), "Space > ...");
+      ImGui::TextColored(gui::GetInfoColor(), tr("Space > ..."));
       ImGui::Separator();
     }
 
@@ -168,7 +169,7 @@ void CommandManager::ShowWhichKeyHierarchical() {
             ImGui::EndTable();
           }
         } else {
-          ImGui::TextDisabled("No subcommands available");
+          ImGui::TextDisabled(tr("No subcommands available"));
         }
       }
     }

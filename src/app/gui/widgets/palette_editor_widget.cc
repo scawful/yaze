@@ -1,4 +1,5 @@
 #include "app/gui/widgets/palette_editor_widget.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <map>
@@ -8,8 +9,8 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/theme_manager.h"
-#include "app/gui/widgets/themed_widgets.h"
 #include "app/gui/plots/implot_support.h"
+#include "app/gui/widgets/themed_widgets.h"
 #include "util/log.h"
 
 #include <string>
@@ -55,7 +56,7 @@ void PaletteEditorWidget::Initialize(Rom* rom) {
 // --- Embedded Draw Method (from simple editor) ---
 void PaletteEditorWidget::Draw() {
   if (!game_data_) {
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), "GameData not loaded");
+    ImGui::TextColored(ImVec4(1, 0, 0, 1), tr("GameData not loaded"));
     return;
   }
 
@@ -66,14 +67,13 @@ void PaletteEditorWidget::Draw() {
 
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   if (dungeon_pal_group.empty()) {
-    ImGui::TextDisabled("Dungeon palettes unavailable");
+    ImGui::TextDisabled(tr("Dungeon palettes unavailable"));
     ImGui::EndGroup();
     return;
   }
 
-  current_palette_id_ =
-      std::clamp(current_palette_id_, 0,
-                 static_cast<int>(dungeon_pal_group.size()) - 1);
+  current_palette_id_ = std::clamp(
+      current_palette_id_, 0, static_cast<int>(dungeon_pal_group.size()) - 1);
   if (current_palette_id_ >= 0 &&
       current_palette_id_ < (int)dungeon_pal_group.size()) {
     auto palette = dungeon_pal_group[current_palette_id_];
@@ -94,7 +94,7 @@ void PaletteEditorWidget::Draw() {
       DrawColorPicker();
     }
   } else {
-    ImGui::TextDisabled("Select a color to edit");
+    ImGui::TextDisabled(tr("Select a color to edit"));
   }
 
   ImGui::EndGroup();
@@ -106,13 +106,13 @@ void PaletteEditorWidget::DrawPaletteSelector() {
   auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
   int num_palettes = dungeon_pal_group.size();
   if (num_palettes <= 0) {
-    ImGui::TextDisabled("No dungeon palettes");
+    ImGui::TextDisabled(tr("No dungeon palettes"));
     return;
   }
 
   current_palette_id_ = std::clamp(current_palette_id_, 0, num_palettes - 1);
 
-  ImGui::Text("Dungeon Palette:");
+  ImGui::Text(tr("Dungeon Palette:"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(std::min(180.0f, ImGui::GetContentRegionAvail().x));
 
@@ -141,8 +141,8 @@ void PaletteEditorWidget::DrawColorPicker() {
   if (dungeon_pal_group.empty()) {
     return;
   }
-  current_palette_id_ = std::clamp(current_palette_id_, 0,
-                                   static_cast<int>(dungeon_pal_group.size()) - 1);
+  current_palette_id_ = std::clamp(
+      current_palette_id_, 0, static_cast<int>(dungeon_pal_group.size()) - 1);
   ImGui::SeparatorText(
       absl::StrFormat("Edit Color %d", selected_color_index_).c_str());
 
@@ -171,11 +171,11 @@ void PaletteEditorWidget::DrawColorPicker() {
     }
   }
 
-  ImGui::Text("RGB (0-255): (%d, %d, %d)",
+  ImGui::Text(tr("RGB (0-255): (%d, %d, %d)"),
               static_cast<int>(editing_color_.x * 255),
               static_cast<int>(editing_color_.y * 255),
               static_cast<int>(editing_color_.z * 255));
-  ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
+  ImGui::Text(tr("SNES BGR555: 0x%04X"), original_color.snes());
 
   if (gui::ThemedButton("Reset to Original")) {
     editing_color_ =
@@ -232,15 +232,16 @@ bool PaletteEditorWidget::ResolveDungeonRenderSelection(
 
 void PaletteEditorWidget::DrawDungeonRenderPalette() {
   ImGui::TextDisabled(
-      "Rows 0-1: HUD / floor / ceiling  |  Rows 2-7: Dungeon main");
+      tr("Rows 0-1: HUD / floor / ceiling  |  Rows 2-7: Dungeon main"));
   const float swatch_size = ComputeSwatchSize(/*columns=*/16, 14.0f, 28.0f);
 
   gfx::SnesPalette* dungeon_palette = nullptr;
-  if (!game_data_->palette_groups.dungeon_main.empty() && current_palette_id_ >= 0 &&
+  if (!game_data_->palette_groups.dungeon_main.empty() &&
+      current_palette_id_ >= 0 &&
       current_palette_id_ <
           static_cast<int>(game_data_->palette_groups.dungeon_main.size())) {
-    dungeon_palette =
-        game_data_->palette_groups.dungeon_main.mutable_palette(current_palette_id_);
+    dungeon_palette = game_data_->palette_groups.dungeon_main.mutable_palette(
+        current_palette_id_);
   }
 
   gfx::SnesPalette* hud_palette = nullptr;
@@ -282,10 +283,9 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     if (!editable) {
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
     }
-    const bool clicked =
-        ImGui::ColorButton("##render_color", display_color,
-                           ImGuiColorEditFlags_NoTooltip,
-                           ImVec2(swatch_size, swatch_size));
+    const bool clicked = ImGui::ColorButton("##render_color", display_color,
+                                            ImGuiColorEditFlags_NoTooltip,
+                                            ImVec2(swatch_size, swatch_size));
     if (!editable) {
       ImGui::PopStyleVar();
     }
@@ -299,7 +299,7 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
 
     if (ImGui::IsItemHovered()) {
       if (editable) {
-        ImGui::SetTooltip("%s\nSlot %d\nSNES: 0x%04X\nRGB: (%d, %d, %d)",
+        ImGui::SetTooltip(tr("%s\nSlot %d\nSNES: 0x%04X\nRGB: (%d, %d, %d)"),
                           tooltip_label.c_str(), source_index, color.snes(),
                           static_cast<int>(display_color.x * 255),
                           static_cast<int>(display_color.y * 255),
@@ -314,7 +314,8 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
 
 float PaletteEditorWidget::ComputeSwatchSize(int columns, float min_size,
                                              float max_size) const {
-  const float available_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+  const float available_width =
+      std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   const float spacing =
       std::max(ImGui::GetStyle().ItemSpacing.x, 2.0f) * (columns - 1);
   const float raw = (available_width - spacing) / std::max(columns, 1);
@@ -346,16 +347,16 @@ void PaletteEditorWidget::DrawDungeonRenderColorPicker() {
     }
   }
 
-  ImGui::Text("RGB (0-255): (%d, %d, %d)",
+  ImGui::Text(tr("RGB (0-255): (%d, %d, %d)"),
               static_cast<int>(editing_color_.x * 255),
               static_cast<int>(editing_color_.y * 255),
               static_cast<int>(editing_color_.z * 255));
-  ImGui::Text("SNES BGR555: 0x%04X", original_color.snes());
+  ImGui::Text(tr("SNES BGR555: 0x%04X"), original_color.snes());
 
   if (gui::ThemedButton("Reset to Original")) {
-    editing_color_ = ImVec4(original_color.rgb().x / 255.0f,
-                            original_color.rgb().y / 255.0f,
-                            original_color.rgb().z / 255.0f, 1.0f);
+    editing_color_ =
+        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
+               original_color.rgb().z / 255.0f, 1.0f);
     (*palette)[color_index] = original_color;
     if (on_palette_changed_) {
       on_palette_changed_(current_palette_id_);
@@ -369,20 +370,21 @@ void PaletteEditorWidget::ShowPaletteEditor(gfx::SnesPalette& palette,
                                             const std::string& title) {
   if (ImGui::BeginPopupModal(title.c_str(), nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Enhanced Palette Editor");
+    ImGui::Text(tr("Enhanced Palette Editor"));
     ImGui::Separator();
 
     DrawPaletteGrid(palette);
     ImGui::Separator();
 
-    if (ImGui::CollapsingHeader("Palette Analysis")) {
+    if (ImGui::CollapsingHeader(tr("Palette Analysis"))) {
       DrawPaletteAnalysis(palette);
     }
 
-    if (ImGui::CollapsingHeader("ROM Palette Manager") && rom_) {
+    if (ImGui::CollapsingHeader(tr("ROM Palette Manager")) && rom_) {
       DrawROMPaletteSelector();
 
-      if (gui::PrimaryButton("Apply ROM Palette") && !rom_palette_groups_.empty()) {
+      if (gui::PrimaryButton("Apply ROM Palette") &&
+          !rom_palette_groups_.empty()) {
         if (current_group_index_ <
             static_cast<int>(rom_palette_groups_.size())) {
           palette = rom_palette_groups_[current_group_index_];
@@ -414,7 +416,7 @@ void PaletteEditorWidget::ShowROMPaletteManager() {
 
   if (ImGui::Begin("ROM Palette Manager", &show_rom_manager_)) {
     if (!rom_) {
-      ImGui::Text("No ROM loaded");
+      ImGui::Text(tr("No ROM loaded"));
       ImGui::End();
       return;
     }
@@ -427,7 +429,7 @@ void PaletteEditorWidget::ShowROMPaletteManager() {
 
     if (current_group_index_ < static_cast<int>(rom_palette_groups_.size())) {
       ImGui::Separator();
-      ImGui::Text("Preview of %s:",
+      ImGui::Text(tr("Preview of %s:"),
                   palette_group_names_[current_group_index_].c_str());
 
       const auto& preview_palette = rom_palette_groups_[current_group_index_];
@@ -444,11 +446,11 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
     return;
 
   if (ImGui::Begin(title.c_str(), &show_color_analysis_)) {
-    ImGui::Text("Bitmap Color Analysis");
+    ImGui::Text(tr("Bitmap Color Analysis"));
     ImGui::Separator();
 
     if (!bitmap.is_active()) {
-      ImGui::Text("Bitmap is not active");
+      ImGui::Text(tr("Bitmap is not active"));
       ImGui::End();
       return;
     }
@@ -461,11 +463,11 @@ void PaletteEditorWidget::ShowColorAnalysis(const gfx::Bitmap& bitmap,
       pixel_counts[palette_index]++;
     }
 
-    ImGui::Text("Bitmap Size: %d x %d (%zu pixels)", bitmap.width(),
+    ImGui::Text(tr("Bitmap Size: %d x %d (%zu pixels)"), bitmap.width(),
                 bitmap.height(), data.size());
 
     ImGui::Separator();
-    ImGui::Text("Pixel Distribution:");
+    ImGui::Text(tr("Pixel Distribution:"));
 
     int total_pixels = static_cast<int>(data.size());
     plotting::PlotStyleScope plot_style(
@@ -563,15 +565,15 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
     }
 
     if (ImGui::BeginPopupContextItem()) {
-      ImGui::Text("Color %d (0x%04X)", i, color.snes());
+      ImGui::Text(tr("Color %d (0x%04X)"), i, color.snes());
       ImGui::Separator();
-      if (ImGui::MenuItem("Edit Color")) {
+      if (ImGui::MenuItem(tr("Edit Color"))) {
         editing_color_index_ = i;
         selected_color_index_ = i;
         temp_color_ = display_color;
         editing_color_ = display_color;
       }
-      if (ImGui::MenuItem("Reset to Black")) {
+      if (ImGui::MenuItem(tr("Reset to Black"))) {
         palette[i] = gfx::SnesColor(0);
         if (on_palette_changed_) {
           on_palette_changed_(current_palette_id_);
@@ -581,7 +583,7 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
     }
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Color %d\nSNES: 0x%04X\nRGB: (%d, %d, %d)", i,
+      ImGui::SetTooltip(tr("Color %d\nSNES: 0x%04X\nRGB: (%d, %d, %d)"), i,
                         color.snes(), static_cast<int>(display_color.x * 255),
                         static_cast<int>(display_color.y * 255),
                         static_cast<int>(display_color.z * 255));
@@ -598,7 +600,7 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
     ImGui::OpenPopup(popup_id.c_str());
     if (ImGui::BeginPopupModal(popup_id.c_str(), nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("Editing Color %d", editing_color_index_);
+      ImGui::Text(tr("Editing Color %d"), editing_color_index_);
       if (ImGui::ColorEdit4(
               "Color", &temp_color_.x,
               ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_DisplayRGB)) {
@@ -631,21 +633,20 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
   }
 
   if (rom_palette_groups_.empty()) {
-    ImGui::Text("No ROM palettes available");
+    ImGui::Text(tr("No ROM palettes available"));
     return;
   }
 
-  ImGui::Text("Palette Group:");
+  ImGui::Text(tr("Palette Group:"));
   if (ImGui::Combo("##PaletteGroup", &current_group_index_,
                    RomPaletteGroupNameGetter, &palette_group_names_,
-                   static_cast<int>(palette_group_names_.size()))) {
-  }
+                   static_cast<int>(palette_group_names_.size()))) {}
 
-  ImGui::Text("Palette Index:");
+  ImGui::Text(tr("Palette Index:"));
   ImGui::SliderInt("##PaletteIndex", &current_palette_index_, 0, 7, "%d");
 
   if (current_group_index_ < static_cast<int>(rom_palette_groups_.size())) {
-    ImGui::Text("Preview:");
+    ImGui::Text(tr("Preview:"));
     const auto& preview_palette = rom_palette_groups_[current_group_index_];
     for (int i = 0; i < 8 && i < static_cast<int>(preview_palette.size());
          i++) {
@@ -672,21 +673,21 @@ void PaletteEditorWidget::DrawColorEditControls(gfx::SnesColor& color,
     color = gfx::SnesColor(rgba);
   }
 
-  ImGui::Text("SNES Color: 0x%04X", color.snes());
+  ImGui::Text(tr("SNES Color: 0x%04X"), color.snes());
 
   int r = (color.snes() & 0x1F);
   int g = (color.snes() >> 5) & 0x1F;
   int b = (color.snes() >> 10) & 0x1F;
 
-  if (ImGui::SliderInt("Red", &r, 0, 31)) {
+  if (ImGui::SliderInt(tr("Red"), &r, 0, 31)) {
     uint16_t new_color = (color.snes() & 0xFFE0) | (r & 0x1F);
     color = gfx::SnesColor(new_color);
   }
-  if (ImGui::SliderInt("Green", &g, 0, 31)) {
+  if (ImGui::SliderInt(tr("Green"), &g, 0, 31)) {
     uint16_t new_color = (color.snes() & 0xFC1F) | ((g & 0x1F) << 5);
     color = gfx::SnesColor(new_color);
   }
-  if (ImGui::SliderInt("Blue", &b, 0, 31)) {
+  if (ImGui::SliderInt(tr("Blue"), &b, 0, 31)) {
     uint16_t new_color = (color.snes() & 0x83FF) | ((b & 0x1F) << 10);
     color = gfx::SnesColor(new_color);
   }
@@ -695,19 +696,19 @@ void PaletteEditorWidget::DrawColorEditControls(gfx::SnesColor& color,
 }
 
 void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
-  ImGui::Text("Palette Information:");
-  ImGui::Text("Size: %zu colors", palette.size());
+  ImGui::Text(tr("Palette Information:"));
+  ImGui::Text(tr("Size: %zu colors"), palette.size());
 
   std::map<uint16_t, int> color_frequency;
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
     color_frequency[palette[i].snes()]++;
   }
 
-  ImGui::Text("Unique Colors: %zu", color_frequency.size());
+  ImGui::Text(tr("Unique Colors: %zu"), color_frequency.size());
 
   if (color_frequency.size() < palette.size()) {
     ImGui::TextColored(ImVec4(1, 1, 0, 1),
-                       "Warning: Duplicate colors detected!");
+                       tr("Warning: Duplicate colors detected!"));
     if (ImGui::TreeNode("Duplicate Colors")) {
       for (const auto& [snes_color, count] : color_frequency) {
         if (count > 1) {
@@ -716,7 +717,7 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
                              display_color, ImGuiColorEditFlags_NoTooltip,
                              ImVec2(16, 16));
           ImGui::SameLine();
-          ImGui::Text("0x%04X appears %d times", snes_color, count);
+          ImGui::Text(tr("0x%04X appears %d times"), snes_color, count);
         }
       }
       ImGui::TreePop();
@@ -763,11 +764,11 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
   float avg_brightness = total_brightness / palette.size();
 
   ImGui::Separator();
-  ImGui::Text("Brightness Analysis:");
-  ImGui::Text("Average: %.2f", avg_brightness);
-  ImGui::Text("Range: %.2f - %.2f", min_brightness, max_brightness);
+  ImGui::Text(tr("Brightness Analysis:"));
+  ImGui::Text(tr("Average: %.2f"), avg_brightness);
+  ImGui::Text(tr("Range: %.2f - %.2f"), min_brightness, max_brightness);
 
-  ImGui::Text("Brightness Distribution:");
+  ImGui::Text(tr("Brightness Distribution:"));
   ImGui::ProgressBar(avg_brightness, ImVec2(-1, 0), "Avg");
 }
 

@@ -1,4 +1,5 @@
 #include "popup_manager.h"
+#include "util/i18n/tr.h"
 
 #include <cstring>
 #include <ctime>
@@ -15,9 +16,9 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
-#include "app/gui/core/ui_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
 #include "util/hex.h"
@@ -68,9 +69,10 @@ void PopupManager::Initialize() {
                                       [this]() {
                                         DrawManageProjectPopup();
                                       }};
-  popups_[PopupID::kRomBackups] = {PopupID::kRomBackups,
-                                   PopupType::kFileOperation, false, true,
-                                   [this]() { DrawRomBackupManagerPopup(); }};
+  popups_[PopupID::kRomBackups] = {
+      PopupID::kRomBackups, PopupType::kFileOperation, false, true, [this]() {
+        DrawRomBackupManagerPopup();
+      }};
 
   // Information
   popups_[PopupID::kAbout] = {PopupID::kAbout, PopupType::kInfo, false, false,
@@ -168,13 +170,19 @@ void PopupManager::Initialize() {
 
   popups_[PopupID::kDungeonPotItemSaveConfirm] = {
       PopupID::kDungeonPotItemSaveConfirm, PopupType::kConfirmation, false,
-      false, [this]() { DrawDungeonPotItemSaveConfirmPopup(); }};
-  popups_[PopupID::kRomWriteConfirm] = {
-      PopupID::kRomWriteConfirm, PopupType::kConfirmation, false, false,
-      [this]() { DrawRomWriteConfirmPopup(); }};
-  popups_[PopupID::kWriteConflictWarning] = {
-      PopupID::kWriteConflictWarning, PopupType::kWarning, false, true,
-      [this]() { DrawWriteConflictWarningPopup(); }};
+      false, [this]() {
+        DrawDungeonPotItemSaveConfirmPopup();
+      }};
+  popups_[PopupID::kRomWriteConfirm] = {PopupID::kRomWriteConfirm,
+                                        PopupType::kConfirmation, false, false,
+                                        [this]() {
+                                          DrawRomWriteConfirmPopup();
+                                        }};
+  popups_[PopupID::kWriteConflictWarning] = {PopupID::kWriteConflictWarning,
+                                             PopupType::kWarning, false, true,
+                                             [this]() {
+                                               DrawWriteConflictWarningPopup();
+                                             }};
 }
 
 void PopupManager::DrawPopups() {
@@ -274,7 +282,8 @@ void PopupManager::DrawStatusPopup() {
     Separator();
     NewLine();
     SameLine(128);
-    if (Button("OK", ::yaze::gui::kDefaultModalSize) || IsKeyPressed(ImGuiKey_Space)) {
+    if (Button(tr("OK"), ::yaze::gui::kDefaultModalSize) ||
+        IsKeyPressed(ImGuiKey_Space)) {
       show_status_ = false;
       status_ = absl::OkStatus();
     }
@@ -287,13 +296,14 @@ void PopupManager::DrawStatusPopup() {
 }
 
 void PopupManager::DrawAboutPopup() {
-  Text("Yet Another Zelda3 Editor - v%s", editor_manager_->version().c_str());
-  Text("Written by: scawful");
+  Text(tr("Yet Another Zelda3 Editor - v%s"),
+       editor_manager_->version().c_str());
+  Text(tr("Written by: scawful"));
   Spacing();
-  Text("Special Thanks: Zarby89, JaredBrian");
+  Text(tr("Special Thanks: Zarby89, JaredBrian"));
   Separator();
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("About");
   }
 }
@@ -303,32 +313,32 @@ void PopupManager::DrawRomInfoPopup() {
   if (!current_rom)
     return;
 
-  Text("Title: %s", current_rom->title().c_str());
-  Text("ROM Size: %s", util::HexLongLong(current_rom->size()).c_str());
-  Text("ROM Hash: %s",
-       editor_manager_->GetCurrentRomHash().empty()
-           ? "(unknown)"
-           : editor_manager_->GetCurrentRomHash().c_str());
+  Text(tr("Title: %s"), current_rom->title().c_str());
+  Text(tr("ROM Size: %s"), util::HexLongLong(current_rom->size()).c_str());
+  Text(tr("ROM Hash: %s"), editor_manager_->GetCurrentRomHash().empty()
+                               ? "(unknown)"
+                               : editor_manager_->GetCurrentRomHash().c_str());
 
   auto* project = editor_manager_->GetCurrentProject();
   if (project && project->project_opened()) {
     Separator();
-    Text("Role: %s", project::RomRoleToString(project->rom_metadata.role).c_str());
-    Text("Write Policy: %s",
+    Text(tr("Role: %s"),
+         project::RomRoleToString(project->rom_metadata.role).c_str());
+    Text(tr("Write Policy: %s"),
          project::RomWritePolicyToString(project->rom_metadata.write_policy)
              .c_str());
-    Text("Expected Hash: %s",
+    Text(tr("Expected Hash: %s"),
          project->rom_metadata.expected_hash.empty()
              ? "(unset)"
              : project->rom_metadata.expected_hash.c_str());
     if (editor_manager_->IsRomHashMismatch()) {
       const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
       TextColored(gui::ConvertColorToImVec4(theme.warning),
-                  "ROM hash mismatch detected");
+                  tr("ROM hash mismatch detected"));
     }
   }
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize) ||
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize) ||
       IsKeyPressed(ImGuiKey_Escape)) {
     Hide("ROM Information");
   }
@@ -337,7 +347,7 @@ void PopupManager::DrawRomInfoPopup() {
 void PopupManager::DrawSaveAsPopup() {
   using namespace ImGui;
 
-  Text("%s Save ROM to new location", ICON_MD_SAVE_AS);
+  Text(tr("%s Save ROM to new location"), ICON_MD_SAVE_AS);
   Separator();
 
   static std::string save_as_filename = "";
@@ -345,7 +355,7 @@ void PopupManager::DrawSaveAsPopup() {
     save_as_filename = editor_manager_->GetCurrentRom()->title();
   }
 
-  InputText("Filename", &save_as_filename);
+  InputText(tr("Filename"), &save_as_filename);
   Separator();
 
   if (Button(absl::StrFormat("%s Browse...", ICON_MD_FOLDER_OPEN).c_str(),
@@ -387,57 +397,62 @@ void PopupManager::DrawSaveAsPopup() {
 void PopupManager::DrawSaveScopePopup() {
   using namespace ImGui;
 
-  Text("%s Save Scope", ICON_MD_SAVE);
+  Text(tr("%s Save Scope"), ICON_MD_SAVE);
   Separator();
   TextWrapped(
-      "Controls which data is written during File > Save ROM. "
-      "Changes apply immediately.");
+      tr("Controls which data is written during File > Save ROM. "
+         "Changes apply immediately."));
   Separator();
 
-  if (CollapsingHeader("Overworld", ImGuiTreeNodeFlags_DefaultOpen)) {
-    Checkbox("Save Overworld Maps",
+  if (CollapsingHeader(tr("Overworld"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox(tr("Save Overworld Maps"),
              &core::FeatureFlags::get().overworld.kSaveOverworldMaps);
-    Checkbox("Save Overworld Entrances",
+    Checkbox(tr("Save Overworld Entrances"),
              &core::FeatureFlags::get().overworld.kSaveOverworldEntrances);
-    Checkbox("Save Overworld Exits",
+    Checkbox(tr("Save Overworld Exits"),
              &core::FeatureFlags::get().overworld.kSaveOverworldExits);
-    Checkbox("Save Overworld Items",
+    Checkbox(tr("Save Overworld Items"),
              &core::FeatureFlags::get().overworld.kSaveOverworldItems);
-    Checkbox("Save Overworld Properties",
+    Checkbox(tr("Save Overworld Properties"),
              &core::FeatureFlags::get().overworld.kSaveOverworldProperties);
   }
 
-  if (CollapsingHeader("Dungeon", ImGuiTreeNodeFlags_DefaultOpen)) {
-    Checkbox("Save Dungeon Maps", &core::FeatureFlags::get().kSaveDungeonMaps);
-    Checkbox("Save Objects", &core::FeatureFlags::get().dungeon.kSaveObjects);
-    Checkbox("Save Sprites", &core::FeatureFlags::get().dungeon.kSaveSprites);
-    Checkbox("Save Room Headers",
+  if (CollapsingHeader(tr("Dungeon"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox(tr("Save Dungeon Maps"),
+             &core::FeatureFlags::get().kSaveDungeonMaps);
+    Checkbox(tr("Save Objects"),
+             &core::FeatureFlags::get().dungeon.kSaveObjects);
+    Checkbox(tr("Save Sprites"),
+             &core::FeatureFlags::get().dungeon.kSaveSprites);
+    Checkbox(tr("Save Room Headers"),
              &core::FeatureFlags::get().dungeon.kSaveRoomHeaders);
-    Checkbox("Save Torches", &core::FeatureFlags::get().dungeon.kSaveTorches);
-    Checkbox("Save Pits", &core::FeatureFlags::get().dungeon.kSavePits);
-    Checkbox("Save Blocks", &core::FeatureFlags::get().dungeon.kSaveBlocks);
-    Checkbox("Save Collision",
+    Checkbox(tr("Save Torches"),
+             &core::FeatureFlags::get().dungeon.kSaveTorches);
+    Checkbox(tr("Save Pits"), &core::FeatureFlags::get().dungeon.kSavePits);
+    Checkbox(tr("Save Blocks"), &core::FeatureFlags::get().dungeon.kSaveBlocks);
+    Checkbox(tr("Save Collision"),
              &core::FeatureFlags::get().dungeon.kSaveCollision);
-    Checkbox("Save Chests", &core::FeatureFlags::get().dungeon.kSaveChests);
-    Checkbox("Save Pot Items",
+    Checkbox(tr("Save Chests"), &core::FeatureFlags::get().dungeon.kSaveChests);
+    Checkbox(tr("Save Pot Items"),
              &core::FeatureFlags::get().dungeon.kSavePotItems);
-    Checkbox("Save Palettes",
+    Checkbox(tr("Save Palettes"),
              &core::FeatureFlags::get().dungeon.kSavePalettes);
   }
 
-  if (CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
-    Checkbox("Save Graphics Sheets",
+  if (CollapsingHeader(tr("Graphics"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox(tr("Save Graphics Sheets"),
              &core::FeatureFlags::get().kSaveGraphicsSheet);
-    Checkbox("Save All Palettes", &core::FeatureFlags::get().kSaveAllPalettes);
-    Checkbox("Save Gfx Groups", &core::FeatureFlags::get().kSaveGfxGroups);
+    Checkbox(tr("Save All Palettes"),
+             &core::FeatureFlags::get().kSaveAllPalettes);
+    Checkbox(tr("Save Gfx Groups"), &core::FeatureFlags::get().kSaveGfxGroups);
   }
 
-  if (CollapsingHeader("Messages", ImGuiTreeNodeFlags_DefaultOpen)) {
-    Checkbox("Save Message Text", &core::FeatureFlags::get().kSaveMessages);
+  if (CollapsingHeader(tr("Messages"), ImGuiTreeNodeFlags_DefaultOpen)) {
+    Checkbox(tr("Save Message Text"), &core::FeatureFlags::get().kSaveMessages);
   }
 
   Separator();
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kSaveScope);
   }
 }
@@ -447,8 +462,8 @@ void PopupManager::DrawRomBackupManagerPopup() {
 
   auto* rom = editor_manager_->GetCurrentRom();
   if (!rom || !rom->is_loaded()) {
-    Text("No ROM loaded.");
-    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+    Text(tr("No ROM loaded."));
+    if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kRomBackups);
     }
     return;
@@ -463,9 +478,9 @@ void PopupManager::DrawRomBackupManagerPopup() {
     backup_dir = std::filesystem::path(rom->filename()).parent_path().string();
   }
 
-  Text("%s ROM Backups", ICON_MD_BACKUP);
+  Text(tr("%s ROM Backups"), ICON_MD_BACKUP);
   Separator();
-  TextWrapped("Backup folder: %s", backup_dir.c_str());
+  TextWrapped(tr("Backup folder: %s"), backup_dir.c_str());
 
   if (Button(ICON_MD_DELETE_SWEEP " Prune Backups")) {
     auto status = editor_manager_->PruneRomBackups();
@@ -482,7 +497,7 @@ void PopupManager::DrawRomBackupManagerPopup() {
   Separator();
   auto backups = editor_manager_->GetRomBackups();
   if (backups.empty()) {
-    TextDisabled("No backups found.");
+    TextDisabled(tr("No backups found."));
   } else if (BeginTable("RomBackupTable", 4,
                         ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders |
                             ImGuiTableFlags_Resizable)) {
@@ -498,11 +513,9 @@ void PopupManager::DrawRomBackupManagerPopup() {
                                static_cast<double>(bytes) / (1024 * 1024));
       }
       if (bytes > 1024) {
-        return absl::StrFormat("%.1f KB",
-                               static_cast<double>(bytes) / 1024.0);
+        return absl::StrFormat("%.1f KB", static_cast<double>(bytes) / 1024.0);
       }
-      return absl::StrFormat("%llu B",
-                             static_cast<unsigned long long>(bytes));
+      return absl::StrFormat("%llu B", static_cast<unsigned long long>(bytes));
     };
 
     for (size_t i = 0; i < backups.size(); ++i) {
@@ -534,9 +547,8 @@ void PopupManager::DrawRomBackupManagerPopup() {
         auto status = editor_manager_->RestoreRomBackup(backup.path);
         if (!status.ok()) {
           if (auto* toast = editor_manager_->toast_manager()) {
-            toast->Show(
-                absl::StrFormat("Restore failed: %s", status.message()),
-                ToastType::kError);
+            toast->Show(absl::StrFormat("Restore failed: %s", status.message()),
+                        ToastType::kError);
           }
         } else if (auto* toast = editor_manager_->toast_manager()) {
           toast->Show("ROM restored from backup", ToastType::kSuccess);
@@ -547,9 +559,8 @@ void PopupManager::DrawRomBackupManagerPopup() {
         auto status = editor_manager_->OpenRomOrProject(backup.path);
         if (!status.ok()) {
           if (auto* toast = editor_manager_->toast_manager()) {
-            toast->Show(
-                absl::StrFormat("Open failed: %s", status.message()),
-                ToastType::kError);
+            toast->Show(absl::StrFormat("Open failed: %s", status.message()),
+                        ToastType::kError);
           }
         }
       }
@@ -563,7 +574,7 @@ void PopupManager::DrawRomBackupManagerPopup() {
   }
 
   Separator();
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kRomBackups);
   }
 }
@@ -577,7 +588,7 @@ void PopupManager::DrawNewProjectPopup() {
   static std::string labels_filename = "";
   static std::string code_folder = "";
 
-  InputText("Project Name", &project_name);
+  InputText(tr("Project Name"), &project_name);
 
   if (Button(absl::StrFormat("%s Destination Folder", ICON_MD_FOLDER).c_str(),
              ::yaze::gui::kDefaultModalSize)) {
@@ -685,8 +696,7 @@ void PopupManager::DrawSupportedFeaturesPopup() {
   auto draw_table = [&](const char* table_id,
                         std::initializer_list<FeatureRow> rows) {
     ImGuiTableFlags flags = ImGuiTableFlags_BordersInnerH |
-                            ImGuiTableFlags_RowBg |
-                            ImGuiTableFlags_Resizable;
+                            ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable;
     if (!BeginTable(table_id, 4, flags)) {
       return;
     }
@@ -712,61 +722,60 @@ void PopupManager::DrawSupportedFeaturesPopup() {
   };
 
   TextDisabled(
-      "Status: Stable = production ready, Beta = usable with gaps, "
-      "Experimental = WIP, Preview = web parity in progress.");
-  TextDisabled("See Settings > Feature Flags for ROM-specific toggles.");
+      tr("Status: Stable = production ready, Beta = usable with gaps, "
+         "Experimental = WIP, Preview = web parity in progress."));
+  TextDisabled(tr("See Settings > Feature Flags for ROM-specific toggles."));
   Spacing();
 
-  if (CollapsingHeader("Desktop App (yaze)", ImGuiTreeNodeFlags_DefaultOpen)) {
-    draw_table(
-        "desktop_features",
-        {
-            {"ROM load/save", "Stable", "ROM + backups",
-             "Backups on save when enabled."},
-            {"Overworld Editor", "Stable", "ROM",
-             "Maps/entrances/exits/items; version-gated."},
-            {"Dungeon Editor", "Stable", "ROM",
-             "Room objects/tiles/palettes persist."},
-            {"Palette Editor", "Stable", "ROM",
-             "Palette edits persist; JSON IO pending."},
-            {"Graphics Editor", "Beta", "ROM",
-             "Sheet edits persist; tooling still expanding."},
-            {"Sprite Editor", "Stable", "ROM", "Sprite edits persist."},
-            {"Message Editor", "Stable", "ROM", "Text edits persist."},
-            {"Screen Editor", "Experimental", "ROM (partial)",
-             "Save coverage incomplete."},
-            {"Hex Editor", "Beta", "ROM", "Search UX incomplete."},
-            {"Assembly/Asar", "Beta", "ROM + project",
-             "Patch apply + symbol export."},
-            {"Emulator", "Beta", "Runtime only",
-             "Save-state UI partially wired."},
-            {"Music Editor", "Experimental", "ROM (partial)",
-             "Serialization in progress."},
-            {"Agent UI", "Experimental", ".yaze/agent",
-             "Requires AI provider configuration."},
-            {"Settings/Layouts", "Beta", ".yaze config",
-             "Layout serialization improving."},
-        });
+  if (CollapsingHeader(tr("Desktop App (yaze)"),
+                       ImGuiTreeNodeFlags_DefaultOpen)) {
+    draw_table("desktop_features",
+               {
+                   {"ROM load/save", "Stable", "ROM + backups",
+                    "Backups on save when enabled."},
+                   {"Overworld Editor", "Stable", "ROM",
+                    "Maps/entrances/exits/items; version-gated."},
+                   {"Dungeon Editor", "Stable", "ROM",
+                    "Room objects/tiles/palettes persist."},
+                   {"Palette Editor", "Stable", "ROM",
+                    "Palette edits persist; JSON IO pending."},
+                   {"Graphics Editor", "Beta", "ROM",
+                    "Sheet edits persist; tooling still expanding."},
+                   {"Sprite Editor", "Stable", "ROM", "Sprite edits persist."},
+                   {"Message Editor", "Stable", "ROM", "Text edits persist."},
+                   {"Screen Editor", "Experimental", "ROM (partial)",
+                    "Save coverage incomplete."},
+                   {"Hex Editor", "Beta", "ROM", "Search UX incomplete."},
+                   {"Assembly/Asar", "Beta", "ROM + project",
+                    "Patch apply + symbol export."},
+                   {"Emulator", "Beta", "Runtime only",
+                    "Save-state UI partially wired."},
+                   {"Music Editor", "Experimental", "ROM (partial)",
+                    "Serialization in progress."},
+                   {"Agent UI", "Experimental", ".yaze/agent",
+                    "Requires AI provider configuration."},
+                   {"Settings/Layouts", "Beta", ".yaze config",
+                    "Layout serialization improving."},
+               });
   }
 
-  if (CollapsingHeader("z3ed CLI")) {
-    draw_table(
-        "cli_features",
-        {
-            {"ROM read/write/validate", "Stable", "ROM file",
-             "Direct command execution."},
-            {"Agent workflows", "Stable", ".yaze/proposals + sandboxes",
-             "Commit writes ROM; revert reloads."},
-            {"Snapshots/restore", "Stable", "Sandbox copies",
-             "Supports YAZE_SANDBOX_ROOT override."},
-            {"Doctor/test suites", "Stable", "Reports",
-             "Structured output for automation."},
-            {"TUI/REPL", "Stable", "Session history",
-             "Interactive command palette + logs."},
-        });
+  if (CollapsingHeader(tr("z3ed CLI"))) {
+    draw_table("cli_features",
+               {
+                   {"ROM read/write/validate", "Stable", "ROM file",
+                    "Direct command execution."},
+                   {"Agent workflows", "Stable", ".yaze/proposals + sandboxes",
+                    "Commit writes ROM; revert reloads."},
+                   {"Snapshots/restore", "Stable", "Sandbox copies",
+                    "Supports YAZE_SANDBOX_ROOT override."},
+                   {"Doctor/test suites", "Stable", "Reports",
+                    "Structured output for automation."},
+                   {"TUI/REPL", "Stable", "Session history",
+                    "Interactive command palette + logs."},
+               });
   }
 
-  if (CollapsingHeader("Web/WASM Preview")) {
+  if (CollapsingHeader(tr("Web/WASM Preview"))) {
     draw_table(
         "web_features",
         {
@@ -776,203 +785,206 @@ void PopupManager::DrawSupportedFeaturesPopup() {
              "IndexedDB + download", "Parity work in progress."},
             {"Hex Editor", "Working", "IndexedDB + download",
              "Direct ROM editing available."},
-            {"Asar patching", "Preview", "ROM",
-             "Basic patch apply support."},
+            {"Asar patching", "Preview", "ROM", "Basic patch apply support."},
             {"Emulator", "Not available", "N/A", "Desktop only."},
             {"Collaboration", "Experimental", "Server",
              "Requires yaze-server."},
-            {"AI features", "Preview", "Server",
-             "Requires AI-enabled server."},
+            {"AI features", "Preview", "Server", "Requires AI-enabled server."},
         });
   }
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kSupportedFeatures);
   }
 }
 
 void PopupManager::DrawOpenRomHelpPopup() {
-  Text("File -> Open");
-  Text("Select a ROM file to open");
-  Text("Supported ROMs (headered or unheadered):");
-  Text("The Legend of Zelda: A Link to the Past");
-  Text("US Version 1.0");
-  Text("JP Version 1.0");
+  Text(tr("File -> Open"));
+  Text(tr("Select a ROM file to open"));
+  Text(tr("Supported ROMs (headered or unheadered):"));
+  Text(tr("The Legend of Zelda: A Link to the Past"));
+  Text(tr("US Version 1.0"));
+  Text(tr("JP Version 1.0"));
   Spacing();
-  TextWrapped("ROM files are not bundled. Use a clean, legally obtained copy.");
+  TextWrapped(
+      tr("ROM files are not bundled. Use a clean, legally obtained copy."));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Open a ROM");
   }
 }
 
 void PopupManager::DrawManageProjectPopup() {
-  Text("Project Menu");
-  Text("Create a new project or open an existing one.");
-  Text("Save the project to save the current state of the project.");
+  Text(tr("Project Menu"));
+  Text(tr("Create a new project or open an existing one."));
+  Text(tr("Save the project to save the current state of the project."));
   TextWrapped(
-      "To save a project, you need to first open a ROM and initialize your "
-      "code path and labels file. Label resource manager can be found in "
-      "the View menu. Code path is set in the Code editor after opening a "
-      "folder.");
+      tr("To save a project, you need to first open a ROM and initialize your "
+         "code path and labels file. Label resource manager can be found in "
+         "the View menu. Code path is set in the Code editor after opening a "
+         "folder."));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Manage Project");
   }
 }
 
 void PopupManager::DrawGettingStartedPopup() {
-  TextWrapped("Welcome to YAZE v%s!", YAZE_VERSION_STRING);
-  TextWrapped(
+  TextWrapped(tr("Welcome to YAZE v%s!"), YAZE_VERSION_STRING);
+  TextWrapped(tr(
       "YAZE lets you modify 'The Legend of Zelda: A Link to the Past' (US or "
-      "JP) ROMs with modern tooling.");
+      "JP) ROMs with modern tooling."));
   Spacing();
-  TextWrapped("Release Highlights:");
+  TextWrapped(tr("Release Highlights:"));
   BulletText(
-      "AI-assisted workflows via z3ed agent and in-app panels "
-      "(Ollama/Gemini/OpenAI/Anthropic)");
-  BulletText("Clear feature status panels and improved help/tooltips");
-  BulletText("Unified .yaze storage across desktop/CLI/web");
+      tr("AI-assisted workflows via z3ed agent and in-app panels "
+         "(Ollama/Gemini/OpenAI/Anthropic)"));
+  BulletText(tr("Clear feature status panels and improved help/tooltips"));
+  BulletText(tr("Unified .yaze storage across desktop/CLI/web"));
   Spacing();
-  TextWrapped("General Tips:");
-  BulletText("Open a clean ROM and save a backup before editing");
-  BulletText("Use Help (F1) for context-aware guidance and shortcuts");
-  BulletText(
+  TextWrapped(tr("General Tips:"));
+  BulletText(tr("Open a clean ROM and save a backup before editing"));
+  BulletText(tr("Use Help (F1) for context-aware guidance and shortcuts"));
+  BulletText(tr(
       "Configure AI providers (Ollama/Gemini/OpenAI/Anthropic) in Settings > "
-      "Agent");
+      "Agent"));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Getting Started");
   }
 }
 
 void PopupManager::DrawAsarIntegrationPopup() {
-  TextWrapped("Asar 65816 Assembly Integration");
+  TextWrapped(tr("Asar 65816 Assembly Integration"));
   TextWrapped(
-      "YAZE includes full Asar assembler support for ROM patching.");
+      tr("YAZE includes full Asar assembler support for ROM patching."));
   Spacing();
-  TextWrapped("Features:");
-  BulletText("Cross-platform ROM patching with assembly code");
-  BulletText("Symbol export with addresses and opcodes");
-  BulletText("Assembly validation with detailed error reporting");
-  BulletText("Memory-safe patch application with size checks");
+  TextWrapped(tr("Features:"));
+  BulletText(tr("Cross-platform ROM patching with assembly code"));
+  BulletText(tr("Symbol export with addresses and opcodes"));
+  BulletText(tr("Assembly validation with detailed error reporting"));
+  BulletText(tr("Memory-safe patch application with size checks"));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Asar Integration");
   }
 }
 
 void PopupManager::DrawBuildInstructionsPopup() {
-  TextWrapped("Build Instructions");
-  TextWrapped("YAZE uses modern CMake for cross-platform builds.");
+  TextWrapped(tr("Build Instructions"));
+  TextWrapped(tr("YAZE uses modern CMake for cross-platform builds."));
   Spacing();
-  TextWrapped("Quick Start (examples):");
-  BulletText("cmake --preset mac-dbg | lin-dbg | win-dbg");
-  BulletText("cmake --build --preset <preset> --target yaze");
+  TextWrapped(tr("Quick Start (examples):"));
+  BulletText(tr("cmake --preset mac-dbg | lin-dbg | win-dbg"));
+  BulletText(tr("cmake --build --preset <preset> --target yaze"));
   Spacing();
-  TextWrapped("AI Builds:");
-  BulletText("cmake --preset mac-ai | lin-ai | win-ai");
-  BulletText("cmake --build --preset <preset> --target yaze z3ed");
+  TextWrapped(tr("AI Builds:"));
+  BulletText(tr("cmake --preset mac-ai | lin-ai | win-ai"));
+  BulletText(tr("cmake --build --preset <preset> --target yaze z3ed"));
   Spacing();
-  TextWrapped("Docs: docs/public/build/quick-reference.md");
+  TextWrapped(tr("Docs: docs/public/build/quick-reference.md"));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Build Instructions");
   }
 }
 
 void PopupManager::DrawCLIUsagePopup() {
-  TextWrapped("Command Line Interface (z3ed)");
-  TextWrapped("Scriptable ROM editing and AI agent workflows.");
+  TextWrapped(tr("Command Line Interface (z3ed)"));
+  TextWrapped(tr("Scriptable ROM editing and AI agent workflows."));
   Spacing();
-  TextWrapped("Commands:");
-  BulletText("z3ed rom-info --rom=zelda3.sfc");
-  BulletText("z3ed agent simple-chat --rom=zelda3.sfc --ai_provider=auto");
-  BulletText("z3ed agent plan --rom=zelda3.sfc");
-  BulletText("z3ed test-list --format json");
-  BulletText("z3ed patch apply-asar patch.asm --rom=zelda3.sfc");
-  BulletText("z3ed help dungeon-place-sprite");
+  TextWrapped(tr("Commands:"));
+  BulletText(tr("z3ed rom-info --rom=zelda3.sfc"));
+  BulletText(tr("z3ed agent simple-chat --rom=zelda3.sfc --ai_provider=auto"));
+  BulletText(tr("z3ed agent plan --rom=zelda3.sfc"));
+  BulletText(tr("z3ed test-list --format json"));
+  BulletText(tr("z3ed patch apply-asar patch.asm --rom=zelda3.sfc"));
+  BulletText(tr("z3ed help dungeon-place-sprite"));
   Spacing();
-  TextWrapped("Storage:");
-  BulletText("Agent plans/proposals live under ~/.yaze (see docs for details)");
+  TextWrapped(tr("Storage:"));
+  BulletText(
+      tr("Agent plans/proposals live under ~/.yaze (see docs for details)"));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("CLI Usage");
   }
 }
 
 void PopupManager::DrawTroubleshootingPopup() {
-  TextWrapped("Troubleshooting");
-  TextWrapped("Common issues and solutions:");
+  TextWrapped(tr("Troubleshooting"));
+  TextWrapped(tr("Common issues and solutions:"));
   Spacing();
-  BulletText("ROM won't load: Check file format (SFC/SMC supported)");
+  BulletText(tr("ROM won't load: Check file format (SFC/SMC supported)"));
   BulletText(
-      "AI agent missing: Start Ollama or set GEMINI_API_KEY/OPENAI_API_KEY/"
-      "ANTHROPIC_API_KEY (web uses AI_AGENT_ENDPOINT)");
-  BulletText("Graphics issues: Disable experimental flags in Settings");
-  BulletText("Performance: Enable hardware acceleration in display settings");
-  BulletText("Crashes: Check ROM file integrity and available memory");
-  BulletText("Layout issues: Reset workspace layouts from View > Layouts");
+      tr("AI agent missing: Start Ollama or set GEMINI_API_KEY/OPENAI_API_KEY/"
+         "ANTHROPIC_API_KEY (web uses AI_AGENT_ENDPOINT)"));
+  BulletText(tr("Graphics issues: Disable experimental flags in Settings"));
+  BulletText(
+      tr("Performance: Enable hardware acceleration in display settings"));
+  BulletText(tr("Crashes: Check ROM file integrity and available memory"));
+  BulletText(tr("Layout issues: Reset workspace layouts from View > Layouts"));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Troubleshooting");
   }
 }
 
 void PopupManager::DrawContributingPopup() {
-  TextWrapped("Contributing to YAZE");
-  TextWrapped("YAZE is open source and welcomes contributions!");
+  TextWrapped(tr("Contributing to YAZE"));
+  TextWrapped(tr("YAZE is open source and welcomes contributions!"));
   Spacing();
-  TextWrapped("How to contribute:");
-  BulletText("Fork the repository on GitHub");
-  BulletText("Create feature branches for new work");
-  BulletText("Follow C++ coding standards");
-  BulletText("Include tests for new features");
-  BulletText("Submit pull requests for review");
+  TextWrapped(tr("How to contribute:"));
+  BulletText(tr("Fork the repository on GitHub"));
+  BulletText(tr("Create feature branches for new work"));
+  BulletText(tr("Follow C++ coding standards"));
+  BulletText(tr("Include tests for new features"));
+  BulletText(tr("Submit pull requests for review"));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Contributing");
   }
 }
 
 void PopupManager::DrawWhatsNewPopup() {
-  TextWrapped("What's New in YAZE v%s", YAZE_VERSION_STRING);
+  TextWrapped(tr("What's New in YAZE v%s"), YAZE_VERSION_STRING);
   Spacing();
 
   if (CollapsingHeader(
           absl::StrFormat("%s User Interface & Theming", ICON_MD_PALETTE)
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen)) {
-    BulletText("Feature status/persistence summaries across desktop/CLI/web");
-    BulletText("Shortcut/help panels now match configured keybindings");
-    BulletText("Refined onboarding tips and error messaging");
-    BulletText("Help text refreshed across desktop, CLI, and web");
+    BulletText(
+        tr("Feature status/persistence summaries across desktop/CLI/web"));
+    BulletText(tr("Shortcut/help panels now match configured keybindings"));
+    BulletText(tr("Refined onboarding tips and error messaging"));
+    BulletText(tr("Help text refreshed across desktop, CLI, and web"));
   }
 
   if (CollapsingHeader(
           absl::StrFormat("%s Development & Build System", ICON_MD_BUILD)
               .c_str(),
           ImGuiTreeNodeFlags_DefaultOpen)) {
-    BulletText("Asar 65816 assembler integration for ROM patching");
-    BulletText("z3ed CLI + TUI for scripting, test/doctor, and automation");
-    BulletText("Modern CMake presets for desktop, AI, and web builds");
-    BulletText("Unified version + storage references for 0.5.1");
+    BulletText(tr("Asar 65816 assembler integration for ROM patching"));
+    BulletText(tr("z3ed CLI + TUI for scripting, test/doctor, and automation"));
+    BulletText(tr("Modern CMake presets for desktop, AI, and web builds"));
+    BulletText(tr("Unified version + storage references for 0.5.1"));
   }
 
   if (CollapsingHeader(
           absl::StrFormat("%s Core Improvements", ICON_MD_SETTINGS).c_str())) {
-    BulletText("Improved project metadata + .yaze storage alignment");
-    BulletText("Stronger error reporting and status feedback");
-    BulletText("Performance and stability improvements across editors");
-    BulletText("Expanded logging and diagnostics tooling");
+    BulletText(tr("Improved project metadata + .yaze storage alignment"));
+    BulletText(tr("Stronger error reporting and status feedback"));
+    BulletText(tr("Performance and stability improvements across editors"));
+    BulletText(tr("Expanded logging and diagnostics tooling"));
   }
 
   if (CollapsingHeader(
           absl::StrFormat("%s Editor Features", ICON_MD_EDIT).c_str())) {
-    BulletText("Music editor updates with SPC parsing/playback");
-    BulletText("AI agent-assisted editing workflows (multi-provider + vision)");
-    BulletText("Expanded overworld/dungeon tooling and palette accuracy");
-    BulletText("Web/WASM preview with collaboration hooks");
+    BulletText(tr("Music editor updates with SPC parsing/playback"));
+    BulletText(
+        tr("AI agent-assisted editing workflows (multi-provider + vision)"));
+    BulletText(tr("Expanded overworld/dungeon tooling and palette accuracy"));
+    BulletText(tr("Web/WASM preview with collaboration hooks"));
   }
 
   Spacing();
@@ -984,83 +996,82 @@ void PopupManager::DrawWhatsNewPopup() {
     // Could trigger release notes panel opening here
   }
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kWhatsNew);
   }
 }
 
 void PopupManager::DrawWorkspaceHelpPopup() {
-  TextWrapped("Workspace Management");
-  TextWrapped(
-      "YAZE supports multiple ROM sessions and flexible workspace layouts.");
+  TextWrapped(tr("Workspace Management"));
+  TextWrapped(tr(
+      "YAZE supports multiple ROM sessions and flexible workspace layouts."));
   Spacing();
 
-  TextWrapped("Session Management:");
-  BulletText("Ctrl+Shift+N: Create new session");
-  BulletText("Ctrl+Shift+W: Close current session");
-  BulletText("Ctrl+Tab: Quick session switcher");
-  BulletText("Each session maintains its own ROM and editor state");
+  TextWrapped(tr("Session Management:"));
+  BulletText(tr("Ctrl+Shift+N: Create new session"));
+  BulletText(tr("Ctrl+Shift+W: Close current session"));
+  BulletText(tr("Ctrl+Tab: Quick session switcher"));
+  BulletText(tr("Each session maintains its own ROM and editor state"));
 
   Spacing();
-  TextWrapped("Layout Management:");
-  BulletText("Drag window tabs to dock/undock");
-  BulletText("Ctrl+Shift+S: Save current layout");
-  BulletText("Ctrl+Shift+O: Load saved layout");
-  BulletText("F11: Maximize current window");
+  TextWrapped(tr("Layout Management:"));
+  BulletText(tr("Drag window tabs to dock/undock"));
+  BulletText(tr("Ctrl+Shift+S: Save current layout"));
+  BulletText(tr("Ctrl+Shift+O: Load saved layout"));
+  BulletText(tr("F11: Maximize current window"));
 
   Spacing();
-  TextWrapped("Preset Layouts:");
-  BulletText("Developer: Code, memory, testing tools");
-  BulletText("Designer: Graphics, palettes, sprites");
-  BulletText("Modder: All gameplay editing tools");
+  TextWrapped(tr("Preset Layouts:"));
+  BulletText(tr("Developer: Code, memory, testing tools"));
+  BulletText(tr("Designer: Graphics, palettes, sprites"));
+  BulletText(tr("Modder: All gameplay editing tools"));
 
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Workspace Help");
   }
 }
 
 void PopupManager::DrawSessionLimitWarningPopup() {
-  TextColored(gui::GetWarningColor(), "%s Warning", ICON_MD_WARNING);
-  TextWrapped("You have reached the recommended session limit.");
-  TextWrapped("Having too many sessions open may impact performance.");
+  TextColored(gui::GetWarningColor(), tr("%s Warning"), ICON_MD_WARNING);
+  TextWrapped(tr("You have reached the recommended session limit."));
+  TextWrapped(tr("Having too many sessions open may impact performance."));
   Spacing();
-  TextWrapped("Consider closing unused sessions or saving your work.");
+  TextWrapped(tr("Consider closing unused sessions or saving your work."));
 
-  if (Button("Understood", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Understood"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Session Limit Warning");
   }
   SameLine();
-  if (Button("Open Session Manager", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Open Session Manager"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Session Limit Warning");
     // This would trigger the session manager to open
   }
 }
 
 void PopupManager::DrawLayoutResetConfirmPopup() {
-  TextColored(gui::GetWarningColor(), "%s Confirm Reset",
-              ICON_MD_WARNING);
-  TextWrapped("This will reset your current workspace layout to default.");
-  TextWrapped("Any custom window arrangements will be lost.");
+  TextColored(gui::GetWarningColor(), tr("%s Confirm Reset"), ICON_MD_WARNING);
+  TextWrapped(tr("This will reset your current workspace layout to default."));
+  TextWrapped(tr("Any custom window arrangements will be lost."));
   Spacing();
-  TextWrapped("Do you want to continue?");
+  TextWrapped(tr("Do you want to continue?"));
 
-  if (Button("Reset Layout", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Reset Layout"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Layout Reset Confirm");
     // This would trigger the actual reset
   }
   SameLine();
-  if (Button("Cancel", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Cancel"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Layout Reset Confirm");
   }
 }
 
 void PopupManager::DrawLayoutPresetsPopup() {
-  TextColored(gui::GetInfoColor(), "%s Layout Presets",
-              ICON_MD_DASHBOARD);
+  TextColored(gui::GetInfoColor(), tr("%s Layout Presets"), ICON_MD_DASHBOARD);
   Separator();
   Spacing();
 
-  TextWrapped("Choose a workspace preset to quickly configure your layout:");
+  TextWrapped(
+      tr("Choose a workspace preset to quickly configure your layout:"));
   Spacing();
 
   // Get named presets from LayoutPresets
@@ -1125,9 +1136,9 @@ void PopupManager::DrawLayoutPresetsPopup() {
     {
       gui::StyleVarGuard align_guard(ImGuiStyleVar_ButtonTextAlign,
                                      ImVec2(0.0f, 0.5f));
-      if (Button(
-              absl::StrFormat("%s %s", presets[i].icon, presets[i].name).c_str(),
-              ImVec2(button_width, button_height))) {
+      if (Button(absl::StrFormat("%s %s", presets[i].icon, presets[i].name)
+                     .c_str(),
+                 ImVec2(button_width, button_height))) {
         // Apply the preset
         auto preset = presets[i].getter();
         auto& window_manager = editor_manager_->window_manager();
@@ -1166,21 +1177,20 @@ void PopupManager::DrawLayoutPresetsPopup() {
   }
 
   Spacing();
-  if (Button("Close", ImVec2(-1, 0))) {
+  if (Button(tr("Close"), ImVec2(-1, 0))) {
     Hide(PopupID::kLayoutPresets);
   }
 }
 
 void PopupManager::DrawSessionManagerPopup() {
-  TextColored(gui::GetInfoColor(), "%s Session Manager",
-              ICON_MD_TAB);
+  TextColored(gui::GetInfoColor(), tr("%s Session Manager"), ICON_MD_TAB);
   Separator();
   Spacing();
 
   size_t session_count = editor_manager_->GetActiveSessionCount();
   size_t active_session = editor_manager_->GetCurrentSessionId();
 
-  Text("Active Sessions: %zu", session_count);
+  Text(tr("Active Sessions: %zu"), session_count);
   Spacing();
 
   // Session table
@@ -1206,19 +1216,19 @@ void PopupManager::DrawSessionManagerPopup() {
         if (rom && rom->is_loaded()) {
           TextUnformatted(rom->filename().c_str());
         } else {
-          TextDisabled("(No ROM loaded)");
+          TextDisabled(tr("(No ROM loaded)"));
         }
       } else {
-        TextDisabled("Session %zu", i + 1);
+        TextDisabled(tr("Session %zu"), i + 1);
       }
 
       // Status indicator
       TableSetColumnIndex(2);
       if (i == active_session) {
-        TextColored(gui::GetSuccessColor(), "%s Active",
+        TextColored(gui::GetSuccessColor(), tr("%s Active"),
                     ICON_MD_CHECK_CIRCLE);
       } else {
-        TextDisabled("Inactive");
+        TextDisabled(tr("Inactive"));
       }
 
       // Actions
@@ -1226,14 +1236,14 @@ void PopupManager::DrawSessionManagerPopup() {
       PushID(static_cast<int>(i));
 
       if (i != active_session) {
-        if (SmallButton("Switch")) {
+        if (SmallButton(tr("Switch"))) {
           editor_manager_->SwitchToSession(i);
         }
         SameLine();
       }
 
       BeginDisabled(session_count <= 1);
-      if (SmallButton("Close")) {
+      if (SmallButton(tr("Close"))) {
         editor_manager_->RemoveSession(i);
       }
       EndDisabled();
@@ -1255,7 +1265,7 @@ void PopupManager::DrawSessionManagerPopup() {
   }
 
   Spacing();
-  if (Button("Close", ImVec2(-1, 0))) {
+  if (Button(tr("Close"), ImVec2(-1, 0))) {
     Hide(PopupID::kSessionManager);
   }
 }
@@ -1265,8 +1275,8 @@ void PopupManager::DrawDisplaySettingsPopup() {
   SetNextWindowSize(ImVec2(900, 700), ImGuiCond_FirstUseEver);
   SetNextWindowSizeConstraints(ImVec2(600, 400), ImVec2(FLT_MAX, FLT_MAX));
 
-  Text("%s Display & Theme Settings", ICON_MD_DISPLAY_SETTINGS);
-  TextWrapped("Customize your YAZE experience - accessible anytime!");
+  Text(tr("%s Display & Theme Settings"), ICON_MD_DISPLAY_SETTINGS);
+  TextWrapped(tr("Customize your YAZE experience - accessible anytime!"));
   Separator();
 
   // Create a child window for scrollable content to avoid table conflicts
@@ -1285,7 +1295,7 @@ void PopupManager::DrawDisplaySettingsPopup() {
     // Global font scale (moved from the old display settings window)
     ImGuiIO& io = GetIO();
     Separator();
-    Text("Global Font Scale");
+    Text(tr("Global Font Scale"));
     float font_global_scale = io.FontGlobalScale;
     if (SliderFloat("##global_scale", &font_global_scale, 0.5f, 2.0f, "%.2f")) {
       if (editor_manager_) {
@@ -1298,7 +1308,7 @@ void PopupManager::DrawDisplaySettingsPopup() {
   EndChild();
 
   Separator();
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide("Display Settings");
   }
 }
@@ -1307,7 +1317,7 @@ void PopupManager::DrawFeatureFlagsPopup() {
   using namespace ImGui;
 
   // Display feature flags editor using the existing FlagsMenu system
-  Text("Feature Flags Configuration");
+  Text(tr("Feature Flags Configuration"));
   Separator();
 
   BeginChild("##FlagsContent", ImVec2(0, -30), true);
@@ -1316,19 +1326,19 @@ void PopupManager::DrawFeatureFlagsPopup() {
   static gui::FlagsMenu flags_menu;
 
   if (BeginTabBar("FlagCategories")) {
-    if (BeginTabItem("Overworld")) {
+    if (BeginTabItem(tr("Overworld"))) {
       flags_menu.DrawOverworldFlags();
       EndTabItem();
     }
-    if (BeginTabItem("Dungeon")) {
+    if (BeginTabItem(tr("Dungeon"))) {
       flags_menu.DrawDungeonFlags();
       EndTabItem();
     }
-    if (BeginTabItem("Resources")) {
+    if (BeginTabItem(tr("Resources"))) {
       flags_menu.DrawResourceFlags();
       EndTabItem();
     }
-    if (BeginTabItem("System")) {
+    if (BeginTabItem(tr("System"))) {
       flags_menu.DrawSystemFlags();
       EndTabItem();
     }
@@ -1338,7 +1348,7 @@ void PopupManager::DrawFeatureFlagsPopup() {
   EndChild();
 
   Separator();
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kFeatureFlags);
   }
 }
@@ -1346,27 +1356,27 @@ void PopupManager::DrawFeatureFlagsPopup() {
 void PopupManager::DrawDataIntegrityPopup() {
   using namespace ImGui;
 
-  Text("Data Integrity Check Results");
+  Text(tr("Data Integrity Check Results"));
   Separator();
 
   BeginChild("##IntegrityContent", ImVec2(0, -30), true);
 
   // Placeholder for data integrity results
   // In a full implementation, this would show test results
-  Text("ROM Data Integrity:");
+  Text(tr("ROM Data Integrity:"));
   Separator();
-  TextColored(gui::GetSuccessColor(), "✓ ROM header valid");
-  TextColored(gui::GetSuccessColor(), "✓ Checksum valid");
-  TextColored(gui::GetSuccessColor(), "✓ Graphics data intact");
-  TextColored(gui::GetSuccessColor(), "✓ Map data intact");
+  TextColored(gui::GetSuccessColor(), tr("✓ ROM header valid"));
+  TextColored(gui::GetSuccessColor(), tr("✓ Checksum valid"));
+  TextColored(gui::GetSuccessColor(), tr("✓ Graphics data intact"));
+  TextColored(gui::GetSuccessColor(), tr("✓ Map data intact"));
 
   Spacing();
-  Text("No issues detected.");
+  Text(tr("No issues detected."));
 
   EndChild();
 
   Separator();
-  if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+  if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
     Hide(PopupID::kDataIntegrity);
   }
 }
@@ -1375,8 +1385,8 @@ void PopupManager::DrawDungeonPotItemSaveConfirmPopup() {
   using namespace ImGui;
 
   if (!editor_manager_) {
-    Text("Editor manager unavailable.");
-    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+    Text(tr("Editor manager unavailable."));
+    if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kDungeonPotItemSaveConfirm);
     }
     return;
@@ -1385,32 +1395,32 @@ void PopupManager::DrawDungeonPotItemSaveConfirmPopup() {
   const int unloaded = editor_manager_->pending_pot_item_unloaded_rooms();
   const int total = editor_manager_->pending_pot_item_total_rooms();
 
-  Text("Pot Item Save Confirmation");
+  Text(tr("Pot Item Save Confirmation"));
   Separator();
-  TextWrapped(
-      "Dungeon pot item saving is enabled, but %d of %d rooms are not loaded.",
-      unloaded, total);
+  TextWrapped(tr("Dungeon pot item saving is enabled, but %d of %d rooms are "
+                 "not loaded."),
+              unloaded, total);
   Spacing();
   TextWrapped(
-      "Saving now can overwrite pot items in unloaded rooms. Choose how to "
-      "proceed:");
+      tr("Saving now can overwrite pot items in unloaded rooms. Choose how to "
+         "proceed:"));
 
   Spacing();
-  if (Button("Save without pot items", ImVec2(0, 0))) {
+  if (Button(tr("Save without pot items"), ImVec2(0, 0))) {
     editor_manager_->ResolvePotItemSaveConfirmation(
         EditorManager::PotItemSaveDecision::kSaveWithoutPotItems);
     Hide(PopupID::kDungeonPotItemSaveConfirm);
     return;
   }
   SameLine();
-  if (Button("Save anyway", ImVec2(0, 0))) {
+  if (Button(tr("Save anyway"), ImVec2(0, 0))) {
     editor_manager_->ResolvePotItemSaveConfirmation(
         EditorManager::PotItemSaveDecision::kSaveWithPotItems);
     Hide(PopupID::kDungeonPotItemSaveConfirm);
     return;
   }
   SameLine();
-  if (Button("Cancel", ImVec2(0, 0))) {
+  if (Button(tr("Cancel"), ImVec2(0, 0))) {
     editor_manager_->ResolvePotItemSaveConfirmation(
         EditorManager::PotItemSaveDecision::kCancel);
     Hide(PopupID::kDungeonPotItemSaveConfirm);
@@ -1421,16 +1431,16 @@ void PopupManager::DrawRomWriteConfirmPopup() {
   using namespace ImGui;
 
   if (!editor_manager_) {
-    Text("Editor manager unavailable.");
-    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+    Text(tr("Editor manager unavailable."));
+    if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kRomWriteConfirm);
     }
     return;
   }
 
   auto role = project::RomRoleToString(editor_manager_->GetProjectRomRole());
-  auto policy =
-      project::RomWritePolicyToString(editor_manager_->GetProjectRomWritePolicy());
+  auto policy = project::RomWritePolicyToString(
+      editor_manager_->GetProjectRomWritePolicy());
   const auto expected = editor_manager_->GetProjectExpectedRomHash();
   const auto actual = editor_manager_->GetCurrentRomHash();
   const auto* project = editor_manager_->GetCurrentProject();
@@ -1440,43 +1450,43 @@ void PopupManager::DrawRomWriteConfirmPopup() {
   const auto editable_path =
       project && project->hack_manifest.loaded() &&
               !project->hack_manifest.build_pipeline().dev_rom.empty()
-          ? project->GetAbsolutePath(project->hack_manifest.build_pipeline().dev_rom)
+          ? project->GetAbsolutePath(
+                project->hack_manifest.build_pipeline().dev_rom)
           : (project ? project->rom_filename : std::string());
 
-  Text("ROM Write Confirmation");
+  Text(tr("ROM Write Confirmation"));
   Separator();
   TextWrapped(
-      "The loaded ROM hash does not match the project's expected hash.");
+      tr("The loaded ROM hash does not match the project's expected hash."));
   Spacing();
-  Text("Role: %s", role.c_str());
-  Text("Write policy: %s", policy.c_str());
-  Text("Loaded ROM: %s",
+  Text(tr("Role: %s"), role.c_str());
+  Text(tr("Write policy: %s"), policy.c_str());
+  Text(tr("Loaded ROM: %s"),
        actual_path.empty() ? "(unknown)" : actual_path.c_str());
-  Text("Editable target: %s",
+  Text(tr("Editable target: %s"),
        editable_path.empty() ? "(unset)" : editable_path.c_str());
-  Text("Expected: %s", expected.empty() ? "(unset)" : expected.c_str());
-  Text("Actual:   %s", actual.empty() ? "(unknown)" : actual.c_str());
+  Text(tr("Expected: %s"), expected.empty() ? "(unset)" : expected.c_str());
+  Text(tr("Actual:   %s"), actual.empty() ? "(unknown)" : actual.c_str());
   Spacing();
-  TextWrapped(
+  TextWrapped(tr(
       "Proceeding will write to the current ROM file. This may corrupt a base "
-      "or release ROM if it is not the intended editable project ROM.");
+      "or release ROM if it is not the intended editable project ROM."));
 
   Spacing();
-  if (Button("Save anyway", ImVec2(0, 0))) {
+  if (Button(tr("Save anyway"), ImVec2(0, 0))) {
     editor_manager_->ConfirmRomWrite();
     Hide(PopupID::kRomWriteConfirm);
     auto status = editor_manager_->SaveRom();
     if (!status.ok() && !absl::IsCancelled(status)) {
       if (auto* toast = editor_manager_->toast_manager()) {
-        toast->Show(
-            absl::StrFormat("Save failed: %s", status.message()),
-            ToastType::kError);
+        toast->Show(absl::StrFormat("Save failed: %s", status.message()),
+                    ToastType::kError);
       }
     }
     return;
   }
   SameLine();
-  if (Button("Cancel", ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
+  if (Button(tr("Cancel"), ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
     editor_manager_->CancelRomWriteConfirm();
     Hide(PopupID::kRomWriteConfirm);
   }
@@ -1486,8 +1496,8 @@ void PopupManager::DrawWriteConflictWarningPopup() {
   using namespace ImGui;
 
   if (!editor_manager_) {
-    Text("Editor manager unavailable.");
-    if (Button("Close", ::yaze::gui::kDefaultModalSize)) {
+    Text(tr("Editor manager unavailable."));
+    if (Button(tr("Close"), ::yaze::gui::kDefaultModalSize)) {
       Hide(PopupID::kWriteConflictWarning);
     }
     return;
@@ -1495,13 +1505,13 @@ void PopupManager::DrawWriteConflictWarningPopup() {
 
   const auto& conflicts = editor_manager_->pending_write_conflicts();
 
-  TextColored(gui::GetWarningColor(), "%s Write Conflict Warning",
+  TextColored(gui::GetWarningColor(), tr("%s Write Conflict Warning"),
               ICON_MD_WARNING);
   Separator();
   TextWrapped(
-      "The following ROM addresses are owned by ASM hooks and will be "
-      "overwritten on next build. Saving now will write data that asar "
-      "will replace.");
+      tr("The following ROM addresses are owned by ASM hooks and will be "
+         "overwritten on next build. Saving now will write data that asar "
+         "will replace."));
   Spacing();
 
   if (!conflicts.empty()) {
@@ -1524,7 +1534,7 @@ void PopupManager::DrawWriteConflictWarningPopup() {
         if (!conflict.module.empty()) {
           TextUnformatted(conflict.module.c_str());
         } else {
-          TextDisabled("(unknown)");
+          TextDisabled(tr("(unknown)"));
         }
       }
       EndTable();
@@ -1532,10 +1542,10 @@ void PopupManager::DrawWriteConflictWarningPopup() {
   }
 
   Spacing();
-  Text("%zu conflict(s) detected.", conflicts.size());
+  Text(tr("%zu conflict(s) detected."), conflicts.size());
   Spacing();
 
-  if (Button("Save Anyway", ImVec2(0, 0))) {
+  if (Button(tr("Save Anyway"), ImVec2(0, 0))) {
     editor_manager_->BypassWriteConflictOnce();
     Hide(PopupID::kWriteConflictWarning);
     auto status = editor_manager_->SaveRom();
@@ -1548,7 +1558,7 @@ void PopupManager::DrawWriteConflictWarningPopup() {
     return;
   }
   SameLine();
-  if (Button("Cancel", ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
+  if (Button(tr("Cancel"), ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
     editor_manager_->ClearPendingWriteConflicts();
     Hide(PopupID::kWriteConflictWarning);
   }

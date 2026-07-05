@@ -1,5 +1,6 @@
 // Related header
 #include "app/editor/overworld/overworld_canvas_renderer.h"
+#include "util/i18n/tr.h"
 
 #ifndef IM_PI
 #define IM_PI 3.14159265358979323846f
@@ -460,7 +461,7 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
 
 void OverworldCanvasRenderer::DrawV3Settings() {
   // Lightweight v3 controls for map size and feature visibility.
-  ImGui::TextWrapped("ZSCustomOverworld v3 settings");
+  ImGui::TextWrapped(tr("ZSCustomOverworld v3 settings"));
   ImGui::Separator();
 
   if (!editor_->rom_ || !editor_->rom_->is_loaded()) {
@@ -470,31 +471,31 @@ void OverworldCanvasRenderer::DrawV3Settings() {
 
   const uint8_t asm_version =
       (*editor_->rom_)[zelda3::OverworldCustomASMHasBeenApplied];
-  ImGui::Text("ASM Version: 0x%02X", asm_version);
+  ImGui::Text(tr("ASM Version: 0x%02X"), asm_version);
 
   if (asm_version == 0x00 || asm_version == 0xFF || asm_version < 0x03) {
     ImGui::Spacing();
     ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.25f, 1.0f),
-                       "v3 controls require ZSCustomOverworld v3+");
-    ImGui::TextDisabled("Apply the v3 patch to enable map-size editing.");
+                       tr("v3 controls require ZSCustomOverworld v3+"));
+    ImGui::TextDisabled(tr("Apply the v3 patch to enable map-size editing."));
     return;
   }
 
   auto* map = editor_->overworld_.overworld_map(editor_->current_map_);
   if (!map) {
-    ImGui::TextDisabled("Current map is unavailable.");
+    ImGui::TextDisabled(tr("Current map is unavailable."));
     return;
   }
 
   ImGui::Spacing();
-  ImGui::Text("Current map: 0x%02X", editor_->current_map_);
-  ImGui::Text("Parent map:  0x%02X", map->parent());
+  ImGui::Text(tr("Current map: 0x%02X"), editor_->current_map_);
+  ImGui::Text(tr("Parent map:  0x%02X"), map->parent());
 
   static int selected_area_size = 0;
   selected_area_size = static_cast<int>(map->area_size());
   const char* area_size_labels[] = {"Small", "Wide", "Tall", "Large"};
   ImGui::SetNextItemWidth(220.0f);
-  ImGui::Combo("Area Size", &selected_area_size, area_size_labels,
+  ImGui::Combo(tr("Area Size"), &selected_area_size, area_size_labels,
                IM_ARRAYSIZE(area_size_labels));
 
   if (ImGui::Button(ICON_MD_SAVE " Apply Area Size")) {
@@ -508,8 +509,8 @@ void OverworldCanvasRenderer::DrawV3Settings() {
 
   ImGui::Spacing();
   ImGui::TextDisabled(
-      "Area-size changes update sibling map relationships for this parent "
-      "map.");
+      tr("Area-size changes update sibling map relationships for this parent "
+         "map."));
 }
 
 void OverworldCanvasRenderer::DrawMapProperties() {
@@ -636,7 +637,7 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
     init_properties = true;
   }
 
-  ImGui::Text("Area Gfx LW/DW");
+  ImGui::Text(tr("Area Gfx LW/DW"));
   editor_->properties_canvas_.UpdateInfoGrid(
       ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::LW_AREA_GFX);
   ImGui::SameLine();
@@ -644,7 +645,7 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
       ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::DW_AREA_GFX);
   ImGui::Separator();
 
-  ImGui::Text("Sprite Gfx LW/DW");
+  ImGui::Text(tr("Sprite Gfx LW/DW"));
   editor_->properties_canvas_.UpdateInfoGrid(
       ImVec2(256, 256), 32,
       OverworldEditor::OverworldProperty::LW_SPR_GFX_PART1);
@@ -662,7 +663,7 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
       OverworldEditor::OverworldProperty::DW_SPR_GFX_PART2);
   ImGui::Separator();
 
-  ImGui::Text("Area Pal LW/DW");
+  ImGui::Text(tr("Area Pal LW/DW"));
   editor_->properties_canvas_.UpdateInfoGrid(
       ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::LW_AREA_PAL);
   ImGui::SameLine();
@@ -670,7 +671,7 @@ void OverworldCanvasRenderer::DrawOverworldProperties() {
       ImVec2(256, 256), 32, OverworldEditor::OverworldProperty::DW_AREA_PAL);
 
   static bool show_gfx_group = false;
-  ImGui::Checkbox("Show Gfx Group Editor", &show_gfx_group);
+  ImGui::Checkbox(tr("Show Gfx Group Editor"), &show_gfx_group);
   if (show_gfx_group) {
     gui::BeginWindowWithDisplaySettings("Gfx Group Editor", &show_gfx_group);
     editor_->status_ = editor_->gfx_group_editor_.Update();

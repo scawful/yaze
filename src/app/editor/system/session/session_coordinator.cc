@@ -1,6 +1,7 @@
 #include "session_coordinator.h"
 #include <absl/status/status.h>
 #include <absl/status/statusor.h>
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -277,7 +278,7 @@ void SessionCoordinator::DrawSessionSwitcher() {
     return;
   }
 
-  ImGui::Text("%s Active Sessions (%zu)", ICON_MD_TAB, session_count_);
+  ImGui::Text(tr("%s Active Sessions (%zu)"), ICON_MD_TAB, session_count_);
   ImGui::Separator();
 
   for (size_t i = 0; i < sessions_.size(); ++i) {
@@ -342,12 +343,12 @@ void SessionCoordinator::DrawSessionManager() {
   }
 
   // Session statistics
-  ImGui::Text("%s Session Statistics", ICON_MD_ANALYTICS);
+  ImGui::Text(tr("%s Session Statistics"), ICON_MD_ANALYTICS);
   ImGui::Separator();
 
-  ImGui::Text("Total Sessions: %zu", GetTotalSessionCount());
-  ImGui::Text("Loaded Sessions: %zu", GetLoadedSessionCount());
-  ImGui::Text("Empty Sessions: %zu", GetEmptySessionCount());
+  ImGui::Text(tr("Total Sessions: %zu"), GetTotalSessionCount());
+  ImGui::Text(tr("Loaded Sessions: %zu"), GetLoadedSessionCount());
+  ImGui::Text(tr("Empty Sessions: %zu"), GetEmptySessionCount());
 
   ImGui::Spacing();
 
@@ -388,25 +389,25 @@ void SessionCoordinator::DrawSessionManager() {
       if (session->rom.is_loaded()) {
         ImGui::Text("%s", session->filepath.c_str());
       } else {
-        ImGui::TextDisabled("(No ROM loaded)");
+        ImGui::TextDisabled(tr("(No ROM loaded)"));
       }
 
       // Status
       ImGui::TableNextColumn();
       if (session->rom.is_loaded()) {
-        ImGui::TextColored(gui::GetSuccessColor(), "Loaded");
+        ImGui::TextColored(gui::GetSuccessColor(), tr("Loaded"));
       } else {
-        ImGui::TextColored(gui::GetWarningColor(), "Empty");
+        ImGui::TextColored(gui::GetWarningColor(), tr("Empty"));
       }
 
       // Actions
       ImGui::TableNextColumn();
-      if (!is_active && ImGui::SmallButton("Switch")) {
+      if (!is_active && ImGui::SmallButton(tr("Switch"))) {
         SwitchToSession(i);
       }
 
       ImGui::SameLine();
-      if (HasMultipleSessions() && ImGui::SmallButton("Close")) {
+      if (HasMultipleSessions() && ImGui::SmallButton(tr("Close"))) {
         CloseSession(i);
       }
 
@@ -432,20 +433,20 @@ void SessionCoordinator::DrawSessionRenameDialog() {
     return;
   }
 
-  ImGui::Text("Rename session %zu:", session_to_rename_);
-  ImGui::InputText("Name", session_rename_buffer_,
+  ImGui::Text(tr("Rename session %zu:"), session_to_rename_);
+  ImGui::InputText(tr("Name"), session_rename_buffer_,
                    sizeof(session_rename_buffer_));
 
   ImGui::Spacing();
 
-  if (ImGui::Button("OK")) {
+  if (ImGui::Button(tr("OK"))) {
     RenameSession(session_to_rename_, session_rename_buffer_);
     show_session_rename_dialog_ = false;
     session_rename_buffer_[0] = '\0';
   }
 
   ImGui::SameLine();
-  if (ImGui::Button("Cancel")) {
+  if (ImGui::Button(tr("Cancel"))) {
     show_session_rename_dialog_ = false;
     session_rename_buffer_[0] = '\0';
   }
@@ -499,11 +500,11 @@ void SessionCoordinator::DrawSessionIndicator() {
 
   {
     gui::StyleColorGuard accent_guard(ImGuiCol_Text, accent_color);
-    ImGui::Text("%s Session %zu", ICON_MD_TAB, active_session_index_);
+    ImGui::Text(tr("%s Session %zu"), ICON_MD_TAB, active_session_index_);
   }
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Active Session: %s\nClick to open session switcher",
+    ImGui::SetTooltip(tr("Active Session: %s\nClick to open session switcher"),
                       GetActiveSessionDisplayName().c_str());
   }
 

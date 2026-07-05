@@ -1,4 +1,5 @@
 #include "app/gui/app/collaboration_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <ctime>
@@ -64,31 +65,31 @@ void CollaborationPanel::Render(bool* p_open) {
 
   // Tabs for different collaboration features
   if (ImGui::BeginTabBar("CollaborationTabs")) {
-    if (ImGui::BeginTabItem("ROM Sync")) {
+    if (ImGui::BeginTabItem(tr("ROM Sync"))) {
       selected_tab_ = 0;
       RenderRomSyncTab();
       ImGui::EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("Version History")) {
+    if (ImGui::BeginTabItem(tr("Version History"))) {
       selected_tab_ = 1;
       RenderVersionHistoryTab();
       ImGui::EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("Snapshots")) {
+    if (ImGui::BeginTabItem(tr("Snapshots"))) {
       selected_tab_ = 2;
       RenderSnapshotsTab();
       ImGui::EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("Proposals")) {
+    if (ImGui::BeginTabItem(tr("Proposals"))) {
       selected_tab_ = 3;
       RenderProposalsTab();
       ImGui::EndTabItem();
     }
 
-    if (ImGui::BeginTabItem("🔒 Approvals")) {
+    if (ImGui::BeginTabItem(tr("🔒 Approvals"))) {
       selected_tab_ = 4;
       RenderApprovalTab();
       ImGui::EndTabItem();
@@ -101,17 +102,17 @@ void CollaborationPanel::Render(bool* p_open) {
 }
 
 void CollaborationPanel::RenderRomSyncTab() {
-  ImGui::TextWrapped("ROM Synchronization History");
+  ImGui::TextWrapped(tr("ROM Synchronization History"));
   ImGui::Separator();
 
   // Toolbar
-  if (ImGui::Button("Clear History")) {
+  if (ImGui::Button(tr("Clear History"))) {
     rom_syncs_.clear();
   }
   ImGui::SameLine();
-  ImGui::Checkbox("Auto-scroll", &auto_scroll_);
+  ImGui::Checkbox(tr("Auto-scroll"), &auto_scroll_);
   ImGui::SameLine();
-  ImGui::Checkbox("Show Details", &show_sync_details_);
+  ImGui::Checkbox(tr("Show Details"), &show_sync_details_);
 
   ImGui::Separator();
 
@@ -129,13 +130,13 @@ void CollaborationPanel::RenderRomSyncTab() {
       pending_count++;
   }
 
-  ImGui::Text("Total: %zu | ", rom_syncs_.size());
+  ImGui::Text(tr("Total: %zu | "), rom_syncs_.size());
   ImGui::SameLine();
-  ImGui::TextColored(colors_.sync_applied, "Applied: %d", applied_count);
+  ImGui::TextColored(colors_.sync_applied, tr("Applied: %d"), applied_count);
   ImGui::SameLine();
-  ImGui::TextColored(colors_.sync_pending, "Pending: %d", pending_count);
+  ImGui::TextColored(colors_.sync_pending, tr("Pending: %d"), pending_count);
   ImGui::SameLine();
-  ImGui::TextColored(colors_.sync_error, "Errors: %d", error_count);
+  ImGui::TextColored(colors_.sync_error, tr("Errors: %d"), error_count);
 
   ImGui::Separator();
 
@@ -153,17 +154,17 @@ void CollaborationPanel::RenderRomSyncTab() {
 }
 
 void CollaborationPanel::RenderSnapshotsTab() {
-  ImGui::TextWrapped("Shared Snapshots Gallery");
+  ImGui::TextWrapped(tr("Shared Snapshots Gallery"));
   ImGui::Separator();
 
   // Toolbar
-  if (ImGui::Button("Clear Gallery")) {
+  if (ImGui::Button(tr("Clear Gallery"))) {
     snapshots_.clear();
   }
   ImGui::SameLine();
-  ImGui::Checkbox("Show Preview", &show_snapshot_preview_);
+  ImGui::Checkbox(tr("Show Preview"), &show_snapshot_preview_);
   ImGui::SameLine();
-  ImGui::InputText("Search", search_filter_, sizeof(search_filter_));
+  ImGui::InputText(tr("Search"), search_filter_, sizeof(search_filter_));
 
   ImGui::Separator();
 
@@ -205,17 +206,17 @@ void CollaborationPanel::RenderSnapshotsTab() {
 }
 
 void CollaborationPanel::RenderProposalsTab() {
-  ImGui::TextWrapped("AI Proposals & Suggestions");
+  ImGui::TextWrapped(tr("AI Proposals & Suggestions"));
   ImGui::Separator();
 
   // Toolbar
-  if (ImGui::Button("Clear All")) {
+  if (ImGui::Button(tr("Clear All"))) {
     proposals_.clear();
   }
   ImGui::SameLine();
-  ImGui::Checkbox("Pending Only", &filter_pending_only_);
+  ImGui::Checkbox(tr("Pending Only"), &filter_pending_only_);
   ImGui::SameLine();
-  ImGui::InputText("Search", search_filter_, sizeof(search_filter_));
+  ImGui::InputText(tr("Search"), search_filter_, sizeof(search_filter_));
 
   ImGui::Separator();
 
@@ -232,15 +233,17 @@ void CollaborationPanel::RenderProposalsTab() {
       applied++;
   }
 
-  ImGui::Text("Total: %zu", proposals_.size());
+  ImGui::Text(tr("Total: %zu"), proposals_.size());
   ImGui::SameLine();
-  ImGui::TextColored(colors_.proposal_pending, " | Pending: %d", pending);
+  ImGui::TextColored(colors_.proposal_pending, tr(" | Pending: %d"), pending);
   ImGui::SameLine();
-  ImGui::TextColored(colors_.proposal_approved, " | Approved: %d", approved);
+  ImGui::TextColored(colors_.proposal_approved, tr(" | Approved: %d"),
+                     approved);
   ImGui::SameLine();
-  ImGui::TextColored(colors_.proposal_rejected, " | Rejected: %d", rejected);
+  ImGui::TextColored(colors_.proposal_rejected, tr(" | Rejected: %d"),
+                     rejected);
   ImGui::SameLine();
-  ImGui::TextColored(colors_.proposal_applied, " | Applied: %d", applied);
+  ImGui::TextColored(colors_.proposal_applied, tr(" | Applied: %d"), applied);
 
   ImGui::Separator();
 
@@ -304,9 +307,10 @@ void CollaborationPanel::RenderRomSyncEntry(const RomSyncEntry& entry,
   // Details on hover or if enabled
   if (show_sync_details_ || ImGui::IsItemHovered()) {
     ImGui::Indent();
-    ImGui::TextWrapped("ROM Hash: %s", entry.rom_hash.substr(0, 16).c_str());
+    ImGui::TextWrapped(tr("ROM Hash: %s"),
+                       entry.rom_hash.substr(0, 16).c_str());
     if (!entry.error_message.empty()) {
-      ImGui::TextColored(colors_.sync_error, "Error: %s",
+      ImGui::TextColored(colors_.sync_error, tr("Error: %s"),
                          entry.error_message.c_str());
     }
     ImGui::Unindent();
@@ -339,12 +343,12 @@ void CollaborationPanel::RenderSnapshotEntry(const SnapshotEntry& entry,
   ImGui::Text("%s", FormatFileSize(entry.data_size).c_str());
 
   // Actions
-  if (ImGui::SmallButton("View")) {
+  if (ImGui::SmallButton(tr("View"))) {
     selected_snapshot_ = index;
     // TODO: Open snapshot viewer
   }
   ImGui::SameLine();
-  if (ImGui::SmallButton("Export")) {
+  if (ImGui::SmallButton(tr("Export"))) {
     // TODO: Export snapshot to file
   }
 
@@ -370,9 +374,9 @@ void CollaborationPanel::RenderProposalEntry(const ProposalEntry& entry,
   if (is_open) {
     ImGui::Indent();
 
-    ImGui::Text("From: %s", entry.sender.c_str());
-    ImGui::Text("Time: %s", FormatTimestamp(entry.timestamp).c_str());
-    ImGui::Text("Status: %s", entry.status.c_str());
+    ImGui::Text(tr("From: %s"), entry.sender.c_str());
+    ImGui::Text(tr("Time: %s"), FormatTimestamp(entry.timestamp).c_str());
+    ImGui::Text(tr("Status: %s"), entry.status.c_str());
 
     ImGui::Separator();
 
@@ -382,15 +386,15 @@ void CollaborationPanel::RenderProposalEntry(const ProposalEntry& entry,
     // Actions for pending proposals
     if (entry.status == "pending") {
       ImGui::Separator();
-      if (ImGui::Button("✓ Approve")) {
+      if (ImGui::Button(tr("✓ Approve"))) {
         // TODO: Send approval to server
       }
       ImGui::SameLine();
-      if (ImGui::Button("✗ Reject")) {
+      if (ImGui::Button(tr("✗ Reject"))) {
         // TODO: Send rejection to server
       }
       ImGui::SameLine();
-      if (ImGui::Button("▶ Apply Now")) {
+      if (ImGui::Button(tr("▶ Apply Now"))) {
         // TODO: Execute proposal
       }
     }
@@ -491,41 +495,41 @@ ImVec4 CollaborationPanel::GetProposalStatusColor(const std::string& status) {
 
 void CollaborationPanel::RenderVersionHistoryTab() {
   if (!version_mgr_) {
-    ImGui::TextWrapped("Version management not initialized");
+    ImGui::TextWrapped(tr("Version management not initialized"));
     return;
   }
 
-  ImGui::TextWrapped("ROM Version History & Protection");
+  ImGui::TextWrapped(tr("ROM Version History & Protection"));
   ImGui::Separator();
 
   // Stats
   auto stats = version_mgr_->GetStats();
-  ImGui::Text("Total Snapshots: %zu", stats.total_snapshots);
+  ImGui::Text(tr("Total Snapshots: %zu"), stats.total_snapshots);
   ImGui::SameLine();
-  ImGui::TextColored(colors_.sync_applied, "Safe Points: %zu",
+  ImGui::TextColored(colors_.sync_applied, tr("Safe Points: %zu"),
                      stats.safe_points);
   ImGui::SameLine();
-  ImGui::TextColored(colors_.sync_pending, "Auto-Backups: %zu",
+  ImGui::TextColored(colors_.sync_pending, tr("Auto-Backups: %zu"),
                      stats.auto_backups);
 
-  ImGui::Text("Storage Used: %s",
+  ImGui::Text(tr("Storage Used: %s"),
               FormatFileSize(stats.total_storage_bytes).c_str());
 
   ImGui::Separator();
 
   // Toolbar
-  if (ImGui::Button("💾 Create Checkpoint")) {
+  if (ImGui::Button(tr("💾 Create Checkpoint"))) {
     auto result =
         version_mgr_->CreateSnapshot("Manual checkpoint", "user", true);
     // TODO: Show result in UI
   }
   ImGui::SameLine();
-  if (ImGui::Button("🛡️ Mark Current as Safe Point")) {
+  if (ImGui::Button(tr("🛡️ Mark Current as Safe Point"))) {
     std::string current_hash = version_mgr_->GetCurrentHash();
     // TODO: Find snapshot with this hash and mark as safe
   }
   ImGui::SameLine();
-  if (ImGui::Button("🔍 Check for Corruption")) {
+  if (ImGui::Button(tr("🔍 Check for Corruption"))) {
     auto result = version_mgr_->DetectCorruption();
     // TODO: Show result
   }
@@ -545,22 +549,22 @@ void CollaborationPanel::RenderVersionHistoryTab() {
 
 void CollaborationPanel::RenderApprovalTab() {
   if (!approval_mgr_) {
-    ImGui::TextWrapped("Approval management not initialized");
+    ImGui::TextWrapped(tr("Approval management not initialized"));
     return;
   }
 
-  ImGui::TextWrapped("Proposal Approval System");
+  ImGui::TextWrapped(tr("Proposal Approval System"));
   ImGui::Separator();
 
   // Pending proposals that need votes
   auto pending = approval_mgr_->GetPendingProposals();
 
   if (pending.empty()) {
-    ImGui::TextWrapped("No proposals pending approval.");
+    ImGui::TextWrapped(tr("No proposals pending approval."));
     return;
   }
 
-  ImGui::Text("Pending Proposals: %zu", pending.size());
+  ImGui::Text(tr("Pending Proposals: %zu"), pending.size());
   ImGui::Separator();
 
   if (ImGui::BeginChild("ApprovalList", ImVec2(0, 0), true)) {
@@ -599,28 +603,30 @@ void CollaborationPanel::RenderVersionSnapshot(const net::RomSnapshot& snapshot,
   if (is_open) {
     ImGui::Indent();
 
-    ImGui::Text("Creator: %s", snapshot.creator.c_str());
-    ImGui::Text("Time: %s", FormatTimestamp(snapshot.timestamp).c_str());
-    ImGui::Text("Hash: %s", snapshot.rom_hash.substr(0, 16).c_str());
-    ImGui::Text("Size: %s", FormatFileSize(snapshot.compressed_size).c_str());
+    ImGui::Text(tr("Creator: %s"), snapshot.creator.c_str());
+    ImGui::Text(tr("Time: %s"), FormatTimestamp(snapshot.timestamp).c_str());
+    ImGui::Text(tr("Hash: %s"), snapshot.rom_hash.substr(0, 16).c_str());
+    ImGui::Text(tr("Size: %s"),
+                FormatFileSize(snapshot.compressed_size).c_str());
 
     if (snapshot.is_safe_point) {
-      ImGui::TextColored(colors_.sync_applied, "✓ Safe Point (Host Verified)");
+      ImGui::TextColored(colors_.sync_applied,
+                         tr("✓ Safe Point (Host Verified)"));
     }
 
     ImGui::Separator();
 
     // Actions
-    if (ImGui::Button("↩️ Restore This Version")) {
+    if (ImGui::Button(tr("↩️ Restore This Version"))) {
       auto result = version_mgr_->RestoreSnapshot(snapshot.snapshot_id);
       // TODO: Show result
     }
     ImGui::SameLine();
-    if (!snapshot.is_safe_point && ImGui::Button("🛡️ Mark as Safe")) {
+    if (!snapshot.is_safe_point && ImGui::Button(tr("🛡️ Mark as Safe"))) {
       version_mgr_->MarkAsSafePoint(snapshot.snapshot_id);
     }
     ImGui::SameLine();
-    if (!snapshot.is_safe_point && ImGui::Button("🗑️ Delete")) {
+    if (!snapshot.is_safe_point && ImGui::Button(tr("🗑️ Delete"))) {
       version_mgr_->DeleteSnapshot(snapshot.snapshot_id);
     }
 
@@ -648,12 +654,12 @@ void CollaborationPanel::RenderApprovalProposal(
   if (is_open) {
     ImGui::Indent();
 
-    ImGui::Text("Created: %s", FormatTimestamp(status.created_at).c_str());
-    ImGui::Text("Snapshot Before: %s",
+    ImGui::Text(tr("Created: %s"), FormatTimestamp(status.created_at).c_str());
+    ImGui::Text(tr("Snapshot Before: %s"),
                 status.snapshot_before.substr(0, 8).c_str());
 
     ImGui::Separator();
-    ImGui::TextWrapped("Votes:");
+    ImGui::TextWrapped(tr("Votes:"));
 
     for (const auto& [username, approved] : status.votes) {
       ImVec4 vote_color =
@@ -665,19 +671,19 @@ void CollaborationPanel::RenderApprovalProposal(
     ImGui::Separator();
 
     // Voting actions
-    if (ImGui::Button("✓ Approve")) {
+    if (ImGui::Button(tr("✓ Approve"))) {
       // TODO: Send approval vote
       // approval_mgr_->VoteOnProposal(status.proposal_id, "current_user",
       // true);
     }
     ImGui::SameLine();
-    if (ImGui::Button("✗ Reject")) {
+    if (ImGui::Button(tr("✗ Reject"))) {
       // TODO: Send rejection vote
       // approval_mgr_->VoteOnProposal(status.proposal_id, "current_user",
       // false);
     }
     ImGui::SameLine();
-    if (ImGui::Button("↩️ Rollback")) {
+    if (ImGui::Button(tr("↩️ Rollback"))) {
       // Restore snapshot from before this proposal
       version_mgr_->RestoreSnapshot(status.snapshot_before);
     }

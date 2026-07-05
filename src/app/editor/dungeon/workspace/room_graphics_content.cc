@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/workspace/room_graphics_content.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -96,14 +97,14 @@ void RoomGraphicsContent::Draw(bool* p_open) {
   }
 
   if (current_room_id_ == nullptr || rooms_ == nullptr) {
-    ImGui::TextDisabled("No room data available");
+    ImGui::TextDisabled(tr("No room data available"));
     return;
   }
 
   const int active_room_id = *current_room_id_;
   if (active_room_id < 0 ||
       active_room_id >= static_cast<int>(rooms_->size())) {
-    ImGui::TextDisabled("Invalid room ID: %d", active_room_id);
+    ImGui::TextDisabled(tr("Invalid room ID: %d"), active_room_id);
     return;
   }
 
@@ -144,11 +145,11 @@ void RoomGraphicsContent::Draw(bool* p_open) {
                               static_cast<float>(kBlocksPerRow)),
       kPadding + (kBlockHeight + kPadding) * static_cast<float>(row_count));
 
-  ImGui::Text("Room %03X Graphics Blocks", active_room_id);
-  ImGui::TextDisabled("Blockset %02X | Spriteset %02X", room.blockset(),
+  ImGui::Text(tr("Room %03X Graphics Blocks"), active_room_id);
+  ImGui::TextDisabled(tr("Blockset %02X | Spriteset %02X"), room.blockset(),
                       room.spriteset());
   ImGui::SameLine();
-  ImGui::Checkbox("Source Trace", &show_source_trace_);
+  ImGui::Checkbox(tr("Source Trace"), &show_source_trace_);
   ImGui::Separator();
 
   gui::CanvasFrameOptions frame_opts;
@@ -202,9 +203,10 @@ void RoomGraphicsContent::Draw(bool* p_open) {
   if (show_source_trace_ &&
       ImGui::CollapsingHeader(ICON_MD_BUG_REPORT " Source Trace",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::TextDisabled(
-        "Source: Room::get_gfx_buffer() -> preview bitmap -> queued texture");
-    ImGui::TextDisabled("Room buffer bytes: %zu", room.get_gfx_buffer().size());
+    ImGui::TextDisabled(tr(
+        "Source: Room::get_gfx_buffer() -> preview bitmap -> queued texture"));
+    ImGui::TextDisabled(tr("Room buffer bytes: %zu"),
+                        room.get_gfx_buffer().size());
     ImGui::Separator();
     for (int i = 0;
          i < std::min(block_count,
@@ -215,8 +217,8 @@ void RoomGraphicsContent::Draw(bool* p_open) {
           sheet_previews_[static_cast<size_t>(i)].texture());
       ImGui::PushID(i);
       ImGui::Text(
-          "Slot %02d | Block %02X | Buf +0x%04zX | %dx%d | nz=%d | pal=%d | "
-          "active=%d surf=%d tex=%d (0x%zx)",
+          tr("Slot %02d | Block %02X | Buf +0x%04zX | %dx%d | nz=%d | pal=%d | "
+             "active=%d surf=%d tex=%d (0x%zx)"),
           i, meta.block_id, meta.source_offset, meta.width, meta.height,
           meta.nonzero_pixels, meta.palette_colors, meta.bitmap_active,
           meta.has_surface, meta.has_texture, texture_value);

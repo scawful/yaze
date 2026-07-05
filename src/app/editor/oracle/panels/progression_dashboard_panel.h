@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/hack/workflow/hack_workflow_backend.h"
@@ -36,9 +37,7 @@ class ProgressionDashboardPanel : public WindowContent {
   ~ProgressionDashboardPanel() override { DetachLiveListener(); }
 
   std::string GetId() const override { return "oracle.progression_dashboard"; }
-  std::string GetDisplayName() const override {
-    return "Game State Dashboard";
-  }
+  std::string GetDisplayName() const override { return "Game State Dashboard"; }
   std::string GetIcon() const override { return ICON_MD_DASHBOARD; }
   std::string GetEditorCategory() const override { return "Agent"; }
   std::string GetWorkflowGroup() const override { return "Game State"; }
@@ -48,7 +47,8 @@ class ProgressionDashboardPanel : public WindowContent {
   bool IsEnabled() const override {
     auto* project = ContentRegistry::Context::current_project();
     auto* backend = GetProgressionBackend();
-    return project != nullptr && project->project_opened() && backend != nullptr;
+    return project != nullptr && project->project_opened() &&
+           backend != nullptr;
   }
   std::string GetDisabledTooltip() const override {
     return "Progression tools are not available for the active hack project";
@@ -106,7 +106,7 @@ class ProgressionDashboardPanel : public WindowContent {
   }
 
   void DrawSrmImportControls() {
-    ImGui::Text("SRAM (.srm)");
+    ImGui::Text(tr("SRAM (.srm)"));
 
     util::FileDialogOptions options;
     options.filters = {
@@ -114,14 +114,15 @@ class ProgressionDashboardPanel : public WindowContent {
         {"All Files", "*"},
     };
 
-    if (ImGui::Button("Import...")) {
+    if (ImGui::Button(tr("Import..."))) {
       std::string file_path =
           util::FileDialogWrapper::ShowOpenFileDialog(options);
       if (!file_path.empty()) {
-        auto state_or = GetProgressionBackend()
-                            ? GetProgressionBackend()->LoadProgressionStateFromFile(
-                                  file_path)
-                            : core::LoadOracleProgressionFromSrmFile(file_path);
+        auto state_or =
+            GetProgressionBackend()
+                ? GetProgressionBackend()->LoadProgressionStateFromFile(
+                      file_path)
+                : core::LoadOracleProgressionFromSrmFile(file_path);
         if (state_or.ok()) {
           state_ = *state_or;
           game_state_slider_ = static_cast<int>(state_.game_state);
@@ -134,7 +135,7 @@ class ProgressionDashboardPanel : public WindowContent {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Clear")) {
+    if (ImGui::Button(tr("Clear"))) {
       state_ = core::OracleProgressionState();
       game_state_slider_ = 0;
       loaded_srm_path_.clear();
@@ -150,16 +151,16 @@ class ProgressionDashboardPanel : public WindowContent {
 
     if (!loaded_srm_path_.empty()) {
       const std::filesystem::path p(loaded_srm_path_);
-      ImGui::TextDisabled("Loaded: %s", p.filename().string().c_str());
+      ImGui::TextDisabled(tr("Loaded: %s"), p.filename().string().c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", loaded_srm_path_.c_str());
       }
     } else {
-      ImGui::TextDisabled("Loaded: (none)");
+      ImGui::TextDisabled(tr("Loaded: (none)"));
     }
 
     if (!last_srm_error_.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "Error: %s",
+      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), tr("Error: %s"),
                          last_srm_error_.c_str());
     }
 
@@ -170,33 +171,33 @@ class ProgressionDashboardPanel : public WindowContent {
     const bool connected = live_client_ && live_client_->IsConnected();
 
     ImGui::Spacing();
-    ImGui::Text("Live SRAM (Mesen2)");
+    ImGui::Text(tr("Live SRAM (Mesen2)"));
     ImGui::SameLine();
     if (connected) {
-      ImGui::TextColored(ImVec4(0.25f, 0.85f, 0.35f, 1.0f), "Connected");
+      ImGui::TextColored(ImVec4(0.25f, 0.85f, 0.35f, 1.0f), tr("Connected"));
     } else {
-      ImGui::TextDisabled("Disconnected");
+      ImGui::TextDisabled(tr("Disconnected"));
     }
 
-    if (ImGui::SmallButton("Sync from Mesen")) {
+    if (ImGui::SmallButton(tr("Sync from Mesen"))) {
       live_refresh_pending_.store(false);
       RefreshStateFromLiveSram();
     }
     ImGui::SameLine();
-    ImGui::Checkbox("Auto (event-driven)", &live_sync_enabled_);
+    ImGui::Checkbox(tr("Auto (event-driven)"), &live_sync_enabled_);
     if (live_sync_enabled_) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(70.0f);
-      ImGui::SliderFloat("##LiveRefreshInterval", &live_refresh_interval_seconds_,
-                         0.05f, 0.5f, "%.2fs");
+      ImGui::SliderFloat("##LiveRefreshInterval",
+                         &live_refresh_interval_seconds_, 0.05f, 0.5f, "%.2fs");
     }
 
     if (!connected) {
-      ImGui::TextDisabled("Use a Mesen panel to connect (shared client).");
+      ImGui::TextDisabled(tr("Use a Mesen panel to connect (shared client)."));
     }
 
     if (!live_sync_error_.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f), "Live sync: %s",
+      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f), tr("Live sync: %s"),
                          live_sync_error_.c_str());
     }
   }
@@ -209,7 +210,8 @@ class ProgressionDashboardPanel : public WindowContent {
     const auto existing = manifest_->oracle_progression_state();
     if (auto* backend = GetProgressionBackend()) {
       const auto backend_existing = backend->GetProgressionState(*manifest_);
-      if (backend_existing.has_value() && StatesEqual(*backend_existing, state_)) {
+      if (backend_existing.has_value() &&
+          StatesEqual(*backend_existing, state_)) {
         return;
       }
       backend->SetProgressionState(*manifest_, state_);
@@ -223,7 +225,7 @@ class ProgressionDashboardPanel : public WindowContent {
   }
 
   void DrawCrystalTracker() {
-    ImGui::Text("Crystal Tracker");
+    ImGui::Text(tr("Crystal Tracker"));
     ImGui::Spacing();
 
     float item_width = 44.0f;
@@ -232,9 +234,8 @@ class ProgressionDashboardPanel : public WindowContent {
       uint8_t mask = core::OracleProgressionState::GetCrystalMask(d);
       bool complete = (state_.crystal_bitfield & mask) != 0;
 
-      ImVec4 color =
-          complete ? ImVec4(0.2f, 0.8f, 0.3f, 1.0f)   // green
-                   : ImVec4(0.3f, 0.3f, 0.3f, 0.6f);  // gray
+      ImVec4 color = complete ? ImVec4(0.2f, 0.8f, 0.3f, 1.0f)   // green
+                              : ImVec4(0.3f, 0.3f, 0.3f, 0.6f);  // gray
 
       {
         gui::StyleColorGuard crystal_guard(
@@ -250,14 +251,15 @@ class ProgressionDashboardPanel : public WindowContent {
         }
       }
 
-      if (d < 7) ImGui::SameLine();
+      if (d < 7)
+        ImGui::SameLine();
     }
 
-    ImGui::Text("Crystals: %d / 7", state_.GetCrystalCount());
+    ImGui::Text(tr("Crystals: %d / 7"), state_.GetCrystalCount());
   }
 
   void DrawGameState() {
-    ImGui::Text("Game State");
+    ImGui::Text(tr("Game State"));
     ImGui::Spacing();
 
     // Phase labels
@@ -275,9 +277,8 @@ class ProgressionDashboardPanel : public WindowContent {
       ImVec2 seg_min(bar_pos.x + segment * i, bar_pos.y);
       ImVec2 seg_max(bar_pos.x + segment * (i + 1), bar_pos.y + 24.0f);
 
-      ImU32 fill = (i <= state_.game_state)
-                       ? IM_COL32(60, 140, 200, 220)
-                       : IM_COL32(50, 50, 50, 180);
+      ImU32 fill = (i <= state_.game_state) ? IM_COL32(60, 140, 200, 220)
+                                            : IM_COL32(50, 50, 50, 180);
 
       draw_list->AddRectFilled(seg_min, seg_max, fill, 3.0f);
       draw_list->AddRect(seg_min, seg_max, IM_COL32(80, 80, 80, 255), 3.0f);
@@ -288,11 +289,11 @@ class ProgressionDashboardPanel : public WindowContent {
     }
 
     ImGui::Dummy(ImVec2(0, 30));
-    ImGui::Text("Phase: %s", state_.GetGameStateName().c_str());
+    ImGui::Text(tr("Phase: %s"), state_.GetGameStateName().c_str());
   }
 
   void DrawDungeonGrid() {
-    ImGui::Text("Dungeon Completion");
+    ImGui::Text(tr("Dungeon Completion"));
     ImGui::Spacing();
 
     struct DungeonInfo {
@@ -315,9 +316,8 @@ class ProgressionDashboardPanel : public WindowContent {
         complete = state_.IsDungeonComplete(dungeon.number);
       }
 
-      ImVec4 color =
-          complete ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)   // green
-                   : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);  // dark
+      ImVec4 color = complete ? ImVec4(0.1f, 0.6f, 0.2f, 1.0f)      // green
+                              : ImVec4(0.25f, 0.25f, 0.25f, 1.0f);  // dark
 
       {
         gui::StyleColorGuard header_guard(ImGuiCol_Header, color);
@@ -330,22 +330,23 @@ class ProgressionDashboardPanel : public WindowContent {
   }
 
   void DrawStoryFlags() {
-    if (!ImGui::TreeNode("Story Flags")) return;
+    if (!ImGui::TreeNode("Story Flags"))
+      return;
 
     // OOSPROG bits
-    ImGui::Text("OOSPROG ($7EF3D6): 0x%02X", state_.oosprog);
+    ImGui::Text(tr("OOSPROG ($7EF3D6): 0x%02X"), state_.oosprog);
     DrawBitGrid("oosprog", state_.oosprog, oosprog_labels_);
 
     ImGui::Spacing();
 
     // OOSPROG2 bits
-    ImGui::Text("OOSPROG2 ($7EF3C6): 0x%02X", state_.oosprog2);
+    ImGui::Text(tr("OOSPROG2 ($7EF3C6): 0x%02X"), state_.oosprog2);
     DrawBitGrid("oosprog2", state_.oosprog2, oosprog2_labels_);
 
     ImGui::Spacing();
 
     // Side quest
-    ImGui::Text("SideQuest ($7EF3D7): 0x%02X", state_.side_quest);
+    ImGui::Text(tr("SideQuest ($7EF3D7): 0x%02X"), state_.side_quest);
 
     ImGui::TreePop();
   }
@@ -354,8 +355,8 @@ class ProgressionDashboardPanel : public WindowContent {
                           const char* const* labels) {
     for (int bit = 0; bit < 8; ++bit) {
       bool set = (value & (1 << bit)) != 0;
-      ImVec4 color = set ? ImVec4(0.3f, 0.7f, 0.3f, 1.0f)
-                         : ImVec4(0.2f, 0.2f, 0.2f, 0.6f);
+      ImVec4 color =
+          set ? ImVec4(0.3f, 0.7f, 0.3f, 1.0f) : ImVec4(0.2f, 0.2f, 0.2f, 0.6f);
 
       char buf[64];
       snprintf(buf, sizeof(buf), "%s##%s_%d", labels[bit], id_prefix, bit);
@@ -364,29 +365,31 @@ class ProgressionDashboardPanel : public WindowContent {
         gui::StyleColorGuard bit_guard(ImGuiCol_Button, color);
         ImGui::SmallButton(buf);
       }
-      if (bit < 7) ImGui::SameLine();
+      if (bit < 7)
+        ImGui::SameLine();
     }
   }
 
   void DrawManualControls() {
-    if (!ImGui::TreeNode("Manual Controls")) return;
+    if (!ImGui::TreeNode("Manual Controls"))
+      return;
 
-    ImGui::SliderInt("Game State", &game_state_slider_, 0, 3);
+    ImGui::SliderInt(tr("Game State"), &game_state_slider_, 0, 3);
     if (game_state_slider_ != state_.game_state) {
       state_.game_state = static_cast<uint8_t>(game_state_slider_);
     }
 
     int crystal_int = state_.crystal_bitfield;
-    if (ImGui::SliderInt("Crystal Bits", &crystal_int, 0, 127)) {
+    if (ImGui::SliderInt(tr("Crystal Bits"), &crystal_int, 0, 127)) {
       state_.crystal_bitfield = static_cast<uint8_t>(crystal_int);
     }
 
-    if (ImGui::Button("Clear All")) {
+    if (ImGui::Button(tr("Clear All"))) {
       state_ = core::OracleProgressionState();
       game_state_slider_ = 0;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Complete All")) {
+    if (ImGui::Button(tr("Complete All"))) {
       state_.crystal_bitfield = 0x7F;
       state_.game_state = 3;
       game_state_slider_ = 3;
@@ -421,8 +424,8 @@ class ProgressionDashboardPanel : public WindowContent {
     }
 
     if (live_listener_id_ == 0) {
-      live_listener_id_ =
-          live_client_->AddEventListener([this](const emu::mesen::MesenEvent& event) {
+      live_listener_id_ = live_client_->AddEventListener(
+          [this](const emu::mesen::MesenEvent& event) {
             if (event.type == "frame_complete" ||
                 event.type == "breakpoint_hit" || event.type == "all") {
               live_refresh_pending_.store(true);
@@ -489,8 +492,10 @@ class ProgressionDashboardPanel : public WindowContent {
     }
 
     constexpr uint32_t kBaseAddress = 0x7EF000;
-    constexpr uint16_t kStartOffset = core::OracleProgressionState::kPendantOffset;
-    constexpr uint16_t kEndOffset = core::OracleProgressionState::kSideQuestOffset;
+    constexpr uint16_t kStartOffset =
+        core::OracleProgressionState::kPendantOffset;
+    constexpr uint16_t kEndOffset =
+        core::OracleProgressionState::kSideQuestOffset;
     constexpr size_t kReadLength = kEndOffset - kStartOffset + 1;
     constexpr uint32_t kReadAddress = kBaseAddress + kStartOffset;
 
@@ -511,10 +516,12 @@ class ProgressionDashboardPanel : public WindowContent {
     state_.pendants = read_byte(core::OracleProgressionState::kPendantOffset);
     state_.crystal_bitfield =
         read_byte(core::OracleProgressionState::kCrystalOffset);
-    state_.game_state = read_byte(core::OracleProgressionState::kGameStateOffset);
+    state_.game_state =
+        read_byte(core::OracleProgressionState::kGameStateOffset);
     state_.oosprog2 = read_byte(core::OracleProgressionState::kOosProg2Offset);
     state_.oosprog = read_byte(core::OracleProgressionState::kOosProgOffset);
-    state_.side_quest = read_byte(core::OracleProgressionState::kSideQuestOffset);
+    state_.side_quest =
+        read_byte(core::OracleProgressionState::kSideQuestOffset);
     game_state_slider_ = static_cast<int>(state_.game_state);
 
     loaded_srm_path_ = "Mesen2 Live";
@@ -558,13 +565,14 @@ class ProgressionDashboardPanel : public WindowContent {
 
   // Bit labels for flag grids
   static constexpr const char* oosprog_labels_[8] = {
-      "Bit0", "HallOfSecrets", "PendantQuest", "Bit3",
-      "ElderMet", "Bit5",       "Bit6",         "FortressComplete",
+      "Bit0",     "HallOfSecrets", "PendantQuest", "Bit3",
+      "ElderMet", "Bit5",          "Bit6",         "FortressComplete",
   };
 
   static constexpr const char* oosprog2_labels_[8] = {
-      "Bit0",           "Bit1",          "KydrogEncounter", "Bit3",
-      "DekuSoulFreed",  "BookOfSecrets", "Bit6",            "Bit7",
+      "Bit0", "Bit1",          "KydrogEncounter",
+      "Bit3", "DekuSoulFreed", "BookOfSecrets",
+      "Bit6", "Bit7",
   };
 };
 

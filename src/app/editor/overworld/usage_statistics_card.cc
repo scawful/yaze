@@ -1,4 +1,5 @@
 #include "app/editor/overworld/usage_statistics_card.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 
@@ -16,17 +17,17 @@ UsageStatisticsCard::UsageStatisticsCard(zelda3::Overworld* overworld)
 
 void UsageStatisticsCard::Draw(bool* p_open) {
   if (!overworld_ || !overworld_->is_loaded()) {
-    ImGui::TextDisabled("Overworld not loaded");
+    ImGui::TextDisabled(tr("Overworld not loaded"));
     return;
   }
 
   if (ImGui::Begin("Usage Statistics", p_open)) {
     if (gui::BeginThemedTabBar("UsageTabs")) {
-      if (ImGui::BeginTabItem("Grid View")) {
+      if (ImGui::BeginTabItem(tr("Grid View"))) {
         DrawUsageGrid();
         ImGui::EndTabItem();
       }
-      if (ImGui::BeginTabItem("States")) {
+      if (ImGui::BeginTabItem(tr("States"))) {
         DrawUsageStates();
         ImGui::EndTabItem();
       }
@@ -41,7 +42,7 @@ void UsageStatisticsCard::DrawUsageGrid() {
   const int world_start = (world == 0) ? 0 : ((world == 1) ? 0x40 : 0x80);
   const int world_count = (world == 2) ? 32 : 64;
 
-  ImGui::Text("Map Usage Grid (World %d)", world);
+  ImGui::Text(tr("Map Usage Grid (World %d)"), world);
   ImGui::Separator();
 
   if (ImGui::BeginTable(
@@ -96,9 +97,9 @@ void UsageStatisticsCard::DrawUsageGrid() {
 
         if (ImGui::IsItemHovered()) {
           ImGui::BeginTooltip();
-          ImGui::Text("Map %02X (%s)", map_id, area_label);
-          ImGui::Text("Parent: %02X", map->parent());
-          ImGui::Text("Quadrant: %d", map->large_index());
+          ImGui::Text(tr("Map %02X (%s)"), map_id, area_label);
+          ImGui::Text(tr("Parent: %02X"), map->parent());
+          ImGui::Text(tr("Quadrant: %d"), map->large_index());
           ImGui::EndTooltip();
         }
       }
@@ -146,15 +147,15 @@ void UsageStatisticsCard::DrawUsageStates() {
     }
   }
 
-  ImGui::Text("Global Usage Statistics");
+  ImGui::Text(tr("Global Usage Statistics"));
   ImGui::Separator();
-  ImGui::Text("Current World: %d", world);
-  ImGui::Text("Total Maps: %d", world_count);
-  ImGui::Text("Small Maps: %d", small_count);
-  ImGui::Text("Large Maps: %d", large_count);
-  ImGui::Text("Wide Maps: %d", wide_count);
-  ImGui::Text("Tall Maps: %d", tall_count);
-  ImGui::Text("Parent Areas: %d", parent_count);
+  ImGui::Text(tr("Current World: %d"), world);
+  ImGui::Text(tr("Total Maps: %d"), world_count);
+  ImGui::Text(tr("Small Maps: %d"), small_count);
+  ImGui::Text(tr("Large Maps: %d"), large_count);
+  ImGui::Text(tr("Wide Maps: %d"), wide_count);
+  ImGui::Text(tr("Tall Maps: %d"), tall_count);
+  ImGui::Text(tr("Parent Areas: %d"), parent_count);
 }
 
 }  // namespace yaze::editor

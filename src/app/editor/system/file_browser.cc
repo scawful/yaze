@@ -1,4 +1,5 @@
 #include "app/editor/system/file_browser.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <fstream>
@@ -99,7 +100,9 @@ bool GitignoreParser::IsIgnored(const std::string& path,
   return ignored;
 }
 
-void GitignoreParser::Clear() { patterns_.clear(); }
+void GitignoreParser::Clear() {
+  patterns_.clear();
+}
 
 bool GitignoreParser::MatchPattern(const std::string& path,
                                    const Pattern& pattern) const {
@@ -116,7 +119,8 @@ bool GitignoreParser::MatchGlob(const std::string& text,
 
   while (text_pos < text.length()) {
     if (pattern_pos < pattern.length() &&
-        (pattern[pattern_pos] == text[text_pos] || pattern[pattern_pos] == '?')) {
+        (pattern[pattern_pos] == text[text_pos] ||
+         pattern[pattern_pos] == '?')) {
       // Characters match or single-char wildcard
       text_pos++;
       pattern_pos++;
@@ -262,8 +266,8 @@ void FileBrowser::ScanDirectory(const fs::path& path, FileEntry& parent,
     fe.name = filename;
     fe.full_path = entry_path.string();
     fe.is_directory = is_dir;
-    fe.file_type = is_dir ? FileEntry::FileType::kDirectory
-                          : DetectFileType(filename);
+    fe.file_type =
+        is_dir ? FileEntry::FileType::kDirectory : DetectFileType(filename);
 
     if (is_dir) {
       directory_count_++;
@@ -277,12 +281,13 @@ void FileBrowser::ScanDirectory(const fs::path& path, FileEntry& parent,
   }
 
   // Sort: directories first, then alphabetically
-  std::sort(entries.begin(), entries.end(), [](const FileEntry& a, const FileEntry& b) {
-    if (a.is_directory != b.is_directory) {
-      return a.is_directory;  // Directories first
-    }
-    return a.name < b.name;
-  });
+  std::sort(entries.begin(), entries.end(),
+            [](const FileEntry& a, const FileEntry& b) {
+              if (a.is_directory != b.is_directory) {
+                return a.is_directory;  // Directories first
+              }
+              return a.name < b.name;
+            });
 
   parent.children = std::move(entries);
 }
@@ -425,7 +430,7 @@ const char* FileBrowser::GetFileIcon(FileEntry::FileType type) const {
 
 void FileBrowser::Draw() {
   if (root_path_.empty()) {
-    ImGui::TextDisabled("No folder selected");
+    ImGui::TextDisabled(tr("No folder selected"));
     if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Folder...")) {
       // Note: Actual folder dialog should be handled externally
       // via the callback or by the host component
@@ -446,7 +451,7 @@ void FileBrowser::Draw() {
     needs_refresh_ = true;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Refresh file list");
+    ImGui::SetTooltip(tr("Refresh file list"));
   }
 
   ImGui::Separator();
@@ -467,7 +472,7 @@ void FileBrowser::Draw() {
 
 void FileBrowser::DrawCompact() {
   if (root_path_.empty()) {
-    ImGui::TextDisabled("No folder");
+    ImGui::TextDisabled(tr("No folder"));
     return;
   }
 

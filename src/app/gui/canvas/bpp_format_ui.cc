@@ -1,4 +1,5 @@
 #include "bpp_format_ui.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <sstream>
@@ -30,7 +31,7 @@ bool BppFormatUI::RenderFormatSelector(
   format_changed_ = false;
 
   ImGui::BeginGroup();
-  ImGui::Text("BPP Format Selection");
+  ImGui::Text(tr("BPP Format Selection"));
   ImGui::Separator();
 
   // Current format detection
@@ -38,11 +39,11 @@ bool BppFormatUI::RenderFormatSelector(
       bitmap->vector(), bitmap->width(), bitmap->height());
 
   ImGui::Text(
-      "Current Format: %s",
+      tr("Current Format: %s"),
       gfx::BppFormatManager::Get().GetFormatInfo(current_format).name.c_str());
 
   // Format selection
-  ImGui::Text("Target Format:");
+  ImGui::Text(tr("Target Format:"));
   ImGui::SameLine();
 
   const char* format_names[] = {"2BPP", "3BPP", "4BPP", "8BPP"};
@@ -57,14 +58,14 @@ bool BppFormatUI::RenderFormatSelector(
   // Format information
   const auto& format_info =
       gfx::BppFormatManager::Get().GetFormatInfo(selected_format_);
-  ImGui::Text("Max Colors: %d", format_info.max_colors);
-  ImGui::Text("Bytes per Tile: %d", format_info.bytes_per_tile);
-  ImGui::Text("Description: %s", format_info.description.c_str());
+  ImGui::Text(tr("Max Colors: %d"), format_info.max_colors);
+  ImGui::Text(tr("Bytes per Tile: %d"), format_info.bytes_per_tile);
+  ImGui::Text(tr("Description: %s"), format_info.description.c_str());
 
   // Conversion efficiency
   if (current_format != selected_format_) {
     int efficiency = GetConversionEfficiency(current_format, selected_format_);
-    ImGui::Text("Conversion Efficiency: %d%%", efficiency);
+    ImGui::Text(tr("Conversion Efficiency: %d%%"), efficiency);
 
     ImVec4 efficiency_color;
     if (efficiency >= 80) {
@@ -74,7 +75,7 @@ bool BppFormatUI::RenderFormatSelector(
     } else {
       efficiency_color = GetErrorColor();  // Red
     }
-    ImGui::TextColored(efficiency_color, "Quality: %s",
+    ImGui::TextColored(efficiency_color, tr("Quality: %s"),
                        efficiency >= 80   ? "Excellent"
                        : efficiency >= 60 ? "Good"
                                           : "Poor");
@@ -83,7 +84,7 @@ bool BppFormatUI::RenderFormatSelector(
   // Action buttons
   ImGui::Separator();
 
-  if (ImGui::Button("Convert Format")) {
+  if (ImGui::Button(tr("Convert Format"))) {
     if (on_format_changed) {
       on_format_changed(selected_format_);
     }
@@ -91,12 +92,12 @@ bool BppFormatUI::RenderFormatSelector(
   }
 
   ImGui::SameLine();
-  if (ImGui::Button("Show Analysis")) {
+  if (ImGui::Button(tr("Show Analysis"))) {
     show_analysis_ = !show_analysis_;
   }
 
   ImGui::SameLine();
-  if (ImGui::Button("Preview Conversion")) {
+  if (ImGui::Button(tr("Preview Conversion"))) {
     show_preview_ = !show_preview_;
     preview_format_ = selected_format_;
   }
@@ -125,7 +126,7 @@ void BppFormatUI::RenderAnalysisPanel(const gfx::Bitmap& bitmap,
       bitmap.vector(), bitmap.width(), bitmap.height());
 
   ImGui::Text(
-      "Detected Format: %s",
+      tr("Detected Format: %s"),
       gfx::BppFormatManager::Get().GetFormatInfo(detected_format).name.c_str());
 
   // Color usage analysis
@@ -140,38 +141,38 @@ void BppFormatUI::RenderAnalysisPanel(const gfx::Bitmap& bitmap,
       used_colors++;
   }
 
-  ImGui::Text("Colors Used: %d / %d", used_colors,
+  ImGui::Text(tr("Colors Used: %d / %d"), used_colors,
               static_cast<int>(palette.size()));
-  ImGui::Text("Color Efficiency: %.1f%%",
+  ImGui::Text(tr("Color Efficiency: %.1f%%"),
               (static_cast<float>(used_colors) / palette.size()) * 100.0f);
 
   // Color usage chart
-  if (ImGui::CollapsingHeader("Color Usage Chart")) {
+  if (ImGui::CollapsingHeader(tr("Color Usage Chart"))) {
     RenderColorUsageChart(color_usage);
   }
 
   // Format recommendations
   ImGui::Separator();
-  ImGui::Text("Format Recommendations:");
+  ImGui::Text(tr("Format Recommendations:"));
 
   if (used_colors <= 4) {
-    ImGui::TextColored(GetSuccessColor(), "✓ 2BPP format would be optimal");
+    ImGui::TextColored(GetSuccessColor(), tr("✓ 2BPP format would be optimal"));
   } else if (used_colors <= 8) {
-    ImGui::TextColored(GetSuccessColor(), "✓ 3BPP format would be optimal");
+    ImGui::TextColored(GetSuccessColor(), tr("✓ 3BPP format would be optimal"));
   } else if (used_colors <= 16) {
-    ImGui::TextColored(GetSuccessColor(), "✓ 4BPP format would be optimal");
+    ImGui::TextColored(GetSuccessColor(), tr("✓ 4BPP format would be optimal"));
   } else {
-    ImGui::TextColored(GetWarningColor(), "⚠ 8BPP format is necessary");
+    ImGui::TextColored(GetWarningColor(), tr("⚠ 8BPP format is necessary"));
   }
 
   // Memory usage comparison
-  if (ImGui::CollapsingHeader("Memory Usage Comparison")) {
+  if (ImGui::CollapsingHeader(tr("Memory Usage Comparison"))) {
     const auto& current_info =
         gfx::BppFormatManager::Get().GetFormatInfo(detected_format);
     int current_bytes =
         (bitmap.width() * bitmap.height() * current_info.bits_per_pixel) / 8;
 
-    ImGui::Text("Current Format (%s): %d bytes", current_info.name.c_str(),
+    ImGui::Text(tr("Current Format (%s): %d bytes"), current_info.name.c_str(),
                 current_bytes);
 
     for (auto format : gfx::BppFormatManager::Get().GetAvailableFormats()) {
@@ -183,7 +184,7 @@ void BppFormatUI::RenderAnalysisPanel(const gfx::Bitmap& bitmap,
           (bitmap.width() * bitmap.height() * info.bits_per_pixel) / 8;
       float ratio = static_cast<float>(format_bytes) / current_bytes;
 
-      ImGui::Text("%s: %d bytes (%.1fx)", info.name.c_str(), format_bytes,
+      ImGui::Text(tr("%s: %d bytes (%.1fx)"), info.name.c_str(), format_bytes,
                   ratio);
     }
   }
@@ -200,7 +201,7 @@ void BppFormatUI::RenderConversionPreview(const gfx::Bitmap& bitmap,
       bitmap.vector(), bitmap.width(), bitmap.height());
 
   if (current_format == target_format) {
-    ImGui::Text("No conversion needed - formats are identical");
+    ImGui::Text(tr("No conversion needed - formats are identical"));
     ImGui::End();
     return;
   }
@@ -216,14 +217,14 @@ void BppFormatUI::RenderConversionPreview(const gfx::Bitmap& bitmap,
 
   // Render side-by-side comparison
   ImGui::Text(
-      "Original (%s) vs Converted (%s)",
+      tr("Original (%s) vs Converted (%s)"),
       gfx::BppFormatManager::Get().GetFormatInfo(current_format).name.c_str(),
       gfx::BppFormatManager::Get().GetFormatInfo(target_format).name.c_str());
 
   ImGui::Columns(2, "PreviewColumns");
 
   // Original
-  ImGui::Text("Original");
+  ImGui::Text(tr("Original"));
   if (bitmap.texture()) {
     ImGui::Image((ImTextureID)(intptr_t)bitmap.texture(),
                  ImVec2(256, 256 * bitmap.height() / bitmap.width()));
@@ -232,7 +233,7 @@ void BppFormatUI::RenderConversionPreview(const gfx::Bitmap& bitmap,
   ImGui::NextColumn();
 
   // Converted
-  ImGui::Text("Converted");
+  ImGui::Text(tr("Converted"));
   if (preview_bitmap.texture()) {
     ImGui::Image(
         (ImTextureID)(intptr_t)preview_bitmap.texture(),
@@ -243,7 +244,7 @@ void BppFormatUI::RenderConversionPreview(const gfx::Bitmap& bitmap,
 
   // Conversion statistics
   ImGui::Separator();
-  ImGui::Text("Conversion Statistics:");
+  ImGui::Text(tr("Conversion Statistics:"));
 
   const auto& from_info =
       gfx::BppFormatManager::Get().GetFormatInfo(current_format);
@@ -255,8 +256,8 @@ void BppFormatUI::RenderConversionPreview(const gfx::Bitmap& bitmap,
   int to_bytes =
       (bitmap.width() * bitmap.height() * to_info.bits_per_pixel) / 8;
 
-  ImGui::Text("Size: %d bytes -> %d bytes", from_bytes, to_bytes);
-  ImGui::Text("Compression Ratio: %.2fx",
+  ImGui::Text(tr("Size: %d bytes -> %d bytes"), from_bytes, to_bytes);
+  ImGui::Text(tr("Compression Ratio: %.2fx"),
               static_cast<float>(from_bytes) / to_bytes);
 
   ImGui::End();
@@ -283,31 +284,33 @@ void BppFormatUI::RenderSheetAnalysis(const std::vector<uint8_t>& sheet_data,
 
   ImGui::Begin("Graphics Sheet Analysis", &show_sheet_analysis_);
 
-  ImGui::Text("Sheet ID: %d", analysis.sheet_id);
-  ImGui::Text("Original Format: %s",
+  ImGui::Text(tr("Sheet ID: %d"), analysis.sheet_id);
+  ImGui::Text(tr("Original Format: %s"),
               gfx::BppFormatManager::Get()
                   .GetFormatInfo(analysis.original_format)
                   .name.c_str());
-  ImGui::Text("Current Format: %s", gfx::BppFormatManager::Get()
-                                        .GetFormatInfo(analysis.current_format)
-                                        .name.c_str());
+  ImGui::Text(tr("Current Format: %s"),
+              gfx::BppFormatManager::Get()
+                  .GetFormatInfo(analysis.current_format)
+                  .name.c_str());
 
   if (analysis.was_converted) {
-    ImGui::TextColored(GetWarningColor(), "⚠ This sheet was converted");
-    ImGui::Text("Conversion History: %s", analysis.conversion_history.c_str());
+    ImGui::TextColored(GetWarningColor(), tr("⚠ This sheet was converted"));
+    ImGui::Text(tr("Conversion History: %s"),
+                analysis.conversion_history.c_str());
   } else {
-    ImGui::TextColored(GetSuccessColor(), "✓ Original format preserved");
+    ImGui::TextColored(GetSuccessColor(), tr("✓ Original format preserved"));
   }
 
   ImGui::Separator();
-  ImGui::Text("Color Usage: %d / %d colors used", analysis.palette_entries_used,
-              static_cast<int>(palette.size()));
-  ImGui::Text("Compression Ratio: %.2fx", analysis.compression_ratio);
-  ImGui::Text("Size: %zu -> %zu bytes", analysis.original_size,
+  ImGui::Text(tr("Color Usage: %d / %d colors used"),
+              analysis.palette_entries_used, static_cast<int>(palette.size()));
+  ImGui::Text(tr("Compression Ratio: %.2fx"), analysis.compression_ratio);
+  ImGui::Text(tr("Size: %zu -> %zu bytes"), analysis.original_size,
               analysis.current_size);
 
   // Tile usage pattern
-  if (ImGui::CollapsingHeader("Tile Usage Pattern")) {
+  if (ImGui::CollapsingHeader(tr("Tile Usage Pattern"))) {
     int total_tiles = analysis.tile_usage_pattern.size();
     int used_tiles = 0;
     int empty_tiles = 0;
@@ -320,29 +323,30 @@ void BppFormatUI::RenderSheetAnalysis(const std::vector<uint8_t>& sheet_data,
       }
     }
 
-    ImGui::Text("Total Tiles: %d", total_tiles);
-    ImGui::Text("Used Tiles: %d (%.1f%%)", used_tiles,
+    ImGui::Text(tr("Total Tiles: %d"), total_tiles);
+    ImGui::Text(tr("Used Tiles: %d (%.1f%%)"), used_tiles,
                 (static_cast<float>(used_tiles) / total_tiles) * 100.0f);
-    ImGui::Text("Empty Tiles: %d (%.1f%%)", empty_tiles,
+    ImGui::Text(tr("Empty Tiles: %d (%.1f%%)"), empty_tiles,
                 (static_cast<float>(empty_tiles) / total_tiles) * 100.0f);
   }
 
   // Recommendations
   ImGui::Separator();
-  ImGui::Text("Recommendations:");
+  ImGui::Text(tr("Recommendations:"));
 
   if (analysis.was_converted && analysis.palette_entries_used <= 16) {
     ImGui::TextColored(
         GetSuccessColor(),
-        "✓ Consider reverting to %s format for better compression",
+        tr("✓ Consider reverting to %s format for better compression"),
         gfx::BppFormatManager::Get()
             .GetFormatInfo(analysis.original_format)
             .name.c_str());
   }
 
   if (analysis.palette_entries_used < static_cast<int>(palette.size()) / 2) {
-    ImGui::TextColored(GetWarningColor(),
-                       "⚠ Palette is underutilized - consider optimization");
+    ImGui::TextColored(
+        GetWarningColor(),
+        tr("⚠ Palette is underutilized - consider optimization"));
   }
 
   ImGui::End();
@@ -372,12 +376,12 @@ int BppFormatUI::GetConversionEfficiency(gfx::BppFormat from_format,
 }
 
 void BppFormatUI::RenderFormatInfo(const gfx::BppFormatInfo& info) {
-  ImGui::Text("Format: %s", info.name.c_str());
-  ImGui::Text("Bits per Pixel: %d", info.bits_per_pixel);
-  ImGui::Text("Max Colors: %d", info.max_colors);
-  ImGui::Text("Bytes per Tile: %d", info.bytes_per_tile);
-  ImGui::Text("Compressed: %s", info.is_compressed ? "Yes" : "No");
-  ImGui::Text("Description: %s", info.description.c_str());
+  ImGui::Text(tr("Format: %s"), info.name.c_str());
+  ImGui::Text(tr("Bits per Pixel: %d"), info.bits_per_pixel);
+  ImGui::Text(tr("Max Colors: %d"), info.max_colors);
+  ImGui::Text(tr("Bytes per Tile: %d"), info.bytes_per_tile);
+  ImGui::Text(tr("Compressed: %s"), info.is_compressed ? "Yes" : "No");
+  ImGui::Text(tr("Description: %s"), info.description.c_str());
 }
 
 void BppFormatUI::RenderColorUsageChart(const std::vector<int>& color_usage) {
@@ -387,12 +391,12 @@ void BppFormatUI::RenderColorUsageChart(const std::vector<int>& color_usage) {
     return;
 
   // Render simple bar chart
-  ImGui::Text("Color Usage Distribution:");
+  ImGui::Text(tr("Color Usage Distribution:"));
 
   for (size_t i = 0; i < std::min(color_usage.size(), size_t(16)); ++i) {
     if (color_usage[i] > 0) {
       float usage_ratio = static_cast<float>(color_usage[i]) / max_usage;
-      ImGui::Text("Color %zu: %d pixels (%.1f%%)", i, color_usage[i],
+      ImGui::Text(tr("Color %zu: %d pixels (%.1f%%)"), i, color_usage[i],
                   (static_cast<float>(color_usage[i]) / (16 * 16)) * 100.0f);
       ImGui::SameLine();
       ImGui::ProgressBar(usage_ratio, ImVec2(100, 0));
@@ -401,7 +405,7 @@ void BppFormatUI::RenderColorUsageChart(const std::vector<int>& color_usage) {
 }
 
 void BppFormatUI::RenderConversionHistory(const std::string& history) {
-  ImGui::Text("Conversion History:");
+  ImGui::Text(tr("Conversion History:"));
   ImGui::TextWrapped("%s", history.c_str());
 }
 
@@ -500,7 +504,7 @@ void BppConversionDialog::UpdatePreview() {
 }
 
 void BppConversionDialog::RenderFormatSelector() {
-  ImGui::Text("Convert to BPP Format:");
+  ImGui::Text(tr("Convert to BPP Format:"));
 
   const char* format_names[] = {"2BPP", "3BPP", "4BPP", "8BPP"};
   int current_selection = static_cast<int>(target_format_) - 2;
@@ -512,34 +516,34 @@ void BppConversionDialog::RenderFormatSelector() {
 
   const auto& format_info =
       gfx::BppFormatManager::Get().GetFormatInfo(target_format_);
-  ImGui::Text("Max Colors: %d", format_info.max_colors);
-  ImGui::Text("Description: %s", format_info.description.c_str());
+  ImGui::Text(tr("Max Colors: %d"), format_info.max_colors);
+  ImGui::Text(tr("Description: %s"), format_info.description.c_str());
 }
 
 void BppConversionDialog::RenderPreview() {
-  if (ImGui::Button("Update Preview")) {
+  if (ImGui::Button(tr("Update Preview"))) {
     preview_valid_ = false;
   }
 
   UpdatePreview();
 
   if (preview_valid_ && preview_bitmap_.texture()) {
-    ImGui::Text("Preview:");
+    ImGui::Text(tr("Preview:"));
     ImGui::Image((ImTextureID)(intptr_t)preview_bitmap_.texture(),
                  ImVec2(128 * preview_scale_, 128 * preview_scale_));
 
-    ImGui::SliderFloat("Scale", &preview_scale_, 0.5f, 3.0f);
+    ImGui::SliderFloat(tr("Scale"), &preview_scale_, 0.5f, 3.0f);
   }
 }
 
 void BppConversionDialog::RenderOptions() {
-  ImGui::Checkbox("Preserve Palette", &preserve_palette_);
+  ImGui::Checkbox(tr("Preserve Palette"), &preserve_palette_);
   ImGui::SameLine();
-  ImGui::Checkbox("Show Preview", &show_preview_);
+  ImGui::Checkbox(tr("Show Preview"), &show_preview_);
 }
 
 void BppConversionDialog::RenderButtons() {
-  if (ImGui::Button("Convert")) {
+  if (ImGui::Button(tr("Convert"))) {
     if (convert_callback_) {
       convert_callback_(target_format_, preserve_palette_);
     }
@@ -547,7 +551,7 @@ void BppConversionDialog::RenderButtons() {
   }
 
   ImGui::SameLine();
-  if (ImGui::Button("Cancel")) {
+  if (ImGui::Button(tr("Cancel"))) {
     is_open_ = false;
   }
 }
@@ -617,7 +621,7 @@ void BppComparisonTool::GenerateComparisons() {
 }
 
 void BppComparisonTool::RenderComparisonGrid() {
-  ImGui::Text("Format Comparison (Scale: %.1fx)", comparison_scale_);
+  ImGui::Text(tr("Format Comparison (Scale: %.1fx)"), comparison_scale_);
   ImGui::SliderFloat("##Scale", &comparison_scale_, 0.5f, 3.0f);
 
   ImGui::Columns(2, "ComparisonColumns");
@@ -645,7 +649,7 @@ void BppComparisonTool::RenderComparisonGrid() {
 }
 
 void BppComparisonTool::RenderMetrics() {
-  ImGui::Text("Format Metrics:");
+  ImGui::Text(tr("Format Metrics:"));
 
   for (auto format : gfx::BppFormatManager::Get().GetAvailableFormats()) {
     if (!comparison_valid_[format])
@@ -660,7 +664,7 @@ void BppComparisonTool::RenderMetrics() {
 }
 
 void BppComparisonTool::RenderFormatSelector() {
-  ImGui::Text("Selected for Analysis: ");
+  ImGui::Text(tr("Selected for Analysis: "));
   ImGui::SameLine();
 
   const char* format_names[] = {"2BPP", "3BPP", "4BPP", "8BPP"};
@@ -671,7 +675,7 @@ void BppComparisonTool::RenderFormatSelector() {
   }
 
   ImGui::SameLine();
-  ImGui::Checkbox("Show Metrics", &show_metrics_);
+  ImGui::Checkbox(tr("Show Metrics"), &show_metrics_);
 }
 
 std::string BppComparisonTool::CalculateMetrics(gfx::BppFormat format) const {

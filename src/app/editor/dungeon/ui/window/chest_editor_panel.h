@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -56,13 +57,13 @@ class ChestEditorPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!current_room_id_ || !rooms_) {
-      ImGui::TextDisabled("No room data available");
+      ImGui::TextDisabled(tr("No room data available"));
       return;
     }
 
     if (*current_room_id_ < 0 ||
         *current_room_id_ >= static_cast<int>(rooms_->size())) {
-      ImGui::TextDisabled("No room selected");
+      ImGui::TextDisabled(tr("No room selected"));
       return;
     }
 
@@ -99,8 +100,8 @@ class ChestEditorPanel : public WindowContent {
       ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING);
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Room exceeds chest limit (6 max)!\n"
-            "This may cause game crashes.");
+            tr("Room exceeds chest limit (6 max)!\n"
+               "This may cause game crashes."));
       }
     }
 
@@ -118,7 +119,7 @@ class ChestEditorPanel : public WindowContent {
       }
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Add new chest to room");
+      ImGui::SetTooltip(tr("Add new chest to room"));
     }
 
     // Chest list
@@ -191,17 +192,17 @@ class ChestEditorPanel : public WindowContent {
     ImGui::Text(ICON_MD_EDIT " Editing Chest #%d", selected_chest_index_ + 1);
 
     // Chest type (size)
-    ImGui::Text("Type:");
+    ImGui::Text(tr("Type:"));
     ImGui::SameLine();
     bool is_big = chest.size;
-    if (ImGui::RadioButton("Small", !is_big)) {
+    if (ImGui::RadioButton(tr("Small"), !is_big)) {
       chest.size = false;
       if (chest_modified_callback_) {
         chest_modified_callback_(*current_room_id_, selected_chest_index_);
       }
     }
     ImGui::SameLine();
-    if (ImGui::RadioButton("Big", is_big)) {
+    if (ImGui::RadioButton(tr("Big"), is_big)) {
       chest.size = true;
       if (chest_modified_callback_) {
         chest_modified_callback_(*current_room_id_, selected_chest_index_);
@@ -209,7 +210,7 @@ class ChestEditorPanel : public WindowContent {
     }
 
     // Item selector dropdown
-    ImGui::Text("Item:");
+    ImGui::Text(tr("Item:"));
     ImGui::SameLine();
 
     std::string current_item =

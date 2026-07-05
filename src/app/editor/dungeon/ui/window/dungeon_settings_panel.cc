@@ -1,4 +1,5 @@
 #include "dungeon_settings_panel.h"
+#include "util/i18n/tr.h"
 
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
@@ -8,7 +9,7 @@ namespace yaze::editor {
 
 void DungeonSettingsPanel::DrawLayerCompositingControls(int room_id) {
   if (!viewer_) {
-    ImGui::TextDisabled("No viewer available");
+    ImGui::TextDisabled(tr("No viewer available"));
     return;
   }
 
@@ -27,7 +28,8 @@ void DungeonSettingsPanel::DrawLayerCompositingControls(int room_id) {
       for (int mode_int = 0; mode_int <= 4; ++mode_int) {
         zelda3::LayerBlendMode mode =
             static_cast<zelda3::LayerBlendMode>(mode_int);
-        const char* mode_name = zelda3::RoomLayerManager::GetBlendModeName(mode);
+        const char* mode_name =
+            zelda3::RoomLayerManager::GetBlendModeName(mode);
         bool is_selected = (current_mode == mode);
 
         if (ImGui::Selectable(mode_name, is_selected)) {
@@ -43,7 +45,7 @@ void DungeonSettingsPanel::DrawLayerCompositingControls(int room_id) {
   };
 
   // Draw combo boxes for each layer
-  ImGui::Text("BG1 Layers:");
+  ImGui::Text(tr("BG1 Layers:"));
   ImGui::Indent();
   DrawBlendModeCombo("BG1 Layout##blend", zelda3::LayerType::BG1_Layout);
   DrawBlendModeCombo("BG1 Objects##blend", zelda3::LayerType::BG1_Objects);
@@ -51,7 +53,7 @@ void DungeonSettingsPanel::DrawLayerCompositingControls(int room_id) {
 
   ImGui::Spacing();
 
-  ImGui::Text("BG2 Layers:");
+  ImGui::Text(tr("BG2 Layers:"));
   ImGui::Indent();
   DrawBlendModeCombo("BG2 Layout##blend", zelda3::LayerType::BG2_Layout);
   DrawBlendModeCombo("BG2 Objects##blend", zelda3::LayerType::BG2_Objects);
@@ -72,7 +74,7 @@ void DungeonSettingsPanel::DrawLayerCompositingControls(int room_id) {
                                     zelda3::LayerBlendMode::Normal);
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Reset all layers to Normal blend mode");
+    ImGui::SetTooltip(tr("Reset all layers to Normal blend mode"));
   }
 }
 
