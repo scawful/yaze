@@ -862,12 +862,14 @@ void MenuOrchestrator::AddSidebarSubmenu() {
     return;
   }
 
-  auto persist = [this]() { (void)user_settings_->Save(); };
+  auto persist = [this]() {
+    (void)user_settings_->Save();
+  };
   auto& prefs = user_settings_->prefs();
 
-  if (ImGui::MenuItem(absl::StrFormat("%s Reset Order", ICON_MD_RESTART_ALT)
-                          .c_str(),
-                      nullptr, false, !prefs.sidebar_order.empty())) {
+  if (ImGui::MenuItem(
+          absl::StrFormat("%s Reset Order", ICON_MD_RESTART_ALT).c_str(),
+          nullptr, false, !prefs.sidebar_order.empty())) {
     prefs.sidebar_order.clear();
     persist();
   }
@@ -890,9 +892,12 @@ void MenuOrchestrator::AddSidebarSubmenu() {
   std::vector<std::string> pinned_list;
   std::vector<std::string> hidden_list;
   for (const auto& cat : categories) {
-    if (cat == WorkspaceWindowManager::kDashboardCategory) continue;
-    if (prefs.sidebar_pinned.count(cat)) pinned_list.push_back(cat);
-    if (prefs.sidebar_hidden.count(cat)) hidden_list.push_back(cat);
+    if (cat == WorkspaceWindowManager::kDashboardCategory)
+      continue;
+    if (prefs.sidebar_pinned.count(cat))
+      pinned_list.push_back(cat);
+    if (prefs.sidebar_hidden.count(cat))
+      hidden_list.push_back(cat);
   }
 
   if (ImGui::BeginMenu(
@@ -902,8 +907,8 @@ void MenuOrchestrator::AddSidebarSubmenu() {
     } else {
       for (const auto& cat : pinned_list) {
         ImGui::PushID(cat.c_str());
-        if (ImGui::MenuItem(absl::StrFormat("%s Unpin %s", ICON_MD_CLOSE, cat)
-                                .c_str())) {
+        if (ImGui::MenuItem(
+                absl::StrFormat("%s Unpin %s", ICON_MD_CLOSE, cat).c_str())) {
           prefs.sidebar_pinned.erase(cat);
           persist();
         }
@@ -921,7 +926,8 @@ void MenuOrchestrator::AddSidebarSubmenu() {
       for (const auto& cat : hidden_list) {
         ImGui::PushID(cat.c_str());
         if (ImGui::MenuItem(
-                absl::StrFormat("%s Show %s", ICON_MD_VISIBILITY, cat).c_str())) {
+                absl::StrFormat("%s Show %s", ICON_MD_VISIBILITY, cat)
+                    .c_str())) {
           prefs.sidebar_hidden.erase(cat);
           persist();
         }
@@ -935,13 +941,13 @@ void MenuOrchestrator::AddSidebarSubmenu() {
 
   // Per-category toggles (pin/hide) for all categories. Keeps the menu
   // discoverable even for users who haven't right-clicked the rail.
-  if (ImGui::BeginMenu(
-          absl::StrFormat("%s Customize", ICON_MD_TUNE).c_str())) {
+  if (ImGui::BeginMenu(absl::StrFormat("%s Customize", ICON_MD_TUNE).c_str())) {
     if (categories.empty()) {
       ImGui::TextDisabled("No categories available");
     } else {
       for (const auto& cat : categories) {
-        if (cat == WorkspaceWindowManager::kDashboardCategory) continue;
+        if (cat == WorkspaceWindowManager::kDashboardCategory)
+          continue;
         ImGui::PushID(cat.c_str());
         const bool pinned = prefs.sidebar_pinned.count(cat) > 0;
         const bool hidden = prefs.sidebar_hidden.count(cat) > 0;
@@ -1001,7 +1007,8 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+      .Item(
+          "About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
 }
 
 // Menu state management
