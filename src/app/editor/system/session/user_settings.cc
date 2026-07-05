@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <system_error>
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/style.h"
@@ -46,6 +47,23 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
 
   std::istringstream ss(data);
   std::string line;
+  // Tolerate malformed numeric values in a partial or truncated INI: skip the
+  // bad value (keep the current default) instead of throwing out of Load(),
+  // which would abort before the defaults are written and the file re-saved.
+  auto to_float = [](const std::string& s, float fallback) {
+    try {
+      return std::stof(s);
+    } catch (const std::exception&) {
+      return fallback;
+    }
+  };
+  auto to_int = [](const std::string& s, int fallback) {
+    try {
+      return std::stoi(s);
+    } catch (const std::exception&) {
+      return fallback;
+    }
+  };
   while (std::getline(ss, line)) {
     size_t eq_pos = line.find('=');
     if (eq_pos == std::string::npos) {
@@ -57,7 +75,7 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
 
     // General
     if (key == "font_global_scale") {
-      prefs->font_global_scale = std::stof(val);
+      prefs->font_global_scale = to_float(val, prefs->font_global_scale);
     } else if (key == "backup_rom") {
       prefs->backup_rom = (val == "1");
     } else if (key == "save_new_auto") {
@@ -65,9 +83,9 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "autosave_enabled") {
       prefs->autosave_enabled = (val == "1");
     } else if (key == "autosave_interval") {
-      prefs->autosave_interval = std::stof(val);
+      prefs->autosave_interval = to_float(val, prefs->autosave_interval);
     } else if (key == "recent_files_limit") {
-      prefs->recent_files_limit = std::stoi(val);
+      prefs->recent_files_limit = to_int(val, prefs->recent_files_limit);
     } else if (key == "last_rom_path") {
       prefs->last_rom_path = val;
     } else if (key == "last_project_path") {
@@ -79,11 +97,14 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "prefer_hmagic_sprite_names") {
       prefs->prefer_hmagic_sprite_names = (val == "1");
     } else if (key == "welcome_triforce_alpha") {
-      prefs->welcome_triforce_alpha = std::stof(val);
+      prefs->welcome_triforce_alpha =
+          to_float(val, prefs->welcome_triforce_alpha);
     } else if (key == "welcome_triforce_speed") {
-      prefs->welcome_triforce_speed = std::stof(val);
+      prefs->welcome_triforce_speed =
+          to_float(val, prefs->welcome_triforce_speed);
     } else if (key == "welcome_triforce_size") {
-      prefs->welcome_triforce_size = std::stof(val);
+      prefs->welcome_triforce_size =
+          to_float(val, prefs->welcome_triforce_size);
     } else if (key == "welcome_particles_enabled") {
       prefs->welcome_particles_enabled = (val == "1");
     } else if (key == "welcome_mouse_repel_enabled") {
@@ -91,7 +112,7 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "reduced_motion") {
       prefs->reduced_motion = (val == "1");
     } else if (key == "switch_motion_profile") {
-      prefs->switch_motion_profile = std::stoi(val);
+      prefs->switch_motion_profile = to_int(val, prefs->switch_motion_profile);
     } else if (key == "last_theme_name") {
       prefs->last_theme_name = val;
     }
@@ -99,21 +120,21 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     else if (key == "backup_before_save") {
       prefs->backup_before_save = (val == "1");
     } else if (key == "default_editor") {
-      prefs->default_editor = std::stoi(val);
+      prefs->default_editor = to_int(val, prefs->default_editor);
     }
     // Performance
     else if (key == "vsync") {
       prefs->vsync = (val == "1");
     } else if (key == "target_fps") {
-      prefs->target_fps = std::stoi(val);
+      prefs->target_fps = to_int(val, prefs->target_fps);
     } else if (key == "cache_size_mb") {
-      prefs->cache_size_mb = std::stoi(val);
+      prefs->cache_size_mb = to_int(val, prefs->cache_size_mb);
     } else if (key == "undo_history_size") {
-      prefs->undo_history_size = std::stoi(val);
+      prefs->undo_history_size = to_int(val, prefs->undo_history_size);
     }
     // AI Agent
     else if (key == "ai_provider") {
-      prefs->ai_provider = std::stoi(val);
+      prefs->ai_provider = to_int(val, prefs->ai_provider);
     } else if (key == "ai_model") {
       prefs->ai_model = val;
     } else if (key == "ollama_url") {
@@ -125,9 +146,9 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "anthropic_api_key") {
       prefs->anthropic_api_key = val;
     } else if (key == "ai_temperature") {
-      prefs->ai_temperature = std::stof(val);
+      prefs->ai_temperature = to_float(val, prefs->ai_temperature);
     } else if (key == "ai_max_tokens") {
-      prefs->ai_max_tokens = std::stoi(val);
+      prefs->ai_max_tokens = to_int(val, prefs->ai_max_tokens);
     } else if (key == "ai_proactive") {
       prefs->ai_proactive = (val == "1");
     } else if (key == "ai_auto_learn") {
@@ -137,7 +158,7 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     }
     // CLI Logging
     else if (key == "log_level") {
-      prefs->log_level = std::stoi(val);
+      prefs->log_level = to_int(val, prefs->log_level);
     } else if (key == "log_to_file") {
       prefs->log_to_file = (val == "1");
     } else if (key == "log_file_path") {
@@ -167,11 +188,13 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     } else if (key == "sidebar_panel_expanded") {
       prefs->sidebar_panel_expanded = (val == "1");
     } else if (key == "sidebar_panel_width") {
-      prefs->sidebar_panel_width = std::stof(val);
+      prefs->sidebar_panel_width = to_float(val, prefs->sidebar_panel_width);
     } else if (key == "panel_browser_category_width") {
-      prefs->panel_browser_category_width = std::stof(val);
+      prefs->panel_browser_category_width =
+          to_float(val, prefs->panel_browser_category_width);
     } else if (key == "panel_layout_defaults_revision") {
-      prefs->panel_layout_defaults_revision = std::stoi(val);
+      prefs->panel_layout_defaults_revision =
+          to_int(val, prefs->panel_layout_defaults_revision);
     } else if (key == "sidebar_active_category") {
       prefs->sidebar_active_category = val;
     }
@@ -197,7 +220,7 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     // Right panel widths (format: right_panel_width.panel_key=420.0)
     else if (key.substr(0, 18) == "right_panel_width.") {
       std::string panel_key = key.substr(18);
-      prefs->right_panel_widths[panel_key] = std::stof(val);
+      prefs->right_panel_widths[panel_key] = to_float(val, 0.0f);
     }
     // Saved Layouts (format: saved_layout.LayoutName.panel_id=1)
     else if (key.substr(0, 13) == "saved_layout.") {
@@ -1024,6 +1047,15 @@ absl::Status UserSettings::Load() {
       } else {
         LOG_WARN("UserSettings", "Failed to load settings.json: %s",
                  status.ToString().c_str());
+        // Preserve the unreadable file as settings.json.bak before the defaults
+        // below overwrite it via Save(), so the user can recover it.
+        std::error_code ec;
+        std::filesystem::rename(settings_file_path_,
+                                settings_file_path_ + ".bak", ec);
+        if (ec) {
+          LOG_WARN("UserSettings", "Could not back up settings.json: %s",
+                   ec.message().c_str());
+        }
       }
     }
 #endif

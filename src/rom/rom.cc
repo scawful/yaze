@@ -202,6 +202,14 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
   }
 #endif
 
+  // ALttP ROMs are <= 4MB (with an SMC header ~4MB+512); reject anything far
+  // larger so a mis-selected file cannot force a huge up-front allocation.
+  constexpr size_t kMaxRomSize = 16 * 1024 * 1024;  // 16 MB
+  if (size_ > kMaxRomSize) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "ROM file too large (%zu bytes), maximum is 16MB", size_));
+  }
+
   try {
     rom_data_.resize(size_);
     file.seekg(0, std::ios::beg);

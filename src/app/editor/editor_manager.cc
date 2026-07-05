@@ -4494,6 +4494,16 @@ void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
   }
 #endif
 
+  // Fresh launch has no ROM session, so GetCurrentEditorSet() is null and
+  // EditorActivator::SwitchToEditor would silently no-op (BUG-020) — that was
+  // why File->Settings, the "no ROM" welcome buttons, and Tools editors did
+  // nothing. Create an empty session on demand so ROM-less editors (Settings,
+  // Assembly, ...) have an editor set to live in. Normal ROM loads create their
+  // own session, so this only fires when the user reaches an editor first.
+  if (session_coordinator_ && GetCurrentEditorSet() == nullptr) {
+    session_coordinator_->CreateNewSession();
+  }
+
   auto status = EnsureEditorAssetsLoaded(editor_type);
   if (!status.ok()) {
     toast_manager_.Show(

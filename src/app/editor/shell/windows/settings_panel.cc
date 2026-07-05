@@ -243,15 +243,35 @@ std::string BuildHostTagString(const UserSettings::Preferences::AiHost& host) {
   return result;
 }
 
+// Expands a leading '~' or '~/' to the user's home directory so paths entered
+// by the user (or copied from other platforms) resolve on Linux/Windows.
+std::string ExpandLeadingTilde(const std::string& path) {
+  if (path.empty() || path.front() != '~') {
+    return path;
+  }
+  const auto home_dir = util::PlatformPaths::GetHomeDirectory();
+  if (home_dir.empty() || home_dir == ".") {
+    return path;
+  }
+  if (path.size() == 1) {
+    return home_dir.string();
+  }
+  if (path[1] == '/' || path[1] == '\\') {
+    return (home_dir / path.substr(2)).string();
+  }
+  return (home_dir / path.substr(1)).string();
+}
+
 bool AddUniquePath(std::vector<std::string>* paths, const std::string& path) {
   if (!paths || path.empty()) {
     return false;
   }
-  auto it = std::find(paths->begin(), paths->end(), path);
+  const std::string expanded = ExpandLeadingTilde(path);
+  auto it = std::find(paths->begin(), paths->end(), expanded);
   if (it != paths->end()) {
     return false;
   }
-  paths->push_back(path);
+  paths->push_back(expanded);
   return true;
 }
 
