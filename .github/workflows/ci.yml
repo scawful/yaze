@@ -427,7 +427,10 @@ jobs:
       working-directory: build
       env:
         ASAN_OPTIONS: detect_leaks=1:abort_on_error=1
-      run: ctest --output-on-failure
+      # Exclude suites that are not meaningful under ASan: performance benchmarks
+      # assert hard timing ceilings that the sanitizer's overhead blows past, and
+      # gui/experimental/rom-dependent suites need a display or external assets.
+      run: ctest --output-on-failure --label-exclude "benchmark|gui|experimental|rom_dependent"
 
   z3ed-agent-test:
     name: "z3ed Agent"
