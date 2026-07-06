@@ -1592,8 +1592,12 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
     const uint16_t tilemap_offset =
         rom_data[tilemap_entry_addr] | (rom_data[tilemap_entry_addr + 1] << 8);
-    const auto [explosion_tile_x, explosion_tile_y] =
-        tilemap_offset_to_tile_coords(tilemap_offset);
+    // Plain locals rather than a structured binding: clang-14 (used by the CI
+    // Memory Sanitizer build) rejects capturing a structured binding in a
+    // lambda (P1091), and draw_exploding_wall_segment below captures these.
+    const auto explosion_tile = tilemap_offset_to_tile_coords(tilemap_offset);
+    const auto explosion_tile_x = explosion_tile.first;
+    const auto explosion_tile_y = explosion_tile.second;
 
     auto draw_exploding_wall_segment = [&](int table_entry_addr,
                                            int segment_tile_y) -> bool {
