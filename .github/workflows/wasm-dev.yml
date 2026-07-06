@@ -79,7 +79,7 @@ jobs:
           export PATH="/usr/lib/ccache:$PATH"
           echo "Building WASM debug version..."
           chmod +x scripts/build-wasm.sh
-          ./scripts/build-wasm.sh debug
+          YAZE_WASM_BUILD_TARGETS=yaze ./scripts/build-wasm.sh debug
 
       - name: Build WASM (Release)
         if: github.event.inputs.debug_build == 'false'
@@ -87,7 +87,7 @@ jobs:
           export PATH="/usr/lib/ccache:$PATH"
           echo "Building WASM release version..."
           chmod +x scripts/build-wasm.sh
-          ./scripts/build-wasm.sh release
+          YAZE_WASM_BUILD_TARGETS=yaze ./scripts/build-wasm.sh release
 
       - name: Verify build output
         run: |
@@ -141,14 +141,14 @@ jobs:
         with:
           name: wasm-debug-${{ github.sha }}
           path: |
-            build-wasm-debug/bin/*.wasm
-            build-wasm-debug/bin/*.js
-            build-wasm-debug/bin/*.html
-            build-wasm-debug/bin/*.data
-            build-wasm/bin/*.wasm
-            build-wasm/bin/*.js
-            build-wasm/bin/*.html
-            build-wasm/bin/*.data
+            build/presets/wasm-debug/bin/*.wasm
+            build/presets/wasm-debug/bin/*.js
+            build/presets/wasm-debug/bin/*.html
+            build/presets/wasm-debug/bin/*.data
+            build/presets/wasm-release/bin/*.wasm
+            build/presets/wasm-release/bin/*.js
+            build/presets/wasm-release/bin/*.html
+            build/presets/wasm-release/bin/*.data
           if-no-files-found: warn
           retention-days: 7
 
@@ -158,10 +158,10 @@ jobs:
           echo "## WASM Build Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          BUILD_DIR="build-wasm-debug"
+          BUILD_DIR="build/presets/wasm-debug"
           BUILD_TYPE="Debug"
           if [ "${{ github.event.inputs.debug_build }}" == "false" ]; then
-            BUILD_DIR="build-wasm"
+            BUILD_DIR="build/presets/wasm-release"
             BUILD_TYPE="Release"
           fi
 
