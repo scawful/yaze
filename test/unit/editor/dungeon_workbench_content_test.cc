@@ -6,10 +6,15 @@
 #include <deque>
 #include <filesystem>
 #include <fstream>
+#include <initializer_list>
 #include <string>
+#include <vector>
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "core/project.h"
+#include "zelda3/dungeon/pit_damage_table.h"
 
 namespace yaze::editor {
 namespace {
@@ -35,6 +40,14 @@ DungeonWorkbenchContent MakeWorkbenchForToolStateTests(
       []() -> DungeonCanvasViewer* { return nullptr; },
       [&recent_rooms]() -> const std::deque<int>& { return recent_rooms; },
       [](int) {}, [](bool) {});
+}
+
+zelda3::PitDamageTable MakePitDamageTable(
+    std::initializer_list<uint16_t> room_ids) {
+  zelda3::PitDamageTable table;
+  table.SetRoomIds(std::vector<uint16_t>(room_ids));
+  table.ClearDirty();
+  return table;
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
@@ -184,6 +197,70 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_TRUE(content.IsToolDrawerActiveForTesting());
   EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools");
   EXPECT_STREQ(content.GetActiveToolIdForTesting(), "custom_collision");
+}
+
+TEST(DungeonWorkbenchPitDamageTest, BuildsStateWithSafeReplacementDefaults) {
+  auto table = MakePitDamageTable({0x001, 0x010});
+
+  auto state = BuildPitDamageMembershipState(&table, 0x001, 0x020, 0x010);
+
+  EXPECT_TRUE(state.table_available);
+  EXPECT_TRUE(state.room_valid);
+  EXPECT_EQ(state.room_id, 0x001);
+  EXPECT_TRUE(state.deals_damage);
+  EXPECT_FALSE(state.dirty);
+  ASSERT_TRUE(state.suggested_replacement_room.has_value());
+  EXPECT_EQ(*state.suggested_replacement_room, 0x020);
+  ASSERT_TRUE(state.suggested_victim_room.has_value());
+  EXPECT_EQ(*state.suggested_victim_room, 0x010);
+}
+
+TEST(DungeonWorkbenchPitDamageTest,
+     RepairsDuplicateReplacementAndNonMemberVictimDefaults) {
+  auto table = MakePitDamageTable({0x001, 0x010});
+
+  auto state = BuildPitDamageMembershipState(&table, 0x020, 0x010, 0x099);
+
+  EXPECT_TRUE(state.table_available);
+  EXPECT_TRUE(state.room_valid);
+  EXPECT_FALSE(state.deals_damage);
+  ASSERT_TRUE(state.suggested_replacement_room.has_value());
+  EXPECT_EQ(*state.suggested_replacement_room, 0x000);
+  ASSERT_TRUE(state.suggested_victim_room.has_value());
+  EXPECT_EQ(*state.suggested_victim_room, 0x001);
+}
+
+TEST(DungeonWorkbenchPitDamageTest,
+     AddAndRemoveSwapMembershipWithoutChangingCapacity) {
+  auto table = MakePitDamageTable({0x001, 0x010});
+
+  auto add_status = AddCurrentRoomToPitDamage(&table, 0x020, 0x010);
+  ASSERT_TRUE(add_status.ok()) << add_status;
+  EXPECT_TRUE(table.Contains(0x020));
+  EXPECT_FALSE(table.Contains(0x010));
+  EXPECT_EQ(table.room_ids().size(), 2u);
+  EXPECT_TRUE(table.dirty());
+
+  table.ClearDirty();
+  auto remove_status = RemoveCurrentRoomFromPitDamage(&table, 0x020, 0x030);
+  ASSERT_TRUE(remove_status.ok()) << remove_status;
+  EXPECT_TRUE(table.Contains(0x030));
+  EXPECT_FALSE(table.Contains(0x020));
+  EXPECT_EQ(table.room_ids().size(), 2u);
+  EXPECT_TRUE(table.dirty());
+}
+
+TEST(DungeonWorkbenchPitDamageTest, RejectsInvalidMembershipSwaps) {
+  auto table = MakePitDamageTable({0x001, 0x010});
+
+  EXPECT_EQ(AddCurrentRoomToPitDamage(nullptr, 0x020, 0x010).code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(AddCurrentRoomToPitDamage(&table, 0x001, 0x010).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(AddCurrentRoomToPitDamage(&table, 0x020, 0x030).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(RemoveCurrentRoomFromPitDamage(&table, 0x001, 0x010).code(),
+            absl::StatusCode::kFailedPrecondition);
 }
 
 TEST(DungeonWorkbenchProjectLabelsTest,

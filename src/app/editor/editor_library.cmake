@@ -45,6 +45,7 @@ set(
   app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/interaction/interaction_mode.cc
   app/editor/dungeon/workspace/room_graphics_content.cc
+  app/editor/dungeon/workspace/dungeon_pit_damage_view_model.cc
   app/editor/dungeon/workspace/dungeon_workbench_content.cc
   app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.cc
   app/editor/dungeon/workspace/dungeon_workbench_layout.cc
