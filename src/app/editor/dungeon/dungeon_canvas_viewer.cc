@@ -1359,8 +1359,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   // Draw coordinate overlay when hovering over canvas
   if (show_coordinate_overlay_ && canvas_.IsMouseHovering()) {
-    auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
+    const auto tile_coords = DungeonRenderingHelpers::ScreenToRoomCoordinates(
         ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
+    const int tile_x = tile_coords.first;
+    const int tile_y = tile_coords.second;
 
     // Only show if within bounds
     if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
@@ -1370,8 +1372,10 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
       int canvas_y = tile_y * 8;
 
       // Calculate camera/world coordinates (for minecart tracks, sprites, etc.)
-      auto [camera_x, camera_y] =
+      const auto camera_coords =
           dungeon_coords::TileToCameraCoords(room_id, tile_x, tile_y);
+      const int camera_x = camera_coords.first;
+      const int camera_y = camera_coords.second;
 
       // Calculate sprite coordinates (16-pixel units)
       int sprite_x = canvas_x / dungeon_coords::kSpriteTileSize;
