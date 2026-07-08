@@ -162,7 +162,17 @@ ToolRegistry& ToolRegistry::Get() {
 }
 
 void ToolRegistry::EnsureInitialized() {
-  std::call_once(init_once_, [this]() { RegisterBuiltinAgentTools(*this); });
+  std::call_once(init_once_, [this]() {
+#ifndef __EMSCRIPTEN__
+    // The builtin tool set (tool_registration.cc) pulls in the full CLI
+    // command-handler layer, which is intentionally excluded from the minimal
+    // WASM agent library (see cli/agent.cmake). Skipping it here keeps the
+    // Emscripten link from requiring RegisterBuiltinAgentTools/tool_registration.cc.
+    RegisterBuiltinAgentTools(*this);
+#else
+    (void)this;
+#endif
+  });
 }
 
 void ToolRegistry::RegisterTool(const ToolDefinition& def,
