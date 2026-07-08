@@ -78,6 +78,7 @@ See the [.yazeproj Bundle Guide](../usage/yazeproj-bundles.md) for the full dire
 
 ## Packaging Notes
 - Prefer static/runtime-complete bundles for end users (AppImage on Linux, app bundle on macOS, zip on Windows).
+- **Linux: build redistributable packages with the from-source (statically linked) protobuf/gRPC stack** — i.e. leave `YAZE_PREFER_SYSTEM_GRPC` and `YAZE_USE_SYSTEM_DEPS` **OFF** (the default, as used by the `release` preset). Do **not** package a build made with `-DYAZE_PREFER_SYSTEM_GRPC=ON` or a system-gRPC preset (`lin-ai`, `ci-linux`): protobuf's SONAME changes between releases, so the binary would hard-link the build host's `libprotobuf.so.NN` and fail on other distributions with `libprotobuf.so.NN: cannot open shared object file`. See [Troubleshooting → Shared Library Not Found at Runtime](./troubleshooting.md#shared-library-not-found-at-runtime-libprotobufsonn-libgrpcsonn). Set `-DYAZE_STRICT_PORTABLE_PACKAGING=ON` to turn the configure-time warning into a hard error in packaging pipelines.
 - When creating packages (Homebrew/Chocolatey/winget), pin the release URL and checksum and align dependencies to the CMake presets (`mac-*/lin-*/win-*`).
 - Keep CLI and GUI in the same archive to avoid mismatched versions; CLI entry is `z3ed`, GUI entry is `yaze`.
 

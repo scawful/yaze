@@ -13,3 +13,9 @@
 leak:yaze::core::AsarWrapper::ApplyPatchWithLibrary
 leak:yaze::core::AsarWrapper::ValidateAssembly
 leak:yaze::core::AsarWrapper::ExtractSymbolsFromLastOperation
+
+# ImGui: headless editor tests can exercise ImGui-backed containers without a
+# full UI lifetime. Suppress only allocations rooted in the third-party ImGui
+# allocator so YAZE-owned leaks remain visible.
+leak:ImGui::MemAlloc
+leak:MallocWrapper

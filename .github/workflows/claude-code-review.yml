@@ -12,9 +12,8 @@ on:
 
 jobs:
   claude-review:
-    # Skip on PRs from forks: fork PRs cannot obtain an OIDC token
-    # (ACTIONS_ID_TOKEN_REQUEST_URL is absent), so the Claude action would fail
-    # its auth step. Same-repo PRs (e.g. release/* branches) still run.
+    # GitHub does not expose OIDC tokens to pull_request runs from forks.
+    # Skip fork PRs so CI can still pass; same-repo PRs retain Claude review.
     if: github.event.pull_request.head.repo.full_name == github.repository
 
     runs-on: ubuntu-latest
