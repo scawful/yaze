@@ -1,6 +1,6 @@
 # Roadmap
 
-**Last Updated: April 19, 2026**
+**Last Updated: June 11, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
@@ -9,22 +9,29 @@ This roadmap tracks upcoming releases and major ongoing initiatives.
 ## Current Focus (v0.7.2 development)
 
 `master` moved to 0.7.2 immediately after tagging `v0.7.1` on April 19, 2026.
-The current line is post-release stabilization and follow-through work while
-the next planned feature milestone remains 0.8.0. See
-`docs/internal/plans/0.7.1-release-plan.md` for the shipped 0.7.1 bundle and
-`docs/public/release-notes.md` for the published release summary.
+The current line is post-release stabilization and follow-through work. The
+next several minors are planned around finishing the main ALTTP editors first,
+with `z3ed`, `z3dk`, Oracle AI, and Oracle of Secrets support tracked as
+secondary trains. See `docs/internal/plans/0.7.1-release-plan.md` for the
+shipped 0.7.1 bundle, `docs/public/release-notes.md` for the published release
+summary, and `docs/internal/plans/release-ladder-0x-2026.md` for the
+editor-first `0.x` sequencing.
 
 **0.7.2 themes:**
 - Release/build follow-through: keep workflows, scripts, and docs aligned with
   the per-preset `build/presets/<preset>` binary layout
 - Editor source-layout stabilization after the 0.7.1 reorg: retire legacy
   headers, keep canonical `shell/`, `registry/`, and `system/*` paths aligned
-- Early 0.8.0 prep: z3dk toolchain integration planning (embedded assembler,
-  65816 LSP features, unified Mesen2 client, `.mlb` symbol export)
+- Dungeon UX/save-path follow-through: keep room-nav/workbench layout
+  responsive, protect visible room area in constrained panes, and harden the
+  persistence handoff path that feeds the broader `0.8.0` dungeon milestone
+- Editor-first `0.8.0+` planning: keep the next minors anchored on core ALTTP
+  editor completion while scheduling `z3ed`, `z3dk`, Oracle AI, and OoS work
+  in bounded secondary slices
 
 **Latest shipped release:** `v0.7.1` (April 19, 2026).
 **Next planned feature milestone:** `0.8.0`, tracked in
-`docs/internal/plans/z3dk-integration-0.8.0.md`.
+`docs/internal/plans/release-ladder-0x-2026.md`.
 
 ---
 
@@ -78,13 +85,34 @@ for reliable ROM hacking. ZScream is the stability benchmark.
   workbench and standalone panel mode via deferred safe-mode switching
 - ✅ Dungeon status bar now shows workflow badge (`Workbench`) in integrated mode
 - ✅ Standalone room windows now expose one-click `Workbench` return affordance
+- ✅ Responsive dungeon workbench layout now collapses room navigation into a
+  compact grid in tighter widths, stacks toolbar sections earlier, trims helper
+  chrome, and protects the center canvas before squeezing the inspector
+- ✅ Focused persistence coverage now spans room headers, torches, pushable
+  blocks, custom collision, chests, pot items, and dungeon entrances;
+  `DungeonEditorSystem` now saves full managed-room state without later-room
+  global-save clobbering
+- ✅ Object tile editor preview/atlas state now refreshes on palette changes and
+  failed re-open attempts clear stale layout state; focused panel/backend tests
+  cover the reset path and palette-sensitive rendering
+- ✅ Object selector/browser thumbnails are default-on, cull off-screen grid
+  entries, and disclose rendered-vs-fallback preview state in tooltips
 - 🟡 **Object tile count fallback**: parser uses object-specific counts for known
-  IDs but still falls back to 8 for uncataloged cases; continue ROM-trace audits
-  for rare objects.
-- 🟡 Object preview rendering (stubbed)
-- 🟡 12+ unknown dungeon object types need verification
-- 🟡 Visual discrepancies in specific objects (vertical rails, doors)
-- 🟡 Room object type identification incomplete
+  IDs, including explicit zero-tile `DrawNothing` logic objects, but still falls
+  back to 8 for uncataloged cases; continue ROM-trace audits for rare objects.
+- 🟡 Remaining dungeon object naming now concentrates on gameplay-specific labels;
+  routine-backed room object labels and resource export are canonicalized through
+  `room_object.h`.
+- 🟡 Visual parity audits continue for rare object routines; door placement now
+  rejects invalid positions outside the USDASM 12-entry tables before they can
+  render as clamped valid doors.
+- 🟡 ROM-backed room render regression fixtures guard five vanilla rooms
+  (`test/integration/zelda3/dungeon_room_regression_fixtures_test.cc`).
+- 🟡 `PitDamageTable` loads/saves the global RoomsWithPitDamage membership
+  table when dirty; UI toggles remain future work.
+- 🟡 Pushable blocks do not yet repoint/expand beyond the vanilla table cap.
+- 🟡 Optional connected-room overview / scrollable grouped-room workspace
+  remains exploratory; single-room editing remains the primary path
 - 🟡 ASM export (deferred)
 
 **Overworld Editor** (Beta)
@@ -102,21 +130,25 @@ for reliable ROM hacking. ZScream is the stability benchmark.
   to keep inspector/edit iteration continuous
 - ✅ Tile16 UX parity polish landed (explicit `Paint/Pick/Usage` modes + sticky
   action rail)
+- ✅ Overworld canvas context menu now exposes direct Tile16 sampling in MOUSE
+  mode, matching the right-click/eyedropper workflow without opening the Tile16
+  editor.
 - ✅ Overworld item workflow iteration UX landed (filterable item list panel +
   duplicate/nudge shortcuts)
 - ✅ Overworld item batch undo coverage added (multi-delete and nudge
   sequences with undo/redo integration tests)
 - 🟡 Export file dialog not implemented
 - 🟡 **Persistent scratch pad**: ZScream saves `ScratchPad.dat`; yaze scratch is session-only
-- 🟡 **Eyedropper tool**: no dedicated tool/shortcut (ZScream has right-click sampling)
+- 🟡 **Eyedropper tool**: context-menu Tile16 sampling landed; dedicated
+  shortcut/tool parity remains open.
 
 **ZScream Parity Targets**
 
 | Feature | ZScream | yaze | Priority |
 |---------|---------|------|----------|
-| Object-specific tile counts | ✅ Per-object (4-242) | ❌ Hardcoded 8 | High |
+| Object-specific tile counts | ✅ Per-object (4-242) | 🟡 Known IDs cataloged; rare fallback audits remain | High |
 | Persistent scratch pad | ✅ `ScratchPad.dat` | ❌ Session-only | Medium |
-| Eyedropper tool | ✅ Right-click sampling | ❌ Missing | Medium |
+| Eyedropper tool | ✅ Right-click sampling | 🟡 Overworld context-menu Tile16 sampling landed; broaden editor parity next | Medium |
 | ZScream project import | ✅ Native format | ❌ Not parsed | Low |
 | Selection UX (marquee, context menus) | ✅ Mature | 🟡 Functional, needs validation | Medium |
 | Room header editing | ✅ 14-byte headers | ✅ Parity | — |
@@ -248,6 +280,12 @@ Mobile testing and review companion for desktop development.
 
 ## Future (v0.8.0+)
 
+- **Editor-first release ladder**: `0.8.0` through `0.12.0` are planned
+  primarily around Dungeon, Overworld, secondary editor parity, Music/Memory,
+  and workspace/project lifecycle completion. For Dungeon, that includes
+  correctness, workbench/save-path UX, and optional spatial-context features
+  that do not replace focused single-room editing. See
+  `docs/internal/plans/release-ladder-0x-2026.md`.
 - **z3dk toolchain integration**: embedded `z3asm` assembler, 65816 LSP
   features (hover/diagnostics/go-to-def), unified Mesen2 socket client,
   `.mlb` symbol export. See `docs/internal/plans/z3dk-integration-0.8.0.md`.

@@ -32,56 +32,58 @@ enum class DoorDirection : uint8_t {
  */
 enum class DoorType : uint8_t {
   // Standard doors (0x00-0x06)
-  NormalDoor = 0x00,              ///< Normal door (upper layer)
-  NormalDoorLower = 0x02,         ///< Normal door (lower layer)
-  ExitLower = 0x04,               ///< Exit (lower layer)
-  UnusedCaveExit = 0x06,          ///< Unused cave exit (lower layer)
+  NormalDoor = 0x00,       ///< Normal door (upper layer)
+  NormalDoorLower = 0x02,  ///< Normal door (lower layer)
+  ExitLower = 0x04,        ///< Exit (lower layer)
+  UnusedCaveExit = 0x06,   ///< Unused cave exit (lower layer)
 
   // Cave/dungeon exits (0x08-0x10)
-  WaterfallDoor = 0x08,           ///< Waterfall door
-  FancyDungeonExit = 0x0A,        ///< Fancy dungeon exit
-  FancyDungeonExitLower = 0x0C,   ///< Fancy dungeon exit (lower layer)
-  CaveExit = 0x0E,                ///< Cave exit
-  LitCaveExitLower = 0x10,        ///< Lit cave exit (lower layer)
+  WaterfallDoor = 0x08,          ///< Waterfall door
+  FancyDungeonExit = 0x0A,       ///< Fancy dungeon exit
+  FancyDungeonExitLower = 0x0C,  ///< Fancy dungeon exit (lower layer)
+  CaveExit = 0x0E,               ///< Cave exit
+  LitCaveExitLower = 0x10,       ///< Lit cave exit (lower layer)
 
   // Markers (0x12-0x16)
-  ExitMarker = 0x12,              ///< Exit marker
-  DungeonSwapMarker = 0x14,       ///< Dungeon swap marker
-  LayerSwapMarker = 0x16,         ///< Layer swap marker
+  ExitMarker = 0x12,         ///< Exit marker
+  DungeonSwapMarker = 0x14,  ///< Dungeon swap marker
+  LayerSwapMarker = 0x16,    ///< Layer swap marker
 
   // Key doors and shutters (0x18-0x26)
-  DoubleSidedShutter = 0x18,      ///< Double sided shutter door
-  EyeWatchDoor = 0x1A,            ///< Eye watch door
-  SmallKeyDoor = 0x1C,            ///< Small key door
-  BigKeyDoor = 0x1E,              ///< Big key door
-  SmallKeyStairsUp = 0x20,        ///< Small key stairs (upwards)
-  SmallKeyStairsDown = 0x22,      ///< Small key stairs (downwards)
-  SmallKeyStairsUpLower = 0x24,   ///< Small key stairs (lower layer; upwards)
-  SmallKeyStairsDownLower = 0x26, ///< Small key stairs (lower layer; downwards)
+  DoubleSidedShutter = 0x18,     ///< Double sided shutter door
+  EyeWatchDoor = 0x1A,           ///< Eye watch door
+  SmallKeyDoor = 0x1C,           ///< Small key door
+  BigKeyDoor = 0x1E,             ///< Big key door
+  SmallKeyStairsUp = 0x20,       ///< Small key stairs (upwards)
+  SmallKeyStairsDown = 0x22,     ///< Small key stairs (downwards)
+  SmallKeyStairsUpLower = 0x24,  ///< Small key stairs (lower layer; upwards)
+  SmallKeyStairsDownLower =
+      0x26,  ///< Small key stairs (lower layer; downwards)
 
   // Destructible doors (0x28-0x30)
-  DashWall = 0x28,                ///< Dash wall
-  BombableCaveExit = 0x2A,        ///< Bombable cave exit
-  UnopenableBigKeyDoor = 0x2C,    ///< Unopenable, double-sided big key door
-  BombableDoor = 0x2E,            ///< Bombable door
-  ExplodingWall = 0x30,           ///< Exploding wall
+  DashWall = 0x28,              ///< Dash wall
+  BombableCaveExit = 0x2A,      ///< Bombable cave exit
+  UnopenableBigKeyDoor = 0x2C,  ///< Unopenable, double-sided big key door
+  BombableDoor = 0x2E,          ///< Bombable door
+  ExplodingWall = 0x30,         ///< Exploding wall
 
   // Special doors (0x32-0x40)
-  CurtainDoor = 0x32,             ///< Curtain door
-  UnusableBottomShutter = 0x34,   ///< Unusable bottom-sided shutter door
-  BottomSidedShutter = 0x36,      ///< Bottom-sided shutter door
-  TopSidedShutter = 0x38,         ///< Top-sided shutter door
-  UnusableNormalDoor3A = 0x3A,    ///< Unusable normal door (lower layer)
-  UnusableNormalDoor3C = 0x3C,    ///< Unusable normal door (lower layer)
-  UnusableNormalDoor3E = 0x3E,    ///< Unusable normal door (lower layer)
-  NormalDoorOneSidedShutter = 0x40, ///< Normal door (lower layer; with one-sided shutters)
+  CurtainDoor = 0x32,            ///< Curtain door
+  UnusableBottomShutter = 0x34,  ///< Unusable bottom-sided shutter door
+  BottomSidedShutter = 0x36,     ///< Bottom-sided shutter door
+  TopSidedShutter = 0x38,        ///< Top-sided shutter door
+  UnusableNormalDoor3A = 0x3A,   ///< Unusable normal door (lower layer)
+  UnusableNormalDoor3C = 0x3C,   ///< Unusable normal door (lower layer)
+  UnusableNormalDoor3E = 0x3E,   ///< Unusable normal door (lower layer)
+  NormalDoorOneSidedShutter =
+      0x40,  ///< Normal door (lower layer; with one-sided shutters)
 
   // Additional shutters (0x42-0x4A)
-  UnusedDoubleSidedShutter = 0x42, ///< Unused double-sided shutter
-  DoubleSidedShutterLower = 0x44,  ///< Double-sided shutter (lower layer)
-  ExplicitRoomDoor = 0x46,         ///< Explicit room door
-  BottomShutterLower = 0x48,       ///< Bottom-sided shutter door (lower layer)
-  TopShutterLower = 0x4A,          ///< Top-sided shutter door (lower layer)
+  UnusedDoubleSidedShutter = 0x42,  ///< Unused double-sided shutter
+  DoubleSidedShutterLower = 0x44,   ///< Double-sided shutter (lower layer)
+  ExplicitRoomDoor = 0x46,          ///< Explicit room door
+  BottomShutterLower = 0x48,        ///< Bottom-sided shutter door (lower layer)
+  TopShutterLower = 0x4A,           ///< Top-sided shutter door (lower layer)
 
   // Unusable/glitchy doors (0x4C-0x66)
   UnusableNormalDoor4C = 0x4C,     ///< Unusable normal door (lower layer)
@@ -95,9 +97,11 @@ enum class DoorType : uint8_t {
   UnusableGlitchyStairs5C = 0x5C,  ///< Unusable glitchy/stairs up (lower layer)
   UnusableGlitchyStairs5E = 0x5E,  ///< Unusable glitchy/stairs up (lower layer)
   UnusableGlitchyStairs60 = 0x60,  ///< Unusable glitchy/stairs up (lower layer)
-  UnusableGlitchyStairsDown62 = 0x62, ///< Unusable glitchy/stairs down (lower layer)
+  UnusableGlitchyStairsDown62 =
+      0x62,  ///< Unusable glitchy/stairs down (lower layer)
   UnusableGlitchyStairs64 = 0x64,  ///< Unusable glitchy/stairs up (lower layer)
-  UnusableGlitchyStairsDown66 = 0x66  ///< Unusable glitchy/stairs down (lower layer)
+  UnusableGlitchyStairsDown66 =
+      0x66  ///< Unusable glitchy/stairs down (lower layer)
 };
 
 /**
@@ -106,52 +110,91 @@ enum class DoorType : uint8_t {
 constexpr std::string_view GetDoorTypeName(DoorType type) {
   switch (type) {
     // Standard doors
-    case DoorType::NormalDoor: return "Normal Door";
-    case DoorType::NormalDoorLower: return "Normal Door (Lower)";
-    case DoorType::ExitLower: return "Exit (Lower)";
-    case DoorType::UnusedCaveExit: return "Unused Cave Exit";
+    case DoorType::NormalDoor:
+      return "Normal Door";
+    case DoorType::NormalDoorLower:
+      return "Normal Door (Lower)";
+    case DoorType::ExitLower:
+      return "Exit (Lower)";
+    case DoorType::UnusedCaveExit:
+      return "Unused Cave Exit";
     // Cave/dungeon exits
-    case DoorType::WaterfallDoor: return "Waterfall Door";
-    case DoorType::FancyDungeonExit: return "Fancy Dungeon Exit";
-    case DoorType::FancyDungeonExitLower: return "Fancy Exit (Lower)";
-    case DoorType::CaveExit: return "Cave Exit";
-    case DoorType::LitCaveExitLower: return "Lit Cave Exit (Lower)";
+    case DoorType::WaterfallDoor:
+      return "Waterfall Door";
+    case DoorType::FancyDungeonExit:
+      return "Fancy Dungeon Exit";
+    case DoorType::FancyDungeonExitLower:
+      return "Fancy Exit (Lower)";
+    case DoorType::CaveExit:
+      return "Cave Exit";
+    case DoorType::LitCaveExitLower:
+      return "Lit Cave Exit (Lower)";
     // Markers
-    case DoorType::ExitMarker: return "Exit Marker";
-    case DoorType::DungeonSwapMarker: return "Dungeon Swap Marker";
-    case DoorType::LayerSwapMarker: return "Layer Swap Marker";
+    case DoorType::ExitMarker:
+      return "Exit Marker";
+    case DoorType::DungeonSwapMarker:
+      return "Dungeon Swap Marker";
+    case DoorType::LayerSwapMarker:
+      return "Layer Swap Marker";
     // Key doors and shutters
-    case DoorType::DoubleSidedShutter: return "Double-Sided Shutter";
-    case DoorType::EyeWatchDoor: return "Eye Watch Door";
-    case DoorType::SmallKeyDoor: return "Small Key Door";
-    case DoorType::BigKeyDoor: return "Big Key Door";
-    case DoorType::SmallKeyStairsUp: return "Small Key Stairs (Up)";
-    case DoorType::SmallKeyStairsDown: return "Small Key Stairs (Down)";
-    case DoorType::SmallKeyStairsUpLower: return "Key Stairs Up (Lower)";
-    case DoorType::SmallKeyStairsDownLower: return "Key Stairs Down (Lower)";
+    case DoorType::DoubleSidedShutter:
+      return "Double-Sided Shutter";
+    case DoorType::EyeWatchDoor:
+      return "Eye Watch Door";
+    case DoorType::SmallKeyDoor:
+      return "Small Key Door";
+    case DoorType::BigKeyDoor:
+      return "Big Key Door";
+    case DoorType::SmallKeyStairsUp:
+      return "Small Key Stairs (Up)";
+    case DoorType::SmallKeyStairsDown:
+      return "Small Key Stairs (Down)";
+    case DoorType::SmallKeyStairsUpLower:
+      return "Key Stairs Up (Lower)";
+    case DoorType::SmallKeyStairsDownLower:
+      return "Key Stairs Down (Lower)";
     // Destructible
-    case DoorType::DashWall: return "Dash Wall";
-    case DoorType::BombableCaveExit: return "Bombable Cave Exit";
-    case DoorType::UnopenableBigKeyDoor: return "Unopenable Big Key Door";
-    case DoorType::BombableDoor: return "Bombable Door";
-    case DoorType::ExplodingWall: return "Exploding Wall";
+    case DoorType::DashWall:
+      return "Dash Wall";
+    case DoorType::BombableCaveExit:
+      return "Bombable Cave Exit";
+    case DoorType::UnopenableBigKeyDoor:
+      return "Unopenable Big Key Door";
+    case DoorType::BombableDoor:
+      return "Bombable Door";
+    case DoorType::ExplodingWall:
+      return "Exploding Wall";
     // Special
-    case DoorType::CurtainDoor: return "Curtain Door";
-    case DoorType::UnusableBottomShutter: return "Unusable Bottom Shutter";
-    case DoorType::BottomSidedShutter: return "Bottom-Sided Shutter";
-    case DoorType::TopSidedShutter: return "Top-Sided Shutter";
-    case DoorType::UnusableNormalDoor3A: return "Unusable Door 0x3A";
-    case DoorType::UnusableNormalDoor3C: return "Unusable Door 0x3C";
-    case DoorType::UnusableNormalDoor3E: return "Unusable Door 0x3E";
-    case DoorType::NormalDoorOneSidedShutter: return "Normal Door (One-Sided)";
+    case DoorType::CurtainDoor:
+      return "Curtain Door";
+    case DoorType::UnusableBottomShutter:
+      return "Unusable Bottom Shutter";
+    case DoorType::BottomSidedShutter:
+      return "Bottom-Sided Shutter";
+    case DoorType::TopSidedShutter:
+      return "Top-Sided Shutter";
+    case DoorType::UnusableNormalDoor3A:
+      return "Unusable Door 0x3A";
+    case DoorType::UnusableNormalDoor3C:
+      return "Unusable Door 0x3C";
+    case DoorType::UnusableNormalDoor3E:
+      return "Unusable Door 0x3E";
+    case DoorType::NormalDoorOneSidedShutter:
+      return "Normal Door (One-Sided)";
     // Additional shutters
-    case DoorType::UnusedDoubleSidedShutter: return "Unused Double Shutter";
-    case DoorType::DoubleSidedShutterLower: return "Double Shutter (Lower)";
-    case DoorType::ExplicitRoomDoor: return "Explicit Room Door";
-    case DoorType::BottomShutterLower: return "Bottom Shutter (Lower)";
-    case DoorType::TopShutterLower: return "Top Shutter (Lower)";
+    case DoorType::UnusedDoubleSidedShutter:
+      return "Unused Double Shutter";
+    case DoorType::DoubleSidedShutterLower:
+      return "Double Shutter (Lower)";
+    case DoorType::ExplicitRoomDoor:
+      return "Explicit Room Door";
+    case DoorType::BottomShutterLower:
+      return "Bottom Shutter (Lower)";
+    case DoorType::TopShutterLower:
+      return "Top Shutter (Lower)";
     // Unusable/glitchy
-    default: return "Unknown/Glitchy Door";
+    default:
+      return "Unknown/Glitchy Door";
   }
 }
 
@@ -202,6 +245,24 @@ constexpr DoorDimensions GetDoorDimensions(DoorDirection dir) {
 }
 
 /**
+ * @brief Get editor interaction dimensions for a door.
+ *
+ * Some north-door types render with a taller footprint than the generic
+ * 4x3 ranged-door table. The editor uses these dimensions for hit-testing and
+ * placement previews so selection matches what the user sees.
+ *
+ * Exploding walls intentionally keep the generic footprint here because their
+ * visible open-state placement depends on runtime door state and a ROM lookup.
+ */
+constexpr DoorDimensions GetEditorDoorDimensions(DoorDirection dir,
+                                                 DoorType type) {
+  if (dir == DoorDirection::North && type == DoorType::CurtainDoor) {
+    return {4, 4};
+  }
+  return GetDoorDimensions(dir);
+}
+
+/**
  * @brief Convert raw type byte to DoorType enum
  * @param raw_type Upper nibble of byte2 (already shifted)
  */
@@ -223,26 +284,16 @@ constexpr DoorDirection DoorDirectionFromRaw(uint8_t raw_dir) {
  */
 constexpr std::array<DoorType, 20> GetAllDoorTypes() {
   return {{
-      DoorType::NormalDoor,
-      DoorType::NormalDoorLower,
-      DoorType::CaveExit,
-      DoorType::DoubleSidedShutter,
-      DoorType::EyeWatchDoor,
-      DoorType::SmallKeyDoor,
-      DoorType::BigKeyDoor,
-      DoorType::SmallKeyStairsUp,
-      DoorType::SmallKeyStairsDown,
-      DoorType::DashWall,
-      DoorType::BombableDoor,
-      DoorType::ExplodingWall,
-      DoorType::CurtainDoor,
-      DoorType::BottomSidedShutter,
-      DoorType::TopSidedShutter,
-      DoorType::FancyDungeonExit,
-      DoorType::WaterfallDoor,
-      DoorType::ExitMarker,
-      DoorType::LayerSwapMarker,
-      DoorType::DungeonSwapMarker,
+      DoorType::NormalDoor,         DoorType::NormalDoorLower,
+      DoorType::CaveExit,           DoorType::DoubleSidedShutter,
+      DoorType::EyeWatchDoor,       DoorType::SmallKeyDoor,
+      DoorType::BigKeyDoor,         DoorType::SmallKeyStairsUp,
+      DoorType::SmallKeyStairsDown, DoorType::DashWall,
+      DoorType::BombableDoor,       DoorType::ExplodingWall,
+      DoorType::CurtainDoor,        DoorType::BottomSidedShutter,
+      DoorType::TopSidedShutter,    DoorType::FancyDungeonExit,
+      DoorType::WaterfallDoor,      DoorType::ExitMarker,
+      DoorType::LayerSwapMarker,    DoorType::DungeonSwapMarker,
   }};
 }
 

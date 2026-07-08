@@ -72,6 +72,130 @@ void Draw4x4ColumnMajor(const DrawContext& ctx, int x_offset, int y_offset,
                   ctx.object.y_ + y_offset, 4, 4, ctx.tiles, start_index);
 }
 
+void Draw4x4ColumnMajorTo(gfx::BackgroundBuffer& bg, const RoomObject& object,
+                          std::span<const gfx::TileInfo> tiles) {
+  DrawColumnMajor(bg, object.x_, object.y_, 4, 4, tiles);
+}
+
+void DrawMany32x32Block(gfx::BackgroundBuffer& bg, int base_x, int base_y,
+                        std::span<const gfx::TileInfo> tiles) {
+  // USDASM RoomDraw_A_Many32x32Blocks ($01:8A44) writes tiles 0..3 through
+  // row-0 tilemap pointers and tiles 4..7 through row-1 pointers, then repeats
+  // the same 4x2 stamp two tile rows lower.
+  DrawRowMajor(bg, base_x, base_y, /*w=*/4, /*h=*/2, tiles);
+  DrawRowMajor(bg, base_x, base_y + 2, /*w=*/4, /*h=*/2, tiles);
+}
+
+bool IsAutoStairsDualLayer(int16_t object_id) {
+  return object_id == 0x0130 || object_id == 0x0131 || object_id == 0x0F9B ||
+         object_id == 0x0F9C;
+}
+
+bool IsStraightInterroomUpper(int16_t object_id) {
+  return object_id >= 0x0F9E && object_id <= 0x0FA1;
+}
+
+bool IsStraightInterroomLower(int16_t object_id) {
+  return object_id >= 0x0FA6 && object_id <= 0x0FA9;
+}
+
+bool IsSouthLowerStraightInterroomStairs(int16_t object_id) {
+  return object_id == 0x0FA8 || object_id == 0x0FA9;
+}
+
+void DrawWaterHopStairsA(const DrawContext& ctx) {
+  // ASM: RoomDraw_WaterHopStairs_A ($019B1E) falls through PortraitOfMario's
+  // single-pass Downwards4x2VariableSpacing path, which is a fixed 4x2
+  // ROW-MAJOR stamp on the active layer.
+  if (ctx.tiles.size() < 8)
+    return;
+
+  DrawRowMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 4, 2, ctx.tiles);
+}
+
+void DrawWaterHopStairsB(const DrawContext& ctx) {
+  // ASM: RoomDraw_WaterHopStairs_B ($01A3AE) writes the same 4x2 ROW-MAJOR
+  // footprint to both BG tilemaps. The outer draw framework handles the dual
+  // pass for routines marked draws_to_both_bgs.
+  DrawWaterHopStairsA(ctx);
+}
+
+void DrawDamFloodGate(const DrawContext& ctx) {
+  // ASM: RoomDraw_DamFloodGate ($019BF8) stamps a 10x4 column-major tile block
+  // from the closed tile span by default, and swaps to the alternate water-open
+  // tile span when the overworld event is active.
+  constexpr size_t kSpanTiles = 40;
+  const bool use_open_tiles = ctx.state != nullptr &&
+                              ctx.state->IsDamFloodgateOpen(ctx.room_id) &&
+                              ctx.tiles.size() >= kSpanTiles * 2;
+  const size_t start_index = use_open_tiles ? kSpanTiles : 0;
+  if (ctx.tiles.size() < start_index + kSpanTiles)
+    return;
+
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 10, 4, ctx.tiles,
+                  start_index);
+}
+
+void WritePlatformTile(const DrawContext& ctx, int dx, int dy, size_t index) {
+  if (index >= ctx.tiles.size())
+    return;
+
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + dx,
+                               ctx.object.y_ + dy, ctx.tiles[index]);
+}
+
+void DrawPlatform1x3Rightwards(const DrawContext& ctx, int dx, int dy,
+                               size_t start_index, int columns) {
+  for (int x = 0; x < columns; ++x) {
+    for (int y = 0; y < 3; ++y) {
+      WritePlatformTile(ctx, dx + x, dy + y, start_index + x * 3 + y);
+    }
+  }
+}
+
+void DrawPlatform2x2(const DrawContext& ctx, int dx, int dy,
+                     size_t start_index) {
+  WritePlatformTile(ctx, dx + 0, dy + 0, start_index + 0);
+  WritePlatformTile(ctx, dx + 0, dy + 1, start_index + 1);
+  WritePlatformTile(ctx, dx + 1, dy + 0, start_index + 2);
+  WritePlatformTile(ctx, dx + 1, dy + 1, start_index + 3);
+}
+
+void DrawPlatform3x2(const DrawContext& ctx, int dx, int dy,
+                     size_t start_index) {
+  WritePlatformTile(ctx, dx + 0, dy + 0, start_index + 0);
+  WritePlatformTile(ctx, dx + 1, dy + 0, start_index + 1);
+  WritePlatformTile(ctx, dx + 2, dy + 0, start_index + 2);
+  WritePlatformTile(ctx, dx + 0, dy + 1, start_index + 3);
+  WritePlatformTile(ctx, dx + 1, dy + 1, start_index + 4);
+  WritePlatformTile(ctx, dx + 2, dy + 1, start_index + 5);
+}
+
+void DrawOpenChestPlatformSegment(const DrawContext& ctx, int dy,
+                                  size_t start_index, int fill_width) {
+  WritePlatformTile(ctx, /*dx=*/0, dy, start_index + 0);
+
+  for (int i = 0; i < fill_width; ++i) {
+    WritePlatformTile(ctx, /*dx=*/1 + i, dy, start_index + 3);
+  }
+
+  const int left_cap_x = 1 + fill_width;
+  WritePlatformTile(ctx, left_cap_x, dy, start_index + 6);
+
+  for (int i = 0; i < 4; ++i) {
+    WritePlatformTile(ctx, left_cap_x + 1 + i, dy, start_index + 9);
+  }
+
+  const int right_cap_x = left_cap_x + 5;
+  WritePlatformTile(ctx, right_cap_x, dy, start_index + 12);
+
+  for (int i = 0; i < fill_width; ++i) {
+    WritePlatformTile(ctx, right_cap_x + 1 + i, dy, start_index + 15);
+  }
+
+  WritePlatformTile(ctx, right_cap_x + 1 + fill_width, dy, start_index + 18);
+}
+
 }  // namespace
 
 void DrawChest(const DrawContext& ctx, int chest_index) {
@@ -293,11 +417,9 @@ void DrawSomariaLine(const DrawContext& ctx) {
 }
 
 void DrawWaterFace(const DrawContext& ctx) {
-  // Pattern: Water Face (Type 3 objects 0xF80-0xF82)
-  // Draws a 2x2 face in COLUMN-MAJOR order
-  // TODO: Implement state check from RoomDraw_EmptyWaterFace ($019D29)
-  // Checks Room ID ($AF), Room State ($7EF000), Door Flags ($0403) to switch
-  // graphic
+  // Legacy 2x2 helper used by older corner-family routines. The real subtype-3
+  // water-face objects are handled by DrawEmptyWaterFace /
+  // DrawSpittingWaterFace / DrawDrenchingWaterFace below.
   if (ctx.tiles.size() >= 4) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
                                  ctx.tiles[0]);  // col 0, row 0
@@ -657,24 +779,7 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      // Tile order is COLUMN-MAJOR 4x2, matching RoomDraw_A_Many32x32Blocks:
-      // [col0 row0, col0 row1, col1 row0, col1 row1, ...].
-      for (int x = 0; x < 4; ++x) {
-        const auto& row0 = ctx.tiles[(x * 2) + 0];
-        const auto& row1 = ctx.tiles[(x * 2) + 1];
-
-        // Top half (rows 0-1)
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 0,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
-                                     row1);
-
-        // Bottom half (rows 2-3) repeats the same 4x2 pattern.
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
-                                     row1);
-      }
+      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
     }
   }
 }
@@ -696,19 +801,7 @@ void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      for (int x = 0; x < 4; ++x) {
-        const auto& row0 = ctx.tiles[(x * 2) + 0];
-        const auto& row1 = ctx.tiles[(x * 2) + 1];
-
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 0,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
-                                     row1);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
-                                     row1);
-      }
+      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
     }
   }
 }
@@ -729,19 +822,7 @@ void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx) {
       int base_x = ctx.object.x_ + (sx * 4);
       int base_y = ctx.object.y_ + (sy * 4);
 
-      for (int x = 0; x < 4; ++x) {
-        const auto& row0 = ctx.tiles[(x * 2) + 0];
-        const auto& row1 = ctx.tiles[(x * 2) + 1];
-
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 0,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
-                                     row1);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 2,
-                                     row0);
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 3,
-                                     row1);
-      }
+      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
     }
   }
 }
@@ -935,21 +1016,14 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
 
 void DrawInterRoomFatStairsUp(const DrawContext& ctx) {
   // ASM: RoomDraw_InterRoomFatStairsUp ($01A41B)
-  // Uses tile data at obj1088, draws 4x4 pattern
+  // Uses RoomDraw_4x4, which consumes a 4x4 tile block in COLUMN-MAJOR order.
   // In original game, registers position in $06B0 for transition handling
   // For editor display, we just draw the visual representation
 
   if (ctx.tiles.size() < 16)
     return;
 
-  // Draw 4x4 stair pattern
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      size_t tile_idx = static_cast<size_t>(y * 4 + x);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
-    }
-  }
+  Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
 }
 
 void DrawInterRoomFatStairsDownA(const DrawContext& ctx) {
@@ -967,49 +1041,59 @@ void DrawInterRoomFatStairsDownB(const DrawContext& ctx) {
 void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper) {
   // ASM: RoomDraw_SpiralStairsGoingUpUpper, etc.
   // Calls RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows = 12 tiles
-  // Tile order is COLUMN-MAJOR (down first, then right)
+  // Tile order is COLUMN-MAJOR (down first, then right).
+  // Upper variants render to BG1, lower variants render to BG2.
   (void)going_up;
-  (void)is_upper;
 
   if (ctx.tiles.size() < 12)
     return;
 
-  // Draw 4x3 pattern in COLUMN-MAJOR order (matching ASM)
-  int tid = 0;
-  for (int x = 0; x < 4; ++x) {
-    for (int y = 0; y < 3; ++y) {
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tid++]);
-    }
+  gfx::BackgroundBuffer* dest = &ctx.target_bg;
+  if (!is_upper && ctx.secondary_bg != nullptr) {
+    dest = ctx.secondary_bg;
   }
+
+  DrawColumnMajor(*dest, ctx.object.x_, ctx.object.y_, 4, 3, ctx.tiles);
 }
 
 void DrawAutoStairs(const DrawContext& ctx) {
   // ASM: RoomDraw_AutoStairs* routines
-  // Multi-layer or merged layer stair patterns
+  // The multi-layer variants stamp both BG tilemaps; merged/single-layer
+  // variants stay on the active target layer.
   if (ctx.tiles.size() < 16)
     return;
 
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      size_t tile_idx = static_cast<size_t>(y * 4 + x);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
-    }
+  Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
+
+  if (ctx.secondary_bg != nullptr && IsAutoStairsDualLayer(ctx.object.id_)) {
+    Draw4x4ColumnMajorTo(*ctx.secondary_bg, ctx.object, ctx.tiles);
   }
 }
 
 void DrawStraightInterRoomStairs(const DrawContext& ctx) {
   // ASM: RoomDraw_StraightInterroomStairs* routines
-  // North/South, Up/Down variants
+  // Upper variants render on BG1 only. Lower variants render the 4x4 block on
+  // BG2 and expose the front edge on BG1 as well.
   if (ctx.tiles.size() < 16)
     return;
 
-  for (int y = 0; y < 4; ++y) {
-    for (int x = 0; x < 4; ++x) {
-      size_t tile_idx = static_cast<size_t>(y * 4 + x);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                   ctx.object.y_ + y, ctx.tiles[tile_idx]);
+  if (IsStraightInterroomUpper(ctx.object.id_) || ctx.secondary_bg == nullptr ||
+      !IsStraightInterroomLower(ctx.object.id_)) {
+    Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
+    return;
+  }
+
+  const bool south_lower = IsSouthLowerStraightInterroomStairs(ctx.object.id_);
+  size_t tile_index = 0;
+  for (int col = 0; col < 4; ++col) {
+    for (int row = 0; row < 4; ++row) {
+      const auto& tile = TileAtWrapped(ctx.tiles, tile_index++);
+      DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, ctx.object.x_ + col,
+                                   ctx.object.y_ + row, tile);
+      if ((!south_lower && row == 0) || (south_lower && row == 3)) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + col,
+                                     ctx.object.y_ + row, tile);
+      }
     }
   }
 }
@@ -1247,39 +1331,76 @@ void DrawDrenchingWaterFace(const DrawContext& ctx) {
 
 void DrawClosedChestPlatform(const DrawContext& ctx) {
   // ASM: RoomDraw_ClosedChestPlatform ($018CC7)
-  // Complex structure: horizontal wall top, vertical walls sides
+  // Size fields are subtype-1 packed 2-bit values: $B2=size_x, $B4=size_y.
+  // The routine expands them to width_blocks=size_x+4 and
+  // height_blocks=size_y+1 before drawing top, center, bottom, and the center
+  // 2x2 overlay.
 
-  int size_x = (ctx.object.size_ & 0x0F) + 4;  // Width is size + 4
-  int size_y = ((ctx.object.size_ >> 4) & 0x0F) + 1;
-
-  if (ctx.tiles.size() < 16)
+  if (ctx.tiles.size() < 68)
     return;
 
-  // Draw top horizontal wall with corners
-  for (int x = 0; x < size_x; ++x) {
-    // Top row
-    size_t tile_idx = (x == 0) ? 0 : ((x == size_x - 1) ? 2 : 1);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                 ctx.object.y_, ctx.tiles[tile_idx]);
+  const int size_x = (ctx.object.size_ >> 2) & 0x03;
+  const int size_y = ctx.object.size_ & 0x03;
+  const int width_blocks = size_x + 4;
+  const int height_blocks = size_y + 1;
+
+  // Top 3 rows: left cap, repeated 2-column middle, right cap.
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/0, /*dy=*/0, /*start_index=*/0,
+                            /*columns=*/3);
+  for (int x = 0; x < width_blocks; ++x) {
+    DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + x * 2, /*dy=*/0,
+                              /*start_index=*/9, /*columns=*/2);
+  }
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + width_blocks * 2, /*dy=*/0,
+                            /*start_index=*/15, /*columns=*/3);
+
+  // Center rows: left wall, repeated 2x2 carpet, right wall.
+  for (int y = 0; y < height_blocks; ++y) {
+    const int dy = 3 + y * 2;
+    DrawPlatform3x2(ctx, /*dx=*/0, dy, /*start_index=*/24);
+    for (int x = 0; x < width_blocks; ++x) {
+      DrawPlatform2x2(ctx, /*dx=*/3 + x * 2, dy, /*start_index=*/30);
+    }
+    DrawPlatform3x2(ctx, /*dx=*/3 + width_blocks * 2, dy,
+                    /*start_index=*/34);
   }
 
-  // Draw vertical walls on sides
-  for (int y = 1; y < size_y + 1; ++y) {
-    // Left wall
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                 ctx.object.y_ + y, ctx.tiles[3]);
-    // Right wall
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + size_x - 1,
-                                 ctx.object.y_ + y, ctx.tiles[4]);
+  // Bottom 3 rows.
+  const int bottom_y = 3 + height_blocks * 2;
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/0, bottom_y, /*start_index=*/40,
+                            /*columns=*/3);
+  for (int x = 0; x < width_blocks; ++x) {
+    DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + x * 2, bottom_y,
+                              /*start_index=*/49, /*columns=*/2);
   }
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/3 + width_blocks * 2, bottom_y,
+                            /*start_index=*/55, /*columns=*/3);
 
-  // Draw bottom horizontal wall with corners
-  int bottom_y = ctx.object.y_ + size_y + 1;
-  for (int x = 0; x < size_x; ++x) {
-    size_t tile_idx = (x == 0) ? 5 : ((x == size_x - 1) ? 7 : 6);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x, bottom_y,
-                                 ctx.tiles[tile_idx]);
+  // Center 2x2 overlay, matching the final SrcPtr(0x590) draw in the native
+  // C++ port and ZScream's tile indices 64,66/65,67.
+  DrawPlatform2x2(ctx, /*dx=*/width_blocks + 2,
+                  /*dy=*/bottom_y - (height_blocks + 1),
+                  /*start_index=*/64);
+}
+
+void DrawOpenChestPlatform(const DrawContext& ctx) {
+  // ASM: RoomDraw_OpenChestPlatform ($019733). The helper draws one row of a
+  // 10+2*size_x tile platform, repeated (2*size_y+5) times, then two closing
+  // rows from src+1/src+2.
+  if (ctx.tiles.size() < 21)
+    return;
+
+  const int size_x = (ctx.object.size_ >> 2) & 0x03;
+  const int size_y = ctx.object.size_ & 0x03;
+  const int fill_width = size_x + 1;
+  const int body_rows = size_y * 2 + 5;
+
+  for (int row = 0; row < body_rows; ++row) {
+    DrawOpenChestPlatformSegment(ctx, row, /*start_index=*/0, fill_width);
   }
+  DrawOpenChestPlatformSegment(ctx, body_rows, /*start_index=*/1, fill_width);
+  DrawOpenChestPlatformSegment(ctx, body_rows + 1, /*start_index=*/2,
+                               fill_width);
 }
 
 void DrawChestPlatformHorizontalWall(const DrawContext& ctx) {
@@ -1567,6 +1688,39 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 4,
       .base_height = 3,  // 4x3 pattern
       .min_tiles = 12,   // 4x3 block
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kWaterHopStairsA,  // 119
+      .name = "WaterHopStairsA",
+      .function = DrawWaterHopStairsA,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 2,
+      .min_tiles = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kWaterHopStairsB,  // 120
+      .name = "WaterHopStairsB",
+      .function = DrawWaterHopStairsB,
+      .draws_to_both_bgs = true,
+      .base_width = 4,
+      .base_height = 2,
+      .min_tiles = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kDamFloodGate,  // 121
+      .name = "DamFloodGate",
+      .function = DrawDamFloodGate,
+      .draws_to_both_bgs = false,
+      .base_width = 10,
+      .base_height = 4,
+      .min_tiles = 40,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1874,24 +2028,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kOpenChestPlatform,  // 82
       .name = "OpenChestPlatform",
-      .function =
-          [](const DrawContext& ctx) {
-            // Open chest platform - draws multi-segment pattern
-            // Size: width = (size & 0x0F) + 1, segments = ((size >> 4) & 0x0F) * 2 + 5
-            int width = (ctx.object.size_ & 0x0F) + 1;
-            int segments = ((ctx.object.size_ >> 4) & 0x0F) * 2 + 5;
-            // For geometry purposes, just set reasonable bounds
-            for (int s = 0; s < segments && s < 8; ++s) {
-              for (int x = 0; x < width && x < 8; ++x) {
-                if (ctx.tiles.size() > 0) {
-                  size_t idx = (s * width + x) % ctx.tiles.size();
-                  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                               ctx.object.y_ + s,
-                                               ctx.tiles[idx]);
-                }
-              }
-            }
-          },
+      .function = DrawOpenChestPlatform,
       .draws_to_both_bgs = false,
       .base_width = 0,   // Variable
       .base_height = 0,  // Variable

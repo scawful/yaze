@@ -1,8 +1,11 @@
 #include <algorithm>
 #include <cmath>
+#include <filesystem>
+#include <fstream>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/gfx/core/bitmap.h"
@@ -13,17 +16,142 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
+#include "nlohmann/json.hpp"
 #include "util/log.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
 
 using namespace ImGui;
 
+namespace {
+
+constexpr int kScratchPadVersion = 1;
+constexpr const char* kScratchPadFileName = "ScratchPad.dat";
+
+absl::StatusOr<std::filesystem::path> GetScratchPadPath() {
+  ASSIGN_OR_RETURN(auto config_dir, util::PlatformPaths::GetConfigDirectory());
+  return config_dir / kScratchPadFileName;
+}
+
+}  // namespace
+
 // =============================================================================
 // Scratch Space - Unified Single Workspace
 // =============================================================================
+
+absl::Status OverworldEditor::LoadScratchPad() {
+  ASSIGN_OR_RETURN(auto path, GetScratchPadPath());
+  if (!std::filesystem::exists(path)) {
+    return absl::OkStatus();
+  }
+
+  std::ifstream input(path);
+  if (!input.is_open()) {
+    return absl::InternalError(
+        absl::StrFormat("Could not open %s", path.string()));
+  }
+
+  auto root = nlohmann::json::parse(input, nullptr, false);
+  if (root.is_discarded() || !root.is_object()) {
+    return absl::DataLossError(
+        absl::StrFormat("Invalid scratch pad JSON in %s", path.string()));
+  }
+
+  scratch_space_.width = std::clamp(root.value("width", 16), 1, 32);
+  scratch_space_.height = std::clamp(root.value("height", 16), 1, 32);
+  scratch_space_.name = root.value("name", std::string("Scratch Space"));
+  scratch_space_.in_use = root.value("in_use", false);
+
+  for (auto& row : scratch_space_.tile_data) {
+    row.fill(0);
+  }
+
+  if (root.contains("tiles") && root["tiles"].is_array()) {
+    const auto& rows = root["tiles"];
+    for (size_t y = 0; y < rows.size() && y < 32; ++y) {
+      if (!rows[y].is_array()) {
+        continue;
+      }
+      const auto& row = rows[y];
+      for (size_t x = 0; x < row.size() && x < 32; ++x) {
+        scratch_space_.tile_data[x][y] = row[x].get<int>();
+      }
+    }
+  }
+
+  scratch_space_dirty_ = false;
+  return RebuildScratchBitmapFromTileData();
+}
+
+absl::Status OverworldEditor::SaveScratchPad() const {
+  ASSIGN_OR_RETURN(auto path, GetScratchPadPath());
+
+  nlohmann::json root;
+  root["version"] = kScratchPadVersion;
+  root["name"] = scratch_space_.name;
+  root["in_use"] = scratch_space_.in_use;
+  root["width"] = std::clamp(scratch_space_.width, 1, 32);
+  root["height"] = std::clamp(scratch_space_.height, 1, 32);
+  root["tiles"] = nlohmann::json::array();
+
+  for (int y = 0; y < root["height"].get<int>(); ++y) {
+    nlohmann::json row = nlohmann::json::array();
+    for (int x = 0; x < root["width"].get<int>(); ++x) {
+      row.push_back(scratch_space_.tile_data[x][y]);
+    }
+    root["tiles"].push_back(std::move(row));
+  }
+
+  std::ofstream output(path, std::ios::trunc);
+  if (!output.is_open()) {
+    return absl::InternalError(
+        absl::StrFormat("Could not write %s", path.string()));
+  }
+  output << root.dump(2) << '\n';
+  return absl::OkStatus();
+}
+
+absl::Status OverworldEditor::FlushScratchPadIfDirty() {
+  if (!scratch_space_dirty_) {
+    return absl::OkStatus();
+  }
+  RETURN_IF_ERROR(SaveScratchPad());
+  scratch_space_dirty_ = false;
+  return absl::OkStatus();
+}
+
+void OverworldEditor::MarkScratchSpaceDirty() {
+  scratch_space_dirty_ = true;
+}
+
+absl::Status OverworldEditor::RebuildScratchBitmapFromTileData() {
+  const int bitmap_width = scratch_space_.width * 16;
+  const int bitmap_height = scratch_space_.height * 16;
+  std::vector<uint8_t> empty_data(bitmap_width * bitmap_height, 0);
+  const bool was_in_use = scratch_space_.in_use;
+
+  scratch_space_.scratch_bitmap.Create(bitmap_width, bitmap_height, 8,
+                                       empty_data);
+  if (all_gfx_loaded_) {
+    palette_ = overworld_.current_area_palette();
+    scratch_space_.scratch_bitmap.SetPalette(palette_);
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::CREATE, &scratch_space_.scratch_bitmap);
+  }
+
+  if (map_blockset_loaded_ && was_in_use) {
+    for (int y = 0; y < scratch_space_.height && y < 32; ++y) {
+      for (int x = 0; x < scratch_space_.width && x < 32; ++x) {
+        UpdateScratchBitmapTile(x, y, scratch_space_.tile_data[x][y]);
+      }
+    }
+  }
+  scratch_space_.in_use = was_in_use;
+  return absl::OkStatus();
+}
 
 absl::Status OverworldEditor::DrawScratchSpace() {
   // Header with clear button
@@ -113,6 +241,10 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   EndChild();
   ImGui::EndGroup();
 
+  if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    RETURN_IF_ERROR(FlushScratchPadIfDirty());
+  }
+
   return absl::OkStatus();
 }
 
@@ -127,15 +259,24 @@ void OverworldEditor::DrawScratchSpaceEdits() {
   int max_height = scratch_space_.height > 0 ? scratch_space_.height : 30;
 
   if (tile_x >= 0 && tile_x < max_width && tile_y >= 0 && tile_y < max_height) {
+    bool changed = false;
     if (tile_x < 32 && tile_y < 32) {
+      changed = scratch_space_.tile_data[tile_x][tile_y] != current_tile16_;
       scratch_space_.tile_data[tile_x][tile_y] = current_tile16_;
     }
 
-    UpdateScratchBitmapTile(tile_x, tile_y, current_tile16_);
+    if (changed) {
+      UpdateScratchBitmapTile(tile_x, tile_y, current_tile16_);
+    }
 
     if (!scratch_space_.in_use) {
       scratch_space_.in_use = true;
       scratch_space_.name = "Modified Layout";
+      changed = true;
+      UpdateScratchBitmapTile(tile_x, tile_y, current_tile16_);
+    }
+    if (changed) {
+      MarkScratchSpaceDirty();
     }
   }
 }
@@ -186,6 +327,7 @@ void OverworldEditor::DrawScratchSpacePattern() {
     scratch_space_.name =
         absl::StrFormat("Pattern %dx%d", pattern_width, pattern_height);
   }
+  MarkScratchSpaceDirty();
 }
 
 void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
@@ -294,6 +436,8 @@ absl::Status OverworldEditor::SaveCurrentSelectionToScratch() {
     scratch_space_.in_use = true;
   }
 
+  MarkScratchSpaceDirty();
+  RETURN_IF_ERROR(FlushScratchPadIfDirty());
   return absl::OkStatus();
 }
 
@@ -325,7 +469,8 @@ absl::Status OverworldEditor::ClearScratchSpace() {
         gfx::Arena::TextureCommandType::UPDATE, &scratch_space_.scratch_bitmap);
   }
 
-  return absl::OkStatus();
+  MarkScratchSpaceDirty();
+  return FlushScratchPadIfDirty();
 }
 
 }  // namespace yaze::editor

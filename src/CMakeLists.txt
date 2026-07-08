@@ -122,7 +122,7 @@ endif()
 # (yaze_editor needs TestManager for editor features)
 # Test executables are only built when YAZE_BUILD_TESTS=ON (handled in test/CMakeLists.txt)
 if(YAZE_BUILD_TESTS OR NOT YAZE_MINIMAL_BUILD)
-  include(app/test/test.cmake)
+  include(app/test_support.cmake)
 endif()
 
 if(YAZE_ENABLE_AGENT_CLI AND (YAZE_BUILD_CLI OR YAZE_BUILD_Z3ED))

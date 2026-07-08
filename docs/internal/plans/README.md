@@ -15,7 +15,11 @@ Purpose: keep plan/spec documents centralized and up to date.
 
 ## Current priorities
 - Active release/initiative specs live under `docs/internal/agents/` (e.g., `initiative-v040.md`). Start there before drafting a new plan here.
-- Active plans in this directory: `web_port_strategy.md`, `ai-infra-improvements.md`.
+- Active plans in this directory include:
+  - `release-ladder-0x-2026.md`
+  - `z3dk-integration-0.8.0.md`
+  - `oracle-yaze-integration.md`
+  - `ai-infra-improvements.md`
 - Archived plans (partially implemented or completed reference documents): see `archive/plans-2025-11/` for historical context.
 
 ## Naming

@@ -96,7 +96,7 @@ class DungeonRoomPanel : public ResourceWindowContent {
       bool needs_render = false;
 
       if (room_->blocks().empty()) {
-        room_->LoadRoomGraphics(room_->blockset());
+        room_->LoadRoomGraphics();
         needs_render = true;
       }
 
@@ -126,7 +126,7 @@ class DungeonRoomPanel : public ResourceWindowContent {
     if (ImGui::CollapsingHeader("Room Controls")) {
       if (ImGui::Button(ICON_MD_REFRESH " Reload Graphics & Objects",
                         ImVec2(-FLT_MIN, 0))) {
-        room_->ReloadGraphics(room_->blockset());
+        room_->ReloadGraphics();
       }
 
       if (ImGui::Button(ICON_MD_CLEANING_SERVICES " Clear Room Buffers",

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 
+#include "app/editor/dungeon/interaction/interaction_mode.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -21,13 +22,15 @@ struct ToolDef {
 };
 
 constexpr std::array<ToolDef, 7> kToolDefs = {{
-    {ICON_MD_NEAR_ME, "Select", "Esc", DungeonToolset::kNoType},
-    {ICON_MD_WIDGETS, "Objects", "O", DungeonToolset::kObject},
-    {ICON_MD_PEST_CONTROL, "Sprites", "S", DungeonToolset::kSprite},
-    {ICON_MD_GRASS, "Items", "I", DungeonToolset::kItem},
-    {ICON_MD_SENSOR_DOOR, "Doors", "D", DungeonToolset::kDoor},
-    {ICON_MD_INVENTORY, "Chests", "C", DungeonToolset::kChest},
-    {ICON_MD_NAVIGATION, "Entrances", "E", DungeonToolset::kEntrance},
+    {ICON_MD_NEAR_ME, tool_mode_names::kSelect, "Esc", DungeonToolset::kNoType},
+    {ICON_MD_WIDGETS, tool_mode_names::kObjects, "O", DungeonToolset::kObject},
+    {ICON_MD_PEST_CONTROL, tool_mode_names::kSprites, "S",
+     DungeonToolset::kSprite},
+    {ICON_MD_GRASS, tool_mode_names::kItems, "I", DungeonToolset::kItem},
+    {ICON_MD_SENSOR_DOOR, tool_mode_names::kDoors, "D", DungeonToolset::kDoor},
+    {ICON_MD_INVENTORY, tool_mode_names::kChests, "C", DungeonToolset::kChest},
+    {ICON_MD_NAVIGATION, tool_mode_names::kEntrances, "E",
+     DungeonToolset::kEntrance},
 }};
 
 }  // namespace

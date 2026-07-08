@@ -11,7 +11,12 @@
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/layout/layout_designer/dock_tree.h"
+#include "app/editor/layout/layout_designer/dock_tree_json.h"
+#include "app/editor/layout/layout_manager.h"
+#include "app/editor/registry/content_registry.h"
 #include "app/editor/system/commands/shortcut_manager.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/animation/animator.h"
@@ -19,12 +24,17 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/font_picker.h"
+#include "app/gui/widgets/property_inspector.h"
 #include "app/gui/widgets/themed_widgets.h"
+#include "app/platform/font_loader.h"
 #include "cli/service/ai/provider_ids.h"
 #include "core/patch/asm_patch.h"
 #include "core/patch/patch_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "util/file_util.h"
 #include "util/log.h"
@@ -295,6 +305,14 @@ void SettingsPanel::Draw() {
     ImGui::Spacing();
   }
 
+  if (ImGui::CollapsingHeader(ICON_MD_DASHBOARD_CUSTOMIZE
+                              " Workspace Layout")) {
+    ImGui::Indent();
+    DrawWorkspaceSettings();
+    ImGui::Unindent();
+    ImGui::Spacing();
+  }
+
   if (ImGui::CollapsingHeader(ICON_MD_TUNE " Editor Behavior")) {
     ImGui::Indent();
     DrawEditorBehavior();
@@ -540,28 +558,28 @@ void SettingsPanel::DrawProjectSettings() {
   }
 
   bool backup_on_save = project_->workspace_settings.backup_on_save;
-  if (ImGui::Checkbox("Backup Before Save", &backup_on_save)) {
+  if (gui::DrawProperty("Backup Before Save", &backup_on_save)) {
     project_->workspace_settings.backup_on_save = backup_on_save;
     project_->Save();
   }
 
   int retention = project_->workspace_settings.backup_retention_count;
-  if (ImGui::InputInt("Retention Count", &retention)) {
-    project_->workspace_settings.backup_retention_count =
-        std::max(0, retention);
+  if (gui::DrawProperty("Retention Count", &retention,
+                        {.min = 0, .max = 10000})) {
+    project_->workspace_settings.backup_retention_count = retention;
     project_->Save();
   }
 
   bool keep_daily = project_->workspace_settings.backup_keep_daily;
-  if (ImGui::Checkbox("Keep Daily Snapshots", &keep_daily)) {
+  if (gui::DrawProperty("Keep Daily Snapshots", &keep_daily)) {
     project_->workspace_settings.backup_keep_daily = keep_daily;
     project_->Save();
   }
 
   int keep_days = project_->workspace_settings.backup_keep_daily_days;
-  if (ImGui::InputInt("Keep Daily Days", &keep_days)) {
-    project_->workspace_settings.backup_keep_daily_days =
-        std::max(1, keep_days);
+  if (gui::DrawProperty("Keep Daily Days", &keep_days,
+                        {.min = 1, .max = 3650})) {
+    project_->workspace_settings.backup_keep_daily_days = keep_days;
     project_->Save();
   }
 
@@ -919,7 +937,7 @@ void SettingsPanel::DrawAppearanceSettings() {
         if (theme_manager.IsPreviewActive()) {
           theme_manager.EndPreview();
         }
-        theme_manager.LoadTheme(theme_name);
+        theme_manager.ApplyTheme(theme_name);
       }
 
       // Hover triggers live preview
@@ -1003,11 +1021,17 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
 
   ImGui::Spacing();
-  gui::DrawFontManager();
+  ImGui::Text("%s Font", ICON_MD_TEXT_FIELDS);
+  ImGui::Separator();
 
-  // Global font scale with persistence
   if (user_settings_) {
-    ImGui::Separator();
+    int font_index = user_settings_->prefs().font_family_index;
+    if (gui::FontPicker("##font_family", &font_index)) {
+      user_settings_->prefs().font_family_index = font_index;
+      ::yaze::SetActiveFontIndex(font_index);
+      user_settings_->Save();
+    }
+
     ImGui::Text("Global Font Scale");
     float scale = user_settings_->prefs().font_global_scale;
     if (ImGui::SliderFloat("##global_font_scale", &scale, 0.5f, 2.0f, "%.2f")) {
@@ -1034,6 +1058,174 @@ void SettingsPanel::DrawAppearanceSettings() {
     ImGui::SetTooltip(
         "Display ROM, session, cursor, and zoom info at bottom of window");
   }
+}
+
+void SettingsPanel::DrawWorkspaceSettings() {
+  if (!user_settings_) {
+    ImGui::TextDisabled("UserSettings unavailable.");
+    return;
+  }
+
+  auto& prefs = user_settings_->prefs();
+
+  ImGui::Text("%s Named Layouts", ICON_MD_DASHBOARD);
+  ImGui::Separator();
+
+  if (prefs.named_layouts.empty()) {
+    ImGui::TextDisabled(
+        "No saved layouts yet. Open the Layout Designer to capture one.");
+  } else {
+    // Sort the keys so the combo order is stable across frames
+    // (named_layouts is unordered_map).
+    std::vector<std::string> names;
+    names.reserve(prefs.named_layouts.size());
+    for (const auto& entry : prefs.named_layouts) {
+      names.push_back(entry.first);
+    }
+    std::sort(names.begin(), names.end());
+
+    const std::string& active = prefs.last_applied_layout_name;
+    const char* preview =
+        active.empty() ? "(select a layout…)" : active.c_str();
+
+    if (ImGui::BeginCombo("Active Layout", preview)) {
+      for (const auto& name : names) {
+        const bool is_selected = (name == active);
+        if (ImGui::Selectable(name.c_str(), is_selected)) {
+          // Mirrors the LayoutManager startup-reapply path in shape:
+          // lookup → parse → validate → ApplyDockTree. Inlined rather
+          // than shared because the call sites have different error
+          // surfacing — this one writes to a transient status string;
+          // startup writes to the log and a one-shot consumed flag.
+          ApplyNamedLayoutToDockspace(name);
+        }
+        if (is_selected) {
+          ImGui::SetItemDefaultFocus();
+        }
+      }
+      ImGui::EndCombo();
+    }
+
+    ImGui::SameLine();
+    ImGui::BeginDisabled(active.empty() ||
+                         prefs.named_layouts.count(active) == 0);
+    if (ImGui::SmallButton("Re-apply")) {
+      ApplyNamedLayoutToDockspace(active);
+    }
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Re-apply the active layout (useful after closing or rearranging "
+          "panels manually).");
+    }
+  }
+
+  ImGui::Spacing();
+  if (ImGui::Button(ICON_MD_DASHBOARD_CUSTOMIZE " Open Layout Designer")) {
+    if (window_manager_ == nullptr) {
+      workspace_status_message_ = "Designer unavailable: no window manager.";
+      workspace_status_is_error_ = true;
+    } else if (!window_manager_->IsWindowOpen("layout.designer") &&
+               !window_manager_->OpenWindow("layout.designer")) {
+      // OpenWindow returns false when the panel id isn't registered in
+      // the active session. Surface that — silently doing nothing on
+      // a missing registration would hide a real bug (panel renamed,
+      // force-load archive misconfigured, etc.).
+      workspace_status_message_ =
+          "Open failed: \"layout.designer\" panel is not registered.";
+      workspace_status_is_error_ = true;
+    } else {
+      window_manager_->SetWindowPinned("layout.designer", true);
+      workspace_status_message_.clear();
+      workspace_status_is_error_ = false;
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Open the Layout Designer panel to author or capture a workspace "
+        "layout.");
+  }
+
+  if (!workspace_status_message_.empty()) {
+    ImGui::Spacing();
+    if (workspace_status_is_error_) {
+      ImGui::TextColored(gui::GetErrorColor(), "%s",
+                         workspace_status_message_.c_str());
+    } else {
+      ImGui::TextDisabled("%s", workspace_status_message_.c_str());
+    }
+  }
+}
+
+void SettingsPanel::ApplyNamedLayoutToDockspace(const std::string& name) {
+  workspace_status_message_.clear();
+  workspace_status_is_error_ = false;
+  if (user_settings_ == nullptr) {
+    workspace_status_message_ = "Apply failed: UserSettings unavailable.";
+    workspace_status_is_error_ = true;
+    return;
+  }
+  auto& prefs = user_settings_->prefs();
+  const auto it = prefs.named_layouts.find(name);
+  if (it == prefs.named_layouts.end()) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: \"", name, "\" not found.");
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  nlohmann::json parsed;
+  try {
+    parsed = nlohmann::json::parse(it->second);
+  } catch (const nlohmann::json::parse_error& e) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: invalid JSON (", e.what(), ").");
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  auto tree_or = layout_designer::DockTreeFromJson(parsed);
+  if (!tree_or.ok()) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: ", tree_or.status().message());
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  std::string validation_error;
+  if (!tree_or->Validate(&validation_error)) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: invalid layout (", validation_error, ").");
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  LayoutManager* manager = ContentRegistry::Context::layout_manager();
+  if (manager == nullptr) {
+    workspace_status_message_ = "Apply failed: LayoutManager unavailable.";
+    workspace_status_is_error_ = true;
+    return;
+  }
+  const ImGuiID dockspace_id = manager->GetMainDockspaceId();
+  if (dockspace_id == 0) {
+    workspace_status_message_ = "Apply failed: main dockspace not yet created.";
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  const absl::Status apply_status =
+      manager->ApplyDockTree(*tree_or, dockspace_id);
+  if (!apply_status.ok()) {
+    workspace_status_message_ =
+        absl::StrCat("Apply failed: ", apply_status.message());
+    workspace_status_is_error_ = true;
+    return;
+  }
+
+  prefs.last_applied_layout_name = name;
+  (void)user_settings_->Save();
+  workspace_status_message_ = absl::StrCat("Applied \"", name, "\".");
+  workspace_status_is_error_ = false;
 }
 
 void SettingsPanel::DrawEditorBehavior() {

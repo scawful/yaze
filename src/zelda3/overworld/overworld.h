@@ -2,6 +2,7 @@
 #define YAZE_APP_DATA_OVERWORLD_H
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <mutex>
@@ -21,6 +22,7 @@
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/sprite/sprite.h"
 
 // =============================================================================
@@ -244,6 +246,101 @@ constexpr int LimitOfMap32 = 8864;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 constexpr int kNumMapsPerWorld = 0x40;
+
+struct OverworldRomProfile {
+  uint8_t asm_version = 0xFF;
+  OverworldVersion version = OverworldVersion::kVanilla;
+  bool is_vanilla = true;
+  bool supports_expanded_space = false;
+  bool supports_area_enum = false;
+  bool supports_custom_bg_colors = false;
+  bool has_expanded_tile16 = false;
+  bool has_expanded_tile32 = false;
+  bool has_expanded_entrances = false;
+  bool has_tail_map_expansion = false;
+  int editable_map_count = kSpecialWorldMapIdStart + 0x20;
+};
+
+inline bool IsValidRomAddress(const Rom& rom, int address) {
+  return address >= 0 && static_cast<size_t>(address) < rom.size();
+}
+
+inline uint8_t ReadRomByteOr(const Rom& rom, int address, uint8_t fallback) {
+  if (!IsValidRomAddress(rom, address)) {
+    return fallback;
+  }
+  return rom.data()[address];
+}
+
+inline bool IsSpecialTailMapExpansionEnabled(const Rom& rom) {
+  return ReadRomByteOr(rom, GetExpandedPtrTableMarker(), 0x00) ==
+         GetExpandedPtrTableMagic();
+}
+
+inline OverworldRomProfile DetectOverworldRomProfile(const Rom& rom) {
+  OverworldRomProfile profile;
+  profile.asm_version = OverworldVersionHelper::GetAsmVersion(rom);
+  profile.version = OverworldVersionHelper::GetVersion(rom);
+  profile.is_vanilla = profile.version == OverworldVersion::kVanilla;
+  profile.supports_expanded_space =
+      OverworldVersionHelper::SupportsExpandedSpace(profile.version);
+  profile.supports_area_enum =
+      OverworldVersionHelper::SupportsAreaEnum(profile.version);
+  profile.supports_custom_bg_colors =
+      OverworldVersionHelper::SupportsCustomBGColors(profile.version);
+
+  const uint8_t tile16_flag = ReadRomByteOr(rom, kMap16ExpandedFlagPos, 0x0F);
+  const uint8_t tile32_flag = ReadRomByteOr(rom, kMap32ExpandedFlagPos, 0x04);
+  const uint8_t entrance_flag =
+      ReadRomByteOr(rom, GetOverworldEntranceFlagExpanded(), 0xB8);
+
+  profile.has_expanded_tile16 =
+      !profile.is_vanilla &&
+      (profile.supports_area_enum || tile16_flag != 0x0F);
+  profile.has_expanded_tile32 =
+      !profile.is_vanilla &&
+      (profile.supports_area_enum || tile32_flag != 0x04);
+  profile.has_expanded_entrances = !profile.is_vanilla && entrance_flag != 0xB8;
+  profile.has_tail_map_expansion =
+      profile.supports_area_enum && IsSpecialTailMapExpansionEnabled(rom);
+  profile.editable_map_count =
+      profile.has_tail_map_expansion ? kExpandedMapCount : kNumOverworldMaps;
+  return profile;
+}
+
+inline int WorldForOverworldMap(int map_index) {
+  if (map_index >= kSpecialWorldMapIdStart) {
+    return 2;
+  }
+  if (map_index >= kDarkWorldMapIdStart) {
+    return 1;
+  }
+  return 0;
+}
+
+inline bool IsSameOverworldWorld(int a, int b) {
+  return WorldForOverworldMap(a) == WorldForOverworldMap(b);
+}
+
+inline bool CanPersistLegacyMultiAreaMap(int map_index) {
+  return map_index >= 0 && map_index < kSpecialWorldMapIdStart;
+}
+
+inline bool CanPersistLegacyScreenSize(int map_index) {
+  return map_index >= 0 && map_index < kSpecialWorldMapIdStart;
+}
+
+inline int LegacyParentTableIndexForMap(int map_index) {
+  return map_index & 0x3F;
+}
+
+inline uint8_t LegacyParentTableValueForMap(int parent_index) {
+  return static_cast<uint8_t>(parent_index & 0x3F);
+}
+
+inline int LegacyScreenSizeTableIndexForMap(int map_index) {
+  return map_index;
+}
 
 /**
  * @brief Represents the full Overworld data, light and dark world.

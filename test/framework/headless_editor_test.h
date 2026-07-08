@@ -4,10 +4,10 @@
 #include <memory>
 #include <string>
 
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
+#include "framework/mock_renderer.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
-#include "framework/mock_renderer.h"
 #include "zelda3/game_data.h"
 
 #include "imgui.h"

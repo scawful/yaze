@@ -26,10 +26,10 @@ namespace editor {
  */
 class DungeonEntrancesPanel : public WindowContent {
  public:
-  DungeonEntrancesPanel(
-      std::array<zelda3::RoomEntrance, 0x8C>* entrances,
-      int* current_entrance_id,
-      std::function<void(int)> on_entrance_selected)
+  DungeonEntrancesPanel(std::array<zelda3::RoomEntrance,
+                                   zelda3::kNumDungeonEntranceSlots>* entrances,
+                        int* current_entrance_id,
+                        std::function<void(int)> on_entrance_selected)
       : entrances_(entrances),
         current_entrance_id_(current_entrance_id),
         on_entrance_selected_(std::move(on_entrance_selected)) {}
@@ -49,63 +49,80 @@ class DungeonEntrancesPanel : public WindowContent {
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!entrances_ || !current_entrance_id_) return;
+    if (!entrances_ || !current_entrance_id_)
+      return;
+    if (*current_entrance_id_ < 0 ||
+        *current_entrance_id_ >= static_cast<int>(entrances_->size())) {
+      *current_entrance_id_ = 0;
+    }
 
     auto& current_entrance = (*entrances_)[*current_entrance_id_];
+    bool changed = false;
 
     // Entrance properties
-    gui::InputHexWord("Entrance ID", &current_entrance.entrance_id_);
-    gui::InputHexWord("Room ID",
-                      reinterpret_cast<uint16_t*>(&current_entrance.room_));
+    ImGui::Text("Entrance ID: %04X", current_entrance.entrance_id_);
+    changed |= gui::InputHexWord("Room ID", &current_entrance.room_);
     ImGui::SameLine();
-    gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_, 50.f, true);
+    changed |= gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_,
+                                 50.f, true);
 
-    gui::InputHexByte("Blockset", &current_entrance.blockset_, 50.f, true);
+    changed |=
+        gui::InputHexByte("Blockset", &current_entrance.blockset_, 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
+    changed |= gui::InputHexByte("Music", &current_entrance.music_, 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("Floor", &current_entrance.floor_);
+    changed |= gui::InputHexByte("Floor", &current_entrance.floor_);
 
     ImGui::Separator();
 
-    gui::InputHexWord("Player X   ", &current_entrance.x_position_);
+    changed |= gui::InputHexWord("Player X   ", &current_entrance.x_position_);
     ImGui::SameLine();
-    gui::InputHexWord("Player Y   ", &current_entrance.y_position_);
+    changed |= gui::InputHexWord("Player Y   ", &current_entrance.y_position_);
 
-    gui::InputHexWord("Camera X", &current_entrance.camera_trigger_x_);
+    changed |=
+        gui::InputHexWord("Camera X", &current_entrance.camera_trigger_x_);
     ImGui::SameLine();
-    gui::InputHexWord("Camera Y", &current_entrance.camera_trigger_y_);
+    changed |=
+        gui::InputHexWord("Camera Y", &current_entrance.camera_trigger_y_);
 
-    gui::InputHexWord("Scroll X    ", &current_entrance.camera_x_);
+    changed |= gui::InputHexWord("Scroll X    ", &current_entrance.camera_x_);
     ImGui::SameLine();
-    gui::InputHexWord("Scroll Y    ", &current_entrance.camera_y_);
+    changed |= gui::InputHexWord("Scroll Y    ", &current_entrance.camera_y_);
 
-    gui::InputHexWord("Exit",
-                      reinterpret_cast<uint16_t*>(&current_entrance.exit_),
-                      50.f, true);
+    changed |= gui::InputHexWord("Exit", &current_entrance.exit_, 50.f, true);
 
     ImGui::Separator();
     ImGui::Text("Camera Boundaries");
     ImGui::Separator();
     ImGui::Text("\t\t\t\t\tNorth         East         South         West");
 
-    gui::InputHexByte("Quadrant", &current_entrance.camera_boundary_qn_, 50.f,
-                      true);
+    changed |= gui::InputHexByte(
+        "Quadrant", &current_entrance.camera_boundary_qn_, 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_, 50.f, true);
+    changed |= gui::InputHexByte("##QE", &current_entrance.camera_boundary_qe_,
+                                 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_, 50.f, true);
+    changed |= gui::InputHexByte("##QS", &current_entrance.camera_boundary_qs_,
+                                 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_, 50.f, true);
+    changed |= gui::InputHexByte("##QW", &current_entrance.camera_boundary_qw_,
+                                 50.f, true);
 
-    gui::InputHexByte("Full room", &current_entrance.camera_boundary_fn_, 50.f,
-                      true);
+    changed |= gui::InputHexByte(
+        "Full room", &current_entrance.camera_boundary_fn_, 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_, 50.f, true);
+    changed |= gui::InputHexByte("##FE", &current_entrance.camera_boundary_fe_,
+                                 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_, 50.f, true);
+    changed |= gui::InputHexByte("##FS", &current_entrance.camera_boundary_fs_,
+                                 50.f, true);
     ImGui::SameLine();
-    gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_, 50.f, true);
+    changed |= gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_,
+                                 50.f, true);
+
+    if (changed) {
+      current_entrance.MarkDirty();
+    }
 
     ImGui::Separator();
 
@@ -113,9 +130,9 @@ class DungeonEntrancesPanel : public WindowContent {
     // Array layout (from LoadRoomEntrances):
     //   indices 0-6 (0x00-0x06): Spawn points (7 entries)
     //   indices 7-139 (0x07-0x8B): Regular entrances (133 entries)
-    constexpr int kNumSpawnPoints = 7;
-    constexpr int kNumEntrances = 133;
-    constexpr int kTotalEntries = 140;
+    constexpr int kNumSpawnPoints = zelda3::kNumDungeonSpawnPoints;
+    constexpr int kNumEntrances = zelda3::kNumRegularDungeonEntrances;
+    constexpr int kTotalEntries = zelda3::kNumDungeonEntranceSlots;
 
     if (ImGui::BeginChild("##EntrancesList", ImVec2(0, 0), true,
                           ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
@@ -160,7 +177,8 @@ class DungeonEntrancesPanel : public WindowContent {
   }
 
  private:
-  std::array<zelda3::RoomEntrance, 0x8C>* entrances_ = nullptr;
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>*
+      entrances_ = nullptr;
   int* current_entrance_id_ = nullptr;
   std::function<void(int)> on_entrance_selected_;
 };

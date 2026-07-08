@@ -481,6 +481,15 @@ void DrawDrenchingWaterFace(const DrawContext& ctx);
 void DrawClosedChestPlatform(const DrawContext& ctx);
 
 /**
+ * @brief Draw open chest platform (Type 1 object 0xDC)
+ *
+ * ASM: RoomDraw_OpenChestPlatform ($019733)
+ *
+ * @param ctx Draw context
+ */
+void DrawOpenChestPlatform(const DrawContext& ctx);
+
+/**
  * @brief Draw chest platform horizontal wall section
  *
  * ASM: RoomDraw_ChestPlatformHorizontalWallWithCorners ($018D0D)

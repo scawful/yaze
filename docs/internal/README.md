@@ -10,10 +10,10 @@ Internal documentation for architecture, AI agent coordination, and development 
 |------|-------|
 | Active task tracking | `scripts/agents/coord task-list` ([universe coordination](agents/universe-coordination-spec.md)) |
 | Refactoring plan | [agents/refactoring-plan-0.7.md](agents/refactoring-plan-0.7.md) |
-| Latest handoff | [agents/refactoring-handoff-2026-02-24.md](agents/refactoring-handoff-2026-02-24.md) |
+| Latest handoff | [agents/dungeon-editor-claude-briefing-2026-04-25.md](agents/dungeon-editor-claude-briefing-2026-04-25.md) |
 | Release test checklist | [agents/oracle-morning-test-checklist.org](agents/oracle-morning-test-checklist.org) |
 | Goron Mines regression tracker | [oracle/goron-mines-minecart-regression-tracker-2026-02-26.md](oracle/goron-mines-minecart-regression-tracker-2026-02-26.md) |
-| Doc hygiene rules | [agents/doc-hygiene.md](agents/doc-hygiene.md) |
+| Doc + code hygiene rules | [agents/doc-hygiene.md](agents/doc-hygiene.md) |
 | Agent scripts | [scripts/agents/README.md](../../scripts/agents/README.md) |
 
 ## Directory Structure

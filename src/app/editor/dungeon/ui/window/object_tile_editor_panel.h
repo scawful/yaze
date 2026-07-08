@@ -20,6 +20,8 @@
 namespace yaze {
 namespace editor {
 
+struct ObjectTileEditorPanelTestAccess;
+
 /**
  * @brief Panel for editing the tile8 composition of dungeon objects
  *
@@ -59,6 +61,24 @@ class ObjectTileEditorPanel : public WindowContent {
   }
 
  private:
+  enum class ActionStatusTone {
+    kNone,
+    kWarning,
+    kSuccess,
+    kError,
+  };
+
+  void ClearRenderedBitmaps();
+  void ClearActionStatus();
+  void SetActionStatus(ActionStatusTone tone, std::string message);
+  void ResetTransientState();
+  std::string BuildWindowTitle() const;
+  void SelectFirstCellIfAvailable();
+  int GetSharedTileDataUsageCount() const;
+  bool HasSharedTileDataConflict() const;
+  bool HasRenderableRoomContext() const;
+  void RefreshRenderedViewsFromCurrentRoom();
+
   void DrawTileGrid();
   void DrawSourceSheet();
   void DrawTileProperties();
@@ -67,6 +87,7 @@ class ObjectTileEditorPanel : public WindowContent {
 
   void RenderObjectPreview();
   void RenderTile8Atlas();
+  void SyncSourceSelectionFromSelectedCell();
 
   // Apply: write back, re-render room, reset modified flags.
   // If confirm_shared is true and tile data is shared, opens confirmation modal
@@ -74,6 +95,7 @@ class ObjectTileEditorPanel : public WindowContent {
   void ApplyChanges(bool confirm_shared = true);
 
   // State
+  friend struct ObjectTileEditorPanelTestAccess;
   std::unique_ptr<zelda3::ObjectTileEditor> tile_editor_;
   zelda3::ObjectTileLayout current_layout_;
   int selected_cell_index_ = -1;
@@ -93,6 +115,9 @@ class ObjectTileEditorPanel : public WindowContent {
   // Shared tile data confirmation
   bool show_shared_confirm_ = false;
   int shared_object_count_ = 0;
+  int shared_tile_data_usage_override_ = -1;  // Test seam; production keeps -1.
+  ActionStatusTone action_status_tone_ = ActionStatusTone::kNone;
+  std::string action_status_message_;
 
   // New object creation state
   bool is_new_object_ = false;

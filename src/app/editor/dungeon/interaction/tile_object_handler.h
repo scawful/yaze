@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
+#include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/gfx/render/background_buffer.h"
 #include "zelda3/dungeon/room.h"
@@ -18,6 +19,7 @@ namespace yaze::editor {
  */
 class TileObjectHandler : public BaseEntityHandler {
  public:
+  using GhostCapacityState = PlacementCapacityState;
   enum class PlacementBlockReason {
     kNone = 0,
     kInvalidRoom,
@@ -30,19 +32,19 @@ class TileObjectHandler : public BaseEntityHandler {
   // ========================================================================
   // BaseEntityHandler interface
   // ========================================================================
-  
+
   void BeginPlacement() override;
   void CancelPlacement() override;
   bool IsPlacementActive() const override { return object_placement_mode_; }
-  
+
   bool HandleClick(int canvas_x, int canvas_y) override;
   void HandleDrag(ImVec2 current_pos, ImVec2 delta) override;
   void HandleRelease() override;
   bool HandleMouseWheel(float delta) override;
-  
+
   void DrawGhostPreview() override;
   void DrawSelectionHighlight() override;
-  
+
   void InitDrag(const ImVec2& start_pos);
 
   // ========================================================================
@@ -57,8 +59,9 @@ class TileObjectHandler : public BaseEntityHandler {
                               bool mouse_left_released, bool shift_down,
                               bool toggle_down, bool alt_down,
                               bool draw_box = true);
-  
-  std::optional<size_t> GetEntityAtPosition(int canvas_x, int canvas_y) const override;
+
+  std::optional<size_t> GetEntityAtPosition(int canvas_x,
+                                            int canvas_y) const override;
 
   /**
    * @brief Move a set of objects by a tile delta.
@@ -96,12 +99,14 @@ class TileObjectHandler : public BaseEntityHandler {
   /**
    * @brief Resize objects by a delta.
    */
-  void ResizeObjects(int room_id, const std::vector<size_t>& indices, int delta);
+  void ResizeObjects(int room_id, const std::vector<size_t>& indices,
+                     int delta);
 
   /**
    * @brief Place a new object. Returns false if blocked by ROM limits.
    */
-  bool PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x, int y);
+  bool PlaceObjectAt(int room_id, const zelda3::RoomObject& object, int x,
+                     int y);
 
   /// True if the most recent PlaceObjectAt was blocked.
   bool was_placement_blocked() const {
@@ -113,12 +118,16 @@ class TileObjectHandler : public BaseEntityHandler {
   void clear_placement_blocked() {
     placement_block_reason_ = PlacementBlockReason::kNone;
   }
+  GhostCapacityState GetPlacementGhostCapacityState() const;
 
-  void UpdateObjectsId(int room_id, const std::vector<size_t>& indices, int16_t new_id);
+  void UpdateObjectsId(int room_id, const std::vector<size_t>& indices,
+                       int16_t new_id);
 
-  void UpdateObjectsSize(int room_id, const std::vector<size_t>& indices, uint8_t new_size);
+  void UpdateObjectsSize(int room_id, const std::vector<size_t>& indices,
+                         uint8_t new_size);
 
-  void UpdateObjectsLayer(int room_id, const std::vector<size_t>& indices, int new_layer);
+  void UpdateObjectsLayer(int room_id, const std::vector<size_t>& indices,
+                          int new_layer);
 
   /**
    * @brief Set object for placement.
@@ -138,13 +147,15 @@ class TileObjectHandler : public BaseEntityHandler {
    * @brief Paste objects from clipboard with offset.
    * @return Indices of newly pasted objects.
    */
-  std::vector<size_t> PasteFromClipboard(int room_id, int offset_x, int offset_y);
+  std::vector<size_t> PasteFromClipboard(int room_id, int offset_x,
+                                         int offset_y);
 
   /**
    * @brief Paste objects from clipboard at target location.
    * Use first clipboard item as origin.
    */
-  std::vector<size_t> PasteFromClipboardAt(int room_id, int target_x, int target_y);
+  std::vector<size_t> PasteFromClipboardAt(int room_id, int target_x,
+                                           int target_y);
 
   /**
    * @brief Check if clipboard has data.
@@ -168,7 +179,7 @@ class TileObjectHandler : public BaseEntityHandler {
 
   void RenderGhostPreviewBitmap();
   std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
-  
+
   // Drag state
   bool is_dragging_ = false;
   ImVec2 drag_start_{0, 0};
@@ -179,11 +190,12 @@ class TileObjectHandler : public BaseEntityHandler {
   bool drag_mutation_started_ = false;
 
   ImVec2 ApplyDragModifiers(const ImVec2& delta) const;
+  void DrawSmartGuides(const std::vector<zelda3::RoomObject>& objects) const;
 
   zelda3::Room* GetRoom(int room_id);
   void NotifyChange(zelda3::Room* room);
 };
 
-} // namespace yaze::editor
+}  // namespace yaze::editor
 
-#endif // YAZE_APP_EDITOR_DUNGEON_INTERACTION_TILE_OBJECT_HANDLER_H
+#endif  // YAZE_APP_EDITOR_DUNGEON_INTERACTION_TILE_OBJECT_HANDLER_H

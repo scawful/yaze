@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <functional>
+#include <limits>
 #include <optional>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -17,9 +20,11 @@
 #include "rom/snes.h"
 #include "rom/write_fence.h"
 #include "util/log.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/palette_debug.h"
+#include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -33,6 +38,27 @@ namespace {
 bool RoomUsesTrackCornerAliases(const std::vector<RoomObject>& objects) {
   return std::any_of(objects.begin(), objects.end(),
                      [](const RoomObject& obj) { return obj.id_ == 0x31; });
+}
+
+uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
+  return static_cast<uint8_t>((byte0 >> 5) & 0x07);
+}
+
+bool IsDarkRoomHeaderByte(uint8_t byte0) {
+  return (byte0 & 0x01) != 0;
+}
+
+const LayerMergeType& LayerMergeFromHeaderByte(uint8_t byte0) {
+  return kLayerMergeTypeList[IsDarkRoomHeaderByte(byte0)
+                                 ? 8
+                                 : Layer2ModeFromHeaderByte(byte0)];
+}
+
+background2 Background2FromHeaderByte(uint8_t byte0) {
+  if (IsDarkRoomHeaderByte(byte0)) {
+    return background2::DarkRoom;
+  }
+  return static_cast<background2>(Layer2ModeFromHeaderByte(byte0));
 }
 
 template <typename WriteColor>
@@ -334,12 +360,16 @@ Room LoadRoomFromRom(Rom* rom, int room_id) {
   // blocks ($7EF940) and torches ($7EFB40). These "special" objects are not
   // part of the room object stream and must not be saved into it.
   room.LoadObjects();
+  room.LoadChests();
   room.LoadPotItems();
   room.LoadTorches();
   room.LoadBlocks();
   room.LoadPits();
 
   room.SetLoaded(true);
+  room.ClearSaveDirtyState();
+  room.ClearCustomCollisionDirty();
+  room.ClearWaterFillDirty();
   return room;
 }
 
@@ -386,13 +416,13 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
     return room;
   }
 
-  room.SetBg2((background2)((rom->data()[header_location] >> 5) & 0x07));
-  room.SetCollision((CollisionKey)((rom->data()[header_location] >> 2) & 0x07));
-  room.SetIsLight(((rom->data()[header_location]) & 0x01) == 1);
-
-  if (room.IsLight()) {
-    room.SetBg2(background2::DarkRoom);
-  }
+  const uint8_t header_byte0 = rom->data()[header_location];
+  room.SetLayer2Mode(Layer2ModeFromHeaderByte(header_byte0));
+  room.SetLayerMerging(LayerMergeFromHeaderByte(header_byte0));
+  room.SetBg2(Background2FromHeaderByte(header_byte0));
+  room.SetCollision((CollisionKey)((header_byte0 >> 2) & 0x07));
+  room.SetIsLight(IsDarkRoomHeaderByte(header_byte0));
+  room.SetIsDark(IsDarkRoomHeaderByte(header_byte0));
 
   // USDASM grounding (bank_01.asm LoadRoomHeader, e.g. $01:B61B):
   // The room header stores an 8-bit "palette set ID" (0-71 in vanilla), which
@@ -462,10 +492,9 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
 
   uint8_t b = rom->data()[hpos];
 
-  room.SetLayer2Mode((b >> 5));
-  room.SetLayerMerging(kLayerMergeTypeList[(b & 0x0C) >> 2]);
-
-  room.SetIsDark((b & 0x01) == 0x01);
+  room.SetLayer2Mode(Layer2ModeFromHeaderByte(b));
+  room.SetLayerMerging(LayerMergeFromHeaderByte(b));
+  room.SetIsDark(IsDarkRoomHeaderByte(b));
   hpos++;
   // Skip palette byte here - already set by SetPalette() from the primary
   // header table above (line ~329). The old SetPaletteDirect wrote to a
@@ -507,6 +536,9 @@ Room LoadRoomHeaderFromRom(Rom* rom, int room_id) {
   hpos++;
   room.SetStair4Target(rom->data()[hpos]);
 
+  room.ClearSaveDirtyState();
+  room.ClearCustomCollisionDirty();
+  room.ClearWaterFillDirty();
   // Note: We do NOT set is_loaded_ to true here, as this is just the header
   return room;
 }
@@ -544,7 +576,7 @@ int Room::ResolveDungeonPaletteId() const {
   return id;
 }
 
-void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
+void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   if (!game_data_) {
     LOG_DEBUG("Room", "GameData not set for room %d", room_id_);
     return;
@@ -552,28 +584,64 @@ void Room::LoadRoomGraphics(uint8_t entrance_blockset) {
 
   const auto& room_gfx = game_data_->room_blockset_ids;
   const auto& sprite_gfx = game_data_->spriteset_ids;
+  const uint8_t requested_main_blockset =
+      entrance_blockset.value_or(render_entrance_blockset_);
+  uint8_t main_blockset = 0;
+  if (requested_main_blockset != 0xFF &&
+      requested_main_blockset < game_data_->main_blockset_ids.size()) {
+    main_blockset = requested_main_blockset;
+  } else if (blockset_ < game_data_->main_blockset_ids.size()) {
+    main_blockset = blockset_;
+  } else {
+    LOG_WARN("Room",
+             "Room %d: invalid main fallback blockset %d; using main group 0",
+             room_id_, blockset_);
+  }
+  if (requested_main_blockset != 0xFF &&
+      requested_main_blockset >= game_data_->main_blockset_ids.size()) {
+    LOG_WARN("Room",
+             "Room %d: entrance main blockset %d out of range; using %d",
+             room_id_, requested_main_blockset, main_blockset);
+  }
+  resolved_main_blockset_ = main_blockset;
 
-  LOG_DEBUG("Room", "Room %d: blockset=%d, spriteset=%d, palette=%d", room_id_,
-            blockset_, spriteset_, palette_);
+  LOG_DEBUG("Room",
+            "Room %d: room_blockset=%d, main_blockset=%d, spriteset=%d, "
+            "palette=%d",
+            room_id_, blockset_, main_blockset, spriteset_, palette_);
 
   for (int i = 0; i < 8; i++) {
-    blocks_[i] = game_data_->main_blockset_ids[blockset_][i];
-    // Block 6 can be overridden by entrance-specific room graphics (index 3)
-    // Note: The "3-6" comment was misleading - only block 6 uses room_gfx
-    if (i == 6) {
-      if (entrance_blockset != 0xFF && room_gfx[entrance_blockset][3] != 0) {
-        blocks_[i] = room_gfx[entrance_blockset][3];
+    blocks_[i] = game_data_->main_blockset_ids[main_blockset][i];
+    if (i >= 3 && i <= 6 && blockset_ < room_gfx.size()) {
+      const uint8_t room_sheet = room_gfx[blockset_][i - 3];
+      if (room_sheet != 0) {
+        blocks_[i] = room_sheet;
       }
     }
+  }
+  if (blockset_ >= room_gfx.size()) {
+    LOG_WARN("Room", "Room %d: room blockset %d out of range; skipped $0AA2",
+             room_id_, blockset_);
   }
 
   blocks_[8] = 115 + 0;  // Static Sprites Blocksets (fairy,pot,ect...)
   blocks_[9] = 115 + 10;
   blocks_[10] = 115 + 6;
   blocks_[11] = 115 + 7;
-  for (int i = 0; i < 4; i++) {
-    blocks_[12 + i] = (uint8_t)(sprite_gfx[spriteset_ + 64][i] + 115);
-  }  // 12-16 sprites
+  const size_t sprite_gfx_index = static_cast<size_t>(spriteset_) + 64;
+  if (sprite_gfx_index < sprite_gfx.size()) {
+    for (int i = 0; i < 4; i++) {
+      blocks_[12 + i] =
+          static_cast<uint8_t>(sprite_gfx[sprite_gfx_index][i] + 115);
+    }
+  } else {
+    LOG_WARN("Room",
+             "Room %d: spriteset %d out of range; clearing sprite sheets",
+             room_id_, spriteset_);
+    for (int i = 0; i < 4; i++) {
+      blocks_[12 + i] = 0;
+    }
+  }  // 12-15 sprites
 
   LOG_DEBUG("Room", "Sheet IDs BG[0-7]: %d %d %d %d %d %d %d %d", blocks_[0],
             blocks_[1], blocks_[2], blocks_[3], blocks_[4], blocks_[5],
@@ -601,8 +669,10 @@ void Room::EnsurePotItemsLoaded() {
   LoadPotItems();
 }
 
-void Room::ReloadGraphics(uint8_t entrance_blockset) {
-  (void)entrance_blockset;
+void Room::ReloadGraphics(std::optional<uint8_t> entrance_blockset) {
+  if (entrance_blockset.has_value()) {
+    SetRenderEntranceBlockset(*entrance_blockset);
+  }
   EnsureObjectsLoaded();
   MarkGraphicsDirty();
   MarkLayoutDirty();
@@ -610,8 +680,10 @@ void Room::ReloadGraphics(uint8_t entrance_blockset) {
   RenderRoomGraphics();
 }
 
-void Room::PrepareForRender(uint8_t entrance_blockset) {
-  (void)entrance_blockset;
+void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
+  if (entrance_blockset.has_value()) {
+    SetRenderEntranceBlockset(*entrance_blockset);
+  }
   EnsureObjectsLoaded();
 
   auto& bg1_bmp = bg1_buffer_.bitmap();
@@ -661,15 +733,20 @@ void Room::CopyRoomGraphicsToBuffer() {
   //   (pixel values 1-7 become 9-15; 0 remains 0/transparent).
   //
   // For background graphics sets, the game selects Left/Right based on the
-  // "graphics group" ($0AA1, our Room::blockset) and the slot index ($0F).
+  // active main graphics group ($0AA1) and the slot index ($0F).
   // For UW groups (< $20), slots 4-7 use Right; for OW groups (>= $20), the
   // Right slots are {2,3,4,7}. We mirror this by shifting non-zero pixels by
   // +8 when copying those background blocks into current_gfx16_.
+  const uint8_t active_main_blockset =
+      resolved_main_blockset_ != 0xFF
+          ? resolved_main_blockset_
+          : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
+                                               : blockset_);
   auto is_right_palette_background_slot = [&](int slot) -> bool {
     if (slot < 0 || slot >= 8) {
       return false;
     }
-    if (blockset_ < 0x20) {
+    if (active_main_blockset < 0x20) {
       return slot >= 4;
     }
     return (slot == 2 || slot == 3 || slot == 4 || slot == 7);
@@ -733,6 +810,7 @@ gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
     composite_signature_ = requested_signature;
     has_composite_signature_ = true;
   }
+  PaletteDebugger::Get().SetCurrentBitmap(&composite_bitmap_);
   return composite_bitmap_;
 }
 
@@ -791,7 +869,7 @@ void Room::RenderRoomGraphics() {
   if (dirty_state_.graphics) {
     // Ensure blocks_[] array is properly initialized before copying graphics
     // LoadRoomGraphics sets up which sheets go into which blocks
-    LoadRoomGraphics(blockset_);
+    LoadRoomGraphics();
     CopyRoomGraphicsToBuffer();
     dirty_state_.graphics = false;
   }
@@ -831,13 +909,11 @@ void Room::RenderRoomGraphics() {
   }
 
   // STEP 3: Draw layout objects ON TOP of floor
-  // Layout objects (walls, corners) are drawn after floor so they appear over it
-  // NOTE: SNES uses a four-pass pipeline (layout, main, BG2 overlay, BG1
-  // overlay) per bank_01.asm. We currently emit one layout pass + one object
-  // list. RoomLayerManager handles BG2 translucency and room effects, and
-  // DrawRoutineRegistry routes BothBG objects correctly, but splitting into
-  // four distinct streams would fix edge cases with overlay ordering.
-  // See docs/internal/agents/dungeon-object-rendering-spec.md.
+  // Layout objects (walls, corners) are drawn after floor so they appear over it.
+  // USDASM order (bank_01.asm LoadAndBuildRoom): floors, layout, primary object
+  // stream, BG2 overlay stream (post-0xFFFF), BG1 overlay stream, then blocks/
+  // torches. `RenderObjectsToBackground` runs three object-stream passes; layout
+  // is emitted here before object buffers. See dungeon-object-rendering-spec.md.
   if (was_layout_dirty || need_floor_draw) {
     LoadLayoutTilesToBuffer();
     dirty_state_.layout = false;
@@ -868,10 +944,6 @@ void Room::RenderRoomGraphics() {
               bg1_palette[0].rom_color().blue);
   }
 
-  // Store current palette and bitmap for pixel inspector debugging
-  PaletteDebugger::Get().SetCurrentPalette(bg1_palette);
-  PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
-
   if (bg1_palette.size() > 0) {
     std::optional<gfx::SnesPalette> hud_palette_storage;
     const gfx::SnesPalette* hud_palette = nullptr;
@@ -896,9 +968,16 @@ void Room::RenderRoomGraphics() {
     //
     // Drawing formula (see ObjectDrawer): final_color = pixel + (pal * 16).
     // Where pal is the 3-bit tile palette field (0-7) and pixel is 1-15.
-    auto set_dungeon_palette = [&](gfx::Bitmap& bmp,
-                                   const gfx::SnesPalette& pal) {
-      bmp.SetPalette(BuildDungeonRenderPalette(pal, hud_palette));
+    const auto render_palette =
+        BuildDungeonRenderPalette(bg1_palette, hud_palette);
+
+    // Store current palette state for pixel inspector / issue report debugging.
+    PaletteDebugger::Get().SetCurrentPalette(bg1_palette);
+    PaletteDebugger::Get().SetCurrentRenderPalette(render_palette);
+    PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
+
+    auto set_dungeon_palette = [&](gfx::Bitmap& bmp) {
+      bmp.SetPalette(render_palette);
       if (bmp.surface()) {
         // Set color key to 255 for proper alpha blending (undrawn areas)
         SDL_SetColorKey(bmp.surface(), SDL_TRUE, 255);
@@ -906,10 +985,10 @@ void Room::RenderRoomGraphics() {
       }
     };
 
-    set_dungeon_palette(bg1_bmp, bg1_palette);
-    set_dungeon_palette(bg2_bmp, bg1_palette);
-    set_dungeon_palette(object_bg1_buffer_.bitmap(), bg1_palette);
-    set_dungeon_palette(object_bg2_buffer_.bitmap(), bg1_palette);
+    set_dungeon_palette(bg1_bmp);
+    set_dungeon_palette(bg2_bmp);
+    set_dungeon_palette(object_bg1_buffer_.bitmap());
+    set_dungeon_palette(object_bg2_buffer_.bitmap());
 
     // DEBUG: Verify palette was applied to SDL surface
     auto* surface = bg1_bmp.surface();
@@ -1814,6 +1893,8 @@ absl::Status Room::SaveObjects() {
       rom_->WriteLong(kDoorPointers + (room_id_ * 3),
                       static_cast<uint32_t>(PcToSnes(door_pointer_pc))));
 
+  ClearObjectStreamDirty();
+
   return absl::OkStatus();
 }
 
@@ -1864,10 +1945,14 @@ absl::Status Room::SaveSprites() {
 
   auto encoded_bytes = EncodeSprites();
   if (static_cast<int>(encoded_bytes.size()) > available_payload_size) {
-    return RelocateSpriteData(rom_, room_id_, encoded_bytes);
+    RETURN_IF_ERROR(RelocateSpriteData(rom_, room_id_, encoded_bytes));
+    ClearSpritesDirty();
+    return absl::OkStatus();
   }
 
-  return rom_->WriteVector(payload_address, encoded_bytes);
+  RETURN_IF_ERROR(rom_->WriteVector(payload_address, encoded_bytes));
+  ClearSpritesDirty();
+  return absl::OkStatus();
 }
 
 absl::Status Room::SaveRoomHeader() {
@@ -1905,10 +1990,18 @@ absl::Status Room::SaveRoomHeader() {
     return absl::OutOfRangeError("Room header location out of range");
   }
 
-  // Build 14-byte header to match LoadRoomHeaderFromRom layout
-  uint8_t byte0 = (static_cast<uint8_t>(bg2()) << 5) |
-                  (static_cast<uint8_t>(collision()) << 2) |
-                  (IsLight() ? 1 : 0);
+  // Build 14-byte header to match LoadRoomHeaderFromRom layout. The high
+  // three bits are the BG2/layer mode; bit 0 is the dark-room flag. DarkRoom
+  // is an editor enum value, not a raw high-bit value.
+  uint8_t layer2_mode_for_save = layer2_mode_ & 0x07;
+  if (bg2() != background2::DarkRoom) {
+    layer2_mode_for_save = static_cast<uint8_t>(bg2()) & 0x07;
+  }
+  const bool dark_room =
+      IsLight() || is_dark_ || bg2() == background2::DarkRoom;
+  uint8_t byte0 = static_cast<uint8_t>(
+      (layer2_mode_for_save << 5) |
+      ((static_cast<uint8_t>(collision()) & 0x07) << 2) | (dark_room ? 1 : 0));
   // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
   uint8_t byte1 = palette_;
   uint8_t byte7 = (staircase_plane(0) << 2) | (staircase_plane(1) << 4) |
@@ -1938,6 +2031,8 @@ absl::Status Room::SaveRoomHeader() {
   }
   RETURN_IF_ERROR(rom_->WriteWord(msg_addr, message_id_));
 
+  ClearHeaderDirty();
+
   return absl::OkStatus();
 }
 
@@ -1954,7 +2049,7 @@ absl::Status Room::AddObject(const RoomObject& object) {
   // Add to internal list
   tile_objects_.push_back(object);
   objects_loaded_ = true;
-  MarkObjectsDirty();
+  MarkSaveDirtyForTileObject(object);
 
   return absl::OkStatus();
 }
@@ -1964,6 +2059,7 @@ absl::Status Room::RemoveObject(size_t index) {
     return absl::OutOfRangeError("Object index out of range");
   }
 
+  MarkSaveDirtyForTileObject(tile_objects_[index]);
   tile_objects_.erase(tile_objects_.begin() + index);
   objects_loaded_ = true;
   MarkObjectsDirty();
@@ -1980,9 +2076,10 @@ absl::Status Room::UpdateObject(size_t index, const RoomObject& object) {
     return absl::InvalidArgumentError("Invalid object parameters");
   }
 
+  MarkSaveDirtyForTileObject(tile_objects_[index]);
   tile_objects_[index] = object;
   objects_loaded_ = true;
-  MarkObjectsDirty();
+  MarkSaveDirtyForTileObject(object);
 
   return absl::OkStatus();
 }
@@ -2119,6 +2216,7 @@ void Room::LoadSprites() {
 void Room::LoadChests() {
   auto rom_data = rom()->vector();
   chests_in_room_.clear();
+  chests_loaded_ = false;
   uint32_t cpos = SnesToPc((rom_data[kChestsDataPointer1 + 2] << 16) +
                            (rom_data[kChestsDataPointer1 + 1] << 8) +
                            (rom_data[kChestsDataPointer1]));
@@ -2139,6 +2237,7 @@ void Room::LoadChests() {
           chest_data{rom_data[cpos + (i * 3) + 2], big});
     }
   }
+  chests_loaded_ = true;
 }
 
 void Room::LoadDoors() {
@@ -2242,16 +2341,22 @@ void Room::LoadTorches() {
       }
     }
   }
+  torches_loaded_ = true;
 }
 
 namespace {
 
 constexpr int kTorchesMaxSize = 0x120;  // ZScream Constants.TorchesMaxSize
 
-// Parse current ROM torch blob into per-room segments for preserve-merge.
-std::vector<std::vector<uint8_t>> ParseRomTorchSegments(
+struct TorchSegment {
+  uint16_t room_id = 0;
+  std::vector<uint8_t> bytes;
+};
+
+// Parse current ROM torch blob in authoring order for preserve-merge.
+std::vector<TorchSegment> ParseRomTorchSegments(
     const std::vector<uint8_t>& rom_data, int bytes_count) {
-  std::vector<std::vector<uint8_t>> segments(kNumberOfRooms);
+  std::vector<TorchSegment> segments;
   int i = 0;
   while (i + 1 < bytes_count && i < kTorchesMaxSize) {
     uint8_t b1 = rom_data[kTorchData + i];
@@ -2265,28 +2370,54 @@ std::vector<std::vector<uint8_t>> ParseRomTorchSegments(
       i += 2;
       continue;
     }
-    std::vector<uint8_t> seg;
-    seg.push_back(b1);
-    seg.push_back(b2);
+    TorchSegment seg;
+    seg.room_id = room_id;
+    seg.bytes.push_back(b1);
+    seg.bytes.push_back(b2);
     i += 2;
     while (i + 1 < bytes_count && i < kTorchesMaxSize) {
       b1 = rom_data[kTorchData + i];
       b2 = rom_data[kTorchData + i + 1];
       if (b1 == 0xFF && b2 == 0xFF) {
-        seg.push_back(0xFF);
-        seg.push_back(0xFF);
+        seg.bytes.push_back(0xFF);
+        seg.bytes.push_back(0xFF);
         i += 2;
         break;
       }
-      seg.push_back(b1);
-      seg.push_back(b2);
+      seg.bytes.push_back(b1);
+      seg.bytes.push_back(b2);
       i += 2;
     }
-    if (room_id < segments.size()) {
-      segments[room_id] = std::move(seg);
-    }
+    segments.push_back(std::move(seg));
   }
   return segments;
+}
+
+std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
+  std::vector<uint8_t> bytes;
+  for (const auto& obj : room.GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Torch) == ObjectOption::Nothing) {
+      continue;
+    }
+    if (bytes.empty()) {
+      bytes.push_back(room_id & 0xFF);
+      bytes.push_back((room_id >> 8) & 0xFF);
+    }
+    int address = obj.x() + (obj.y() * 64);
+    int word = address << 1;
+    uint8_t b1 = word & 0xFF;
+    uint8_t b2 = ((word >> 8) & 0x1F) | ((obj.GetLayerValue() & 1) << 5);
+    if (obj.lit_) {
+      b2 |= 0x80;
+    }
+    bytes.push_back(b1);
+    bytes.push_back(b2);
+  }
+  if (!bytes.empty()) {
+    bytes.push_back(0xFF);
+    bytes.push_back(0xFF);
+  }
+  return bytes;
 }
 
 }  // namespace
@@ -2298,26 +2429,6 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
-  bool any_torch_objects = false;
-  for (int room_id = 0; room_id < room_count; ++room_id) {
-    const Room* room = room_lookup(room_id);
-    if (room == nullptr) {
-      continue;
-    }
-    for (const auto& obj : room->GetTileObjects()) {
-      if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-        any_torch_objects = true;
-        break;
-      }
-    }
-    if (any_torch_objects) {
-      break;
-    }
-  }
-  if (!any_torch_objects) {
-    return absl::OkStatus();
-  }
-
   const auto& rom_data = rom->vector();
   int existing_count = (rom_data[kTorchesLengthPointer + 1] << 8) |
                        rom_data[kTorchesLengthPointer];
@@ -2327,42 +2438,48 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
   auto rom_segments = ParseRomTorchSegments(rom_data, existing_count);
 
   std::vector<uint8_t> bytes;
-  const int room_limit =
-      std::min(room_count, static_cast<int>(rom_segments.size()));
+  const int room_limit = std::min(room_count, kNumberOfRooms);
+  std::vector<bool> owned_rooms(room_limit, false);
+  std::vector<bool> seen_original_room(room_limit, false);
+  std::vector<bool> emitted_owned_room(room_limit, false);
+  std::vector<std::vector<uint8_t>> replacements(room_limit);
+  bool any_owned_room = false;
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
-    bool has_torch_objects = false;
-    if (room != nullptr) {
-      for (const auto& obj : room->GetTileObjects()) {
-        if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-          has_torch_objects = true;
-          break;
+    const bool room_owned =
+        room != nullptr && (room->AreTorchesLoaded() || room->torches_dirty());
+    if (!room_owned) {
+      continue;
+    }
+    owned_rooms[room_id] = true;
+    any_owned_room = true;
+    replacements[room_id] = EncodeTorchSegmentForRoom(room_id, *room);
+  }
+
+  if (!any_owned_room) {
+    return absl::OkStatus();
+  }
+
+  for (const auto& segment : rom_segments) {
+    if (segment.room_id < room_limit) {
+      seen_original_room[segment.room_id] = true;
+      if (owned_rooms[segment.room_id]) {
+        if (!emitted_owned_room[segment.room_id]) {
+          bytes.insert(bytes.end(), replacements[segment.room_id].begin(),
+                       replacements[segment.room_id].end());
+          emitted_owned_room[segment.room_id] = true;
         }
+        continue;
       }
     }
-    if (has_torch_objects) {
-      bytes.push_back(room_id & 0xFF);
-      bytes.push_back((room_id >> 8) & 0xFF);
-      for (const auto& obj : room->GetTileObjects()) {
-        if ((obj.options() & ObjectOption::Torch) == ObjectOption::Nothing) {
-          continue;
-        }
-        int address = obj.x() + (obj.y() * 64);
-        int word = address << 1;
-        uint8_t b1 = word & 0xFF;
-        uint8_t b2 = ((word >> 8) & 0x1F) | ((obj.GetLayerValue() & 1) << 5);
-        if (obj.lit_) {
-          b2 |= 0x80;
-        }
-        bytes.push_back(b1);
-        bytes.push_back(b2);
-      }
-      bytes.push_back(0xFF);
-      bytes.push_back(0xFF);
-    } else if (!rom_segments[room_id].empty()) {
-      for (uint8_t b : rom_segments[room_id]) {
-        bytes.push_back(b);
-      }
+    bytes.insert(bytes.end(), segment.bytes.begin(), segment.bytes.end());
+  }
+
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (owned_rooms[room_id] && !seen_original_room[room_id] &&
+        !replacements[room_id].empty()) {
+      bytes.insert(bytes.end(), replacements[room_id].begin(),
+                   replacements[room_id].end());
     }
   }
 
@@ -2379,12 +2496,25 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
       kTorchData + static_cast<int>(bytes.size()) <=
           static_cast<int>(rom_data.size()) &&
       std::equal(bytes.begin(), bytes.end(), rom_data.begin() + kTorchData)) {
+    for (int room_id = 0; room_id < room_limit; ++room_id) {
+      if (const Room* room = room_lookup(room_id);
+          room != nullptr && room->torches_dirty()) {
+        const_cast<Room*>(room)->ClearTorchesDirty();
+      }
+    }
     return absl::OkStatus();
   }
 
   RETURN_IF_ERROR(rom->WriteWord(kTorchesLengthPointer,
                                  static_cast<uint16_t>(bytes.size())));
-  return rom->WriteVector(kTorchData, bytes);
+  RETURN_IF_ERROR(rom->WriteVector(kTorchData, bytes));
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->torches_dirty()) {
+      const_cast<Room*>(room)->ClearTorchesDirty();
+    }
+  }
+  return absl::OkStatus();
 }
 
 absl::Status SaveAllTorches(Rom* rom, absl::Span<const Room> rooms) {
@@ -2398,7 +2528,19 @@ absl::Status SaveAllTorches(
   return SaveAllTorchesImpl(rom, room_count, room_lookup);
 }
 
+// Region preservation for `RoomsWithPitDamage` when no edited table is supplied.
+// When `pit_damage_table` is non-null and dirty, encode the in-memory membership
+// list through `PitDamageTable::SaveToRom` instead of blind preservation.
 absl::Status SaveAllPits(Rom* rom) {
+  return SaveAllPits(rom, nullptr);
+}
+
+absl::Status SaveAllPits(Rom* rom, PitDamageTable* pit_damage_table) {
+  if (pit_damage_table != nullptr && pit_damage_table->dirty()) {
+    RETURN_IF_ERROR(pit_damage_table->SaveToRom(rom));
+    pit_damage_table->ClearDirty();
+    return absl::OkStatus();
+  }
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -2407,22 +2549,21 @@ absl::Status SaveAllPits(Rom* rom) {
       kPitPointer + 2 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Pit count/pointer out of range");
   }
-  int pit_count_byte = rom_data[kPitCount];
-  int pit_entries = pit_count_byte / 2;
-  if (pit_entries <= 0) {
-    return absl::OkStatus();
-  }
+  int max_offset = rom_data[kPitCount];
+  // Total bytes = max_offset + 2 (covers offsets 0..max_offset
+  // inclusive, with each entry being a 2-byte word). When max_offset
+  // is 0, there's still 1 word to preserve (the entry at offset 0).
+  int data_len = max_offset + 2;
   int pit_ptr_snes = (rom_data[kPitPointer + 2] << 16) |
                      (rom_data[kPitPointer + 1] << 8) | rom_data[kPitPointer];
   int pit_data_pc = SnesToPc(pit_ptr_snes);
-  int data_len = pit_entries * 2;
   if (pit_data_pc < 0 ||
       pit_data_pc + data_len > static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Pit data region out of range");
   }
   std::vector<uint8_t> data(rom_data.begin() + pit_data_pc,
                             rom_data.begin() + pit_data_pc + data_len);
-  RETURN_IF_ERROR(rom->WriteByte(kPitCount, pit_count_byte));
+  RETURN_IF_ERROR(rom->WriteByte(kPitCount, max_offset));
   RETURN_IF_ERROR(rom->WriteByte(kPitPointer, pit_ptr_snes & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(kPitPointer + 1, (pit_ptr_snes >> 8) & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(kPitPointer + 2, (pit_ptr_snes >> 16) & 0xFF));
@@ -2468,6 +2609,172 @@ absl::Status SaveAllBlocks(Rom* rom) {
   return absl::OkStatus();
 }
 
+absl::Status SaveAllBlocks(Rom* rom, int room_count,
+                           const std::function<const Room*(int)>& room_lookup) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  if (kBlocksLength + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Blocks length out of range");
+  }
+
+  const int kRegionSize = 0x80;
+  const int kPointerSlots[4] = {kBlocksPointer1, kBlocksPointer2,
+                                kBlocksPointer3, kBlocksPointer4};
+
+  // Read the original block buffer by dereferencing the four pointer
+  // slots. We need this so unmaterialized / header-only rooms can have
+  // their entries preserved verbatim — only rooms whose blocks were
+  // actually loaded into memory get re-encoded from `tile_objects_`.
+  // This prevents the editor migration from silently dropping vanilla
+  // blocks for any room the user hasn't materialized yet.
+  const int original_count_word =
+      (rom_data[kBlocksLength + 1] << 8) | rom_data[kBlocksLength];
+  const int original_byte_len = std::max(0, original_count_word);
+  std::vector<uint8_t> original_buffer(original_byte_len, 0);
+  for (int r = 0; r < 4; ++r) {
+    const int slot = kPointerSlots[r];
+    if (slot + 2 >= static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks pointer out of range");
+    }
+    const int snes =
+        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
+    const int pc = SnesToPc(snes);
+    const int off = r * kRegionSize;
+    const int len = std::min(kRegionSize, original_byte_len - off);
+    if (len <= 0)
+      break;
+    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks data region out of range");
+    }
+    std::copy_n(rom_data.begin() + pc, len, original_buffer.begin() + off);
+  }
+  const int original_slot_count = original_byte_len / 4;
+
+  // Build:
+  //   - `slot_replacements`: for each existing slot whose room_id is
+  //     "owned" by an editor-loaded room, the re-encoded bytes (or
+  //     absent if the block was deleted in memory).
+  //   - `owned_room_ids`: the set of room_ids whose blocks were
+  //     materialized (so unmaterialized / header-only rooms can be
+  //     preserved verbatim from `original_buffer`).
+  //   - `appended`: blocks with `load_order == kBlockLoadOrderNew`,
+  //     appended to the end in creation order.
+  std::unordered_set<uint16_t> owned_room_ids;
+  std::unordered_map<int, PushableBlockBytes> slot_replacements;
+  std::vector<PushableBlockBytes> appended;
+  for (int rid = 0; rid < room_count; ++rid) {
+    const Room* room = room_lookup(rid);
+    if (room == nullptr)
+      continue;
+    if (!room->AreBlocksLoaded())
+      continue;  // Header-only — preserve its slots verbatim from ROM.
+    owned_room_ids.insert(static_cast<uint16_t>(rid));
+    for (const auto& obj : room->GetTileObjects()) {
+      if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
+        continue;
+      PushableBlockEntry encoded_entry;
+      encoded_entry.room_id = static_cast<uint16_t>(rid);
+      encoded_entry.px = obj.x();
+      encoded_entry.py = obj.y();
+      encoded_entry.layer = obj.GetLayerValue();
+      const PushableBlockBytes encoded =
+          EncodePushableBlockEntry(encoded_entry);
+      const int load_order = obj.block_load_order();
+      if (load_order == RoomObject::kBlockLoadOrderNew) {
+        appended.push_back(encoded);
+      } else if (load_order >= 0 && load_order < original_slot_count) {
+        // First write wins: if a room loaded duplicate-load_order
+        // entries (shouldn't happen but defensive), keep the first.
+        slot_replacements.emplace(load_order, encoded);
+      } else {
+        // load_order points outside the original buffer (e.g. ROM
+        // changed under us). Treat as new.
+        appended.push_back(encoded);
+      }
+    }
+  }
+
+  // Walk the original buffer slot-by-slot, replacing entries owned by
+  // materialized rooms and preserving the rest verbatim.
+  std::vector<uint8_t> output;
+  output.reserve(original_byte_len + appended.size() * 4);
+  for (int slot = 0; slot < original_slot_count; ++slot) {
+    const uint8_t b1 = original_buffer[slot * 4 + 0];
+    const uint8_t b2 = original_buffer[slot * 4 + 1];
+    const uint16_t slot_room_id = static_cast<uint16_t>(b1 | (b2 << 8));
+    if (owned_room_ids.contains(slot_room_id)) {
+      const auto it = slot_replacements.find(slot);
+      if (it == slot_replacements.end()) {
+        // The block at this slot was deleted in memory. Skip it,
+        // shrinking the output.
+        continue;
+      }
+      output.push_back(it->second.b1);
+      output.push_back(it->second.b2);
+      output.push_back(it->second.b3);
+      output.push_back(it->second.b4);
+    } else {
+      // Unmaterialized / header-only room: keep the original bytes.
+      output.push_back(b1);
+      output.push_back(b2);
+      output.push_back(original_buffer[slot * 4 + 2]);
+      output.push_back(original_buffer[slot * 4 + 3]);
+    }
+  }
+  // Append newly-added blocks (load_order == kBlockLoadOrderNew) at the
+  // tail in creation order. Anything in slot_replacements that didn't
+  // match a slot was already routed to `appended` above.
+  for (const auto& nb : appended) {
+    output.push_back(nb.b1);
+    output.push_back(nb.b2);
+    output.push_back(nb.b3);
+    output.push_back(nb.b4);
+  }
+
+  // Capacity check against the vanilla 128-entry cap.
+  const int kMaxEntries = (4 * kRegionSize) / 4;
+  if (static_cast<int>(output.size() / 4) > kMaxEntries) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Pushable-block table overflow: ", output.size() / 4,
+        " entries exceeds the vanilla cap of ", kMaxEntries,
+        " (expand layout requires repointing all 4 LDA.l operand slots; "
+        "out of scope for this encoder)."));
+  }
+
+  // Write each region by dereferencing its pointer slot, mirroring
+  // `LoadBlocks`'s read path. We do not relocate the data — the four
+  // operand slots stay pointing at their existing SNES addresses.
+  const int total_bytes = static_cast<int>(output.size());
+  for (int r = 0; r < 4; ++r) {
+    const int slot = kPointerSlots[r];
+    const int snes =
+        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
+    const int pc = SnesToPc(snes);
+    const int off = r * kRegionSize;
+    const int len = std::min(kRegionSize, total_bytes - off);
+    if (len <= 0)
+      break;
+    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks data region out of range");
+    }
+    std::vector<uint8_t> chunk(output.begin() + off,
+                               output.begin() + off + len);
+    RETURN_IF_ERROR(rom->WriteVector(pc, chunk));
+  }
+
+  RETURN_IF_ERROR(
+      rom->WriteWord(kBlocksLength, static_cast<uint16_t>(total_bytes)));
+  for (int room_id = 0; room_id < room_count; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->blocks_dirty()) {
+      const_cast<Room*>(room)->ClearBlocksDirty();
+    }
+  }
+  return absl::OkStatus();
+}
+
 template <typename RoomLookup>
 absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
                                   RoomLookup&& room_lookup) {
@@ -2486,7 +2793,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
 
   if (!has_ptr_table) {
     for (int room_id = 0; room_id < room_count; ++room_id) {
-      Room* room = room_lookup(room_id);
+      const Room* room = room_lookup(room_id);
       if (room != nullptr && room->custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision region not present in this ROM");
@@ -2497,7 +2804,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
 
   if (!has_data_region) {
     for (int room_id = 0; room_id < room_count; ++room_id) {
-      Room* room = room_lookup(room_id);
+      const Room* room = room_lookup(room_id);
       if (room != nullptr && room->custom_collision_dirty()) {
         return absl::FailedPreconditionError(
             "Custom collision data region not present in this ROM");
@@ -2521,7 +2828,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
 
   const int room_limit = std::min(room_count, kNumberOfRooms);
   for (int room_id = 0; room_id < room_limit; ++room_id) {
-    Room* room = room_lookup(room_id);
+    const Room* room = room_lookup(room_id);
     if (room == nullptr || !room->custom_collision_dirty()) {
       continue;
     }
@@ -2537,7 +2844,7 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
-      room->ClearCustomCollisionDirty();
+      const_cast<Room*>(room)->ClearCustomCollisionDirty();
       continue;
     }
 
@@ -2553,13 +2860,13 @@ absl::Status SaveAllCollisionImpl(Rom* rom, int room_count,
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 1, 0));
       RETURN_IF_ERROR(rom->WriteByte(ptr_offset + 2, 0));
-      room->ClearCustomCollisionDirty();
+      const_cast<Room*>(room)->ClearCustomCollisionDirty();
       continue;
     }
 
     RETURN_IF_ERROR(
         WriteTrackCollision(rom, actual_room_id, room->custom_collision()));
-    room->ClearCustomCollisionDirty();
+    const_cast<Room*>(room)->ClearCustomCollisionDirty();
   }
 
   return absl::OkStatus();
@@ -2670,15 +2977,17 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
       std::min(room_count, static_cast<int>(rom_chests.size()));
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
+    const bool room_dirty = room != nullptr && room->chests_dirty();
+    const bool room_loaded = room != nullptr && room->AreChestsLoaded();
     const auto* chests = room != nullptr ? &room->GetChests() : nullptr;
-    if (chests == nullptr || chests->empty()) {
+    if (!room_dirty && !room_loaded) {
       for (const auto& [id, big] : rom_chests[room_id]) {
         uint16_t word = room_id | (big ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
         bytes.push_back((word >> 8) & 0xFF);
         bytes.push_back(id);
       }
-    } else {
+    } else if (chests != nullptr) {
       for (const auto& c : *chests) {
         uint16_t word = room_id | (c.size ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
@@ -2694,7 +3003,14 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
   }
   RETURN_IF_ERROR(rom->WriteWord(kChestsLengthPointer,
                                  static_cast<uint16_t>(bytes.size() / 3)));
-  return rom->WriteVector(cpos, bytes);
+  RETURN_IF_ERROR(rom->WriteVector(cpos, bytes));
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->chests_dirty()) {
+      const_cast<Room*>(room)->ClearChestsDirty();
+    }
+  }
+  return absl::OkStatus();
 }
 
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {
@@ -2722,10 +3038,14 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
   const int room_limit = std::min(room_count, kNumberOfRooms);
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
-    const bool room_loaded = room != nullptr && room->IsLoaded();
+    const bool room_dirty = room != nullptr && room->pot_items_dirty();
+    const bool room_loaded = room != nullptr && room->ArePotItemsLoaded();
     const auto* pot_items = room != nullptr ? &room->GetPotItems() : nullptr;
     int ptr_off = table_addr + (room_id * 2);
     uint16_t item_ptr = (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
+    if (item_ptr == 0) {
+      continue;
+    }
     int item_addr = SnesToPc(0x010000 | item_ptr);
     if (item_addr < 0 || item_addr + 2 >= static_cast<int>(rom_data.size())) {
       continue;
@@ -2740,7 +3060,7 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
     if (max_len <= 0)
       continue;
     std::vector<uint8_t> bytes;
-    if (!room_loaded) {
+    if (!room_dirty && !room_loaded) {
       if (room_id < rom_pot_items.size()) {
         bytes = rom_pot_items[room_id];
       }
@@ -2757,9 +3077,20 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
       bytes.push_back(0xFF);
     }
     if (static_cast<int>(bytes.size()) > max_len) {
+      if (room_dirty) {
+        return absl::OutOfRangeError(absl::StrFormat(
+            "Room %d pot item data too large! Size: %d, Available: %d", room_id,
+            bytes.size(), max_len));
+      }
       continue;
     }
     RETURN_IF_ERROR(rom->WriteVector(item_addr, bytes));
+  }
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (const Room* room = room_lookup(room_id);
+        room != nullptr && room->pot_items_dirty()) {
+      const_cast<Room*>(room)->ClearPotItemsDirty();
+    }
   }
   return absl::OkStatus();
 }
@@ -2794,63 +3125,71 @@ void Room::LoadBlocks() {
                      }),
       tile_objects_.end());
 
-  // Load block data from multiple pointers
-  std::vector<uint8_t> blocks_data(blocks_count);
-
-  int pos1 = kBlocksPointer1;
-  int pos2 = kBlocksPointer2;
-  int pos3 = kBlocksPointer3;
-  int pos4 = kBlocksPointer4;
-
-  // Read block data from 4 different locations
-  for (int i = 0; i < 0x80 && i < blocks_count; i++) {
-    blocks_data[i] = rom_data[pos1 + i];
-
-    if (i + 0x80 < blocks_count) {
-      blocks_data[i + 0x80] = rom_data[pos2 + i];
+  // Load block data from the four data regions.
+  //
+  // `kBlocksPointer1..4` are 3-byte SNES long-address operand slots
+  // embedded in bank_02's LDA.l instructions (`$02:DAF9..$02:DB2E`),
+  // not inline data offsets. Each operand encodes
+  // `data_base + region_offset` where data_base is the SNES address
+  // of `SpecialUnderworldObjects_pushable_block` ($04:F1DE in vanilla)
+  // and region_offset is `r * 0x80`. The previous code read directly
+  // from the operand slots, so it was decoding the LDA.l opcode
+  // operand bytes as block data — silently corrupting every block on
+  // load. `SaveAllBlocks` has always dereferenced these correctly;
+  // load now matches.
+  const int kRegionSize = 0x80;
+  const int kPointerSlots[4] = {kBlocksPointer1, kBlocksPointer2,
+                                kBlocksPointer3, kBlocksPointer4};
+  std::vector<uint8_t> blocks_data(blocks_count, 0);
+  for (int r = 0; r < 4; ++r) {
+    const int slot = kPointerSlots[r];
+    if (slot + 2 >= static_cast<int>(rom_data.size())) {
+      LOG_DEBUG("Room", "LoadBlocks: pointer slot %d out of range", r);
+      return;
     }
-    if (i + 0x100 < blocks_count) {
-      blocks_data[i + 0x100] = rom_data[pos3 + i];
-    }
-    if (i + 0x180 < blocks_count) {
-      blocks_data[i + 0x180] = rom_data[pos4 + i];
-    }
-  }
-
-  // Parse blocks for this room (4 bytes per block entry)
-  for (int i = 0; i < blocks_count; i += 4) {
-    if (i + 3 >= blocks_count)
+    const int snes =
+        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
+    const int pc = SnesToPc(snes);
+    const int off = r * kRegionSize;
+    const int len = std::min(kRegionSize, blocks_count - off);
+    if (len <= 0)
       break;
-
-    uint8_t b1 = blocks_data[i];
-    uint8_t b2 = blocks_data[i + 1];
-    uint8_t b3 = blocks_data[i + 2];
-    uint8_t b4 = blocks_data[i + 3];
-
-    // Check if this block belongs to our room
-    uint16_t block_room_id = (b2 << 8) | b1;
-    if (block_room_id == room_id_) {
-      // End marker for this room's blocks
-      if (b3 == 0xFF && b4 == 0xFF) {
-        break;
-      }
-
-      // Decode block position
-      int address = ((b4 & 0x1F) << 8 | b3) >> 1;
-      uint8_t px = address % 64;
-      uint8_t py = address >> 6;
-      uint8_t layer = (b4 & 0x20) >> 5;
-
-      // Create block object (ID 0x0E00)
-      RoomObject block_obj(0x0E00, px, py, 0, layer);
-      block_obj.SetRom(rom_);
-      block_obj.set_options(ObjectOption::Block);
-
-      tile_objects_.push_back(block_obj);
-
-      LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", px, py, layer);
+    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
+      LOG_DEBUG("Room", "LoadBlocks: region %d data out of range", r);
+      return;
     }
+    std::copy_n(rom_data.begin() + pc, len, blocks_data.begin() + off);
   }
+
+  // Parse blocks for this room (4 bytes per block entry).
+  //
+  // Vanilla scan (bank_01.asm:1162) walks the flat 396-byte table linearly
+  // matching on room_id; there is no per-room 0xFFFF terminator. The
+  // previous "break on b3==0xFF && b4==0xFF after room_id match" guard was
+  // a phantom — it never fired in vanilla and would have prematurely
+  // truncated a room's block list if a future tombstone happened to share
+  // its room_id. Removed alongside the decoder fix.
+  for (int i = 0; i + 3 < blocks_count; i += 4) {
+    PushableBlockBytes bytes{blocks_data[i], blocks_data[i + 1],
+                             blocks_data[i + 2], blocks_data[i + 3]};
+    const PushableBlockEntry entry = DecodePushableBlockEntry(bytes);
+    if (entry.room_id != room_id_)
+      continue;
+
+    RoomObject block_obj(0x0E00, entry.px, entry.py, 0, entry.layer);
+    block_obj.SetRom(rom_);
+    block_obj.set_options(ObjectOption::Block);
+    // Capture the entry's slot index in the global buffer so
+    // SaveAllBlocks can emit entries in vanilla authoring order
+    // (interleaved across rooms; sorting by room_id would reshuffle
+    // bytes and break byte equality on no-op saves).
+    block_obj.set_block_load_order(i / 4);
+    tile_objects_.push_back(block_obj);
+
+    LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", entry.px, entry.py,
+              entry.layer);
+  }
+  blocks_loaded_ = true;
 }
 
 void Room::LoadPotItems() {
@@ -2907,25 +3246,33 @@ void Room::LoadPotItems() {
 void Room::LoadPits() {
   auto rom_data = rom()->vector();
 
-  // Read pit count
-  int pit_entries = rom_data[kPitCount] / 2;
+  // The legacy symbol `kPitCount` is the LDX.w immediate at PC 0x394A6
+  // — the **maximum X offset** in the runtime CMP loop, not an entry
+  // count. Total entries = `(max_offset / 2) + 1`. This function does
+  // not actually consume the table contents (yaze has no editable
+  // surface for pit-damage gating); it just resolves the dereferenced
+  // address for diagnostic logging. See
+  // `test/integration/zelda3/dungeon_save_region_test.cc` for the
+  // format-pinning tests and `memory/project_dungeon_pit_audit.md`
+  // for the audit conclusion.
+  const int max_offset = rom_data[kPitCount];
+  const int pit_entries = max_offset / 2 + 1;
 
-  // Read pit pointer (long pointer)
-  int pit_ptr = (rom_data[kPitPointer + 2] << 16) |
-                (rom_data[kPitPointer + 1] << 8) | rom_data[kPitPointer];
-  int pit_data_addr = SnesToPc(pit_ptr);
+  const int pit_ptr = (rom_data[kPitPointer + 2] << 16) |
+                      (rom_data[kPitPointer + 1] << 8) | rom_data[kPitPointer];
 
-  LOG_DEBUG("Room", "LoadPits: room_id=%d, pit_entries=%d, pit_ptr=0x%06X",
+  LOG_DEBUG("Room",
+            "LoadPits: room_id=%d, RoomsWithPitDamage entries=%d, "
+            "table_snes=0x%06X",
             room_id_, pit_entries, pit_ptr);
 
-  // Pit data is stored as: room_id (2 bytes), target info (2 bytes)
-  // This data is already loaded in LoadRoomFromRom() into pits_ destination
-  // struct The pit destination (where you go when you fall) is set via
-  // SetPitsTarget()
-
-  // Pits are typically represented in the layout/collision data, not as objects
-  // The pits_ member already contains the target room and layer
-  LOG_DEBUG("Room", "Pit destination - target=%d, target_layer=%d",
+  // The per-room pit DESTINATION (where Link goes when falling through
+  // a non-damaging pit) is unrelated to the global RoomsWithPitDamage
+  // table read above. It lives in the room header and was loaded into
+  // `pits_` (target room + target_layer) by `LoadRoomFromRom`. The
+  // round-trip for that state goes through the room header save path,
+  // not `SaveAllPits`.
+  LOG_DEBUG("Room", "Per-room pit destination: target=%d, target_layer=%d",
             pits_.target, pits_.target_layer);
 }
 

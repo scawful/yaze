@@ -26,6 +26,18 @@ class DungeonRoomStore {
     return EnsureRoom(index);
   }
 
+  zelda3::Room* TryEnsureRoom(int room_id) {
+    return const_cast<zelda3::Room*>(
+        const_cast<const DungeonRoomStore*>(this)->TryEnsureRoom(room_id));
+  }
+
+  const zelda3::Room* TryEnsureRoom(int room_id) const {
+    if (room_id < 0 || room_id >= static_cast<int>(kRoomCount)) {
+      return nullptr;
+    }
+    return &EnsureRoom(static_cast<size_t>(room_id));
+  }
+
   zelda3::Room* GetIfMaterialized(int room_id) {
     return const_cast<zelda3::Room*>(
         const_cast<const DungeonRoomStore*>(this)->GetIfMaterialized(room_id));

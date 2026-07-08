@@ -155,9 +155,26 @@ std::pair<int, int> DoorPositionManager::PositionToTileCoords(
   return {TilemapOffsetToTileX(offset), TilemapOffsetToTileY(offset)};
 }
 
+std::pair<int, int> DoorPositionManager::PositionToRenderTileCoords(
+    uint8_t position, DoorDirection direction) {
+  auto [tile_x, tile_y] = PositionToTileCoords(position, direction);
+  if (direction == DoorDirection::South) {
+    // USDASM RoomDraw_OneSidedShutters_South ($01:AABB) writes through
+    // $CB/$D7/$DA, i.e. rows y+1..y+3 from DoorTilemapPositions_South*.
+    ++tile_y;
+  }
+  return {tile_x, tile_y};
+}
+
 std::pair<int, int> DoorPositionManager::PositionToPixelCoords(
     uint8_t position, DoorDirection direction) {
   auto [tile_x, tile_y] = PositionToTileCoords(position, direction);
+  return {tile_x * kTileSize, tile_y * kTileSize};
+}
+
+std::pair<int, int> DoorPositionManager::PositionToRenderPixelCoords(
+    uint8_t position, DoorDirection direction) {
+  auto [tile_x, tile_y] = PositionToRenderTileCoords(position, direction);
   return {tile_x * kTileSize, tile_y * kTileSize};
 }
 
@@ -177,23 +194,18 @@ int DoorPositionManager::GetWallEdge(DoorDirection direction) {
 
 bool DoorPositionManager::IsValidPosition(uint8_t position,
                                           DoorDirection direction) {
-  // Position must fit in 5 bits
-  if (position > 0x1F) {
+  // ALTTP's door position tables expose 12 usable entries per direction:
+  // 0-5 for one section and 6-11 for the paired wall/seam section.
+  if (position >= DoorTilemapOffsets(direction).size()) {
     return false;
   }
 
-  // Check that resulting tile position is within room bounds
-  // and leaves room for door dimensions
-  int tile = (position & 0x1F) * 2;
   auto dims = GetDoorDimensions(direction);
+  auto [tile_x, tile_y] = PositionToRenderTileCoords(position, direction);
 
-  // For horizontal doors (N/S), check X doesn't overflow
-  // For vertical doors (E/W), check Y doesn't overflow
-  if (direction == DoorDirection::North || direction == DoorDirection::South) {
-    return tile + dims.width_tiles <= kRoomWidthTiles;
-  } else {
-    return tile + dims.height_tiles <= kRoomHeightTiles;
-  }
+  return tile_x >= 0 && tile_y >= 0 &&
+         tile_x + dims.width_tiles <= kRoomWidthTiles &&
+         tile_y + dims.height_tiles <= kRoomHeightTiles;
 }
 
 bool DoorPositionManager::DetectWallFromPosition(int canvas_x, int canvas_y,
@@ -337,8 +349,16 @@ std::pair<uint8_t, uint8_t> DoorPositionManager::EncodeDoorBytes(
 
 std::tuple<int, int, int, int> DoorPositionManager::GetDoorBounds(
     uint8_t position, DoorDirection direction) {
-  auto [pixel_x, pixel_y] = PositionToPixelCoords(position, direction);
+  auto [pixel_x, pixel_y] = PositionToRenderPixelCoords(position, direction);
   auto dims = GetDoorDimensions(direction);
+
+  return {pixel_x, pixel_y, dims.width_pixels(), dims.height_pixels()};
+}
+
+std::tuple<int, int, int, int> DoorPositionManager::GetDoorEditorBounds(
+    uint8_t position, DoorDirection direction, DoorType type) {
+  auto [pixel_x, pixel_y] = PositionToRenderPixelCoords(position, direction);
+  auto dims = GetEditorDoorDimensions(direction, type);
 
   return {pixel_x, pixel_y, dims.width_pixels(), dims.height_pixels()};
 }

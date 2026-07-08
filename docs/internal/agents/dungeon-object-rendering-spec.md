@@ -116,8 +116,8 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
 | **Translucent BG2 compositing** | Done | `CompositeToOutput()` uses SNES color math `(bg1 + bg2) / 2` with palette-aware nearest-color lookup. |
 | **Pit/mask object identification** | Done | `is_pit_or_mask` list validated; marks BG1 transparent to reveal BG2. |
 | **Palette offset correctness** | Done | `pal * 16` matches the SDL palette mirroring used by `Room::RenderRoomGraphics`, where dungeon banks already live in CGRAM/SDL rows 2-7. |
-| **Selection bounds / size helpers** | Partial | `ObjectGeometry` implements routine-based measurement; nibble-zero fallbacks (26/32) handled. Diagonal ceiling `+4` base not yet wired to selection outlines. |
-| **Four-pass build order** | Not started | Editor still uses layout + main object pass. BG2/BG1 overlay streams not split. |
+| **Selection bounds / size helpers** | Partial | `ObjectGeometry` implements routine-based measurement; nibble-zero fallbacks (26/32) and diagonal ceiling `+4` anchor headroom handled in `object_geometry.cc`. |
+| **Three-stream object build order** | Done | Layout pass + three `DrawObjectList` streams (primary / BG2 overlay / BG1 overlay) in `room.cc`. |
 | **Symbology label alignment** | Not started | UI icons/badges not yet tied to routine family names. |
 
 **Validation:** 19 parity tests in `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc`.

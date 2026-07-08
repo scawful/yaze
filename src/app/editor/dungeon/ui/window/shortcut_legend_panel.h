@@ -71,7 +71,7 @@ class ShortcutLegendPanel {
                               140);
       ShortcutRow("Cycle Room Tabs", "Ctrl+Tab");
       ShortcutRow("Adjacent Room (N/S/E/W)", "Ctrl+Arrow Keys");
-      ShortcutRow("Save Room", "Ctrl+Shift+S");
+      ShortcutRow("Apply Room to ROM", "Ctrl+Shift+S");
       ShortcutRow("Re-render Room", "Ctrl+R");
       ImGui::EndTable();
     }

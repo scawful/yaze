@@ -9,7 +9,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/message/message_id_resolver.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -540,6 +540,8 @@ void MessageEditor::DrawCurrentMessage() {
   gui::BeginPadding(1);
   BeginChild("CurrentGfxFont", ImVec2(348, 0), true,
              ImGuiWindowFlags_NoScrollWithMouse);
+  current_font_gfx16_canvas_.GetConfig().role =
+      gui::CanvasRole::kSelectionSource;
   current_font_gfx16_canvas_.DrawBackground();
   gui::EndPadding();
   current_font_gfx16_canvas_.DrawContextMenu();
@@ -663,6 +665,7 @@ void MessageEditor::DrawCurrentMessage() {
 
 void MessageEditor::DrawFontAtlas() {
   EnsureFontTexturesReady();
+  font_gfx_canvas_.GetConfig().role = gui::CanvasRole::kSelectionSource;
   gui::BeginCanvas(font_gfx_canvas_, ImVec2(256, 256));
   font_gfx_canvas_.DrawBitmap(font_gfx_bitmap_, 0, 0, 2.0f);
   font_gfx_canvas_.DrawTileSelector(16, 32);

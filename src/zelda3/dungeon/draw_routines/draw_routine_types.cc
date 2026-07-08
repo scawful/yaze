@@ -33,7 +33,7 @@ void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
     return;
   }
   if (g_trace_state.hook) {
-    g_trace_state.hook(tile_x, tile_y, tile_info, g_trace_state.user_data);
+    g_trace_state.hook(&bg, tile_x, tile_y, tile_info, g_trace_state.user_data);
     if (g_trace_state.trace_only) {
       return;
     }
@@ -48,7 +48,8 @@ void DrawBlock2x2(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   // Draw a 2x2 block (4 tiles) at the given position
   // Layout:  [0][1]
   //          [2][3]
-  if (offset + 3 >= static_cast<int>(tiles.size())) return;
+  if (offset + 3 >= static_cast<int>(tiles.size()))
+    return;
 
   WriteTile8(bg, tile_x, tile_y, tiles[offset]);
   WriteTile8(bg, tile_x + 1, tile_y, tiles[offset + 1]);
@@ -63,7 +64,8 @@ void DrawBlock2x4(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   //          [2][3]
   //          [4][5]
   //          [6][7]
-  if (offset + 7 >= static_cast<int>(tiles.size())) return;
+  if (offset + 7 >= static_cast<int>(tiles.size()))
+    return;
 
   for (int row = 0; row < 4; row++) {
     WriteTile8(bg, tile_x, tile_y + row, tiles[offset + row * 2]);
@@ -76,7 +78,8 @@ void DrawBlock4x2(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   // Draw a 4x2 block (8 tiles) at the given position
   // Layout:  [0][1][2][3]
   //          [4][5][6][7]
-  if (offset + 7 >= static_cast<int>(tiles.size())) return;
+  if (offset + 7 >= static_cast<int>(tiles.size()))
+    return;
 
   for (int col = 0; col < 4; col++) {
     WriteTile8(bg, tile_x + col, tile_y, tiles[offset + col]);
@@ -91,7 +94,8 @@ void DrawBlock4x4(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   //          [4 ][5 ][6 ][7 ]
   //          [8 ][9 ][10][11]
   //          [12][13][14][15]
-  if (offset + 15 >= static_cast<int>(tiles.size())) return;
+  if (offset + 15 >= static_cast<int>(tiles.size()))
+    return;
 
   for (int row = 0; row < 4; row++) {
     for (int col = 0; col < 4; col++) {

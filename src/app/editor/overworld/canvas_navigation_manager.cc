@@ -1,10 +1,10 @@
 #include "app/editor/overworld/canvas_navigation_manager.h"
 
 #include <algorithm>
+#include <optional>
 
 #include "absl/status/status.h"
 #include "app/gfx/resource/arena.h"
-#include "core/features.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -38,6 +38,90 @@ ImVec2 ClampScrollPosition(ImVec2 scroll, ImVec2 content_size,
   return ImVec2(clamped_x, clamped_y);
 }
 
+int AllocatedRowsForWorld(int world) {
+  const int clamped_world = std::clamp(world, 0, 2);
+  const int world_start = clamped_world * 0x40;
+  const int maps_available =
+      std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40);
+  return (maps_available + 7) / 8;
+}
+
+std::optional<int> MapFromCanvasPosition(const CanvasNavigationContext& ctx,
+                                         ImVec2 scaled_position) {
+  if (!ctx.ow_map_canvas || !ctx.overworld || !ctx.current_world) {
+    return std::nullopt;
+  }
+
+  float scale = ctx.ow_map_canvas->global_scale();
+  if (scale <= 0.0f)
+    scale = 1.0f;
+
+  const int map_x =
+      static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
+  const int map_y =
+      static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
+
+  if (map_x < 0 || map_x >= 8 || map_y < 0 || map_y >= 8) {
+    return std::nullopt;
+  }
+
+  if (map_y >= AllocatedRowsForWorld(*ctx.current_world)) {
+    return std::nullopt;
+  }
+
+  int map_id = map_x + map_y * 8;
+  if (*ctx.current_world == 1) {
+    map_id += 0x40;
+  } else if (*ctx.current_world == 2) {
+    map_id += 0x80;
+  }
+
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps ||
+      ctx.overworld->overworld_map(map_id) == nullptr) {
+    return std::nullopt;
+  }
+  return map_id;
+}
+
+void SetHoveredMap(const CanvasNavigationContext& ctx, int map_id) {
+  if (ctx.hovered_map) {
+    *ctx.hovered_map = map_id;
+  }
+}
+
+void SelectMapFallback(const CanvasNavigationContext& ctx, int map_id,
+                       bool respect_pin) {
+  if (!ctx.current_map || !ctx.current_world || !ctx.current_parent ||
+      !ctx.current_map_lock || !ctx.overworld) {
+    return;
+  }
+  if (respect_pin && *ctx.current_map_lock) {
+    return;
+  }
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  const auto* map = ctx.overworld->overworld_map(map_id);
+  if (!map) {
+    return;
+  }
+  *ctx.current_map = map_id;
+  *ctx.current_world = std::clamp(map_id / 0x40, 0, 2);
+  *ctx.current_parent = map->parent();
+  ctx.overworld->set_current_map(map_id);
+  ctx.overworld->set_current_world(*ctx.current_world);
+}
+
+void SelectMapForEditing(const CanvasNavigationContext& ctx,
+                         const CanvasNavigationCallbacks& callbacks, int map_id,
+                         bool respect_pin) {
+  if (callbacks.select_map_for_editing) {
+    callbacks.select_map_for_editing(map_id, respect_pin);
+    return;
+  }
+  SelectMapFallback(ctx, map_id, respect_pin);
+}
+
 }  // namespace
 
 // =============================================================================
@@ -56,79 +140,53 @@ void CanvasNavigationManager::Initialize(
 // =============================================================================
 
 absl::Status CanvasNavigationManager::CheckForCurrentMap() {
-  // 4096x4096, 512x512 maps and some are large maps 1024x1024
-  // hover_mouse_pos() returns canvas-local coordinates but they're scaled
-  // Unscale to get world coordinates for map detection
-  const auto scaled_position = ctx_.ow_map_canvas->hover_mouse_pos();
-  float scale = ctx_.ow_map_canvas->global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;
+  if (!ctx_.ow_map_canvas || !ctx_.overworld || !ctx_.rom ||
+      !ctx_.current_map || !ctx_.current_world || !ctx_.current_parent ||
+      !ctx_.current_map_lock || !ctx_.maps_bmp || !ctx_.current_mode) {
+    return absl::OkStatus();
+  }
+
   const int large_map_size = 1024;
 
-  // Calculate which small map the mouse is currently over
-  // Unscale coordinates to get world position
-  int map_x = static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
-  int map_y = static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
-
-  // Bounds check to prevent out-of-bounds access
-  if (map_x < 0 || map_x >= 8 || map_y < 0 || map_y >= 8) {
+  const auto hovered_map =
+      MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
+  if (!hovered_map.has_value()) {
+    SetHoveredMap(ctx_, -1);
     return absl::OkStatus();
   }
+  SetHoveredMap(ctx_, *hovered_map);
 
-  const bool allow_special_tail =
-      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
-  if (!allow_special_tail && *ctx_.current_world == 2 && map_y >= 4) {
-    // Special world is only 4 rows high unless expansion is enabled
-    return absl::OkStatus();
+  // Hover is only a preview/loading signal. The editable map is changed by
+  // explicit click selection so toolbar/sidebar fields do not retarget while
+  // the cursor crosses another area.
+  bool should_build = false;
+  if (*hovered_map != last_hovered_map_) {
+    last_hovered_map_ = *hovered_map;
+    hover_time_ = 0.0f;
+    should_build = ctx_.overworld->overworld_map(*hovered_map)->is_built();
+  } else {
+    hover_time_ += ImGui::GetIO().DeltaTime;
+    should_build = (hover_time_ >= kHoverBuildDelay) ||
+                   ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+                   ImGui::IsMouseClicked(ImGuiMouseButton_Right);
   }
 
-  // Calculate the index of the map in the `maps_bmp_` array
-  int hovered_map = map_x + map_y * 8;
-  if (*ctx_.current_world == 1) {
-    hovered_map += 0x40;
-  } else if (*ctx_.current_world == 2) {
-    hovered_map += 0x80;
+  if (should_build) {
+    RETURN_IF_ERROR(ctx_.overworld->EnsureMapBuilt(*hovered_map));
   }
 
-  // Only update current_map if not locked
-  if (!*ctx_.current_map_lock) {
-    *ctx_.current_map = hovered_map;
-    *ctx_.current_parent =
-        ctx_.overworld->overworld_map(*ctx_.current_map)->parent();
-
-    // Hover debouncing: Only build expensive maps after dwelling on them
-    // This prevents lag when rapidly moving mouse across the overworld
-    bool should_build = false;
-    if (hovered_map != last_hovered_map_) {
-      // New map hovered - reset timer
-      last_hovered_map_ = hovered_map;
-      hover_time_ = 0.0f;
-      // Check if already built (instant display)
-      should_build = ctx_.overworld->overworld_map(hovered_map)->is_built();
-    } else {
-      // Same map - accumulate hover time
-      hover_time_ += ImGui::GetIO().DeltaTime;
-      // Build after delay OR if clicking
-      should_build = (hover_time_ >= kHoverBuildDelay) ||
-                     ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
-                     ImGui::IsMouseClicked(ImGuiMouseButton_Right);
-    }
-
-    // Only trigger expensive build if debounce threshold met
-    if (should_build) {
-      RETURN_IF_ERROR(ctx_.overworld->EnsureMapBuilt(*ctx_.current_map));
-    }
-
-    // After dwelling longer, start pre-loading adjacent maps
-    if (hover_time_ >= kPreloadStartDelay && preload_queue_.empty()) {
-      QueueAdjacentMapsForPreload(*ctx_.current_map);
-    }
-
-    // Process one preload per frame (background optimization)
-    ProcessPreloadQueue();
+  if (hover_time_ >= kPreloadStartDelay && preload_queue_.empty()) {
+    QueueAdjacentMapsForPreload(*hovered_map);
   }
+
+  ProcessPreloadQueue();
 
   const int current_highlighted_map = *ctx_.current_map;
+  if (current_highlighted_map < 0 ||
+      current_highlighted_map >= zelda3::kNumOverworldMaps ||
+      ctx_.overworld->overworld_map(current_highlighted_map) == nullptr) {
+    return absl::OkStatus();
+  }
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*ctx_.rom);
@@ -139,7 +197,7 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
   if (use_v3_area_sizes) {
     using zelda3::AreaSizeEnum;
     auto area_size =
-        ctx_.overworld->overworld_map(*ctx_.current_map)->area_size();
+        ctx_.overworld->overworld_map(current_highlighted_map)->area_size();
     const int highlight_parent =
         ctx_.overworld->overworld_map(current_highlighted_map)->parent();
 
@@ -183,9 +241,10 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     }
   } else {
     // Legacy logic for vanilla and v2 ROMs
-    int world_offset = *ctx_.current_world * 0x40;
-    if (ctx_.overworld->overworld_map(*ctx_.current_map)->is_large_map() ||
-        ctx_.overworld->overworld_map(*ctx_.current_map)->large_index() != 0) {
+    if (ctx_.overworld->overworld_map(current_highlighted_map)
+            ->is_large_map() ||
+        ctx_.overworld->overworld_map(current_highlighted_map)->large_index() !=
+            0) {
       const int highlight_parent =
           ctx_.overworld->overworld_map(current_highlighted_map)->parent();
 
@@ -225,17 +284,25 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
   }
 
   // Ensure current map has texture created for rendering
-  callbacks_.ensure_map_texture(*ctx_.current_map);
+  if (callbacks_.ensure_map_texture) {
+    callbacks_.ensure_map_texture(*ctx_.current_map);
+    if (*hovered_map != *ctx_.current_map) {
+      callbacks_.ensure_map_texture(*hovered_map);
+    }
+  }
 
   if ((*ctx_.maps_bmp)[*ctx_.current_map].modified()) {
-    callbacks_.refresh_overworld_map();
-    RETURN_IF_ERROR(callbacks_.refresh_tile16_blockset());
+    if (callbacks_.refresh_overworld_map) {
+      callbacks_.refresh_overworld_map();
+    }
+    if (callbacks_.refresh_tile16_blockset) {
+      RETURN_IF_ERROR(callbacks_.refresh_tile16_blockset());
+    }
 
     // Ensure tile16 blockset is fully updated before rendering
-    if (ctx_.tile16_blockset->atlas.is_active()) {
+    if (ctx_.tile16_blockset && ctx_.tile16_blockset->atlas.is_active()) {
       gfx::Arena::Get().QueueTextureCommand(
-          gfx::Arena::TextureCommandType::UPDATE,
-          &ctx_.tile16_blockset->atlas);
+          gfx::Arena::TextureCommandType::UPDATE, &ctx_.tile16_blockset->atlas);
     }
 
     // Update map texture with the traditional direct update approach
@@ -247,13 +314,9 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
 
   if (*ctx_.current_mode == EditingMode::MOUSE &&
       ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
-    RETURN_IF_ERROR(callbacks_.refresh_tile16_blockset());
-  }
-
-  // If double clicked, toggle the current map
-  if (*ctx_.current_mode == EditingMode::MOUSE &&
-      ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Right)) {
-    *ctx_.current_map_lock = !*ctx_.current_map_lock;
+    if (callbacks_.refresh_tile16_blockset) {
+      RETURN_IF_ERROR(callbacks_.refresh_tile16_blockset());
+    }
   }
 
   return absl::OkStatus();
@@ -264,48 +327,60 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
 // =============================================================================
 
 void CanvasNavigationManager::HandleMapInteraction() {
-  // Paint-mode eyedropper: right-click samples tile16 under cursor.
-  if ((*ctx_.current_mode == EditingMode::DRAW_TILE ||
-       *ctx_.current_mode == EditingMode::FILL_TILE) &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Right) &&
-      ImGui::IsItemHovered()) {
-    (void)callbacks_.pick_tile16_from_hovered_canvas();
+  if (!ctx_.ow_map_canvas || !ctx_.current_mode ||
+      !ctx_.show_map_properties_panel || !ctx_.current_map_lock ||
+      !ctx_.current_map) {
+    return;
+  }
+  if (!ctx_.ow_map_canvas->IsMouseHovering()) {
     return;
   }
 
-  // Handle middle-click for map interaction instead of right-click
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle) &&
-      ImGui::IsItemHovered()) {
-    // Get the current map from mouse position (unscale coordinates)
-    auto scaled_position = ctx_.ow_map_canvas->drawn_tile_position();
-    float scale = ctx_.ow_map_canvas->global_scale();
-    if (scale <= 0.0f)
-      scale = 1.0f;
-    int map_x = static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
-    int map_y = static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
-    int hovered_map = map_x + map_y * 8;
-    if (*ctx_.current_world == 1) {
-      hovered_map += 0x40;
-    } else if (*ctx_.current_world == 2) {
-      hovered_map += 0x80;
+  // Paint-mode eyedropper: right-click samples tile16 under cursor.
+  if ((*ctx_.current_mode == EditingMode::DRAW_TILE ||
+       *ctx_.current_mode == EditingMode::FILL_TILE) &&
+      ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    if (callbacks_.pick_tile16_from_hovered_canvas) {
+      (void)callbacks_.pick_tile16_from_hovered_canvas();
     }
-
-    // Only interact if we're hovering over a valid map
-    if (hovered_map >= 0 && hovered_map < 0xA0) {
-      // Toggle map lock or open properties panel
-      if (*ctx_.current_map_lock && *ctx_.current_map == hovered_map) {
-        *ctx_.current_map_lock = false;
-      } else {
-        *ctx_.current_map_lock = true;
-        *ctx_.current_map = hovered_map;
-        *ctx_.show_map_properties_panel = true;
-      }
-    }
+    return;
   }
 
-  // Handle double-click to open properties panel (original behavior)
-  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left) &&
-      ImGui::IsItemHovered()) {
+  if (*ctx_.current_mode != EditingMode::MOUSE) {
+    return;
+  }
+  if (callbacks_.is_entity_hovered && callbacks_.is_entity_hovered()) {
+    return;
+  }
+
+  auto map_from_cursor = [&]() -> std::optional<int> {
+    if (ctx_.hovered_map && *ctx_.hovered_map >= 0) {
+      return *ctx_.hovered_map;
+    }
+    return MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
+  };
+
+  const auto hovered_map = map_from_cursor();
+  if (!hovered_map.has_value()) {
+    return;
+  }
+
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    SelectMapForEditing(ctx_, callbacks_, *hovered_map, true);
+  }
+
+  if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+    SelectMapForEditing(ctx_, callbacks_, *hovered_map, true);
+    *ctx_.show_map_properties_panel = true;
+  }
+
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle)) {
+    if (*ctx_.current_map_lock && *ctx_.current_map == *hovered_map) {
+      *ctx_.current_map_lock = false;
+      return;
+    }
+    SelectMapForEditing(ctx_, callbacks_, *hovered_map, false);
+    *ctx_.current_map_lock = true;
     *ctx_.show_map_properties_panel = true;
   }
 }
@@ -325,8 +400,8 @@ void CanvasNavigationManager::HandleOverworldPan() {
   } else if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) &&
              *ctx_.current_mode == EditingMode::MOUSE) {
     // In mouse mode, left-click pans unless hovering over an entity
-    bool over_entity = callbacks_.is_entity_hovered &&
-                       callbacks_.is_entity_hovered();
+    bool over_entity =
+        callbacks_.is_entity_hovered && callbacks_.is_entity_hovered();
     // Also don't pan if we're currently dragging an entity
     if (!over_entity && !*ctx_.is_dragging_entity) {
       should_pan = true;
@@ -390,7 +465,8 @@ void CanvasNavigationManager::ResetOverworldView() {
 void CanvasNavigationManager::CenterOverworldView() {
   // Center the view on the current map
   float scale = ctx_.ow_map_canvas->global_scale();
-  if (scale <= 0.0f) scale = 1.0f;
+  if (scale <= 0.0f)
+    scale = 1.0f;
 
   // Calculate map position within the world
   int map_in_world = *ctx_.current_map % 0x40;

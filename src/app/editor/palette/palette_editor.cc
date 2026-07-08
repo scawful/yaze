@@ -6,8 +6,8 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_category.h"
-#include "app/editor/system/workspace_window_manager.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
@@ -17,8 +17,11 @@
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/search.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
+
+#include <cstring>
 
 namespace yaze {
 namespace editor {
@@ -64,6 +67,47 @@ constexpr ImGuiColorEditFlags kColorPopupFlags =
     ImGuiColorEditFlags_DisplayHex;
 
 namespace {
+void DrawColorDropTargetOutline(ImVec2 min, ImVec2 max) {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  ImGui::GetForegroundDrawList()->AddRect(
+      min, max, ImGui::GetColorU32(gui::ConvertColorToImVec4(theme.accent)),
+      0.0f, 0, 2.0f);
+}
+
+bool AcceptImGuiColorDrop(SnesColor* color, ImVec2 min, ImVec2 max) {
+  if (!color || !BeginDragDropTarget()) {
+    return false;
+  }
+
+  bool changed = false;
+  constexpr ImGuiDragDropFlags kFlags =
+      ImGuiDragDropFlags_AcceptBeforeDelivery |
+      ImGuiDragDropFlags_AcceptNoDrawDefaultRect |
+      ImGuiDragDropFlags_AcceptNoPreviewTooltip;
+  auto accept = [&](const char* type, size_t components) {
+    if (changed) {
+      return;
+    }
+    if (const ImGuiPayload* payload = AcceptDragDropPayload(type, kFlags)) {
+      DrawColorDropTargetOutline(min, max);
+      if (payload->IsDelivery()) {
+        ImVec4 dropped(0, 0, 0, 1);
+        std::memcpy(&dropped.x, payload->Data, sizeof(float) * components);
+        if (components == 3) {
+          dropped.w = 1.0f;
+        }
+        *color = SnesColor(dropped);
+        changed = true;
+      }
+    }
+  };
+
+  accept(IMGUI_PAYLOAD_TYPE_COLOR_3F, 3);
+  accept(IMGUI_PAYLOAD_TYPE_COLOR_4F, 4);
+  EndDragDropTarget();
+  return changed;
+}
+
 int CustomFormatString(char* buf, size_t buf_size, const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
@@ -648,6 +692,12 @@ void PaletteEditor::DrawCustomPalette() {
       ImVec4 displayColor = gui::ConvertSnesColorToImVec4(custom_palette_[i]);
       bool open_color_picker = ImGui::ColorButton(
           absl::StrFormat("##customPal%d", i).c_str(), displayColor);
+      const ImVec2 swatch_min = ImGui::GetItemRectMin();
+      const ImVec2 swatch_max = ImGui::GetItemRectMax();
+      if (ImGui::IsItemHovered() &&
+          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        open_color_picker = true;
+      }
 
       if (open_color_picker) {
         current_color_ = custom_palette_[i];
@@ -671,17 +721,8 @@ void PaletteEditor::DrawCustomPalette() {
         }
       }
 
-      // Handle drag/drop for palette rearrangement
-      if (BeginDragDropTarget()) {
-        if (const ImGuiPayload* payload =
-                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F)) {
-          ImVec4 color;
-          memcpy((float*)&color, payload->Data, sizeof(float) * 3);
-          color.w = 1.0f;  // Set alpha to 1.0
-          custom_palette_[i] = SnesColor(color);
-          AddRecentlyUsedColor(custom_palette_[i]);
-        }
-        EndDragDropTarget();
+      if (AcceptImGuiColorDrop(&custom_palette_[i], swatch_min, swatch_max)) {
+        AddRecentlyUsedColor(custom_palette_[i]);
       }
 
       PopID();
@@ -762,6 +803,25 @@ absl::Status PaletteEditor::DrawPaletteGroup(int category,
       if (ImGui::ColorButton(popup_id.c_str(), displayColor)) {
         current_color_ = (*palette)[n];
         AddRecentlyUsedColor(current_color_);
+      }
+      const ImVec2 swatch_min = ImGui::GetItemRectMin();
+      const ImVec2 swatch_max = ImGui::GetItemRectMax();
+      if (ImGui::IsItemHovered() &&
+          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        current_color_ = (*palette)[n];
+        AddRecentlyUsedColor(current_color_);
+        OpenPopup(popup_id.c_str());
+      }
+      {
+        const SnesColor original_color = (*palette)[n];
+        if (AcceptImGuiColorDrop(&(*palette)[n], swatch_min, swatch_max)) {
+          history_.RecordChange(
+              /*group_name=*/std::string(kPaletteGroupNames[category]),
+              /*palette_index=*/j, /*color_index=*/n, original_color,
+              (*palette)[n]);
+          (*palette)[n].set_modified(true);
+          AddRecentlyUsedColor((*palette)[n]);
+        }
       }
 
       if (BeginPopupContextItem(popup_id.c_str())) {
@@ -1140,6 +1200,12 @@ void PaletteEditor::DrawCustomPalettePanel() {
       bool open_color_picker =
           ImGui::ColorButton(absl::StrFormat("##customPal%d", i).c_str(),
                              displayColor, kPalButtonFlags, ImVec2(28, 28));
+      const ImVec2 swatch_min = ImGui::GetItemRectMin();
+      const ImVec2 swatch_max = ImGui::GetItemRectMax();
+      if (ImGui::IsItemHovered() &&
+          ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+        open_color_picker = true;
+      }
 
       if (open_color_picker) {
         current_color_ = custom_palette_[i];
@@ -1165,17 +1231,8 @@ void PaletteEditor::DrawCustomPalettePanel() {
         ImGui::EndPopup();
       }
 
-      // Handle drag/drop for palette rearrangement
-      if (BeginDragDropTarget()) {
-        if (const ImGuiPayload* payload =
-                AcceptDragDropPayload(IMGUI_PAYLOAD_TYPE_COLOR_3F)) {
-          ImVec4 color;
-          memcpy((float*)&color, payload->Data, sizeof(float) * 3);
-          color.w = 1.0f;  // Set alpha to 1.0
-          custom_palette_[i] = SnesColor(color);
-          AddRecentlyUsedColor(custom_palette_[i]);
-        }
-        EndDragDropTarget();
+      if (AcceptImGuiColorDrop(&custom_palette_[i], swatch_min, swatch_max)) {
+        AddRecentlyUsedColor(custom_palette_[i]);
       }
 
       PopID();

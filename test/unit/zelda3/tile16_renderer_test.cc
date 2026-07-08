@@ -5,6 +5,7 @@
 
 #include "gtest/gtest.h"
 #include "zelda3/overworld/overworld.h"
+#include "zelda3/overworld/overworld_map.h"
 
 namespace yaze::zelda3 {
 
@@ -12,6 +13,7 @@ namespace {
 
 constexpr int kTile8Size = 8;
 constexpr int kTile16Size = 16;
+constexpr int kOverworldGraphicsWidth = 0x80;
 
 gfx::Bitmap MakeTile8Bitmap(const std::vector<uint8_t>& pixels) {
   gfx::Bitmap bmp;
@@ -47,6 +49,51 @@ std::vector<uint8_t> MakeCoordinateTile16Pixels() {
 
 uint8_t PixelAt(const std::vector<uint8_t>& tile16_pixels, int x, int y) {
   return tile16_pixels[(y * 16) + x];
+}
+
+std::vector<uint8_t> MakeOverworldGraphics(int tile8_count) {
+  const int tile_rows = (tile8_count + 15) / 16;
+  std::vector<uint8_t> graphics(kOverworldGraphicsWidth * tile_rows * 8, 0);
+
+  for (int tile_id = 0; tile_id < tile8_count; ++tile_id) {
+    const int tile_x = tile_id % 16;
+    const int tile_y = tile_id / 16;
+    for (int y = 0; y < kTile8Size; ++y) {
+      for (int x = 0; x < kTile8Size; ++x) {
+        const uint8_t low_nibble =
+            static_cast<uint8_t>((tile_id + x + (y * 3)) & 0x0F);
+        const uint8_t high_nibble =
+            static_cast<uint8_t>(((tile_id / 5) + y) & 0x0F) << 4;
+        const int dst = ((tile_y * kTile8Size) + y) * kOverworldGraphicsWidth +
+                        (tile_x * kTile8Size) + x;
+        graphics[dst] = high_nibble | low_nibble;
+      }
+    }
+  }
+
+  return graphics;
+}
+
+std::vector<Tile8PixelData> ExtractTile8Pixels(
+    const std::vector<uint8_t>& graphics, int tile8_count) {
+  std::vector<Tile8PixelData> tiles;
+  tiles.reserve(tile8_count);
+
+  for (int tile_id = 0; tile_id < tile8_count; ++tile_id) {
+    const int tile_x = tile_id % 16;
+    const int tile_y = tile_id / 16;
+    Tile8PixelData tile{};
+    for (int y = 0; y < kTile8Size; ++y) {
+      for (int x = 0; x < kTile8Size; ++x) {
+        const int src = ((tile_y * kTile8Size) + y) * kOverworldGraphicsWidth +
+                        (tile_x * kTile8Size) + x;
+        tile[(y * kTile8Size) + x] = graphics[src];
+      }
+    }
+    tiles.push_back(tile);
+  }
+
+  return tiles;
 }
 
 }  // namespace
@@ -108,6 +155,36 @@ TEST(Tile16RendererTest, AppliesPerQuadrantFlipMetadata) {
   // Bottom-right (both flips + palette row 3)
   EXPECT_EQ(PixelAt(rendered, 8, 8), 0x3F);
   EXPECT_EQ(PixelAt(rendered, 15, 15), 0x30);
+}
+
+TEST(Tile16RendererTest,
+     MatchesOverworldMapBuildTiles16GfxForPaletteRowsAndFlips) {
+  constexpr int kTile8Count = 256;
+  auto graphics = MakeOverworldGraphics(kTile8Count);
+  auto tile8_pixels = ExtractTile8Pixels(graphics, kTile8Count);
+
+  gfx::Tile16 tile_data(gfx::TileInfo(0x01, 0, false, false, false),
+                        gfx::TileInfo(0x2A, 2, false, true, false),
+                        gfx::TileInfo(0x73, 5, true, false, false),
+                        gfx::TileInfo(0xE4, 7, true, true, false));
+
+  std::vector<gfx::Tile16> tiles{tile_data};
+  OverworldMap map;
+  *map.mutable_current_graphics() = graphics;
+  ASSERT_TRUE(map.BuildTiles16Gfx(tiles, static_cast<int>(tiles.size())).ok());
+
+  const auto rendered = RenderTile16PixelsFromMetadata(tile_data, tile8_pixels);
+  const auto& authoritative = map.current_tile16_blockset();
+
+  ASSERT_EQ(rendered.size(), 256u);
+  ASSERT_GE(authoritative.size(), 0x800u);
+  for (int y = 0; y < kTile16Size; ++y) {
+    for (int x = 0; x < kTile16Size; ++x) {
+      EXPECT_EQ(PixelAt(rendered, x, y),
+                authoritative[(y * kOverworldGraphicsWidth) + x])
+          << "x=" << x << " y=" << y;
+    }
+  }
 }
 
 TEST(Tile16RendererTest, SkipsInactiveOrOutOfRangeTile8Sources) {

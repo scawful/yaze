@@ -25,7 +25,7 @@ namespace {
 // Output: 32 bytes per tile (4 bitplanes interleaved per SNES 4BPP format)
 std::vector<uint8_t> ConvertLinear8bppToPlanar4bpp(
     const std::vector<uint8_t>& linear_data) {
-  size_t num_tiles = linear_data.size() / 64;  // 64 bytes per 8x8 tile
+  size_t num_tiles = linear_data.size() / 64;        // 64 bytes per 8x8 tile
   std::vector<uint8_t> planar_data(num_tiles * 32);  // 32 bytes per tile
 
   for (size_t tile = 0; tile < num_tiles; ++tile) {
@@ -37,7 +37,7 @@ std::vector<uint8_t> ConvertLinear8bppToPlanar4bpp(
 
       for (int col = 0; col < 8; ++col) {
         uint8_t pixel = src[row * 8 + col] & 0x0F;  // Low 4 bits only
-        int bit = 7 - col;  // MSB first
+        int bit = 7 - col;                          // MSB first
 
         bp0 |= ((pixel >> 0) & 1) << bit;
         bp1 |= ((pixel >> 1) & 1) << bit;
@@ -104,8 +104,10 @@ void DungeonObjectEmulatorPreview::Initialize(
 }
 
 void DungeonObjectEmulatorPreview::EnsureInitialized() {
-  if (initialized_) return;
-  if (!rom_ || !rom_->is_loaded()) return;
+  if (initialized_)
+    return;
+  if (!rom_ || !rom_->is_loaded())
+    return;
 
   snes_instance_ = std::make_unique<emu::Snes>();
   // Use const reference to avoid copying the ROM data
@@ -121,7 +123,8 @@ void DungeonObjectEmulatorPreview::EnsureInitialized() {
 }
 
 void DungeonObjectEmulatorPreview::Render() {
-  if (!show_window_) return;
+  if (!show_window_)
+    return;
 
   const auto& theme = AgentUI::GetTheme();
 
@@ -161,7 +164,8 @@ void DungeonObjectEmulatorPreview::Render() {
 
       // Center the preview
       float offset_x = (available.x - preview_size.x) * 0.5f;
-      if (offset_x > 0) ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset_x);
+      if (offset_x > 0)
+        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + offset_x);
 
       ImGui::Image((ImTextureID)object_texture_, preview_size);
     } else {
@@ -261,7 +265,8 @@ void DungeonObjectEmulatorPreview::RenderControls() {
   ImGui::TextDisabled("(?)");
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Size parameter for scalable objects.\nMany objects ignore this value.");
+        "Size parameter for scalable objects.\nMany objects ignore this "
+        "value.");
   }
 
   AgentUI::VerticalSpacing(8);
@@ -362,9 +367,10 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
              object_id_);
       return;
     } else {
-      printf("[SERVICE-EMU] Emulated render failed, falling back to legacy: %s\n",
-             result.ok() ? result->error.c_str()
-                         : std::string(result.status().message()).c_str());
+      printf(
+          "[SERVICE-EMU] Emulated render failed, falling back to legacy: %s\n",
+          result.ok() ? result->error.c_str()
+                      : std::string(result.status().message()).c_str());
     }
   }
 
@@ -414,13 +420,14 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
     hud_palette_storage = game_data_->palette_groups.hud.palette_ref(0);
     hud_palette = &*hud_palette_storage;
   }
-  zelda3::LoadDungeonRenderPaletteToCgram(ppu.cgram, base_palette,
-                                          hud_palette);
+  zelda3::LoadDungeonRenderPaletteToCgram(ppu.cgram, base_palette, hud_palette);
 
   // Load sprite auxiliary palettes (palettes 6-7, indices 90-119)
   // ROM $0D:D308 = Sprite aux palette group (SNES address, needs LoROM conversion)
-  constexpr uint32_t kSpriteAuxPaletteSnes = 0x0DD308;  // SNES: bank $0D, addr $D308
-  const uint32_t kSpriteAuxPalettePc = SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
+  constexpr uint32_t kSpriteAuxPaletteSnes =
+      0x0DD308;  // SNES: bank $0D, addr $D308
+  const uint32_t kSpriteAuxPalettePc =
+      SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
   for (int i = 0; i < 30; ++i) {
     uint32_t addr = kSpriteAuxPalettePc + i * 2;
     if (addr + 1 < rom_->size()) {
@@ -428,11 +435,12 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
       ppu.cgram[90 + i] = snes_color;
     }
   }
-  printf("[EMU] Loaded full palette: 90 dungeon + 30 sprite aux = 120 colors\n");
+  printf(
+      "[EMU] Loaded full palette: 90 dungeon + 30 sprite aux = 120 colors\n");
 
   // 4. Load graphics into VRAM
   // Graphics buffer contains 8BPP linear data, but VRAM needs 4BPP planar
-  default_room.LoadRoomGraphics(default_room.blockset());
+  default_room.LoadRoomGraphics();
   default_room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = default_room.get_gfx_buffer();
 
@@ -464,9 +472,8 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   // BG1 tilemap buffer is at $7E:2000, 64×64 entries (each 2 bytes)
   // Each row = 64 × 2 = 128 bytes = $80 apart
   // The 11 pointers at $BF, $C2, $C5... point to different row offsets
-  constexpr uint8_t kPointerZeroPageAddrs[] = {0xBF, 0xC2, 0xC5, 0xC8, 0xCB,
-                                                0xCE, 0xD1, 0xD4, 0xD7, 0xDA,
-                                                0xDD};
+  constexpr uint8_t kPointerZeroPageAddrs[] = {
+      0xBF, 0xC2, 0xC5, 0xC8, 0xCB, 0xCE, 0xD1, 0xD4, 0xD7, 0xDA, 0xDD};
 
   // Base address for BG1 tilemap in WRAM: $7E2000
   // Each pointer points to a different row offset for the drawing handlers
@@ -577,7 +584,8 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
 
   if (data_table_pc + 1 < rom_->size() && handler_table_pc + 1 < rom_->size()) {
     data_offset = rom_data[data_table_pc] | (rom_data[data_table_pc + 1] << 8);
-    handler_addr = rom_data[handler_table_pc] | (rom_data[handler_table_pc + 1] << 8);
+    handler_addr =
+        rom_data[handler_table_pc] | (rom_data[handler_table_pc + 1] << 8);
   } else {
     last_error_ = "Object ID out of bounds for handler lookup";
     return;
@@ -591,16 +599,18 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
     return;
   }
 
-  printf("[EMU] Two-table lookup (PC: $%04X, $%04X): data_offset=$%04X, handler=$%04X\n",
-         data_table_pc, handler_table_pc, data_offset, handler_addr);
+  printf(
+      "[EMU] Two-table lookup (PC: $%04X, $%04X): data_offset=$%04X, "
+      "handler=$%04X\n",
+      data_table_pc, handler_table_pc, data_offset, handler_addr);
 
   // 11. Setup CPU state with correct register values
-  cpu.PB = 0x01;     // Program bank (handlers in bank $01)
-  cpu.DB = 0x7E;     // Data bank (WRAM for tilemap writes)
-  cpu.D = 0x0000;    // Direct page at $0000
-  cpu.SetSP(0x01FF); // Stack pointer
-  cpu.status = 0x30; // M=1, X=1 (8-bit A/X/Y mode)
-  cpu.E = 0;         // Native 65816 mode, not emulation mode
+  cpu.PB = 0x01;      // Program bank (handlers in bank $01)
+  cpu.DB = 0x7E;      // Data bank (WRAM for tilemap writes)
+  cpu.D = 0x0000;     // Direct page at $0000
+  cpu.SetSP(0x01FF);  // Stack pointer
+  cpu.status = 0x30;  // M=1, X=1 (8-bit A/X/Y mode)
+  cpu.E = 0;          // Native 65816 mode, not emulation mode
 
   // X = data offset (into RoomDrawObjectData at bank $00:9B52)
   cpu.X = data_offset;
@@ -616,9 +626,9 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
   // Push return address for RTL (3 bytes: bank, high, low-1)
   // RTL adds 1 to the address, so push trap_addr - 1
   uint16_t sp = cpu.SP();
-  snes_instance_->Write(0x010000 | sp--, 0x01);                   // Bank byte
-  snes_instance_->Write(0x010000 | sp--, (trap_addr - 1) >> 8);   // High
-  snes_instance_->Write(0x010000 | sp--, (trap_addr - 1) & 0xFF); // Low
+  snes_instance_->Write(0x010000 | sp--, 0x01);                    // Bank byte
+  snes_instance_->Write(0x010000 | sp--, (trap_addr - 1) >> 8);    // High
+  snes_instance_->Write(0x010000 | sp--, (trap_addr - 1) & 0xFF);  // Low
   cpu.SetSP(sp);
 
   // Jump to handler address in bank $01
@@ -639,8 +649,8 @@ void DungeonObjectEmulatorPreview::TriggerEmulatedRender() {
     uint32_t current_addr = (cpu.PB << 16) | cpu.PC;
     uint8_t current_opcode = snes_instance_->Read(current_addr);
     if (current_opcode == 0xDB) {
-      printf("[EMU] STP trap hit at $%02X:%04X - handler completed!\n",
-             cpu.PB, cpu.PC);
+      printf("[EMU] STP trap hit at $%02X:%04X - handler completed!\n", cpu.PB,
+             cpu.PC);
       break;
     }
 
@@ -817,8 +827,10 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   // Load sprite auxiliary palettes (90-119) from ROM $0D:D308
   // These are palettes 6-7 used by some dungeon tiles
   // SNES address needs LoROM conversion to PC offset
-  constexpr uint32_t kSpriteAuxPaletteSnes = 0x0DD308;  // SNES: bank $0D, addr $D308
-  const uint32_t kSpriteAuxPalettePc = SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
+  constexpr uint32_t kSpriteAuxPaletteSnes =
+      0x0DD308;  // SNES: bank $0D, addr $D308
+  const uint32_t kSpriteAuxPalettePc =
+      SnesToPc(kSpriteAuxPaletteSnes);  // PC: $65308
   for (int i = 0; i < 30; ++i) {
     uint32_t addr = kSpriteAuxPalettePc + i * 2;
     if (addr + 1 < rom_->size()) {
@@ -830,7 +842,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   }
 
   // Load room graphics
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = room.get_gfx_buffer();
 
@@ -972,7 +984,8 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
 }
 
 const char* DungeonObjectEmulatorPreview::GetObjectName(int id) const {
-  if (id < 0) return "Invalid";
+  if (id < 0)
+    return "Invalid";
 
   if (id < 0x100) {
     // Type 1 objects (0x00-0xFF)
@@ -997,9 +1010,12 @@ const char* DungeonObjectEmulatorPreview::GetObjectName(int id) const {
 }
 
 int DungeonObjectEmulatorPreview::GetObjectType(int id) const {
-  if (id < 0x100) return 1;
-  if (id < 0x200) return 2;
-  if (id < 0x300) return 3;
+  if (id < 0x100)
+    return 1;
+  if (id < 0x200)
+    return 2;
+  if (id < 0x300)
+    return 3;
   return 0;
 }
 
@@ -1056,8 +1072,8 @@ void DungeonObjectEmulatorPreview::RenderObjectBrowser() {
         ImGui::Separator();
 
         ImGui::BeginChild("Type1List", ImVec2(0, 0), false);
-        for (int i = 0; i < static_cast<int>(
-                                std::size(zelda3::Type1RoomObjectNames));
+        for (int i = 0;
+             i < static_cast<int>(std::size(zelda3::Type1RoomObjectNames));
              ++i) {
           char label[256];
           snprintf(label, sizeof(label), "0x%02X: %s", i,
@@ -1084,8 +1100,8 @@ void DungeonObjectEmulatorPreview::RenderObjectBrowser() {
         ImGui::Separator();
 
         ImGui::BeginChild("Type2List", ImVec2(0, 0), false);
-        for (int i = 0; i < static_cast<int>(
-                                std::size(zelda3::Type2RoomObjectNames));
+        for (int i = 0;
+             i < static_cast<int>(std::size(zelda3::Type2RoomObjectNames));
              ++i) {
           char label[256];
           int id = 0x100 + i;
@@ -1113,8 +1129,8 @@ void DungeonObjectEmulatorPreview::RenderObjectBrowser() {
         ImGui::Separator();
 
         ImGui::BeginChild("Type3List", ImVec2(0, 0), false);
-        for (int i = 0; i < static_cast<int>(
-                                std::size(zelda3::Type3RoomObjectNames));
+        for (int i = 0;
+             i < static_cast<int>(std::size(zelda3::Type3RoomObjectNames));
              ++i) {
           char label[256];
           int id = 0x200 + i;

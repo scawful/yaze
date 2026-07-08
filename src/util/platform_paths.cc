@@ -83,6 +83,17 @@ std::filesystem::path PlatformPaths::GetHomeDirectory() {
 }
 
 absl::StatusOr<std::filesystem::path> PlatformPaths::GetAppDataDirectory() {
+  if (const char* override_dir = std::getenv("YAZE_APP_DATA_DIR")) {
+    if (*override_dir) {
+      std::filesystem::path app_data(override_dir);
+      auto status = EnsureDirectoryExists(app_data);
+      if (!status.ok()) {
+        return status;
+      }
+      return app_data;
+    }
+  }
+
 #if defined(YAZE_IOS) || defined(YAZE_APPLE_MOBILE)
   std::filesystem::path home = GetHomeDirectory();
   if (home.empty() || home == ".") {

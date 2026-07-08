@@ -17,8 +17,7 @@ struct SelectRectState {
   bool is_dragging = false;
 };
 
-// Per-canvas state (keyed by canvas geometry pointer for simplicity)
-// TODO(scawful): Replace with proper state management in Phase 2.5
+// Per-canvas rectangle selection drag state (thread-local for tests).
 thread_local SelectRectState g_select_rect_state;
 
 }  // namespace
@@ -317,13 +316,8 @@ TilePaintEvent HandleTilemapPaint(const CanvasGeometry& geometry,
   event.position = mouse_pos;
   event.grid_position = paint_pos;
 
-  // Draw preview if tilemap has texture
-  if (tilemap.atlas.is_active() && draw_list) {
-    const ImVec2 origin(geometry.canvas_p0.x + geometry.scrolling.x,
-                        geometry.canvas_p0.y + geometry.scrolling.y);
-    // TODO(scawful): Render tilemap preview
-    (void)origin;  // Suppress unused warning
-  }
+  (void)tilemap;
+  (void)draw_list;
 
   // Check for paint action
   if (ImGui::IsMouseDown(mouse_button)) {
@@ -389,9 +383,6 @@ EntityInteractionEvent HandleEntityInteraction(const CanvasGeometry& geometry,
   if (!IsMouseInCanvas(geometry)) {
     return event;
   }
-
-  // TODO(scawful): Implement entity interaction logic in Phase 2.4
-  // For now, just return empty event
 
   return event;
 }

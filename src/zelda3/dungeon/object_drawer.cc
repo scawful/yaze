@@ -9,10 +9,12 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/log.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/draw_routines/special_routines.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/object_dimensions.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -66,8 +68,8 @@ void ObjectDrawer::PushTrace(int tile_x, int tile_y,
   trace_collector_->push_back(trace);
 }
 
-void ObjectDrawer::TraceHookThunk(int tile_x, int tile_y,
-                                  const gfx::TileInfo& tile_info,
+void ObjectDrawer::TraceHookThunk(gfx::BackgroundBuffer* /*bg*/, int tile_x,
+                                  int tile_y, const gfx::TileInfo& tile_info,
                                   void* user_data) {
   auto* drawer = static_cast<ObjectDrawer*>(user_data);
   if (!drawer) {
@@ -95,21 +97,35 @@ void ObjectDrawer::DrawUsingRegistryRoutine(
     int x = 0;
     int y = 0;
     gfx::TileInfo tile{};
+    bool secondary = false;
+  };
+
+  struct CaptureState {
+    std::vector<CapturedWrite>* writes = nullptr;
+    gfx::BackgroundBuffer* secondary_bg = nullptr;
   };
 
   std::vector<CapturedWrite> writes;
   writes.reserve(256);
+  CaptureState capture_state{.writes = &writes,
+                             .secondary_bg = registry_secondary_bg_};
 
   DrawRoutineUtils::SetTraceHook(
-      [](int tile_x, int tile_y, const gfx::TileInfo& tile_info,
-         void* user_data) {
-        auto* out = static_cast<std::vector<CapturedWrite>*>(user_data);
-        if (!out) {
+      [](gfx::BackgroundBuffer* target_bg, int tile_x, int tile_y,
+         const gfx::TileInfo& tile_info, void* user_data) {
+        auto* capture = static_cast<CaptureState*>(user_data);
+        if (!capture || !capture->writes) {
           return;
         }
-        out->push_back(CapturedWrite{tile_x, tile_y, tile_info});
+        capture->writes->push_back(CapturedWrite{
+            .x = tile_x,
+            .y = tile_y,
+            .tile = tile_info,
+            .secondary =
+                target_bg != nullptr && target_bg == capture->secondary_bg,
+        });
       },
-      &writes,
+      &capture_state,
       /*trace_only=*/true);
 
   DrawContext ctx{
@@ -120,13 +136,19 @@ void ObjectDrawer::DrawUsingRegistryRoutine(
       .rom = rom_,
       .room_id = room_id_,
       .room_gfx_buffer = room_gfx_buffer_,
-      .secondary_bg = nullptr,
+      .secondary_bg = registry_secondary_bg_,
   };
   info->function(ctx);
 
   DrawRoutineUtils::ClearTraceHook();
 
   for (const auto& w : writes) {
+    if (w.secondary && registry_secondary_bg_ != nullptr) {
+      SetTraceContext(obj, registry_secondary_layer_);
+      WriteTile8(*registry_secondary_bg_, w.x, w.y, w.tile);
+      continue;
+    }
+    SetTraceContext(obj, registry_primary_layer_);
     WriteTile8(bg, w.x, w.y, w.tile);
   }
 }
@@ -155,6 +177,7 @@ absl::Status ObjectDrawer::DrawObject(
   // Layer 2 (BG3): Priority objects (torches) - drawn to BG1_Objects (on top)
   bool use_bg2 = (object.layer_ == RoomObject::LayerType::BG2);
   auto& target_bg = use_bg2 ? bg2 : bg1;
+  auto& other_bg = use_bg2 ? bg1 : bg2;
 
   // Log buffer selection for debugging layer routing
   LOG_DEBUG("ObjectDrawer", "Object 0x%03X layer=%d -> drawing to %s buffer",
@@ -181,10 +204,6 @@ absl::Status ObjectDrawer::DrawObject(
 
     // If marked for both BGs, draw to the other layer too
     if (object.all_bgs_) {
-      auto& other_bg = (object.layer_ == RoomObject::LayerType::BG2 ||
-                        object.layer_ == RoomObject::LayerType::BG3)
-                           ? bg1
-                           : bg2;
       SetTraceContext(object, (&other_bg == &bg1) ? RoomObject::LayerType::BG1
                                                   : RoomObject::LayerType::BG2);
       DrawCustomObject(object, other_bg, mutable_obj.tiles(), state);
@@ -256,18 +275,55 @@ absl::Status ObjectDrawer::DrawObject(
   // In the original engine, BothBG routines explicitly write to both tilemaps
   // regardless of which object list or pass they are executed from.
   bool is_both_bg = (object.all_bgs_ || RoutineDrawsToBothBGs(routine_id));
+  const bool use_rectangular_bg1_mask =
+      !trace_only_ && object.layer_ == RoomObject::LayerType::BG2 &&
+      !is_both_bg && RequiresRectangularBg1Mask(object);
+  const bool use_pixel_bg1_mask = !trace_only_ &&
+                                  object.layer_ == RoomObject::LayerType::BG2 &&
+                                  !is_both_bg && !use_rectangular_bg1_mask;
+
+  registry_secondary_bg_ = nullptr;
+  registry_primary_layer_ =
+      use_bg2 ? RoomObject::LayerType::BG2 : RoomObject::LayerType::BG1;
+  registry_secondary_layer_ =
+      use_bg2 ? RoomObject::LayerType::BG1 : RoomObject::LayerType::BG2;
+  gfx::BackgroundBuffer* dispatch_bg = &target_bg;
+
+  // Special stair families need either a second buffer for mixed-layer draws
+  // or fixed BG1/BG2 routing regardless of the parsed object-layer flag.
+  if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
+    registry_secondary_bg_ = &other_bg;
+  } else if (!is_both_bg &&
+             (routine_id == DrawRoutineIds::kStraightInterRoomStairs ||
+              routine_id == DrawRoutineIds::kSpiralStairsGoingUpUpper ||
+              routine_id == DrawRoutineIds::kSpiralStairsGoingDownUpper ||
+              routine_id == DrawRoutineIds::kSpiralStairsGoingUpLower ||
+              routine_id == DrawRoutineIds::kSpiralStairsGoingDownLower)) {
+    dispatch_bg = &bg1;
+    registry_secondary_bg_ = &bg2;
+    registry_primary_layer_ = RoomObject::LayerType::BG1;
+    registry_secondary_layer_ = RoomObject::LayerType::BG2;
+  }
+
+  if (use_pixel_bg1_mask) {
+    active_object_bg1_mask_ = &bg1;
+    active_layout_bg1_mask_ = layout_bg1;
+    active_mask_source_bg_ = &bg2;
+  }
 
   if (is_both_bg) {
     // Draw to both background layers
+    registry_secondary_bg_ = nullptr;
+    registry_primary_layer_ = RoomObject::LayerType::BG1;
     SetTraceContext(object, RoomObject::LayerType::BG1);
     draw_routines_[routine_id](this, object, bg1, mutable_obj.tiles(), state);
+    registry_primary_layer_ = RoomObject::LayerType::BG2;
     SetTraceContext(object, RoomObject::LayerType::BG2);
     draw_routines_[routine_id](this, object, bg2, mutable_obj.tiles(), state);
   } else {
     // Execute the appropriate draw routine on target buffer only
-    SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
-                                    : RoomObject::LayerType::BG1);
-    draw_routines_[routine_id](this, object, target_bg, mutable_obj.tiles(),
+    SetTraceContext(object, registry_primary_layer_);
+    draw_routines_[routine_id](this, object, *dispatch_bg, mutable_obj.tiles(),
                                state);
   }
 
@@ -275,50 +331,57 @@ absl::Status ObjectDrawer::DrawObject(
     DrawRoutineUtils::ClearTraceHook();
   }
 
+  active_object_bg1_mask_ = nullptr;
+  active_layout_bg1_mask_ = nullptr;
+  active_mask_source_bg_ = nullptr;
+  registry_secondary_bg_ = nullptr;
+
   // BG2 Mask Propagation: ONLY layer-2 mask/pit objects should mark BG1 as
   // transparent.
   //
-  // Regular BG2 objects (walls, statues, ceilings, platforms) rely on priority
-  // bits for correct Z-order and should NOT automatically clear BG1.
-  //
-  // FIX: Previously this marked ALL Layer 1 objects as creating BG1 transparency,
-  // which caused walls/statues to incorrectly show "above" the layout.
-  // Now we only call MarkBG1Transparent for known mask objects.
-  bool is_pit_or_mask =
-      (object.id_ == 0xA4) ||                        // Pit
-      (object.id_ >= 0xA5 && object.id_ <= 0xAC) ||  // Diagonal layer 2 masks
-      (object.id_ == 0xC0) ||                        // Large ceiling overlay
-      (object.id_ == 0xC2) ||                        // Layer 2 pit mask (large)
-      (object.id_ == 0xC3) ||   // Layer 2 pit mask (medium)
-      (object.id_ == 0xC8) ||   // Water floor overlay
-      (object.id_ == 0xC6) ||   // Layer 2 mask (large)
-      (object.id_ == 0xD7) ||   // Layer 2 mask (medium)
-      (object.id_ == 0xD8) ||   // Flood water overlay
-      (object.id_ == 0xD9) ||   // Layer 2 swim mask
-      (object.id_ == 0xDA) ||   // Flood water overlay B
-      (object.id_ == 0xFE6) ||  // Type 3 pit
-      (object.id_ == 0xFF3);    // Type 3 layer 2 mask (full)
+  // Ordinary BG2 overlay objects now mask per-pixel as they draw, which keeps
+  // transparent cutouts intact for platforms/statues/stairs. Full-rect masking
+  // remains only for true pit/ceiling mask families that intentionally clear an
+  // area larger than their opaque tile pixels.
+  if (use_rectangular_bg1_mask) {
+    // Route through DimensionService so the mask rect comes from the same
+    // source as selection bounds (ObjectGeometry if available, then
+    // ObjectDimensionTable, then the size-nibble fallback). Keeps the
+    // transparent cutout aligned with what the user sees in the editor.
+    ObjectDimensionTable::Get().LoadFromRom(rom_).IgnoreError();
+    const auto [mask_px_x, mask_px_y, pixel_width, pixel_height] =
+        DimensionService::Get().GetSelectionBoundsPixels(object);
 
-  if (!trace_only_ && is_pit_or_mask &&
-      object.layer_ == RoomObject::LayerType::BG2 && !is_both_bg) {
-    auto [pixel_width, pixel_height] = CalculateObjectDimensions(object);
-
-    // Log pit/mask transparency propagation
     LOG_DEBUG(
         "ObjectDrawer",
         "Pit mask 0x%03X at (%d,%d) -> marking %dx%d pixels transparent in BG1",
-        object.id_, object.x_, object.y_, pixel_width, pixel_height);
+        object.id_, mask_px_x / 8, mask_px_y / 8, pixel_width, pixel_height);
 
-    // Mark the object buffer BG1 as transparent
-    MarkBG1Transparent(bg1, object.x_, object.y_, pixel_width, pixel_height);
-    // Also mark the layout buffer (floor tiles) as transparent if provided
+    MarkBg1RectTransparent(bg1, mask_px_x, mask_px_y, pixel_width,
+                           pixel_height);
     if (layout_bg1 != nullptr) {
-      MarkBG1Transparent(*layout_bg1, object.x_, object.y_, pixel_width,
-                         pixel_height);
+      MarkBg1RectTransparent(*layout_bg1, mask_px_x, mask_px_y, pixel_width,
+                             pixel_height);
     }
   }
 
   return absl::OkStatus();
+}
+
+bool ObjectDrawer::RequiresRectangularBg1Mask(const RoomObject& object) {
+  return (object.id_ == 0xA4) ||                        // Pit
+         (object.id_ >= 0xA5 && object.id_ <= 0xA8) ||  // Diagonal masks A
+         (object.id_ == 0xC0) ||                        // Large ceiling overlay
+         (object.id_ == 0xC2) ||                        // Layer 2 pit mask
+         (object.id_ == 0xC3) ||                        // Layer 2 pit mask
+         (object.id_ == 0xC6) ||                        // Layer 2 mask
+         (object.id_ == 0xC8) ||                        // Water floor overlay
+         (object.id_ == 0xD7) ||                        // Layer 2 mask
+         (object.id_ == 0xD8) ||                        // Flood water overlay
+         (object.id_ == 0xD9) ||                        // Layer 2 swim mask
+         (object.id_ == 0xDA) ||                        // Flood water overlay B
+         (object.id_ == 0xFE6) ||                       // Type 3 pit
+         (object.id_ == 0xFF3);                         // Type 3 full mask
 }
 
 absl::Status ObjectDrawer::DrawObjectList(
@@ -1281,6 +1344,30 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawUsingRegistryRoutine(118, obj, bg, tiles, state);
       };
 
+  ensure_index(DrawRoutineIds::kWaterHopStairsA);
+  draw_routines_[DrawRoutineIds::kWaterHopStairsA] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kWaterHopStairsA, obj,
+                                       bg, tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kWaterHopStairsB);
+  draw_routines_[DrawRoutineIds::kWaterHopStairsB] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kWaterHopStairsB, obj,
+                                       bg, tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kDamFloodGate);
+  draw_routines_[DrawRoutineIds::kDamFloodGate] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kDamFloodGate, obj, bg,
+                                       tiles, state);
+      };
+
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
   // Uses external binary files instead of ROM tile data.
   // Requires CustomObjectManager initialization and enable_custom_objects flag.
@@ -1940,6 +2027,60 @@ void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
                          pixel_height);
 }
 
+void ObjectDrawer::MarkBg1OpaqueTilePixelsTransparent(
+    gfx::BackgroundBuffer& bg1, const gfx::TileInfo& tile_info, int pixel_x,
+    int pixel_y, const uint8_t* tiledata) {
+  auto& bitmap = bg1.bitmap();
+  if (!bitmap.is_active() || bitmap.width() == 0 || bitmap.height() == 0 ||
+      tiledata == nullptr) {
+    return;
+  }
+
+  constexpr int kMaxTileRow = 63;
+  const int tile_col = tile_info.id_ % 16;
+  const int tile_row = tile_info.id_ / 16;
+  if (tile_row > kMaxTileRow) {
+    return;
+  }
+
+  const int tile_base_x = tile_col * 8;
+  const int tile_base_y = tile_row * 1024;
+  bool any_pixels_changed = false;
+
+  for (int py = 0; py < 8; ++py) {
+    const int src_row = tile_info.vertical_mirror_ ? (7 - py) : py;
+    const int dest_y = pixel_y + py;
+    if (dest_y < 0 || dest_y >= bitmap.height()) {
+      continue;
+    }
+
+    for (int px = 0; px < 8; ++px) {
+      const int src_col = tile_info.horizontal_mirror_ ? (7 - px) : px;
+      const int src_index =
+          (src_row * 128) + src_col + tile_base_x + tile_base_y;
+      if (tiledata[src_index] == 0) {
+        continue;
+      }
+
+      const int dest_x = pixel_x + px;
+      if (dest_x < 0 || dest_x >= bitmap.width()) {
+        continue;
+      }
+
+      const int dest_index = dest_y * bitmap.width() + dest_x;
+      auto& dst = bitmap.mutable_data()[dest_index];
+      if (dst != 255) {
+        dst = 255;
+        any_pixels_changed = true;
+      }
+    }
+  }
+
+  if (any_pixels_changed) {
+    bitmap.set_modified(true);
+  }
+}
+
 void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                               const gfx::TileInfo& tile_info) {
   if (!IsValidTilePosition(tile_x, tile_y)) {
@@ -1967,6 +2108,16 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
 
   // Draw single 8x8 tile directly to bitmap
   DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
+  const bool should_mark_bg1_mask =
+      active_mask_source_bg_ != nullptr && (&bg == active_mask_source_bg_);
+  if (should_mark_bg1_mask && active_object_bg1_mask_ != nullptr) {
+    MarkBg1OpaqueTilePixelsTransparent(*active_object_bg1_mask_, tile_info,
+                                       tile_x * 8, tile_y * 8, gfx_data);
+  }
+  if (should_mark_bg1_mask && active_layout_bg1_mask_ != nullptr) {
+    MarkBg1OpaqueTilePixelsTransparent(*active_layout_bg1_mask_, tile_info,
+                                       tile_x * 8, tile_y * 8, gfx_data);
+  }
 
   // Mark coverage for the full 8x8 tile region (even if pixels are transparent).
   //
@@ -2308,9 +2459,12 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     }
 
     case 12:  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
+      // ASM ($01:8EC3) uses GetSize_1to16_timesA with A=2, giving
+      // count = size + 2 middle tiles. Total span (corner + middles + end) =
+      // size + 4 tiles, matching the horizontal counterpart 0x22 (case 21).
       size = size & 0x0F;
       width = 8;
-      height = (size + 3) * 8;
+      height = (size + 4) * 8;
       break;
     case 13:  // RoomDraw_DownwardsEdge1x1_1to16
       size = size & 0x0F;
@@ -2321,7 +2475,7 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     case 15:  // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
       size = size & 0x0F;
       width = 16;
-      height = (size + 10) * 8;
+      height = (size + 14) * 8;
       break;
 
     case 16:  // DrawRightwards4x4_1to16 (Routine 16)
@@ -2333,6 +2487,15 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       height = 32;         // 4 tiles * 8 pixels
       break;
     }
+    case DrawRoutineIds::kWaterHopStairsA:
+    case DrawRoutineIds::kWaterHopStairsB:
+      width = 32;
+      height = 16;
+      break;
+    case DrawRoutineIds::kDamFloodGate:
+      width = 80;
+      height = 32;
+      break;
     case 19:  // DrawCorner4x4 (Type 2 corners 0x100-0x103)
     case 34:  // Water Face (4x4)
     case 35:  // 4x4 Corner BothBG
@@ -2501,13 +2664,13 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
     }
 
-    case 41:  // Rightwards Decor 1x8 spaced 12 (wall torches 0x55-0x56)
+    case 41:  // Rightwards Decor 4x2 spaced 12 (wall torches 0x55-0x56)
     {
-      // ASM: 1 column x 8 rows with 12-tile horizontal spacing
+      // ASM: 4 columns x 2 rows with 12-tile horizontal spacing.
       size = size & 0x0F;
       int count = size + 1;
-      width = ((count - 1) * 12 + 1) * 8;  // 1 tile wide per block
-      height = 64;                         // 8 tiles tall
+      width = ((count - 1) * 12 + 4) * 8;
+      height = 16;
       break;
     }
 
@@ -2757,14 +2920,28 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
     }
 
-    // Special platform routines (79-82)
-    case 79:        // ClosedChestPlatform
+    case 79: {  // ClosedChestPlatform
+      int size_x = (size >> 2) & 0x03;
+      int size_y = size & 0x03;
+      width = (size_x * 2 + 14) * 8;
+      height = (size_y * 2 + 8) * 8;
+      break;
+    }
+
+    // Special platform routines (80-82)
     case 80:        // MovingWallWest
     case 81:        // MovingWallEast
-    case 82:        // OpenChestPlatform
       width = 64;   // 8 tiles wide
       height = 64;  // 8 tiles tall
       break;
+
+    case 82: {  // OpenChestPlatform
+      int size_x = (size >> 2) & 0x03;
+      int size_y = size & 0x03;
+      width = (size_x * 2 + 10) * 8;
+      height = (size_y * 2 + 7) * 8;
+      break;
+    }
 
     // Stair routines - different sizes for different types
 
@@ -2800,9 +2977,9 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
 
     case 94:  // EmptyWaterFace
       width = 32;
-      // Base empty-water variant is 4x3; stateful runtime branch can extend to
-      // 4x5 when water is active.
-      height = 24;
+      // Report the larger stateful footprint so editor bounds do not
+      // undershoot the active 4x5 branch.
+      height = 40;
       break;
 
     case 95:  // SpittingWaterFace

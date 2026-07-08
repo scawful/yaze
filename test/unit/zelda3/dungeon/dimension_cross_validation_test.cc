@@ -83,8 +83,21 @@ INSTANTIATE_TEST_SUITE_P(
         // Vertical walls
         CrossValidationParam{0x60, 0, "Wall_V_size0"},
         CrossValidationParam{0x60, 5, "Wall_V_size5"},
-        // Corners
+        // Corner and rail families
         CrossValidationParam{0x22, 0, "Corner_size0"},
+        CrossValidationParam{0x5F, 0, "LongRail_H_size0"},
+        CrossValidationParam{0x88, 0, "BigRail_V_size0"},
+        CrossValidationParam{0x8A, 0, "LongRail_V_size0"},
+        CrossValidationParam{0x6C, 0, "DownCornerLeft_size0"},
+        CrossValidationParam{0x6D, 3, "DownCornerRight_size3"},
+        CrossValidationParam{0xF86, 3, "SomariaDownLeft_size3"},
+        CrossValidationParam{0xF80, 0, "EmptyWaterFace_max_size0"},
+        CrossValidationParam{0xF81, 0, "SpittingWaterFace_size0"},
+        CrossValidationParam{0xF82, 0, "DrenchingWaterFace_size0"},
+        CrossValidationParam{0xFE0, 0, "ArcheryTargetDoor_size0"},
+        CrossValidationParam{0x135, 0, "WaterHopStairsA_size0"},
+        CrossValidationParam{0x136, 0, "WaterHopStairsB_size0"},
+        CrossValidationParam{0x137, 0, "DamFloodGate_size0"},
         // Fixed objects
         CrossValidationParam{0xF9, 0, "Chest_size0"},
         CrossValidationParam{0xFB, 0, "BigChest_size0"},

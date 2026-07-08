@@ -532,7 +532,7 @@ TEST_F(DungeonObjectRomValidationTest, Room_GraphicsBufferCopy) {
   zelda3::Room room(0, rom_.get(), &game_data);
 
   // Load room graphics
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
 
   // Copy graphics to room buffer
   room.CopyRoomGraphicsToBuffer();
@@ -579,7 +579,7 @@ TEST_F(DungeonObjectRomValidationTest, Room_LayoutLoading) {
   zelda3::Room room(0, rom_.get(), &game_data);
 
   // Load room graphics
-  room.LoadRoomGraphics(room.blockset());
+  room.LoadRoomGraphics();
   room.CopyRoomGraphicsToBuffer();
 
   // Check that layout_ is set up
@@ -619,6 +619,30 @@ TEST_F(DungeonObjectRomValidationTest, Room_LayoutLoading) {
     EXPECT_GT(non_zero, 1000)
         << "BG1 should have significant non-zero pixel data";
   }
+}
+
+TEST_F(DungeonObjectRomValidationTest, Subtype3PrisonCellParserMatchesRom) {
+  zelda3::ObjectParser parser(rom_.get());
+  for (int id : {0xF8D, 0xF97}) {
+    SCOPED_TRACE(id);
+    auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
+    ASSERT_TRUE(parsed_or.ok());
+    EXPECT_EQ(parsed_or->size(), 8u);
+  }
+}
+
+TEST_F(DungeonObjectRomValidationTest, Subtype3BigKeyLockParserMatchesRom) {
+  zelda3::ObjectParser parser(rom_.get());
+  auto parsed_or = parser.ParseObject(static_cast<int16_t>(0xF98));
+  ASSERT_TRUE(parsed_or.ok());
+  EXPECT_EQ(parsed_or->size(), 8u);
+}
+
+TEST_F(DungeonObjectRomValidationTest, Subtype3BombableFloorParserMatchesRom) {
+  zelda3::ObjectParser parser(rom_.get());
+  auto parsed_or = parser.ParseObject(static_cast<int16_t>(0xFC7));
+  ASSERT_TRUE(parsed_or.ok());
+  EXPECT_EQ(parsed_or->size(), 8u);
 }
 
 }  // namespace test

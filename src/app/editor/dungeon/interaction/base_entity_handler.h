@@ -8,6 +8,7 @@
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "app/gui/core/touch_input.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -125,15 +126,16 @@ class BaseEntityHandler {
    * @return Entity index if found, nullopt otherwise
    */
   virtual std::optional<size_t> GetEntityAtPosition(int canvas_x,
-                                                     int canvas_y) const = 0;
+                                                    int canvas_y) const = 0;
 
   // Per-frame toast render called unconditionally by InteractionCoordinator so
   // the "Placed" message remains visible even after the user exits placement
   // mode immediately after a successful click.
   void DrawPostPlacementToast() {
-    if (ImGui::GetCurrentContext() == nullptr) return;
-    DrawSuccessToastOverlay("Placed",
-                            ImGui::GetColorU32(AgentUI::GetTheme().status_success));
+    if (ImGui::GetCurrentContext() == nullptr)
+      return;
+    DrawSuccessToastOverlay(
+        "Placed", ImGui::GetColorU32(AgentUI::GetTheme().status_success));
   }
 
  protected:
@@ -146,22 +148,21 @@ class BaseEntityHandler {
   // Call after a successful entity placement.  Extends the toast display by
   // kToastDuration seconds; rapid placements simply prolong the same toast.
   void TriggerSuccessToast() {
-    if (ImGui::GetCurrentContext() == nullptr) return;
-    toast_expire_time_ =
-        static_cast<float>(ImGui::GetTime()) + kToastDuration;
+    if (ImGui::GetCurrentContext() == nullptr)
+      return;
+    toast_expire_time_ = static_cast<float>(ImGui::GetTime()) + kToastDuration;
   }
 
   // Draw a fading "OK" toast near the canvas origin.
   // @param msg  Short message to display (e.g. "Placed").
   // @param color Opaque RGBA colour for the text (alpha will be modulated).
   void DrawSuccessToastOverlay(const char* msg, ImU32 color) const {
-    if (ImGui::GetCurrentContext() == nullptr) return;
-    if (toast_expire_time_ <= 0.0f ||
-        ImGui::GetTime() >= toast_expire_time_) {
+    if (ImGui::GetCurrentContext() == nullptr)
+      return;
+    if (toast_expire_time_ <= 0.0f || ImGui::GetTime() >= toast_expire_time_) {
       return;
     }
-    float remaining =
-        toast_expire_time_ - static_cast<float>(ImGui::GetTime());
+    float remaining = toast_expire_time_ - static_cast<float>(ImGui::GetTime());
     // Fade out during the last 0.4 s; keep full opacity the rest of the time.
     float alpha = std::min(1.0f, remaining / 0.4f);
     // Blend alpha into supplied colour.
@@ -210,7 +211,8 @@ class BaseEntityHandler {
    * @brief Get canvas zero point (for screen coordinate conversion)
    */
   ImVec2 GetCanvasZeroPoint() const {
-    if (!ctx_ || !ctx_->canvas) return ImVec2(0, 0);
+    if (!ctx_ || !ctx_->canvas)
+      return ImVec2(0, 0);
     return ctx_->canvas->zero_point();
   }
 
@@ -218,9 +220,44 @@ class BaseEntityHandler {
    * @brief Get canvas global scale
    */
   float GetCanvasScale() const {
-    if (!ctx_ || !ctx_->canvas) return 1.0f;
+    if (!ctx_ || !ctx_->canvas)
+      return 1.0f;
     float scale = ctx_->canvas->global_scale();
     return scale > 0.0f ? scale : 1.0f;
+  }
+
+  std::optional<ImVec2> GetPointerScreenPosition() const {
+    if (ImGui::GetCurrentContext() == nullptr || !ctx_ || !ctx_->canvas) {
+      return std::nullopt;
+    }
+
+    if (ctx_->canvas->IsMouseHovering()) {
+      return ImGui::GetIO().MousePos;
+    }
+
+    if (!gui::TouchInput::IsTouchActive()) {
+      return std::nullopt;
+    }
+
+    const ImVec2 canvas_pos = ctx_->canvas->zero_point();
+    const ImVec2 canvas_size = ctx_->canvas->canvas_size();
+    const float scale = GetCanvasScale();
+    const ImVec2 canvas_max(canvas_pos.x + canvas_size.x * scale,
+                            canvas_pos.y + canvas_size.y * scale);
+    for (int i = 0; i < gui::TouchInput::kMaxTouchPoints; ++i) {
+      const auto touch = gui::TouchInput::GetTouchPoint(i);
+      if (!touch.active) {
+        continue;
+      }
+      if (touch.position.x >= canvas_pos.x &&
+          touch.position.y >= canvas_pos.y &&
+          touch.position.x <= canvas_max.x &&
+          touch.position.y <= canvas_max.y) {
+        return touch.position;
+      }
+    }
+
+    return std::nullopt;
   }
 
   /**

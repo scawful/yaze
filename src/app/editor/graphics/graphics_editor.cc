@@ -17,7 +17,7 @@
 // Project headers
 #include "app/editor/graphics/panels/graphics_editor_panels.h"
 #include "app/editor/menu/status_bar.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
@@ -479,6 +479,7 @@ void GraphicsEditor::DrawPrototypeViewer() {
   }
 
   NEXT_COLUMN()
+  scr_canvas_.GetConfig().role = gui::CanvasRole::kCompositeOutput;
   gui::BitmapCanvasPipeline(scr_canvas_, scr_bitmap_, 0x200, 0x200, 0x20,
                             scr_loaded_, false, 0);
   status_ = DrawScrImport();
@@ -497,10 +498,12 @@ void GraphicsEditor::DrawPrototypeViewer() {
     }
   } else if (cgx_loaded_ && col_file_) {
     // Load the CGX graphics
+    import_canvas_.GetConfig().role = gui::CanvasRole::kCompositeOutput;
     gui::BitmapCanvasPipeline(import_canvas_, cgx_bitmap_, 0x100, 16384, 0x20,
                               cgx_loaded_, true, 5);
   } else {
     // Load the BIN/Clipboard Graphics
+    import_canvas_.GetConfig().role = gui::CanvasRole::kCompositeOutput;
     gui::BitmapCanvasPipeline(import_canvas_, bin_bitmap_, 0x100, 16384, 0x20,
                               gfx_loaded_, true, 2);
   }

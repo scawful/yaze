@@ -22,7 +22,10 @@ struct GfxGroupWorkspaceState {
   gfx::PaletteCategory selected_palette_category =
       gfx::PaletteCategory::kDungeons;
   uint8_t selected_palette_index = 0;
-  bool use_custom_palette = false;
+  // When true, the user-picked palette below is forced onto every visible
+  // sheet. When false, each sheet renders against its slot's role-default
+  // palette derived from sheet_role_palette_table.
+  bool override_palette = false;
 };
 
 }  // namespace yaze::editor

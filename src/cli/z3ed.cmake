@@ -65,6 +65,13 @@ endif()
 # Add Emscripten-specific flags for WASM builds
 if(EMSCRIPTEN)
   message(STATUS "Configuring z3ed for WASM terminal mode")
+  # The WASM terminal bridge (cli/wasm_terminal_bridge.cc) drives the editor and
+  # the browser AI/networking stack, so the Emscripten z3ed must link those
+  # graphs even though the native CLI deliberately omits the editor graph.
+  target_link_libraries(z3ed PRIVATE yaze_editor yaze_agent)
+  if(TARGET yaze_net)
+    target_link_libraries(z3ed PRIVATE yaze_net)
+  endif()
   # Export the actual C functions from wasm_terminal_bridge.cc
   set_target_properties(z3ed PROPERTIES
     LINK_FLAGS "-s EXPORTED_FUNCTIONS='[\"_main\",\"_Z3edProcessCommand\",\"_Z3edIsReady\",\"_Z3edGetCompletions\",\"_Z3edSetApiKey\",\"_Z3edConfigureAI\",\"_Z3edLoadRomData\",\"_Z3edGetRomInfo\",\"_Z3edQueryResource\"]' -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\"]' -s MODULARIZE=1 -s EXPORT_NAME='Z3edTerminal' --bind"

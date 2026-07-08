@@ -49,9 +49,28 @@ constexpr int kChestsDataPointer1 = 0xEBFB;   // Chest data start
 constexpr int kTorchData = 0x2736A;            // JP 0x2704A
 constexpr int kTorchesLengthPointer = 0x88C1;  // Torch count pointer
 
-// === Pits & Warps ===
-constexpr int kPitPointer = 0x394AB;  // Pit/hole data
-constexpr int kPitCount = 0x394A6;    // Number of pits
+// === RoomsWithPitDamage gating table (legacy "pits" name) ===
+//
+// These constants name two operand slots inside the runtime routine
+// `DetermineConsequencesOfFalling` at bank_07.asm:4193, NOT
+// pit-position data fields. The table they describe is
+// `RoomsWithPitDamage` (SNES $00:990C, PC 0x0190C) — a 57-entry
+// list of room IDs in which falling deals damage instead of
+// transitioning Link to a different floor. Per-pit positions and the
+// per-room pit destination (`Room::pits_`) are stored elsewhere
+// (room collision/layout for positions, room header for destination)
+// and are unrelated to these two symbols.
+//
+// Layout:
+//   PC 0x394A5     = 0xA2  (LDX.w opcode)
+//   PC 0x394A6..7  = LDX.w immediate; low byte is the **maximum X
+//                    offset** the CMP loop tests (NOT a byte count).
+//                    Entries = (kPitCount / 2) + 1 = 57 in vanilla.
+//   PC 0x394AA     = 0xDF  (CMP.l ,X opcode)
+//   PC 0x394AB..D  = 3-byte SNES long-address operand pointing at
+//                    the table base.
+constexpr int kPitPointer = 0x394AB;  // CMP.l ,X long-address operand
+constexpr int kPitCount = 0x394A6;    // LDX.w immediate (max X offset)
 
 // === Doors ===
 constexpr int kDoorPointers = 0xF83C0;        // Door data table
@@ -88,7 +107,8 @@ constexpr int kCustomCollisionDataEnd = 0x130000;
 // NOTE: This region is intentionally small; the format is compact (room list +
 // offset lists) and should comfortably fit in a few KiB.
 constexpr int kWaterFillTableReservedSize = 0x2000;  // 8 KiB
-constexpr int kWaterFillTableStart = kCustomCollisionDataEnd - kWaterFillTableReservedSize;
+constexpr int kWaterFillTableStart =
+    kCustomCollisionDataEnd - kWaterFillTableReservedSize;
 constexpr int kWaterFillTableEnd = kCustomCollisionDataEnd;
 
 // Soft end of collision data to avoid clobbering the reserved WaterFill table.

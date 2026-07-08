@@ -7,7 +7,7 @@
 #include <fstream>
 
 #include "absl/strings/str_cat.h"
-#include "app/test/visual_diff_engine.h"
+#include "app/testing/visual_diff_engine.h"
 #include "grpcpp/grpcpp.h"
 #include "protos/visual_service.grpc.pb.h"
 #include "protos/visual_service.pb.h"

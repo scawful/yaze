@@ -7,6 +7,7 @@
 
 #include "zelda3/common.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/overlord.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -313,60 +314,32 @@ const std::vector<std::string>& Zelda3Labels::GetGraphicsSheetNames() {
 
 // Room object names - these are large, so we'll delegate to a helper
 namespace {
-std::vector<std::string> ConvertArrayToVector(const char** array, size_t size) {
+template <size_t N>
+std::vector<std::string> ConvertArrayToVector(const char* const (&array)[N]) {
   std::vector<std::string> result;
-  result.reserve(size);
-  for (size_t i = 0; i < size; ++i) {
-    result.emplace_back(array[i]);
+  result.reserve(N);
+  for (const char* name : array) {
+    result.emplace_back(name);
   }
   return result;
 }
 }  // namespace
 
 const std::vector<std::string>& Zelda3Labels::GetType1RoomObjectNames() {
-  static const std::vector<std::string> names = []() {
-    std::vector<std::string> result;
-    // Note: Type1RoomObjectNames is constexpr, we need to count its size
-    // For now, we'll add known objects. In full implementation,
-    // we'd import from room_object.h
-    result = {
-        "Ceiling ↔",
-        "Wall (top, north) ↔",
-        "Wall (top, south) ↔",
-        "Wall (bottom, north) ↔",
-        "Wall (bottom, south) ↔",
-        "Wall columns (north) ↔",
-        "Wall columns (south) ↔",
-        "Deep wall (north) ↔",
-        "Deep wall (south) ↔",
-        "Diagonal wall A ◤ (top) ↔",
-        "Diagonal wall A ◣ (top) ↔",
-        "Diagonal wall A ◥ (top) ↔",
-        "Diagonal wall A ◢ (top) ↔",
-        // ... Add all Type1 objects here
-    };
-    return result;
-  }();
+  static const std::vector<std::string> names =
+      ConvertArrayToVector(Type1RoomObjectNames);
   return names;
 }
 
 const std::vector<std::string>& Zelda3Labels::GetType2RoomObjectNames() {
-  static const std::vector<std::string> names = []() {
-    std::vector<std::string> result;
-    // Add Type2 room objects
-    result = {"Type2 Object 1", "Type2 Object 2" /* ... */};
-    return result;
-  }();
+  static const std::vector<std::string> names =
+      ConvertArrayToVector(Type2RoomObjectNames);
   return names;
 }
 
 const std::vector<std::string>& Zelda3Labels::GetType3RoomObjectNames() {
-  static const std::vector<std::string> names = []() {
-    std::vector<std::string> result;
-    // Add Type3 room objects
-    result = {"Type3 Object 1", "Type3 Object 2" /* ... */};
-    return result;
-  }();
+  static const std::vector<std::string> names =
+      ConvertArrayToVector(Type3RoomObjectNames);
   return names;
 }
 
@@ -591,6 +564,27 @@ Zelda3Labels::ToResourceLabels() {
   const auto& tiles = GetTileTypeNames();
   for (size_t i = 0; i < tiles.size(); ++i) {
     labels["tile_type"][std::to_string(i)] = tiles[i];
+  }
+
+  // Dungeon room objects
+  const auto& type1_objects = GetType1RoomObjectNames();
+  for (size_t i = 0; i < type1_objects.size(); ++i) {
+    labels["room_object_type1"][std::to_string(i)] = type1_objects[i];
+    labels["room_object"][std::to_string(i)] = type1_objects[i];
+  }
+
+  const auto& type2_objects = GetType2RoomObjectNames();
+  for (size_t i = 0; i < type2_objects.size(); ++i) {
+    const int object_id = 0x100 + static_cast<int>(i);
+    labels["room_object_type2"][std::to_string(i)] = type2_objects[i];
+    labels["room_object"][std::to_string(object_id)] = type2_objects[i];
+  }
+
+  const auto& type3_objects = GetType3RoomObjectNames();
+  for (size_t i = 0; i < type3_objects.size(); ++i) {
+    const int object_id = 0xF80 + static_cast<int>(i);
+    labels["room_object_type3"][std::to_string(i)] = type3_objects[i];
+    labels["room_object"][std::to_string(object_id)] = type3_objects[i];
   }
 
   return labels;

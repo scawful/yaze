@@ -1,4 +1,5 @@
 #include "app/editor/layout/layout_presets.h"
+#include "app/editor/overworld/ui/tiles/tile16_editor_view.h"
 
 #include <algorithm>
 #include <vector>
@@ -8,15 +9,16 @@
 namespace yaze::editor {
 namespace {
 
-bool ContainsPanel(const std::vector<std::string>& panels, const char* panel_id) {
+bool ContainsPanel(const std::vector<std::string>& panels,
+                   const char* panel_id) {
   return std::find(panels.begin(), panels.end(), panel_id) != panels.end();
 }
 
 TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   auto preset = LayoutPresets::GetDefaultPreset(EditorType::kOverworld);
 
-  EXPECT_TRUE(
-      ContainsPanel(preset.default_visible_panels, LayoutPresets::Panels::kOverworldCanvas));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kOverworldCanvas));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kOverworldTile16Selector));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
@@ -32,13 +34,13 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
   ASSERT_NE(canvas_pos, preset.panel_positions.end());
   EXPECT_EQ(canvas_pos->second, DockPosition::Center);
 
-  auto selector_pos =
-      preset.panel_positions.find(LayoutPresets::Panels::kOverworldTile16Selector);
+  auto selector_pos = preset.panel_positions.find(
+      LayoutPresets::Panels::kOverworldTile16Selector);
   ASSERT_NE(selector_pos, preset.panel_positions.end());
   EXPECT_EQ(selector_pos->second, DockPosition::RightTop);
 
-  auto editor_pos =
-      preset.panel_positions.find(LayoutPresets::Panels::kOverworldTile16Editor);
+  auto editor_pos = preset.panel_positions.find(
+      LayoutPresets::Panels::kOverworldTile16Editor);
   ASSERT_NE(editor_pos, preset.panel_positions.end());
   EXPECT_EQ(editor_pos->second, DockPosition::RightTop);
   EXPECT_TRUE(ContainsPanel(preset.optional_panels,
@@ -58,7 +60,17 @@ TEST(LayoutPresetsTest, OverworldDefaultUsesMinimalWorkbenchArrangement) {
                             LayoutPresets::Panels::kOverworldDebug));
 }
 
-TEST(LayoutPresetsTest, OverworldExpertPositionsMapPropertiesAndGraphicsEditor) {
+TEST(LayoutPresetsTest, Tile16EditorHasUsableFirstUseSizeButIsOptional) {
+  Tile16EditorView view;
+
+  EXPECT_EQ(view.GetId(), LayoutPresets::Panels::kOverworldTile16Editor);
+  EXPECT_GE(view.GetPreferredWidth(), 900.0f);
+  EXPECT_GE(view.GetPreferredHeight(), 700.0f);
+  EXPECT_FALSE(view.IsVisibleByDefault());
+}
+
+TEST(LayoutPresetsTest,
+     OverworldExpertPositionsMapPropertiesAndGraphicsEditor) {
   auto preset = LayoutPresets::GetOverworldExpertPreset();
 
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
@@ -91,8 +103,8 @@ TEST(LayoutPresetsTest, DungeonWorkbenchDefaultHidesStandaloneRoomSelector) {
                             LayoutPresets::Panels::kDungeonRoomSelector));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonRoomMatrix));
-  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
-                            LayoutPresets::Panels::kDungeonObjectEditor));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonObjectEditor));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonDoorEditor));
 }
@@ -108,8 +120,8 @@ TEST(LayoutPresetsTest, WorkspaceAliasesMirrorWindowTerminology) {
 
   const auto all_windows =
       LayoutPresets::GetAllWindowsForEditor(EditorType::kOverworld);
-  EXPECT_TRUE(
-      ContainsPanel(all_windows, LayoutPresets::Windows::kOverworldMapProperties));
+  EXPECT_TRUE(ContainsPanel(all_windows,
+                            LayoutPresets::Windows::kOverworldMapProperties));
 }
 
 TEST(LayoutPresetsTest, AssemblyDefaultIncludesSupportingToolWindows) {

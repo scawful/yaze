@@ -2,6 +2,46 @@
 
 Purpose: keep `docs/internal` lean, discoverable, and aligned with active work. Use this when creating or updating any internal spec/plan.
 
+## Agent-generated code hygiene (anti-sprawl)
+
+These rules are intended to combat “AI bloat”: unused APIs, duplicate state, excess files, and copy/paste abstraction layers.
+
+### Definition of Done (required for non-trivial code changes)
+
+- **One-sentence intent**: state the goal in a single sentence (“why”, not “what”).
+- **No dead surface area**:
+  - No new public API unless there is at least one in-repo call site, or it is explicitly part of an active spec with an owner and exit criteria.
+  - No new files unless something is deleted/moved, or the change clearly reduces complexity/build time.
+- **No parallel implementations**: if you extract code, delete the old path in the same slice unless keeping both is explicitly temporary and tracked in the active spec.
+- **No dual state**: avoid “sync legacy fields” patterns. If temporary duplication is unavoidable:
+  - pick a single source of truth
+  - add a single synchronization function
+  - schedule deletion of the duplicate fields as part of the same initiative
+- **Validation is explicit**:
+  - Build/test commands must be recorded in the handoff/summary.
+  - If validation can’t run, say why and what risk remains.
+
+### Header & module hygiene (C++)
+
+- **No `#include` inside namespaces.**
+- **Avoid heavyweight includes in façade headers** (e.g. `canvas.h` should not pull ROM/game/editor headers unless required for the core API).
+- Prefer **forward declarations** in headers and include dependencies in `.cc` files.
+- Prefer **small “API entrypoint” headers** (e.g. `*_types.h`, `*_api.h`, `*_pipelines.h`) so most call sites do not pay for the whole module.
+
+### Growth control (“budgets”)
+
+- **Single-file size budget**: if a `.cc` grows past ~800 lines (or a `.h` past ~300), split by concern (frame/pipelines/drawing/interaction/etc.).
+- **Net-new LOC check**: large additions should include a note on what got removed, consolidated, or why it’s worth the cost.
+
+### Refactor workflow (extract → wire → delete)
+
+When refactoring for hygiene, default to this slice structure:
+
+1. Extract a seam (new helper/module).
+2. Wire existing call sites to the seam.
+3. Delete the old implementation and any dead declarations.
+4. Re-run the smallest relevant build/tests and record commands.
+
 ## Canonical sources first
 - Check existing coverage: update an existing spec before adding a new file. Search `docs/internal` for keywords and reuse templates.
 - One source of truth per initiative: tie work to a universe task (`scripts/agents/coord ...`) and, if multi-day, a single spec (e.g., `initiative-*.md` or a plan under `docs/internal/plans/`).

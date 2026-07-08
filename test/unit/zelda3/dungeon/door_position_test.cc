@@ -50,6 +50,23 @@ TEST(DoorPositionManagerTest, PositionToTileCoordsMatchesUsdasmTables) {
   }
 }
 
+TEST(DoorPositionManagerTest, SouthRenderBoundsStartBelowUsdasmAnchor) {
+  // The ROM table anchor is load-bearing for encoding/door routing, but
+  // RoomDraw_OneSidedShutters_South writes through row pointers y+1..y+3.
+  EXPECT_EQ(DoorPositionManager::PositionToTileCoords(6, DoorDirection::South),
+            (std::pair<int, int>{14, 58}));
+  EXPECT_EQ(
+      DoorPositionManager::PositionToRenderTileCoords(6, DoorDirection::South),
+      (std::pair<int, int>{14, 59}));
+
+  const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+      /*position=*/6, DoorDirection::South, DoorType::NormalDoor);
+  EXPECT_EQ(x, 14 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(y, 59 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(height, 3 * DoorPositionManager::kTileSize);
+}
+
 TEST(DoorPositionManagerTest, VerticalSnapPositionsMatchUsdasmRows) {
   EXPECT_EQ(DoorPositionManager::GetSnapPositions(DoorDirection::West),
             (std::vector<int>{15, 31, 47}));
@@ -85,6 +102,53 @@ TEST(DoorPositionManagerTest, SnapToNearestPositionUsesCorrectVerticalRows) {
       DoorPositionManager::SnapToNearestPosition(
           east_x, 47 * DoorPositionManager::kTileSize, DoorDirection::East),
       8);
+}
+
+TEST(DoorPositionManagerTest, ValidPositionsAreLimitedToUsdasmDoorTables) {
+  for (uint8_t pos = 0; pos < 12; ++pos) {
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::North))
+        << "north pos=" << static_cast<int>(pos);
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::South))
+        << "south pos=" << static_cast<int>(pos);
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::West))
+        << "west pos=" << static_cast<int>(pos);
+    EXPECT_TRUE(DoorPositionManager::IsValidPosition(pos, DoorDirection::East))
+        << "east pos=" << static_cast<int>(pos);
+  }
+
+  for (uint8_t pos : {uint8_t{12}, uint8_t{15}, uint8_t{31}}) {
+    EXPECT_FALSE(
+        DoorPositionManager::IsValidPosition(pos, DoorDirection::North))
+        << "north pos=" << static_cast<int>(pos);
+    EXPECT_FALSE(
+        DoorPositionManager::IsValidPosition(pos, DoorDirection::South))
+        << "south pos=" << static_cast<int>(pos);
+    EXPECT_FALSE(DoorPositionManager::IsValidPosition(pos, DoorDirection::West))
+        << "west pos=" << static_cast<int>(pos);
+    EXPECT_FALSE(DoorPositionManager::IsValidPosition(pos, DoorDirection::East))
+        << "east pos=" << static_cast<int>(pos);
+  }
+}
+
+TEST(DoorPositionManagerTest, EditorBoundsUseNorthCurtainDoorFootprint) {
+  const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+      /*position=*/0, DoorDirection::North, DoorType::CurtainDoor);
+
+  EXPECT_EQ(x, 14 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(y, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(height, 4 * DoorPositionManager::kTileSize);
+}
+
+TEST(DoorPositionManagerTest,
+     EditorBoundsKeepExplodingWallOnGenericAnchorSize) {
+  const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+      /*position=*/0, DoorDirection::North, DoorType::ExplodingWall);
+
+  EXPECT_EQ(x, 14 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(y, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(height, 3 * DoorPositionManager::kTileSize);
 }
 
 }  // namespace

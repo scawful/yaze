@@ -114,7 +114,35 @@ Behavior:
 - Applies per-iteration timeout via `--timeout-seconds` so stuck generations fail fast (exit 124).
 - Writes per-iteration prompts/logs and a run summary for auditability.
 
-## 9. Local Dev + Release Automation Protocol
+## 9. Local Agent Verification Etiquette
+
+For local agent work on a developer's Mac, default to focused, non-GUI
+verification unless the user explicitly asks for a visible launch.
+
+Rules:
+- Do not run `open`, `open -a`, `open -n`, or focus `/Applications/Yaze.app`
+  as part of routine validation.
+- Prefer build and test commands that stay in the current shell session.
+- Cap local parallelism for broad builds/tests (`--parallel 2` or
+  `--parallel 4`) unless the user asks for maximum speed.
+- Prefer focused filters before full suites, especially for editor UI work:
+
+```bash
+cmake --build --preset mac-ai --target yaze yaze_test_unit --parallel 2
+./build/presets/mac-ai/bin/Debug/yaze_test_unit \
+  --gtest_filter='WorkspaceWindowManagerPolicyTest.*:UserSettingsLayoutDefaultsTest.*:InteractionCoordinatorTest.*'
+```
+
+Visible GUI checks are still valid when needed, but they should be opt-in and
+announced first. If a visible process was started by mistake, stop it before
+continuing:
+
+```bash
+pkill -x yaze || true
+rm -f /tmp/yaze-*.status || true
+```
+
+## 10. Local Dev + Release Automation Protocol
 
 Use the standardized local workflow script for daily development and runtime syncing:
 

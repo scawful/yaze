@@ -612,14 +612,6 @@ void WorkspaceWindowManager::RegisterWindowContent(
 
   std::string panel_id = panel->GetId();
 
-  // Check if already registered
-  if (panel_instances_.find(panel_id) != panel_instances_.end()) {
-    LOG_WARN("WorkspaceWindowManager",
-             "WindowContent '%s' already registered, skipping",
-             panel_id.c_str());
-    return;
-  }
-
   // Auto-register WindowDescriptor for sidebar/menu visibility
   WindowDescriptor descriptor = BuildDescriptorFromPanel(*panel);
 
@@ -628,6 +620,24 @@ void WorkspaceWindowManager::RegisterWindowContent(
 
   // Register the descriptor (creates visibility flag)
   RegisterPanel(active_session_, descriptor);
+
+  auto existing = panel_instances_.find(panel_id);
+  if (existing != panel_instances_.end()) {
+    // Editor content objects capture the owning editor/session. When a project
+    // or session reloads, keeping the old instance leaves stale callbacks that
+    // can dereference freed editor state on the next draw.
+    existing->second->OnClose();
+    gui::GetAnimator().ClearAnimationsForPanel(panel_id);
+    UntrackResourceWindow(panel_id);
+    existing->second = std::move(panel);
+    TrackResourceWindow(panel_id, resource_panel);
+    if (visible_by_default) {
+      OpenWindowImpl(active_session_, panel_id);
+    }
+    LOG_INFO("WorkspaceWindowManager", "Replaced WindowContent: %s",
+             panel_id.c_str());
+    return;
+  }
 
   // Set initial visibility if panel should be visible by default
   if (visible_by_default) {
@@ -855,10 +865,13 @@ void WorkspaceWindowManager::DrawAllVisiblePanels() {
       window.SetPosition(gui::PanelWindow::Position::Center);
     }
 
-    // Use preferred width from WindowContent if specified
+    // Use preferred size from WindowContent if specified.
     float preferred_width = panel->GetPreferredWidth();
-    if (preferred_width > 0.0f) {
-      window.SetDefaultSize(preferred_width, 0);  // 0 height = auto
+    float preferred_height = panel->GetPreferredHeight();
+    if (preferred_width > 0.0f || preferred_height > 0.0f) {
+      window.SetDefaultSize(
+          preferred_width > 0.0f ? preferred_width : 400.0f,
+          preferred_height > 0.0f ? preferred_height : 300.0f);
     }
 
     // Enable pin functionality for cross-editor persistence

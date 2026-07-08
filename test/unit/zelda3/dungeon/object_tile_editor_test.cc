@@ -9,12 +9,88 @@
 #include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
 namespace zelda3 {
 namespace {
+
+gfx::PaletteGroup MakeTestPaletteGroup() {
+  gfx::PaletteGroup group("test");
+
+  gfx::SnesPalette pal0;
+  pal0.AddColor(gfx::SnesColor(1, 2, 3));
+  pal0.AddColor(gfx::SnesColor(4, 5, 6));
+  group.AddPalette(pal0);
+
+  gfx::SnesPalette pal1;
+  pal1.AddColor(gfx::SnesColor(7, 8, 9));
+  pal1.AddColor(gfx::SnesColor(10, 11, 12));
+  group.AddPalette(pal1);
+
+  gfx::SnesPalette pal2;
+  pal2.AddColor(gfx::SnesColor(13, 14, 15));
+  pal2.AddColor(gfx::SnesColor(16, 17, 18));
+  group.AddPalette(pal2);
+
+  return group;
+}
+
+// Pins ObjectTileEditor::CaptureObjectLayout against the canonical
+// ObjectGeometry bounds for routines that draw upward or leftward. The
+// preview pipeline previously anchored at hardcoded (2, 2); routines
+// like acute diagonals (0x09-0x14 / 0x15-0x20), diagonal ceilings
+// (0xA0-0xAC), and somaria line down-left (0xF86) wrote tiles at
+// negative tile coordinates, which DrawRoutineUtils::WriteTile8 drops
+// via IsValidTilePosition before the trace hook fires. The selector
+// preview, tooltip cell grid, and ObjectTileEditor panel all consume
+// CaptureObjectLayout output, so previews of those object families
+// were silently clipped (e.g. 0xA3 BottomRight diagonal ceiling
+// rendered at half its real extent).
+//
+// The fix routes CaptureObjectLayout's anchor through
+// ObjectGeometry::ResolveAnchor, which uses the same logic that
+// MeasureRoutine uses internally. This test pins parity in both
+// directions: a future regression that reverts the anchor or breaks
+// the dispatch will surface as a bounds mismatch here.
+TEST(ObjectTileEditorTest, CaptureLayoutBoundsMatchObjectGeometry) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette = MakeTestPaletteGroup();
+  ObjectTileEditor editor(&rom);
+
+  // Mix anchor-sensitive object families with one anchor-insensitive
+  // baseline to confirm the parity holds for both:
+  //   0x09: acute diagonal (Diagonal category, routine 5) -> upward.
+  //   0x12: diagonal grave BothBG (routine 6) -> downward, baseline.
+  //   0xA3: diagonal ceiling BottomRight (routine 78) -> up + left.
+  //   0xF86: somaria line down-left (kSomariaLine, id-bit 0x06) -> left.
+  //   0x33: 4x4 block rightward (routine 16) -> baseline, anchor (0,0).
+  for (int16_t object_id : {int16_t{0x09}, int16_t{0x12}, int16_t{0x33},
+                            int16_t{0xA3}, int16_t{0xF86}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+
+    // size_byte = 0x12 matches CaptureObjectLayout's hardcoded preview
+    // size. ObjectGeometry::MeasureByObjectId uses the same size_byte
+    // path internally, so the bounds it returns should equal what
+    // CaptureObjectLayout produces from the trace.
+    RoomObject geom_obj(object_id, 0, 0, 0x12, 0);
+    auto geom_or = ObjectGeometry::Get().MeasureByObjectId(geom_obj);
+    ASSERT_TRUE(geom_or.ok());
+
+    auto layout_or = editor.CaptureObjectLayout(object_id, room, palette);
+    ASSERT_TRUE(layout_or.ok());
+    EXPECT_EQ(layout_or->bounds_width, geom_or->width_tiles)
+        << "CaptureObjectLayout bounds width must match ObjectGeometry";
+    EXPECT_EQ(layout_or->bounds_height, geom_or->height_tiles)
+        << "CaptureObjectLayout bounds height must match ObjectGeometry";
+  }
+}
 
 TEST(ObjectTileLayoutTest, FromTracesEmptyInput) {
   std::vector<ObjectDrawer::TileTrace> traces;
@@ -56,6 +132,42 @@ TEST(ObjectTileLayoutTest, FromTracesKnownTraces) {
   EXPECT_EQ(c11->tile_info.id_, 17);
 }
 
+TEST(ObjectTileLayoutTest, FromTracesDuplicateCellKeepsLastVisibleTile) {
+  std::vector<ObjectDrawer::TileTrace> traces;
+
+  ObjectDrawer::TileTrace first;
+  first.object_id = 0x12;
+  first.x_tile = 10;
+  first.y_tile = 10;
+  first.tile_id = 0x11;
+  first.flags = 0;
+  traces.push_back(first);
+
+  ObjectDrawer::TileTrace overwrite = first;
+  overwrite.tile_id = 0x22;
+  overwrite.flags = static_cast<uint8_t>(3 << 3);
+  traces.push_back(overwrite);
+
+  ObjectDrawer::TileTrace second_cell = first;
+  second_cell.x_tile = 11;
+  second_cell.tile_id = 0x33;
+  traces.push_back(second_cell);
+
+  auto layout = ObjectTileLayout::FromTraces(traces);
+
+  ASSERT_EQ(layout.cells.size(), 2u);
+  const auto* overwritten = layout.FindCell(0, 0);
+  ASSERT_NE(overwritten, nullptr);
+  EXPECT_EQ(overwritten->tile_info.id_, 0x22);
+  EXPECT_EQ(overwritten->tile_info.palette_, 3);
+  EXPECT_EQ(overwritten->write_index, 1);
+
+  const auto* neighbor = layout.FindCell(1, 0);
+  ASSERT_NE(neighbor, nullptr);
+  EXPECT_EQ(neighbor->tile_info.id_, 0x33);
+  EXPECT_EQ(neighbor->write_index, 2);
+}
+
 TEST(ObjectTileLayoutTest, FindCell) {
   ObjectTileLayout layout;
   ObjectTileLayout::Cell cell;
@@ -88,6 +200,28 @@ TEST(ObjectTileLayoutTest, ModificationsAndRevert) {
   EXPECT_EQ(layout.cells[0].tile_info.id_, 0x100);
 }
 
+TEST(ObjectTileLayoutTest, CreateEmptyBuildsCustomModifiedGrid) {
+  auto layout =
+      ObjectTileLayout::CreateEmpty(2, 3, /*object_id=*/0x123, "custom.bin");
+
+  EXPECT_EQ(layout.object_id, 0x123);
+  EXPECT_EQ(layout.bounds_width, 2);
+  EXPECT_EQ(layout.bounds_height, 3);
+  EXPECT_TRUE(layout.is_custom);
+  EXPECT_EQ(layout.custom_filename, "custom.bin");
+  EXPECT_EQ(layout.tile_data_address, -1);
+  ASSERT_EQ(layout.cells.size(), 6u);
+
+  for (const auto& cell : layout.cells) {
+    EXPECT_TRUE(cell.modified);
+    EXPECT_EQ(cell.tile_info.palette_, 2);
+  }
+
+  ASSERT_NE(layout.FindCell(1, 2), nullptr);
+  EXPECT_EQ(layout.FindCell(1, 2)->rel_x, 1);
+  EXPECT_EQ(layout.FindCell(1, 2)->rel_y, 2);
+}
+
 TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -110,6 +244,120 @@ TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
   uint16_t word = static_cast<uint16_t>(low | (high << 8));
 
   EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
+}
+
+TEST(ObjectTileEditorTest, StandardObjectWriteBackUsesCellWriteIndex) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  ObjectTileLayout layout;
+  layout.tile_data_address = 0x1000;
+  layout.is_custom = false;
+
+  ObjectTileLayout::Cell cell;
+  cell.tile_info = gfx::TileInfo(0x234, 4, false, true, false);
+  cell.original_word = 0;
+  cell.write_index = 1;
+  cell.modified = true;
+  layout.cells.push_back(cell);
+
+  ASSERT_TRUE(editor.WriteBack(layout).ok());
+
+  EXPECT_EQ(rom.ReadByte(0x1000).value(), 0x00);
+  EXPECT_EQ(rom.ReadByte(0x1001).value(), 0x00);
+
+  uint8_t low = rom.ReadByte(0x1002).value();
+  uint8_t high = rom.ReadByte(0x1003).value();
+  uint16_t word = static_cast<uint16_t>(low | (high << 8));
+  EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
+}
+
+TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesThirdPaletteWhenAvailable) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  ObjectTileLayout layout;
+  layout.bounds_width = 2;
+  layout.bounds_height = 1;
+
+  ObjectTileLayout::Cell left;
+  left.rel_x = 0;
+  left.rel_y = 0;
+  left.tile_info = gfx::TileInfo(/*id=*/0, /*palette=*/0, false, false, false);
+  layout.cells.push_back(left);
+
+  ObjectTileLayout::Cell right;
+  right.rel_x = 1;
+  right.rel_y = 0;
+  right.tile_info = gfx::TileInfo(/*id=*/1, /*palette=*/1, false, false, false);
+  layout.cells.push_back(right);
+
+  const auto palette_group = MakeTestPaletteGroup();
+  std::vector<uint8_t> gfx_buffer(0x8000, 0x00);
+  gfx_buffer[0] = 1;
+  gfx_buffer[8] = 1;
+  gfx::Bitmap bitmap;
+
+  auto status = editor.RenderLayoutToBitmap(layout, bitmap, gfx_buffer.data(),
+                                            palette_group);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_TRUE(bitmap.is_active());
+  EXPECT_EQ(bitmap.width(), 16);
+  EXPECT_EQ(bitmap.height(), 8);
+  EXPECT_EQ(bitmap.palette().size(), 48u);
+  EXPECT_EQ(bitmap.palette()[0].snes(), palette_group.palette_ref(0)[0].snes());
+  EXPECT_EQ(bitmap.palette()[1].snes(), palette_group.palette_ref(0)[1].snes());
+  EXPECT_EQ(bitmap.palette()[16].snes(),
+            palette_group.palette_ref(1)[0].snes());
+  EXPECT_EQ(bitmap.palette()[17].snes(),
+            palette_group.palette_ref(1)[1].snes());
+  EXPECT_EQ(bitmap.mutable_data()[0], 1);
+  EXPECT_EQ(bitmap.mutable_data()[8], 17);
+}
+
+TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  const auto palette_group = MakeTestPaletteGroup();
+  // BuildTile8Atlas renders all 1024 tiles (kAtlasTileCount), which indexes the
+  // full 0x10000-byte SNES graphics sheet; a smaller buffer overruns.
+  std::vector<uint8_t> gfx_buffer(0x10000, 0x00);
+  gfx_buffer[0] = 1;
+  gfx::Bitmap atlas;
+
+  auto status = editor.BuildTile8Atlas(atlas, gfx_buffer.data(), palette_group,
+                                       /*display_palette=*/1);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_TRUE(atlas.is_active());
+  EXPECT_EQ(atlas.width(), ObjectTileEditor::kAtlasWidthPx);
+  EXPECT_EQ(atlas.height(), ObjectTileEditor::kAtlasHeightPx);
+  EXPECT_EQ(atlas.palette().size(), 16u);
+  EXPECT_EQ(atlas.palette()[0].snes(), palette_group.palette_ref(1)[0].snes());
+  EXPECT_EQ(atlas.palette()[1].snes(), palette_group.palette_ref(1)[1].snes());
+  EXPECT_EQ(atlas.mutable_data()[0], 1);
+}
+
+TEST(ObjectTileEditorTest,
+     BuildTile8AtlasFallsBackToFirstPaletteWhenRequestedPaletteMissing) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  const auto palette_group = MakeTestPaletteGroup();
+  // Full-atlas render needs the complete 0x10000-byte graphics sheet.
+  std::vector<uint8_t> gfx_buffer(0x10000, 0x00);
+  gfx::Bitmap atlas;
+
+  auto status = editor.BuildTile8Atlas(atlas, gfx_buffer.data(), palette_group,
+                                       /*display_palette=*/7);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(atlas.palette().size(), 16u);
+  EXPECT_EQ(atlas.palette()[0].snes(), palette_group.palette_ref(0)[0].snes());
+  EXPECT_EQ(atlas.palette()[1].snes(), palette_group.palette_ref(0)[1].snes());
 }
 
 TEST(ObjectTileEditorTest, CustomObjectRoundtrip) {

@@ -6,6 +6,8 @@
 #include <sstream>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/layout/layout_designer/dock_tree.h"
+#include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/gui/core/style.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
@@ -31,6 +33,111 @@ absl::Status EnsureParentDirectory(const std::filesystem::path& path) {
     return absl::OkStatus();
   }
   return util::PlatformPaths::EnsureDirectoryExists(parent);
+}
+
+bool IsTransientPanelVisibilityId(const std::string& panel_id) {
+  constexpr char kRoomPanelPrefix[] = "dungeon.room_";
+  constexpr size_t kRoomPanelPrefixLength = 13;
+  if (panel_id.rfind(kRoomPanelPrefix, 0) != 0 ||
+      panel_id.size() <= kRoomPanelPrefixLength) {
+    return false;
+  }
+  return std::all_of(panel_id.begin() + kRoomPanelPrefixLength, panel_id.end(),
+                     [](char ch) { return ch >= '0' && ch <= '9'; });
+}
+
+void EraseTransientPanelVisibility(
+    std::unordered_map<std::string, bool>* panel_state) {
+  if (!panel_state) {
+    return;
+  }
+  for (auto it = panel_state->begin(); it != panel_state->end();) {
+    if (IsTransientPanelVisibilityId(it->first)) {
+      it = panel_state->erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+bool IsEmbeddedDungeonUtilityPanelId(const std::string& panel_id) {
+  return panel_id == "dungeon.object_editor" ||
+         panel_id == "dungeon.settings" || panel_id == "dungeon.dungeon_map";
+}
+
+void EraseEmbeddedDungeonUtilityPanelVisibility(
+    std::unordered_map<std::string, bool>* panel_state) {
+  if (!panel_state) {
+    return;
+  }
+  for (auto it = panel_state->begin(); it != panel_state->end();) {
+    if (IsEmbeddedDungeonUtilityPanelId(it->first)) {
+      it = panel_state->erase(it);
+    } else {
+      ++it;
+    }
+  }
+}
+
+bool PruneEmbeddedDungeonUtilityPanelsFromDockTreeJson(std::string* json_body) {
+  if (!json_body || json_body->empty()) {
+    return false;
+  }
+  auto parsed = nlohmann::json::parse(*json_body, nullptr, false);
+  if (parsed.is_discarded() || !parsed.is_object() ||
+      !parsed.contains("root")) {
+    return false;
+  }
+
+  bool changed = false;
+  auto prune_node = [&changed](auto&& self, nlohmann::json& node) -> void {
+    if (!node.is_object()) {
+      return;
+    }
+    const std::string type = node.contains("type") && node["type"].is_string()
+                                 ? node["type"].get<std::string>()
+                                 : "";
+    if (type == "leaf" && node.contains("panels") &&
+        node["panels"].is_array()) {
+      auto& panels = node["panels"];
+      for (auto it = panels.begin(); it != panels.end();) {
+        const bool erase = it->is_object() && it->contains("panel_id") &&
+                           (*it)["panel_id"].is_string() &&
+                           IsEmbeddedDungeonUtilityPanelId(
+                               (*it)["panel_id"].get<std::string>());
+        if (erase) {
+          it = panels.erase(it);
+          changed = true;
+        } else {
+          ++it;
+        }
+      }
+      const int max_active =
+          panels.empty() ? 0 : static_cast<int>(panels.size()) - 1;
+      const int active_tab_index =
+          node.contains("active_tab_index") &&
+                  node["active_tab_index"].is_number_integer()
+              ? node["active_tab_index"].get<int>()
+              : 0;
+      const int clamped_active = std::clamp(active_tab_index, 0, max_active);
+      if (active_tab_index != clamped_active) {
+        node["active_tab_index"] = clamped_active;
+        changed = true;
+      }
+    }
+    if (node.contains("child_a")) {
+      self(self, node["child_a"]);
+    }
+    if (node.contains("child_b")) {
+      self(self, node["child_b"]);
+    }
+  };
+  prune_node(prune_node, parsed["root"]);
+
+  if (changed) {
+    *json_body = parsed.dump();
+  }
+  return changed;
 }
 
 absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
@@ -94,6 +201,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->switch_motion_profile = std::stoi(val);
     } else if (key == "last_theme_name") {
       prefs->last_theme_name = val;
+    } else if (key == "font_family_index") {
+      prefs->font_family_index = std::stoi(val);
     }
     // Editor Behavior
     else if (key == "backup_before_save") {
@@ -174,6 +283,9 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->panel_layout_defaults_revision = std::stoi(val);
     } else if (key == "sidebar_active_category") {
       prefs->sidebar_active_category = val;
+    } else if (key == "dungeon_inspector_side") {
+      prefs->dungeon_inspector_side =
+          (val == "left") ? std::string("left") : std::string("right");
     }
     // Status Bar
     else if (key == "show_status_bar") {
@@ -208,6 +320,15 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
         std::string panel_id = rest.substr(dot_pos + 1);
         prefs->saved_layouts[layout_name][panel_id] = (val == "1");
       }
+    }
+    // Named DockTree layouts (format: named_layout.<name>=<compact-json>).
+    // Value is a single-line JSON document produced by DockTreeToJson().dump();
+    // callers re-parse it through DockTreeFromJson when needed.
+    else if (key.substr(0, 13) == "named_layout.") {
+      std::string layout_name = key.substr(13);
+      prefs->named_layouts[layout_name] = val;
+    } else if (key == "last_applied_layout_name") {
+      prefs->last_applied_layout_name = val;
     }
   }
 
@@ -246,6 +367,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "reduced_motion=" << (prefs.reduced_motion ? 1 : 0) << "\n";
   ss << "switch_motion_profile=" << prefs.switch_motion_profile << "\n";
   ss << "last_theme_name=" << prefs.last_theme_name << "\n";
+  ss << "font_family_index=" << prefs.font_family_index << "\n";
 
   // Editor Behavior
   ss << "backup_before_save=" << (prefs.backup_before_save ? 1 : 0) << "\n";
@@ -294,6 +416,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "panel_layout_defaults_revision="
      << prefs.panel_layout_defaults_revision << "\n";
   ss << "sidebar_active_category=" << prefs.sidebar_active_category << "\n";
+  ss << "dungeon_inspector_side=" << prefs.dungeon_inspector_side << "\n";
 
   // Status Bar
   ss << "show_status_bar=" << (prefs.show_status_bar ? 1 : 0) << "\n";
@@ -321,6 +444,23 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
       ss << "saved_layout." << layout_name << "." << panel_id << "="
          << (visible ? 1 : 0) << "\n";
     }
+  }
+
+  // Named DockTree layouts (Layout Designer).
+  if (!prefs.last_applied_layout_name.empty()) {
+    ss << "last_applied_layout_name=" << prefs.last_applied_layout_name << "\n";
+  }
+  for (const auto& [layout_name, json_body] : prefs.named_layouts) {
+    // JSON bodies are expected to be compact (no newlines) — filter just in
+    // case the caller handed us an indented dump.
+    std::string single_line;
+    single_line.reserve(json_body.size());
+    for (char c : json_body) {
+      if (c == '\n' || c == '\r')
+        continue;
+      single_line.push_back(c);
+    }
+    ss << "named_layout." << layout_name << "=" << single_line << "\n";
   }
 
   std::ofstream file(path);
@@ -616,6 +756,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         appearance.value("switch_motion_profile", prefs->switch_motion_profile);
     prefs->last_theme_name =
         appearance.value("last_theme_name", prefs->last_theme_name);
+    prefs->font_family_index =
+        appearance.value("font_family_index", prefs->font_family_index);
   }
 
   if (root.contains("editor")) {
@@ -623,6 +765,11 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     prefs->backup_before_save =
         e.value("backup_before_save", prefs->backup_before_save);
     prefs->default_editor = e.value("default_editor", prefs->default_editor);
+    {
+      std::string side =
+          e.value("dungeon_inspector_side", prefs->dungeon_inspector_side);
+      prefs->dungeon_inspector_side = (side == "left") ? "left" : "right";
+    }
   }
 
   if (root.contains("performance")) {
@@ -801,6 +948,22 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
     if (layouts.contains("saved_layouts")) {
       LoadNestedBoolMap(layouts["saved_layouts"], &prefs->saved_layouts);
     }
+    if (layouts.contains("named_layouts") &&
+        layouts["named_layouts"].is_object()) {
+      prefs->named_layouts.clear();
+      for (auto it = layouts["named_layouts"].begin();
+           it != layouts["named_layouts"].end(); ++it) {
+        if (it.value().is_string()) {
+          prefs->named_layouts[it.key()] = it.value().get<std::string>();
+        } else if (it.value().is_object() || it.value().is_array()) {
+          // Preferred shape: embed the DockTree as a nested JSON object for
+          // human-readability. Re-serialize to compact string for storage.
+          prefs->named_layouts[it.key()] = it.value().dump();
+        }
+      }
+    }
+    prefs->last_applied_layout_name = layouts.value(
+        "last_applied_layout_name", prefs->last_applied_layout_name);
   }
 
   if (root.contains("filesystem")) {
@@ -860,11 +1023,13 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"reduced_motion", prefs.reduced_motion},
       {"switch_motion_profile", prefs.switch_motion_profile},
       {"last_theme_name", prefs.last_theme_name},
+      {"font_family_index", prefs.font_family_index},
   };
 
   root["editor"] = {
       {"backup_before_save", prefs.backup_before_save},
       {"default_editor", prefs.default_editor},
+      {"dungeon_inspector_side", prefs.dungeon_inspector_side},
   };
 
   root["performance"] = {
@@ -962,12 +1127,27 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"visible", prefs.show_status_bar},
   };
 
+  // Emit named_layouts as an object of parsed JSON objects so the settings
+  // file stays human-readable. Malformed or non-object bodies are stored as
+  // the raw string so the next load can try to recover them.
+  nlohmann::json named_layouts_json = nlohmann::json::object();
+  for (const auto& [layout_name, json_body] : prefs.named_layouts) {
+    nlohmann::json parsed = nlohmann::json::parse(json_body, nullptr, false);
+    if (parsed.is_discarded() || !parsed.is_object()) {
+      named_layouts_json[layout_name] = json_body;
+    } else {
+      named_layouts_json[layout_name] = std::move(parsed);
+    }
+  }
+
   root["layouts"] = {
       {"defaults_revision", prefs.panel_layout_defaults_revision},
       {"panel_visibility", ToNestedBoolMap(prefs.panel_visibility_state)},
       {"pinned_panels", ToBoolMap(prefs.pinned_panels)},
       {"right_panel_widths", ToFloatMap(prefs.right_panel_widths)},
       {"saved_layouts", ToNestedBoolMap(prefs.saved_layouts)},
+      {"named_layouts", std::move(named_layouts_json)},
+      {"last_applied_layout_name", prefs.last_applied_layout_name},
   };
 
   root["filesystem"] = {
@@ -1197,7 +1377,205 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     applied = true;
   }
 
+  if (prefs_.panel_layout_defaults_revision < 13 && target_revision >= 13) {
+    auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      dungeon_windows["dungeon.workbench"] = true;
+      dungeon_windows["dungeon.room_selector"] = false;
+      dungeon_windows["dungeon.object_selector"] = true;
+      dungeon_windows["dungeon.object_editor"] = true;
+      dungeon_windows["dungeon.room_graphics"] = true;
+      dungeon_windows["dungeon.room_matrix"] = true;
+      dungeon_windows["dungeon.palette_editor"] = true;
+      dungeon_windows["dungeon.door_editor"] = false;
+    }
+    prefs_.panel_layout_defaults_revision = 13;
+    applied = true;
+  }
+
+  if (prefs_.panel_layout_defaults_revision < 14 && target_revision >= 14) {
+    if (prefs_.last_theme_name == "YAZE Tre") {
+      prefs_.last_theme_name = "Classic YAZE";
+    }
+
+    auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      dungeon_windows["dungeon.object_tile_editor"] = false;
+      dungeon_windows["dungeon.settings"] = false;
+      dungeon_windows["dungeon.dungeon_map"] = false;
+    }
+
+    prefs_.panel_layout_defaults_revision = 14;
+    applied = true;
+  }
+
+  if (prefs_.panel_layout_defaults_revision < 15 && target_revision >= 15) {
+    auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+    if (dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      dungeon_windows["dungeon.object_selector"] = true;
+      dungeon_windows["dungeon.room_graphics"] = false;
+    }
+    prefs_.panel_layout_defaults_revision = 15;
+    applied = true;
+  }
+
+  // Revision 16: best-effort lift each visibility-only `saved_layouts` entry
+  // into a flat single-leaf DockTree under `named_layouts`. Users who want
+  // a custom dock arrangement re-author it in the Layout Designer; this
+  // migration only preserves which panels were in the set, not where they
+  // were docked (that information never existed in the old format).
+  if (prefs_.panel_layout_defaults_revision < 16 && target_revision >= 16) {
+    for (const auto& [layout_name, panel_state] : prefs_.saved_layouts) {
+      if (prefs_.named_layouts.count(layout_name) != 0) {
+        continue;  // Don't overwrite a DockTree the user already has.
+      }
+      layout_designer::DockTree tree(layout_name);
+      std::vector<layout_designer::PanelEntry> panels;
+      panels.reserve(panel_state.size());
+      for (const auto& [panel_id, visible] : panel_state) {
+        if (!visible)
+          continue;
+        panels.push_back({panel_id, /*display_name=*/"", /*icon=*/""});
+      }
+      tree.root = layout_designer::DockNode::MakeLeaf(std::move(panels));
+      prefs_.named_layouts[layout_name] =
+          layout_designer::DockTreeToJson(tree).dump();
+    }
+    prefs_.panel_layout_defaults_revision = 16;
+    applied = true;
+  }
+
+  // Revision 17: default-pin the Layout Designer so "Show: Layout Designer"
+  // from the command palette is drawable from any editor context, not just
+  // when the active_category matches. Mirrors the rev-7 pattern for
+  // former-Persistent panels (agent.oracle_ram, workflow.output). A user
+  // who later unpins the panel keeps that choice — the block only runs
+  // once on upgrade.
+  if (prefs_.panel_layout_defaults_revision < 17 && target_revision >= 17) {
+    prefs_.pinned_panels["layout.designer"] = true;
+    prefs_.panel_layout_defaults_revision = 17;
+    applied = true;
+  }
+
+  // Revision 18: stop carrying standalone dungeon room windows across app
+  // launches. Workbench mode is now the default dungeon workflow; stale
+  // `dungeon.room_*` visibility entries can resurrect dozens of room panels
+  // and make the UI look broken immediately after switching to Dungeon.
+  if (prefs_.panel_layout_defaults_revision < 18 && target_revision >= 18) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      EraseTransientPanelVisibility(&dungeon_it->second);
+    }
+    for (auto it = prefs_.pinned_panels.begin();
+         it != prefs_.pinned_panels.end();) {
+      if (IsTransientPanelVisibilityId(it->first)) {
+        it = prefs_.pinned_panels.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    prefs_.panel_layout_defaults_revision = 18;
+    applied = true;
+  }
+
+  // Revision 19: Selection Inspector, Dungeon Settings, and Dungeon Map are no
+  // longer high-level dungeon panels. Their controls live in the Workbench
+  // inspector or its transient map popup, so stale persisted panel IDs should
+  // not resurrect empty/missing windows.
+  if (prefs_.panel_layout_defaults_revision < 19 && target_revision >= 19) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      dungeon_it->second["dungeon.workbench"] = true;
+      EraseEmbeddedDungeonUtilityPanelVisibility(&dungeon_it->second);
+    }
+    for (auto it = prefs_.pinned_panels.begin();
+         it != prefs_.pinned_panels.end();) {
+      if (IsEmbeddedDungeonUtilityPanelId(it->first)) {
+        it = prefs_.pinned_panels.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    for (auto& [layout_name, panel_state] : prefs_.saved_layouts) {
+      (void)layout_name;
+      EraseEmbeddedDungeonUtilityPanelVisibility(&panel_state);
+    }
+    for (auto& [layout_name, json_body] : prefs_.named_layouts) {
+      (void)layout_name;
+      (void)PruneEmbeddedDungeonUtilityPanelsFromDockTreeJson(&json_body);
+    }
+    prefs_.panel_layout_defaults_revision = 19;
+    applied = true;
+  }
+
+  // Revision 20: keep the Overworld editor selector-first on startup. Earlier
+  // migrations hid Tile16 Editor from defaults, but persisted visibility state
+  // from affected sessions can still reopen it before the user asks for it.
+  if (prefs_.panel_layout_defaults_revision < 20 && target_revision >= 20) {
+    if (auto overworld_it = prefs_.panel_visibility_state.find("Overworld");
+        overworld_it != prefs_.panel_visibility_state.end()) {
+      overworld_it->second["overworld.tile16_editor"] = false;
+    }
+    prefs_.panel_layout_defaults_revision = 20;
+    applied = true;
+  }
+
+  // Revision 21: Layout C (ZScream-style) defaults for the Dungeon editor.
+  // Open the three left-stack selectors (Object/Sprite/Item) plus the Room
+  // Browser/Entrances surface (`dungeon.room_selector`) and Room Matrix in
+  // addition to the workbench so a first-run / migrated user lands on a
+  // ZScream-shaped layout. The actual L/R placement is decided by the
+  // workbench window itself (it inspects `dungeon_inspector_side` at draw
+  // time) and by ImGui's docking — no `left_panel_widths` map exists, and
+  // adding one is out of scope for this slice. The inspector-pane width hint
+  // is seeded into `right_panel_widths` for the workbench window so users see
+  // a sensibly-sized inspector before they drag.
+  if (prefs_.panel_layout_defaults_revision < 21 && target_revision >= 21) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      auto& dungeon_windows = dungeon_it->second;
+      dungeon_windows["dungeon.workbench"] = true;
+      dungeon_windows["dungeon.object_selector"] = true;
+      dungeon_windows["dungeon.sprite_editor"] = true;
+      dungeon_windows["dungeon.item_editor"] = true;
+      dungeon_windows["dungeon.room_selector"] = true;
+      dungeon_windows["dungeon.room_matrix"] = true;
+    }
+
+    // Default Layout C placement is selectors-left / inspector-right. Only
+    // seed the value when the user has not already chosen one (empty string
+    // from a pre-rev-21 settings file) so a future preference flip isn't
+    // clobbered by the migration.
+    if (prefs_.dungeon_inspector_side.empty()) {
+      prefs_.dungeon_inspector_side = "right";
+    }
+
+    // Seed sensible widths for the workbench inspector pane. These are hints;
+    // the user's drag persists through `right_panel_widths` once they adjust.
+    if (!prefs_.right_panel_widths.contains("dungeon.workbench")) {
+      prefs_.right_panel_widths["dungeon.workbench"] = 320.0f;
+    }
+
+    prefs_.panel_layout_defaults_revision = 21;
+    applied = true;
+  }
+
   return applied;
+}
+
+std::string UserSettings::GetDungeonInspectorSide() const {
+  const std::string& side = prefs_.dungeon_inspector_side;
+  if (side == "left") {
+    return "left";
+  }
+  return "right";
+}
+
+void UserSettings::SetDungeonInspectorSide(std::string side) {
+  prefs_.dungeon_inspector_side = (side == "left") ? "left" : "right";
 }
 
 absl::Status UserSettings::Save() {

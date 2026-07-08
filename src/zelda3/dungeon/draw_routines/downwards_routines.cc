@@ -151,9 +151,16 @@ void DrawDownwards2x2_1to16(const DrawContext& ctx) {
 }
 
 void DrawDownwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx) {
-  // Pattern: Vertical rail with corner/middle/end (object 0x69)
+  // Pattern: Vertical rail with corner/middle/end (object 0x69).
+  // ASM: RoomDraw_DownwardsHasEdge1x1_1to16_plus3 ($01:8EC3) loads A=2 then
+  // falls into RoomDraw_DownwardsHasEdge1x1_1to16, which calls
+  // RoomDraw_GetSize_1to16_timesA ($01:B0AF) to set $B2 = composite_size + A.
+  // For the _plus3 variant that yields count = size + 2 middle tiles, matching
+  // the horizontal counterpart RoomDraw_RightwardsHasEdge1x1_1to16_plus3
+  // ($01:8EF0) which uses the same A=2. Total span = 1 corner + (size+2)
+  // middles + 1 end = size + 4 tiles.
   int size = ctx.object.size_ & 0x0F;
-  int count = size + 1;
+  int count = size + 2;
 
   if (ctx.tiles.size() < 3)
     return;
@@ -206,15 +213,14 @@ void DrawDownwardsLeftCorners2x1_1to16_plus12(const DrawContext& ctx) {
       ctx.tiles.size() > 1 ? ctx.tiles[1] : fill;
   const gfx::TileInfo& start_bottom_left =
       ctx.tiles.size() > 2 ? ctx.tiles[2] : fill;
-  const gfx::TileInfo& body_left =
-      ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
+  const gfx::TileInfo& body_left = ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
   const gfx::TileInfo& end_top_left =
       ctx.tiles.size() > 4 ? ctx.tiles[4] : body_left;
   const gfx::TileInfo& end_bottom_left =
       ctx.tiles.size() > 5 ? ctx.tiles[5] : fill;
 
-  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, base_x, current_y,
-                                                {0x00E3})) {
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, base_x,
+                                                current_y, {0x00E3})) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y,
                                  start_top_left);
     DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y, fill);
@@ -257,8 +263,7 @@ void DrawDownwardsRightCorners2x1_1to16_plus12(const DrawContext& ctx) {
       ctx.tiles.size() > 1 ? ctx.tiles[1] : fill;
   const gfx::TileInfo& start_bottom_right =
       ctx.tiles.size() > 2 ? ctx.tiles[2] : fill;
-  const gfx::TileInfo& body_right =
-      ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
+  const gfx::TileInfo& body_right = ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
   const gfx::TileInfo& end_top_right =
       ctx.tiles.size() > 4 ? ctx.tiles[4] : body_right;
   const gfx::TileInfo& end_bottom_right =
@@ -659,7 +664,10 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
                       .function = DrawDownwardsHasEdge1x1_1to16_plus3,
                       .draws_to_both_bgs = false,
                       .base_width = 1,
-                      .base_height = 3,
+                      // size=0 footprint = corner + 2 middles + end = 4 rows
+                      // (mirrors horizontal kRightwardsHasEdge1x1_1to16_plus3
+                      // base_width=4; both share ASM A=2 path).
+                      .base_height = 4,
                       .min_tiles = 3,  // top edge + middle + bottom edge
                       .category = Category::Downwards});
 

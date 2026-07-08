@@ -5,34 +5,74 @@
 
 #include "app/gui/canvas/canvas_utils.h"
 #include "app/gui/core/theme_manager.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace gui {
+
+namespace {
+
+// Diagnostic for the silent guard inside RenderBitmapOnCanvas. The renderer
+// drops a draw when the bitmap has no SDL texture (typical for a first-frame
+// composite whose CREATE command is queued but not yet processed). Without
+// this log the symptom is a blank canvas with no breadcrumb. The metadata
+// purpose tag pinned in slice 3 is what makes this log actionable: the call
+// site already declared what the bitmap IS, so the log can name it.
+inline const char* PurposeLabel(gfx::Bitmap::BitmapPurpose purpose) {
+  switch (purpose) {
+    case gfx::Bitmap::BitmapPurpose::kPreview:
+      return "preview";
+    case gfx::Bitmap::BitmapPurpose::kEditable:
+      return "editable";
+    case gfx::Bitmap::BitmapPurpose::kSelectionSource:
+      return "selection-source";
+    case gfx::Bitmap::BitmapPurpose::kCompositeOutput:
+      return "composite-output";
+    default:
+      return "unspecified";
+  }
+}
+
+inline void LogBitmapDropIfDebug(const gfx::Bitmap& bitmap, const char* site) {
+  LOG_DEBUG("CanvasRender",
+            "Skipped %s: bitmap purpose=%s active=%d size=%dx%d (no texture)",
+            site, PurposeLabel(bitmap.metadata().purpose), bitmap.is_active(),
+            bitmap.width(), bitmap.height());
+}
+
+}  // namespace
 
 void RenderCanvasBackground(ImDrawList* draw_list,
                             const CanvasGeometry& geometry) {
   const auto& theme = ThemeManager::Get().GetCurrentTheme();
 
   // Draw primary background color from theme
-  draw_list->AddRectFilled(geometry.canvas_p0, geometry.canvas_p1,
-                           ImGui::GetColorU32(ConvertColorToImVec4(theme.editor_background)));
+  draw_list->AddRectFilled(
+      geometry.canvas_p0, geometry.canvas_p1,
+      ImGui::GetColorU32(ConvertColorToImVec4(theme.editor_background)));
 
   // Add a subtle pattern to the background (e.g., very faint dots)
   if (theme.enable_glow_effects) {
     const float dot_spacing = 32.0f;
-    const uint32_t dot_color = ImGui::GetColorU32(ConvertColorToImVec4(theme.editor_grid));
+    const uint32_t dot_color =
+        ImGui::GetColorU32(ConvertColorToImVec4(theme.editor_grid));
 
-    for (float x = geometry.canvas_p0.x + fmodf(geometry.scrolling.x, dot_spacing); x < geometry.canvas_p1.x; x += dot_spacing) {
-      for (float y = geometry.canvas_p0.y + fmodf(geometry.scrolling.y, dot_spacing); y < geometry.canvas_p1.y; y += dot_spacing) {
+    for (float x =
+             geometry.canvas_p0.x + fmodf(geometry.scrolling.x, dot_spacing);
+         x < geometry.canvas_p1.x; x += dot_spacing) {
+      for (float y =
+               geometry.canvas_p0.y + fmodf(geometry.scrolling.y, dot_spacing);
+           y < geometry.canvas_p1.y; y += dot_spacing) {
         draw_list->AddCircleFilled(ImVec2(x, y), 1.0f, dot_color);
       }
     }
   }
 
   // Draw theme-aware border
-  draw_list->AddRect(geometry.canvas_p0, geometry.canvas_p1,
-                     ImGui::GetColorU32(ConvertColorToImVec4(theme.border)),
-                     0.0f, 0, theme.window_border_size > 0 ? theme.window_border_size : 1.0f);
+  draw_list->AddRect(
+      geometry.canvas_p0, geometry.canvas_p1,
+      ImGui::GetColorU32(ConvertColorToImVec4(theme.border)), 0.0f, 0,
+      theme.window_border_size > 0 ? theme.window_border_size : 1.0f);
 }
 
 void RenderCanvasGrid(ImDrawList* draw_list, const CanvasGeometry& geometry,
@@ -109,6 +149,7 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, int /*border_offset*/,
                           float scale) {
   if (!bitmap.is_active() || !bitmap.texture()) {
+    LogBitmapDropIfDebug(bitmap, "RenderBitmapOnCanvas(border)");
     return;
   }
 
@@ -126,6 +167,7 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, int x_offset, int y_offset,
                           float scale, int alpha) {
   if (!bitmap.is_active() || !bitmap.texture()) {
+    LogBitmapDropIfDebug(bitmap, "RenderBitmapOnCanvas(offset)");
     return;
   }
 
@@ -152,6 +194,7 @@ void RenderBitmapOnCanvas(ImDrawList* draw_list, const CanvasGeometry& geometry,
                           gfx::Bitmap& bitmap, ImVec2 dest_pos,
                           ImVec2 dest_size, ImVec2 src_pos, ImVec2 src_size) {
   if (!bitmap.is_active() || !bitmap.texture()) {
+    LogBitmapDropIfDebug(bitmap, "RenderBitmapOnCanvas(custom-uv)");
     return;
   }
 

@@ -1,4 +1,4 @@
-# Editor UI Module Pattern (RFC)
+#Editor UI Module Pattern(RFC)
 
 Date: 2026-04-06  
 Status: Adopted for new editor UI work
@@ -55,6 +55,86 @@ These are CI-enforced by `scripts/dev/editor-guardrails.sh`.
   access so individual views no longer repeat `ContentRegistry` + `dynamic_cast`.
 - `src/app/editor/system/hack_manifest_save_validation.{h,cc}` demonstrates shared
   cross-editor save-policy extraction out of editor implementations.
+
+## Responsive ImGui Chrome Anti-Patterns
+
+These are now treated as code smells in editor UX work:
+
+- Long `ImGui::SameLine()` chains used to force entire toolbars onto one row.
+- Repeated `SetCursorPosX()` or pixel nudging to fake right alignment.
+- Hard-coded width caps per control cluster instead of sizing by region.
+- Pane headers that each invent their own spacing, segment sizing, and collapse
+  button placement.
+- Context menus that bury frequent actions under multiple submenu layers.
+
+### Why this is bad
+
+- It breaks under font scale, icon width changes, DPI changes, and theme changes.
+- It creates clipping and overlap instead of graceful reflow.
+- It makes narrow layouts unusable and increases cognitive load.
+- It spreads one-off width heuristics across files, which makes later cleanup harder.
+- It encourages adding more exceptions instead of fixing the layout model.
+
+### Preferred patterns
+
+- Use stacked rows or a small `ImGui::Table` with clear regions instead of forcing
+  every control into one horizontal strip.
+- Keep one responsibility per row:
+  - identity and mode controls
+  - compare/split controls
+  - view toggles and overflow actions
+- Share pane-header chrome helpers so `Browse`, `Inspect`, and similar shelves use
+  the same spacing and collapse behavior.
+- Use compact overflow popups for secondary actions instead of clipping buttons.
+- Put frequent canvas actions at the top level of the context menu.
+- Limit nesting for common actions like reporting, opening related tools, and copy
+  helpers.
+
+## Workbench-local tools vs. top-level windows
+
+When an editor has a stable Workbench surface, local edit tools should be drawn
+inside that Workbench before adding or preserving another high-level panel.
+
+Preferred hierarchy:
+
+1. **Canvas/toolbar** for high-frequency spatial actions.
+2. **Inspector modes/drawers** for local tools that edit the current room,
+   selection, palette, tags, collision, or other nearby state.
+3. **Popups** for bounded review surfaces that should not persist as primary
+   windows (for example, a dungeon map).
+4. **Standalone windows** only for workflow-level navigation or asset-authoring
+   surfaces that must exist outside the active Workbench.
+
+Dungeon Workbench examples:
+
+| Surface | Expected home in Workbench mode |
+|---|---|
+| Object Selector, Door, Sprite, Item tools | Inspector `Tools` drawer |
+| Palette, Room Graphics, Room Tags | Inspector `Tools` drawer |
+| Custom Collision, Water Fill, Minecart | Inspector `Tools` drawer |
+| Dungeon Map | Popup |
+| Connected Graph | Canvas mode |
+| Object Tile Editor | Standalone asset-authoring window |
+
+If a tool is embedded in a Workbench drawer, keep the drawer as the primary
+default path, but do not force-close an already visible standalone copy when
+entering Workbench mode. Keep standalone panel entries discoverable for users
+who intentionally prefer a multi-window layout; Workbench entry should only
+collapse navigation windows and per-room windows by default.
+
+Avoid dual implementations. Do not keep both a modal popup path and a drawer path
+for the same local tool unless the temporary duplicate is tracked by a handoff
+with deletion criteria.
+
+### Refactor triggers
+
+A UI surface should be considered for layout refactor when any of these appear:
+
+- more than three consecutive `SameLine()` layout dependencies
+- manual `SetCursorPosX()` alignment in normal toolbar/header code
+- multiple width thresholds controlling one strip of controls
+- repeated overlap/clipping fixes for the same surface
+- context-menu actions nested two or more levels deep for normal testing flows
 
 ## Pre-ROM (“no cart”) editor session
 

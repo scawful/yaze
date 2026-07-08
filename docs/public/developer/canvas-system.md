@@ -1,4 +1,4 @@
-# Canvas System Guide
+#Canvas System Guide
 
 This guide provides a comprehensive overview of the `yaze` canvas system, its architecture, and best practices for integration. It reflects the state of the system after the October 2025 refactoring.
 
@@ -24,7 +24,6 @@ src/app/gui/canvas/
 ├── canvas_events.h                  # Interaction event structs
 ├── canvas_interaction.h/cc          # Interaction event handlers
 ├── canvas_menu.h/cc                 # Declarative menu structures
-├── canvas_menu_builder.h/cc         # Fluent API for building menus
 ├── canvas_popup.h/cc                # PopupRegistry for persistent popups
 └── canvas_utils.h/cc                # General utility functions
 ```
@@ -74,53 +73,46 @@ if (event.is_complete) {
 }
 ```
 
-## 4. Context Menu & Popups
+    ##4. Context Menu &Popups
 
-The context menu system is now unified, data-driven, and supports persistent popups.
+        The context menu system is now unified,
+    data - driven,
+    and supports persistent popups.
 
-### Key Features
-- **Unified Item Definition**: All menu items use the `gui::CanvasMenuItem` struct.
-- **Priority-Based Ordering**: Menu sections are automatically sorted based on the `MenuSectionPriority` enum, ensuring a consistent layout:
-    1.  `kEditorSpecific` (highest priority)
-    2.  `kBitmapOperations`
-    3.  `kCanvasProperties`
-    4.  `kDebug` (lowest priority)
-- **Automatic Popup Persistence**: Popups defined declaratively will remain open until explicitly closed by the user (ESC or close button), rather than closing on any click outside.
-- **Fluent Builder API**: The `gui::CanvasMenuBuilder` provides a clean, chainable API for constructing complex menus.
+        ## #Key Features -
+        **Unified Item Definition ** : All menu items use
+                                           the `gui::CanvasMenuItem` struct.-
+        **Priority -
+        Based Ordering ** : Menu sections are automatically sorted based on
+                                the `MenuSectionPriority` enum,
+    ensuring a consistent layout : 1.  `kEditorSpecific` (
+        highest
+            priority)2.  `kBitmapOperations` 3.  `kCanvasProperties` 4.  `kDebug` (lowest
+                                                                                       priority) -
+        **Automatic Popup
+         Persistence ** : Popups defined declaratively will remain open until
+                          explicitly closed by the user(ESC or close button),
+    rather than closing on any click outside
+        .
 
-### API Patterns
+    ## #API Patterns
 
-**Add a Simple Menu Item**:
-```cpp
-canvas.AddContextMenuItem(
-  gui::CanvasMenuItem("Label", ICON_MD_ICON, []() { /* Action */ })
-);
+        **Add a Simple Menu Item ** :
+```cpp canvas.AddContextMenuItem(gui::CanvasMenuItem("Label", ICON_MD_ICON,
+                                                      []() { /* Action */ }));
 ```
 
-**Add a Declarative Popup Item**:
-This pattern automatically handles popup registration and persistence.
-```cpp
-auto item = gui::CanvasMenuItem::WithPopup(
-  "Properties",
-  "props_popup_id",
-  []() {
-    // Render popup content here
-    ImGui::Text("My Properties");
-  }
-);
+    ** Add a Declarative Popup Item** : This pattern automatically handles
+                                            popup registration and persistence.
+```cpp auto item =
+    gui::CanvasMenuItem::WithPopup("Properties", "props_popup_id", []() {
+      // Render popup content here
+      ImGui::Text("My Properties");
+    });
 canvas.AddContextMenuItem(item);
 ```
 
-**Build a Complex Menu with the Builder**:
-```cpp
-gui::CanvasMenuBuilder builder;
-canvas.editor_menu() = builder
-  .BeginSection("Editor Actions", gui::MenuSectionPriority::kEditorSpecific)
-    .AddItem("Cut", ICON_MD_CUT, []() { Cut(); })
-    .AddPopupItem("Settings", "settings_popup", []() { RenderSettings(); })
-  .EndSection()
-  .Build();
-```
+For multi-section menus, mutate `canvas.editor_menu()` (`CanvasMenuDefinition`) directly or assemble `CanvasMenuSection` / `CanvasMenuItem` values in editor code.
 
 ## 5. Entity System
 
@@ -146,7 +138,7 @@ A generic, Zelda-agnostic entity system allows editors to manage on-canvas objec
     - Call `canvas.Begin(size)`.
     - Draw your editor-specific content (bitmaps, entities, overlays).
     - Call `canvas.End()`. This handles rendering the grid, overlays, and the context menu.
-5.  **Provide Custom Menus**: Use `canvas.AddContextMenuItem()` or the `CanvasMenuBuilder` to add editor-specific actions to the context menu. Assign the `kEditorSpecific` priority to ensure they appear at the top.
+5.  **Provide Custom Menus**: Use `canvas.AddContextMenuItem()` or assign to `canvas.editor_menu()` with `MenuSectionPriority::kEditorSpecific` so editor actions sort to the top.
 6.  **Handle State**: Respond to user interactions by inspecting the `CanvasState` or handling events returned from interaction helpers.
 
 ## 7. Debugging

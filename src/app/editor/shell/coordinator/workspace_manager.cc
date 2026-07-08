@@ -4,9 +4,9 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/layout/layout_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/editor_registry.h"
-#include "app/editor/system/workspace_window_manager.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "rom/rom.h"
@@ -65,9 +65,8 @@ absl::Status WorkspaceManager::ResetWorkspaceLayout() {
 
     EditorType editor_type = EditorType::kSettings;
     if (window_manager_) {
-      editor_type =
-          EditorRegistry::GetEditorTypeFromCategory(
-              window_manager_->GetActiveCategory());
+      editor_type = EditorRegistry::GetEditorTypeFromCategory(
+          window_manager_->GetActiveCategory());
     }
     layout_manager_->ResetToDefaultLayout(editor_type);
     layout_manager_->RequestRebuild();
@@ -156,7 +155,8 @@ void WorkspaceManager::LoadWorkspacePreset(const std::string& name) {
 void WorkspaceManager::RefreshPresets() {
   try {
     std::vector<std::string> new_presets;
-    auto workspace_dir = util::PlatformPaths::GetAppDataSubdirectory("workspaces");
+    auto workspace_dir =
+        util::PlatformPaths::GetAppDataSubdirectory("workspaces");
     if (workspace_dir.ok()) {
       std::filesystem::path presets_path =
           *workspace_dir / "workspace_presets.txt";

@@ -28,7 +28,7 @@ graph TD
     Interaction -.-> System[DungeonEditorSystem]
 
     SelectorContent --> ObjSelector[DungeonObjectSelector]
-    SelectorContent --> EmuPreview[DungeonObjectEmulatorPreview]
+    EditorContent[ObjectEditorContent] --> Interaction
 
     Loader --> RomData[zelda3::Room]
 ```
@@ -45,12 +45,14 @@ graph TD
     *   **Selection**: Click (single), Shift+Click (add), Ctrl+Click (toggle), Drag (rectangle).
     *   **Manipulation**: Drag-to-move, Scroll-to-resize.
     *   **Placement**: Placing new objects from the `ObjectSelectorContent`.
-*   **Context Menu Integration**: `DungeonCanvasViewer` registers editor-specific actions with `gui::Canvas` so the right-click menu is unified across panels. Object actions (Cut/Copy/Paste/Duplicate/Delete/Cancel Placement) are always visible but automatically disabled when they do not apply, eliminating the old per-interaction popup.
+*   **Context Menu Integration**: `DungeonCanvasViewer` registers editor-specific actions with `gui::Canvas` so the right-click menu is unified across panels. The menu is now grouped into `Insert`, `Selection`, `Room`, `Report`, `Open`, `Copy / Export`, `Layers`, `Overlays`, and `Debug`. Selection- and entity-specific actions only appear when they are relevant, while layer/debug toggles use checked menu state instead of flipping between `Show ...` / `Hide ...` labels.
 *   **`object_selection.cc/h`**: A specialized class that holds the state of selected objects and implements selection logic (sets of indices, rectangle intersection). It is decoupled from the UI to allow for easier testing.
 
 ### Object Management
-*   **`dungeon_object_selector.cc/h`**: The UI component for browsing the object library. It includes the "Static Object Editor" (opened via double-click) to inspect object draw routines.
-*   **`selectors/object_selector_content.cc/h`**: A complex window content that aggregates `DungeonObjectSelector`, `DungeonObjectEmulatorPreview`, and template controls. It synchronizes with the currently active `DungeonCanvasViewer`.
+*   **`dungeon_object_selector.cc/h`**: The UI component for browsing the object library and choosing objects to place.
+*   **`selectors/object_selector_content.cc/h`**: The browse/place window content for dungeon objects. It keeps selection editing out of the selector and synchronizes placement with the active `DungeonCanvasViewer`.
+*   **`inspectors/object_editor_content.cc/h`**: The selected-object inspector for single-selection and multi-selection room object editing.
+*   **`ui/window/object_tile_editor_panel.{h,cc}`**: Visual 8x8 tile-composition editor for dungeon objects. It captures layouts through `zelda3::ObjectTileEditor`, keeps preview and atlas bitmaps in sync with the active palette, re-renders the room after apply, and is covered by focused panel/backend tests.
 
 ### UI Components (WindowContents)
 Located across role-based folders under `src/app/editor/dungeon/`:
@@ -62,18 +64,23 @@ Located across role-based folders under `src/app/editor/dungeon/`:
 ## Key Connections & Dependencies
 
 *   **`zelda3/dungeon/`**: The core logic library. The editor relies heavily on `zelda3::Room`, `zelda3::RoomObject`, and `zelda3::DungeonEditorSystem` for data structures and business logic.
+    *   `DungeonEditorSystem` now handles full-room persistence for objects, sprites, headers, torches, collision, chests, and pot items for managed or external rooms.
 *   **`app/gfx/`**: Used for rendering backends (`IRenderer`), texture management (`Arena`), and palette handling (`SnesPalette`).
-*   **`app/editor/system/workspace_window_manager.h`**: The V2 editor relies on this system for layout and window management.
+*   **`app/editor/system/workspace/workspace_window_manager.h`**: The V2 editor relies on this system for layout and window management.
 
 ## Code Analysis & Areas for Improvement
 
-### 1. Object Dimension Logic Redundancy
-There are multiple implementations for calculating the visual bounds of an object:
-*   `DungeonObjectInteraction::CalculateObjectBounds` (uses `ObjectDrawer` if available, falls back to naive logic)
-*   `DungeonObjectSelector::CalculateObjectDimensions` (naive logic)
-*   `ObjectSelection::GetObjectBounds` (uses `ObjectDimensionTable`)
+### 1. Object Dimension Logic — Centralized in `zelda3::DimensionService`
+All editor-side bound/dimension queries delegate to `zelda3::DimensionService::Get()`:
 
-**Recommendation**: Centralize all dimension calculation in `zelda3::ObjectDimensionTable` or a shared static utility in the editor namespace to ensure hit-testing matches rendering.
+| Caller | Accessor |
+|---|---|
+| `DungeonObjectInteraction::CalculateObjectBounds` | `GetPixelDimensions` |
+| `DungeonObjectSelector::CalculateObjectDimensions` | `GetPixelDimensions` (clamped to 256) |
+| `TileObjectHandler::CalculateObjectBounds` | `GetPixelDimensions` |
+| `ObjectSelection::GetObjectBounds` | `GetHitTestBounds` |
+
+`DimensionService` tries `ObjectGeometry` (exact buffer replay) first and falls back to `ObjectDimensionTable` (hardcoded estimates). Covered by `test/unit/zelda3/dungeon/dimension_service_test.cc` + `dimension_cross_validation_test.cc`. Do not reintroduce per-caller dimension switches — add coverage to the service instead.
 
 ### 2. Legacy Methods in Interaction
 `DungeonObjectInteraction` contains several methods marked as legacy or delegated to `ObjectSelection` (e.g., `SelectObjectsInRect`, `UpdateSelectedObjects`).
@@ -85,8 +92,8 @@ There are multiple implementations for calculating the visual bounds of an objec
 *   This naming collision can be confusing. Renaming `DungeonObjectSelector` to `DungeonObjectLibrary` or `ObjectBrowser` might clarify intent.
 
 ### 4. Render Mode Confusion
-`DungeonCanvasViewer` supports an `ObjectRenderMode` (Manual, Emulator, Hybrid), but the `ObjectSelectorContent` also maintains its own `DungeonObjectEmulatorPreview`.
-**Recommendation**: Clarify if the main canvas should ever use emulator rendering (slow but accurate) or if that should remain exclusive to the preview panel.
+`DungeonCanvasViewer` supports an `ObjectRenderMode` (Manual, Emulator, Hybrid), while selector previews still rely on separate preview-generation paths.
+**Recommendation**: Keep placement browsing lightweight and drive parity investigations from the room canvas plus issue reports instead of reviving embedded preview/editor flows in the selector.
 
 ## Integration Guide
 

@@ -1,4 +1,4 @@
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 
 #include <gtest/gtest.h>
 
@@ -127,6 +127,59 @@ TEST(WorkspaceWindowManagerPolicyTest,
   EXPECT_TRUE(wm.CloseWindow(0, "test.window"));
   EXPECT_FALSE(wm.IsWindowOpen(0, "test.window"));
   EXPECT_FALSE(visible);
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
+     VisibilityPersistenceSkipsTransientDungeonRoomPanels) {
+  WorkspaceWindowManager wm;
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+
+  wm.RegisterPanel({.card_id = "dungeon.workbench",
+                    .display_name = "Workbench",
+                    .icon = "ICON_WORKBENCH",
+                    .category = "Dungeon"});
+  wm.RegisterPanel({.card_id = "dungeon.room_98",
+                    .display_name = "Room 098",
+                    .icon = "ICON_ROOM",
+                    .category = "Dungeon"});
+
+  EXPECT_TRUE(wm.OpenWindow(0, "dungeon.workbench"));
+  EXPECT_TRUE(wm.OpenWindow(0, "dungeon.room_98"));
+
+  const auto serialized = wm.SerializeVisibilityState(0);
+  EXPECT_EQ(serialized.count("dungeon.room_98"), 0U);
+  ASSERT_EQ(serialized.count("dungeon.workbench"), 1U);
+  EXPECT_TRUE(serialized.at("dungeon.workbench"));
+
+  EXPECT_TRUE(wm.CloseWindow(0, "dungeon.room_98"));
+  wm.RestoreVisibilityState(
+      0, {{"dungeon.room_98", true}, {"dungeon.workbench", true}});
+  EXPECT_FALSE(wm.IsWindowOpen(0, "dungeon.room_98"));
+  EXPECT_TRUE(wm.IsWindowOpen(0, "dungeon.workbench"));
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
+     DuplicateWindowContentRegistrationReplacesStaleInstance) {
+  WorkspaceWindowManager wm;
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+
+  wm.RegisterWindowContent(std::make_unique<MockEditorPanelWithHooks>(
+      "dungeon.workbench", "Dungeon"));
+  auto* first = wm.GetWindowContent("dungeon.workbench");
+  ASSERT_NE(first, nullptr);
+
+  wm.RegisterWindowContent(std::make_unique<MockEditorPanelWithHooks>(
+      "dungeon.workbench", "Dungeon"));
+  auto* second = wm.GetWindowContent("dungeon.workbench");
+  ASSERT_NE(second, nullptr);
+  EXPECT_NE(second, first);
+
+  EXPECT_TRUE(wm.OpenWindow(0, "dungeon.workbench"));
+  auto* panel = dynamic_cast<MockEditorPanelWithHooks*>(second);
+  ASSERT_NE(panel, nullptr);
+  EXPECT_EQ(panel->open_count, 1);
 }
 
 TEST(WorkspaceWindowManagerPolicyTest,

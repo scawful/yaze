@@ -12,10 +12,21 @@ set(
   app/editor/system/session/background_command_task.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
+  app/editor/dungeon/dungeon_canvas_connected_view.cc
+  app/editor/dungeon/dungeon_canvas_connected_matrix.cc
+  app/editor/dungeon/dungeon_canvas_context_menu.cc
+  app/editor/dungeon/dungeon_canvas_debug.cc
+  app/editor/dungeon/dungeon_canvas_issue_report.cc
+  app/editor/dungeon/dungeon_canvas_overlays.cc
+  app/editor/dungeon/dungeon_canvas_room_chrome.cc
+  app/editor/dungeon/dungeon_canvas_room_frame.cc
+  app/editor/dungeon/dungeon_canvas_room_render.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_rendering_helpers.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
   app/editor/dungeon/dungeon_editor_v2.cc
+  app/editor/dungeon/dungeon_editor_v2_persistence.cc
+  app/editor/dungeon/dungeon_editor_v2_undo.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
   app/editor/dungeon/object_selection.cc
@@ -23,6 +34,7 @@ set(
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/dungeon/ui/reporting/dungeon_issue_report_storage.cc
   app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
   app/editor/dungeon/widgets/dungeon_workbench_toolbar.cc
   app/editor/dungeon/widgets/dungeon_status_bar.cc
@@ -33,8 +45,10 @@ set(
   app/editor/dungeon/interaction/interaction_coordinator.cc
   app/editor/dungeon/interaction/interaction_mode.cc
   app/editor/dungeon/workspace/room_graphics_content.cc
-  app/editor/dungeon/ui/window/dungeon_settings_panel.cc
+  app/editor/dungeon/workspace/dungeon_pit_damage_view_model.cc
   app/editor/dungeon/workspace/dungeon_workbench_content.cc
+  app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.cc
+  app/editor/dungeon/workspace/dungeon_workbench_layout.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
   app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/selectors/object_selector_content.cc
@@ -81,6 +95,9 @@ set(
   app/editor/overworld/map_properties.cc
   app/editor/overworld/canvas_navigation_manager.cc
   app/editor/overworld/map_refresh_coordinator.cc
+  app/editor/overworld/map_texture_coordinator.cc
+  app/editor/overworld/overworld_map_metadata.cc
+  app/editor/overworld/overworld_property_edit.cc
   app/editor/overworld/overworld_canvas_renderer.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc
@@ -110,6 +127,7 @@ set(
   app/editor/sprite/sprite_editor.cc
   app/editor/menu/menu_orchestrator.cc
   app/editor/shell/feedback/popup_manager.cc
+  app/editor/layout/layout_designer/layout_designer_panel.cc
   app/editor/shell/windows/about_panel.cc
   app/editor/shell/windows/dashboard_panel.cc
   app/editor/shell/dialogs/editor_selection_dialog.cc
@@ -143,6 +161,14 @@ set(
 set(
   YAZE_EDITOR_SYSTEM_PANELS_SRC
   app/editor/layout/layout_coordinator.cc
+  app/editor/layout/layout_designer/dock_tree.cc
+  app/editor/layout/layout_designer/dock_tree_hit_test.cc
+  app/editor/layout/layout_designer/dock_tree_json.cc
+  app/editor/layout/layout_designer/dock_tree_renderer.cc
+  app/editor/layout/layout_designer/drop_zone_suggester.cc
+  app/editor/layout/layout_designer/panel_palette.cc
+  app/editor/layout/layout_designer/split_boundary_drag.cc
+  app/editor/layout/layout_designer/tree_undo_stack.cc
   app/editor/layout/layout_manager.cc
   app/editor/layout/layout_orchestrator.cc
   app/editor/layout/layout_presets.cc
@@ -281,6 +307,7 @@ target_link_libraries(yaze_editor PUBLIC
   yaze_editor_system_session
   yaze_editor_system_shortcuts
   yaze_app_core_lib
+  yaze_cli_core
   yaze_rom
   yaze_gfx
   yaze_gui
@@ -348,7 +375,7 @@ if(YAZE_BUILD_TESTS)
   # dependency. The chain
   # yaze_editor -> force_load(yaze_test_support) -> yaze_editor causes SIGSEGV
   # during static initialization.
-  #
+#
   # Test executables should link yaze_test_support directly, which provides all
   # needed symbols through its own dependencies, including yaze_editor via
   # regular linking.

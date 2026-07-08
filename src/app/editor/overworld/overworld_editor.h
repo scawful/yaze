@@ -16,6 +16,7 @@
 #include "app/editor/overworld/entity/entity_workbench.h"
 #include "app/editor/overworld/map_properties.h"
 #include "app/editor/overworld/map_refresh_coordinator.h"
+#include "app/editor/overworld/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_canvas_renderer.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_sidebar.h"
@@ -147,6 +148,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       : OverworldEditor(rom) {
     dependencies_ = deps;
   }
+  ~OverworldEditor() override;
 
   void SetDependencies(const EditorDependencies& deps) override {
     Editor::SetDependencies(deps);
@@ -198,6 +200,10 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   Rom* rom() const { return rom_; }
 
+  /// @brief Clamp a possibly stale world/map selection back into a valid
+  /// overworld range.
+  static bool NormalizeMapSelection(int& current_world, int& current_map);
+
   /// @brief Set the current map for editing (also updates world)
   void set_current_map(int map_id) {
     if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps) {
@@ -206,15 +212,22 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
       current_map_ = map_id;
       current_world_ =
           map_id / 0x40;  // Calculate which world the map belongs to
+      if (const auto* map = overworld_.overworld_map(current_map_)) {
+        current_parent_ = map->parent();
+      } else {
+        current_parent_ = current_map_;
+      }
       overworld_.set_current_map(current_map_);
       overworld_.set_current_world(current_world_);
     }
   }
   void SetCurrentMap(int map_id) { set_current_map(map_id); }
+  void SelectMapForEditing(int map_id, bool respect_pin = true);
 
   void set_current_tile16(int tile_id) { current_tile16_ = tile_id; }
   int current_map_id() const { return current_map_; }
   int current_world_id() const { return current_world_; }
+  int hovered_map_id() const { return hovered_map_; }
 
   // ===========================================================================
   // Graphics Loading
@@ -339,6 +352,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // Drawing is delegated to OverworldCanvasRenderer.
 
   absl::Status DrawAreaGraphics() {
+    NormalizeCurrentSelectionState();
     if (!canvas_renderer_)
       return absl::FailedPreconditionError("Renderer not initialized");
     return canvas_renderer_->DrawAreaGraphics();
@@ -349,6 +363,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     return canvas_renderer_->DrawTile16Selector();
   }
   void DrawMapProperties() {
+    NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawMapProperties();
   }
@@ -367,6 +382,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   }
   absl::Status UpdateGfxGroupEditor();
   void DrawV3Settings() {
+    NormalizeCurrentSelectionState();
     if (canvas_renderer_)
       canvas_renderer_->DrawV3Settings();
   }
@@ -379,15 +395,19 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Access the Tile16 Editor for panel integration
   Tile16Editor& tile16_editor() { return tile16_editor_; }
+  const Tile16Editor& tile16_editor() const { return tile16_editor_; }
+
+  /// @brief Read-only access for integration tests that verify refresh output.
+  const gfx::Tilemap& tile16_blockset() const { return tile16_blockset_; }
+  const gfx::Bitmap& current_gfx_bmp_for_testing() const {
+    return current_gfx_bmp_;
+  }
 
   /// @brief Resolve the entity workbench window content (may be null).
   OverworldEntityWorkbench* GetWorkbench();
 
   /// @brief Draw the main overworld canvas
-  void DrawOverworldCanvas() {
-    if (canvas_renderer_)
-      canvas_renderer_->DrawOverworldCanvas();
-  }
+  void DrawOverworldCanvas();
 
  private:
   // ===========================================================================
@@ -398,12 +418,16 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// @brief Handle overworld keyboard shortcuts and edit-mode hotkeys
   void HandleKeyboardShortcuts();
 
+  /// @brief Clamp and synchronize stale map/world selection before panels draw.
+  bool NormalizeCurrentSelectionState();
+
   // ===========================================================================
   // Map Refresh System (delegated to MapRefreshCoordinator)
   // ===========================================================================
 
   /// @brief Initialize the map refresh coordinator (called during Initialize)
   void InitMapRefreshCoordinator();
+  void InitMapTextureCoordinator();
   void InitInteractionCoordinator();
 
   // Convenience delegation methods for internal use
@@ -528,6 +552,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void DrawScratchSpacePattern();
   void DrawScratchSpaceSelection();
   void UpdateScratchBitmapTile(int tile_x, int tile_y, int tile_id);
+  absl::Status LoadScratchPad();
+  absl::Status SaveScratchPad() const;
+  absl::Status FlushScratchPadIfDirty();
+  absl::Status RebuildScratchBitmapFromTileData();
+  void MarkScratchSpaceDirty();
 
   // ===========================================================================
   // Undo/Redo System
@@ -550,6 +579,14 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   void RestoreItemUndoSnapshot(const OverworldItemsSnapshot& snapshot);
   void PushItemUndoAction(OverworldItemsSnapshot before,
                           std::string description);
+  absl::Status ApplyOverworldPropertyEdit(const OverworldPropertyEdit& edit,
+                                          bool record_undo = true);
+  absl::Status ApplyOverworldPropertyEdits(
+      const std::vector<OverworldPropertyEdit>& edits,
+      const std::string& description, bool record_undo = true);
+  absl::Status RenameProjectResourceLabelWithUndo(const std::string& type,
+                                                  int id,
+                                                  const std::string& label);
 
   // ===========================================================================
   // Editing Mode State
@@ -581,6 +618,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int current_world_ = 0;   // 0=Light, 1=Dark, 2=Special
   int current_map_ = 0;     // Current map index (0-159)
   int current_parent_ = 0;  // Parent map for multi-area
+  int hovered_map_ = -1;    // Last map under the cursor, preview only
   int current_blockset_ = 0;
   int game_state_ = 1;      // 0=Beginning, 1=Pendants, 2=Crystals
   int current_tile16_ = 0;  // Selected tile16 for painting
@@ -630,6 +668,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   std::unique_ptr<EntityMutationService> entity_mutation_service_;
   std::unique_ptr<OverworldInteractionCoordinator> interaction_coordinator_;
   std::unique_ptr<MapRefreshCoordinator> map_refresh_;
+  std::unique_ptr<OverworldMapTextureCoordinator> map_texture_;
   std::unique_ptr<MapPropertiesSystem> map_properties_system_;
   std::unique_ptr<OverworldSidebar> sidebar_;
   std::unique_ptr<OverworldEntityRenderer> entity_renderer_;
@@ -651,6 +690,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
     bool select_rect_active = false;
   };
   ScratchSpace scratch_space_;
+  bool scratch_space_dirty_ = false;
 
   // ===========================================================================
   // Core Data References

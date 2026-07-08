@@ -13,6 +13,7 @@
 
 #include "app/editor/events/core_events.h"
 #include "app/editor/hack/workflow/hack_workflow_backend.h"
+#include "app/editor/oracle/story_event_graph_navigation.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/emu/mesen/mesen_client_registry.h"
@@ -361,29 +362,44 @@ class StoryEventGraphPanel : public WindowContent {
       ImGui::Text("Locations:");
       for (size_t i = 0; i < node->locations.size(); ++i) {
         const auto& loc = node->locations[i];
+        const auto room_id = ParseIntLoose(loc.room_id);
+        const auto overworld_id = ParseIntLoose(loc.overworld_id);
+        const auto special_world_id = ParseIntLoose(loc.special_world_id);
+        const auto jump_map_id =
+            ResolveStoryLocationMapJumpTarget(overworld_id, special_world_id);
         ImGui::PushID(static_cast<int>(i));
 
         ImGui::BulletText("%s", loc.name.c_str());
 
-        if (auto room_id = ParseIntLoose(loc.room_id)) {
+        if (room_id) {
           ImGui::SameLine();
           if (ImGui::SmallButton("Room")) {
             PublishJumpToRoom(*room_id);
           }
         }
-        if (auto map_id = ParseIntLoose(loc.overworld_id)) {
+        if (jump_map_id) {
           ImGui::SameLine();
           if (ImGui::SmallButton("Map")) {
-            PublishJumpToMap(*map_id);
+            PublishJumpToMap(*jump_map_id);
+          }
+        } else if (overworld_id || special_world_id) {
+          ImGui::SameLine();
+          ImGui::BeginDisabled();
+          ImGui::SmallButton("Map");
+          ImGui::EndDisabled();
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+                "Map target is outside the supported overworld range.");
           }
         }
 
         if (!loc.room_id.empty() || !loc.overworld_id.empty() ||
-            !loc.entrance_id.empty()) {
+            !loc.special_world_id.empty() || !loc.entrance_id.empty()) {
           ImGui::TextDisabled(
-              "room=%s  map=%s  entrance=%s",
+              "room=%s  map=%s  special=%s  entrance=%s",
               loc.room_id.empty() ? "-" : loc.room_id.c_str(),
               loc.overworld_id.empty() ? "-" : loc.overworld_id.c_str(),
+              loc.special_world_id.empty() ? "-" : loc.special_world_id.c_str(),
               loc.entrance_id.empty() ? "-" : loc.entrance_id.c_str());
         }
 

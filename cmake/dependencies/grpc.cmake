@@ -93,6 +93,20 @@ macro(yaze_grpc_add_absl_compile_options _absl_include_var)
   endif()
 endmacro()
 
+macro(yaze_grpc_add_include_dirs _target _grpc_include_var)
+  if(DEFINED ${_grpc_include_var} AND NOT "${${_grpc_include_var}}" STREQUAL "")
+    target_include_directories(${_target} INTERFACE ${${_grpc_include_var}})
+    message(STATUS "  Added gRPC include: ${${_grpc_include_var}}")
+  endif()
+endmacro()
+
+macro(yaze_grpc_add_compile_options _grpc_include_var)
+  if(DEFINED ${_grpc_include_var} AND NOT "${${_grpc_include_var}}" STREQUAL "")
+    add_compile_options(-I${${_grpc_include_var}})
+    message(STATUS "  Added gRPC include via compile options: ${${_grpc_include_var}}")
+  endif()
+endmacro()
+
 if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
   message(STATUS "Attempting to use system gRPC/protobuf packages...")
 
@@ -189,6 +203,30 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
         protobuf::libprotobuf
       )
 
+      # Homebrew's CMake package exposes generic /opt/homebrew/include as a
+      # system include, which lets stale Intel-era /usr/local/include/grpcpp
+      # headers win on some ARM64 machines. Prefer the exact formula include
+      # directory as a normal -I path so headers and dylibs stay ABI-aligned.
+      set(_YAZE_GRPC_INCLUDE_DIR "")
+      if(APPLE AND YAZE_HOMEBREW_AVAILABLE)
+        yaze_homebrew_find_package(grpc RESULT_VAR _yaze_grpc_hb)
+        if(_yaze_grpc_hb AND
+           EXISTS "${_yaze_grpc_hb}/include/grpcpp/grpcpp.h")
+          set(_YAZE_GRPC_INCLUDE_DIR "${_yaze_grpc_hb}/include")
+          message(STATUS "  Preferring Homebrew gRPC include: ${_YAZE_GRPC_INCLUDE_DIR}")
+        endif()
+      endif()
+      if(NOT _YAZE_GRPC_INCLUDE_DIR)
+        get_target_property(_GRPCPP_INCLUDE_DIRS gRPC::grpc++ INTERFACE_INCLUDE_DIRECTORIES)
+        if(_GRPCPP_INCLUDE_DIRS)
+          list(GET _GRPCPP_INCLUDE_DIRS 0 _YAZE_GRPC_INCLUDE_DIR)
+        endif()
+      endif()
+      if(_YAZE_GRPC_INCLUDE_DIR)
+        set(_YAZE_GRPC_INCLUDE_DIR ${_YAZE_GRPC_INCLUDE_DIR} CACHE INTERNAL "gRPC include directory")
+        yaze_grpc_add_include_dirs(yaze_grpc_deps _YAZE_GRPC_INCLUDE_DIR)
+      endif()
+
       # Ensure Abseil include directories are available. On macOS, prefer the
       # Homebrew formula include dir over generic /opt/homebrew/include so the
       # compiler does not resolve an older /usr/local/include/absl first.
@@ -210,12 +248,14 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
       if(NOT TARGET grpc++)
         add_library(grpc++ INTERFACE)
         target_link_libraries(grpc++ INTERFACE gRPC::grpc++)
+        yaze_grpc_add_include_dirs(grpc++ _YAZE_GRPC_INCLUDE_DIR)
         # Add Abseil include dirs for targets linking to grpc++
         yaze_grpc_add_absl_include_dirs(grpc++ _ABSL_BASE_INCLUDE)
       endif()
       if(NOT TARGET grpc++_reflection)
         add_library(grpc++_reflection INTERFACE)
         target_link_libraries(grpc++_reflection INTERFACE gRPC::grpc++_reflection)
+        yaze_grpc_add_include_dirs(grpc++_reflection _YAZE_GRPC_INCLUDE_DIR)
       endif()
       if(NOT TARGET grpc::grpc++)
         add_library(grpc::grpc++ ALIAS gRPC::grpc++)
@@ -304,11 +344,13 @@ if(YAZE_PREFER_SYSTEM_GRPC OR YAZE_USE_SYSTEM_DEPS)
       # Add global include directories for system packages
       # This ensures all targets can find abseil headers even if target propagation fails
       # Use add_compile_options for reliable include path propagation with Ninja Multi-Config
+      yaze_grpc_add_compile_options(_YAZE_GRPC_INCLUDE_DIR)
       yaze_grpc_add_absl_compile_options(_ABSL_BASE_INCLUDE)
 
       message(STATUS "✓ Using SYSTEM gRPC stack - fast configure!")
       message(STATUS "  Protobuf gens dir: ${_gRPC_PROTO_GENS_DIR}")
       message(STATUS "  Protobuf include dir: ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}")
+      message(STATUS "  gRPC include dir: ${_YAZE_GRPC_INCLUDE_DIR}")
       set(_YAZE_USING_SYSTEM_GRPC TRUE)
     else()
       message(STATUS "○ System gRPC found but protoc/grpc_cpp_plugin missing, falling back to CPM")
