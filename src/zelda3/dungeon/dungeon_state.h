@@ -32,11 +32,18 @@ class DungeonState {
     return false;
   }
 
+  // Dam Floodgate State (Type 2 object 0x137 alternate water-open variant)
+  // Default false so implementations can opt in without breaking callers.
+  virtual bool IsDamFloodgateOpen(int room_id) const {
+    (void)room_id;
+    return false;
+  }
+
   // Object State
   virtual bool IsWallMoved(int room_id) const = 0;
   virtual bool IsFloorBombable(int room_id) const = 0;
   virtual bool IsRupeeFloorActive(int room_id) const = 0;
-  
+
   // General Flags
   virtual bool IsCrystalSwitchBlue() const = 0;
 };

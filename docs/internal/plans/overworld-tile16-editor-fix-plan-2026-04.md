@@ -1,9 +1,9 @@
 Status: active
 Owner (Agent ID): imgui-frontend-engineer
 Created: 2026-04-19
-Last Reviewed: 2026-04-19
-Next Review: 2026-05-03
-Coordination: local implementation session; no universe task ID assigned
+Last Reviewed: 2026-04-26
+Next Review: after Tile16 usability/layout recovery validation
+Coordination: `task_20260426T160255Z_14316`
 
 Agent handoff (IN_PROGRESS, validation log, follow-ups):
 [overworld-tile16-ui-migration-handoff-2026-04-19.md](../agents/overworld-tile16-ui-migration-handoff-2026-04-19.md)
@@ -18,6 +18,14 @@ The overworld Tile16 editing stack currently has two architectural faults:
 2. Tile16 commits write ROM data but do not reliably refresh the authoritative in-memory overworld Tile16 definitions and derived blockset/map surfaces, so the UI can remain stale after a successful save.
 
 This plan documents the bugs found in review and the staged implementation needed to make Tile16 editing predictable, synchronized, and testable.
+
+2026-04-26 update: after the initial rendering and selection fixes, user testing
+still found the Tile16 Editor not ready. The editor surface is too busy, the
+default window size is too small, the current table layout resizes poorly, the
+Tile8 source graphics sheet clips instead of adapting, area palettes are not
+applied consistently to Tile8 source sheets, and the selected Tile16 preview can
+fail to match the tile the user opened. Treat the usability/layout recovery
+below as a release blocker, not polish.
 
 ## Findings
 
@@ -36,6 +44,18 @@ This plan documents the bugs found in review and the staged implementation neede
 - The bottom action rail exposed `Undo` but not `Redo`, even though redo existed in code and keyboard shortcuts.
 - Advanced palette controls included dead or misleading preview toggles that did not affect behavior.
 - Unsaved-change confirmation UI was duplicated and had already drifted from the real discard path.
+- The editor tries to show the blockset, Tile8 source, selected Tile16 preview,
+  queue state, palette controls, stamp/mode controls, and advanced diagnostics
+  in one dense three-column table.
+- First-use Tile16 Editor sizing is width-only and too small for the current
+  content, so action controls and source sheets are clipped until the user
+  manually resizes the window.
+- Tile8 source display scale is fixed, so graphics sheets do not shrink to stay
+  visible in narrower layouts.
+- Queue/dirty tracking is duplicated between the top staged strip and bottom
+  action rail.
+- The selected Tile16 preview can drift when opening the editor from context
+  paths that open the window without first selecting the tile under the cursor.
 
 ## Root Causes
 
@@ -86,6 +106,27 @@ This plan documents the bugs found in review and the staged implementation neede
   - commit -> in-memory overworld Tile16 update -> blockset refresh
   - callback payloads for committed Tile16 changes
 
+### Stage 7: Usability and Layout Recovery
+
+- Add a preferred window height/size path so Tile16 Editor first-use size is
+  large enough for normal use while staying hidden by default in the normal
+  overworld layout.
+- Replace the top staged strip plus bottom rail with one compact action/status
+  row showing current Tile16 id, clean/dirty state, pending count, write,
+  discard-current, discard-all, undo, and redo.
+- Replace the equal three-column table with a responsive workbench layout:
+  blockset and Tile8 source share the main work area, selected Tile16 editing
+  and palette controls live in a compact right rail, and narrow widths stack
+  the large graphics areas instead of clipping them.
+- Compute Tile8 source display scale from available width, clamped to a usable
+  range, so source sheets stay visible horizontally and use vertical scrolling
+  for height.
+- Route every open/select path through the same guarded Tile16 selection API
+  before opening the editor, including context menu edit, selector double-click,
+  keyboard navigation, and eyedropper/sample flows.
+- Ensure the current map area palette is the display palette for Tile8 source,
+  selected Tile8 preview, Tile16 preview, and the blockset atlas.
+
 ## Exit Criteria
 
 - Any Tile16 selection change uses the same guarded path.
@@ -93,6 +134,11 @@ This plan documents the bugs found in review and the staged implementation neede
 - Palette changes recolor all Tile16 editing and selection surfaces consistently.
 - No dead Tile16 palette toggles remain visible.
 - Tests cover the selection-sync and commit-refresh regressions.
+- Tile16 Editor opens with a usable default size and keeps the source sheets,
+  selected preview, and write/discard controls visible without manual resizing.
+- The queue/dirty state appears once, in one compact action/status row.
+- The Tile16 id shown in the editor header, the blockset selection, and the
+  selected preview bitmap all refer to the same tile after any open/select path.
 
 ## Validation
 

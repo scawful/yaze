@@ -2,9 +2,9 @@
 
 This directory contains the core business logic, data structures, and rendering algorithms for the `The Legend of Zelda: A Link to the Past` dungeon system. It serves as the backend for the editor UI found in `src/app/editor/dungeon`.
 
-## Current Status (January 2026)
+## Current Status (May 2026)
 
-**Core System: Stable** - 222/222 unit and integration tests passing.
+**Core System: Stable** with focused regression coverage around object rendering, room persistence, object tile editing, and editor/save plumbing.
 
 The object rendering pipeline has been validated against the ALTTP disassembly:
 - Type 1/2/3 object detection and parsing ✅
@@ -13,7 +13,7 @@ The object rendering pipeline has been validated against the ALTTP disassembly:
 - BothBG flag propagation ✅
 - Tile count lookup tables ✅
 
-**Known Minor Issues**: Some specific objects (vertical rails, doors, certain edge patterns) may have visual discrepancies that require individual verification against the game. These are not regressions but areas needing refinement.
+**Known Minor Issues**: Some specific objects (vertical rails, doors, certain edge patterns) may have visual discrepancies that require individual verification against the game. The global pit-damage table still uses protected ROM-region preservation; pushable blocks now round-trip through a room-aware encoder but remain capped to the existing vanilla table unless a future repointing pass expands it.
 
 ## Architecture Overview
 
@@ -64,8 +64,9 @@ graph TD
 
 ### Editing Subsystems
 
-*   **`DungeonEditorSystem`**: The high-level facade for the application layer. It manages the editing session, undo/redo history, and coordination between different editing modes (Objects, Sprites, Entrances).
+*   **`DungeonEditorSystem`**: The high-level facade for the application layer. It manages the editing session, undo/redo history, room caching, external-room binding, and persistence for objects, sprites, room headers, torches, pushable blocks, collision, chests, pot items, and dungeon entrances.
 *   **`DungeonObjectEditor`**: Specialized logic for manipulating `RoomObject` entities (Insert, Delete, Move, Resize). Handles grid snapping and collision checks.
+*   **`ObjectTileEditor`**: Captures rendered 8x8 tile layouts for standard and custom objects, builds preview/atlas bitmaps, and writes tile edits back to ROM or custom `.bin` files.
 *   **`ObjectDimensionTable`**: Provides hit-testing bounds for objects. This is distinct from the visual rendering size and is derived from ROM data tables.
 *   **`ObjectTemplateManager`**: Allows creating and instantiating groups of objects (templates).
 
@@ -83,6 +84,11 @@ graph TD
 ### Logic
 *   **`dungeon_validator.cc/h`**: Enforces game limits (e.g., max sprites per room, max chests).
 *   **`dungeon_object_registry.cc/h`**: A registry for object names and metadata.
+
+### Focused Test Coverage
+*   **`dungeon_save_test.cc`**: Save-path coverage for objects, sprites, torches, pushable blocks, chests, pot items, collision preconditions, entrances, and pit-region preservation.
+*   **`dungeon_editor_system_test.cc`**: Managed-room and external-room persistence coverage for `DungeonEditorSystem`.
+*   **`object_tile_editor_test.cc`**: Object tile layout, writeback roundtrips, palette-sensitive preview generation, and custom object serialization.
 
 ## Comparison: Backend vs. Frontend
 
@@ -105,9 +111,13 @@ graph TD
     *Action*: Move these to a version-aware configuration system to support JP/EU ROMs.
 
 3.  **Sprite Rendering**:
-    While `RoomObject` rendering is highly advanced, `Sprite` rendering is currently rudimentary (simple boxes in some views).
-    *Action*: Implement a `SpriteDrawer` similar to `ObjectDrawer` using the game's sprite OAM tables.
+    Dungeon canvas sprites now use the room's combined sprite graphics buffer to draw static vanilla tile previews when possible, with simple boxes retained as a fallback for sprites with missing graphics or palette coverage.
+    *Action*: Extend this into a dedicated sprite renderer with full runtime OAM/state coverage and project-editable custom layouts.
 
 4.  **Legacy Code**:
     Some classes (e.g., in `room.cc`) contain legacy loading logic that might duplicate the newer `ObjectParser`.
     *Action*: Audit and deprecate old loading paths in favor of the robust parser.
+
+5.  **Pit/Block Persistence**:
+    The pit-damage table still saves by preserving its existing ROM blob after pointer validation. Pushable blocks are editable and save through a room-aware encoder, including add/delete/move cases, but do not yet repoint or expand the four vanilla data regions.
+    *Action*: Keep pit-damage preservation unless a dedicated editing surface is added; treat block repointing/expansion as a separate ROM-layout feature.

@@ -1,6 +1,8 @@
 // Related header
 #include "app/editor/overworld/map_refresh_coordinator.h"
 
+#include <algorithm>
+
 #include "absl/status/status.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/core/bitmap.h"
@@ -17,6 +19,81 @@
 
 namespace yaze::editor {
 
+namespace {
+
+int WorldForMapIndex(int map_index) {
+  if (map_index >= zelda3::kSpecialWorldMapIdStart) {
+    return 2;
+  }
+  if (map_index >= zelda3::kDarkWorldMapIdStart) {
+    return 1;
+  }
+  return 0;
+}
+
+zelda3::OverworldBlockset& MapTilesForMapIndex(zelda3::Overworld* overworld,
+                                               int map_index) {
+  return overworld->GetMapTiles(WorldForMapIndex(map_index));
+}
+
+bool IsMapInCurrentWorld(int map_index, int current_world) {
+  return WorldForMapIndex(map_index) == current_world;
+}
+
+int CurrentGameState(const MapRefreshContext& ctx) {
+  return ctx.game_state ? std::clamp(*ctx.game_state, 0, 2) : 0;
+}
+
+void PrepareMapForRefresh(const MapRefreshContext& ctx,
+                          zelda3::OverworldMap* map) {
+  if (!map) {
+    return;
+  }
+  map->set_game_state(CurrentGameState(ctx));
+}
+
+void SyncCurrentGraphicsBitmapForTile16Editor(const MapRefreshContext& ctx,
+                                              const zelda3::OverworldMap& map) {
+  if (!ctx.current_gfx_bmp) {
+    return;
+  }
+
+  const auto& current_graphics = map.current_graphics();
+  if (current_graphics.empty()) {
+    return;
+  }
+
+  constexpr int kCurrentGfxBitmapWidth = 0x80;
+  if (current_graphics.size() % kCurrentGfxBitmapWidth != 0) {
+    LOG_WARN("MapRefreshCoordinator",
+             "Current graphics size %zu is not divisible by bitmap width %d",
+             current_graphics.size(), kCurrentGfxBitmapWidth);
+    return;
+  }
+
+  const int bitmap_height =
+      static_cast<int>(current_graphics.size() / kCurrentGfxBitmapWidth);
+  const bool recreate_bitmap =
+      !ctx.current_gfx_bmp->is_active() ||
+      ctx.current_gfx_bmp->width() != kCurrentGfxBitmapWidth ||
+      ctx.current_gfx_bmp->height() != bitmap_height ||
+      ctx.current_gfx_bmp->depth() != 0x08;
+
+  if (recreate_bitmap) {
+    ctx.current_gfx_bmp->Create(kCurrentGfxBitmapWidth, bitmap_height, 0x08,
+                                current_graphics);
+  } else {
+    ctx.current_gfx_bmp->set_data(current_graphics);
+  }
+
+  const auto command = ctx.current_gfx_bmp->texture()
+                           ? gfx::Arena::TextureCommandType::UPDATE
+                           : gfx::Arena::TextureCommandType::CREATE;
+  gfx::Arena::Get().QueueTextureCommand(command, ctx.current_gfx_bmp);
+}
+
+}  // namespace
+
 void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
   if (map_id < 0) {
     // Invalidate all maps - clear both editor cache and Overworld's tileset
@@ -31,18 +108,20 @@ void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
 }
 
 void MapRefreshCoordinator::RefreshChildMap(int map_index) {
-  ctx_.overworld->mutable_overworld_map(map_index)->LoadAreaGraphics();
-  *ctx_.status =
-      ctx_.overworld->mutable_overworld_map(map_index)->BuildTileset();
+  auto* map = ctx_.overworld->mutable_overworld_map(map_index);
+  if (!map) {
+    return;
+  }
+  PrepareMapForRefresh(ctx_, map);
+  map->LoadAreaGraphics();
+  *ctx_.status = map->BuildTileset();
+  PRINT_IF_ERROR(*ctx_.status);
+  *ctx_.status = map->BuildTiles16Gfx(*ctx_.overworld->mutable_tiles16(),
+                                      ctx_.overworld->tiles16().size());
   PRINT_IF_ERROR(*ctx_.status);
   *ctx_.status =
-      ctx_.overworld->mutable_overworld_map(map_index)->BuildTiles16Gfx(
-          *ctx_.overworld->mutable_tiles16(), ctx_.overworld->tiles16().size());
-  PRINT_IF_ERROR(*ctx_.status);
-  *ctx_.status = ctx_.overworld->mutable_overworld_map(map_index)->BuildBitmap(
-      ctx_.overworld->GetMapTiles(*ctx_.current_world));
-  (*ctx_.maps_bmp)[map_index].set_data(
-      ctx_.overworld->mutable_overworld_map(map_index)->bitmap_data());
+      map->BuildBitmap(MapTilesForMapIndex(ctx_.overworld, map_index));
+  (*ctx_.maps_bmp)[map_index].set_data(map->bitmap_data());
   (*ctx_.maps_bmp)[map_index].set_modified(true);
   PRINT_IF_ERROR(*ctx_.status);
 }
@@ -66,7 +145,7 @@ void MapRefreshCoordinator::RefreshOverworldMapOnDemand(int map_index) {
 
   // Check if the map is actually visible or being edited
   bool is_current_map = (map_index == *ctx_.current_map);
-  bool is_current_world = (map_index / 0x40 == *ctx_.current_world);
+  bool is_current_world = IsMapInCurrentWorld(map_index, *ctx_.current_world);
 
   // For non-current maps in non-current worlds, defer the refresh
   if (!is_current_map && !is_current_world) {
@@ -94,6 +173,7 @@ void MapRefreshCoordinator::RefreshChildMapOnDemand(int map_index) {
 
   if (needs_graphics_rebuild) {
     // Only rebuild what's actually changed
+    PrepareMapForRefresh(ctx_, map);
     map->LoadAreaGraphics();
 
     // Rebuild tileset only if graphics changed
@@ -116,7 +196,7 @@ void MapRefreshCoordinator::RefreshChildMapOnDemand(int map_index) {
     }
 
     // Rebuild bitmap
-    status = map->BuildBitmap(ctx_.overworld->GetMapTiles(*ctx_.current_world));
+    status = map->BuildBitmap(MapTilesForMapIndex(ctx_.overworld, map_index));
     if (!status.ok()) {
       LOG_ERROR("MapRefreshCoordinator",
                 "Failed to build bitmap for map %d: %s", map_index,
@@ -250,7 +330,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
 
     // Check visibility - only immediately refresh visible maps
     bool is_current_map = (sibling == *ctx_.current_map);
-    bool is_current_world = (sibling / 0x40 == *ctx_.current_world);
+    bool is_current_world = IsMapInCurrentWorld(sibling, *ctx_.current_world);
 
     // Always mark sibling as needing refresh to ensure consistency
     (*ctx_.maps_bmp)[sibling].set_modified(true);
@@ -265,6 +345,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
       if (!sibling_map)
         continue;
 
+      PrepareMapForRefresh(ctx_, sibling_map);
       sibling_map->LoadAreaGraphics();
 
       auto status = sibling_map->BuildTileset();
@@ -293,7 +374,7 @@ void MapRefreshCoordinator::RefreshMultiAreaMapsSafely(
       }
 
       status = sibling_map->BuildBitmap(
-          ctx_.overworld->GetMapTiles(*ctx_.current_world));
+          MapTilesForMapIndex(ctx_.overworld, sibling));
       if (!status.ok()) {
         LOG_ERROR("MapRefreshCoordinator",
                   "Failed to build bitmap for sibling %d: %s", sibling,
@@ -330,19 +411,15 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
   if (!current_map) {
     return absl::FailedPreconditionError("Current overworld map not loaded");
   }
+  PrepareMapForRefresh(ctx_, current_map);
   RETURN_IF_ERROR(current_map->LoadPalette());
-  const auto current_map_palette = ctx_.overworld->current_area_palette();
+  const auto current_map_palette = current_map->current_palette();
   *ctx_.palette = current_map_palette;
-  // Keep tile16 editor in sync with the currently active overworld palette
+  // Keep tile16 editor in sync with the currently active overworld palette.
+  // Tile16Editor::set_palette owns remapping current_gfx_bmp to the selected
+  // brush row for the Tile8 source view, so do not overwrite it with the raw
+  // area palette here.
   ctx_.tile16_editor->set_palette(current_map_palette);
-  // Ensure source graphics bitmap uses the refreshed palette so tile8 selector
-  // isn't blank.
-  if (ctx_.current_gfx_bmp->is_active()) {
-    ctx_.current_gfx_bmp->SetPalette(*ctx_.palette);
-    ctx_.current_gfx_bmp->set_modified(true);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, ctx_.current_gfx_bmp);
-  }
 
   // Use centralized version detection
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*ctx_.rom);
@@ -387,6 +464,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
         if (!sibling_map) {
           continue;
         }
+        PrepareMapForRefresh(ctx_, sibling_map);
         RETURN_IF_ERROR(sibling_map->LoadPalette());
         (*ctx_.maps_bmp)[sibling_index].SetPalette(
             sibling_map->current_palette());
@@ -408,6 +486,7 @@ absl::Status MapRefreshCoordinator::RefreshMapPalette() {
         if (!sibling_map) {
           continue;
         }
+        PrepareMapForRefresh(ctx_, sibling_map);
         RETURN_IF_ERROR(sibling_map->LoadPalette());
 
         // SAFETY: Only set palette if bitmap has a valid surface
@@ -476,7 +555,7 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
   }
 
   for (int sibling : siblings) {
-    if (sibling >= 0 && sibling < 0xA0) {
+    if (sibling >= 0 && sibling < zelda3::kNumOverworldMaps) {
       // Skip self unless include_self is true
       if (sibling == map_index && !include_self) {
         continue;
@@ -486,7 +565,12 @@ void MapRefreshCoordinator::RefreshSiblingMapGraphics(int map_index,
       (*ctx_.maps_bmp)[sibling].set_modified(true);
 
       // Load graphics from ROM
-      ctx_.overworld->mutable_overworld_map(sibling)->LoadAreaGraphics();
+      auto* sibling_map = ctx_.overworld->mutable_overworld_map(sibling);
+      if (!sibling_map) {
+        continue;
+      }
+      PrepareMapForRefresh(ctx_, sibling_map);
+      sibling_map->LoadAreaGraphics();
 
       // CRITICAL FIX: Bypass visibility check - force immediate refresh
       // Call RefreshChildMapOnDemand() directly instead of
@@ -536,6 +620,7 @@ void MapRefreshCoordinator::RefreshMapProperties() {
       }
 
       // Copy properties from parent map to all siblings
+      const int game_state = CurrentGameState(ctx_);
       for (int sibling_index : sibling_maps) {
         if (sibling_index < 0 || sibling_index >= zelda3::kNumOverworldMaps) {
           continue;
@@ -543,13 +628,14 @@ void MapRefreshCoordinator::RefreshMapProperties() {
         auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
         map.set_area_graphics(current_ow_map.area_graphics());
         map.set_area_palette(current_ow_map.area_palette());
-        map.set_sprite_graphics(
-            *ctx_.game_state, current_ow_map.sprite_graphics(*ctx_.game_state));
-        map.set_sprite_palette(*ctx_.game_state,
-                               current_ow_map.sprite_palette(*ctx_.game_state));
+        map.set_sprite_graphics(game_state,
+                                current_ow_map.sprite_graphics(game_state));
+        map.set_sprite_palette(game_state,
+                               current_ow_map.sprite_palette(game_state));
         map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
+        PrepareMapForRefresh(ctx_, &map);
         map.LoadAreaGraphics();
       }
     }
@@ -557,6 +643,7 @@ void MapRefreshCoordinator::RefreshMapProperties() {
     // Legacy logic for vanilla and v2 ROMs
     if (current_ow_map.is_large_map()) {
       // We need to copy the properties from the parent map to the children
+      const int game_state = CurrentGameState(ctx_);
       for (int i = 1; i < 4; i++) {
         int sibling_index = current_ow_map.parent() + i;
         if (i >= 2) {
@@ -565,13 +652,14 @@ void MapRefreshCoordinator::RefreshMapProperties() {
         auto& map = *ctx_.overworld->mutable_overworld_map(sibling_index);
         map.set_area_graphics(current_ow_map.area_graphics());
         map.set_area_palette(current_ow_map.area_palette());
-        map.set_sprite_graphics(
-            *ctx_.game_state, current_ow_map.sprite_graphics(*ctx_.game_state));
-        map.set_sprite_palette(*ctx_.game_state,
-                               current_ow_map.sprite_palette(*ctx_.game_state));
+        map.set_sprite_graphics(game_state,
+                                current_ow_map.sprite_graphics(game_state));
+        map.set_sprite_palette(game_state,
+                               current_ow_map.sprite_palette(game_state));
         map.set_message_id(current_ow_map.message_id());
 
         // CRITICAL FIX: Reload graphics after changing properties
+        PrepareMapForRefresh(ctx_, &map);
         map.LoadAreaGraphics();
       }
     }
@@ -580,24 +668,29 @@ void MapRefreshCoordinator::RefreshMapProperties() {
 
 absl::Status MapRefreshCoordinator::RefreshTile16Blockset() {
   LOG_DEBUG("MapRefreshCoordinator", "RefreshTile16Blockset called");
-  if (*ctx_.current_blockset ==
-      ctx_.overworld->overworld_map(*ctx_.current_map)->area_graphics()) {
-    return absl::OkStatus();
+  if (!ctx_.overworld->overworld_map(*ctx_.current_map)) {
+    return absl::FailedPreconditionError("Current overworld map not loaded");
   }
-  *ctx_.current_blockset =
-      ctx_.overworld->overworld_map(*ctx_.current_map)->area_graphics();
+  RETURN_IF_ERROR(ctx_.overworld->EnsureMapBuilt(*ctx_.current_map));
+  auto* current_map = ctx_.overworld->mutable_overworld_map(*ctx_.current_map);
+  if (!current_map) {
+    return absl::FailedPreconditionError("Current overworld map not loaded");
+  }
+  // Area graphics ids are reused across worlds; refresh even when the id
+  // matches so DW/SW base sheets and palettes do not inherit LW state.
+  *ctx_.current_blockset = current_map->area_graphics();
 
-  ctx_.overworld->set_current_map(*ctx_.current_map);
-  *ctx_.palette = ctx_.overworld->current_area_palette();
+  *ctx_.palette = current_map->current_palette();
+  // The Tile16 editor rebuilds selected-tile previews from current_gfx_bmp.
+  // Keep that source data aligned with the current map before set_palette()
+  // reloads Tile8s and remaps the sheet to the selected brush row.
+  SyncCurrentGraphicsBitmapForTile16Editor(ctx_, *current_map);
+  // Tile16Editor::set_palette refreshes the Tile8 source bitmap with the
+  // selected brush palette. Keeping that remap intact makes the source sheet,
+  // held Tile8 preview, and painted Tile16 pixels agree after blockset refresh.
   ctx_.tile16_editor->set_palette(*ctx_.palette);
-  if (ctx_.current_gfx_bmp->is_active()) {
-    ctx_.current_gfx_bmp->SetPalette(*ctx_.palette);
-    ctx_.current_gfx_bmp->set_modified(true);
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, ctx_.current_gfx_bmp);
-  }
 
-  const auto& tile16_data = ctx_.overworld->tile16_blockset_data();
+  const auto& tile16_data = current_map->current_tile16_blockset();
 
   gfx::UpdateTilemap(ctx_.renderer, *ctx_.tile16_blockset, tile16_data);
   ctx_.tile16_blockset->atlas.SetPalette(*ctx_.palette);

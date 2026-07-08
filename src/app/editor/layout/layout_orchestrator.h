@@ -7,7 +7,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/layout/layout_manager.h"
 #include "app/editor/layout/layout_presets.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 
 namespace yaze {
 namespace editor {
@@ -54,8 +54,7 @@ class LayoutOrchestrator {
    * @param preset_name Name of the preset to apply
    * @param session_id Session ID (default = 0)
    */
-  void ApplyNamedPreset(const std::string& preset_name,
-                        size_t session_id = 0);
+  void ApplyNamedPreset(const std::string& preset_name, size_t session_id = 0);
 
   /**
    * @brief Reset to default layout for an editor type
@@ -85,8 +84,7 @@ class LayoutOrchestrator {
    * @param preset The preset containing panels to show
    * @param session_id Optional session ID
    */
-  void ShowPresetPanels(const PanelLayoutPreset& preset,
-                        size_t session_id,
+  void ShowPresetPanels(const PanelLayoutPreset& preset, size_t session_id,
                         EditorType editor_type);
 
   /**
@@ -128,7 +126,7 @@ class LayoutOrchestrator {
    * @brief Get prefixed card ID for a session
    */
   std::string GetPrefixedWindowId(const std::string& card_id,
-                                size_t session_id) const;
+                                  size_t session_id) const;
 
   LayoutManager* layout_manager_ = nullptr;
   WorkspaceWindowManager* window_manager_ = nullptr;

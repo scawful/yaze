@@ -19,7 +19,7 @@
 #include "app/gfx/backend/renderer_factory.h"
 #include "app/platform/iwindow.h"
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #endif
 #include "imgui/imgui.h"
 #include "rom/rom.h"

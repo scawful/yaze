@@ -1,7 +1,7 @@
 # Dungeon Interaction Architecture
 
 **Status**: Active  
-**Last Updated**: 2026-02-08  
+**Last Updated**: 2026-04-26
 **Related Code**: `src/app/editor/dungeon/interaction/`, `src/app/editor/dungeon/dungeon_object_interaction.{h,cc}`
 
 ## Overview
@@ -288,6 +288,21 @@ All mutations trigger callbacks via `InteractionContext`:
 - `on_invalidate_cache`: Graphics cache invalidation
 - `on_entity_changed`: Entity selection changed
 - `on_selection_changed`: Object selection changed
+
+Mixed entity group drags batch expensive follow-up notifications. During a
+drag, `InteractionCoordinator::NudgeSelectedEntities(...,
+defer_drag_notifications=true)` starts one mutation per changed domain
+(doors/sprites/items), updates selected entities incrementally, and records
+which domains changed. `FinishEntityGroupDrag()` emits the cache invalidation
+and final entity-change notification on release. Keyboard nudges and other
+single-step edits keep the immediate notification path.
+
+This keeps canvas dragging responsive and avoids repeated redraw/cache churn
+while preserving the same final dirty-state contract:
+- moved doors mark room objects dirty and invalidate the door domain
+- moved sprites mark sprites dirty and invalidate the sprite domain
+- moved items mark pot items dirty and invalidate the item domain
+- a completed drag emits one final entity-change notification if anything moved
 
 ## Test Coverage
 

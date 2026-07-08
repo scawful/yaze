@@ -19,6 +19,7 @@ set(
   zelda3/dungeon/object_parser.cc
   zelda3/dungeon/object_tile_editor.cc
   zelda3/dungeon/object_templates.cc
+  zelda3/dungeon/pit_damage_table.cc
   zelda3/dungeon/room.cc
   zelda3/dungeon/room_layer_manager.cc
   zelda3/dungeon/room_layout.cc

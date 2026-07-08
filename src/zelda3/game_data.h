@@ -13,6 +13,7 @@
 #include "rom/rom.h"
 #include "rom/rom_diagnostics.h"
 #include "zelda.h"
+#include "zelda3/dungeon/pit_damage_table.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -103,12 +104,16 @@ struct GameData {
   // Diagnostics
   GraphicsLoadDiagnostics diagnostics;
 
+  // Global RoomsWithPitDamage membership table (bank $07).
+  PitDamageTable pit_damage_table;
+
   void Clear() {
     graphics_buffer.clear();
     for (auto& sheet : raw_gfx_sheets)
       sheet.clear();
     // gfx_bitmaps don't need explicit clearing if reloaded
     palette_groups.clear();
+    pit_damage_table = PitDamageTable();
   }
 
  private:

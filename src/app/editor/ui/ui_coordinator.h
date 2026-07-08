@@ -1,6 +1,0 @@
-#ifndef YAZE_APP_EDITOR_UI_UI_COORDINATOR_LEGACY_PATH_H_
-#define YAZE_APP_EDITOR_UI_UI_COORDINATOR_LEGACY_PATH_H_
-
-#include "app/editor/shell/coordinator/ui_coordinator.h"
-
-#endif  // YAZE_APP_EDITOR_UI_UI_COORDINATOR_LEGACY_PATH_H_

@@ -112,7 +112,7 @@ Add `--json` and/or `--output=report.json` for automation.
 - **Save ROM** now calls the dungeon editor save path: dungeon maps (when `kSaveDungeonMaps` is on), then **dungeon editor Save** (objects, sprites, door pointers, room headers and message IDs, palettes, torches, pits, blocks, chests, pot items), then overworld, then graphics, then file write.
 - **Room headers**: 14-byte header and message IDs are written per room via `Room::SaveRoomHeader()`.
 - **Door format**: Room object stream includes the door marker `0xF0 0xFF` and the door list; the door pointer table (`kDoorPointers`) is updated per room so the pointer points to the first byte after the marker (ZScreamDungeon-compatible).
-- **Torches / pits / blocks**: `SaveAllTorches`, `SaveAllPits`, and `SaveAllBlocks` run after room saves; torches merge in-memory data with ROM for unloaded rooms; pits and blocks currently preserve existing ROM data.
+- **Torches / pits / blocks**: `SaveAllTorches`, `SaveAllPits`, and `SaveAllBlocks` run after room saves; torches merge in-memory data with ROM for unloaded rooms; pits preserve existing ROM data unless an explicit dirty `PitDamageTable` is supplied; blocks preserve existing ROM data unless the room-aware block encoder is used.
 - **Chests / pot items**: `SaveAllChests` and `SaveAllPotItems` write from in-memory rooms, preserving ROM data for rooms not loaded.
 - **Layout**: yaze uses in-place room object layout (no repack into five fixed sections). Byte-for-byte match with a ZScreamDungeon golden ROM that repacks rooms may differ in layout; validate-yaze still reports differences by region and is useful for regressions and compatibility checks.
 

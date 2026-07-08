@@ -113,19 +113,9 @@ class CanvasContextMenu {
   void RenderViewControlsMenu(
       const std::function<void(Command, const CanvasConfig&)>& command_handler,
       CanvasConfig current_config);
-  void RenderCanvasPropertiesMenu(
-      const std::function<void(Command, const CanvasConfig&)>& command_handler,
-      CanvasConfig current_config);
   void RenderBitmapOperationsMenu(gfx::Bitmap* bitmap);
   void RenderPaletteOperationsMenu(Rom* rom, gfx::Bitmap* bitmap);
-  void RenderBppOperationsMenu(const gfx::Bitmap* bitmap);
   void RenderPerformanceMenu();
-  void RenderGridControlsMenu(
-      const std::function<void(Command, const CanvasConfig&)>& command_handler,
-      CanvasConfig current_config);
-  void RenderScalingControlsMenu(
-      const std::function<void(Command, const CanvasConfig&)>& command_handler,
-      CanvasConfig current_config);
 
   void RenderMaterialIcon(const std::string& icon_name,
                           const ImVec4& color = ImVec4(1, 1, 1, 1));
@@ -133,21 +123,6 @@ class CanvasContextMenu {
   ImVec4 GetUsageModeColor(CanvasUsage usage) const;
 
   void CreateDefaultMenuItems();
-  CanvasMenuItem CreateViewMenuItem(const std::string& label,
-                                    const std::string& icon,
-                                    std::function<void()> callback);
-  CanvasMenuItem CreateBitmapMenuItem(const std::string& label,
-                                      const std::string& icon,
-                                      std::function<void()> callback);
-  CanvasMenuItem CreatePaletteMenuItem(const std::string& label,
-                                       const std::string& icon,
-                                       std::function<void()> callback);
-  CanvasMenuItem CreateBppMenuItem(const std::string& label,
-                                   const std::string& icon,
-                                   std::function<void()> callback);
-  CanvasMenuItem CreatePerformanceMenuItem(const std::string& label,
-                                           const std::string& icon,
-                                           std::function<void()> callback);
 };
 
 }  // namespace gui

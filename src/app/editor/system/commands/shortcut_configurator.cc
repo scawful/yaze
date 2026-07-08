@@ -963,6 +963,7 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
   auto* menu_orchestrator = deps.menu_orchestrator;
   auto* session_coordinator = deps.session_coordinator;
   auto* workspace_manager = deps.workspace_manager;
+  auto* editor_manager = deps.editor_manager;
 
   RegisterIfValid(shortcut_manager, "New Session",
                   {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_N},
@@ -982,8 +983,10 @@ void ConfigureMenuShortcuts(const ShortcutDependencies& deps,
 
   RegisterIfValid(shortcut_manager, "Close Session",
                   {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_W},
-                  [session_coordinator]() {
-                    if (session_coordinator) {
+                  [editor_manager, session_coordinator]() {
+                    if (editor_manager) {
+                      editor_manager->CloseCurrentSession();
+                    } else if (session_coordinator) {
                       session_coordinator->CloseCurrentSession();
                     }
                   });

@@ -7,8 +7,11 @@
 #include <unordered_set>
 #include <utility>
 
+#include "absl/strings/str_cat.h"
+#include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_presets.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/session/user_settings.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/background_renderer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -166,6 +169,24 @@ std::string ResolveProfilePresetName(const std::string& profile_id,
 
 void LayoutManager::InitializeEditorLayout(EditorType type,
                                            ImGuiID dockspace_id) {
+  // Phase 8.2 review (2026-04-25): one-shot protection set by
+  // MaybeReapplyStartupLayout. The very first lazy preset init after a
+  // successful startup-reapply must NOT rebuild the dockspace —
+  // doing so would silently overwrite the user's saved layout on
+  // their first editor activation. Consume the flag, mark the type
+  // initialized so subsequent activations behave normally, and bail.
+  if (startup_reapply_pending_protection_) {
+    startup_reapply_pending_protection_ = false;
+    last_dockspace_id_ = dockspace_id;
+    current_editor_type_ = type;
+    MarkLayoutInitialized(type);
+    LOG_INFO("LayoutManager",
+             "Suppressed lazy preset init for editor type %d to preserve "
+             "startup-reapplied custom layout",
+             static_cast<int>(type));
+    return;
+  }
+
   // Don't reinitialize if already set up
   if (IsLayoutInitialized(type)) {
     LOG_INFO("LayoutManager",
@@ -1213,6 +1234,354 @@ std::string LayoutManager::GetWindowTitle(const std::string& card_id) const {
 
   const size_t session_id = window_manager_->GetActiveSessionId();
   return window_manager_->GetWorkspaceWindowName(session_id, card_id);
+}
+
+namespace {
+
+ImGuiDir SplitDirectionToImGuiDir(layout_designer::SplitDirection d) {
+  using SD = layout_designer::SplitDirection;
+  switch (d) {
+    case SD::kLeft:
+      return ImGuiDir_Left;
+    case SD::kRight:
+      return ImGuiDir_Right;
+    case SD::kUp:
+      return ImGuiDir_Up;
+    case SD::kDown:
+      return ImGuiDir_Down;
+  }
+  return ImGuiDir_Left;
+}
+
+std::string ResolveDockWindowTitle(const WorkspaceWindowManager* wm,
+                                   size_t session_id,
+                                   const layout_designer::PanelEntry& panel) {
+  if (wm) {
+    if (const auto* desc =
+            wm->GetWindowDescriptor(session_id, panel.panel_id)) {
+      return wm->GetWorkspaceWindowName(*desc);
+    }
+  }
+  // Fallback: reconstruct the ImGui window name using the same formula as
+  // WindowDescriptor::GetImGuiWindowName so layouts referencing panels
+  // that register late still find their windows when they come up.
+  std::string label;
+  if (!panel.icon.empty() && !panel.display_name.empty()) {
+    label = panel.icon + " " + panel.display_name;
+  } else if (!panel.display_name.empty()) {
+    label = panel.display_name;
+  } else if (!panel.icon.empty()) {
+    label = panel.icon;
+  }
+  if (panel.panel_id.empty()) {
+    return label;
+  }
+  return label.empty() ? panel.panel_id : (label + "##" + panel.panel_id);
+}
+
+void ApplyDockNodeRecursive(WorkspaceWindowManager* wm, size_t session_id,
+                            const layout_designer::DockNode& node,
+                            ImGuiID target_id) {
+  using NodeType = layout_designer::DockNode::Type;
+  if (node.type == NodeType::kLeaf) {
+    for (const auto& panel : node.panels) {
+      const std::string title = ResolveDockWindowTitle(wm, session_id, panel);
+      if (!title.empty()) {
+        ImGui::DockBuilderDockWindow(title.c_str(), target_id);
+      }
+    }
+    return;
+  }
+
+  // Split node.
+  const ImGuiDir dir = SplitDirectionToImGuiDir(node.split_direction);
+  const float ratio = std::clamp(node.split_ratio, 0.05f, 0.95f);
+  ImGuiID id_other = 0;
+  const ImGuiID id_at_dir =
+      ImGui::DockBuilderSplitNode(target_id, dir, ratio, nullptr, &id_other);
+  if (node.child_a) {
+    ApplyDockNodeRecursive(wm, session_id, *node.child_a, id_at_dir);
+  }
+  if (node.child_b) {
+    ApplyDockNodeRecursive(wm, session_id, *node.child_b, id_other);
+  }
+}
+
+struct PanelLookupEntry {
+  std::string panel_id;
+  std::string display_name;
+  std::string icon;
+};
+
+std::unique_ptr<layout_designer::DockNode> CaptureDockNodeRecursive(
+    const ImGuiDockNode* node,
+    const std::unordered_map<std::string, PanelLookupEntry>& by_window_name) {
+  if (!node) {
+    return layout_designer::DockNode::MakeLeaf({});
+  }
+
+  if (node->IsSplitNode()) {
+    auto child_a =
+        CaptureDockNodeRecursive(node->ChildNodes[0], by_window_name);
+    auto child_b =
+        CaptureDockNodeRecursive(node->ChildNodes[1], by_window_name);
+
+    const bool vertical = node->SplitAxis == ImGuiAxis_Y;
+    const layout_designer::SplitDirection dir =
+        vertical ? layout_designer::SplitDirection::kUp
+                 : layout_designer::SplitDirection::kLeft;
+
+    float ratio = 0.5f;
+    if (node->ChildNodes[0] && node->ChildNodes[1]) {
+      if (vertical && node->Size.y > 0.0f) {
+        ratio = node->ChildNodes[0]->Size.y / node->Size.y;
+      } else if (!vertical && node->Size.x > 0.0f) {
+        ratio = node->ChildNodes[0]->Size.x / node->Size.x;
+      }
+    }
+    ratio = std::clamp(ratio, 0.05f, 0.95f);
+    return layout_designer::DockNode::MakeSplit(dir, ratio, std::move(child_a),
+                                                std::move(child_b));
+  }
+
+  // Leaf.
+  std::vector<layout_designer::PanelEntry> panels;
+  panels.reserve(static_cast<size_t>(node->Windows.Size));
+  int selected_index = -1;
+  for (int i = 0; i < node->Windows.Size; ++i) {
+    const ImGuiWindow* w = node->Windows[i];
+    if (!w || !w->Name)
+      continue;
+    auto it = by_window_name.find(std::string(w->Name));
+    if (it == by_window_name.end())
+      continue;
+    if (node->SelectedTabId != 0 && w->ID == node->SelectedTabId) {
+      selected_index = static_cast<int>(panels.size());
+    }
+    panels.push_back(
+        {it->second.panel_id, it->second.display_name, it->second.icon});
+  }
+  auto leaf = layout_designer::DockNode::MakeLeaf(std::move(panels));
+  if (selected_index >= 0 &&
+      selected_index < static_cast<int>(leaf->panels.size())) {
+    leaf->active_tab_index = selected_index;
+  }
+  return leaf;
+}
+
+// Recursively walk a DockTree and append every leaf's panel_ids into
+// `out`. Used by ApplyDockTree to drive the visibility-open pass.
+void CollectPanelIdsInSubtree(const layout_designer::DockNode& node,
+                              std::vector<std::string>* out) {
+  if (node.type == layout_designer::DockNode::Type::kLeaf) {
+    for (const auto& p : node.panels) {
+      out->push_back(p.panel_id);
+    }
+    return;
+  }
+  if (node.child_a)
+    CollectPanelIdsInSubtree(*node.child_a, out);
+  if (node.child_b)
+    CollectPanelIdsInSubtree(*node.child_b, out);
+}
+
+}  // namespace
+
+absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
+                                          ImGuiID dockspace_id) {
+  if (!window_manager_) {
+    return absl::FailedPreconditionError(
+        "LayoutManager::ApplyDockTree: WorkspaceWindowManager not bound");
+  }
+  std::string validation_error;
+  if (!tree.Validate(&validation_error)) {
+    return absl::InvalidArgumentError("LayoutManager::ApplyDockTree: " +
+                                      validation_error);
+  }
+
+  // Visibility pass (Phase 8 review 2026-04-24, refined 2026-04-25):
+  //   - Open every panel referenced in the tree so users see what they
+  //     docked rather than empty slots.
+  //   - Close every non-pinned panel that is NOT in the tree, so a saved
+  //     subset doesn't leave previously-visible panels lingering as
+  //     floating ghosts after apply. Pinned panels are intentionally
+  //     persistent (rev-7 / rev-17 force-pinned panels like
+  //     `agent.oracle_ram`, `workflow.output`, `layout.designer`) and
+  //     must survive — closing them would silently hide cross-editor
+  //     functionality the user can't easily put back.
+  std::vector<std::string> panel_ids;
+  if (tree.root) {
+    CollectPanelIdsInSubtree(*tree.root, &panel_ids);
+  }
+  const std::unordered_set<std::string> tree_id_set(panel_ids.begin(),
+                                                    panel_ids.end());
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  for (const auto& id : panel_ids) {
+    // Phase 9 review (2026-04-25): skip already-open panels. Mirrors
+    // the close-pass guard below — OpenWindowImpl publishes
+    // WindowVisibilityChanged(true) and runs `on_show` regardless of
+    // prior state, so a no-op Re-apply (or a startup reapply where
+    // every panel is already visible) would otherwise dirty settings
+    // and fire a burst of redundant show events.
+    if (window_manager_->IsWindowOpen(session_id, id))
+      continue;
+    window_manager_->OpenWindow(session_id, id);
+  }
+  for (const std::string& id :
+       window_manager_->GetWindowsInSession(session_id)) {
+    if (tree_id_set.count(id) > 0)
+      continue;
+    if (window_manager_->IsWindowPinned(session_id, id))
+      continue;
+    // Phase 8.2 review 3 (2026-04-25): skip already-closed panels.
+    // CloseWindowImpl fires on_hide and publishes
+    // WindowVisibilityChanged(false) regardless of prior state, so
+    // blindly closing every non-tree panel produces a burst of
+    // redundant hide events for unrelated already-hidden windows.
+    if (!window_manager_->IsWindowOpen(session_id, id))
+      continue;
+    window_manager_->CloseWindow(id);
+  }
+
+  ImGui::DockBuilderRemoveNode(dockspace_id);
+  ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+
+  ImVec2 size(1280.0f, 720.0f);
+  if (const ImGuiViewport* vp = ImGui::GetMainViewport()) {
+    if (vp->WorkSize.x > 0.0f && vp->WorkSize.y > 0.0f) {
+      size = vp->WorkSize;
+    }
+  }
+  ImGui::DockBuilderSetNodeSize(dockspace_id, size);
+
+  ApplyDockNodeRecursive(window_manager_, session_id, *tree.root, dockspace_id);
+  ImGui::DockBuilderFinish(dockspace_id);
+
+  last_dockspace_id_ = dockspace_id;
+
+  // Init-tracking pass (Phase 8.2 review 2026-04-25; refined 8.2 review 3):
+  //   - When the user is in an editor (current_editor_type_ != kUnknown),
+  //     mark only that editor type initialized. Other editors keep their
+  //     lazy first-run init — their preset fires on activation as before.
+  //   - When no editor is active yet (kUnknown — startup-reapply OR
+  //     manual apply from the dashboard/settings shell BEFORE any editor
+  //     activation), the per-editor mark wouldn't protect anything, so
+  //     arm the one-shot `startup_reapply_pending_protection_` flag that
+  //     the next InitializeEditorLayout call consumes. Round-3 Codex
+  //     noted that without this branch, applying from a no-editor
+  //     context still left the original clobber bug intact.
+  if (current_editor_type_ != EditorType::kUnknown) {
+    MarkLayoutInitialized(current_editor_type_);
+  } else {
+    startup_reapply_pending_protection_ = true;
+  }
+
+  return absl::OkStatus();
+}
+
+absl::Status LayoutManager::MaybeReapplyStartupLayout(UserSettings* settings) {
+  if (startup_layout_consumed_) {
+    return absl::OkStatus();
+  }
+  if (settings == nullptr) {
+    startup_layout_consumed_ = true;
+    return absl::OkStatus();
+  }
+
+  const std::string& name = settings->prefs().last_applied_layout_name;
+  if (name.empty()) {
+    // Nothing to reapply. Mark consumed so we stop checking each frame.
+    startup_layout_consumed_ = true;
+    return absl::OkStatus();
+  }
+
+  if (main_dockspace_id_ == 0) {
+    // The controller hasn't bound the main dockspace yet — try again
+    // next frame. Leave the flag clear.
+    return absl::OkStatus();
+  }
+
+  const auto& named_layouts = settings->prefs().named_layouts;
+  const auto it = named_layouts.find(name);
+  if (it == named_layouts.end()) {
+    startup_layout_consumed_ = true;
+    util::logf(
+        "LayoutManager: startup layout '%s' missing from "
+        "named_layouts; falling through to default.",
+        name.c_str());
+    return absl::NotFoundError(absl::StrCat("startup layout \"", name,
+                                            "\" not found in named_layouts"));
+  }
+
+  nlohmann::json parsed;
+  try {
+    parsed = nlohmann::json::parse(it->second);
+  } catch (const nlohmann::json::parse_error& e) {
+    startup_layout_consumed_ = true;
+    util::logf("LayoutManager: startup layout '%s' JSON parse error: %s",
+               name.c_str(), e.what());
+    return absl::InvalidArgumentError(
+        absl::StrCat("startup layout \"", name, "\" parse error: ", e.what()));
+  }
+
+  auto tree_or = layout_designer::DockTreeFromJson(parsed);
+  if (!tree_or.ok()) {
+    startup_layout_consumed_ = true;
+    util::logf("LayoutManager: startup layout '%s' failed to parse: %s",
+               name.c_str(), std::string(tree_or.status().message()).c_str());
+    return tree_or.status();
+  }
+
+  std::string validation_error;
+  if (!tree_or->Validate(&validation_error)) {
+    startup_layout_consumed_ = true;
+    util::logf("LayoutManager: startup layout '%s' failed validation: %s",
+               name.c_str(), validation_error.c_str());
+    return absl::InvalidArgumentError(absl::StrCat(
+        "startup layout \"", name, "\" validation failed: ", validation_error));
+  }
+
+  absl::Status apply_status = ApplyDockTree(*tree_or, main_dockspace_id_);
+  startup_layout_consumed_ = true;
+  if (!apply_status.ok()) {
+    util::logf("LayoutManager: startup layout '%s' ApplyDockTree failed: %s",
+               name.c_str(), std::string(apply_status.message()).c_str());
+  }
+  // ApplyDockTree itself arms `startup_reapply_pending_protection_`
+  // because `current_editor_type_` is still `kUnknown` at this point
+  // in the boot — no need to set it again here. Same arming covers
+  // dashboard-time manual apply, which round-3 Codex flagged.
+  return apply_status;
+}
+
+absl::StatusOr<layout_designer::DockTree> LayoutManager::CaptureDockTree(
+    ImGuiID dockspace_id) const {
+  if (!window_manager_) {
+    return absl::FailedPreconditionError(
+        "LayoutManager::CaptureDockTree: WorkspaceWindowManager not bound");
+  }
+  ImGuiDockNode* root_node = ImGui::DockBuilderGetNode(dockspace_id);
+  if (!root_node) {
+    return absl::NotFoundError(
+        "LayoutManager::CaptureDockTree: no dock node at given id");
+  }
+
+  std::unordered_map<std::string, PanelLookupEntry> by_window_name;
+  for (const auto& [panel_id, desc] :
+       window_manager_->GetAllWindowDescriptors()) {
+    const std::string title = window_manager_->GetWorkspaceWindowName(desc);
+    if (title.empty())
+      continue;
+    by_window_name.emplace(
+        title, PanelLookupEntry{panel_id, desc.display_name, desc.icon});
+  }
+
+  layout_designer::DockTree tree;
+  tree.root = CaptureDockNodeRecursive(root_node, by_window_name);
+  if (!tree.root) {
+    tree.root = layout_designer::DockNode::MakeLeaf({});
+  }
+  return tree;
 }
 
 }  // namespace editor

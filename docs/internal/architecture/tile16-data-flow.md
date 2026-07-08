@@ -38,6 +38,34 @@ changes keep parity with ZScream/Hyrule Magic behavior.
      row/high-nibble offsets.
    - Fallback path (normalization mode) keeps sub-palette behavior.
 
+### Display Palette Contract
+
+- The active overworld map palette is the display source of truth for the
+  Tile8 source sheet, selected Tile8 hover preview, selected Tile16 preview,
+  Tile16 selector/blockset atlas, and overworld map presentation.
+- Tile16 palette buttons map directly to CGRAM rows `0-7`, matching ZScream
+  and `OverworldMap::BuildTiles16Gfx`. Tile8 source graphics keep their low
+  nibble, so the Tile8 source sheet and held Tile8 preview remap to the
+  selected direct row instead of adding a graphics-sheet palette base.
+- `current_gfx_bmp` is an indexed 8bpp display bitmap over the decoded
+  overworld graphics buffer. Do not use `0x40` as its bitmap depth; `0x40` is
+  the byte count of one 8x8 8bpp tile payload, not the surface bpp.
+- Tile16 blockset refresh must update `current_gfx_bmp` from the current
+  `OverworldMap::current_graphics()` before reloading Tile8s. The Tile16 atlas
+  and selected-tile preview must be built from the same map graphics buffer, or
+  switching maps can leave the editor preview using stale Tile8 source pixels.
+- Pending Tile16 metadata is authoritative. `pending_tile16_bitmaps_` is only a
+  derived preview cache and must be regenerated from the current Tile8 source
+  when a pending tile is selected after a graphics refresh.
+- `MapRefreshCoordinator` pushes the current map palette into `Tile16Editor`
+  through `set_palette()` whenever map palette or Tile16 blockset state
+  changes. `Tile16Editor::set_palette()` owns remapping `current_gfx_bmp` to the
+  active brush row; refresh callers must not immediately replace that bitmap
+  palette with the raw area palette, or the Tile8 source sheet can diverge from
+  the held Tile8 preview and painted Tile16 pixels.
+- Tile8 source sheets may shrink their display scale to fit available editor
+  width, but palette application must not change with scale.
+
 4. Local staging + atlas preview sync
    - Edits flow through `DrawToCurrentTile16`
      ([tile16_editor.cc:723](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:723)).
@@ -69,8 +97,15 @@ changes keep parity with ZScream/Hyrule Magic behavior.
 
 - Renderer transform parity:
   - `Tile16RendererTest.RendersQuadrantsWithPaletteRowEncoding`
+  - `Tile16RendererTest.MatchesOverworldMapBuildTiles16GfxForPaletteRowsAndFlips`
   - `Tile16EditorIntegrationTest.RegenerateEncodesPerQuadrantPaletteInPixels`
+- Map refresh/source graphics binding:
+  - `OverworldEditorTest.RefreshTile16BlocksetSyncsTile8SourceGraphicsToCurrentMap`
+- Pending preview cache invalidation:
+  - `Tile16EditorSyntheticFixture.SetCurrentTileRegeneratesPendingBitmapFromCurrentTile8Source`
 - Palette application behavior:
+  - `Tile16EditorSyntheticFixture.RefreshAllPalettesRecolorsTile8SourceToBrushPalette`
+  - `Tile16EditorSyntheticFixture.HeldTile8PreviewPaletteMatchesPaintedTile16Pixels`
   - `Tile16EditorIntegrationTest.ApplyPaletteUsesFullPaletteWhenRowsEncoded`
   - `Tile16EditorIntegrationTest.NormalizedPixelsUseFallbackSubPalettePath`
 - Palette metadata propagation:

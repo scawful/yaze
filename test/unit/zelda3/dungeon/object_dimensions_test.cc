@@ -204,6 +204,29 @@ TEST_F(ObjectDimensionTableTest, ChestObjectsHaveFixedSize) {
 }
 
 TEST_F(ObjectDimensionTableTest,
+       ReportedPlatformAndDecorObjectsUseUsdasmFootprints) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  // RoomDraw_RightwardsDecor4x3spaced4_1to16 advances to the next 4x3 stamp
+  // every eight tile columns. Object 0xFF9 appeared in an editor issue report
+  // with the old six-tile stride.
+  auto [decor_w, decor_h] = table.GetDimensions(0xFF9, 2);
+  EXPECT_EQ(decor_w, 20);
+  EXPECT_EQ(decor_h, 3);
+
+  // Chest platforms use subtype-1's packed 2-bit size fields:
+  // size_x=(size>>2)&3, size_y=size&3.
+  auto [closed_w, closed_h] = table.GetDimensions(0xC1, 0x03);
+  EXPECT_EQ(closed_w, 14);
+  EXPECT_EQ(closed_h, 14);
+
+  auto [open_w, open_h] = table.GetDimensions(0xDC, 0x05);
+  EXPECT_EQ(open_w, 12);
+  EXPECT_EQ(open_h, 9);
+}
+
+TEST_F(ObjectDimensionTableTest,
        FocusedScopeSelectionBoundsMatchObjectGeometry) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());
@@ -230,7 +253,9 @@ TEST_F(ObjectDimensionTableTest,
       {0x122, 0x00, "Subtype2_bed_size0"},
       {0x123, 0x03, "Subtype2_table_size3"},
       {0x12D, 0x00, "Subtype2_interroom_stairs_size0"},
-      {0x137, 0x02, "Subtype2_waterhop_stairs_size2"},
+      {0x135, 0x00, "Subtype2_waterhop_stairs_a_size0"},
+      {0x136, 0x00, "Subtype2_waterhop_stairs_b_size0"},
+      {0x137, 0x00, "Subtype2_dam_floodgate_size0"},
       {0x138, 0x00, "Subtype2_spiral_stairs_size0"},
       {0x13D, 0x04, "Subtype2_table_4x3_size4"},
   };
@@ -340,24 +365,6 @@ TEST_F(ObjectDimensionTableTest,
       auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
       if (!geo_result.ok()) {
         geometry_skips++;
-        continue;
-      }
-
-      // Somaria down-left lines extend into negative X; current replay anchor
-      // clips that leftward extent, so parity here is not meaningful yet.
-      if (object_id == 0xF86) {
-        clipped_skips++;
-        continue;
-      }
-
-      // Objects 0x6c / 0x6d (diagonal ceiling variants) have a persistent
-      // 4-tile height mismatch between the selection-bounds table and the
-      // replay geometry - the replay path draws 4 extra rows beyond what the
-      // table anchors. This is a known parity gap tracked under the 0.7.1
-      // dungeon parity work; the selection table and geometry need to be
-      // reconciled in a follow-up. Skip here so the rest of the sweep runs.
-      if (object_id == 0x6c || object_id == 0x6d) {
-        clipped_skips++;
         continue;
       }
 
@@ -569,6 +576,94 @@ TEST_F(ObjectDimensionsTest,
   dims = drawer.CalculateObjectDimensions(obj_c2_x4_y3);
   EXPECT_EQ(dims.first, 128);  // 4 super squares * 32px
   EXPECT_EQ(dims.second, 96);  // 3 super squares * 32px
+}
+
+TEST_F(ObjectDimensionsTest,
+       CalculatesDimensionsForDownwardsCornerObjectsWithOpeningAndClosingCaps) {
+  ObjectDrawer drawer(rom_.get(), 0);
+
+  RoomObject left_corner(0x6C, 0, 0, 0, 0);
+  auto dims = drawer.CalculateObjectDimensions(left_corner);
+  EXPECT_EQ(dims.first, 16);
+  EXPECT_EQ(dims.second, 112);  // (size 0 + 14 rows) * 8 px
+
+  RoomObject right_corner(0x6D, 0, 0, 3, 0);
+  dims = drawer.CalculateObjectDimensions(right_corner);
+  EXPECT_EQ(dims.first, 16);
+  EXPECT_EQ(dims.second, 136);  // (size 3 + 14 rows) * 8 px
+}
+
+TEST_F(ObjectDimensionsTest,
+       CalculatesMaxDimensionsForStateSensitiveEmptyWaterFace) {
+  ObjectDrawer drawer(rom_.get(), 0);
+
+  RoomObject water_face(0xF80, 0, 0, 0, 0);
+  auto dims = drawer.CalculateObjectDimensions(water_face);
+  EXPECT_EQ(dims.first, 32);
+  EXPECT_EQ(dims.second, 40);  // Max 4x5 branch.
+}
+
+TEST_F(ObjectDimensionsTest,
+       CalculatesDimensionsForWaterHopStairsAndDamFloodGate) {
+  ObjectDrawer drawer(rom_.get(), 0);
+
+  RoomObject water_hop_a(0x135, 0, 0, 0, 0);
+  auto dims = drawer.CalculateObjectDimensions(water_hop_a);
+  EXPECT_EQ(dims.first, 32);
+  EXPECT_EQ(dims.second, 16);
+
+  RoomObject water_hop_b(0x136, 0, 0, 0, 0);
+  dims = drawer.CalculateObjectDimensions(water_hop_b);
+  EXPECT_EQ(dims.first, 32);
+  EXPECT_EQ(dims.second, 16);
+
+  RoomObject floodgate(0x137, 0, 0, 0, 0);
+  dims = drawer.CalculateObjectDimensions(floodgate);
+  EXPECT_EQ(dims.first, 80);
+  EXPECT_EQ(dims.second, 32);
+}
+
+TEST_F(ObjectDimensionTableTest,
+       WaterHopAndFloodGateSelectionBoundsMatchObjectGeometry) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  for (const auto object_id : {0x135, 0x136, 0x137}) {
+    SCOPED_TRACE(absl::StrFormat("object 0x%03X", object_id));
+
+    RoomObject obj(object_id, 0, 0, 0, 0);
+    auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(geo_result.ok()) << geo_result.status();
+
+    auto selection = table.GetSelectionBounds(object_id, 0);
+    EXPECT_EQ(selection.offset_x, geo_result->min_x_tiles);
+    EXPECT_EQ(selection.offset_y, geo_result->min_y_tiles);
+    EXPECT_EQ(selection.width, geo_result->width_tiles);
+    EXPECT_EQ(selection.height, geo_result->height_tiles);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest,
+       DownwardsCornerSelectionBoundsMatchObjectGeometry) {
+  auto& table = ObjectDimensionTable::Get();
+  table.LoadFromRom(rom_.get());
+
+  for (const auto object_id : {0x6C, 0x6D}) {
+    for (const auto size : {0x00, 0x03, 0x0F}) {
+      SCOPED_TRACE(
+          absl::StrFormat("object 0x%02X size=0x%02X", object_id, size));
+
+      RoomObject obj(object_id, 0, 0, static_cast<uint8_t>(size), 0);
+      auto geo_result = ObjectGeometry::Get().MeasureByObjectId(obj);
+      ASSERT_TRUE(geo_result.ok()) << geo_result.status();
+
+      auto selection = table.GetSelectionBounds(object_id, size);
+      EXPECT_EQ(selection.offset_x, geo_result->min_x_tiles);
+      EXPECT_EQ(selection.offset_y, geo_result->min_y_tiles);
+      EXPECT_EQ(selection.width, geo_result->width_tiles);
+      EXPECT_EQ(selection.height, geo_result->height_tiles);
+    }
+  }
 }
 
 TEST_F(ObjectDimensionTableTest, DiagonalCeilingBaseBoundsAreCorrect) {

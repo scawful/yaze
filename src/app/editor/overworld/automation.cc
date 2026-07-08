@@ -2,7 +2,7 @@
 
 #include "app/editor/overworld/entity_operations.h"
 #include "app/editor/overworld/overworld_toolbar.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/core/popup_id.h"
 
@@ -218,10 +218,19 @@ void OverworldEditor::HandleTile16Edit() {
     return;
   }
 
-  // Simply open the tile16 editor - don't try to switch tiles here
-  // The tile16 editor will use its current tile, user can select a different one
+  // Keep the opened editor focused on the tile under the cursor when the
+  // request came from an overworld canvas context menu.
+  if (tile_painting_) {
+    (void)tile_painting_->PickTile16FromHoveredCanvas();
+  }
+
   if (dependencies_.window_manager) {
-    dependencies_.window_manager->OpenWindow(OverworldPanelIds::kTile16Editor);
+    const size_t session_id =
+        dependencies_.window_manager->GetActiveSessionId();
+    dependencies_.window_manager->OpenWindow(session_id,
+                                             OverworldPanelIds::kTile16Editor);
+    dependencies_.window_manager->MarkWindowRecentlyUsed(
+        OverworldPanelIds::kTile16Editor);
   }
 }
 

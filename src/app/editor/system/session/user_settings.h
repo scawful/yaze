@@ -70,6 +70,9 @@ class UserSettings {
     // Theme (last applied theme persists across restart; empty = default)
     std::string last_theme_name;
 
+    // Font (index into ImGui::GetIO().Fonts->Fonts, typically 0..4)
+    int font_family_index = 0;
+
     // Editor Behavior
     bool backup_before_save = true;
     int default_editor = 0;  // 0=None, 1=Overworld, 2=Dungeon, 3=Graphics
@@ -141,6 +144,14 @@ class UserSettings {
     bool show_status_bar =
         false;  // Show status bar at bottom (disabled by default)
 
+    // Dungeon workbench layout: which side of the workbench window the
+    // inspector pane occupies. "right" (default) places selectors on the left
+    // and inspector on the right (Layout C / ZScream-style); "left" mirrors it.
+    // Read by dungeon_workbench_content at draw time. Persisted as a string so
+    // a future "top" / "bottom" / "floating" extension does not require a
+    // migration of existing settings files.
+    std::string dungeon_inspector_side = "right";
+
     // Panel Visibility State (per editor type)
     // Maps editor_type_name -> (panel_id -> visible)
     // e.g., "Overworld" -> {"overworld.tile16_selector" -> true, ...}
@@ -156,6 +167,18 @@ class UserSettings {
     // Maps layout_name -> (panel_id -> visible)
     std::unordered_map<std::string, std::unordered_map<std::string, bool>>
         saved_layouts;
+
+    // Named DockTree layouts authored in the Layout Designer.
+    // Maps layout_name -> JSON-serialized DockTree (schema v1).
+    // Kept as opaque strings so UserSettings does not have to understand
+    // DockTree internals; the designer parses/re-serializes via
+    // layout_designer::DockTreeFromJson / DockTreeToJson.
+    std::unordered_map<std::string, std::string> named_layouts;
+
+    // Name of the last DockTree layout applied to the live dockspace.
+    // Empty string => nothing to auto-apply on startup. Mirrors the
+    // `last_theme_name` persistence pattern.
+    std::string last_applied_layout_name;
   };
 
   UserSettings();
@@ -167,10 +190,18 @@ class UserSettings {
   // than persisted settings. Returns true when defaults were reset.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 12;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 21;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }
+
+  // Dungeon workbench inspector placement. Returns the persisted value
+  // verbatim ("right" / "left"), defaulting to "right" if the value is empty
+  // or unrecognized so callers can switch on it without a null check.
+  std::string GetDungeonInspectorSide() const;
+  // Sets the inspector placement. Accepts "right" or "left"; any other value
+  // is normalized to "right". Caller must invoke Save() to persist.
+  void SetDungeonInspectorSide(std::string side);
 
   // Testing hook: redirect Load/Save to a caller-specified path. Production
   // code should never call this; it only exists so unit tests can exercise

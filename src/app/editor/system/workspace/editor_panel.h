@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SYSTEM_EDITOR_PANEL_H_
 
 #include <any>
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -280,6 +281,15 @@ class WindowContent {
    * selector with 8 tiles at 16px × 2.0 scale would return ~276px.
    */
   virtual float GetPreferredWidth() const { return 0.0f; }
+
+  /**
+   * @brief Get preferred height for this panel (optional)
+   * @return Preferred height in pixels, or 0 to use the default height.
+   *
+   * Override this with GetPreferredWidth() for panels whose first-use window
+   * must be large enough to keep their primary controls visible.
+   */
+  virtual float GetPreferredHeight() const { return 0.0f; }
 
   /**
    * @brief Whether the dock node hosting this panel should auto-hide its tab bar

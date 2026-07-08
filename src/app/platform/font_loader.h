@@ -26,6 +26,11 @@ absl::Status LoadPackageFonts();
 
 absl::Status ReloadPackageFont(const FontConfig& config);
 
+// Sets ImGui::GetIO().FontDefault to the font at `index`. Out-of-range
+// indices fall back to Fonts[0]. Safe to call before fonts are loaded
+// (in that case it no-ops).
+void SetActiveFontIndex(int index);
+
 absl::Status LoadFontFromMemory(const std::string& name,
                                 const std::string& data, float size_pixels);
 

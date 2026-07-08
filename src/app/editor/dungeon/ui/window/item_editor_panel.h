@@ -81,6 +81,9 @@ class ItemEditorPanel : public WindowContent {
       std::function<void(const zelda3::PotItem&)> callback) {
     item_placed_callback_ = std::move(callback);
   }
+  void SetOpenSelectionInspectorCallback(std::function<void()> callback) {
+    open_selection_inspector_callback_ = std::move(callback);
+  }
 
  private:
   // Pot item names from ZELDA3_DUNGEON_SPEC.md Section 7.2
@@ -233,8 +236,23 @@ class ItemEditorPanel : public WindowContent {
     const auto& theme = AgentUI::GetTheme();
     auto& room = (*rooms_)[*current_room_id_];
     const auto& items = room.GetPotItems();
+    int selected_item_index = -1;
+    if (canvas_viewer_ &&
+        canvas_viewer_->object_interaction().HasEntitySelection()) {
+      const auto selected_entity =
+          canvas_viewer_->object_interaction().GetSelectedEntity();
+      if (selected_entity.type == EntityType::Item) {
+        selected_item_index = static_cast<int>(selected_entity.index);
+      }
+    }
 
     ImGui::Text(ICON_MD_LIST " Room Items (%zu):", items.size());
+    if (selected_item_index >= 0 && open_selection_inspector_callback_) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Inspect Selected")) {
+        open_selection_inspector_callback_();
+      }
+    }
 
     if (items.empty()) {
       ImGui::TextColored(theme.text_secondary_gray,
@@ -259,11 +277,12 @@ class ItemEditorPanel : public WindowContent {
       ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)",
                          item.GetTileX(), item.GetTileY());
 
-      ImGui::SameLine();
-      if (ImGui::SmallButton(ICON_MD_DELETE "##Del")) {
-        auto& mutable_room = (*rooms_)[*current_room_id_];
-        mutable_room.GetPotItems().erase(mutable_room.GetPotItems().begin() +
-                                         static_cast<long>(i));
+      if (ImGui::IsItemClicked() && canvas_viewer_) {
+        canvas_viewer_->object_interaction().SelectEntity(EntityType::Item, i);
+      }
+      if (selected_item_index == static_cast<int>(i)) {
+        ImGui::SameLine();
+        ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE);
       }
 
       ImGui::PopID();
@@ -339,6 +358,7 @@ class ItemEditorPanel : public WindowContent {
   bool placement_mode_ = false;
 
   std::function<void(const zelda3::PotItem&)> item_placed_callback_;
+  std::function<void()> open_selection_inspector_callback_;
 };
 
 }  // namespace editor

@@ -7,8 +7,8 @@
 #include <fstream>
 #include <string>
 
-#include "rom/snes.h"
 #include "gtest/gtest.h"
+#include "rom/snes.h"
 
 namespace yaze::core {
 
@@ -59,8 +59,8 @@ void WriteTextFile(const std::filesystem::path& path,
                    const std::string& content) {
   std::filesystem::create_directories(path.parent_path());
   std::ofstream file(path);
-  ASSERT_TRUE(file.is_open()) << "Failed to open file for writing: "
-                              << path.string();
+  ASSERT_TRUE(file.is_open())
+      << "Failed to open file for writing: " << path.string();
   file << content;
   file.close();
 }
@@ -238,7 +238,7 @@ TEST(HackManifestTest, ParsesMessageLayout) {
   EXPECT_EQ(layout.first_expanded_id, 0x18D);
   EXPECT_EQ(layout.expanded_count, 69);
   EXPECT_EQ(layout.vanilla_count, 397);
-  
+
   EXPECT_TRUE(manifest.IsExpandedMessage(0x18D));
   EXPECT_TRUE(manifest.IsExpandedMessage(0x1D1));
   EXPECT_FALSE(manifest.IsExpandedMessage(0x18C));
@@ -311,6 +311,92 @@ TEST(HackManifestTest, LoadsUnifiedResourceLabelsFromProjectRegistry) {
   EXPECT_EQ(labels.at("room").at("7"), "Transit Room");
   EXPECT_EQ(labels.at("sprite").at("57"), "Zora Baby");
   EXPECT_EQ(labels.at("music").at("12"), "Zora Temple Theme");
+}
+
+TEST(HackManifestTest, MirrorsDungeonRoomNamesIntoResourceLabels) {
+  namespace fs = std::filesystem;
+
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_registry_dungeons"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+
+  WriteTextFile(planning / "dungeons.json", R"json(
+{
+  "dungeons": [
+    {
+      "id": "D4",
+      "name": "Zora Temple",
+      "rooms": [
+        {"id": "0x25", "name": "Water Grate"},
+        {"id": "0x26", "name": "Floodgate Switch"}
+      ]
+    }
+  ]
+}
+)json");
+  WriteTextFile(planning / "oracle_resource_labels.json", R"json(
+{
+  "room": {
+    "0x25": "Stale Generated Label"
+  }
+}
+)json");
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+
+  const auto& labels = manifest.project_registry().all_resource_labels;
+  ASSERT_TRUE(labels.contains("room"));
+
+  // dungeons.json is canonical for Oracle room names and overrides stale
+  // generated oracle_*_labels.json entries.
+  EXPECT_EQ(labels.at("room").at("37"), "Water Grate");
+  EXPECT_EQ(labels.at("room").at("38"), "Floodgate Switch");
+}
+
+TEST(HackManifestTest, ParsesDungeonRoomFloorAndGridPresence) {
+  namespace fs = std::filesystem;
+
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_registry_room_floor"));
+  const fs::path planning = temp.path() / "Docs" / "Dev" / "Planning";
+
+  WriteTextFile(planning / "dungeons.json", R"json(
+{
+  "dungeons": [
+    {
+      "id": "D6",
+      "name": "Goron Mines",
+      "rooms": [
+        {
+          "id": "0x69",
+          "name": "B1 Side",
+          "floor": "B1",
+          "grid_row": 6,
+          "grid_col": 9
+        },
+        {
+          "id": "0x79",
+          "name": "Northeast Hall",
+          "floor": "F1"
+        }
+      ]
+    }
+  ]
+}
+)json");
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadProjectRegistry(temp.path().string()).ok());
+
+  ASSERT_EQ(manifest.project_registry().dungeons.size(), 1u);
+  const auto& rooms = manifest.project_registry().dungeons[0].rooms;
+  ASSERT_EQ(rooms.size(), 2u);
+  EXPECT_EQ(rooms[0].id, 0x69);
+  EXPECT_EQ(rooms[0].floor, "B1");
+  EXPECT_TRUE(rooms[0].has_grid_position);
+  EXPECT_EQ(rooms[0].grid_row, 6);
+  EXPECT_EQ(rooms[0].grid_col, 9);
+  EXPECT_EQ(rooms[1].floor, "F1");
+  EXPECT_FALSE(rooms[1].has_grid_position);
 }
 
 TEST(HackManifestTest, FallsBackToLegacyRoomLabelsFromProjectRegistry) {

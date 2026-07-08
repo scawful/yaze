@@ -1,13 +1,31 @@
 #include "zelda3/overworld/overworld_entrance.h"
 
+#include <algorithm>
+#include <cstddef>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "rom/rom.h"
 #include "util/macro.h"
+#include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::zelda3 {
+namespace {
+
+bool HasExpandedEntranceTables(const Rom& rom) {
+  const auto version = OverworldVersionHelper::GetVersion(rom);
+  if (version == OverworldVersion::kVanilla) {
+    return false;
+  }
+  const int flag_addr = GetOverworldEntranceFlagExpanded();
+  if (flag_addr < 0 || static_cast<size_t>(flag_addr) >= rom.size()) {
+    return false;
+  }
+  return rom.data()[flag_addr] != 0xB8;
+}
+
+}  // namespace
 
 absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom) {
   std::vector<OverworldEntrance> entrances;
@@ -19,7 +37,7 @@ absl::StatusOr<std::vector<OverworldEntrance>> LoadEntrances(Rom* rom) {
   // Check if expanded entrance data is actually present in ROM
   // The flag position should contain 0xB8 for vanilla, something else for
   // expanded
-  if (rom->data()[GetOverworldEntranceFlagExpanded()] != 0xB8) {
+  if (HasExpandedEntranceTables(*rom)) {
     // ROM has expanded entrance data - use expanded addresses
     ow_entrance_map_ptr = GetOverworldEntranceMapExpanded();
     ow_entrance_pos_ptr = GetOverworldEntrancePosExpanded();
@@ -84,7 +102,9 @@ absl::Status SaveEntrances(Rom* rom,
 
   // Always keep the legacy tables in sync for pure vanilla ROMs so e.g. Hyrule
   // Magic expects them. ZScream does the same in SaveOWEntrances.
-  for (int i = 0; i < kNumOverworldEntrances; ++i) {
+  const int legacy_count =
+      std::min<int>(kNumOverworldEntrances, entrances.size());
+  for (int i = 0; i < legacy_count; ++i) {
     RETURN_IF_ERROR(write_entrance(i, kOverworldEntranceMap + (i * 2),
                                    kOverworldEntrancePos + (i * 2),
                                    kOverworldEntranceEntranceId + i));
@@ -93,7 +113,10 @@ absl::Status SaveEntrances(Rom* rom,
   if (expanded_entrances) {
     // For ZS v3+ ROMs, mirror writes into the expanded tables the way
     // ZeldaFullEditor does when the ASM patch is active.
-    for (int i = 0; i < kNumOverworldEntrances; ++i) {
+    constexpr int kExpandedOverworldEntrances = 256;
+    const int expanded_count =
+        std::min<int>(kExpandedOverworldEntrances, entrances.size());
+    for (int i = 0; i < expanded_count; ++i) {
       RETURN_IF_ERROR(
           write_entrance(i, GetOverworldEntranceMapExpanded() + (i * 2),
                          GetOverworldEntrancePosExpanded() + (i * 2),

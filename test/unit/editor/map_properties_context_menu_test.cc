@@ -74,17 +74,25 @@ TEST(MapPropertiesContextMenuTest, LockItemMutatesReferencedMapLockState) {
   bool show_map_properties_panel = false;
   bool show_custom_bg_color_editor = false;
   bool show_overlay_editor = false;
+  int selected_map = -1;
+  bool respected_pin = true;
+  system.SetMapSelectionCallback([&](int map_id, bool respect_pin) {
+    selected_map = map_id;
+    respected_pin = respect_pin;
+  });
 
   system.SetupCanvasContextMenu(
       canvas, 0x10, current_map_lock, show_map_properties_panel,
       show_custom_bg_color_editor, show_overlay_editor, 1);
 
-  auto* lock_item = FindMenuItem(canvas, "Lock to This Map");
+  auto* lock_item = FindMenuItem(canvas, "Pin This Map");
   ASSERT_NE(lock_item, nullptr);
   ASSERT_TRUE(lock_item->callback);
 
   lock_item->callback();
   EXPECT_TRUE(current_map_lock);
+  EXPECT_EQ(selected_map, 0x10);
+  EXPECT_FALSE(respected_pin);
 }
 
 TEST(MapPropertiesContextMenuTest, AreaConfigurationSetsPanelBool) {
@@ -114,6 +122,41 @@ TEST(MapPropertiesContextMenuTest, AreaConfigurationSetsPanelBool) {
 
   properties_item->callback();
   EXPECT_TRUE(show_map_properties_panel);
+}
+
+TEST(MapPropertiesContextMenuTest, SampleTile16ContextItemInvokesCallback) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_map_properties_sample_tile16"));
+  const auto rom_path = temp_dir.path / "test.sfc";
+  WriteRomFile(rom_path);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(rom_path.string()).ok());
+
+  gui::Canvas canvas;
+  canvas.Init("map_properties_sample_tile16_canvas", ImVec2(512.0f, 512.0f));
+
+  MapPropertiesSystem system(nullptr, &rom);
+  bool current_map_lock = false;
+  bool show_map_properties_panel = false;
+  bool show_custom_bg_color_editor = false;
+  bool show_overlay_editor = false;
+  bool sampled_tile16 = false;
+  system.SetEntityCallbacks([](const std::string&) {});
+  system.SetTile16SampleCallback([&]() {
+    sampled_tile16 = true;
+    return true;
+  });
+
+  system.SetupCanvasContextMenu(
+      canvas, 0x10, current_map_lock, show_map_properties_panel,
+      show_custom_bg_color_editor, show_overlay_editor, 0);
+
+  auto* sample_item = FindMenuItem(canvas, "Sample Tile16");
+  ASSERT_NE(sample_item, nullptr);
+  ASSERT_TRUE(sample_item->callback);
+
+  sample_item->callback();
+  EXPECT_TRUE(sampled_tile16);
 }
 
 }  // namespace

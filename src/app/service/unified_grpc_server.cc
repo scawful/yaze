@@ -11,9 +11,9 @@
 
 #include "absl/strings/str_format.h"
 #include "app/service/canvas_automation_service.h"
+#include "app/service/emulator_service_impl.h"
 #include "app/service/imgui_test_harness_service.h"
 #include "app/service/rom_service_impl.h"
-#include "app/service/emulator_service_impl.h"
 #include "protos/canvas_automation.grpc.pb.h"
 #include "rom/rom.h"
 
@@ -28,11 +28,8 @@ YazeGRPCServer::~YazeGRPCServer() {
 }
 
 absl::Status YazeGRPCServer::Initialize(
-    int port,
-    emu::IEmulator* emulator,
-    RomGetter rom_getter,
-    RomLoader rom_loader,
-    test::TestManager* test_manager,
+    int port, emu::IEmulator* emulator, RomGetter rom_getter,
+    RomLoader rom_loader, test::TestManager* test_manager,
     net::RomVersionManager* version_mgr,
     net::ProposalApprovalManager* approval_mgr,
     CanvasAutomationServiceImpl* canvas_service) {
@@ -83,7 +80,8 @@ absl::Status YazeGRPCServer::Initialize(
     std::cout << "⚠ Canvas Automation requested but no service provided\n";
   }
 
-  if (!test_harness_service_ && !rom_service_ && !canvas_service_ && !emulator_service_) {
+  if (!test_harness_service_ && !rom_service_ && !canvas_service_ &&
+      !emulator_service_) {
     return absl::InvalidArgumentError(
         "At least one service must be enabled and initialized");
   }
@@ -117,6 +115,7 @@ absl::Status YazeGRPCServer::Start() {
 
   // Block until server is shut down
   server_->Wait();
+  is_running_ = false;
 
   return absl::OkStatus();
 }
@@ -147,11 +146,15 @@ absl::Status YazeGRPCServer::AddService(
 }
 
 void YazeGRPCServer::Shutdown() {
-  if (server_ && is_running_) {
+  if (server_) {
     std::cout << "⏹ Shutting down unified gRPC server...\n";
-    server_->Shutdown();
+    if (is_running_) {
+      server_->Shutdown();
+    }
+    server_->Wait();
     server_.reset();
     is_running_ = false;
+    ReleaseRegisteredServices();
     std::cout << "✓ Server stopped\n";
   }
 }
@@ -170,7 +173,9 @@ absl::Status YazeGRPCServer::BuildServer() {
   grpc::ServerBuilder builder;
 
   // Listen on all interfaces
-  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  int selected_port = 0;
+  builder.AddListeningPort(server_address, grpc::InsecureServerCredentials(),
+                           &selected_port);
 
   // Register services
   if (test_harness_service_) {
@@ -211,8 +216,21 @@ absl::Status YazeGRPCServer::BuildServer() {
   }
 
   is_running_ = true;
+  if (selected_port > 0) {
+    config_.port = selected_port;
+  }
 
   return absl::OkStatus();
+}
+
+void YazeGRPCServer::ReleaseRegisteredServices() {
+  canvas_grpc_service_.reset();
+  test_harness_grpc_wrapper_.reset();
+  extra_services_.clear();
+  emulator_service_.reset();
+  rom_service_.reset();
+  test_harness_service_.reset();
+  canvas_service_ = nullptr;
 }
 
 }  // namespace yaze

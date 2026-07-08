@@ -1,6 +1,10 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_COORDINATOR_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_INTERACTION_COORDINATOR_H_
 
+#include <string>
+#include <tuple>
+#include <vector>
+
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/item_interaction_handler.h"
@@ -29,9 +33,7 @@ class InteractionCoordinator {
     PlaceItem     // Item placement mode
   };
 
-  InteractionCoordinator()
-      : current_mode_(Mode::Select),
-        ctx_(nullptr) {}
+  InteractionCoordinator() : current_mode_(Mode::Select), ctx_(nullptr) {}
 
   /**
    * @brief Set the shared interaction context
@@ -94,12 +96,22 @@ class InteractionCoordinator {
   bool HandleMouseWheel(float delta);
 
   void SelectEntity(EntityType type, size_t index);
+  void SetSelectedEntities(std::vector<SelectedEntity> entities);
   void ClearEntitySelection();
   bool HasEntitySelection() const;
+  bool NudgeSelected(int delta_x, int delta_y);
   void CancelPlacement();
+  const std::vector<SelectedEntity>& GetSelectedEntities() const {
+    return selected_entities_;
+  }
+  void SelectEntitiesInRect(const std::tuple<int, int, int, int>& bounds,
+                            bool additive, bool toggle);
+  void BeginSelectionDrag(ImVec2 start_pos);
 
   // Doors/sprites/items only (tile objects are handled by ObjectSelection).
   std::optional<SelectedEntity> GetEntityAtPosition(int canvas_x,
+                                                    int canvas_y) const;
+  std::vector<SelectedEntity> GetEntitiesAtPosition(int canvas_x,
                                                     int canvas_y) const;
 
   // Current selection (doors/sprites/items only). Returns {None,0} if none.
@@ -169,12 +181,49 @@ class InteractionCoordinator {
   SpriteInteractionHandler sprite_handler_;
   ItemInteractionHandler item_handler_;
   TileObjectHandler tile_handler_;
+  std::vector<SelectedEntity> selected_entities_;
+  int cycle_last_x_ = -1;
+  int cycle_last_y_ = -1;
+  size_t cycle_next_index_ = 0;
+  size_t cycle_active_index_ = 0;
+  ImVec2 cycle_hud_screen_pos_{0.0f, 0.0f};
+  double cycle_hud_start_time_ = -1.0;
+  std::vector<SelectedEntity> cycle_last_hits_;
+  bool entity_group_drag_active_ = false;
+  ImVec2 entity_group_drag_start_{0.0f, 0.0f};
+  ImVec2 entity_group_drag_current_{0.0f, 0.0f};
+  int entity_group_drag_last_dx_ = 0;
+  int entity_group_drag_last_dy_ = 0;
+  bool entity_group_drag_doors_mutation_started_ = false;
+  bool entity_group_drag_sprites_mutation_started_ = false;
+  bool entity_group_drag_items_mutation_started_ = false;
+  bool entity_group_drag_doors_changed_ = false;
+  bool entity_group_drag_sprites_changed_ = false;
+  bool entity_group_drag_items_changed_ = false;
 
   /**
    * @brief Get active handler based on current mode
    * @return Pointer to active handler, or nullptr if in Select mode
    */
   BaseEntityHandler* GetActiveHandler();
+  bool ApplySelection(SelectedEntity entity);
+  bool UpdateEntitySelection(SelectedEntity entity, bool additive, bool toggle);
+  bool IsSelectionHitSelected(SelectedEntity entity) const;
+  bool HasGroupDragSelection() const;
+  bool NudgeSelectedEntities(int delta_x, int delta_y,
+                             bool defer_drag_notifications);
+  void ResetEntityGroupDragState();
+  void FinishEntityGroupDrag();
+  void HandleEntityGroupDrag(ImVec2 current_pos);
+  bool SameCycleTarget(int canvas_x, int canvas_y,
+                       const std::vector<SelectedEntity>& hits) const;
+  void UpdateSelectionCycleHudPreview();
+  std::optional<size_t> FindSelectedCycleIndex(
+      const std::vector<SelectedEntity>& hits) const;
+  void DrawSelectionCycleHud();
+  void DrawMultiEntitySelectionHighlights();
+  std::string DescribeEntity(SelectedEntity entity) const;
+  std::string DescribeCycleHudEntity(SelectedEntity entity) const;
 };
 
 }  // namespace editor

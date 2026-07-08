@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_DOOR_INTERACTION_HANDLER_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_DOOR_INTERACTION_HANDLER_H_
 
+#include <string>
+
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/door_types.h"
@@ -23,6 +25,11 @@ class DoorInteractionHandler : public BaseEntityHandler {
     kDoorLimit,
     kInvalidPosition,
   };
+  enum class GhostCapacityState {
+    kNormal = 0,
+    kNearLimit,
+    kAtLimit,
+  };
 
   // ========================================================================
   // BaseEntityHandler interface
@@ -35,12 +42,13 @@ class DoorInteractionHandler : public BaseEntityHandler {
   bool HandleClick(int canvas_x, int canvas_y) override;
   void HandleDrag(ImVec2 current_pos, ImVec2 delta) override;
   void HandleRelease() override;
+  bool HandleOverlayClick(int canvas_x, int canvas_y);
 
   void DrawGhostPreview() override;
   void DrawSelectionHighlight() override;
 
   std::optional<size_t> GetEntityAtPosition(int canvas_x,
-                                             int canvas_y) const override;
+                                            int canvas_y) const override;
 
   // ========================================================================
   // Door-specific methods
@@ -81,12 +89,27 @@ class DoorInteractionHandler : public BaseEntityHandler {
   /**
    * @brief Get selected door index
    */
-  std::optional<size_t> GetSelectedIndex() const { return selected_door_index_; }
+  std::optional<size_t> GetSelectedIndex() const {
+    return selected_door_index_;
+  }
 
   /**
    * @brief Delete selected door
    */
   void DeleteSelected();
+  void DeleteAll();
+  bool NudgeSelected(int delta_x, int delta_y);
+
+  /**
+   * @brief Change the type of a door in place, re-encoding ROM bytes.
+   *
+   * Preserves the door's position and direction. Routes through
+   * NotifyMutation(kDoors) so the editor captures an undo snapshot.
+   *
+   * @return true if the mutation was applied; false if the index is out of
+   *         range or the context is invalid.
+   */
+  bool MutateDoorType(size_t index, zelda3::DoorType new_type);
 
   /// True if the most recent PlaceDoorAtSnappedPosition was blocked.
   bool was_placement_blocked() const {
@@ -98,8 +121,20 @@ class DoorInteractionHandler : public BaseEntityHandler {
   void clear_placement_blocked() {
     placement_block_reason_ = PlacementBlockReason::kNone;
   }
+  GhostCapacityState GetPlacementGhostCapacityState() const;
 
  private:
+  struct PairBadgeOverlay {
+    std::string label;
+    ImVec2 screen_pos;
+    ImVec2 screen_size;
+    ImU32 color = 0;
+    int target_room_id = -1;
+    std::optional<size_t> target_door_index;
+    int target_tile_x = -1;
+    int target_tile_y = -1;
+  };
+
   // Placement state
   bool door_placement_mode_ = false;
   PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
@@ -122,6 +157,11 @@ class DoorInteractionHandler : public BaseEntityHandler {
    * @brief Update snapped position based on cursor
    */
   bool UpdateSnappedPosition(int canvas_x, int canvas_y);
+
+  std::optional<PairBadgeOverlay> BuildPairBadgeOverlay(
+      const zelda3::Room::Door& door, ImVec2 door_pos, ImVec2 door_size,
+      float scale) const;
+  void NavigateToPairBadge(const PairBadgeOverlay& badge) const;
 };
 
 }  // namespace editor

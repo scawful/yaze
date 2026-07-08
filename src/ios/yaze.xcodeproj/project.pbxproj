@@ -2485,8 +2485,8 @@
 		E38A97F12C6C4CE3005FB662 /* command_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = command_manager.h; sourceTree = "<group>"; };
 		E38A97F22C6C4CE3005FB662 /* extension_manager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = session/extension_manager.cc; sourceTree = "<group>"; };
 		E38A97F32C6C4CE3005FB662 /* extension_manager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = session/extension_manager.h; sourceTree = "<group>"; };
-		E38A97F42C6C4CE3005FB662 /* settings_panel.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ../ui/settings_panel.cc; sourceTree = "<group>"; };
-		E38A97F52C6C4CE3005FB662 /* settings_panel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ../ui/settings_panel.h; sourceTree = "<group>"; };
+		E38A97F42C6C4CE3005FB662 /* settings_panel.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ../shell/windows/settings_panel.cc; sourceTree = "<group>"; };
+		E38A97F52C6C4CE3005FB662 /* settings_panel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ../shell/windows/settings_panel.h; sourceTree = "<group>"; };
 		E3A5CEE32CF61F1200259DE8 /* main.cc */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cc; sourceTree = "<group>"; };
 		E3A5CEE82CF61F3100259DE8 /* editor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = editor.h; sourceTree = "<group>"; };
 		E3B8648F2C82144A00122951 /* asset_browser.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ../widgets/asset_browser.h; sourceTree = "<group>"; };

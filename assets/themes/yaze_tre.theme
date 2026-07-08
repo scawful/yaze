@@ -102,6 +102,27 @@ tab_dimmed_selected=62,83,62,255
 tab_dimmed_selected_overline=110,145,110,255
 tab_selected_overline=110,145,110,255
 
+# Enhanced semantic colors
+text_highlight=70,170,255,64
+link_hover=151,231,255,255
+code_background=10,10,14,255
+success_light=140,170,140,255
+warning_light=255,220,100,255
+error_light=255,150,150,255
+info_light=150,200,255,255
+
+# UI state colors
+active_selection=255,230,51,89
+hover_highlight=51,230,255,51
+focus_border=105,135,105,255
+disabled_overlay=12,12,15,128
+
+# Editor-specific colors
+editor_background=30,45,30,255
+editor_grid=80,100,80,100
+editor_cursor=245,245,245,255
+editor_selection=110,145,110,100
+
 [style]
 window_rounding=0.0
 frame_rounding=5.0

@@ -30,7 +30,7 @@ class ItemInteractionHandler : public BaseEntityHandler {
   void DrawSelectionHighlight() override;
 
   std::optional<size_t> GetEntityAtPosition(int canvas_x,
-                                             int canvas_y) const override;
+                                            int canvas_y) const override;
 
   // ========================================================================
   // Item-specific methods
@@ -64,12 +64,16 @@ class ItemInteractionHandler : public BaseEntityHandler {
   /**
    * @brief Get selected item index
    */
-  std::optional<size_t> GetSelectedIndex() const { return selected_item_index_; }
+  std::optional<size_t> GetSelectedIndex() const {
+    return selected_item_index_;
+  }
 
   /**
    * @brief Delete selected item
    */
   void DeleteSelected();
+  void DeleteAll();
+  bool NudgeSelected(int delta_pixel_x, int delta_pixel_y);
 
  private:
   // Placement state

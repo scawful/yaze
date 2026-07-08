@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 #define YAZE_APP_EDITOR_DUNGEON_DUNGEON_ROOM_SELECTOR_H
 
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
@@ -14,6 +15,11 @@
 #include "zelda3/game_data.h"
 
 namespace yaze {
+
+namespace project {
+struct YazeProject;
+}  // namespace project
+
 namespace editor {
 
 /**
@@ -52,9 +58,15 @@ class DungeonRoomSelector {
   Rom* rom() const { return rom_; }
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
   zelda3::GameData* game_data() const { return game_data_; }
+  void SetProject(const project::YazeProject* project) { project_ = project; }
 
   // Room selection
-  void set_current_room_id(uint16_t room_id) { current_room_id_ = room_id; }
+  void set_current_room_id(uint16_t room_id) {
+    if (current_room_id_ != room_id) {
+      pending_scroll_room_id_ = room_id;
+    }
+    current_room_id_ = room_id;
+  }
   int current_room_id() const { return current_room_id_; }
 
   void set_active_rooms(const ImVector<int>& rooms) { active_rooms_ = rooms; }
@@ -69,7 +81,8 @@ class DungeonRoomSelector {
 
   // Room data access
   void set_rooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
-  void set_entrances(std::array<zelda3::RoomEntrance, 0x8C>* entrances) {
+  void set_entrances(std::array<zelda3::RoomEntrance,
+                                zelda3::kNumDungeonEntranceSlots>* entrances) {
     entrances_ = entrances;
   }
 
@@ -77,8 +90,8 @@ class DungeonRoomSelector {
   void SetRoomSelectedCallback(std::function<void(int)> callback) {
     room_selected_callback_ = std::move(callback);
   }
-  [[deprecated("Use SetRoomSelectedCallback() instead")]]
-  void set_room_selected_callback(std::function<void(int)> callback) {
+  [[deprecated("Use SetRoomSelectedCallback() instead")]] void
+  set_room_selected_callback(std::function<void(int)> callback) {
     SetRoomSelectedCallback(std::move(callback));
   }
 
@@ -92,8 +105,8 @@ class DungeonRoomSelector {
   void SetEntranceSelectedCallback(std::function<void(int)> callback) {
     entrance_selected_callback_ = std::move(callback);
   }
-  [[deprecated("Use SetEntranceSelectedCallback() instead")]]
-  void set_entrance_selected_callback(std::function<void(int)> callback) {
+  [[deprecated("Use SetEntranceSelectedCallback() instead")]] void
+  set_entrance_selected_callback(std::function<void(int)> callback) {
     SetEntranceSelectedCallback(std::move(callback));
   }
 
@@ -103,12 +116,15 @@ class DungeonRoomSelector {
  private:
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
+  const project::YazeProject* project_ = nullptr;
   uint16_t current_room_id_ = 0;
+  int pending_scroll_room_id_ = -1;
   int current_entrance_id_ = 0;
   ImVector<int> active_rooms_;
 
   DungeonRoomStore* rooms_ = nullptr;
-  std::array<zelda3::RoomEntrance, 0x8C>* entrances_ = nullptr;
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>*
+      entrances_ = nullptr;
 
   // Callback for room selection events (single-click / default)
   std::function<void(int)> room_selected_callback_;

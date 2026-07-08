@@ -120,8 +120,8 @@ and migration logic. Display names may change without changing IDs.
 If one of these IDs changes, the change must be accompanied by:
 
 1. preset updates in `src/app/editor/layout/layout_presets.*`
-2. settings migration updates in **both** `src/app/editor/system/user_settings.cc`
-   and `src/app/editor/system/session/user_settings.cc` (keep revisions in sync),
+2. settings migration updates in
+   `src/app/editor/system/session/user_settings.cc`,
    bumping `UserSettings::kLatestPanelLayoutDefaultsRevision`
 3. any affected smoke or layout-default tests (including
    `test/unit/editor/graphics_editor_window_ids_test.cc`)

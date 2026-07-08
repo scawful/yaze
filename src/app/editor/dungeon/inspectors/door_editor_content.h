@@ -30,6 +30,17 @@ class DoorEditorContent : public WindowContent {
   }
   void SetCanvasViewer(DungeonCanvasViewer* viewer) { canvas_viewer_ = viewer; }
   void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
+  void SetOpenSelectionInspectorCallback(std::function<void()> callback) {
+    open_selection_inspector_callback_ = std::move(callback);
+  }
+
+  // Callback fired by the "Jump to Reciprocal" button. Takes the neighbor
+  // room id and the index of the paired door in that room.
+  void SetJumpToReciprocalDoorCallback(
+      std::function<void(int neighbor_room_id, size_t reciprocal_door_index)>
+          callback) {
+    on_jump_to_reciprocal_door_ = std::move(callback);
+  }
 
  private:
   DungeonCanvasViewer* ResolveCanvasViewer();
@@ -41,6 +52,8 @@ class DoorEditorContent : public WindowContent {
   int current_room_id_ = 0;
   zelda3::DoorType selected_door_type_ = zelda3::DoorType::NormalDoor;
   bool door_placement_mode_ = false;
+  std::function<void(int, size_t)> on_jump_to_reciprocal_door_;
+  std::function<void()> open_selection_inspector_callback_;
 };
 
 }  // namespace yaze::editor

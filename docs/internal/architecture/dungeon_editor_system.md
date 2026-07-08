@@ -1,7 +1,7 @@
 # Dungeon Editor System Architecture
 
-**Status**: Active  
-**Last Updated**: 2026-02-17  
+**Status**: Active
+**Last Updated**: 2026-04-20
 **Related Code**: `src/app/editor/dungeon/`, `src/zelda3/dungeon/`, `test/integration/dungeon_editor_v2_test.cc`, `test/e2e/dungeon_editor_smoke_test.cc`
 
 ## Overview
@@ -56,12 +56,13 @@ if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
    - `DungeonObjectSelector` emits a preview object; `DungeonCanvasViewer` hands it to `DungeonObjectInteraction` for ghosting and placement.  
    - Selection/drag/copy/paste adjust `RoomObject` instances directly, then invalidate room graphics to trigger re-render.
 
-4. **Save**  
-   - **Save ROM** (EditorManager::SaveRom) now calls `GetDungeonEditor()->Save()`, so File > Save ROM persists dungeon objects, sprites, door pointers, room headers (14-byte header + message IDs), and palettes in addition to dungeon maps (when kSaveDungeonMaps is on).  
-   - `DungeonEditorV2::Save` saves palettes via `PaletteManager`, then per room: `Room::SaveObjects()`, `Room::SaveSprites()`, `Room::SaveRoomHeader()`, then `DungeonEditorSystem::SaveDungeon()`.  
+4. **Save**
+   - **Save ROM** (EditorManager::SaveRom) calls `GetDungeonEditor()->Save()`, so File > Save ROM persists dungeon objects, sprites, door pointers, room headers (14-byte header + message IDs), palettes, and the supported room-scoped tables in addition to dungeon maps (when `kSaveDungeonMaps` is on).
+   - `DungeonEditorV2::Save` saves palettes via `PaletteManager`, then writes per-room data according to the dungeon save flags. Current focused ROM-safety coverage exists for room headers, chests, and pot items in `DungeonEditorV2RomSafetyTest`.
+   - `DungeonEditorSystem::SaveRoom()` / `SaveDungeon()` now persist full managed-room state for objects, sprites, room headers, torches, pushable blocks, custom collision, chests, pot items, and dungeon entrances. `SaveDungeon()` first writes room-local streams for every loaded room, then runs the global aggregators once across the managed-room set so later rooms do not clobber earlier chest/pot/collision writes.
    - `Room::EncodeObjects()` emits the door marker `0xF0 0xFF` and the door list (per ZScreamDungeon); `Room::SaveObjects()` writes the door pointer table at `kDoorPointers` so the pointer points to the first byte after the marker.  
    - **Dungeon layout vs ZScream**: yaze writes room object data in-place at each room’s existing object pointer. ZScreamDungeon repacks room data into five fixed sections (DungeonSection1–5). So `validate-yaze --feature=dungeon` may report byte differences in object layout regions even when object and door content are equivalent; semantic comparison or “in-place” documentation applies.  
-   - Other entities (chests, pots, collision, torches, pits, blocks) have load paths; save paths are added per plan (Phase B/C).
+   - The pit-damage table still uses a protected pointer-region preservation path in `room.cc`; pushable blocks use the room-aware encoder and keep unmaterialized rooms byte-identical.
 
 ## Recent Additions
 
@@ -83,7 +84,7 @@ New subsystem for visual editing of the 8x8 tile composition of dungeon objects.
 - Standard objects: patches ROM at `tile_data_address + i*2` with `TileInfoToWord()`.
 - Custom objects: re-serializes to binary format matching `CustomObjectManager::ParseBinaryData()`, writes `.bin` file, calls `ReloadAll()`.
 
-**Status:** Core implementation complete (Phases 1–3). Keyboard shortcuts, object selector preview enhancement, and custom object creation remain (Phases 4–5).
+**Status:** Core implementation plus the first polish pass are in place. The panel now has keyboard shortcuts, room re-render after apply, shared-tile confirmation, palette-change invalidation, reopen/reset protection, backend coverage in `object_tile_editor_test.cc`, and panel-state coverage in `object_tile_editor_panel_test.cc`. The main remaining feature gap is a first-class "new custom object" workflow.
 
 ### Room Layer Manager & Compositing (February 2026)
 
@@ -118,23 +119,22 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 
 ## Current Limitations / Gaps
 
-- **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), and palettes are written back. Chests, pots, collision, torches, pits, and blocks have load paths; save paths are in progress or stubs.
-- **Object tile editor**: Core pipeline works but needs keyboard shortcuts, room re-render after apply, and shared tile data confirmation dialog. No unit tests yet for ObjectTileLayout/ObjectTileEditor.
-- **Object previews**: Selector uses primitive rectangles; enhancing with `ObjectTileEditor::RenderLayoutToBitmap()` is planned (Phase 4).
-- **Tests**: Integration/E2E cover loading and card plumbing but not ROM writes for doors/chests/entrances. Object tile editor needs roundtrip tests.
+- **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), palettes, torches, pushable blocks, custom collision, chests, pot items, and dungeon entrances are written back and have focused regression coverage. The pit-damage table remains a protected preservation path because yaze does not expose a dedicated editor for that global table.
+- **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, and reopen/reset behavior are implemented. Remaining gaps are the "new custom object" flow, deeper editor/integration coverage, and any future preview-quality polish after the selector/browser churn settles.
+- **Tests**: Focused unit coverage now exists for `ObjectTileLayout`, standard/custom object tile writeback, palette-sensitive preview generation, panel reset behavior, `DungeonEditorSystem`, `DungeonSaveTest`, and `DungeonEditorV2RomSafetyTest`. Broader integration/E2E coverage for ROM-write workflows is still lighter than the unit surface.
 
 ## Suggested Next Steps
 
-1. **Object Tile Editor Polish (Phase 4–5)**:
-   - Keyboard shortcuts in tile editor panel (arrow keys, palette numbers, H/V/P toggles).
-   - Room re-render after Apply: invalidate canvas viewer render cache after `WriteBack()`.
-   - Shared tile data warning dialog before applying standard object changes.
-   - "New Custom Object" workflow for creating `.bin` files from scratch.
-   - Enhance `DungeonObjectSelector::GetOrCreatePreview()` with `RenderLayoutToBitmap()` for higher-quality previews cached per `(object_id, blockset, palette_hash)`.
-2. **Object Tile Editor Tests**: Unit tests for `ObjectTileLayout::FromTraces`, `CaptureObjectLayout`, `WriteBack` roundtrip, and custom object binary serialize/deserialize.
-3. **Save Pipeline**: Extend `DungeonEditorV2::Save` to call DungeonEditorSystem save hooks and verify round-trips in tests.
-4. **Test Coverage**: Add integration tests that:
+1. **Object Tile Editor Completion**:
+   - Add a guided "New Custom Object" workflow for creating `.bin` files from scratch.
+   - Add broader editor/integration coverage around apply/reload/save flows.
+   - Revisit selector/browser preview quality after the current object-selector refactor settles.
+2. **Save Pipeline Follow-up**:
+   - Decide whether the global pit-damage table needs an editing surface or should remain protected passthrough data.
+   - Treat pushable-block table repointing/expansion as a separate ROM-layout feature; the current encoder intentionally stays within the vanilla four-region cap.
+   - Add broader integration coverage for door/chest/pot/collision/entrance/write flows beyond the current unit and ROM-safety tests.
+3. **Test Coverage**: Add integration tests that:
    - Place/delete objects and verify `Room::EncodeObjects` output changes in ROM.
-   - Add doors/chests/entrances and assert persistence once implemented.
+   - Add doors/chests/entrances and assert persistence across full editor save/reload flows.
    - Exercise undo/redo on object placement and palette edits.
-5. **Live Emulator Preview (optional)**: Keep `DungeonObjectEmulatorPreview` as a hook for live patching when the emulator integration lands.
+4. **Live Emulator Preview (optional)**: Keep `DungeonObjectEmulatorPreview` as a hook for live patching when the emulator integration lands.

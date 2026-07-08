@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 
+#include "absl/status/status.h"
+#include "app/editor/overworld/overworld_property_edit.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
@@ -11,9 +13,14 @@
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
+namespace yaze::project {
+struct YazeProject;
+}  // namespace yaze::project
+
 namespace yaze::editor {
 
 class WorkspaceWindowManager;
+struct SharedClipboard;
 
 /// @brief Panel IDs for overworld editor panels
 struct OverworldPanelIds {
@@ -38,7 +45,9 @@ class OverworldToolbar {
   void Draw(int& current_world, int& current_map, bool& current_map_lock,
             EditingMode& current_mode, EntityEditMode& entity_edit_mode,
             WorkspaceWindowManager* window_manager, bool has_selection,
-            bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld);
+            bool scratch_has_data, Rom* rom, zelda3::Overworld* overworld,
+            project::YazeProject* project, int game_state,
+            SharedClipboard* shared_clipboard = nullptr);
 
   // Callback for when properties change
   std::function<void()> on_property_changed;
@@ -48,6 +57,10 @@ class OverworldToolbar {
   std::function<void(int)> on_world_changed;
   std::function<void()> on_toggle_overlay_preview;
   std::function<bool()> is_overlay_preview_enabled;
+  std::function<absl::Status(const OverworldPropertyEdit&)>
+      on_apply_property_edit;
+  std::function<absl::Status(const std::string&, int, const std::string&)>
+      on_rename_resource_label;
 
   // Scratch space callbacks
   std::function<void()> on_save_to_scratch;

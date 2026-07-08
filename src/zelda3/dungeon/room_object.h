@@ -145,6 +145,18 @@ class RoomObject {
   auto options() const { return options_; }
   void set_options(ObjectOption options) { options_ = options; }
 
+  // For `ObjectOption::Block` objects only. Holds the original 0-based
+  // index of the corresponding 4-byte entry in the global pushable-block
+  // table at `SpecialUnderworldObjects_pushable_block` ($04:F1DE) at load
+  // time. Used by the `SaveAllBlocks` encoder to emit entries in the
+  // vanilla authoring order (which is interleaved across rooms; sorting
+  // by room_id would reshuffle bytes and break byte equality on no-op
+  // saves). User-added blocks have load_order == kBlockLoadOrderNew and
+  // are appended at the end in creation-order. Ignored for non-block
+  // objects.
+  int block_load_order() const { return block_load_order_; }
+  void set_block_load_order(int order) { block_load_order_ = order; }
+
   bool all_bgs_ = false;
   bool lit_ = false;
 
@@ -186,6 +198,13 @@ class RoomObject {
   // passing to ObjectDrawer.
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
+
+  // Sentinel for blocks that were not loaded from ROM (user-added in the
+  // editor). `SaveAllBlocks` keeps these at the tail of the encoded
+  // buffer in creation order so they don't get sorted in front of the
+  // vanilla entries.
+  static constexpr int kBlockLoadOrderNew = -1;
+  int block_load_order_ = kBlockLoadOrderNew;
 
   Rom* rom_;
 
@@ -289,10 +308,10 @@ constexpr static inline const char* Type1RoomObjectNames[] = {
     "Water edge ┗━┓ (concave) ↔",
     "Water edge ┗━┓ (convex) ↔",
     "Water edge ┏━┛ (convex) ↔",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Waterfall A ↔",
+    "Waterfall B ↔",
+    "Floor tiles 4x2 A ↔",
+    "Floor tiles 4x2 B ↔",
     "Supports (south) ↔",
     "Bar ↔",
     "Shelf A ↔",
@@ -429,10 +448,10 @@ constexpr static inline const char* Type1RoomObjectNames[] = {
     "Nothing",
     "Icy floor A ⇲",
     "Icy floor B ⇲",
-    "Moving wall flag",  // TODO: WTF IS THIS?
-    "Moving wall flag",  // TODO: WTF IS THIS?
-    "Moving wall flag",  // TODO: WTF IS THIS?
-    "Moving wall flag",  // TODO: WTF IS THIS?
+    "Wall moved check A (logic)",
+    "Wall moved check B (logic)",
+    "Wall moved check C (logic)",
+    "Wall moved check D (logic)",
     "Layer 2 mask (medium) ⇲",
     "Flood water (large) ⇲",
     "Layer 2 swim mask ⇲",
@@ -512,8 +531,8 @@ constexpr static inline const char* Type2RoomObjectNames[] = {
     "Bed",
     "Fireplace",
     "Mario portrait",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Rightwards 2x2 decor",
+    "Rightwards 6x3 decor",
     "Interroom stairs (up)",
     "Interroom stairs (down)",
     "Interroom stairs B (down)",
@@ -522,8 +541,8 @@ constexpr static inline const char* Type2RoomObjectNames[] = {
     "Intraroom stairs north (merged layers)",
     "Intraroom stairs north (swim layer)",
     "Block",
-    "Water ladder (north)",
-    "Water ladder (south)",  // TODO: NEEDS IN GAME VERIFICATION
+    "Water-hop stairs A",
+    "Water-hop stairs B",
     "Dam floodgate",
     "Interroom spiral stairs up (top)",
     "Interroom spiral stairs down (top)",
@@ -549,7 +568,7 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Somaria path intersection ┻",
     "Somaria path intersection ┣",
     "Somaria path intersection ┫",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Prison cell bars (alt)",
     "Somaria path 2-way endpoint",
     "Somaria path crossover",
     "Babasu hole (north)",
@@ -579,21 +598,21 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Interroom straight stairs up (south, bottom)",
     "Interroom straight stairs down (south, bottom)",
     "Lamp cones",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Single 2x2 decor A",
     "Liftable large block",
     "Agahnim's altar",
     "Agahnim's boss room",
     "Pot",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Single 2x2 decor B",
     "Big chest",
     "Big chest (open)",
     "Intraroom stairs south (swim layer)",
     "Intraroom stairs south (long)",
     "Ladder (north)",
     "Ladder (south)",
-    "Object 4B",
-    "Object 4C",
-    "Object 4D",
+    "4x4 decor A ↔",
+    "4x4 decor B ↔",
+    "4x4 decor C ↔",
     "Pipe end (south)",
     "Pipe end (north)",
     "Pipe end (east)",
@@ -609,7 +628,7 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Pipe crossover",
     "Bombable floor",
     "Fake bombable floor",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Single 2x2 decor C",
     "Warp tile",
     "Tool rack",
     "Furnace",
@@ -617,11 +636,11 @@ constexpr static inline const char* Type3RoomObjectNames[] = {
     "Anvil",
     "Warp tile (disabled)",
     "Pressure plate",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Single 2x2 decor D",
     "Blue peg",
     "Orange peg",
     "Fortune teller room",
-    "Unknown",  // TODO: NEEDS IN GAME CHECKING
+    "Utility 3x5 decor",
     "Bar corner ▛",
     "Bar corner ▙",
     "Bar corner ▜",

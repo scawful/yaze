@@ -18,6 +18,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 | **Understand the code** | [Architecture Overview](developer/architecture.md) |
 | **Fix build issues** | [Build Troubleshooting](build/troubleshooting.md) |
 | **Use the CLI** | [z3ed CLI Guide](usage/z3ed-cli.md) |
+| **Beta test yaze** | [Beta Testing Guide](usage/beta-testing.md) |
 
 ---
 
@@ -35,6 +36,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 
 ### Usage Guides
 - [Dungeon Editor](usage/dungeon-editor.md) - Room editing guide
+- [Beta Testing](usage/beta-testing.md) - What to test and how to report useful bugs
 - [.yazeproj Bundles](usage/yazeproj-bundles.md) - Portable project bundle format
 - [z3ed CLI](usage/z3ed-cli.md) - Command-line interface
 - [Web App](usage/web-app.md) - Browser-based editor (preview)

@@ -283,7 +283,8 @@ static thread_local std::string g_resolved_sprite_name;
 
 const char* ResolveSpriteName(uint16_t id) {
   // Use the unified ResourceLabelProvider for resolution
-  g_resolved_sprite_name = GetResourceLabels().GetLabel(ResourceType::kSprite, id);
+  g_resolved_sprite_name =
+      GetResourceLabels().GetLabel(ResourceType::kSprite, id);
   return g_resolved_sprite_name.c_str();
 }
 
@@ -1181,10 +1182,56 @@ void Sprite::Draw() {
   bounding_box_.h = height_;
 }
 
+void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics) {
+  if (graphics.empty()) {
+    preview_gfx_.clear();
+    return;
+  }
+
+  preview_gfx_.assign(64 * 64, 0xFF);
+
+  external_gfx_ = graphics.data();
+  external_gfx_size_ = graphics.size();
+
+  const uint8_t old_nx = nx_;
+  const uint8_t old_ny = ny_;
+  const int old_x = x_;
+  const int old_y = y_;
+  const SDL_Rect old_bounding_box = bounding_box_;
+
+  // Sprite::Draw() was written around room/map coordinates. Normalize to the
+  // preview origin so the caller can place the 64x64 preview at the sprite's
+  // room anchor instead of baking absolute room coordinates into the buffer.
+  nx_ = 0;
+  ny_ = 0;
+  x_ = 0;
+  y_ = 0;
+  Draw();
+
+  nx_ = old_nx;
+  ny_ = old_ny;
+  x_ = old_x;
+  y_ = old_y;
+  bounding_box_ = old_bounding_box;
+
+  external_gfx_ = nullptr;
+  external_gfx_size_ = 0;
+}
+
+void Sprite::ClearPreviewGraphics() {
+  preview_gfx_.clear();
+}
+
 void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
                             bool mirror_x, bool mirror_y, int sizex,
                             int sizey) {
-  if (current_gfx_.empty()) {
+  const bool use_external_8bpp = external_gfx_ != nullptr;
+  const uint8_t* gfx_data =
+      use_external_8bpp ? external_gfx_ : current_gfx_.data();
+  const size_t gfx_size =
+      use_external_8bpp ? external_gfx_size_ : current_gfx_.size();
+
+  if (gfx_data == nullptr || gfx_size == 0) {
     return;
   }
 
@@ -1211,6 +1258,58 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
     return;
   }
 
+  if (use_external_8bpp) {
+    const int width = sizex * 8;
+    const int height = sizey * 8;
+    constexpr int kTilesPerRow = 16;
+    constexpr int kTileSize = 8;
+    constexpr int kTileRowStride = 1024;
+    constexpr int kPixelRowStride = 128;
+
+    for (int dest_y = 0; dest_y < height; ++dest_y) {
+      const int src_y = mirror_y ? (height - 1 - dest_y) : dest_y;
+      const int src_tile_y = src_y / kTileSize;
+      const int src_py = src_y % kTileSize;
+
+      for (int dest_x = 0; dest_x < width; ++dest_x) {
+        const int src_x = mirror_x ? (width - 1 - dest_x) : dest_x;
+        const int src_tile_x = src_x / kTileSize;
+        const int src_px = src_x % kTileSize;
+        const int tile_id = drawid_ + (src_tile_y * kTilesPerRow) + src_tile_x;
+        if (tile_id < 0) {
+          continue;
+        }
+
+        const int tile_col = tile_id % kTilesPerRow;
+        const int tile_row = tile_id / kTilesPerRow;
+        const int gfx_index = (tile_row * kTileRowStride) +
+                              (src_py * kPixelRowStride) +
+                              (tile_col * kTileSize) + src_px;
+        if (gfx_index < 0 || gfx_index >= static_cast<int>(gfx_size)) {
+          continue;
+        }
+
+        const uint8_t pixel = gfx_data[gfx_index] & 0x0F;
+        if (pixel == 0) {
+          continue;
+        }
+
+        const int preview_x = x + dest_x;
+        const int preview_y = y + dest_y;
+        if (preview_x < 0 || preview_x >= 64 || preview_y < 0 ||
+            preview_y >= 64) {
+          continue;
+        }
+        const int index = preview_x + (preview_y * 64);
+        if (index >= 0 && index < static_cast<int>(preview_gfx_.size())) {
+          preview_gfx_[index] =
+              static_cast<uint8_t>((pixel & 0x0F) + 112 + (pal * 8));
+        }
+      }
+    }
+    return;
+  }
+
   for (auto yl = 0; yl < sizey * 8; yl++) {
     for (auto xl = 0; xl < (sizex * 8) / 2; xl++) {
       int mx = xl;
@@ -1231,11 +1330,11 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
 
       // Validate graphics buffer access
       int gfx_index = tx + (yl * 0x80) + xl;
-      if (gfx_index < 0 || gfx_index >= static_cast<int>(current_gfx_.size())) {
+      if (gfx_index < 0 || gfx_index >= static_cast<int>(gfx_size)) {
         continue;  // Skip this pixel if out of bounds
       }
 
-      auto pixel = current_gfx_[gfx_index];
+      auto pixel = gfx_data[gfx_index];
       // nx,ny = object position, xx,yy = tile position, xl,yl = pixel
       // position
       int index = (x) + (y * 64) + (mx + (my * 0x80));
