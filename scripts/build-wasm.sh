@@ -91,7 +91,14 @@ emcmake cmake "$PROJECT_ROOT" --preset $CMAKE_PRESET $CMAKE_EXTRA_ARGS
 
 # Build (use parallel jobs)
 echo "Building..."
-cmake --build . --parallel
+if [ -n "${YAZE_WASM_BUILD_TARGETS:-}" ]; then
+    for target in $YAZE_WASM_BUILD_TARGETS; do
+        echo "Building target: $target"
+        cmake --build . --target "$target" --parallel
+    done
+else
+    cmake --build . --parallel
+fi
 
 # Package / Organize output
 echo "Packaging..."
