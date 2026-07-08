@@ -423,18 +423,18 @@ absl::StatusOr<OutputFormatter> OutputFormatter::FromString(
 
 void OutputFormatter::BeginObject(const std::string& title) {
   if (IsJson()) {
-    if (!first_field_) {
-      buffer_ += ",\n";
-    }
-    AddIndent();
-    // Only output a key if we are inside another object (indent > 0) and not in an array
-    if (!title.empty() && !in_array_ && indent_level_ > 0) {
-      buffer_ += absl::StrFormat("\"%s\": {\n", EscapeJson(title));
+    if (!json_stack_.empty()) {
+      if (json_stack_.back().type == JsonContext::Type::kArray) {
+        AddJsonValueSeparator();
+      } else {
+        AddJsonFieldPrefix(title);
+      }
     } else {
-      buffer_ += "{\n";
+      AddIndent();
     }
+    buffer_ += "{\n";
     indent_level_++;
-    first_field_ = true;
+    json_stack_.push_back({JsonContext::Type::kObject});
   } else if (IsText() && !title.empty()) {
     buffer_ += absl::StrFormat("=== %s ===\n", title);
   }
@@ -442,8 +442,13 @@ void OutputFormatter::BeginObject(const std::string& title) {
 
 void OutputFormatter::EndObject() {
   if (IsJson()) {
+    if (json_stack_.empty()) {
+      return;
+    }
+    const bool empty = json_stack_.back().first;
+    json_stack_.pop_back();
     indent_level_--;
-    if (first_field_) {
+    if (empty) {
       if (!buffer_.empty() && buffer_.back() == '\n') {
         buffer_.pop_back();
       }
@@ -459,13 +464,8 @@ void OutputFormatter::EndObject() {
 void OutputFormatter::AddField(const std::string& key,
                                const std::string& value) {
   if (IsJson()) {
-    if (!first_field_) {
-      buffer_ += ",\n";
-    }
-    first_field_ = false;
-    AddIndent();
-    buffer_ +=
-        absl::StrFormat("\"%s\": \"%s\"", EscapeJson(key), EscapeJson(value));
+    AddJsonFieldPrefix(key);
+    buffer_ += absl::StrFormat("\"%s\"", EscapeJson(value));
   } else {
     buffer_ += absl::StrFormat("  %-20s : %s\n", key, value);
   }
@@ -477,12 +477,8 @@ void OutputFormatter::AddField(const std::string& key, const char* value) {
 
 void OutputFormatter::AddField(const std::string& key, int value) {
   if (IsJson()) {
-    if (!first_field_) {
-      buffer_ += ",\n";
-    }
-    first_field_ = false;
-    AddIndent();
-    buffer_ += absl::StrFormat("\"%s\": %d", EscapeJson(key), value);
+    AddJsonFieldPrefix(key);
+    buffer_ += absl::StrFormat("%d", value);
   } else {
     buffer_ += absl::StrFormat("  %-20s : %d\n", key, value);
   }
@@ -490,12 +486,8 @@ void OutputFormatter::AddField(const std::string& key, int value) {
 
 void OutputFormatter::AddField(const std::string& key, uint64_t value) {
   if (IsJson()) {
-    if (!first_field_) {
-      buffer_ += ",\n";
-    }
-    first_field_ = false;
-    AddIndent();
-    buffer_ += absl::StrFormat("\"%s\": %llu", EscapeJson(key), value);
+    AddJsonFieldPrefix(key);
+    buffer_ += absl::StrFormat("%llu", value);
   } else {
     buffer_ += absl::StrFormat("  %-20s : %llu\n", key, value);
   }
@@ -503,13 +495,8 @@ void OutputFormatter::AddField(const std::string& key, uint64_t value) {
 
 void OutputFormatter::AddField(const std::string& key, bool value) {
   if (IsJson()) {
-    if (!first_field_) {
-      buffer_ += ",\n";
-    }
-    first_field_ = false;
-    AddIndent();
-    buffer_ += absl::StrFormat("\"%s\": %s", EscapeJson(key),
-                               value ? "true" : "false");
+    AddJsonFieldPrefix(key);
+    buffer_ += value ? "true" : "false";
   } else {
     buffer_ += absl::StrFormat("  %-20s : %s\n", key, value ? "yes" : "no");
   }
@@ -518,42 +505,41 @@ void OutputFormatter::AddField(const std::string& key, bool value) {
 void OutputFormatter::AddHexField(const std::string& key, uint64_t value,
                                   int width) {
   if (IsJson()) {
-    if (!first_field_) {
-      buffer_ += ",\n";
-    }
-    first_field_ = false;
-    AddIndent();
-    buffer_ +=
-        absl::StrFormat("\"%s\": \"0x%0*X\"", EscapeJson(key), width, value);
+    AddJsonFieldPrefix(key);
+    buffer_ += absl::StrFormat("\"0x%0*X\"", width, value);
   } else {
     buffer_ += absl::StrFormat("  %-20s : 0x%0*X\n", key, width, value);
   }
 }
 
 void OutputFormatter::BeginArray(const std::string& key) {
-  in_array_ = true;
-  array_item_count_ = 0;
-
   if (IsJson()) {
-    if (!first_field_) {
-      buffer_ += ",\n";
+    if (!json_stack_.empty()) {
+      if (json_stack_.back().type == JsonContext::Type::kArray) {
+        AddJsonValueSeparator();
+      } else {
+        AddJsonFieldPrefix(key);
+      }
+    } else {
+      AddIndent();
     }
-    first_field_ = false;
-    AddIndent();
-    buffer_ += absl::StrFormat("\"%s\": [\n", EscapeJson(key));
+    buffer_ += "[\n";
     indent_level_++;
-    first_field_ = true;  // Reset for array elements
+    json_stack_.push_back({JsonContext::Type::kArray});
   } else {
     buffer_ += absl::StrFormat("  %s:\n", key);
   }
 }
 
 void OutputFormatter::EndArray() {
-  in_array_ = false;
-
   if (IsJson()) {
+    if (json_stack_.empty()) {
+      return;
+    }
+    const int item_count = json_stack_.back().item_count;
+    json_stack_.pop_back();
     indent_level_--;
-    if (array_item_count_ == 0) {
+    if (item_count == 0) {
       if (!buffer_.empty() && buffer_.back() == '\n') {
         buffer_.pop_back();
       }
@@ -563,22 +549,16 @@ void OutputFormatter::EndArray() {
       AddIndent();
       buffer_ += "]";
     }
-    first_field_ =
-        false;  // Array itself was a field, so next field needs a comma
   }
 }
 
 void OutputFormatter::AddArrayItem(const std::string& item) {
   if (IsJson()) {
-    if (array_item_count_ > 0) {
-      buffer_ += ",\n";
-    }
-    AddIndent();
+    AddJsonValueSeparator();
     buffer_ += absl::StrFormat("\"%s\"", EscapeJson(item));
   } else {
     buffer_ += absl::StrFormat("    - %s\n", item);
   }
-  array_item_count_++;
 }
 
 std::string OutputFormatter::GetOutput() const {
@@ -596,6 +576,34 @@ void OutputFormatter::AddIndent() {
   for (int i = 0; i < indent_level_; ++i) {
     buffer_ += "  ";
   }
+}
+
+void OutputFormatter::AddJsonValueSeparator() {
+  if (json_stack_.empty()) {
+    return;
+  }
+  auto& context = json_stack_.back();
+  if (context.type == JsonContext::Type::kArray) {
+    if (context.item_count > 0) {
+      buffer_ += ",\n";
+    }
+    AddIndent();
+    ++context.item_count;
+  }
+}
+
+void OutputFormatter::AddJsonFieldPrefix(const std::string& key) {
+  if (!json_stack_.empty()) {
+    auto& context = json_stack_.back();
+    if (context.type == JsonContext::Type::kObject) {
+      if (!context.first) {
+        buffer_ += ",\n";
+      }
+      context.first = false;
+    }
+  }
+  AddIndent();
+  buffer_ += absl::StrFormat("\"%s\": ", EscapeJson(key));
 }
 
 std::string OutputFormatter::EscapeJson(const std::string& str) const {

@@ -45,5 +45,55 @@ TEST(Tile8SourceInteractionTest, OutOfRangeOrInvalidInputsReturnNegativeOne) {
             -1);
 }
 
+TEST(Tile8SourceInteractionTest, ComputesResponsiveDisplayScale) {
+  EXPECT_FLOAT_EQ(ComputeTile8SourceDisplayScale(
+                      /*available_width_px=*/560.0f,
+                      /*source_bitmap_width_px=*/128),
+                  4.0f);
+
+  const float narrow_scale = ComputeTile8SourceDisplayScale(
+      /*available_width_px=*/344.0f, /*source_bitmap_width_px=*/128);
+  EXPECT_GT(narrow_scale, 2.4f);
+  EXPECT_LT(narrow_scale, 2.6f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourceDisplayScale(
+                      /*available_width_px=*/80.0f,
+                      /*source_bitmap_width_px=*/128),
+                  56.0f / 128.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourceDisplayScale(
+                      /*available_width_px=*/32.0f,
+                      /*source_bitmap_width_px=*/128),
+                  0.35f);
+}
+
+TEST(Tile8SourceInteractionTest, ComputesResizableSourcePanelHeight) {
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/720.0f,
+                      /*source_bitmap_height_px=*/512,
+                      /*display_scale=*/2.0f),
+                  520.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/260.0f,
+                      /*source_bitmap_height_px=*/512,
+                      /*display_scale=*/2.0f,
+                      /*preferred_height_px=*/320.0f),
+                  260.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/120.0f,
+                      /*source_bitmap_height_px=*/512,
+                      /*display_scale=*/2.0f,
+                      /*preferred_height_px=*/320.0f),
+                  120.0f);
+
+  EXPECT_FLOAT_EQ(ComputeTile8SourcePanelHeight(
+                      /*available_height_px=*/0.0f,
+                      /*source_bitmap_height_px=*/0,
+                      /*display_scale=*/0.0f),
+                  520.0f);
+}
+
 }  // namespace
 }  // namespace yaze::editor

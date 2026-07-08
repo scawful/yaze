@@ -15,6 +15,10 @@ YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP ve
 
 > **Building from source?** See the [Build and Test Quick Reference](../build/quick-reference.md).
 
+> **Helping beta-test?** See the [Beta Testing Guide](../usage/beta-testing.md)
+> for what to try first, ROM compatibility expectations, and useful bug report
+> details.
+
 ---
 
 ## Web App (Preview)
@@ -28,6 +32,8 @@ supported features and AI configuration.
 ## Tips
 
 - **Backups**: Automatic backups are enabled by default. Each save creates a timestamped backup.
+- **Overworld vs. World Map**: the Overworld Editor edits playable areas; Screen
+  Editor > Overworld Map edits the pause-menu map art.
 - **Experiment Flags**: Try new features via `File > Options > Experiment Flags`.
 - **Extensions**: Load custom tools from the `Extensions` menu (plugin system under development).
 - **AI Providers**: Configure providers in `Settings > Agent` or set

@@ -129,7 +129,9 @@ struct WriteConflict {
 struct DungeonRoom {
   int id;
   std::string name;
+  std::string floor;  // "F1", "B1", etc. Optional project-map label.
   int grid_row, grid_col;
+  bool has_grid_position = false;
   std::string type;  // "entrance", "boss", "mini_boss", "connector", "normal"
   int palette, blockset, spriteset;
   uint8_t tag1, tag2;
@@ -184,9 +186,10 @@ struct ProjectRegistry {
   // - Keys are normalized to decimal strings for project::YazeProject::resource_labels.
   // - Input JSON may use either decimal ("57") or hex ("0x39") IDs.
   //
-  // Types: "room", "sprite", "item", "entrance", "overworld_map", "music"
-  std::unordered_map<std::string,
-                     std::unordered_map<std::string, std::string>>
+  // Types: "room", "sprite", "item", "entrance", "overworld_map", "music".
+  // Oracle `dungeons.json` room names are mirrored into "room" labels so the
+  // opened project file can serialize the current registry names.
+  std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
       all_resource_labels;
 
   // Backward-compat accessor for room labels only

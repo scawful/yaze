@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_EDITOR_MANAGER_INTERFACES_H_
 #define YAZE_APP_EDITOR_SYSTEM_EDITOR_MANAGER_INTERFACES_H_
 
+#include <cstddef>
+
 #include "app/editor/editor.h"
 
 namespace yaze {
@@ -22,6 +24,8 @@ class ISessionConfigurator {
   virtual ~ISessionConfigurator() = default;
   virtual void ConfigureSession(RomSession* session) = 0;
   virtual void SetCurrentEditor(Editor* editor) = 0;
+  virtual void RequestSwitchToSession(size_t index) = 0;
+  virtual void RequestCloseSession(size_t index) = 0;
 };
 
 /**
@@ -35,7 +39,7 @@ class IEditorSwitcher {
   virtual ~IEditorSwitcher() = default;
   virtual Rom* GetCurrentRom() const = 0;
   virtual void SwitchToEditor(EditorType type, bool force_visible = false,
-                               bool from_dialog = false) = 0;
+                              bool from_dialog = false) = 0;
   virtual void DismissEditorSelection() = 0;
 };
 

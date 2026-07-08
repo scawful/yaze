@@ -21,6 +21,27 @@
 namespace yaze::gui {
 namespace {
 
+std::vector<std::string> ShippedFileThemeNames() {
+  return {"Breath of the Wild",
+          "Cyberpunk",
+          "Forest",
+          "Forest Light",
+          "Gruvbox",
+          "Majora's Moon",
+          "Midnight",
+          "Midnight Light",
+          "Nord",
+          "Ocean",
+          "Ocean Light",
+          "Solarized Dark",
+          "Solarized Light",
+          "Sunset",
+          "Tokyo Night",
+          "Twilight",
+          "Wind Waker",
+          "YAZE Tre"};
+}
+
 // Helper: Classic YAZE stores palette entries as 0-255 ints via RGBA(r,g,b,a).
 // Color::red/green/blue are floats in [0,1]. Compare with a tiny epsilon so
 // roundtrip (int → float → back) doesn't flake.
@@ -100,6 +121,41 @@ TEST_F(ThemeStyleSnapshotTest, ApplyThemeByNameRestoresClassicYaze) {
   mgr.ApplyTheme("Classic YAZE");
   EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
   EXPECT_EQ(mgr.GetCurrentTheme().name, "Classic YAZE");
+}
+
+TEST_F(ThemeStyleSnapshotTest, MissingThemeFallsBackToClassicYaze) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("YAZE Tre");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "YAZE Tre");
+
+  mgr.ApplyTheme("Definitely Missing Theme");
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
+  EXPECT_EQ(mgr.GetCurrentTheme().name, "Classic YAZE");
+}
+
+TEST_F(ThemeStyleSnapshotTest, AvailableThemesExposeClassicYaze) {
+  auto& mgr = ThemeManager::Get();
+  const auto themes = mgr.GetAvailableThemes();
+
+  ASSERT_FALSE(themes.empty());
+  EXPECT_EQ(themes.front(), "Classic YAZE");
+
+  const Theme* classic = mgr.GetTheme("Classic YAZE");
+  ASSERT_NE(classic, nullptr);
+  EXPECT_EQ(classic->name, "Classic YAZE");
+}
+
+TEST_F(ThemeStyleSnapshotTest, PreviewClassicYazeThroughThemeListApi) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("YAZE Tre");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "YAZE Tre");
+
+  mgr.StartPreview("Classic YAZE");
+  EXPECT_TRUE(mgr.IsPreviewActive());
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
+
+  mgr.EndPreview();
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "YAZE Tre");
 }
 
 // Regression for the review follow-up on 07619173: the new
@@ -184,6 +240,94 @@ TEST_F(ThemeStyleSnapshotTest, SemanticHelpersReturnThemeTokens) {
   ExpectEqual(GetWarningColor(), theme.warning);
   ExpectEqual(GetErrorColor(), theme.error);
   ExpectEqual(GetInfoColor(), theme.info);
+}
+
+TEST_F(ThemeStyleSnapshotTest, FileThemesHydrateEnhancedSemanticDefaults) {
+  auto& mgr = ThemeManager::Get();
+
+  auto expect_hydrated = [](const Theme& theme, const char* name) {
+    auto not_missing = [name](const Color& c, const char* field) {
+      const bool all_zero =
+          c.red == 0.0f && c.green == 0.0f && c.blue == 0.0f && c.alpha == 0.0f;
+      const bool opaque_black =
+          c.red == 0.0f && c.green == 0.0f && c.blue == 0.0f && c.alpha == 1.0f;
+      EXPECT_FALSE(all_zero) << name << " missing " << field;
+      EXPECT_FALSE(opaque_black)
+          << name << " defaulted " << field << " to opaque black";
+    };
+
+    not_missing(theme.text_highlight, "text_highlight");
+    not_missing(theme.link_hover, "link_hover");
+    not_missing(theme.code_background, "code_background");
+    not_missing(theme.success_light, "success_light");
+    not_missing(theme.warning_light, "warning_light");
+    not_missing(theme.error_light, "error_light");
+    not_missing(theme.info_light, "info_light");
+    not_missing(theme.active_selection, "active_selection");
+    not_missing(theme.hover_highlight, "hover_highlight");
+    not_missing(theme.focus_border, "focus_border");
+    not_missing(theme.disabled_overlay, "disabled_overlay");
+    not_missing(theme.editor_background, "editor_background");
+    not_missing(theme.editor_grid, "editor_grid");
+    not_missing(theme.selection_primary, "selection_primary");
+    not_missing(theme.selection_secondary, "selection_secondary");
+    not_missing(theme.dungeon.object_door, "dungeon.object_door");
+    not_missing(theme.agent.panel_bg, "agent.panel_bg");
+    not_missing(theme.agent.code_background, "agent.code_background");
+  };
+
+  for (const auto& theme_name : ShippedFileThemeNames()) {
+    mgr.ApplyTheme(theme_name);
+    SCOPED_TRACE(theme_name);
+    expect_hydrated(mgr.GetCurrentTheme(), theme_name.c_str());
+  }
+}
+
+TEST_F(ThemeStyleSnapshotTest,
+       ParseThemeFileLoadsEnhancedSemanticAndEditorFields) {
+  auto& mgr = ThemeManager::Get();
+  Theme theme = *mgr.GetTheme("YAZE Tre");
+  theme.name = "YAZE Tre Roundtrip Test";
+
+  theme.text_highlight = {0.11f, 0.22f, 0.33f, 0.44f};
+  theme.link_hover = {0.21f, 0.32f, 0.43f, 1.0f};
+  theme.code_background = {0.07f, 0.08f, 0.09f, 1.0f};
+  theme.success_light = {0.31f, 0.72f, 0.43f, 1.0f};
+  theme.active_selection = {0.91f, 0.61f, 0.21f, 0.51f};
+  theme.focus_border = {0.17f, 0.47f, 0.77f, 1.0f};
+  theme.editor_background = {0.09f, 0.14f, 0.19f, 1.0f};
+  theme.editor_grid = {0.23f, 0.28f, 0.33f, 0.39f};
+  theme.editor_cursor = {0.95f, 0.9f, 0.85f, 1.0f};
+  theme.editor_selection = {0.24f, 0.44f, 0.64f, 0.34f};
+
+  const auto temp_path =
+      std::filesystem::temp_directory_path() / "yaze_theme_roundtrip.theme";
+  ASSERT_TRUE(mgr.SaveThemeToFile(theme, temp_path.string()).ok());
+  ASSERT_TRUE(mgr.LoadThemeFromFile(temp_path.string()).ok());
+  const Theme* parsed = mgr.GetTheme(theme.name);
+  ASSERT_NE(parsed, nullptr);
+
+  auto expect_same = [](const Color& lhs, const Color& rhs) {
+    constexpr float kEps = 1.0f / 255.0f + 1e-5f;
+    EXPECT_NEAR(lhs.red, rhs.red, kEps);
+    EXPECT_NEAR(lhs.green, rhs.green, kEps);
+    EXPECT_NEAR(lhs.blue, rhs.blue, kEps);
+    EXPECT_NEAR(lhs.alpha, rhs.alpha, kEps);
+  };
+
+  expect_same(parsed->text_highlight, theme.text_highlight);
+  expect_same(parsed->link_hover, theme.link_hover);
+  expect_same(parsed->code_background, theme.code_background);
+  expect_same(parsed->success_light, theme.success_light);
+  expect_same(parsed->active_selection, theme.active_selection);
+  expect_same(parsed->focus_border, theme.focus_border);
+  expect_same(parsed->editor_background, theme.editor_background);
+  expect_same(parsed->editor_grid, theme.editor_grid);
+  expect_same(parsed->editor_cursor, theme.editor_cursor);
+  expect_same(parsed->editor_selection, theme.editor_selection);
+
+  std::error_code ec;
+  std::filesystem::remove(temp_path, ec);
 }
 
 }  // namespace

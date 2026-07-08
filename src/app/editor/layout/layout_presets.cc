@@ -15,7 +15,8 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
       preset.description =
           "Minimal map-first layout with selector and map properties";
       preset.default_visible_panels = {
-          Panels::kOverworldCanvas, Panels::kOverworldTile16Selector,
+          Panels::kOverworldCanvas,
+          Panels::kOverworldTile16Selector,
           Panels::kOverworldMapProperties,
       };
       preset.dock_only_default_visible_panels = true;
@@ -48,7 +49,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
       if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
         preset.default_visible_panels = {
-            Panels::kDungeonWorkbench,    Panels::kDungeonObjectEditor,
+            Panels::kDungeonWorkbench,    Panels::kDungeonObjectSelector,
             Panels::kDungeonRoomGraphics, Panels::kDungeonRoomMatrix,
             Panels::kDungeonDoorEditor,   Panels::kDungeonPaletteEditor,
         };
@@ -58,7 +59,7 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
         preset.panel_positions = {
             {Panels::kDungeonWorkbench, DockPosition::Center},
             {Panels::kDungeonRoomSelector, DockPosition::LeftTop},
-            {Panels::kDungeonObjectEditor, DockPosition::RightTop},
+            {Panels::kDungeonObjectSelector, DockPosition::RightTop},
             {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
             {Panels::kDungeonRoomMatrix, DockPosition::RightBottom},
             {Panels::kDungeonDoorEditor, DockPosition::RightBottom},
@@ -68,32 +69,31 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
         };
 
         preset.optional_panels = {
-            Panels::kDungeonRoomSelector, Panels::kDungeonObjectEditor,
+            Panels::kDungeonRoomSelector, Panels::kDungeonObjectSelector,
             Panels::kDungeonRoomGraphics, Panels::kDungeonRoomMatrix,
             Panels::kDungeonDoorEditor,   Panels::kDungeonPaletteEditor,
             Panels::kDungeonEntranceList, Panels::kDungeonEntrances,
         };
       } else {
         preset.default_visible_panels = {
-            Panels::kDungeonRoomSelector,  Panels::kDungeonRoomMatrix,
-            Panels::kDungeonObjectEditor,  Panels::kDungeonRoomGraphics,
-            Panels::kDungeonDoorEditor,    Panels::kDungeonPaletteEditor,
+            Panels::kDungeonRoomSelector,   Panels::kDungeonRoomMatrix,
+            Panels::kDungeonObjectSelector, Panels::kDungeonPaletteEditor,
+            Panels::kDungeonRoomGraphics,
         };
         preset.panel_positions = {
             {Panels::kDungeonRoomMatrix, DockPosition::Center},
             {Panels::kDungeonRoomSelector, DockPosition::LeftTop},
+            {Panels::kDungeonObjectSelector, DockPosition::RightTop},
             {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
             {Panels::kDungeonEntranceList, DockPosition::RightBottom},
             {Panels::kDungeonEntrances, DockPosition::RightBottom},
-            {Panels::kDungeonObjectEditor, DockPosition::RightTop},
             {Panels::kDungeonDoorEditor, DockPosition::RightBottom},
             {Panels::kDungeonPaletteEditor, DockPosition::RightBottom},
         };
         preset.optional_panels = {
-            Panels::kDungeonObjectEditor, Panels::kDungeonDoorEditor,
-            Panels::kDungeonPaletteEditor, Panels::kDungeonEntranceList,
-            Panels::kDungeonEntrances,
-            Panels::kDungeonRoomGraphics,
+            Panels::kDungeonObjectSelector, Panels::kDungeonDoorEditor,
+            Panels::kDungeonPaletteEditor,  Panels::kDungeonEntranceList,
+            Panels::kDungeonEntrances,      Panels::kDungeonRoomGraphics,
         };
       }
       break;
@@ -436,7 +436,6 @@ PanelLayoutPreset LayoutPresets::GetModderPreset() {
       Panels::kDungeonRoomSelector,
       Panels::kDungeonRoomMatrix,
       Panels::kDungeonEntranceList,
-      Panels::kDungeonObjectEditor,
       Panels::kDungeonDoorEditor,
       Panels::kDungeonPaletteEditor,
       Panels::kDungeonEntrances,
@@ -518,7 +517,6 @@ PanelLayoutPreset LayoutPresets::GetDungeonMasterPreset() {
       Panels::kDungeonEntranceList,
       Panels::kDungeonEntrances,
       Panels::kDungeonRoomGraphics,
-      Panels::kDungeonObjectEditor,
       Panels::kDungeonDoorEditor,
       Panels::kDungeonPaletteEditor,
       // Palette support
@@ -535,7 +533,6 @@ PanelLayoutPreset LayoutPresets::GetDungeonMasterPreset() {
       {Panels::kDungeonEntranceList, DockPosition::RightBottom},
       {Panels::kDungeonEntrances, DockPosition::RightBottom},
       {Panels::kDungeonRoomGraphics, DockPosition::RightTop},
-      {Panels::kDungeonObjectEditor, DockPosition::RightTop},
       {Panels::kDungeonDoorEditor, DockPosition::RightBottom},
       {Panels::kDungeonPaletteEditor, DockPosition::RightBottom},
       {Panels::kPaletteControlPanel, DockPosition::LeftTop},

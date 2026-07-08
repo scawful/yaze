@@ -28,6 +28,12 @@
 #include "httplib.h"
 #include "nlohmann/json.hpp"
 
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 namespace yaze::cli::api {
 namespace {
 
@@ -72,8 +78,17 @@ json ReadAnnotationsFile(const std::string& dir) {
 class AnnotationHandlerTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    const auto* test_info =
+        ::testing::UnitTest::GetInstance()->current_test_info();
+    const std::string test_name =
+        test_info ? test_info->name() : std::to_string(test_counter_++);
+#ifdef _WIN32
+    const int pid = _getpid();
+#else
+    const int pid = static_cast<int>(getpid());
+#endif
     project_dir_ = (std::filesystem::temp_directory_path() /
-                    ("yaze_ann_test_" + std::to_string(test_counter_++)))
+                    ("yaze_ann_test_" + std::to_string(pid) + "_" + test_name))
                        .string();
     std::filesystem::create_directories(project_dir_);
   }

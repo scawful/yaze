@@ -48,8 +48,10 @@ class DungeonToolset {
   void set_background_type(BackgroundType type) { background_type_ = type; }
   void set_placement_type(PlacementType type) { placement_type_ = type; }
 
-  // Returns a human-readable name for the current placement mode
-  // (e.g., "Select", "Objects", "Sprites")
+  // Returns a brief, human-readable name for the current placement mode.
+  // Uses the same string constants as InteractionModeManager::GetModeName so
+  // the toolset, status bar, and toolbar stay in sync — see
+  // interaction/interaction_mode.h's tool_mode_names namespace.
   const char* GetToolModeName() const;
 
   // Callbacks

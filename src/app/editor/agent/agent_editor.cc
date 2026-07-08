@@ -10,7 +10,7 @@
 // Centralized UI theme
 #include "app/gui/style/theme.h"
 
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/app/editor_layout.h"
 
 #include "absl/strings/str_format.h"
@@ -25,8 +25,8 @@
 #include "app/editor/agent/panels/mesen_screenshot_panel.h"
 #include "app/editor/agent/panels/oracle_state_library_panel.h"
 #include "app/editor/agent/panels/sram_viewer_panel.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/proposal_drawer.h"
-#include "app/editor/ui/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"

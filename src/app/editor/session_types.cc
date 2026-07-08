@@ -13,10 +13,10 @@
 #include "app/editor/music/music_editor.h"
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/palette/palette_editor.h"
+#include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
-#include "app/editor/ui/settings_panel.h"
 
 namespace yaze::editor {
 
@@ -196,8 +196,8 @@ core::AsarWrapper* EditorSet::GetAsarWrapper() const {
   return nullptr;
 }
 
-const std::map<std::string, core::AsarSymbol>&
-EditorSet::GetAssemblySymbols() const {
+const std::map<std::string, core::AsarSymbol>& EditorSet::GetAssemblySymbols()
+    const {
   static const std::map<std::string, core::AsarSymbol> kEmpty;
   if (auto* editor =
           static_cast<AssemblyEditor*>(FindEditor(EditorType::kAssembly))) {

@@ -946,7 +946,7 @@ Manual testing recommended for:
 - Fixed `Ctrl+Shift+R` conflict (Proposal Drawer vs Reset Layout) - Reset Layout now uses `Ctrl+Alt+R`
 - All card shortcuts moved to `Ctrl+Alt` combinations for consistency
 - Documented changes with inline comments
-- **Files**: `src/app/editor/system/shortcut_configurator.cc`
+- **Files**: `src/app/editor/system/commands/shortcut_configurator.cc`
 
 **7. Global Search Migration**
 - Moved Global Search from EditorManager to UICoordinator (completed migration)
@@ -990,7 +990,7 @@ Manual testing recommended for:
 - `src/app/editor/ui/welcome_screen.{h,cc}` - ImGui state override
 - `src/app/editor/ui/ui_coordinator.{h,cc}` - Global Search implementation
 - `src/app/editor/editor_manager.{h,cc}` - LayoutManager integration
-- `src/app/editor/system/shortcut_configurator.cc` - Conflict resolution
+- `src/app/editor/system/commands/shortcut_configurator.cc` - Conflict resolution
 - `src/app/editor/editor_library.cmake` - Added layout_manager.cc to build
 
 ### Build Status
@@ -1071,7 +1071,7 @@ void EditorManager::Update() {
 **Files Modified**:
 - `src/app/editor/editor_manager.cc` (lines 715-752) - Moved DrawAllUI() before early returns
 - `src/app/editor/ui/welcome_screen.{h,cc}` - Added ImGui state override
-- `src/app/editor/ui/ui_coordinator.cc` - Simplified welcome screen logic
+- `src/app/editor/shell/coordinator/ui_coordinator.cc` - Simplified welcome screen logic
 
 **Lesson Learned**:
 Always call UI drawing methods BEFORE early returns that check business logic state. UI components (especially welcome screens) need to work independently of application state.
@@ -1158,7 +1158,7 @@ Always call UI drawing methods BEFORE early returns that check business logic st
 - `src/app/editor/editor_manager.{h,cc}` - LayoutManager integration, DrawAllUI() ordering fix
 - `src/app/editor/ui/ui_coordinator.{h,cc}` - Global Search, welcome screen simplification, logging cleanup
 - `src/app/editor/ui/welcome_screen.{h,cc}` - ImGui state override
-- `src/app/editor/system/shortcut_configurator.cc` - Conflict resolution
+- `src/app/editor/system/commands/shortcut_configurator.cc` - Conflict resolution
 - `src/app/editor/editor_library.cmake` - Added layout_manager.cc
 - `src/app/gui/gui_library.cmake` - Removed editor_card_manager.cc
 - `src/app/editor/palette/palette_editor.cc` - Comment cleanup

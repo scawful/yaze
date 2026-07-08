@@ -13,7 +13,7 @@
 #include "app/editor/session_types.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/automation/widget_measurement.h"
 #include "app/gui/core/platform_keys.h"

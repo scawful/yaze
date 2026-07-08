@@ -1,11 +1,15 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
-#include <vector>
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "rom/rom.h"
-#include "zelda3/dungeon/room.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_entrance.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -13,6 +17,16 @@ namespace test {
 
 class DungeonSaveTest : public ::testing::Test {
  protected:
+  static constexpr int kChestDataPc = 0x110000;
+  static constexpr int kPotRoom0Pc = 0x008000;
+  static constexpr int kPotRoom1Pc = 0x008020;
+  static constexpr int kPotRoom2Pc = 0x008040;
+  static constexpr int kPitDataPc = 0x112000;
+  static constexpr int kBlocksRegion1Pc = 0x113000;
+  static constexpr int kBlocksRegion2Pc = 0x113080;
+  static constexpr int kBlocksRegion3Pc = 0x113100;
+  static constexpr int kBlocksRegion4Pc = 0x113180;
+
   void SetUp() override {
     rom_ = std::make_unique<Rom>();
     // Create a minimal ROM for testing (2MB)
@@ -79,7 +93,7 @@ class DungeonSaveTest : public ::testing::Test {
     // Points to table in Bank 09. Let's put table at 0x48000 (09:8000)
     int ptr_loc = kRoomsSpritePointer;
     rom_->mutable_data()[ptr_loc] = 0x00;
-    rom_->mutable_data()[ptr_loc + 1] = 0x80; 
+    rom_->mutable_data()[ptr_loc + 1] = 0x80;
     // Bank is hardcoded to 0x09 in code, so we only write low 2 bytes.
 
     // 2. Setup Sprite Pointer Table at 0x48000 (09:8000)
@@ -101,6 +115,78 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[0x49000] = 0x00;
     // End of sprites (0xFF)
     rom_->mutable_data()[0x49001] = 0xFF;
+  }
+
+  void WriteLongPointer(int addr, uint32_t snes_addr) {
+    rom_->mutable_data()[addr + 0] = snes_addr & 0xFF;
+    rom_->mutable_data()[addr + 1] = (snes_addr >> 8) & 0xFF;
+    rom_->mutable_data()[addr + 2] = (snes_addr >> 16) & 0xFF;
+  }
+
+  void SetupChestTable() {
+    WriteLongPointer(kChestsDataPointer1, PcToSnes(kChestDataPc));
+    rom_->mutable_data()[kChestsLengthPointer] = 0x00;
+    rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
+    std::fill_n(rom_->mutable_data() + kChestDataPc, 0x100, 0x00);
+  }
+
+  void SeedChestEntry(int room_id, uint8_t chest_id, bool big) {
+    const uint16_t word = static_cast<uint16_t>(room_id) | (big ? 0x8000 : 0);
+    rom_->mutable_data()[kChestsLengthPointer] = 0x01;
+    rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
+    rom_->mutable_data()[kChestDataPc + 0] = word & 0xFF;
+    rom_->mutable_data()[kChestDataPc + 1] = (word >> 8) & 0xFF;
+    rom_->mutable_data()[kChestDataPc + 2] = chest_id;
+  }
+
+  void SetupPotItemTable() {
+    const uint16_t room0_ptr = static_cast<uint16_t>(PcToSnes(kPotRoom0Pc));
+    const uint16_t room1_ptr = static_cast<uint16_t>(PcToSnes(kPotRoom1Pc));
+    const uint16_t room2_ptr = static_cast<uint16_t>(PcToSnes(kPotRoom2Pc));
+
+    rom_->mutable_data()[kRoomItemsPointers + 0] = room0_ptr & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 1] = (room0_ptr >> 8) & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 2] = room1_ptr & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 3] = (room1_ptr >> 8) & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 4] = room2_ptr & 0xFF;
+    rom_->mutable_data()[kRoomItemsPointers + 5] = (room2_ptr >> 8) & 0xFF;
+
+    rom_->mutable_data()[kPotRoom0Pc + 0] = 0xFF;
+    rom_->mutable_data()[kPotRoom0Pc + 1] = 0xFF;
+    rom_->mutable_data()[kPotRoom1Pc + 0] = 0xFF;
+    rom_->mutable_data()[kPotRoom1Pc + 1] = 0xFF;
+    rom_->mutable_data()[kPotRoom2Pc + 0] = 0xFF;
+    rom_->mutable_data()[kPotRoom2Pc + 1] = 0xFF;
+  }
+
+  void SeedPotItemBytes(int pc_addr, std::initializer_list<uint8_t> bytes) {
+    std::copy(bytes.begin(), bytes.end(), rom_->mutable_data() + pc_addr);
+  }
+
+  void SetupPitRegion() {
+    // `kPitCount` is the LDX.w immediate (the maximum X offset, NOT a
+    // byte count). max_offset = 0x00 → single 2-byte entry at offset 0.
+    // See `RoomsWithPitDamage table format pins` in
+    // `test/integration/zelda3/dungeon_save_region_test.cc`.
+    WriteLongPointer(kPitPointer, PcToSnes(kPitDataPc));
+    rom_->mutable_data()[kPitCount] = 0x00;
+    rom_->mutable_data()[kPitDataPc + 0] = 0x34;
+    rom_->mutable_data()[kPitDataPc + 1] = 0x12;
+  }
+
+  void SetupBlockRegions() {
+    WriteLongPointer(kBlocksPointer1, PcToSnes(kBlocksRegion1Pc));
+    WriteLongPointer(kBlocksPointer2, PcToSnes(kBlocksRegion2Pc));
+    WriteLongPointer(kBlocksPointer3, PcToSnes(kBlocksRegion3Pc));
+    WriteLongPointer(kBlocksPointer4, PcToSnes(kBlocksRegion4Pc));
+
+    rom_->mutable_data()[kBlocksLength] = 0x04;
+    rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+    rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0xAA;
+    rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0xBB;
+    rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0xCC;
+    rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0xDD;
   }
 
   std::unique_ptr<Rom> rom_;
@@ -289,7 +375,8 @@ TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
 
   // word = ((x + y*64) << 1) with layer in bit 13 and lit in bit 15.
   EXPECT_EQ(rom_data[kTorchData + 2], 0x14);  // low byte
-  EXPECT_EQ(rom_data[kTorchData + 3], 0xAA);  // high byte: layer + lit + address bits
+  EXPECT_EQ(rom_data[kTorchData + 3],
+            0xAA);  // high byte: layer + lit + address bits
 
   EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
   EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
@@ -303,9 +390,9 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
       0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
       0xFF, 0xFF,  // terminator
   };
-  ASSERT_TRUE(rom_->WriteWord(kTorchesLengthPointer,
-                              static_cast<uint16_t>(blob.size()))
-                  .ok());
+  ASSERT_TRUE(
+      rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
+          .ok());
   ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
   rom_->ClearDirty();
 
@@ -317,7 +404,637 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
 
   auto status = SaveAllTorches(rom_.get(), rooms);
   EXPECT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rooms[1].torches_dirty());
   EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllTorches_LoadedRoomCanDeleteLastTorch) {
+  std::vector<uint8_t> blob = {
+      0x01, 0x00,  // room_id = 1
+      0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
+      0xFF, 0xFF,  // terminator
+      0x02, 0x00,  // room_id = 2
+      0x0A, 0x03,  // torch word (x=5,y=6,layer=0,lit=0)
+      0xFF, 0xFF,  // terminator
+  };
+  ASSERT_TRUE(
+      rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
+          .ok());
+  ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
+
+  Room room(1, rom_.get());
+  room.LoadTorches();
+  ASSERT_TRUE(room.AreTorchesLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  room.RemoveTileObject(0);
+  ASSERT_TRUE(room.torches_dirty());
+
+  auto status = SaveAllTorches(rom_.get(), kNumberOfRooms,
+                               [&room](int room_id) -> const Room* {
+                                 return room_id == 1 ? &room : nullptr;
+                               });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const auto& rom_data = rom_->vector();
+  const uint16_t torch_len =
+      static_cast<uint16_t>(rom_data[kTorchesLengthPointer]) |
+      (static_cast<uint16_t>(rom_data[kTorchesLengthPointer + 1]) << 8);
+  EXPECT_EQ(torch_len, 6u);
+  EXPECT_EQ(rom_data[kTorchData + 0], 0x02);
+  EXPECT_EQ(rom_data[kTorchData + 1], 0x00);
+  EXPECT_EQ(rom_data[kTorchData + 2], 0x0A);
+  EXPECT_EQ(rom_data[kTorchData + 3], 0x03);
+  EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
+  EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
+  EXPECT_FALSE(room.torches_dirty());
+}
+
+// Loaded/dirty contract for chest + pot save tests
+// -------------------------------------------------
+// `SaveAllChests` / `SaveAllPotItems` preserve header-only rooms by
+// design: a room is treated as "owned by the editor" only when
+// `AreChestsLoaded() == true` (set by `LoadChests`) OR
+// `chests_dirty() == true` (set by `MarkChestsDirty`). The same
+// pattern applies to pot items. `SetLoaded(true)` on its own only
+// flips `is_loaded_`; it does NOT cascade into the per-table loaded
+// flags, because the editor materializes those tables individually
+// via dedicated `Load*` calls.
+//
+// The fixture below skips `LoadChests`/`LoadPotItems` (those would
+// read vanilla bytes back into the in-memory vectors) and instead
+// mutates `GetChests()` / `GetPotItems()` directly to exercise the
+// writer. To make those mutations visible to the writer's
+// "owned-by-editor" gate, every test that edits a room's chest or
+// pot list must call `MarkChestsDirty()` / `MarkPotItemsDirty()`
+// afterwards. This mirrors the editor's actual flow: when a UI edit
+// changes a chest, the chest editor emits a dirty flip. Tests that
+// expect the loaded-but-empty path (e.g.
+// `LoadedRoomWithNoChestsClearsExistingRomEntries`) must also mark
+// dirty — that is the declaration of "I intend this room's empty
+// state to overwrite the vanilla bytes".
+
+TEST_F(DungeonSaveTest, SaveAllChests_WritesSingleSmallChest) {
+  SetupChestTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].MarkChestsDirty();
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x01);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x42);
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_WritesBigChestWithHighBit) {
+  SetupChestTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x77, true});
+  rooms[0].MarkChestsDirty();
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x01);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x80);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x77);
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_PreservesRomEntriesForUntouchedRooms) {
+  SetupChestTable();
+  SeedChestEntry(/*room_id=*/1, /*chest_id=*/0x99, /*big=*/false);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].MarkChestsDirty();
+  // rooms[1] intentionally untouched — no SetLoaded, no MarkChestsDirty —
+  // so the writer must fall back to ParseRomChests for that room and
+  // preserve its `0x99` entry.
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x02);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x42);
+
+  EXPECT_EQ(rom_->data()[kChestDataPc + 3], 0x01);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 4], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 5], 0x99);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllChests_LoadedRoomWithNoChestsClearsExistingRomEntries) {
+  SetupChestTable();
+  SeedChestEntry(/*room_id=*/0, /*chest_id=*/0x55, /*big=*/false);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  // No chests added in memory, but we mark dirty to declare
+  // "this room's empty state is intentional and should overwrite
+  // the vanilla 0x55 entry".
+  rooms[0].MarkChestsDirty();
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x00);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_ReloadedRoomMatchesSerializedState) {
+  SetupChestTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].GetChests().push_back(chest_data{0x77, true});
+  rooms[0].MarkChestsDirty();
+
+  auto status = SaveAllChests(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  Room reloaded_room(0, rom_.get());
+  reloaded_room.LoadChests();
+
+  ASSERT_EQ(reloaded_room.GetChests().size(), 2u);
+  EXPECT_EQ(reloaded_room.GetChests()[0].id, 0x42);
+  EXPECT_FALSE(reloaded_room.GetChests()[0].size);
+  EXPECT_EQ(reloaded_room.GetChests()[1].id, 0x77);
+  EXPECT_TRUE(reloaded_room.GetChests()[1].size);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWritesEntriesAndTerminator) {
+  SetupPotItemTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  PotItem item;
+  item.position = 0x1234;
+  item.item = 0x56;
+  rooms[0].GetPotItems().push_back(item);
+  rooms[0].MarkPotItemsDirty();
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 3], 0xFF);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 4], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_ReloadedRoomMatchesSerializedState) {
+  SetupPotItemTable();
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  PotItem first;
+  first.position = 0x1234;
+  first.item = 0x56;
+  rooms[0].GetPotItems().push_back(first);
+
+  PotItem second;
+  second.position = 0x5678;
+  second.item = 0x9A;
+  rooms[0].GetPotItems().push_back(second);
+  rooms[0].MarkPotItemsDirty();
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  Room reloaded_room(0, rom_.get());
+  reloaded_room.LoadPotItems();
+
+  ASSERT_EQ(reloaded_room.GetPotItems().size(), 2u);
+  EXPECT_EQ(reloaded_room.GetPotItems()[0].position, 0x1234);
+  EXPECT_EQ(reloaded_room.GetPotItems()[0].item, 0x56);
+  EXPECT_EQ(reloaded_room.GetPotItems()[1].position, 0x5678);
+  EXPECT_EQ(reloaded_room.GetPotItems()[1].item, 0x9A);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_UnloadedRoomPreservesExistingRomData) {
+  SetupPotItemTable();
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 3], 0xFF);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 4], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWithNoItemsWritesTerminator) {
+  SetupPotItemTable();
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  // No pot items added in memory, but we mark dirty to declare
+  // "this room's empty state is intentional and should overwrite
+  // the seeded vanilla bytes with a fresh terminator".
+  rooms[0].MarkPotItemsDirty();
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0xFF);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_DirtyRoomTooLargeFailsAndStaysDirty) {
+  SetupPotItemTable();
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+
+  for (int i = 0; i < 11; ++i) {
+    PotItem item;
+    item.position = static_cast<uint16_t>(0x1200 + i);
+    item.item = static_cast<uint8_t>(0x40 + i);
+    rooms[0].GetPotItems().push_back(item);
+  }
+  rooms[0].MarkPotItemsDirty();
+
+  auto status = SaveAllPotItems(rom_.get(), rooms);
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(std::string(status.message()).find("pot item data too large"),
+            std::string::npos);
+  EXPECT_TRUE(rooms[0].pot_items_dirty());
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
+  EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+}
+
+TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtyRegularEntrance) {
+  std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  auto& entrance = entrances[kNumDungeonSpawnPoints + 3];
+  entrance.room_ = 0x0123;
+  entrance.x_position_ = 0x0456;
+  entrance.y_position_ = 0x0789;
+  entrance.camera_x_ = 0x0102;
+  entrance.camera_y_ = 0x0304;
+  entrance.camera_trigger_x_ = 0x0506;
+  entrance.camera_trigger_y_ = 0x0708;
+  entrance.exit_ = 0x0009;
+  entrance.blockset_ = 0x0A;
+  entrance.music_ = 0x0B;
+  entrance.dungeon_id_ = 0x0C;
+  entrance.door_ = 0x0D;
+  entrance.floor_ = 0x0E;
+  entrance.ladder_bg_ = 0x0F;
+  entrance.scrolling_ = 0x10;
+  entrance.scroll_quadrant_ = 0x11;
+  entrance.camera_boundary_qn_ = 0x12;
+  entrance.camera_boundary_fn_ = 0x13;
+  entrance.camera_boundary_qs_ = 0x14;
+  entrance.camera_boundary_fs_ = 0x15;
+  entrance.camera_boundary_qw_ = 0x16;
+  entrance.camera_boundary_fw_ = 0x17;
+  entrance.camera_boundary_qe_ = 0x18;
+  entrance.camera_boundary_fe_ = 0x19;
+  entrance.MarkDirty();
+
+  auto status = SaveAllDungeonEntrances(rom_.get(), entrances);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const int entrance_id = 3;
+  EXPECT_EQ(rom_->data()[kEntranceRoom + entrance_id * 2], 0x23);
+  EXPECT_EQ(rom_->data()[kEntranceRoom + entrance_id * 2 + 1], 0x01);
+  EXPECT_EQ(rom_->data()[kEntranceXPosition + entrance_id * 2], 0x56);
+  EXPECT_EQ(rom_->data()[kEntranceYPosition + entrance_id * 2], 0x89);
+  EXPECT_EQ(rom_->data()[kEntranceBlockset + entrance_id], 0x0A);
+  EXPECT_EQ(rom_->data()[kEntranceMusic + entrance_id], 0x0B);
+  EXPECT_EQ(rom_->data()[kEntranceScrollEdge + entrance_id * 8], 0x12);
+  EXPECT_EQ(rom_->data()[kEntranceScrollEdge + entrance_id * 8 + 7], 0x19);
+  EXPECT_FALSE(entrance.dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtySpawnPoint) {
+  std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  auto& entrance = entrances[2];
+  entrance.room_ = 0x0034;
+  entrance.x_position_ = 0x0456;
+  entrance.y_position_ = 0x0789;
+  entrance.blockset_ = 0x0A;
+  entrance.camera_boundary_fe_ = 0x19;
+  entrance.MarkDirty();
+
+  auto status = SaveAllDungeonEntrances(rom_.get(), entrances);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  constexpr int kSpawnId = 2;
+  EXPECT_EQ(rom_->data()[kStartingEntranceroom + kSpawnId * 2], 0x34);
+  EXPECT_EQ(rom_->data()[kStartingEntranceXPosition + kSpawnId * 2], 0x56);
+  EXPECT_EQ(rom_->data()[kStartingEntranceYPosition + kSpawnId * 2], 0x89);
+  EXPECT_EQ(rom_->data()[kStartingEntranceBlockset + kSpawnId], 0x0A);
+  EXPECT_EQ(rom_->data()[kStartingEntranceScrollEdge + kSpawnId * 8 + 7], 0x19);
+  EXPECT_FALSE(entrance.dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllCollision_DirtyRoomWithoutCustomRegionFails) {
+  std::vector<uint8_t> small_data(0x100000, 0);
+  rom_->LoadFromData(small_data);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetCollisionTile(1, 1, 0x2A);
+
+  auto status = SaveAllCollision(rom_.get(), absl::MakeSpan(rooms));
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPits_ValidRegionPreservesExistingBytes) {
+  SetupPitRegion();
+
+  const auto before0 = rom_->data()[kPitDataPc + 0];
+  const auto before1 = rom_->data()[kPitDataPc + 1];
+
+  auto status = SaveAllPits(rom_.get());
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kPitDataPc + 0], before0);
+  EXPECT_EQ(rom_->data()[kPitDataPc + 1], before1);
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
+  SetupBlockRegions();
+
+  auto status = SaveAllBlocks(rom_.get());
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0xAA);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0xBB);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0xCC);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0xDD);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_PreservesUnmaterializedRoomBytes) {
+  // Migration safety invariant: when only some rooms are
+  // materialized, blocks for the other rooms (lookup returns null,
+  // OR returns a Room whose blocks weren't loaded) must keep their
+  // existing ROM bytes verbatim. The encoder cannot drop them just
+  // because no in-memory representation was supplied.
+  //
+  // Setup: two encoded entries in slot 0 (room 0, materialized) and
+  // slot 1 (room 5, NOT materialized). Save with a lookup that only
+  // returns room_ for id=0. Both slots must come out unchanged.
+  SetupBlockRegions();
+  // Slot 0: room 0, px=10, py=20, layer=1 (word 0x4A14).
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;
+  // Slot 1: room 5, px=15, py=25, layer=0.
+  //   word = (15 << 1) | (25 << 7) | (0 << 14) = 30 | 3200 = 0x0C9E
+  //   → b3 = 0x9E, b4 = 0x0C.
+  rom_->mutable_data()[kBlocksRegion1Pc + 4] = 0x05;
+  rom_->mutable_data()[kBlocksRegion1Pc + 5] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 6] = 0x9E;
+  rom_->mutable_data()[kBlocksRegion1Pc + 7] = 0x0C;
+  rom_->mutable_data()[kBlocksLength] = 0x08;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  const std::array<uint8_t, 8> before = {0x00, 0x00, 0x14, 0x4A,
+                                         0x05, 0x00, 0x9E, 0x0C};
+
+  // Materialize room 0 only. LoadBlocks scans the global buffer for
+  // matching room_id, so only slot 0 lands in tile_objects_. Room 5
+  // stays unloaded — its block bytes must survive the save.
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+  ASSERT_TRUE(room_->AreBlocksLoaded());
+
+  // Lookup hands out room_ for id 0; everything else is null
+  // (simulates an editor that only materialized room 0).
+  auto status = SaveAllBlocks(rom_.get(), 296, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  for (int i = 0; i < 8; ++i) {
+    EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + i], before[i])
+        << "byte " << i
+        << " — unmaterialized room 5's block bytes must survive a save "
+           "where only room 0 was materialized.";
+  }
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_EditedBlockPreservesUnmaterializedNeighbor) {
+  // Migration safety invariant #2: an edit to a materialized room's
+  // block writes through, AND an unmaterialized room's adjacent slot
+  // remains byte-identical. This is the test that pins the encoder
+  // boundary between "owned by editor, re-encode" and "owned by ROM,
+  // preserve verbatim".
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;  // px=10
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;
+  rom_->mutable_data()[kBlocksRegion1Pc + 4] = 0x05;
+  rom_->mutable_data()[kBlocksRegion1Pc + 5] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 6] = 0x9E;
+  rom_->mutable_data()[kBlocksRegion1Pc + 7] = 0x0C;
+  rom_->mutable_data()[kBlocksLength] = 0x08;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+
+  // Edit room 0's block: px 10 → 30. New word: (30<<1)|(20<<7)|(1<<14)
+  // = 0x4A3C → b3 = 0x3C, b4 = 0x4A.
+  for (auto& obj : room_->GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Block) == ObjectOption::Block) {
+      obj.set_x(30);
+      break;
+    }
+  }
+
+  auto status = SaveAllBlocks(rom_.get(), 296, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x3C) << "edited px=30";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 4], 0x05) << "room 5 preserved";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 5], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 6], 0x9E);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 7], 0x0C);
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_NoOpRoundTripPreservesPointedBytes) {
+  // Real encoder invariant #1 (test-first for the SaveAllBlocks
+  // follow-up). After Load → Save with no in-memory mutation, the
+  // bytes at the dereferenced data region must be byte-identical to
+  // the original — vanilla saves with no edits cannot reshuffle
+  // anything. Single block in single room: source-order preservation
+  // is trivial here, so this pins the simpler invariant first; a
+  // multi-room ordering test belongs to the real ROM round-trip
+  // follow-up.
+  SetupBlockRegions();
+  // Replace the fixture's sample 0xAA..0xDD with a real entry for
+  // room 0 at (px=10, py=20, layer=1) — the same shape used by
+  // LoadBlocks_ReadsFromDereferencedPointerRegion.
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;
+
+  const std::array<uint8_t, 4> before = {0x00, 0x00, 0x14, 0x4A};
+
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U)
+      << "Pre-save: LoadBlocks should have produced exactly one Block "
+         "tile object.";
+
+  auto status = SaveAllBlocks(rom_.get(), 1, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + i], before[i])
+        << "byte " << i
+        << " — no-op round trip must not mutate the pointed region.";
+  }
+  // Length immediate also stays at 4 (one entry × 4 bytes).
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x04);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_EditedBlockUpdatesRegion) {
+  // Real encoder invariant #2: an in-memory edit (here, moving the
+  // block from px=10 to px=30) writes back through the pointed
+  // region. The block stays at load_order=0 since it was loaded —
+  // the encoder must keep it in slot 0 and just rewrite its bytes.
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;  // px=10
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;  // py=20, layer=1
+
+  room_->LoadBlocks();
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+
+  // Mutate px to 30 in place. New encoded word:
+  //   word = (30 << 1) | (20 << 7) | (1 << 14)
+  //        = 60 | 2560 | 16384 = 19004 = 0x4A3C
+  // → b3 = 0x3C, b4 = 0x4A.
+  for (auto& obj : room_->GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Block) == ObjectOption::Block) {
+      obj.set_x(30);
+      break;
+    }
+  }
+
+  auto status = SaveAllBlocks(rom_.get(), 1, [this](int rid) -> const Room* {
+    return rid == 0 ? room_.get() : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0x00) << "room_id lo";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00) << "room_id hi";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x3C) << "word lo (px=30)";
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A) << "word hi";
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_ClearsBlockDirtyAfterWrite) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+
+  RoomObject block(0x0E00, 10, 20, 0, 1);
+  block.set_options(ObjectOption::Block);
+  room.AddTileObject(block);
+  ASSERT_TRUE(room.blocks_dirty());
+
+  auto status = SaveAllBlocks(rom_.get(), 1, [&room](int rid) -> const Room* {
+    return rid == 0 ? &room : nullptr;
+  });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x04);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x14);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A);
+  EXPECT_FALSE(room.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
+  // Loader/saver invariant: `kBlocksPointer1..4` are 3-byte SNES
+  // long-address operand slots embedded in the bank_02 LDA.l
+  // instructions that fan the pushable-block table into WRAM. The actual
+  // entry bytes live at the pointed-to region (`kBlocksRegion1Pc..` in
+  // this fixture's mock layout).
+  //
+  // `SaveAllBlocks` already dereferences each pointer slot and writes
+  // data at the SNES address it encodes. `LoadBlocks` previously read
+  // bytes directly out of the operand slots — i.e. it was decoding the
+  // LDA.l opcode operand bytes as block data and silently producing
+  // garbage. This test pins the dereference invariant.
+  SetupBlockRegions();
+
+  // Overwrite the fixture's sample 0xAA..0xDD seed with an encoded
+  // pushable-block entry for room_id=0 at (px=10, py=20, layer=1):
+  //   word = (px << 1) | (py << 7) | (layer << 14)
+  //        = 20 | 2560 | 16384 = 18964 = 0x4A14
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;  // room_id lo
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;  // room_id hi
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;  // word lo
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;  // word hi
+
+  room_->LoadBlocks();
+
+  int block_count = 0;
+  for (const auto& obj : room_->GetTileObjects()) {
+    if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
+      continue;
+    ++block_count;
+    EXPECT_EQ(obj.x(), 10);
+    EXPECT_EQ(obj.y(), 20);
+    EXPECT_EQ(obj.GetLayerValue(), 1);
+  }
+  EXPECT_EQ(block_count, 1)
+      << "LoadBlocks must dereference kBlocksPointer1 as a 3-byte SNES "
+         "long-address operand and load block data from the pointed "
+         "region — not from the operand slot itself.";
 }
 
 }  // namespace test

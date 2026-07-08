@@ -147,6 +147,8 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
     }
   }
 
+  RETURN_IF_ERROR(PitDamageTable::LoadFromRom(&rom, &data.pit_damage_table));
+
   return absl::OkStatus();
 }
 
@@ -341,14 +343,14 @@ struct SheetLoadResult {
   std::vector<uint8_t> data;
   bool is_compressed = false;
   bool decompression_succeeded = false;
-  bool is_bpp3 = false; // true if 3BPP, false if skipped/2BPP
+  bool is_bpp3 = false;  // true if 3BPP, false if skipped/2BPP
   uint32_t pc_offset = 0;
 };
 
 SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, uint32_t ptr1,
                              uint32_t ptr2, uint32_t ptr3) {
   SheetLoadResult result;
-  result.data.assign(zelda3::kUncompressedSheetSize, 0); // Default empty
+  result.data.assign(zelda3::kUncompressedSheetSize, 0);  // Default empty
 
   // Uncompressed 3BPP (115-126)
   if (i >= 115 && i <= 126) {
@@ -378,8 +380,8 @@ SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, uint32_t ptr1,
         GetGraphicsAddress(rom.data(), i, ptr1, ptr2, ptr3, rom.size());
 
     if (result.pc_offset < rom.size()) {
-      auto decomp_res =
-          gfx::lc_lz2::DecompressV2(rom.data(), result.pc_offset, 0x800, 1, rom.size());
+      auto decomp_res = gfx::lc_lz2::DecompressV2(rom.data(), result.pc_offset,
+                                                  0x800, 1, rom.size());
       if (decomp_res.ok()) {
         result.data = *decomp_res;
         result.decompression_succeeded = true;
@@ -392,7 +394,8 @@ SheetLoadResult LoadSheetRaw(const Rom& rom, uint32_t i, uint32_t ptr1,
   return result;
 }
 
-void ProcessSheetBitmap(GameData& data, uint32_t i, const SheetLoadResult& result) {
+void ProcessSheetBitmap(GameData& data, uint32_t i,
+                        const SheetLoadResult& result) {
   if (result.is_bpp3) {
     auto converted_sheet = gfx::SnesTo8bppSheet(result.data, 3);
     if (converted_sheet.size() != 4096)
@@ -493,7 +496,7 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
 
     // Inside LoadGraphics loop:
     auto result = LoadSheetRaw(rom, i, gfx_ptr1, gfx_ptr2, gfx_ptr3);
-    
+
     // Update Diagnostics
     auto& sd = diag.sheets[i];
     sd.index = i;
@@ -502,24 +505,25 @@ absl::Status LoadGraphics(Rom& rom, GameData& data) {
     sd.decompression_succeeded = result.decompression_succeeded;
     sd.actual_decomp_size = result.data.size();
     if (!result.data.empty()) {
-        size_t count = std::min<size_t>(result.data.size(), 8);
-        sd.first_bytes.assign(result.data.begin(), result.data.begin() + count);
+      size_t count = std::min<size_t>(result.data.size(), 8);
+      sd.first_bytes.assign(result.data.begin(), result.data.begin() + count);
     }
     if (result.is_compressed && !result.is_bpp3) {
-        sd.decomp_size_param = 0x800; // Expected for LC-LZ2
+      sd.decomp_size_param = 0x800;  // Expected for LC-LZ2
     }
 
     ProcessSheetBitmap(data, i, result);
-    
+
     if (i % 50 == 0 || i == kNumGfxSheets - 1) {
-        LOG_DEBUG("Graphics", "Sheet %d: offset=0x%06X, size=%zu, %s", 
-                  i, result.pc_offset, result.data.size(), 
-                  result.decompression_succeeded ? "OK" : "FAILED");
+      LOG_DEBUG("Graphics", "Sheet %d: offset=0x%06X, size=%zu, %s", i,
+                result.pc_offset, result.data.size(),
+                result.decompression_succeeded ? "OK" : "FAILED");
     }
   }
 
   diag.Analyze();
-  LOG_INFO("Graphics", "Graphics loading complete. Sheets processed: %d", kNumGfxSheets);
+  LOG_INFO("Graphics", "Graphics loading complete. Sheets processed: %d",
+           kNumGfxSheets);
 
 #ifdef __EMSCRIPTEN__
   app::platform::WasmLoadingManager::EndLoading(loading_handle);

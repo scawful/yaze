@@ -1,7 +1,7 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/system/command_palette.h"
 #include "app/editor/system/editor_panel.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 
 #include <gtest/gtest.h>
 
@@ -39,8 +39,8 @@ TEST(CommandPaletteWorkflowTest, RegistersEnabledWorkflowPanelsAndActions) {
   window_manager.SetActiveSession(0);
   window_manager.RegisterWindowContent(
       std::make_unique<MockWorkflowPanel>("test.workflow_panel", true));
-  window_manager.RegisterWindowContent(
-      std::make_unique<MockWorkflowPanel>("test.workflow_panel_disabled", false));
+  window_manager.RegisterWindowContent(std::make_unique<MockWorkflowPanel>(
+      "test.workflow_panel_disabled", false));
 
   bool action_invoked = false;
   ContentRegistry::WorkflowActions::Clear();
@@ -68,27 +68,28 @@ TEST(CommandPaletteWorkflowTest, RegistersEnabledWorkflowPanelsAndActions) {
   const auto commands = palette.GetAllCommands();
 
   const auto has_command = [&](const std::string& name) {
-    return std::any_of(commands.begin(), commands.end(),
-                       [&](const CommandEntry& entry) { return entry.name == name; });
+    return std::any_of(
+        commands.begin(), commands.end(),
+        [&](const CommandEntry& entry) { return entry.name == name; });
   };
 
   EXPECT_TRUE(has_command("Planning: Open Story Graph"));
   EXPECT_TRUE(has_command("Build & Run: Build Project"));
   EXPECT_FALSE(has_command("Build & Run: Disabled Workflow"));
 
-  auto panel_it = std::find_if(commands.begin(), commands.end(),
-                               [](const CommandEntry& entry) {
-                                 return entry.name == "Planning: Open Story Graph";
-                               });
+  auto panel_it = std::find_if(
+      commands.begin(), commands.end(), [](const CommandEntry& entry) {
+        return entry.name == "Planning: Open Story Graph";
+      });
   ASSERT_NE(panel_it, commands.end());
   EXPECT_EQ(panel_it->category, CommandCategory::kWorkflow);
   panel_it->callback();
   EXPECT_TRUE(window_manager.IsWindowOpen(0, "test.workflow_panel"));
 
-  auto action_it = std::find_if(commands.begin(), commands.end(),
-                                [](const CommandEntry& entry) {
-                                  return entry.name == "Build & Run: Build Project";
-                                });
+  auto action_it = std::find_if(
+      commands.begin(), commands.end(), [](const CommandEntry& entry) {
+        return entry.name == "Build & Run: Build Project";
+      });
   ASSERT_NE(action_it, commands.end());
   action_it->callback();
   EXPECT_TRUE(action_invoked);

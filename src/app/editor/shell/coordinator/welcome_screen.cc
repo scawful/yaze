@@ -235,16 +235,6 @@ void DrawThemeQuickSwitcher(const char* popup_id, const ImVec2& button_size) {
     auto themes = theme_mgr.GetAvailableThemes();
     std::sort(themes.begin(), themes.end());
 
-    const bool classic_selected =
-        theme_mgr.GetCurrentThemeName() == "Classic YAZE";
-    if (ImGui::Selectable("Classic YAZE", classic_selected)) {
-      if (theme_mgr.IsPreviewActive()) {
-        theme_mgr.EndPreview();
-      }
-      theme_mgr.ApplyClassicYazeTheme();
-    }
-    ImGui::Separator();
-
     for (const auto& name : themes) {
       if (ImGui::Selectable(name.c_str(),
                             theme_mgr.GetCurrentThemeName() == name)) {

@@ -11,13 +11,13 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
+#include "app/editor/shell/feedback/popup_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/project_manager.h"
 #include "app/editor/system/session/rom_file_manager.h"
-#include "app/editor/system/session_coordinator.h"
-#include "app/editor/system/workspace_window_manager.h"
-#include "app/editor/ui/popup_manager.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/system/session/session_coordinator.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/platform_keys.h"
 #include "core/features.h"
@@ -33,6 +33,12 @@
 
 namespace yaze {
 namespace editor {
+
+namespace {
+
+constexpr const char* kLayoutDesignerWindowId = "layout.designer";
+
+}  // namespace
 
 MenuOrchestrator::MenuOrchestrator(
     EditorManager* editor_manager, MenuBuilder& menu_builder,
@@ -283,6 +289,11 @@ void MenuOrchestrator::AddLayoutMenuItems() {
   };
 
   menu_builder_.BeginSubMenu("Layout", ICON_MD_VIEW_QUILT)
+      .Item(
+          "Open Layout Designer", ICON_MD_DASHBOARD_CUSTOMIZE,
+          [this]() { OnShowLayoutDesigner(); }, nullptr,
+          [this]() { return window_manager_ != nullptr; })
+      .Separator()
       .Item(
           "Profile: Code", ICON_MD_CODE,
           [this]() {
@@ -697,6 +708,14 @@ void MenuOrchestrator::AddLayoutSubmenu() {
 
   if (ImGui::BeginMenu(
           absl::StrFormat("%s Layout", ICON_MD_VIEW_QUILT).c_str())) {
+    if (ImGui::MenuItem(absl::StrFormat("%s Open Layout Designer",
+                                        ICON_MD_DASHBOARD_CUSTOMIZE)
+                            .c_str(),
+                        nullptr, false, window_manager_ != nullptr)) {
+      OnShowLayoutDesigner();
+    }
+    ImGui::Separator();
+
     if (ImGui::MenuItem(absl::StrFormat("%s Save Layout", ICON_MD_SAVE).c_str(),
                         SHORTCUT_CTRL_SHIFT(S))) {
       OnSaveWorkspaceLayout();
@@ -1007,8 +1026,7 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Contributing", ICON_MD_VOLUNTEER_ACTIVISM,
             [this]() { OnShowContributing(); })
       .Separator()
-      .Item(
-          "About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+      .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
 }
 
 // Menu state management
@@ -1044,8 +1062,6 @@ void MenuOrchestrator::OnSaveRom() {
       toast_manager_.Show(
           absl::StrFormat("Failed to save ROM: %s", status.message()),
           ToastType::kError);
-    } else {
-      toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
     }
   }
 }
@@ -1297,7 +1313,11 @@ void MenuOrchestrator::OnDuplicateCurrentSession() {
 }
 
 void MenuOrchestrator::OnCloseCurrentSession() {
-  session_coordinator_.CloseCurrentSession();
+  if (editor_manager_) {
+    editor_manager_->CloseCurrentSession();
+  } else {
+    session_coordinator_.CloseCurrentSession();
+  }
 }
 
 void MenuOrchestrator::OnShowSessionSwitcher() {
@@ -1356,6 +1376,40 @@ void MenuOrchestrator::OnLoadWorkspaceLayout() {
 
 void MenuOrchestrator::OnShowLayoutPresets() {
   popup_manager_.Show(PopupID::kLayoutPresets);
+}
+
+void MenuOrchestrator::OnShowLayoutDesigner() {
+  WorkspaceWindowManager* manager = window_manager_;
+  if (manager == nullptr && editor_manager_ != nullptr) {
+    manager = &editor_manager_->window_manager();
+  }
+  if (manager == nullptr) {
+    toast_manager_.Show("Layout Designer unavailable: no window manager",
+                        ToastType::kError);
+    return;
+  }
+
+  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  if (manager->GetActiveCategory().empty() ||
+      manager->GetActiveCategory() ==
+          WorkspaceWindowManager::kDashboardCategory) {
+    manager->SetActiveCategory("Settings");
+  }
+
+  const bool already_open =
+      manager->IsWindowOpen(session_id, kLayoutDesignerWindowId);
+  if (!already_open &&
+      !manager->OpenWindow(session_id, kLayoutDesignerWindowId)) {
+    toast_manager_.Show(
+        "Layout Designer is not registered in the active session",
+        ToastType::kError);
+    return;
+  }
+
+  // Cross-editor Settings-category panels are only drawn from another editor
+  // when pinned. Opening the designer from the menubar should make it visible
+  // immediately instead of merely flipping an off-category visibility flag.
+  manager->SetWindowPinned(session_id, kLayoutDesignerWindowId, true);
 }
 
 void MenuOrchestrator::OnLoadDeveloperLayout() {

@@ -17,8 +17,10 @@
 // Project headers
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/gui/core/agent_theme.h"
+#include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
@@ -30,6 +32,78 @@
 #include "zelda3/dungeon/room_object.h"  // For GetObjectName()
 
 namespace yaze::editor {
+
+namespace {
+
+float GetObjectGridItemSize(int density) {
+  switch (density) {
+    case 0:
+      return 56.0f;
+    case 2:
+      return 88.0f;
+    case 1:
+    default:
+      return 72.0f;
+  }
+}
+
+ImU32 ThemeColor(const ImVec4& color) {
+  return ImGui::ColorConvertFloat4ToU32(color);
+}
+
+ImVec4 WithAlpha(ImVec4 color, float alpha) {
+  color.w = alpha;
+  return color;
+}
+
+ImVec4 Dimmed(ImVec4 color, float factor) {
+  color.x *= factor;
+  color.y *= factor;
+  color.z *= factor;
+  return color;
+}
+
+ImU32 GetObjectRangeHeaderColor(int start_id) {
+  const auto& theme = AgentUI::GetTheme();
+  if (start_id >= 0xF80) {
+    return ThemeColor(theme.music_zone_color);
+  }
+  if (start_id >= 0x100) {
+    return ThemeColor(theme.selection_secondary);
+  }
+  return ThemeColor(theme.dungeon_object_wall);
+}
+
+ImU32 GetObjectRangeHeaderHoverColor(int start_id) {
+  const auto& theme = AgentUI::GetTheme();
+  if (start_id >= 0xF80) {
+    return ThemeColor(WithAlpha(theme.music_zone_color, 1.0f));
+  }
+  if (start_id >= 0x100) {
+    return ThemeColor(WithAlpha(theme.selection_secondary, 1.0f));
+  }
+  return ThemeColor(WithAlpha(theme.dungeon_object_wall, 1.0f));
+}
+
+void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
+                             float item_size, const ImVec4& accent_color,
+                             const char* label) {
+  const auto& theme = AgentUI::GetTheme();
+  const ImU32 accent = ThemeColor(accent_color);
+  const ImU32 dimmed = ThemeColor(Dimmed(accent_color, 0.55f));
+
+  draw_list->AddRectFilledMultiColor(
+      top_left, ImVec2(top_left.x + item_size, top_left.y + item_size), dimmed,
+      dimmed, accent, accent);
+
+  ImVec2 label_size = ImGui::CalcTextSize(label);
+  ImVec2 label_pos(top_left.x + (item_size - label_size.x) / 2,
+                   top_left.y + (item_size - label_size.y) / 2 - 10);
+  draw_list->AddText(label_pos,
+                     ThemeColor(WithAlpha(theme.text_primary, 0.82f)), label);
+}
+
+}  // namespace
 
 ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   const auto& theme = AgentUI::GetTheme();
@@ -51,16 +125,16 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   // Type 2 objects (0x100-0x141) - Torches, blocks, switches
   if (object_id >= 0x100 && object_id < 0x200) {
     if (object_id >= 0x100 && object_id <= 0x10F) {
-      return IM_COL32(255, 150, 50, 255);  // Orange for torches
+      return ImGui::GetColorU32(theme.status_warning);  // Torches
     } else if (object_id >= 0x110 && object_id <= 0x11F) {
-      return IM_COL32(150, 150, 200, 255);  // Blue-gray for blocks
+      return ImGui::GetColorU32(theme.dungeon_object_default);  // Blocks
     } else if (object_id >= 0x120 && object_id <= 0x12F) {
       return ImGui::ColorConvertFloat4ToU32(
           theme.status_success);  // Green for switches
     } else if (object_id >= 0x130 && object_id <= 0x13F) {
       return ImGui::GetColorU32(theme.selection_primary);  // Yellow for stairs
     } else {
-      return IM_COL32(180, 180, 180, 255);  // Gray for other Type 2
+      return ImGui::GetColorU32(theme.text_secondary_gray);  // Other Type 2
     }
   }
 
@@ -80,7 +154,7 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     return ImGui::GetColorU32(
         theme.dungeon_object_decoration);  // Dim gray for decorations
   } else if (object_id >= 0x00 && object_id <= 0x0F) {
-    return IM_COL32(120, 120, 180, 255);  // Blue-gray for corners
+    return ImGui::GetColorU32(theme.dungeon_selection_secondary);  // Corners
   } else {
     return ImGui::GetColorU32(theme.dungeon_object_default);  // Default gray
   }
@@ -164,79 +238,130 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     int start;
     int end;
     const char* label;
-    ImU32 header_color;
   };
   static const ObjectRange ranges[] = {
-      {0x00, 0xFF, "Type 1", IM_COL32(80, 120, 180, 255)},
-      {0x100, 0x141, "Type 2", IM_COL32(120, 80, 180, 255)},
-      {0xF80, 0xFFF, "Type 3", IM_COL32(180, 120, 80, 255)},
+      {0x00, 0xFF, "Type 1"},
+      {0x100, 0x141, "Type 2"},
+      {0xF80, 0xFFF, "Type 3"},
   };
 
   // Total object count
   int total_objects =
       (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
-  ImGui::TextDisabled("%d objects", total_objects);
-  ImGui::SameLine();
-  ImGui::Checkbox(ICON_MD_IMAGE " Tile thumbnails", &enable_object_previews_);
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "Show rendered object thumbnails in the selector.\n"
-        "Requires a room to be loaded and may cost some performance.");
-  }
+  EnsureCustomObjectsInitialized();
+  auto& obj_manager = zelda3::CustomObjectManager::Get();
+  const int custom_count =
+      obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
 
-  if (selected_object_id_ >= 0) {
-    ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Current: 0x%03X %s",
-                       selected_object_id_,
-                       zelda3::GetObjectName(selected_object_id_).c_str());
-  } else {
-    ImGui::TextColored(theme.text_secondary_gray,
-                       "Tip: click once to queue placement, double-click to "
-                       "inspect the draw routine.");
-  }
-
-  // Search + category filter
+  // Row 1: search input, full-width since this is the most-used control.
   ImGui::SetNextItemWidth(-1.0f);
   ImGui::InputTextWithHint(
-      "##ObjectSearch", ICON_MD_SEARCH " Filter by name or hex...",
+      "##ObjectSearch", ICON_MD_SEARCH " Filter objects by name or hex...",
       object_search_buffer_, sizeof(object_search_buffer_));
+
+  // Row 2: category filter + clear + display popover. Display options
+  // (thumbnails toggle, grid density) are rare-use preferences hidden behind
+  // an ICON_MD_TUNE popover so the chrome stays one row instead of three.
   static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
                                         "Doors", "Decor", "Stairs"};
-  ImGui::SetNextItemWidth(170.0f);
+  const float controls_width = ImGui::GetContentRegionAvail().x;
+  const float filter_width = std::min(170.0f, controls_width);
+  ImGui::SetNextItemWidth(filter_width);
   ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                IM_ARRAYSIZE(kFilterLabels));
   ImGui::SameLine();
-  if (gui::ThemedButton(ICON_MD_CLEAR " Reset")) {
+  if (gui::ThemedIconButton(ICON_MD_CLEAR, "Clear search and category filter",
+                            gui::IconSize::Small())) {
     object_search_buffer_[0] = '\0';
     object_type_filter_ = 0;
   }
-  if (ImGui::IsItemHovered()) {
-    gui::ThemedTooltip("Clear search and category filter");
+  ImGui::SameLine();
+  if (gui::ThemedIconButton(ICON_MD_TUNE, "Display options",
+                            gui::IconSize::Small())) {
+    ImGui::OpenPopup("##ObjectSelectorDisplayPopup");
+  }
+  if (ImGui::BeginPopup("##ObjectSelectorDisplayPopup")) {
+    ImGui::TextDisabled("Display");
+    ImGui::Checkbox(ICON_MD_IMAGE " Thumbnails", &enable_object_previews_);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Show rendered object thumbnails in the selector.\n"
+          "Requires a room to be loaded and may cost some performance.");
+    }
+    ImGui::Spacing();
+    ImGui::TextDisabled("Grid density");
+    static constexpr const char* kDensityLabels[] = {"Small", "Medium",
+                                                     "Large"};
+    constexpr float kDensitySegmentWidth = 84.0f;
+    const float density_spacing = ImGui::GetStyle().ItemSpacing.x;
+    for (int density = 0; density < 3; ++density) {
+      if (density > 0) {
+        ImGui::SameLine(0.0f, density_spacing);
+      }
+      if (gui::ToggleButton(kDensityLabels[density],
+                            object_grid_density_ == density,
+                            ImVec2(kDensitySegmentWidth, 0.0f))) {
+        object_grid_density_ = density;
+      }
+    }
+    ImGui::EndPopup();
   }
 
-  // Create asset browser-style grid
-  const float item_size = 72.0f;
-  const float item_spacing = 6.0f;
-  const int columns = std::max(
-      1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /
-                          (item_size + item_spacing)));
+  // Row 3: status row, count + selection chip + Custom Workshop entry.
+  // Inlines on wider drawers, wraps on narrow.
+  ImGui::Spacing();
+  ImGui::TextColored(theme.text_secondary_gray, "%d vanilla objects",
+                     total_objects);
+  if (selected_object_id_ >= 0) {
+    if (ImGui::GetContentRegionAvail().x > 220.0f) {
+      ImGui::SameLine();
+    }
+    ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Queued 0x%03X %s",
+                       selected_object_id_,
+                       zelda3::GetObjectName(selected_object_id_).c_str());
+  }
+  if (ImGui::GetContentRegionAvail().x > 180.0f) {
+    ImGui::SameLine();
+  }
+  DrawCustomObjectWorkshopButton(custom_count);
 
-  // Scrollable child region for grid - use all available space
+  // Create asset browser-style grid
+  const float item_spacing = 6.0f;
+  // Defensive clamp: when the inspector drawer narrows below the user's chosen
+  // density, scale the cell down so at least one item is fully visible per row
+  // before the horizontal scrollbar engages. The 16px margin accounts for the
+  // child window's vertical scrollbar plus a small buffer for the cell border.
+  constexpr float kRightMargin = 16.0f;
+  constexpr float kMinItemSize = 32.0f;
+  const float available_width = ImGui::GetContentRegionAvail().x;
+  const float requested_item_size = GetObjectGridItemSize(object_grid_density_);
+  const float item_size =
+      std::min(requested_item_size,
+               std::max(kMinItemSize, available_width - kRightMargin));
+  const int columns =
+      std::max(1, static_cast<int>((available_width - item_spacing) /
+                                   (item_size + item_spacing)));
+
+  // Scrollable child region for grid - use all available space.
+  // Horizontal scrollbar guards against silent right-edge clipping when a row
+  // overruns due to per-frame column recalculation; the Item/Sprite selectors
+  // use the same flag combination.
   float child_height = ImGui::GetContentRegionAvail().y;
   if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                            ImGuiWindowFlags_HorizontalScrollbar)) {
 
     // Iterate through all object ranges
     for (const auto& range : ranges) {
       // Section header for each type
+      const ImU32 header_color = GetObjectRangeHeaderColor(range.start);
+      const ImU32 header_hover_color =
+          GetObjectRangeHeaderHoverColor(range.start);
       gui::StyleColorGuard section_guard(
-          {{ImGuiCol_Header,
-            ImGui::ColorConvertU32ToFloat4(range.header_color)},
+          {{ImGuiCol_Header, ImGui::ColorConvertU32ToFloat4(header_color)},
            {ImGuiCol_HeaderHovered,
-            ImGui::ColorConvertU32ToFloat4(
-                IM_COL32((range.header_color & 0xFF) + 30,
-                         ((range.header_color >> 8) & 0xFF) + 30,
-                         ((range.header_color >> 16) & 0xFF) + 30, 255))}});
+            ImGui::ColorConvertU32ToFloat4(header_hover_color)}});
       bool section_open = ImGui::CollapsingHeader(
           absl::StrFormat("%s (0x%03X-0x%03X)", range.label, range.start,
                           range.end)
@@ -268,9 +393,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         bool is_selected = (selected_object_id_ == obj_id);
         ImVec2 button_size(item_size, item_size);
 
-        if (ImGui::Selectable("", is_selected,
-                              ImGuiSelectableFlags_AllowDoubleClick,
-                              button_size)) {
+        if (ImGui::Selectable("", is_selected, 0, button_size)) {
           selected_object_id_ = obj_id;
 
           // Create and update preview object
@@ -289,58 +412,35 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           if (object_selected_callback_) {
             object_selected_callback_(preview_object_);
           }
-
-          // Handle double-click to open static object editor
-          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            if (object_double_click_callback_) {
-              object_double_click_callback_(obj_id);
-            }
-          }
         }
-
-        // Draw object preview on the button; fall back to styled placeholder
+        const bool item_visible = ImGui::IsItemVisible();
         ImVec2 button_pos = ImGui::GetItemRectMin();
+        gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
+                                       current_room_id_, 0, 0, 0x12);
+        // Draw object preview on the button; fall back to styled placeholder
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
         // Only attempt graphical preview if enabled (performance optimization)
         bool rendered = false;
-        if (enable_object_previews_) {
+        if (item_visible && enable_object_previews_) {
           rendered = DrawObjectPreview(MakePreviewObject(obj_id), button_pos,
                                        item_size);
         }
 
-        if (!rendered) {
+        if (item_visible && !rendered) {
           // Draw a styled fallback with gradient background
-          ImU32 obj_color = GetObjectTypeColor(obj_id);
-          ImU32 darker_color = IM_COL32((obj_color & 0xFF) * 0.6f,
-                                        ((obj_color >> 8) & 0xFF) * 0.6f,
-                                        ((obj_color >> 16) & 0xFF) * 0.6f, 255);
-
-          // Gradient background
-          draw_list->AddRectFilledMultiColor(
-              button_pos,
-              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              darker_color, darker_color, obj_color, obj_color);
-
-          // Draw object type symbol in center
           std::string symbol = GetObjectTypeSymbol(obj_id);
-          ImVec2 symbol_size = ImGui::CalcTextSize(symbol.c_str());
-          ImVec2 symbol_pos(
-              button_pos.x + (item_size - symbol_size.x) / 2,
-              button_pos.y + (item_size - symbol_size.y) / 2 - 10);
-          draw_list->AddText(symbol_pos, IM_COL32(255, 255, 255, 180),
-                             symbol.c_str());
+          DrawFallbackPreviewTile(
+              draw_list, button_pos, item_size,
+              ImGui::ColorConvertU32ToFloat4(GetObjectTypeColor(obj_id)),
+              symbol.c_str());
         }
 
-        // Draw border with special highlight for static editor object
-        bool is_static_editor_obj = (obj_id == static_editor_object_id_);
+        // Draw selection border
         ImU32 border_color;
         float border_thickness;
 
-        if (is_static_editor_obj) {
-          border_color = IM_COL32(0, 200, 255, 255);
-          border_thickness = 3.0f;
-        } else if (is_selected) {
+        if (is_selected) {
           border_color = ImGui::GetColorU32(theme.dungeon_selection_primary);
           border_thickness = 3.0f;
         } else {
@@ -348,42 +448,39 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           border_thickness = 1.0f;
         }
 
-        draw_list->AddRect(
-            button_pos,
-            ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-            border_color, 0.0f, 0, border_thickness);
-
-        // Static editor indicator icon
-        if (is_static_editor_obj) {
-          ImVec2 icon_pos(button_pos.x + item_size - 14, button_pos.y + 2);
-          draw_list->AddCircleFilled(ImVec2(icon_pos.x + 6, icon_pos.y + 6), 6,
-                                     IM_COL32(0, 200, 255, 200));
-          draw_list->AddText(icon_pos, IM_COL32(255, 255, 255, 255), "i");
+        if (item_visible) {
+          draw_list->AddRect(
+              button_pos,
+              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+              border_color, 0.0f, 0, border_thickness);
         }
 
         // Get object name for display
         // Truncate name for display
         std::string display_name = full_name;
-        const size_t kMaxDisplayChars = 12;
-        if (display_name.length() > kMaxDisplayChars) {
-          display_name = display_name.substr(0, kMaxDisplayChars - 2) + "..";
+        const size_t max_display_chars =
+            std::max<size_t>(7, static_cast<size_t>(item_size / 6.0f));
+        if (display_name.length() > max_display_chars) {
+          display_name = display_name.substr(0, max_display_chars - 2) + "..";
         }
 
-        // Draw object name (smaller, above ID)
-        ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
-        ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
-                                 button_pos.y + item_size - 26);
-        draw_list->AddText(name_pos,
-                           ImGui::GetColorU32(theme.text_secondary_gray),
-                           display_name.c_str());
+        if (item_visible) {
+          // Draw object name (smaller, above ID)
+          ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
+          ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
+                                   button_pos.y + item_size - 26);
+          draw_list->AddText(name_pos,
+                             ImGui::GetColorU32(theme.text_secondary_gray),
+                             display_name.c_str());
 
-        // Draw object ID at bottom (hex format)
-        std::string id_text = absl::StrFormat("%03X", obj_id);
-        ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
-        ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                               button_pos.y + item_size - id_size.y - 2);
-        draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
-                           id_text.c_str());
+          // Draw object ID at bottom (hex format)
+          std::string id_text = absl::StrFormat("%03X", obj_id);
+          ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+          ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                                 button_pos.y + item_size - id_size.y - 2);
+          draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                             id_text.c_str());
+        }
 
         // Enhanced tooltip
         if (ImGui::IsItemHovered()) {
@@ -398,6 +495,12 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
             int subtype = zelda3::GetObjectSubtype(obj_id);
             ImGui::TextColored(theme.text_secondary_gray, "Subtype %d",
                                subtype);
+            ImGui::TextColored(
+                rendered ? theme.status_success : theme.status_warning,
+                "Preview: %s",
+                rendered ? "rendered tile layout"
+                         : (enable_object_previews_ ? "fallback symbol"
+                                                    : "thumbnails off"));
             ImGui::Separator();
 
             uint32_t layout_key = (static_cast<uint32_t>(obj_id) << 16) |
@@ -438,19 +541,18 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                 ImVec2 p1(grid_start.x + cell.rel_x * cell_size,
                           grid_start.y + cell.rel_y * cell_size);
                 ImVec2 p2(p1.x + cell_size, p1.y + cell_size);
-                tooltip_draw_list->AddRectFilled(p1, p2,
-                                                 IM_COL32(200, 200, 200, 255));
-                tooltip_draw_list->AddRect(p1, p2, IM_COL32(50, 50, 50, 255));
+                tooltip_draw_list->AddRectFilled(
+                    p1, p2, ThemeColor(theme.dungeon_grid_cell_highlight));
+                tooltip_draw_list->AddRect(
+                    p1, p2, ThemeColor(theme.panel_border_color));
               }
               ImGui::Dummy(ImVec2(layout.bounds_width * cell_size,
                                   layout.bounds_height * cell_size));
             }
 
             ImGui::Separator();
-            ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
+            ImGui::TextColored(theme.text_secondary_gray,
                                "Click to select for placement");
-            ImGui::TextColored(ImVec4(0.5f, 0.8f, 1.0f, 1.0f),
-                               "Double-click to view details");
             ImGui::EndTooltip();
           }
         }
@@ -460,223 +562,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         current_column = (current_column + 1) % columns;
       }  // end object loop
     }  // end range loop
-
-    EnsureCustomObjectsInitialized();
-
-    ImGui::Spacing();
-    ImGui::Separator();
-    ImGui::Spacing();
-
-    // Custom Objects Section
-    gui::StyleColorGuard custom_hdr_guard(
-        {{ImGuiCol_Header,
-          ImGui::ColorConvertU32ToFloat4(IM_COL32(100, 180, 120, 255))},
-         {ImGuiCol_HeaderHovered,
-          ImGui::ColorConvertU32ToFloat4(IM_COL32(130, 210, 150, 255))}});
-    bool custom_open = ImGui::CollapsingHeader("Custom Objects",
-                                               ImGuiTreeNodeFlags_DefaultOpen);
-
-    if (custom_open) {
-      ImGui::TextColored(theme.text_secondary_gray,
-                         "Create, reload, and browse custom object variants "
-                         "separately from the vanilla selector.");
-      // "+ New Custom Object" button
-      if (tile_editor_panel_) {
-        if (ImGui::SmallButton(ICON_MD_ADD " New Custom Object")) {
-          show_create_dialog_ = true;
-          // Auto-generate a default filename
-          snprintf(create_filename_, sizeof(create_filename_),
-                   "custom_%02x_%02d.bin", create_object_id_,
-                   zelda3::CustomObjectManager::Get().GetSubtypeCount(
-                       create_object_id_));
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Create a new custom object from scratch");
-        }
-      }
-
-      auto& obj_manager = zelda3::CustomObjectManager::Get();
-      const std::string custom_base_path = obj_manager.GetBasePath();
-      if (custom_base_path.empty()) {
-        ImGui::TextColored(theme.text_secondary_gray,
-                           "Custom objects folder: not configured");
-      } else {
-        ImGui::Text("Custom objects folder: %s", custom_base_path.c_str());
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s", custom_base_path.c_str());
-        }
-        ImGui::SameLine();
-        if (ImGui::SmallButton(ICON_MD_REFRESH " Reload")) {
-          obj_manager.ReloadAll();
-          InvalidatePreviewCache();
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(
-              "Reload custom object binaries and refresh previews");
-        }
-      }
-      ImGui::TextColored(theme.text_secondary_gray,
-                         "Corner overrides: 0x100/0x101/0x102/0x103 use 0x31 "
-                         "subtypes 02/04/03/05");
-
-      DrawNewCustomObjectDialog();
-
-      int custom_col = 0;
-
-      // Initialize if needed (hacky lazy init if drawer hasn't done it yet)
-      // Ideally should be initialized by system.
-      // We'll skip init here and assume ObjectDrawer did it or will do it.
-      // But we need counts. If uninitialized, counts might be wrong?
-      // GetSubtypeCount checks static lists, so it's safe even if not fully init with paths.
-
-      for (int obj_id : {0x31, 0x32}) {
-        if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
-          continue;
-        }
-        int subtype_count = obj_manager.GetSubtypeCount(obj_id);
-        for (int subtype = 0; subtype < subtype_count; ++subtype) {
-          std::string base_name = zelda3::GetObjectName(obj_id);
-          std::string subtype_name =
-              absl::StrFormat("%s %02X", base_name.c_str(), subtype);
-          if (!MatchesObjectSearch(obj_id, subtype_name, subtype)) {
-            continue;
-          }
-
-          if (custom_col > 0)
-            ImGui::SameLine();
-
-          ImGui::PushID(obj_id * 1000 + subtype);
-
-          bool is_selected = (selected_object_id_ == obj_id &&
-                              (preview_object_.size_ & 0x1F) == subtype);
-          ImVec2 button_size(item_size, item_size);
-
-          if (ImGui::Selectable("", is_selected,
-                                ImGuiSelectableFlags_AllowDoubleClick,
-                                button_size)) {
-            SelectObject(obj_id, subtype);
-
-            if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-              if (object_double_click_callback_)
-                object_double_click_callback_(obj_id);
-            }
-          }
-
-          // Draw Preview
-          ImVec2 button_pos = ImGui::GetItemRectMin();
-          ImDrawList* draw_list = ImGui::GetWindowDrawList();
-
-          bool rendered = false;
-          // Native preview requires loaded ROM and correct pathing, might fail if not init.
-          // But we can try constructing a temp object with correct subtype.
-          if (enable_object_previews_) {
-            auto temp_obj = MakePreviewObject(obj_id);
-            temp_obj.size_ = subtype;
-            rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
-          }
-
-          if (!rendered) {
-            // Fallback visuals
-            ImU32 obj_color = IM_COL32(100, 180, 120, 255);
-            ImU32 darker_color = IM_COL32(60, 100, 70, 255);
-
-            draw_list->AddRectFilledMultiColor(
-                button_pos,
-                ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-                darker_color, darker_color, obj_color, obj_color);
-
-            std::string symbol = (obj_id == 0x31) ? "Trk" : "Cus";
-            // Subtype
-            std::string sub_text = absl::StrFormat("%02X", subtype);
-            ImVec2 sub_size = ImGui::CalcTextSize(sub_text.c_str());
-            ImVec2 sub_pos(button_pos.x + (item_size - sub_size.x) / 2,
-                           button_pos.y + (item_size - sub_size.y) / 2);
-            draw_list->AddText(sub_pos, IM_COL32(255, 255, 255, 220),
-                               sub_text.c_str());
-          }
-
-          // Border
-          bool is_static_editor_obj = (obj_id == static_editor_object_id_ &&
-                                       static_editor_object_id_ != -1);
-          // Static editor doesn't track subtype currently, so highlighting all subtypes of 0x31 is correct
-          // if we are editing 0x31 generic. But maybe we only edit specific subtype?
-          // Static editor usually edits the code/logic common to ID.
-          ImU32 border_color =
-              is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
-                          : ImGui::GetColorU32(theme.panel_bg_darker);
-          float border_thickness = is_selected ? 3.0f : 1.0f;
-          draw_list->AddRect(
-              button_pos,
-              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 0.0f, 0, border_thickness);
-
-          // Name/ID
-          std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
-          ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
-          ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                                 button_pos.y + item_size - id_size.y - 2);
-          draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
-                             id_text.c_str());
-
-          if (ImGui::IsItemHovered()) {
-            gui::StyleColorGuard tooltip_guard(
-                {{ImGuiCol_PopupBg, theme.panel_bg_color},
-                 {ImGuiCol_Border, theme.panel_border_color}});
-            if (ImGui::BeginTooltip()) {
-              const std::string filename =
-                  obj_manager.ResolveFilename(obj_id, subtype);
-              const bool has_base = !custom_base_path.empty();
-              std::filesystem::path full_path =
-                  has_base
-                      ? (std::filesystem::path(custom_base_path) / filename)
-                      : std::filesystem::path();
-              const bool file_exists = has_base && !filename.empty() &&
-                                       std::filesystem::exists(full_path);
-
-              ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
-                                 obj_id, subtype);
-              ImGui::Text("%s", subtype_name.c_str());
-              ImGui::Separator();
-              ImGui::Text("File: %s",
-                          filename.empty() ? "(unmapped)" : filename.c_str());
-              if (!has_base) {
-                ImGui::TextColored(theme.text_warning_yellow,
-                                   "Folder not configured in project");
-              } else if (file_exists) {
-                ImGui::TextColored(theme.status_success, "File found");
-              } else {
-                ImGui::TextColored(theme.status_error, "File missing: %s",
-                                   full_path.string().c_str());
-              }
-
-              if (obj_id == 0x31 && subtype >= 2 && subtype <= 5) {
-                const char* corner_id = "";
-                if (subtype == 2) {
-                  corner_id = "0x100 (TL)";
-                } else if (subtype == 3) {
-                  corner_id = "0x102 (TR)";
-                } else if (subtype == 4) {
-                  corner_id = "0x101 (BL)";
-                } else {
-                  corner_id = "0x103 (BR)";
-                }
-                ImGui::Separator();
-                ImGui::TextColored(theme.status_active,
-                                   "Also used by corner override %s",
-                                   corner_id);
-              }
-              ImGui::EndTooltip();
-            }
-          }
-
-          ImGui::PopID();
-          custom_col = (custom_col + 1) % columns;
-        }
-      }
-    }
   }
 
   ImGui::EndChild();
+  DrawCustomObjectWorkshopPopup(item_size);
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
@@ -783,6 +672,7 @@ zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
 void DungeonObjectSelector::InvalidatePreviewCache() {
   preview_cache_.clear();
   layout_cache_.clear();
+  ++preview_cache_invalidations_;
 }
 
 bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
@@ -898,6 +788,7 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
 }
 
 void DungeonObjectSelector::DrawNewCustomObjectDialog() {
+  const auto& theme = AgentUI::GetTheme();
   if (show_create_dialog_) {
     ImGui::OpenPopup("New Custom Object");
     show_create_dialog_ = false;
@@ -954,8 +845,7 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
     }
 
     if (!error_msg.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "%s",
-                         error_msg.c_str());
+      ImGui::TextColored(theme.status_error, "%s", error_msg.c_str());
     }
 
     ImGui::Separator();
@@ -978,6 +868,239 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
 
     ImGui::EndPopup();
   }
+}
+
+void DungeonObjectSelector::DrawCustomObjectWorkshopButton(int custom_count) {
+  if (open_custom_workshop_popup_) {
+    ImGui::OpenPopup("Custom Object Workshop");
+    open_custom_workshop_popup_ = false;
+  }
+
+  if (ImGui::SmallButton(absl::StrFormat(ICON_MD_PRECISION_MANUFACTURING
+                                         " Workshop (%d)",
+                                         custom_count)
+                             .c_str())) {
+    ImGui::OpenPopup("Custom Object Workshop");
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Browse and create custom dungeon objects without cluttering the main "
+        "selector.");
+  }
+}
+
+void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
+  const auto& theme = AgentUI::GetTheme();
+  auto& obj_manager = zelda3::CustomObjectManager::Get();
+  const std::string custom_base_path = obj_manager.GetBasePath();
+
+  DrawNewCustomObjectDialog();
+
+  ImGui::SetNextWindowSize(ImVec2(860.0f, 620.0f), ImGuiCond_FirstUseEver);
+  if (!ImGui::BeginPopupModal("Custom Object Workshop", nullptr,
+                              ImGuiWindowFlags_None)) {
+    return;
+  }
+
+  ImGui::TextColored(theme.text_info,
+                     ICON_MD_PRECISION_MANUFACTURING " Custom Object Workshop");
+  ImGui::TextColored(theme.text_secondary_gray,
+                     "Create and place custom dungeon objects without mixing "
+                     "them into the main selector grid.");
+  ImGui::Separator();
+
+  if (ImGui::BeginTable(
+          "##CustomObjectToolbar", 2,
+          ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX)) {
+    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthStretch, 1.5f);
+    ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthStretch,
+                            1.0f);
+    ImGui::TableNextRow();
+
+    ImGui::TableNextColumn();
+    if (custom_base_path.empty()) {
+      ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING
+                         " Custom object folder is not configured.");
+    } else {
+      ImGui::TextColored(theme.text_secondary_gray,
+                         ICON_MD_FOLDER " Workshop folder");
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", custom_base_path.c_str());
+      }
+    }
+
+    ImGui::TableNextColumn();
+    if (tile_editor_panel_) {
+      if (ImGui::Button(ICON_MD_ADD " New Custom Object", ImVec2(-1, 0))) {
+        show_create_dialog_ = true;
+        std::snprintf(create_filename_, sizeof(create_filename_),
+                      "custom_%02x_%02d.bin", create_object_id_,
+                      zelda3::CustomObjectManager::Get().GetSubtypeCount(
+                          create_object_id_));
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Create a new custom object from scratch");
+      }
+    }
+    if (ImGui::Button(ICON_MD_REFRESH " Reload Workshop", ImVec2(-1, 0))) {
+      obj_manager.ReloadAll();
+      InvalidatePreviewCache();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Reload custom object binaries and refresh their previews");
+    }
+    ImGui::EndTable();
+  }
+
+  ImGui::TextColored(
+      theme.text_secondary_gray, ICON_MD_INFO
+      " Corner overrides map to 0x31 subtypes 02, 04, 03, and 05.");
+  ImGui::Spacing();
+
+  if (ImGui::BeginChild("##CustomObjectGrid",
+                        ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4.0f),
+                        false,
+                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
+                            ImGuiWindowFlags_HorizontalScrollbar)) {
+    const float item_spacing = 6.0f;
+    const int columns = std::max(
+        1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /
+                            (item_size + item_spacing)));
+    int custom_col = 0;
+    for (int obj_id : {0x31, 0x32}) {
+      if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
+        continue;
+      }
+      int subtype_count = obj_manager.GetSubtypeCount(obj_id);
+      for (int subtype = 0; subtype < subtype_count; ++subtype) {
+        std::string base_name = zelda3::GetObjectName(obj_id);
+        std::string subtype_name =
+            absl::StrFormat("%s %02X", base_name.c_str(), subtype);
+        if (!MatchesObjectSearch(obj_id, subtype_name, subtype)) {
+          continue;
+        }
+
+        if (custom_col > 0) {
+          ImGui::SameLine();
+        }
+
+        ImGui::PushID(obj_id * 1000 + subtype);
+
+        bool is_selected = (selected_object_id_ == obj_id &&
+                            (preview_object_.size_ & 0x1F) == subtype);
+        ImVec2 button_size(item_size, item_size);
+
+        if (ImGui::Selectable("", is_selected, 0, button_size)) {
+          SelectObject(obj_id, subtype);
+          ImGui::CloseCurrentPopup();
+        }
+        const bool item_visible = ImGui::IsItemVisible();
+        ImVec2 button_pos = ImGui::GetItemRectMin();
+        gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
+                                       current_room_id_, 0, 0,
+                                       static_cast<uint8_t>(subtype & 0x1F));
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        bool rendered = false;
+        if (item_visible && enable_object_previews_) {
+          auto temp_obj = MakePreviewObject(obj_id);
+          temp_obj.size_ = subtype;
+          rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
+        }
+
+        if (item_visible && !rendered) {
+          std::string sub_text = absl::StrFormat("%02X", subtype);
+          DrawFallbackPreviewTile(draw_list, button_pos, item_size,
+                                  theme.status_success, sub_text.c_str());
+        }
+
+        ImU32 border_color =
+            is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
+                        : ImGui::GetColorU32(theme.panel_bg_darker);
+        float border_thickness = is_selected ? 3.0f : 1.0f;
+        if (item_visible) {
+          draw_list->AddRect(
+              button_pos,
+              ImVec2(button_pos.x + item_size, button_pos.y + item_size),
+              border_color, 0.0f, 0, border_thickness);
+
+          std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
+          ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
+          ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
+                                 button_pos.y + item_size - id_size.y - 2);
+          draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
+                             id_text.c_str());
+        }
+
+        if (ImGui::IsItemHovered()) {
+          gui::StyleColorGuard tooltip_guard(
+              {{ImGuiCol_PopupBg, theme.panel_bg_color},
+               {ImGuiCol_Border, theme.panel_border_color}});
+          if (ImGui::BeginTooltip()) {
+            const std::string filename =
+                obj_manager.ResolveFilename(obj_id, subtype);
+            const bool has_base = !custom_base_path.empty();
+            std::filesystem::path full_path =
+                has_base ? (std::filesystem::path(custom_base_path) / filename)
+                         : std::filesystem::path();
+            const bool file_exists = has_base && !filename.empty() &&
+                                     std::filesystem::exists(full_path);
+
+            ImGui::TextColored(theme.selection_primary, "Custom 0x%02X:%02X",
+                               obj_id, subtype);
+            ImGui::Text("%s", subtype_name.c_str());
+            ImGui::TextColored(
+                rendered ? theme.status_success : theme.status_warning,
+                "Preview: %s",
+                rendered ? "rendered custom layout"
+                         : (enable_object_previews_ ? "fallback subtype"
+                                                    : "thumbnails off"));
+            ImGui::Separator();
+            ImGui::Text("File: %s",
+                        filename.empty() ? "(unmapped)" : filename.c_str());
+            if (!has_base) {
+              ImGui::TextColored(theme.text_warning_yellow,
+                                 "Folder not configured in project");
+            } else if (file_exists) {
+              ImGui::TextColored(theme.status_success, "File found");
+            } else {
+              ImGui::TextColored(theme.status_error, "File missing: %s",
+                                 full_path.string().c_str());
+            }
+
+            if (obj_id == 0x31 && subtype >= 2 && subtype <= 5) {
+              const char* corner_id = "";
+              if (subtype == 2) {
+                corner_id = "0x100 (TL)";
+              } else if (subtype == 3) {
+                corner_id = "0x102 (TR)";
+              } else if (subtype == 4) {
+                corner_id = "0x101 (BL)";
+              } else {
+                corner_id = "0x103 (BR)";
+              }
+              ImGui::Separator();
+              ImGui::TextColored(theme.status_active,
+                                 "Also used by corner override %s", corner_id);
+            }
+            ImGui::EndTooltip();
+          }
+        }
+
+        ImGui::PopID();
+        custom_col = (custom_col + 1) % columns;
+      }
+    }
+  }
+  ImGui::EndChild();
+
+  ImGui::Separator();
+  if (ImGui::Button(ICON_MD_CLOSE " Close")) {
+    ImGui::CloseCurrentPopup();
+  }
+
+  ImGui::EndPopup();
 }
 
 }  // namespace yaze::editor

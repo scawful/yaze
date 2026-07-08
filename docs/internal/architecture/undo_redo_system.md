@@ -1,8 +1,8 @@
 # Undo/Redo System Architecture
 
 **Status**: Active
-**Last Updated**: 2026-02-10
-**Related Code**: `src/app/editor/undo/`, `src/app/editor/editor.h`
+**Last Updated**: 2026-04-27
+**Related Code**: `src/app/editor/core/`, `src/app/editor/editor.h`
 
 ## Overview
 
@@ -10,7 +10,7 @@ The undo/redo system uses a unified `UndoManager` embedded in the `Editor` base 
 
 ## Core Components
 
-### UndoManager (`src/app/editor/undo/undo_manager.h`)
+### UndoManager (`src/app/editor/core/undo_manager.h`)
 
 Owns two stacks: `undo_stack_` and `redo_stack_`. Each entry is a `std::unique_ptr<UndoAction>`.
 
@@ -26,9 +26,10 @@ Key operations:
 class UndoAction {
  public:
   virtual ~UndoAction() = default;
-  virtual void Undo() = 0;
-  virtual void Redo() = 0;
-  virtual std::string GetDescription() const = 0;
+  virtual absl::Status Undo() = 0;
+  virtual absl::Status Redo() = 0;
+  virtual std::string Description() const = 0;
+  virtual size_t MemoryUsage() const = 0;
 };
 ```
 
@@ -40,7 +41,7 @@ class UndoAction {
 
 | Editor | Action Classes | What Gets Snapshotted |
 |--------|---------------|----------------------|
-| Overworld | Paint actions via `PushUndoState()` | Tile map state |
+| Overworld | `OverworldTilePaintAction`, `OverworldItemsEditAction`, `OverworldMapPropertyEditAction`, `OverworldMapPropertyBatchEditAction`, `OverworldProjectLabelEditAction` | Tile paint batches, item snapshots, map metadata before/after values, project labels |
 | Dungeon | `DungeonCustomCollisionAction`, `DungeonWaterFillAction`, object move/insert/delete | Collision grid, water fill zones, object list |
 | Graphics | `GraphicsEditorState` snapshot stack | Pixel data per sheet |
 | Music | `PushUndoState(song_index)` | Song data at explicit index |
@@ -60,6 +61,18 @@ This allows domain-specific snapshot/finalize pairs:
 ### Graphics Editor
 
 `GraphicsEditorState` maintains its own snapshot-based stack internally. The top-level `GraphicsEditor::Undo()/Redo()` delegates to `PixelEditorPanel` which handles it with buttons and keyboard shortcuts.
+
+### Overworld Metadata Edits
+
+Overworld map metadata edits are intentionally value-based rather than whole-map
+snapshots. `MapPropertiesSystem::ReadPropertyValue()` captures the before and
+after value for a single `OverworldPropertyEdit`, then `OverworldEditor` pushes
+an undo action after the direct edit succeeds.
+
+Multi-field operations, such as canvas context-menu map metadata paste, are
+stored as one `OverworldMapPropertyBatchEditAction`. Undo replays the captured
+before edits in reverse order, and redo replays the after edits in original
+order.
 
 ## Dispatch Flow
 

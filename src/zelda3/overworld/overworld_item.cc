@@ -88,12 +88,15 @@ absl::StatusOr<std::vector<OverworldItem>> LoadItems(
 }
 
 absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items) {
-  const int pointer_count = zelda3::kNumOverworldMaps;
+  const auto version = OverworldVersionHelper::GetVersion(*rom);
+  const int pointer_count = OverworldVersionHelper::SupportsAreaEnum(version)
+                                ? zelda3::kNumOverworldMaps
+                                : zelda3::kNumOverworldMapItemPointers;
 
   std::vector<std::vector<OverworldItem>> room_items(pointer_count);
 
   // Reset bomb door lookup table used by special item (0x86)
-  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+  for (int i = 0; i < pointer_count; ++i) {
     RETURN_IF_ERROR(rom->WriteShort(
         zelda3::kOverworldBombDoorItemLocationsNew + (i * 2), 0x0000));
   }
@@ -114,8 +117,7 @@ absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items) {
     room_items[map_index].push_back(item);
 
     if (item.id_ == 0x86) {
-      const int lookup_index =
-          std::min(map_index, zelda3::kNumOverworldMaps - 1);
+      const int lookup_index = std::min(map_index, pointer_count - 1);
       RETURN_IF_ERROR(rom->WriteShort(
           zelda3::kOverworldBombDoorItemLocationsNew + (lookup_index * 2),
           static_cast<uint16_t>((item.game_x_ + (item.game_y_ * 64)) * 2)));
@@ -191,7 +193,7 @@ absl::Status SaveItems(Rom* rom, const std::vector<OverworldItem>& items) {
 
   // Clear pointer table (write zero) to avoid stale values when pointer count
   // shrinks
-  for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+  for (int i = 0; i < pointer_count; ++i) {
     RETURN_IF_ERROR(
         rom->WriteShort(zelda3::kOverworldItemsPointersNew + (i * 2), 0x0000));
   }

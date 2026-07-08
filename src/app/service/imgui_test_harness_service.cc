@@ -26,8 +26,8 @@
 #include "absl/time/time.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/service/screenshot_utils.h"
-#include "app/test/test_manager.h"
-#include "app/test/test_script_parser.h"
+#include "app/testing/test_manager.h"
+#include "app/testing/test_script_parser.h"
 #include "protos/imgui_test_harness.grpc.pb.h"
 #include "protos/imgui_test_harness.pb.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING

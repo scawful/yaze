@@ -189,18 +189,20 @@ absl::Status DungeonRoomLoader::LoadAllRooms(DungeonRoomStore& rooms) {
 }
 
 absl::Status DungeonRoomLoader::LoadRoomEntrances(
-    std::array<zelda3::RoomEntrance, 0x8C>& entrances) {
+    std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>&
+        entrances) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
   // Load entrances
-  for (int i = 0; i < 0x07; ++i) {
+  for (int i = 0; i < zelda3::kNumDungeonSpawnPoints; ++i) {
     entrances[i] = zelda3::RoomEntrance(rom_, i, true);
   }
 
-  for (int i = 0; i < 0x85; ++i) {
-    entrances[i + 0x07] = zelda3::RoomEntrance(rom_, i, false);
+  for (int i = 0; i < zelda3::kNumRegularDungeonEntrances; ++i) {
+    entrances[i + zelda3::kNumDungeonSpawnPoints] =
+        zelda3::RoomEntrance(rom_, i, false);
   }
 
   return absl::OkStatus();
@@ -247,7 +249,7 @@ absl::Status DungeonRoomLoader::LoadAndRenderRoomGraphics(zelda3::Room& room) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  room.ReloadGraphics(room.blockset());
+  room.ReloadGraphics();
 
   return absl::OkStatus();
 }

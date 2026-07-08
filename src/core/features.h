@@ -46,6 +46,7 @@ class FeatureFlags {
       bool kSaveWaterFillZones = true;
       bool kSaveChests = true;
       bool kSavePotItems = true;
+      bool kSaveEntrances = true;
       bool kSavePalettes = true;
 
       // UI/UX
@@ -131,30 +132,40 @@ class FeatureFlags {
         "\n";
     result +=
         "kSaveDungeonMaps: " + std::to_string(get().kSaveDungeonMaps) + "\n";
-    result += "kSaveDungeonObjects: " +
-              std::to_string(get().dungeon.kSaveObjects) + "\n";
-    result += "kSaveDungeonSprites: " +
-              std::to_string(get().dungeon.kSaveSprites) + "\n";
+    result +=
+        "kSaveDungeonObjects: " + std::to_string(get().dungeon.kSaveObjects) +
+        "\n";
+    result +=
+        "kSaveDungeonSprites: " + std::to_string(get().dungeon.kSaveSprites) +
+        "\n";
     result += "kSaveDungeonRoomHeaders: " +
               std::to_string(get().dungeon.kSaveRoomHeaders) + "\n";
-    result += "kSaveDungeonTorches: " +
-              std::to_string(get().dungeon.kSaveTorches) + "\n";
-    result += "kSaveDungeonPits: " +
-              std::to_string(get().dungeon.kSavePits) + "\n";
-    result += "kSaveDungeonBlocks: " +
-              std::to_string(get().dungeon.kSaveBlocks) + "\n";
+    result +=
+        "kSaveDungeonTorches: " + std::to_string(get().dungeon.kSaveTorches) +
+        "\n";
+    result +=
+        "kSaveDungeonPits: " + std::to_string(get().dungeon.kSavePits) + "\n";
+    result +=
+        "kSaveDungeonBlocks: " + std::to_string(get().dungeon.kSaveBlocks) +
+        "\n";
     result += "kSaveDungeonCollision: " +
               std::to_string(get().dungeon.kSaveCollision) + "\n";
     result += "kSaveDungeonWaterFillZones: " +
               std::to_string(get().dungeon.kSaveWaterFillZones) + "\n";
-    result += "kSaveDungeonChests: " +
-              std::to_string(get().dungeon.kSaveChests) + "\n";
-    result += "kSaveDungeonPotItems: " +
-              std::to_string(get().dungeon.kSavePotItems) + "\n";
-    result += "kSaveDungeonPalettes: " +
-              std::to_string(get().dungeon.kSavePalettes) + "\n";
-    result += "kDungeonUseWorkbench: " +
-              std::to_string(get().dungeon.kUseWorkbench) + "\n";
+    result +=
+        "kSaveDungeonChests: " + std::to_string(get().dungeon.kSaveChests) +
+        "\n";
+    result +=
+        "kSaveDungeonPotItems: " + std::to_string(get().dungeon.kSavePotItems) +
+        "\n";
+    result += "kSaveDungeonEntrances: " +
+              std::to_string(get().dungeon.kSaveEntrances) + "\n";
+    result +=
+        "kSaveDungeonPalettes: " + std::to_string(get().dungeon.kSavePalettes) +
+        "\n";
+    result +=
+        "kDungeonUseWorkbench: " + std::to_string(get().dungeon.kUseWorkbench) +
+        "\n";
     result += "kSaveMessages: " + std::to_string(get().kSaveMessages) + "\n";
     result += "kLogToConsole: " + std::to_string(get().kLogToConsole) + "\n";
     result += "kDrawOverworldSprites: " +
@@ -181,8 +192,9 @@ class FeatureFlags {
         "\n";
     result += "kEnableTieredGfxArchitecture: " +
               std::to_string(get().kEnableTieredGfxArchitecture) + "\n";
-    result += "kEnableCustomObjects: " +
-              std::to_string(get().kEnableCustomObjects) + "\n";
+    result +=
+        "kEnableCustomObjects: " + std::to_string(get().kEnableCustomObjects) +
+        "\n";
     return result;
   }
 };

@@ -199,10 +199,10 @@ void DrawRightwardsDecor2x2spaced12_1to16(const DrawContext& ctx);
 void DrawRightwards4x2_1to16(const DrawContext& ctx);
 
 /**
- * @brief Draw 1x8 decorative columns with wide horizontal spacing
+ * @brief Draw 4x2 decorative stamps with wide horizontal spacing
  *
- * Pattern: Draws one tile-wide, eight tile-high columns (objects 0x55-0x56)
- * with 12-tile horizontal step.
+ * Pattern: Draws 4x2 wall-torch/decor stamps (objects 0x55-0x56)
+ * with a 12-tile horizontal step.
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */

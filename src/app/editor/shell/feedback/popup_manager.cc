@@ -141,6 +141,9 @@ void PopupManager::Initialize() {
   popups_[PopupID::kWriteConflictWarning] = {
       PopupID::kWriteConflictWarning, PopupType::kWarning, false, true,
       [this]() { DrawWriteConflictWarningPopup(); }};
+  popups_[PopupID::kUnsavedSessionChanges] = {
+      PopupID::kUnsavedSessionChanges, PopupType::kConfirmation, false, false,
+      [this]() { DrawUnsavedSessionChangesPopup(); }};
 }
 
 void PopupManager::DrawPopups() {
@@ -1487,6 +1490,47 @@ void PopupManager::DrawWriteConflictWarningPopup() {
   if (Button("Cancel", ImVec2(0, 0)) || IsKeyPressed(ImGuiKey_Escape)) {
     editor_manager_->ClearPendingWriteConflicts();
     Hide(PopupID::kWriteConflictWarning);
+  }
+}
+
+void PopupManager::DrawUnsavedSessionChangesPopup() {
+  using namespace ImGui;
+
+  if (!editor_manager_) {
+    Hide(PopupID::kUnsavedSessionChanges);
+    return;
+  }
+
+  if (!editor_manager_->HasPendingUnsavedSessionAction()) {
+    Hide(PopupID::kUnsavedSessionChanges);
+    return;
+  }
+
+  Text("%s Unsaved Session Changes", ICON_MD_WARNING);
+  Separator();
+  TextWrapped("%s",
+              editor_manager_->GetPendingUnsavedSessionActionPrompt().c_str());
+  Spacing();
+
+  const std::string save_label =
+      editor_manager_->GetPendingUnsavedSessionActionSaveLabel();
+  if (Button(save_label.c_str(), ::yaze::gui::kDefaultModalSize)) {
+    editor_manager_->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+    return;
+  }
+
+  SameLine();
+  const std::string continue_label =
+      editor_manager_->GetPendingUnsavedSessionActionContinueLabel();
+  if (Button(continue_label.c_str(), ::yaze::gui::kDefaultModalSize)) {
+    editor_manager_->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+    return;
+  }
+
+  SameLine();
+  if (Button("Cancel", ::yaze::gui::kDefaultModalSize) ||
+      IsKeyPressed(ImGuiKey_Escape)) {
+    editor_manager_->CancelPendingUnsavedSessionAction();
   }
 }
 

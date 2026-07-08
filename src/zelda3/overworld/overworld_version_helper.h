@@ -56,7 +56,7 @@ namespace yaze::zelda3 {
 // =============================================================================
 
 /// @brief Area size enumeration for v3+ ROMs
-/// 
+///
 /// v3 introduces explicit area size types beyond the simple large_map_ flag:
 /// - SmallArea: Standard 1x1 screen (512x512 pixels)
 /// - LargeArea: 2x2 screens (1024x1024 pixels)
@@ -142,7 +142,7 @@ class OverworldVersionHelper {
   // ===========================================================================
   // Version Detection
   // ===========================================================================
-  
+
   /**
    * @brief Detect ROM version from ASM marker byte
    * @param rom ROM to check
@@ -182,9 +182,12 @@ class OverworldVersionHelper {
    * @return Raw version byte (0x01, 0x02, 0x03, or 0xFF for vanilla)
    */
   static uint8_t GetAsmVersion(const Rom& rom) {
+    if (rom.size() <= OverworldCustomASMHasBeenApplied) {
+      return 0xFF;
+    }
     return rom.data()[OverworldCustomASMHasBeenApplied];
   }
-  
+
   // ===========================================================================
   // Feature Checks
   // ===========================================================================

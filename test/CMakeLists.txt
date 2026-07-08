@@ -206,15 +206,31 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/snes_palette_test.cc
     unit/gfx/usdasm_palette_loading_test.cc
     unit/gfx/bpp_conversion_test.cc
+    unit/gfx/sheet_role_palette_table_test.cc
     unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
     unit/gui/canvas_automation_api_test.cc
+    unit/gui/canvas_context_menu_role_test.cc
     unit/gui/canvas_coordinate_sync_test.cc
     unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
     unit/gui/panel_window_test.cc
     unit/gui/animator_test.cc
+    unit/gui/property_inspector_test.cc
+    unit/gui/resize_handles_test.cc
+    unit/gui/font_picker_test.cc
+    unit/gui/icon_browser_test.cc
+    unit/editor/layout/dock_tree_test.cc
+    unit/editor/layout/dock_tree_json_test.cc
+    unit/editor/layout/dock_tree_renderer_test.cc
+    unit/editor/layout/dock_tree_hit_test_test.cc
+    unit/editor/layout/drop_zone_suggester_test.cc
+    unit/editor/layout/layout_manager_dock_tree_test.cc
+    unit/editor/layout/panel_palette_test.cc
+    unit/editor/layout/tree_undo_stack_test.cc
+    unit/editor/layout/layout_designer_panel_replace_tree_test.cc
+    unit/editor/user_settings_named_layouts_test.cc
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/message/message_expanded_write_test.cc
@@ -232,10 +248,13 @@ if(YAZE_BUILD_TESTS)
     unit/editor/right_drawer_manager_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
+    unit/editor/sprite_editor_preview_test.cc
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
+    unit/editor/editor_activator_test.cc
     unit/editor/editor_manager_test.cc
+    unit/editor/story_event_graph_navigation_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
@@ -244,9 +263,12 @@ if(YAZE_BUILD_TESTS)
     unit/editor/paint_util_test.cc
     unit/editor/map_properties_context_menu_test.cc
     unit/editor/dungeon_layout_defaults_test.cc
+    unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/layout_presets_test.cc
     unit/editor/graphics_editor_window_ids_test.cc
     unit/editor/gfx_group_workspace_state_test.cc
+    unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
@@ -258,16 +280,23 @@ if(YAZE_BUILD_TESTS)
     unit/editor/shortcut_configurator_test.cc
     unit/editor/window_sidebar_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_workbench_content_test.cc
+    unit/editor/dungeon_issue_report_storage_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
+    unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
+    unit/editor/object_tile_editor_panel_test.cc
     unit/editor/toast_dedup_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/editor/tile16_editor_action_state_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
     unit/editor/tile8_source_interaction_test.cc
     unit/editor/overworld_item_operations_test.cc
+    unit/editor/overworld_editor_state_test.cc
+    unit/editor/overworld_map_metadata_test.cc
+    unit/editor/overworld_property_edit_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
     unit/zelda3/overworld_test.cc
@@ -278,6 +307,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/tile16_renderer_test.cc
     unit/zelda3/tile16_usage_index_test.cc
     unit/zelda3/resource_labels_test.cc
+    unit/zelda3/sprite_render_preview_test.cc
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
@@ -287,11 +317,14 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
+    unit/zelda3/dungeon/dungeon_block_codec_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/custom_object_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
+    unit/zelda3/dungeon/pit_damage_table_test.cc
+    unit/zelda3/dungeon/dungeon_editor_system_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
     unit/zelda3/dungeon/dimension_cross_validation_test.cc
@@ -343,10 +376,20 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
-    integration/zelda3/dungeon_object_rom_validation_test.cc
+    # NOTE: dungeon_object_rom_validation_test.cc is intentionally NOT listed
+    # here. It is registered exclusively into yaze_test_rom_dependent below
+    # because every test in the file gates on TestRomManager::GetTestRomPath()
+    # in SetUp() and skips without a vanilla ROM. Linking it into
+    # yaze_test_integration as well caused two specific tests
+    # (DrawRoutineMapping_AllType1ObjectsHaveRoutines, ObjectDimensions_
+    # MatchesROMTileCount) to segfault/abort under that binary's static-init
+    # order while passing cleanly from yaze_test_rom_dependent. Single
+    # registration keeps the ROM-backed signal trustworthy.
     integration/zelda3/dungeon_room_render_parity_test.cc
+    integration/zelda3/dungeon_room_regression_fixtures_test.cc
     integration/zelda3/dungeon_palette_test.cc
     integration/zelda3/dungeon_room_test.cc
+    integration/zelda3/dungeon_staircase_slot_parity_test.cc
     integration/zelda3/minecart_audit_integration_test.cc
     integration/zelda3/oracle_workflow_integration_test.cc
     integration/zelda3/oracle_smoke_check_integration_test.cc
@@ -429,6 +472,12 @@ if(YAZE_BUILD_TESTS)
     )
   endif()
 
+  if(YAZE_ENABLE_GRPC)
+    list(APPEND STABLE_INTEGRATION_TEST_SOURCES
+      integration/grpc_server_smoke_test.cc
+    )
+  endif()
+
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   if(YAZE_ENABLE_ROM_TESTS)
@@ -482,11 +531,16 @@ if(YAZE_BUILD_TESTS)
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
+    unit/gfx/sheet_role_palette_table_test.cc
+    unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
+    unit/zelda3/sprite_render_preview_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
+    unit/editor/editor_activator_test.cc
+    unit/editor/story_event_graph_navigation_test.cc
     unit/editor/message/message_expanded_write_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/background_command_task_test.cc
@@ -508,13 +562,37 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
     unit/editor/dungeon_layout_defaults_test.cc
+    unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
+    unit/editor/dungeon_workbench_content_test.cc
+    unit/editor/object_tile_editor_panel_test.cc
     unit/editor/project_manager_validator_test.cc
     unit/editor/tile_painting_manager_test.cc
     unit/editor/tile16_editor_shortcuts_test.cc
     unit/editor/canvas_navigation_manager_test.cc
     unit/editor/map_refresh_coordinator_test.cc
+    unit/editor/overworld_map_metadata_test.cc
+    unit/editor/overworld_property_edit_test.cc
+    unit/editor/gfx_group_editor_render_test.cc
+    unit/editor/palette_controls_panel_layout_test.cc
+    unit/editor/sprite_editor_preview_test.cc
+    unit/gui/property_inspector_test.cc
+    unit/gui/resize_handles_test.cc
+    unit/gui/font_picker_test.cc
+    unit/gui/icon_browser_test.cc
+    unit/editor/layout/dock_tree_test.cc
+    unit/editor/layout/dock_tree_json_test.cc
+    unit/editor/layout/dock_tree_renderer_test.cc
+    unit/editor/layout/dock_tree_hit_test_test.cc
+    unit/editor/layout/drop_zone_suggester_test.cc
+    unit/editor/layout/layout_manager_dock_tree_test.cc
+    unit/editor/layout/panel_palette_test.cc
+    unit/editor/layout/tree_undo_stack_test.cc
+    unit/editor/layout/layout_designer_panel_replace_tree_test.cc
+    unit/editor/user_settings_named_layouts_test.cc
+    unit/editor/user_settings_layout_defaults_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
@@ -528,6 +606,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
+    unit/zelda3/dungeon/dungeon_block_codec_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/object_layer_semantics_test.cc
     unit/zelda3/dungeon/draw_routine_bothbg_metadata_test.cc

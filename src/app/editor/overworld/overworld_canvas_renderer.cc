@@ -24,7 +24,7 @@
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
@@ -48,10 +48,14 @@ OverworldCanvasRenderer::OverworldCanvasRenderer(OverworldEditor* editor)
 // =============================================================================
 
 void OverworldCanvasRenderer::DrawOverworldCanvas() {
+  if (!editor_) {
+    return;
+  }
+
   // Simplified map settings - compact row with popup panels for detailed
   // editing
-  if (editor_->rom_->is_loaded() && editor_->overworld_.is_loaded() &&
-      editor_->map_properties_system_) {
+  if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
+      editor_->overworld_.is_loaded() && editor_->map_properties_system_) {
     const EditingMode old_mode = editor_->current_mode;
     bool has_selection = editor_->ow_map_canvas_.select_rect_active() &&
                          !editor_->ow_map_canvas_.selected_tiles().empty();
@@ -64,7 +68,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->current_world_, editor_->current_map_,
         editor_->current_map_lock_, editor_->current_mode,
         editor_->entity_edit_mode_, editor_->dependencies_.window_manager,
-        has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_);
+        has_selection, scratch_has_data, editor_->rom_, &editor_->overworld_,
+        editor_->dependencies_.project, editor_->game_state_,
+        editor_->dependencies_.shared_clipboard);
+    editor_->NormalizeCurrentSelectionState();
 
     // Toolbar toggles don't currently update canvas usage mode.
     if (old_mode != editor_->current_mode) {
@@ -86,14 +93,17 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       (!editor_->entity_renderer_ ||
        editor_->entity_renderer_->hovered_entity() == nullptr);
 
-  if (editor_->rom_->is_loaded() && editor_->overworld_.is_loaded() &&
-      editor_->map_properties_system_) {
+  if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
+      editor_->overworld_.is_loaded() && editor_->map_properties_system_) {
     editor_->ow_map_canvas_.ClearContextMenuItems();
+    const int context_map = editor_->hovered_map_ >= 0 ? editor_->hovered_map_
+                                                       : editor_->current_map_;
     editor_->map_properties_system_->SetupCanvasContextMenu(
-        editor_->ow_map_canvas_, editor_->current_map_,
-        editor_->current_map_lock_, editor_->show_map_properties_panel_,
+        editor_->ow_map_canvas_, context_map, editor_->current_map_lock_,
+        editor_->show_map_properties_panel_,
         editor_->show_custom_bg_color_editor_, editor_->show_overlay_editor_,
-        static_cast<int>(editor_->current_mode));
+        static_cast<int>(editor_->current_mode), editor_->dependencies_.project,
+        editor_->dependencies_.shared_clipboard);
   }
 
   // Configure canvas frame options
@@ -121,12 +131,6 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // Handle pan via ImGui scrolling (instead of canvas internal scroll)
   editor_->HandleOverworldPan();
   editor_->HandleOverworldZoom();
-
-  // Tile painting mode - handle tile edits and right-click tile picking
-  if (editor_->current_mode == EditingMode::DRAW_TILE ||
-      editor_->current_mode == EditingMode::FILL_TILE) {
-    editor_->HandleMapInteraction();
-  }
 
   if (editor_->overworld_.is_loaded()) {
     // Draw the 64 overworld map bitmaps
@@ -157,6 +161,7 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
     // Use canvas runtime hover state for map detection
     if (canvas_rt.hovered) {
       editor_->status_ = editor_->CheckForCurrentMap();
+      editor_->HandleMapInteraction();
     }
 
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---
@@ -338,6 +343,34 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
 
   editor_->UpdateBlocksetSelectorState();
+  editor_->blockset_canvas_.ClearContextMenuItems();
+
+  auto open_tile16_editor = [this](int tile_id) {
+    editor_->RequestTile16Selection(tile_id);
+    if (editor_->dependencies_.window_manager) {
+      const size_t session_id =
+          editor_->dependencies_.window_manager->GetActiveSessionId();
+      editor_->dependencies_.window_manager->OpenWindow(
+          session_id, OverworldPanelIds::kTile16Editor);
+      editor_->dependencies_.window_manager->MarkWindowRecentlyUsed(
+          OverworldPanelIds::kTile16Editor);
+    }
+  };
+
+  gui::CanvasMenuItem edit_tile_item;
+  edit_tile_item.label = ICON_MD_GRID_VIEW " Edit Tile16";
+  edit_tile_item.shortcut = "Double-click";
+  edit_tile_item.enabled_condition = [this]() {
+    return editor_->blockset_selector_ &&
+           editor_->blockset_selector_->GetSelectedTileID() >= 0;
+  };
+  edit_tile_item.callback = [this, open_tile16_editor]() {
+    if (!editor_->blockset_selector_) {
+      return;
+    }
+    open_tile16_editor(editor_->blockset_selector_->GetSelectedTileID());
+  };
+  editor_->blockset_canvas_.AddContextMenuItem(edit_tile_item);
 
   gui::BeginPadding(3);
   ImGui::BeginGroup();
@@ -366,10 +399,7 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
   }
 
   if (result.tile_double_clicked) {
-    if (editor_->dependencies_.window_manager) {
-      editor_->dependencies_.window_manager->OpenWindow(
-          OverworldPanelIds::kTile16Editor);
-    }
+    open_tile16_editor(result.selected_tile);
   }
 
   ImGui::EndChild();
@@ -415,11 +445,19 @@ absl::Status OverworldCanvasRenderer::DrawAreaGraphics() {
   if (editor_->overworld_.is_loaded()) {
     // Always ensure current map graphics are loaded
     if (!editor_->current_graphics_set_.contains(editor_->current_map_)) {
-      editor_->overworld_.set_current_map(editor_->current_map_);
-      editor_->palette_ = editor_->overworld_.current_area_palette();
+      auto status = editor_->overworld_.EnsureMapBuilt(editor_->current_map_);
+      if (!status.ok()) {
+        return status;
+      }
+      const auto* map =
+          editor_->overworld_.overworld_map(editor_->current_map_);
+      if (!map) {
+        return absl::FailedPreconditionError(
+            "Current overworld map not loaded");
+      }
+      editor_->palette_ = map->current_palette();
       auto bmp = std::make_unique<gfx::Bitmap>();
-      bmp->Create(0x80, kOverworldMapSize, 0x08,
-                  editor_->overworld_.current_graphics());
+      bmp->Create(0x80, kOverworldMapSize, 0x08, map->current_graphics());
       bmp->SetPalette(editor_->palette_);
       editor_->current_graphics_set_[editor_->current_map_] = std::move(bmp);
       gfx::Arena::Get().QueueTextureCommand(
@@ -516,11 +554,10 @@ void OverworldCanvasRenderer::DrawMapProperties() {
   // Area Configuration panel
   static bool show_custom_bg_color_editor = false;
   static bool show_overlay_editor = false;
-  static int game_state = 0;  // 0=Beginning, 1=Zelda Saved, 2=Master Sword
 
   if (editor_->sidebar_) {
     editor_->sidebar_->Draw(editor_->current_world_, editor_->current_map_,
-                            editor_->current_map_lock_, game_state,
+                            editor_->current_map_lock_, editor_->game_state_,
                             show_custom_bg_color_editor, show_overlay_editor);
   }
 

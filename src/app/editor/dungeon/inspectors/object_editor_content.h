@@ -7,6 +7,7 @@
 #include <string>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
@@ -19,7 +20,7 @@ class ObjectEditorContent : public WindowContent {
       std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr);
 
   std::string GetId() const override { return "dungeon.object_editor"; }
-  std::string GetDisplayName() const override { return "Object Editor"; }
+  std::string GetDisplayName() const override { return "Selection Inspector"; }
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 61; }
@@ -32,6 +33,11 @@ class ObjectEditorContent : public WindowContent {
     canvas_viewer_provider_ = std::move(provider);
   }
   void SetCanvasViewer(DungeonCanvasViewer* viewer);
+  void SetJumpToReciprocalDoorCallback(
+      std::function<void(int neighbor_room_id, size_t reciprocal_door_index)>
+          callback) {
+    on_jump_to_reciprocal_door_ = std::move(callback);
+  }
 
   void CycleObjectSelection(int direction);
   void SelectAllObjects();
@@ -43,16 +49,25 @@ class ObjectEditorContent : public WindowContent {
   void SetupSelectionCallbacks();
   void OnSelectionChanged();
   DungeonCanvasViewer* ResolveCanvasViewer();
+  void RefreshSelectionSnapshot();
 
+  void DrawEmptyState();
   void DrawSelectionSummary();
   void DrawSelectionActions();
   void DrawSelectedObjectInfo();
+  void DrawSelectedDoorInfo();
+  void DrawSelectedSpriteInfo();
+  void DrawSelectedItemInfo();
   void DrawKeyboardShortcutHelp();
 
   void HandleKeyboardShortcuts();
   void DeselectAllObjects();
   void DuplicateSelectedObjects();
-  void NudgeSelectedObjects(int dx, int dy);
+  void DeleteSelectedEntity();
+  void DeleteCurrentSelection();
+  void DeleteAllSelectedTypeInRoom();
+  void DuplicateSelectedSprite();
+  void NudgeCurrentSelection(int dx, int dy);
   void ScrollToObject(size_t index);
 
   DungeonCanvasViewer* canvas_viewer_ = nullptr;
@@ -63,6 +78,8 @@ class ObjectEditorContent : public WindowContent {
   size_t cached_selection_count_ = 0;
   bool selection_callbacks_setup_ = false;
   bool show_shortcut_help_ = false;
+  DungeonSelectionSnapshot selection_snapshot_;
+  std::function<void(int, size_t)> on_jump_to_reciprocal_door_;
 };
 
 }  // namespace yaze::editor

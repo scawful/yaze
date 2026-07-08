@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_SPRITE_INTERACTION_HANDLER_H_
 
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
+#include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "zelda3/sprite/sprite.h"
 
 namespace yaze {
@@ -14,6 +15,7 @@ namespace editor {
  */
 class SpriteInteractionHandler : public BaseEntityHandler {
  public:
+  using GhostCapacityState = PlacementCapacityState;
   enum class PlacementBlockReason {
     kNone = 0,
     kInvalidRoom,
@@ -36,7 +38,7 @@ class SpriteInteractionHandler : public BaseEntityHandler {
   void DrawSelectionHighlight() override;
 
   std::optional<size_t> GetEntityAtPosition(int canvas_x,
-                                             int canvas_y) const override;
+                                            int canvas_y) const override;
 
   // ========================================================================
   // Sprite-specific methods
@@ -70,12 +72,16 @@ class SpriteInteractionHandler : public BaseEntityHandler {
   /**
    * @brief Get selected sprite index
    */
-  std::optional<size_t> GetSelectedIndex() const { return selected_sprite_index_; }
+  std::optional<size_t> GetSelectedIndex() const {
+    return selected_sprite_index_;
+  }
 
   /**
    * @brief Delete selected sprite
    */
   void DeleteSelected();
+  void DeleteAll();
+  bool NudgeSelected(int delta_x, int delta_y);
 
   /// True if the most recent PlaceSpriteAtPosition was blocked.
   bool was_placement_blocked() const {
@@ -87,6 +93,7 @@ class SpriteInteractionHandler : public BaseEntityHandler {
   void clear_placement_blocked() {
     placement_block_reason_ = PlacementBlockReason::kNone;
   }
+  GhostCapacityState GetPlacementGhostCapacityState() const;
 
  private:
   // Placement state

@@ -103,7 +103,11 @@ TEST_F(ObjectParserTest, ParseSubtype2Object) {
 }
 
 TEST_F(ObjectParserTest, ParseSubtype3Object) {
-  auto result = parser_->ParseObject(0x201);
+  // 0xF83 is in the subtype-3 ID range (0xF80-0xFFF) and falls through
+  // GetSubtype3TileCount's special-case ladder to the default 8 tiles.
+  // (0x201 was previously used here, but DetermineSubtype routes anything
+  // < 0xF80 to subtype 2, so the old test exercised ParseSubtype2.)
+  auto result = parser_->ParseObject(0xF83);
   ASSERT_TRUE(result.ok());
 
   const auto& tiles = result.value();
@@ -163,9 +167,137 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   auto info_subtype3 = parser_->GetObjectDrawInfo(0xFB1);
   EXPECT_EQ(info_subtype3.tile_count, 12);
 
-  // kSubtype1TileLengths has a 0 entry for 0x47; parser defaults that to 8.
-  auto info_subtype1_default = parser_->GetObjectDrawInfo(0x47);
-  EXPECT_EQ(info_subtype1_default.tile_count, 8);
+  // 2026-04-25 audit: kSubtype1TileLengths previously stored 0 for
+  // 0x47/0x48 and the parser defaulted to 8. The actual `Waterfall47`
+  // routine reads 15 tiles and `Waterfall48` reads 9; the table now
+  // carries those explicit counts so the parser's tile vector matches
+  // what the routine consumes.
+  auto info_waterfall47 = parser_->GetObjectDrawInfo(0x47);
+  EXPECT_EQ(info_waterfall47.tile_count, 15);
+  auto info_waterfall48 = parser_->GetObjectDrawInfo(0x48);
+  EXPECT_EQ(info_waterfall48.tile_count, 9);
+}
+
+// 2026-04-25 ZScream parity diff. ZScream's `subtype1Lengths` array
+// (`ZScreamDungeon/ZeldaFullEditor/Data/DungeonObjectData.cs:184`) is the
+// upstream provenance source for `kSubtype1TileLengths` in
+// `src/zelda3/dungeon/object_parser.cc`. A full byte-for-byte audit
+// confirmed 246/248 entries identical. Only `0x47` and `0x48`
+// (Waterfall47/Waterfall48) diverge: ZScream stores `0` and falls back to
+// 8 tiles at runtime (under-fetch — `TileAtWrapped` substitutes wrong
+// tiles for index >= 8); yaze ships the routine-body-proven counts
+// (`15` / `9`) per commits `e9938002` and `c12c3178`.
+//
+// This test pins the parity result so future drift on either side is
+// caught: a change in the production yaze table that contradicts ZScream
+// at a non-divergent ID will fail; a new yaze divergence not in
+// `kKnownDivergences` will fail; if ZScream fixes Waterfall47/48
+// upstream, the existing divergence assertions will fail and the
+// allowlist can be retired entry by entry.
+TEST_F(ObjectParserTest,
+       Subtype1TileLengthsMatchZScreamReferenceExceptKnownDivergences) {
+  // ZScream `subtype1Lengths` reference, copied verbatim from
+  // ZeldaFullEditor/Data/DungeonObjectData.cs:184-202.
+  // clang-format off
+  static constexpr uint8_t kZScreamSubtype1Lengths[0xF8] = {
+       4, 8, 8, 8, 8, 8, 8, 4, 4, 5, 5, 5, 5, 5, 5, 5,  // 0x00-0x0F
+       5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,  // 0x10-0x1F
+       5, 9, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 6,  // 0x20-0x2F
+       6, 1, 1,16, 1, 1,16,16, 6, 8,12,12, 4, 8, 4, 3,  // 0x30-0x3F
+       3, 3, 3, 3, 3, 3, 3, 0, 0, 8, 8, 4, 9,16,16,16,  // 0x40-0x4F
+       1,18,18, 4, 1, 8, 8, 1, 1, 1, 1,18,18,15, 4, 3,  // 0x50-0x5F
+       4, 8, 8, 8, 8, 8, 8, 4, 4, 3, 1, 1, 6, 6, 1, 1,  // 0x60-0x6F
+      16, 1, 1,16,16, 8,16,16, 4, 1, 1, 4, 1, 4, 1, 8,  // 0x70-0x7F
+       8,12,12,12,12,18,18, 8,12, 4, 3, 3, 3, 1, 1, 6,  // 0x80-0x8F
+       8, 8, 4, 4,16, 4, 4, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0x90-0x9F
+       1, 1, 1, 1,24, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,  // 0xA0-0xAF
+       1, 1,16, 3, 3, 8, 8, 8, 4, 4,16, 4, 4, 4, 1, 1,  // 0xB0-0xBF
+       1,68, 1, 1, 8, 8, 8, 8, 8, 8, 8, 1, 1,28,28, 1,  // 0xC0-0xCF
+       1, 8, 8, 0, 0, 0, 0, 1, 8, 8, 8, 8,21,16, 4, 8,  // 0xD0-0xDF
+       8, 8, 8, 8, 8, 8, 8, 8, 8, 1, 1, 1, 1, 1, 1, 1,  // 0xE0-0xEF
+       1, 1, 1, 1, 1, 1, 1, 1                            // 0xF0-0xF7
+  };
+  // clang-format on
+
+  struct Divergence {
+    int object_id;
+    int yaze_value;
+    const char* justification;
+  };
+  // Allowlist of known intentional yaze corrections of upstream ZScream
+  // under-fetches. Add entries only when the underlying routine body
+  // proves the count divergence; cite the routine source location.
+  static const Divergence kKnownDivergences[] = {
+      {0x47, 15,
+       "DrawWaterfall47 (special_routines.cc) reads tiles[0..14]; "
+       "ZScream's 0->8 fallback under-fetched and TileAtWrapped "
+       "substituted wrong tiles for index>=8 (commits e9938002/c12c3178)."},
+      {0x48, 9, "DrawWaterfall48 reads tiles[0..8]; same pattern as 0x47."},
+      {0xD3, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
+      {0xD4, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
+      {0xD5, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
+      {0xD6, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
+  };
+
+  auto find_divergence = [&](int id) -> const Divergence* {
+    for (const auto& d : kKnownDivergences) {
+      if (d.object_id == id)
+        return &d;
+    }
+    return nullptr;
+  };
+
+  for (int id = 0x00; id <= 0xF7; ++id) {
+    SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex << id);
+
+    auto subtype_info = parser_->GetObjectSubtype(id);
+    ASSERT_TRUE(subtype_info.ok());
+
+    if (const Divergence* d = find_divergence(id)) {
+      EXPECT_EQ(subtype_info->max_tile_count, d->yaze_value)
+          << "Known yaze divergence drift: " << d->justification;
+      // Sanity: the divergence row must actually differ from the ZScream
+      // reference, otherwise the entry is stale and should be removed.
+      const int zs_raw = kZScreamSubtype1Lengths[id];
+      const int zs_effective = (zs_raw > 0) ? zs_raw : 8;
+      EXPECT_NE(d->yaze_value, zs_effective)
+          << "Stale allowlist entry: ZScream now matches yaze at 0x" << std::hex
+          << id << " — drop the divergence row.";
+    } else {
+      const int zs_raw = kZScreamSubtype1Lengths[id];
+      const int zs_effective = (zs_raw > 0) ? zs_raw : 8;
+      EXPECT_EQ(subtype_info->max_tile_count, zs_effective)
+          << "Drift from ZScream parity. If intentional, add an entry "
+             "to kKnownDivergences with routine-body justification.";
+    }
+  }
+}
+
+TEST_F(ObjectParserTest, TurtleRockPipesProvideTwentyFourTiles) {
+  // Routine-body proof (Waterfall47/48-tier under-fetch):
+  // - 0xFBA, 0xFBB -> kVerticalTurtleRockPipe (102):
+  //     special_routines.cc:430-437 stacks two 4x3 sections, reading
+  //     tiles[0..11] then tiles[12..23] -> 24 tiles.
+  // - 0xFBC, 0xFBD -> kHorizontalTurtleRockPipe (103):
+  //     special_routines.cc:439-441 calls DrawNx4(columns=6, start=0)
+  //     which reads a 6x4 column-major block -> 24 tiles.
+  // Before the GetSubtype3TileCount special case landed, the parser
+  // defaulted to 8 and TileAtWrapped substituted tiles[0..7] for
+  // indices 8..23, mis-tiling the pipe sections. Pin the count via
+  // both the ParseObject and GetObjectDrawInfo paths so neither
+  // surface can regress to the wrap-substitution failure mode.
+  for (int id : {0xFBA, 0xFBB, 0xFBC, 0xFBD}) {
+    SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex << id);
+
+    auto parsed = parser_->ParseObject(id);
+    ASSERT_TRUE(parsed.ok());
+    EXPECT_EQ(parsed.value().size(), 24u);
+    EXPECT_NE(parsed.value().size(), 8u);
+
+    auto info = parser_->GetObjectDrawInfo(id);
+    EXPECT_EQ(info.tile_count, 24);
+    EXPECT_NE(info.tile_count, 8);
+  }
 }
 
 TEST_F(ObjectParserTest, DrawInfoOrientationFollowsRoutineCategory) {
@@ -250,6 +382,69 @@ TEST_F(ObjectParserTest,
               expected_custom_routine);
     EXPECT_EQ(parser_->GetObjectDrawInfo(0x32).draw_routine_id,
               expected_custom_routine);
+  }
+}
+
+// 2026-04-25 audit follow-up: pin the registry mappings for the
+// subtype-2 / subtype-3 over-fetch clusters identified by
+// `zelda3-hacking-expert`. These IDs currently take the parser's
+// 8-tile fallback even though their bound routines read fewer tiles
+// (`Rightwards2x2_1to16` reads 4, `Rightwards1x1Solid_1to16_plus3`
+// reads 1, `RightwardsStatue2x3spaced2_1to16` reads 6, `DrawSingle2x2`
+// reads 4). The over-fetch is harmless — the routines reference fixed
+// indices below their span and ignore the trailing slots — so this
+// test does NOT mirror the parser's tile-count table; it pins the
+// audit's id→routine mapping at the registry level so a future
+// routing refactor can't silently invalidate the audit's premise.
+//
+// If/when the production tile-count fallback tightens, the parser's
+// existing `DetectsType2Objects` / `DetectsType3Objects` tests will
+// surface that change directly.
+TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+
+  // Subtype-2: routine 4 is `Rightwards2x2_1to16` (reads tiles[0..3]).
+  for (int id :
+       {0x118, 0x119, 0x11A, 0x11B, 0x11E, 0x127, 0x12A, 0x12B, 0x134}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 4");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 4);
+  }
+  // Subtype-2: routine 28 is `RightwardsStatue2x3spaced2_1to16`
+  // (reads tiles[0..5]).
+  for (int id : {0x11D, 0x121, 0x126}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 28");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 28);
+  }
+  // Subtype-2/3: routine 25 is `Rightwards1x1Solid_1to16_plus3`
+  // (reads tiles[0]).
+  for (int id : {0x11F, 0x120, 0xF96}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 25");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 25);
+  }
+  // Subtype-3: routine 110 is `DrawSingle2x2` (reads tiles[0..3]).
+  // Cluster scoped to IDs explicitly mapped in the registry; the
+  // initial audit listed a broader set, but registry diff showed the
+  // others fall through to a different default routine.
+  for (int id : {0xF90, 0xF91, 0xF93, 0xFAB, 0xFAC, 0xFAF, 0xFB0, 0xFC9, 0xFCA,
+                 0xFDE, 0xFDF, 0xFF5}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 110");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 110);
+  }
+  // Subtype-3: routine 39 is `DrawChest`. Audit initially proposed
+  // tightening the parser fallback to 4 here, but
+  // `special_routines.cc:157-167` shows the open-state branch reads
+  // tiles[4..7]; tightening to 4 would force `TileAtWrapped` to
+  // substitute closed-state bytes for open-chest previews. Pin the
+  // registry mapping so the routine attribution stays correct even
+  // if the parser fallback is later tightened to 8 with a comment.
+  for (int id : {0xF99, 0xF9A}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "id=0x" << std::hex << id << " expects routine 39");
+    EXPECT_EQ(registry.GetRoutineIdForObject(id), 39);
   }
 }
 

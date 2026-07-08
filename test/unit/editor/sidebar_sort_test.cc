@@ -23,8 +23,8 @@ TEST(SidebarSortTest, IdentityWhenNoPrefs) {
 TEST(SidebarSortTest, HiddenCategoriesAreFilteredOut) {
   Vec input = {"Overworld", "Dungeon", "Graphics"};
   Set hidden = {"Dungeon"};
-  auto out = ActivityBar::SortCategories(input, /*order=*/{}, /*pinned=*/{},
-                                         hidden);
+  auto out =
+      ActivityBar::SortCategories(input, /*order=*/{}, /*pinned=*/{}, hidden);
   EXPECT_EQ(out, Vec({"Overworld", "Graphics"}));
 }
 
@@ -95,6 +95,49 @@ TEST(SidebarSortTest, OrderEntriesNotInInputAreIgnored) {
   auto out = ActivityBar::SortCategories(input, order, /*pinned=*/{},
                                          /*hidden=*/{});
   EXPECT_EQ(out, Vec({"Dungeon", "Overworld"}));
+}
+
+// Mode-parity contract: Dungeon Workbench mode no longer hides per-tool
+// standalone windows from the sidebar / Window Browser. The Workbench drawer
+// still embeds the same tools, but users can keep a standalone copy open
+// alongside it. The previous `IsDungeonWorkbenchLocalToolWindow` policy was
+// removed in the 2026-04-26 polish pass; only navigation-mode handling
+// (room selector / room matrix / per-room windows) remains as a workflow
+// switch concern.
+//
+// `IsDungeonWindowModeTarget` matches `dungeon.room_*` by prefix because
+// per-room windows use ids like `dungeon.room_42`. That prefix-match also
+// catches `dungeon.room_graphics` and `dungeon.room_tags`, which is fine: the
+// per-room close loop now only runs in `SetWorkbenchWorkflowMode`, where it is
+// scoped to the explicit workflow toggle and skips pinned windows.
+TEST(SidebarSortTest, DungeonWindowModeTargetsCoverRoomPrefixedWindows) {
+  EXPECT_TRUE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_selector"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_matrix"));
+  EXPECT_TRUE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.room_42"));
+
+  // Non-room ids never match — including the standalone tool windows that
+  // previously lived under `IsDungeonWorkbenchLocalToolWindow`.
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.workbench"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.object_selector"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.door_editor"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.sprite_editor"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.item_editor"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.palette_editor"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.custom_collision"));
+  EXPECT_FALSE(WindowSidebar::IsDungeonWindowModeTarget("dungeon.water_fill"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.minecart_tracks"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.entrance_list"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.entrance_properties"));
+  EXPECT_FALSE(
+      WindowSidebar::IsDungeonWindowModeTarget("dungeon.object_tile_editor"));
 }
 
 }  // namespace

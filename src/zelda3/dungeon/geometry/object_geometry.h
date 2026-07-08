@@ -22,7 +22,7 @@ struct SelectionRect {
   int y_tiles = 0;
   int width_tiles = 0;
   int height_tiles = 0;
-  
+
   int width_pixels() const { return width_tiles * 8; }
   int height_pixels() const { return height_tiles * 8; }
 };
@@ -78,7 +78,9 @@ struct GeometryBounds {
    * For non-rectangular shapes like diagonal ceilings, the selection_bounds
    * provides a more accurate hitbox for mouse interaction.
    */
-  bool HasTighterSelectionBounds() const { return selection_bounds.has_value(); }
+  bool HasTighterSelectionBounds() const {
+    return selection_bounds.has_value();
+  }
 
   /**
    * @brief Get the selection bounds for hit testing.
@@ -134,8 +136,24 @@ class ObjectGeometry {
   void ClearCache();
 
   // Measure bounds for a specific routine metadata entry.
-  absl::StatusOr<GeometryBounds> MeasureRoutine(
-      const DrawRoutineInfo& routine, const RoomObject& object) const;
+  absl::StatusOr<GeometryBounds> MeasureRoutine(const DrawRoutineInfo& routine,
+                                                const RoomObject& object) const;
+
+  /**
+   * @brief Resolve the canvas anchor (x, y) for a given object's draw routine.
+   *
+   * Replay-style preview/editor pipelines that call ObjectDrawer::DrawObject
+   * with hardcoded coordinates clip routines that draw upward or leftward
+   * (acute diagonals 0x09-0x14 / 0x15-0x20, diagonal ceilings 0xA0-0xAC,
+   * somaria line down-left 0xF86). This returns the same anchor that
+   * ObjectGeometry uses internally for MeasureRoutine, so callers can
+   * position their RoomObject at coordinates that keep the full extent
+   * within the trace canvas.
+   *
+   * Returns (0, 0) for unknown routines, or for routines whose draw
+   * direction does not require headroom.
+   */
+  std::pair<int, int> ResolveAnchor(int16_t object_id, uint8_t size_byte) const;
 
   /**
    * @brief Measure bounds for a BG2 overlay object and mark it for masking.
@@ -178,7 +196,7 @@ class ObjectGeometry {
    * @return GeometryBounds with selection_bounds set if applicable
    */
   static GeometryBounds ApplySelectionBounds(GeometryBounds render_bounds,
-                                              int routine_id);
+                                             int routine_id);
 
  private:
   ObjectGeometry();

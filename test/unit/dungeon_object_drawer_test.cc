@@ -110,6 +110,43 @@ TEST_F(ObjectDrawerTest, ChestStateHandlingDirect) {
   // For now, this ensures the code path is executed and state is queried.
 }
 
+TEST_F(ObjectDrawerTest, EditorDungeonStateTracksPreviewStateFlagsPerRoom) {
+  constexpr int kRoomA = 0x12;
+  constexpr int kRoomB = 0x34;
+
+  EXPECT_FALSE(state_->IsWaterFaceActive(kRoomA));
+  EXPECT_FALSE(state_->IsDamFloodgateOpen(kRoomA));
+  EXPECT_FALSE(state_->IsWallMoved(kRoomA));
+  EXPECT_FALSE(state_->IsFloorBombable(kRoomA));
+  EXPECT_FALSE(state_->IsRupeeFloorActive(kRoomA));
+
+  state_->SetWaterFaceActive(kRoomA, true);
+  state_->SetDamFloodgateOpen(kRoomA, true);
+  state_->SetWallMoved(kRoomA, true);
+  state_->SetFloorBombable(kRoomA, true);
+  state_->SetRupeeFloorActive(kRoomA, true);
+
+  EXPECT_TRUE(state_->IsWaterFaceActive(kRoomA));
+  EXPECT_TRUE(state_->IsDamFloodgateOpen(kRoomA));
+  EXPECT_TRUE(state_->IsWallMoved(kRoomA));
+  EXPECT_TRUE(state_->IsFloorBombable(kRoomA));
+  EXPECT_TRUE(state_->IsRupeeFloorActive(kRoomA));
+
+  EXPECT_FALSE(state_->IsWaterFaceActive(kRoomB));
+  EXPECT_FALSE(state_->IsDamFloodgateOpen(kRoomB));
+  EXPECT_FALSE(state_->IsWallMoved(kRoomB));
+  EXPECT_FALSE(state_->IsFloorBombable(kRoomB));
+  EXPECT_FALSE(state_->IsRupeeFloorActive(kRoomB));
+
+  state_->Reset();
+
+  EXPECT_FALSE(state_->IsWaterFaceActive(kRoomA));
+  EXPECT_FALSE(state_->IsDamFloodgateOpen(kRoomA));
+  EXPECT_FALSE(state_->IsWallMoved(kRoomA));
+  EXPECT_FALSE(state_->IsFloorBombable(kRoomA));
+  EXPECT_FALSE(state_->IsRupeeFloorActive(kRoomA));
+}
+
 TEST_F(ObjectDrawerTest, Single4x4DrawsColumnMajorTiles) {
   Rom rom;
   std::vector<uint8_t> dummy_rom(1024 * 1024, 0);

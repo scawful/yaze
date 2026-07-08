@@ -4,6 +4,7 @@
 #include <cstdio>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
@@ -24,9 +25,9 @@ float CalcStatusIconButtonWidth(const char* icon, float button_height) {
   const ImGuiStyle& style = ImGui::GetStyle();
   const float glyph_width = ImGui::CalcTextSize(icon).x;
   const float extra = std::max(2.0f, style.FramePadding.x);
-  return std::max(button_height,
-                  std::ceil(glyph_width + (style.FramePadding.x * 2.0f) +
-                            extra));
+  return std::max(
+      button_height,
+      std::ceil(glyph_width + (style.FramePadding.x * 2.0f) + extra));
 }
 
 }  // namespace
@@ -125,14 +126,9 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   if (state.selection_count > 0) {
     ImGui::TextDisabled(ICON_MD_SELECT_ALL);
     ImGui::SameLine(0, 4);
-    if (state.selection_layer >= 0) {
-      ImGui::Text("%d obj, L%d", state.selection_count,
-                  state.selection_layer + 1);
-    } else {
-      ImGui::Text("%d obj", state.selection_count);
-    }
+    ImGui::Text("%s", state.selection_summary.c_str());
   } else {
-    ImGui::TextDisabled("No selection");
+    ImGui::TextDisabled("%s", state.selection_summary.c_str());
   }
   ImGui::SameLine(0, spacing * 2);
 
@@ -183,7 +179,9 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
       ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "%s",
                          right_text);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Room has unsaved changes");
+        ImGui::SetTooltip(
+            "Room has pending editor changes. Apply Room writes them to the "
+            "loaded ROM buffer.");
       }
     } else {
       ImGui::TextDisabled("%s", right_text);
@@ -207,18 +205,11 @@ DungeonStatusBarState DungeonStatusBar::BuildState(
   // Selection from object interaction
   const auto& interaction =
       const_cast<DungeonCanvasViewer&>(viewer).object_interaction();
-  auto selected = interaction.GetSelectedObjectIndices();
-  state.selection_count = static_cast<int>(selected.size());
-
-  // Determine layer from first selected object (if any)
-  if (!selected.empty() && viewer.rooms() && viewer.current_room_id() >= 0 &&
-      viewer.current_room_id() < static_cast<int>(viewer.rooms()->size())) {
-    const auto& objects =
-        (*viewer.rooms())[viewer.current_room_id()].GetTileObjects();
-    if (selected[0] < objects.size()) {
-      state.selection_layer = objects[selected[0]].layer_;
-    }
-  }
+  const auto snapshot = BuildDungeonSelectionSnapshot(
+      interaction, viewer.rooms(), viewer.current_room_id());
+  state.selection_count = static_cast<int>(snapshot.count);
+  state.selection_layer = snapshot.selection_layer;
+  state.selection_summary = GetDungeonSelectionSummaryText(snapshot);
 
   // Cursor coordinates from ImGui hover state on canvas
   // Note: the actual tile coordinates are derived from the canvas hover

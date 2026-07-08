@@ -33,9 +33,13 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 
 ## Project Status
 
-v0.7.1 is the current release line (pending tag). See [`CHANGELOG.md`](CHANGELOG.md) for details.
+v0.7.2 is the current development line; v0.7.1 is the latest tagged release.
+See [`CHANGELOG.md`](CHANGELOG.md) for details.
 
-**v0.7.1 headline features:** welcome-screen overhaul (guided New Project flow, async recent-project metadata, pin/rename/notes, command-palette actions), dungeon editor parity/polish (BG1/BG2 layout routing, replay-geometry selection, ROM-backed parity tests), and startup/memory improvements (lazy session editors, deferred asset loads, leaner room buffers).
+**v0.7.2 focus:** post-0.7.1 dungeon RC stabilization, including default
+object/sprite previews, broader dungeon save-domain persistence, door-position
+guardrails, canonical room-object labels, and continued release/build
+follow-through.
 
 | Component | Status | Notes |
 |-----------|--------|-------|

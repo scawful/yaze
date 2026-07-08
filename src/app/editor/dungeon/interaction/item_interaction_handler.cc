@@ -9,6 +9,7 @@
 #include "imgui/imgui.h"
 
 // Project headers
+#include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 
 namespace yaze::editor {
@@ -93,16 +94,18 @@ void ItemInteractionHandler::DrawGhostPreview() {
     return;
 
   auto* canvas = ctx_->canvas;
-  if (!canvas->IsMouseHovering())
+  const auto pointer_screen_pos = GetPointerScreenPosition();
+  if (!pointer_screen_pos.has_value())
     return;
 
-  const ImGuiIO& io = ImGui::GetIO();
   ImVec2 canvas_pos = canvas->zero_point();
   float scale = GetCanvasScale();
 
   // Convert to room coordinates (items use 8-pixel grid for fine positioning)
-  int canvas_x = static_cast<int>((io.MousePos.x - canvas_pos.x) / scale);
-  int canvas_y = static_cast<int>((io.MousePos.y - canvas_pos.y) / scale);
+  int canvas_x =
+      static_cast<int>((pointer_screen_pos->x - canvas_pos.x) / scale);
+  int canvas_y =
+      static_cast<int>((pointer_screen_pos->y - canvas_pos.y) / scale);
 
   // Snap to 8-pixel grid
   int snapped_x =
@@ -115,17 +118,20 @@ void ItemInteractionHandler::DrawGhostPreview() {
                   canvas_pos.y + snapped_y * scale);
   ImVec2 rect_max(rect_min.x + 16 * scale, rect_min.y + 16 * scale);
 
-  // Semi-transparent yellow for items
-  ImU32 fill_color = IM_COL32(200, 200, 50, 100);
-  ImU32 outline_color = IM_COL32(255, 255, 50, 200);
+  const auto& theme = AgentUI::GetTheme();
+  ImVec4 fill_color = theme.dungeon_selection_primary;
+  fill_color.w = 0.35f;
+  ImVec4 outline_color = theme.dungeon_selection_primary;
+  outline_color.w = 0.85f;
 
-  canvas->draw_list()->AddRectFilled(rect_min, rect_max, fill_color);
-  canvas->draw_list()->AddRect(rect_min, rect_max, outline_color, 0.0f, 0,
-                               2.0f);
+  canvas->draw_list()->AddRectFilled(rect_min, rect_max,
+                                     ImGui::GetColorU32(fill_color));
+  canvas->draw_list()->AddRect(
+      rect_min, rect_max, ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
 
   // Draw item ID label
   std::string label = absl::StrFormat("%02X", preview_item_id_);
-  canvas->draw_list()->AddText(rect_min, IM_COL32(255, 255, 255, 255),
+  canvas->draw_list()->AddText(rect_min, ImGui::GetColorU32(theme.text_primary),
                                label.c_str());
 }
 
@@ -238,8 +244,66 @@ void ItemInteractionHandler::DeleteSelected() {
   ctx_->NotifyMutation(MutationDomain::kItems);
   pot_items.erase(pot_items.begin() +
                   static_cast<ptrdiff_t>(*selected_item_index_));
+  room->MarkPotItemsDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
+  ctx_->NotifyEntityChanged();
+}
+
+void ItemInteractionHandler::DeleteAll() {
+  if (!HasValidContext()) {
+    return;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room || room->GetPotItems().empty()) {
+    return;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  room->GetPotItems().clear();
+  room->MarkPotItemsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+  ClearSelection();
+  ctx_->NotifyEntityChanged();
+}
+
+bool ItemInteractionHandler::NudgeSelected(int delta_pixel_x,
+                                           int delta_pixel_y) {
+  if (!selected_item_index_.has_value() || !HasValidContext()) {
+    return false;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room) {
+    return false;
+  }
+
+  auto& pot_items = room->GetPotItems();
+  if (*selected_item_index_ >= pot_items.size()) {
+    return false;
+  }
+
+  auto& pot_item = pot_items[*selected_item_index_];
+  constexpr int kRoomPixelMax = 511;
+  const int next_pixel_x =
+      std::clamp(pot_item.GetPixelX() + delta_pixel_x, 0, kRoomPixelMax);
+  const int next_pixel_y =
+      std::clamp(pot_item.GetPixelY() + delta_pixel_y, 0, kRoomPixelMax);
+  const int encoded_x = std::clamp(next_pixel_x / 4, 0, 255);
+  const int encoded_y = std::clamp(next_pixel_y / 16, 0, 255);
+  const uint16_t next_position =
+      static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+  if (next_position == pot_item.position) {
+    return false;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  pot_item.position = next_position;
+  room->MarkPotItemsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+  ctx_->NotifyEntityChanged();
+  return true;
 }
 
 void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
@@ -274,6 +338,7 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
 
   // Add item to room
   room->GetPotItems().push_back(new_item);
+  room->MarkPotItemsDirty();
 
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);
 }

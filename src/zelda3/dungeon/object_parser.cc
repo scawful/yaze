@@ -1,6 +1,5 @@
 #include "object_parser.h"
 
-#include <algorithm>
 #include <cstring>
 
 #include "absl/strings/str_format.h"
@@ -14,16 +13,43 @@
 // - kRoomObjectSubtype3 = 0x84F0 (SNES $01:84F0)
 // - kRoomObjectTileAddress = 0x1B52 (SNES $00:9B52)
 
-// Subtype 1 tile count lookup table (from ZScream's DungeonObjectData.cs)
-// Each entry specifies how many tiles to read for that object ID (0x00-0xF7)
-// Index directly by (object_id & 0xFF) for subtype 1 objects
+// Subtype 1 tile count lookup table.
+//
+// Each entry specifies how many tiles the corresponding `RoomDraw_*`
+// routine reads from the per-object tile stream. Index directly by
+// `(object_id & 0xFF)` for subtype 1 objects.
+//
+// Audit history:
+// - Initial table sourced from ZScream's `DungeonObjectData.cs`.
+// - 2026-04-25 audit (zelda3-hacking-expert): IDs `0x47` and `0x48`
+//   stored as 0 (fallback to 8) but routine bodies in
+//   `special_routines.cc::DrawWaterfall47` and `DrawWaterfall48`
+//   deterministically index tile slots 0..14 and 0..8 respectively
+//   (three 1x5 / 1x3 columns). The under-fetched 8-tile vector is
+//   not a bounds bug — `TileAtWrapped` wraps `index % tiles.size()`
+//   — but the wrap quietly substitutes the wrong tile for the right
+//   column (e.g. Waterfall47 column 3 indexes tile 12, which wraps
+//   to tile 4 with size 8). Updated to the real counts so the wrap
+//   never fires for vanilla data.
+// - IDs `0xD3..0xD6` are routed to `DrawNothing` (logic-only;
+//   `CheckIfWallIsMoved` flag tests). Their tile-count entry is `0`
+//   because those routines have no tile payload. Other uncataloged zero
+//   entries still use the conservative 8-tile fallback.
+// - 2026-04-25 ZScream parity diff: full byte-for-byte comparison
+//   against ZScream's `subtype1Lengths` (`DungeonObjectData.cs:184`)
+//   shows 246/248 entries identical. The only divergences are
+//   `0x47` (yaze=15, ZScream=0) and `0x48` (yaze=9, ZScream=0) —
+//   both intentional yaze corrections of ZScream's under-fetch.
+//   The pin lives in `object_parser_test.cc::Subtype1TileLengths`
+//   `MatchesZScreamReferenceExceptAtKnownDivergences` and detects
+//   future drift in either direction.
 // clang-format off
 static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
      6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
-     3,  3,  3,  3,  3,  3,  3,  0,  0,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
@@ -32,18 +58,29 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      1,  1,  1,  1, 24,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0xA0-0xAF
      1,  1, 16,  3,  3,  8,  8,  8,  4,  4, 16,  4,  4,  4,  1,  1,  // 0xB0-0xBF
      1, 68,  1,  1,  8,  8,  8,  8,  8,  8,  8,  1,  1, 28, 28,  1,  // 0xC0-0xCF
-     1,  8,  8,  0,  0,  0,  0,  1,  8,  8,  8,  8, 21, 16,  4,  8,  // 0xD0-0xDF
+     1,  8,  8,  0,  0,  0,  0,  1,  8,  8,  8,  8, 21, 16,  4,  8,  // 0xD0-0xDF (0xD3..0xD6: DrawNothing logic; tiles unused)
      8,  8,  8,  8,  8,  8,  8,  8,  8,  1,  1,  1,  1,  1,  1,  1,  // 0xE0-0xEF
      1,  1,  1,  1,  1,  1,  1,  1                                   // 0xF0-0xF7
 };
 // clang-format on
 
-// Helper function to get tile count for Subtype 1 objects
+static inline bool IsSubtype1LogicOnlyZeroTileObject(int object_id) {
+  int index = object_id & 0xFF;
+  return index >= 0xD3 && index <= 0xD6;
+}
+
+// Helper function to get tile count for Subtype 1 objects.
 static inline int GetSubtype1TileCount(int object_id) {
   int index = object_id & 0xFF;
   if (index < 0xF8) {
     int count = kSubtype1TileLengths[index];
-    return (count > 0) ? count : 8;  // Default to 8 if table has 0
+    if (count > 0) {
+      return count;
+    }
+    if (IsSubtype1LogicOnlyZeroTileObject(index)) {
+      return 0;
+    }
+    return 8;  // Default to 8 if an uncataloged table entry has 0.
   }
   return 8;  // Default for IDs >= 0xF8
 }
@@ -221,6 +258,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype1(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
     int16_t object_id) {
+  constexpr int kDamFloodGateOpenTileOffset = 0x13E8;
+  constexpr int kDamFloodGateTileCount = 40;
+
   // Type 2 objects: 0x100-0x13F (64 objects only)
   int index = (object_id - 0x100) & 0x3F;
   int tile_ptr = kRoomObjectSubtype2 + (index * 2);
@@ -262,6 +302,22 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
     }
   }
 
+  if (object_id == 0x137) {
+    auto closed_tiles = ReadTileData(tile_data_ptr, kDamFloodGateTileCount);
+    if (!closed_tiles.ok()) {
+      return closed_tiles.status();
+    }
+    auto open_tiles =
+        ReadTileData(kRoomObjectTileAddress + kDamFloodGateOpenTileOffset,
+                     kDamFloodGateTileCount);
+    if (!open_tiles.ok()) {
+      return open_tiles.status();
+    }
+    closed_tiles->insert(closed_tiles->end(), open_tiles->begin(),
+                         open_tiles->end());
+    return closed_tiles;
+  }
+
   return ReadTileData(tile_data_ptr, tile_count);
 }
 
@@ -292,6 +348,13 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
   // Each tile is stored as a 16-bit word (2 bytes), not 8 bytes!
   // ZScream: tiles.Add(new Tile(ROM.DATA[pos + ((i * 2))], ROM.DATA[pos + ((i *
   // 2)) + 1]));
+  if (tile_count < 0) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid tile count: %d", tile_count));
+  }
+  if (tile_count == 0) {
+    return std::vector<gfx::TileInfo>{};
+  }
   if (address < 0 || address + (tile_count * 2) >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile data address out of range: %#06x", address));
@@ -348,9 +411,16 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
   // 4x4 fixed patterns (stairs/altars/walls)
   if (object_id == 0x11C || object_id == 0x124 || object_id == 0x125 ||
       object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133) ||
-      (object_id >= 0x135 && object_id <= 0x137) || object_id == 0x13C ||
-      object_id == 0x13F) {
+      object_id == 0x13C || object_id == 0x13F) {
     return 16;
+  }
+  // Water hop stairs use a fixed 4x2 pattern.
+  if (object_id == 0x135 || object_id == 0x136) {
+    return 8;
+  }
+  // Dam floodgate preserves both closed and water-open 10x4 tile blocks.
+  if (object_id == 0x137) {
+    return 80;
   }
   // Beds (4x5)
   if (object_id == 0x122 || object_id == 0x128) {
@@ -425,6 +495,18 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
       object_id == 0xFF4 || object_id == 0xFF6 || object_id == 0xFF7) {
     return 16;
   }
+  // Turtle Rock pipes: 24 tiles (proven from routine bodies, not just
+  // dimensions table). DrawVerticalTurtleRockPipe (0xFBA, 0xFBB at
+  // special_routines.cc:430-437) draws two stacked 4x3 sections, reading
+  // tiles[0..11] then tiles[12..23]. DrawHorizontalTurtleRockPipe
+  // (0xFBC, 0xFBD at special_routines.cc:439-441) calls DrawNx4 with
+  // columns=6, which reads a 6x4 column-major block (tiles[0..23]).
+  // Without this case the parser fell through to the default 8 and
+  // TileAtWrapped substituted tiles[0..7] for indices 8..23 -- same
+  // failure mode Waterfall47/48 had before e9938002.
+  if (object_id >= 0xFBA && object_id <= 0xFBD) {
+    return 24;
+  }
   // Utility 6x3 (18 tiles)
   if (object_id == 0xFCD || object_id == 0xFDD) {
     return 18;
@@ -495,7 +577,7 @@ ObjectDrawInfo ObjectParser::GetObjectDrawInfo(int16_t object_id) const {
   // Keep draw-info tile counts sourced from subtype tables (ROM-facing data),
   // while routine selection comes from DrawRoutineRegistry (renderer-facing
   // canonical mapping).
-  info.tile_count = std::max(1, ResolveTileCountForObject(object_id));
+  info.tile_count = ResolveTileCountForObject(object_id);
   const bool is_vertical_band = (object_id >= 0x60 && object_id <= 0x6F);
   info.is_horizontal = !is_vertical_band;
   info.is_vertical = is_vertical_band;

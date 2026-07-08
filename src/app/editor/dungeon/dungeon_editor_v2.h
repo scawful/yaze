@@ -14,7 +14,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/render/emulator_render_service.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/app/editor_layout.h"
@@ -41,10 +41,13 @@
 namespace yaze {
 namespace editor {
 
+class CustomCollisionPanel;
 class MinecartTrackEditorPanel;
 class ObjectTileEditorPanel;
 class OverlayManagerPanel;
+class PaletteEditorContent;
 class RoomTagEditorPanel;
+class WaterFillPanel;
 
 /**
  * @brief DungeonEditorV2 - Simplified dungeon editor using component delegation
@@ -87,13 +90,7 @@ class RoomTagEditorPanel;
  */
 class DungeonEditorV2 : public Editor {
  public:
-  explicit DungeonEditorV2(Rom* rom = nullptr)
-      : rom_(rom), room_loader_(rom), room_selector_(rom), rooms_(rom) {
-    type_ = EditorType::kDungeon;
-    if (rom) {
-      dungeon_editor_system_ = zelda3::CreateDungeonEditorSystem(rom);
-    }
-  }
+  explicit DungeonEditorV2(Rom* rom = nullptr);
 
   ~DungeonEditorV2() override;
 
@@ -115,6 +112,12 @@ class DungeonEditorV2 : public Editor {
           if (viewer)
             viewer->SetGameData(game_data);
         });
+    if (workbench_viewer_) {
+      workbench_viewer_->SetGameData(game_data);
+    }
+    if (workbench_compare_viewer_) {
+      workbench_compare_viewer_->SetGameData(game_data);
+    }
   }
 
   // Editor interface
@@ -131,6 +134,9 @@ class DungeonEditorV2 : public Editor {
   void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
   int LoadedRoomCount() const;
+  int PendingRoomCount() const;
+  bool HasPendingRoomChanges() const;
+  bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
   // Collect PC write ranges for all dirty/loaded rooms (for write conflict
@@ -140,17 +146,21 @@ class DungeonEditorV2 : public Editor {
 
   // ROM management
   void SetRom(Rom* rom) {
+    const bool rom_changed = rom_ != rom;
     rom_ = rom;
     room_loader_ = DungeonRoomLoader(rom);
+    room_loader_.SetGameData(game_data_);
     room_selector_.SetRom(rom);
 
     // Propagate ROM to all rooms
-    if (rom) {
-      rooms_.SetRom(rom);
-    }
-
+    rooms_.SetRom(rom);
     // Reset viewers on ROM change
-    room_viewers_.Clear();
+    if (rom_changed) {
+      rooms_.Clear();
+      room_viewers_.Clear();
+      workbench_viewer_.reset();
+      workbench_compare_viewer_.reset();
+    }
   }
   Rom* rom() const { return rom_; }
 
@@ -193,7 +203,6 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kRoomMatrixId = "dungeon.room_matrix";
   static constexpr const char* kRoomGraphicsId = "dungeon.room_graphics";
   static constexpr const char* kObjectSelectorId = "dungeon.object_selector";
-  static constexpr const char* kObjectEditorId = "dungeon.object_editor";
   static constexpr const char* kObjectToolsId = kObjectSelectorId;
   static constexpr const char* kDoorEditorId = "dungeon.door_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
@@ -248,6 +257,10 @@ class DungeonEditorV2 : public Editor {
 
   // Sync all sub-panels to the current room configuration
   void SyncPanelsToRoom(int room_id);
+  uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
+  void ApplyEntranceRenderContext(int room_id);
+  void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
+  void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);
@@ -264,6 +277,8 @@ class DungeonEditorV2 : public Editor {
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
   DungeonCanvasViewer* GetWorkbenchViewer();
   DungeonCanvasViewer* GetWorkbenchCompareViewer();
+  void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
+                                            int room_id);
   void TouchViewerLru(int room_id);
   void RemoveViewerFromLru(int room_id);
 
@@ -273,7 +288,7 @@ class DungeonEditorV2 : public Editor {
   Rom* rom_;
   zelda3::GameData* game_data_ = nullptr;
   DungeonRoomStore rooms_;
-  std::array<zelda3::RoomEntrance, 0x8C> entrances_;
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> entrances_;
 
   // Current selection state
   int current_entrance_id_ = 0;
@@ -306,12 +321,15 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<DungeonCanvasViewer> workbench_compare_viewer_;
 
   gui::PaletteEditorWidget palette_editor_;
-  // Panel pointers - these are owned by WorkspaceWindowManager when available.
-  // Store pointers for direct access to panel methods.
+  // Panel pointers. WorkspaceWindowManager owns these when available; fallback
+  // unique_ptrs keep non-workspace tests and direct embedding paths alive.
+  // Workbench mode embeds room-local utilities in the inspector drawer and
+  // closes/hides their standalone window entries.
   ObjectSelectorContent* object_selector_panel_ = nullptr;
   ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
   RoomGraphicsContent* room_graphics_panel_ = nullptr;
+  PaletteEditorContent* palette_editor_panel_ = nullptr;
   class SpriteEditorPanel* sprite_editor_panel_ = nullptr;
   class ItemEditorPanel* item_editor_panel_ = nullptr;
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
@@ -319,14 +337,17 @@ class DungeonEditorV2 : public Editor {
   class CustomCollisionPanel* custom_collision_panel_ = nullptr;
   class WaterFillPanel* water_fill_panel_ = nullptr;
   ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
-  class DungeonSettingsPanel* dungeon_settings_panel_ = nullptr;
   OverlayManagerPanel* overlay_manager_panel_ = nullptr;
 
-  // Fallback ownership for tests when WorkspaceWindowManager is not available.
-  // In production, this remains nullptr and panels are owned by WorkspaceWindowManager.
+  // Object editor is retained as the non-window backend for inspector actions.
+  // Other owned_* fields are fallbacks for tests without WorkspaceWindowManager.
   std::unique_ptr<ObjectSelectorContent> owned_object_selector_panel_;
   std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
+  std::unique_ptr<RoomTagEditorPanel> owned_room_tag_editor_panel_;
+  std::unique_ptr<CustomCollisionPanel> owned_custom_collision_panel_;
+  std::unique_ptr<WaterFillPanel> owned_water_fill_panel_;
+  std::unique_ptr<MinecartTrackEditorPanel> owned_minecart_track_editor_panel_;
   std::unique_ptr<zelda3::DungeonEditorSystem> dungeon_editor_system_;
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 
@@ -356,6 +377,7 @@ class DungeonEditorV2 : public Editor {
   };
   PendingUndo pending_undo_;
   bool has_pending_undo_ = false;
+  bool undo_restore_triggered_ping_ = false;
 
   struct PendingCollisionUndo {
     int room_id = -1;

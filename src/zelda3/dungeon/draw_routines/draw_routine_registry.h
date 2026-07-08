@@ -76,6 +76,9 @@ constexpr int kDownwardsHammerPegs2x2_1to16 = 71;
 
 // Vertical rail routine with CORNER+MIDDLE+END pattern (for 0x8A-0x8C)
 constexpr int kDownwardsHasEdge1x1_1to16_plus23 = 117;
+constexpr int kWaterHopStairsA = 119;
+constexpr int kWaterHopStairsB = 120;
+constexpr int kDamFloodGate = 121;
 
 // Corner routines (19, 35-37, 75-78)
 constexpr int kCorner4x4 = 19;

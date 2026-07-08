@@ -116,6 +116,18 @@
       "name": "sanitizer",
       "configurePreset": "sanitizer"
     },
+  {
+    "displayName": "macOS ASan (Debug)",
+    "jobs": 8,
+    "name": "mac-asan",
+    "configurePreset": "mac-asan"
+  },
+  {
+    "displayName": "macOS UBSan (Debug)",
+    "jobs": 8,
+    "name": "mac-ubsan",
+    "configurePreset": "mac-ubsan"
+  },
     {
       "displayName": "Verbose Build",
       "jobs": 8,
@@ -400,7 +412,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable tests against the mac-ai build"
     },
@@ -418,7 +430,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable unit tests against the mac-ai build"
     },
@@ -436,7 +448,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable unit tests against the mac-ai-z3dk build (includes Z3dkSmoke)"
     },
@@ -454,7 +466,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run stable integration tests against the mac-ai build"
     },
@@ -472,7 +484,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick labeled suites against the mac-ai build"
     },
@@ -490,7 +502,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick unit suite against the mac-ai build"
     },
@@ -508,7 +520,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick core unit suite against the mac-ai build"
     },
@@ -526,7 +538,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick editor unit suite against the mac-ai build"
     },
@@ -544,7 +556,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Run quick integration suite against the mac-ai build"
     },
@@ -595,7 +607,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Quick iteration test preset with optimized build"
     },
@@ -1161,6 +1173,40 @@
       "displayName": "Sanitizer Build",
       "name": "sanitizer",
       "description": "Debug build with AddressSanitizer"
+    },
+    {
+      "inherits": "mac-dev",
+      "cacheVariables": {
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address",
+        "CMAKE_CXX_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g",
+        "YAZE_ENABLE_SANITIZERS": "ON",
+        "CMAKE_C_FLAGS": "-fsanitize=address -fno-omit-frame-pointer -g"
+      },
+      "displayName": "macOS ASan (Debug)",
+      "name": "mac-asan",
+      "condition": {
+        "type": "equals",
+        "rhs": "Darwin",
+        "lhs": "${hostSystemName}"
+      },
+      "description": "macOS Debug build with AddressSanitizer"
+    },
+    {
+      "inherits": "mac-dev",
+      "cacheVariables": {
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=undefined",
+        "CMAKE_CXX_FLAGS": "-fsanitize=undefined -fno-omit-frame-pointer -g",
+        "YAZE_ENABLE_SANITIZERS": "ON",
+        "CMAKE_C_FLAGS": "-fsanitize=undefined -fno-omit-frame-pointer -g"
+      },
+      "displayName": "macOS UBSan (Debug)",
+      "name": "mac-ubsan",
+      "condition": {
+        "type": "equals",
+        "rhs": "Darwin",
+        "lhs": "${hostSystemName}"
+      },
+      "description": "macOS Debug build with UndefinedBehaviorSanitizer"
     },
     {
       "inherits": "dev",

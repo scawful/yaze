@@ -1,6 +1,7 @@
 # Dungeon Rendering Regression Triage - 2026-04-16
 
-Status: active triage, not fixed.
+Status: fixtures landed 2026-06-28; room-level golden checksums now guarded by
+`test/integration/zelda3/dungeon_room_regression_fixtures_test.cc`.
 
 This is the short project-local note that complements the AFS handoff at
 `/Users/scawful/src/.context/scratchpad/handoffs/yaze-dungeon-corners-runtime-sync-2026-04-16.md`.

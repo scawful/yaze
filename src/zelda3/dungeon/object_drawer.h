@@ -58,9 +58,10 @@ class ObjectDrawer {
     DoorDirection direction;
     uint8_t position;
 
-    // Helper to get position coordinates using DoorPositionManager
+    // Helper to get visible render coordinates using DoorPositionManager.
     std::pair<int, int> GetTileCoords() const {
-      return DoorPositionManager::PositionToTileCoords(position, direction);
+      return DoorPositionManager::PositionToRenderTileCoords(position,
+                                                             direction);
     }
 
     // Helper to get door dimensions
@@ -258,6 +259,11 @@ class ObjectDrawer {
   // Pixel-space variant for explicit rectangular transparency writes.
   void MarkBg1RectTransparent(gfx::BackgroundBuffer& bg1, int start_px,
                               int start_py, int pixel_width, int pixel_height);
+  void MarkBg1OpaqueTilePixelsTransparent(gfx::BackgroundBuffer& bg1,
+                                          const gfx::TileInfo& tile_info,
+                                          int pixel_x, int pixel_y,
+                                          const uint8_t* tiledata);
+  static bool RequiresRectangularBg1Mask(const RoomObject& object);
 
   // Door indicator fallback when graphics unavailable
   void DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
@@ -276,7 +282,7 @@ class ObjectDrawer {
 
   void SetTraceContext(const RoomObject& object, RoomObject::LayerType layer);
   void PushTrace(int tile_x, int tile_y, const gfx::TileInfo& tile_info);
-  static void TraceHookThunk(int tile_x, int tile_y,
+  static void TraceHookThunk(gfx::BackgroundBuffer* bg, int tile_x, int tile_y,
                              const gfx::TileInfo& tile_info, void* user_data);
 
   TraceContext trace_context_{};
@@ -287,6 +293,12 @@ class ObjectDrawer {
   int room_id_;
   mutable int current_chest_index_ = 0;
   bool allow_track_corner_aliases_ = true;
+  gfx::BackgroundBuffer* registry_secondary_bg_ = nullptr;
+  RoomObject::LayerType registry_primary_layer_ = RoomObject::LayerType::BG1;
+  RoomObject::LayerType registry_secondary_layer_ = RoomObject::LayerType::BG2;
+  gfx::BackgroundBuffer* active_object_bg1_mask_ = nullptr;
+  gfx::BackgroundBuffer* active_layout_bg1_mask_ = nullptr;
+  gfx::BackgroundBuffer* active_mask_source_bg_ = nullptr;
   const uint8_t*
       room_gfx_buffer_;  // Room-specific graphics buffer (current_gfx16_)
 

@@ -9,6 +9,7 @@
 #include <gtest/gtest.h>
 
 #include <cstdlib>
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -30,10 +31,38 @@
 #include "imgui_test_engine/imgui_te_engine.h"
 #include "imgui_test_engine/imgui_te_ui.h"
 
+#ifdef _WIN32
+#include <process.h>
+#else
+#include <unistd.h>
+#endif
+
 // #include "test_editor.h"  // Not used in main
 
 namespace yaze {
 namespace test {
+
+namespace {
+
+std::filesystem::path g_test_app_data_dir;
+
+int CurrentProcessId() {
+#ifdef _WIN32
+  return _getpid();
+#else
+  return static_cast<int>(getpid());
+#endif
+}
+
+void RemoveIsolatedAppDataDir() {
+  if (g_test_app_data_dir.empty()) {
+    return;
+  }
+  std::error_code ec;
+  std::filesystem::remove_all(g_test_app_data_dir, ec);
+}
+
+}  // namespace
 
 class ArenaQueueCleaner : public ::testing::EmptyTestEventListener {
  public:
@@ -72,6 +101,37 @@ struct TestConfig {
   bool show_gui = false;
   ImGuiTestRunSpeed test_speed = ImGuiTestRunSpeed_Fast;
 };
+
+namespace {
+
+void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
+#if defined(__APPLE__)
+  if (!config.show_gui) {
+    SDL_SetHint(SDL_HINT_MAC_BACKGROUND_APP, "1");
+  }
+#endif
+
+  if (std::getenv("YAZE_APP_DATA_DIR") != nullptr) {
+    return;
+  }
+
+  std::error_code ec;
+  auto temp_dir = std::filesystem::temp_directory_path(ec);
+  if (ec) {
+    temp_dir = std::filesystem::current_path(ec);
+    if (ec) {
+      temp_dir = ".";
+    }
+  }
+
+  g_test_app_data_dir =
+      temp_dir / ("yaze-test-appdata-" + std::to_string(CurrentProcessId()));
+  std::filesystem::create_directories(g_test_app_data_dir, ec);
+  SDL_setenv("YAZE_APP_DATA_DIR", g_test_app_data_dir.string().c_str(), 1);
+  std::atexit(RemoveIsolatedAppDataDir);
+}
+
+}  // namespace
 
 // Parse command line arguments for better AI agent testing support
 TestConfig ParseArguments(int argc, char* argv[]) {
@@ -114,7 +174,8 @@ TestConfig ParseArguments(int argc, char* argv[]) {
       std::cout << "  --rom-us PATH       Specify US ROM path\n";
       std::cout << "  --rom-jp PATH       Specify JP ROM path\n";
       std::cout << "  --rom-eu PATH       Specify EU ROM path\n";
-      std::cout << "  --rom-expanded PATH Specify expanded ROM path (ZSCustom/OOS)\n";
+      std::cout
+          << "  --rom-expanded PATH Specify expanded ROM path (ZSCustom/OOS)\n";
       std::cout << "  --skip-rom-tests    Skip tests requiring ROM files\n";
       std::cout << "  --enable-ui-tests   Enable UI tests (requires display)\n";
       std::cout << "  --verbose           Enable verbose output\n";
@@ -334,14 +395,9 @@ int main(int argc, char* argv[]) {
   options.writerfn = nullptr;
   absl::InstallFailureSignalHandler(options);
 
-  // Initialize SDL to prevent crashes in graphics components
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    SDL_Log("Failed to initialize SDL: %s", SDL_GetError());
-    // Continue anyway for tests that don't need graphics
-  }
-
   // Parse command line arguments
   auto config = yaze::test::ParseArguments(argc, argv);
+  yaze::test::ConfigureLocalTestProcessEnvironment(config);
 
   // Set up test environment
   yaze::test::SetupTestEnvironment(config);
@@ -363,7 +419,8 @@ int main(int argc, char* argv[]) {
     // Initialize the controller - this creates window, renderer, ImGui context
     auto init_status = controller.OnEntry();
     if (!init_status.ok()) {
-      std::cerr << "Failed to initialize controller: " << init_status.message() << std::endl;
+      std::cerr << "Failed to initialize controller: " << init_status.message()
+                << std::endl;
       return 1;
     }
 
@@ -408,7 +465,6 @@ int main(int argc, char* argv[]) {
 
     // Register editor smoke tests for key editors and emulator panels
     yaze::test::e2e::RegisterEditorSmokeTests(engine, &controller);
-
 
     // Queue all registered tests to run automatically
     ImGuiTestEngine_QueueTests(engine, ImGuiTestGroup_Tests, nullptr, 0);
@@ -458,15 +514,17 @@ int main(int argc, char* argv[]) {
 
     return result;
 #else
-    std::cerr << "UI tests are not supported in this build configuration." << std::endl;
+    std::cerr << "UI tests are not supported in this build configuration."
+              << std::endl;
     return 1;
 #endif
   } else {
     // Run tests
     int result = RUN_ALL_TESTS();
 
-    // Cleanup SDL
-    SDL_Quit();
+    if (SDL_WasInit(0) != 0) {
+      SDL_Quit();
+    }
 
     return result;
   }

@@ -9,7 +9,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/service/widget_discovery_service.h"
-#include "app/test/test_recorder.h"
+#include "app/testing/test_recorder.h"
 
 #include "util/grpc_win_compat.h"
 

@@ -112,6 +112,7 @@ class ChestEditorPanel : public WindowContent {
       new_chest.id = 0;        // Default item: nothing
       new_chest.size = false;  // Small chest
       chests.push_back(new_chest);
+      room.MarkChestsDirty();
       selected_chest_index_ = static_cast<int>(chests.size()) - 1;
       if (chest_modified_callback_) {
         chest_modified_callback_(*current_room_id_, selected_chest_index_);
@@ -196,6 +197,7 @@ class ChestEditorPanel : public WindowContent {
     bool is_big = chest.size;
     if (ImGui::RadioButton("Small", !is_big)) {
       chest.size = false;
+      room.MarkChestsDirty();
       if (chest_modified_callback_) {
         chest_modified_callback_(*current_room_id_, selected_chest_index_);
       }
@@ -203,6 +205,7 @@ class ChestEditorPanel : public WindowContent {
     ImGui::SameLine();
     if (ImGui::RadioButton("Big", is_big)) {
       chest.size = true;
+      room.MarkChestsDirty();
       if (chest_modified_callback_) {
         chest_modified_callback_(*current_room_id_, selected_chest_index_);
       }
@@ -248,6 +251,7 @@ class ChestEditorPanel : public WindowContent {
 
         if (ImGui::Selectable(item_label.c_str(), is_selected)) {
           chest.id = static_cast<uint8_t>(i);
+          room.MarkChestsDirty();
           if (chest_modified_callback_) {
             chest_modified_callback_(*current_room_id_, selected_chest_index_);
           }
@@ -267,6 +271,7 @@ class ChestEditorPanel : public WindowContent {
       gui::StyleColorGuard del_guard(ImGuiCol_Button, theme.status_error);
       if (ImGui::Button(ICON_MD_DELETE " Delete Chest")) {
         chests.erase(chests.begin() + selected_chest_index_);
+        room.MarkChestsDirty();
         selected_chest_index_ = -1;
         if (chest_modified_callback_) {
           chest_modified_callback_(*current_room_id_, -1);

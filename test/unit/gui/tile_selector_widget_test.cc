@@ -267,6 +267,7 @@ TEST_F(TileSelectorWidgetTest, RenderWithoutCanvas) {
   // With no canvas attached, Render should return early with default result
   EXPECT_FALSE(result.tile_clicked);
   EXPECT_FALSE(result.tile_double_clicked);
+  EXPECT_FALSE(result.tile_right_clicked);
   EXPECT_FALSE(result.selection_changed);
   EXPECT_EQ(result.selected_tile, -1);
 }
