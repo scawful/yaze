@@ -2,7 +2,12 @@
 #define YAZE_APP_EDITOR_OVERWORLD_MAP_PROPERTIES_H
 
 #include <functional>
+#include <string>
+#include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "app/editor/overworld/overworld_property_edit.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
@@ -10,9 +15,13 @@
 
 // Forward declaration
 namespace yaze {
+namespace project {
+struct YazeProject;
+}
 namespace editor {
 class OverworldEditor;
-}
+struct SharedClipboard;
+}  // namespace editor
 }  // namespace yaze
 
 namespace yaze {
@@ -24,15 +33,22 @@ class MapPropertiesSystem {
   using RefreshCallback = std::function<void()>;
   using RefreshPaletteCallback = std::function<absl::Status()>;
   using ForceRefreshGraphicsCallback = std::function<void(int)>;
+  using PropertyEditCallback =
+      std::function<absl::Status(const OverworldPropertyEdit&)>;
+  using PropertyEditBatchCallback = std::function<absl::Status(
+      const std::vector<OverworldPropertyEdit>&, const std::string&)>;
+  using ResourceLabelEditCallback =
+      std::function<absl::Status(const std::string&, int, const std::string&)>;
 
   explicit MapPropertiesSystem(
       zelda3::Overworld* overworld, Rom* rom,
       std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp = nullptr,
-      gui::Canvas* canvas = nullptr)
+      gui::Canvas* canvas = nullptr, int* game_state = nullptr)
       : overworld_(overworld),
         rom_(rom),
         maps_bmp_(maps_bmp),
-        canvas_(canvas) {}
+        canvas_(canvas),
+        game_state_(game_state) {}
 
   // Set callbacks for refresh operations
   void SetRefreshCallbacks(
@@ -57,6 +73,26 @@ class MapPropertiesSystem {
   // Set callback for tile16 editing from context menu
   void SetTile16EditCallback(std::function<void()> callback) {
     edit_tile16_callback_ = std::move(callback);
+  }
+
+  void SetTile16SampleCallback(std::function<bool()> callback) {
+    sample_tile16_callback_ = std::move(callback);
+  }
+
+  void SetMapSelectionCallback(std::function<void(int, bool)> callback) {
+    map_selection_callback_ = std::move(callback);
+  }
+
+  void SetPropertyEditCallback(PropertyEditCallback callback) {
+    property_edit_callback_ = std::move(callback);
+  }
+
+  void SetPropertyEditBatchCallback(PropertyEditBatchCallback callback) {
+    property_edit_batch_callback_ = std::move(callback);
+  }
+
+  void SetResourceLabelEditCallback(ResourceLabelEditCallback callback) {
+    resource_label_edit_callback_ = std::move(callback);
   }
 
   // Main interface methods
@@ -84,7 +120,19 @@ class MapPropertiesSystem {
                               bool& current_map_lock,
                               bool& show_map_properties_panel,
                               bool& show_custom_bg_color_editor,
-                              bool& show_overlay_editor, int current_mode = 0);
+                              bool& show_overlay_editor, int current_mode = 0,
+                              project::YazeProject* project = nullptr,
+                              SharedClipboard* shared_clipboard = nullptr);
+
+  absl::Status ApplyPropertyEdit(const OverworldPropertyEdit& edit);
+  absl::Status ApplyPropertyEdits(
+      const std::vector<OverworldPropertyEdit>& edits,
+      const std::string& description = {});
+  absl::Status ApplyPropertyEditDirect(const OverworldPropertyEdit& edit);
+  absl::Status CheckPropertyEditSupported(
+      const OverworldPropertyEdit& edit) const;
+  absl::StatusOr<int> ReadPropertyValue(
+      const OverworldPropertyEdit& edit) const;
 
   // Utility methods - now call the callbacks
   void RefreshMapProperties();
@@ -121,10 +169,17 @@ class MapPropertiesSystem {
   void DrawTileGraphicsTab(int current_map);
   void DrawMusicTab(int current_map);
 
+  int CurrentGameState() const;
+  int CurrentGameState(int fallback) const;
+  void SetCurrentGameState(int game_state);
+  void PrepareMapForGraphicsRefresh(int map_index);
+
   zelda3::Overworld* overworld_;
   Rom* rom_;
   std::array<gfx::Bitmap, zelda3::kNumOverworldMaps>* maps_bmp_;
   gui::Canvas* canvas_;
+  int* game_state_;
+  int local_game_state_ = 0;
 
   // Callbacks for refresh operations
   RefreshCallback refresh_map_properties_;
@@ -138,6 +193,13 @@ class MapPropertiesSystem {
 
   // Callback for tile16 editing from context menu
   std::function<void()> edit_tile16_callback_;
+  std::function<bool()> sample_tile16_callback_;
+
+  // Callback for explicit map selection/pinning from the context menu.
+  std::function<void(int, bool)> map_selection_callback_;
+  PropertyEditCallback property_edit_callback_;
+  PropertyEditBatchCallback property_edit_batch_callback_;
+  ResourceLabelEditCallback resource_label_edit_callback_;
 
   // Using centralized UI constants from ui_constants.h
 };

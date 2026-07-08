@@ -53,16 +53,16 @@
 #include "app/editor/menu/activity_bar.h"
 #include "app/editor/menu/menu_orchestrator.h"
 #include "app/editor/session_types.h"
-#include "app/editor/system/default_editor_factories.h"
+#include "app/editor/shell/coordinator/ui_coordinator.h"
+#include "app/editor/shell/feedback/popup_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/shell/windows/dashboard_panel.h"
+#include "app/editor/shell/windows/project_management_panel.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_workflow_status.h"
+#include "app/editor/system/session/default_editor_factories.h"
 #include "app/editor/system/shortcut_configurator.h"
-#include "app/editor/system/workspace_window_manager.h"
-#include "app/editor/ui/dashboard_panel.h"
-#include "app/editor/ui/popup_manager.h"
-#include "app/editor/ui/project_management_panel.h"
-#include "app/editor/ui/toast_manager.h"
-#include "app/editor/ui/ui_coordinator.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/emu/emulator.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -71,9 +71,10 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
+#include "app/platform/font_loader.h"
 #include "app/platform/ios/ios_platform_state.h"
 #include "app/platform/timing.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "core/rom_settings.h"
@@ -115,17 +116,17 @@
 
 // Conditional test headers
 #ifdef YAZE_ENABLE_TESTING
-#include "app/test/core_systems_test_suite.h"
-#include "app/test/e2e_test_suite.h"
-#include "app/test/integrated_test_suite.h"
-#include "app/test/rom_dependent_test_suite.h"
-#include "app/test/zscustomoverworld_test_suite.h"
+#include "app/testing/core_systems_test_suite.h"
+#include "app/testing/e2e_test_suite.h"
+#include "app/testing/integrated_test_suite.h"
+#include "app/testing/rom_dependent_test_suite.h"
+#include "app/testing/zscustomoverworld_test_suite.h"
 #endif
 #ifdef YAZE_ENABLE_GTEST
-#include "app/test/unit_test_suite.h"
+#include "app/testing/unit_test_suite.h"
 #endif
 #ifdef YAZE_WITH_GRPC
-#include "app/test/z3ed_test_suite.h"
+#include "app/testing/z3ed_test_suite.h"
 #endif
 
 // Conditional agent UI headers
@@ -144,6 +145,20 @@ bool HasAnyOverride(const core::RomAddressOverrides& overrides,
     }
   }
   return false;
+}
+
+bool IsTransientPanelVisibilityId(absl::string_view panel_id) {
+  constexpr absl::string_view kRoomPanelPrefix = "dungeon.room_";
+  if (!absl::StartsWith(panel_id, kRoomPanelPrefix) ||
+      panel_id.size() <= kRoomPanelPrefix.size()) {
+    return false;
+  }
+  for (char ch : panel_id.substr(kRoomPanelPrefix.size())) {
+    if (ch < '0' || ch > '9') {
+      return false;
+    }
+  }
+  return true;
 }
 
 std::string LastNonEmptyLine(const std::string& text) {
@@ -339,18 +354,6 @@ std::vector<std::string> ValidateRomAddressOverrides(
   return warnings;
 }
 
-std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name) {
-  const std::string lower = absl::AsciiStrToLower(std::string(name));
-  for (int i = 0; i < static_cast<int>(EditorType::kSettings) + 1; ++i) {
-    const std::string candidate = absl::AsciiStrToLower(
-        EditorRegistry::GetEditorName(static_cast<EditorType>(i)));
-    if (candidate == lower) {
-      return static_cast<EditorType>(i);
-    }
-  }
-  return std::nullopt;
-}
-
 std::string StripSessionPrefix(absl::string_view panel_id) {
   if (panel_id.size() > 2 && panel_id[0] == 's' &&
       absl::ascii_isdigit(panel_id[1])) {
@@ -438,6 +441,23 @@ void SeedOracleProjectInRecents() {
 }
 
 }  // namespace
+
+std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name) {
+  std::string normalized = std::string(name);
+  absl::StripAsciiWhitespace(&normalized);
+  const std::string lower = absl::AsciiStrToLower(normalized);
+  for (int i = 0; i < static_cast<int>(EditorType::kSettings) + 1; ++i) {
+    const auto type = static_cast<EditorType>(i);
+    const std::string name_candidate =
+        absl::AsciiStrToLower(EditorRegistry::GetEditorName(type));
+    const std::string category_candidate =
+        absl::AsciiStrToLower(EditorRegistry::GetEditorCategory(type));
+    if (name_candidate == lower || category_candidate == lower) {
+      return type;
+    }
+  }
+  return std::nullopt;
+}
 
 // Static registry of editors that use the card-based layout system
 // These editors register their cards with WorkspaceWindowManager and manage their
@@ -658,6 +678,11 @@ void EditorManager::InitializeSubsystems() {
   ContentRegistry::Context::SetEventBus(
       &event_bus_);  // Global event bus access
 
+  // Expose UserSettings to cross-editor panels that don't get constructor
+  // injection (e.g. Layout Designer, which reads named_layouts). The
+  // LayoutManager setter happens below once the unique_ptr is constructed.
+  ContentRegistry::Context::SetUserSettings(&user_settings_);
+
   // STEP 3.5: Initialize RomLifecycleManager (depends on popup_manager_,
   // session_coordinator_, rom_file_manager_, toast_manager_)
   rom_lifecycle_.Initialize({
@@ -679,6 +704,9 @@ void EditorManager::InitializeSubsystems() {
   layout_manager_ = std::make_unique<LayoutManager>();
   layout_manager_->SetWindowManager(&window_manager_);
   layout_manager_->UseGlobalLayouts();
+  // Expose to cross-editor panels that drive the live dockspace (Layout
+  // Designer). Must land after the unique_ptr is constructed.
+  ContentRegistry::Context::SetLayoutManager(layout_manager_.get());
   workspace_manager_.set_layout_manager(layout_manager_.get());
   workspace_manager_.set_apply_preset_callback(
       [this](const std::string& preset_name) {
@@ -993,6 +1021,9 @@ void EditorManager::SubscribeToEvents() {
             e.category == WorkspaceWindowManager::kDashboardCategory) {
           return;
         }
+        if (IsTransientPanelVisibilityId(e.base_panel_id)) {
+          return;
+        }
         auto& prefs = user_settings_.prefs();
         prefs.panel_visibility_state[e.category][e.base_panel_id] = e.visible;
         settings_dirty_ = true;
@@ -1001,6 +1032,22 @@ void EditorManager::SubscribeToEvents() {
 }
 
 EditorManager::~EditorManager() {
+  // ContentRegistry::Context holds non-owning pointers into our members
+  // (event_bus_, editor_context_, user_settings_, layout_manager_, callbacks).
+  // Clear them before our members destruct so widgets that read the singleton
+  // (e.g. Canvas::set_global_scale via Context::event_bus()) don't see
+  // dangling pointers in tests that instantiate multiple EditorManagers.
+  // Clear() resets fallback state but intentionally keeps global_context for
+  // session-close semantics, so null it explicitly here.
+  ContentRegistry::Context::Clear();
+  ContentRegistry::Context::SetGlobalContext(nullptr);
+
+  // GetResourceLabels() is a process-wide singleton. RefreshResourceLabelProvider
+  // hands it a pointer to current_project_.hack_manifest, which dangles after
+  // we destruct. Clear before our members go out of scope.
+  zelda3::GetResourceLabels().SetHackManifest(nullptr);
+  zelda3::GetResourceLabels().SetProjectLabels(nullptr);
+
   // ThemeManager is a singleton that outlives us. Clear the theme-changed
   // callback so it stops calling back into a destroyed EditorManager via the
   // captured `this` pointer. Matters for unit tests that construct and destroy
@@ -1248,9 +1295,7 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
     case Action::kSaveRom:
       if (GetCurrentRom() && GetCurrentRom()->is_loaded()) {
         auto status = SaveRom();
-        if (status.ok()) {
-          toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
-        } else if (!absl::IsCancelled(status)) {
+        if (!absl::IsCancelled(status) && !status.ok()) {
           toast_manager_.Show(
               std::string("Save failed: ") + std::string(status.message()),
               ToastType::kError);
@@ -1522,6 +1567,12 @@ void EditorManager::InitializeServices() {
       });
 
   auto& prefs = user_settings_.prefs();
+
+  // Apply the persisted font selection (defaults to index 0 = Karla).
+  // Fonts were loaded by the window backend before EditorManager init, so
+  // ImGui::GetIO().Fonts->Fonts is fully populated here.
+  ::yaze::SetActiveFontIndex(prefs.font_family_index);
+
   prefs.switch_motion_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
   gui::GetAnimator().SetMotionPreferences(
       prefs.reduced_motion,
@@ -2076,8 +2127,17 @@ void EditorManager::ProcessStartupActions(const AppConfig& config) {
                                                       GetCurrentSessionId()));
   }
   if (config.jump_to_map >= 0) {
-    event_bus_.Publish(JumpToMapRequestEvent::Create(config.jump_to_map,
-                                                     GetCurrentSessionId()));
+    if (config.jump_to_map < zelda3::kNumOverworldMaps) {
+      event_bus_.Publish(JumpToMapRequestEvent::Create(config.jump_to_map,
+                                                       GetCurrentSessionId()));
+    } else {
+      LOG_WARN("EditorManager",
+               "Ignoring invalid startup overworld map target %d",
+               config.jump_to_map);
+      toast_manager_.Show("Ignored invalid startup overworld map: " +
+                              std::to_string(config.jump_to_map),
+                          editor::ToastType::kWarning);
+    }
   }
 }
 
@@ -2676,9 +2736,19 @@ void EditorManager::DrawInterface() {
         auto* rom = GetCurrentRom();
         return rom && rom->is_loaded() && rom->dirty();
       };
+      auto pending_dungeon_rooms_callback = [this]() -> int {
+        if (auto* editor_set = GetCurrentEditorSet()) {
+          if (auto* dungeon_editor = editor_set->GetEditorAs<DungeonEditorV2>(
+                  EditorType::kDungeon)) {
+            return dungeon_editor->PendingRoomCount();
+          }
+        }
+        return 0;
+      };
       activity_bar_->Render(GetCurrentSessionId(), sidebar_category,
                             all_categories, active_editor_categories,
-                            has_rom_callback, is_rom_dirty_callback);
+                            has_rom_callback, is_rom_dirty_callback,
+                            pending_dungeon_rooms_callback);
     }
   }
 
@@ -2721,6 +2791,24 @@ void EditorManager::DrawInterface() {
   status_bar_.ClearEditorContributions();
   if (current_editor_) {
     current_editor_->ContributeStatus(&status_bar_);
+  }
+
+  if (auto* current_editor_set = GetCurrentEditorSet()) {
+    if (auto* dungeon_editor = current_editor_set->GetEditorAs<DungeonEditorV2>(
+            EditorType::kDungeon)) {
+      const int pending_rooms = dungeon_editor->PendingRoomCount();
+      if (pending_rooms > 0) {
+        StatusBarSegmentOptions pending_opts;
+        pending_opts.tooltip = absl::StrFormat(
+            "%d dungeon room%s still ha%s pending editor changes. Apply them "
+            "to the ROM buffer before File > Save ROM if needed.",
+            pending_rooms, pending_rooms == 1 ? "" : "s",
+            pending_rooms == 1 ? "s" : "ve");
+        status_bar_.SetCustomSegment(
+            "Dungeon", absl::StrFormat("%d pending", pending_rooms),
+            std::move(pending_opts));
+      }
+    }
   }
 
   status_bar_.Draw();
@@ -2930,6 +3018,16 @@ void EditorManager::RefreshHackWorkflowBackend() {
  * 8. Update UI state and recent files
  */
 absl::Status EditorManager::LoadRom() {
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kOpenRomDialog,
+           GetCurrentSessionIndex()})) {
+    return absl::OkStatus();
+  }
+
+  return LoadRomInternal();
+}
+
+absl::Status EditorManager::LoadRomInternal() {
   auto load_from_path = [this](const std::string& file_name) -> absl::Status {
     if (file_name.empty()) {
       return absl::OkStatus();
@@ -2939,7 +3037,7 @@ absl::Status EditorManager::LoadRom() {
     if (absl::EndsWith(file_name, ".yaze") ||
         absl::EndsWith(file_name, ".zsproj") ||
         absl::EndsWith(file_name, ".yazeproj")) {
-      return OpenRomOrProject(file_name);
+      return OpenRomOrProjectInternal(file_name);
     }
 
     if (session_coordinator_->HasDuplicateSession(file_name)) {
@@ -3455,6 +3553,17 @@ absl::Status EditorManager::SaveRomAs(const std::string& filename) {
 }
 
 absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath,
+           GetCurrentSessionIndex(), SIZE_MAX, filename})) {
+    return absl::OkStatus();
+  }
+
+  return OpenRomOrProjectInternal(filename);
+}
+
+absl::Status EditorManager::OpenRomOrProjectInternal(
+    const std::string& filename) {
   LOG_INFO("EditorManager", "OpenRomOrProject called with: '%s'",
            filename.c_str());
   if (filename.empty()) {
@@ -3593,6 +3702,16 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
 }
 
 absl::Status EditorManager::OpenProject() {
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kOpenProjectDialog,
+           GetCurrentSessionIndex()})) {
+    return absl::OkStatus();
+  }
+
+  return OpenProjectInternal();
+}
+
+absl::Status EditorManager::OpenProjectInternal() {
   auto open_project_from_path =
       [this](const std::string& file_path) -> absl::Status {
     if (file_path.empty()) {
@@ -3984,9 +4103,7 @@ void EditorManager::ResolvePotItemSaveConfirmation(
   }
 
   auto status = SaveRom();
-  if (status.ok()) {
-    toast_manager_.Show("ROM saved successfully", ToastType::kSuccess);
-  } else if (!absl::IsCancelled(status)) {
+  if (!absl::IsCancelled(status) && !status.ok()) {
     toast_manager_.Show(
         absl::StrFormat("Failed to save ROM: %s", status.message()),
         ToastType::kError);
@@ -4426,23 +4543,397 @@ void EditorManager::DuplicateCurrentSession() {
 }
 
 void EditorManager::CloseCurrentSession() {
-  if (session_coordinator_) {
-    session_coordinator_->CloseCurrentSession();
+  if (!session_coordinator_) {
+    return;
   }
+
+  const size_t current_index = GetCurrentSessionIndex();
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kCloseSession, current_index,
+           current_index})) {
+    return;
+  }
+
+  session_coordinator_->CloseCurrentSession();
 }
 
 void EditorManager::RemoveSession(size_t index) {
-  if (session_coordinator_) {
-    session_coordinator_->RemoveSession(index);
+  if (!session_coordinator_) {
+    return;
   }
+
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kCloseSession, index, index})) {
+    return;
+  }
+
+  session_coordinator_->RemoveSession(index);
 }
 
 void EditorManager::SwitchToSession(size_t index) {
-  if (session_coordinator_) {
-    // Delegate to SessionCoordinator - cross-cutting concerns
-    // are handled by OnSessionSwitched() observer callback
-    session_coordinator_->SwitchToSession(index);
+  if (!session_coordinator_) {
+    return;
   }
+
+  const size_t current_index = GetCurrentSessionIndex();
+  if (index == current_index) {
+    return;
+  }
+
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kSwitchSession, current_index,
+           index})) {
+    return;
+  }
+
+  session_coordinator_->SwitchToSession(index);
+}
+
+void EditorManager::Quit() {
+  if (!MaybeGuardPendingSessionAction(
+          {PendingUnsavedSessionAction::Type::kQuit, SIZE_MAX})) {
+    return;
+  }
+
+  quit_ = true;
+}
+
+bool EditorManager::HasPendingUnsavedSessionAction() const {
+  return pending_unsaved_session_action_.has_value();
+}
+
+std::string EditorManager::GetPendingUnsavedSessionActionPrompt() const {
+  if (!pending_unsaved_session_action_) {
+    return "";
+  }
+
+  const auto& action = *pending_unsaved_session_action_;
+  if (action.type == PendingUnsavedSessionAction::Type::kQuit) {
+    return absl::StrFormat("%s\n\nQuitting now will discard them.",
+                           DescribeAllPendingUnsavedWork());
+  }
+
+  const std::string session_name =
+      session_coordinator_ ? session_coordinator_->GetSessionDisplayName(
+                                 action.source_session_index)
+                           : "Current Session";
+  const std::string work =
+      DescribePendingUnsavedWork(action.source_session_index);
+
+  switch (action.type) {
+    case PendingUnsavedSessionAction::Type::kOpenRomDialog:
+    case PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath:
+      return absl::StrFormat(
+          "Session '%s' has %s. Opening another ROM or project will not save "
+          "them automatically.",
+          session_name, work);
+    case PendingUnsavedSessionAction::Type::kOpenProjectDialog:
+      return absl::StrFormat(
+          "Session '%s' has %s. Opening another project will not save them "
+          "automatically.",
+          session_name, work);
+    case PendingUnsavedSessionAction::Type::kSwitchSession:
+      return absl::StrFormat(
+          "Session '%s' has %s. Switching sessions will leave them behind in "
+          "this session.",
+          session_name, work);
+    case PendingUnsavedSessionAction::Type::kCloseSession:
+      return absl::StrFormat(
+          "Session '%s' has %s. Closing it now will discard them.",
+          session_name, work);
+    case PendingUnsavedSessionAction::Type::kQuit:
+      break;
+  }
+
+  return "";
+}
+
+std::string EditorManager::GetPendingUnsavedSessionActionSaveLabel() const {
+  if (!pending_unsaved_session_action_) {
+    return "Save ROM";
+  }
+
+  switch (pending_unsaved_session_action_->type) {
+    case PendingUnsavedSessionAction::Type::kOpenRomDialog:
+    case PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath:
+      return "Save ROM & Open";
+    case PendingUnsavedSessionAction::Type::kOpenProjectDialog:
+      return "Save ROM & Open Project";
+    case PendingUnsavedSessionAction::Type::kSwitchSession:
+      return "Save ROM & Switch";
+    case PendingUnsavedSessionAction::Type::kCloseSession:
+      return "Save ROM & Close";
+    case PendingUnsavedSessionAction::Type::kQuit:
+      return ModifiedSessionCount() == 1 ? "Save ROM & Quit"
+                                         : "Save Modified ROMs & Quit";
+  }
+
+  return "Save ROM";
+}
+
+std::string EditorManager::GetPendingUnsavedSessionActionContinueLabel() const {
+  if (!pending_unsaved_session_action_) {
+    return "Continue";
+  }
+
+  switch (pending_unsaved_session_action_->type) {
+    case PendingUnsavedSessionAction::Type::kOpenRomDialog:
+    case PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath:
+      return "Open Without Saving";
+    case PendingUnsavedSessionAction::Type::kOpenProjectDialog:
+      return "Open Project Without Saving";
+    case PendingUnsavedSessionAction::Type::kSwitchSession:
+      return "Switch Without Saving";
+    case PendingUnsavedSessionAction::Type::kCloseSession:
+      return "Close Without Saving";
+    case PendingUnsavedSessionAction::Type::kQuit:
+      return "Quit Without Saving";
+  }
+
+  return "Continue";
+}
+
+void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
+  if (!pending_unsaved_session_action_) {
+    return;
+  }
+
+  const auto action = *pending_unsaved_session_action_;
+  pending_unsaved_session_action_.reset();
+
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kUnsavedSessionChanges);
+  }
+
+  const size_t original_session = GetCurrentSessionIndex();
+  auto save_modified_session = [this](size_t session_index) -> absl::Status {
+    if (!session_coordinator_ ||
+        !session_coordinator_->IsValidSessionIndex(session_index) ||
+        !SessionHasPendingUnsavedWork(session_index)) {
+      return absl::OkStatus();
+    }
+
+    session_coordinator_->SwitchToSession(session_index);
+    return SaveRom();
+  };
+
+  absl::Status save_status = absl::OkStatus();
+  if (action.type == PendingUnsavedSessionAction::Type::kQuit) {
+    if (session_coordinator_) {
+      for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount();
+           ++i) {
+        save_status = save_modified_session(i);
+        if (!save_status.ok()) {
+          break;
+        }
+      }
+    }
+  } else {
+    save_status = save_modified_session(action.source_session_index);
+  }
+
+  if (!save_status.ok()) {
+    if (session_coordinator_ &&
+        session_coordinator_->IsValidSessionIndex(original_session)) {
+      session_coordinator_->SwitchToSession(original_session);
+    }
+
+    if (absl::IsCancelled(save_status)) {
+      toast_manager_.Show("Save paused. Finish saving, then retry your action.",
+                          ToastType::kInfo);
+    } else {
+      toast_manager_.Show(
+          absl::StrFormat("Failed to save before continuing: %s",
+                          save_status.message()),
+          ToastType::kError);
+    }
+    return;
+  }
+
+  ExecutePendingUnsavedSessionAction(action);
+}
+
+void EditorManager::ConfirmPendingUnsavedSessionActionDiscardAndContinue() {
+  if (!pending_unsaved_session_action_) {
+    return;
+  }
+
+  const auto action = *pending_unsaved_session_action_;
+  pending_unsaved_session_action_.reset();
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kUnsavedSessionChanges);
+  }
+  ExecutePendingUnsavedSessionAction(action);
+}
+
+void EditorManager::CancelPendingUnsavedSessionAction() {
+  pending_unsaved_session_action_.reset();
+  if (popup_manager_) {
+    popup_manager_->Hide(PopupID::kUnsavedSessionChanges);
+  }
+}
+
+bool EditorManager::MaybeGuardPendingSessionAction(
+    PendingUnsavedSessionAction action) {
+  const bool has_pending_work =
+      action.type == PendingUnsavedSessionAction::Type::kQuit
+          ? HasAnySessionPendingUnsavedWork()
+          : SessionHasPendingUnsavedWork(action.source_session_index);
+  if (!has_pending_work) {
+    return true;
+  }
+
+  pending_unsaved_session_action_ = std::move(action);
+  if (popup_manager_) {
+    popup_manager_->Show(PopupID::kUnsavedSessionChanges);
+  }
+  return false;
+}
+
+void EditorManager::ExecutePendingUnsavedSessionAction(
+    const PendingUnsavedSessionAction& action) {
+  switch (action.type) {
+    case PendingUnsavedSessionAction::Type::kOpenRomDialog: {
+      auto status = LoadRomInternal();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to load ROM: %s", status.message()),
+            ToastType::kError);
+      }
+      break;
+    }
+    case PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath: {
+      auto status = OpenRomOrProjectInternal(action.path);
+      if (!status.ok()) {
+        toast_manager_.Show(absl::StrFormat("Failed to open ROM / project: %s",
+                                            status.message()),
+                            ToastType::kError);
+      }
+      break;
+    }
+    case PendingUnsavedSessionAction::Type::kOpenProjectDialog: {
+      auto status = OpenProjectInternal();
+      if (!status.ok()) {
+        toast_manager_.Show(
+            absl::StrFormat("Failed to open project: %s", status.message()),
+            ToastType::kError);
+      }
+      break;
+    }
+    case PendingUnsavedSessionAction::Type::kSwitchSession:
+      if (session_coordinator_) {
+        session_coordinator_->SwitchToSession(action.target_session_index);
+      }
+      break;
+    case PendingUnsavedSessionAction::Type::kCloseSession:
+      if (session_coordinator_) {
+        session_coordinator_->RemoveSession(action.target_session_index);
+      }
+      break;
+    case PendingUnsavedSessionAction::Type::kQuit:
+      quit_ = true;
+      break;
+  }
+}
+
+bool EditorManager::SessionHasPendingUnsavedWork(size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return false;
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  return session != nullptr &&
+         ((session->rom.is_loaded() && session->rom.dirty()) ||
+          PendingDungeonRoomCountForSession(session_index) > 0);
+}
+
+bool EditorManager::HasAnySessionPendingUnsavedWork() const {
+  return ModifiedSessionCount() > 0;
+}
+
+int EditorManager::PendingDungeonRoomCountForSession(
+    size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return 0;
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  if (!session) {
+    return 0;
+  }
+
+  if (auto* dungeon_editor =
+          session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)) {
+    return dungeon_editor->PendingRoomCount();
+  }
+  return 0;
+}
+
+int EditorManager::ModifiedSessionCount() const {
+  if (!session_coordinator_) {
+    return 0;
+  }
+
+  int count = 0;
+  for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount(); ++i) {
+    if (SessionHasPendingUnsavedWork(i)) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+std::string EditorManager::DescribePendingUnsavedWork(
+    size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return "unsaved work";
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  const bool rom_dirty =
+      session != nullptr && session->rom.is_loaded() && session->rom.dirty();
+  const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
+
+  if (rom_dirty && pending_rooms > 0) {
+    return absl::StrFormat(
+        "%d unapplied dungeon room%s and unsaved ROM-buffer changes",
+        pending_rooms, pending_rooms == 1 ? "" : "s");
+  }
+  if (pending_rooms > 0) {
+    return absl::StrFormat("%d unapplied dungeon room%s", pending_rooms,
+                           pending_rooms == 1 ? "" : "s");
+  }
+  if (rom_dirty) {
+    return "unsaved ROM-buffer changes";
+  }
+  return "unsaved work";
+}
+
+std::string EditorManager::DescribeAllPendingUnsavedWork() const {
+  const int modified_sessions = ModifiedSessionCount();
+  if (modified_sessions <= 0) {
+    return "No sessions have unsaved work.";
+  }
+
+  if (modified_sessions == 1 && session_coordinator_) {
+    for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount(); ++i) {
+      if (SessionHasPendingUnsavedWork(i)) {
+        return absl::StrFormat("Session '%s' has %s.",
+                               session_coordinator_->GetSessionDisplayName(i),
+                               DescribePendingUnsavedWork(i));
+      }
+    }
+  }
+
+  return absl::StrFormat(
+      "%d sessions have unapplied dungeon edits or unsaved ROM-buffer changes.",
+      modified_sessions);
 }
 
 size_t EditorManager::GetCurrentSessionIndex() const {

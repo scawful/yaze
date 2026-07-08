@@ -1,9 +1,15 @@
 # Dungeon object rendering parity — implementation plan
 
-**Status:** In progress  
-**Created:** 2026-04-15  
-**Progress (2026-04-15):** Phase A partially done — `MapRoomObjectListIndexToDrawLayer()` + documentation on `layer_`; `RoomObject::ListIndex` alias enum; parser comments fixed; `ObjectDrawer` layer comments fixed. Phase B — `Room::RenderObjectsToBackground` runs **three** `DrawObjectList` passes (primary / BG2 overlay / BG1 overlay) with `reset_chest_index` only on the first non-empty pass. Pit/mask holes use **`DimensionService::GetSelectionBoundsPixels`** (shared with selection). **Cleanup (same session):** removed ~740-line duplicate dimension `switch` (`CalculateObjectDimensions` → `DimensionService`); aligned `DimensionService` last-resort fallback with legacy drawer nibbles; `MarkBg1RectTransparent` is a proper `ObjectDrawer` member; fixed premature namespace close in `object_drawer.cc`; removed manual rectangle fallback in `Room::RenderObjectsToBackground`; deleted duplicate `dungeon_object_rendering_tests_new.cc`. Not done: ROM pixel baselines, E2E golden screenshots.  
-**Primary spec:** [dungeon-object-rendering-spec.md](../agents/dungeon-object-rendering-spec.md) (USDASM `bank_01.asm`)  
+**Status:** In progress
+
+**Created:** 2026-04-15
+
+**Progress (2026-04-15):** Phase A partially done — `MapRoomObjectListIndexToDrawLayer()` + documentation on `layer_`; `RoomObject::ListIndex` alias enum; parser comments fixed; `ObjectDrawer` layer comments fixed. Phase B — `Room::RenderObjectsToBackground` runs **three** `DrawObjectList` passes (primary / BG2 overlay / BG1 overlay) with `reset_chest_index` only on the first non-empty pass. Pit/mask holes use **`DimensionService::GetSelectionBoundsPixels`** (shared with selection). **Cleanup (same session):** removed ~740-line duplicate dimension `switch` (`CalculateObjectDimensions` → `DimensionService`); aligned `DimensionService` last-resort fallback with legacy drawer nibbles; `MarkBg1RectTransparent` is a proper `ObjectDrawer` member; fixed premature namespace close in `object_drawer.cc`; removed manual rectangle fallback in `Room::RenderObjectsToBackground`; deleted duplicate `dungeon_object_rendering_tests_new.cc`.
+
+**Progress (2026-06-28):** Added ROM-backed room regression fixtures for five vanilla rooms plus per-layer/composite checksums. These are drift guards against current renderer output, not independent emulator/screenshot truth. Not done: explicit stream-vs-buffer type separation, golden screenshot ROI, and remaining rare-object visual parity.
+
+**Primary spec:** [dungeon-object-rendering-spec.md](../agents/dungeon-object-rendering-spec.md) (USDASM `bank_01.asm`)
+
 **Related handoff:** [HANDOFF_BG2_MASKING_FIX.md](../hand-off/HANDOFF_BG2_MASKING_FIX.md)
 
 ## Goals
@@ -17,7 +23,10 @@
 
 ALTTP builds dungeon graphics in multiple passes: floors, layout template, primary object list, then BG2 overlay list, then BG1 overlay list (separated by `0xFFFF` in room object data), then pushable blocks and torches. See the spec table under “Room Build & Layer Order”.
 
-The editor currently collapses some of this; the spec’s implementation status row **Four-pass build order** is still **Not started**.
+yaze now renders layout plus the three object streams in order, with room-level
+checksum fixtures guarding selected vanilla rooms. The remaining gap is
+independent visual truth: emulator/screenshot ROI baselines and sparse pixel
+assertions for known overlap cases.
 
 ## Clarification: stream index vs `RoomObject::LayerType`
 
@@ -35,7 +44,7 @@ Because stream 0 is stored as integer `0`, it collides with `LayerType::BG1` eve
 
 `Room::RenderObjectsToBackground` therefore remaps before `ObjectDrawer::DrawObjectList`:
 
-- `GetLayerValue() <= 1` → force `RoomObject::LayerType::BG2` for drawing  
+- `GetLayerValue() <= 1` → force `RoomObject::LayerType::BG2` for drawing
 - else → `RoomObject::LayerType::BG1`
 
 That behavior is **consistent** with the spec line “Main list (BG2 by default, unless the routine itself writes both)”. A naive change to “layer 0 → BG1” would **break** primary-list objects unless stream indexing is modeled separately.
@@ -151,8 +160,9 @@ Run Phase F early in parallel with A; it reduces future mistakes.
 ## Done criteria (program-wide)
 
 - [ ] No use of `LayerType` for ROM stream index without explicit conversion.
-- [ ] `dungeon-object-rendering-spec.md` implementation table updated: four-pass row moves past “Not started” when B is done.
-- [ ] At least one ROM-integrated test and one mask-geometry test added.
+- [x] `dungeon-object-rendering-spec.md` implementation table updated: three-stream object build order marked done.
+- [x] At least one ROM-integrated room-render drift test added.
+- [ ] Add one independent emulator/screenshot ROI baseline and one mask-geometry/overlap pixel assertion.
 - [ ] E2E optional: golden screenshot test documented and either enabled in CI or marked with clear skip rationale.
 
 ## Verification commands (for implementers)

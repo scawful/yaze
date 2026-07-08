@@ -3,6 +3,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/graphics/gfx_group_editor_internal.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
@@ -59,6 +60,11 @@ constexpr int kTileSize = 16;  // 8px tiles at 2x scale
 void DrawScaledSheet(gui::Canvas& canvas, gfx::Bitmap& sheet, int unique_id,
                      float scale = kDefaultScale) {
   PushID(unique_id);
+
+  // Each sheet viewer is read-only; declare it so future canvas surfaces
+  // (cursors, hover hints, context-menu items) can default appropriately
+  // without the caller threading the policy through every frame.
+  canvas.GetConfig().role = gui::CanvasRole::kPreviewOnly;
 
   // Calculate scaled dimensions
   int display_width = static_cast<int>(gfx::kTilesheetWidth * scale);
@@ -167,9 +173,16 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
       int sheet_id = game_data()->main_blockset_ids[ws.selected_blockset][idx];
       auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
 
-      // Apply current palette if selected
-      if (ws.use_custom_palette && current_palette_) {
+      // Make sure the sheet has a GPU texture before the canvas tries to draw
+      // it; otherwise canvas_rendering silently returns and the slot is blank.
+      internal::EnsureSheetTextureQueued(sheet);
+
+      if (ws.override_palette && current_palette_) {
         sheet.SetPalette(*current_palette_);
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
+      } else if (internal::ApplyRoleDefaultPalette(
+                     sheet, gfx::RoleForBlocksetSlot(idx),
+                     game_data()->palette_groups)) {
         gfx::Arena::Get().NotifySheetModified(sheet_id);
       }
 
@@ -239,9 +252,14 @@ void GfxGroupEditor::DrawRoomsetViewer() {
       int sheet_id = game_data()->room_blockset_ids[ws.selected_roomset][idx];
       auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
 
-      // Apply current palette if selected
-      if (ws.use_custom_palette && current_palette_) {
+      internal::EnsureSheetTextureQueued(sheet);
+
+      if (ws.override_palette && current_palette_) {
         sheet.SetPalette(*current_palette_);
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
+      } else if (internal::ApplyRoleDefaultPalette(
+                     sheet, gfx::RoleForRoomsetSlot(idx),
+                     game_data()->palette_groups)) {
         gfx::Arena::Get().NotifySheetModified(sheet_id);
       }
 
@@ -298,9 +316,14 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
       int sheet_id = 115 + sheet_offset;
       auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
 
-      // Apply current palette if selected
-      if (ws.use_custom_palette && current_palette_) {
+      internal::EnsureSheetTextureQueued(sheet);
+
+      if (ws.override_palette && current_palette_) {
         sheet.SetPalette(*current_palette_);
+        gfx::Arena::Get().NotifySheetModified(sheet_id);
+      } else if (internal::ApplyRoleDefaultPalette(
+                     sheet, gfx::RoleForSpritesetSlot(idx),
+                     game_data()->palette_groups)) {
         gfx::Arena::Get().NotifySheetModified(sheet_id);
       }
 
@@ -386,9 +409,12 @@ void GfxGroupEditor::DrawPaletteControls() {
   }
 
   SameLine();
-  ImGui::Checkbox("Apply", &ws.use_custom_palette);
+  ImGui::Checkbox("Override palette", &ws.override_palette);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Apply selected palette to sheet previews");
+    ImGui::SetTooltip(
+        "When off, each sheet renders against its slot's role-default "
+        "palette (overworld main/aux/animated, sprites, hud, dungeon).\n"
+        "When on, the palette picked above is forced onto every sheet.");
   }
 
   // Show current palette preview

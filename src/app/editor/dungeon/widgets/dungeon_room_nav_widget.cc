@@ -12,7 +12,6 @@ namespace {
 
 constexpr int kRoomMatrixCols = 16;
 constexpr int kRoomMatrixRows = 19;
-
 std::optional<int> RoomIfValid(int candidate) {
   if (candidate < 0 || candidate >= zelda3::kNumberOfRooms) {
     return std::nullopt;
@@ -27,7 +26,8 @@ std::string MakeTooltip(const std::optional<int>& target,
   }
   const auto label = zelda3::GetRoomLabel(*target);
   char buf[192];
-  snprintf(buf, sizeof(buf), "%s: [%03X] %s", direction, *target, label.c_str());
+  snprintf(buf, sizeof(buf), "%s: [%03X] %s", direction, *target,
+           label.c_str());
   return buf;
 }
 
@@ -55,7 +55,8 @@ bool ArrowButtonWithTooltip(const char* id, ImGuiDir dir,
 
 }  // namespace
 
-DungeonRoomNavWidget::Neighbors DungeonRoomNavWidget::GetNeighbors(int room_id) {
+DungeonRoomNavWidget::Neighbors DungeonRoomNavWidget::GetNeighbors(
+    int room_id) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return {};
   }
@@ -68,8 +69,8 @@ DungeonRoomNavWidget::Neighbors DungeonRoomNavWidget::GetNeighbors(int room_id) 
   out.west = RoomIfValid(col > 0 ? room_id - 1 : -1);
   out.east = RoomIfValid(col < (kRoomMatrixCols - 1) ? room_id + 1 : -1);
   out.north = RoomIfValid(row > 0 ? room_id - kRoomMatrixCols : -1);
-  out.south = RoomIfValid(row < (kRoomMatrixRows - 1) ? room_id + kRoomMatrixCols
-                                                      : -1);
+  out.south =
+      RoomIfValid(row < (kRoomMatrixRows - 1) ? room_id + kRoomMatrixCols : -1);
   return out;
 }
 
@@ -84,11 +85,11 @@ bool DungeonRoomNavWidget::Draw(const char* id, int room_id,
   const std::string tip_e = MakeTooltip(n.east, "East");
 
   bool navigated = false;
-  navigated |= ArrowButtonWithTooltip("West", ImGuiDir_Left, n.west, tip_w,
-                                      on_navigate);
+  navigated |=
+      ArrowButtonWithTooltip("West", ImGuiDir_Left, n.west, tip_w, on_navigate);
   ImGui::SameLine();
-  navigated |= ArrowButtonWithTooltip("North", ImGuiDir_Up, n.north, tip_n,
-                                      on_navigate);
+  navigated |=
+      ArrowButtonWithTooltip("North", ImGuiDir_Up, n.north, tip_n, on_navigate);
   ImGui::SameLine();
   navigated |= ArrowButtonWithTooltip("South", ImGuiDir_Down, n.south, tip_s,
                                       on_navigate);
@@ -101,4 +102,3 @@ bool DungeonRoomNavWidget::Draw(const char* id, int room_id,
 }
 
 }  // namespace yaze::editor
-

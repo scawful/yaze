@@ -1,12 +1,12 @@
 # Yaze Capability Assessment
 
-Last updated: 2026-02-24 (v0.6.1)
+Last updated: 2026-05-01 (v0.7.2 development)
 
 An honest assessment of yaze's current capabilities compared to Hyrule Magic and ZScream, the two established ALTTP ROM editors.
 
 ## Editor Capability Matrix
 
-### Dungeon Editor (~75% parity with ZScream)
+### Dungeon Editor (~80% parity with ZScream)
 
 | Feature | yaze | ZScream | Hyrule Magic |
 |---------|------|---------|--------------|
@@ -20,7 +20,7 @@ An honest assessment of yaze's current capabilities compared to Hyrule Magic and
 | Object z-ordering (front/back) | Yes | Yes | Yes |
 | Object layer assignment (BG1/BG2/BG3) | Yes | Yes | Yes |
 | Layer visibility toggles | Yes (compact bar) | Yes | Yes |
-| Room header editing (palette, blockset, etc.) | Partial (settings panel) | Full | Full |
+| Room header editing (palette, blockset, etc.) | Yes (settings panel) | Full | Full |
 | Custom collision editing | Yes (JSON import/export) | Limited | No |
 | Water-fill editing | Yes (JSON import/export) | No | No |
 | Minecart/track rail tools | Yes (audit + generation) | No | No |
@@ -30,8 +30,11 @@ An honest assessment of yaze's current capabilities compared to Hyrule Magic and
 | Multi-room tab view | Yes | Yes | Yes |
 | Adjacent room navigation (Ctrl+arrows) | Yes | No | No |
 | Room save to ROM | Yes | Yes | Yes |
-| Sprite graphics rendering (actual tiles) | No (colored boxes) | Yes | Yes |
+| Room-state persistence coverage | Focused regression coverage (headers, torches, fixed-capacity pit-damage table, pushable blocks, custom collision, chests, pot items, dungeon entrances/spawn points; oversized pot-item saves fail loudly) | Mature | Mature |
+| Sprite graphics rendering (actual tiles) | Partial (static vanilla tile preview + fallback boxes) | Yes | Yes |
 | Object tile preview in ghost | Yes (rendered bitmap) | No | No |
+| Object selector/browser previews | Yes (default-on rendered room-context thumbnails + fallback symbols) | Yes | Yes |
+| Object tile editor / custom-object layout editing | Partial (tile editor + preview/tests; workflow still rough) | Yes | No |
 
 ### Overworld Editor (~60-65% parity with ZScream)
 
@@ -74,7 +77,7 @@ An honest assessment of yaze's current capabilities compared to Hyrule Magic and
 | Message/text editor | Yes (import/export/encode/decode) | Yes | Limited |
 | Music editor | Yes (SPC playback, track editing) | No | No |
 | Sprite editor (data/properties) | Yes | Yes | Yes |
-| Screen editor (title/file select) | Basic | Yes | Yes |
+| Screen editor (title/file select / pause-menu world map) | Basic | Yes | Yes |
 | Palette editor (standalone) | Yes | Yes | Yes |
 | Assembly editor (integrated) | Yes | No | No |
 | Hex editor (integrated) | Yes | No | No |
@@ -124,20 +127,20 @@ Purpose-built validation for the Oracle romhack:
 
 ### Testing Infrastructure
 
-- 1,399 unit tests across 211 test suites
+- 1,000+ automated tests across unit, integration, GUI, ROM-dependent, and web/WASM slices
 - ImGui Test Engine integration for GUI testing
 - Protocol audit system for agent coordination verification
 - Oracle-specific regression test suite
 
 ## Where yaze is behind (honest gaps)
 
-1. **Sprite graphics rendering** — Dungeon sprites show as colored rectangles instead of their actual SNES tiles. This is the single largest visual gap for room authoring.
+1. **Sprite graphics rendering depth** — Dungeon sprites now render static vanilla tile previews on the room canvas when the sprite graphics buffer and palette rows are available, but this is still not full runtime OAM animation/state rendering.
 
 2. **GFX sheet editing depth** — ZScream and Hyrule Magic allow individual 8x8 tile editing, GFX import/export, and animated tile preview. yaze's graphics editor is primarily a viewer.
 
-3. **Room header completeness** — Some room header fields may not be exposed in the UI (needs verification against ZScream's full property list).
+3. **Dungeon persistence model gaps** — The global pit-damage table has a fixed-capacity encoder but no room-editor UI toggle yet, and pushable blocks do not yet repoint/expand beyond the vanilla table capacity.
 
-4. **Screen editors** — Title screen and file select screen editors are basic compared to competitors.
+4. **Screen editors** — Title screen, file select, and pause-menu world-map editors are basic compared to competitors and need clearer UX/test coverage.
 
 5. **GFX import/export** — No way to import/export graphics sheets or individual tiles.
 
@@ -145,7 +148,7 @@ Purpose-built validation for the Oracle romhack:
 
 | Area | Parity | Notes |
 |------|--------|-------|
-| Dungeon editing | ~75% | Strong interaction model, unique collision/water-fill tools. Gap: sprite rendering. |
+| Dungeon editing | ~83% | Strong interaction model, focused persistence coverage, default-on object-browser previews, unique collision/water-fill tools. Gaps: animated sprite/runtime OAM rendering, pit-damage editing, block-table expansion. |
 | Overworld editing | ~60-65% | Functional painting + entity editing. Gap: some polish vs ZScream. |
 | Graphics editing | ~35% | Viewer + palette editor. Gap: pixel editing, import/export. |
 | CLI/Automation | No competitor | 127 commands, JSON output, full scripting capability. |

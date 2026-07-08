@@ -3,6 +3,8 @@
 #include <string>
 
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/room_object.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze::zelda3 {
 
@@ -114,6 +116,42 @@ TEST_F(ResourceLabelsTest, ConvenienceFunctionsWork) {
   GetResourceLabels().SetHackManifest(&manifest_);
 
   EXPECT_EQ(GetRoomTagLabel(0x40), "TestTag");
+}
+
+TEST_F(ResourceLabelsTest, RoomObjectLabelsUseCanonicalDungeonNames) {
+  const auto& type1 = Zelda3Labels::GetType1RoomObjectNames();
+  ASSERT_GT(type1.size(), 0xD6u);
+  EXPECT_EQ(type1[0x47], GetObjectName(0x47));
+  EXPECT_EQ(type1[0x48], "Waterfall B ↔");
+  EXPECT_EQ(type1[0xD3], "Wall moved check A (logic)");
+
+  const auto& type2 = Zelda3Labels::GetType2RoomObjectNames();
+  ASSERT_GT(type2.size(), 0x36u);
+  EXPECT_EQ(type2[0x2B], GetObjectName(0x12B));
+  EXPECT_EQ(type2[0x2C], "Rightwards 6x3 decor");
+  EXPECT_EQ(type2[0x35], "Water-hop stairs A");
+
+  const auto& type3 = Zelda3Labels::GetType3RoomObjectNames();
+  ASSERT_GT(type3.size(), 0x55u);
+  EXPECT_EQ(type3[0x0D], GetObjectName(0xF8D));
+  EXPECT_EQ(type3[0x37], "4x4 decor A ↔");
+  EXPECT_EQ(type3[0x55], "Utility 3x5 decor");
+}
+
+TEST_F(ResourceLabelsTest, ResourceExportIncludesRoomObjectLabels) {
+  const auto labels = Zelda3Labels::ToResourceLabels();
+
+  ASSERT_TRUE(labels.contains("room_object"));
+  EXPECT_EQ(labels.at("room_object").at(std::to_string(0x47)),
+            GetObjectName(0x47));
+  EXPECT_EQ(labels.at("room_object").at(std::to_string(0x12B)),
+            GetObjectName(0x12B));
+  EXPECT_EQ(labels.at("room_object").at(std::to_string(0xF8D)),
+            GetObjectName(0xF8D));
+
+  ASSERT_TRUE(labels.contains("room_object_type2"));
+  EXPECT_EQ(labels.at("room_object_type2").at(std::to_string(0x35)),
+            "Water-hop stairs A");
 }
 
 }  // namespace yaze::zelda3

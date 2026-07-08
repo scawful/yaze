@@ -2,20 +2,18 @@
 # Optimized for C++23, Google style, Abseil/gRPC, and ROM hacking workflows
 
 CompileFlags:
-  CompilationDatabase: build
+  # Keep a repo-root compile_commands.json updated to current preset.
+  CompilationDatabase: .
   Add:
-    # Include paths are derived from CompilationDatabase (build/)
-    # Feature flags
-    - -DYAZE_WITH_GRPC
-    - -DYAZE_WITH_JSON
-    - -DZ3ED_AI
-    # Standard library
+    # Prefer flags from compile_commands.json; keep additions minimal.
     - -std=c++23
-    # Platform detection
-    - -DMACOS
   Remove:
     - -mllvm
-    - -xclang
+    # CMake PCH flags often confuse clangd (stale/missing .pch).
+    - -Xclang
+    - -include-pch
+    - -Winvalid-pch
+    - -include
     - -w  # Remove warning suppression for better diagnostics
 
 Index:

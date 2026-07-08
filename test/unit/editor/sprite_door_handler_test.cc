@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "app/editor/dungeon/interaction/item_interaction_handler.h"
 #include "app/editor/dungeon/interaction/sprite_interaction_handler.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
@@ -7,6 +8,7 @@
 
 #include <gtest/gtest.h>
 #include <array>
+#include <optional>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 namespace yaze::editor {
@@ -117,6 +119,44 @@ TEST_F(SpriteInteractionHandlerTest, PlacementModeLifecycle) {
   EXPECT_FALSE(handler_.IsPlacementActive());
 }
 
+TEST_F(SpriteInteractionHandlerTest, GhostCapacityStateIsNormalBelowLastSlot) {
+  AddSprites(62);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            SpriteInteractionHandler::GhostCapacityState::kNormal);
+}
+
+TEST_F(SpriteInteractionHandlerTest,
+       GhostCapacityStateWarnsOnLastAvailableSlot) {
+  AddSprites(63);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            SpriteInteractionHandler::GhostCapacityState::kNearLimit);
+}
+
+TEST_F(SpriteInteractionHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
+  AddSprites(64);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            SpriteInteractionHandler::GhostCapacityState::kAtLimit);
+}
+
+TEST_F(SpriteInteractionHandlerTest,
+       DeleteAllClearsSpritesAndFiresMutationCallbacks) {
+  AddSprites(3);
+  handler_.SelectSprite(1);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  handler_.DeleteAll();
+
+  EXPECT_TRUE(rooms_[0].GetSprites().empty());
+  EXPECT_FALSE(handler_.HasSelection());
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+}
+
 // ============================================================================
 // Door Interaction Handler Tests
 // ============================================================================
@@ -205,6 +245,27 @@ TEST_F(DoorInteractionHandlerTest, PlacementModeLifecycle) {
   EXPECT_FALSE(handler_.IsPlacementActive());
 }
 
+TEST_F(DoorInteractionHandlerTest, GhostCapacityStateIsNormalBelowLastSlot) {
+  AddDoors(14);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            DoorInteractionHandler::GhostCapacityState::kNormal);
+}
+
+TEST_F(DoorInteractionHandlerTest, GhostCapacityStateWarnsOnLastAvailableSlot) {
+  AddDoors(15);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            DoorInteractionHandler::GhostCapacityState::kNearLimit);
+}
+
+TEST_F(DoorInteractionHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
+  AddDoors(16);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            DoorInteractionHandler::GhostCapacityState::kAtLimit);
+}
+
 TEST_F(DoorInteractionHandlerTest, PlacementBlocksAtInvalidPosition) {
   // Clicking in the middle of the canvas (far from any wall) under the door
   // limit should set kInvalidPosition — not kDoorLimit.
@@ -219,6 +280,196 @@ TEST_F(DoorInteractionHandlerTest, PlacementBlocksAtInvalidPosition) {
   EXPECT_EQ(handler_.placement_block_reason(),
             DoorInteractionHandler::PlacementBlockReason::kInvalidPosition);
   EXPECT_EQ(rooms_[0].GetDoors().size(), 0u);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       MutateDoorTypeReencodesBytesAndFiresMutationCallbacks) {
+  zelda3::Room::Door door;
+  door.position = 0x08;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  rooms_[0].AddDoor(door);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  const bool changed =
+      handler_.MutateDoorType(0, zelda3::DoorType::CurtainDoor);
+  EXPECT_TRUE(changed);
+
+  const auto& updated = rooms_[0].GetDoors()[0];
+  EXPECT_EQ(updated.type, zelda3::DoorType::CurtainDoor);
+  EXPECT_EQ(updated.position, 0x08);
+  EXPECT_EQ(updated.direction, zelda3::DoorDirection::North);
+
+  zelda3::Room::Door expected;
+  expected.position = 0x08;
+  expected.type = zelda3::DoorType::CurtainDoor;
+  expected.direction = zelda3::DoorDirection::North;
+  const auto [expected_b1, expected_b2] = expected.EncodeBytes();
+  EXPECT_EQ(updated.byte1, expected_b1);
+  EXPECT_EQ(updated.byte2, expected_b2);
+
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+}
+
+TEST_F(DoorInteractionHandlerTest, MutateDoorTypeNoOpWhenTypeUnchanged) {
+  zelda3::Room::Door door;
+  door.position = 0x04;
+  door.type = zelda3::DoorType::SmallKeyDoor;
+  door.direction = zelda3::DoorDirection::East;
+  rooms_[0].AddDoor(door);
+
+  const int mutations_before = mutation_count_;
+
+  EXPECT_FALSE(handler_.MutateDoorType(0, zelda3::DoorType::SmallKeyDoor));
+  EXPECT_EQ(mutation_count_, mutations_before);
+}
+
+TEST_F(DoorInteractionHandlerTest, MutateDoorTypeRejectsOutOfRangeIndex) {
+  AddDoors(1);
+  EXPECT_FALSE(handler_.MutateDoorType(5, zelda3::DoorType::CurtainDoor));
+  EXPECT_EQ(rooms_[0].GetDoors()[0].type, zelda3::DoorType::NormalDoor);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       HitTestingUsesNorthCurtainDoorEditorFootprint) {
+  zelda3::Room::Door door;
+  door.position = 0;
+  door.type = zelda3::DoorType::CurtainDoor;
+  door.direction = zelda3::DoorDirection::North;
+  rooms_[0].AddDoor(door);
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_EQ(door_w, 32);
+  ASSERT_EQ(door_h, 32);
+
+  const float scale = canvas_->global_scale();
+  const int hit_x = static_cast<int>((door_x + (door_w / 2)) * scale);
+  const int hit_y = static_cast<int>((door_y + door_h - 4) * scale);
+  const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
+  ASSERT_TRUE(hit.has_value());
+  EXPECT_EQ(*hit, 0u);
+}
+
+TEST_F(DoorInteractionHandlerTest, PairBadgeClickNavigatesToNeighborDoor) {
+  ctx_.current_room_id = 0;
+
+  zelda3::Room::Door door;
+  door.position = 0;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::East;
+  rooms_[0].AddDoor(door);
+
+  zelda3::Room::Door neighbor_door;
+  neighbor_door.position = door.position;
+  neighbor_door.type = zelda3::DoorType::NormalDoor;
+  neighbor_door.direction = zelda3::DoorDirection::West;
+  rooms_[1].AddDoor(neighbor_door);
+
+  int target_room = -1;
+  std::optional<size_t> target_door;
+  int target_tile_x = -1;
+  int target_tile_y = -1;
+  ctx_.on_door_pair_navigation = [&](int room_id,
+                                     std::optional<size_t> door_index,
+                                     int tile_x, int tile_y) {
+    target_room = room_id;
+    target_door = door_index;
+    target_tile_x = tile_x;
+    target_tile_y = tile_y;
+  };
+  handler_.SetContext(&ctx_);
+  handler_.SelectDoor(0);
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  const int badge_x = door_x + door_w + 8;
+  const int badge_y = door_y + door_h / 2;
+
+  ASSERT_TRUE(handler_.HandleOverlayClick(badge_x, badge_y));
+  EXPECT_EQ(target_room, 1);
+  ASSERT_TRUE(target_door.has_value());
+  EXPECT_EQ(*target_door, 0u);
+  const auto [expected_tile_x, expected_tile_y] =
+      rooms_[1].GetDoors()[0].GetTileCoords();
+  EXPECT_EQ(target_tile_x, expected_tile_x);
+  EXPECT_EQ(target_tile_y, expected_tile_y);
+}
+
+TEST_F(DoorInteractionHandlerTest, DeleteAllClearsDoorsAndFiresCallbacks) {
+  AddDoors(3);
+  handler_.SelectDoor(1);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  handler_.DeleteAll();
+
+  EXPECT_TRUE(rooms_[0].GetDoors().empty());
+  EXPECT_FALSE(handler_.HasSelection());
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+}
+
+class ItemInteractionHandlerTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ImGui::CreateContext();
+    ImGui::GetIO().DisplaySize = ImVec2(1024, 768);
+
+    canvas_ = std::make_unique<gui::Canvas>("TestCanvas", ImVec2(512, 512),
+                                            gui::CanvasGridSize::k16x16);
+
+    ctx_.rooms = &rooms_;
+    ctx_.current_room_id = 0;
+    ctx_.canvas = canvas_.get();
+    ctx_.on_mutation = [this]() {
+      mutation_count_++;
+    };
+    ctx_.on_invalidate_cache = [this]() {
+      invalidate_count_++;
+    };
+
+    handler_.SetContext(&ctx_);
+  }
+
+  void TearDown() override {
+    canvas_.reset();
+    ImGui::DestroyContext();
+  }
+
+  void AddItems(int count) {
+    auto& items = rooms_[0].GetPotItems();
+    for (int i = 0; i < count; ++i) {
+      items.push_back(zelda3::PotItem{static_cast<uint16_t>(0x1000 + i),
+                                      static_cast<uint8_t>(i)});
+    }
+  }
+
+  std::unique_ptr<gui::Canvas> canvas_;
+  DungeonRoomStore rooms_;
+  InteractionContext ctx_;
+  ItemInteractionHandler handler_;
+  int mutation_count_ = 0;
+  int invalidate_count_ = 0;
+};
+
+TEST_F(ItemInteractionHandlerTest, DeleteAllClearsItemsAndFiresCallbacks) {
+  AddItems(4);
+  handler_.SelectItem(2);
+
+  const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
+
+  handler_.DeleteAll();
+
+  EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_FALSE(handler_.HasSelection());
+  EXPECT_EQ(mutation_count_, mutations_before + 1);
+  EXPECT_EQ(invalidate_count_, invalidations_before + 1);
 }
 
 }  // namespace

@@ -37,6 +37,17 @@ WindowDescriptor BuildDescriptorFromPanel(const WindowContent& panel) {
   return descriptor;
 }
 
+bool IsTransientPanelVisibilityId(const std::string& panel_id) {
+  constexpr char kRoomPanelPrefix[] = "dungeon.room_";
+  constexpr size_t kRoomPanelPrefixLength = 13;
+  if (panel_id.rfind(kRoomPanelPrefix, 0) != 0 ||
+      panel_id.size() <= kRoomPanelPrefixLength) {
+    return false;
+  }
+  return std::all_of(panel_id.begin() + kRoomPanelPrefixLength, panel_id.end(),
+                     [](char ch) { return ch >= '0' && ch <= '9'; });
+}
+
 }  // namespace
 
 void WorkspaceWindowManager::RegisterSession(size_t session_id) {
@@ -235,6 +246,9 @@ WorkspaceWindowManager::SerializeVisibilityState(size_t session_id) const {
   }
 
   for (const auto& [base_id, prefixed_id] : *session_mapping) {
+    if (IsTransientPanelVisibilityId(base_id)) {
+      continue;
+    }
     if (const auto* descriptor = FindDescriptorByPrefixedId(prefixed_id)) {
       if (descriptor->visibility_flag) {
         state[base_id] = *descriptor->visibility_flag;
@@ -258,6 +272,9 @@ void WorkspaceWindowManager::RestoreVisibilityState(
   size_t restored = 0;
   for (const auto& [base_id, visible] : state) {
     const std::string canonical_base_id = ResolveBaseWindowId(base_id);
+    if (IsTransientPanelVisibilityId(canonical_base_id)) {
+      continue;
+    }
     auto mapping_it = session_mapping->find(canonical_base_id);
     if (mapping_it == session_mapping->end()) {
       continue;

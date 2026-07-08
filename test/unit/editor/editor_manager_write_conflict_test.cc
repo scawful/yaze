@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/startup_flags.h"
@@ -96,6 +97,32 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldProperties = false;
 }
 
+std::filesystem::path CreateMinimalRomFile(const std::string& basename,
+                                           const std::string& title) {
+  const std::filesystem::path rom_path = MakeTempFilePath(basename);
+  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  for (size_t i = 0; i < title.size() && (0x7FC0 + i) < rom_data.size(); ++i) {
+    rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
+  }
+
+  std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+  EXPECT_TRUE(out.is_open());
+  out.write(reinterpret_cast<const char*>(rom_data.data()),
+            static_cast<std::streamsize>(rom_data.size()));
+  EXPECT_TRUE(out.good());
+  return rom_path;
+}
+
+void MarkCurrentDungeonRoomPending(EditorManager* manager) {
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* dungeon =
+      editor_set->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  dungeon->rooms()[0].SetPalette(0x2A);
+  EXPECT_EQ(dungeon->PendingRoomCount(), 1);
+}
+
 TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
   FeatureFlagsGuard guard;
 
@@ -107,7 +134,8 @@ TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
 
   // Create a minimal ROM file that satisfies RomFileManager's size checks.
-  const std::filesystem::path rom_path = MakeTempFilePath("yaze_write_conflict_test.sfc");
+  const std::filesystem::path rom_path =
+      MakeTempFilePath("yaze_write_conflict_test.sfc");
   ScopedFileCleanup cleanup{rom_path};
   std::vector<uint8_t> rom_data(512 * 1024, 0x00);
   const std::string title = "YAZE TEST ROM";
@@ -220,6 +248,103 @@ TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
   EXPECT_TRUE(manager->pending_write_conflicts().empty());
   EXPECT_EQ(ReadByteAt(rom_path, static_cast<std::streamoff>(kPcOffset)),
             mutated);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     OpenRomOrProjectDefersWhileSessionHasPendingDungeonChanges) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a = CreateMinimalRomFile("yaze_guard_a.sfc", "GUARD ROM A");
+  const auto rom_b = CreateMinimalRomFile("yaze_guard_b.sfc", "GUARD ROM B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  MarkCurrentDungeonRoomPending(manager.get());
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  ASSERT_NE(manager->popup_manager(), nullptr);
+  EXPECT_TRUE(
+      manager->popup_manager()->IsVisible(PopupID::kUnsavedSessionChanges));
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_b.string());
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SwitchAndCloseSessionDeferWhileCurrentSessionHasPendingDungeonChanges) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_guard_switch_a.sfc", "GUARD SWITCH A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_guard_switch_b.sfc", "GUARD SWITCH B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+
+  MarkCurrentDungeonRoomPending(manager.get());
+
+  manager->SwitchToSession(0);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+
+  manager->SwitchToSession(1);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  MarkCurrentDungeonRoomPending(manager.get());
+
+  manager->CloseCurrentSession();
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     QuitDefersWhileAnySessionHasPendingDungeonChanges) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_guard_quit_a.sfc", "GUARD QUIT A");
+  ScopedFileCleanup cleanup_a{rom_a};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  MarkCurrentDungeonRoomPending(manager.get());
+
+  manager->Quit();
+  EXPECT_FALSE(manager->quit());
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  EXPECT_TRUE(manager->quit());
 }
 
 }  // namespace

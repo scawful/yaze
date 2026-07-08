@@ -13,6 +13,12 @@ namespace util {
 
 std::string FileDialogWrapper::ShowOpenFileDialog(
     const FileDialogOptions& options) {
+  // NFD requires init before use; on Linux this is where the GTK backend runs
+  // gtk_init_check(). Skipping it crashes ("Can't create a GtkStyleContext
+  // without a display connection"). Mirrors the macOS impl in file_dialog.mm.
+  if (NFD_Init() != NFD_OKAY) {
+    return "";
+  }
   nfdchar_t* outPath = nullptr;
   const nfdfilteritem_t* filter_list = nullptr;
   size_t filter_count = 0;
@@ -44,9 +50,11 @@ std::string FileDialogWrapper::ShowOpenFileDialog(
   if (result == NFD_OKAY) {
     std::string path(outPath);
     NFD_FreePath(outPath);
+    NFD_Quit();
     return path;
   }
 
+  NFD_Quit();
   return "";
 }
 
@@ -64,20 +72,28 @@ void FileDialogWrapper::ShowOpenFileDialogAsync(
 }
 
 std::string FileDialogWrapper::ShowOpenFolderDialog() {
+  if (NFD_Init() != NFD_OKAY) {
+    return "";
+  }
   nfdchar_t* outPath = nullptr;
   nfdresult_t result = NFD_PickFolder(&outPath, nullptr);
 
   if (result == NFD_OKAY) {
     std::string path(outPath);
     NFD_FreePath(outPath);
+    NFD_Quit();
     return path;
   }
 
+  NFD_Quit();
   return "";
 }
 
 std::string FileDialogWrapper::ShowSaveFileDialog(
     const std::string& default_name, const std::string& default_extension) {
+  if (NFD_Init() != NFD_OKAY) {
+    return "";
+  }
   nfdchar_t* outPath = nullptr;
   nfdfilteritem_t filterItem[1] = {
       {default_extension.empty() ? "All Files" : default_extension.c_str(),
@@ -90,9 +106,11 @@ std::string FileDialogWrapper::ShowSaveFileDialog(
   if (result == NFD_OKAY) {
     std::string path(outPath);
     NFD_FreePath(outPath);
+    NFD_Quit();
     return path;
   }
 
+  NFD_Quit();
   return "";
 }
 

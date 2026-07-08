@@ -123,19 +123,20 @@ class Tile16EditorSyntheticFixture : public ::testing::Test {
     }
   }
 
-  void RunPanelFrame(std::function<void(ImGuiIO&)> inject_events = nullptr) {
+  void RunPanelFrame(std::function<void(ImGuiIO&)> inject_events = nullptr,
+                     ImVec2 host_size = ImVec2(960.0f, 720.0f)) {
     ImGui::SetCurrentContext(imgui_context_);
     ImGuiIO& io = ImGui::GetIO();
     if (inject_events) {
       inject_events(io);
     }
 
-    io.DisplaySize = ImVec2(1280, 720);
+    io.DisplaySize = host_size;
     io.DeltaTime = 1.0f / 60.0f;
 
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(0, 0));
-    ImGui::SetNextWindowSize(ImVec2(960, 720));
+    ImGui::SetNextWindowSize(host_size);
     ImGui::SetNextWindowFocus();
     ImGui::Begin("##Tile16SyntheticHost", nullptr,
                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
@@ -238,7 +239,7 @@ class Tile16EditorIntegrationTest : public ::testing::Test {
 
     // Create graphics bitmap
     current_gfx_bmp_ = std::make_unique<gfx::Bitmap>();
-    current_gfx_bmp_->Create(0x80, 512, 0x40, overworld_->current_graphics());
+    current_gfx_bmp_->Create(0x80, 512, 0x08, overworld_->current_graphics());
     current_gfx_bmp_->SetPalette(palette);
     gfx::Arena::Get().QueueTextureCommand(
         gfx::Arena::TextureCommandType::CREATE, current_gfx_bmp_.get());
@@ -325,6 +326,145 @@ TEST_F(Tile16EditorSyntheticFixture,
 }
 
 TEST_F(Tile16EditorSyntheticFixture,
+       SetCurrentTileRendersFromMetadataNotStaleBlocksetAtlas) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->MarkCurrentTileModified();
+
+  const gfx::Bitmap* bmp = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(bmp, nullptr);
+  ASSERT_TRUE(bmp->is_active());
+  ASSERT_GE(bmp->size(), 256u);
+
+  // The fixture's blockset atlas is deliberately all zeroes. Tile 0 in ROM is
+  // defined from tile8 IDs 0..3 with palette row 1, so these pixels must come
+  // from metadata + tile8 graphics, not from the stale atlas.
+  EXPECT_EQ(bmp->GetPixel(0, 0), 0x10);
+  EXPECT_EQ(bmp->GetPixel(8, 0), 0x18);
+  EXPECT_EQ(bmp->GetPixel(0, 8), 0x10);
+  EXPECT_EQ(bmp->GetPixel(8, 8), 0x18);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       SetCurrentTileRegeneratesPendingBitmapFromCurrentTile8Source) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->MarkCurrentTileModified();
+
+  const gfx::Bitmap* initial_pending = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(initial_pending, nullptr);
+  ASSERT_TRUE(initial_pending->is_active());
+  ASSERT_GE(initial_pending->size(), 256u);
+  ASSERT_EQ(initial_pending->data()[0], 0x10);
+
+  std::vector<uint8_t> changed_source(128 * 32, 0x05);
+  current_gfx_bmp_->set_data(changed_source);
+  ASSERT_TRUE(editor_->LoadTile8().ok());
+
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+
+  const gfx::Bitmap* refreshed_pending = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(refreshed_pending, nullptr);
+  ASSERT_TRUE(refreshed_pending->is_active());
+  ASSERT_GE(refreshed_pending->size(), 256u);
+  EXPECT_EQ(refreshed_pending->data()[0], 0x15);
+}
+
+TEST_F(Tile16EditorSyntheticFixture, SetCurrentTileSyncsBlocksetSelection) {
+  ASSERT_TRUE(editor_->SetCurrentTile(7).ok());
+  EXPECT_EQ(editor_->current_tile16(), 7);
+  EXPECT_EQ(editor_->selected_tile16_for_testing(), 7);
+
+  ASSERT_TRUE(editor_->SetCurrentTile(42).ok());
+  EXPECT_EQ(editor_->current_tile16(), 42);
+  EXPECT_EQ(editor_->selected_tile16_for_testing(), 42);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       RefreshAllPalettesRecolorsTile8SourceToBrushPalette) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_current_palette(5);
+
+  ASSERT_TRUE(editor_->RefreshAllPalettes().ok());
+
+  const gfx::SnesPalette& displayed_palette = current_gfx_bmp_->palette();
+  ASSERT_GE(displayed_palette.size(), 256u);
+
+  const int palette_slot = editor_->GetActualPaletteSlot(
+      editor_->current_palette(),
+      editor_->GetSheetIndexForTile8(editor_->current_tile8()));
+  ASSERT_LT(palette_slot + 15, static_cast<int>(palette_.size()));
+
+  EXPECT_TRUE(displayed_palette[0x10].is_transparent());
+  EXPECT_EQ(displayed_palette[0x11].snes(), palette_[palette_slot + 1].snes());
+  EXPECT_EQ(displayed_palette[0x1F].snes(), palette_[palette_slot + 15].snes());
+  EXPECT_EQ(displayed_palette[0x91].snes(), palette_[palette_slot + 1].snes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture, Tile8SourceBitmapUsesIndexed8BppDepth) {
+  EXPECT_EQ(current_gfx_bmp_->depth(), 8);
+}
+
+TEST_F(Tile16EditorSyntheticFixture, HeldTile8PreviewUsesSelectedBrushPalette) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_current_palette(6);
+
+  RunPanelFrame();
+
+  const gfx::Bitmap& preview = editor_->Tile8PreviewBitmapForTesting();
+  ASSERT_TRUE(preview.is_active());
+  const gfx::SnesPalette& displayed_palette = preview.palette();
+  ASSERT_GE(displayed_palette.size(), 256u);
+
+  const int palette_slot = editor_->GetActualPaletteSlot(
+      editor_->current_palette(),
+      editor_->GetSheetIndexForTile8(editor_->current_tile8()));
+  ASSERT_LT(palette_slot + 15, static_cast<int>(palette_.size()));
+
+  EXPECT_TRUE(displayed_palette[0x10].is_transparent());
+  EXPECT_EQ(displayed_palette[0x11].snes(), palette_[palette_slot + 1].snes());
+  EXPECT_EQ(displayed_palette[0x1F].snes(), palette_[palette_slot + 15].snes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       HeldTile8PreviewPaletteMatchesPaintedTile16Pixels) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kPaint);
+  editor_->set_current_palette(6);
+
+  RunPanelFrame();
+
+  const gfx::Bitmap& preview = editor_->Tile8PreviewBitmapForTesting();
+  ASSERT_TRUE(preview.is_active());
+  const uint8_t source_pixel = preview.data()[1 * 8 + 1];
+  ASSERT_EQ(source_pixel & 0x0F, 2);
+  ASSERT_GE(preview.palette().size(), 256u);
+  EXPECT_EQ(preview.palette()[source_pixel].snes(), palette_[0x62].snes());
+
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(ImVec2(9.0f, 1.0f), true, false).ok());
+
+  const gfx::Bitmap* bmp = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(bmp, nullptr);
+  ASSERT_TRUE(bmp->is_active());
+
+  const uint8_t painted_pixel = bmp->data()[1 * 16 + 9];
+  EXPECT_EQ(painted_pixel, 0x62);
+  EXPECT_EQ(bmp->palette()[painted_pixel].snes(),
+            preview.palette()[source_pixel].snes());
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       NarrowPanelFrameRendersResponsiveWorkbench) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  ASSERT_TRUE(editor_->ApplyPaletteToQuadrant(0, 3).ok());
+
+  EXPECT_NO_FATAL_FAILURE(
+      RunPanelFrame(/*inject_events=*/nullptr, ImVec2(320.0f, 640.0f)));
+
+  EXPECT_TRUE(editor_->is_tile_modified(0));
+  EXPECT_EQ(editor_->pending_changes_count(), 1);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
        DiscardCurrentTileKeepsOtherPendingTilesWithoutExternalRomFixture) {
   ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
   editor_->MarkCurrentTileModified();
@@ -367,6 +507,47 @@ TEST_F(Tile16EditorSyntheticFixture, CanvasClickPaintModeStagesTileMutation) {
   EXPECT_TRUE(editor_->is_tile_modified(0));
   EXPECT_EQ(editor_->pending_changes_count(), 1);
   EXPECT_EQ(editor_->active_quadrant(), 0);
+}
+
+TEST_F(Tile16EditorSyntheticFixture,
+       PreviewDisplayClickPaintsTargetQuadrantWithBrushPalette) {
+  ASSERT_TRUE(editor_->SetCurrentTile(0).ok());
+  editor_->set_edit_mode(Tile16EditMode::kPaint);
+  editor_->set_current_palette(6);
+
+  const ImVec2 top_right_center =
+      Tile16Editor::Tile16PreviewDisplayPixelToTilePosition(
+          ImVec2(48.0f, 16.0f));
+  ASSERT_TRUE(
+      editor_->HandleTile16CanvasClick(top_right_center, true, false).ok());
+
+  EXPECT_TRUE(editor_->is_tile_modified(0));
+  EXPECT_EQ(editor_->active_quadrant(), 1);
+
+  const gfx::Tile16* tile_data = editor_->GetCurrentTile16Data();
+  ASSERT_NE(tile_data, nullptr);
+  EXPECT_EQ(tile_data->tile1_.id_, editor_->current_tile8());
+  EXPECT_EQ(tile_data->tile1_.palette_, 6);
+
+  const gfx::Bitmap* bmp = editor_->GetPendingTileBitmap(0);
+  ASSERT_NE(bmp, nullptr);
+  ASSERT_TRUE(bmp->is_active());
+  ASSERT_GE(bmp->size(), 256u);
+
+  bool found_visible_pixel = false;
+  for (int y = 0; y < 8; ++y) {
+    for (int x = 8; x < 16; ++x) {
+      const uint8_t pixel = bmp->data()[y * 16 + x];
+      if (pixel == 0) {
+        continue;
+      }
+      found_visible_pixel = true;
+      EXPECT_EQ((pixel & 0xF0) >> 4, 6)
+          << "top-right preview pixel (" << x << "," << y
+          << ") used the wrong palette row";
+    }
+  }
+  EXPECT_TRUE(found_visible_pixel);
 }
 
 TEST_F(Tile16EditorSyntheticFixture,
@@ -709,61 +890,55 @@ TEST_F(Tile16EditorIntegrationTest, FlipHorizontalPersistsQuadrantMapping) {
 #endif
 }
 
-// Palette slot calculation tests - these don't require ROM data
-// Row-based addressing: (base_row + button) * 16, where base_row depends on
-// the sheet group (main/aux/animated) and skips HUD rows 0-1.
+// Palette slot calculation tests - these don't require ROM data.
+// ZScream parity: Tile16 palette buttons are direct CGRAM rows. Sheet pixels
+// provide the low nibble/right-half offset, not a row base.
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux1Sheets) {
-  // Row-based: button 0 -> row 2 (32), button 1 -> row 3 (48), etc.
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 0), 32);   // Row 2
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 0), 48);   // Row 3
-  EXPECT_EQ(editor_->GetActualPaletteSlot(2, 0), 64);   // Row 4
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 0), 144);  // Row 9
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 0), 0);    // Row 0
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 0), 16);   // Row 1
+  EXPECT_EQ(editor_->GetActualPaletteSlot(2, 0), 32);   // Row 2
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 0), 112);  // Row 7
 
-  // Sheet 3 also uses row-based (same values)
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 3), 32);
-  EXPECT_EQ(editor_->GetActualPaletteSlot(4, 3), 96);  // Row 6
+  // Sheet index is accepted for diagnostics but does not shift Tile16 metadata.
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 3), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(4, 3), 64);  // Row 4
 
-  // Sheet 4 also uses row-based
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 4), 32);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 4), 0);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_MainSheets) {
-  // Row-based addressing is consistent across all sheets
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 1), 32);   // Row 2
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 1), 48);   // Row 3
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 1), 144);  // Row 9
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 1), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 1), 16);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 1), 112);
 
-  // Sheet 2 uses same row-based values
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 2), 32);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 2), 0);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_Aux2Sheets) {
-  // AUX2 sheets use base row 5
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 5), 80);   // Row 5
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 5), 96);   // Row 6
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 5), 192);  // Row 12
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 5), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 5), 16);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 5), 112);
 
-  // Sheet 6 uses same values (AUX2)
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 6), 80);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 6), 0);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetActualPaletteSlot_AnimatedSheet) {
-  // Animated sheet uses base row 7
-  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 7), 112);  // Row 7
-  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 7), 128);  // Row 8
-  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 7), 224);  // Row 14
+  EXPECT_EQ(editor_->GetActualPaletteSlot(0, 7), 0);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(1, 7), 16);
+  EXPECT_EQ(editor_->GetActualPaletteSlot(7, 7), 112);
 }
 
 TEST_F(Tile16EditorIntegrationTest, GetSheetIndexForTile8_BoundsCheck) {
-  // 256 tiles per sheet
+  // 64 Tile8 entries per 0x1000-byte overworld graphics chunk in the editor
+  // bitmap layout.
   EXPECT_EQ(editor_->GetSheetIndexForTile8(0), 0);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(255), 0);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(256), 1);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(511), 1);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(512), 2);
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(1792), 7);  // 7 * 256 = 1792
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(2047), 7);  // Max clamped to 7
-  EXPECT_EQ(editor_->GetSheetIndexForTile8(3000), 7);  // Beyond max still 7
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(63), 0);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(64), 1);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(127), 1);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(128), 2);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(448), 7);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(960), 15);
+  EXPECT_EQ(editor_->GetSheetIndexForTile8(9999), 15);
 }
 
 TEST_F(Tile16EditorIntegrationTest, PaletteAccessors) {

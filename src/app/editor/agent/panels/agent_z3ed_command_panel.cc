@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "absl/strings/str_join.h"
-#include "app/editor/ui/toast_manager.h"
+#include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
@@ -22,17 +22,17 @@ void AgentZ3EDCommandPanel::Draw(AgentUIContext* context,
 
   // Dense header (no collapsing)
   {
-    gui::StyledChild cmd_child(
-        "Z3ED_CommandsChild", ImVec2(0, 100),
-        {.bg = ImVec4(0.14f, 0.12f, 0.18f, 0.95f)}, true);
+    gui::StyledChild cmd_child("Z3ED_CommandsChild", ImVec2(0, 100),
+                               {.bg = ImVec4(0.14f, 0.12f, 0.18f, 0.95f)},
+                               true);
 
     ImGui::TextColored(command_color, ICON_MD_TERMINAL " Commands");
     ImGui::Separator();
 
     ImGui::SetNextItemWidth(-60);
-    ImGui::InputTextWithHint(
-        "##z3ed_cmd", "Command...", state.command_input_buffer,
-        IM_ARRAYSIZE(state.command_input_buffer));
+    ImGui::InputTextWithHint("##z3ed_cmd", "Command...",
+                             state.command_input_buffer,
+                             IM_ARRAYSIZE(state.command_input_buffer));
     ImGui::SameLine();
     ImGui::BeginDisabled(state.command_running);
     if (ImGui::Button(ICON_MD_PLAY_ARROW "##z3ed_run", ImVec2(50, 0))) {
@@ -92,8 +92,7 @@ void AgentZ3EDCommandPanel::Draw(AgentUIContext* context,
 
     if (!state.command_output.empty()) {
       ImGui::Separator();
-      ImGui::TextDisabled(
-          "%s", state.command_output.substr(0, 100).c_str());
+      ImGui::TextDisabled("%s", state.command_output.substr(0, 100).c_str());
     }
   }
 

@@ -27,7 +27,7 @@
 #include "app/emu/mesen/mesen_emulator_adapter.h"
 #include "app/service/canvas_automation_service.h"
 #include "app/service/unified_grpc_server.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 #endif
 
 #ifdef __EMSCRIPTEN__
@@ -299,8 +299,9 @@ void Application::LoadRom(const std::string& path) {
 #endif
 
 #ifdef __EMSCRIPTEN__
-    EM_ASM({ console.log("ROM loaded successfully: " + UTF8ToString($0)); },
-           path.c_str());
+    EM_ASM(
+        { console.log("ROM loaded successfully: " + UTF8ToString($0)); },
+        path.c_str());
 #endif
   }
 }

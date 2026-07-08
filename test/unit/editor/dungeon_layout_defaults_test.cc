@@ -9,24 +9,29 @@
 namespace yaze::editor {
 namespace {
 
-bool ContainsPanel(const std::vector<std::string>& panels, const char* panel_id) {
+bool ContainsPanel(const std::vector<std::string>& panels,
+                   const char* panel_id) {
   return std::find(panels.begin(), panels.end(), panel_id) != panels.end();
 }
 
 int IndexOfPanel(const std::vector<std::string>& panels, const char* panel_id) {
   const auto it = std::find(panels.begin(), panels.end(), panel_id);
-  return it == panels.end() ? -1 : static_cast<int>(std::distance(panels.begin(), it));
+  return it == panels.end()
+             ? -1
+             : static_cast<int>(std::distance(panels.begin(), it));
 }
 
 TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
   auto preset = LayoutPresets::GetDefaultPreset(EditorType::kDungeon);
 
-  EXPECT_TRUE(
-      ContainsPanel(preset.default_visible_panels, LayoutPresets::Panels::kDungeonWorkbench));
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonWorkbench));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kDungeonRoomSelector));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
-                            LayoutPresets::Panels::kDungeonObjectEditor));
+                            LayoutPresets::Panels::kDungeonObjectSelector));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonObjectEditor));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
                             LayoutPresets::Panels::kDungeonRoomGraphics));
   EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
@@ -37,9 +42,13 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
                             LayoutPresets::Panels::kDungeonPaletteEditor));
 
   EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
-                         LayoutPresets::Panels::kDungeonObjectEditor),
+                         LayoutPresets::Panels::kDungeonObjectSelector),
             IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonRoomGraphics));
+  EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
+                         LayoutPresets::Panels::kDungeonRoomGraphics),
+            IndexOfPanel(preset.default_visible_panels,
+                         LayoutPresets::Panels::kDungeonRoomMatrix));
   EXPECT_LT(IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonRoomMatrix),
             IndexOfPanel(preset.default_visible_panels,
@@ -49,10 +58,14 @@ TEST(DungeonLayoutDefaultsTest, WorkbenchDefaultUsesRightSideToolStacks) {
             IndexOfPanel(preset.default_visible_panels,
                          LayoutPresets::Panels::kDungeonPaletteEditor));
 
-  auto object_pos =
-      preset.panel_positions.find(LayoutPresets::Panels::kDungeonObjectEditor);
-  ASSERT_NE(object_pos, preset.panel_positions.end());
-  EXPECT_EQ(object_pos->second, DockPosition::RightTop);
+  auto selector_pos = preset.panel_positions.find(
+      LayoutPresets::Panels::kDungeonObjectSelector);
+  ASSERT_NE(selector_pos, preset.panel_positions.end());
+  EXPECT_EQ(selector_pos->second, DockPosition::RightTop);
+
+  EXPECT_EQ(
+      preset.panel_positions.count(LayoutPresets::Panels::kDungeonObjectEditor),
+      0U);
 
   auto graphics_pos =
       preset.panel_positions.find(LayoutPresets::Panels::kDungeonRoomGraphics);

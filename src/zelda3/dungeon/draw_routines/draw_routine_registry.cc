@@ -19,7 +19,8 @@ DrawRoutineRegistry& DrawRoutineRegistry::Get() {
 }
 
 void DrawRoutineRegistry::Initialize() {
-  if (initialized_) return;
+  if (initialized_)
+    return;
   BuildRegistry();
   initialized_ = true;
 }
@@ -51,7 +52,8 @@ void DrawRoutineRegistry::BuildRegistry() {
   BuildObjectMapping();
 }
 
-const DrawRoutineInfo* DrawRoutineRegistry::GetRoutineInfo(int routine_id) const {
+const DrawRoutineInfo* DrawRoutineRegistry::GetRoutineInfo(
+    int routine_id) const {
   auto it = routine_map_.find(routine_id);
   if (it == routine_map_.end()) {
     return nullptr;
@@ -64,15 +66,16 @@ bool DrawRoutineRegistry::RoutineDrawsToBothBGs(int routine_id) const {
   return info != nullptr && info->draws_to_both_bgs;
 }
 
-bool DrawRoutineRegistry::GetRoutineDimensions(int routine_id, 
-                                                int* base_width, 
-                                                int* base_height) const {
+bool DrawRoutineRegistry::GetRoutineDimensions(int routine_id, int* base_width,
+                                               int* base_height) const {
   const DrawRoutineInfo* info = GetRoutineInfo(routine_id);
   if (info == nullptr) {
     return false;
   }
-  if (base_width) *base_width = info->base_width;
-  if (base_height) *base_height = info->base_height;
+  if (base_width)
+    *base_width = info->base_width;
+  if (base_height)
+    *base_height = info->base_height;
   return true;
 }
 
@@ -179,7 +182,8 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x5C] = 42;
   object_to_routine_map_[0x5D] = 54;
   object_to_routine_map_[0x5E] = 55;
-  object_to_routine_map_[0x5F] = DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus23;
+  object_to_routine_map_[0x5F] =
+      DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus23;
 
   // Vertical (0x60-0x6F)
   object_to_routine_map_[0x60] = 7;
@@ -233,9 +237,12 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x87] = 46;
   object_to_routine_map_[0x88] = 66;
   object_to_routine_map_[0x89] = 67;
-  object_to_routine_map_[0x8A] = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
-  object_to_routine_map_[0x8B] = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
-  object_to_routine_map_[0x8C] = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
+  object_to_routine_map_[0x8A] =
+      DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
+  object_to_routine_map_[0x8B] =
+      DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
+  object_to_routine_map_[0x8C] =
+      DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
   object_to_routine_map_[0x8D] = 13;
   object_to_routine_map_[0x8E] = 13;
   object_to_routine_map_[0x8F] = 69;
@@ -380,9 +387,9 @@ void DrawRoutineRegistry::BuildObjectMapping() {
     object_to_routine_map_[id] = 86;
   }
   object_to_routine_map_[0x134] = 4;
-  object_to_routine_map_[0x135] = 16;
-  object_to_routine_map_[0x136] = 16;
-  object_to_routine_map_[0x137] = 16;
+  object_to_routine_map_[0x135] = DrawRoutineIds::kWaterHopStairsA;
+  object_to_routine_map_[0x136] = DrawRoutineIds::kWaterHopStairsB;
+  object_to_routine_map_[0x137] = DrawRoutineIds::kDamFloodGate;
   object_to_routine_map_[0x138] = 88;
   object_to_routine_map_[0x139] = 89;
   object_to_routine_map_[0x13A] = 90;
@@ -505,4 +512,3 @@ void DrawRoutineRegistry::BuildObjectMapping() {
 
 }  // namespace zelda3
 }  // namespace yaze
-

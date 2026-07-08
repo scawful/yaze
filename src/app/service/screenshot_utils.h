@@ -30,22 +30,23 @@ struct CaptureRegion {
 // directory is generated automatically. Returns the resolved artifact metadata
 // on success.
 absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
-    const std::string& preferred_path = "");
+    const std::string& preferred_path = "", bool reveal_to_user = true);
 
 // Captures a specific region of the renderer output.
 // If region is nullopt, captures the full renderer (same as
 // CaptureHarnessScreenshot).
 absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
     const std::optional<CaptureRegion>& region,
-    const std::string& preferred_path = "");
+    const std::string& preferred_path = "", bool reveal_to_user = true);
 
 // Captures the currently active ImGui window.
 absl::StatusOr<ScreenshotArtifact> CaptureActiveWindow(
-    const std::string& preferred_path = "");
+    const std::string& preferred_path = "", bool reveal_to_user = true);
 
 // Captures a specific ImGui window by name.
 absl::StatusOr<ScreenshotArtifact> CaptureWindowByName(
-    const std::string& window_name, const std::string& preferred_path = "");
+    const std::string& window_name, const std::string& preferred_path = "",
+    bool reveal_to_user = true);
 
 }  // namespace test
 }  // namespace yaze

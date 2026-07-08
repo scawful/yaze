@@ -1,9 +1,11 @@
 #ifndef YAZE_APP_ZELDA3_DUNGEON_ROOM_ENTRANCE_H
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_ENTRANCE_H
 
+#include <array>
 #include <cstdint>
 
 #include "rom/rom.h"
+#include "util/macro.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -59,6 +61,11 @@ constexpr int kStartingEntranceexit = 0x15C32;   // 0x15488 //2byte word
 constexpr int kStartingEntrancemusic = 0x15C4E;  // 0x15592
 constexpr int kStartingEntranceentrance = 0x15C40;
 
+constexpr int kNumDungeonSpawnPoints = 0x07;
+constexpr int kNumRegularDungeonEntrances = 0x85;
+constexpr int kNumDungeonEntranceSlots =
+    kNumDungeonSpawnPoints + kNumRegularDungeonEntrances;
+
 constexpr int items_data_start = 0xDDE9;  // save purpose
 constexpr int items_data_end = 0xE6B2;    // save purpose
 constexpr int initial_equipement = 0x271A6;
@@ -100,7 +107,7 @@ class RoomEntrance {
  public:
   RoomEntrance() = default;
   RoomEntrance(Rom* rom, uint8_t entrance_id, bool is_spawn_point = false)
-      : entrance_id_(entrance_id) {
+      : entrance_id_(entrance_id), is_spawn_point_(is_spawn_point) {
     room_ = static_cast<short>(
         (rom->data()[kEntranceRoom + (entrance_id * 2) + 1] << 8) +
         rom->data()[kEntranceRoom + (entrance_id * 2)]);
@@ -219,8 +226,18 @@ class RoomEntrance {
     }
   }
 
+  bool dirty() const { return dirty_; }
+  void MarkDirty() { dirty_ = true; }
+  void ClearDirty() { dirty_ = false; }
+  bool is_spawn_point() const { return is_spawn_point_; }
+
   absl::Status Save(Rom* rom, int entrance_id, bool is_spawn_point = false) {
+    if (!rom || !rom->is_loaded()) {
+      return absl::FailedPreconditionError("ROM not loaded");
+    }
     if (!is_spawn_point) {
+      RETURN_IF_ERROR(
+          rom->WriteShort(kEntranceRoom + (entrance_id * 2), room_));
       RETURN_IF_ERROR(
           rom->WriteShort(kEntranceYPosition + (entrance_id * 2), y_position_));
       RETURN_IF_ERROR(
@@ -328,37 +345,69 @@ class RoomEntrance {
           rom->WriteByte(kStartingEntranceScrollEdge + 7 + (entrance_id * 8),
                          camera_boundary_fe_));
     }
+    ClearDirty();
     return absl::OkStatus();
   }
 
-  uint16_t entrance_id_;
-  uint16_t x_position_;
-  uint16_t y_position_;
-  uint16_t camera_x_;
-  uint16_t camera_y_;
-  uint16_t camera_trigger_x_;
-  uint16_t camera_trigger_y_;
+  uint16_t entrance_id_ = 0;
+  uint16_t x_position_ = 0;
+  uint16_t y_position_ = 0;
+  uint16_t camera_x_ = 0;
+  uint16_t camera_y_ = 0;
+  uint16_t camera_trigger_x_ = 0;
+  uint16_t camera_trigger_y_ = 0;
 
-  int16_t room_;
-  uint8_t blockset_;
-  uint8_t floor_;
-  uint8_t dungeon_id_;
-  uint8_t ladder_bg_;
-  uint8_t scrolling_;
-  uint8_t scroll_quadrant_;
-  int16_t exit_;
-  uint8_t music_;
-  uint8_t door_;
+  int16_t room_ = 0;
+  uint8_t blockset_ = 0;
+  uint8_t floor_ = 0;
+  uint8_t dungeon_id_ = 0;
+  uint8_t ladder_bg_ = 0;
+  uint8_t scrolling_ = 0;
+  uint8_t scroll_quadrant_ = 0;
+  int16_t exit_ = 0;
+  uint8_t music_ = 0;
+  uint8_t door_ = 0;
 
-  uint8_t camera_boundary_qn_;
-  uint8_t camera_boundary_fn_;
-  uint8_t camera_boundary_qs_;
-  uint8_t camera_boundary_fs_;
-  uint8_t camera_boundary_qw_;
-  uint8_t camera_boundary_fw_;
-  uint8_t camera_boundary_qe_;
-  uint8_t camera_boundary_fe_;
+  uint8_t camera_boundary_qn_ = 0;
+  uint8_t camera_boundary_fn_ = 0;
+  uint8_t camera_boundary_qs_ = 0;
+  uint8_t camera_boundary_fs_ = 0;
+  uint8_t camera_boundary_qw_ = 0;
+  uint8_t camera_boundary_fw_ = 0;
+  uint8_t camera_boundary_qe_ = 0;
+  uint8_t camera_boundary_fe_ = 0;
+
+ private:
+  bool dirty_ = false;
+  bool is_spawn_point_ = false;
 };
+
+inline absl::Status SaveAllDungeonEntrances(
+    Rom* rom, std::array<RoomEntrance, kNumDungeonEntranceSlots>& entrances,
+    bool dirty_only = true) {
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  for (int slot = 0; slot < kNumDungeonSpawnPoints; ++slot) {
+    auto& entrance = entrances[slot];
+    if (dirty_only && !entrance.dirty()) {
+      continue;
+    }
+    RETURN_IF_ERROR(entrance.Save(rom, slot, true));
+  }
+
+  for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
+       ++entrance_id) {
+    auto& entrance = entrances[kNumDungeonSpawnPoints + entrance_id];
+    if (dirty_only && !entrance.dirty()) {
+      continue;
+    }
+    RETURN_IF_ERROR(entrance.Save(rom, entrance_id, false));
+  }
+
+  return absl::OkStatus();
+}
 
 }  // namespace zelda3
 }  // namespace yaze

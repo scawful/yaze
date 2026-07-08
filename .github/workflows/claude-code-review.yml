@@ -15,11 +15,6 @@ jobs:
     # GitHub does not expose OIDC tokens to pull_request runs from forks.
     # Skip fork PRs so CI can still pass; same-repo PRs retain Claude review.
     if: github.event.pull_request.head.repo.full_name == github.repository
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
     permissions:

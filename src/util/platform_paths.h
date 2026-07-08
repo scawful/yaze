@@ -36,6 +36,7 @@ class PlatformPaths {
    *
    * - Windows/macOS/Linux: `~/.yaze` (user home, cross-platform consistency)
    * - Legacy locations (AppData/Library/XDG) are migrated or reused if present.
+   * - Tests/tools may override this with `YAZE_APP_DATA_DIR`.
    *
    * @return StatusOr with path to the application data directory.
    */

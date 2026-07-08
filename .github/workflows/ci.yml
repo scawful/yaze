@@ -319,7 +319,10 @@ jobs:
     - name: Install Tools
       run: |
         sudo apt-get update
-        sudo apt-get install -y clang-format-14 clang-tidy-14 cppcheck
+        sudo apt-get install -y clang-tidy-14 cppcheck ripgrep
+        python3 -m pip install --user clang-format==22.1.5
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+        "$HOME/.local/bin/clang-format" --version
 
     - name: Collect changed files
       id: changed
@@ -343,7 +346,9 @@ jobs:
         echo "base=$base" >> "$GITHUB_OUTPUT"
         echo "head=$head" >> "$GITHUB_OUTPUT"
 
-        files=$(git diff --name-only "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
+        # --diff-filter=ACMRT excludes Deleted/renamed-away files: passing paths
+        # that no longer exist to clang-format makes it exit 123 ("No such file").
+        files=$(git diff --name-only --diff-filter=ACMRT "$base" "$head" | grep -E '^(src|test)/.*\.(cc|h)$' || true)
         {
           echo "files<<EOF"
           echo "$files"
@@ -363,7 +368,7 @@ jobs:
           echo "No C/C++ sources changed."
           exit 0
         fi
-        echo "${{ steps.changed.outputs.files }}" | xargs clang-format-14 --dry-run --Werror
+        echo "${{ steps.changed.outputs.files }}" | xargs clang-format --dry-run --Werror
     
     - name: Run cppcheck
       run: |

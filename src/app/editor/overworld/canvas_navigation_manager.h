@@ -51,6 +51,7 @@ struct CanvasNavigationContext {
   int* current_world = nullptr;
   int* current_parent = nullptr;
   int* current_tile16 = nullptr;
+  int* hovered_map = nullptr;
 
   // Mode state
   EditingMode* current_mode = nullptr;
@@ -71,6 +72,7 @@ struct CanvasNavigationCallbacks {
   std::function<void()> refresh_overworld_map;
   std::function<absl::Status()> refresh_tile16_blockset;
   std::function<void(int)> ensure_map_texture;
+  std::function<void(int, bool)> select_map_for_editing;
   std::function<bool()> pick_tile16_from_hovered_canvas;
   /// Returns true if an entity is currently hovered (for pan suppression).
   std::function<bool()> is_entity_hovered;

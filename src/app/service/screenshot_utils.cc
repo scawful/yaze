@@ -42,8 +42,7 @@ struct ImGui_ImplSDLRenderer2_Data {
 };
 
 std::filesystem::path DefaultScreenshotPath() {
-  auto base_dir_or =
-      util::PlatformPaths::GetAppDataSubdirectory("screenshots");
+  auto base_dir_or = util::PlatformPaths::GetAppDataSubdirectory("screenshots");
   std::filesystem::path base_dir;
   if (base_dir_or.ok()) {
     base_dir = *base_dir_or;
@@ -71,7 +70,7 @@ void RevealScreenshot(const std::string& path) {
 }  // namespace
 
 absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
-    const std::string& preferred_path) {
+    const std::string& preferred_path, bool reveal_to_user) {
   ImGuiIO& io = ImGui::GetIO();
   auto* backend_data =
       static_cast<ImGui_ImplSDLRenderer2_Data*>(io.BackendRendererUserData);
@@ -125,15 +124,16 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshot(
   artifact.height = height;
   artifact.file_size_bytes = file_size;
 
-  // Reveal to user
-  RevealScreenshot(artifact.file_path);
+  if (reveal_to_user) {
+    RevealScreenshot(artifact.file_path);
+  }
 
   return artifact;
 }
 
 absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
     const std::optional<CaptureRegion>& region,
-    const std::string& preferred_path) {
+    const std::string& preferred_path, bool reveal_to_user) {
   ImGuiIO& io = ImGui::GetIO();
   auto* backend_data =
       static_cast<ImGui_ImplSDLRenderer2_Data*>(io.BackendRendererUserData);
@@ -222,14 +222,15 @@ absl::StatusOr<ScreenshotArtifact> CaptureHarnessScreenshotRegion(
   artifact.height = capture_height;
   artifact.file_size_bytes = file_size;
 
-  // Reveal to user
-  RevealScreenshot(artifact.file_path);
+  if (reveal_to_user) {
+    RevealScreenshot(artifact.file_path);
+  }
 
   return artifact;
 }
 
 absl::StatusOr<ScreenshotArtifact> CaptureActiveWindow(
-    const std::string& preferred_path) {
+    const std::string& preferred_path, bool reveal_to_user) {
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (!ctx || !ctx->NavWindow) {
     return absl::FailedPreconditionError("No active ImGui window");
@@ -242,11 +243,12 @@ absl::StatusOr<ScreenshotArtifact> CaptureActiveWindow(
   region.width = static_cast<int>(window->Size.x);
   region.height = static_cast<int>(window->Size.y);
 
-  return CaptureHarnessScreenshotRegion(region, preferred_path);
+  return CaptureHarnessScreenshotRegion(region, preferred_path, reveal_to_user);
 }
 
 absl::StatusOr<ScreenshotArtifact> CaptureWindowByName(
-    const std::string& window_name, const std::string& preferred_path) {
+    const std::string& window_name, const std::string& preferred_path,
+    bool reveal_to_user) {
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (!ctx) {
     return absl::FailedPreconditionError("No ImGui context");
@@ -264,7 +266,7 @@ absl::StatusOr<ScreenshotArtifact> CaptureWindowByName(
   region.width = static_cast<int>(window->Size.x);
   region.height = static_cast<int>(window->Size.y);
 
-  return CaptureHarnessScreenshotRegion(region, preferred_path);
+  return CaptureHarnessScreenshotRegion(region, preferred_path, reveal_to_user);
 }
 
 }  // namespace test

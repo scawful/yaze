@@ -69,6 +69,15 @@ class SettingsPanel : public Editor {
  private:
   void DrawGeneralSettings();
   void DrawAppearanceSettings();
+  void DrawWorkspaceSettings();
+  // Loads `name` from UserSettings::named_layouts, validates the
+  // serialized DockTree, and applies it to the live main dockspace via
+  // LayoutManager. Surface for the Workspace section's combo + Re-apply
+  // button. On success, persists `last_applied_layout_name = name` so a
+  // subsequent startup reapplies the same layout (mirrors the
+  // theme-persistence pattern shipped in Phase 5.1). Status is reported
+  // via workspace_status_message_.
+  void ApplyNamedLayoutToDockspace(const std::string& name);
   void DrawEditorBehavior();
   void DrawPerformanceSettings();
   void DrawAIAgentSettings();
@@ -102,6 +111,12 @@ class SettingsPanel : public Editor {
   std::string selected_folder_;
   core::AsmPatch* selected_patch_ = nullptr;
   bool patches_loaded_ = false;
+
+  // Workspace layout picker transient status — last apply attempt's
+  // outcome, drawn beneath the section. Persists across frames within a
+  // session; cleared on the next apply attempt.
+  std::string workspace_status_message_;
+  bool workspace_status_is_error_ = false;
 };
 
 }  // namespace editor

@@ -9,8 +9,10 @@
 
 #include "app/editor/editor.h"
 #include "app/editor/hack/workflow/hack_workflow_backend.h"
+#include "app/editor/layout/layout_manager.h"
 #include "app/editor/registry/editor_context.h"
 #include "app/editor/registry/event_bus.h"
+#include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "core/project.h"
 #include "rom/rom.h"
@@ -37,6 +39,8 @@ struct RegistryState {
   ::yaze::zelda3::GameData* game_data = nullptr;
   ::yaze::project::YazeProject* current_project = nullptr;
   workflow::HackWorkflowBackend* hack_workflow_backend = nullptr;
+  UserSettings* user_settings = nullptr;
+  LayoutManager* layout_manager = nullptr;
   ProjectWorkflowStatus build_workflow_status;
   ProjectWorkflowStatus run_workflow_status;
   std::string build_workflow_log;
@@ -172,6 +176,26 @@ void SetCurrentProject(::yaze::project::YazeProject* project) {
   state.current_project = project;
 }
 
+UserSettings* user_settings() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().user_settings;
+}
+
+void SetUserSettings(UserSettings* settings) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().user_settings = settings;
+}
+
+LayoutManager* layout_manager() {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  return RegistryState::Get().layout_manager;
+}
+
+void SetLayoutManager(LayoutManager* manager) {
+  std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
+  RegistryState::Get().layout_manager = manager;
+}
+
 workflow::HackWorkflowBackend* hack_workflow_backend() {
   std::lock_guard<std::mutex> lock(RegistryState::Get().mutex);
   return RegistryState::Get().hack_workflow_backend;
@@ -302,6 +326,8 @@ void Clear() {
   state.game_data = nullptr;
   state.current_project = nullptr;
   state.hack_workflow_backend = nullptr;
+  state.user_settings = nullptr;
+  state.layout_manager = nullptr;
   state.current_window_editors.clear();
   state.build_workflow_status = ProjectWorkflowStatus{};
   state.run_workflow_status = ProjectWorkflowStatus{};

@@ -17,6 +17,7 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/log.h"
+#include "zelda3/common.h"
 
 namespace yaze {
 namespace editor {
@@ -308,6 +309,17 @@ void EditorActivator::JumpToDungeonRoom(int room_id) {
 }
 
 void EditorActivator::JumpToOverworldMap(int map_id) {
+  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps) {
+    LOG_WARN("EditorActivator", "Rejected invalid overworld map jump target %d",
+             map_id);
+    if (deps_.toast_manager) {
+      deps_.toast_manager->Show(
+          "Invalid overworld map ID: " + std::to_string(map_id),
+          ToastType::kWarning);
+    }
+    return;
+  }
+
   auto* editor_set =
       deps_.get_current_editor_set ? deps_.get_current_editor_set() : nullptr;
   if (!editor_set)

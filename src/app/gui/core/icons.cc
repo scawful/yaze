@@ -1,0 +1,142 @@
+#include "app/gui/core/icons.h"
+#include "app/gui/core/common_icons.h"
+
+namespace yaze {
+namespace gui {
+
+const CommonIcon kCommonIcons[] = {
+    // ---- actions ----
+    {"ICON_MD_SAVE", ICON_MD_SAVE, "actions", "save disk write commit"},
+    {"ICON_MD_OPEN_IN_NEW", ICON_MD_OPEN_IN_NEW, "actions",
+     "open launch external"},
+    {"ICON_MD_DESCRIPTION", ICON_MD_DESCRIPTION, "actions",
+     "new document file"},
+    {"ICON_MD_DELETE", ICON_MD_DELETE, "actions", "delete trash remove"},
+    {"ICON_MD_EDIT", ICON_MD_EDIT, "actions", "edit pencil modify"},
+    {"ICON_MD_CONTENT_COPY", ICON_MD_CONTENT_COPY, "actions", "copy duplicate"},
+    {"ICON_MD_CONTENT_PASTE", ICON_MD_CONTENT_PASTE, "actions",
+     "paste clipboard"},
+    {"ICON_MD_CONTENT_CUT", ICON_MD_CONTENT_CUT, "actions",
+     "cut scissors clipboard"},
+    {"ICON_MD_UNDO", ICON_MD_UNDO, "actions", "undo back revert"},
+    {"ICON_MD_REDO", ICON_MD_REDO, "actions", "redo forward"},
+    {"ICON_MD_REFRESH", ICON_MD_REFRESH, "actions", "refresh reload"},
+    {"ICON_MD_SEARCH", ICON_MD_SEARCH, "actions", "search find magnify"},
+    {"ICON_MD_ADD", ICON_MD_ADD, "actions", "add plus create"},
+    {"ICON_MD_REMOVE", ICON_MD_REMOVE, "actions", "remove minus delete"},
+    {"ICON_MD_CLOSE", ICON_MD_CLOSE, "actions", "close dismiss x"},
+
+    // ---- navigation ----
+    {"ICON_MD_ARROW_BACK", ICON_MD_ARROW_BACK, "navigation",
+     "back previous left"},
+    {"ICON_MD_ARROW_FORWARD", ICON_MD_ARROW_FORWARD, "navigation",
+     "forward next right"},
+    {"ICON_MD_ARROW_UPWARD", ICON_MD_ARROW_UPWARD, "navigation", "up top"},
+    {"ICON_MD_ARROW_DOWNWARD", ICON_MD_ARROW_DOWNWARD, "navigation",
+     "down bottom"},
+    {"ICON_MD_HOME", ICON_MD_HOME, "navigation", "home house start"},
+    {"ICON_MD_MENU", ICON_MD_MENU, "navigation", "menu hamburger"},
+    {"ICON_MD_EXPAND_MORE", ICON_MD_EXPAND_MORE, "navigation",
+     "expand down caret"},
+    {"ICON_MD_EXPAND_LESS", ICON_MD_EXPAND_LESS, "navigation",
+     "collapse up caret"},
+    {"ICON_MD_FIRST_PAGE", ICON_MD_FIRST_PAGE, "navigation",
+     "first start page"},
+    {"ICON_MD_LAST_PAGE", ICON_MD_LAST_PAGE, "navigation", "last end page"},
+    {"ICON_MD_MORE_VERT", ICON_MD_MORE_VERT, "navigation",
+     "more vertical overflow"},
+    {"ICON_MD_MORE_HORIZ", ICON_MD_MORE_HORIZ, "navigation",
+     "more horizontal overflow"},
+    {"ICON_MD_CHEVRON_LEFT", ICON_MD_CHEVRON_LEFT, "navigation",
+     "chevron left"},
+    {"ICON_MD_CHEVRON_RIGHT", ICON_MD_CHEVRON_RIGHT, "navigation",
+     "chevron right"},
+    {"ICON_MD_SYNC", ICON_MD_SYNC, "navigation", "sync refresh circular"},
+
+    // ---- files ----
+    {"ICON_MD_FOLDER", ICON_MD_FOLDER, "files", "folder directory"},
+    {"ICON_MD_FOLDER_OPEN", ICON_MD_FOLDER_OPEN, "files",
+     "folder open directory"},
+    {"ICON_MD_FILE_COPY", ICON_MD_FILE_COPY, "files", "file duplicate copy"},
+    {"ICON_MD_IMAGE", ICON_MD_IMAGE, "files", "image picture photo"},
+    {"ICON_MD_INSERT_DRIVE_FILE", ICON_MD_INSERT_DRIVE_FILE, "files",
+     "file document"},
+    {"ICON_MD_SAVE_AS", ICON_MD_SAVE_AS, "files", "save as export"},
+    {"ICON_MD_DOWNLOAD", ICON_MD_DOWNLOAD, "files", "download arrow"},
+    {"ICON_MD_UPLOAD", ICON_MD_UPLOAD, "files", "upload arrow"},
+    {"ICON_MD_CLOUD", ICON_MD_CLOUD, "files", "cloud remote"},
+    {"ICON_MD_FOLDER_ZIP", ICON_MD_FOLDER_ZIP, "files",
+     "archive zip compressed"},
+    {"ICON_MD_NOTE_ADD", ICON_MD_NOTE_ADD, "files", "new note add"},
+    {"ICON_MD_CREATE_NEW_FOLDER", ICON_MD_CREATE_NEW_FOLDER, "files",
+     "new folder create"},
+    {"ICON_MD_GRID_VIEW", ICON_MD_GRID_VIEW, "files", "grid view thumbnail"},
+    {"ICON_MD_VIEW_LIST", ICON_MD_VIEW_LIST, "files", "list view rows"},
+
+    // ---- editing ----
+    {"ICON_MD_BUILD", ICON_MD_BUILD, "editing", "build wrench compile"},
+    {"ICON_MD_CODE", ICON_MD_CODE, "editing", "code source"},
+    {"ICON_MD_BUG_REPORT", ICON_MD_BUG_REPORT, "editing", "bug debug"},
+    {"ICON_MD_TERMINAL", ICON_MD_TERMINAL, "editing", "terminal shell console"},
+    {"ICON_MD_TUNE", ICON_MD_TUNE, "editing", "tune sliders settings"},
+    {"ICON_MD_SETTINGS", ICON_MD_SETTINGS, "editing", "settings gear config"},
+    {"ICON_MD_CONSTRUCTION", ICON_MD_CONSTRUCTION, "editing",
+     "construction work"},
+    {"ICON_MD_EXTENSION", ICON_MD_EXTENSION, "editing", "extension plugin"},
+    {"ICON_MD_BRUSH", ICON_MD_BRUSH, "editing", "brush paint"},
+    {"ICON_MD_DRAW", ICON_MD_DRAW, "editing", "draw pen"},
+    {"ICON_MD_PALETTE", ICON_MD_PALETTE, "editing", "palette colors"},
+    {"ICON_MD_LAYERS", ICON_MD_LAYERS, "editing", "layers stack"},
+    {"ICON_MD_FORMAT_PAINT", ICON_MD_FORMAT_PAINT, "editing",
+     "format paint roller"},
+    {"ICON_MD_TRANSFORM", ICON_MD_TRANSFORM, "editing", "transform rotate"},
+    {"ICON_MD_FILTER_ALT", ICON_MD_FILTER_ALT, "editing", "filter funnel"},
+
+    // ---- status ----
+    {"ICON_MD_CHECK", ICON_MD_CHECK, "status", "check tick ok"},
+    {"ICON_MD_CHECK_CIRCLE", ICON_MD_CHECK_CIRCLE, "status", "check success"},
+    {"ICON_MD_WARNING", ICON_MD_WARNING, "status", "warning alert triangle"},
+    {"ICON_MD_ERROR", ICON_MD_ERROR, "status", "error fail exclamation"},
+    {"ICON_MD_INFO", ICON_MD_INFO, "status", "info information"},
+    {"ICON_MD_CANCEL", ICON_MD_CANCEL, "status", "cancel abort"},
+    {"ICON_MD_VISIBILITY", ICON_MD_VISIBILITY, "status", "visible eye show"},
+    {"ICON_MD_VISIBILITY_OFF", ICON_MD_VISIBILITY_OFF, "status",
+     "hidden eye off hide"},
+    {"ICON_MD_LOCK", ICON_MD_LOCK, "status", "lock secure"},
+    {"ICON_MD_LOCK_OPEN", ICON_MD_LOCK_OPEN, "status", "unlock open"},
+    {"ICON_MD_STAR", ICON_MD_STAR, "status", "star favorite filled"},
+    {"ICON_MD_STAR_BORDER", ICON_MD_STAR_BORDER, "status",
+     "star favorite outline"},
+    {"ICON_MD_FAVORITE", ICON_MD_FAVORITE, "status", "favorite heart"},
+    {"ICON_MD_DONE_ALL", ICON_MD_DONE_ALL, "status", "done all complete"},
+    {"ICON_MD_PENDING", ICON_MD_PENDING, "status", "pending wait dots"},
+
+    // ---- layout ----
+    {"ICON_MD_SPLITSCREEN", ICON_MD_SPLITSCREEN, "layout",
+     "split screen divide"},
+    {"ICON_MD_DASHBOARD", ICON_MD_DASHBOARD, "layout", "dashboard tiles"},
+    {"ICON_MD_VIEW_SIDEBAR", ICON_MD_VIEW_SIDEBAR, "layout", "sidebar panel"},
+    {"ICON_MD_VIEW_COLUMN", ICON_MD_VIEW_COLUMN, "layout", "column view"},
+    {"ICON_MD_SPACE_DASHBOARD", ICON_MD_SPACE_DASHBOARD, "layout",
+     "space dashboard grid"},
+    {"ICON_MD_CROP_SQUARE", ICON_MD_CROP_SQUARE, "layout", "crop square"},
+    {"ICON_MD_CROP_FREE", ICON_MD_CROP_FREE, "layout", "crop free corners"},
+    {"ICON_MD_FULLSCREEN", ICON_MD_FULLSCREEN, "layout", "fullscreen maximize"},
+    {"ICON_MD_FULLSCREEN_EXIT", ICON_MD_FULLSCREEN_EXIT, "layout",
+     "exit fullscreen minimize"},
+    {"ICON_MD_ZOOM_IN", ICON_MD_ZOOM_IN, "layout", "zoom in magnify"},
+    {"ICON_MD_ZOOM_OUT", ICON_MD_ZOOM_OUT, "layout", "zoom out reduce"},
+    {"ICON_MD_FIT_SCREEN", ICON_MD_FIT_SCREEN, "layout", "fit screen scale"},
+    {"ICON_MD_ASPECT_RATIO", ICON_MD_ASPECT_RATIO, "layout", "aspect ratio"},
+    {"ICON_MD_TABLE_CHART", ICON_MD_TABLE_CHART, "layout", "table grid"},
+    {"ICON_MD_TERRAIN", ICON_MD_TERRAIN, "layout", "terrain landscape"},
+
+    // sentinel
+    {nullptr, nullptr, nullptr, nullptr},
+};
+
+const int kCommonIconCount =
+    (sizeof(kCommonIcons) / sizeof(kCommonIcons[0])) - 1;  // excludes sentinel
+
+}  // namespace gui
+}  // namespace yaze

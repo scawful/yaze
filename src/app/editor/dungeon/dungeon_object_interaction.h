@@ -185,6 +185,7 @@ class DungeonObjectInteraction {
     return selection_.GetSelectedIndices();
   }
   void SetSelectedObjects(const std::vector<size_t>& indices) {
+    entity_coordinator_.ClearEntitySelection();
     selection_.ClearSelection();
     for (size_t idx : indices) {
       selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
@@ -209,12 +210,18 @@ class DungeonObjectInteraction {
   // Object manipulation
   void HandleScrollWheelResize();  // Resize selected objects with scroll wheel
 
+  // Move the current canvas selection by one editor nudge step. Tile objects
+  // move by room-tile units; doors, sprites, and items use their native grids.
+  // Mixed selections move together so keyboard nudging follows the same grammar
+  // as marquee and additive selection.
+  bool NudgeSelected(int delta_x, int delta_y);
   void HandleDeleteSelected();
   void HandleDeleteAllObjects();
   void HandleCopySelected();
   void HandlePasteObjects();
   bool HasClipboardData() const {
-    return entity_coordinator_.tile_handler().HasClipboardData();
+    return entity_coordinator_.tile_handler().HasClipboardData() ||
+           entity_clipboard_.HasData();
   }
 
   // Inspector-friendly mutation helpers (with undo + rerender integration).
@@ -286,6 +293,11 @@ class DungeonObjectInteraction {
     interaction_context_.on_entity_changed = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);
   }
+  void SetDoorPairNavigationCallback(
+      std::function<void(int, std::optional<size_t>, int, int)> callback) {
+    interaction_context_.on_door_pair_navigation = std::move(callback);
+    entity_coordinator_.SetContext(&interaction_context_);
+  }
 
  private:
   gui::Canvas* canvas_;
@@ -310,12 +322,37 @@ class DungeonObjectInteraction {
   void HandleObjectSelectionStart(const ImVec2& canvas_mouse_pos);
   void HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos);
   void HandleMouseRelease();
+  bool HandleKeyboardNudge();
+
+  struct EntityClipboard {
+    std::vector<zelda3::Sprite> sprites;
+    std::vector<zelda3::PotItem> items;
+    int origin_pixel_x = 0;
+    int origin_pixel_y = 0;
+    int origin_tile_x = 0;
+    int origin_tile_y = 0;
+
+    bool HasData() const { return !sprites.empty() || !items.empty(); }
+    void Clear() {
+      sprites.clear();
+      items.clear();
+      origin_pixel_x = 0;
+      origin_pixel_y = 0;
+      origin_tile_x = 0;
+      origin_tile_y = 0;
+    }
+  };
+
+  void CopySelectedEntitiesToClipboard(bool clipboard_origin_set);
+  std::vector<SelectedEntity> PasteEntityClipboardAt(int target_pixel_x,
+                                                     int target_pixel_y);
 
   // Preview object state (used by ModeState but kept here for ghost bitmap)
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
 
   // Ghost preview bitmap (persists across frames for placement preview)
   gfx::PaletteGroup current_palette_group_;
+  EntityClipboard entity_clipboard_;
 
   // Unified selection system - replaces legacy selection state
   ObjectSelection selection_;

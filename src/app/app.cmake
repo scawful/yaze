@@ -232,7 +232,7 @@ endif()
 # Test Runner Executable
 # ==============================================================================
 if(YAZE_BUILD_TESTS)
-  add_executable(yaze_test app/test/main_test.cc)
+  add_executable(yaze_test app/testing/main_test.cc)
   if(UNIX AND NOT APPLE)
     # Keep transitive shared libs (notably gRPC) when static test-support
     # dependencies pull additional symbols later in the link line.

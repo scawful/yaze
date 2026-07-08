@@ -487,6 +487,10 @@ void DrawRightwardsPillar2x4spaced4_1to16(const DrawContext& ctx) {
 void DrawRightwardsDecor4x3spaced4_1to16(const DrawContext& ctx) {
   // Pattern: 4x3 decoration with spacing (objects 0x3A-0x3B)
   // 4 columns × 3 rows = 12 tiles in COLUMN-MAJOR order
+  // usdasm RoomDraw_RightwardsDecor4x3spaced4_1to16 ($01:9387) draws the
+  // 4-column stamp, then ADC #$0008 after RoomDraw_1x3N_rightwards. The
+  // helper already advanced over the 4-column stamp, so start-to-start stride
+  // is 8 tile columns.
   int size = ctx.object.size_ & 0x0F;
 
   // Assembly: GetSize_1to16, so count = size + 1
@@ -498,7 +502,7 @@ void DrawRightwardsDecor4x3spaced4_1to16(const DrawContext& ctx) {
       for (int x = 0; x < 4; ++x) {
         for (int y = 0; y < 3; ++y) {
           DrawRoutineUtils::WriteTile8(ctx.target_bg,
-                                       ctx.object.x_ + (s * 6) + x,
+                                       ctx.object.x_ + (s * 8) + x,
                                        ctx.object.y_ + y, ctx.tiles[x * 3 + y]);
         }
       }
@@ -593,8 +597,9 @@ void DrawRightwards4x2_1to16(const DrawContext& ctx) {
 }
 
 void DrawRightwardsDecor4x2spaced8_1to16(const DrawContext& ctx) {
-  // Pattern: Draws 1x8 column tiles with 12-tile horizontal spacing
-  // (objects 0x55-0x56 wall torches).
+  // USDASM RoomDraw_RightwardsDecor4x2spaced8_1to16 ($01:96F9)
+  // jumps into RoomDraw_Downwards4x2VariableSpacing with A=0x0018:
+  // each step writes one 4x2 stamp, then advances 12 tiles right.
   const int size = ctx.object.size_ & 0x0F;
   const int count = size + 1;  // GetSize_1to16
 
@@ -604,10 +609,23 @@ void DrawRightwardsDecor4x2spaced8_1to16(const DrawContext& ctx) {
 
   for (int s = 0; s < count; ++s) {
     const int base_x = ctx.object.x_ + (s * 12);
-    for (int row = 0; row < 8; ++row) {
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, ctx.object.y_ + row,
-                                   ctx.tiles[row]);
-    }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0, ctx.object.y_,
+                                 ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, ctx.object.y_,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 3, ctx.object.y_,
+                                 ctx.tiles[3]);
+
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 0, ctx.object.y_ + 1,
+                                 ctx.tiles[4]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_ + 1,
+                                 ctx.tiles[5]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, ctx.object.y_ + 1,
+                                 ctx.tiles[6]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 3, ctx.object.y_ + 1,
+                                 ctx.tiles[7]);
   }
 }
 

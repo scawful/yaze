@@ -19,6 +19,15 @@ zelda3::RoomObject CreateTestObject(uint8_t x, uint8_t y, uint8_t size = 0x00,
   return zelda3::RoomObject(id, x, y, size, 0);
 }
 
+zelda3::RoomObject CreateLayeredTestObject(uint8_t x, uint8_t y,
+                                           zelda3::RoomObject::LayerType layer,
+                                           uint8_t size = 0x00,
+                                           int16_t id = 0x01) {
+  auto object = CreateTestObject(x, y, size, id);
+  object.layer_ = layer;
+  return object;
+}
+
 // Test fixture for TileObjectHandler tests
 class TileObjectHandlerTest : public ::testing::Test {
  protected:
@@ -87,6 +96,34 @@ TEST_F(TileObjectHandlerTest, PlaceObjectAtValidPosition) {
   EXPECT_EQ(last_invalidation_domain_, MutationDomain::kTileObjects);
 }
 
+TEST_F(TileObjectHandlerTest, MoveObjectMarksObjectStreamDirty) {
+  auto obj = CreateTestObject(10, 10);
+  rooms_[0].AddTileObject(obj);
+  rooms_[0].ClearSaveDirtyState();
+
+  handler_.MoveObjects(0, {0}, 2, 3);
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 1);
+  EXPECT_EQ(objects[0].x_, 12);
+  EXPECT_EQ(objects[0].y_, 13);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_TRUE(rooms_[0].HasUnsavedChanges());
+}
+
+TEST_F(TileObjectHandlerTest, MoveTorchMarksTorchDirtyOnly) {
+  auto torch = CreateTestObject(10, 10, 0x00, 0x150);
+  torch.set_options(zelda3::ObjectOption::Torch);
+  rooms_[0].AddTileObject(torch);
+  rooms_[0].ClearSaveDirtyState();
+
+  handler_.MoveObjects(0, {0}, 1, 0);
+
+  EXPECT_TRUE(rooms_[0].torches_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_TRUE(rooms_[0].HasUnsavedChanges());
+}
+
 TEST_F(TileObjectHandlerTest, PlaceObjectClampsToRoomBounds) {
   auto obj = CreateTestObject(0, 0, 0x00, 0x01);
 
@@ -131,6 +168,42 @@ TEST_F(TileObjectHandlerTest, PlaceObjectBlocksAtRoomObjectLimit) {
             TileObjectHandler::PlacementBlockReason::kObjectLimit);
   EXPECT_EQ(rooms_[0].GetTileObjects().size(),
             static_cast<size_t>(kMaxObjects));
+}
+
+TEST_F(TileObjectHandlerTest, GhostCapacityStateIsNormalBelowLastSlot) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(398);
+  for (int i = 0; i < 398; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x01));
+  }
+  AddTestObjects(objects);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            TileObjectHandler::GhostCapacityState::kNormal);
+}
+
+TEST_F(TileObjectHandlerTest, GhostCapacityStateWarnsOnLastAvailableSlot) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(399);
+  for (int i = 0; i < 399; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x01));
+  }
+  AddTestObjects(objects);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            TileObjectHandler::GhostCapacityState::kNearLimit);
+}
+
+TEST_F(TileObjectHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
+  std::vector<zelda3::RoomObject> objects;
+  objects.reserve(400);
+  for (int i = 0; i < 400; ++i) {
+    objects.push_back(CreateTestObject(i % 64, (i / 64) % 64, 0x00, 0x01));
+  }
+  AddTestObjects(objects);
+
+  EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
+            TileObjectHandler::GhostCapacityState::kAtLimit);
 }
 
 // ============================================================================
@@ -217,6 +290,31 @@ TEST_F(TileObjectHandlerTest, UpdateObjectLayer) {
 
   const auto& objects = rooms_[0].GetTileObjects();
   EXPECT_EQ(objects[0].layer_, zelda3::RoomObject::LayerType::BG2);
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectLayerAppendsToTargetLayerZBucket) {
+  AddTestObjects({
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x01),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG2, 0x00,
+                              0x02),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG2, 0x00,
+                              0x03),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x04),
+  });
+  selection_.SelectObject(0);
+
+  handler_.UpdateObjectsLayer(0, {0}, 1);
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 4);
+  EXPECT_EQ(objects[0].id_, 0x04);
+  EXPECT_EQ(objects[1].id_, 0x02);
+  EXPECT_EQ(objects[2].id_, 0x03);
+  EXPECT_EQ(objects[3].id_, 0x01);
+  EXPECT_EQ(objects[3].layer_, zelda3::RoomObject::LayerType::BG2);
+  EXPECT_TRUE(selection_.IsObjectSelected(3));
 }
 
 TEST_F(TileObjectHandlerTest, UpdateObjectLayerRejectsInvalidTargetLayer) {
@@ -403,7 +501,7 @@ TEST_F(TileObjectHandlerTest, DragReleaseWithoutMovementDoesNotInvalidate) {
   EXPECT_EQ(invalidate_count_, initial_invalidations);
 }
 
-TEST_F(TileObjectHandlerTest, AltDragDuplicatesOnceThenMovesClones) {
+TEST_F(TileObjectHandlerTest, AltDragMovesOriginalWithoutDuplicating) {
   AddTestObjects({CreateTestObject(10, 10, 0x00, 0x42)});
   selection_.SelectObject(0);
 
@@ -416,11 +514,9 @@ TEST_F(TileObjectHandlerTest, AltDragDuplicatesOnceThenMovesClones) {
   handler_.HandleRelease();
 
   const auto& objects = rooms_[0].GetTileObjects();
-  ASSERT_EQ(objects.size(), 2);
-  EXPECT_EQ(objects[0].x_, 10);
+  ASSERT_EQ(objects.size(), 1);
+  EXPECT_EQ(objects[0].x_, 12);
   EXPECT_EQ(objects[0].y_, 10);
-  EXPECT_EQ(objects[1].x_, 12);
-  EXPECT_EQ(objects[1].y_, 10);
   EXPECT_EQ(mutation_count_, initial_mutations + 1);
 }
 
@@ -459,7 +555,7 @@ TEST_F(TileObjectHandlerTest, MarqueeSelectsObjectsInRect) {
   EXPECT_FALSE(selection_.IsObjectSelected(2));
 }
 
-TEST_F(TileObjectHandlerTest, ShiftMarqueeAddsToSelection) {
+TEST_F(TileObjectHandlerTest, ShiftMarqueeReplacesSelection) {
   AddTestObjects({
       CreateTestObject(5, 5, 0x00, 0x01),
       CreateTestObject(20, 20, 0x00, 0x02),
@@ -477,11 +573,11 @@ TEST_F(TileObjectHandlerTest, ShiftMarqueeAddsToSelection) {
       /*alt_down=*/false,
       /*draw_box=*/false);
 
-  EXPECT_TRUE(selection_.IsObjectSelected(0));
+  EXPECT_FALSE(selection_.IsObjectSelected(0));
   EXPECT_TRUE(selection_.IsObjectSelected(1));
 }
 
-TEST_F(TileObjectHandlerTest, CtrlMarqueeTogglesSelection) {
+TEST_F(TileObjectHandlerTest, CtrlMarqueeReplacesSelection) {
   AddTestObjects({
       CreateTestObject(5, 5, 0x00, 0x01),
       CreateTestObject(20, 20, 0x00, 0x02),
@@ -491,7 +587,7 @@ TEST_F(TileObjectHandlerTest, CtrlMarqueeTogglesSelection) {
   selection_.SelectObject(0);
   selection_.SelectObject(1, ObjectSelection::SelectionMode::Add);
 
-  // Toggle only object 1 via marquee.
+  // Modified marquee matches ZScream's replace-selection behavior.
   handler_.BeginMarqueeSelection(ImVec2(120.0f, 120.0f));
   handler_.HandleMarqueeSelection(
       /*mouse_pos=*/ImVec2(200.0f, 200.0f),
@@ -502,8 +598,8 @@ TEST_F(TileObjectHandlerTest, CtrlMarqueeTogglesSelection) {
       /*alt_down=*/false,
       /*draw_box=*/false);
 
-  EXPECT_TRUE(selection_.IsObjectSelected(0));
-  EXPECT_FALSE(selection_.IsObjectSelected(1));
+  EXPECT_FALSE(selection_.IsObjectSelected(0));
+  EXPECT_TRUE(selection_.IsObjectSelected(1));
 }
 
 // ============================================================================
@@ -547,6 +643,27 @@ TEST_F(TileObjectHandlerTest, SendToFront) {
   EXPECT_EQ(objects[2].id_, 0x01);  // Moved to front (last in list)
 }
 
+TEST_F(TileObjectHandlerTest, SendToFrontStaysWithinObjectLayer) {
+  AddTestObjects({
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x01),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG2, 0x00,
+                              0x02),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x03),
+  });
+  selection_.SelectObject(0);
+
+  handler_.SendToFront(0, {0});
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 3);
+  EXPECT_EQ(objects[0].id_, 0x03);
+  EXPECT_EQ(objects[1].id_, 0x01);
+  EXPECT_EQ(objects[2].id_, 0x02);
+  EXPECT_TRUE(selection_.IsObjectSelected(1));
+}
+
 TEST_F(TileObjectHandlerTest, SendToBack) {
   AddTestObjects({CreateTestObject(0, 0, 0x00, 0x01),
                   CreateTestObject(0, 0, 0x00, 0x02),
@@ -571,6 +688,27 @@ TEST_F(TileObjectHandlerTest, MoveForward) {
   EXPECT_EQ(objects[0].id_, 0x02);
   EXPECT_EQ(objects[1].id_, 0x01);  // Swapped forward
   EXPECT_EQ(objects[2].id_, 0x03);
+}
+
+TEST_F(TileObjectHandlerTest, MoveForwardStaysWithinObjectLayer) {
+  AddTestObjects({
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x01),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG2, 0x00,
+                              0x02),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x03),
+  });
+  selection_.SelectObject(0);
+
+  handler_.MoveForward(0, {0});
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 3);
+  EXPECT_EQ(objects[0].id_, 0x03);
+  EXPECT_EQ(objects[1].id_, 0x01);
+  EXPECT_EQ(objects[2].id_, 0x02);
+  EXPECT_TRUE(selection_.IsObjectSelected(1));
 }
 
 TEST_F(TileObjectHandlerTest, MoveBackward) {

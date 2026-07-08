@@ -164,6 +164,59 @@ TEST_F(RoomManipulationTest, LayerOrganization) {
   EXPECT_FALSE(room_->FindObjectAt(10, 10, 1).ok());
 }
 
+TEST_F(RoomManipulationTest, TracksUnsavedStateBySaveDomain) {
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+
+  room_->SetPalette(0x2A);
+  EXPECT_TRUE(room_->header_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+
+  room_->ClearSaveDirtyState();
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 20, 3, 0)).ok());
+  EXPECT_TRUE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+
+  room_->ClearSaveDirtyState();
+  room_->MarkSpritesDirty();
+  room_->MarkChestsDirty();
+  room_->MarkPotItemsDirty();
+  room_->MarkTorchesDirty();
+  room_->MarkBlocksDirty();
+  EXPECT_TRUE(room_->sprites_dirty());
+  EXPECT_TRUE(room_->chests_dirty());
+  EXPECT_TRUE(room_->pot_items_dirty());
+  EXPECT_TRUE(room_->torches_dirty());
+  EXPECT_TRUE(room_->blocks_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+}
+
+TEST_F(RoomManipulationTest, TracksSpecialTileObjectSaveDomains) {
+  RoomObject torch(0x150, 10, 10, 0, 0);
+  torch.set_options(ObjectOption::Torch);
+  room_->AddTileObject(torch);
+
+  EXPECT_TRUE(room_->torches_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+
+  room_->ClearSaveDirtyState();
+  ASSERT_FALSE(room_->HasUnsavedChanges());
+
+  RoomObject block(0x0E00, 12, 14, 0, 1);
+  block.set_options(ObjectOption::Block);
+  room_->AddTileObject(block);
+
+  EXPECT_TRUE(room_->blocks_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+
+  room_->ClearSaveDirtyState();
+  room_->RemoveTileObject(0);
+  EXPECT_TRUE(room_->torches_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+}
+
 }  // namespace test
 }  // namespace zelda3
 }  // namespace yaze

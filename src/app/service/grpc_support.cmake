@@ -23,8 +23,8 @@ set(
   app/service/visual_service_impl.cc
 
   # Test infrastructure
-  app/test/test_recorder.cc
-  app/test/test_script_parser.cc
+  app/testing/test_recorder.cc
+  app/testing/test_script_parser.cc
 )
 
 add_library(yaze_grpc_support STATIC ${YAZE_GRPC_SOURCES})
@@ -112,6 +112,7 @@ target_link_libraries(yaze_proto_gen PUBLIC ${YAZE_PROTOBUF_TARGETS})
 target_include_directories(
   yaze_proto_gen
   PUBLIC
+    ${_YAZE_GRPC_INCLUDE_DIR}
     $<TARGET_PROPERTY:${_YAZE_GRPCPP_TARGET},INTERFACE_INCLUDE_DIRECTORIES>
 )
 
@@ -122,6 +123,7 @@ target_include_directories(
   yaze_proto_lib
   PUBLIC
     ${CMAKE_BINARY_DIR}/gens
+    ${_YAZE_GRPC_INCLUDE_DIR}
     ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}
     $<TARGET_PROPERTY:${_YAZE_GRPCPP_TARGET},INTERFACE_INCLUDE_DIRECTORIES>
 )
@@ -129,6 +131,7 @@ target_link_libraries(yaze_proto_lib PUBLIC ${YAZE_PROTOBUF_TARGETS})
 
 target_include_directories(yaze_grpc_support PUBLIC
   ${CMAKE_BINARY_DIR}/gens
+  ${_YAZE_GRPC_INCLUDE_DIR}
   ${_gRPC_PROTOBUF_WELLKNOWN_INCLUDE_DIR}
 )
 

@@ -69,6 +69,16 @@ TEST(ObjectGeometryTest, DiagonalCeilingBoundsMatchRenderForAllAnchors) {
   }
 }
 
+TEST(ObjectGeometryTest, SomariaLineDownLeftPreservesNegativeXExtent) {
+  RoomObject obj(/*id=*/0x0F86, /*x=*/0, /*y=*/0, /*size=*/0x03);
+  auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+  ASSERT_TRUE(bounds.ok());
+  EXPECT_EQ(bounds->min_x_tiles, -3);  // length 4 reaches three tiles left
+  EXPECT_EQ(bounds->min_y_tiles, 0);
+  EXPECT_EQ(bounds->width_tiles, 4);
+  EXPECT_EQ(bounds->height_tiles, 4);
+}
+
 TEST(ObjectGeometryTest, WeirdCornerBottomBothBGUsesUsdasm3x4Shape) {
   // USDASM: RoomDraw_WeirdCornerBottom_BothBG ($01:9854) -> 3 columns x 4 rows.
   RoomObject obj(/*id=*/0x110, /*x=*/0, /*y=*/0, /*size=*/0);
@@ -124,6 +134,15 @@ TEST(ObjectGeometryTest, MeasureByObjectIdSubtype3SpecialsHaveUsdasmBounds) {
   }
 }
 
+TEST(ObjectGeometryTest,
+     MeasureByObjectIdEmptyWaterFaceUsesMaxStatefulFootprint) {
+  RoomObject obj(/*id=*/0x0F80, /*x=*/0, /*y=*/0, /*size=*/0);
+  auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+  ASSERT_TRUE(bounds.ok());
+  EXPECT_EQ(bounds->width_tiles, 4);
+  EXPECT_EQ(bounds->height_tiles, 5);
+}
+
 TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
   struct Case {
     int16_t object_id;
@@ -135,6 +154,9 @@ TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
   const Case cases[] = {
       {0x0122, 0x00, 4, 5},   // Bed4x5
       {0x012C, 0x00, 6, 3},   // Rightwards3x6
+      {0x0135, 0x00, 4, 2},   // WaterHopStairsA
+      {0x0136, 0x00, 4, 2},   // WaterHopStairsB
+      {0x0137, 0x00, 10, 4},  // DamFloodGate
       {0x013E, 0x00, 6, 3},   // Utility6x3
       {0x0FD5, 0x00, 3, 5},   // Utility3x5
       {0x0FBA, 0x00, 4, 6},   // VerticalTurtleRockPipe
@@ -145,6 +167,7 @@ TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
       {0x0FE9, 0x00, 3, 4},   // SolidWallDecor3x4
       {0x0FE0, 0x00, 3, 6},   // ArcheryGameTargetDoor
       {0x0FF8, 0x00, 8, 8},   // GanonTriforceFloorDecor
+      {0x0055, 0x01, 16, 2},  // Wall torches: 4x2 stamps, 12-tile stride
       {0x0047, 0x00, 4, 5},   // Waterfall47 size=0
       {0x0048, 0x00, 4, 3},   // Waterfall48 size=0
   };

@@ -40,6 +40,7 @@ src/ios/build/
 
 # Test outputs
 test_screenshots/
+test_temp/
 test_temp_rom.sfc
 zelda3_v3_test.sfc
 test-results/

@@ -2,9 +2,9 @@
 
 #include <algorithm>
 #include <cctype>
-#include <limits>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <sstream>
 #include <utility>
 
@@ -261,7 +261,8 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
     if (msg.contains("data_start")) {
       ASSIGN_OR_RETURN(message_layout_.data_start,
                        ParseHexAddress(msg.value("data_start", "0x000000")));
-      message_layout_.data_start = NormalizeSnesAddress(message_layout_.data_start);
+      message_layout_.data_start =
+          NormalizeSnesAddress(message_layout_.data_start);
     }
     if (msg.contains("data_end")) {
       ASSIGN_OR_RETURN(message_layout_.data_end,
@@ -486,8 +487,7 @@ bool HackManifest::IsExpandedMessage(uint16_t message_id) const {
 // Project Registry Loading
 // ============================================================================
 
-absl::Status HackManifest::LoadProjectRegistry(
-    const std::string& code_folder) {
+absl::Status HackManifest::LoadProjectRegistry(const std::string& code_folder) {
   namespace fs = std::filesystem;
 
   project_registry_ = ProjectRegistry{};
@@ -520,6 +520,9 @@ absl::Status HackManifest::LoadProjectRegistry(
                 auto parsed = ParseHexAddress(id_str);
                 room.id = parsed.ok() ? static_cast<int>(*parsed) : 0;
                 room.name = rj.value("name", "");
+                room.floor = rj.value("floor", "");
+                room.has_grid_position =
+                    rj.contains("grid_row") && rj.contains("grid_col");
                 room.grid_row = rj.value("grid_row", 0);
                 room.grid_col = rj.value("grid_col", 0);
                 room.type = rj.value("type", "normal");
@@ -540,9 +543,8 @@ absl::Status HackManifest::LoadProjectRegistry(
                 std::string to_str = sj.value("to", "0x00");
                 auto from_parsed = ParseHexAddress(from_str);
                 auto to_parsed = ParseHexAddress(to_str);
-                conn.from_room = from_parsed.ok()
-                                     ? static_cast<int>(*from_parsed)
-                                     : 0;
+                conn.from_room =
+                    from_parsed.ok() ? static_cast<int>(*from_parsed) : 0;
                 conn.to_room =
                     to_parsed.ok() ? static_cast<int>(*to_parsed) : 0;
                 conn.label = sj.value("label", "");
@@ -558,9 +560,8 @@ absl::Status HackManifest::LoadProjectRegistry(
                 std::string to_str = hj.value("to", "0x00");
                 auto from_parsed = ParseHexAddress(from_str);
                 auto to_parsed = ParseHexAddress(to_str);
-                conn.from_room = from_parsed.ok()
-                                     ? static_cast<int>(*from_parsed)
-                                     : 0;
+                conn.from_room =
+                    from_parsed.ok() ? static_cast<int>(*from_parsed) : 0;
                 conn.to_room =
                     to_parsed.ok() ? static_cast<int>(*to_parsed) : 0;
                 conn.label = hj.value("label", "");
@@ -576,9 +577,8 @@ absl::Status HackManifest::LoadProjectRegistry(
                 std::string to_str = doorj.value("to", "0x00");
                 auto from_parsed = ParseHexAddress(from_str);
                 auto to_parsed = ParseHexAddress(to_str);
-                conn.from_room = from_parsed.ok()
-                                     ? static_cast<int>(*from_parsed)
-                                     : 0;
+                conn.from_room =
+                    from_parsed.ok() ? static_cast<int>(*from_parsed) : 0;
                 conn.to_room =
                     to_parsed.ok() ? static_cast<int>(*to_parsed) : 0;
                 conn.label = doorj.value("label", "");
@@ -685,7 +685,8 @@ absl::Status HackManifest::LoadProjectRegistry(
             for (const auto& [key, value] : root[type_key].items()) {
               if (value.is_string()) {
                 const std::string normalized_key = normalize_label_id(key);
-                project_registry_.all_resource_labels[type_key][normalized_key] =
+                project_registry_
+                    .all_resource_labels[type_key][normalized_key] =
                     value.get<std::string>();
               }
             }
@@ -693,8 +694,7 @@ absl::Status HackManifest::LoadProjectRegistry(
         }
       } catch (const std::exception& exc) {
         LOG_WARN("HackManifest",
-                 "Failed to parse oracle_resource_labels.json: %s",
-                 exc.what());
+                 "Failed to parse oracle_resource_labels.json: %s", exc.what());
       }
     }
   } else if (fs::exists(legacy_path)) {
@@ -715,17 +715,38 @@ absl::Status HackManifest::LoadProjectRegistry(
           }
         }
       } catch (const std::exception& exc) {
-        LOG_WARN("HackManifest",
-                 "Failed to parse oracle_room_labels.json: %s", exc.what());
+        LOG_WARN("HackManifest", "Failed to parse oracle_room_labels.json: %s",
+                 exc.what());
       }
     }
+  }
+
+  // `dungeons.json` is the canonical Oracle room/dungeon structure. Mirror its
+  // room names into the generic resource-label registry so opening an Oracle
+  // project can populate YazeProject::resource_labels and serialize those names
+  // into the project file. This intentionally runs after oracle_*_labels.json
+  // so stale generated label bundles cannot mask the current dungeon registry.
+  size_t dungeon_room_labels = 0;
+  for (const auto& dungeon : project_registry_.dungeons) {
+    for (const auto& room : dungeon.rooms) {
+      if (room.id >= 0 && !room.name.empty()) {
+        project_registry_.all_resource_labels["room"][std::to_string(room.id)] =
+            room.name;
+        ++dungeon_room_labels;
+      }
+    }
+  }
+  if (dungeon_room_labels > 0) {
+    LOG_DEBUG("HackManifest",
+              "Mirrored %zu dungeon room names into project resource labels",
+              dungeon_room_labels);
   }
 
   // ── Load story events ──────────────────────────────────────────────────
   fs::path story_events_path = planning / "story_events.json";
   if (fs::exists(story_events_path)) {
-    auto story_status = project_registry_.story_events.LoadFromJson(
-        story_events_path.string());
+    auto story_status =
+        project_registry_.story_events.LoadFromJson(story_events_path.string());
     if (story_status.ok()) {
       project_registry_.story_events.AutoLayout();
       if (oracle_progression_state_.has_value()) {
@@ -734,7 +755,7 @@ absl::Status HackManifest::LoadProjectRegistry(
         // Default to an initial "no progress" state so the graph renders with
         // sensible locked/available coloring even before live SRAM is wired up.
         project_registry_.story_events.UpdateStatus(/*crystal_bitfield=*/0,
-                                                   /*game_state=*/0);
+                                                    /*game_state=*/0);
       }
       LOG_DEBUG("HackManifest", "Loaded story events: %zu nodes, %zu edges",
                 project_registry_.story_events.nodes().size(),
@@ -763,7 +784,8 @@ absl::Status HackManifest::LoadProjectRegistry(
   return absl::OkStatus();
 }
 
-void HackManifest::SetOracleProgressionState(const OracleProgressionState& state) {
+void HackManifest::SetOracleProgressionState(
+    const OracleProgressionState& state) {
   oracle_progression_state_ = state;
   if (project_registry_.story_events.loaded()) {
     project_registry_.story_events.UpdateStatus(state);
@@ -774,7 +796,7 @@ void HackManifest::ClearOracleProgressionState() {
   oracle_progression_state_.reset();
   if (project_registry_.story_events.loaded()) {
     project_registry_.story_events.UpdateStatus(/*crystal_bitfield=*/0,
-                                               /*game_state=*/0);
+                                                /*game_state=*/0);
   }
 }
 

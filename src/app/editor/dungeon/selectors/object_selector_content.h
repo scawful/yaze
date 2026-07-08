@@ -9,20 +9,18 @@
 #include "app/editor/dungeon/dungeon_object_selector.h"
 #include "app/editor/editor.h"
 #include "app/editor/system/workspace/editor_panel.h"
-#include "app/gfx/backend/irenderer.h"
 #include "app/gui/app/editor_layout.h"
-#include "app/gui/canvas/canvas.h"
 #include "app/gui/core/icons.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_validator.h"
-#include "zelda3/dungeon/object_drawer.h"
-#include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
 namespace editor {
+
+class ToastManager;
 
 /**
  * @class ObjectSelectorContent
@@ -34,10 +32,8 @@ namespace editor {
  *
  * Features:
  * - Object browser with graphical previews
- * - Static object editor (opened via double-click)
- * - Inline placement previews via the canvas/object grid
+ * - Placement initiation and feedback
  * - Object templates for common patterns
- * - Lightweight placement feedback
  *
  * @see WindowContent - Base interface
  * @see DungeonObjectSelector - Object browser component
@@ -45,8 +41,9 @@ namespace editor {
 class ObjectSelectorContent : public WindowContent {
  public:
   ObjectSelectorContent(
-      gfx::IRenderer* renderer, Rom* rom, DungeonCanvasViewer* canvas_viewer,
-      std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr);
+      Rom* rom, DungeonCanvasViewer* canvas_viewer,
+      std::shared_ptr<zelda3::DungeonObjectEditor> object_editor = nullptr,
+      ToastManager* toast_manager = nullptr);
 
   // ==========================================================================
   // WindowContent Identity
@@ -80,8 +77,7 @@ class ObjectSelectorContent : public WindowContent {
     current_room_id_ = room_id;
     object_selector_.set_current_room_id(room_id);
   }
-  void SetCanvasViewerProvider(
-      std::function<DungeonCanvasViewer*()> provider) {
+  void SetCanvasViewerProvider(std::function<DungeonCanvasViewer*()> provider) {
     canvas_viewer_provider_ = std::move(provider);
   }
   void SetCanvasViewer(DungeonCanvasViewer* viewer) { canvas_viewer_ = viewer; }
@@ -111,27 +107,16 @@ class ObjectSelectorContent : public WindowContent {
   // Object operations
   void CancelPlacement();  // Cancel current object placement
 
-  // Show a red error message near the object controls for ~2 seconds.
+  void SetToastManager(ToastManager* toast_manager) {
+    toast_manager_ = toast_manager;
+  }
+
+  // Show placement blockers through the shared toast surface when available.
   // Called from DungeonEditorV2::HandleObjectPlaced on placement failure.
   void SetPlacementError(const std::string& message);
 
   void SetOpenObjectEditorCallback(std::function<void()> callback) {
     open_object_editor_callback_ = std::move(callback);
-  }
-
-  // ==========================================================================
-  // Static Object Editor (double-click to open)
-  // ==========================================================================
-
-  void OpenStaticObjectEditor(int object_id);
-  void CloseStaticObjectEditor();
-  bool IsStaticEditorOpen() const { return static_editor_open_; }
-  int GetStaticEditorObjectId() const { return static_editor_object_id_; }
-
-  // Tile editor callback: invoked when user clicks "Edit Tiles"
-  using TileEditorCallback = std::function<void(int16_t object_id)>;
-  void set_tile_editor_callback(TileEditorCallback callback) {
-    tile_editor_callback_ = std::move(callback);
   }
 
  private:
@@ -140,8 +125,6 @@ class ObjectSelectorContent : public WindowContent {
   // Drawing methods
   void DrawObjectSelector();
   void DrawInteractionSummary();
-  void DrawStaticObjectEditor();
-  void DrawRoomValidationBar();
 
   // ==========================================================================
   // Member Variables
@@ -159,26 +142,14 @@ class ObjectSelectorContent : public WindowContent {
   // Selected object for placement
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool has_preview_object_ = false;
-  gfx::IRenderer* renderer_;
   std::shared_ptr<zelda3::DungeonObjectEditor> object_editor_;
+  ToastManager* toast_manager_ = nullptr;
 
-  // Static object editor state (opened via double-click)
-  bool static_editor_open_ = false;
-  int static_editor_object_id_ = -1;
-  gfx::Bitmap static_preview_bitmap_;
-  gui::Canvas static_preview_canvas_{"##StaticObjectPreview", ImVec2(128, 128)};
-  zelda3::ObjectDrawInfo static_editor_draw_info_;
-  std::unique_ptr<zelda3::ObjectParser> object_parser_;
-  gfx::BackgroundBuffer static_preview_buffer_{128, 128};
-  bool static_preview_rendered_ = false;
-
-  // Placement error feedback: shown in red for kPlacementErrorDuration seconds.
+  // Placement error feedback: toast-backed, with inline fallback for tests.
   static constexpr double kPlacementErrorDuration = 2.0;
   std::string last_placement_error_;
   double placement_error_time_ = -1.0;  // ImGui::GetTime() when error was set
 
-  // Tile editor callback
-  TileEditorCallback tile_editor_callback_;
   std::function<void()> open_object_editor_callback_;
 };
 

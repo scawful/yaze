@@ -1,4 +1,5 @@
 // C API implementation - no heavy GUI/editor dependencies
+#include <cstdint>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -8,6 +9,9 @@
 #include "rom/rom.h"
 #include "yaze.h"
 #include "yaze_config.h"
+#include "yaze_core.h"
+#include "yaze_errors.h"
+#include "zelda.h"
 #include "zelda3/game_data.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -34,8 +38,6 @@ void yaze_library_shutdown() {
 
   // Cleanup subsystems
   g_library_initialized = false;
-
-  return;
 }
 
 const char* yaze_status_to_string(yaze_status status) {
@@ -61,9 +63,13 @@ const char* yaze_status_to_string(yaze_status status) {
   }
 }
 
-const char* yaze_get_version_string() { return YAZE_VERSION_STRING; }
+const char* yaze_get_version_string() {
+  return YAZE_VERSION_STRING;
+}
 
-int yaze_get_version_number() { return YAZE_VERSION_NUMBER; }
+int yaze_get_version_number() {
+  return YAZE_VERSION_NUMBER;
+}
 
 bool yaze_check_version_compatibility(const char* expected_version) {
   if (expected_version == nullptr) {
@@ -124,14 +130,15 @@ zelda3_rom* yaze_load_rom(const char* filename) {
 
   // Create and load GameData
   auto internal_game_data = std::make_unique<yaze::zelda3::GameData>();
-  auto load_status = yaze::zelda3::LoadGameData(*internal_rom, *internal_game_data);
+  auto load_status =
+      yaze::zelda3::LoadGameData(*internal_rom, *internal_game_data);
   if (!load_status.ok()) {
     return nullptr;
   }
 
   auto* rom = new zelda3_rom();
   rom->filename = filename;
-  rom->impl = internal_rom.release();  // Transfer ownership
+  rom->impl = internal_rom.release();             // Transfer ownership
   rom->game_data = internal_game_data.release();  // Transfer ownership
   rom->data = const_cast<uint8_t*>(static_cast<yaze::Rom*>(rom->impl)->data());
   rom->size = static_cast<yaze::Rom*>(rom->impl)->size();
@@ -217,7 +224,8 @@ zelda3_overworld* yaze_load_overworld(const zelda3_rom* rom) {
 
   yaze::Rom* internal_rom = static_cast<yaze::Rom*>(rom->impl);
   auto* game_data = static_cast<yaze::zelda3::GameData*>(rom->game_data);
-  auto internal_overworld = new yaze::zelda3::Overworld(internal_rom, game_data);
+  auto internal_overworld =
+      new yaze::zelda3::Overworld(internal_rom, game_data);
   if (!internal_overworld->Load(internal_rom).ok()) {
     return nullptr;
   }
@@ -336,9 +344,12 @@ snes_color yaze_rgb_to_snes_color(uint8_t r, uint8_t g, uint8_t b) {
 
 void yaze_snes_color_to_rgb(snes_color color, uint8_t* r, uint8_t* g,
                             uint8_t* b) {
-  if (r != nullptr) *r = static_cast<uint8_t>(color.red);
-  if (g != nullptr) *g = static_cast<uint8_t>(color.green);
-  if (b != nullptr) *b = static_cast<uint8_t>(color.blue);
+  if (r != nullptr)
+    *r = static_cast<uint8_t>(color.red);
+  if (g != nullptr)
+    *g = static_cast<uint8_t>(color.green);
+  if (b != nullptr)
+    *b = static_cast<uint8_t>(color.blue);
 }
 
 // Version detection functions
@@ -361,8 +372,10 @@ zelda3_version zelda3_detect_version(const uint8_t* rom_data, size_t size) {
     // US or EU version often share this title
     // Check destination code at 0x7FD9: 0x01 = USA, 0x02+ = PAL regions
     uint8_t region = rom_data[0x7FD9];
-    if (region == 0x00) return ZELDA3_VERSION_JP;
-    if (region == 0x01) return ZELDA3_VERSION_US;
+    if (region == 0x00)
+      return ZELDA3_VERSION_JP;
+    if (region == 0x01)
+      return ZELDA3_VERSION_US;
     return ZELDA3_VERSION_EU;
   }
 

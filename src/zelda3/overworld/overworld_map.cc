@@ -12,8 +12,8 @@
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/types/snes_tile.h"
-#include "rom/rom.h"
 #include "core/features.h"
+#include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/common.h"
 #include "zelda3/overworld/overworld.h"
@@ -23,12 +23,10 @@ namespace yaze::zelda3 {
 
 OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
     : index_(index), parent_(index), rom_(rom), game_data_(game_data) {
-  LoadAreaInfo();
-  
   // Load parent ID from ROM data for all versions
   // This is critical for proper large map sibling coordination
   auto version = OverworldVersionHelper::GetVersion(*rom_);
-  if (version >= OverworldVersion::kZSCustomV3) {
+  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
     // For v3+, parent ID is stored in expanded table (0x140998) with 160 entries
     parent_ = (*rom_)[GetOverworldMapParentIdExpanded() + index_];
   } else {
@@ -47,7 +45,8 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
     } else {
       // Special World: hardcoded parents for vanilla compatibility
       // Zora's Domain (0x81, 0x82, 0x89, 0x8A) is a large area with parent 0x81
-      if (index_ == 0x81 || index_ == 0x82 || index_ == 0x89 || index_ == 0x8A) {
+      if (index_ == 0x81 || index_ == 0x82 || index_ == 0x89 ||
+          index_ == 0x8A) {
         parent_ = 0x81;
       } else {
         // All other SW maps are small areas - parent is self
@@ -55,6 +54,8 @@ OverworldMap::OverworldMap(int index, Rom* rom, GameData* game_data)
       }
     }
   }
+
+  LoadAreaInfo();
 
   if (version != OverworldVersion::kVanilla) {
     // For ALL custom ASM versions (v1-v3), read from custom arrays
@@ -139,18 +140,40 @@ void OverworldMap::LoadAreaInfo() {
   // 0x03: Current version with full area size expansion and custom data support
   // 0xFF: Pure vanilla ROM (no ASM applied)
 
-  // Load message ID and area size based on ASM version
-  if (version < OverworldVersion::kZSCustomV2 ||
-      version == OverworldVersion::kVanilla) {
-    // v2 and vanilla: use original message table
+  // Load message ID and area size based on ASM version. v1+ moves message
+  // ids into expanded space, but only v3 supports per-map area-size enums.
+  if (OverworldVersionHelper::SupportsExpandedSpace(version)) {
+    message_id_ =
+        (*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2)] |
+        ((*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2) + 1] << 8);
+  } else {
     message_id_ = (*rom_)[kOverworldMessageIds + (parent_ * 2)] |
                   ((*rom_)[kOverworldMessageIds + (parent_ * 2) + 1] << 8);
+  }
 
-    // Load area size for v2/vanilla
+  if (OverworldVersionHelper::SupportsAreaEnum(version)) {
+    switch ((*rom_)[kOverworldScreenSize + index_]) {
+      case 1:
+        area_size_ = AreaSizeEnum::LargeArea;
+        break;
+      case 2:
+        area_size_ = AreaSizeEnum::WideArea;
+        break;
+      case 3:
+        area_size_ = AreaSizeEnum::TallArea;
+        break;
+      case 0:
+      default:
+        area_size_ = AreaSizeEnum::SmallArea;
+        break;
+    }
+  } else {
     if (index_ < 0x80) {
-      // For LW and DW, check the screen size byte
-      // Note: v2 had a bug where large/small values were swapped
-      uint8_t size_byte = (*rom_)[kOverworldScreenSize + (index_ & 0x3F)];
+      // For LW and DW, check the world-specific screen size byte. The legacy
+      // parent table is shared/local, but screen-size data has separate
+      // Light/Dark entries.
+      uint8_t size_byte = (*rom_)[kOverworldScreenSize +
+                                  LegacyScreenSizeTableIndexForMap(index_)];
       switch (size_byte) {
         case 0:
           area_size_ = AreaSizeEnum::LargeArea;
@@ -159,30 +182,15 @@ void OverworldMap::LoadAreaInfo() {
         default:
           area_size_ = AreaSizeEnum::SmallArea;
           break;
-        case 2:
-          area_size_ = AreaSizeEnum::WideArea;
-          break;
-        case 3:
-          area_size_ = AreaSizeEnum::TallArea;
-          break;
       }
     } else {
-      // For SW, use hardcoded values for v2 compatibility
+      // For SW, use hardcoded values for vanilla/v1/v2 compatibility
       // Zora's Domain areas (0x81, 0x82, 0x89, 0x8A) are large areas
       area_size_ =
           (index_ == 0x81 || index_ == 0x82 || index_ == 0x89 || index_ == 0x8A)
               ? AreaSizeEnum::LargeArea
               : AreaSizeEnum::SmallArea;
     }
-  } else {
-    // v3: use expanded message table and area size table
-    // All area sizes are now stored in the expanded table, supporting all size
-    // types
-    message_id_ =
-        (*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2)] |
-        ((*rom_)[GetOverworldMessagesExpanded() + (parent_ * 2) + 1] << 8);
-    area_size_ =
-        static_cast<AreaSizeEnum>((*rom_)[kOverworldScreenSize + index_]);
   }
 
   // Update large_map_ based on area size
@@ -267,18 +275,18 @@ void OverworldMap::LoadAreaInfo() {
                                    parent_ - kSpecialWorldMapIdStart];
     } else {
       // For v2/vanilla, use original sprite tables
-      sprite_graphics_[0] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+      sprite_graphics_[0] = (*rom_)[kOverworldSpecialSpriteGFXGroup + parent_ -
                                     kSpecialWorldMapIdStart];
-      sprite_graphics_[1] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+      sprite_graphics_[1] = (*rom_)[kOverworldSpecialSpriteGFXGroup + parent_ -
                                     kSpecialWorldMapIdStart];
-      sprite_graphics_[2] = (*rom_)[kOverworldSpecialGfxGroup + parent_ -
+      sprite_graphics_[2] = (*rom_)[kOverworldSpecialSpriteGFXGroup + parent_ -
                                     kSpecialWorldMapIdStart];
 
-      sprite_palette_[0] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+      sprite_palette_[0] = (*rom_)[kOverworldSpecialSpritePalette + parent_ -
                                    kSpecialWorldMapIdStart];
-      sprite_palette_[1] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+      sprite_palette_[1] = (*rom_)[kOverworldSpecialSpritePalette + parent_ -
                                    kSpecialWorldMapIdStart];
-      sprite_palette_[2] = (*rom_)[kOverworldSpecialPalGroup + parent_ -
+      sprite_palette_[2] = (*rom_)[kOverworldSpecialSpritePalette + parent_ -
                                    kSpecialWorldMapIdStart];
     }
 
@@ -440,8 +448,9 @@ void OverworldMap::LoadCustomOverworldData() {
 
   // Set the animated GFX values - use parent_ so siblings get correct animated sheet
   // Death Mountain uses sheet 0x59, others use 0x5B
-  if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 || parent_ == 0x43 ||
-      parent_ == 0x45 || parent_ == 0x47 || parent_ == 0x95) {
+  if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ||
+      parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47 ||
+      parent_ == 0x95) {
     animated_gfx_ = 0x59;
   } else {
     animated_gfx_ = 0x5B;
@@ -524,10 +533,9 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
   if ((*rom_)[OverworldCustomMosaicEnabled] != 0x00) {
     mosaic_ = (*rom_)[OverworldCustomMosaicArray + index_] != 0x00;
     uint8_t mosaicByte = (*rom_)[OverworldCustomMosaicArray + index_];
-    mosaic_expanded_ = {(mosaicByte & 0x08) != 0x00,
-                        (mosaicByte & 0x04) != 0x00,
-                        (mosaicByte & 0x02) != 0x00,
-                        (mosaicByte & 0x01) != 0x00};
+    mosaic_expanded_ = {
+        (mosaicByte & 0x08) != 0x00, (mosaicByte & 0x04) != 0x00,
+        (mosaicByte & 0x02) != 0x00, (mosaicByte & 0x01) != 0x00};
   } else {
     // Fall back to hardcoded vanilla mosaic values
     mosaic_ = false;
@@ -564,8 +572,9 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
   } else {
     // Death mountain uses 0x59, others use 0x5B
     // Use parent_ to ensure siblings in large areas share the same animated sheet
-    if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 || parent_ == 0x43 ||
-        parent_ == 0x45 || parent_ == 0x47 || parent_ == 0x95) {
+    if (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07 ||
+        parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47 ||
+        parent_ == 0x95) {
       animated_gfx_ = 0x59;
     } else {
       animated_gfx_ = 0x5B;
@@ -595,8 +604,7 @@ void OverworldMap::SetupCustomTileset(uint8_t asm_version) {
                            (index_world * 8) + i];
     }
 
-    const auto overworldgfxGroups =
-        version_constants().kOverworldGfxGroups1;
+    const auto overworldgfxGroups = version_constants().kOverworldGfxGroups1;
 
     // Replace the variable tiles with the variable ones
     // If the variable is 00 set it to 0xFF which is the new "don't load
@@ -700,9 +708,8 @@ void OverworldMap::LoadSpritesBlocksets() {
 
 void OverworldMap::LoadMainBlocksets() {
   for (int i = 0; i < 8; i++) {
-    static_graphics_[i] =
-        (*rom_)[version_constants().kOverworldGfxGroups2 +
-                (main_gfx_id_ * 8) + i];
+    static_graphics_[i] = (*rom_)[version_constants().kOverworldGfxGroups2 +
+                                  (main_gfx_id_ * 8) + i];
   }
 }
 
@@ -740,8 +747,10 @@ void OverworldMap::LoadAreaGraphicsBlocksets() {
 // want to do the same.
 void OverworldMap::LoadDeathMountainGFX() {
   // Match ZScream 3.0.4 behavior: only specific DM parents use animated GFX
-  const bool is_light_dm = (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07);
-  const bool is_dark_dm = (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47);
+  const bool is_light_dm =
+      (parent_ == 0x03 || parent_ == 0x05 || parent_ == 0x07);
+  const bool is_dark_dm =
+      (parent_ == 0x43 || parent_ == 0x45 || parent_ == 0x47);
   static_graphics_[7] = (is_light_dm || is_dark_dm) ? 0x59 : 0x5B;
 }
 
@@ -769,11 +778,11 @@ void OverworldMap::LoadAreaGraphics() {
 namespace palette_internal {
 
 absl::Status SetColorsPalette(Rom& rom, GameData* game_data, int index,
-                              gfx::SnesPalette& current,
-                              gfx::SnesPalette main, gfx::SnesPalette animated,
-                              gfx::SnesPalette aux1, gfx::SnesPalette aux2,
-                              gfx::SnesPalette hud, gfx::SnesColor bgrcolor,
-                              gfx::SnesPalette spr, gfx::SnesPalette spr2) {
+                              gfx::SnesPalette& current, gfx::SnesPalette main,
+                              gfx::SnesPalette animated, gfx::SnesPalette aux1,
+                              gfx::SnesPalette aux2, gfx::SnesPalette hud,
+                              gfx::SnesColor bgrcolor, gfx::SnesPalette spr,
+                              gfx::SnesPalette spr2) {
   // Palettes infos, color 0 of a palette is always transparent (the arrays
   // contains 7 colors width wide) There is 16 color per line so 16*Y
 
@@ -847,7 +856,8 @@ absl::Status SetColorsPalette(Rom& rom, GameData* game_data, int index,
   k = 0;
   for (int y = 9; y < 13; y++) {
     for (int x = 1; x < 16; x++) {
-      new_palette[x + (16 * y)] = game_data->palette_groups.global_sprites[0][k];
+      new_palette[x + (16 * y)] =
+          game_data->palette_groups.global_sprites[0][k];
       k++;
     }
   }
@@ -1297,13 +1307,28 @@ absl::Status OverworldMap::BuildBitmap(OverworldBlockset& world_blockset) {
     bitmap_data_.push_back(0x00);
   }
 
-  int superY = ((index_ - (world_ * 0x40)) / 0x08);
-  int superX = index_ - (world_ * 0x40) - (superY * 0x08);
+  // BuildBitmap is used by both full map builds and editor refresh paths.
+  // Refresh paths can run after LRU eviction reset runtime fields, so derive
+  // the world/local coordinate from the stable map id instead of trusting
+  // world_ to still be populated.
+  world_ = WorldForOverworldMap(index_);
+  const int local_index = index_ - (world_ * kNumMapsPerWorld);
+  if (local_index < 0) {
+    return absl::InvalidArgumentError("Invalid overworld map index");
+  }
+
+  int superY = local_index / 0x08;
+  int superX = local_index - (superY * 0x08);
 
   for (int y = 0; y < 0x20; y++) {
     for (int x = 0; x < 0x20; x++) {
       auto xt = x + (superX * 0x20);
       auto yt = y + (superY * 0x20);
+      if (xt < 0 || yt < 0 || xt >= static_cast<int>(world_blockset.size()) ||
+          yt >= static_cast<int>(world_blockset[xt].size())) {
+        return absl::InvalidArgumentError(
+            "Overworld blockset is too small for map bitmap build");
+      }
       gfx::CopyTile8bpp16((x * 0x10), (y * 0x10), world_blockset[xt][yt],
                           bitmap_data_, current_blockset_);
     }

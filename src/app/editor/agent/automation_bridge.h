@@ -12,7 +12,7 @@
 
 #include "absl/synchronization/mutex.h"
 #include "app/editor/agent/agent_chat.h"
-#include "app/test/test_manager.h"
+#include "app/testing/test_manager.h"
 
 namespace yaze {
 namespace editor {

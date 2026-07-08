@@ -35,3 +35,19 @@ This directory is the index for yaze agent protocol and coordination.
 - Keep process docs short and linked from this index.
 - Archive stale plans/reports under `docs/internal/agents/archive/`.
 - Do not create duplicate protocol pages when an existing canonical page can be updated.
+- For code growth/sprawl prevention rules (DoD, header hygiene, budgets), see:
+  [doc-hygiene.md](doc-hygiene.md)
+
+## Active Domain Briefs
+- Post-0.7.1 cleanup and test-pollution follow-up:
+  [post-0.7.1-cleanup-and-flake-fixes-handoff-2026-04-28.md](post-0.7.1-cleanup-and-flake-fixes-handoff-2026-04-28.md)
+- Dungeon editor next-slice briefing:
+  [0.7.2-dungeon-handoff-2026-04-25.md](0.7.2-dungeon-handoff-2026-04-25.md)
+- Dungeon Workbench usability pass:
+  [dungeon-workbench-usability-handoff-2026-04-26.md](dungeon-workbench-usability-handoff-2026-04-26.md)
+- Overworld editor metadata UX handoff:
+  [overworld-editor-metadata-ux-handoff-2026-04-27.md](overworld-editor-metadata-ux-handoff-2026-04-27.md)
+- Overworld Tile16/UI migration:
+  [overworld-tile16-ui-migration-handoff-2026-04-19.md](overworld-tile16-ui-migration-handoff-2026-04-19.md)
+- Visual layout designer rebuild:
+  [layout-designer-handoff-2026-04-22.md](layout-designer-handoff-2026-04-22.md)

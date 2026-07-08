@@ -25,14 +25,15 @@ struct RoomObject;
  * pure functions that don't depend on class instance state.
  */
 struct DrawContext {
-  gfx::BackgroundBuffer& target_bg;          // Primary buffer to draw to
-  const RoomObject& object;                   // Object being drawn
-  std::span<const gfx::TileInfo> tiles;       // Tile data for the object
-  const DungeonState* state;                  // Dungeon state (chest states, etc.)
-  Rom* rom;                                   // ROM for additional data lookup
-  int room_id;                                // Current room ID
-  const uint8_t* room_gfx_buffer;             // Room-specific graphics buffer
-  gfx::BackgroundBuffer* secondary_bg;       // Secondary BG for dual-layer routines (nullable)
+  gfx::BackgroundBuffer& target_bg;      // Primary buffer to draw to
+  const RoomObject& object;              // Object being drawn
+  std::span<const gfx::TileInfo> tiles;  // Tile data for the object
+  const DungeonState* state;             // Dungeon state (chest states, etc.)
+  Rom* rom;                              // ROM for additional data lookup
+  int room_id;                           // Current room ID
+  const uint8_t* room_gfx_buffer;        // Room-specific graphics buffer
+  gfx::BackgroundBuffer*
+      secondary_bg;  // Secondary BG for dual-layer routines (nullable)
 
   // Canvas dimensions
   static constexpr int kMaxTilesX = 64;
@@ -54,12 +55,12 @@ using DrawRoutineFn = std::function<void(const DrawContext& ctx)>;
  * @brief Metadata about a draw routine
  */
 struct DrawRoutineInfo {
-  int id;                           // Routine ID (0-39)
-  std::string name;                 // Human-readable name
-  DrawRoutineFn function;           // The actual draw function
-  bool draws_to_both_bgs;           // If true, draws to BG1 and BG2
-  int base_width;                   // Base width in tiles (0 = variable)
-  int base_height;                  // Base height in tiles (0 = variable)
+  int id;                  // Routine ID (0-39)
+  std::string name;        // Human-readable name
+  DrawRoutineFn function;  // The actual draw function
+  bool draws_to_both_bgs;  // If true, draws to BG1 and BG2
+  int base_width;          // Base width in tiles (0 = variable)
+  int base_height;         // Base height in tiles (0 = variable)
 
   // Minimum number of tiles required for this routine to render correctly.
   // When > 0, ObjectDrawer::DrawObject will skip the routine if the object's
@@ -83,9 +84,8 @@ struct DrawRoutineInfo {
  */
 namespace DrawRoutineUtils {
 
-using TraceHookFn =
-    void (*)(int tile_x, int tile_y, const gfx::TileInfo& tile_info,
-             void* user_data);
+using TraceHookFn = void (*)(gfx::BackgroundBuffer* bg, int tile_x, int tile_y,
+                             const gfx::TileInfo& tile_info, void* user_data);
 
 // Optional trace hook for validation/testing (used by ObjectDrawer).
 void SetTraceHook(TraceHookFn hook, void* user_data, bool trace_only);

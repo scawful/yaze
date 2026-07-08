@@ -15,7 +15,8 @@ namespace yaze {
 namespace emu {
 namespace render {
 
-EmulatorRenderService::EmulatorRenderService(Rom* rom, zelda3::GameData* game_data)
+EmulatorRenderService::EmulatorRenderService(Rom* rom,
+                                             zelda3::GameData* game_data)
     : rom_(rom), game_data_(game_data) {}
 
 EmulatorRenderService::~EmulatorRenderService() = default;
@@ -123,8 +124,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObject(
   zelda3::Room room = zelda3::LoadRoomFromRom(rom_, req.room_id);
 
   // Inject room context
-  InjectRoomContext(req.room_id,
-                    req.use_room_defaults ? room.blockset() : req.blockset,
+  InjectRoomContext(req.room_id, req.use_room_defaults ? 0xFF : req.blockset,
                     req.use_room_defaults ? room.palette() : req.palette);
 
   // Clear tilemap buffers
@@ -177,8 +177,11 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
   room.SetGameData(game_data_);  // Ensure room has access to GameData
 
   // Load room graphics
-  uint8_t blockset = req.use_room_defaults ? room.blockset() : req.blockset;
-  room.LoadRoomGraphics(blockset);
+  if (req.use_room_defaults) {
+    room.LoadRoomGraphics();
+  } else {
+    room.LoadRoomGraphics(req.blockset);
+  }
   room.CopyRoomGraphicsToBuffer();
 
   // Get palette group and specific palette for color conversion
@@ -205,7 +208,8 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
   drawer.InitializeDrawRoutines();
 
   // Draw the object (ObjectDrawer needs the full palette group)
-  auto status = drawer.DrawObject(obj, bg1_buffer, bg2_buffer, dungeon_main_pal_group);
+  auto status =
+      drawer.DrawObject(obj, bg1_buffer, bg2_buffer, dungeon_main_pal_group);
   if (!status.ok()) {
     result.success = false;
     result.error = std::string(status.message());
@@ -237,10 +241,10 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
       // Convert indexed color to RGBA using palette
       if (pixel > 0 && pixel < palette.size()) {
         auto color = palette[pixel];
-        rgba_pixels[dst_idx + 0] = color.rgb().x;      // R
-        rgba_pixels[dst_idx + 1] = color.rgb().y;      // G
-        rgba_pixels[dst_idx + 2] = color.rgb().z;      // B
-        rgba_pixels[dst_idx + 3] = 255;                 // A
+        rgba_pixels[dst_idx + 0] = color.rgb().x;  // R
+        rgba_pixels[dst_idx + 1] = color.rgb().y;  // G
+        rgba_pixels[dst_idx + 2] = color.rgb().z;  // B
+        rgba_pixels[dst_idx + 3] = 255;            // A
       } else {
         // Transparent
         rgba_pixels[dst_idx + 3] = 0;
@@ -274,7 +278,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderFullRoom(
 }
 
 void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
-                                               uint8_t palette) {
+                                              uint8_t palette) {
   auto& ppu = snes_->ppu();
 
   // Load room for graphics
@@ -283,7 +287,8 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
 
   // Load palette into CGRAM using the same row layout as vanilla:
   // HUD rows 0-1, dungeon rows 2-7 starting at color $21.
-  if (!game_data_) return;
+  if (!game_data_)
+    return;
   auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
   if (palette < dungeon_main_pal_group.size()) {
     auto base_palette = dungeon_main_pal_group[palette];
@@ -308,7 +313,11 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
   }
 
   // Load graphics into VRAM
-  room.LoadRoomGraphics(blockset);
+  if (blockset == 0xFF) {
+    room.LoadRoomGraphics();
+  } else {
+    room.LoadRoomGraphics(blockset);
+  }
   room.CopyRoomGraphicsToBuffer();
   const auto& gfx_buffer = room.get_gfx_buffer();
 
@@ -336,7 +345,8 @@ void EmulatorRenderService::InjectRoomContext(int room_id, uint8_t blockset,
 
 void EmulatorRenderService::LoadPaletteIntoCgram(int palette_id) {
   auto& ppu = snes_->ppu();
-  if (!game_data_) return;
+  if (!game_data_)
+    return;
   auto dungeon_main_pal_group = game_data_->palette_groups.dungeon_main;
 
   if (palette_id >= 0 &&
@@ -359,8 +369,8 @@ void EmulatorRenderService::LoadGraphicsIntoVram(uint8_t blockset) {
 void EmulatorRenderService::InitializeTilemapPointers() {
   // Initialize the 11 tilemap indirect pointers at $BF-$DD
   for (int i = 0; i < 11; ++i) {
-    uint32_t wram_addr =
-        wram_addresses::kBG1TilemapBuffer + (i * wram_addresses::kTilemapRowStride);
+    uint32_t wram_addr = wram_addresses::kBG1TilemapBuffer +
+                         (i * wram_addresses::kTilemapRowStride);
     uint8_t lo = wram_addr & 0xFF;
     uint8_t mid = (wram_addr >> 8) & 0xFF;
     uint8_t hi = (wram_addr >> 16) & 0xFF;
@@ -428,8 +438,8 @@ absl::StatusOr<int> EmulatorRenderService::LookupHandlerAddress(
 }
 
 absl::Status EmulatorRenderService::ExecuteHandler(int handler_addr,
-                                                    int data_offset,
-                                                    int tilemap_pos) {
+                                                   int data_offset,
+                                                   int tilemap_pos) {
   auto& cpu = snes_->cpu();
 
   // Setup CPU state

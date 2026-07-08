@@ -11,12 +11,32 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
-#include "core/features.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
+
+namespace {
+
+int AllocatedRowsForWorld(int world) {
+  const int clamped_world = std::clamp(world, 0, 2);
+  const int world_start = clamped_world * 0x40;
+  const int maps_available =
+      std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40);
+  return (maps_available + 7) / 8;
+}
+
+bool IsValidMapGridPosition(int world, int map_x, int map_y) {
+  return map_x >= 0 && map_x < 8 && map_y >= 0 &&
+         map_y < AllocatedRowsForWorld(world);
+}
+
+int MapIndexForGridPosition(int world, int map_x, int map_y) {
+  return (std::clamp(world, 0, 2) * 0x40) + map_x + (map_y * 8);
+}
+
+}  // namespace
 
 TilePaintingManager::TilePaintingManager(const TilePaintingDependencies& deps,
                                          const TilePaintingCallbacks& callbacks)
@@ -36,21 +56,24 @@ void TilePaintingManager::DrawOverworldEdits() {
   // Convert scaled position to world coordinates
   ImVec2 mouse_position =
       ImVec2(scaled_position.x / scale, scaled_position.y / scale);
+  if (mouse_position.x < 0.0f || mouse_position.y < 0.0f) {
+    return;
+  }
 
   int map_x = static_cast<int>(mouse_position.x) / kOverworldMapSize;
   int map_y = static_cast<int>(mouse_position.y) / kOverworldMapSize;
-  *deps_.current_map = map_x + map_y * 8;
-  if (*deps_.current_world == 1) {
-    *deps_.current_map += 0x40;
-  } else if (*deps_.current_world == 2) {
-    *deps_.current_map += 0x80;
+  if (!IsValidMapGridPosition(*deps_.current_world, map_x, map_y)) {
+    return;
   }
 
+  const int target_map =
+      MapIndexForGridPosition(*deps_.current_world, map_x, map_y);
   // Bounds checking to prevent crashes
-  if (*deps_.current_map < 0 ||
-      *deps_.current_map >= static_cast<int>(deps_.maps_bmp->size())) {
+  if (target_map < 0 ||
+      target_map >= static_cast<int>(deps_.maps_bmp->size())) {
     return;  // Invalid map index, skip drawing
   }
+  *deps_.current_map = target_map;
 
   // Validate tile16_blockset_ before calling GetTilemapData
   if (!deps_.tile16_blockset->atlas.is_active() ||
@@ -89,6 +112,11 @@ void TilePaintingManager::DrawOverworldEdits() {
 
   int index_x = superX * 32 + tile16_x;
   int index_y = superY * 32 + tile16_y;
+  if (index_x < 0 || index_y < 0 ||
+      index_x >= static_cast<int>(selected_world.size()) ||
+      index_y >= static_cast<int>(selected_world[index_x].size())) {
+    return;
+  }
 
   // Get old tile value for undo tracking
   int old_tile_id = selected_world[index_x][index_y];
@@ -211,93 +239,92 @@ void TilePaintingManager::CheckForOverworldEdits() {
       scale = 1.0f;
     }
 
-    const bool allow_special_tail =
-        core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
     const auto scaled_position = deps_.ow_map_canvas->hover_mouse_pos();
+    if (scaled_position.x < 0.0f || scaled_position.y < 0.0f) {
+      return;
+    }
     const int map_x =
         static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
     const int map_y =
         static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
 
     // Bounds guard.
-    if (map_x >= 0 && map_x < 8 && map_y >= 0 && map_y < 8) {
-      // Special world only renders 4 rows unless tail expansion is enabled.
-      if (allow_special_tail || *deps_.current_world != 2 || map_y < 4) {
-        const int local_map = map_x + (map_y * 8);
-        const int target_map = local_map + (*deps_.current_world * 0x40);
-        if (target_map >= 0 && target_map < zelda3::kNumOverworldMaps) {
-          // Build pattern from active rectangle selection (if present).
-          std::vector<int> pattern_ids;
-          int pattern_w = 1;
-          int pattern_h = 1;
+    if (IsValidMapGridPosition(*deps_.current_world, map_x, map_y)) {
+      const int target_map =
+          MapIndexForGridPosition(*deps_.current_world, map_x, map_y);
+      if (target_map >= 0 && target_map < zelda3::kNumOverworldMaps) {
+        // Build pattern from active rectangle selection (if present).
+        std::vector<int> pattern_ids;
+        int pattern_w = 1;
+        int pattern_h = 1;
 
-          if (deps_.ow_map_canvas->select_rect_active() &&
-              deps_.ow_map_canvas->selected_points().size() >= 2) {
-            const auto start = deps_.ow_map_canvas->selected_points()[0];
-            const auto end = deps_.ow_map_canvas->selected_points()[1];
+        if (deps_.ow_map_canvas->select_rect_active() &&
+            deps_.ow_map_canvas->selected_points().size() >= 2) {
+          const auto start = deps_.ow_map_canvas->selected_points()[0];
+          const auto end = deps_.ow_map_canvas->selected_points()[1];
 
-            const int start_x =
-                static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
-            const int end_x =
-                static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
-            const int start_y =
-                static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
-            const int end_y =
-                static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
+          const int start_x =
+              static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
+          const int end_x =
+              static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
+          const int start_y =
+              static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
+          const int end_y =
+              static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
 
-            pattern_w = std::max(1, end_x - start_x + 1);
-            pattern_h = std::max(1, end_y - start_y + 1);
-            pattern_ids.reserve(pattern_w * pattern_h);
+          pattern_w = std::max(1, end_x - start_x + 1);
+          pattern_h = std::max(1, end_y - start_y + 1);
+          pattern_ids.reserve(pattern_w * pattern_h);
 
-            deps_.overworld->set_current_world(*deps_.current_world);
-            deps_.overworld->set_current_map(target_map);
-            for (int y = start_y; y <= end_y; ++y) {
-              for (int x = start_x; x <= end_x; ++x) {
-                pattern_ids.push_back(deps_.overworld->GetTile(x, y));
-              }
-            }
-          } else {
-            pattern_ids = {*deps_.current_tile16};
-          }
-
-          auto& world_tiles =
-              (*deps_.current_world == 0)
-                  ? deps_.overworld->mutable_map_tiles()->light_world
-              : (*deps_.current_world == 1)
-                  ? deps_.overworld->mutable_map_tiles()->dark_world
-                  : deps_.overworld->mutable_map_tiles()->special_world;
-
-          // Apply the fill (repeat pattern across 32x32).
-          for (int y = 0; y < 32; ++y) {
-            for (int x = 0; x < 32; ++x) {
-              const int pattern_x = x % pattern_w;
-              const int pattern_y = y % pattern_h;
-              const int new_tile_id =
-                  pattern_ids[pattern_y * pattern_w + pattern_x];
-
-              const int global_x = map_x * 32 + x;
-              const int global_y = map_y * 32 + y;
-              if (global_x < 0 || global_x >= 256 || global_y < 0 ||
-                  global_y >= 256) {
-                continue;
-              }
-
-              const int old_tile_id = world_tiles[global_x][global_y];
-              if (old_tile_id == new_tile_id) {
-                continue;
-              }
-
-              callbacks_.create_undo_point(target_map, *deps_.current_world,
-                                           global_x, global_y, old_tile_id);
-              world_tiles[global_x][global_y] = new_tile_id;
+          deps_.overworld->set_current_world(*deps_.current_world);
+          deps_.overworld->set_current_map(target_map);
+          for (int y = start_y; y <= end_y; ++y) {
+            for (int x = start_x; x <= end_x; ++x) {
+              pattern_ids.push_back(deps_.overworld->GetTile(x, y));
             }
           }
-
-          deps_.rom->set_dirty(true);
-          callbacks_.finalize_paint_operation();
-          *deps_.current_map = target_map;
-          callbacks_.refresh_overworld_map_on_demand(target_map);
+        } else {
+          pattern_ids = {*deps_.current_tile16};
         }
+
+        auto& world_tiles =
+            (*deps_.current_world == 0)
+                ? deps_.overworld->mutable_map_tiles()->light_world
+            : (*deps_.current_world == 1)
+                ? deps_.overworld->mutable_map_tiles()->dark_world
+                : deps_.overworld->mutable_map_tiles()->special_world;
+
+        // Apply the fill (repeat pattern across 32x32).
+        for (int y = 0; y < 32; ++y) {
+          for (int x = 0; x < 32; ++x) {
+            const int pattern_x = x % pattern_w;
+            const int pattern_y = y % pattern_h;
+            const int new_tile_id =
+                pattern_ids[pattern_y * pattern_w + pattern_x];
+
+            const int global_x = map_x * 32 + x;
+            const int global_y = map_y * 32 + y;
+            if (global_x < 0 || global_y < 0 ||
+                global_x >= static_cast<int>(world_tiles.size()) ||
+                global_y >= static_cast<int>(world_tiles[global_x].size())) {
+              continue;
+            }
+
+            const int old_tile_id = world_tiles[global_x][global_y];
+            if (old_tile_id == new_tile_id) {
+              continue;
+            }
+
+            callbacks_.create_undo_point(target_map, *deps_.current_world,
+                                         global_x, global_y, old_tile_id);
+            world_tiles[global_x][global_y] = new_tile_id;
+          }
+        }
+
+        deps_.rom->set_dirty(true);
+        callbacks_.finalize_paint_operation();
+        *deps_.current_map = target_map;
+        callbacks_.refresh_overworld_map_on_demand(target_map);
       }
     }
   }
@@ -472,23 +499,20 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
     return false;
   }
 
-  const bool allow_special_tail =
-      core::FeatureFlags::get().overworld.kEnableSpecialWorldExpansion;
-
   const ImVec2 scaled_position = deps_.ow_map_canvas->hover_mouse_pos();
   float scale = deps_.ow_map_canvas->global_scale();
   if (scale <= 0.0f) {
     scale = 1.0f;
+  }
+  if (scaled_position.x < 0.0f || scaled_position.y < 0.0f) {
+    return false;
   }
 
   const int map_x =
       static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
   const int map_y =
       static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
-  if (map_x < 0 || map_x >= 8 || map_y < 0 || map_y >= 8) {
-    return false;
-  }
-  if (!allow_special_tail && *deps_.current_world == 2 && map_y >= 4) {
+  if (!IsValidMapGridPosition(*deps_.current_world, map_x, map_y)) {
     return false;
   }
 
@@ -518,6 +542,10 @@ bool TilePaintingManager::PickTile16FromHoveredCanvas() {
                             : (*deps_.current_world == 1)
                                 ? map_tiles->dark_world
                                 : map_tiles->special_world;
+  if (world_tile_x >= static_cast<int>(world_tiles.size()) ||
+      world_tile_y >= static_cast<int>(world_tiles[world_tile_x].size())) {
+    return false;
+  }
   const int tile_id = world_tiles[world_tile_x][world_tile_y];
   if (tile_id < 0) {
     return false;

@@ -347,6 +347,24 @@ class Bitmap {
                     int& tile_data_offset);
 
   /**
+   * @brief How a bitmap is used in the editor pipeline.
+   *
+   * Roles describe purpose, not behavior. Bitmap itself stays neutral and
+   * doesn't gate operations on this. Editors and Canvas widgets read the
+   * field to make informed defaults (e.g. a kPreview bitmap should not be
+   * the target of pixel writes; a kCompositeOutput bitmap is downstream of
+   * a layer-merge step and gets re-rendered, not edited in place).
+   *
+   * Default is kEditable so existing callsites keep their semantics.
+   */
+  enum class BitmapPurpose : uint8_t {
+    kPreview,          // Read-only preview (e.g. gfx-group sheet thumbnails).
+    kEditable,         // User-editable scratchpad (default).
+    kSelectionSource,  // Read-only tile/region picker source.
+    kCompositeOutput,  // Post-render composite (room renderer output, etc).
+  };
+
+  /**
    * @brief Metadata for tracking bitmap source format and palette requirements
    */
   struct BitmapMetadata {
@@ -355,6 +373,9 @@ class Bitmap {
     std::string
         source_type;  // "graphics_sheet", "tilemap", "screen_buffer", "mode7"
     int palette_colors = 256;  // Expected palette size
+    // Role this bitmap plays. Optional metadata for editors that want to
+    // distinguish preview / editable / selection / composite bitmaps.
+    BitmapPurpose purpose = BitmapPurpose::kEditable;
 
     BitmapMetadata() = default;
     BitmapMetadata(int bpp, int format, const std::string& type,

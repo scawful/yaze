@@ -15,8 +15,8 @@
 #include <grpcpp/impl/service_type.h>
 #include <grpcpp/server.h>
 
-#include "app/service/visual_service_impl.h"
 #include "app/emu/i_emulator.h"
+#include "app/service/visual_service_impl.h"
 
 namespace yaze {
 
@@ -77,10 +77,8 @@ class YazeGRPCServer {
    * @return OK status if initialized successfully
    */
   absl::Status Initialize(
-      int port,
-      emu::IEmulator* emulator = nullptr,
-      RomGetter rom_getter = nullptr,
-      RomLoader rom_loader = nullptr,
+      int port, emu::IEmulator* emulator = nullptr,
+      RomGetter rom_getter = nullptr, RomLoader rom_loader = nullptr,
       test::TestManager* test_manager = nullptr,
       net::RomVersionManager* version_mgr = nullptr,
       net::ProposalApprovalManager* approval_mgr = nullptr,
@@ -112,6 +110,7 @@ class YazeGRPCServer {
   bool is_running_;
 
   absl::Status BuildServer();
+  void ReleaseRegisteredServices();
 };
 
 }  // namespace yaze

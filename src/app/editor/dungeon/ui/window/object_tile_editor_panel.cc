@@ -2,6 +2,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -13,15 +14,42 @@ ObjectTileEditorPanel::ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom)
   tile_editor_ = std::make_unique<zelda3::ObjectTileEditor>(rom);
 }
 
+void ObjectTileEditorPanel::ClearRenderedBitmaps() {
+  object_preview_bmp_ = gfx::Bitmap();
+  tile8_atlas_bmp_ = gfx::Bitmap();
+}
+
+void ObjectTileEditorPanel::ClearActionStatus() {
+  action_status_tone_ = ActionStatusTone::kNone;
+  action_status_message_.clear();
+}
+
+void ObjectTileEditorPanel::SetActionStatus(ActionStatusTone tone,
+                                            std::string message) {
+  action_status_tone_ = tone;
+  action_status_message_ = std::move(message);
+}
+
+void ObjectTileEditorPanel::ResetTransientState() {
+  selected_cell_index_ = -1;
+  selected_source_tile_ = -1;
+  preview_dirty_ = true;
+  atlas_dirty_ = true;
+  show_shared_confirm_ = false;
+  shared_object_count_ = 0;
+  shared_tile_data_usage_override_ = -1;
+  ClearActionStatus();
+  ClearRenderedBitmaps();
+}
+
 void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
                                           DungeonRoomStore* rooms) {
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
-  selected_cell_index_ = -1;
-  selected_source_tile_ = -1;
-  preview_dirty_ = true;
-  atlas_dirty_ = true;
+  is_new_object_ = false;
+  current_layout_ = {};
+  ResetTransientState();
   is_open_ = true;
 
   if (!rooms_ || current_room_id_ < 0 ||
@@ -34,6 +62,7 @@ void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
                                                      current_palette_group_);
   if (layout_or.ok()) {
     current_layout_ = std::move(layout_or.value());
+    SelectFirstCellIfAvailable();
   }
 }
 
@@ -44,45 +73,102 @@ void ObjectTileEditorPanel::OpenForNewObject(int width, int height,
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
-  selected_cell_index_ = -1;
-  selected_source_tile_ = -1;
-  preview_dirty_ = true;
-  atlas_dirty_ = true;
+  ResetTransientState();
   is_open_ = true;
   is_new_object_ = true;
 
   current_layout_ =
       zelda3::ObjectTileLayout::CreateEmpty(width, height, object_id, filename);
+  SelectFirstCellIfAvailable();
 }
 
 void ObjectTileEditorPanel::Close() {
   is_open_ = false;
   is_new_object_ = false;
   current_layout_ = {};
-  selected_cell_index_ = -1;
-  selected_source_tile_ = -1;
+  current_room_id_ = -1;
+  current_object_id_ = -1;
+  rooms_ = nullptr;
+  ResetTransientState();
 }
 
 void ObjectTileEditorPanel::SetCurrentPaletteGroup(
     const gfx::PaletteGroup& group) {
   current_palette_group_ = group;
+  preview_dirty_ = true;
+  atlas_dirty_ = true;
+}
+
+std::string ObjectTileEditorPanel::BuildWindowTitle() const {
+  if (is_new_object_) {
+    return absl::StrFormat(
+        ICON_MD_ADD_BOX " New Object (%dx%d) - %s###ObjTileEditor",
+        current_layout_.bounds_width, current_layout_.bounds_height,
+        current_layout_.custom_filename.c_str());
+  }
+
+  if (current_layout_.is_custom && !current_layout_.custom_filename.empty()) {
+    return absl::StrFormat(
+        ICON_MD_GRID_ON " Custom Object 0x%03X - %s###ObjTileEditor",
+        current_object_id_, current_layout_.custom_filename.c_str());
+  }
+
+  return absl::StrFormat(ICON_MD_GRID_ON " Object 0x%03X - %s###ObjTileEditor",
+                         current_object_id_,
+                         zelda3::GetObjectName(current_object_id_).c_str());
+}
+
+void ObjectTileEditorPanel::SelectFirstCellIfAvailable() {
+  if (current_layout_.cells.empty()) {
+    selected_cell_index_ = -1;
+    selected_source_tile_ = -1;
+    return;
+  }
+
+  selected_cell_index_ = 0;
+  SyncSourceSelectionFromSelectedCell();
+}
+
+int ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
+  if (shared_tile_data_usage_override_ >= 0) {
+    return shared_tile_data_usage_override_;
+  }
+
+  if (current_layout_.is_custom || current_layout_.tile_data_address < 0 ||
+      current_object_id_ < 0 || rom_ == nullptr || !rom_->is_loaded()) {
+    return 0;
+  }
+
+  return tile_editor_->CountObjectsSharingTileData(current_object_id_);
+}
+
+bool ObjectTileEditorPanel::HasSharedTileDataConflict() const {
+  return GetSharedTileDataUsageCount() > 1;
+}
+
+bool ObjectTileEditorPanel::HasRenderableRoomContext() const {
+  return rooms_ != nullptr && current_room_id_ >= 0 &&
+         current_room_id_ < static_cast<int>(rooms_->size()) &&
+         !current_layout_.cells.empty();
+}
+
+void ObjectTileEditorPanel::RefreshRenderedViewsFromCurrentRoom() {
+  preview_dirty_ = true;
+  atlas_dirty_ = true;
+
+  if (!HasRenderableRoomContext()) {
+    return;
+  }
+
+  RenderObjectPreview();
+  RenderTile8Atlas();
 }
 
 void ObjectTileEditorPanel::Draw(bool* p_open) {
   if (!is_open_ || current_layout_.cells.empty())
     return;
 
-  std::string title;
-  if (is_new_object_) {
-    title = absl::StrFormat(
-        ICON_MD_ADD_BOX " New Object (%dx%d) - %s###ObjTileEditor",
-        current_layout_.bounds_width, current_layout_.bounds_height,
-        current_layout_.custom_filename.c_str());
-  } else {
-    title = absl::StrFormat(
-        ICON_MD_GRID_ON " Object 0x%03X - %s###ObjTileEditor",
-        current_object_id_, zelda3::GetObjectName(current_object_id_).c_str());
-  }
+  const std::string title = BuildWindowTitle();
 
   ImGui::SetNextWindowSize(ImVec2(550, 500), ImGuiCond_FirstUseEver);
   if (!ImGui::Begin(title.c_str(), &is_open_)) {
@@ -147,8 +233,11 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
 }
 
 void ObjectTileEditorPanel::RenderObjectPreview() {
-  if (!rooms_ || current_room_id_ < 0)
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    object_preview_bmp_ = gfx::Bitmap();
     return;
+  }
   auto& room = (*rooms_)[current_room_id_];
 
   auto status = tile_editor_->RenderLayoutToBitmap(
@@ -157,12 +246,17 @@ void ObjectTileEditorPanel::RenderObjectPreview() {
   if (status.ok()) {
     object_preview_bmp_.UpdateTexture();
     preview_dirty_ = false;
+  } else {
+    object_preview_bmp_ = gfx::Bitmap();
   }
 }
 
 void ObjectTileEditorPanel::RenderTile8Atlas() {
-  if (!rooms_ || current_room_id_ < 0)
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size())) {
+    tile8_atlas_bmp_ = gfx::Bitmap();
     return;
+  }
   auto& room = (*rooms_)[current_room_id_];
 
   auto status = tile_editor_->BuildTile8Atlas(
@@ -171,6 +265,24 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
   if (status.ok()) {
     tile8_atlas_bmp_.UpdateTexture();
     atlas_dirty_ = false;
+  } else {
+    tile8_atlas_bmp_ = gfx::Bitmap();
+  }
+}
+
+void ObjectTileEditorPanel::SyncSourceSelectionFromSelectedCell() {
+  if (selected_cell_index_ < 0 ||
+      selected_cell_index_ >= static_cast<int>(current_layout_.cells.size())) {
+    return;
+  }
+
+  const auto& cell = current_layout_.cells[selected_cell_index_];
+  selected_source_tile_ = static_cast<int>(cell.tile_info.id_);
+
+  const int cell_palette = static_cast<int>(cell.tile_info.palette_);
+  if (source_palette_ != cell_palette) {
+    source_palette_ = cell_palette;
+    atlas_dirty_ = true;
   }
 }
 
@@ -238,6 +350,7 @@ void ObjectTileEditorPanel::DrawTileGrid() {
       if (current_layout_.cells[idx].rel_x == click_tile_x &&
           current_layout_.cells[idx].rel_y == click_tile_y) {
         selected_cell_index_ = idx;
+        SyncSourceSelectionFromSelectedCell();
         break;
       }
     }
@@ -340,6 +453,7 @@ void ObjectTileEditorPanel::DrawSourceSheet() {
         cell.tile_info.palette_ = static_cast<uint8_t>(source_palette_);
         cell.modified = true;
         preview_dirty_ = true;
+        ClearActionStatus();
       }
     }
   }
@@ -369,6 +483,8 @@ void ObjectTileEditorPanel::DrawTileProperties() {
     cell.tile_info.id_ = static_cast<uint16_t>(tile_id & 0x3FF);
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
+    SyncSourceSelectionFromSelectedCell();
   }
   ImGui::SameLine();
 
@@ -379,6 +495,8 @@ void ObjectTileEditorPanel::DrawTileProperties() {
     cell.tile_info.palette_ = static_cast<uint8_t>(pal);
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
+    SyncSourceSelectionFromSelectedCell();
   }
   ImGui::SameLine();
 
@@ -386,41 +504,48 @@ void ObjectTileEditorPanel::DrawTileProperties() {
   if (ImGui::Checkbox("H", &cell.tile_info.horizontal_mirror_)) {
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
   }
   ImGui::SameLine();
   if (ImGui::Checkbox("V", &cell.tile_info.vertical_mirror_)) {
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
   }
   ImGui::SameLine();
   if (ImGui::Checkbox("Pri", &cell.tile_info.over_)) {
     cell.modified = true;
     preview_dirty_ = true;
+    ClearActionStatus();
   }
 }
 
 void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
   // Check for shared tile data and ask for confirmation
-  if (confirm_shared && current_layout_.tile_data_address >= 0 &&
-      !current_layout_.is_custom) {
-    int shared_count =
-        tile_editor_->CountObjectsSharingTileData(current_object_id_);
-    if (shared_count > 1) {
-      shared_object_count_ = shared_count;
-      show_shared_confirm_ = true;
-      return;
-    }
+  const int shared_count = GetSharedTileDataUsageCount();
+  if (confirm_shared && shared_count > 1) {
+    shared_object_count_ = shared_count;
+    show_shared_confirm_ = true;
+    SetActionStatus(
+        ActionStatusTone::kWarning,
+        absl::StrFormat(ICON_MD_WARNING
+                        " Confirm shared apply: %d objects use this tile data.",
+                        shared_count));
+    return;
   }
+
+  show_shared_confirm_ = false;
+  shared_object_count_ = 0;
 
   auto status = tile_editor_->WriteBack(current_layout_);
   if (status.ok()) {
     // Re-render room after applying changes
-    if (rooms_ && current_room_id_ >= 0 &&
-        current_room_id_ < static_cast<int>(rooms_->size())) {
+    if (HasRenderableRoomContext()) {
       auto& room = (*rooms_)[current_room_id_];
       room.MarkObjectsDirty();
       room.RenderRoomGraphics();
     }
+
     // Update original words to match current state
     for (auto& cell : current_layout_.cells) {
       if (cell.modified) {
@@ -429,16 +554,37 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
       }
     }
 
-    // Fire creation callback on first save of a new object
-    if (is_new_object_ && on_object_created_) {
-      on_object_created_(current_layout_.object_id,
-                         current_layout_.custom_filename);
+    // Successful first save should always exit new-object mode. If the caller
+    // wired a callback, notify it exactly once as part of that transition.
+    if (is_new_object_) {
+      if (on_object_created_) {
+        on_object_created_(current_layout_.object_id,
+                           current_layout_.custom_filename);
+      }
       is_new_object_ = false;
     }
+
+    RefreshRenderedViewsFromCurrentRoom();
+    if (shared_count > 1) {
+      SetActionStatus(
+          ActionStatusTone::kSuccess,
+          absl::StrFormat(
+              ICON_MD_CHECK_CIRCLE
+              " Applied changes to shared tile data used by %d objects.",
+              shared_count));
+    } else {
+      ClearActionStatus();
+    }
+    return;
   }
+
+  SetActionStatus(
+      ActionStatusTone::kError,
+      absl::StrFormat(ICON_MD_ERROR " Apply failed: %s", status.message()));
 }
 
 void ObjectTileEditorPanel::DrawActionBar() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   int modified_count = 0;
   for (const auto& cell : current_layout_.cells) {
     if (cell.modified)
@@ -453,14 +599,17 @@ void ObjectTileEditorPanel::DrawActionBar() {
   }
 
   // Shared tile data warning
-  if (current_layout_.tile_data_address >= 0 && !current_layout_.is_custom) {
-    int shared_count =
-        tile_editor_->CountObjectsSharingTileData(current_object_id_);
-    if (shared_count > 1) {
-      ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.2f, 1.0f),
-                         ICON_MD_WARNING " Shared by %d objects", shared_count);
-      ImGui::SameLine();
+  const int shared_count = GetSharedTileDataUsageCount();
+  if (shared_count > 1) {
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
+                       ICON_MD_WARNING " Shared by %d objects", shared_count);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetItemTooltip(
+          "This object reuses tile data with %d objects.\nApplying changes "
+          "will update every object in that shared data group.",
+          shared_count);
     }
+    ImGui::SameLine();
   }
 
   // Apply button
@@ -480,6 +629,8 @@ void ObjectTileEditorPanel::DrawActionBar() {
   if (ImGui::Button(ICON_MD_UNDO " Revert")) {
     current_layout_.RevertAll();
     preview_dirty_ = true;
+    ClearActionStatus();
+    SyncSourceSelectionFromSelectedCell();
   }
   if (!has_mods)
     ImGui::EndDisabled();
@@ -488,6 +639,31 @@ void ObjectTileEditorPanel::DrawActionBar() {
 
   if (ImGui::Button(ICON_MD_CLOSE " Close")) {
     Close();
+  }
+
+  if (action_status_tone_ != ActionStatusTone::kNone &&
+      !action_status_message_.empty()) {
+    ImVec4 status_color = gui::ConvertColorToImVec4(theme.text_secondary);
+    switch (action_status_tone_) {
+      case ActionStatusTone::kWarning:
+        status_color = gui::ConvertColorToImVec4(theme.warning);
+        break;
+      case ActionStatusTone::kSuccess:
+        status_color = gui::ConvertColorToImVec4(theme.success);
+        break;
+      case ActionStatusTone::kError:
+        status_color = gui::ConvertColorToImVec4(theme.error);
+        break;
+      case ActionStatusTone::kNone:
+        break;
+    }
+
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Text, status_color);
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextUnformatted(action_status_message_.c_str());
+    ImGui::PopTextWrapPos();
+    ImGui::PopStyleColor();
   }
 }
 
@@ -518,15 +694,19 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
 
   if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow, false)) {
     selected_cell_index_ = find_neighbor(-1, 0);
+    SyncSourceSelectionFromSelectedCell();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_RightArrow, false)) {
     selected_cell_index_ = find_neighbor(1, 0);
+    SyncSourceSelectionFromSelectedCell();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_UpArrow, false)) {
     selected_cell_index_ = find_neighbor(0, -1);
+    SyncSourceSelectionFromSelectedCell();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_DownArrow, false)) {
     selected_cell_index_ = find_neighbor(0, 1);
+    SyncSourceSelectionFromSelectedCell();
   }
 
   // Number keys 0-7: set palette on selected cell
@@ -537,6 +717,8 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
         cell.tile_info.palette_ = static_cast<uint8_t>(key);
         cell.modified = true;
         preview_dirty_ = true;
+        ClearActionStatus();
+        SyncSourceSelectionFromSelectedCell();
       }
     }
 
@@ -545,6 +727,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
       cell.tile_info.horizontal_mirror_ = !cell.tile_info.horizontal_mirror_;
       cell.modified = true;
       preview_dirty_ = true;
+      ClearActionStatus();
     }
 
     // V: toggle vertical flip
@@ -552,6 +735,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
       cell.tile_info.vertical_mirror_ = !cell.tile_info.vertical_mirror_;
       cell.modified = true;
       preview_dirty_ = true;
+      ClearActionStatus();
     }
 
     // P: toggle priority
@@ -559,6 +743,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
       cell.tile_info.over_ = !cell.tile_info.over_;
       cell.modified = true;
       preview_dirty_ = true;
+      ClearActionStatus();
     }
   }
 
@@ -575,6 +760,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
   if (ImGui::IsKeyPressed(ImGuiKey_Tab, false)) {
     if (cell_count > 0) {
       selected_cell_index_ = (selected_cell_index_ + 1) % cell_count;
+      SyncSourceSelectionFromSelectedCell();
     }
   }
 }

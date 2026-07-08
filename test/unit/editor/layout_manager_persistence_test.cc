@@ -5,7 +5,7 @@
 #include <string>
 
 #include "app/editor/layout/layout_manager.h"
-#include "app/editor/system/workspace_window_manager.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
 #include "util/json.h"
 #include "util/platform_paths.h"
