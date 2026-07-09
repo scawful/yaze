@@ -12,6 +12,7 @@
 #include "imgui/imgui.h"
 #include "util/file_util.h"
 #include "util/macro.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 
@@ -29,6 +30,14 @@ static const float ICON_FONT_SIZE = 18.0F;
 namespace {
 
 std::string ResolveRepoFontPath(const std::string& font_path) {
+  // Prefer the robust asset search (exe-dir, ~/.yaze, /usr/share, repo-relative)
+  // so installed binaries and .desktop/double-click launches (CWD=$HOME or /)
+  // still find bundled fonts at startup.
+  auto found = util::PlatformPaths::FindAsset("font/" + font_path);
+  if (found.ok()) {
+    return found->string();
+  }
+  // Fallback: CWD-relative probes for running directly from the repo/build dir.
   const std::vector<std::filesystem::path> candidates = {
       std::filesystem::path("assets/font") / font_path,
       std::filesystem::path("../assets/font") / font_path,

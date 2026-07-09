@@ -124,8 +124,10 @@ void MenuOrchestrator::AddFileMenuItems() {
       .Item(
           "Save As...", ICON_MD_SAVE_AS, [this]() { OnSaveRomAs(); }, nullptr,
           [this]() { return CanSaveRom(); })
-      .Item("Save Scope...", ICON_MD_TUNE,
-            [this]() { popup_manager_.Show(PopupID::kSaveScope); })
+      .Item(
+          "Save Scope...", ICON_MD_TUNE,
+          [this]() { popup_manager_.Show(PopupID::kSaveScope); }, nullptr,
+          [this]() { return CanSaveRom(); })
       .Separator();
 
   // Project Operations
@@ -603,7 +605,9 @@ void MenuOrchestrator::AddAsarIntegrationMenuItems() {
 void MenuOrchestrator::AddDevelopmentMenuItems() {
   // Development Tools (moved from Debug menu)
   menu_builder_.BeginSubMenu("Development", ICON_MD_DEVELOPER_MODE)
-      .Item("Memory Editor", ICON_MD_MEMORY, [this]() { OnShowMemoryEditor(); })
+      .Item(
+          "Memory Editor", ICON_MD_MEMORY, [this]() { OnShowMemoryEditor(); },
+          nullptr, [this]() { return HasActiveRom(); })
       .Item("Assembly Editor", ICON_MD_CODE,
             [this]() { OnShowAssemblyEditor(); })
       .Item("Feature Flags", ICON_MD_FLAG,
@@ -1607,7 +1611,7 @@ void MenuOrchestrator::OnQuit() {
 
 // Menu item validation helpers
 bool MenuOrchestrator::CanSaveRom() const {
-  auto* rom = editor_manager_->GetCurrentRom();
+  auto* rom = editor_manager_ ? editor_manager_->GetCurrentRom() : nullptr;
   return rom ? rom_manager_.IsRomLoaded(rom) : false;
 }
 
@@ -1616,7 +1620,7 @@ bool MenuOrchestrator::CanSaveProject() const {
 }
 
 bool MenuOrchestrator::HasActiveRom() const {
-  auto* rom = editor_manager_->GetCurrentRom();
+  auto* rom = editor_manager_ ? editor_manager_->GetCurrentRom() : nullptr;
   return rom ? rom_manager_.IsRomLoaded(rom) : false;
 }
 
@@ -1642,7 +1646,7 @@ bool MenuOrchestrator::HasMultipleSessions() const {
 
 // Menu item text generation
 std::string MenuOrchestrator::GetRomFilename() const {
-  auto* rom = editor_manager_->GetCurrentRom();
+  auto* rom = editor_manager_ ? editor_manager_->GetCurrentRom() : nullptr;
   return rom ? rom_manager_.GetRomFilename(rom) : "";
 }
 

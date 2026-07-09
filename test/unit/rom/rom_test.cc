@@ -3,14 +3,15 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "rom/transaction.h"
 #include "mocks/mock_rom.h"
+#include "rom/transaction.h"
 #include "test_utils.h"
 #include "testing.h"
 
@@ -57,6 +58,21 @@ TEST_F(RomTest, LoadFromFileInvalid) {
 TEST_F(RomTest, LoadFromFileEmpty) {
   EXPECT_THAT(rom_.LoadFromFile(""),
               StatusIs(absl::StatusCode::kInvalidArgument));
+}
+
+TEST_F(RomTest, LoadFromFileTooLarge) {
+#if defined(__linux__)
+  GTEST_SKIP() << "File tests skipped on Linux CI (filesystem access)";
+#endif
+  // A file above the 16MB cap must be rejected before its bytes are allocated.
+  const char* tmp_name = "test_too_large_rom.sfc";
+  std::error_code ec;
+  { std::ofstream(tmp_name, std::ios::binary).put('\0'); }
+  std::filesystem::resize_file(tmp_name, 16 * 1024 * 1024 + 1, ec);
+  ASSERT_FALSE(ec);
+  EXPECT_THAT(rom_.LoadFromFile(tmp_name),
+              StatusIs(absl::StatusCode::kInvalidArgument));
+  std::filesystem::remove(tmp_name, ec);
 }
 
 TEST_F(RomTest, ReadByteOk) {
@@ -131,7 +147,8 @@ TEST_F(RomTest, WriteByteOk) {
 
 TEST_F(RomTest, WriteByteNegativeAddressRejected) {
   EXPECT_OK(rom_.LoadFromData(kMockRomData));
-  EXPECT_THAT(rom_.WriteByte(-1, 0xFF), StatusIs(absl::StatusCode::kOutOfRange));
+  EXPECT_THAT(rom_.WriteByte(-1, 0xFF),
+              StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, WriteWordOk) {
@@ -147,17 +164,18 @@ TEST_F(RomTest, WriteWordOk) {
 
 TEST_F(RomTest, WriteWordNegativeAddressRejected) {
   EXPECT_OK(rom_.LoadFromData(kMockRomData));
-  EXPECT_THAT(rom_.WriteWord(-1, 0xFFFF), StatusIs(absl::StatusCode::kOutOfRange));
+  EXPECT_THAT(rom_.WriteWord(-1, 0xFFFF),
+              StatusIs(absl::StatusCode::kOutOfRange));
 }
 
 TEST_F(RomTest, WriteLongOk) {
   EXPECT_OK(rom_.LoadFromData(kMockRomData));
 
   for (size_t i = 0; i < kMockRomData.size(); i += 4) {
-  EXPECT_OK(rom_.WriteLong(i, 0xFFFFFF));
-  uint32_t word;
-  ASSERT_OK_AND_ASSIGN(word, rom_.ReadLong(i));
-  EXPECT_EQ(word, 0xFFFFFF);
+    EXPECT_OK(rom_.WriteLong(i, 0xFFFFFF));
+    uint32_t word;
+    ASSERT_OK_AND_ASSIGN(word, rom_.ReadLong(i));
+    EXPECT_EQ(word, 0xFFFFFF);
   }
 }
 

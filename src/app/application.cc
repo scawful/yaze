@@ -1,6 +1,7 @@
 #include "app/application.h"
 
 #include <chrono>
+#include <cstdlib>
 #include <ctime>
 #include <memory>
 #include <string>
@@ -76,6 +77,10 @@ void Application::Initialize(const AppConfig& config) {
   if (!status.ok()) {
     LOG_ERROR("App", "Failed to initialize controller: %s",
               std::string(status.message()).c_str());
+    // Window/renderer/ImGui init failed. Do not fall through into the frame
+    // loop with uninitialized state: the controller stays inactive, so the
+    // main loop exits immediately and Shutdown() tears down anything created.
+    return;
   } else {
     LOG_INFO("App", "Controller initialized successfully. Active: %s",
              controller_->IsActive() ? "Yes" : "No");
@@ -178,10 +183,13 @@ void Application::Initialize(const AppConfig& config) {
   yaze::app::wasm::SetRomLoadHandler(
       [](std::string path) { Application::Instance().LoadRom(path); });
 #else
-  // Create activity file for instance discovery (non-WASM only)
+  // Create activity file for instance discovery (non-WASM only).
+  // Prefer $XDG_RUNTIME_DIR (0700 per-user) over world-readable /tmp.
   auto pid = getpid();
+  const char* runtime_dir = std::getenv("XDG_RUNTIME_DIR");
+  const char* status_dir = (runtime_dir && *runtime_dir) ? runtime_dir : "/tmp";
   activity_file_ = std::make_unique<app::ActivityFile>(
-      absl::StrFormat("/tmp/yaze-%d.status", pid));
+      absl::StrFormat("%s/yaze-%d.status", status_dir, pid));
   UpdateActivityStatus();
   LOG_INFO("App", "Activity file created: %s",
            activity_file_->GetPath().c_str());
