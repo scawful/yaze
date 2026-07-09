@@ -124,6 +124,18 @@ float GetCompactSidebarWidth(bool right_sidebar, float min_sidebar_width) {
                                          : kCompactLeftSidebarScale));
 }
 
+DungeonWorkbenchTestRect CaptureLastItemRectForTesting() {
+  DungeonWorkbenchTestRect rect;
+  rect.visible = true;
+  const ImVec2 min = ImGui::GetItemRectMin();
+  const ImVec2 max = ImGui::GetItemRectMax();
+  rect.min_x = min.x;
+  rect.min_y = min.y;
+  rect.max_x = max.x;
+  rect.max_y = max.y;
+  return rect;
+}
+
 }  // namespace
 
 DungeonWorkbenchResponsiveLayout ResolveDungeonWorkbenchResponsiveLayout(
@@ -1254,6 +1266,7 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
 }
 
 void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
+  pit_damage_control_rects_ = {};
   const auto& theme = AgentUI::GetTheme();
   zelda3::PitDamageTable* table =
       get_pit_damage_table_ ? get_pit_damage_table_() : nullptr;
@@ -1320,7 +1333,10 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
           tr("Replacement room must not already be in the table."));
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Replace current##PitDamageReplaceCurrent"))) {
+    const bool replace_clicked =
+        ImGui::Button(tr("Replace current##PitDamageReplaceCurrent"));
+    pit_damage_control_rects_.replace_current = CaptureLastItemRectForTesting();
+    if (replace_clicked) {
       auto status = RemoveCurrentRoomFromPitDamage(
           table, current_room, pit_damage_replacement_room_id_);
       pit_damage_status_error_ = !status.ok();
@@ -1351,7 +1367,10 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
       ImGui::SetTooltip(tr("This room will stop dealing pit damage."));
     }
     ImGui::SameLine();
-    if (ImGui::Button(tr("Add current##PitDamageAddCurrent"))) {
+    const bool add_clicked =
+        ImGui::Button(tr("Add current##PitDamageAddCurrent"));
+    pit_damage_control_rects_.add_current = CaptureLastItemRectForTesting();
+    if (add_clicked) {
       auto status = AddCurrentRoomToPitDamage(table, current_room,
                                               pit_damage_victim_room_id_);
       pit_damage_status_error_ = !status.ok();
