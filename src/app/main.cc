@@ -4,26 +4,27 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
-#include "app/platform/wasm/wasm_collaboration.h"
 #include "app/platform/wasm/wasm_bootstrap.h"
+#include "app/platform/wasm/wasm_collaboration.h"
 #endif
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include <set>
-#include <thread>
+#include <algorithm>
 #include <chrono>
 #include <fstream>
 #include <iostream>
+#include <set>
+#include <thread>
 
 #include "absl/debugging/symbolize.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "app/application.h"
-#include "app/startup_flags.h"
 #include "app/controller.h"
 #include "app/editor/editor_manager.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "app/startup_flags.h"
 #if !defined(__EMSCRIPTEN__) && defined(YAZE_HTTP_API_ENABLED)
 #include "cli/service/api/http_server.h"
 #endif
@@ -51,11 +52,13 @@ DEFINE_FLAG(
     "(blocklist).");
 
 // Navigation flags
-DEFINE_FLAG(std::string, editor, "",
-            "The editor to open on startup (e.g., Dungeon, Overworld, Assembly).");
+DEFINE_FLAG(
+    std::string, editor, "",
+    "The editor to open on startup (e.g., Dungeon, Overworld, Assembly).");
 
 DEFINE_FLAG(std::string, open_panels, "",
-            "Comma-separated list of panel IDs to open (e.g. 'dungeon.room_list,emulator.cpu_debugger')");
+            "Comma-separated list of panel IDs to open (e.g. "
+            "'dungeon.room_list,emulator.cpu_debugger')");
 
 // UI visibility flags
 DEFINE_FLAG(std::string, startup_welcome, "auto",
@@ -74,9 +77,14 @@ DEFINE_FLAG(int, map, -1, "Open Overworld Editor at specific map ID (0-159).");
 DEFINE_FLAG(bool, enable_api, false, "Enable the AI Agent API server.");
 DEFINE_FLAG(int, api_port, 8080, "Port for the AI Agent API server.");
 
-DEFINE_FLAG(bool, headless, false, "Run in headless mode without a GUI window.");
-DEFINE_FLAG(bool, service, false, "Run in service mode (GUI backend initialized but window hidden).");
-DEFINE_FLAG(bool, server, false, "Run in server mode (implies --enable_api, --enable_test_harness). Defaults to --headless unless --service or --no-headless is specified.");
+DEFINE_FLAG(bool, headless, false,
+            "Run in headless mode without a GUI window.");
+DEFINE_FLAG(bool, service, false,
+            "Run in service mode (GUI backend initialized but window hidden).");
+DEFINE_FLAG(
+    bool, server, false,
+    "Run in server mode (implies --enable_api, --enable_test_harness). "
+    "Defaults to --headless unless --service or --no-headless is specified.");
 
 #ifdef YAZE_WITH_GRPC
 // gRPC test harness flags
@@ -90,12 +98,17 @@ DEFINE_FLAG(std::string, backend, "internal",
 #endif
 
 // Symbol Export Flags
-DEFINE_FLAG(std::string, export_symbols, "", "Export symbols to file (requires --rom_file).");
-DEFINE_FLAG(std::string, symbol_format, "mesen", "Format for symbol export: mesen, wla, asar, bsnes.");
-DEFINE_FLAG(std::string, load_symbols, "", "Load symbol file (.mlb, .sym, .asm) on startup.");
-DEFINE_FLAG(std::string, load_asar_symbols, "", "Load Asar symbols from directory on startup.");
+DEFINE_FLAG(std::string, export_symbols, "",
+            "Export symbols to file (requires --rom_file).");
+DEFINE_FLAG(std::string, symbol_format, "mesen",
+            "Format for symbol export: mesen, wla, asar, bsnes.");
+DEFINE_FLAG(std::string, load_symbols, "",
+            "Load symbol file (.mlb, .sym, .asm) on startup.");
+DEFINE_FLAG(std::string, load_asar_symbols, "",
+            "Load Asar symbols from directory on startup.");
 DEFINE_FLAG(bool, export_symbols_fast, false,
-            "Export symbols without initializing UI. Requires --load_symbols or --load_asar_symbols.");
+            "Export symbols without initializing UI. Requires --load_symbols "
+            "or --load_asar_symbols.");
 
 // ============================================================================
 // Global Accessors for WASM Integration
@@ -108,7 +121,7 @@ class Emulator;
 namespace editor {
 class EditorManager;
 }
-}
+}  // namespace yaze
 
 namespace yaze::app {
 
@@ -192,6 +205,32 @@ std::vector<std::string> ParseCommaList(const std::string& raw) {
   return tokens;
 }
 
+// Handles --help/-h and --version before normal flag parsing so they work
+// regardless of any other arguments. Returns true if handled (caller exits).
+bool HandleHelpOrVersion(int argc, char** argv) {
+  for (int i = 1; i < argc; ++i) {
+    const std::string arg = argv[i];
+    if (arg == "--version") {
+      std::cout << "yaze 0.7.2\n";
+      return true;
+    }
+    if (arg == "--help" || arg == "-h") {
+      std::cout << argv[0] << " (yaze 0.7.2)\n"
+                << "Usage: " << argv[0] << " [flags]\n\nFlags:\n";
+      auto flags = yaze::util::global_flag_registry()->AllFlags();
+      std::sort(flags.begin(), flags.end(),
+                [](const yaze::util::IFlag* a, const yaze::util::IFlag* b) {
+                  return a->name() < b->name();
+                });
+      for (const auto* flag : flags) {
+        std::cout << "  " << flag->name() << "\n      " << flag->help() << "\n";
+      }
+      return true;
+    }
+  }
+  return false;
+}
+
 }  // namespace
 
 void TickFrame() {
@@ -207,7 +246,8 @@ void SetupCrashHandling() {
 #endif
 }
 
-yaze::util::LogLevel ResolveLogConfig(bool debug_flag, bool log_to_console_flag) {
+yaze::util::LogLevel ResolveLogConfig(bool debug_flag,
+                                      bool log_to_console_flag) {
   yaze::util::LogLevel log_level =
       ParseLogLevelFlag(FLAGS_log_level->Get(), debug_flag);
   std::set<std::string> log_categories =
@@ -239,18 +279,20 @@ yaze::util::LogLevel ResolveLogConfig(bool debug_flag, bool log_to_console_flag)
   return log_level;
 }
 
-yaze::AppConfig BuildAppConfig(yaze::util::LogLevel log_level, std::string log_path) {
+yaze::AppConfig BuildAppConfig(yaze::util::LogLevel log_level,
+                               std::string log_path) {
   yaze::AppConfig config;
 
   bool server_mode = FLAGS_server->Get();
   bool service_mode = FLAGS_service->Get();
-  
+
   config.headless = FLAGS_headless->Get() || (server_mode && !service_mode);
   config.service_mode = service_mode;
   config.enable_api = FLAGS_enable_api->Get() || server_mode || service_mode;
 
 #ifdef YAZE_WITH_GRPC
-  config.enable_test_harness = FLAGS_enable_test_harness->Get() || server_mode || service_mode;
+  config.enable_test_harness =
+      FLAGS_enable_test_harness->Get() || server_mode || service_mode;
   config.test_harness_port = FLAGS_test_harness_port->Get();
   config.backend = FLAGS_backend->Get();
 #endif
@@ -285,41 +327,54 @@ yaze::AppConfig BuildAppConfig(yaze::util::LogLevel log_level, std::string log_p
 }
 
 bool RunSymbolExportFastPath() {
-  if (!FLAGS_export_symbols->Get().empty() && FLAGS_export_symbols_fast->Get()) {
+  if (!FLAGS_export_symbols->Get().empty() &&
+      FLAGS_export_symbols_fast->Get()) {
     yaze::emu::debug::SymbolProvider symbols;
     bool loaded = false;
 
     if (!FLAGS_load_symbols->Get().empty()) {
-      LOG_INFO("Main", "Loading symbols from %s...", FLAGS_load_symbols->Get().c_str());
+      LOG_INFO("Main", "Loading symbols from %s...",
+               FLAGS_load_symbols->Get().c_str());
       auto status = symbols.LoadSymbolFile(FLAGS_load_symbols->Get());
       if (!status.ok()) {
-        LOG_ERROR("Main", "Failed to load symbols: %s", status.ToString().c_str());
+        LOG_ERROR("Main", "Failed to load symbols: %s",
+                  status.ToString().c_str());
       } else {
         loaded = true;
       }
     }
 
     if (!FLAGS_load_asar_symbols->Get().empty()) {
-      LOG_INFO("Main", "Loading Asar symbols from %s...", FLAGS_load_asar_symbols->Get().c_str());
-      auto status = symbols.LoadAsarAsmDirectory(FLAGS_load_asar_symbols->Get());
+      LOG_INFO("Main", "Loading Asar symbols from %s...",
+               FLAGS_load_asar_symbols->Get().c_str());
+      auto status =
+          symbols.LoadAsarAsmDirectory(FLAGS_load_asar_symbols->Get());
       if (!status.ok()) {
-        LOG_ERROR("Main", "Failed to load Asar symbols: %s", status.ToString().c_str());
+        LOG_ERROR("Main", "Failed to load Asar symbols: %s",
+                  status.ToString().c_str());
       } else {
         loaded = true;
       }
     }
 
     if (!loaded) {
-      LOG_ERROR("Main", "No symbols loaded. Use --load_symbols or --load_asar_symbols.");
+      LOG_ERROR(
+          "Main",
+          "No symbols loaded. Use --load_symbols or --load_asar_symbols.");
       return false;
     }
 
-    LOG_INFO("Main", "Exporting symbols to %s...", FLAGS_export_symbols->Get().c_str());
-    yaze::emu::debug::SymbolFormat format = yaze::emu::debug::SymbolFormat::kMesen;
+    LOG_INFO("Main", "Exporting symbols to %s...",
+             FLAGS_export_symbols->Get().c_str());
+    yaze::emu::debug::SymbolFormat format =
+        yaze::emu::debug::SymbolFormat::kMesen;
     std::string format_str = absl::AsciiStrToLower(FLAGS_symbol_format->Get());
-    if (format_str == "asar") format = yaze::emu::debug::SymbolFormat::kAsar;
-    else if (format_str == "wla") format = yaze::emu::debug::SymbolFormat::kWlaDx;
-    else if (format_str == "bsnes") format = yaze::emu::debug::SymbolFormat::kBsnes;
+    if (format_str == "asar")
+      format = yaze::emu::debug::SymbolFormat::kAsar;
+    else if (format_str == "wla")
+      format = yaze::emu::debug::SymbolFormat::kWlaDx;
+    else if (format_str == "bsnes")
+      format = yaze::emu::debug::SymbolFormat::kBsnes;
 
     auto export_or = symbols.ExportSymbols(format);
     if (export_or.ok()) {
@@ -329,10 +384,12 @@ bool RunSymbolExportFastPath() {
         LOG_INFO("Main", "Symbols exported successfully (fast path)");
         return true;
       }
-      LOG_ERROR("Main", "Failed to open output file: %s", FLAGS_export_symbols->Get().c_str());
+      LOG_ERROR("Main", "Failed to open output file: %s",
+                FLAGS_export_symbols->Get().c_str());
       return false;
     }
-    LOG_ERROR("Main", "Failed to export symbols: %s", export_or.status().ToString().c_str());
+    LOG_ERROR("Main", "Failed to export symbols: %s",
+              export_or.status().ToString().c_str());
     return false;
   }
   return false;
@@ -348,13 +405,14 @@ std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(
   auto api_server = std::make_unique<yaze::cli::api::HttpServer>();
 
   // Wire up symbol provider source
-  api_server->SetSymbolProviderSource([]() -> yaze::emu::debug::SymbolProvider* {
-    auto* manager = yaze::app::GetGlobalEditorManager();
-    if (manager) {
-      return &manager->emulator().symbol_provider();
-    }
-    return nullptr;
-  });
+  api_server->SetSymbolProviderSource(
+      []() -> yaze::emu::debug::SymbolProvider* {
+        auto* manager = yaze::app::GetGlobalEditorManager();
+        if (manager) {
+          return &manager->emulator().symbol_provider();
+        }
+        return nullptr;
+      });
 
   // Window control endpoints (service mode)
   api_server->SetWindowActions(
@@ -364,15 +422,17 @@ std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(
       },
       []() -> bool {
         auto* controller = yaze::Application::Instance().GetController();
-        return controller ? (controller->HideWindow(), false) : false; // HideWindow returns void usually
+        return controller ? (controller->HideWindow(), false)
+                          : false;  // HideWindow returns void usually
       });
 
   auto status = api_server->Start(config.api_port);
   if (!status.ok()) {
-    LOG_ERROR("Main", "Failed to start API server: %s", std::string(status.message()).c_str());
+    LOG_ERROR("Main", "Failed to start API server: %s",
+              std::string(status.message()).c_str());
     return nullptr;
   }
-  
+
   LOG_INFO("Main", "API Server started on port %d", config.api_port);
   return api_server;
 }
@@ -382,6 +442,10 @@ std::unique_ptr<yaze::cli::api::HttpServer> SetupApiServer(
 
 int main(int argc, char** argv) {
   absl::InitializeSymbolizer(argv[0]);
+
+  if (HandleHelpOrVersion(argc, argv)) {
+    return EXIT_SUCCESS;
+  }
 
   SetupCrashHandling();
 
@@ -394,10 +458,10 @@ int main(int argc, char** argv) {
   auto log_level = ResolveLogConfig(debug_flag, log_to_console_flag);
   std::string log_path = FLAGS_log_file->Get();
   if (log_path.empty()) {
-     auto logs_dir = yaze::util::PlatformPaths::GetAppDataSubdirectory("logs");
-     if (logs_dir.ok()) {
-       log_path = (*logs_dir / "yaze.log").string();
-     }
+    auto logs_dir = yaze::util::PlatformPaths::GetAppDataSubdirectory("logs");
+    if (logs_dir.ok()) {
+      log_path = (*logs_dir / "yaze.log").string();
+    }
   }
 
   // Build AppConfig from flags
@@ -412,8 +476,9 @@ int main(int argc, char** argv) {
   // The helper returns false if not requested OR if failed.
   // If requested and failed, it logs errors.
   // To match original logic:
-  if (!FLAGS_export_symbols->Get().empty() && FLAGS_export_symbols_fast->Get()) {
-      return EXIT_FAILURE;
+  if (!FLAGS_export_symbols->Get().empty() &&
+      FLAGS_export_symbols_fast->Get()) {
+    return EXIT_FAILURE;
   }
 #endif
 
@@ -480,25 +545,31 @@ int main(int argc, char** argv) {
     auto& symbols = ctrl->editor_manager()->emulator().symbol_provider();
 
     if (!FLAGS_load_symbols->Get().empty()) {
-      LOG_INFO("Main", "Loading symbols from %s...", FLAGS_load_symbols->Get().c_str());
+      LOG_INFO("Main", "Loading symbols from %s...",
+               FLAGS_load_symbols->Get().c_str());
       auto status = symbols.LoadSymbolFile(FLAGS_load_symbols->Get());
       if (!status.ok()) {
-        LOG_ERROR("Main", "Failed to load symbols: %s", status.ToString().c_str());
+        LOG_ERROR("Main", "Failed to load symbols: %s",
+                  status.ToString().c_str());
       }
     }
 
     if (!FLAGS_load_asar_symbols->Get().empty()) {
-      LOG_INFO("Main", "Loading Asar symbols from %s...", FLAGS_load_asar_symbols->Get().c_str());
-      auto status = symbols.LoadAsarAsmDirectory(FLAGS_load_asar_symbols->Get());
+      LOG_INFO("Main", "Loading Asar symbols from %s...",
+               FLAGS_load_asar_symbols->Get().c_str());
+      auto status =
+          symbols.LoadAsarAsmDirectory(FLAGS_load_asar_symbols->Get());
       if (!status.ok()) {
-        LOG_ERROR("Main", "Failed to load Asar symbols: %s", status.ToString().c_str());
+        LOG_ERROR("Main", "Failed to load Asar symbols: %s",
+                  status.ToString().c_str());
       }
     }
   }
 
   // Handle symbol export if requested (GUI mode)
   if (!FLAGS_export_symbols->Get().empty()) {
-    LOG_INFO("Main", "Exporting symbols to %s...", FLAGS_export_symbols->Get().c_str());
+    LOG_INFO("Main", "Exporting symbols to %s...",
+             FLAGS_export_symbols->Get().c_str());
 
     auto* ctrl = yaze::Application::Instance().GetController();
     if (ctrl && ctrl->editor_manager()) {
@@ -508,11 +579,16 @@ int main(int argc, char** argv) {
       // For now, we'll assume they are in the emulator's symbol provider
       auto& symbols = manager->emulator().symbol_provider();
 
-      yaze::emu::debug::SymbolFormat format = yaze::emu::debug::SymbolFormat::kMesen;
-      std::string format_str = absl::AsciiStrToLower(FLAGS_symbol_format->Get());
-      if (format_str == "asar") format = yaze::emu::debug::SymbolFormat::kAsar;
-      else if (format_str == "wla") format = yaze::emu::debug::SymbolFormat::kWlaDx;
-      else if (format_str == "bsnes") format = yaze::emu::debug::SymbolFormat::kBsnes;
+      yaze::emu::debug::SymbolFormat format =
+          yaze::emu::debug::SymbolFormat::kMesen;
+      std::string format_str =
+          absl::AsciiStrToLower(FLAGS_symbol_format->Get());
+      if (format_str == "asar")
+        format = yaze::emu::debug::SymbolFormat::kAsar;
+      else if (format_str == "wla")
+        format = yaze::emu::debug::SymbolFormat::kWlaDx;
+      else if (format_str == "bsnes")
+        format = yaze::emu::debug::SymbolFormat::kBsnes;
 
       auto export_or = symbols.ExportSymbols(format);
       if (export_or.ok()) {
@@ -521,10 +597,12 @@ int main(int argc, char** argv) {
           out << *export_or;
           LOG_INFO("Main", "Symbols exported successfully");
         } else {
-          LOG_ERROR("Main", "Failed to open output file: %s", FLAGS_export_symbols->Get().c_str());
+          LOG_ERROR("Main", "Failed to open output file: %s",
+                    FLAGS_export_symbols->Get().c_str());
         }
       } else {
-        LOG_ERROR("Main", "Failed to export symbols: %s", export_or.status().ToString().c_str());
+        LOG_ERROR("Main", "Failed to export symbols: %s",
+                  export_or.status().ToString().c_str());
       }
     }
 
@@ -544,7 +622,7 @@ int main(int argc, char** argv) {
   } else {
     // Normal GUI loop (also used for Service Mode with hidden window)
     if (config.service_mode) {
-        LOG_INFO("Main", "Running in SERVICE mode (Hidden GUI window)");
+      LOG_INFO("Main", "Running in SERVICE mode (Hidden GUI window)");
     }
     while (yaze::Application::Instance().GetController()->IsActive()) {
       TickFrame();
@@ -559,7 +637,7 @@ int main(int argc, char** argv) {
   }
 #endif
 
-#endif // __EMSCRIPTEN__
+#endif  // __EMSCRIPTEN__
 
   return EXIT_SUCCESS;
 }

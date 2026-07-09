@@ -584,13 +584,17 @@ void ThemeManager::NotifyThemeChanged() {
 
 absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
   // Try multiple possible paths where theme files might be located
-  std::vector<std::string> possible_paths = {
-      filepath,                        // Absolute path
-      "assets/themes/" + filepath,     // Relative from build dir
-      "../assets/themes/" + filepath,  // Relative from bin dir
-      util::GetResourcePath("assets/themes/" +
-                            filepath),  // Platform-specific resource path
-  };
+  std::vector<std::string> possible_paths = {filepath};  // Absolute path
+  // Prefer the robust asset search (exe-dir, ~/.yaze, /usr/share, repo-relative)
+  // so installed/double-click launches resolve bundled themes too.
+  if (auto found = util::PlatformPaths::FindAsset("themes/" + filepath);
+      found.ok()) {
+    possible_paths.push_back(found->string());
+  }
+  possible_paths.push_back("assets/themes/" + filepath);  // Relative build dir
+  possible_paths.push_back("../assets/themes/" + filepath);  // Relative bin dir
+  possible_paths.push_back(util::GetResourcePath(
+      "assets/themes/" + filepath));  // Platform-specific resource path
 
   std::ifstream file;
   std::string successful_path;

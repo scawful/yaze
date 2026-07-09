@@ -164,12 +164,14 @@ inline GamepadHandle OpenGamepad(int index) {
     SDL_free(joysticks);
     return SDL_OpenGamepad(id);
   }
-  if (joysticks) SDL_free(joysticks);
+  if (joysticks)
+    SDL_free(joysticks);
   return nullptr;
 }
 
 inline void CloseGamepad(GamepadHandle gamepad) {
-  if (gamepad) SDL_CloseGamepad(gamepad);
+  if (gamepad)
+    SDL_CloseGamepad(gamepad);
 }
 
 inline bool GetGamepadButton(GamepadHandle gamepad, SDL_GamepadButton button) {
@@ -200,7 +202,8 @@ inline GamepadHandle OpenGamepad(int index) {
 }
 
 inline void CloseGamepad(GamepadHandle gamepad) {
-  if (gamepad) SDL_GameControllerClose(gamepad);
+  if (gamepad)
+    SDL_GameControllerClose(gamepad);
 }
 
 inline bool GetGamepadButton(GamepadHandle gamepad,
@@ -252,7 +255,8 @@ constexpr auto kGamepadButtonY = SDL_CONTROLLER_BUTTON_Y;
 constexpr auto kGamepadButtonBack = SDL_CONTROLLER_BUTTON_BACK;
 constexpr auto kGamepadButtonStart = SDL_CONTROLLER_BUTTON_START;
 constexpr auto kGamepadButtonLeftShoulder = SDL_CONTROLLER_BUTTON_LEFTSHOULDER;
-constexpr auto kGamepadButtonRightShoulder = SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
+constexpr auto kGamepadButtonRightShoulder =
+    SDL_CONTROLLER_BUTTON_RIGHTSHOULDER;
 constexpr auto kGamepadButtonDpadUp = SDL_CONTROLLER_BUTTON_DPAD_UP;
 constexpr auto kGamepadButtonDpadDown = SDL_CONTROLLER_BUTTON_DPAD_DOWN;
 constexpr auto kGamepadButtonDpadLeft = SDL_CONTROLLER_BUTTON_DPAD_LEFT;
@@ -276,7 +280,18 @@ inline SDL_Renderer* CreateRenderer(SDL_Window* window) {
 #ifdef YAZE_USE_SDL3
   return SDL_CreateRenderer(window, nullptr);
 #else
-  return SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  SDL_Renderer* renderer =
+      SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  if (renderer == nullptr) {
+    // No working GL acceleration (VM, remote/forwarded X, broken Mesa).
+    // Fall back to software rendering so the app can still start.
+    SDL_LogWarn(SDL_LOG_CATEGORY_RENDER,
+                "Accelerated renderer unavailable (%s); "
+                "falling back to software rendering",
+                SDL_GetError());
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+  }
+  return renderer;
 #endif
 }
 
@@ -344,7 +359,8 @@ inline bool RenderTexture(SDL_Renderer* renderer, SDL_Texture* texture,
  * SDL3: SDL_DestroySurface(surface)
  */
 inline void FreeSurface(SDL_Surface* surface) {
-  if (!surface) return;
+  if (!surface)
+    return;
 #ifdef YAZE_USE_SDL3
   SDL_DestroySurface(surface);
 #else
@@ -360,7 +376,8 @@ inline void FreeSurface(SDL_Surface* surface) {
  */
 inline SDL_Surface* ConvertSurfaceFormat(SDL_Surface* surface, uint32_t format,
                                          uint32_t flags = 0) {
-  if (!surface) return nullptr;
+  if (!surface)
+    return nullptr;
 #ifdef YAZE_USE_SDL3
   (void)flags;  // SDL3 removed flags parameter
   return SDL_ConvertSurface(surface, static_cast<SDL_PixelFormat>(format));
@@ -373,7 +390,8 @@ inline SDL_Surface* ConvertSurfaceFormat(SDL_Surface* surface, uint32_t format,
  * @brief Get the palette attached to a surface.
  */
 inline SDL_Palette* GetSurfacePalette(SDL_Surface* surface) {
-  if (!surface) return nullptr;
+  if (!surface)
+    return nullptr;
 #ifdef YAZE_USE_SDL3
   return SDL_GetSurfacePalette(surface);
 #else
@@ -389,7 +407,8 @@ inline SDL_Palette* GetSurfacePalette(SDL_Surface* surface) {
  */
 inline Uint32 GetSurfaceFormat(SDL_Surface* surface) {
 #ifdef YAZE_USE_SDL3
-  return surface ? static_cast<Uint32>(surface->format) : SDL_PIXELFORMAT_UNKNOWN;
+  return surface ? static_cast<Uint32>(surface->format)
+                 : SDL_PIXELFORMAT_UNKNOWN;
 #else
   return (surface && surface->format) ? surface->format->format
                                       : SDL_PIXELFORMAT_UNKNOWN;
@@ -400,11 +419,13 @@ inline Uint32 GetSurfaceFormat(SDL_Surface* surface) {
  * @brief Map an RGB color to the surface's pixel format.
  */
 inline Uint32 MapRGB(SDL_Surface* surface, Uint8 r, Uint8 g, Uint8 b) {
-  if (!surface) return 0;
+  if (!surface)
+    return 0;
 #ifdef YAZE_USE_SDL3
   const SDL_PixelFormatDetails* details =
       SDL_GetPixelFormatDetails(surface->format);
-  if (!details) return 0;
+  if (!details)
+    return 0;
   SDL_Palette* palette = SDL_GetSurfacePalette(surface);
   return SDL_MapRGB(details, palette, r, g, b);
 #else
@@ -432,7 +453,8 @@ inline SDL_Surface* CreateSurface(int width, int height, int depth,
  * SDL3: SDL_GetPixelFormatDetails(surface->format)->bits_per_pixel
  */
 inline int GetSurfaceBitsPerPixel(SDL_Surface* surface) {
-  if (!surface) return 0;
+  if (!surface)
+    return 0;
 #ifdef YAZE_USE_SDL3
   const SDL_PixelFormatDetails* details =
       SDL_GetPixelFormatDetails(surface->format);
@@ -452,19 +474,20 @@ inline int GetSurfaceBitsPerPixel(SDL_Surface* surface) {
  * @return true if surface now has a valid 256-color palette, false on error
  */
 inline bool EnsureSurfacePalette256(SDL_Surface* surface) {
-  if (!surface) return false;
-  
+  if (!surface)
+    return false;
+
   SDL_Palette* existing = GetSurfacePalette(surface);
   if (existing && existing->ncolors >= 256) {
     return true;  // Already has proper palette
   }
-  
+
   // Check if this is an indexed format that needs a palette
   int bpp = GetSurfaceBitsPerPixel(surface);
   if (bpp != 8) {
     return true;  // Not an indexed format, no palette needed
   }
-  
+
   // Create a new 256-color palette (SDL2: SDL_AllocPalette, SDL3: SDL_CreatePalette)
 #ifdef YAZE_USE_SDL3
   SDL_Palette* new_palette = SDL_CreatePalette(256);
@@ -475,7 +498,7 @@ inline bool EnsureSurfacePalette256(SDL_Surface* surface) {
     SDL_Log("Warning: Failed to create 256-color palette: %s", SDL_GetError());
     return false;
   }
-  
+
   // Initialize with grayscale as a safe default
   SDL_Color colors[256];
   for (int i = 0; i < 256; i++) {
@@ -483,7 +506,7 @@ inline bool EnsureSurfacePalette256(SDL_Surface* surface) {
     colors[i].a = 255;
   }
   SDL_SetPaletteColors(new_palette, colors, 0, 256);
-  
+
   // Attach to surface
   if (SDL_SetSurfacePalette(surface, new_palette) != 0) {
     SDL_Log("Warning: Failed to set surface palette: %s", SDL_GetError());
@@ -494,7 +517,7 @@ inline bool EnsureSurfacePalette256(SDL_Surface* surface) {
 #endif
     return false;
   }
-  
+
   return true;
 }
 
@@ -505,7 +528,8 @@ inline bool EnsureSurfacePalette256(SDL_Surface* surface) {
  * SDL3: SDL_GetPixelFormatDetails(surface->format)->bytes_per_pixel
  */
 inline int GetSurfaceBytesPerPixel(SDL_Surface* surface) {
-  if (!surface) return 0;
+  if (!surface)
+    return 0;
 #ifdef YAZE_USE_SDL3
   const SDL_PixelFormatDetails* details =
       SDL_GetPixelFormatDetails(surface->format);
@@ -675,13 +699,14 @@ inline uint32_t GetDefaultInitFlags() {
 /**
  * @brief Create an RGB surface
  */
-inline SDL_Surface* CreateRGBSurface(Uint32 flags, int width, int height, int depth,
-                                     Uint32 Rmask, Uint32 Gmask, Uint32 Bmask,
-                                     Uint32 Amask) {
+inline SDL_Surface* CreateRGBSurface(Uint32 flags, int width, int height,
+                                     int depth, Uint32 Rmask, Uint32 Gmask,
+                                     Uint32 Bmask, Uint32 Amask) {
 #ifdef YAZE_USE_SDL3
   // SDL3 uses SDL_CreateSurface with pixel format
-  return SDL_CreateSurface(width, height,
-                           SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask));
+  return SDL_CreateSurface(
+      width, height,
+      SDL_GetPixelFormatForMasks(depth, Rmask, Gmask, Bmask, Amask));
 #else
   return SDL_CreateRGBSurface(flags, width, height, depth, Rmask, Gmask, Bmask,
                               Amask);
@@ -726,9 +751,10 @@ inline SDL_Surface* ReadPixelsToSurface(SDL_Renderer* renderer, int width,
   return SDL_RenderReadPixels(renderer, rect);
 #else
   // Create surface to read into (ARGB8888 to match typical screenshot needs)
-  SDL_Surface* surface = SDL_CreateRGBSurface(0, width, height, 32, 0x00FF0000,
-                                              0x0000FF00, 0x000000FF, 0xFF000000);
-  if (!surface) return nullptr;
+  SDL_Surface* surface = SDL_CreateRGBSurface(
+      0, width, height, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+  if (!surface)
+    return nullptr;
 
   if (SDL_RenderReadPixels(renderer, rect, SDL_PIXELFORMAT_ARGB8888,
                            surface->pixels, surface->pitch) != 0) {
@@ -738,8 +764,6 @@ inline SDL_Surface* ReadPixelsToSurface(SDL_Renderer* renderer, int width,
   return surface;
 #endif
 }
-
-
 
 /**
  * @brief Load a BMP file
