@@ -42,6 +42,8 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Done when: selector rows show routine family / special draw behavior without replacing names.
 
 8. **ROM-dependent test classification**
+   - Status: `PitDamageTableTest` moved to the stable integration suite so the
+     unit suite no longer carries this vanilla-ROM skip.
    - Problem: `PitDamageTableTest` lives in the unit suite while requiring a vanilla ROM; this matches some existing tests but can add unit-suite skips.
    - Done when: either split pure capacity/validation tests into unit and move ROM-backed table tests to integration, or document the exception next to the test list.
 
