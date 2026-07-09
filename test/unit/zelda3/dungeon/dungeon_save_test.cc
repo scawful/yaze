@@ -829,11 +829,16 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_RejectsCorruptLoaderOperand) {
 TEST_F(DungeonSaveTest, LoadBlocks_RejectsCorruptLoaderOperand) {
   SetupBlockRegions();
   rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.
+  RoomObject existing_block(0x0E00, 3, 3, 0, 0);
+  existing_block.set_options(ObjectOption::Block);
+  room_->AddTileObject(existing_block);
 
   room_->LoadBlocks();
 
   EXPECT_FALSE(room_->AreBlocksLoaded());
-  EXPECT_TRUE(room_->GetTileObjects().empty());
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+  EXPECT_NE(room_->GetTileObjects()[0].options() & ObjectOption::Block,
+            ObjectOption::Nothing);
 }
 
 TEST_F(DungeonSaveTest,
