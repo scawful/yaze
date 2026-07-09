@@ -7,6 +7,7 @@
 
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
@@ -197,6 +198,12 @@ class DungeonSaveTest : public ::testing::Test {
   void SeedBlockLoaderOperand(int operand_pc) {
     rom_->mutable_data()[operand_pc - 1] = 0xBF;  // LDA.l operand,X
     rom_->mutable_data()[operand_pc + 3] = 0x9D;  // STA.w addr,X
+  }
+
+  static RoomObject MakePushableBlock(int px, int py, int layer) {
+    RoomObject block(0x0E00, px, py, 0, layer);
+    block.set_options(ObjectOption::Block);
+    return block;
   }
 
   std::unique_ptr<Rom> rom_;
@@ -1045,6 +1052,88 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_ClearsBlockDirtyAfterWrite) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x14);
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A);
   EXPECT_FALSE(room.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+
+  constexpr int kVanillaBlockCapacity = 128;
+  for (int i = 0; i < kVanillaBlockCapacity; ++i) {
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 128, i % 2));
+  }
+
+  const auto status = SaveAllBlocks(
+      rom_.get(), 1, [&room](int rid) { return rid == 0 ? &room : nullptr; });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x02)
+      << "128 entries * 4 bytes = 0x0200 bytes";
+
+  const auto first = EncodePushableBlockEntry({0, 0, 0, 0});
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], first.b1);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], first.b2);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], first.b3);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], first.b4);
+
+  const auto last = EncodePushableBlockEntry(
+      {0, static_cast<uint8_t>(127 % 64), static_cast<uint8_t>((127 * 3) % 128),
+       static_cast<uint8_t>(127 % 2)});
+  const int last_entry_pc = kBlocksRegion4Pc + 0x7C;
+  EXPECT_EQ(rom_->data()[last_entry_pc + 0], last.b1);
+  EXPECT_EQ(rom_->data()[last_entry_pc + 1], last.b2);
+  EXPECT_EQ(rom_->data()[last_entry_pc + 2], last.b3);
+  EXPECT_EQ(rom_->data()[last_entry_pc + 3], last.b4);
+  EXPECT_FALSE(room.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsOverflowWithoutPartialWrite) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+  std::fill_n(rom_->mutable_data() + kBlocksRegion1Pc, 0x80, 0x11);
+  std::fill_n(rom_->mutable_data() + kBlocksRegion2Pc, 0x80, 0x22);
+  std::fill_n(rom_->mutable_data() + kBlocksRegion3Pc, 0x80, 0x33);
+  std::fill_n(rom_->mutable_data() + kBlocksRegion4Pc, 0x80, 0x44);
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+
+  constexpr int kOverflowEntryCount = 129;
+  for (int i = 0; i < kOverflowEntryCount; ++i) {
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 128, i % 2));
+  }
+
+  const auto status = SaveAllBlocks(
+      rom_.get(), 1, [&room](int rid) { return rid == 0 ? &room : nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("Pushable-block table overflow"),
+            std::string::npos);
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x00);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+  EXPECT_TRUE(std::all_of(rom_->data() + kBlocksRegion1Pc,
+                          rom_->data() + kBlocksRegion1Pc + 0x80,
+                          [](uint8_t b) { return b == 0x11; }));
+  EXPECT_TRUE(std::all_of(rom_->data() + kBlocksRegion2Pc,
+                          rom_->data() + kBlocksRegion2Pc + 0x80,
+                          [](uint8_t b) { return b == 0x22; }));
+  EXPECT_TRUE(std::all_of(rom_->data() + kBlocksRegion3Pc,
+                          rom_->data() + kBlocksRegion3Pc + 0x80,
+                          [](uint8_t b) { return b == 0x33; }));
+  EXPECT_TRUE(std::all_of(rom_->data() + kBlocksRegion4Pc,
+                          rom_->data() + kBlocksRegion4Pc + 0x80,
+                          [](uint8_t b) { return b == 0x44; }));
+  EXPECT_TRUE(room.blocks_dirty())
+      << "Failed saves must not mark overflowing block edits clean.";
 }
 
 TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
