@@ -1,4 +1,5 @@
 #include "app/editor/shell/dialogs/rom_load_options_dialog.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
@@ -160,12 +161,12 @@ bool RomLoadOptionsDialog::Show(bool* p_open) {
 void RomLoadOptionsDialog::DrawVersionInfo() {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
 
-  ImGui::Text("%s ROM Information", ICON_MD_INFO);
+  ImGui::Text(tr("%s ROM Information"), ICON_MD_INFO);
   ImGui::Spacing();
 
   // ROM filename
   ImGui::TextColored(gui::ConvertColorToImVec4(theme.text_secondary),
-                     "File: %s", rom_filename_.c_str());
+                     tr("File: %s"), rom_filename_.c_str());
 
   // Detected version with color coding
   const char* version_name =
@@ -187,13 +188,13 @@ void RomLoadOptionsDialog::DrawVersionInfo() {
       version_color = gui::GetTextSecondaryVec4();
   }
 
-  ImGui::TextColored(version_color, "%s Detected: %s", ICON_MD_VERIFIED,
+  ImGui::TextColored(version_color, tr("%s Detected: %s"), ICON_MD_VERIFIED,
                      version_name);
 
   // Show feature availability
   if (detected_version_ == zelda3::OverworldVersion::kVanilla) {
     ImGui::TextColored(gui::GetWarningColor(),
-                       "%s This ROM can be upgraded for expanded features",
+                       tr("%s This ROM can be upgraded for expanded features"),
                        ICON_MD_UPGRADE);
   }
 }
@@ -201,44 +202,46 @@ void RomLoadOptionsDialog::DrawVersionInfo() {
 void RomLoadOptionsDialog::DrawUpgradeOptions() {
   bool is_vanilla = (detected_version_ == zelda3::OverworldVersion::kVanilla);
 
-  ImGui::Text("%s ZSCustomOverworld Options", ICON_MD_AUTO_FIX_HIGH);
+  ImGui::Text(tr("%s ZSCustomOverworld Options"), ICON_MD_AUTO_FIX_HIGH);
   ImGui::Spacing();
 
   if (is_vanilla) {
-    ImGui::Checkbox("Upgrade ROM to ZSCustomOverworld",
+    ImGui::Checkbox(tr("Upgrade ROM to ZSCustomOverworld"),
                     &options_.upgrade_to_zscustom);
 
     if (options_.upgrade_to_zscustom) {
       ImGui::Indent();
 
-      ImGui::Text("Target Version:");
+      ImGui::Text(tr("Target Version:"));
       ImGui::SameLine();
 
-      if (ImGui::RadioButton("v2 (Basic)", options_.target_zso_version == 2)) {
+      if (ImGui::RadioButton(tr("v2 (Basic)"),
+                             options_.target_zso_version == 2)) {
         options_.target_zso_version = 2;
       }
       ImGui::SameLine();
-      if (ImGui::RadioButton("v3 (Full)", options_.target_zso_version == 3)) {
+      if (ImGui::RadioButton(tr("v3 (Full)"),
+                             options_.target_zso_version == 3)) {
         options_.target_zso_version = 3;
       }
 
       // Version comparison
       ImGui::TextColored(gui::GetTextSecondaryVec4(),
-                         "v2: BG colors, main palettes, parent system");
+                         tr("v2: BG colors, main palettes, parent system"));
       ImGui::TextColored(gui::GetTextSecondaryVec4(),
-                         "v3: + wide/tall areas, animated GFX, overlays");
+                         tr("v3: + wide/tall areas, animated GFX, overlays"));
 
       // Tail expansion option (only for v3)
       if (options_.target_zso_version == 3) {
         ImGui::Spacing();
-        ImGui::TextColored(gui::GetWarningColor(), "Experimental:");
-        ImGui::Checkbox("Enable special world tail (0xA0-0xBF)",
+        ImGui::TextColored(gui::GetWarningColor(), tr("Experimental:"));
+        ImGui::Checkbox(tr("Enable special world tail (0xA0-0xBF)"),
                         &options_.enable_tail_expansion);
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-              "Enables access to unused special world map slots.\n"
-              "REQUIRES additional ASM patch for pointer table expansion.\n"
-              "Without the patch, maps will show blank tiles (safe).");
+              tr("Enables access to unused special world map slots.\n"
+                 "REQUIRES additional ASM patch for pointer table expansion.\n"
+                 "Without the patch, maps will show blank tiles (safe)."));
         }
       }
 
@@ -246,25 +249,25 @@ void RomLoadOptionsDialog::DrawUpgradeOptions() {
     }
   } else {
     ImGui::TextColored(
-        gui::GetSuccessColor(), "%s ROM already has ZSCustomOverworld %s",
+        gui::GetSuccessColor(), tr("%s ROM already has ZSCustomOverworld %s"),
         ICON_MD_CHECK_CIRCLE,
         zelda3::OverworldVersionHelper::GetVersionName(detected_version_));
   }
 
   // Enable custom overworld features toggle
   ImGui::Spacing();
-  ImGui::Checkbox("Enable custom overworld features in editor",
+  ImGui::Checkbox(tr("Enable custom overworld features in editor"),
                   &options_.enable_custom_overworld);
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Enables ZSCustomOverworld-specific UI elements.\n"
-        "Auto-enabled if ASM is detected in ROM.");
+        tr("Enables ZSCustomOverworld-specific UI elements.\n"
+           "Auto-enabled if ASM is detected in ROM."));
   }
 }
 
 void RomLoadOptionsDialog::DrawFeatureFlagPresets() {
-  ImGui::Text("%s Feature Presets", ICON_MD_TUNE);
+  ImGui::Text(tr("%s Feature Presets"), ICON_MD_TUNE);
   ImGui::Spacing();
 
   // Preset selection combo
@@ -301,42 +304,43 @@ void RomLoadOptionsDialog::DrawFeatureFlagPresets() {
 }
 
 void RomLoadOptionsDialog::DrawFeatureFlagDetails() {
-  ImGui::Text("%s Feature Flags", ICON_MD_FLAG);
+  ImGui::Text(tr("%s Feature Flags"), ICON_MD_FLAG);
   ImGui::Spacing();
 
   // Overworld flags
   if (ImGui::TreeNodeEx("Overworld", ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Checkbox("Save overworld maps", &options_.save_overworld_maps);
-    ImGui::Checkbox("Save entrances", &options_.save_overworld_entrances);
-    ImGui::Checkbox("Save exits", &options_.save_overworld_exits);
-    ImGui::Checkbox("Save items", &options_.save_overworld_items);
+    ImGui::Checkbox(tr("Save overworld maps"), &options_.save_overworld_maps);
+    ImGui::Checkbox(tr("Save entrances"), &options_.save_overworld_entrances);
+    ImGui::Checkbox(tr("Save exits"), &options_.save_overworld_exits);
+    ImGui::Checkbox(tr("Save items"), &options_.save_overworld_items);
     ImGui::TreePop();
   }
 
   // Dungeon flags
   if (ImGui::TreeNodeEx("Dungeon")) {
-    ImGui::Checkbox("Save dungeon maps", &options_.save_dungeon_maps);
+    ImGui::Checkbox(tr("Save dungeon maps"), &options_.save_dungeon_maps);
     ImGui::TreePop();
   }
 
   // Graphics flags
   if (ImGui::TreeNodeEx("Graphics")) {
-    ImGui::Checkbox("Save all palettes", &options_.save_all_palettes);
-    ImGui::Checkbox("Save GFX groups", &options_.save_gfx_groups);
+    ImGui::Checkbox(tr("Save all palettes"), &options_.save_all_palettes);
+    ImGui::Checkbox(tr("Save GFX groups"), &options_.save_gfx_groups);
     ImGui::TreePop();
   }
 }
 
 void RomLoadOptionsDialog::DrawProjectOptions() {
-  ImGui::Text("%s Project Options", ICON_MD_FOLDER);
+  ImGui::Text(tr("%s Project Options"), ICON_MD_FOLDER);
   ImGui::Spacing();
 
-  ImGui::Checkbox("Create associated project file", &options_.create_project);
+  ImGui::Checkbox(tr("Create associated project file"),
+                  &options_.create_project);
 
   if (options_.create_project) {
     ImGui::Indent();
 
-    ImGui::Text("Project Name:");
+    ImGui::Text(tr("Project Name:"));
     ImGui::SetNextItemWidth(-1);
     ImGui::InputText("##ProjectName", project_name_buffer_,
                      sizeof(project_name_buffer_));
@@ -344,7 +348,7 @@ void RomLoadOptionsDialog::DrawProjectOptions() {
 
     ImGui::TextColored(
         gui::GetTextSecondaryVec4(),
-        "Project file stores settings, labels, and preferences.");
+        tr("Project file stores settings, labels, and preferences."));
 
     ImGui::Unindent();
   }
@@ -360,7 +364,7 @@ void RomLoadOptionsDialog::DrawActionButtons() {
   ImGui::SetCursorPosX((avail - total_width) * 0.5f + ImGui::GetCursorPosX());
 
   // Cancel button
-  if (ImGui::Button("Cancel", ImVec2(button_width, 0))) {
+  if (ImGui::Button(tr("Cancel"), ImVec2(button_width, 0))) {
     is_open_ = false;
     confirmed_ = false;
   }

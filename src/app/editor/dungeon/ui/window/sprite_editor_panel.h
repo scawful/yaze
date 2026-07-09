@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
@@ -54,13 +55,13 @@ class SpriteEditorPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!current_room_id_ || !rooms_) {
-      ImGui::TextDisabled("No room data available");
+      ImGui::TextDisabled(tr("No room data available"));
       return;
     }
 
     if (*current_room_id_ < 0 ||
         *current_room_id_ >= static_cast<int>(rooms_->size())) {
-      ImGui::TextDisabled("No room selected");
+      ImGui::TextDisabled(tr("No room selected"));
       return;
     }
 
@@ -185,8 +186,9 @@ class SpriteEditorPanel : public WindowContent {
 
       if (ImGui::IsItemHovered()) {
         const char* category = GetSpriteCategoryName(i);
-        ImGui::SetTooltip("%s (0x%02X)\n[%s]\nClick to select for placement",
-                          zelda3::ResolveSpriteName(i), i, category);
+        ImGui::SetTooltip(
+            tr("%s (0x%02X)\n[%s]\nClick to select for placement"),
+            zelda3::ResolveSpriteName(i), i, category);
       }
 
       // Selection highlight using theme color
@@ -243,8 +245,8 @@ class SpriteEditorPanel : public WindowContent {
       ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING);
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Room exceeds sprite limit (16 max)!\n"
-            "This may cause game crashes.");
+            tr("Room exceeds sprite limit (16 max)!\n"
+               "This may cause game crashes."));
       }
     }
 
@@ -290,8 +292,8 @@ class SpriteEditorPanel : public WindowContent {
 
       // Show position on same line
       ImGui::SameLine(ImGui::GetContentRegionAvail().x - 80);
-      ImGui::TextColored(theme.text_secondary_gray, "(%d,%d) L%d", sprite.x(),
-                         sprite.y(), sprite.layer());
+      ImGui::TextColored(theme.text_secondary_gray, tr("(%d,%d) L%d"),
+                         sprite.x(), sprite.y(), sprite.layer());
 
       ImGui::PopID();
     }

@@ -10,6 +10,7 @@
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/resource/arena.h"
 #include "imgui/imgui.h"
+#include "util/i18n/tr.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_limits.h"
@@ -415,7 +416,7 @@ void TileObjectHandler::DrawGhostPreview() {
   // Capacity tooltip while hovering — proactive warning before user clicks.
   if (capacity_state != GhostCapacityState::kNormal &&
       ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
-    ImGui::SetTooltip("Objects: %zu/%zu\n%s", current_obj_count,
+    ImGui::SetTooltip(tr("Objects: %zu/%zu\n%s"), current_obj_count,
                       zelda3::kMaxTileObjects,
                       GetPlacementCapacityTooltipSuffix(capacity_state).data());
   }

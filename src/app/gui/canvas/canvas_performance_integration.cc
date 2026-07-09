@@ -1,4 +1,5 @@
 #include "canvas_performance_integration.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <chrono>
@@ -315,15 +316,15 @@ void CanvasPerformanceIntegration::RenderPerformanceUI() {
 
     // Control buttons
     ImGui::Separator();
-    if (ImGui::Button("Toggle Detailed Metrics")) {
+    if (ImGui::Button(tr("Toggle Detailed Metrics"))) {
       show_detailed_metrics_ = !show_detailed_metrics_;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Toggle Recommendations")) {
+    if (ImGui::Button(tr("Toggle Recommendations"))) {
       show_recommendations_ = !show_recommendations_;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Export Report")) {
+    if (ImGui::Button(tr("Export Report"))) {
       std::string report = ExportPerformanceReport();
       // Could save to file or show in modal
     }
@@ -421,19 +422,19 @@ void CanvasPerformanceIntegration::AnalyzePerformance() {
 }
 
 void CanvasPerformanceIntegration::RenderPerformanceOverview() {
-  ImGui::Text("Performance Overview");
+  ImGui::Text(tr("Performance Overview"));
   ImGui::Separator();
 
   // Frame time
   ImVec4 frame_color =
       GetPerformanceColor(current_metrics_.frame_time_ms, 16.67, 33.33);
-  ImGui::TextColored(frame_color, "Frame Time: %s",
+  ImGui::TextColored(frame_color, tr("Frame Time: %s"),
                      FormatTime(current_metrics_.frame_time_ms).c_str());
 
   // Draw time
   ImVec4 draw_color =
       GetPerformanceColor(current_metrics_.draw_time_ms, 10.0, 20.0);
-  ImGui::TextColored(draw_color, "Draw Time: %s",
+  ImGui::TextColored(draw_color, tr("Draw Time: %s"),
                      FormatTime(current_metrics_.draw_time_ms).c_str());
 
   // Memory usage
@@ -441,18 +442,18 @@ void CanvasPerformanceIntegration::RenderPerformanceOverview() {
                         current_metrics_.bitmap_memory_mb +
                         current_metrics_.palette_memory_mb;
   ImVec4 memory_color = GetPerformanceColor(total_memory, 50.0, 100.0);
-  ImGui::TextColored(memory_color, "Memory: %s",
+  ImGui::TextColored(memory_color, tr("Memory: %s"),
                      FormatMemory(total_memory * 1024 * 1024).c_str());
 
   // Cache performance
   ImVec4 cache_color =
       GetPerformanceColor(current_metrics_.cache_hit_ratio * 100.0, 80.0, 60.0);
-  ImGui::TextColored(cache_color, "Cache Hit Ratio: %.1f%%",
+  ImGui::TextColored(cache_color, tr("Cache Hit Ratio: %.1f%%"),
                      current_metrics_.cache_hit_ratio * 100.0);
 }
 
 void CanvasPerformanceIntegration::RenderDetailedMetrics() {
-  ImGui::Text("Detailed Metrics");
+  ImGui::Text(tr("Detailed Metrics"));
   ImGui::Separator();
 
   // Operation counts
@@ -466,48 +467,53 @@ void CanvasPerformanceIntegration::RenderDetailedMetrics() {
 }
 
 void CanvasPerformanceIntegration::RenderMemoryUsage() {
-  if (ImGui::CollapsingHeader("Memory Usage")) {
+  if (ImGui::CollapsingHeader(tr("Memory Usage"))) {
     ImGui::Text(
-        "Texture Memory: %s",
+        tr("Texture Memory: %s"),
         FormatMemory(current_metrics_.texture_memory_mb * 1024 * 1024).c_str());
     ImGui::Text(
-        "Bitmap Memory: %s",
+        tr("Bitmap Memory: %s"),
         FormatMemory(current_metrics_.bitmap_memory_mb * 1024 * 1024).c_str());
     ImGui::Text(
-        "Palette Memory: %s",
+        tr("Palette Memory: %s"),
         FormatMemory(current_metrics_.palette_memory_mb * 1024 * 1024).c_str());
 
     size_t total = current_metrics_.texture_memory_mb +
                    current_metrics_.bitmap_memory_mb +
                    current_metrics_.palette_memory_mb;
-    ImGui::Text("Total Memory: %s", FormatMemory(total * 1024 * 1024).c_str());
+    ImGui::Text(tr("Total Memory: %s"),
+                FormatMemory(total * 1024 * 1024).c_str());
   }
 }
 
 void CanvasPerformanceIntegration::RenderOperationCounts() {
-  if (ImGui::CollapsingHeader("Operation Counts")) {
-    ImGui::Text("Draw Calls: %d", current_metrics_.draw_calls);
-    ImGui::Text("Texture Updates: %d", current_metrics_.texture_updates);
-    ImGui::Text("Palette Lookups: %d", current_metrics_.palette_lookups);
-    ImGui::Text("Bitmap Operations: %d", current_metrics_.bitmap_operations);
+  if (ImGui::CollapsingHeader(tr("Operation Counts"))) {
+    ImGui::Text(tr("Draw Calls: %d"), current_metrics_.draw_calls);
+    ImGui::Text(tr("Texture Updates: %d"), current_metrics_.texture_updates);
+    ImGui::Text(tr("Palette Lookups: %d"), current_metrics_.palette_lookups);
+    ImGui::Text(tr("Bitmap Operations: %d"),
+                current_metrics_.bitmap_operations);
 
     ImGui::Separator();
-    ImGui::Text("Canvas Operations:");
-    ImGui::Text("  Tile Paint: %d", current_metrics_.tile_paint_operations);
-    ImGui::Text("  Tile Select: %d", current_metrics_.tile_select_operations);
-    ImGui::Text("  Rectangle Select: %d",
+    ImGui::Text(tr("Canvas Operations:"));
+    ImGui::Text(tr("  Tile Paint: %d"), current_metrics_.tile_paint_operations);
+    ImGui::Text(tr("  Tile Select: %d"),
+                current_metrics_.tile_select_operations);
+    ImGui::Text(tr("  Rectangle Select: %d"),
                 current_metrics_.rectangle_select_operations);
-    ImGui::Text("  Color Paint: %d", current_metrics_.color_paint_operations);
-    ImGui::Text("  BPP Conversion: %d",
+    ImGui::Text(tr("  Color Paint: %d"),
+                current_metrics_.color_paint_operations);
+    ImGui::Text(tr("  BPP Conversion: %d"),
                 current_metrics_.bpp_conversion_operations);
   }
 }
 
 void CanvasPerformanceIntegration::RenderCachePerformance() {
-  if (ImGui::CollapsingHeader("Cache Performance")) {
-    ImGui::Text("Cache Hits: %d", current_metrics_.cache_hits);
-    ImGui::Text("Cache Misses: %d", current_metrics_.cache_misses);
-    ImGui::Text("Hit Ratio: %.1f%%", current_metrics_.cache_hit_ratio * 100.0);
+  if (ImGui::CollapsingHeader(tr("Cache Performance"))) {
+    ImGui::Text(tr("Cache Hits: %d"), current_metrics_.cache_hits);
+    ImGui::Text(tr("Cache Misses: %d"), current_metrics_.cache_misses);
+    ImGui::Text(tr("Hit Ratio: %.1f%%"),
+                current_metrics_.cache_hit_ratio * 100.0);
 
     // Cache hit ratio bar
     ImGui::ProgressBar(current_metrics_.cache_hit_ratio, ImVec2(0, 0));
@@ -515,13 +521,13 @@ void CanvasPerformanceIntegration::RenderCachePerformance() {
 }
 
 void CanvasPerformanceIntegration::RenderRecommendations() {
-  ImGui::Text("Performance Recommendations");
+  ImGui::Text(tr("Performance Recommendations"));
   ImGui::Separator();
 
   auto recommendations = GetPerformanceRecommendations();
   if (recommendations.empty()) {
     ImGui::TextColored(ImVec4(0.2F, 1.0F, 0.2F, 1.0F),
-                       "✓ Performance looks good!");
+                       tr("✓ Performance looks good!"));
   } else {
     for (const auto& rec : recommendations) {
       ImGui::TextColored(ImVec4(1.0F, 0.8F, 0.2F, 1.0F), "⚠ %s", rec.c_str());
@@ -530,7 +536,7 @@ void CanvasPerformanceIntegration::RenderRecommendations() {
 }
 
 void CanvasPerformanceIntegration::RenderPerformanceGraph() {
-  if (ImGui::CollapsingHeader("Performance Graph")) {
+  if (ImGui::CollapsingHeader(tr("Performance Graph"))) {
     // Simple performance graph using ImGui plot lines
     static std::vector<float> frame_times;
     static std::vector<float> draw_times;

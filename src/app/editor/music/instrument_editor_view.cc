@@ -1,4 +1,5 @@
 #include "app/editor/music/instrument_editor_view.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -44,13 +45,13 @@ void InstrumentEditorView::Draw(MusicBank& bank) {
           static_cast<int>(bank.GetInstrumentCount())) {
     DrawProperties(*bank.GetInstrument(selected_instrument_index_), bank);
   } else {
-    ImGui::TextDisabled("Select an instrument to edit");
+    ImGui::TextDisabled(tr("Select an instrument to edit"));
   }
   ImGui::EndChild();
 }
 
 void InstrumentEditorView::DrawInstrumentList(MusicBank& bank) {
-  if (ImGui::Button("Add Instrument")) {
+  if (ImGui::Button(tr("Add Instrument"))) {
     bank.CreateNewInstrument("New Instrument");
     if (on_edit_)
       on_edit_();
@@ -75,7 +76,7 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument,
   // Name
   char name_buf[64];
   strncpy(name_buf, instrument.name.c_str(), sizeof(name_buf));
-  if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
+  if (ImGui::InputText(tr("Name"), name_buf, sizeof(name_buf))) {
     instrument.name = name_buf;
     changed = true;
   }
@@ -87,20 +88,21 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument,
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Play a C4 note with this instrument (requires ROM loaded)");
+          tr("Play a C4 note with this instrument (requires ROM loaded)"));
     }
   } else {
     ImGui::BeginDisabled();
     ImGui::Button(ICON_MD_PLAY_ARROW " Preview");
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("Preview not available - load a ROM first");
+      ImGui::SetTooltip(tr("Preview not available - load a ROM first"));
     }
   }
 
   // Sample Selection
   if (ImGui::BeginCombo(
-          "Sample", absl::StrFormat("%02X", instrument.sample_index).c_str())) {
+          tr("Sample"),
+          absl::StrFormat("%02X", instrument.sample_index).c_str())) {
     for (size_t i = 0; i < bank.GetSampleCount(); ++i) {
       bool is_selected = (instrument.sample_index == i);
       const auto* sample = bank.GetSample(i);
@@ -120,7 +122,7 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument,
 
   // Pitch Multiplier (Tuning)
   int pitch = instrument.pitch_mult;
-  if (ImGui::InputInt("Pitch Multiplier", &pitch, 1, 16,
+  if (ImGui::InputInt(tr("Pitch Multiplier"), &pitch, 1, 16,
                       ImGuiInputTextFlags_CharsHexadecimal)) {
     instrument.pitch_mult = static_cast<uint16_t>(std::clamp(pitch, 0, 0xFFFF));
     changed = true;
@@ -131,54 +133,54 @@ void InstrumentEditorView::DrawProperties(MusicInstrument& instrument,
       "the pitch.");
 
   ImGui::Separator();
-  ImGui::Text("Envelope (ADSR)");
+  ImGui::Text(tr("Envelope (ADSR)"));
   ImGui::SameLine();
   HelpMarker("Attack, Decay, Sustain, Release envelope controls.");
 
   // ADSR Controls
   // Attack: 0-15
   int attack = instrument.attack;
-  if (ImGui::SliderInt("Attack Rate", &attack, 0, 15)) {
+  if (ImGui::SliderInt(tr("Attack Rate"), &attack, 0, 15)) {
     instrument.attack = static_cast<uint8_t>(attack);
     changed = true;
   }
   if (ImGui::IsItemHovered())
     ImGui::SetTooltip(
-        "How fast the volume reaches peak. 15 = Fastest (Instant), 0 = "
-        "Slowest.");
+        tr("How fast the volume reaches peak. 15 = Fastest (Instant), 0 = "
+           "Slowest."));
 
   // Decay: 0-7
   int decay = instrument.decay;
-  if (ImGui::SliderInt("Decay Rate", &decay, 0, 7)) {
+  if (ImGui::SliderInt(tr("Decay Rate"), &decay, 0, 7)) {
     instrument.decay = static_cast<uint8_t>(decay);
     changed = true;
   }
   if (ImGui::IsItemHovered())
     ImGui::SetTooltip(
-        "How fast volume drops from peak to Sustain Level. 7 = Fastest, 0 = "
-        "Slowest.");
+        tr("How fast volume drops from peak to Sustain Level. 7 = Fastest, 0 = "
+           "Slowest."));
 
   // Sustain Level: 0-7
   int sustain_level = instrument.sustain_level;
-  if (ImGui::SliderInt("Sustain Level", &sustain_level, 0, 7)) {
+  if (ImGui::SliderInt(tr("Sustain Level"), &sustain_level, 0, 7)) {
     instrument.sustain_level = static_cast<uint8_t>(sustain_level);
     changed = true;
   }
   if (ImGui::IsItemHovered())
     ImGui::SetTooltip(
-        "The volume level (1/8ths) to sustain at. 7 = Max Volume, 0 = "
-        "Silence.");
+        tr("The volume level (1/8ths) to sustain at. 7 = Max Volume, 0 = "
+           "Silence."));
 
   // Sustain Rate: 0-31
   int sustain_rate = instrument.sustain_rate;
-  if (ImGui::SliderInt("Sustain Rate", &sustain_rate, 0, 31)) {
+  if (ImGui::SliderInt(tr("Sustain Rate"), &sustain_rate, 0, 31)) {
     instrument.sustain_rate = static_cast<uint8_t>(sustain_rate);
     changed = true;
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip(
+    ImGui::SetTooltip(tr(
         "How fast volume decays WHILE holding the key (after reaching Sustain "
-        "Level). 0 = Infinite sustain, 31 = Fast fade out.");
+        "Level). 0 = Infinite sustain, 31 = Fast fade out."));
 
   // Gain (if not using ADSR, but usually ADSR is preferred for instruments)
   // TODO: Add Gain Mode toggle

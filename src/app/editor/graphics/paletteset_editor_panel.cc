@@ -1,4 +1,5 @@
 #include "paletteset_editor_panel.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -36,16 +37,16 @@ using gfx::PaletteCategory;
 
 absl::Status PalettesetEditorPanel::Update() {
   if (!rom() || !rom()->is_loaded() || !game_data()) {
-    Text("No ROM loaded. Please open a Zelda 3 ROM.");
+    Text(tr("No ROM loaded. Please open a Zelda 3 ROM."));
     return absl::OkStatus();
   }
 
   // Header with controls
   Text(ICON_MD_PALETTE " Paletteset Editor");
   SameLine();
-  ImGui::Checkbox("Show All Colors", &show_all_colors_);
+  ImGui::Checkbox(tr("Show All Colors"), &show_all_colors_);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Show full 16-color palettes instead of 8");
+    ImGui::SetTooltip(tr("Show full 16-color palettes instead of 8"));
   }
   Separator();
 
@@ -120,7 +121,7 @@ void PalettesetEditorPanel::DrawPalettesetEditor() {
   SetNextItemWidth(80.f);
   gui::InputHexByte("##DungeonMainIdx", &paletteset_ids[0]);
   SameLine();
-  Text("Index: %d", paletteset_ids[0]);
+  Text(tr("Index: %d"), paletteset_ids[0]);
 
   auto* dungeon_palette =
       game_data()->palette_groups.dungeon_main.mutable_palette(
@@ -150,7 +151,7 @@ void PalettesetEditorPanel::DrawPalettesetEditor() {
     SetNextItemWidth(80.f);
     gui::InputHexByte("##SpriteAuxIdx", &paletteset_ids[slot + 1]);
     SameLine();
-    Text("Index: %d", paletteset_ids[slot + 1]);
+    Text(tr("Index: %d"), paletteset_ids[slot + 1]);
 
     auto* sprite_palette =
         sprite_groups[slot]->mutable_palette(paletteset_ids[slot + 1]);
@@ -177,7 +178,7 @@ void PalettesetEditorPanel::DrawPalettePreview(gfx::SnesPalette& palette,
 void PalettesetEditorPanel::DrawPaletteGrid(gfx::SnesPalette& palette,
                                             bool editable) {
   if (palette.empty()) {
-    Text("(Empty palette)");
+    Text(tr("(Empty palette)"));
     return;
   }
 
@@ -204,9 +205,10 @@ void PalettesetEditorPanel::DrawPaletteGrid(gfx::SnesPalette& palette,
 
     if (ImGui::IsItemHovered()) {
       auto& color = palette[color_idx];
-      ImGui::SetTooltip("Color %zu\nRGB: %d, %d, %d\nSNES: $%04X", color_idx,
-                        color.rom_color().red, color.rom_color().green,
-                        color.rom_color().blue, color.snes());
+      ImGui::SetTooltip(tr("Color %zu\nRGB: %d, %d, %d\nSNES: $%04X"),
+                        color_idx, color.rom_color().red,
+                        color.rom_color().green, color.rom_color().blue,
+                        color.snes());
     }
 
     PopID();
@@ -214,7 +216,7 @@ void PalettesetEditorPanel::DrawPaletteGrid(gfx::SnesPalette& palette,
 
   if (!show_all_colors_ && palette.size() > 8) {
     SameLine();
-    Text("(+%zu more)", palette.size() - 8);
+    Text(tr("(+%zu more)"), palette.size() - 8);
   }
 }
 

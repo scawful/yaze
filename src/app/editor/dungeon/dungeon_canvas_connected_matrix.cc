@@ -1,4 +1,5 @@
 #include "dungeon_canvas_viewer.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -327,12 +328,12 @@ ConnectedControlsCompactActions DrawConnectedControlsCompact(
     float scale, int connected_room_count, bool* show_overview,
     bool* show_preview) {
   ConnectedControlsCompactActions actions;
-  ImGui::TextDisabled("%d room%s", connected_room_count,
+  ImGui::TextDisabled(tr("%d room%s"), connected_room_count,
                       connected_room_count == 1 ? "" : "s");
   ImGui::SameLine(0.0f, 8.0f);
   ImGui::TextDisabled("%.0f%%", scale * 100.0f);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Connected zoom\nF fit\n0 reset\n+/- zoom");
+    ImGui::SetTooltip(tr("Connected zoom\nF fit\n0 reset\n+/- zoom"));
   }
 
   ImGui::SameLine(0.0f, 6.0f);
@@ -340,7 +341,7 @@ ConnectedControlsCompactActions DrawConnectedControlsCompact(
     actions.fit = true;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Fit all connected rooms in view (F)");
+    ImGui::SetTooltip(tr("Fit all connected rooms in view (F)"));
   }
 
   ImGui::SameLine();
@@ -348,23 +349,23 @@ ConnectedControlsCompactActions DrawConnectedControlsCompact(
     actions.reset = true;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Reset zoom and recenter on current room (0)");
+    ImGui::SetTooltip(tr("Reset zoom and recenter on current room (0)"));
   }
 
   if (show_overview) {
     ImGui::SameLine();
-    ImGui::Checkbox("Mini##ConnectedMini", show_overview);
+    ImGui::Checkbox(tr("Mini##ConnectedMini"), show_overview);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          "Show connected overview map\nClick a room on the overview to jump");
+      ImGui::SetTooltip(tr(
+          "Show connected overview map\nClick a room on the overview to jump"));
     }
   }
 
   if (show_preview) {
     ImGui::SameLine();
-    ImGui::Checkbox("Room##ConnectedRoomPreview", show_preview);
+    ImGui::Checkbox(tr("Room##ConnectedRoomPreview"), show_preview);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Show full-resolution preview of the current room");
+      ImGui::SetTooltip(tr("Show full-resolution preview of the current room"));
     }
   }
 
@@ -410,7 +411,7 @@ ConnectedCanvasControlActions DrawConnectedCanvasControls(
         ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
     if (ImGui::SmallButton("::")) {}
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Drag controls\nDouble-click to snap back");
+      ImGui::SetTooltip(tr("Drag controls\nDouble-click to snap back"));
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         actions.reset_position = true;
       }
@@ -477,7 +478,7 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
   if (ImGui::Begin(kConnectedCanvasOverviewId, nullptr, flags)) {
     actions.hovered =
         ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-    ImGui::TextDisabled("Overview");
+    ImGui::TextDisabled(tr("Overview"));
     ImGui::InvisibleButton("##ConnectedOverviewMap", map_size,
                            ImGuiButtonFlags_MouseButtonLeft);
 
@@ -677,7 +678,7 @@ ConnectedCanvasOverviewActions DrawConnectedCanvasOverview(
 
       if (actions.hovered_room_id >= 0) {
         ImGui::SetTooltip(
-            "[%03X] %s\nRelease to open room view", actions.hovered_room_id,
+            tr("[%03X] %s\nRelease to open room view"), actions.hovered_room_id,
             zelda3::GetRoomLabel(actions.hovered_room_id).c_str());
       }
     }
@@ -722,19 +723,19 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
       connected_graph_cache_start_room_id_ == center_room_id
           ? connected_graph_cache_.room_count
           : 0;
-  ImGui::TextDisabled("%d room%s", connected_room_count,
+  ImGui::TextDisabled(tr("%d room%s"), connected_room_count,
                       connected_room_count == 1 ? "" : "s");
   if (connected_graph_cache_start_room_id_ == center_room_id &&
       connected_graph_cache_.unlinked_room_count > 0) {
     ImGui::SameLine(0.0f, 6.0f);
-    ImGui::TextColored(AgentUI::GetTheme().status_warning, "%d unlinked",
+    ImGui::TextColored(AgentUI::GetTheme().status_warning, tr("%d unlinked"),
                        connected_graph_cache_.unlinked_room_count);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Project rooms shown in this dungeon scope but not reachable from "
-          "the current room through resolved ROM doors, staircases, or "
-          "holewarps. They stay visible so broken connections are easier to "
-          "repair.");
+          tr("Project rooms shown in this dungeon scope but not reachable from "
+             "the current room through resolved ROM doors, staircases, or "
+             "holewarps. They stay visible so broken connections are easier to "
+             "repair."));
     }
   }
   if (connected_graph_cache_start_room_id_ == center_room_id &&
@@ -751,7 +752,7 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
                              agent_theme, connected_graph_cache_, floor_label),
                          "%s:%d", floor_label.c_str(), floor_count);
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s rooms in this unified connected view",
+        ImGui::SetTooltip(tr("%s rooms in this unified connected view"),
                           floor_label.c_str());
       }
     }
@@ -764,7 +765,8 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
     ImGui::SameLine(0.0f, 6.0f);
     ImGui::TextColored(gui::ConvertColorToImVec4(
                            gui::ThemeManager::Get().GetCurrentTheme().warning),
-                       "%zu issue%s", issue_count, issue_count == 1 ? "" : "s");
+                       tr("%zu issue%s"), issue_count,
+                       issue_count == 1 ? "" : "s");
     if (ImGui::IsItemHovered()) {
       std::string tooltip(
           "Staircase configuration anomalies in this connected component:\n"
@@ -791,10 +793,10 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
       ApplyConnectedStaircaseIssueAutoFixes(center_room_id);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
+      ImGui::SetTooltip(tr(
           "Clear stale non-zero staircase header slots that no placed "
           "interroom-stair object consumes. This marks room headers dirty but "
-          "does not guess missing destinations or delete extra objects.");
+          "does not guess missing destinations or delete extra objects."));
     }
   }
   const size_t out_of_scope_count =
@@ -805,7 +807,7 @@ void DungeonCanvasViewer::DrawConnectedToolbarControls(int center_room_id) {
     ImGui::SameLine(0.0f, 6.0f);
     ImGui::TextColored(gui::ConvertColorToImVec4(
                            gui::ThemeManager::Get().GetCurrentTheme().info),
-                       "%zu out-of-scope", out_of_scope_count);
+                       tr("%zu out-of-scope"), out_of_scope_count);
     if (ImGui::IsItemHovered()) {
       std::string tooltip(
           "Resolved links that leave the current dungeon group. Hidden from\n"
@@ -843,15 +845,15 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     int center_room_id) {
   current_room_id_ = center_room_id;
   if (center_room_id < 0 || center_room_id >= zelda3::kNumberOfRooms) {
-    ImGui::Text("Invalid room ID: %d", center_room_id);
+    ImGui::Text(tr("Invalid room ID: %d"), center_room_id);
     return std::nullopt;
   }
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::Text("ROM not loaded");
+    ImGui::Text(tr("ROM not loaded"));
     return std::nullopt;
   }
   if (!rooms_) {
-    ImGui::TextDisabled("Room data unavailable");
+    ImGui::TextDisabled(tr("Room data unavailable"));
     return std::nullopt;
   }
 
@@ -1400,7 +1402,7 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
               : viewport_screen_min.y + kConnectedCurrentRoomPreviewPadding);
       gui::DrawCanvasHUD(
           kConnectedCurrentRoomHudId, preview_pos, ImVec2(0, 0), [&]() {
-            ImGui::Text("Current Room");
+            ImGui::Text(tr("Current Room"));
             ImGui::TextDisabled(
                 "[%03X] %s", center_room_id,
                 dungeon_project_labels::GetRoomLabel(project_, center_room_id)

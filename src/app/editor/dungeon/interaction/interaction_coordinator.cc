@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
 #include "app/editor/dungeon/object_selection.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -1218,7 +1219,7 @@ void InteractionCoordinator::DrawSelectionCycleHud() {
       ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoNav |
       ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoInputs;
   if (ImGui::Begin("##DungeonSelectionCycleHud", nullptr, kFlags)) {
-    ImGui::TextColored(secondary, "Cycle");
+    ImGui::TextColored(secondary, tr("Cycle"));
     for (size_t i = 0; i < cycle_last_hits_.size(); ++i) {
       const char* marker = (i == cycle_active_index_) ? "[X]" : "[ ]";
       ImGui::TextColored(i == cycle_active_index_ ? active : secondary, "%s",

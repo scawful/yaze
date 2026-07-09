@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
@@ -77,7 +78,7 @@ class DungeonRoomPanel : public ResourceWindowContent {
 
   void Draw(bool* p_open) override {
     if (!room_ || !canvas_viewer_) {
-      ImGui::TextColored(ImVec4(1, 0, 0, 1), "Room data unavailable");
+      ImGui::TextColored(ImVec4(1, 0, 0, 1), tr("Room data unavailable"));
       return;
     }
 
@@ -85,7 +86,7 @@ class DungeonRoomPanel : public ResourceWindowContent {
     if (!room_->IsLoaded() && room_loader_) {
       auto status = room_loader_->LoadRoom(room_id_, *room_);
       if (!status.ok()) {
-        ImGui::TextColored(ImVec4(1, 0, 0, 1), "Failed to load room: %s",
+        ImGui::TextColored(ImVec4(1, 0, 0, 1), tr("Failed to load room: %s"),
                            status.message().data());
         return;
       }
@@ -120,10 +121,10 @@ class DungeonRoomPanel : public ResourceWindowContent {
                          ICON_MD_PENDING " Loading...");
     }
     ImGui::SameLine();
-    ImGui::TextDisabled("Objects: %zu", room_->GetTileObjects().size());
+    ImGui::TextDisabled(tr("Objects: %zu"), room_->GetTileObjects().size());
 
     // Room Controls
-    if (ImGui::CollapsingHeader("Room Controls")) {
+    if (ImGui::CollapsingHeader(tr("Room Controls"))) {
       if (ImGui::Button(ICON_MD_REFRESH " Reload Graphics & Objects",
                         ImVec2(-FLT_MIN, 0))) {
         room_->ReloadGraphics();
@@ -135,7 +136,7 @@ class DungeonRoomPanel : public ResourceWindowContent {
       }
 
       ImGui::Separator();
-      ImGui::Text("Floor Graphics Override:");
+      ImGui::Text(tr("Floor Graphics Override:"));
 
       uint8_t floor1 = room_->floor1();
       uint8_t floor2 = room_->floor2();

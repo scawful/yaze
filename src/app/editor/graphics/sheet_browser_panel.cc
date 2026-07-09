@@ -1,4 +1,5 @@
 #include "app/editor/graphics/sheet_browser_panel.h"
+#include "util/i18n/tr.h"
 
 #include <cstdlib>
 #include <cstring>
@@ -40,7 +41,7 @@ absl::Status SheetBrowserPanel::Update() {
 }
 
 void SheetBrowserPanel::DrawSearchBar() {
-  ImGui::Text("Search:");
+  ImGui::Text(tr("Search:"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetHexInputWidth());
   if (ImGui::InputText("##SheetSearch", search_buffer_, sizeof(search_buffer_),
@@ -65,7 +66,7 @@ void SheetBrowserPanel::DrawSearchBar() {
   ImGui::DragInt("##FilterMax", &filter_max_, 1.0f, 0, 222, "%02X");
 
   ImGui::SameLine();
-  ImGui::Checkbox("Modified", &show_only_modified_);
+  ImGui::Checkbox(tr("Modified"), &show_only_modified_);
   HOVER_HINT("Show only modified sheets");
 }
 
@@ -82,7 +83,7 @@ void SheetBrowserPanel::DrawBatchOperations() {
 
   if (!state_->selected_sheets.empty()) {
     ImGui::SameLine();
-    ImGui::Text("(%zu selected)", state_->selected_sheets.size());
+    ImGui::Text(tr("(%zu selected)"), state_->selected_sheets.size());
   }
 
   // Thumbnail size slider
@@ -229,15 +230,15 @@ void SheetBrowserPanel::DrawSheetThumbnail(int sheet_id, gfx::Bitmap& bitmap) {
   // Tooltip with sheet info
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    ImGui::Text("Sheet: 0x%02X (%d)", sheet_id, sheet_id);
+    ImGui::Text(tr("Sheet: 0x%02X (%d)"), sheet_id, sheet_id);
     if (bitmap.is_active()) {
-      ImGui::Text("Size: %dx%d", bitmap.width(), bitmap.height());
-      ImGui::Text("Depth: %d bpp", bitmap.depth());
+      ImGui::Text(tr("Size: %dx%d"), bitmap.width(), bitmap.height());
+      ImGui::Text(tr("Depth: %d bpp"), bitmap.depth());
     } else {
-      ImGui::Text("(Inactive)");
+      ImGui::Text(tr("(Inactive)"));
     }
     if (is_modified) {
-      ImGui::TextColored(gui::GetModifiedColor(), "Modified");
+      ImGui::TextColored(gui::GetModifiedColor(), tr("Modified"));
     }
     ImGui::EndTooltip();
   }

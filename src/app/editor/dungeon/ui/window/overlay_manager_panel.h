@@ -4,6 +4,7 @@
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
+#include "util/i18n/tr.h"
 
 namespace yaze::editor {
 
@@ -52,11 +53,11 @@ class OverlayManagerPanel : public WindowContent {
     }
 
     // Quick actions
-    if (ImGui::SmallButton("All On")) {
+    if (ImGui::SmallButton(tr("All On"))) {
       SetAll(true);
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("All Off")) {
+    if (ImGui::SmallButton(tr("All Off"))) {
       SetAll(false);
     }
     ImGui::Separator();

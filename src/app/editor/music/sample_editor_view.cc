@@ -1,4 +1,5 @@
 #include "app/editor/music/sample_editor_view.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -43,7 +44,7 @@ void SampleEditorView::Draw(MusicBank& bank) {
       selected_sample_index_ < static_cast<int>(bank.GetSampleCount())) {
     DrawProperties(*bank.GetSample(selected_sample_index_));
   } else {
-    ImGui::TextDisabled("Select a sample");
+    ImGui::TextDisabled(tr("Select a sample"));
   }
   ImGui::EndChild();
 
@@ -58,7 +59,7 @@ void SampleEditorView::Draw(MusicBank& bank) {
 }
 
 void SampleEditorView::DrawSampleList(MusicBank& bank) {
-  if (ImGui::Button("Import WAV/BRR")) {
+  if (ImGui::Button(tr("Import WAV/BRR"))) {
     // TODO: Implement file dialog for BRR import
     // For now, we simulate an import with a dummy sine wave
     auto result = bank.ImportSampleFromWav("dummy.wav", "New Sample");
@@ -84,13 +85,13 @@ void SampleEditorView::DrawSampleList(MusicBank& bank) {
 void SampleEditorView::DrawProperties(MusicSample& sample) {
   bool changed = false;
 
-  ImGui::Text("Sample Properties");
+  ImGui::Text(tr("Sample Properties"));
   ImGui::Separator();
 
   // Name
   char name_buf[64];
   strncpy(name_buf, sample.name.c_str(), sizeof(name_buf));
-  if (ImGui::InputText("Name", name_buf, sizeof(name_buf))) {
+  if (ImGui::InputText(tr("Name"), name_buf, sizeof(name_buf))) {
     sample.name = name_buf;
     changed = true;
   }
@@ -98,14 +99,14 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
   ImGui::Spacing();
 
   // Size Info
-  ImGui::Text("BRR Size: %zu bytes", sample.brr_data.size());
+  ImGui::Text(tr("BRR Size: %zu bytes"), sample.brr_data.size());
   int blocks = static_cast<int>(sample.brr_data.size() / 9);
-  ImGui::Text("Blocks: %d", blocks);
-  ImGui::Text("Duration: %.3f s", (blocks * 16) / 32040.0f);
+  ImGui::Text(tr("Blocks: %d"), blocks);
+  ImGui::Text(tr("Duration: %.3f s"), (blocks * 16) / 32040.0f);
 
   ImGui::Spacing();
   ImGui::Separator();
-  ImGui::Text("Loop Settings");
+  ImGui::Text(tr("Loop Settings"));
   ImGui::SameLine();
   HelpMarker(
       "SNES samples can loop. The loop point is defined in BRR blocks (groups "
@@ -113,7 +114,7 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
 
   // Loop Flag
   bool loops = sample.loops;
-  if (ImGui::Checkbox("Loop Enabled", &loops)) {
+  if (ImGui::Checkbox(tr("Loop Enabled"), &loops)) {
     sample.loops = loops;
     changed = true;
   }
@@ -124,15 +125,15 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
   int max_block = std::max(0, blocks - 1);
 
   if (loops) {
-    if (ImGui::SliderInt("Loop Start (Block)", &loop_block, 0, max_block)) {
+    if (ImGui::SliderInt(tr("Loop Start (Block)"), &loop_block, 0, max_block)) {
       sample.loop_point = loop_block * 9;
       changed = true;
     }
-    ImGui::TextDisabled("Offset: $%04X bytes", sample.loop_point);
-    ImGui::TextDisabled("Sample: %d", loop_block * 16);
+    ImGui::TextDisabled(tr("Offset: $%04X bytes"), sample.loop_point);
+    ImGui::TextDisabled(tr("Sample: %d"), loop_block * 16);
   } else {
     ImGui::BeginDisabled();
-    ImGui::SliderInt("Loop Start (Block)", &loop_block, 0, max_block);
+    ImGui::SliderInt(tr("Loop Start (Block)"), &loop_block, 0, max_block);
     ImGui::EndDisabled();
   }
 
@@ -145,14 +146,14 @@ void SampleEditorView::DrawProperties(MusicSample& sample) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Play this sample at default pitch (requires ROM loaded)");
+          tr("Play this sample at default pitch (requires ROM loaded)"));
     }
   } else {
     ImGui::BeginDisabled();
     ImGui::Button(ICON_MD_PLAY_ARROW " Preview Sample");
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      ImGui::SetTooltip("Preview not available - load a ROM first");
+      ImGui::SetTooltip(tr("Preview not available - load a ROM first"));
     }
   }
 
@@ -166,8 +167,8 @@ void SampleEditorView::DrawWaveform(const MusicSample& sample) {
   yaze::gui::plotting::EnsureImPlotContext();
 
   if (sample.pcm_data.empty()) {
-    ImGui::TextDisabled("Empty sample (No PCM data)");
-    ImGui::TextWrapped("Import a WAV file or BRR sample to view waveform.");
+    ImGui::TextDisabled(tr("Empty sample (No PCM data)"));
+    ImGui::TextWrapped(tr("Import a WAV file or BRR sample to view waveform."));
     return;
   }
 

@@ -1,4 +1,5 @@
 #include "app/editor/music/piano_roll_view.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -84,7 +85,7 @@ int GetChannelInstrument(const MusicTrack& track, int fallback) {
 
 void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
   if (!song || song->segments.empty()) {
-    ImGui::TextDisabled("No song loaded");
+    ImGui::TextDisabled(tr("No song loaded"));
     return;
   }
 
@@ -197,11 +198,11 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         if (evt.type == TrackEvent::Type::Note) {
           ImGui::Text(ICON_MD_MUSIC_NOTE " Note %s",
                       evt.note.GetNoteName().c_str());
-          ImGui::Text("Tick: %d", evt.tick);
+          ImGui::Text(tr("Tick: %d"), evt.tick);
           ImGui::Separator();
 
           // Velocity slider (0-127)
-          ImGui::Text("Velocity:");
+          ImGui::Text(tr("Velocity:"));
           ImGui::SameLine();
           int velocity = evt.note.velocity;
           ImGui::SetNextItemWidth(120);
@@ -212,11 +213,11 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
             evt.note.velocity = static_cast<uint8_t>(velocity);
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Articulation/velocity (0 = default)");
+            ImGui::SetTooltip(tr("Articulation/velocity (0 = default)"));
           }
 
           // Duration slider (1-192 ticks, quarter = 72)
-          ImGui::Text("Duration:");
+          ImGui::Text(tr("Duration:"));
           ImGui::SameLine();
           int duration = evt.note.duration;
           ImGui::SetNextItemWidth(120);
@@ -227,42 +228,42 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
             evt.note.duration = static_cast<uint8_t>(duration);
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Duration in ticks (quarter = 72)");
+            ImGui::SetTooltip(tr("Duration in ticks (quarter = 72)"));
           }
 
           ImGui::Separator();
-          ImGui::Text("Quick Duration:");
-          if (ImGui::MenuItem("Whole (288)")) {
+          ImGui::Text(tr("Quick Duration:"));
+          if (ImGui::MenuItem(tr("Whole (288)"))) {
             if (on_edit_) {
               on_edit_();
             }
             evt.note.duration = 0xFE;  // Max duration
           }
-          if (ImGui::MenuItem("Half (144)")) {
+          if (ImGui::MenuItem(tr("Half (144)"))) {
             if (on_edit_) {
               on_edit_();
             }
             evt.note.duration = 144;
           }
-          if (ImGui::MenuItem("Quarter (72)")) {
+          if (ImGui::MenuItem(tr("Quarter (72)"))) {
             if (on_edit_) {
               on_edit_();
             }
             evt.note.duration = kDurationQuarter;
           }
-          if (ImGui::MenuItem("Eighth (36)")) {
+          if (ImGui::MenuItem(tr("Eighth (36)"))) {
             if (on_edit_) {
               on_edit_();
             }
             evt.note.duration = kDurationEighth;
           }
-          if (ImGui::MenuItem("Sixteenth (18)")) {
+          if (ImGui::MenuItem(tr("Sixteenth (18)"))) {
             if (on_edit_) {
               on_edit_();
             }
             evt.note.duration = kDurationSixteenth;
           }
-          if (ImGui::MenuItem("32nd (9)")) {
+          if (ImGui::MenuItem(tr("32nd (9)"))) {
             if (on_edit_) {
               on_edit_();
             }
@@ -297,7 +298,7 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         empty_context_.tick >= 0) {
       ImGui::Text(ICON_MD_ADD " Add Note");
       ImGui::Separator();
-      if (ImGui::MenuItem("Quarter note")) {
+      if (ImGui::MenuItem(tr("Quarter note"))) {
         auto& t = song->segments[empty_context_.segment]
                       .tracks[empty_context_.channel];
         TrackEvent evt = TrackEvent::MakeNote(
@@ -309,7 +310,7 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         if (on_note_preview_)
           on_note_preview_(evt, empty_context_.segment, empty_context_.channel);
       }
-      if (ImGui::MenuItem("Eighth note")) {
+      if (ImGui::MenuItem(tr("Eighth note"))) {
         auto& t = song->segments[empty_context_.segment]
                       .tracks[empty_context_.channel];
         TrackEvent evt = TrackEvent::MakeNote(
@@ -321,7 +322,7 @@ void PianoRollView::Draw(MusicSong* song, const MusicBank* bank) {
         if (on_note_preview_)
           on_note_preview_(evt, empty_context_.segment, empty_context_.channel);
       }
-      if (ImGui::MenuItem("Sixteenth note")) {
+      if (ImGui::MenuItem(tr("Sixteenth note"))) {
         auto& t = song->segments[empty_context_.segment]
                       .tracks[empty_context_.channel];
         TrackEvent evt = TrackEvent::MakeNote(
@@ -592,7 +593,7 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
       }
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Play Segment");
+      ImGui::SetTooltip(tr("Play Segment"));
   }
 
   ImGui::SameLine();
@@ -662,7 +663,7 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
       ImGui::EndCombo();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Instrument for new notes");
+      ImGui::SetTooltip(tr("Instrument for new notes"));
     }
   }
 
@@ -677,14 +678,14 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
   gui::SliderFloatWheel("##ZoomX", &pixels_per_tick_, 0.5f, 10.0f, "%.1f", 0.2f,
                         ImGuiSliderFlags_AlwaysClamp);
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Horizontal Zoom (px/tick)");
+    ImGui::SetTooltip(tr("Horizontal Zoom (px/tick)"));
 
   ImGui::SameLine();
   ImGui::SetNextItemWidth(ImGui::GetFontSize() * 3.0f);
   gui::SliderFloatWheel("##ZoomY", &key_height_, 6.0f, 24.0f, "%.0f", 0.5f,
                         ImGuiSliderFlags_AlwaysClamp);
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Vertical Zoom (px/key)");
+    ImGui::SetTooltip(tr("Vertical Zoom (px/key)"));
 
   ImGui::SameLine();
   ImGui::TextDisabled("|");
@@ -701,7 +702,7 @@ void PianoRollView::DrawToolbar(const MusicSong* song, const MusicBank* bank) {
       snap_guard.emplace(ImGuiCol_Button,
                          ImGui::GetStyleColorVec4(ImGuiCol_ButtonActive));
     }
-    if (ImGui::Button("Snap")) {
+    if (ImGui::Button(tr("Snap"))) {
       snap_enabled_ = !snap_enabled_;
     }
   }
@@ -798,7 +799,7 @@ void PianoRollView::DrawChannelList(const MusicSong* song) {
       }
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Mute");
+      ImGui::SetTooltip(tr("Mute"));
 
     ImGui::SameLine();
 
@@ -821,12 +822,12 @@ void PianoRollView::DrawChannelList(const MusicSong* song) {
       }
     }
     if (ImGui::IsItemHovered())
-      ImGui::SetTooltip("Solo");
+      ImGui::SetTooltip(tr("Solo"));
 
     ImGui::SameLine();
 
     // Channel number
-    ImGui::TextDisabled("Ch %d", i + 1);
+    ImGui::TextDisabled(tr("Ch %d"), i + 1);
 
     ImGui::PopID();
   }
@@ -850,8 +851,8 @@ void PianoRollView::DrawStatusBar(const MusicSong* /*song*/) {
     ImGui::SameLine(ImGui::GetContentRegionAvail().x - 420);
 
     // Keyboard hints
-    ImGui::TextDisabled(
-        "Click: Add | Drag: Move | Ctrl+Wheel: Zoom X | Shift+Wheel: Zoom Y");
+    ImGui::TextDisabled(tr(
+        "Click: Add | Drag: Move | Ctrl+Wheel: Zoom X | Shift+Wheel: Zoom Y"));
   }
   ImGui::EndChild();
 }
@@ -1241,7 +1242,7 @@ void PianoRollView::DrawNotes(ImDrawList* draw_list, const MusicSong* song,
           hovered_event_index_ = static_cast<int>(idx);
           hovered_channel_index_ = active_channel_index_;
           hovered_segment_index_ = active_segment_index_;
-          ImGui::SetTooltip("Ch %d | %s\nTick: %d | Dur: %d",
+          ImGui::SetTooltip(tr("Ch %d | %s\nTick: %d | Dur: %d"),
                             active_channel_index_ + 1,
                             event.note.GetNoteName().c_str(), event.tick,
                             event.note.duration);

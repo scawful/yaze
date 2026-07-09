@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "app/editor/music/music_player.h"
 #include "app/editor/music/piano_roll_view.h"
@@ -59,7 +60,7 @@ class MusicPianoRollPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!music_bank_ || !piano_roll_view_ || !current_song_index_) {
-      ImGui::TextDisabled("Music bank not loaded");
+      ImGui::TextDisabled(tr("Music bank not loaded"));
       return;
     }
 

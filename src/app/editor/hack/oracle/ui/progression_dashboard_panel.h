@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/registry/content_registry.h"
@@ -105,7 +106,7 @@ class ProgressionDashboardPanel : public WindowContent {
   }
 
   void DrawSrmImportControls() {
-    ImGui::Text("SRAM (.srm)");
+    ImGui::Text(tr("SRAM (.srm)"));
 
     util::FileDialogOptions options;
     options.filters = {
@@ -113,7 +114,7 @@ class ProgressionDashboardPanel : public WindowContent {
         {"All Files", "*"},
     };
 
-    if (ImGui::Button("Import...")) {
+    if (ImGui::Button(tr("Import..."))) {
       std::string file_path =
           util::FileDialogWrapper::ShowOpenFileDialog(options);
       if (!file_path.empty()) {
@@ -134,7 +135,7 @@ class ProgressionDashboardPanel : public WindowContent {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Clear")) {
+    if (ImGui::Button(tr("Clear"))) {
       state_ = core::OracleProgressionState();
       game_state_slider_ = 0;
       loaded_srm_path_.clear();
@@ -150,16 +151,16 @@ class ProgressionDashboardPanel : public WindowContent {
 
     if (!loaded_srm_path_.empty()) {
       const std::filesystem::path p(loaded_srm_path_);
-      ImGui::TextDisabled("Loaded: %s", p.filename().string().c_str());
+      ImGui::TextDisabled(tr("Loaded: %s"), p.filename().string().c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", loaded_srm_path_.c_str());
       }
     } else {
-      ImGui::TextDisabled("Loaded: (none)");
+      ImGui::TextDisabled(tr("Loaded: (none)"));
     }
 
     if (!last_srm_error_.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "Error: %s",
+      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), tr("Error: %s"),
                          last_srm_error_.c_str());
     }
 
@@ -170,20 +171,20 @@ class ProgressionDashboardPanel : public WindowContent {
     const bool connected = live_client_ && live_client_->IsConnected();
 
     ImGui::Spacing();
-    ImGui::Text("Live SRAM (Mesen2)");
+    ImGui::Text(tr("Live SRAM (Mesen2)"));
     ImGui::SameLine();
     if (connected) {
-      ImGui::TextColored(ImVec4(0.25f, 0.85f, 0.35f, 1.0f), "Connected");
+      ImGui::TextColored(ImVec4(0.25f, 0.85f, 0.35f, 1.0f), tr("Connected"));
     } else {
-      ImGui::TextDisabled("Disconnected");
+      ImGui::TextDisabled(tr("Disconnected"));
     }
 
-    if (ImGui::SmallButton("Sync from Mesen")) {
+    if (ImGui::SmallButton(tr("Sync from Mesen"))) {
       live_refresh_pending_.store(false);
       RefreshStateFromLiveSram();
     }
     ImGui::SameLine();
-    ImGui::Checkbox("Auto (event-driven)", &live_sync_enabled_);
+    ImGui::Checkbox(tr("Auto (event-driven)"), &live_sync_enabled_);
     if (live_sync_enabled_) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(70.0f);
@@ -192,11 +193,11 @@ class ProgressionDashboardPanel : public WindowContent {
     }
 
     if (!connected) {
-      ImGui::TextDisabled("Use a Mesen panel to connect (shared client).");
+      ImGui::TextDisabled(tr("Use a Mesen panel to connect (shared client)."));
     }
 
     if (!live_sync_error_.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f), "Live sync: %s",
+      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f), tr("Live sync: %s"),
                          live_sync_error_.c_str());
     }
   }
@@ -224,7 +225,7 @@ class ProgressionDashboardPanel : public WindowContent {
   }
 
   void DrawCrystalTracker() {
-    ImGui::Text("Crystal Tracker");
+    ImGui::Text(tr("Crystal Tracker"));
     ImGui::Spacing();
 
     float item_width = 44.0f;
@@ -254,11 +255,11 @@ class ProgressionDashboardPanel : public WindowContent {
         ImGui::SameLine();
     }
 
-    ImGui::Text("Crystals: %d / 7", state_.GetCrystalCount());
+    ImGui::Text(tr("Crystals: %d / 7"), state_.GetCrystalCount());
   }
 
   void DrawGameState() {
-    ImGui::Text("Game State");
+    ImGui::Text(tr("Game State"));
     ImGui::Spacing();
 
     // Phase labels
@@ -288,11 +289,11 @@ class ProgressionDashboardPanel : public WindowContent {
     }
 
     ImGui::Dummy(ImVec2(0, 30));
-    ImGui::Text("Phase: %s", state_.GetGameStateName().c_str());
+    ImGui::Text(tr("Phase: %s"), state_.GetGameStateName().c_str());
   }
 
   void DrawDungeonGrid() {
-    ImGui::Text("Dungeon Completion");
+    ImGui::Text(tr("Dungeon Completion"));
     ImGui::Spacing();
 
     struct DungeonInfo {
@@ -333,19 +334,19 @@ class ProgressionDashboardPanel : public WindowContent {
       return;
 
     // OOSPROG bits
-    ImGui::Text("OOSPROG ($7EF3D6): 0x%02X", state_.oosprog);
+    ImGui::Text(tr("OOSPROG ($7EF3D6): 0x%02X"), state_.oosprog);
     DrawBitGrid("oosprog", state_.oosprog, oosprog_labels_);
 
     ImGui::Spacing();
 
     // OOSPROG2 bits
-    ImGui::Text("OOSPROG2 ($7EF3C6): 0x%02X", state_.oosprog2);
+    ImGui::Text(tr("OOSPROG2 ($7EF3C6): 0x%02X"), state_.oosprog2);
     DrawBitGrid("oosprog2", state_.oosprog2, oosprog2_labels_);
 
     ImGui::Spacing();
 
     // Side quest
-    ImGui::Text("SideQuest ($7EF3D7): 0x%02X", state_.side_quest);
+    ImGui::Text(tr("SideQuest ($7EF3D7): 0x%02X"), state_.side_quest);
 
     ImGui::TreePop();
   }
@@ -373,22 +374,22 @@ class ProgressionDashboardPanel : public WindowContent {
     if (!ImGui::TreeNode("Manual Controls"))
       return;
 
-    ImGui::SliderInt("Game State", &game_state_slider_, 0, 3);
+    ImGui::SliderInt(tr("Game State"), &game_state_slider_, 0, 3);
     if (game_state_slider_ != state_.game_state) {
       state_.game_state = static_cast<uint8_t>(game_state_slider_);
     }
 
     int crystal_int = state_.crystal_bitfield;
-    if (ImGui::SliderInt("Crystal Bits", &crystal_int, 0, 127)) {
+    if (ImGui::SliderInt(tr("Crystal Bits"), &crystal_int, 0, 127)) {
       state_.crystal_bitfield = static_cast<uint8_t>(crystal_int);
     }
 
-    if (ImGui::Button("Clear All")) {
+    if (ImGui::Button(tr("Clear All"))) {
       state_ = core::OracleProgressionState();
       game_state_slider_ = 0;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Complete All")) {
+    if (ImGui::Button(tr("Complete All"))) {
       state_.crystal_bitfield = 0x7F;
       state_.game_state = 3;
       game_state_slider_ = 3;

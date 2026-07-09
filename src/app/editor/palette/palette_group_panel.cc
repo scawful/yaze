@@ -1,4 +1,5 @@
 #include "palette_group_panel.h"
+#include "util/i18n/tr.h"
 
 #include <cctype>
 #include <chrono>
@@ -179,7 +180,7 @@ void PaletteGroupPanel::Draw(bool* p_open) {
       ImGui::Separator();
       DrawMetadataInfo();
     } else {
-      ImGui::TextDisabled("Select a color to edit");
+      ImGui::TextDisabled(tr("Select a color to edit"));
       ImGui::Separator();
       DrawMetadataInfo();
     }
@@ -213,7 +214,7 @@ void PaletteGroupPanel::DrawToolbar() {
   ImGui::EndDisabled();
   if (!has_changes &&
       ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip("No palette changes to save");
+    ImGui::SetTooltip(tr("No palette changes to save"));
   }
 
   ImGui::SameLine();
@@ -226,7 +227,7 @@ void PaletteGroupPanel::DrawToolbar() {
   ImGui::EndDisabled();
   if (!has_changes &&
       ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip("No palette changes to discard");
+    ImGui::SetTooltip(tr("No palette changes to discard"));
   }
 
   ImGui::SameLine();
@@ -242,7 +243,7 @@ void PaletteGroupPanel::DrawToolbar() {
         }
       }
     }
-    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), "%s %zu modified",
+    ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.0f, 1.0f), tr("%s %zu modified"),
                        ICON_MD_EDIT, modified_count);
   }
 
@@ -258,7 +259,7 @@ void PaletteGroupPanel::DrawToolbar() {
   }
   ImGui::EndDisabled();
   if (!can_undo && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip("Nothing to undo");
+    ImGui::SetTooltip(tr("Nothing to undo"));
   }
 
   ImGui::SameLine();
@@ -269,7 +270,7 @@ void PaletteGroupPanel::DrawToolbar() {
   }
   ImGui::EndDisabled();
   if (!can_redo && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip("Nothing to redo");
+    ImGui::SetTooltip(tr("Nothing to redo"));
   }
 
   ImGui::SameLine();
@@ -302,7 +303,7 @@ void PaletteGroupPanel::DrawPaletteSelector() {
 
   int num_palettes = palette_group->size();
 
-  ImGui::Text("Palette:");
+  ImGui::Text(tr("Palette:"));
   ImGui::SameLine();
 
   ImGui::SetNextItemWidth(LayoutHelpers::GetStandardInputWidth());
@@ -373,7 +374,7 @@ void PaletteGroupPanel::DrawColorPicker() {
 
   // Current vs Original comparison
   ImGui::Separator();
-  ImGui::Text("Current vs Original");
+  ImGui::Text(tr("Current vs Original"));
 
   ImGui::ColorButton("##current", col,
                      ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_NoPicker,
@@ -394,7 +395,7 @@ void PaletteGroupPanel::DrawColorPicker() {
   }
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Click to restore original color");
+    ImGui::SetTooltip(tr("Click to restore original color"));
   }
 
   // Reset button
@@ -418,14 +419,14 @@ void PaletteGroupPanel::DrawColorInfo() {
   int b = static_cast<int>(col.z);
 
   // RGB values
-  ImGui::Text("RGB (0-255): (%d, %d, %d)", r, g, b);
+  ImGui::Text(tr("RGB (0-255): (%d, %d, %d)"), r, g, b);
   if (ImGui::IsItemClicked()) {
     ImGui::SetClipboardText(absl::StrFormat("(%d, %d, %d)", r, g, b).c_str());
   }
 
   // SNES BGR555 value
   if (show_snes_format_) {
-    ImGui::Text("SNES BGR555: $%04X", editing_color_.snes());
+    ImGui::Text(tr("SNES BGR555: $%04X"), editing_color_.snes());
     if (ImGui::IsItemClicked()) {
       ImGui::SetClipboardText(
           absl::StrFormat("$%04X", editing_color_.snes()).c_str());
@@ -434,14 +435,14 @@ void PaletteGroupPanel::DrawColorInfo() {
 
   // Hex value
   if (show_hex_format_) {
-    ImGui::Text("Hex: #%02X%02X%02X", r, g, b);
+    ImGui::Text(tr("Hex: #%02X%02X%02X"), r, g, b);
     if (ImGui::IsItemClicked()) {
       ImGui::SetClipboardText(
           absl::StrFormat("#%02X%02X%02X", r, g, b).c_str());
     }
   }
 
-  ImGui::TextDisabled("Click any value to copy");
+  ImGui::TextDisabled(tr("Click any value to copy"));
 }
 
 void PaletteGroupPanel::DrawMetadataInfo() {
@@ -454,11 +455,11 @@ void PaletteGroupPanel::DrawMetadataInfo() {
   SectionHeader("Palette Metadata");
 
   // Palette ID
-  ImGui::Text("Palette ID: %d", pal_meta.palette_id);
+  ImGui::Text(tr("Palette ID: %d"), pal_meta.palette_id);
 
   // Name
   if (!pal_meta.name.empty()) {
-    ImGui::Text("Name: %s", pal_meta.name.c_str());
+    ImGui::Text(tr("Name: %s"), pal_meta.name.c_str());
   }
 
   // Description
@@ -469,42 +470,42 @@ void PaletteGroupPanel::DrawMetadataInfo() {
   ImGui::Separator();
 
   // Palette dimensions and color depth
-  ImGui::Text("Dimensions: %d colors (%dx%d)", metadata.colors_per_palette,
+  ImGui::Text(tr("Dimensions: %d colors (%dx%d)"), metadata.colors_per_palette,
               metadata.colors_per_row,
               (metadata.colors_per_palette + metadata.colors_per_row - 1) /
                   metadata.colors_per_row);
 
-  ImGui::Text("Color Depth: %d BPP (4-bit SNES)", 4);
-  ImGui::TextDisabled("(16 colors per palette possible)");
+  ImGui::Text(tr("Color Depth: %d BPP (4-bit SNES)"), 4);
+  ImGui::TextDisabled(tr("(16 colors per palette possible)"));
 
   ImGui::Separator();
 
   // ROM Address
-  ImGui::Text("ROM Address: $%06X", pal_meta.rom_address);
+  ImGui::Text(tr("ROM Address: $%06X"), pal_meta.rom_address);
   if (ImGui::IsItemClicked()) {
     ImGui::SetClipboardText(
         absl::StrFormat("$%06X", pal_meta.rom_address).c_str());
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Click to copy address");
+    ImGui::SetTooltip(tr("Click to copy address"));
   }
 
   // VRAM Address (if applicable)
   if (pal_meta.vram_address > 0) {
-    ImGui::Text("VRAM Address: $%04X", pal_meta.vram_address);
+    ImGui::Text(tr("VRAM Address: $%04X"), pal_meta.vram_address);
     if (ImGui::IsItemClicked()) {
       ImGui::SetClipboardText(
           absl::StrFormat("$%04X", pal_meta.vram_address).c_str());
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Click to copy VRAM address");
+      ImGui::SetTooltip(tr("Click to copy VRAM address"));
     }
   }
 
   // Usage notes
   if (!pal_meta.usage_notes.empty()) {
     ImGui::Separator();
-    ImGui::TextDisabled("Usage Notes:");
+    ImGui::TextDisabled(tr("Usage Notes:"));
     ImGui::TextWrapped("%s", pal_meta.usage_notes.c_str());
   }
 }
@@ -1210,10 +1211,10 @@ void SpritePalettePanel::DrawPaletteGrid() {
 void SpritePalettePanel::DrawCustomPanels() {
   SectionHeader("CGRAM Placement");
   ImGui::TextWrapped(
-      "Global sprite palettes are stored in ROM as 4 banks of 15 colors "
-      "(transparent is implicit) and loaded to PPU CGRAM rows 9-12, cols "
-      "1-15.");
-  ImGui::TextDisabled("Note: Palettes live in CGRAM, not VRAM.");
+      tr("Global sprite palettes are stored in ROM as 4 banks of 15 colors "
+         "(transparent is implicit) and loaded to PPU CGRAM rows 9-12, cols "
+         "1-15."));
+  ImGui::TextDisabled(tr("Note: Palettes live in CGRAM, not VRAM."));
 }
 
 // ========== Equipment Palette Panel ==========

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/system/editor_panel.h"
@@ -84,15 +85,16 @@ class AnnotationOverlayPanel : public WindowContent {
     }
 
     // Filter controls
-    ImGui::Text("Room filter:");
+    ImGui::Text(tr("Room filter:"));
     ImGui::SameLine();
     ImGui::InputInt("##room_filter", &filter_room_id_);
     ImGui::SameLine();
-    if (ImGui::Button("All")) filter_room_id_ = -1;
+    if (ImGui::Button(tr("All")))
+      filter_room_id_ = -1;
 
     ImGui::SameLine();
     const char* priorities[] = {"All", "Note", "Bug", "Blocker"};
-    ImGui::Combo("Priority", &filter_priority_, priorities, 4);
+    ImGui::Combo(tr("Priority"), &filter_priority_, priorities, 4);
 
     ImGui::Separator();
 
@@ -104,7 +106,8 @@ class AnnotationOverlayPanel : public WindowContent {
       const auto& ann = annotations_[i];
 
       // Apply filters
-      if (filter_room_id_ >= 0 && ann.room_id != filter_room_id_) continue;
+      if (filter_room_id_ >= 0 && ann.room_id != filter_room_id_)
+        continue;
       if (filter_priority_ > 0 &&
           static_cast<int>(ann.priority) != (filter_priority_ - 1))
         continue;
@@ -136,22 +139,22 @@ class AnnotationOverlayPanel : public WindowContent {
     ImGui::Separator();
 
     // Edit / Add form
-    ImGui::Text("Room:");
+    ImGui::Text(tr("Room:"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(80);
     ImGui::InputInt("##edit_room", &edit_room_);
 
     ImGui::SameLine();
-    ImGui::Text("Priority:");
+    ImGui::Text(tr("Priority:"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(80);
     const char* pri_names[] = {"Note", "Bug", "Blocker"};
     ImGui::Combo("##edit_priority", &edit_priority_, pri_names, 3);
 
-    ImGui::InputText("Text", edit_text_, sizeof(edit_text_));
-    ImGui::InputText("Category", edit_category_, sizeof(edit_category_));
+    ImGui::InputText(tr("Text"), edit_text_, sizeof(edit_text_));
+    ImGui::InputText(tr("Category"), edit_category_, sizeof(edit_category_));
 
-    if (ImGui::Button("Add")) {
+    if (ImGui::Button(tr("Add"))) {
       AnnotationEntry entry;
       entry.room_id = edit_room_;
       entry.text = edit_text_;
@@ -164,7 +167,7 @@ class AnnotationOverlayPanel : public WindowContent {
     ImGui::SameLine();
     if (selected_index_ >= 0 &&
         selected_index_ < static_cast<int>(annotations_.size())) {
-      if (ImGui::Button("Update")) {
+      if (ImGui::Button(tr("Update"))) {
         auto& ann = annotations_[selected_index_];
         ann.room_id = edit_room_;
         ann.text = edit_text_;
@@ -173,7 +176,7 @@ class AnnotationOverlayPanel : public WindowContent {
         SaveAnnotations();
       }
       ImGui::SameLine();
-      if (ImGui::Button("Delete")) {
+      if (ImGui::Button(tr("Delete"))) {
         annotations_.erase(annotations_.begin() + selected_index_);
         selected_index_ = -1;
         SaveAnnotations();
@@ -186,8 +189,7 @@ class AnnotationOverlayPanel : public WindowContent {
   /**
    * @brief Get annotations for a specific room.
    */
-  std::vector<const AnnotationEntry*> GetAnnotationsForRoom(
-      int room_id) const {
+  std::vector<const AnnotationEntry*> GetAnnotationsForRoom(int room_id) const {
     std::vector<const AnnotationEntry*> result;
     for (const auto& ann : annotations_) {
       if (ann.room_id == room_id) {
@@ -214,7 +216,7 @@ class AnnotationOverlayPanel : public WindowContent {
   static ImU32 GetPriorityColor(AnnotationPriority priority) {
     switch (priority) {
       case AnnotationPriority::kBlocker:
-        return IM_COL32(220, 50, 50, 255);   // Red
+        return IM_COL32(220, 50, 50, 255);  // Red
       case AnnotationPriority::kBug:
         return IM_COL32(220, 150, 30, 255);  // Orange
       case AnnotationPriority::kNote:
@@ -226,10 +228,12 @@ class AnnotationOverlayPanel : public WindowContent {
  private:
   void LoadAnnotations() {
     annotations_.clear();
-    if (annotations_path_.empty()) return;
+    if (annotations_path_.empty())
+      return;
 
     std::ifstream file(annotations_path_);
-    if (!file.is_open()) return;
+    if (!file.is_open())
+      return;
 
     try {
       nlohmann::json root;
@@ -253,7 +257,8 @@ class AnnotationOverlayPanel : public WindowContent {
   }
 
   void SaveAnnotations() {
-    if (annotations_path_.empty()) return;
+    if (annotations_path_.empty())
+      return;
 
     nlohmann::json root;
     nlohmann::json arr = nlohmann::json::array();

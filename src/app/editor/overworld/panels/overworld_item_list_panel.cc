@@ -1,4 +1,5 @@
 #include "app/editor/overworld/panels/overworld_item_list_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -65,7 +66,7 @@ void OverworldItemListPanel::Draw(bool* p_open) {
 
   auto* items = ow_editor->overworld().mutable_all_items();
   if (!items) {
-    ImGui::TextDisabled("No item list available.");
+    ImGui::TextDisabled(tr("No item list available."));
     return;
   }
 
@@ -77,13 +78,13 @@ void OverworldItemListPanel::Draw(bool* p_open) {
   ImGui::InputTextWithHint("##ItemFilter", ICON_MD_FILTER_ALT " Filter items",
                            filter_buffer, sizeof(filter_buffer));
   ImGui::SameLine();
-  ImGui::Checkbox("World", &current_world_only);
+  ImGui::Checkbox(tr("World"), &current_world_only);
   ImGui::SameLine();
-  ImGui::Checkbox("Map", &current_map_only);
+  ImGui::Checkbox(tr("Map"), &current_map_only);
 
   const char* sort_modes[] = {"Map + Position", "Item ID", "Name"};
   ImGui::SetNextItemWidth(180.0f);
-  ImGui::Combo("Sort", &sort_mode, sort_modes, IM_ARRAYSIZE(sort_modes));
+  ImGui::Combo(tr("Sort"), &sort_mode, sort_modes, IM_ARRAYSIZE(sort_modes));
 
   const std::string lowered_filter = ToLower(std::string(filter_buffer));
   std::vector<size_t> filtered_indices;
@@ -177,16 +178,16 @@ void OverworldItemListPanel::Draw(bool* p_open) {
 
   ImGui::SameLine();
   if (selected_item) {
-    ImGui::TextDisabled("Selected: 0x%02X @ (%d,%d)",
+    ImGui::TextDisabled(tr("Selected: 0x%02X @ (%d,%d)"),
                         static_cast<int>(selected_item->id_), selected_item->x_,
                         selected_item->y_);
   } else {
-    ImGui::TextDisabled("No item selected");
+    ImGui::TextDisabled(tr("No item selected"));
   }
 
-  ImGui::TextDisabled(
-      "Shortcuts: Ctrl+D duplicate, arrows nudge, Shift+arrows nudge by 16px");
-  ImGui::TextDisabled("Total: %zu | Visible: %zu", items->size(),
+  ImGui::TextDisabled(tr(
+      "Shortcuts: Ctrl+D duplicate, arrows nudge, Shift+arrows nudge by 16px"));
+  ImGui::TextDisabled(tr("Total: %zu | Visible: %zu"), items->size(),
                       filtered_indices.size());
 
   if (ImGui::BeginTable("##OverworldItemListTable", 6,
@@ -225,7 +226,7 @@ void OverworldItemListPanel::Draw(bool* p_open) {
       }
 
       ImGui::TableNextColumn();
-      ImGui::Text("0x%02X", static_cast<int>(item.id_));
+      ImGui::Text(tr("0x%02X"), static_cast<int>(item.id_));
 
       ImGui::TableNextColumn();
       ImGui::TextUnformatted(ItemName(item).c_str());

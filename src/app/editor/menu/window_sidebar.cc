@@ -1,4 +1,5 @@
 #include "app/editor/menu/window_sidebar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -289,7 +290,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     }
   }
 
-  ImGui::TextDisabled("%d / %d visible", visible_windows_in_category,
+  ImGui::TextDisabled(tr("%d / %d visible"), visible_windows_in_category,
                       total_windows_in_category);
   ImGui::Spacing();
 
@@ -358,7 +359,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     if (bulk_action_hovered && category == "Dungeon" &&
         dungeon_workbench_mode) {
       ImGui::SetTooltip(
-          "Switch to Window workflow to bulk-manage room windows.");
+          tr("Switch to Window workflow to bulk-manage room windows."));
     }
     ImGui::EndDisabled();
   }
@@ -555,8 +556,9 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   if (handle_active) {
     const float new_width = panel_width + ImGui::GetIO().MouseDelta.x;
     window_manager_.SetActiveSidePanelWidth(new_width, viewport->WorkSize.x);
-    ImGui::SetTooltip("Width: %.0f px", window_manager_.GetActiveSidePanelWidth(
-                                            viewport->WorkSize.x));
+    ImGui::SetTooltip(
+        tr("Width: %.0f px"),
+        window_manager_.GetActiveSidePanelWidth(viewport->WorkSize.x));
   }
 
   ImVec4 handle_color = gui::GetOutlineVec4();

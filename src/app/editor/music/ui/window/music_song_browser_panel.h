@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "app/editor/music/song_browser_view.h"
 #include "app/editor/system/workspace/editor_panel.h"
@@ -43,7 +44,7 @@ class MusicSongBrowserPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!music_bank_ || !song_browser_view_) {
-      ImGui::TextDisabled("Music bank not loaded");
+      ImGui::TextDisabled(tr("Music bank not loaded"));
       return;
     }
 

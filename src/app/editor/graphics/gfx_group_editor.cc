@@ -1,4 +1,5 @@
 #include "gfx_group_editor.h"
+#include "util/i18n/tr.h"
 
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
@@ -97,7 +98,7 @@ absl::Status GfxGroupEditor::Update() {
   Separator();
 
   if (gui::BeginThemedTabBar("##GfxGroupEditorTabs")) {
-    if (BeginTabItem("Blocksets")) {
+    if (BeginTabItem(tr("Blocksets"))) {
       gui::InputHexByte("Selected Blockset", &Ws().selected_blockset,
                         static_cast<uint8_t>(0x24));
       rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -107,7 +108,7 @@ absl::Status GfxGroupEditor::Update() {
       EndTabItem();
     }
 
-    if (BeginTabItem("Roomsets")) {
+    if (BeginTabItem(tr("Roomsets"))) {
       gui::InputHexByte("Selected Roomset", &Ws().selected_roomset,
                         static_cast<uint8_t>(81));
       rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -117,7 +118,7 @@ absl::Status GfxGroupEditor::Update() {
       EndTabItem();
     }
 
-    if (BeginTabItem("Spritesets")) {
+    if (BeginTabItem(tr("Spritesets"))) {
       gui::InputHexByte("Selected Spriteset", &Ws().selected_spriteset,
                         static_cast<uint8_t>(143));
       rom()->resource_label()->SelectableLabelWithNameEdit(
@@ -135,7 +136,7 @@ absl::Status GfxGroupEditor::Update() {
 
 void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
   if (!game_data()) {
-    Text("No game data loaded");
+    Text(tr("No game data loaded"));
     return;
   }
 
@@ -199,13 +200,13 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
 
 void GfxGroupEditor::DrawRoomsetViewer() {
   if (!game_data()) {
-    Text("No game data loaded");
+    Text(tr("No game data loaded"));
     return;
   }
 
   PushID("RoomsetViewer");
   auto& ws = Ws();
-  Text("Roomsets overwrite slots 4-7 of the main blockset");
+  Text(tr("Roomsets overwrite slots 4-7 of the main blockset"));
 
   if (BeginTable("##RoomsTable", 3,
                  ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable,
@@ -236,7 +237,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     // Inputs column
     TableNextColumn();
     BeginGroup();
-    Text("Sheet IDs (overwrites slots 4-7):");
+    Text(tr("Sheet IDs (overwrites slots 4-7):"));
     for (int idx = 0; idx < 4; idx++) {
       SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
       gui::InputHexByte(
@@ -277,7 +278,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
 
 void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
   if (!game_data()) {
-    Text("No game data loaded");
+    Text(tr("No game data loaded"));
     return;
   }
 
@@ -299,7 +300,7 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
     if (!sheet_only) {
       TableNextColumn();
       BeginGroup();
-      Text("Sprite sheet IDs (base 115+):");
+      Text(tr("Sprite sheet IDs (base 115+):"));
       for (int idx = 0; idx < 4; idx++) {
         SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
         gui::InputHexByte(
@@ -409,12 +410,12 @@ void GfxGroupEditor::DrawPaletteControls() {
   }
 
   SameLine();
-  ImGui::Checkbox("Override palette", &ws.override_palette);
+  ImGui::Checkbox(tr("Override palette"), &ws.override_palette);
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "When off, each sheet renders against its slot's role-default "
-        "palette (overworld main/aux/animated, sprites, hud, dungeon).\n"
-        "When on, the palette picked above is forced onto every sheet.");
+        tr("When off, each sheet renders against its slot's role-default "
+           "palette (overworld main/aux/animated, sprites, hud, dungeon).\n"
+           "When on, the palette picked above is forced onto every sheet."));
   }
 
   // Show current palette preview

@@ -1,4 +1,5 @@
 #include "app/editor/shell/coordinator/welcome_screen.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -779,7 +780,7 @@ void WelcomeScreen::DrawFirstRunGuide() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        "Three quick steps get you from zero to poking at the game:");
+        tr("Three quick steps get you from zero to poking at the game:"));
   }
   ImGui::Spacing();
 
@@ -844,10 +845,10 @@ void WelcomeScreen::DrawQuickActions() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        "Open a ROM or project when you are ready to hack a cartridge — or "
-        "jump "
-        "into Prototype Research or the assembly editor first without any "
-        "ROM.");
+        tr("Open a ROM or project when you are ready to hack a cartridge — or "
+           "jump "
+           "into Prototype Research or the assembly editor first without any "
+           "ROM."));
   }
   const auto& entries = recent_projects_model_.entries();
   size_t rom_count = 0;
@@ -867,7 +868,7 @@ void WelcomeScreen::DrawQuickActions() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        "%zu recent entries • %zu ROMs • %zu projects%s", entries.size(),
+        tr("%zu recent entries • %zu ROMs • %zu projects%s"), entries.size(),
         rom_count, project_count,
         unavailable_count > 0 ? " • some entries need re-open permission" : "");
   }
@@ -992,8 +993,8 @@ void WelcomeScreen::DrawQuickActions() {
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::Spacing();
-    ImGui::TextWrapped(
-        "Release highlights and migration notes are now in the panel below.");
+    ImGui::TextWrapped(tr(
+        "Release highlights and migration notes are now in the panel below."));
   }
 
   // Clean up entry animation styles
@@ -1064,7 +1065,7 @@ void WelcomeScreen::DrawRecentProjects() {
   {
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-    ImGui::Text("%d ROMs • %d projects", rom_count, project_count);
+    ImGui::Text(tr("%d ROMs • %d projects"), rom_count, project_count);
   }
 
   DrawUndoRemovalBanner();
@@ -1083,7 +1084,8 @@ void WelcomeScreen::DrawRecentProjects() {
         ICON_MD_EXPLORE);
     ImGui::SetCursorPosX(cursor.x);
 
-    ImGui::TextWrapped("No recent files yet.\nOpen a ROM or project to begin.");
+    ImGui::TextWrapped(
+        tr("No recent files yet.\nOpen a ROM or project to begin."));
     return;
   }
 
@@ -1164,9 +1166,9 @@ void WelcomeScreen::DrawRecentAnnotationPopup() {
       }
       {
         gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-        ImGui::TextWrapped(
+        ImGui::TextWrapped(tr(
             "Leave blank to restore the filename. Affects only how this entry "
-            "is displayed on the welcome screen.");
+            "is displayed on the welcome screen."));
       }
     } else {
       ImGui::SetNextItemWidth(-1);
@@ -1175,8 +1177,8 @@ void WelcomeScreen::DrawRecentAnnotationPopup() {
       {
         gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
         ImGui::TextWrapped(
-            "Short free-form note shown on hover. Useful for tagging "
-            "works-in-progress (\"WIP: palette swap\").");
+            tr("Short free-form note shown on hover. Useful for tagging "
+               "works-in-progress (\"WIP: palette swap\")."));
       }
     }
 
@@ -1232,7 +1234,7 @@ void WelcomeScreen::DrawUndoRemovalBanner() {
   ImGui::SameLine(8.0f);
   ImGui::TextColored(warning_bg, ICON_MD_INFO);
   ImGui::SameLine();
-  ImGui::Text("Removed \"%s\"", pending.display_name.c_str());
+  ImGui::Text(tr("Removed \"%s\""), pending.display_name.c_str());
   ImGui::SameLine();
 
   // Right-align the action buttons inside the banner.
@@ -1335,8 +1337,8 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Point at the new location for this file. Pin/rename/notes are "
-            "preserved.");
+            tr("Point at the new location for this file. Pin/rename/notes are "
+               "preserved."));
       }
     } else {
       if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
@@ -1461,14 +1463,14 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     ImGui::BeginTooltip();
     ImGui::TextColored(kMasterSwordBlue, ICON_MD_INFO " Recent Item");
     ImGui::Separator();
-    ImGui::Text("Type: %s", badge_text.c_str());
-    ImGui::Text("Name: %s", project.name.c_str());
-    ImGui::Text("Details: %s", project.rom_title.c_str());
+    ImGui::Text(tr("Type: %s"), badge_text.c_str());
+    ImGui::Text(tr("Name: %s"), project.name.c_str());
+    ImGui::Text(tr("Details: %s"), project.rom_title.c_str());
     if (!project.metadata_summary.empty()) {
-      ImGui::Text("Metadata: %s", project.metadata_summary.c_str());
+      ImGui::Text(tr("Metadata: %s"), project.metadata_summary.c_str());
     }
-    ImGui::Text("Last opened: %s", project.last_modified.c_str());
-    ImGui::Text("Path: %s", project.filepath.c_str());
+    ImGui::Text(tr("Last opened: %s"), project.last_modified.c_str());
+    ImGui::Text(tr("Path: %s"), project.filepath.c_str());
     ImGui::Separator();
     ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
     ImGui::EndTooltip();
@@ -1661,7 +1663,7 @@ void WelcomeScreen::DrawTemplatesSection() {
       ImGui::PopID();
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("%s %s\nUse when: %s", ICON_MD_INFO,
+        ImGui::SetTooltip(tr("%s %s\nUse when: %s"), ICON_MD_INFO,
                           templates[i].name, templates[i].use_when);
       }
     }
@@ -1771,10 +1773,9 @@ void WelcomeScreen::DrawTemplatesSection() {
   }
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        "%s Create new project with '%s' template\nThis will "
-        "open a ROM and apply the template settings.",
-        ICON_MD_INFO, templates[selected_template_].name);
+    ImGui::SetTooltip(tr("%s Create new project with '%s' template\nThis will "
+                         "open a ROM and apply the template settings."),
+                      ICON_MD_INFO, templates[selected_template_].name);
   }
 }
 
@@ -1803,7 +1804,7 @@ void WelcomeScreen::DrawTipsSection() {
 
   ImGui::Text(ICON_MD_LIGHTBULB);
   ImGui::SameLine();
-  ImGui::TextColored(kTriforceGold, "Tip:");
+  ImGui::TextColored(kTriforceGold, tr("Tip:"));
   ImGui::SameLine();
   ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", tips[tip_index]);
 
@@ -1987,7 +1988,8 @@ void WelcomeScreen::DrawWhatsNew() {
     if (i > 0) {
       ImGui::Separator();
     }
-    ImGui::TextColored(release.color, "%s v%s", release.icon, release.version);
+    ImGui::TextColored(release.color, tr("%s v%s"), release.icon,
+                       release.version);
     ImGui::SameLine();
     ImGui::TextColored(text_secondary, "%s", release.date);
     ImGui::TextColored(text_secondary, "%s", release.title);
