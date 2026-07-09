@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
@@ -49,6 +50,18 @@ struct RoomLayerFingerprints {
   int composite_non_backdrop = 0;
 };
 
+struct ObjectOverlapPixel {
+  int index = -1;
+  int x = 0;
+  int y = 0;
+  uint8_t bg1 = 0;
+  uint8_t bg2 = 0;
+  uint8_t bg1_priority = 0;
+  uint8_t bg2_priority = 0;
+  uint8_t composite = 0;
+  uint8_t expected = 0;
+};
+
 RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
                                                    GameData* game_data,
                                                    int room_id) {
@@ -87,6 +100,69 @@ RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
       .object_bg2_non_backdrop = CountNonBackdropPixels(object_bg2),
       .composite_non_backdrop = CountNonBackdropPixels(composite),
   };
+}
+
+uint8_t NormalizePriority(const std::vector<uint8_t>& priorities, int index) {
+  if (index < 0 || index >= static_cast<int>(priorities.size())) {
+    return 0;
+  }
+  const uint8_t priority = priorities[index];
+  return priority == 0xFF ? 0 : (priority ? 1 : 0);
+}
+
+int LayerRank(bool is_bg1, uint8_t priority) {
+  priority = priority ? 1 : 0;
+  if (is_bg1) {
+    return priority ? 3 : 1;
+  }
+  return priority ? 2 : 0;
+}
+
+bool FindOpaqueObjectOverlapPixel(const Room& room,
+                                  const gfx::Bitmap& composite,
+                                  ObjectOverlapPixel* out) {
+  if (out == nullptr || !composite.is_active()) {
+    return false;
+  }
+  const auto& bg1_objects = room.object_bg1_buffer();
+  const auto& bg2_objects = room.object_bg2_buffer();
+  const auto& bg1_bitmap = bg1_objects.bitmap();
+  const auto& bg2_bitmap = bg2_objects.bitmap();
+  if (!bg1_bitmap.is_active() || !bg2_bitmap.is_active()) {
+    return false;
+  }
+
+  const int pixel_count = static_cast<int>(
+      std::min({bg1_bitmap.size(), bg2_bitmap.size(), composite.size()}));
+  const auto& bg1_priority = bg1_objects.priority_data();
+  const auto& bg2_priority = bg2_objects.priority_data();
+  for (int index = 0; index < pixel_count; ++index) {
+    const uint8_t bg1 = bg1_bitmap.data()[index];
+    const uint8_t bg2 = bg2_bitmap.data()[index];
+    if (bg1 == 255 || bg2 == 255 || bg1 == bg2) {
+      continue;
+    }
+
+    const uint8_t pri1 = NormalizePriority(bg1_priority, index);
+    const uint8_t pri2 = NormalizePriority(bg2_priority, index);
+    const uint8_t expected =
+        LayerRank(/*is_bg1=*/true, pri1) >= LayerRank(/*is_bg1=*/false, pri2)
+            ? bg1
+            : bg2;
+    *out = {
+        .index = index,
+        .x = index % bg1_bitmap.width(),
+        .y = index / bg1_bitmap.width(),
+        .bg1 = bg1,
+        .bg2 = bg2,
+        .bg1_priority = pri1,
+        .bg2_priority = pri2,
+        .composite = composite.data()[index],
+        .expected = expected,
+    };
+    return true;
+  }
+  return false;
 }
 
 bool RoomContainsObjectId(const Room& room, int object_id) {
@@ -228,6 +304,38 @@ TEST_F(DungeonRoomRegressionFixturesTest, FixtureRoomsHaveThreeStreamCoverage) {
   EXPECT_TRUE(has_stream[0]) << "Room 0x001 missing primary stream";
   EXPECT_TRUE(has_stream[1]) << "Room 0x001 missing BG2 overlay stream";
   EXPECT_TRUE(has_stream[2]) << "Room 0x001 missing BG1 overlay stream";
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room001ObjectOverlapPixelMatchesPriorityWinner) {
+  // Broad checksums catch drift but do not explain *where* compositing changed.
+  // Pin one sparse overlap pixel from room 0x001, which exercises primary,
+  // BG2-overlay, and BG1-overlay object streams. When both object buffers have
+  // opaque pixels, RoomLayerManager should pick the same top pixel as the SNES
+  // Mode 1 priority rank:
+  //   BG2 low < BG1 low < BG2 high < BG1 high.
+  Room room(0x001, &rom_, &game_data_);
+  room.LoadRoomGraphics();
+  room.LoadObjects();
+  room.CopyRoomGraphicsToBuffer();
+  room.RenderRoomGraphics();
+  ASSERT_FALSE(room.layer_merging().Layer2Translucent)
+      << "This sparse ordering assertion assumes opaque compositing.";
+
+  RoomLayerManager layer_manager;
+  const auto& composite = room.GetCompositeBitmap(layer_manager);
+
+  ObjectOverlapPixel sample;
+  ASSERT_TRUE(FindOpaqueObjectOverlapPixel(room, composite, &sample))
+      << "Expected room 0x001 to have at least one opaque, non-identical "
+         "BG1/BG2 object overlap pixel.";
+  EXPECT_EQ(sample.composite, sample.expected)
+      << "Room 0x001 overlap pixel (" << sample.x << "," << sample.y
+      << ") should choose the priority winner"
+      << " bg1=" << static_cast<int>(sample.bg1)
+      << " bg2=" << static_cast<int>(sample.bg2)
+      << " bg1_pri=" << static_cast<int>(sample.bg1_priority)
+      << " bg2_pri=" << static_cast<int>(sample.bg2_priority);
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest, PerLayerFingerprintsMatchGolden) {
