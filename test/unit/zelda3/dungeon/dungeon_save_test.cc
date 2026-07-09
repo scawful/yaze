@@ -801,6 +801,17 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0xDD);
 }
 
+TEST_F(DungeonSaveTest, SaveAllBlocks_RejectsCorruptLoaderOperand) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.
+
+  const auto status = SaveAllBlocks(rom_.get());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("LDA.l ...,X / STA.w"),
+            std::string::npos);
+}
+
 TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_RejectsCorruptLoaderOperand) {
   SetupBlockRegions();
   rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.

@@ -7,6 +7,7 @@
 #include <functional>
 #include <limits>
 #include <optional>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -3173,6 +3174,13 @@ void Room::LoadBlocks() {
     const int slot = kPointerSlots[r];
     if (slot + 2 >= static_cast<int>(rom_data.size())) {
       LOG_DEBUG("Room", "LoadBlocks: pointer slot %d out of range", r);
+      return;
+    }
+    const absl::Status operand_status =
+        ValidateBlocksLoaderPointerOperand(rom_data, slot);
+    if (!operand_status.ok()) {
+      LOG_DEBUG("Room", "LoadBlocks: %s",
+                std::string(operand_status.message()).c_str());
       return;
     }
     const int snes =
