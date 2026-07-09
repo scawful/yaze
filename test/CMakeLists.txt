@@ -324,7 +324,6 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/custom_object_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
-    unit/zelda3/dungeon/pit_damage_table_test.cc
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
@@ -375,6 +374,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
+    integration/zelda3/dungeon/pit_damage_table_test.cc
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
     # NOTE: dungeon_object_rom_validation_test.cc is intentionally NOT listed
