@@ -826,6 +826,16 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_RejectsCorruptLoaderOperand) {
             std::string::npos);
 }
 
+TEST_F(DungeonSaveTest, LoadBlocks_RejectsCorruptLoaderOperand) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.
+
+  room_->LoadBlocks();
+
+  EXPECT_FALSE(room_->AreBlocksLoaded());
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+}
+
 TEST_F(DungeonSaveTest,
        SaveAllBlocks_RoomAware_PreservesUnmaterializedRoomBytes) {
   // Migration safety invariant: when only some rooms are
