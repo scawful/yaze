@@ -6,10 +6,11 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
 
 1. **Pushable block table repointing / expansion**
    - Status: scoped; loader/saver now guard the four bank-02 `LDA.l ...,X`
-     operand slots before dereferencing them. Full >128-entry expansion still
-     needs a runtime/WRAM layout patch, because the vanilla loader copies four
-     0x80-byte pages into `$7EF940..$7EFB3F` and block drawing scans that
-     fixed buffer before torch data.
+     operand slots via `ValidateBlocksLoaderPointerOperand` before
+     dereferencing them. Full >128-entry expansion still needs a runtime/WRAM
+     layout patch, because the vanilla loader copies four 0x80-byte pages into
+     `$7EF940..$7EFB3F` and block drawing scans that fixed buffer before torch
+     data.
    - Problem: `SaveAllBlocks` is room-aware, but still bounded by vanilla table capacity.
    - Done when: edited block sets can exceed vanilla capacity through a deliberate repoint/expansion path, with surrounding instruction operands protected.
    - Tests: grow a fixture ROM beyond vanilla capacity; assert pointer/count operands, data bytes, and nearby regions.
