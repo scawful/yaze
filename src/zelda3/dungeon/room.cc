@@ -2578,10 +2578,14 @@ absl::Status ValidateBlocksLoaderPointerOperand(
   if (operand_pc <= 0 || operand_pc + 3 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Blocks pointer operand out of range");
   }
-  // The block table pointers are the 3-byte operands in this vanilla loader
-  // shape:
+  // The block table pointers are the 3-byte operands in the US USDASM
+  // bank_02 loader shape (#_02DAF9..#_02DB12):
   //   BF ll hh bb  LDA.l table+N*0x80,X
   //   9D ll hh     STA.w $7EF940+N*0x80,X
+  // The data table starts at bank_04's
+  // SpecialUnderworldObjects_pushable_block (#_04F1DE). Pinned against a real
+  // vanilla ROM by
+  // DungeonSaveRegionTest.BlocksLoaderPointerOperandsMatchUsdasmShape.
   //
   // Guard both sides before dereferencing or future repointing so a bad
   // constant or already-patched ROM cannot make the saver treat unrelated
@@ -3145,15 +3149,6 @@ void Room::LoadBlocks() {
   LOG_DEBUG("Room", "LoadBlocks: room_id=%d, blocks_count=%d", room_id_,
             blocks_count);
 
-  // Avoid duplication if LoadBlocks is called multiple times.
-  tile_objects_.erase(
-      std::remove_if(tile_objects_.begin(), tile_objects_.end(),
-                     [](const RoomObject& obj) {
-                       return (obj.options() & ObjectOption::Block) !=
-                              ObjectOption::Nothing;
-                     }),
-      tile_objects_.end());
-
   // Load block data from the four data regions.
   //
   // `kBlocksPointer1..4` are 3-byte SNES long-address operand slots
@@ -3173,14 +3168,14 @@ void Room::LoadBlocks() {
   for (int r = 0; r < 4; ++r) {
     const int slot = kPointerSlots[r];
     if (slot + 2 >= static_cast<int>(rom_data.size())) {
-      LOG_DEBUG("Room", "LoadBlocks: pointer slot %d out of range", r);
+      LOG_WARN("Room", "LoadBlocks: pointer slot %d out of range", r);
       return;
     }
     const absl::Status operand_status =
         ValidateBlocksLoaderPointerOperand(rom_data, slot);
     if (!operand_status.ok()) {
-      LOG_DEBUG("Room", "LoadBlocks: %s",
-                std::string(operand_status.message()).c_str());
+      LOG_WARN("Room", "LoadBlocks: %s",
+               std::string(operand_status.message()).c_str());
       return;
     }
     const int snes =
@@ -3191,11 +3186,22 @@ void Room::LoadBlocks() {
     if (len <= 0)
       break;
     if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
-      LOG_DEBUG("Room", "LoadBlocks: region %d data out of range", r);
+      LOG_WARN("Room", "LoadBlocks: region %d data out of range", r);
       return;
     }
     std::copy_n(rom_data.begin() + pc, len, blocks_data.begin() + off);
   }
+
+  // Avoid duplication if LoadBlocks is called multiple times. Do this only
+  // after the ROM pointer operands and data regions are known-good so a guard
+  // failure cannot make existing in-memory block objects vanish.
+  tile_objects_.erase(
+      std::remove_if(tile_objects_.begin(), tile_objects_.end(),
+                     [](const RoomObject& obj) {
+                       return (obj.options() & ObjectOption::Block) !=
+                              ObjectOption::Nothing;
+                     }),
+      tile_objects_.end());
 
   // Parse blocks for this room (4 bytes per block entry).
   //
