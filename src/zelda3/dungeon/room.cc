@@ -2570,6 +2570,32 @@ absl::Status SaveAllPits(Rom* rom, PitDamageTable* pit_damage_table) {
   return rom->WriteVector(pit_data_pc, data);
 }
 
+namespace {
+
+absl::Status ValidateBlocksLoaderPointerOperand(
+    const std::vector<uint8_t>& rom_data, int operand_pc) {
+  if (operand_pc <= 0 || operand_pc + 3 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Blocks pointer operand out of range");
+  }
+  // The block table pointers are the 3-byte operands in this vanilla loader
+  // shape:
+  //   BF ll hh bb  LDA.l table+N*0x80,X
+  //   9D ll hh     STA.w $7EF940+N*0x80,X
+  //
+  // Guard both sides before dereferencing or future repointing so a bad
+  // constant or already-patched ROM cannot make the saver treat unrelated
+  // instruction bytes as data pointers.
+  if (rom_data[operand_pc - 1] != 0xBF || rom_data[operand_pc + 3] != 0x9D) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Blocks pointer operand at PC 0x%05X is not in the expected "
+        "LDA.l ...,X / STA.w loader sequence",
+        operand_pc));
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace
+
 absl::Status SaveAllBlocks(Rom* rom) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
@@ -2590,6 +2616,7 @@ absl::Status SaveAllBlocks(Rom* rom) {
     if (ptrs[r] + 2 >= static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Blocks pointer out of range");
     }
+    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, ptrs[r]));
     int snes = (rom_data[ptrs[r] + 2] << 16) | (rom_data[ptrs[r] + 1] << 8) |
                rom_data[ptrs[r]];
     int pc = SnesToPc(snes);
@@ -2638,6 +2665,7 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     if (slot + 2 >= static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Blocks pointer out of range");
     }
+    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, slot));
     const int snes =
         (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
     const int pc = SnesToPc(snes);
