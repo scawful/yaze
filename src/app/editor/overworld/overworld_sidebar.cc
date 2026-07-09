@@ -1,4 +1,5 @@
 #include "app/editor/overworld/overworld_sidebar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 
@@ -42,9 +43,9 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
       ImGui::Spacing();
       ImGui::Separator();
       ImGui::Spacing();
-      ImGui::TextDisabled("Current map selection is invalid.");
+      ImGui::TextDisabled(tr("Current map selection is invalid."));
       ImGui::TextDisabled(
-          "Hover or jump to a valid overworld map to continue.");
+          tr("Hover or jump to a valid overworld map to continue."));
       ImGui::PopID();
       ImGui::EndChild();
       return;
@@ -55,21 +56,22 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     ImGui::Spacing();
 
     // Use CollapsingHeader layout for better visibility and configurability
-    if (ImGui::CollapsingHeader("General Settings",
+    if (ImGui::CollapsingHeader(tr("General Settings"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
       DrawBasicPropertiesTab(current_map, game_state,
                              show_custom_bg_color_editor, show_overlay_editor);
     }
 
-    if (ImGui::CollapsingHeader("Graphics", ImGuiTreeNodeFlags_DefaultOpen)) {
+    if (ImGui::CollapsingHeader(tr("Graphics"),
+                                ImGuiTreeNodeFlags_DefaultOpen)) {
       DrawGraphicsTab(current_map, game_state);
     }
 
-    if (ImGui::CollapsingHeader("Sprites")) {
+    if (ImGui::CollapsingHeader(tr("Sprites"))) {
       DrawSpritePropertiesTab(current_map, game_state);
     }
 
-    if (ImGui::CollapsingHeader("Music")) {
+    if (ImGui::CollapsingHeader(tr("Music"))) {
       DrawMusicTab(current_map);
     }
     ImGui::PopID();
@@ -142,10 +144,10 @@ void OverworldSidebar::DrawMapSelection(int& current_world, int& current_map,
   ImGui::Text(ICON_MD_MAP " Current Map");
 
   const int clamped_world = std::clamp(current_world, 0, 2);
-  ImGui::TextDisabled("World: %s", kWorldNames[clamped_world]);
+  ImGui::TextDisabled(tr("World: %s"), kWorldNames[clamped_world]);
 
   ImGui::BeginGroup();
-  ImGui::Text("ID: %02X", current_map);
+  ImGui::Text(tr("ID: %02X"), current_map);
   ImGui::SameLine();
   if (ImGui::Button(current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN)) {
     current_map_lock = !current_map_lock;
@@ -205,7 +207,7 @@ void OverworldSidebar::DrawGraphicsSettings(int current_map, int game_state) {
                  custom_tileset});
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
+            ImGui::SetTooltip(tr("Custom graphics sheet %d (0x00-0xFF)"), i);
           }
         }
         ImGui::EndTable();
@@ -345,7 +347,7 @@ void OverworldSidebar::DrawConfiguration(int current_map, int& game_state,
   } else {
     bool mosaic =
         *overworld_->mutable_overworld_map(current_map)->mutable_mosaic();
-    if (ImGui::Checkbox("Mosaic Effect", &mosaic)) {
+    if (ImGui::Checkbox(tr("Mosaic Effect"), &mosaic)) {
       map_properties_system_->ApplyPropertyEdit(
           {current_map, OverworldPropertyField::kMosaic, 0, mosaic ? 1 : 0});
     }

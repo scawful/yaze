@@ -1,4 +1,5 @@
 #include "theme_manager.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -806,7 +807,7 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
       draw_list->AddCircleFilled(ImVec2(x, y), 3.0f, particle_color);
     }
 
-    ImGui::Text("%s Available Themes", ICON_MD_COLOR_LENS);
+    ImGui::Text(tr("%s Available Themes"), ICON_MD_COLOR_LENS);
     ImGui::Separator();
 
     // Add Classic YAZE button first (direct ColorsYaze() application)
@@ -830,8 +831,9 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
 
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::Text("Original YAZE theme using ColorsYaze() function");
-      ImGui::Text("This is the authentic classic look - direct function call");
+      ImGui::Text(tr("Original YAZE theme using ColorsYaze() function"));
+      ImGui::Text(
+          tr("This is the authentic classic look - direct function call"));
       ImGui::EndTooltip();
     }
 
@@ -913,7 +915,7 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
         ImGui::Text("%s %s", ICON_MD_PREVIEW, "Live Preview Active");
         ImGui::Separator();
         ImGui::Text("%s", theme.description.c_str());
-        ImGui::Text("Author: %s", theme.author.c_str());
+        ImGui::Text(tr("Author: %s"), theme.author.c_str());
         ImGui::EndTooltip();
       }
     }
@@ -955,8 +957,8 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
 
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::Text("Edit and save custom themes");
-      ImGui::Text("Includes 'Save to File' functionality");
+      ImGui::Text(tr("Edit and save custom themes"));
+      ImGui::Text(tr("Includes 'Save to File' functionality"));
       ImGui::EndTooltip();
     }
 
@@ -2265,7 +2267,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
     // Menu bar for theme operations
     if (ImGui::BeginMenuBar()) {
-      if (ImGui::BeginMenu("File")) {
+      if (ImGui::BeginMenu(tr("File"))) {
         if (ImGui::MenuItem(
                 absl::StrFormat("%s New Theme", ICON_MD_ADD).c_str())) {
           // Reset to default theme
@@ -2342,8 +2344,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ImGui::EndMenu();
       }
 
-      if (ImGui::BeginMenu("Presets")) {
-        if (ImGui::MenuItem("YAZE Classic")) {
+      if (ImGui::BeginMenu(tr("Presets"))) {
+        if (ImGui::MenuItem(tr("YAZE Classic"))) {
           ApplyClassicYazeTheme();
         }
 
@@ -2387,9 +2389,9 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     };
 
     // Live preview toggle
-    ImGui::Checkbox("Live Preview", &live_preview);
+    ImGui::Checkbox(tr("Live Preview"), &live_preview);
     ImGui::SameLine();
-    ImGui::Text("| Changes apply immediately when enabled");
+    ImGui::Text(tr("| Changes apply immediately when enabled"));
 
     // If live preview was just disabled, restore original theme
     static bool prev_live_preview = live_preview;
@@ -2411,7 +2413,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Name:");
+      ImGui::Text(tr("Name:"));
       ImGui::TableNextColumn();
       if (ImGui::InputText("##theme_name", theme_name, sizeof(theme_name))) {
         edit_theme.name = std::string(theme_name);
@@ -2420,7 +2422,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Description:");
+      ImGui::Text(tr("Description:"));
       ImGui::TableNextColumn();
       if (ImGui::InputText("##theme_description", theme_description,
                            sizeof(theme_description))) {
@@ -2430,7 +2432,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::AlignTextToFramePadding();
-      ImGui::Text("Author:");
+      ImGui::Text(tr("Author:"));
       ImGui::TableNextColumn();
       if (ImGui::InputText("##theme_author", theme_author,
                            sizeof(theme_author))) {
@@ -2461,14 +2463,14 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ImGui::BeginChild("AccentGenerator", ImVec2(0, 120), true);
 
         ImGui::TextColored(ImVec4(0.7f, 0.8f, 1.0f, 1.0f),
-                           "%s Generate Theme from Accent Color",
+                           tr("%s Generate Theme from Accent Color"),
                            ICON_MD_AUTO_FIX_HIGH);
         ImGui::Separator();
 
         static Color accent_picker_color = {0.4f, 0.6f, 0.9f, 1.0f};
         static bool dark_mode_generate = true;
 
-        ImGui::Text("Accent Color:");
+        ImGui::Text(tr("Accent Color:"));
         ImGui::SameLine();
         ImVec4 accent_vec = ConvertColorToImVec4(accent_picker_color);
         if (ImGui::ColorEdit3("##AccentPicker", &accent_vec.x,
@@ -2478,7 +2480,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
 
         ImGui::SameLine();
-        ImGui::Checkbox("Dark Mode", &dark_mode_generate);
+        ImGui::Checkbox(tr("Dark Mode"), &dark_mode_generate);
 
         ImGui::SameLine();
         if (ImGui::Button(absl::StrFormat("%s Generate", ICON_MD_BOLT).c_str(),
@@ -2491,7 +2493,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
 
         // Show color harmony preview
-        ImGui::Text("Preview: ");
+        ImGui::Text(tr("Preview: "));
         ImGui::SameLine();
 
         // Show primary, secondary, background as color swatches
@@ -2530,7 +2532,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Primary:");
+          ImGui::Text(tr("Primary:"));
           ImGui::TableNextColumn();
           ImVec4 primary = ConvertColorToImVec4(edit_theme.primary);
           if (ImGui::ColorEdit3("##primary", &primary.x)) {
@@ -2538,13 +2540,13 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             apply_live_preview();
           }
           ImGui::TableNextColumn();
-          ImGui::Button("Primary Preview", ImVec2(-1, 30));
+          ImGui::Button(tr("Primary Preview"), ImVec2(-1, 30));
 
           // Secondary color
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Secondary:");
+          ImGui::Text(tr("Secondary:"));
           ImGui::TableNextColumn();
           ImVec4 secondary = ConvertColorToImVec4(edit_theme.secondary);
           if (ImGui::ColorEdit3("##secondary", &secondary.x)) {
@@ -2554,14 +2556,14 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           }
           ImGui::TableNextColumn();
           ImGui::PushStyleColor(ImGuiCol_Button, secondary);
-          ImGui::Button("Secondary Preview", ImVec2(-1, 30));
+          ImGui::Button(tr("Secondary Preview"), ImVec2(-1, 30));
           ImGui::PopStyleColor();
 
           // Accent color
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Accent:");
+          ImGui::Text(tr("Accent:"));
           ImGui::TableNextColumn();
           ImVec4 accent = ConvertColorToImVec4(edit_theme.accent);
           if (ImGui::ColorEdit3("##accent", &accent.x)) {
@@ -2570,14 +2572,14 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
           }
           ImGui::TableNextColumn();
           ImGui::PushStyleColor(ImGuiCol_Button, accent);
-          ImGui::Button("Accent Preview", ImVec2(-1, 30));
+          ImGui::Button(tr("Accent Preview"), ImVec2(-1, 30));
           ImGui::PopStyleColor();
 
           // Background color
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::AlignTextToFramePadding();
-          ImGui::Text("Background:");
+          ImGui::Text(tr("Background:"));
           ImGui::TableNextColumn();
           ImVec4 background = ConvertColorToImVec4(edit_theme.background);
           if (ImGui::ColorEdit4("##background", &background.x)) {
@@ -2586,7 +2588,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             apply_live_preview();
           }
           ImGui::TableNextColumn();
-          ImGui::Text("Background preview shown in window");
+          ImGui::Text(tr("Background preview shown in window"));
 
           ImGui::EndTable();
         }
@@ -2633,7 +2635,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
             ImGui::TableNextColumn();
             ImGui::PushStyleColor(ImGuiCol_Text, color_vec);
-            ImGui::Text("Sample %s", label);
+            ImGui::Text(tr("Sample %s"), label);
             ImGui::PopStyleColor();
           }
 
@@ -2702,63 +2704,63 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Style Parameters Tab
       if (ImGui::BeginTabItem(
               absl::StrFormat("%s Style", ICON_MD_TUNE).c_str())) {
-        ImGui::Text("Rounding and Border Settings:");
+        ImGui::Text(tr("Rounding and Border Settings:"));
 
-        if (ImGui::SliderFloat("Window Rounding", &edit_theme.window_rounding,
+        if (ImGui::SliderFloat(tr("Window Rounding"),
+                               &edit_theme.window_rounding, 0.0f, 20.0f)) {
+          if (live_preview)
+            ApplyTheme(edit_theme);
+        }
+        if (ImGui::SliderFloat(tr("Frame Rounding"), &edit_theme.frame_rounding,
                                0.0f, 20.0f)) {
           if (live_preview)
             ApplyTheme(edit_theme);
         }
-        if (ImGui::SliderFloat("Frame Rounding", &edit_theme.frame_rounding,
-                               0.0f, 20.0f)) {
-          if (live_preview)
-            ApplyTheme(edit_theme);
-        }
-        if (ImGui::SliderFloat("Scrollbar Rounding",
+        if (ImGui::SliderFloat(tr("Scrollbar Rounding"),
                                &edit_theme.scrollbar_rounding, 0.0f, 20.0f)) {
           if (live_preview)
             ApplyTheme(edit_theme);
         }
-        if (ImGui::SliderFloat("Tab Rounding", &edit_theme.tab_rounding, 0.0f,
-                               20.0f)) {
+        if (ImGui::SliderFloat(tr("Tab Rounding"), &edit_theme.tab_rounding,
+                               0.0f, 20.0f)) {
           if (live_preview)
             ApplyTheme(edit_theme);
         }
-        if (ImGui::SliderFloat("Grab Rounding", &edit_theme.grab_rounding, 0.0f,
-                               20.0f)) {
+        if (ImGui::SliderFloat(tr("Grab Rounding"), &edit_theme.grab_rounding,
+                               0.0f, 20.0f)) {
           if (live_preview)
             ApplyTheme(edit_theme);
         }
 
         ImGui::Separator();
-        ImGui::Text("Border Sizes:");
+        ImGui::Text(tr("Border Sizes:"));
 
-        if (ImGui::SliderFloat("Window Border Size",
+        if (ImGui::SliderFloat(tr("Window Border Size"),
                                &edit_theme.window_border_size, 0.0f, 3.0f)) {
           if (live_preview)
             ApplyTheme(edit_theme);
         }
-        if (ImGui::SliderFloat("Frame Border Size",
+        if (ImGui::SliderFloat(tr("Frame Border Size"),
                                &edit_theme.frame_border_size, 0.0f, 3.0f)) {
           if (live_preview)
             ApplyTheme(edit_theme);
         }
 
         ImGui::Separator();
-        ImGui::Text("Animation & Effects:");
+        ImGui::Text(tr("Animation & Effects:"));
 
-        if (ImGui::Checkbox("Enable Animations",
+        if (ImGui::Checkbox(tr("Enable Animations"),
                             &edit_theme.enable_animations)) {
           if (live_preview)
             ApplyTheme(edit_theme);
         }
         if (edit_theme.enable_animations) {
-          if (ImGui::SliderFloat("Animation Speed", &edit_theme.animation_speed,
-                                 0.1f, 3.0f)) {
+          if (ImGui::SliderFloat(tr("Animation Speed"),
+                                 &edit_theme.animation_speed, 0.1f, 3.0f)) {
             apply_live_preview();
           }
         }
-        if (ImGui::Checkbox("Enable Glow Effects",
+        if (ImGui::Checkbox(tr("Enable Glow Effects"),
                             &edit_theme.enable_glow_effects)) {
           if (live_preview)
             ApplyTheme(edit_theme);
@@ -2818,7 +2820,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ImGui::Separator();
 
         // Header and Tab colors
-        if (ImGui::CollapsingHeader("Headers & Tabs",
+        if (ImGui::CollapsingHeader(tr("Headers & Tabs"),
                                     ImGuiTreeNodeFlags_DefaultOpen)) {
           if (ImGui::BeginTable("HeaderTabTable", 3,
                                 ImGuiTableFlags_SizingStretchProp)) {
@@ -2873,7 +2875,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
 
         // Navigation and Special Elements
-        if (ImGui::CollapsingHeader("Navigation & Special")) {
+        if (ImGui::CollapsingHeader(tr("Navigation & Special"))) {
           if (ImGui::BeginTable("NavSpecialTable", 3,
                                 ImGuiTableFlags_SizingStretchProp)) {
             ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed,
@@ -2979,7 +2981,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ImGui::Separator();
 
         // Plots and Graphs
-        if (ImGui::CollapsingHeader("Plots & Graphs")) {
+        if (ImGui::CollapsingHeader(tr("Plots & Graphs"))) {
           if (ImGui::BeginTable("PlotsTable", 3,
                                 ImGuiTableFlags_SizingStretchProp)) {
             ImGui::TableSetupColumn("Element", ImGuiTableColumnFlags_WidthFixed,
@@ -3094,11 +3096,11 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       if (ImGui::BeginTabItem(
               absl::StrFormat("%s Enhanced", ICON_MD_AUTO_AWESOME).c_str())) {
         ImGui::Text(
-            "Enhanced semantic colors and editor-specific customization");
+            tr("Enhanced semantic colors and editor-specific customization"));
         ImGui::Separator();
 
         // Enhanced semantic colors section
-        if (ImGui::CollapsingHeader("Enhanced Semantic Colors",
+        if (ImGui::CollapsingHeader(tr("Enhanced Semantic Colors"),
                                     ImGuiTreeNodeFlags_DefaultOpen)) {
           if (ImGui::BeginTable("EnhancedSemanticTable", 3,
                                 ImGuiTableFlags_SizingStretchProp)) {
@@ -3147,7 +3149,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
 
         // UI State colors section
-        if (ImGui::CollapsingHeader("UI State Colors")) {
+        if (ImGui::CollapsingHeader(tr("UI State Colors"))) {
           if (ImGui::BeginTable("UIStateTable", 3,
                                 ImGuiTableFlags_SizingStretchProp)) {
             ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed,
@@ -3162,7 +3164,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Active Selection:");
+            ImGui::Text(tr("Active Selection:"));
             ImGui::TableNextColumn();
             ImVec4 active_selection =
                 ConvertColorToImVec4(edit_theme.active_selection);
@@ -3173,12 +3175,12 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
               apply_live_preview();
             }
             ImGui::TableNextColumn();
-            ImGui::TextWrapped("Active/selected UI elements");
+            ImGui::TextWrapped(tr("Active/selected UI elements"));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Hover Highlight:");
+            ImGui::Text(tr("Hover Highlight:"));
             ImGui::TableNextColumn();
             ImVec4 hover_highlight =
                 ConvertColorToImVec4(edit_theme.hover_highlight);
@@ -3189,12 +3191,12 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
               apply_live_preview();
             }
             ImGui::TableNextColumn();
-            ImGui::TextWrapped("General hover state highlighting");
+            ImGui::TextWrapped(tr("General hover state highlighting"));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Focus Border:");
+            ImGui::Text(tr("Focus Border:"));
             ImGui::TableNextColumn();
             ImVec4 focus_border = ConvertColorToImVec4(edit_theme.focus_border);
             if (ImGui::ColorEdit3("##focus_border", &focus_border.x)) {
@@ -3203,12 +3205,12 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
               apply_live_preview();
             }
             ImGui::TableNextColumn();
-            ImGui::TextWrapped("Border for focused input elements");
+            ImGui::TextWrapped(tr("Border for focused input elements"));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
-            ImGui::Text("Disabled Overlay:");
+            ImGui::Text(tr("Disabled Overlay:"));
             ImGui::TableNextColumn();
             ImVec4 disabled_overlay =
                 ConvertColorToImVec4(edit_theme.disabled_overlay);
@@ -3220,14 +3222,14 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
             }
             ImGui::TableNextColumn();
             ImGui::TextWrapped(
-                "Semi-transparent overlay for disabled elements");
+                tr("Semi-transparent overlay for disabled elements"));
 
             ImGui::EndTable();
           }
         }
 
         // Editor-specific colors section
-        if (ImGui::CollapsingHeader("Editor-Specific Colors")) {
+        if (ImGui::CollapsingHeader(tr("Editor-Specific Colors"))) {
           if (ImGui::BeginTable("EditorColorsTable", 3,
                                 ImGuiTableFlags_SizingStretchProp)) {
             ImGui::TableSetupColumn("Color", ImGuiTableColumnFlags_WidthFixed,
@@ -3280,12 +3282,12 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Density & Layout Tab
       if (ImGui::BeginTabItem(
               absl::StrFormat("%s Density", ICON_MD_DENSITY_SMALL).c_str())) {
-        ImGui::Text("Control UI density, spacing, and typography scaling");
+        ImGui::Text(tr("Control UI density, spacing, and typography scaling"));
         ImGui::Separator();
 
         // Density Preset Selector
-        ImGui::TextColored(ImVec4(0.7f, 0.8f, 1.0f, 1.0f), "%s Quick Presets",
-                           ICON_MD_TUNE);
+        ImGui::TextColored(ImVec4(0.7f, 0.8f, 1.0f, 1.0f),
+                           tr("%s Quick Presets"), ICON_MD_TUNE);
         ImGui::Spacing();
 
         // Get current preset
@@ -3313,8 +3315,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-              "Dense UI with smaller widgets and tighter spacing\n"
-              "Best for: Information-dense workflows");
+              tr("Dense UI with smaller widgets and tighter spacing\n"
+                 "Best for: Information-dense workflows"));
         }
 
         ImGui::SameLine();
@@ -3337,8 +3339,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-              "Balanced spacing and widget sizes\n"
-              "Best for: General use");
+              tr("Balanced spacing and widget sizes\n"
+                 "Best for: General use"));
         }
 
         ImGui::SameLine();
@@ -3362,8 +3364,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip(
-              "Spacious layout with larger click targets\n"
-              "Best for: Touch screens, accessibility");
+              tr("Spacious layout with larger click targets\n"
+                 "Best for: Touch screens, accessibility"));
         }
 
         ImGui::PopStyleVar(2);
@@ -3373,61 +3375,63 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         ImGui::Spacing();
 
         // Advanced Controls
-        if (ImGui::CollapsingHeader("Advanced Density Controls")) {
+        if (ImGui::CollapsingHeader(tr("Advanced Density Controls"))) {
           ImGui::Indent();
 
-          ImGui::Text("Fine-tune individual spacing multipliers:");
+          ImGui::Text(tr("Fine-tune individual spacing multipliers:"));
           ImGui::Spacing();
 
           // Compact factor slider
-          if (ImGui::SliderFloat("Compact Factor", &edit_theme.compact_factor,
-                                 0.5f, 1.5f, "%.2f")) {
+          if (ImGui::SliderFloat(tr("Compact Factor"),
+                                 &edit_theme.compact_factor, 0.5f, 1.5f,
+                                 "%.2f")) {
             apply_live_preview();
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(
-                "Global density multiplier (0.5 = very compact, "
-                "1.5 = very spacious)");
+                tr("Global density multiplier (0.5 = very compact, "
+                   "1.5 = very spacious)"));
           }
 
           ImGui::Spacing();
 
           // Widget height
-          if (ImGui::SliderFloat("Widget Height",
+          if (ImGui::SliderFloat(tr("Widget Height"),
                                  &edit_theme.widget_height_multiplier, 0.6f,
                                  1.5f, "%.2f")) {
             apply_live_preview();
           }
 
           // Spacing
-          if (ImGui::SliderFloat("Item Spacing", &edit_theme.spacing_multiplier,
-                                 0.5f, 1.5f, "%.2f")) {
+          if (ImGui::SliderFloat(tr("Item Spacing"),
+                                 &edit_theme.spacing_multiplier, 0.5f, 1.5f,
+                                 "%.2f")) {
             apply_live_preview();
           }
 
           // Toolbar height
-          if (ImGui::SliderFloat("Toolbar Height",
+          if (ImGui::SliderFloat(tr("Toolbar Height"),
                                  &edit_theme.toolbar_height_multiplier, 0.5f,
                                  1.2f, "%.2f")) {
             apply_live_preview();
           }
 
           // Panel padding
-          if (ImGui::SliderFloat("Panel Padding",
+          if (ImGui::SliderFloat(tr("Panel Padding"),
                                  &edit_theme.panel_padding_multiplier, 0.5f,
                                  1.5f, "%.2f")) {
             apply_live_preview();
           }
 
           // Button padding
-          if (ImGui::SliderFloat("Button Padding",
+          if (ImGui::SliderFloat(tr("Button Padding"),
                                  &edit_theme.button_padding_multiplier, 0.5f,
                                  1.5f, "%.2f")) {
             apply_live_preview();
           }
 
           // Table row height
-          if (ImGui::SliderFloat("Table Row Height",
+          if (ImGui::SliderFloat(tr("Table Row Height"),
                                  &edit_theme.table_row_height_multiplier, 0.7f,
                                  1.5f, "%.2f")) {
             apply_live_preview();
@@ -3437,31 +3441,33 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
 
         // Style Rounding Controls
-        if (ImGui::CollapsingHeader("Corner Rounding")) {
+        if (ImGui::CollapsingHeader(tr("Corner Rounding"))) {
           ImGui::Indent();
 
-          if (ImGui::SliderFloat("Window Rounding", &edit_theme.window_rounding,
-                                 0.0f, 20.0f, "%.1f")) {
+          if (ImGui::SliderFloat(tr("Window Rounding"),
+                                 &edit_theme.window_rounding, 0.0f, 20.0f,
+                                 "%.1f")) {
             apply_live_preview();
           }
 
-          if (ImGui::SliderFloat("Frame Rounding", &edit_theme.frame_rounding,
+          if (ImGui::SliderFloat(tr("Frame Rounding"),
+                                 &edit_theme.frame_rounding, 0.0f, 12.0f,
+                                 "%.1f")) {
+            apply_live_preview();
+          }
+
+          if (ImGui::SliderFloat(tr("Tab Rounding"), &edit_theme.tab_rounding,
                                  0.0f, 12.0f, "%.1f")) {
             apply_live_preview();
           }
 
-          if (ImGui::SliderFloat("Tab Rounding", &edit_theme.tab_rounding, 0.0f,
-                                 12.0f, "%.1f")) {
-            apply_live_preview();
-          }
-
-          if (ImGui::SliderFloat("Scrollbar Rounding",
+          if (ImGui::SliderFloat(tr("Scrollbar Rounding"),
                                  &edit_theme.scrollbar_rounding, 0.0f, 12.0f,
                                  "%.1f")) {
             apply_live_preview();
           }
 
-          if (ImGui::SliderFloat("Grab Rounding", &edit_theme.grab_rounding,
+          if (ImGui::SliderFloat(tr("Grab Rounding"), &edit_theme.grab_rounding,
                                  0.0f, 12.0f, "%.1f")) {
             apply_live_preview();
           }
@@ -3470,23 +3476,23 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
         }
 
         // Animation Settings
-        if (ImGui::CollapsingHeader("Animation Settings")) {
+        if (ImGui::CollapsingHeader(tr("Animation Settings"))) {
           ImGui::Indent();
 
-          if (ImGui::Checkbox("Enable Animations",
+          if (ImGui::Checkbox(tr("Enable Animations"),
                               &edit_theme.enable_animations)) {
             apply_live_preview();
           }
 
           if (edit_theme.enable_animations) {
-            if (ImGui::SliderFloat("Animation Speed",
+            if (ImGui::SliderFloat(tr("Animation Speed"),
                                    &edit_theme.animation_speed, 0.5f, 2.0f,
                                    "%.2f")) {
               apply_live_preview();
             }
           }
 
-          if (ImGui::Checkbox("Enable Glow Effects",
+          if (ImGui::Checkbox(tr("Enable Glow Effects"),
                               &edit_theme.enable_glow_effects)) {
             apply_live_preview();
           }
@@ -3502,12 +3508,12 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
     ImGui::Separator();
 
-    if (ImGui::Button("Preview Theme")) {
+    if (ImGui::Button(tr("Preview Theme"))) {
       ApplyTheme(edit_theme);
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Reset to Current")) {
+    if (ImGui::Button(tr("Reset to Current"))) {
       edit_theme = current_theme_;
       // Safe string copy with bounds checking
       size_t name_len =
@@ -3535,7 +3541,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Save Theme")) {
+    if (ImGui::Button(tr("Save Theme"))) {
       edit_theme.name = std::string(theme_name);
       edit_theme.description = std::string(theme_description);
       edit_theme.author = std::string(theme_author);
@@ -3558,7 +3564,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       ImGui::BeginDisabled();
     }
 
-    if (ImGui::Button("Save Over Current")) {
+    if (ImGui::Button(tr("Save Over Current"))) {
       edit_theme.name = std::string(theme_name);
       edit_theme.description = std::string(theme_description);
       edit_theme.author = std::string(theme_author);
@@ -3581,18 +3587,18 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
     if (ImGui::IsItemHovered() && can_save_over) {
       ImGui::BeginTooltip();
-      ImGui::Text("Save over current theme file:");
+      ImGui::Text(tr("Save over current theme file:"));
       ImGui::Text("%s", current_file_path.c_str());
       ImGui::EndTooltip();
     } else if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::Text("No current theme file to overwrite");
-      ImGui::Text("Use 'Save to File...' to create a new theme file");
+      ImGui::Text(tr("No current theme file to overwrite"));
+      ImGui::Text(tr("Use 'Save to File...' to create a new theme file"));
       ImGui::EndTooltip();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Save to File...")) {
+    if (ImGui::Button(tr("Save to File..."))) {
       edit_theme.name = std::string(theme_name);
       edit_theme.description = std::string(theme_description);
       edit_theme.author = std::string(theme_author);
@@ -3622,8 +3628,8 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
 
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::Text("Save theme to a .theme file");
-      ImGui::Text("Saved themes can be shared and loaded later");
+      ImGui::Text(tr("Save theme to a .theme file"));
+      ImGui::Text(tr("Saved themes can be shared and loaded later"));
       ImGui::EndTooltip();
     }
   }

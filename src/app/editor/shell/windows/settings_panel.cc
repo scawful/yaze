@@ -1,4 +1,5 @@
 #include "app/editor/shell/windows/settings_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -289,7 +290,7 @@ bool AddUniquePath(std::vector<std::string>* paths, const std::string& path) {
 
 void SettingsPanel::Draw() {
   if (!user_settings_) {
-    ImGui::TextDisabled("Settings not available");
+    ImGui::TextDisabled(tr("Settings not available"));
     return;
   }
 
@@ -372,7 +373,7 @@ void SettingsPanel::DrawGeneralSettings() {
   // Refactored from table to vertical list for sidebar
   static gui::FlagsMenu flags;
 
-  ImGui::TextDisabled("Feature Flags configuration");
+  ImGui::TextDisabled(tr("Feature Flags configuration"));
   ImGui::Spacing();
 
   if (ImGui::TreeNode(ICON_MD_FLAG " System Flags")) {
@@ -403,30 +404,30 @@ void SettingsPanel::DrawGeneralSettings() {
 
 void SettingsPanel::DrawProjectSettings() {
   if (!project_) {
-    ImGui::TextDisabled("No active project.");
+    ImGui::TextDisabled(tr("No active project."));
     return;
   }
 
-  ImGui::Text("%s Project Info", ICON_MD_INFO);
+  ImGui::Text(tr("%s Project Info"), ICON_MD_INFO);
   ImGui::Separator();
 
-  ImGui::Text("Name: %s", project_->name.c_str());
-  ImGui::Text("Path: %s", project_->filepath.c_str());
+  ImGui::Text(tr("Name: %s"), project_->name.c_str());
+  ImGui::Text(tr("Path: %s"), project_->filepath.c_str());
 
   ImGui::Spacing();
-  ImGui::Text("%s ROM Identity", ICON_MD_VIDEOGAME_ASSET);
+  ImGui::Text(tr("%s ROM Identity"), ICON_MD_VIDEOGAME_ASSET);
   ImGui::Separator();
 
   const char* roles[] = {"base", "dev", "patched", "release"};
   int role_index = static_cast<int>(project_->rom_metadata.role);
-  if (ImGui::Combo("Role", &role_index, roles, IM_ARRAYSIZE(roles))) {
+  if (ImGui::Combo(tr("Role"), &role_index, roles, IM_ARRAYSIZE(roles))) {
     project_->rom_metadata.role = static_cast<project::RomRole>(role_index);
     project_->Save();
   }
 
   const char* policies[] = {"allow", "warn", "block"};
   int policy_index = static_cast<int>(project_->rom_metadata.write_policy);
-  if (ImGui::Combo("Write Policy", &policy_index, policies,
+  if (ImGui::Combo(tr("Write Policy"), &policy_index, policies,
                    IM_ARRAYSIZE(policies))) {
     project_->rom_metadata.write_policy =
         static_cast<project::RomWritePolicy>(policy_index);
@@ -434,7 +435,7 @@ void SettingsPanel::DrawProjectSettings() {
   }
 
   std::string expected_hash = project_->rom_metadata.expected_hash;
-  if (ImGui::InputText("Expected Hash", &expected_hash)) {
+  if (ImGui::InputText(tr("Expected Hash"), &expected_hash)) {
     project_->rom_metadata.expected_hash = expected_hash;
     project_->Save();
   }
@@ -446,63 +447,63 @@ void SettingsPanel::DrawProjectSettings() {
       cached_rom_path = rom_->filename();
       cached_rom_hash = util::ComputeRomHash(rom_->data(), rom_->size());
     }
-    ImGui::Text("Current ROM Hash: %s", cached_rom_hash.empty()
-                                            ? "(unknown)"
-                                            : cached_rom_hash.c_str());
-    if (ImGui::Button("Use Current ROM Hash")) {
+    ImGui::Text(tr("Current ROM Hash: %s"), cached_rom_hash.empty()
+                                                ? "(unknown)"
+                                                : cached_rom_hash.c_str());
+    if (ImGui::Button(tr("Use Current ROM Hash"))) {
       project_->rom_metadata.expected_hash = cached_rom_hash;
       project_->Save();
     }
   } else {
-    ImGui::TextDisabled("Current ROM Hash: (no ROM loaded)");
+    ImGui::TextDisabled(tr("Current ROM Hash: (no ROM loaded)"));
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Paths", ICON_MD_FOLDER_OPEN);
+  ImGui::Text(tr("%s Paths"), ICON_MD_FOLDER_OPEN);
   ImGui::Separator();
 
   // Output Folder
   std::string output_folder = project_->output_folder;
-  if (ImGui::InputText("Output Folder", &output_folder)) {
+  if (ImGui::InputText(tr("Output Folder"), &output_folder)) {
     project_->output_folder = output_folder;
     project_->Save();
   }
 
   // Git Repository
   std::string git_repo = project_->git_repository;
-  if (ImGui::InputText("Git Repository", &git_repo)) {
+  if (ImGui::InputText(tr("Git Repository"), &git_repo)) {
     project_->git_repository = git_repo;
     project_->Save();
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Build", ICON_MD_BUILD);
+  ImGui::Text(tr("%s Build"), ICON_MD_BUILD);
   ImGui::Separator();
 
   // Build Target
   std::string build_target = project_->build_target;
-  if (ImGui::InputText("Build Target (ROM)", &build_target)) {
+  if (ImGui::InputText(tr("Build Target (ROM)"), &build_target)) {
     project_->build_target = build_target;
     project_->Save();
   }
 
   // Symbols File
   std::string symbols_file = project_->symbols_filename;
-  if (ImGui::InputText("Symbols File", &symbols_file)) {
+  if (ImGui::InputText(tr("Symbols File"), &symbols_file)) {
     project_->symbols_filename = symbols_file;
     project_->Save();
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s ASM / Hack Manifest", ICON_MD_CODE);
+  ImGui::Text(tr("%s ASM / Hack Manifest"), ICON_MD_CODE);
   ImGui::Separator();
-  ImGui::TextWrapped(
+  ImGui::TextWrapped(tr(
       "Optional: load a hack manifest JSON (generated by an ASM project) to "
       "annotate room tags, show feature flags, and surface which ROM regions "
-      "are owned by ASM vs safe to edit in yaze.");
+      "are owned by ASM vs safe to edit in yaze."));
 
   std::string manifest_file = project_->hack_manifest_file;
-  if (ImGui::InputText("Hack Manifest File", &manifest_file)) {
+  if (ImGui::InputText(tr("Hack Manifest File"), &manifest_file)) {
     project_->hack_manifest_file = manifest_file;
     project_->ReloadHackManifest();
     project_->Save();
@@ -511,31 +512,31 @@ void SettingsPanel::DrawProjectSettings() {
   const bool manifest_loaded = project_->hack_manifest.loaded();
   ImGui::SameLine();
   ImGui::TextDisabled(manifest_loaded ? "(loaded)" : "(not loaded)");
-  if (ImGui::Button("Reload Manifest")) {
+  if (ImGui::Button(tr("Reload Manifest"))) {
     project_->ReloadHackManifest();
   }
 
   if (manifest_loaded) {
     ImGui::Spacing();
-    ImGui::Text("Hack: %s", project_->hack_manifest.hack_name().c_str());
-    ImGui::Text("Manifest Version: %d",
+    ImGui::Text(tr("Hack: %s"), project_->hack_manifest.hack_name().c_str());
+    ImGui::Text(tr("Manifest Version: %d"),
                 project_->hack_manifest.manifest_version());
-    ImGui::Text("Hooks Tracked: %d", project_->hack_manifest.total_hooks());
+    ImGui::Text(tr("Hooks Tracked: %d"), project_->hack_manifest.total_hooks());
 
     const auto& pipeline = project_->hack_manifest.build_pipeline();
     if (!pipeline.dev_rom.empty()) {
-      ImGui::Text("Dev ROM: %s", pipeline.dev_rom.c_str());
+      ImGui::Text(tr("Dev ROM: %s"), pipeline.dev_rom.c_str());
     }
     if (!pipeline.patched_rom.empty()) {
-      ImGui::Text("Patched ROM: %s", pipeline.patched_rom.c_str());
+      ImGui::Text(tr("Patched ROM: %s"), pipeline.patched_rom.c_str());
     }
     if (!pipeline.build_script.empty()) {
-      ImGui::Text("Build Script: %s", pipeline.build_script.c_str());
+      ImGui::Text(tr("Build Script: %s"), pipeline.build_script.c_str());
     }
 
     const auto& msg_layout = project_->hack_manifest.message_layout();
     if (msg_layout.first_expanded_id != 0 || msg_layout.last_expanded_id != 0) {
-      ImGui::Text("Expanded Messages: 0x%03X-0x%03X (%d)",
+      ImGui::Text(tr("Expanded Messages: 0x%03X-0x%03X (%d)"),
                   msg_layout.first_expanded_id, msg_layout.last_expanded_id,
                   msg_layout.expanded_count);
     }
@@ -554,10 +555,10 @@ void SettingsPanel::DrawProjectSettings() {
 
     if (ImGui::TreeNode(ICON_MD_LABEL " Room Tags (Dispatch)")) {
       for (const auto& tag : project_->hack_manifest.room_tags()) {
-        ImGui::BulletText("0x%02X: %s", tag.tag_id, tag.name.c_str());
+        ImGui::BulletText(tr("0x%02X: %s"), tag.tag_id, tag.name.c_str());
         if (!tag.enabled && !tag.feature_flag.empty()) {
           ImGui::SameLine();
-          ImGui::TextDisabled("(disabled by %s)", tag.feature_flag.c_str());
+          ImGui::TextDisabled(tr("(disabled by %s)"), tag.feature_flag.c_str());
         }
         if (!tag.purpose.empty() && ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s", tag.purpose.c_str());
@@ -568,11 +569,11 @@ void SettingsPanel::DrawProjectSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Backup Settings", ICON_MD_BACKUP);
+  ImGui::Text(tr("%s Backup Settings"), ICON_MD_BACKUP);
   ImGui::Separator();
 
   std::string backup_folder = project_->rom_backup_folder;
-  if (ImGui::InputText("Backup Folder", &backup_folder)) {
+  if (ImGui::InputText(tr("Backup Folder"), &backup_folder)) {
     project_->rom_backup_folder = backup_folder;
     project_->Save();
   }
@@ -604,11 +605,11 @@ void SettingsPanel::DrawProjectSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Dungeon Overlay", ICON_MD_TRAIN);
+  ImGui::Text(tr("%s Dungeon Overlay"), ICON_MD_TRAIN);
   ImGui::Separator();
   ImGui::TextWrapped(
-      "Configure collision/object IDs used by minecart overlays and audits. "
-      "Hex values, ranges allowed (e.g. B0-BE).");
+      tr("Configure collision/object IDs used by minecart overlays and audits. "
+         "Hex values, ranges allowed (e.g. B0-BE)."));
 
   static std::string overlay_project_path;
   static HexListEditorState track_tiles_state;
@@ -664,7 +665,7 @@ void SettingsPanel::DrawProjectSettings() {
       apply = true;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Reset to defaults");
+      ImGui::SetTooltip(tr("Reset to defaults"));
     }
     ImGui::SameLine();
     if (ImGui::SmallButton(absl::StrFormat("Clear##%s", label).c_str())) {
@@ -672,7 +673,7 @@ void SettingsPanel::DrawProjectSettings() {
       apply = true;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Clear list (empty uses defaults)");
+      ImGui::SetTooltip(tr("Clear list (empty uses defaults)"));
     }
 
     const bool uses_defaults = target->empty();
@@ -682,9 +683,9 @@ void SettingsPanel::DrawProjectSettings() {
     ImGui::TextDisabled(ICON_MD_INFO);
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::Text("Effective: %s", FormatHexList(effective_values).c_str());
+      ImGui::Text(tr("Effective: %s"), FormatHexList(effective_values).c_str());
       if (uses_defaults) {
-        ImGui::TextDisabled("Using defaults (list is empty)");
+        ImGui::TextDisabled(tr("Using defaults (list is empty)"));
       }
       ImGui::EndTooltip();
     }
@@ -734,11 +735,11 @@ void SettingsPanel::DrawFilesystemSettings() {
   static int selected_root_index = -1;
   static std::string new_root_path;
 
-  ImGui::Text("%s Project Roots", ICON_MD_FOLDER_OPEN);
+  ImGui::Text(tr("%s Project Roots"), ICON_MD_FOLDER_OPEN);
   ImGui::Separator();
 
   if (roots.empty()) {
-    ImGui::TextDisabled("No project roots configured.");
+    ImGui::TextDisabled(tr("No project roots configured."));
   }
 
   if (ImGui::BeginChild("ProjectRootsList", ImVec2(0, 140), true)) {
@@ -761,7 +762,7 @@ void SettingsPanel::DrawFilesystemSettings() {
       selected_root_index >= 0 &&
       selected_root_index < static_cast<int>(roots.size());
   if (has_selection) {
-    if (ImGui::Button("Set Default")) {
+    if (ImGui::Button(tr("Set Default"))) {
       prefs.default_project_root = roots[selected_root_index];
       user_settings_->Save();
     }
@@ -781,7 +782,7 @@ void SettingsPanel::DrawFilesystemSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Add Root", ICON_MD_ADD);
+  ImGui::Text(tr("%s Add Root"), ICON_MD_ADD);
   ImGui::Separator();
 
   ImGui::InputTextWithHint("##project_root_add", "Add folder path...",
@@ -809,7 +810,7 @@ void SettingsPanel::DrawFilesystemSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Quick Add", ICON_MD_BOLT);
+  ImGui::Text(tr("%s Quick Add"), ICON_MD_BOLT);
   ImGui::Separator();
 
   if (ImGui::Button(ICON_MD_HOME " Add Documents")) {
@@ -834,14 +835,14 @@ void SettingsPanel::DrawFilesystemSettings() {
     }
   }
   ImGui::TextDisabled(
-      "iCloud projects live in Documents/Yaze/iCloud on this Mac.");
+      tr("iCloud projects live in Documents/Yaze/iCloud on this Mac."));
 
   ImGui::Spacing();
-  ImGui::Text("%s Sync Options", ICON_MD_SYNC);
+  ImGui::Text(tr("%s Sync Options"), ICON_MD_SYNC);
   ImGui::Separator();
 
   bool use_icloud_sync = prefs.use_icloud_sync;
-  if (ImGui::Checkbox("Use iCloud sync (Documents)", &use_icloud_sync)) {
+  if (ImGui::Checkbox(tr("Use iCloud sync (Documents)"), &use_icloud_sync)) {
     prefs.use_icloud_sync = use_icloud_sync;
     if (use_icloud_sync) {
       auto icloud_dir =
@@ -855,7 +856,7 @@ void SettingsPanel::DrawFilesystemSettings() {
   }
 
   bool use_files_app = prefs.use_files_app;
-  if (ImGui::Checkbox("Prefer Files app on iOS", &use_files_app)) {
+  if (ImGui::Checkbox(tr("Prefer Files app on iOS"), &use_files_app)) {
     prefs.use_files_app = use_files_app;
     user_settings_->Save();
   }
@@ -864,14 +865,14 @@ void SettingsPanel::DrawFilesystemSettings() {
 void SettingsPanel::DrawAppearanceSettings() {
   auto& theme_manager = gui::ThemeManager::Get();
 
-  ImGui::Text("%s Theme Management", ICON_MD_PALETTE);
+  ImGui::Text(tr("%s Theme Management"), ICON_MD_PALETTE);
   ImGui::Separator();
 
   // Current theme with color swatches
   const auto& current = theme_manager.GetCurrentThemeName();
   const auto& current_theme = theme_manager.GetCurrentTheme();
 
-  ImGui::Text("Current Theme:");
+  ImGui::Text(tr("Current Theme:"));
   ImGui::SameLine();
 
   // Draw 3 color swatches inline: primary, surface, accent
@@ -907,7 +908,7 @@ void SettingsPanel::DrawAppearanceSettings() {
   ImGui::Spacing();
 
   // Available themes list with hover preview and color swatches
-  ImGui::Text("Available Themes:");
+  ImGui::Text(tr("Available Themes:"));
 
   bool any_theme_hovered = false;
   if (ImGui::BeginChild("ThemeList", ImVec2(0, 200), true)) {
@@ -981,21 +982,22 @@ void SettingsPanel::DrawAppearanceSettings() {
     theme_manager.RefreshAvailableThemes();
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Re-scan theme directories for new or changed themes");
+    ImGui::SetTooltip(
+        tr("Re-scan theme directories for new or changed themes"));
   }
 
   ImGui::Spacing();
-  ImGui::SeparatorText("Display Density");
+  ImGui::SeparatorText(tr("Display Density"));
 
   {
     auto preset = theme_manager.GetCurrentTheme().density_preset;
     int density = static_cast<int>(preset);
     bool changed = false;
-    changed |= ImGui::RadioButton("Compact (0.75x)", &density, 0);
+    changed |= ImGui::RadioButton(tr("Compact (0.75x)"), &density, 0);
     ImGui::SameLine();
-    changed |= ImGui::RadioButton("Normal (1.0x)", &density, 1);
+    changed |= ImGui::RadioButton(tr("Normal (1.0x)"), &density, 1);
     ImGui::SameLine();
-    changed |= ImGui::RadioButton("Comfortable (1.25x)", &density, 2);
+    changed |= ImGui::RadioButton(tr("Comfortable (1.25x)"), &density, 2);
 
     if (changed) {
       auto new_preset = static_cast<gui::DensityPreset>(density);
@@ -1006,11 +1008,11 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::SeparatorText("Editor/Workspace Motion");
+  ImGui::SeparatorText(tr("Editor/Workspace Motion"));
 
   auto& prefs = user_settings_->prefs();
   bool reduced_motion = prefs.reduced_motion;
-  if (ImGui::Checkbox("Reduced Motion", &reduced_motion)) {
+  if (ImGui::Checkbox(tr("Reduced Motion"), &reduced_motion)) {
     prefs.reduced_motion = reduced_motion;
     gui::GetAnimator().SetMotionPreferences(
         prefs.reduced_motion,
@@ -1019,13 +1021,13 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Disable panel/editor transition animations for a calmer editing "
-        "experience.");
+        tr("Disable panel/editor transition animations for a calmer editing "
+           "experience."));
   }
 
   int switch_profile = std::clamp(prefs.switch_motion_profile, 0, 2);
   const char* switch_profile_labels[] = {"Snappy", "Standard", "Relaxed"};
-  if (ImGui::Combo("Switch Motion Profile", &switch_profile,
+  if (ImGui::Combo(tr("Switch Motion Profile"), &switch_profile,
                    switch_profile_labels,
                    IM_ARRAYSIZE(switch_profile_labels))) {
     prefs.switch_motion_profile = switch_profile;
@@ -1036,12 +1038,12 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Controls editor/workspace switch timing and easing for panel fades "
-        "and sidebar slides.");
+        tr("Controls editor/workspace switch timing and easing for panel fades "
+           "and sidebar slides."));
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Font", ICON_MD_TEXT_FIELDS);
+  ImGui::Text(tr("%s Font"), ICON_MD_TEXT_FIELDS);
   ImGui::Separator();
 
   if (user_settings_) {
@@ -1052,7 +1054,7 @@ void SettingsPanel::DrawAppearanceSettings() {
       user_settings_->Save();
     }
 
-    ImGui::Text("Global Font Scale");
+    ImGui::Text(tr("Global Font Scale"));
     float scale = user_settings_->prefs().font_global_scale;
     if (ImGui::SliderFloat("##global_font_scale", &scale, 0.5f, 2.0f, "%.2f")) {
       user_settings_->prefs().font_global_scale = scale;
@@ -1062,11 +1064,11 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Status Bar", ICON_MD_HORIZONTAL_RULE);
+  ImGui::Text(tr("%s Status Bar"), ICON_MD_HORIZONTAL_RULE);
   ImGui::Separator();
 
   bool show_status_bar = user_settings_->prefs().show_status_bar;
-  if (ImGui::Checkbox("Show Status Bar", &show_status_bar)) {
+  if (ImGui::Checkbox(tr("Show Status Bar"), &show_status_bar)) {
     user_settings_->prefs().show_status_bar = show_status_bar;
     user_settings_->Save();
     // Immediately apply to status bar if status_bar_ is available
@@ -1076,24 +1078,24 @@ void SettingsPanel::DrawAppearanceSettings() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Display ROM, session, cursor, and zoom info at bottom of window");
+        tr("Display ROM, session, cursor, and zoom info at bottom of window"));
   }
 }
 
 void SettingsPanel::DrawWorkspaceSettings() {
   if (!user_settings_) {
-    ImGui::TextDisabled("UserSettings unavailable.");
+    ImGui::TextDisabled(tr("UserSettings unavailable."));
     return;
   }
 
   auto& prefs = user_settings_->prefs();
 
-  ImGui::Text("%s Named Layouts", ICON_MD_DASHBOARD);
+  ImGui::Text(tr("%s Named Layouts"), ICON_MD_DASHBOARD);
   ImGui::Separator();
 
   if (prefs.named_layouts.empty()) {
     ImGui::TextDisabled(
-        "No saved layouts yet. Open the Layout Designer to capture one.");
+        tr("No saved layouts yet. Open the Layout Designer to capture one."));
   } else {
     // Sort the keys so the combo order is stable across frames
     // (named_layouts is unordered_map).
@@ -1108,7 +1110,7 @@ void SettingsPanel::DrawWorkspaceSettings() {
     const char* preview =
         active.empty() ? "(select a layout…)" : active.c_str();
 
-    if (ImGui::BeginCombo("Active Layout", preview)) {
+    if (ImGui::BeginCombo(tr("Active Layout"), preview)) {
       for (const auto& name : names) {
         const bool is_selected = (name == active);
         if (ImGui::Selectable(name.c_str(), is_selected)) {
@@ -1129,14 +1131,14 @@ void SettingsPanel::DrawWorkspaceSettings() {
     ImGui::SameLine();
     ImGui::BeginDisabled(active.empty() ||
                          prefs.named_layouts.count(active) == 0);
-    if (ImGui::SmallButton("Re-apply")) {
+    if (ImGui::SmallButton(tr("Re-apply"))) {
       ApplyNamedLayoutToDockspace(active);
     }
     ImGui::EndDisabled();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Re-apply the active layout (useful after closing or rearranging "
-          "panels manually).");
+          tr("Re-apply the active layout (useful after closing or rearranging "
+             "panels manually)."));
     }
   }
 
@@ -1162,8 +1164,8 @@ void SettingsPanel::DrawWorkspaceSettings() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Open the Layout Designer panel to author or capture a workspace "
-        "layout.");
+        tr("Open the Layout Designer panel to author or capture a workspace "
+           "layout."));
   }
 
   if (!workspace_status_message_.empty()) {
@@ -1252,10 +1254,10 @@ void SettingsPanel::DrawEditorBehavior() {
   if (!user_settings_)
     return;
 
-  ImGui::Text("%s Auto-Save", ICON_MD_SAVE);
+  ImGui::Text(tr("%s Auto-Save"), ICON_MD_SAVE);
   ImGui::Separator();
 
-  if (ImGui::Checkbox("Enable Auto-Save",
+  if (ImGui::Checkbox(tr("Enable Auto-Save"),
                       &user_settings_->prefs().autosave_enabled)) {
     user_settings_->Save();
   }
@@ -1263,12 +1265,12 @@ void SettingsPanel::DrawEditorBehavior() {
   if (user_settings_->prefs().autosave_enabled) {
     ImGui::Indent();
     int interval = static_cast<int>(user_settings_->prefs().autosave_interval);
-    if (ImGui::SliderInt("Interval (sec)", &interval, 60, 600)) {
+    if (ImGui::SliderInt(tr("Interval (sec)"), &interval, 60, 600)) {
       user_settings_->prefs().autosave_interval = static_cast<float>(interval);
       user_settings_->Save();
     }
 
-    if (ImGui::Checkbox("Backup Before Save",
+    if (ImGui::Checkbox(tr("Backup Before Save"),
                         &user_settings_->prefs().backup_before_save)) {
       user_settings_->Save();
     }
@@ -1276,16 +1278,16 @@ void SettingsPanel::DrawEditorBehavior() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Recent Files", ICON_MD_HISTORY);
+  ImGui::Text(tr("%s Recent Files"), ICON_MD_HISTORY);
   ImGui::Separator();
 
-  if (ImGui::SliderInt("Limit", &user_settings_->prefs().recent_files_limit, 5,
-                       50)) {
+  if (ImGui::SliderInt(tr("Limit"), &user_settings_->prefs().recent_files_limit,
+                       5, 50)) {
     user_settings_->Save();
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Default Editor", ICON_MD_EDIT);
+  ImGui::Text(tr("%s Default Editor"), ICON_MD_EDIT);
   ImGui::Separator();
 
   const char* editors[] = {"None", "Overworld", "Dungeon", "Graphics"};
@@ -1295,9 +1297,9 @@ void SettingsPanel::DrawEditorBehavior() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Sprite Names", ICON_MD_LABEL);
+  ImGui::Text(tr("%s Sprite Names"), ICON_MD_LABEL);
   ImGui::Separator();
-  if (ImGui::Checkbox("Use HMagic sprite names (expanded)",
+  if (ImGui::Checkbox(tr("Use HMagic sprite names (expanded)"),
                       &user_settings_->prefs().prefer_hmagic_sprite_names)) {
     yaze::zelda3::SetPreferHmagicSpriteNames(
         user_settings_->prefs().prefer_hmagic_sprite_names);
@@ -1309,36 +1311,36 @@ void SettingsPanel::DrawPerformanceSettings() {
   if (!user_settings_)
     return;
 
-  ImGui::Text("%s Graphics", ICON_MD_IMAGE);
+  ImGui::Text(tr("%s Graphics"), ICON_MD_IMAGE);
   ImGui::Separator();
 
-  if (ImGui::Checkbox("V-Sync", &user_settings_->prefs().vsync)) {
+  if (ImGui::Checkbox(tr("V-Sync"), &user_settings_->prefs().vsync)) {
     user_settings_->Save();
   }
 
-  if (ImGui::SliderInt("Target FPS", &user_settings_->prefs().target_fps, 30,
-                       144)) {
+  if (ImGui::SliderInt(tr("Target FPS"), &user_settings_->prefs().target_fps,
+                       30, 144)) {
     user_settings_->Save();
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Memory", ICON_MD_MEMORY);
+  ImGui::Text(tr("%s Memory"), ICON_MD_MEMORY);
   ImGui::Separator();
 
-  if (ImGui::SliderInt("Cache Size (MB)",
+  if (ImGui::SliderInt(tr("Cache Size (MB)"),
                        &user_settings_->prefs().cache_size_mb, 128, 2048)) {
     user_settings_->Save();
   }
 
-  if (ImGui::SliderInt("Undo History",
+  if (ImGui::SliderInt(tr("Undo History"),
                        &user_settings_->prefs().undo_history_size, 10, 200)) {
     user_settings_->Save();
   }
 
   ImGui::Spacing();
   ImGui::Separator();
-  ImGui::Text("Current FPS: %.1f", ImGui::GetIO().Framerate);
-  ImGui::Text("Frame Time: %.3f ms", 1000.0f / ImGui::GetIO().Framerate);
+  ImGui::Text(tr("Current FPS: %.1f"), ImGui::GetIO().Framerate);
+  ImGui::Text(tr("Frame Time: %.3f ms"), 1000.0f / ImGui::GetIO().Framerate);
 }
 
 void SettingsPanel::DrawAIAgentSettings() {
@@ -1378,7 +1380,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     ImGui::PopID();
   };
 
-  ImGui::Text("%s Provider Keys", ICON_MD_VPN_KEY);
+  ImGui::Text(tr("%s Provider Keys"), ICON_MD_VPN_KEY);
   ImGui::Separator();
   draw_key_row("OpenAI", &prefs.openai_api_key, "OPENAI_API_KEY", "openai_key");
   draw_key_row("Anthropic", &prefs.anthropic_api_key, "ANTHROPIC_API_KEY",
@@ -1388,7 +1390,7 @@ void SettingsPanel::DrawAIAgentSettings() {
   ImGui::Spacing();
 
   // Provider selection
-  ImGui::Text("%s Provider Defaults (legacy)", ICON_MD_CLOUD);
+  ImGui::Text(tr("%s Provider Defaults (legacy)"), ICON_MD_CLOUD);
   ImGui::Separator();
 
   const char* providers[] = {"Ollama (Local)", "Gemini (Cloud)",
@@ -1399,7 +1401,7 @@ void SettingsPanel::DrawAIAgentSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Host Routing", ICON_MD_STORAGE);
+  ImGui::Text(tr("%s Host Routing"), ICON_MD_STORAGE);
   ImGui::Separator();
 
   const char* active_preview = "None";
@@ -1415,7 +1417,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     }
   }
 
-  if (ImGui::BeginCombo("Active Host", active_preview)) {
+  if (ImGui::BeginCombo(tr("Active Host"), active_preview)) {
     for (size_t i = 0; i < hosts.size(); ++i) {
       const bool is_selected = (!prefs.active_ai_host_id.empty() &&
                                 hosts[i].id == prefs.active_ai_host_id);
@@ -1433,7 +1435,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     ImGui::EndCombo();
   }
 
-  if (ImGui::BeginCombo("Remote Build Host", remote_preview)) {
+  if (ImGui::BeginCombo(tr("Remote Build Host"), remote_preview)) {
     for (size_t i = 0; i < hosts.size(); ++i) {
       const bool is_selected = (!prefs.remote_build_host_id.empty() &&
                                 hosts[i].id == prefs.remote_build_host_id);
@@ -1449,7 +1451,7 @@ void SettingsPanel::DrawAIAgentSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s AI Hosts", ICON_MD_STORAGE);
+  ImGui::Text(tr("%s AI Hosts"), ICON_MD_STORAGE);
   ImGui::Separator();
 
   if (selected_host_index >= static_cast<int>(hosts.size())) {
@@ -1530,7 +1532,7 @@ void SettingsPanel::DrawAIAgentSettings() {
   }
 
   ImGui::SameLine();
-  if (ImGui::Button("Add LM Studio")) {
+  if (ImGui::Button(tr("Add LM Studio"))) {
     UserSettings::Preferences::AiHost host;
     host.label = "LM Studio (local)";
     host.base_url = "http://localhost:1234";
@@ -1540,7 +1542,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     add_host(host);
   }
   ImGui::SameLine();
-  if (ImGui::Button("Add AFS Bridge")) {
+  if (ImGui::Button(tr("Add AFS Bridge"))) {
     UserSettings::Preferences::AiHost host;
     host.label = "halext AFS Bridge";
     host.base_url = "https://halext.org";
@@ -1550,7 +1552,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     add_host(host);
   }
   ImGui::SameLine();
-  if (ImGui::Button("Add Ollama")) {
+  if (ImGui::Button(tr("Add Ollama"))) {
     UserSettings::Preferences::AiHost host;
     host.label = "Ollama (local)";
     host.base_url = "http://localhost:11434";
@@ -1564,7 +1566,7 @@ void SettingsPanel::DrawAIAgentSettings() {
   ImGui::InputTextWithHint("##tailscale_host", "host.ts.net:1234",
                            &tailscale_host);
   ImGui::SameLine();
-  if (ImGui::Button("Add Tailscale Host")) {
+  if (ImGui::Button(tr("Add Tailscale Host"))) {
     std::string trimmed =
         std::string(absl::StripAsciiWhitespace(tailscale_host));
     if (!trimmed.empty()) {
@@ -1588,12 +1590,12 @@ void SettingsPanel::DrawAIAgentSettings() {
       selected_host_index < static_cast<int>(hosts.size())) {
     auto& host = hosts[static_cast<size_t>(selected_host_index)];
     ImGui::Spacing();
-    ImGui::Text("Host Details");
+    ImGui::Text(tr("Host Details"));
     ImGui::Separator();
-    if (ImGui::InputText("Label", &host.label)) {
+    if (ImGui::InputText(tr("Label"), &host.label)) {
       user_settings_->Save();
     }
-    if (ImGui::InputText("Base URL", &host.base_url)) {
+    if (ImGui::InputText(tr("Base URL"), &host.base_url)) {
       user_settings_->Save();
     }
 
@@ -1606,46 +1608,46 @@ void SettingsPanel::DrawAIAgentSettings() {
         break;
       }
     }
-    if (ImGui::Combo("API Type", &api_index, api_types,
+    if (ImGui::Combo(tr("API Type"), &api_index, api_types,
                      IM_ARRAYSIZE(api_types))) {
       host.api_type = api_types[api_index];
       user_settings_->Save();
     }
 
-    if (ImGui::InputText("API Key", &host.api_key,
+    if (ImGui::InputText(tr("API Key"), &host.api_key,
                          ImGuiInputTextFlags_Password)) {
       user_settings_->Save();
     }
-    if (ImGui::InputText("Keychain ID", &host.credential_id)) {
+    if (ImGui::InputText(tr("Keychain ID"), &host.credential_id)) {
       user_settings_->Save();
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("Use Host ID")) {
+    if (ImGui::SmallButton(tr("Use Host ID"))) {
       host.credential_id = host.id;
       user_settings_->Save();
     }
     if (!host.credential_id.empty() && host.api_key.empty()) {
-      ImGui::TextDisabled("Keychain lookup enabled (leave API key empty).");
+      ImGui::TextDisabled(tr("Keychain lookup enabled (leave API key empty)."));
     }
 
-    if (ImGui::Checkbox("Supports Vision", &host.supports_vision)) {
+    if (ImGui::Checkbox(tr("Supports Vision"), &host.supports_vision)) {
       user_settings_->Save();
     }
     ImGui::SameLine();
-    if (ImGui::Checkbox("Supports Tools", &host.supports_tools)) {
+    if (ImGui::Checkbox(tr("Supports Tools"), &host.supports_tools)) {
       user_settings_->Save();
     }
     ImGui::SameLine();
-    if (ImGui::Checkbox("Supports Streaming", &host.supports_streaming)) {
+    if (ImGui::Checkbox(tr("Supports Streaming"), &host.supports_streaming)) {
       user_settings_->Save();
     }
-    if (ImGui::Checkbox("Allow Insecure HTTP", &host.allow_insecure)) {
+    if (ImGui::Checkbox(tr("Allow Insecure HTTP"), &host.allow_insecure)) {
       user_settings_->Save();
     }
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Local Model Paths", ICON_MD_FOLDER);
+  ImGui::Text(tr("%s Local Model Paths"), ICON_MD_FOLDER);
   ImGui::Separator();
 
   auto& model_paths = prefs.ai_model_paths;
@@ -1653,7 +1655,7 @@ void SettingsPanel::DrawAIAgentSettings() {
   static std::string new_model_path;
 
   if (model_paths.empty()) {
-    ImGui::TextDisabled("No model paths configured.");
+    ImGui::TextDisabled(tr("No model paths configured."));
   }
 
   if (ImGui::BeginChild("ModelPathsList", ImVec2(0, 120), true)) {
@@ -1703,7 +1705,7 @@ void SettingsPanel::DrawAIAgentSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Quick Add", ICON_MD_BOLT);
+  ImGui::Text(tr("%s Quick Add"), ICON_MD_BOLT);
   ImGui::Separator();
   const auto home_dir = util::PlatformPaths::GetHomeDirectory();
   if (ImGui::Button(ICON_MD_HOME " Add ~/models")) {
@@ -1714,7 +1716,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     }
   }
   ImGui::SameLine();
-  if (ImGui::Button("Add ~/.lmstudio/models")) {
+  if (ImGui::Button(tr("Add ~/.lmstudio/models"))) {
     if (!home_dir.empty() && home_dir != ".") {
       if (AddUniquePath(&model_paths,
                         (home_dir / ".lmstudio" / "models").string())) {
@@ -1723,7 +1725,7 @@ void SettingsPanel::DrawAIAgentSettings() {
     }
   }
   ImGui::SameLine();
-  if (ImGui::Button("Add ~/.ollama/models")) {
+  if (ImGui::Button(tr("Add ~/.ollama/models"))) {
     if (!home_dir.empty() && home_dir != ".") {
       if (AddUniquePath(&model_paths,
                         (home_dir / ".ollama" / "models").string())) {
@@ -1733,46 +1735,46 @@ void SettingsPanel::DrawAIAgentSettings() {
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Parameters", ICON_MD_TUNE);
+  ImGui::Text(tr("%s Parameters"), ICON_MD_TUNE);
   ImGui::Separator();
 
-  if (ImGui::SliderFloat("Temperature", &user_settings_->prefs().ai_temperature,
-                         0.0f, 2.0f)) {
+  if (ImGui::SliderFloat(tr("Temperature"),
+                         &user_settings_->prefs().ai_temperature, 0.0f, 2.0f)) {
     user_settings_->Save();
   }
-  ImGui::TextDisabled("Higher = more creative");
+  ImGui::TextDisabled(tr("Higher = more creative"));
 
-  if (ImGui::SliderInt("Max Tokens", &user_settings_->prefs().ai_max_tokens,
+  if (ImGui::SliderInt(tr("Max Tokens"), &user_settings_->prefs().ai_max_tokens,
                        256, 8192)) {
     user_settings_->Save();
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Behavior", ICON_MD_PSYCHOLOGY);
+  ImGui::Text(tr("%s Behavior"), ICON_MD_PSYCHOLOGY);
   ImGui::Separator();
 
-  if (ImGui::Checkbox("Proactive Suggestions",
+  if (ImGui::Checkbox(tr("Proactive Suggestions"),
                       &user_settings_->prefs().ai_proactive)) {
     user_settings_->Save();
   }
 
-  if (ImGui::Checkbox("Auto-Learn Preferences",
+  if (ImGui::Checkbox(tr("Auto-Learn Preferences"),
                       &user_settings_->prefs().ai_auto_learn)) {
     user_settings_->Save();
   }
 
-  if (ImGui::Checkbox("Enable Vision",
+  if (ImGui::Checkbox(tr("Enable Vision"),
                       &user_settings_->prefs().ai_multimodal)) {
     user_settings_->Save();
   }
 
   ImGui::Spacing();
-  ImGui::Text("%s Logging", ICON_MD_TERMINAL);
+  ImGui::Text(tr("%s Logging"), ICON_MD_TERMINAL);
   ImGui::Separator();
 
   const char* log_levels[] = {"Debug", "Info", "Warning", "Error", "Fatal"};
-  if (ImGui::Combo("Log Level", &user_settings_->prefs().log_level, log_levels,
-                   IM_ARRAYSIZE(log_levels))) {
+  if (ImGui::Combo(tr("Log Level"), &user_settings_->prefs().log_level,
+                   log_levels, IM_ARRAYSIZE(log_levels))) {
     // Apply log level logic here if needed
     user_settings_->Save();
   }
@@ -1784,7 +1786,7 @@ void SettingsPanel::DrawKeyboardShortcuts() {
     ImGui::InputTextWithHint("##shortcut_filter", "Filter shortcuts...",
                              &shortcut_filter_);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Filter by action name or key combo");
+      ImGui::SetTooltip(tr("Filter by action name or key combo"));
     }
     ImGui::Spacing();
 
@@ -1801,8 +1803,8 @@ void SettingsPanel::DrawKeyboardShortcuts() {
       ImGui::TreePop();
     }
     ImGui::TextDisabled(
-        "Tip: Use Cmd/Opt labels on macOS or Ctrl/Alt on Windows/Linux. "
-        "Function keys and symbols (/, -) are supported.");
+        tr("Tip: Use Cmd/Opt labels on macOS or Ctrl/Alt on Windows/Linux. "
+           "Function keys and symbols (/, -) are supported."));
     ImGui::TreePop();
   }
 }
@@ -1818,14 +1820,14 @@ bool SettingsPanel::MatchesShortcutFilter(const std::string& text) const {
 
 void SettingsPanel::DrawGlobalShortcuts() {
   if (!shortcut_manager_ || !user_settings_) {
-    ImGui::TextDisabled("Not available");
+    ImGui::TextDisabled(tr("Not available"));
     return;
   }
 
   auto shortcuts =
       shortcut_manager_->GetShortcutsByScope(Shortcut::Scope::kGlobal);
   if (shortcuts.empty()) {
-    ImGui::TextDisabled("No global shortcuts registered.");
+    ImGui::TextDisabled(tr("No global shortcuts registered."));
     return;
   }
 
@@ -1873,13 +1875,13 @@ void SettingsPanel::DrawGlobalShortcuts() {
     ImGui::PopID();
   }
   if (!has_match) {
-    ImGui::TextDisabled("No shortcuts match the current filter.");
+    ImGui::TextDisabled(tr("No shortcuts match the current filter."));
   }
 }
 
 void SettingsPanel::DrawEditorShortcuts() {
   if (!shortcut_manager_ || !user_settings_) {
-    ImGui::TextDisabled("Not available");
+    ImGui::TextDisabled(tr("Not available"));
     return;
   }
 
@@ -1943,13 +1945,13 @@ void SettingsPanel::DrawEditorShortcuts() {
     }
   }
   if (!has_match) {
-    ImGui::TextDisabled("No shortcuts match the current filter.");
+    ImGui::TextDisabled(tr("No shortcuts match the current filter."));
   }
 }
 
 void SettingsPanel::DrawPanelShortcuts() {
   if (!window_manager_ || !user_settings_) {
-    ImGui::TextDisabled("Registry not available");
+    ImGui::TextDisabled(tr("Registry not available"));
     return;
   }
 
@@ -2024,7 +2026,7 @@ void SettingsPanel::DrawPanelShortcuts() {
                     sizeof(shortcut_edit_buffer_) - 1);
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Click to edit shortcut");
+            ImGui::SetTooltip(tr("Click to edit shortcut"));
           }
         }
 
@@ -2035,7 +2037,7 @@ void SettingsPanel::DrawPanelShortcuts() {
     }
   }
   if (!has_match) {
-    ImGui::TextDisabled("No shortcuts match the current filter.");
+    ImGui::TextDisabled(tr("No shortcuts match the current filter."));
   }
 }
 
@@ -2055,14 +2057,14 @@ void SettingsPanel::DrawPatchSettings() {
     }
   }
 
-  ImGui::Text("%s ZScream Patch System", ICON_MD_EXTENSION);
+  ImGui::Text(tr("%s ZScream Patch System"), ICON_MD_EXTENSION);
   ImGui::Separator();
 
   if (!patches_loaded_) {
-    ImGui::TextDisabled("No patches loaded");
-    ImGui::TextDisabled("Place .asm patches in assets/patches/");
+    ImGui::TextDisabled(tr("No patches loaded"));
+    ImGui::TextDisabled(tr("Place .asm patches in assets/patches/"));
 
-    if (ImGui::Button("Browse for Patches Folder...")) {
+    if (ImGui::Button(tr("Browse for Patches Folder..."))) {
       // TODO: File browser for patches folder
     }
     return;
@@ -2071,7 +2073,8 @@ void SettingsPanel::DrawPatchSettings() {
   // Status line
   int enabled_count = patch_manager_.GetEnabledPatchCount();
   int total_count = static_cast<int>(patch_manager_.patches().size());
-  ImGui::Text("Loaded: %d patches (%d enabled)", total_count, enabled_count);
+  ImGui::Text(tr("Loaded: %d patches (%d enabled)"), total_count,
+              enabled_count);
 
   ImGui::Spacing();
 
@@ -2095,7 +2098,7 @@ void SettingsPanel::DrawPatchSettings() {
   if (selected_patch_) {
     DrawPatchDetails();
   } else {
-    ImGui::TextDisabled("Select a patch to view details");
+    ImGui::TextDisabled(tr("Select a patch to view details"));
   }
 
   ImGui::Spacing();
@@ -2152,7 +2155,7 @@ void SettingsPanel::DrawPatchSettings() {
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Apply all enabled patches to the loaded ROM");
+    ImGui::SetTooltip(tr("Apply all enabled patches to the loaded ROM"));
   }
 
   ImGui::SameLine();
@@ -2173,7 +2176,7 @@ void SettingsPanel::DrawPatchList(const std::string& folder) {
   auto patches = patch_manager_.GetPatchesInFolder(folder);
 
   if (patches.empty()) {
-    ImGui::TextDisabled("No patches in this folder");
+    ImGui::TextDisabled(tr("No patches in this folder"));
     return;
   }
 
@@ -2209,12 +2212,12 @@ void SettingsPanel::DrawPatchDetails() {
   ImGui::Text("%s %s", ICON_MD_INFO, selected_patch_->name().c_str());
 
   if (!selected_patch_->author().empty()) {
-    ImGui::TextDisabled("by %s", selected_patch_->author().c_str());
+    ImGui::TextDisabled(tr("by %s"), selected_patch_->author().c_str());
   }
 
   if (!selected_patch_->version().empty()) {
     ImGui::SameLine();
-    ImGui::TextDisabled("v%s", selected_patch_->version().c_str());
+    ImGui::TextDisabled(tr("v%s"), selected_patch_->version().c_str());
   }
 
   // Description
@@ -2227,7 +2230,7 @@ void SettingsPanel::DrawPatchDetails() {
   auto& params = selected_patch_->mutable_parameters();
   if (!params.empty()) {
     ImGui::Spacing();
-    ImGui::Text("%s Parameters", ICON_MD_TUNE);
+    ImGui::Text(tr("%s Parameters"), ICON_MD_TUNE);
     ImGui::Separator();
 
     for (auto& param : params) {
@@ -2304,7 +2307,7 @@ void SettingsPanel::DrawParameterWidget(core::PatchParameter* param) {
       ImGui::Text("%s", param->display_name.c_str());
       // TODO: Implement item dropdown using game item names
       ImGui::SetNextItemWidth(150);
-      if (ImGui::InputInt("Item ID", &param->value)) {
+      if (ImGui::InputInt(tr("Item ID"), &param->value)) {
         param->value = std::clamp(param->value, 0, 255);
       }
       break;

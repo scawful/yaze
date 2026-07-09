@@ -1,4 +1,5 @@
 #include "tile16_editor.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -139,13 +140,13 @@ absl::Status Tile16Editor::Initialize(
 
   // Setup tile info table
   gui::AddTableColumn(tile_edit_table_, "##tile16ID",
-                      [&]() { Text("Tile16: %02X", current_tile16_); });
+                      [&]() { Text(tr("Tile16: %02X"), current_tile16_); });
   gui::AddTableColumn(tile_edit_table_, "##tile8ID",
-                      [&]() { Text("Tile8: %02X", current_tile8_); });
+                      [&]() { Text(tr("Tile8: %02X"), current_tile8_); });
   gui::AddTableColumn(tile_edit_table_, "##tile16Flip", [&]() {
-    Checkbox("X Flip", &x_flip);
-    Checkbox("Y Flip", &y_flip);
-    Checkbox("Priority", &priority_tile);
+    Checkbox(tr("X Flip"), &x_flip);
+    Checkbox(tr("Y Flip"), &y_flip);
+    Checkbox(tr("Priority"), &priority_tile);
   });
 
   return absl::OkStatus();
@@ -157,38 +158,38 @@ absl::Status Tile16Editor::Update() {
   }
 
   if (BeginMenuBar()) {
-    if (BeginMenu("View")) {
-      Checkbox("Show Collision Types",
+    if (BeginMenu(tr("View"))) {
+      Checkbox(tr("Show Collision Types"),
                tile8_source_canvas_.custom_labels_enabled());
       EndMenu();
     }
 
-    if (BeginMenu("Edit")) {
-      if (MenuItem("Copy Current Tile16", "Ctrl+C")) {
+    if (BeginMenu(tr("Edit"))) {
+      if (MenuItem(tr("Copy Current Tile16"), "Ctrl+C")) {
         RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
       }
-      if (MenuItem("Paste to Current Tile16", "Ctrl+V")) {
+      if (MenuItem(tr("Paste to Current Tile16"), "Ctrl+V")) {
         RETURN_IF_ERROR(PasteTile16FromClipboard());
       }
       EndMenu();
     }
 
-    if (BeginMenu("File")) {
-      if (MenuItem("Write Pending to ROM", "Ctrl+S")) {
+    if (BeginMenu(tr("File"))) {
+      if (MenuItem(tr("Write Pending to ROM"), "Ctrl+S")) {
         status_ = CommitAllChanges();
       }
-      if (MenuItem("Refresh Blockset Preview", "Ctrl+Shift+S")) {
+      if (MenuItem(tr("Refresh Blockset Preview"), "Ctrl+Shift+S")) {
         status_ = CommitChangesToBlockset();
       }
       Separator();
       bool live_preview = live_preview_enabled_;
-      if (MenuItem("Live Preview", nullptr, &live_preview)) {
+      if (MenuItem(tr("Live Preview"), nullptr, &live_preview)) {
         EnableLivePreview(live_preview);
       }
       EndMenu();
     }
 
-    if (BeginMenu("Scratch Space")) {
+    if (BeginMenu(tr("Scratch Space"))) {
       for (int i = 0; i < 4; i++) {
         std::string slot_name = "Slot " + std::to_string(i + 1);
         if (scratch_space_[i].has_data) {
@@ -218,15 +219,16 @@ absl::Status Tile16Editor::Update() {
   // About popup
   if (BeginPopupModal("About Tile16 Editor", NULL,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Tile16 Editor for Link to the Past");
-    Text("This editor allows you to edit 16x16 tiles used in the game.");
-    Text("Features:");
-    BulletText("Edit Tile16 graphics by placing 8x8 tiles in the quadrants");
-    BulletText("Copy and paste Tile16 graphics");
-    BulletText("Save and load Tile16 graphics to/from scratch space");
-    BulletText("Preview Tile16 graphics at a larger size");
+    Text(tr("Tile16 Editor for Link to the Past"));
+    Text(tr("This editor allows you to edit 16x16 tiles used in the game."));
+    Text(tr("Features:"));
+    BulletText(
+        tr("Edit Tile16 graphics by placing 8x8 tiles in the quadrants"));
+    BulletText(tr("Copy and paste Tile16 graphics"));
+    BulletText(tr("Save and load Tile16 graphics to/from scratch space"));
+    BulletText(tr("Preview Tile16 graphics at a larger size"));
     Separator();
-    if (Button("Close")) {
+    if (Button(tr("Close"))) {
       CloseCurrentPopup();
     }
     EndPopup();
@@ -238,15 +240,15 @@ absl::Status Tile16Editor::Update() {
   }
   if (BeginPopupModal("Unsaved Changes##Tile16Editor", NULL,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Tile %d has staged changes.", current_tile16_);
-    Text("What would you like to do?");
+    Text(tr("Tile %d has staged changes."), current_tile16_);
+    Text(tr("What would you like to do?"));
     Separator();
 
-    if (Button("Keep Staged & Continue", ImVec2(220, 0))) {
+    if (Button(tr("Keep Staged & Continue"), ImVec2(220, 0))) {
       if (IsItemHovered()) {
-        SetTooltip(
+        SetTooltip(tr(
             "Switch to the requested tile now. Other tiles with staged edits "
-            "stay in the write queue until you use Write Pending or Discard.");
+            "stay in the write queue until you use Write Pending or Discard."));
       }
       if (pending_tile_switch_target_ >= 0) {
         auto status = SetCurrentTile(pending_tile_switch_target_);
@@ -289,7 +291,7 @@ absl::Status Tile16Editor::Update() {
       CloseCurrentPopup();
     }
 
-    if (Button("Cancel", ImVec2(220, 0))) {
+    if (Button(tr("Cancel"), ImVec2(220, 0))) {
       pending_tile_switch_target_ = -1;
       show_unsaved_changes_dialog_ = false;
       CloseCurrentPopup();
@@ -327,7 +329,7 @@ absl::Status Tile16Editor::UpdateAsPanel() {
     OpenPopup("##Tile16EditorContextMenu");
   }
   SameLine();
-  TextDisabled("Right-click for more options");
+  TextDisabled(tr("Right-click for more options"));
 
   // Context menu
   DrawContextMenu();
@@ -335,15 +337,16 @@ absl::Status Tile16Editor::UpdateAsPanel() {
   // About popup
   if (BeginPopupModal("About Tile16 Editor", NULL,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Tile16 Editor for Link to the Past");
-    Text("This editor allows you to edit 16x16 tiles used in the game.");
-    Text("Features:");
-    BulletText("Edit Tile16 graphics by placing 8x8 tiles in the quadrants");
-    BulletText("Copy and paste Tile16 graphics");
-    BulletText("Save and load Tile16 graphics to/from scratch space");
-    BulletText("Preview Tile16 graphics at a larger size");
+    Text(tr("Tile16 Editor for Link to the Past"));
+    Text(tr("This editor allows you to edit 16x16 tiles used in the game."));
+    Text(tr("Features:"));
+    BulletText(
+        tr("Edit Tile16 graphics by placing 8x8 tiles in the quadrants"));
+    BulletText(tr("Copy and paste Tile16 graphics"));
+    BulletText(tr("Save and load Tile16 graphics to/from scratch space"));
+    BulletText(tr("Preview Tile16 graphics at a larger size"));
     Separator();
-    if (Button("Close")) {
+    if (Button(tr("Close"))) {
       CloseCurrentPopup();
     }
     EndPopup();
@@ -355,15 +358,15 @@ absl::Status Tile16Editor::UpdateAsPanel() {
   }
   if (BeginPopupModal("Unsaved Changes##Tile16Editor", NULL,
                       ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text("Tile %d has staged changes.", current_tile16_);
-    Text("What would you like to do?");
+    Text(tr("Tile %d has staged changes."), current_tile16_);
+    Text(tr("What would you like to do?"));
     Separator();
 
-    if (Button("Keep Staged & Continue", ImVec2(220, 0))) {
+    if (Button(tr("Keep Staged & Continue"), ImVec2(220, 0))) {
       if (IsItemHovered()) {
-        SetTooltip(
+        SetTooltip(tr(
             "Switch to the requested tile now. Other tiles with staged edits "
-            "stay in the write queue until you use Write Pending or Discard.");
+            "stay in the write queue until you use Write Pending or Discard."));
       }
       if (pending_tile_switch_target_ >= 0) {
         auto status = SetCurrentTile(pending_tile_switch_target_);
@@ -406,7 +409,7 @@ absl::Status Tile16Editor::UpdateAsPanel() {
       CloseCurrentPopup();
     }
 
-    if (Button("Cancel", ImVec2(220, 0))) {
+    if (Button(tr("Cancel"), ImVec2(220, 0))) {
       pending_tile_switch_target_ = -1;
       show_unsaved_changes_dialog_ = false;
       CloseCurrentPopup();
@@ -427,11 +430,12 @@ absl::Status Tile16Editor::UpdateAsPanel() {
 
 void Tile16Editor::DrawContextMenu() {
   if (BeginPopup("##Tile16EditorContextMenu")) {
-    if (BeginMenu("View")) {
-      if (MenuItem("Show Grid", nullptr, show_tile_grid_)) {
+    if (BeginMenu(tr("View"))) {
+      if (MenuItem(tr("Show Grid"), nullptr, show_tile_grid_)) {
         show_tile_grid_ = !show_tile_grid_;
       }
-      if (MenuItem("Show Collision IDs", nullptr, show_tile_collision_ids_)) {
+      if (MenuItem(tr("Show Collision IDs"), nullptr,
+                   show_tile_collision_ids_)) {
         show_tile_collision_ids_ = !show_tile_collision_ids_;
         *tile8_source_canvas_.custom_labels_enabled() =
             show_tile_collision_ids_;
@@ -439,45 +443,45 @@ void Tile16Editor::DrawContextMenu() {
       EndMenu();
     }
 
-    if (BeginMenu("Edit")) {
-      if (MenuItem("Copy Current Tile16", "Ctrl+C")) {
+    if (BeginMenu(tr("Edit"))) {
+      if (MenuItem(tr("Copy Current Tile16"), "Ctrl+C")) {
         status_ = CopyTile16ToClipboard(current_tile16_);
       }
-      if (MenuItem("Paste to Current Tile16", "Ctrl+V")) {
+      if (MenuItem(tr("Paste to Current Tile16"), "Ctrl+V")) {
         status_ = PasteTile16FromClipboard();
       }
       Separator();
-      if (MenuItem("Flip Horizontal", "H")) {
+      if (MenuItem(tr("Flip Horizontal"), "H")) {
         status_ = FlipTile16Horizontal();
       }
-      if (MenuItem("Flip Vertical", "V")) {
+      if (MenuItem(tr("Flip Vertical"), "V")) {
         status_ = FlipTile16Vertical();
       }
-      if (MenuItem("Rotate", "R")) {
+      if (MenuItem(tr("Rotate"), "R")) {
         status_ = RotateTile16();
       }
-      if (MenuItem("Clear", "Delete")) {
+      if (MenuItem(tr("Clear"), "Delete")) {
         status_ = ClearTile16();
       }
       EndMenu();
     }
 
-    if (BeginMenu("File")) {
-      if (MenuItem("Write Pending to ROM", "Ctrl+S")) {
+    if (BeginMenu(tr("File"))) {
+      if (MenuItem(tr("Write Pending to ROM"), "Ctrl+S")) {
         status_ = CommitAllChanges();
       }
-      if (MenuItem("Refresh Blockset Preview", "Ctrl+Shift+S")) {
+      if (MenuItem(tr("Refresh Blockset Preview"), "Ctrl+Shift+S")) {
         status_ = CommitChangesToBlockset();
       }
       Separator();
       bool live_preview = live_preview_enabled_;
-      if (MenuItem("Live Preview", nullptr, &live_preview)) {
+      if (MenuItem(tr("Live Preview"), nullptr, &live_preview)) {
         EnableLivePreview(live_preview);
       }
       EndMenu();
     }
 
-    if (BeginMenu("Scratch Space")) {
+    if (BeginMenu(tr("Scratch Space"))) {
       for (int i = 0; i < 4; i++) {
         std::string slot_name = "Slot " + std::to_string(i + 1);
         if (scratch_space_[i].has_data) {
@@ -869,12 +873,12 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     ImGui::TableNextColumn();
     ImGui::BeginGroup();
 
-    ImGui::Text("Tile16 Blockset");
+    ImGui::Text(tr("Tile16 Blockset"));
     ImGui::SameLine();
 
     // Show current tile and total tiles
     int total_tiles = zelda3::ComputeTile16Count(tile16_blockset_);
-    ImGui::TextDisabled("0x%03X / 0x%03X", current_tile16_,
+    ImGui::TextDisabled(tr("0x%03X / 0x%03X"), current_tile16_,
                         std::max(0, total_tiles - 1));
 
     // Navigation controls row
@@ -893,7 +897,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         }
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Tile ID (0-%d) - navigates as you type",
+        ImGui::SetTooltip(tr("Tile ID (0-%d) - navigates as you type"),
                           total_tiles - 1);
       }
 
@@ -907,7 +911,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         scroll_to_current_ = true;
       }
       if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("First page");
+        ImGui::SetTooltip(tr("First page"));
 
       ImGui::SameLine();
       if (ImGui::Button("<")) {
@@ -916,10 +920,10 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         scroll_to_current_ = true;
       }
       if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Previous page (PageUp)");
+        ImGui::SetTooltip(tr("Previous page (PageUp)"));
 
       ImGui::SameLine();
-      ImGui::TextDisabled("Page %d/%d", current_page_ + 1, total_pages);
+      ImGui::TextDisabled(tr("Page %d/%d"), current_page_ + 1, total_pages);
 
       ImGui::SameLine();
       if (ImGui::Button(">")) {
@@ -929,7 +933,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         scroll_to_current_ = true;
       }
       if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Next page (PageDown)");
+        ImGui::SetTooltip(tr("Next page (PageDown)"));
 
       ImGui::SameLine();
       if (ImGui::Button(">>")) {
@@ -937,7 +941,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
         scroll_to_current_ = true;
       }
       if (ImGui::IsItemHovered())
-        ImGui::SetTooltip("Last page");
+        ImGui::SetTooltip(tr("Last page"));
 
       // Handle keyboard shortcuts for page navigation
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows)) {
@@ -1184,7 +1188,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     // Tile8 info and preview
     if (current_tile8_ >= 0 &&
         current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
-      Text("Tile8: %02X", current_tile8_);
+      Text(tr("Tile8: %02X"), current_tile8_);
       SameLine();
       auto* tile8_texture = tile8_preview_bmp_.texture();
       if (tile8_texture) {
@@ -1193,48 +1197,50 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
 
       const int sheet_idx = GetSheetIndexForTile8(current_tile8_);
       ImGui::SameLine();
-      ImGui::TextDisabled("G%d", sheet_idx);
+      ImGui::TextDisabled(tr("G%d"), sheet_idx);
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("Graphics chunk: %d", sheet_idx);
+        ImGui::Text(tr("Graphics chunk: %d"), sheet_idx);
         ImGui::EndTooltip();
       }
     }
 
     // Tile8 transform options in compact form
-    Checkbox("X Flip", &x_flip);
+    Checkbox(tr("X Flip"), &x_flip);
     SameLine();
-    Checkbox("Y Flip", &y_flip);
+    Checkbox(tr("Y Flip"), &y_flip);
     SameLine();
-    Checkbox("Priority", &priority_tile);
+    Checkbox(tr("Priority"), &priority_tile);
 
-    Text("Stamp:");
+    Text(tr("Stamp:"));
     SameLine();
-    if (ImGui::RadioButton("1x", tile8_stamp_size_ == 1)) {
+    if (ImGui::RadioButton(tr("1x"), tile8_stamp_size_ == 1)) {
       tile8_stamp_size_ = 1;
     }
     SameLine();
-    if (ImGui::RadioButton("2x", tile8_stamp_size_ == 2)) {
+    if (ImGui::RadioButton(tr("2x"), tile8_stamp_size_ == 2)) {
       tile8_stamp_size_ = 2;
     }
     SameLine();
-    if (ImGui::RadioButton("4x", tile8_stamp_size_ == 4)) {
+    if (ImGui::RadioButton(tr("4x"), tile8_stamp_size_ == 4)) {
       tile8_stamp_size_ = 4;
     }
     HOVER_HINT(
         "1x: paint one quadrant\n2x: fill current tile16 from a 2x2 tile8 "
         "block\n4x: stamp a 2x2 tile16 patch from a 4x4 tile8 block");
 
-    Text("Edit Mode:");
-    if (ImGui::RadioButton("Paint (P)", edit_mode_ == Tile16EditMode::kPaint)) {
+    Text(tr("Edit Mode:"));
+    if (ImGui::RadioButton(tr("Paint (P)"),
+                           edit_mode_ == Tile16EditMode::kPaint)) {
       edit_mode_ = Tile16EditMode::kPaint;
     }
     SameLine();
-    if (ImGui::RadioButton("Pick (I)", edit_mode_ == Tile16EditMode::kPick)) {
+    if (ImGui::RadioButton(tr("Pick (I)"),
+                           edit_mode_ == Tile16EditMode::kPick)) {
       edit_mode_ = Tile16EditMode::kPick;
     }
     SameLine();
-    if (ImGui::RadioButton("Usage (U)",
+    if (ImGui::RadioButton(tr("Usage (U)"),
                            edit_mode_ == Tile16EditMode::kUsageProbe)) {
       edit_mode_ = Tile16EditMode::kUsageProbe;
     }
@@ -1255,27 +1261,27 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     // Advanced controls (collapsible)
     if (show_advanced_controls) {
       Separator();
-      Text("Advanced:");
+      Text(tr("Advanced:"));
 
-      if (Button("Palette Settings", ImVec2(-1, 0))) {
+      if (Button(tr("Palette Settings"), ImVec2(-1, 0))) {
         show_palette_settings_ = !show_palette_settings_;
       }
 
-      if (Button("Analyze Data", ImVec2(-1, 0))) {
+      if (Button(tr("Analyze Data"), ImVec2(-1, 0))) {
         AnalyzeTile8SourceData();
       }
       HOVER_HINT("Analyze tile8 source data format and palette state");
 
-      if (Button("Manual Edit", ImVec2(-1, 0))) {
+      if (Button(tr("Manual Edit"), ImVec2(-1, 0))) {
         ImGui::OpenPopup("ManualTile8Editor");
       }
 
-      if (Button("Refresh Blockset", ImVec2(-1, 0))) {
+      if (Button(tr("Refresh Blockset"), ImVec2(-1, 0))) {
         RETURN_IF_ERROR(RefreshTile16Blockset());
       }
 
       // Scratch space in compact form
-      Text("Scratch:");
+      Text(tr("Scratch:"));
       DrawScratchSpace();
 
       // Manual tile8 editor popup
@@ -1285,18 +1291,18 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
     // Compact debug information panel
     if (show_debug_info) {
       Separator();
-      Text("Debug:");
-      ImGui::TextDisabled("T16:%02X T8:%d Pal:%d", current_tile16_,
+      Text(tr("Debug:"));
+      ImGui::TextDisabled(tr("T16:%02X T8:%d Pal:%d"), current_tile16_,
                           current_tile8_, current_palette_);
 
       if (current_tile8_ >= 0) {
         int sheet_index = GetSheetIndexForTile8(current_tile8_);
         int actual_slot = GetActualPaletteSlot(current_palette_, sheet_index);
-        ImGui::TextDisabled("Sheet:%d Slot:%d", sheet_index, actual_slot);
+        ImGui::TextDisabled(tr("Sheet:%d Slot:%d"), sheet_index, actual_slot);
       }
 
       // Compact palette mapping table
-      if (ImGui::CollapsingHeader("Palette Map",
+      if (ImGui::CollapsingHeader(tr("Palette Map"),
                                   ImGuiTreeNodeFlags_DefaultOpen)) {
         ImGui::BeginChild("##PaletteMappingScroll", ImVec2(0, 120), true);
         if (ImGui::BeginTable("##PalMap", 2,
@@ -1312,7 +1318,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
             ImGui::TableNextColumn();
             ImGui::Text("%d", i);
             ImGui::TableNextColumn();
-            ImGui::Text("0x%02X", GetActualPaletteSlot(i, 0));
+            ImGui::Text(tr("0x%02X"), GetActualPaletteSlot(i, 0));
           }
           ImGui::EndTable();
         }
@@ -1320,10 +1326,10 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       }
 
       // Color preview - compact
-      if (ImGui::CollapsingHeader("Colors")) {
+      if (ImGui::CollapsingHeader(tr("Colors"))) {
         if (overworld_palette_.size() >= 256) {
           int actual_slot = GetActualPaletteSlotForCurrentTile16();
-          ImGui::Text("Slot %d:", actual_slot);
+          ImGui::Text(tr("Slot %d:"), actual_slot);
 
           for (int i = 0;
                i < 8 &&
@@ -1337,7 +1343,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
                                display_color, ImGuiColorEditFlags_NoTooltip,
                                ImVec2(20, 20));
             if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("%d:0x%04X", color_index, color.snes());
+              ImGui::SetTooltip(tr("%d:0x%04X"), color_index, color.snes());
             }
 
             if ((i + 1) % 4 != 0)
@@ -1383,14 +1389,14 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
   if (ImGui::BeginChild(
           "##Tile16CompactStatus", ImVec2(0, row_height), false,
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
-    ImGui::Text("Tile16 0x%03X", current_tile16_);
+    ImGui::Text(tr("Tile16 0x%03X"), current_tile16_);
     ImGui::SameLine();
     if (has_pending) {
-      ImGui::TextDisabled("%s, %d pending",
+      ImGui::TextDisabled(tr("%s, %d pending"),
                           current_tile_pending ? "dirty" : "clean",
                           pending_count);
     } else {
-      ImGui::TextDisabled("clean");
+      ImGui::TextDisabled(tr("clean"));
     }
     ImGui::SameLine();
     ImGui::TextDisabled("| %s", EditModeLabel(edit_mode_));
@@ -1401,7 +1407,7 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
               std::chrono::steady_clock::now() - last_rom_write_time_)
               .count();
       ImGui::SameLine();
-      ImGui::TextDisabled("| Last write: %d tile%s, %lds ago",
+      ImGui::TextDisabled(tr("| Last write: %d tile%s, %lds ago"),
                           last_rom_write_count_,
                           last_rom_write_count_ == 1 ? "" : "s",
                           static_cast<long>(seconds_since_write));
@@ -1430,7 +1436,7 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
         ImGui::EndDisabled();
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Write all %d pending Tile16 edits to ROM",
+        ImGui::SetTooltip(tr("Write all %d pending Tile16 edits to ROM"),
                           pending_count);
       }
 
@@ -1438,7 +1444,7 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       if (!action_state.can_discard_current) {
         ImGui::BeginDisabled();
       }
-      if (ImGui::Button("Discard Current",
+      if (ImGui::Button(tr("Discard Current"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
         DiscardCurrentTileChanges();
       }
@@ -1462,7 +1468,8 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       if (!action_state.can_undo) {
         ImGui::BeginDisabled();
       }
-      if (ImGui::Button("Undo", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+      if (ImGui::Button(tr("Undo"),
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
         action_status = Undo();
       }
       if (!action_state.can_undo) {
@@ -1473,7 +1480,8 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       if (!action_state.can_redo) {
         ImGui::BeginDisabled();
       }
-      if (ImGui::Button("Redo", ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
+      if (ImGui::Button(tr("Redo"),
+                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
         action_status = Redo();
       }
       if (!action_state.can_redo) {
@@ -1507,13 +1515,13 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
 absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
     bool show_debug_info) {
   // Palette selector - this is the paint brush palette for new placements.
-  Text("Brush Palette:");
+  Text(tr("Brush Palette:"));
   if (show_debug_info) {
     SameLine();
     int actual_slot = GetActualPaletteSlotForCurrentTile16();
-    ImGui::TextDisabled("(Slot %d)", actual_slot);
+    ImGui::TextDisabled(tr("(Slot %d)"), actual_slot);
   }
-  ImGui::TextDisabled("Used for new tile8 placements");
+  ImGui::TextDisabled(tr("Used for new tile8 placements"));
 
   // Compact palette grid
   ImGui::BeginGroup();
@@ -1576,15 +1584,15 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
         if (show_debug_info) {
-          ImGui::Text("Palette %d -> CGRAM 0x%02X", i,
+          ImGui::Text(tr("Palette %d -> CGRAM 0x%02X"), i,
                       GetActualPaletteSlot(i, 0));
         } else {
-          ImGui::Text("Brush Palette %d", i);
-          ImGui::TextDisabled("Applied to new tile8 placements");
-          ImGui::TextDisabled("RMB: apply to all tile quadrants");
-          ImGui::TextDisabled("Quadrant metadata is shown in strip below");
+          ImGui::Text(tr("Brush Palette %d"), i);
+          ImGui::TextDisabled(tr("Applied to new tile8 placements"));
+          ImGui::TextDisabled(tr("RMB: apply to all tile quadrants"));
+          ImGui::TextDisabled(tr("Quadrant metadata is shown in strip below"));
           ImGui::TextDisabled(
-              "Hotkeys: Ctrl+1..8 palette, 1..4 quadrant focus");
+              tr("Hotkeys: Ctrl+1..8 palette, 1..4 quadrant focus"));
           if (is_current) {
             gui::ThemedText("Active", gui::SemanticColor::Success);
           }
@@ -1597,7 +1605,7 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
   if (auto* tile_data = GetCurrentTile16Data(); tile_data != nullptr) {
     active_quadrant_ = std::clamp(active_quadrant_, 0, 3);
-    Text("Quadrant Focus:");
+    Text(tr("Quadrant Focus:"));
     SameLine();
     ImGui::TextDisabled("1-4");
     static constexpr std::array<const char*, 4> kQuadrantLabels = {"TL", "TR",
@@ -1655,17 +1663,17 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("Quadrant %s metadata", kQuadrantLabels[q]);
+        ImGui::Text(tr("Quadrant %s metadata"), kQuadrantLabels[q]);
         ImGui::Separator();
-        ImGui::Text("Tile8: %02X", info.id_);
-        ImGui::Text("Palette: %d", quadrant_palette);
-        ImGui::Text("Flip: H:%s V:%s", info.horizontal_mirror_ ? "Y" : "N",
+        ImGui::Text(tr("Tile8: %02X"), info.id_);
+        ImGui::Text(tr("Palette: %d"), quadrant_palette);
+        ImGui::Text(tr("Flip: H:%s V:%s"), info.horizontal_mirror_ ? "Y" : "N",
                     info.vertical_mirror_ ? "Y" : "N");
-        ImGui::Text("Priority: %s", info.over_ ? "Y" : "N");
-        ImGui::TextDisabled("LMB: set brush palette from this quadrant");
+        ImGui::Text(tr("Priority: %s"), info.over_ ? "Y" : "N");
+        ImGui::TextDisabled(tr("LMB: set brush palette from this quadrant"));
         ImGui::TextDisabled(
-            "RMB: apply current brush palette to this quadrant");
-        ImGui::TextDisabled("Keys 1..4: focus TL/TR/BL/BR");
+            tr("RMB: apply current brush palette to this quadrant"));
+        ImGui::TextDisabled(tr("Keys 1..4: focus TL/TR/BL/BR"));
         ImGui::EndTooltip();
       }
 
@@ -1674,14 +1682,14 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
     const gfx::TileInfo& active_info =
         TileInfoForQuadrant(*tile_data, active_quadrant_);
-    ImGui::TextDisabled("Active %s: Tile8 %02X | P%d | H:%s V:%s | Pri:%s",
+    ImGui::TextDisabled(tr("Active %s: Tile8 %02X | P%d | H:%s V:%s | Pri:%s"),
                         kQuadrantLabels[active_quadrant_], active_info.id_,
                         active_info.palette_,
                         active_info.horizontal_mirror_ ? "Y" : "N",
                         active_info.vertical_mirror_ ? "Y" : "N",
                         active_info.over_ ? "Y" : "N");
 
-    if (Button("Apply Brush to Active Quadrant", ImVec2(-1, 0))) {
+    if (Button(tr("Apply Brush to Active Quadrant"), ImVec2(-1, 0))) {
       RETURN_IF_ERROR(
           ApplyPaletteToQuadrant(active_quadrant_, current_palette_));
     }
@@ -1691,7 +1699,7 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
   }
 
   // Copy the current brush palette into all stored quadrant palette fields.
-  if (Button("Apply Brush to All Quadrants", ImVec2(-1, 0))) {
+  if (Button(tr("Apply Brush to All Quadrants"), ImVec2(-1, 0))) {
     RETURN_IF_ERROR(ApplyPaletteToAll(current_palette_));
   }
   HOVER_HINT(
@@ -1703,11 +1711,12 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
 absl::Status Tile16Editor::DrawTile8SourcePanel(float preferred_height) {
   show_tile_collision_ids_ = *tile8_source_canvas_.custom_labels_enabled();
-  ImGui::Text("Tile8 Source");
+  ImGui::Text(tr("Tile8 Source"));
   ImGui::SameLine();
-  ImGui::Checkbox("Grid##Tile16GridToggle", &show_tile_grid_);
+  ImGui::Checkbox(tr("Grid##Tile16GridToggle"), &show_tile_grid_);
   ImGui::SameLine();
-  if (ImGui::Checkbox("IDs##Tile16CollisionIds", &show_tile_collision_ids_)) {
+  if (ImGui::Checkbox(tr("IDs##Tile16CollisionIds"),
+                      &show_tile_collision_ids_)) {
     *tile8_source_canvas_.custom_labels_enabled() = show_tile_collision_ids_;
   }
 
@@ -1722,7 +1731,7 @@ absl::Status Tile16Editor::DrawTile8SourcePanel(float preferred_height) {
         ImVec2(current_gfx_bmp_->width() * tile8_source_display_scale_,
                current_gfx_bmp_->height() * tile8_source_display_scale_));
     ImGui::SameLine();
-    ImGui::TextDisabled("%.1fx", tile8_source_display_scale_);
+    ImGui::TextDisabled(tr("%.1fx"), tile8_source_display_scale_);
   }
 
   const float panel_height = ComputeTile8SourcePanelHeight(
@@ -1796,15 +1805,15 @@ absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked,
 
 absl::Status Tile16Editor::DrawPrimaryActionControls() {
   // Local tile-shaping actions stay in the right column.
-  if (Button("Clear", ImVec2(-1, 0))) {
+  if (Button(tr("Clear"), ImVec2(-1, 0))) {
     RETURN_IF_ERROR(ClearTile16());
   }
 
-  if (Button("Copy", ImVec2(-1, 0))) {
+  if (Button(tr("Copy"), ImVec2(-1, 0))) {
     RETURN_IF_ERROR(CopyTile16ToClipboard(current_tile16_));
   }
 
-  if (Button("Paste", ImVec2(-1, 0))) {
+  if (Button(tr("Paste"), ImVec2(-1, 0))) {
     RETURN_IF_ERROR(PasteTile16FromClipboard());
   }
 
@@ -3124,24 +3133,24 @@ void Tile16Editor::AnalyzeTile8SourceData() const {
 void Tile16Editor::DrawPaletteSettings() {
   if (show_palette_settings_) {
     if (Begin("Advanced Palette Settings", &show_palette_settings_)) {
-      Text("Pixel Normalization & Color Correction:");
+      Text(tr("Pixel Normalization & Color Correction:"));
 
       int mask_value = static_cast<int>(palette_normalization_mask_);
-      if (SliderInt("Normalization Mask", &mask_value, 1, 255, "0x%02X")) {
+      if (SliderInt(tr("Normalization Mask"), &mask_value, 1, 255, "0x%02X")) {
         palette_normalization_mask_ = static_cast<uint8_t>(mask_value);
       }
 
-      Checkbox("Auto Normalize Pixels", &auto_normalize_pixels_);
+      Checkbox(tr("Auto Normalize Pixels"), &auto_normalize_pixels_);
 
-      if (Button("Apply to All Graphics")) {
+      if (Button(tr("Apply to All Graphics"))) {
         auto reload_result = LoadTile8();
         if (!reload_result.ok()) {
-          Text("Error: %s", reload_result.message().data());
+          Text(tr("Error: %s"), reload_result.message().data());
         }
       }
 
       SameLine();
-      if (Button("Reset Defaults")) {
+      if (Button(tr("Reset Defaults"))) {
         palette_normalization_mask_ = 0x0F;
         auto_normalize_pixels_ = true;
         auto reload_result = LoadTile8();
@@ -3149,68 +3158,69 @@ void Tile16Editor::DrawPaletteSettings() {
       }
 
       Separator();
-      Text("Current State:");
+      Text(tr("Current State:"));
       static constexpr std::array<const char*, 7> palette_group_names = {
           "OW Main", "OW Aux", "OW Anim", "Dungeon",
           "Sprites", "Armor",  "Sword"};
-      Text("Palette Group: %d (%s)", current_palette_group_,
+      Text(tr("Palette Group: %d (%s)"), current_palette_group_,
            (current_palette_group_ < 7)
                ? palette_group_names[current_palette_group_]
                : "Unknown");
-      Text("Current Palette: %d", current_palette_);
+      Text(tr("Current Palette: %d"), current_palette_);
 
       Separator();
-      Text("Sheet-Specific Fixes:");
+      Text(tr("Sheet-Specific Fixes:"));
 
       // Sheet-specific palette fixes
       static bool fix_sheet_0 = true;
       static bool fix_sprite_sheets = true;
       static bool use_transparent_for_terrain = false;
 
-      if (Checkbox("Fix Sheet 0 (Trees)", &fix_sheet_0)) {
+      if (Checkbox(tr("Fix Sheet 0 (Trees)"), &fix_sheet_0)) {
         auto reload_result = LoadTile8();
         if (!reload_result.ok()) {
-          Text("Error reloading: %s", reload_result.message().data());
+          Text(tr("Error reloading: %s"), reload_result.message().data());
         }
       }
       HOVER_HINT(
           "Use direct palette for sheet 0 instead of transparent palette");
 
-      if (Checkbox("Fix Sprite Sheets", &fix_sprite_sheets)) {
+      if (Checkbox(tr("Fix Sprite Sheets"), &fix_sprite_sheets)) {
         auto reload_result = LoadTile8();
         if (!reload_result.ok()) {
-          Text("Error reloading: %s", reload_result.message().data());
+          Text(tr("Error reloading: %s"), reload_result.message().data());
         }
       }
       HOVER_HINT("Use direct palette for sprite graphics sheets");
 
-      if (Checkbox("Transparent for Terrain", &use_transparent_for_terrain)) {
+      if (Checkbox(tr("Transparent for Terrain"),
+                   &use_transparent_for_terrain)) {
         auto reload_result = LoadTile8();
         if (!reload_result.ok()) {
-          Text("Error reloading: %s", reload_result.message().data());
+          Text(tr("Error reloading: %s"), reload_result.message().data());
         }
       }
       HOVER_HINT("Force transparent palette for terrain graphics");
 
       Separator();
-      Text("Color Analysis:");
+      Text(tr("Color Analysis:"));
       if (current_tile8_ >= 0 &&
           current_tile8_ < static_cast<int>(current_gfx_individual_.size())) {
-        Text("Selected Tile8 Analysis:");
+        Text(tr("Selected Tile8 Analysis:"));
         const auto& tile_data = current_gfx_individual_[current_tile8_];
         std::map<uint8_t, int> pixel_counts;
         for (uint8_t pixel : tile_data) {
           pixel_counts[pixel & 0x0F]++;  // Normalize to 4-bit
         }
 
-        Text("Pixel Value Distribution:");
+        Text(tr("Pixel Value Distribution:"));
         for (const auto& pair : pixel_counts) {
           int value = pair.first;
           int count = pair.second;
-          Text("  Value %d (0x%X): %d pixels", value, value, count);
+          Text(tr("  Value %d (0x%X): %d pixels"), value, value, count);
         }
 
-        Text("Palette Colors Used:");
+        Text(tr("Palette Colors Used:"));
         const gfx::SnesPalette* analysis_palette = ResolveDisplayPalette();
         if (analysis_palette == nullptr || analysis_palette->empty()) {
           analysis_palette =
@@ -3226,7 +3236,7 @@ void Tile16Editor::DrawPaletteSettings() {
                                display_color, ImGuiColorEditFlags_NoTooltip,
                                ImVec2(16, 16));
             if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip("Index %d: 0x%04X (%d pixels)", value,
+              ImGui::SetTooltip(tr("Index %d: 0x%04X (%d pixels)"), value,
                                 color.snes(), count);
             }
             if (value % 8 != 7)
@@ -3237,16 +3247,16 @@ void Tile16Editor::DrawPaletteSettings() {
 
       // Enhanced ROM Palette Management Section
       Separator();
-      if (CollapsingHeader("ROM Palette Manager") && rom_) {
-        Text("Experimental ROM Palette Selection:");
+      if (CollapsingHeader(tr("ROM Palette Manager")) && rom_) {
+        Text(tr("Experimental ROM Palette Selection:"));
         HOVER_HINT(
             "Use ROM palettes to experiment with different color schemes");
 
-        if (Button("Open Enhanced Palette Editor")) {
+        if (Button(tr("Open Enhanced Palette Editor"))) {
           tile16_edit_canvas_.ShowPaletteEditor();
         }
         SameLine();
-        if (Button("Show Color Analysis")) {
+        if (Button(tr("Show Color Analysis"))) {
           tile16_edit_canvas_.ShowColorAnalysis();
         }
 
@@ -3254,17 +3264,17 @@ void Tile16Editor::DrawPaletteSettings() {
         static int quick_group = 0;
         static int quick_index = 0;
 
-        SliderInt("ROM Group", &quick_group, 0, 6);
-        SliderInt("Palette Index", &quick_index, 0, 7);
+        SliderInt(tr("ROM Group"), &quick_group, 0, 6);
+        SliderInt(tr("Palette Index"), &quick_index, 0, 7);
 
-        if (Button("Apply to Tile8 Source")) {
+        if (Button(tr("Apply to Tile8 Source"))) {
           if (tile8_source_canvas_.ApplyROMPalette(quick_group, quick_index)) {
             util::logf("Applied ROM palette group %d, index %d to Tile8 source",
                        quick_group, quick_index);
           }
         }
         SameLine();
-        if (Button("Apply to Tile16 Editor")) {
+        if (Button(tr("Apply to Tile16 Editor"))) {
           if (tile16_edit_canvas_.ApplyROMPalette(quick_group, quick_index)) {
             util::logf(
                 "Applied ROM palette group %d, index %d to Tile16 editor",
@@ -3278,7 +3288,7 @@ void Tile16Editor::DrawPaletteSettings() {
 }
 
 void Tile16Editor::DrawScratchSpace() {
-  Text("Layout Scratch:");
+  Text(tr("Layout Scratch:"));
   for (int i = 0; i < 4; ++i) {
     ImGui::PushID(i);
     std::string slot_name = "S" + std::to_string(i + 1);
@@ -3366,12 +3376,13 @@ absl::Status Tile16Editor::LoadLayoutFromScratch(int slot) {
 void Tile16Editor::DrawManualTile8Inputs() {
   if (ImGui::BeginPopupModal("ManualTile8Editor", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Manual Tile8 Configuration for Tile16 %02X", current_tile16_);
+    ImGui::Text(tr("Manual Tile8 Configuration for Tile16 %02X"),
+                current_tile16_);
     ImGui::Separator();
 
     auto* tile_data = GetCurrentTile16Data();
     if (tile_data) {
-      ImGui::Text("Current Tile16 Staged Data:");
+      ImGui::Text(tr("Current Tile16 Staged Data:"));
 
       auto stage_current_tile = [&]() -> absl::Status {
         SyncTilesInfoArray(tile_data);
@@ -3389,8 +3400,8 @@ void Tile16Editor::DrawManualTile8Inputs() {
                                       "Bottom-Right"};
 
       for (int q = 0; q < 4; q++) {
-        ImGui::Text("%s Quadrant:", quadrant_names[q]);
-        ImGui::TextDisabled("Tile Palette metadata + Tile8/flip flags");
+        ImGui::Text(tr("%s Quadrant:"), quadrant_names[q]);
+        ImGui::TextDisabled(tr("Tile Palette metadata + Tile8/flip flags"));
 
         // Get the current TileInfo for this quadrant
         gfx::TileInfo* tile_info = nullptr;
@@ -3414,26 +3425,26 @@ void Tile16Editor::DrawManualTile8Inputs() {
           ImGui::PushID(q);
 
           int tile_id_int = static_cast<int>(tile_info->id_);
-          if (ImGui::InputInt("Tile8 ID", &tile_id_int, 1, 10)) {
+          if (ImGui::InputInt(tr("Tile8 ID"), &tile_id_int, 1, 10)) {
             tile_info->id_ =
                 static_cast<uint16_t>(std::max(0, std::min(tile_id_int, 1023)));
           }
 
           int palette_int = static_cast<int>(tile_info->palette_);
-          if (ImGui::SliderInt("Tile Palette", &palette_int, 0, 7)) {
+          if (ImGui::SliderInt(tr("Tile Palette"), &palette_int, 0, 7)) {
             tile_info->palette_ = static_cast<uint8_t>(palette_int);
           }
 
-          ImGui::Checkbox("X Flip", &tile_info->horizontal_mirror_);
+          ImGui::Checkbox(tr("X Flip"), &tile_info->horizontal_mirror_);
           ImGui::SameLine();
-          ImGui::Checkbox("Y Flip", &tile_info->vertical_mirror_);
+          ImGui::Checkbox(tr("Y Flip"), &tile_info->vertical_mirror_);
           ImGui::SameLine();
-          ImGui::Checkbox("Priority", &tile_info->over_);
+          ImGui::Checkbox(tr("Priority"), &tile_info->over_);
 
-          if (ImGui::Button("Stage Quadrant Edit")) {
+          if (ImGui::Button(tr("Stage Quadrant Edit"))) {
             auto stage_result = stage_current_tile();
             if (!stage_result.ok()) {
-              ImGui::Text("Stage Error: %s", stage_result.message().data());
+              ImGui::Text(tr("Stage Error: %s"), stage_result.message().data());
             }
           }
 
@@ -3445,37 +3456,37 @@ void Tile16Editor::DrawManualTile8Inputs() {
       }
 
       ImGui::Separator();
-      if (ImGui::Button("Stage All Edits")) {
+      if (ImGui::Button(tr("Stage All Edits"))) {
         auto stage_result = stage_current_tile();
         if (!stage_result.ok()) {
-          ImGui::Text("Stage Error: %s", stage_result.message().data());
+          ImGui::Text(tr("Stage Error: %s"), stage_result.message().data());
         }
       }
       ImGui::SameLine();
-      if (ImGui::Button("Write Pending to ROM")) {
+      if (ImGui::Button(tr("Write Pending to ROM"))) {
         auto write_result = CommitAllChanges();
         if (!write_result.ok()) {
-          ImGui::Text("Write Error: %s", write_result.message().data());
+          ImGui::Text(tr("Write Error: %s"), write_result.message().data());
         }
       }
       ImGui::SameLine();
-      if (ImGui::Button("Refresh Display")) {
+      if (ImGui::Button(tr("Refresh Display"))) {
         auto refresh_result = SetCurrentTile(current_tile16_);
         if (!refresh_result.ok()) {
-          ImGui::Text("Refresh Error: %s", refresh_result.message().data());
+          ImGui::Text(tr("Refresh Error: %s"), refresh_result.message().data());
         }
       }
 
     } else {
-      ImGui::Text("Tile16 data not accessible");
-      ImGui::Text("Current tile16: %d", current_tile16_);
+      ImGui::Text(tr("Tile16 data not accessible"));
+      ImGui::Text(tr("Current tile16: %d"), current_tile16_);
       if (rom_) {
-        ImGui::Text("Valid range: 0-4095 (4096 total tiles)");
+        ImGui::Text(tr("Valid range: 0-4095 (4096 total tiles)"));
       }
     }
 
     ImGui::Separator();
-    if (ImGui::Button("Close")) {
+    if (ImGui::Button(tr("Close"))) {
       ImGui::CloseCurrentPopup();
     }
 

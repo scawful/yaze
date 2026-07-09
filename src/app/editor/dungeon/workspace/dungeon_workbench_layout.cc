@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 
@@ -44,10 +45,10 @@ bool DrawDungeonWorkbenchVerticalSplitter(const char* id, float height,
     if (proposed < collapse_threshold) {
       collapse_requested = true;
       *pane_width = min_width;
-      ImGui::SetTooltip("Collapse pane");
+      ImGui::SetTooltip(tr("Collapse pane"));
     } else {
       *pane_width = ClampWorkbenchPaneWidth(proposed, min_width, max_width);
-      ImGui::SetTooltip("Width: %.0f px", *pane_width);
+      ImGui::SetTooltip(tr("Width: %.0f px"), *pane_width);
     }
   }
 

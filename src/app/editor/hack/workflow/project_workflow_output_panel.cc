@@ -1,4 +1,5 @@
 #include "app/editor/hack/workflow/project_workflow_output_panel.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/hack/workflow/workflow_activity_widgets.h"
@@ -19,9 +20,10 @@ void ProjectWorkflowOutputPanel::Draw(bool* p_open) {
 
   if (!build_status.visible && !run_status.visible && build_log.empty() &&
       history.empty()) {
-    ImGui::TextDisabled("No workflow output available yet.");
+    ImGui::TextDisabled(tr("No workflow output available yet."));
     ImGui::TextWrapped(
-        "Run a project build or output reload to populate workflow status and logs.");
+        tr("Run a project build or output reload to populate workflow status "
+           "and logs."));
     return;
   }
 
@@ -42,7 +44,7 @@ void ProjectWorkflowOutputPanel::Draw(bool* p_open) {
 
   if (!build_log.empty()) {
     ImGui::Separator();
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s Build Output",
+    ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("%s Build Output"),
                        ICON_MD_TERMINAL);
     ImGui::SameLine();
     DrawCopyCurrentLogButton(build_log);
@@ -58,7 +60,7 @@ void ProjectWorkflowOutputPanel::Draw(bool* p_open) {
 
   if (!history.empty()) {
     ImGui::Separator();
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s Recent History",
+    ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("%s Recent History"),
                        ICON_MD_HISTORY);
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_DELETE_SWEEP " Clear History")) {
@@ -72,10 +74,9 @@ void ProjectWorkflowOutputPanel::Draw(bool* p_open) {
 
 void ProjectWorkflowOutputPanel::DrawStatusCard(
     const char* fallback_icon, const ProjectWorkflowStatus& status) {
-  ImGui::TextColored(WorkflowColor(status.state), "%s %s",
-                     WorkflowIcon(status, fallback_icon),
-                     status.summary.empty() ? status.label.c_str()
-                                            : status.summary.c_str());
+  ImGui::TextColored(
+      WorkflowColor(status.state), "%s %s", WorkflowIcon(status, fallback_icon),
+      status.summary.empty() ? status.label.c_str() : status.summary.c_str());
   if (!status.detail.empty()) {
     ImGui::TextWrapped("%s", status.detail.c_str());
   }
@@ -88,8 +89,10 @@ void ProjectWorkflowOutputPanel::DrawHistoryEntry(
     const ProjectWorkflowHistoryEntry& entry, int index) {
   ImGui::PushID(index);
   WorkflowActionCallbacks callbacks;
-  callbacks.start_build = ContentRegistry::Context::start_build_workflow_callback();
-  callbacks.run_project = ContentRegistry::Context::run_project_workflow_callback();
+  callbacks.start_build =
+      ContentRegistry::Context::start_build_workflow_callback();
+  callbacks.run_project =
+      ContentRegistry::Context::run_project_workflow_callback();
   const std::string title = absl::StrFormat(
       "%s %s - %s", entry.kind.c_str(), entry.status.summary.c_str(),
       FormatHistoryTime(entry.timestamp).c_str());

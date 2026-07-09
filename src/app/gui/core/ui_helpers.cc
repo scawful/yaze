@@ -1,4 +1,5 @@
 #include "app/gui/core/ui_helpers.h"
+#include "util/i18n/tr.h"
 
 #include <cstdarg>
 
@@ -260,14 +261,14 @@ void PropertyRowHex(const char* label, uint8_t value) {
   ImGui::TableNextColumn();
   ImGui::Text("%s", label);
   ImGui::TableNextColumn();
-  ImGui::Text("0x%02X", value);
+  ImGui::Text(tr("0x%02X"), value);
 }
 
 void PropertyRowHex(const char* label, uint16_t value) {
   ImGui::TableNextColumn();
   ImGui::Text("%s", label);
   ImGui::TableNextColumn();
-  ImGui::Text("0x%04X", value);
+  ImGui::Text(tr("0x%04X"), value);
 }
 
 void SectionHeader(const char* icon, const char* label, const ImVec4& color) {

@@ -1,4 +1,5 @@
 #include "dungeon_canvas_viewer.h"
+#include "util/i18n/tr.h"
 
 #include "app/editor/dungeon/ui_constants.h"
 #include "imgui/imgui.h"
@@ -13,12 +14,12 @@ using namespace dungeon_ui;  // NOLINT(google-build-using-namespace)
 
 bool DungeonCanvasViewer::ValidateRoomCanvasRequest(int room_id) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
-    ImGui::Text("Invalid room ID: %d", room_id);
+    ImGui::Text(tr("Invalid room ID: %d"), room_id);
     return false;
   }
 
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::Text("ROM not loaded");
+    ImGui::Text(tr("ROM not loaded"));
     return false;
   }
 

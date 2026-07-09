@@ -1,4 +1,5 @@
 #include "dungeon_status_bar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -180,8 +181,8 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
                          right_text);
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Room has pending editor changes. Apply Room writes them to the "
-            "loaded ROM buffer.");
+            tr("Room has pending editor changes. Apply Room writes them to the "
+               "loaded ROM buffer."));
       }
     } else {
       ImGui::TextDisabled("%s", right_text);

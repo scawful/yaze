@@ -1,4 +1,5 @@
 #include "app/editor/layout/layout_designer/layout_designer_panel.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <string>
@@ -214,35 +215,35 @@ void LayoutDesignerPanel::DrawFileRow() {
   const bool can_save = settings != nullptr;
   const bool can_apply = manager != nullptr;
 
-  ImGui::TextUnformatted("File:");
+  ImGui::TextUnformatted(tr("File:"));
   ImGui::SameLine();
-  if (ImGui::SmallButton("New")) {
+  if (ImGui::SmallButton(tr("New"))) {
     ReplaceTree(MakeEmptyTree(kUntitledName));
     status_message_ = "New layout.";
     status_is_error_ = false;
   }
   ImGui::SameLine();
   ImGui::BeginDisabled(!has_named_layouts);
-  if (ImGui::SmallButton("Open...")) {
+  if (ImGui::SmallButton(tr("Open..."))) {
     open_popup_requested_ = true;
   }
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(!can_save);
-  if (ImGui::SmallButton("Save")) {
+  if (ImGui::SmallButton(tr("Save"))) {
     SaveOrSaveAs();
   }
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(settings == nullptr);
-  if (ImGui::SmallButton("Save As...")) {
+  if (ImGui::SmallButton(tr("Save As..."))) {
     save_as_buffer_ = tree_.name.empty() ? kUntitledName : tree_.name;
     save_as_popup_requested_ = true;
   }
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(!can_apply);
-  if (ImGui::SmallButton("Apply")) {
+  if (ImGui::SmallButton(tr("Apply"))) {
     ApplyCurrentTreeToLiveDockspace();
   }
   ImGui::EndDisabled();
@@ -250,7 +251,7 @@ void LayoutDesignerPanel::DrawFileRow() {
   ImGui::TextDisabled("|");
   ImGui::SameLine();
   ImGui::BeginDisabled(!undo_.CanUndo());
-  if (ImGui::SmallButton("Undo")) {
+  if (ImGui::SmallButton(tr("Undo"))) {
     // Phase 8.5: selection is by stable id, so undo no longer needs to
     // force-clear it. If the post-undo tree still contains the
     // selected id, FindNode finds it and the cursor stays put;
@@ -262,7 +263,7 @@ void LayoutDesignerPanel::DrawFileRow() {
   ImGui::EndDisabled();
   ImGui::SameLine();
   ImGui::BeginDisabled(!undo_.CanRedo());
-  if (ImGui::SmallButton("Redo")) {
+  if (ImGui::SmallButton(tr("Redo"))) {
     undo_.Redo(&tree_);
     drag_ = ActiveDrag{};
   }
@@ -276,8 +277,8 @@ void LayoutDesignerPanel::DrawOpenPopup() {
   }
   UserSettings* settings = ContentRegistry::Context::user_settings();
   if (settings == nullptr) {
-    ImGui::TextUnformatted("UserSettings unavailable.");
-    if (ImGui::Button("Close"))
+    ImGui::TextUnformatted(tr("UserSettings unavailable."));
+    if (ImGui::Button(tr("Close")))
       ImGui::CloseCurrentPopup();
     ImGui::EndPopup();
     return;
@@ -291,7 +292,7 @@ void LayoutDesignerPanel::DrawOpenPopup() {
   }
   std::sort(names.begin(), names.end());
 
-  ImGui::TextUnformatted("Choose a saved layout:");
+  ImGui::TextUnformatted(tr("Choose a saved layout:"));
   ImGui::BeginChild("layout_designer_open_list", ImVec2(320.0f, 200.0f),
                     ImGuiChildFlags_Borders);
   for (const auto& name : names) {
@@ -310,13 +311,13 @@ void LayoutDesignerPanel::DrawOpenPopup() {
   const bool can_open = !open_selection_.empty() &&
                         settings->prefs().named_layouts.count(open_selection_);
   ImGui::BeginDisabled(!can_open);
-  if (ImGui::Button("Open")) {
+  if (ImGui::Button(tr("Open"))) {
     LoadNamedLayoutIntoTree(open_selection_);
     ImGui::CloseCurrentPopup();
   }
   ImGui::EndDisabled();
   ImGui::SameLine();
-  if (ImGui::Button("Cancel"))
+  if (ImGui::Button(tr("Cancel")))
     ImGui::CloseCurrentPopup();
   ImGui::EndPopup();
 }
@@ -326,7 +327,7 @@ void LayoutDesignerPanel::DrawSaveAsPopup() {
                               ImGuiWindowFlags_AlwaysAutoResize)) {
     return;
   }
-  ImGui::TextUnformatted("Save layout as:");
+  ImGui::TextUnformatted(tr("Save layout as:"));
   ImGui::SetNextItemWidth(320.0f);
   const bool submitted_via_enter =
       ImGui::InputText("##layout_designer_save_as", &save_as_buffer_,
@@ -334,10 +335,10 @@ void LayoutDesignerPanel::DrawSaveAsPopup() {
   const bool name_empty =
       save_as_buffer_.find_first_not_of(" \t") == std::string::npos;
   ImGui::BeginDisabled(name_empty);
-  const bool save_clicked = ImGui::Button("Save");
+  const bool save_clicked = ImGui::Button(tr("Save"));
   ImGui::EndDisabled();
   ImGui::SameLine();
-  if (ImGui::Button("Cancel")) {
+  if (ImGui::Button(tr("Cancel"))) {
     ImGui::CloseCurrentPopup();
   }
   if ((save_clicked || submitted_via_enter) && !name_empty) {
@@ -535,7 +536,7 @@ void LayoutDesignerPanel::Draw(bool* p_open) {
   DrawSaveAsPopup();
 
   ImGui::Separator();
-  ImGui::Text("Editing: %s | Undo: %zu / Redo: %zu",
+  ImGui::Text(tr("Editing: %s | Undo: %zu / Redo: %zu"),
               tree_.name.empty() ? "(unnamed)" : tree_.name.c_str(),
               undo_.UndoDepth(), undo_.RedoDepth());
   if (!status_message_.empty()) {
@@ -565,24 +566,24 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
   // we've since replaced, or was consumed by a structural mutation.
   DockNode* node = tree_.FindNode(selected_id_);
   if (node == nullptr) {
-    ImGui::SeparatorText("Layout");
+    ImGui::SeparatorText(tr("Layout"));
     // Bind the InputText buffer directly to the tree fields; imgui_stdlib
     // keeps the std::string in sync per keystroke, and IsItemActivated
     // fires once per focus-in so the undo step covers the whole edit.
-    ImGui::InputText("Name", &tree_.name);
+    ImGui::InputText(tr("Name"), &tree_.name);
     snapshot_on_activation();
-    ImGui::InputTextMultiline("Description", &tree_.description,
+    ImGui::InputTextMultiline(tr("Description"), &tree_.description,
                               ImVec2(0.0f, 80.0f));
     snapshot_on_activation();
-    ImGui::TextDisabled("Select a cell in the canvas to edit it.");
+    ImGui::TextDisabled(tr("Select a cell in the canvas to edit it."));
     return;
   }
 
   if (node->type == DockNode::Type::kSplit) {
-    ImGui::SeparatorText("Split");
+    ImGui::SeparatorText(tr("Split"));
 
     const SplitDirection current_dir = node->split_direction;
-    if (ImGui::BeginCombo("Direction", SplitDirectionLabel(current_dir))) {
+    if (ImGui::BeginCombo(tr("Direction"), SplitDirectionLabel(current_dir))) {
       for (int i = 0; i < 4; ++i) {
         const auto candidate = static_cast<SplitDirection>(i);
         const bool is_selected = candidate == current_dir;
@@ -598,16 +599,16 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
       ImGui::EndCombo();
     }
 
-    ImGui::SliderFloat("Ratio", &node->split_ratio, kMinSplitRatio,
+    ImGui::SliderFloat(tr("Ratio"), &node->split_ratio, kMinSplitRatio,
                        kMaxSplitRatio, "%.2f");
     snapshot_on_activation();
     return;
   }
 
   // Leaf properties.
-  ImGui::SeparatorText("Leaf");
+  ImGui::SeparatorText(tr("Leaf"));
   if (node->panels.empty()) {
-    ImGui::TextDisabled("(no panels — drop from the palette)");
+    ImGui::TextDisabled(tr("(no panels — drop from the palette)"));
     return;
   }
 
@@ -615,7 +616,7 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
   // value while the slider is active.
   const int panel_count = static_cast<int>(node->panels.size());
   int active = std::clamp(node->active_tab_index, 0, panel_count - 1);
-  ImGui::SliderInt("Active tab", &active, 0, panel_count - 1);
+  ImGui::SliderInt(tr("Active tab"), &active, 0, panel_count - 1);
   snapshot_on_activation();
   if (active != node->active_tab_index) {
     node->active_tab_index = active;
@@ -633,7 +634,7 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
     ImGui::SameLine();
 
     ImGui::BeginDisabled(i == 0);
-    if (ImGui::SmallButton("Up")) {
+    if (ImGui::SmallButton(tr("Up"))) {
       PushUndoSnapshot();
       std::swap(node->panels[i], node->panels[i - 1]);
       if (node->active_tab_index == i)
@@ -645,7 +646,7 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
 
     ImGui::SameLine();
     ImGui::BeginDisabled(i + 1 >= panel_count);
-    if (ImGui::SmallButton("Down")) {
+    if (ImGui::SmallButton(tr("Down"))) {
       PushUndoSnapshot();
       std::swap(node->panels[i], node->panels[i + 1]);
       if (node->active_tab_index == i)
@@ -656,7 +657,7 @@ void LayoutDesignerPanel::DrawPropertiesColumn() {
     ImGui::EndDisabled();
 
     ImGui::SameLine();
-    if (ImGui::SmallButton("Remove")) {
+    if (ImGui::SmallButton(tr("Remove"))) {
       PushUndoSnapshot();
       // If the removed entry sits before the active tab, the active
       // panel's index shifts down by one. std::clamp afterward handles

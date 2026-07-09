@@ -1,4 +1,5 @@
 #include "app/editor/music/song_browser_view.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstring>
@@ -40,7 +41,7 @@ void SongBrowserView::Draw(MusicBank& bank) {
       ImGui::TextColored(GetSuccessColor(), ICON_MD_CHECK_CIRCLE
                          " Oracle of Secrets expanded music detected");
       const auto& info = bank.GetExpandedBankInfo();
-      ImGui::TextDisabled("Expanded bank at $%06X, Aux at $%06X",
+      ImGui::TextDisabled(tr("Expanded bank at $%06X, Aux at $%06X"),
                           info.main_rom_offset, info.aux_rom_offset);
       ImGui::Spacing();
     }
@@ -94,7 +95,8 @@ void SongBrowserView::Draw(MusicBank& bank) {
     if (!bank.AllSongsFit()) {
       ImGui::TextColored(GetErrorColor(),
                          ICON_MD_ERROR " Some banks are overflowing!");
-      ImGui::TextDisabled("Songs won't fit in ROM. Remove or shorten songs.");
+      ImGui::TextDisabled(
+          tr("Songs won't fit in ROM. Remove or shorten songs."));
     } else {
       ImGui::TextColored(GetSuccessColor(),
                          ICON_MD_CHECK " All songs fit in ROM");
@@ -198,8 +200,8 @@ void SongBrowserView::Draw(MusicBank& bank) {
   if (ImGui::CollapsingHeader(ICON_MD_EDIT " Custom Songs",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     if (filtered_custom_indices_.empty()) {
-      ImGui::TextDisabled("No custom songs match filter");
-      ImGui::TextDisabled("Click 'New Song' or duplicate a vanilla song");
+      ImGui::TextDisabled(tr("No custom songs match filter"));
+      ImGui::TextDisabled(tr("Click 'New Song' or duplicate a vanilla song"));
     } else {
       const float item_height = ImGui::GetTextLineHeightWithSpacing();
       ImGuiListClipper clipper;
@@ -301,7 +303,7 @@ void SongBrowserView::Draw(MusicBank& bank) {
 
   if (ImGui::BeginPopupModal("Rename Song", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Enter a new name for the song:");
+    ImGui::Text(tr("Enter a new name for the song:"));
     ImGui::SetNextItemWidth(300);
 
     bool enter_pressed = ImGui::InputText("##RenameSongInput", rename_buffer_,
@@ -313,9 +315,9 @@ void SongBrowserView::Draw(MusicBank& bank) {
       ImGui::SetKeyboardFocusHere(-1);
     }
 
-    bool apply = enter_pressed || ImGui::Button("OK");
+    bool apply = enter_pressed || ImGui::Button(tr("OK"));
     ImGui::SameLine();
-    bool cancel = ImGui::Button("Cancel");
+    bool cancel = ImGui::Button(tr("Cancel"));
 
     if (apply && rename_target_index_ >= 0) {
       auto* target_song = bank.GetSong(rename_target_index_);

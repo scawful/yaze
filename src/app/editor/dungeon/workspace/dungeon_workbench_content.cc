@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -486,7 +487,7 @@ void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
     sidebar_mode_ = SidebarMode::Rooms;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Rooms");
+    ImGui::SetTooltip(tr("Rooms"));
   }
   ImGui::SameLine(0.0f, spacing);
   if (gui::ToggleButton(ICON_MD_DOOR_FRONT "##NavEntrances",
@@ -494,13 +495,13 @@ void DungeonWorkbenchContent::DrawSidebarModeTabs(bool stacked,
     sidebar_mode_ = SidebarMode::Entrances;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Entrances");
+    ImGui::SetTooltip(tr("Entrances"));
   }
 }
 
 void DungeonWorkbenchContent::DrawSidebarContent() {
   if (!room_selector_) {
-    ImGui::TextDisabled("Room navigation unavailable");
+    ImGui::TextDisabled(tr("Room navigation unavailable"));
     return;
   }
 
@@ -525,7 +526,7 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     return;
   }
   if (!room_selector_ || !current_room_id_ || !get_viewer_) {
-    ImGui::TextColored(theme.text_error_red, "Dungeon Workbench not wired");
+    ImGui::TextColored(theme.text_error_red, tr("Dungeon Workbench not wired"));
     return;
   }
 
@@ -760,7 +761,7 @@ void DungeonWorkbenchContent::DrawCanvasPane(
       status.on_redo = on_redo_;
       DungeonStatusBar::Draw(status);
     } else {
-      ImGui::TextDisabled("No active viewer");
+      ImGui::TextDisabled(tr("No active viewer"));
     }
   }
   ImGui::EndChild();
@@ -876,7 +877,7 @@ void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
     if (viewer) {
       DrawInspector(*viewer, compact);
     } else {
-      ImGui::TextDisabled("No active viewer");
+      ImGui::TextDisabled(tr("No active viewer"));
     }
   }
   ImGui::EndChild();
@@ -1102,7 +1103,7 @@ void DungeonWorkbenchContent::DrawSplitView(
       }
       compare_viewer->DrawDungeonCanvas(compare_room_id_);
     } else {
-      ImGui::TextDisabled("No compare viewer");
+      ImGui::TextDisabled(tr("No compare viewer"));
     }
   }
   gui::LayoutHelpers::EndContentChild();
@@ -1189,20 +1190,20 @@ void DungeonWorkbenchContent::SetAllSaveFlags(bool value) {
 void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
   auto& flags = core::FeatureFlags::get().dungeon;
   bool use_workbench = flags.kUseWorkbench;
-  if (ImGui::Checkbox("Single-window Workbench", &use_workbench)) {
+  if (ImGui::Checkbox(tr("Single-window Workbench"), &use_workbench)) {
     flags.kUseWorkbench = use_workbench;
     if (set_workflow_mode_) {
       set_workflow_mode_(use_workbench);
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
+    ImGui::SetTooltip(tr(
         "Keep Dungeon editing in the integrated Workbench instead of separate "
-        "high-level room panels.");
+        "high-level room panels."));
   }
 
   ImGui::Separator();
-  ImGui::TextDisabled("Data written by Apply Room / Apply Loaded Rooms");
+  ImGui::TextDisabled(tr("Data written by Apply Room / Apply Loaded Rooms"));
   constexpr ImGuiTableFlags kFlags =
       ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
   if (ImGui::BeginTable("##WorkbenchApplyScopeFlags", 2, kFlags)) {
@@ -1231,11 +1232,11 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
     ImGui::EndTable();
   }
 
-  if (ImGui::SmallButton("Select All##WorkbenchApplyScope")) {
+  if (ImGui::SmallButton(tr("Select All##WorkbenchApplyScope"))) {
     SetAllSaveFlags(true);
   }
   ImGui::SameLine();
-  if (ImGui::SmallButton("Select None##WorkbenchApplyScope")) {
+  if (ImGui::SmallButton(tr("Select None##WorkbenchApplyScope"))) {
     SetAllSaveFlags(false);
   }
 
@@ -1258,14 +1259,14 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
       get_pit_damage_table_ ? get_pit_damage_table_() : nullptr;
   if (!table) {
     ImGui::TextDisabled(
-        "Pit damage table is unavailable until ROM data loads.");
+        tr("Pit damage table is unavailable until ROM data loads."));
     return;
   }
   const auto membership = BuildPitDamageMembershipState(
       table, room_id, pit_damage_replacement_room_id_,
       pit_damage_victim_room_id_);
   if (!membership.room_valid) {
-    ImGui::TextDisabled("No valid room selected.");
+    ImGui::TextDisabled(tr("No valid room selected."));
     return;
   }
 
@@ -1273,12 +1274,12 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
   const bool room_deals_damage = membership.deals_damage;
   ImGui::TextColored(
       room_deals_damage ? theme.status_warning : theme.text_secondary_gray,
-      "%s Room 0x%03X %s pit damage",
+      tr("%s Room 0x%03X %s pit damage"),
       room_deals_damage ? ICON_MD_WARNING : ICON_MD_INFO, room_id,
       room_deals_damage ? "deals" : "does not deal");
-  ImGui::TextWrapped(
+  ImGui::TextWrapped(tr(
       "RoomsWithPitDamage is fixed-capacity in vanilla. Editing replaces one "
-      "listed room with another instead of growing or shrinking the table.");
+      "listed room with another instead of growing or shrinking the table."));
 
   if (membership.dirty) {
     ImGui::TextColored(theme.status_warning,
@@ -1299,13 +1300,13 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
   ImGui::Separator();
   if (room_deals_damage) {
     if (!membership.suggested_replacement_room.has_value()) {
-      ImGui::TextDisabled("No available non-damaging room slot.");
+      ImGui::TextDisabled(tr("No available non-damaging room slot."));
       show_status();
       return;
     }
     pit_damage_replacement_room_id_ = *membership.suggested_replacement_room;
 
-    ImGui::TextDisabled("Remove current room by replacing it with:");
+    ImGui::TextDisabled(tr("Remove current room by replacing it with:"));
     ImGui::SetNextItemWidth(88.0f);
     auto edit_value = pit_damage_replacement_room_id_;
     if (auto res = gui::InputHexWordEx("##PitDamageReplacementRoom",
@@ -1315,10 +1316,11 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
           std::min<uint16_t>(edit_value, zelda3::kNumberOfRooms - 1);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Replacement room must not already be in the table.");
+      ImGui::SetTooltip(
+          tr("Replacement room must not already be in the table."));
     }
     ImGui::SameLine();
-    if (ImGui::Button("Replace current##PitDamageReplaceCurrent")) {
+    if (ImGui::Button(tr("Replace current##PitDamageReplaceCurrent"))) {
       auto status = RemoveCurrentRoomFromPitDamage(
           table, current_room, pit_damage_replacement_room_id_);
       pit_damage_status_error_ = !status.ok();
@@ -1330,13 +1332,13 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
     }
   } else {
     if (!membership.suggested_victim_room.has_value()) {
-      ImGui::TextDisabled("No existing pit-damage slot is available.");
+      ImGui::TextDisabled(tr("No existing pit-damage slot is available."));
       show_status();
       return;
     }
     pit_damage_victim_room_id_ = *membership.suggested_victim_room;
 
-    ImGui::TextDisabled("Add current room by replacing listed room:");
+    ImGui::TextDisabled(tr("Add current room by replacing listed room:"));
     ImGui::SetNextItemWidth(88.0f);
     auto edit_value = pit_damage_victim_room_id_;
     if (auto res = gui::InputHexWordEx("##PitDamageVictimRoom", &edit_value,
@@ -1346,10 +1348,10 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
           std::min<uint16_t>(edit_value, zelda3::kNumberOfRooms - 1);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("This room will stop dealing pit damage.");
+      ImGui::SetTooltip(tr("This room will stop dealing pit damage."));
     }
     ImGui::SameLine();
-    if (ImGui::Button("Add current##PitDamageAddCurrent")) {
+    if (ImGui::Button(tr("Add current##PitDamageAddCurrent"))) {
       auto status = AddCurrentRoomToPitDamage(table, current_room,
                                               pit_damage_victim_room_id_);
       pit_damage_status_error_ = !status.ok();
@@ -1363,14 +1365,14 @@ void DungeonWorkbenchContent::DrawPitDamageControls(int room_id) {
 
   show_status();
   ImGui::TextDisabled(
-      "Apply Current Room / Apply Loaded Rooms writes this via "
-      "SaveAllPits when the Pits scope is enabled.");
+      tr("Apply Current Room / Apply Loaded Rooms writes this via "
+         "SaveAllPits when the Pits scope is enabled."));
 }
 
 void DungeonWorkbenchContent::DrawLayerCompositingControls(
     DungeonCanvasViewer& viewer, int room_id) {
   if (room_id < 0) {
-    ImGui::TextDisabled("No active room");
+    ImGui::TextDisabled(tr("No active room"));
     return;
   }
 
@@ -1493,7 +1495,7 @@ void DungeonWorkbenchContent::DrawDungeonMapPopup(DungeonCanvasViewer& viewer) {
       }
       ImGui::EndChild();
     } else {
-      ImGui::TextDisabled("Dungeon map unavailable");
+      ImGui::TextDisabled(tr("Dungeon map unavailable"));
     }
 
     if (workbench::DrawActionButton(ICON_MD_CLOSE " Close", ImVec2(-1, 0))) {
@@ -1891,17 +1893,17 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
                 dungeon_project_labels::GetRoomLabel(viewer.project(), room_id)
                     .c_str());
   } else {
-    ImGui::TextDisabled("No room selected");
+    ImGui::TextDisabled(tr("No room selected"));
   }
 
   ImGui::Dummy(ImVec2(0.0f, 2.0f));
   if (selected_objects > 0 || has_entity) {
     ImGui::TextDisabled(ICON_MD_SELECT_ALL " Focus");
     if (has_entity) {
-      ImGui::BulletText("Entity selected");
+      ImGui::BulletText(tr("Entity selected"));
     }
     if (selected_objects > 0) {
-      ImGui::BulletText("%zu object%s selected", selected_objects,
+      ImGui::BulletText(tr("%zu object%s selected"), selected_objects,
                         selected_objects == 1 ? "" : "s");
     }
     if (workbench::DrawActionButton(ICON_MD_OPEN_IN_FULL " Open Selection",
@@ -1909,7 +1911,7 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
       inspector_mode_ = InspectorMode::Selection;
     }
   } else {
-    ImGui::TextDisabled("Nothing selected");
+    ImGui::TextDisabled(tr("Nothing selected"));
   }
 
   // Apply Room, View overlays, and Tools quick-grid all live elsewhere now:
@@ -1975,7 +1977,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   workbench::DrawInspectorSectionHeader(ICON_MD_CASTLE " Room Summary");
   if (room_id >= 0) {
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted("Room");
+    ImGui::TextUnformatted(tr("Room"));
     ImGui::SameLine();
     uint16_t requested_room_id = static_cast<uint16_t>(room_id);
     ImGui::SetNextItemWidth(74.0f);
@@ -2001,7 +2003,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     if (ImGui::IsItemHovered()) {
       const int preview_room_id = std::clamp(
           static_cast<int>(requested_room_id), 0, zelda3::kNumberOfRooms - 1);
-      ImGui::SetTooltip("Open room 0x%03X", preview_room_id);
+      ImGui::SetTooltip(tr("Open room 0x%03X"), preview_room_id);
     }
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CONTENT_COPY "##CopyRoomId")) {
@@ -2010,10 +2012,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       ImGui::SetClipboardText(buf);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Copy room ID (0x%03X) to clipboard", room_id);
+      ImGui::SetTooltip(tr("Copy room ID (0x%03X) to clipboard"), room_id);
     }
   } else {
-    ImGui::TextUnformatted("Room: None");
+    ImGui::TextUnformatted(tr("Room: None"));
   }
 
   bool room_dirty = false;
@@ -2288,14 +2290,14 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       ImGui::EndTable();
     }
   } else {
-    ImGui::TextDisabled("Room header unavailable");
+    ImGui::TextDisabled(tr("Room header unavailable"));
   }
 
   workbench::DrawInspectorSectionHeader(ICON_MD_BUILD " Editing Status");
   auto& interaction = viewer.object_interaction();
   const bool placing = interaction.mode_manager().IsPlacementActive();
   if (placing) {
-    ImGui::TextColored(theme.text_info, "Placement active");
+    ImGui::TextColored(theme.text_info, tr("Placement active"));
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CLOSE " Cancel")) {
       interaction.mode_manager().CancelCurrentMode();
@@ -2314,7 +2316,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
   if (!has_entity && obj_count == 0) {
     workbench::DrawInspectorSectionHeader(ICON_MD_INFO " Selection");
-    ImGui::TextDisabled("Click an object or entity to inspect");
+    ImGui::TextDisabled(tr("Click an object or entity to inspect"));
     return;
   }
 
@@ -2325,7 +2327,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
                        obj_count, obj_count == 1 ? "" : "s");
     if (obj_count == 1) {
       ImGui::SameLine();
-      ImGui::TextDisabled("Focused selection");
+      ImGui::TextDisabled(tr("Focused selection"));
     }
 
     const auto indices = interaction.GetSelectedObjectIndices();
@@ -2341,11 +2343,11 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
         if (idx < objects.size()) {
           auto& obj = objects[idx];
           std::string name = zelda3::GetObjectName(obj.id_);
-          ImGui::BulletText("0x%03X %s", obj.id_, name.c_str());
+          ImGui::BulletText(tr("0x%03X %s"), obj.id_, name.c_str());
         }
       }
       if (indices.size() > 8) {
-        ImGui::TextDisabled("  ... and %zu more", indices.size() - 8);
+        ImGui::TextDisabled(tr("  ... and %zu more"), indices.size() - 8);
       }
 
       // Bulk editor: nudge/layer/stacking/size + destructive duplicate/delete.
@@ -2359,7 +2361,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       // Nudge grid (arrow buttons around a tile-delta drag).
       static int bulk_nudge_dx = 0;
       static int bulk_nudge_dy = 0;
-      ImGui::TextDisabled("Nudge (tiles)");
+      ImGui::TextDisabled(tr("Nudge (tiles)"));
       ImGui::PushButtonRepeat(true);
       if (ImGui::Button(ICON_MD_ARROW_UPWARD "##BulkNudgeUp"))
         tile_handler.MoveObjects(room_id, selection_copy, 0, -1);
@@ -2380,7 +2382,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       ImGui::SetNextItemWidth(60);
       ImGui::DragInt("##BulkNudgeDy", &bulk_nudge_dy, 0.25f, -63, 63, "Δy:%d");
       ImGui::SameLine();
-      if (ImGui::Button("Apply##BulkNudgeApply") &&
+      if (ImGui::Button(tr("Apply##BulkNudgeApply")) &&
           (bulk_nudge_dx != 0 || bulk_nudge_dy != 0)) {
         tile_handler.MoveObjects(room_id, selection_copy, bulk_nudge_dx,
                                  bulk_nudge_dy);
@@ -2389,18 +2391,18 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       }
 
       ImGui::Spacing();
-      ImGui::TextDisabled("Layer (set all)");
-      if (ImGui::SmallButton("Primary##BulkLayer0"))
+      ImGui::TextDisabled(tr("Layer (set all)"));
+      if (ImGui::SmallButton(tr("Primary##BulkLayer0")))
         tile_handler.UpdateObjectsLayer(room_id, selection_copy, 0);
       ImGui::SameLine();
-      if (ImGui::SmallButton("BG2##BulkLayer1"))
+      if (ImGui::SmallButton(tr("BG2##BulkLayer1")))
         tile_handler.UpdateObjectsLayer(room_id, selection_copy, 1);
       ImGui::SameLine();
-      if (ImGui::SmallButton("BG1##BulkLayer2"))
+      if (ImGui::SmallButton(tr("BG1##BulkLayer2")))
         tile_handler.UpdateObjectsLayer(room_id, selection_copy, 2);
 
       ImGui::Spacing();
-      ImGui::TextDisabled("Stacking");
+      ImGui::TextDisabled(tr("Stacking"));
       if (ImGui::SmallButton(ICON_MD_FLIP_TO_FRONT " Front##BulkFront"))
         tile_handler.SendToFront(room_id, selection_copy);
       ImGui::SameLine();
@@ -2414,7 +2416,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
         tile_handler.MoveBackward(room_id, selection_copy);
 
       ImGui::Spacing();
-      ImGui::TextDisabled("Size");
+      ImGui::TextDisabled(tr("Size"));
       if (ImGui::SmallButton(ICON_MD_REMOVE "##BulkSizeDec"))
         tile_handler.ResizeObjects(room_id, selection_copy, -1);
       ImGui::SameLine();
@@ -2441,7 +2443,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
             theme.status_error, ICON_MD_WARNING " Delete %zu object%s?",
             selection_copy.size(), selection_copy.size() == 1 ? "" : "s");
         ImGui::Separator();
-        if (ImGui::Button("Cancel##BulkDelCancel")) {
+        if (ImGui::Button(tr("Cancel##BulkDelCancel"))) {
           ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
@@ -2472,7 +2474,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
         workbench::DrawInspectorSectionHeader(ICON_MD_CATEGORY
                                               " Focused Object");
         ImGui::TextColored(theme.text_primary, "%s", obj_name.c_str());
-        ImGui::TextDisabled("%s (Type %d)  #%zu in list",
+        ImGui::TextDisabled(tr("%s (Type %d)  #%zu in list"),
                             GetObjectCategory(obj.id_), subtype, idx);
 
         // Property table
@@ -2571,13 +2573,13 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
           ImGui::TextColored(theme.text_primary, ICON_MD_DOOR_FRONT " %s",
                              type_name.c_str());
-          ImGui::TextDisabled("Direction: %s  Position: 0x%02X",
+          ImGui::TextDisabled(tr("Direction: %s  Position: 0x%02X"),
                               dir_name.c_str(), door.position);
 
           auto [tile_x, tile_y] = door.GetTileCoords();
           auto [pixel_x, pixel_y] = door.GetPixelCoords();
-          ImGui::TextDisabled("Tile: (%d, %d)  Pixel: (%d, %d)", tile_x, tile_y,
-                              pixel_x, pixel_y);
+          ImGui::TextDisabled(tr("Tile: (%d, %d)  Pixel: (%d, %d)"), tile_x,
+                              tile_y, pixel_x, pixel_y);
         }
         break;
       }
@@ -2589,9 +2591,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
           ImGui::TextColored(theme.text_primary, ICON_MD_PERSON " %s",
                              sprite_name.c_str());
-          ImGui::TextDisabled("ID: 0x%02X  Subtype: %d  Layer: %d", sprite.id(),
-                              sprite.subtype(), sprite.layer());
-          ImGui::TextDisabled("Pos: (%d, %d)  Pixel: (%d, %d)", sprite.x(),
+          ImGui::TextDisabled(tr("ID: 0x%02X  Subtype: %d  Layer: %d"),
+                              sprite.id(), sprite.subtype(), sprite.layer());
+          ImGui::TextDisabled(tr("Pos: (%d, %d)  Pixel: (%d, %d)"), sprite.x(),
                               sprite.y(), sprite.x() * 16, sprite.y() * 16);
 
           // Overlord check
@@ -2613,9 +2615,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
           ImGui::TextColored(theme.text_primary, ICON_MD_INVENTORY_2 " %s",
                              item_name);
-          ImGui::TextDisabled("Item ID: 0x%02X  Raw Pos: 0x%04X", pot_item.item,
-                              pot_item.position);
-          ImGui::TextDisabled("Pixel: (%d, %d)  Tile: (%d, %d)",
+          ImGui::TextDisabled(tr("Item ID: 0x%02X  Raw Pos: 0x%04X"),
+                              pot_item.item, pot_item.position);
+          ImGui::TextDisabled(tr("Pixel: (%d, %d)  Tile: (%d, %d)"),
                               pot_item.GetPixelX(), pot_item.GetPixelY(),
                               pot_item.GetTileX(), pot_item.GetTileY());
         }

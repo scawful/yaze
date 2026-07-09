@@ -1,4 +1,5 @@
 #include "asset_browser.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 
@@ -12,35 +13,35 @@ const ImGuiTableSortSpecs* AssetObject::s_current_sort_specs = NULL;
 void GfxSheetAssetBrowser::Draw(
     const std::array<gfx::Bitmap, zelda3::kNumGfxSheets>& bmp_manager) {
   PushItemWidth(GetFontSize() * 10);
-  SeparatorText("Contents");
-  Checkbox("Show Type Overlay", &ShowTypeOverlay);
+  SeparatorText(tr("Contents"));
+  Checkbox(tr("Show Type Overlay"), &ShowTypeOverlay);
   SameLine();
-  Checkbox("Allow Sorting", &AllowSorting);
+  Checkbox(tr("Allow Sorting"), &AllowSorting);
   SameLine();
-  Checkbox("Stretch Spacing", &StretchSpacing);
+  Checkbox(tr("Stretch Spacing"), &StretchSpacing);
   SameLine();
-  Checkbox("Allow dragging unselected item", &AllowDragUnselected);
+  Checkbox(tr("Allow dragging unselected item"), &AllowDragUnselected);
   SameLine();
-  Checkbox("Allow box-selection", &AllowBoxSelect);
+  Checkbox(tr("Allow box-selection"), &AllowBoxSelect);
   SameLine();
-  SliderFloat("Icon Size", &IconSize, 16.0f, 128.0f, "%.0f");
+  SliderFloat(tr("Icon Size"), &IconSize, 16.0f, 128.0f, "%.0f");
   SameLine();
-  SliderInt("Icon Spacing", &IconSpacing, 0, 32);
+  SliderInt(tr("Icon Spacing"), &IconSpacing, 0, 32);
   SameLine();
-  SliderInt("Icon Hit Spacing", &IconHitSpacing, 0, 32);
+  SliderInt(tr("Icon Hit Spacing"), &IconHitSpacing, 0, 32);
   PopItemWidth();
 
   // Filter by types
   static bool filter_type[4] = {true, true, true, true};
-  Text("Filter by type:");
+  Text(tr("Filter by type:"));
   SameLine();
-  Checkbox("Unsorted", &filter_type[0]);
+  Checkbox(tr("Unsorted"), &filter_type[0]);
   SameLine();
-  Checkbox("Dungeon", &filter_type[1]);
+  Checkbox(tr("Dungeon"), &filter_type[1]);
   SameLine();
-  Checkbox("Overworld", &filter_type[2]);
+  Checkbox(tr("Overworld"), &filter_type[2]);
   SameLine();
-  Checkbox("Sprite", &filter_type[3]);
+  Checkbox(tr("Sprite"), &filter_type[3]);
 
   // Show a table with ONLY one header row to showcase the idea/possibility of
   // using this to provide a sorting UI
@@ -212,7 +213,7 @@ void GfxSheetAssetBrowser::Draw(
             const ImGuiPayload* payload = GetDragDropPayload();
             const int payload_count =
                 (int)payload->DataSize / (int)sizeof(ImGuiID);
-            Text("%d assets", payload_count);
+            Text(tr("%d assets"), payload_count);
 
             EndDragDropSource();
           }
@@ -260,28 +261,28 @@ void GfxSheetAssetBrowser::Draw(
 
     // Context menu
     if (BeginPopupContextWindow()) {
-      Text("Selection: %d items", Selection.Size);
+      Text(tr("Selection: %d items"), Selection.Size);
       Separator();
-      if (BeginMenu("Set Type")) {
-        if (MenuItem("Unsorted")) {
+      if (BeginMenu(tr("Set Type"))) {
+        if (MenuItem(tr("Unsorted"))) {
           void* it = NULL;
           ImGuiID id = 0;
           while (Selection.GetNextSelectedItem(&it, &id))
             Items[id].Type = 0;
         }
-        if (MenuItem("Dungeon")) {
+        if (MenuItem(tr("Dungeon"))) {
           void* it = NULL;
           ImGuiID id = 0;
           while (Selection.GetNextSelectedItem(&it, &id))
             Items[id].Type = 1;
         }
-        if (MenuItem("Overworld")) {
+        if (MenuItem(tr("Overworld"))) {
           void* it = NULL;
           ImGuiID id = 0;
           while (Selection.GetNextSelectedItem(&it, &id))
             Items[id].Type = 2;
         }
-        if (MenuItem("Sprite")) {
+        if (MenuItem(tr("Sprite"))) {
           void* it = NULL;
           ImGuiID id = 0;
           while (Selection.GetNextSelectedItem(&it, &id))
@@ -290,7 +291,7 @@ void GfxSheetAssetBrowser::Draw(
         EndMenu();
       }
       Separator();
-      if (MenuItem("Delete", "Del", false, Selection.Size > 0))
+      if (MenuItem(tr("Delete"), "Del", false, Selection.Size > 0))
         RequestDelete = true;
       EndPopup();
     }
@@ -345,7 +346,7 @@ void GfxSheetAssetBrowser::Draw(
   }
   EndChild();
 
-  Text("Selected: %d/%d items", Selection.Size, Items.Size);
+  Text(tr("Selected: %d/%d items"), Selection.Size, Items.Size);
 }
 
 }  // namespace gui

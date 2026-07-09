@@ -1,4 +1,5 @@
 #include "dungeon_canvas_viewer.h"
+#include "util/i18n/tr.h"
 
 #include <optional>
 #include <string>
@@ -207,9 +208,9 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
                            gui::ThemeManager::Get().GetCurrentTheme().warning),
                        ICON_MD_EDIT " Pending");
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
+      ImGui::SetTooltip(tr(
           "Room changes are pending in the editor. Apply Room writes them to "
-          "the loaded ROM buffer.");
+          "the loaded ROM buffer."));
     }
   }
   ImGui::SameLine();
@@ -301,7 +302,7 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   }
 
   if (show_room_details_) {
-    ImGui::TextDisabled("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d",
+    ImGui::TextDisabled(tr("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d"),
                         room.floor1(), room.effect(), room.tag1(), room.tag2());
   }
 }
@@ -314,7 +315,7 @@ void DungeonCanvasViewer::DrawRecentRoomBreadcrumbs(int room_id) {
   ImGui::PushID("RecentRooms");
   ImGui::TextDisabled(ICON_MD_HISTORY);
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Recently visited rooms");
+    ImGui::SetTooltip(tr("Recently visited rooms"));
   }
 
   int rendered = 0;

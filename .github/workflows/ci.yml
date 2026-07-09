@@ -577,3 +577,16 @@ jobs:
           path: ${{ env.SMOKE_ARTIFACT_DIR }}/
           if-no-files-found: ignore
           retention-days: 14
+
+  i18n:
+    name: "i18n Catalogs"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      # Catalog validation is the gate (valid JSON, no empty values, %-specifier
+      # parity key<->value). The i18n unit tests run in "Test - Ubuntu" via
+      # yaze_test_unit, so we don't rebuild them here.
+      - name: Validate translation catalogs
+        run: python3 scripts/i18n/check_catalog.py assets/i18n/*.json
+      - name: Coverage report (informational)
+        run: python3 scripts/i18n/check_msgids.py

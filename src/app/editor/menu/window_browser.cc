@@ -1,4 +1,5 @@
 #include "app/editor/menu/window_browser.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -208,7 +209,7 @@ void WindowBrowser::Draw(size_t session_id, bool* p_open) {
           std::clamp(category_sidebar_width + ImGui::GetIO().MouseDelta.x,
                      220.0f, max_sidebar_width);
       window_manager_.SetWindowBrowserCategoryWidth(category_sidebar_width);
-      ImGui::SetTooltip("Width: %.0f px", category_sidebar_width);
+      ImGui::SetTooltip(tr("Width: %.0f px"), category_sidebar_width);
     }
 
     ImVec4 splitter_color = gui::GetOutlineVec4();

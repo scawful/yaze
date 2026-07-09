@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/core/content_registry.h"
 #include "app/editor/events/core_events.h"
@@ -90,9 +91,9 @@ class StoryEventGraphPanel : public WindowContent {
     }
 
     if (!manifest_ || !manifest_->HasProjectRegistry()) {
-      ImGui::TextDisabled("No hack project loaded");
+      ImGui::TextDisabled(tr("No hack project loaded"));
       ImGui::TextDisabled(
-          "Open a project with a hack manifest to view story events.");
+          tr("Open a project with a hack manifest to view story events."));
       return;
     }
 
@@ -102,20 +103,20 @@ class StoryEventGraphPanel : public WindowContent {
 
     const auto* graph = GetStoryGraph();
     if (graph == nullptr || !graph->loaded()) {
-      ImGui::TextDisabled("No story events data available");
+      ImGui::TextDisabled(tr("No story events data available"));
       return;
     }
 
     // Controls row
-    if (ImGui::Button("Reset View")) {
+    if (ImGui::Button(tr("Reset View"))) {
       scroll_x_ = 0;
       scroll_y_ = 0;
       zoom_ = 1.0f;
     }
     ImGui::SameLine();
-    ImGui::SliderFloat("Zoom", &zoom_, 0.3f, 2.0f, "%.1f");
+    ImGui::SliderFloat(tr("Zoom"), &zoom_, 0.3f, 2.0f, "%.1f");
     ImGui::SameLine();
-    ImGui::Text("Nodes: %zu  Edges: %zu", graph->nodes().size(),
+    ImGui::Text(tr("Nodes: %zu  Edges: %zu"), graph->nodes().size(),
                 graph->edges().size());
     ImGui::SameLine();
     const auto prog_opt =
@@ -123,19 +124,19 @@ class StoryEventGraphPanel : public WindowContent {
             ? GetProgressionBackend()->GetProgressionState(*manifest_)
             : manifest_->oracle_progression_state();
     if (prog_opt.has_value()) {
-      ImGui::TextDisabled("Crystals: %d  State: %s",
+      ImGui::TextDisabled(tr("Crystals: %d  State: %s"),
                           prog_opt->GetCrystalCount(),
                           prog_opt->GetGameStateName().c_str());
     } else {
-      ImGui::TextDisabled("No SRAM loaded");
+      ImGui::TextDisabled(tr("No SRAM loaded"));
     }
 
     ImGui::SameLine();
-    if (ImGui::SmallButton("Import .srm...")) {
+    if (ImGui::SmallButton(tr("Import .srm..."))) {
       ImportOracleSramFromFileDialog();
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("Clear SRAM")) {
+    if (ImGui::SmallButton(tr("Clear SRAM"))) {
       ClearOracleSramState();
     }
     ImGui::SameLine();
@@ -143,14 +144,14 @@ class StoryEventGraphPanel : public WindowContent {
     if (!loaded_srm_path_.empty()) {
       const std::filesystem::path p(loaded_srm_path_);
       ImGui::SameLine();
-      ImGui::TextDisabled("SRM: %s", p.filename().string().c_str());
+      ImGui::TextDisabled(tr("SRM: %s"), p.filename().string().c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", loaded_srm_path_.c_str());
       }
     }
 
     if (!last_srm_error_.empty()) {
-      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "SRM error: %s",
+      ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), tr("SRM error: %s"),
                          last_srm_error_.c_str());
     }
 
@@ -347,7 +348,7 @@ class StoryEventGraphPanel : public WindowContent {
     ImGui::Separator();
 
     if (!node->flags.empty()) {
-      ImGui::Text("Flags:");
+      ImGui::Text(tr("Flags:"));
       for (const auto& flag : node->flags) {
         if (!flag.value.empty()) {
           ImGui::BulletText("%s = %s", flag.name.c_str(), flag.value.c_str());
@@ -359,7 +360,7 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->locations.empty()) {
       ImGui::Spacing();
-      ImGui::Text("Locations:");
+      ImGui::Text(tr("Locations:"));
       for (size_t i = 0; i < node->locations.size(); ++i) {
         const auto& loc = node->locations[i];
         const auto room_id = ParseIntLoose(loc.room_id);
@@ -373,30 +374,30 @@ class StoryEventGraphPanel : public WindowContent {
 
         if (room_id) {
           ImGui::SameLine();
-          if (ImGui::SmallButton("Room")) {
+          if (ImGui::SmallButton(tr("Room"))) {
             PublishJumpToRoom(*room_id);
           }
         }
         if (jump_map_id) {
           ImGui::SameLine();
-          if (ImGui::SmallButton("Map")) {
+          if (ImGui::SmallButton(tr("Map"))) {
             PublishJumpToMap(*jump_map_id);
           }
         } else if (overworld_id || special_world_id) {
           ImGui::SameLine();
           ImGui::BeginDisabled();
-          ImGui::SmallButton("Map");
+          ImGui::SmallButton(tr("Map"));
           ImGui::EndDisabled();
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(
-                "Map target is outside the supported overworld range.");
+                tr("Map target is outside the supported overworld range."));
           }
         }
 
         if (!loc.room_id.empty() || !loc.overworld_id.empty() ||
             !loc.special_world_id.empty() || !loc.entrance_id.empty()) {
           ImGui::TextDisabled(
-              "room=%s  map=%s  special=%s  entrance=%s",
+              tr("room=%s  map=%s  special=%s  entrance=%s"),
               loc.room_id.empty() ? "-" : loc.room_id.c_str(),
               loc.overworld_id.empty() ? "-" : loc.overworld_id.c_str(),
               loc.special_world_id.empty() ? "-" : loc.special_world_id.c_str(),
@@ -409,20 +410,20 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->text_ids.empty()) {
       ImGui::Spacing();
-      ImGui::Text("Text IDs:");
+      ImGui::Text(tr("Text IDs:"));
       for (size_t i = 0; i < node->text_ids.size(); ++i) {
         const auto& tid = node->text_ids[i];
         ImGui::PushID(static_cast<int>(i));
 
         ImGui::BulletText("%s", tid.c_str());
         ImGui::SameLine();
-        if (ImGui::SmallButton("Open")) {
+        if (ImGui::SmallButton(tr("Open"))) {
           if (auto msg_id = ParseIntLoose(tid)) {
             PublishJumpToMessage(*msg_id);
           }
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Copy")) {
+        if (ImGui::SmallButton(tr("Copy"))) {
           ImGui::SetClipboardText(tid.c_str());
         }
 
@@ -432,17 +433,17 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->scripts.empty()) {
       ImGui::Spacing();
-      ImGui::Text("Scripts:");
+      ImGui::Text(tr("Scripts:"));
       for (size_t i = 0; i < node->scripts.size(); ++i) {
         const auto& script = node->scripts[i];
         ImGui::PushID(static_cast<int>(i));
         ImGui::BulletText("%s", script.c_str());
         ImGui::SameLine();
-        if (ImGui::SmallButton("Open")) {
+        if (ImGui::SmallButton(tr("Open"))) {
           PublishJumpToAssemblySymbol(script);
         }
         ImGui::SameLine();
-        if (ImGui::SmallButton("Copy")) {
+        if (ImGui::SmallButton(tr("Copy"))) {
           ImGui::SetClipboardText(script.c_str());
         }
         ImGui::PopID();
@@ -451,7 +452,7 @@ class StoryEventGraphPanel : public WindowContent {
 
     if (!node->notes.empty()) {
       ImGui::Spacing();
-      ImGui::TextWrapped("Notes: %s", node->notes.c_str());
+      ImGui::TextWrapped(tr("Notes: %s"), node->notes.c_str());
     }
 
     ImGui::EndChild();
@@ -522,7 +523,7 @@ class StoryEventGraphPanel : public WindowContent {
   void DrawFilterControls(const core::StoryEventGraph& graph) {
     (void)graph;
 
-    ImGui::Text("Filter");
+    ImGui::Text(tr("Filter"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(260.0f);
     if (ImGui::InputTextWithHint("##story_graph_filter",
@@ -531,7 +532,7 @@ class StoryEventGraphPanel : public WindowContent {
       filter_dirty_ = true;
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("Clear")) {
+    if (ImGui::SmallButton(tr("Clear"))) {
       if (!filter_query_.empty()) {
         filter_query_.clear();
         filter_dirty_ = true;
@@ -539,20 +540,20 @@ class StoryEventGraphPanel : public WindowContent {
     }
 
     ImGui::SameLine();
-    if (ImGui::Checkbox("Hide non-matching", &hide_non_matching_)) {
+    if (ImGui::Checkbox(tr("Hide non-matching"), &hide_non_matching_)) {
       // Hiding doesn't change matches, but it can invalidate selection.
       filter_dirty_ = true;
     }
 
     ImGui::SameLine();
     bool toggles_changed = false;
-    toggles_changed |= ImGui::Checkbox("Completed", &show_completed_);
+    toggles_changed |= ImGui::Checkbox(tr("Completed"), &show_completed_);
     ImGui::SameLine();
-    toggles_changed |= ImGui::Checkbox("Available", &show_available_);
+    toggles_changed |= ImGui::Checkbox(tr("Available"), &show_available_);
     ImGui::SameLine();
-    toggles_changed |= ImGui::Checkbox("Locked", &show_locked_);
+    toggles_changed |= ImGui::Checkbox(tr("Locked"), &show_locked_);
     ImGui::SameLine();
-    toggles_changed |= ImGui::Checkbox("Blocked", &show_blocked_);
+    toggles_changed |= ImGui::Checkbox(tr("Blocked"), &show_blocked_);
     if (toggles_changed) {
       filter_dirty_ = true;
     }
@@ -683,16 +684,16 @@ class StoryEventGraphPanel : public WindowContent {
 
   void DrawLiveSyncControls() {
     const bool connected = live_client_ && live_client_->IsConnected();
-    if (ImGui::SmallButton("Sync Mesen")) {
+    if (ImGui::SmallButton(tr("Sync Mesen"))) {
       live_refresh_pending_.store(false);
       RefreshStateFromLiveSram();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Read Oracle SRAM directly from connected Mesen2");
+      ImGui::SetTooltip(tr("Read Oracle SRAM directly from connected Mesen2"));
     }
 
     ImGui::SameLine();
-    ImGui::Checkbox("Live", &live_sync_enabled_);
+    ImGui::Checkbox(tr("Live"), &live_sync_enabled_);
     if (live_sync_enabled_) {
       ImGui::SameLine();
       ImGui::SetNextItemWidth(70.0f);
@@ -702,14 +703,15 @@ class StoryEventGraphPanel : public WindowContent {
 
     ImGui::SameLine();
     if (connected) {
-      ImGui::TextDisabled("Mesen: connected");
+      ImGui::TextDisabled(tr("Mesen: connected"));
     } else {
-      ImGui::TextDisabled("Mesen: disconnected");
+      ImGui::TextDisabled(tr("Mesen: disconnected"));
     }
 
     if (!live_sync_error_.empty()) {
       ImGui::SameLine();
-      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f), "Live sync error");
+      ImGui::TextColored(ImVec4(1.0f, 0.55f, 0.35f, 1.0f),
+                         tr("Live sync error"));
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("%s", live_sync_error_.c_str());
       }

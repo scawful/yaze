@@ -1,4 +1,5 @@
 #include "canvas.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cmath>
@@ -322,11 +323,11 @@ void Canvas::ShowUsageReport() {
     ImGui::OpenPopup("Canvas Usage Report");
     if (ImGui::BeginPopupModal("Canvas Usage Report", nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("Canvas Usage Report");
+      ImGui::Text(tr("Canvas Usage Report"));
       ImGui::Separator();
       ImGui::TextWrapped("%s", report.c_str());
       ImGui::Separator();
-      if (ImGui::Button("Close")) {
+      if (ImGui::Button(tr("Close"))) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -1531,8 +1532,8 @@ void Canvas::DrawLayeredElements() {
   // Based on ImGui demo, should be adapted to use for OAM
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   {
-    Text("Blue shape is drawn first: appears in back");
-    Text("Red shape is drawn after: appears in front");
+    Text(tr("Blue shape is drawn first: appears in back"));
+    Text(tr("Red shape is drawn after: appears in front"));
     ImVec2 p0 = ImGui::GetCursorScreenPos();
     draw_list->AddRectFilled(ImVec2(p0.x, p0.y), ImVec2(p0.x + 50, p0.y + 50),
                              IM_COL32(0, 0, 255, 255));  // Blue
@@ -1543,8 +1544,8 @@ void Canvas::DrawLayeredElements() {
   }
   ImGui::Separator();
   {
-    Text("Blue shape is drawn first, into channel 1: appears in front");
-    Text("Red shape is drawn after, into channel 0: appears in back");
+    Text(tr("Blue shape is drawn first, into channel 1: appears in front"));
+    Text(tr("Red shape is drawn after, into channel 0: appears in back"));
     ImVec2 p1 = ImGui::GetCursorScreenPos();
 
     // Create 2 channels and draw a Blue shape THEN a Red shape.
@@ -1564,7 +1565,8 @@ void Canvas::DrawLayeredElements() {
     // only (vertices are not copied).
     draw_list->ChannelsMerge();
     ImGui::Dummy(ImVec2(75, 75));
-    Text("After reordering, contents of channel 0 appears below channel 1.");
+    Text(
+        tr("After reordering, contents of channel 0 appears below channel 1."));
   }
 }
 
@@ -1604,75 +1606,76 @@ void Canvas::ShowAdvancedCanvasProperties() {
   // Fallback to legacy modal system
   if (ImGui::BeginPopupModal("Advanced Canvas Properties", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Advanced Canvas Configuration");
+    ImGui::Text(tr("Advanced Canvas Configuration"));
     ImGui::Separator();
 
     // Canvas properties (read-only info)
-    ImGui::Text("Canvas Properties");
-    ImGui::Text("ID: %s", canvas_id_.c_str());
-    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x,
+    ImGui::Text(tr("Canvas Properties"));
+    ImGui::Text(tr("ID: %s"), canvas_id_.c_str());
+    ImGui::Text(tr("Canvas Size: %.0f x %.0f"), config_.canvas_size.x,
                 config_.canvas_size.y);
-    ImGui::Text("Content Size: %.0f x %.0f", config_.content_size.x,
+    ImGui::Text(tr("Content Size: %.0f x %.0f"), config_.content_size.x,
                 config_.content_size.y);
-    ImGui::Text("Global Scale: %.3f", config_.global_scale);
-    ImGui::Text("Grid Step: %.1f", config_.grid_step);
+    ImGui::Text(tr("Global Scale: %.3f"), config_.global_scale);
+    ImGui::Text(tr("Grid Step: %.1f"), config_.grid_step);
 
     if (config_.content_size.x > 0 && config_.content_size.y > 0) {
       ImVec2 min_size = GetMinimumSize();
       ImVec2 preferred_size = GetPreferredSize();
-      ImGui::Text("Minimum Size: %.0f x %.0f", min_size.x, min_size.y);
-      ImGui::Text("Preferred Size: %.0f x %.0f", preferred_size.x,
+      ImGui::Text(tr("Minimum Size: %.0f x %.0f"), min_size.x, min_size.y);
+      ImGui::Text(tr("Preferred Size: %.0f x %.0f"), preferred_size.x,
                   preferred_size.y);
     }
 
     // Editable properties using new config system
     ImGui::Separator();
-    ImGui::Text("View Settings");
-    if (ImGui::Checkbox("Enable Grid", &config_.enable_grid)) {
+    ImGui::Text(tr("View Settings"));
+    if (ImGui::Checkbox(tr("Enable Grid"), &config_.enable_grid)) {
       enable_grid_ = config_.enable_grid;  // Legacy sync
     }
-    if (ImGui::Checkbox("Enable Hex Labels", &config_.enable_hex_labels)) {
+    if (ImGui::Checkbox(tr("Enable Hex Labels"), &config_.enable_hex_labels)) {
       enable_hex_tile_labels_ = config_.enable_hex_labels;  // Legacy sync
     }
-    if (ImGui::Checkbox("Enable Custom Labels",
+    if (ImGui::Checkbox(tr("Enable Custom Labels"),
                         &config_.enable_custom_labels)) {
       enable_custom_labels_ = config_.enable_custom_labels;  // Legacy sync
     }
-    if (ImGui::Checkbox("Enable Context Menu", &config_.enable_context_menu)) {
+    if (ImGui::Checkbox(tr("Enable Context Menu"),
+                        &config_.enable_context_menu)) {
       enable_context_menu_ = config_.enable_context_menu;  // Legacy sync
     }
-    if (ImGui::Checkbox("Draggable", &config_.is_draggable)) {
+    if (ImGui::Checkbox(tr("Draggable"), &config_.is_draggable)) {
       draggable_ = config_.is_draggable;  // Legacy sync
     }
-    if (ImGui::Checkbox("Auto Resize for Tables", &config_.auto_resize)) {
+    if (ImGui::Checkbox(tr("Auto Resize for Tables"), &config_.auto_resize)) {
       // Auto resize setting changed
     }
 
     // Grid controls
     ImGui::Separator();
-    ImGui::Text("Grid Configuration");
-    if (ImGui::SliderFloat("Grid Step", &config_.grid_step, 1.0f, 128.0f,
+    ImGui::Text(tr("Grid Configuration"));
+    if (ImGui::SliderFloat(tr("Grid Step"), &config_.grid_step, 1.0f, 128.0f,
                            "%.1f")) {
       custom_step_ = config_.grid_step;  // Legacy sync
     }
 
     // Scale controls
     ImGui::Separator();
-    ImGui::Text("Scale Configuration");
-    if (ImGui::SliderFloat("Global Scale", &config_.global_scale, 0.1f, 10.0f,
-                           "%.2f")) {
+    ImGui::Text(tr("Scale Configuration"));
+    if (ImGui::SliderFloat(tr("Global Scale"), &config_.global_scale, 0.1f,
+                           10.0f, "%.2f")) {
       global_scale_ = config_.global_scale;  // Legacy sync
     }
 
     // Scrolling controls
     ImGui::Separator();
-    ImGui::Text("Scrolling Configuration");
-    ImGui::Text("Current Scroll: %.1f, %.1f", scrolling_.x, scrolling_.y);
-    if (ImGui::Button("Reset Scroll")) {
+    ImGui::Text(tr("Scrolling Configuration"));
+    ImGui::Text(tr("Current Scroll: %.1f, %.1f"), scrolling_.x, scrolling_.y);
+    if (ImGui::Button(tr("Reset Scroll"))) {
       scrolling_ = ImVec2(0, 0);
     }
     ImGui::SameLine();
-    if (ImGui::Button("Center View")) {
+    if (ImGui::Button(tr("Center View"))) {
       if (bitmap_) {
         scrolling_ = ImVec2(
             -(bitmap_->width() * config_.global_scale - config_.canvas_size.x) /
@@ -1683,7 +1686,7 @@ void Canvas::ShowAdvancedCanvasProperties() {
       }
     }
 
-    if (ImGui::Button("Close")) {
+    if (ImGui::Button(tr("Close"))) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
@@ -1731,96 +1734,97 @@ void Canvas::ShowScalingControls() {
   // Fallback to legacy modal system
   if (ImGui::BeginPopupModal("Scaling Controls", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text("Canvas Scaling and Display Controls");
+    ImGui::Text(tr("Canvas Scaling and Display Controls"));
     ImGui::Separator();
 
     // Global scale with new config system
-    ImGui::Text("Global Scale: %.3f", config_.global_scale);
+    ImGui::Text(tr("Global Scale: %.3f"), config_.global_scale);
     if (ImGui::SliderFloat("##GlobalScale", &config_.global_scale, 0.1f, 10.0f,
                            "%.2f")) {
       global_scale_ = config_.global_scale;  // Legacy sync
     }
 
     // Preset scale buttons
-    ImGui::Text("Preset Scales:");
-    if (ImGui::Button("0.25x")) {
+    ImGui::Text(tr("Preset Scales:"));
+    if (ImGui::Button(tr("0.25x"))) {
       config_.global_scale = 0.25f;
       global_scale_ = config_.global_scale;
     }
     ImGui::SameLine();
-    if (ImGui::Button("0.5x")) {
+    if (ImGui::Button(tr("0.5x"))) {
       config_.global_scale = 0.5f;
       global_scale_ = config_.global_scale;
     }
     ImGui::SameLine();
-    if (ImGui::Button("1x")) {
+    if (ImGui::Button(tr("1x"))) {
       config_.global_scale = 1.0f;
       global_scale_ = config_.global_scale;
     }
     ImGui::SameLine();
-    if (ImGui::Button("2x")) {
+    if (ImGui::Button(tr("2x"))) {
       config_.global_scale = 2.0f;
       global_scale_ = config_.global_scale;
     }
     ImGui::SameLine();
-    if (ImGui::Button("4x")) {
+    if (ImGui::Button(tr("4x"))) {
       config_.global_scale = 4.0f;
       global_scale_ = config_.global_scale;
     }
     ImGui::SameLine();
-    if (ImGui::Button("8x")) {
+    if (ImGui::Button(tr("8x"))) {
       config_.global_scale = 8.0f;
       global_scale_ = config_.global_scale;
     }
 
     // Grid configuration
     ImGui::Separator();
-    ImGui::Text("Grid Configuration");
-    ImGui::Text("Grid Step: %.1f", config_.grid_step);
+    ImGui::Text(tr("Grid Configuration"));
+    ImGui::Text(tr("Grid Step: %.1f"), config_.grid_step);
     if (ImGui::SliderFloat("##GridStep", &config_.grid_step, 1.0f, 128.0f,
                            "%.1f")) {
       custom_step_ = config_.grid_step;  // Legacy sync
     }
 
     // Grid size presets
-    ImGui::Text("Grid Presets:");
-    if (ImGui::Button("8x8")) {
+    ImGui::Text(tr("Grid Presets:"));
+    if (ImGui::Button(tr("8x8"))) {
       config_.grid_step = 8.0f;
       custom_step_ = config_.grid_step;
     }
     ImGui::SameLine();
-    if (ImGui::Button("16x16")) {
+    if (ImGui::Button(tr("16x16"))) {
       config_.grid_step = 16.0f;
       custom_step_ = config_.grid_step;
     }
     ImGui::SameLine();
-    if (ImGui::Button("32x32")) {
+    if (ImGui::Button(tr("32x32"))) {
       config_.grid_step = 32.0f;
       custom_step_ = config_.grid_step;
     }
     ImGui::SameLine();
-    if (ImGui::Button("64x64")) {
+    if (ImGui::Button(tr("64x64"))) {
       config_.grid_step = 64.0f;
       custom_step_ = config_.grid_step;
     }
 
     // Canvas size info
     ImGui::Separator();
-    ImGui::Text("Canvas Information");
-    ImGui::Text("Canvas Size: %.0f x %.0f", config_.canvas_size.x,
+    ImGui::Text(tr("Canvas Information"));
+    ImGui::Text(tr("Canvas Size: %.0f x %.0f"), config_.canvas_size.x,
                 config_.canvas_size.y);
-    ImGui::Text("Scaled Size: %.0f x %.0f",
+    ImGui::Text(tr("Scaled Size: %.0f x %.0f"),
                 config_.canvas_size.x * config_.global_scale,
                 config_.canvas_size.y * config_.global_scale);
     if (bitmap_) {
-      ImGui::Text("Bitmap Size: %d x %d", bitmap_->width(), bitmap_->height());
+      ImGui::Text(tr("Bitmap Size: %d x %d"), bitmap_->width(),
+                  bitmap_->height());
       ImGui::Text(
-          "Effective Scale: %.3f x %.3f",
+          tr("Effective Scale: %.3f x %.3f"),
           (config_.canvas_size.x * config_.global_scale) / bitmap_->width(),
           (config_.canvas_size.y * config_.global_scale) / bitmap_->height());
     }
 
-    if (ImGui::Button("Close")) {
+    if (ImGui::Button(tr("Close"))) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
