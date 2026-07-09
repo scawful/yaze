@@ -5,7 +5,7 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
 ## High-priority cleanup
 
 1. **Pushable block table repointing / expansion**
-   - Status: scoped; saver now guards the four bank-02 `LDA.l ...,X`
+   - Status: scoped; loader/saver now guard the four bank-02 `LDA.l ...,X`
      operand slots before dereferencing them. Full >128-entry expansion still
      needs a runtime/WRAM layout patch, because the vanilla loader copies four
      0x80-byte pages into `$7EF940..$7EFB3F` and block drawing scans that
