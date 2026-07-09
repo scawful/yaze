@@ -175,6 +175,11 @@ class DungeonSaveTest : public ::testing::Test {
   }
 
   void SetupBlockRegions() {
+    SeedBlockLoaderOperand(kBlocksPointer1);
+    SeedBlockLoaderOperand(kBlocksPointer2);
+    SeedBlockLoaderOperand(kBlocksPointer3);
+    SeedBlockLoaderOperand(kBlocksPointer4);
+
     WriteLongPointer(kBlocksPointer1, PcToSnes(kBlocksRegion1Pc));
     WriteLongPointer(kBlocksPointer2, PcToSnes(kBlocksRegion2Pc));
     WriteLongPointer(kBlocksPointer3, PcToSnes(kBlocksRegion3Pc));
@@ -187,6 +192,11 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0xBB;
     rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0xCC;
     rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0xDD;
+  }
+
+  void SeedBlockLoaderOperand(int operand_pc) {
+    rom_->mutable_data()[operand_pc - 1] = 0xBF;  // LDA.l operand,X
+    rom_->mutable_data()[operand_pc + 3] = 0x9D;  // STA.w addr,X
   }
 
   std::unique_ptr<Rom> rom_;
@@ -789,6 +799,46 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_ValidRegionsPreserveExistingBytes) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0xBB);
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0xCC);
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0xDD);
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_RejectsCorruptLoaderOperand) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.
+
+  const auto status = SaveAllBlocks(rom_.get());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("LDA.l ...,X / STA.w"),
+            std::string::npos);
+}
+
+TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_RejectsCorruptLoaderOperand) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 296, [this](int rid) -> const Room* {
+        return rid == 0 ? room_.get() : nullptr;
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("LDA.l ...,X / STA.w"),
+            std::string::npos);
+}
+
+TEST_F(DungeonSaveTest, LoadBlocks_RejectsCorruptLoaderOperand) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksPointer1 - 1] = 0xEA;  // Not LDA.l.
+  RoomObject existing_block(0x0E00, 3, 3, 0, 0);
+  existing_block.set_options(ObjectOption::Block);
+  room_->AddTileObject(existing_block);
+
+  room_->LoadBlocks();
+
+  EXPECT_FALSE(room_->AreBlocksLoaded());
+  ASSERT_EQ(room_->GetTileObjects().size(), 1U);
+  EXPECT_NE(room_->GetTileObjects()[0].options() & ObjectOption::Block,
+            ObjectOption::Nothing);
 }
 
 TEST_F(DungeonSaveTest,
