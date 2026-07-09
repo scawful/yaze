@@ -4,6 +4,7 @@
 #include <span>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/graphics/screen_editor_internal.h"
@@ -361,17 +362,17 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
         const auto& sprites = room.GetSprites();
         if (sel.index < sprites.size()) {
           std::string label = zelda3::GetSpriteLabel(sprites[sel.index].id());
-          ImGui::TextDisabled("Sprite: %02X %s", sprites[sel.index].id(),
+          ImGui::TextDisabled(tr("Sprite: %02X %s"), sprites[sel.index].id(),
                               label.c_str());
           ImGui::Separator();
         }
-        if (ImGui::MenuItem("Delete Sprite")) {
+        if (ImGui::MenuItem(tr("Delete Sprite"))) {
           object_interaction_.entity_coordinator().DeleteSelectedEntity();
         }
       } else if (sel.type == EntityType::Item) {
-        ImGui::TextDisabled("Pot Item");
+        ImGui::TextDisabled(tr("Pot Item"));
         ImGui::Separator();
-        if (ImGui::MenuItem("Delete Item")) {
+        if (ImGui::MenuItem(tr("Delete Item"))) {
           object_interaction_.entity_coordinator().DeleteSelectedEntity();
         }
       }
@@ -381,26 +382,26 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
         const auto& objects = room.GetTileObjects();
         if (indices[0] < objects.size()) {
           std::string name = zelda3::GetObjectName(objects[indices[0]].id_);
-          ImGui::TextDisabled("Object: %03X %s", objects[indices[0]].id_,
+          ImGui::TextDisabled(tr("Object: %03X %s"), objects[indices[0]].id_,
                               name.c_str());
           ImGui::Separator();
         }
       } else {
-        ImGui::TextDisabled("%zu objects selected",
+        ImGui::TextDisabled(tr("%zu objects selected"),
                             object_interaction_.GetSelectionCount());
         ImGui::Separator();
       }
-      if (ImGui::MenuItem("Delete")) {
+      if (ImGui::MenuItem(tr("Delete"))) {
         object_interaction_.HandleDeleteSelected();
       }
-      if (ImGui::MenuItem("Copy")) {
+      if (ImGui::MenuItem(tr("Copy"))) {
         object_interaction_.HandleCopySelected();
       }
       ImGui::Separator();
-      if (ImGui::MenuItem("Send to Front")) {
+      if (ImGui::MenuItem(tr("Send to Front"))) {
         object_interaction_.SendSelectedToFront();
       }
-      if (ImGui::MenuItem("Send to Back")) {
+      if (ImGui::MenuItem(tr("Send to Back"))) {
         object_interaction_.SendSelectedToBack();
       }
     }

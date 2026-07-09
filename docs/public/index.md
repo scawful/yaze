@@ -47,6 +47,7 @@ Welcome to the YAZE documentation. This site covers installation, usage, and dev
 - [Testing Guide](developer/testing-guide.md) - Test organization and execution
 - [Debugging Guide](developer/debugging-guide.md) - Debugging workflows
 - [Canvas System](developer/canvas-system.md) - UI canvas reference
+- [Internationalization](developer/i18n.md) - Runtime translation catalogs
 - [Palette System](developer/palette-system-overview.md) - Color handling
 
 ### Reference

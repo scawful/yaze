@@ -1,5 +1,6 @@
 // Related header
 #include "graphics_editor.h"
+#include "util/i18n/tr.h"
 
 // C++ standard library headers
 #include <algorithm>
@@ -435,16 +436,16 @@ void GraphicsEditor::HandleEditorShortcuts() {
 
 void GraphicsEditor::DrawPrototypeViewer() {
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "No ROM loaded — CGX/SCR/COL/BIN and clipboard tools work without one. "
         "Load a ROM when you want vanilla palette presets or to save graphics "
-        "back into a cartridge image.");
+        "back into a cartridge image."));
     ImGui::Spacing();
   }
   if (!prototype_import_feedback_.empty()) {
     ImGui::TextColored(ImVec4(1.0f, 0.35f, 0.35f, 1.0f), "%s",
                        prototype_import_feedback_.c_str());
-    if (ImGui::SmallButton("Dismiss##prototype_import_feedback")) {
+    if (ImGui::SmallButton(tr("Dismiss##prototype_import_feedback"))) {
       prototype_import_feedback_.clear();
     }
     ImGui::Separator();
@@ -516,12 +517,12 @@ void GraphicsEditor::DrawPrototypeViewer() {
 
 absl::Status GraphicsEditor::DrawCgxImport() {
   gui::TextWithSeparators("Cgx Import");
-  InputInt("BPP", &current_bpp_);
+  InputInt(tr("BPP"), &current_bpp_);
 
   InputText("##CGXFile", &cgx_file_name_);
   SameLine();
 
-  if (ImGui::Button("Open CGX")) {
+  if (ImGui::Button(tr("Open CGX"))) {
     auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     cgx_file_name_ = filename;
     cgx_file_path_ = std::filesystem::absolute(filename).string();
@@ -529,11 +530,11 @@ absl::Status GraphicsEditor::DrawCgxImport() {
     cgx_loaded_ = true;
   }
 
-  if (ImGui::Button("Copy CGX Path")) {
+  if (ImGui::Button(tr("Copy CGX Path"))) {
     ImGui::SetClipboardText(cgx_file_path_.c_str());
   }
 
-  if (ImGui::Button("Load CGX Data")) {
+  if (ImGui::Button(tr("Load CGX Data"))) {
     status_ = gfx::LoadCgx(current_bpp_, cgx_file_path_, cgx_data_,
                            decoded_cgx_, extra_cgx_data_);
     if (!status_.ok()) {
@@ -556,7 +557,7 @@ absl::Status GraphicsEditor::DrawCgxImport() {
 absl::Status GraphicsEditor::DrawScrImport() {
   InputText("##ScrFile", &scr_file_name_);
 
-  if (ImGui::Button("Open SCR")) {
+  if (ImGui::Button(tr("Open SCR"))) {
     auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     scr_file_name_ = filename;
     scr_file_path_ = std::filesystem::absolute(filename).string();
@@ -564,9 +565,9 @@ absl::Status GraphicsEditor::DrawScrImport() {
     scr_loaded_ = true;
   }
 
-  InputInt("SCR Mod", &scr_mod_value_);
+  InputInt(tr("SCR Mod"), &scr_mod_value_);
 
-  if (ImGui::Button("Load Scr Data")) {
+  if (ImGui::Button(tr("Load Scr Data"))) {
     status_ = gfx::LoadScr(scr_file_path_, scr_mod_value_, scr_data_);
     if (!status_.ok()) {
       prototype_import_feedback_ = absl::StrCat("[SCR] ", status_.message());
@@ -599,7 +600,7 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   InputText("##ColFile", &col_file_name_);
   SameLine();
 
-  if (ImGui::Button("Open COL")) {
+  if (ImGui::Button(tr("Open COL"))) {
     auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     col_file_name_ = filename;
     col_file_path_ = std::filesystem::absolute(filename).string();
@@ -622,14 +623,14 @@ absl::Status GraphicsEditor::DrawPaletteControls() {
   }
   HOVER_HINT(".COL, .BAK");
 
-  if (ImGui::Button("Copy Col Path")) {
+  if (ImGui::Button(tr("Copy Col Path"))) {
     ImGui::SetClipboardText(col_file_path_.c_str());
   }
 
   if (rom()->is_loaded()) {
     gui::TextWithSeparators("ROM Palette");
     gui::InputHex("Palette Index", &current_palette_index_);
-    ImGui::Combo("Palette", &current_palette_, kPaletteGroupAddressesKeys,
+    ImGui::Combo(tr("Palette"), &current_palette_, kPaletteGroupAddressesKeys,
                  IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
   }
 
@@ -647,7 +648,7 @@ absl::Status GraphicsEditor::DrawObjImport() {
   InputText("##ObjFile", &obj_file_path_);
   SameLine();
 
-  if (ImGui::Button("Open OBJ")) {
+  if (ImGui::Button(tr("Open OBJ"))) {
     auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     obj_file_path_ = std::filesystem::absolute(filename).string();
     status_ = temp_rom_.LoadFromFile(obj_file_path_);
@@ -665,7 +666,7 @@ absl::Status GraphicsEditor::DrawTilemapImport() {
   InputText("##TMapFile", &tilemap_file_path_);
   SameLine();
 
-  if (ImGui::Button("Open Tilemap")) {
+  if (ImGui::Button(tr("Open Tilemap"))) {
     auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     tilemap_file_path_ = std::filesystem::absolute(filename).string();
     status_ = tilemap_rom_.LoadFromFile(tilemap_file_path_);
@@ -689,7 +690,7 @@ absl::Status GraphicsEditor::DrawFileImport() {
   InputText("##ROMFile", &file_path_);
   SameLine();
 
-  if (ImGui::Button("Open BIN")) {
+  if (ImGui::Button(tr("Open BIN"))) {
     auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
     file_path_ = filename;
     status_ = temp_rom_.LoadFromFile(file_path_);
@@ -697,14 +698,14 @@ absl::Status GraphicsEditor::DrawFileImport() {
   }
   HOVER_HINT(".BIN, .HEX");
 
-  if (Button("Copy File Path")) {
+  if (Button(tr("Copy File Path"))) {
     ImGui::SetClipboardText(file_path_.c_str());
   }
 
   gui::InputHex("BIN Offset", &current_offset_);
   gui::InputHex("BIN Size", &bin_size_);
 
-  if (Button("Decompress BIN")) {
+  if (Button(tr("Decompress BIN"))) {
     if (file_path_.empty()) {
       return absl::InvalidArgumentError(
           "Please select a file before decompressing.");
@@ -717,7 +718,7 @@ absl::Status GraphicsEditor::DrawFileImport() {
 
 absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::TextWithSeparators("Clipboard Import");
-  if (Button("Paste From Clipboard")) {
+  if (Button(tr("Paste From Clipboard"))) {
     const char* text = ImGui::GetClipboardText();
     if (text) {
       const auto clipboard_data =
@@ -732,7 +733,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
   gui::InputHex("Size", &clipboard_size_);
   gui::InputHex("Num Sheets", &num_sheets_to_load_);
 
-  if (Button("Decompress Clipboard Data")) {
+  if (Button(tr("Decompress Clipboard Data"))) {
     if (temp_rom_.is_loaded()) {
       status_ = DecompressImportData(0x40000);
     } else {
@@ -747,7 +748,7 @@ absl::Status GraphicsEditor::DrawClipboardImport() {
 
 absl::Status GraphicsEditor::DrawExperimentalFeatures() {
   gui::TextWithSeparators("Experimental");
-  if (Button("Decompress Super Donkey Full")) {
+  if (Button(tr("Decompress Super Donkey Full"))) {
     if (file_path_.empty()) {
       return absl::InvalidArgumentError(
           "Please select `super_donkey_1.bin` before "
@@ -756,8 +757,8 @@ absl::Status GraphicsEditor::DrawExperimentalFeatures() {
     RETURN_IF_ERROR(DecompressSuperDonkey())
   }
   ImGui::SetItemTooltip(
-      "Requires `super_donkey_1.bin` to be imported under the "
-      "BIN import section.");
+      tr("Requires `super_donkey_1.bin` to be imported under the "
+         "BIN import section."));
   return absl::OkStatus();
 }
 

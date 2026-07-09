@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/widgets/dungeon_workbench_toolbar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -146,21 +147,21 @@ void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
 
   if (ImGui::BeginPopup(kToolbarPopupIdViewOptions)) {
     // Canvas overlays — generic, common, expected on by default.
-    ImGui::TextDisabled("Canvas");
+    ImGui::TextDisabled(tr("Canvas"));
     bool v = viewer->show_grid();
-    if (ImGui::Checkbox("Grid (8x8)", &v)) {
+    if (ImGui::Checkbox(tr("Grid (8x8)"), &v)) {
       viewer->set_show_grid(v);
     }
     v = viewer->show_object_bounds();
-    if (ImGui::Checkbox("Object Bounds", &v)) {
+    if (ImGui::Checkbox(tr("Object Bounds"), &v)) {
       viewer->set_show_object_bounds(v);
     }
     v = viewer->show_coordinate_overlay();
-    if (ImGui::Checkbox("Hover Coordinates", &v)) {
+    if (ImGui::Checkbox(tr("Hover Coordinates"), &v)) {
       viewer->set_show_coordinate_overlay(v);
     }
     v = viewer->show_camera_quadrant_overlay();
-    if (ImGui::Checkbox("Camera Quadrants", &v)) {
+    if (ImGui::Checkbox(tr("Camera Quadrants"), &v)) {
       viewer->set_show_camera_quadrant_overlay(v);
     }
 
@@ -168,39 +169,39 @@ void DrawViewOptionsButton(DungeonCanvasViewer* viewer,
     // common four don't get visually drowned by Oracle/track-specific ones.
     ImGui::Spacing();
     ImGui::Separator();
-    ImGui::TextDisabled("Authoring");
+    ImGui::TextDisabled(tr("Authoring"));
     v = viewer->show_track_collision_overlay();
-    if (ImGui::Checkbox("Track Collision", &v)) {
+    if (ImGui::Checkbox(tr("Track Collision"), &v)) {
       viewer->set_show_track_collision_overlay(v);
     }
     v = viewer->show_custom_collision_overlay();
-    if (ImGui::Checkbox("Custom Collision", &v)) {
+    if (ImGui::Checkbox(tr("Custom Collision"), &v)) {
       viewer->set_show_custom_collision_overlay(v);
     }
     v = viewer->show_water_fill_overlay();
-    if (ImGui::Checkbox("Water Fill (Oracle)", &v)) {
+    if (ImGui::Checkbox(tr("Water Fill (Oracle)"), &v)) {
       viewer->set_show_water_fill_overlay(v);
     }
     v = viewer->show_minecart_sprite_overlay();
-    if (ImGui::Checkbox("Minecart Pathing", &v)) {
+    if (ImGui::Checkbox(tr("Minecart Pathing"), &v)) {
       viewer->set_show_minecart_sprite_overlay(v);
     }
     v = viewer->show_track_gap_overlay();
-    if (ImGui::Checkbox("Track Gaps", &v)) {
+    if (ImGui::Checkbox(tr("Track Gaps"), &v)) {
       viewer->set_show_track_gap_overlay(v);
     }
     v = viewer->show_track_route_overlay();
-    if (ImGui::Checkbox("Track Routes", &v)) {
+    if (ImGui::Checkbox(tr("Track Routes"), &v)) {
       viewer->set_show_track_route_overlay(v);
     }
     v = viewer->show_custom_objects_overlay();
-    if (ImGui::Checkbox("Custom Objects (Oracle)", &v)) {
+    if (ImGui::Checkbox(tr("Custom Objects (Oracle)"), &v)) {
       viewer->set_show_custom_objects_overlay(v);
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Highlight custom-draw objects (IDs 0x31/0x32)\n"
-          "with a cyan overlay showing position and subtype.");
+          tr("Highlight custom-draw objects (IDs 0x31/0x32)\n"
+             "with a cyan overlay showing position and subtype."));
     }
     ImGui::EndPopup();
   }
@@ -309,7 +310,7 @@ void DrawComparePicker(
       ImGui::InputTextWithHint("##CompareSearch", kToolbarRoomSearchHint,
                                search_buf, search_buf_size);
     } else {
-      ImGui::TextDisabled("Search unavailable");
+      ImGui::TextDisabled(tr("Search unavailable"));
     }
 
     ImGui::Spacing();
@@ -380,13 +381,13 @@ void DrawCompareMenu(const DungeonWorkbenchToolbarParams& p,
 
   if (!compare_active) {
     if (!def.found) {
-      ImGui::TextDisabled("No recent room to compare");
+      ImGui::TextDisabled(tr("No recent room to compare"));
       ImGui::Separator();
     }
     if (!def.found) {
       ImGui::BeginDisabled();
     }
-    if (ImGui::MenuItem("Start Compare")) {
+    if (ImGui::MenuItem(tr("Start Compare"))) {
       p.layout->show_connected_canvas_view = false;
       *p.split_view_enabled = true;
       *p.compare_room_id = def.room_id;
@@ -395,7 +396,7 @@ void DrawCompareMenu(const DungeonWorkbenchToolbarParams& p,
       ImGui::EndDisabled();
     }
   } else {
-    ImGui::TextDisabled("Compare Room");
+    ImGui::TextDisabled(tr("Compare Room"));
     DrawComparePicker(*p.current_room_id, p.compare_room_id, p.get_recent_rooms,
                       p.compare_search_buf, p.compare_search_buf_size,
                       p.primary_viewer ? p.primary_viewer->project() : nullptr);
@@ -413,7 +414,7 @@ void DrawCompareMenu(const DungeonWorkbenchToolbarParams& p,
     }
 
     ImGui::Separator();
-    if (ImGui::MenuItem("Swap Rooms")) {
+    if (ImGui::MenuItem(tr("Swap Rooms"))) {
       const int old_current = *p.current_room_id;
       const int old_compare = *p.compare_room_id;
       *p.compare_room_id = old_current;
@@ -423,10 +424,10 @@ void DrawCompareMenu(const DungeonWorkbenchToolbarParams& p,
         *p.current_room_id = old_compare;
       }
     }
-    if (ImGui::MenuItem("Sync View", nullptr, p.layout->sync_split_view)) {
+    if (ImGui::MenuItem(tr("Sync View"), nullptr, p.layout->sync_split_view)) {
       p.layout->sync_split_view = !p.layout->sync_split_view;
     }
-    if (ImGui::MenuItem("End Compare")) {
+    if (ImGui::MenuItem(tr("End Compare"))) {
       *p.split_view_enabled = false;
     }
   }
@@ -444,7 +445,7 @@ bool DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(float toolbar_width) {
 bool DungeonWorkbenchToolbar::Draw(const DungeonWorkbenchToolbarParams& p) {
   if (!p.layout || !p.current_room_id || !p.split_view_enabled ||
       !p.compare_room_id) {
-    ImGui::TextDisabled("Workbench toolbar not wired");
+    ImGui::TextDisabled(tr("Workbench toolbar not wired"));
     return false;
   }
 

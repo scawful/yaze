@@ -1,4 +1,5 @@
 #include "app/gui/app/agent_chat_widget.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -65,9 +66,9 @@ void AgentChatWidget::Render(bool* p_open) {
   UpdateThemeColors();
 #ifndef Z3ED_AI
   ImGui::Begin("Agent Chat", p_open);
-  ImGui::TextColored(colors_.error_text, "AI features not available");
+  ImGui::TextColored(colors_.error_text, tr("AI features not available"));
   ImGui::TextWrapped(
-      "Build with -DZ3ED_AI=ON to enable the conversational agent.");
+      tr("Build with -DZ3ED_AI=ON to enable the conversational agent."));
   ImGui::End();
   return;
 #else
@@ -115,12 +116,12 @@ void AgentChatWidget::UpdateThemeColors() {
 }
 
 void AgentChatWidget::RenderToolbar() {
-  if (ImGui::Button("Clear History")) {
+  if (ImGui::Button(tr("Clear History"))) {
     ClearHistory();
   }
   ImGui::SameLine();
 
-  if (ImGui::Button("Save History")) {
+  if (ImGui::Button(tr("Save History"))) {
     std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = SaveHistory(filepath); !status.ok()) {
       std::cerr << "Failed to save history: " << status.message() << std::endl;
@@ -130,7 +131,7 @@ void AgentChatWidget::RenderToolbar() {
   }
   ImGui::SameLine();
 
-  if (ImGui::Button("Load History")) {
+  if (ImGui::Button(tr("Load History"))) {
     std::string filepath = ResolveAgentChatHistoryPath();
     if (auto status = LoadHistory(filepath); !status.ok()) {
       std::cerr << "Failed to load history: " << status.message() << std::endl;
@@ -138,13 +139,13 @@ void AgentChatWidget::RenderToolbar() {
   }
 
   ImGui::SameLine();
-  ImGui::Checkbox("Auto-scroll", &auto_scroll_);
+  ImGui::Checkbox(tr("Auto-scroll"), &auto_scroll_);
 
   ImGui::SameLine();
-  ImGui::Checkbox("Show Timestamps", &show_timestamps_);
+  ImGui::Checkbox(tr("Show Timestamps"), &show_timestamps_);
 
   ImGui::SameLine();
-  ImGui::Checkbox("Show Reasoning", &show_reasoning_);
+  ImGui::Checkbox(tr("Show Reasoning"), &show_reasoning_);
 }
 
 void AgentChatWidget::RenderChatHistory() {
@@ -157,7 +158,7 @@ void AgentChatWidget::RenderChatHistory() {
   if (history.empty()) {
     ImGui::TextColored(
         colors_.system_text,
-        "No messages yet. Type a message below to start chatting!");
+        tr("No messages yet. Type a message below to start chatting!"));
     return;
   }
 
@@ -236,7 +237,7 @@ void AgentChatWidget::RenderTableData(
 
 void AgentChatWidget::RenderInputArea() {
   ImGui::Separator();
-  ImGui::Text("Message:");
+  ImGui::Text(tr("Message:"));
 
   // Multi-line input
   ImGui::PushItemWidth(-1);
@@ -246,7 +247,7 @@ void AgentChatWidget::RenderInputArea() {
   ImGui::PopItemWidth();
 
   // Send button
-  if (ImGui::Button("Send", ImVec2(100, 0)) || enter_pressed) {
+  if (ImGui::Button(tr("Send"), ImVec2(100, 0)) || enter_pressed) {
     if (strlen(input_buffer_) > 0) {
       SendMessage(input_buffer_);
       memset(input_buffer_, 0, sizeof(input_buffer_));
@@ -256,7 +257,7 @@ void AgentChatWidget::RenderInputArea() {
 
   ImGui::SameLine();
   ImGui::TextColored(colors_.system_text,
-                     "Tip: Press Enter to send (Shift+Enter for newline)");
+                     tr("Tip: Press Enter to send (Shift+Enter for newline)"));
 }
 
 void AgentChatWidget::SendMessage(const std::string& message) {

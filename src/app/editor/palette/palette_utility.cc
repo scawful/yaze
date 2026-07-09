@@ -1,4 +1,5 @@
 #include "palette_utility.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_editor.h"
@@ -18,7 +19,7 @@ bool DrawPaletteJumpButton(const char* label, const std::string& group_name,
       absl::StrFormat("%s %s", ICON_MD_PALETTE, label).c_str());
 
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Jump to palette editor:\n%s - Palette %d",
+    ImGui::SetTooltip(tr("Jump to palette editor:\n%s - Palette %d"),
                       group_name.c_str(), palette_index);
   }
 
@@ -58,8 +59,8 @@ bool DrawInlineColorEdit(const char* label, gfx::SnesColor* color,
 
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    ImGui::Text("Jump to Palette Editor");
-    ImGui::TextDisabled("%s - Palette %d, Color %d", group_name.c_str(),
+    ImGui::Text(tr("Jump to Palette Editor"));
+    ImGui::TextDisabled(tr("%s - Palette %d, Color %d"), group_name.c_str(),
                         palette_index, color_index);
     DrawColorInfoTooltip(*color);
     ImGui::EndTooltip();
@@ -96,23 +97,23 @@ bool DrawPaletteIdSelector(const char* label, int* palette_id,
 void DrawColorInfoTooltip(const gfx::SnesColor& color) {
   auto rgb = color.rgb();
   ImGui::Separator();
-  ImGui::Text("RGB: (%d, %d, %d)", static_cast<int>(rgb.x),
+  ImGui::Text(tr("RGB: (%d, %d, %d)"), static_cast<int>(rgb.x),
               static_cast<int>(rgb.y), static_cast<int>(rgb.z));
-  ImGui::Text("SNES: $%04X", color.snes());
-  ImGui::Text("Hex: #%02X%02X%02X", static_cast<int>(rgb.x),
+  ImGui::Text(tr("SNES: $%04X"), color.snes());
+  ImGui::Text(tr("Hex: #%02X%02X%02X"), static_cast<int>(rgb.x),
               static_cast<int>(rgb.y), static_cast<int>(rgb.z));
 }
 
 void DrawPalettePreview(const std::string& group_name, int palette_index,
                         zelda3::GameData* game_data) {
   if (!game_data) {
-    ImGui::TextDisabled("(GameData not loaded)");
+    ImGui::TextDisabled(tr("(GameData not loaded)"));
     return;
   }
 
   auto* group = game_data->palette_groups.get_group(group_name);
   if (!group || palette_index >= group->size()) {
-    ImGui::TextDisabled("(Palette not found)");
+    ImGui::TextDisabled(tr("(Palette not found)"));
     return;
   }
 
@@ -134,7 +135,7 @@ void DrawPalettePreview(const std::string& group_name, int palette_index,
 
     if (ImGui::IsItemHovered()) {
       ImGui::BeginTooltip();
-      ImGui::Text("Color %d", i);
+      ImGui::Text(tr("Color %d"), i);
       DrawColorInfoTooltip(palette[i]);
       ImGui::EndTooltip();
     }

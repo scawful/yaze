@@ -1,4 +1,5 @@
 #include "app/editor/menu/activity_bar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -186,11 +187,11 @@ void ActivityBar::DrawCategoryContextMenu(const std::string& category) {
   }
 
   ImGui::Separator();
-  if (ImGui::MenuItem("Reset Sidebar Order")) {
+  if (ImGui::MenuItem(tr("Reset Sidebar Order"))) {
     prefs.sidebar_order.clear();
     PersistSettings(user_settings_);
   }
-  if (ImGui::MenuItem("Show All Categories")) {
+  if (ImGui::MenuItem(tr("Show All Categories"))) {
     prefs.sidebar_hidden.clear();
     PersistSettings(user_settings_);
   }
@@ -520,7 +521,7 @@ void ActivityBar::DrawActivityBarStrip(
         }
       });
     } else {
-      ImGui::TextDisabled("No actions available");
+      ImGui::TextDisabled(tr("No actions available"));
     }
     ImGui::EndPopup();
   }

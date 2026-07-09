@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/system/workspace/editor_panel.h"
@@ -84,16 +85,16 @@ class AnnotationOverlayPanel : public WindowContent {
     }
 
     // Filter controls
-    ImGui::Text("Room filter:");
+    ImGui::Text(tr("Room filter:"));
     ImGui::SameLine();
     ImGui::InputInt("##room_filter", &filter_room_id_);
     ImGui::SameLine();
-    if (ImGui::Button("All"))
+    if (ImGui::Button(tr("All")))
       filter_room_id_ = -1;
 
     ImGui::SameLine();
     const char* priorities[] = {"All", "Note", "Bug", "Blocker"};
-    ImGui::Combo("Priority", &filter_priority_, priorities, 4);
+    ImGui::Combo(tr("Priority"), &filter_priority_, priorities, 4);
 
     ImGui::Separator();
 
@@ -138,22 +139,22 @@ class AnnotationOverlayPanel : public WindowContent {
     ImGui::Separator();
 
     // Edit / Add form
-    ImGui::Text("Room:");
+    ImGui::Text(tr("Room:"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(80);
     ImGui::InputInt("##edit_room", &edit_room_);
 
     ImGui::SameLine();
-    ImGui::Text("Priority:");
+    ImGui::Text(tr("Priority:"));
     ImGui::SameLine();
     ImGui::SetNextItemWidth(80);
     const char* pri_names[] = {"Note", "Bug", "Blocker"};
     ImGui::Combo("##edit_priority", &edit_priority_, pri_names, 3);
 
-    ImGui::InputText("Text", edit_text_, sizeof(edit_text_));
-    ImGui::InputText("Category", edit_category_, sizeof(edit_category_));
+    ImGui::InputText(tr("Text"), edit_text_, sizeof(edit_text_));
+    ImGui::InputText(tr("Category"), edit_category_, sizeof(edit_category_));
 
-    if (ImGui::Button("Add")) {
+    if (ImGui::Button(tr("Add"))) {
       AnnotationEntry entry;
       entry.room_id = edit_room_;
       entry.text = edit_text_;
@@ -166,7 +167,7 @@ class AnnotationOverlayPanel : public WindowContent {
     ImGui::SameLine();
     if (selected_index_ >= 0 &&
         selected_index_ < static_cast<int>(annotations_.size())) {
-      if (ImGui::Button("Update")) {
+      if (ImGui::Button(tr("Update"))) {
         auto& ann = annotations_[selected_index_];
         ann.room_id = edit_room_;
         ann.text = edit_text_;
@@ -175,7 +176,7 @@ class AnnotationOverlayPanel : public WindowContent {
         SaveAnnotations();
       }
       ImGui::SameLine();
-      if (ImGui::Button("Delete")) {
+      if (ImGui::Button(tr("Delete"))) {
         annotations_.erase(annotations_.begin() + selected_index_);
         selected_index_ = -1;
         SaveAnnotations();

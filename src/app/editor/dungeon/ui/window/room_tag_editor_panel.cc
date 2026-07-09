@@ -1,5 +1,6 @@
 // Related header
 #include "room_tag_editor_panel.h"
+#include "util/i18n/tr.h"
 
 // C++ standard library headers
 #include <algorithm>
@@ -23,7 +24,7 @@ namespace yaze::editor {
 
 void RoomTagEditorPanel::Draw(bool* p_open) {
   if (!rooms_) {
-    ImGui::TextDisabled("No room data available.");
+    ImGui::TextDisabled(tr("No room data available."));
     return;
   }
 
@@ -76,16 +77,14 @@ void RoomTagEditorPanel::DrawTagTable() {
   ImGui::TableHeadersRow();
 
   // Determine if hack manifest is available
-  const bool has_manifest =
-      project_ && project_->hack_manifest.loaded();
+  const bool has_manifest = project_ && project_->hack_manifest.loaded();
 
   std::string filter_lower;
   if (filter_text_[0] != '\0') {
     filter_lower = filter_text_;
-    std::transform(filter_lower.begin(), filter_lower.end(), filter_lower.begin(),
-                   [](unsigned char c) {
-                     return static_cast<char>(std::tolower(c));
-                   });
+    std::transform(
+        filter_lower.begin(), filter_lower.end(), filter_lower.begin(),
+        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
   }
 
   for (int i = 0; i < num_tags; i++) {
@@ -106,10 +105,9 @@ void RoomTagEditorPanel::DrawTagTable() {
         searchable += " " + manifest_tag->feature_flag;
       }
       searchable += " " + absl::StrFormat("$%02X", i);
-      std::transform(searchable.begin(), searchable.end(), searchable.begin(),
-                     [](unsigned char c) {
-                       return static_cast<char>(std::tolower(c));
-                     });
+      std::transform(
+          searchable.begin(), searchable.end(), searchable.begin(),
+          [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
       if (searchable.find(filter_lower) == std::string::npos) {
         continue;
       }
@@ -137,11 +135,9 @@ void RoomTagEditorPanel::DrawTagTable() {
     ImGui::TableNextColumn();
     if (manifest_tag.has_value() && !manifest_tag->feature_flag.empty()) {
       if (manifest_tag->enabled) {
-        ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f),
-                           ICON_MD_CIRCLE);
+        ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), ICON_MD_CIRCLE);
       } else {
-        ImGui::TextColored(ImVec4(0.8f, 0.3f, 0.3f, 1.0f),
-                           ICON_MD_CIRCLE);
+        ImGui::TextColored(ImVec4(0.8f, 0.3f, 0.3f, 1.0f), ICON_MD_CIRCLE);
       }
       ImGui::SameLine(0, 4);
       ImGui::TextUnformatted(manifest_tag->feature_flag.c_str());
@@ -152,13 +148,13 @@ void RoomTagEditorPanel::DrawTagTable() {
     // Column: Status
     ImGui::TableNextColumn();
     if (manifest_tag.has_value() && manifest_tag->enabled) {
-      ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), "Active");
+      ImGui::TextColored(ImVec4(0.3f, 0.8f, 0.3f, 1.0f), tr("Active"));
     } else if (manifest_tag.has_value() && !manifest_tag->enabled) {
-      ImGui::TextColored(ImVec4(0.8f, 0.3f, 0.3f, 1.0f), "Disabled");
+      ImGui::TextColored(ImVec4(0.8f, 0.3f, 0.3f, 1.0f), tr("Disabled"));
     } else if (vanilla_name == "Nothing") {
-      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "Available");
+      ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), tr("Available"));
     } else {
-      ImGui::TextColored(ImVec4(0.4f, 0.6f, 0.9f, 1.0f), "Vanilla");
+      ImGui::TextColored(ImVec4(0.4f, 0.6f, 0.9f, 1.0f), tr("Vanilla"));
     }
 
     // Column: Rooms
@@ -178,7 +174,7 @@ void RoomTagEditorPanel::DrawTagTable() {
 void RoomTagEditorPanel::DrawQuickAssign() {
   if (!rooms_ || current_room_id_ < 0 ||
       current_room_id_ >= static_cast<int>(rooms_->size())) {
-    ImGui::TextDisabled("No room selected.");
+    ImGui::TextDisabled(tr("No room selected."));
     return;
   }
 
@@ -197,11 +193,10 @@ void RoomTagEditorPanel::DrawQuickAssign() {
       auto tag =
           project_->hack_manifest.GetRoomTag(static_cast<uint8_t>(tag_idx));
       if (tag.has_value() && !tag->enabled) {
-        return absl::StrCat(
-            label, " (disabled",
-            tag->feature_flag.empty()
-                ? ")"
-                : absl::StrCat(" by ", tag->feature_flag, ")"));
+        return absl::StrCat(label, " (disabled",
+                            tag->feature_flag.empty()
+                                ? ")"
+                                : absl::StrCat(" by ", tag->feature_flag, ")"));
       }
     }
     return label;
@@ -214,7 +209,7 @@ void RoomTagEditorPanel::DrawQuickAssign() {
 
   ImGui::TextDisabled(ICON_MD_LABEL);
   ImGui::SameLine(0, 4);
-  ImGui::Text("Tag 1:");
+  ImGui::Text(tr("Tag 1:"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(-1);
   if (ImGui::BeginCombo("##QuickTag1", tag1_display.c_str())) {
@@ -238,7 +233,7 @@ void RoomTagEditorPanel::DrawQuickAssign() {
 
   ImGui::TextDisabled(ICON_MD_LABEL_OUTLINE);
   ImGui::SameLine(0, 4);
-  ImGui::Text("Tag 2:");
+  ImGui::Text(tr("Tag 2:"));
   ImGui::SameLine();
   ImGui::SetNextItemWidth(-1);
   if (ImGui::BeginCombo("##QuickTag2", tag2_display.c_str())) {

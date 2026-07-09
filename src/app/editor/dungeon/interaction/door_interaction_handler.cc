@@ -1,5 +1,6 @@
 // Related header
 #include "door_interaction_handler.h"
+#include "util/i18n/tr.h"
 
 // Third-party library headers
 #include "imgui/imgui.h"
@@ -191,7 +192,7 @@ void DoorInteractionHandler::DrawGhostPreview() {
                     pointer_screen_pos->y + 10.0f);
     draw_list->AddText(hint_pos, ImGui::GetColorU32(theme.status_warning),
                        "Move cursor near a wall to place door");
-    ImGui::SetTooltip("Door placement requires a wall-adjacent position.");
+    ImGui::SetTooltip(tr("Door placement requires a wall-adjacent position."));
     return;  // Not near a wall
   }
 
@@ -280,7 +281,7 @@ void DoorInteractionHandler::DrawGhostPreview() {
   if (capacity_state != GhostCapacityState::kNormal &&
       ImGui::IsMouseHoveringRect(preview_start, preview_end)) {
     ImGui::SetTooltip(
-        "Doors: %zu/%zu\n%s", current_door_count, zelda3::kMaxDoors,
+        tr("Doors: %zu/%zu\n%s"), current_door_count, zelda3::kMaxDoors,
         GetPlacementCapacityTooltipSuffix(placement_state).data());
   }
 }
@@ -361,7 +362,7 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
                          ImVec2(badge_max.x, badge_max.y + 1.0f), hover_color,
                          1.0f);
       ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-      ImGui::SetTooltip("Open room 0x%03X", badge->target_room_id);
+      ImGui::SetTooltip(tr("Open room 0x%03X"), badge->target_room_id);
     }
   }
 

@@ -1,4 +1,5 @@
 #include "app/editor/layout/layout_designer/panel_palette.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cctype>
@@ -81,7 +82,7 @@ void DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
   }
   const std::string q = query != nullptr ? *query : std::string();
 
-  ImGui::TextDisabled("Drag panels onto the canvas to place them.");
+  ImGui::TextDisabled(tr("Drag panels onto the canvas to place them."));
   ImGui::Separator();
 
   // Bucket filtered entries by category so collapsing headers group cleanly.
@@ -91,7 +92,7 @@ void DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
 
   auto close_current_category = [&]() {
     if (category_open && rendered_in_category == 0) {
-      ImGui::TextDisabled("  (no matches)");
+      ImGui::TextDisabled(tr("  (no matches)"));
     }
     category_open = false;
     rendered_in_category = 0;
@@ -119,7 +120,7 @@ void DrawPanelPalette(const std::vector<PanelPaletteEntry>& entries,
     ImGui::TextUnformatted(label.c_str());
     gui::BeginPanelDragSource(entry.panel_id.c_str(), label.c_str());
     if (ImGui::IsItemHovered() && !entry.panel_id.empty()) {
-      ImGui::SetTooltip("Drag onto the canvas to add this panel.\n%s",
+      ImGui::SetTooltip(tr("Drag onto the canvas to add this panel.\n%s"),
                         entry.panel_id.c_str());
     }
     ImGui::PopID();

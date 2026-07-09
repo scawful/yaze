@@ -1,5 +1,6 @@
 // Related header
 #include "sprite_interaction_handler.h"
+#include "util/i18n/tr.h"
 
 // C++ standard library
 #include <algorithm>
@@ -147,7 +148,7 @@ void SpriteInteractionHandler::DrawGhostPreview() {
   // Capacity tooltip when at/near limit
   if (capacity_state != GhostCapacityState::kNormal &&
       ImGui::IsMouseHoveringRect(rect_min, rect_max)) {
-    ImGui::SetTooltip("Sprites: %zu/%zu\n%s", current_sprite_count,
+    ImGui::SetTooltip(tr("Sprites: %zu/%zu\n%s"), current_sprite_count,
                       zelda3::kMaxTotalSprites,
                       GetPlacementCapacityTooltipSuffix(capacity_state).data());
   }

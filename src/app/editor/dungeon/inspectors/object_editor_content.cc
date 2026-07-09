@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/inspectors/object_editor_content.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -270,7 +271,7 @@ void ObjectEditorContent::Draw(bool* p_open) {
   ImGui::Separator();
 
   if (!viewer || !object_editor_) {
-    ImGui::TextDisabled("Object editor unavailable");
+    ImGui::TextDisabled(tr("Object editor unavailable"));
     return;
   }
 
@@ -407,7 +408,7 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
     if (selected[0] < objects.size()) {
       const auto& obj = objects[selected[0]];
       const auto semantics = zelda3::GetObjectLayerSemantics(obj);
-      ImGui::TextColored(theme.status_success, "Object #%zu · 0x%03X %s",
+      ImGui::TextColored(theme.status_success, tr("Object #%zu · 0x%03X %s"),
                          selected[0], obj.id_,
                          zelda3::GetObjectName(obj.id_).c_str());
       DrawInspectorSummaryGrid(
@@ -424,7 +425,7 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
     return;
   }
 
-  ImGui::TextColored(theme.status_success, "%zu objects selected",
+  ImGui::TextColored(theme.status_success, tr("%zu objects selected"),
                      selected.size());
   DrawInspectorSummaryGrid(
       "##SelectedObjectMultiInfo",
@@ -458,7 +459,7 @@ void ObjectEditorContent::DrawSelectedDoorInfo() {
   const auto [tile_x, tile_y] = door.GetTileCoords();
   const auto [pixel_x, pixel_y] = door.GetPixelCoords();
 
-  ImGui::TextColored(theme.status_success, "Door #%zu · %s", entity.index,
+  ImGui::TextColored(theme.status_success, tr("Door #%zu · %s"), entity.index,
                      std::string(zelda3::GetDoorTypeName(door.type)).c_str());
   DrawInspectorSummaryGrid(
       "##SelectedDoorInfo",
@@ -469,7 +470,7 @@ void ObjectEditorContent::DrawSelectedDoorInfo() {
 
   const std::string current_type_name(zelda3::GetDoorTypeName(door.type));
   ImGui::SetNextItemWidth(-1);
-  if (ImGui::BeginCombo("Door Type##SelectionDoorType",
+  if (ImGui::BeginCombo(tr("Door Type##SelectionDoorType"),
                         current_type_name.c_str())) {
     for (const auto door_type : kInspectorDoorTypes) {
       const bool is_current = door.type == door_type;
@@ -530,7 +531,7 @@ void ObjectEditorContent::DrawSelectedDoorInfo() {
 
   ImGui::Spacing();
   ImGui::TextColored(theme.text_secondary_gray,
-                     "Browse and place additional doors from Door Editor.");
+                     tr("Browse and place additional doors from Door Editor."));
 }
 
 void ObjectEditorContent::DrawSelectedSpriteInfo() {
@@ -552,7 +553,7 @@ void ObjectEditorContent::DrawSelectedSpriteInfo() {
   }
 
   const auto& sprite = sprites[entity.index];
-  ImGui::TextColored(theme.status_success, "Sprite #%zu · 0x%02X %s",
+  ImGui::TextColored(theme.status_success, tr("Sprite #%zu · 0x%02X %s"),
                      entity.index, sprite.id(),
                      zelda3::ResolveSpriteName(sprite.id()));
   if (sprite.IsOverlord()) {
@@ -572,7 +573,7 @@ void ObjectEditorContent::DrawSelectedSpriteInfo() {
 
   int subtype = sprite.subtype();
   ImGui::SetNextItemWidth(120.0f);
-  if (ImGui::Combo("Subtype##SelectionSpriteSubtype", &subtype,
+  if (ImGui::Combo(tr("Subtype##SelectionSpriteSubtype"), &subtype,
                    "0\0001\0002\0003\0004\0005\0006\0007\0")) {
     (void)MutateSelectedSprite(viewer,
                                [subtype](zelda3::Sprite& mutable_sprite) {
@@ -582,7 +583,7 @@ void ObjectEditorContent::DrawSelectedSpriteInfo() {
 
   int layer = sprite.layer();
   ImGui::SetNextItemWidth(140.0f);
-  if (ImGui::Combo("Layer##SelectionSpriteLayer", &layer,
+  if (ImGui::Combo(tr("Layer##SelectionSpriteLayer"), &layer,
                    "Upper (0)\0Lower (1)\0Both (2)\0")) {
     (void)MutateSelectedSprite(viewer, [layer](zelda3::Sprite& mutable_sprite) {
       mutable_sprite.set_layer(layer);
@@ -590,9 +591,9 @@ void ObjectEditorContent::DrawSelectedSpriteInfo() {
   }
 
   int key_drop = sprite.key_drop();
-  ImGui::Text("Key Drop:");
+  ImGui::Text(tr("Key Drop:"));
   ImGui::SameLine();
-  if (ImGui::RadioButton("None##SelectionKeyNone", key_drop == 0)) {
+  if (ImGui::RadioButton(tr("None##SelectionKeyNone"), key_drop == 0)) {
     (void)MutateSelectedSprite(viewer, [](zelda3::Sprite& mutable_sprite) {
       mutable_sprite.set_key_drop(0);
     });
@@ -613,9 +614,10 @@ void ObjectEditorContent::DrawSelectedSpriteInfo() {
   }
 
   ImGui::Spacing();
-  ImGui::TextColored(theme.text_secondary_gray,
-                     "Drag in the canvas to reposition. Browse and place more "
-                     "sprites from Sprite Editor.");
+  ImGui::TextColored(
+      theme.text_secondary_gray,
+      tr("Drag in the canvas to reposition. Browse and place more "
+         "sprites from Sprite Editor."));
 }
 
 void ObjectEditorContent::DrawSelectedItemInfo() {
@@ -648,7 +650,7 @@ void ObjectEditorContent::DrawSelectedItemInfo() {
   const auto& item = items[entity.index];
   const char* item_name =
       item.item < kPotItemNames.size() ? kPotItemNames[item.item] : "Unknown";
-  ImGui::TextColored(theme.status_success, "Item #%zu · 0x%02X %s",
+  ImGui::TextColored(theme.status_success, tr("Item #%zu · 0x%02X %s"),
                      entity.index, item.item, item_name);
   DrawInspectorSummaryGrid(
       "##SelectedItemInfo",
@@ -660,7 +662,7 @@ void ObjectEditorContent::DrawSelectedItemInfo() {
   int item_type = item.item;
   ImGui::SetNextItemWidth(-1);
   if (ImGui::BeginCombo(
-          "Item Type##SelectionItemType",
+          tr("Item Type##SelectionItemType"),
           absl::StrFormat("0x%02X %s", item.item, item_name).c_str())) {
     for (size_t i = 0; i < kPotItemNames.size(); ++i) {
       const bool is_current = item.item == static_cast<uint8_t>(i);
@@ -679,9 +681,10 @@ void ObjectEditorContent::DrawSelectedItemInfo() {
   }
 
   ImGui::Spacing();
-  ImGui::TextColored(theme.text_secondary_gray,
-                     "Drag in the canvas to reposition. Browse and place more "
-                     "items from Item Editor.");
+  ImGui::TextColored(
+      theme.text_secondary_gray,
+      tr("Drag in the canvas to reposition. Browse and place more "
+         "items from Item Editor."));
 }
 
 void ObjectEditorContent::DrawEmptyState() {

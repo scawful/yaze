@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <map>
+#include <string>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
@@ -24,6 +25,7 @@
 #include "rom/rom.h"
 #include "util/bps.h"
 #include "util/file_util.h"
+#include "util/i18n/language_manager.h"
 #include "zelda3/overworld/overworld_map.h"
 
 // Platform-aware shortcut macros for menu display
@@ -1027,6 +1029,20 @@ void MenuOrchestrator::AddHelpMenuItems() {
             [this]() { OnShowContributing(); })
       .Separator()
       .Item("About", ICON_MD_INFO, [this]() { OnShowAbout(); }, "F1");
+
+  menu_builder_.Separator();
+  menu_builder_.BeginSubMenu("Language", ICON_MD_LANGUAGE);
+  for (const std::string& locale :
+       i18n::LanguageManager::Get().GetAvailableLocales()) {
+    menu_builder_.Item(
+        locale.c_str(), nullptr,
+        [locale]() { i18n::LanguageManager::Get().SetLanguage(locale); },
+        nullptr, nullptr,
+        [locale]() {
+          return i18n::LanguageManager::Get().GetCurrentLocale() == locale;
+        });
+  }
+  menu_builder_.EndMenu();
 }
 
 // Menu state management

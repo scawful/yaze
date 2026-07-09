@@ -1,4 +1,5 @@
 #include "app/gui/widgets/tile_selector_widget.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -162,7 +163,7 @@ TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,
       int hovered_tile = ResolveTileAtCursor(tile_display_size);
       if (IsValidTileId(hovered_tile)) {
         ImGui::BeginTooltip();
-        ImGui::Text("Tile %d (0x%03X)", hovered_tile, hovered_tile);
+        ImGui::Text(tr("Tile %d (0x%03X)"), hovered_tile, hovered_tile);
 
         // Extract and draw a zoomed preview of the hovered tile
         int tile_col = hovered_tile % config_.tiles_per_row;
@@ -347,7 +348,7 @@ bool TileSelectorWidget::DrawFilterBar() {
 
   // Jump-to-ID input
   ImGui::AlignTextToFramePadding();
-  ImGui::TextUnformatted("Go:");
+  ImGui::TextUnformatted(tr("Go:"));
   ImGui::SameLine();
 
   ImGui::SetNextItemWidth(jump_input_width);
@@ -364,24 +365,24 @@ bool TileSelectorWidget::DrawFilterBar() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Enter tile ID and press Enter:\n"
-        "hex: 1A or 0x1A\n"
-        "decimal: d:26");
+        tr("Enter tile ID and press Enter:\n"
+           "hex: 1A or 0x1A\n"
+           "decimal: d:26"));
   }
 
   ImGui::SameLine();
-  ImGui::TextDisabled("/ 0x%03X", max_tile_id);
+  ImGui::TextDisabled(tr("/ 0x%03X"), max_tile_id);
 
   if (compact_layout) {
     ImGui::NewLine();
   } else {
     if (last_jump_result_ == JumpToTileResult::kInvalidFormat) {
       ImGui::SameLine(0, 8.0f);
-      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Invalid hex ID");
+      ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), tr("Invalid hex ID"));
     } else if (last_jump_result_ == JumpToTileResult::kOutOfRange) {
       ImGui::SameLine(0, 8.0f);
       ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                         "Out of range (max: 0x%03X)", max_tile_id);
+                         tr("Out of range (max: 0x%03X)"), max_tile_id);
     }
   }
 
@@ -389,7 +390,7 @@ bool TileSelectorWidget::DrawFilterBar() {
   if (!compact_layout) {
     ImGui::SameLine(0, 12.0f);
   }
-  ImGui::TextUnformatted("Range:");
+  ImGui::TextUnformatted(tr("Range:"));
   ImGui::SameLine();
 
   bool range_changed = false;
@@ -400,9 +401,9 @@ bool TileSelectorWidget::DrawFilterBar() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Min tile ID. Press Enter to apply.\n"
-        "hex: 1A or 0x1A\n"
-        "decimal: d:26");
+        tr("Min tile ID. Press Enter to apply.\n"
+           "hex: 1A or 0x1A\n"
+           "decimal: d:26"));
   }
   ImGui::SameLine();
   ImGui::TextUnformatted("-");
@@ -414,16 +415,16 @@ bool TileSelectorWidget::DrawFilterBar() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Max tile ID. Press Enter to apply.\n"
-        "hex: 1A or 0x1A\n"
-        "decimal: d:26");
+        tr("Max tile ID. Press Enter to apply.\n"
+           "hex: 1A or 0x1A\n"
+           "decimal: d:26"));
   }
   if (!compact_layout) {
     ImGui::SameLine();
-    ImGui::TextDisabled("(hex, d:dec)");
+    ImGui::TextDisabled(tr("(hex, d:dec)"));
   } else {
     ImGui::NewLine();
-    ImGui::TextDisabled("hex or d:dec");
+    ImGui::TextDisabled(tr("hex or d:dec"));
   }
 
   if (range_changed) {
@@ -458,14 +459,14 @@ bool TileSelectorWidget::DrawFilterBar() {
     if (!compact_layout) {
       ImGui::SameLine();
     }
-    if (ImGui::SmallButton("X##ClearRange")) {
+    if (ImGui::SmallButton(tr("X##ClearRange"))) {
       ClearRangeFilter();
       filter_min_buf_[0] = '\0';
       filter_max_buf_[0] = '\0';
       filter_range_error_ = false;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Clear range filter");
+      ImGui::SetTooltip(tr("Clear range filter"));
     }
   }
 
@@ -474,20 +475,21 @@ bool TileSelectorWidget::DrawFilterBar() {
     if (!compact_layout) {
       ImGui::SameLine(0, 8.0f);
     }
-    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "Min must be <= Max");
+    ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
+                       tr("Min must be <= Max"));
   } else if (filter_out_of_range_) {
     if (!compact_layout) {
       ImGui::SameLine(0, 8.0f);
     }
     ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                       "Out of range (max: 0x%03X)", GetMaxTileId());
+                       tr("Out of range (max: 0x%03X)"), GetMaxTileId());
   } else if (filter_range_active_) {
     int range_count = filter_range_max_ - filter_range_min_ + 1;
     if (range_count <= 0) {
       if (!compact_layout) {
         ImGui::SameLine(0, 8.0f);
       }
-      ImGui::TextDisabled("(no tiles in range)");
+      ImGui::TextDisabled(tr("(no tiles in range)"));
     }
   }
 

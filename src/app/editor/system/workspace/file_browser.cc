@@ -1,4 +1,5 @@
 #include "app/editor/system/workspace/file_browser.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <fstream>
@@ -429,7 +430,7 @@ const char* FileBrowser::GetFileIcon(FileEntry::FileType type) const {
 
 void FileBrowser::Draw() {
   if (root_path_.empty()) {
-    ImGui::TextDisabled("No folder selected");
+    ImGui::TextDisabled(tr("No folder selected"));
     if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open Folder...")) {
       // Note: Actual folder dialog should be handled externally
       // via the callback or by the host component
@@ -450,7 +451,7 @@ void FileBrowser::Draw() {
     needs_refresh_ = true;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Refresh file list");
+    ImGui::SetTooltip(tr("Refresh file list"));
   }
 
   ImGui::Separator();
@@ -471,7 +472,7 @@ void FileBrowser::Draw() {
 
 void FileBrowser::DrawCompact() {
   if (root_path_.empty()) {
-    ImGui::TextDisabled("No folder");
+    ImGui::TextDisabled(tr("No folder"));
     return;
   }
 

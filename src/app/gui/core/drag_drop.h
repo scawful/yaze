@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include "util/i18n/tr.h"
 
 #include "imgui/imgui.h"
 
@@ -65,7 +66,7 @@ inline bool BeginTileDragSource(int tile_id, int map_id) {
   if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
     TileDragPayload payload{tile_id, map_id};
     ImGui::SetDragDropPayload(kDragPayloadTile16, &payload, sizeof(payload));
-    ImGui::Text("Tile #%d", tile_id);
+    ImGui::Text(tr("Tile #%d"), tile_id);
     ImGui::EndDragDropSource();
     return true;
   }
@@ -76,7 +77,7 @@ inline bool BeginSpriteDragSource(int sprite_id, int room_id) {
   if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
     SpriteDragPayload payload{sprite_id, room_id};
     ImGui::SetDragDropPayload(kDragPayloadSprite, &payload, sizeof(payload));
-    ImGui::Text("Sprite #%d", sprite_id);
+    ImGui::Text(tr("Sprite #%d"), sprite_id);
     ImGui::EndDragDropSource();
     return true;
   }
@@ -88,7 +89,7 @@ inline bool BeginPaletteDragSource(int group_idx, int palette_idx,
   if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceAllowNullID)) {
     PaletteDragPayload payload{group_idx, palette_idx, color_idx};
     ImGui::SetDragDropPayload(kDragPayloadPalette, &payload, sizeof(payload));
-    ImGui::Text("Color [%d:%d:%d]", group_idx, palette_idx, color_idx);
+    ImGui::Text(tr("Color [%d:%d:%d]"), group_idx, palette_idx, color_idx);
     ImGui::EndDragDropSource();
     return true;
   }
@@ -101,7 +102,7 @@ inline bool BeginRoomObjectDragSource(uint16_t object_id, int room_id,
     RoomObjectDragPayload payload{object_id, room_id, pos_x, pos_y, size};
     ImGui::SetDragDropPayload(kDragPayloadRoomObject, &payload,
                               sizeof(payload));
-    ImGui::Text("Object 0x%04X", object_id);
+    ImGui::Text(tr("Object 0x%04X"), object_id);
     ImGui::EndDragDropSource();
     return true;
   }

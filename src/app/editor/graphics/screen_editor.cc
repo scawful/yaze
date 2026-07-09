@@ -1,4 +1,5 @@
 #include "screen_editor.h"
+#include "util/i18n/tr.h"
 
 #include <fstream>
 #include <iostream>
@@ -194,7 +195,8 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       inventory_loaded_ = true;
     } else {
       const auto& theme = AgentUI::GetTheme();
-      ImGui::TextColored(theme.text_error_red, "Error loading inventory: %s",
+      ImGui::TextColored(theme.text_error_red,
+                         tr("Error loading inventory: %s"),
                          status_.message().data());
       return;
     }
@@ -304,14 +306,14 @@ void ScreenEditor::DrawInventoryToolset() {
 void ScreenEditor::DrawInventoryItemIcons() {
   if (ImGui::BeginChild("##ItemIconsList", ImVec2(0, 0), true,
                         ImGuiWindowFlags_HorizontalScrollbar)) {
-    ImGui::Text("Item Icons (2x2 tiles each)");
+    ImGui::Text(tr("Item Icons (2x2 tiles each)"));
     ImGui::Separator();
 
     auto& icons = inventory_.item_icons();
     if (icons.empty()) {
       ImGui::TextWrapped(
-          "No item icons loaded. Icons will be loaded when the "
-          "inventory is initialized.");
+          tr("No item icons loaded. Icons will be loaded when the "
+             "inventory is initialized."));
       ImGui::EndChild();
       return;
     }
@@ -337,20 +339,20 @@ void ScreenEditor::DrawInventoryItemIcons() {
 
         ImGui::TableNextColumn();
         // Display tile word data in hex format
-        ImGui::Text("TL:%04X TR:%04X", icon.tile_tl, icon.tile_tr);
+        ImGui::Text(tr("TL:%04X TR:%04X"), icon.tile_tl, icon.tile_tr);
         ImGui::SameLine();
-        ImGui::Text("BL:%04X BR:%04X", icon.tile_bl, icon.tile_br);
+        ImGui::Text(tr("BL:%04X BR:%04X"), icon.tile_bl, icon.tile_br);
       }
 
       ImGui::EndTable();
     }
 
     ImGui::Separator();
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "NOTE: Individual icon editing will be implemented in the future "
         "Oracle of Secrets menu editor. Each icon is composed of 4 tile words "
         "representing a 2x2 arrangement of 8x8 tiles in SNES tile format "
-        "(vhopppcc cccccccc).");
+        "(vhopppcc cccccccc)."));
   }
   ImGui::EndChild();
 }
@@ -503,7 +505,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
 
   const auto button_size = ImVec2(130, 0);
 
-  if (ImGui::Button("Add Floor", button_size) &&
+  if (ImGui::Button(tr("Add Floor"), button_size) &&
       current_dungeon.nbr_of_floor < 8) {
     SaveDungeonMapUndoState("Add floor");
     current_dungeon.nbr_of_floor++;
@@ -511,7 +513,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     CommitDungeonMapUndo();
   }
   ImGui::SameLine();
-  if (ImGui::Button("Remove Floor", button_size) &&
+  if (ImGui::Button(tr("Remove Floor"), button_size) &&
       current_dungeon.nbr_of_floor > 0) {
     SaveDungeonMapUndoState("Remove floor");
     current_dungeon.nbr_of_floor--;
@@ -519,7 +521,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     CommitDungeonMapUndo();
   }
 
-  if (ImGui::Button("Add Basement", button_size) &&
+  if (ImGui::Button(tr("Add Basement"), button_size) &&
       current_dungeon.nbr_of_basement < 8) {
     SaveDungeonMapUndoState("Add basement");
     current_dungeon.nbr_of_basement++;
@@ -527,7 +529,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     CommitDungeonMapUndo();
   }
   ImGui::SameLine();
-  if (ImGui::Button("Remove Basement", button_size) &&
+  if (ImGui::Button(tr("Remove Basement"), button_size) &&
       current_dungeon.nbr_of_basement > 0) {
     SaveDungeonMapUndoState("Remove basement");
     current_dungeon.nbr_of_basement--;
@@ -535,11 +537,11 @@ void ScreenEditor::DrawDungeonMapsTabs() {
     CommitDungeonMapUndo();
   }
 
-  if (ImGui::Button("Copy Floor", button_size)) {
+  if (ImGui::Button(tr("Copy Floor"), button_size)) {
     copy_button_pressed = true;
   }
   ImGui::SameLine();
-  if (ImGui::Button("Paste Floor", button_size)) {
+  if (ImGui::Button(tr("Paste Floor"), button_size)) {
     paste_button_pressed = true;
   }
 }
@@ -702,7 +704,7 @@ void ScreenEditor::DrawDungeonMapsRoomGfx() {
     ImGui::SameLine();
     gui::InputTileInfo("BR", &current_tile16_info[3]);
 
-    if (ImGui::Button("Modify Tile16")) {
+    if (ImGui::Button(tr("Modify Tile16"))) {
       SaveTile16CompUndoState(
           absl::StrFormat("Modify tile16 #%d", selected_tile16_));
       gfx::ModifyTile16(tile16_blockset_, game_data()->graphics_buffer,
@@ -791,10 +793,10 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     tilemap_canvas_.DrawGrid();
     tilemap_canvas_.DrawOverlay();
 
-    ImGui::Text("Selected tile8: %d", selected_tile8_);
+    ImGui::Text(tr("Selected tile8: %d"), selected_tile8_);
     ImGui::Separator();
-    ImGui::Text("For use with custom inserted graphics assembly patches.");
-    if (ImGui::Button("Load GFX from BIN file"))
+    ImGui::Text(tr("For use with custom inserted graphics assembly patches."));
+    if (ImGui::Button(tr("Load GFX from BIN file")))
       LoadBinaryGfx();
 
     ImGui::EndTable();
@@ -840,7 +842,8 @@ void ScreenEditor::DrawTitleScreenEditor() {
     status_ = title_screen_.Create(rom(), game_data());
     if (!status_.ok()) {
       const auto& theme = AgentUI::GetTheme();
-      ImGui::TextColored(theme.text_error_red, "Error loading title screen: %s",
+      ImGui::TextColored(theme.text_error_red,
+                         tr("Error loading title screen: %s"),
                          status_.message().data());
       return;
     }
@@ -848,7 +851,7 @@ void ScreenEditor::DrawTitleScreenEditor() {
   }
 
   if (!title_screen_loaded_) {
-    ImGui::Text("Title screen not loaded. Ensure ROM is loaded.");
+    ImGui::Text(tr("Title screen not loaded. Ensure ROM is loaded."));
     return;
   }
 
@@ -864,20 +867,20 @@ void ScreenEditor::DrawTitleScreenEditor() {
     }
   }
   ImGui::SameLine();
-  ImGui::Text("Selected Tile: %d", selected_title_tile16_);
+  ImGui::Text(tr("Selected Tile: %d"), selected_title_tile16_);
 
   // Save success popup
   if (ImGui::BeginPopup("SaveSuccess")) {
-    ImGui::Text("Title screen saved successfully!");
+    ImGui::Text(tr("Title screen saved successfully!"));
     ImGui::EndPopup();
   }
 
   // Layer visibility controls
   bool prev_bg1 = show_title_bg1_;
   bool prev_bg2 = show_title_bg2_;
-  ImGui::Checkbox("Show BG1", &show_title_bg1_);
+  ImGui::Checkbox(tr("Show BG1"), &show_title_bg1_);
   ImGui::SameLine();
-  ImGui::Checkbox("Show BG2", &show_title_bg2_);
+  ImGui::Checkbox(tr("Show BG2"), &show_title_bg2_);
 
   // Re-render composite if visibility changed
   if (prev_bg1 != show_title_bg1_ || prev_bg2 != show_title_bg2_) {
@@ -1095,16 +1098,16 @@ void ScreenEditor::DrawTitleScreenBlocksetSelector() {
 
   // Show selected tile preview and controls
   if (selected_title_tile16_ >= 0) {
-    ImGui::Text("Selected Tile: %d", selected_title_tile16_);
+    ImGui::Text(tr("Selected Tile: %d"), selected_title_tile16_);
 
     // Flip controls
-    ImGui::Checkbox("H Flip", &title_h_flip_);
+    ImGui::Checkbox(tr("H Flip"), &title_h_flip_);
     ImGui::SameLine();
-    ImGui::Checkbox("V Flip", &title_v_flip_);
+    ImGui::Checkbox(tr("V Flip"), &title_v_flip_);
 
     // Palette selector (0-7 for 3BPP graphics)
     ImGui::SetNextItemWidth(100);
-    ImGui::SliderInt("Palette", &title_palette_, 0, 7);
+    ImGui::SliderInt(tr("Palette"), &title_palette_, 0, 7);
   }
 }
 
@@ -1117,7 +1120,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
     if (!status_.ok()) {
       const auto& theme = AgentUI::GetTheme();
       ImGui::TextColored(theme.text_error_red,
-                         "Error loading overworld map: %s",
+                         tr("Error loading overworld map: %s"),
                          status_.message().data());
       return;
     }
@@ -1125,23 +1128,23 @@ void ScreenEditor::DrawOverworldMapEditor() {
   }
 
   if (!ow_map_loaded_) {
-    ImGui::Text("Overworld map not loaded. Ensure ROM is loaded.");
+    ImGui::Text(tr("Overworld map not loaded. Ensure ROM is loaded."));
     return;
   }
 
   // Toolbar with mode controls. Keep this explicit: beta users confused this
   // panel with the main Overworld Editor, but it edits the pause-menu world map
   // art.
-  if (ImGui::Button("Paint Mode")) {
+  if (ImGui::Button(tr("Paint Mode"))) {
     current_mode_ = EditingMode::DRAW;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
+    ImGui::SetTooltip(tr(
         "Paint the pause-menu world map: choose an 8x8 tile in Tileset, then "
-        "click Map Canvas.");
+        "click Map Canvas."));
   }
   ImGui::SameLine();
-  if (ImGui::Button("Save World Map")) {
+  if (ImGui::Button(tr("Save World Map"))) {
     status_ = ow_map_screen_.Save(rom());
     if (status_.ok()) {
       ImGui::OpenPopup("OWSaveSuccess");
@@ -1162,7 +1165,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
   ImGui::SameLine();
 
   // Custom map load/save buttons
-  if (ImGui::Button("Load Custom Map...")) {
+  if (ImGui::Button(tr("Load Custom Map..."))) {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!path.empty()) {
       status_ = ow_map_screen_.LoadCustomMap(path);
@@ -1172,7 +1175,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
     }
   }
   ImGui::SameLine();
-  if (ImGui::Button("Save Custom Map...")) {
+  if (ImGui::Button(tr("Save Custom Map..."))) {
     std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
     if (!path.empty()) {
       status_ = ow_map_screen_.SaveCustomMap(path, ow_show_dark_world_);
@@ -1183,29 +1186,29 @@ void ScreenEditor::DrawOverworldMapEditor() {
   }
 
   ImGui::SameLine();
-  ImGui::Text("Selected Tile: %d", selected_ow_tile_);
+  ImGui::Text(tr("Selected Tile: %d"), selected_ow_tile_);
 
-  ImGui::TextWrapped(
+  ImGui::TextWrapped(tr(
       "This edits the pause-menu world map art, not the 160 playable "
       "overworld areas. For area-map painting, entrances, exits, items, and "
       "sprites, use Overworld Editor. Paint flow here: pick an 8x8 tile from "
       "Tileset, then click Map Canvas; use Light/Dark World to choose the "
-      "target map.");
+      "target map."));
   ImGui::Separator();
 
   // Custom map error/success popups
   if (ImGui::BeginPopup("CustomMapLoadError")) {
-    ImGui::Text("Error loading custom map: %s", status_.message().data());
+    ImGui::Text(tr("Error loading custom map: %s"), status_.message().data());
     ImGui::EndPopup();
   }
   if (ImGui::BeginPopup("CustomMapSaveSuccess")) {
-    ImGui::Text("Custom map saved successfully!");
+    ImGui::Text(tr("Custom map saved successfully!"));
     ImGui::EndPopup();
   }
 
   // Save success popup
   if (ImGui::BeginPopup("OWSaveSuccess")) {
-    ImGui::Text("Overworld map saved successfully!");
+    ImGui::Text(tr("Overworld map saved successfully!"));
     ImGui::EndPopup();
   }
 
@@ -1304,15 +1307,15 @@ void ScreenEditor::DrawDungeonMapToolset() {
   static bool drawing_bg2 = false;
   static bool drawing_bg3 = false;
 
-  ImGui::Checkbox("Show BG1", &show_bg1);
+  ImGui::Checkbox(tr("Show BG1"), &show_bg1);
   ImGui::SameLine();
-  ImGui::Checkbox("Show BG2", &show_bg2);
+  ImGui::Checkbox(tr("Show BG2"), &show_bg2);
 
-  ImGui::Checkbox("Draw BG1", &drawing_bg1);
+  ImGui::Checkbox(tr("Draw BG1"), &drawing_bg1);
   ImGui::SameLine();
-  ImGui::Checkbox("Draw BG2", &drawing_bg2);
+  ImGui::Checkbox(tr("Draw BG2"), &drawing_bg2);
   ImGui::SameLine();
-  ImGui::Checkbox("Draw BG3", &drawing_bg3);
+  ImGui::Checkbox(tr("Draw BG3"), &drawing_bg3);
 }
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 // Related header
 #include "app/editor/overworld/overworld_editor.h"
+#include "util/i18n/tr.h"
 
 #ifndef IM_PI
 #define IM_PI 3.14159265358979323846f
@@ -653,22 +654,22 @@ absl::Status OverworldEditor::Update() {
     ImGui::Text(ICON_MD_UPGRADE " Upgrade ROM to ZSCustomOverworld");
     ImGui::Separator();
     ImGui::TextWrapped(
-        "This will apply the ZSCustomOverworld ASM patch to your ROM,\n"
-        "enabling advanced overworld features.");
+        tr("This will apply the ZSCustomOverworld ASM patch to your ROM,\n"
+           "enabling advanced overworld features."));
     ImGui::Separator();
 
     const uint8_t current_version =
         rom_ != nullptr ? (*rom_)[zelda3::OverworldCustomASMHasBeenApplied]
                         : 0xFF;
-    ImGui::Text("Current Version: %s",
+    ImGui::Text(tr("Current Version: %s"),
                 current_version == 0xFF
                     ? "Vanilla"
                     : absl::StrFormat("v%d", current_version).c_str());
 
     static int target_version = 3;
-    ImGui::RadioButton("v2 (Basic features)", &target_version, 2);
+    ImGui::RadioButton(tr("v2 (Basic features)"), &target_version, 2);
     ImGui::SameLine();
-    ImGui::RadioButton("v3 (All features)", &target_version, 3);
+    ImGui::RadioButton(tr("v3 (All features)"), &target_version, 3);
 
     ImGui::Separator();
 

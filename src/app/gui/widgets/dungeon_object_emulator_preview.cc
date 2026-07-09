@@ -1,4 +1,5 @@
 #include "app/gui/widgets/dungeon_object_emulator_preview.h"
+#include "util/i18n/tr.h"
 
 #include <cstdio>
 #include <cstring>
@@ -134,13 +135,13 @@ void DungeonObjectEmulatorPreview::Render() {
 
     // ROM status indicator at top
     if (rom_ && rom_->is_loaded()) {
-      ImGui::TextColored(theme.status_success, "ROM: Loaded");
+      ImGui::TextColored(theme.status_success, tr("ROM: Loaded"));
       ImGui::SameLine();
-      ImGui::TextDisabled("Ready to render objects");
+      ImGui::TextDisabled(tr("Ready to render objects"));
     } else {
-      ImGui::TextColored(theme.status_error, "ROM: Not loaded");
+      ImGui::TextColored(theme.status_error, tr("ROM: Not loaded"));
       ImGui::SameLine();
-      ImGui::TextDisabled("Load a ROM to use this tool");
+      ImGui::TextDisabled(tr("Load a ROM to use this tool"));
     }
 
     ImGui::Separator();
@@ -155,7 +156,7 @@ void DungeonObjectEmulatorPreview::Render() {
     AgentUI::PushPanelStyle();
     ImGui::BeginChild("PreviewRegion", ImVec2(0, 280), true,
                       ImGuiWindowFlags_NoScrollbar);
-    ImGui::TextColored(theme.text_info, "Preview");
+    ImGui::TextColored(theme.text_info, tr("Preview"));
     ImGui::Separator();
     if (object_texture_) {
       ImVec2 available = ImGui::GetContentRegionAvail();
@@ -169,8 +170,8 @@ void DungeonObjectEmulatorPreview::Render() {
 
       ImGui::Image((ImTextureID)object_texture_, preview_size);
     } else {
-      ImGui::TextColored(theme.text_warning_yellow, "No texture available");
-      ImGui::TextWrapped("Click 'Render Object' to generate a preview");
+      ImGui::TextColored(theme.text_warning_yellow, tr("No texture available"));
+      ImGui::TextWrapped(tr("Click 'Render Object' to generate a preview"));
     }
     ImGui::EndChild();
     AgentUI::PopPanelStyle();
@@ -184,12 +185,12 @@ void DungeonObjectEmulatorPreview::Render() {
     AgentUI::VerticalSpacing(8);
     ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.box_bg_dark);
     ImGui::BeginChild("HelpText", ImVec2(0, 0), true);
-    ImGui::TextColored(theme.text_info, "How it works:");
+    ImGui::TextColored(theme.text_info, tr("How it works:"));
     ImGui::Separator();
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "This tool uses the SNES emulator to render objects by executing the "
         "game's native drawing routines from bank $01. This provides accurate "
-        "previews of how objects will appear in-game.");
+        "previews of how objects will appear in-game."));
     ImGui::EndChild();
     ImGui::PopStyleColor();
   }
@@ -204,7 +205,7 @@ void DungeonObjectEmulatorPreview::RenderControls() {
   const auto& theme = AgentUI::GetTheme();
 
   // Object ID section with name lookup
-  ImGui::TextColored(theme.text_info, "Object Selection");
+  ImGui::TextColored(theme.text_info, tr("Object Selection"));
   ImGui::Separator();
 
   // Object ID input with hex display
@@ -219,10 +220,10 @@ void DungeonObjectEmulatorPreview::RenderControls() {
 
   ImGui::PushStyleColor(ImGuiCol_ChildBg, theme.panel_bg_darker);
   ImGui::BeginChild("ObjectInfo", ImVec2(0, 60), true);
-  ImGui::TextColored(theme.accent_color, "Name:");
+  ImGui::TextColored(theme.accent_color, tr("Name:"));
   ImGui::SameLine();
   ImGui::TextWrapped("%s", name);
-  ImGui::TextColored(theme.accent_color, "Type:");
+  ImGui::TextColored(theme.accent_color, tr("Type:"));
   ImGui::SameLine();
   ImGui::Text("%d", type);
   ImGui::EndChild();
@@ -231,7 +232,7 @@ void DungeonObjectEmulatorPreview::RenderControls() {
   AgentUI::VerticalSpacing(4);
 
   // Quick select dropdown
-  if (ImGui::BeginCombo("Quick Select", "Choose preset...")) {
+  if (ImGui::BeginCombo(tr("Quick Select"), "Choose preset...")) {
     for (const auto& preset : kQuickPresets) {
       if (ImGui::Selectable(preset.name, object_id_ == preset.id)) {
         object_id_ = preset.id;
@@ -255,7 +256,7 @@ void DungeonObjectEmulatorPreview::RenderControls() {
   ImGui::Separator();
 
   // Position and size controls
-  ImGui::TextColored(theme.text_info, "Position & Size");
+  ImGui::TextColored(theme.text_info, tr("Position & Size"));
   ImGui::Separator();
 
   AutoSliderInt("X Position", &object_x_, 0, 63);
@@ -265,30 +266,30 @@ void DungeonObjectEmulatorPreview::RenderControls() {
   ImGui::TextDisabled("(?)");
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Size parameter for scalable objects.\nMany objects ignore this "
-        "value.");
+        tr("Size parameter for scalable objects.\nMany objects ignore this "
+           "value."));
   }
 
   AgentUI::VerticalSpacing(8);
   ImGui::Separator();
 
   // Room context
-  ImGui::TextColored(theme.text_info, "Rendering Context");
+  ImGui::TextColored(theme.text_info, tr("Rendering Context"));
   ImGui::Separator();
 
   AutoInputInt("Room ID", &room_id_, 1, 10);
   ImGui::SameLine();
   ImGui::TextDisabled("(?)");
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Room ID for graphics and palette context");
+    ImGui::SetTooltip(tr("Room ID for graphics and palette context"));
   }
 
   AgentUI::VerticalSpacing(8);
 
   // Render mode selector
-  ImGui::TextColored(theme.text_info, "Render Mode");
+  ImGui::TextColored(theme.text_info, tr("Render Mode"));
   int mode = static_cast<int>(render_mode_);
-  if (ImGui::RadioButton("Static (ObjectDrawer)", &mode, 0)) {
+  if (ImGui::RadioButton(tr("Static (ObjectDrawer)"), &mode, 0)) {
     render_mode_ = RenderMode::kStatic;
     static_render_dirty_ = true;
   }
@@ -296,19 +297,19 @@ void DungeonObjectEmulatorPreview::RenderControls() {
   ImGui::TextDisabled("(?)");
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Uses ObjectDrawer to render objects.\n"
-        "This is the reliable method that matches the main canvas.");
+        tr("Uses ObjectDrawer to render objects.\n"
+           "This is the reliable method that matches the main canvas."));
   }
-  if (ImGui::RadioButton("Emulator (Experimental)", &mode, 1)) {
+  if (ImGui::RadioButton(tr("Emulator (Experimental)"), &mode, 1)) {
     render_mode_ = RenderMode::kEmulator;
   }
   ImGui::SameLine();
   ImGui::TextDisabled("(?)");
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Attempts to run game drawing handlers via CPU emulation.\n"
-        "EXPERIMENTAL: Handlers require full game state to work.\n"
-        "Most objects will time out without rendering.");
+        tr("Attempts to run game drawing handlers via CPU emulation.\n"
+           "EXPERIMENTAL: Handlers require full game state to work.\n"
+           "Most objects will time out without rendering."));
   }
 
   AgentUI::VerticalSpacing(12);
@@ -1025,28 +1026,29 @@ void DungeonObjectEmulatorPreview::RenderStatusPanel() {
   AgentUI::PushPanelStyle();
   ImGui::BeginChild("StatusPanel", ImVec2(0, 100), true);
 
-  ImGui::TextColored(theme.text_info, "Execution Status");
+  ImGui::TextColored(theme.text_info, tr("Execution Status"));
   ImGui::Separator();
 
   // Cycle count with status color
-  ImGui::Text("Cycles:");
+  ImGui::Text(tr("Cycles:"));
   ImGui::SameLine();
   if (last_cycle_count_ >= 100000) {
-    ImGui::TextColored(theme.status_error, "%d (TIMEOUT)", last_cycle_count_);
+    ImGui::TextColored(theme.status_error, tr("%d (TIMEOUT)"),
+                       last_cycle_count_);
   } else if (last_cycle_count_ > 0) {
     ImGui::TextColored(theme.status_success, "%d", last_cycle_count_);
   } else {
-    ImGui::TextColored(theme.text_secondary_gray, "Not yet executed");
+    ImGui::TextColored(theme.text_secondary_gray, tr("Not yet executed"));
   }
 
   // Error status
-  ImGui::Text("Status:");
+  ImGui::Text(tr("Status:"));
   ImGui::SameLine();
   if (last_error_.empty()) {
     if (last_cycle_count_ > 0) {
-      ImGui::TextColored(theme.status_success, "OK");
+      ImGui::TextColored(theme.status_success, tr("OK"));
     } else {
-      ImGui::TextColored(theme.text_secondary_gray, "Ready");
+      ImGui::TextColored(theme.text_secondary_gray, tr("Ready"));
     }
   } else {
     ImGui::TextColored(theme.status_error, "%s", last_error_.c_str());
@@ -1062,13 +1064,13 @@ void DungeonObjectEmulatorPreview::RenderObjectBrowser() {
   ImGui::SetNextWindowSize(ImVec2(600, 500), ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Object Browser", &show_browser_)) {
     ImGui::TextColored(theme.text_info,
-                       "Browse all dungeon objects by type and category");
+                       tr("Browse all dungeon objects by type and category"));
     ImGui::Separator();
 
     if (ImGui::BeginTabBar("ObjectTypeTabs")) {
       // Type 1 objects tab
-      if (ImGui::BeginTabItem("Type 1 (0x00-0xFF)")) {
-        ImGui::TextDisabled("Walls, floors, and common dungeon elements");
+      if (ImGui::BeginTabItem(tr("Type 1 (0x00-0xFF)"))) {
+        ImGui::TextDisabled(tr("Walls, floors, and common dungeon elements"));
         ImGui::Separator();
 
         ImGui::BeginChild("Type1List", ImVec2(0, 0), false);
@@ -1095,8 +1097,8 @@ void DungeonObjectEmulatorPreview::RenderObjectBrowser() {
       }
 
       // Type 2 objects tab
-      if (ImGui::BeginTabItem("Type 2 (0x100-0x1FF)")) {
-        ImGui::TextDisabled("Corners, furniture, and special objects");
+      if (ImGui::BeginTabItem(tr("Type 2 (0x100-0x1FF)"))) {
+        ImGui::TextDisabled(tr("Corners, furniture, and special objects"));
         ImGui::Separator();
 
         ImGui::BeginChild("Type2List", ImVec2(0, 0), false);
@@ -1124,8 +1126,9 @@ void DungeonObjectEmulatorPreview::RenderObjectBrowser() {
       }
 
       // Type 3 objects tab
-      if (ImGui::BeginTabItem("Type 3 (0x200-0x2FF)")) {
-        ImGui::TextDisabled("Interactive objects, chests, and special items");
+      if (ImGui::BeginTabItem(tr("Type 3 (0x200-0x2FF)"))) {
+        ImGui::TextDisabled(
+            tr("Interactive objects, chests, and special items"));
         ImGui::Separator();
 
         ImGui::BeginChild("Type3List", ImVec2(0, 0), false);

@@ -1,4 +1,5 @@
 #include "app/editor/overworld/map_properties.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -249,7 +250,7 @@ void MapPropertiesSystem::DrawCanvasToolbar(
     ImGui::TextDisabled("%s", kWorldNames[clamped_world]);
 
     TableNextColumn();
-    ImGui::Text("%d (0x%02X)", current_map, current_map);
+    ImGui::Text(tr("%d (0x%02X)"), current_map, current_map);
 
     TableNextColumn();
     // Use centralized version detection
@@ -364,13 +365,13 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
     int current_map, bool& show_map_properties_panel) {
   (void)show_map_properties_panel;  // Used by caller for window state
   if (!overworld_->is_loaded()) {
-    Text("No overworld loaded");
+    Text(tr("No overworld loaded"));
     return;
   }
 
   // Header with map info and lock status
   ImGui::BeginGroup();
-  Text("Current Map: %d (0x%02X)", current_map, current_map);
+  Text(tr("Current Map: %d (0x%02X)"), current_map, current_map);
   ImGui::EndGroup();
 
   Separator();
@@ -379,13 +380,13 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
   if (gui::BeginThemedTabBar("MapPropertiesTabs",
                              ImGuiTabBarFlags_FittingPolicyScroll)) {
     // Basic Properties Tab
-    if (ImGui::BeginTabItem("Basic Properties")) {
+    if (ImGui::BeginTabItem(tr("Basic Properties"))) {
       DrawBasicPropertiesTab(current_map);
       ImGui::EndTabItem();
     }
 
     // Sprite Properties Tab
-    if (ImGui::BeginTabItem("Sprite Properties")) {
+    if (ImGui::BeginTabItem(tr("Sprite Properties"))) {
       DrawSpritePropertiesTab(current_map);
       ImGui::EndTabItem();
     }
@@ -393,19 +394,19 @@ void MapPropertiesSystem::DrawMapPropertiesPanel(
     // Custom Overworld Features Tab
     auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
     if (rom_version != zelda3::OverworldVersion::kVanilla &&
-        ImGui::BeginTabItem("Custom Features")) {
+        ImGui::BeginTabItem(tr("Custom Features"))) {
       DrawCustomFeaturesTab(current_map);
       ImGui::EndTabItem();
     }
 
     // Tile Graphics Tab
-    if (ImGui::BeginTabItem("Tile Graphics")) {
+    if (ImGui::BeginTabItem(tr("Tile Graphics"))) {
       DrawTileGraphicsTab(current_map);
       ImGui::EndTabItem();
     }
 
     // Music Tab
-    if (ImGui::BeginTabItem("Music")) {
+    if (ImGui::BeginTabItem(tr("Music"))) {
       DrawMusicTab(current_map);
       ImGui::EndTabItem();
     }
@@ -418,23 +419,23 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
     int current_map, bool& show_custom_bg_color_editor) {
   (void)show_custom_bg_color_editor;  // Used by caller for window state
   if (!overworld_->is_loaded()) {
-    Text("No overworld loaded");
+    Text(tr("No overworld loaded"));
     return;
   }
 
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
   if (!zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version)) {
-    Text("Custom background colors require ZSCustomOverworld v2+");
+    Text(tr("Custom background colors require ZSCustomOverworld v2+"));
     return;
   }
 
-  Text("Custom Background Color Editor");
+  Text(tr("Custom Background Color Editor"));
   Separator();
 
   // Read enable flag from ROM (not static - must reflect current ROM state)
   bool use_area_specific_bg_color =
       (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] != 0x00;
-  if (ImGui::Checkbox("Use Area-Specific Background Color",
+  if (ImGui::Checkbox(tr("Use Area-Specific Background Color"),
                       &use_area_specific_bg_color)) {
     // Update ROM data when checkbox is toggled
     (*rom_)[zelda3::OverworldCustomAreaSpecificBGEnabled] =
@@ -460,7 +461,7 @@ void MapPropertiesSystem::DrawCustomBackgroundColorEditor(
                          new_snes_color.snes()});
     }
 
-    Text("SNES Color: 0x%04X", current_color);
+    Text(tr("SNES Color: 0x%04X"), current_color);
   }
 }
 
@@ -468,7 +469,7 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
                                             bool& show_overlay_editor) {
   (void)show_overlay_editor;  // Used by caller for window state
   if (!overworld_->is_loaded()) {
-    Text("No overworld loaded");
+    Text(tr("No overworld loaded"));
     return;
   }
 
@@ -476,7 +477,7 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 
   ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
                      ICON_MD_LAYERS " Visual Effects Configuration");
-  ImGui::Text("Map: 0x%02X", current_map);
+  ImGui::Text(tr("Map: 0x%02X"), current_map);
   Separator();
 
   if (rom_version == zelda3::OverworldVersion::kVanilla) {
@@ -484,11 +485,11 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
         ImVec4(1.0f, 0.8f, 0.4f, 1.0f), ICON_MD_INFO
         " Enhanced overlay editing requires ZSCustomOverworld v1+");
     ImGui::Separator();
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "Subscreen overlays are a vanilla feature used for atmospheric effects "
         "like fog, rain, and forest canopy. ZSCustomOverworld expands this by "
         "allowing per-area overlay configuration and additional "
-        "customization.");
+        "customization."));
     return;
   }
 
@@ -496,18 +497,18 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
   if (ImGui::CollapsingHeader(ICON_MD_HELP_OUTLINE " What are Visual Effects?",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Indent();
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "Visual effects (subscreen overlays) are semi-transparent layers drawn "
         "on top of or behind your map. They reference special area maps "
         "(0x80-0x9F) "
-        "for their tile16 graphics data.");
+        "for their tile16 graphics data."));
     ImGui::Spacing();
-    ImGui::Text("Common uses:");
-    ImGui::BulletText("Fog effects (Lost Woods, Skull Woods)");
-    ImGui::BulletText("Rain (Misery Mire)");
-    ImGui::BulletText("Forest canopy (Lost Woods)");
-    ImGui::BulletText("Sky backgrounds (Death Mountain)");
-    ImGui::BulletText("Under bridge views");
+    ImGui::Text(tr("Common uses:"));
+    ImGui::BulletText(tr("Fog effects (Lost Woods, Skull Woods)"));
+    ImGui::BulletText(tr("Rain (Misery Mire)"));
+    ImGui::BulletText(tr("Forest canopy (Lost Woods)"));
+    ImGui::BulletText(tr("Sky backgrounds (Death Mountain)"));
+    ImGui::BulletText(tr("Under bridge views"));
     ImGui::Unindent();
     ImGui::Separator();
   }
@@ -522,7 +523,8 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
         use_subscreen_overlay ? 0x01 : 0x00;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Enable/disable visual effect overlay for this map area");
+    ImGui::SetTooltip(
+        tr("Enable/disable visual effect overlay for this map area"));
   }
 
   if (use_subscreen_overlay) {
@@ -536,9 +538,9 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "ID of the special area map (0x80-0x9F) to use for\n"
-          "visual effects. That map's tile16 data will be drawn\n"
-          "as a semi-transparent layer on this area.");
+          tr("ID of the special area map (0x80-0x9F) to use for\n"
+             "visual effects. That map's tile16 data will be drawn\n"
+             "as a semi-transparent layer on this area."));
     }
 
     // Show description
@@ -550,16 +552,16 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
     if (ImGui::CollapsingHeader(ICON_MD_LIGHTBULB
                                 " Common Visual Effect IDs")) {
       ImGui::Indent();
-      ImGui::BulletText("0x0093 - Triforce Room Curtain");
-      ImGui::BulletText("0x0094 - Under the Bridge");
-      ImGui::BulletText("0x0095 - Sky Background (LW Death Mountain)");
-      ImGui::BulletText("0x0096 - Pyramid Background");
-      ImGui::BulletText("0x0097 - Fog Overlay (Master Sword Area)");
-      ImGui::BulletText("0x009C - Lava Background (DW Death Mountain)");
-      ImGui::BulletText("0x009D - Fog Overlay (Lost/Skull Woods)");
-      ImGui::BulletText("0x009E - Tree Canopy (Forest)");
-      ImGui::BulletText("0x009F - Rain Effect (Misery Mire)");
-      ImGui::BulletText("0x00FF - No Overlay (Disabled)");
+      ImGui::BulletText(tr("0x0093 - Triforce Room Curtain"));
+      ImGui::BulletText(tr("0x0094 - Under the Bridge"));
+      ImGui::BulletText(tr("0x0095 - Sky Background (LW Death Mountain)"));
+      ImGui::BulletText(tr("0x0096 - Pyramid Background"));
+      ImGui::BulletText(tr("0x0097 - Fog Overlay (Master Sword Area)"));
+      ImGui::BulletText(tr("0x009C - Lava Background (DW Death Mountain)"));
+      ImGui::BulletText(tr("0x009D - Fog Overlay (Lost/Skull Woods)"));
+      ImGui::BulletText(tr("0x009E - Tree Canopy (Forest)"));
+      ImGui::BulletText(tr("0x009F - Rain Effect (Misery Mire)"));
+      ImGui::BulletText(tr("0x00FF - No Overlay (Disabled)"));
       ImGui::Unindent();
     }
   } else {
@@ -743,8 +745,8 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
             }
 
             if (ImGui::BeginPopup(popup_id.c_str())) {
-              ImGui::Text("%s Map Label", ICON_MD_LABEL);
-              ImGui::TextDisabled("Map 0x%02X", current_map);
+              ImGui::Text(tr("%s Map Label"), ICON_MD_LABEL);
+              ImGui::TextDisabled(tr("Map 0x%02X"), current_map);
               ImGui::SetNextItemWidth(260.0f);
               ImGui::InputText("##OverworldContextMapLabel",
                                label_buffer.data(), label_buffer.size());
@@ -965,7 +967,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
         {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
          {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
-    ImGui::Text("Graphics Settings");
+    ImGui::Text(tr("Graphics Settings"));
     ImGui::Separator();
 
     // Area Graphics
@@ -1022,7 +1024,7 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
                                custom_gfx});
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
+            ImGui::SetTooltip(tr("Custom graphics sheet %d (0x00-0xFF)"), i);
           }
         }
         ImGui::EndTable();
@@ -1032,8 +1034,8 @@ void MapPropertiesSystem::DrawGraphicsPopup(int current_map, int game_state) {
       ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
                          ICON_MD_INFO " Custom Tile Graphics");
       ImGui::TextWrapped(
-          "Custom tile graphics require ZSCustomOverworld v1+.\n"
-          "Upgrade your ROM to access 8 customizable graphics sheets.");
+          tr("Custom tile graphics require ZSCustomOverworld v1+.\n"
+             "Upgrade your ROM to access 8 customizable graphics sheets."));
     }
     ImGui::PopID();  // Pop GraphicsPopup ID scope
     ImGui::EndPopup();
@@ -1055,7 +1057,7 @@ void MapPropertiesSystem::DrawPalettesPopup(int current_map, int game_state,
         {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
          {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
-    ImGui::Text("Palette Settings");
+    ImGui::Text(tr("Palette Settings"));
     ImGui::Separator();
 
     // Area Palette
@@ -1137,7 +1139,7 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
             {current_map, OverworldPropertyField::kMessageId, 0, message_id});
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Message ID shown when entering this area");
+        ImGui::SetTooltip(tr("Message ID shown when entering this area"));
       }
 
       // Game State
@@ -1155,7 +1157,7 @@ void MapPropertiesSystem::DrawPropertiesPopup(int current_map,
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Affects sprite graphics/palettes based on story progress");
+            tr("Affects sprite graphics/palettes based on story progress"));
       }
 
       ImGui::EndTable();
@@ -1233,7 +1235,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kAreaGraphics, 0, area_gfx});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Main tileset graphics for this map area");
+      ImGui::SetTooltip(tr("Main tileset graphics for this map area"));
     }
 
     TableNextColumn();
@@ -1245,7 +1247,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kAreaPalette, 0, area_pal});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Color palette for background tiles");
+      ImGui::SetTooltip(tr("Color palette for background tiles"));
     }
 
     TableNextColumn();
@@ -1257,7 +1259,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kMessageId, 0, message_id});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Message displayed when entering this area");
+      ImGui::SetTooltip(tr("Message displayed when entering this area"));
     }
 
     TableNextColumn();
@@ -1270,7 +1272,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kMosaic, 0, mosaic ? 1 : 0});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Enable pixelated mosaic transition effect");
+      ImGui::SetTooltip(tr("Enable pixelated mosaic transition effect"));
     }
 
     // Add music editing controls with icons
@@ -1283,7 +1285,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kMusic, 0, music0});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Music track before rescuing Zelda");
+      ImGui::SetTooltip(tr("Music track before rescuing Zelda"));
     }
 
     TableNextColumn();
@@ -1295,7 +1297,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kMusic, 1, music1});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Music track after rescuing Zelda");
+      ImGui::SetTooltip(tr("Music track after rescuing Zelda"));
     }
 
     TableNextColumn();
@@ -1307,7 +1309,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kMusic, 2, music2});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Music track after obtaining Master Sword");
+      ImGui::SetTooltip(tr("Music track after obtaining Master Sword"));
     }
 
     TableNextColumn();
@@ -1319,7 +1321,7 @@ void MapPropertiesSystem::DrawBasicPropertiesTab(int current_map) {
           {current_map, OverworldPropertyField::kMusic, 3, music3});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Music track after defeating Agahnim (Dark World)");
+      ImGui::SetTooltip(tr("Music track after defeating Agahnim (Dark World)"));
     }
 
     ImGui::EndTable();
@@ -1343,7 +1345,7 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
       RefreshOverworldMap();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Affects which sprite graphics/palettes are used");
+      ImGui::SetTooltip(tr("Affects which sprite graphics/palettes are used"));
     }
 
     TableNextColumn();
@@ -1356,7 +1358,8 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
                          1, sprite_gfx1});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("First sprite graphics sheet for Zelda rescued state");
+      ImGui::SetTooltip(
+          tr("First sprite graphics sheet for Zelda rescued state"));
     }
 
     TableNextColumn();
@@ -1370,7 +1373,7 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Second sprite graphics sheet for Master Sword obtained state");
+          tr("Second sprite graphics sheet for Master Sword obtained state"));
     }
 
     TableNextColumn();
@@ -1383,7 +1386,7 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
                          sprite_pal1});
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Color palette for sprites - Zelda rescued state");
+      ImGui::SetTooltip(tr("Color palette for sprites - Zelda rescued state"));
     }
 
     TableNextColumn();
@@ -1397,7 +1400,7 @@ void MapPropertiesSystem::DrawSpritePropertiesTab(int current_map) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Color palette for sprites - Master Sword obtained state");
+          tr("Color palette for sprites - Master Sword obtained state"));
     }
 
     ImGui::EndTable();
@@ -1430,7 +1433,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Map size: Small (1x1), Large (2x2), Wide (2x1), Tall (1x2)");
+            tr("Map size: Small (1x1), Large (2x2), Wide (2x1), Tall (1x2)"));
       }
     } else {
       // Vanilla/v1/v2 ROM: Show only Small/Large
@@ -1447,7 +1450,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "Map size: Small (1x1), Large (2x2). Wide/Tall require v3+");
+            tr("Map size: Small (1x1), Large (2x2). Wide/Tall require v3+"));
       }
     }
 
@@ -1463,7 +1466,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
                            main_palette});
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Extended main palette (ZSCustomOverworld v2+)");
+        ImGui::SetTooltip(tr("Extended main palette (ZSCustomOverworld v2+)"));
       }
     }
 
@@ -1480,7 +1483,7 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
                            animated_gfx});
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Animated tile graphics ID (water, lava, etc.)");
+        ImGui::SetTooltip(tr("Animated tile graphics ID (water, lava, etc.)"));
       }
 
       TableNextColumn();
@@ -1495,7 +1498,8 @@ void MapPropertiesSystem::DrawCustomFeaturesTab(int current_map) {
                            subscreen_overlay});
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Visual effects overlay ID (fog, rain, backgrounds)");
+        ImGui::SetTooltip(
+            tr("Visual effects overlay ID (fog, rain, backgrounds)"));
       }
     }
 
@@ -1530,7 +1534,7 @@ void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
                              custom_tileset});
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Custom graphics sheet %d (0x00-0xFF)", i);
+          ImGui::SetTooltip(tr("Custom graphics sheet %d (0x00-0xFF)"), i);
         }
       }
 
@@ -1539,18 +1543,18 @@ void MapPropertiesSystem::DrawTileGraphicsTab(int current_map) {
 
     Separator();
     ImGui::TextWrapped(
-        "These 8 sheets allow custom tile graphics per map. "
-        "Each sheet references a graphics ID loaded into VRAM.");
+        tr("These 8 sheets allow custom tile graphics per map. "
+           "Each sheet references a graphics ID loaded into VRAM."));
   } else {
     // Vanilla ROM - show info message
     ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f),
                        ICON_MD_INFO " Custom Tile Graphics");
     ImGui::Separator();
     ImGui::TextWrapped(
-        "Custom tile graphics are not available in vanilla ROMs.\n\n"
-        "To enable this feature, upgrade your ROM to ZSCustomOverworld v1+, "
-        "which provides 8 customizable graphics sheets per map for advanced "
-        "tileset customization.");
+        tr("Custom tile graphics are not available in vanilla ROMs.\n\n"
+           "To enable this feature, upgrade your ROM to ZSCustomOverworld v1+, "
+           "which provides 8 customizable graphics sheets per map for advanced "
+           "tileset customization."));
   }
 }
 
@@ -1598,20 +1602,20 @@ void MapPropertiesSystem::DrawMusicTab(int current_map) {
 
   Separator();
   ImGui::TextWrapped(
-      "Music tracks control the background music for different "
-      "game progression states on this overworld map.");
+      tr("Music tracks control the background music for different "
+         "game progression states on this overworld map."));
 
   // Show common music track IDs for reference in a collapsing section
   Separator();
   if (ImGui::CollapsingHeader(ICON_MD_HELP_OUTLINE " Common Music Track IDs",
                               ImGuiTreeNodeFlags_DefaultOpen)) {
     ImGui::Indent();
-    ImGui::BulletText("0x02 - Overworld Theme");
-    ImGui::BulletText("0x05 - Kakariko Village");
-    ImGui::BulletText("0x07 - Lost Woods");
-    ImGui::BulletText("0x09 - Dark World Theme");
-    ImGui::BulletText("0x0F - Ganon's Tower");
-    ImGui::BulletText("0x11 - Death Mountain");
+    ImGui::BulletText(tr("0x02 - Overworld Theme"));
+    ImGui::BulletText(tr("0x05 - Kakariko Village"));
+    ImGui::BulletText(tr("0x07 - Lost Woods"));
+    ImGui::BulletText(tr("0x09 - Dark World Theme"));
+    ImGui::BulletText(tr("0x0F - Ganon's Tower"));
+    ImGui::BulletText(tr("0x11 - Death Mountain"));
     ImGui::Unindent();
   }
 }
@@ -1918,7 +1922,7 @@ void MapPropertiesSystem::DrawMosaicControls(int current_map) {
   auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
   if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(rom_version)) {
     ImGui::Separator();
-    ImGui::Text("Mosaic Effects (per direction):");
+    ImGui::Text(tr("Mosaic Effects (per direction):"));
 
     auto* current_map_ptr = overworld_->mutable_overworld_map(current_map);
     std::array<bool, 4> mosaic_expanded = current_map_ptr->mosaic_expanded();
@@ -1933,7 +1937,7 @@ void MapPropertiesSystem::DrawMosaicControls(int current_map) {
   } else {
     bool mosaic =
         *overworld_->mutable_overworld_map(current_map)->mutable_mosaic();
-    if (ImGui::Checkbox("Mosaic Effect", &mosaic)) {
+    if (ImGui::Checkbox(tr("Mosaic Effect"), &mosaic)) {
       ApplyPropertyEdit(
           {current_map, OverworldPropertyField::kMosaic, 0, mosaic ? 1 : 0});
     }
@@ -1952,15 +1956,15 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
     ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f),
                        ICON_MD_INFO " Special Area Map (0x%02X)", current_map);
     ImGui::Separator();
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "This is a special area map (0x80-0x9F) used as a visual effect "
         "source. These maps provide the graphics data for subscreen overlays "
         "like fog, rain, forest canopy, and sky backgrounds that appear on "
-        "normal maps (0x00-0x7F).");
+        "normal maps (0x00-0x7F)."));
     ImGui::Spacing();
-    ImGui::TextWrapped(
+    ImGui::TextWrapped(tr(
         "You can edit the tile16 data here to customize how the visual effects "
-        "appear when referenced by other maps.");
+        "appear when referenced by other maps."));
   } else {
     // Light World (0x00-0x3F) and Dark World (0x40-0x7F) maps support subscreen
     // overlays
@@ -1984,27 +1988,27 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
       ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), ICON_MD_LAYERS
                          " 1. Subscreen Overlays (Visual Effects)");
       ImGui::Indent();
-      ImGui::BulletText("Displayed as semi-transparent layers");
-      ImGui::BulletText("Reference special area maps (0x80-0x9F)");
-      ImGui::BulletText("Examples: fog, rain, forest canopy, sky");
-      ImGui::BulletText("Purely visual - don't affect collision");
+      ImGui::BulletText(tr("Displayed as semi-transparent layers"));
+      ImGui::BulletText(tr("Reference special area maps (0x80-0x9F)"));
+      ImGui::BulletText(tr("Examples: fog, rain, forest canopy, sky"));
+      ImGui::BulletText(tr("Purely visual - don't affect collision"));
       ImGui::Unindent();
 
       ImGui::Spacing();
       ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.4f, 1.0f),
                          ICON_MD_EDIT_NOTE " 2. Map Overlays (Interactive)");
       ImGui::Indent();
-      ImGui::BulletText("Dynamic tile16 changes on the map");
-      ImGui::BulletText("Used for bridges appearing, holes opening");
-      ImGui::BulletText("Stored as tile16 ID arrays");
-      ImGui::BulletText("Affect collision and interaction");
-      ImGui::BulletText("Triggered by game events/progression");
+      ImGui::BulletText(tr("Dynamic tile16 changes on the map"));
+      ImGui::BulletText(tr("Used for bridges appearing, holes opening"));
+      ImGui::BulletText(tr("Stored as tile16 ID arrays"));
+      ImGui::BulletText(tr("Affect collision and interaction"));
+      ImGui::BulletText(tr("Triggered by game events/progression"));
       ImGui::Unindent();
 
       ImGui::Separator();
       ImGui::TextWrapped(
-          "Note: Subscreen overlays are what you configure here. "
-          "Map overlays are event-driven and edited separately.");
+          tr("Note: Subscreen overlays are what you configure here. "
+             "Map overlays are event-driven and edited separately."));
 
       ImGui::EndPopup();
     }
@@ -2022,9 +2026,9 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "References a special area map (0x80-0x9F) for visual effects.\n"
-          "The referenced map's tile16 data is drawn as a semi-transparent\n"
-          "layer on top of or behind this area for atmospheric effects.");
+          tr("References a special area map (0x80-0x9F) for visual effects.\n"
+             "The referenced map's tile16 data is drawn as a semi-transparent\n"
+             "layer on top of or behind this area for atmospheric effects."));
     }
 
     // Show subscreen overlay description with color coding
@@ -2047,10 +2051,10 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
       // Toggle subscreen overlay preview
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
+      ImGui::SetTooltip(tr(
           "Shows a semi-transparent preview of the visual effect overlay\n"
           "drawn on top of the current map in the editor canvas.\n\n"
-          "This preview shows how the subscreen overlay will appear in-game.");
+          "This preview shows how the subscreen overlay will appear in-game."));
     }
 
     ImGui::Separator();
@@ -2073,20 +2077,20 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
         ImGui::Text(ICON_MD_HELP " Map Overlays (Interactive Tile Changes)");
         ImGui::Separator();
         ImGui::TextWrapped(
-            "Map overlays are different from visual effect overlays. "
-            "They contain tile16 data that dynamically replaces tiles on "
-            "the map based on game events or progression.");
+            tr("Map overlays are different from visual effect overlays. "
+               "They contain tile16 data that dynamically replaces tiles on "
+               "the map based on game events or progression."));
         ImGui::Spacing();
-        ImGui::Text("Common uses:");
-        ImGui::BulletText("Bridges appearing over water");
-        ImGui::BulletText("Holes revealing secret passages");
-        ImGui::BulletText("Rocks/bushes being moved");
-        ImGui::BulletText("Environmental changes from story events");
+        ImGui::Text(tr("Common uses:"));
+        ImGui::BulletText(tr("Bridges appearing over water"));
+        ImGui::BulletText(tr("Holes revealing secret passages"));
+        ImGui::BulletText(tr("Rocks/bushes being moved"));
+        ImGui::BulletText(tr("Environmental changes from story events"));
         ImGui::Spacing();
         ImGui::TextWrapped(
-            "These are triggered by game code and stored as separate "
-            "tile data arrays in the ROM. ZSCustomOverworld v3+ provides "
-            "extended control over these features.");
+            tr("These are triggered by game code and stored as separate "
+               "tile data arrays in the ROM. ZSCustomOverworld v3+ provides "
+               "extended control over these features."));
         ImGui::EndPopup();
       }
 
@@ -2111,17 +2115,17 @@ void MapPropertiesSystem::DrawOverlayControls(int current_map,
     if (rom_version == zelda3::OverworldVersion::kVanilla) {
       ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f),
                          ICON_MD_INFO " Vanilla ROM");
-      ImGui::BulletText("Visual effects use maps 0x80-0x9F");
-      ImGui::BulletText("Map overlays are read-only");
+      ImGui::BulletText(tr("Visual effects use maps 0x80-0x9F"));
+      ImGui::BulletText(tr("Map overlays are read-only"));
     } else {
       const char* version_name =
           zelda3::OverworldVersionHelper::GetVersionName(rom_version);
       ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), ICON_MD_UPGRADE " %s",
                          version_name);
-      ImGui::BulletText("Enhanced visual effect control");
+      ImGui::BulletText(tr("Enhanced visual effect control"));
       if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
-        ImGui::BulletText("Extended overlay system");
-        ImGui::BulletText("Custom area sizes support");
+        ImGui::BulletText(tr("Extended overlay system"));
+        ImGui::BulletText(tr("Custom area sizes support"));
       }
     }
   }
@@ -2241,7 +2245,7 @@ void MapPropertiesSystem::DrawViewPopup() {
         {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
          {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
-    ImGui::Text("View Controls");
+    ImGui::Text(tr("View Controls"));
     ImGui::Separator();
 
     // Horizontal layout for view controls
@@ -2282,7 +2286,7 @@ void MapPropertiesSystem::DrawQuickAccessPopup() {
         {{ImGuiStyleVar_ItemSpacing, ImVec2(spacing, spacing)},
          {ImGuiStyleVar_FramePadding, ImVec2(padding, padding)}});
 
-    ImGui::Text("Quick Access");
+    ImGui::Text(tr("Quick Access"));
     ImGui::Separator();
 
     // Horizontal layout for quick access buttons

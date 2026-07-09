@@ -1,4 +1,5 @@
 #include "app/editor/shell/windows/project_management_panel.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/shell/feedback/toast_manager.h"
@@ -66,11 +67,11 @@ void DrawWorkflowCard(const ProjectWorkflowStatus& status,
 
 void ProjectManagementPanel::Draw() {
   if (!project_) {
-    ImGui::TextDisabled("No project loaded");
+    ImGui::TextDisabled(tr("No project loaded"));
     ImGui::Spacing();
     ImGui::TextWrapped(
-        "Open a .yaze project file or create a new project to access "
-        "project management features.");
+        tr("Open a .yaze project file or create a new project to access "
+           "project management features."));
     return;
   }
 
@@ -91,36 +92,36 @@ void ProjectManagementPanel::DrawProjectOverview() {
                     ICON_MD_FOLDER_SPECIAL);
   ImGui::Spacing();
 
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project Format:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Project Format:"));
   ImGui::SameLine();
   ImGui::Text("%s", project_->format == project::ProjectFormat::kYazeNative
                         ? ".yaze"
                         : ".zsproj");
 
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project YAZE Version:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Project YAZE Version:"));
   ImGui::SameLine();
   const std::string& project_version = project_->metadata.yaze_version;
   if (project_version.empty()) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "Unknown");
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), tr("Unknown"));
   } else if (project_version != YAZE_VERSION_STRING) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
     ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning), "%s",
                        project_version.c_str());
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Project saved with v%s; running v%s",
+      ImGui::SetTooltip(tr("Project saved with v%s; running v%s"),
                         project_version.c_str(), YAZE_VERSION_STRING);
     }
   } else {
     ImGui::Text("%s", project_version.c_str());
   }
 
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Running YAZE:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Running YAZE:"));
   ImGui::SameLine();
   ImGui::Text("%s", YAZE_VERSION_STRING);
 
   // Project file path (read-only, click to copy)
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Path:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Path:"));
   ImGui::SameLine();
   if (ImGui::Selectable(project_->filepath.c_str(), false,
                         ImGuiSelectableFlags_None,
@@ -131,13 +132,13 @@ void ProjectManagementPanel::DrawProjectOverview() {
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Click to copy path");
+    ImGui::SetTooltip(tr("Click to copy path"));
   }
 
   ImGui::Spacing();
 
   // Editable Project Name
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Project Name:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Project Name:"));
   static char name_buffer[256] = {};
   if (name_buffer[0] == '\0' && !project_->name.empty()) {
     strncpy(name_buffer, project_->name.c_str(), sizeof(name_buffer) - 1);
@@ -149,7 +150,7 @@ void ProjectManagementPanel::DrawProjectOverview() {
   }
 
   // Editable Author
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Author:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Author:"));
   static char author_buffer[256] = {};
   if (author_buffer[0] == '\0' && !project_->metadata.author.empty()) {
     strncpy(author_buffer, project_->metadata.author.c_str(),
@@ -162,7 +163,7 @@ void ProjectManagementPanel::DrawProjectOverview() {
   }
 
   // Editable Description
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Description:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Description:"));
   static char desc_buffer[1024] = {};
   if (desc_buffer[0] == '\0' && !project_->metadata.description.empty()) {
     strncpy(desc_buffer, project_->metadata.description.c_str(),
@@ -182,15 +183,15 @@ void ProjectManagementPanel::DrawStorageLocations() {
   gui::ColoredTextF(gui::GetPrimaryVec4(), "%s Storage", ICON_MD_STORAGE);
   ImGui::Spacing();
 
-  ImGui::TextWrapped(
-      "Primary data lives under the .yaze root. Click any path to copy it.");
+  ImGui::TextWrapped(tr(
+      "Primary data lives under the .yaze root. Click any path to copy it."));
   ImGui::Spacing();
 
   auto app_root = util::PlatformPaths::GetAppDataDirectory();
   if (!app_root.ok()) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
     ImGui::TextColored(gui::ConvertColorToImVec4(theme.error),
-                       "Storage unavailable: %s",
+                       tr("Storage unavailable: %s"),
                        std::string(app_root.status().message()).c_str());
     return;
   }
@@ -230,7 +231,7 @@ void ProjectManagementPanel::DrawStorageLocations() {
         }
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Click to copy");
+        ImGui::SetTooltip(tr("Click to copy"));
       }
       ImGui::PopID();
     }
@@ -245,11 +246,11 @@ void ProjectManagementPanel::DrawRomManagement() {
   ImGui::Spacing();
 
   // Current ROM
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Current ROM:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Current ROM:"));
   if (project_->rom_filename.empty()) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
     ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
-                       "Not configured");
+                       tr("Not configured"));
   } else {
     // Show just the filename, full path on hover
     std::string filename = project_->rom_filename;
@@ -265,18 +266,19 @@ void ProjectManagementPanel::DrawRomManagement() {
 
   // ROM status
   if (rom_ && rom_->is_loaded()) {
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Title:");
+    ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Title:"));
     ImGui::SameLine();
     ImGui::Text("%s", rom_->title().c_str());
 
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Size:");
+    ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Size:"));
     ImGui::SameLine();
-    ImGui::Text("%.2f MB", static_cast<float>(rom_->size()) / (1024 * 1024));
+    ImGui::Text(tr("%.2f MB"),
+                static_cast<float>(rom_->size()) / (1024 * 1024));
 
     if (rom_->dirty()) {
       const auto& theme2 = gui::ThemeManager::Get().GetCurrentTheme();
       ImGui::TextColored(gui::ConvertColorToImVec4(theme2.warning),
-                         "%s Unsaved changes", ICON_MD_WARNING);
+                         tr("%s Unsaved changes"), ICON_MD_WARNING);
     }
   }
 
@@ -291,7 +293,7 @@ void ProjectManagementPanel::DrawRomManagement() {
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Replace the ROM file for this project");
+    ImGui::SetTooltip(tr("Replace the ROM file for this project"));
   }
 
   ImGui::SameLine();
@@ -302,7 +304,7 @@ void ProjectManagementPanel::DrawRomManagement() {
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Reload ROM from disk");
+    ImGui::SetTooltip(tr("Reload ROM from disk"));
   }
 
   ImGui::Spacing();
@@ -314,7 +316,7 @@ void ProjectManagementPanel::DrawVersionControl() {
   ImGui::Spacing();
 
   if (!version_manager_) {
-    ImGui::TextDisabled("Version manager not available");
+    ImGui::TextDisabled(tr("Version manager not available"));
     return;
   }
 
@@ -322,8 +324,8 @@ void ProjectManagementPanel::DrawVersionControl() {
 
   if (!git_initialized) {
     ImGui::TextWrapped(
-        "Git is not initialized for this project. Initialize Git to enable "
-        "version control and snapshots.");
+        tr("Git is not initialized for this project. Initialize Git to enable "
+           "version control and snapshots."));
     ImGui::Spacing();
 
     if (ImGui::Button(ICON_MD_ADD " Initialize Git",
@@ -348,7 +350,7 @@ void ProjectManagementPanel::DrawVersionControl() {
   // Show current commit
   std::string current_hash = version_manager_->GetCurrentHash();
   if (!current_hash.empty()) {
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "Current:");
+    ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Current:"));
     ImGui::SameLine();
     ImGui::Text("%s", current_hash.substr(0, 7).c_str());
   }
@@ -356,7 +358,7 @@ void ProjectManagementPanel::DrawVersionControl() {
   ImGui::Spacing();
 
   // Create snapshot section
-  ImGui::Text("Create Snapshot:");
+  ImGui::Text(tr("Create Snapshot:"));
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
   ImGui::InputTextWithHint("##snapshot_msg", "Snapshot message...",
                            snapshot_message_, sizeof(snapshot_message_));
@@ -384,7 +386,7 @@ void ProjectManagementPanel::DrawVersionControl() {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Create a snapshot of your project (Git commit + ROM backup)");
+        tr("Create a snapshot of your project (Git commit + ROM backup)"));
   }
 
   // Show recent history
@@ -406,7 +408,7 @@ void ProjectManagementPanel::DrawSnapshotHistory() {
     }
 
     if (history_cache_.empty()) {
-      ImGui::TextDisabled("No snapshots yet");
+      ImGui::TextDisabled(tr("No snapshots yet"));
     } else {
       for (const auto& entry : history_cache_) {
         // Format: "hash message"
@@ -434,7 +436,7 @@ void ProjectManagementPanel::DrawQuickActions() {
   if (project_dirty_) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
     ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
-                       "%s Project has unsaved changes", ICON_MD_EDIT);
+                       tr("%s Project has unsaved changes"), ICON_MD_EDIT);
     ImGui::Spacing();
   }
 
@@ -474,7 +476,7 @@ void ProjectManagementPanel::DrawQuickActions() {
     }
     if (!build_log_output_.empty()) {
       ImGui::Spacing();
-      ImGui::TextColored(gui::GetTextSecondaryVec4(), "Build Output:");
+      ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Output:"));
       ImGui::BeginChild("##build_output_log", ImVec2(0, 140), true,
                         ImGuiWindowFlags_HorizontalScrollbar);
       ImGui::TextUnformatted(build_log_output_.c_str());
@@ -492,7 +494,7 @@ void ProjectManagementPanel::DrawQuickActions() {
   ImGui::Spacing();
 
   // Editable Code folder
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Code Folder:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Code Folder:"));
   static char code_buffer[512] = {};
   if (code_buffer[0] == '\0' && !project_->code_folder.empty()) {
     strncpy(code_buffer, project_->code_folder.c_str(),
@@ -510,11 +512,11 @@ void ProjectManagementPanel::DrawQuickActions() {
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Browse for code folder");
+    ImGui::SetTooltip(tr("Browse for code folder"));
   }
 
   // Editable Assets folder
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Assets Folder:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Assets Folder:"));
   static char assets_buffer[512] = {};
   if (assets_buffer[0] == '\0' && !project_->assets_folder.empty()) {
     strncpy(assets_buffer, project_->assets_folder.c_str(),
@@ -533,11 +535,11 @@ void ProjectManagementPanel::DrawQuickActions() {
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Browse for assets folder");
+    ImGui::SetTooltip(tr("Browse for assets folder"));
   }
 
   // Editable Build target
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Build Target:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Target:"));
   static char build_buffer[256] = {};
   if (build_buffer[0] == '\0' && !project_->build_target.empty()) {
     strncpy(build_buffer, project_->build_target.c_str(),
@@ -550,7 +552,7 @@ void ProjectManagementPanel::DrawQuickActions() {
   }
 
   // Build script
-  ImGui::TextColored(gui::GetTextSecondaryVec4(), "Build Script:");
+  ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Script:"));
   static char script_buffer[512] = {};
   if (script_buffer[0] == '\0' && !project_->build_script.empty()) {
     strncpy(script_buffer, project_->build_script.c_str(),

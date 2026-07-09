@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_MUSIC_PANELS_MUSIC_ASSEMBLY_PANEL_H_
 
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "app/editor/code/assembly_editor.h"
 #include "app/editor/system/workspace/editor_panel.h"
@@ -35,7 +36,7 @@ class MusicAssemblyPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!assembly_editor_) {
-      ImGui::TextDisabled("Assembly editor not available");
+      ImGui::TextDisabled(tr("Assembly editor not available"));
       return;
     }
 

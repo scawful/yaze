@@ -1,4 +1,5 @@
 #include "dungeon_usage_tracker.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <vector>
@@ -72,35 +73,35 @@ void DungeonUsageTracker::CalculateUsageStats(const DungeonRoomStore& rooms) {
 }
 
 void DungeonUsageTracker::DrawUsageStats() {
-  if (ImGui::Button("Refresh")) {
+  if (ImGui::Button(tr("Refresh"))) {
     ClearUsageStats();
   }
 
-  ImGui::Text("Usage Statistics");
+  ImGui::Text(tr("Usage Statistics"));
   ImGui::Separator();
 
-  ImGui::Text("Blocksets: %zu used", blockset_usage_.size());
-  ImGui::Text("Spritesets: %zu used", spriteset_usage_.size());
-  ImGui::Text("Palettes: %zu used", palette_usage_.size());
+  ImGui::Text(tr("Blocksets: %zu used"), blockset_usage_.size());
+  ImGui::Text(tr("Spritesets: %zu used"), spriteset_usage_.size());
+  ImGui::Text(tr("Palettes: %zu used"), palette_usage_.size());
 
   ImGui::Separator();
 
   // Detailed usage breakdown
-  if (ImGui::CollapsingHeader("Blockset Usage")) {
+  if (ImGui::CollapsingHeader(tr("Blockset Usage"))) {
     for (const auto& [blockset, count] : blockset_usage_) {
-      ImGui::Text("Blockset 0x%02X: %d rooms", blockset, count);
+      ImGui::Text(tr("Blockset 0x%02X: %d rooms"), blockset, count);
     }
   }
 
-  if (ImGui::CollapsingHeader("Spriteset Usage")) {
+  if (ImGui::CollapsingHeader(tr("Spriteset Usage"))) {
     for (const auto& [spriteset, count] : spriteset_usage_) {
-      ImGui::Text("Spriteset 0x%02X: %d rooms", spriteset, count);
+      ImGui::Text(tr("Spriteset 0x%02X: %d rooms"), spriteset, count);
     }
   }
 
-  if (ImGui::CollapsingHeader("Palette Usage")) {
+  if (ImGui::CollapsingHeader(tr("Palette Usage"))) {
     for (const auto& [palette, count] : palette_usage_) {
-      ImGui::Text("Palette 0x%02X: %d rooms", palette, count);
+      ImGui::Text(tr("Palette 0x%02X: %d rooms"), palette, count);
     }
   }
 }
@@ -108,18 +109,18 @@ void DungeonUsageTracker::DrawUsageStats() {
 void DungeonUsageTracker::DrawUsageGrid() {
   if (blockset_usage_.empty() && spriteset_usage_.empty() &&
       palette_usage_.empty()) {
-    ImGui::TextDisabled("No usage data. Load rooms and click Refresh.");
+    ImGui::TextDisabled(tr("No usage data. Load rooms and click Refresh."));
     return;
   }
 
-  ImGui::Text("Blockset Usage Grid");
+  ImGui::Text(tr("Blockset Usage Grid"));
   ImGui::SameLine();
   ImGui::TextDisabled("(?)");
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        "Color intensity indicates room count.\n"
-        "Green = few rooms, Red = many rooms.\n"
-        "Click a cell to select that blockset.");
+        tr("Color intensity indicates room count.\n"
+           "Green = few rooms, Red = many rooms.\n"
+           "Click a cell to select that blockset."));
   }
   ImGui::Separator();
 
@@ -185,8 +186,8 @@ void DungeonUsageTracker::DrawUsageGrid() {
       // Tooltip on hover.
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Text("Blockset 0x%02X", bs_id);
-        ImGui::Text("Used by %d rooms", count);
+        ImGui::Text(tr("Blockset 0x%02X"), bs_id);
+        ImGui::Text(tr("Used by %d rooms"), count);
         ImGui::EndTooltip();
       }
     }
@@ -194,11 +195,11 @@ void DungeonUsageTracker::DrawUsageGrid() {
   }
 
   // Also show spriteset and palette grids in collapsible sections.
-  if (ImGui::CollapsingHeader("Spriteset Usage Grid")) {
+  if (ImGui::CollapsingHeader(tr("Spriteset Usage Grid"))) {
     RenderSetUsage(spriteset_usage_, selected_spriteset_);
   }
 
-  if (ImGui::CollapsingHeader("Palette Usage Grid")) {
+  if (ImGui::CollapsingHeader(tr("Palette Usage Grid"))) {
     RenderSetUsage(palette_usage_, selected_palette_);
   }
 }
@@ -207,7 +208,7 @@ void DungeonUsageTracker::RenderSetUsage(
     const absl::flat_hash_map<uint16_t, int>& usage_map, uint16_t& selected_set,
     int spriteset_offset) {
   if (usage_map.empty()) {
-    ImGui::TextDisabled("No data available.");
+    ImGui::TextDisabled(tr("No data available."));
     return;
   }
 
@@ -224,7 +225,7 @@ void DungeonUsageTracker::RenderSetUsage(
     max_val = 1;
 
   // Summary bar showing distribution.
-  ImGui::Text("%zu unique sets, max usage: %d rooms", ids.size(), max_val);
+  ImGui::Text(tr("%zu unique sets, max usage: %d rooms"), ids.size(), max_val);
   ImGui::Separator();
 
   // Table with ID, usage count, and visual bar.

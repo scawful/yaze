@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
@@ -108,7 +109,7 @@ class RoomMatrixContent : public WindowContent {
       ImGui::EndDisabled();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Clear filter");
+      ImGui::SetTooltip(tr("Clear filter"));
     }
     ImGui::PopID();
 
@@ -252,7 +253,7 @@ class RoomMatrixContent : public WindowContent {
               }
             }
 
-            if (ImGui::MenuItem("Open as Panel")) {
+            if (ImGui::MenuItem(tr("Open as Panel"))) {
               if (on_room_intent_) {
                 on_room_intent_(room_id, RoomSelectionIntent::kOpenStandalone);
               } else if (on_room_selected_) {
@@ -260,7 +261,7 @@ class RoomMatrixContent : public WindowContent {
               }
             }
 
-            if (ImGui::MenuItem("Swap With Current Room", nullptr, false,
+            if (ImGui::MenuItem(tr("Swap With Current Room"), nullptr, false,
                                 can_swap)) {
               on_room_swap_(*current_room_id_, room_id);
             }
@@ -269,12 +270,12 @@ class RoomMatrixContent : public WindowContent {
 
             char id_buf[16];
             snprintf(id_buf, sizeof(id_buf), "0x%02X", room_id);
-            if (ImGui::MenuItem("Copy Room ID")) {
+            if (ImGui::MenuItem(tr("Copy Room ID"))) {
               ImGui::SetClipboardText(id_buf);
             }
 
             const std::string& room_label = zelda3::GetRoomLabel(room_id);
-            if (ImGui::MenuItem("Copy Room Name")) {
+            if (ImGui::MenuItem(tr("Copy Room Name"))) {
               ImGui::SetClipboardText(room_label.c_str());
             }
 
@@ -286,7 +287,7 @@ class RoomMatrixContent : public WindowContent {
             ImGui::BeginTooltip();
             // Use unified ResourceLabelProvider for room names
             ImGui::Text("%s", zelda3::GetRoomLabel(room_id).c_str());
-            ImGui::TextDisabled("Room 0x%02X", room_id);
+            ImGui::TextDisabled(tr("Room 0x%02X"), room_id);
 
             if (is_current) {
               ImGui::TextColored(theme.dungeon_selection_primary,
@@ -300,7 +301,7 @@ class RoomMatrixContent : public WindowContent {
               auto* loaded_room = rooms_->GetIfLoaded(room_id);
               if (loaded_room != nullptr) {
                 // Show palette info
-                ImGui::TextDisabled("Palette: %d | Blockset: %d",
+                ImGui::TextDisabled(tr("Palette: %d | Blockset: %d"),
                                     loaded_room->palette(),
                                     loaded_room->blockset());
 
@@ -321,9 +322,9 @@ class RoomMatrixContent : public WindowContent {
             }
 
             ImGui::Separator();
-            ImGui::TextDisabled("Click to %s", is_open ? "focus" : "open");
-            ImGui::TextDisabled("Double-click to open as panel");
-            ImGui::TextDisabled("Right-click for actions");
+            ImGui::TextDisabled(tr("Click to %s"), is_open ? "focus" : "open");
+            ImGui::TextDisabled(tr("Double-click to open as panel"));
+            ImGui::TextDisabled(tr("Right-click for actions"));
             ImGui::EndTooltip();
           }
         } else {
@@ -352,24 +353,24 @@ class RoomMatrixContent : public WindowContent {
                                           ? zelda3::GetRoomLabel(current_room)
                                           : "No room selected";
 
-    ImGui::SeparatorText("Navigator");
+    ImGui::SeparatorText(tr("Navigator"));
     ImGui::Text("%s", current_label.c_str());
-    ImGui::TextDisabled("Current: 0x%02X", std::max(0, current_room));
+    ImGui::TextDisabled(tr("Current: 0x%02X"), std::max(0, current_room));
     ImGui::SameLine();
-    ImGui::TextDisabled("%d open", open_rooms);
+    ImGui::TextDisabled(tr("%d open"), open_rooms);
 
     if (current_room >= 0) {
       if (auto room_meta = GetRoomMetadata(current_room);
           room_meta.has_value()) {
         ImGui::SameLine();
-        ImGui::TextColored(theme.status_success, "Pal %d / Blockset %d",
+        ImGui::TextColored(theme.status_success, tr("Pal %d / Blockset %d"),
                            room_meta->first, room_meta->second);
       }
     }
   }
 
   void DrawMatrixLegend(const AgentUITheme& theme) const {
-    ImGui::SeparatorText("Legend");
+    ImGui::SeparatorText(tr("Legend"));
     DrawLegendSwatch(theme.dungeon_selection_primary,
                      ICON_MD_MY_LOCATION " Current");
     ImGui::SameLine();

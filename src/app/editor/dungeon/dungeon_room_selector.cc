@@ -1,4 +1,5 @@
 #include "dungeon_room_selector.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <map>
@@ -80,7 +81,7 @@ bool DungeonRoomSelector::PassesEntityTypeFilter(int room_id) const {
 void DungeonRoomSelector::DrawRoomSelectorInternal(
     RoomSelectionIntent single_click_intent, bool show_room_id_input) {
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::Text("ROM not loaded");
+    ImGui::Text(tr("ROM not loaded"));
     return;
   }
 
@@ -115,7 +116,8 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
       view_mode_ = (view_mode_ == kViewList) ? kViewGrouped : kViewList;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Toggle between flat list and dungeon-grouped view");
+      ImGui::SetTooltip(
+          tr("Toggle between flat list and dungeon-grouped view"));
     }
     ImGui::SameLine(0, 12);
 
@@ -217,7 +219,7 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
 
         // Context menu
         if (ImGui::BeginPopupContextItem()) {
-          if (ImGui::MenuItem("Open in Workbench")) {
+          if (ImGui::MenuItem(tr("Open in Workbench"))) {
             current_room_id_ = room_id;
             if (room_intent_callback_) {
               room_intent_callback_(room_id,
@@ -226,7 +228,7 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
               room_selected_callback_(room_id);
             }
           }
-          if (ImGui::MenuItem("Open as Panel")) {
+          if (ImGui::MenuItem(tr("Open as Panel"))) {
             current_room_id_ = room_id;
             if (room_intent_callback_) {
               room_intent_callback_(room_id,
@@ -238,7 +240,7 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
           ImGui::Separator();
           char id_buf[16];
           snprintf(id_buf, sizeof(id_buf), "0x%03X", room_id);
-          if (ImGui::MenuItem("Copy Room ID")) {
+          if (ImGui::MenuItem(tr("Copy Room ID"))) {
             ImGui::SetClipboardText(id_buf);
           }
           ImGui::EndPopup();
@@ -251,7 +253,7 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
           if (rooms_) {
             auto* loaded_room = rooms_->GetIfLoaded(room_id);
             if (loaded_room != nullptr) {
-              ImGui::TextDisabled("Blockset: %d | Palette: %d",
+              ImGui::TextDisabled(tr("Blockset: %d | Palette: %d"),
                                   loaded_room->blockset(),
                                   loaded_room->palette());
               auto& room = *loaded_room;
@@ -322,12 +324,12 @@ void DungeonRoomSelector::DrawEntranceBrowser() {
 
 void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::Text("ROM not loaded");
+    ImGui::Text(tr("ROM not loaded"));
     return;
   }
 
   if (!entrances_) {
-    ImGui::Text("Entrances not loaded");
+    ImGui::Text(tr("Entrances not loaded"));
     return;
   }
 
@@ -349,7 +351,7 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("Entr ID: %04X", current_entrance.entrance_id_);
+      ImGui::Text(tr("Entr ID: %04X"), current_entrance.entrance_id_);
       changed |= gui::InputHexWord("Room ID", &current_entrance.room_);
       changed |= gui::InputHexByte("Dungeon", &current_entrance.dungeon_id_);
       changed |= gui::InputHexByte("Music", &current_entrance.music_);
@@ -375,9 +377,9 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
     }
 
     ImGui::Separator();
-    if (ImGui::CollapsingHeader("Camera Boundaries")) {
-      ImGui::Text("                North   East    South   West");
-      ImGui::Text("Quadrant      ");
+    if (ImGui::CollapsingHeader(tr("Camera Boundaries"))) {
+      ImGui::Text(tr("                North   East    South   West"));
+      ImGui::Text(tr("Quadrant      "));
       SameLine();
       changed |= gui::InputHexByte("##QN",
                                    &current_entrance.camera_boundary_qn_, 40.f);
@@ -391,7 +393,7 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
       changed |= gui::InputHexByte("##QW",
                                    &current_entrance.camera_boundary_qw_, 40.f);
 
-      ImGui::Text("Full Room     ");
+      ImGui::Text(tr("Full Room     "));
       SameLine();
       changed |= gui::InputHexByte("##FN",
                                    &current_entrance.camera_boundary_fn_, 40.f);
@@ -646,7 +648,7 @@ void DungeonRoomSelector::DrawGroupedRoomList(
             if (loaded_room != nullptr) {
               ImGui::BeginTooltip();
               ImGui::Text("%s", display_name.c_str());
-              ImGui::TextDisabled("Blockset: %d | Palette: %d",
+              ImGui::TextDisabled(tr("Blockset: %d | Palette: %d"),
                                   loaded_room->blockset(),
                                   loaded_room->palette());
               auto& room = *loaded_room;

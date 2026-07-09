@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include "util/i18n/tr.h"
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -157,13 +158,13 @@ absl::Status OverworldEditor::DrawScratchSpace() {
   // Header with clear button
   Text(ICON_MD_BRUSH " Scratch Workspace");
   SameLine();
-  if (Button("Clear")) {
+  if (Button(tr("Clear"))) {
     RETURN_IF_ERROR(ClearScratchSpace());
   }
   HOVER_HINT("Clear scratch workspace");
 
   // Status info
-  Text("%s (%dx%d)", scratch_space_.name.c_str(), scratch_space_.width,
+  Text(tr("%s (%dx%d)"), scratch_space_.name.c_str(), scratch_space_.width,
        scratch_space_.height);
 
   // Interaction hints
@@ -173,8 +174,8 @@ absl::Status OverworldEditor::DrawScratchSpace() {
         ImVec4(0.4f, 1.0f, 0.4f, 1.0f), ICON_MD_CONTENT_PASTE
         " Overworld selection active! Click in scratch space to stamp.");
   } else {
-    Text("Left-click to paint with current tile.");
-    Text("Right-click to select tiles.");
+    Text(tr("Left-click to paint with current tile."));
+    Text(tr("Right-click to select tiles."));
   }
 
   // Initialize scratch bitmap if needed

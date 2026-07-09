@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <functional>
+#include "util/i18n/tr.h"
 
 #include "app/gui/app/editor_layout.h"
 
@@ -32,11 +33,10 @@ std::string PanelWindow::duplicate_panel_name_;
 
 void Toolset::Begin() {
   // Ultra-compact toolbar with minimal padding
-  toolbar_var_guard_.emplace(
-      std::initializer_list<StyleVarGuard::Entry>{
-          {ImGuiStyleVar_FramePadding, ImVec2(4, 2)},
-          {ImGuiStyleVar_ItemSpacing, ImVec2(3, 3)},
-          {ImGuiStyleVar_WindowPadding, ImVec2(6, 4)}});
+  toolbar_var_guard_.emplace(std::initializer_list<StyleVarGuard::Entry>{
+      {ImGuiStyleVar_FramePadding, ImVec2(4, 2)},
+      {ImGuiStyleVar_ItemSpacing, ImVec2(3, 3)},
+      {ImGuiStyleVar_WindowPadding, ImVec2(6, 4)}});
 
   // Don't use BeginGroup - it causes stretching. Just use direct layout.
   in_toolbar_ = true;
@@ -121,7 +121,7 @@ void Toolset::AddRomBadge(uint8_t version, std::function<void()> on_upgrade) {
       on_upgrade();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Upgrade to ZSCustomOverworld v3");
+      ImGui::SetTooltip(tr("Upgrade to ZSCustomOverworld v3"));
     }
   }
 
@@ -340,10 +340,10 @@ bool PanelWindow::Begin(bool* p_open) {
                              : ImVec2(display_width, display_height);
       ImVec2 min_size(work_size.x * 0.65f, work_size.y * 0.55f);
       ImVec2 max_size(work_size.x * 0.96f, work_size.y * 0.92f);
-      ImVec2 desired = default_size_set_
-                           ? ImVec2(default_size_.x * 1.2f,
-                                    default_size_.y * 1.2f)
-                           : ImVec2(work_size.x * 0.9f, work_size.y * 0.82f);
+      ImVec2 desired =
+          default_size_set_
+              ? ImVec2(default_size_.x * 1.2f, default_size_.y * 1.2f)
+              : ImVec2(work_size.x * 0.9f, work_size.y * 0.82f);
       initial_size.x = std::clamp(desired.x, min_size.x, max_size.x);
       initial_size.y = std::clamp(desired.y, min_size.y, max_size.y);
 
@@ -398,14 +398,12 @@ bool PanelWindow::Begin(bool* p_open) {
   }
 
   // Modern panel styling
-  panel_var_guard_.emplace(
-      std::initializer_list<StyleVarGuard::Entry>{
-          {ImGuiStyleVar_WindowRounding, 8.0f},
-          {ImGuiStyleVar_WindowPadding, ImVec2(10, 10)}});
-  panel_color_guard_.emplace(
-      std::initializer_list<StyleColorGuard::Entry>{
-          {ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg)},
-          {ImGuiCol_TitleBgActive, GetAccentColor()}});
+  panel_var_guard_.emplace(std::initializer_list<StyleVarGuard::Entry>{
+      {ImGuiStyleVar_WindowRounding, 8.0f},
+      {ImGuiStyleVar_WindowPadding, ImVec2(10, 10)}});
+  panel_color_guard_.emplace(std::initializer_list<StyleColorGuard::Entry>{
+      {ImGuiCol_TitleBg, GetThemeColor(ImGuiCol_TitleBg)},
+      {ImGuiCol_TitleBgActive, GetAccentColor()}});
 
   // Use p_open parameter if provided, otherwise use stored p_open_
   bool* actual_p_open = p_open ? p_open : p_open_;
@@ -423,16 +421,14 @@ bool PanelWindow::Begin(bool* p_open) {
     if (window && !window->DockNode && !window->Collapsed) {
       const ImGuiViewport* viewport =
           window->Viewport ? window->Viewport : ImGui::GetMainViewport();
-      const bool dragging =
-          ImGui::IsMouseDragging(ImGuiMouseButton_Left) &&
-          ImGui::IsWindowHovered(
-              ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+      const bool dragging = ImGui::IsMouseDragging(ImGuiMouseButton_Left) &&
+                            ImGui::IsWindowHovered(
+                                ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
       if (!dragging && viewport) {
         constexpr float kMinVisible = 32.0f;
-        const auto clamp =
-            LayoutHelpers::ClampWindowToRect(window->Pos, window->Size,
-                                             viewport->WorkPos,
-                                             viewport->WorkSize, kMinVisible);
+        const auto clamp = LayoutHelpers::ClampWindowToRect(
+            window->Pos, window->Size, viewport->WorkPos, viewport->WorkSize,
+            kMinVisible);
         if (clamp.clamped) {
           ImGui::SetWindowPos(clamp.pos, ImGuiCond_Always);
         }
@@ -489,7 +485,7 @@ void PanelWindow::DrawFloatingIconButton() {
     }
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Expand %s", title_.c_str());
+      ImGui::SetTooltip(tr("Expand %s"), title_.c_str());
     }
 
     // Allow dragging the icon
