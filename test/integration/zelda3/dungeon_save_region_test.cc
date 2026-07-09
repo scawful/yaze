@@ -309,6 +309,31 @@ TEST_F(DungeonSaveRegionTest, RoomsWithPitDamageMatchesUsdasm) {
 
 // --- Blocks (length @ kBlocksLength, four pointers, four 0x80 regions) ---
 
+TEST_F(DungeonSaveRegionTest, BlocksLoaderPointerOperandsMatchUsdasmShape) {
+  const auto& data = rom_->vector();
+  const int ptrs[4] = {kBlocksPointer1, kBlocksPointer2, kBlocksPointer3,
+                       kBlocksPointer4};
+  constexpr int kRegionSize = 0x80;
+  constexpr int kVanillaPushableBlockSnes = 0x04F1DE;
+
+  for (int r = 0; r < 4; ++r) {
+    const int slot = ptrs[r];
+    ASSERT_GT(slot, 0);
+    ASSERT_LT(slot + 3, static_cast<int>(data.size()));
+    EXPECT_EQ(data[slot - 1], 0xBF)
+        << "bank_02.asm expects LDA.l before pushable-block operand " << r;
+    EXPECT_EQ(data[slot + 3], 0x9D)
+        << "bank_02.asm expects STA.w after pushable-block operand " << r;
+
+    const int snes =
+        (data[slot + 2] << 16) | (data[slot + 1] << 8) | data[slot];
+    const int expected_snes = kVanillaPushableBlockSnes + (r * kRegionSize);
+    EXPECT_EQ(snes, expected_snes)
+        << "US USDASM pins SpecialUnderworldObjects_pushable_block at "
+           "$04:F1DE and the loader copies four 0x80-byte pages.";
+  }
+}
+
 TEST_F(DungeonSaveRegionTest, SaveAllBlocksPreservesRegion) {
   const auto& data = rom_->vector();
   if (kBlocksLength + 1 >= static_cast<int>(data.size())) {
