@@ -219,6 +219,12 @@ if(NOT APPLE)
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/themes $<TARGET_FILE_DIR:yaze>/assets/themes
     COMMENT "Copying theme assets"
   )
+  if(EXISTS ${CMAKE_SOURCE_DIR}/assets/i18n)
+    add_custom_command(TARGET yaze POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/i18n $<TARGET_FILE_DIR:yaze>/assets/i18n
+      COMMENT "Copying i18n translation catalogs"
+    )
+  endif()
   if(EXISTS ${CMAKE_SOURCE_DIR}/assets/agent)
     add_custom_command(TARGET yaze POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:yaze>/assets/agent

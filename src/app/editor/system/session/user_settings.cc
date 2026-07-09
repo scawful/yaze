@@ -222,6 +222,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->switch_motion_profile = to_int(val, prefs->switch_motion_profile);
     } else if (key == "last_theme_name") {
       prefs->last_theme_name = val;
+    } else if (key == "language_locale") {
+      prefs->language_locale = val;
     } else if (key == "font_family_index") {
       prefs->font_family_index = std::stoi(val);
     }
@@ -390,6 +392,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "reduced_motion=" << (prefs.reduced_motion ? 1 : 0) << "\n";
   ss << "switch_motion_profile=" << prefs.switch_motion_profile << "\n";
   ss << "last_theme_name=" << prefs.last_theme_name << "\n";
+  ss << "language_locale=" << prefs.language_locale << "\n";
   ss << "font_family_index=" << prefs.font_family_index << "\n";
 
   // Editor Behavior
@@ -779,6 +782,8 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         appearance.value("switch_motion_profile", prefs->switch_motion_profile);
     prefs->last_theme_name =
         appearance.value("last_theme_name", prefs->last_theme_name);
+    prefs->language_locale =
+        appearance.value("language_locale", prefs->language_locale);
     prefs->font_family_index =
         appearance.value("font_family_index", prefs->font_family_index);
   }
@@ -1046,6 +1051,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"reduced_motion", prefs.reduced_motion},
       {"switch_motion_profile", prefs.switch_motion_profile},
       {"last_theme_name", prefs.last_theme_name},
+      {"language_locale", prefs.language_locale},
       {"font_family_index", prefs.font_family_index},
   };
 

@@ -1,4 +1,5 @@
 #include "canvas_modals.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <iomanip>
@@ -169,29 +170,29 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
     }
 
     // View Settings Section
-    if (ImGui::CollapsingHeader("👁️ View Settings",
+    if (ImGui::CollapsingHeader(tr("👁️ View Settings"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
-      ImGui::Checkbox("Show Grid", &config.enable_grid);
+      ImGui::Checkbox(tr("Show Grid"), &config.enable_grid);
       ImGui::SameLine();
       RenderMaterialIcon("grid_on");
 
-      ImGui::Checkbox("Show Hex Labels", &config.enable_hex_labels);
+      ImGui::Checkbox(tr("Show Hex Labels"), &config.enable_hex_labels);
       ImGui::SameLine();
       RenderMaterialIcon("label");
 
-      ImGui::Checkbox("Show Custom Labels", &config.enable_custom_labels);
+      ImGui::Checkbox(tr("Show Custom Labels"), &config.enable_custom_labels);
       ImGui::SameLine();
       RenderMaterialIcon("edit");
 
-      ImGui::Checkbox("Enable Context Menu", &config.enable_context_menu);
+      ImGui::Checkbox(tr("Enable Context Menu"), &config.enable_context_menu);
       ImGui::SameLine();
       RenderMaterialIcon("menu");
 
-      ImGui::Checkbox("Draggable Canvas", &config.is_draggable);
+      ImGui::Checkbox(tr("Draggable Canvas"), &config.is_draggable);
       ImGui::SameLine();
       RenderMaterialIcon("drag_indicator");
 
-      ImGui::Checkbox("Auto Resize for Tables", &config.auto_resize);
+      ImGui::Checkbox(tr("Auto Resize for Tables"), &config.auto_resize);
       ImGui::SameLine();
       RenderMaterialIcon("fit_screen");
     }
@@ -205,7 +206,7 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
                            128.0f, "%.1f");
 
       // Preset scale buttons
-      ImGui::Text("Preset Scales:");
+      ImGui::Text(tr("Preset Scales:"));
       ImGui::SameLine();
 
       const char* preset_labels[] = {"0.25x", "0.5x", "1x", "2x", "4x", "8x"};
@@ -222,17 +223,17 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
     }
 
     // Scrolling Controls Section
-    if (ImGui::CollapsingHeader("📜 Scrolling Controls")) {
-      ImGui::Text("Current Scroll: %.1f, %.1f", config.scrolling.x,
+    if (ImGui::CollapsingHeader(tr("📜 Scrolling Controls"))) {
+      ImGui::Text(tr("Current Scroll: %.1f, %.1f"), config.scrolling.x,
                   config.scrolling.y);
 
-      if (ImGui::Button("Reset Scroll")) {
+      if (ImGui::Button(tr("Reset Scroll"))) {
         config.scrolling = ImVec2(0, 0);
         DispatchConfig(config.on_config_changed, config);
       }
       ImGui::SameLine();
 
-      if (ImGui::Button("Center View") && bitmap) {
+      if (ImGui::Button(tr("Center View")) && bitmap) {
         config.scrolling = ImVec2(
             -(bitmap->width() * config.global_scale - config.canvas_size.x) /
                 2.0f,
@@ -251,14 +252,14 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
       auto draw_stats = profiler.GetStats("canvas_draw");
 
       RenderMetricPanel("Canvas Operations",
-                       std::to_string(canvas_stats.sample_count) + " ops",
-                       "speed", ImVec4(0.2F, 1.0F, 0.2F, 1.0F));
+                        std::to_string(canvas_stats.sample_count) + " ops",
+                        "speed", ImVec4(0.2F, 1.0F, 0.2F, 1.0F));
 
       RenderMetricPanel("Average Time",
-                       std::to_string(draw_stats.avg_time_us / 1000.0) + " ms",
-                       "timer", ImVec4(1.0F, 0.8F, 0.2F, 1.0F));
+                        std::to_string(draw_stats.avg_time_us / 1000.0) + " ms",
+                        "timer", ImVec4(1.0F, 0.8F, 0.2F, 1.0F));
 
-      if (ImGui::Button("Open Performance Dashboard")) {
+      if (ImGui::Button(tr("Open Performance Dashboard"))) {
         gfx::PerformanceDashboard::Get().SetVisible(true);
       }
     }
@@ -267,18 +268,18 @@ void CanvasModals::RenderAdvancedPropertiesModal(const std::string& canvas_id,
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button("Apply Changes", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Apply Changes"), ImVec2(120, 0))) {
       DispatchConfig(config.on_config_changed, config);
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("Reset to Defaults", ImVec2(150, 0))) {
+    if (ImGui::Button(tr("Reset to Defaults"), ImVec2(150, 0))) {
       config.global_scale = 1.0f;
       config.grid_step = 32.0f;
       config.enable_grid = true;
@@ -308,12 +309,12 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     ImGui::Separator();
 
     // Global Scale Section
-    ImGui::Text("Global Scale: %.3f", config.global_scale);
+    ImGui::Text(tr("Global Scale: %.3f"), config.global_scale);
     RenderSliderWithIcon("##GlobalScale", "zoom_in", &config.global_scale, 0.1f,
                          10.0f, "%.2f");
 
     // Preset scale buttons
-    ImGui::Text("Preset Scales:");
+    ImGui::Text(tr("Preset Scales:"));
     const char* preset_labels[] = {"0.25x", "0.5x", "1x", "2x", "4x", "8x"};
     const float preset_values[] = {0.25f, 0.5f, 1.0f, 2.0f, 4.0f, 8.0f};
 
@@ -329,12 +330,12 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     ImGui::Separator();
 
     // Grid Configuration Section
-    ImGui::Text("Grid Step: %.1f", config.grid_step);
+    ImGui::Text(tr("Grid Step: %.1f"), config.grid_step);
     RenderSliderWithIcon("##GridStep", "grid_on", &config.grid_step, 1.0f,
                          128.0f, "%.1f");
 
     // Grid size presets
-    ImGui::Text("Grid Presets:");
+    ImGui::Text(tr("Grid Presets:"));
     const char* grid_labels[] = {"8x8", "16x16", "32x32", "64x64"};
     const float grid_values[] = {8.0f, 16.0f, 32.0f, 64.0f};
 
@@ -350,17 +351,18 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     ImGui::Separator();
 
     // Canvas Information Section
-    ImGui::Text("Canvas Information");
-    ImGui::Text("Canvas Size: %.0f x %.0f", config.canvas_size.x,
+    ImGui::Text(tr("Canvas Information"));
+    ImGui::Text(tr("Canvas Size: %.0f x %.0f"), config.canvas_size.x,
                 config.canvas_size.y);
-    ImGui::Text("Scaled Size: %.0f x %.0f",
+    ImGui::Text(tr("Scaled Size: %.0f x %.0f"),
                 config.canvas_size.x * config.global_scale,
                 config.canvas_size.y * config.global_scale);
 
     if (bitmap) {
-      ImGui::Text("Bitmap Size: %d x %d", bitmap->width(), bitmap->height());
+      ImGui::Text(tr("Bitmap Size: %d x %d"), bitmap->width(),
+                  bitmap->height());
       ImGui::Text(
-          "Effective Scale: %.3f x %.3f",
+          tr("Effective Scale: %.3f x %.3f"),
           (config.canvas_size.x * config.global_scale) / bitmap->width(),
           (config.canvas_size.y * config.global_scale) / bitmap->height());
     }
@@ -369,13 +371,13 @@ void CanvasModals::RenderScalingControlsModal(const std::string& canvas_id,
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button("Apply", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Apply"), ImVec2(120, 0))) {
       DispatchScale(config.on_scale_changed, config);
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -408,7 +410,7 @@ void CanvasModals::RenderBppConversionModal(
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button("Close", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Close"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -440,7 +442,7 @@ void CanvasModals::RenderPaletteEditorModal(
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button("Close", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Close"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -471,7 +473,7 @@ void CanvasModals::RenderColorAnalysisModal(
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button("Close", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Close"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -492,9 +494,9 @@ void CanvasModals::RenderPerformanceModal(const std::string& canvas_id,
 
     // Performance metrics
     RenderMetricPanel("Operation", options.operation_name, "speed",
-                     ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
+                      ImVec4(0.2f, 1.0f, 0.2f, 1.0f));
     RenderMetricPanel("Time", std::to_string(options.operation_time_ms) + " ms",
-                     "timer", ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
+                      "timer", ImVec4(1.0f, 0.8f, 0.2f, 1.0f));
 
     // Get overall performance stats
     auto& profiler = gfx::PerformanceProfiler::Get();
@@ -502,22 +504,22 @@ void CanvasModals::RenderPerformanceModal(const std::string& canvas_id,
     auto draw_stats = profiler.GetStats("canvas_draw");
 
     RenderMetricPanel("Total Operations",
-                     std::to_string(canvas_stats.sample_count), "functions",
-                     ImVec4(0.2F, 0.8F, 1.0F, 1.0F));
+                      std::to_string(canvas_stats.sample_count), "functions",
+                      ImVec4(0.2F, 0.8F, 1.0F, 1.0F));
     RenderMetricPanel("Average Time",
-                     std::to_string(draw_stats.avg_time_us / 1000.0) + " ms",
-                     "schedule", ImVec4(0.8F, 0.2F, 1.0F, 1.0F));
+                      std::to_string(draw_stats.avg_time_us / 1000.0) + " ms",
+                      "schedule", ImVec4(0.8F, 0.2F, 1.0F, 1.0F));
 
     // Action Buttons
     ImGui::Separator();
     ImGui::Spacing();
 
-    if (ImGui::Button("Open Dashboard", ImVec2(150, 0))) {
+    if (ImGui::Button(tr("Open Dashboard"), ImVec2(150, 0))) {
       gfx::PerformanceDashboard::Get().SetVisible(true);
     }
     ImGui::SameLine();
 
-    if (ImGui::Button("Close", ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Close"), ImVec2(120, 0))) {
       ImGui::CloseCurrentPopup();
     }
 
@@ -588,9 +590,9 @@ void CanvasModals::RenderMaterialIcon(const std::string& icon_name,
 }
 
 void CanvasModals::RenderMetricPanel(const std::string& title,
-                                    const std::string& value,
-                                    const std::string& icon,
-                                    const ImVec4& color) {
+                                     const std::string& value,
+                                     const std::string& icon,
+                                     const ImVec4& color) {
   ImGui::BeginGroup();
 
   // Icon and title

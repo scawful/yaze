@@ -1,4 +1,5 @@
 #include "app/editor/hack/workflow/workflow_activity_widgets.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <ctime>
@@ -40,8 +41,7 @@ bool DrawWorkflowActionButton(const char* button_label, const char* tooltip,
 
 }  // namespace
 
-std::string FormatHistoryTime(
-    std::chrono::system_clock::time_point timestamp) {
+std::string FormatHistoryTime(std::chrono::system_clock::time_point timestamp) {
   const std::time_t raw = std::chrono::system_clock::to_time_t(timestamp);
   std::tm local_tm{};
 #if defined(_WIN32)
@@ -111,7 +111,7 @@ WorkflowButtonRect DrawCopyCurrentLogButton(const std::string& build_log) {
   if (build_log.empty()) {
     return rect;
   }
-  if (ImGui::SmallButton("Copy Current Log##workflow_copy_current_log")) {
+  if (ImGui::SmallButton(tr("Copy Current Log##workflow_copy_current_log"))) {
     rect = LastItemRect();
     ImGui::SetClipboardText(build_log.c_str());
     return rect;
@@ -129,10 +129,9 @@ WorkflowActionRowResult DrawHistoryActionRow(
 
   if (options.show_open_output && callbacks.show_output) {
     drew_action = true;
-    DrawWorkflowActionButton(
-        "Open Output##workflow_open_output",
-        "Open the Workflow Output panel", callbacks.show_output,
-        &result.open_output);
+    DrawWorkflowActionButton("Open Output##workflow_open_output",
+                             "Open the Workflow Output panel",
+                             callbacks.show_output, &result.open_output);
   }
 
   if (entry.kind == "Build" && callbacks.start_build) {
@@ -140,18 +139,16 @@ WorkflowActionRowResult DrawHistoryActionRow(
       ImGui::SameLine();
     }
     drew_action = true;
-    DrawWorkflowActionButton(
-        "Rebuild##workflow_rebuild", "Rebuild project",
-        callbacks.start_build, &result.primary_action);
+    DrawWorkflowActionButton("Rebuild##workflow_rebuild", "Rebuild project",
+                             callbacks.start_build, &result.primary_action);
   } else if (entry.kind == "Run" && callbacks.run_project) {
     if (drew_action) {
       ImGui::SameLine();
     }
     drew_action = true;
-    DrawWorkflowActionButton(
-        "Run Again##workflow_run_again",
-        "Run project output again", callbacks.run_project,
-        &result.primary_action);
+    DrawWorkflowActionButton("Run Again##workflow_run_again",
+                             "Run project output again", callbacks.run_project,
+                             &result.primary_action);
   }
 
   const std::string copy_payload =
@@ -160,7 +157,7 @@ WorkflowActionRowResult DrawHistoryActionRow(
     if (drew_action) {
       ImGui::SameLine();
     }
-    if (ImGui::SmallButton("Copy Log##workflow_copy_log")) {
+    if (ImGui::SmallButton(tr("Copy Log##workflow_copy_log"))) {
       result.copy_log = LastItemRect();
       ImGui::SetClipboardText(copy_payload.c_str());
     } else {

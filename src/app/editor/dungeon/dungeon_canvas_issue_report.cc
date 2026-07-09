@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -741,20 +742,20 @@ void DungeonCanvasViewer::DrawIssueReportStorageSummary() const {
 
   gui::SeparatorText(kIssueReportSectionPaths);
   if (!issue_report_popup_log_target_path_.empty()) {
-    ImGui::TextWrapped("Log target: %s",
+    ImGui::TextWrapped(tr("Log target: %s"),
                        issue_report_popup_log_target_path_.c_str());
   }
   if (!issue_report_popup_screenshot_dir_.empty() &&
       issue_report_popup_screenshot_path_.empty()) {
-    ImGui::TextWrapped("Screenshot dir: %s",
+    ImGui::TextWrapped(tr("Screenshot dir: %s"),
                        issue_report_popup_screenshot_dir_.c_str());
   }
   if (!issue_report_popup_screenshot_path_.empty()) {
-    ImGui::TextWrapped("Screenshot: %s",
+    ImGui::TextWrapped(tr("Screenshot: %s"),
                        issue_report_popup_screenshot_path_.c_str());
   }
   if (!issue_report_popup_last_log_path_.empty()) {
-    ImGui::TextWrapped("Issue log: %s",
+    ImGui::TextWrapped(tr("Issue log: %s"),
                        issue_report_popup_last_log_path_.c_str());
   }
 }
@@ -823,7 +824,7 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
 
       const char* category_preview =
           GetIssueCategoryLabel(issue_report_category_index_);
-      if (ImGui::BeginCombo("Category", category_preview)) {
+      if (ImGui::BeginCombo(tr("Category"), category_preview)) {
         for (size_t i = 0; i < kDungeonIssueCategoryLabels.size(); ++i) {
           const bool selected =
               issue_report_category_index_ == static_cast<int>(i);
@@ -845,7 +846,7 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
         MarkIssueReportDirty();
       }
       if (ImGui::InputTextMultiline(
-              "Observed issue", issue_report_notes_,
+              tr("Observed issue"), issue_report_notes_,
               sizeof(issue_report_notes_),
               ImVec2(kIssueReportDialogWidth, kIssueReportNotesHeight))) {
         MarkIssueReportDirty();
@@ -854,7 +855,7 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
       DrawIssueReportStorageSummary();
       DrawIssueReportStatusMessage();
       ImGui::TextDisabled(
-          "Reports auto-save on open, screenshot capture, copy, or close.");
+          tr("Reports auto-save on open, screenshot capture, copy, or close."));
 
       if (ImGui::CollapsingHeader(kIssueReportSectionDiagnostics,
                                   ImGuiTreeNodeFlags_DefaultOpen)) {

@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/inspectors/door_editor_content.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -174,8 +175,8 @@ void DoorEditorContent::Draw(bool* p_open) {
 
   gui::SectionHeader(ICON_MD_DOOR_FRONT, "Door Styles", theme.text_info);
   ImGui::TextColored(theme.text_secondary_gray,
-                     "Select a door style, then click a wall in the room "
-                     "canvas to place it.");
+                     tr("Select a door style, then click a wall in the room "
+                        "canvas to place it."));
 
   if (door_placement_mode_) {
     ImGui::TextColored(
@@ -238,7 +239,7 @@ void DoorEditorContent::Draw(bool* p_open) {
     }
 
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s (0x%02X)\nClick to select for placement",
+      ImGui::SetTooltip(tr("%s (0x%02X)\nClick to select for placement"),
                         std::string(zelda3::GetDoorTypeName(door_type)).c_str(),
                         type_val);
     }

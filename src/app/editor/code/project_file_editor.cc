@@ -1,4 +1,5 @@
 #include "app/editor/code/project_file_editor.h"
+#include "util/i18n/tr.h"
 
 #include <filesystem>
 #include <fstream>
@@ -113,7 +114,7 @@ void ProjectFileEditor::Draw() {
       }
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Import labels from ZScream DefaultNames.txt");
+      ImGui::SetTooltip(tr("Import labels from ZScream DefaultNames.txt"));
     }
 
     ImGui::TableNextColumn();
@@ -124,13 +125,13 @@ void ProjectFileEditor::Draw() {
     }
 
     ImGui::TableNextColumn();
-    ImGui::Checkbox("Show Validation", &show_validation_);
+    ImGui::Checkbox(tr("Show Validation"), &show_validation_);
 
     ImGui::TableNextColumn();
     if (!filepath_.empty()) {
       ImGui::TextDisabled("%s", filepath_.c_str());
     } else {
-      ImGui::TextDisabled("No file loaded");
+      ImGui::TextDisabled(tr("No file loaded"));
     }
 
     ImGui::EndTable();
@@ -144,7 +145,7 @@ void ProjectFileEditor::Draw() {
                                   {.bg = ImVec4(0.3f, 0.2f, 0.2f, 0.5f)}, true);
     if (errors_child) {
       ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f),
-                         "%s Validation Errors:", ICON_MD_ERROR);
+                         tr("%s Validation Errors:"), ICON_MD_ERROR);
       for (const auto& error : validation_errors_) {
         ImGui::BulletText("%s", error.c_str());
       }
@@ -432,7 +433,7 @@ void ProjectFileEditor::ShowValidationErrors() {
   if (validation_errors_.empty())
     return;
 
-  ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Validation Errors:");
+  ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), tr("Validation Errors:"));
   for (const auto& error : validation_errors_) {
     ImGui::BulletText("%s", error.c_str());
   }

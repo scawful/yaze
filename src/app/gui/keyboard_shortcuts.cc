@@ -2,6 +2,7 @@
 // Implementation of keyboard shortcut overlay system for yaze
 
 #include "app/gui/keyboard_shortcuts.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cstring>
@@ -134,11 +135,16 @@ std::string Shortcut::GetDisplayString() const {
 
 bool Shortcut::Matches(ImGuiKey pressed_key, bool ctrl, bool shift,
                        bool alt) const {
-  if (!enabled) return false;
-  if (pressed_key != key) return false;
-  if (ctrl != requires_ctrl) return false;
-  if (shift != requires_shift) return false;
-  if (alt != requires_alt) return false;
+  if (!enabled)
+    return false;
+  if (pressed_key != key)
+    return false;
+  if (ctrl != requires_ctrl)
+    return false;
+  if (shift != requires_shift)
+    return false;
+  if (alt != requires_alt)
+    return false;
   return true;
 }
 
@@ -225,8 +231,10 @@ void KeyboardShortcuts::ProcessInput() {
 
   // Check all registered shortcuts
   for (const auto& [id, shortcut] : shortcuts_) {
-    if (!shortcut.enabled) continue;
-    if (!IsShortcutActiveInContext(shortcut)) continue;
+    if (!shortcut.enabled)
+      continue;
+    if (!IsShortcutActiveInContext(shortcut))
+      continue;
 
     // Check if this shortcut's key is pressed
     if (ImGui::IsKeyPressed(shortcut.key, false)) {
@@ -248,26 +256,24 @@ void KeyboardShortcuts::ToggleOverlay() {
 }
 
 void KeyboardShortcuts::DrawOverlay() {
-  if (!show_overlay_) return;
+  if (!show_overlay_)
+    return;
 
   // Semi-transparent fullscreen background
   ImGuiIO& io = ImGui::GetIO();
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   ImGui::SetNextWindowSize(io.DisplaySize);
-  ImGuiWindowFlags overlay_flags = ImGuiWindowFlags_NoTitleBar |
-                                   ImGuiWindowFlags_NoResize |
-                                   ImGuiWindowFlags_NoMove |
-                                   ImGuiWindowFlags_NoScrollbar |
-                                   ImGuiWindowFlags_NoSavedSettings |
-                                   ImGuiWindowFlags_NoBringToFrontOnFocus;
+  ImGuiWindowFlags overlay_flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar |
+      ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
   {
-    StyledWindow overlay_bg(
-        "##ShortcutOverlayBg",
-        {.bg = ImVec4(0.0f, 0.0f, 0.0f, 0.7f),
-         .padding = ImVec2(0, 0),
-         .border_size = 0.0f},
-        nullptr, overlay_flags);
+    StyledWindow overlay_bg("##ShortcutOverlayBg",
+                            {.bg = ImVec4(0.0f, 0.0f, 0.0f, 0.7f),
+                             .padding = ImVec2(0, 0),
+                             .border_size = 0.0f},
+                            nullptr, overlay_flags);
     if (overlay_bg) {
       // Close on click outside modal
       if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(0)) {
@@ -302,33 +308,32 @@ void KeyboardShortcuts::DrawOverlayContent() {
   ImGui::SetNextWindowSize(ImVec2(modal_width, modal_height));
 
   // Style the modal window
-  ImGuiWindowFlags modal_flags = ImGuiWindowFlags_NoTitleBar |
-                                 ImGuiWindowFlags_NoResize |
-                                 ImGuiWindowFlags_NoMove |
-                                 ImGuiWindowFlags_NoCollapse |
-                                 ImGuiWindowFlags_NoSavedSettings;
+  ImGuiWindowFlags modal_flags =
+      ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize |
+      ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse |
+      ImGuiWindowFlags_NoSavedSettings;
 
-  StyledWindow modal(
-      "##ShortcutOverlay",
-      {.bg = ConvertColorToImVec4(theme.popup_bg),
-       .border = ConvertColorToImVec4(theme.border),
-       .padding = ImVec2(20, 16),
-       .border_size = 1.0f,
-       .rounding = 8.0f},
-      nullptr, modal_flags);
+  StyledWindow modal("##ShortcutOverlay",
+                     {.bg = ConvertColorToImVec4(theme.popup_bg),
+                      .border = ConvertColorToImVec4(theme.border),
+                      .padding = ImVec2(20, 16),
+                      .border_size = 1.0f,
+                      .rounding = 8.0f},
+                     nullptr, modal_flags);
 
   if (modal) {
     // Header
     ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[0]);  // Use default font
-    ImGui::TextColored(ConvertColorToImVec4(theme.accent), "Keyboard Shortcuts");
+    ImGui::TextColored(ConvertColorToImVec4(theme.accent),
+                       tr("Keyboard Shortcuts"));
     ImGui::PopFont();
 
     ImGui::SameLine(modal_width - 60);
-    if (ImGui::SmallButton("X##CloseOverlay")) {
+    if (ImGui::SmallButton(tr("X##CloseOverlay"))) {
       HideOverlay();
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Close (Escape)");
+      ImGui::SetTooltip(tr("Close (Escape)"));
     }
 
     ImGui::Separator();
@@ -413,7 +418,7 @@ void KeyboardShortcuts::DrawOverlayContent() {
 
     // Footer
     ImGui::Separator();
-    ImGui::TextDisabled("Press ? to toggle | Escape to close");
+    ImGui::TextDisabled(tr("Press ? to toggle | Escape to close"));
   }
 }
 
@@ -426,24 +431,26 @@ void KeyboardShortcuts::DrawCategorySection(
   // Category header with collapsible behavior
   StyleColorGuard header_colors({
       {ImGuiCol_Header, header_bg},
-      {ImGuiCol_HeaderHovered,
-       ImVec4(header_bg.x + 0.05f, header_bg.y + 0.05f,
-              header_bg.z + 0.05f, 1.0f)},
+      {ImGuiCol_HeaderHovered, ImVec4(header_bg.x + 0.05f, header_bg.y + 0.05f,
+                                      header_bg.z + 0.05f, 1.0f)},
   });
 
-  bool is_open = ImGui::CollapsingHeader(
-      category.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
+  bool is_open =
+      ImGui::CollapsingHeader(category.c_str(), ImGuiTreeNodeFlags_DefaultOpen);
 
   if (is_open) {
     ImGui::Indent(10.0f);
 
     // Table for shortcuts
-    if (ImGui::BeginTable("##ShortcutTable", 3,
-                          ImGuiTableFlags_SizingStretchProp |
-                              ImGuiTableFlags_RowBg)) {
-      ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-      ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("Context", ImGuiTableColumnFlags_WidthFixed, 80.0f);
+    if (ImGui::BeginTable(
+            "##ShortcutTable", 3,
+            ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_RowBg)) {
+      ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthFixed,
+                              120.0f);
+      ImGui::TableSetupColumn("Description",
+                              ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("Context", ImGuiTableColumnFlags_WidthFixed,
+                              80.0f);
 
       for (const auto* shortcut : shortcuts) {
         DrawShortcutRow(*shortcut);
@@ -541,120 +548,105 @@ std::vector<std::string> KeyboardShortcuts::GetCategories() const {
 }
 
 void KeyboardShortcuts::RegisterDefaultShortcuts(
-    std::function<void()> open_callback,
-    std::function<void()> save_callback,
+    std::function<void()> open_callback, std::function<void()> save_callback,
     std::function<void()> save_as_callback,
-    std::function<void()> close_callback,
-    std::function<void()> undo_callback,
-    std::function<void()> redo_callback,
-    std::function<void()> copy_callback,
-    std::function<void()> paste_callback,
-    std::function<void()> cut_callback,
+    std::function<void()> close_callback, std::function<void()> undo_callback,
+    std::function<void()> redo_callback, std::function<void()> copy_callback,
+    std::function<void()> paste_callback, std::function<void()> cut_callback,
     std::function<void()> find_callback) {
 
   // === File Shortcuts ===
   if (open_callback) {
-    RegisterShortcut("file.open", "Open ROM/Project", ImGuiKey_O,
-                     true, false, false, "File", ShortcutContext::kGlobal,
-                     open_callback);
+    RegisterShortcut("file.open", "Open ROM/Project", ImGuiKey_O, true, false,
+                     false, "File", ShortcutContext::kGlobal, open_callback);
   }
 
   if (save_callback) {
-    RegisterShortcut("file.save", "Save", ImGuiKey_S,
-                     true, false, false, "File", ShortcutContext::kGlobal,
-                     save_callback);
+    RegisterShortcut("file.save", "Save", ImGuiKey_S, true, false, false,
+                     "File", ShortcutContext::kGlobal, save_callback);
   }
 
   if (save_as_callback) {
-    RegisterShortcut("file.save_as", "Save As...", ImGuiKey_S,
-                     true, true, false, "File", ShortcutContext::kGlobal,
-                     save_as_callback);
+    RegisterShortcut("file.save_as", "Save As...", ImGuiKey_S, true, true,
+                     false, "File", ShortcutContext::kGlobal, save_as_callback);
   }
 
   if (close_callback) {
-    RegisterShortcut("file.close", "Close", ImGuiKey_W,
-                     true, false, false, "File", ShortcutContext::kGlobal,
-                     close_callback);
+    RegisterShortcut("file.close", "Close", ImGuiKey_W, true, false, false,
+                     "File", ShortcutContext::kGlobal, close_callback);
   }
 
   // === Edit Shortcuts ===
   if (undo_callback) {
-    RegisterShortcut("edit.undo", "Undo", ImGuiKey_Z,
-                     true, false, false, "Edit", ShortcutContext::kGlobal,
-                     undo_callback);
+    RegisterShortcut("edit.undo", "Undo", ImGuiKey_Z, true, false, false,
+                     "Edit", ShortcutContext::kGlobal, undo_callback);
   }
 
   if (redo_callback) {
-    RegisterShortcut("edit.redo", "Redo", ImGuiKey_Y,
-                     true, false, false, "Edit", ShortcutContext::kGlobal,
-                     redo_callback);
+    RegisterShortcut("edit.redo", "Redo", ImGuiKey_Y, true, false, false,
+                     "Edit", ShortcutContext::kGlobal, redo_callback);
 
     // Also register Ctrl+Shift+Z for redo (common alternative)
-    RegisterShortcut("edit.redo_alt", "Redo", ImGuiKey_Z,
-                     true, true, false, "Edit", ShortcutContext::kGlobal,
-                     redo_callback);
+    RegisterShortcut("edit.redo_alt", "Redo", ImGuiKey_Z, true, true, false,
+                     "Edit", ShortcutContext::kGlobal, redo_callback);
   }
 
   if (copy_callback) {
-    RegisterShortcut("edit.copy", "Copy", ImGuiKey_C,
-                     true, false, false, "Edit", ShortcutContext::kGlobal,
-                     copy_callback);
+    RegisterShortcut("edit.copy", "Copy", ImGuiKey_C, true, false, false,
+                     "Edit", ShortcutContext::kGlobal, copy_callback);
   }
 
   if (paste_callback) {
-    RegisterShortcut("edit.paste", "Paste", ImGuiKey_V,
-                     true, false, false, "Edit", ShortcutContext::kGlobal,
-                     paste_callback);
+    RegisterShortcut("edit.paste", "Paste", ImGuiKey_V, true, false, false,
+                     "Edit", ShortcutContext::kGlobal, paste_callback);
   }
 
   if (cut_callback) {
-    RegisterShortcut("edit.cut", "Cut", ImGuiKey_X,
-                     true, false, false, "Edit", ShortcutContext::kGlobal,
-                     cut_callback);
+    RegisterShortcut("edit.cut", "Cut", ImGuiKey_X, true, false, false, "Edit",
+                     ShortcutContext::kGlobal, cut_callback);
   }
 
   if (find_callback) {
-    RegisterShortcut("edit.find", "Find", ImGuiKey_F,
-                     true, false, false, "Edit", ShortcutContext::kGlobal,
-                     find_callback);
+    RegisterShortcut("edit.find", "Find", ImGuiKey_F, true, false, false,
+                     "Edit", ShortcutContext::kGlobal, find_callback);
   }
 
   // === View Shortcuts ===
-  RegisterShortcut("view.fullscreen", "Toggle Fullscreen", ImGuiKey_F11,
-                   false, false, false, "View", ShortcutContext::kGlobal,
+  RegisterShortcut("view.fullscreen", "Toggle Fullscreen", ImGuiKey_F11, false,
+                   false, false, "View", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder - implement in EditorManager
 
-  RegisterShortcut("view.grid", "Toggle Grid", ImGuiKey_G,
-                   true, false, false, "View", ShortcutContext::kGlobal,
+  RegisterShortcut("view.grid", "Toggle Grid", ImGuiKey_G, true, false, false,
+                   "View", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("view.zoom_in", "Zoom In", ImGuiKey_Equal,
-                   true, false, false, "View", ShortcutContext::kGlobal,
+  RegisterShortcut("view.zoom_in", "Zoom In", ImGuiKey_Equal, true, false,
+                   false, "View", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("view.zoom_out", "Zoom Out", ImGuiKey_Minus,
-                   true, false, false, "View", ShortcutContext::kGlobal,
+  RegisterShortcut("view.zoom_out", "Zoom Out", ImGuiKey_Minus, true, false,
+                   false, "View", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("view.zoom_reset", "Reset Zoom", ImGuiKey_0,
-                   true, false, false, "View", ShortcutContext::kGlobal,
+  RegisterShortcut("view.zoom_reset", "Reset Zoom", ImGuiKey_0, true, false,
+                   false, "View", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
   // === Navigation Shortcuts ===
-  RegisterShortcut("nav.first", "Go to First", ImGuiKey_Home,
-                   false, false, false, "Navigation", ShortcutContext::kGlobal,
+  RegisterShortcut("nav.first", "Go to First", ImGuiKey_Home, false, false,
+                   false, "Navigation", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("nav.last", "Go to Last", ImGuiKey_End,
-                   false, false, false, "Navigation", ShortcutContext::kGlobal,
+  RegisterShortcut("nav.last", "Go to Last", ImGuiKey_End, false, false, false,
+                   "Navigation", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("nav.prev", "Previous", ImGuiKey_PageUp,
-                   false, false, false, "Navigation", ShortcutContext::kGlobal,
+  RegisterShortcut("nav.prev", "Previous", ImGuiKey_PageUp, false, false, false,
+                   "Navigation", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("nav.next", "Next", ImGuiKey_PageDown,
-                   false, false, false, "Navigation", ShortcutContext::kGlobal,
+  RegisterShortcut("nav.next", "Next", ImGuiKey_PageDown, false, false, false,
+                   "Navigation", ShortcutContext::kGlobal,
                    nullptr);  // Placeholder
 
   // === Emulator Shortcuts ===
@@ -662,34 +654,34 @@ void KeyboardShortcuts::RegisterDefaultShortcuts(
                    false, false, false, "Editor", ShortcutContext::kEmulator,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("emu.reset", "Reset Emulator", ImGuiKey_R,
-                   true, false, false, "Editor", ShortcutContext::kEmulator,
+  RegisterShortcut("emu.reset", "Reset Emulator", ImGuiKey_R, true, false,
+                   false, "Editor", ShortcutContext::kEmulator,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("emu.step", "Step Frame", ImGuiKey_F,
-                   false, false, false, "Editor", ShortcutContext::kEmulator,
+  RegisterShortcut("emu.step", "Step Frame", ImGuiKey_F, false, false, false,
+                   "Editor", ShortcutContext::kEmulator,
                    nullptr);  // Placeholder
 
   // === Overworld Editor Shortcuts ===
-  RegisterShortcut("ow.select_all", "Select All Tiles", ImGuiKey_A,
-                   true, false, false, "Editor", ShortcutContext::kOverworld,
+  RegisterShortcut("ow.select_all", "Select All Tiles", ImGuiKey_A, true, false,
+                   false, "Editor", ShortcutContext::kOverworld,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("ow.deselect", "Deselect", ImGuiKey_D,
-                   true, false, false, "Editor", ShortcutContext::kOverworld,
+  RegisterShortcut("ow.deselect", "Deselect", ImGuiKey_D, true, false, false,
+                   "Editor", ShortcutContext::kOverworld,
                    nullptr);  // Placeholder
 
   // === Dungeon Editor Shortcuts ===
-  RegisterShortcut("dg.select_all", "Select All Objects", ImGuiKey_A,
-                   true, false, false, "Editor", ShortcutContext::kDungeon,
+  RegisterShortcut("dg.select_all", "Select All Objects", ImGuiKey_A, true,
+                   false, false, "Editor", ShortcutContext::kDungeon,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("dg.delete", "Delete Selected", ImGuiKey_Delete,
-                   false, false, false, "Editor", ShortcutContext::kDungeon,
+  RegisterShortcut("dg.delete", "Delete Selected", ImGuiKey_Delete, false,
+                   false, false, "Editor", ShortcutContext::kDungeon,
                    nullptr);  // Placeholder
 
-  RegisterShortcut("dg.duplicate", "Duplicate Selected", ImGuiKey_D,
-                   true, false, false, "Editor", ShortcutContext::kDungeon,
+  RegisterShortcut("dg.duplicate", "Duplicate Selected", ImGuiKey_D, true,
+                   false, false, "Editor", ShortcutContext::kDungeon,
                    nullptr);  // Placeholder
 }
 
@@ -721,14 +713,22 @@ const char* ShortcutContextToString(ShortcutContext context) {
 }
 
 ShortcutContext EditorNameToContext(const std::string& editor_name) {
-  if (editor_name == "Overworld") return ShortcutContext::kOverworld;
-  if (editor_name == "Dungeon") return ShortcutContext::kDungeon;
-  if (editor_name == "Graphics") return ShortcutContext::kGraphics;
-  if (editor_name == "Palette") return ShortcutContext::kPalette;
-  if (editor_name == "Sprite") return ShortcutContext::kSprite;
-  if (editor_name == "Music") return ShortcutContext::kMusic;
-  if (editor_name == "Message") return ShortcutContext::kMessage;
-  if (editor_name == "Emulator") return ShortcutContext::kEmulator;
+  if (editor_name == "Overworld")
+    return ShortcutContext::kOverworld;
+  if (editor_name == "Dungeon")
+    return ShortcutContext::kDungeon;
+  if (editor_name == "Graphics")
+    return ShortcutContext::kGraphics;
+  if (editor_name == "Palette")
+    return ShortcutContext::kPalette;
+  if (editor_name == "Sprite")
+    return ShortcutContext::kSprite;
+  if (editor_name == "Music")
+    return ShortcutContext::kMusic;
+  if (editor_name == "Message")
+    return ShortcutContext::kMessage;
+  if (editor_name == "Emulator")
+    return ShortcutContext::kEmulator;
   if (editor_name == "Assembly" || editor_name == "Code")
     return ShortcutContext::kCode;
   return ShortcutContext::kGlobal;

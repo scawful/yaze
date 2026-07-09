@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
@@ -60,7 +61,7 @@ class DungeonEntrancesPanel : public WindowContent {
     bool changed = false;
 
     // Entrance properties
-    ImGui::Text("Entrance ID: %04X", current_entrance.entrance_id_);
+    ImGui::Text(tr("Entrance ID: %04X"), current_entrance.entrance_id_);
     changed |= gui::InputHexWord("Room ID", &current_entrance.room_);
     ImGui::SameLine();
     changed |= gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_,
@@ -92,9 +93,9 @@ class DungeonEntrancesPanel : public WindowContent {
     changed |= gui::InputHexWord("Exit", &current_entrance.exit_, 50.f, true);
 
     ImGui::Separator();
-    ImGui::Text("Camera Boundaries");
+    ImGui::Text(tr("Camera Boundaries"));
     ImGui::Separator();
-    ImGui::Text("\t\t\t\t\tNorth         East         South         West");
+    ImGui::Text(tr("\t\t\t\t\tNorth         East         South         West"));
 
     changed |= gui::InputHexByte(
         "Quadrant", &current_entrance.camera_boundary_qn_, 50.f, true);

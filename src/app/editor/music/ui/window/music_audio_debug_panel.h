@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_MUSIC_PANELS_MUSIC_AUDIO_DEBUG_PANEL_H_
 
 #include <string>
+#include "util/i18n/tr.h"
 
 #include "app/editor/music/music_player.h"
 #include "app/editor/system/workspace/editor_panel.h"
@@ -43,7 +44,7 @@ class MusicAudioDebugPanel : public WindowContent {
 
   void Draw(bool* p_open) override {
     if (!player_) {
-      ImGui::TextDisabled("Music player not available");
+      ImGui::TextDisabled(tr("Music player not available"));
       return;
     }
 
@@ -52,7 +53,7 @@ class MusicAudioDebugPanel : public WindowContent {
       ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.4f, 1.0f),
                          ICON_MD_INFO " Play a song to initialize audio");
       ImGui::Separator();
-      ImGui::TextDisabled("Audio emulator not initialized");
+      ImGui::TextDisabled(tr("Audio emulator not initialized"));
       return;
     }
 
@@ -82,11 +83,11 @@ class MusicAudioDebugPanel : public WindowContent {
 
     ImGui::Text(ICON_MD_SPEAKER " Backend Configuration");
     ImGui::Indent();
-    ImGui::Text("Backend: %s", backend->GetBackendName().c_str());
-    ImGui::Text("Device Rate: %d Hz", config.sample_rate);
-    ImGui::Text("Native Rate: 32040 Hz (SPC700)");
-    ImGui::Text("Channels: %d", config.channels);
-    ImGui::Text("Buffer Frames: %d", config.buffer_frames);
+    ImGui::Text(tr("Backend: %s"), backend->GetBackendName().c_str());
+    ImGui::Text(tr("Device Rate: %d Hz"), config.sample_rate);
+    ImGui::Text(tr("Native Rate: 32040 Hz (SPC700)"));
+    ImGui::Text(tr("Channels: %d"), config.channels);
+    ImGui::Text(tr("Buffer Frames: %d"), config.buffer_frames);
     ImGui::Unindent();
   }
 
@@ -97,13 +98,13 @@ class MusicAudioDebugPanel : public WindowContent {
     ImGui::Indent();
 
     if (status.is_playing) {
-      ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f), "Status: Playing");
+      ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f), tr("Status: Playing"));
     } else {
-      ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.3f, 1.0f), "Status: Stopped");
+      ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.3f, 1.0f), tr("Status: Stopped"));
     }
 
-    ImGui::Text("Queued Frames: %u", status.queued_frames);
-    ImGui::Text("Queued Bytes: %u", status.queued_bytes);
+    ImGui::Text(tr("Queued Frames: %u"), status.queued_frames);
+    ImGui::Text(tr("Queued Bytes: %u"), status.queued_bytes);
 
     if (status.has_underrun) {
       ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
@@ -123,9 +124,9 @@ class MusicAudioDebugPanel : public WindowContent {
     if (resampling_enabled) {
       float ratio = static_cast<float>(config.sample_rate) / 32040.0f;
       ImGui::TextColored(ImVec4(0.3f, 0.9f, 0.3f, 1.0f),
-                         "Status: ENABLED (32040 -> %d Hz)",
+                         tr("Status: ENABLED (32040 -> %d Hz)"),
                          config.sample_rate);
-      ImGui::Text("Ratio: %.3f", ratio);
+      ImGui::Text(tr("Ratio: %.3f"), ratio);
 
       // Check for correct ratio (should be ~1.498 for 32040->48000)
       if (ratio < 1.4f || ratio > 1.6f) {
@@ -133,15 +134,16 @@ class MusicAudioDebugPanel : public WindowContent {
                            ICON_MD_WARNING " Unexpected ratio!");
       }
     } else {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Status: DISABLED");
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f),
+                         tr("Status: DISABLED"));
       ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f),
                          ICON_MD_WARNING " Audio will play at 1.5x speed!");
     }
 
     // Playback speed info
     auto player_state = player_->GetState();
-    ImGui::Text("Playback Speed: %.2fx", player_state.playback_speed);
-    ImGui::Text("Effective Rate: %.0f Hz",
+    ImGui::Text(tr("Playback Speed: %.2fx"), player_state.playback_speed);
+    ImGui::Text(tr("Effective Rate: %.0f Hz"),
                 32040.0f * player_state.playback_speed);
 
     ImGui::Unindent();
@@ -153,20 +155,20 @@ class MusicAudioDebugPanel : public WindowContent {
     ImGui::Text(ICON_MD_MEMORY " DSP Status");
     ImGui::Indent();
 
-    ImGui::Text("Sample Offset: %u", dsp_status.sample_offset);
-    ImGui::Text("Frame Boundary: %u", dsp_status.frame_boundary);
-    ImGui::Text("Master Vol L/R: %d / %d", dsp_status.master_vol_l,
+    ImGui::Text(tr("Sample Offset: %u"), dsp_status.sample_offset);
+    ImGui::Text(tr("Frame Boundary: %u"), dsp_status.frame_boundary);
+    ImGui::Text(tr("Master Vol L/R: %d / %d"), dsp_status.master_vol_l,
                 dsp_status.master_vol_r);
 
     if (dsp_status.mute) {
-      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), "Muted");
+      ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.0f, 1.0f), tr("Muted"));
     }
     if (dsp_status.reset) {
-      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "Reset");
+      ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), tr("Reset"));
     }
 
-    ImGui::Text("Echo: %s (delay: %u)", dsp_status.echo_enabled ? "ON" : "OFF",
-                dsp_status.echo_delay);
+    ImGui::Text(tr("Echo: %s (delay: %u)"),
+                dsp_status.echo_enabled ? "ON" : "OFF", dsp_status.echo_delay);
 
     ImGui::Unindent();
   }
@@ -177,7 +179,7 @@ class MusicAudioDebugPanel : public WindowContent {
     ImGui::Text(ICON_MD_TIMER " APU Status");
     ImGui::Indent();
 
-    ImGui::Text("Cycles: %llu", apu_status.cycles);
+    ImGui::Text(tr("Cycles: %llu"), apu_status.cycles);
 
     // Timers in columns
     if (ImGui::BeginTable("ApuTimers", 4, ImGuiTableFlags_Borders)) {
@@ -190,7 +192,7 @@ class MusicAudioDebugPanel : public WindowContent {
       // Timer 0
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
-      ImGui::Text("T0");
+      ImGui::Text(tr("T0"));
       ImGui::TableSetColumnIndex(1);
       ImGui::Text("%s", apu_status.timer0_enabled ? "ON" : "OFF");
       ImGui::TableSetColumnIndex(2);
@@ -201,7 +203,7 @@ class MusicAudioDebugPanel : public WindowContent {
       // Timer 1
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
-      ImGui::Text("T1");
+      ImGui::Text(tr("T1"));
       ImGui::TableSetColumnIndex(1);
       ImGui::Text("%s", apu_status.timer1_enabled ? "ON" : "OFF");
       ImGui::TableSetColumnIndex(2);
@@ -212,7 +214,7 @@ class MusicAudioDebugPanel : public WindowContent {
       // Timer 2
       ImGui::TableNextRow();
       ImGui::TableSetColumnIndex(0);
-      ImGui::Text("T2");
+      ImGui::Text(tr("T2"));
       ImGui::TableSetColumnIndex(1);
       ImGui::Text("%s", apu_status.timer2_enabled ? "ON" : "OFF");
       ImGui::TableSetColumnIndex(2);
@@ -224,9 +226,9 @@ class MusicAudioDebugPanel : public WindowContent {
     }
 
     // Ports
-    ImGui::Text("Ports In:  %02X %02X", apu_status.port0_in,
+    ImGui::Text(tr("Ports In:  %02X %02X"), apu_status.port0_in,
                 apu_status.port1_in);
-    ImGui::Text("Ports Out: %02X %02X", apu_status.port0_out,
+    ImGui::Text(tr("Ports Out: %02X %02X"), apu_status.port0_out,
                 apu_status.port1_out);
 
     ImGui::Unindent();
@@ -236,19 +238,19 @@ class MusicAudioDebugPanel : public WindowContent {
     ImGui::Text(ICON_MD_BUILD " Debug Actions");
     ImGui::Indent();
 
-    if (ImGui::Button("Clear Audio Queue")) {
+    if (ImGui::Button(tr("Clear Audio Queue"))) {
       player_->ClearAudioQueue();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Reset DSP Buffer")) {
+    if (ImGui::Button(tr("Reset DSP Buffer"))) {
       player_->ResetDspBuffer();
     }
     ImGui::SameLine();
-    if (ImGui::Button("Force NewFrame")) {
+    if (ImGui::Button(tr("Force NewFrame"))) {
       player_->ForceNewFrame();
     }
 
-    if (ImGui::Button("Reinit Audio")) {
+    if (ImGui::Button(tr("Reinit Audio"))) {
       player_->ReinitAudio();
     }
 

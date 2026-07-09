@@ -1,4 +1,5 @@
 #include "app/editor/graphics/ui/research/prototype_research_view.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -104,10 +105,10 @@ absl::Status PrototypeResearchView::Update() {
 void PrototypeResearchView::DrawSummaryBar() {
   gui::SectionHeader(ICON_MD_TRAVEL_EXPLORE, "Prototype Research",
                      gui::GetInfoColor());
-  ImGui::TextWrapped(
+  ImGui::TextWrapped(tr(
       "Decode CGX, SCR, COL, and raw prototype data directly inside the "
       "graphics workspace so research assets can be compared without leaving "
-      "the editor.");
+      "the editor."));
   gui::ColoredText(
       "SCR files are SNES tilemaps. Pair them with matching CGX and COL data "
       "to reconstruct early HUDs, menus, and screen layouts.",
@@ -202,15 +203,15 @@ void PrototypeResearchView::DrawPreviewColumn() {
   gui::SectionHeader(ICON_MD_PREVIEW, "Preview", gui::GetAccentColor());
 
   if (ImGui::BeginTabBar("##PrototypePreviewTabs")) {
-    if (ImGui::BeginTabItem("Graphics")) {
+    if (ImGui::BeginTabItem(tr("Graphics"))) {
       DrawGraphicsPreview();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Screen")) {
+    if (ImGui::BeginTabItem(tr("Screen"))) {
       DrawScreenPreview();
       ImGui::EndTabItem();
     }
-    if (ImGui::BeginTabItem("Super Donkey")) {
+    if (ImGui::BeginTabItem(tr("Super Donkey"))) {
       DrawSuperDonkeyPreview();
       ImGui::EndTabItem();
     }
@@ -283,7 +284,7 @@ void PrototypeResearchView::DrawSuperDonkeyPreview() {
   gui::SliderFloatWheel("Scale", &prototype_sheet_scale_, 1.0f, 4.0f, "%.1fx");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f);
-  ImGui::SliderInt("Columns", &prototype_sheet_columns_, 1, 6);
+  ImGui::SliderInt(tr("Columns"), &prototype_sheet_columns_, 1, 6);
 
   const float tile_width = 128.0f * prototype_sheet_scale_;
   const float tile_height = 32.0f * prototype_sheet_scale_;
@@ -300,7 +301,7 @@ void PrototypeResearchView::DrawSuperDonkeyPreview() {
     ImGui::BeginGroup();
     ImGui::Image((ImTextureID)(intptr_t)bitmap.texture(),
                  ImVec2(tile_width, tile_height));
-    ImGui::Text("Sheet %02zu", i);
+    ImGui::Text(tr("Sheet %02zu"), i);
     ImGui::EndGroup();
 
     current_column++;
@@ -360,7 +361,7 @@ bool PrototypeResearchView::DrawPathEditor(const char* id, const char* hint,
     }
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("Browse");
+    ImGui::SetTooltip(tr("Browse"));
   }
   ImGui::SameLine();
   ImGui::BeginDisabled(path->empty());
@@ -368,7 +369,7 @@ bool PrototypeResearchView::DrawPathEditor(const char* id, const char* hint,
     ImGui::SetClipboardText(path->c_str());
   }
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    ImGui::SetTooltip("Copy path");
+    ImGui::SetTooltip(tr("Copy path"));
   }
   ImGui::EndDisabled();
   ImGui::PopID();
@@ -376,12 +377,12 @@ bool PrototypeResearchView::DrawPathEditor(const char* id, const char* hint,
 }
 
 absl::Status PrototypeResearchView::DrawCgxImportSection() {
-  ImGui::SeparatorText("CGX Tilesheet");
+  ImGui::SeparatorText(tr("CGX Tilesheet"));
   DrawPathEditor("cgx", "Select a .cgx or prototype graphics blob", &cgx_path_,
                  "CGX Files", "cgx,bin");
 
   ImGui::SetNextItemWidth(120.0f);
-  if (ImGui::InputInt("Bits Per Pixel", &current_bpp_)) {
+  if (ImGui::InputInt(tr("Bits Per Pixel"), &current_bpp_)) {
     current_bpp_ = std::clamp(current_bpp_, 1, 8);
   }
   ImGui::SameLine();
@@ -396,12 +397,12 @@ absl::Status PrototypeResearchView::DrawCgxImportSection() {
 }
 
 absl::Status PrototypeResearchView::DrawScrImportSection() {
-  ImGui::SeparatorText("SCR Screen");
+  ImGui::SeparatorText(tr("SCR Screen"));
   DrawPathEditor("scr", "Select a .scr or prototype screen blob", &scr_path_,
                  "SCR Files", "scr,pnl,bin,bak");
 
   ImGui::SetNextItemWidth(120.0f);
-  ImGui::InputInt("SCR Mod", &scr_mod_value_);
+  ImGui::InputInt(tr("SCR Mod"), &scr_mod_value_);
   ImGui::SameLine();
   ImGui::BeginDisabled(scr_path_.empty() || decoded_cgx_.empty());
   if (gui::ColoredButton(ICON_MD_SCREEN_SEARCH_DESKTOP " Load SCR",
@@ -420,7 +421,7 @@ absl::Status PrototypeResearchView::DrawScrImportSection() {
 }
 
 absl::Status PrototypeResearchView::DrawPaletteSection() {
-  ImGui::SeparatorText("Palette Source");
+  ImGui::SeparatorText(tr("Palette Source"));
 
   DrawPathEditor("col", "Select a .col or backup palette", &col_path_,
                  "COL Files", "col,bak,bin");
@@ -433,14 +434,14 @@ absl::Status PrototypeResearchView::DrawPaletteSection() {
   ImGui::EndDisabled();
 
   if (col_file_) {
-    if (ImGui::Checkbox("Prefer external COL palette",
+    if (ImGui::Checkbox(tr("Prefer external COL palette"),
                         &use_external_palette_)) {
       RefreshPreviewPalettes();
     }
   } else {
     bool disabled_toggle = false;
     ImGui::BeginDisabled();
-    ImGui::Checkbox("Prefer external COL palette", &disabled_toggle);
+    ImGui::Checkbox(tr("Prefer external COL palette"), &disabled_toggle);
     ImGui::EndDisabled();
   }
 
@@ -458,12 +459,12 @@ absl::Status PrototypeResearchView::DrawPaletteSection() {
 
     ImGui::SetNextItemWidth(220.0f);
     bool palette_changed = ImGui::Combo(
-        "ROM Group", &rom_palette_group_index_, kPaletteGroupAddressesKeys,
+        tr("ROM Group"), &rom_palette_group_index_, kPaletteGroupAddressesKeys,
         IM_ARRAYSIZE(kPaletteGroupAddressesKeys));
 
     int palette_index = static_cast<int>(rom_palette_index_);
     ImGui::SetNextItemWidth(120.0f);
-    if (ImGui::InputInt("ROM Palette", &palette_index)) {
+    if (ImGui::InputInt(tr("ROM Palette"), &palette_index)) {
       rom_palette_index_ = static_cast<uint64_t>(std::max(0, palette_index));
       palette_changed = true;
     }
@@ -481,7 +482,7 @@ absl::Status PrototypeResearchView::DrawPaletteSection() {
 }
 
 absl::Status PrototypeResearchView::DrawBinImportSection() {
-  ImGui::SeparatorText("Raw BIN / ROM Decompression");
+  ImGui::SeparatorText(tr("Raw BIN / ROM Decompression"));
   DrawPathEditor("bin", "Select a .bin, .hex, or ROM source", &bin_path_,
                  "Binary Sources", "bin,hex,sfc,smc");
 
@@ -500,7 +501,7 @@ absl::Status PrototypeResearchView::DrawBinImportSection() {
 }
 
 absl::Status PrototypeResearchView::DrawClipboardSection() {
-  ImGui::SeparatorText("Clipboard Source");
+  ImGui::SeparatorText(tr("Clipboard Source"));
 
   if (ImGui::Button(ICON_MD_CONTENT_PASTE " Paste Raw Bytes")) {
     status_ = ImportClipboard();
@@ -532,7 +533,7 @@ absl::Status PrototypeResearchView::DrawClipboardSection() {
 }
 
 absl::Status PrototypeResearchView::DrawObjImportSection() {
-  ImGui::SeparatorText("OBJ Source");
+  ImGui::SeparatorText(tr("OBJ Source"));
   DrawPathEditor("obj", "Select an .obj or backup file", &obj_path_,
                  "OBJ Files", "obj,bak");
 
@@ -552,7 +553,7 @@ absl::Status PrototypeResearchView::DrawObjImportSection() {
 }
 
 absl::Status PrototypeResearchView::DrawTilemapImportSection() {
-  ImGui::SeparatorText("Tilemap Source");
+  ImGui::SeparatorText(tr("Tilemap Source"));
   DrawPathEditor("tilemap", "Select a tilemap dump", &tilemap_path_,
                  "Tilemap Files", "dat,bin,hex");
 
@@ -573,7 +574,7 @@ absl::Status PrototypeResearchView::DrawTilemapImportSection() {
 }
 
 absl::Status PrototypeResearchView::DrawExperimentalSection() {
-  ImGui::SeparatorText("Experimental");
+  ImGui::SeparatorText(tr("Experimental"));
   ImGui::BeginDisabled(bin_path_.empty());
   if (gui::ColoredButton(ICON_MD_BUILD " Decode Super Donkey Pack",
                          gui::ButtonType::Warning)) {

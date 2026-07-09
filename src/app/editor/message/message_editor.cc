@@ -1,4 +1,5 @@
 #include "message_editor.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <string>
@@ -397,14 +398,14 @@ void MessageEditor::DrawMessageList() {
   if (BeginChild("##MessagesList", ImVec2(0, 0), true,
                  ImGuiWindowFlags_AlwaysVerticalScrollbar)) {
     gui::EndNoPadding();
-    if (ImGui::Button("Import Bundle")) {
+    if (ImGui::Button(tr("Import Bundle"))) {
       std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
       if (!path.empty()) {
         ImportMessageBundleFromFile(path);
       }
     }
     ImGui::SameLine();
-    if (ImGui::Button("Export Bundle")) {
+    if (ImGui::Button(tr("Export Bundle"))) {
       std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
       if (!path.empty()) {
         auto status =
@@ -460,7 +461,7 @@ void MessageEditor::DrawMessageList() {
             PopID();
 
             TableNextColumn();
-            ImGui::TextColored(gui::GetInfoColor(), "Vanilla");
+            ImGui::TextColored(gui::GetInfoColor(), tr("Vanilla"));
 
             TableNextColumn();
             TextWrapped("%s", parsed_messages_[message.ID].c_str());
@@ -491,7 +492,7 @@ void MessageEditor::DrawMessageList() {
             PopID();
 
             TableNextColumn();
-            ImGui::TextColored(gui::GetWarningColor(), "Expanded");
+            ImGui::TextColored(gui::GetWarningColor(), tr("Expanded"));
 
             TableNextColumn();
             TextWrapped("%s", display_text);
@@ -519,7 +520,7 @@ void MessageEditor::DrawCurrentMessage() {
   }
   auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
   if (!line_warnings.empty()) {
-    ImGui::TextColored(gui::GetWarningColor(), "Line width warnings");
+    ImGui::TextColored(gui::GetWarningColor(), tr("Line width warnings"));
     for (const auto& warning : line_warnings) {
       ImGui::BulletText("%s", warning.c_str());
     }
@@ -529,8 +530,8 @@ void MessageEditor::DrawCurrentMessage() {
 
   ImGui::BeginChild("##MessagePreview", ImVec2(0, 0), true);
   EnsureFontTexturesReady();
-  Text("Message Preview");
-  if (Button("View Palette")) {
+  Text(tr("Message Preview"));
+  if (Button(tr("View Palette"))) {
     ImGui::OpenPopup("Palette");
   }
   if (ImGui::BeginPopup("Palette")) {
@@ -605,9 +606,9 @@ void MessageEditor::DrawCurrentMessage() {
   EndChild();
 
   // Message Structure info panel
-  if (ImGui::CollapsingHeader("Message Structure",
+  if (ImGui::CollapsingHeader(tr("Message Structure"),
                               ImGuiTreeNodeFlags_DefaultOpen)) {
-    ImGui::Text("Lines: %d", message_preview_.text_line + 1);
+    ImGui::Text(tr("Lines: %d"), message_preview_.text_line + 1);
 
     int scroll_count = 0;
     int current_line_chars = 0;
@@ -618,23 +619,23 @@ void MessageEditor::DrawCurrentMessage() {
       if (byte == kScrollVertical) {
         scroll_count++;
         ImGui::TextColored(gui::GetInfoColor(),
-                           "  [V] Scroll at byte %zu (line %d, %d chars)", i,
-                           line_num, current_line_chars);
+                           tr("  [V] Scroll at byte %zu (line %d, %d chars)"),
+                           i, line_num, current_line_chars);
         current_line_chars = 0;
         line_num++;
       } else if (byte == kLine1) {
         ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
-                           "  [1] Line 1 at byte %zu", i);
+                           tr("  [1] Line 1 at byte %zu"), i);
         current_line_chars = 0;
         line_num = 0;
       } else if (byte == kLine2) {
         ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
-                           "  [2] Line 2 at byte %zu", i);
+                           tr("  [2] Line 2 at byte %zu"), i);
         current_line_chars = 0;
         line_num = 1;
       } else if (byte == kLine3) {
         ImGui::TextColored(ImVec4(0.7f, 0.85f, 0.5f, 1.0f),
-                           "  [3] Line 3 at byte %zu", i);
+                           tr("  [3] Line 3 at byte %zu"), i);
         current_line_chars = 0;
         line_num = 2;
       } else if (byte < 100) {
@@ -643,20 +644,20 @@ void MessageEditor::DrawCurrentMessage() {
     }
 
     if (scroll_count == 0) {
-      ImGui::TextDisabled("No scroll breaks in this message");
+      ImGui::TextDisabled(tr("No scroll breaks in this message"));
     } else {
-      ImGui::Text("Total scroll breaks: %d", scroll_count);
+      ImGui::Text(tr("Total scroll breaks: %d"), scroll_count);
     }
 
     // Character width budget
     ImGui::Separator();
-    ImGui::TextDisabled("Line width budget (max ~170px):");
+    ImGui::TextDisabled(tr("Line width budget (max ~170px):"));
     int estimated_line_width = current_line_chars * 8;
     float width_ratio = static_cast<float>(estimated_line_width) / 170.0f;
     ImVec4 width_color = (width_ratio > 1.0f)    ? gui::GetErrorColor()
                          : (width_ratio > 0.85f) ? gui::GetWarningColor()
                                                  : gui::GetSuccessColor();
-    ImGui::TextColored(width_color, "Last line: ~%dpx / 170px (%d chars)",
+    ImGui::TextColored(width_color, tr("Last line: ~%dpx / 170px (%d chars)"),
                        estimated_line_width, current_line_chars);
   }
 
@@ -675,9 +676,9 @@ void MessageEditor::DrawFontAtlas() {
 void MessageEditor::DrawExpandedMessageSettings() {
   ImGui::BeginChild("##ExpandedMessageSettings", ImVec2(0, 130), true,
                     ImGuiWindowFlags_AlwaysVerticalScrollbar);
-  ImGui::Text("Expanded Messages");
+  ImGui::Text(tr("Expanded Messages"));
 
-  if (ImGui::Button("Load from ROM")) {
+  if (ImGui::Button(tr("Load from ROM"))) {
     auto status = LoadExpandedMessagesFromRom();
     if (!status.ok()) {
       LOG_WARN("MessageEditor", "Load from ROM: %s",
@@ -685,7 +686,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
     }
   }
   ImGui::SameLine();
-  if (ImGui::Button("Load from File")) {
+  if (ImGui::Button(tr("Load from File"))) {
     std::string path = util::FileDialogWrapper::ShowOpenFileDialog();
     if (!path.empty()) {
       expanded_message_path_ = path;
@@ -708,8 +709,8 @@ void MessageEditor::DrawExpandedMessageSettings() {
   }
 
   if (expanded_messages_.size() > 0) {
-    ImGui::Text("Source: %s", expanded_message_path_.c_str());
-    ImGui::Text("Messages: %lu", expanded_messages_.size());
+    ImGui::Text(tr("Source: %s"), expanded_message_path_.c_str());
+    ImGui::Text(tr("Messages: %lu"), expanded_messages_.size());
 
     // Capacity indicator
     int capacity = GetExpandedTextDataEnd() - GetExpandedTextDataStart() + 1;
@@ -725,10 +726,10 @@ void MessageEditor::DrawExpandedMessageSettings() {
     } else {
       capacity_color = gui::GetErrorColor();
     }
-    ImGui::TextColored(capacity_color, "Bank: %d / %d bytes (%d free)", used,
-                       capacity, remaining);
+    ImGui::TextColored(capacity_color, tr("Bank: %d / %d bytes (%d free)"),
+                       used, capacity, remaining);
 
-    if (ImGui::Button("Add New Message")) {
+    if (ImGui::Button(tr("Add New Message"))) {
       MessageData new_message;
       new_message.ID = expanded_messages_.back().ID + 1;
       new_message.Address = expanded_messages_.back().Address +
@@ -742,7 +743,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Export to JSON")) {
+    if (ImGui::Button(tr("Export to JSON"))) {
       std::string path = util::FileDialogWrapper::ShowSaveFileDialog();
       if (!path.empty()) {
         PRINT_IF_ERROR(ExportMessagesToJson(path, expanded_messages_));
@@ -1348,22 +1349,23 @@ absl::Status MessageEditor::Find() {
                    ImGuiWindowFlags_AlwaysAutoResize)) {
     static char find_text[256] = "";
     static char replace_text[256] = "";
-    ImGui::InputText("Search", find_text, IM_ARRAYSIZE(find_text));
-    ImGui::InputText("Replace with", replace_text, IM_ARRAYSIZE(replace_text));
+    ImGui::InputText(tr("Search"), find_text, IM_ARRAYSIZE(find_text));
+    ImGui::InputText(tr("Replace with"), replace_text,
+                     IM_ARRAYSIZE(replace_text));
 
-    if (ImGui::Button("Find Next")) {
+    if (ImGui::Button(tr("Find Next"))) {
       search_text_ = find_text;
       replace_status_.clear();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Find All")) {
+    if (ImGui::Button(tr("Find All"))) {
       search_text_ = find_text;
       replace_status_.clear();
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Replace")) {
+    if (ImGui::Button(tr("Replace"))) {
       search_text_ = find_text;
       replace_text_ = replace_text;
       int count = ReplaceCurrentMatch();
@@ -1377,7 +1379,7 @@ absl::Status MessageEditor::Find() {
     }
 
     ImGui::SameLine();
-    if (ImGui::Button("Replace All")) {
+    if (ImGui::Button(tr("Replace All"))) {
       search_text_ = find_text;
       replace_text_ = replace_text;
       int count = ReplaceAllMatches();
@@ -1386,9 +1388,9 @@ absl::Status MessageEditor::Find() {
       replace_status_error_ = (count == 0);
     }
 
-    ImGui::Checkbox("Case Sensitive", &case_sensitive_);
+    ImGui::Checkbox(tr("Case Sensitive"), &case_sensitive_);
     ImGui::SameLine();
-    ImGui::Checkbox("Match Whole Word", &match_whole_word_);
+    ImGui::Checkbox(tr("Match Whole Word"), &match_whole_word_);
 
     if (!replace_status_.empty()) {
       ImVec4 color =

@@ -1,4 +1,5 @@
 #include "app/editor/overworld/entity/entity_workbench.h"
+#include "util/i18n/tr.h"
 
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/entity.h"
@@ -49,11 +50,11 @@ void OverworldEntityWorkbench::Draw(bool* p_open) {
 
   auto* active_entity = editor->current_entity();
   if (active_entity == nullptr) {
-    ImGui::TextDisabled("No entity selected");
+    ImGui::TextDisabled(tr("No entity selected"));
     return;
   }
 
-  ImGui::Text("Type: %s", GetEntityTypeLabel(active_entity->entity_type_));
+  ImGui::Text(tr("Type: %s"), GetEntityTypeLabel(active_entity->entity_type_));
   ImGui::Separator();
 
   if (ImGui::Button(ICON_MD_SETTINGS " Open Popup Editor")) {
@@ -134,7 +135,7 @@ void OverworldEntityWorkbench::DrawPopups() {
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::TextWrapped("%s", editor->insert_error().c_str());
     ImGui::Spacing();
-    if (ImGui::Button("OK", ImVec2(120.0f, 0.0f))) {
+    if (ImGui::Button(tr("OK"), ImVec2(120.0f, 0.0f))) {
       editor->insert_error().clear();
       ImGui::CloseCurrentPopup();
     }

@@ -1,4 +1,5 @@
 #include "app/editor/code/diagnostics_panel.h"
+#include "util/i18n/tr.h"
 
 #include <string>
 
@@ -34,7 +35,7 @@ SeverityStyle StyleFor(core::AssemblyDiagnosticSeverity severity) {
 void DrawDiagnosticsPanel(std::span<const core::AssemblyDiagnostic> diagnostics,
                           const DiagnosticsPanelCallbacks& callbacks) {
   if (diagnostics.empty()) {
-    ImGui::TextDisabled("No diagnostics");
+    ImGui::TextDisabled(tr("No diagnostics"));
     return;
   }
 
@@ -55,10 +56,10 @@ void DrawDiagnosticsPanel(std::span<const core::AssemblyDiagnostic> diagnostics,
     }
   }
   if (notes > 0) {
-    ImGui::Text("%d error(s), %d warning(s), %d note(s)", errors, warnings,
+    ImGui::Text(tr("%d error(s), %d warning(s), %d note(s)"), errors, warnings,
                 notes);
   } else {
-    ImGui::Text("%d error(s), %d warning(s)", errors, warnings);
+    ImGui::Text(tr("%d error(s), %d warning(s)"), errors, warnings);
   }
   ImGui::Separator();
 
@@ -97,7 +98,7 @@ void DrawDiagnosticsPanel(std::span<const core::AssemblyDiagnostic> diagnostics,
           }
         }
       } else {
-        ImGui::TextDisabled("<unknown>");
+        ImGui::TextDisabled(tr("<unknown>"));
       }
 
       ImGui::TableSetColumnIndex(2);

@@ -1,4 +1,5 @@
 #include "app/editor/graphics/ui/sprite/link_sprite_view.h"
+#include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
@@ -29,7 +30,8 @@ void LinkSpriteView::Draw(bool* p_open) {
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
     auto status = LoadLinkSheets();
     if (!status.ok()) {
-      ImGui::TextColored(gui::GetErrorColor(), "Failed to load Link sheets: %s",
+      ImGui::TextColored(gui::GetErrorColor(),
+                         tr("Failed to load Link sheets: %s"),
                          status.message().data());
       return;
     }
@@ -64,7 +66,8 @@ absl::Status LinkSpriteView::Update() {
   if (!sheets_loaded_ && rom_ && rom_->is_loaded()) {
     auto status = LoadLinkSheets();
     if (!status.ok()) {
-      ImGui::TextColored(gui::GetErrorColor(), "Failed to load Link sheets: %s",
+      ImGui::TextColored(gui::GetErrorColor(),
+                         tr("Failed to load Link sheets: %s"),
                          status.message().data());
       return status;
     }
@@ -124,7 +127,7 @@ void LinkSpriteView::DrawToolbar() {
 }
 
 void LinkSpriteView::DrawSheetGrid() {
-  ImGui::Text("Link Sheets (14)");
+  ImGui::Text(tr("Link Sheets (14)"));
   ImGui::Separator();
 
   // 4x4 grid (14 sheets + 2 empty slots)
@@ -203,14 +206,14 @@ void LinkSpriteView::DrawSheetThumbnail(int sheet_index) {
   // Tooltip
   if (ImGui::IsItemHovered()) {
     ImGui::BeginTooltip();
-    ImGui::Text("Link Sheet %d", sheet_index);
-    ImGui::Text("Double-click to edit");
+    ImGui::Text(tr("Link Sheet %d"), sheet_index);
+    ImGui::Text(tr("Double-click to edit"));
     ImGui::EndTooltip();
   }
 }
 
 void LinkSpriteView::DrawPreviewCanvas() {
-  ImGui::Text("Sheet %d Preview", selected_sheet_);
+  ImGui::Text(tr("Sheet %d Preview"), selected_sheet_);
 
   // Preview canvas
   float canvas_width = ImGui::GetContentRegionAvail().x - 16;
@@ -251,11 +254,11 @@ void LinkSpriteView::DrawPreviewCanvas() {
   // Zoom slider
   ImGui::SameLine();
   ImGui::SetNextItemWidth(gui::LayoutHelpers::GetSliderWidth());
-  ImGui::SliderFloat("Zoom", &preview_zoom_, 1.0f, 8.0f, "%.1fx");
+  ImGui::SliderFloat(tr("Zoom"), &preview_zoom_, 1.0f, 8.0f, "%.1fx");
 }
 
 void LinkSpriteView::DrawPaletteSelector() {
-  ImGui::Text("Display Palette:");
+  ImGui::Text(tr("Display Palette:"));
   ImGui::SameLine();
 
   const char* palette_names[] = {"Green Mail", "Blue Mail", "Red Mail",
@@ -271,17 +274,18 @@ void LinkSpriteView::DrawPaletteSelector() {
 }
 
 void LinkSpriteView::DrawInfoPanel() {
-  ImGui::Text("Info:");
-  ImGui::BulletText("896 total tiles (8x8 each)");
-  ImGui::BulletText("14 graphics sheets");
-  ImGui::BulletText("4BPP format");
+  ImGui::Text(tr("Info:"));
+  ImGui::BulletText(tr("896 total tiles (8x8 each)"));
+  ImGui::BulletText(tr("14 graphics sheets"));
+  ImGui::BulletText(tr("4BPP format"));
 
   if (loaded_zspr_.has_value()) {
     ImGui::Separator();
-    ImGui::Text("Loaded ZSPR:");
-    ImGui::BulletText("Name: %s", loaded_zspr_->metadata.display_name.c_str());
-    ImGui::BulletText("Author: %s", loaded_zspr_->metadata.author.c_str());
-    ImGui::BulletText("Tiles: %zu", loaded_zspr_->tile_count());
+    ImGui::Text(tr("Loaded ZSPR:"));
+    ImGui::BulletText(tr("Name: %s"),
+                      loaded_zspr_->metadata.display_name.c_str());
+    ImGui::BulletText(tr("Author: %s"), loaded_zspr_->metadata.author.c_str());
+    ImGui::BulletText(tr("Tiles: %zu"), loaded_zspr_->tile_count());
   }
 }
 

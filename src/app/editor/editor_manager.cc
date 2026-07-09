@@ -90,6 +90,7 @@
 #include "rom/rom_diff.h"
 #include "startup_flags.h"
 #include "util/file_util.h"
+#include "util/i18n/language_manager.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "util/rom_hash.h"
@@ -1053,6 +1054,7 @@ EditorManager::~EditorManager() {
   // captured `this` pointer. Matters for unit tests that construct and destroy
   // multiple EditorManager instances in the same process.
   gui::ThemeManager::Get().SetOnThemeChangedCallback(nullptr);
+  i18n::LanguageManager::Get().SetOnLanguageChangedCallback(nullptr);
 
   // EventBus subscriptions are automatically cleaned up when event_bus_ is
   // destroyed (owned by this class). No manual unsubscription needed.
@@ -1565,8 +1567,15 @@ void EditorManager::InitializeServices() {
         settings_dirty_ = true;
         settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
       });
+  i18n::LanguageManager::Get().SetOnLanguageChangedCallback(
+      [this](const std::string& locale) {
+        user_settings_.prefs().language_locale = locale;
+        settings_dirty_ = true;
+        settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
+      });
 
   auto& prefs = user_settings_.prefs();
+  i18n::LanguageManager::Get().SetLanguage(prefs.language_locale);
 
   // Apply the persisted font selection (defaults to index 0 = Karla).
   // Fonts were loaded by the window backend before EditorManager init, so

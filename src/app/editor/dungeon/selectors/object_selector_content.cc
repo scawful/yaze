@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "util/i18n/tr.h"
 
 // Third-party library headers
 #include "absl/strings/str_format.h"
@@ -361,7 +362,7 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     if (!result.errors.empty() || !result.warnings.empty()) {
       ImGui::TextColored(
           result.errors.empty() ? theme.status_warning : theme.status_error,
-          "%s %zu issue%s",
+          tr("%s %zu issue%s"),
           result.errors.empty() ? ICON_MD_WARNING : ICON_MD_ERROR,
           result.errors.size() + result.warnings.size(),
           (result.errors.size() + result.warnings.size()) == 1 ? "" : "s");

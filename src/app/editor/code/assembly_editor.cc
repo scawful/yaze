@@ -1,4 +1,5 @@
 #include "assembly_editor.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -948,7 +949,7 @@ void AssemblyEditor::DrawCodeEditor() {
   auto cpos = editor->GetCursorPosition();
   const char* file_label =
       current_file_.empty() ? "No file" : current_file_.c_str();
-  ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
+  ImGui::Text(tr("%6d/%-6d %6d lines  | %s | %s | %s | %s"), cpos.mLine + 1,
               cpos.mColumn + 1, editor->GetTotalLines(),
               editor->IsOverwrite() ? "Ovr" : "Ins",
               editor->CanUndo() ? "*" : " ",
@@ -977,7 +978,7 @@ void AssemblyEditor::DrawFileBrowser() {
       current_folder_ = LoadFolder(FileDialogWrapper::ShowOpenFolderDialog());
     }
     ImGui::Spacing();
-    ImGui::TextDisabled("No folder opened");
+    ImGui::TextDisabled(tr("No folder opened"));
     return;
   }
 
@@ -992,10 +993,10 @@ void AssemblyEditor::DrawFileBrowser() {
 
 void AssemblyEditor::DrawSymbolsContent() {
   if (symbols_.empty()) {
-    ImGui::TextDisabled("No symbols loaded.");
+    ImGui::TextDisabled(tr("No symbols loaded."));
     ImGui::Spacing();
     ImGui::TextWrapped(
-        "Apply a patch or load external symbols to populate this list.");
+        tr("Apply a patch or load external symbols to populate this list."));
     return;
   }
 
@@ -1029,7 +1030,7 @@ void AssemblyEditor::DrawSymbolsContent() {
 
 void AssemblyEditor::DrawBuildOutput() {
   // Error/warning counts
-  ImGui::Text("Errors: %zu  Warnings: %zu", last_errors_.size(),
+  ImGui::Text(tr("Errors: %zu  Warnings: %zu"), last_errors_.size(),
               last_warnings_.size());
   ImGui::Separator();
 
@@ -1059,9 +1060,9 @@ void AssemblyEditor::DrawBuildOutput() {
   if (apply_disabled &&
       ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
     if (!has_rom)
-      ImGui::SetTooltip("Load a ROM first");
+      ImGui::SetTooltip(tr("Load a ROM first"));
     else
-      ImGui::SetTooltip("Open an assembly file first");
+      ImGui::SetTooltip(tr("Open an assembly file first"));
   }
 
   ImGui::Separator();
@@ -1112,7 +1113,7 @@ void AssemblyEditor::DrawBuildOutput() {
         ImGui::TextWrapped("%s %s", ICON_MD_WARNING, warning.c_str());
       }
       if (last_errors_.empty() && last_warnings_.empty()) {
-        ImGui::TextDisabled("No build output");
+        ImGui::TextDisabled(tr("No build output"));
       }
     }
   }
@@ -1530,27 +1531,27 @@ void AssemblyEditor::DrawDisassemblyContent() {
   }
 
   ImGui::TextDisabled(
-      "z3disasm-backed bank browser for generated `bank_XX.asm` files.");
+      tr("z3disasm-backed bank browser for generated `bank_XX.asm` files."));
   const std::string rom_path = ResolveZ3DisasmRomPath();
-  ImGui::TextWrapped("ROM: %s",
+  ImGui::TextWrapped(tr("ROM: %s"),
                      rom_path.empty() ? "<unavailable>" : rom_path.c_str());
-  ImGui::TextWrapped("Output: %s", z3disasm_output_dir_.c_str());
+  ImGui::TextWrapped(tr("Output: %s"), z3disasm_output_dir_.c_str());
 
-  ImGui::Checkbox("All banks", &z3disasm_all_banks_);
+  ImGui::Checkbox(tr("All banks"), &z3disasm_all_banks_);
   if (!z3disasm_all_banks_) {
     ImGui::SameLine();
     ImGui::SetNextItemWidth(70.0f);
-    ImGui::InputInt("Start", &z3disasm_bank_start_);
+    ImGui::InputInt(tr("Start"), &z3disasm_bank_start_);
     ImGui::SameLine();
     ImGui::SetNextItemWidth(70.0f);
-    ImGui::InputInt("End", &z3disasm_bank_end_);
+    ImGui::InputInt(tr("End"), &z3disasm_bank_end_);
     z3disasm_bank_start_ = std::clamp(z3disasm_bank_start_, 0, 0xFF);
     z3disasm_bank_end_ = std::clamp(z3disasm_bank_end_, 0, 0xFF);
     if (z3disasm_bank_end_ < z3disasm_bank_start_) {
       z3disasm_bank_end_ = z3disasm_bank_start_;
     }
     ImGui::SameLine();
-    if (ImGui::SmallButton("Use Query Bank")) {
+    if (ImGui::SmallButton(tr("Use Query Bank"))) {
       if (auto bank = CurrentDisassemblyBank(); bank.has_value()) {
         z3disasm_bank_start_ = static_cast<int>(*bank);
         z3disasm_bank_end_ = static_cast<int>(*bank);
@@ -1579,7 +1580,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   }
   if (!can_generate) {
     ImGui::SameLine();
-    ImGui::TextDisabled("Load or configure a ROM path first.");
+    ImGui::TextDisabled(tr("Load or configure a ROM path first."));
   }
 
   if (!z3disasm_status_.empty()) {
@@ -1588,7 +1589,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   }
 
   if (!task_snapshot.output_tail.empty()) {
-    if (ImGui::CollapsingHeader("z3disasm Output")) {
+    if (ImGui::CollapsingHeader(tr("z3disasm Output"))) {
       std::string output_tail = task_snapshot.output_tail;
       ImGui::InputTextMultiline("##z3disasm_output", &output_tail,
                                 ImVec2(-1.0f, 80.0f),
@@ -1596,10 +1597,10 @@ void AssemblyEditor::DrawDisassemblyContent() {
     }
   }
 
-  ImGui::SeparatorText("Bank Browser");
+  ImGui::SeparatorText(tr("Bank Browser"));
   if (z3disasm_files_.empty()) {
-    ImGui::TextDisabled(
-        "No generated bank files yet. Run z3disasm to populate this browser.");
+    ImGui::TextDisabled(tr(
+        "No generated bank files yet. Run z3disasm to populate this browser."));
   } else {
     if (ImGui::BeginTable(
             "##z3disasm_browser", 2,
@@ -1631,13 +1632,13 @@ void AssemblyEditor::DrawDisassemblyContent() {
                   .string();
           ImGui::TextUnformatted(selected_name.c_str());
           ImGui::SameLine();
-          if (ImGui::SmallButton("Open in Code Editor")) {
+          if (ImGui::SmallButton(tr("Open in Code Editor"))) {
             ChangeActiveFile(z3disasm_selected_path_);
           }
           const std::string bank_query = BuildProjectGraphBankQuery();
           if (!bank_query.empty()) {
             ImGui::SameLine();
-            if (ImGui::SmallButton("Open Bank Graph")) {
+            if (ImGui::SmallButton(tr("Open Bank Graph"))) {
               auto status = RunProjectGraphQueryInDrawer(
                   {"--query=bank",
                    absl::StrFormat("--bank=%02X", SelectedZ3DisasmBankIndex()),
@@ -1649,14 +1650,14 @@ void AssemblyEditor::DrawDisassemblyContent() {
               }
             }
             ImGui::SameLine();
-            if (ImGui::SmallButton("Copy Bank Query")) {
+            if (ImGui::SmallButton(tr("Copy Bank Query"))) {
               ImGui::SetClipboardText(bank_query.c_str());
             }
             ImGui::TextDisabled("%s", bank_query.c_str());
           }
           ImGui::Separator();
           if (!z3disasm_source_jumps_.empty() &&
-              ImGui::CollapsingHeader("Source Map Jumps",
+              ImGui::CollapsingHeader(tr("Source Map Jumps"),
                                       ImGuiTreeNodeFlags_DefaultOpen)) {
             for (const auto& jump : z3disasm_source_jumps_) {
               ImGui::PushID(static_cast<int>(jump.address) ^ jump.line);
@@ -1702,7 +1703,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
             }
           }
           if (!z3disasm_hook_jumps_.empty() &&
-              ImGui::CollapsingHeader("Hook Jumps",
+              ImGui::CollapsingHeader(tr("Hook Jumps"),
                                       ImGuiTreeNodeFlags_DefaultOpen)) {
             for (const auto& hook : z3disasm_hook_jumps_) {
               ImGui::PushID(static_cast<int>(hook.address) ^ hook.size ^
@@ -1756,7 +1757,8 @@ void AssemblyEditor::DrawDisassemblyContent() {
               "##z3disasm_text", &z3disasm_selected_contents_,
               ImVec2(-1.0f, -1.0f), ImGuiInputTextFlags_ReadOnly);
         } else {
-          ImGui::TextDisabled("Select a generated bank file to preview it.");
+          ImGui::TextDisabled(
+              tr("Select a generated bank file to preview it."));
         }
       }
       ImGui::EndChild();
@@ -1764,12 +1766,12 @@ void AssemblyEditor::DrawDisassemblyContent() {
     }
   }
 
-  ImGui::SeparatorText("Quick ROM Slice");
-  ImGui::TextDisabled("Inline viewer for the currently loaded ROM buffer.");
+  ImGui::SeparatorText(tr("Quick ROM Slice"));
+  ImGui::TextDisabled(tr("Inline viewer for the currently loaded ROM buffer."));
   ImGui::SetNextItemWidth(220.0f);
-  ImGui::InputText("Address or Symbol", &disasm_query_);
+  ImGui::InputText(tr("Address or Symbol"), &disasm_query_);
   ImGui::SameLine();
-  if (ImGui::Button("Go")) {
+  if (ImGui::Button(tr("Go"))) {
     auto status = NavigateDisassemblyQuery();
     if (!status.ok()) {
       disasm_status_ = std::string(status.message());
@@ -1777,7 +1779,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   }
   ImGui::SameLine();
   ImGui::SetNextItemWidth(80.0f);
-  ImGui::InputInt("Count", &disasm_instruction_count_);
+  ImGui::InputInt(tr("Count"), &disasm_instruction_count_);
   if (disasm_instruction_count_ < 1) {
     disasm_instruction_count_ = 1;
   }
@@ -1791,7 +1793,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   ImGui::Separator();
 
   if (!rom_ || !rom_->is_loaded()) {
-    ImGui::TextDisabled("Load a ROM to browse disassembly.");
+    ImGui::TextDisabled(tr("Load a ROM to browse disassembly."));
     return;
   }
 
@@ -1803,7 +1805,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
     auto parsed = ParseHexAddress(disasm_query_);
     if (!parsed.has_value()) {
       ImGui::TextDisabled(
-          "Enter a SNES address like 0x008000 or a known label.");
+          tr("Enter a SNES address like 0x008000 or a known label."));
       return;
     }
     start_address = *parsed;
@@ -1834,7 +1836,7 @@ void AssemblyEditor::DrawDisassemblyContent() {
   const auto instructions = disassembler.DisassembleRange(
       start_address, static_cast<size_t>(disasm_instruction_count_), read_byte);
   if (instructions.empty()) {
-    ImGui::TextDisabled("No disassembly available for this address.");
+    ImGui::TextDisabled(tr("No disassembly available for this address."));
     return;
   }
 
@@ -1894,7 +1896,7 @@ void AssemblyEditor::DrawToolbarContent() {
     }
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Open Folder");
+    ImGui::SetTooltip(tr("Open Folder"));
 
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_FILE_OPEN, ImVec2(button_size, button_size))) {
@@ -1904,7 +1906,7 @@ void AssemblyEditor::DrawToolbarContent() {
     }
   }
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Open File");
+    ImGui::SetTooltip(tr("Open File"));
 
   ImGui::SameLine();
   bool can_save = HasActiveFile();
@@ -1914,7 +1916,7 @@ void AssemblyEditor::DrawToolbarContent() {
   }
   ImGui::EndDisabled();
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Save File");
+    ImGui::SetTooltip(tr("Save File"));
 
   ImGui::SameLine();
   ImGui::Text("|");  // Visual separator
@@ -1927,7 +1929,7 @@ void AssemblyEditor::DrawToolbarContent() {
   }
   ImGui::EndDisabled();
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Validate (Ctrl+B)");
+    ImGui::SetTooltip(tr("Validate (Ctrl+B)"));
 
   ImGui::SameLine();
   bool can_apply = can_save && rom_ && rom_->is_loaded();
@@ -1937,7 +1939,7 @@ void AssemblyEditor::DrawToolbarContent() {
   }
   ImGui::EndDisabled();
   if (ImGui::IsItemHovered())
-    ImGui::SetTooltip("Apply to ROM (Ctrl+Shift+B)");
+    ImGui::SetTooltip(tr("Apply to ROM (Ctrl+Shift+B)"));
 }
 
 void AssemblyEditor::DrawFileTabView() {
@@ -2024,7 +2026,7 @@ void AssemblyEditor::InlineUpdate() {
   auto cpos = editor->GetCursorPosition();
   const char* file_label =
       current_file_.empty() ? "No file" : current_file_.c_str();
-  ImGui::Text("%6d/%-6d %6d lines  | %s | %s | %s | %s", cpos.mLine + 1,
+  ImGui::Text(tr("%6d/%-6d %6d lines  | %s | %s | %s | %s"), cpos.mLine + 1,
               cpos.mColumn + 1, editor->GetTotalLines(),
               editor->IsOverwrite() ? "Ovr" : "Ins",
               editor->CanUndo() ? "*" : " ",
@@ -2098,7 +2100,7 @@ void AssemblyEditor::DrawCurrentFolder() {
           ChangeActiveFile(absl::StrCat(current_folder_.name, "/", file));
         }
         ImGui::TableNextColumn();
-        ImGui::Text("File");
+        ImGui::Text(tr("File"));
       }
 
       for (const auto& subfolder : current_folder_.subfolders) {
@@ -2113,12 +2115,12 @@ void AssemblyEditor::DrawCurrentFolder() {
                                             subfolder.name, "/", file));
             }
             ImGui::TableNextColumn();
-            ImGui::Text("File");
+            ImGui::Text(tr("File"));
           }
           ImGui::TreePop();
         } else {
           ImGui::TableNextColumn();
-          ImGui::Text("Folder");
+          ImGui::Text(tr("Folder"));
         }
       }
 
@@ -2129,7 +2131,7 @@ void AssemblyEditor::DrawCurrentFolder() {
 }
 
 void AssemblyEditor::DrawFileMenu() {
-  if (ImGui::BeginMenu("File")) {
+  if (ImGui::BeginMenu(tr("File"))) {
     if (ImGui::MenuItem(ICON_MD_FILE_OPEN " Open", "Ctrl+O")) {
       auto filename = util::FileDialogWrapper::ShowOpenFileDialog();
       if (!filename.empty()) {
@@ -2144,7 +2146,7 @@ void AssemblyEditor::DrawFileMenu() {
 }
 
 void AssemblyEditor::DrawEditMenu() {
-  if (ImGui::BeginMenu("Edit")) {
+  if (ImGui::BeginMenu(tr("Edit"))) {
     if (ImGui::MenuItem(ICON_MD_UNDO " Undo", "Ctrl+Z")) {
       GetActiveEditor()->Undo();
     }
@@ -2571,7 +2573,7 @@ void AssemblyEditor::ClearErrorMarkers() {
 }
 
 void AssemblyEditor::DrawAssembleMenu() {
-  if (ImGui::BeginMenu("Assemble")) {
+  if (ImGui::BeginMenu(tr("Assemble"))) {
     bool has_active_file = HasActiveFile();
     bool has_rom = (rom_ && rom_->is_loaded());
 
@@ -2644,13 +2646,13 @@ void AssemblyEditor::DrawAssembleMenu() {
     ImGui::Separator();
 
     // Show last error/warning count
-    ImGui::TextDisabled("Errors: %zu, Warnings: %zu", last_errors_.size(),
+    ImGui::TextDisabled(tr("Errors: %zu, Warnings: %zu"), last_errors_.size(),
                         last_warnings_.size());
 
     ImGui::EndMenu();
   }
 
-  if (ImGui::BeginMenu("Version")) {
+  if (ImGui::BeginMenu(tr("Version"))) {
     bool has_version_manager = (dependencies_.version_manager != nullptr);
     if (ImGui::MenuItem(ICON_MD_CAMERA_ALT " Create Snapshot", nullptr, false,
                         has_version_manager)) {
@@ -2663,9 +2665,9 @@ void AssemblyEditor::DrawAssembleMenu() {
     if (ImGui::BeginPopupModal("Create Snapshot", nullptr,
                                ImGuiWindowFlags_AlwaysAutoResize)) {
       static char message[256] = "";
-      ImGui::InputText("Message", message, sizeof(message));
+      ImGui::InputText(tr("Message"), message, sizeof(message));
 
-      if (ImGui::Button("Create", ImVec2(120, 0))) {
+      if (ImGui::Button(tr("Create"), ImVec2(120, 0))) {
         auto result = dependencies_.version_manager->CreateSnapshot(message);
         if (result.ok() && result->success) {
           if (dependencies_.toast_manager) {
@@ -2686,7 +2688,7 @@ void AssemblyEditor::DrawAssembleMenu() {
         message[0] = '\0';  // Reset
       }
       ImGui::SameLine();
-      if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+      if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -2704,8 +2706,8 @@ void AssemblyEditor::DrawSymbolPanel() {
   ImGui::SetNextWindowSize(ImVec2(350, 400), ImGuiCond_FirstUseEver);
   if (ImGui::Begin("Symbols", &show_symbol_panel_)) {
     if (symbols_.empty()) {
-      ImGui::TextDisabled("No symbols loaded.");
-      ImGui::TextDisabled("Apply a patch to load symbols.");
+      ImGui::TextDisabled(tr("No symbols loaded."));
+      ImGui::TextDisabled(tr("Apply a patch to load symbols."));
     } else {
       // Search filter
       static char filter[256] = "";

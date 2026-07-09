@@ -1,5 +1,6 @@
 // Related header
 #include "dungeon_editor_v2.h"
+#include "util/i18n/tr.h"
 
 // C system headers
 #include <cctype>
@@ -786,9 +787,10 @@ absl::Status DungeonEditorV2::Update() {
     gui::PanelWindow loading_card("Dungeon Editor Loading", ICON_MD_CASTLE);
     loading_card.SetDefaultSize(400, 200);
     if (loading_card.Begin()) {
-      ImGui::TextColored(theme.text_secondary_gray, "Loading dungeon data...");
+      ImGui::TextColored(theme.text_secondary_gray,
+                         tr("Loading dungeon data..."));
       ImGui::TextWrapped(
-          "Independent editor cards will appear once ROM data is loaded.");
+          tr("Independent editor cards will appear once ROM data is loaded."));
     }
     loading_card.End();
     return absl::OkStatus();
@@ -1128,7 +1130,7 @@ void DungeonEditorV2::ReleaseRoomPanelSlotId(int room_id) {
 void DungeonEditorV2::DrawRoomTab(int room_id) {
   const auto& theme = AgentUI::GetTheme();
   if (room_id < 0 || room_id >= 0x128) {
-    ImGui::Text("Invalid room ID: %d", room_id);
+    ImGui::Text(tr("Invalid room ID: %d"), room_id);
     return;
   }
 
@@ -1137,7 +1139,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
   if (!room.IsLoaded()) {
     auto status = room_loader_.LoadRoom(room_id, room);
     if (!status.ok()) {
-      ImGui::TextColored(theme.text_error_red, "Failed to load room: %s",
+      ImGui::TextColored(theme.text_error_red, tr("Failed to load room: %s"),
                          status.message().data());
       return;
     }
@@ -1177,7 +1179,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     ImGui::TextColored(theme.text_error_red, ICON_MD_PENDING " Not Loaded");
   }
   ImGui::SameLine();
-  ImGui::TextDisabled("Objects: %zu", room.GetTileObjects().size());
+  ImGui::TextDisabled(tr("Objects: %zu"), room.GetTileObjects().size());
 
   if (core::FeatureFlags::get().dungeon.kUseWorkbench &&
       !IsWorkbenchWorkflowEnabled()) {
@@ -1189,8 +1191,8 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "Switch back to the integrated Dungeon Workbench workflow "
-          "(Ctrl+Shift+W).");
+          tr("Switch back to the integrated Dungeon Workbench workflow "
+             "(Ctrl+Shift+W)."));
     }
   }
 
@@ -1223,11 +1225,11 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     if (!connected) {
       ImGui::EndDisabled();
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-        ImGui::SetTooltip("Connect to Mesen2 first");
+        ImGui::SetTooltip(tr("Connect to Mesen2 first"));
       }
     } else {
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Warp to room 0x%03X in Mesen2", room_id);
+        ImGui::SetTooltip(tr("Warp to room 0x%03X in Mesen2"), room_id);
       }
     }
   }

@@ -1,4 +1,5 @@
 #include "app/editor/shell/dialogs/editor_selection_dialog.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <cfloat>
@@ -312,8 +313,8 @@ void EditorSelectionDialog::DrawWelcomeHeader() {
   ImGui::PopFont();
 
   ImGui::TextColored(text_secondary,
-                     "Choose an editor to begin working on your ROM. "
-                     "You can open multiple editors simultaneously.");
+                     tr("Choose an editor to begin working on your ROM. "
+                        "You can open multiple editors simultaneously."));
 }
 
 void EditorSelectionDialog::DrawQuickAccessButtons() {

@@ -70,6 +70,9 @@ class UserSettings {
     // Theme (last applied theme persists across restart; empty = default)
     std::string last_theme_name;
 
+    // UI language (locale code, e.g. "en"/"fr"; matches assets/i18n/<code>.json)
+    std::string language_locale = "en";
+
     // Font (index into ImGui::GetIO().Fonts->Fonts, typically 0..4)
     int font_family_index = 0;
 

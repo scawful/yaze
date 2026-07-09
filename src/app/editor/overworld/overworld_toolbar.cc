@@ -1,4 +1,5 @@
 #include "app/editor/overworld/overworld_toolbar.h"
+#include "util/i18n/tr.h"
 
 #include <algorithm>
 #include <array>
@@ -299,9 +300,9 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     wrote_metadata_item = true;
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          "ROM version determines available overworld features.\n"
-          "v2+: Custom BG colors, main palettes\n"
-          "v3+: Wide/Tall maps, custom tile GFX, animated GFX");
+          tr("ROM version determines available overworld features.\n"
+             "v2+: Custom BG colors, main palettes\n"
+             "v3+: Wide/Tall maps, custom tile GFX, animated GFX"));
     }
 
     if (has_metadata_clipboard && context_width >= 440.0f) {
@@ -311,7 +312,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                              shared_clipboard->overworld_map_metadata.scope));
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
-            "%s\nPaste from the canvas context menu onto the hovered map.",
+            tr("%s\nPaste from the canvas context menu onto the hovered map."),
             DescribeOverworldMapMetadataClipboard(
                 shared_clipboard->overworld_map_metadata)
                 .c_str());
@@ -353,8 +354,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       ImGui::EndDisabled();
 
       if (ImGui::BeginPopup("RenameOverworldMapLabel")) {
-        ImGui::Text("%s Map Label", ICON_MD_LABEL);
-        ImGui::TextDisabled("Map 0x%02X", rename_map_id);
+        ImGui::Text(tr("%s Map Label"), ICON_MD_LABEL);
+        ImGui::TextDisabled(tr("Map 0x%02X"), rename_map_id);
         ImGui::SetNextItemWidth(260.0f);
         ImGui::InputText("##OverworldMapLabel", rename_label_buffer.data(),
                          rename_label_buffer.size());
@@ -444,7 +445,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           }
         };
 
-        ImGui::Text("%s Map 0x%02X Metadata", ICON_MD_TUNE, current_map);
+        ImGui::Text(tr("%s Map 0x%02X Metadata"), ICON_MD_TUNE, current_map);
         ImGui::Separator();
 
         if (ImGui::BeginTable("ToolbarMetadataEditor", 2,
@@ -455,7 +456,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
                                   108.0f);
 
           TableNextColumn();
-          ImGui::TextUnformatted("Area GFX");
+          ImGui::TextUnformatted(tr("Area GFX"));
           TableNextColumn();
           uint8_t area_gfx = map->area_graphics();
           if (gui::InputHexByte("##ToolbarMetaAreaGfx", &area_gfx, 96.0f)) {
@@ -465,7 +466,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           }
 
           TableNextColumn();
-          ImGui::TextUnformatted("Area Palette");
+          ImGui::TextUnformatted(tr("Area Palette"));
           TableNextColumn();
           uint8_t area_palette = map->area_palette();
           if (gui::InputHexByte("##ToolbarMetaAreaPalette", &area_palette,
@@ -478,7 +479,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           if (zelda3::OverworldVersionHelper::SupportsCustomBGColors(
                   rom_version)) {
             TableNextColumn();
-            ImGui::TextUnformatted("Main Palette");
+            ImGui::TextUnformatted(tr("Main Palette"));
             TableNextColumn();
             uint8_t main_palette = map->main_palette();
             if (gui::InputHexByte("##ToolbarMetaMainPalette", &main_palette,
@@ -490,7 +491,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           }
 
           TableNextColumn();
-          ImGui::TextUnformatted("Sprite GFX");
+          ImGui::TextUnformatted(tr("Sprite GFX"));
           TableNextColumn();
           uint8_t sprite_gfx = map->sprite_graphics(game_state);
           if (gui::InputHexByte("##ToolbarMetaSpriteGfx", &sprite_gfx, 96.0f)) {
@@ -500,7 +501,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           }
 
           TableNextColumn();
-          ImGui::TextUnformatted("Sprite Palette");
+          ImGui::TextUnformatted(tr("Sprite Palette"));
           TableNextColumn();
           uint8_t sprite_palette = map->sprite_palette(game_state);
           if (gui::InputHexByte("##ToolbarMetaSpritePalette", &sprite_palette,
@@ -513,7 +514,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           if (zelda3::OverworldVersionHelper::SupportsAnimatedGFX(
                   rom_version)) {
             TableNextColumn();
-            ImGui::TextUnformatted("Animated GFX");
+            ImGui::TextUnformatted(tr("Animated GFX"));
             TableNextColumn();
             uint8_t animated_gfx = map->animated_gfx();
             if (gui::InputHexByte("##ToolbarMetaAnimatedGfx", &animated_gfx,
@@ -525,7 +526,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
           }
 
           TableNextColumn();
-          ImGui::TextUnformatted("Message");
+          ImGui::TextUnformatted(tr("Message"));
           TableNextColumn();
           uint16_t message_id = map->message_id();
           if (gui::InputHexWord("##ToolbarMetaMessage", &message_id, 96.0f)) {
@@ -535,7 +536,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
 
           for (int i = 0; i < 4; ++i) {
             TableNextColumn();
-            ImGui::Text("Music %d", i);
+            ImGui::Text(tr("Music %d"), i);
             TableNextColumn();
             uint8_t music = map->area_music(i);
             const std::string id = absl::StrFormat("##ToolbarMetaMusic%d", i);
@@ -549,7 +550,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         }
 
         ImGui::Separator();
-        ImGui::Text("%s Project Labels", ICON_MD_LABEL);
+        ImGui::Text(tr("%s Project Labels"), ICON_MD_LABEL);
         ImGui::BeginDisabled(project == nullptr);
         if (ImGui::BeginTable(
                 "ToolbarMetadataProjectLabels", 4,
@@ -573,7 +574,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
             const std::string project_label =
                 GetProjectResourceLabel(project, target.type, target.id);
             if (project_label.empty()) {
-              ImGui::TextDisabled("default");
+              ImGui::TextDisabled(tr("default"));
             } else {
               ImGui::TextUnformatted(project_label.c_str());
             }
@@ -586,7 +587,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
             }
             if (ImGui::IsItemHovered()) {
               ImGui::SetTooltip(
-                  "Rename %s %s in the open project", target.title.c_str(),
+                  tr("Rename %s %s in the open project"), target.title.c_str(),
                   FormatResourceId(target.id, target.hex_width).c_str());
             }
             ImGui::PopID();
@@ -619,7 +620,7 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
         }
         ImGui::EndDisabled();
         if (!project) {
-          ImGui::TextDisabled("Open a project to store metadata labels.");
+          ImGui::TextDisabled(tr("Open a project to store metadata labels."));
         }
 
         if (ImGui::BeginPopup("OverworldMetadataResourceLabel")) {
