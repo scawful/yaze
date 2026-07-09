@@ -10,8 +10,10 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
      dereferencing them. The expected operand shape is pinned to the US USDASM
      loader at bank_02 `#_02DAF9..#_02DB12` and the vanilla
      `SpecialUnderworldObjects_pushable_block` table at bank_04 `#_04F1DE` by
-     `DungeonSaveRegionTest.BlocksLoaderPointerOperandsMatchUsdasmShape`.
-     Full >128-entry expansion still needs a runtime/WRAM
+     `DungeonSaveRegionTest.BlocksLoaderPointerOperandsMatchUsdasmShape`. Unit
+     coverage now pins the fixed-capacity boundary: exactly 128 entries writes
+     all four 0x80-byte pages, while 129 entries fails before mutating ROM bytes
+     or clearing dirty state. Full >128-entry expansion still needs a runtime/WRAM
      layout patch, because the vanilla loader copies four 0x80-byte pages into
      `$7EF940..$7EFB3F` and block drawing scans that fixed buffer before torch
      data.
