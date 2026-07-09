@@ -14,6 +14,7 @@
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "core/project.h"
+#include "imgui/imgui.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 
 namespace yaze::editor {
@@ -49,6 +50,68 @@ zelda3::PitDamageTable MakePitDamageTable(
   table.ClearDirty();
   return table;
 }
+
+class DungeonWorkbenchPitDamageUiTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    IMGUI_CHECKVERSION();
+    context_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(context_);
+    ImGui::StyleColorsDark();
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(640.0f, 480.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.Fonts->AddFontDefault();
+    unsigned char* pixels = nullptr;
+    int atlas_width = 0;
+    int atlas_height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &atlas_width, &atlas_height);
+    io.AddMousePosEvent(-1000.0f, -1000.0f);
+    io.AddMouseButtonEvent(0, false);
+  }
+
+  void TearDown() override {
+    if (context_ != nullptr) {
+      ImGui::DestroyContext(context_);
+      context_ = nullptr;
+    }
+  }
+
+  void DrawPitDamageFrame(DungeonWorkbenchContent& content, int room_id) {
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(640.0f, 480.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(520.0f, 320.0f), ImGuiCond_Always);
+    ImGui::Begin(
+        "PitDamageHost", nullptr,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse);
+    content.DrawPitDamageControlsForTesting(room_id);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  void ClickRect(DungeonWorkbenchContent& content, int room_id,
+                 const DungeonWorkbenchTestRect& rect) {
+    const float center_x = (rect.min_x + rect.max_x) * 0.5f;
+    const float center_y = (rect.min_y + rect.max_y) * 0.5f;
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddMousePosEvent(center_x, center_y);
+    io.AddMouseButtonEvent(0, true);
+    DrawPitDamageFrame(content, room_id);
+
+    io.AddMousePosEvent(center_x, center_y);
+    io.AddMouseButtonEvent(0, false);
+    DrawPitDamageFrame(content, room_id);
+  }
+
+ private:
+  ImGuiContext* context_ = nullptr;
+};
 
 TEST(DungeonWorkbenchContentLayoutTest,
      PrefersCompactingAndHidingLeftPaneBeforeRightPane) {
@@ -261,6 +324,42 @@ TEST(DungeonWorkbenchPitDamageTest, RejectsInvalidMembershipSwaps) {
             absl::StatusCode::kFailedPrecondition);
   EXPECT_EQ(RemoveCurrentRoomFromPitDamage(&table, 0x001, 0x010).code(),
             absl::StatusCode::kFailedPrecondition);
+}
+
+TEST_F(DungeonWorkbenchPitDamageUiTest,
+       ButtonsClickThroughToPitDamageMembershipSwaps) {
+  int current_room_id = 0x020;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+  auto table = MakePitDamageTable({0x001, 0x010});
+  content.SetPitDamageTableProvider([&table]() { return &table; });
+
+  DrawPitDamageFrame(content, current_room_id);
+  const auto add_rect =
+      content.GetPitDamageControlRectsForTesting().add_current;
+  ASSERT_TRUE(add_rect.visible);
+  ASSERT_LT(add_rect.min_x, add_rect.max_x);
+  ASSERT_LT(add_rect.min_y, add_rect.max_y);
+
+  ClickRect(content, current_room_id, add_rect);
+  EXPECT_TRUE(table.Contains(0x020));
+  EXPECT_FALSE(table.Contains(0x001));
+  EXPECT_TRUE(table.Contains(0x010));
+  EXPECT_TRUE(table.dirty());
+
+  table.ClearDirty();
+  DrawPitDamageFrame(content, current_room_id);
+  const auto replace_rect =
+      content.GetPitDamageControlRectsForTesting().replace_current;
+  ASSERT_TRUE(replace_rect.visible);
+  ASSERT_LT(replace_rect.min_x, replace_rect.max_x);
+  ASSERT_LT(replace_rect.min_y, replace_rect.max_y);
+
+  ClickRect(content, current_room_id, replace_rect);
+  EXPECT_FALSE(table.Contains(0x020));
+  EXPECT_TRUE(table.Contains(0x000));
+  EXPECT_TRUE(table.Contains(0x010));
+  EXPECT_TRUE(table.dirty());
 }
 
 TEST(DungeonWorkbenchProjectLabelsTest,
