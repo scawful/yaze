@@ -46,6 +46,19 @@ struct DungeonWorkbenchPaneLayout {
   float min_right_width = 0.0f;
 };
 
+struct DungeonWorkbenchTestRect {
+  bool visible = false;
+  float min_x = 0.0f;
+  float min_y = 0.0f;
+  float max_x = 0.0f;
+  float max_y = 0.0f;
+};
+
+struct DungeonWorkbenchPitDamageControlRects {
+  DungeonWorkbenchTestRect add_current;
+  DungeonWorkbenchTestRect replace_current;
+};
+
 DungeonWorkbenchResponsiveLayout ResolveDungeonWorkbenchResponsiveLayout(
     float total_width, float min_canvas_width, float min_sidebar_width,
     float splitter_width, bool want_left, bool want_right);
@@ -126,6 +139,13 @@ class DungeonWorkbenchContent : public WindowContent {
   bool IsToolDrawerActiveForTesting() const;
   const char* GetInspectorModeIdForTesting() const;
   const char* GetActiveToolIdForTesting() const;
+  void DrawPitDamageControlsForTesting(int room_id) {
+    DrawPitDamageControls(room_id);
+  }
+  const DungeonWorkbenchPitDamageControlRects&
+  GetPitDamageControlRectsForTesting() const {
+    return pit_damage_control_rects_;
+  }
 
   /// Called by the editor when the current room changes.
   void NotifyRoomChanged(int previous_room_id) {
@@ -259,6 +279,7 @@ class DungeonWorkbenchContent : public WindowContent {
   uint16_t pit_damage_victim_room_id_ = 0;
   std::string pit_damage_status_message_;
   bool pit_damage_status_error_ = false;
+  DungeonWorkbenchPitDamageControlRects pit_damage_control_rects_{};
   std::unique_ptr<DungeonMapPanel> embedded_dungeon_map_;
   RoomTagEditorPanel* room_tag_panel_ = nullptr;
   CustomCollisionPanel* custom_collision_panel_ = nullptr;
