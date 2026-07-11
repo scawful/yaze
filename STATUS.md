@@ -40,15 +40,24 @@
   Oracle smoke matrix before merge on July 11, 2026. Post-merge `master` CI is
   the remaining automated gate before tagging.
 
+### Remaining Release Gates
+- Confirm post-merge `master` CI is green.
+- Smoke the Windows release zip: launch `yaze.exe`, run `z3ed.exe --help`,
+  verify packaged assets, and open/save a clean ROM.
+- Merge the release-metadata PR, tag `v0.7.2`, and verify the release workflow
+  artifacts and checksums.
+
 ## 0.7.0 Validation Snapshot (historical)
 - `ctest --preset mac-ai-unit --output-on-failure` → **1622/1622 passed**
 - `ctest --preset mac-ai-integration --output-on-failure` → **237/237 passed**
 - `ctest --preset mac-ai-unit --output-on-failure --tests-regex "(ObjectDrawerRegistryReplayTest|ObjectTileEditorTest|CustomObjectManagerTest|ObjectParserTest|Tile16EditorActionStateTest|OverworldItemOperationsTest)"` → **68/68 passed**
 
 ## Recent Dungeon Follow-through
-- Editable pit-damage room membership controls and integration classification.
-- Pushable-block loader operand/capacity guards with boundary coverage.
-- A hardcoded room `0x001` object-overlap compositing golden.
+- Editable pit-damage room membership controls and integration classification
+  (PRs #64–65).
+- Pushable-block loader operand/capacity guards with boundary coverage (PRs
+  #66–67).
+- A hardcoded room `0x001` object-overlap compositing golden (PR #68).
 
 ## Legacy 0.7.0 Stretch Follow-ups
 - `task_20260303T212605Z_32450` — Tile16 quadrant strip/hotkeys parity tests
