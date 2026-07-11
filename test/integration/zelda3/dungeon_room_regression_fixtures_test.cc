@@ -49,6 +49,15 @@ struct RoomLayerFingerprints {
   int composite_non_backdrop = 0;
 };
 
+constexpr int kRoom001ObjectOverlapX = 45;
+constexpr int kRoom001ObjectOverlapY = 120;
+constexpr int kRoom001ObjectOverlapIndex = 61485;
+constexpr uint8_t kRoom001ObjectOverlapBg1Pixel = 33;
+constexpr uint8_t kRoom001ObjectOverlapBg2Pixel = 34;
+constexpr uint8_t kRoom001ObjectOverlapBg1Priority = 1;
+constexpr uint8_t kRoom001ObjectOverlapBg2Priority = 0;
+constexpr uint8_t kRoom001ObjectOverlapCompositePixel = 33;
+
 RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
                                                    GameData* game_data,
                                                    int room_id) {
@@ -228,6 +237,54 @@ TEST_F(DungeonRoomRegressionFixturesTest, FixtureRoomsHaveThreeStreamCoverage) {
   EXPECT_TRUE(has_stream[0]) << "Room 0x001 missing primary stream";
   EXPECT_TRUE(has_stream[1]) << "Room 0x001 missing BG2 overlay stream";
   EXPECT_TRUE(has_stream[2]) << "Room 0x001 missing BG1 overlay stream";
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room001ObjectOverlapPixelMatchesPriorityWinner) {
+  // Broad checksums catch drift but do not explain *where* compositing changed.
+  // Pin one sparse golden overlap pixel from room 0x001, which exercises
+  // primary, BG2-overlay, and BG1-overlay object streams. The sampled pixel is
+  // BG1 high-priority object pixel 33 over BG2 low-priority object pixel 34,
+  // so SNES Mode 1 compositing must leave palette index 33 on top.
+  Room room(0x001, &rom_, &game_data_);
+  room.LoadRoomGraphics();
+  room.LoadObjects();
+  room.CopyRoomGraphicsToBuffer();
+  room.RenderRoomGraphics();
+  ASSERT_FALSE(room.layer_merging().Layer2Translucent)
+      << "This sparse ordering assertion assumes opaque compositing.";
+
+  RoomLayerManager layer_manager;
+  const auto& composite = room.GetCompositeBitmap(layer_manager);
+  const auto& bg1_objects = room.object_bg1_buffer();
+  const auto& bg2_objects = room.object_bg2_buffer();
+  const auto& bg1_bitmap = bg1_objects.bitmap();
+  const auto& bg2_bitmap = bg2_objects.bitmap();
+  ASSERT_TRUE(bg1_bitmap.is_active());
+  ASSERT_TRUE(bg2_bitmap.is_active());
+  ASSERT_TRUE(composite.is_active());
+  ASSERT_EQ(bg2_bitmap.width(), bg1_bitmap.width());
+  ASSERT_EQ(composite.width(), bg1_bitmap.width());
+  ASSERT_LT(kRoom001ObjectOverlapX, bg1_bitmap.width());
+  ASSERT_LT(kRoom001ObjectOverlapY, bg1_bitmap.height());
+  const int sample_index =
+      kRoom001ObjectOverlapY * bg1_bitmap.width() + kRoom001ObjectOverlapX;
+  ASSERT_EQ(sample_index, kRoom001ObjectOverlapIndex);
+  ASSERT_LT(sample_index, static_cast<int>(bg1_bitmap.size()));
+  ASSERT_LT(sample_index, static_cast<int>(bg2_bitmap.size()));
+  ASSERT_LT(sample_index, static_cast<int>(composite.size()));
+  ASSERT_LT(sample_index, static_cast<int>(bg1_objects.priority_data().size()));
+  ASSERT_LT(sample_index, static_cast<int>(bg2_objects.priority_data().size()));
+  EXPECT_EQ(bg1_bitmap.data()[sample_index], kRoom001ObjectOverlapBg1Pixel);
+  EXPECT_EQ(bg2_bitmap.data()[sample_index], kRoom001ObjectOverlapBg2Pixel);
+  EXPECT_EQ(bg1_objects.priority_data()[sample_index],
+            kRoom001ObjectOverlapBg1Priority);
+  EXPECT_EQ(bg2_objects.priority_data()[sample_index],
+            kRoom001ObjectOverlapBg2Priority);
+  EXPECT_EQ(composite.data()[sample_index], kRoom001ObjectOverlapCompositePixel)
+      << "Room 0x001 overlap pixel (" << kRoom001ObjectOverlapX << ","
+      << kRoom001ObjectOverlapY << ") should preserve the golden BG1-over-BG2 "
+      << "priority winner";
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest, PerLayerFingerprintsMatchGolden) {
