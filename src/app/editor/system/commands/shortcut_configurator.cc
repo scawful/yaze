@@ -226,13 +226,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(
       shortcut_manager, "Save As", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_S},
       [editor_manager]() {
-        if (editor_manager) {
-          // Use project-aware default filename when possible
-          std::string filename =
-              editor_manager->GetCurrentRom()
-                  ? editor_manager->GetCurrentRom()->filename()
-                  : "";
-          editor_manager->SaveRomAs(filename);
+        if (editor_manager && editor_manager->popup_manager()) {
+          editor_manager->popup_manager()->Show(PopupID::kSaveAs);
         }
       },
       Shortcut::Scope::kGlobal);
@@ -240,8 +235,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   RegisterIfValid(
       shortcut_manager, "Close ROM", {ImGuiMod_Ctrl, ImGuiKey_W},
       [editor_manager]() {
-        if (editor_manager && editor_manager->GetCurrentRom()) {
-          editor_manager->GetCurrentRom()->Close();
+        if (editor_manager) {
+          editor_manager->CloseCurrentSession();
         }
       },
       Shortcut::Scope::kGlobal);

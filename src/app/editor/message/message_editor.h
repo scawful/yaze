@@ -21,6 +21,8 @@
 namespace yaze {
 namespace editor {
 
+class MessageEditorTestPeer;
+
 constexpr int kGfxFont = 0x70000;  // 2bpp format
 constexpr int kCharactersWidth = 0x74ADF;
 constexpr int kNumMessages = 396;
@@ -80,6 +82,8 @@ class MessageEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
+  friend class MessageEditorTestPeer;
+
   bool case_sensitive_ = false;
   bool match_whole_word_ = false;
   std::string search_text_ = "";
@@ -138,6 +142,8 @@ class MessageEditor : public Editor {
   bool font_graphics_loaded_ = false;
   std::string message_bundle_status_;
   bool message_bundle_status_error_ = false;
+  std::vector<std::string> current_parse_errors_;
+  std::vector<std::string> current_parse_warnings_;
 };
 
 }  // namespace editor

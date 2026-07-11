@@ -1422,7 +1422,7 @@ void PopupManager::DrawRomWriteConfirmPopup() {
   if (Button(tr("Save anyway"), ImVec2(0, 0))) {
     editor_manager_->ConfirmRomWrite();
     Hide(PopupID::kRomWriteConfirm);
-    auto status = editor_manager_->SaveRom();
+    auto status = editor_manager_->ResumePendingRomSave();
     if (!status.ok() && !absl::IsCancelled(status)) {
       if (auto* toast = editor_manager_->toast_manager()) {
         toast->Show(absl::StrFormat("Save failed: %s", status.message()),
@@ -1494,7 +1494,7 @@ void PopupManager::DrawWriteConflictWarningPopup() {
   if (Button(tr("Save Anyway"), ImVec2(0, 0))) {
     editor_manager_->BypassWriteConflictOnce();
     Hide(PopupID::kWriteConflictWarning);
-    auto status = editor_manager_->SaveRom();
+    auto status = editor_manager_->ResumePendingRomSave();
     if (!status.ok() && !absl::IsCancelled(status)) {
       if (auto* toast = editor_manager_->toast_manager()) {
         toast->Show(absl::StrFormat("Save failed: %s", status.message()),

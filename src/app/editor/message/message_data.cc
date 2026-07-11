@@ -1,16 +1,19 @@
 #include "message_data.h"
 
+#include <algorithm>
 #include <cctype>
 #include <fstream>
 #include <optional>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "core/rom_settings.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -133,8 +136,12 @@ ParsedElement FindMatchingElement(const std::string& str) {
     try {
       // match[1] captures ":XX" — strip the leading colon
       std::string dict_arg = match[1].str().substr(1);
-      return ParsedElement(dictionary_element,
-                           DICTOFF + std::stoi(dict_arg, nullptr, 16));
+      const int dictionary_index = std::stoi(dict_arg, nullptr, 16);
+      if (dictionary_index < 0 || dictionary_index >= kNumDictionaryEntries) {
+        util::logf("Dictionary index out of range: %s", dict_arg.c_str());
+        return ParsedElement();
+      }
+      return ParsedElement(dictionary_element, DICTOFF + dictionary_index);
     } catch (const std::exception& e) {
       util::logf("Error parsing dictionary token: %s", match[1].str().c_str());
       return ParsedElement();
@@ -390,8 +397,7 @@ std::optional<size_t> FindTextMatch(std::string_view text,
 int ReplaceTextMatches(std::string* text, std::string_view query,
                        std::string_view replacement, size_t start_pos,
                        bool replace_all, bool case_sensitive,
-                       bool match_whole_word,
-                       size_t* first_replaced_pos) {
+                       bool match_whole_word, size_t* first_replaced_pos) {
   if (!text || query.empty() || start_pos > text->size()) {
     return 0;
   }
@@ -592,7 +598,8 @@ std::vector<std::string> ParseMessageData(
   return parsed_messages;
 }
 
-std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
+std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos,
+                                         bool allow_bank_switch) {
   std::vector<MessageData> list_of_texts;
   int message_id = 0;
 
@@ -643,7 +650,8 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos) {
       current_raw_message.append(text_element->GetParamToken(current_byte));
       current_parsed_message.append(text_element->GetParamToken(current_byte));
 
-      if (text_element->Token == kBankToken && !did_bank_switch) {
+      if (allow_bank_switch && text_element->Token == kBankToken &&
+          !did_bank_switch) {
         did_bank_switch = true;
         pos = kTextData2;
       }
@@ -1112,8 +1120,19 @@ std::string ExportToOrgFormat(
 // ===========================================================================
 
 std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos) {
-  // Reuse ReadAllTextData — it already handles 0x7F terminators and 0xFF end
-  return ReadAllTextData(rom, pos);
+  // Expanded messages occupy one contiguous region. A vanilla [BANK] command
+  // must not redirect parsing into the vanilla second text bank.
+  return ReadAllTextData(rom, pos, /*max_pos=*/-1,
+                         /*allow_bank_switch=*/false);
+}
+
+std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos, int end) {
+  if (end < pos) {
+    return {};
+  }
+  // ReadAllTextData's max_pos is exclusive; expanded-region ends are
+  // configured as inclusive addresses.
+  return ReadAllTextData(rom, pos, end + 1, /*allow_bank_switch=*/false);
 }
 
 absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
@@ -1143,7 +1162,19 @@ absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
 
   int used = 0;
   for (size_t i = 0; i < messages.size(); ++i) {
-    auto bytes = ParseMessageToData(messages[i]);
+    auto parsed = ParseMessageToDataWithDiagnostics(messages[i]);
+    if (!parsed.ok()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Expanded message %d is invalid: %s",
+                          static_cast<int>(i), parsed.errors.front()));
+    }
+    if (messages[i].find("[BANK]") != std::string::npos) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Expanded message %d contains [BANK], which is only valid in the "
+          "vanilla message stream",
+          static_cast<int>(i)));
+    }
+    auto bytes = std::move(parsed.bytes);
     const int needed = static_cast<int>(bytes.size()) + 1;  // +0x7F
 
     // Always reserve space for the final 0xFF.
@@ -1179,38 +1210,49 @@ absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
 
 absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
                                    const std::vector<std::string>& messages) {
-  int pos = start;
-  int capacity = end - start + 1;
+  if (rom == nullptr || start < 0 || end < start) {
+    return absl::InvalidArgumentError("Invalid expanded message region");
+  }
+
+  const int capacity = end - start + 1;
+  int used = 0;
+  std::vector<std::vector<uint8_t>> encoded_messages;
+  encoded_messages.reserve(messages.size());
 
   for (size_t i = 0; i < messages.size(); ++i) {
-    auto bytes = ParseMessageToData(messages[i]);
-
-    // Check space: bytes + terminator (0x7F) + final end marker (0xFF)
-    int needed = static_cast<int>(bytes.size()) + 1;  // +1 for 0x7F
-    if (i == messages.size() - 1) {
-      needed += 1;  // +1 for final 0xFF
+    auto parsed = ParseMessageToDataWithDiagnostics(messages[i]);
+    if (!parsed.ok()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Expanded message %d is invalid: %s",
+                          static_cast<int>(i), parsed.errors.front()));
     }
+    if (messages[i].find("[BANK]") != std::string::npos) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Expanded message %d contains [BANK], which is only valid in the "
+          "vanilla message stream",
+          static_cast<int>(i)));
+    }
+    auto bytes = std::move(parsed.bytes);
 
-    if (pos + needed - start > capacity) {
+    const int needed = static_cast<int>(bytes.size()) + 1;  // +1 for 0x7F
+    if (used + needed + 1 > capacity) {
       return absl::ResourceExhaustedError(
           absl::StrFormat("Expanded message data exceeds bank boundary "
-                          "(at message %d, pos 0x%06X, end 0x%06X)",
-                          static_cast<int>(i), pos, end));
+                          "(at message %d, used %d, end 0x%06X)",
+                          static_cast<int>(i), used, end));
     }
+    used += needed;
+    encoded_messages.push_back(std::move(bytes));
+  }
 
-    // Write encoded bytes
+  int pos = start;
+  for (const auto& bytes : encoded_messages) {
     for (uint8_t byte : bytes) {
       rom[pos++] = byte;
     }
-    // Write message terminator
     rom[pos++] = kMessageTerminator;
   }
 
-  // Write end-of-region marker
-  if (pos - start >= capacity) {
-    return absl::ResourceExhaustedError(
-        "No space for end-of-region marker (0xFF)");
-  }
   rom[pos++] = 0xFF;
 
   return absl::OkStatus();
@@ -1221,6 +1263,8 @@ absl::Status WriteAllTextData(Rom* rom,
   if (rom == nullptr || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
+
+  ScopedRomTransaction transaction(*rom);
 
   int pos = kTextData;
   bool in_second_bank = false;
@@ -1255,6 +1299,7 @@ absl::Status WriteAllTextData(Rom* rom,
   }
 
   RETURN_IF_ERROR(rom->WriteByte(pos, 0xFF));
+  transaction.Commit();
   return absl::OkStatus();
 }
 

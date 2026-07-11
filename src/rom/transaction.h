@@ -10,6 +10,7 @@
 // Commit() will Rollback() previously applied writes in reverse order.
 
 #include <cstdint>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -159,6 +160,50 @@ class Transaction {
   Rom& rom_;
   absl::Status status_;
   std::vector<Operation> operations_;
+};
+
+// Whole-buffer transaction used by coordinated editor saves. Individual
+// editor serializers do not share a Transaction instance and may resize the
+// ROM, so recording only writes made through Transaction is insufficient for
+// the File > Save ROM pipeline. This guard snapshots the complete in-memory
+// state and restores it unless the caller commits after the atomic disk write.
+class ScopedRomTransaction {
+ public:
+  explicit ScopedRomTransaction(Rom& rom)
+      : rom_(rom),
+        data_(rom.vector()),
+        filename_(rom.filename()),
+        dirty_(rom.dirty()) {}
+
+  ScopedRomTransaction(const ScopedRomTransaction&) = delete;
+  ScopedRomTransaction& operator=(const ScopedRomTransaction&) = delete;
+
+  ~ScopedRomTransaction() {
+    if (!committed_) {
+      Rollback();
+    }
+  }
+
+  void Commit() { committed_ = true; }
+
+  void Rollback() {
+    if (committed_) {
+      return;
+    }
+    rom_.mutable_vector() = data_;
+    // Keep Rom::size() synchronized if a serializer resized the buffer.
+    rom_.Expand(static_cast<int>(data_.size()));
+    rom_.set_filename(filename_);
+    rom_.set_dirty(dirty_);
+    committed_ = true;
+  }
+
+ private:
+  Rom& rom_;
+  std::vector<uint8_t> data_;
+  std::string filename_;
+  bool dirty_ = false;
+  bool committed_ = false;
 };
 
 }  // namespace yaze

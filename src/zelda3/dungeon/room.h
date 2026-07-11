@@ -194,6 +194,18 @@ struct WaterFillZoneMap {
 
 class Room {
  public:
+  struct SaveDirtySnapshot {
+    bool header = false;
+    bool object_stream = false;
+    bool sprites = false;
+    bool chests = false;
+    bool pot_items = false;
+    bool torches = false;
+    bool blocks = false;
+    bool custom_collision = false;
+    bool water_fill = false;
+  };
+
   Room();
   Room(int room_id, Rom* rom, GameData* game_data = nullptr);
   ~Room();
@@ -566,6 +578,32 @@ class Room {
   }
 
   void ClearSaveDirtyState() { save_dirty_state_ = {}; }
+
+  SaveDirtySnapshot CaptureSaveDirtySnapshot() const {
+    return SaveDirtySnapshot{
+        .header = save_dirty_state_.header,
+        .object_stream = save_dirty_state_.object_stream,
+        .sprites = save_dirty_state_.sprites,
+        .chests = save_dirty_state_.chests,
+        .pot_items = save_dirty_state_.pot_items,
+        .torches = save_dirty_state_.torches,
+        .blocks = save_dirty_state_.blocks,
+        .custom_collision = custom_collision_dirty_,
+        .water_fill = water_fill_dirty_,
+    };
+  }
+
+  void RestoreSaveDirtySnapshot(const SaveDirtySnapshot& snapshot) {
+    save_dirty_state_.header = snapshot.header;
+    save_dirty_state_.object_stream = snapshot.object_stream;
+    save_dirty_state_.sprites = snapshot.sprites;
+    save_dirty_state_.chests = snapshot.chests;
+    save_dirty_state_.pot_items = snapshot.pot_items;
+    save_dirty_state_.torches = snapshot.torches;
+    save_dirty_state_.blocks = snapshot.blocks;
+    custom_collision_dirty_ = snapshot.custom_collision;
+    water_fill_dirty_ = snapshot.water_fill;
+  }
 
   // For undo/redo functionality
   void SetTileObjects(const std::vector<RoomObject>& objects) {

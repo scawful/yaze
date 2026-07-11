@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_SYSTEM_ROM_LIFECYCLE_MANAGER_H_
 #define YAZE_APP_EDITOR_SYSTEM_ROM_LIFECYCLE_MANAGER_H_
 
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -69,7 +70,9 @@ class RomLifecycleManager {
   absl::Status CheckRomOpenPolicy(Rom* rom);
 
   /// Enforce project write policy; may set pending_rom_write_confirm.
-  absl::Status CheckRomWritePolicy(Rom* rom);
+  absl::Status CheckRomWritePolicy(
+      Rom* rom,
+      const std::optional<std::string>& target_filename = std::nullopt);
 
   /// Run Oracle-specific ROM safety preflight before saving.
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
@@ -130,9 +133,25 @@ class RomLifecycleManager {
   bool ShouldSuppressPotItemSave() const {
     return suppress_pot_item_save_once_;
   }
+  void CancelPotItemSaveConfirmation() {
+    pending_pot_item_save_confirm_ = false;
+    pending_pot_item_unloaded_rooms_ = 0;
+    pending_pot_item_total_rooms_ = 0;
+    ClearPotItemBypass();
+  }
   void ClearPotItemBypass() {
     bypass_pot_item_confirm_once_ = false;
     suppress_pot_item_save_once_ = false;
+  }
+
+  /// Clear every confirmation and one-shot bypass associated with a logical
+  /// save request. This must be called when that request succeeds, fails, is
+  /// cancelled, or loses its originating ROM session.
+  void ResetPendingSaveState() {
+    CancelRomWriteConfirm();
+    CancelPotItemSaveConfirmation();
+    pending_write_conflicts_.clear();
+    bypass_write_conflict_once_ = false;
   }
 
   // =========================================================================

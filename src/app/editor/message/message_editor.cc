@@ -24,6 +24,7 @@
 #include "imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
+#include "rom/transaction.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -121,6 +122,8 @@ void MessageEditor::Initialize() {
     current_message_index_ = current_message_.ID;
     current_message_is_expanded_ = false;
     message_text_box_.text = parsed_messages_[current_message_.ID];
+    current_parse_errors_.clear();
+    current_parse_warnings_.clear();
     DrawMessagePreview();
   } else {
     LOG_ERROR("MessageEditor", "No messages found in ROM!");
@@ -128,6 +131,12 @@ void MessageEditor::Initialize() {
 }
 
 bool MessageEditor::OpenMessageById(int display_id) {
+  // Do not discard an invalid in-progress draft by navigating away. The user
+  // can correct it or undo it before selecting another message.
+  if (!current_parse_errors_.empty()) {
+    return false;
+  }
+
   const int vanilla_count = static_cast<int>(list_of_texts_.size());
   const int expanded_base_id = expanded_message_base_id_;
 
@@ -191,6 +200,8 @@ bool MessageEditor::OpenMessageById(int display_id) {
       message_text_box_.text.clear();
     }
 
+    current_parse_errors_.clear();
+    current_parse_warnings_.clear();
     DrawMessagePreview();
     return true;
   }
@@ -214,6 +225,8 @@ bool MessageEditor::OpenMessageById(int display_id) {
     message_text_box_.text.clear();
   }
 
+  current_parse_errors_.clear();
+  current_parse_warnings_.clear();
   DrawMessagePreview();
   return true;
 }
@@ -451,12 +464,10 @@ void MessageEditor::DrawMessageList() {
             TableNextColumn();
             PushID(message.ID);
             if (Button(util::HexWord(message.ID).c_str())) {
-              FinalizePendingUndo();
-              current_message_ = message;
-              current_message_index_ = message.ID;
-              current_message_is_expanded_ = false;
-              message_text_box_.text = parsed_messages_[message.ID];
-              DrawMessagePreview();
+              if (current_parse_errors_.empty()) {
+                FinalizePendingUndo();
+                OpenMessageById(message.ID);
+              }
             }
             PopID();
 
@@ -482,12 +493,10 @@ void MessageEditor::DrawMessageList() {
             TableNextColumn();
             PushID(display_id);
             if (Button(util::HexWord(display_id).c_str())) {
-              FinalizePendingUndo();
-              current_message_ = expanded_message;
-              current_message_index_ = expanded_message.ID;
-              current_message_is_expanded_ = true;
-              message_text_box_.text = display_text;
-              DrawMessagePreview();
+              if (current_parse_errors_.empty()) {
+                FinalizePendingUndo();
+                OpenMessageById(display_id);
+              }
             }
             PopID();
 
@@ -517,6 +526,18 @@ void MessageEditor::DrawCurrentMessage() {
   }
   if (ImGui::IsItemDeactivatedAfterEdit()) {
     FinalizePendingUndo();
+  }
+  if (!current_parse_errors_.empty()) {
+    ImGui::TextColored(gui::GetErrorColor(), tr("Message parse errors"));
+    for (const auto& error : current_parse_errors_) {
+      ImGui::BulletText("%s", error.c_str());
+    }
+  }
+  if (!current_parse_warnings_.empty()) {
+    ImGui::TextColored(gui::GetWarningColor(), tr("Message parse warnings"));
+    for (const auto& warning : current_parse_warnings_) {
+      ImGui::BulletText("%s", warning.c_str());
+    }
   }
   auto line_warnings = ValidateMessageLineWidths(message_text_box_.text);
   if (!line_warnings.empty()) {
@@ -823,13 +844,26 @@ void MessageEditor::DrawDictionary() {
 void MessageEditor::UpdateCurrentMessageFromText(const std::string& text) {
   PushUndoSnapshot();
 
+  auto parse_result = ParseMessageToDataWithDiagnostics(text);
+  current_parse_errors_ = parse_result.errors;
+  current_parse_warnings_ = parse_result.warnings;
+  if (rom_) {
+    // Invalid intermediate input is still unsaved work. Save() will fail
+    // closed until the diagnostics are resolved rather than silently dropping
+    // unsupported characters or unknown tokens.
+    rom_->set_dirty(true);
+  }
+  if (!parse_result.ok()) {
+    return;
+  }
+
   std::string raw_text = text;
   raw_text.erase(std::remove(raw_text.begin(), raw_text.end(), '\n'),
                  raw_text.end());
 
   current_message_.RawString = raw_text;
   current_message_.ContentsParsed = text;
-  current_message_.Data = ParseMessageToData(raw_text);
+  current_message_.Data = std::move(parse_result.bytes);
 
   int parsed_index = current_message_index_;
   if (current_message_is_expanded_) {
@@ -1008,6 +1042,9 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
         "created, %d warnings).",
         applied, vanilla_updated, expanded_updated, expanded_created, warnings);
   }
+  if (applied > 0 && rom_) {
+    rom_->set_dirty(true);
+  }
 }
 
 void MessageEditor::DrawMessagePreview() {
@@ -1063,7 +1100,15 @@ void MessageEditor::DrawMessagePreview() {
 }
 
 absl::Status MessageEditor::Save() {
-  std::vector<uint8_t> backup = rom()->vector();
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (!current_parse_errors_.empty()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Current message has parse errors: %s", current_parse_errors_.front()));
+  }
+
+  ScopedRomTransaction transaction(*rom());
 
   for (int i = 0; i < kWidthArraySize; i++) {
     RETURN_IF_ERROR(rom()->WriteByte(kCharactersWidth + i,
@@ -1097,8 +1142,10 @@ absl::Status MessageEditor::Save() {
 
   // Verify that we didn't go over the space available for the second block.
   // 0x14BF available.
+  if (!in_second_bank && pos > kTextDataEnd) {
+    return absl::InternalError(DisplayTextOverflowError(pos, true));
+  }
   if (in_second_bank && pos > kTextData2End) {
-    std::copy(backup.begin(), backup.end(), rom()->mutable_data());
     return absl::InternalError(DisplayTextOverflowError(pos, false));
   }
 
@@ -1108,11 +1155,11 @@ absl::Status MessageEditor::Save() {
   if (!expanded_messages_.empty()) {
     auto status = SaveExpandedMessages();
     if (!status.ok()) {
-      std::copy(backup.begin(), backup.end(), rom()->mutable_data());
       return status;
     }
   }
 
+  transaction.Commit();
   return absl::OkStatus();
 }
 
@@ -1133,16 +1180,14 @@ absl::Status MessageEditor::SaveExpandedMessages() {
   }
 
   // Write to main ROM buffer at the expanded text data region
-  RETURN_IF_ERROR(WriteExpandedTextData(rom_->mutable_data(),
-                                        GetExpandedTextDataStart(),
+  RETURN_IF_ERROR(WriteExpandedTextData(rom_, GetExpandedTextDataStart(),
                                         GetExpandedTextDataEnd(), all_texts));
 
   // Recalculate addresses after sequential write
   int pos = GetExpandedTextDataStart();
   for (auto& msg : expanded_messages_) {
     msg.Address = pos;
-    auto bytes = ParseMessageToData(msg.RawString);
-    pos += static_cast<int>(bytes.size()) + 1;  // +1 for 0x7F terminator
+    pos += static_cast<int>(msg.Data.size()) + 1;  // +1 for 0x7F terminator
   }
 
   return absl::OkStatus();
@@ -1157,8 +1202,9 @@ absl::Status MessageEditor::LoadExpandedMessagesFromRom() {
   parsed_messages_.resize(expanded_message_base_id_);
 
   expanded_messages_.clear();
-  expanded_messages_ =
-      ReadExpandedTextData(rom_->mutable_data(), GetExpandedTextDataStart());
+  expanded_messages_ = ReadExpandedTextData(
+      rom_->mutable_data(), GetExpandedTextDataStart(),
+      std::min(GetExpandedTextDataEnd(), static_cast<int>(rom_->size()) - 1));
 
   if (expanded_messages_.empty()) {
     return absl::NotFoundError(
@@ -1291,6 +1337,10 @@ void MessageEditor::ApplySnapshot(const MessageSnapshot& snapshot) {
   current_message_index_ = snapshot.message_index;
   current_message_is_expanded_ = snapshot.is_expanded;
   message_text_box_.text = snapshot.parsed_text;
+  const auto diagnostics =
+      ParseMessageToDataWithDiagnostics(snapshot.message.RawString);
+  current_parse_errors_ = diagnostics.errors;
+  current_parse_warnings_ = diagnostics.warnings;
 
   int parsed_index = snapshot.message_index;
   if (snapshot.is_expanded) {
@@ -1313,6 +1363,9 @@ void MessageEditor::ApplySnapshot(const MessageSnapshot& snapshot) {
     }
   }
 
+  if (rom_) {
+    rom_->set_dirty(true);
+  }
   DrawMessagePreview();
 }
 
@@ -1383,9 +1436,11 @@ absl::Status MessageEditor::Find() {
       search_text_ = find_text;
       replace_text_ = replace_text;
       int count = ReplaceAllMatches();
-      replace_status_ = absl::StrFormat("Replaced %d occurrence%s", count,
-                                        count == 1 ? "" : "s");
-      replace_status_error_ = (count == 0);
+      if (count >= 0) {
+        replace_status_ = absl::StrFormat("Replaced %d occurrence%s", count,
+                                          count == 1 ? "" : "s");
+        replace_status_error_ = (count == 0);
+      }
     }
 
     ImGui::Checkbox(tr("Case Sensitive"), &case_sensitive_);
@@ -1448,10 +1503,15 @@ int MessageEditor::ReplaceCurrentMatch() {
 }
 
 int MessageEditor::ReplaceAllMatches() {
-  if (search_text_.empty())
+  if (search_text_.empty()) {
     return 0;
-
-  int total_replacements = 0;
+  }
+  if (!current_parse_errors_.empty()) {
+    replace_status_ =
+        "Replace All blocked: resolve the current message parse errors first";
+    replace_status_error_ = true;
+    return -1;
+  }
 
   auto replace_in_text = [&](std::string& text) -> int {
     int count = 0;
@@ -1489,72 +1549,73 @@ int MessageEditor::ReplaceAllMatches() {
     return count;
   };
 
-  // Replace in vanilla messages
-  for (size_t i = 0; i < list_of_texts_.size(); ++i) {
-    int parsed_idx = static_cast<int>(i);
-    if (parsed_idx < 0 ||
-        parsed_idx >= static_cast<int>(parsed_messages_.size())) {
-      continue;
+  struct PlannedReplacement {
+    int message_index;
+    bool is_expanded;
+    std::string text;
+    int count;
+  };
+  std::vector<PlannedReplacement> plan;
+
+  const auto plan_replacements = [&](const std::vector<MessageData>& messages,
+                                     bool is_expanded) -> bool {
+    for (size_t i = 0; i < messages.size(); ++i) {
+      const int parsed_index =
+          (is_expanded ? expanded_message_base_id_ : 0) + static_cast<int>(i);
+      if (parsed_index < 0 ||
+          parsed_index >= static_cast<int>(parsed_messages_.size())) {
+        continue;
+      }
+
+      std::string text = parsed_messages_[parsed_index];
+      const int count = replace_in_text(text);
+      if (count == 0) {
+        continue;
+      }
+
+      const auto parsed = ParseMessageToDataWithDiagnostics(text);
+      if (!parsed.ok() ||
+          (is_expanded && text.find("[BANK]") != std::string::npos)) {
+        const std::string error =
+            !parsed.ok() ? parsed.errors.front()
+                         : "[BANK] is not valid in expanded messages";
+        replace_status_ = absl::StrFormat(
+            "Replace All aborted at %s message %d: %s",
+            is_expanded ? "expanded" : "vanilla", static_cast<int>(i), error);
+        replace_status_error_ = true;
+        return false;
+      }
+
+      plan.push_back(
+          {static_cast<int>(i), is_expanded, std::move(text), count});
     }
+    return true;
+  };
 
-    std::string text = parsed_messages_[parsed_idx];
-    int count = replace_in_text(text);
-    if (count > 0) {
-      // Save current state, apply replacement, push undo
-      int prev_index = current_message_index_;
-      bool prev_expanded = current_message_is_expanded_;
-      MessageData prev_message = current_message_;
-      std::string prev_textbox = message_text_box_.text;
-
-      current_message_ = list_of_texts_[i];
-      current_message_index_ = static_cast<int>(i);
-      current_message_is_expanded_ = false;
-      message_text_box_.text = text;
-      UpdateCurrentMessageFromText(text);
-      FinalizePendingUndo();
-
-      total_replacements += count;
-
-      // Restore previous editing context
-      current_message_ = prev_message;
-      current_message_index_ = prev_index;
-      current_message_is_expanded_ = prev_expanded;
-      message_text_box_.text = prev_textbox;
-    }
+  // Validate the complete batch before changing any message or undo state.
+  if (!plan_replacements(list_of_texts_, false) ||
+      !plan_replacements(expanded_messages_, true)) {
+    return -1;
   }
 
-  // Replace in expanded messages
-  for (size_t i = 0; i < expanded_messages_.size(); ++i) {
-    int parsed_idx = expanded_message_base_id_ + static_cast<int>(i);
-    if (parsed_idx < 0 ||
-        parsed_idx >= static_cast<int>(parsed_messages_.size())) {
-      continue;
-    }
+  const int previous_index = current_message_index_;
+  const bool previous_expanded = current_message_is_expanded_;
+  int total_replacements = 0;
 
-    std::string text = parsed_messages_[parsed_idx];
-    int count = replace_in_text(text);
-    if (count > 0) {
-      int prev_index = current_message_index_;
-      bool prev_expanded = current_message_is_expanded_;
-      MessageData prev_message = current_message_;
-      std::string prev_textbox = message_text_box_.text;
-
-      current_message_ = expanded_messages_[i];
-      current_message_index_ = static_cast<int>(i);
-      current_message_is_expanded_ = true;
-      message_text_box_.text = text;
-      UpdateCurrentMessageFromText(text);
-      FinalizePendingUndo();
-
-      total_replacements += count;
-
-      // Restore previous editing context
-      current_message_ = prev_message;
-      current_message_index_ = prev_index;
-      current_message_is_expanded_ = prev_expanded;
-      message_text_box_.text = prev_textbox;
-    }
+  for (const auto& replacement : plan) {
+    current_message_ = replacement.is_expanded
+                           ? expanded_messages_[replacement.message_index]
+                           : list_of_texts_[replacement.message_index];
+    current_message_index_ = replacement.message_index;
+    current_message_is_expanded_ = replacement.is_expanded;
+    message_text_box_.text = replacement.text;
+    UpdateCurrentMessageFromText(replacement.text);
+    FinalizePendingUndo();
+    total_replacements += replacement.count;
   }
+
+  current_message_index_ = previous_index;
+  current_message_is_expanded_ = previous_expanded;
 
   // Refresh the current message's text box from updated data
   int current_parsed_idx = current_message_index_;
@@ -1578,6 +1639,11 @@ int MessageEditor::ReplaceAllMatches() {
       current_message_ = list_of_texts_[current_message_index_];
     }
   }
+
+  const auto current_diagnostics =
+      ParseMessageToDataWithDiagnostics(message_text_box_.text);
+  current_parse_errors_ = current_diagnostics.errors;
+  current_parse_warnings_ = current_diagnostics.warnings;
 
   return total_replacements;
 }

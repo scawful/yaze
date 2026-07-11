@@ -254,6 +254,45 @@ TEST_F(OverworldRegressionTest, SaveCustomOverworldASM_VanillaRom_SkipsWrite) {
   EXPECT_EQ((*rom_)[OverworldCustomAreaSpecificBGEnabled], original_byte);
 }
 
+TEST_F(OverworldRegressionTest,
+       SaveCustomOverworldDataPreservesDisabledTables) {
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  (*rom_)[OverworldCustomAreaSpecificBGEnabled] = 0x00;
+  (*rom_)[OverworldCustomMainPaletteEnabled] = 0x00;
+  (*rom_)[OverworldCustomMosaicEnabled] = 0x00;
+  (*rom_)[OverworldCustomAnimatedGFXEnabled] = 0x00;
+  (*rom_)[OverworldCustomSubscreenOverlayEnabled] = 0x00;
+  (*rom_)[OverworldCustomTileGFXGroupEnabled] = 0x00;
+  PopulateOverworldMaps();
+
+  (*rom_)[OverworldCustomAreaSpecificBGPalette] = 0xA1;
+  (*rom_)[OverworldCustomMainPaletteArray] = 0xA2;
+  (*rom_)[OverworldCustomMosaicArray] = 0xA3;
+  (*rom_)[OverworldCustomAnimatedGFXArray] = 0xA4;
+  (*rom_)[OverworldCustomSubscreenOverlayArray] = 0xA5;
+  (*rom_)[OverworldCustomTileGFXGroupArray] = 0xA6;
+
+  ASSERT_TRUE(overworld_->SaveCustomOverworldData().ok());
+
+  EXPECT_EQ((*rom_)[OverworldCustomAreaSpecificBGPalette], 0xA1);
+  EXPECT_EQ((*rom_)[OverworldCustomMainPaletteArray], 0xA2);
+  EXPECT_EQ((*rom_)[OverworldCustomMosaicArray], 0xA3);
+  EXPECT_EQ((*rom_)[OverworldCustomAnimatedGFXArray], 0xA4);
+  EXPECT_EQ((*rom_)[OverworldCustomSubscreenOverlayArray], 0xA5);
+  EXPECT_EQ((*rom_)[OverworldCustomTileGFXGroupArray], 0xA6);
+}
+
+TEST_F(OverworldRegressionTest,
+       SaveCustomOverworldDataPreservesEnabledFlagEncoding) {
+  (*rom_)[OverworldCustomASMHasBeenApplied] = 0x03;
+  (*rom_)[OverworldCustomMosaicEnabled] = 0x01;
+  PopulateOverworldMaps();
+
+  ASSERT_TRUE(overworld_->SaveCustomOverworldData().ok());
+
+  EXPECT_EQ((*rom_)[OverworldCustomMosaicEnabled], 0x01);
+}
+
 TEST_F(OverworldRegressionTest, SaveDiggableTiles_VanillaRom_SkipsWrite) {
   // Set version to Vanilla
   (*rom_)[OverworldCustomASMHasBeenApplied] = 0xFF;

@@ -203,6 +203,125 @@ const std::string RoomTag[65] = {"Nothing",
 
 namespace {
 
+struct PhysicalStreamInfo {
+  int address = -1;
+  int physical_end = -1;
+  bool shared = false;
+
+  int capacity() const {
+    return physical_end > address ? physical_end - address : 0;
+  }
+};
+
+PhysicalStreamInfo AnalyzePhysicalStream(const std::vector<int>& room_addresses,
+                                         int room_id,
+                                         int known_region_end = -1) {
+  PhysicalStreamInfo info;
+  if (room_id < 0 || room_id >= static_cast<int>(room_addresses.size())) {
+    return info;
+  }
+
+  info.address = room_addresses[room_id];
+  if (info.address < 0) {
+    return info;
+  }
+
+  int next_address = std::numeric_limits<int>::max();
+  for (int other_room_id = 0;
+       other_room_id < static_cast<int>(room_addresses.size());
+       ++other_room_id) {
+    if (other_room_id == room_id || room_addresses[other_room_id] < 0) {
+      continue;
+    }
+    const int other_address = room_addresses[other_room_id];
+    if (other_address == info.address) {
+      info.shared = true;
+    } else if (other_address > info.address) {
+      next_address = std::min(next_address, other_address);
+    }
+  }
+
+  if (known_region_end > info.address) {
+    next_address = std::min(next_address, known_region_end);
+  }
+  if (next_address == std::numeric_limits<int>::max()) {
+    return info;
+  }
+
+  // A stream cannot safely grow across a LoROM bank boundary even when the
+  // next pointer happens to live in the following physical bank.
+  constexpr int kLoRomBankSize = 0x8000;
+  const int bank_end = ((info.address / kLoRomBankSize) + 1) * kLoRomBankSize;
+  info.physical_end = std::min(next_address, bank_end);
+  return info;
+}
+
+absl::Status GetObjectPointerTablePc(const std::vector<uint8_t>& rom_data,
+                                     int* table_pc) {
+  if (table_pc == nullptr) {
+    return absl::InvalidArgumentError("table_pc pointer is null");
+  }
+  if (kRoomObjectPointer + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError(
+        "Object pointer table address is out of range");
+  }
+
+  const uint32_t table_snes =
+      (static_cast<uint32_t>(rom_data[kRoomObjectPointer + 2]) << 16) |
+      (static_cast<uint32_t>(rom_data[kRoomObjectPointer + 1]) << 8) |
+      rom_data[kRoomObjectPointer];
+  const int pc = static_cast<int>(SnesToPc(table_snes));
+  if (pc < 0 || pc + (kNumberOfRooms * 3) > static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Object pointer table is out of range");
+  }
+
+  *table_pc = pc;
+  return absl::OkStatus();
+}
+
+uint32_t ReadRoomObjectAddressSnes(const std::vector<uint8_t>& rom_data,
+                                   int table_pc, int room_id) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return 0;
+  }
+  const int ptr_off = table_pc + (room_id * 3);
+  if (ptr_off < 0 || ptr_off + 2 >= static_cast<int>(rom_data.size())) {
+    return 0;
+  }
+  return (static_cast<uint32_t>(rom_data[ptr_off + 2]) << 16) |
+         (static_cast<uint32_t>(rom_data[ptr_off + 1]) << 8) |
+         rom_data[ptr_off];
+}
+
+int ReadRoomObjectAddressPc(const std::vector<uint8_t>& rom_data, int table_pc,
+                            int room_id) {
+  const uint32_t snes = ReadRoomObjectAddressSnes(rom_data, table_pc, room_id);
+  if ((snes & 0xFFFF) < 0x8000) {
+    return -1;
+  }
+  const int pc = static_cast<int>(SnesToPc(snes));
+  return pc >= 0 && pc < static_cast<int>(rom_data.size()) ? pc : -1;
+}
+
+absl::StatusOr<PhysicalStreamInfo> GetObjectStreamInfo(
+    const std::vector<uint8_t>& rom_data, int room_id) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return absl::OutOfRangeError("Room ID out of range");
+  }
+  int table_pc = 0;
+  RETURN_IF_ERROR(GetObjectPointerTablePc(rom_data, &table_pc));
+
+  std::vector<int> addresses(kNumberOfRooms, -1);
+  for (int id = 0; id < kNumberOfRooms; ++id) {
+    addresses[id] = ReadRoomObjectAddressPc(rom_data, table_pc, id);
+  }
+  PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id);
+  if (info.address < 0) {
+    return absl::OutOfRangeError("Object stream pointer is out of range");
+  }
+  return info;
+}
+
 absl::Status GetSpritePointerTablePc(const std::vector<uint8_t>& rom_data,
                                      int* table_pc) {
   if (table_pc == nullptr) {
@@ -234,9 +353,37 @@ int ReadRoomSpriteAddressPc(const std::vector<uint8_t>& rom_data, int table_pc,
     return -1;
   }
 
-  int sprite_address_snes =
-      (0x09 << 16) | (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
-  return SnesToPc(sprite_address_snes);
+  const uint16_t pointer =
+      (static_cast<uint16_t>(rom_data[ptr_off + 1]) << 8) | rom_data[ptr_off];
+  if (pointer < 0x8000) {
+    return -1;
+  }
+  const int sprite_address = static_cast<int>(SnesToPc((0x09 << 16) | pointer));
+  return sprite_address >= 0 &&
+                 sprite_address < static_cast<int>(rom_data.size())
+             ? sprite_address
+             : -1;
+}
+
+absl::StatusOr<PhysicalStreamInfo> GetSpriteStreamInfo(
+    const std::vector<uint8_t>& rom_data, int room_id) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return absl::OutOfRangeError("Room ID out of range");
+  }
+  int table_pc = 0;
+  RETURN_IF_ERROR(GetSpritePointerTablePc(rom_data, &table_pc));
+
+  std::vector<int> addresses(kNumberOfRooms, -1);
+  for (int id = 0; id < kNumberOfRooms; ++id) {
+    addresses[id] = ReadRoomSpriteAddressPc(rom_data, table_pc, id);
+  }
+  const int hard_end =
+      std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+  PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id, hard_end);
+  if (info.address < 0 || info.address >= hard_end) {
+    return absl::OutOfRangeError("Sprite stream pointer is out of range");
+  }
+  return info;
 }
 
 int MeasureSpriteStreamSize(const std::vector<uint8_t>& rom_data,
@@ -278,72 +425,25 @@ bool IsSpritePointerShared(const std::vector<uint8_t>& rom_data, int table_pc,
 }  // namespace
 
 RoomSize CalculateRoomSize(Rom* rom, int room_id) {
-  // Calculate the size of the room based on how many objects are used per room
-  // Some notes from hacker Zarby89
-  // vanilla rooms are using in average ~0x80 bytes
-  // a "normal" person who wants more details than vanilla will use around 0x100
-  // bytes per rooms you could fit 128 rooms like that in 1 bank
-  // F8000 I don't remember if that's PC or snes tho
-  // Check last rooms
-  // F8000+(roomid*3)
-  // So we want to search the rom() object at this addressed based on the room
-  // ID since it's the roomid * 3 we will by pulling 3 bytes at a time We can do
-  // this with the rom()->ReadByteVector(addr, size)
-  // Existing room size address calculation...
-  RoomSize room_size;
-  room_size.room_size_pointer = 0;
-  room_size.room_size = 0;
-
-  if (!rom || !rom->is_loaded() || rom->size() == 0) {
+  RoomSize room_size{};
+  if (!rom || !rom->is_loaded() || rom->size() == 0 || room_id < 0 ||
+      room_id >= kNumberOfRooms) {
     return room_size;
   }
 
-  auto room_size_address = 0xF8000 + (room_id * 3);
-
-  // Bounds check
-  if (room_size_address < 0 ||
-      room_size_address + 2 >= static_cast<int>(rom->size())) {
+  const auto& rom_data = rom->vector();
+  int table_pc = 0;
+  if (!GetObjectPointerTablePc(rom_data, &table_pc).ok()) {
     return room_size;
   }
+  room_size.room_size_pointer =
+      ReadRoomObjectAddressSnes(rom_data, table_pc, room_id);
 
-  // Reading bytes for long address construction
-  uint8_t low = rom->data()[room_size_address];
-  uint8_t high = rom->data()[room_size_address + 1];
-  uint8_t bank = rom->data()[room_size_address + 2];
-
-  // Constructing the long address
-  int long_address = (bank << 16) | (high << 8) | low;
-  room_size.room_size_pointer = long_address;
-
-  if (long_address == 0x0A8000) {
-    // Blank room disregard in size calculation
-    room_size.room_size = 0;
-  } else {
-    // use the long address to calculate the size of the room
-    // we will use the room_id_ to calculate the next room's address
-    // and subtract the two to get the size of the room
-
-    int next_room_address = 0xF8000 + ((room_id + 1) * 3);
-
-    // Bounds check for next room address
-    if (next_room_address < 0 ||
-        next_room_address + 2 >= static_cast<int>(rom->size())) {
-      return room_size;
-    }
-
-    // Reading bytes for long address construction
-    uint8_t next_low = rom->data()[next_room_address];
-    uint8_t next_high = rom->data()[next_room_address + 1];
-    uint8_t next_bank = rom->data()[next_room_address + 2];
-
-    // Constructing the long address
-    int next_long_address = (next_bank << 16) | (next_high << 8) | next_low;
-
-    // Calculate the size of the room
-    int actual_room_size = next_long_address - long_address;
-    room_size.room_size = actual_room_size;
+  auto stream_info = GetObjectStreamInfo(rom_data, room_id);
+  if (!stream_info.ok() || stream_info->shared) {
+    return room_size;
   }
-
+  room_size.room_size = stream_info->capacity();
   return room_size;
 }
 
@@ -1837,62 +1937,56 @@ absl::Status Room::SaveObjects() {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
-
-  auto rom_data = rom()->vector();
-
-  // Get object pointer
-  int object_pointer = (rom_data[kRoomObjectPointer + 2] << 16) +
-                       (rom_data[kRoomObjectPointer + 1] << 8) +
-                       (rom_data[kRoomObjectPointer]);
-  object_pointer = SnesToPc(object_pointer);
-
-  if (object_pointer < 0 || object_pointer >= (int)rom_->size()) {
-    return absl::OutOfRangeError("Object pointer out of range");
+  if (!object_stream_dirty()) {
+    return absl::OkStatus();
   }
 
-  int room_address = object_pointer + (room_id_ * 3);
-
-  if (room_address < 0 || room_address + 2 >= (int)rom_->size()) {
-    return absl::OutOfRangeError("Room address out of range");
+  const auto& rom_data = rom()->vector();
+  ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
+                   GetObjectStreamInfo(rom_data, room_id_));
+  if (stream_info.shared) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Room %d object stream at PC 0x%06X is shared; repacking is required",
+        room_id_, stream_info.address));
   }
-
-  int tile_address = (rom_data[room_address + 2] << 16) +
-                     (rom_data[room_address + 1] << 8) + rom_data[room_address];
-
-  int objects_location = SnesToPc(tile_address);
-
-  if (objects_location < 0 || objects_location >= (int)rom_->size()) {
-    return absl::OutOfRangeError("Objects location out of range");
+  if (stream_info.capacity() <= 2) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Room %d object stream has no safe physical boundary", room_id_));
   }
-
-  // Calculate available space
-  RoomSize room_size_info = CalculateRoomSize(rom_, room_id_);
-  int available_size = room_size_info.room_size;
 
   // Skip graphics/layout header (2 bytes)
-  int write_pos = objects_location + 2;
+  const int write_pos = stream_info.address + 2;
 
   // Encode all objects
-  auto encoded_bytes = EncodeObjects();
+  const auto encoded_bytes = EncodeObjects();
+  const int available_payload_size = stream_info.capacity() - 2;
 
-  // VALIDATION: Check if new data fits in available space
-  // We subtract 2 bytes for the header which is not part of encoded_bytes
-  if (encoded_bytes.size() > available_size - 2) {
-    return absl::OutOfRangeError(absl::StrFormat(
+  // Validate against the nearest greater physical pointer, not the next room
+  // ID. Pointer tables are not ordered by room ID in vanilla or expanded ROMs.
+  if (encoded_bytes.size() > static_cast<size_t>(available_payload_size)) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
         "Room %d object data too large! Size: %d, Available: %d", room_id_,
-        encoded_bytes.size(), available_size - 2));
+        static_cast<int>(encoded_bytes.size()), available_payload_size));
   }
+
+  const int door_list_offset = static_cast<int>(encoded_bytes.size()) -
+                               static_cast<int>(doors_.size()) * 2 - 2;
+  if (door_list_offset < 0) {
+    return absl::FailedPreconditionError("Invalid encoded door list offset");
+  }
+  const int door_pointer_slot = kDoorPointers + (room_id_ * 3);
+  if (door_pointer_slot < 0 ||
+      door_pointer_slot + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Door pointer slot is out of range");
+  }
+  const int door_pointer_pc = write_pos + door_list_offset;
 
   // Write encoded bytes to ROM (includes 0xF0 0xFF + door list)
   RETURN_IF_ERROR(rom_->WriteVector(write_pos, encoded_bytes));
 
   // Write door pointer: first byte after 0xF0 0xFF (per ZScreamDungeon Save.cs)
-  const int door_list_offset = static_cast<int>(encoded_bytes.size()) -
-                               static_cast<int>(doors_.size()) * 2 - 2;
-  const int door_pointer_pc = write_pos + door_list_offset;
-  RETURN_IF_ERROR(
-      rom_->WriteLong(kDoorPointers + (room_id_ * 3),
-                      static_cast<uint32_t>(PcToSnes(door_pointer_pc))));
+  RETURN_IF_ERROR(rom_->WriteLong(
+      door_pointer_slot, static_cast<uint32_t>(PcToSnes(door_pointer_pc))));
 
   ClearObjectStreamDirty();
 
@@ -1903,52 +1997,42 @@ absl::Status Room::SaveSprites() {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
+  if (!sprites_dirty()) {
+    return absl::OkStatus();
+  }
 
   const auto& rom_data = rom()->vector();
   if (room_id_ < 0 || room_id_ >= kNumberOfRooms) {
     return absl::OutOfRangeError("Room ID out of range");
   }
 
-  int sprite_pointer = 0;
-  RETURN_IF_ERROR(GetSpritePointerTablePc(rom_data, &sprite_pointer));
-  int sprite_address =
-      ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id_);
-  if (sprite_address < 0 || sprite_address >= static_cast<int>(rom_->size())) {
-    return absl::OutOfRangeError("Sprite address out of range");
+  ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
+                   GetSpriteStreamInfo(rom_data, room_id_));
+  if (stream_info.shared) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Room %d sprite stream at PC 0x%06X is shared; repacking is required",
+        room_id_, stream_info.address));
+  }
+  if (stream_info.capacity() <= 1) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Room %d sprite stream has no safe physical boundary", room_id_));
   }
 
-  int available_payload_size = 0;
-  if (room_id_ + 1 < kNumberOfRooms) {
-    int next_sprite_address =
-        ReadRoomSpriteAddressPc(rom_data, sprite_pointer, room_id_ + 1);
-    if (next_sprite_address >= 0) {
-      int available_size = next_sprite_address - sprite_address;
-      if (available_size > 0 && available_size <= 0x1000) {
-        available_payload_size = std::max(0, available_size - 1);
-      }
-    }
-  }
-
-  if (available_payload_size == 0) {
-    const int hard_end =
-        std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
-    const int current_stream_size =
-        MeasureSpriteStreamSize(rom_data, sprite_address, hard_end);
-    available_payload_size = std::max(0, current_stream_size - 1);
-  }
-
-  const int payload_address = sprite_address + 1;
+  const int available_payload_size = stream_info.capacity() - 1;
+  const int payload_address = stream_info.address + 1;
   if (payload_address < 0 ||
       payload_address >= static_cast<int>(rom_->size())) {
     return absl::OutOfRangeError(absl::StrFormat(
         "Room %d has invalid sprite payload address", room_id_));
   }
 
-  auto encoded_bytes = EncodeSprites();
+  const auto encoded_bytes = EncodeSprites();
   if (static_cast<int>(encoded_bytes.size()) > available_payload_size) {
-    RETURN_IF_ERROR(RelocateSpriteData(rom_, room_id_, encoded_bytes));
-    ClearSpritesDirty();
-    return absl::OkStatus();
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Room %d sprite data too large! Size: %d, Available: %d; repacking "
+        "is required",
+        room_id_, static_cast<int>(encoded_bytes.size()),
+        available_payload_size));
   }
 
   RETURN_IF_ERROR(rom_->WriteVector(payload_address, encoded_bytes));
@@ -2215,27 +2299,44 @@ void Room::LoadSprites() {
 }
 
 void Room::LoadChests() {
-  auto rom_data = rom()->vector();
   chests_in_room_.clear();
   chests_loaded_ = false;
-  uint32_t cpos = SnesToPc((rom_data[kChestsDataPointer1 + 2] << 16) +
-                           (rom_data[kChestsDataPointer1 + 1] << 8) +
-                           (rom_data[kChestsDataPointer1]));
-  size_t clength = (rom_data[kChestsLengthPointer + 1] << 8) +
-                   (rom_data[kChestsLengthPointer]);
+  if (!rom_ || !rom_->is_loaded()) {
+    return;
+  }
+  const auto& rom_data = rom()->vector();
+  if (kChestsDataPointer1 + 2 >= static_cast<int>(rom_data.size()) ||
+      kChestsLengthPointer + 1 >= static_cast<int>(rom_data.size())) {
+    return;
+  }
 
-  for (size_t i = 0; i < clength; i++) {
-    if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
-         0x7FFF) == room_id_) {
+  const int cpos = static_cast<int>(SnesToPc(
+      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 2]) << 16) |
+      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 1]) << 8) |
+      rom_data[kChestsDataPointer1]));
+  const size_t byte_length =
+      (static_cast<size_t>(rom_data[kChestsLengthPointer + 1]) << 8) |
+      rom_data[kChestsLengthPointer];
+  const size_t bounded_byte_length = std::min<size_t>(
+      byte_length, cpos >= 0 && cpos < static_cast<int>(rom_data.size())
+                       ? rom_data.size() - static_cast<size_t>(cpos)
+                       : 0);
+  const size_t record_count = std::min<size_t>(
+      bounded_byte_length / kChestTableRecordSize, kChestTableCapacityRecords);
+
+  for (size_t i = 0; i < record_count; ++i) {
+    const size_t offset =
+        static_cast<size_t>(cpos) + (i * kChestTableRecordSize);
+    if ((((rom_data[offset + 1] << 8) + rom_data[offset]) & 0x7FFF) ==
+        room_id_) {
       // There's a chest in that room !
       bool big = false;
-      if ((((rom_data[cpos + (i * 3) + 1] << 8) + (rom_data[cpos + (i * 3)])) &
-           0x8000) == 0x8000) {
+      if ((((rom_data[offset + 1] << 8) + rom_data[offset]) & 0x8000) ==
+          0x8000) {
         big = true;
       }
 
-      chests_in_room_.emplace_back(
-          chest_data{rom_data[cpos + (i * 3) + 2], big});
+      chests_in_room_.emplace_back(chest_data{rom_data[offset + 2], big});
     }
   }
   chests_loaded_ = true;
@@ -2919,13 +3020,17 @@ absl::Status SaveAllCollision(Rom* rom, int room_count,
 namespace {
 
 // Parse current ROM chest data into per-room lists (room_id, chest_data).
+// `byte_length` is the runtime byte count at kChestsLengthPointer.
 std::vector<std::vector<std::pair<uint8_t, bool>>> ParseRomChests(
-    const std::vector<uint8_t>& rom_data, int cpos, int clength) {
+    const std::vector<uint8_t>& rom_data, int cpos, int byte_length) {
   std::vector<std::vector<std::pair<uint8_t, bool>>> per_room(kNumberOfRooms);
-  for (int i = 0;
-       i < clength && cpos + i * 3 + 2 < static_cast<int>(rom_data.size());
-       ++i) {
-    int off = cpos + i * 3;
+  const int record_count = byte_length / kChestTableRecordSize;
+  for (int i = 0; i < record_count; ++i) {
+    const int off = cpos + i * kChestTableRecordSize;
+    if (off < 0 ||
+        off + kChestTableRecordSize > static_cast<int>(rom_data.size())) {
+      break;
+    }
     uint16_t word = (rom_data[off + 1] << 8) | rom_data[off];
     uint16_t room_id = word & 0x7FFF;
     bool big = (word & 0x8000) != 0;
@@ -2937,52 +3042,46 @@ std::vector<std::vector<std::pair<uint8_t, bool>>> ParseRomChests(
   return per_room;
 }
 
-std::vector<std::vector<uint8_t>> ParseRomPotItems(
-    const std::vector<uint8_t>& rom_data) {
-  std::vector<std::vector<uint8_t>> per_room(kNumberOfRooms);
-  int table_addr = kRoomItemsPointers;
-  if (table_addr + (kNumberOfRooms * 2) > static_cast<int>(rom_data.size())) {
-    return per_room;
+int ReadRoomPotItemAddressPc(const std::vector<uint8_t>& rom_data,
+                             int room_id) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return -1;
   }
-  for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
-    int ptr_off = table_addr + (room_id * 2);
-    uint16_t item_ptr = (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
-    int item_addr = SnesToPc(0x010000 | item_ptr);
-    if (item_addr < 0 || item_addr >= static_cast<int>(rom_data.size())) {
-      continue;
-    }
-    int next_ptr_off = table_addr + ((room_id + 1) * 2);
-    int next_item_addr =
-        (room_id + 1 < kNumberOfRooms)
-            ? SnesToPc(0x010000 | ((rom_data[next_ptr_off + 1] << 8) |
-                                   rom_data[next_ptr_off]))
-            : item_addr + 0x100;
-    int max_len = next_item_addr - item_addr;
-    if (max_len <= 0)
-      continue;
+  const int ptr_off = kRoomItemsPointers + (room_id * 2);
+  if (ptr_off < 0 || ptr_off + 1 >= static_cast<int>(rom_data.size())) {
+    return -1;
+  }
+  const uint16_t item_ptr =
+      (static_cast<uint16_t>(rom_data[ptr_off + 1]) << 8) | rom_data[ptr_off];
+  if (item_ptr < 0x8000) {
+    return -1;
+  }
+  const int item_addr = static_cast<int>(SnesToPc(0x010000 | item_ptr));
+  return item_addr >= 0 && item_addr < static_cast<int>(rom_data.size())
+             ? item_addr
+             : -1;
+}
 
-    std::vector<uint8_t> bytes;
-    int cursor = item_addr;
-    const int limit =
-        std::min(item_addr + max_len, static_cast<int>(rom_data.size()));
-    while (cursor + 1 < limit) {
-      uint8_t b1 = rom_data[cursor++];
-      uint8_t b2 = rom_data[cursor++];
-      bytes.push_back(b1);
-      bytes.push_back(b2);
-      if (b1 == 0xFF && b2 == 0xFF) {
-        break;
-      }
-      if (cursor >= limit) {
-        break;
-      }
-      bytes.push_back(rom_data[cursor++]);
-    }
-    if (!bytes.empty()) {
-      per_room[room_id] = std::move(bytes);
-    }
+absl::StatusOr<PhysicalStreamInfo> GetPotItemStreamInfo(
+    const std::vector<uint8_t>& rom_data, int room_id) {
+  if (kRoomItemsPointers + (kNumberOfRooms * 2) >
+      static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Room items pointer table out of range");
   }
-  return per_room;
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return absl::OutOfRangeError("Room ID out of range");
+  }
+
+  std::vector<int> addresses(kNumberOfRooms, -1);
+  for (int id = 0; id < kNumberOfRooms; ++id) {
+    addresses[id] = ReadRoomPotItemAddressPc(rom_data, id);
+  }
+  PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id);
+  if (info.address < 0) {
+    return absl::FailedPreconditionError(
+        "Room pot item pointer is null or invalid");
+  }
+  return info;
 }
 
 }  // namespace
@@ -2998,22 +3097,41 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
       kChestsDataPointer1 + 2 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Chest pointers out of range");
   }
-  int clength = (rom_data[kChestsLengthPointer + 1] << 8) |
-                rom_data[kChestsLengthPointer];
-  int cpos = SnesToPc((rom_data[kChestsDataPointer1 + 2] << 16) |
-                      (rom_data[kChestsDataPointer1 + 1] << 8) |
-                      rom_data[kChestsDataPointer1]);
-  auto rom_chests = ParseRomChests(rom_data, cpos, clength);
-
-  std::vector<uint8_t> bytes;
-  const int room_limit =
-      std::min(room_count, static_cast<int>(rom_chests.size()));
+  const int room_limit = std::min(room_count, kNumberOfRooms);
+  bool any_dirty = false;
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
+    any_dirty = any_dirty || (room != nullptr && room->chests_dirty());
+  }
+  if (!any_dirty) {
+    return absl::OkStatus();
+  }
+
+  const int byte_length = (rom_data[kChestsLengthPointer + 1] << 8) |
+                          rom_data[kChestsLengthPointer];
+  if (byte_length < 0 || byte_length > kChestTableCapacityBytes ||
+      (byte_length % kChestTableRecordSize) != 0) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Chest table byte length %d is invalid (capacity %d)",
+                        byte_length, kChestTableCapacityBytes));
+  }
+  const int cpos = static_cast<int>(SnesToPc(
+      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 2]) << 16) |
+      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 1]) << 8) |
+      rom_data[kChestsDataPointer1]));
+  if (cpos < 0 ||
+      cpos + kChestTableCapacityBytes > static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Chest data region out of range");
+  }
+  const auto rom_chests = ParseRomChests(rom_data, cpos, byte_length);
+
+  std::vector<uint8_t> bytes;
+  bytes.reserve(byte_length);
+  for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
+    const Room* room = room_id < room_limit ? room_lookup(room_id) : nullptr;
     const bool room_dirty = room != nullptr && room->chests_dirty();
-    const bool room_loaded = room != nullptr && room->AreChestsLoaded();
     const auto* chests = room != nullptr ? &room->GetChests() : nullptr;
-    if (!room_dirty && !room_loaded) {
+    if (!room_dirty) {
       for (const auto& [id, big] : rom_chests[room_id]) {
         uint16_t word = room_id | (big ? 0x8000 : 0);
         bytes.push_back(word & 0xFF);
@@ -3030,13 +3148,23 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
     }
   }
 
-  if (cpos < 0 || cpos + static_cast<int>(bytes.size()) >
-                      static_cast<int>(rom_data.size())) {
-    return absl::OutOfRangeError("Chest data region out of range");
+  if (bytes.size() > static_cast<size_t>(kChestTableCapacityBytes)) {
+    return absl::ResourceExhaustedError(
+        absl::StrFormat("Chest table has %d records; capacity is %d",
+                        static_cast<int>(bytes.size() / kChestTableRecordSize),
+                        kChestTableCapacityRecords));
   }
-  RETURN_IF_ERROR(rom->WriteWord(kChestsLengthPointer,
-                                 static_cast<uint16_t>(bytes.size() / 3)));
-  RETURN_IF_ERROR(rom->WriteVector(cpos, bytes));
+
+  const bool length_changed = byte_length != static_cast<int>(bytes.size());
+  const bool data_changed =
+      !std::equal(bytes.begin(), bytes.end(), rom_data.begin() + cpos);
+  if (length_changed) {
+    RETURN_IF_ERROR(rom->WriteWord(kChestsLengthPointer,
+                                   static_cast<uint16_t>(bytes.size())));
+  }
+  if (data_changed) {
+    RETURN_IF_ERROR(rom->WriteVector(cpos, bytes));
+  }
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     if (const Room* room = room_lookup(room_id);
         room != nullptr && room->chests_dirty()) {
@@ -3063,65 +3191,69 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
     return absl::InvalidArgumentError("ROM not loaded");
   }
   const auto& rom_data = rom->vector();
-  const auto rom_pot_items = ParseRomPotItems(rom_data);
-  int table_addr = kRoomItemsPointers;
-  if (table_addr + (kNumberOfRooms * 2) > static_cast<int>(rom_data.size())) {
+  if (kRoomItemsPointers + (kNumberOfRooms * 2) >
+      static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Room items pointer table out of range");
   }
+
+  struct PendingPotItemWrite {
+    int room_id = -1;
+    int address = -1;
+    std::vector<uint8_t> bytes;
+  };
+
+  // Build and validate every dirty write before touching the ROM. A later
+  // shared/overfull stream must not leave earlier rooms partially written.
+  std::vector<PendingPotItemWrite> pending_writes;
   const int room_limit = std::min(room_count, kNumberOfRooms);
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
-    const bool room_dirty = room != nullptr && room->pot_items_dirty();
-    const bool room_loaded = room != nullptr && room->ArePotItemsLoaded();
-    const auto* pot_items = room != nullptr ? &room->GetPotItems() : nullptr;
-    int ptr_off = table_addr + (room_id * 2);
-    uint16_t item_ptr = (rom_data[ptr_off + 1] << 8) | rom_data[ptr_off];
-    if (item_ptr == 0) {
+    if (room == nullptr || !room->pot_items_dirty()) {
       continue;
     }
-    int item_addr = SnesToPc(0x010000 | item_ptr);
-    if (item_addr < 0 || item_addr + 2 >= static_cast<int>(rom_data.size())) {
-      continue;
+
+    ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
+                     GetPotItemStreamInfo(rom_data, room_id));
+    if (stream_info.shared) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room %d pot item stream at PC 0x%06X is shared; repacking is "
+          "required",
+          room_id, stream_info.address));
     }
-    int next_ptr_off = table_addr + ((room_id + 1) * 2);
-    int next_item_addr =
-        (room_id + 1 < kNumberOfRooms)
-            ? SnesToPc(0x010000 | ((rom_data[next_ptr_off + 1] << 8) |
-                                   rom_data[next_ptr_off]))
-            : item_addr + 0x100;
-    int max_len = next_item_addr - item_addr;
-    if (max_len <= 0)
-      continue;
-    std::vector<uint8_t> bytes;
-    if (!room_dirty && !room_loaded) {
-      if (room_id < rom_pot_items.size()) {
-        bytes = rom_pot_items[room_id];
-      }
-      if (bytes.empty()) {
-        continue;  // Preserve ROM data if room not loaded and nothing parsed.
-      }
-    } else {
-      for (const auto& pi : *pot_items) {
-        bytes.push_back(pi.position & 0xFF);
-        bytes.push_back((pi.position >> 8) & 0xFF);
-        bytes.push_back(pi.item);
-      }
-      bytes.push_back(0xFF);
-      bytes.push_back(0xFF);
+    if (stream_info.capacity() <= 0) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room %d pot item stream has no safe physical boundary", room_id));
     }
-    if (static_cast<int>(bytes.size()) > max_len) {
-      if (room_dirty) {
-        return absl::OutOfRangeError(absl::StrFormat(
-            "Room %d pot item data too large! Size: %d, Available: %d", room_id,
-            bytes.size(), max_len));
-      }
-      continue;
+
+    PendingPotItemWrite pending;
+    pending.room_id = room_id;
+    pending.address = stream_info.address;
+    for (const auto& pi : room->GetPotItems()) {
+      pending.bytes.push_back(pi.position & 0xFF);
+      pending.bytes.push_back((pi.position >> 8) & 0xFF);
+      pending.bytes.push_back(pi.item);
     }
-    RETURN_IF_ERROR(rom->WriteVector(item_addr, bytes));
+    pending.bytes.push_back(0xFF);
+    pending.bytes.push_back(0xFF);
+    if (static_cast<int>(pending.bytes.size()) > stream_info.capacity()) {
+      return absl::ResourceExhaustedError(absl::StrFormat(
+          "Room %d pot item data too large! Size: %d, Available: %d", room_id,
+          static_cast<int>(pending.bytes.size()), stream_info.capacity()));
+    }
+    pending_writes.push_back(std::move(pending));
   }
-  for (int room_id = 0; room_id < room_limit; ++room_id) {
-    if (const Room* room = room_lookup(room_id);
-        room != nullptr && room->pot_items_dirty()) {
+
+  for (const auto& pending : pending_writes) {
+    const bool data_changed =
+        !std::equal(pending.bytes.begin(), pending.bytes.end(),
+                    rom_data.begin() + pending.address);
+    if (data_changed) {
+      RETURN_IF_ERROR(rom->WriteVector(pending.address, pending.bytes));
+    }
+  }
+
+  for (const auto& pending : pending_writes) {
+    if (const Room* room = room_lookup(pending.room_id); room != nullptr) {
       const_cast<Room*>(room)->ClearPotItemsDirty();
     }
   }

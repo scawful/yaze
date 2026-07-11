@@ -202,7 +202,8 @@ TEST(DungeonEditCommandsTest, SetCollisionTileRejectsMalformedTileTuple) {
   ExpectInvalidArgument(status, "Invalid tile spec");
 }
 
-TEST(DungeonEditCommandsTest, PlaceSpriteWriteRelocatesAndRoundTrips) {
+TEST(DungeonEditCommandsTest,
+     PlaceSpriteWriteFailsClosedWhenRepackingRequired) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
@@ -251,33 +252,12 @@ TEST(DungeonEditCommandsTest, PlaceSpriteWriteRelocatesAndRoundTrips) {
       place_handler.Run({"--room=0x00", "--id=0xA3", "--x=16", "--y=21",
                          "--subtype=4", "--write", "--format=json"},
                         &rom, &write_output);
-  ASSERT_TRUE(write_status.ok()) << write_status.message();
-  EXPECT_THAT(write_output, HasSubstr("\"write_status\": \"success\""));
-  EXPECT_THAT(write_output, HasSubstr("\"save_status\": \"saved\""));
-  EXPECT_NE(rom.vector(), before);
-  EXPECT_GE(CountBackupArtifacts(cleanup.rom_path), 1);
-
-  const int relocated_pc = ReadRoomSpritePointerPc(rom, table_pc, 0);
-  EXPECT_NE(relocated_pc, zelda3::kSpritesData);
-  EXPECT_EQ(rom.data()[relocated_pc], 0x00);  // Preserved sort mode.
-  EXPECT_EQ(rom.data()[relocated_pc + 1], 0x15);
-  EXPECT_EQ(rom.data()[relocated_pc + 2], 0x90);
-  EXPECT_EQ(rom.data()[relocated_pc + 3], 0xA3);
-  EXPECT_EQ(rom.data()[relocated_pc + 4], 0xFF);
-
-  EXPECT_EQ(rom.data()[zelda3::kSpritesData], 0x00);
-  EXPECT_EQ(rom.data()[zelda3::kSpritesData + 1], 0x00);
-
-  handlers::DungeonListSpritesCommandHandler list_handler;
-  std::string list_output;
-  auto list_status =
-      list_handler.Run({"--room=0x00", "--format=json"}, &rom, &list_output);
-  ASSERT_TRUE(list_status.ok()) << list_status.message();
-  EXPECT_THAT(list_output, HasSubstr("\"total_sprites\": 1"));
-  EXPECT_THAT(list_output, HasSubstr("\"sprite_id\": \"0xA3\""));
-  EXPECT_THAT(list_output, HasSubstr("\"x\": 16"));
-  EXPECT_THAT(list_output, HasSubstr("\"y\": 21"));
-  EXPECT_THAT(list_output, HasSubstr("\"subtype\": 4"));
+  EXPECT_TRUE(absl::IsResourceExhausted(write_status))
+      << write_status.message();
+  EXPECT_THAT(write_output, HasSubstr("repacking is required"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(ReadRoomSpritePointerPc(rom, table_pc, 0), zelda3::kSpritesData);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
 }
 
 }  // namespace
