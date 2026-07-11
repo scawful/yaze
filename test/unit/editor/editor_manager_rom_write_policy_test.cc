@@ -95,8 +95,10 @@ void DisableRomWritesForTest() {
   d.kSavePits = false;
   d.kSaveBlocks = false;
   d.kSaveCollision = false;
+  d.kSaveWaterFillZones = false;
   d.kSaveChests = false;
   d.kSavePotItems = false;
+  d.kSaveEntrances = false;
   d.kSavePalettes = false;
 
   auto& o = flags.overworld;
@@ -166,11 +168,11 @@ TEST(EditorManagerRomWritePolicyTest,
   EXPECT_EQ(ReadByteAt(rom_path, static_cast<std::streamoff>(kPcOffset)),
             original);
 
-  // Confirm once and retry: should save successfully.
+  // Confirm once and resume the bound request: should save successfully.
   manager->ConfirmRomWrite();
   EXPECT_FALSE(manager->IsRomWriteConfirmPending());
 
-  auto status2 = manager->SaveRom();
+  auto status2 = manager->ResumePendingRomSave();
   EXPECT_TRUE(status2.ok()) << status2.message();
   EXPECT_EQ(ReadByteAt(rom_path, static_cast<std::streamoff>(kPcOffset)),
             mutated);
@@ -344,6 +346,299 @@ TEST(EditorManagerRomWritePolicyTest,
   EXPECT_FALSE(manager->IsRomWriteConfirmPending());
   EXPECT_EQ(ReadByteAt(build_rom_path, static_cast<std::streamoff>(kPcOffset)),
             original);
+}
+
+TEST(EditorManagerRomWritePolicyTest,
+     SaveRomAsPreservesTargetAcrossWriteConfirmation) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source_path = MakeTempFilePath("yaze_save_as_confirm_source.sfc");
+  const auto target_path = MakeTempFilePath("yaze_save_as_confirm_target.sfc");
+  ScopedFileCleanup source_cleanup{source_path};
+  ScopedFileCleanup target_cleanup{target_path};
+  WriteTestRom(source_path);
+
+  ASSERT_OK(manager->OpenRomOrProject(source_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "SaveAsConfirmation";
+  project->filepath = (source_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  constexpr uint32_t kPcOffset = 0x1234;
+  constexpr uint8_t kMutated = 0xA5;
+  ASSERT_OK(rom->WriteByte(kPcOffset, kMutated));
+
+  auto status = manager->SaveRomAs(target_path.string());
+  EXPECT_EQ(status.code(), absl::StatusCode::kCancelled) << status;
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(ReadByteAt(source_path, kPcOffset), 0x00);
+  EXPECT_FALSE(std::filesystem::exists(target_path));
+
+  manager->ConfirmRomWrite();
+  auto resumed = manager->ResumePendingRomSave();
+  ASSERT_OK(resumed);
+
+  EXPECT_EQ(ReadByteAt(source_path, kPcOffset), 0x00);
+  EXPECT_EQ(ReadByteAt(target_path, kPcOffset), kMutated);
+  EXPECT_EQ(rom->filename(), target_path.string());
+}
+
+TEST(EditorManagerRomWritePolicyTest, SaveRomAsCannotTargetProjectBuildOutput) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto dev_rom_path = MakeTempFilePath("yaze_save_as_policy_dev.sfc");
+  const auto build_rom_path = MakeTempFilePath("yaze_save_as_policy_build.sfc");
+  ScopedFileCleanup dev_cleanup{dev_rom_path};
+  ScopedFileCleanup build_cleanup{build_rom_path};
+  WriteTestRom(dev_rom_path, "YAZE DEV TARGET");
+  WriteTestRom(build_rom_path, "YAZE BUILD OUT");
+
+  ASSERT_OK(manager->OpenRomOrProject(dev_rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "SaveAsBuildOutputPolicy";
+  project->filepath = (dev_rom_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_filename = dev_rom_path.filename().string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash.clear();
+  ASSERT_OK(project->hack_manifest.LoadFromString(absl::StrFormat(
+      R"json({
+        "manifest_version": 2,
+        "hack_name": "Save As Build Output Policy",
+        "build_pipeline": {
+          "dev_rom": "%s",
+          "patched_rom": "%s"
+        }
+      })json",
+      dev_rom_path.filename().string(), build_rom_path.filename().string())));
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  constexpr uint32_t kPcOffset = 0x1234;
+  ASSERT_OK(rom->WriteByte(kPcOffset, 0xA5));
+
+  auto status = manager->SaveRomAs(build_rom_path.string());
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(ReadByteAt(dev_rom_path, kPcOffset), 0x00);
+  EXPECT_EQ(ReadByteAt(build_rom_path, kPcOffset), 0x00);
+  EXPECT_EQ(rom->filename(), dev_rom_path.string());
+}
+
+TEST(EditorManagerRomWritePolicyTest, SaveRomAsRefreshesLifecycleHashAndPath) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source_path = MakeTempFilePath("yaze_save_as_hash_source.sfc");
+  const auto target_path = MakeTempFilePath("yaze_save_as_hash_target.sfc");
+  ScopedFileCleanup source_cleanup{source_path};
+  ScopedFileCleanup target_cleanup{target_path};
+  WriteTestRom(source_path);
+
+  ASSERT_OK(manager->OpenRomOrProject(source_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "SaveAsLifecycleRefresh";
+  project->filepath = (source_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_filename = source_path.string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  project->rom_metadata.expected_hash = manager->GetCurrentRomHash();
+  EXPECT_FALSE(manager->IsRomHashMismatch());
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+  ASSERT_OK(manager->SaveRomAs(target_path.string()));
+
+  EXPECT_EQ(rom->filename(), target_path.string());
+  EXPECT_TRUE(manager->IsRomHashMismatch());
+}
+
+TEST(EditorManagerRomWritePolicyTest,
+     FailedResumeConsumesHashConfirmationBypass) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source_path = MakeTempFilePath("yaze_resume_failure_source.sfc");
+  const auto target_path = MakeTempFilePath("yaze_resume_failure_target.sfc");
+  ScopedFileCleanup source_cleanup{source_path};
+  ScopedFileCleanup target_cleanup{target_path};
+  WriteTestRom(source_path);
+
+  ASSERT_OK(manager->OpenRomOrProject(source_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "ResumeFailureConsumesBypass";
+  project->filepath = (source_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+  project->hack_manifest.Clear();
+  project->hack_manifest_file =
+      (source_path.parent_path() / "missing-save-manifest.json").string();
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+
+  EXPECT_TRUE(absl::IsCancelled(manager->SaveRomAs(target_path.string())));
+  manager->ConfirmRomWrite();
+  const auto failed_resume = manager->ResumePendingRomSave();
+  EXPECT_EQ(failed_resume.code(), absl::StatusCode::kFailedPrecondition)
+      << failed_resume;
+
+  // Removing the downstream failure must not let the next, unrelated save
+  // inherit the prior confirmation.
+  project->hack_manifest_file.clear();
+  const auto retry = manager->SaveRom();
+  EXPECT_TRUE(absl::IsCancelled(retry)) << retry;
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(ReadByteAt(source_path, 0x1234), 0x00);
+  EXPECT_FALSE(std::filesystem::exists(target_path));
+}
+
+TEST(EditorManagerRomWritePolicyTest,
+     CancellingLaterPromptConsumesHashConfirmationBypass) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source_path = MakeTempFilePath("yaze_prompt_cancel_source.sfc");
+  const auto target_path = MakeTempFilePath("yaze_prompt_cancel_target.sfc");
+  ScopedFileCleanup source_cleanup{source_path};
+  ScopedFileCleanup target_cleanup{target_path};
+  WriteTestRom(source_path);
+
+  ASSERT_OK(manager->OpenRomOrProject(source_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().dungeon.kSavePotItems = true;
+  ASSERT_NE(manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon),
+            nullptr);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "LaterPromptCancelConsumesBypass";
+  project->filepath = (source_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  ASSERT_OK(rom->WriteByte(0x1234, 0xA5));
+
+  EXPECT_TRUE(absl::IsCancelled(manager->SaveRomAs(target_path.string())));
+  manager->ConfirmRomWrite();
+  EXPECT_TRUE(absl::IsCancelled(manager->ResumePendingRomSave()));
+  EXPECT_TRUE(manager->HasPendingPotItemSaveConfirmation());
+
+  manager->ResolvePotItemSaveConfirmation(
+      EditorManager::PotItemSaveDecision::kCancel);
+  core::FeatureFlags::get().dungeon.kSavePotItems = false;
+
+  const auto retry = manager->SaveRom();
+  EXPECT_TRUE(absl::IsCancelled(retry)) << retry;
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(ReadByteAt(source_path, 0x1234), 0x00);
+  EXPECT_FALSE(std::filesystem::exists(target_path));
+}
+
+TEST(EditorManagerRomWritePolicyTest,
+     PendingSaveAsCannotResumeAfterSessionSwitch) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto source_a = MakeTempFilePath("yaze_session_a.sfc");
+  const auto source_b = MakeTempFilePath("yaze_session_b.sfc");
+  const auto target_a = MakeTempFilePath("yaze_session_a_target.sfc");
+  ScopedFileCleanup cleanup_a{source_a};
+  ScopedFileCleanup cleanup_b{source_b};
+  ScopedFileCleanup cleanup_target{target_a};
+  WriteTestRom(source_a, "YAZE SESSION A");
+  WriteTestRom(source_b, "YAZE SESSION B");
+
+  ASSERT_OK(manager->OpenRomOrProject(source_a.string()));
+  const size_t session_a = manager->GetCurrentSessionIndex();
+  ASSERT_OK(manager->OpenRomOrProject(source_b.string()));
+  const size_t session_b = manager->GetCurrentSessionIndex();
+  const std::string session_b_hash = manager->GetCurrentRomHash();
+  ASSERT_NE(session_a, session_b);
+
+  manager->SwitchToSession(session_a);
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "PendingSaveSessionBinding";
+  project->filepath = (source_a.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0xA5));
+  EXPECT_TRUE(absl::IsCancelled(manager->SaveRomAs(target_a.string())));
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+
+  manager->SwitchToSession(session_b);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), session_b);
+  EXPECT_EQ(manager->GetCurrentRomHash(), session_b_hash);
+
+  // Simulate a stale confirmation callback after the session switch. It must
+  // not serialize session B or write it to session A's Save As target.
+  manager->ConfirmRomWrite();
+  const auto stale_resume = manager->ResumePendingRomSave();
+  EXPECT_EQ(stale_resume.code(), absl::StatusCode::kFailedPrecondition)
+      << stale_resume;
+  EXPECT_FALSE(std::filesystem::exists(target_a));
+  EXPECT_EQ(ReadByteAt(source_a, 0x1234), 0x00);
+  EXPECT_EQ(ReadByteAt(source_b, 0x1234), 0x00);
 }
 
 }  // namespace

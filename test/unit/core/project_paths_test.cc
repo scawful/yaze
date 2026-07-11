@@ -1,5 +1,6 @@
 #include "core/project.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -244,8 +245,15 @@ hack_manifest_file=hack_manifest.json
 37=Thieves' Town
 )");
 
+  std::error_code relative_ec;
+  const auto relative_project_file = std::filesystem::relative(
+      project_file, std::filesystem::current_path(), relative_ec);
+  ASSERT_FALSE(relative_ec) << relative_ec.message();
+  ASSERT_FALSE(relative_project_file.is_absolute());
+
   YazeProject project;
-  ASSERT_TRUE(project.Open(project_file.string()).ok());
+  ASSERT_TRUE(project.Open(relative_project_file.string()).ok());
+  EXPECT_TRUE(std::filesystem::path(project.filepath).is_absolute());
   EXPECT_FALSE(project.hack_manifest.loaded());
   ASSERT_TRUE(project.hack_manifest.HasProjectRegistry());
 
@@ -257,6 +265,69 @@ hack_manifest_file=hack_manifest.json
   EXPECT_NE(saved.find("[labels_room]"), std::string::npos);
   EXPECT_NE(saved.find("37=Water Grate"), std::string::npos);
   EXPECT_EQ(saved.find("37=Thieves' Town"), std::string::npos);
+}
+
+TEST(ProjectPathsTest, ExplicitMissingHackManifestDoesNotUseFallback) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_manifest_paths"));
+
+  WriteTextFile(temp.path() / "rom.sfc", "not a real rom");
+  WriteTextFile(temp.path() / "hack_manifest.json", "{}");
+
+  const auto project_file = temp.path() / "Oracle.yaze";
+  WriteTextFile(project_file,
+                R"(
+[project]
+name=Oracle of Secrets
+
+[files]
+rom_filename=rom.sfc
+hack_manifest_file=manifests/missing.json
+)");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(project_file.string()).ok());
+
+  const auto missing_manifest = temp.path() / "manifests" / "missing.json";
+  EXPECT_EQ(project.hack_manifest_file, missing_manifest.string());
+  EXPECT_FALSE(project.hack_manifest.loaded());
+
+  const auto validation = project.Validate();
+  EXPECT_FALSE(validation.ok());
+  EXPECT_NE(validation.message().find("Hack manifest file does not exist"),
+            std::string::npos);
+
+  const auto missing_files = project.GetMissingFiles();
+  EXPECT_NE(std::find(missing_files.begin(), missing_files.end(),
+                      missing_manifest.string()),
+            missing_files.end());
+}
+
+TEST(ProjectPathsTest, ExplicitMalformedHackManifestFailsValidation) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_malformed_manifest"));
+
+  WriteTextFile(temp.path() / "rom.sfc", "not a real rom");
+  WriteTextFile(temp.path() / "manifests" / "broken.json", "{not-json");
+  WriteTextFile(temp.path() / "hack_manifest.json", "{}");
+
+  const auto project_file = temp.path() / "Oracle.yaze";
+  WriteTextFile(project_file,
+                R"(
+[project]
+name=Oracle of Secrets
+
+[files]
+rom_filename=rom.sfc
+hack_manifest_file=manifests/broken.json
+)");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(project_file.string()).ok());
+  EXPECT_FALSE(project.hack_manifest.loaded());
+
+  const auto validation = project.Validate();
+  EXPECT_FALSE(validation.ok());
+  EXPECT_NE(validation.message().find("Hack manifest file failed to load"),
+            std::string::npos);
 }
 
 }  // namespace yaze::project

@@ -10,6 +10,7 @@
 #include "mocks/mock_rom.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
@@ -65,7 +66,8 @@ void SetupChestTable(Rom& rom) {
   WriteLongPointer(rom, zelda3::kChestsDataPointer1, PcToSnes(kChestDataPc));
   rom.mutable_data()[zelda3::kChestsLengthPointer] = 0x00;
   rom.mutable_data()[zelda3::kChestsLengthPointer + 1] = 0x00;
-  std::fill_n(rom.mutable_data() + kChestDataPc, 0x100, 0x00);
+  std::fill_n(rom.mutable_data() + kChestDataPc,
+              zelda3::kChestTableCapacityBytes, 0x00);
 }
 
 void WriteEmptyObjectStream(Rom& rom, int room_data_pc) {
@@ -109,7 +111,8 @@ void SetupSpritePointers(Rom& rom) {
 
 void SeedChestEntry(Rom& rom, int room_id, uint8_t chest_id, bool big) {
   const uint16_t word = static_cast<uint16_t>(room_id) | (big ? 0x8000 : 0);
-  rom.mutable_data()[zelda3::kChestsLengthPointer] = 0x01;
+  rom.mutable_data()[zelda3::kChestsLengthPointer] =
+      zelda3::kChestTableRecordSize;
   rom.mutable_data()[zelda3::kChestsLengthPointer + 1] = 0x00;
   rom.mutable_data()[kChestDataPc + 0] = word & 0xFF;
   rom.mutable_data()[kChestDataPc + 1] = (word >> 8) & 0xFF;
@@ -213,6 +216,99 @@ TEST(DungeonEditorV2RomSafetyTest, SaveRoomBlocksInvalidRoomBeforeWriting) {
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomRollsBackEarlierWritesOnLateFailure) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupHeaderPointers(rom);
+  SetupChestTable(rom);
+  // The chest length operand is a byte count and must be divisible by three.
+  rom.mutable_data()[zelda3::kChestsLengthPointer] = 0x01;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.SetPalette(0x2A);
+  room.MarkChestsDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveRoomHeaders = true;
+  flags.kSaveChests = true;
+
+  const auto before = rom.vector();
+  const auto status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.data()[kRoom0HeaderPc + 1], 0x00);
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_TRUE(room.chests_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveAllRoomsRollsBackEarlierWritesOnLateFailure) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupHeaderPointers(rom);
+  SetupChestTable(rom);
+  rom.mutable_data()[zelda3::kChestsLengthPointer] = 0x01;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.SetPalette(0x2A);
+  room.MarkChestsDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveRoomHeaders = true;
+  flags.kSaveChests = true;
+
+  const auto before = rom.vector();
+  editor->SaveAllRooms();
+
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.data()[kRoom0HeaderPc + 1], 0x00);
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_TRUE(room.chests_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     LateCoordinatorRollbackRestoresEntranceDirtyState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+
+  auto& entrance = editor->entrances_[0];
+  entrance.room_ = 0x0123;
+  entrance.MarkDirty();
+  const auto before = rom.vector();
+
+  ScopedRomTransaction rom_transaction(rom);
+  ASSERT_TRUE(editor->BeginSaveTransaction().ok());
+  ASSERT_TRUE(editor->Save().ok());
+  EXPECT_FALSE(entrance.dirty());
+  EXPECT_EQ(rom.ReadWord(zelda3::kStartingEntranceroom).value(), 0x0123);
+
+  // Simulate a later editor/conflict/disk failure in EditorManager.
+  editor->RollbackSaveTransaction();
+  rom_transaction.Rollback();
+
+  EXPECT_TRUE(entrance.dirty());
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      SaveWritesWaterFillZonesWhenCollisionSavingDisabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -265,7 +361,7 @@ TEST(DungeonEditorV2RomSafetyTest, SaveWritesChestsWhenEnabled) {
   auto status = editor->Save();
   ASSERT_TRUE(status.ok()) << status.message();
 
-  EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer], 0x02);
+  EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer], 0x06);
   EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer + 1], 0x00);
 
   zelda3::Room reloaded_room(0, &rom);
@@ -297,7 +393,7 @@ TEST(DungeonEditorV2RomSafetyTest, SaveSkipsChestsWhenDisabled) {
   auto status = editor->Save();
   ASSERT_TRUE(status.ok()) << status.message();
 
-  EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer], 0x01);
+  EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer], 0x03);
   EXPECT_EQ(rom.data()[zelda3::kChestsLengthPointer + 1], 0x00);
 
   zelda3::Room reloaded_room(0, &rom);
@@ -511,6 +607,46 @@ TEST(DungeonEditorV2RomSafetyTest, PendingRoomCountTracksRoomDirtyState) {
 
   EXPECT_EQ(editor->PendingRoomCount(), 0);
   EXPECT_FALSE(editor->HasPendingRoomChanges());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveTransactionRollbackRestoresRoomAndPitDirtyState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->SetGameData(&game_data);
+
+  auto& room = editor->rooms()[0];
+  room.MarkHeaderDirty();
+  room.MarkObjectStreamDirty();
+  room.MarkSpritesDirty();
+  room.MarkChestsDirty();
+  room.MarkPotItemsDirty();
+  room.MarkTorchesDirty();
+  room.MarkBlocksDirty();
+  room.MarkCustomCollisionDirty();
+  room.MarkWaterFillDirty();
+  game_data.pit_damage_table.MarkDirty();
+
+  ASSERT_TRUE(editor->BeginSaveTransaction().ok());
+  room.ClearSaveDirtyState();
+  room.ClearCustomCollisionDirty();
+  room.ClearWaterFillDirty();
+  game_data.pit_damage_table.ClearDirty();
+
+  editor->RollbackSaveTransaction();
+
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_TRUE(room.object_stream_dirty());
+  EXPECT_TRUE(room.sprites_dirty());
+  EXPECT_TRUE(room.chests_dirty());
+  EXPECT_TRUE(room.pot_items_dirty());
+  EXPECT_TRUE(room.torches_dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_TRUE(room.custom_collision_dirty());
+  EXPECT_TRUE(room.water_fill_dirty());
+  EXPECT_TRUE(game_data.pit_damage_table.dirty());
 }
 
 TEST(DungeonEditorV2RomSafetyTest,

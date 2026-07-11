@@ -5,6 +5,7 @@
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace gfx {
@@ -252,6 +253,33 @@ TEST_F(PaletteManagerTest, SaveAllWithoutInitializationFails) {
 
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+}
+
+TEST_F(PaletteManagerTest, SaveTransactionRollbackRestoresRetryState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  auto* group = game_data.palette_groups.get_group("ow_main");
+  ASSERT_NE(group, nullptr);
+  group->clear();
+  SnesPalette palette;
+  palette.AddColor(SnesColor(0x0000));
+  group->AddPalette(palette);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(manager.SetColor("ow_main", 0, 0, SnesColor(0x001F)).ok());
+  ASSERT_TRUE(manager.HasUnsavedChanges());
+  ASSERT_TRUE(manager.BeginSaveTransaction().ok());
+  ASSERT_TRUE(manager.SaveAllToRom().ok());
+  ASSERT_FALSE(manager.HasUnsavedChanges());
+
+  manager.RollbackSaveTransaction();
+  EXPECT_TRUE(manager.HasUnsavedChanges());
+  EXPECT_TRUE(manager.IsColorModified("ow_main", 0, 0));
+
+  ASSERT_TRUE(manager.ResetColor("ow_main", 0, 0).ok());
+  EXPECT_EQ(manager.GetColor("ow_main", 0, 0).snes(), 0x0000);
 }
 
 TEST_F(PaletteManagerTest, DiscardGroupWithoutInitializationIsNoOp) {

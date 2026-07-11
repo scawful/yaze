@@ -42,8 +42,14 @@ constexpr int kBlocksPointer3 = 0x15B08;  // Block data pointer 3
 constexpr int kBlocksPointer4 = 0x15B0F;  // Block data pointer 4
 
 // === Chests ===
-constexpr int kChestsLengthPointer = 0xEBF6;  // Chest count pointer
-constexpr int kChestsDataPointer1 = 0xEBFB;   // Chest data start
+// The value at kChestsLengthPointer is a byte length, not a record count.
+// Vanilla reserves 0x01F8 bytes: 168 records at 3 bytes per record.
+constexpr int kChestsLengthPointer = 0xEBF6;
+constexpr int kChestsDataPointer1 = 0xEBFB;  // Chest data start
+constexpr int kChestTableRecordSize = 3;
+constexpr int kChestTableCapacityRecords = 168;
+constexpr int kChestTableCapacityBytes =
+    kChestTableRecordSize * kChestTableCapacityRecords;
 
 // === Torches ===
 constexpr int kTorchData = 0x2736A;            // JP 0x2704A

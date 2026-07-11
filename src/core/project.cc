@@ -331,6 +331,19 @@ absl::Status YazeProject::Open(const std::string& project_path) {
     resolved_path = bundle_root;
   }
 
+#ifndef __EMSCRIPTEN__
+  // Keep the project root stable even when a caller supplies a relative path.
+  // All project-relative files and registry fallbacks must resolve beside the
+  // project, not against whichever working directory happens to be active
+  // later in the session.
+  std::error_code absolute_ec;
+  const auto absolute_path =
+      std::filesystem::absolute(resolved_path, absolute_ec).lexically_normal();
+  if (!absolute_ec) {
+    resolved_path = absolute_path.string();
+  }
+#endif
+
   filepath = resolved_path;
 
 #ifdef __EMSCRIPTEN__
@@ -1229,6 +1242,16 @@ absl::Status YazeProject::Validate() const {
       !std::filesystem::exists(GetAbsolutePath(labels_filename))) {
     errors.push_back("Labels file does not exist: " + labels_filename);
   }
+
+  if (!hack_manifest_file.empty()) {
+    if (!std::filesystem::exists(GetAbsolutePath(hack_manifest_file))) {
+      errors.push_back("Hack manifest file does not exist: " +
+                       hack_manifest_file);
+    } else if (!hack_manifest.loaded()) {
+      errors.push_back("Hack manifest file failed to load: " +
+                       hack_manifest_file);
+    }
+  }
 #endif  // __EMSCRIPTEN__
 
   if (!errors.empty()) {
@@ -1253,6 +1276,10 @@ std::vector<std::string> YazeProject::GetMissingFiles() const {
   if (!symbols_filename.empty() &&
       !std::filesystem::exists(GetAbsolutePath(symbols_filename))) {
     missing.push_back(symbols_filename);
+  }
+  if (!hack_manifest_file.empty() &&
+      !std::filesystem::exists(GetAbsolutePath(hack_manifest_file))) {
+    missing.push_back(hack_manifest_file);
   }
 #endif  // __EMSCRIPTEN__
 
@@ -1624,20 +1651,24 @@ void YazeProject::TryLoadHackManifest() {
     return true;
   };
 
-  // Priority 1: Explicit hack_manifest_file setting from project.
-  if (!hack_manifest_file.empty()) {
+  // Priority 1: An explicit hack_manifest_file setting is authoritative. Do
+  // not silently replace a missing or malformed configured manifest with an
+  // auto-discovered file; project validation must surface the bad reference.
+  const bool has_explicit_manifest = !hack_manifest_file.empty();
+  if (has_explicit_manifest) {
     (void)load_manifest(GetAbsolutePath(hack_manifest_file), false);
   }
 
   // Priority 2: Auto-discover hack_manifest.json in code_folder.
-  if (!hack_manifest.loaded() && !code_folder.empty()) {
+  if (!has_explicit_manifest && !hack_manifest.loaded() &&
+      !code_folder.empty()) {
     auto code_path = GetAbsolutePath(code_folder);
     auto candidate = std::filesystem::path(code_path) / "hack_manifest.json";
     (void)load_manifest(candidate, true);
   }
 
   // Priority 3: Fallback to the project file directory (or its parent).
-  if (!hack_manifest.loaded() && !filepath.empty()) {
+  if (!has_explicit_manifest && !hack_manifest.loaded() && !filepath.empty()) {
     const std::filesystem::path project_dir =
         std::filesystem::path(filepath).parent_path();
     (void)load_manifest(project_dir / "hack_manifest.json", true);

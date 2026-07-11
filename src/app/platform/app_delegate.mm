@@ -8,6 +8,7 @@
 #import "app/platform/app_delegate.h"
 #import "app/controller.h"
 #import "app/application.h"
+#import "app/editor/shell/feedback/popup_manager.h"
 #import "util/file_util.h"
 #import "app/editor/editor.h"
 #import "rom/rom.h"
@@ -150,17 +151,12 @@
 }
 
 - (void)saveAsAction:(id)sender {
-    // Trigger Save As logic
-    // Manager->SaveRomAs("") usually triggers dialog
     auto& app = yaze::Application::Instance();
     if (app.IsReady() && app.GetController()) {
         if (auto* manager = app.GetController()->editor_manager()) {
-            // We need a method to trigger Save As dialog from manager, 
-            // usually passing empty string does it or there's a specific method.
-            // EditorManager::SaveRomAs(string) saves immediately.
-            // We might need to expose a method to show the dialog.
-            // For now, let's assume we can use the file dialog wrapper from C++ side.
-             (void)manager->SaveRomAs(""); // This might fail if empty string isn't handled as "ask user"
+            if (auto* popup_manager = manager->popup_manager()) {
+                popup_manager->Show(yaze::editor::PopupID::kSaveAs);
+            }
         }
     }
 }

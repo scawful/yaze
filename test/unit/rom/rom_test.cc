@@ -278,5 +278,37 @@ TEST_F(RomTest, TransactionRollbackRestoresOriginals) {
   EXPECT_EQ(*b1, kMockRomData[0x01]);
 }
 
+TEST_F(RomTest, ScopedRomTransactionRollsBackBufferMetadataAndDirtyState) {
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename("before.sfc");
+  rom_.set_dirty(false);
+
+  {
+    yaze::ScopedRomTransaction tx{rom_};
+    EXPECT_OK(rom_.WriteByte(0x01, 0xAA));
+    rom_.Expand(0x100);
+    rom_.set_filename("after.sfc");
+  }
+
+  EXPECT_EQ(rom_.vector(), kMockRomData);
+  EXPECT_EQ(rom_.size(), kMockRomData.size());
+  EXPECT_EQ(rom_.filename(), "before.sfc");
+  EXPECT_FALSE(rom_.dirty());
+}
+
+TEST_F(RomTest, ScopedRomTransactionCommitKeepsChanges) {
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  {
+    yaze::ScopedRomTransaction tx{rom_};
+    EXPECT_OK(rom_.WriteByte(0x01, 0xAA));
+    tx.Commit();
+  }
+
+  const auto value = rom_.ReadByte(0x01);
+  ASSERT_TRUE(value.ok());
+  EXPECT_EQ(*value, 0xAA);
+  EXPECT_TRUE(rom_.dirty());
+}
+
 }  // namespace test
 }  // namespace yaze

@@ -25,6 +25,88 @@ TEST_F(OverworldEditorTest, LoadAndSave) {
   EXPECT_TRUE(status.ok()) << "Save failed: " << status.message();
 }
 
+TEST_F(OverworldExpandedEditorTest, NoEditSaveUsesExpandedTile32Capacity) {
+  const auto profile = zelda3::DetectOverworldRomProfile(*rom_);
+  ASSERT_TRUE(profile.has_expanded_tile32);
+  const auto before = overworld_editor_->overworld().map_tiles();
+
+  const auto status = overworld_editor_->Save();
+  ASSERT_TRUE(status.ok()) << "Expanded save failed: " << status.message();
+  EXPECT_LE(
+      overworld_editor_->overworld().tiles32_unique().size(),
+      static_cast<size_t>(zelda3::Map32DefinitionCapacityForProfile(profile)));
+
+  zelda3::Overworld reloaded(rom_.get(), game_data_.get());
+  ASSERT_TRUE(reloaded.Load(rom_.get()).ok());
+  const auto after = reloaded.map_tiles();
+  EXPECT_TRUE(after.light_world == before.light_world);
+  EXPECT_TRUE(after.dark_world == before.dark_world);
+  EXPECT_TRUE(after.special_world == before.special_world);
+}
+
+TEST_F(OverworldExpandedEditorTest, SavePersistsV3PropertyTables) {
+  const auto profile = zelda3::DetectOverworldRomProfile(*rom_);
+  ASSERT_TRUE(profile.supports_area_enum);
+
+  constexpr int kMapId = 5;
+  constexpr uint8_t kMainPalette = 3;
+  constexpr uint8_t kAnimatedGfx = 7;
+  constexpr uint16_t kSubscreenOverlay = 0x0083;
+  constexpr uint16_t kBackgroundColor = 0x1234;
+  constexpr uint16_t kMessageId = 0x3456;
+  constexpr uint8_t kCustomTileset = 0x21;
+  auto* map = overworld_editor_->overworld().mutable_overworld_map(kMapId);
+  ASSERT_NE(map, nullptr);
+  map->set_main_palette(kMainPalette);
+  map->set_animated_gfx(kAnimatedGfx);
+  map->set_subscreen_overlay(kSubscreenOverlay);
+  map->set_area_specific_bg_color(kBackgroundColor);
+  map->set_message_id(kMessageId);
+  map->set_custom_tileset(0, kCustomTileset);
+
+  const auto status = overworld_editor_->Save();
+  ASSERT_TRUE(status.ok()) << "Expanded save failed: " << status.message();
+
+  EXPECT_EQ(
+      rom_->ReadByte(zelda3::OverworldCustomMainPaletteArray + kMapId).value(),
+      kMainPalette);
+  EXPECT_EQ(
+      rom_->ReadByte(zelda3::OverworldCustomAnimatedGFXArray + kMapId).value(),
+      kAnimatedGfx);
+  EXPECT_EQ(rom_->ReadWord(zelda3::OverworldCustomSubscreenOverlayArray +
+                           (kMapId * 2))
+                .value(),
+            kSubscreenOverlay);
+  EXPECT_EQ(rom_->ReadWord(zelda3::OverworldCustomAreaSpecificBGPalette +
+                           (kMapId * 2))
+                .value(),
+            kBackgroundColor);
+  EXPECT_EQ(
+      rom_->ReadWord(zelda3::GetOverworldMessagesExpanded() + (kMapId * 2))
+          .value(),
+      kMessageId);
+  EXPECT_EQ(
+      rom_->ReadByte(zelda3::OverworldCustomTileGFXGroupArray + (kMapId * 8))
+          .value(),
+      kCustomTileset);
+}
+
+TEST_F(OverworldExpandedEditorTest, PublicSavePersistsV3CustomProperties) {
+  constexpr int kMapId = 6;
+  constexpr uint8_t kMainPalette = 4;
+  auto* map = overworld_editor_->overworld().mutable_overworld_map(kMapId);
+  ASSERT_NE(map, nullptr);
+  map->set_main_palette(kMainPalette);
+
+  const auto status = overworld_editor_->overworld().Save(rom_.get());
+  ASSERT_TRUE(status.ok()) << "Expanded public save failed: "
+                           << status.message();
+
+  EXPECT_EQ(
+      rom_->ReadByte(zelda3::OverworldCustomMainPaletteArray + kMapId).value(),
+      kMainPalette);
+}
+
 TEST_F(OverworldEditorTest, SwitchMaps) {
   // Test switching maps
   overworld_editor_->set_current_map(0);

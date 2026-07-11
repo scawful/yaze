@@ -118,6 +118,13 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[0x49001] = 0xFF;
   }
 
+  void SetSpriteRoomPointer(int room_id, int pc_addr) {
+    const uint16_t pointer = static_cast<uint16_t>(PcToSnes(pc_addr));
+    const int table_loc = 0x48000 + room_id * 2;
+    rom_->mutable_data()[table_loc] = pointer & 0xFF;
+    rom_->mutable_data()[table_loc + 1] = (pointer >> 8) & 0xFF;
+  }
+
   void WriteLongPointer(int addr, uint32_t snes_addr) {
     rom_->mutable_data()[addr + 0] = snes_addr & 0xFF;
     rom_->mutable_data()[addr + 1] = (snes_addr >> 8) & 0xFF;
@@ -128,12 +135,13 @@ class DungeonSaveTest : public ::testing::Test {
     WriteLongPointer(kChestsDataPointer1, PcToSnes(kChestDataPc));
     rom_->mutable_data()[kChestsLengthPointer] = 0x00;
     rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
-    std::fill_n(rom_->mutable_data() + kChestDataPc, 0x100, 0x00);
+    std::fill_n(rom_->mutable_data() + kChestDataPc, kChestTableCapacityBytes,
+                0x00);
   }
 
   void SeedChestEntry(int room_id, uint8_t chest_id, bool big) {
     const uint16_t word = static_cast<uint16_t>(room_id) | (big ? 0x8000 : 0);
-    rom_->mutable_data()[kChestsLengthPointer] = 0x01;
+    rom_->mutable_data()[kChestsLengthPointer] = kChestTableRecordSize;
     rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
     rom_->mutable_data()[kChestDataPc + 0] = word & 0xFF;
     rom_->mutable_data()[kChestDataPc + 1] = (word >> 8) & 0xFF;
@@ -158,6 +166,13 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[kPotRoom1Pc + 1] = 0xFF;
     rom_->mutable_data()[kPotRoom2Pc + 0] = 0xFF;
     rom_->mutable_data()[kPotRoom2Pc + 1] = 0xFF;
+  }
+
+  void SetPotRoomPointer(int room_id, int pc_addr) {
+    const uint16_t pointer = static_cast<uint16_t>(PcToSnes(pc_addr));
+    const int ptr_off = kRoomItemsPointers + room_id * 2;
+    rom_->mutable_data()[ptr_off] = pointer & 0xFF;
+    rom_->mutable_data()[ptr_off + 1] = (pointer >> 8) & 0xFF;
   }
 
   void SeedPotItemBytes(int pc_addr, std::initializer_list<uint8_t> bytes) {
@@ -230,19 +245,51 @@ TEST_F(DungeonSaveTest, SaveObjects_TooLarge) {
 
   auto status = room_->SaveObjects();
   EXPECT_FALSE(status.ok());
-  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+}
+
+TEST_F(DungeonSaveTest, SaveObjects_SharedStreamFailsWithoutMutation) {
+  WriteLongPointer(0xF8000 + 3, PcToSnes(0x100000));
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjects();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_UsesNearestPhysicalPointerInsteadOfNextRoomId) {
+  WriteLongPointer(0xF8000 + 3, PcToSnes(0x100200));
+  WriteLongPointer(0xF8000 + 6, PcToSnes(0x100010));
+  std::fill_n(rom_->mutable_data() + 0x100010, 0x20, 0xA5);
+
+  for (int i = 0; i < 3; ++i) {
+    ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  }
+  EXPECT_EQ(CalculateRoomSize(rom_.get(), 0).room_size, 0x10);
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjects();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveSprites_FitsInSpace) {
   // Add a sprite
   zelda3::Sprite spr(0x10, 10, 10, 0, 0);
   room_->GetSprites().push_back(spr);
+  room_->MarkSpritesDirty();
 
   auto status = room_->SaveSprites();
   EXPECT_TRUE(status.ok()) << status.message();
 }
 
-TEST_F(DungeonSaveTest, SaveSprites_TooLargeFallsBackToRelocation) {
+TEST_F(DungeonSaveTest, SaveSprites_TooLargeFailsWithoutMutation) {
   // Add MANY sprites to exceed 0x50 (80) bytes
   // Each sprite is 3 bytes.
   // We need > 26 sprites.
@@ -250,10 +297,14 @@ TEST_F(DungeonSaveTest, SaveSprites_TooLargeFallsBackToRelocation) {
     zelda3::Sprite spr(0x10, 10, 10, 0, 0);
     room_->GetSprites().push_back(spr);
   }
+  room_->MarkSpritesDirty();
+
+  const auto before = rom_->vector();
 
   auto status = room_->SaveSprites();
-  EXPECT_TRUE(status.ok()) << status.message();
-  EXPECT_NE((rom_->data()[0x48001] << 8) | rom_->data()[0x48000], 0x9000);
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->sprites_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveSprites_PreservesSortspriteHeaderByte) {
@@ -263,6 +314,7 @@ TEST_F(DungeonSaveTest, SaveSprites_PreservesSortspriteHeaderByte) {
 
   zelda3::Sprite spr(0x10, 10, 10, 0, 0);
   room_->GetSprites().push_back(spr);
+  room_->MarkSpritesDirty();
 
   auto status = room_->SaveSprites();
   ASSERT_TRUE(status.ok()) << status.message();
@@ -274,6 +326,34 @@ TEST_F(DungeonSaveTest, SaveSprites_PreservesSortspriteHeaderByte) {
   EXPECT_EQ(rom_->data()[0x49002], 0x0A);  // b2 (X)
   EXPECT_EQ(rom_->data()[0x49003], 0x10);  // b3 (sprite id)
   EXPECT_EQ(rom_->data()[0x49004], 0xFF);  // terminator
+}
+
+TEST_F(DungeonSaveTest, SaveSprites_SharedStreamFailsWithoutMutation) {
+  SetSpriteRoomPointer(1, 0x49000);
+  room_->GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room_->MarkSpritesDirty();
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveSprites();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->sprites_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveSprites_UsesNearestPhysicalPointerInsteadOfNextRoomId) {
+  SetSpriteRoomPointer(1, 0x49100);
+  SetSpriteRoomPointer(2, 0x49004);
+  room_->GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room_->MarkSpritesDirty();
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveSprites();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->sprites_dirty());
 }
 
 TEST_F(DungeonSaveTest, LoadSprites_DoesNotDuplicateOnReload) {
@@ -501,7 +581,7 @@ TEST_F(DungeonSaveTest, SaveAllChests_WritesSingleSmallChest) {
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
 
-  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x01);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x03);
   EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
   EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
   EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x00);
@@ -519,7 +599,7 @@ TEST_F(DungeonSaveTest, SaveAllChests_WritesBigChestWithHighBit) {
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
 
-  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x01);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x03);
   EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
   EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
   EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x80);
@@ -541,7 +621,7 @@ TEST_F(DungeonSaveTest, SaveAllChests_PreservesRomEntriesForUntouchedRooms) {
   auto status = SaveAllChests(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
 
-  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x02);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x06);
   EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
 
   EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x00);
@@ -592,6 +672,84 @@ TEST_F(DungeonSaveTest, SaveAllChests_ReloadedRoomMatchesSerializedState) {
   EXPECT_FALSE(reloaded_room.GetChests()[0].size);
   EXPECT_EQ(reloaded_room.GetChests()[1].id, 0x77);
   EXPECT_TRUE(reloaded_room.GetChests()[1].size);
+}
+
+TEST_F(DungeonSaveTest, LoadChests_InterpretsLengthAsBytes) {
+  SetupChestTable();
+  rom_->mutable_data()[kChestsLengthPointer] = 0x06;
+  rom_->mutable_data()[kChestDataPc + 0] = 0x00;
+  rom_->mutable_data()[kChestDataPc + 1] = 0x00;
+  rom_->mutable_data()[kChestDataPc + 2] = 0x42;
+  rom_->mutable_data()[kChestDataPc + 3] = 0x01;
+  rom_->mutable_data()[kChestDataPc + 4] = 0x00;
+  rom_->mutable_data()[kChestDataPc + 5] = 0x77;
+
+  Room room0(0, rom_.get());
+  room0.LoadChests();
+  ASSERT_EQ(room0.GetChests().size(), 1u);
+  EXPECT_EQ(room0.GetChests()[0].id, 0x42);
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_NoDirtyRoomsIsNoOp) {
+  SetupChestTable();
+  SeedChestEntry(/*room_id=*/0, /*chest_id=*/0x42, /*big=*/false);
+  std::vector<Room> rooms(kNumberOfRooms);
+  const auto before = rom_->vector();
+  rom_->ClearDirty();
+
+  const auto status = SaveAllChests(rom_.get(), rooms);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_UnchangedDirtyRoomAvoidsRomWrite) {
+  SetupChestTable();
+  SeedChestEntry(/*room_id=*/0, /*chest_id=*/0x42, /*big=*/false);
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0] = Room(0, rom_.get());
+  rooms[0].LoadChests();
+  rooms[0].MarkChestsDirty();
+  rom_->ClearDirty();
+
+  const auto status = SaveAllChests(rom_.get(), rooms);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_FALSE(rooms[0].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_AtCapacityWrites01F8ByteLength) {
+  SetupChestTable();
+  std::vector<Room> rooms(kNumberOfRooms);
+  for (int i = 0; i < kChestTableCapacityRecords; ++i) {
+    rooms[0].GetChests().push_back(chest_data{static_cast<uint8_t>(i), false});
+  }
+  rooms[0].MarkChestsDirty();
+
+  const auto status = SaveAllChests(rom_.get(), rooms);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0xF8);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x01);
+  EXPECT_FALSE(rooms[0].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveAllChests_OverCapacityFailsWithoutMutation) {
+  SetupChestTable();
+  std::vector<Room> rooms(kNumberOfRooms);
+  for (int i = 0; i < kChestTableCapacityRecords + 1; ++i) {
+    rooms[0].GetChests().push_back(chest_data{static_cast<uint8_t>(i), false});
+  }
+  rooms[0].MarkChestsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllChests(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[0].chests_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllPotItems_LoadedRoomWritesEntriesAndTerminator) {
@@ -703,6 +861,65 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_DirtyRoomTooLargeFailsAndStaysDirty) {
   EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
   EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
   EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_SharedStreamFailsWithoutMutation) {
+  SetupPotItemTable();
+  SetPotRoomPointer(1, kPotRoom0Pc);
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems().push_back(PotItem{0x5678, 0x9A});
+  rooms[0].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllPotItems(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[0].pot_items_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllPotItems_UsesNearestPhysicalPointerInsteadOfNextRoomId) {
+  SetupPotItemTable();
+  SetPotRoomPointer(1, kPotRoom2Pc);
+  SetPotRoomPointer(2, kPotRoom1Pc);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  for (int i = 0; i < 11; ++i) {
+    rooms[0].GetPotItems().push_back(PotItem{static_cast<uint16_t>(0x1200 + i),
+                                             static_cast<uint8_t>(0x40 + i)});
+  }
+  rooms[0].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllPotItems(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[0].pot_items_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllPotItems_PreflightsAllDirtyRoomsBeforeFirstWrite) {
+  SetupPotItemTable();
+  SetPotRoomPointer(2, kPotRoom1Pc);
+  SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems().push_back(PotItem{0x5678, 0x9A});
+  rooms[0].MarkPotItemsDirty();
+  rooms[1].GetPotItems().push_back(PotItem{0x1111, 0x22});
+  rooms[1].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllPotItems(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[0].pot_items_dirty());
+  EXPECT_TRUE(rooms[1].pot_items_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtyRegularEntrance) {

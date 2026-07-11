@@ -1,0 +1,123 @@
+# Oracle Daily-Driver Save Stability
+
+**Status:** ACTIVE - Wave 1 implemented and locally verified
+**Owner (Agent ID):** CODEX
+**Created:** 2026-07-11
+**Last Reviewed:** 2026-07-11
+**Next Review:** 2026-07-18
+**Coordination:** AFS task `task_20260711T144152Z_18414`
+
+## Summary
+
+Make yaze safe enough to finish Oracle of Secrets without waiting for every
+editor feature to reach general-purpose completeness. The daily-driver bar is
+guarded, recoverable editing of the already-developed OOS base ROM: failed
+saves must not partially mutate the ROM or lose retry state, project targets
+must be unambiguous, and unsupported growth must fail closed.
+
+This plan complements the [editor-first release ladder](release-ladder-0x-2026.md)
+and the broader [Oracle integration plan](oracle-yaze-integration.md). It does
+not move all remaining dungeon or overworld polish into the `0.7.2` release.
+
+## Decisions And Constraints
+
+- `Roms/oos168.sfc` is editable; `Roms/oos168x.sfc` is disposable build output.
+- Open `Oracle-of-Secrets.yaze` so target, manifest, hash, and write policy are
+  loaded together.
+- Use one whole-ROM transaction plus editor-state rollback for coordinated
+  saves. A failure must preserve every dirty flag needed for a retry.
+- Never infer free space from runs of `00` or `FF`. Future relocation may use
+  only allocator-owned ranges declared by the ROM profile/project manifest.
+- Shared or over-capacity dungeon streams fail without mutation until copy-on-
+  write support lands.
+- Keep OOS autosave, dungeon-map saving, and graphics-sheet saving disabled
+  during the guarded beta.
+
+## Deliverables
+
+### Wave 1 - Containment and project safety
+
+- [x] Preserve Save As targets through hash, pot-item, and conflict prompts.
+- [x] Apply build-output policy to the requested target and refresh lifecycle
+  path/hash only after a successful save.
+- [x] Block saves when an explicitly configured hack manifest is missing or
+  malformed.
+- [x] Roll back ROM bytes and editor dirty state after late save failures.
+- [x] Bound dungeon object, sprite, pot, and chest writes; reject aliases and
+  unknown headroom without mutation.
+- [x] Bound expanded-message reads/writes, reject expanded `[BANK]`, validate
+  dictionary IDs, and prevent invalid drafts from being discarded by
+  navigation.
+- [x] Use ROM-profile and adjacent-table bounds for Map32 storage; preserve
+  disabled custom overworld tables and their original enable encoding.
+- [x] Make the OOS project file and generated manifest describe the canonical
+  editable/build ROM workflow.
+- [x] Finish focused automated verification and publish this wave as a
+  dedicated safety PR; keep release PR #69 narrowly reviewable.
+
+### Wave 2 - Dungeon copy-on-write allocator
+
+1. Inventory object, sprite, and pot streams by physical address, size, bank,
+   aliases, and owners; reconcile candidate ranges with the OOS manifest.
+2. Build a deterministic allocator that produces and validates an immutable
+   write plan before changing any byte.
+3. Detach and relocate shared/overflowing object streams, including object and
+   door pointer updates.
+4. Deterministically repack all pot pointers/streams inside a declared region.
+5. Detach and relocate sprite streams inside declared bank `$09` capacity.
+6. Add `z3ed` dry-run diagnostics for planned moves, aliases, and free space.
+
+**Estimate:** 4-5 full-time weeks for an allocator beta; 6-8 full-time weeks
+including OOS soak and emulator verification. At 10-15 hours/week, plan on
+roughly 3-5 months. Proving Oracle-safe allocator ownership is the main risk.
+
+### Wave 3 - Flexible daily-driver beta
+
+- Exercise the remaining high-value OOS message, overworld-property, project,
+  backup/restore, and multi-session workflows.
+- Run repeated edit/save/reopen/build cycles on representative D6 rooms
+  `A8`, `B8`, `D8`, and `DA`.
+- Track strict-readiness content failures separately from editor corruption;
+  the current D3 readiness gap is not itself a save-stability blocker.
+
+## Exit Criteria
+
+- No-edit save is semantically identical for vanilla ALTTP and OOS/ZSCustom
+  v3, including expanded Map32 data.
+- Every failure path restores ROM bytes and all dirty/retry state.
+- Save As never modifies or backs up the source path by mistake and never
+  permits the configured build output as an editable destination.
+- Shared-stream edits affect only the selected room after Wave 2; before then,
+  they fail closed with an actionable error.
+- Exact-fit streams save; overflow either relocates through a validated plan or
+  fails with zero mutation.
+- Rebuilding through `Scripts/Build/build_rom.sh 168` preserves intended base-
+  ROM edits and refreshes manifest hashes/ownership.
+- At least 50 save/reopen cycles and one multi-hour editing session complete
+  with backup restoration tested.
+- Mesen boots and traverses representative edited rooms without bad doors,
+  objects, sprites, pots, or room loads.
+
+## Validation
+
+For each save-path change, run the narrow unit/integration filter first. Before
+publishing the safety PR, also require:
+
+1. `yaze_test_unit` and quick-editor transaction/message/dungeon filters.
+2. Vanilla plus temporary-OOS integration round trips with source hashes
+   unchanged.
+3. `z3ed project-bundle-verify`, `rom-doctor`, and non-strict
+   `oracle-smoke-check` on the current OOS base ROM.
+4. A strict smoke run whose remaining failures are recorded as content gaps.
+5. Green macOS and Windows PR checks before promoting the release candidate.
+
+### 2026-07-11 Wave 1 snapshot
+
+- Unit: 2,407 passed; one optional usdasm palette fixture skipped.
+- Quick editor: 619 passed.
+- Vanilla + temporary-OOS integration: 279 passed; two fixture-discovery
+  utilities skipped; both canonical source ROM hashes remained unchanged.
+- OOS project verification: 7 passes, zero warnings/failures, including the
+  configured manifest and expected ROM hash.
+- OOS smoke: D4 structural checks and all four required D6 track rooms pass;
+  strict readiness still records only the known D3 content gap.

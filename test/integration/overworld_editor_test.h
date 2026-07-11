@@ -4,6 +4,7 @@
 #include <string>
 
 #include "app/editor/overworld/overworld_editor.h"
+#include "core/features.h"
 #include "framework/headless_editor_test.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
@@ -58,6 +59,56 @@ class OverworldEditorTest : public HeadlessEditorTest {
   std::unique_ptr<editor::OverworldEditor> overworld_editor_;
   std::unique_ptr<zelda3::GameData> game_data_;
   std::unique_ptr<editor::SharedClipboard> shared_clipboard_;
+};
+
+class OverworldExpandedEditorTest : public HeadlessEditorTest {
+ protected:
+  void SetUp() override {
+    HeadlessEditorTest::SetUp();
+
+    saved_feature_flags_ = core::FeatureFlags::get();
+    auto& overworld_flags = core::FeatureFlags::get().overworld;
+    overworld_flags.kSaveOverworldMaps = true;
+    overworld_flags.kSaveOverworldEntrances = true;
+    overworld_flags.kSaveOverworldExits = true;
+    overworld_flags.kSaveOverworldItems = true;
+    overworld_flags.kSaveOverworldProperties = true;
+
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kExpanded, "OverworldExpandedEditorTest");
+    const std::string rom_path = TestRomManager::GetRomPath(RomRole::kExpanded);
+    rom_ = std::make_unique<Rom>();
+    ASSERT_TRUE(rom_->LoadFromFile(rom_path).ok())
+        << "Could not load expanded ROM from " << rom_path;
+
+    game_data_ = std::make_unique<zelda3::GameData>(rom_.get());
+    ASSERT_TRUE(zelda3::LoadGameData(*rom_, *game_data_).ok());
+
+    shared_clipboard_ = std::make_unique<editor::SharedClipboard>();
+    editor::EditorDependencies deps;
+    deps.rom = rom_.get();
+    deps.game_data = game_data_.get();
+    deps.window_manager = window_manager_.get();
+    deps.renderer = renderer_.get();
+    deps.shared_clipboard = shared_clipboard_.get();
+
+    overworld_editor_ =
+        std::make_unique<editor::OverworldEditor>(rom_.get(), deps);
+    overworld_editor_->SetGameData(game_data_.get());
+    overworld_editor_->Initialize();
+    ASSERT_TRUE(overworld_editor_->Load().ok());
+  }
+
+  void TearDown() override {
+    overworld_editor_.reset();
+    game_data_.reset();
+    core::FeatureFlags::get() = saved_feature_flags_;
+    HeadlessEditorTest::TearDown();
+  }
+
+  std::unique_ptr<editor::OverworldEditor> overworld_editor_;
+  std::unique_ptr<zelda3::GameData> game_data_;
+  std::unique_ptr<editor::SharedClipboard> shared_clipboard_;
+  core::FeatureFlags::Flags saved_feature_flags_;
 };
 
 }  // namespace test

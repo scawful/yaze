@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -131,6 +132,9 @@ class DungeonEditorV2 : public Editor {
   absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+  absl::Status BeginSaveTransaction() override;
+  void RollbackSaveTransaction() override;
+  void CommitSaveTransaction() override;
   void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
   int LoadedRoomCount() const;
@@ -240,6 +244,10 @@ class DungeonEditorV2 : public Editor {
       DungeonEditorV2RomSafetyTest_ViewerCacheNeverEvictsActiveRooms_Test;
   friend class
       DungeonEditorV2RomSafetyTest_ViewerCacheLRUAccessOrderUpdate_Test;
+  friend class
+      DungeonEditorV2RomSafetyTest_SaveAllRoomsRollsBackEarlierWritesOnLateFailure_Test;
+  friend class
+      DungeonEditorV2RomSafetyTest_LateCoordinatorRollbackRestoresEntranceDirtyState_Test;
 
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -283,12 +291,23 @@ class DungeonEditorV2 : public Editor {
   void RemoveViewerFromLru(int room_id);
 
   absl::Status SaveRoomData(int room_id);
+  absl::Status RunWithSaveTransaction(
+      const std::function<absl::Status()>& operation);
 
   // Data
   Rom* rom_;
   zelda3::GameData* game_data_ = nullptr;
   DungeonRoomStore rooms_;
   std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> entrances_;
+
+  struct SaveTransactionSnapshot {
+    std::vector<std::pair<int, zelda3::Room::SaveDirtySnapshot>> room_states;
+    std::array<bool, zelda3::kNumDungeonEntranceSlots> entrance_dirty_states{};
+    bool has_pit_damage_table = false;
+    bool pit_damage_dirty = false;
+    bool has_palette_transaction = false;
+  };
+  std::optional<SaveTransactionSnapshot> save_transaction_snapshot_;
 
   // Current selection state
   int current_entrance_id_ = 0;
