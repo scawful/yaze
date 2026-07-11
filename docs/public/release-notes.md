@@ -1,9 +1,9 @@
 # Release Notes
 
-## v0.7.2 (in development)
+## v0.7.2
 
 **Type:** Post-0.7.1 Dungeon RC + Build/CI Hardening
-**Date:** TBD
+**Date:** 2026-07-11
 
 ### 🏰 Dungeon RC Stabilization
 - Rendered dungeon object and sprite previews by default so selector browsing
@@ -18,6 +18,12 @@
   `room_object.h`, including newly named logic-only and rare decor objects.
 - Preserved zero-tile `DrawNothing` logic objects as no-payload cases while
   keeping the conservative fallback for uncataloged drawable objects.
+- Added editable pit-damage room membership controls and protected the
+  pushable-block loader from invalid pointer operands and table-capacity
+  overruns.
+- Added ROM-backed regression coverage for pit-damage persistence,
+  pushable-block boundaries, and a pinned room `0x001` BG1/BG2 object-overlap
+  pixel.
 
 ### 🌎 Overworld Follow-through
 - Added a right-click Tile16 sampling action to the overworld canvas context
@@ -28,6 +34,14 @@
 - Fixed the WASM/browser build after the 0.7.1 editor reorg by excluding the stale `yaze_debug_inspector.cc` path that still referenced removed `PanelManager`-era editor APIs.
 - Added `project_graph_tool.cc` back to the WASM AI source list so `ProjectGraphTool` links correctly in browser builds.
 - Skipped POSIX-shell-dependent project-action tests on Windows, keeping the Windows Core matrix green while a real cross-platform script-runner rewrite is deferred.
+- Stabilized fork pull-request checks, WASM builds, and the memory-sanitizer
+  gate used by the release matrix.
+
+### 🌐 Localization & Desktop Reliability
+- Added the internationalization catalog pipeline and French localization.
+- Initialized native file dialogs explicitly on Linux and Windows.
+- Hardened session restore, SDL startup, asset lookup, configuration loading,
+  ROM handling, and CLI error paths.
 
 ### 🧰 CLI & Agent Tooling
 - Updated `scripts/z3ed` to resolve binaries under `build/presets/<preset>/bin/`, which restores `z3ed` discovery for CI presets and preset-specific local builds.

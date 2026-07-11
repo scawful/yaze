@@ -109,7 +109,7 @@ for reliable ROM hacking. ZScream is the stability benchmark.
 - 🟡 ROM-backed room render regression fixtures guard five vanilla rooms
   (`test/integration/zelda3/dungeon_room_regression_fixtures_test.cc`).
 - 🟡 `PitDamageTable` loads/saves the global RoomsWithPitDamage membership
-  table when dirty; UI toggles remain future work.
+  table when dirty; the workbench exposes fixed-capacity add/replace controls.
 - 🟡 Pushable blocks do not yet repoint/expand beyond the vanilla table cap.
 - 🟡 Optional connected-room overview / scrollable grouped-room workspace
   remains exploratory; single-room editing remains the primary path

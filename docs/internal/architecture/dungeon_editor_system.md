@@ -62,7 +62,10 @@ if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
    - `DungeonEditorSystem::SaveRoom()` / `SaveDungeon()` now persist full managed-room state for objects, sprites, room headers, torches, pushable blocks, custom collision, chests, pot items, and dungeon entrances. `SaveDungeon()` first writes room-local streams for every loaded room, then runs the global aggregators once across the managed-room set so later rooms do not clobber earlier chest/pot/collision writes.
    - `Room::EncodeObjects()` emits the door marker `0xF0 0xFF` and the door list (per ZScreamDungeon); `Room::SaveObjects()` writes the door pointer table at `kDoorPointers` so the pointer points to the first byte after the marker.  
    - **Dungeon layout vs ZScream**: yaze writes room object data in-place at each room’s existing object pointer. ZScreamDungeon repacks room data into five fixed sections (DungeonSection1–5). So `validate-yaze --feature=dungeon` may report byte differences in object layout regions even when object and door content are equivalent; semantic comparison or “in-place” documentation applies.  
-   - The pit-damage table still uses a protected pointer-region preservation path in `room.cc`; pushable blocks use the room-aware encoder and keep unmaterialized rooms byte-identical.
+   - The pit-damage table preserves its protected pointer region unless the
+     fixed-capacity workbench membership editor marks `PitDamageTable` dirty;
+     pushable blocks use the room-aware encoder and keep unmaterialized rooms
+     byte-identical.
 
 ## Recent Additions
 
@@ -119,7 +122,11 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 
 ## Current Limitations / Gaps
 
-- **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), palettes, torches, pushable blocks, custom collision, chests, pot items, and dungeon entrances are written back and have focused regression coverage. The pit-damage table remains a protected preservation path because yaze does not expose a dedicated editor for that global table.
+- **Persistence coverage**: Tile objects, sprites, doors (marker + pointer
+  table), room headers (14 bytes + message IDs), palettes, torches, pushable
+  blocks, custom collision, chests, pot items, dungeon entrances, and edited
+  pit-damage membership are written back and have focused regression coverage.
+  Pit/block tables remain fixed to their existing vanilla capacities.
 - **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, and reopen/reset behavior are implemented. Remaining gaps are the "new custom object" flow, deeper editor/integration coverage, and any future preview-quality polish after the selector/browser churn settles.
 - **Tests**: Focused unit coverage now exists for `ObjectTileLayout`, standard/custom object tile writeback, palette-sensitive preview generation, panel reset behavior, `DungeonEditorSystem`, `DungeonSaveTest`, and `DungeonEditorV2RomSafetyTest`. Broader integration/E2E coverage for ROM-write workflows is still lighter than the unit surface.
 

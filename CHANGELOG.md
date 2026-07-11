@@ -3,18 +3,28 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.7.2 (in development)
+## 0.7.2 (July 11, 2026)
 - **Dungeon RC Stabilization**:
   - Persisted the latest dungeon save-domain follow-through for entrances and special objects.
   - Rendered dungeon object/sprite selector previews by default and kept workbench-local tools open for mixed Workbench/Window workflows.
   - Hardened ALTTP door placement against invalid non-table positions and pinned the USDASM 12-entry door-table contract in tests.
   - Canonicalized dungeon room-object labels through `room_object.h` and exported those labels through `Zelda3Labels` resource maps.
   - Preserved zero-tile `DrawNothing` logic objects as explicit no-payload cases instead of forcing the conservative 8-tile fallback.
+  - Added editable pit-damage room membership controls and hardened the
+    pushable-block loader against invalid pointer operands and capacity
+    overrun boundaries.
+  - Added ROM-backed regression coverage for pit-damage persistence,
+    pushable-block capacity, and BG1/BG2 object-overlap ordering.
 - **Overworld Follow-through**:
   - Added a canvas context-menu Tile16 sampling action for the right-click eyedropper workflow.
+- **Localization and Platform Reliability**:
+  - Added the internationalization catalog pipeline and French localization.
+  - Hardened file-dialog initialization plus session, asset, configuration,
+    and CLI failure paths across supported desktop platforms.
 - **Build/CI and Release Follow-through**:
   - Kept the post-0.7.1 preset build layout and release metadata aligned for the 0.7.2 RC branch.
-  - Continued WASM/browser, CLI wrapper, and Windows test hardening from the post-tag cleanup train.
+  - Continued WASM/browser, CLI wrapper, sanitizer, fork-PR, and Windows test
+    hardening from the post-tag cleanup train.
 
 ## 0.7.1 (April 2026)
 - **Welcome Screen & Project Startup**:
