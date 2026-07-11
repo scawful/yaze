@@ -29,13 +29,13 @@
 
 ## 0.7.2 Validation Snapshot
 
-**Last full local suites: June 11, 2026**
+**Last full local suites: July 11, 2026**
 
-- `ctest --preset mac-ai-unit` → **2326/2326 passed**
-- `ctest --preset mac-ai-integration` → **254/254 passed**
-- Flake watch: `DungeonIssueReportStorageTest` (2 tests) failed once under
-  heavy system load (parallel builds running); passed on all re-runs,
-  serial and `-j4`.
+- `ctest --preset mac-ai-unit --output-on-failure -j4` → **2353/2353
+  non-failing** (26 fixture-dependent skips).
+- `YAZE_TEST_ROM_VANILLA=roms/alttp_vanilla.sfc ctest --preset
+  mac-ai-integration --output-on-failure -j4` → **274/274 non-failing** (16
+  expanded/Oracle-ROM-only skips).
 - PR #68 completed the Linux/macOS/Windows, WASM, sanitizer, security, and
   Oracle smoke matrix before merge on July 11, 2026. Post-merge `master` CI is
   the remaining automated gate before tagging.
