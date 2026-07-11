@@ -35,6 +35,9 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
 ## Medium-priority correctness tests
 
 4. **Sparse pixel overlap assertion for object stream ordering**
+   - Status: room `0x001` now has a hardcoded sparse object BG1/BG2
+     overlap-pixel golden asserting BG1 high-priority palette index `33` wins
+     over BG2 low-priority palette index `34` at `(45,120)`.
    - Problem: full-buffer checksums are broad; a targeted overlap pixel would make ordering failures easier to diagnose.
    - Done when: one vanilla or synthetic room asserts the expected top pixel from primary/BG2-overlay/BG1-overlay ordering.
 
