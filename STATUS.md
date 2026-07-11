@@ -1,10 +1,10 @@
 # yaze Status
 
 ## Current Release
-- **Version**: v0.7.2 (release-candidate prep; latest tagged release is
+- **Version**: v0.7.2 (final release prep on `master`; latest tagged release is
   v0.7.1 from April 19, 2026)
-- **Focus**: Post-0.7.1 dungeon RC stabilization plus 0.8.0 room-render
-  regression fixtures, pit-damage table encoder, and dungeon compositing tests.
+- **Focus**: Final package/smoke validation for the post-0.7.1 dungeon RC,
+  followed by the 0.8.0 Dungeon Editor completion milestone.
 - **Next milestone**: `0.8.0` dungeon completion — see
   `docs/internal/plans/release-ladder-0x-2026.md` and
   `docs/internal/plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md`.
@@ -27,22 +27,28 @@
   - Dungeon usage tracker visualization (DONE)
 - P2 (deferred to 0.8.0): scratch persistence, eyedropper tool, project-file flow, SPC/MML import, graphics clipboard
 
-## 0.7.2 Validation Snapshot (June 11, 2026)
+## 0.7.2 Validation Snapshot
+
+**Last full local suites: June 11, 2026**
+
 - `ctest --preset mac-ai-unit` → **2326/2326 passed**
 - `ctest --preset mac-ai-integration` → **254/254 passed**
 - Flake watch: `DungeonIssueReportStorageTest` (2 tests) failed once under
   heavy system load (parallel builds running); passed on all re-runs,
   serial and `-j4`.
+- PR #68 completed the Linux/macOS/Windows, WASM, sanitizer, security, and
+  Oracle smoke matrix before merge on July 11, 2026. Post-merge `master` CI is
+  the remaining automated gate before tagging.
 
 ## 0.7.0 Validation Snapshot (historical)
 - `ctest --preset mac-ai-unit --output-on-failure` → **1622/1622 passed**
 - `ctest --preset mac-ai-integration --output-on-failure` → **237/237 passed**
 - `ctest --preset mac-ai-unit --output-on-failure --tests-regex "(ObjectDrawerRegistryReplayTest|ObjectTileEditorTest|CustomObjectManagerTest|ObjectParserTest|Tile16EditorActionStateTest|OverworldItemOperationsTest)"` → **68/68 passed**
 
-## Recent Commits
-- `42137074 dungeon: harden object labels and door bounds`
-- `535c6675 overworld: expose tile16 sampling from canvas menu`
-- `4f2ea6b4 docs: refresh dungeon persistence and preview status`
+## Recent Dungeon Follow-through
+- Editable pit-damage room membership controls and integration classification.
+- Pushable-block loader operand/capacity guards with boundary coverage.
+- A hardcoded room `0x001` object-overlap compositing golden.
 
 ## Legacy 0.7.0 Stretch Follow-ups
 - `task_20260303T212605Z_32450` — Tile16 quadrant strip/hotkeys parity tests
