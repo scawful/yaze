@@ -589,6 +589,46 @@ absl::StatusOr<uint32_t> FindFirstFit(
       absl::StrFormat("No declared free interval fits %u bytes", size));
 }
 
+absl::StatusOr<uint32_t> FindBestFitInFixedBank(
+    const std::vector<DungeonStreamPcRange>& free_intervals,
+    const DungeonStreamLayout& layout, uint32_t size) {
+  if (layout.pointer_encoding != DungeonPointerEncoding::kFixedBank16) {
+    return absl::InvalidArgumentError(
+        "Best-fit repack allocation requires fixed-bank pointers");
+  }
+  if (size == 0 || size > kLoRomBankSize) {
+    return absl::ResourceExhaustedError(
+        "Replacement cannot fit in one LoROM bank");
+  }
+
+  const uint32_t bank_begin =
+      SnesToPc((static_cast<uint32_t>(layout.pointer_bank) << 16) | 0x8000u);
+  const uint32_t bank_end = bank_begin + kLoRomBankSize;
+  bool found = false;
+  uint32_t best_address = 0;
+  uint32_t best_slack = std::numeric_limits<uint32_t>::max();
+  for (const DungeonStreamPcRange& interval : free_intervals) {
+    const uint32_t begin = std::max(interval.begin, bank_begin);
+    const uint32_t end = std::min(interval.end, bank_end);
+    if (begin > end || static_cast<uint64_t>(begin) + size > end) {
+      continue;
+    }
+    const uint32_t slack = end - begin - size;
+    if (!found || slack < best_slack ||
+        (slack == best_slack && begin < best_address)) {
+      found = true;
+      best_address = begin;
+      best_slack = slack;
+    }
+  }
+  if (!found) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "No %u-byte repack allocation fits fixed pointer bank 0x%02X", size,
+        layout.pointer_bank));
+  }
+  return best_address;
+}
+
 void ConsumeInterval(std::vector<DungeonStreamPcRange>* free_intervals,
                      DungeonStreamPcRange consumed) {
   std::vector<DungeonStreamPcRange> next;
@@ -666,6 +706,10 @@ absl::Status ValidatePlanAgainstInventory(
         return absl::InvalidArgumentError(
             "Repack-all plans currently support only fixed-bank pot-item "
             "streams");
+      }
+      if (plan.layout.pointer_count != kNumberOfRooms) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Pot-item repack requires exactly %d pointers", kNumberOfRooms));
       }
       if (plan.pointer_writes.size() != plan.layout.pointer_count) {
         return absl::InvalidArgumentError(
@@ -1026,6 +1070,10 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamRepack(
     return absl::InvalidArgumentError(
         "Repack-all currently supports only fixed-bank pot-item streams");
   }
+  if (inventory.layout.pointer_count != kNumberOfRooms) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Pot-item repack requires exactly %d pointers", kNumberOfRooms));
+  }
   if (inventory.layout.allocation_ranges.empty()) {
     return absl::FailedPreconditionError(
         "Pot-item repack requires declared allocation ranges");
@@ -1124,16 +1172,36 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamRepack(
   plan.pointer_writes.reserve(inventory.layout.pointer_count);
 
   std::vector<DungeonStreamPcRange> free = inventory.layout.allocation_ranges;
-  std::vector<uint32_t> target_by_room(inventory.layout.pointer_count, 0);
-  for (const RepackGroup& group : groups) {
-    const uint32_t size = static_cast<uint32_t>(group.bytes.size());
+  std::vector<size_t> placement_order;
+  placement_order.reserve(groups.size());
+  for (size_t i = 0; i < groups.size(); ++i) {
+    placement_order.push_back(i);
+  }
+  std::sort(placement_order.begin(), placement_order.end(),
+            [&](size_t lhs, size_t rhs) {
+              if (groups[lhs].bytes.size() != groups[rhs].bytes.size()) {
+                return groups[lhs].bytes.size() > groups[rhs].bytes.size();
+              }
+              return groups[lhs].owner_room < groups[rhs].owner_room;
+            });
+  std::vector<uint32_t> address_by_group(groups.size(), 0);
+  for (const size_t group_index : placement_order) {
+    const uint32_t size =
+        static_cast<uint32_t>(groups[group_index].bytes.size());
     ASSIGN_OR_RETURN(const uint32_t address,
-                     FindFirstFit(free, inventory.layout, size));
+                     FindBestFitInFixedBank(free, inventory.layout, size));
+    address_by_group[group_index] = address;
+    ConsumeInterval(&free, {address, address + size});
+  }
+
+  std::vector<uint32_t> target_by_room(inventory.layout.pointer_count, 0);
+  for (size_t group_index = 0; group_index < groups.size(); ++group_index) {
+    const RepackGroup& group = groups[group_index];
+    const uint32_t address = address_by_group[group_index];
     plan.payload_writes.push_back({group.owner_room, address, group.bytes});
     for (const uint32_t room_id : group.room_ids) {
       target_by_room[room_id] = address;
     }
-    ConsumeInterval(&free, {address, address + size});
   }
 
   const uint32_t pointer_width =
