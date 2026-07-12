@@ -357,5 +357,196 @@ TEST_F(DungeonStreamAllocatorTest, ApplyRollsBackPayloadWhenPointerWriteFails) {
   EXPECT_EQ(rom_->dirty(), was_dirty);
 }
 
+TEST_F(DungeonStreamAllocatorTest,
+       RepackPlanIsDeterministicAndCanonicalizesByLowestRoom) {
+  auto layout = PotLayout(4, {{kPotData, kPotData + 0x80}},
+                          {{kPotData + 0x20, kPotData + 0x50}});
+  const std::vector<uint8_t> empty = {0xFF, 0xFF};
+  const std::vector<uint8_t> item_a = {0x01, 0x00, 0x11, 0xFF, 0xFF};
+  const std::vector<uint8_t> item_b = {0x02, 0x00, 0x22, 0xFF, 0xFF};
+  const std::vector<uint8_t> item_c = {0x03, 0x00, 0x33, 0xFF, 0xFF};
+  WriteBytes(kPotData, empty);
+  WriteBytes(kPotData + 0x08, item_a);
+  WriteBytes(kPotData + 0x10, item_b);
+  SetPointer(layout, 0, kPotData);
+  SetPointer(layout, 1, kPotData);
+  SetPointer(layout, 2, kPotData + 0x08);
+  SetPointer(layout, 3, kPotData + 0x10);
+
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  ASSERT_TRUE(inventory->ok());
+
+  auto reversed =
+      PlanDungeonStreamRepack(*inventory, {{3, item_c}, {1, item_a}});
+  auto ordered =
+      PlanDungeonStreamRepack(*inventory, {{1, item_a}, {3, item_c}});
+  ASSERT_TRUE(reversed.ok()) << reversed.status();
+  ASSERT_TRUE(ordered.ok()) << ordered.status();
+  EXPECT_EQ(reversed->mode, DungeonStreamWriteMode::kRepackAll);
+  EXPECT_EQ(reversed->payload_writes, ordered->payload_writes);
+  EXPECT_EQ(reversed->pointer_writes, ordered->pointer_writes);
+  ASSERT_EQ(reversed->payload_writes.size(), 3);
+  EXPECT_EQ(reversed->payload_writes[0].room_id, 0);
+  EXPECT_EQ(reversed->payload_writes[1].room_id, 1);
+  EXPECT_EQ(reversed->payload_writes[2].room_id, 3);
+  EXPECT_EQ(reversed->payload_writes[0].address, kPotData + 0x20);
+  EXPECT_EQ(reversed->payload_writes[1].address, kPotData + 0x22);
+  EXPECT_EQ(reversed->payload_writes[2].address, kPotData + 0x27);
+  ASSERT_EQ(reversed->pointer_writes.size(), 4);
+  EXPECT_EQ(reversed->pointer_writes[1].bytes,
+            reversed->pointer_writes[2].bytes);
+}
+
+TEST_F(DungeonStreamAllocatorTest, RepackDeduplicatesSharedEmptyStream) {
+  auto layout = PotLayout(3, {{kPotData, kPotData + 0x60}},
+                          {{kPotData + 0x20, kPotData + 0x40}});
+  const std::vector<uint8_t> empty = {0xFF, 0xFF};
+  const std::vector<uint8_t> item = {0x01, 0x00, 0x44, 0xFF, 0xFF};
+  WriteBytes(kPotData, empty);
+  WriteBytes(kPotData + 0x08, item);
+  SetPointer(layout, 0, kPotData);
+  SetPointer(layout, 1, kPotData);
+  SetPointer(layout, 2, kPotData + 0x08);
+
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  auto plan = PlanDungeonStreamRepack(*inventory, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->payload_writes.size(), 2);
+  EXPECT_EQ(plan->payload_writes[0].room_id, 0);
+  EXPECT_EQ(plan->payload_writes[1].room_id, 2);
+  ASSERT_TRUE(ApplyDungeonStreamWritePlan(rom_.get(), *plan).ok());
+  EXPECT_EQ(ReadFixedPointer(layout, 0), ReadFixedPointer(layout, 1));
+  EXPECT_NE(ReadFixedPointer(layout, 0), ReadFixedPointer(layout, 2));
+}
+
+TEST_F(DungeonStreamAllocatorTest, RepackPlansAll296RoomPointers) {
+  auto layout = PotLayout(kNumberOfRooms, {{kPotData, kPotData + 0x40}},
+                          {{kPotData + 0x20, kPotData + 0x30}});
+  WriteBytes(kPotData, {0xFF, 0xFF});
+  for (uint32_t room_id = 0; room_id < layout.pointer_count; ++room_id) {
+    SetPointer(layout, room_id, kPotData);
+  }
+
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  auto plan = PlanDungeonStreamRepack(*inventory, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->payload_writes.size(), 1);
+  EXPECT_EQ(plan->payload_writes[0].room_id, 0);
+  ASSERT_EQ(plan->pointer_writes.size(), kNumberOfRooms);
+  EXPECT_EQ(plan->pointer_writes.back().room_id, kNumberOfRooms - 1);
+  EXPECT_EQ(plan->pointer_writes.front().bytes,
+            plan->pointer_writes.back().bytes);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RepackAcceptsExactFitAndRejectsOneByteShortRange) {
+  const std::vector<uint8_t> empty = {0xFF, 0xFF};
+  const std::vector<uint8_t> item = {0x01, 0x00, 0x55, 0xFF, 0xFF};
+  auto exact_layout = PotLayout(2, {{kPotData, kPotData + 0x40}},
+                                {{kPotData + 0x20, kPotData + 0x27}});
+  WriteBytes(kPotData, empty);
+  WriteBytes(kPotData + 0x08, item);
+  SetPointer(exact_layout, 0, kPotData);
+  SetPointer(exact_layout, 1, kPotData + 0x08);
+
+  auto exact_inventory = InventoryDungeonStreams(*rom_, exact_layout);
+  ASSERT_TRUE(exact_inventory.ok()) << exact_inventory.status();
+  auto exact_plan = PlanDungeonStreamRepack(*exact_inventory, {});
+  ASSERT_TRUE(exact_plan.ok()) << exact_plan.status();
+  ASSERT_EQ(exact_plan->payload_writes.size(), 2);
+  EXPECT_EQ(exact_plan->payload_writes[1].address +
+                exact_plan->payload_writes[1].bytes.size(),
+            kPotData + 0x27);
+
+  auto short_layout = exact_layout;
+  short_layout.allocation_ranges = {{kPotData + 0x20, kPotData + 0x26}};
+  auto short_inventory = InventoryDungeonStreams(*rom_, short_layout);
+  ASSERT_TRUE(short_inventory.ok()) << short_inventory.status();
+  auto short_plan = PlanDungeonStreamRepack(*short_inventory, {});
+  EXPECT_EQ(short_plan.status().code(), absl::StatusCode::kResourceExhausted);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RepackPreservesUntouchedStreamsAndUpdatesEveryPointer) {
+  auto layout = PotLayout(3, {{kPotData, kPotData + 0x80}},
+                          {{kPotData + 0x20, kPotData + 0x60}});
+  const std::vector<uint8_t> item_a = {0x01, 0x00, 0x10, 0xFF, 0xFF};
+  const std::vector<uint8_t> item_b = {0x02, 0x00, 0x20, 0xFF, 0xFF};
+  const std::vector<uint8_t> empty = {0xFF, 0xFF};
+  const std::vector<uint8_t> replacement = {0x03, 0x00, 0x30, 0xFF, 0xFF};
+  WriteBytes(kPotData, item_a);
+  WriteBytes(kPotData + 0x08, item_b);
+  WriteBytes(kPotData + 0x10, empty);
+  SetPointer(layout, 0, kPotData);
+  SetPointer(layout, 1, kPotData + 0x08);
+  SetPointer(layout, 2, kPotData + 0x10);
+
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  auto plan = PlanDungeonStreamRepack(*inventory, {{1, replacement}});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->pointer_writes.size(), layout.pointer_count);
+  ASSERT_TRUE(ApplyDungeonStreamWritePlan(rom_.get(), *plan).ok());
+
+  auto after = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(after.ok()) << after.status();
+  ASSERT_TRUE(after->ok());
+  EXPECT_EQ(after->streams[0].encoded_stream, item_a);
+  EXPECT_EQ(after->streams[1].encoded_stream, replacement);
+  EXPECT_EQ(after->streams[2].encoded_stream, empty);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RepackUsesMultipleRangesButRejectsAnotherPointerBank) {
+  const std::vector<uint8_t> item_a = {0x01, 0x00, 0x10, 0xFF, 0xFF};
+  const std::vector<uint8_t> item_b = {0x02, 0x00, 0x20, 0xFF, 0xFF};
+  auto layout = PotLayout(
+      2, {{kPotData, kPotData + 0x80}},
+      {{kPotData + 0x20, kPotData + 0x25}, {kPotData + 0x30, kPotData + 0x35}});
+  WriteBytes(kPotData, item_a);
+  WriteBytes(kPotData + 0x08, item_b);
+  SetPointer(layout, 0, kPotData);
+  SetPointer(layout, 1, kPotData + 0x08);
+
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  auto plan = PlanDungeonStreamRepack(*inventory, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  ASSERT_EQ(plan->payload_writes.size(), 2);
+  EXPECT_EQ(plan->payload_writes[0].address, kPotData + 0x20);
+  EXPECT_EQ(plan->payload_writes[1].address, kPotData + 0x30);
+
+  auto wrong_bank_layout =
+      PotLayout(2, {{kPotData, kPotData + 0x20}, {0x010000, 0x010020}},
+                {{0x010000, 0x010020}});
+  SetPointer(wrong_bank_layout, 0, kPotData);
+  SetPointer(wrong_bank_layout, 1, kPotData + 0x08);
+  auto wrong_bank_inventory = InventoryDungeonStreams(*rom_, wrong_bank_layout);
+  ASSERT_TRUE(wrong_bank_inventory.ok()) << wrong_bank_inventory.status();
+  auto wrong_bank_plan = PlanDungeonStreamRepack(*wrong_bank_inventory, {});
+  EXPECT_EQ(wrong_bank_plan.status().code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST_F(DungeonStreamAllocatorTest, RepackApplyRejectsStaleCrcWithoutMutation) {
+  auto layout = PotLayout(1, {{kPotData, kPotData + 0x40}},
+                          {{kPotData + 0x20, kPotData + 0x30}});
+  WriteBytes(kPotData, {0xFF, 0xFF});
+  SetPointer(layout, 0, kPotData);
+  auto inventory = InventoryDungeonStreams(*rom_, layout);
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  auto plan = PlanDungeonStreamRepack(*inventory, {});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+
+  ASSERT_TRUE(rom_->WriteByte(0x10, 0x7A).ok());
+  const auto before_apply = rom_->vector();
+  const auto status = ApplyDungeonStreamWritePlan(rom_.get(), *plan);
+  EXPECT_EQ(status.code(), absl::StatusCode::kAborted);
+  EXPECT_EQ(rom_->vector(), before_apply);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3::test
