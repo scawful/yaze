@@ -62,15 +62,11 @@ bool IsAbsoluteConfigPath(const std::string& value) {
   if (value.empty()) {
     return false;
   }
-  const auto is_windows_separator = [](char ch) {
-    return ch == '/' || ch == '\\';
-  };
   // std::filesystem only recognizes the host platform's absolute-path syntax.
-  // Detect Windows paths explicitly so a project authored on Windows is still
-  // audited correctly on macOS/Linux.
-  if (value.size() >= 2 && is_windows_separator(value[0]) &&
-      is_windows_separator(value[1])) {
-    return true;  // UNC or Windows device path.
+  // Detect POSIX and Windows rooted paths explicitly so projects authored on
+  // another platform are still audited correctly.
+  if (value.front() == '/' || value.front() == '\\') {
+    return true;
   }
   if (fs::path(value).is_absolute()) {
     return true;

@@ -279,6 +279,47 @@ TEST_F(DungeonSaveTest,
   EXPECT_TRUE(room_->object_stream_dirty());
 }
 
+TEST_F(DungeonSaveTest, SaveObjects_SectionOneTailExactFitStopsAtHardEnd) {
+  constexpr int kStreamStart = 0x0535A6;
+  constexpr int kObjectCount = 128;
+  constexpr int kEncodedSize = 8 + (kObjectCount * 3);
+  static_assert(kStreamStart + 2 + kEncodedSize ==
+                kDungeonObjectDataRegions[0].end);
+  WriteLongPointer(0xF8000, PcToSnes(kStreamStart));
+  rom_->mutable_data()[kDungeonObjectDataRegions[0].end] = 0xA5;
+
+  for (int i = 0; i < kObjectCount; ++i) {
+    ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  }
+
+  const auto status = room_->SaveObjects();
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->data()[kDungeonObjectDataRegions[0].end], 0xA5);
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_SectionOneTailOneByteOverFailsWithoutMutation) {
+  constexpr int kStreamStart = 0x0535A7;
+  constexpr int kObjectCount = 128;
+  constexpr int kEncodedSize = 8 + (kObjectCount * 3);
+  static_assert(kStreamStart + 2 + kEncodedSize ==
+                kDungeonObjectDataRegions[0].end + 1);
+  WriteLongPointer(0xF8000, PcToSnes(kStreamStart));
+
+  for (int i = 0; i < kObjectCount; ++i) {
+    ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  }
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjects();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
 TEST_F(DungeonSaveTest, SaveSprites_FitsInSpace) {
   // Add a sprite
   zelda3::Sprite spr(0x10, 10, 10, 0, 0);
@@ -302,6 +343,36 @@ TEST_F(DungeonSaveTest, SaveSprites_TooLargeFailsWithoutMutation) {
   const auto before = rom_->vector();
 
   auto status = room_->SaveSprites();
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->sprites_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveSprites_FinalTerminatorFitsExclusiveHardEnd) {
+  constexpr int kStreamStart = kSpritesDataEndExclusive - 2;
+  SetSpriteRoomPointer(0, kStreamStart);
+  rom_->mutable_data()[kStreamStart] = 0x00;
+  rom_->mutable_data()[kSpritesDataEndExclusive] = 0xA5;
+  room_->MarkSpritesDirty();
+
+  const auto status = room_->SaveSprites();
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->data()[kSpritesEndData], 0xFF);
+  EXPECT_EQ(rom_->data()[kSpritesDataEndExclusive], 0xA5);
+  EXPECT_FALSE(room_->sprites_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveSprites_FinalStreamOneByteOverHardEndFailsWithoutMutation) {
+  constexpr int kStreamStart = kSpritesDataEndExclusive - 4;
+  SetSpriteRoomPointer(0, kStreamStart);
+  room_->GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room_->MarkSpritesDirty();
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveSprites();
+
   EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_TRUE(room_->sprites_dirty());
@@ -861,6 +932,52 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_DirtyRoomTooLargeFailsAndStaysDirty) {
   EXPECT_EQ(rom_->data()[kPotRoom0Pc + 0], 0x34);
   EXPECT_EQ(rom_->data()[kPotRoom0Pc + 1], 0x12);
   EXPECT_EQ(rom_->data()[kPotRoom0Pc + 2], 0x56);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_FinalStreamExactFitStopsAtHardEnd) {
+  SetupPotItemTable();
+  constexpr int kSerializedSize = (5 * 3) + 2;
+  constexpr int kStreamStart = kRoomItemsDataEnd - kSerializedSize;
+  SetPotRoomPointer(0, kStreamStart);
+  rom_->mutable_data()[kRoomItemsDataEnd] = 0xA5;
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  for (int i = 0; i < 5; ++i) {
+    rooms[0].GetPotItems().push_back(PotItem{static_cast<uint16_t>(0x1200 + i),
+                                             static_cast<uint8_t>(0x40 + i)});
+  }
+  rooms[0].MarkPotItemsDirty();
+
+  const auto status = SaveAllPotItems(rom_.get(), rooms);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->data()[kRoomItemsDataEnd - 2], 0xFF);
+  EXPECT_EQ(rom_->data()[kRoomItemsDataEnd - 1], 0xFF);
+  EXPECT_EQ(rom_->data()[kRoomItemsDataEnd], 0xA5);
+  EXPECT_FALSE(rooms[0].pot_items_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllPotItems_FinalStreamOneByteOverHardEndFailsWithoutMutation) {
+  SetupPotItemTable();
+  constexpr int kSerializedSize = (6 * 3) + 2;
+  constexpr int kAvailableSize = kSerializedSize - 1;
+  constexpr int kStreamStart = kRoomItemsDataEnd - kAvailableSize;
+  SetPotRoomPointer(0, kStreamStart);
+
+  std::vector<Room> rooms(kNumberOfRooms);
+  for (int i = 0; i < 6; ++i) {
+    rooms[0].GetPotItems().push_back(PotItem{static_cast<uint16_t>(0x1200 + i),
+                                             static_cast<uint8_t>(0x40 + i)});
+  }
+  rooms[0].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllPotItems(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[0].pot_items_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllPotItems_SharedStreamFailsWithoutMutation) {
