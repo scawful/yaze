@@ -28,6 +28,23 @@ The manifest can define human-readable names for custom hack features:
 - **SRAM Variables**: Custom memory locations for game state.
 - **Messages**: Layout metadata for expanded message IDs (ranges and data pointers).
 
+### 5. Dungeon Stream Allocation
+
+Variable-length dungeon objects, sprites, and pot items use per-room pointer
+tables. A manifest may describe their layout with `dungeon_stream_regions`.
+Two range lists are intentionally distinct:
+
+- `data_regions` contains every address that an existing live pointer may
+  reference.
+- `allocation_regions` is the smaller, explicit subset where yaze may place a
+  new stream.
+
+The allocator derives free intervals only by subtracting strictly parsed live
+streams from declared allocation regions. It never treats a run of `00` or
+`FF` bytes as proof of free space. A present but malformed layout makes the
+manifest load fail closed; an absent layout leaves legacy in-place saves and
+their capacity checks unchanged.
+
 ## Integration Points
 
 ### ResourceLabelProvider
@@ -62,9 +79,31 @@ Both `DungeonEditorV2` and `OverworldEditor` utilize the manifest before perform
     "tags": [
       {"tag_id":"0x39", "name":"CustomTag"}
     ]
+  },
+  "dungeon_stream_regions": {
+    "sprites": {
+      "pointer_table": "0x09D2B2",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x09",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start":"0x09D502", "end":"0x09EC9F"}
+      ],
+      "allocation_regions": [
+        {"start":"0x09D502", "end":"0x09EC9F"}
+      ]
+    }
   }
 }
 ```
+
+Ranges are half-open SNES LoROM addresses. `long24` pointer tables omit
+`pointer_bank`; `bank16` tables require it. Supported strategies are
+`copy_on_write` and `repack_all`. Allocation ranges must be contained in data
+ranges, and pointer/data ranges for different stream kinds may not overlap.
+Addresses in SNES WRAM banks `$7E`/`$7F` are rejected rather than treated as
+ROM locations.
 
 ## Developer Workflow
 
