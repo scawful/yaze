@@ -162,9 +162,9 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamWrites(
     const DungeonStreamInventory& inventory,
     const std::vector<DungeonStreamReplacement>& replacements);
 
-// Deterministically repacks every pot-item stream into the complete declared
-// allocation ranges. Exact byte-identical payloads share one placement owned
-// by their lowest room ID, while every pointer-table entry receives an update.
+// Deterministically repacks every pot-item stream into one normalized declared
+// allocation range. Exact byte-identical payloads share one placement owned by
+// their lowest room ID, while every pointer-table entry receives an update.
 // Untouched rooms come from the immutable inventory snapshot. No ROM bytes are
 // changed during planning, and the operation fails before producing a plan if
 // all unique payloads cannot fit without crossing the fixed pointer bank.
