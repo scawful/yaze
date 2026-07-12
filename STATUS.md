@@ -36,9 +36,11 @@
 - `YAZE_TEST_ROM_VANILLA=roms/alttp_vanilla.sfc ctest --preset
   mac-ai-integration --output-on-failure -j4` → **274/274 non-failing** (16
   expanded/Oracle-ROM-only skips).
-- PR #68 completed the Linux/macOS/Windows, WASM, sanitizer, security, and
-  Oracle smoke matrix before merge on July 11, 2026. Post-merge `master` CI is
-  the remaining automated gate before tagging.
+- PR #70 added fail-closed, whole-ROM transactional saves and reported 2,407
+  unit tests, 619 quick-editor tests, and 279 vanilla/Oracle integration tests
+  passing before merge on July 12, 2026.
+- Post-merge `master` CI for PR #70 is the remaining automated gate before
+  tagging.
 
 ### Remaining Release Gates
 - Confirm post-merge `master` CI is green.
@@ -58,6 +60,8 @@
 - Pushable-block loader operand/capacity guards with boundary coverage (PRs
   #66–67).
 - A hardcoded room `0x001` object-overlap compositing golden (PR #68).
+- Whole-ROM save rollback, dirty-state restoration, and fail-closed dungeon
+  stream boundaries (PR #70).
 
 ## Legacy 0.7.0 Stretch Follow-ups
 - `task_20260303T212605Z_32450` — Tile16 quadrant strip/hotkeys parity tests
