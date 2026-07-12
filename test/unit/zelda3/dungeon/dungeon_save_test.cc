@@ -9,6 +9,7 @@
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 
@@ -125,10 +126,73 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[table_loc + 1] = (pointer >> 8) & 0xFF;
   }
 
+  int GetSpriteRoomPointer(int room_id) const {
+    const int table_loc = 0x48000 + room_id * 2;
+    const uint16_t pointer =
+        (static_cast<uint16_t>(rom_->data()[table_loc + 1]) << 8) |
+        rom_->data()[table_loc];
+    return static_cast<int>(SnesToPc(0x090000 | pointer));
+  }
+
   void WriteLongPointer(int addr, uint32_t snes_addr) {
     rom_->mutable_data()[addr + 0] = snes_addr & 0xFF;
     rom_->mutable_data()[addr + 1] = (snes_addr >> 8) & 0xFF;
     rom_->mutable_data()[addr + 2] = (snes_addr >> 16) & 0xFF;
+  }
+
+  void SetObjectRoomPointer(int room_id, int pc_addr) {
+    WriteLongPointer(0xF8000 + room_id * 3, PcToSnes(pc_addr));
+  }
+
+  int GetObjectRoomPointer(int room_id) const {
+    const int pointer_slot = 0xF8000 + room_id * 3;
+    const uint32_t pointer =
+        (static_cast<uint32_t>(rom_->data()[pointer_slot + 2]) << 16) |
+        (static_cast<uint32_t>(rom_->data()[pointer_slot + 1]) << 8) |
+        rom_->data()[pointer_slot];
+    return static_cast<int>(SnesToPc(pointer));
+  }
+
+  int GetDoorPointer(int room_id) const {
+    const int pointer_slot = kDoorPointers + room_id * 3;
+    const uint32_t pointer =
+        (static_cast<uint32_t>(rom_->data()[pointer_slot + 2]) << 16) |
+        (static_cast<uint32_t>(rom_->data()[pointer_slot + 1]) << 8) |
+        rom_->data()[pointer_slot];
+    return static_cast<int>(SnesToPc(pointer));
+  }
+
+  void WriteEmptyObjectStream(int pc_addr, uint8_t header0 = 0,
+                              uint8_t header1 = 0) {
+    const std::vector<uint8_t> bytes = {
+        header0, header1, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF,
+    };
+    ASSERT_TRUE(rom_->WriteVector(pc_addr, bytes).ok());
+  }
+
+  DungeonStreamLayout MakeObjectLayout(DungeonStreamPcRange allocation = {
+                                           0x100200, 0x100400}) const {
+    DungeonStreamLayout layout;
+    layout.kind = DungeonStreamKind::kObject;
+    layout.pointer_table_pc = 0xF8000;
+    layout.pointer_count = 2;
+    layout.pointer_encoding = DungeonPointerEncoding::kLong24;
+    layout.data_ranges = {{0x100000, 0x100400}};
+    layout.allocation_ranges = {allocation};
+    return layout;
+  }
+
+  DungeonStreamLayout MakeSpriteLayout(DungeonStreamPcRange allocation = {
+                                           0x49200, 0x49300}) const {
+    DungeonStreamLayout layout;
+    layout.kind = DungeonStreamKind::kSprite;
+    layout.pointer_table_pc = 0x48000;
+    layout.pointer_count = 2;
+    layout.pointer_encoding = DungeonPointerEncoding::kFixedBank16;
+    layout.pointer_bank = 0x09;
+    layout.data_ranges = {{0x49000, 0x49300}};
+    layout.allocation_ranges = {allocation};
+    return layout;
   }
 
   void SetupChestTable() {
@@ -256,6 +320,118 @@ TEST_F(DungeonSaveTest, SaveObjects_SharedStreamFailsWithoutMutation) {
   const auto status = room_->SaveObjects();
 
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_SharedStreamDetachesWithDeclaredAllocatorSpace) {
+  constexpr int kOldStreamPc = 0x100000;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(1, kOldStreamPc);
+  WriteEmptyObjectStream(kOldStreamPc, 0xA5, 0x5A);
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  Room::Door door;
+  door.position = 3;
+  door.direction = DoorDirection::North;
+  door.type = DoorType::NormalDoor;
+  room_->AddDoor(door);
+
+  const std::vector<uint8_t> old_stream(rom_->data() + kOldStreamPc,
+                                        rom_->data() + kOldStreamPc + 16);
+  std::vector<uint8_t> expected_replacement = {0xA5, 0x5A};
+  const auto encoded = room_->EncodeObjects();
+  expected_replacement.insert(expected_replacement.end(), encoded.begin(),
+                              encoded.end());
+  const int expected_door_pc =
+      kRelocatedStreamPc + static_cast<int>(expected_replacement.size()) -
+      static_cast<int>(room_->GetDoors().size()) * 2 - 2;
+  const auto layout = MakeObjectLayout();
+
+  const auto status = room_->SaveObjects(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOldStreamPc);
+  EXPECT_EQ(GetDoorPointer(0), expected_door_pc);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom_->data() + kOldStreamPc));
+  EXPECT_TRUE(std::equal(expected_replacement.begin(),
+                         expected_replacement.end(),
+                         rom_->data() + kRelocatedStreamPc));
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_OverlappingSuffixDetachesWithoutMutatingOwnerStream) {
+  constexpr int kOwnerStreamPc = 0x100000;
+  constexpr int kSuffixStreamPc = kOwnerStreamPc + 2;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(0, kSuffixStreamPc);
+  SetObjectRoomPointer(1, kOwnerStreamPc);
+  ASSERT_TRUE(rom_->WriteVector(kOwnerStreamPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+
+  const std::vector<uint8_t> owner_stream(rom_->data() + kOwnerStreamPc,
+                                          rom_->data() + kOwnerStreamPc + 10);
+  const auto layout = MakeObjectLayout();
+
+  const auto status = room_->SaveObjects(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOwnerStreamPc);
+  EXPECT_TRUE(std::equal(owner_stream.begin(), owner_stream.end(),
+                         rom_->data() + kOwnerStreamPc));
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_OverflowRelocatesWithDeclaredAllocatorSpace) {
+  constexpr int kOldStreamPc = 0x100000;
+  constexpr int kNextStreamPc = 0x100010;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(1, kNextStreamPc);
+  WriteEmptyObjectStream(kNextStreamPc, 0x11, 0x22);
+  for (int i = 0; i < 3; ++i) {
+    ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  }
+
+  const std::vector<uint8_t> old_bytes(rom_->data() + kOldStreamPc,
+                                       rom_->data() + kNextStreamPc + 10);
+  std::vector<uint8_t> expected_replacement = {0x00, 0x00};
+  const auto encoded = room_->EncodeObjects();
+  expected_replacement.insert(expected_replacement.end(), encoded.begin(),
+                              encoded.end());
+  const int expected_door_pc =
+      kRelocatedStreamPc + static_cast<int>(expected_replacement.size()) - 2;
+  const auto layout = MakeObjectLayout();
+
+  const auto status = room_->SaveObjects(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kNextStreamPc);
+  EXPECT_EQ(GetDoorPointer(0), expected_door_pc);
+  EXPECT_TRUE(std::equal(old_bytes.begin(), old_bytes.end(),
+                         rom_->data() + kOldStreamPc));
+  EXPECT_TRUE(std::equal(expected_replacement.begin(),
+                         expected_replacement.end(),
+                         rom_->data() + kRelocatedStreamPc));
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveObjects_AllocatorExhaustionFailsWithoutMutation) {
+  SetObjectRoomPointer(1, 0x100000);
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  const auto before = rom_->vector();
+  const auto layout = MakeObjectLayout({0x100200, 0x100204});
+
+  const auto status = room_->SaveObjects(&layout);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_TRUE(room_->object_stream_dirty());
 }
@@ -413,6 +589,117 @@ TEST_F(DungeonSaveTest, SaveSprites_SharedStreamFailsWithoutMutation) {
 }
 
 TEST_F(DungeonSaveTest,
+       SaveSprites_SharedStreamDetachesWithDeclaredAllocatorSpace) {
+  constexpr int kOldStreamPc = 0x49000;
+  constexpr int kRelocatedStreamPc = 0x49200;
+  SetSpriteRoomPointer(1, kOldStreamPc);
+  rom_->mutable_data()[kOldStreamPc] = 0x01;
+  room_->GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room_->MarkSpritesDirty();
+
+  const std::vector<uint8_t> old_stream(rom_->data() + kOldStreamPc,
+                                        rom_->data() + kOldStreamPc + 16);
+  std::vector<uint8_t> expected_replacement = {0x01};
+  const auto encoded = room_->EncodeSprites();
+  expected_replacement.insert(expected_replacement.end(), encoded.begin(),
+                              encoded.end());
+  const auto layout = MakeSpriteLayout();
+
+  const auto status = room_->SaveSprites(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetSpriteRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetSpriteRoomPointer(1), kOldStreamPc);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom_->data() + kOldStreamPc));
+  EXPECT_TRUE(std::equal(expected_replacement.begin(),
+                         expected_replacement.end(),
+                         rom_->data() + kRelocatedStreamPc));
+  EXPECT_FALSE(room_->sprites_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveSprites_OverlappingSuffixDetachesWithoutMutatingOwnerStream) {
+  constexpr int kOwnerStreamPc = 0x49000;
+  constexpr int kSuffixStreamPc = kOwnerStreamPc + 2;
+  constexpr int kRelocatedStreamPc = 0x49200;
+  SetSpriteRoomPointer(0, kSuffixStreamPc);
+  SetSpriteRoomPointer(1, kOwnerStreamPc);
+  ASSERT_TRUE(
+      rom_->WriteVector(kOwnerStreamPc, {0x00, 0x11, 0x22, 0xFF, 0xFF}).ok());
+  room_->GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room_->MarkSpritesDirty();
+
+  const std::vector<uint8_t> owner_stream(rom_->data() + kOwnerStreamPc,
+                                          rom_->data() + kOwnerStreamPc + 5);
+  const auto layout = MakeSpriteLayout();
+
+  const auto status = room_->SaveSprites(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetSpriteRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetSpriteRoomPointer(1), kOwnerStreamPc);
+  EXPECT_TRUE(std::equal(owner_stream.begin(), owner_stream.end(),
+                         rom_->data() + kOwnerStreamPc));
+  EXPECT_FALSE(room_->sprites_dirty());
+}
+
+TEST_F(DungeonSaveTest, SaveSprites_DeclaredDataBoundaryForcesCopyOnWrite) {
+  constexpr int kOldStreamPc = 0x49000;
+  constexpr int kRelocatedStreamPc = 0x49200;
+  rom_->mutable_data()[kOldStreamPc + 2] = 0xA5;
+  room_->GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room_->MarkSpritesDirty();
+
+  auto layout = MakeSpriteLayout();
+  layout.pointer_count = 1;
+  layout.data_ranges = {{kOldStreamPc, kOldStreamPc + 2},
+                        {kRelocatedStreamPc, 0x49300}};
+  layout.allocation_ranges = {{kRelocatedStreamPc, 0x49300}};
+
+  const auto status = room_->SaveSprites(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetSpriteRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(rom_->data()[kOldStreamPc], 0x00);
+  EXPECT_EQ(rom_->data()[kOldStreamPc + 1], 0xFF);
+  EXPECT_EQ(rom_->data()[kOldStreamPc + 2], 0xA5);
+  EXPECT_FALSE(room_->sprites_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveSprites_OverflowRelocatesWithDeclaredAllocatorSpace) {
+  constexpr int kOldStreamPc = 0x49000;
+  constexpr int kNextStreamPc = 0x49002;
+  constexpr int kRelocatedStreamPc = 0x49200;
+  SetSpriteRoomPointer(1, kNextStreamPc);
+  ASSERT_TRUE(
+      rom_->WriteVector(kNextStreamPc, std::vector<uint8_t>{0x01, 0xFF}).ok());
+  room_->GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room_->MarkSpritesDirty();
+
+  const std::vector<uint8_t> old_stream(rom_->data() + kOldStreamPc,
+                                        rom_->data() + kNextStreamPc + 2);
+  std::vector<uint8_t> expected_replacement = {0x00};
+  const auto encoded = room_->EncodeSprites();
+  expected_replacement.insert(expected_replacement.end(), encoded.begin(),
+                              encoded.end());
+  const auto layout = MakeSpriteLayout();
+
+  const auto status = room_->SaveSprites(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetSpriteRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetSpriteRoomPointer(1), kNextStreamPc);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom_->data() + kOldStreamPc));
+  EXPECT_TRUE(std::equal(expected_replacement.begin(),
+                         expected_replacement.end(),
+                         rom_->data() + kRelocatedStreamPc));
+  EXPECT_FALSE(room_->sprites_dirty());
+}
+
+TEST_F(DungeonSaveTest,
        SaveSprites_UsesNearestPhysicalPointerInsteadOfNextRoomId) {
   SetSpriteRoomPointer(1, 0x49100);
   SetSpriteRoomPointer(2, 0x49004);
@@ -441,6 +728,34 @@ TEST_F(DungeonSaveTest, LoadSprites_DoesNotDuplicateOnReload) {
   // Reloading the same room should refresh, not append duplicate entries.
   room_->LoadSprites();
   EXPECT_EQ(room_->GetSprites().size(), 1u);
+}
+
+TEST_F(DungeonSaveTest, EncodeSprites_PreservesKeyDropMarkersOnRoundTrip) {
+  // sort byte + small-key sprite/marker + big-key sprite/marker + terminator
+  const std::vector<uint8_t> sprite_stream = {
+      0x00, 0x0A, 0x0A, 0x10,  // sprite with small-key drop
+      0xFE, 0x00, 0xE4,        // hidden small-key marker
+      0x12, 0x0E, 0x21,        // sprite with big-key drop
+      0xFD, 0x00, 0xE4,        // hidden big-key marker
+      0xFF,
+  };
+  ASSERT_TRUE(rom_->WriteVector(0x49000, sprite_stream).ok());
+
+  room_->LoadSprites();
+  ASSERT_EQ(room_->GetSprites().size(), 2u);
+  EXPECT_EQ(room_->GetSprites()[0].key_drop(), 1);
+  EXPECT_EQ(room_->GetSprites()[1].key_drop(), 2);
+
+  const std::vector<uint8_t> expected_payload(sprite_stream.begin() + 1,
+                                              sprite_stream.end());
+  const auto encoded = room_->EncodeSprites();
+  EXPECT_EQ(encoded, expected_payload);
+
+  ASSERT_TRUE(rom_->WriteVector(0x49001, encoded).ok());
+  room_->LoadSprites();
+  ASSERT_EQ(room_->GetSprites().size(), 2u);
+  EXPECT_EQ(room_->GetSprites()[0].key_drop(), 1);
+  EXPECT_EQ(room_->GetSprites()[1].key_drop(), 2);
 }
 
 TEST_F(DungeonSaveTest, EncodeObjects_SkipsTorchesAndBlocks) {

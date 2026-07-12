@@ -31,6 +31,7 @@ namespace zelda3 {
 
 class DungeonState;
 class RoomLayerManager;
+struct DungeonStreamLayout;
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
@@ -904,9 +905,9 @@ class Room {
                             int& nbr_of_staircase);
 
   // Object saving (Phase 1, Task 1.3)
-  absl::Status SaveObjects();
+  absl::Status SaveObjects(const DungeonStreamLayout* layout = nullptr);
   std::vector<uint8_t> EncodeObjects() const;
-  absl::Status SaveSprites();
+  absl::Status SaveSprites(const DungeonStreamLayout* layout = nullptr);
   std::vector<uint8_t> EncodeSprites() const;
   absl::Status SaveRoomHeader();
 
