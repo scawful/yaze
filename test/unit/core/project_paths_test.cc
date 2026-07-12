@@ -35,6 +35,22 @@ class ScopedTempDir {
   std::filesystem::path path_;
 };
 
+class ScopedCurrentPath {
+ public:
+  explicit ScopedCurrentPath(const std::filesystem::path& path)
+      : original_path_(std::filesystem::current_path()) {
+    std::filesystem::current_path(path);
+  }
+
+  ~ScopedCurrentPath() {
+    std::error_code ec;
+    std::filesystem::current_path(original_path_, ec);
+  }
+
+ private:
+  std::filesystem::path original_path_;
+};
+
 void WriteTextFile(const std::filesystem::path& path, const std::string& data) {
   std::filesystem::create_directories(path.parent_path());
   std::ofstream file(path, std::ios::out | std::ios::trunc);
@@ -245,22 +261,22 @@ hack_manifest_file=hack_manifest.json
 37=Thieves' Town
 )");
 
-  std::error_code relative_ec;
-  const auto relative_project_file = std::filesystem::relative(
-      project_file, std::filesystem::current_path(), relative_ec);
-  ASSERT_FALSE(relative_ec) << relative_ec.message();
-  ASSERT_FALSE(relative_project_file.is_absolute());
+  {
+    ScopedCurrentPath current_path(temp.path());
+    const auto relative_project_file = project_file.filename();
+    ASSERT_FALSE(relative_project_file.is_absolute());
 
-  YazeProject project;
-  ASSERT_TRUE(project.Open(relative_project_file.string()).ok());
-  EXPECT_TRUE(std::filesystem::path(project.filepath).is_absolute());
-  EXPECT_FALSE(project.hack_manifest.loaded());
-  ASSERT_TRUE(project.hack_manifest.HasProjectRegistry());
+    YazeProject project;
+    ASSERT_TRUE(project.Open(relative_project_file.string()).ok());
+    EXPECT_TRUE(std::filesystem::path(project.filepath).is_absolute());
+    EXPECT_FALSE(project.hack_manifest.loaded());
+    ASSERT_TRUE(project.hack_manifest.HasProjectRegistry());
 
-  ASSERT_TRUE(project.resource_labels.contains("room"));
-  EXPECT_EQ(project.resource_labels["room"]["37"], "Water Grate");
+    ASSERT_TRUE(project.resource_labels.contains("room"));
+    EXPECT_EQ(project.resource_labels["room"]["37"], "Water Grate");
 
-  ASSERT_TRUE(project.Save().ok());
+    ASSERT_TRUE(project.Save().ok());
+  }
   const auto saved = ReadTextFile(project_file);
   EXPECT_NE(saved.find("[labels_room]"), std::string::npos);
   EXPECT_NE(saved.find("37=Water Grate"), std::string::npos);

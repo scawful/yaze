@@ -249,10 +249,15 @@ PhysicalStreamInfo AnalyzePhysicalStream(const std::vector<int>& room_addresses,
   }
 
   // A stream cannot safely grow across a LoROM bank boundary even when the
-  // next pointer happens to live in the following physical bank.
+  // next pointer happens to live in the following physical bank. The bank end
+  // alone is not a physical data boundary, so fail closed unless an actual
+  // pointer or a supplied region end bounds this bank.
   constexpr int kLoRomBankSize = 0x8000;
   const int bank_end = ((info.address / kLoRomBankSize) + 1) * kLoRomBankSize;
-  info.physical_end = std::min(next_address, bank_end);
+  if (next_address > bank_end) {
+    return info;
+  }
+  info.physical_end = next_address;
   return info;
 }
 
@@ -315,7 +320,8 @@ absl::StatusOr<PhysicalStreamInfo> GetObjectStreamInfo(
   for (int id = 0; id < kNumberOfRooms; ++id) {
     addresses[id] = ReadRoomObjectAddressPc(rom_data, table_pc, id);
   }
-  PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id);
+  const int hard_end = GetDungeonObjectDataRegionEnd(addresses[room_id]);
+  PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id, hard_end);
   if (info.address < 0) {
     return absl::OutOfRangeError("Object stream pointer is out of range");
   }
@@ -378,7 +384,7 @@ absl::StatusOr<PhysicalStreamInfo> GetSpriteStreamInfo(
     addresses[id] = ReadRoomSpriteAddressPc(rom_data, table_pc, id);
   }
   const int hard_end =
-      std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+      std::min(static_cast<int>(rom_data.size()), kSpritesDataEndExclusive);
   PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id, hard_end);
   if (info.address < 0 || info.address >= hard_end) {
     return absl::OutOfRangeError("Sprite stream pointer is out of range");
@@ -1823,19 +1829,19 @@ std::vector<uint8_t> Room::EncodeSprites() const {
 
 int FindMaxUsedSpriteAddress(Rom* rom) {
   if (!rom || !rom->is_loaded()) {
-    return kSpritesEndData;
+    return kSpritesDataEndExclusive;
   }
 
   const auto& rom_data = rom->vector();
   int sprite_pointer = 0;
   if (!GetSpritePointerTablePc(rom_data, &sprite_pointer).ok()) {
-    return kSpritesEndData;
+    return kSpritesDataEndExclusive;
   }
 
   const int hard_end =
-      std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+      std::min(static_cast<int>(rom_data.size()), kSpritesDataEndExclusive);
   if (hard_end <= 0) {
-    return kSpritesEndData;
+    return kSpritesDataEndExclusive;
   }
 
   int max_used = std::min(hard_end, kSpritesData);
@@ -1887,7 +1893,7 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   }
 
   const int hard_end =
-      std::min(static_cast<int>(rom_data.size()), kSpritesEndData);
+      std::min(static_cast<int>(rom_data.size()), kSpritesDataEndExclusive);
   const int old_stream_size =
       MeasureSpriteStreamSize(rom_data, old_sprite_address, hard_end);
   const uint8_t sort_mode = rom_data[old_sprite_address];
@@ -1898,11 +1904,11 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   const size_t required_size = 1u + encoded_bytes.size();
   if (write_pos < kSpritesData ||
       static_cast<size_t>(write_pos) + required_size >
-          static_cast<size_t>(kSpritesEndData)) {
+          static_cast<size_t>(kSpritesDataEndExclusive)) {
     return absl::ResourceExhaustedError(absl::StrFormat(
         "Not enough sprite data space. Need %d bytes at 0x%06X, "
         "region ends at 0x%06X",
-        static_cast<int>(required_size), write_pos, kSpritesEndData));
+        static_cast<int>(required_size), write_pos, kSpritesDataEndExclusive));
   }
   if (static_cast<size_t>(write_pos) + required_size > rom_data.size()) {
     const int required_end = write_pos + static_cast<int>(required_size);
@@ -3076,10 +3082,12 @@ absl::StatusOr<PhysicalStreamInfo> GetPotItemStreamInfo(
   for (int id = 0; id < kNumberOfRooms; ++id) {
     addresses[id] = ReadRoomPotItemAddressPc(rom_data, id);
   }
-  PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id);
-  if (info.address < 0) {
+  const int hard_end =
+      std::min(static_cast<int>(rom_data.size()), kRoomItemsDataEnd);
+  PhysicalStreamInfo info = AnalyzePhysicalStream(addresses, room_id, hard_end);
+  if (info.address < 0 || info.address >= hard_end) {
     return absl::FailedPreconditionError(
-        "Room pot item pointer is null or invalid");
+        "Room pot item pointer is null, invalid, or outside the item region");
   }
   return info;
 }
