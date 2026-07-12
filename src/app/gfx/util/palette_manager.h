@@ -5,6 +5,7 @@
 #include <deque>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -104,7 +105,9 @@ class PaletteManager {
   /**
    * @brief Check if manager is initialized
    */
-  bool IsInitialized() const { return game_data_ != nullptr || rom_ != nullptr; }
+  bool IsInitialized() const {
+    return game_data_ != nullptr || rom_ != nullptr;
+  }
 
   /**
    * @brief Reset all state for test isolation
@@ -190,6 +193,13 @@ class PaletteManager {
    * @brief Save ALL modified palettes to ROM
    */
   absl::Status SaveAllToRom();
+
+  // Checkpoint persistence metadata that SaveGroup/SaveAllToRom clear. This is
+  // used by the coordinated ROM-save pipeline so a later serializer,
+  // validation gate, backup, or disk failure leaves palette edits retryable.
+  absl::Status BeginSaveTransaction();
+  void RollbackSaveTransaction();
+  void CommitSaveTransaction();
 
   /**
    * @brief Discard changes for a specific group
@@ -328,6 +338,15 @@ class PaletteManager {
   std::unordered_map<std::string,
                      std::unordered_map<int, std::unordered_set<int>>>
       modified_colors_;
+
+  struct SaveTransactionSnapshot {
+    std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes;
+    std::unordered_map<std::string, std::unordered_set<int>> modified_palettes;
+    std::unordered_map<std::string,
+                       std::unordered_map<int, std::unordered_set<int>>>
+        modified_colors;
+  };
+  std::optional<SaveTransactionSnapshot> save_transaction_snapshot_;
 
   /// Undo/redo stacks
   std::deque<PaletteColorChange> undo_stack_;

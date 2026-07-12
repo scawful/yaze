@@ -1,11 +1,45 @@
 #include <gtest/gtest.h>
 
+#include <memory>
 #include <string>
 
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_editor.h"
+#include "framework/headless_editor_test.h"
 #include "test_utils.h"
 #include "testing.h"
+
+namespace yaze::editor {
+
+class MessageEditorTestPeer {
+ public:
+  static void EditCurrent(MessageEditor& editor, const std::string& text) {
+    editor.message_text_box_.text = text;
+    editor.UpdateCurrentMessageFromText(text);
+  }
+
+  static int ReplaceAll(MessageEditor& editor, const std::string& search,
+                        const std::string& replacement) {
+    editor.search_text_ = search;
+    editor.replace_text_ = replacement;
+    return editor.ReplaceAllMatches();
+  }
+
+  static const std::vector<std::string>& ParsedMessages(
+      const MessageEditor& editor) {
+    return editor.parsed_messages_;
+  }
+
+  static const std::string& CurrentDraft(const MessageEditor& editor) {
+    return editor.message_text_box_.text;
+  }
+
+  static bool HasParseErrors(const MessageEditor& editor) {
+    return !editor.current_parse_errors_.empty();
+  }
+};
+
+}  // namespace yaze::editor
 
 namespace yaze {
 namespace test {
@@ -288,6 +322,77 @@ TEST_F(MessageRomTest, ParseMessageData_MixedCommands) {
   auto parsed = editor::ParseMessageData(message_data_vector, dictionary_);
 
   EXPECT_EQ(parsed[0], "[W:01]A[K]B[C:02]C");
+}
+
+class MessageEditorNavigationTest : public HeadlessEditorTest {
+ protected:
+  void SetUp() override {
+    HeadlessEditorTest::SetUp();
+    YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "MessageEditorNavigationTest");
+    LoadRom(TestRomManager::GetRomPath(RomRole::kVanilla));
+
+    editor::EditorDependencies deps;
+    deps.rom = rom_.get();
+    deps.game_data = game_data_.get();
+    deps.window_manager = window_manager_.get();
+    deps.renderer = renderer_.get();
+    message_editor_ = std::make_unique<editor::MessageEditor>(rom_.get(), deps);
+    message_editor_->SetGameData(game_data_.get());
+    message_editor_->Initialize();
+  }
+
+  void TearDown() override {
+    message_editor_.reset();
+    HeadlessEditorTest::TearDown();
+  }
+
+  std::unique_ptr<editor::MessageEditor> message_editor_;
+};
+
+TEST_F(MessageEditorNavigationTest, InvalidDraftBlocksNavigation) {
+  ASSERT_TRUE(message_editor_->OpenMessageById(0));
+
+  editor::MessageEditorTestPeer::EditCurrent(*message_editor_, "A@");
+  EXPECT_FALSE(message_editor_->OpenMessageById(1));
+
+  editor::MessageEditorTestPeer::EditCurrent(*message_editor_, "A");
+  EXPECT_TRUE(message_editor_->OpenMessageById(1));
+}
+
+TEST_F(MessageEditorNavigationTest, ReplaceAllRefusesInvalidDraft) {
+  ASSERT_TRUE(message_editor_->OpenMessageById(0));
+  editor::MessageEditorTestPeer::EditCurrent(*message_editor_, "A@");
+  const auto before =
+      editor::MessageEditorTestPeer::ParsedMessages(*message_editor_);
+
+  EXPECT_EQ(
+      editor::MessageEditorTestPeer::ReplaceAll(*message_editor_, "A", "B"),
+      -1);
+  EXPECT_EQ(editor::MessageEditorTestPeer::ParsedMessages(*message_editor_),
+            before);
+  EXPECT_EQ(editor::MessageEditorTestPeer::CurrentDraft(*message_editor_),
+            "A@");
+  EXPECT_TRUE(editor::MessageEditorTestPeer::HasParseErrors(*message_editor_));
+}
+
+TEST_F(MessageEditorNavigationTest,
+       ReplaceAllPreflightsEntireBatchBeforeMutation) {
+  ASSERT_TRUE(message_editor_->OpenMessageById(0));
+  editor::MessageEditorTestPeer::EditCurrent(*message_editor_, "BA");
+  ASSERT_TRUE(message_editor_->OpenMessageById(1));
+  editor::MessageEditorTestPeer::EditCurrent(*message_editor_, "[A]");
+  const auto before =
+      editor::MessageEditorTestPeer::ParsedMessages(*message_editor_);
+
+  // Message 0 would become valid "B", while message 1 would become invalid
+  // "[]". The valid earlier candidate must not be committed first.
+  EXPECT_EQ(
+      editor::MessageEditorTestPeer::ReplaceAll(*message_editor_, "A", ""), -1);
+  EXPECT_EQ(editor::MessageEditorTestPeer::ParsedMessages(*message_editor_),
+            before);
+  EXPECT_EQ(editor::MessageEditorTestPeer::CurrentDraft(*message_editor_),
+            "[A]");
+  EXPECT_FALSE(editor::MessageEditorTestPeer::HasParseErrors(*message_editor_));
 }
 
 }  // namespace test

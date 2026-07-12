@@ -58,6 +58,7 @@
 #include "dungeon_editor_v2.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
@@ -146,6 +147,99 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
 }
 
 }  // namespace
+
+absl::Status DungeonEditorV2::BeginSaveTransaction() {
+  if (save_transaction_snapshot_.has_value()) {
+    return absl::FailedPreconditionError(
+        "Dungeon save transaction is already active");
+  }
+
+  SaveTransactionSnapshot snapshot;
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (core::FeatureFlags::get().dungeon.kSavePalettes &&
+      palette_manager.HasUnsavedChanges()) {
+    RETURN_IF_ERROR(palette_manager.BeginSaveTransaction());
+    snapshot.has_palette_transaction = true;
+  }
+  rooms_.ForEachMaterialized([&snapshot](int room_id,
+                                         const zelda3::Room& room) {
+    snapshot.room_states.emplace_back(room_id, room.CaptureSaveDirtySnapshot());
+  });
+  for (size_t i = 0; i < entrances_.size(); ++i) {
+    snapshot.entrance_dirty_states[i] = entrances_[i].dirty();
+  }
+  if (game_data_ != nullptr) {
+    snapshot.has_pit_damage_table = true;
+    snapshot.pit_damage_dirty = game_data_->pit_damage_table.dirty();
+  }
+  save_transaction_snapshot_ = std::move(snapshot);
+  return absl::OkStatus();
+}
+
+void DungeonEditorV2::RollbackSaveTransaction() {
+  if (!save_transaction_snapshot_.has_value()) {
+    return;
+  }
+
+  for (const auto& [room_id, state] : save_transaction_snapshot_->room_states) {
+    if (auto* room = rooms_.GetIfMaterialized(room_id); room != nullptr) {
+      room->RestoreSaveDirtySnapshot(state);
+    }
+  }
+  for (size_t i = 0; i < entrances_.size(); ++i) {
+    if (save_transaction_snapshot_->entrance_dirty_states[i]) {
+      entrances_[i].MarkDirty();
+    } else {
+      entrances_[i].ClearDirty();
+    }
+  }
+  if (save_transaction_snapshot_->has_pit_damage_table &&
+      game_data_ != nullptr) {
+    if (save_transaction_snapshot_->pit_damage_dirty) {
+      game_data_->pit_damage_table.MarkDirty();
+    } else {
+      game_data_->pit_damage_table.ClearDirty();
+    }
+  }
+  if (save_transaction_snapshot_->has_palette_transaction) {
+    gfx::PaletteManager::Get().RollbackSaveTransaction();
+  }
+  save_transaction_snapshot_.reset();
+}
+
+void DungeonEditorV2::CommitSaveTransaction() {
+  if (save_transaction_snapshot_.has_value() &&
+      save_transaction_snapshot_->has_palette_transaction) {
+    gfx::PaletteManager::Get().CommitSaveTransaction();
+  }
+  save_transaction_snapshot_.reset();
+}
+
+absl::Status DungeonEditorV2::RunWithSaveTransaction(
+    const std::function<absl::Status()>& operation) {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // File > Save already owns a whole-ROM/editor transaction. Direct Apply Room
+  // and Apply All actions use the same guarantees without nesting it.
+  if (save_transaction_snapshot_.has_value()) {
+    return operation();
+  }
+
+  ScopedRomTransaction rom_transaction(*rom_);
+  RETURN_IF_ERROR(BeginSaveTransaction());
+
+  const absl::Status status = operation();
+  if (!status.ok()) {
+    RollbackSaveTransaction();
+    return status;
+  }
+
+  CommitSaveTransaction();
+  rom_transaction.Commit();
+  return absl::OkStatus();
+}
 
 absl::Status DungeonEditorV2::Save() {
   if (!rom_ || !rom_->is_loaded()) {
@@ -372,63 +466,62 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 }
 
 absl::Status DungeonEditorV2::SaveRoom(int room_id) {
-  if (!rom_ || !rom_->is_loaded()) {
-    return absl::FailedPreconditionError("ROM not loaded");
-  }
-  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-    return absl::InvalidArgumentError("Invalid room ID");
-  }
-
-  const auto& flags = core::FeatureFlags::get().dungeon;
-  if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
-    auto status = gfx::PaletteManager::Get().SaveAllToRom();
-    if (!status.ok()) {
-      LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
-                status.message().data());
-      return status;
+  return RunWithSaveTransaction([this, room_id]() -> absl::Status {
+    if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+      return absl::InvalidArgumentError("Invalid room ID");
     }
-  }
-  if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
-    RETURN_IF_ERROR(SaveRoomData(room_id));
-  }
 
-  if (flags.kSaveTorches) {
-    RETURN_IF_ERROR(zelda3::SaveAllTorches(
-        rom_, static_cast<int>(rooms_.size()),
-        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); }));
-  }
-  if (flags.kSavePits) {
-    RETURN_IF_ERROR(zelda3::SaveAllPits(
-        rom_, game_data_ ? &game_data_->pit_damage_table : nullptr));
-  }
-  if (flags.kSaveBlocks) {
-    RETURN_IF_ERROR(zelda3::SaveAllBlocks(
-        rom_, static_cast<int>(rooms_.size()),
-        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); }));
-  }
-  if (flags.kSaveCollision) {
-    RETURN_IF_ERROR(zelda3::SaveAllCollision(
-        rom_, static_cast<int>(rooms_.size()),
-        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); }));
-  }
-  if (flags.kSaveWaterFillZones) {
-    RETURN_IF_ERROR(SaveWaterFillZones(rom_, rooms_));
-  }
-  if (flags.kSaveChests) {
-    RETURN_IF_ERROR(zelda3::SaveAllChests(
-        rom_, static_cast<int>(rooms_.size()),
-        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); }));
-  }
-  if (flags.kSavePotItems) {
-    RETURN_IF_ERROR(zelda3::SaveAllPotItems(
-        rom_, static_cast<int>(rooms_.size()),
-        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); }));
-  }
-  if (flags.kSaveEntrances) {
-    RETURN_IF_ERROR(zelda3::SaveAllDungeonEntrances(rom_, entrances_));
-  }
+    const auto& flags = core::FeatureFlags::get().dungeon;
+    if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
+      auto status = gfx::PaletteManager::Get().SaveAllToRom();
+      if (!status.ok()) {
+        LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
+                  status.message().data());
+        return status;
+      }
+    }
+    if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
+      RETURN_IF_ERROR(SaveRoomData(room_id));
+    }
 
-  return absl::OkStatus();
+    if (flags.kSaveTorches) {
+      RETURN_IF_ERROR(zelda3::SaveAllTorches(
+          rom_, static_cast<int>(rooms_.size()),
+          [this](int id) { return rooms_.GetIfMaterialized(id); }));
+    }
+    if (flags.kSavePits) {
+      RETURN_IF_ERROR(zelda3::SaveAllPits(
+          rom_, game_data_ ? &game_data_->pit_damage_table : nullptr));
+    }
+    if (flags.kSaveBlocks) {
+      RETURN_IF_ERROR(zelda3::SaveAllBlocks(
+          rom_, static_cast<int>(rooms_.size()),
+          [this](int id) { return rooms_.GetIfMaterialized(id); }));
+    }
+    if (flags.kSaveCollision) {
+      RETURN_IF_ERROR(zelda3::SaveAllCollision(
+          rom_, static_cast<int>(rooms_.size()),
+          [this](int id) { return rooms_.GetIfMaterialized(id); }));
+    }
+    if (flags.kSaveWaterFillZones) {
+      RETURN_IF_ERROR(SaveWaterFillZones(rom_, rooms_));
+    }
+    if (flags.kSaveChests) {
+      RETURN_IF_ERROR(zelda3::SaveAllChests(
+          rom_, static_cast<int>(rooms_.size()),
+          [this](int id) { return rooms_.GetIfMaterialized(id); }));
+    }
+    if (flags.kSavePotItems) {
+      RETURN_IF_ERROR(zelda3::SaveAllPotItems(
+          rom_, static_cast<int>(rooms_.size()),
+          [this](int id) { return rooms_.GetIfMaterialized(id); }));
+    }
+    if (flags.kSaveEntrances) {
+      RETURN_IF_ERROR(zelda3::SaveAllDungeonEntrances(rom_, entrances_));
+    }
+
+    return absl::OkStatus();
+  });
 }
 
 absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
@@ -562,7 +655,7 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
 }
 
 void DungeonEditorV2::SaveAllRooms() {
-  auto status = Save();
+  auto status = RunWithSaveTransaction([this]() { return Save(); });
   if (status.ok()) {
     if (dependencies_.toast_manager) {
       dependencies_.toast_manager->Show("Applied loaded rooms to ROM buffer",

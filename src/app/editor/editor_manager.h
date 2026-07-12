@@ -207,8 +207,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
   absl::Status RestoreRomBackup(const std::string& backup_path);
   absl::Status PruneRomBackups();
-  void ConfirmRomWrite() { rom_lifecycle_.ConfirmRomWrite(); }
-  void CancelRomWriteConfirm() { rom_lifecycle_.CancelRomWriteConfirm(); }
+  void ConfirmRomWrite();
+  void CancelRomWriteConfirm();
   bool IsRomWriteConfirmPending() const {
     return rom_lifecycle_.IsRomWriteConfirmPending();
   }
@@ -218,9 +218,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     return rom_lifecycle_.pending_write_conflicts();
   }
   void BypassWriteConflictOnce() { rom_lifecycle_.BypassWriteConflictOnce(); }
-  void ClearPendingWriteConflicts() {
-    rom_lifecycle_.ClearPendingWriteConflicts();
-  }
+  void ClearPendingWriteConflicts();
   void SetCurrentEditor(Editor* editor) override {
     current_editor_ = editor;
     // Update ContentRegistry context for panel access
@@ -407,6 +405,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status LoadRom();
   absl::Status SaveRom();
   absl::Status SaveRomAs(const std::string& filename);
+  absl::Status ResumePendingRomSave();
   absl::Status OpenRomOrProject(const std::string& filename);
   absl::Status CreateNewProject(
       const std::string& template_name = "Basic ROM Hack");
@@ -604,8 +603,17 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::StatusOr<std::string> RunProjectBuildCommand();
   absl::StatusOr<std::string> ResolveProjectBuildCommand() const;
   absl::StatusOr<std::string> ResolveProjectRunTarget() const;
-  absl::Status CheckRomWritePolicy();
+  absl::Status CheckRomWritePolicy(
+      const std::optional<std::string>& target_filename = std::nullopt);
   absl::Status CheckOracleRomSafetyPreSave(Rom* rom);
+  absl::Status SaveRomInternal(
+      const std::optional<std::string>& save_as_filename);
+  bool HasPendingRomSaveConfirmation() const;
+  bool PendingRomSaveMatchesActiveSession() const;
+  void FinishPendingRomSaveAttempt(const absl::Status& status);
+  void CancelPendingRomSave(bool hide_popups = false);
+  absl::Status StartPendingRomSave(
+      const std::optional<std::string>& save_as_filename);
   absl::Status LoadRomInternal();
   absl::Status OpenRomOrProjectInternal(const std::string& filename);
   absl::Status OpenProjectInternal();
@@ -645,6 +653,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // ROM lifecycle state (hash, write policy, confirmation dialogs, backups)
   // Mutable because some const accessors delegate to it.
   mutable RomLifecycleManager rom_lifecycle_;
+  struct PendingRomSave {
+    std::optional<std::string> save_as_filename;
+    size_t session_index = SIZE_MAX;
+    Rom* rom = nullptr;
+  };
+  std::optional<PendingRomSave> pending_rom_save_;
 
   // Deferred action queue - executed at the start of each frame
   std::vector<std::function<void()>> deferred_actions_;

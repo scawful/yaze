@@ -88,6 +88,7 @@
 #include "editor/ui/rom_load_options_dialog.h"
 #include "rom/rom.h"
 #include "rom/rom_diff.h"
+#include "rom/transaction.h"
 #include "startup_flags.h"
 #include "util/file_util.h"
 #include "util/i18n/language_manager.h"
@@ -138,6 +139,42 @@
 namespace yaze::editor {
 
 namespace {
+class ScopedEditorSaveTransactions {
+ public:
+  ScopedEditorSaveTransactions() = default;
+  ScopedEditorSaveTransactions(const ScopedEditorSaveTransactions&) = delete;
+  ScopedEditorSaveTransactions& operator=(const ScopedEditorSaveTransactions&) =
+      delete;
+
+  ~ScopedEditorSaveTransactions() {
+    if (!committed_) {
+      for (auto it = editors_.rbegin(); it != editors_.rend(); ++it) {
+        (*it)->RollbackSaveTransaction();
+      }
+    }
+  }
+
+  absl::Status Begin(Editor* editor) {
+    if (editor == nullptr) {
+      return absl::OkStatus();
+    }
+    RETURN_IF_ERROR(editor->BeginSaveTransaction());
+    editors_.push_back(editor);
+    return absl::OkStatus();
+  }
+
+  void Commit() {
+    for (Editor* editor : editors_) {
+      editor->CommitSaveTransaction();
+    }
+    committed_ = true;
+  }
+
+ private:
+  std::vector<Editor*> editors_;
+  bool committed_ = false;
+};
+
 bool HasAnyOverride(const core::RomAddressOverrides& overrides,
                     std::initializer_list<const char*> keys) {
   for (const char* key : keys) {
@@ -1131,6 +1168,10 @@ void EditorManager::RefreshResourceLabelProvider() {
 
 void EditorManager::HandleSessionSwitched(size_t new_index,
                                           RomSession* session) {
+  // Confirmation consent and Save As targets belong to the ROM that started
+  // the request. Never carry them across a session switch.
+  CancelPendingRomSave(/*hide_popups=*/true);
+
   // Update RightDrawerManager with the new session's settings editor
   if (right_drawer_manager_ && session) {
     right_drawer_manager_->SetSettingsPanel(
@@ -1163,16 +1204,29 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
   test::TestManager::Get().SetCurrentRom(session ? &session->rom : nullptr);
 #endif
 
+  // RomLifecycleManager caches both identity hash and path; refresh them for
+  // the newly active session before its next save-policy check.
+  UpdateCurrentRomHash();
+
   LOG_DEBUG("EditorManager", "Session switched to %zu via EventBus", new_index);
 }
 
 void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
+  if (pending_rom_save_.has_value() && !PendingRomSaveMatchesActiveSession()) {
+    CancelPendingRomSave(/*hide_popups=*/true);
+  }
   window_manager_.RegisterRegistryWindowContentsForSession(index);
   window_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
+  if (session_coordinator_ &&
+      index == session_coordinator_->GetActiveSessionIndex()) {
+    UpdateCurrentRomHash();
+  }
   LOG_INFO("EditorManager", "Session %zu created via EventBus", index);
 }
 
 void EditorManager::HandleSessionClosed(size_t index) {
+  CancelPendingRomSave(/*hide_popups=*/true);
+
   // Update ContentRegistry - it will be set to new active ROM on next switch
   // If no sessions remain, clear the context
   if (session_coordinator_ &&
@@ -2533,21 +2587,27 @@ void EditorManager::UpdateEditorState() {
     last_test_rom = current_rom;
   }
 
-  // Autosave timer
-  if (user_settings_.prefs().autosave_enabled && current_rom &&
-      current_rom->dirty()) {
+  // Autosave uses the same guarded serialization, validation, backup, and
+  // atomic commit pipeline as an explicit save. Writing Rom::SaveToFile here
+  // would skip editor model serialization and could persist a partially
+  // failed buffer while clearing its dirty bit.
+  const bool current_session_has_unsaved_work =
+      current_rom && SessionHasPendingUnsavedWork(GetCurrentSessionIndex());
+  if (user_settings_.prefs().autosave_enabled &&
+      current_session_has_unsaved_work) {
     autosave_timer_ += ImGui::GetIO().DeltaTime;
     if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
       autosave_timer_ = 0.0f;
-      Rom::SaveSettings s;
-      s.backup = true;
-      s.save_new = false;
-      auto st = current_rom->SaveToFile(s);
+      auto st = SaveRom();
       if (st.ok()) {
         toast_manager_.Show("Autosave completed", editor::ToastType::kSuccess);
+      } else if (absl::IsCancelled(st)) {
+        toast_manager_.Show("Autosave paused: confirmation required",
+                            editor::ToastType::kWarning, 5.0f);
       } else {
-        toast_manager_.Show(std::string(st.message()),
-                            editor::ToastType::kError, 5.0f);
+        toast_manager_.Show(
+            absl::StrFormat("Autosave failed: %s", st.message()),
+            editor::ToastType::kError, 5.0f);
       }
     }
   } else {
@@ -3355,19 +3415,102 @@ absl::Status EditorManager::LoadAssetsLazy(uint64_t passed_handle) {
  * This stays in EditorManager because it requires knowledge of all editors
  * and the order in which they must be saved to maintain ROM integrity.
  */
-absl::Status EditorManager::CheckRomWritePolicy() {
-  return rom_lifecycle_.CheckRomWritePolicy(GetCurrentRom());
+absl::Status EditorManager::CheckRomWritePolicy(
+    const std::optional<std::string>& target_filename) {
+  return rom_lifecycle_.CheckRomWritePolicy(GetCurrentRom(), target_filename);
 }
 
 absl::Status EditorManager::CheckOracleRomSafetyPreSave(Rom* rom) {
   return rom_lifecycle_.CheckOracleRomSafetyPreSave(rom);
 }
 
+bool EditorManager::HasPendingRomSaveConfirmation() const {
+  return rom_lifecycle_.IsRomWriteConfirmPending() ||
+         rom_lifecycle_.HasPendingPotItemSaveConfirmation() ||
+         !rom_lifecycle_.pending_write_conflicts().empty();
+}
+
+bool EditorManager::PendingRomSaveMatchesActiveSession() const {
+  if (!pending_rom_save_.has_value() || !session_coordinator_) {
+    return false;
+  }
+  return pending_rom_save_->session_index == GetCurrentSessionIndex() &&
+         pending_rom_save_->rom != nullptr &&
+         pending_rom_save_->rom == GetCurrentRom();
+}
+
+void EditorManager::CancelPendingRomSave(bool hide_popups) {
+  pending_rom_save_.reset();
+  rom_lifecycle_.ResetPendingSaveState();
+
+  if (!hide_popups || !popup_manager_) {
+    return;
+  }
+  for (const char* popup :
+       {PopupID::kRomWriteConfirm, PopupID::kDungeonPotItemSaveConfirm,
+        PopupID::kWriteConflictWarning, PopupID::kSaveAs}) {
+    if (popup_manager_->IsVisible(popup)) {
+      popup_manager_->Hide(popup);
+    }
+  }
+}
+
+absl::Status EditorManager::StartPendingRomSave(
+    const std::optional<std::string>& save_as_filename) {
+  auto* rom = GetCurrentRom();
+  if (!session_coordinator_ || !session_coordinator_->GetActiveRomSession() ||
+      !rom) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  CancelPendingRomSave();
+  pending_rom_save_ =
+      PendingRomSave{save_as_filename, GetCurrentSessionIndex(), rom};
+  return absl::OkStatus();
+}
+
+void EditorManager::FinishPendingRomSaveAttempt(const absl::Status& status) {
+  // A Cancelled status is resumable only while one of this request's explicit
+  // confirmation dialogs is pending. Every other outcome is terminal and must
+  // consume all one-shot bypasses so a later Ctrl+S cannot inherit consent.
+  if (status.ok() || !absl::IsCancelled(status) ||
+      !HasPendingRomSaveConfirmation()) {
+    CancelPendingRomSave();
+  }
+}
+
 absl::Status EditorManager::SaveRom() {
+  // Do not let an autosave or an unrelated Ctrl+S replace a Save As request
+  // while one of its confirmation dialogs is still open.
+  if (pending_rom_save_.has_value()) {
+    const bool unresolved_confirmation =
+        rom_lifecycle_.IsRomWriteConfirmPending() ||
+        rom_lifecycle_.HasPendingPotItemSaveConfirmation() ||
+        (!rom_lifecycle_.pending_write_conflicts().empty() &&
+         !rom_lifecycle_.ShouldBypassWriteConflict());
+    if (unresolved_confirmation) {
+      return absl::CancelledError("Save pending confirmation");
+    }
+    // Preserve the established request after programmatic confirmation too.
+    // Older callers use ConfirmRomWrite(); SaveRom() rather than the popup's
+    // ResumePendingRomSave() helper.
+    return ResumePendingRomSave();
+  }
+  RETURN_IF_ERROR(StartPendingRomSave(std::nullopt));
+  auto status = SaveRomInternal(std::nullopt);
+  FinishPendingRomSaveAttempt(status);
+  return status;
+}
+
+absl::Status EditorManager::SaveRomInternal(
+    const std::optional<std::string>& save_as_filename) {
   auto* current_rom = GetCurrentRom();
   auto* current_editor_set = GetCurrentEditorSet();
   if (!current_rom || !current_editor_set) {
     return absl::FailedPreconditionError("No ROM or editor set loaded");
+  }
+  if (save_as_filename.has_value() && save_as_filename->empty()) {
+    return absl::InvalidArgumentError("No filename provided for save as");
   }
 
   // --- State machine checks (delegated to RomLifecycleManager) ---
@@ -3375,7 +3518,7 @@ absl::Status EditorManager::SaveRom() {
     return absl::CancelledError("Save pending confirmation");
   }
 
-  RETURN_IF_ERROR(CheckRomWritePolicy());
+  RETURN_IF_ERROR(CheckRomWritePolicy(save_as_filename));
 
   if (rom_lifecycle_.HasPendingPotItemSaveConfirmation()) {
     return absl::CancelledError("Save pending confirmation");
@@ -3437,24 +3580,34 @@ absl::Status EditorManager::SaveRom() {
         user_settings_.prefs().backup_before_save, "", 20, true, 14);
   }
 
+  // Reject an already-invalid Oracle layout before any editor serializer can
+  // mutate the ROM buffer or clear its own dirty tracking. The post-save check
+  // below remains mandatory because serializers may introduce a violation.
+  RETURN_IF_ERROR(CheckOracleRomSafetyPreSave(current_rom));
+
+  ScopedRomTransaction rom_transaction(*current_rom);
+  ScopedEditorSaveTransactions editor_transactions;
+
+  auto save_editor = [&editor_transactions](Editor* editor) -> absl::Status {
+    if (editor == nullptr) {
+      return absl::OkStatus();
+    }
+    RETURN_IF_ERROR(editor_transactions.Begin(editor));
+    return editor->Save();
+  };
+
   // --- Save editor-specific data ---
-  if (auto* editor = current_editor_set->GetEditor(EditorType::kScreen)) {
-    RETURN_IF_ERROR(editor->Save());
-  }
-
-  if (auto* editor = current_editor_set->GetEditor(EditorType::kDungeon)) {
-    RETURN_IF_ERROR(editor->Save());
-  }
-
-  if (auto* editor = current_editor_set->GetEditor(EditorType::kOverworld)) {
-    RETURN_IF_ERROR(editor->Save());
-  }
+  RETURN_IF_ERROR(
+      save_editor(current_editor_set->GetEditor(EditorType::kScreen)));
+  RETURN_IF_ERROR(
+      save_editor(current_editor_set->GetEditor(EditorType::kDungeon)));
+  RETURN_IF_ERROR(
+      save_editor(current_editor_set->GetEditor(EditorType::kOverworld)));
 
   if (core::FeatureFlags::get().kSaveMessages) {
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
-    if (auto* editor = current_editor_set->GetEditor(EditorType::kMessage)) {
-      RETURN_IF_ERROR(editor->Save());
-    }
+    RETURN_IF_ERROR(
+        save_editor(current_editor_set->GetEditor(EditorType::kMessage)));
   }
 
   if (core::FeatureFlags::get().kSaveGraphicsSheet) {
@@ -3523,42 +3676,65 @@ absl::Status EditorManager::SaveRom() {
     }
   }
 
-  // Delegate final ROM file writing to RomFileManager
-  auto save_status = rom_file_manager_.SaveRom(current_rom);
+  // Delegate the final atomic disk write to RomFileManager. Save As is part of
+  // this same transaction and writes only the requested target path.
+  auto save_status =
+      save_as_filename.has_value()
+          ? rom_file_manager_.SaveRomAs(current_rom, *save_as_filename)
+          : rom_file_manager_.SaveRom(current_rom);
   if (save_status.ok()) {
+    editor_transactions.Commit();
+    rom_transaction.Commit();
+    UpdateCurrentRomHash();
     // Write-confirm bypass is single-use. Clear it after a successful save.
     rom_lifecycle_.CancelRomWriteConfirm();
+
+    if (save_as_filename.has_value()) {
+      if (session_coordinator_) {
+        if (auto* session = session_coordinator_->GetActiveRomSession()) {
+          session->filepath = *save_as_filename;
+        }
+      }
+
+      auto& manager = project::RecentFilesManager::GetInstance();
+      manager.AddFile(*save_as_filename);
+      manager.Save();
+      if (popup_manager_) {
+        popup_manager_->Hide(PopupID::kSaveAs);
+      }
+    }
   }
   return save_status;
 }
 
 absl::Status EditorManager::SaveRomAs(const std::string& filename) {
-  auto* current_rom = GetCurrentRom();
-  if (!current_rom) {
-    return absl::FailedPreconditionError("No ROM loaded");
+  if (filename.empty()) {
+    return absl::InvalidArgumentError("No filename provided for save as");
+  }
+  if (pending_rom_save_.has_value() && HasPendingRomSaveConfirmation()) {
+    return absl::CancelledError("Save pending confirmation");
+  }
+  RETURN_IF_ERROR(StartPendingRomSave(filename));
+  auto status = SaveRomInternal(filename);
+  FinishPendingRomSaveAttempt(status);
+  return status;
+}
+
+absl::Status EditorManager::ResumePendingRomSave() {
+  if (!pending_rom_save_.has_value()) {
+    rom_lifecycle_.ResetPendingSaveState();
+    return absl::FailedPreconditionError("No pending ROM save to resume");
+  }
+  if (!PendingRomSaveMatchesActiveSession()) {
+    CancelPendingRomSave(/*hide_popups=*/true);
+    return absl::FailedPreconditionError(
+        "Pending ROM save belongs to a different session");
   }
 
-  // Reuse SaveRom() logic for editor-specific data saving
-  RETURN_IF_ERROR(SaveRom());
-
-  // Now save to the new filename
-  auto save_status = rom_file_manager_.SaveRomAs(current_rom, filename);
-  if (save_status.ok()) {
-    // Update session filepath
-    if (session_coordinator_) {
-      auto* session = session_coordinator_->GetActiveRomSession();
-      if (session) {
-        session->filepath = filename;
-      }
-    }
-
-    // Add to recent files
-    auto& manager = project::RecentFilesManager::GetInstance();
-    manager.AddFile(filename);
-    manager.Save();
-  }
-
-  return save_status;
+  const auto save_as_filename = pending_rom_save_->save_as_filename;
+  auto status = SaveRomInternal(save_as_filename);
+  FinishPendingRomSaveAttempt(status);
+  return status;
 }
 
 absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
@@ -4107,11 +4283,12 @@ void EditorManager::ResolvePotItemSaveConfirmation(
   rom_lifecycle_.ResolvePotItemSaveConfirmation(lifecycle_decision);
 
   if (decision == PotItemSaveDecision::kCancel) {
+    CancelPendingRomSave();
     toast_manager_.Show("Save cancelled", ToastType::kInfo);
     return;
   }
 
-  auto status = SaveRom();
+  auto status = ResumePendingRomSave();
   if (!absl::IsCancelled(status) && !status.ok()) {
     toast_manager_.Show(
         absl::StrFormat("Failed to save ROM: %s", status.message()),
@@ -4535,8 +4712,21 @@ absl::Status EditorManager::PruneRomBackups() {
   return rom_lifecycle_.PruneRomBackups(GetCurrentRom());
 }
 
-// ConfirmRomWrite() and CancelRomWriteConfirm() are now inline in
-// editor_manager.h delegating to rom_lifecycle_.
+void EditorManager::ConfirmRomWrite() {
+  if (!PendingRomSaveMatchesActiveSession() ||
+      !rom_lifecycle_.IsRomWriteConfirmPending()) {
+    return;
+  }
+  rom_lifecycle_.ConfirmRomWrite();
+}
+
+void EditorManager::CancelRomWriteConfirm() {
+  CancelPendingRomSave();
+}
+
+void EditorManager::ClearPendingWriteConflicts() {
+  CancelPendingRomSave();
+}
 
 void EditorManager::CreateNewSession() {
   if (session_coordinator_) {
@@ -4564,6 +4754,7 @@ void EditorManager::CloseCurrentSession() {
   }
 
   session_coordinator_->CloseCurrentSession();
+  UpdateCurrentRomHash();
 }
 
 void EditorManager::RemoveSession(size_t index) {
@@ -4577,6 +4768,7 @@ void EditorManager::RemoveSession(size_t index) {
   }
 
   session_coordinator_->RemoveSession(index);
+  UpdateCurrentRomHash();
 }
 
 void EditorManager::SwitchToSession(size_t index) {
@@ -4837,6 +5029,7 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
     case PendingUnsavedSessionAction::Type::kCloseSession:
       if (session_coordinator_) {
         session_coordinator_->RemoveSession(action.target_session_index);
+        UpdateCurrentRomHash();
       }
       break;
     case PendingUnsavedSessionAction::Type::kQuit:

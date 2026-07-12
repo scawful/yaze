@@ -20,6 +20,35 @@ void InitOverworldTestRom(Rom& rom, uint8_t asm_version = 0xFF) {
   EXPECT_TRUE(rom.LoadFromData(data).ok());
 }
 
+void PopulateUniqueTile32Maps(OverworldMapTiles* maps,
+                              int unique_definition_count = NumberOfMap32) {
+  ASSERT_NE(maps, nullptr);
+  const auto make_world = [] {
+    return OverworldBlockset(512, std::vector<uint16_t>(512, 0));
+  };
+  maps->light_world = make_world();
+  maps->dark_world = make_world();
+  maps->special_world = make_world();
+
+  uint16_t tile16_id = 1;
+  int definition_index = 0;
+  const auto fill = [&tile16_id, &definition_index, unique_definition_count](
+                        OverworldBlockset* world, int width, int height) {
+    for (int y = 0; y < height; y += 2) {
+      for (int x = 0; x < width; x += 2) {
+        // A distinct top-left Tile16 makes each packed Tile32 unique.
+        if (definition_index < unique_definition_count) {
+          (*world)[x][y] = tile16_id++;
+        }
+        ++definition_index;
+      }
+    }
+  };
+  fill(&maps->light_world, 256, 256);    // 64 screens
+  fill(&maps->dark_world, 256, 256);     // 64 screens
+  fill(&maps->special_world, 256, 128);  // 32 screens
+}
+
 }  // namespace
 
 TEST(OverworldVersionHelperTest, GetVersion_VanillaSmallRom) {
@@ -137,6 +166,64 @@ TEST(OverworldRomProfileTest, V3ForcesExpandedTilesAndRequiresTailMarker) {
   profile = DetectOverworldRomProfile(rom);
   EXPECT_TRUE(profile.has_tail_map_expansion);
   EXPECT_EQ(profile.editable_map_count, kExpandedMapCount);
+}
+
+TEST(OverworldMap32StorageTest, CapacityTracksDetectedRomProfile) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0xFF);
+  auto profile = DetectOverworldRomProfile(rom);
+  EXPECT_EQ(Map32StorageBytesForProfile(profile),
+            kMap32TileStorageBytesVanilla);
+  EXPECT_EQ(Map32DefinitionCapacityForProfile(profile),
+            kMap32DefinitionCapacityVanilla);
+  EXPECT_EQ(kMap32DefinitionCapacityVanilla, 8864);
+
+  InitOverworldTestRom(rom, 0x03);
+  profile = DetectOverworldRomProfile(rom);
+  EXPECT_EQ(Map32StorageBytesForProfile(profile),
+            kMap32TileStorageBytesExpanded);
+  EXPECT_EQ(Map32DefinitionCapacityForProfile(profile),
+            kMap32DefinitionCapacityExpanded);
+  EXPECT_EQ(kMap32DefinitionCapacityExpanded, 17728);
+}
+
+TEST(OverworldMap32StorageTest, ExpandedOverflowFailsBeforeAnyRomWrite) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0x03);
+  Overworld overworld(&rom);
+  PopulateUniqueTile32Maps(overworld.mutable_map_tiles());
+  const auto before = rom.vector();
+
+  const auto create_status = overworld.CreateTile32Tilemap();
+  EXPECT_EQ(create_status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_GT(overworld.tiles32_unique().size(),
+            static_cast<size_t>(kMap32DefinitionCapacityExpanded));
+  EXPECT_EQ(rom.vector(), before);
+
+  // The public writer repeats the capacity preflight before relocation-pointer
+  // or quadrant writes, even if a caller ignores the CreateTile32Tilemap error.
+  const auto save_status = overworld.SaveMap32Expanded();
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(OverworldMap32StorageTest, JapaneseLayoutUsesAdjacentTableCapacity) {
+  Rom rom;
+  InitOverworldTestRom(rom, 0xFF);
+  GameData game_data(&rom);
+  game_data.version = zelda3_version::JP;
+  Overworld overworld(&rom, &game_data);
+
+  // 8,832 nonzero definitions plus the shared zero definition pad to 8,836.
+  // This fits the historical US limit (8,864) but exceeds the JP quadrant
+  // span: 0x33C0 bytes == 8,832 packed definitions.
+  PopulateUniqueTile32Maps(overworld.mutable_map_tiles(), 8832);
+  const auto before = rom.vector();
+
+  const auto status = overworld.CreateTile32Tilemap();
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted) << status;
+  EXPECT_EQ(overworld.tiles32_unique().size(), 8836u);
+  EXPECT_EQ(rom.vector(), before);
 }
 
 TEST(OverworldCompatibilityHelpersTest, LegacyParentTablesUseLocalMapIds) {
