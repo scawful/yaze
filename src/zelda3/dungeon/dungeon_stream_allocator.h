@@ -67,6 +67,10 @@ struct DungeonStreamRecord {
   uint32_t data_pc = 0;
   uint32_t logical_end_pc = 0;
   bool valid = false;
+  // Immutable logical payload captured with the inventory snapshot. Keeping
+  // the bytes here lets a full repack preserve rooms that have no replacement
+  // without consulting a ROM that may have changed since inventory.
+  std::vector<uint8_t> encoded_stream;
 
   uint32_t size() const {
     return valid && logical_end_pc >= data_pc ? logical_end_pc - data_pc : 0;
@@ -122,12 +126,20 @@ struct DungeonStreamWrite {
   uint32_t room_id = 0;
   uint32_t address = 0;
   std::vector<uint8_t> bytes;
+
+  bool operator==(const DungeonStreamWrite&) const = default;
+};
+
+enum class DungeonStreamWriteMode {
+  kCopyOnWrite,
+  kRepackAll,
 };
 
 struct DungeonStreamWritePlan {
   DungeonStreamLayout layout;
   uint32_t source_size = 0;
   uint32_t source_crc32 = 0;
+  DungeonStreamWriteMode mode = DungeonStreamWriteMode::kCopyOnWrite;
   // Kept separate so apply can guarantee all payloads land before any pointer
   // becomes live.
   std::vector<DungeonStreamWrite> payload_writes;
@@ -147,6 +159,16 @@ absl::StatusOr<DungeonStreamInventory> InventoryDungeonStreams(
 // complete streams, sorted by room ID, and allocated only from the inventory's
 // declared allocation-range complement. Existing streams are never reclaimed.
 absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamWrites(
+    const DungeonStreamInventory& inventory,
+    const std::vector<DungeonStreamReplacement>& replacements);
+
+// Deterministically repacks every pot-item stream into the complete declared
+// allocation ranges. Exact byte-identical payloads share one placement owned
+// by their lowest room ID, while every pointer-table entry receives an update.
+// Untouched rooms come from the immutable inventory snapshot. No ROM bytes are
+// changed during planning, and the operation fails before producing a plan if
+// all unique payloads cannot fit without crossing the fixed pointer bank.
+absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamRepack(
     const DungeonStreamInventory& inventory,
     const std::vector<DungeonStreamReplacement>& replacements);
 
