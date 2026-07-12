@@ -11,18 +11,24 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "core/dungeon_stream_layout_adapter.h"
+#include "core/features.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
@@ -45,11 +51,63 @@ constexpr std::pair<const char*, const char*> kProjectEnvVars[] = {
     {"YAZE_TEST_PROJECT", "Yaze project"},
 };
 
-std::filesystem::path MakeUniqueTempDir() {
+struct DungeonSaveFlagsGuard {
+  decltype(core::FeatureFlags::get().dungeon) previous =
+      core::FeatureFlags::get().dungeon;
+  ~DungeonSaveFlagsGuard() { core::FeatureFlags::get().dungeon = previous; }
+};
+
+void ConfigurePotOnlySave() {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveSprites = false;
+  flags.kSaveRoomHeaders = false;
+  flags.kSaveTorches = false;
+  flags.kSavePits = false;
+  flags.kSaveBlocks = false;
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = false;
+  flags.kSaveChests = false;
+  flags.kSavePotItems = true;
+  flags.kSaveEntrances = false;
+  flags.kSavePalettes = false;
+}
+
+absl::StatusOr<std::filesystem::path> CreateUniqueTempDir() {
+  static std::atomic<uint64_t> sequence = 0;
   const auto nonce =
       std::chrono::steady_clock::now().time_since_epoch().count();
-  return std::filesystem::temp_directory_path() /
-         ("yaze_oos_pot_repack_" + std::to_string(nonce));
+  const std::filesystem::path base = std::filesystem::temp_directory_path();
+  for (uint32_t attempt = 0; attempt < 100; ++attempt) {
+    const std::filesystem::path candidate =
+        base / absl::StrFormat("yaze_oos_pot_repack_%lld_%llu_%u", nonce,
+                               sequence.fetch_add(1), attempt);
+    std::error_code create_error;
+    if (std::filesystem::create_directory(candidate, create_error)) {
+      std::error_code permission_error;
+      std::filesystem::permissions(candidate, std::filesystem::perms::owner_all,
+                                   std::filesystem::perm_options::replace,
+                                   permission_error);
+      if (permission_error) {
+        std::error_code cleanup_error;
+        std::filesystem::remove_all(candidate, cleanup_error);
+        return absl::InternalError(absl::StrFormat(
+            "Could not secure private pot-repack temp directory: %s%s",
+            permission_error.message(),
+            cleanup_error ? absl::StrFormat("; cleanup also failed: %s",
+                                            cleanup_error.message())
+                          : ""));
+      }
+      return candidate;
+    }
+    if (create_error) {
+      return absl::InternalError(absl::StrFormat(
+          "Could not create private pot-repack temp directory: %s",
+          create_error.message()));
+    }
+  }
+  return absl::AlreadyExistsError(
+      "Could not allocate a collision-free pot-repack temp directory");
 }
 
 std::string FirstConfiguredPath(const std::pair<const char*, const char*>* vars,
@@ -63,6 +121,22 @@ std::string FirstConfiguredPath(const std::pair<const char*, const char*>* vars,
     }
   }
   return {};
+}
+
+std::string ResolveOracleRomPath() {
+  // The Oracle-specific fixture must win even when a generic expanded ROM is
+  // also configured in the developer's environment.
+  for (const char* env_var : {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
+                              "YAZE_TEST_ROM_EXPANDED_PATH"}) {
+    if (const char* value = std::getenv(env_var);
+        value != nullptr && std::filesystem::exists(value)) {
+      return value;
+    }
+  }
+
+  // Retain the test harness's compile-time expanded-ROM fallback.
+  return ::yaze::test::TestRomManager::GetRomPath(
+      ::yaze::test::RomRole::kExpanded);
 }
 
 std::vector<uint8_t> ReadFile(const std::filesystem::path& path) {
@@ -85,20 +159,6 @@ std::vector<uint8_t> EncodePotItems(const std::vector<PotItem>& items) {
   encoded.push_back(0xFF);
   encoded.push_back(0xFF);
   return encoded;
-}
-
-std::vector<PotItem> DecodePotItems(const std::vector<uint8_t>& encoded) {
-  std::vector<PotItem> items;
-  if (encoded.size() < 2 || encoded[encoded.size() - 2] != 0xFF ||
-      encoded.back() != 0xFF || (encoded.size() - 2) % 3 != 0) {
-    return items;
-  }
-  for (size_t offset = 0; offset + 2 < encoded.size() - 1; offset += 3) {
-    const uint16_t position = static_cast<uint16_t>(encoded[offset]) |
-                              (static_cast<uint16_t>(encoded[offset + 1]) << 8);
-    items.push_back({position, encoded[offset + 2]});
-  }
-  return items;
 }
 
 const DungeonStreamRecord* FindRoomRecord(
@@ -124,10 +184,15 @@ bool IsInsideAllocationRange(const DungeonStreamLayout& layout,
 class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    YAZE_SKIP_IF_ROM_MISSING(::yaze::test::RomRole::kExpanded,
-                             "DungeonPotRepackOosIntegrationTest");
-    source_rom_path_ = ::yaze::test::TestRomManager::GetRomPath(
-        ::yaze::test::RomRole::kExpanded);
+    if (std::getenv("YAZE_SKIP_ROM_TESTS") != nullptr) {
+      GTEST_SKIP() << "ROM testing disabled via YAZE_SKIP_ROM_TESTS. Test: "
+                      "DungeonPotRepackOosIntegrationTest";
+    }
+    source_rom_path_ = ResolveOracleRomPath();
+    if (source_rom_path_.empty()) {
+      GTEST_SKIP() << "Oracle ROM fixture not found. Set YAZE_TEST_ROM_OOS "
+                      "or YAZE_TEST_ROM_EXPANDED.";
+    }
 
     std::string configured_manifest_var;
     std::string configured_project_var;
@@ -145,9 +210,12 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
     if (!manifest_path.empty()) {
       ASSERT_TRUE(std::filesystem::exists(manifest_path))
           << configured_manifest_var << " does not exist: " << manifest_path;
-      const absl::Status status = manifest_.LoadFromFile(manifest_path);
+      const absl::Status status =
+          project_.hack_manifest.LoadFromFile(manifest_path);
       ASSERT_TRUE(status.ok()) << status.message();
-      manifest_in_use_ = &manifest_;
+      project_.hack_manifest_file = manifest_path;
+      project_.rom_filename = source_rom_path_;
+      project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
     } else {
       ASSERT_TRUE(std::filesystem::exists(project_path))
           << configured_project_var << " does not exist: " << project_path;
@@ -156,11 +224,10 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
       ASSERT_TRUE(project_.hack_manifest.loaded())
           << "Project did not load its configured hack manifest: "
           << project_path;
-      manifest_in_use_ = &project_.hack_manifest;
     }
 
     const core::DungeonStreamLayout* manifest_layout =
-        manifest_in_use_->GetDungeonStreamLayout(
+        project_.hack_manifest.GetDungeonStreamLayout(
             core::DungeonStreamType::kPotItems);
     ASSERT_NE(manifest_layout, nullptr)
         << "Oracle manifest has no pot_items dungeon stream layout";
@@ -172,8 +239,9 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
     layout_ = std::move(*layout);
     ASSERT_EQ(layout_.pointer_count, kOracleRoomCount);
 
-    temp_dir_ = MakeUniqueTempDir();
-    ASSERT_TRUE(std::filesystem::create_directories(temp_dir_));
+    auto temp_dir = CreateUniqueTempDir();
+    ASSERT_TRUE(temp_dir.ok()) << temp_dir.status().message();
+    temp_dir_ = std::move(*temp_dir);
     temp_rom_path_ = temp_dir_ / "oos-pot-repack-test.sfc";
     std::error_code copy_error;
     ASSERT_TRUE(std::filesystem::copy_file(
@@ -190,17 +258,26 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
     // YazeProject registers its manifest with the process-global resource
     // labels. Clear that non-owning pointer before the fixture is destroyed.
     GetResourceLabels().SetHackManifest(nullptr);
-    std::error_code cleanup_error;
-    std::filesystem::remove_all(temp_dir_, cleanup_error);
+    if (!temp_dir_.empty()) {
+      std::error_code cleanup_error;
+      std::filesystem::remove_all(temp_dir_, cleanup_error);
+      EXPECT_FALSE(cleanup_error)
+          << "Failed to remove private ROM temp directory " << temp_dir_ << ": "
+          << cleanup_error.message();
+      std::error_code exists_error;
+      EXPECT_FALSE(std::filesystem::exists(temp_dir_, exists_error))
+          << "Private ROM temp directory leaked: " << temp_dir_;
+      EXPECT_FALSE(exists_error)
+          << "Could not verify private ROM temp cleanup: "
+          << exists_error.message();
+    }
   }
 
   std::string source_rom_path_;
   std::string source_sha_before_;
   std::filesystem::path temp_dir_;
   std::filesystem::path temp_rom_path_;
-  core::HackManifest manifest_;
   project::YazeProject project_;
-  const core::HackManifest* manifest_in_use_ = nullptr;
   DungeonStreamLayout layout_;
 };
 
@@ -258,60 +335,51 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   ASSERT_EQ(replacement_items.size(), 1u)
       << "Could not construct a unique valid one-item pot stream";
 
-  Room edited_room(static_cast<int>(selected_room), &rom);
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& edited_room = dungeon_editor->rooms()[selected_room];
+  edited_room = Room(static_cast<int>(selected_room), &rom);
   edited_room.LoadPotItems();
   ASSERT_TRUE(edited_room.GetPotItems().empty());
   edited_room.GetPotItems() = replacement_items;
   edited_room.MarkPotItemsDirty();
 
-  auto room_lookup = [&edited_room, selected_room](int room_id) -> const Room* {
-    return room_id == static_cast<int>(selected_room) ? &edited_room : nullptr;
-  };
-  const std::vector<uint8_t> before_attempt = rom.vector();
-  absl::Status save_status = SaveAllPotItems(
-      &rom, static_cast<int>(kOracleRoomCount), room_lookup, &layout_);
-
-  if (absl::IsResourceExhausted(save_status)) {
-    // A future Oracle layout may have less than today's nine free bytes. The
-    // failed unique insertion must be fully transactional. Reusing the
-    // smallest existing non-empty payload is the smaller semantic edit: it
-    // still detaches this room from the shared-empty owner while adding no new
-    // unique bytes to the repack.
-    ASSERT_EQ(rom.vector(), before_attempt);
-    ASSERT_TRUE(edited_room.pot_items_dirty());
-
-    const DungeonStreamRecord* smallest_nonempty = nullptr;
-    for (const DungeonStreamRecord& record : before->streams) {
-      if (record.encoded_stream.size() <= 2) {
-        continue;
-      }
-      if (smallest_nonempty == nullptr ||
-          record.encoded_stream.size() <
-              smallest_nonempty->encoded_stream.size()) {
-        smallest_nonempty = &record;
-      }
-    }
-    ASSERT_NE(smallest_nonempty, nullptr)
-        << "No smaller existing Oracle pot payload is available";
-    replacement_items = DecodePotItems(smallest_nonempty->encoded_stream);
-    ASSERT_FALSE(replacement_items.empty());
-    replacement_stream = smallest_nonempty->encoded_stream;
-    edited_room.GetPotItems() = replacement_items;
-    edited_room.MarkPotItemsDirty();
-    save_status = SaveAllPotItems(&rom, static_cast<int>(kOracleRoomCount),
-                                  room_lookup, &layout_);
-    RecordProperty("repack_edit_mode", "existing-payload-capacity-fallback");
-  } else {
-    RecordProperty("repack_edit_mode", "unique-one-item");
+  const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+  for (const DungeonStreamPcRange& range : layout_.allocation_ranges) {
+    EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                        std::pair<uint32_t, uint32_t>{range.begin, range.end}),
+              predicted_ranges.end())
+        << "Editor persistence omitted a declared pot allocation range";
   }
+  const uint32_t pointer_width =
+      layout_.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3u : 2u;
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{
+                          layout_.pointer_table_pc,
+                          layout_.pointer_table_pc +
+                              layout_.pointer_count * pointer_width}),
+            predicted_ranges.end())
+      << "Editor persistence omitted the complete pot pointer table";
+
+  const absl::Status save_status =
+      dungeon_editor->SaveRoom(static_cast<int>(selected_room));
   ASSERT_TRUE(save_status.ok()) << save_status.message();
   EXPECT_FALSE(edited_room.pot_items_dirty());
+  RecordProperty("repack_edit_mode", "unique-one-item");
 
   Rom::SaveSettings save_settings;
   save_settings.filename = temp_rom_path_.string();
   ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
   const std::vector<uint8_t> first_save_bytes = ReadFile(temp_rom_path_);
   ASSERT_FALSE(first_save_bytes.empty());
+  dungeon_editor.reset();
 
   Rom reopened;
   ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
@@ -354,18 +422,18 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
         << record_before.room_id;
   }
 
-  Room repeated_room(static_cast<int>(selected_room), &reopened);
+  auto repeated_editor = std::make_unique<editor::DungeonEditorV2>(&reopened);
+  dependencies.rom = &reopened;
+  repeated_editor->SetDependencies(dependencies);
+  Room& repeated_room = repeated_editor->rooms()[selected_room];
+  repeated_room = Room(static_cast<int>(selected_room), &reopened);
   repeated_room.LoadPotItems();
   ASSERT_EQ(EncodePotItems(repeated_room.GetPotItems()), replacement_stream);
   repeated_room.MarkPotItemsDirty();
-  auto repeated_lookup = [&repeated_room,
-                          selected_room](int room_id) -> const Room* {
-    return room_id == static_cast<int>(selected_room) ? &repeated_room
-                                                      : nullptr;
-  };
-  ASSERT_TRUE(SaveAllPotItems(&reopened, static_cast<int>(kOracleRoomCount),
-                              repeated_lookup, &layout_)
-                  .ok());
+  const absl::Status repeat_status =
+      repeated_editor->SaveRoom(static_cast<int>(selected_room));
+  ASSERT_TRUE(repeat_status.ok()) << repeat_status.message();
+  EXPECT_FALSE(repeated_room.pot_items_dirty());
   ASSERT_TRUE(reopened.SaveToFile(save_settings).ok());
   EXPECT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
       << "Repeating the same semantic save changed the ROM bytes";
