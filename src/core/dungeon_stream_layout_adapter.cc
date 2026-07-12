@@ -6,6 +6,7 @@
 #include "absl/status/status.h"
 #include "rom/snes.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::core {
 namespace {
@@ -93,6 +94,16 @@ absl::StatusOr<zelda3::DungeonStreamLayout> ToDungeonStreamAllocatorLayout(
     if (begin >= end) {
       return absl::InvalidArgumentError(
           "Dungeon allocation range must be non-empty in PC space");
+    }
+    // Room::SaveSprites() still discovers physical stream bounds through the
+    // vanilla bank-09 hard end. Keep manifest-backed COW allocations inside
+    // that same boundary so a relocated stream remains readable on the next
+    // save. Layout-aware sprite discovery can relax this restriction later.
+    if (stream_type == DungeonStreamType::kSprites &&
+        end > static_cast<uint32_t>(zelda3::kSpritesDataEndExclusive)) {
+      return absl::InvalidArgumentError(
+          "Sprite allocation range extends beyond the legacy sprite data "
+          "boundary");
     }
     allocator_layout.allocation_ranges.push_back({begin, end});
   }

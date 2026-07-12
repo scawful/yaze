@@ -366,6 +366,10 @@ absl::StatusOr<DungeonStreamLayout> ParseDungeonStreamLayout(
     if (bank >= 0x80) {
       bank &= 0x7F;
     }
+    if (bank == 0x7E || bank == 0x7F) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s.pointer_bank must not use SNES WRAM bank 0x%02X", path, bank));
+    }
     layout.pointer_bank = static_cast<uint8_t>(bank);
 
     const uint32_t bank_start_snes = (bank << 16) | 0x8000;

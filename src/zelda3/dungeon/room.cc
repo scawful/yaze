@@ -416,19 +416,6 @@ int MeasureSpriteStreamSize(const std::vector<uint8_t>& rom_data,
   return std::max(0, cursor - sprite_address);
 }
 
-bool IsSpritePointerShared(const std::vector<uint8_t>& rom_data, int table_pc,
-                           int room_id, int sprite_address) {
-  for (int r = 0; r < kNumberOfRooms; ++r) {
-    if (r == room_id) {
-      continue;
-    }
-    if (ReadRoomSpriteAddressPc(rom_data, table_pc, r) == sprite_address) {
-      return true;
-    }
-  }
-  return false;
-}
-
 absl::Status RelocateDungeonStream(Rom* rom, int room_id,
                                    DungeonStreamKind expected_kind,
                                    const DungeonStreamLayout& layout,
@@ -1971,13 +1958,7 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
     return absl::OutOfRangeError("Sprite address out of range");
   }
 
-  const int hard_end =
-      std::min(static_cast<int>(rom_data.size()), kSpritesDataEndExclusive);
-  const int old_stream_size =
-      MeasureSpriteStreamSize(rom_data, old_sprite_address, hard_end);
   const uint8_t sort_mode = rom_data[old_sprite_address];
-  const bool old_pointer_shared = IsSpritePointerShared(
-      rom_data, sprite_pointer, room_id, old_sprite_address);
 
   const int write_pos = FindMaxUsedSpriteAddress(rom);
   const size_t required_size = 1u + encoded_bytes.size();
@@ -2007,13 +1988,6 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   const int ptr_off = sprite_pointer + (room_id * 2);
   RETURN_IF_ERROR(rom->WriteByte(ptr_off, snes_addr & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(ptr_off + 1, (snes_addr >> 8) & 0xFF));
-
-  if (!old_pointer_shared && old_stream_size > 0 &&
-      old_sprite_address + old_stream_size <=
-          static_cast<int>(rom_data.size())) {
-    RETURN_IF_ERROR(rom->WriteVector(
-        old_sprite_address, std::vector<uint8_t>(old_stream_size, 0x00)));
-  }
 
   return absl::OkStatus();
 }

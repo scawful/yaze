@@ -30,6 +30,10 @@ using json = nlohmann::json;
 
 constexpr uint32_t kRomSize = 0x100000;
 constexpr uint32_t kPotData = 0x00E000;
+constexpr uint32_t kObjectPointerTable = 0x070000;
+constexpr uint32_t kObjectData = 0x060000;
+constexpr uint32_t kSpritePointerTable = 0x048000;
+constexpr uint32_t kSpriteData = 0x049000;
 
 class TempManifest {
  public:
@@ -81,9 +85,66 @@ std::string PotManifestJson() {
       PcToSnes(kPotData + 0x40));
 }
 
+std::string ObjectManifestJson() {
+  return absl::StrFormat(
+      R"json({
+        "manifest_version": 3,
+        "hack_name": "object stream plan test",
+        "dungeon_stream_regions": {
+          "objects": {
+            "pointer_table": "0x%06X",
+            "pointer_count": 1,
+            "pointer_encoding": "long24",
+            "strategy": "copy_on_write",
+            "data_regions": [
+              {"start": "0x%06X", "end": "0x%06X"}
+            ],
+            "allocation_regions": [
+              {"start": "0x%06X", "end": "0x%06X"}
+            ]
+          }
+        }
+      })json",
+      PcToSnes(kObjectPointerTable), PcToSnes(kObjectData),
+      PcToSnes(kObjectData + 0x40), PcToSnes(kObjectData + 0x20),
+      PcToSnes(kObjectData + 0x40));
+}
+
+std::string SpriteManifestJson() {
+  return absl::StrFormat(
+      R"json({
+        "manifest_version": 3,
+        "hack_name": "sprite stream plan test",
+        "dungeon_stream_regions": {
+          "sprites": {
+            "pointer_table": "0x%06X",
+            "pointer_count": 1,
+            "pointer_encoding": "bank16",
+            "pointer_bank": "0x09",
+            "strategy": "copy_on_write",
+            "data_regions": [
+              {"start": "0x%06X", "end": "0x%06X"}
+            ],
+            "allocation_regions": [
+              {"start": "0x%06X", "end": "0x%06X"}
+            ]
+          }
+        }
+      })json",
+      PcToSnes(kSpritePointerTable), PcToSnes(kSpriteData),
+      PcToSnes(kSpriteData + 0x100), PcToSnes(kSpriteData + 0x80),
+      PcToSnes(kSpriteData + 0x100));
+}
+
 void WriteWord(Rom* rom, uint32_t address, uint16_t value) {
   rom->mutable_data()[address] = static_cast<uint8_t>(value & 0xFF);
   rom->mutable_data()[address + 1] = static_cast<uint8_t>((value >> 8) & 0xFF);
+}
+
+void WriteLong(Rom* rom, uint32_t address, uint32_t value) {
+  rom->mutable_data()[address] = static_cast<uint8_t>(value & 0xFF);
+  rom->mutable_data()[address + 1] = static_cast<uint8_t>((value >> 8) & 0xFF);
+  rom->mutable_data()[address + 2] = static_cast<uint8_t>((value >> 16) & 0xFF);
 }
 
 void SetPotPointer(Rom* rom, uint32_t room_id, uint32_t data_pc) {
@@ -106,6 +167,33 @@ Rom MakePotRom() {
   SetPotPointer(&rom, 1, kPotData);
   SetPotPointer(&rom, 2, kPotData + 3);
   SetPotPointer(&rom, 3, kPotData + 0x10);
+  rom.ClearDirty();
+  return rom;
+}
+
+Rom MakeObjectRom() {
+  Rom rom;
+  EXPECT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kRomSize, 0)).ok());
+  WriteLong(&rom, zelda3::kRoomObjectPointer, PcToSnes(kObjectPointerTable));
+  WriteLong(&rom, kObjectPointerTable, PcToSnes(kObjectData));
+  const std::vector<uint8_t> empty_stream = {
+      0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF,
+  };
+  std::copy(empty_stream.begin(), empty_stream.end(),
+            rom.mutable_data() + kObjectData);
+  rom.ClearDirty();
+  return rom;
+}
+
+Rom MakeSpriteRom() {
+  Rom rom;
+  EXPECT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kRomSize, 0)).ok());
+  WriteWord(&rom, zelda3::kRoomsSpritePointer,
+            static_cast<uint16_t>(PcToSnes(kSpritePointerTable) & 0xFFFF));
+  WriteWord(&rom, kSpritePointerTable,
+            static_cast<uint16_t>(PcToSnes(kSpriteData) & 0xFFFF));
+  rom.mutable_data()[kSpriteData] = 0x00;
+  rom.mutable_data()[kSpriteData + 1] = 0xFF;
   rom.ClearDirty();
   return rom;
 }
@@ -175,6 +263,60 @@ TEST(DungeonStreamPlanCommandsTest,
   EXPECT_EQ(report.at("issues")[0].at("room_id"), "0x003");
   EXPECT_EQ(rom.vector(), before);
   EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonStreamPlanCommandsTest, SupportsObjectAndSpriteInventories) {
+  DungeonStreamPlanCommandHandler handler;
+
+  Rom object_rom = MakeObjectRom();
+  const auto object_before = object_rom.vector();
+  TempManifest object_manifest(ObjectManifestJson());
+  std::string object_output;
+  const absl::Status object_status = handler.Run(
+      {"--kind=objects", "--manifest=" + object_manifest.path().string(),
+       "--format=json"},
+      &object_rom, &object_output);
+  ASSERT_TRUE(object_status.ok()) << object_status;
+  const json object_report = json::parse(object_output);
+  EXPECT_EQ(object_report.at("kind"), "objects");
+  EXPECT_EQ(object_report.at("pointer_encoding"), "long24");
+  EXPECT_EQ(object_report.at("unique_stream_count"), 1);
+  EXPECT_EQ(object_report.at("issue_count"), 0);
+  EXPECT_EQ(object_rom.vector(), object_before);
+  EXPECT_FALSE(object_rom.dirty());
+
+  Rom sprite_rom = MakeSpriteRom();
+  const auto sprite_before = sprite_rom.vector();
+  TempManifest sprite_manifest(SpriteManifestJson());
+  std::string sprite_output;
+  const absl::Status sprite_status = handler.Run(
+      {"--kind=sprites", "--manifest=" + sprite_manifest.path().string(),
+       "--format=json"},
+      &sprite_rom, &sprite_output);
+  ASSERT_TRUE(sprite_status.ok()) << sprite_status;
+  const json sprite_report = json::parse(sprite_output);
+  EXPECT_EQ(sprite_report.at("kind"), "sprites");
+  EXPECT_EQ(sprite_report.at("pointer_encoding"), "bank16");
+  EXPECT_EQ(sprite_report.at("pointer_bank"), "0x09");
+  EXPECT_EQ(sprite_report.at("unique_stream_count"), 1);
+  EXPECT_EQ(sprite_report.at("issue_count"), 0);
+  EXPECT_EQ(sprite_rom.vector(), sprite_before);
+  EXPECT_FALSE(sprite_rom.dirty());
+}
+
+TEST(DungeonStreamPlanCommandsTest, RejectsInvalidStreamKind) {
+  Rom rom = MakePotRom();
+  TempManifest manifest(PotManifestJson());
+  DungeonStreamPlanCommandHandler handler;
+  std::string output;
+
+  const absl::Status status =
+      handler.Run({"--kind=doors", "--manifest=" + manifest.path().string(),
+                   "--format=json"},
+                  &rom, &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_THAT(status.message(), HasSubstr("objects, sprites, pot_items"));
 }
 
 TEST(DungeonStreamPlanCommandsTest, RejectsWriteFlag) {

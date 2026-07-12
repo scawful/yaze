@@ -7,8 +7,11 @@
 #include <fstream>
 #include <string>
 
+#include "absl/strings/str_format.h"
+#include "core/dungeon_stream_layout_adapter.h"
 #include "gtest/gtest.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::core {
 
@@ -410,6 +413,79 @@ TEST(HackManifestTest, RejectsInvalidDungeonStreamPointerMetadata) {
         }
       })json"),
                             "must be in [1, 296]");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":0,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "must be in [1, 296]");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0xGG",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json"),
+                            "invalid hexadecimal value");
+
+  for (const char* bank : {"0x7E", "0x7F", "0xFE", "0xFF"}) {
+    ExpectManifestLoadFailure(ManifestWithDungeonStreams(absl::StrFormat(
+                                  R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"%s",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json",
+                                  bank)),
+                              "WRAM bank");
+  }
+}
+
+TEST(DungeonStreamLayoutAdapterTest,
+     RejectsSpriteAllocationBeyondLegacySaveBoundary) {
+  HackManifest manifest;
+  ASSERT_TRUE(manifest
+                  .LoadFromString(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":1,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json"))
+                  .ok());
+  const auto* layout =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(layout, nullptr);
+
+  const auto converted =
+      ToDungeonStreamAllocatorLayout(DungeonStreamType::kSprites, *layout);
+
+  ASSERT_FALSE(converted.ok());
+  EXPECT_EQ(converted.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(converted.status().message().find("legacy sprite data boundary"),
+            std::string::npos)
+      << converted.status();
+  EXPECT_LT(zelda3::kSpritesDataEndExclusive, SnesToPc(0x0A8000));
 }
 
 TEST(HackManifestTest, RejectsInvalidDungeonStreamRanges) {
