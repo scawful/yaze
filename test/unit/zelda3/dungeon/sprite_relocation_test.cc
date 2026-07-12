@@ -81,6 +81,7 @@ class SpriteRelocationTest : public ::testing::Test {
     for (int i = 0; i < count; ++i) {
       room->GetSprites().emplace_back(id_base + i, 5 + i, 6 + i, 0, 0);
     }
+    room->MarkSpritesDirty();
   }
 
   std::unique_ptr<Rom> rom_;
@@ -183,7 +184,7 @@ TEST_F(SpriteRelocationTest, RelocateSpriteData_PreservesSharedOldSlot) {
   EXPECT_EQ(rom_->data()[kSpritesData + 1], 0xFF);
 }
 
-TEST_F(SpriteRelocationTest, SaveSprites_FallsBackToRelocation) {
+TEST_F(SpriteRelocationTest, SaveSprites_InsufficientHeadroomFailsClosed) {
   SetAllRoomPointers(kSpritesData + 0x04);
   SetRoomPointer(0, kSpritesData);
   SetRoomPointer(1, kSpritesData + 0x02);
@@ -192,10 +193,13 @@ TEST_F(SpriteRelocationTest, SaveSprites_FallsBackToRelocation) {
 
   Room room(0, rom_.get());
   AddSprites(&room, 1, 0x55);
+  const auto before = rom_->vector();
   auto status = room.SaveSprites();
-  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
 
-  EXPECT_NE(GetRoomPointerPc(0), kSpritesData);
+  EXPECT_EQ(GetRoomPointerPc(0), kSpritesData);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room.sprites_dirty());
 }
 
 TEST_F(SpriteRelocationTest, SaveSprites_InPlaceStillWorks) {
@@ -215,16 +219,17 @@ TEST_F(SpriteRelocationTest, SaveSprites_InPlaceStillWorks) {
   EXPECT_EQ(rom_->data()[kSpritesData + 4], 0xFF);
 }
 
-TEST_F(SpriteRelocationTest, SaveSprites_RelocationRoundTrip) {
-  SetAllRoomPointers(kSpritesData + 0x04);
+TEST_F(SpriteRelocationTest, SaveSprites_InPlaceRoundTrip) {
+  SetAllRoomPointers(kSpritesData + 0x40);
   SetRoomPointer(0, kSpritesData);
-  SetRoomPointer(1, kSpritesData + 0x02);
+  SetRoomPointer(1, kSpritesData + 0x20);
   WriteSpriteStream(kSpritesData, 0x01, EncodeSpritePayload(0));
-  WriteSpriteStream(kSpritesData + 0x02, 0x00, EncodeSpritePayload(0));
+  WriteSpriteStream(kSpritesData + 0x20, 0x00, EncodeSpritePayload(0));
 
   Room room(0, rom_.get());
   room.GetSprites().emplace_back(0xA3, 10, 12, 0, 0);
   room.GetSprites().emplace_back(0x21, 14, 18, 0, 0);
+  room.MarkSpritesDirty();
   auto save_status = room.SaveSprites();
   ASSERT_TRUE(save_status.ok()) << save_status.message();
 
@@ -234,7 +239,7 @@ TEST_F(SpriteRelocationTest, SaveSprites_RelocationRoundTrip) {
   EXPECT_EQ(room.GetSprites()[1].id(), 0x21);
 }
 
-TEST_F(SpriteRelocationTest, SaveSprites_MultipleRelocations) {
+TEST_F(SpriteRelocationTest, SaveSprites_DoesNotRelocateMultipleRooms) {
   SetAllRoomPointers(kSpritesData + 0x08);
   SetRoomPointer(0, kSpritesData);
   SetRoomPointer(1, kSpritesData + 0x02);
@@ -245,16 +250,14 @@ TEST_F(SpriteRelocationTest, SaveSprites_MultipleRelocations) {
 
   Room room_a(0, rom_.get());
   AddSprites(&room_a, 1, 0x60);
-  ASSERT_TRUE(room_a.SaveSprites().ok());
-  const int a_ptr = GetRoomPointerPc(0);
+  EXPECT_EQ(room_a.SaveSprites().code(), absl::StatusCode::kResourceExhausted);
 
   Room room_b(1, rom_.get());
   AddSprites(&room_b, 2, 0x70);
-  ASSERT_TRUE(room_b.SaveSprites().ok());
-  const int b_ptr = GetRoomPointerPc(1);
+  EXPECT_EQ(room_b.SaveSprites().code(), absl::StatusCode::kResourceExhausted);
 
-  EXPECT_GT(a_ptr, kSpritesData);
-  EXPECT_GT(b_ptr, a_ptr);
+  EXPECT_EQ(GetRoomPointerPc(0), kSpritesData);
+  EXPECT_EQ(GetRoomPointerPc(1), kSpritesData + 0x02);
 }
 
 TEST_F(SpriteRelocationTest, RelocateSpriteData_RegionFull) {

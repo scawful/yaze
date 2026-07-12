@@ -41,8 +41,8 @@ void WriteBinaryFile(const std::filesystem::path& path,
                      const std::vector<uint8_t>& data) {
   std::filesystem::create_directories(path.parent_path());
   std::ofstream file(path, std::ios::binary | std::ios::trunc);
-  ASSERT_TRUE(file.is_open()) << "Failed to open file for writing: "
-                              << path.string();
+  ASSERT_TRUE(file.is_open())
+      << "Failed to open file for writing: " << path.string();
   file.write(reinterpret_cast<const char*>(data.data()),
              static_cast<std::streamsize>(data.size()));
   file.close();
@@ -50,8 +50,8 @@ void WriteBinaryFile(const std::filesystem::path& path,
 
 std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& path) {
   std::ifstream file(path, std::ios::binary);
-  EXPECT_TRUE(file.is_open()) << "Failed to open file for reading: "
-                              << path.string();
+  EXPECT_TRUE(file.is_open())
+      << "Failed to open file for reading: " << path.string();
   file.seekg(0, std::ios::end);
   const auto size = static_cast<size_t>(file.tellg());
   file.seekg(0, std::ios::beg);
@@ -93,6 +93,38 @@ TEST(RomFileManagerTest, BackupCopiesOnDiskRomNotInMemoryBuffer) {
   const auto source_data = ReadBinaryFile(rom_path);
   ASSERT_EQ(source_data.size(), original.size());
   EXPECT_EQ(source_data[0], 0xAA);
+}
+
+TEST(RomFileManagerTest, SaveRomAsWritesExactPathWithoutTouchingSource) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_rom_save_as"));
+
+  const auto source_path = temp.path() / "source.sfc";
+  const auto target_path = temp.path() / "chosen-name.sfc";
+  const std::vector<uint8_t> original(512 * 1024, 0xAA);
+  WriteBinaryFile(source_path, original);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(source_path.string()).ok());
+  ASSERT_TRUE(rom.WriteByte(0, 0xBB).ok());
+
+  RomFileManager manager(/*toast_manager=*/nullptr);
+  manager.SetBackupBeforeSave(false);
+  ASSERT_TRUE(manager.SaveRomAs(&rom, target_path.string()).ok());
+
+  EXPECT_EQ(rom.filename(), target_path.string());
+  EXPECT_EQ(ReadBinaryFile(source_path), original);
+  auto target = ReadBinaryFile(target_path);
+  ASSERT_EQ(target.size(), original.size());
+  EXPECT_EQ(target[0], 0xBB);
+
+  // Save As must not manufacture a timestamped sibling path.
+  size_t sfc_count = 0;
+  for (const auto& entry : std::filesystem::directory_iterator(temp.path())) {
+    if (entry.path().extension() == ".sfc") {
+      ++sfc_count;
+    }
+  }
+  EXPECT_EQ(sfc_count, 2u);
 }
 
 }  // namespace yaze::editor

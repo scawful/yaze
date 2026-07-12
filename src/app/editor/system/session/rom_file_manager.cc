@@ -93,8 +93,13 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
 
-  if (backup_before_save_) {
+  // Save As must not overwrite or back up the source ROM. If the requested
+  // target already exists, back up that target before replacing it.
+  if (backup_before_save_ && std::filesystem::exists(filename)) {
+    const std::string source_filename = rom->filename();
+    rom->set_filename(filename);
     auto backup_status = CreateBackup(rom);
+    rom->set_filename(source_filename);
     if (!backup_status.ok()) {
       if (toast_manager_) {
         toast_manager_->Show(
@@ -107,7 +112,7 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
 
   Rom::SaveSettings settings;
   settings.backup = false;
-  settings.save_new = true;
+  settings.save_new = false;
   settings.filename = filename;
   // settings.z3_save = true; // Deprecated
 
@@ -119,6 +124,9 @@ absl::Status RomFileManager::SaveRomAs(Rom* rom, const std::string& filename) {
   } else if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("ROM saved as: %s", filename),
                          ToastType::kSuccess);
+  }
+  if (status.ok()) {
+    rom->set_filename(filename);
   }
   return status;
 }
@@ -262,10 +270,9 @@ std::string RomFileManager::GenerateBackupFilename(
 
   std::filesystem::path backup_dir = GetBackupDirectory(original_filename);
 
-  std::string filename =
-      absl::StrFormat("%s_backup_%lld_%03lld%s", stem,
-                      static_cast<long long>(time_t),
-                      static_cast<long long>(ms_part), extension);
+  std::string filename = absl::StrFormat(
+      "%s_backup_%lld_%03lld%s", stem, static_cast<long long>(time_t),
+      static_cast<long long>(ms_part), extension);
   return (backup_dir / filename).string();
 }
 
@@ -295,7 +302,8 @@ std::vector<RomFileManager::BackupEntry> RomFileManager::ListBackups(
   std::filesystem::path backup_dir = GetBackupDirectory(rom_filename);
 
   std::error_code ec;
-  for (const auto& entry : std::filesystem::directory_iterator(backup_dir, ec)) {
+  for (const auto& entry :
+       std::filesystem::directory_iterator(backup_dir, ec)) {
     if (ec || !entry.is_regular_file()) {
       continue;
     }
@@ -360,8 +368,9 @@ absl::Status RomFileManager::PruneBackups(
     }
   }
 
-  for (size_t i = 0; i < backups.size() &&
-                     keep_paths.size() < static_cast<size_t>(backup_retention_count_);
+  for (size_t i = 0;
+       i < backups.size() &&
+       keep_paths.size() < static_cast<size_t>(backup_retention_count_);
        ++i) {
     keep_paths.insert(backups[i].path);
   }

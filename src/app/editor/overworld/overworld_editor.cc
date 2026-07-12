@@ -1266,6 +1266,7 @@ absl::Status OverworldEditor::Save() {
   if (core::FeatureFlags::get().overworld.kSaveOverworldProperties) {
     RETURN_IF_ERROR(overworld_.SaveMapProperties());
     RETURN_IF_ERROR(overworld_.SaveMusic());
+    RETURN_IF_ERROR(overworld_.SaveCustomOverworldData());
   }
   return absl::OkStatus();
 }

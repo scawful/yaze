@@ -10,9 +10,9 @@
 #include "absl/strings/ascii.h"
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/system/session/rom_file_manager.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/session/rom_file_manager.h"
 #include "core/hack_manifest.h"
 #include "core/project.h"
 #include "rom/rom.h"
@@ -208,13 +208,22 @@ absl::Status RomLifecycleManager::CheckRomOpenPolicy(Rom* rom) {
       editable_target));
 }
 
-absl::Status RomLifecycleManager::CheckRomWritePolicy(Rom* /*rom*/) {
+absl::Status RomLifecycleManager::CheckRomWritePolicy(
+    Rom* rom, const std::optional<std::string>& target_filename) {
   if (!project_ || !project_->project_opened()) {
     return absl::OkStatus();
   }
 
   const auto policy = project_->rom_metadata.write_policy;
-  const auto target_info = GetRomTargetInfo(project_, current_rom_path_);
+  const std::string target_path =
+      target_filename.has_value()
+          ? *target_filename
+          : (rom && !rom->filename().empty() ? rom->filename()
+                                             : current_rom_path_);
+  const std::string source_path =
+      rom && !rom->filename().empty() ? rom->filename() : current_rom_path_;
+  const auto target_info = GetRomTargetInfo(project_, target_path);
+  const auto source_info = GetRomTargetInfo(project_, source_path);
   if (target_info.matches_build_output) {
     if (policy == project::RomWritePolicy::kAllow) {
       return absl::OkStatus();
@@ -223,20 +232,19 @@ absl::Status RomLifecycleManager::CheckRomWritePolicy(Rom* /*rom*/) {
       toast_manager_->Show(
           absl::StrFormat(
               "ROM write blocked: '%s' is the project's build output",
-              target_info.loaded_path.empty() ? current_rom_path_
+              target_info.loaded_path.empty() ? target_path
                                               : target_info.loaded_path),
           ToastType::kError);
     }
     return absl::PermissionDeniedError(absl::StrFormat(
         "ROM write blocked: '%s' is the project's build output. Edit '%s' "
         "instead.",
-        target_info.loaded_path.empty() ? current_rom_path_
-                                        : target_info.loaded_path,
+        target_info.loaded_path.empty() ? target_path : target_info.loaded_path,
         GetEditableTargetPath(target_info)));
   }
 
-  if (target_info.matches_editable_target &&
-      !target_info.matches_build_output) {
+  if (source_info.matches_editable_target &&
+      !source_info.matches_build_output) {
     return absl::OkStatus();
   }
 
@@ -281,8 +289,29 @@ absl::Status RomLifecycleManager::CheckOracleRomSafetyPreSave(Rom* rom) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
 
-  if (!project_ || !project_->project_opened() ||
-      !project_->hack_manifest.loaded() ||
+  if (!project_ || !project_->project_opened()) {
+    return absl::OkStatus();
+  }
+
+  // An explicitly configured manifest is part of the project's save-safety
+  // contract. Never silently disable those guardrails when the file is missing
+  // or malformed.
+  if (!project_->hack_manifest_file.empty() &&
+      !project_->hack_manifest.loaded()) {
+    const std::string manifest_path =
+        project_->GetAbsolutePath(project_->hack_manifest_file);
+    if (toast_manager_) {
+      toast_manager_->Show(
+          absl::StrFormat(
+              "Save blocked: configured hack manifest is unavailable: %s",
+              manifest_path),
+          ToastType::kError);
+    }
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Configured hack manifest is missing or malformed: %s", manifest_path));
+  }
+
+  if (!project_->hack_manifest.loaded() ||
       !project_->hack_manifest.HasProjectRegistry()) {
     return absl::OkStatus();
   }

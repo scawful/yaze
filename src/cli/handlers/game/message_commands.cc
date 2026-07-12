@@ -1,5 +1,6 @@
 #include "cli/handlers/game/message_commands.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
@@ -32,6 +33,17 @@ bool IncludeExpanded(const std::string& range) {
 std::string BankLabel(editor::MessageBank bank) {
   return editor::MessageBankToString(bank);
 }
+
+std::vector<editor::MessageData> ReadExpandedMessages(const Rom& rom) {
+  const int start = editor::GetExpandedTextDataStart();
+  if (start < 0 || static_cast<size_t>(start) >= rom.size()) {
+    return {};
+  }
+  const int end = std::min(editor::GetExpandedTextDataEnd(),
+                           static_cast<int>(rom.size()) - 1);
+  return editor::ReadExpandedTextData(const_cast<uint8_t*>(rom.data()), start,
+                                      end);
+}
 }  // namespace
 
 // ===========================================================================
@@ -46,9 +58,8 @@ absl::Status MessageListCommandHandler::Execute(
     limit = 0;
   }
 
-  auto messages =
-      editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                              editor::kTextData);
+  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
+                                          editor::kTextData);
   if (limit > static_cast<int>(messages.size())) {
     limit = static_cast<int>(messages.size());
   }
@@ -83,13 +94,12 @@ absl::Status MessageReadCommandHandler::Execute(
   }
   int message_id = message_id_or.value();
 
-  auto messages =
-      editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                              editor::kTextData);
+  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
+                                          editor::kTextData);
   if (message_id < 0 || message_id >= static_cast<int>(messages.size())) {
-    return absl::NotFoundError(absl::StrFormat(
-        "Message ID %d not found (max: %d)", message_id,
-        static_cast<int>(messages.size()) - 1));
+    return absl::NotFoundError(
+        absl::StrFormat("Message ID %d not found (max: %d)", message_id,
+                        static_cast<int>(messages.size()) - 1));
   }
 
   const auto& msg = messages[message_id];
@@ -113,9 +123,8 @@ absl::Status MessageSearchCommandHandler::Execute(
     limit = 0;
   }
 
-  auto messages =
-      editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
-                              editor::kTextData);
+  auto messages = editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()),
+                                          editor::kTextData);
 
   formatter.BeginObject("Message Search Results");
   formatter.AddField("query", query);
@@ -167,7 +176,8 @@ absl::Status MessageEncodeCommandHandler::Execute(
   // Build hex string
   std::string hex_str;
   for (size_t i = 0; i < bytes.size(); ++i) {
-    if (i > 0) hex_str += " ";
+    if (i > 0)
+      hex_str += " ";
     hex_str += absl::StrFormat("%02X", bytes[i]);
   }
 
@@ -227,8 +237,7 @@ absl::Status MessageDecodeCommandHandler::Execute(
   std::string hex_byte;
   while (hex_stream >> hex_byte) {
     try {
-      bytes.push_back(
-          static_cast<uint8_t>(std::stoi(hex_byte, nullptr, 16)));
+      bytes.push_back(static_cast<uint8_t>(std::stoi(hex_byte, nullptr, 16)));
     } catch (const std::exception&) {
       return absl::InvalidArgumentError(
           absl::StrFormat("Invalid hex byte: '%s'", hex_byte));
@@ -281,7 +290,7 @@ absl::Status MessageImportOrgCommandHandler::Execute(
   }
 
   std::string content((std::istreambuf_iterator<char>(file)),
-                       std::istreambuf_iterator<char>());
+                      std::istreambuf_iterator<char>());
   file.close();
 
   auto messages = editor::ParseOrgContent(content);
@@ -299,7 +308,8 @@ absl::Status MessageImportOrgCommandHandler::Execute(
 
     std::string hex_str;
     for (size_t i = 0; i < bytes.size(); ++i) {
-      if (i > 0) hex_str += " ";
+      if (i > 0)
+        hex_str += " ";
       hex_str += absl::StrFormat("%02X", bytes[i]);
     }
 
@@ -400,8 +410,7 @@ absl::Status MessageExportBundleCommandHandler::Execute(
   }
 
   if (IncludeExpanded(range)) {
-    expanded = editor::ReadExpandedTextData(
-        const_cast<uint8_t*>(rom->data()), editor::GetExpandedTextDataStart());
+    expanded = ReadExpandedMessages(*rom);
   }
 
   auto status =
@@ -473,7 +482,8 @@ absl::Status MessageImportBundleCommandHandler::Execute(
       continue;
     }
 
-    ParsedEntry parsed{entry, editor::ParseMessageToDataWithDiagnostics(entry.text),
+    ParsedEntry parsed{entry,
+                       editor::ParseMessageToDataWithDiagnostics(entry.text),
                        editor::ValidateMessageLineWidths(entry.text)};
     if (!parsed.parse.ok()) {
       has_errors = true;
@@ -558,8 +568,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
 
     if (has_errors) {
       formatter.AddField("status", "error");
-      formatter.AddField("error",
-                          "Parse errors present; no changes applied");
+      formatter.AddField("error", "Parse errors present; no changes applied");
       formatter.AddField("parse_error_count", parse_error_count);
       formatter.AddField("error_count", error_count);
       formatter.EndObject();
@@ -605,9 +614,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
     }
 
     if (IncludeExpanded(range) && has_expanded_entries) {
-      auto expanded_messages = editor::ReadExpandedTextData(
-          const_cast<uint8_t*>(active_rom->data()),
-          editor::GetExpandedTextDataStart());
+      auto expanded_messages = ReadExpandedMessages(*active_rom);
       std::vector<std::string> expanded_texts;
       expanded_texts.reserve(expanded_messages.size());
       for (const auto& msg : expanded_messages) {
@@ -645,8 +652,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
 
     if (has_errors) {
       formatter.AddField("status", "error");
-      formatter.AddField("error",
-                          "Invalid message IDs; no changes applied");
+      formatter.AddField("error", "Invalid message IDs; no changes applied");
     } else {
       if (active_rom->dirty()) {
         auto save_status = active_rom->SaveToFile({.save_new = false});
@@ -683,7 +689,8 @@ absl::Status MessageWriteCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
   auto id_or = parser.GetInt("id");
-  if (!id_or.ok()) return id_or.status();
+  if (!id_or.ok())
+    return id_or.status();
   int msg_id = id_or.value();
 
   auto text = parser.GetString("text").value();
@@ -698,8 +705,7 @@ absl::Status MessageWriteCommandHandler::Execute(
   }
 
   // Read existing expanded messages to find the target
-  auto expanded = editor::ReadExpandedTextData(
-      const_cast<uint8_t*>(rom->data()), editor::GetExpandedTextDataStart());
+  auto expanded = ReadExpandedMessages(*rom);
 
   // Build the full message list, inserting/replacing at msg_id
   std::vector<std::string> all_texts;
@@ -721,7 +727,8 @@ absl::Status MessageWriteCommandHandler::Execute(
   auto status = editor::WriteExpandedTextData(
       rom, editor::GetExpandedTextDataStart(), editor::GetExpandedTextDataEnd(),
       all_texts);
-  if (!status.ok()) return status;
+  if (!status.ok())
+    return status;
 
   formatter.BeginObject("Message Write Result");
   formatter.AddField("id", msg_id);
@@ -812,8 +819,8 @@ absl::Status MessageExportAsmCommandHandler::Execute(
   }
 
   // Read messages from the specified region
-  auto messages = editor::ReadAllTextData(
-      const_cast<uint8_t*>(rom->data()), start);
+  auto messages =
+      editor::ReadAllTextData(const_cast<uint8_t*>(rom->data()), start);
 
   std::ofstream file(output_path);
   if (!file.is_open()) {
@@ -833,7 +840,8 @@ absl::Status MessageExportAsmCommandHandler::Execute(
                             msg.ContentsParsed.substr(0, 60));
     file << "db ";
     for (size_t i = 0; i < msg.Data.size(); ++i) {
-      if (i > 0) file << ", ";
+      if (i > 0)
+        file << ", ";
       file << absl::StrFormat("$%02X", msg.Data[i]);
     }
     file << ", $7F  ; terminator\n\n";

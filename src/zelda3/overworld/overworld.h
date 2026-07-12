@@ -242,7 +242,27 @@ constexpr int kNumTile16Individual = 4096;
 constexpr int Map32PerScreen = 256;
 constexpr int NumberOfMap16 = 3752;    // 4096
 constexpr int NumberOfMap16Ex = 4096;  // 4096
-constexpr int LimitOfMap32 = 8864;
+// Tile32 definitions are packed four-at-a-time into six bytes in each of the
+// four quadrant tables. Keep byte spans and definition capacities distinct:
+// the expanded table length is a byte count, not a Tile32 count.
+constexpr int kMap32DefinitionsPerPackedGroup = 4;
+constexpr int kMap32BytesPerPackedGroup = 6;
+constexpr int kMap32TileStorageBytesVanilla = 0x33F0;
+constexpr int kMap32TileStorageBytesExpanded = kMap32TileCountExpanded;
+
+constexpr int Map32DefinitionCapacityForStorageBytes(int storage_bytes) {
+  return storage_bytes <= 0 ? 0
+                            : (storage_bytes / kMap32BytesPerPackedGroup) *
+                                  kMap32DefinitionsPerPackedGroup;
+}
+
+constexpr int kMap32DefinitionCapacityVanilla =
+    Map32DefinitionCapacityForStorageBytes(kMap32TileStorageBytesVanilla);
+constexpr int kMap32DefinitionCapacityExpanded =
+    Map32DefinitionCapacityForStorageBytes(kMap32TileStorageBytesExpanded);
+
+// Compatibility alias for callers that still use the historical name.
+constexpr int LimitOfMap32 = kMap32DefinitionCapacityVanilla;
 constexpr int NumberOfOWSprites = 352;
 constexpr int NumberOfMap32 = Map32PerScreen * kNumOverworldMaps;
 constexpr int kNumMapsPerWorld = 0x40;
@@ -260,6 +280,17 @@ struct OverworldRomProfile {
   bool has_tail_map_expansion = false;
   int editable_map_count = kSpecialWorldMapIdStart + 0x20;
 };
+
+inline int Map32StorageBytesForProfile(const OverworldRomProfile& profile) {
+  return profile.has_expanded_tile32 ? kMap32TileStorageBytesExpanded
+                                     : kMap32TileStorageBytesVanilla;
+}
+
+inline int Map32DefinitionCapacityForProfile(
+    const OverworldRomProfile& profile) {
+  return Map32DefinitionCapacityForStorageBytes(
+      Map32StorageBytesForProfile(profile));
+}
 
 inline bool IsValidRomAddress(const Rom& rom, int address) {
   return address >= 0 && static_cast<size_t>(address) < rom.size();
@@ -507,6 +538,9 @@ class Overworld {
 
   /// @brief Save per-area background colors (v2+)
   absl::Status SaveAreaSpecificBGColors();
+
+  /// @brief Save all v2/v3 property tables using the ROM's current feature flags
+  absl::Status SaveCustomOverworldData();
 
   // ===========================================================================
   // Save Methods - Tile Definitions
