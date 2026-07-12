@@ -2,8 +2,8 @@
 
 ## v0.7.2
 
-**Type:** Post-0.7.1 Dungeon RC + Build/CI Hardening
-**Date:** 2026-07-11
+**Type:** Dungeon RC + Fail-Closed Save Safety + Build/CI Hardening
+**Date:** 2026-07-12
 
 ### 🏰 Dungeon RC Stabilization
 - Rendered dungeon object and sprite previews by default so selector browsing
@@ -30,6 +30,19 @@
   menu, covering the common eyedropper workflow without opening the Tile16
   editor first.
 
+### 🛡️ Fail-Closed Save Safety
+- Made multi-editor saves transactional across the complete ROM, so a late
+  validation, backup, or file-write failure rolls back the attempted save and
+  keeps the user's edits available to retry.
+- Preserved the selected Save As destination across ROM-hash, pot-item, and
+  ASM-conflict confirmations and rejected stale confirmations after switching
+  ROM sessions.
+- Made unsupported dungeon object, sprite, pot-item, and chest growth stop
+  with an actionable error rather than guessing relocation space or partially
+  rewriting shared streams.
+- Strengthened expanded-message, custom-overworld, palette, project-path,
+  manifest, and hash validation with vanilla and Oracle regression coverage.
+
 ### 🧱 Build & CI Stabilization
 - Fixed the WASM/browser build after the 0.7.1 editor reorg by excluding the stale `yaze_debug_inspector.cc` path that still referenced removed `PanelManager`-era editor APIs.
 - Added `project_graph_tool.cc` back to the WASM AI source list so `ProjectGraphTool` links correctly in browser builds.
@@ -53,6 +66,8 @@
 ### Deferred Follow-Up
 - Complete the 0.8.0 dungeon milestone: remaining rare-object parity, pit/block
   first-class encoders, and deeper BG1/BG2 overlay-stream validation.
+- Add manifest-backed copy-on-write allocation for shared dungeon streams so
+  safe growth can proceed after the 0.7.2 fail-closed containment release.
 - Refresh or remove the stale web debug inspector against the current post-reorg editor APIs.
 - Replace POSIX-shell-only project-action test scaffolding with a cross-platform test harness.
 

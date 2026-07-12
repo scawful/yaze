@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.7.2 (July 11, 2026)
+## 0.7.2 (July 12, 2026)
 
 ### Dungeon Editor Follow-through
 - Made room navigation collapse into a compact 2x2 grid in tighter layouts instead of squeezing into a thin inline strip.
@@ -27,6 +27,20 @@
 ### Overworld Follow-through
 - Added a canvas context-menu Tile16 sampling action for the ZScream-style
   right-click eyedropper workflow.
+
+### Save Safety and Project Reliability
+- Made coordinated editor saves whole-ROM transactional: a late serializer,
+  validation, backup, or disk-write failure now restores the in-memory ROM and
+  leaves dirty edits available for retry.
+- Preserved Save As destinations through ROM-hash, pot-item, and ASM-conflict
+  confirmations, bound pending saves to their originating ROM session, and
+  consumed confirmation bypasses safely.
+- Made dungeon object, sprite, pot-item, and chest saves fail closed on
+  unsupported growth or ambiguous shared-stream ownership instead of guessing
+  free space or leaving partial repacks behind.
+- Hardened expanded-message, Map32/custom-overworld, palette, manifest,
+  project-path, CRC32, and SHA-1 boundaries, including headered-ROM and
+  vanilla/Oracle round-trip regression coverage.
 
 ### Localization and Platform Reliability
 - Added the internationalization catalog pipeline and French localization.

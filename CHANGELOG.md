@@ -3,7 +3,7 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.7.2 (July 11, 2026)
+## 0.7.2 (July 12, 2026)
 - **Dungeon RC Stabilization**:
   - Persisted the latest dungeon save-domain follow-through for entrances and special objects.
   - Rendered dungeon object/sprite selector previews by default and kept workbench-local tools open for mixed Workbench/Window workflows.
@@ -17,12 +17,20 @@ High-level release summary. For detailed notes, see
     pushable-block capacity, and BG1/BG2 object-overlap ordering.
 - **Overworld Follow-through**:
   - Added a canvas context-menu Tile16 sampling action for the right-click eyedropper workflow.
+- **Save Safety and Project Reliability**:
+  - Made coordinated editor saves whole-ROM transactional so validation,
+    backup, or disk-write failures restore the ROM and leave edits retryable.
+  - Preserved Save As targets across confirmation prompts and made unsupported
+    dungeon stream growth fail closed instead of risking partial writes.
+  - Hardened project paths, manifests, hashes, expanded messages, palettes, and
+    custom-overworld save boundaries with focused regression coverage.
 - **Localization and Platform Reliability**:
   - Added the internationalization catalog pipeline and French localization.
   - Hardened file-dialog initialization plus session, asset, configuration,
     and CLI failure paths across supported desktop platforms.
 - **Build/CI and Release Follow-through**:
-  - Kept the post-0.7.1 preset build layout and release metadata aligned for the 0.7.2 RC branch.
+  - Kept the post-0.7.1 preset build layout and release metadata aligned for
+    the 0.7.2 release.
   - Continued WASM/browser, CLI wrapper, sanitizer, fork-PR, and Windows test
     hardening from the post-tag cleanup train.
 
