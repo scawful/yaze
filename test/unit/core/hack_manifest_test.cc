@@ -65,6 +65,22 @@ void WriteTextFile(const std::filesystem::path& path,
   file.close();
 }
 
+std::string ManifestWithDungeonStreams(const std::string& streams) {
+  return "{\"manifest_version\":2,\"dungeon_stream_regions\":" + streams + "}";
+}
+
+void ExpectManifestLoadFailure(const std::string& json,
+                               const std::string& message_fragment) {
+  HackManifest manifest;
+  const absl::Status status = manifest.LoadFromString(json);
+  EXPECT_FALSE(status.ok());
+  EXPECT_FALSE(manifest.loaded());
+  EXPECT_FALSE(manifest.HasDungeonStreamLayouts());
+  EXPECT_NE(std::string(status.message()).find(message_fragment),
+            std::string::npos)
+      << status;
+}
+
 }  // namespace
 
 TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
@@ -243,6 +259,268 @@ TEST(HackManifestTest, ParsesMessageLayout) {
   EXPECT_TRUE(manifest.IsExpandedMessage(0x1D1));
   EXPECT_FALSE(manifest.IsExpandedMessage(0x18C));
   EXPECT_FALSE(manifest.IsExpandedMessage(0x1D2));
+}
+
+TEST(HackManifestTest, ParsesDungeonStreamLayouts) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 2,
+  "dungeon_stream_regions": {
+    "objects": {
+      "pointer_table": "0x828000",
+      "pointer_count": 296,
+      "pointer_encoding": "long24",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start":"0xA98000","end":"0xAA8000"},
+        {"start":"0x2B8000","end":"0x2C8000"}
+      ],
+      "allocation_regions": [
+        {"start":"0xA9C000","end":"0xAA8000"}
+      ]
+    },
+    "sprites": {
+      "pointer_table": "0x038000",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x89",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start":"0x898000","end":"0x8A8000"}
+      ],
+      "allocation_regions": [
+        {"start":"0x89E000","end":"0x8A8000"}
+      ]
+    },
+    "pot_items": {
+      "pointer_table": "0x048000",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x01",
+      "strategy": "repack_all",
+      "data_regions": [
+        {"start":"0x018000","end":"0x028000"}
+      ],
+      "allocation_regions": [
+        {"start":"0x018000","end":"0x028000"}
+      ]
+    }
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.loaded());
+  ASSERT_TRUE(manifest.HasDungeonStreamLayouts());
+
+  const auto* objects =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kObjects);
+  ASSERT_NE(objects, nullptr);
+  EXPECT_EQ(objects->pointer_table, 0x028000);
+  EXPECT_EQ(objects->pointer_count, 296u);
+  EXPECT_EQ(objects->pointer_encoding, DungeonPointerEncoding::kLong24);
+  EXPECT_FALSE(objects->pointer_bank.has_value());
+  EXPECT_EQ(objects->strategy, DungeonWriteStrategy::kCopyOnWrite);
+  ASSERT_EQ(objects->data_regions.size(), 2u);
+  EXPECT_EQ(objects->data_regions[0].start, 0x298000);
+  EXPECT_EQ(objects->allocation_regions[0].start, 0x29C000);
+
+  const auto* sprites =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(sprites, nullptr);
+  EXPECT_EQ(sprites->pointer_encoding, DungeonPointerEncoding::kBank16);
+  ASSERT_TRUE(sprites->pointer_bank.has_value());
+  EXPECT_EQ(*sprites->pointer_bank, 0x09);
+
+  const auto* pot_items =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kPotItems);
+  ASSERT_NE(pot_items, nullptr);
+  EXPECT_EQ(pot_items->strategy, DungeonWriteStrategy::kRepackAll);
+  EXPECT_EQ(pot_items->allocation_regions[0].end, 0x028000);
+}
+
+TEST(HackManifestTest, DungeonStreamSectionIsOptional) {
+  HackManifest manifest;
+  ASSERT_TRUE(
+      manifest.LoadFromString(R"json({"manifest_version":2})json").ok());
+  EXPECT_TRUE(manifest.loaded());
+  EXPECT_FALSE(manifest.HasDungeonStreamLayouts());
+  EXPECT_EQ(manifest.GetDungeonStreamLayout(DungeonStreamType::kObjects),
+            nullptr);
+}
+
+TEST(HackManifestTest, RejectsMalformedDungeonStreamSectionTypes) {
+  ExpectManifestLoadFailure(
+      R"json({"manifest_version":2,"dungeon_stream_regions":[]})json",
+      "non-empty object");
+  ExpectManifestLoadFailure(
+      ManifestWithDungeonStreams(R"json({"objects":[]})json"),
+      "objects must be an object");
+  ExpectManifestLoadFailure(
+      ManifestWithDungeonStreams(R"json({"unknown_stream":{}})json"),
+      "unknown stream");
+}
+
+TEST(HackManifestTest, RejectsInvalidDungeonStreamPointerMetadata) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "pointer_count is required");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json"),
+                            "pointer_bank is required");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "pointer_bank":"0x29",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "pointer_bank is not allowed");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":297,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "must be in [1, 296]");
+}
+
+TEST(HackManifestTest, RejectsInvalidDungeonStreamRanges) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x7E8000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "WRAM bank");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[42],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "data_regions[0] must be an object");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "allocation_regions must be a non-empty array");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x020000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "mapped LoROM address");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x298000"}],
+          "allocation_regions":[{"start":"0x298000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "end > start");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[
+            {"start":"0x298000","end":"0x2A8000"},
+            {"start":"0x29C000","end":"0x2A8000"}
+          ],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "data_regions overlap");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x2B8000","end":"0x2C8000"}]
+        }
+      })json"),
+                            "not fully contained");
+}
+
+TEST(HackManifestTest, RejectsCrossStreamDungeonRangeOverlap) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        },
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x29",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x29E000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29E000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "pointer/data ranges overlap");
 }
 
 TEST(HackManifestTest, NormalizesMirroredAddressesOnLoad) {

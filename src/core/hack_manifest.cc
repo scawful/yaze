@@ -1,6 +1,7 @@
 #include "core/hack_manifest.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
@@ -95,6 +96,390 @@ uint32_t NormalizeSnesAddress(uint32_t address) {
   return address;
 }
 
+constexpr uint64_t kCanonicalLoRomSize = 0x400000;
+
+const char* DungeonStreamTypeToString(DungeonStreamType stream) {
+  switch (stream) {
+    case DungeonStreamType::kObjects:
+      return "objects";
+    case DungeonStreamType::kSprites:
+      return "sprites";
+    case DungeonStreamType::kPotItems:
+      return "pot_items";
+  }
+  return "unknown";
+}
+
+absl::StatusOr<uint32_t> ParseStrictHexValue(const Json& value,
+                                             const std::string& field,
+                                             uint32_t maximum) {
+  if (!value.is_string()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be a hexadecimal string", field));
+  }
+
+  const std::string input = value.get<std::string>();
+  size_t digits_begin = 0;
+  if (!input.empty() && input.front() == '$') {
+    digits_begin = 1;
+  } else if (input.size() >= 2 && input[0] == '0' &&
+             (input[1] == 'x' || input[1] == 'X')) {
+    digits_begin = 2;
+  }
+  if (digits_begin == input.size()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s has no hexadecimal digits", field));
+  }
+  for (size_t index = digits_begin; index < input.size(); ++index) {
+    if (!std::isxdigit(static_cast<unsigned char>(input[index]))) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s contains an invalid hexadecimal value '%s'", field, input));
+    }
+  }
+
+  try {
+    const uint64_t parsed =
+        std::stoull(input.substr(digits_begin), nullptr, 16);
+    if (parsed > maximum) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s value '%s' exceeds 0x%X", field, input, maximum));
+    }
+    return static_cast<uint32_t>(parsed);
+  } catch (const std::exception& exc) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid hexadecimal value for %s ('%s'): %s", field,
+                        input, exc.what()));
+  }
+}
+
+absl::StatusOr<uint32_t> ParseLoRomAddress(const Json& object,
+                                           const std::string& key,
+                                           const std::string& path) {
+  if (!object.contains(key)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s is required", path, key));
+  }
+
+  uint32_t address = 0;
+  ASSIGN_OR_RETURN(address, ParseStrictHexValue(object[key], path + "." + key,
+                                                /*maximum=*/0xFFFFFF));
+  address = NormalizeSnesAddress(address);
+  const uint8_t bank = static_cast<uint8_t>((address >> 16) & 0xFF);
+  if (bank == 0x7E || bank == 0x7F) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must not use SNES WRAM bank 0x%02X", path, key, bank));
+  }
+  if ((address & 0xFFFF) < 0x8000) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must be a mapped LoROM address (low word >= 0x8000)", path,
+        key));
+  }
+  if (NormalizeSnesAddress(PcToSnes(SnesToPc(address))) != address) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s is not convertible to a canonical LoROM address", path, key));
+  }
+  return address;
+}
+
+absl::StatusOr<uint32_t> ParsePointerCount(const Json& object,
+                                           const std::string& path) {
+  constexpr const char* kField = "pointer_count";
+  constexpr uint32_t kMaxDungeonPointerCount = 296;
+  if (!object.contains(kField)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s is required", path, kField));
+  }
+
+  const Json& value = object[kField];
+  uint64_t count = 0;
+  if (value.is_number_unsigned()) {
+    count = value.get<uint64_t>();
+  } else if (value.is_number_integer()) {
+    const int64_t signed_count = value.get<int64_t>();
+    if (signed_count <= 0) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s.%s must be greater than zero", path, kField));
+    }
+    count = static_cast<uint64_t>(signed_count);
+  } else {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s must be an integer", path, kField));
+  }
+
+  if (count == 0 || count > kMaxDungeonPointerCount) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must be in [1, %u]", path, kField, kMaxDungeonPointerCount));
+  }
+  return static_cast<uint32_t>(count);
+}
+
+absl::StatusOr<DungeonPointerEncoding> ParsePointerEncoding(
+    const Json& object, const std::string& path) {
+  constexpr const char* kField = "pointer_encoding";
+  if (!object.contains(kField) || !object[kField].is_string()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s must be 'long24' or 'bank16'", path, kField));
+  }
+  const std::string value = object[kField].get<std::string>();
+  if (value == "long24") {
+    return DungeonPointerEncoding::kLong24;
+  }
+  if (value == "bank16") {
+    return DungeonPointerEncoding::kBank16;
+  }
+  return absl::InvalidArgumentError(
+      absl::StrFormat("%s.%s has unknown encoding '%s'", path, kField, value));
+}
+
+absl::StatusOr<DungeonWriteStrategy> ParseWriteStrategy(
+    const Json& object, const std::string& path) {
+  constexpr const char* kField = "strategy";
+  if (!object.contains(kField) || !object[kField].is_string()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must be 'copy_on_write' or 'repack_all'", path, kField));
+  }
+  const std::string value = object[kField].get<std::string>();
+  if (value == "copy_on_write") {
+    return DungeonWriteStrategy::kCopyOnWrite;
+  }
+  if (value == "repack_all") {
+    return DungeonWriteStrategy::kRepackAll;
+  }
+  return absl::InvalidArgumentError(
+      absl::StrFormat("%s.%s has unknown strategy '%s'", path, kField, value));
+}
+
+struct NamedPcRange {
+  uint32_t start;
+  uint32_t end;
+  std::string name;
+};
+
+absl::Status ValidateDisjointRanges(std::vector<NamedPcRange> ranges,
+                                    const std::string& description) {
+  std::sort(ranges.begin(), ranges.end(),
+            [](const NamedPcRange& lhs, const NamedPcRange& rhs) {
+              return lhs.start < rhs.start ||
+                     (lhs.start == rhs.start && lhs.end < rhs.end);
+            });
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+
+  NamedPcRange active = ranges.front();
+  for (size_t index = 1; index < ranges.size(); ++index) {
+    const NamedPcRange& current = ranges[index];
+    if (current.start < active.end) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s overlap: %s conflicts with %s", description,
+                          current.name, active.name));
+    }
+    if (current.end > active.end) {
+      active = current;
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::vector<SnesAddressRange>> ParseAddressRanges(
+    const Json& object, const std::string& key, const std::string& path) {
+  const std::string field_path = path + "." + key;
+  if (!object.contains(key) || !object[key].is_array() || object[key].empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be a non-empty array", field_path));
+  }
+
+  std::vector<SnesAddressRange> ranges;
+  std::vector<NamedPcRange> pc_ranges;
+  ranges.reserve(object[key].size());
+  pc_ranges.reserve(object[key].size());
+  size_t index = 0;
+  for (const Json& range_json : object[key]) {
+    const std::string range_path =
+        absl::StrFormat("%s[%zu]", field_path, index);
+    if (!range_json.is_object()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s must be an object", range_path));
+    }
+
+    SnesAddressRange range;
+    ASSIGN_OR_RETURN(range.start,
+                     ParseLoRomAddress(range_json, "start", range_path));
+    ASSIGN_OR_RETURN(range.end,
+                     ParseLoRomAddress(range_json, "end", range_path));
+    const uint32_t pc_start = SnesToPc(range.start);
+    const uint32_t pc_end = SnesToPc(range.end);
+    if (range.end <= range.start || pc_end <= pc_start) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s must be a non-empty half-open range with end > start",
+          range_path));
+    }
+
+    ranges.push_back(range);
+    pc_ranges.push_back({pc_start, pc_end, range_path});
+    ++index;
+  }
+
+  RETURN_IF_ERROR(ValidateDisjointRanges(std::move(pc_ranges), field_path));
+  std::sort(ranges.begin(), ranges.end(),
+            [](const SnesAddressRange& lhs, const SnesAddressRange& rhs) {
+              return lhs.start < rhs.start;
+            });
+  return ranges;
+}
+
+bool PcRangeContains(const SnesAddressRange& outer,
+                     const SnesAddressRange& inner) {
+  return SnesToPc(outer.start) <= SnesToPc(inner.start) &&
+         SnesToPc(inner.end) <= SnesToPc(outer.end);
+}
+
+absl::StatusOr<DungeonStreamLayout> ParseDungeonStreamLayout(
+    DungeonStreamType stream, const Json& json) {
+  const std::string path = absl::StrFormat("dungeon_stream_regions.%s",
+                                           DungeonStreamTypeToString(stream));
+  if (!json.is_object()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be an object", path));
+  }
+
+  DungeonStreamLayout layout;
+  ASSIGN_OR_RETURN(layout.pointer_table,
+                   ParseLoRomAddress(json, "pointer_table", path));
+  ASSIGN_OR_RETURN(layout.pointer_count, ParsePointerCount(json, path));
+  ASSIGN_OR_RETURN(layout.pointer_encoding, ParsePointerEncoding(json, path));
+  ASSIGN_OR_RETURN(layout.strategy, ParseWriteStrategy(json, path));
+  ASSIGN_OR_RETURN(layout.data_regions,
+                   ParseAddressRanges(json, "data_regions", path));
+  ASSIGN_OR_RETURN(layout.allocation_regions,
+                   ParseAddressRanges(json, "allocation_regions", path));
+
+  if (layout.pointer_encoding == DungeonPointerEncoding::kBank16) {
+    if (!json.contains("pointer_bank")) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s.pointer_bank is required for bank16", path));
+    }
+    uint32_t bank = 0;
+    ASSIGN_OR_RETURN(
+        bank, ParseStrictHexValue(json["pointer_bank"], path + ".pointer_bank",
+                                  /*maximum=*/0xFF));
+    if (bank >= 0x80) {
+      bank &= 0x7F;
+    }
+    layout.pointer_bank = static_cast<uint8_t>(bank);
+
+    const uint32_t bank_start_snes = (bank << 16) | 0x8000;
+    const uint32_t bank_start_pc = SnesToPc(bank_start_snes);
+    const uint64_t bank_end_pc = static_cast<uint64_t>(bank_start_pc) + 0x8000;
+    for (const SnesAddressRange& range : layout.data_regions) {
+      if (SnesToPc(range.start) < bank_start_pc ||
+          SnesToPc(range.end) > bank_end_pc) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "%s.data_regions must stay within pointer_bank 0x%02X for "
+            "bank16 encoding",
+            path, bank));
+      }
+    }
+  } else if (json.contains("pointer_bank")) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.pointer_bank is not allowed for long24", path));
+  }
+
+  for (const SnesAddressRange& allocation : layout.allocation_regions) {
+    const bool contained =
+        std::any_of(layout.data_regions.begin(), layout.data_regions.end(),
+                    [&allocation](const SnesAddressRange& data) {
+                      return PcRangeContains(data, allocation);
+                    });
+    if (!contained) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s allocation range [0x%06X, 0x%06X) is not fully contained in "
+          "a data_region",
+          path, allocation.start, allocation.end));
+    }
+  }
+
+  const uint64_t pointer_width =
+      layout.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3 : 2;
+  const uint64_t table_start_pc = SnesToPc(layout.pointer_table);
+  const uint64_t table_size =
+      pointer_width * static_cast<uint64_t>(layout.pointer_count);
+  if (table_size > kCanonicalLoRomSize - table_start_pc) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s pointer table extends beyond canonical LoROM address space", path));
+  }
+
+  return layout;
+}
+
+absl::StatusOr<std::unordered_map<DungeonStreamType, DungeonStreamLayout>>
+ParseDungeonStreamLayouts(const Json& root) {
+  std::unordered_map<DungeonStreamType, DungeonStreamLayout> layouts;
+  if (!root.contains("dungeon_stream_regions")) {
+    return layouts;
+  }
+
+  const Json& section = root["dungeon_stream_regions"];
+  if (!section.is_object() || section.empty()) {
+    return absl::InvalidArgumentError(
+        "dungeon_stream_regions must be a non-empty object");
+  }
+
+  constexpr std::array<std::pair<const char*, DungeonStreamType>, 3> kStreams =
+      {{{"objects", DungeonStreamType::kObjects},
+        {"sprites", DungeonStreamType::kSprites},
+        {"pot_items", DungeonStreamType::kPotItems}}};
+  for (const auto& [key, value] : section.items()) {
+    (void)value;
+    const bool known =
+        std::any_of(kStreams.begin(), kStreams.end(),
+                    [&key](const auto& entry) { return key == entry.first; });
+    if (!known) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "dungeon_stream_regions contains unknown stream '%s'", key));
+    }
+  }
+
+  std::vector<NamedPcRange> occupied_ranges;
+  std::vector<NamedPcRange> allocation_ranges;
+  for (const auto& [key, stream] : kStreams) {
+    if (!section.contains(key)) {
+      continue;
+    }
+
+    DungeonStreamLayout layout;
+    ASSIGN_OR_RETURN(layout, ParseDungeonStreamLayout(stream, section[key]));
+
+    const uint32_t pointer_width =
+        layout.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3 : 2;
+    const uint32_t table_start_pc = SnesToPc(layout.pointer_table);
+    const uint32_t table_end_pc =
+        table_start_pc + pointer_width * layout.pointer_count;
+    occupied_ranges.push_back({table_start_pc, table_end_pc,
+                               absl::StrFormat("%s.pointer_table", key)});
+
+    for (size_t index = 0; index < layout.data_regions.size(); ++index) {
+      const auto& range = layout.data_regions[index];
+      occupied_ranges.push_back(
+          {SnesToPc(range.start), SnesToPc(range.end),
+           absl::StrFormat("%s.data_regions[%zu]", key, index)});
+    }
+    for (size_t index = 0; index < layout.allocation_regions.size(); ++index) {
+      const auto& range = layout.allocation_regions[index];
+      allocation_ranges.push_back(
+          {SnesToPc(range.start), SnesToPc(range.end),
+           absl::StrFormat("%s.allocation_regions[%zu]", key, index)});
+    }
+    layouts.emplace(stream, std::move(layout));
+  }
+
+  RETURN_IF_ERROR(ValidateDisjointRanges(std::move(occupied_ranges),
+                                         "dungeon stream pointer/data ranges"));
+  RETURN_IF_ERROR(ValidateDisjointRanges(std::move(allocation_ranges),
+                                         "dungeon stream allocation ranges"));
+  return layouts;
+}
+
 }  // namespace
 
 void HackManifest::Reset() {
@@ -111,6 +496,7 @@ void HackManifest::Reset() {
   sram_map_.clear();
   sram_variables_.clear();
   message_layout_ = MessageLayout{};
+  dungeon_stream_layouts_.clear();
   build_pipeline_ = BuildPipeline{};
   project_registry_ = ProjectRegistry{};
   oracle_progression_state_.reset();
@@ -137,8 +523,16 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
         std::string("Failed to parse manifest JSON: ") + exc.what());
   }
 
+  if (!root.is_object()) {
+    return absl::InvalidArgumentError("Hack manifest root must be an object");
+  }
+
   manifest_version_ = root.value("manifest_version", 0);
   hack_name_ = root.value("hack_name", "");
+
+  std::unordered_map<DungeonStreamType, DungeonStreamLayout>
+      dungeon_stream_layouts;
+  ASSIGN_OR_RETURN(dungeon_stream_layouts, ParseDungeonStreamLayouts(root));
 
   // Build pipeline
   if (root.contains("build_pipeline")) {
@@ -286,6 +680,7 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
     }
   }
 
+  dungeon_stream_layouts_ = std::move(dungeon_stream_layouts);
   loaded_ = true;
   return absl::OkStatus();
 }
@@ -481,6 +876,12 @@ std::string HackManifest::GetSramVariableName(uint32_t address) const {
 bool HackManifest::IsExpandedMessage(uint16_t message_id) const {
   return message_id >= message_layout_.first_expanded_id &&
          message_id <= message_layout_.last_expanded_id;
+}
+
+const DungeonStreamLayout* HackManifest::GetDungeonStreamLayout(
+    DungeonStreamType stream) const {
+  const auto iter = dungeon_stream_layouts_.find(stream);
+  return iter == dungeon_stream_layouts_.end() ? nullptr : &iter->second;
 }
 
 // ============================================================================

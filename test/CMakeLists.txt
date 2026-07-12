@@ -188,6 +188,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
     unit/cli/dungeon_minecart_audit_test.cc
     unit/cli/dungeon_oracle_preflight_test.cc
@@ -326,6 +327,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
+    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
     unit/zelda3/dungeon/dimension_cross_validation_test.cc
@@ -537,6 +539,8 @@ if(YAZE_BUILD_TESTS)
     unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc
+    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
+    unit/cli/dungeon_stream_plan_commands_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
