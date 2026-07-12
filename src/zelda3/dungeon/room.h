@@ -1131,9 +1131,14 @@ absl::Status SaveAllChests(Rom* rom, int room_count,
 
 // Save pot items for all rooms. Preserves ROM data for rooms not loaded.
 absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms);
+absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms,
+                             const DungeonStreamLayout* repack_layout);
 absl::Status SaveAllPotItems(
     Rom* rom, int room_count,
     const std::function<const Room*(int)>& room_lookup);
+absl::Status SaveAllPotItems(Rom* rom, int room_count,
+                             const std::function<const Room*(int)>& room_lookup,
+                             const DungeonStreamLayout* repack_layout);
 
 // RoomEffect names defined in room.cc to avoid static initialization order issues
 extern const std::string RoomEffect[8];

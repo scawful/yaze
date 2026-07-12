@@ -151,10 +151,42 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
 }
 
 std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
-    const Rom* rom, const DungeonRoomStore& rooms) {
+    const project::YazeProject* project, const Rom* rom,
+    const DungeonRoomStore& rooms) {
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
   if (rom == nullptr || !rom->is_loaded()) {
     return ranges;
+  }
+
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    if (room.pot_items_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (!any_dirty) {
+    return ranges;
+  }
+
+  if (project != nullptr && project->hack_manifest.loaded()) {
+    const auto* layout = project->hack_manifest.GetDungeonStreamLayout(
+        core::DungeonStreamType::kPotItems);
+    if (layout != nullptr &&
+        layout->strategy == core::DungeonWriteStrategy::kRepackAll) {
+      for (const auto& range : layout->allocation_regions) {
+        ranges.emplace_back(yaze::SnesToPc(range.start),
+                            yaze::SnesToPc(range.end));
+      }
+      const uint32_t pointer_width =
+          layout->pointer_encoding == core::DungeonPointerEncoding::kLong24
+              ? 3u
+              : 2u;
+      const uint32_t pointer_table_pc = yaze::SnesToPc(layout->pointer_table);
+      ranges.emplace_back(
+          pointer_table_pc,
+          pointer_table_pc + layout->pointer_count * pointer_width);
+      return ranges;
+    }
   }
 
   const auto& rom_data = rom->vector();
@@ -181,6 +213,34 @@ std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
   return ranges;
 }
 
+absl::Status SaveAllPotItemsForProject(const project::YazeProject* project,
+                                       Rom* rom, DungeonRoomStore& rooms) {
+  std::optional<zelda3::DungeonStreamLayout> repack_layout;
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    if (room.pot_items_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (any_dirty && project != nullptr && project->hack_manifest.loaded()) {
+    const auto* manifest_layout = project->hack_manifest.GetDungeonStreamLayout(
+        core::DungeonStreamType::kPotItems);
+    if (manifest_layout != nullptr &&
+        manifest_layout->strategy == core::DungeonWriteStrategy::kRepackAll) {
+      ASSIGN_OR_RETURN(
+          zelda3::DungeonStreamLayout allocator_layout,
+          core::ToDungeonStreamAllocatorLayout(
+              core::DungeonStreamType::kPotItems, *manifest_layout));
+      repack_layout = std::move(allocator_layout);
+    }
+  }
+
+  return zelda3::SaveAllPotItems(
+      rom, static_cast<int>(rooms.size()),
+      [&rooms](int room_id) { return rooms.GetIfMaterialized(room_id); },
+      repack_layout.has_value() ? &*repack_layout : nullptr);
+}
+
 absl::Status ValidatePotItemManifestConflicts(
     const project::YazeProject* project, Rom* rom,
     const DungeonRoomStore& rooms, absl::string_view save_scope,
@@ -188,7 +248,7 @@ absl::Status ValidatePotItemManifestConflicts(
   if (project == nullptr || !project->hack_manifest.loaded()) {
     return absl::OkStatus();
   }
-  const auto ranges = CollectDirtyPotItemWriteRanges(rom, rooms);
+  const auto ranges = CollectDirtyPotItemWriteRanges(project, rom, rooms);
   if (ranges.empty()) {
     return absl::OkStatus();
   }
@@ -396,9 +456,8 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSavePotItems) {
-    auto status = zelda3::SaveAllPotItems(
-        rom_, static_cast<int>(rooms_.size()),
-        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); });
+    auto status =
+        SaveAllPotItemsForProject(dependencies_.project, rom_, rooms_);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save pot items: %s",
                 status.message().data());
@@ -584,7 +643,8 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
   // Pot items are saved after room-local streams but still participate in the
   // same whole-ROM transaction and manifest preflight.
   if (flags.kSavePotItems) {
-    auto pot_ranges = CollectDirtyPotItemWriteRanges(rom_, rooms_);
+    auto pot_ranges =
+        CollectDirtyPotItemWriteRanges(dependencies_.project, rom_, rooms_);
     ranges.insert(ranges.end(), pot_ranges.begin(), pot_ranges.end());
   }
 
@@ -644,9 +704,8 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           [this](int id) { return rooms_.GetIfMaterialized(id); }));
     }
     if (flags.kSavePotItems) {
-      RETURN_IF_ERROR(zelda3::SaveAllPotItems(
-          rom_, static_cast<int>(rooms_.size()),
-          [this](int id) { return rooms_.GetIfMaterialized(id); }));
+      RETURN_IF_ERROR(
+          SaveAllPotItemsForProject(dependencies_.project, rom_, rooms_));
     }
     if (flags.kSaveEntrances) {
       RETURN_IF_ERROR(zelda3::SaveAllDungeonEntrances(rom_, entrances_));
