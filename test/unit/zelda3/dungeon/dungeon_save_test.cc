@@ -618,6 +618,45 @@ TEST_F(DungeonSaveTest,
   EXPECT_FALSE(room_->sprites_dirty());
 }
 
+TEST_F(DungeonSaveTest, SaveSprites_CopyOnWritePreservesSmallAndBigKeyMarkers) {
+  constexpr int kOldStreamPc = 0x49000;
+  constexpr int kRelocatedStreamPc = 0x49200;
+  const std::vector<uint8_t> sprite_stream = {
+      0x01,              // sort byte
+      0x0A, 0x0A, 0x10,  // sprite with small-key drop
+      0xFE, 0x00, 0xE4,  // hidden small-key marker
+      0x12, 0x0E, 0x21,  // sprite with big-key drop
+      0xFD, 0x00, 0xE4,  // hidden big-key marker
+      0xFF,
+  };
+  ASSERT_TRUE(rom_->WriteVector(kOldStreamPc, sprite_stream).ok());
+  SetSpriteRoomPointer(1, kOldStreamPc);  // Force alias-safe COW.
+  room_->LoadSprites();
+  ASSERT_EQ(room_->GetSprites().size(), 2u);
+  ASSERT_EQ(room_->GetSprites()[0].key_drop(), 1);
+  ASSERT_EQ(room_->GetSprites()[1].key_drop(), 2);
+  room_->MarkSpritesDirty();
+  const auto old_stream =
+      std::vector<uint8_t>(rom_->data() + kOldStreamPc,
+                           rom_->data() + kOldStreamPc + sprite_stream.size());
+  const auto layout = MakeSpriteLayout();
+
+  const auto status = room_->SaveSprites(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetSpriteRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetSpriteRoomPointer(1), kOldStreamPc);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom_->data() + kOldStreamPc));
+  EXPECT_TRUE(std::equal(sprite_stream.begin(), sprite_stream.end(),
+                         rom_->data() + kRelocatedStreamPc));
+
+  room_->LoadSprites();
+  ASSERT_EQ(room_->GetSprites().size(), 2u);
+  EXPECT_EQ(room_->GetSprites()[0].key_drop(), 1);
+  EXPECT_EQ(room_->GetSprites()[1].key_drop(), 2);
+}
+
 TEST_F(DungeonSaveTest,
        SaveSprites_OverlappingSuffixDetachesWithoutMutatingOwnerStream) {
   constexpr int kOwnerStreamPc = 0x49000;

@@ -1118,7 +1118,9 @@ absl::Status SaveAllCollision(Rom* rom, int room_count,
 // Scan all room sprite pointers and return the highest used PC address end.
 int FindMaxUsedSpriteAddress(Rom* rom);
 
-// Relocate a room's sprite payload into free tail space and update its pointer.
+// Legacy compatibility helper: relocate a room's sprite payload into free tail
+// space and update its pointer. The old stream is deliberately preserved;
+// manifest-backed saves should use DungeonStreamAllocator instead.
 absl::Status RelocateSpriteData(Rom* rom, int room_id,
                                 const std::vector<uint8_t>& encoded_bytes);
 
