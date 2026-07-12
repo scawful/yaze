@@ -433,11 +433,15 @@ ParseDungeonStreamLayouts(const Json& root) {
       {{{"objects", DungeonStreamType::kObjects},
         {"sprites", DungeonStreamType::kSprites},
         {"pot_items", DungeonStreamType::kPotItems}}};
-  for (const auto& [key, value] : section.items()) {
-    (void)value;
-    const bool known =
-        std::any_of(kStreams.begin(), kStreams.end(),
-                    [&key](const auto& entry) { return key == entry.first; });
+  for (const auto& item : section.items()) {
+    const auto& key = item.key();
+    bool known = false;
+    for (const auto& entry : kStreams) {
+      if (key == entry.first) {
+        known = true;
+        break;
+      }
+    }
     if (!known) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "dungeon_stream_regions contains unknown stream '%s'", key));
