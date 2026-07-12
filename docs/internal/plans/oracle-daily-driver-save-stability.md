@@ -1,9 +1,9 @@
 # Oracle Daily-Driver Save Stability
 
-**Status:** ACTIVE - Wave 1 implemented and locally verified
+**Status:** ACTIVE - Wave 1 published; Wave 2 object/sprite COW implemented
 **Owner (Agent ID):** CODEX
 **Created:** 2026-07-11
-**Last Reviewed:** 2026-07-11
+**Last Reviewed:** 2026-07-12
 **Next Review:** 2026-07-18
 **Coordination:** AFS task `task_20260711T144152Z_18414`
 
@@ -28,8 +28,9 @@ not move all remaining dungeon or overworld polish into the `0.7.2` release.
   saves. A failure must preserve every dirty flag needed for a retry.
 - Never infer free space from runs of `00` or `FF`. Future relocation may use
   only allocator-owned ranges declared by the ROM profile/project manifest.
-- Shared or over-capacity dungeon streams fail without mutation until copy-on-
-  write support lands.
+- Shared or over-capacity dungeon streams relocate only when the manifest
+  grants an explicit copy-on-write layout; otherwise they fail without
+  mutation.
 - Keep OOS autosave, dungeon-map saving, and graphics-sheet saving disabled
   during the guarded beta.
 
@@ -57,15 +58,18 @@ not move all remaining dungeon or overworld polish into the `0.7.2` release.
 
 ### Wave 2 - Dungeon copy-on-write allocator
 
-1. Inventory object, sprite, and pot streams by physical address, size, bank,
-   aliases, and owners; reconcile candidate ranges with the OOS manifest.
-2. Build a deterministic allocator that produces and validates an immutable
-   write plan before changing any byte.
-3. Detach and relocate shared/overflowing object streams, including object and
-   door pointer updates.
-4. Deterministically repack all pot pointers/streams inside a declared region.
-5. Detach and relocate sprite streams inside declared bank `$09` capacity.
-6. Add `z3ed` dry-run diagnostics for planned moves, aliases, and free space.
+1. [x] Inventory object, sprite, and pot streams by physical address, size,
+   bank, aliases, and owners; reconcile candidate ranges with the OOS
+   manifest.
+2. [x] Build a deterministic allocator that produces and validates an
+   immutable write plan before changing any byte.
+3. [x] Detach and relocate shared/overflowing object streams, including object
+   and door pointer updates.
+4. [ ] Deterministically repack all pot pointers/streams inside a declared
+   region.
+5. [x] Detach and relocate sprite streams inside declared bank `$09` capacity.
+6. [x] Add `z3ed` dry-run diagnostics for planned moves, aliases, and free
+   space.
 
 **Estimate:** 4-5 full-time weeks for an allocator beta; 6-8 full-time weeks
 including OOS soak and emulator verification. At 10-15 hours/week, plan on
@@ -121,3 +125,34 @@ publishing the safety PR, also require:
   configured manifest and expected ROM hash.
 - OOS smoke: D4 structural checks and all four required D6 track rooms pass;
   strict readiness still records only the known D3 content gap.
+
+### 2026-07-12 Wave 2 inventory snapshot
+
+- PR #70 follow-up commit `dac5cccf` closes Windows path-test failures and
+  clamps the previously unbounded tails of all five ZScream object sections,
+  pot data at PC `0x00E6B2`, and sprite data at PC `0x04EC9F` (exclusive).
+- OOS objects: 285 unique streams and one 12-room empty-stream alias group.
+  ZScream section 5, PC `[0x148000, 0x150000)`, is unused and is the first
+  proposed manifest-owned object COW arena (32 KiB).
+- OOS sprites: 260 unique streams; 37 rooms share the empty stream. Used data
+  ends at PC `0x04E99A`, leaving 773 bytes before the exclusive hard end.
+  Sprite serialization now preserves hidden small/big-key drop markers during
+  in-place and COW saves.
+- OOS pot items: 158 unique streams; 139 rooms share the empty stream. Used
+  data ends at PC `0x00E6A9`, leaving only 9 bytes (three records). Pot growth
+  beyond that requires a full deterministic repack or an explicit ASM/layout
+  expansion decision.
+- The manifest contract separates ranges that may contain existing streams
+  from ranges explicitly owned for new allocations. The planner may derive
+  free intervals only inside those declared allocation ranges; it never scans
+  for runs of `00` or `FF`.
+- Object and sprite saves detach exact aliases plus suffix/interior overlaps,
+  respect manifest data boundaries, and apply CRC-guarded plans inside an
+  exact write fence before clearing dirty state.
+- The read-only `z3ed dungeon-stream-plan` command inventories the current OOS
+  ROM as 296/296 valid object, sprite, and pot-item entries with zero parse
+  issues. The live run left both editable and patched ROM hashes unchanged.
+- The focused manifest, allocator, dungeon-save, sprite-relocation, CLI, and
+  editor-persistence regression set passes 142/142 tests.
+- Pot items remain `repack_all` and fail closed for growth; publishing the OOS
+  manifest-generator counterpart is also still pending.
