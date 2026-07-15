@@ -81,9 +81,10 @@ TEST(DungeonBlockCodecTest, EncodeRoundTripsIdentityForOriginLayerZero) {
   EXPECT_EQ(roundtripped.layer, entry.layer);
 }
 
-TEST(DungeonBlockCodecTest, EncodeRoundTripsHighPyAndLayerOne) {
-  // The combined edge case: a block in BG1 (layer=1) at the high-py end of
-  // the room. Round-trip must hold for the previously-buggy regions.
+TEST(DungeonBlockCodecTest, EncodeRoundTripsHighPyAndLowerLayer) {
+  // The combined edge case: a block using the lower/BG2 selector (layer=1) at
+  // the high-py end of the room. Round-trip must hold for the previously-buggy
+  // regions.
   PushableBlockEntry entry;
   entry.room_id = 0x010B;
   entry.px = 5;

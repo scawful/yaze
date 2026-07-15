@@ -25,7 +25,7 @@ struct ObjectStorageMutationResult {
 // Reassigns the selected objects' stored placement value. Room-stream objects
 // are removed from their old stream and appended to the target stream, matching
 // the editor's z-order operation. Torches and pushable blocks stay in place and
-// interpret values 0/1 as their special-table background selector. A value of 2
+// interpret values 0/1 as their special-table layer selector. A value of 2
 // is rejected atomically when any selected object uses a special table.
 inline absl::StatusOr<ObjectStorageMutationResult> ReassignObjectStorage(
     std::vector<RoomObject>& objects, const std::vector<size_t>& indices,
@@ -47,10 +47,11 @@ inline absl::StatusOr<ObjectStorageMutationResult> ReassignObjectStorage(
 
   bool room_stream_changed = false;
   for (size_t index = 0; index < objects.size(); ++index) {
-    if (selected[index] && UsesSpecialBackgroundSelector(objects[index]) &&
+    if (selected[index] && UsesSpecialLayerSelector(objects[index]) &&
         target_value == 2) {
       return absl::InvalidArgumentError(
-          "Torches and pushable blocks only support BG1/BG2 targets");
+          "Torches and pushable blocks only support upper/lower layer "
+          "selector values 0/1");
     }
     if (selected[index] && objects[index].GetLayerValue() != target_value) {
       result.changed_old_indices.push_back(index);
@@ -69,7 +70,7 @@ inline absl::StatusOr<ObjectStorageMutationResult> ReassignObjectStorage(
 
   std::vector<RoomObject> reordered = objects;
   for (size_t index = 0; index < objects.size(); ++index) {
-    if (selected[index] && UsesSpecialBackgroundSelector(objects[index])) {
+    if (selected[index] && UsesSpecialLayerSelector(objects[index])) {
       reordered[index].layer_ =
           static_cast<RoomObject::LayerType>(target_value);
     }
@@ -82,7 +83,7 @@ inline absl::StatusOr<ObjectStorageMutationResult> ReassignObjectStorage(
   if (room_stream_changed) {
     for (size_t index = 0; index < objects.size(); ++index) {
       RoomObject object = objects[index];
-      if (UsesSpecialBackgroundSelector(object)) {
+      if (UsesSpecialLayerSelector(object)) {
         continue;
       }
 

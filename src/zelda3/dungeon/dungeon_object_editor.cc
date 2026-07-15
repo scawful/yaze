@@ -467,9 +467,10 @@ absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
     if (index >= objects.size()) {
       continue;
     }
-    if (new_layer == 2 && UsesSpecialBackgroundSelector(objects[index])) {
+    if (new_layer == 2 && UsesSpecialLayerSelector(objects[index])) {
       return absl::InvalidArgumentError(
-          "Torches and pushable blocks only support BG1/BG2 targets");
+          "Torches and pushable blocks only support upper/lower layer "
+          "selector values 0/1");
     }
     change_needed |= objects[index].GetLayerValue() != new_layer;
   }
@@ -1680,7 +1681,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
       const bool draws_to_both_bgs =
           uses_room_stream && GetObjectLayerSemantics(obj).draws_to_both_bgs;
       gui::SectionHeader(ICON_MD_LAYERS,
-                         uses_room_stream ? "Object Stream" : "Background",
+                         uses_room_stream ? "Object Stream" : "Special Layer",
                          theme.text_info);
       bool storage_changed = false;
       if (gui::BeginPropertyTable("##LayerProps")) {
@@ -1700,13 +1701,13 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("%s", uses_room_stream ? "Stream" : "Draws To");
+        ImGui::Text("%s", uses_room_stream ? "Stream" : "Selector");
         ImGui::TableNextColumn();
         int layer = obj.GetLayerValue();
         ImGui::SetNextItemWidth(-1);
         const char* choices = uses_room_stream
                                   ? "Primary\0BG2 overlay\0BG1 overlay\0"
-                                  : "BG1\0BG2\0";
+                                  : "Upper layer (BG1)\0Lower layer (BG2)\0";
         if (ImGui::Combo("##Layer", &layer, choices)) {
           if (obj.GetLayerValue() != layer) {
             storage_changed = ChangeObjectLayer(obj_idx, layer).ok();
@@ -1776,22 +1777,23 @@ void DungeonObjectEditor::DrawPropertyUI() {
     if (has_special_table_object) {
       gui::SectionHeader(
           ICON_MD_LAYERS,
-          has_room_stream_object ? "Batch Placement" : "Batch Background",
+          has_room_stream_object ? "Batch Placement" : "Batch Special Layer",
           theme.text_info);
       if (has_room_stream_object) {
         ImGui::TextWrapped(
             "Mixed selection: values apply as object streams to room objects "
-            "and background targets to torches/blocks.");
+            "and special layer selectors to torches/blocks.");
       }
-      static int batch_background = 0;
-      batch_background = std::clamp(batch_background, 0, 1);
+      static int batch_special_layer = 0;
+      batch_special_layer = std::clamp(batch_special_layer, 0, 1);
       ImGui::SetNextItemWidth(-1);
       const char* choices = has_room_stream_object
-                                ? "Primary / BG1\0BG2 overlay / BG2\0"
-                                : "BG1\0BG2\0";
-      if (ImGui::Combo("##BatchBackground", &batch_background, choices)) {
+                                ? "Primary / Upper layer (BG1)\0BG2 overlay / "
+                                  "Lower layer (BG2)\0"
+                                : "Upper layer (BG1)\0Lower layer (BG2)\0";
+      if (ImGui::Combo("##BatchSpecialLayer", &batch_special_layer, choices)) {
         BatchChangeObjectLayer(selection_state_.selected_objects,
-                               batch_background);
+                               batch_special_layer);
       }
     } else {
       gui::SectionHeader(ICON_MD_LAYERS, "Batch Object Stream",

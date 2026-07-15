@@ -18,6 +18,7 @@
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 
 namespace yaze::editor {
 
@@ -446,7 +447,7 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       const auto& object = objects[*hovered_index];
       std::string object_name = zelda3::GetObjectName(object.id_);
       int subtype = zelda3::GetObjectSubtype(object.id_);
-      int layer = object.GetLayerValue();
+      const int layer = object.GetLayerValue();
 
       // Get subtype name
       const char* subtype_names[] = {"Unknown", "Type 1", "Type 2", "Type 3"};
@@ -459,7 +460,17 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       tooltip += " (" + std::string(subtype_name) + ")";
       tooltip += "\n";
       tooltip += "ID: 0x" + absl::StrFormat("%03X", object.id_);
-      tooltip += " | Layer: " + std::to_string(layer + 1);
+      if (zelda3::UsesRoomObjectStream(object)) {
+        static constexpr const char* kStreamNames[] = {"Primary", "BG2 overlay",
+                                                       "BG1 overlay"};
+        const char* stream_name =
+            (layer >= 0 && layer < 3) ? kStreamNames[layer] : "Unknown";
+        tooltip += " | Object stream: " + std::string(stream_name);
+      } else {
+        const char* layer_name =
+            layer == 0 ? "Upper layer (BG1)" : "Lower layer (BG2)";
+        tooltip += " | Special layer: " + std::string(layer_name);
+      }
       tooltip += " | Pos: (" + std::to_string(object.x_) + ", " +
                  std::to_string(object.y_) + ")";
       tooltip += "\nSize: " + std::to_string(object.size_) + " (0x" +
@@ -879,9 +890,8 @@ bool DungeonObjectInteraction::SetObjectSize(size_t index, uint8_t size) {
 
 bool DungeonObjectInteraction::SetObjectLayer(
     size_t index, zelda3::RoomObject::LayerType layer) {
-  entity_coordinator_.tile_handler().UpdateObjectsLayer(
+  return entity_coordinator_.tile_handler().UpdateObjectsLayer(
       current_room_id_, {index}, static_cast<int>(layer));
-  return true;
 }
 
 std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
@@ -889,8 +899,34 @@ std::pair<int, int> DungeonObjectInteraction::CalculateObjectBounds(
   return zelda3::DimensionService::Get().GetPixelDimensions(object);
 }
 
-void DungeonObjectInteraction::SendSelectedToLayer(int target_layer) {
-  entity_coordinator_.tile_handler().UpdateObjectsLayer(
+bool DungeonObjectInteraction::CanAssignSelectedObjectsToLayer(
+    int target_layer) const {
+  if (!rooms_ || current_room_id_ < 0 ||
+      current_room_id_ >= static_cast<int>(rooms_->size()) ||
+      target_layer < 0 || target_layer > 2) {
+    return false;
+  }
+
+  const auto selected = selection_.GetSelectedIndices();
+  if (selected.empty()) {
+    return false;
+  }
+
+  const auto& objects = (*rooms_)[current_room_id_].GetTileObjects();
+  for (const size_t index : selected) {
+    if (index >= objects.size() ||
+        (target_layer == 2 && !zelda3::UsesRoomObjectStream(objects[index]))) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool DungeonObjectInteraction::SendSelectedToLayer(int target_layer) {
+  if (!CanAssignSelectedObjectsToLayer(target_layer)) {
+    return false;
+  }
+  return entity_coordinator_.tile_handler().UpdateObjectsLayer(
       current_room_id_, selection_.GetSelectedIndices(), target_layer);
 }
 
@@ -923,13 +959,14 @@ void DungeonObjectInteraction::HandleLayerKeyboardShortcuts() {
   if (ImGui::IsAnyItemActive())
     return;
 
-  // Check for layer assignment shortcuts (1, 2, 3 keys)
+  // Check for stored placement shortcuts (1, 2, 3 keys). The third room
+  // object stream is intentionally unavailable to torches/pushable blocks.
   if (ImGui::IsKeyPressed(ImGuiKey_1)) {
-    SendSelectedToLayer(0);  // Layer 1 (BG1)
+    SendSelectedToLayer(0);  // Primary stream / upper layer (BG1)
   } else if (ImGui::IsKeyPressed(ImGuiKey_2)) {
-    SendSelectedToLayer(1);  // Layer 2 (BG2)
+    SendSelectedToLayer(1);  // BG2 overlay / lower layer (BG2)
   } else if (ImGui::IsKeyPressed(ImGuiKey_3)) {
-    SendSelectedToLayer(2);  // Layer 3 (BG3)
+    SendSelectedToLayer(2);  // BG1 overlay stream
   }
 
   // Object ordering shortcuts

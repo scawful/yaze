@@ -562,7 +562,7 @@ TEST_F(DungeonSaveTest, SaveAllTorches_RejectsLayerTwoWithoutMutatingRom) {
   const auto status = SaveAllTorches(rom_.get(), rooms);
 
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
-  EXPECT_NE(std::string(status.message()).find("background selector 2"),
+  EXPECT_NE(std::string(status.message()).find("special layer selector 2"),
             std::string::npos);
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_TRUE(rooms[1].torches_dirty());
@@ -1427,7 +1427,7 @@ TEST_F(DungeonSaveTest,
       [&room](int rid) -> const Room* { return rid == 0 ? &room : nullptr; });
 
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
-  EXPECT_NE(std::string(status.message()).find("background selector 2"),
+  EXPECT_NE(std::string(status.message()).find("special layer selector 2"),
             std::string::npos);
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_TRUE(room.blocks_dirty());

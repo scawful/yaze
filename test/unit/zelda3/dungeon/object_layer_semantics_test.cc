@@ -118,7 +118,7 @@ TEST(DungeonObjectLayerGuardrailsTest,
 }
 
 TEST(DungeonObjectLayerGuardrailsTest,
-     SpecialOnlyBackgroundChangePreservesRoomStreamOrder) {
+     SpecialOnlyLayerChangePreservesRoomStreamOrder) {
   Rom rom;
   Room room(/*room_id=*/0, &rom);
   ASSERT_TRUE(room.AddObject(RoomObject(0x22, 0, 0, 0, 1)).ok());

@@ -12,11 +12,13 @@
 
 #include "app/editor/dungeon/dungeon_object_interaction.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
 #include "app/editor/dungeon/interaction/tile_object_handler.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
@@ -351,6 +353,66 @@ TEST_F(InteractionDelegationTest, UpdateObjectLayerMovesBothBgObject) {
 
   tile_handler.UpdateObjectsLayer(0, {2}, 1);
   EXPECT_EQ(objects[2].layer_, zelda3::RoomObject::LayerType::BG2);
+}
+
+TEST_F(InteractionDelegationTest,
+       SetObjectLayerReportsSpecialLayerSelectorRejection) {
+  zelda3::RoomObject torch{0x150, 24, 24, 0x00, 0};
+  torch.set_options(zelda3::ObjectOption::Torch);
+  CurrentRoom().AddTileObject(torch);
+  const size_t torch_index = CurrentRoom().GetTileObjects().size() - 1;
+
+  EXPECT_TRUE(interaction_.SetObjectLayer(torch_index,
+                                          zelda3::RoomObject::LayerType::BG2));
+  EXPECT_FALSE(interaction_.SetObjectLayer(torch_index,
+                                           zelda3::RoomObject::LayerType::BG3));
+  EXPECT_EQ(CurrentRoom().GetTileObjects()[torch_index].GetLayerValue(), 1);
+}
+
+TEST_F(InteractionDelegationTest, MixedSelectionCannotUseThirdObjectStream) {
+  zelda3::RoomObject block{0x150, 24, 24, 0x00, 0};
+  block.set_options(zelda3::ObjectOption::Block);
+  CurrentRoom().AddTileObject(block);
+  const size_t block_index = CurrentRoom().GetTileObjects().size() - 1;
+  interaction_.SetSelectedObjects({0, block_index});
+
+  EXPECT_TRUE(interaction_.CanAssignSelectedObjectsToLayer(0));
+  EXPECT_TRUE(interaction_.CanAssignSelectedObjectsToLayer(1));
+  EXPECT_FALSE(interaction_.CanAssignSelectedObjectsToLayer(2));
+  EXPECT_FALSE(interaction_.SendSelectedToLayer(2));
+  EXPECT_EQ(CurrentRoom().GetTileObjects()[0].GetLayerValue(), 0);
+  EXPECT_EQ(CurrentRoom().GetTileObjects()[block_index].GetLayerValue(), 0);
+}
+
+TEST_F(InteractionDelegationTest,
+       SelectionInspectorBridgeFollowsReorderedObjectStream) {
+  CurrentRoom().AddTileObject(zelda3::RoomObject{0x21, 24, 24, 0x00, 1});
+  interaction_.SetSelectedObjects({0});
+
+  zelda3::DungeonObjectEditor object_editor(/*rom=*/nullptr);
+  object_editor.SetExternalRoom(&CurrentRoom());
+  ASSERT_TRUE(object_editor.AddToSelection(0).ok());
+  interaction_.SetSelectionChangeCallback([&]() {
+    const auto canvas_indices = interaction_.GetSelectedObjectIndices();
+    ASSERT_TRUE(object_editor.ClearSelection().ok());
+    for (size_t index : canvas_indices) {
+      ASSERT_TRUE(object_editor.AddToSelection(index).ok());
+    }
+  });
+  ASSERT_TRUE(object_editor.ChangeObjectLayer(0, /*new_layer=*/1).ok());
+
+  ASSERT_EQ(object_editor.GetSelection().selected_objects.size(), 1u);
+  const size_t moved_index = object_editor.GetSelection().selected_objects[0];
+  ASSERT_NE(moved_index, 0u);
+  EXPECT_EQ(interaction_.GetSelectedObjectIndices(), std::vector<size_t>({0}));
+
+  EXPECT_TRUE(SyncObjectEditorSelectionToCanvas(
+      interaction_, object_editor.GetSelection().selected_objects));
+  EXPECT_EQ(interaction_.GetSelectedObjectIndices(),
+            object_editor.GetSelection().selected_objects);
+  EXPECT_EQ(CurrentRoom().GetTileObject(moved_index).id_, 0x55);
+  EXPECT_FALSE(SyncObjectEditorSelectionToCanvas(
+      interaction_, object_editor.GetSelection().selected_objects));
 }
 
 // =============================================================================
