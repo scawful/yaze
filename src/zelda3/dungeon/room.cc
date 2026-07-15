@@ -1433,9 +1433,13 @@ void Room::RenderObjectsToBackground() {
   constexpr uint16_t kRoomDrawObj_TorchLit = 0x0ECA;
   for (const auto& obj : tile_objects_) {
     if ((obj.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+      // The special-table bit 14 remains the block's behavioral layer
+      // selector. RoomDraw_PushableBlock masks it before drawing and uses the
+      // upper/BG1 tilemap pointers left active by the final object-stream pass.
       (void)drawer.DrawRoomDrawObjectData2x2(
-          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_,
-          kRoomDrawObj_PushableBlock, object_bg1_buffer_, object_bg2_buffer_);
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_,
+          RoomObject::LayerType::BG1, kRoomDrawObj_PushableBlock,
+          object_bg1_buffer_, object_bg2_buffer_);
       continue;
     }
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
