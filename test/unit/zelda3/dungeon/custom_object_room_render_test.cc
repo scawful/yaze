@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "core/features.h"
@@ -322,6 +323,40 @@ TEST_F(CustomObjectRoomRenderTest,
 
   EXPECT_EQ(bg2_bitmap.data()[overlay_index], 33)
       << "BG2 overlay list should render through the BG2 object buffer";
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       PushableBlockLayerSelectorDoesNotChangeBg1DrawTarget) {
+  RoomObject upper_block(/*id=*/0x0E00, /*x=*/3, /*y=*/4, /*size=*/0,
+                         /*layer=*/0);
+  upper_block.set_options(ObjectOption::Block);
+  RoomObject lower_block(/*id=*/0x0E00, /*x=*/8, /*y=*/9, /*size=*/0,
+                         /*layer=*/1);
+  lower_block.set_options(ObjectOption::Block);
+
+  Room room = MakeRoomWithObjects({upper_block, lower_block});
+  RenderObjectBuffers(room);
+
+  const auto& bg1 = room.object_bg1_buffer();
+  const auto& bg2 = room.object_bg2_buffer();
+  const auto& bg1_bitmap = bg1.bitmap();
+  ASSERT_TRUE(bg1_bitmap.is_active());
+  ASSERT_TRUE(bg2.bitmap().is_active());
+
+  for (const auto [x, y] : {std::pair{3, 4}, std::pair{8, 9}}) {
+    const int pixel_index = PixelIndex(bg1_bitmap, x * 8, y * 8);
+    ASSERT_LT(pixel_index, static_cast<int>(bg1.coverage_data().size()));
+    ASSERT_LT(pixel_index, static_cast<int>(bg2.coverage_data().size()));
+    EXPECT_EQ(bg1.coverage_data()[pixel_index], 1)
+        << "Pushable blocks should always render through upper/BG1";
+    EXPECT_EQ(bg2.coverage_data()[pixel_index], 0)
+        << "The behavioral layer selector must not route block art to BG2";
+  }
+
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  EXPECT_EQ(room.GetTileObjects()[0].GetLayerValue(), 0);
+  EXPECT_EQ(room.GetTileObjects()[1].GetLayerValue(), 1)
+      << "Rendering must preserve the selector used by behavior and saving";
 }
 
 TEST_F(CustomObjectRoomRenderTest,
