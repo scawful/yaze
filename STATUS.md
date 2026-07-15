@@ -39,13 +39,15 @@
 - PR #70 added fail-closed, whole-ROM transactional saves and reported 2,407
   unit tests, 619 quick-editor tests, and 279 vanilla/Oracle integration tests
   passing before merge on July 12, 2026.
-- Post-merge `master` CI for PR #70 is the remaining automated gate before
-  tagging.
+- Post-merge `master` CI completed successfully for PR #70 merge commit
+  `06575b15` ([run 29211231166](https://github.com/scawful/yaze/actions/runs/29211231166)).
+- The non-publishing Release workflow dry run completed successfully across
+  Linux, macOS, and Windows, including the automated Windows zip layout and
+  `z3ed.exe --help` smoke ([run 29211528653](https://github.com/scawful/yaze/actions/runs/29211528653)).
 
 ### Remaining Release Gates
-- Confirm post-merge `master` CI is green.
-- Smoke the Windows release zip: launch `yaze.exe`, run `z3ed.exe --help`,
-  verify packaged assets, and open/save a clean ROM.
+- On Windows, manually launch the packaged `yaze.exe` and complete the clean-ROM
+  open, Save As, and reopen smoke.
 - Merge the release-metadata PR, tag `v0.7.2`, and verify the release workflow
   artifacts and checksums.
 
