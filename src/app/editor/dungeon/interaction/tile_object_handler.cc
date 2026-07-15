@@ -15,7 +15,7 @@
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/object_drawer.h"
-#include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_stream_ordering.h"
 
 #include "app/editor/dungeon/dungeon_snapping.h"
 
@@ -672,82 +672,21 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id,
     return;
   }
 
-  int current_bg3_count = 0;
-  for (const auto& object : objects) {
-    if (object.GetLayerValue() == 2) {
-      ++current_bg3_count;
-    }
-  }
-
-  int moving_to_bg3 = 0;
-  int moving_from_bg3 = 0;
-  auto target_layer = static_cast<zelda3::RoomObject::LayerType>(new_layer);
-  for (size_t index : deduped_indices) {
-    const auto& object = objects[index];
-    const auto semantics = zelda3::GetObjectLayerSemantics(object);
-    if (semantics.draws_to_both_bgs &&
-        target_layer != zelda3::RoomObject::LayerType::BG1) {
-      continue;
-    }
-    if (object.layer_ == target_layer) {
-      continue;
-    }
-    if (object.GetLayerValue() == 2) {
-      ++moving_from_bg3;
-    }
-    if (new_layer == 2) {
-      ++moving_to_bg3;
-    }
-  }
-  const int projected_bg3_count =
-      current_bg3_count - moving_from_bg3 + moving_to_bg3;
-  if (projected_bg3_count > zelda3::kMaxBg3Objects) {
-    LOG_WARN("TileObjectHandler",
-             "Rejected layer mutation: projected BG3 count %d exceeds max %d",
-             projected_bg3_count, zelda3::kMaxBg3Objects);
+  auto mutation =
+      zelda3::ReassignObjectStorage(objects, deduped_indices, new_layer);
+  if (!mutation.ok()) {
+    LOG_WARN("TileObjectHandler", "Rejected object stream mutation: %s",
+             std::string(mutation.status().message()).c_str());
     return;
   }
-
-  const std::unordered_set<size_t> selected_set(deduped_indices.begin(),
-                                                deduped_indices.end());
-  std::array<std::vector<LayerOrderEntry>, 3> buckets;
-  std::vector<LayerOrderEntry> moved_to_target_layer;
-  bool changed = false;
-  for (size_t index = 0; index < objects.size(); ++index) {
-    auto object = objects[index];
-    const bool selected = selected_set.count(index) > 0;
-    if (!selected) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), false});
-      continue;
-    }
-    const auto semantics = zelda3::GetObjectLayerSemantics(object);
-    if (semantics.draws_to_both_bgs &&
-        target_layer != zelda3::RoomObject::LayerType::BG1) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), true});
-      continue;
-    }
-    if (object.layer_ == target_layer) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), true});
-      continue;
-    }
-    object.layer_ = target_layer;
-    moved_to_target_layer.push_back(LayerOrderEntry{std::move(object), true});
-    changed = true;
-  }
-  if (!changed) {
+  if (!mutation->changed) {
     return;
-  }
-
-  for (auto& entry : moved_to_target_layer) {
-    buckets[new_layer].push_back(std::move(entry));
   }
 
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
+  RestoreObjectSelection(ctx_ ? ctx_->selection : nullptr,
+                         mutation->selected_indices);
   NotifyChange(room);
 }
 

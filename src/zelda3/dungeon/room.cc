@@ -2528,6 +2528,19 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
   return bytes;
 }
 
+absl::Status ValidateSpecialObjectBackgroundSelector(const RoomObject& object,
+                                                     int room_id,
+                                                     const char* object_type) {
+  const uint8_t selector = object.GetLayerValue();
+  if (selector <= 1) {
+    return absl::OkStatus();
+  }
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "%s in room 0x%03X has invalid background selector %d; expected 0 "
+      "(BG1) or 1 (BG2)",
+      object_type, room_id, selector));
+}
+
 }  // namespace
 
 template <typename RoomLookup>
@@ -2558,6 +2571,12 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
         room != nullptr && (room->AreTorchesLoaded() || room->torches_dirty());
     if (!room_owned) {
       continue;
+    }
+    for (const auto& object : room->GetTileObjects()) {
+      if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+        RETURN_IF_ERROR(
+            ValidateSpecialObjectBackgroundSelector(object, room_id, "Torch"));
+      }
     }
     owned_rooms[room_id] = true;
     any_owned_room = true;
@@ -2814,6 +2833,8 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     for (const auto& obj : room->GetTileObjects()) {
       if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
         continue;
+      RETURN_IF_ERROR(
+          ValidateSpecialObjectBackgroundSelector(obj, rid, "Pushable block"));
       PushableBlockEntry encoded_entry;
       encoded_entry.room_id = static_cast<uint16_t>(rid);
       encoded_entry.px = obj.x();

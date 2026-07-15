@@ -21,6 +21,16 @@ struct ObjectLayerSemantics {
   EffectiveBgLayer effective_bg_layer = EffectiveBgLayer::kBg1;
 };
 
+inline bool UsesRoomObjectStream(const RoomObject& object) {
+  const auto options = object.options();
+  return (options & ObjectOption::Torch) == ObjectOption::Nothing &&
+         (options & ObjectOption::Block) == ObjectOption::Nothing;
+}
+
+inline bool UsesSpecialBackgroundSelector(const RoomObject& object) {
+  return !UsesRoomObjectStream(object);
+}
+
 inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
   ObjectLayerSemantics out;
 
@@ -35,9 +45,9 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
     return out;
   }
 
-  out.effective_bg_layer =
-      (object.layer_ == RoomObject::LayerType::BG2) ? EffectiveBgLayer::kBg2
-                                                    : EffectiveBgLayer::kBg1;
+  out.effective_bg_layer = (object.layer_ == RoomObject::LayerType::BG2)
+                               ? EffectiveBgLayer::kBg2
+                               : EffectiveBgLayer::kBg1;
   return out;
 }
 
@@ -57,4 +67,3 @@ inline const char* EffectiveBgLayerLabel(EffectiveBgLayer layer) {
 }  // namespace yaze
 
 #endif  // YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
-

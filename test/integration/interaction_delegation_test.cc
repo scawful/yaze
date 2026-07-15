@@ -339,19 +339,18 @@ TEST_F(InteractionDelegationTest, UpdateObjectLayerChangesLayer) {
   EXPECT_EQ(objects[movable_index].layer_, zelda3::RoomObject::LayerType::BG2);
 }
 
-TEST_F(InteractionDelegationTest, UpdateObjectLayerSkipsBothBgObjects) {
+TEST_F(InteractionDelegationTest, UpdateObjectLayerMovesBothBgObject) {
   auto& tile_handler = interaction_.entity_coordinator().tile_handler();
 
   auto& objects = CurrentRoom().GetTileObjects();
   ASSERT_GE(objects.size(), 3u);
 
   // Fixture index 2 is id=0x03, which is treated as a structural BothBG object.
-  const auto original_layer = objects[2].layer_;
-  ASSERT_EQ(original_layer, zelda3::RoomObject::LayerType::BG1);
+  ASSERT_EQ(objects[2].layer_, zelda3::RoomObject::LayerType::BG1);
   ASSERT_TRUE(objects[2].all_bgs_);
 
   tile_handler.UpdateObjectsLayer(0, {2}, 1);
-  EXPECT_EQ(objects[2].layer_, original_layer);
+  EXPECT_EQ(objects[2].layer_, zelda3::RoomObject::LayerType::BG2);
 }
 
 // =============================================================================
