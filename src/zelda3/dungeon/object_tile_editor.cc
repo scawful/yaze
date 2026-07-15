@@ -205,8 +205,8 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
 
   // Resolve the canvas anchor through ObjectGeometry so routines that
   // draw upward or leftward (acute diagonals 0x09-0x14 / 0x15-0x20,
-  // diagonal ceilings 0xA0-0xAC, somaria line down-left 0xF86) replay
-  // their full extent without clipping. Hardcoded (2, 2) previously
+  // diagonal ceilings 0xA0-0xAC) replay their full extent without
+  // clipping. Hardcoded (2, 2) previously
   // dropped tile writes at negative tile coordinates because
   // DrawRoutineUtils::WriteTile8 short-circuits via IsValidTilePosition
   // before invoking the trace hook.

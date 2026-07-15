@@ -458,6 +458,13 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 28;
   }
 
+  // Somaria path pieces (ASM objects 0x203-0x20C, 0x20E, and 0x20F) each
+  // point to one tile word. RoomDraw_SomariaLine writes that word once.
+  if ((object_id >= 0xF83 && object_id <= 0xF8C) || object_id == 0xF8E ||
+      object_id == 0xF8F) {
+    return 1;
+  }
+
   // BigChest (0xFB1 = ASM 0x231) and OpenBigChest (0xFB2 = ASM 0x232): 12 tiles
   // These use RoomDraw_1x3N_rightwards with N=4 (4 columns × 3 rows)
   if (object_id == 0xFB1 || object_id == 0xFB2) {
