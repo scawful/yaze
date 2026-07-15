@@ -1,6 +1,7 @@
 #include "dungeon_validator.h"
 
 #include "absl/strings/str_format.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -54,6 +55,13 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
     if (layer < 0 || layer > 2) {
       result.errors.push_back(absl::StrFormat(
           "Object 0x%02X has invalid layer %d", obj.id_, layer));
+      result.is_valid = false;
+    }
+    if (UsesSpecialLayerSelector(obj) && layer > 1) {
+      result.errors.push_back(absl::StrFormat(
+          "Special-table object 0x%02X has invalid layer selector %d; "
+          "expected upper/BG1 (0) or lower/BG2 (1)",
+          obj.id_, layer));
       result.is_valid = false;
     }
 

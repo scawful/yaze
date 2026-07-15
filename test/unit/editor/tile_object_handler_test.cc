@@ -286,7 +286,7 @@ TEST_F(TileObjectHandlerTest, UpdateObjectSize) {
 TEST_F(TileObjectHandlerTest, UpdateObjectLayer) {
   AddTestObjects({CreateTestObject(5, 5, 0x00, 0x01)});
 
-  handler_.UpdateObjectsLayer(0, {0}, 1);
+  EXPECT_TRUE(handler_.UpdateObjectsLayer(0, {0}, 1));
 
   const auto& objects = rooms_[0].GetTileObjects();
   EXPECT_EQ(objects[0].layer_, zelda3::RoomObject::LayerType::BG2);
@@ -317,12 +317,48 @@ TEST_F(TileObjectHandlerTest, UpdateObjectLayerAppendsToTargetLayerZBucket) {
   EXPECT_TRUE(selection_.IsObjectSelected(3));
 }
 
+TEST_F(TileObjectHandlerTest,
+       UpdateObjectLayerNotifiesMutationBeforeChangingRoomState) {
+  AddTestObjects({
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x01),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG2, 0x00,
+                              0x02),
+      CreateLayeredTestObject(0, 0, zelda3::RoomObject::LayerType::BG1, 0x00,
+                              0x03),
+  });
+
+  std::vector<int16_t> ids_at_mutation;
+  std::vector<int> layers_at_mutation;
+  ctx_.on_mutation = [&]() {
+    ++mutation_count_;
+    const auto& objects = rooms_[0].GetTileObjects();
+    for (const auto& object : objects) {
+      ids_at_mutation.push_back(object.id_);
+      layers_at_mutation.push_back(object.GetLayerValue());
+    }
+  };
+
+  EXPECT_TRUE(handler_.UpdateObjectsLayer(0, {0}, 1));
+
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(ids_at_mutation, (std::vector<int16_t>{0x01, 0x02, 0x03}));
+  EXPECT_EQ(layers_at_mutation, (std::vector<int>{0, 1, 0}));
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  ASSERT_EQ(objects.size(), 3);
+  EXPECT_EQ(objects[0].id_, 0x03);
+  EXPECT_EQ(objects[1].id_, 0x02);
+  EXPECT_EQ(objects[2].id_, 0x01);
+  EXPECT_EQ(objects[2].GetLayerValue(), 1);
+}
+
 TEST_F(TileObjectHandlerTest, UpdateObjectLayerRejectsInvalidTargetLayer) {
   AddTestObjects({CreateTestObject(5, 5, 0x00, 0x21)});
 
   const int initial_mutation_count = mutation_count_;
   const int initial_invalidate_count = invalidate_count_;
-  handler_.UpdateObjectsLayer(0, {0}, 5);
+  EXPECT_FALSE(handler_.UpdateObjectsLayer(0, {0}, 5));
 
   const auto& objects = rooms_[0].GetTileObjects();
   ASSERT_EQ(objects.size(), 1);
@@ -367,7 +403,7 @@ TEST_F(TileObjectHandlerTest,
 
   const int initial_mutation_count = mutation_count_;
   const int initial_invalidate_count = invalidate_count_;
-  handler_.UpdateObjectsLayer(0, {0, 1}, 2);
+  EXPECT_FALSE(handler_.UpdateObjectsLayer(0, {0, 1}, 2));
 
   const auto& objects = rooms_[0].GetTileObjects();
   ASSERT_EQ(objects.size(), 2);
@@ -393,7 +429,7 @@ TEST_F(TileObjectHandlerTest, UpdateObjectLayerRejectsOversizedBatch) {
 
   const int initial_mutation_count = mutation_count_;
   const int initial_invalidate_count = invalidate_count_;
-  handler_.UpdateObjectsLayer(0, indices, 1);
+  EXPECT_FALSE(handler_.UpdateObjectsLayer(0, indices, 1));
 
   for (const auto& obj : rooms_[0].GetTileObjects()) {
     EXPECT_EQ(obj.layer_, zelda3::RoomObject::LayerType::BG1);

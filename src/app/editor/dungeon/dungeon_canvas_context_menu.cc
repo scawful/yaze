@@ -8,6 +8,7 @@
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -135,6 +136,21 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
       rooms_ && room_id >= 0 && room_id < zelda3::kNumberOfRooms;
   const bool room_has_objects =
       valid_room && !(*rooms_)[room_id].GetTileObjects().empty();
+  bool has_room_stream_object = false;
+  bool has_special_layer_object = false;
+  if (has_selection && valid_room) {
+    const auto& objects = (*rooms_)[room_id].GetTileObjects();
+    for (const size_t index : selected) {
+      if (index >= objects.size()) {
+        continue;
+      }
+      if (zelda3::UsesRoomObjectStream(objects[index])) {
+        has_room_stream_object = true;
+      } else {
+        has_special_layer_object = true;
+      }
+    }
+  }
 
   std::vector<gui::CanvasMenuItem> items;
 
@@ -235,9 +251,19 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
         [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
     items.push_back(std::move(z_order));
 
-    items.push_back(layer_item("Layer 1", 0, "1"));
-    items.push_back(layer_item("Layer 2", 1, "2"));
-    items.push_back(layer_item("Layer 3", 2, "3"));
+    if (has_room_stream_object && !has_special_layer_object) {
+      items.push_back(layer_item("Object Stream: Primary", 0, "1"));
+      items.push_back(layer_item("Object Stream: BG2 Overlay", 1, "2"));
+      items.push_back(layer_item("Object Stream: BG1 Overlay", 2, "3"));
+    } else if (has_special_layer_object && !has_room_stream_object) {
+      items.push_back(layer_item("Upper Layer (BG1)", 0, "1"));
+      items.push_back(layer_item("Lower Layer (BG2)", 1, "2"));
+    } else {
+      items.push_back(
+          layer_item("Placement 0: Primary / Upper Layer (BG1)", 0, "1"));
+      items.push_back(
+          layer_item("Placement 1: BG2 Overlay / Lower Layer (BG2)", 1, "2"));
+    }
 
     gui::CanvasMenuItem yaze_more;
     yaze_more.label = "More";
@@ -645,7 +671,7 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildDebugContextMenu(int room_id) {
   object_bounds_menu.subitems.push_back(std::move(sep));
 
   object_bounds_menu.subitems.push_back(
-      gui::CanvasMenuItem("Layer 1", [this]() {
+      gui::CanvasMenuItem("Primary / Upper layer (BG1)", [this]() {
         object_outline_toggles_.show_layer0_objects =
             !object_outline_toggles_.show_layer0_objects;
       }));
@@ -653,7 +679,7 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildDebugContextMenu(int room_id) {
     return object_outline_toggles_.show_layer0_objects;
   };
   object_bounds_menu.subitems.push_back(
-      gui::CanvasMenuItem("Layer 2", [this]() {
+      gui::CanvasMenuItem("BG2 overlay / Lower layer (BG2)", [this]() {
         object_outline_toggles_.show_layer1_objects =
             !object_outline_toggles_.show_layer1_objects;
       }));
@@ -661,7 +687,7 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildDebugContextMenu(int room_id) {
     return object_outline_toggles_.show_layer1_objects;
   };
   object_bounds_menu.subitems.push_back(
-      gui::CanvasMenuItem("Layer 3", [this]() {
+      gui::CanvasMenuItem("BG1 overlay (room stream only)", [this]() {
         object_outline_toggles_.show_layer2_objects =
             !object_outline_toggles_.show_layer2_objects;
       }));

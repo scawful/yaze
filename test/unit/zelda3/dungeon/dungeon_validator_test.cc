@@ -1,5 +1,6 @@
 #include "zelda3/dungeon/dungeon_validator.h"
 
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -50,6 +51,26 @@ TEST(DungeonValidatorTest, AcceptsMoreThan128ObjectsInOverlayStream) {
 
   EXPECT_TRUE(result.is_valid);
   EXPECT_TRUE(result.errors.empty());
+}
+
+TEST(DungeonValidatorTest, RejectsSpecialTableObjectsWithSelectorTwo) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  for (const auto [id, option] :
+       {std::pair<int16_t, ObjectOption>{0x150, ObjectOption::Torch},
+        std::pair<int16_t, ObjectOption>{0x0E00, ObjectOption::Block}}) {
+    Room room(/*room_id=*/0, &rom);
+    RoomObject object(id, /*x=*/4, /*y=*/4, /*size=*/0, /*layer=*/2);
+    object.set_options(option);
+    ASSERT_TRUE(room.AddObject(object).ok());
+
+    const auto result = DungeonValidator().ValidateRoom(room);
+    EXPECT_FALSE(result.is_valid);
+    ASSERT_EQ(result.errors.size(), 1u);
+    EXPECT_NE(result.errors[0].find("invalid layer selector 2"),
+              std::string::npos);
+  }
 }
 
 // Happy-path: a room with a single ordinary BG1 object at a valid position

@@ -27,7 +27,7 @@ inline bool UsesRoomObjectStream(const RoomObject& object) {
          (options & ObjectOption::Block) == ObjectOption::Nothing;
 }
 
-inline bool UsesSpecialBackgroundSelector(const RoomObject& object) {
+inline bool UsesSpecialLayerSelector(const RoomObject& object) {
   return !UsesRoomObjectStream(object);
 }
 

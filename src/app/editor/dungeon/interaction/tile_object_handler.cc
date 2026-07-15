@@ -638,16 +638,16 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
   NotifyChange(room);
 }
 
-void TileObjectHandler::UpdateObjectsLayer(int room_id,
+bool TileObjectHandler::UpdateObjectsLayer(int room_id,
                                            const std::vector<size_t>& indices,
                                            int new_layer) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
-    return;
+    return false;
   if (new_layer < 0 || new_layer > 2) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer update with invalid target layer: %d", new_layer);
-    return;
+    return false;
   }
   auto& objects = room->GetTileObjects();
   std::vector<size_t> deduped_indices;
@@ -662,32 +662,35 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id,
     }
   }
   if (deduped_indices.empty()) {
-    return;
+    return false;
   }
 
   if (deduped_indices.size() > kMaxLayerBatchMutation) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer batch mutation of %zu objects (max %zu)",
              deduped_indices.size(), kMaxLayerBatchMutation);
-    return;
+    return false;
   }
 
-  auto mutation =
-      zelda3::ReassignObjectStorage(objects, deduped_indices, new_layer);
+  auto candidate_objects = objects;
+  auto mutation = zelda3::ReassignObjectStorage(candidate_objects,
+                                                deduped_indices, new_layer);
   if (!mutation.ok()) {
     LOG_WARN("TileObjectHandler", "Rejected object stream mutation: %s",
              std::string(mutation.status().message()).c_str());
-    return;
+    return false;
   }
   if (!mutation->changed) {
-    return;
+    return true;
   }
 
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  objects = std::move(candidate_objects);
   RestoreObjectSelection(ctx_ ? ctx_->selection : nullptr,
                          mutation->selected_indices);
   NotifyChange(room);
+  return true;
 }
 
 std::vector<size_t> TileObjectHandler::DuplicateObjects(
