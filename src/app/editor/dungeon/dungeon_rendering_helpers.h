@@ -43,8 +43,6 @@ class DungeonRenderingHelpers {
                                       float tile_size, uint8_t mask, ImU32 color);
 
   static std::pair<int, int> RoomToCanvasCoordinates(int room_x, int room_y);
-  static std::pair<int, int> ScreenToRoomCoordinates(const ImVec2& screen_pos, 
-                                                    const ImVec2& zero_point, float scale);
 
   // Overlay rendering structures
   struct TrackCollisionConfig {

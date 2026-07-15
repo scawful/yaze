@@ -56,6 +56,13 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     return;
   }
 
+  const ImVec2 canvas_mouse_pos =
+      GetCanvasTransform().ScreenToRoomPixels(io.MousePos);
+  const int canvas_mouse_x = static_cast<int>(std::floor(canvas_mouse_pos.x));
+  const int canvas_mouse_y = static_cast<int>(std::floor(canvas_mouse_pos.y));
+  const bool pointer_within_room =
+      dungeon_coords::IsWithinBounds(canvas_mouse_x, canvas_mouse_y);
+
   // Handle Escape key to cancel any active placement mode
   if (ImGui::IsKeyPressed(ImGuiKey_Escape) &&
       entity_coordinator_.IsPlacementActive()) {
@@ -64,7 +71,8 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
   }
 
   if (hovered) {
-    if (entity_coordinator_.HandleMouseWheel(io.MouseWheel)) {
+    if (pointer_within_room &&
+        entity_coordinator_.HandleMouseWheel(io.MouseWheel)) {
       return;
     }
     HandleLayerKeyboardShortcuts();
@@ -73,20 +81,19 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
     }
   }
 
-  ImVec2 mouse_pos = io.MousePos;
-  ImVec2 canvas_pos = canvas_->zero_point();
-  ImVec2 canvas_mouse_pos =
-      ImVec2(mouse_pos.x - canvas_pos.x, mouse_pos.y - canvas_pos.y);
-
   // Painting modes are exclusive; don't also select/drag/mutate entities.
   if (hovered && mouse_left_down) {
     const auto mode = mode_manager_.GetMode();
     if (mode == InteractionMode::PaintCollision) {
-      UpdateCollisionPainting(canvas_mouse_pos);
+      if (pointer_within_room) {
+        UpdateCollisionPainting(canvas_mouse_pos);
+      }
       return;
     }
     if (mode == InteractionMode::PaintWaterFill) {
-      UpdateWaterFillPainting(canvas_mouse_pos);
+      if (pointer_within_room) {
+        UpdateWaterFillPainting(canvas_mouse_pos);
+      }
       return;
     }
   }
@@ -107,8 +114,8 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
 }
 
 void DungeonObjectInteraction::HandleLeftClick(const ImVec2& canvas_mouse_pos) {
-  int canvas_x = static_cast<int>(canvas_mouse_pos.x);
-  int canvas_y = static_cast<int>(canvas_mouse_pos.y);
+  int canvas_x = static_cast<int>(std::floor(canvas_mouse_pos.x));
+  int canvas_y = static_cast<int>(std::floor(canvas_mouse_pos.y));
 
   // Try to handle click via entity coordinator (handles placement, entity selection, and object selection)
   if (entity_coordinator_.HandleClick(canvas_x, canvas_y)) {
@@ -119,6 +126,13 @@ void DungeonObjectInteraction::HandleLeftClick(const ImVec2& canvas_mouse_pos) {
         (selection_.HasSelection() || HasEntitySelection())) {
       HandleObjectSelectionStart(canvas_mouse_pos);
     }
+    return;
+  }
+
+  // The canvas viewport can contain blank space after panning. Overlay clicks
+  // are dispatched above, but blank space outside the translated room must not
+  // clear selection or start a marquee.
+  if (!dungeon_coords::IsWithinBounds(canvas_x, canvas_y)) {
     return;
   }
 
@@ -377,9 +391,7 @@ bool DungeonObjectInteraction::NudgeSelected(int delta_x, int delta_y) {
 void DungeonObjectInteraction::CheckForObjectSelection() {
   // Draw/update active marquee selection for tile objects (delegated).
   const ImGuiIO& io = ImGui::GetIO();
-  const ImVec2 canvas_pos = canvas_->zero_point();
-  const ImVec2 mouse_pos =
-      ImVec2(io.MousePos.x - canvas_pos.x, io.MousePos.y - canvas_pos.y);
+  const ImVec2 mouse_pos = GetCanvasTransform().ScreenToRoomPixels(io.MousePos);
   const bool mouse_left_released =
       ImGui::IsMouseReleased(ImGuiMouseButton_Left);
 
@@ -429,9 +441,8 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
   if (canvas_->IsMouseHovering()) {
     // Also skip tooltip if cursor is over a door/sprite/item entity (not selected yet)
     ImGuiIO& io = ImGui::GetIO();
-    ImVec2 canvas_pos = canvas_->zero_point();
-    int cursor_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
-    int cursor_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+    const auto [cursor_x, cursor_y] =
+        GetCanvasTransform().ScreenToRoomPixelCoordinates(io.MousePos);
     auto entity_at_cursor =
         entity_coordinator_.GetEntityAtPosition(cursor_x, cursor_y);
     if (entity_at_cursor.has_value()) {
@@ -492,9 +503,9 @@ void DungeonObjectInteraction::DrawHoverHighlight(
   // Don't show object hover highlight if cursor is over a door/sprite/item entity
   // Entities take priority over objects for interaction
   ImGuiIO& io = ImGui::GetIO();
-  ImVec2 canvas_pos = canvas_->zero_point();
-  int cursor_canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
-  int cursor_canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const auto [cursor_canvas_x, cursor_canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(io.MousePos);
   auto entity_at_cursor =
       entity_coordinator_.GetEntityAtPosition(cursor_canvas_x, cursor_canvas_y);
   if (entity_at_cursor.has_value()) {
@@ -515,18 +526,15 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 
   const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  // canvas_pos already defined above for entity check
-  float scale = canvas_->global_scale();
-
   // Calculate object position and dimensions
   auto [sel_x_px, sel_y_px, pixel_width, pixel_height] =
       zelda3::DimensionService::Get().GetSelectionBoundsPixels(object);
 
-  // Apply scale and canvas offset
-  ImVec2 obj_start(canvas_pos.x + sel_x_px * scale,
-                   canvas_pos.y + sel_y_px * scale);
-  ImVec2 obj_end(obj_start.x + pixel_width * scale,
-                 obj_start.y + pixel_height * scale);
+  ImVec2 obj_start = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(sel_x_px), static_cast<float>(sel_y_px)));
+  const ImVec2 obj_size = transform.RoomSizeToScreen(ImVec2(
+      static_cast<float>(pixel_width), static_cast<float>(pixel_height)));
+  ImVec2 obj_end(obj_start.x + obj_size.x, obj_start.y + obj_size.y);
 
   // Expand slightly for visibility
   constexpr float margin = 2.0f;
@@ -575,14 +583,7 @@ std::pair<int, int> DungeonObjectInteraction::CanvasToRoomCoordinates(
 
 bool DungeonObjectInteraction::IsWithinCanvasBounds(int canvas_x, int canvas_y,
                                                     int margin) const {
-  auto canvas_size = canvas_->canvas_size();
-  auto global_scale = canvas_->global_scale();
-  int scaled_width = static_cast<int>(canvas_size.x * global_scale);
-  int scaled_height = static_cast<int>(canvas_size.y * global_scale);
-
-  return (canvas_x >= -margin && canvas_y >= -margin &&
-          canvas_x <= scaled_width + margin &&
-          canvas_y <= scaled_height + margin);
+  return dungeon_coords::IsWithinBounds(canvas_x, canvas_y, margin);
 }
 
 void DungeonObjectInteraction::SetCurrentRoom(DungeonRoomStore* rooms,
@@ -816,16 +817,14 @@ void DungeonObjectInteraction::HandlePasteObjects() {
 
   auto& handler = entity_coordinator_.tile_handler();
   const ImGuiIO& io = ImGui::GetIO();
-  ImVec2 canvas_mouse_pos = ImVec2(io.MousePos.x - canvas_->zero_point().x,
-                                   io.MousePos.y - canvas_->zero_point().y);
+  const auto [canvas_mouse_x, canvas_mouse_y] =
+      GetCanvasTransform().ScreenToRoomPixelCoordinates(io.MousePos);
   auto [paste_x, paste_y] =
-      CanvasToRoomCoordinates(static_cast<int>(canvas_mouse_pos.x),
-                              static_cast<int>(canvas_mouse_pos.y));
+      CanvasToRoomCoordinates(canvas_mouse_x, canvas_mouse_y);
   int paste_pixel_x = paste_x * dungeon_coords::kTileSize;
   int paste_pixel_y = paste_y * dungeon_coords::kTileSize;
 
-  if (!IsWithinCanvasBounds(static_cast<int>(canvas_mouse_pos.x),
-                            static_cast<int>(canvas_mouse_pos.y), 0)) {
+  if (!IsWithinCanvasBounds(canvas_mouse_x, canvas_mouse_y, 0)) {
     const int fallback_delta = entity_clipboard_.sprites.empty()
                                    ? dungeon_coords::kTileSize
                                    : dungeon_coords::kSpriteTileSize;

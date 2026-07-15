@@ -147,14 +147,6 @@ std::pair<int, int> DungeonRenderingHelpers::RoomToCanvasCoordinates(int room_x,
   return {room_x * 8, room_y * 8};
 }
 
-std::pair<int, int> DungeonRenderingHelpers::ScreenToRoomCoordinates(
-    const ImVec2& screen_pos, const ImVec2& zero_point, float scale) {
-  if (scale <= 0.0f) return {0, 0};
-  float rel_x = (screen_pos.x - zero_point.x) / scale;
-  float rel_y = (screen_pos.y - zero_point.y) / scale;
-  return {static_cast<int>(rel_x / 8.0f), static_cast<int>(rel_y / 8.0f)};
-}
-
 void DungeonRenderingHelpers::DrawTrackCollisionOverlay(
     ImDrawList* draw_list, const ImVec2& canvas_pos, float scale,
     const CollisionOverlayCache& cache,

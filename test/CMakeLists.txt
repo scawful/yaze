@@ -262,6 +262,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_oracle_rom_safety_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
+    unit/editor/dungeon_canvas_transform_test.cc
     unit/editor/map_properties_context_menu_test.cc
     unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/dungeon_selection_snapshot_test.cc
