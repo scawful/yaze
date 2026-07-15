@@ -12,54 +12,44 @@ namespace yaze {
 namespace zelda3 {
 namespace {
 
-TEST(DungeonValidatorTest, RejectsBothBgObjectsInBg3Layer) {
+TEST(DungeonValidatorTest, AcceptsBothBgObjectsInOverlayStreams) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   Room room(/*room_id=*/0, &rom);
-  ASSERT_TRUE(room.AddObject(
-                   RoomObject(/*id=*/0x03, /*x=*/4, /*y=*/4, /*size=*/0,
-                              /*layer=*/2))
-                  .ok());
+  ASSERT_TRUE(
+      room.AddObject(RoomObject(/*id=*/0x03, /*x=*/4, /*y=*/4, /*size=*/0,
+                                /*layer=*/1))
+          .ok());
+  ASSERT_TRUE(
+      room.AddObject(RoomObject(/*id=*/0x108, /*x=*/8, /*y=*/8, /*size=*/0,
+                                /*layer=*/2))
+          .ok());
 
   DungeonValidator validator;
   const auto result = validator.ValidateRoom(room);
 
-  EXPECT_FALSE(result.is_valid);
-  bool found_error = false;
-  for (const auto& e : result.errors) {
-    if (e.find("Both-BGs") != std::string::npos) {
-      found_error = true;
-      break;
-    }
-  }
-  EXPECT_TRUE(found_error);
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
 }
 
-TEST(DungeonValidatorTest, RejectsBg3ObjectOverflow) {
+TEST(DungeonValidatorTest, AcceptsMoreThan128ObjectsInOverlayStream) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   Room room(/*room_id=*/0, &rom);
   for (int i = 0; i < 129; ++i) {
-    ASSERT_TRUE(room.AddObject(
-                     RoomObject(/*id=*/0x21, /*x=*/i % 64, /*y=*/(i / 64) % 64,
-                                /*size=*/0, /*layer=*/2))
+    ASSERT_TRUE(room.AddObject(RoomObject(/*id=*/0x21, /*x=*/i % 64,
+                                          /*y=*/(i / 64) % 64,
+                                          /*size=*/0, /*layer=*/2))
                     .ok());
   }
 
   DungeonValidator validator;
   const auto result = validator.ValidateRoom(room);
 
-  EXPECT_FALSE(result.is_valid);
-  bool found_error = false;
-  for (const auto& e : result.errors) {
-    if (e.find("Too many BG3 objects") != std::string::npos) {
-      found_error = true;
-      break;
-    }
-  }
-  EXPECT_TRUE(found_error);
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
 }
 
 // Happy-path: a room with a single ordinary BG1 object at a valid position
@@ -70,10 +60,10 @@ TEST(DungeonValidatorTest, AcceptsValidRoomWithNormalObject) {
 
   Room room(/*room_id=*/0, &rom);
   // Object 0x21 is a plain floor tile (not Both-BGs, not a chest). Layer 0=BG1.
-  ASSERT_TRUE(room.AddObject(
-                   RoomObject(/*id=*/0x21, /*x=*/4, /*y=*/4, /*size=*/0,
-                              /*layer=*/0))
-                  .ok());
+  ASSERT_TRUE(
+      room.AddObject(RoomObject(/*id=*/0x21, /*x=*/4, /*y=*/4, /*size=*/0,
+                                /*layer=*/0))
+          .ok());
 
   DungeonValidator validator;
   const auto result = validator.ValidateRoom(room);
@@ -131,9 +121,9 @@ TEST(DungeonValidatorTest, RejectsTooManyChestObjects) {
       break;
     }
   }
-  EXPECT_TRUE(found_chest_err) << "Expected chest overflow error, got: "
-                                << (result.errors.empty() ? "(none)"
-                                                          : result.errors[0]);
+  EXPECT_TRUE(found_chest_err)
+      << "Expected chest overflow error, got: "
+      << (result.errors.empty() ? "(none)" : result.errors[0]);
 }
 
 }  // namespace
