@@ -22,6 +22,7 @@
 #include "rom/write_fence.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
+#include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -1441,9 +1442,12 @@ void Room::RenderObjectsToBackground() {
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
       const uint16_t off =
           obj.lit_ ? kRoomDrawObj_TorchLit : kRoomDrawObj_TorchUnlit;
+      // RoomDraw_LightableTorch masks selector/lit bits before drawing and
+      // uses the upper/BG1 pointers left active by the final object pass.
       (void)drawer.DrawRoomDrawObjectData2x2(
-          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_, off,
-          object_bg1_buffer_, object_bg2_buffer_);
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_,
+          RoomObject::LayerType::BG1, off, object_bg1_buffer_,
+          object_bg2_buffer_);
       continue;
     }
   }
@@ -2413,23 +2417,18 @@ void Room::LoadTorches() {
           break;
         }
 
-        // Decode torch position and properties
-        int address = ((b2 & 0x1F) << 8 | b1) >> 1;
-        uint8_t px = address % 64;
-        uint8_t py = address >> 6;
-        uint8_t layer = (b2 & 0x20) >> 5;
-        bool lit = (b2 & 0x80) == 0x80;
+        const LightableTorchEntry entry = DecodeLightableTorchEntry({b1, b2});
 
         // Create torch object (ID 0x150)
-        RoomObject torch_obj(0x150, px, py, 0, layer);
+        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.selector);
         torch_obj.SetRom(rom_);
         torch_obj.set_options(ObjectOption::Torch);
-        torch_obj.lit_ = lit;
+        torch_obj.lit_ = entry.lit;
 
         tile_objects_.push_back(torch_obj);
 
-        LOG_DEBUG("Room", "Loaded torch at (%d,%d) layer=%d lit=%d", px, py,
-                  layer, lit);
+        LOG_DEBUG("Room", "Loaded torch at (%d,%d) selector=%d lit=%d",
+                  entry.px, entry.py, entry.selector, entry.lit);
 
         i += 2;
       }
@@ -2511,15 +2510,14 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
       bytes.push_back(room_id & 0xFF);
       bytes.push_back((room_id >> 8) & 0xFF);
     }
-    int address = obj.x() + (obj.y() * 64);
-    int word = address << 1;
-    uint8_t b1 = word & 0xFF;
-    uint8_t b2 = ((word >> 8) & 0x1F) | ((obj.GetLayerValue() & 1) << 5);
-    if (obj.lit_) {
-      b2 |= 0x80;
-    }
-    bytes.push_back(b1);
-    bytes.push_back(b2);
+    const LightableTorchBytes encoded = EncodeLightableTorchEntry({
+        .px = static_cast<uint8_t>(obj.x()),
+        .py = static_cast<uint8_t>(obj.y()),
+        .selector = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .lit = obj.lit_,
+    });
+    bytes.push_back(encoded.low);
+    bytes.push_back(encoded.high);
   }
   if (!bytes.empty()) {
     bytes.push_back(0xFF);

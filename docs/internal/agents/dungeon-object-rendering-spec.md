@@ -20,7 +20,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   4) Primary room objects: restores the room’s object pointer (`RoomData_ObjectDataPointers`) and runs `RoomDraw_DrawAllObjects` again (BA now points past the layout byte).
   5) BG2 overlay list: skips the `0xFFFF` sentinel (`INC BA` twice), reloads pointer tables with `RoomData_TilemapPointers_lower_layer`, and draws a third object list to BG2.
   6) BG1 overlay list: skips the next `0xFFFF`, reloads pointer tables with `RoomData_TilemapPointers_upper_layer`, and draws the final object list to BG1.
-  7) Pushable blocks (`$7EF940`) and torches (`$7EFB40`) are drawn after the four passes.
+  7) Pushable blocks (`$7EF940`) and torches (`$7EFB40`) are drawn after the four passes. The upper/BG1 tilemap pointers from the final overlay pass remain installed, so both special-table types initially draw on BG1 regardless of their stored selector bit. Their draw routines mask the encoded word with `AND #$3FFF` before using it as a tilemap position.
 - Implication: BG merge and layer type are **not** exclusive—four object streams are processed in order, with explicit pointer swaps for BG2 then BG1 overlays. Layout objects should never overdraw later passes; if they do in the editor, the pass order is wrong.
 
 ## Object Encoding (RoomDraw_RoomObject at $01893C)

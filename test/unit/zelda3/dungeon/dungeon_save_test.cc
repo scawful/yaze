@@ -541,10 +541,10 @@ TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
   EXPECT_EQ(rom_data[kTorchData + 0], 0x01);
   EXPECT_EQ(rom_data[kTorchData + 1], 0x00);
 
-  // word = ((x + y*64) << 1) with layer in bit 13 and lit in bit 15.
+  // word = ((x + y*64) << 1) with selector in bit 14 and lit in bit 15.
   EXPECT_EQ(rom_data[kTorchData + 2], 0x14);  // low byte
   EXPECT_EQ(rom_data[kTorchData + 3],
-            0xAA);  // high byte: layer + lit + address bits
+            0xCA);  // high byte: selector + lit + address bits
 
   EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
   EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
@@ -555,7 +555,7 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   // This should be a no-op (no writes) and keep the ROM clean.
   std::vector<uint8_t> blob = {
       0x01, 0x00,  // room_id = 1
-      0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
+      0x14, 0xCA,  // torch word (x=10,y=20,selector=1,lit=1)
       0xFF, 0xFF,  // terminator
   };
   ASSERT_TRUE(
@@ -576,13 +576,45 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   EXPECT_FALSE(rom_->dirty());
 }
 
+TEST_F(DungeonSaveTest, SaveAllTorches_HighYRoundTripsWithoutMutation) {
+  std::vector<uint8_t> blob = {
+      0x01, 0x00,  // room_id = 1
+      0x14, 0xF2,  // torch word (x=10,y=100,selector=1,lit=1)
+      0xFF, 0xFF,  // terminator
+  };
+  ASSERT_TRUE(
+      rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
+          .ok());
+  ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
+  rom_->ClearDirty();
+
+  Room room(1, rom_.get());
+  room.LoadTorches();
+  ASSERT_TRUE(room.AreTorchesLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  const RoomObject& torch = room.GetTileObjects().front();
+  EXPECT_EQ(torch.x(), 10);
+  EXPECT_EQ(torch.y(), 100);
+  EXPECT_EQ(torch.GetLayerValue(), 1);
+  EXPECT_TRUE(torch.lit_);
+
+  const auto status = SaveAllTorches(rom_.get(), kNumberOfRooms,
+                                     [&room](int room_id) -> const Room* {
+                                       return room_id == 1 ? &room : nullptr;
+                                     });
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(std::equal(blob.begin(), blob.end(),
+                         rom_->vector().begin() + kTorchData));
+}
+
 TEST_F(DungeonSaveTest, SaveAllTorches_LoadedRoomCanDeleteLastTorch) {
   std::vector<uint8_t> blob = {
       0x01, 0x00,  // room_id = 1
-      0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
+      0x14, 0xCA,  // torch word (x=10,y=20,selector=1,lit=1)
       0xFF, 0xFF,  // terminator
       0x02, 0x00,  // room_id = 2
-      0x0A, 0x03,  // torch word (x=5,y=6,layer=0,lit=0)
+      0x0A, 0x03,  // torch word (x=5,y=6,selector=0,lit=0)
       0xFF, 0xFF,  // terminator
   };
   ASSERT_TRUE(
