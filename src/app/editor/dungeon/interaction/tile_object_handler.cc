@@ -350,26 +350,24 @@ void TileObjectHandler::DrawGhostPreview() {
     return;
   }
 
-  ImVec2 canvas_pos = GetCanvasZeroPoint();
-  float scale = GetCanvasScale();
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const auto [canvas_x, canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(*pointer_screen_pos);
+  auto [room_x, room_y] = CanvasToRoom(canvas_x, canvas_y);
 
-  ImVec2 canvas_mouse_pos = ImVec2(pointer_screen_pos->x - canvas_pos.x,
-                                   pointer_screen_pos->y - canvas_pos.y);
-  auto [room_x, room_y] = CanvasToRoom(static_cast<int>(canvas_mouse_pos.x),
-                                       static_cast<int>(canvas_mouse_pos.y));
-
-  if (!IsWithinBounds(static_cast<int>(canvas_mouse_pos.x),
-                      static_cast<int>(canvas_mouse_pos.y)))
+  if (!IsWithinBounds(canvas_x, canvas_y))
     return;
 
   auto [snap_canvas_x, snap_canvas_y] = RoomToCanvas(room_x, room_y);
   auto [obj_width, obj_height] = CalculateObjectBounds(preview_object_);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale,
-                       canvas_pos.y + snap_canvas_y * scale);
-  ImVec2 preview_end(preview_start.x + obj_width * scale,
-                     preview_start.y + obj_height * scale);
+  const ImVec2 preview_start = transform.RoomPixelsToScreen(ImVec2(
+      static_cast<float>(snap_canvas_x), static_cast<float>(snap_canvas_y)));
+  const ImVec2 preview_size = transform.RoomSizeToScreen(
+      ImVec2(static_cast<float>(obj_width), static_cast<float>(obj_height)));
+  const ImVec2 preview_end(preview_start.x + preview_size.x,
+                           preview_start.y + preview_size.y);
 
   zelda3::Room* room = GetRoom(ctx_->current_room_id);
   const size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
@@ -383,8 +381,11 @@ void TileObjectHandler::DrawGhostPreview() {
   if (ghost_preview_buffer_) {
     auto& bitmap = ghost_preview_buffer_->bitmap();
     if (bitmap.texture()) {
-      ImVec2 bitmap_end(preview_start.x + bitmap.width() * scale,
-                        preview_start.y + bitmap.height() * scale);
+      const ImVec2 bitmap_size = transform.RoomSizeToScreen(
+          ImVec2(static_cast<float>(bitmap.width()),
+                 static_cast<float>(bitmap.height())));
+      ImVec2 bitmap_end(preview_start.x + bitmap_size.x,
+                        preview_start.y + bitmap_size.y);
       ImVec4 tint = capacity_state == GhostCapacityState::kNormal
                         ? theme.text_primary
                         : GetPlacementAccentColor(theme, capacity_state,
@@ -452,6 +453,9 @@ void TileObjectHandler::DrawSelectionHighlight() {
 
 std::optional<size_t> TileObjectHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
+  if (!HasValidContext() || !IsWithinBounds(canvas_x, canvas_y)) {
+    return std::nullopt;
+  }
   auto* room =
       const_cast<TileObjectHandler*>(this)->GetRoom(ctx_->current_room_id);
   if (!room)
@@ -551,25 +555,27 @@ void TileObjectHandler::DrawSmartGuides(
   guide_color.w = 0.78f;
   const ImU32 color = ImGui::GetColorU32(guide_color);
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  const ImVec2 canvas_pos = ctx_->canvas->zero_point();
-  const float scale = ctx_->canvas->global_scale();
-  const float width = dungeon_coords::kRoomPixelWidth * scale;
-  const float height = dungeon_coords::kRoomPixelHeight * scale;
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const ImVec2 canvas_pos = transform.room_origin_screen();
+  const ImVec2 room_size = transform.RoomSizeToScreen(ImVec2(
+      dungeon_coords::kRoomPixelWidth, dungeon_coords::kRoomPixelHeight));
 
   const size_t vertical_count =
       std::min(vertical_guides.size(), kMaxGuidesPerAxis);
   for (size_t i = 0; i < vertical_count; ++i) {
-    const float x = canvas_pos.x + vertical_guides[i] * scale;
+    const float x =
+        transform.RoomPixelsToScreen(ImVec2(vertical_guides[i], 0.0f)).x;
     DrawDashedLine(draw_list, ImVec2(x, canvas_pos.y),
-                   ImVec2(x, canvas_pos.y + height), color, 1.2f);
+                   ImVec2(x, canvas_pos.y + room_size.y), color, 1.2f);
   }
 
   const size_t horizontal_count =
       std::min(horizontal_guides.size(), kMaxGuidesPerAxis);
   for (size_t i = 0; i < horizontal_count; ++i) {
-    const float y = canvas_pos.y + horizontal_guides[i] * scale;
+    const float y =
+        transform.RoomPixelsToScreen(ImVec2(0.0f, horizontal_guides[i])).y;
     DrawDashedLine(draw_list, ImVec2(canvas_pos.x, y),
-                   ImVec2(canvas_pos.x + width, y), color, 1.2f);
+                   ImVec2(canvas_pos.x + room_size.x, y), color, 1.2f);
   }
 }
 

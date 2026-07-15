@@ -7,6 +7,8 @@
 #include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
@@ -303,9 +305,16 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
     const ImVec2 gesture_pos = gesture_long_press
                                    ? touch_handler_.GetGesturePosition()
                                    : ImGui::GetMousePos();
-    const float scale = rt.scale > 0.0f ? rt.scale : 1.0f;
-    const float rel_x = (gesture_pos.x - rt.canvas_p0.x) / scale;
-    const float rel_y = (gesture_pos.y - rt.canvas_p0.y) / scale;
+    const DungeonCanvasTransform transform(rt.canvas_p0, rt.scrolling,
+                                           rt.scale);
+    const ImVec2 room_pos = transform.ScreenToRoomPixels(gesture_pos);
+    const auto [room_x, room_y] =
+        transform.ScreenToRoomPixelCoordinates(gesture_pos);
+    if (!dungeon_coords::IsWithinBounds(room_x, room_y)) {
+      return;
+    }
+    const float rel_x = room_pos.x;
+    const float rel_y = room_pos.y;
     const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
     const int hit_size = is_touch ? 24 : 16;
 

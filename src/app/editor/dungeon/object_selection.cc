@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/agent_theme.h"
 #include "imgui/imgui.h"
@@ -212,8 +213,9 @@ void ObjectSelection::DrawSelectionHighlights(
   }
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas->zero_point();
-  float scale = canvas->global_scale();
+  const DungeonCanvasTransform transform(
+      canvas->zero_point(), canvas->scrolling(), canvas->global_scale());
+  const float scale = transform.scale();
 
   for (size_t index : selected_indices_) {
     if (index >= objects.size()) {
@@ -247,11 +249,12 @@ void ObjectSelection::DrawSelectionHighlights(
     obj_x += offset_x;
     obj_y += offset_y;
 
-    // Apply scale and canvas offset
-    ImVec2 obj_start(canvas_pos.x + obj_x * scale,
-                     canvas_pos.y + obj_y * scale);
-    ImVec2 obj_end(obj_start.x + pixel_width * scale,
-                   obj_start.y + pixel_height * scale);
+    ImVec2 obj_start = transform.RoomPixelsToScreen(
+        ImVec2(static_cast<float>(obj_x), static_cast<float>(obj_y)));
+    const ImVec2 obj_size = transform.RoomSizeToScreen(
+        ImVec2(static_cast<float>(pixel_width),
+               static_cast<float>(pixel_height)));
+    ImVec2 obj_end(obj_start.x + obj_size.x, obj_start.y + obj_size.y);
 
     // Expand selection box slightly for visibility
     constexpr float margin = 2.0f;
@@ -317,15 +320,16 @@ void ObjectSelection::DrawRectangleSelectionBox(gui::Canvas* canvas) {
 
   const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas->zero_point();
-  float scale = canvas->global_scale();
+  const DungeonCanvasTransform transform(
+      canvas->zero_point(), canvas->scrolling(), canvas->global_scale());
 
   // Get normalized bounds
   auto [min_x, min_y, max_x, max_y] = GetRectangleSelectionBounds();
 
-  // Apply scale and canvas offset
-  ImVec2 box_start(canvas_pos.x + min_x * scale, canvas_pos.y + min_y * scale);
-  ImVec2 box_end(canvas_pos.x + max_x * scale, canvas_pos.y + max_y * scale);
+  const ImVec2 box_start = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(min_x), static_cast<float>(min_y)));
+  const ImVec2 box_end = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(max_x), static_cast<float>(max_y)));
 
   // Draw selection box with theme selection color
   // Border: High-contrast at 0.85f alpha
