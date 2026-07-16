@@ -1525,26 +1525,101 @@ TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtyRegularEntrance) {
   EXPECT_FALSE(entrance.dirty());
 }
 
-TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtySpawnPoint) {
+TEST_F(DungeonSaveTest, CollectDirtyRegularDungeonEntranceWriteRangesIsExact) {
+  constexpr int kEntranceId = 3;
   std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
-  auto& entrance = entrances[2];
-  entrance.room_ = 0x0034;
-  entrance.x_position_ = 0x0456;
-  entrance.y_position_ = 0x0789;
-  entrance.blockset_ = 0x0A;
-  entrance.camera_boundary_fe_ = 0x19;
+  entrances[kNumDungeonSpawnPoints + kEntranceId].MarkDirty();
+
+  const std::vector<DungeonEntranceWriteRange> expected = {
+      {kEntranceRoom + kEntranceId * 2, kEntranceRoom + kEntranceId * 2 + 2},
+      {kEntranceScrollEdge + kEntranceId * 8,
+       kEntranceScrollEdge + kEntranceId * 8 + 8},
+      {kEntranceYScroll + kEntranceId * 2,
+       kEntranceYScroll + kEntranceId * 2 + 2},
+      {kEntranceXScroll + kEntranceId * 2,
+       kEntranceXScroll + kEntranceId * 2 + 2},
+      {kEntranceYPosition + kEntranceId * 2,
+       kEntranceYPosition + kEntranceId * 2 + 2},
+      {kEntranceXPosition + kEntranceId * 2,
+       kEntranceXPosition + kEntranceId * 2 + 2},
+      {kEntranceCameraYTrigger + kEntranceId * 2,
+       kEntranceCameraYTrigger + kEntranceId * 2 + 2},
+      {kEntranceCameraXTrigger + kEntranceId * 2,
+       kEntranceCameraXTrigger + kEntranceId * 2 + 2},
+      {kEntranceBlockset + kEntranceId, kEntranceBlockset + kEntranceId + 1},
+      {kEntranceFloor + kEntranceId, kEntranceFloor + kEntranceId + 1},
+      {kEntranceDungeon + kEntranceId, kEntranceDungeon + kEntranceId + 1},
+      {kEntranceDoor + kEntranceId, kEntranceDoor + kEntranceId + 1},
+      {kEntranceLadderBG + kEntranceId, kEntranceLadderBG + kEntranceId + 1},
+      {kEntrancescrolling + kEntranceId, kEntrancescrolling + kEntranceId + 1},
+      {kEntranceScrollQuadrant + kEntranceId,
+       kEntranceScrollQuadrant + kEntranceId + 1},
+      {kEntranceExit + kEntranceId * 2, kEntranceExit + kEntranceId * 2 + 2},
+      {kEntranceMusic + kEntranceId, kEntranceMusic + kEntranceId + 1},
+  };
+
+  const auto ranges = CollectDirtyRegularDungeonEntranceWriteRanges(entrances);
+  EXPECT_EQ(ranges, expected);
+  size_t unique_bytes = 0;
+  for (const auto& [begin, end] : ranges) {
+    unique_bytes += end - begin;
+  }
+  EXPECT_EQ(ranges.size(), 17u);
+  EXPECT_EQ(unique_bytes, 32u);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllDungeonEntrances_PreflightsEveryRegularBeforeFirstWrite) {
+  std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  auto& first = entrances[kNumDungeonSpawnPoints];
+  first.room_ = 1;
+  first.MarkDirty();
+  auto& invalid = entrances[kNumDungeonSpawnPoints + 1];
+  invalid.room_ = kNumberOfRooms;
+  invalid.MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status = SaveAllDungeonEntrances(rom_.get(), entrances);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(first.dirty());
+  EXPECT_TRUE(invalid.dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllDungeonEntrances_RejectsOutOfBoundsRangeBeforeMutation) {
+  ASSERT_TRUE(rom_->LoadFromData(std::vector<uint8_t>(kEntranceMusic, 0)).ok());
+  std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  auto& entrance = entrances[kNumDungeonSpawnPoints];
+  entrance.room_ = 1;
   entrance.MarkDirty();
+  const auto before = rom_->vector();
 
-  auto status = SaveAllDungeonEntrances(rom_.get(), entrances);
-  ASSERT_TRUE(status.ok()) << status.message();
+  const absl::Status status = SaveAllDungeonEntrances(rom_.get(), entrances);
 
-  constexpr int kSpawnId = 2;
-  EXPECT_EQ(rom_->data()[kStartingEntranceroom + kSpawnId * 2], 0x34);
-  EXPECT_EQ(rom_->data()[kStartingEntranceXPosition + kSpawnId * 2], 0x56);
-  EXPECT_EQ(rom_->data()[kStartingEntranceYPosition + kSpawnId * 2], 0x89);
-  EXPECT_EQ(rom_->data()[kStartingEntranceBlockset + kSpawnId], 0x0A);
-  EXPECT_EQ(rom_->data()[kStartingEntranceScrollEdge + kSpawnId * 8 + 7], 0x19);
-  EXPECT_FALSE(entrance.dirty());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(entrance.dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllDungeonEntrances_RejectsDirtySpawnBeforeMutation) {
+  std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  auto& regular = entrances[kNumDungeonSpawnPoints];
+  regular.room_ = 1;
+  regular.MarkDirty();
+  auto& spawn = entrances[2];
+  spawn.room_ = 0x0034;
+  spawn.MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status = SaveAllDungeonEntrances(rom_.get(), entrances);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(spawn.dirty());
+  EXPECT_TRUE(regular.dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllCollision_DirtyRoomWithoutCustomRegionFails) {
