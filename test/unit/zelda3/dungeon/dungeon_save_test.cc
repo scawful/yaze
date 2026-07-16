@@ -1233,6 +1233,28 @@ TEST_F(DungeonSaveTest,
   EXPECT_TRUE(rooms[0].chests_dirty());
 }
 
+TEST_F(DungeonSaveTest,
+       SaveAllChests_DirtyRoomRejectsLengthOperandAliasBeforeMutation) {
+  SetupChestTable();
+  // End the 504-byte target one byte into the length operand so this covers
+  // the writable metadata alias without also reaching the pointer operand.
+  constexpr int kLengthOnlyAliasPc =
+      kChestsLengthPointer - kChestTableCapacityBytes + 1;
+  static_assert(kLengthOnlyAliasPc + kChestTableCapacityBytes ==
+                kChestsLengthPointer + 1);
+  WriteLongPointer(kChestsDataPointer1, PcToSnes(kLengthOnlyAliasPc));
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].MarkChestsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllChests(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[0].chests_dirty());
+}
+
 TEST_F(DungeonSaveTest, SaveAllChests_UnchangedDirtyRoomAvoidsRomWrite) {
   SetupChestTable();
   SeedChestEntry(/*room_id=*/0, /*chest_id=*/0x42, /*big=*/false);
