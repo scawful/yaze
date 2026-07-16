@@ -1685,9 +1685,10 @@ void Room::ParseObjectsFromLocation(int objects_location) {
       RoomObject r = RoomObject::DecodeObjectFromBytes(
           b1, b2, b3, static_cast<uint8_t>(layer));
 
-      LOG_DEBUG("Room", "Room %03X: Object 0x%03X at (%d,%d) layer=%d (%s)",
+      LOG_DEBUG("Room", "Room %03X: Object 0x%03X at (%d,%d) stream=%d (%s)",
                 room_id_, r.id_, r.x_, r.y_, layer,
-                layer == 0 ? "BG1" : (layer == 1 ? "BG2" : "BG3"));
+                layer == 0 ? "Primary"
+                           : (layer == 1 ? "BG2 overlay" : "BG1 overlay"));
 
       // Validate object ID before adding to the room
       // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
@@ -2537,6 +2538,19 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
   return bytes;
 }
 
+absl::Status ValidateSpecialObjectLayerSelector(const RoomObject& object,
+                                                int room_id,
+                                                const char* object_type) {
+  const uint8_t selector = object.GetLayerValue();
+  if (selector <= 1) {
+    return absl::OkStatus();
+  }
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "%s in room 0x%03X has invalid special layer selector %d; expected 0 "
+      "(upper/BG1) or 1 (lower/BG2)",
+      object_type, room_id, selector));
+}
+
 }  // namespace
 
 template <typename RoomLookup>
@@ -2567,6 +2581,12 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
         room != nullptr && (room->AreTorchesLoaded() || room->torches_dirty());
     if (!room_owned) {
       continue;
+    }
+    for (const auto& object : room->GetTileObjects()) {
+      if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
+        RETURN_IF_ERROR(
+            ValidateSpecialObjectLayerSelector(object, room_id, "Torch"));
+      }
     }
     owned_rooms[room_id] = true;
     any_owned_room = true;
@@ -2823,6 +2843,8 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     for (const auto& obj : room->GetTileObjects()) {
       if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
         continue;
+      RETURN_IF_ERROR(
+          ValidateSpecialObjectLayerSelector(obj, rid, "Pushable block"));
       PushableBlockEntry encoded_entry;
       encoded_entry.room_id = static_cast<uint16_t>(rid);
       encoded_entry.px = obj.x();
