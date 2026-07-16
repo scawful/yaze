@@ -1647,6 +1647,38 @@ TEST(ObjectDrawerRegistryReplayTest,
   }
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     FloorLightDrawsUnconditionalSizeInvariantGridOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{13}, uint8_t{15}}) {
+      SCOPED_TRACE(::testing::Message() << "layer=" << static_cast<int>(layer)
+                                        << " size=" << static_cast<int>(size));
+      auto trace = ReplayObjectTrace(/*object_id=*/0x0FF4, kX, kY, size, layer,
+                                     MakeSequentialTiles(64));
+      ASSERT_EQ(trace.size(), 64u);
+
+      for (int block = 0; block < 4; ++block) {
+        const int block_x = (block % 2) * 4;
+        const int block_y = (block / 2) * 4;
+        for (int tile = 0; tile < 16; ++tile) {
+          SCOPED_TRACE(::testing::Message()
+                       << "block=" << block << " tile=" << tile);
+          const auto& write = trace[block * 16 + tile];
+          EXPECT_EQ(write.x_tile, kX + block_x + tile / 4);
+          EXPECT_EQ(write.y_tile, kY + block_y + tile % 4);
+          EXPECT_EQ(write.tile_id, block * 16 + tile);
+          EXPECT_EQ(write.layer, static_cast<uint8_t>(layer));
+        }
+      }
+    }
+  }
+}
+
 TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
   ScopedCustomObjectsFlag disable_custom(false);
 

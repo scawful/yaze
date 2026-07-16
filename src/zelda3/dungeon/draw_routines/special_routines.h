@@ -141,11 +141,18 @@ void DrawHorizontalTurtleRockPipe(const DrawContext& ctx);
 void DrawLightBeamOnFloor(const DrawContext& ctx);
 
 /**
- * @brief Draw big floor light beam (8x8 footprint)
+ * @brief Draw state-gated big floor light beam active variant (8x8 footprint)
  *
- * ASM: RoomDraw_BigLightBeamOnFloor / RoomDraw_FloorLight ($01A7D3/$01A7DC)
+ * ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3)
  */
 void DrawBigLightBeamOnFloor(const DrawContext& ctx);
+
+/**
+ * @brief Draw unconditional floor light (8x8 footprint)
+ *
+ * ASM: RoomDraw_FloorLight ($01A7DC)
+ */
+void DrawFloorLight(const DrawContext& ctx);
 
 /**
  * @brief Draw boss shell 4x4

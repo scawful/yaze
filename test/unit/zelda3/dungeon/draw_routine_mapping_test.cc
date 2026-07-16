@@ -694,8 +694,17 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF0), DrawRoutineIds::kLightBeam);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF1), DrawRoutineIds::kBigLightBeam);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF2), DrawRoutineIds::kBossShell4x4);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFF4), DrawRoutineIds::kFloorLight);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF8),
             DrawRoutineIds::kGanonTriforceFloorDecor);
+
+  const DrawRoutineInfo* floor_light =
+      DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kFloorLight);
+  ASSERT_NE(floor_light, nullptr);
+  EXPECT_EQ(floor_light->base_width, 8);
+  EXPECT_EQ(floor_light->base_height, 8);
+  EXPECT_EQ(floor_light->min_tiles, 64);
+  EXPECT_FALSE(floor_light->draws_to_both_bgs);
 }
 
 }  // namespace zelda3

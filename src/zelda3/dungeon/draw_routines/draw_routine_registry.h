@@ -81,6 +81,9 @@ constexpr int kWaterHopStairsB = 120;
 constexpr int kDamFloodGate = 121;
 constexpr int kDownwardsEdge1x1_1to16plus7 = 122;
 
+// Late special routines.
+constexpr int kFloorLight = 123;
+
 // Corner routines (19, 35-37, 75-78)
 constexpr int kCorner4x4 = 19;
 constexpr int kCorner4x4_BothBG = 35;
