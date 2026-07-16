@@ -47,8 +47,16 @@ case "$cmd" in
           emit_preflight '{"ok":false,"required_water_fill_rooms_ok":true,"errors":[{"code":"ORACLE_COLLISION_WRITE_REGION_MISSING"}]}'
           exit 1
           ;;
-        malformed_membership)
+        membership_field_missing)
           emit_preflight '{"ok":true,"errors":[]}'
+          exit 0
+          ;;
+        membership_malformed_json)
+          printf '%s\n' '{"Dungeon Oracle Preflight":{"ok":true,"required_water_fill_rooms_ok":true'
+          exit 0
+          ;;
+        membership_wrong_type)
+          emit_preflight '{"ok":true,"required_water_fill_rooms_ok":"true","errors":[]}'
           exit 0
           ;;
         *)
@@ -80,6 +88,18 @@ case "$cmd" in
         d3_missing)
           emit_preflight '{"ok":false,"required_rooms_ok":false,"errors":[{"code":"ORACLE_REQUIRED_ROOM_MISSING_COLLISION"}]}'
           exit 1
+          ;;
+        d3_field_missing)
+          emit_preflight '{"ok":true,"errors":[]}'
+          exit 0
+          ;;
+        d3_malformed_json)
+          printf '%s\n' '{"Dungeon Oracle Preflight":{"ok":true,"required_rooms_ok":true'
+          exit 0
+          ;;
+        d3_wrong_type)
+          emit_preflight '{"ok":true,"required_rooms_ok":"true","errors":[]}'
+          exit 0
           ;;
         readiness_poison)
           emit_preflight '{"ok":false,"water_fill_table_ok":false,"required_rooms_ok":true,"errors":[{"code":"ORACLE_WATER_FILL_TABLE_INVALID"}]}'
@@ -266,9 +286,16 @@ simple_case structural_collision_poison 0 true true true true
 simple_case readiness_poison 0 true true true true
 simple_case membership_process_poison 0 true true true true
 
-# Missing/malformed focused fields fail closed. D3 readiness remains
-# informational but must likewise come from its explicit JSON field.
-simple_case malformed_membership 1 false false true true
+# Missing, malformed, and non-boolean focused membership fields fail closed.
+simple_case membership_field_missing 1 false false true true
+simple_case membership_malformed_json 1 false false true true
+simple_case membership_wrong_type 1 false false true true
+
+# D3 readiness remains informational, but its parser must also fail closed for
+# missing, malformed, and non-boolean fields.
 simple_case d3_missing 0 true true true false
+simple_case d3_field_missing 0 true true true false
+simple_case d3_malformed_json 0 true true true false
+simple_case d3_wrong_type 0 true true true false
 
 echo "PASS: oracle smoke focused-field parsing and patched-first discovery"
