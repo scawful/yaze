@@ -307,9 +307,10 @@ class HackManifest {
    * @brief Classify a ROM address by ownership.
    *
    * Checks in order:
-   * 1. Is it in an owned/shared/expansion bank?
-   * 2. Is it in a protected region (vanilla hook)?
-   * 3. Otherwise: vanilla safe
+   * 1. Is it in a protected region (vanilla hook)?
+   * 2. Is it in an exact editor-managed region?
+   * 3. Is it in an owned/shared/expansion bank?
+   * 4. Otherwise: vanilla safe
    */
   [[nodiscard]] AddressOwnership ClassifyAddress(uint32_t address) const;
 
@@ -325,6 +326,15 @@ class HackManifest {
    * @brief Check if an address is in a protected region.
    */
   [[nodiscard]] bool IsProtected(uint32_t address) const;
+
+  /**
+   * @brief Check if an address is explicitly managed by yaze.
+   *
+   * Protected regions still take precedence when an editor-managed range
+   * overlaps a hook. Call ClassifyAddress() when deciding whether a write is
+   * safe.
+   */
+  [[nodiscard]] bool IsEditorManaged(uint32_t address) const;
 
   /**
    * @brief Get the bank ownership for a given bank number.
@@ -394,6 +404,11 @@ class HackManifest {
 
   [[nodiscard]] const std::vector<ProtectedRegion>& protected_regions() const {
     return protected_regions_;
+  }
+
+  [[nodiscard]] const std::vector<SnesAddressRange>& editor_managed_regions()
+      const {
+    return editor_managed_regions_;
   }
 
   [[nodiscard]] const std::unordered_map<uint8_t, OwnedBank>& owned_banks()
@@ -474,6 +489,8 @@ class HackManifest {
 
  private:
   void Reset();
+  [[nodiscard]] const ProtectedRegion* FindProtectedRegion(
+      uint32_t address) const;
 
   bool loaded_ = false;
   int manifest_version_ = 0;
@@ -482,6 +499,10 @@ class HackManifest {
 
   // Protected regions (vanilla bank hooks) — sorted by start address
   std::vector<ProtectedRegion> protected_regions_;
+
+  // Exact manifest-v3 regions that remain yaze-owned inside otherwise owned
+  // banks. Sorted, disjoint, and stored as canonical LoROM addresses.
+  std::vector<SnesAddressRange> editor_managed_regions_;
 
   // Bank ownership lookup
   std::unordered_map<uint8_t, OwnedBank> owned_banks_;
